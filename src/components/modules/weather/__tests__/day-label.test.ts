@@ -26,6 +26,12 @@ describe('dayLabel', () => {
     expect(dayLabel('2026-03-16', 'en-US', enLabels)).toBe('Tmrw');
   });
 
+  it('uses weekday names for today and tomorrow when relative labels are disabled', () => {
+    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0));
+    expect(dayLabel('2026-03-15', 'en-US', enLabels, false)).toBe('Sun');
+    expect(dayLabel('2026-03-16', 'en-US', enLabels, false)).toBe('Mon');
+  });
+
   it('returns abbreviated day name for other dates', () => {
     vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0)); // Sunday
     // March 17, 2026 is a Tuesday

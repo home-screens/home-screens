@@ -121,6 +121,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   const showsHours = view === 'hourly' || view === 'combined';
   const showsDays = view === 'daily' || view === 'combined' || view === 'table';
   const showsCurrent = ['current', 'hourly', 'combined', 'compact'].includes(view);
+  const showsTitle = view === 'hourly' || view === 'daily' || view === 'table';
   // Alerts and precipitation views have no configurable data toggles
   const showsStats = !['alerts', 'precipitation'].includes(view);
 
@@ -142,6 +143,9 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ view: v })}
         options={availableViews}
       />
+      {showsTitle && (
+        <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
+      )}
       {/* Outside the showsStats guard on purpose: the alerts and precipitation
           views want the place name most ("which area is this alert for?"). */}
       <Toggle
@@ -221,6 +225,12 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
           value={c.daysToShow ?? 5}
           onChange={(v) => set({ daysToShow: Number(v) })}
         />
+      )}
+      {view === 'daily' && (
+        <>
+          <Toggle label={t('configSections.weather.showFeaturedDay')} checked={c.showFeaturedDay !== false} onChange={(v) => set({ showFeaturedDay: v })} />
+          <Toggle label={t('configSections.weather.showRelativeDayLabels')} checked={c.showRelativeDayLabels !== false} onChange={(v) => set({ showRelativeDayLabels: v })} />
+        </>
       )}
       {showsCurrent && (
         <Toggle label={t('configSections.weather.feelsLike')} checked={c.showFeelsLike !== false} onChange={(v) => set({ showFeelsLike: v })} />

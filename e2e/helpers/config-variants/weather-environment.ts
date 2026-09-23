@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, lacks, child, count } from './shared';
+import { has, lacks, child, count, localDate } from './shared';
 import { getRadarTileUrls } from '../stubs';
 
 /**
@@ -47,6 +47,20 @@ const WEATHER_HOURLY_4 = {
   forecast: [{ date: '2099-07-07', high: 78, low: 61, icon: 'clear-day', description: 'Sunny' }],
 };
 
+const WEATHER_DAILY = {
+  hourly: [],
+  forecast: [
+    { date: localDate(0), high: 78, low: 61, icon: 'clear-day', description: 'Sunny' },
+    { date: localDate(1), high: 80, low: 63, icon: 'partly-cloudy-day', description: 'Partly cloudy' },
+    { date: localDate(2), high: 82, low: 64, icon: 'cloudy', description: 'Cloudy' },
+  ],
+};
+
+const TODAY_WEEKDAY = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
+  .format(new Date(`${localDate(0)}T12:00:00`));
+const TOMORROW_WEEKDAY = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
+  .format(new Date(`${localDate(1)}T12:00:00`));
+
 export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
   // ================= WEATHER =================
 
@@ -80,6 +94,25 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
     type: 'weather', name: 'hours-to-show', kind: 'networked', stubKey: 'weather', stubBody: WEATHER_HOURLY_4,
     config: { view: 'hourly', hoursToShow: 2 },
     expect: lacks('72°', '90°'),
+  },
+  {
+    type: 'weather', name: 'hide-featured-day', kind: 'networked', stubKey: 'weather', stubBody: WEATHER_DAILY,
+    config: { view: 'daily', daysToShow: 3, showFeaturedDay: false },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-weather-featured-day]')).toHaveCount(0);
+      await expect(mod.locator('[data-weather-day]')).toHaveCount(3);
+      await expect(mod).toContainText('78°');
+    },
+  },
+  {
+    type: 'weather', name: 'weekday-labels', kind: 'networked', stubKey: 'weather', stubBody: WEATHER_DAILY,
+    config: { view: 'daily', daysToShow: 3, showRelativeDayLabels: false },
+    expect: async (mod) => {
+      await expect(mod).toContainText(TODAY_WEEKDAY);
+      await expect(mod).toContainText(TOMORROW_WEEKDAY);
+      await expect(mod).not.toContainText('Today');
+      await expect(mod).not.toContainText('Tmrw');
+    },
   },
   // showLocation adds a place-name header above the view, sourced from
   // settings.locationName (matrixSettings has coordinates but no name).

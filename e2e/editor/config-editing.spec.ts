@@ -1274,6 +1274,24 @@ test('weather: editing Days to Show (daily view) persists', async ({ page, reque
   expect((await moduleConfig(request, 'weather')).daysToShow).toBe(7);
 });
 
+test('weather: toggling daily forecast presentation persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('weather', { view: 'daily' }));
+
+  for (const name of ['Show title', 'Show large first day', 'Use Today and Tmrw labels']) {
+    const toggle = page.getByRole('switch', { name });
+    await expect(toggle).toBeChecked();
+    await autosaved(page, async () => {
+      await toggle.click();
+    });
+  }
+
+  expect(await moduleConfig(request, 'weather')).toMatchObject({
+    showTitle: false,
+    showFeaturedDay: false,
+    showRelativeDayLabels: false,
+  });
+});
+
 test('weather: toggling Hide When No Alerts on the alerts view persists', async ({ page, request }) => {
   // The alerts view + its "Hide When No Alerts" toggle only appear when the
   // effective provider advertises alert support. noaa does (and needs no key),

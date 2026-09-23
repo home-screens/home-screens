@@ -4415,6 +4415,8 @@
       "dataProvider": "Wetterquelle",
       "hoursToShow": "Anzuzeigende Stunden",
       "daysToShow": "Anzuzeigende Tage",
+      "showFeaturedDay": "Ersten Tag groß anzeigen",
+      "showRelativeDayLabels": "Heute und Morgen verwenden",
       "feelsLike": "Gefühlt",
       "highLow": "Höchst-/Tiefstwert",
       "precipitation": "Niederschlag",

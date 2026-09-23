@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 13,
+  "schemaVersion": 14,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -2917,6 +2917,28 @@
           },
           "description": "Number of forecast days (daily view)",
           "default": 5
+        },
+        {
+          "name": "showFeaturedDay",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Daily view: show the first forecast day as a larger featured block before the remaining days",
+          "defaultText": "true",
+          "default": true
+        },
+        {
+          "name": "showRelativeDayLabels",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Daily view: label the first two days as Today and Tmrw instead of weekday names",
+          "defaultText": "true",
+          "default": true
         },
         {
           "name": "showHighLow",
@@ -6977,7 +6999,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 13
+          "default": 14
         },
         {
           "name": "settings",

@@ -2051,6 +2051,18 @@ export interface WeatherConfig {
   showFeelsLike: boolean;
   /** Number of forecast days (daily view) */
   daysToShow: number;
+  /**
+   * Daily view: show the first forecast day as a larger featured block before the remaining days
+   *
+   * @default true
+   */
+  showFeaturedDay?: boolean;
+  /**
+   * Daily view: label the first two days as Today and Tmrw instead of weekday names
+   *
+   * @default true
+   */
+  showRelativeDayLabels?: boolean;
   /** Show high/low temperatures */
   showHighLow: boolean;
   /** Show precipitation amount */
