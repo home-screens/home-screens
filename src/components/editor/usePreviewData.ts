@@ -12,6 +12,7 @@ import type { PreviewData } from '@/lib/module-props';
 import { logger } from '@/lib/logger';
 import { readFetchError, setupError, type FetchError } from '@/lib/fetch-error';
 import { weatherProviderName } from '@/lib/weather-provider-names';
+import { previewWeatherProviders } from '@/lib/weather-preview-providers';
 
 const log = logger('preview-data');
 
@@ -47,19 +48,32 @@ export function usePreviewData(): PreviewData {
   const latitude = weatherSettings?.latitude;
   const longitude = weatherSettings?.longitude;
   const units = weatherSettings?.units;
+  const requestedProviderKey = useEditorStore((s) => previewWeatherProviders(s.config).join('|'));
+  const requestedProviders = useMemo(
+    () => new Set(requestedProviderKey.split('|').filter(Boolean)),
+    [requestedProviderKey],
+  );
 
-  // Configured-providers list from the shared secret-status store. The store
+  // Available providers from the shared secret-status store. The store
   // keeps `status` identity-stable across refetches unless the payload
-  // actually changed, so this memo — and the weather fan-out effect keyed on
-  // it below — only re-run when a key is really added or removed. Null until
-  // the first status arrives; with no good status ever, fall back to trying
-  // all providers (a failed refetch after a good one keeps the current list).
+  // actually changed. Only providers used by the global setting or a weather
+  // module are fetched: probing every keyless provider sends UK coordinates
+  // to region-limited NOAA, SMHI and Environment Canada endpoints.
   const { status: secrets, loading: secretsLoading, error: secretsError, hasStatus } = useSecretStatus();
   const statusUnknown = secretsError && !hasStatus;
   const providers = useMemo<string[] | null>(() => {
-    if (secretsLoading) return null;
-    if (statusUnknown) return ALL_PROVIDERS;
-    return ALL_PROVIDERS.filter((p) => NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]);
+    if (secretsLoading || requestedProviders.size === 0) return null;
+    return ALL_PROVIDERS.filter((p) =>
+      requestedProviders.has(p)
+      && (statusUnknown || NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]),
+    );
+  }, [requestedProviders, secrets, secretsLoading, statusUnknown]);
+  // Keyed providers with no key saved, judged from the key status alone. Not
+  // "keyed and not fetched": a provider with a key that no module uses yet is
+  // also not fetched, and must not read as missing its key when one switches to it.
+  const missingKeyProviders = useMemo<string[]>(() => {
+    if (secretsLoading || statusUnknown) return [];
+    return ALL_PROVIDERS.filter((p) => !NO_KEY_NEEDED.has(p) && !secrets[PROVIDER_KEY_MAP[p]]);
   }, [secrets, secretsLoading, statusUnknown]);
 
   useEffect(() => {
@@ -80,10 +94,8 @@ export function usePreviewData(): PreviewData {
       // Keyed providers without a key are never fetched (the route would only
       // answer 400), so the preview says so itself: the same setup card the
       // wall shows, here with a link to where the key goes.
-      for (const p of ALL_PROVIDERS) {
-        if (!providers!.includes(p) && !NO_KEY_NEEDED.has(p)) {
-          errors[p] = setupError('key', weatherProviderName(p), { page: 'weather' });
-        }
+      for (const p of missingKeyProviders) {
+        errors[p] = setupError('key', weatherProviderName(p), { page: 'weather' });
       }
       const results = await Promise.allSettled(
         providers!.map(async (p) => {
@@ -117,7 +129,7 @@ export function usePreviewData(): PreviewData {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [providers, provider, latitude, longitude, units]);
+  }, [providers, missingKeyProviders, provider, latitude, longitude, units]);
 
   // Calendar fetch window derived from the active display's screens — same
   // computation the kiosk uses, so month/week grid views preview with past

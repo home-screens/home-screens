@@ -154,6 +154,36 @@ describe('MetOfficeProvider', () => {
     });
   });
 
+  it('drops the completed prior-day row returned before today', async () => {
+    spy = mockMet({
+      daily: [
+        {
+          time: '2026-04-17T00:00:00Z',
+          dayMaxScreenTemperature: 11,
+          nightMinScreenTemperature: 4,
+          daySignificantWeatherCode: 7,
+        },
+        {
+          time: '2026-04-18T00:00:00Z',
+          dayMaxScreenTemperature: 18,
+          nightMinScreenTemperature: 9,
+          daySignificantWeatherCode: 1,
+        },
+      ],
+      hourly: [{ time: '2026-04-18T09:00:00Z', windSpeed10m: 5 }],
+    });
+
+    const out = await new MetOfficeProvider('key').getForecast(
+      51.865,
+      -2.246,
+      'metric',
+      'Europe/London',
+    );
+
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ date: '2026-04-18', windSpeed: 18 });
+  });
+
   it('getForecast falls back to the night weather code when the day code is absent', async () => {
     spy = mockMet({
       daily: [

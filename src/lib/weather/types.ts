@@ -53,7 +53,7 @@ export interface WeatherAlert {
 
 export interface WeatherProvider {
   getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]>;
-  getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]>;
+  getForecast(lat: number, lon: number, units: string, timezone?: string): Promise<ForecastDay[]>;
   getMinutely?(lat: number, lon: number, units: string): Promise<MinutelyPrecip[]>;
   getAlerts?(lat: number, lon: number, units: string): Promise<WeatherAlert[]>;
 }

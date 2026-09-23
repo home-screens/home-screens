@@ -222,6 +222,12 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
           onChange={(v) => set({ daysToShow: Number(v) })}
         />
       )}
+      {view === 'daily' && (
+        <>
+          <Toggle label={t('configSections.weather.showFeaturedDay')} checked={c.showFeaturedDay !== false} onChange={(v) => set({ showFeaturedDay: v })} />
+          <Toggle label={t('configSections.weather.showRelativeDayLabels')} checked={c.showRelativeDayLabels !== false} onChange={(v) => set({ showRelativeDayLabels: v })} />
+        </>
+      )}
       {showsCurrent && (
         <Toggle label={t('configSections.weather.feelsLike')} checked={c.showFeelsLike !== false} onChange={(v) => set({ showFeelsLike: v })} />
       )}

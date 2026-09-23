@@ -727,6 +727,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       hoursToShow: 8,
       showFeelsLike: true,
       daysToShow: 5,
+      showFeaturedDay: true,
+      showRelativeDayLabels: true,
       showHighLow: true,
       showPrecipitation: true,
       showPrecipAmount: false,

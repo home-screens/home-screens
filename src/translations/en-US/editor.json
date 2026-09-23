@@ -4416,6 +4416,8 @@
       "dataProvider": "Weather source",
       "hoursToShow": "Hours to Show",
       "daysToShow": "Days to Show",
+      "showFeaturedDay": "Show large first day",
+      "showRelativeDayLabels": "Use Today and Tmrw labels",
       "feelsLike": "Feels Like",
       "highLow": "High / Low",
       "precipitation": "Precipitation",

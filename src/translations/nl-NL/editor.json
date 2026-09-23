@@ -4416,6 +4416,8 @@
       "dataProvider": "Weerbron",
       "hoursToShow": "Aantal uren tonen",
       "daysToShow": "Aantal dagen tonen",
+      "showFeaturedDay": "Eerste dag groot tonen",
+      "showRelativeDayLabels": "Vandaag en morgen gebruiken",
       "feelsLike": "Gevoelstemperatuur",
       "highLow": "Hoog / laag",
       "precipitation": "Neerslag",

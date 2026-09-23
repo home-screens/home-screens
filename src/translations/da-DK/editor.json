@@ -4416,6 +4416,8 @@
       "dataProvider": "Vejrkilde",
       "hoursToShow": "Timer der vises",
       "daysToShow": "Dage der vises",
+      "showFeaturedDay": "Vis første dag stort",
+      "showRelativeDayLabels": "Brug I dag og I morgen",
       "feelsLike": "Føles som",
       "highLow": "Maks. / min.",
       "precipitation": "Nedbør",

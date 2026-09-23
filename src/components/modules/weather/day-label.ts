@@ -14,9 +14,10 @@ export function dayLabel(
   dateStr: string,
   locale: string,
   labels: { today: string; tomorrowShort: string },
+  showRelativeLabel = true,
 ): string {
   const date = new Date(dateStr + 'T12:00:00');
-  if (isToday(date)) return labels.today;
-  if (isTomorrow(date)) return labels.tomorrowShort;
+  if (showRelativeLabel && isToday(date)) return labels.today;
+  if (showRelativeLabel && isTomorrow(date)) return labels.tomorrowShort;
   return formatDateSync(date, 'EEE', { locale });
 }

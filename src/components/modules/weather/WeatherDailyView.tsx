@@ -19,6 +19,9 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
   const tWeather = useTranslate('weather');
   const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
   const days = forecast.slice(0, config.daysToShow);
+  const showFeaturedDay = config.showFeaturedDay !== false;
+  const showRelativeDayLabels = config.showRelativeDayLabels !== false;
+  const regularDays = showFeaturedDay ? days.slice(1) : days;
   const windUnit = windUnitLabel(units);
   const showHighLow = config.showHighLow !== false;
 
@@ -30,7 +33,8 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
     scaledFontSize,
     [
       days.length, showHighLow, config.showPrecipitation !== false, config.showPrecipAmount,
-      config.showHumidity, config.showWind, config.showTitle !== false,
+      config.showHumidity, config.showWind, config.showTitle !== false, showFeaturedDay,
+      showRelativeDayLabels,
     ].join('|'),
   );
 
@@ -49,39 +53,43 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
           <WeatherEmptyState message={t('weather.noForecastData')} />
         ) : (
           <div className="flex items-center gap-[0.5em]">
-            <div className="flex flex-col items-center shrink-0">
-              <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, formattingLocale, dayLabels)}</span>
-              <div className="flex items-center gap-[0.2em]">
-                {(() => { const Icon = getWeatherIcon(days[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(days[0].icon, tWeather)} role="img" />; })()}
-                {showHighLow && (
-                  <div className="flex flex-col">
-                    {/* leading-tight: the 2em high and 1.2em low reserved 1.5x line
-                        boxes, which is most of this column's wasted height. */}
-                    <span className="font-light leading-tight" style={{ fontSize: '2em' }}>{Math.round(days[0].high)}&deg;</span>
-                    <span className="leading-tight" style={{ fontSize: '1.2em', opacity: TEXT_OPACITY.dim }}>{Math.round(days[0].low)}&deg;</span>
+            {showFeaturedDay && (
+              <>
+                <div data-weather-featured-day className="flex flex-col items-center shrink-0">
+                  <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, formattingLocale, dayLabels, showRelativeDayLabels)}</span>
+                  <div className="flex items-center gap-[0.2em]">
+                    {(() => { const Icon = getWeatherIcon(days[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(days[0].icon, tWeather)} role="img" />; })()}
+                    {showHighLow && (
+                      <div className="flex flex-col">
+                        {/* leading-tight: the 2em high and 1.2em low reserved 1.5x line
+                            boxes, which is most of this column's wasted height. */}
+                        <span className="font-light leading-tight" style={{ fontSize: '2em' }}>{Math.round(days[0].high)}&deg;</span>
+                        <span className="leading-tight" style={{ fontSize: '1.2em', opacity: TEXT_OPACITY.dim }}>{Math.round(days[0].low)}&deg;</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="flex flex-col items-center gap-[0.05em]">
-                <WeatherStat icon={CloudRain} value={days[0].precipProbability} unit="%" visible={config.showPrecipitation !== false} fontSize="0.85em" />
-                <WeatherStat icon={Droplets} value={days[0].humidity} unit="%" visible={config.showHumidity} fontSize="0.85em" />
-                <WeatherStat icon={Wind} value={days[0].windSpeed} unit={` ${windUnit}`} visible={config.showWind} fontSize="0.85em" />
-              </div>
-            </div>
+                  <div className="flex flex-col items-center gap-[0.05em]">
+                    <WeatherStat icon={CloudRain} value={days[0].precipProbability} unit="%" visible={config.showPrecipitation !== false} fontSize="0.85em" />
+                    <WeatherStat icon={Droplets} value={days[0].humidity} unit="%" visible={config.showHumidity} fontSize="0.85em" />
+                    <WeatherStat icon={Wind} value={days[0].windSpeed} unit={` ${windUnit}`} visible={config.showWind} fontSize="0.85em" />
+                  </div>
+                </div>
 
-            <div className="self-stretch w-px opacity-30 bg-current shrink-0" />
+                <div className="self-stretch w-px opacity-30 bg-current shrink-0" />
+              </>
+            )}
 
             {/* Upcoming days. No flex-wrap: a wrapped day used to land outside the
                 box entirely. Overflow is handled by scaling the view down instead,
                 and justify-between keeps that overflow on the end edge where the
                 fit measurement can see it. */}
             <div className="flex flex-1 min-w-0 items-center justify-between gap-[0.4em]">
-              {days.slice(1).map((day, i) => {
+              {regularDays.map((day, i) => {
                 const Icon = getWeatherIcon(day.icon, config.iconSet);
                 return (
-                  <div key={i} className="flex flex-col items-center gap-[0.1em] shrink-0">
+                  <div key={i} data-weather-day={day.date} className="flex flex-col items-center gap-[0.1em] shrink-0">
                     <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-                      {dayLabel(day.date, formattingLocale, dayLabels)}
+                      {dayLabel(day.date, formattingLocale, dayLabels, showRelativeDayLabels)}
                     </span>
                     <Icon size="1.8em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                     <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />

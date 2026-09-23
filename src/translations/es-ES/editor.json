@@ -4416,6 +4416,8 @@
       "dataProvider": "Fuente del tiempo",
       "hoursToShow": "Horas a mostrar",
       "daysToShow": "Días a mostrar",
+      "showFeaturedDay": "Mostrar el primer día en grande",
+      "showRelativeDayLabels": "Usar Hoy y Mañana",
       "feelsLike": "Sensación térmica",
       "highLow": "Máx. / mín.",
       "precipitation": "Precipitación",
