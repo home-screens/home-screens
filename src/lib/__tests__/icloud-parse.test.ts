@@ -36,6 +36,8 @@ describe('detectICloudSource with the new album format', () => {
 
   it('still classifies the legacy album and iCloud Link', () => {
     expect(detectICloudSource(LEGACY_ALBUM)).toBe('album');
+    expect(detectICloudSource('https://www.icloud.com/sharedalbum/#D20v3Co2e_yw_F4HuHxf-CG9_vgCAEQ')).toBe('album');
+    expect(detectICloudSource('0f0a3hdUxHZ0-C8uQ7Dq1JxLw')).toBe('link');
     expect(detectICloudSource('https://share.icloud.com/photos/0f0a3hdUxHZ0-C8uQ7Dq1JxLw')).toBe('link');
   });
 });

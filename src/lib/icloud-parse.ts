@@ -16,6 +16,15 @@
 /**
  * Extract the album token from a share link (icloud.com/sharedalbum/#TOKEN)
  * or accept a bare token. Returns null when nothing token-shaped is found.
+ *
+ * Older album tokens are pure base62 (B125ON9t3mbLNC); newer ones are longer
+ * and URL-safe base64 with '-' and '_' (D20v3Co2e_yw_F4H…). Both resolve
+ * through the same sharedstreams backend, and the partition math in
+ * getICloudBaseUrl reads only the leading chars, which stay base62. The wider
+ * charset is only taken from a real /sharedalbum/ link: a bare token must stay
+ * pure base62 (detectICloudSource tells a bare album token from an iCloud Link
+ * short GUID by exactly that charset), and any other URL's #fragment must not
+ * start looking like an album.
  */
 export function parseICloudAlbumToken(input: string): string | null {
   const trimmed = input.trim();
@@ -25,7 +34,9 @@ export function parseICloudAlbumToken(input: string): string | null {
     // Sub-album share links append ";suffix" — the base token still resolves.
     .split(';')[0]
     .trim();
-  return /^[A-Za-z0-9]{6,128}$/.test(candidate) ? candidate : null;
+  const fromAlbumLink = hashIndex >= 0 && trimmed.slice(0, hashIndex).includes('sharedalbum');
+  const tokenShape = fromAlbumLink ? /^[A-Za-z0-9_-]{6,128}$/ : /^[A-Za-z0-9]{6,128}$/;
+  return tokenShape.test(candidate) ? candidate : null;
 }
 
 /**
@@ -84,7 +95,7 @@ export function parseICloudLinkToken(input: string): string | null {
  * forms — a #TOKEN fragment on /sharedalbum/ (legacy) or /shared/album/TOKEN
  * (new CloudKit format) — and both are live "album" sources. iCloud Links live
  * at share.icloud.com or /photos/#/icloudlinks/. Bare tokens disambiguate by
- * charset: album tokens are pure base62, link short-GUIDs contain '-'/'_'.
+ * charset: bare album tokens are pure base62, link short-GUIDs contain '-'/'_'.
  */
 export function detectICloudSource(url: string): 'album' | 'link' | null {
   // New-format shared albums (photos.icloud.com/shared/album/…) are live

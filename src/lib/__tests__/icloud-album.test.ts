@@ -103,6 +103,17 @@ describe('parseICloudAlbumToken', () => {
       .toBe('B12AbCdEf');
   });
 
+  it('accepts the newer URL-safe base64 token from a share link', () => {
+    const token = 'D20v3Co2e_yw_F4HuHxf-CG9_vgCAEQARogaoJzshFVhowQuFHzlnWDiM0bWgl5JpBS53glgiYNxH8';
+    expect(parseICloudAlbumToken(`https://www.icloud.com/sharedalbum/#${token}`)).toBe(token);
+  });
+
+  it('keeps bare tokens and other URLs\' fragments to pure base62', () => {
+    // A bare '-'/'_' token is an iCloud Link short GUID, not an album.
+    expect(parseICloudAlbumToken('0f0a3hdUxHZ0-C8uQ7Dq1JxLw')).toBeNull();
+    expect(parseICloudAlbumToken('https://cdn.example.com/clip.mp4#t_10-20')).toBeNull();
+  });
+
   it('rejects empty and non-token input', () => {
     expect(parseICloudAlbumToken('')).toBeNull();
     expect(parseICloudAlbumToken('   ')).toBeNull();
@@ -116,6 +127,12 @@ describe('getICloudBaseUrl', () => {
     // '1','2' → 1*62+2 = 64
     expect(getICloudBaseUrl('B125ON9t3mbLNC'))
       .toBe('https://p64-sharedstreams.icloud.com/B125ON9t3mbLNC/sharedstreams/');
+  });
+
+  it('derives the partition for a newer URL-safe base64 token', () => {
+    // 'D' prefix, '2','0' → 2*62+0 = 124 (the host Apple's own page calls)
+    expect(getICloudBaseUrl('D20v3Co2e_yw_F4H'))
+      .toBe('https://p124-sharedstreams.icloud.com/D20v3Co2e_yw_F4H/sharedstreams/');
   });
 
   it('uses a single base62 char for "A" tokens and zero-pads', () => {
