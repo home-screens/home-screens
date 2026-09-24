@@ -197,6 +197,14 @@ test('a routine created through the form persists and survives a reload', async 
       steps: [['Snack', 30, false], ['Homework', 60, true]],
     }]);
 
+  // Closing the sheet gives its history entry back with history.back(), which
+  // runs async. The routine can reach disk before that traversal lands, and a
+  // goto that starts under it is cancelled (net::ERR_ABORTED under a loaded
+  // parallel run), so reload only once the entry is gone.
+  await expect
+    .poll(() => page.evaluate(() => (window.history.state as { hsSheet?: string } | null)?.hsSheet ?? null))
+    .toBeNull();
+
   // Routines are family data on disk, not editor config — a fresh load shows it.
   await openTimers(page);
   await expect(page.getByText('After school')).toBeVisible();
