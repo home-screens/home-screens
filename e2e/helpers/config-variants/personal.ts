@@ -1,7 +1,7 @@
 import { E2E_TIMETABLE_MEMBER_IDS, E2E_TIMETABLE_SEED_MEMBER_IDS, E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { has, lacks, child, redStyle } from './shared';
+import { has, lacks, child, redStyle, matches } from './shared';
 
 /** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
 
@@ -83,6 +83,8 @@ const GREETING_RAIN = {
   hourly: [{ time: '2099-07-07T12:00:00Z', temp: 60, feelsLike: 58, humidity: 90, icon: 'cloud-rain', description: 'Rain showers', windSpeed: 10, precipProbability: 90 }],
   forecast: [{ date: '2099-07-07', high: 64, low: 52, icon: 'cloud-rain', description: 'Rain' }],
 };
+/** The rain line for every part of the day (greeting.weather / weatherEvening / weatherNight). */
+const RAIN_SUFFIX = /Rainy day ahead|Rainy evening ahead|Rain tonight/;
 
 // --- Chore ordering seed ------------------------------------------------------
 // Two chores seeded EVENING-first so time-of-day sorting and seed order differ:
@@ -266,11 +268,12 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
     // weatherAware consumes the weather module's 'weather.conditions' event-bus
     // publish (derive.ts maps a rainy description → 'rain' → the greeting
     // suffix). A companion weather module on the same screen, fed a rainy stub,
-    // is the real production mechanism end-to-end.
+    // is the real production mechanism end-to-end. The display runs on the real
+    // clock, so the suffix is whichever rain line fits the hour (RAIN_SUFFIX).
     type: 'greeting', name: 'weather-aware-suffix', kind: 'networked', stubKey: 'weather', stubBody: GREETING_RAIN,
     companions: [{ type: 'weather', config: { view: 'current' } }],
     config: { name: 'E2E GREET', weatherAware: true },
-    expect: has('Rainy day ahead'),
+    expect: matches(RAIN_SUFFIX),
   },
   {
     // Same rainy publish, weatherAware off → no suffix.
@@ -279,7 +282,7 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
     config: { name: 'E2E GREET', weatherAware: false },
     expect: async (mod) => {
       await has('E2E GREET')(mod);
-      await expect(mod).not.toContainText('Rainy day ahead');
+      await expect(mod).not.toContainText(RAIN_SUFFIX);
     },
   },
 
