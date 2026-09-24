@@ -9,6 +9,7 @@ vi.mock('@/lib/google-auth', () => ({
 const mockEventsList = vi.fn();
 const mockCalendarListList = vi.fn();
 const mockColorsGet = vi.fn();
+const mockCalendarsGet = vi.fn();
 
 vi.mock('googleapis', () => ({
   google: {
@@ -16,6 +17,7 @@ vi.mock('googleapis', () => ({
       events: { list: mockEventsList },
       calendarList: { list: mockCalendarListList },
       colors: { get: mockColorsGet },
+      calendars: { get: mockCalendarsGet },
     }),
   },
 }));
@@ -47,6 +49,12 @@ function setupColors(eventColors: Record<string, { background: string }> = {}) {
   });
 }
 
+function setupEventLabels(labels: { id: string; backgroundColor: string }[]) {
+  mockCalendarsGet.mockResolvedValue({
+    data: { labelProperties: { eventLabels: labels } },
+  });
+}
+
 function setupEvents(calendarId: string, events: Record<string, unknown>[]) {
   mockEventsList.mockImplementation(async (params: { calendarId: string }) => {
     if (params.calendarId === calendarId) {
@@ -63,6 +71,7 @@ function setupEvents(calendarId: string, events: Record<string, unknown>[]) {
 describe('fetchCalendarEvents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setupEventLabels([]);
   });
 
   it('throws a SetupError when not authenticated', async () => {
@@ -156,6 +165,76 @@ describe('fetchCalendarEvents', () => {
 
     const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
     expect(events[0].calendarColor).toBe('#4285f4');
+  });
+
+  // Google's 24-color picker (June 2026) marks every color beyond the original
+  // 11, and every custom color, with only an eventLabelId.
+  it('uses the event label color when the event has no colorId', async () => {
+    setupAuth();
+    setupCalendarList([{ id: 'cal1', backgroundColor: '#b39ddb' }]);
+    setupColors({ '11': { background: '#dc2127' } });
+    setupEventLabels([{ id: 'label-radicchio', backgroundColor: '#ad1457' }]);
+    setupEvents('cal1', [
+      {
+        id: 'evt5',
+        summary: 'Radicchio',
+        start: { dateTime: '2026-01-20T09:00:00Z' },
+        end: { dateTime: '2026-01-20T10:00:00Z' },
+        eventLabelId: 'label-radicchio',
+      },
+    ]);
+
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    expect(mockCalendarsGet).toHaveBeenCalledWith({ calendarId: 'cal1' });
+    expect(events[0].calendarColor).toBe('#ad1457');
+  });
+
+  it('prefers the label color over the legacy colorId palette', async () => {
+    setupAuth();
+    setupCalendarList([{ id: 'cal1', backgroundColor: '#b39ddb' }]);
+    setupColors({ '11': { background: '#dc2127' } });
+    setupEventLabels([{ id: 'label-tomato', backgroundColor: '#d50000' }]);
+    setupEvents('cal1', [
+      {
+        id: 'evt6',
+        summary: 'Tomato',
+        start: { dateTime: '2026-01-20T09:00:00Z' },
+        end: { dateTime: '2026-01-20T10:00:00Z' },
+        colorId: '11',
+        eventLabelId: 'label-tomato',
+      },
+    ]);
+
+    const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    expect(events[0].calendarColor).toBe('#d50000');
+  });
+
+  it('keeps colorId and calendar colors when the label lookup fails', async () => {
+    setupAuth();
+    setupCalendarList([{ id: 'cal1', backgroundColor: '#b39ddb' }]);
+    setupColors({ '11': { background: '#dc2127' } });
+    mockCalendarsGet.mockRejectedValue(new Error('forbidden'));
+    setupEvents('cal1', [
+      {
+        id: 'evt7',
+        summary: 'Old color',
+        start: { dateTime: '2026-01-20T09:00:00Z' },
+        end: { dateTime: '2026-01-20T10:00:00Z' },
+        colorId: '11',
+        eventLabelId: 'label-tomato',
+      },
+      {
+        id: 'evt8',
+        summary: 'Label only',
+        start: { dateTime: '2026-01-21T09:00:00Z' },
+        end: { dateTime: '2026-01-21T10:00:00Z' },
+        eventLabelId: 'label-radicchio',
+      },
+    ]);
+
+    const { events, results } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+    expect(results).toEqual([{ id: 'cal1', name: 'cal1', ok: true }]);
+    expect(events.map((e) => e.calendarColor)).toEqual(['#dc2127', '#b39ddb']);
   });
 
   it("tags events from Google's built-in Birthdays calendar with kind: 'birthday'", async () => {

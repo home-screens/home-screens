@@ -46,7 +46,8 @@ export async function fetchCalendarEvents(
     }
   }
 
-  // Map event colorId values to their actual hex colors
+  // Map legacy event colorId values to their hex colors. Only the original
+  // 11 colors still carry a colorId; see `fetchEventLabelColors` for the rest.
   const eventColorMap = new Map<string, string>();
   for (const [id, color] of Object.entries(colorsRes.data.event ?? {})) {
     eventColorMap.set(id, color.background ?? DEFAULT_EVENT_COLOR);
@@ -65,6 +66,7 @@ export async function fetchCalendarEvents(
       // calendar over a wide grid window loses its last weeks and those day
       // cells render empty. Bounded by the same safety cap the route applies
       // to the merged feed, so one pathological calendar can't page forever.
+      const labelColorsPromise = fetchEventLabelColors(calendar, calendarId);
       const raw: calendar_v3.Schema$Event[] = [];
       let pageToken: string | undefined;
       do {
@@ -81,6 +83,7 @@ export async function fetchCalendarEvents(
         pageToken = response.data.nextPageToken ?? undefined;
       } while (pageToken && raw.length < CALENDAR_FETCH_MAX_EVENTS);
 
+      const labelColors = await labelColorsPromise;
       const calColor = calendarColorMap.get(calendarId) ?? DEFAULT_EVENT_COLOR;
       const calName = calendarNameMap.get(calendarId) ?? calendarId;
       const items = hideDeclined
@@ -97,9 +100,12 @@ export async function fetchCalendarEvents(
         location: event.location ?? undefined,
         description: event.description ?? undefined,
         allDay: !event.start?.dateTime,
-        calendarColor: event.colorId
-          ? eventColorMap.get(event.colorId) ?? calColor
-          : calColor,
+        // Label first: it is the color Google's own apps show, and the legacy
+        // palette still answers with older shades for the same 11 colors.
+        calendarColor:
+          (event.eventLabelId ? labelColors.get(event.eventLabelId) : undefined)
+          ?? (event.colorId ? eventColorMap.get(event.colorId) : undefined)
+          ?? calColor,
         sourceId: calendarId,
         sourceName: calName,
         ...(calendarId === GOOGLE_BIRTHDAYS_CALENDAR_ID ? { kind: 'birthday' as const } : {}),
@@ -116,4 +122,28 @@ export async function fetchCalendarEvents(
   // Not sorted here: the calendar route sorts the merged feed of every
   // source on the household's clock, which this module does not know.
   return { events, results };
+}
+
+/**
+ * Event label colors for one calendar, keyed by `eventLabelId`. Since June
+ * 2026 Google colors events with labels: 24 default colors plus custom ones.
+ * The original 11 still set `colorId` as well, but every other color arrives
+ * with only an `eventLabelId`, whose color is defined on the calendar itself
+ * (`calendars.get`, not `calendarList`). A failed lookup costs only the label
+ * colors: those events fall back to `colorId` or the calendar's color.
+ */
+async function fetchEventLabelColors(
+  calendar: calendar_v3.Calendar,
+  calendarId: string,
+): Promise<Map<string, string>> {
+  const colors = new Map<string, string>();
+  try {
+    const res = await calendar.calendars.get({ calendarId });
+    for (const label of res.data.labelProperties?.eventLabels ?? []) {
+      if (label.id && label.backgroundColor) colors.set(label.id, label.backgroundColor);
+    }
+  } catch (err) {
+    log.warn(`Google event label colors unavailable for ${calendarId}`, err);
+  }
+  return colors;
 }
