@@ -7,6 +7,8 @@ import editor from '@/translations/en-US/editor.json';
 import modules from '@/translations/en-US/modules.json';
 import { I18nProvider } from '@/i18n/provider';
 import type { TimetableData, TimetableSource } from '@/types/timetables';
+import type { ScreenConfiguration } from '@/types/config';
+import { useEditorStore } from '@/stores/editor-store';
 
 vi.mock('@/lib/editor-fetch', () => ({ isSessionExpired: () => false }));
 
@@ -100,6 +102,19 @@ describe('SourcePanel', () => {
     expect(screen.getByRole('button', { name: 'Import again' })).toBeTruthy();
     expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe('true');
     expect(screen.getByText(/Only this week is replaced/)).toBeTruthy();
+  });
+
+  it("dates the read on the household's calendar, not the laptop's", () => {
+    // 9 PM on September 3 in Chicago is already September 4 in UTC and further east.
+    useEditorStore.setState({
+      config: { settings: { timezone: 'America/Chicago' } } as unknown as ScreenConfiguration,
+    });
+    try {
+      render({ importedAt: '2026-09-04T02:00:00.000Z', lastCheckedAt: minutesAgo(5) });
+      expect(screen.getByText(/Read September 3/)).toBeTruthy();
+    } finally {
+      useEditorStore.setState({ config: null });
+    }
   });
 
   it('says the first check has not happened yet rather than leaving the line blank', () => {

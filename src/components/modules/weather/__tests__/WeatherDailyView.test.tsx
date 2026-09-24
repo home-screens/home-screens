@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen } from '@testing-library/react';
 import { I18nProvider } from '@/i18n/provider';
 import enUSCore from '@/translations/en-US/core.json';
 import enUSModules from '@/translations/en-US/modules.json';
@@ -24,7 +24,7 @@ const forecast: ForecastDay[] = [
   { date: '2026-03-17', high: 82, low: 64, icon: 'cloudy', description: 'Cloudy' },
 ];
 
-function renderDaily(overrides: Partial<WeatherConfig> = {}) {
+function renderDaily(overrides: Partial<WeatherConfig> = {}, timezone?: string) {
   const config = {
     view: 'daily',
     iconSet: 'outline',
@@ -37,7 +37,7 @@ function renderDaily(overrides: Partial<WeatherConfig> = {}) {
 
   return render(
     <I18nProvider locale="en-US" blob={{ core: enUSCore, modules: enUSModules, weather: enUSWeather }}>
-      <WeatherDailyView config={config} hourly={[]} forecast={forecast} units="imperial" scaledFontSize={16} />
+      <WeatherDailyView config={config} hourly={[]} forecast={forecast} units="imperial" timezone={timezone} scaledFontSize={16} timeFormat="12h" />
     </I18nProvider>,
   );
 }
@@ -68,5 +68,39 @@ describe('WeatherDailyView day presentation', () => {
     expect(screen.getByText('Mon')).toBeTruthy();
     expect(screen.queryByText('Today')).toBeNull();
     expect(screen.queryByText('Tmrw')).toBeNull();
+  });
+
+  // "Today" is the household's day, not the machine's. Run under TZ=UTC and
+  // TZ=America/Chicago: each case puts the household on a different calendar
+  // day from at least one of them.
+  const labelOf = (date: string) => document.querySelector(`[data-weather-day="${date}"] span`)?.textContent;
+
+  it('keeps today on the household day in a Chicago evening, when UTC is already tomorrow', () => {
+    vi.setSystemTime(new Date('2026-03-16T01:00:00Z')); // 8 pm Sunday in Chicago
+    renderDaily({ showFeaturedDay: false } as Partial<WeatherConfig>, 'America/Chicago');
+
+    expect(labelOf('2026-03-15')).toBe('Today');
+    expect(labelOf('2026-03-16')).toBe('Tmrw');
+    expect(labelOf('2026-03-17')).toBe('Tue');
+  });
+
+  it('moves to the new day just after midnight in Berlin, while UTC and Chicago are still on yesterday', () => {
+    vi.setSystemTime(new Date('2026-03-14T23:30:00Z')); // 00:30 Sunday in Berlin
+    renderDaily({ showFeaturedDay: false } as Partial<WeatherConfig>, 'Europe/Berlin');
+
+    expect(labelOf('2026-03-15')).toBe('Today');
+    expect(labelOf('2026-03-16')).toBe('Tmrw');
+  });
+
+  it('flips the labels at the household midnight without new forecast data', () => {
+    vi.setSystemTime(new Date('2026-03-16T04:58:00Z')); // 11:58 pm Sunday in Chicago
+    renderDaily({ showFeaturedDay: false } as Partial<WeatherConfig>, 'America/Chicago');
+    expect(labelOf('2026-03-15')).toBe('Today');
+
+    act(() => { vi.advanceTimersByTime(3 * 60_000); });
+
+    expect(labelOf('2026-03-15')).toBe('Sun');
+    expect(labelOf('2026-03-16')).toBe('Today');
+    expect(labelOf('2026-03-17')).toBe('Tmrw');
   });
 });

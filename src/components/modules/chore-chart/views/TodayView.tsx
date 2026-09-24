@@ -6,10 +6,10 @@ import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { ChoreChartConfig, ChoreTimeOfDay} from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
 import { bonusDisplayOrder, type BonusItem } from '@/lib/chore-bonus';
-import { TIME_OF_DAY_META, getCurrentTimeOfDay, parseISO, todayStr } from '../types';
+import { TIME_OF_DAY_META, getCurrentTimeOfDay, parseISO } from '../types';
 import { buildChoreRows, getUniqueInitials, type ChoreRow } from '@/lib/chore-rows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
-import { createTZDate, formatDateInTZ } from '@/lib/timezone';
+import { createTZDate, formatDateInTZ, isoDateInTZ } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import MemberDot from '../../shared/MemberDot';
@@ -59,16 +59,17 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
   const tzNow = createTZDate(timezone);
   const currentTime = getCurrentTimeOfDay(tzNow.getHours());
 
-  // With no time zone set, the hub's day, as the chores listed are.
+  // The hub's day, as the chores listed are; the household's own clock only
+  // until the hub has answered.
+  const today = data.today ?? isoDateInTZ(new Date(), timezone);
   // Blank until the hub has said which day it is (see the wall's header).
-  const dayName = data.todayKnown === false ? '\u00a0' : formatDateInTZ(parseISO(data.today ?? todayStr()), undefined, { weekday: 'long' }, locale);
+  const dayName = data.todayKnown === false ? '\u00a0' : formatDateInTZ(parseISO(today), undefined, { weekday: 'long' }, locale);
   // A "not today" is owed by nobody, so it is out of the progress sum.
   const owed = todayAssignments.filter((a) => !a.isSkipped);
   const totalAssigned = owed.length;
   const totalDone = owed.filter((a) => a.isCompleted).length;
   // Grabbed first, finished last: the order the wall's band uses.
   const todayBonus = bonusDisplayOrder(data.todayBonus ?? []);
-  const today = data.today ?? todayStr();
   const formatDay = (iso: string) => parseISO(iso).toLocaleDateString(locale, { weekday: 'long' });
 
   const memberMap = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useId, type ComponentType } from 'react';
+import { useEffect, useId, type ComponentType } from 'react';
 import type { CountdownConfig, CountdownView, ModuleStyle } from '@/types/config';
 import { usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useRealClock } from '@/hooks/useTZClock';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { ModuleEmptyState } from '../ModuleStates';
@@ -24,7 +25,9 @@ interface CountdownModuleProps {
 }
 
 export default function CountdownModule({ config, style, timezone }: CountdownModuleProps) {
-  const [now, setNow] = useState(Date.now());
+  // The shared ticking clock, so the server's render instant is what the
+  // countdown hydrates with and the mount tick patches whatever moved.
+  const now = useRealClock(1000);
   const moduleId = useId();
   const scale = config.scale ?? 1;
   const basePx = 28 * scale;
@@ -32,19 +35,13 @@ export default function CountdownModule({ config, style, timezone }: CountdownMo
   const { register, unregister } = usePageBackground();
   const t = useTranslate('modules');
 
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   const events = processEvents(
     config.events,
     config.showPastEvents ?? false,
     timezone,
     config.stayUntilEndOfDay ?? false,
+    now,
   );
-
-  void now;
 
   // Register this module's background with the page context.
   // Split into two effects: mount/unmount handles Map key lifetime,

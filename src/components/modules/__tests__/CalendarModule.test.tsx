@@ -243,6 +243,46 @@ describe('CalendarModule agenda view: agendaShowFinishedToday', () => {
   });
 });
 
+describe('CalendarModule agenda view: order on the household clock', () => {
+  afterEach(() => {
+    vi.setSystemTime(NOW);
+  });
+
+  it("puts Today's evening event above Tomorrow's all-day row, whatever the kiosk's zone", () => {
+    // 6:30 pm in Chicago. Tonight's 7:30 pm event is 00:30Z tomorrow; a
+    // UTC kiosk read tomorrow's date-only birthday as 00:00Z and sorted it
+    // first, so the Tomorrow group rendered above Today.
+    vi.setSystemTime(new Date('2026-09-22T23:30:00Z'));
+    const agendaEvents = [
+      { id: 'soccer', title: 'Soccer', start: '2026-09-22T19:30:00-05:00', end: '2026-09-22T20:30:00-05:00' },
+      { id: 'bday', title: 'Birthday', start: '2026-09-23', end: '2026-09-24', allDay: true },
+    ] as CalendarEvent[];
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'agenda' })} style={style} events={agendaEvents} timezone="America/Chicago" /></Wrapper>,
+    );
+    const text = container.textContent ?? '';
+    expect(text.indexOf('Today')).toBeGreaterThanOrEqual(0);
+    expect(text.indexOf('Today')).toBeLessThan(text.indexOf('Tomorrow'));
+    expect(text.indexOf('Soccer')).toBeLessThan(text.indexOf('Birthday'));
+  });
+
+  it("leads a day with its all-day row east of UTC", () => {
+    // 9 pm in Tokyo. Tomorrow's 8 am breakfast is 23:00Z today, earlier than
+    // the machine's midnight for tomorrow's date-only holiday.
+    vi.setSystemTime(new Date('2026-09-22T12:00:00Z'));
+    const agendaEvents = [
+      { id: 'breakfast', title: 'Breakfast', start: '2026-09-22T23:00:00Z', end: '2026-09-23T00:00:00Z' },
+      { id: 'holiday', title: 'Holiday', start: '2026-09-23', end: '2026-09-24', allDay: true },
+    ] as CalendarEvent[];
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'agenda' })} style={style} events={agendaEvents} timezone="Asia/Tokyo" /></Wrapper>,
+    );
+    const text = container.textContent ?? '';
+    expect(text.indexOf('Holiday')).toBeGreaterThanOrEqual(0);
+    expect(text.indexOf('Holiday')).toBeLessThan(text.indexOf('Breakfast'));
+  });
+});
+
 describe('CalendarModule daily view: dimPastEvents / showNowRule', () => {
   // One event that already ended today, one currently running.
   const dailyEvents: CalendarEvent[] = [

@@ -11,6 +11,7 @@ import type { Metadata } from 'next';
 // Run `node scripts/fetch-fonts.mjs` to refresh or add a family.
 import localFont from 'next/font/local';
 import ThemeListener from '@/components/ThemeListener';
+import { RenderInstantProvider } from '@/hooks/useRenderInstant';
 import { readConfig } from '@/lib/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import './globals.css';
@@ -132,6 +133,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // provider stay in lockstep.
   const config = await readConfig().catch(() => null);
   const locale = config?.settings?.locale ?? DEFAULT_LOCALE;
+  // Every clock on the page hydrates from this instant, the one its server
+  // text was written at (see RenderInstantProvider).
+  const renderedAt = Date.now();
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -161,7 +165,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className={`${FONT_VARIABLES} antialiased`}>
         <ThemeListener />
-        {children}
+        <RenderInstantProvider instant={renderedAt}>{children}</RenderInstantProvider>
       </body>
     </html>
   );

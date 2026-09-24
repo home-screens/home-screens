@@ -9,6 +9,8 @@ export function planConfigMigrationBackup(raw: string): TransactionChange {
   const schema = typeof config.version === 'number' && Number.isSafeInteger(config.version) && config.version >= 0 ? config.version : 0;
   const [base, prerelease] = version.split('+')[0].split(/-(.*)/s);
   const prefix = prerelease ? `${prerelease.replace(/[^A-Za-z0-9.]/g, '.')}.` : '';
+  // UTC, like upgrade.sh's snapshots: a sortable label, not a time to read.
+  // Settings > Data shows the file's time in the household's zone instead.
   const timestamp = new Date().toISOString().slice(0, 19).replaceAll('-', '').replaceAll(':', '').replace('T', '-');
   const id = randomUUID().replaceAll('-', '');
   return {

@@ -7,6 +7,23 @@ import type {
   VisibilityCondition,
 } from '@/types/config';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
+import { wallClockParts, type WallClock } from '@/lib/timezone';
+
+/**
+ * The clock a schedule or `time` condition is judged against. Live callers pass
+ * `wallClockParts(new Date(), timezone)`, read straight from Intl. A Date is
+ * read through its own local getters: a synthetic calendar probe (the week
+ * strip's) or a test's `new Date(y, m, d, h, min)`. A shifted Date from
+ * `createTZDate` also works, except for the hour a year when the household's
+ * time falls in this machine's own spring-forward gap, which is why live
+ * clocks are passed as parts.
+ */
+export type ScheduleClock = WallClock | Date;
+
+/** The day and minute a `ScheduleClock` reads. */
+export function readScheduleClock(now: ScheduleClock): WallClock {
+  return now instanceof Date ? wallClockParts(now) : now;
+}
 
 /**
  * Returns false only when the module has been explicitly disabled
@@ -21,7 +38,7 @@ export function isModuleEnabled(mod: Pick<ModuleInstance, 'enabled'>): boolean {
  * Determine whether a module should be visible right now based on its schedule.
  * Returns true if the module has no schedule (always visible).
  */
-export function isModuleVisible(schedule: ModuleSchedule | undefined, now: Date): boolean {
+export function isModuleVisible(schedule: ModuleSchedule | undefined, now: ScheduleClock): boolean {
   if (!schedule) return true;
   const inWindow = matchesTimeWindow(
     schedule.daysOfWeek,
@@ -42,8 +59,8 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
  * and `time` visibility conditions, so the two can never disagree about which
  * day a post-midnight instant belongs to. No `invert`, which is a
  * schedule-only concept; the condition tree negates with a `not` group. `now`
- * must already be shifted to the display's timezone (callers use `useTZClock`
- * / `createTZDate`).
+ * is the display's wall clock (callers use `useWallClock` / `wallClockParts`
+ * with the configured zone).
  *
  * Every selected day opens one window on a minutes-since-Sunday-midnight line:
  * it opens at `day * 1440 + start` and closes at `(day + span) * 1440 + end`,
@@ -59,7 +76,7 @@ function matchesTimeWindow(
   daysOfWeek: number[] | undefined,
   startTime: string | undefined,
   endTime: string | undefined,
-  now: Date,
+  now: ScheduleClock,
   endDayOffset?: number,
 ): boolean {
   const start = parseTime(startTime) ?? 0;
@@ -67,7 +84,8 @@ function matchesTimeWindow(
   const span = resolveSpan(start, end, endDayOffset);
 
   const days = daysOfWeek && daysOfWeek.length > 0 ? daysOfWeek : ALL_DAYS;
-  const nowMinutes = now.getMinutes() + now.getHours() * 60 + now.getDay() * MINUTES_PER_DAY;
+  const { dayOfWeek, minuteOfDay } = readScheduleClock(now);
+  const nowMinutes = minuteOfDay + dayOfWeek * MINUTES_PER_DAY;
 
   for (const day of days) {
     const opens = day * MINUTES_PER_DAY + start;
@@ -149,7 +167,7 @@ export function scheduleShape(schedule: ModuleSchedule | undefined): 'repeat' | 
 export function evaluateVisibility(
   visibility: ModuleVisibility | undefined,
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): boolean {
   if (!visibility || visibility.conditions.length === 0) return true;
 
@@ -181,7 +199,7 @@ function hasUnknownKey(
 function evaluateCondition(
   condition: VisibilityCondition,
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date,
+  now: ScheduleClock,
 ): boolean {
   switch (condition.kind) {
     case 'state': {
@@ -238,7 +256,7 @@ function evaluateCondition(
 export function evaluateConditionsTri(
   conditions: VisibilityCondition[],
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): boolean | undefined {
   let unknown = false;
   for (const c of conditions) {
@@ -252,7 +270,7 @@ export function evaluateConditionsTri(
 function evaluateConditionTri(
   condition: VisibilityCondition,
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date,
+  now: ScheduleClock,
 ): boolean | undefined {
   switch (condition.kind) {
     case 'state':
@@ -355,7 +373,7 @@ export function resolveProfileScreens(
   allScreens: Screen[],
   profiles: Profile[] | undefined,
   activeProfileId: string | undefined,
-  now: Date,
+  now: ScheduleClock,
 ): Screen[] {
   if (!profiles || profiles.length === 0) return allScreens;
 

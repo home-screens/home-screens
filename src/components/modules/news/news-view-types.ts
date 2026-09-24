@@ -56,6 +56,8 @@ export interface NewsViewProps {
   config: ResolvedNewsConfig;
   t: TranslateFn;
   locale: string;
+  /** Household zone, for the date a week-old story shows. */
+  timezone: string | undefined;
   newKeys: ReadonlySet<string>;
   /** Present only when a tap does something; views render plain rows otherwise. */
   onTap?: (item: NewsDisplayItem) => void;

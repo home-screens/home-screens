@@ -143,6 +143,7 @@ export default function ChoreFormOverlay({
   members,
   groups,
   familyReady,
+  today,
   onSubmit,
   onDelete,
   onBack,
@@ -152,6 +153,8 @@ export default function ChoreFormOverlay({
   groups: FamilyGroup[];
   /** False until the family list has loaded; the form holds saves until then. */
   familyReady: boolean;
+  /** The household's day, `YYYY-MM-DD`: where a new one-time chore's date starts. */
+  today: string;
   onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void;
   onDelete?: () => void;
   onBack: () => void;
@@ -167,7 +170,7 @@ export default function ChoreFormOverlay({
     [formattingLocale],
   );
 
-  const f = useChoreForm(initial, members, groups, familyReady);
+  const f = useChoreForm(initial, members, groups, familyReady, today);
   const {
     kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
     name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,

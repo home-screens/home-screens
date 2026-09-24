@@ -87,6 +87,31 @@ function arr(obj: Record<string, unknown>, ...keys: string[]): string[] {
   return [];
 }
 
+const DUE_SPELLING = /^(\d{4}-\d{2}-\d{2})(?:T(\d{2}:\d{2}(?::\d{2})?)(?:\.\d+)?(Z|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
+ * A task's due date as the module reads it: `date` is the calendar day
+ * (`YYYY-MM-DD`) and `datetime` the time for a timed task, else null.
+ *
+ * Todoist v1 writes the time inside `due.date` itself: `2026-09-23` for an
+ * all-day task, `2026-09-23T19:00:00.000000` for a floating time (the user's
+ * own wall clock, no zone), and the same ending in `Z` for a time pinned to a
+ * zone (stored in UTC). Left as it came, `date + 'T23:59:59'` was an Invalid
+ * Date for every timed task. A separate `datetime`, which the SDK's type still
+ * allows, is read only when `date` carries no time of its own.
+ */
+function normalizeDue(rawDue: Record<string, unknown>): { date: string; datetime: string | null; isRecurring: boolean } {
+  const rawDate = str(rawDue, 'date');
+  const day = DUE_SPELLING.exec(rawDate);
+  const timed = day?.[2] ? day : DUE_SPELLING.exec(str(rawDue, 'datetime'));
+  // Rewritten as `YYYY-MM-DDTHH:MM:SS` plus any zone: the microseconds add
+  // nothing on a wall display, and seconds may be missing from Todoist's side.
+  const datetime = timed?.[2]
+    ? `${timed[1]}T${timed[2].length === 5 ? `${timed[2]}:00` : timed[2]}${timed[3] ?? ''}`
+    : null;
+  return { date: day?.[1] ?? rawDate, datetime, isRecurring: bool(rawDue, 'is_recurring', 'isRecurring') };
+}
+
 // ─── Paginated fetch ───
 
 const PAGE_LIMIT = 200; // Todoist's max page size — fewer round trips per full fetch
@@ -243,13 +268,7 @@ const { GET, cache } = cachedProxyRoute<unknown>({
       const labels = arr(t, 'labels');
 
       const rawDue = t.due as Record<string, unknown> | null | undefined;
-      const due = rawDue
-        ? {
-            date: str(rawDue, 'date'),
-            datetime: strOrNull(rawDue, 'datetime'),
-            isRecurring: bool(rawDue, 'is_recurring', 'isRecurring'),
-          }
-        : null;
+      const due = rawDue ? normalizeDue(rawDue) : null;
 
       return {
         id: str(t, 'id'),

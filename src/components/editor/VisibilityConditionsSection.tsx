@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { usePluginStore } from '@/stores/plugin-store';
 import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
@@ -13,7 +14,8 @@ import { useConditionClock } from '@/hooks/useConditionClock';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { pluginHasStateKeySearch } from '@/lib/state-key-search';
 import { validateModuleVisibility } from '@/lib/display-filter';
-import { explainVisibility } from '@/lib/condition-verdicts';
+import { explainVisibility, referencesStateKeys, verdictStatesFor } from '@/lib/condition-verdicts';
+import type { ScheduleClock } from '@/lib/schedule';
 import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
 import type { ProviderHealthEntry } from '@/lib/provider-health-store';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
@@ -30,7 +32,7 @@ const EMPTY_PLUGINS: Map<string, LoadedPlugin> = new Map();
  * explicitly with the missing keys — that gate short-circuits before the
  * tree and is the least intuitive behavior in the system. Renders a neutral
  * "no live data" line when the display hasn't reported recently, never a
- * stale verdict. Exported for tests.
+ * stale verdict, unless the tree only reads the clock. Exported for tests.
  */
 export function VisibilityOutcomeLine({
   visibility,
@@ -56,11 +58,15 @@ export function VisibilityOutcomeLine({
   /** Loaded plugins, for naming the unhealthy provider. */
   plugins?: Map<string, LoadedPlugin>;
   /** Wall clock for `time` conditions; defaults to now for time-free trees. */
-  now?: Date;
+  now?: ScheduleClock;
   t: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
-  if (!states) {
+  // A tree that only reads the clock is judged on the household clock even
+  // with no display report; the verdict is then the editor's, not a display's.
+  const judged = verdictStatesFor(visibility.conditions, states);
+  const verdictSource = states ? source : 'editor';
+  if (!judged) {
     const now = Date.now();
     return (
       <p className="text-[10px] text-hs-text-dim" data-visibility-outcome="offline">
@@ -72,11 +78,11 @@ export function VisibilityOutcomeLine({
       </p>
     );
   }
-  const { visible, unknownKeys } = explainVisibility(visibility, states, now ?? new Date());
+  const { visible, unknownKeys } = explainVisibility(visibility, judged, now ?? new Date());
   // '' is a condition still being authored (no key picked yet) — call that
   // out as its own cause instead of rendering an empty key name.
   const missing = unknownKeys.filter((k) => k !== '');
-  const outcome = source === 'editor'
+  const outcome = verdictSource === 'editor'
     ? t(visible
         ? 'visibilityConditions.outcome.shownNowEditor'
         : 'visibilityConditions.outcome.hiddenNowEditor')
@@ -157,7 +163,8 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
 
   // Ticking wall clock (display timezone) so a `time` condition's verdict and
   // outcome line stay live; only ticks when the tree has a time condition.
-  const now = useConditionClock(visibility?.conditions ?? [], config?.settings.timezone);
+  const householdTimezone = useEditorHouseholdTimezone();
+  const now = useConditionClock(visibility?.conditions ?? [], householdTimezone);
 
   // Mirrors exactly what the config write gate will reject — a safety net on
   // top of the per-field checks, so nothing unsaveable goes unexplained.
@@ -229,24 +236,28 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
             </div>
           </PropertyGroup>
 
-          <PropertyGroup title={t('visibilityConditions.whenUnknownTitle')} accent={3}>
-            <label className="flex flex-col gap-0.5">
-              <span className="text-xs text-hs-text-muted">{t('visibilityConditions.whenUnknownLabel')}</span>
-              <select
-                value={visibility.whenUnknown ?? 'hide'}
-                onChange={(e) =>
-                  setVisibility({
-                    ...visibility,
-                    whenUnknown: e.target.value === 'show' ? 'show' : undefined,
-                  })
-                }
-                className={INPUT_CLASS}
-              >
-                <option value="hide">{t('visibilityConditions.whenUnknownHide')}</option>
-                <option value="show">{t('visibilityConditions.whenUnknownShow')}</option>
-              </select>
-            </label>
-          </PropertyGroup>
+          {/* Only a key can be missing; a tree that reads nothing but the
+              clock never waits for data, so the choice would mean nothing. */}
+          {referencesStateKeys(visibility.conditions) && (
+            <PropertyGroup title={t('visibilityConditions.whenUnknownTitle')} accent={3}>
+              <label className="flex flex-col gap-0.5">
+                <span className="text-xs text-hs-text-muted">{t('visibilityConditions.whenUnknownLabel')}</span>
+                <select
+                  value={visibility.whenUnknown ?? 'hide'}
+                  onChange={(e) =>
+                    setVisibility({
+                      ...visibility,
+                      whenUnknown: e.target.value === 'show' ? 'show' : undefined,
+                    })
+                  }
+                  className={INPUT_CLASS}
+                >
+                  <option value="hide">{t('visibilityConditions.whenUnknownHide')}</option>
+                  <option value="show">{t('visibilityConditions.whenUnknownShow')}</option>
+                </select>
+              </label>
+            </PropertyGroup>
+          )}
         </>
       )}
     </div>

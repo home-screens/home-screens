@@ -22,9 +22,11 @@
 #
 #   --restart-if-advised   After applying, restart Chromium *only* if the hub
 #                          says now is a good time (display asleep, or the
-#                          small hours). Used by the nightly timer. The
-#                          launcher-run path omits it: it is already
-#                          restarting by definition.
+#                          small hours in the household's time zone). Used by
+#                          the hourly timer, which also finishes a restart an
+#                          earlier check had to put off. The launcher-run
+#                          path omits it: it is already restarting by
+#                          definition.
 #
 # Exit codes:
 #   0   nothing to do (already current), or a soft failure we chose to ride out
@@ -46,6 +48,9 @@ SYSTEM_STAGING="${STAGING_ROOT}/system"
 PREV_DIR="${APP_DIR}/scripts/.prev"
 PRIV_HELPER="/usr/local/lib/home-screens/kiosk-update-privileged.sh"
 LOCK_DIR="${APP_DIR}/data/.kiosk-update.lock"
+# Present while files have been applied that the running Chromium has not
+# picked up yet, because the hub said the display was in use at the time.
+RESTART_PENDING="${APP_DIR}/data/kiosk-restart-pending"
 
 TIMEOUT=20
 RESTART_IF_ADVISED="false"
@@ -87,10 +92,15 @@ done
 
 BUNDLE_URL="${BACKEND_URL}/api/display/kiosk-bundle?display=${DISPLAY_ID}"
 
+# The launcher runs this just before it starts Chromium, and a fresh Chromium
+# picks up whatever is on disk, so nothing is left waiting for a restart.
+if [ "${RESTART_IF_ADVISED}" != "true" ]; then
+  rm -f "${RESTART_PENDING}"
+fi
+
 # --- Single-runner lock -----------------------------------------------------
-# The nightly timer and the launcher-run check can genuinely overlap: the timer
-# is Persistent=true, so a Pi powered on mid-morning runs a catch-up tick, and
-# a Chromium restart moments later runs the launcher check. Both stage into the
+# The hourly timer and the launcher-run check can genuinely overlap: a tick
+# can land while Chromium is restarting and the launcher runs its own check. Both stage into the
 # same fixed directory (the privileged helper only reads one path), so without
 # a lock one run's cleanup can delete files out from under the other's helper
 # mid-install, leaving the system half partly applied.
@@ -181,17 +191,40 @@ missing_file() {
   return 1
 }
 
+# New files on disk don't reach the screen until Chromium restarts. The
+# launcher-run path handles that itself by re-execing. The timer has to be
+# careful: nobody wants the family display to black-flash mid-evening, so the
+# hub decides when a restart is welcome (it knows the household's time zone,
+# sleep schedule and whether the screen is asleep) and we just obey. A
+# restart it turns down is remembered, so a later tick inside the quiet
+# window finishes it rather than waiting for the next version.
+restart_if_advised() {
+  if [ "${RESTART_ADVISED}" = "true" ]; then
+    log "restarting the kiosk to pick up the update"
+    rm -f "${RESTART_PENDING}"
+    pkill -TERM chromium 2>/dev/null || true
+  else
+    : > "${RESTART_PENDING}"
+    log "display is in use, so the restart waits for a quieter time"
+  fi
+}
+
 if [ "${REMOTE_VERSION}" = "${LOCAL_VERSION}" ]; then
   if MISSING="$(missing_file)"; then
     log "display software ${LOCAL_VERSION} is missing ${MISSING} — reapplying"
   else
-    # Current and complete. The nightly tick still gives the privileged
+    # Current and complete. The timer tick still gives the privileged
     # helper a turn: it also installs any apt packages the shell layer has
     # grown to need, and a spoke that was offline when they first came up
     # would otherwise never retry. The boot-time check skips this so a slow
     # or absent archive never delays the display coming up.
     if [ "${RESTART_IF_ADVISED}" = "true" ] && [ -x "${PRIV_HELPER}" ]; then
       sudo -n "${PRIV_HELPER}" 2>/dev/null || true
+    fi
+    # An update an earlier tick applied while the display was in use.
+    if [ "${RESTART_IF_ADVISED}" = "true" ] && [ -f "${RESTART_PENDING}" ] \
+       && [ "${RESTART_ADVISED}" = "true" ]; then
+      restart_if_advised
     fi
     exit 0
   fi
@@ -286,7 +319,7 @@ fi
 #   helper missing entirely   → the machinery was never fully installed, and
 #     no amount of retrying will conjure it. Stamp anyway and warn loudly:
 #     looping forever would re-download and re-swap on every boot and every
-#     nightly tick while the editor showed "getting ready" indefinitely.
+#     timer tick while the editor showed "getting ready" indefinitely.
 #     Neither install.sh nor the bootstrap can leave a Pi in this state.
 SYSTEM_RETRYABLE_FAILURE="false"
 if [ -d "${EXTRACT}/system" ]; then
@@ -325,17 +358,9 @@ else
 fi
 
 # --- 5. Restart policy ------------------------------------------------------
-# New files on disk don't reach the screen until Chromium restarts. The
-# launcher-run path handles that itself by re-execing. The nightly timer has
-# to be careful: nobody wants the family display to black-flash mid-evening,
-# so the hub decides when a restart is welcome and we just obey.
+# See restart_if_advised above.
 if [ "${RESTART_IF_ADVISED}" = "true" ]; then
-  if [ "${RESTART_ADVISED}" = "true" ]; then
-    log "restarting the kiosk to pick up the update"
-    pkill -TERM chromium 2>/dev/null || true
-  else
-    log "display is in use — the update applies at the next natural restart"
-  fi
+  restart_if_advised
 fi
 
 exit 10

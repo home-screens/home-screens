@@ -87,7 +87,7 @@ export function buildUpNextModel(
   const tomorrowRows = showTomorrow
     ? events
         .filter((ev) => isEventOnDay(ev, tomorrow, timezone) && !shownIds.has(ev.id) && !runningIds.has(ev.id))
-        .sort((a, b) => (a.allDay === b.allDay ? compareEventStarts(a.start, b.start) : a.allDay ? -1 : 1))
+        .sort((a, b) => (a.allDay === b.allDay ? compareEventStarts(a.start, b.start, timezone) : a.allDay ? -1 : 1))
         .slice(0, TOMORROW_MAX)
     : [];
   const remainingToday = upcoming.filter((x) => isSameDay(x.start, today)).length;

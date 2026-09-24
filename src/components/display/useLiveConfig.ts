@@ -9,9 +9,18 @@ import { filterConfigForDisplay } from '@/lib/display-filter';
 import { dataFingerprint } from '@/lib/config-data-fingerprint';
 import { stableStringify } from '@/lib/stable-stringify';
 import { usePluginStore } from '@/stores/plugin-store';
+import { HUB_TIMEZONE_HEADER, withHouseholdTimezone } from '@/lib/timezone';
 import { logger } from '@/lib/logger';
 
 const log = logger('display');
+
+/**
+ * Settings as the display runs them: the zone is always named. With none saved
+ * it is the hub's, the zone the family's chores, lists and phone already
+ * follow, never this kiosk's own. The type makes a stray machine-zone fallback
+ * downstream a compile error rather than a wall an hour off the chore chart.
+ */
+export type DisplaySettings = GlobalSettings & { timezone: string };
 
 /** Minimal display descriptor surfaced to modules that need to target displays */
 export type DisplayDescriptor = { id: string; name: string };
@@ -39,21 +48,31 @@ function fingerprintsEqual(a: SettingsFingerprints, b: SettingsFingerprints): bo
  * page uses) so the client view stays in lockstep with the server view.
  * In single-display mode (`displayId` undefined) no filtering is applied —
  * the rotator sees the entire config exactly as today.
+ *
+ * `hubTimezone` is the hub's own zone from the server render; each poll
+ * replaces it with the one the config response names (`HUB_TIMEZONE_HEADER`).
+ * Server and client start from the same zone, so the first client render
+ * matches the server's HTML wherever the kiosk's own clock is set.
  */
 export function useLiveConfig(
   initialScreens: Screen[],
   initialSettings: GlobalSettings,
+  hubTimezone: string,
   initialProfiles?: Profile[],
   displayId?: string,
   initialDisplays?: DisplayDescriptor[],
   initialRules?: DisplayRule[],
 ) {
   const [screens, setScreens] = useState(initialScreens);
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] = useState<DisplaySettings>(() => withHouseholdTimezone(initialSettings, hubTimezone));
+  // Whether the zone in `settings` was saved or is the hub's standing in, for
+  // anything on the wall or in Preview that should say no zone is set yet.
+  const [timezoneSaved, setTimezoneSaved] = useState(() => !!initialSettings.timezone);
   const [profiles, setProfiles] = useState(initialProfiles);
   const [rules, setRules] = useState(initialRules);
   const [displays, setDisplays] = useState<DisplayDescriptor[]>(initialDisplays ?? []);
   const configJsonRef = useRef<string>('');
+  const hubTimezoneRef = useRef(hubTimezone);
   const dataFingerprintRef = useRef<string>('');
   const buildIdRef = useRef<string>('');
   const pluginHashRef = useRef<string>('');
@@ -107,9 +126,17 @@ export function useLiveConfig(
         );
         if (!res.ok || !mounted) return false;
         const text = await res.text();
-        // Only update state when the JSON actually changed
-        if (text !== configJsonRef.current) {
+        const hubZone = res.headers?.get?.(HUB_TIMEZONE_HEADER) || hubTimezoneRef.current;
+        // Only update state when the JSON (or the hub's zone, which an unset
+        // zone resolves to) actually changed
+        const seen = `${hubZone}\n${text}`;
+        if (seen !== configJsonRef.current) {
           const cfg: ScreenConfiguration = JSON.parse(text);
+          // Resolved before the fingerprint and the per-display filter, so a
+          // hub zone change clears zone-dependent data and every display
+          // inherits the same named zone.
+          const zoneSaved = !!cfg.settings?.timezone;
+          if (cfg.settings) cfg.settings = withHouseholdTimezone(cfg.settings, hubZone);
           // Scoped invalidation: only clear the client cache when the change
           // can affect fetched data. Moves, resizes, restyles, schedule and
           // visibility edits keep every module's cached data warm — editing
@@ -121,7 +148,8 @@ export function useLiveConfig(
           // ever applying it, freezing the display on the previous config
           // until the next byte-distinct change.
           const fingerprint = cfg.screens && cfg.settings ? dataFingerprint(cfg) : null;
-          configJsonRef.current = text;
+          configJsonRef.current = seen;
+          hubTimezoneRef.current = hubZone;
           if (fingerprint !== null && fingerprint !== dataFingerprintRef.current) {
             dataFingerprintRef.current = fingerprint;
             displayCache.clear();
@@ -137,7 +165,8 @@ export function useLiveConfig(
               const filtered = filterConfigForDisplay(cfg, displayId);
               if (filtered) {
                 setScreens(filtered.screens);
-                setSettings(filtered.settings);
+                setSettings(withHouseholdTimezone(filtered.settings, hubZone));
+                setTimezoneSaved(zoneSaved);
                 setProfiles(filtered.profiles);
                 setRules(filtered.rules);
               } else if (!displayReloadingRef.current) {
@@ -155,7 +184,8 @@ export function useLiveConfig(
               }
             } else {
               setScreens(cfg.screens);
-              setSettings(cfg.settings);
+              setSettings(withHouseholdTimezone(cfg.settings, hubZone));
+              setTimezoneSaved(zoneSaved);
               setProfiles(cfg.profiles);
               setRules(cfg.rules);
             }
@@ -259,5 +289,5 @@ export function useLiveConfig(
     };
   }, [displayId]);
 
-  return { screens, settings, profiles, rules, displays };
+  return { screens, settings, timezoneSaved, profiles, rules, displays };
 }

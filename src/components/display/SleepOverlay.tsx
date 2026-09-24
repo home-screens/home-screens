@@ -1,7 +1,7 @@
 'use client';
 
 import type { DisplayState } from '@/hooks/useSleepManager';
-import type { ScreensaverSettings } from '@/types/config';
+import type { ScreensaverSettings, TimeFormat } from '@/types/config';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import Screensaver from './Screensaver';
 
@@ -16,6 +16,8 @@ interface SleepOverlayProps {
   brightnessOverride?: number | null;
   screensaver?: ScreensaverSettings;
   timezone?: string;
+  /** Household 12/24 choice for the screensaver clock. */
+  timeFormat?: TimeFormat;
 }
 
 /**
@@ -35,6 +37,7 @@ export default function SleepOverlay({
   brightnessOverride = null,
   screensaver,
   timezone,
+  timeFormat,
 }: SleepOverlayProps) {
   if (displayState === 'active') return null;
 
@@ -63,7 +66,7 @@ export default function SleepOverlay({
 
       {showScreensaver && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-          <Screensaver mode={screensaverMode} timezone={timezone} />
+          <Screensaver mode={screensaverMode} timezone={timezone} timeFormat={timeFormat} />
         </div>
       )}
     </div>

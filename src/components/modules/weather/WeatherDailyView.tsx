@@ -7,17 +7,21 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
+import { useTZClock } from '@/hooks/useTZClock';
+import { localISODate } from '@/lib/timezone';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherDailyView({ config, forecast, units, scaledFontSize }: WeatherViewProps) {
+export default function WeatherDailyView({ config, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
   const formattingLocale = useFormattingLocale();
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const tWeather = useTranslate('weather');
   const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
+  // Ticks so "Today" moves at the household's midnight, not at the next refresh.
+  const todayISO = localISODate(useTZClock(timezone, 60_000));
   const days = forecast.slice(0, config.daysToShow);
   const showFeaturedDay = config.showFeaturedDay !== false;
   const showRelativeDayLabels = config.showRelativeDayLabels !== false;
@@ -56,7 +60,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
             {showFeaturedDay && (
               <>
                 <div data-weather-featured-day className="flex flex-col items-center shrink-0">
-                  <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, formattingLocale, dayLabels, showRelativeDayLabels)}</span>
+                  <span className="font-medium" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(days[0].date, todayISO, formattingLocale, dayLabels, showRelativeDayLabels)}</span>
                   <div className="flex items-center gap-[0.2em]">
                     {(() => { const Icon = getWeatherIcon(days[0].icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(days[0].icon, tWeather)} role="img" />; })()}
                     {showHighLow && (
@@ -89,7 +93,7 @@ export default function WeatherDailyView({ config, forecast, units, scaledFontSi
                 return (
                   <div key={i} data-weather-day={day.date} className="flex flex-col items-center gap-[0.1em] shrink-0">
                     <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>
-                      {dayLabel(day.date, formattingLocale, dayLabels, showRelativeDayLabels)}
+                      {dayLabel(day.date, todayISO, formattingLocale, dayLabels, showRelativeDayLabels)}
                     </span>
                     <Icon size="1.8em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                     <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />

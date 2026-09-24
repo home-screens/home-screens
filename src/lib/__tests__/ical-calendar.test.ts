@@ -37,7 +37,7 @@ vi.mock('@/lib/url-safety', () => ({
 }));
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { fetchICalEvents } from '@/lib/ical-calendar';
+import { checkICalUrl, fetchICalEvents } from '@/lib/ical-calendar';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
 
@@ -781,6 +781,56 @@ END:VCALENDAR`;
       // An explicit TZID wins over the display's zone: the match is in Germany
       // however far away the wall showing it hangs.
       expect(events[0].start).toBe('2026-09-12T14:00:00.000Z');
+    });
+  });
+
+  describe('all-day events on the household day', () => {
+    const TODAY_ALL_DAY_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:picture-day
+DTSTART;VALUE=DATE:20260922
+DTEND;VALUE=DATE:20260923
+SUMMARY:Picture day
+END:VEVENT
+BEGIN:VEVENT
+UID:yesterday
+DTSTART;VALUE=DATE:20260921
+DTEND;VALUE=DATE:20260922
+SUMMARY:Yesterday
+END:VEVENT
+END:VCALENDAR`;
+
+    it("keeps today's one-off all-day event in the evening west of UTC", async () => {
+      // 8 pm on Sep 22 in Chicago is 01:00Z on the 23rd. node-ical ends the
+      // event at the hub's midnight, which on a UTC hub is 7 pm in Chicago.
+      mockFetchResponse(TODAY_ALL_DAY_ICS);
+      const { events } = await fetchICalEvents(
+        [makeSource()], '2026-09-23T01:00:00Z', '2026-09-30T01:00:00Z', 'America/Chicago',
+      );
+      expect(events.map((e) => e.title)).toEqual(['Picture day']);
+    });
+
+    it("drops yesterday's all-day event after midnight east of UTC", async () => {
+      // 1 am on Sep 22 in Auckland is 13:00Z on the 21st.
+      mockFetchResponse(TODAY_ALL_DAY_ICS);
+      const { events } = await fetchICalEvents(
+        [makeSource()], '2026-09-21T13:00:00Z', '2026-09-28T13:00:00Z', 'Pacific/Auckland',
+      );
+      expect(events.map((e) => e.title)).toEqual(['Picture day']);
+    });
+
+    it("counts today's all-day event when a link is checked in the evening", async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      try {
+        vi.setSystemTime(new Date('2026-09-23T01:00:00Z'));
+        mockFetchResponse(TODAY_ALL_DAY_ICS);
+        const result = await checkICalUrl('https://example.com/calendar.ics', { timezone: 'America/Chicago' });
+        expect(result).toEqual({ ok: true, eventCount: 1 });
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

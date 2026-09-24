@@ -27,6 +27,8 @@ import { useSidePanelCollapse } from '@/hooks/useSidePanelCollapse';
 import DisplaySwitcher from '@/components/editor/DisplaySwitcher';
 import ModulePalette from '@/components/editor/ModulePalette';
 import EditorCanvas from '@/components/editor/EditorCanvas';
+import NoTimezoneBanner, { PICK_TIMEZONE_HREF } from '@/components/NoTimezoneBanner';
+import { useEditorHouseholdZone } from '@/components/editor/useEditorHouseholdClock';
 import PropertyPanel from '@/components/editor/PropertyPanel';
 import HomeScreensLogo from '@/components/brand/HomeScreensLogo';
 import PluginStorePanel from '@/components/editor/PluginStorePanel';
@@ -63,6 +65,14 @@ export default function EditorPage() {
     return () => window.removeEventListener('resize', check);
   }, []);
   const router = useRouter();
+  const householdZone = useEditorHouseholdZone();
+  const openSettings = async (path: string) => {
+    // A failing save must not make this dead: the store (and its unsaved
+    // edits) survives the client-side navigation, and the toolbar has already
+    // said why the save failed.
+    if (isDirty) await saveConfig().catch(() => {});
+    router.push(path);
+  };
   const canvasScaleRef = useRef(0.4);
   const canvasElRef = useRef<HTMLDivElement | null>(null);
   // dnd-kit's event.delta on a DragEndEvent is the translate applied to the
@@ -261,13 +271,7 @@ export default function EditorPage() {
             </Button>
             <Button
               variant="secondary"
-              onClick={async () => {
-                // A failing save must not make this button dead: the store
-                // (and its unsaved edits) survives the client-side navigation,
-                // and the toolbar has already said why the save failed.
-                if (isDirty) await saveConfig().catch(() => {});
-                router.push('/editor/settings');
-              }}
+              onClick={() => void openSettings('/editor/settings')}
             >
               {t('page.toolbar.settingsButton')}
             </Button>
@@ -302,7 +306,19 @@ export default function EditorPage() {
             }}
             onCollapse={() => setPaletteCollapsed(true)}
           />
-          <EditorCanvas onScaleChange={handleScaleChange} canvasRef={canvasElRef} />
+          {/* The banner sits in a column with the canvas so the frame is
+              measured and scaled in the space left under it. */}
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-hs-canvas">
+            <NoTimezoneBanner
+              zone={householdZone}
+              className="mx-4 mt-3"
+              onPick={(e) => {
+                e.preventDefault();
+                void openSettings(PICK_TIMEZONE_HREF);
+              }}
+            />
+            <EditorCanvas onScaleChange={handleScaleChange} canvasRef={canvasElRef} />
+          </div>
           <PropertyPanel
             collapsed={panelCollapsed}
             onExpand={() => setPanelCollapsed(false)}

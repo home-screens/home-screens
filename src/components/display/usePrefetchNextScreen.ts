@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { Screen } from '@/types/config';
 import { prefetchScreen } from '@/lib/prefetch';
-import { createTZDate } from '@/lib/timezone';
+import { wallClockParts } from '@/lib/timezone';
 
 /**
  * Prefetches the next screen's module data ~5s before rotation fires.
@@ -23,7 +23,7 @@ export function usePrefetchNextScreen(
   displayState: string,
   /**
    * Display timezone: module schedules must be evaluated with the same clock
-   * the renderer uses (`useTZClock` / `createTZDate`), otherwise on a Pi
+   * the renderer uses (`useWallClock` / `wallClockParts`), otherwise on a Pi
    * whose OS timezone differs we prefetch for modules that won't render and
    * skip ones that will.
    */
@@ -52,7 +52,7 @@ export function usePrefetchNextScreen(
     const delay = Math.max(currentDurationMs - 5000, 0);
 
     timerRef.current = setTimeout(() => {
-      prefetchScreen(screensRef.current[nextIndex], createTZDate(timezone));
+      prefetchScreen(screensRef.current[nextIndex], wallClockParts(new Date(), timezone));
     }, delay);
 
     return () => {

@@ -5,18 +5,25 @@ import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { AccentDivider } from './shared/AccentDivider';
 import { ScaledAccentContent } from './shared/ScaledAccentContent';
 import { useTranslate, useLocale } from '@/i18n';
+import { useTZClock } from '@/hooks/useTZClock';
 import { getWordsForLocale, getWordEntryForDate } from './word-of-day-data';
 
 interface WordOfDayModuleProps {
   config: WordOfDayConfig;
   style: ModuleStyle;
+  /** Household zone: the word changes at its midnight, not the Pi's. */
+  timezone?: string;
 }
 
-export default function WordOfDayModule({ config, style }: WordOfDayModuleProps) {
+export default function WordOfDayModule({ config, style, timezone }: WordOfDayModuleProps) {
   const t = useTranslate('modules');
   const locale = useLocale();
+  // Shifted clock: its local getters read the household calendar, which is
+  // what the day-of-year pick wants. Ticking means a screen that never rotates
+  // still turns over at midnight.
+  const today = useTZClock(timezone, 60_000);
   const words = getWordsForLocale(locale);
-  const entry = getWordEntryForDate(words, new Date());
+  const entry = getWordEntryForDate(words, today);
 
   return (
     <ScaledAccentContent

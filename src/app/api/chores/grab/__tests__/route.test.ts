@@ -12,11 +12,12 @@ vi.mock('@/lib/auth', () => ({
 import { POST as grab } from '../route';
 import { GET as readMarks, POST as tick } from '../../route';
 import { POST as putBack } from '../../put-back/route';
-import { localDateStr, parseISO, todayStr } from '@/lib/chore-assignments';
+import { localDateStr, parseISO } from '@/lib/chore-assignments';
+import { isoDateInTZ } from '@/lib/timezone';
 
 /** A date `days` before today's Monday: last week's Monday is -7, its Tuesday -6. */
 function lastWeek(days: number): string {
-  const d = parseISO(todayStr());
+  const d = parseISO(isoDateInTZ());
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + days);
   return localDateStr(d);
 }
@@ -36,7 +37,7 @@ const post = (url: string, body: unknown) => new NextRequest(`http://localhost${
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
 });
 const grabIt = (choreId: string, memberId: string, action = 'grab') => grab(post('/api/chores/grab', { choreId, memberId, action }));
-const tickIt = (choreId: string, memberId: string) => tick(post('/api/chores', { choreId, memberId, date: todayStr(), direction: 'complete' }));
+const tickIt = (choreId: string, memberId: string) => tick(post('/api/chores', { choreId, memberId, date: isoDateInTZ(), direction: 'complete' }));
 
 beforeEach(async () => {
   root = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-chore-grab-'));
@@ -56,7 +57,7 @@ describe('POST /api/chores/grab', () => {
   it('holds a chore for one person and keeps everyone else off it', async () => {
     const res = await grabIt('car', 'ada');
     expect(res.status).toBe(200);
-    expect((await res.json()).grabs).toEqual([{ choreId: 'car', memberId: 'ada', date: todayStr() }]);
+    expect((await res.json()).grabs).toEqual([{ choreId: 'car', memberId: 'ada', date: isoDateInTZ() }]);
 
     const other = await grabIt('car', 'bram');
     expect(other.status).toBe(409);
@@ -113,7 +114,7 @@ describe('POST /api/chores/grab', () => {
     expect((await read('chore-completions.json')).completions.filter((c: { choreId: string }) => c.choreId === 'garage')).toHaveLength(2);
 
     // Un-ticking takes back only the second round's tickets.
-    const undo = await (await tickOn('garage', 'ada', todayStr(), 'uncomplete')).json();
+    const undo = await (await tickOn('garage', 'ada', isoDateInTZ(), 'uncomplete')).json();
     expect(undo.changed).toBe(true);
     expect((await read('rewards.json')).balances.ada).toBe(20);
   });
@@ -168,16 +169,16 @@ describe('POST /api/chores/grab', () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     expect((await tickOn('porch', 'bram', localDateStr(yesterday))).status).toBe(200);
-    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'porch', memberId: 'ada', date: todayStr() }]);
+    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'porch', memberId: 'ada', date: isoDateInTZ() }]);
 
     // Weekly: a tick for any day of this week would finish the job Ada holds today.
     await grabIt('porch', 'ada', 'let-go');
     await grabIt('car', 'ada');
     const monday = lastWeek(0);
-    if (monday < todayStr()) {
+    if (monday < isoDateInTZ()) {
       const refused = await tickOn('car', 'bram', monday);
       expect(refused.status).toBe(409);
-      expect(await refused.json()).toMatchObject({ reason: 'grabbed', memberId: 'ada', grabs: [{ choreId: 'car', memberId: 'ada', date: todayStr() }] });
+      expect(await refused.json()).toMatchObject({ reason: 'grabbed', memberId: 'ada', grabs: [{ choreId: 'car', memberId: 'ada', date: isoDateInTZ() }] });
     }
   });
 
@@ -185,32 +186,32 @@ describe('POST /api/chores/grab', () => {
     await grabIt('car', 'ada');
     await tickIt('car', 'ada');
     expect((await read('chore-completions.json')).grabs).toEqual([]);
-    await tickOn('car', 'ada', todayStr(), 'uncomplete');
-    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'car', memberId: 'ada', date: todayStr() }]);
+    await tickOn('car', 'ada', isoDateInTZ(), 'uncomplete');
+    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'car', memberId: 'ada', date: isoDateInTZ() }]);
     expect(await (await grabIt('car', 'bram')).json()).toMatchObject({ reason: 'grabbed', memberId: 'ada' });
   });
 
   it('an un-tick of a chore nobody had grabbed leaves it open', async () => {
     await tickIt('car', 'ada');
-    await tickOn('car', 'ada', todayStr(), 'uncomplete');
+    await tickOn('car', 'ada', isoDateInTZ(), 'uncomplete');
     expect((await read('chore-completions.json')).grabs).toEqual([]);
     expect((await grabIt('car', 'bram')).status).toBe(200);
   });
 
   it('an un-tick hands back the grab with its own date, so the week it lasts does not restart', async () => {
-    const d = parseISO(todayStr());
+    const d = parseISO(isoDateInTZ());
     d.setDate(d.getDate() - 3);
     const threeDaysAgo = localDateStr(d);
     await put('chores.json', { chores: [chore('garage', { bonus: { claim: 'first', comesBack: 'manual' } })], settings: { grabLimit: 1, grabHold: 'until-back' } });
     await put('chore-completions.json', { completions: [], grabs: [{ choreId: 'garage', memberId: 'ada', date: threeDaysAgo }] });
     await tickIt('garage', 'ada');
     expect((await read('chore-completions.json')).completions[0]).toMatchObject({ endedGrab: threeDaysAgo });
-    await tickOn('garage', 'ada', todayStr(), 'uncomplete');
+    await tickOn('garage', 'ada', isoDateInTZ(), 'uncomplete');
     expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'garage', memberId: 'ada', date: threeDaysAgo }]);
   });
 
   it('grabbing a chore already held keeps the grab\'s own date', async () => {
-    const d = parseISO(todayStr());
+    const d = parseISO(isoDateInTZ());
     d.setDate(d.getDate() - 3);
     const threeDaysAgo = localDateStr(d);
     await put('chores.json', { chores: [chore('garage', { bonus: { claim: 'first', comesBack: 'manual' } })], settings: { grabLimit: 1, grabHold: 'until-back' } });
@@ -223,13 +224,13 @@ describe('POST /api/chores/grab', () => {
     await grabIt('car', 'ada');
     await tickIt('car', 'ada');
     await grabIt('porch', 'ada');
-    await tickOn('car', 'ada', todayStr(), 'uncomplete');
-    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'porch', memberId: 'ada', date: todayStr() }]);
+    await tickOn('car', 'ada', isoDateInTZ(), 'uncomplete');
+    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'porch', memberId: 'ada', date: isoDateInTZ() }]);
     expect((await grabIt('car', 'bram')).status).toBe(200);
   });
 
   it('109/11: a bonus chore is not paid on a day it does not show up', async () => {
-    const other = (parseISO(todayStr()).getDay() + 1) % 7;
+    const other = (parseISO(isoDateInTZ()).getDay() + 1) % 7;
     await put('chores.json', { chores: [chore('lawn', { daysOfWeek: [other] })] });
     const res = await tickIt('lawn', 'ada');
     expect(res.status).toBe(409);
@@ -241,11 +242,11 @@ describe('POST /api/chores/grab', () => {
     yesterday.setDate(yesterday.getDate() - 1);
     await put('chore-completions.json', { completions: [], grabs: [{ choreId: 'porch', memberId: 'ada', date: localDateStr(yesterday) }] });
     await grabIt('porch', 'bram');
-    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'porch', memberId: 'bram', date: todayStr() }]);
+    expect((await read('chore-completions.json')).grabs).toEqual([{ choreId: 'porch', memberId: 'bram', date: isoDateInTZ() }]);
   });
 
   it('a grab is always for the hub\'s day, whatever day the screen sends', async () => {
-    const d = parseISO(todayStr());
+    const d = parseISO(isoDateInTZ());
     d.setDate(d.getDate() + 1);
     const tomorrow = localDateStr(d);
     await grabIt('porch', 'ada');
@@ -255,8 +256,8 @@ describe('POST /api/chores/grab', () => {
     expect(await refused.json()).toMatchObject({ reason: 'grabbed', memberId: 'ada' });
     await grab(post('/api/chores/grab', { choreId: 'car', memberId: 'bram', action: 'grab', date: tomorrow }));
     expect((await read('chore-completions.json')).grabs).toEqual([
-      { choreId: 'porch', memberId: 'ada', date: todayStr() },
-      { choreId: 'car', memberId: 'bram', date: todayStr() },
+      { choreId: 'porch', memberId: 'ada', date: isoDateInTZ() },
+      { choreId: 'car', memberId: 'bram', date: isoDateInTZ() },
     ]);
   });
 });

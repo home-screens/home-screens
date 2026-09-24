@@ -15,7 +15,6 @@ import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-layout';
 import type { CalendarScale, CalendarViewProps } from './view-support';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
@@ -90,7 +89,7 @@ function ZoneBand({
   );
 }
 
-export function DayTimelineView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, owners }: CalendarViewProps) {
+export function DayTimelineView({ events, timezone, config, scale, today, now, timeFormat, owners }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');

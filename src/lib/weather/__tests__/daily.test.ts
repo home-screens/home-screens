@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { aggregateDaily, pickDominant, average } from '../daily';
+import { aggregateDaily, pickDominant, average, forecastDate, forecastFromToday } from '../daily';
 
 describe('pickDominant', () => {
   it('returns the most frequent key', () => {
@@ -94,5 +94,52 @@ describe('aggregateDaily', () => {
       2,
     );
     expect(days.map((d) => d.date)).toEqual(['2026-07-06', '2026-07-07']);
+  });
+});
+
+describe('forecastDate', () => {
+  // 8 pm Tuesday Sep 22 in Chicago, already Wednesday in UTC.
+  const evening = new Date('2026-09-23T01:00:00Z');
+
+  it('takes the day in an IANA zone', () => {
+    expect(forecastDate(evening, 'America/Chicago')).toBe('2026-09-22');
+    expect(forecastDate(evening, 'Pacific/Auckland')).toBe('2026-09-23');
+  });
+
+  it('takes the day at a fixed offset in seconds', () => {
+    expect(forecastDate(evening, -5 * 3600)).toBe('2026-09-22');
+    expect(forecastDate(evening, 0)).toBe('2026-09-23');
+  });
+
+  it('takes the UTC day without a zone, and no day for an invalid instant', () => {
+    expect(forecastDate(evening)).toBe('2026-09-23');
+    expect(forecastDate(new Date('nope'), 'America/Chicago')).toBe('');
+  });
+});
+
+describe('aggregateDaily fromDate', () => {
+  it('drops samples dated before the first day', () => {
+    const days = aggregateDaily(
+      [
+        { date: '2026-09-22', tempC: 12 },
+        { date: '2026-09-23', tempC: 11 },
+        { date: '2026-09-23', tempC: 19 },
+      ],
+      7,
+      '2026-09-23',
+    );
+    expect(days.map((d) => [d.date, d.highC, d.lowC])).toEqual([['2026-09-23', 19, 11]]);
+  });
+});
+
+describe('forecastFromToday', () => {
+  const days = [{ date: '2026-09-24' }, { date: '2026-09-25' }, { date: '2026-09-26' }];
+
+  it('drops the days before the household today', () => {
+    expect(forecastFromToday(days, '2026-09-25')).toEqual([{ date: '2026-09-25' }, { date: '2026-09-26' }]);
+  });
+
+  it('returns the same array when it already starts today', () => {
+    expect(forecastFromToday(days, '2026-09-24')).toBe(days);
   });
 });

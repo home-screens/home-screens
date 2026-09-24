@@ -66,11 +66,6 @@ describe('hoursWithin', () => {
     expect(hoursWithin(hourlyAt(3, 40), 12)).toHaveLength(4);
   });
 
-  it('prefers timeEpoch over the wall-clock string when present', () => {
-    const rows = hourlyAt(1, 5).map((h, i) => ({ ...h, time: 'not a date', timeEpoch: 1_700_000_000 + i * 3600 }));
-    expect(hoursWithin(rows, 3)).toHaveLength(3);
-  });
-
   it('is empty for an empty source', () => {
     expect(hoursWithin([], 12)).toEqual([]);
   });

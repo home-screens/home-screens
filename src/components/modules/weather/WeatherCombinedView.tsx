@@ -7,6 +7,8 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
+import { useTZClock } from '@/hooks/useTZClock';
+import { localISODate } from '@/lib/timezone';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
@@ -18,6 +20,8 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
   const tCore = useTranslate('core');
   const tWeather = useTranslate('weather');
   const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
+  // Ticks so "Today" moves at the household's midnight, not at the next refresh.
+  const todayISO = localISODate(useTZClock(timezone, 60_000));
   const hours = hourly.slice(0, config.hoursToShow);
   const days = forecast.slice(0, config.daysToShow);
   const windUnit = windUnitLabel(units);
@@ -102,7 +106,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
               const Icon = getWeatherIcon(day.icon, config.iconSet);
               return (
                 <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                  <span className="w-[3.5em] text-right" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, locale, dayLabels)}</span>
+                  <span className="w-[3.5em] text-right" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, todayISO, locale, dayLabels)}</span>
                   <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                   <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                   {config.showHighLow !== false && (

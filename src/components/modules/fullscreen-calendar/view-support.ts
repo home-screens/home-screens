@@ -56,7 +56,8 @@ export interface CalendarViewProps {
   scale: CalendarScale;
   today: Date;
   now: Date;
-  timeFormat?: TimeFormat;
+  /** The household's 12/24-hour clock, resolved by the module. */
+  timeFormat: TimeFormat;
   weather?: CalendarWeather;
   /** Sources whose feed is failing; list-view rows add a "saved" time suffix. */
   failingSourceIds?: ReadonlySet<string>;

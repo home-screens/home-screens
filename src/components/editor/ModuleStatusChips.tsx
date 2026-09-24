@@ -6,6 +6,7 @@ import { describeModuleStatus, STATUS_CHIP_CLASS } from '@/lib/module-status';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
+import type { ScheduleClock } from '@/lib/schedule';
 
 /**
  * The readable version of the canvas's corner badges: "Hidden",
@@ -23,7 +24,7 @@ export default function ModuleStatusChips({
   compact = false,
 }: {
   mod: ModuleInstance;
-  now: Date;
+  now: ScheduleClock;
   verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;
   source?: SharedStateSource | null;
   /** Property panel: add the sentence explaining why. */

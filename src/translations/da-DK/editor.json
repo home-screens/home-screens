@@ -134,6 +134,8 @@
       "scheduledInactiveDetail": "{summary} Det vises ikke på væggen lige nu.",
       "conditionOnKey": "Venter på {key}",
       "conditionNoKey": "Venter på en live-værdi",
+      "conditionTimeMet": "Vises på dette tidspunkt",
+      "conditionTimeUnmet": "Skjult på dette tidspunkt",
       "background": "Kører i baggrunden"
     }
   },
@@ -473,11 +475,24 @@
     "locationPage": {
       "heading": "Placering",
       "description": "Bruges af modulerne vejr, månefase, solopgang/solnedgang og luftkvalitet.",
-      "browserLabel": "Browser",
-      "serverLabel": "Server",
       "timezoneLabel": "Tidszone",
-      "timezoneSystemDefault": "Systemstandard ({timezone})",
-      "timezoneHelp": "Normalt den samme som din by. Ret den kun, hvis urene ser forkerte ud.",
+      "timezoneHelp": "Normalt den samme som din by. Ret den kun, hvis I bruger en anden tid derhjemme.",
+      "timezoneSearchWords": "tidszone tid ur ure klokken time",
+      "timezoneUnset": {
+        "title": "Vælg din tidszone",
+        "lead": "Indtil da bruger dine skærme hubbens eget ur, som står på {zone}.",
+        "leadPending": "Indtil da bruger dine skærme hubbens eget ur.",
+        "canBeWrong": "Derfor kan ure og „i dag“ være forkerte.",
+        "ahead": "Det er {gap} foran {place}, så ure og „i dag“ kan være forkerte.",
+        "behind": "Det er {gap} efter {place}, så ure og „i dag“ kan være forkerte.",
+        "same": "Det passer med {place} lige nu, men vælger du tidszonen, bliver det ved med at passe.",
+        "aheadHere": "Det er {gap} foran denne computer, så ure og „i dag“ kan være forkerte.",
+        "behindHere": "Det er {gap} efter denne computer, så ure og „i dag“ kan være forkerte.",
+        "sameHere": "Det passer med denne computer lige nu, men vælger du tidszonen, bliver det ved med at passe.",
+        "yourTown": "din by",
+        "buttonPlace": "Brug {zone} (som {place})",
+        "buttonHere": "Brug {zone} (denne computers tid)"
+      },
       "queryPlaceholder": "Postnummer eller bynavn",
       "lookUpButton": "Slå op",
       "detectButton": "Find min placering",
@@ -488,27 +503,34 @@
       "longitudePlaceholder": "-74.006",
       "status": {
         "lookingUp": "Slår op…",
-        "found": "Fundet: {name}",
+        "found": "Fandt {name}.",
         "error": "Fejl: {message}",
         "lookupFailed": "Kunne ikke slå placeringen op",
         "detecting": "Finder…",
-        "detected": "Fundet: {name}",
-        "detectedViaIp": "Fundet: {name} (via IP)",
-        "detectedCoords": "Fundet: {lat}, {lon}",
-        "detectFailed": "Fejl: Kunne ikke finde placeringen"
+        "detected": "Fandt {name}.",
+        "detectedViaIp": "Fandt {name} via din internetforbindelse.",
+        "detectedCoords": "Fandt {lat}, {lon}.",
+        "detectFailed": "Fejl: Kunne ikke finde placeringen",
+        "zoneSet": "Tidszonen er sat til {zone}, så den passer."
       },
       "queryLabel": "Din by eller dit postnummer",
       "clockCheck": {
         "summary": "Tjek urene",
-        "description": "Sammenlign uret i denne browser med uret på den enhed, der kører Home Screens. Passer de ikke sammen, så ret tidszonen ovenfor."
+        "screens": "Dine skærme",
+        "computer": "Denne computer",
+        "hub": "Hubben",
+        "advice": "Dine skærme følger altid tidszonen ovenfor. Denne computer kan vise en anden tid, når du er væk hjemmefra. Det er helt fint.",
+        "adviceUnset": "Indtil der er valgt en tidszone, følger dine skærme hubbens ur. Denne computer kan vise en anden tid, når du er væk hjemmefra. Det er helt fint."
       },
-      "deviceClock": {
-        "message": "Denne enheds ur står på {deviceTimezone}, men dine skærme viser {displayTimezone}.",
-        "help": "Dine skærme viser den rigtige tid uanset hvad. Dette ændrer kun de tidspunkter, enheden noterer til sig selv, så de bliver lettere at læse.",
-        "button": "Stil enhedens ur ens",
+      "timezoneNotPicked": "Ikke valgt endnu",
+      "zoneTime": "{place}-tid",
+      "hubClock": {
+        "optional": "Valgfrit",
+        "message": "Hubbens eget ur står på {zone}. At stille det ens gør kun dens logfiler lettere at læse.",
+        "button": "Stil hubben på {zone}",
         "settingButton": "Ændrer…",
-        "success": "Enhedens ur passer nu med dine skærme.",
-        "error": "Enhedens ur kunne ikke ændres."
+        "success": "Hubbens ur passer nu med dine skærme.",
+        "error": "Hubbens ur kunne ikke ændres."
       }
     },
     "calendarPage": {
@@ -660,13 +682,14 @@
         "heading": "Automatiske øjebliksbilleder",
         "description": "Home Screens gemmer et øjebliksbillede af dine indstillinger før hver opdatering, så en dårlig opdatering kan fortrydes. Der er intet at sætte op.",
         "empty": "Ingen sikkerhedskopier endnu. De oprettes automatisk før hver opdatering.",
-        "sizeKb": "{size}KB",
+        "sizeKb": "{size} KB",
         "download": "Download",
         "restore": "Gendan",
         "restoreDialog": {
-          "title": "Gendan sikkerhedskopi",
-          "message": "Vil du gendanne opsætningen fra {name}? Den nuværende opsætning bliver overskrevet.",
-          "confirm": "Gendan"
+          "title": "Gendan disse indstillinger?",
+          "message": "{what}, gemt {when}. Dine nuværende indstillinger bliver erstattet.",
+          "confirm": "Gendan",
+          "messageNoDate": "{what}. Dine nuværende indstillinger bliver erstattet."
         },
         "restoreStatus": {
           "restoring": "Gendanner…",
@@ -674,7 +697,13 @@
           "error": "Fejl: {error}",
           "failed": "Kunne ikke gendanne sikkerhedskopien"
         },
-        "lastStableHelp": "Dine indstillinger fra før det første tidlig adgang- eller test-build. Gendan dem, hvis du går tilbage til en normal udgivelse, og den ikke kan læse dine indstillinger."
+        "kinds": {
+          "lastStable": "Sidste indstillinger, før du prøvede tidlige versioner",
+          "update": "Før opdatering fra {version}",
+          "migration": "Før dine indstillinger blev opdateret (version {version})",
+          "other": "Gemte indstillinger"
+        },
+        "keptBadge": "Beholdes"
       },
       "backupPassword": {
         "setTitle": "Vælg en adgangskode",
@@ -2646,7 +2675,9 @@
       "suggestButton": "Foreslå",
       "copyLastWeekButton": "Kopiér sidste uge",
       "clearButton": "Ryd",
-      "prepTimeMin": "{minutes} min"
+      "prepTimeMin": "{minutes} min",
+      "previousWeekAriaLabel": "Forrige uge",
+      "nextWeekAriaLabel": "Næste uge"
     },
     "picker": {
       "title": "Vælg et måltid",
@@ -3356,6 +3387,7 @@
       "viewNeon": "Neon (lysskilt)",
       "viewBar": "Bjælker (fremgangsbjælker)",
       "viewElapsed": "Forløbet (siden/til)",
+      "datePresetLanguage": "Som man plejer på dit sprog",
       "datePresetWeekdayMonthDay": "mandag den 5. januar",
       "datePresetShortWeekday": "man. 5. jan.",
       "datePresetMonthDayYear": "5. januar 2026",
@@ -4986,12 +5018,16 @@
       "templateButton": "Vælg en skabelon",
       "family": "Tilføj dem der bor i dit hjem",
       "familyLink": "Åbn Familie",
-      "location": "Angiv din placering",
+      "location": "Angiv din by og tidszone",
       "locationLink": "Åbn Placering og sprog",
       "phone": "Åbn den på din telefon",
       "phoneLink": "Se adresserne til telefonen",
       "password": "Vælg en adgangskode",
-      "passwordLink": "Åbn Sikkerhed"
+      "passwordLink": "Åbn Sikkerhed",
+      "locationZoneMissing": "Din by er angivet. Tidszonen er ikke."
     }
+  },
+  "homeTime": {
+    "hint": "Tid derhjemme ({city}). Derhjemme er klokken {time}."
   }
 }

@@ -245,6 +245,10 @@ describe('what the search text covers', () => {
     ['metric', 'weather.units'],
     ['celsius', 'weather.units'],
     ['fahrenheit', 'weather.units'],
+    ['time zone', 'location.timezone'],
+    ['timezone', 'location.timezone'],
+    ['Time Zone', 'location.timezone'],
+    ['clock', 'location.timezone'],
   ])('finds %s', (query, fieldId) => {
     expect(find(query)).toContain(fieldId);
   });

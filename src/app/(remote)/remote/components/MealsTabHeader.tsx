@@ -3,10 +3,12 @@
 import { useFormattingLocale, useTranslate } from '@/i18n';
 
 interface MealsTabHeaderProps {
+  /** The household's day, `YYYY-MM-DD`: the weekday is the one at home, not on the phone. */
+  todayISO: string;
   onOpenSettings: () => void;
 }
 
-export default function MealsTabHeader({ onOpenSettings }: MealsTabHeaderProps) {
+export default function MealsTabHeader({ todayISO, onOpenSettings }: MealsTabHeaderProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('remote');
 
@@ -14,7 +16,7 @@ export default function MealsTabHeader({ onOpenSettings }: MealsTabHeaderProps) 
     <div style={{ padding: '12px 0 4px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
       <div>
         <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
-          {new Date().toLocaleDateString(locale, { weekday: 'long' })}
+          {new Date(todayISO + 'T12:00:00').toLocaleDateString(locale, { weekday: 'long' })}
         </div>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0 }}>{t('mealsTab.header')}</h2>
       </div>

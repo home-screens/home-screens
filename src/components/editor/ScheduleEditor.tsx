@@ -3,6 +3,7 @@
 import Toggle from '@/components/ui/Toggle';
 import PropertyGroup from './PropertyGroup';
 import ScheduleWeekStrip from './ScheduleWeekStrip';
+import HomeTimeHint from './HomeTimeHint';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useEditorStore } from '@/stores/editor-store';
 import { useMemo } from 'react';
@@ -144,6 +145,7 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
                 )}
               </div>
             </div>
+            <HomeTimeHint />
             {/* A native time input ignores `placeholder`, so an empty window
                 reads as "--:-- --" and nothing says that empty means all day. */}
             <p className="mt-1.5 text-[10px] text-hs-text-faint leading-relaxed">

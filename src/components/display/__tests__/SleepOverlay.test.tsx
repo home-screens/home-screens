@@ -5,7 +5,7 @@ import { render, screen as dom, cleanup } from '@testing-library/react';
 import SleepOverlay from '../SleepOverlay';
 
 vi.mock('../Screensaver', () => ({
-  default: () => <div data-testid="screensaver" />,
+  default: ({ timeFormat }: { timeFormat?: string }) => <div data-testid="screensaver" data-time-format={timeFormat} />,
 }));
 
 /**
@@ -25,6 +25,11 @@ describe('SleepOverlay', () => {
   it('shows the screensaver for an idle or scheduled dim', () => {
     render(<SleepOverlay displayState="dimmed" dimOpacity={0.8} brightnessOverride={null} />);
     expect(dom.getByTestId('screensaver')).toBeTruthy();
+  });
+
+  it('hands the household 12/24 choice to the screensaver clock', () => {
+    render(<SleepOverlay displayState="dimmed" dimOpacity={0.8} brightnessOverride={null} timeFormat="24h" />);
+    expect(dom.getByTestId('screensaver').getAttribute('data-time-format')).toBe('24h');
   });
 
   it('dims without a screensaver for a brightness override', () => {

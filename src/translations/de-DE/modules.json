@@ -359,6 +359,7 @@
     "now": "Jetzt"
   },
   "meal-planner": {
+    "loading": "Mahlzeiten werden geladen…",
     "noMealsPlannedYet": "Noch keine Mahlzeiten geplant",
     "noMealsPlanned": "Keine Mahlzeiten geplant",
     "noMealPlanned": "Keine Mahlzeit geplant",
@@ -596,7 +597,7 @@
       "rotationWeekly": "wöchentlich abwechseln",
       "rotationSchedule": "Plan",
       "nobody": "Noch niemand",
-      "rotatedShort": "← Wechsel",
+      "takingTurns": "(abwechselnd)",
       "arrow": "→"
     },
     "choreForm": {
@@ -970,6 +971,18 @@
       "snow": "Warm anziehen",
       "thunderstorm": "Gewitter erwartet",
       "clear": "Schöner Tag voraus"
+    },
+    "weatherEvening": {
+      "rain": "Regnerischer Abend voraus",
+      "snow": "Heute Abend warm anziehen",
+      "thunderstorm": "Gewitter heute Abend erwartet",
+      "clear": "Schöner Abend voraus"
+    },
+    "weatherNight": {
+      "rain": "Regen heute Nacht",
+      "snow": "Schnee heute Nacht",
+      "thunderstorm": "Gewitter heute Nacht",
+      "clear": "Klarer Himmel heute Nacht"
     }
   },
   "affirmations": {

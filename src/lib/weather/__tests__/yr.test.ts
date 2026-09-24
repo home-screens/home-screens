@@ -143,3 +143,46 @@ describe('YrProvider', () => {
     });
   });
 });
+
+describe('YrProvider forecast days', () => {
+  let spy: ReturnType<typeof vi.spyOn>;
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  beforeEach(() => clearCache());
+  afterEach(() => {
+    spy?.mockRestore();
+    nowSpy?.mockRestore();
+    clearCache();
+  });
+
+  const sample = (time: string, air_temperature: number) => ({ time, data: { instant: { details: { air_temperature } } } });
+
+  it("buckets UTC samples into the household's days", async () => {
+    // 8 pm Tuesday in Chicago is already Wednesday in UTC. Today's evening
+    // samples must stay on Tuesday, not become Wednesday's high and low.
+    nowSpy = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-23T01:00:00Z'));
+    spy = mockYr([
+      sample('2026-09-23T01:00:00Z', 22), // 8 pm Tue
+      sample('2026-09-23T04:00:00Z', 18), // 11 pm Tue
+      sample('2026-09-23T06:00:00Z', 14), // 1 am Wed
+      sample('2026-09-23T20:00:00Z', 27), // 3 pm Wed
+    ]);
+    const out = await new YrProvider().getForecast(44.71, -93.42, 'metric', 'America/Chicago');
+    expect(out.map((d) => [d.date, d.high, d.low])).toEqual([
+      ['2026-09-22', 22, 18],
+      ['2026-09-23', 27, 14],
+    ]);
+  });
+
+  it('never leads with a stub yesterday just after midnight', async () => {
+    // 00:30 Wednesday in Berlin; the series opens with the hour that ended
+    // before midnight.
+    nowSpy = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-22T22:30:00Z'));
+    spy = mockYr([
+      sample('2026-09-22T21:00:00Z', 12), // 11 pm Tue
+      sample('2026-09-22T22:00:00Z', 11), // midnight Wed
+      sample('2026-09-23T12:00:00Z', 19), // 2 pm Wed
+    ]);
+    const out = await new YrProvider().getForecast(52.52, 13.4, 'metric', 'Europe/Berlin');
+    expect(out.map((d) => [d.date, d.high, d.low])).toEqual([['2026-09-23', 19, 11]]);
+  });
+});

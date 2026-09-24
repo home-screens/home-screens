@@ -810,5 +810,8 @@
     "save": "Salvar",
     "saveFailed": "Não deu para salvar. Tente de novo.",
     "changeAriaLabel": "Mudar como as tarefas bônus são pegas"
+  },
+  "atHome": {
+    "pill": "Em casa é {day}, {time}"
   }
 }

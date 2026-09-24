@@ -353,7 +353,8 @@ The host exposes a shared SDK on `window.__HS_SDK__` that plugins should use ins
 | `startAuth` | function | `startAuth(pluginId)`: opens the Connection panel's sign-in flow, so a custom config section can embed its own "Connect" button (see [Server-Side Auth](#server-side-auth)). Real behavior in the editor only. |
 | `locale` | string | The active BCP-47 locale tag, kept up to date as the user changes it |
 | `translate` | function | `translate(key, vars?)`: looks up a translation key under the host's active locale. Plugin-shipped strings live under the namespace `plugin:<pluginId>`. See [Translations](#translations) below. |
-| `formatDate` | function | `formatDate(date, pattern)`: formats a `Date` or epoch-ms value using the host's formatting locale |
+| `formatDate` | function | `formatDate(date, pattern)`: formats a `Date` or epoch-ms value using the host's formatting locale, on the household's clock (the `timezone` from `getHostSettings`) rather than the display device's. Time zone name tokens (`z`, `O`, `x`, `X`) are not meaningful. |
+| `wallClock` | function | `wallClock(date?)`: an instant (default now) on the household's clock, as `{ dayOfWeek, minuteOfDay, isoDate }` (`dayOfWeek` 0 is Sunday, `isoDate` is `YYYY-MM-DD`). Use it to bucket by day or check the hour instead of a `Date`'s own getters, which follow the display device's clock. |
 | `formatNumber` | function | `formatNumber(n, opts?)`: locale-aware number formatting, taking the same options as `Intl.NumberFormat` |
 | `INPUT_CLASS` | string | CSS class for editor form inputs (consistent styling) |
 | `NESTED_INPUT_CLASS` | string | CSS class for nested/compact editor inputs |

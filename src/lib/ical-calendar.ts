@@ -3,9 +3,10 @@ import type { VEvent } from 'node-ical';
 import type { ICalSource } from '@/types/config';
 import type { CalendarEvent } from '@/types/config';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { compareEventStarts } from '@/lib/calendar-utils';
+import { compareEventStarts, parseEventInstant } from '@/lib/calendar-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { normalizeIcsTimezones } from '@/lib/ics-timezones';
+import { isoDateInTZ } from '@/lib/timezone';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { logger } from '@/lib/logger';
 
@@ -94,8 +95,15 @@ export function parseICSEvents(
       const evStart = vevent.start;
       const evEnd = vevent.end ?? computeFallbackEnd(evStart, isAllDay);
 
-      // Overlap check: event.end > timeMin && event.start < timeMax
-      if (evEnd > from && evStart < to) {
+      // Overlap check: event.end > timeMin && event.start < timeMax. node-ical
+      // builds all-day bounds at the hub's own midnight, so they are compared
+      // as the household's days instead: on a Pi left at UTC, a Chicago
+      // all-day event otherwise ends at 7 pm and drops out of an evening
+      // fetch while it is still today at home.
+      const [overlapStart, overlapEnd] = isAllDay
+        ? [parseEventInstant(toDateString(evStart), timezone), parseEventInstant(toDateString(evEnd), timezone)]
+        : [evStart, evEnd];
+      if (overlapEnd > from && overlapStart < to) {
         const ev = instanceToCalendarEvent(vevent, evStart, evEnd, isAllDay, source);
         if (ev) events.push(ev);
       }
@@ -245,7 +253,7 @@ export async function fetchICalEvents(
     },
   );
 
-  events.sort((a, b) => compareEventStarts(a.start, b.start));
+  events.sort((a, b) => compareEventStarts(a.start, b.start, timezone));
   return { events, results };
 }
 
@@ -268,7 +276,9 @@ export async function checkICalUrl(
   url: string,
   options: { homeNetwork?: boolean; timezone?: string } = {},
 ): Promise<ICalCheckResult> {
-  const from = new Date();
+  // From the start of the household's today, as the display fetches, so an
+  // all-day event today still counts after the hub's own midnight.
+  const from = parseEventInstant(isoDateInTZ(new Date(), options.timezone), options.timezone);
   const to = new Date(from);
   to.setFullYear(to.getFullYear() + 1);
   const probe: ICalSource = {

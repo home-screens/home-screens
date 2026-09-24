@@ -1,17 +1,18 @@
 [Unit]
-Description=Home Screens display software update check (nightly)
+Description=Home Screens display software update check (hourly)
 
 [Timer]
 # Chromium on a wall-mounted display can run for weeks, so the launcher-run
 # check alone would only fire on a power cycle. This is the catch-up path.
-# The window lines up with the hub's "is now a good time to restart?" answer,
-# which favours the small hours when no sleep schedule is configured.
-OnCalendar=*-*-* 03:00:00
-RandomizedDelaySec=45min
-# A Pi that was powered off overnight checks shortly after it boots instead
-# of waiting a full day. Applying files is always safe; the restart still
-# needs the hub's blessing, so this cannot black-flash a display mid-morning.
-Persistent=true
+# Hourly rather than at a fixed hour: this Pi's own clock is UTC unless
+# someone changes it, so "3 am" here was 10 pm in Chicago and 5 am in Berlin,
+# both outside the hub's restart window. The hub judges the right moment to
+# restart in the household's time zone (its quiet hours, or while the display
+# sleeps); checking every hour just makes sure one check lands inside it.
+# Applying files is always safe, and the restart still needs the hub's
+# blessing, so a check cannot black-flash a display mid-morning.
+OnCalendar=hourly
+RandomizedDelaySec=10min
 Unit=home-screens-kiosk-update.service
 
 [Install]

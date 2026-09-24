@@ -1,5 +1,6 @@
 import { createResolverCache, fetchWithTimeout, isValidISODate } from '@/lib/api-utils';
 import { createJsonStore } from '@/lib/json-store';
+import { householdToday } from '@/lib/household-day';
 
 /**
  * School and public holidays from openholidaysapi.org, per region.
@@ -207,10 +208,20 @@ function weekdayOf(date: string): number {
   return new Date(`${date}T00:00:00Z`).getUTCDay();
 }
 
-/** The school year a date falls in: 2026 means September 2026 to August 2027. */
-export function currentSchoolYear(now: Date = new Date()): number {
-  // getMonth() is zero-based, so 8 is September.
-  return now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+/** The school year a `YYYY-MM-DD` day falls in: 2026 means September 2026 to August 2027. */
+export function schoolYearOf(date: string): number {
+  const [year, month] = date.split('-').map(Number);
+  return month >= 9 ? year : year - 1;
+}
+
+/**
+ * The school year running now for the household, counted from its own day in
+ * the Settings time zone. The hub's clock is UTC on the shipped image, and
+ * for a school in Europe that still read August 31 for the first hours of
+ * September 1, which asked for last year's holidays.
+ */
+export async function currentSchoolYear(): Promise<number> {
+  return schoolYearOf(await householdToday());
 }
 
 /**
@@ -457,7 +468,7 @@ async function resolveHolidays(key: string): Promise<StoredHolidays | null> {
 }
 
 async function resolveRegions(country: string): Promise<HolidayRegionsResult | null> {
-  const { from, to } = schoolYearWindow(currentSchoolYear());
+  const { from, to } = schoolYearWindow(await currentSchoolYear());
   const [rows, schoolRows] = await Promise.all([
     fetchRows<OpenHolidaysSubdivision>('/Subdivisions', { countryIsoCode: country }),
     // The cheapest probe for "does this country have school holidays at all?".

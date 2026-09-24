@@ -38,6 +38,7 @@ import {
 } from '@/types/timetables';
 import CellDetails, { type CellDetailsHandlers } from './CellDetails';
 import { SubjectIcon, subjectTint } from './SubjectPalette';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 interface PaintGridProps {
   school: TimetableSchool;
@@ -77,7 +78,7 @@ export default function PaintGrid({
   // Bell times are stored as 24-hour strings and were printed as stored, so a
   // household on a 12-hour clock read its own schedule in a format it uses
   // nowhere else, next to native time pickers showing the other one.
-  const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
+  const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings.timeFormat));
   const clock = (time: string) => formatClockTime(time, timeFormat);
   const tModules = useTranslate('modules');
   const locale = useFormattingLocale();

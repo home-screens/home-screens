@@ -2,6 +2,7 @@ import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert, WeatherP
 import { fetchKeyedWeatherJSON } from './fetch';
 import { SetupError } from '@/lib/api-utils';
 import { PIRATE_ICON_MAP, FALLBACK_ICON } from './icons';
+import { forecastDate } from './daily';
 
 // ── Pirate Weather API response types ────────────────────────────────
 
@@ -50,6 +51,9 @@ interface PWAlert {
 }
 
 interface PWResponse {
+  /** The location's IANA zone, and its current offset from UTC in hours. */
+  timezone?: string;
+  offset?: number;
   currently?: PWDataPoint;
   minutely?: { data: PWMinutelyDataPoint[] };
   hourly?: { data: PWDataPoint[] };
@@ -110,12 +114,16 @@ export class PirateWeatherProvider implements WeatherProvider {
       }));
   }
 
-  async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
+  async getForecast(lat: number, lon: number, units: string, timezone?: string): Promise<ForecastDay[]> {
     const data = await this.fetchAll(lat, lon, units);
     if (!data.daily?.data) return [];
 
+    // Each daily `time` is local midnight at the location. Read it in the
+    // location's own zone from the response: taken as a UTC date, every day
+    // east of UTC came out dated the day before.
+    const zone = data.timezone ?? (data.offset != null ? data.offset * 3600 : timezone);
     return data.daily.data.slice(0, 7).map((d) => ({
-      date: new Date(d.time * 1000).toISOString().split('T')[0],
+      date: forecastDate(new Date(d.time * 1000), zone),
       high: Math.round(d.temperatureHigh ?? 0),
       low: Math.round(d.temperatureLow ?? 0),
       icon: this.mapIcon(d.icon ?? ''),

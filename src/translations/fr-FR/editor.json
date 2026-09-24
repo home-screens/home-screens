@@ -134,6 +134,8 @@
       "scheduledInactiveDetail": "{summary} Il n'est pas au mur en ce moment.",
       "conditionOnKey": "En attente de {key}",
       "conditionNoKey": "En attente d'une valeur en direct",
+      "conditionTimeMet": "Affiché à cette heure-ci",
+      "conditionTimeUnmet": "Masqué à cette heure-ci",
       "background": "Tourne en arrière-plan"
     }
   },
@@ -473,11 +475,24 @@
     "locationPage": {
       "heading": "Lieu",
       "description": "Utilisé par les modules météo, phase de la lune, lever/coucher du soleil et qualité de l'air.",
-      "browserLabel": "Navigateur",
-      "serverLabel": "Serveur",
       "timezoneLabel": "Fuseau horaire",
-      "timezoneSystemDefault": "Par défaut du système ({timezone})",
-      "timezoneHelp": "Généralement le même que celui de votre ville. Ne le changez que si les horloges semblent fausses.",
+      "timezoneHelp": "Généralement le même que celui de votre ville. Ne le changez que si votre foyer vit à une autre heure.",
+      "timezoneSearchWords": "fuseau horaire heure horloge horloges",
+      "timezoneUnset": {
+        "title": "Choisissez votre fuseau horaire",
+        "lead": "En attendant, vos écrans suivent l'horloge du hub, réglée sur {zone}.",
+        "leadPending": "En attendant, vos écrans suivent l'horloge du hub.",
+        "canBeWrong": "Les horloges et « aujourd'hui » peuvent donc être faux.",
+        "ahead": "Elle a {gap} d'avance sur {place}, donc les horloges et « aujourd'hui » peuvent être faux.",
+        "behind": "Elle a {gap} de retard sur {place}, donc les horloges et « aujourd'hui » peuvent être faux.",
+        "same": "Pour l'instant, elle correspond à {place}, mais choisir le fuseau garantit que ça reste juste.",
+        "aheadHere": "Elle a {gap} d'avance sur cet ordinateur, donc les horloges et « aujourd'hui » peuvent être faux.",
+        "behindHere": "Elle a {gap} de retard sur cet ordinateur, donc les horloges et « aujourd'hui » peuvent être faux.",
+        "sameHere": "Pour l'instant, elle correspond à cet ordinateur, mais choisir le fuseau garantit que ça reste juste.",
+        "yourTown": "votre ville",
+        "buttonPlace": "Utiliser {zone} (comme {place})",
+        "buttonHere": "Utiliser {zone} (l'heure de cet ordinateur)"
+      },
       "queryPlaceholder": "Code postal ou nom de ville",
       "lookUpButton": "Rechercher",
       "detectButton": "Détecter ma position",
@@ -488,27 +503,34 @@
       "longitudePlaceholder": "-74.006",
       "status": {
         "lookingUp": "Recherche en cours…",
-        "found": "Trouvé : {name}",
+        "found": "Lieu trouvé : {name}.",
         "error": "Erreur : {message}",
         "lookupFailed": "Échec de la recherche du lieu",
         "detecting": "Détection…",
-        "detected": "Détecté : {name}",
-        "detectedViaIp": "Détecté : {name} (par IP)",
-        "detectedCoords": "Détecté : {lat}, {lon}",
-        "detectFailed": "Erreur : impossible de détecter le lieu"
+        "detected": "Lieu trouvé : {name}.",
+        "detectedViaIp": "Lieu trouvé grâce à votre connexion internet : {name}.",
+        "detectedCoords": "Lieu trouvé : {lat}, {lon}.",
+        "detectFailed": "Erreur : impossible de détecter le lieu",
+        "zoneSet": "Fuseau horaire réglé sur {zone} pour correspondre."
       },
       "queryLabel": "Votre ville ou code postal",
       "clockCheck": {
         "summary": "Vérifier les horloges",
-        "description": "Comparez l'horloge de ce navigateur avec celle de l'appareil qui fait tourner Home Screens. Si elles diffèrent, changez le fuseau horaire ci-dessus."
+        "screens": "Vos écrans",
+        "computer": "Cet ordinateur",
+        "hub": "Le hub",
+        "advice": "Vos écrans suivent toujours le fuseau horaire ci-dessus. Cet ordinateur peut afficher une autre heure quand vous n'êtes pas à la maison, et c'est normal.",
+        "adviceUnset": "Tant qu'aucun fuseau horaire n'est choisi, vos écrans suivent l'horloge du hub. Cet ordinateur peut afficher une autre heure quand vous n'êtes pas à la maison, et c'est normal."
       },
-      "deviceClock": {
-        "message": "L'horloge de cet appareil est réglée sur {deviceTimezone}, alors que vos écrans affichent {displayTimezone}.",
-        "help": "Vos écrans affichent la bonne heure dans les deux cas. Cela ne change que les horodatages que l'appareil conserve pour lui-même, ce qui les rend plus faciles à lire.",
-        "button": "Aligner l'horloge de l'appareil",
+      "timezoneNotPicked": "Pas encore choisi",
+      "zoneTime": "l'heure de {place}",
+      "hubClock": {
+        "optional": "Facultatif",
+        "message": "L'horloge du hub lui-même est réglée sur {zone}. L'aligner rend seulement ses fichiers journaux plus faciles à lire.",
+        "button": "Régler le hub sur {zone}",
         "settingButton": "Modification…",
-        "success": "L'horloge de l'appareil correspond maintenant à vos écrans.",
-        "error": "Impossible de modifier l'horloge de l'appareil."
+        "success": "L'horloge du hub correspond maintenant à vos écrans.",
+        "error": "Impossible de modifier l'horloge du hub."
       }
     },
     "calendarPage": {
@@ -660,13 +682,14 @@
         "heading": "Instantanés automatiques",
         "description": "Home Screens enregistre un instantané de vos réglages avant chaque mise à jour, pour pouvoir annuler une mise à jour ratée. Rien à configurer.",
         "empty": "Aucune sauvegarde pour l'instant. Les sauvegardes sont créées automatiquement avant chaque mise à niveau.",
-        "sizeKb": "{size} Ko",
+        "sizeKb": "{size} KB",
         "download": "Télécharger",
         "restore": "Restaurer",
         "restoreDialog": {
-          "title": "Restaurer la sauvegarde",
-          "message": "Restaurer la configuration depuis {name} ? La configuration actuelle sera écrasée.",
-          "confirm": "Restaurer"
+          "title": "Restaurer ces réglages ?",
+          "message": "{what}, enregistré le {when}. Vos réglages actuels seront remplacés.",
+          "confirm": "Restaurer",
+          "messageNoDate": "{what}. Vos réglages actuels seront remplacés."
         },
         "restoreStatus": {
           "restoring": "Restauration…",
@@ -674,7 +697,13 @@
           "error": "Erreur : {error}",
           "failed": "Échec de la restauration de la sauvegarde"
         },
-        "lastStableHelp": "Tes réglages d'avant le premier build en avant-première ou de test. Restaure-les si tu reviens à une version normale et qu'elle ne sait pas lire tes réglages."
+        "kinds": {
+          "lastStable": "Derniers réglages avant d'essayer les versions en avant-première",
+          "update": "Avant la mise à jour depuis la {version}",
+          "migration": "Avant la mise à jour de vos réglages (version {version})",
+          "other": "Réglages enregistrés"
+        },
+        "keptBadge": "Conservé"
       },
       "backupPassword": {
         "setTitle": "Choisissez un mot de passe",
@@ -2646,7 +2675,9 @@
       "suggestButton": "Suggérer",
       "copyLastWeekButton": "Copier la semaine dernière",
       "clearButton": "Vider",
-      "prepTimeMin": "{minutes} min"
+      "prepTimeMin": "{minutes} min",
+      "previousWeekAriaLabel": "Semaine précédente",
+      "nextWeekAriaLabel": "Semaine suivante"
     },
     "picker": {
       "title": "Choisir un repas",
@@ -3356,6 +3387,7 @@
       "viewNeon": "Néon (enseigne lumineuse)",
       "viewBar": "Barres (barres de progression)",
       "viewElapsed": "Écoulé (depuis/jusqu'à)",
+      "datePresetLanguage": "Format habituel de la langue",
       "datePresetWeekdayMonthDay": "lundi 5 janvier",
       "datePresetShortWeekday": "lun. 5 janv.",
       "datePresetMonthDayYear": "5 janvier 2026",
@@ -4986,12 +5018,16 @@
       "templateButton": "Choisir un modèle",
       "family": "Ajoutez les personnes de votre foyer",
       "familyLink": "Ouvrir Famille",
-      "location": "Indiquez votre lieu",
+      "location": "Indiquez votre ville et votre fuseau horaire",
       "locationLink": "Ouvrir Lieu et langue",
       "phone": "Ouvrez-le sur votre téléphone",
       "phoneLink": "Voir les adresses pour le téléphone",
       "password": "Définissez un mot de passe",
-      "passwordLink": "Ouvrir Sécurité"
+      "passwordLink": "Ouvrir Sécurité",
+      "locationZoneMissing": "Votre ville est indiquée, mais pas encore le fuseau horaire."
     }
+  },
+  "homeTime": {
+    "hint": "Heure de la maison ({city}). Il est {time} à la maison."
   }
 }

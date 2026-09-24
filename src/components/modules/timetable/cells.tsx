@@ -56,7 +56,7 @@ export interface CardTokens {
   columnPx: { focus: number; quiet: number };
   /** Lines a label is held to when drawn, per kind of column. */
   clamp: { focus: number; quiet: number };
-  timeFormat?: TimeFormat;
+  timeFormat: TimeFormat;
 }
 
 /**

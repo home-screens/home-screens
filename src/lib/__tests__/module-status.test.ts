@@ -96,6 +96,37 @@ describe('describeModuleStatus', () => {
     expect(status.tone).toBe('active');
   });
 
+  describe('a condition that only reads the clock', () => {
+    // ctx.now is 08:00.
+    const morning = mod({ visibility: { conditions: [{ kind: 'time', startTime: '07:00', endTime: '09:00' }] } });
+    const evening = mod({ visibility: { conditions: [{ kind: 'time', startTime: '18:00', endTime: '22:00' }] } });
+
+    it('is judged on the household clock with no display reporting', () => {
+      const [shown] = describeModuleStatus(morning, ctx);
+      expect(shown.tone).toBe('active');
+      expect(shown.label).toBe('Showing at this time');
+      expect(shown.detail).toBe(en.draggableModule.conditionMetTitleEditor);
+      const [hidden] = describeModuleStatus(evening, ctx);
+      expect(hidden.tone).toBe('waiting');
+      expect(hidden.label).toBe('Hidden at this time');
+    });
+
+    it('never says it is waiting for a live value, even with a display reporting', () => {
+      const [status] = describeModuleStatus(morning, { ...ctx, verdictStates: new Map(), source: 'display' });
+      expect(status.label).toBe('Showing at this time');
+      expect(status.detail).toBe(en.draggableModule.conditionMetTitle);
+    });
+
+    it('leaves a tree that also reads a key waiting for a display', () => {
+      const [status] = describeModuleStatus(
+        mod({ visibility: { conditions: [{ kind: 'time', startTime: '07:00', endTime: '09:00' }, { kind: 'state', sourceKey: 'k', equals: 'on' }] } }),
+        ctx,
+      );
+      expect(status.tone).toBe('background');
+      expect(status.label).toBe('Waiting for k');
+    });
+  });
+
   it('reports a background provider alongside everything else', () => {
     const statuses = describeModuleStatus(mod({ backgroundProvider: true, schedule: { daysOfWeek: [0, 6] } }), ctx);
     expect(statuses.map((s) => s.key)).toEqual(['schedule', 'backgroundProvider']);

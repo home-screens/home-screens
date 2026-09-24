@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useWallClock } from '@/hooks/useTZClock';
 import ModuleStatusChips from './ModuleStatusChips';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Slider from '@/components/ui/Slider';
@@ -535,7 +536,8 @@ export default function PropertyPanel({
   // Only ticks the panel's clock while the selected module actually has
   // something time-dependent to show — an idle panel shouldn't re-render
   // every 60s for a module with no schedule or conditions.
-  const now = useTZClock(config?.settings.timezone, 60_000, !!selectedModule?.schedule || conditioned);
+  const householdTimezone = useEditorHouseholdTimezone();
+  const now = useWallClock(householdTimezone, 60_000, !!selectedModule?.schedule || conditioned);
   const liveState = useEditorSharedState(selectedDisplayId, conditioned);
 
   if (collapsed) {

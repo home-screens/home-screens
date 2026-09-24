@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { FullscreenNewsConfig, ModuleStyle, TimeFormat } from '@/types/config';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import { householdTimeFormat } from '@/lib/clock-time';
 import { ModuleEmptyState, moduleGate } from '../ModuleStates';
 import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useNewsFeeds } from '@/hooks/useNewsFeeds';
@@ -99,11 +99,11 @@ export default function FullscreenNewsModule({ config, style, fullscreenTheme, t
   const scale = buildNewsScale(dims.w, dims.h, getTypoMultiplier(config.typographySize ?? 'medium'));
   const ctx: NewsViewContext = {
     items, scale, theme, accent, options, t, locale, now, onTap, timezone,
-    timeFormat: timeFormat ?? DEFAULT_TIME_FORMAT,
+    timeFormat: householdTimeFormat(timeFormat, locale),
     unavailable: failed.map(({ feed }) => feedDisplayLabel(feed, t)),
   };
   const overlayMeta = overlay
-    ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, locale, now)).join(' · ')
+    ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, { locale, timezone }, now)).join(' · ')
     : '';
 
   return (

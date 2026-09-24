@@ -1,5 +1,7 @@
 import { fetchWithTimeout, createTTLCache } from '@/lib/api-utils';
 import type { CalendarEvent } from '@/types/config';
+import { parseEventInstant } from '@/lib/calendar-utils';
+import { isoDateInTZ } from '@/lib/timezone';
 
 const NAGER_BASE = 'https://date.nager.at/api/v3';
 
@@ -76,14 +78,21 @@ function pinFixedDate(h: NagerHoliday): string {
 /**
  * Fetches public holidays for a country and converts them to CalendarEvent format.
  * Only includes holidays typed as "Public" (skips observances, optional, etc.).
+ *
+ * A holiday is a whole day at home, so the window's ends are read as the
+ * household's days (`timezone`). Slicing the ISO string took the UTC day, so
+ * from 7 pm on Christmas in Chicago the window already started on the 26th.
+ * A date-only bound is that day as written.
  */
 export async function fetchHolidayEvents(
   countryCode: string,
   timeMin: string,
   timeMax: string,
+  timezone?: string,
 ): Promise<CalendarEvent[]> {
-  const minDate = timeMin.slice(0, 10);  // YYYY-MM-DD
-  const maxDate = timeMax.slice(0, 10);
+  const dayOf = (bound: string) => isoDateInTZ(parseEventInstant(bound, timezone), timezone);
+  const minDate = dayOf(timeMin);  // YYYY-MM-DD
+  const maxDate = dayOf(timeMax);
 
   // Fetch holidays for all years in the range
   const minYear = parseInt(minDate.slice(0, 4), 10);

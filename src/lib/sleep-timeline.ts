@@ -3,13 +3,17 @@
  * sleep-settings 24-hour preview bar.
  *
  * `isMinuteInScheduleWindow` is the single source of truth for window
- * membership — `useSleepManager` wraps it for the runtime and
- * `computeTimelineSegments` uses it for the preview, so the two cannot drift.
+ * membership on a clock face: `computeTimelineSegments` draws the preview
+ * from it. `useSleepManager` runs `isInstantInScheduleWindow`, which applies
+ * the same minutes to real instants and so agrees with the preview on every
+ * night except the two a year when the clock jumps.
  * Segment precedence mirrors `useSleepManager`'s timer: the sleep schedule is
  * checked before the dim schedule, so where the two windows overlap the
  * display is off, not dimmed. Idle dimming is time-independent and cannot be
  * drawn on a clock — the preview component notes it in the legend instead.
  */
+
+import { parseDateInTZ, wallClockParts } from './timezone';
 
 /**
  * Default for `SleepSettings.wakeHoldMinutes`: how long an explicit wake
@@ -56,10 +60,9 @@ export function parseTimeToMinutes(hhmm: string): number | null {
  * unparseable time makes the window match nothing (fail-safe: never dim or
  * sleep on garbage input).
  *
- * This is THE window predicate for sleep behavior — `useSleepManager`'s
- * `isInScheduleWindow` wraps it with a wall-clock minute, and the timeline
- * preview evaluates it directly, so the preview cannot disagree with the
- * runtime about window edges.
+ * The timeline preview evaluates it directly, and `isInstantInScheduleWindow`
+ * (the runtime's test) keeps the same edges, so the preview cannot disagree
+ * with the display about when a window starts or ends.
  */
 export function isMinuteInScheduleWindow(window: ScheduleWindow, minute: number): boolean {
   const start = parseTimeToMinutes(window.startTime);
@@ -67,6 +70,47 @@ export function isMinuteInScheduleWindow(window: ScheduleWindow, minute: number)
   if (start === null || end === null) return false;
   if (start <= end) return minute >= start && minute < end;
   return minute >= start || minute < end;
+}
+
+/** `YYYY-MM-DD` shifted by whole days, on the calendar alone. */
+function shiftIsoDate(isoDate: string, days: number): string {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+function minutesToHHMM(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Whether `instant` falls inside a run of the window, judged on real instants
+ * rather than the wall-clock minute. Each run opens at its start time and
+ * closes at its end time as the household's clock reads them (converted with
+ * `parseDateInTZ`), and once open it stays open until that real end even if
+ * the clock steps back. On fall-back night a 01:30 to 06:00 window opens at
+ * the first 01:30 and keeps the display asleep through the repeated hour,
+ * where the minute test alone reads 01:00 to 01:29 as outside it. A start or
+ * end in the hour spring-forward skips moves on by the size of the skip, so
+ * the run still ends and keeps its usual length. On every other night this
+ * agrees with `isMinuteInScheduleWindow`, edges included.
+ *
+ * Without a timezone the machine's own clock is the household's.
+ */
+export function isInstantInScheduleWindow(window: ScheduleWindow, instant: Date, timezone?: string): boolean {
+  const start = parseTimeToMinutes(window.startTime);
+  const end = parseTimeToMinutes(window.endTime);
+  if (start === null || end === null || start === end) return false;
+  const nowMs = instant.getTime();
+  const today = wallClockParts(instant, timezone).isoDate;
+  // A run lasts under a day, so only one that opened today or yesterday
+  // (household calendar) can still be open.
+  for (const opensOn of [shiftIsoDate(today, -1), today]) {
+    const closesOn = end > start ? opensOn : shiftIsoDate(opensOn, 1);
+    const opens = parseDateInTZ(`${opensOn}T${minutesToHHMM(start)}`, timezone).getTime();
+    const closes = parseDateInTZ(`${closesOn}T${minutesToHHMM(end)}`, timezone).getTime();
+    if (nowMs >= opens && nowMs < closes) return true;
+  }
+  return false;
 }
 
 /**

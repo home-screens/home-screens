@@ -34,8 +34,9 @@ async function fetchReported(legacy: boolean): Promise<Record<string, number>> {
   if (legacy) {
     const res = await displayFetch('/api/display/status');
     if (!res.ok) return {};
-    const status = (await res.json()) as { brightness?: unknown };
-    return typeof status.brightness === 'number' ? { [LEGACY_KEY]: status.brightness } : {};
+    // null until the display has sent its first heartbeat.
+    const status = (await res.json()) as { brightness?: unknown } | null;
+    return typeof status?.brightness === 'number' ? { [LEGACY_KEY]: status.brightness } : {};
   }
   const res = await displayFetch('/api/displays');
   if (!res.ok) return {};

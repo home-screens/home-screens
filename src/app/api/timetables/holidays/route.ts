@@ -58,7 +58,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
         return NextResponse.json({ error: `Ask about up to ${MAX_REGIONS} regions at a time` }, { status: 400 });
       }
       const year = params.get('year');
-      const schoolYear = year === null ? currentSchoolYear() : Number(year);
+      const schoolYear = year === null ? await currentSchoolYear() : Number(year);
       // In parallel because they are independent lookups and the library
       // caches each region on its own, so a second school in a region a card
       // already asked about costs nothing.

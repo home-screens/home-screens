@@ -95,7 +95,7 @@ test('clock: picking a Timezone persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('clock'));
 
   await autosaved(page, async () => {
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
     await tz.click();               // opens with the full list
     await tz.fill('kiri');          // filters to the pinned row + Pacific/Kiritimati
     await tz.press('ArrowDown');    // highlight 0: the pinned default row
@@ -110,7 +110,7 @@ test('clock: resetting to the display setting persists', async ({ page, request 
   await selectModule(page, request, buildModuleInstance('clock', { timezone: 'Asia/Tokyo' }));
 
   await autosaved(page, async () => {
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
     await tz.click();
     await tz.press('ArrowDown');    // highlight 0: the pinned default row
     await tz.press('Enter');
@@ -124,7 +124,7 @@ test('date: picking a Timezone persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('date'));
 
   await autosaved(page, async () => {
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
     await tz.click();
     await tz.fill('kiri');
     await tz.press('ArrowDown');
@@ -139,7 +139,7 @@ test('clock: picking a Timezone with the mouse persists and closes the list', as
   await selectModule(page, request, buildModuleInstance('clock'));
 
   await autosaved(page, async () => {
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
     await tz.click();
     // Mouse pick, not keyboard: guards against the wrapping-label bug where
     // the trailing click reopens the list right after the pick.
@@ -154,7 +154,7 @@ test('clock: typing an exact zone and pressing Enter persists', async ({ page, r
   await selectModule(page, request, buildModuleInstance('clock'));
 
   await autosaved(page, async () => {
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
     await tz.click();
     await tz.fill('Asia/Kolkata');
     await tz.press('Enter');
@@ -167,7 +167,7 @@ test('clock: Tab commits an arrow-highlighted timezone before focus moves on', a
   await selectModule(page, request, buildModuleInstance('clock'));
 
   await autosaved(page, async () => {
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
     await tz.click();
     await tz.fill('kiri');
     await tz.press('ArrowDown');    // highlight 0: the pinned default row
@@ -181,10 +181,10 @@ test('clock: Tab commits an arrow-highlighted timezone before focus moves on', a
 test('clock: a zero-match timezone query shows the empty state and commits nothing', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('clock', { timezone: 'Asia/Tokyo' }));
 
-  const tz = page.getByRole('combobox', { name: 'Timezone' });
+  const tz = page.getByRole('combobox', { name: 'Time zone' });
   await tz.click();
   await tz.fill('tokoy'); // typo — matches nothing, and the pinned row must NOT survive alone
-  const list = page.getByRole('listbox', { name: 'Timezone' });
+  const list = page.getByRole('listbox', { name: 'Time zone' });
   await expect(list).toContainText('No matches');
   await expect(list.getByRole('option')).toHaveCount(0);
   await tz.press('ArrowDown');

@@ -1,14 +1,26 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
+import { isValidCoordinate, placeTimezone } from '@/lib/place-timezone';
+import { isKnownTimezone } from '@/lib/timezone';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Every place this returns carries its IANA `timezone` when one can be found.
+ * With no zone saved, the Location page fills the place's own zone, so a
+ * parent looking up "Boulder, CO" on a Chicago laptop saves Denver time, not
+ * the laptop's.
+ *
+ * - `?q=<town, zip or "lat,lon">`: Nominatim search.
+ * - `?detect=ip`: the hub's internet location.
+ * - `?lat=<n>&lon=<n>`: the zone alone, for a place already saved.
+ */
 export const GET = withAuth(async (request: NextRequest) => {
   // IP-based geolocation fallback (for non-HTTPS origins where browser geolocation is blocked)
   if (request.nextUrl.searchParams.get('detect') === 'ip') {
     try {
-      const res = await fetchWithTimeout('http://ip-api.com/json/?fields=lat,lon,city,region,regionName,countryCode');
+      const res = await fetchWithTimeout('http://ip-api.com/json/?fields=lat,lon,city,region,regionName,countryCode,timezone');
       if (res.ok) {
         const data = await res.json();
         const displayName = [data.city, data.regionName, data.countryCode].filter(Boolean).join(', ');
@@ -21,18 +33,37 @@ export const GET = withAuth(async (request: NextRequest) => {
         const subdivisionCode = /^[A-Z]{2}$/.test(countryCode) && /^[A-Z0-9]{1,3}$/.test(region)
           ? `${countryCode}-${region}`
           : '';
+        // This source names the zone itself; the coordinates are the fallback.
+        const timezone = typeof data.timezone === 'string' && isKnownTimezone(data.timezone)
+          ? data.timezone
+          : await placeTimezone(Number(data.lat), Number(data.lon));
         return NextResponse.json({
           latitude: data.lat,
           longitude: data.lon,
           displayName,
           ...(countryCode ? { countryCode } : {}),
           ...(subdivisionCode ? { subdivisionCode } : {}),
+          ...(timezone ? { timezone } : {}),
         });
       }
     } catch {
       // fall through
     }
     return NextResponse.json({ error: 'IP geolocation failed' }, { status: 502 });
+  }
+
+  const latParam = request.nextUrl.searchParams.get('lat');
+  const lonParam = request.nextUrl.searchParams.get('lon');
+  if (latParam !== null || lonParam !== null) {
+    const lat = Number(latParam);
+    const lon = Number(lonParam);
+    if (!latParam || !lonParam || !isValidCoordinate(lat, lon)) {
+      return NextResponse.json({ error: 'Invalid lat/lon' }, { status: 400 });
+    }
+    const timezone = await placeTimezone(lat, lon);
+    return timezone
+      ? NextResponse.json({ timezone })
+      : NextResponse.json({ error: 'Time zone not found' }, { status: 404 });
   }
 
   const query = request.nextUrl.searchParams.get('q');
@@ -62,12 +93,16 @@ export const GET = withAuth(async (request: NextRequest) => {
       // set per state, so the settings page offers this as the region rather
       // than making somebody pick theirs off a list of sixteen.
       const subdivisionCode = typeof addr['ISO3166-2-lvl4'] === 'string' ? addr['ISO3166-2-lvl4'].toUpperCase() : '';
+      const latitude = parseFloat(r.lat);
+      const longitude = parseFloat(r.lon);
+      const timezone = await placeTimezone(latitude, longitude);
       return NextResponse.json({
-        latitude: parseFloat(r.lat),
-        longitude: parseFloat(r.lon),
+        latitude,
+        longitude,
         displayName: displayName || r.display_name,
         ...(country ? { countryCode: country } : {}),
         ...(subdivisionCode ? { subdivisionCode } : {}),
+        ...(timezone ? { timezone } : {}),
       });
     }
   }

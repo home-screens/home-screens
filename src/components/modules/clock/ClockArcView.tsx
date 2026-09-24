@@ -5,10 +5,11 @@ import { parseClockTime } from '@/lib/date-info';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
+import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
-export default function ClockArcView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockArcView({ config, now, time, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const id = useId();
@@ -16,7 +17,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
   const sunGlowId = `sun-glow-${id}`;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const { hours, minutes, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const { hours, minutes, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
   const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
 
   const totalMinutes = hours * 60 + minutes;
@@ -33,7 +34,7 @@ export default function ClockArcView({ config, now, scaledFontSize, containerRef
     : `${hStr}:${mStr}${period}`;
 
   const dateStr = config.showDate
-    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
   const svgWidth = Math.max(200, scaledFontSize * 16);

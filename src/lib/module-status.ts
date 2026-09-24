@@ -1,6 +1,7 @@
 import { Clock, Eye, EyeOff, PowerOff, type LucideIcon } from 'lucide-react';
-import { evaluateVisibility, isModuleEnabled, isModuleVisible } from '@/lib/schedule';
+import { evaluateVisibility, isModuleEnabled, isModuleVisible, type ScheduleClock } from '@/lib/schedule';
 import { describeSchedule } from '@/lib/schedule-summary';
+import { referencesStateKeys, verdictStatesFor } from '@/lib/condition-verdicts';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ModuleInstance, TimeFormat } from '@/types/config';
 import type { TranslateFn } from '@/i18n/types';
@@ -19,7 +20,8 @@ export interface ModuleStatus {
 
 export interface ModuleStatusContext {
   t: TranslateFn;
-  now: Date;
+  /** The display's wall clock, in its configured zone. */
+  now: ScheduleClock;
   formattingLocale: string;
   timeFormat: TimeFormat | undefined;
   /** Fresh shared-state snapshot, or null when no display has reported lately. */
@@ -97,20 +99,30 @@ export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusConte
       });
     }
     if ((mod.visibility?.conditions?.length ?? 0) > 0) {
-      // `now` is the TZ-shifted clock the schedule badge uses. Omitting it made
+      // `now` is the display-zone wall clock the schedule badge uses. Omitting it made
       // evaluateVisibility fall back to the browser's zone, so a `time`
       // condition could disagree with both the panel and the display.
-      const verdict = verdictStates
-        ? (evaluateVisibility(mod.visibility, verdictStates, now) ? 'met' : 'unmet')
+      //
+      // A tree of `time` conditions only needs no live value: it is judged on
+      // the household clock even while no display has reported, and its chip
+      // says whether it is showing rather than waiting for data it never reads.
+      const conditions = mod.visibility!.conditions;
+      const timeOnly = !referencesStateKeys(conditions);
+      const states = verdictStatesFor(conditions, verdictStates);
+      const verdict = states
+        ? (evaluateVisibility(mod.visibility, states, now) ? 'met' : 'unmet')
         : null;
-      const key = firstSourceKey(mod.visibility?.conditions?.[0]);
-      const onDisplay = ctx.source !== 'editor';
+      const key = firstSourceKey({ conditions });
+      // With no display report, a clock-only verdict is the editor's own.
+      const onDisplay = ctx.source !== 'editor' && !(timeOnly && !verdictStates);
       out.push({
         key: 'condition',
         tone: verdict === 'met' ? 'active' : verdict === 'unmet' ? 'waiting' : 'background',
-        label: key
-          ? t('draggableModule.status.conditionOnKey', { key })
-          : t('draggableModule.status.conditionNoKey'),
+        label: timeOnly
+          ? t(verdict === 'met' ? 'draggableModule.status.conditionTimeMet' : 'draggableModule.status.conditionTimeUnmet')
+          : key
+            ? t('draggableModule.status.conditionOnKey', { key })
+            : t('draggableModule.status.conditionNoKey'),
         detail:
           verdict === 'met'
             ? t(onDisplay ? 'draggableModule.conditionMetTitle' : 'draggableModule.conditionMetTitleEditor')

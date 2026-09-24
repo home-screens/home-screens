@@ -32,7 +32,7 @@
             "format24h": false,
             "showSeconds": false,
             "showDate": true,
-            "dateFormat": "EEEE, MMMM d",
+            "dateFormat": "",
             "showWeekNumber": false,
             "showDayOfYear": false,
             "showNumerals": false,

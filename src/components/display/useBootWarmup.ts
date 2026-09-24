@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import type { Screen } from '@/types/config';
 import { prefetchScreen } from '@/lib/prefetch';
-import { createTZDate } from '@/lib/timezone';
+import { wallClockParts } from '@/lib/timezone';
 
 /** Gap between one screen's warm-up fetch and the next. */
 export const BOOT_WARMUP_STAGGER_MS = 400;
@@ -49,7 +49,7 @@ export function useBootWarmup(
       const screen = list[(start + step) % list.length];
       timers.push(setTimeout(() => {
         doneRef.current = true;
-        void prefetchScreen(screen, createTZDate(timezone));
+        void prefetchScreen(screen, wallClockParts(new Date(), timezone));
       }, BOOT_WARMUP_STAGGER_MS * step));
     }
     return () => { timers.forEach(clearTimeout); };

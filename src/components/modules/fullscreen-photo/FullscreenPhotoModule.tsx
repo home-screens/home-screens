@@ -16,6 +16,7 @@ import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoLayer from '../shared/VideoLayer';
 import { useCrossfadeLayers, type LayerIndex } from '../shared/useCrossfadeLayers';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
 const NO_ITEMS: MediaListItem[] = [];
@@ -178,13 +179,7 @@ function ClockOverlay({ theme, timezone, timeFormat }: { theme: FullscreenThemeT
   const time = useTZClock(timezone, 1000);
   const locale = useFormattingLocale();
 
-  // The household's 12/24 choice when it has made one. Otherwise resolve the
-  // locale's hour cycle from Intl rather than guessing on the language tag —
-  // this gets en-GB (24h) and fr-CA (24h) right, and the 12/24 picker stores
-  // nothing for 12h, so "absent" must not be read as "chose 12h" or every
-  // 24-hour locale would flip to AM/PM without anyone touching a setting.
-  const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
-  const is12Hour = timeFormat ? timeFormat === '12h' : (cycle === 'h11' || cycle === 'h12');
+  const is12Hour = householdTimeFormat(timeFormat, locale) === '12h';
   const hours = is12Hour ? (time.getHours() % 12 || 12) : time.getHours();
   const minutes = time.getMinutes().toString().padStart(2, '0');
   const ampm = is12Hour ? (time.getHours() >= 12 ? 'PM' : 'AM') : null;

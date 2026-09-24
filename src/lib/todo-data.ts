@@ -116,8 +116,6 @@ async function updateTodoDataUnlocked(
 
 // ── Restore validation ──
 
-const IANA_ZONE = /^[A-Za-z][A-Za-z0-9_+-]*(?:\/[A-Za-z0-9_+-]+)*$/;
-
 const REPEATS: ReadonlySet<TodoRepeat> = new Set(['never', 'daily', 'weekly']);
 
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
@@ -149,9 +147,6 @@ export function validateTodoData(raw: unknown): string | null {
     if (!REPEATS.has(list.repeat as TodoRepeat)) return `${where}: repeat must be never, daily or weekly`;
     if (list.repeatDay !== undefined && (typeof list.repeatDay !== 'number' || !Number.isInteger(list.repeatDay) || list.repeatDay < 0 || list.repeatDay > 6)) {
       return `${where}: repeatDay must be 0 (Sunday) to 6 (Saturday)`;
-    }
-    if (list.repeatTimezone !== undefined && (typeof list.repeatTimezone !== 'string' || !IANA_ZONE.test(list.repeatTimezone))) {
-      return `${where}: repeatTimezone must be a time zone name`;
     }
     if (list.color !== undefined && (typeof list.color !== 'string' || !HEX_COLOR.test(list.color))) return `${where}: color must be a hex colour`;
     for (const key of ['createdAt', 'updatedAt'] as const) {
@@ -192,19 +187,19 @@ function startOfLocalDay(d: Date): Date {
 /**
  * The most recent moment this list's repeat should have fired, or null when
  * it never repeats. Daily lists reset at midnight; weekly lists at midnight
- * on `repeatDay`. With a `timezone` the result is a wall-clock Date in that
+ * on `repeatDay`. Midnight is the household's (`timezone`, from Settings),
+ * never the zone of whichever phone last saved the list: a parent travelling
+ * or a phone left on UTC would otherwise move the reset into the afternoon at
+ * home for good. With a `timezone` the result is a wall-clock Date in that
  * zone (the `toTZWallTime` convention), so compare it only against values
  * shifted the same way.
  */
 export function lastRepeatBoundary(
-  list: Pick<TodoList, 'repeat' | 'repeatDay' | 'repeatTimezone'>,
+  list: Pick<TodoList, 'repeat' | 'repeatDay'>,
   now: Date,
-  fallbackTimezone?: string,
+  timezone?: string,
 ): Date | null {
   if (list.repeat !== 'daily' && list.repeat !== 'weekly') return null;
-  // The zone the person was standing in when they set the repeat wins over
-  // the household default, which in turn wins over the hub's own clock.
-  const timezone = list.repeatTimezone || fallbackTimezone;
   const boundary = startOfLocalDay(toTZWallTime(now, timezone));
   if (list.repeat === 'weekly') {
     const day = typeof list.repeatDay === 'number' ? ((list.repeatDay % 7) + 7) % 7 : 0;
@@ -213,11 +208,10 @@ export function lastRepeatBoundary(
   return boundary;
 }
 
-function repeatIsDue(list: TodoList, now: Date, fallbackTimezone?: string): boolean {
-  const boundary = lastRepeatBoundary(list, now, fallbackTimezone);
+function repeatIsDue(list: TodoList, now: Date, timezone?: string): boolean {
+  const boundary = lastRepeatBoundary(list, now, timezone);
   if (!boundary) return false;
-  const zone = list.repeatTimezone || fallbackTimezone;
-  const last = toTZWallTime(new Date(list.lastResetAt ?? list.createdAt), zone);
+  const last = toTZWallTime(new Date(list.lastResetAt ?? list.createdAt), timezone);
   return last < boundary;
 }
 
@@ -357,8 +351,6 @@ export interface CreateListInput {
   color?: unknown;
   repeat?: unknown;
   repeatDay?: unknown;
-  /** IANA zone of the device setting the repeat; see `TodoList.repeatTimezone`. */
-  timezone?: unknown;
 }
 
 export function createList(data: TodoData, input: CreateListInput, now = new Date()): { data: TodoData; list: TodoList } {
@@ -381,23 +373,9 @@ export function createList(data: TodoData, input: CreateListInput, now = new Dat
   return { data: { ...data, lists: [...data.lists, withRepeat] }, list: withRepeat };
 }
 
-function cleanTimezone(raw: unknown): string | undefined {
-  if (raw === undefined || raw === null || raw === '') return undefined;
-  if (typeof raw !== 'string' || raw.length > 64 || !IANA_ZONE.test(raw)) {
-    throw new TodoError(400, 'That is not a time zone we recognise');
-  }
-  try {
-    // Intl is the only real check that the zone exists on this runtime.
-    new Intl.DateTimeFormat('en-US', { timeZone: raw });
-  } catch {
-    throw new TodoError(400, 'That is not a time zone we recognise');
-  }
-  return raw;
-}
-
 function applyRepeatInput(
   list: TodoList,
-  input: { repeat?: unknown; repeatDay?: unknown; timezone?: unknown },
+  input: { repeat?: unknown; repeatDay?: unknown },
   now = new Date(),
 ): TodoList {
   let next = list;
@@ -414,14 +392,6 @@ function applyRepeatInput(
     next = { ...next, repeatDay: input.repeatDay };
   }
   if (next.repeat === 'weekly' && typeof next.repeatDay !== 'number') next = { ...next, repeatDay: 0 };
-  if (input.timezone !== undefined) {
-    const zone = cleanTimezone(input.timezone);
-    next = zone ? { ...next, repeatTimezone: zone } : { ...next, repeatTimezone: undefined };
-  }
-  // A list that no longer repeats has no midnight to mean.
-  if (next.repeat === 'never' && next.repeatTimezone !== undefined) {
-    next = { ...next, repeatTimezone: undefined };
-  }
   // A changed schedule starts counting from now. Without this the next read
   // would measure from `createdAt` and uncheck a list the moment it gained
   // a repeat, or the moment its day moved.
@@ -438,8 +408,6 @@ export interface UpdateListInput {
   color?: unknown;
   repeat?: unknown;
   repeatDay?: unknown;
-  /** IANA zone of the device setting the repeat; see `TodoList.repeatTimezone`. */
-  timezone?: unknown;
   /** Full new order of item ids. Must be a permutation of the current items. */
   itemOrder?: unknown;
   action?: unknown;

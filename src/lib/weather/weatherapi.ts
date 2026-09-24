@@ -71,11 +71,10 @@ export class WeatherAPIProvider implements WeatherProvider {
     const nowEpoch = Math.floor(Date.now() / 1000);
     const hours = allHours.filter((h) => h.time_epoch >= nowEpoch);
     return hours.map((h) => ({
-      time: h.time,
-      // `time` is location-local with no zone designator — safe to format,
-      // unsafe to parse for arithmetic. Consumers doing time math (calendar
-      // per-event weather) key off this instant instead.
-      timeEpoch: h.time_epoch,
+      // WeatherAPI's own `time` is the location's wall clock with no zone
+      // ("2026-09-23 14:00"). A browser parses that in its own zone, so a Pi
+      // on UTC labelled a Chicago 2 PM "9 AM". Send the real instant instead.
+      time: new Date(h.time_epoch * 1000).toISOString(),
       temp: isCelsius ? h.temp_c : h.temp_f,
       feelsLike: isCelsius ? h.feelslike_c : h.feelslike_f,
       humidity: h.humidity,

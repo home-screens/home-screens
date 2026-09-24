@@ -62,8 +62,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 13', () => {
-    expect(getLatestSchemaVersion()).toBe(13);
+  it('getLatestSchemaVersion returns 14', () => {
+    expect(getLatestSchemaVersion()).toBe(14);
   });
 });
 
@@ -298,9 +298,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(13);
-    // v2 through v13 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(12);
+    expect(result.version).toBe(14);
+    // v2 through v14 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(13);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -310,9 +310,10 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     // accent, v10 only touches news modules (this fixture has none), and v11
     // only touches screens on a `/backgrounds/themes/` wall (this one has
     // none), and v12 only rewrites a `dev` update channel (this one has none
-    // set). No display registry is injected — single-display mode stays single-display.
+    // set). v14 writes the 12-hour clock the household was already reading.
+    // No display registry is injected: single-display mode stays single-display.
     expect(result.screens).toEqual(config.screens);
-    expect(result.settings).toEqual(config.settings);
+    expect(result.settings).toEqual({ ...config.settings, timeFormat: '12h' });
     expect(result.displays).toBeUndefined();
   });
 
@@ -327,9 +328,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(13);
-    // Only v4 through v13 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(10);
+    expect(result.version).toBe(14);
+    // Only v4 through v14 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(11);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -799,7 +800,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(13);
+    expect(result.version).toBe(14);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -840,9 +841,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(13);
+    expect(result.version).toBe(14);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v13: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v14: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -856,9 +857,58 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(13);
+    expect(migrated.version).toBe(14);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
+    expect(config).toEqual(before);
+  });
+});
+
+describe('migration v14: unset clock formats follow the language from here on', () => {
+  function withClock(config: ScreenConfiguration, dateFormat: unknown): ScreenConfiguration {
+    config.screens[0].modules = [{
+      id: 'clock-1', type: 'clock', x: 0, y: 0, width: 400, height: 200,
+      config: { view: 'classic', showDate: true, dateFormat }, style: {},
+    } as unknown as ScreenConfiguration['screens'][number]['modules'][number]];
+    return config;
+  }
+
+  it('writes 12h down for a household that never picked, so its clock does not change', () => {
+    const { config: result, migrationsRun } = migrateUp(makeConfig(13), 14);
+    expect(result.version).toBe(14);
+    expect(result.settings.timeFormat).toBe('12h');
+    expect(migrationsRun).toEqual([expect.stringMatching(/^v14: /)]);
+  });
+
+  it('keeps a choice the household made', () => {
+    const config = makeConfig(13);
+    config.settings.timeFormat = '24h';
+    expect(migrateUp(config, 14).config.settings.timeFormat).toBe('24h');
+  });
+
+  it("clears a clock on the old English default date so it follows the language", () => {
+    const { config: result } = migrateUp(withClock(makeConfig(13), 'EEEE, MMMM d'), 14);
+    expect(result.screens[0].modules[0].config.dateFormat).toBe('');
+  });
+
+  it("keeps a clock's own pattern", () => {
+    for (const pattern of ['d/M/yyyy', 'EEE, MMM d', '']) {
+      const { config: result } = migrateUp(withClock(makeConfig(13), pattern), 14);
+      expect(result.screens[0].modules[0].config.dateFormat).toBe(pattern);
+    }
+  });
+
+  it("reaches clocks on a display's own screens", () => {
+    const config = withClock(makeConfig(13), 'EEEE, MMMM d');
+    config.displays = [{ id: 'main', name: 'Main', screens: structuredClone(config.screens) } as unknown as NonNullable<ScreenConfiguration['displays']>[number]];
+    const { config: result } = migrateUp(config, 14);
+    expect(result.displays?.[0].screens[0].modules[0].config.dateFormat).toBe('');
+  });
+
+  it('does not mutate its input', () => {
+    const config = withClock(makeConfig(13), 'EEEE, MMMM d');
+    const before = structuredClone(config);
+    migrateUp(config, 14);
     expect(config).toEqual(before);
   });
 });

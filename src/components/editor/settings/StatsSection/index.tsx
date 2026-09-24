@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type { DisplayStatus } from '@/lib/display-commands';
 import { fetchStats, fetchDisplayStatus, generateBundle } from './fetchers';
 import type { SemanticColor } from './shared/types';
@@ -28,12 +29,13 @@ export default function StatsSection() {
   const [bundleError, setBundleError] = useState<string | null>(null);
   const { config, updateSettings, saveConfig, isSaving, selectedDisplayId, setSelectedDisplay } = useEditorStore();
   const displays = config?.displays ?? [];
+  const timezone = useEditorHouseholdTimezone();
   const isMultiDisplay = displays.length > 0;
 
   // In multi-display mode every display POSTs status with its own displayId,
   // so the hub keyed-by-`__default__` slot stays empty. We have to thread the
   // currently-selected display through the query string — otherwise
-  // /api/display/status returns 404 and the page flashes "no display connected"
+  // /api/display/status answers null and the page flashes "no display connected"
   // even when displays are actively heartbeating.
   const activeDisplay = selectedDisplayId
     ? config?.displays?.find((d) => d.id === selectedDisplayId) ?? null
@@ -54,13 +56,13 @@ export default function StatsSection() {
     setBundleState('generating');
     setBundleError(null);
     try {
-      await generateBundle();
+      await generateBundle(timezone);
       setBundleState('idle');
     } catch (e) {
       setBundleState('error');
       setBundleError(e instanceof Error ? e.message : String(e));
     }
-  }, []);
+  }, [timezone]);
 
   const loadDisplayStatus = useCallback(async () => {
     try {

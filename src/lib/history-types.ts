@@ -11,5 +11,7 @@ export interface HistoryEvent {
 }
 
 export interface HistoryResponse {
+  /** The household's day (`YYYY-MM-DD`) these events are for; "years ago" counts from its year. */
+  date: string;
   events: HistoryEvent[];
 }

@@ -2,6 +2,7 @@
 
 import SunCalc from 'suncalc';
 import { formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
+import { moonTimesForDay } from '@/lib/moon-times';
 import { useRealClock } from '@/hooks/useTZClock';
 import type { MoonPhaseConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -10,6 +11,7 @@ import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { MetadataText } from './shared/MetadataText';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 interface MoonPhaseModuleProps {
   config: MoonPhaseConfig;
@@ -83,17 +85,16 @@ function MoonVisual({ phase }: { phase: number }) {
 }
 
 export default function MoonPhaseModule({ config, style, latitude, longitude, timezone, timeFormat, locationSettingsHref }: MoonPhaseModuleProps) {
-  // Real instant, NOT the shifted TZ clock: getMoonIllumination/getMoonTimes
-  // take true UTC instants; the shifted clock could resolve to the adjacent
-  // lunar day. `timezone` is only for formatting the rise/set labels.
+  // Real instant, NOT the shifted TZ clock: SunCalc takes true UTC instants;
+  // the shifted clock could resolve to the adjacent lunar day. `timezone`
+  // picks which day's rise and set to show and the clock they read on.
   const now = useRealClock();
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  // The household's 12/24 choice when there is one; otherwise this module's
-  // historic 12-hour rendering, so a display nobody has configured does not
-  // move. The locale is the real one either way — it used to be pinned to
-  // en-US, which printed American times on a German wall.
-  const clock: ClockFormat = { timezone, locale, hour12: timeFormat !== '24h' };
+  // The household's 12/24 choice, or its formatting language's own clock.
+  // The locale is the real one either way: it used to be pinned to en-US,
+  // which printed American times on a German wall.
+  const clock: ClockFormat = { timezone, locale, hour12: householdTimeFormat(timeFormat, locale) === '12h' };
 
   if (latitude == null || longitude == null) {
     return <LocationRequired style={style} locationSettingsHref={locationSettingsHref} />;
@@ -104,7 +105,7 @@ export default function MoonPhaseModule({ config, style, latitude, longitude, ti
   const illuminationPct = Math.round(illumination.fraction * 100);
 
   const moonTimes = config.showMoonTimes
-    ? SunCalc.getMoonTimes(now, latitude, longitude)
+    ? moonTimesForDay(now, latitude, longitude, timezone)
     : null;
 
   return (

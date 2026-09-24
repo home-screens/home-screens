@@ -1,5 +1,7 @@
 import type { RewardRedemption } from './reward-data';
 import { sortRedemptionsNewestFirst } from './reward-rules';
+import { isoDateInTZ } from './timezone';
+import { daysBetween } from './todo-due-labels';
 
 /**
  * How a family's redemptions are read back on the wall: split by how long ago
@@ -17,21 +19,15 @@ export interface RedemptionGroup {
   redemptions: RewardRedemption[];
 }
 
-const DAY_MS = 86_400_000;
-
-/** Midnight at the start of the local day `date` falls in. */
-function startOfLocalDay(date: Date): number {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-}
-
 /**
- * Whole local calendar days between a redemption and now. Calendar days, not
- * 24-hour spans: something redeemed at 9pm is "yesterday" at 7am.
+ * Whole calendar days between a redemption and now, counted on the
+ * household's calendar (`timeZone`; the machine's own without one). Calendar
+ * days, not 24-hour spans: something redeemed at 9pm is "yesterday" at 7am.
  */
-function daysAgo(redeemedAt: string, now: Date): number | null {
+function daysAgo(redeemedAt: string, now: Date, timeZone?: string): number | null {
   const at = new Date(redeemedAt);
   if (Number.isNaN(at.getTime())) return null;
-  return Math.round((startOfLocalDay(now) - startOfLocalDay(at)) / DAY_MS);
+  return daysBetween(isoDateInTZ(at, timeZone), isoDateInTZ(now, timeZone));
 }
 
 function bucketFor(days: number | null): RedemptionBucket {
@@ -43,11 +39,15 @@ function bucketFor(days: number | null): RedemptionBucket {
   return days < 7 ? 'thisWeek' : 'earlier';
 }
 
-/** Newest first, split into the buckets that have anything in them, in order. */
-export function groupRedemptionsByDay(redemptions: readonly RewardRedemption[], now: Date): RedemptionGroup[] {
+/**
+ * Newest first, split into the buckets that have anything in them, in order.
+ * `now` is a real instant; `timeZone` is the household's, so the wall and the
+ * phone agree on which evening counts as today.
+ */
+export function groupRedemptionsByDay(redemptions: readonly RewardRedemption[], now: Date, timeZone?: string): RedemptionGroup[] {
   const byBucket = new Map<RedemptionBucket, RewardRedemption[]>();
   for (const redemption of sortRedemptionsNewestFirst(redemptions)) {
-    const bucket = bucketFor(daysAgo(redemption.redeemedAt, now));
+    const bucket = bucketFor(daysAgo(redemption.redeemedAt, now, timeZone));
     const list = byBucket.get(bucket);
     if (list) list.push(redemption);
     else byBucket.set(bucket, [redemption]);
@@ -68,9 +68,15 @@ export interface RedemptionSummary {
 /** How many days the totals tiles look back. */
 export const SUMMARY_DAYS = 30;
 
-export function summarizeRedemptions(redemptions: readonly RewardRedemption[], now: Date, days = SUMMARY_DAYS): RedemptionSummary {
+/** Totals over the last `days` household calendar days, today included. */
+export function summarizeRedemptions(
+  redemptions: readonly RewardRedemption[],
+  now: Date,
+  days = SUMMARY_DAYS,
+  timeZone?: string,
+): RedemptionSummary {
   const recent = sortRedemptionsNewestFirst(redemptions).filter((r) => {
-    const ago = daysAgo(r.redeemedAt, now);
+    const ago = daysAgo(r.redeemedAt, now, timeZone);
     return ago !== null && ago < days;
   });
   // Counted by name, not id: a reward that was deleted and made again is the

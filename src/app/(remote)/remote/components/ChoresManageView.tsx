@@ -25,6 +25,8 @@ interface ChoresManageViewProps {
   groups: FamilyGroup[];
   familyReady: boolean;
   chores: ChoreDefinition[];
+  /** The household's day: what a new one-time chore's date starts on. */
+  today: string;
   onFamilyChanged: () => void;
   onChoresChange: (chores: ChoreDefinition[]) => void;
   /** The household's grab rules, shown above the bonus chores. */
@@ -38,6 +40,7 @@ export default function ChoresManageView({
   groups,
   familyReady,
   chores,
+  today,
   onFamilyChanged,
   onChoresChange,
   choreSettings,
@@ -233,7 +236,7 @@ export default function ChoresManageView({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)' }}>{chore.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 2 }}>
-                    {buildChoreSummaryLine({ chore, t: tModules, dayNames: dayNamesShort })}
+                    {buildChoreSummaryLine({ chore, t: tModules, dayNames: dayNamesShort, locale: formattingLocale })}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', marginTop: 2 }}>
                     &rarr;{' '}
@@ -292,6 +295,7 @@ export default function ChoresManageView({
           members={members}
           groups={groups}
           familyReady={familyReady}
+          today={today}
           onSubmit={(data) =>
             overlay.chore
               ? updateChore(overlay.chore.id, data)

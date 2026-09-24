@@ -810,5 +810,8 @@
     "save": "Opslaan",
     "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
     "changeAriaLabel": "Wijzigen hoe bonusklusjes gepakt worden"
+  },
+  "atHome": {
+    "pill": "Thuis is het {day}, {time}"
   }
 }

@@ -29,7 +29,7 @@ import { useInteractionHeld } from '@/lib/interaction-hold';
 import { useTapRotationHold } from './useTapRotationHold';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useWallClock } from '@/hooks/useTZClock';
 import { resolveProfileScreens, isModuleVisible } from '@/lib/schedule';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
@@ -42,10 +42,18 @@ import { setDisplayToken } from '@/lib/display-fetch';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { installConsoleBuffer } from '@/lib/console-buffer';
 import { showsPaginationDots } from '@/lib/pagination-dots';
+import { DISPLAY_LAYERS } from '@/lib/display-layers';
+import NoTimezoneBanner from '@/components/NoTimezoneBanner';
 
 interface ScreenRotatorProps {
   screens: Screen[];
   settings: GlobalSettings;
+  /**
+   * The hub's own clock zone, which the display runs in while no zone is
+   * saved. Handed down from the server render so the first client render
+   * matches the server's HTML instead of switching to the kiosk's own zone.
+   */
+  hubTimezone: string;
   profiles?: Profile[];
   /** Condition → action rules owned by this display (config.rules in legacy mode). */
   rules?: DisplayRule[];
@@ -75,11 +83,11 @@ interface ScreenRotatorProps {
   preview?: boolean;
 }
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, hubTimezone, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
-  const { screens: allScreens, settings, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, initialProfiles, displayId, initialDisplays, initialRules);
+  const { screens: allScreens, settings, timezoneSaved, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, hubTimezone, initialProfiles, displayId, initialDisplays, initialRules);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);
@@ -129,7 +137,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   );
 
   // Re-evaluate profile schedule every minute (timezone-aware)
-  const now = useTZClock(settings.timezone, 60_000);
+  const now = useWallClock(settings.timezone, 60_000);
 
   // Filter out screens whose schedule excludes "now".
   // Falls back to enabledScreens when the filter leaves nothing — better to
@@ -434,7 +442,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   useLayoutEffect(() => {
     const location = getLocation(settings);
     setHostSettings({
-      timezone: settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezone: settings.timezone,
       units: settings.weather?.units ?? 'imperial',
       latitude: location?.lat ?? null,
       longitude: location?.lon ?? null,
@@ -709,6 +717,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
         brightnessOverride={brightnessOverride}
         screensaver={settings.screensaver}
         timezone={settings.timezone}
+        timeFormat={settings.timeFormat}
       />
 
       {/* Same z as SleepOverlay but later in DOM, so a running timer shows
@@ -717,6 +726,15 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {/* A preview must neither show nor control the live routine. The overlay
           owns its polling and step-done writes, so leave it unmounted here. */}
       {!preview && <TimerOverlay displayId={displayId} viewport={viewportSize} />}
+
+      {/* The wall runs on the hub's clock while no zone is saved, so the
+          preview says so where the parent is looking. Not on a real wall:
+          nobody there can act on it. */}
+      {preview && !timezoneSaved && (
+        <div style={{ position: 'fixed', top: 12, left: 12, right: 12, zIndex: DISPLAY_LAYERS.previewNotice, display: 'flex', justifyContent: 'center', pointerEvents: 'none' }}>
+          <NoTimezoneBanner zone={{ timezone: settings.timezone, saved: false }} className="pointer-events-auto max-w-[760px] shadow-lg" />
+        </div>
+      )}
     </div>
   );
 }

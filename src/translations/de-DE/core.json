@@ -367,5 +367,10 @@
       "restoreNoIcons": "Deine eigenen Bilder sind in diesem Backup nicht dabei. Mahlzeiten und Aufgaben, die sie verwendet haben, zeigen dann ein Standard-Icon.",
       "leftOut": "Gesichert, aber die eigenen Icons fehlen. Versuch es noch einmal, damit sie mitgesichert werden."
     }
+  },
+  "noTimezone": {
+    "title": "Noch keine Zeitzone.",
+    "body": "Deine Bildschirme nutzen die Uhr des Hubs ({zone}), deshalb können Uhrzeiten falsch sein.",
+    "action": "Zeitzone wählen"
   }
 }

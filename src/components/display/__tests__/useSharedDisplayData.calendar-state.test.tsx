@@ -11,7 +11,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import type { CalendarEvent, GlobalSettings } from '@/types/config';
+import type { CalendarEvent } from '@/types/config';
+import type { DisplaySettings } from '../useLiveConfig';
 import { useSharedDisplayData } from '../useSharedDisplayData';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { CALENDAR_STATE_KEYS as K, CALENDAR_STATE_KEY_LIST } from '@/lib/calendar-state';
@@ -23,18 +24,18 @@ vi.mock('@/hooks/useFetchData', () => ({
     (url.startsWith('/api/calendar') ? [payload, null, Date.now()] : [null, null]),
 }));
 
-function makeSettings(): GlobalSettings {
+function makeSettings(): DisplaySettings {
   return {
     timezone: 'UTC',
     latitude: 0,
     longitude: 0,
     weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
     calendar: { googleCalendarIds: ['family@example.com'], icalSources: [], maxEvents: 10, daysAhead: 30 },
-  } as unknown as GlobalSettings;
+  } as unknown as DisplaySettings;
 }
 
 /** No source configured, so `buildCalendarUrl` returns '' and nothing fetches. */
-function makeSourcelessSettings(): GlobalSettings {
+function makeSourcelessSettings(): DisplaySettings {
   const s = makeSettings();
   return { ...s, calendar: { ...s.calendar, googleCalendarIds: [] } };
 }

@@ -367,5 +367,10 @@
     "addYourOwnLink": "Ajouter votre propre image",
     "photosPrompt": "Envie de vos propres images pour les repas et les tâches ?",
     "photosButton": "Ajoutez-les ici"
+  },
+  "noTimezone": {
+    "title": "Pas encore de fuseau horaire.",
+    "body": "Vos écrans suivent l'horloge du hub ({zone}), les heures peuvent donc être fausses.",
+    "action": "Choisir le fuseau horaire"
   }
 }

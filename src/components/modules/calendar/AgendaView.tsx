@@ -48,11 +48,11 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   // the tap-detail overlay); `now` legitimately re-keys it each tick.
   const groups = useMemo(() => {
     const finishedAt = (ev: CalendarEvent) => parseEventWallTime(ev.end, timezone) <= now;
-    const chronological = [...events].sort((a, b) => compareEventStarts(a.start, b.start));
+    const chronological = [...events].sort((a, b) => compareEventStarts(a.start, b.start, timezone));
     const upcoming = chronological.filter((ev) => !finishedAt(ev)).slice(0, maxEvents);
     const finished = chronological.filter(finishedAt);
     const sorted = [...finished.slice(Math.max(0, finished.length - (maxEvents - upcoming.length))), ...upcoming]
-      .sort((a, b) => compareEventStarts(a.start, b.start));
+      .sort((a, b) => compareEventStarts(a.start, b.start, timezone));
 
     // Group by day
     const out: { date: Date; events: CalendarEvent[] }[] = [];

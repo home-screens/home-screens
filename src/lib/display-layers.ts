@@ -20,4 +20,6 @@ export const DISPLAY_LAYERS = {
   alert: 9998,
   /** Dimmed-state screensaver (clock). */
   screensaver: 9998,
+  /** Editor preview's notices (no time zone yet), above everything it previews. */
+  previewNotice: 9999,
 } as const;

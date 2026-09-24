@@ -851,23 +851,19 @@ export interface GlobalSettings {
   /**
    * Household 12/24-hour preference: `12h` or `24h`. Every module that shows a time follows it;
    * clocks do when their `hourFormat` is `inherit`, and the meal planner unless its own time format
-   * is set
+   * is set. Unset follows the usual clock of the formatting language
    *
    * Household 12/24-hour preference. Calendar module time lines and grid
    *  pills resolve against this; the meal planner follows it unless its own
-   *  timeFormat override is set. Absent = 12h. Global-only like `locale`.
-   *
-   * @default "12h"
+   *  timeFormat override is set. Absent = the formatting language's own hour
+   *  cycle (`householdTimeFormat` in `src/lib/clock-time.ts`); the picker
+   *  always saves a value. Global-only like `locale`.
    */
   timeFormat?: TimeFormat;
 }
 
 /** Household 12/24-hour clock preference (`GlobalSettings.timeFormat`). */
 export type TimeFormat = '12h' | '24h';
-
-/** Absent-value default for `GlobalSettings.timeFormat`; the prop builder and
- *  the calendar module both resolve against this single constant. */
-export const DEFAULT_TIME_FORMAT = '12h' as const;
 
 export interface Profile {
   /** Unique ID */
@@ -972,9 +968,10 @@ export interface DisplayRule {
  * partial overrides would create surprising fallback chains. Override the whole
  * object or omit it.
  *
- * Adding a new override here is sufficient to make `filterConfigForDisplay`
- * pick it up: the merge in `display-filter.ts` is `{ ...global, ...perDisplay }`,
- * so the field flows through automatically without any merge-logic change.
+ * A new override here must also be listed in `DISPLAY_NODE_SETTINGS_KEYS`
+ * (`src/lib/display-override-fields.ts`; the compiler says so). That list is
+ * what `filterConfigForDisplay` merges, so a key this type does not declare,
+ * such as a hand-edited `timezone`, never overrides the shared settings.
  */
 export interface DisplayNodeSettings {
   /** Canvas width in pixels */
@@ -1201,7 +1198,7 @@ export interface ClockConfig {
   showSeconds: boolean;
   /** Show date below time */
   showDate: boolean;
-  /** Date format string (date-fns) */
+  /** Date format string (date-fns); empty shows the whole date the way the household's language writes it */
   dateFormat: string;
   /** Display current week number */
   showWeekNumber: boolean;

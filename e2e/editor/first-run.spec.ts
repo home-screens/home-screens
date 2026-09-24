@@ -94,7 +94,8 @@ test.describe('first-run checklist', () => {
     await openEditor(page);
     const checklist = page.getByTestId('first-run-checklist');
     await expect(checklist).toBeVisible();
-    await expect(checklist.getByText('Set your location')).toBeVisible();
+    await expect(checklist.getByText('Set your town and time zone')).toBeVisible();
+    await expect(checklist.getByText('Your town is set. The time zone is not.')).toHaveCount(0);
     await expect(checklist.getByRole('link', { name: 'Open Location & language' }))
       .toHaveAttribute('href', '/editor/settings?section=defaults&page=location');
     await expect(checklist.getByRole('link', { name: 'See the phone addresses' }))
@@ -102,8 +103,20 @@ test.describe('first-run checklist', () => {
     await expect(checklist.getByRole('link', { name: 'Open Security' }))
       .toHaveAttribute('href', '/editor/settings?section=defaults&page=security');
 
-    // A configured location is ticked off: the link disappears.
-    await putConfig(request, baseConfig({ screens: [makeScreen('default', 'Screen 1', [])], settings: MATRIX_LOCATION }));
+    // A town with no time zone is not done, and the step says what is left.
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('default', 'Screen 1', [])],
+      settings: { ...MATRIX_LOCATION },
+    }));
+    await page.reload();
+    await expect(page.getByTestId('first-run-checklist').getByText('Your town is set. The time zone is not.')).toBeVisible();
+    await expect(page.getByTestId('first-run-checklist').getByRole('link', { name: 'Open Location & language' })).toBeVisible();
+
+    // A configured location and timezone are ticked off: the link disappears.
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('default', 'Screen 1', [])],
+      settings: { ...MATRIX_LOCATION, timezone: 'America/Chicago' },
+    }));
     await page.reload();
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await expect(page.getByTestId('first-run-checklist').getByRole('link', { name: 'Open Location & language' })).toHaveCount(0);
@@ -229,7 +242,7 @@ test.describe('settings landing', () => {
     const query = page.getByLabel('Your town or zip code');
     await expect(query).toBeVisible();
     const queryBox = await query.boundingBox();
-    const tzBox = await page.getByLabel('Timezone').boundingBox();
+    const tzBox = await page.getByLabel('Time zone').boundingBox();
     expect(queryBox!.y).toBeLessThan(tzBox!.y);
   });
 

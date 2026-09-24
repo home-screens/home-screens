@@ -1,9 +1,19 @@
 import type { ClockConfig } from '@/types/config';
+import type { ClockTime } from '@/lib/date-info';
 import type { RefCallback } from 'react';
 
 export interface ClockViewProps {
   config: ClockConfig;
+  /** The real instant the clock is showing. */
+  instant: Date;
+  /**
+   * The household's calendar day, as a shifted Date for date formatting and
+   * week numbers. Its time of day can be an hour off inside the machine's own
+   * spring-forward gap, so read the time from `time` instead.
+   */
   now: Date;
+  /** The time of day in the clock's zone, read with Intl (see `clockTimeInTZ`). */
+  time: ClockTime;
   scaledFontSize: number;
   /**
    * `scaledFontSize` before Text size. The one-line views fit this to the

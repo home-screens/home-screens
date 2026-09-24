@@ -22,7 +22,7 @@ const CARD_GAP_EM = 0.6;
  * Photo grid. Column count is configured; rows are however many whole cards
  * fit the box, and the grid pages through the list on the rotate interval.
  */
-export default function CardsView({ items, config, t, locale, newKeys, onTap, command, unavailable, fontScaleKey }: NewsViewProps) {
+export default function CardsView({ items, config, t, locale, timezone, newKeys, onTap, command, unavailable, fontScaleKey }: NewsViewProps) {
   // Measures its own box, not the panel's: a 540x420 news tile is not a
   // 1080x1920 screen, and a portrait guess would page it wrong on first paint.
   const nodeRef = useRef<HTMLDivElement | null>(null);
@@ -76,7 +76,7 @@ export default function CardsView({ items, config, t, locale, newKeys, onTap, co
           style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gap: `${CARD_GAP_EM}em` }}
         >
           {page.map((item) => {
-            const age = formatNewsAge(item.timestamp, t, locale);
+            const age = formatNewsAge(item.timestamp, t, { locale, timezone });
             const parts = metaParts(item, config, age);
             return (
               <StoryButton key={newsItemKey(item)} item={item} onTap={onTap} className="flex flex-col gap-1 min-w-0 w-full">

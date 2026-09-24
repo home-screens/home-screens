@@ -34,7 +34,7 @@ interface ChoreChartModuleProps {
 
 export default function ChoreChartModule({ config, style, timezone }: ChoreChartModuleProps) {
   const view = config.view ?? 'board';
-  const data = useChoreData(config);
+  const data = useChoreData(config, timezone);
   const t = useTranslate('modules');
   const drawsFromRewards = view === 'reward-history' || view === 'rewards-store';
   // The per-member views (board columns, compact checkbox columns, progress

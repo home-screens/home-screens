@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { parseClockTime, buildInfoParts, getDateInfoValues } from '../date-info';
+import { parseClockTime, buildInfoParts, getDateInfoValues, clockTimeInTZ } from '../date-info';
 
 // ---------------------------------------------------------------------------
 // parseClockTime
 // ---------------------------------------------------------------------------
 
 describe('parseClockTime', () => {
-  // Fixed date: March 15, 2024 at 14:30:45
-  const afternoon = new Date(2024, 2, 15, 14, 30, 45);
+  // 14:30:45
+  const afternoon = { hours: 14, minutes: 30, seconds: 45 };
 
   describe('24h format', () => {
     it('returns correct hours (0-23)', () => {
@@ -17,7 +17,7 @@ describe('parseClockTime', () => {
     });
 
     it('zero-pads hour string', () => {
-      const early = new Date(2024, 2, 15, 3, 5, 9);
+      const early = { hours: 3, minutes: 5, seconds: 9 };
       const result = parseClockTime(true, early);
       expect(result.hStr).toBe('03');
     });
@@ -30,48 +30,48 @@ describe('parseClockTime', () => {
 
   describe('12h format', () => {
     it('converts 0 hours to 12 AM (midnight)', () => {
-      const midnight = new Date(2024, 2, 15, 0, 0, 0);
+      const midnight = { hours: 0, minutes: 0, seconds: 0 };
       const result = parseClockTime(false, midnight);
       expect(result.h).toBe(12);
       expect(result.period).toBe(' AM');
     });
 
     it('converts 12 hours to 12 PM (noon)', () => {
-      const noon = new Date(2024, 2, 15, 12, 0, 0);
+      const noon = { hours: 12, minutes: 0, seconds: 0 };
       const result = parseClockTime(false, noon);
       expect(result.h).toBe(12);
       expect(result.period).toBe(' PM');
     });
 
     it('converts 13 to 1 PM', () => {
-      const onepm = new Date(2024, 2, 15, 13, 0, 0);
+      const onepm = { hours: 13, minutes: 0, seconds: 0 };
       const result = parseClockTime(false, onepm);
       expect(result.h).toBe(1);
       expect(result.period).toBe(' PM');
     });
 
     it('converts 23 to 11 PM', () => {
-      const late = new Date(2024, 2, 15, 23, 0, 0);
+      const late = { hours: 23, minutes: 0, seconds: 0 };
       const result = parseClockTime(false, late);
       expect(result.h).toBe(11);
       expect(result.period).toBe(' PM');
     });
 
     it('does not pad hour string with leading zero', () => {
-      const onepm = new Date(2024, 2, 15, 13, 5, 0);
+      const onepm = { hours: 13, minutes: 5, seconds: 0 };
       const result = parseClockTime(false, onepm);
       expect(result.hStr).toBe('1');
     });
 
     it('returns period with leading space', () => {
-      const morning = new Date(2024, 2, 15, 9, 0, 0);
+      const morning = { hours: 9, minutes: 0, seconds: 0 };
       const result = parseClockTime(false, morning);
       expect(result.period).toBe(' AM');
     });
   });
 
   it('always zero-pads minutes and seconds', () => {
-    const early = new Date(2024, 2, 15, 14, 5, 9);
+    const early = { hours: 14, minutes: 5, seconds: 9 };
     const result = parseClockTime(true, early);
     expect(result.mStr).toBe('05');
     expect(result.sStr).toBe('09');
@@ -140,5 +140,34 @@ describe('getDateInfoValues', () => {
     const result = getDateInfoValues(date);
     expect(result.dayOfYear).toBe(1);
     expect(result.weekNumber).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// clockTimeInTZ
+// ---------------------------------------------------------------------------
+
+describe('clockTimeInTZ', () => {
+  // 02:30 GMT in London on the night Chicago skips 02:00 to 03:00. A shifted
+  // Date read on a Chicago machine gave 3:30; run under TZ=America/Chicago.
+  const GAP_INSTANT = new Date('2026-03-08T02:30:15Z');
+
+  it("reads the zone's own clock, even inside the machine's skipped hour", () => {
+    expect(clockTimeInTZ(GAP_INSTANT, 'Europe/London')).toEqual({ hours: 2, minutes: 30, seconds: 15 });
+  });
+
+  it('keeps half-hour and 45-minute offsets', () => {
+    expect(clockTimeInTZ(GAP_INSTANT, 'Asia/Kolkata')).toEqual({ hours: 8, minutes: 0, seconds: 15 });
+    expect(clockTimeInTZ(GAP_INSTANT, 'Asia/Kathmandu')).toEqual({ hours: 8, minutes: 15, seconds: 15 });
+  });
+
+  it('reads midnight as hour 0', () => {
+    expect(clockTimeInTZ(new Date('2026-03-08T00:00:00Z'), 'UTC').hours).toBe(0);
+  });
+
+  it("falls back to the Date's own clock without a zone or with an unknown one", () => {
+    const local = new Date(2026, 2, 8, 14, 5, 9);
+    expect(clockTimeInTZ(local)).toEqual({ hours: 14, minutes: 5, seconds: 9 });
+    expect(clockTimeInTZ(local, 'Not/AZone')).toEqual({ hours: 14, minutes: 5, seconds: 9 });
   });
 });

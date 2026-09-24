@@ -10,6 +10,8 @@ const stamp = '2026-01-01T00:00:00.000Z';
 const members: FamilyMember[] = ['ann', 'ben', 'cal'].map((id) => ({ id, name: id, emoji: '', color: '#000000', createdAt: stamp, updatedAt: stamp }));
 const kids: FamilyGroup = { id: 'kids', name: 'Kids', memberIds: ['ann', 'ben', 'cal'], createdAt: stamp, updatedAt: stamp };
 const solo: FamilyGroup = { id: 'solo', name: 'Just Ann', memberIds: ['ann'], createdAt: stamp, updatedAt: stamp };
+/** The household's day, as the phone and the editor hand it in. */
+const TODAY = '2026-09-28';
 
 function saved(overrides: Partial<ChoreDefinition>): ChoreDefinition {
   return {
@@ -27,8 +29,25 @@ function submitted(form: ReturnType<typeof useChoreForm>): Omit<ChoreDefinition,
 }
 
 describe('useChoreForm day picking', () => {
+  // 10:30 pm Sunday on a UTC browser, 5:30 pm Sunday in Chicago, and already
+  // Monday for a Berlin household. A one-time chore made now is for Monday.
+  it('dates a new one-time chore on the household day it is handed, not the browser\'s', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-27T22:30:00Z'));
+    try {
+      const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
+      act(() => result.current.setFrequency('once'));
+      act(() => result.current.setName('Clean out the car'));
+      act(() => result.current.toggleAssignee('ann'));
+      expect(result.current.specificDate).toBe(TODAY);
+      expect(submitted(result.current)).toMatchObject({ frequency: 'once', specificDate: TODAY });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('starts a new chore on every day, because a new chore is daily', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     expect(result.current.frequency).toBe('daily');
     expect(result.current.daysOfWeek).toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
@@ -36,7 +55,7 @@ describe('useChoreForm day picking', () => {
   // The whole point of item: tapping T and F on a fresh weekly chore used to
   // save every OTHER day, because all seven arrived already on.
   it('empties the days row when a new chore turns weekly, so the days tapped are the days saved', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     act(() => result.current.setName('Vacuum'));
     act(() => result.current.setFrequency('weekly'));
     expect(result.current.daysOfWeek).toEqual([]);
@@ -48,13 +67,13 @@ describe('useChoreForm day picking', () => {
   });
 
   it('empties the days row for every other week too', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     act(() => result.current.setFrequency('biweekly'));
     expect(result.current.daysOfWeek).toEqual([]);
   });
 
   it('keeps the days someone picked when they change their mind about the frequency', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     act(() => result.current.setFrequency('weekly'));
     act(() => result.current.toggleDay(3));
     act(() => result.current.setFrequency('biweekly'));
@@ -64,14 +83,14 @@ describe('useChoreForm day picking', () => {
   });
 
   it('never wipes the days of a chore being edited', () => {
-    const { result } = renderHook(() => useChoreForm(saved({ frequency: 'weekly', daysOfWeek: [1, 2], assigneeIds: ['ann'] }), members, [], true));
+    const { result } = renderHook(() => useChoreForm(saved({ frequency: 'weekly', daysOfWeek: [1, 2], assigneeIds: ['ann'] }), members, [], true, TODAY));
     act(() => result.current.setFrequency('biweekly'));
     expect(result.current.daysOfWeek).toEqual([1, 2]);
     expect(submitted(result.current).daysOfWeek).toEqual([1, 2]);
   });
 
   it('refuses to save a recurring chore with no days, and says which row needs a tap', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     act(() => result.current.setName('Vacuum'));
     act(() => result.current.toggleAssignee('ann'));
     act(() => result.current.setFrequency('weekly'));
@@ -86,7 +105,7 @@ describe('useChoreForm day picking', () => {
   });
 
   it('still saves a one-time chore, which picks a date instead of days', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     act(() => result.current.setName('Rake leaves'));
     act(() => result.current.toggleAssignee('ann'));
     act(() => result.current.setFrequency('once'));
@@ -96,7 +115,7 @@ describe('useChoreForm day picking', () => {
   });
 
   it('seeds a schedule from the days that are actually on', () => {
-    const { result } = renderHook(() => useChoreForm(undefined, members, [], true));
+    const { result } = renderHook(() => useChoreForm(undefined, members, [], true, TODAY));
     act(() => result.current.setFrequency('weekly'));
     act(() => result.current.toggleDay(1));
     act(() => result.current.toggleAssignee('ann'));
@@ -107,7 +126,7 @@ describe('useChoreForm day picking', () => {
 
   it('treats days brought back from a schedule as picked, so a frequency change leaves them alone', () => {
     const chore = saved({ frequency: 'weekly', rotation: 'schedule', assigneeIds: ['ann'], schedule: { ann: [1, 3] } });
-    const { result } = renderHook(() => useChoreForm(chore, members, [], true));
+    const { result } = renderHook(() => useChoreForm(chore, members, [], true, TODAY));
     act(() => result.current.switchFromSchedule('fixed'));
     act(() => result.current.setFrequency('biweekly'));
     expect(result.current.daysOfWeek).toEqual([1, 3]);
@@ -116,7 +135,7 @@ describe('useChoreForm day picking', () => {
 
 describe('useChoreForm with family groups', () => {
   it('offers rotation for a group', () => {
-    const { result } = renderHook(() => useChoreForm(saved({}), members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(saved({}), members, [kids], true, TODAY));
     expect(result.current.canRotate).toBe(false);
     act(() => result.current.toggleGroup('kids'));
     expect(result.current.assigneeGroupIds).toEqual(['kids']);
@@ -124,7 +143,7 @@ describe('useChoreForm with family groups', () => {
   });
 
   it('opens a schedule with a row for the picked group and the picked people, on the chore days', () => {
-    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['cal'], assigneeGroupIds: ['kids'] }), members, [kids, solo], true));
+    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['cal'], assigneeGroupIds: ['kids'] }), members, [kids, solo], true, TODAY));
     act(() => result.current.switchToSchedule());
     expect(result.current.rotation).toBe('schedule');
     expect(result.current.groupSchedule).toEqual({ kids: [1, 2] });
@@ -135,7 +154,7 @@ describe('useChoreForm with family groups', () => {
 
   it('saves a group row as the group with its days, and the days it adds to the week', () => {
     const chore = saved({ rotation: 'schedule', assigneeIds: ['ann'], schedule: { ann: [1] } });
-    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true, TODAY));
     act(() => result.current.addGroupToSchedule('kids'));
     act(() => result.current.toggleGroupScheduleDay('kids', 5));
     act(() => result.current.toggleGroupScheduleDay('kids', 3));
@@ -148,7 +167,7 @@ describe('useChoreForm with family groups', () => {
 
   it('keeps a row whose last day was unticked, saves nothing for it, and takes it off only when asked', () => {
     const chore = saved({ rotation: 'schedule', assigneeIds: ['ann'], assigneeGroupIds: ['kids'], schedule: { ann: [1] }, groupSchedule: { kids: [2] } });
-    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true, TODAY));
     act(() => result.current.toggleGroupScheduleDay('kids', 2));
     act(() => result.current.toggleScheduleDay('ann', 1));
     expect(result.current.scheduleGroups).toEqual([kids]);
@@ -170,7 +189,7 @@ describe('useChoreForm with family groups', () => {
 
   it('leaving a schedule keeps its groups and people picked, on the days the rows covered', () => {
     const chore = saved({ rotation: 'schedule', assigneeIds: ['ann'], assigneeGroupIds: ['kids'], schedule: { ann: [1] }, groupSchedule: { kids: [3] } });
-    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true, TODAY));
     act(() => result.current.switchFromSchedule('rotate-weekly'));
     expect(result.current.daysOfWeek).toEqual([1, 3]);
     const out = submitted(result.current);
@@ -182,7 +201,7 @@ describe('useChoreForm with family groups', () => {
   it('warns when the only row is a group nobody is in', () => {
     const empty: FamilyGroup = { ...solo, id: 'empty', memberIds: [] };
     const chore = saved({ rotation: 'schedule', assigneeGroupIds: ['empty'], groupSchedule: { empty: [1] } });
-    const { result } = renderHook(() => useChoreForm(chore, members, [empty], true));
+    const { result } = renderHook(() => useChoreForm(chore, members, [empty], true, TODAY));
     expect(result.current.goesToNobody).toBe(true);
     expect(result.current.canSave).toBe(true);
     act(() => result.current.addMemberToSchedule('ann'));
@@ -192,7 +211,7 @@ describe('useChoreForm with family groups', () => {
 
   it('drops the row of a group that no longer exists', () => {
     const chore = saved({ rotation: 'schedule', assigneeIds: ['ann'], assigneeGroupIds: ['gone'], schedule: { ann: [1] }, groupSchedule: { gone: [2] } });
-    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(chore, members, [kids], true, TODAY));
     const out = submitted(result.current);
     expect(out).toMatchObject({ assigneeIds: ['ann'], daysOfWeek: [1] });
     expect(out).not.toHaveProperty('groupSchedule');
@@ -200,27 +219,27 @@ describe('useChoreForm with family groups', () => {
   });
 
   it('saves the group and not the people in it', () => {
-    const { result } = renderHook(() => useChoreForm(saved({}), members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(saved({}), members, [kids], true, TODAY));
     act(() => result.current.toggleGroup('kids'));
     act(() => result.current.setRotation('rotate-weekly'));
     expect(submitted(result.current)).toMatchObject({ assigneeIds: [], assigneeGroupIds: ['kids'], rotation: 'rotate-weekly' });
   });
 
   it('keeps a chosen rotation for a group of one', () => {
-    const { result } = renderHook(() => useChoreForm(saved({ assigneeGroupIds: ['solo'], rotation: 'rotate-daily' }), members, [solo], true));
+    const { result } = renderHook(() => useChoreForm(saved({ assigneeGroupIds: ['solo'], rotation: 'rotate-daily' }), members, [solo], true, TODAY));
     expect(result.current.canRotate).toBe(true);
     expect(submitted(result.current).rotation).toBe('rotate-daily');
   });
 
   it('drops a group that no longer exists, and then asks for a person or group', () => {
-    const { result } = renderHook(() => useChoreForm(saved({ assigneeGroupIds: ['gone'] }), members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(saved({ assigneeGroupIds: ['gone'] }), members, [kids], true, TODAY));
     expect(result.current.assigneeGroupIds).toEqual([]);
     expect(result.current.canSave).toBe(false);
     expect(result.current.validationHintKind).toBe('selectAtLeastOnePersonOrGroup');
   });
 
   it('unticking the group takes it back off the chore', () => {
-    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['ann'], assigneeGroupIds: ['kids'] }), members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['ann'], assigneeGroupIds: ['kids'] }), members, [kids], true, TODAY));
     act(() => result.current.toggleGroup('kids'));
     expect(submitted(result.current)).not.toHaveProperty('assigneeGroupIds');
   });
@@ -229,7 +248,7 @@ describe('useChoreForm with family groups', () => {
   // an empty list must never read as "this group was removed".
   it('keeps a picked group and holds the save until the family list has loaded', () => {
     const chore = saved({ assigneeIds: ['ann'], assigneeGroupIds: ['kids'] });
-    const { result, rerender } = renderHook(({ ready }) => useChoreForm(chore, ready ? members : [], ready ? [kids] : [], ready), { initialProps: { ready: false } });
+    const { result, rerender } = renderHook(({ ready }) => useChoreForm(chore, ready ? members : [], ready ? [kids] : [], ready, TODAY), { initialProps: { ready: false } });
     act(() => result.current.setName('Dishes, renamed'));
     expect(result.current.assigneeGroupIds).toEqual(['kids']);
     expect(result.current.canSave).toBe(false);
@@ -251,7 +270,7 @@ describe('useChoreForm Regular and Bonus', () => {
   });
 
   it('flipping to Bonus and back changes nothing about the regular setup', () => {
-    const { result } = renderHook(() => useChoreForm(scheduled, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(scheduled, members, [kids], true, TODAY));
     act(() => result.current.setKind('bonus'));
     act(() => result.current.setKind('regular'));
     const back = submitted(result.current);
@@ -261,7 +280,7 @@ describe('useChoreForm Regular and Bonus', () => {
 
   it('saves a bonus chore with its regular setup kept, and gets it back when it turns regular again', () => {
     const once = saved({ frequency: 'once', specificDate: '2026-10-01', rotation: 'rotate-weekly', assigneeIds: ['ann', 'ben'], timeOfDay: 'morning' });
-    const { result } = renderHook(() => useChoreForm(once, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(once, members, [kids], true, TODAY));
     act(() => result.current.setKind('bonus'));
     const asBonus = submitted(result.current);
     expect(asBonus).toMatchObject({ frequency: 'once', specificDate: '2026-10-01', rotation: 'rotate-weekly', timeOfDay: 'morning' });
@@ -269,28 +288,28 @@ describe('useChoreForm Regular and Bonus', () => {
     expect(asBonus.bonus).toMatchObject({ claim: 'first', comesBack: 'manual' });
     expect(asBonus.bonus?.since).toBeTruthy();
 
-    const { result: again } = renderHook(() => useChoreForm({ ...once, ...asBonus }, members, [kids], true));
+    const { result: again } = renderHook(() => useChoreForm({ ...once, ...asBonus }, members, [kids], true, TODAY));
     act(() => again.current.setKind('regular'));
     expect(submitted(again.current)).toMatchObject({ frequency: 'once', specificDate: '2026-10-01', rotation: 'rotate-weekly', timeOfDay: 'morning' });
   });
 
   it('gives a one-time chore with no days its date\'s weekday when it turns bonus', () => {
     const once = saved({ frequency: 'once', specificDate: '2026-10-01', daysOfWeek: [], assigneeIds: ['ann'] });
-    const { result } = renderHook(() => useChoreForm(once, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(once, members, [kids], true, TODAY));
     act(() => result.current.setKind('bonus'));
     expect(result.current.canSave).toBe(true);
     expect(submitted(result.current)).toMatchObject({ daysOfWeek: [4], bonus: { comesBack: 'manual' } });
   });
 
   it('never saves fewer than 0 tickets', () => {
-    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['ann'] }), members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['ann'] }), members, [kids], true, TODAY));
     act(() => result.current.setPoints('-5'));
     expect(submitted(result.current).points).toBe(0);
   });
 
   it('keeps a bonus chore\'s stamp when its kind or comes back changes', () => {
     const bonusChore = saved({ assigneeIds: ['ann'], bonus: { claim: 'first', comesBack: 'daily', since: 'stamp' } });
-    const { result } = renderHook(() => useChoreForm(bonusChore, members, [kids], true));
+    const { result } = renderHook(() => useChoreForm(bonusChore, members, [kids], true, TODAY));
     act(() => result.current.setComesBack('weekly'));
     expect(submitted(result.current).bonus).toEqual({ claim: 'first', comesBack: 'weekly', since: 'stamp' });
   });

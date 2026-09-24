@@ -1,7 +1,8 @@
 'use client';
 
 import { parseClockTime } from '@/lib/date-info';
-import { useTranslate } from '@/i18n';
+import { useTranslate, useFormattingLocale } from '@/i18n';
+import { formatProgressPercent } from '@/lib/progress-percent';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
@@ -10,9 +11,10 @@ import type { ClockViewProps } from './types';
  * Progress clock — SVG ring showing how far through the day we are,
  * with time and percentage centered inside the ring.
  */
-export default function ClockProgressView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockProgressView({ config, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const locale = useFormattingLocale();
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
   const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
@@ -114,7 +116,7 @@ export default function ClockProgressView({ config, now, scaledFontSize, fitToBo
             }}
             suppressHydrationWarning
           >
-            {percentage.toFixed(1)}%
+            {formatProgressPercent(percentage, locale)}
           </div>
         </div>
       </div>

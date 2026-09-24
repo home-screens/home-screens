@@ -20,8 +20,9 @@ import type { DisplayNodeSettings } from '@/types/config';
  *
  * Adding a new override field is a two-step change: add it to
  * `DisplayNodeSettings` in `src/types/config.ts`, then add it to the
- * appropriate list here. The merge in `display-filter.ts` picks it up
- * automatically since it's a shallow `{ ...global, ...perDisplay }`.
+ * appropriate list here. The compiler refuses the first step without the
+ * second (see `DISPLAY_NODE_SETTINGS_KEYS`), and the merge in
+ * `display-filter.ts` then picks it up.
  */
 
 export const DISPLAY_OVERRIDE_FIELDS = [
@@ -41,6 +42,33 @@ export const DISPLAY_OVERRIDE_FIELDS = [
 export const SLEEP_OVERRIDE_FIELDS = ['sleep', 'screensaver'] as const satisfies readonly (keyof DisplayNodeSettings)[];
 
 export const ALERT_OVERRIDE_FIELDS = ['alerts'] as const satisfies readonly (keyof DisplayNodeSettings)[];
+
+/**
+ * Every key a display's `settings` may override, and so the only keys
+ * `filterConfigForDisplay` lays over the shared settings. A key the type does
+ * not declare, like a `timezone` left in a hand-edited or imported config,
+ * never reaches the display: one household runs on one clock, and a stray
+ * per-display zone would put that display's sleep and schedules on a clock
+ * the editor and the hub never see.
+ *
+ * The dimension fields come first because they have no settings page of
+ * their own; the display's size card writes them.
+ */
+export const DISPLAY_NODE_SETTINGS_KEYS = [
+  'displayWidth',
+  'displayHeight',
+  'displayTransform',
+  ...DISPLAY_OVERRIDE_FIELDS,
+  ...SLEEP_OVERRIDE_FIELDS,
+  ...ALERT_OVERRIDE_FIELDS,
+] as const satisfies readonly (keyof DisplayNodeSettings)[];
+
+// A `DisplayNodeSettings` key missing from the list above fails to compile
+// here, naming the key.
+const everyDisplayNodeSettingsKey: Exclude<keyof DisplayNodeSettings, (typeof DISPLAY_NODE_SETTINGS_KEYS)[number]> extends never
+  ? true
+  : Exclude<keyof DisplayNodeSettings, (typeof DISPLAY_NODE_SETTINGS_KEYS)[number]> = true;
+void everyDisplayNodeSettingsKey;
 
 /**
  * Fields that one card forks and resets together, so they are one override

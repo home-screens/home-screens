@@ -179,7 +179,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'screen', fieldId: 'alerts.defaultDuration', labelKey: 'settings.alertFormFields.defaultDurationLabel', panel: 'alerts', keywordKeys: ['settings.alertFormFields.defaultDurationHelp'] },
   { pageId: 'screen', fieldId: 'alerts.scale', labelKey: 'settings.alertFormFields.alertSizeLabel', panel: 'alerts' },
 
-  { pageId: 'location', fieldId: 'location.timezone', labelKey: 'settings.locationPage.timezoneLabel', keywordKeys: ['settings.locationPage.timezoneHelp'] },
+  { pageId: 'location', fieldId: 'location.timezone', labelKey: 'settings.locationPage.timezoneLabel', keywordKeys: ['settings.locationPage.timezoneHelp', 'settings.locationPage.timezoneSearchWords'] },
   { pageId: 'location', fieldId: 'location.latitude', labelKey: 'settings.locationPage.latitudeLabel' },
   { pageId: 'location', fieldId: 'location.longitude', labelKey: 'settings.locationPage.longitudeLabel' },
   { pageId: 'location', fieldId: 'location.language', labelKey: 'languageAndRegion.languageLabel', keywordKeys: ['languageAndRegion.languageHelp'] },

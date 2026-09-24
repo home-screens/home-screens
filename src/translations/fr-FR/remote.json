@@ -810,5 +810,8 @@
     "save": "Enregistrer",
     "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
     "changeAriaLabel": "Modifier la façon de prendre les tâches bonus"
+  },
+  "atHome": {
+    "pill": "À la maison : {day}, {time}"
   }
 }

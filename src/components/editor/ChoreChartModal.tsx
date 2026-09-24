@@ -27,7 +27,7 @@ import {
   resolveAssignee,
   choreAssigneeIds,
   choreAppliesToday,
-  localDateStr,
+  getWeekDatesFor,
   addChoreToList,
   updateChoreInList,
   removeChoreFromList,
@@ -42,6 +42,7 @@ import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { buildChoreAssigneeLine, buildChoreSummaryLine, comesBackHintKey, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
 import GrabRulesLine from './GrabRulesLine';
+import { useEditorHouseholdToday } from './useEditorHouseholdClock';
 import { groupMembers } from '@/lib/family-groups';
 import { bonusShowsOn } from '@/lib/chore-bonus';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
@@ -90,7 +91,9 @@ function ChoreForm({
     [formattingLocale],
   );
 
-  const f = useChoreForm(initial, members, groups, familyReady);
+  // A new one-time chore starts on the household's day, not the laptop's.
+  const householdToday = useEditorHouseholdToday();
+  const f = useChoreForm(initial, members, groups, familyReady, householdToday);
   const {
     kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
     name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
@@ -547,7 +550,7 @@ function ChoreForm({
 
 // ── Weekly Preview ────────────────────────────────────────────────
 
-function WeeklyPreview({
+export function WeeklyPreview({
   chores,
   members,
   groups,
@@ -570,20 +573,14 @@ function WeeklyPreview({
     [formattingLocale],
   );
 
-  const days = getOrderedDays(weekStartDay);
-  const today = new Date().getDay();
-
-  const weekStartDow = weekStartDay === 'monday' ? 1 : 0;
-  const getWeekDate = (day: number): Date => {
-    const now = new Date();
-    const daysFromWeekStart = ((now.getDay() - weekStartDow) + 7) % 7;
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - daysFromWeekStart);
-    const dayOffset = ((day - weekStartDow) + 7) % 7;
-    const result = new Date(weekStart);
-    result.setDate(weekStart.getDate() + dayOffset);
-    return result;
-  };
+  // The household's week, so Today and this week's rotation turns match the
+  // wall whatever zone the laptop is in. Both lists run from the week start
+  // day, so the two line up index for index.
+  const todayISO = useEditorHouseholdToday();
+  const week = useMemo(() => {
+    const dates = getWeekDatesFor(todayISO, weekStartDay);
+    return getOrderedDays(weekStartDay).map((day, i) => ({ day, dateStr: dates[i] }));
+  }, [todayISO, weekStartDay]);
 
   const totals = useMemo(() => {
     const counts: Record<string, { chores: number; points: number }> = {};
@@ -591,9 +588,7 @@ function WeeklyPreview({
       counts[m.id] = { chores: 0, points: 0 };
     }
 
-    for (const day of days) {
-      const dateStr = localDateStr(getWeekDate(day));
-
+    for (const { day, dateStr } of week) {
       for (const chore of chores) {
         if (!choreAppliesToday(chore, day, dateStr)) continue;
         const assignees = resolveAssignee(chore, dateStr, groups);
@@ -607,14 +602,12 @@ function WeeklyPreview({
     }
 
     return counts;
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- getWeekDate is stable within a render (depends only on weekStartDow)
-  }, [chores, members, groups, days]);
+  }, [chores, members, groups, week]);
 
   return (
     <div className="space-y-3">
-      {days.map((day) => {
-        const isToday = day === today;
-        const dateStr = localDateStr(getWeekDate(day));
+      {week.map(({ day, dateStr }) => {
+        const isToday = dateStr === todayISO;
 
         const dayChores = chores.filter((c) => (c.bonus ? bonusShowsOn(c, dateStr) : choreAppliesToday(c, day, dateStr)));
 
@@ -638,9 +631,12 @@ function WeeklyPreview({
                 const assignees = resolveAssignee(chore, dateStr, groups);
                 const isRotated = !chore.bonus && chore.rotation !== 'fixed' && choreAssigneeIds(chore, groups).length > 1;
                 return (
+                  // The row wraps rather than squeezing: in a narrow column a
+                  // no-wrap row broke chore names a word per line and cut the
+                  // last names off at the edge ("Rub", "Tl").
                   <div
                     key={chore.id}
-                    className="flex items-center gap-1.5 pl-2 py-0.5 text-[11px]"
+                    className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 pl-2 py-0.5 text-[11px]"
                   >
                     {chore.emoji && <ChoreIcon value={chore.emoji} size={12} color="currentColor" />}
                     <span className="text-hs-text-secondary">{chore.name}</span>
@@ -658,14 +654,14 @@ function WeeklyPreview({
                       const m = members.find((x) => x.id === aid);
                       if (!m) return null;
                       return (
-                        <span key={aid} className="flex items-center gap-0.5">
+                        <span key={aid} className="flex items-center gap-0.5 whitespace-nowrap">
                           {m.emoji && <ChoreIcon value={m.emoji} size={11} color="currentColor" />}
                           {m.name}
                         </span>
                       );
                     })}
                     {isRotated && (
-                      <span className="text-hs-text-faint text-[10px]">{tModules('chore-chart.choreSummary.rotatedShort')}</span>
+                      <span className="text-hs-text-faint text-[10px] whitespace-nowrap">{tModules('chore-chart.choreSummary.takingTurns')}</span>
                     )}
                   </div>
                 );
@@ -819,7 +815,7 @@ function ChoreColumn({
                   {chore.name}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
-                  {buildChoreSummaryLine({ chore, t: tModules, dayNames: dayNamesShort })}
+                  {buildChoreSummaryLine({ chore, t: tModules, dayNames: dayNamesShort, locale: formattingLocale })}
                 </div>
                 <div className="text-[11px] text-hs-text-muted mt-0.5">
                   {tModules('chore-chart.choreSummary.arrow')}{' '}

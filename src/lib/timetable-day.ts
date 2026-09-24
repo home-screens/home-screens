@@ -341,7 +341,7 @@ export function axisShare(axis: DayAxis, minutes: number): number {
 }
 
 /** The hour label on the ruler: "07:00", or "7 AM" on a 12 hour clock. */
-export function tickLabel(minutes: number, timeFormat?: TimeFormat): string {
+export function tickLabel(minutes: number, timeFormat: TimeFormat): string {
   const label = formatClockMinutes(minutes, timeFormat);
   return timeFormat === '12h' ? label.replace(':00 ', ' ') : label;
 }

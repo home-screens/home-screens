@@ -5,7 +5,7 @@ import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
 import {
   PRIORITY_COLORS,
-  daysBetween,
+  dueDaysFromToday,
   formatDueDate,
   groupTasks,
 } from './todoist-utils';
@@ -18,6 +18,7 @@ export default function BoardView({
   now,
   onComplete,
   timeFormat,
+  timezone,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
@@ -25,13 +26,15 @@ export default function BoardView({
   onComplete?: (taskId: string) => void;
   /** Household 12/24 choice; absent falls back to the locale's own cycle. */
   timeFormat?: TimeFormat;
+  /** Household zone: which day counts as today, and the clock times read on. */
+  timezone?: string;
 }) {
   const tr = useTranslate('modules');
   const locale = useFormattingLocale();
   const groupBy = config.groupBy === 'none' ? 'project' : config.groupBy;
   const allGroups = useMemo(
-    () => groupTasks(tasks, groupBy as TodoistGroupBy, now, tr),
-    [tasks, groupBy, now, tr],
+    () => groupTasks(tasks, groupBy as TodoistGroupBy, now, tr, timezone),
+    [tasks, groupBy, now, tr, timezone],
   );
   // Cap at 3 columns to avoid broken multi-row layouts in a fixed-height module
   const groups = allGroups.slice(0, 3);
@@ -74,13 +77,8 @@ export default function BoardView({
           {/* Task cards */}
           <div className="flex flex-col gap-1 p-1.5 overflow-hidden flex-1">
             {group.tasks.map((t) => {
-              const dueInfo = formatDueDate(t.due, now, tr, locale, timeFormat);
-              const isOverdue = t.due
-                ? daysBetween(
-                    new Date(t.due.datetime ?? t.due.date + 'T23:59:59'),
-                    now,
-                  ) < 0
-                : false;
+              const dueInfo = formatDueDate(t.due, now, tr, { locale, timeFormat, timezone });
+              const isOverdue = (dueDaysFromToday(t.due, now, timezone) ?? 0) < 0;
               const priorityColor = PRIORITY_COLORS[t.priority];
               const visiblePriorityColor = priorityColor === 'transparent' ? ink(0.4) : priorityColor;
               return (

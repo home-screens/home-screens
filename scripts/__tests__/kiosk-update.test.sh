@@ -214,13 +214,68 @@ grep -q 'NEW SPLASH 7.0.0' "${APP_DIR}/share/connecting.html" \
   || fail "user-space files were not applied during a partial update"
 install -m 0755 "${SCRIPTS_DIR}/kiosk-update.sh" "${UPDATER}"
 
+echo "Test 11b: a restart the hub turns down is finished by a later tick"
+# The timer runs hourly on the spoke's own clock (UTC) and the hub judges the
+# quiet hours in the household's zone. A check that applies files while the
+# display is in use must leave a restart pending, and a later check inside the
+# hub's window must carry it out even though nothing new is downloaded.
+STUBS="${WORK}/stubs"
+mkdir -p "${STUBS}"
+PKILL_LOG="${WORK}/pkill.log"
+# Never the real pkill: on a developer machine it would kill their browser.
+printf '#!/usr/bin/env bash\necho "$*" >> "%s"\n' "${PKILL_LOG}" > "${STUBS}/pkill"
+chmod +x "${STUBS}/pkill"
+PENDING="${APP_DIR}/data/kiosk-restart-pending"
+pkills() { [ -f "${PKILL_LOG}" ] && wc -l < "${PKILL_LOG}" | tr -d ' ' || echo 0; }
+timer_tick() { PATH="${STUBS}:${PATH}" "${UPDATER}" --timeout 5 --restart-if-advised; }
+bundle_sha() { sha256sum "${STATE}/bundle.tar.gz" | cut -d' ' -f1; }
+
+build_bundle "8.0.0"
+rc=0; timer_tick || rc=$?
+[ "${rc}" -eq 10 ] || fail "expected the update to apply on a timer tick, got ${rc}"
+[ "$(pkills)" -eq 0 ] || fail "restarted a display the hub said was in use"
+[ -f "${PENDING}" ] || fail "no restart was left pending after a turned-down restart"
+install -m 0755 "${SCRIPTS_DIR}/kiosk-update.sh" "${UPDATER}"
+
+rc=0; timer_tick || rc=$?
+[ "${rc}" -eq 0 ] || fail "expected a no-op tick while still in use, got ${rc}"
+[ "$(pkills)" -eq 0 ] || fail "restarted while the hub still said the display was in use"
+[ -f "${PENDING}" ] || fail "the pending restart was dropped before it happened"
+
+write_manifest "8.0.0" "$(bundle_sha)" "true"
+rc=0; timer_tick || rc=$?
+[ "${rc}" -eq 0 ] || fail "expected exit 0 from a restart-only tick, got ${rc}"
+[ "$(pkills)" -eq 1 ] || fail "a pending restart was not carried out once the hub allowed it"
+grep -q 'chromium' "${PKILL_LOG}" || fail "the restart did not target Chromium"
+[ ! -f "${PENDING}" ] || fail "the pending restart was not cleared after restarting"
+
+rc=0; timer_tick || rc=$?
+[ "$(pkills)" -eq 1 ] || fail "restarted again with nothing pending"
+
+echo "Test 11c: the launcher's own check clears a pending restart"
+# The launcher runs the updater just before starting Chromium, which picks up
+# everything on disk, so a later quiet-hours restart would be for nothing.
+: > "${PENDING}"
+rc=0; PATH="${STUBS}:${PATH}" "${UPDATER}" --timeout 5 || rc=$?
+[ ! -f "${PENDING}" ] || fail "the launcher-run check left a restart pending"
+[ "$(pkills)" -eq 1 ] || fail "the launcher-run check restarted Chromium itself"
+
+echo "Test 11d: an update applied inside the hub's window restarts at once"
+build_bundle "9.0.0"
+write_manifest "9.0.0" "$(bundle_sha)" "true"
+rc=0; timer_tick || rc=$?
+[ "${rc}" -eq 10 ] || fail "expected the update to apply, got ${rc}"
+[ "$(pkills)" -eq 2 ] || fail "an allowed restart did not happen right after applying"
+[ ! -f "${PENDING}" ] || fail "a restart was left pending after restarting"
+install -m 0755 "${SCRIPTS_DIR}/kiosk-update.sh" "${UPDATER}"
+
 echo "Test 12: an unreachable hub changes nothing"
 kill "${SERVER_PID}" 2>/dev/null || true
 wait "${SERVER_PID}" 2>/dev/null || true
 SERVER_PID=""
 rc=0; "${UPDATER}" --timeout 2 || rc=$?
 [ "${rc}" -eq 0 ] || fail "expected exit 0 when the hub is down, got ${rc}"
-[ "$(stamp)" = "6.0.0" ] || fail "stamp changed while the hub was down"
+[ "$(stamp)" = "9.0.0" ] || fail "stamp changed while the hub was down"
 
 echo "Test 13: a Pi with no hub in kiosk.conf is left alone"
 # This is the guard that keeps the updater inert if it ever lands on a hub Pi,

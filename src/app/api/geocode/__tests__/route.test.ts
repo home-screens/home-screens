@@ -7,6 +7,7 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 const { GET } = await import('@/app/api/geocode/route');
+const { __resetPlaceTimezonesForTests } = await import('@/lib/place-timezone');
 
 function makeNominatimResult(overrides: {
   lat?: string;
@@ -64,9 +65,130 @@ function makeRequest(params?: Record<string, string>): NextRequest {
   return new NextRequest(url);
 }
 
+/**
+ * Answers by host: Nominatim and ip-api get `places`, Open-Meteo names the
+ * zone from `zoneAt` for the coordinates it was asked about.
+ */
+function mockUpstreams(places: unknown, zoneAt: (lat: number, lon: number) => string | null) {
+  const fetchMock = vi.fn((url: string) => {
+    const u = new URL(url);
+    if (u.hostname === 'api.open-meteo.com') {
+      const zone = zoneAt(Number(u.searchParams.get('latitude')), Number(u.searchParams.get('longitude')));
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(zone ? { latitude: 0, longitude: 0, timezone: zone } : { error: true }),
+      });
+    }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve(places) });
+  });
+  vi.stubGlobal('fetch', fetchMock);
+  return fetchMock;
+}
+
+const openMeteoCalls = (fetchMock: ReturnType<typeof vi.fn>) =>
+  fetchMock.mock.calls.filter(([url]) => String(url).includes('api.open-meteo.com'));
+
 describe('GET /api/geocode', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    __resetPlaceTimezonesForTests();
+  });
+
+  // With no zone saved the Location page fills whatever zone comes back here,
+  // so it must be the place's, never the laptop's.
+  describe('time zone of the place', () => {
+    const denverAt = (lat: number, lon: number) => (lat === 40.01 && lon === -105.27 ? 'America/Denver' : null);
+
+    it('names the zone of a looked-up town from its coordinates', async () => {
+      const fetchMock = mockUpstreams(
+        [makeNominatimResult({ lat: '40.0149856', lon: '-105.270545', address: { city: 'Boulder', state: 'Colorado', country_code: 'us' } })],
+        denverAt,
+      );
+
+      const json = await (await GET(makeRequest({ q: 'Boulder, CO' }))).json();
+
+      expect(json.timezone).toBe('America/Denver');
+      expect(json.displayName).toBe('Boulder, Colorado, US');
+      const [[zoneUrl]] = openMeteoCalls(fetchMock);
+      expect(zoneUrl).toContain('timezone=auto');
+    });
+
+    it('still finds the town when the zone lookup is down, just without a zone', async () => {
+      vi.stubGlobal('fetch', vi.fn((url: string) => (url.includes('open-meteo')
+        ? Promise.reject(new Error('ECONNRESET'))
+        : Promise.resolve({ ok: true, json: () => Promise.resolve([makeNominatimResult({})]) }))));
+
+      const response = await GET(makeRequest({ q: 'New York' }));
+      const json = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(json.latitude).toBeCloseTo(40.7127281);
+      expect(json).not.toHaveProperty('timezone');
+    });
+
+    it('keeps a found zone, so the same town is not asked about twice', async () => {
+      const fetchMock = mockUpstreams(
+        [makeNominatimResult({ lat: '40.0149856', lon: '-105.270545' })],
+        denverAt,
+      );
+
+      await GET(makeRequest({ q: 'Boulder' }));
+      await GET(makeRequest({ lat: '40.012', lon: '-105.268' }));
+
+      expect(openMeteoCalls(fetchMock)).toHaveLength(1);
+    });
+
+    it('answers the zone alone for a place already saved', async () => {
+      mockUpstreams([], denverAt);
+
+      const response = await GET(makeRequest({ lat: '40.0125', lon: '-105.2705' }));
+
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ timezone: 'America/Denver' });
+    });
+
+    it('says so when no zone can be found for the coordinates', async () => {
+      mockUpstreams([], () => null);
+
+      const response = await GET(makeRequest({ lat: '12.5', lon: '-30.25' }));
+
+      expect(response.status).toBe(404);
+      expect(await response.json()).toEqual({ error: 'Time zone not found' });
+    });
+
+    it('refuses coordinates that are not on the globe', async () => {
+      const fetchMock = mockUpstreams([], denverAt);
+
+      expect((await GET(makeRequest({ lat: '95', lon: '10' }))).status).toBe(400);
+      expect((await GET(makeRequest({ lat: 'abc', lon: '10' }))).status).toBe(400);
+      expect((await GET(makeRequest({ lat: '10' }))).status).toBe(400);
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('takes the internet location\'s own zone when it names one', async () => {
+      const fetchMock = mockUpstreams(
+        { lat: 44.71, lon: -93.42, city: 'Prior Lake', region: 'MN', regionName: 'Minnesota', countryCode: 'US', timezone: 'America/Chicago' },
+        () => 'Europe/Berlin',
+      );
+
+      const json = await (await GET(makeRequest({ detect: 'ip' }))).json();
+
+      expect(json.timezone).toBe('America/Chicago');
+      expect(openMeteoCalls(fetchMock)).toHaveLength(0);
+      const ipUrl = String(fetchMock.mock.calls[0][0]);
+      expect(ipUrl).toContain('timezone');
+    });
+
+    it('falls back to the coordinates when the internet location names no zone', async () => {
+      mockUpstreams(
+        { lat: 40.01, lon: -105.27, city: 'Boulder', region: 'CO', regionName: 'Colorado', countryCode: 'US' },
+        denverAt,
+      );
+
+      const json = await (await GET(makeRequest({ detect: 'ip' }))).json();
+
+      expect(json.timezone).toBe('America/Denver');
+    });
   });
 
   it('returns 400 when q param is missing', async () => {

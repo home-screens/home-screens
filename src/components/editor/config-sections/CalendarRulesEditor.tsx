@@ -13,6 +13,8 @@ import Toggle from '@/components/ui/Toggle';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedMonthNames } from '@/lib/meal-constants';
 import { starterDayArtPath } from '@/lib/starter-day-art';
+import { createTZDate } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type {
   CalendarDayRule,
   CalendarEventMatch,
@@ -377,6 +379,10 @@ function DayRuleFields({ rule, availableSources, onChange }: {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
+  // A new yearly pattern starts on the household's current month, which is
+  // the one the wall is showing, not the laptop's.
+  const thisMonth = () => createTZDate(timezone).getMonth();
   const patch = (p: Partial<CalendarDayRule>) => onChange({ ...rule, ...p });
   const match = rule.match ?? {};
   const patchMatch = (p: Partial<CalendarDayRule['match']>) => {
@@ -465,9 +471,9 @@ function DayRuleFields({ rule, availableSources, onChange }: {
               if (v === 'monthly-day') {
                 patchMatch({ ...cleared, dayOfMonth: match.dayOfMonth ?? 1 });
               } else if (v === 'yearly-day') {
-                patchMatch({ ...cleared, dayOfMonth: match.dayOfMonth ?? 1, months: match.months?.length ? match.months : [new Date().getMonth()] });
+                patchMatch({ ...cleared, dayOfMonth: match.dayOfMonth ?? 1, months: match.months?.length ? match.months : [thisMonth()] });
               } else if (v === 'whole-month') {
-                patchMatch({ ...cleared, months: match.months?.length ? match.months : [new Date().getMonth()] });
+                patchMatch({ ...cleared, months: match.months?.length ? match.months : [thisMonth()] });
               } else if (v === 'last-day') {
                 patchMatch({ ...cleared, lastDayOfMonth: true, months: match.months });
               } else {

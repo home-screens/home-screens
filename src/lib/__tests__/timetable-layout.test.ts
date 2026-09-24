@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_MODULE_STYLE, DEFAULT_TIME_FORMAT, type TimetableDetail } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type TimetableDetail } from '@/types/config';
 import type {
   DayKey,
   Timetable,
@@ -229,8 +229,7 @@ const HERBSTFERIEN: TimetableHoliday = { name: 'Herbstferien', start: '2026-10-1
  * Card geometries, named for how many fit across the screen they were drawn on.
  *
  * They carry the frames' own clock, which is the German household's 24-hour
- * one. The gutter is built to the clock, so leaving it out would quietly make
- * every one of these a test of the fallback instead of a test of the frame.
+ * one. The gutter is built to the clock.
  */
 const CLOCK = { timeFormat: '24h' } as const;
 const THREE_UP = { cardWidth: 602, baseFontSize: 27, ...CLOCK };
@@ -274,10 +273,8 @@ function model(
     subjects: SUBJECTS,
     detail,
     focus,
-    // The card's own clock, said out loud on both sides. Every one of these
-    // geometries is the German household's 24-hour one, and handing it to the
-    // metrics but not to the model made each of these a test of the fallback
-    // for a household that never touched the setting.
+    // The card's own clock, the same on both sides: every one of these
+    // geometries is the German household's 24-hour one.
     timeFormat: geometry.timeFormat,
     metrics: cardMetrics({ ...geometry, detail }),
     ...over,
@@ -626,13 +623,13 @@ describe('cardMetrics', () => {
 
   it('never starves the quiet columns to feed the focus column', () => {
     const wide = cardMetrics({ ...THREE_UP, detail: 'less' });
-    const tight = cardMetrics({ cardWidth: 420, baseFontSize: 22, detail: 'less' });
+    const tight = cardMetrics({ timeFormat: '12h', cardWidth: 420, baseFontSize: 22, detail: 'less' });
     expect(tight.focusRatio).toBeLessThan(wide.focusRatio);
     expect(tight.quietColumnEm).toBeGreaterThanOrEqual(2.19);
   });
 
   it('falls back to one even share when nothing else fits', () => {
-    const m = cardMetrics({ cardWidth: 240, baseFontSize: 22, detail: 'more' });
+    const m = cardMetrics({ timeFormat: '12h', cardWidth: 240, baseFontSize: 22, detail: 'more' });
     expect(m.focusRatio).toBe(1);
     expect(m.wideFocus).toBe(false);
     expect(m.narrow).toBe(true);
@@ -682,9 +679,7 @@ function frameInput(card: FrameCard, over: Partial<CardMetricsInput> = {}): Card
     longestLabelChars: longestSubjectLabel(card.timetable, SUBJECTS),
     focusIcon: card.timetable.icons === true || card.detail !== 'less',
     hasLegend: card.detail === 'more' && card.timetable.weeks.B !== undefined,
-    // The frames are a German household on a 24-hour clock. Said out loud
-    // rather than left to the fallback, because what the fallback is happens to
-    // be the thing one of the cases below is about.
+    // The frames are a German household on a 24-hour clock.
     timeFormat: '24h',
     ...over,
   };
@@ -760,19 +755,6 @@ describe('cardBaseFontSize', () => {
     const half = cardMetrics({ ...input, timeFormat: '12h' });
     expect(half.gutterPx).toBeGreaterThan(day.gutterPx);
     expect(half.gutterPx).toBeGreaterThanOrEqual(half.gutterTimePx * TIME_EM['12h']);
-  });
-
-  it('budgets a card with no clock setting for the clock it will actually draw', () => {
-    // The bug this pins: the gutter fell back to 24-hour and `formatClockTime`
-    // falls back to `DEFAULT_TIME_FORMAT`, so a household that never touched
-    // the setting drew "12:45 PM" in a gutter built for "12:45" and lost the
-    // last characters of every time on every row. The two fallbacks have to be
-    // the same one.
-    const input = frameInput(FRAME_CARDS.A6);
-    const unset = cardMetrics({ ...input, timeFormat: undefined });
-    const explicit = cardMetrics({ ...input, timeFormat: DEFAULT_TIME_FORMAT });
-    expect(unset.gutterPx).toBe(explicit.gutterPx);
-    expect(unset.gutterPx).toBeGreaterThanOrEqual(unset.gutterTimePx * TIME_EM[DEFAULT_TIME_FORMAT]);
   });
 
   it('lets the times give way once the gutter would take a quarter of the card', () => {
@@ -1383,6 +1365,7 @@ describe('the Less, Some and More presets', () => {
 
   it('drops the times from the gutter when the household turns them off', () => {
     const card = cardModel({
+      timeFormat: '12h',
       member: MEMBERS.leon, timetable: LEON, school: GAR, subjects: SUBJECTS,
       detail: 'more', focus: thursdayFocus(LEON, GAR),
       metrics: cardMetrics({ ...ONE_UP, detail: 'more', showStartTimes: false }),
@@ -1465,13 +1448,14 @@ describe('a day a dated exception cuts short', () => {
     const now = new Date('2026-09-11T09:00:00');
     const focus = resolveFocus(now, undefined, { school, timetable, subjects });
     const model = cardModel({
+      timeFormat: '12h',
       member: { id: 'leon', name: 'Leon', color: '#60a5fa' },
       timetable,
       school,
       subjects,
       detail: 'more',
       focus,
-      metrics: cardMetrics({ cardWidth: 900, baseFontSize: 16, detail: 'more' }),
+      metrics: cardMetrics({ timeFormat: '12h', cardWidth: 900, baseFontSize: 16, detail: 'more' }),
     });
 
     // Second period ends at 09:35, not fourth period's 11:30. All four periods
@@ -1551,8 +1535,8 @@ describe('dates to remember', () => {
 
   function friday(detail: TimetableDetail, timetable = NOTED_LEON): TimetableCardModel {
     const focus = resolveFocus(new Date('2026-09-11T05:10:00Z'), ZONE, ctx(timetable));
-    const metrics = cardMetrics({ cardWidth: 900, cardHeight: 880, detail, padding: 0, rows: buildRows(timetable, GAR, detail).rows });
-    return cardModel({ member: { id: 'leon', name: 'Leon', color: '#60a5fa' }, timetable, school: GAR, subjects: SUBJECTS, detail, focus, metrics });
+    const metrics = cardMetrics({ timeFormat: '12h', cardWidth: 900, cardHeight: 880, detail, padding: 0, rows: buildRows(timetable, GAR, detail).rows });
+    return cardModel({ timeFormat: '12h', member: { id: 'leon', name: 'Leon', color: '#60a5fa' }, timetable, school: GAR, subjects: SUBJECTS, detail, focus, metrics });
   }
 
   it('flags the test on the lesson, fades the cancelled one, and moves the going-home time', () => {
@@ -1581,8 +1565,8 @@ describe('dates to remember', () => {
 
   it('at More on the day before, the footer says what tomorrow brings', () => {
     const focus = resolveFocus(new Date('2026-09-10T05:10:00Z'), ZONE, ctx(NOTED_LEON));
-    const metrics = cardMetrics({ cardWidth: 900, cardHeight: 880, detail: 'more', padding: 0, rows: buildRows(NOTED_LEON, GAR, 'more').rows });
-    const model = cardModel({ member: { id: 'leon', name: 'Leon', color: '#60a5fa' }, timetable: NOTED_LEON, school: GAR, subjects: SUBJECTS, detail: 'more', focus, metrics });
+    const metrics = cardMetrics({ timeFormat: '12h', cardWidth: 900, cardHeight: 880, detail: 'more', padding: 0, rows: buildRows(NOTED_LEON, GAR, 'more').rows });
+    const model = cardModel({ timeFormat: '12h', member: { id: 'leon', name: 'Leon', color: '#60a5fa' }, timetable: NOTED_LEON, school: GAR, subjects: SUBJECTS, detail: 'more', focus, metrics });
     expect(model.footer?.tomorrow).toEqual({ tests: ['Mathe-Arbeit'], cancelled: [6] });
     // Thursday itself has no notes, so no test pills of its own.
     expect(model.footer?.tests).toBeUndefined();

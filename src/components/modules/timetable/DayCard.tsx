@@ -33,7 +33,7 @@ export interface DayTokens {
   onInk: string;
   /** The size the day is drawn at, which every pixel floor below is capped to. */
   base: number;
-  timeFormat?: TimeFormat;
+  timeFormat: TimeFormat;
   locale: string;
   detail: TimetableDetail;
   /** What the rows have given up: 1 drops the rooms and times, 2 the names. */

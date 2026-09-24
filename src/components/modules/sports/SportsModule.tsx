@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { DEFAULT_TIME_FORMAT, type SportsConfig, type ModuleStyle, type TimeFormat } from '@/types/config';
+import type { SportsConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from '../ModuleWrapper';
 import { moduleGate } from '../ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
@@ -15,6 +15,7 @@ import { CardsView } from './CardsView';
 import { ListView } from './ListView';
 import { TickerView } from './TickerView';
 import type { Game } from '@/lib/espn';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 interface SportsModuleProps {
   config: SportsConfig;
@@ -34,7 +35,7 @@ export default function SportsModule({ config, style, timezone, timeFormat }: Sp
   const now = useTZClock(timezone);
   const today = t('sports.today');
   const tomorrow = t('sports.tomorrow');
-  const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
+  const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
   const kickoff = useCallback<KickoffFn>(
     (game) => formatKickoff(game.startTime, { now, timezone, locale, timeFormat: resolvedTimeFormat, today, tomorrow }),
     [now, timezone, locale, resolvedTimeFormat, today, tomorrow],

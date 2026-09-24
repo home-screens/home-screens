@@ -5,6 +5,9 @@ import { render, cleanup, fireEvent } from '@testing-library/react';
 import ConditionTreeEditor from '../ConditionTreeEditor';
 import type { TranslateFn } from '@/i18n';
 import type { VisibilityCondition } from '@/types/config';
+import { I18nProvider } from '@/i18n/provider';
+import core from '@/translations/en-US/core.json';
+import editor from '@/translations/en-US/editor.json';
 
 /**
  * Structural edits on the condition tree: adding children to a group and the
@@ -83,5 +86,27 @@ describe('ConditionTreeEditor group structure', () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith([
       { kind: 'or', conditions: [leaf()] },
     ]);
+  });
+});
+
+describe('ConditionTreeEditor verdicts with no display reporting', () => {
+  it('judges a time condition on the clock and leaves a key condition without a verdict', () => {
+    const { container } = render(
+      <I18nProvider locale="en-US" blob={{ core, editor }}>
+        <ConditionTreeEditor
+          conditions={[
+            { kind: 'time', startTime: '07:00', endTime: '09:00' },
+            { kind: 'state', sourceKey: '', equals: '' },
+          ]}
+          onChange={() => {}}
+          options={[]}
+          now={new Date(2026, 8, 24, 8, 0)}
+          t={t}
+        />
+      </I18nProvider>,
+    );
+    const chips = Array.from(container.querySelectorAll('[data-condition-verdict]'));
+    expect(chips.map((c) => c.getAttribute('data-condition-verdict'))).toEqual(['met']);
+    expect(chips[0].getAttribute('title')).toBe('visibilityConditions.verdicts.metTitleEditor');
   });
 });

@@ -148,3 +148,30 @@ describe('PirateWeatherProvider', () => {
     expect(calledUrl).toContain('units=us');
   });
 });
+
+describe('PirateWeatherProvider forecast dates', () => {
+  let spy: ReturnType<typeof vi.spyOn>;
+  afterEach(() => spy?.mockRestore());
+
+  // Each daily `time` is local midnight at the location. Berlin's midnight on
+  // Thursday Sep 24 is 22:00 UTC on Wednesday, so a UTC date is a day early.
+  const BERLIN_MIDNIGHTS = ['2026-09-23T22:00:00Z', '2026-09-24T22:00:00Z'].map((iso) => Date.parse(iso) / 1000);
+  const berlinDaily = BERLIN_MIDNIGHTS.map((time) => ({ time, temperatureHigh: 18, temperatureLow: 9 }));
+
+  it("dates each day on the location's calendar from the response's zone", async () => {
+    spy = mockPw({ timezone: 'Europe/Berlin', offset: 2, daily: { data: berlinDaily } });
+    const out = await new PirateWeatherProvider('key').getForecast(52.52, 13.4, 'metric', 'America/Chicago');
+    expect(out.map((d) => d.date)).toEqual(['2026-09-24', '2026-09-25']);
+  });
+
+  it('falls back to the offset, then to the household zone', async () => {
+    spy = mockPw({ offset: 2, daily: { data: berlinDaily } });
+    const byOffset = await new PirateWeatherProvider('key').getForecast(52.52, 13.4, 'metric');
+    expect(byOffset.map((d) => d.date)).toEqual(['2026-09-24', '2026-09-25']);
+    spy.mockRestore();
+
+    spy = mockPw({ daily: { data: berlinDaily } });
+    const byHousehold = await new PirateWeatherProvider('key').getForecast(52.52, 13.4, 'metric', 'Europe/Berlin');
+    expect(byHousehold.map((d) => d.date)).toEqual(['2026-09-24', '2026-09-25']);
+  });
+});

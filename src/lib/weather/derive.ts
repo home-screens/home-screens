@@ -47,6 +47,46 @@ export function reconcileTodayRange(
   return [{ ...today, high, low }, ...forecast.slice(1)];
 }
 
+/**
+ * A Today row for a forecast that has already moved on to tomorrow.
+ *
+ * Late in the evening OpenWeatherMap has no 3-hour slot left for today, so
+ * its forecast starts tomorrow while the household is still on today. The
+ * hub kept today's row from earlier polls (`seen.forecast`); it comes back
+ * with its range widened by what the hub recorded and the current reading,
+ * the same rule `reconcileTodayRange` applies. With no row kept (the hub
+ * started after the last slot) it is built from the current reading alone.
+ * Returns undefined when there is nothing to build from.
+ */
+export function rebuildTodayRow(
+  today: string,
+  hourly: HourlyWeather[],
+  seen?: { date: string; high: number; low: number; forecast?: ForecastDay },
+): ForecastDay | undefined {
+  const now = hourly[0];
+  const reading = now && Number.isFinite(now.temp) ? now.temp : undefined;
+  const sameDay = seen && seen.date === today ? seen : undefined;
+  const kept = sameDay?.forecast?.date === today ? sameDay.forecast : undefined;
+  const base: ForecastDay | undefined = kept ?? (now && reading !== undefined
+    ? {
+      date: today,
+      high: reading,
+      low: reading,
+      icon: now.icon,
+      description: now.description,
+      ...(now.precipProbability !== undefined ? { precipProbability: now.precipProbability } : {}),
+      ...(now.humidity !== undefined ? { humidity: now.humidity } : {}),
+      ...(now.windSpeed !== undefined ? { windSpeed: now.windSpeed } : {}),
+    }
+    : undefined);
+  if (!base) return undefined;
+  return {
+    ...base,
+    high: Math.max(base.high, reading ?? -Infinity, sameDay?.high ?? -Infinity),
+    low: Math.min(base.low, reading ?? Infinity, sameDay?.low ?? Infinity),
+  };
+}
+
 /** Derive a WeatherConditionsEvent from the first hourly entry (current conditions). */
 export function deriveWeatherConditions(
   hourly: HourlyWeather[],

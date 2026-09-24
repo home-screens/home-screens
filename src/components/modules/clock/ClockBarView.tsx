@@ -69,9 +69,9 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
   );
 }
 
-export default function ClockBarView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockBarView({ config, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, now);
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
   const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
   const h12 = hours % 12;
   const hoursMax = config.format24h ? 24 : 12;

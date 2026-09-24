@@ -28,8 +28,8 @@ export interface MealTimeChipProps {
   onChange: (value: string | undefined) => void;
   /** Slot context — drives the quick presets */
   slot: MealSlotType;
-  /** Display format for the chip face (24h or 12h) */
-  timeFormat?: TimeFormat;
+  /** Display format for the chip face (24h or 12h), already resolved */
+  timeFormat: TimeFormat;
   /** Visual variant — "dark" for editor (dark background), "darker" for /remote */
   variant?: 'dark' | 'darker';
   /** Additional accent color for highlights (defaults to amber) */
@@ -92,7 +92,7 @@ export default function MealTimeChip({
   value,
   onChange,
   slot,
-  timeFormat = '12h',
+  timeFormat,
   variant = 'dark',
   accentColor = '#f59e0b',
   ariaLabel,

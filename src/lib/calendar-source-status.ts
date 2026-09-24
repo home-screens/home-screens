@@ -1,6 +1,6 @@
 import { startOfDay } from 'date-fns';
 import type { CalendarEvent, CalendarSourceStatus } from '@/types/config';
-import { compareEventStarts, parseEventWallTime } from '@/lib/calendar-utils';
+import { compareEventStarts, parseEventInstant, parseEventWallTime } from '@/lib/calendar-utils';
 
 /**
  * Per-source health for the shared calendar fetch: fetch-outcome folding,
@@ -78,9 +78,14 @@ const SAVED_EVENT_RETENTION_MS = 90 * 86400000;
 // today, so a dense window can never strip a grid's past days entirely.
 const EARLIER_BUDGET_SHARE = 0.25;
 
-/** Event overlaps the half-open window (same test the fetchers apply upstream). */
-function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date): boolean {
-  return new Date(ev.end) > windowStart && new Date(ev.start) < windowEnd;
+/**
+ * Event overlaps the half-open window (same test the fetchers apply
+ * upstream). All-day bounds are the household's midnights: `new Date` read a
+ * date-only end as UTC midnight, which dropped today's saved all-day rows
+ * from an evening fetch west of UTC.
+ */
+function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date, timezone: string | undefined): boolean {
+  return parseEventInstant(ev.end, timezone) > windowStart && parseEventInstant(ev.start, timezone) < windowEnd;
 }
 
 /**
@@ -99,14 +104,16 @@ function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date): 
  * out-of-window strays never eat the budget of healthy sources. Known
  * limitation: entries are keyed by source id alone, so if a source's URL is
  * repointed while the new target is failing, the old target's events serve
- * (badged "saved") until the new one first succeeds. `nowMs` is injectable
- * for tests only.
+ * (badged "saved") until the new one first succeeds. `timezone` is the
+ * household's, for reading all-day rows. `nowMs` is injectable for tests
+ * only.
  */
 export function withSavedEvents(
   events: CalendarEvent[],
   results: SourceFetchResult[],
   windowStart: Date,
   windowEnd: Date,
+  timezone?: string,
   nowMs: number = Date.now(),
 ): CalendarEvent[] {
   const out = [...events];
@@ -118,13 +125,13 @@ export function withSavedEvents(
       const kept = (lastGoodEvents.get(r.id) ?? []).filter(
         (ev) =>
           !freshIds.has(ev.id)
-          && !overlapsWindow(ev, windowStart, windowEnd)
-          && new Date(ev.end).getTime() >= retainAfter,
+          && !overlapsWindow(ev, windowStart, windowEnd, timezone)
+          && parseEventInstant(ev.end, timezone).getTime() >= retainAfter,
       );
       lastGoodEvents.set(r.id, [...kept, ...fresh]);
     } else {
       const saved = lastGoodEvents.get(r.id) ?? [];
-      out.push(...saved.filter((ev) => overlapsWindow(ev, windowStart, windowEnd)));
+      out.push(...saved.filter((ev) => overlapsWindow(ev, windowStart, windowEnd, timezone)));
     }
   }
   return out;
@@ -166,9 +173,10 @@ export function mergeSourceStatus(
  * nearest today, the ones a grid actually draws) take the leftover budget
  * as before, but never less than a reserved share — leftovers alone were
  * nothing at all once upcoming filled the cap on its own.
- * "Today" is the display's day, not the server's. With the default
- * timeMin = now, everything is upcoming and this degenerates to the
- * original slice. `nowIso` is injectable for tests only.
+ * "Today" is the display's day, not the server's. With the default window
+ * (the household's start of today) nothing is earlier, so this keeps what
+ * ended today plus the nearest upcoming events. `nowIso` is injectable for
+ * tests only.
  */
 export function budgetEvents(
   merged: CalendarEvent[],
@@ -202,7 +210,7 @@ export function budgetEvents(
   const keptEarlier = earlier.slice(Math.max(0, earlier.length - earlierBudget));
   const keptUpcoming = upcoming.slice(0, maxEvents - keptEarlier.length);
   const keptEndedToday = endedToday.slice(Math.max(0, endedToday.length - maxEvents));
-  return [...keptEarlier, ...keptEndedToday, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start));
+  return [...keptEarlier, ...keptEndedToday, ...keptUpcoming].sort((a, b) => compareEventStarts(a.start, b.start, timezone));
 }
 
 // Most recent sourceStatus computed by any /api/calendar fetch, for the

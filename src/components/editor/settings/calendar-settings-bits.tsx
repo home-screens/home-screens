@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { hasAnyCalendarSource } from '@/lib/calendar-sources';
+import { useEditorStore } from '@/stores/editor-store';
 import { useCalendarFetchQuery } from '../useCalendarFetchQuery';
 import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -119,6 +121,11 @@ export function useCalendarSourceHealth(): { health: SourceHealthMap; recordSour
         // upcoming-only window, and a source that failed before the first
         // display fetch would then fall back to a set holding no past days,
         // emptying every grid's past cells while its future weeks render.
+        // Nothing set up yet: the route would only answer 400. Read at fetch
+        // time, not as an effect dependency: adding the first feed must not
+        // re-ask for health, or that newer question's stale answer would
+        // overwrite the badge the link check just earned.
+        if (!hasAnyCalendarSource(useEditorStore.getState().config?.settings?.calendar)) return;
         const fallback = await editorFetch(`/api/calendar${calendarQuery ? `?${calendarQuery}` : ''}`, { signal: controller.signal });
         if (!fallback.ok) return;
         const body = await fallback.json();

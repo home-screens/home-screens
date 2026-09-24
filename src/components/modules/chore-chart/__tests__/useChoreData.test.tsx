@@ -90,7 +90,7 @@ afterEach(cleanup);
 
 describe('toggleComplete states what the tap meant', () => {
   it('sends direction "complete" when the row is not done yet', async () => {
-    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
 
     await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
 
@@ -100,7 +100,7 @@ describe('toggleComplete states what the tap meant', () => {
 
   it('sends direction "uncomplete" when the row is already done', async () => {
     completionsResult = [{ completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today() }] }, null];
-    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
     // Let the hook mirror the fetched completions into its own state first.
     await act(async () => {});
 
@@ -112,8 +112,8 @@ describe('toggleComplete states what the tap meant', () => {
   it('two people tapping the same unfinished chore both say "complete"', async () => {
     // Two displays, each with its own copy of the hook, tapping in the same
     // second. Two bare toggles cancel out; two "complete" requests do not.
-    const first = renderHook(() => useChoreData(config), { wrapper });
-    const second = renderHook(() => useChoreData(config), { wrapper });
+    const first = renderHook(() => useChoreData(config, undefined), { wrapper });
+    const second = renderHook(() => useChoreData(config, undefined), { wrapper });
 
     await act(async () => {
       await Promise.all([
@@ -129,7 +129,7 @@ describe('toggleComplete states what the tap meant', () => {
 describe('an overspent balance reaches the screen', () => {
   it('returns a notice naming the member, the balance and what is owed', async () => {
     postResponse = { completions: [], changed: true, overspent: { memberId: 'kid-1', balance: -4 } };
-    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
 
     await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
 
@@ -137,7 +137,7 @@ describe('an overspent balance reaches the screen', () => {
   });
 
   it('carries no notice when the balance stayed positive', async () => {
-    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
 
     await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
 
@@ -151,7 +151,7 @@ describe('a chore put back by a grown-up', () => {
       completions: [{ choreId: 'garage', memberId: 'kid-1', date: today(), at: `${today()}T08:00:00.000Z` }],
       bonusResets: { garage: `${today()}T09:00:00.000Z` },
     }, null];
-    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
     await act(async () => { await result.current.toggleComplete('garage', 'kid-1'); });
     expect(posted).toEqual([expect.objectContaining({ choreId: 'garage', direction: 'complete' })]);
   });
@@ -160,7 +160,7 @@ describe('a chore put back by a grown-up', () => {
 describe('the week behind the stars', () => {
   it('leaves a day out when everything on it was marked not today', () => {
     completionsResult = [{ completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today(), status: 'skipped' }] }, null];
-    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
     const day = result.current.weekData.find((d) => d.date === today())!;
     expect(day.memberAssigned['kid-1']).toBe(false);
     expect(day.memberStars['kid-1']).toBe(false);

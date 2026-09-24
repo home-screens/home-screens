@@ -10,6 +10,11 @@ export interface FirstRunSteps {
    * been asked for it.
    */
   family: boolean;
+  /**
+   * The town and the time zone are both saved. The Location page asks for the
+   * two together, and without a zone every screen runs on the hub's own clock,
+   * which on a stock Pi is UTC.
+   */
   location: boolean;
   /**
    * Always false. Nothing on the hub records that `/remote` was ever opened,
@@ -26,7 +31,10 @@ export interface FirstRunChecklistInput {
   dismissed: boolean;
   /** Screens on the display being edited, or null before the config loads. */
   screens: Screen[] | null;
-  locationSet: boolean;
+  /** A usable town (coordinates) is saved. */
+  townSet: boolean;
+  /** A household time zone is saved. */
+  zoneSet: boolean;
   /** null while the hub has not answered about the household yet. */
   familySet: boolean | null;
   /** null while the hub has not answered about the password yet. */
@@ -37,6 +45,11 @@ export interface FirstRunChecklistState {
   /** Render the card at all. */
   show: boolean;
   steps: FirstRunSteps;
+  /**
+   * The town is saved and only the time zone is missing, so the location step
+   * can say what is left instead of looking untouched.
+   */
+  onlyZoneMissing: boolean;
 }
 
 /**
@@ -57,12 +70,12 @@ export interface FirstRunChecklistState {
  * hold still.
  */
 export function resolveFirstRunChecklist(input: FirstRunChecklistInput): FirstRunChecklistState {
-  const { dismissed, screens, locationSet, familySet, passwordSet } = input;
+  const { dismissed, screens, townSet, zoneSet, familySet, passwordSet } = input;
 
   const steps: FirstRunSteps = {
     template: screens != null && screens.some((screen) => !isScreenEmpty(screen)),
     family: familySet === true,
-    location: locationSet,
+    location: townSet && zoneSet,
     phone: false,
     password: passwordSet === true,
   };
@@ -80,5 +93,5 @@ export function resolveFirstRunChecklist(input: FirstRunChecklistInput): FirstRu
     && screens != null
     && (!knownLocally || familySet === false || passwordSet === false);
 
-  return { show, steps };
+  return { show, steps, onlyZoneMissing: townSet && !zoneSet };
 }

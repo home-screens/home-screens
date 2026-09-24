@@ -10,7 +10,7 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 import { POST as putBack } from '../route';
-import { todayStr } from '@/lib/chore-assignments';
+import { isoDateInTZ } from '@/lib/timezone';
 import { grabState, type BonusChore } from '@/lib/chore-bonus';
 
 const now = '2026-09-09T12:00:00.000Z';
@@ -31,7 +31,7 @@ beforeEach(async () => {
   vi.spyOn(process, 'cwd').mockReturnValue(root);
   await put('family.json', { members: [{ id: 'ada', name: 'Ada', color: '#60a5fa', createdAt: now, updatedAt: now }], migrated: true });
   await put('chores.json', { chores: [garage, { ...garage, id: 'car', bonus: { claim: 'first', comesBack: 'daily' } }] });
-  await put('chore-completions.json', { completions: [{ choreId: 'garage', memberId: 'ada', date: todayStr(), at: '2000-01-01T00:00:00.000Z' }] });
+  await put('chore-completions.json', { completions: [{ choreId: 'garage', memberId: 'ada', date: isoDateInTZ(), at: '2000-01-01T00:00:00.000Z' }] });
 });
 afterEach(async () => {
   vi.restoreAllMocks();
@@ -41,12 +41,12 @@ afterEach(async () => {
 describe('POST /api/chores/put-back', () => {
   it('opens a done chore again and keeps the completion that paid for it', async () => {
     const before = await read('chore-completions.json');
-    expect(grabState(garage as BonusChore, todayStr(), { completions: before.completions, grabs: [], bonusResets: {} }, 'day', ['ada'], todayStr()).status).toBe('done');
+    expect(grabState(garage as BonusChore, isoDateInTZ(), { completions: before.completions, grabs: [], bonusResets: {} }, 'day', ['ada'], isoDateInTZ()).status).toBe('done');
     const res = await putBack(request('garage'), undefined);
     expect(res.status).toBe(200);
     const after = await read('chore-completions.json');
     expect(after.completions).toHaveLength(1);
-    expect(grabState(garage as BonusChore, todayStr(), { completions: after.completions, grabs: [], bonusResets: after.bonusResets }, 'day', ['ada'], todayStr()))
+    expect(grabState(garage as BonusChore, isoDateInTZ(), { completions: after.completions, grabs: [], bonusResets: after.bonusResets }, 'day', ['ada'], isoDateInTZ()))
       .toEqual({ status: 'open' });
   });
 

@@ -10,7 +10,7 @@ vi.mock('@/lib/editor-fetch', () => ({
   isSessionExpired: () => false,
 }));
 
-import { useTimetableDraft } from '../use-timetable-draft';
+import { useTimetableDraft, weekCycleLetters } from '../use-timetable-draft';
 
 const SCHOOL = {
   id: 'school-1',
@@ -288,5 +288,17 @@ describe('useTimetableDraft, against a store that refuses a stale revision', () 
 
     expect(screen.getByTestId('subjects').textContent).toBe('ma,de');
     expect(screen.getByTestId('conflict').textContent).toBe('');
+  });
+});
+
+describe('weekCycleLetters', () => {
+  const PARITY = { ...SCHOOL, weekCycle: { mode: 'parity' as const, oddWeek: 'A' as const } };
+
+  it("turns the week over at the household's midnight, not the laptop's", () => {
+    // 00:30 on Monday 14 September in Berlin (ISO week 38, an even week) is
+    // still Sunday of week 37 in UTC and in Chicago.
+    const mondayInBerlin = new Date('2026-09-13T22:30:00Z');
+    expect(weekCycleLetters(PARITY, mondayInBerlin, 'Europe/Berlin')).toEqual({ thisLetter: 'B', nextLetter: 'A' });
+    expect(weekCycleLetters(PARITY, mondayInBerlin, 'America/Chicago')).toEqual({ thisLetter: 'A', nextLetter: 'B' });
   });
 });

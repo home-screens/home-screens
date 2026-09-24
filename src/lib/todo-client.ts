@@ -34,12 +34,6 @@ export interface TodoListPatch {
   color?: string;
   repeat?: TodoRepeat;
   repeatDay?: number;
-  /**
-   * IANA zone of the device making the change, sent whenever a repeat is set.
-   * The hub's own clock is UTC on the shipped image, so without it a daily
-   * list would start fresh in the early evening. See `TodoList.repeatTimezone`.
-   */
-  timezone?: string;
 }
 
 export interface TodoItemPatch {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
 import { useTranslate } from '@/i18n';
@@ -10,11 +11,13 @@ export default function BackupReminderToast() {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const reminderSettings = useEditorStore((s) => s.config?.settings?.backupReminder);
+  const timezone = useEditorHouseholdTimezone();
   const { shouldShow, daysSinceBackup, busy, iconsLeftOut, handleBackup, handleDismiss } = useBackupReminder({
     enabled: reminderSettings?.enabled ?? false,
     intervalDays: reminderSettings?.intervalDays ?? 7,
     fetchFn: editorFetch,
     pollIntervalMs: 3_600_000,
+    timezone,
   });
 
   if (!shouldShow) return null;

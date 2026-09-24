@@ -7,6 +7,7 @@ import ModuleStatusChips from './ModuleStatusChips';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
+import type { ScheduleClock } from '@/lib/schedule';
 
 /**
  * Selection chrome (ring + resize handle) for the selected module, rendered
@@ -34,7 +35,7 @@ export default function SelectionOverlay({
   displayHeight: number;
   onResize: (size: { w: number; h: number }) => void;
   /** Clock and live shared state, for the status chip. */
-  now: Date;
+  now: ScheduleClock;
   verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;
   statusSource?: SharedStateSource | null;
   /** Fired when a resize drag finishes. The browser follows the gesture with

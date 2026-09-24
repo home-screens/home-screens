@@ -134,6 +134,8 @@
       "scheduledInactiveDetail": "{summary} Ahora mismo no se ve en la pared.",
       "conditionOnKey": "Esperando {key}",
       "conditionNoKey": "Esperando un valor en vivo",
+      "conditionTimeMet": "Visible a esta hora",
+      "conditionTimeUnmet": "Oculto a esta hora",
       "background": "Funciona en segundo plano"
     }
   },
@@ -473,11 +475,24 @@
     "locationPage": {
       "heading": "Ubicación",
       "description": "La usan los módulos de tiempo, fase lunar, amanecer/atardecer y calidad del aire.",
-      "browserLabel": "Navegador",
-      "serverLabel": "Servidor",
       "timezoneLabel": "Zona horaria",
-      "timezoneSystemDefault": "Predeterminada del sistema ({timezone})",
-      "timezoneHelp": "Normalmente es la misma que la de tu ciudad. Cámbiala solo si los relojes se ven mal.",
+      "timezoneHelp": "Normalmente es la misma que la de tu ciudad. Cámbiala solo si en tu casa se usa otra hora.",
+      "timezoneSearchWords": "zona horaria huso horario hora reloj relojes",
+      "timezoneUnset": {
+        "title": "Elige tu zona horaria",
+        "lead": "Hasta entonces, tus pantallas usan el reloj del propio hub, que está en {zone}.",
+        "leadPending": "Hasta entonces, tus pantallas usan el reloj del propio hub.",
+        "canBeWrong": "Por eso los relojes y «hoy» pueden estar mal.",
+        "ahead": "Va {gap} por delante de {place}, así que los relojes y «hoy» pueden estar mal.",
+        "behind": "Va {gap} por detrás de {place}, así que los relojes y «hoy» pueden estar mal.",
+        "same": "Ahora mismo coincide con {place}, pero al elegirla te aseguras de que siga así.",
+        "aheadHere": "Va {gap} por delante de este ordenador, así que los relojes y «hoy» pueden estar mal.",
+        "behindHere": "Va {gap} por detrás de este ordenador, así que los relojes y «hoy» pueden estar mal.",
+        "sameHere": "Ahora mismo coincide con este ordenador, pero al elegirla te aseguras de que siga así.",
+        "yourTown": "tu ciudad",
+        "buttonPlace": "Usar {zone} (como {place})",
+        "buttonHere": "Usar {zone} (la hora de este ordenador)"
+      },
       "queryPlaceholder": "Código postal o nombre de la ciudad",
       "lookUpButton": "Buscar",
       "detectButton": "Detectar mi ubicación",
@@ -488,27 +503,34 @@
       "longitudePlaceholder": "-74.006",
       "status": {
         "lookingUp": "Buscando…",
-        "found": "Encontrada: {name}",
+        "found": "Encontrado: {name}.",
         "error": "Error: {message}",
         "lookupFailed": "No se pudo buscar la ubicación",
         "detecting": "Detectando…",
-        "detected": "Detectada: {name}",
-        "detectedViaIp": "Detectada: {name} (vía IP)",
-        "detectedCoords": "Detectada: {lat}, {lon}",
-        "detectFailed": "Error: no se pudo detectar la ubicación"
+        "detected": "Encontrado: {name}.",
+        "detectedViaIp": "Encontrado por tu conexión a internet: {name}.",
+        "detectedCoords": "Encontrado: {lat}, {lon}.",
+        "detectFailed": "Error: no se pudo detectar la ubicación",
+        "zoneSet": "Zona horaria ajustada a {zone} para que coincida."
       },
       "queryLabel": "Tu ciudad o código postal",
       "clockCheck": {
         "summary": "Comprobar los relojes",
-        "description": "Compara el reloj de este navegador con el del dispositivo donde se ejecuta Home Screens. Si no coinciden, cambia la zona horaria de arriba."
+        "screens": "Tus pantallas",
+        "computer": "Este ordenador",
+        "hub": "El hub",
+        "advice": "Tus pantallas siguen siempre la zona horaria de arriba. Este ordenador puede mostrar otra hora cuando estás fuera de casa, y no pasa nada.",
+        "adviceUnset": "Mientras no elijas una zona horaria, tus pantallas siguen el reloj del hub. Este ordenador puede mostrar otra hora cuando estás fuera de casa, y no pasa nada."
       },
-      "deviceClock": {
-        "message": "El reloj de este dispositivo está en {deviceTimezone}, pero tus pantallas muestran {displayTimezone}.",
-        "help": "Tus pantallas muestran la hora correcta en cualquier caso. Esto solo cambia las marcas de tiempo que el dispositivo guarda para sí mismo, y las hace más fáciles de leer.",
-        "button": "Ajustar el reloj del dispositivo",
+      "timezoneNotPicked": "Sin elegir todavía",
+      "zoneTime": "la hora de {place}",
+      "hubClock": {
+        "optional": "Opcional",
+        "message": "El reloj del propio hub está en {zone}. Ajustarlo solo hace que sus archivos de registro sean más fáciles de leer.",
+        "button": "Poner el hub en {zone}",
         "settingButton": "Cambiando…",
-        "success": "El reloj del dispositivo ya coincide con tus pantallas.",
-        "error": "No se ha podido cambiar el reloj del dispositivo."
+        "success": "El reloj del hub ya coincide con tus pantallas.",
+        "error": "No se ha podido cambiar el reloj del hub."
       }
     },
     "calendarPage": {
@@ -664,9 +686,10 @@
         "download": "Descargar",
         "restore": "Restaurar",
         "restoreDialog": {
-          "title": "Restaurar copia",
-          "message": "¿Restaurar la configuración desde {name}? La configuración actual se sobrescribirá.",
-          "confirm": "Restaurar"
+          "title": "¿Restaurar estos ajustes?",
+          "message": "{what}, guardado el {when}. Tus ajustes actuales se sustituirán.",
+          "confirm": "Restaurar",
+          "messageNoDate": "{what}. Tus ajustes actuales se sustituirán."
         },
         "restoreStatus": {
           "restoring": "Restaurando…",
@@ -674,7 +697,13 @@
           "error": "Error: {error}",
           "failed": "No se pudo restaurar la copia"
         },
-        "lastStableHelp": "Tus ajustes de antes de la primera compilación de acceso anticipado o de prueba. Restáuralos si vuelves a una versión normal y no puede leer tus ajustes."
+        "kinds": {
+          "lastStable": "Últimos ajustes antes de probar versiones anticipadas",
+          "update": "Antes de actualizar desde la {version}",
+          "migration": "Antes de que se actualizaran tus ajustes (versión {version})",
+          "other": "Ajustes guardados"
+        },
+        "keptBadge": "Se conserva"
       },
       "backupPassword": {
         "setTitle": "Elige una contraseña",
@@ -2646,7 +2675,9 @@
       "suggestButton": "Sugerir",
       "copyLastWeekButton": "Copiar la semana pasada",
       "clearButton": "Vaciar",
-      "prepTimeMin": "{minutes} min"
+      "prepTimeMin": "{minutes} min",
+      "previousWeekAriaLabel": "Semana anterior",
+      "nextWeekAriaLabel": "Semana siguiente"
     },
     "picker": {
       "title": "Elige una comida",
@@ -3356,6 +3387,7 @@
       "viewNeon": "Neón (cartel luminoso)",
       "viewBar": "Barra (barras de progreso)",
       "viewElapsed": "Transcurrido (desde/hasta)",
+      "datePresetLanguage": "Como se escribe en tu idioma",
       "datePresetWeekdayMonthDay": "lunes, 5 de enero",
       "datePresetShortWeekday": "lun, 5 ene",
       "datePresetMonthDayYear": "5 de enero de 2026",
@@ -4986,12 +5018,16 @@
       "templateButton": "Elegir una plantilla",
       "family": "Añade a las personas de tu casa",
       "familyLink": "Abrir Familia",
-      "location": "Indica tu ubicación",
+      "location": "Indica tu ciudad y tu zona horaria",
       "locationLink": "Abrir Ubicación e idioma",
       "phone": "Ábrelo en tu móvil",
       "phoneLink": "Ver las direcciones para el móvil",
       "password": "Pon una contraseña",
-      "passwordLink": "Abrir Seguridad"
+      "passwordLink": "Abrir Seguridad",
+      "locationZoneMissing": "Tu ciudad ya está. Falta la zona horaria."
     }
+  },
+  "homeTime": {
+    "hint": "Hora de casa ({city}). Ahora en casa: {time}."
   }
 }

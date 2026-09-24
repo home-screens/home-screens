@@ -6,6 +6,8 @@ import type { LayoutExport } from '@/types/layout-export';
 import Button from '@/components/ui/Button';
 import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 
 interface LayoutImportModalProps {
   layout: LayoutExport;
@@ -29,6 +31,7 @@ export default function LayoutImportModal({
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
   const { config, selectedDisplayId, importLayoutAction, saveConfig } = useEditorStore();
   const [applyVisual, setApplyVisual] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +65,8 @@ export default function LayoutImportModal({
     source === 'template'
       ? null
       : t('layoutImportModal.savedAt', {
-          date: new Date(metadata.exportedAt).toLocaleDateString(formattingLocale),
+          // The household's day, not the laptop's.
+          date: formatDateInTZ(new Date(metadata.exportedAt), timezone, { dateStyle: 'medium' }, formattingLocale),
         });
 
   const screenCountLabel =

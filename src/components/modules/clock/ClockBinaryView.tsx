@@ -60,9 +60,9 @@ function DotColumn({ bits, accentColor, dotSize, gap, maxBits }: DotColumnProps)
   );
 }
 
-export default function ClockBinaryView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockBinaryView({ config, time, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { minutes, seconds, h } = parseClockTime(config.format24h, now);
+  const { minutes, seconds, h } = parseClockTime(config.format24h, time);
 
   const dotSize = Math.max(12, scaledFontSize * 0.85);
   const gap = dotSize * 0.45;

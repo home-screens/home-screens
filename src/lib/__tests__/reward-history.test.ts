@@ -63,3 +63,35 @@ describe('summarizeRedemptions', () => {
     expect(summarizeRedemptions([], now)).toEqual({ ticketsSpent: 0, count: 0, favorite: null });
   });
 });
+
+// The wall's days are the household's, whatever zone the Pi's clock is on.
+describe('in the household zone', () => {
+  const CHICAGO = 'America/Chicago';
+
+  it('keeps an evening redemption under today once UTC has rolled over', () => {
+    // Redeemed Tuesday 6 PM Chicago, read at 8 PM: UTC is already Wednesday.
+    const [group] = groupRedemptionsByDay(
+      [redemption('treat', '2026-09-22T23:00:00Z')],
+      new Date('2026-09-23T01:00:00Z'),
+      CHICAGO,
+    );
+    expect(group.bucket).toBe('today');
+  });
+
+  it('calls last night yesterday when both instants share a UTC day', () => {
+    // Redeemed Monday 8 PM Chicago (01:00Z Tuesday), read Tuesday 6 PM (23:00Z).
+    const [group] = groupRedemptionsByDay(
+      [redemption('treat', '2026-09-22T01:00:00Z')],
+      new Date('2026-09-22T23:00:00Z'),
+      CHICAGO,
+    );
+    expect(group.bucket).toBe('yesterday');
+  });
+
+  it('draws the thirty-day window on household days', () => {
+    // 29 household days back at 8 PM Chicago is 30 UTC days back.
+    const now = new Date('2026-09-23T01:00:00Z');
+    const summary = summarizeRedemptions([redemption('edge', '2026-08-24T12:00:00Z')], now, 30, CHICAGO);
+    expect(summary.count).toBe(1);
+  });
+});

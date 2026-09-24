@@ -71,7 +71,7 @@ function getDisplayIdFromQuery(
 /**
  * GET handler — used for:
  * - /api/display/commands?display=<id>      → drain that display's queue
- * - /api/display/status?display=<id>        → read last-known status (per display)
+ * - /api/display/status?display=<id>        → read last-known status (per display), null before the first heartbeat
  * - /api/display/shared-state?display=<id>  → read last-reported shared-state snapshot
  * - /api/display/wake?display=<id>          → simple commands via GET (bookmarkable)
  * - /api/display/wake?display=all           → broadcast simple command to all displays
@@ -99,11 +99,10 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
       });
     }
     case 'status': {
-      const status = getDisplayStatus(displayId);
-      if (!status) {
-        return NextResponse.json({ error: 'No status reported yet' }, { status: 404 });
-      }
-      return NextResponse.json(status);
+      // `null` (not a 404) until the display's first heartbeat: the phone and
+      // the editor poll this, and "has not reported yet" is an expected state
+      // on a new install, not an error to fill their consoles with.
+      return NextResponse.json(getDisplayStatus(displayId) ?? null);
     }
     case 'shared-state': {
       // Empty response (not a 404) when nothing has reported — the editor

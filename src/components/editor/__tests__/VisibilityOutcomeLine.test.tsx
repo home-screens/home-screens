@@ -66,3 +66,14 @@ describe('VisibilityOutcomeLine (source-aware live outcome)', () => {
     expect(line.getAttribute('data-visibility-outcome')).toBe('shown');
   });
 });
+
+describe('VisibilityOutcomeLine (a tree that only reads the clock)', () => {
+  const allDay: ModuleVisibility = { conditions: [{ kind: 'time', startTime: '00:00', endTime: '23:59' }] };
+
+  it('gives a verdict without waiting for a display report', () => {
+    render(<VisibilityOutcomeLine visibility={allDay} states={null} reportedAt={null} now={new Date(2026, 8, 24, 12, 0)} t={t} />);
+    // No display is showing it, so the editor-worded line.
+    const line = screen.getByText('visibilityConditions.outcome.shownNowEditor');
+    expect(line.getAttribute('data-visibility-outcome')).toBe('shown');
+  });
+});

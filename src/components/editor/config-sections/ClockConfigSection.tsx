@@ -11,12 +11,15 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
+import { useTZClock } from '@/hooks/useTZClock';
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { COMMON_TIMEZONES } from '@/lib/timezone';
-import { useTranslate, useFormattingLocale } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { formatElapsed } from '@/components/modules/clock/elapsed-format';
+import { clockDatePattern } from '@/components/modules/clock/date-pattern';
 import type { ModuleInstance, ClockView, ClockHourFormat, WorldClockZone, ElapsedFormat, ElapsedPrecision } from '@/types/config';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 // 50d 20h 13m 42s — a fixed sample duration (not tied to real time) used to
 // preview the elapsed format/precision combo the admin has selected.
@@ -24,9 +27,9 @@ import { DEFAULT_TIME_FORMAT } from '@/types/config';
  *  date next to them so "EEEE" stops being a guess. */
 const CUSTOM_DATE_EXAMPLES = ['EEEE, MMMM d', 'EEE d MMM', 'd/M/yyyy'];
 
-function safeFormat(pattern: string, t: (key: string) => string): string {
+function safeFormat(pattern: string, now: Date, t: (key: string) => string): string {
   try {
-    return format(new Date(), pattern);
+    return format(now, pattern);
   } catch {
     return t('configSections.clock.invalidFormat');
   }
@@ -91,8 +94,11 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<ClockConfigType>(mod, screenId);
-  const globalTimezone = useEditorStore((s) => s.config?.settings?.timezone);
-  const householdTimeFormat = useEditorStore((s) => s.config?.settings?.timeFormat) ?? DEFAULT_TIME_FORMAT;
+  const globalTimezone = useEditorHouseholdTimezone();
+  // Date previews read the day the clock will show: its own zone, else the
+  // household's, never the laptop's.
+  const previewNow = useTZClock(c.timezone || globalTimezone);
+  const householdTimeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
   // A clock placed before `hourFormat` existed shows its own toggle's value,
   // which is what it renders; picking anything writes `hourFormat` and the
   // toggle is never read again (see resolveClockFormat24h).
@@ -121,6 +127,8 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   ];
 
   const DATE_PRESETS: { label: string; value: string }[] = [
+    // Empty: the whole date in the household language's own order.
+    { label: t('configSections.clock.datePresetLanguage'), value: '' },
     { label: t('configSections.clock.datePresetWeekdayMonthDay'), value: 'EEEE, MMMM d' },
     { label: t('configSections.clock.datePresetShortWeekday'), value: 'EEE, MMM d' },
     { label: t('configSections.clock.datePresetMonthDayYear'), value: 'MMMM d, yyyy' },
@@ -167,7 +175,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
   const view = c.view ?? 'classic';
   const fields = VIEW_FIELDS[view] ?? new Set<string>();
-  const dateFormatVal = c.dateFormat ?? 'EEEE, MMMM d';
+  const dateFormatVal = c.dateFormat ?? '';
   const isCustomDateFormat = !DATE_PRESETS.some((p) => p.value === dateFormatVal);
   const [showCustomDate, setShowCustomDate] = useState(isCustomDateFormat);
 
@@ -176,7 +184,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   // Live date format preview
   let datePreview = '';
   try {
-    datePreview = format(new Date(), dateFormatVal);
+    datePreview = formatDateSync(previewNow, clockDatePattern(dateFormatVal, formattingLocale), { locale: formattingLocale });
   } catch {
     datePreview = t('configSections.clock.invalidFormat');
   }
@@ -304,7 +312,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
                 >
                   <code className="font-mono text-[11px] text-hs-text-secondary">{pattern}</code>
                   <span className="text-[11px] text-hs-text-faint">
-                    {safeFormat(pattern, t)}
+                    {safeFormat(pattern, previewNow, t)}
                   </span>
                 </button>
               ))}

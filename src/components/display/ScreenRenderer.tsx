@@ -1,15 +1,16 @@
 'use client';
 
 import { useMemo, useEffect, useRef, useState } from 'react';
-import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
+import type { Screen, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
-import { isModuleEnabled, isModuleVisible, evaluateVisibility, collectConditionSourceKeys } from '@/lib/schedule';
+import { isModuleEnabled, isModuleVisible, evaluateVisibility, collectConditionSourceKeys, type ScheduleClock } from '@/lib/schedule';
 import { DISPLAY_BACKGROUND } from '@/lib/constants';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useWallClock } from '@/hooks/useTZClock';
+import type { DisplaySettings } from './useLiveConfig';
 import { useTranslate } from '@/i18n';
 
 /**
@@ -23,13 +24,13 @@ import { useTranslate } from '@/i18n';
  */
 export const isModuleRenderable = (
   mod: ModuleInstance,
-  now: Date,
+  now: ScheduleClock,
   states: ReadonlyMap<string, SharedStateEntry>,
 ): boolean =>
   !mod.backgroundProvider &&
   isModuleEnabled(mod) &&
   isModuleVisible(mod.schedule, now) &&
-  // `now` is the same timezone-shifted minute clock the schedule check uses, so
+  // `now` is the same display-zone minute clock the schedule check uses, so
   // a `time` visibility condition re-evaluates on the existing minute tick — no
   // extra timer needed on the display's module path.
   evaluateVisibility(mod.visibility, states, now);
@@ -44,7 +45,7 @@ import BackgroundShadeOverlay from '@/components/BackgroundShadeOverlay';
 
 interface ScreenRendererProps {
   screen: Screen;
-  settings: GlobalSettings;
+  settings: DisplaySettings;
   rotatingBackground?: string;
   sharedData: SharedDisplayData;
   displayW: number;
@@ -79,22 +80,25 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   // which wraps this component — same path PluginPlaceholder already uses.
   const tModules = useTranslate('modules');
 
-  // Minute-resolution timezone-aware clock for module scheduling
-  const now = useTZClock(settings.timezone);
+  // Minute-resolution wall clock for module scheduling. The zone is the one
+  // the host settings hand plugins too, so the hour and the zone named in the
+  // event below always describe the same clock.
+  const timezone = settings.timezone;
+  const now = useWallClock(timezone);
 
   // Publish time period transitions to the event bus (fires at most 4x/day)
-  const hour = now.getHours();
+  const hour = Math.floor(now.minuteOfDay / 60);
   const timePeriod = getTimePeriod(hour);
   useEffect(() => {
     eventBus.publish('time.period', {
       period: timePeriod,
       hour,
-      timezone: settings.timezone ?? 'UTC',
+      timezone,
     });
     // `hour` is intentionally excluded — we only want to fire on period transitions,
     // not every hour. The closure captures the correct hour at each transition.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timePeriod, settings.timezone]);
+  }, [timePeriod, timezone]);
 
   // Push-based subscription scoped to the keys this screen's conditions
   // actually reference: entity-driven visibility still flips the instant a

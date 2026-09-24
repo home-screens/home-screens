@@ -6,7 +6,8 @@ import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
-import { completionKey, todayStr, type MemberStats } from '../types';
+import { completionKey, type MemberStats } from '../types';
+import { isoDateInTZ } from '@/lib/timezone';
 import { UNCHECK_HOLD_MS } from '@/hooks/useHoldToUncheck';
 import { CompactView } from '../views/CompactView';
 
@@ -30,7 +31,7 @@ function renderCompact(opts: { done?: boolean; points?: number; showPoints?: boo
   const toggleComplete = vi.fn(async () => {});
   const c = chore(opts.points ?? 3);
   const completionSet = new Set<string>(
-    opts.done ? [completionKey(c.id, noah.id, todayStr())] : [],
+    opts.done ? [completionKey(c.id, noah.id, isoDateInTZ())] : [],
   );
   const config: ChoreChartConfig = {
     view: 'compact', weekStartDay: 'monday', showPoints: opts.showPoints ?? true, showStreaks: true,
@@ -43,7 +44,7 @@ function renderCompact(opts: { done?: boolean; points?: number; showPoints?: boo
         data={{
           members: [noah], groups: [], chores: [c],
           todayAssignments: [{ chore: c, memberId: noah.id, isCompleted: !!opts.done, isSkipped: false, groupIds: [] }],
-          completionSet, memberStats: stats, toggleComplete, today: todayStr(),
+          completionSet, memberStats: stats, toggleComplete, today: isoDateInTZ(),
         }}
         width={600}
         fontSize={16}

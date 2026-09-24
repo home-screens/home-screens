@@ -4,7 +4,7 @@ import { ButtonHTMLAttributes } from 'react';
 import clsx from 'clsx';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'warning' | 'ghost';
   size?: 'sm' | 'md';
 }
 
@@ -12,6 +12,8 @@ const variantStyles = {
   primary: 'bg-hs-accent hover:bg-hs-accent-hover text-white',
   secondary: 'bg-hs-card hover:bg-hs-hover text-hs-text-body border border-hs-border-strong',
   danger: 'bg-hs-danger hover:opacity-90 text-white',
+  /** The one next step inside a warning notice. */
+  warning: 'bg-hs-warning hover:opacity-90 text-hs-on-warning font-semibold',
   ghost: 'text-hs-text-muted hover:text-hs-text-body hover:bg-hs-card',
 };
 

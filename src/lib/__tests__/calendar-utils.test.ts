@@ -3,6 +3,7 @@ import type { TranslateFn } from '@/i18n';
 import {
   parseEventDate,
   compareEventStarts,
+  parseEventInstant,
   isEventOnDay,
   isEventUpcoming,
   applyTitleFilter,
@@ -107,18 +108,53 @@ describe('parseEventDate', () => {
 
 describe('compareEventStarts', () => {
   it('sorts date-only strings chronologically', () => {
-    expect(compareEventStarts('2026-03-21', '2026-03-22')).toBeLessThan(0);
-    expect(compareEventStarts('2026-03-22', '2026-03-21')).toBeGreaterThan(0);
-    expect(compareEventStarts('2026-03-22', '2026-03-22')).toBe(0);
+    expect(compareEventStarts('2026-03-21', '2026-03-22', undefined)).toBeLessThan(0);
+    expect(compareEventStarts('2026-03-22', '2026-03-21', undefined)).toBeGreaterThan(0);
+    expect(compareEventStarts('2026-03-22', '2026-03-22', undefined)).toBe(0);
   });
 
   it('sorts timed events chronologically', () => {
-    expect(compareEventStarts('2026-03-22T09:00:00', '2026-03-22T10:00:00')).toBeLessThan(0);
+    expect(compareEventStarts('2026-03-22T09:00:00', '2026-03-22T10:00:00', undefined)).toBeLessThan(0);
   });
 
   it('sorts all-day events before same-day timed events', () => {
     // All-day "2026-03-22" = local midnight, timed "2026-03-22T09:00:00" = 9am local
-    expect(compareEventStarts('2026-03-22', '2026-03-22T09:00:00')).toBeLessThan(0);
+    expect(compareEventStarts('2026-03-22', '2026-03-22T09:00:00', undefined)).toBeLessThan(0);
+  });
+
+  it("puts tonight's event before tomorrow's all-day row, whatever the machine's zone", () => {
+    // 7:30 pm in Chicago is 00:30Z the next day. Against a date-only start
+    // read as the machine's midnight, a UTC kiosk sorted it after tomorrow's
+    // birthday and the agenda drew Tomorrow above Today.
+    const tonight = '2026-09-22T19:30:00-05:00';
+    const tomorrow = '2026-09-23';
+    expect(compareEventStarts(tonight, tomorrow, 'America/Chicago')).toBeLessThan(0);
+    expect(compareEventStarts(tomorrow, tonight, 'America/Chicago')).toBeGreaterThan(0);
+  });
+
+  it("puts a day's all-day row above its early-morning events east of UTC", () => {
+    // 7 am in Tokyo is 22:00Z the day before; the all-day row still leads.
+    expect(compareEventStarts('2026-09-23', '2026-09-22T22:00:00Z', 'Asia/Tokyo')).toBeLessThan(0);
+  });
+
+  it('puts an all-day row first when it ties with a midnight start', () => {
+    expect(compareEventStarts('2026-09-23T00:00:00-05:00', '2026-09-23', 'America/Chicago')).toBeGreaterThan(0);
+    expect(compareEventStarts('2026-09-23', '2026-09-23T00:00:00-05:00', 'America/Chicago')).toBeLessThan(0);
+  });
+});
+
+describe('parseEventInstant', () => {
+  it("reads a date-only bound as the household's midnight", () => {
+    expect(parseEventInstant('2026-09-23', 'America/Chicago').toISOString()).toBe('2026-09-23T05:00:00.000Z');
+    expect(parseEventInstant('2026-09-23', 'Pacific/Auckland').toISOString()).toBe('2026-09-22T12:00:00.000Z');
+  });
+
+  it('reads a zone-less timed bound on the household clock', () => {
+    expect(parseEventInstant('2026-09-23T08:30:00', 'America/Chicago').toISOString()).toBe('2026-09-23T13:30:00.000Z');
+  });
+
+  it('keeps a zoned timed bound as the instant it names', () => {
+    expect(parseEventInstant('2026-09-23T08:30:00+02:00', 'America/Chicago').toISOString()).toBe('2026-09-23T06:30:00.000Z');
   });
 });
 

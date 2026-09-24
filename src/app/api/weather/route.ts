@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createWeatherProvider } from '@/lib/weather';
-import { reconcileTodayRange } from '@/lib/weather/derive';
+import { rebuildTodayRow, reconcileTodayRange } from '@/lib/weather/derive';
 import { recordReading, readingKey, type DayRange } from '@/lib/weather/today-record';
+import { forecastDate } from '@/lib/weather/daily';
 import type { HourlyWeather, ForecastDay } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, getLocationFromConfig, requireSecret } from '@/lib/api-utils';
@@ -25,18 +26,23 @@ interface WeatherParams {
 }
 
 /**
- * Write the current reading into the record for the forecast's day 0 and
- * return that day's range so far. The forecast's date is the location's own
- * calendar day, so no timezone is involved. A disk problem must not cost
- * the wall its weather, so a failure here is logged and the range simply
- * goes unrecorded this poll.
+ * Write the current reading into the record for the household's today and
+ * return that day's range so far. `todayRow` is the provider's row for today,
+ * passed while its forecast still starts with today, so the record can stand
+ * in for it once the provider moves on. A disk problem must not cost the
+ * wall its weather, so a failure here is logged and the range simply goes
+ * unrecorded this poll.
  */
-async function noteReading(p: WeatherParams, hourly: HourlyWeather[], forecast: ForecastDay[]): Promise<DayRange | undefined> {
+async function noteReading(
+  p: WeatherParams,
+  today: string,
+  hourly: HourlyWeather[],
+  todayRow: ForecastDay | undefined,
+): Promise<DayRange | undefined> {
   const now = hourly[0];
-  const today = forecast[0];
-  if (!p.location || !now || !today || !Number.isFinite(now.temp)) return undefined;
+  if (!p.location || !now || !Number.isFinite(now.temp)) return undefined;
   try {
-    return await recordReading(readingKey(p.provider, p.location.lat, p.location.lon, p.units), today.date, now.temp);
+    return await recordReading(readingKey(p.provider, p.location.lat, p.location.lon, p.units), today, now.temp, todayRow);
   } catch (err) {
     console.error('[weather] could not record today\'s reading:', err);
     return undefined;
@@ -102,8 +108,22 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
         weatherProvider.getHourly(Number(lat), Number(lon), units),
         weatherProvider.getForecast(Number(lat), Number(lon), units, timezone),
       ]);
-      const seen = await noteReading(params, hourly, forecast);
-      result = { hourly, forecast: reconcileTodayRange(forecast, hourly, seen) };
+      // The reading is today's whatever day the forecast starts on. Late in
+      // the evening a provider can have nothing left for today
+      // (OpenWeatherMap's 3-hour slots run out around 9 pm), so its first day
+      // is tomorrow: tonight's reading is not tomorrow's high or low, and the
+      // Today row comes back from what the hub kept of it.
+      const today = forecastDate(new Date(), timezone);
+      const leadsWithToday = forecast[0]?.date === today;
+      const seen = await noteReading(params, today, hourly, leadsWithToday ? forecast[0] : undefined);
+      let days = forecast;
+      if (leadsWithToday) {
+        days = reconcileTodayRange(forecast, hourly, seen);
+      } else if (forecast[0] && forecast[0].date > today) {
+        const todayRow = rebuildTodayRow(today, hourly, seen);
+        if (todayRow) days = [todayRow, ...forecast];
+      }
+      result = { hourly, forecast: days };
     }
 
     // Include minutely and alerts if the provider supports them

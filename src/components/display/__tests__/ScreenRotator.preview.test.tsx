@@ -26,11 +26,12 @@ vi.mock('../useLiveConfig', () => ({
   useLiveConfig: (
     screens: Screen[],
     settings: GlobalSettings,
+    hubTimezone: string,
     profiles: unknown,
     _displayId: string | undefined,
     displays: unknown,
     rules: DisplayRule[] | undefined,
-  ) => ({ screens, settings, profiles, rules, displays: displays ?? [] }),
+  ) => ({ screens, settings: { ...settings, timezone: settings.timezone || hubTimezone }, profiles, rules, displays: displays ?? [] }),
 }));
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
@@ -94,7 +95,7 @@ describe('ScreenRotator start screen and preview mode', () => {
   });
 
   it('starts on the requested screen and rotates on from there', () => {
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="weather" />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="weather" />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(rendered()).toBe('weather');
     act(() => { vi.advanceTimersByTime(1000); });
@@ -104,7 +105,7 @@ describe('ScreenRotator start screen and preview mode', () => {
   it('still starts on the requested screen when Strict Mode runs mount effects twice', () => {
     render(
       <StrictMode>
-        <ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="weather" preview />
+        <ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="weather" preview />
       </StrictMode>,
     );
     act(() => { vi.advanceTimersByTime(0); });
@@ -112,7 +113,7 @@ describe('ScreenRotator start screen and preview mode', () => {
   });
 
   it('pins a requested screen the rotation excludes until the first navigation', () => {
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="alert" preview />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="alert" preview />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(rendered()).toBe('alert');
 
@@ -125,7 +126,7 @@ describe('ScreenRotator start screen and preview mode', () => {
   it('forgets the requested start screen once the user navigates away from it', () => {
     // 'alert' is off-profile: pinned at first, then the user taps a dot.
     const { rerender } = render(
-      <ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="alert" preview />,
+      <ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="alert" preview />,
     );
     act(() => { vi.advanceTimersByTime(0); });
     expect(rendered()).toBe('alert');
@@ -135,13 +136,13 @@ describe('ScreenRotator start screen and preview mode', () => {
     // A profile switch that now includes 'alert' must not yank the display
     // back to it (the screen set changed, so the rotation resets to its first).
     const wider: Profile[] = [{ id: 'day', name: 'Day', screenIds: ['home', 'weather', 'alert'] }];
-    rerender(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={wider} initialScreenId="alert" preview />);
+    rerender(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={wider} initialScreenId="alert" preview />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(rendered()).toBe('home');
   });
 
   it('preview holds rotation and keeps the tab out of the hub\'s command and status traffic', () => {
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="weather" preview />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} initialScreenId="weather" preview />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(rendered()).toBe('weather');
     act(() => { vi.advanceTimersByTime(5000); });
@@ -161,7 +162,7 @@ describe('ScreenRotator start screen and preview mode', () => {
       id: 'r', name: 'Door', when: [{ kind: 'state', sourceKey: 'plugin:ha:door', equals: 'open' }],
       action: { kind: 'showScreen', screenId: 'alert', mode: 'while' },
     };
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} rules={[rule]} initialScreenId="weather" preview />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} rules={[rule]} initialScreenId="weather" preview />);
     act(() => { vi.advanceTimersByTime(0); });
     act(() => { sharedStateStore.publish('plugin:ha:door', 'closed'); });
     act(() => { sharedStateStore.publish('plugin:ha:door', 'open'); });
@@ -169,7 +170,7 @@ describe('ScreenRotator start screen and preview mode', () => {
   });
 
   it('never mounts the live timer in a preview, including after polling intervals', () => {
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} displayId="main" initialScreenId="weather" preview />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} displayId="main" initialScreenId="weather" preview />);
     act(() => { vi.advanceTimersByTime(10_000); });
     expect(rendered()).toBe('weather');
     // TimerOverlay owns its polling, sound and step-done POST. Keeping it
@@ -179,7 +180,7 @@ describe('ScreenRotator start screen and preview mode', () => {
   });
 
   it('a normal display keeps hub traffic on', () => {
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings()} profiles={PROFILES} />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={PROFILES} />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(useDisplayCommands.mock.calls.every((c) => c[2] === true)).toBe(true);
     expect(useStatusReporter.mock.calls.every((c) => c[c.length - 1] === true)).toBe(true);

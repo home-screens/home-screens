@@ -506,11 +506,11 @@ test('an editor watching a display arms fast shared-state re-reporting; an unwat
   // first heartbeat is the only unforced status POST until the 30s periodic,
   // and it carried an empty snapshot (published before `unwatched-1`).
   await expect
-    .poll(async () => (await request.get(`/api/display/status?display=${DISPLAY}`)).status(), {
+    .poll(async () => (await (await request.get(`/api/display/status?display=${DISPLAY}`)).json()) !== null, {
       timeout: 15_000,
       intervals: [500],
     })
-    .toBe(200);
+    .toBe(true);
 
   await publishState(page, 'watch', 'unwatched-1');
   // Deliberately do NOT read the hub yet — the read itself marks interest.

@@ -4,7 +4,7 @@ import { eventOwner } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  parseEventDate, parseEventWallTime, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
+  parseEventWallTime, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
 } from '@/lib/calendar-utils';
 import { buildUpNextModel, UP_NEXT_LATER_MAX, type UpNextTimedEvent } from '@/lib/calendar-up-next';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
@@ -15,7 +15,6 @@ import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
 import { EventWeatherLine } from './WeatherInline';
 import { EventProgressBar, eventAriaLabel } from './list-view-bits';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { sanitizeEventDescription } from '@/lib/event-description';
 
@@ -25,7 +24,7 @@ import { sanitizeEventDescription } from '@/lib/event-description';
  * that day, what already happened today, and tomorrow. The type size is
  * driven by the hero, not a grid, so it reads from across a room.
  */
-export function UpNextView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, owners }: CalendarViewProps) {
+export function UpNextView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -234,7 +233,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, showDescription
   weather?: CalendarWeather;
   failingSourceIds?: ReadonlySet<string>;
 }) {
-  const { t, locale, timeFormat, scale, fontSize } = ctx;
+  const { t, locale, timeFormat, timezone, scale, fontSize } = ctx;
   const { ev, start, end } = item;
   const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
   const bar = eventBorder(color, scale.isDark);
@@ -291,7 +290,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, showDescription
             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.location}</span>
           </div>
         )}
-        {weather && <EventWeatherLine weather={weather} start={parseEventDate(ev.start)} fontSize={fontSize * 2.2} marginTop={scale.bu * 0.4} />}
+        {weather && <EventWeatherLine weather={weather} start={ev.start} timezone={timezone} fontSize={fontSize * 2.2} marginTop={scale.bu * 0.4} />}
       </div>
       {description && (
         <div style={{

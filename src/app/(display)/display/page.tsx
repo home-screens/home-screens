@@ -2,6 +2,7 @@ import { readConfig } from '@/lib/config';
 import { getDisplayToken } from '@/lib/auth';
 import { filterConfigForDisplay, findMainDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
+import { hubTimezone } from '@/lib/household-day';
 import DisplayNotFound from '@/components/display/DisplayNotFound';
 import { parseDisplaySearchParams, type DisplaySearchParams } from '@/lib/display-search-params';
 
@@ -45,6 +46,7 @@ export default async function DisplayPage({
           profiles={filtered.profiles}
           rules={filtered.rules}
           displayToken={displayToken}
+          hubTimezone={hubTimezone()}
           displayId={target.id}
           initialDisplays={availableDisplays}
           {...preview}
@@ -61,6 +63,7 @@ export default async function DisplayPage({
         profiles={config.profiles}
         rules={config.rules}
         displayToken={displayToken}
+        hubTimezone={hubTimezone()}
         initialDisplays={availableDisplays}
         {...preview}
       />

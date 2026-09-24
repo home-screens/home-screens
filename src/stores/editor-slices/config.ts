@@ -9,6 +9,7 @@ import { getActiveScreens } from '@/lib/editor-multi-display';
 import { appendHistoryEntry, createPendingResave } from '@/stores/editor-save';
 import { syncEditorUrl } from '@/stores/editor-url';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
+import { HUB_TIMEZONE_HEADER } from '@/lib/timezone';
 import { logger } from '@/lib/logger';
 import type { ConfigActions, EditorGet, EditorSet, SaveConflict, SaveErrorKind } from './types';
 
@@ -59,6 +60,7 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
         const config: ScreenConfiguration = await res.json();
         if (!config.screens) throw new Error('Invalid config');
         const configRevision = readRevision(res);
+        const hubTimezone = res.headers?.get?.(HUB_TIMEZONE_HEADER) || null;
 
         // Restore which display the editor was operating on from the URL.
         // Multi-display: default to 'main' when it exists, otherwise the first
@@ -87,6 +89,7 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
         set({
           config,
           configRevision,
+          hubTimezone,
           configGeneration: get().configGeneration + 1,
           saveConflict: null,
           saveError: null,

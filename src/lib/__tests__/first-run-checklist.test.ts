@@ -20,7 +20,7 @@ const filled: Screen = {
 
 /** A brand-new install: nothing placed, nothing configured. */
 const fresh = {
-  dismissed: false, screens: [blank], locationSet: false, familySet: false, passwordSet: false,
+  dismissed: false, screens: [blank], townSet: false, zoneSet: false, familySet: false, passwordSet: false,
 };
 
 describe('resolveFirstRunChecklist', () => {
@@ -49,19 +49,36 @@ describe('resolveFirstRunChecklist', () => {
 
   it('ticks location, family and password from what is actually configured', () => {
     const done = resolveFirstRunChecklist({
-      ...fresh, locationSet: true, familySet: true, passwordSet: true,
+      ...fresh, townSet: true, zoneSet: true, familySet: true, passwordSet: true,
     });
     expect(done.steps.location).toBe(true);
     expect(done.steps.family).toBe(true);
     expect(done.steps.password).toBe(true);
   });
 
+  it('needs both the town and the time zone, and says when only the zone is left', () => {
+    const townOnly = resolveFirstRunChecklist({ ...fresh, townSet: true });
+    expect(townOnly.steps.location).toBe(false);
+    expect(townOnly.onlyZoneMissing).toBe(true);
+
+    // Nothing saved at all is not "only the zone": the step itself says it.
+    expect(resolveFirstRunChecklist(fresh).onlyZoneMissing).toBe(false);
+    // A zone with no town is still an unticked step, with nothing extra to say.
+    const zoneOnly = resolveFirstRunChecklist({ ...fresh, zoneSet: true });
+    expect(zoneOnly.steps.location).toBe(false);
+    expect(zoneOnly.onlyZoneMissing).toBe(false);
+
+    const both = resolveFirstRunChecklist({ ...fresh, townSet: true, zoneSet: true });
+    expect(both.steps.location).toBe(true);
+    expect(both.onlyZoneMissing).toBe(false);
+  });
+
   it('goes away only once the steps it can check are done', () => {
     const setUp = {
-      dismissed: false, screens: [filled], locationSet: true, familySet: true, passwordSet: true,
+      dismissed: false, screens: [filled], townSet: true, zoneSet: true, familySet: true, passwordSet: true,
     };
     expect(resolveFirstRunChecklist(setUp).show).toBe(false);
-    expect(resolveFirstRunChecklist({ ...setUp, locationSet: false }).show).toBe(true);
+    expect(resolveFirstRunChecklist({ ...setUp, zoneSet: false }).show).toBe(true);
     expect(resolveFirstRunChecklist({ ...setUp, familySet: false }).show).toBe(true);
     expect(resolveFirstRunChecklist({ ...setUp, passwordSet: false }).show).toBe(true);
     expect(resolveFirstRunChecklist({ ...setUp, screens: [blank] }).show).toBe(true);
@@ -76,7 +93,7 @@ describe('resolveFirstRunChecklist', () => {
     // the length of one request on an install that needs nothing.
     expect(
       resolveFirstRunChecklist({
-        dismissed: false, screens: [filled], locationSet: true, familySet: true, passwordSet: null,
+        dismissed: false, screens: [filled], townSet: true, zoneSet: true, familySet: true, passwordSet: null,
       }).show,
     ).toBe(false);
     // Unknown, but other steps outstanding: the install is plainly new, so show
@@ -87,7 +104,7 @@ describe('resolveFirstRunChecklist', () => {
   it('waits for the hub the same way about the household', () => {
     expect(
       resolveFirstRunChecklist({
-        dismissed: false, screens: [filled], locationSet: true, familySet: null, passwordSet: true,
+        dismissed: false, screens: [filled], townSet: true, zoneSet: true, familySet: null, passwordSet: true,
       }).show,
     ).toBe(false);
     expect(resolveFirstRunChecklist({ ...fresh, familySet: null }).show).toBe(true);
@@ -100,7 +117,7 @@ describe('resolveFirstRunChecklist', () => {
   it('leaves the phone step unticked, because nothing records that the remote was opened', () => {
     expect(
       resolveFirstRunChecklist({
-        dismissed: false, screens: [filled], locationSet: true, familySet: true, passwordSet: true,
+        dismissed: false, screens: [filled], townSet: true, zoneSet: true, familySet: true, passwordSet: true,
       }).steps.phone,
     ).toBe(false);
   });

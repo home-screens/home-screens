@@ -34,7 +34,7 @@ describe('RollingWeeksView', () => {
     const { container, getByText } = render(
       <RollingWeeksView events={[ev('e1', 'Soccer', '2026-09-11T10:00:00', '2026-09-11T11:00:00')]}
         config={{ ...config, rollingWeeksToShow: 2 } as FullscreenCalendarConfig}
-        scale={scale} today={today} now={now} />,
+        scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const cells = container.querySelectorAll('[role="gridcell"]');
@@ -50,7 +50,7 @@ describe('RollingWeeksView', () => {
   it('shades weekend cells from the date when shadeWeekends is on, and not when off', () => {
     const on = render(
       <RollingWeeksView events={[]} config={{ ...config, rollingWeeksToShow: 1 } as FullscreenCalendarConfig}
-        scale={scale} today={today} now={now} />,
+        scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const onCells = on.container.querySelectorAll('[role="gridcell"]');
@@ -61,7 +61,7 @@ describe('RollingWeeksView', () => {
 
     const off = render(
       <RollingWeeksView events={[]} config={{ ...config, rollingWeeksToShow: 1, shadeWeekends: false } as FullscreenCalendarConfig}
-        scale={scale} today={today} now={now} />,
+        scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const offCells = off.container.querySelectorAll('[role="gridcell"]');
@@ -71,7 +71,7 @@ describe('RollingWeeksView', () => {
   it('marks the month start and keeps the default at 6 weeks', () => {
     const { container } = render(
       <RollingWeeksView events={[]} config={{ ...config, rollingWeeksToShow: 4 } as FullscreenCalendarConfig}
-        scale={scale} today={today} now={now} />,
+        scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const cells = container.querySelectorAll('[role="gridcell"]');
@@ -81,7 +81,7 @@ describe('RollingWeeksView', () => {
     cleanup();
     const base = render(
       <RollingWeeksView events={[]} config={config}
-        scale={scale} today={today} now={now} />,
+        scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(base.container.querySelectorAll('[role="gridcell"]')).toHaveLength(42);

@@ -5,7 +5,7 @@ import SunCalc from 'suncalc';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
 import { windUnitLabel } from '@/lib/weather/units';
-import { hourLabel, smoothPath, tzHour, hourlyInstant, hoursWithin, HOURLY_RAIN_SHOWN_PCT } from './weather-view-utils';
+import { hourLabel, smoothPath, tzHour, hoursWithin, HOURLY_RAIN_SHOWN_PCT } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
 import { Card, Label, TopBar, AlertBand, MiniHero } from './weather-parts';
 
@@ -423,7 +423,7 @@ function Next12Card({ p, place }: CardProps) {
               borderRight: i === hrs.length - 1 ? 0 : '1px solid var(--fsw-border-sub)',
             }}>
               <div style={{ fontSize: s * 1.35, fontWeight: 600, color: 'var(--fsw-text-3)' }}>
-                {hourLabel(Math.floor(tzHour(hourlyInstant(h), p.timezone)), p.timeFormat)}
+                {hourLabel(Math.floor(tzHour(new Date(h.time), p.timezone)), p.timeFormat)}
               </div>
               <Ico style={{ width: s * 2.3, height: s * 2.3, color: pop > 50 ? '#38bdf8' : 'var(--fsw-text-2)' }} strokeWidth={1.6} />
               <div style={{ fontSize: s * 2.3, fontWeight: 600, letterSpacing: '-.02em', color: tempColor(h.temp, p.units) }}>{Math.round(h.temp)}°</div>

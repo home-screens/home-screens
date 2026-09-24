@@ -36,6 +36,10 @@ export function useRemoteConfigWatch(): boolean {
       }
       try {
         const res = await editorFetch('/api/config', { method: 'HEAD' });
+        // Read the empty body so the request completes: Chromium cancels a
+        // response nobody reads, and every poll then logs as an aborted
+        // request in the network panel.
+        await res.text().catch(() => {});
         if (!mounted || !res.ok) return;
         const seen = res.headers.get(CONFIG_REVISION_HEADER);
         const after = useEditorStore.getState();

@@ -5,7 +5,7 @@ import { readConfigCached } from '@/lib/config-cache';
 import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays, parseJsonBody } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 import { mealRevision } from '@/lib/meal-revision';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import { settingsTimeFormat } from '@/lib/clock-time';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,7 +37,7 @@ export const GET = withDisplayAuth(async () => {
   const [data, config] = await Promise.all([readMealData(), readConfigCached()]);
   return NextResponse.json({
     ...toWire(data),
-    globalTimeFormat: config.settings?.timeFormat ?? DEFAULT_TIME_FORMAT,
+    globalTimeFormat: settingsTimeFormat(config.settings),
   });
 }, 'Failed to read meal data');
 
@@ -160,6 +160,6 @@ export const PUT = withAuth(async (req: NextRequest) => {
   const config = await readConfigCached();
   return NextResponse.json({
     ...toWire(data),
-    globalTimeFormat: config.settings?.timeFormat ?? DEFAULT_TIME_FORMAT,
+    globalTimeFormat: settingsTimeFormat(config.settings),
   });
 }, 'Failed to update meal data');

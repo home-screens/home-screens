@@ -27,6 +27,7 @@ import AlertSender from './components/AlertSender';
 import SettingsSheet, { type PowerAction } from './components/SettingsSheet';
 import BackupReminderBanner from './components/BackupReminderBanner';
 import { useBackupReminder } from '@/hooks/useBackupReminder';
+import { useHouseholdTimezone } from './household-clock';
 import UpdateAvailableBanner from './components/UpdateAvailableBanner';
 import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import BottomTabBar from './components/BottomTabBar';
@@ -117,6 +118,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const backup = useBackupReminder({
     enabled: initialData.backupReminder.enabled,
     intervalDays: initialData.backupReminder.intervalDays,
+    timezone: useHouseholdTimezone(),
   });
   const updateNotif = useUpdateNotification({
     enabled: initialData.updateNotification.enabled,

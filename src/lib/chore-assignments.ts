@@ -29,11 +29,6 @@ export interface ResolvedAssignment {
 /** Format a Date as YYYY-MM-DD in local time (avoids UTC drift from toISOString) */
 export const localDateStr = localISODate;
 
-/** Get today's date as YYYY-MM-DD in local time */
-export function todayStr(): string {
-  return localDateStr(new Date());
-}
-
 /** Parse a YYYY-MM-DD string as a local-midnight Date. */
 export function parseISO(iso: string): Date {
   const [y, m, d] = iso.split('-').map(Number);

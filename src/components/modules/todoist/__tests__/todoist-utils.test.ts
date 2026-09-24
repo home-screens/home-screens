@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
-  daysBetween,
+  dueDayKey,
+  dueDaysFromToday,
   formatDueDate,
   filterTasks,
   sortTasks,
@@ -70,31 +71,95 @@ const identityT: TranslateFn = (key, vars) => {
   return out;
 };
 
-// ── daysBetween ──────────────────────────────────────────────────────
+// ── Household day ────────────────────────────────────────────────────
+//
+// The wall's "today" is the household's, not the Pi's. The instant below is
+// Tuesday Sep 22, 8 PM in Chicago, when the UTC calendar is already on
+// Wednesday: every assertion here failed on a UTC Pi before the zone was
+// threaded through.
 
-describe('daysBetween', () => {
-  it('returns 0 for same day different times', () => {
-    const a = new Date('2025-06-15T08:00:00');
-    const b = new Date('2025-06-15T20:00:00');
-    expect(daysBetween(a, b)).toBe(0);
+const CHICAGO = 'America/Chicago';
+const CHICAGO_EVENING = new Date('2026-09-23T01:00:00Z');
+
+describe('dueDayKey', () => {
+  it('takes an all-day task\'s date as written', () => {
+    expect(dueDayKey({ date: '2026-09-22', datetime: null, isRecurring: false }, CHICAGO)).toBe('2026-09-22');
   });
 
-  it('returns positive when a is after b', () => {
-    const a = new Date('2025-06-17T00:00:00');
-    const b = new Date('2025-06-15T00:00:00');
-    expect(daysBetween(a, b)).toBe(2);
+  it('puts a pinned time on the household day it falls on', () => {
+    // 7 PM Chicago, stored by Todoist as midnight UTC the next day.
+    expect(dueDayKey({ date: '2026-09-23', datetime: '2026-09-23T00:00:00Z', isRecurring: false }, CHICAGO)).toBe('2026-09-22');
   });
 
-  it('returns negative when a is before b', () => {
-    const a = new Date('2025-06-13T00:00:00');
-    const b = new Date('2025-06-15T00:00:00');
-    expect(daysBetween(a, b)).toBe(-2);
+  it('reads a floating time on the household wall clock', () => {
+    expect(dueDayKey({ date: '2026-09-22', datetime: '2026-09-22T23:30:00', isRecurring: false }, CHICAGO)).toBe('2026-09-22');
+  });
+});
+
+describe('dueDaysFromToday', () => {
+  it('counts from the household day, not the machine\'s', () => {
+    const due = (date: string) => ({ date, datetime: null, isRecurring: false });
+    expect(dueDaysFromToday(due('2026-09-22'), CHICAGO_EVENING, CHICAGO)).toBe(0);
+    expect(dueDaysFromToday(due('2026-09-23'), CHICAGO_EVENING, CHICAGO)).toBe(1);
+    expect(dueDaysFromToday(due('2026-09-21'), CHICAGO_EVENING, CHICAGO)).toBe(-1);
   });
 
-  it('handles month boundaries', () => {
-    const a = new Date('2025-07-01T00:00:00');
-    const b = new Date('2025-06-30T00:00:00');
-    expect(daysBetween(a, b)).toBe(1);
+  it('is already tomorrow east of UTC after local midnight', () => {
+    // 1:30 AM Wednesday in Berlin, still Tuesday in UTC and in Chicago.
+    const berlinNight = new Date('2026-09-22T23:30:00Z');
+    const due = { date: '2026-09-23', datetime: null, isRecurring: false };
+    expect(dueDaysFromToday(due, berlinNight, 'Europe/Berlin')).toBe(0);
+  });
+
+  it('is null for no due date or one it cannot read', () => {
+    expect(dueDaysFromToday(null, CHICAGO_EVENING, CHICAGO)).toBeNull();
+    expect(dueDaysFromToday({ date: 'soon', datetime: null, isRecurring: false }, CHICAGO_EVENING, CHICAGO)).toBeNull();
+  });
+});
+
+describe('formatDueDate in the household zone', () => {
+  const withTime: TranslateFn = (key, vars) => (vars?.time ? `${key}::${vars.time}` : key);
+
+  it('calls a task due this evening today, at its household time', () => {
+    const pinned = { date: '2026-09-23', datetime: '2026-09-23T00:00:00Z', isRecurring: false };
+    const floating = { date: '2026-09-22', datetime: '2026-09-22T19:00:00', isRecurring: false };
+    for (const due of [pinned, floating]) {
+      const result = formatDueDate(due, CHICAGO_EVENING, withTime, { locale: 'en-US', timeFormat: '12h', timezone: CHICAGO });
+      expect(result.text.replace(/\s/g, ' ')).toBe('todoist.dueDate.todayAtTime::7:00 PM');
+    }
+  });
+
+  it('keeps an all-day task due today out of Overdue in the evening', () => {
+    const due = { date: '2026-09-22', datetime: null, isRecurring: false };
+    expect(formatDueDate(due, CHICAGO_EVENING, identityT, { timezone: CHICAGO }).text).toBe('todoist.dueDate.today');
+    expect(getDueDateGroup(due, CHICAGO_EVENING, CHICAGO)).toBe('today');
+  });
+
+  it('names the weekday of the due day wherever the machine is', () => {
+    const due = { date: '2026-09-25', datetime: null, isRecurring: false }; // Friday
+    expect(formatDueDate(due, CHICAGO_EVENING, identityT, { locale: 'en-US', timezone: CHICAGO }).text).toBe('Fri');
+  });
+
+  it('groups by the household day', () => {
+    const tasks = [
+      makeTask({ id: 'today', due: { date: '2026-09-22', datetime: null, isRecurring: false } }),
+      makeTask({ id: 'tomorrow', due: { date: '2026-09-23', datetime: null, isRecurring: false } }),
+      makeTask({ id: 'tonight', due: { date: '2026-09-23', datetime: '2026-09-23T02:00:00Z', isRecurring: false } }),
+    ];
+    const groups = groupTasks(tasks, 'date', CHICAGO_EVENING, undefined, CHICAGO);
+    expect(groups.map((g) => [g.key, g.tasks.map((t) => t.id)])).toEqual([
+      ['today', ['today', 'tonight']],
+      ['tomorrow', ['tomorrow']],
+    ]);
+  });
+
+  it('sorts a task due late tonight ahead of tomorrow\'s all-day task', () => {
+    const tasks = [
+      makeTask({ id: 'tomorrow', due: { date: '2026-09-23', datetime: null, isRecurring: false } }),
+      makeTask({ id: 'tonight', due: { date: '2026-09-23', datetime: '2026-09-23T03:00:00Z', isRecurring: false } }),
+      makeTask({ id: 'today', due: { date: '2026-09-22', datetime: null, isRecurring: false } }),
+    ];
+    expect(sortTasks(tasks, 'due_date', CHICAGO).map((t) => t.id)).toEqual(['today', 'tonight', 'tomorrow']);
   });
 });
 
@@ -167,7 +232,7 @@ describe('formatDueDate', () => {
     const due = { date: '2025-06-15', datetime: '2025-06-15T15:30:00', isRecurring: false };
     const result = formatDueDate(due, new Date(), identityT);
     // identityT returns "todoist.dueDate.todayAtTime" with `{time}` substituted
-    // from `formatDateSync` — for en-US that's "3:30 PM".
+    // from `formatTimeInTZ`; for en-US that's "3:30 PM".
     expect(result.text).toBe('todoist.dueDate.todayAtTime');
     expect(result.color).toBe('#f59e0b');
   });
@@ -190,10 +255,10 @@ describe('formatDueDate', () => {
     };
 
     const due = { date: '2025-06-15', datetime: '2025-06-15T15:30:00', isRecurring: false };
-    const enResult = formatDueDate(due, new Date(), diagnosticT, 'en-US');
+    const enResult = formatDueDate(due, new Date(), diagnosticT, { locale: 'en-US' });
     expect(enResult.text).toBe('todoist.dueDate.todayAtTime::3:30 PM');
 
-    const deResult = formatDueDate(due, new Date(), diagnosticT, 'de-DE');
+    const deResult = formatDueDate(due, new Date(), diagnosticT, { locale: 'de-DE' });
     expect(deResult.text).toBe('todoist.dueDate.todayAtTime::15:30');
   });
 
@@ -232,7 +297,7 @@ describe('formatDueDate', () => {
     vi.setSystemTime(new Date('2025-06-15T00:00:00'));
 
     const due = { date: '2025-06-15', datetime: '2025-06-15T00:00:00', isRecurring: false };
-    const result = formatDueDate(due, new Date(), identityT, 'en-US');
+    const result = formatDueDate(due, new Date(), identityT, { locale: 'en-US' });
     // identityT returns the bare key; the time placeholder is what we
     // care about here — assert the underlying formatter still emits 12:00 AM.
     expect(result.text).toBe('todoist.dueDate.todayAtTime');
@@ -243,7 +308,7 @@ describe('formatDueDate', () => {
     vi.setSystemTime(new Date('2025-06-15T12:00:00')); // Sunday
 
     const due = { date: '2025-06-18', datetime: null, isRecurring: false }; // Wednesday
-    const result = formatDueDate(due, new Date(), identityT, 'de-DE');
+    const result = formatDueDate(due, new Date(), identityT, { locale: 'de-DE' });
     // ICU's de-DE short weekday for Wed is typically "Mi." — match the
     // prefix to stay tolerant of ICU version drift.
     expect(result.text.toLowerCase()).toMatch(/^mi/);

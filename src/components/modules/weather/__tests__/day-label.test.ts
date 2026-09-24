@@ -1,63 +1,60 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { dayLabel } from '../day-label';
 
-// Pre-resolved label bundle. Mirrors the shape the host passes — `today`
+// Pre-resolved label bundle. Mirrors the shape the host passes: `today`
 // lives in `core` and `tomorrowShort` lives in the `modules` dictionary
 // under `weather.tomorrowShort`. Tests pass them in already-translated so
 // the helper has no knowledge of namespace routing.
 const enLabels = { today: 'Today', tomorrowShort: 'Tmrw' };
 
-describe('dayLabel', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
+// The household's today, as the views hand it in. 2026-03-15 is a Sunday.
+const TODAY = '2026-03-15';
 
+describe('dayLabel', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  it('returns translated "Today" for the current date', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0)); // March 15, 2026
-    expect(dayLabel('2026-03-15', 'en-US', enLabels)).toBe('Today');
+  it('returns translated "Today" for the household today', () => {
+    expect(dayLabel('2026-03-15', TODAY, 'en-US', enLabels)).toBe('Today');
   });
 
-  it('returns translated "Tmrw" for tomorrow', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0));
-    expect(dayLabel('2026-03-16', 'en-US', enLabels)).toBe('Tmrw');
+  it('returns translated "Tmrw" for the household tomorrow', () => {
+    expect(dayLabel('2026-03-16', TODAY, 'en-US', enLabels)).toBe('Tmrw');
   });
 
   it('uses weekday names for today and tomorrow when relative labels are disabled', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0));
-    expect(dayLabel('2026-03-15', 'en-US', enLabels, false)).toBe('Sun');
-    expect(dayLabel('2026-03-16', 'en-US', enLabels, false)).toBe('Mon');
+    expect(dayLabel('2026-03-15', TODAY, 'en-US', enLabels, false)).toBe('Sun');
+    expect(dayLabel('2026-03-16', TODAY, 'en-US', enLabels, false)).toBe('Mon');
   });
 
   it('returns abbreviated day name for other dates', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0)); // Sunday
     // March 17, 2026 is a Tuesday
-    expect(dayLabel('2026-03-17', 'en-US', enLabels)).toBe('Tue');
+    expect(dayLabel('2026-03-17', TODAY, 'en-US', enLabels)).toBe('Tue');
   });
 
   it('returns abbreviated day for a date in the past', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0));
     // March 13, 2026 is a Friday
-    expect(dayLabel('2026-03-13', 'en-US', enLabels)).toBe('Fri');
+    expect(dayLabel('2026-03-13', TODAY, 'en-US', enLabels)).toBe('Fri');
   });
 
-  it('returns translated "Today" regardless of time of day', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 23, 59, 59));
-    expect(dayLabel('2026-03-15', 'en-US', enLabels)).toBe('Today');
+  it('follows the household day, not the machine clock', () => {
+    // The machine is already on Monday (8 pm Sunday in Chicago on a UTC Pi);
+    // the household is still on Sunday.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-16T01:00:00Z'));
+    expect(dayLabel('2026-03-15', TODAY, 'en-US', enLabels)).toBe('Today');
+    expect(dayLabel('2026-03-16', TODAY, 'en-US', enLabels)).toBe('Tmrw');
   });
 
-  it('handles year boundaries', () => {
-    vi.setSystemTime(new Date(2026, 11, 31, 12, 0, 0)); // Dec 31, 2026
-    expect(dayLabel('2027-01-01', 'en-US', enLabels)).toBe('Tmrw');
+  it('handles month and year boundaries', () => {
+    expect(dayLabel('2027-01-01', '2026-12-31', 'en-US', enLabels)).toBe('Tmrw');
+    expect(dayLabel('2026-04-01', '2026-03-31', 'en-US', enLabels)).toBe('Tmrw');
   });
 
   it('honors localized labels', () => {
-    vi.setSystemTime(new Date(2026, 2, 15, 12, 0, 0));
     const deLabels = { today: 'Heute', tomorrowShort: 'Morgen' };
-    expect(dayLabel('2026-03-15', 'en-US', deLabels)).toBe('Heute');
-    expect(dayLabel('2026-03-16', 'en-US', deLabels)).toBe('Morgen');
+    expect(dayLabel('2026-03-15', TODAY, 'en-US', deLabels)).toBe('Heute');
+    expect(dayLabel('2026-03-16', TODAY, 'en-US', deLabels)).toBe('Morgen');
   });
 });

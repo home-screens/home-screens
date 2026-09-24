@@ -3,7 +3,8 @@ import { differenceInCalendarDays, isSameDay } from 'date-fns';
 import { toTZWallTime } from '@/lib/timezone';
 import { formatEventTime } from '@/lib/calendar-utils';
 import type { TranslateFn } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type TimeFormat } from '@/types/config';
+import type { CalendarFetchStatus, CalendarSourceStatus, TimeFormat } from '@/types/config';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 /** Per-source `messageKey` the calendar route emits for a missing or expired Google sign-in. */
 export const GOOGLE_NOT_SIGNED_IN_KEY = 'googleNotSignedIn';
@@ -42,7 +43,7 @@ interface SinceFormatOpts {
 export function formatSince(fetchedAt: number, opts: SinceFormatOpts): { text: string; ageMs: number } {
   const instant = new Date(fetchedAt);
   const wall = toTZWallTime(instant, opts.timezone);
-  const time = formatEventTime(wall, opts.timeFormat ?? DEFAULT_TIME_FORMAT, opts.locale);
+  const time = formatEventTime(wall, householdTimeFormat(opts.timeFormat, opts.locale), opts.locale);
   const ageMs = Math.max(0, opts.now.getTime() - wall.getTime());
   if (isSameDay(wall, opts.today)) return { text: time, ageMs };
   const daysAgo = differenceInCalendarDays(opts.today, wall);

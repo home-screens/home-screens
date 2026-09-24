@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import type { TranslateFn } from '@/i18n';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import { sourceKind } from '@/lib/news/sources';
+import { formatDateInTZ } from '@/lib/timezone';
 
 /** Stories younger than this get the "Just in" mark when enabled. */
 export const BREAKING_WINDOW_MS = 60 * 60 * 1000;
@@ -23,11 +24,15 @@ export function clampLines(lines: number): CSSProperties {
 /**
  * Compact age: "just now", "12m ago", "3h ago", "2d ago", then a short date
  * beyond a week. Empty for undated stories or bad input.
+ *
+ * The short date is the day the story came out on the household's calendar
+ * (`timezone`), not the Pi's: a 9 PM Chicago story is still "Sep 10" on a Pi
+ * whose clock runs on UTC.
  */
 export function formatNewsAge(
   timestamp: number | null,
   t: TranslateFn,
-  locale: string,
+  fmt: { locale: string; timezone: string | undefined },
   now: number = Date.now(),
 ): string {
   if (timestamp === null || !Number.isFinite(timestamp)) return '';
@@ -40,9 +45,10 @@ export function formatNewsAge(
   const diffDay = Math.floor(diffHr / 24);
   if (diffDay < 7) return t('news.timeAgo.days', { count: diffDay });
   try {
-    return new Date(timestamp).toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+    return formatDateInTZ(new Date(timestamp), fmt.timezone, { month: 'short', day: 'numeric' }, fmt.locale);
   } catch {
-    return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    // An unusable locale tag: the default language, still on the household's day.
+    return formatDateInTZ(new Date(timestamp), fmt.timezone, { month: 'short', day: 'numeric' });
   }
 }
 

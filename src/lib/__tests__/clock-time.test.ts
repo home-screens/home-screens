@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatClockTime, formatClockMinutes, resolveTimeFormat } from '@/lib/clock-time';
+import { formatClockTime, formatClockMinutes, householdTimeFormat, localeTimeFormat, settingsTimeFormat } from '@/lib/clock-time';
 import { formatMealTime } from '@/lib/meal-constants';
 
 // ── formatClockTime ──
@@ -31,26 +31,21 @@ describe('formatClockTime', () => {
     expect(formatClockTime('13:00', '12h')).toBe('1:00 PM');
   });
 
-  it('defaults to 12h when no format is given', () => {
-    expect(formatClockTime('18:30')).toBe('6:30 PM');
-    expect(formatClockTime('00:00')).toBe('12:00 AM');
-  });
-
   it('returns an empty string for missing input', () => {
-    expect(formatClockTime(undefined)).toBe('');
-    expect(formatClockTime(null)).toBe('');
-    expect(formatClockTime('')).toBe('');
+    expect(formatClockTime(undefined, '12h')).toBe('');
+    expect(formatClockTime(null, '12h')).toBe('');
+    expect(formatClockTime('', '12h')).toBe('');
   });
 
   it('returns an empty string for malformed or out-of-range input', () => {
-    expect(formatClockTime('abc')).toBe('');
-    expect(formatClockTime('12')).toBe('');
-    expect(formatClockTime('12:5')).toBe('');
-    expect(formatClockTime('12:005')).toBe('');
-    expect(formatClockTime('24:00')).toBe('');
-    expect(formatClockTime('25:00')).toBe('');
-    expect(formatClockTime('12:60')).toBe('');
-    expect(formatClockTime(' 12:00')).toBe('');
+    expect(formatClockTime('abc', '12h')).toBe('');
+    expect(formatClockTime('12', '12h')).toBe('');
+    expect(formatClockTime('12:5', '12h')).toBe('');
+    expect(formatClockTime('12:005', '12h')).toBe('');
+    expect(formatClockTime('24:00', '12h')).toBe('');
+    expect(formatClockTime('25:00', '12h')).toBe('');
+    expect(formatClockTime('12:60', '12h')).toBe('');
+    expect(formatClockTime(' 12:00', '12h')).toBe('');
   });
 });
 
@@ -68,21 +63,17 @@ describe('formatClockMinutes', () => {
     expect(formatClockMinutes(1439, '24h')).toBe('23:59');
   });
 
-  it('defaults to 12h when no format is given', () => {
-    expect(formatClockMinutes(1110)).toBe('6:30 PM');
-  });
-
   it('returns an empty string outside a single day', () => {
-    expect(formatClockMinutes(-1)).toBe('');
-    expect(formatClockMinutes(1440)).toBe('');
-    expect(formatClockMinutes(99999)).toBe('');
+    expect(formatClockMinutes(-1, '12h')).toBe('');
+    expect(formatClockMinutes(1440, '12h')).toBe('');
+    expect(formatClockMinutes(99999, '12h')).toBe('');
   });
 
   it('returns an empty string for missing or non-integer input', () => {
-    expect(formatClockMinutes(undefined)).toBe('');
-    expect(formatClockMinutes(null)).toBe('');
-    expect(formatClockMinutes(NaN)).toBe('');
-    expect(formatClockMinutes(90.5)).toBe('');
+    expect(formatClockMinutes(undefined, '12h')).toBe('');
+    expect(formatClockMinutes(null, '12h')).toBe('');
+    expect(formatClockMinutes(NaN, '12h')).toBe('');
+    expect(formatClockMinutes(90.5, '12h')).toBe('');
   });
 
   it('agrees with formatClockTime across every minute of the day', () => {
@@ -94,19 +85,29 @@ describe('formatClockMinutes', () => {
   });
 });
 
-// ── resolveTimeFormat ──
+// ── householdTimeFormat ──
 
-describe('resolveTimeFormat', () => {
-  it('prefers an explicit override', () => {
-    expect(resolveTimeFormat('24h', '12h')).toBe('24h');
-    expect(resolveTimeFormat('12h', '24h')).toBe('12h');
+describe('householdTimeFormat', () => {
+  it('keeps a choice the household made, whatever its language', () => {
+    expect(householdTimeFormat('12h', 'da-DK')).toBe('12h');
+    expect(householdTimeFormat('24h', 'en-US')).toBe('24h');
   });
 
-  it('falls back to the household global, then 12h', () => {
-    expect(resolveTimeFormat(undefined, '24h')).toBe('24h');
-    expect(resolveTimeFormat(null, '24h')).toBe('24h');
-    expect(resolveTimeFormat(undefined, undefined)).toBe('12h');
-    expect(resolveTimeFormat(null, null)).toBe('12h');
+  it("follows the language's own clock when nothing was chosen", () => {
+    expect(householdTimeFormat(undefined, 'en-US')).toBe('12h');
+    expect(householdTimeFormat(null, 'da-DK')).toBe('24h');
+    expect(householdTimeFormat(undefined, 'pt-BR')).toBe('24h');
+    expect(householdTimeFormat(undefined, 'de-DE')).toBe('24h');
+    // The tag alone would guess wrong for these two.
+    expect(localeTimeFormat('en-GB')).toBe('24h');
+    expect(localeTimeFormat('fr-CA')).toBe('24h');
+  });
+
+  it('reads the formatting language before the language', () => {
+    expect(settingsTimeFormat({ locale: 'en-US', formattingLocale: 'da-DK' })).toBe('24h');
+    expect(settingsTimeFormat({ locale: 'da-DK' })).toBe('24h');
+    expect(settingsTimeFormat({ locale: 'da-DK', timeFormat: '12h' })).toBe('12h');
+    expect(settingsTimeFormat(undefined)).toBe('12h');
   });
 });
 
@@ -148,13 +149,6 @@ describe('parity with formatMealTime', () => {
       expect(formatClockTime(bad, '12h')).toBe('');
       expect(formatMealTime(bad, '12h')).toBe('');
     }
-    expect(formatMealTime(undefined)).toBe('');
-  });
-
-  it('keeps the same 12h default when no format is passed', () => {
-    for (const row of MEAL_PARITY_TABLE) {
-      expect(formatMealTime(row.time)).toBe(row.twelve);
-      expect(formatClockTime(row.time)).toBe(row.twelve);
-    }
+    expect(formatMealTime(undefined, '12h')).toBe('');
   });
 });

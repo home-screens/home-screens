@@ -169,11 +169,12 @@ describe('GET /api/display/shared-state', () => {
 });
 
 describe('GET /api/display/status', () => {
-  it('returns 404 when no status reported', async () => {
+  it('answers 200 with null when no status has been reported yet', async () => {
     vi.mocked(getDisplayStatus).mockReturnValue(null);
 
     const res = await GET(makeRequest(), makeParams('status'));
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toBeNull();
   });
 
   it('returns status when available', async () => {

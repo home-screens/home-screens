@@ -19,6 +19,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { displayCache } from '@/lib/display-cache';
 import { getHostSettings } from '@/lib/plugin-host-settings';
+import { toTZWallTime, wallClockParts, type WallClock } from '@/lib/timezone';
 import { pluginEventBus } from '@/lib/plugin-events';
 import { displayFetch } from '@/lib/display-fetch';
 import { eventBus } from '@/lib/event-bus';
@@ -317,11 +318,17 @@ export default function PluginGlobals() {
         }
         return key;
       },
+      // date-fns reads a Date's local getters, which are the kiosk's own zone
+      // (UTC on a stock Pi). Shifting into the household zone first makes a
+      // "6:10 PM" run read 6:10 PM, not 23:10. Zone-name tokens (z, O, x, X)
+      // still describe the kiosk, which the SDK typings say.
       formatDate: (date: Date | number, pattern: string): string => {
-        return formatDateSync(date, pattern, {
+        return formatDateSync(toTZWallTime(new Date(date), getHostSettings().timezone), pattern, {
           locale: formattingLocaleRef.current ?? DEFAULT_LOCALE,
         });
       },
+      wallClock: (date?: Date | number): WallClock =>
+        wallClockParts(date === undefined ? new Date() : new Date(date), getHostSettings().timezone),
       formatNumber: (n: number, opts?: Intl.NumberFormatOptions): string => {
         return i18nFormatNumber(n, {
           locale: formattingLocaleRef.current ?? DEFAULT_LOCALE,

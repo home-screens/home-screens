@@ -18,9 +18,11 @@ import type {
   Screen,
   ScreenConfiguration,
   DisplayNode,
+  DisplayNodeSettings,
   VisibilityCondition,
 } from '@/types/config';
 import { SHARED_STATE_KEY_RE } from '@/lib/shared-state-types';
+import { DISPLAY_NODE_SETTINGS_KEYS } from '@/lib/display-override-fields';
 
 interface FilteredDisplayConfig {
   screens: Screen[];
@@ -230,14 +232,25 @@ export function findScreenById(
   return pooled ?? null;
 }
 
+/** The declared per-display overrides in `settings`, and nothing else it carries. */
+function pickDisplayNodeSettings(settings: DisplayNodeSettings | undefined): DisplayNodeSettings {
+  if (!settings) return {};
+  const picked: Record<string, unknown> = {};
+  for (const key of DISPLAY_NODE_SETTINGS_KEYS) {
+    if (key in settings) picked[key] = settings[key];
+  }
+  return picked as DisplayNodeSettings;
+}
+
 /**
  * Filter a config to the screens, profiles, and settings that apply to a
  * single named display. Returns `null` if the display is not registered.
  *
- * Settings overrides are shallow-merged ({ ...global, ...perDisplay }) so
- * nested objects (sleep, screensaver) are full-replacement, not deep-merged.
- * This is intentional — partial sleep overrides would create surprising
- * fallback chains. Override the whole object or omit it.
+ * Settings overrides are shallow-merged ({ ...global, ...perDisplay }, over
+ * the keys `DisplayNodeSettings` declares) so nested objects (sleep,
+ * screensaver) are full-replacement, not deep-merged. This is intentional:
+ * partial sleep overrides would create surprising fallback chains. Override
+ * the whole object or omit it.
  *
  * Per-display `displayWidth`/`displayHeight`/`displayTransform` fields on
  * the `DisplayNode` itself override the global equivalents so the rotator
@@ -260,12 +273,15 @@ export function filterConfigForDisplay(
   const profiles =
     display.profiles ?? config.profiles;
 
-  // Merge per-display settings over global settings. Per-display values win.
+  // Merge per-display settings over global settings. Per-display values win,
+  // but only for the keys a display may override: a stray `timezone` (or any
+  // other global) in a hand-edited `display.settings` stays out, so every
+  // display runs on the household's one clock.
   // We thread the per-display activeProfile through `settings.activeProfile`
   // so all the existing rotator/profile-resolution code keeps working unchanged.
   const merged: GlobalSettings = {
     ...config.settings,
-    ...(display.settings ?? {}),
+    ...pickDisplayNodeSettings(display.settings),
     // Top-level DisplayNode dimension fields override the nested settings
     // so the rotator's canvas matches the physical display.
     ...(display.displayWidth != null ? { displayWidth: display.displayWidth } : {}),

@@ -14,7 +14,6 @@ import {
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronUp, ListTodo, Plus, Settings } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import { localISODate } from '@/lib/todo-due-labels';
 import { TODO_LIMITS, type TodoList } from '@/types/todos';
 import { MEMBER_COLORS } from '@/components/modules/chore-chart/types';
 import { useTodoLists } from '../hooks/useTodoLists';
@@ -25,7 +24,9 @@ import { useFamilyData } from '@/hooks/useFamilyData';
 import ListsListSheet, { weekdayNames } from './ListsListSheet';
 import ListsNewListSheet from './ListsNewListSheet';
 import ListsAddBar, { ADD_BAR_HEIGHT } from './ListsAddBar';
-import { PRIMARY_BUTTON, SHEET_FIELD } from './lists-styles';
+import { HIT_TARGET, PRIMARY_BUTTON, SHEET_FIELD } from './lists-styles';
+import { useHouseholdToday } from '../household-clock';
+import AtHomePill from './AtHomePill';
 
 const DONE_COLLAPSED_KEY = 'hs-remote-todo-done-collapsed';
 
@@ -82,7 +83,9 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
   const [newListOpen, setNewListOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(readCollapsed);
 
-  const todayISO = localISODate();
+  // The household's day, as the wall labels due dates: "Today" saved from a
+  // phone in another zone must not land on a day the wall calls yesterday.
+  const todayISO = useHouseholdToday();
 
   const sensors = useSensors(
     // A small distance so a tap on the handle still counts as a tap, and a
@@ -145,6 +148,7 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
           {t('lists.title')}
         </h2>
       </div>
+      <AtHomePill style={{ marginTop: -4, marginBottom: 12 }} />
 
       {!loaded && loadError ? (
         <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong" data-testid="todo-load-error">
@@ -162,7 +166,10 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
       ) : (
         <>
           <div
-            style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12, scrollbarWidth: 'none' }}
+            // The chips and the + are drawn 36 tall inside 44-tall buttons, so
+            // small fingers get a full-size target without a chunkier row; the
+            // negative top margin keeps the chips where they were drawn before.
+            style={{ display: 'flex', gap: 8, overflowX: 'auto', marginTop: -4, paddingBottom: 8, scrollbarWidth: 'none' }}
             role="group"
             aria-label={t('lists.chipsLabel')}
           >
@@ -176,37 +183,38 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                   aria-pressed={on}
                   onClick={() => onSelectList(list.id)}
                   className="press-scale-sm"
-                  style={{
-                    flex: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    height: 36,
-                    padding: '0 12px 0 10px',
-                    borderRadius: 18,
-                    border: `1px solid ${on ? 'var(--hs-accent)' : 'var(--hs-border-strong)'}`,
-                    background: on ? 'var(--hs-accent)' : 'var(--hs-bg-panel)',
-                    color: on ? '#fff' : 'var(--hs-text-body)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                  }}
+                  style={{ ...HIT_TARGET, fontFamily: 'inherit' }}
                 >
-                  <i aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: list.color ?? 'var(--hs-text-faint)', display: 'block', flex: 'none' }} />
-                  {list.name}
                   <span
                     style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: '1px 6px',
-                      borderRadius: 8,
-                      background: on ? 'rgba(255,255,255,0.22)' : 'var(--hs-bg-card)',
-                      color: on ? '#fff' : 'var(--hs-text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      height: 36,
+                      padding: '0 12px 0 10px',
+                      borderRadius: 18,
+                      border: `1px solid ${on ? 'var(--hs-accent)' : 'var(--hs-border-strong)'}`,
+                      background: on ? 'var(--hs-accent)' : 'var(--hs-bg-panel)',
+                      color: on ? '#fff' : 'var(--hs-text-body)',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {openCount(list)}
+                    <i aria-hidden="true" style={{ width: 8, height: 8, borderRadius: '50%', background: list.color ?? 'var(--hs-text-faint)', display: 'block', flex: 'none' }} />
+                    {list.name}
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: 8,
+                        background: on ? 'rgba(255,255,255,0.22)' : 'var(--hs-bg-card)',
+                        color: on ? '#fff' : 'var(--hs-text-muted)',
+                      }}
+                    >
+                      {openCount(list)}
+                    </span>
                   </span>
                 </button>
               );
@@ -217,21 +225,23 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                 aria-label={t('lists.newList.title')}
                 onClick={() => setNewListOpen(true)}
                 className="press-scale-sm"
-                style={{
-                  flex: 'none',
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  border: '1px solid var(--hs-border-strong)',
-                  background: 'var(--hs-bg-panel)',
-                  color: 'var(--hs-text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                }}
+                style={{ ...HIT_TARGET, width: 44, justifyContent: 'center' }}
               >
-                <Plus size={20} aria-hidden="true" />
+                <span
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    border: '1px solid var(--hs-border-strong)',
+                    background: 'var(--hs-bg-panel)',
+                    color: 'var(--hs-text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Plus size={20} aria-hidden="true" />
+                </span>
               </button>
             )}
           </div>
@@ -251,20 +261,25 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
                   type="button"
                   aria-label={t('lists.settingsButton')}
                   onClick={() => setListSheetOpen(true)}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
-                    border: '1px solid var(--hs-border)',
-                    background: 'var(--hs-bg-panel)',
-                    color: 'var(--hs-text-muted)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                  }}
+                  // A 44 px target around the 36 px square; the negative margin
+                  // keeps the square where it sat and the row its height.
+                  style={{ ...HIT_TARGET, width: 44, justifyContent: 'center', margin: '-4px -4px -4px 0' }}
                 >
-                  <Settings size={18} aria-hidden="true" />
+                  <span
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      border: '1px solid var(--hs-border)',
+                      background: 'var(--hs-bg-panel)',
+                      color: 'var(--hs-text-muted)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Settings size={18} aria-hidden="true" />
+                  </span>
                 </button>
               </div>
               <div style={{ height: 6, background: 'var(--hs-border)', borderRadius: 3, overflow: 'hidden', marginBottom: 14 }} aria-hidden="true">

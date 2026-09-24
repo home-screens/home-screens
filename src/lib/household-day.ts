@@ -1,16 +1,27 @@
 import { readConfigCached } from './config-cache';
-import { localISODate, timestampInTZ, toTZWallTime } from './timezone';
+import { isoDateInTZ, resolveHouseholdTimezone, timestampInTZ } from './timezone';
 
 /**
- * The household's time zone from Settings. Read through the 1.5 s config
- * cache: chore screens poll every 15 s and to-do screens every 5 s. Unset or
- * unreadable means the hub's own clock.
+ * The hub's own clock zone: the zone this server process runs in. It is the
+ * household's zone while none is saved, on every surface (see
+ * `resolveHouseholdTimezone`). Read per call rather than once, because the
+ * Location page can move the hub's clock at runtime (`/api/system/timezone`
+ * resets `process.env.TZ`).
  */
-export async function householdTimezone(): Promise<string | undefined> {
+export function hubTimezone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
+ * The household's time zone: the one saved in Settings, or the hub's own while
+ * none is saved or the config is unreadable. Read through the 1.5 s config
+ * cache: chore screens poll every 15 s and to-do screens every 5 s.
+ */
+export async function householdTimezone(): Promise<string> {
   try {
-    return (await readConfigCached()).settings?.timezone || undefined;
+    return resolveHouseholdTimezone((await readConfigCached()).settings?.timezone, hubTimezone());
   } catch {
-    return undefined;
+    return hubTimezone();
   }
 }
 
@@ -20,7 +31,7 @@ export async function householdTimezone(): Promise<string | undefined> {
  * someone sets it, and its "today" then rolled over at 7 pm in Chicago.
  */
 export async function householdToday(now: Date = new Date()): Promise<string> {
-  return localISODate(toTZWallTime(now, await householdTimezone()));
+  return isoDateInTZ(now, await householdTimezone());
 }
 
 /** Now as an ISO timestamp in the household's time zone (`timestampInTZ`). */

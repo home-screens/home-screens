@@ -12,7 +12,7 @@ import type {
   ChoreRotation,
 } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
-import { choreAssigneeIds, parseISO, todayStr } from './types';
+import { choreAssigneeIds, parseISO } from './types';
 import {
   canChoreRotate,
   defaultChoreDays,
@@ -107,6 +107,13 @@ export function useChoreForm(
    * says nothing about which groups exist.
    */
   familyReady: boolean,
+  /**
+   * The household's day, `YYYY-MM-DD`, where a new one-time chore's date
+   * starts. Not the browser's: a phone or laptop in another zone is on a
+   * different day around midnight, and "just today" would save a day the
+   * wall has already left.
+   */
+  today: string,
 ): ChoreFormState {
   const [kind, setKindState] = useState<ChoreKind>(initial?.bonus ? 'bonus' : 'regular');
   const [bonusClaim, setBonusClaim] = useState<ChoreBonusClaim>(initial?.bonus?.claim ?? 'first');
@@ -120,7 +127,7 @@ export function useChoreForm(
   // frequency filled in. A chore being edited arrives with its days already
   // chosen, so changing its frequency must never wipe them.
   const [daysPicked, setDaysPicked] = useState(initial !== undefined);
-  const [specificDate, setSpecificDate] = useState<string>(initial?.specificDate ?? todayStr());
+  const [specificDate, setSpecificDate] = useState<string>(initial?.specificDate ?? today);
   const [timeOfDay, setTimeOfDay] = useState<ChoreTimeOfDay>(initial?.timeOfDay ?? 'anytime');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
   const [pickedGroupIds, setPickedGroupIds] = useState<string[]>(initial?.assigneeGroupIds ?? []);

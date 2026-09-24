@@ -111,12 +111,13 @@ test.describe('Defaults › Weather providers', () => {
 });
 
 test.describe('Defaults › Location', () => {
-  test('looking up a place persists lat/lon', async ({ page, request }) => {
-    await putConfig(request, baseConfig()); // settings.latitude/longitude start at 0
-    // /api/geocode is an external-service proxy (Nominatim) — stub it so no
-    // real upstream call fires. Response shape matches src/app/api/geocode/route.ts.
+  test('looking up a place persists lat/lon and the place\'s own time zone', async ({ page, request }) => {
+    await putConfig(request, baseConfig()); // settings.latitude/longitude start at 0, no timezone
+    // /api/geocode is an external-service proxy (Nominatim, plus Open-Meteo for
+    // the zone), stubbed so no real upstream call fires. Response shape
+    // matches src/app/api/geocode/route.ts.
     await page.route('**/api/geocode?q=*', (route) =>
-      route.fulfill({ json: { latitude: 40.7128, longitude: -74.006, displayName: 'New York, NY' } }),
+      route.fulfill({ json: { latitude: 40.7128, longitude: -74.006, displayName: 'New York, NY', timezone: 'America/New_York' } }),
     );
 
     await page.goto('/editor/settings?section=defaults&page=location');
@@ -131,10 +132,20 @@ test.describe('Defaults › Location', () => {
     await expect
       .poll(async () => (await getConfig(request)).settings.longitude)
       .toBeCloseTo(-74.006, 3);
+    // No zone was saved, so the town's own zone comes with it, whatever zone
+    // the browser running this test is in.
+    await expect
+      .poll(async () => (await getConfig(request)).settings.timezone)
+      .toBe('America/New_York');
   });
 
   test('manual coordinate entry persists', async ({ page, request }) => {
     await putConfig(request, baseConfig());
+    // With no zone saved, the page asks the hub for the typed place's zone to
+    // offer it; stub that proxy too so no real upstream call fires.
+    await page.route('**/api/geocode?lat=*', (route) =>
+      route.fulfill({ json: { timezone: 'Europe/London' } }),
+    );
     await page.goto('/editor/settings?section=defaults&page=location');
 
     // The lat/lon fields live inside a <details> disclosure.
@@ -152,7 +163,7 @@ test.describe('Defaults › Location', () => {
   });
 
   test('time format persists', async ({ page, request }) => {
-    // baseConfig has no settings.timeFormat (absent = 12h), so the select
+    // baseConfig has no settings.timeFormat (absent = the en-US 12h), so the select
     // starts on 12h; picking 24h stores the explicit global override.
     await putConfig(request, baseConfig());
     await page.goto('/editor/settings?section=defaults&page=location');
@@ -166,16 +177,21 @@ test.describe('Defaults › Location', () => {
       .toBe('24h');
   });
 
-  test('timezone picker persists a zone and resets to system default', async ({ page, request }) => {
+  test('timezone picker persists a zone and resets to not picked', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     await page.goto('/editor/settings?section=defaults&page=location');
 
+    // No zone saved: the picker says so, and the warning notice asks for one.
+    const tz = page.getByRole('combobox', { name: 'Time zone' });
+    const notice = page.getByTestId('timezone-unset');
+    await expect(tz).toHaveValue('Not picked yet');
+    await expect(notice.getByText('Pick your time zone')).toBeVisible();
+
     // The timezone combobox opens on click and filters as you type; the
-    // pinned "System default" row sits at highlight 0, the filtered matches
+    // pinned "Not picked yet" row sits at highlight 0, the filtered matches
     // below it. Saving rides the debounced settings autosave, so poll.
     // (The combobox's aria-label also lands on its listbox, so address the
     // input by role to stay strict-mode-clean.)
-    const tz = page.getByRole('combobox', { name: 'Timezone' });
     await tz.click();
     await tz.fill('kiri');
     await tz.press('ArrowDown'); // highlight 0: the pinned default row
@@ -185,17 +201,19 @@ test.describe('Defaults › Location', () => {
     await expect
       .poll(async () => (await getConfig(request)).settings.timezone)
       .toBe('Pacific/Kiritimati');
+    await expect(notice).toHaveCount(0);
 
     // Reopening resets the filter, so the pinned row is highlight 0 again;
-    // picking "System default" serializes the key out of the settings object
-    // entirely (empty string = follow the OS zone → stored as absent).
+    // picking "Not picked yet" serializes the key out of the settings object
+    // entirely (empty string = follow the hub's zone, stored as absent).
     await tz.click();
-    await tz.press('ArrowDown'); // highlight 0: "System default"
+    await tz.press('ArrowDown'); // highlight 0: "Not picked yet"
     await tz.press('Enter');
 
     await expect
       .poll(async () => (await getConfig(request)).settings.timezone)
       .toBeUndefined();
+    await expect(notice).toBeVisible();
   });
 });
 
@@ -296,7 +314,7 @@ test('Defaults › Meals: changing week start persists to data/meals.json', asyn
 });
 
 test('Defaults › Meals: follow global clears a stored time format override', async ({ page, request }) => {
-  // Seed: no household global (absent = 12h), meals override 24h.
+  // Seed: no household global (absent = the en-US 12h), meals override 24h.
   await putConfig(request, baseConfig());
   const seeded = await request.put('/api/meals/data', { data: { settings: { timeFormat: '24h' } } });
   expect(seeded.ok()).toBe(true);

@@ -367,5 +367,10 @@
     "addYourOwnLink": "Eigen foto toevoegen",
     "photosPrompt": "Wil je eigen foto's gebruiken voor maaltijden en klusjes?",
     "photosButton": "Hier toevoegen"
+  },
+  "noTimezone": {
+    "title": "Nog geen tijdzone.",
+    "body": "Je schermen gebruiken de klok van de hub ({zone}), dus tijden kunnen afwijken.",
+    "action": "Tijdzone kiezen"
   }
 }

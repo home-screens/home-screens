@@ -164,10 +164,10 @@ test.describe('/api/display/[action]', () => {
     expect((await res.json()).error).toContain('Invalid display id');
   });
 
-  test('GET status for an unreported display returns 404', async ({ request }) => {
+  test('GET status for an unreported display answers null, not an error', async ({ request }) => {
     const res = await request.get('/api/display/status?display=nonexistent');
-    expect(res.status()).toBe(404);
-    expect((await res.json()).error).toBe('No status reported yet');
+    expect(res.status()).toBe(200);
+    expect(await res.json()).toBeNull();
   });
 });
 

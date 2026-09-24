@@ -14,7 +14,7 @@ import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { formatHourLabel } from './shared-time-grid';
-import { DEFAULT_TIME_FORMAT, type TimeFormat } from '@/types/config';
+import type { TimeFormat } from '@/types/config';
 
 /** Gaps shorter than this are not "free time", just a breather. */
 const MIN_GAP_HOURS = 0.5;
@@ -37,7 +37,7 @@ interface PersonDay {
  * row's) are busy for every track, since dinner is dinner for the whole
  * household.
  */
-export function FreeTimeView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, people }: CalendarViewProps) {
+export function FreeTimeView({ events, timezone, config, scale, today, now, timeFormat, people }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;

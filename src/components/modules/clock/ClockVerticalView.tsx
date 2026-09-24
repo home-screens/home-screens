@@ -13,9 +13,9 @@ import type { ClockViewProps } from './types';
  * Sizes itself to fit the container rather than scaling with scaledFontSize,
  * since the content is inherently vertical and needs to fill available height.
  */
-export default function ClockVerticalView({ config, now, scaledFontSize, fitToBox, containerRef, boxHeight }: ClockViewProps) {
+export default function ClockVerticalView({ config, time, scaledFontSize, fitToBox, containerRef, boxHeight }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { h, mStr, sStr, hours } = parseClockTime(config.format24h, now);
+  const { h, mStr, sStr, hours } = parseClockTime(config.format24h, time);
   // Vertical digits always need 2-digit hours
   const hStr = String(h).padStart(2, '0');
   const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');

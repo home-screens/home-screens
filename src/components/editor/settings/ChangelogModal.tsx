@@ -5,6 +5,8 @@ import Button from '@/components/ui/Button';
 import ModalFrame from '@/components/ui/ModalFrame';
 import ReleaseNotes from '@/components/ui/ReleaseNotes';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type { ChangelogRelease } from '@/lib/version';
 
 interface Props {
@@ -21,6 +23,7 @@ export default function ChangelogModal({ release, onClose }: Props) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
 
   const published = release.published ? new Date(release.published) : null;
 
@@ -38,7 +41,7 @@ export default function ChangelogModal({ release, onClose }: Props) {
             <h2 className="font-mono text-base font-semibold text-hs-text-primary">{release.tag}</h2>
             {published && !Number.isNaN(published.getTime()) && (
               <p className="mt-0.5 text-xs text-hs-text-faint">
-                {published.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })}
+                {formatDateInTZ(published, timezone, { year: 'numeric', month: 'long', day: 'numeric' }, locale)}
               </p>
             )}
           </div>

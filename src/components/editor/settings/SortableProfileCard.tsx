@@ -18,6 +18,7 @@ import { getActiveProfileId } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useSortableSensors } from '@/hooks/useDndSensors';
 import Toggle from '@/components/ui/Toggle';
+import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import { useFormattingLocale, type TranslateFn } from '@/i18n';
 import { describeSchedule } from '@/lib/schedule-summary';
 import type { ModuleSchedule, Profile } from '@/types/config';
@@ -491,6 +492,8 @@ export default function SortableProfileCard({
                     />
                   </label>
                 </div>
+
+                <HomeTimeHint className="-mt-1.5" />
 
                 <Toggle
                   label={t('settings.profilesPage.card.invertLabel')}

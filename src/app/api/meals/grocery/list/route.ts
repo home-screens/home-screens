@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
 import { readMealData } from '@/lib/meal-data';
-import { getWeekRange, filterPlanToWeek } from '@/lib/meal-constants';
+import { getWeekRange, filterPlanToWeek, fromISODate } from '@/lib/meal-constants';
+import { householdToday } from '@/lib/household-day';
 import { generateGroceryList } from '@/lib/grocery-utils';
 
 export const dynamic = 'force-dynamic';
@@ -14,11 +15,13 @@ export const dynamic = 'force-dynamic';
  * canonical generator (generateGroceryList) server-side so external callers
  * — the Home Assistant voice package's "what's on the grocery list?" — see
  * exactly what the Grocery tab shows. "Current week" follows the shared
- * weekStartDay meal setting, same as every meal surface.
+ * weekStartDay meal setting, same as every meal surface, and starts from the
+ * household's today (Settings time zone), not the hub's clock: a Pi on UTC
+ * would otherwise answer with next week's list from Saturday evening.
  */
 export const GET = withDisplayAuth(async () => {
   const data = await readMealData();
-  const { start, end } = getWeekRange(new Date(), data.settings.weekStartDay);
+  const { start, end } = getWeekRange(fromISODate(await householdToday()), data.settings.weekStartDay);
   const weekPlan = filterPlanToWeek(data.plan, start, end);
   const list = generateGroceryList(weekPlan, data.savedMeals, data.groceryChecked);
 

@@ -56,9 +56,6 @@ export default function ListsListSheet({ list, onSave, onAction, onDelete, onClo
     const patch: ListPatch = { name: clean, repeat };
     if (color) patch.color = color;
     if (repeat === 'weekly') patch.repeatDay = repeatDay;
-    // Whose midnight "start fresh" means: this phone is standing in the
-    // household, the hub may be on UTC.
-    patch.timezone = repeat === 'never' ? '' : Intl.DateTimeFormat().resolvedOptions().timeZone;
     await onSave(patch);
     setBusy(false);
     onClose();

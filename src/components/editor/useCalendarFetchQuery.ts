@@ -1,6 +1,7 @@
 'use client';
 
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { selectHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { getCalendarFetchWindow } from '@/lib/calendar-window';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { createTZDate } from '@/lib/timezone';
@@ -47,7 +48,7 @@ export function useCalendarFetchQuery(scope: CalendarWindowScope = 'active'): st
     if (!s.config) return '';
     const win = getCalendarFetchWindow(
       screensForScope(s.config, scope, s.selectedDisplayId),
-      createTZDate(s.config.settings.timezone),
+      createTZDate(selectHouseholdTimezone(s)),
       s.config.settings.calendar?.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
     );
     if (!win) return '';

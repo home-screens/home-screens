@@ -2,9 +2,13 @@
 
 import { useState } from 'react';
 import { BarChart3, ChevronDown, ChevronRight } from 'lucide-react';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { SectionHeading } from './shared/SectionHeading';
 import type { SystemStats } from '@/lib/system-stats-types';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import { formatDateInTZ, formatTimeInTZ } from '@/lib/timezone';
+import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 
 export function TelemetryCard({
   stats,
@@ -18,7 +22,20 @@ export function TelemetryCard({
   onToggle: () => void | Promise<void>;
 }) {
   const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
+  const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
   const [showTelemetryDetails, setShowTelemetryDetails] = useState(false);
+  // On the household's clock and in its date style, like every other time
+  // the editor shows, not the laptop's zone and browser language.
+  const lastBeacon = stats.telemetry?.lastBeaconAt ? new Date(stats.telemetry.lastBeaconAt) : null;
+  const lastBeaconText = lastBeacon && !isNaN(lastBeacon.getTime())
+    ? `${formatDateInTZ(lastBeacon, timezone, { dateStyle: 'medium' }, formattingLocale)}, ${formatTimeInTZ(lastBeacon, {
+      timezone,
+      locale: formattingLocale,
+      hour12: timeFormat === '12h',
+    })}`
+    : t('settings.statsSection.never');
 
   return (
     <section>
@@ -62,9 +79,7 @@ export function TelemetryCard({
             )}
             <div className="text-hs-text-faint">{t('settings.statsSection.lastBeacon')}</div>
             <div className="text-hs-text-muted">
-              {stats.telemetry.lastBeaconAt
-                ? new Date(stats.telemetry.lastBeaconAt).toLocaleString()
-                : t('settings.statsSection.never')}
+              {lastBeaconText}
             </div>
           </div>
         )}

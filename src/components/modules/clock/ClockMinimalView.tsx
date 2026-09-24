@@ -6,9 +6,9 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 
-export default function ClockMinimalView({ config, now, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockMinimalView({ config, time, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hStr, mStr, hours } = parseClockTime(config.format24h, now);
+  const { hStr, mStr, hours } = parseClockTime(config.format24h, time);
   // Off unless asked for: this view is the bare time, and every Minimal clock
   // placed before the toggle existed stays that way.
   const ampm = config.showAmPm && !config.format24h ? (hours >= 12 ? t('clock.pm') : t('clock.am')) : '';

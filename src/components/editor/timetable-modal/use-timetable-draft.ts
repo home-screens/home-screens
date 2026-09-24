@@ -190,9 +190,16 @@ export function usedSubjectIds(timetable: Timetable | undefined): Set<string> {
   return used;
 }
 
-/** This week's letter and next week's, for the sentence under the A/B rule. */
-export function weekCycleLetters(school: TimetableSchool, now: Date): { thisLetter: WeekLetter; nextLetter: WeekLetter } {
-  const today = dateInZone(now);
+/**
+ * This week's letter and next week's, for the sentence under the A/B rule.
+ * `timezone` is the household's, so the week turns over when the wall's does.
+ */
+export function weekCycleLetters(
+  school: TimetableSchool,
+  now: Date,
+  timezone: string | undefined,
+): { thisLetter: WeekLetter; nextLetter: WeekLetter } {
+  const today = dateInZone(now, timezone);
   return { thisLetter: weekLetterOn(school, today), nextLetter: weekLetterOn(school, addDays(today, 7)) };
 }
 

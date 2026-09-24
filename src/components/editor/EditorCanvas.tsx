@@ -5,6 +5,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { LayoutDashboard, Monitor, Plus, Copy } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import {
   DISPLAY_BACKGROUND,
   GRID_SIZE,
@@ -18,7 +19,7 @@ import {
 import { resolveDragPosition, type AlignmentGuide } from '@/lib/alignment-guides';
 import { getLocation } from '@/lib/location';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useWallClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvasBaseScale';
 import { useCanvasDragState } from '@/hooks/useCanvasDragState';
@@ -217,7 +218,10 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   const { dragState, isDragging, scaleAtDragStartRef } = useCanvasDragState(effectiveScale);
 
-  const now = useTZClock(config?.settings.timezone);
+  // The zone the wall runs in: the saved one, or the hub's while none is
+  // saved, never this laptop's.
+  const householdTimezone = useEditorHouseholdTimezone();
+  const now = useWallClock(householdTimezone);
 
   // Notify parent of effective scale for drag calculations.
   // Skip during drags so the parent's ref keeps the drag-start scale.
@@ -238,7 +242,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       latitude: previewLocation?.lat,
       longitude: previewLocation?.lon,
       locationName: settings.locationName,
-      timezone: settings.timezone,
+      timezone: householdTimezone,
       globalProvider: settings.weather.provider,
       units: settings.weather.units,
       fullscreenTheme: settings.fullscreenTheme,
@@ -249,7 +253,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       familyGroups,
       calendarConfigured: hasAnyCalendarSource(settings.calendar),
     };
-  }, [settings, familyMembers, familyGroups, familyRevision, familyError]);
+  }, [settings, householdTimezone, familyMembers, familyGroups, familyRevision, familyError]);
 
   // One normalized source for every module preview, built with the same
   // adapter contract the display uses. Memoized because ModulePreview is

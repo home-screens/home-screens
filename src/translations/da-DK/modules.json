@@ -359,6 +359,7 @@
     "now": "Nu"
   },
   "meal-planner": {
+    "loading": "Indlæser måltider…",
     "noMealsPlannedYet": "Ingen måltider planlagt endnu",
     "noMealsPlanned": "Ingen måltider planlagt",
     "noMealPlanned": "Intet måltid planlagt",
@@ -596,7 +597,7 @@
       "rotationWeekly": "rotér ugentligt",
       "rotationSchedule": "skema",
       "nobody": "Ingen endnu",
-      "rotatedShort": "← skift",
+      "takingTurns": "(på skift)",
       "arrow": "→"
     },
     "choreForm": {
@@ -970,6 +971,18 @@
       "snow": "Pak dig godt ind i dag",
       "thunderstorm": "Torden forventes",
       "clear": "En dejlig dag forude"
+    },
+    "weatherEvening": {
+      "rain": "Regnvejr i aften",
+      "snow": "Pak dig godt ind i aften",
+      "thunderstorm": "Torden i aften",
+      "clear": "En dejlig aften forude"
+    },
+    "weatherNight": {
+      "rain": "Regn i nat",
+      "snow": "Sne i nat",
+      "thunderstorm": "Torden i nat",
+      "clear": "Klar himmel i nat"
     }
   },
   "affirmations": {

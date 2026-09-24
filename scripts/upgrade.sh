@@ -227,7 +227,12 @@ case "${action}" in
     target_tag="${1:-}"
     mkdir -p "${BACKUP_DIR}"
     if [ -f "${CONFIG_FILE}" ]; then
-      timestamp=$(date +%Y%m%d-%H%M%S)
+      # UTC, like the migration backups the app writes. The name is only a
+      # unique, sortable label: the OS zone is UTC on the shipped image and
+      # unrelated to the household's, so a local-looking time in it read as
+      # the wrong hour. The editor shows each backup's time from the
+      # `modified` field of list-backups, in the household's zone.
+      timestamp=$(date -u +%Y%m%d-%H%M%S)
       # node may be off PATH under systemd; the sed fallback reads the same
       # field without it, and an unreadable file yields "unknown".
       version=$(node -p "require('./package.json').version" 2>/dev/null \
@@ -767,17 +772,22 @@ EOF_JOB
     # The pinned pre-prerelease copy lists first when present, then the
     # rotating snapshots newest first.
     # shellcheck disable=SC2012
-    for f in $(ls -1 "${BACKUP_DIR}/${LAST_STABLE_BACKUP}" 2>/dev/null; ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null); do
+    # One path per line, so an install directory with a space in it still lists.
+    while IFS= read -r f; do
       name=$(basename "$f")
       size=$(wc -c < "$f" | tr -d ' ')
-      modified=$(date -r "$f" +%Y-%m-%dT%H:%M:%S 2>/dev/null || stat -c %Y "$f" 2>/dev/null || echo "unknown")
+      # A real instant (UTC, with the Z), so the editor can show it in the
+      # household's zone. Without an offset it read as the OS zone's time.
+      # GNU and BSD date both take `-r <file>`.
+      modified=$(date -u -r "$f" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "")
       if [ "$first" = true ]; then
         first=false
       else
         files="${files},"
       fi
       files="${files}{\"name\":\"${name}\",\"size\":${size},\"modified\":\"${modified}\"}"
-    done
+    done < <(ls -1 "${BACKUP_DIR}/${LAST_STABLE_BACKUP}" 2>/dev/null || true
+             ls -1t "${BACKUP_DIR}"/config-*.json 2>/dev/null || true)
     files="${files}]"
     echo "${files}"
     ;;

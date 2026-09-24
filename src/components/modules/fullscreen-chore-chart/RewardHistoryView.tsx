@@ -34,6 +34,8 @@ interface RewardHistoryViewProps {
   onBack?: () => void;
   backLabel?: string;
   idleTimeoutMs?: number;
+  /** Household zone: which evening counts as today in the day groups and totals. */
+  timezone?: string;
 }
 
 /** The "how long ago" column and the day groups both go stale on a quiet wall. */
@@ -57,6 +59,7 @@ export function RewardHistoryView({
   onBack,
   backLabel,
   idleTimeoutMs,
+  timezone,
 }: RewardHistoryViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -67,8 +70,8 @@ export function RewardHistoryView({
   const pad = 40 * k * d;
 
   const sorted = useMemo(() => sortRedemptionsNewestFirst(redemptions), [redemptions]);
-  const groups = useMemo(() => groupRedemptionsByDay(redemptions, now), [redemptions, now]);
-  const summary = useMemo(() => summarizeRedemptions(redemptions, now), [redemptions, now]);
+  const groups = useMemo(() => groupRedemptionsByDay(redemptions, now, timezone), [redemptions, now, timezone]);
+  const summary = useMemo(() => summarizeRedemptions(redemptions, now, SUMMARY_DAYS, timezone), [redemptions, now, timezone]);
   const memberMap = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
   const [bodyRef, bodyBox] = useElementBox();
 

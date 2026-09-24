@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
@@ -55,5 +55,20 @@ describe('useBackupReminder with the family icons', () => {
     await act(async () => { await result.current.handleBackup(); });
     expect(result.current.iconsLeftOut).toBe(false);
     expect(result.current.shouldShow).toBe(false);
+  });
+});
+
+describe('useBackupReminder file name', () => {
+  afterEach(() => { vi.useRealTimers(); });
+
+  it("dates the file with the household's day, not the UTC one", async () => {
+    // 8 pm on Tuesday 22 September in Chicago is already the 23rd in UTC.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-23T01:00:00Z'));
+    mocks.attachCustomIcons.mockImplementation(async (bundle: object) => bundle);
+    const hook = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn, timezone: 'America/Chicago' }));
+    await waitFor(() => expect(hook.result.current.shouldShow).toBe(true));
+    await act(async () => { await hook.result.current.handleBackup(); });
+    expect(mocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'home-screens-backup-2026-09-22.json');
   });
 });

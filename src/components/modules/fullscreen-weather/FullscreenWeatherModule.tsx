@@ -8,6 +8,8 @@ import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/fullscreen-themes';
 import type { FullscreenWeatherConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
+import { forecastFromToday } from '@/lib/weather/daily';
+import { isoDateInTZ } from '@/lib/timezone';
 import { LocationRequired } from '../LocationRequired';
 import { ModuleSetupState } from '../ModuleStates';
 import { useLoadingStalled } from '@/hooks/useLoadingStalled';
@@ -26,6 +28,7 @@ import AlmanacView from './AlmanacView';
 import AmbientView from './AmbientView';
 import WeekView from './WeekView';
 import HourlyView from './HourlyView';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 interface FullscreenWeatherModuleProps {
   config: FullscreenWeatherConfig;
@@ -100,7 +103,10 @@ export default function FullscreenWeatherModule({
   const waiting = rawHourly === undefined && rawForecast === undefined && !locationMissing;
   const stalled = useLoadingStalled(waiting && !weatherError, WEATHER_STALL_MS);
   const hourly = useMemo(() => rawHourly ?? [], [rawHourly]);
-  const forecast = useMemo(() => rawForecast ?? [], [rawForecast]);
+  // From the household's today on: a forecast fetched before midnight still
+  // leads with yesterday until the next refresh.
+  const todayISO = isoDateInTZ(now, timezone);
+  const forecast = useMemo(() => forecastFromToday(rawForecast ?? [], todayISO), [rawForecast, todayISO]);
   const minutely = useMemo(() => rawMinutely ?? [], [rawMinutely]);
   const alerts = useMemo(() => rawAlerts ?? [], [rawAlerts]);
 
@@ -204,7 +210,7 @@ export default function FullscreenWeatherModule({
 
   const viewProps: WeatherViewProps = {
     config, scale, hourly, forecast, minutely, alerts, units, now, timezone,
-    timeFormat: timeFormat === '24h' ? '24h' : '12h',
+    timeFormat: householdTimeFormat(timeFormat, locale),
     locationLabel, sky: skyCondition, accent, sun, t, locale,
   };
 

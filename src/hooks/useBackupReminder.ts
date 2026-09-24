@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { downloadBlob } from '@/lib/download';
 import { attachCustomIcons } from '@/lib/custom-icon-backup';
+import { backupFileName } from '@/lib/backup-file-name';
 import type { BackupState } from '@/lib/backup-state';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
@@ -15,6 +16,8 @@ interface UseBackupReminderOptions {
   fetchFn?: FetchFn;
   /** If set, re-check backup state on this interval (ms). The editor uses 3_600_000 (1 hour). */
   pollIntervalMs?: number;
+  /** The household's zone, which dates the downloaded file. */
+  timezone?: string;
 }
 
 export function useBackupReminder({
@@ -22,6 +25,7 @@ export function useBackupReminder({
   intervalDays,
   fetchFn = fetch,
   pollIntervalMs,
+  timezone,
 }: UseBackupReminderOptions) {
   const [backupState, setBackupState] = useState<BackupState | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -109,7 +113,7 @@ export function useBackupReminder({
       let leftOut = false;
       try { bundle = await attachCustomIcons(bundle, fetchFn); } catch { leftOut = true; }
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, `home-screens-backup-${new Date().toISOString().slice(0, 10)}.json`);
+      downloadBlob(blob, backupFileName(timezone));
       // Optimistic update — server records the timestamp via fire-and-forget in the GET handler
       setBackupState((prev) => prev ? { ...prev, lastBackupDate: new Date().toISOString(), lastDismissedDate: null } : prev);
       setIconsLeftOut(leftOut);
@@ -120,7 +124,7 @@ export function useBackupReminder({
     } finally {
       setBusy(false);
     }
-  }, [fetchFn]);
+  }, [fetchFn, timezone]);
 
   const handleDismiss = useCallback(() => {
     setDismissed(true);

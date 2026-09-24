@@ -1,4 +1,5 @@
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
+import { parseEventInstant, parseEventWallTime } from '@/lib/calendar-utils';
 
 /**
  * Weather resolution for the fullscreen calendar's list views: day headers
@@ -28,21 +29,10 @@ export interface EventWeather {
 /** Hourly entries keyed by rounded hour bucket, with their parsed instant. */
 export type HourlyIndex = Map<number, { entry: HourlyWeather; ms: number }>;
 
-/**
- * An hourly entry's instant. `timeEpoch` (unix seconds) wins when a provider
- * supplies it: WeatherAPI's `time` strings are zone-less location-local
- * wall times, which are only safe to FORMAT — parsing one for arithmetic
- * shifts by the OS↔location offset.
- */
-function hourlyInstant(h: HourlyWeather): number {
-  if (h.timeEpoch != null) return h.timeEpoch * 1000;
-  return new Date(h.time).getTime();
-}
-
 export function buildHourlyIndex(hourly?: HourlyWeather[]): HourlyIndex {
   const index: HourlyIndex = new Map();
   for (const entry of hourly ?? []) {
-    const ms = hourlyInstant(entry);
+    const ms = new Date(entry.time).getTime();
     if (!Number.isFinite(ms)) continue;
     const key = Math.round(ms / HOUR_MS);
     const existing = index.get(key);
@@ -81,17 +71,23 @@ export function dailyForDay(forecast: ForecastDay[] | undefined, day: Date): For
 }
 
 /**
- * Forecast for an event start: hourly when inside the horizon, otherwise
- * that day's daily forecast (high temp), otherwise null.
+ * Forecast for an event start (the feed's own string): hourly when inside
+ * the horizon, otherwise that day's daily forecast (high temp), otherwise
+ * null. The two lookups need different clocks. The hourly index is keyed on
+ * real epoch ms, so it takes the true instant; the daily forecast is keyed
+ * by the household's calendar day, so it takes the wall start in
+ * `timezone`. Using the instant for both gave a 7:30 pm Tuesday event in
+ * Chicago Wednesday's forecast on a kiosk left at UTC.
  */
 export function weatherForEvent(
   index: HourlyIndex,
   forecast: ForecastDay[] | undefined,
-  start: Date,
+  start: string,
+  timezone: string | undefined,
 ): EventWeather | null {
-  const h = hourlyForTime(index, start);
+  const h = hourlyForTime(index, parseEventInstant(start, timezone));
   if (h) return { temp: h.temp, icon: h.icon, description: h.description };
-  const d = dailyForDay(forecast, start);
+  const d = dailyForDay(forecast, parseEventWallTime(start, timezone));
   if (d) return { temp: d.high, icon: d.icon, description: d.description };
   return null;
 }

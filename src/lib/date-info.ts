@@ -21,13 +21,55 @@ interface ParsedClockTime {
   period: string;
 }
 
+/** A time of day as plain numbers: hours 0 to 23, minutes, seconds. */
+export interface ClockTime {
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+const clockTimeFormatters = new Map<string, Intl.DateTimeFormat>();
+
 /**
- * Parse a Date into display-ready clock values.
+ * What a clock in `timezone` reads at `instant`, straight from Intl. Without a
+ * zone (or with one this runtime does not know) it reads the Date's own local
+ * clock.
+ *
+ * Clocks read this, not the local getters of a shifted Date. A shifted Date is
+ * rebuilt in the machine's own zone, so a household time inside the machine's
+ * spring-forward gap came back an hour late: 02:30 in London on 2026-03-08
+ * read as 3:30 on a Chicago laptop, because Chicago skips that hour that night.
  */
-export function parseClockTime(format24h: boolean, now: Date): ParsedClockTime {
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
+export function clockTimeInTZ(instant: Date, timezone?: string): ClockTime {
+  if (timezone && !isNaN(instant.getTime())) {
+    try {
+      let formatter = clockTimeFormatters.get(timezone);
+      if (!formatter) {
+        // 'en-US' for ASCII digits: these parts are parsed, never shown.
+        formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hourCycle: 'h23',
+        });
+        clockTimeFormatters.set(timezone, formatter);
+      }
+      const parts = formatter.formatToParts(instant);
+      const get = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+      return { hours: get('hour') % 24, minutes: get('minute'), seconds: get('second') };
+    } catch {
+      // Unknown zone: read the Date's own clock below.
+    }
+  }
+  return { hours: instant.getHours(), minutes: instant.getMinutes(), seconds: instant.getSeconds() };
+}
+
+/**
+ * Turn a clock reading into display-ready values.
+ */
+export function parseClockTime(format24h: boolean, time: ClockTime): ParsedClockTime {
+  const { hours, minutes, seconds } = time;
 
   const h = format24h ? hours : hours % 12 || 12;
   const hStr = format24h ? String(h).padStart(2, '0') : String(h);

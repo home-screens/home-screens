@@ -367,5 +367,10 @@
     },
     "photosPrompt": "Vil du have dine egne billeder til måltider og pligter?",
     "photosButton": "Tilføj dem her"
+  },
+  "noTimezone": {
+    "title": "Ingen tidszone endnu.",
+    "body": "Dine skærme bruger hubbens ur ({zone}), så tiderne kan være forkerte.",
+    "action": "Vælg tidszone"
   }
 }

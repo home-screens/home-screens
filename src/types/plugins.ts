@@ -430,8 +430,20 @@ export interface HsSdk {
   // ── i18n ──────────────────────────────────────────────────────────
   locale: string;
   translate: (key: string, vars?: Record<string, string | number>) => string;
+  /**
+   * date-fns `format` in the host's formatting locale, read on the household's
+   * clock (`getHostSettings().timezone`), not the kiosk's. Zone-name tokens
+   * (`z`, `O`, `x`, `X`) are not meaningful here: they name the kiosk's zone.
+   */
   formatDate: (date: Date | number, pattern: string) => string;
   formatNumber: (n: number, opts?: Intl.NumberFormatOptions) => string;
+  /**
+   * An instant (default: now) on the household's clock as plain numbers:
+   * `dayOfWeek` (0 = Sunday), `minuteOfDay` and `isoDate` (`YYYY-MM-DD`). For
+   * "is it evening" and "which day is this run on" without reading a Date's
+   * getters, which follow the kiosk's zone.
+   */
+  wallClock: (date?: Date | number) => import('@/lib/timezone').WallClock;
 
   // ── Editor-only: absent entirely on the display ───────────────────
   /** Installed by PluginGlobalsEditor. Undefined on a kiosk. */

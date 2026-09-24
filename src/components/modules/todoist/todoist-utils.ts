@@ -1,13 +1,21 @@
 import type { TodoistConfig, TodoistGroupBy, TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
-import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n/types';
+import { formatTimeInTZ, isoDateInTZ, parseDateInTZ } from '@/lib/timezone';
+import { daysBetween, parseISODate } from '@/lib/todo-due-labels';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 export interface TodoistTask {
   id: string;
   content: string;
   description: string;
   priority: number; // 1=normal(p4), 2=p3, 3=p2, 4=urgent(p1)
+  /**
+   * `date` is the due day, `YYYY-MM-DD`. `datetime` is set for a timed task:
+   * `YYYY-MM-DDTHH:MM:SS` for a floating time (read on the household's wall
+   * clock) or the same ending in `Z` for a time Todoist pinned to a zone. For a
+   * pinned time `date` is the UTC day, so read the day through `dueDayKey`.
+   */
   due: {
     date: string;
     datetime: string | null;
@@ -111,51 +119,62 @@ const DATE_GROUP_ORDER: DateGroupKey[] = [
   'noDate',
 ];
 
-function startOfDay(d: Date): Date {
-  const r = new Date(d);
-  r.setHours(0, 0, 0, 0);
-  return r;
-}
+type TodoistDue = NonNullable<TodoistTask['due']>;
 
-export function daysBetween(a: Date, b: Date): number {
-  return Math.round((startOfDay(a).getTime() - startOfDay(b).getTime()) / 86400000);
+/**
+ * The real instant a timed task is due, or null for an all-day task. A
+ * floating time is the household's own wall clock, so it is read in
+ * `timezone`; a pinned time already names its instant.
+ */
+export function dueInstant(due: TodoistDue, timezone?: string): Date | null {
+  if (!due.datetime) return null;
+  const at = parseDateInTZ(due.datetime, timezone);
+  return Number.isNaN(at.getTime()) ? null : at;
 }
 
 /**
- * Pick a clock-time format string: the household's 12/24 choice when it has
- * made one, otherwise the locale's own convention.
- *
- * The locale fallback is load-bearing, not a guess. `Intl.DateTimeFormat(locale,
- * { hour: 'numeric' }).resolvedOptions().hourCycle` returns
- * `'h11' | 'h12' | 'h23' | 'h24'` — the first two are 12-hour, the latter two
- * 24-hour — which correctly classifies en-GB and fr-CA as 24h (something
- * `locale.startsWith('en')` misses). The 12/24 picker stores nothing when the
- * answer is 12h, so "absent" cannot be read as "chose 12h": doing that would
- * flip every en-GB, fr-CA, de-DE and nl-NL household from 14:30 to 2:30 PM
- * without anyone touching a setting.
+ * The household calendar day a task is due, `YYYY-MM-DD`. An all-day task's
+ * day is its date as written; a timed task's day is wherever its instant falls
+ * in `timezone`, so a 7 PM Chicago task stored as midnight UTC stays today.
  */
-function pickTimeFormat(locale: string, timeFormat: TimeFormat | undefined): string {
-  if (timeFormat) return timeFormat === '24h' ? 'HH:mm' : 'h:mm a';
-  const cycle = new Intl.DateTimeFormat(locale, { hour: 'numeric' }).resolvedOptions().hourCycle;
-  return cycle === 'h11' || cycle === 'h12' ? 'h:mm a' : 'HH:mm';
+export function dueDayKey(due: TodoistDue, timezone?: string): string {
+  const at = dueInstant(due, timezone);
+  return at ? isoDateInTZ(at, timezone) : due.date;
+}
+
+/**
+ * Whole household days from today to the task's due day: 0 today, -1
+ * yesterday, 1 tomorrow. Null for no due date or one that cannot be read.
+ * `now` is a real instant; today is its day in `timezone`, not the Pi's.
+ */
+export function dueDaysFromToday(due: TodoistTask['due'], now: Date, timezone?: string): number | null {
+  if (!due) return null;
+  return daysBetween(isoDateInTZ(now, timezone), dueDayKey(due, timezone));
+}
+
+export interface DueFormat {
+  /** BCP-47 tag for weekday, month and time-of-day text. */
+  locale?: string;
+  /** Household 12/24 choice; absent falls back to the locale's own cycle. */
+  timeFormat?: TimeFormat;
+  /** Household zone: decides which day "today" is and the clock a time reads on. */
+  timezone?: string;
 }
 
 /**
  * Format a Todoist task's due date for display. Returns translated text
- * via `t`. `locale` controls weekday-name, month-short, and time-of-day
- * rendering.
+ * via `t`.
  */
 export function formatDueDate(
   due: TodoistTask['due'],
   now: Date,
   t: TranslateFn,
-  locale: string = DEFAULT_LOCALE,
-  timeFormat?: TimeFormat,
+  { locale = DEFAULT_LOCALE, timeFormat, timezone }: DueFormat = {},
 ): { text: string; color: string } {
   if (!due) return { text: '', color: '' };
 
-  const dueDate = new Date(due.datetime ?? due.date + 'T23:59:59');
-  const diff = daysBetween(dueDate, now);
+  const diff = dueDaysFromToday(due, now, timezone);
+  if (diff === null) return { text: '', color: '' };
 
   if (diff < 0) {
     const absDiff = Math.abs(diff);
@@ -168,8 +187,11 @@ export function formatDueDate(
     };
   }
   if (diff === 0) {
-    if (due.datetime) {
-      const timeText = formatDateSync(dueDate, pickTimeFormat(locale, timeFormat), { locale });
+    const at = dueInstant(due, timezone);
+    if (at) {
+      const hour12 = householdTimeFormat(timeFormat, locale) === '12h';
+      // Two-digit hours on a 24-hour clock ("09:05"), the HH:mm this label has always used.
+      const timeText = formatTimeInTZ(at, { timezone, locale, hour12 }, hour12 ? undefined : { hour: '2-digit' });
       return {
         text: t('todoist.dueDate.todayAtTime', { time: timeText }),
         color: '#f59e0b',
@@ -180,12 +202,14 @@ export function formatDueDate(
   if (diff === 1) {
     return { text: t('todoist.dueDate.tomorrow'), color: '#22c55e' };
   }
+  // A calendar day, not an instant: local midnight of the day key, formatted
+  // with no zone, names the same day on any machine.
+  const day = parseISODate(dueDayKey(due, timezone));
+  if (!day) return { text: '', color: '' };
   if (diff <= 7) {
-    const dayName = dueDate.toLocaleDateString(locale, { weekday: 'short' });
-    return { text: dayName, color: '#6b7280' };
+    return { text: day.toLocaleDateString(locale, { weekday: 'short' }), color: '#6b7280' };
   }
-  const formatted = dueDate.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
-  return { text: formatted, color: '#6b7280' };
+  return { text: day.toLocaleDateString(locale, { month: 'short', day: 'numeric' }), color: '#6b7280' };
 }
 
 /**
@@ -193,10 +217,9 @@ export function formatDueDate(
  * Callers map the key to a translated label via
  * `DATE_GROUP_LABEL_KEYS[key]`.
  */
-export function getDueDateGroup(due: TodoistTask['due'], now: Date): DateGroupKey {
-  if (!due) return 'noDate';
-  const dueDate = new Date(due.datetime ?? due.date + 'T23:59:59');
-  const diff = daysBetween(dueDate, now);
+export function getDueDateGroup(due: TodoistTask['due'], now: Date, timezone?: string): DateGroupKey {
+  const diff = dueDaysFromToday(due, now, timezone);
+  if (diff === null) return 'noDate';
   if (diff < 0) return 'overdue';
   if (diff === 0) return 'today';
   if (diff === 1) return 'tomorrow';
@@ -237,7 +260,7 @@ export function filterTasks(
   return filtered;
 }
 
-export function sortTasks(tasks: TodoistTask[], sortBy: string): TodoistTask[] {
+export function sortTasks(tasks: TodoistTask[], sortBy: string, timezone?: string): TodoistTask[] {
   const sorted = [...tasks];
   switch (sortBy) {
     case 'priority':
@@ -248,8 +271,14 @@ export function sortTasks(tasks: TodoistTask[], sortBy: string): TodoistTask[] {
         if (!a.due && !b.due) return 0;
         if (!a.due) return 1;
         if (!b.due) return -1;
-        return new Date(a.due.datetime ?? a.due.date).getTime() -
-          new Date(b.due.datetime ?? b.due.date).getTime();
+        // By household day, then an all-day task ahead of the timed ones,
+        // then by time.
+        const dayA = dueDayKey(a.due, timezone);
+        const dayB = dueDayKey(b.due, timezone);
+        if (dayA !== dayB) return dayA < dayB ? -1 : 1;
+        const atA = dueInstant(a.due, timezone)?.getTime() ?? -Infinity;
+        const atB = dueInstant(b.due, timezone)?.getTime() ?? -Infinity;
+        return atA === atB ? 0 : atA < atB ? -1 : 1;
       });
       break;
     case 'alphabetical':
@@ -274,6 +303,7 @@ export function groupTasks(
   groupBy: TodoistGroupBy,
   now: Date,
   t?: TranslateFn,
+  timezone?: string,
 ): TaskGroup[] {
   if (groupBy === 'none') {
     return [{ key: 'all', label: '', tasks }];
@@ -301,7 +331,7 @@ export function groupTasks(
         color = PRIORITY_COLORS[task.priority];
         break;
       case 'date': {
-        const dateKey = getDueDateGroup(task.due, now);
+        const dateKey = getDueDateGroup(task.due, now, timezone);
         key = dateKey;
         label = tr(DATE_GROUP_LABEL_KEYS[dateKey]);
         color = DATE_GROUP_COLORS[dateKey];

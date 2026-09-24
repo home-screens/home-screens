@@ -8,7 +8,7 @@
 
 import type { ModuleVisibility, VisibilityCondition } from '@/types/config';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
-import { collectSourceKeys, evaluateConditionsTri, evaluateVisibility } from '@/lib/schedule';
+import { collectSourceKeys, evaluateConditionsTri, evaluateVisibility, type ScheduleClock } from '@/lib/schedule';
 
 /**
  * How old a display's shared-state report may be before verdicts go neutral.
@@ -42,17 +42,48 @@ export function snapshotStates(
   return new Map(Object.entries(snapshot.entries));
 }
 
+/**
+ * True when a condition tree reads the shared-state bus anywhere: a `state` or
+ * `numeric` node, including one still waiting for its key to be picked. A tree
+ * of `time` conditions only (or no conditions) reads nothing but the clock.
+ */
+export function referencesStateKeys(conditions: VisibilityCondition[]): boolean {
+  const keys = new Set<string>();
+  collectSourceKeys(conditions, keys);
+  return keys.size > 0;
+}
+
+const NO_STATES: ReadonlyMap<string, SharedStateEntry> = new Map();
+
+/**
+ * The states map to judge `conditions` against, or null for "no verdict".
+ *
+ * A fresh display report wins. Without one, a tree that only reads the clock
+ * is still decidable: a `time` condition needs nothing from a display, so it
+ * is judged on the household clock against an empty map. A tree that reads
+ * any key stays null, since judging it without live values would be a guess.
+ * Callers apply this per node, so the time parts of a mixed tree get their
+ * verdict while its state parts wait for a report.
+ */
+export function verdictStatesFor(
+  conditions: VisibilityCondition[],
+  states: ReadonlyMap<string, SharedStateEntry> | null | undefined,
+): ReadonlyMap<string, SharedStateEntry> | null {
+  if (states) return states;
+  return referencesStateKeys(conditions) ? null : NO_STATES;
+}
+
 export type ConditionVerdict = 'met' | 'unmet' | 'unknown';
 
 /**
  * Three-valued verdict for a condition list (implicit AND), Kleene semantics.
  * `now` is the wall clock a `time` condition is evaluated against — callers in
- * the editor pass a ticking, timezone-shifted clock so the chip stays live.
+ * the editor pass a ticking wall clock in the display's zone so the chip stays live.
  */
 export function conditionsVerdict(
   conditions: VisibilityCondition[],
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): ConditionVerdict {
   const v = evaluateConditionsTri(conditions, states, now);
   return v === undefined ? 'unknown' : v ? 'met' : 'unmet';
@@ -62,7 +93,7 @@ export function conditionsVerdict(
 export function conditionVerdict(
   condition: VisibilityCondition,
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): ConditionVerdict {
   return conditionsVerdict([condition], states, now);
 }
@@ -87,7 +118,7 @@ export interface VisibilityExplanation {
 export function explainVisibility(
   visibility: ModuleVisibility,
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): VisibilityExplanation {
   const referenced = new Set<string>();
   collectSourceKeys(visibility.conditions, referenced);

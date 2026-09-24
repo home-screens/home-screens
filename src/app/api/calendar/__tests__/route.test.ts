@@ -84,6 +84,10 @@ function makeEvent(id: string, start: string, title = `Event ${id}`): CalendarEv
   };
 }
 
+function withTimezone(config: ScreenConfiguration, timezone: string): ScreenConfiguration {
+  return { ...config, settings: { ...config.settings, timezone } };
+}
+
 function makeRequest(params: Record<string, string> = {}): NextRequest {
   const url = new URL('http://localhost/api/calendar');
   for (const [k, v] of Object.entries(params)) {
@@ -750,20 +754,23 @@ describe('time parameters', () => {
   });
 
   it('falls back to defaults when timeMin/timeMax are unparseable', async () => {
-    const daysAhead = 7;
-    mockReadConfig.mockResolvedValue(
-      makeConfig({ googleCalendarIds: ['primary'], daysAhead }),
-    );
-    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-09-23T01:00:30Z'));
+      mockReadConfig.mockResolvedValue(
+        withTimezone(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }), 'America/Chicago'),
+      );
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
-    const before = Date.now();
-    const req = makeRequest({ timeMin: 'not-a-date', timeMax: 'also-junk' });
-    await GET(req);
+      const req = makeRequest({ timeMin: 'not-a-date', timeMax: 'also-junk' });
+      await GET(req);
 
-    const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
-    const timeMinMs = new Date(timeMinArg).getTime();
-    expect(timeMinMs).toBeGreaterThanOrEqual(Math.floor(before / 60000) * 60000);
-    expect(new Date(timeMaxArg).getTime() - timeMinMs).toBe(daysAhead * 86400000);
+      const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
+      expect(timeMinArg).toBe('2026-09-22T05:00:00.000Z');
+      expect(timeMaxArg).toBe('2026-09-30T01:00:00.000Z');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('recovers from an inverted range (timeMax before timeMin)', async () => {
@@ -783,30 +790,45 @@ describe('time parameters', () => {
     expect(new Date(timeMaxArg).getTime() - new Date(timeMinArg).getTime()).toBe(7 * 86400000);
   });
 
-  it('defaults to now + daysAhead when timeMin/timeMax not provided', async () => {
-    const daysAhead = 14;
-    mockReadConfig.mockResolvedValue(
-      makeConfig({ googleCalendarIds: ['primary'], daysAhead }),
-    );
-    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+  it("defaults to the household's start of today through now + daysAhead", async () => {
+    // 8 pm in Chicago, already Sep 23 in UTC. The window must still open at
+    // Chicago's midnight: a window opening at "now" ended today's all-day
+    // events, birthdays and holidays at 7 pm on a hub left at UTC.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-09-23T01:00:30Z'));
+      mockReadConfig.mockResolvedValue(
+        withTimezone(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 14 }), 'America/Chicago'),
+      );
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
-    const before = Date.now();
-    const req = makeRequest();
-    await GET(req);
-    const after = Date.now();
+      await GET(makeRequest());
 
-    const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
-    const timeMinMs = new Date(timeMinArg).getTime();
-    const timeMaxMs = new Date(timeMaxArg).getTime();
+      const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
+      expect(timeMinArg).toBe('2026-09-22T05:00:00.000Z');
+      // The end is still now (rounded to the minute) plus daysAhead.
+      expect(timeMaxArg).toBe('2026-10-07T01:00:00.000Z');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
-    // timeMin should be close to "now" (rounded to nearest minute)
-    const roundedBefore = Math.floor(before / 60000) * 60000;
-    const roundedAfter = Math.floor(after / 60000) * 60000;
-    expect(timeMinMs).toBeGreaterThanOrEqual(roundedBefore);
-    expect(timeMinMs).toBeLessThanOrEqual(roundedAfter + 60000);
+  it("opens the default window at the household's midnight east of UTC too", async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      // 6 am on Sep 23 in Auckland (NZST, UTC+12) is still Sep 22 in UTC.
+      vi.setSystemTime(new Date('2026-09-22T18:00:00Z'));
+      mockReadConfig.mockResolvedValue(
+        withTimezone(makeConfig({ googleCalendarIds: ['primary'] }), 'Pacific/Auckland'),
+      );
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
-    // timeMax should be daysAhead days after timeMin
-    expect(timeMaxMs - timeMinMs).toBe(daysAhead * 86400000);
+      await GET(makeRequest());
+
+      expect(mockFetchGoogle.mock.calls[0][1]).toBe('2026-09-22T12:00:00.000Z');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('defaults daysAhead to 7 when not configured', async () => {
@@ -816,12 +838,14 @@ describe('time parameters', () => {
     mockReadConfig.mockResolvedValue(config);
     mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
-    const req = makeRequest();
-    await GET(req);
+    const before = Math.floor(Date.now() / 60000) * 60000;
+    await GET(makeRequest());
+    const after = Math.floor(Date.now() / 60000) * 60000;
 
-    const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
-    const diff = new Date(timeMaxArg).getTime() - new Date(timeMinArg).getTime();
-    expect(diff).toBe(7 * 86400000);
+    const [, , timeMaxArg] = mockFetchGoogle.mock.calls[0];
+    const timeMaxMs = new Date(timeMaxArg).getTime();
+    expect(timeMaxMs).toBeGreaterThanOrEqual(before + 7 * 86400000);
+    expect(timeMaxMs).toBeLessThanOrEqual(after + 7 * 86400000);
   });
 
   it('a default-window fetch is never trimmed below the safety cap', async () => {

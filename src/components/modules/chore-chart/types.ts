@@ -15,7 +15,7 @@ import { choresAssignedTo, choresOwedBy, isChoreComplete, localDateStr, parseISO
 
 export {
   buildCompletionSet, choreAppliesToday, choreAssigneeIds, choresAssignedTo, choresOwedBy, completionKey, isAssignedOn,
-  isChoreComplete, isChoreSkipped, localDateStr, parseISO, resolveAssignee, resolveAssignmentsFor, todayStr,
+  isChoreComplete, isChoreSkipped, localDateStr, parseISO, resolveAssignee, resolveAssignmentsFor,
 } from '@/lib/chore-assignments';
 export type { ChoreGroup, ResolvedAssignment } from '@/lib/chore-assignments';
 

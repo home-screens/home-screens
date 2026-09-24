@@ -186,17 +186,9 @@ export function buildModuleProps(
     // Ambient like timezone: every module (calendar, fullscreen-calendar,
     // future plugins) reads the same household clock preference.
     //
-    // Passed through undefined rather than collapsed to the default, because
-    // absent and "chose 12h" are different facts and only the module knows
-    // what to do with the difference. The 12/24 picker stores nothing for 12h
-    // (see TimeFormatFields), so collapsing here erased the distinction before
-    // any module could see it — and a module whose own fallback is smarter
-    // than "12h" was forced down to 12h. Todoist and the fullscreen photo
-    // clock read the locale's hour cycle, which is how a de-DE or en-GB
-    // household gets 24-hour times without ever opening the setting.
-    //
-    // Inert for every existing consumer: they all type the prop optional and
-    // apply their own `?? DEFAULT_TIME_FORMAT`.
+    // Passed through as saved. Absent means the formatting language's own
+    // clock, which needs the locale, so each module resolves it with
+    // `householdTimeFormat` against its `useFormattingLocale()`.
     timeFormat: source.timeFormat,
   };
 

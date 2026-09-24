@@ -78,7 +78,7 @@ describe('UpNextView description levels', () => {
   it('keeps every description when the board fits', () => {
     box.clientHeight = 1000;
     const { container } = render(
-      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} />,
+      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: true, row: true });
@@ -88,7 +88,7 @@ describe('UpNextView description levels', () => {
     // Two descriptions = 180 > 150; one = 140 fits.
     box.clientHeight = 150;
     const { container } = render(
-      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} />,
+      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: true, row: false });
@@ -97,7 +97,7 @@ describe('UpNextView description levels', () => {
   it('keeps shedding after a resize that starts with the rows already hidden', () => {
     box.clientHeight = 150;
     const { container, rerender } = render(
-      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} />,
+      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: true, row: false });
@@ -106,7 +106,7 @@ describe('UpNextView description levels', () => {
     // (one description = 140 > 120). The attempt restarts at level 2 and
     // must walk all the way down to 0, not stop one step short.
     box.clientHeight = 120;
-    rerender(<UpNextView events={events} config={config} scale={testScale({ height: 1200 })} today={today} now={now} />);
+    rerender(<UpNextView events={events} config={config} scale={testScale({ height: 1200 })} today={today} now={now} timeFormat="12h" />);
     expect(drawn(container)).toEqual({ hero: false, row: false });
   });
 
@@ -114,7 +114,7 @@ describe('UpNextView description levels', () => {
     box.clientHeight = 150;
     box.textScale = 1;
     const { container, rerender } = render(
-      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} />,
+      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: true, row: false });
@@ -124,7 +124,7 @@ describe('UpNextView description levels', () => {
     // overflows (100 + 40 * 1.5 = 160 > 150). Nothing about the box or the
     // events changed, only the type size, and the board must still notice.
     box.textScale = 1.5;
-    rerender(<UpNextView events={events} config={config} scale={testScale({ typoMul: 1.5 })} today={today} now={now} />);
+    rerender(<UpNextView events={events} config={config} scale={testScale({ typoMul: 1.5 })} today={today} now={now} timeFormat="12h" />);
     expect(drawn(container)).toEqual({ hero: false, row: false });
     expect(fits(container)).toBe(true);
   });
@@ -133,13 +133,13 @@ describe('UpNextView description levels', () => {
     box.clientHeight = 150;
     box.textScale = 1;
     const { container, rerender } = render(
-      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} />,
+      <UpNextView events={events} config={config} scale={testScale()} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: true, row: false });
 
     box.textScale = 1.5;
-    rerender(<UpNextView events={events} config={config} scale={testScale({ densityMul: 1.5 })} today={today} now={now} />);
+    rerender(<UpNextView events={events} config={config} scale={testScale({ densityMul: 1.5 })} today={today} now={now} timeFormat="12h" />);
     expect(drawn(container)).toEqual({ hero: false, row: false });
     expect(fits(container)).toBe(true);
   });
@@ -147,20 +147,20 @@ describe('UpNextView description levels', () => {
   it('brings descriptions back when the board grows again', () => {
     box.clientHeight = 120;
     const { container, rerender } = render(
-      <UpNextView events={events} config={config} scale={testScale({ height: 1200 })} today={today} now={now} />,
+      <UpNextView events={events} config={config} scale={testScale({ height: 1200 })} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: false, row: false });
 
     box.clientHeight = 1000;
-    rerender(<UpNextView events={events} config={config} scale={testScale()} today={today} now={now} />);
+    rerender(<UpNextView events={events} config={config} scale={testScale()} today={today} now={now} timeFormat="12h" />);
     expect(drawn(container)).toEqual({ hero: true, row: true });
   });
 
   it('draws nothing extra when the toggle is off, whatever the box', () => {
     box.clientHeight = 1000;
     const { container } = render(
-      <UpNextView events={events} config={{ ...config, upNextShowDescription: false }} scale={testScale()} today={today} now={now} />,
+      <UpNextView events={events} config={{ ...config, upNextShowDescription: false }} scale={testScale()} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(drawn(container)).toEqual({ hero: false, row: false });

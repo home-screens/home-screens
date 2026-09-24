@@ -3,8 +3,11 @@
 import { useMemo } from 'react';
 
 import { DEFAULT_MODULE_STYLE, type ClockConfig, type ClockView, type ModuleStyle, type TimeFormat } from '@/types/config';
-import { useTZClock } from '@/hooks/useTZClock';
+import { useRealClock } from '@/hooks/useTZClock';
+import { clockTimeInTZ } from '@/lib/date-info';
+import { toTZWallTime } from '@/lib/timezone';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useFormattingLocale } from '@/i18n';
 import { resolveClockFormat24h } from './hour-format';
 import ModuleWrapper from '../ModuleWrapper';
 import ClockClassicView from './ClockClassicView';
@@ -89,16 +92,22 @@ export default function ClockModule({ config: rawConfig, style, timezone, timeFo
   // Every view reads `config.format24h`, so the resolved choice is folded
   // back into the config they receive rather than threaded through eighteen
   // of them. Same object when nothing changes, so memoised views keep theirs.
-  const format24h = resolveClockFormat24h(rawConfig, timeFormat);
+  const locale = useFormattingLocale();
+  const format24h = resolveClockFormat24h(rawConfig, timeFormat, locale);
   const config = useMemo(
     () => (rawConfig.format24h === format24h ? rawConfig : { ...rawConfig, format24h }),
     [rawConfig, format24h],
   );
   const view = config.view ?? 'classic';
   // The elapsed view ticks its own real clock (useRealClock in the view), so
-  // the module-level shifted clock only needs a coarse keepalive there.
+  // the module-level clock only needs a coarse keepalive there.
   const interval = view === 'elapsed' ? 600_000 : getTickInterval(view, config.showSeconds ?? true);
-  const now = useTZClock(timezone, interval);
+  const instant = useRealClock(interval);
+  // The time of day comes from Intl on the real instant; the shifted Date is
+  // kept for the date line only, where the machine's own DST gap cannot move
+  // the day (see ClockViewProps).
+  const now = useMemo(() => toTZWallTime(instant, timezone), [instant, timezone]);
+  const time = useMemo(() => clockTimeInTZ(instant, timezone), [instant, timezone]);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.10;
   // One ref on the view's root feeds both the font scale and the box the
   // width-fitting views lay out against; it follows the node when the view is
@@ -116,7 +125,9 @@ export default function ClockModule({ config: rawConfig, style, timezone, timeFo
     <ModuleWrapper style={style}>
       <ViewComponent
         config={config}
+        instant={instant}
         now={now}
+        time={time}
         scaledFontSize={fitToBox ? scaledFontSize : fixedFontSize}
         autoFontSize={autoFontSize}
         fitToBox={fitToBox}

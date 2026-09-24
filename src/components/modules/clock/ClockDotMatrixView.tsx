@@ -7,6 +7,7 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
+import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 
 const DotCharacter = memo(function DotCharacter({
@@ -53,10 +54,10 @@ const DotCharacter = memo(function DotCharacter({
   );
 });
 
-export default function ClockDotMatrixView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockDotMatrixView({ config, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { h, mStr, sStr } = parseClockTime(config.format24h, now);
+  const { h, mStr, sStr } = parseClockTime(config.format24h, time);
   // Dot-matrix needs space-padded hours in 12h mode for consistent grid layout
   const hStr = config.format24h ? String(h).padStart(2, '0') : String(h).padStart(2, ' ');
 
@@ -71,7 +72,7 @@ export default function ClockDotMatrixView({ config, now, scaledFontSize, fitToB
   const colonGap = dotGap * 1.5;
 
   const dateStr = config.showDate
-    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
   const { weekNumber, dayOfYear } = getDateInfoValues(now);

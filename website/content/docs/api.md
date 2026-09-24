@@ -329,7 +329,7 @@ Entries are capped at 500 per request and messages at 2 000 characters each (lon
 
 ### GET /api/display/kiosk-bundle
 
-**Client protocol.** Serves a display-only Pi its shell layer (kiosk launcher, splash page, reporter, systemd units) so display-only Pis keep themselves up to date with the hub. The display-only Pi's `kiosk-update.sh` polls this endpoint nightly and on every Chromium start, verifies the checksum, and swaps files in place with a rollback copy. Uses the same adoption gate as `/api/display/hw-stats`: the `display` ID must appear in `config.displays`, and an unadopted display-only Pi gets a `403` that its updater treats as "no update".
+**Client protocol.** Serves a display-only Pi its shell layer (kiosk launcher, splash page, reporter, systemd units) so display-only Pis keep themselves up to date with the hub. The display-only Pi's `kiosk-update.sh` polls this endpoint hourly and on every Chromium start, verifies the checksum, and swaps files in place with a rollback copy. Uses the same adoption gate as `/api/display/hw-stats`: the `display` ID must appear in `config.displays`, and an unadopted display-only Pi gets a `403` that its updater treats as "no update".
 
 | Parameter | Type | Description |
 |---|---|---|

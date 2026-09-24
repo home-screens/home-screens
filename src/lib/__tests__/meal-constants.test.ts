@@ -12,6 +12,7 @@ import {
   dateToDayIndex,
   getWeekRange,
   getWeekDatesForRange,
+  weekStartAfterDayChange,
   filterPlanToWeek,
   replaceWeekInPlan,
   copyWeekEntries,
@@ -199,6 +200,30 @@ describe('getWeekDatesForRange', () => {
     const dates = getWeekDatesForRange('2026-04-01', 'sunday');
     expect(dates[0]).toBe('2026-03-29'); // aligned to Sunday
     expect(dates[6]).toBe('2026-04-04');
+  });
+});
+
+describe('weekStartAfterDayChange', () => {
+  // 2026-09-27 is a Sunday, 2026-09-28 a Monday.
+  it('moves a viewer parked on the current week to the new week at Sunday midnight', () => {
+    expect(weekStartAfterDayChange('2026-09-21', '2026-09-27', '2026-09-28', 'monday')).toBe('2026-09-28');
+  });
+
+  it('moves a Sunday-start viewer on Saturday midnight', () => {
+    expect(weekStartAfterDayChange('2026-09-20', '2026-09-26', '2026-09-27', 'sunday')).toBe('2026-09-27');
+  });
+
+  it('leaves the week alone when the new day is in the same week', () => {
+    expect(weekStartAfterDayChange('2026-09-21', '2026-09-24', '2026-09-25', 'monday')).toBe('2026-09-21');
+  });
+
+  it('leaves a viewer who navigated to another week where they are', () => {
+    expect(weekStartAfterDayChange('2026-10-05', '2026-09-27', '2026-09-28', 'monday')).toBe('2026-10-05');
+    expect(weekStartAfterDayChange('2026-09-14', '2026-09-27', '2026-09-28', 'monday')).toBe('2026-09-14');
+  });
+
+  it('aligns an unaligned viewed start before comparing', () => {
+    expect(weekStartAfterDayChange('2026-09-23', '2026-09-27', '2026-09-28', 'monday')).toBe('2026-09-28');
   });
 });
 
@@ -520,16 +545,16 @@ describe('alignToWeekStart', () => {
 
 describe('formatMealTime', () => {
   it('returns empty string for undefined', () => {
-    expect(formatMealTime(undefined)).toBe('');
+    expect(formatMealTime(undefined, '12h')).toBe('');
   });
 
   it('returns empty string for malformed input', () => {
-    expect(formatMealTime('')).toBe('');
-    expect(formatMealTime('abc')).toBe('');
-    expect(formatMealTime('25:00')).toBe('');
-    expect(formatMealTime('12:60')).toBe('');
-    expect(formatMealTime('12')).toBe('');
-    expect(formatMealTime('12:5')).toBe('');
+    expect(formatMealTime('', '12h')).toBe('');
+    expect(formatMealTime('abc', '12h')).toBe('');
+    expect(formatMealTime('25:00', '12h')).toBe('');
+    expect(formatMealTime('12:60', '12h')).toBe('');
+    expect(formatMealTime('12', '12h')).toBe('');
+    expect(formatMealTime('12:5', '12h')).toBe('');
   });
 
   it('formats AM correctly in 12h mode', () => {
@@ -552,10 +577,6 @@ describe('formatMealTime', () => {
     expect(formatMealTime('00:00', '24h')).toBe('00:00');
     expect(formatMealTime('18:30', '24h')).toBe('18:30');
     expect(formatMealTime('23:59', '24h')).toBe('23:59');
-  });
-
-  it('defaults to 12h format when no format argument supplied', () => {
-    expect(formatMealTime('18:30')).toBe('6:30 PM');
   });
 
   it('zero-pads single-digit minutes in 24h mode', () => {
@@ -801,10 +822,9 @@ describe('resolveMealTimeFormat', () => {
     expect(resolveMealTimeFormat({ timeFormat: '12h' }, '24h')).toBe('12h');
   });
 
-  it('falls back to the global, then 12h', () => {
+  it('falls back to the household format', () => {
     expect(resolveMealTimeFormat({}, '24h')).toBe('24h');
-    expect(resolveMealTimeFormat(undefined, undefined)).toBe('12h');
-    expect(resolveMealTimeFormat({}, undefined)).toBe('12h');
+    expect(resolveMealTimeFormat(undefined, '12h')).toBe('12h');
   });
 });
 

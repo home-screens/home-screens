@@ -810,5 +810,8 @@
     "save": "Save",
     "saveFailed": "That didn't save. Try again.",
     "changeAriaLabel": "Change how bonus chores are grabbed"
+  },
+  "atHome": {
+    "pill": "It's {day}, {time} at home"
   }
 }

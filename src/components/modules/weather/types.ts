@@ -9,8 +9,8 @@ export interface WeatherViewProps {
   alerts?: WeatherAlert[];
   units: 'metric' | 'imperial';
   timezone?: string;
-  /** Household 12/24-hour preference. Hour labels and alert expiry follow it,
-   *  same as the clock; absent means 12h (DEFAULT_TIME_FORMAT). */
-  timeFormat?: TimeFormat;
+  /** Household 12/24-hour clock, resolved by WeatherModule. Hour labels and
+   *  alert expiry follow it, same as the clock. */
+  timeFormat: TimeFormat;
   scaledFontSize: number;
 }

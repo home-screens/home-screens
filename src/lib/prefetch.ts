@@ -1,15 +1,17 @@
 import type { Screen } from '@/types/config';
 import { FETCH_KEY_REGISTRY } from './fetch-keys';
-import { isModuleEnabled, isModuleVisible } from './schedule';
+import { isModuleEnabled, isModuleVisible, readScheduleClock, type ScheduleClock } from './schedule';
 import { displayCache } from './display-cache';
 
 /** Get prefetch-able URLs for a screen's currently-visible modules */
 function getScreenFetchUrls(
   screen: Screen,
-  now: Date,
+  now: ScheduleClock,
 ): { url: string; ttlMs: number }[] {
   const seen = new Set<string>();
   const urls: { url: string; ttlMs: number }[] = [];
+  // `now` is the household's clock, so its day is the one modules key on.
+  const context = { today: readScheduleClock(now).isoDate };
   for (const mod of screen.modules) {
     if (!isModuleEnabled(mod)) continue;
     if (!isModuleVisible(mod.schedule, now)) continue;
@@ -20,7 +22,7 @@ function getScreenFetchUrls(
     // those can't flip until the next minute tick at the earliest.
     const entry = FETCH_KEY_REGISTRY[mod.type];
     if (!entry) continue;
-    const url = entry.buildUrl(mod.config);
+    const url = entry.buildUrl(mod.config, context);
     if (url && !seen.has(url)) {
       seen.add(url);
       urls.push({ url, ttlMs: entry.ttlMs });
@@ -32,7 +34,7 @@ function getScreenFetchUrls(
 /** Prefetch all stale/missing URLs for a screen */
 export async function prefetchScreen(
   screen: Screen,
-  now: Date,
+  now: ScheduleClock,
 ): Promise<void> {
   const urls = getScreenFetchUrls(screen, now);
   await Promise.all(urls.map(({ url, ttlMs }) => displayCache.prefetch(url, ttlMs)));

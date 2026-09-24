@@ -42,6 +42,7 @@ vi.mock('@/lib/telemetry', () => ({
 import { GET, PUT } from '@/app/api/config/route';
 import { readConfig, writeConfig, updateConfigAtomic, configRevision } from '@/lib/config';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
+import { HUB_TIMEZONE_HEADER } from '@/lib/timezone';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { applyDisplaySettings } from '@/lib/kiosk';
 import { INVALID_CONFIGS } from '@/lib/__tests__/invalid-config-matrix';
@@ -81,6 +82,15 @@ describe('GET /api/config', () => {
   it('sends the config revision header', async () => {
     const res = await GET(new NextRequest('http://localhost/api/config'));
     expect(res.headers.get(CONFIG_REVISION_HEADER)).toBe(configRevision(dummyConfig as never));
+  });
+
+  // With no zone saved every surface runs on the hub's, and only the hub knows
+  // it: a kiosk or a laptop asking Intl would get its own. The body stays the
+  // saved document, so the editor never writes the hub's zone back as saved.
+  it("names the hub's own zone beside the config, not inside it", async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config'));
+    expect(res.headers.get(HUB_TIMEZONE_HEADER)).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    expect((await res.json()).settings).not.toHaveProperty('timezone');
   });
 
   it('returns 500 when readConfig throws', async () => {

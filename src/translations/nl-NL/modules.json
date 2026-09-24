@@ -359,6 +359,7 @@
     "now": "Nu"
   },
   "meal-planner": {
+    "loading": "Maaltijden laden…",
     "noMealsPlannedYet": "Nog geen maaltijden gepland",
     "noMealsPlanned": "Geen maaltijden gepland",
     "noMealPlanned": "Geen maaltijd gepland",
@@ -596,7 +597,7 @@
       "rotationWeekly": "wekelijks wisselen",
       "rotationSchedule": "schema",
       "nobody": "Nog niemand",
-      "rotatedShort": "← rot",
+      "takingTurns": "(om de beurt)",
       "arrow": "→"
     },
     "choreForm": {
@@ -970,6 +971,18 @@
       "snow": "Trek je warm aan vandaag",
       "thunderstorm": "Onweer verwacht",
       "clear": "Mooie dag op komst"
+    },
+    "weatherEvening": {
+      "rain": "Regenachtige avond op komst",
+      "snow": "Trek je warm aan vanavond",
+      "thunderstorm": "Onweer verwacht vanavond",
+      "clear": "Mooie avond op komst"
+    },
+    "weatherNight": {
+      "rain": "Regen vannacht",
+      "snow": "Sneeuw vannacht",
+      "thunderstorm": "Onweer vannacht",
+      "clear": "Heldere lucht vannacht"
     }
   },
   "affirmations": {

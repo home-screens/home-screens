@@ -5,11 +5,12 @@ import AccordionSection from '@/components/editor/AccordionSection';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
 import { savePluginSettings } from '@/lib/plugin-settings-client';
-import { setHostSettings } from '@/lib/plugin-host-settings';
+import { getHostSettings, setHostSettings } from '@/lib/plugin-host-settings';
 import { DISPLAY_SDK_STUBS } from '@/lib/plugin-sdk-display-stubs';
 import { filterConfigForDisplay } from '@/lib/display-filter';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { logger } from '@/lib/logger';
 
 const log = logger('plugin');
@@ -71,6 +72,7 @@ export default function PluginGlobalsEditor() {
   // Push host settings from the editor store so plugins can read them
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
+  const householdTimezone = useEditorHouseholdTimezone();
 
   useLayoutEffect(() => {
     if (!window.__HS_SDK__) {
@@ -137,7 +139,9 @@ export default function PluginGlobalsEditor() {
       config.settings;
     const location = getLocation(settings);
     setHostSettings({
-      timezone: settings.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+      // The household's zone, the hub's while none is saved. A hub that named
+      // no zone leaves the last one pushed in place rather than this laptop's.
+      timezone: householdTimezone ?? getHostSettings().timezone,
       units: settings.weather?.units ?? 'imperial',
       latitude: location?.lat ?? null,
       longitude: location?.lon ?? null,
@@ -145,7 +149,7 @@ export default function PluginGlobalsEditor() {
       displayHeight: settings.displayHeight || DEFAULT_DISPLAY_HEIGHT,
       appVersion: process.env.NEXT_PUBLIC_APP_VERSION ?? '',
     });
-  }, [config, selectedDisplayId]);
+  }, [config, selectedDisplayId, householdTimezone]);
 
   return null;
 }

@@ -95,17 +95,20 @@ export interface SupplementalHolidayResult {
 }
 
 /**
- * Get supplemental holidays for a country and year range.
- * Returns only future holidays (relative to today).
+ * Get supplemental holidays for a country and year range, from `today` on.
+ *
+ * `today` is the household's calendar day (`YYYY-MM-DD`), passed in rather
+ * than read here: the UTC day turns over in the American evening, and on the
+ * evening of Halloween the picker offered next year's.
  */
 export function getSupplementalHolidays(
   countryCode: string,
   years: number[],
+  today: string,
 ): SupplementalHolidayResult[] {
   const defs = SUPPLEMENTAL[countryCode.toUpperCase()];
   if (!defs) return [];
 
-  const today = new Date().toISOString().slice(0, 10);
   const results: SupplementalHolidayResult[] = [];
 
   for (const year of years) {

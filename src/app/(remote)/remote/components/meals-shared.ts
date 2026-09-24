@@ -9,12 +9,17 @@ import { UI_SANS_STACK } from '@/lib/font-registry';
  * day-of-week name should look it up via `getLocalizedDayNames(locale)[dayIndex]`
  * — keeping locale resolution out of this helper makes it usable from
  * non-React code paths.
+ *
+ * `referenceDate` is read through its local getters, so "this week" must be
+ * the household's clock (`useHouseholdNow`), not `new Date()`: a phone in
+ * another zone is on a different day around midnight and on Sunday night a
+ * different week.
  */
 export function getWeekDates(
-  referenceDate?: Date,
+  referenceDate: Date,
   weekStartDay: 'sunday' | 'monday' = 'sunday',
 ): { date: string; dayIndex: number; shortDate: string }[] {
-  const start = alignToWeekStart(referenceDate ?? new Date(), weekStartDay);
+  const start = alignToWeekStart(referenceDate, weekStartDay);
   const result: { date: string; dayIndex: number; shortDate: string }[] = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
@@ -34,13 +39,13 @@ export function getWeekDates(
  * household's enabled slots. Returns the slot type, not an index, so callers
  * can compare directly against `slot === activeSlot` without index aliasing.
  *
- * Callers that care about the slot advancing as the wall clock crosses
- * slot boundaries should pass a tick-driven `now` (e.g. via `useState` +
- * `setInterval`). The default `new Date()` is only correct at first render.
+ * `now` is the household's ticking wall clock (`useHouseholdNow`), so the
+ * slot follows the hour at home rather than the phone's, and advances as the
+ * clock crosses slot boundaries.
  */
 export function currentActiveSlot(
   enabledSlots: MealSlotType[],
-  now: Date = new Date(),
+  now: Date,
 ): MealSlotType | null {
   return getActiveSlot(now.getHours(), enabledSlots);
 }

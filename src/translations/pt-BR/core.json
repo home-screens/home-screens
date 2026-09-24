@@ -369,5 +369,10 @@
     "addYourOwnLink": "Adicionar uma foto sua",
     "photosPrompt": "Quer usar suas próprias fotos nas refeições e tarefas?",
     "photosButton": "Adicionar aqui"
+  },
+  "noTimezone": {
+    "title": "Ainda sem fuso horário.",
+    "body": "Suas telas usam o relógio do hub ({zone}), então os horários podem estar errados.",
+    "action": "Escolher fuso horário"
   }
 }

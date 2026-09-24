@@ -151,7 +151,7 @@ export default function FullscreenChoreChartModule({
   const pad = 40 * k * d;
   const weekProgress = config.weekProgress ?? 'chips';
 
-  const { todayAssignments, memberStats, weekData, members, groups, chores, rewards, recentRedemptions, allRedemptions, toggleComplete, applyRedemption, overspentNotice, isLoading, error, rewardsLoading, rewardsError, todayBonus, bonusMarks, choreSettings, grabChore, today, todayKnown } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, groups, chores, rewards, recentRedemptions, allRedemptions, toggleComplete, applyRedemption, overspentNotice, isLoading, error, rewardsLoading, rewardsError, todayBonus, bonusMarks, choreSettings, grabChore, today, todayKnown } = useChoreData(config, timezone);
   // Which bonus tile has a sheet open: the grab picker, or the grabbed tile's
   // "did it / let it go". Held by chore id so the sheet reads the latest poll.
   const [bonusSheet, setBonusSheet] = useState<{ kind: 'pick' | 'grabbed'; choreId: string } | { kind: 'more'; choreIds: string[] } | null>(null);
@@ -834,6 +834,7 @@ export default function FullscreenChoreChartModule({
             onBack={showStoreHistory ? closeStoreHistory : undefined}
             backLabel={t('fullscreen-chore-chart.rewardsStore.title')}
             idleTimeoutMs={showStoreHistory ? 60_000 : undefined}
+            timezone={timezone}
           />
         )
       ) : effectiveView === 'rewards-store' ? (

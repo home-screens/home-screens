@@ -2,7 +2,8 @@ import { createDAVClient, type DAVCalendar } from 'tsdav';
 import type { CalendarEvent, ICloudSource } from '@/types/config';
 import type { ICloudAccount } from '@/lib/icloud-accounts';
 import { parseICSEvents } from '@/lib/ical-calendar';
-import { compareEventStarts } from '@/lib/calendar-utils';
+import { compareEventStarts, parseEventInstant } from '@/lib/calendar-utils';
+import { isoDateInTZ } from '@/lib/timezone';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { logger } from '@/lib/logger';
 
@@ -161,7 +162,7 @@ export async function fetchICloudEvents(
     },
   );
 
-  events.sort((a, b) => compareEventStarts(a.start, b.start));
+  events.sort((a, b) => compareEventStarts(a.start, b.start, timezone));
   return { events, results };
 }
 
@@ -235,7 +236,7 @@ async function fetchAccountEvents(
 
   for (const source of birthdaySources) {
     try {
-      events.push(...await fetchBirthdayEvents(account, source, from, to));
+      events.push(...await fetchBirthdayEvents(account, source, from, to, timezone));
       results.push({ id: source.id, name: source.name, ok: true });
     } catch (err) {
       log.warn(`iCloud birthdays fetch failed for ${account.appleId}`, err);
@@ -296,19 +297,18 @@ async function fetchBirthdayEvents(
   source: ICloudSource,
   from: Date,
   to: Date,
+  timezone?: string,
 ): Promise<CalendarEvent[]> {
   const birthdays = await loadAccountBirthdays(account);
   const events: CalendarEvent[] = [];
 
   for (const birthday of birthdays) {
-    for (const start of birthdayOccurrences(birthday.month, birthday.day, from, to)) {
-      const end = new Date(start);
-      end.setDate(end.getDate() + 1);
+    for (const { year, start, end } of birthdayOccurrences(birthday.month, birthday.day, from, to, timezone)) {
       events.push({
-        id: `${source.id}:${birthday.url}:${start.getFullYear()}`,
+        id: `${source.id}:${birthday.url}:${year}`,
         title: birthday.name,
-        start: toDateOnly(start),
-        end: toDateOnly(end),
+        start,
+        end,
         allDay: true,
         calendarColor: source.color,
         sourceId: source.id,
@@ -361,19 +361,31 @@ export function parseVCardBirthday(vcard: string): VCardBirthday | null {
 }
 
 /**
- * Yearly occurrences of month/day that overlap [from, to). Occurrences are
- * local-midnight instants while from/to are UTC-parsed instants; both sides
- * are absolute instants, so the half-open comparison includes a birthday
- * exactly when any part of its local calendar day falls inside the window —
- * even in timezones far from UTC.
+ * Yearly occurrences of month/day that overlap [from, to), as all-day
+ * `YYYY-MM-DD` bounds. A birthday is a whole day at home, so its bounds are
+ * the household's midnights (`timezone`), not the hub's: on a Pi left at UTC
+ * a Chicago birthday otherwise ended at 7 pm and vanished from an evening
+ * fetch. The half-open comparison includes a birthday exactly when any part
+ * of that day falls inside the window.
  */
-function birthdayOccurrences(month: number, day: number, from: Date, to: Date): Date[] {
-  const occurrences: Date[] = [];
-  for (let year = from.getFullYear(); year <= to.getFullYear(); year++) {
-    // Feb 29 rolls forward to Mar 1 on non-leap years via Date normalization
-    const date = new Date(year, month - 1, day);
-    const dayAfter = new Date(year, month - 1, day + 1);
-    if (dayAfter > from && date < to) occurrences.push(date);
+function birthdayOccurrences(
+  month: number,
+  day: number,
+  from: Date,
+  to: Date,
+  timezone?: string,
+): { year: number; start: string; end: string }[] {
+  const occurrences: { year: number; start: string; end: string }[] = [];
+  const firstYear = Number(isoDateInTZ(from, timezone).slice(0, 4));
+  const lastYear = Number(isoDateInTZ(to, timezone).slice(0, 4));
+  for (let year = firstYear; year <= lastYear; year++) {
+    // Calendar arithmetic only, so UTC fields: Feb 29 rolls forward to Mar 1
+    // on non-leap years via Date normalization.
+    const start = new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10);
+    const end = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+    if (parseEventInstant(end, timezone) > from && parseEventInstant(start, timezone) < to) {
+      occurrences.push({ year, start, end });
+    }
   }
   return occurrences;
 }

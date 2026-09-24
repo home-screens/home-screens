@@ -6,16 +6,17 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { fitBaseSize, fitFactor, splitRowWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap, noShrink } from './fixed-size';
+import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 
 /**
  * Split clock — time on the left, date and info on the right,
  * separated by a hairline vertical divider.
  */
-export default function ClockSplitView({ config, now, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockSplitView({ config, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
+  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, time);
   const ampm = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
@@ -23,7 +24,7 @@ export default function ClockSplitView({ config, now, scaledFontSize, autoFontSi
     : `${hStr}:${mStr}`;
 
   const dateStr = config.showDate
-    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
   const { weekNumber, dayOfYear } = getDateInfoValues(now);

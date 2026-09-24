@@ -16,7 +16,7 @@ import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from '.
 import { CalendarSetupCard } from './shared/CalendarSetupCard';
 import { useEventTapDetail } from './shared/useEventTapDetail';
 import { useTranslate, useFormattingLocale } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarFetchStatus, type CalendarSourceStatus, type CalendarConfig, type CalendarEvent, type CalendarPerson, type CalendarViewMode, type ModuleStyle, type TimeFormat } from '@/types/config';
+import type { CalendarFetchStatus, CalendarSourceStatus, CalendarConfig, CalendarEvent, CalendarPerson, CalendarViewMode, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { EventDisplayStyle } from './calendar/support';
@@ -24,6 +24,7 @@ import { DailyView } from './calendar/DailyView';
 import { AgendaView } from './calendar/AgendaView';
 import { WeekView } from './calendar/WeekView';
 import { GridView } from './calendar/grid';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -113,7 +114,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     const cutoff = listViewCutoff(now, keepFinishedToday);
     return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
   }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone]);
-  const resolvedTimeFormat = timeFormat ?? DEFAULT_TIME_FORMAT;
+  const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
   // Legend ring, not-updating badge, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).
   const { failingSources, failingSourceIds, hasLiveSource } = useFailingSources({ sourceStatus, sourceFilter });

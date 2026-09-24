@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const readConfigCached = vi.fn();
 vi.mock('../config-cache', () => ({ readConfigCached: () => readConfigCached() }));
 
-const { householdTimestamp, householdToday } = await import('../household-day');
+const { householdTimestamp, householdTimezone, householdToday, hubTimezone } = await import('../household-day');
 
 afterEach(() => { readConfigCached.mockReset(); });
 
@@ -21,6 +21,15 @@ describe('household day', () => {
   it('stamps times in that zone\'s offset', async () => {
     readConfigCached.mockResolvedValue({ settings: { timezone: 'America/Chicago' } });
     expect(await householdTimestamp(now)).toBe('2026-09-23T21:05:00.000-05:00');
+  });
+
+  // Unset means the hub's zone on every surface; the server is the hub.
+  it("is the hub's own zone while none is saved", async () => {
+    readConfigCached.mockResolvedValue({ settings: {} });
+    expect(await householdTimezone()).toBe(hubTimezone());
+    expect(hubTimezone()).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    readConfigCached.mockResolvedValue({ settings: { timezone: 'Pacific/Kiritimati' } });
+    expect(await householdTimezone()).toBe('Pacific/Kiritimati');
   });
 
   it('falls back to the machine\'s clock without a readable setting', async () => {

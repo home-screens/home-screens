@@ -585,7 +585,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       hourFormat: 'inherit',
       showSeconds: true,
       showDate: true,
-      dateFormat: 'EEEE, MMMM d',
+      // Empty: the whole date in the household language's own order.
+      dateFormat: '',
       showWeekNumber: false,
       showDayOfYear: false,
       alignment: 'center',

@@ -11,6 +11,8 @@ import { I18nProvider } from '@/i18n/provider';
 import type { ChoreChartConfig, ChoreCompletion, ChoreDefinition } from '@/types/config';
 import type { FamilyMember } from '@/types/family';
 import { UNCHECK_HOLD_MS } from '@/hooks/useHoldToUncheck';
+import { isoDateInTZ } from '@/lib/timezone';
+import { HouseholdClockProvider } from '../../household-clock';
 
 /**
  * The tablet's half of "two kids ticking the same chore in the same second".
@@ -64,8 +66,15 @@ function today(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+/** The household runs on this process's own zone unless a test says otherwise. */
+let householdZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 function wrapper({ children }: { children: ReactNode }) {
-  return <I18nProvider locale="en-US" blob={{ core, modules, remote }}>{children}</I18nProvider>;
+  return (
+    <I18nProvider locale="en-US" blob={{ core, modules, remote }}>
+      <HouseholdClockProvider timezone={householdZone} today={isoDateInTZ(new Date(), householdZone)} timeFormat="12h">{children}</HouseholdClockProvider>
+    </I18nProvider>
+  );
 }
 
 /** `isAdmin` is what /remote passes and /chores does not. */
@@ -79,6 +88,7 @@ async function openTab(isAdmin: boolean) {
 beforeEach(() => {
   posted.length = 0;
   seededCompletions = [];
+  householdZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 });
 afterEach(() => { vi.useRealTimers(); cleanup(); });
 
@@ -128,5 +138,66 @@ describe('the kid view still guards un-checking', () => {
 
     await waitFor(() => expect(posted).toHaveLength(1));
     expect(posted[0]).toMatchObject({ direction: 'uncomplete' });
+  });
+});
+
+describe('the part of the day that is lit up', () => {
+  // 3:30 pm UTC is 10:30 am in Chicago and 5:30 pm in Berlin. A Berlin
+  // household's evening chores are the ones due now, whatever zone the
+  // phone in the kid's hand was left on.
+  it('follows the household clock, not the phone', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-23T15:30:00Z'));
+    householdZone = 'Europe/Berlin';
+    const evening: ChoreDefinition = { ...chore, id: 'chore-2', name: 'Feed the cat', timeOfDay: 'evening' };
+    const morning: ChoreDefinition = { ...chore, id: 'chore-3', name: 'Make your bed', timeOfDay: 'morning' };
+    render(
+      <ChoresTab config={config} choreData={{ chores: [morning, evening], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' }} isAdmin />,
+      { wrapper },
+    );
+    await act(async () => {});
+
+    const lit = (label: string) => screen.getByText(label).style.color;
+    expect(lit('Evening')).toBe('rgb(245, 158, 11)');
+    expect(lit('Morning')).not.toBe('rgb(245, 158, 11)');
+  });
+});
+
+/** The height a button reserves for a finger, read off its inline style (jsdom does no layout). */
+function tapHeight(el: HTMLElement): number {
+  return parseFloat(el.style.minHeight || el.style.height || '0');
+}
+
+describe('kid-sized tap targets', () => {
+  it('gives the Yesterday / Today toggle and the Today / Rewards bar at least 44 px', async () => {
+    await openTab(false);
+    const toggle = screen.getByRole('group', { name: remote.choresTab.dayToggle.ariaLabel });
+    for (const button of Array.from(toggle.querySelectorAll('button'))) {
+      expect(tapHeight(button)).toBeGreaterThanOrEqual(44);
+      expect(parseFloat(button.style.minWidth)).toBeGreaterThanOrEqual(44);
+    }
+    for (const name of [remote.choresTab.subNav.today, remote.choresTab.subNav.rewards]) {
+      const tab = screen.getAllByRole('button', { name }).find((b) => b.textContent === name && !toggle.contains(b));
+      expect(tab).toBeTruthy();
+      expect(tapHeight(tab!)).toBeGreaterThanOrEqual(44);
+    }
+  });
+});
+
+describe('the at home line', () => {
+  // A household many hours from this machine, which stands in for the phone.
+  const own = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const farHome = own === 'Pacific/Kiritimati' ? 'Etc/GMT+12' : 'Pacific/Kiritimati';
+
+  it('shows for a grown-up whose phone is on another clock', async () => {
+    householdZone = farHome;
+    await openTab(true);
+    expect(screen.getByTestId('at-home-pill').textContent).toMatch(/ at home$/);
+  });
+
+  it("never shows on the kids' page, which runs on a device at home", async () => {
+    householdZone = farHome;
+    await openTab(false);
+    expect(screen.queryByTestId('at-home-pill')).toBeNull();
   });
 });

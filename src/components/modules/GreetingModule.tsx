@@ -16,28 +16,38 @@ interface GreetingModuleProps {
   timezone?: string;
 }
 
-function getGreeting(hour: number, t: TranslateFn): string {
-  if (hour >= 5 && hour < 12) return t('greeting.morning');
-  if (hour >= 12 && hour < 17) return t('greeting.afternoon');
-  if (hour >= 17 && hour < 21) return t('greeting.evening');
-  return t('greeting.night');
+type DayPart = 'morning' | 'afternoon' | 'evening' | 'night';
+
+function getDayPart(hour: number): DayPart {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 17) return 'afternoon';
+  if (hour >= 17 && hour < 21) return 'evening';
+  return 'night';
 }
 
-function getTimeAccent(hour: number, accentColor?: string): string {
-  if (hasAccentColor(accentColor)) return accentColor;
-  if (hour >= 5 && hour < 12) return '#fbbf24';
-  if (hour >= 12 && hour < 17) return '#f9fafb';
-  if (hour >= 17 && hour < 21) return '#f97316';
-  return '#93c5fd';
-}
+const TIME_ACCENTS: Record<DayPart, string> = {
+  morning: '#fbbf24',
+  afternoon: '#f9fafb',
+  evening: '#f97316',
+  night: '#93c5fd',
+};
 
-function getWeatherSuffix(condition: WeatherCondition, t: TranslateFn): string | null {
+/** Morning and afternoon talk about the day ahead; evening and night about the evening and the night. */
+const WEATHER_KEYS: Record<DayPart, string> = {
+  morning: 'greeting.weather',
+  afternoon: 'greeting.weather',
+  evening: 'greeting.weatherEvening',
+  night: 'greeting.weatherNight',
+};
+
+function getWeatherSuffix(condition: WeatherCondition, part: DayPart, t: TranslateFn): string | null {
+  const base = WEATHER_KEYS[part];
   switch (condition) {
     case 'rain':
-    case 'drizzle': return t('greeting.weather.rain');
-    case 'snow': return t('greeting.weather.snow');
-    case 'thunderstorm': return t('greeting.weather.thunderstorm');
-    case 'clear': return t('greeting.weather.clear');
+    case 'drizzle': return t(`${base}.rain`);
+    case 'snow': return t(`${base}.snow`);
+    case 'thunderstorm': return t(`${base}.thunderstorm`);
+    case 'clear': return t(`${base}.clear`);
     default: return null;
   }
 }
@@ -49,10 +59,11 @@ export default function GreetingModule({ config, style, timezone }: GreetingModu
   const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.12);
 
   const name = config.name ?? t('greeting.defaultName');
-  const greeting = getGreeting(now.getHours(), t);
-  const accent = getTimeAccent(now.getHours(), config.accentColor);
+  const part = getDayPart(now.getHours());
+  const greeting = t(`greeting.${part}`);
+  const accent = hasAccentColor(config.accentColor) ? config.accentColor : TIME_ACCENTS[part];
   const weatherAware = config.weatherAware ?? true;
-  const suffix = weatherAware && weather ? getWeatherSuffix(weather.condition, t) : null;
+  const suffix = weatherAware && weather ? getWeatherSuffix(weather.condition, part, t) : null;
 
   return (
     <ModuleWrapper style={style}>

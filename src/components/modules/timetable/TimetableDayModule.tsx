@@ -61,7 +61,8 @@ export interface TimetableDayModuleProps {
   config: TimetableConfig;
   style: ModuleStyle;
   timezone?: string;
-  timeFormat?: TimeFormat;
+  /** The household's clock, resolved by TimetableModule. */
+  timeFormat: TimeFormat;
   /** The display's clock, ticked by the module so both views turn the page together. */
   now: Date;
   people: TimetablePeople;

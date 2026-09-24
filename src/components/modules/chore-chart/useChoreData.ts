@@ -15,7 +15,6 @@ import {
   type ResolvedAssignment,
   type MemberStats,
   type WeekDayData,
-  todayStr,
   parseISO,
   buildCompletionSet,
   getWeekDatesFor,
@@ -28,6 +27,7 @@ import {
 import { choresOwedBy } from '@/lib/chore-assignments';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
+import { isoDateInTZ } from '@/lib/timezone';
 import { planChoreToggle, readOverspentNotice, type OverspentNotice } from './chore-toggle';
 
 const EMPTY_REDEMPTIONS: RewardRedemption[] = [];
@@ -119,7 +119,8 @@ export interface RedemptionResult {
   redemptions?: RewardRedemption[];
 }
 
-export function useChoreData(config: ChoreDataConfig): ChoreDataState {
+/** `timezone` is the display's household zone; it only covers the first paint (see `today`). */
+export function useChoreData(config: ChoreDataConfig, timezone: string | undefined): ChoreDataState {
   // TTLs come from the shared registry so the prefetch system and the hook
   // stay in lockstep — see fetch-keys.ts. Drops to 5s give phone→wall
   // cross-device toggles a 5s worst-case lag.
@@ -177,8 +178,9 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const completionSet = useMemo(() => buildCompletionSet(completions), [completions]);
   // Today is the hub's calendar day once it has said so, as on the phone: a
   // display-only Pi on another clock or time zone must not draw, grab or tick
-  // a different day. Its own clock covers the first paint.
-  const today = fetchedCompletions?.today ?? todayStr();
+  // a different day. Its own clock, read in the household's zone, covers the
+  // first paint.
+  const today = fetchedCompletions?.today ?? isoDateInTZ(new Date(), timezone);
 
   const bonusMarks = useMemo<BonusMarks>(() => ({ completions, grabs, bonusResets }), [completions, grabs, bonusResets]);
   const todayBonus = useMemo(

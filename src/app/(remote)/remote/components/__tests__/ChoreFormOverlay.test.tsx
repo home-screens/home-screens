@@ -32,14 +32,34 @@ function dayRow() {
   );
 }
 
+/** The household's day, handed down from the Chores tab. */
+const TODAY = '2026-09-28';
+
 afterEach(cleanup);
+
+describe('a one-time chore on the phone', () => {
+  // At 5:30 pm Sunday in Chicago (or 10:30 pm on a UTC phone) a Berlin
+  // household is already on Monday. "Just today" has to mean Monday: the
+  // phone's Sunday is a day the wall has left, and the chore would never show.
+  it('starts on the household day, not the phone\'s', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-27T22:30:00Z'));
+    try {
+      render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={vi.fn()} onBack={() => {}} />);
+      fireEvent.change(screen.getByDisplayValue('Daily'), { target: { value: 'once' } });
+      expect(screen.getByDisplayValue(TODAY)).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
 
 describe('picking the days of a new chore on the phone', () => {
   // The audit's repro, run through the real form: name it, set it to Weekly,
   // tap the two days you want. It used to save the other five.
   it('saves exactly the days that were tapped', () => {
     const onSubmit = vi.fn<(data: Omit<ChoreDefinition, 'id'>) => void>();
-    render(<ChoreFormOverlay members={members} groups={[]} familyReady onSubmit={onSubmit} onBack={() => {}} />);
+    render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={onSubmit} onBack={() => {}} />);
 
     fireEvent.change(screen.getByPlaceholderText('Chore name...'), { target: { value: 'Vacuum' } });
     fireEvent.change(screen.getByDisplayValue('Daily'), { target: { value: 'weekly' } });
@@ -58,13 +78,13 @@ describe('picking the days of a new chore on the phone', () => {
   });
 
   it('leaves a daily chore on every day', () => {
-    render(<ChoreFormOverlay members={members} groups={[]} familyReady onSubmit={vi.fn()} onBack={() => {}} />);
+    render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={vi.fn()} onBack={() => {}} />);
     expect(dayRow()).toEqual([true, true, true, true, true, true, true]);
   });
 
   it('will not save a weekly chore with no days, and says which row needs a tap', () => {
     const onSubmit = vi.fn();
-    render(<ChoreFormOverlay members={members} groups={[]} familyReady onSubmit={onSubmit} onBack={() => {}} />);
+    render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={onSubmit} onBack={() => {}} />);
 
     fireEvent.change(screen.getByPlaceholderText('Chore name...'), { target: { value: 'Vacuum' } });
     fireEvent.change(screen.getByDisplayValue('Daily'), { target: { value: 'weekly' } });
@@ -85,7 +105,7 @@ describe('picking the days of a new chore on the phone', () => {
       id: 'c1', name: 'Make your bed', emoji: '', points: 1, frequency: 'weekly',
       daysOfWeek: [1, 3], timeOfDay: 'morning', assigneeIds: ['ava'], rotation: 'fixed',
     };
-    render(<ChoreFormOverlay initial={chore} members={members} groups={[]} familyReady onSubmit={vi.fn()} onBack={() => {}} />);
+    render(<ChoreFormOverlay initial={chore} members={members} groups={[]} familyReady today={TODAY} onSubmit={vi.fn()} onBack={() => {}} />);
 
     expect(dayRow()).toEqual([false, true, false, true, false, false, false]);
     fireEvent.change(screen.getByDisplayValue('Weekly'), { target: { value: 'biweekly' } });
@@ -95,7 +115,7 @@ describe('picking the days of a new chore on the phone', () => {
 
 describe('the rest of the chore form copy', () => {
   it('says what a ticket is next to the tickets field', () => {
-    render(<ChoreFormOverlay members={members} groups={[]} familyReady onSubmit={vi.fn()} onBack={() => {}} />);
+    render(<ChoreFormOverlay members={members} groups={[]} familyReady today={TODAY} onSubmit={vi.fn()} onBack={() => {}} />);
     expect(screen.getByText('How many tickets a kid earns for doing this chore. Tickets buy rewards.')).toBeTruthy();
   });
 
@@ -104,7 +124,7 @@ describe('the rest of the chore form copy', () => {
       id: 'c1', name: 'Make your bed', emoji: '', points: 1, frequency: 'daily',
       daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'morning', assigneeIds: ['ava'], rotation: 'fixed',
     };
-    render(<ChoreFormOverlay initial={chore} members={members} groups={[]} familyReady onSubmit={vi.fn()} onDelete={vi.fn()} onBack={() => {}} />);
+    render(<ChoreFormOverlay initial={chore} members={members} groups={[]} familyReady today={TODAY} onSubmit={vi.fn()} onDelete={vi.fn()} onBack={() => {}} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete Chore' }));
     const sheet = screen.getByText('Delete "Make your bed"?').parentElement!;

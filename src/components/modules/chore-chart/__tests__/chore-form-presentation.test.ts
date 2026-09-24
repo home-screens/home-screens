@@ -44,6 +44,7 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ frequency: 'daily', points: 2 }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toBe(
       '[chore-chart.choreSummary.daily] · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountPlural count=2]',
@@ -55,6 +56,7 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ frequency: 'weekly', points: 3, timeOfDay: 'afternoon' }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('[chore-chart.choreSummary.weekly]');
     expect(out).toContain('[chore-chart.timeOfDay.afternoon]');
@@ -65,6 +67,7 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ frequency: 'biweekly', points: 4 }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('[chore-chart.choreSummary.biweekly]');
   });
@@ -74,10 +77,17 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ frequency: 'once', specificDate: '2026-06-01', points: 1 }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toBe(
-      '[chore-chart.choreSummary.once date=2026-06-01] · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountSingular count=1]',
+      '[chore-chart.choreSummary.once date=Mon, Jun 1] · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountSingular count=1]',
     );
+  });
+
+  it('writes the one-time date in the formatting locale, the same day in any zone', () => {
+    const chore = makeChore({ frequency: 'once', specificDate: '2026-09-25' });
+    expect(buildChoreSummaryLine({ chore, t: fakeT, dayNames: DAY_NAMES, locale: 'en-US' })).toContain('date=Fri, Sep 25]');
+    expect(buildChoreSummaryLine({ chore, t: fakeT, dayNames: DAY_NAMES, locale: 'de-DE' })).toContain('date=Fr., 25. Sept.]');
   });
 
   it('uses the dateless `onceNoDate` key when specificDate is missing', () => {
@@ -85,6 +95,7 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ frequency: 'once', specificDate: undefined, points: 5 }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('[chore-chart.choreSummary.onceNoDate]');
   });
@@ -94,6 +105,7 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ points: 1 }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('[chore-chart.choreSummary.ticketCountSingular count=1]');
   });
@@ -103,6 +115,7 @@ describe('buildChoreSummaryLine', () => {
       chore: makeChore({ points: 7 }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('[chore-chart.choreSummary.ticketCountPlural count=7]');
   });
@@ -129,6 +142,7 @@ describe('buildChoreSummaryLine, the days', () => {
       chore: makeChore({ frequency: 'weekly', daysOfWeek: [2, 5] }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toBe(
       '[chore-chart.choreSummary.weekly] · Tue, Fri · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountPlural count=2]',
@@ -140,6 +154,7 @@ describe('buildChoreSummaryLine, the days', () => {
       chore: makeChore({ frequency: 'weekly', daysOfWeek: [1] }),
       t: fakeT,
       dayNames: ['Son', 'Mon', 'Die', 'Mit', 'Don', 'Fre', 'Sam'],
+      locale: 'de-DE',
     });
     expect(out).toContain('Mon');
     expect(out).not.toContain('Tue');
@@ -150,6 +165,7 @@ describe('buildChoreSummaryLine, the days', () => {
       chore: makeChore({ frequency: 'weekly', daysOfWeek: [5, 0, 2] }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('Sun, Tue, Fri');
   });
@@ -159,6 +175,7 @@ describe('buildChoreSummaryLine, the days', () => {
       chore: makeChore({ frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6] }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toBe(
       '[chore-chart.choreSummary.daily] · [chore-chart.timeOfDay.morning] · [chore-chart.choreSummary.ticketCountPlural count=2]',
@@ -170,6 +187,7 @@ describe('buildChoreSummaryLine, the days', () => {
       chore: makeChore({ frequency: 'daily', daysOfWeek: [1, 2, 3, 4, 5] }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).toContain('Mon, Tue, Wed, Thu, Fri');
   });
@@ -179,6 +197,7 @@ describe('buildChoreSummaryLine, the days', () => {
       chore: makeChore({ frequency: 'once', specificDate: '2026-06-01', daysOfWeek: [2] }),
       t: fakeT,
       dayNames: DAY_NAMES,
+      locale: 'en-US',
     });
     expect(out).not.toContain('Tue');
   });

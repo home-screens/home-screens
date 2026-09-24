@@ -24,6 +24,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type { MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 /**
  * Editor settings page section for meal-planner shared settings.
@@ -57,7 +58,7 @@ export default function MealsSection() {
   // Household GlobalSettings.timeFormat from config.json — what "follow global"
   // resolves to. Read from the editor store so the page reflects the unsaved
   // draft while the user edits it.
-  const globalTf = useEditorStore((s) => s.config?.settings?.timeFormat);
+  const globalTf = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
 
   const [settings, setSettings] = useState<MealSettings | null>(null);
   const [loading, setLoading] = useState(true);

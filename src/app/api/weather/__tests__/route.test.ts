@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/auth', () => ({
@@ -393,9 +393,20 @@ describe('GET /api/weather', () => {
 });
 
 describe('today\'s range', () => {
+  // The record and the reconcile only apply when the forecast leads with the
+  // household's today, so the clock is pinned to the fixtures' day.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-04T18:00:00Z'));
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('remembers the day\'s warmest reading across polls', async () => {
     // Its own place, so the record it writes is not seen by the other tests.
     setupDefaults({ lat: '40.2', lon: '-74.9' });
+    mockReadConfig.mockResolvedValue({ screens: [], settings: { timezone: 'America/New_York' } } as never);
     const provider = makeMockProvider();
     provider.getForecast = vi.fn().mockResolvedValue([{ date: '2026-09-04', high: 66, low: 66, icon: '01n', description: 'Mostly Clear' }]);
     mockCreateWeatherProvider.mockReturnValue(provider as never);
@@ -414,6 +425,7 @@ describe('today\'s range', () => {
   it('type=both raises today\'s high to the current temperature', async () => {
     // Its own place: the record is keyed by location and persists across the file's tests.
     setupDefaults({ lat: '41.0', lon: '-75.5' });
+    mockReadConfig.mockResolvedValue({ screens: [], settings: { timezone: 'America/New_York' } } as never);
     const provider = makeMockProvider();
     // A post-sunset NOAA feed: only "tonight" is left, so the high is the low.
     provider.getHourly = vi.fn().mockResolvedValue([{ time: '19:00', temp: 80, icon: '01n', description: 'Clear' }]);
@@ -422,5 +434,51 @@ describe('today\'s range', () => {
 
     const json = await (await GET(makeRequest({ lat: '41.0', lon: '-75.5' }))).json();
     expect(json.forecast[0]).toMatchObject({ high: 80, low: 66 });
+  });
+
+  it('keeps a Today row from the hub\'s record once the forecast starts tomorrow', async () => {
+    // Chicago, Sep 4. At 3 pm OpenWeatherMap still has today; by 10 pm its
+    // slots have run out and its first day is Sep 5.
+    setupDefaults({ lat: '41.5', lon: '-76.0' });
+    mockReadConfig.mockResolvedValue({ screens: [], settings: { timezone: 'America/Chicago' } } as never);
+    const provider = makeMockProvider();
+    mockCreateWeatherProvider.mockReturnValue(provider as never);
+    const tomorrow = { date: '2026-09-05', high: 70, low: 55, icon: '01d', description: 'Sunny' };
+
+    vi.setSystemTime(new Date('2026-09-04T20:00:00Z')); // 3 pm CDT
+    provider.getHourly = vi.fn().mockResolvedValue([{ time: '2026-09-04T20:00:00Z', temp: 82, icon: '10d', description: 'Rain' }]);
+    provider.getForecast = vi.fn().mockResolvedValue([
+      { date: '2026-09-04', high: 78, low: 64, icon: '10d', description: 'Light rain', precipProbability: 60 },
+      tomorrow,
+    ]);
+    await GET(makeRequest({ lat: '41.5', lon: '-76.0' }));
+    cache.clear();
+
+    vi.setSystemTime(new Date('2026-09-05T03:00:00Z')); // 10 pm CDT
+    provider.getHourly = vi.fn().mockResolvedValue([{ time: '2026-09-05T03:00:00Z', temp: 61, icon: '01n', description: 'Clear' }]);
+    provider.getForecast = vi.fn().mockResolvedValue([tomorrow]);
+    const json = await (await GET(makeRequest({ lat: '41.5', lon: '-76.0' }))).json();
+
+    // Today's row as the provider last had it, widened by the 82° the hub
+    // saw at 3 pm and tonight's 61°.
+    expect(json.forecast[0]).toEqual({
+      date: '2026-09-04', high: 82, low: 61, icon: '10d', description: 'Light rain', precipProbability: 60,
+    });
+    // Tonight's reading is not tomorrow's high or low.
+    expect(json.forecast[1]).toEqual(tomorrow);
+  });
+
+  it('builds the Today row from the current reading when the hub kept none', async () => {
+    vi.setSystemTime(new Date('2026-09-05T03:00:00Z')); // 10 pm CDT Sep 4
+    setupDefaults({ lat: '41.6', lon: '-76.1' });
+    mockReadConfig.mockResolvedValue({ screens: [], settings: { timezone: 'America/Chicago' } } as never);
+    const provider = makeMockProvider();
+    provider.getHourly = vi.fn().mockResolvedValue([{ time: '2026-09-05T03:00:00Z', temp: 80, icon: '01n', description: 'Clear', humidity: 40 }]);
+    provider.getForecast = vi.fn().mockResolvedValue([{ date: '2026-09-05', high: 70, low: 55, icon: '01d', description: 'Sunny' }]);
+    mockCreateWeatherProvider.mockReturnValue(provider as never);
+
+    const json = await (await GET(makeRequest({ lat: '41.6', lon: '-76.1' }))).json();
+    expect(json.forecast[0]).toEqual({ date: '2026-09-04', high: 80, low: 80, icon: '01n', description: 'Clear', humidity: 40 });
+    expect(json.forecast[1]).toMatchObject({ date: '2026-09-05', high: 70, low: 55 });
   });
 });

@@ -13,14 +13,17 @@ import type { ModuleInstance, CountdownEvent, CountdownView, CountdownConfig, Co
 import { selectCountdownUnits } from '@/components/modules/countdown/countdown-utils';
 import type { TimeRemaining } from '@/components/modules/countdown/types';
 import { formatDuration } from '@/lib/duration-format';
-import { localISODateTime } from '@/lib/timezone';
+import { isoDateInTZ, localISODateTime } from '@/lib/timezone';
 import HolidayPickerModal from '@/components/editor/HolidayPickerModal';
+import { useEditorHouseholdNow } from '@/components/editor/useEditorHouseholdClock';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import HomeTimeHint from '@/components/editor/HomeTimeHint';
 
 export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
+  const householdNow = useEditorHouseholdNow();
   const { config: c, set } = useModuleConfig<CountdownConfig>(mod, screenId);
   const events = c.events ?? [];
   const view = c.view ?? 'all';
@@ -59,13 +62,18 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
       ? null
       : formatDuration(selectCountdownUnits(sample, precisionVal), formatVal, formattingLocale);
 
+  // A new event starts this time tomorrow on the household's wall clock, not
+  // UTC's or the laptop's: the date is stored without a zone and the wall
+  // reads it in the household's. Starting it "now" made it already past, so
+  // with past events hidden (the default) Add looked like it did nothing.
+  const nowStamp = localISODateTime(householdNow);
+  const [year, month, day] = nowStamp.slice(0, 10).split('-').map(Number);
+  const tomorrow = isoDateInTZ(new Date(Date.UTC(year, month - 1, day + 1)), 'UTC');
   const { add: addEvent, remove: removeEvent, update: updateEvent } = useListEditor<CountdownEvent>(
     events,
     'events',
     set,
-    // Local time, not UTC: the date field below reads its value as local, so a
-    // UTC seed opens a new event on the wrong day at an hour nobody chose.
-    { name: t('configSections.countdown.defaultEventName'), date: localISODateTime() }
+    { name: t('configSections.countdown.defaultEventName'), date: `${tomorrow}${nowStamp.slice(10)}` }
   );
 
   const [showHolidayPicker, setShowHolidayPicker] = useState(false);
@@ -197,6 +205,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
                   onChange={(e) => updateEvent(ev.id, { date: e.target.value })}
                   className={NESTED_INPUT_CLASS}
                 />
+                <HomeTimeHint className="" />
                 <Toggle
                   label={t('configSections.countdown.repeatYearly')}
                   checked={ev.recurring === 'yearly'}

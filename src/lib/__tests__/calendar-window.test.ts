@@ -31,13 +31,30 @@ describe('getCalendarFetchWindow', () => {
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();
   });
 
-  it('returns null for upcoming-only calendar views (daily, agenda)', () => {
+  it('returns null for upcoming-only calendar views (daily, compact agenda)', () => {
     const screens = [makeScreen([
       makeModule('calendar', { viewMode: 'daily' }),
       makeModule('calendar', { viewMode: 'agenda' }),
-      makeModule('fullscreen-calendar', { view: 'agenda' }),
     ])];
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();
+  });
+
+  it('fetches through the last day the fullscreen agenda draws', () => {
+    // The agenda draws 14 days by default; the 7-day server default left
+    // days 8 to 14 reading "No events" whatever was on them.
+    const today = startOfDay(NOW);
+    const byDefault = getCalendarFetchWindow([makeScreen([makeModule('fullscreen-calendar', { view: 'agenda' })])], NOW, DAYS_AHEAD);
+    expect(byDefault!.timeMin).toBe(addDays(today, -1).toISOString());
+    expect(byDefault!.timeMax).toBe(addDays(today, 14 + 1).toISOString());
+    const thirty = getCalendarFetchWindow(
+      [makeScreen([makeModule('fullscreen-calendar', { view: 'agenda', agendaDaysAhead: 30 })])], NOW, DAYS_AHEAD,
+    );
+    expect(thirty!.timeMax).toBe(addDays(today, 30 + 1).toISOString());
+  });
+
+  it('keeps tomorrow inside the fetch for free time when daysAhead is 1', () => {
+    const win = getCalendarFetchWindow([makeScreen([makeModule('fullscreen-calendar', { view: 'free-time' })])], NOW, 1);
+    expect(win!.timeMax).toBe(addDays(startOfDay(NOW), 2 + 1).toISOString());
   });
 
   it('widens to padded start-of-today for agenda with agendaShowFinishedToday', () => {
@@ -77,7 +94,6 @@ describe('getCalendarFetchWindow', () => {
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
     expect(win).not.toBeNull();
     expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
-    expect(win!.timeMax).toBeNull();
   });
 
   it('widens to the padded month grid for a calendar module in month view', () => {
@@ -148,13 +164,15 @@ describe('getCalendarFetchWindow', () => {
     expect(monthWin!.timeMax).toBe(addDays(gridEnd, 1).toISOString());
   });
 
-  it('widens to start of today for schedule and day-timeline, keeping default timeMax', () => {
+  it('widens to start of today for schedule and day-timeline', () => {
     for (const view of ['schedule', 'day-timeline']) {
       const screens = [makeScreen([makeModule('fullscreen-calendar', { view })])];
       const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
       expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
-      expect(win!.timeMax).toBeNull();
     }
+    // Day-timeline draws only today, which the server default always covers.
+    const timeline = getCalendarFetchWindow([makeScreen([makeModule('fullscreen-calendar', { view: 'day-timeline' })])], NOW, DAYS_AHEAD);
+    expect(timeline!.timeMax).toBeNull();
   });
 
   it('ignores disabled modules', () => {
@@ -316,7 +334,7 @@ describe('getCalendarFetchWindow · schedule start anchors', () => {
     // today's events — the window must clamp back to today.
     const screens = [makeScreen([
       makeModule('fullscreen-calendar', { view: 'schedule', scheduleStartAnchor: 'next-weekend' }),
-      makeModule('fullscreen-calendar', { view: 'agenda' }),
+      makeModule('calendar', { viewMode: 'agenda' }),
     ])];
     const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
     expect(win).not.toBeNull();
@@ -326,11 +344,11 @@ describe('getCalendarFetchWindow · schedule start anchors', () => {
     expect(win!.timeMax).toBe(addDays(addDays(saturday, 7), 1).toISOString());
   });
 
-  it('keeps the default anchor behavior unchanged', () => {
+  it('covers all seven columns from today for the default anchor, whatever daysAhead is', () => {
     const screens = [makeScreen([makeModule('fullscreen-calendar', { view: 'schedule' })])];
-    const win = getCalendarFetchWindow(screens, NOW, DAYS_AHEAD);
+    const win = getCalendarFetchWindow(screens, NOW, 3);
     expect(win!.timeMin).toBe(addDays(startOfDay(NOW), -1).toISOString());
-    expect(win!.timeMax).toBeNull();
+    expect(win!.timeMax).toBe(addDays(startOfDay(NOW), 7 + 1).toISOString());
   });
 });
 

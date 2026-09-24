@@ -7,7 +7,43 @@
  * All sample values are provider-raw metric (°C, m/s, mm) — unit conversion
  * and rounding policy stay with the caller, since providers deliberately
  * differ there (e.g. Yr rounds precip probability, SMHI reports it raw).
+ *
+ * `forecastDate` is shared more widely: every provider that dates forecast
+ * days from real instants keys them with it.
  */
+
+import { isoDateInTZ } from '../timezone';
+
+/**
+ * The calendar day a forecast instant belongs to at the forecast's place, as
+ * `YYYY-MM-DD`.
+ *
+ * Forecast days are days on the location's own calendar: the wall labels
+ * `forecast[0]` "Today" and the hub records today's high and low under its
+ * date. Keying real instants by `toISOString()` takes the UTC day instead, so
+ * in Chicago after 7 pm today's samples landed in tomorrow's bucket, and east
+ * of UTC every local-midnight timestamp fell on the day before.
+ *
+ * `zone` is either an IANA zone or a fixed offset from UTC in seconds (what
+ * OpenWeatherMap reports). Without one the UTC day is the only honest answer.
+ * An unparseable instant has no day and yields `''`.
+ */
+export function forecastDate(instant: Date, zone?: string | number): string {
+  if (Number.isNaN(instant.getTime())) return '';
+  if (typeof zone === 'number') return new Date(instant.getTime() + zone * 1000).toISOString().slice(0, 10);
+  if (zone) return isoDateInTZ(instant, zone);
+  return instant.toISOString().slice(0, 10);
+}
+
+/**
+ * The forecast from the household's today on. A forecast fetched before
+ * midnight still leads with that day until the next refresh, and a view that
+ * features `forecast[0]` would keep showing yesterday for up to ten minutes.
+ * Dates are `YYYY-MM-DD`, so they compare as strings.
+ */
+export function forecastFromToday<T extends { date: string }>(forecast: T[], todayISO: string): T[] {
+  return forecast[0] && forecast[0].date < todayISO ? forecast.filter((day) => day.date >= todayISO) : forecast;
+}
 
 /** One timeseries entry, reduced to the fields daily aggregation needs. */
 export interface DailySample<S> {
@@ -66,14 +102,19 @@ export function average(values: number[]): number | undefined {
 }
 
 /** Bucket samples by date (preserving first-seen date order) and aggregate
- * each day. `maxDays` caps the output to the first N dates. */
+ * each day. `maxDays` caps the output to the first N dates. Samples dated
+ * before `fromDate` (today, `YYYY-MM-DD`) are dropped: a timeseries that opens
+ * with the hour just gone would otherwise lead with a one-sample "yesterday"
+ * just after midnight, and the wall labels the first day "Today". */
 export function aggregateDaily<S>(
   samples: Iterable<DailySample<S>>,
   maxDays: number,
+  fromDate?: string,
 ): DailyAggregate<S>[] {
   const byDate = new Map<string, DailyBucket<S>>();
 
   for (const sample of samples) {
+    if (fromDate && sample.date < fromDate) continue;
     let day = byDate.get(sample.date);
     if (!day) {
       day = { temps: [], symbols: new Map(), precipMm: 0, precipProb: 0, humidities: [], windSpeedsMs: [] };

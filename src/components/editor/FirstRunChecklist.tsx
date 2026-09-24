@@ -84,9 +84,10 @@ export default function FirstRunChecklist() {
   const passwordSet = auth ? !!auth.authEnabled : null;
 
   const screens = config ? getActiveScreens(config, selectedDisplayId) : null;
-  const locationSet = config ? getLocation(config.settings) != null : false;
-  const { show, steps } = resolveFirstRunChecklist({
-    dismissed, screens, locationSet, familySet, passwordSet,
+  const townSet = config ? getLocation(config.settings) != null : false;
+  const zoneSet = !!config?.settings?.timezone;
+  const { show, steps, onlyZoneMissing } = resolveFirstRunChecklist({
+    dismissed, screens, townSet, zoneSet, familySet, passwordSet,
   });
 
   // Every step this card can check is done, so stop asking the hub for the rest
@@ -148,7 +149,13 @@ export default function FirstRunChecklist() {
             </a>
           )}
         </ChecklistItem>
-        <ChecklistItem done={steps.location} label={t('firstRun.steps.location')}>
+        <ChecklistItem
+          done={steps.location}
+          label={t('firstRun.steps.location')}
+          // The town alone looks finished to a parent who just typed it, so
+          // say what is left.
+          note={onlyZoneMissing ? t('firstRun.steps.locationZoneMissing') : undefined}
+        >
           {!steps.location && (
             <a href={settingsPath({ kind: 'defaults', page: 'location' })} className="text-xs text-hs-accent hover:underline">
               {t('firstRun.steps.locationLink')}
@@ -174,7 +181,7 @@ export default function FirstRunChecklist() {
   );
 }
 
-function ChecklistItem({ done, label, children }: { done: boolean; label: string; children?: React.ReactNode }) {
+function ChecklistItem({ done, label, note, children }: { done: boolean; label: string; note?: string; children?: React.ReactNode }) {
   return (
     <li className="flex items-start gap-2">
       {done
@@ -182,6 +189,7 @@ function ChecklistItem({ done, label, children }: { done: boolean; label: string
         : <Circle className="w-4 h-4 mt-0.5 shrink-0 text-hs-text-faint" aria-hidden="true" />}
       <div className="min-w-0">
         <p className={`text-xs ${done ? 'text-hs-text-faint line-through' : 'text-hs-text-body'}`}>{label}</p>
+        {note && <p className="text-xs text-hs-warning mt-0.5">{note}</p>}
         {children && <div className="mt-1">{children}</div>}
       </div>
     </li>

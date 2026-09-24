@@ -397,13 +397,29 @@ describe('parseDateInTZ', () => {
     expect(result.getTime()).toBe(fallback.getTime());
   });
 
-  it('handles date-only strings (no time component)', () => {
-    const dateStr = '2024-06-15';
-    const result = parseDateInTZ(dateStr, 'America/New_York');
+  it('reads a date-only string as midnight in the zone, whatever the machine zone', () => {
+    // `new Date('2026-09-26')` is UTC midnight; read on a Chicago machine it
+    // became 7 pm the evening before, and on a Kolkata one 05:30.
+    expect(parseDateInTZ('2026-09-26', 'America/Chicago').toISOString()).toBe('2026-09-26T05:00:00.000Z');
+    expect(parseDateInTZ('2026-09-26', 'Asia/Kolkata').toISOString()).toBe('2026-09-25T18:30:00.000Z');
+    expect(parseDateInTZ('2026-09-26', 'UTC').toISOString()).toBe('2026-09-26T00:00:00.000Z');
+  });
 
-    // Should not throw and should return a valid Date
-    expect(result).toBeInstanceOf(Date);
-    expect(isNaN(result.getTime())).toBe(false);
+  it('reads a date-only string without a zone as local midnight', () => {
+    expect(parseDateInTZ('2026-09-26').getTime()).toBe(new Date(2026, 8, 26).getTime());
+  });
+
+  it('takes the first pass of a fall-back hour and moves a skipped hour on', () => {
+    // Chicago passes 01:30 twice on 2026-11-01 (CDT, then CST) and skips
+    // 02:00 to 02:59 on 2026-03-08.
+    expect(parseDateInTZ('2026-11-01T01:30', 'America/Chicago').toISOString()).toBe('2026-11-01T06:30:00.000Z');
+    expect(parseDateInTZ('2026-03-08T02:30', 'America/Chicago').toISOString()).toBe('2026-03-08T08:30:00.000Z');
+    expect(parseDateInTZ('2026-03-29T01:30', 'Europe/London').toISOString()).toBe('2026-03-29T01:30:00.000Z');
+    expect(parseDateInTZ('2026-10-25T01:30', 'Europe/London').toISOString()).toBe('2026-10-25T00:30:00.000Z');
+  });
+
+  it('keeps fractional seconds', () => {
+    expect(parseDateInTZ('2024-06-15T14:30:00.5', 'Asia/Tokyo').toISOString()).toBe('2024-06-15T05:30:00.500Z');
   });
 
   it('preserves date parts when shifting timezone', () => {

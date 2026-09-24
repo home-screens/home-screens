@@ -33,7 +33,7 @@ function makeTodoistTask(overrides: Record<string, unknown> = {}) {
     content: 'Buy groceries',
     description: 'Milk, eggs, bread',
     priority: 4,
-    due: { date: '2026-03-10', datetime: null, is_recurring: false },
+    due: { date: '2026-03-10', timezone: null, string: 'Mar 10', lang: 'en', is_recurring: false },
     labels: ['urgent'],
     project_id: 'proj1',
     section_id: 'sec1',
@@ -256,11 +256,7 @@ describe('GET /api/todoist', () => {
   it('tasks include due date info when present', async () => {
     vi.mocked(getSecret).mockResolvedValue('test-token');
     mockTodoistAPI({
-      tasks: [
-        makeTodoistTask({
-          due: { date: '2026-03-10', datetime: '2026-03-10T14:00:00Z', is_recurring: true },
-        }),
-      ],
+      tasks: [makeTodoistTask({ due: { date: '2026-03-10', timezone: null, is_recurring: true } })],
       projects: [makeTodoistProject()],
       sections: [],
       labels: [],
@@ -269,11 +265,43 @@ describe('GET /api/todoist', () => {
     const res = await GET(new NextRequest('http://localhost/api/todoist'));
     const json = await res.json();
 
-    expect(json.tasks[0].due).toEqual({
-      date: '2026-03-10',
-      datetime: '2026-03-10T14:00:00Z',
-      isRecurring: true,
+    expect(json.tasks[0].due).toEqual({ date: '2026-03-10', datetime: null, isRecurring: true });
+  });
+
+  // Todoist v1 has no separate time field: a timed task's time is inside
+  // `due.date`, floating (the user's wall clock) or pinned to a zone (UTC, `Z`).
+  it.each([
+    ['a floating time', '2026-09-23T19:00:00.000000', '2026-09-23T19:00:00'],
+    ['a time pinned to a zone', '2026-09-24T00:00:00.000000Z', '2026-09-24T00:00:00Z'],
+    ['a time without seconds', '2026-09-23T19:00', '2026-09-23T19:00:00'],
+  ])('splits %s out of due.date', async (_label, rawDate, datetime) => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    mockTodoistAPI({
+      tasks: [makeTodoistTask({ due: { date: rawDate, timezone: null, is_recurring: false } })],
+      projects: [makeTodoistProject()],
+      sections: [],
+      labels: [],
     });
+
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const json = await res.json();
+
+    expect(json.tasks[0].due).toEqual({ date: rawDate.slice(0, 10), datetime, isRecurring: false });
+  });
+
+  it('reads a separate datetime field when due.date holds only the day', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    mockTodoistAPI({
+      tasks: [makeTodoistTask({ due: { date: '2026-03-10', datetime: '2026-03-10T14:00:00Z', is_recurring: false } })],
+      projects: [makeTodoistProject()],
+      sections: [],
+      labels: [],
+    });
+
+    const res = await GET(new NextRequest('http://localhost/api/todoist'));
+    const json = await res.json();
+
+    expect(json.tasks[0].due).toEqual({ date: '2026-03-10', datetime: '2026-03-10T14:00:00Z', isRecurring: false });
   });
 
   it('tasks have null due when no due date', async () => {

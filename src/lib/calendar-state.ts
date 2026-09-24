@@ -41,7 +41,8 @@ import { startOfDay } from 'date-fns';
 import type { CalendarEvent, TimeFormat } from '@/types/config';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import type { TranslateFn } from '@/i18n';
-import { formatEventTime, isAllDayEvent, isEventOnDay, parseEventWallTime } from '@/lib/calendar-utils';
+import { formatEventTime, isAllDayEvent, isEventOnDay, parseEventInstant, parseEventWallTime } from '@/lib/calendar-utils';
+import { toTZWallTime } from '@/lib/timezone';
 
 /** Bus keys, in the order the editor's picker lists them. */
 export const CALENDAR_STATE_KEYS = {
@@ -73,12 +74,14 @@ export interface CalendarStateOptions {
  * next-event three are empty strings when nothing is upcoming (see the
  * lifecycle note above).
  *
- * `now` must be the display's wall clock (`createTZDate(timezone)`) and
- * `opts.timezone` the display timezone, matching every other calendar
- * surface: event instants are read on the same wall clock via
- * `parseEventWallTime`, so a hub in one zone driving a display in another
- * still buckets events by the display's day and counts down on the
- * display's clock.
+ * `now` is the real current instant and `opts.timezone` the display
+ * timezone. Days, "busy" and the next event are read on the display's wall
+ * clock (`toTZWallTime`, events via `parseEventWallTime`), matching every
+ * other calendar surface, so a hub in one zone driving a display in another
+ * still buckets events by the display's day. The minutes countdown is the
+ * one value measured between real instants instead: two wall clock readings
+ * differ by an extra hour across a clock change, which on fall-back night
+ * published 30 for an event 90 minutes away.
  */
 export function deriveCalendarState(
   events: readonly CalendarEvent[],
@@ -86,6 +89,7 @@ export function deriveCalendarState(
   opts: CalendarStateOptions,
 ): Record<string, string> {
   const { timezone } = opts;
+  const wallNow = toTZWallTime(now, timezone);
   let next: { event: CalendarEvent; start: Date } | null = null;
   let busyNow = false;
   let eventsToday = 0;
@@ -94,7 +98,7 @@ export function deriveCalendarState(
   // `isEventOnDay` takes a day start (every other caller passes a grid
   // cell's date); handing it `now` would count tomorrow's all-day events as
   // today's, since its all-day test is `start < date + 1 day`.
-  const today = startOfDay(now);
+  const today = startOfDay(wallNow);
 
   for (const ev of events) {
     const allDay = isAllDayEvent(ev);
@@ -109,11 +113,11 @@ export function deriveCalendarState(
     if (allDay) continue;
 
     const start = parseEventWallTime(ev.start, timezone);
-    if (start > now) {
+    if (start > wallNow) {
       if (!next || start < next.start) next = { event: ev, start };
       continue;
     }
-    if (parseEventWallTime(ev.end, timezone) > now) busyNow = true;
+    if (parseEventWallTime(ev.end, timezone) > wallNow) busyNow = true;
   }
 
   return {
@@ -132,7 +136,7 @@ export function deriveCalendarState(
     // Rounded up, so a condition written as "under 30 minutes" doesn't fire a
     // minute early on an event 30 minutes and 10 seconds out.
     [CALENDAR_STATE_KEYS.nextEventInMinutes]: next
-      ? String(Math.ceil((next.start.getTime() - now.getTime()) / 60_000))
+      ? String(Math.ceil((parseEventInstant(next.event.start, timezone).getTime() - now.getTime()) / 60_000))
       : '',
   };
 }

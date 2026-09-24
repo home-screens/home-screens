@@ -9,7 +9,7 @@ import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
-import { isModuleEnabled } from '@/lib/schedule';
+import { isModuleEnabled, type ScheduleClock } from '@/lib/schedule';
 import { describeModuleStatus, STATUS_BADGE_CLASS } from '@/lib/module-status';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { buildModuleProps, type ModuleDataSource } from '@/lib/module-props';
@@ -74,7 +74,7 @@ export default function DraggableModule({
   onContextMenu?: (e: React.MouseEvent) => void;
   /** Normalized preview data for the module component (see `toEditorSource`). */
   dataSource: ModuleDataSource;
-  now: Date;
+  now: ScheduleClock;
   /** Fresh shared-state snapshot from the selected display, or null when the
    *  display hasn't reported recently — the condition badge stays neutral. */
   verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;

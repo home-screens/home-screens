@@ -5,6 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useEditorStore } from '@/stores/editor-store';
 import { useCalendarFetchQuery } from './useCalendarFetchQuery';
+import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
@@ -135,8 +136,17 @@ export function usePreviewData(): PreviewData {
   // computation the kiosk uses, so month/week grid views preview with past
   // events (WYSIWYG).
   const calendarQuery = useCalendarFetchQuery('active');
+  // With no calendar set up there is nothing to preview, and asking anyway
+  // only earns a 400 in the console of every fresh install.
+  const hasCalendar = useEditorStore((s) => hasAnyCalendarSource(s.config?.settings?.calendar));
 
   useEffect(() => {
+    if (!hasCalendar) {
+      setPreviewData((prev) => (prev.calendarEvents === null && prev.calendarSourceStatus === null
+        ? prev
+        : { ...prev, calendarEvents: null, calendarSourceStatus: null }));
+      return;
+    }
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
@@ -160,7 +170,7 @@ export function usePreviewData(): PreviewData {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [calendarQuery]);
+  }, [calendarQuery, hasCalendar]);
 
   // Publish weather events to the event bus so editor modules using
   // useEventBus('weather.conditions') see the same data as the display.

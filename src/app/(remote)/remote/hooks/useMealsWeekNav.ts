@@ -1,30 +1,34 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { MealSettings } from '@/types/config';
-import { toISODate, alignToWeekStart } from '@/lib/meal-constants';
+import { toISODate, fromISODate, alignToWeekStart, weekStartAfterDayChange } from '@/lib/meal-constants';
+import { createTZDate } from '@/lib/timezone';
 import { getWeekDates, currentActiveSlot } from '../components/meals-shared';
+import { useHouseholdNow, useHouseholdTimezone } from '../household-clock';
 
 /**
  * Which week the Meals tab is showing, plus everything derived from the wall
  * clock (today, current hour, active slot). Owns the minute tick so the rest of
  * the tab can read plain values instead of calling `new Date()` at render time.
+ *
+ * Every "now" here is the household's wall clock, not the phone's: on Sunday
+ * night a parent in another zone must land on the week the wall shows, since
+ * "Copy last week", "Shuffle" and "Clear week" act on the week in view.
  */
 export function useMealsWeekNav(settings: MealSettings) {
-  // Week navigation state — initialized as a placeholder; the effect below
-  // re-aligns it to the household's weekStartDay once settings load.
-  const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => new Date());
+  const timezone = useHouseholdTimezone();
 
   // Wall-clock tick — drives the "active slot" highlight and time-aware
   // fade-out of past slots. Without this tick, memoized values like
   // `activeSlotType` and `currentHour` freeze at first render, so a phone
   // left open at 4:55 PM would still show "Lunch • Now" at 6:00 PM.
   // Ticks once a minute, which is fine-grained enough for slot boundaries.
-  const [clockNow, setClockNow] = useState<Date>(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setClockNow(new Date()), 60_000);
-    return () => clearInterval(id);
-  }, []);
+  const clockNow = useHouseholdNow(60_000);
+
+  // Week navigation state: initialized as a placeholder; the effect below
+  // re-aligns it to the household's weekStartDay once settings load.
+  const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => createTZDate(timezone));
 
   // Re-align the week origin to today whenever the household's weekStartDay
   // changes. Anchored to today (not to the existing `viewingWeekStart`) so the
@@ -36,8 +40,8 @@ export function useMealsWeekNav(settings: MealSettings) {
   // This also fires on mount (after fetchData resolves with a non-default
   // weekStartDay), so we don't need a separate initial-alignment effect.
   useEffect(() => {
-    setViewingWeekStart(alignToWeekStart(new Date(), settings.weekStartDay));
-  }, [settings.weekStartDay]);
+    setViewingWeekStart(alignToWeekStart(createTZDate(timezone), settings.weekStartDay));
+  }, [settings.weekStartDay, timezone]);
 
   const weekDates = useMemo(
     () => getWeekDates(viewingWeekStart, settings.weekStartDay),
@@ -46,6 +50,18 @@ export function useMealsWeekNav(settings: MealSettings) {
   // Derive todayISO from the tick so a phone left open past midnight rolls
   // the "Today" highlight to the new day automatically.
   const todayISO = useMemo(() => toISODate(clockNow), [clockNow]);
+  // A parent parked on this week walks into the new one at the week boundary,
+  // so Clear, Suggest and Copy last week never act on a week that just ended.
+  const shownToday = useRef(todayISO);
+  useEffect(() => {
+    const before = shownToday.current;
+    if (before === todayISO) return;
+    shownToday.current = todayISO;
+    setViewingWeekStart((prev) => {
+      const start = weekStartAfterDayChange(toISODate(prev), before, todayISO, settings.weekStartDay);
+      return start === toISODate(prev) ? prev : fromISODate(start);
+    });
+  }, [todayISO, settings.weekStartDay]);
   const currentHour = useMemo(() => clockNow.getHours(), [clockNow]);
   // Re-run when the clock ticks so "active slot" advances across slot
   // boundaries. Otherwise this memo would freeze at first render.
@@ -64,8 +80,8 @@ export function useMealsWeekNav(settings: MealSettings) {
   }, []);
 
   const jumpToToday = useCallback(() => {
-    setViewingWeekStart(alignToWeekStart(new Date(), settings.weekStartDay));
-  }, [settings.weekStartDay]);
+    setViewingWeekStart(alignToWeekStart(createTZDate(timezone), settings.weekStartDay));
+  }, [settings.weekStartDay, timezone]);
 
   return {
     /** Exposed for the plan actions that need the previous week's window */

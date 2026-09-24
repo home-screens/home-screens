@@ -36,18 +36,13 @@ export interface TodoList {
   color?: string;
   /** Array order is the display order everywhere. */
   items: TodoListItem[];
-  /** Uncheck everything on a schedule. `never` for groceries, `daily` for a before-school list. */
+  /**
+   * Uncheck everything on a schedule, at midnight in the household's time zone
+   * from Settings. `never` for groceries, `daily` for a before-school list.
+   */
   repeat: TodoRepeat;
   /** 0 = Sunday. Read only when `repeat` is `weekly`. */
   repeatDay?: number;
-  /**
-   * The IANA zone whose midnight the repeat means, captured from the device
-   * that set it (the phone or laptop standing in the household). The hub's
-   * own clock is UTC on the shipped image, so without this a "daily" list
-   * would start fresh in the early evening. Falls back to
-   * `GlobalSettings.timezone`, then the hub clock.
-   */
-  repeatTimezone?: string;
   /** ISO timestamp of the last scheduled uncheck. */
   lastResetAt?: string;
   createdAt: string;

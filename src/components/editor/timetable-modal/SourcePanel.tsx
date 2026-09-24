@@ -32,6 +32,8 @@ import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import { formatRelativeTime, useFormattingLocale, useTranslate } from '@/i18n';
 import { isSessionExpired } from '@/lib/editor-fetch';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type { TimetableData, TimetableSource } from '@/types/timetables';
 import { PROSE_CLASS } from './prose';
 import { withSheetSync, type SheetCheckOutcome } from './use-timetable-draft';
@@ -63,6 +65,7 @@ function sheetLabel(url: string): string {
 export default function SourcePanel({ memberId, source, onImportAgain, onCheck, update }: SourcePanelProps) {
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
   const [checking, setChecking] = useState(false);
   const [checkError, setCheckError] = useState<string | null>(null);
   /**
@@ -102,10 +105,9 @@ export default function SourcePanel({ memberId, source, onImportAgain, onCheck, 
 
   // Which of the day and the month comes first is a property of the language,
   // so Intl writes the date rather than a fixed pattern that would have to pick
-  // one order and be wrong in half the locales we ship.
-  const readOn = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(
-    new Date(source.importedAt),
-  );
+  // one order and be wrong in half the locales we ship. The day is the
+  // household's, not the laptop's, like every other date the editor shows.
+  const readOn = formatDateInTZ(new Date(source.importedAt), timezone, { day: 'numeric', month: 'long' }, locale);
 
   const check = async () => {
     setChecking(true);

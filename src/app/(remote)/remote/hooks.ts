@@ -59,7 +59,7 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
   const [status, setStatus] = useState<DisplayStatus | null>(null);
   const [isConnected, setIsConnected] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  // True once the hub answers 404 for this display: it exists in the
+  // True once the hub answers null for this display: it exists in the
   // registry but has never posted a heartbeat. Distinct from "waiting for
   // the first poll" (status null, neverConnected false) so the hero can say
   // "hasn't connected yet" instead of waiting forever.
@@ -79,19 +79,17 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
         : '/api/display/status';
       const res = await editorFetch(url);
       if (res.ok) {
-        const data: DisplayStatus = await res.json();
+        const data: DisplayStatus | null = await res.json();
+        failuresRef.current = 0;
+        setIsConnected(true);
+        setLastPollFailed(false);
         setStatus(data);
-        setLastUpdated(new Date());
-        setNeverConnected(false);
-        failuresRef.current = 0;
-        setIsConnected(true);
-        setLastPollFailed(false);
-      } else if (res.status === 404) {
-        failuresRef.current = 0;
-        setIsConnected(true);
-        setLastPollFailed(false);
-        setStatus(null);
-        setNeverConnected(true);
+        if (data) {
+          setLastUpdated(new Date());
+          setNeverConnected(false);
+        } else {
+          setNeverConnected(true);
+        }
       }
     } catch (e) {
       // 401 already triggered a /login redirect; don't count it as a network

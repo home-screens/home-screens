@@ -2,7 +2,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
-import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
+import type { Screen, ModuleInstance } from '@/types/config';
+import type { DisplaySettings } from '../useLiveConfig';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import ScreenRenderer from '../ScreenRenderer';
@@ -45,7 +46,7 @@ const settings = {
   latitude: 0,
   longitude: 0,
   weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
-} as unknown as GlobalSettings;
+} as unknown as DisplaySettings;
 
 const sharedData: SharedDisplayData = {
   owmData: null, wapiData: null, pirateData: null, noaaData: null,

@@ -78,7 +78,7 @@ describe('useLiveConfig scoped cache invalidation', () => {
 
   it('clears on first load, skips presentational-only changes, clears on data changes', async () => {
     const { unmount } = renderHook(() =>
-      useLiveConfig(initial.screens, initial.settings),
+      useLiveConfig(initial.screens, initial.settings, 'UTC'),
     );
     // First poll (immediate): fingerprint ref is empty, so the mount clear
     // still happens — a remounted rotator must not trust the module-global

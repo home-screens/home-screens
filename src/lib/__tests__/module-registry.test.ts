@@ -320,7 +320,8 @@ describe('Data correctness spot checks', () => {
     expect(config.format24h).toBe(false);
     expect(config.showSeconds).toBe(true);
     expect(config.showDate).toBe(true);
-    expect(config.dateFormat).toBe('EEEE, MMMM d');
+    // Empty: the date line follows the household language's own order.
+    expect(config.dateFormat).toBe('');
     expect(config.showWeekNumber).toBe(false);
     expect(config.showDayOfYear).toBe(false);
   });

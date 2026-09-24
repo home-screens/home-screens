@@ -310,32 +310,28 @@ describe('repeat schedules', () => {
     expect(mod.applyDueRepeats(data, now, 'UTC')).not.toBe(data);
   });
 
-  it('the zone the repeat was set in beats the household default', () => {
-    // 03:30 UTC on the 9th is 22:30 on the 8th in Chicago.
-    const now = new Date('2026-09-09T03:30:00.000Z');
-    const list = { repeat: 'daily' as const, repeatTimezone: 'America/Chicago' };
-    expect(mod.lastRepeatBoundary(list, now, 'UTC')!.getDate()).toBe(8);
-    // Without one, the household setting decides.
-    expect(mod.lastRepeatBoundary({ repeat: 'daily' }, now, 'America/Chicago')!.getDate()).toBe(8);
-    expect(mod.lastRepeatBoundary({ repeat: 'daily' }, now, 'UTC')!.getDate()).toBe(9);
-
+  it('always resets at household midnight, whichever phone saved the list', () => {
+    // 18:00 Chicago on the 22nd is already past midnight in Berlin. A list
+    // saved from a phone in Berlin must still wait for Chicago's midnight.
+    const now = new Date('2026-09-22T23:00:00.000Z');
     const data = migrated([list_({
       repeat: 'daily',
-      repeatTimezone: 'America/Chicago',
-      lastResetAt: '2026-09-08T23:30:00.000Z', // 18:30 Chicago, still the 8th
+      // Left behind by an older save that recorded the phone's zone.
+      ...({ repeatTimezone: 'Europe/Berlin' } as object),
+      lastResetAt: '2026-09-22T12:00:00.000Z', // 07:00 Chicago, the 22nd
       items: [{ id: 'i1', text: 'X', completed: true, createdAt: '2026-09-01T00:00:00.000Z' }],
     })]);
-    // The hub is on UTC and would have fired; the list's own zone says not yet.
-    expect(mod.applyDueRepeats(data, now, 'UTC')).toBe(data);
+    expect(mod.applyDueRepeats(data, now, 'America/Chicago')).toBe(data);
+    // Chicago midnight has passed an hour later than 05:00Z.
+    expect(mod.applyDueRepeats(data, new Date('2026-09-23T06:00:00.000Z'), 'America/Chicago')).not.toBe(data);
   });
 
-  it('records the zone with the schedule and drops it when the repeat stops', () => {
+  it('does not record the saving device\'s zone on the list', () => {
     const base = migrated([list_()]);
-    const daily = mod.updateList(base, 'l1', { repeat: 'daily', timezone: 'America/Chicago' });
-    expect(daily.lists[0].repeatTimezone).toBe('America/Chicago');
-    const off = mod.updateList(daily, 'l1', { repeat: 'never', timezone: '' });
-    expect(off.lists[0].repeatTimezone).toBeUndefined();
-    expect(() => mod.updateList(base, 'l1', { repeat: 'daily', timezone: 'Mars/Olympus' })).toThrow(/time zone/);
+    const daily = mod.updateList(base, 'l1', { repeat: 'daily', timezone: 'Europe/Berlin' } as Parameters<typeof mod.updateList>[2]);
+    expect(daily.lists[0]).not.toHaveProperty('repeatTimezone');
+    const { list: created } = mod.createList(base, { name: 'Morning', repeat: 'daily', timezone: 'Europe/Berlin' } as Parameters<typeof mod.createList>[1]);
+    expect(created).not.toHaveProperty('repeatTimezone');
   });
 
   it('readTodoData persists a due reset', async () => {
@@ -579,7 +575,6 @@ describe('validateTodoData', () => {
     expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: 'yes' as never, createdAt: 'x' }] })]))).toMatch(/completed must be/);
     expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', dueDate: '2026-02-30' }] })]))).toMatch(/dueDate/);
     expect(mod.validateTodoData(migrated([list(), list()]))).toMatch(/repeats the id/);
-    expect(mod.validateTodoData(migrated([list({ repeatTimezone: 'not a zone' })]))).toMatch(/repeatTimezone/);
     expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', assigneeIds: ['m1'] }] })]))).toBeNull();
     expect(mod.validateTodoData(migrated([list({ items: [{ id: 'a', text: 'A', completed: false, createdAt: 'x', assigneeIds: 'm1' as never }] })]))).toMatch(/assigneeIds/);
   });

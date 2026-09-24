@@ -6,7 +6,7 @@ import { Droplet, Wind } from 'lucide-react';
 import { windUnitLabel } from '@/lib/weather/units';
 import type { WeatherViewProps } from './weather-view-utils';
 import {
-  hourLabel, smoothPath, hourlyInstant, isNightHour, timelineHours, timelineMarks, temperatureAxis,
+  hourLabel, smoothPath, isNightHour, timelineHours, timelineMarks, temperatureAxis,
   labelStride, spanHours, cachedFormat, meteogramColumnPx, valueLabelled, hourLabelled,
   HOURLY_RAIN_SHOWN_PCT,
 } from './weather-view-utils';
@@ -48,7 +48,7 @@ function timeline(p: WeatherViewProps) {
       label: i === 0
         ? p.t('fullscreen-weather.nowcast.now')
         : midnight
-          ? dayFormat.format(hourlyInstant(h))
+          ? dayFormat.format(new Date(h.time))
           : hourLabel(Math.floor(hour), p.timeFormat),
       rain: Math.round(h.precipProbability ?? 0),
       wind: h.windSpeed != null ? Math.round(h.windSpeed) : null,

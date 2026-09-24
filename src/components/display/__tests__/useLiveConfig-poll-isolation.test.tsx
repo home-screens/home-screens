@@ -74,7 +74,7 @@ async function advanceOnePoll() {
 }
 
 async function mountAndSettle() {
-  const rendered = renderHook(() => useLiveConfig(initial.screens, initial.settings));
+  const rendered = renderHook(() => useLiveConfig(initial.screens, initial.settings, 'UTC'));
   await act(async () => {
     await vi.advanceTimersByTimeAsync(0);
   });

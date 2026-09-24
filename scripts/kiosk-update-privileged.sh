@@ -32,7 +32,7 @@ log() {
 # and bounded: a spoke with no route to the archive just keeps its black
 # overlay (the power agent waits for wlopm rather than exiting). This runs
 # before the staging check so the updater can call the helper with nothing
-# staged, on its nightly tick, purely to retry a package that failed before.
+# staged, on its timer tick, purely to retry a package that failed before.
 for pkg in wlopm; do
   if ! dpkg -s "${pkg}" >/dev/null 2>&1; then
     if timeout 180 apt-get install -y -qq -o DPkg::Lock::Timeout=60 "${pkg}" >/dev/null 2>&1; then

@@ -7,16 +7,20 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { WeatherStat } from '../WeatherStat';
 import { dayLabel } from './day-label';
+import { useTZClock } from '@/hooks/useTZClock';
+import { localISODate } from '@/lib/timezone';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherTableView({ config, forecast, units, scaledFontSize }: WeatherViewProps) {
+export default function WeatherTableView({ config, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
   const formattingLocale = useFormattingLocale();
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const tWeather = useTranslate('weather');
   const dayLabels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
+  // Ticks so "Today" moves at the household's midnight, not at the next refresh.
+  const todayISO = localISODate(useTZClock(timezone, 60_000));
   const days = forecast.slice(0, config.daysToShow);
   const windUnit = windUnitLabel(units);
   const showHighLow = config.showHighLow !== false;
@@ -45,7 +49,7 @@ export default function WeatherTableView({ config, forecast, units, scaledFontSi
             const Icon = getWeatherIcon(day.icon, config.iconSet);
             return (
               <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, formattingLocale, dayLabels)}</span>
+                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, todayISO, formattingLocale, dayLabels)}</span>
                 <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                 {showHighLow && (
                   <div className="flex gap-1 w-[5em] justify-center">

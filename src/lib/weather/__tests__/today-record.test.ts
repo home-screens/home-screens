@@ -52,6 +52,22 @@ describe('recordReading', () => {
     expect(await readDayRange(KEY, '2026-09-04')).toMatchObject({ high: 86 });
   });
 
+  it('keeps today\'s last forecast row for the rest of the day, and drops it on a new day', async () => {
+    const row = { date: '2026-09-04', high: 78, low: 64, icon: '10d', description: 'Light rain', precipProbability: 60 };
+    await recordReading(KEY, '2026-09-04', 82, row);
+    // Later polls whose forecast has moved on pass no row.
+    const evening = await recordReading(KEY, '2026-09-04', 61);
+    expect(evening).toEqual({ date: '2026-09-04', high: 82, low: 61, forecast: row });
+    const nextDay = await recordReading(KEY, '2026-09-05', 58);
+    expect(nextDay).toEqual({ date: '2026-09-05', high: 58, low: 58 });
+  });
+
+  it('replaces the kept row with a newer one for the same day', async () => {
+    await recordReading(KEY, '2026-09-04', 70, { date: '2026-09-04', high: 78, low: 64, icon: '10d', description: 'Rain' });
+    const newer = { date: '2026-09-04', high: 75, low: 64, icon: '02n', description: 'Clouds' };
+    expect((await recordReading(KEY, '2026-09-04', 70, newer)).forecast).toEqual(newer);
+  });
+
   it('survives a restart', async () => {
     await recordReading(KEY, '2026-09-04', 86);
     const raw = JSON.parse(await fs.readFile(path.join(tmpDir, 'data/weather-today.json'), 'utf-8'));

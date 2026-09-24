@@ -1,7 +1,7 @@
 'use client';
 
-import { parseClockTime } from '@/lib/date-info';
-import { createTZDate } from '@/lib/timezone';
+import { clockTimeInTZ, parseClockTime } from '@/lib/date-info';
+import { wallClockParts } from '@/lib/timezone';
 import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
@@ -11,20 +11,26 @@ import type { ClockViewProps } from './types';
  * World clock — primary local time displayed large on top,
  * with compact timezone rows below showing up to 3 additional zones.
  */
-export default function ClockWorldView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+/** Whole days from one `YYYY-MM-DD` to another. */
+function daysBetween(from: string, to: string): number {
+  const utc = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+  return Math.round((utc(to) - utc(from)) / 86_400_000);
+}
+
+export default function ClockWorldView({ config, instant, time, timezone, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, now);
+  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, time);
   const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const primaryTime = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`
     : `${hStr}:${mStr}`;
 
-  // Compute zone data for each world zone
+  // Each zone reads the same instant as the main clock, so the rows tick
+  // together and hydrate with it.
+  const homeDay = wallClockParts(instant, timezone).isoDate;
   const zones = (config.worldZones || []).slice(0, 3).map((zone) => {
-    const zoneDate = createTZDate(zone.timezone);
-    const zoneHours = zoneDate.getHours();
-    const zoneMinutes = zoneDate.getMinutes();
+    const { hours: zoneHours, minutes: zoneMinutes } = clockTimeInTZ(instant, zone.timezone);
 
     const zh = config.format24h ? zoneHours : zoneHours % 12 || 12;
     const zhStr = config.format24h ? String(zh).padStart(2, '0') : String(zh);
@@ -33,19 +39,8 @@ export default function ClockWorldView({ config, now, scaledFontSize, fitToBox, 
 
     const zoneTimeStr = `${zhStr}:${zmStr}`;
 
-    // Day offset: compare calendar date of zone vs local
-    const localDay = now.getDate();
-    const localMonth = now.getMonth();
-    const zoneDay = zoneDate.getDate();
-    const zoneMonth = zoneDate.getMonth();
-
-    let dayOffset = 0;
-    if (zoneMonth !== localMonth || zoneDay !== localDay) {
-      // Determine if zone is ahead or behind
-      const localDate = new Date(now.getFullYear(), localMonth, localDay);
-      const zoneDateOnly = new Date(zoneDate.getFullYear(), zoneMonth, zoneDay);
-      dayOffset = Math.round((zoneDateOnly.getTime() - localDate.getTime()) / 86400000);
-    }
+    // Day offset: the zone's calendar day against the clock's own.
+    const dayOffset = daysBetween(homeDay, wallClockParts(instant, zone.timezone).isoDate);
 
     return {
       label: zone.label,

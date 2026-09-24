@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import type { Screen, GlobalSettings } from '@/types/config';
+import type { Screen } from '@/types/config';
+import type { DisplaySettings } from './useLiveConfig';
 import { extractCalendarEvents, resolveProvider, type SharedDisplayData } from '@/lib/module-props';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { useFamilyData } from '@/hooks/useFamilyData';
@@ -19,12 +20,13 @@ import { sharedStateStore } from '@/lib/shared-state-store';
 import { CALENDAR_STATE_REPUBLISH_MS } from '@/lib/constants';
 import { createTZDate } from '@/lib/timezone';
 import { useFormattingLocale } from '@/i18n';
-import { DEFAULT_TIME_FORMAT, type CalendarEvent } from '@/types/config';
+import type { CalendarEvent } from '@/types/config';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 import type { FetchError } from '@/lib/fetch-error';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 /** Fetch weather + calendar data once, shared across all screen rotations. */
-export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings): SharedDisplayData {
+export function useSharedDisplayData(screens: Screen[], settings: DisplaySettings): SharedDisplayData {
   const { members: familyMembers, groups: familyGroups, revision: familyRevision, error: familyError } = useFamilyData();
   const familyState = familyRevision ? undefined : familyError ? 'failed' as const : 'loading' as const;
   // Bumped by plugin 'refresh' events to force re-fetch
@@ -170,8 +172,8 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
   // `useState` in this hook would re-render the whole rotator every minute
   // on a Pi. Only modules subscribed to these exact keys re-render.
   const timezone = settings.timezone;
-  const timeFormat = settings.timeFormat ?? DEFAULT_TIME_FORMAT;
   const locale = useFormattingLocale();
+  const timeFormat = householdTimeFormat(settings.timeFormat, locale);
   useEffect(() => {
     const events = extractCalendarEvents(calendarData) as CalendarEvent[] | null;
     // No payload means nothing is being fetched: either no calendar source is
@@ -186,7 +188,7 @@ export function useSharedDisplayData(screens: Screen[], settings: GlobalSettings
       return;
     }
     const tick = () => {
-      const values = deriveCalendarState(events, createTZDate(timezone), { timezone, timeFormat, locale });
+      const values = deriveCalendarState(events, new Date(), { timezone, timeFormat, locale });
       for (const [key, value] of Object.entries(values)) sharedStateStore.publish(key, value);
     };
     tick();

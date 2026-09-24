@@ -7,6 +7,8 @@ import ChangelogModal from './ChangelogModal';
 import AutoUpdateSection from './AutoUpdateSection';
 import Toggle from '@/components/ui/Toggle';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { UPDATE_CHANNELS, classifyVersion, compareSemver, type UpdateChannel } from '@/lib/semver';
 import { isDowngradeBlocked, lowestUnmetFloor } from '@/lib/update-policy';
 import { useSystemActions } from './useSystemActions';
@@ -22,6 +24,7 @@ const VISIBLE_ROLLBACK_TAGS = 3;
 export default function SystemSection({ onUpgrade, onRollback }: Props) {
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
   const [showAllTags, setShowAllTags] = useState(false);
   const {
     versionInfo,
@@ -383,7 +386,7 @@ export default function SystemSection({ onUpgrade, onRollback }: Props) {
                   <span className="text-sm text-hs-text-primary font-mono">{r.tag}</span>
                   {r.published && (
                     <span className="ml-auto text-xs text-hs-text-faint">
-                      {new Date(r.published).toLocaleDateString(locale)}
+                      {formatDateInTZ(new Date(r.published), timezone, { dateStyle: 'short' }, locale)}
                     </span>
                   )}
                   <ChevronRight className={`w-4 h-4 shrink-0 text-hs-text-faint ${r.published ? '' : 'ml-auto'}`} />

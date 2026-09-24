@@ -21,7 +21,6 @@ import { DayArtLayer } from '../shared/DayArtLayer';
 import { DayWeatherBadge } from './WeatherInline';
 import { eventAriaLabel } from './list-view-bits';
 import { useContainerHeight } from './shared-time-grid';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { GlyphPrefix } from '@/components/ui/Glyph';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { fitChips } from './chip-budget';
@@ -78,7 +77,7 @@ interface CellEvent {
  * sit once on the Everyone row, and a cell that overflows shows "+N" rather
  * than shrinking its text — the board must stay legible at seven people.
  */
-export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, people, failingSourceIds }: CalendarViewProps) {
+export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat, weather, people, failingSourceIds }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;

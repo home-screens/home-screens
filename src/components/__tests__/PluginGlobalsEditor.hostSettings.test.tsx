@@ -55,7 +55,7 @@ describe('PluginGlobalsEditor host settings dimensions', () => {
   beforeEach(() => {
     __resetLoaderForTests();
     sharedStateStore.__resetForTests();
-    useEditorStore.setState({ config: null, selectedDisplayId: null });
+    useEditorStore.setState({ config: null, selectedDisplayId: null, hubTimezone: null });
   });
 
   afterEach(() => {
@@ -166,5 +166,18 @@ describe('PluginGlobalsEditor host settings dimensions', () => {
 
     expect(getHostSettings().displayWidth).toBe(800);
     expect(getHostSettings().displayHeight).toBe(1920);
+  });
+
+  // Plugins in the editor preview must see the zone the wall runs in: the
+  // hub's while none is saved, never this laptop's.
+  it("hands plugins the hub's zone while none is saved", async () => {
+    useEditorStore.setState({ config: makeConfig(), selectedDisplayId: null, hubTimezone: 'Pacific/Auckland' });
+    await mountSdk();
+    expect(getHostSettings().timezone).toBe('Pacific/Auckland');
+
+    const saved = makeConfig();
+    saved.settings.timezone = 'America/Chicago';
+    await act(async () => { useEditorStore.setState({ config: saved }); });
+    expect(getHostSettings().timezone).toBe('America/Chicago');
   });
 });

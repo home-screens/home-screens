@@ -1,13 +1,13 @@
 // ── Public types ─────────────────────────────────────────────────────
 
 export interface HourlyWeather {
-  time: string;
   /**
-   * Unix seconds for this entry, when the provider supplies one. WeatherAPI's
-   * `time` is a zone-less location-local wall time — fine to format, unsafe
-   * to parse for arithmetic — so consumers doing time math must prefer this.
+   * The instant this entry is for, as an ISO 8601 timestamp with a zone
+   * designator ("2026-09-23T19:00:00.000Z"). Every provider sends a real
+   * instant, never a zone-less wall time, so `new Date(time)` is safe to
+   * format in the display zone and to do arithmetic with.
    */
-  timeEpoch?: number;
+  time: string;
   temp: number;
   feelsLike?: number;
   humidity?: number;
@@ -24,6 +24,8 @@ export interface HourlyWeather {
 }
 
 export interface ForecastDay {
+  /** The day on the forecast location's own calendar, `YYYY-MM-DD`. A calendar
+   *  date, not an instant: never shift it into another zone. */
   date: string;
   high: number;
   low: number;

@@ -8,6 +8,7 @@ import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
 import { listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
+import { householdTimeFormat } from '@/lib/clock-time';
 import { buildLegendRows } from '@/lib/calendar-legend';
 import { ownerBySource, peopleForSelection, peopleSelection, type PeopleSelection } from '@/lib/calendar-people';
 import type { FamilyGroup } from '@/types/family';
@@ -189,7 +190,7 @@ export default function FullscreenCalendarModule({
   style: _style,
   events: rawEventsRaw,
   timezone,
-  timeFormat,
+  timeFormat: savedTimeFormat,
   hourly,
   forecast,
   units,
@@ -204,6 +205,7 @@ export default function FullscreenCalendarModule({
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
+  const timeFormat = householdTimeFormat(savedTimeFormat, locale);
   const rawEvents = useMemo(() => rawEventsRaw ?? [], [rawEventsRaw]);
   const { containerRef, dims } = useFullscreenDims();
 

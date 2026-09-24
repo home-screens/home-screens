@@ -19,7 +19,9 @@ export interface HostSettings {
 }
 
 let _settings: HostSettings = {
-  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  // A placeholder until the host pushes the household's zone, which it does
+  // in a layout effect before any plugin renders.
+  timezone: 'UTC',
   units: 'imperial',
   latitude: null,
   longitude: null,

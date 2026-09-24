@@ -106,8 +106,10 @@ export function buildChoreSummaryLine(args: {
   t: TranslateFn;
   /** Weekday names for the formatting locale, Sunday first, from `getLocalizedDayNames`. */
   dayNames: readonly string[];
+  /** The formatting locale, for a one-time chore's date ("Fri, Sep 25"). */
+  locale: string;
 }): string {
-  const { chore, t, dayNames } = args;
+  const { chore, t, dayNames, locale } = args;
   const ticketsLabel = chore.points === 1
     ? t('chore-chart.choreSummary.ticketCountSingular', { count: chore.points })
     : t('chore-chart.choreSummary.ticketCountPlural', { count: chore.points });
@@ -130,13 +132,30 @@ export function buildChoreSummaryLine(args: {
   else if (chore.frequency === 'biweekly') frequencyLabel = t('chore-chart.choreSummary.biweekly');
   else if (chore.frequency === 'once') {
     frequencyLabel = chore.specificDate
-      ? t('chore-chart.choreSummary.once', { date: chore.specificDate })
+      ? t('chore-chart.choreSummary.once', { date: formatChoreDay(chore.specificDate, locale) })
       : t('chore-chart.choreSummary.onceNoDate');
   } else frequencyLabel = t('chore-chart.choreSummary.weekly');
 
   const timeOfDayLabel = t(getTimeOfDayLabelKey(chore.timeOfDay));
 
   return [frequencyLabel, daysLabel, timeOfDayLabel, ticketsLabel].filter(Boolean).join(' · ');
+}
+
+/**
+ * A one-time chore's `YYYY-MM-DD` as a short date in the formatting locale
+ * ("Fri, Sep 25"). The day carries no zone, so it is read and written at UTC
+ * midnight to stay the same day on any phone or laptop.
+ */
+function formatChoreDay(isoDay: string, locale: string): string {
+  const [y, m, d] = isoDay.split('-').map(Number);
+  if (!y || !m || !d) return isoDay;
+  try {
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(locale, {
+      timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric',
+    });
+  } catch {
+    return isoDay;
+  }
 }
 
 /**

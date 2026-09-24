@@ -1,13 +1,9 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getWeekDates, currentActiveSlot } from '../meals-shared';
-
-afterEach(() => {
-  vi.useRealTimers();
-});
 
 describe('getWeekDates', () => {
   it('returns exactly 7 entries', () => {
-    expect(getWeekDates()).toHaveLength(7);
+    expect(getWeekDates(new Date())).toHaveLength(7);
   });
 
   it('starts on Sunday by default', () => {
@@ -42,7 +38,7 @@ describe('getWeekDates', () => {
   });
 
   it('returns consecutive dates', () => {
-    const dates = getWeekDates();
+    const dates = getWeekDates(new Date());
     for (let i = 1; i < dates.length; i++) {
       const prev = new Date(dates[i - 1].date + 'T12:00:00');
       const curr = new Date(dates[i].date + 'T12:00:00');
@@ -53,14 +49,14 @@ describe('getWeekDates', () => {
   });
 
   it('returns ISO date strings in YYYY-MM-DD format', () => {
-    const dates = getWeekDates();
+    const dates = getWeekDates(new Date());
     for (const d of dates) {
       expect(d.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
   });
 
   it('formats shortDate as M/D', () => {
-    const dates = getWeekDates();
+    const dates = getWeekDates(new Date());
     for (const d of dates) {
       expect(d.shortDate).toMatch(/^\d{1,2}\/\d{1,2}$/);
     }
@@ -68,7 +64,7 @@ describe('getWeekDates', () => {
 
   it('includes today within the returned week', () => {
     const today = new Date();
-    const dates = getWeekDates();
+    const dates = getWeekDates(new Date());
     const todayStr = `${today.getMonth() + 1}/${today.getDate()}`;
     const found = dates.some((d) => d.shortDate === todayStr);
     expect(found).toBe(true);
@@ -84,51 +80,35 @@ describe('getWeekDates', () => {
 
 describe('currentActiveSlot', () => {
   it('returns "breakfast" between 5am and 10am', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 3, 3, 7, 30));
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'])).toBe('breakfast');
+    const now = new Date(2026, 3, 3, 7, 30);
+    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBe('breakfast');
   });
 
   it('returns "lunch" between 10am and 2pm', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 3, 3, 12, 0));
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'])).toBe('lunch');
+    const now = new Date(2026, 3, 3, 12, 0);
+    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBe('lunch');
   });
 
   it('returns "dinner" between 5pm and 9pm', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 3, 3, 18, 30));
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'])).toBe('dinner');
+    const now = new Date(2026, 3, 3, 18, 30);
+    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBe('dinner');
   });
 
   it('returns null when current hour is outside any enabled slot window', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 3, 3, 23, 30)); // 11:30 PM — past dinner end
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'])).toBeNull();
+    const now = new Date(2026, 3, 3, 23, 30); // 11:30 PM, past dinner end
+    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBeNull();
   });
 
   it('skips disabled slots — returns "lunch" at snack time when snack is disabled', () => {
     // Regression test for the active-slot bug: with snack disabled, we should
     // never claim snack is active, but also shouldn't return a wrong slot.
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 3, 3, 15, 0)); // 3 PM — snack hour
+    const now = new Date(2026, 3, 3, 15, 0); // 3 PM, snack hour
     // Snack disabled, no other slot covers 3 PM → null
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'])).toBeNull();
+    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBeNull();
   });
 
   it('returns "snack" at 3 PM when snack is enabled', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(2026, 3, 3, 15, 0));
-    expect(currentActiveSlot(['breakfast', 'lunch', 'snack', 'dinner'])).toBe('snack');
-  });
-
-  it('accepts an explicit `now` Date (for tick-driven callers)', () => {
-    // The parent drives a minute-tick Date through this helper so the active
-    // slot advances as the wall clock crosses slot boundaries. This test
-    // exercises that explicit-argument path without relying on fake timers.
-    const earlyBreakfast = new Date(2026, 3, 3, 7, 30);
-    const dinnerHour = new Date(2026, 3, 3, 18, 0);
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], earlyBreakfast)).toBe('breakfast');
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], dinnerHour)).toBe('dinner');
+    const now = new Date(2026, 3, 3, 15, 0);
+    expect(currentActiveSlot(['breakfast', 'lunch', 'snack', 'dinner'], now)).toBe('snack');
   });
 });

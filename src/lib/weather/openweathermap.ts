@@ -2,7 +2,7 @@ import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
 import { fetchKeyedWeatherJSON } from './fetch';
 import { SetupError } from '@/lib/api-utils';
 import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
-import { average } from './daily';
+import { average, forecastDate } from './daily';
 import { msToWindUnit } from './units';
 
 // ── OpenWeatherMap API response types ────────────────────────────────
@@ -46,6 +46,8 @@ interface OWMForecastEntry {
 
 interface OWMForecastResponse {
   list: OWMForecastEntry[];
+  /** `timezone` is the location's current offset from UTC in seconds. */
+  city?: { timezone?: number };
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -60,10 +62,11 @@ interface DayAccumulator {
   rain: number;
 }
 
-function groupByDate(entries: OWMForecastEntry[]): Map<string, DayAccumulator> {
+/** Group entries into the location's calendar days; `zone` is an offset in seconds or an IANA zone. */
+function groupByDate(entries: OWMForecastEntry[], zone: number | string | undefined): Map<string, DayAccumulator> {
   const dayMap = new Map<string, DayAccumulator>();
   for (const entry of entries) {
-    const date = new Date(entry.dt * 1000).toISOString().split('T')[0];
+    const date = forecastDate(new Date(entry.dt * 1000), zone);
     if (!dayMap.has(date)) {
       dayMap.set(date, { temps: [], icons: [], descs: [], humidity: [], wind: [], pop: [], rain: 0 });
     }
@@ -174,9 +177,11 @@ export class OpenWeatherMapProvider implements WeatherProvider {
     return [current, ...forecast];
   }
 
-  async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
+  async getForecast(lat: number, lon: number, units: string, timezone?: string): Promise<ForecastDay[]> {
     const data = await this.fetchForecast(lat, lon, units);
-    const dayMap = groupByDate(data.list ?? []);
+    // The response carries the location's own offset, which is right even
+    // when the weather location sits in another zone than the household.
+    const dayMap = groupByDate(data.list ?? [], data.city?.timezone ?? timezone);
 
     const days: ForecastDay[] = [];
     for (const [date, day] of dayMap) {

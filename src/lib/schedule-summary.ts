@@ -1,4 +1,5 @@
-import { DEFAULT_TIME_FORMAT, type ModuleSchedule, type TimeFormat } from '@/types/config';
+import type { ModuleSchedule, TimeFormat } from '@/types/config';
+import { householdTimeFormat } from '@/lib/clock-time';
 import { resolveSpanDays } from '@/lib/schedule';
 import type { TranslateFn } from '@/i18n/types';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
@@ -102,7 +103,7 @@ function formatClock(hhmm: string, formattingLocale: string, timeFormat: TimeFor
   const [h, m] = hhmm.split(':').map(Number);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return hhmm;
   const anchor = new Date(2024, 0, 7, h, m);
-  return formatEventTime(anchor, timeFormat ?? DEFAULT_TIME_FORMAT, formattingLocale);
+  return formatEventTime(anchor, householdTimeFormat(timeFormat, formattingLocale), formattingLocale);
 }
 
 export interface ScheduleSummary {

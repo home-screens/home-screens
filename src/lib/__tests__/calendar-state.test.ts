@@ -5,7 +5,8 @@ import { makeEvent } from './helpers/calendar-fixtures';
 
 const K = CALENDAR_STATE_KEYS;
 
-// Wall-clock "now": Thursday 2026-08-20, 15:00.
+// "Now": Thursday 2026-08-20, 15:00 on the machine's own clock (the tests
+// without a timezone read events on that clock too).
 const now = new Date('2026-08-20T15:00:00');
 
 const opts = { timeFormat: '12h' as const, locale: 'en-US' };
@@ -148,7 +149,8 @@ describe('deriveCalendarState', () => {
       ev({ id: 'swim', title: 'Swim', start: '2026-08-20T06:00:00Z', end: '2026-08-20T07:00:00Z' }),
       ev({ id: 'flight', title: 'Flight', start: '2026-08-20T14:00:00Z', end: '2026-08-20T15:00:00Z' }),
     ];
-    const publish = deriveCalendarState(events, now, inTZ('Pacific/Auckland'));
+    // 15:00 in Auckland.
+    const publish = deriveCalendarState(events, new Date('2026-08-20T03:00:00Z'), inTZ('Pacific/Auckland'));
     expect(publish[K.nextEventTitle]).toBe('Swim');
     expect(publish[K.nextEventInMinutes]).toBe('180');
     expect(publish[K.busyNow]).toBe('false');
@@ -159,12 +161,36 @@ describe('deriveCalendarState', () => {
   it('publishes the start as the source wrote it, zone and all', () => {
     const publish = deriveCalendarState(
       [ev({ start: '2026-08-20T16:30:00-05:00', end: '2026-08-20T18:00:00-05:00' })],
-      now,
+      new Date('2026-08-20T15:00:00-05:00'),
       inTZ('America/Chicago'),
     );
     expect(publish[K.nextEventStart]).toBe('2026-08-20T16:30:00-05:00');
     // …while the human-readable companion is the display's clock reading.
     expect(publish[K.nextEventTime]).toBe('4:30 PM');
+  });
+
+  it('counts real minutes to the next event across a clock change', () => {
+    // Fall-back night in Chicago: 1:30 am CDT is 06:30Z, and the 2:00 am CST
+    // event is 08:00Z, 90 minutes later. The wall clocks read 1:30 and 2:00,
+    // which published 30 and fired a "leaving soon" rule an hour early.
+    const publish = deriveCalendarState(
+      [ev({ start: '2026-11-01T02:00:00-06:00', end: '2026-11-01T03:00:00-06:00' })],
+      new Date('2026-11-01T06:30:00Z'),
+      inTZ('America/Chicago'),
+    );
+    expect(publish[K.nextEventInMinutes]).toBe('90');
+  });
+
+  it('reads the day and the countdown on the display clock when the machine is elsewhere', () => {
+    // 8 pm in Chicago is already the next day in UTC; the event at 9 pm is
+    // still today's and an hour away.
+    const publish = deriveCalendarState(
+      [ev({ start: '2026-09-22T21:00:00-05:00', end: '2026-09-22T22:00:00-05:00' })],
+      new Date('2026-09-23T01:00:00Z'),
+      inTZ('America/Chicago'),
+    );
+    expect(publish[K.nextEventInMinutes]).toBe('60');
+    expect(publish[K.eventsToday]).toBe('1');
   });
 });
 

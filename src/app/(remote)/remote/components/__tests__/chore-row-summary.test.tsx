@@ -38,6 +38,7 @@ function list(chores: ChoreDefinition[]) {
       groups={[]}
       familyReady
       chores={chores}
+      today="2026-09-23"
       choreSettings={{ grabLimit: 1, grabHold: 'day' }}
       onOpenSettings={vi.fn()}
       onFamilyChanged={vi.fn()}
@@ -66,6 +67,6 @@ describe('the chore rows under Manage', () => {
 
   it('leaves the days off a one-time chore, which shows its date', () => {
     list([chore({ frequency: 'once', specificDate: '2026-10-31', daysOfWeek: [2] })]);
-    expect(screen.getByText('One time · 2026-10-31 · Morning · 1 ticket')).toBeTruthy();
+    expect(screen.getByText('One time · Sat, Oct 31 · Morning · 1 ticket')).toBeTruthy();
   });
 });

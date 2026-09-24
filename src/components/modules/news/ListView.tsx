@@ -19,7 +19,7 @@ import type { NewsViewProps } from './news-view-types';
  * once per data / size change, cut into pages of whole rows, and pages turn
  * on the rotate interval. Everything fits -> one page, no rotation.
  */
-export default function ListView({ items, config, t, locale, newKeys, onTap, command, unavailable, fontScaleKey }: NewsViewProps) {
+export default function ListView({ items, config, t, locale, timezone, newKeys, onTap, command, unavailable, fontScaleKey }: NewsViewProps) {
   // The poll hands back a fresh `items` array every refresh, so keying the
   // re-measure on its identity would re-page (and so reset to page 1) even
   // when the rendered rows are byte-identical. Key on what the rows say.
@@ -130,7 +130,7 @@ export default function ListView({ items, config, t, locale, newKeys, onTap, com
       <div ref={listRef} data-news-list data-news-pages={pages?.length ?? 0} className="flex flex-col gap-2.5 flex-1 min-h-0 overflow-hidden pr-1">
         {items.map((item, i) => {
           const hidden = visible !== null && !visible.has(i);
-          const age = formatNewsAge(item.timestamp, t, locale);
+          const age = formatNewsAge(item.timestamp, t, { locale, timezone });
           const parts = metaParts(item, config, age);
           return (
             <StoryButton

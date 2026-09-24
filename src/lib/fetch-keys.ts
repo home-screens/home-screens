@@ -101,11 +101,16 @@ export function rainMapUrl(): string {
   return '/api/rain-map';
 }
 
-export function historyUrl(config: AnyConfig): string {
+/**
+ * `today` is the household's `YYYY-MM-DD`. It puts the day in the URL, so a
+ * display refetches when the household's day turns instead of showing
+ * yesterday's events until its next hourly poll.
+ */
+export function historyUrl(config: AnyConfig, context?: FetchKeyContext): string {
   const sources: string[] = [];
   if (config.sourceMuffinLabs !== false) sources.push('muffinlabs');
   if (config.sourceWikipedia !== false) sources.push('wikipedia');
-  return `/api/history?sources=${sources.join(',')}`;
+  return `/api/history?sources=${sources.join(',')}${context?.today ? `&day=${context.today}` : ''}`;
 }
 
 export function quoteUrl(): string {
@@ -199,13 +204,19 @@ export function timetablesUrl(): string {
   return '/api/timetables';
 }
 
+/** What a URL builder may know beyond the module's config. */
+export interface FetchKeyContext {
+  /** The household's calendar day, `YYYY-MM-DD`. */
+  today: string;
+}
+
 /** Registry of URL builders + TTLs for prefetching.
  *  TTLs are aligned with the corresponding server-side cache durations
  *  so the client doesn't consider data fresh when the server has newer data,
  *  or refetch needlessly when the server will return the same cached response.
  */
 export const FETCH_KEY_REGISTRY: Record<string, {
-  buildUrl: (config: AnyConfig) => string | null;
+  buildUrl: (config: AnyConfig, context?: FetchKeyContext) => string | null;
   ttlMs: number;
 }> = {
   family:         { buildUrl: familyUrl, ttlMs: 60_000 },

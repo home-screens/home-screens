@@ -13,6 +13,7 @@ import MealsLibraryView from './MealsLibraryView';
 import MealsGroceryView from './MealsGroceryView';
 import MealsSettingsSheet from './MealsSettingsSheet';
 import ConfirmSheet from './ConfirmSheet';
+import AtHomePill from './AtHomePill';
 
 export default function MealsTab() {
   const locale = useFormattingLocale();
@@ -82,7 +83,8 @@ export default function MealsTab() {
 
   return (
     <div>
-      <MealsTabHeader onOpenSettings={() => setShowSettings(true)} />
+      <MealsTabHeader todayISO={todayISO} onOpenSettings={() => setShowSettings(true)} />
+      <AtHomePill style={{ marginTop: 8 }} />
 
       <MealsSubNav subView={subView} setSubView={setSubView} weekLabel={weekLabel} />
 

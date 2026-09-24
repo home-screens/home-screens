@@ -16,7 +16,7 @@ import { DayArtLayer } from '../shared/DayArtLayer';
 import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-layout';
 import { DayWeatherBadge } from './WeatherInline';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
-import { DEFAULT_TIME_FORMAT, type FullscreenCalendarConfig } from '@/types/config';
+import type { FullscreenCalendarConfig } from '@/types/config';
 import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
@@ -24,7 +24,7 @@ import Glyph from '@/components/ui/Glyph';
 import { eventOwner } from '@/lib/calendar-people';
 import { TagPrefix } from '../shared/EventMarker';
 
-export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, owners }: CalendarViewProps) {
+export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat, weather, owners }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');

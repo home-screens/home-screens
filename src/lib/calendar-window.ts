@@ -1,5 +1,5 @@
 import { addDays, startOfDay } from 'date-fns';
-import { clampRollingWeeks, clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampAgendaDays, clampRollingWeeks, clampWeeksToShow, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import { isModuleEnabled } from '@/lib/schedule';
 import type {
@@ -66,7 +66,7 @@ function fromStartOfToday(now: Date): ModuleWindow {
   return { start: startOfDay(now), end: null };
 }
 
-/** Both agenda views: upcoming-only (server default) unless the flag keeps today's finished events. */
+/** The compact agenda: upcoming-only (server default) unless the flag keeps today's finished events. */
 function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date): ModuleWindow | null {
   return config.agendaShowFinishedToday === true ? fromStartOfToday(now) : null;
 }
@@ -117,22 +117,29 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
     if (view === 'week-list' || view === 'family-grid') return gridWindow('week', now, weekStartsOn);
     // Up next lists today's finished events under "Earlier" and free time
     // draws the whole day's busy blocks, so both need today from midnight.
-    if (view === 'up-next' || view === 'free-time') return fromStartOfToday(now);
+    if (view === 'up-next') return fromStartOfToday(now);
+    // Free time can add tomorrow's column, which a daysAhead of 1 would miss.
+    if (view === 'free-time') return gridWindow('days', now, weekStartsOn, 2);
     if (view === 'schedule') {
       // The anchor decides the first column; both non-default anchors can
       // start away from today (past week days, a future Saturday), so the
-      // window follows the anchor and covers the full 7-column maximum.
+      // window follows the anchor. Every anchor covers the full 7-column
+      // maximum, which a short daysAhead would otherwise cut off.
       const anchor = (mod.config as Partial<FullscreenCalendarConfig>).scheduleStartAnchor;
       const start = resolveScheduleStart(startOfDay(now), anchor, weekStartsOn);
-      return anchor && anchor !== 'today'
-        ? { start, end: addDays(start, 7) }
-        : { start, end: null };
+      return { start, end: addDays(start, 7) };
     }
     if (view === 'day-timeline') {
       // Renders all of today; earlier events show dimmed via dimPastEvents
       return fromStartOfToday(now);
     }
-    if (view === 'agenda') return agendaWindow(mod.config as Partial<FullscreenCalendarConfig>, now);
+    // The fullscreen agenda draws a fixed run of days from today (14 by
+    // default), usually past the daysAhead default, so it always fetches
+    // through its last drawn day. Its list filter hides finished rows unless
+    // agendaShowFinishedToday keeps them, so starting at midnight is safe.
+    if (view === 'agenda') {
+      return gridWindow('days', now, weekStartsOn, clampAgendaDays((mod.config as Partial<FullscreenCalendarConfig>).agendaDaysAhead));
+    }
     return null;
   }
   return null;

@@ -5,7 +5,7 @@ import type { TodoistConfig, TimeFormat } from '@/types/config';
 import type { TodoistTask, TaskNode } from './todoist-utils';
 import {
   PRIORITY_COLORS,
-  daysBetween,
+  dueDaysFromToday,
   formatDueDate,
   groupTasks,
   buildTaskTree,
@@ -20,6 +20,7 @@ export function TaskRow({
   depth = 0,
   onComplete,
   timeFormat,
+  timezone,
 }: {
   task: TaskNode;
   config: TodoistConfig;
@@ -28,14 +29,14 @@ export function TaskRow({
   onComplete?: (taskId: string) => void;
   /** Household 12/24 choice; absent falls back to the locale's own cycle. */
   timeFormat?: TimeFormat;
+  /** Household zone: which day counts as today, and the clock times read on. */
+  timezone?: string;
 }) {
   const tr = useTranslate('modules');
   const locale = useFormattingLocale();
   const t = task.task;
-  const dueInfo = formatDueDate(t.due, now, tr, locale, timeFormat);
-  const isOverdue = t.due
-    ? daysBetween(new Date(t.due.datetime ?? t.due.date + 'T23:59:59'), now) < 0
-    : false;
+  const dueInfo = formatDueDate(t.due, now, tr, { locale, timeFormat, timezone });
+  const isOverdue = (dueDaysFromToday(t.due, now, timezone) ?? 0) < 0;
   const priorityColor = PRIORITY_COLORS[t.priority];
   const visiblePriorityColor = priorityColor === 'transparent' ? ink(0.4) : priorityColor;
 
@@ -165,6 +166,7 @@ export function TaskRow({
         task.children.map((child) => (
           <TaskRow
             timeFormat={timeFormat}
+            timezone={timezone}
             key={child.task.id}
             task={child}
             config={config}
@@ -183,17 +185,19 @@ export default function ListView({
   now,
   onComplete,
   timeFormat,
+  timezone,
 }: {
   tasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
   onComplete?: (taskId: string) => void;
   timeFormat?: TimeFormat;
+  timezone?: string;
 }) {
   const tr = useTranslate('modules');
   const groups = useMemo(
-    () => groupTasks(tasks, config.groupBy, now, tr),
-    [tasks, config.groupBy, now, tr],
+    () => groupTasks(tasks, config.groupBy, now, tr, timezone),
+    [tasks, config.groupBy, now, tr, timezone],
   );
 
   return (
@@ -236,7 +240,8 @@ export default function ListView({
             <div className="flex flex-col gap-1">
               {tree.map((node) => (
                 <TaskRow
-            timeFormat={timeFormat}
+                  timeFormat={timeFormat}
+                  timezone={timezone}
                   key={node.task.id}
                   task={node}
                   config={config}

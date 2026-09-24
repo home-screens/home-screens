@@ -1,7 +1,6 @@
 import { google, type calendar_v3 } from 'googleapis';
 import { getAuthenticatedClient } from '@/lib/google-auth';
 import { SetupError } from '@/lib/api-utils';
-import { compareEventStarts } from '@/lib/calendar-utils';
 import { settleSourceFetches, type SourceFetchResult } from '@/lib/calendar-source-status';
 import { CALENDAR_FETCH_MAX_EVENTS } from '@/lib/constants';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
@@ -114,6 +113,7 @@ export async function fetchCalendarEvents(
     },
   );
 
-  events.sort((a, b) => compareEventStarts(a.start, b.start));
+  // Not sorted here: the calendar route sorts the merged feed of every
+  // source on the household's clock, which this module does not know.
   return { events, results };
 }

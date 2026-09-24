@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { SleepSettings } from '@/types/config';
-import { createTZDate } from '@/lib/timezone';
-import { DEFAULT_WAKE_HOLD_MINUTES, isMinuteInScheduleWindow } from '@/lib/sleep-timeline';
+import { DEFAULT_WAKE_HOLD_MINUTES, isInstantInScheduleWindow } from '@/lib/sleep-timeline';
 
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
@@ -36,7 +35,7 @@ export const RULE_WAKE_HOLD_MS = 5 * 60_000;
 
 /**
  * How often the activity listener is allowed to re-arm the schedule-window
- * wake hold. Arming costs an Intl round-trip (createTZDate), and mousemove
+ * wake hold. Arming costs a few Intl round-trips, and mousemove
  * fires at pointer rate — the throttle keeps continuous interaction to one
  * window check every few seconds while still giving "the display sleeps
  * wakeHoldMinutes after the LAST interaction" semantics (the drift is at most
@@ -54,20 +53,18 @@ const ACTIVITY_ARM_THROTTLE_MS = 5_000;
 export const WAKE_TAP_GUARD_MS = 700;
 
 /**
- * Checks whether the current time falls within a schedule window.
- * Handles overnight windows (e.g., 23:00–06:00) correctly.
- *
- * Thin wall-clock wrapper over `isMinuteInScheduleWindow` — the same predicate
- * the settings timeline preview renders from, so the preview and the runtime
- * agree on window edges by construction.
- *
- * Accepts an optional `now` parameter for testing; defaults to `new Date()`.
+ * Checks whether `now` falls within a schedule window read on `timezone`'s
+ * clock. Handles overnight windows (e.g., 23:00–06:00) correctly, and a
+ * window that has started stays in effect until its real end instant even
+ * when the clock steps back on fall-back night (see
+ * `isInstantInScheduleWindow`). Without a timezone, this machine's clock.
  */
 export function isInScheduleWindow(
   schedule: { startTime: string; endTime: string },
   now: Date = new Date(),
+  timezone?: string,
 ): boolean {
-  return isMinuteInScheduleWindow(schedule, now.getHours() * 60 + now.getMinutes());
+  return isInstantInScheduleWindow(schedule, now, timezone);
 }
 
 interface UseSleepManagerResult {
@@ -136,10 +133,10 @@ export const ALERT_WAKE_HOLD_MS = 12 * 60 * 60_000;
 export function useSleepManager(
   sleep?: SleepSettings,
   /**
-   * Display timezone (GlobalSettings.timezone). Schedule windows are
-   * evaluated against this zone via `createTZDate`, matching how screen,
-   * module, and profile schedules are evaluated in ScreenRotator — raw
-   * `new Date()` would use the Pi's OS timezone, which can differ.
+   * Display timezone (GlobalSettings.timezone). Schedule windows are read
+   * on this zone's clock (`isInScheduleWindow`), as screen, module, and
+   * profile schedules are in ScreenRotator; raw `new Date()` would use the
+   * Pi's OS timezone, which can differ.
    */
   timezone?: string,
 ): UseSleepManagerResult {
@@ -201,18 +198,18 @@ export function useSleepManager(
    * hold off — idle transitions restart from `lastActivityRef` anyway, and a
    * standing hold would wrongly suppress idle dimming for its duration.
    *
-   * Costs an Intl round-trip (createTZDate); callers on hot paths (the
-   * activity listener) throttle it via ACTIVITY_ARM_THROTTLE_MS.
+   * Costs a few Intl round-trips; callers on hot paths (the activity
+   * listener) throttle it via ACTIVITY_ARM_THROTTLE_MS.
    */
   const armScheduleWakeHold = useCallback(() => {
     const { sleep: s, timezone: tz } = scheduleRef.current;
     if (!s?.enabled) return;
     const holdMinutes = s.wakeHoldMinutes ?? DEFAULT_WAKE_HOLD_MINUTES;
     if (holdMinutes <= 0) return;
-    const tzNow = createTZDate(tz);
+    const now = new Date();
     const inWindow =
-      (!!s.schedule && isInScheduleWindow(s.schedule, tzNow)) ||
-      (!!s.dimSchedule && isInScheduleWindow(s.dimSchedule, tzNow));
+      (!!s.schedule && isInScheduleWindow(s.schedule, now, tz)) ||
+      (!!s.dimSchedule && isInScheduleWindow(s.dimSchedule, now, tz));
     if (inWindow) {
       raiseWakeHold(Date.now() + holdMinutes * 60_000);
     }
@@ -402,26 +399,33 @@ export function useSleepManager(
   // path stays fixed. Keying on the primitives (not the sleep object) means
   // unrelated settings edits can't retrigger it.
   //
-  // Known wrinkle: flipping idle dimming off during an active schedule window
-  // briefly brightens until the next 10s tick re-asserts the window — the same
-  // behavior as a touch-wake during a window, which is intended.
+  // Flipping idle dimming off during an active schedule window does not
+  // brighten it: the timer effect below re-runs on the same change and
+  // re-asserts the window straight away.
   useEffect(() => {
     if (enabled && idleDimEnabled) return;
     applyBrightnessOverride(null);
     applyDisplayState('active');
   }, [enabled, idleDimEnabled, applyBrightnessOverride, applyDisplayState]);
 
-  // Timer that checks idle time, dim schedule, and sleep schedule
+  // Timer that checks idle time, dim schedule, and sleep schedule. It also
+  // checks once as soon as it starts: a display reloaded inside its sleep
+  // window (the nightly kiosk restart usually is) would otherwise stay fully
+  // lit until the first 10s tick. The schedule is read through scheduleRef so
+  // a settings push (or a caller passing a fresh object each render) neither
+  // restarts the timer nor runs that immediate check, which would re-sleep a
+  // display the moment a touch woke it.
   useEffect(() => {
-    if (!enabled || !sleep) return;
+    if (!enabled) return;
 
-    const dimMs = sleep.dimAfterMinutes * 60 * 1000;
-    const sleepMs = sleep.sleepAfterMinutes * 60 * 1000;
-
-    const interval = setInterval(() => {
-      const tzNow = createTZDate(timezone);
-      const inSleepWindow = !!sleep.schedule && isInScheduleWindow(sleep.schedule, tzNow);
-      const inDimWindow = !!sleep.dimSchedule && isInScheduleWindow(sleep.dimSchedule, tzNow);
+    const check = () => {
+      const { sleep, timezone } = scheduleRef.current;
+      if (!sleep) return;
+      const dimMs = sleep.dimAfterMinutes * 60 * 1000;
+      const sleepMs = sleep.sleepAfterMinutes * 60 * 1000;
+      const now = new Date();
+      const inSleepWindow = !!sleep.schedule && isInScheduleWindow(sleep.schedule, now, timezone);
+      const inDimWindow = !!sleep.dimSchedule && isInScheduleWindow(sleep.dimSchedule, now, timezone);
 
       // Leave-window wake detection runs BEFORE the held-wake check: a window
       // ending outranks a standing hold. A hold means "don't sleep yet", not
@@ -492,10 +496,13 @@ export function useSleepManager(
         }
       }
       // Don't reset to 'active' here — that's handled by the activity listener
-    }, 10_000); // check every 10 seconds
+    };
+
+    check();
+    const interval = setInterval(check, 10_000); // check every 10 seconds
 
     return () => clearInterval(interval);
-  }, [enabled, idleDimEnabled, sleep, timezone, applyBrightnessOverride, applyDisplayState]);
+  }, [enabled, idleDimEnabled, applyBrightnessOverride, applyDisplayState]);
 
   // Calculate dim opacity — remote brightness override takes precedence
   const dimOpacity = (() => {

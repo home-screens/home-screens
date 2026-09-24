@@ -1,5 +1,6 @@
 import { editorFetch } from '@/lib/editor-fetch';
 import { downloadBlob } from '@/lib/download';
+import { timestampInTZ } from '@/lib/timezone';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { SystemStats } from '@/lib/system-stats-types';
 
@@ -19,8 +20,8 @@ export async function fetchStats(): Promise<
 }
 
 /**
- * Returns the display status, or `null` when the server responds non-OK
- * (display not connected). Throws on network exceptions so callers can
+ * Returns the display status, or `null` when the display has not reported yet
+ * or the server responds non-OK. Throws on network exceptions so callers can
  * distinguish a transient failure (keep last known state) from an
  * authoritative "offline" response (clear state).
  */
@@ -32,15 +33,24 @@ export async function fetchDisplayStatus(
     : '/api/display/status';
   const res = await editorFetch(url);
   if (res.ok) {
-    return (await res.json()) as DisplayStatus;
+    return (await res.json()) as DisplayStatus | null;
   }
   return null;
 }
 
-export async function generateBundle(): Promise<void> {
+/**
+ * The diagnostics download's name, stamped with the household's day and time
+ * ("home-screens-diagnostics-2026-09-24-2047.zip") so it matches the clock on
+ * the wall rather than UTC.
+ */
+export function diagnosticsFileName(timezone: string | undefined, now: Date = new Date()): string {
+  const stamp = timestampInTZ(now, timezone);
+  return `home-screens-diagnostics-${stamp.slice(0, 10)}-${stamp.slice(11, 13)}${stamp.slice(14, 16)}.zip`;
+}
+
+export async function generateBundle(timezone: string | undefined): Promise<void> {
   const res = await editorFetch('/api/system/diagnostics');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const blob = await res.blob();
-  const ts = new Date().toISOString().replace(/[:.]/g, '-');
-  downloadBlob(blob, `home-screens-diagnostics-${ts}.zip`);
+  downloadBlob(blob, diagnosticsFileName(timezone));
 }

@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { test, expect } from '../fixtures';
 import { putConfig, seedHouseholdChores } from '../helpers/api';
+import { SHEET_TAP_GUARD_MS } from '@/lib/sheet-tap-guard';
 import { baseConfig, choreChartModule, makeScreen } from '../helpers/config-fixtures';
 
 /**
@@ -190,7 +191,11 @@ test('a grown-up marks a chore not today and it leaves the count', async ({ page
   await expect.poll(async () => (await marks(request)).completions)
     .toContainEqual(expect.objectContaining({ choreId: 'bk-bed', memberId: 'bk-bram', status: 'skipped' }));
 
-  // A tap takes it away again.
+  // A tap takes it away again. Not straight away: a tap this close to the
+  // menu choice that just closed is taken for the second half of a double
+  // tap and ignored for a moment (sheet-tap-guard), so wait that out as a
+  // grown-up's deliberate second tap would.
+  await page.waitForTimeout(SHEET_TAP_GUARD_MS + 100);
   await page.getByRole('button', { name: /Make your bed, not today/ }).click();
   await expect(page.getByText('0/1 complete')).toBeVisible();
 });

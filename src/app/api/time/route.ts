@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
 import { readConfig } from '@/lib/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { hubTimezone } from '@/lib/household-day';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,8 @@ export const GET = withDisplayAuth(async () => {
     config?.settings?.formattingLocale ?? config?.settings?.locale ?? DEFAULT_LOCALE;
   return NextResponse.json({
     iso: now.toISOString(),
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    // The hub's own zone, which is also the household's while none is saved.
+    timezone: hubTimezone(),
     // Omit `hour12` so the locale's natural convention wins (24h in
     // de-DE / fr-FR / nl-NL, 12h in en-US). Forcing a fixed value here
     // would defeat the locale resolution above.

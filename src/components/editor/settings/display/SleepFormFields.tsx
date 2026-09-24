@@ -3,6 +3,7 @@
 import Slider from '@/components/ui/Slider';
 import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
+import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import SleepTimelinePreview from './SleepTimelinePreview';
 
 export interface SleepFormValues {
@@ -233,6 +234,8 @@ export default function SleepFormFields({ values, onChange, disabled = false }: 
                 </p>
               </div>
             )}
+
+            {(dimScheduleEnabled || sleepScheduleEnabled) && <HomeTimeHint className="-mt-1.5" />}
 
             {/* The wake-hold applies to both schedule windows, so it shows
                 whenever either schedule is on — waking a dimmed-by-schedule

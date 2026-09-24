@@ -30,16 +30,6 @@ describe('buildHourlyIndex / hourlyForTime', () => {
     expect(hourlyForTime(index, new Date('2026-08-20T12:00:00Z'))).toBeNull();
   });
 
-  it('prefers timeEpoch over the time string when present', () => {
-    // WeatherAPI's `time` is a zone-less location-local wall time; parsing
-    // it shifts by the OS↔location offset. timeEpoch is the real instant.
-    const entry = hour('2026-08-19 10:00', 68, {
-      timeEpoch: Date.parse('2026-08-19T16:00:00Z') / 1000,
-    });
-    const index = buildHourlyIndex([entry]);
-    expect(hourlyForTime(index, new Date('2026-08-19T16:05:00Z'))?.temp).toBe(68);
-  });
-
   it('skips unparseable entries instead of throwing', () => {
     const index = buildHourlyIndex([hour('not a date', 50), ...HOURLY]);
     expect(hourlyForTime(index, new Date('2026-08-19T16:00:00Z'))?.temp).toBe(72);
@@ -68,18 +58,34 @@ describe('weatherForEvent', () => {
   const index = buildHourlyIndex(HOURLY);
 
   it('uses the hourly entry inside the horizon', () => {
-    const wx = weatherForEvent(index, FORECAST, new Date('2026-08-19T17:00:00Z'));
+    const wx = weatherForEvent(index, FORECAST, '2026-08-19T17:00:00Z', undefined);
     expect(wx).toEqual({ temp: 74, icon: 'sun', description: 'Rain' });
+  });
+
+  it('finds the hourly entry by the true instant, not the household wall time', () => {
+    // 12:00 in Chicago is 17:00Z, the rainy hour.
+    const wx = weatherForEvent(index, FORECAST, '2026-08-19T12:00:00-05:00', 'America/Chicago');
+    expect(wx?.description).toBe('Rain');
   });
 
   it('falls back to the daily forecast past the hourly horizon', () => {
     // The 22nd has no hourly data — a gap would read as "no weather worth
     // mentioning", so the daily high must stand in.
-    const wx = weatherForEvent(index, FORECAST, new Date(2026, 7, 22, 11, 0));
+    const wx = weatherForEvent(index, FORECAST, '2026-08-22T11:00:00', undefined);
     expect(wx).toEqual({ temp: 81, icon: 'sun', description: 'Hot' });
   });
 
+  it("takes the daily fallback from the household's day, not the machine's", () => {
+    // 7:30 pm on the 22nd in Chicago is 00:30Z on the 23rd. A kiosk left at
+    // UTC used to look up the 23rd; there is no forecast for it here, so the
+    // wrong day shows up as a missing badge instead of the 22nd's high.
+    const wx = weatherForEvent(index, FORECAST, '2026-08-22T19:30:00-05:00', 'America/Chicago');
+    expect(wx).toEqual({ temp: 81, icon: 'sun', description: 'Hot' });
+    // East of UTC: 6 am on the 22nd in Auckland is 18:00Z on the 21st.
+    expect(weatherForEvent(index, FORECAST, '2026-08-21T18:00:00Z', 'Pacific/Auckland')?.temp).toBe(81);
+  });
+
   it('returns null when neither source covers the start', () => {
-    expect(weatherForEvent(index, FORECAST, new Date(2026, 7, 25, 11, 0))).toBeNull();
+    expect(weatherForEvent(index, FORECAST, '2026-08-25T11:00:00', undefined)).toBeNull();
   });
 });

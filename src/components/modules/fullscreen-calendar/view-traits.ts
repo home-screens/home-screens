@@ -2,7 +2,7 @@ import { addDays, endOfWeek, startOfDay, startOfWeek } from 'date-fns';
 import { CalendarClock, CalendarRange, Columns3, Grid3X3, Hourglass, List, ScrollText, Users, Zap, type LucideIcon } from 'lucide-react';
 import { formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { clampRollingWeeks, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampAgendaDays, clampRollingWeeks, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import type { FullscreenCalendarConfig, FullscreenCalendarView, WeatherPlacement } from '@/types/config';
 import { autoScheduleDays } from './view-support';
@@ -151,7 +151,7 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     weather: { days: true, events: true },
     headerTitle: ({ t }) => t('fullscreen-calendar.headerUpcoming'),
     legendWindow: ({ today, weekStartsOn, config }) =>
-      viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.agendaDaysAhead > 0 ? config.agendaDaysAhead : 14 }),
+      viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampAgendaDays(config.agendaDaysAhead) }),
   },
   'family-grid': {
     icon: Users,

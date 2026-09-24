@@ -6,23 +6,23 @@ import Button from '@/components/ui/Button';
 import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import type { SavedNetwork } from '@/lib/network-types';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 
 /* ─── Helpers ──────────────────────────────── */
 
-function formatLastUsed(iso: string, t: TranslateFn, formattingLocale: string): string {
+/** The day a network was last joined, on the household's calendar rather than the laptop's. */
+export function formatLastUsed(
+  iso: string,
+  t: TranslateFn,
+  formattingLocale: string,
+  timezone: string | undefined,
+): string {
   if (iso === 'never') return t('settings.networkPage.savedNetworks.neverUsed');
-  try {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    const formatted = d.toLocaleDateString(formattingLocale, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-    return t('settings.networkPage.savedNetworks.lastUsed', { date: formatted });
-  } catch {
-    return iso;
-  }
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  const formatted = formatDateInTZ(d, timezone, { month: 'short', day: 'numeric', year: 'numeric' }, formattingLocale);
+  return t('settings.networkPage.savedNetworks.lastUsed', { date: formatted });
 }
 
 /* ─── Props ────────────────────────────────── */
@@ -37,6 +37,7 @@ interface SavedNetworksSectionProps {
 export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectionProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
+  const timezone = useEditorHouseholdTimezone();
   const [networks, setNetworks] = useState<SavedNetwork[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -178,7 +179,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
                 {network.name}
               </span>
               <div className="flex items-center gap-2 text-xs text-hs-text-muted">
-                <span>{formatLastUsed(network.lastUsed, t, formattingLocale)}</span>
+                <span>{formatLastUsed(network.lastUsed, t, formattingLocale, timezone)}</span>
                 {network.autoconnect && (
                   <>
                     <span className="text-hs-text-faint">&middot;</span>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveWeatherConditions, deriveWeatherAlerts, reconcileTodayRange } from '../derive';
+import { deriveWeatherConditions, deriveWeatherAlerts, rebuildTodayRow, reconcileTodayRange } from '../derive';
 import type { HourlyWeather, WeatherAlert } from '../types';
 
 describe('deriveWeatherConditions', () => {
@@ -178,5 +178,31 @@ describe('reconcileTodayRange', () => {
     const forecast = [day(66, 66)];
     expect(reconcileTodayRange(forecast, [])).toBe(forecast);
     expect(reconcileTodayRange([], [now(80)])).toEqual([]);
+  });
+});
+
+describe('rebuildTodayRow', () => {
+  const now = (temp: number): HourlyWeather => ({ time: '2026-09-05T03:00:00Z', temp, icon: '01n', description: 'Clear', precipProbability: 5 });
+  const kept = { date: '2026-09-04', high: 78, low: 64, icon: '10d', description: 'Light rain', precipProbability: 60 };
+
+  it('brings back the kept row, widened by the recorded range and the reading', () => {
+    const row = rebuildTodayRow('2026-09-04', [now(61)], { date: '2026-09-04', high: 82, low: 63, forecast: kept });
+    expect(row).toEqual({ ...kept, high: 82, low: 61 });
+  });
+
+  it('builds the row from the current reading when none was kept', () => {
+    expect(rebuildTodayRow('2026-09-04', [now(61)], { date: '2026-09-04', high: 82, low: 61 })).toEqual({
+      date: '2026-09-04', high: 82, low: 61, icon: '01n', description: 'Clear', precipProbability: 5,
+    });
+    expect(rebuildTodayRow('2026-09-04', [now(61)])).toMatchObject({ date: '2026-09-04', high: 61, low: 61 });
+  });
+
+  it('ignores a record from another day', () => {
+    const row = rebuildTodayRow('2026-09-04', [now(61)], { date: '2026-09-03', high: 95, low: 40, forecast: { ...kept, date: '2026-09-03' } });
+    expect(row).toMatchObject({ date: '2026-09-04', high: 61, low: 61, icon: '01n' });
+  });
+
+  it('has nothing to build from without a reading or a kept row', () => {
+    expect(rebuildTodayRow('2026-09-04', [])).toBeUndefined();
   });
 });

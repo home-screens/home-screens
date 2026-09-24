@@ -9,7 +9,8 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
+import type { Screen, ModuleInstance } from '@/types/config';
+import type { DisplaySettings } from '../useLiveConfig';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { useSharedDisplayData } from '../useSharedDisplayData';
 
@@ -21,7 +22,7 @@ vi.mock('@/hooks/useFetchData', () => ({
   },
 }));
 
-function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
+function makeSettings(overrides: Partial<DisplaySettings> = {}): DisplaySettings {
   return {
     timezone: 'UTC',
     latitude: 0,
@@ -29,7 +30,7 @@ function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
     weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
     calendar: {},
     ...overrides,
-  } as unknown as GlobalSettings;
+  } as unknown as DisplaySettings;
 }
 
 function makeWeatherScreen(provider: string): Screen {

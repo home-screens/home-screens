@@ -810,5 +810,8 @@
     "save": "Guardar",
     "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
     "changeAriaLabel": "Cambiar cómo se piden las tareas extra"
+  },
+  "atHome": {
+    "pill": "En casa es {day}, {time}"
   }
 }

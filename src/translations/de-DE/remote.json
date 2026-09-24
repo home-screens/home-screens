@@ -810,5 +810,8 @@
     "save": "Speichern",
     "saveFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
     "changeAriaLabel": "Ändern, wie Bonusaufgaben geschnappt werden"
+  },
+  "atHome": {
+    "pill": "Zu Hause ist es {day}, {time}"
   }
 }

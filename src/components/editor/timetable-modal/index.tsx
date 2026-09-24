@@ -18,6 +18,7 @@ import { ChevronLeft, School, Table } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { useFamilyData } from '@/hooks/useFamilyData';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { editorFetch } from '@/lib/editor-fetch';
 import { checkSheetNow } from '@/lib/timetable-client';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -82,6 +83,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const { members } = useFamilyData();
+  const timezone = useEditorHouseholdTimezone();
 
   const draft = useTimetableDraft({
     loadFailed: t('timetableModal.loadError'),
@@ -511,9 +513,9 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
                   {t(`timetableModal.tabs.${key}`)}
                   {/* How many dates are still to come, so a parent sees at a
                       glance that there is something on the tab. */}
-                  {key === 'dates' && upcomingNoteCount(data) > 0 && (
+                  {key === 'dates' && upcomingNoteCount(data, timezone) > 0 && (
                     <span className="ml-1.5 rounded-full bg-hs-hover px-1.5 py-px text-[10px] font-bold tabular-nums text-hs-text-body">
-                      {upcomingNoteCount(data)}
+                      {upcomingNoteCount(data, timezone)}
                     </span>
                   )}
                 </button>

@@ -8,6 +8,7 @@ import { useTypewriter } from '@/hooks/useTypewriter';
 import { resolveTemplateVariables, parseMarkdown, splitRotationContent } from '@/lib/text-utils';
 import { extractSharedStateKeys, resolveSharedStateTokens } from '@/lib/shared-state-template';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
+import { useRealClock } from '@/hooks/useTZClock';
 import { useFormattingLocale } from '@/i18n';
 import { resolveFontStack } from '@/lib/font-registry';
 import { useAutoFit } from './text/useAutoFit';
@@ -76,13 +77,10 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   const rotationIndex = useRotatingIndex(contentItems.length, config.rotationIntervalMs ?? 5000);
   const rawContent = contentItems[rotationIndex] ?? contentItems[0] ?? '';
 
-  // --- 2. Resolve template variables (useMemo for sync, tick for periodic refresh) ---
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    if (!config.templateVariables) return;
-    const id = setInterval(() => setTick((t) => t + 1), 60_000);
-    return () => clearInterval(id);
-  }, [config.templateVariables]);
+  // --- 2. Resolve template variables against the shared ticking clock ---
+  // It hydrates from the server's render instant, so a variable that changed
+  // between the server render and hydration is patched on the mount tick.
+  const now = useRealClock(60_000, !!config.templateVariables);
 
   // A per-character effect wraps every glyph in its own span, so a template
   // variable that resolves to a DIFFERENT LENGTH on the client than it did on
@@ -96,9 +94,8 @@ export default function TextModule({ config, style, timezone }: TextModuleProps)
   useEffect(() => setMounted(true), []);
 
   const templateResolved = useMemo(
-    () => (config.templateVariables ? resolveTemplateVariables(rawContent, timezone) : rawContent),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick drives periodic re-evaluation of time-based template variables
-    [rawContent, config.templateVariables, timezone, tick],
+    () => (config.templateVariables ? resolveTemplateVariables(rawContent, timezone, undefined, now) : rawContent),
+    [rawContent, config.templateVariables, timezone, now],
   );
 
   // --- 2b. Substitute shared-state tokens ({plugin:ha:sensor.temp}) ---

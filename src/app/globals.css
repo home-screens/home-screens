@@ -36,6 +36,8 @@
   --hs-success:        #22c55e;
   --hs-danger:         #f87171;
   --hs-warning:        #f59e0b;
+  /* Text on a solid warning fill: dark on amber reads in both themes. */
+  --hs-on-warning:     #1b1200;
 
   /* Kid-surface tokens (dark). Distinguishes the ungated /chores page from
      the password-protectable /remote wherever both are offered — same shape,
@@ -93,6 +95,7 @@
   --hs-success:        #059669;
   --hs-danger:         #dc2626;
   --hs-warning:        #d97706;
+  --hs-on-warning:     #1b1200;
 
   /* Kid-surface tokens (light) */
   --hs-kid:            #7e22ce;
@@ -158,6 +161,7 @@
   --color-hs-success:  var(--hs-success);
   --color-hs-danger:   var(--hs-danger);
   --color-hs-warning:  var(--hs-warning);
+  --color-hs-on-warning: var(--hs-on-warning);
 
   /* Kid-surface tokens */
   --color-hs-kid:       var(--hs-kid);

@@ -23,7 +23,6 @@ import {
   completionKey,
   isChoreComplete,
   isChoreSkipped,
-  todayStr,
   addDaysISO,
   TIME_OF_DAY_META,
   getTimeOfDayLabelKey,
@@ -44,6 +43,8 @@ import ConfirmSheet from './ConfirmSheet';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
 import { logger } from '@/lib/logger';
+import { useHouseholdNow, useHouseholdToday } from '../household-clock';
+import AtHomePill from './AtHomePill';
 
 const log = logger('chores');
 
@@ -135,11 +136,12 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
-  // Re-render at midnight and advance the viewing window if the user is on "today"
-  // Both initial values come from a single snapshot so they can't straddle midnight.
-  // The hub's day as the page was drawn: the first paint matches it on any clock.
-  const initialDate = useRef(choreData.today ?? todayStr()).current;
-  const [dateKey, setDateKey] = useState(initialDate);
+  // The household's day, rolling over at midnight in the household's zone,
+  // not the phone's. The hub's day as the page was drawn is the first paint,
+  // so it matches on any clock.
+  const householdDay = useHouseholdToday();
+  const householdNow = useHouseholdNow();
+  const initialDate = useRef(choreData.today ?? householdDay).current;
   const [viewingDate, setViewingDate] = useState<string>(initialDate);
   const [hubToday, setHubToday] = useState<string | null>(choreData.today ?? null);
 
@@ -306,20 +308,11 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     };
   }, [fetchCompletions, fetchBalances, showBalances]);
 
-  useEffect(() => {
-    const check = () => {
-      const now = todayStr();
-      if (now !== dateKey) setDateKey(now);
-    };
-    const timer = setInterval(check, 30_000);
-    return () => clearInterval(timer);
-  }, [dateKey]);
-
   // Today is the hub's calendar day once it has said so: a phone with a wrong
   // clock (or near midnight) must not show or tick a different day than the
-  // wall and the other phones. The phone's own clock covers the first paint
-  // and a hub that cannot be reached.
-  const realToday = hubToday ?? dateKey;
+  // wall and the other phones. The household clock covers a hub that cannot
+  // be reached.
+  const realToday = hubToday ?? householdDay;
   // If the user was parked on what used to be today, walk them forward.
   // If they're explicitly viewing a past day, leave them alone.
   const shownToday = useRef(realToday);
@@ -660,7 +653,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'long' });
   };
   const dayName = formatDay(viewingDate);
-  const currentTimeOfDay = getCurrentTimeOfDay(new Date().getHours());
+  // Morning, afternoon or evening at home: a phone left on another zone
+  // must not light up the evening chores after lunch.
+  const currentTimeOfDay = getCurrentTimeOfDay(householdNow.getHours());
   const yesterday = addDaysISO(realToday, -1);
   const balance = balances?.[selectedMemberId] ?? 0;
 
@@ -684,6 +679,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           </p>
         )}
       </div>
+      {/* Grown-ups only: the kids' page runs on the home tablet or a kid's
+          phone at home, where the phone's clock is home's. */}
+      {isAdmin && <AtHomePill style={{ marginTop: 8 }} />}
 
       {/* Sub-nav: Today / Manage / Rewards */}
       <div
@@ -704,7 +702,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
             style={{
               flex: 1,
               padding: '8px 12px',
-              minHeight: 40,
+              minHeight: 44,
               fontSize: 13,
               fontWeight: 600,
               borderRadius: 8,
@@ -776,6 +774,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           groups={groups}
           familyReady={familyRevision !== null}
           chores={chores}
+          today={realToday}
           choreSettings={choreSettings}
           onFamilyChanged={() => {
             void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((json) => {
@@ -863,7 +862,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                     aria-pressed={active}
                     style={{
                       padding: '6px 14px',
-                      minHeight: 36,
+                      minHeight: 44,
+                      minWidth: 44,
                       fontSize: 12,
                       fontWeight: 600,
                       borderRadius: 8,

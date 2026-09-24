@@ -48,6 +48,7 @@ import TimetableHeader from './TimetableHeader';
 import TimetableDayModule from './TimetableDayModule';
 import WeekCard from './WeekCard';
 import { useTimetablePeople, type PersonEntry } from './useTimetablePeople';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 /**
  * How often the cards look at the clock. The last lesson of the week ends on a
@@ -72,9 +73,10 @@ interface PersonCard extends PersonEntry {
   focus: FocusResolution;
 }
 
-export default function TimetableModule({ config, style, timezone, timeFormat }: TimetableModuleProps) {
+export default function TimetableModule({ config, style, timezone, timeFormat: savedTimeFormat }: TimetableModuleProps) {
   const t = useTranslate('modules');
   const formatting = useFormattingLocale();
+  const timeFormat = householdTimeFormat(savedTimeFormat, formatting);
   const now = useRealClock(FOCUS_TICK_MS);
   const people = useTimetablePeople(config);
   const { snapshot, error, members, rosterLoading, rosterError, subjects, shown, closuresFor } = people;

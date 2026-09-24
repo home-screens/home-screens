@@ -2,7 +2,7 @@
 
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
-import { TopBar, AlertBand } from './weather-parts';
+import { TopBar, AlertBand, weekdayShort } from './weather-parts';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 
 /**
@@ -90,7 +90,7 @@ export default function AmbientView(p: WeatherViewProps) {
         }}>
           {chips.map((d) => {
             const Ico = getWeatherIcon(d.icon, 'outline');
-            const day = new Intl.DateTimeFormat(p.locale, { weekday: 'short', timeZone: p.timezone }).format(new Date(`${d.date}T12:00:00`));
+            const day = weekdayShort(d.date, p.locale);
             const chipStyle: React.CSSProperties = {
               textAlign: 'center', borderRadius: u * 1.7,
               background: 'var(--fsw-surface)', border: '1px solid var(--fsw-border)',

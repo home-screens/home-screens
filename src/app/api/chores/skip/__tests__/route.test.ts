@@ -12,7 +12,7 @@ vi.mock('@/lib/auth', () => ({
 import { POST as skip } from '../route';
 import { POST as tick } from '../../route';
 import { requireSession } from '@/lib/auth';
-import { todayStr } from '@/lib/chore-assignments';
+import { isoDateInTZ } from '@/lib/timezone';
 
 const now = '2026-09-09T12:00:00.000Z';
 const member = (id: string) => ({ id, name: id, color: '#60a5fa', createdAt: now, updatedAt: now });
@@ -23,7 +23,7 @@ const post = (url: string, body: unknown) => new NextRequest(`http://localhost${
   method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
 });
 const skipIt = (memberIds: string[], skipped = true, choreId = 'bed') =>
-  skip(post('/api/chores/skip', { choreId, memberIds, date: todayStr(), skipped }), undefined);
+  skip(post('/api/chores/skip', { choreId, memberIds, date: isoDateInTZ(), skipped }), undefined);
 
 beforeEach(async () => {
   root = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-chore-skip-'));
@@ -34,7 +34,7 @@ beforeEach(async () => {
     { id: 'bed', name: 'Make your bed', emoji: '', points: 1, frequency: 'daily', daysOfWeek: [], timeOfDay: 'morning', assigneeIds: ['ada', 'bram'], rotation: 'fixed' },
     { id: 'car', name: 'Wash the car', emoji: '', points: 5, frequency: 'daily', daysOfWeek: [], timeOfDay: 'anytime', assigneeIds: ['ada'], rotation: 'fixed', bonus: { claim: 'first', comesBack: 'daily' } },
   ] });
-  await put('chore-completions.json', { completions: [{ choreId: 'bed', memberId: 'bram', date: todayStr() }] });
+  await put('chore-completions.json', { completions: [{ choreId: 'bed', memberId: 'bram', date: isoDateInTZ() }] });
   await put('rewards.json', { rewards: [], balances: {}, redemptions: [] });
 });
 afterEach(async () => {
@@ -48,8 +48,8 @@ describe('POST /api/chores/skip', () => {
     expect(res.status).toBe(200);
     const { completions } = await read('chore-completions.json');
     expect(completions).toEqual([
-      { choreId: 'bed', memberId: 'bram', date: todayStr() },
-      expect.objectContaining({ choreId: 'bed', memberId: 'ada', date: todayStr(), status: 'skipped' }),
+      { choreId: 'bed', memberId: 'bram', date: isoDateInTZ() },
+      expect.objectContaining({ choreId: 'bed', memberId: 'ada', date: isoDateInTZ(), status: 'skipped' }),
     ]);
   });
 
@@ -61,7 +61,7 @@ describe('POST /api/chores/skip', () => {
 
   it('turns a not today into done when the chore is ticked after all', async () => {
     await skipIt(['ada']);
-    const res = await tick(post('/api/chores', { choreId: 'bed', memberId: 'ada', date: todayStr(), direction: 'complete' }));
+    const res = await tick(post('/api/chores', { choreId: 'bed', memberId: 'ada', date: isoDateInTZ(), direction: 'complete' }));
     expect(res.status).toBe(200);
     const ada = (await read('chore-completions.json')).completions.filter((c: { memberId: string }) => c.memberId === 'ada');
     expect(ada).toEqual([expect.not.objectContaining({ status: 'skipped' })]);

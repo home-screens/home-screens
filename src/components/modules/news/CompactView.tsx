@@ -9,7 +9,7 @@ import { UnavailableFooter } from './UnavailableFooter';
 import type { NewsViewProps } from './news-view-types';
 
 /** Dense one-liners: source, headline, age. No header, no images. */
-export default function CompactView({ items, config, t, locale, newKeys, onTap, command, unavailable }: NewsViewProps) {
+export default function CompactView({ items, config, t, locale, timezone, newKeys, onTap, command, unavailable }: NewsViewProps) {
   useViewCommand(command, {
     details: () => { if (items[0] && onTap) onTap(items[0]); },
   });
@@ -21,7 +21,7 @@ export default function CompactView({ items, config, t, locale, newKeys, onTap, 
         {items.map((item) => {
           const breaking = config.highlightBreaking && isBreaking(item);
           const isNew = config.showNewMarker && newKeys.has(newsItemKey(item));
-          const age = formatNewsAge(item.timestamp, t, locale);
+          const age = formatNewsAge(item.timestamp, t, { locale, timezone });
           return (
             <StoryButton
               key={newsItemKey(item)}

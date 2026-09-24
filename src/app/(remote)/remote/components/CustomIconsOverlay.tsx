@@ -24,6 +24,8 @@ import {
   type CustomIconUsage,
 } from '@/lib/custom-icons';
 import { customIconUseCount, customIconUseRows } from '@/lib/custom-icon-usage';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useHouseholdTimezone } from '../household-clock';
 
 /**
  * The phone's "Your icons" page: every picture the family added, how much
@@ -140,6 +142,7 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
 }) {
   const t = useTranslate('core');
   const locale = useLocale();
+  const timezone = useHouseholdTimezone();
   const [name, setName] = useState(icon.name);
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -213,7 +216,8 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
             </div>
             <div style={{ fontSize: 12, color: 'var(--hs-text-faint)' }}>
               {t('customIcons.detail.added', {
-                date: new Date(icon.createdAt).toLocaleDateString(locale, { month: 'short', day: 'numeric' }),
+                // The day it was added at home, as the rest of the phone counts days.
+                date: formatDateInTZ(new Date(icon.createdAt), timezone, { month: 'short', day: 'numeric' }, locale),
                 size: formatIconBytes(icon.bytes, locale),
               })}
               {icon.animated && <div style={{ marginTop: 4 }}>▶ {t('customIcons.moving')}</div>}

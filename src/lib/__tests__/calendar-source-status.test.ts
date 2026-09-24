@@ -98,11 +98,11 @@ describe('withSavedEvents', () => {
   it('drops saved rows that ended long before now, measured from now rather than the fetch window', () => {
     const now = new Date(2026, 7, 1).getTime();
     const wide = [mk('old', '2026-04-20T10:00:00'), mk('recent', '2026-06-30T10:00:00')];
-    withSavedEvents(wide, [{ id: 's1', ok: true }], new Date(2026, 3, 1), winEnd, now);
+    withSavedEvents(wide, [{ id: 's1', ok: true }], new Date(2026, 3, 1), winEnd, undefined, now);
     // A later narrow success: 'old' ended > 90 days before now and goes;
     // 'recent' is outside this window but within retention and stays.
-    withSavedEvents([], [{ id: 's1', ok: true }], winStart, winEnd, now);
-    const out = withSavedEvents([], [{ id: 's1', ok: false }], new Date(2026, 3, 1), winEnd, now);
+    withSavedEvents([], [{ id: 's1', ok: true }], winStart, winEnd, undefined, now);
+    const out = withSavedEvents([], [{ id: 's1', ok: false }], new Date(2026, 3, 1), winEnd, undefined, now);
     expect(out.map((e) => e.id)).toEqual(['recent']);
   });
 
@@ -111,6 +111,19 @@ describe('withSavedEvents', () => {
     withSavedEvents([mk('y', '2026-07-11T10:00:00')], [{ id: 's1', ok: true }], winStart, winEnd);
     const out = withSavedEvents([], [{ id: 's1', ok: false }, { id: 'other', ok: true }], winStart, winEnd);
     expect(out.map((e) => e.id)).toEqual(['y']);
+  });
+
+  it("serves today's saved all-day row to an evening fetch on the household's day", () => {
+    // 8 pm on Sep 22 in Chicago is 01:00Z on the 23rd. The date-only end was
+    // read as UTC midnight, before the window, and the row vanished while the
+    // source was down.
+    const picture: CalendarEvent = {
+      id: 'pic', title: 'Picture day', start: '2026-09-22', end: '2026-09-23', allDay: true, sourceId: 's1',
+    } as CalendarEvent;
+    const evening = [new Date('2026-09-23T01:00:00Z'), new Date('2026-09-30T01:00:00Z')] as const;
+    withSavedEvents([picture], [{ id: 's1', ok: true }], ...evening, 'America/Chicago');
+    const out = withSavedEvents([], [{ id: 's1', ok: false }], ...evening, 'America/Chicago');
+    expect(out.map((e) => e.id)).toEqual(['pic']);
   });
 });
 

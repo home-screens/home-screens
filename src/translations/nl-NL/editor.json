@@ -134,6 +134,8 @@
       "scheduledInactiveDetail": "{summary} Nu niet te zien op het display.",
       "conditionOnKey": "Wacht op {key}",
       "conditionNoKey": "Wacht op een live-waarde",
+      "conditionTimeMet": "Zichtbaar op dit tijdstip",
+      "conditionTimeUnmet": "Verborgen op dit tijdstip",
       "background": "Draait op de achtergrond"
     }
   },
@@ -473,11 +475,24 @@
     "locationPage": {
       "heading": "Locatie",
       "description": "Wordt gebruikt door modules voor weer, maanfase, zonsopgang/-ondergang en luchtkwaliteit.",
-      "browserLabel": "Browser",
-      "serverLabel": "Server",
       "timezoneLabel": "Tijdzone",
-      "timezoneSystemDefault": "Systeemstandaard ({timezone})",
-      "timezoneHelp": "Meestal dezelfde als die van je plaats. Verander dit alleen als de klokken er verkeerd uitzien.",
+      "timezoneHelp": "Meestal dezelfde als die van je plaats. Verander dit alleen als jullie thuis een andere tijd aanhouden.",
+      "timezoneSearchWords": "tijdzone tijd klok klokken uur",
+      "timezoneUnset": {
+        "title": "Kies je tijdzone",
+        "lead": "Tot dan gebruiken je schermen de eigen klok van de hub, die op {zone} staat.",
+        "leadPending": "Tot dan gebruiken je schermen de eigen klok van de hub.",
+        "canBeWrong": "Klokken en ‘vandaag’ kunnen dus verkeerd zijn.",
+        "ahead": "Dat is {gap} voor op {place}, dus klokken en ‘vandaag’ kunnen verkeerd zijn.",
+        "behind": "Dat is {gap} achter op {place}, dus klokken en ‘vandaag’ kunnen verkeerd zijn.",
+        "same": "Dat klopt nu met {place}, maar door een tijdzone te kiezen blijft dat zo.",
+        "aheadHere": "Dat is {gap} voor op deze computer, dus klokken en ‘vandaag’ kunnen verkeerd zijn.",
+        "behindHere": "Dat is {gap} achter op deze computer, dus klokken en ‘vandaag’ kunnen verkeerd zijn.",
+        "sameHere": "Dat klopt nu met deze computer, maar door een tijdzone te kiezen blijft dat zo.",
+        "yourTown": "je plaats",
+        "buttonPlace": "{zone} gebruiken (zoals {place})",
+        "buttonHere": "{zone} gebruiken (de tijd van deze computer)"
+      },
       "queryPlaceholder": "Postcode of plaatsnaam",
       "lookUpButton": "Opzoeken",
       "detectButton": "Mijn locatie opzoeken",
@@ -488,27 +503,34 @@
       "longitudePlaceholder": "-74.006",
       "status": {
         "lookingUp": "Opzoeken…",
-        "found": "Gevonden: {name}",
+        "found": "{name} gevonden.",
         "error": "Fout: {message}",
         "lookupFailed": "Locatie opzoeken mislukt",
         "detecting": "Detecteren…",
-        "detected": "Gedetecteerd: {name}",
-        "detectedViaIp": "Gedetecteerd: {name} (via IP)",
-        "detectedCoords": "Gedetecteerd: {lat}, {lon}",
-        "detectFailed": "Fout: locatie kon niet worden gedetecteerd"
+        "detected": "{name} gevonden.",
+        "detectedViaIp": "{name} gevonden via je internetverbinding.",
+        "detectedCoords": "{lat}, {lon} gevonden.",
+        "detectFailed": "Fout: locatie kon niet worden gedetecteerd",
+        "zoneSet": "Tijdzone op {zone} gezet, zodat die klopt."
       },
       "queryLabel": "Je plaats of postcode",
       "clockCheck": {
         "summary": "Klokken vergelijken",
-        "description": "Vergelijk de klok in deze browser met de klok op het apparaat waarop Home Screens draait. Komen ze niet overeen, pas dan de tijdzone hierboven aan."
+        "screens": "Je schermen",
+        "computer": "Deze computer",
+        "hub": "De hub",
+        "advice": "Je schermen volgen altijd de tijdzone hierboven. Deze computer kan een andere tijd tonen als je niet thuis bent; dat is prima.",
+        "adviceUnset": "Zolang er geen tijdzone gekozen is, volgen je schermen de klok van de hub. Deze computer kan een andere tijd tonen als je niet thuis bent; dat is prima."
       },
-      "deviceClock": {
-        "message": "De klok van dit apparaat staat op {deviceTimezone}, maar je schermen tonen {displayTimezone}.",
-        "help": "Je schermen tonen hoe dan ook de juiste tijd. Dit verandert alleen de tijdstippen die het apparaat voor zichzelf bijhoudt, waardoor ze makkelijker te lezen zijn.",
-        "button": "Klok van het apparaat gelijkzetten",
+      "timezoneNotPicked": "Nog niet gekozen",
+      "zoneTime": "{place}-tijd",
+      "hubClock": {
+        "optional": "Optioneel",
+        "message": "De eigen klok van de hub staat op {zone}. Gelijkzetten maakt alleen de logbestanden makkelijker te lezen.",
+        "button": "De hub op {zone} zetten",
         "settingButton": "Bezig met wijzigen…",
-        "success": "De klok van het apparaat komt nu overeen met je schermen.",
-        "error": "De klok van het apparaat kon niet worden gewijzigd."
+        "success": "De klok van de hub komt nu overeen met je schermen.",
+        "error": "De klok van de hub kon niet worden gewijzigd."
       }
     },
     "calendarPage": {
@@ -660,13 +682,14 @@
         "heading": "Automatische momentopnamen",
         "description": "Home Screens bewaart voor elke update een momentopname van je instellingen, zodat een mislukte update ongedaan kan worden gemaakt. Niets in te stellen.",
         "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
-        "sizeKb": "{size}KB",
+        "sizeKb": "{size} KB",
         "download": "Downloaden",
         "restore": "Terugzetten",
         "restoreDialog": {
-          "title": "Back-up terugzetten",
-          "message": "Configuratie terugzetten van {name}? De huidige configuratie wordt overschreven.",
-          "confirm": "Terugzetten"
+          "title": "Deze instellingen terugzetten?",
+          "message": "{what}, opgeslagen op {when}. Je huidige instellingen worden hierdoor vervangen.",
+          "confirm": "Terugzetten",
+          "messageNoDate": "{what}. Je huidige instellingen worden hierdoor vervangen."
         },
         "restoreStatus": {
           "restoring": "Terugzetten…",
@@ -674,7 +697,13 @@
           "error": "Fout: {error}",
           "failed": "Back-up terugzetten mislukt"
         },
-        "lastStableHelp": "Je instellingen van vóór de eerste vroege-toegang- of testbuild. Zet deze terug als je teruggaat naar een normale versie en die je instellingen niet kan lezen."
+        "kinds": {
+          "lastStable": "Laatste instellingen voordat je vroege versies probeerde",
+          "update": "Voor de update vanaf {version}",
+          "migration": "Voordat je instellingen werden bijgewerkt (versie {version})",
+          "other": "Opgeslagen instellingen"
+        },
+        "keptBadge": "Blijft"
       },
       "backupPassword": {
         "setTitle": "Kies een wachtwoord",
@@ -2646,7 +2675,9 @@
       "suggestButton": "Voorstel",
       "copyLastWeekButton": "Vorige week kopiëren",
       "clearButton": "Leegmaken",
-      "prepTimeMin": "{minutes} min"
+      "prepTimeMin": "{minutes} min",
+      "previousWeekAriaLabel": "Vorige week",
+      "nextWeekAriaLabel": "Volgende week"
     },
     "picker": {
       "title": "Kies een maaltijd",
@@ -3356,6 +3387,7 @@
       "viewNeon": "Neon (gloeibord)",
       "viewBar": "Balk (voortgangsbalken)",
       "viewElapsed": "Verstreken (sinds/tot)",
+      "datePresetLanguage": "Zoals gebruikelijk in je taal",
       "datePresetWeekdayMonthDay": "maandag 5 januari",
       "datePresetShortWeekday": "ma 5 jan",
       "datePresetMonthDayYear": "5 januari 2026",
@@ -4986,12 +5018,16 @@
       "templateButton": "Kies een sjabloon",
       "family": "Voeg de mensen in je huis toe",
       "familyLink": "Gezin openen",
-      "location": "Stel je locatie in",
+      "location": "Stel je plaats en tijdzone in",
       "locationLink": "Locatie & taal openen",
       "phone": "Open het op je telefoon",
       "phoneLink": "Bekijk de adressen voor je telefoon",
       "password": "Stel een wachtwoord in",
-      "passwordLink": "Beveiliging openen"
+      "passwordLink": "Beveiliging openen",
+      "locationZoneMissing": "Je plaats is ingesteld, de tijdzone nog niet."
     }
+  },
+  "homeTime": {
+    "hint": "Tijd thuis ({city}). Thuis is het nu {time}."
   }
 }

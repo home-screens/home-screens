@@ -3,6 +3,7 @@ import { fetchKeyedWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
+import { forecastDate } from './daily';
 import { createTTLCache, SetupError } from '../api-utils';
 import { logger } from '@/lib/logger';
 
@@ -149,25 +150,6 @@ export function weatherCodeDescription(code: number | undefined): string {
   return WEATHER_CODE_DESCRIPTIONS[code] ?? '';
 }
 
-function dateInTimezone(timestamp: string, timezone?: string): string {
-  const instant = new Date(timestamp);
-  if (!timezone || Number.isNaN(instant.getTime())) return timestamp.split('T')[0];
-
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts(instant);
-    const part = (type: Intl.DateTimeFormatPartTypes) =>
-      parts.find((value) => value.type === type)?.value ?? '';
-    return `${part('year')}-${part('month')}-${part('day')}`;
-  } catch {
-    return timestamp.split('T')[0];
-  }
-}
-
 // ── Met Office provider ──────────────────────────────────────────────
 
 /** @internal */
@@ -305,12 +287,12 @@ export class MetOfficeProvider implements WeatherProvider {
     const dailySeries = dailyData.features[0]?.properties.timeSeries ?? [];
     const hourlySeries = hourlyData.features[0]?.properties.timeSeries ?? [];
     const isMetric = units === 'metric';
-    const today = dateInTimezone(new Date(Date.now()).toISOString(), timezone);
+    const today = forecastDate(new Date(Date.now()), timezone);
 
     // Bucket hourly stats by date for aggregation
     const hourlyByDate = new Map<string, { winds: number[]; precipMm: number }>();
     for (const h of hourlySeries) {
-      const d = dateInTimezone(h.time, timezone);
+      const d = forecastDate(new Date(h.time), timezone);
       let bucket = hourlyByDate.get(d);
       if (!bucket) {
         bucket = { winds: [], precipMm: 0 };

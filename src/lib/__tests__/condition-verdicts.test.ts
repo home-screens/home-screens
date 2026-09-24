@@ -6,7 +6,9 @@ import {
   conditionVerdict,
   conditionsVerdict,
   explainVisibility,
+  referencesStateKeys,
   snapshotStates,
+  verdictStatesFor,
 } from '../condition-verdicts';
 
 const NOW = 1_700_000_000_000;
@@ -119,5 +121,34 @@ describe('explainVisibility', () => {
     const explained = explainVisibility({ conditions: [stateCondition('')] }, states({}));
     expect(explained.unknownKeys).toEqual(['']);
     expect(explained.visible).toBe(false);
+  });
+});
+
+describe('verdictStatesFor', () => {
+  const evening: VisibilityCondition = { kind: 'time', startTime: '18:00', endTime: '22:00' };
+
+  it('judges a clock-only tree without a display report', () => {
+    const judged = verdictStatesFor([evening, { kind: 'not', conditions: [evening] }], null);
+    expect(judged).not.toBeNull();
+    expect(conditionsVerdict([evening], judged!, new Date(2026, 8, 24, 19, 0))).toBe('met');
+    expect(conditionsVerdict([evening], judged!, new Date(2026, 8, 24, 9, 0))).toBe('unmet');
+  });
+
+  it('gives no verdict for a tree that reads a key until a display reports', () => {
+    expect(verdictStatesFor([evening, stateCondition('door')], null)).toBeNull();
+    // A condition whose key is not picked yet still waits for data.
+    expect(verdictStatesFor([stateCondition('')], null)).toBeNull();
+  });
+
+  it('prefers a live report when there is one', () => {
+    const live = states({ door: 'on' });
+    expect(verdictStatesFor([stateCondition('door')], live)).toBe(live);
+    expect(verdictStatesFor([evening], live)).toBe(live);
+  });
+
+  it('knows which trees read the shared state', () => {
+    expect(referencesStateKeys([evening])).toBe(false);
+    expect(referencesStateKeys([])).toBe(false);
+    expect(referencesStateKeys([{ kind: 'or', conditions: [evening, { kind: 'numeric', sourceKey: 'temp', above: 3 }] }])).toBe(true);
   });
 });

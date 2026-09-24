@@ -119,3 +119,29 @@ describe('SMHIProvider', () => {
     });
   });
 });
+
+describe('SMHIProvider forecast days', () => {
+  let spy: ReturnType<typeof vi.spyOn>;
+  let nowSpy: ReturnType<typeof vi.spyOn>;
+  afterEach(() => {
+    spy?.mockRestore();
+    nowSpy?.mockRestore();
+  });
+
+  it("buckets UTC samples into Swedish days and drops the hour before midnight", async () => {
+    // 00:30 Wednesday in Stockholm (UTC+2) is still Tuesday in UTC. Bucketed
+    // by UTC day, the wall led with a one-sample "Tuesday" labelled Today.
+    nowSpy = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-09-22T22:30:00Z'));
+    spy = mockSmhi([
+      { time: '2026-09-22T21:00:00Z', data: { air_temperature: 12 } }, // 11 pm Tue
+      { time: '2026-09-22T22:00:00Z', data: { air_temperature: 11 } }, // midnight Wed
+      { time: '2026-09-23T12:00:00Z', data: { air_temperature: 17 } }, // 2 pm Wed
+      { time: '2026-09-23T22:00:00Z', data: { air_temperature: 9 } },  // midnight Thu
+    ]);
+    const out = await new SMHIProvider().getForecast(59.33, 18.06, 'metric', 'Europe/Stockholm');
+    expect(out.map((d) => [d.date, d.high, d.low])).toEqual([
+      ['2026-09-23', 17, 11],
+      ['2026-09-24', 9, 9],
+    ]);
+  });
+});

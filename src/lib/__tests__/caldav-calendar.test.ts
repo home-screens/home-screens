@@ -414,6 +414,32 @@ describe('fetchICloudEvents', () => {
     expect(excluded).toEqual([]);
   });
 
+  it("keeps today's birthday in the evening on the household's day", async () => {
+    const source = calendarSource({ id: 'src-b', kind: 'birthdays', url: '', name: 'Birthdays' });
+    const carddav = () => mockClient({
+      fetchAddressBooks: vi.fn().mockResolvedValue([{ url: 'book-1' }]),
+      fetchVCards: vi.fn().mockResolvedValue([
+        { url: 'alice.vcf', etag: '"1"', data: 'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Alice\r\nBDAY:1985-07-20\r\nEND:VCARD' },
+      ]),
+    });
+
+    // 8 pm on Jul 20 in Chicago is 01:00Z on the 21st. The birthday used to
+    // end at the hub's midnight, 7 pm in Chicago on a hub left at UTC.
+    installClients(mockClient(), carddav());
+    const { events: west } = await fetchICloudEvents(
+      [source], [ACCOUNT], '2026-07-21T01:00:00.000Z', '2026-07-28T01:00:00.000Z', 'America/Chicago',
+    );
+    expect(west.map((e) => e.start)).toEqual(['2026-07-20']);
+
+    // 1 am on Jul 21 in Auckland is 13:00Z on the 20th: the birthday is over.
+    clearBirthdayCache();
+    installClients(mockClient(), carddav());
+    const { events: east } = await fetchICloudEvents(
+      [source], [ACCOUNT], '2026-07-20T13:00:00.000Z', '2026-07-27T13:00:00.000Z', 'Pacific/Auckland',
+    );
+    expect(east).toEqual([]);
+  });
+
   it('mixes calendar and birthday sources for one account', async () => {
     installClients(
       mockClient({

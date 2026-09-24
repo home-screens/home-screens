@@ -42,16 +42,17 @@ export function parseMarkdown(text: string): string {
  *
  * `locale` is the BCP-47 tag used by the Intl formatters — defaults to
  * `DEFAULT_LOCALE` (en-US) so out-of-scope callers keep working. Pass
- * the value from `useFormattingLocale()` for locale-aware output.
+ * the value from `useFormattingLocale()` for locale-aware output. `now` is the
+ * instant to read, which a component takes from its ticking clock.
  */
 export function resolveTemplateVariables(
   text: string,
   timezone?: string,
   locale: string = DEFAULT_LOCALE,
+  now: Date = new Date(),
 ): string {
   if (!text.includes('{{')) return text;
 
-  const now = new Date();
   const opts: Intl.DateTimeFormatOptions = timezone ? { timeZone: timezone } : {};
 
   // Hour extraction is locale-INDEPENDENT — we parse the integer back

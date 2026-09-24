@@ -25,6 +25,23 @@ export const SHEET_FIELD: React.CSSProperties = {
   fontFamily: 'inherit',
 };
 
+/**
+ * A bare 44 px tall button around a smaller drawn control, so kids get a full
+ * size tap target without the chips and icon buttons growing to match.
+ */
+export const HIT_TARGET: React.CSSProperties = {
+  flex: 'none',
+  display: 'flex',
+  alignItems: 'center',
+  height: 44,
+  minWidth: 44,
+  padding: 0,
+  border: 'none',
+  background: 'none',
+  color: 'inherit',
+  cursor: 'pointer',
+};
+
 export const SEGMENT_ROW: React.CSSProperties = { display: 'flex', gap: 6 };
 
 export function segmentStyle(on: boolean): React.CSSProperties {

@@ -40,7 +40,7 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
   // ================= CLOCK (network-free) =================
 
   {
-    // showDate + a custom dateFormat: the default format ('EEEE, MMMM d') is
+    // showDate + a custom dateFormat: the default format (the language's own date) is
     // words, so an ISO-shaped render proves the override took effect. Date-safe:
     // the pattern holds at any wall-clock date.
     type: 'clock', name: 'date-format', kind: 'network-free',

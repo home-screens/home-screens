@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 13,
+  "schemaVersion": 14,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -1786,8 +1786,8 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Date format string (date-fns)",
-          "default": "EEEE, MMMM d"
+          "description": "Date format string (date-fns); empty shows the whole date the way the household's language writes it",
+          "default": ""
         },
         {
           "name": "showWeekNumber",
@@ -7009,7 +7009,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 13
+          "default": 14
         },
         {
           "name": "settings",
@@ -7451,8 +7451,7 @@
               "24h"
             ]
           },
-          "description": "Household 12/24-hour preference: `12h` or `24h`. Every module that shows a time follows it; clocks do when their `hourFormat` is `inherit`, and the meal planner unless its own time format is set",
-          "defaultText": "\"12h\""
+          "description": "Household 12/24-hour preference: `12h` or `24h`. Every module that shows a time follows it; clocks do when their `hourFormat` is `inherit`, and the meal planner unless its own time format is set. Unset follows the usual clock of the formatting language"
         }
       ]
     },

@@ -2,9 +2,11 @@
 
 import { useId } from 'react';
 import Toggle from '@/components/ui/Toggle';
+import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
-import { resolveTimeFormat } from '@/lib/clock-time';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import { formatDateInTZ, formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
 import { wallClockMinutes, wallDateKey, type AutoUpdateInfo } from '@/lib/auto-update-policy';
 import { lastRunStatus, nextDayWord, pastDayWord } from '@/lib/auto-update-status';
@@ -37,10 +39,10 @@ function formatWallTime(time: string, fmt: ClockFormat): string {
 export default function AutoUpdateSection({ info, currentVersion, enabled, time, saveError, onToggle, onSetTime }: Props) {
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
-  const timezone = useEditorStore((s) => s.config?.settings?.timezone);
-  const timeFormat = useEditorStore((s) => s.config?.settings?.timeFormat);
+  const timezone = useEditorHouseholdTimezone();
+  const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
   const timeInputId = useId();
-  const fmt: ClockFormat = { timezone, locale, hour12: resolveTimeFormat(undefined, timeFormat) === '12h' };
+  const fmt: ClockFormat = { timezone, locale, hour12: timeFormat === '12h' };
 
   const status = lastRunStatus(info.lastRun);
   let lastLine: string | null = null;
@@ -99,6 +101,7 @@ export default function AutoUpdateSection({ info, currentVersion, enabled, time,
               className="w-32 shrink-0 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
             />
           </div>
+          <HomeTimeHint />
           {(status || nextLine) && (
             <div className="mt-3.5 space-y-0.5 text-xs" data-testid="system-auto-update-status">
               {status?.standsAlone && (

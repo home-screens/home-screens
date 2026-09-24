@@ -134,6 +134,8 @@
       "scheduledInactiveDetail": "{summary} Gerade ist es nicht an der Wand.",
       "conditionOnKey": "Wartet auf {key}",
       "conditionNoKey": "Wartet auf einen Live-Wert",
+      "conditionTimeMet": "Zu dieser Zeit sichtbar",
+      "conditionTimeUnmet": "Zu dieser Zeit ausgeblendet",
       "background": "Läuft im Hintergrund"
     }
   },
@@ -473,11 +475,24 @@
     "locationPage": {
       "heading": "Standort",
       "description": "Wird von Wetter, Mondphase, Sonnenauf-/-untergang und Luftqualitätsmodulen verwendet.",
-      "browserLabel": "Browser",
-      "serverLabel": "Server",
       "timezoneLabel": "Zeitzone",
-      "timezoneSystemDefault": "Systemstandard ({timezone})",
-      "timezoneHelp": "Normalerweise dieselbe wie an deinem Ort. Ändere sie nur, wenn die Uhren falsch aussehen.",
+      "timezoneHelp": "Normalerweise dieselbe wie an deinem Ort. Ändere sie nur, wenn bei euch zu Hause eine andere Uhrzeit gilt.",
+      "timezoneSearchWords": "Zeitzone Zeit Uhr Uhrzeit Uhren Stunde",
+      "timezoneUnset": {
+        "title": "Wähle deine Zeitzone",
+        "lead": "Bis dahin nutzen deine Bildschirme die eigene Uhr des Hubs, und die steht auf {zone}.",
+        "leadPending": "Bis dahin nutzen deine Bildschirme die eigene Uhr des Hubs.",
+        "canBeWrong": "Uhren und „heute“ können deshalb falsch sein.",
+        "ahead": "Das ist {gap} vor {place}, deshalb können Uhren und „heute“ falsch sein.",
+        "behind": "Das ist {gap} hinter {place}, deshalb können Uhren und „heute“ falsch sein.",
+        "same": "Das passt im Moment zu {place}. Wenn du die Zeitzone wählst, bleibt es auch so.",
+        "aheadHere": "Das ist {gap} vor diesem Computer, deshalb können Uhren und „heute“ falsch sein.",
+        "behindHere": "Das ist {gap} hinter diesem Computer, deshalb können Uhren und „heute“ falsch sein.",
+        "sameHere": "Das passt im Moment zu diesem Computer. Wenn du die Zeitzone wählst, bleibt es auch so.",
+        "yourTown": "deinem Ort",
+        "buttonPlace": "{zone} verwenden (passt zu {place})",
+        "buttonHere": "{zone} verwenden (Zeit dieses Computers)"
+      },
       "queryPlaceholder": "Postleitzahl oder Ortsname",
       "lookUpButton": "Suchen",
       "detectButton": "Standort automatisch ermitteln",
@@ -488,27 +503,34 @@
       "longitudePlaceholder": "-74.006",
       "status": {
         "lookingUp": "Wird gesucht …",
-        "found": "Gefunden: {name}",
+        "found": "{name} gefunden.",
         "error": "Fehler: {message}",
         "lookupFailed": "Standort konnte nicht gefunden werden",
         "detecting": "Erkennen …",
-        "detected": "Erkannt: {name}",
-        "detectedViaIp": "Erkannt: {name} (über IP)",
-        "detectedCoords": "Erkannt: {lat}, {lon}",
-        "detectFailed": "Fehler: Standort konnte nicht erkannt werden"
+        "detected": "{name} gefunden.",
+        "detectedViaIp": "{name} über deine Internetverbindung gefunden.",
+        "detectedCoords": "{lat}, {lon} gefunden.",
+        "detectFailed": "Fehler: Standort konnte nicht erkannt werden",
+        "zoneSet": "Die Zeitzone steht jetzt passend dazu auf {zone}."
       },
       "queryLabel": "Dein Ort oder deine Postleitzahl",
       "clockCheck": {
         "summary": "Uhren vergleichen",
-        "description": "Vergleiche die Uhr in diesem Browser mit der Uhr auf dem Gerät, auf dem Home Screens läuft. Wenn sie nicht übereinstimmen, ändere die Zeitzone oben."
+        "screens": "Deine Bildschirme",
+        "computer": "Dieser Computer",
+        "hub": "Der Hub",
+        "advice": "Deine Bildschirme richten sich immer nach der Zeitzone oben. Dieser Computer kann eine andere Uhrzeit zeigen, wenn du nicht zu Hause bist. Das ist in Ordnung.",
+        "adviceUnset": "Solange keine Zeitzone gewählt ist, richten sich deine Bildschirme nach der Uhr des Hubs. Dieser Computer kann eine andere Uhrzeit zeigen, wenn du nicht zu Hause bist. Das ist in Ordnung."
       },
-      "deviceClock": {
-        "message": "Die Uhr dieses Geräts steht auf {deviceTimezone}, deine Bildschirme zeigen aber {displayTimezone}.",
-        "help": "Deine Bildschirme zeigen so oder so die richtige Zeit. Das ändert nur die Zeitangaben, die das Gerät für sich selbst notiert, und macht sie lesbarer.",
-        "button": "Uhr des Geräts angleichen",
+      "timezoneNotPicked": "Noch nicht gewählt",
+      "zoneTime": "Ortszeit {place}",
+      "hubClock": {
+        "optional": "Kein Muss",
+        "message": "Die eigene Uhr des Hubs steht auf {zone}. Sie anzugleichen macht nur seine Protokolldateien leichter lesbar.",
+        "button": "Hub auf {zone} stellen",
         "settingButton": "Wird geändert…",
-        "success": "Die Uhr des Geräts passt jetzt zu deinen Bildschirmen.",
-        "error": "Die Uhr des Geräts konnte nicht geändert werden."
+        "success": "Die Uhr des Hubs passt jetzt zu deinen Bildschirmen.",
+        "error": "Die Uhr des Hubs konnte nicht geändert werden."
       }
     },
     "calendarPage": {
@@ -664,9 +686,10 @@
         "download": "Herunterladen",
         "restore": "Wiederherstellen",
         "restoreDialog": {
-          "title": "Backup wiederherstellen",
-          "message": "Konfiguration aus {name} wiederherstellen? Die aktuelle Konfiguration wird überschrieben.",
-          "confirm": "Wiederherstellen"
+          "title": "Diese Einstellungen wiederherstellen?",
+          "message": "{what}, gespeichert am {when}. Deine jetzigen Einstellungen werden dadurch ersetzt.",
+          "confirm": "Wiederherstellen",
+          "messageNoDate": "{what}. Deine jetzigen Einstellungen werden dadurch ersetzt."
         },
         "restoreStatus": {
           "restoring": "Wird wiederhergestellt …",
@@ -674,7 +697,13 @@
           "error": "Fehler: {error}",
           "failed": "Backup konnte nicht wiederhergestellt werden"
         },
-        "lastStableHelp": "Deine Einstellungen von vor dem ersten Vorab- oder Test-Build. Stelle sie wieder her, wenn du zu einer normalen Version zurückgehst und sie deine Einstellungen nicht lesen kann."
+        "kinds": {
+          "lastStable": "Letzte Einstellungen vor dem Ausprobieren von Vorabversionen",
+          "update": "Vor dem Update von {version}",
+          "migration": "Bevor deine Einstellungen aktualisiert wurden (Version {version})",
+          "other": "Gespeicherte Einstellungen"
+        },
+        "keptBadge": "Bleibt"
       },
       "backupPassword": {
         "setTitle": "Passwort wählen",
@@ -2646,7 +2675,9 @@
       "suggestButton": "Vorschlagen",
       "copyLastWeekButton": "Letzte Woche kopieren",
       "clearButton": "Leeren",
-      "prepTimeMin": "{minutes} Min"
+      "prepTimeMin": "{minutes} Min",
+      "previousWeekAriaLabel": "Vorherige Woche",
+      "nextWeekAriaLabel": "Nächste Woche"
     },
     "picker": {
       "title": "Mahlzeit wählen",
@@ -3356,6 +3387,7 @@
       "viewNeon": "Neon (Leuchtschrift)",
       "viewBar": "Balken (Fortschrittsbalken)",
       "viewElapsed": "Verstrichen (seit/bis)",
+      "datePresetLanguage": "Wie in deiner Sprache üblich",
       "datePresetWeekdayMonthDay": "Montag, 5. Januar",
       "datePresetShortWeekday": "Mo., 5. Jan.",
       "datePresetMonthDayYear": "5. Januar 2026",
@@ -4986,12 +5018,16 @@
       "templateButton": "Vorlage wählen",
       "family": "Füge die Menschen in deinem Haushalt hinzu",
       "familyLink": "Familie öffnen",
-      "location": "Lege deinen Standort fest",
+      "location": "Lege deinen Ort und deine Zeitzone fest",
       "locationLink": "Standort & Sprache öffnen",
       "phone": "Öffne es auf deinem Handy",
       "phoneLink": "Adressen fürs Handy anzeigen",
       "password": "Lege ein Passwort fest",
-      "passwordLink": "Sicherheit öffnen"
+      "passwordLink": "Sicherheit öffnen",
+      "locationZoneMissing": "Dein Ort ist festgelegt, die Zeitzone noch nicht."
     }
+  },
+  "homeTime": {
+    "hint": "Zeit zu Hause ({city}). Zu Hause ist es jetzt {time}."
   }
 }

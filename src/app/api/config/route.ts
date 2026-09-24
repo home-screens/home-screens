@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 import { readConfig, updateConfigAtomic, configRevision } from '@/lib/config';
 import { readConfigCached } from '@/lib/config-cache';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
+import { HUB_TIMEZONE_HEADER } from '@/lib/timezone';
+import { hubTimezone } from '@/lib/household-day';
 import { settleTodoMigration } from '@/lib/todo-data';
 import { saveImportedConfig } from '@/lib/family-import';
 import { readTransactionFile, withDataTransaction } from '@/lib/data-transaction';
@@ -20,8 +22,13 @@ const log = logger('kiosk');
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Every config response also names the hub's own zone. With none saved it is
+ * the household's zone on every surface, and only the hub knows it: a kiosk or
+ * a laptop asking `Intl` gets its own machine's zone instead.
+ */
 function withRevision(config: ScreenConfiguration): Record<string, string> {
-  return { [CONFIG_REVISION_HEADER]: configRevision(config) };
+  return { [CONFIG_REVISION_HEADER]: configRevision(config), [HUB_TIMEZONE_HEADER]: hubTimezone() };
 }
 
 /**

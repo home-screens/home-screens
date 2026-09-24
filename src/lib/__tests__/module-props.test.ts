@@ -254,13 +254,9 @@ describe('timeFormat threading', () => {
   });
 
   it('passes an unset preference through as undefined rather than collapsing it to 12h', () => {
-    // The builder used to substitute '12h' here. That erased the difference
-    // between "nobody has chosen" and "chose 12h" — and the picker stores
-    // nothing for 12h, so those are the same on disk and undefined is the only
-    // signal a module gets. Modules that can do better than 12h without a
-    // choice (todoist and the fullscreen photo clock read the locale's hour
-    // cycle, which is how en-GB and de-DE get 24-hour times) need to see it.
-    // Every other consumer applies its own `?? DEFAULT_TIME_FORMAT`.
+    // Unset means the formatting language's own clock, which needs the
+    // locale, so each module resolves it (`householdTimeFormat`). The builder
+    // used to substitute '12h' here, which made a de-DE household 12-hour.
     const cal = buildModuleProps(instance('calendar'), toDisplaySource(displaySettings, LOCATION, emptyShared()));
     expect(cal.timeFormat).toBeUndefined();
   });

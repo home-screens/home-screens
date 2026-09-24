@@ -12,9 +12,10 @@
  * Unlike the language picker (see `LanguageFields.test.tsx`), a time-format
  * change affects only client-rendered module content, not server-rendered
  * chrome, so the component must NOT call `router.refresh()` or any of the
- * locale-cache helpers. This test pins the storage rule too: picking 12h
- * stores `undefined` (the field is dropped — 12h is the absent-value
- * default, keeping on-disk config tidy), picking 24h stores `'24h'`.
+ * locale-cache helpers. This test pins the storage rule too: both choices
+ * are saved as written, because an unset value means "the language's own
+ * clock", so dropping the field for 12h would turn it into 24-hour in a
+ * language that uses one.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -63,9 +64,9 @@ import { I18nProvider } from '@/i18n/provider';
 import enUSEditor from '@/translations/en-US/editor.json';
 import type { TimeFormat } from '@/types/config';
 
-function renderField() {
+function renderField(formattingLocale = 'en-US') {
   return render(
-    <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>
+    <I18nProvider locale="en-US" formattingLocale={formattingLocale} blob={{ editor: enUSEditor }}>
       <TimeFormatFields />
     </I18nProvider>,
   );
@@ -91,15 +92,17 @@ describe('TimeFormatFields save flow', () => {
     expect(select.value).toBe('24h');
   });
 
-  it('falls back to 12h when the setting is unset', () => {
+  it("shows the language's own clock when the setting is unset", () => {
     mocks.storeState.config = { settings: {} };
-    const { getByLabelText } = renderField();
-    const select = getByLabelText('Time format') as HTMLSelectElement;
-    expect(select.value).toBe('12h');
+    const { getByLabelText, unmount } = renderField();
+    expect((getByLabelText('Time format') as HTMLSelectElement).value).toBe('12h');
+    unmount();
+    const danish = renderField('da-DK');
+    expect((danish.getByLabelText('Time format') as HTMLSelectElement).value).toBe('24h');
   });
 
-  it('persists a switch to 12h as a dropped field', async () => {
-    const { getByLabelText } = renderField();
+  it('persists a switch to 12h as an explicit choice', async () => {
+    const { getByLabelText } = renderField('da-DK');
     const select = getByLabelText('Time format') as HTMLSelectElement;
     await act(async () => {
       fireEvent.change(select, { target: { value: '12h' } });
@@ -110,7 +113,7 @@ describe('TimeFormatFields save flow', () => {
       await Promise.resolve();
     });
 
-    expect(mocks.updateSettings).toHaveBeenCalledWith({ timeFormat: undefined });
+    expect(mocks.updateSettings).toHaveBeenCalledWith({ timeFormat: '12h' });
     expect(mocks.saveConfig).toHaveBeenCalledTimes(1);
     // Time format affects only client-rendered content, so unlike a locale
     // change this must not refresh the server-rendered tree.

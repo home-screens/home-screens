@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { computeEaster, getSupplementalHolidays } from '../supplemental-holidays';
 
 describe('computeEaster', () => {
@@ -27,15 +27,8 @@ describe('computeEaster', () => {
 });
 
 describe('getSupplementalHolidays', () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('returns US supplemental holidays for a given year', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-
-    const results = getSupplementalHolidays('US', [2026]);
+    const results = getSupplementalHolidays('US', [2026], '2026-01-01');
     const names = results.map((h) => h.title);
 
     expect(names).toContain('Easter Sunday');
@@ -48,39 +41,27 @@ describe('getSupplementalHolidays', () => {
   });
 
   it('computes correct Easter date for 2026', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-
-    const results = getSupplementalHolidays('US', [2026]);
+    const results = getSupplementalHolidays('US', [2026], '2026-01-01');
     const easter = results.find((h) => h.title === 'Easter Sunday');
     expect(easter?.start).toBe('2026-04-05');
   });
 
   it('computes correct Mother\'s Day (2nd Sunday of May)', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-
-    const results = getSupplementalHolidays('US', [2026]);
+    const results = getSupplementalHolidays('US', [2026], '2026-01-01');
     const md = results.find((h) => h.title === "Mother's Day");
     // May 2026: May 1 is Friday, 2nd Sunday = May 10
     expect(md?.start).toBe('2026-05-10');
   });
 
   it('computes correct Father\'s Day (3rd Sunday of June)', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-
-    const results = getSupplementalHolidays('US', [2026]);
+    const results = getSupplementalHolidays('US', [2026], '2026-01-01');
     const fd = results.find((h) => h.title === "Father's Day");
     // June 2026: June 1 is Monday, 3rd Sunday = June 21
     expect(fd?.start).toBe('2026-06-21');
   });
 
   it('filters out past holidays', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-10-30T00:00:00Z'));
-
-    const results = getSupplementalHolidays('US', [2026]);
+    const results = getSupplementalHolidays('US', [2026], '2026-10-30');
     const names = results.map((h) => h.title);
 
     // Easter, Valentine's, St Patrick's, Mother's, Father's are all past
@@ -92,15 +73,26 @@ describe('getSupplementalHolidays', () => {
   });
 
   it('returns empty array for unsupported country', () => {
-    const results = getSupplementalHolidays('ZZ', [2026]);
+    const results = getSupplementalHolidays('ZZ', [2026], '2026-01-01');
     expect(results).toEqual([]);
   });
 
   it('handles case-insensitive country codes', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-
-    const results = getSupplementalHolidays('us', [2026]);
+    const results = getSupplementalHolidays('us', [2026], '2026-01-01');
     expect(results.length).toBeGreaterThan(0);
+  });
+
+  it("keeps a holiday on its own day even after the UTC day has moved on", () => {
+    // 8 PM on Halloween in Chicago is already November 1 in UTC. The caller's
+    // household day decides, whatever the clock says.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-01T01:00:00Z'));
+    try {
+      const results = getSupplementalHolidays('US', [2026, 2027], '2026-10-31');
+      const halloweens = results.filter((h) => h.title === 'Halloween').map((h) => h.start);
+      expect(halloweens[0]).toBe('2026-10-31');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

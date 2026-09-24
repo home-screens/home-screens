@@ -4,15 +4,34 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Button from '@/components/ui/Button';
 import { editorFetch } from '@/lib/editor-fetch';
 import { getSupplementalHolidays } from '@/lib/supplemental-holidays';
-import { localISODate } from '@/lib/timezone';
+import { isoDateInTZ } from '@/lib/timezone';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import type { CountdownEvent } from '@/types/config';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 
 interface HolidayInfo {
   id: string;
   title: string;
   start: string; // YYYY-MM-DD
+}
+
+/**
+ * A holiday's calendar day in the household's words ("Sat, Oct 31"), with the
+ * year only when it is not this one. The day is a plain `YYYY-MM-DD` with no
+ * zone, so it is read and written at UTC midnight to keep it the same day on
+ * any laptop.
+ */
+export function formatHolidayDay(isoDay: string, thisYear: number, locale: string): string {
+  const [y, m, d] = isoDay.split('-').map(Number);
+  if (!y || !m || !d) return isoDay;
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(locale, {
+    timeZone: 'UTC',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    ...(y !== thisYear ? { year: 'numeric' } : {}),
+  });
 }
 
 interface Country {
@@ -37,10 +56,13 @@ export default function HolidayPickerModal({
   const tCore = useTranslate('core');
   const [countries, setCountries] = useState<Country[]>([]);
   const [country, setCountry] = useState(initialCountry ?? '');
+  const formattingLocale = useFormattingLocale();
   const [holidays, setHolidays] = useState<HolidayInfo[]>([]);
+  const [thisYear, setThisYear] = useState(0);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const timezone = useEditorHouseholdTimezone();
 
   useEscapeKey(onClose);
 
@@ -68,7 +90,10 @@ export default function HolidayPickerModal({
     setLoading(true);
     setError(null);
     try {
-      const year = new Date().getFullYear();
+      // Today on the household's own calendar, not the laptop's or UTC's: a
+      // holiday happening at home right now stays in the list.
+      const today = isoDateInTZ(new Date(), timezone);
+      const year = Number(today.slice(0, 4));
       const [res1, res2] = await Promise.all([
         editorFetch(`/api/holidays?country=${code}&year=${year}`),
         editorFetch(`/api/holidays?country=${code}&year=${year + 1}`),
@@ -79,19 +104,18 @@ export default function HolidayPickerModal({
       const h2: HolidayInfo[] = res2.ok ? await res2.json() : [];
 
       // Merge supplemental holidays (Easter, Valentine's, etc.)
-      const supplemental = getSupplementalHolidays(code, [year, year + 1]);
+      const supplemental = getSupplementalHolidays(code, [year, year + 1], today);
 
       // Deduplicate by title (same holiday across years) — keep the next upcoming
       const seen = new Map<string, HolidayInfo>();
       for (const h of [...h1, ...h2, ...supplemental]) {
-        // Today on the household's own calendar. A UTC "today" drops a holiday
-        // that is happening right now once the evening puts UTC on tomorrow.
-        if (h.start >= localISODate() && !seen.has(h.title)) {
+        if (h.start >= today && !seen.has(h.title)) {
           seen.set(h.title, h);
         }
       }
       const unique = Array.from(seen.values()).sort((a, b) => a.start.localeCompare(b.start));
       setHolidays(unique);
+      setThisYear(year);
 
       const existingNames = new Set(
         existingEvents
@@ -108,7 +132,7 @@ export default function HolidayPickerModal({
     } finally {
       if (token === tokenRef.current) setLoading(false);
     }
-  }, [existingEvents, t]);
+  }, [existingEvents, timezone, t]);
 
   useEffect(() => {
     fetchHolidays(country);
@@ -216,7 +240,7 @@ export default function HolidayPickerModal({
                       className="accent-hs-accent"
                     />
                     <span className="text-sm text-hs-text-body flex-1">{h.title}</span>
-                    <span className="text-xs text-hs-text-faint">{h.start}</span>
+                    <span className="text-xs text-hs-text-faint">{formatHolidayDay(h.start, thisYear, formattingLocale)}</span>
                   </label>
                 ))}
               </div>

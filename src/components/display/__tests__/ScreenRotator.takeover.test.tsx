@@ -40,11 +40,12 @@ vi.mock('../useLiveConfig', () => ({
   useLiveConfig: (
     screens: Screen[],
     settings: GlobalSettings,
+    hubTimezone: string,
     profiles: unknown,
     _displayId: string | undefined,
     displays: unknown,
     rules: DisplayRule[] | undefined,
-  ) => ({ screens, settings, profiles, rules, displays: displays ?? [] }),
+  ) => ({ screens, settings: { ...settings, timezone: settings.timezone || hubTimezone }, profiles, rules, displays: displays ?? [] }),
 }));
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
@@ -116,7 +117,7 @@ function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
 
 function renderRotator(rules: DisplayRule[], settings: GlobalSettings) {
   return render(
-    <ScreenRotator screens={SCREENS} settings={settings} profiles={PROFILES} rules={rules} />,
+    <ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={settings} profiles={PROFILES} rules={rules} />,
   );
 }
 

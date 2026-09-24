@@ -17,6 +17,7 @@ import TodayView from './TodayView';
 import MenuBoardView from './MenuBoardView';
 import NextMealView from './NextMealView';
 import { UI_SANS_STACK } from '@/lib/font-registry';
+import { useTranslate } from '@/i18n';
 
 interface MealDataResponse {
   savedMeals: SavedMeal[];
@@ -44,8 +45,9 @@ export default function FullscreenMealPlannerModule({
   screenId,
   moduleId,
 }: FullscreenMealPlannerModuleProps) {
+  const t = useTranslate('modules');
   // ── Data fetching ──
-  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['fullscreen-meal-planner']?.ttlMs ?? 60_000);
+  const [mealData, mealError] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['fullscreen-meal-planner']?.ttlMs ?? 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
   // Settings live in the shared meals.json, edited via /remote.
@@ -198,7 +200,17 @@ export default function FullscreenMealPlannerModule({
         }
       `}</style>
 
-      {view === 'week' ? (
+      {mealData === null ? (
+        // Until the first answer the plan is unknown, not empty: the views
+        // would say "No meals planned" on every load of a slow Pi.
+        <div
+          data-testid={mealError ? 'module-not-updating' : 'fmp-loading'}
+          aria-live="polite"
+          style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fmp-text-2)', fontSize: s * 2.2, textAlign: 'center', padding: pad }}
+        >
+          {t(mealError ? 'common.notUpdating' : 'meal-planner.loading')}
+        </div>
+      ) : view === 'week' ? (
         <WeekView {...viewProps} />
       ) : (
         <div

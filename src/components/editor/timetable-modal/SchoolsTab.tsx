@@ -20,6 +20,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatClockTime } from '@/lib/clock-time';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { dateInZone, isoWeekNumber } from '@/lib/timetable-layout';
 import type { FamilyMember } from '@/types/family';
 import {
@@ -44,6 +45,7 @@ import {
   withSchool,
   withoutSchool,
 } from './use-timetable-draft';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 interface SchoolsTabProps {
   data: TimetableData;
@@ -90,7 +92,9 @@ export default function SchoolsTab({
   const locale = useFormattingLocale();
   const tCore = useTranslate('core');
   // Stored as 24-hour, shown in the household's own clock. See PaintGrid.
-  const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
+  const timeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings.timeFormat));
+  // The household's zone, so this week's letter and number are the wall's.
+  const timezone = useEditorHouseholdTimezone();
   const clock = (time: string) => formatClockTime(time, timeFormat);
   const [name, setName] = useState('');
   const [template, setTemplate] = useState(SCHOOL_TEMPLATES[0].id);
@@ -153,7 +157,7 @@ export default function SchoolsTab({
     );
   };
 
-  const letters = selected && selected.weekCycle.mode !== 'off' ? weekCycleLetters(selected, new Date()) : null;
+  const letters = selected && selected.weekCycle.mode !== 'off' ? weekCycleLetters(selected, new Date(), timezone) : null;
 
   /** Who goes to the selected school, which decides whether it can go. */
   const listNames = (names: string[]) =>
@@ -372,7 +376,7 @@ export default function SchoolsTab({
               {letters && (
                 <p className={`${PROSE_CLASS} text-hs-text-faint`}>
                   {t('timetableModal.weekCycle.help', {
-                    number: isoWeekNumber(dateInZone(new Date())),
+                    number: isoWeekNumber(dateInZone(new Date(), timezone)),
                     thisLetter: letters.thisLetter,
                     nextLetter: letters.nextLetter,
                   })}

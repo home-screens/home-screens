@@ -3,7 +3,7 @@ import { fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
-import { aggregateDaily } from './daily';
+import { aggregateDaily, forecastDate } from './daily';
 import { createTTLCache } from '../api-utils';
 import pkg from '../../../package.json';
 
@@ -194,18 +194,19 @@ export class YrProvider implements WeatherProvider {
       });
   }
 
-  async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
+  async getForecast(lat: number, lon: number, units: string, timezone?: string): Promise<ForecastDay[]> {
     const data = await this.fetchData(lat, lon);
     const isMetric = units === 'metric';
 
     // Group timeseries by date, then derive high/low temps and the most
-    // common 6-hour symbol per day.
+    // common 6-hour symbol per day. The API's times are UTC and it names no
+    // zone, so days are the household's, which the route passes in.
     const days = aggregateDaily(
       data.properties.timeseries.map((entry) => {
         const inst = entry.data.instant.details ?? {};
         const next6 = entry.data.next_6_hours;
         return {
-          date: entry.time.split('T')[0],
+          date: forecastDate(new Date(entry.time), timezone),
           tempC: inst.air_temperature,
           humidity: inst.relative_humidity,
           windSpeedMs: inst.wind_speed,
@@ -215,6 +216,7 @@ export class YrProvider implements WeatherProvider {
         };
       }),
       7,
+      forecastDate(new Date(Date.now()), timezone),
     );
 
     return days.map((day) => ({

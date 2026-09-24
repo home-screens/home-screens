@@ -9,6 +9,7 @@ import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS, resol
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import FamilyEmptyState from '../FamilyEmptyState';
+import { ModuleLoadingState } from '../ModuleStates';
 import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import { WeekView } from './WeekView';
 import { TodayView } from './TodayView';
@@ -40,7 +41,7 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   const todayISO = toISODate(now);
   const currentHour = now.getHours();
 
-  const [mealData] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['meal-planner']?.ttlMs ?? 60_000);
+  const [mealData, mealError] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['meal-planner']?.ttlMs ?? 60_000);
   const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
   const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
   // Settings live in the shared meals.json, edited via /remote.
@@ -62,6 +63,12 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   const hasMeals = view === 'next-meal' || view === 'compact'
     ? fullPlan.length > 0
     : plan.length > 0;
+
+  // Until the first answer the plan is unknown, not empty: "No meals planned
+  // yet" flashed on every load of a slow Pi.
+  if (mealData === null) {
+    return <ModuleLoadingState style={style} message={t('meal-planner.loading')} error={mealError} />;
+  }
 
   if (!hasMeals) {
     return (

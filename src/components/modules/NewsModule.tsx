@@ -22,11 +22,13 @@ import CardsView from './news/CardsView';
 interface NewsModuleProps {
   config: NewsConfig;
   style: ModuleStyle;
+  /** Household zone, for the date a week-old story shows. */
+  timezone?: string;
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['news']?.ttlMs ?? 300_000;
 
-export default function NewsModule({ config, style }: NewsModuleProps) {
+export default function NewsModule({ config, style, timezone }: NewsModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { items, data, error, failed, allFailed, newKeys } = useNewsFeeds(config, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
@@ -60,9 +62,9 @@ export default function NewsModule({ config, style }: NewsModuleProps) {
   if (gate) return gate;
 
   const unavailable = failed.map(({ feed }) => feedDisplayLabel(feed, t));
-  const viewProps = { items, config: resolved, t, locale, newKeys, onTap, command, unavailable, fontScaleKey: scaledFontSize };
+  const viewProps = { items, config: resolved, t, locale, timezone, newKeys, onTap, command, unavailable, fontScaleKey: scaledFontSize };
   const overlayMeta = overlay
-    ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, locale)).join(' · ')
+    ? metaParts(overlay, { showSource: true, showTimestamp: true }, formatNewsAge(overlay.timestamp, t, { locale, timezone })).join(' · ')
     : '';
 
   return (

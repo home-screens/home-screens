@@ -334,6 +334,8 @@ describe('static URL builders', () => {
   it('rainMapUrl', () => expect(rainMapUrl()).toBe('/api/rain-map'));
   it('historyUrl defaults both sources', () => expect(historyUrl({})).toBe('/api/history?sources=muffinlabs,wikipedia'));
   it('historyUrl with only wikipedia', () => expect(historyUrl({ sourceMuffinLabs: false })).toBe('/api/history?sources=wikipedia'));
+  it('historyUrl names the household day when given, so the day turning refetches', () =>
+    expect(historyUrl({}, { today: '2026-09-24' })).toBe('/api/history?sources=muffinlabs,wikipedia&day=2026-09-24'));
   it('historyUrl with only muffinlabs', () => expect(historyUrl({ sourceWikipedia: false })).toBe('/api/history?sources=muffinlabs'));
   it('quoteUrl', () => expect(quoteUrl()).toBe('/api/quote'));
   it('dadJokeUrl', () => expect(dadJokeUrl()).toBe('/api/jokes'));

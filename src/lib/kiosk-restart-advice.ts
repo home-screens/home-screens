@@ -10,7 +10,9 @@ import type { ScreenConfiguration } from '@/types/config';
  * means the policy can change later without touching a single Pi.
  *
  * The launcher-run update path ignores this entirely; it is by definition
- * already restarting. Only the nightly timer asks.
+ * already restarting. Only the spoke's hourly timer asks. The spoke's own
+ * clock is UTC unless someone changes it, so the hours are judged here in
+ * the household's zone and the spoke simply asks often enough to land in them.
  */
 
 /** Hours (local, inclusive-exclusive) treated as "nobody is watching". */

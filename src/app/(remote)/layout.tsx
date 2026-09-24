@@ -4,6 +4,10 @@ import { readConfig } from '@/lib/config';
 import { I18nProvider, preloadDateLocale } from '@/i18n';
 import { buildLocaleBlob } from '@/i18n/server-blob';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { isoDateInTZ, resolveHouseholdTimezone } from '@/lib/timezone';
+import { hubTimezone } from '@/lib/household-day';
+import { settingsTimeFormat } from '@/lib/clock-time';
+import { HouseholdClockProvider } from './remote/household-clock';
 
 export const metadata: Metadata = {
   title: 'Remote Control',
@@ -29,6 +33,9 @@ export default async function RemoteLayout({ children }: { children: React.React
   // <I18nProvider>; we resolve it here so the server-side preload
   // covers both tags before first paint).
   const formattingLocale = config?.settings?.formattingLocale ?? locale;
+  // The phone's own zone is not the household's. With none set, the household
+  // runs on the hub's clock, so the phone is handed the hub's zone by name.
+  const timezone = resolveHouseholdTimezone(config?.settings?.timezone, hubTimezone());
   // Inline the dictionaries rather than letting the provider fetch them after
   // mount. `translate()` returns the key itself on a miss, so a post-mount
   // fetch renders the whole surface as raw keys until it lands. That covers
@@ -52,7 +59,13 @@ export default async function RemoteLayout({ children }: { children: React.React
       formattingLocale={formattingLocale}
       blob={blob}
     >
-      {children}
+      <HouseholdClockProvider
+        timezone={timezone}
+        today={isoDateInTZ(new Date(), timezone)}
+        timeFormat={settingsTimeFormat(config?.settings)}
+      >
+        {children}
+      </HouseholdClockProvider>
     </I18nProvider>
   );
 }

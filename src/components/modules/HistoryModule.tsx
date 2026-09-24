@@ -4,6 +4,7 @@ import type { HistoryConfig, ModuleStyle } from '@/types/config';
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useWallClock } from '@/hooks/useTZClock';
 import { historyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
@@ -15,13 +16,24 @@ import type { HistoryResponse } from '@/lib/history-types';
 interface HistoryModuleProps {
   config: HistoryConfig;
   style: ModuleStyle;
+  /** Household zone: the events change at its midnight, not the Pi's. */
+  timezone?: string;
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['history']?.ttlMs ?? 3_600_000;
 
-export default function HistoryModule({ config, style }: HistoryModuleProps) {
+export default function HistoryModule({ config, style, timezone }: HistoryModuleProps) {
   const t = useTranslate('modules');
-  const [data, error] = useFetchData<HistoryResponse>(historyUrl(config), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  // The household day is part of the URL, so the new day's events are
+  // fetched at midnight rather than at the next hourly refresh. The day-less
+  // URL names the dataset, so yesterday's events stay up while that fetch is
+  // in flight instead of flashing the loading state.
+  const { isoDate: today } = useWallClock(timezone);
+  const [data, error] = useFetchData<HistoryResponse>(
+    historyUrl(config, { today }),
+    config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
+    historyUrl(config),
+  );
   const events = data?.events ?? [];
 
   const rotationMs = config.rotationIntervalMs ?? 10000;
@@ -31,7 +43,9 @@ export default function HistoryModule({ config, style }: HistoryModuleProps) {
   if (gate) return gate;
 
   const event = events[index % events.length];
-  const yearsAgo = event ? new Date().getFullYear() - parseInt(event.year, 10) : 0;
+  // Counted from the day the route fetched for (the household's), not this
+  // screen's clock, which reads next year on the evening of Dec 31 on a UTC Pi.
+  const yearsAgo = event && data ? parseInt(data.date, 10) - parseInt(event.year, 10) : 0;
 
   return (
     <ScaledAccentContent

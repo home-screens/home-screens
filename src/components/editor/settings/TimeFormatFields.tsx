@@ -2,7 +2,8 @@
 
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import type { TimeFormat } from '@/types/config';
 
 /**
  * Time format card for the "Defaults → Location & language" page.
@@ -15,14 +16,14 @@ import { DEFAULT_TIME_FORMAT } from '@/types/config';
 export default function TimeFormatFields() {
   const t = useTranslate('editor');
   const { config, updateSettings, saveConfig } = useEditorStore();
-  const currentTimeFormat = config?.settings?.timeFormat ?? DEFAULT_TIME_FORMAT;
+  // Unset shows the language's own clock, which is what every surface draws.
+  const currentTimeFormat = useHouseholdTimeFormat(config?.settings?.timeFormat);
 
   async function handleChange(next: string) {
-    // Picking 12h stores `undefined` — the field is dropped, since 12h is
-    // the absent-value default — and picking 24h stores the explicit
-    // override. Keeps the on-disk JSON tidy, exactly like
-    // `formattingLocale`'s empty-string rule in LanguageFields.
-    updateSettings({ timeFormat: next === DEFAULT_TIME_FORMAT ? undefined : (next as '24h') });
+    // Always saved, both ways: unset means "the language's own clock", so
+    // dropping the field for 12h would turn a 12-hour choice into 24-hour
+    // the moment the household's language uses a 24-hour clock.
+    updateSettings({ timeFormat: next as TimeFormat });
     // Persist immediately — the settings page's debounced auto-save only
     // watches its own local state, so a direct updateSettings must flush.
     // Unlike the language picker, no `router.refresh()` follows: time

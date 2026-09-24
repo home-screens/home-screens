@@ -134,6 +134,8 @@
       "scheduledInactiveDetail": "{summary} It is off the wall right now.",
       "conditionOnKey": "Waiting for {key}",
       "conditionNoKey": "Waiting for a live value",
+      "conditionTimeMet": "Showing at this time",
+      "conditionTimeUnmet": "Hidden at this time",
       "background": "Runs in the background"
     }
   },
@@ -473,11 +475,24 @@
     "locationPage": {
       "heading": "Location",
       "description": "Used by weather, moon phase, sunrise/sunset, and air quality modules.",
-      "browserLabel": "Browser",
-      "serverLabel": "Server",
-      "timezoneLabel": "Timezone",
-      "timezoneSystemDefault": "System default ({timezone})",
-      "timezoneHelp": "Usually the same as your town. Change this only if the clocks look wrong.",
+      "timezoneLabel": "Time zone",
+      "timezoneHelp": "Usually the same as your town. Change it only if your home keeps a different time.",
+      "timezoneSearchWords": "time zone timezone clock clocks hour",
+      "timezoneUnset": {
+        "title": "Pick your time zone",
+        "lead": "Until you do, your screens use the hub's own clock, which is set to {zone}.",
+        "leadPending": "Until you do, your screens use the hub's own clock.",
+        "canBeWrong": "Clocks and \"today\" can be wrong.",
+        "ahead": "That is {gap} ahead of {place}, so clocks and \"today\" can be wrong.",
+        "behind": "That is {gap} behind {place}, so clocks and \"today\" can be wrong.",
+        "same": "That matches {place} right now, but picking it keeps it right.",
+        "aheadHere": "That is {gap} ahead of this computer, so clocks and \"today\" can be wrong.",
+        "behindHere": "That is {gap} behind this computer, so clocks and \"today\" can be wrong.",
+        "sameHere": "That matches this computer right now, but picking it keeps it right.",
+        "yourTown": "your town",
+        "buttonPlace": "Use {zone} (matches {place})",
+        "buttonHere": "Use {zone} (this computer's time)"
+      },
       "queryPlaceholder": "Zip code or city name",
       "lookUpButton": "Look up",
       "detectButton": "Use my internet location",
@@ -488,27 +503,34 @@
       "longitudePlaceholder": "-74.006",
       "status": {
         "lookingUp": "Looking up…",
-        "found": "Found: {name}",
+        "found": "Found {name}.",
         "error": "Error: {message}",
         "lookupFailed": "Failed to look up location",
         "detecting": "Detecting…",
-        "detected": "Detected: {name}",
-        "detectedViaIp": "Detected: {name} (via IP)",
-        "detectedCoords": "Detected: {lat}, {lon}",
-        "detectFailed": "Error: Could not detect location"
+        "detected": "Found {name}.",
+        "detectedViaIp": "Found {name} from your internet connection.",
+        "detectedCoords": "Found {lat}, {lon}.",
+        "detectFailed": "Error: Could not detect location",
+        "zoneSet": "Time zone set to {zone} to match."
       },
       "queryLabel": "Your town or zip code",
       "clockCheck": {
         "summary": "Clock check",
-        "description": "Compare this browser's clock with the clock on the device running Home Screens. If they disagree, the timezone above is the thing to change."
+        "screens": "Your screens",
+        "computer": "This computer",
+        "hub": "The hub",
+        "advice": "Your screens always follow the time zone above. This computer can show a different time when you are away from home; that is fine.",
+        "adviceUnset": "Until a time zone is picked, your screens follow the hub's clock. This computer can show a different time when you are away from home; that is fine."
       },
-      "deviceClock": {
-        "message": "This device's clock is set to {deviceTimezone}, but your screens show {displayTimezone}.",
-        "help": "Your screens show the right time either way. This only changes the timestamps the device keeps for itself, which makes them easier to read.",
-        "button": "Match the device's clock",
+      "timezoneNotPicked": "Not picked yet",
+      "zoneTime": "{place} time",
+      "hubClock": {
+        "optional": "Optional",
+        "message": "The hub's own clock is on {zone}. Matching it only makes its log files easier to read.",
+        "button": "Set the hub to {zone}",
         "settingButton": "Changing…",
-        "success": "The device's clock now matches your screens.",
-        "error": "Could not change the device's clock."
+        "success": "The hub's clock now matches your screens.",
+        "error": "Could not change the hub's clock."
       }
     },
     "calendarPage": {
@@ -660,13 +682,14 @@
         "heading": "Automatic snapshots",
         "description": "Home Screens saves a snapshot of your settings before every update, so a bad update can be undone. Nothing to set up.",
         "empty": "No backups yet. Backups are created automatically before each upgrade.",
-        "sizeKb": "{size}KB",
+        "sizeKb": "{size} KB",
         "download": "Download",
         "restore": "Restore",
         "restoreDialog": {
-          "title": "Restore Backup",
-          "message": "Restore configuration from {name}? Current config will be overwritten.",
-          "confirm": "Restore"
+          "title": "Restore these settings?",
+          "message": "{what}, saved {when}. The settings you have now will be replaced.",
+          "confirm": "Restore",
+          "messageNoDate": "{what}. The settings you have now will be replaced."
         },
         "restoreStatus": {
           "restoring": "Restoring…",
@@ -674,7 +697,13 @@
           "error": "Error: {error}",
           "failed": "Failed to restore backup"
         },
-        "lastStableHelp": "Your settings from before the first early access or test build. Restore this if you go back to a normal release and it can't read your settings."
+        "kinds": {
+          "lastStable": "Last settings before trying early versions",
+          "update": "Before updating from {version}",
+          "migration": "Before your settings were updated (version {version})",
+          "other": "Saved settings"
+        },
+        "keptBadge": "Kept"
       },
       "backupPassword": {
         "setTitle": "Choose a password",
@@ -2646,7 +2675,9 @@
       "suggestButton": "Suggest",
       "copyLastWeekButton": "Copy Last Week",
       "clearButton": "Clear",
-      "prepTimeMin": "{minutes} min"
+      "prepTimeMin": "{minutes} min",
+      "previousWeekAriaLabel": "Previous week",
+      "nextWeekAriaLabel": "Next week"
     },
     "picker": {
       "title": "Choose a Meal",
@@ -3356,6 +3387,7 @@
       "viewNeon": "Neon (Glow Sign)",
       "viewBar": "Bar (Progress Bars)",
       "viewElapsed": "Elapsed (Since/Until)",
+      "datePresetLanguage": "The usual way for your language",
       "datePresetWeekdayMonthDay": "Monday, January 5",
       "datePresetShortWeekday": "Mon, Jan 5",
       "datePresetMonthDayYear": "January 5, 2026",
@@ -3387,7 +3419,7 @@
       "flipAnimation": "Flip Animation",
       "accentColor": "Accent Color",
       "timeZonesCount": "Time Zones ({count}/{max})",
-      "addTimezone": "Add a timezone...",
+      "addTimezone": "Add a time zone...",
       "referenceTime": "Reference Time",
       "referenceTimezoneHint": "Read as {timezone} time",
       "referenceLabel": "Label",
@@ -3406,7 +3438,7 @@
       "precisionDaysHours": "Days + Hours",
       "precisionDaysHoursMinutes": "Days + Hours + Minutes",
       "precisionDaysHoursMinutesSeconds": "Days + Hours + Minutes + Seconds",
-      "timezone": "Timezone",
+      "timezone": "Time zone",
       "customExamplesHeading": "A few you can copy:"
     },
     "countdown": {
@@ -3450,7 +3482,7 @@
       "viewStacked": "Stacked (Vertical)",
       "viewEditorial": "Editorial (Magazine)",
       "viewBanner": "Banner (Horizontal)",
-      "timezone": "Timezone",
+      "timezone": "Time zone",
       "datePresetMonthDay": "January 5",
       "datePresetWeekdayMonthDay": "Monday, January 5",
       "datePresetShortWeekday": "Mon, Jan 5",
@@ -4986,12 +5018,16 @@
       "templateButton": "Choose a template",
       "family": "Add the people in your house",
       "familyLink": "Open Family",
-      "location": "Set your location",
+      "location": "Set your town and time zone",
       "locationLink": "Open Location & language",
       "phone": "Open it on your phone",
       "phoneLink": "See the phone addresses",
       "password": "Set a password",
-      "passwordLink": "Open Security"
+      "passwordLink": "Open Security",
+      "locationZoneMissing": "Your town is set. The time zone is not."
     }
+  },
+  "homeTime": {
+    "hint": "Home time ({city}). It is {time} at home."
   }
 }

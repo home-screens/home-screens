@@ -40,7 +40,7 @@ describe('FamilyGridView', () => {
       ev('dinner', 'Family dinner', '2026-08-24T18:30:00', '2026-08-24T19:30:00', { sourceId: 'src-family' }),
     ];
     const { container } = render(
-      <FamilyGridView events={events} config={config} scale={scale} today={today} now={now} people={people} />,
+      <FamilyGridView events={events} config={config} scale={scale} today={today} now={now} people={people} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const headers = Array.from(container.querySelectorAll('[role="rowheader"]')).map((el) => el.textContent ?? '');
@@ -58,7 +58,7 @@ describe('FamilyGridView', () => {
       ev('b', 'Beta thing', '2026-08-26T09:00:00', '2026-08-26T10:00:00', { sourceId: 'src-b', sourceName: 'Beta' }),
     ];
     const { container } = render(
-      <FamilyGridView events={events} config={config} scale={scale} today={today} now={now} />,
+      <FamilyGridView events={events} config={config} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const headers = Array.from(container.querySelectorAll('[role="rowheader"]')).map((el) => el.textContent ?? '');
@@ -79,7 +79,7 @@ describe('UpNextView', () => {
       ev('cake', 'Trash night', '2026-08-24', '2026-08-25', { allDay: true }),
     ];
     const { container } = render(
-      <UpNextView events={events} config={upNextConfig} scale={scale} today={today} now={now} />,
+      <UpNextView events={events} config={upNextConfig} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const text = container.textContent ?? '';
@@ -100,7 +100,7 @@ describe('UpNextView', () => {
   it('shows the running event as NOW when nothing else is upcoming', () => {
     const events = [ev('running', 'Piano lesson', '2026-08-24T15:30:00', '2026-08-24T16:30:00')];
     const { container } = render(
-      <UpNextView events={events} config={upNextConfig} scale={scale} today={today} now={now} />,
+      <UpNextView events={events} config={upNextConfig} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(container.querySelector('[data-event-id="running"]')?.textContent).toContain('Now');
@@ -110,7 +110,7 @@ describe('UpNextView', () => {
   it('says nothing else today when every event is over', () => {
     const events = [ev('done', 'Dentist', '2026-08-24T13:00:00', '2026-08-24T14:00:00')];
     const { container } = render(
-      <UpNextView events={events} config={upNextConfig} scale={scale} today={today} now={now} />,
+      <UpNextView events={events} config={upNextConfig} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(container.textContent).toContain('Nothing else today');
@@ -127,7 +127,7 @@ describe('FreeTimeView', () => {
       ev('dinner', 'Dinner', '2026-08-24T18:30:00', '2026-08-24T19:30:00', { sourceId: 'src-family' }),
     ];
     const { container } = render(
-      <FreeTimeView events={events} config={freeConfig} scale={scale} today={today} now={now} people={people} />,
+      <FreeTimeView events={events} config={freeConfig} scale={scale} today={today} now={now} people={people} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const text = container.textContent ?? '';
@@ -146,7 +146,7 @@ describe('FreeTimeView', () => {
       ev('shift', 'Work', '2026-08-24T15:00:00', '2026-08-24T22:00:00', { sourceId: 'src-ella' }),
     ];
     const { container } = render(
-      <FreeTimeView events={events} config={{ ...freeConfig, freeTimeShowTomorrow: false }} scale={scale} today={today} now={now} people={people} />,
+      <FreeTimeView events={events} config={{ ...freeConfig, freeTimeShowTomorrow: false }} scale={scale} today={today} now={now} people={people} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const text = container.textContent ?? '';

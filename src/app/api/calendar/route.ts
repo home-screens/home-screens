@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
-import { compareEventStarts } from '@/lib/calendar-utils';
+import { compareEventStarts, parseEventInstant } from '@/lib/calendar-utils';
+import { isoDateInTZ } from '@/lib/timezone';
 import { CALENDAR_FETCH_MAX_EVENTS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import { budgetEvents, mergeSourceStatus, recordSourceStatus, withSavedEvents, type SourceFetchResult } from '@/lib/calendar-source-status';
@@ -69,8 +70,17 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     const hideDeclined = config.settings.calendar.hideDeclined ?? false;
     const daysAhead = config.settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD;
 
+    const timezone = config.settings.timezone;
+
     // Round to nearest minute so cache keys are reusable
     const nowMs = Math.floor(Date.now() / 60000) * 60000;
+    // The default window opens at the start of the household's today, not
+    // at now: the sources test all-day rows against it, and a start of "now"
+    // ends today's all-day events, birthdays and holidays early wherever the
+    // hub's clock and the household's day disagree (a UTC Pi dropped them
+    // from 7 pm in Chicago). List views hide finished rows themselves, and
+    // budgetEvents keeps what ended today apart from the upcoming budget.
+    const todayStartMs = parseEventInstant(isoDateInTZ(new Date(nowMs), timezone), timezone).getTime();
     // Optional window overrides (displays widen the window for month/week
     // grid views). Unparseable values fall back to the defaults, and both
     // are re-serialized so cache keys stay canonical.
@@ -80,7 +90,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
       return Number.isFinite(ms) ? ms : null;
     };
     const defaultWindowMs = daysAhead * 86400000;
-    const timeMinMs = parseTimeParam(searchParams.get('timeMin')) ?? nowMs;
+    const timeMinMs = parseTimeParam(searchParams.get('timeMin')) ?? todayStartMs;
     let timeMaxMs = parseTimeParam(searchParams.get('timeMax')) ?? nowMs + defaultWindowMs;
     if (timeMaxMs <= timeMinMs) timeMaxMs = timeMinMs + defaultWindowMs;
     if (timeMaxMs - timeMinMs > MAX_WINDOW_MS) timeMaxMs = timeMinMs + MAX_WINDOW_MS;
@@ -89,8 +99,6 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
 
     const icalKey = icalSources.map(s => `${s.id}:${s.color}:${s.url}`).join(',');
     const icloudKey = icloudSources.map(s => `${s.id}:${s.color}:${s.kind}:${s.url}`).join(',');
-
-    const timezone = config.settings.timezone;
 
     return { calendarIds, icalSources, icloudSources, holidayCountry, hideDeclined, timeMin, timeMax, timezone, icalKey, icloudKey };
   },
@@ -127,11 +135,11 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     ): Promise<FamilyOutcome> => {
       try {
         const { events, results } = await fetchFamily();
-        return { events: withSavedEvents(events, results, windowStart, windowEnd), results, ok: results.some((r) => r.ok) };
+        return { events: withSavedEvents(events, results, windowStart, windowEnd, timezone), results, ok: results.some((r) => r.ok) };
       } catch (error) {
         log.error(logMessage, error);
         const failed = failAll(error);
-        return { events: withSavedEvents([], failed, windowStart, windowEnd), results: failed, ok: false };
+        return { events: withSavedEvents([], failed, windowStart, windowEnd, timezone), results: failed, ok: false };
       }
     };
 
@@ -172,7 +180,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
       ),
       !holidayCountry ? NO_FAMILY : runFamily(
         async () => ({
-          events: await fetchHolidayEvents(holidayCountry, timeMin, timeMax),
+          events: await fetchHolidayEvents(holidayCountry, timeMin, timeMax, timezone),
           results: [{ id: 'holidays', name: 'Public Holidays', ok: true }],
         }),
         () => [{ id: 'holidays', name: 'Public Holidays', ok: false, error: "Couldn't load the holiday list", messageKey: 'holidaysFailed' }],
@@ -204,7 +212,7 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     recordSourceStatus(sourceStatus);
 
     const merged = [...google.events, ...ical.events, ...icloud.events, ...holidays.events]
-      .sort((a, b) => compareEventStarts(a.start, b.start));
+      .sort((a, b) => compareEventStarts(a.start, b.start, timezone));
     // The safety cap is deliberately not a user setting: a small "max
     // events" once scaled into the grid fetch and silently truncated month
     // grids to the nearest few days. Upcoming-first budgeting only when the

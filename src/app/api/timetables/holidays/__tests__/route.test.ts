@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/auth', () => ({
@@ -13,10 +13,15 @@ vi.mock('@/lib/school-holidays', async () => {
   return { ...actual, getSchoolHolidays: vi.fn(), getSubdivisions: vi.fn() };
 });
 
+let householdZone: string | undefined;
+vi.mock('@/lib/config-cache', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/config-cache')>()),
+  readConfigCached: vi.fn(async () => ({ settings: { timezone: householdZone } })),
+}));
+
 import { GET } from '../route';
 import {
   SchoolHolidaysError,
-  currentSchoolYear,
   getSchoolHolidays,
   getSubdivisions,
 } from '@/lib/school-holidays';
@@ -88,9 +93,27 @@ describe('/api/timetables/holidays', () => {
     expect(holidays).not.toHaveBeenCalled();
   });
 
-  it('asks about the school year running now when none is named', async () => {
-    await ask('?region=DE-NW');
-    expect(holidays).toHaveBeenCalledWith('DE-NW', currentSchoolYear());
+  describe('with no year named', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+      householdZone = undefined;
+    });
+
+    it('asks about the school year running now', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-15T12:00:00Z'));
+      await ask('?region=DE-NW');
+      expect(holidays).toHaveBeenCalledWith('DE-NW', 2026);
+    });
+
+    it('starts the new school year at the household midnight, not the hub clock', async () => {
+      // 00:30 on Sep 1 in Berlin is still Aug 31 in UTC.
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-08-31T22:30:00Z'));
+      householdZone = 'Europe/Berlin';
+      await ask('?region=DE-NW');
+      expect(holidays).toHaveBeenCalledWith('DE-NW', 2026);
+    });
   });
 
   // The library serves a saved copy rather than failing, so the route must
@@ -122,7 +145,7 @@ describe('/api/timetables/holidays', () => {
 
   it('answers the region when both a region and a country are asked for', async () => {
     await ask('?region=DE-NW&country=FR');
-    expect(holidays).toHaveBeenCalledWith('DE-NW', currentSchoolYear());
+    expect(holidays).toHaveBeenCalledWith('DE-NW', expect.any(Number));
     expect(subdivisions).not.toHaveBeenCalled();
   });
 

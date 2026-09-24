@@ -9,7 +9,8 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ViewSelect from '@/components/editor/ViewSelect';
 import TimezoneSelect from '@/components/editor/TimezoneSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { useEditorStore } from '@/stores/editor-store';
+import { useTZClock } from '@/hooks/useTZClock';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, DateView } from '@/types/config';
 
@@ -36,7 +37,10 @@ type DateConfigType = {
 export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<DateConfigType>(mod, screenId);
-  const globalTimezone = useEditorStore((s) => s.config?.settings?.timezone);
+  const globalTimezone = useEditorHouseholdTimezone();
+  // The preview reads the date the module will show: its own zone, else the
+  // household's, never the laptop's.
+  const previewNow = useTZClock(c.timezone || globalTimezone);
 
   const VIEWS: { value: DateView; label: string }[] = [
     { value: 'full', label: t('configSections.date.viewFull') },
@@ -66,7 +70,7 @@ export function DateConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
   // Live date format preview
   let datePreview = '';
   try {
-    datePreview = format(new Date(), dateFormatVal);
+    datePreview = format(previewNow, dateFormatVal);
   } catch {
     datePreview = t('configSections.date.invalidFormat');
   }

@@ -5,12 +5,13 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import type { EditorSharedState } from '@/hooks/useEditorSharedState';
 import { useConditionClock } from '@/hooks/useConditionClock';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
-import { conditionsVerdict } from '@/lib/condition-verdicts';
+import { conditionsVerdict, verdictStatesFor } from '@/lib/condition-verdicts';
 import { validateDisplayRules } from '@/lib/display-filter';
 import ConditionTreeEditor, { ConditionVerdictChip } from '@/components/editor/ConditionTreeEditor';
 import Toggle from '@/components/ui/Toggle';
@@ -128,13 +129,16 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
 
   // Ticking wall clock (display timezone) so a `time` condition's verdict
   // stays live; only ticks when the rule has a time condition.
-  const now = useConditionClock(rule.when, config?.settings.timezone);
+  const householdTimezone = useEditorHouseholdTimezone();
+  const now = useConditionClock(rule.when, householdTimezone);
 
   // Live would-it-fire indicator: the same three-valued evaluation the rule
   // engine runs, over the display's last-reported snapshot. "Met" means the
   // conditions hold RIGHT NOW — the rule itself still fires only on a fresh
-  // not-met → met transition. Null (no fresh report) hides the chip.
-  const verdictStates = liveState.states;
+  // not-met → met transition. Null (no fresh report) hides the chip, unless
+  // the rule only reads the clock: that needs no report and is judged on the
+  // household clock.
+  const verdictStates = verdictStatesFor(rule.when, liveState.states);
   const verdict = rule.enabled !== false && rule.when.length > 0 && verdictStates
     ? conditionsVerdict(rule.when, verdictStates, now)
     : null;
@@ -222,7 +226,7 @@ export default function SortableRuleCard({ rule, index, isExpanded, onToggleExpa
                 {t('settings.rulesPage.card.offBadge')}
               </span>
             )}
-            {verdict && <ConditionVerdictChip verdict={verdict} source={liveState.source} t={t} />}
+            {verdict && <ConditionVerdictChip verdict={verdict} source={liveState.states ? liveState.source : 'editor'} t={t} />}
           </button>
         )}
 

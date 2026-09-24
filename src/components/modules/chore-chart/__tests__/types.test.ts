@@ -9,7 +9,6 @@ import {
   sortChores,
   getCurrentTimeOfDay,
   completionKey,
-  todayStr,
   addDaysISO,
   getWeekDatesFor,
   addChoreToList,
@@ -78,14 +77,6 @@ describe('getOrderedDays', () => {
 
   it('returns Monday-first order for "monday"', () => {
     expect(getOrderedDays('monday')).toEqual([1, 2, 3, 4, 5, 6, 0]);
-  });
-});
-
-describe('todayStr', () => {
-  it('returns a YYYY-MM-DD string matching today', () => {
-    const result = todayStr();
-    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(result).toBe(localDateStr(new Date()));
   });
 });
 

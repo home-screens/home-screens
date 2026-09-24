@@ -115,3 +115,31 @@ describe('OpenWeatherMapProvider', () => {
     expect(out[0].precipAmount).toBe(1); // 25.4mm / 25.4 = 1.00in
   });
 });
+
+describe('OpenWeatherMapProvider forecast days', () => {
+  let spy: ReturnType<typeof vi.spyOn>;
+  afterEach(() => spy?.mockRestore());
+
+  // 3-hourly slots on the UTC grid for a Chicago location (UTC-5 in September).
+  // 00:00Z and 03:00Z are 7 pm and 10 pm on Tuesday Sep 22 in Chicago; 06:00Z
+  // is 1 am Wednesday. Bucketed by UTC day, all three landed on Wednesday and
+  // tonight's readings became tomorrow's high and low.
+  const at = (iso: string, temp: number) =>
+    owmEntry({ dt: Date.parse(iso) / 1000, main: { temp, feels_like: temp, humidity: 50, temp_min: temp, temp_max: temp, pressure: 1010 } });
+  const list = [at('2026-09-23T00:00:00Z', 24), at('2026-09-23T03:00:00Z', 20), at('2026-09-23T06:00:00Z', 15)];
+
+  it("groups entries into the location's days using the response's offset", async () => {
+    spy = mockOwm({ forecast: { list, city: { timezone: -5 * 3600 } } });
+    const out = await new OpenWeatherMapProvider('key').getForecast(44.71, -93.42, 'metric', 'Europe/Berlin');
+    expect(out.map((d) => [d.date, d.high, d.low])).toEqual([
+      ['2026-09-22', 24, 20],
+      ['2026-09-23', 15, 15],
+    ]);
+  });
+
+  it('falls back to the household zone when the response has no offset', async () => {
+    spy = mockOwm({ forecast: { list } });
+    const out = await new OpenWeatherMapProvider('key').getForecast(44.71, -93.42, 'metric', 'America/Chicago');
+    expect(out.map((d) => d.date)).toEqual(['2026-09-22', '2026-09-23']);
+  });
+});

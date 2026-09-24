@@ -245,16 +245,6 @@ export function tzDayKey(date: Date, timezone?: string): string {
 }
 
 /**
- * The instant an hourly entry refers to.
- *
- * WeatherAPI's `time` is a zone-less location-local wall time — safe to
- * format, unsafe to parse — so `timeEpoch` wins whenever the provider set it.
- */
-export function hourlyInstant(h: HourlyWeather): Date {
-  return h.timeEpoch != null ? new Date(h.timeEpoch * 1000) : new Date(h.time);
-}
-
-/**
  * The entries that fall inside the next `hours` hours, by timestamp.
  *
  * Providers disagree on step size (OpenWeatherMap is 3-hourly), so slicing a
@@ -264,11 +254,11 @@ export function hourlyInstant(h: HourlyWeather): Date {
  */
 export function hoursWithin(hourly: HourlyWeather[], hours: number): HourlyWeather[] {
   if (hourly.length === 0) return [];
-  const start = hourlyInstant(hourly[0]).getTime();
+  const start = new Date(hourly[0].time).getTime();
   const end = start + hours * 3600_000;
   const out: HourlyWeather[] = [];
   for (const h of hourly) {
-    const at = hourlyInstant(h).getTime();
+    const at = new Date(h.time).getTime();
     if (Number.isNaN(at) || at >= end) break;
     out.push(h);
   }
@@ -303,9 +293,9 @@ export function timelineHours(hourly: HourlyWeather[]): HourlyWeather[] {
  */
 export function spanHours(hrs: HourlyWeather[]): number {
   if (hrs.length < 2) return hrs.length;
-  const first = hourlyInstant(hrs[0]).getTime();
-  const last = hourlyInstant(hrs[hrs.length - 1]).getTime();
-  const step = last - hourlyInstant(hrs[hrs.length - 2]).getTime();
+  const first = new Date(hrs[0].time).getTime();
+  const last = new Date(hrs[hrs.length - 1].time).getTime();
+  const step = last - new Date(hrs[hrs.length - 2].time).getTime();
   if (step <= 0) return hrs.length;
   const steps = Math.floor((last - first) / step + 1 + 1e-9);
   return Math.round((steps * step) / 3600_000);
@@ -331,7 +321,7 @@ export interface TimelineMark {
 export function timelineMarks(hrs: HourlyWeather[], timezone?: string): TimelineMark[] {
   let prevDay: string | null = null;
   return hrs.map((h, i) => {
-    const at = hourlyInstant(h);
+    const at = new Date(h.time);
     const day = tzDayKey(at, timezone);
     const midnight = i > 0 && prevDay !== null && day !== prevDay;
     prevDay = day;

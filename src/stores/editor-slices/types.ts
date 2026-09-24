@@ -44,6 +44,14 @@ export interface EditorCoreState extends EditorSelection {
    */
   configRevision: string | null;
   /**
+   * The hub's own clock zone, from the config response
+   * (`HUB_TIMEZONE_HEADER`). With no zone saved it is the household's zone on
+   * every surface, so the editor's previews, badges and clocks use it rather
+   * than this laptop's. Null until the first load, or when the hub did not
+   * name one.
+   */
+  hubTimezone: string | null;
+  /**
    * Set when a save was refused because the config changed somewhere else
    * (another editor, a phone, a remote profile switch). Auto-save stays off
    * until the user picks a side via `resolveSaveConflict`.

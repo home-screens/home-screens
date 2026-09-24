@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, DEFAULT_MEAL_EMOJI, dateToDayIndex, toISODate, plannedMealName } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, DEFAULT_MEAL_EMOJI, dateToDayIndex, plannedMealName } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -17,6 +17,8 @@ interface WeekGridProps {
   timeFormat: TimeFormat;
   selectedMealId: string | null;
   weekDates: string[];
+  /** The household's calendar day, `YYYY-MM-DD`, for the Today column. */
+  todayISO: string;
   isCurrentWeek: boolean;
   onSelectMeal: (id: string) => void;
   onRemoveMeal: (date: string, slot: MealSlotType) => void;
@@ -38,6 +40,7 @@ export default function WeekGrid({
   timeFormat,
   selectedMealId,
   weekDates,
+  todayISO,
   isCurrentWeek,
   onSelectMeal,
   onRemoveMeal,
@@ -54,7 +57,6 @@ export default function WeekGrid({
   const tModules = useTranslate('modules');
   const locale = useFormattingLocale();
   const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
-  const todayISO = toISODate(new Date());
   // Sort slots into chronological order regardless of config toggle order
   const orderedSlots = SLOT_ORDER.filter((s) => slots.includes(s));
 
@@ -87,9 +89,10 @@ export default function WeekGrid({
         <button
           type="button"
           onClick={() => onNavigateWeek(-1)}
+          aria-label={t('mealPlannerModal.weekGrid.previousWeekAriaLabel')}
           className="p-1 rounded hover:bg-hs-card text-hs-text-faint hover:text-hs-text-secondary transition"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-4 h-4" aria-hidden />
         </button>
         <span className="text-[11px] font-bold uppercase tracking-wider text-hs-text-faint min-w-[140px] text-center">
           {dateRangeLabel}
@@ -97,9 +100,10 @@ export default function WeekGrid({
         <button
           type="button"
           onClick={() => onNavigateWeek(1)}
+          aria-label={t('mealPlannerModal.weekGrid.nextWeekAriaLabel')}
           className="p-1 rounded hover:bg-hs-card text-hs-text-faint hover:text-hs-text-secondary transition"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4" aria-hidden />
         </button>
         {!isCurrentWeek && (
           <button

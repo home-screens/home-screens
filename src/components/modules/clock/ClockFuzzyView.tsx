@@ -6,6 +6,7 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
+import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
 
@@ -15,14 +16,14 @@ import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
  *
  * Literary and cozy, distinct from the formal "word" view.
  */
-export default function ClockFuzzyView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockFuzzyView({ config, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hours, minutes } = parseClockTime(config.format24h, now);
+  const { hours, minutes } = parseClockTime(config.format24h, time);
 
   const fuzzyText = timeToFuzzy(t, hours, minutes);
   const dateStr = config.showDate
-    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
   return (

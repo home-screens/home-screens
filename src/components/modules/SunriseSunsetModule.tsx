@@ -13,6 +13,7 @@ import type { TranslateFn } from '@/i18n';
 import type { SunriseSunsetConfig, SunriseSunsetTheme, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { LocationRequired } from './LocationRequired';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 interface SunriseSunsetModuleProps {
   config: SunriseSunsetConfig;
@@ -752,11 +753,10 @@ export default function SunriseSunsetModule({ config, style, latitude, longitude
   const dark = nextTimes ? astroDarkWindow(times, nextTimes) : null;
   const polar = polarKind(times, latitude, longitude);
 
-  // The household's 12/24 choice when there is one; otherwise this module's
-  // historic 12-hour rendering, so a display nobody has configured does not
-  // move. The locale is the real one either way — it used to be pinned to
-  // en-US, which printed American times on a German wall.
-  const clock: ClockFormat = { timezone, locale, hour12: timeFormat !== '24h' };
+  // The household's 12/24 choice, or its formatting language's own clock.
+  // The locale is the real one either way: it used to be pinned to en-US,
+  // which printed American times on a German wall.
+  const clock: ClockFormat = { timezone, locale, hour12: householdTimeFormat(timeFormat, locale) === '12h' };
 
   return (
     <ModuleWrapper style={style}>

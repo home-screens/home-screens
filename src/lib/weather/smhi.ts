@@ -3,7 +3,7 @@ import { fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
 import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
-import { aggregateDaily } from './daily';
+import { aggregateDaily, forecastDate } from './daily';
 
 // ── SMHI (Swedish Meteorological and Hydrological Institute) ─────────
 // https://opendata.smhi.se/metfcst/snow1gv1
@@ -156,13 +156,15 @@ export class SMHIProvider implements WeatherProvider {
       });
   }
 
-  async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
+  async getForecast(lat: number, lon: number, units: string, timezone?: string): Promise<ForecastDay[]> {
     const data = await this.fetchData(lat, lon);
     const isMetric = units === 'metric';
 
+    // Times are UTC and the API names no zone: bucket into the household's
+    // days, which the route passes in (Sweden is UTC+1/+2).
     const days = aggregateDaily(
       data.timeSeries.map((entry) => ({
-        date: entry.time.split('T')[0],
+        date: forecastDate(new Date(entry.time), timezone),
         tempC: entry.data.air_temperature,
         humidity: entry.data.relative_humidity,
         windSpeedMs: entry.data.wind_speed,
@@ -171,6 +173,7 @@ export class SMHIProvider implements WeatherProvider {
         precipProb: entry.data.probability_of_precipitation,
       })),
       7,
+      forecastDate(new Date(Date.now()), timezone),
     );
 
     return days.map((day) => ({

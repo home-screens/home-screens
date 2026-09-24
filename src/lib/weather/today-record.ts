@@ -1,4 +1,5 @@
 import { createJsonStore } from '../json-store';
+import type { ForecastDay } from './types';
 
 /**
  * What the hub has seen of today's temperature.
@@ -11,6 +12,11 @@ import { createJsonStore } from '../json-store';
  * the warmest and coldest reading of the current local day, so today's range
  * can be widened to what actually happened (see `reconcileTodayRange`).
  *
+ * It also keeps today's forecast row as the provider last reported it. Late
+ * in the evening OpenWeatherMap has no slot left for today and its forecast
+ * starts tomorrow; the route rebuilds a Today row from this copy so the wall
+ * does not lose the day three hours early (see `rebuildTodayRow`).
+ *
  * Its own file, like the todo state: it is runtime data the editor must never
  * write back, and it changes every poll.
  */
@@ -19,6 +25,8 @@ export interface DayRange {
   date: string;
   high: number;
   low: number;
+  /** The provider's row for this day, from the last poll whose forecast still started with it. */
+  forecast?: ForecastDay;
 }
 
 interface TodayRecord {
@@ -39,21 +47,28 @@ export function readingKey(provider: string, lat: string | number, lon: string |
 /**
  * Fold a reading into its day and return the day's range so far.
  *
- * `date` is the forecast's own day-0 date, which every provider reports in
- * the location's local calendar, so the record and the range it later widens
- * are bucketed the same way with no timezone in between. A reading on a new
- * day starts the day over. Other places' entries are kept while they are
- * within a day of this one (a place in another zone can be a day behind or
- * ahead) and dropped once they are older, so the file never holds more than
- * the current day or two. Nothing is written when the range did not move.
+ * `date` is the household's today. The reading is taken now, so it belongs to
+ * today whatever day the provider's forecast happens to start on. `todayRow`
+ * is the provider's row for that day, passed while its forecast still starts
+ * with today; the last one passed is kept for the rest of the day. A reading
+ * on a new day starts the day over. Other places' entries are kept while they
+ * are within a day of this one (a place in another zone can be a day behind
+ * or ahead) and dropped once they are older, so the file never holds more
+ * than the current day or two. Nothing is written when nothing moved.
  */
-export async function recordReading(key: string, date: string, temp: number): Promise<DayRange> {
+export async function recordReading(key: string, date: string, temp: number, todayRow?: ForecastDay): Promise<DayRange> {
   const record = await store.updateAtomic((current) => {
     const existing = current.readings[key];
-    const next: DayRange = existing && existing.date === date
-      ? { date, high: Math.max(existing.high, temp), low: Math.min(existing.low, temp) }
-      : { date, high: temp, low: temp };
-    const unchanged = existing && existing.date === next.date && existing.high === next.high && existing.low === next.low;
+    const sameDay = existing && existing.date === date ? existing : undefined;
+    const row = todayRow ?? sameDay?.forecast;
+    const next: DayRange = {
+      date,
+      high: Math.max(sameDay?.high ?? temp, temp),
+      low: Math.min(sameDay?.low ?? temp, temp),
+      ...(row ? { forecast: row } : {}),
+    };
+    const unchanged = sameDay !== undefined && sameDay.high === next.high && sameDay.low === next.low
+      && JSON.stringify(sameDay.forecast) === JSON.stringify(next.forecast);
     const keep = (k: string, r: DayRange) => k === key || !isOlderThanADay(r.date, date);
     const stale = Object.entries(current.readings).some(([k, r]) => !keep(k, r));
     if (unchanged && !stale) return current;

@@ -5,6 +5,7 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { YearProgressConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY, resolveAccent, ink } from '@/lib/constants';
+import { formatProgressPercent } from '@/lib/progress-percent';
 
 interface YearProgressModuleProps {
   config: YearProgressConfig;
@@ -40,10 +41,11 @@ function getProgress(now: Date) {
   return { yearPercent, monthPercent, weekPercent, dayPercent, year };
 }
 
-function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent }: {
+function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent, locale }: {
   label: string;
   percent: number;
   showPercentage: boolean;
+  locale: string;
   accentColor: string;
   hasAccent: boolean;
 }) {
@@ -58,7 +60,7 @@ function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent }:
         <span suppressHydrationWarning style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{label}</span>
         {showPercentage && (
           <span suppressHydrationWarning className="tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>
-            {clamped.toFixed(1)}%
+            {formatProgressPercent(clamped, locale)}
           </span>
         )}
       </div>
@@ -117,16 +119,16 @@ export default function YearProgressModule({ config, style, timezone }: YearProg
     <ModuleWrapper style={style}>
       <div className="flex flex-col justify-center h-full" style={{ gap: '1.1em' }}>
         {showYear && (
-          <ProgressBar label={String(year)} percent={yearPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
+          <ProgressBar label={String(year)} percent={yearPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} locale={locale} />
         )}
         {showMonth && (
-          <ProgressBar label={monthName} percent={monthPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
+          <ProgressBar label={monthName} percent={monthPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} locale={locale} />
         )}
         {showWeek && (
-          <ProgressBar label={t('year-progress.week')} percent={weekPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
+          <ProgressBar label={t('year-progress.week')} percent={weekPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} locale={locale} />
         )}
         {showDay && (
-          <ProgressBar label={dayName} percent={dayPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} />
+          <ProgressBar label={dayName} percent={dayPercent} showPercentage={showPercentage} accentColor={accentColor} hasAccent={hasAccent} locale={locale} />
         )}
       </div>
     </ModuleWrapper>

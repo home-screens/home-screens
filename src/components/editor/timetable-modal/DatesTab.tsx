@@ -21,6 +21,7 @@ import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { formatDateSync, fullDatePattern, useFormattingLocale, useTranslate } from '@/i18n';
 import { formatClockTime } from '@/lib/clock-time';
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { addDays, closureOn, dayBlocks, dayKeyOf, daySpan, dateInZone, endsAfterOn, weekLetterOn, type LessonBlock } from '@/lib/timetable-layout';
 import { parseISODate } from '@/lib/todo-due-labels';
 import type { FamilyMember } from '@/types/family';
@@ -28,6 +29,7 @@ import { TIMETABLE_LIMITS, type Timetable, type TimetableData, type TimetableNot
 import MemberDot from './MemberDot';
 import { PROSE_CLASS } from './prose';
 import { findSchool, findTimetable, makeNote, noteIsComplete, withNote, withoutNote } from './use-timetable-draft';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 interface DatesTabProps {
   data: TimetableData;
@@ -66,8 +68,10 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
   const t = useTranslate('editor');
   const locale = useFormattingLocale();
   // The household's clock, so "done at 12:25" reads the way the wall says it.
-  const timeFormat = useEditorStore((state) => state.config?.settings.timeFormat);
-  const today = dateInZone(now ?? new Date());
+  const timeFormat = useHouseholdTimeFormat(useEditorStore((state) => state.config?.settings.timeFormat));
+  // Today and Tomorrow on the household's calendar, the same as the wall.
+  const timezone = useEditorHouseholdTimezone();
+  const today = dateInZone(now ?? new Date(), timezone);
 
   const withTimetables = members.filter((member) => findTimetable(data, member.id));
   const [who, setWho] = useState<string>('all');
@@ -524,9 +528,9 @@ export default function DatesTab({ data, members, update, now }: DatesTabProps) 
   );
 }
 
-/** How many dates are still to come, for the badge on the tab. */
-export function upcomingNoteCount(data: TimetableData, now: Date = new Date()): number {
-  const today = dateInZone(now);
+/** How many dates are still to come on the household's calendar, for the badge on the tab. */
+export function upcomingNoteCount(data: TimetableData, timezone: string | undefined, now: Date = new Date()): number {
+  const today = dateInZone(now, timezone);
   let count = 0;
   for (const timetable of data.timetables) {
     for (const note of timetable.notes ?? []) if (note.date >= today && noteIsComplete(note)) count++;

@@ -10,9 +10,12 @@ import { I18nProvider } from '@/i18n/provider';
 import type { FamilyMember } from '@/types/family';
 import type { TimetableData } from '@/types/timetables';
 // A German household on a 24 hour clock, which is what every expectation reads.
+// Its zone is set so the expectations hold whatever zone runs the tests.
+const BERLIN = 'Europe/Berlin';
+const storeSettings: { timeFormat: string; timezone: string } = { timeFormat: '24h', timezone: BERLIN };
 vi.mock('@/stores/editor-store', () => ({
   useEditorStore: (select?: (state: unknown) => unknown) => {
-    const store = { config: { settings: { timeFormat: '24h' } } };
+    const store = { config: { settings: storeSettings } };
     return select ? select(store) : store;
   },
 }));
@@ -70,13 +73,13 @@ function household(): TimetableData {
   };
 }
 
-function Harness({ initial, onChange }: { initial?: TimetableData; onChange?: (data: TimetableData) => void }) {
+function Harness({ initial, onChange, now = NOW }: { initial?: TimetableData; onChange?: (data: TimetableData) => void; now?: Date }) {
   const [data, setData] = useState(initial ?? household());
   return (
     <DatesTab
       data={data}
       members={MEMBERS}
-      now={NOW}
+      now={now}
       update={(change) => setData((current) => {
         const next = change(current);
         onChange?.(next);
@@ -86,7 +89,7 @@ function Harness({ initial, onChange }: { initial?: TimetableData; onChange?: (d
   );
 }
 
-function render(props: { initial?: TimetableData; onChange?: (data: TimetableData) => void } = {}) {
+function render(props: { initial?: TimetableData; onChange?: (data: TimetableData) => void; now?: Date } = {}) {
   return renderUI(<Harness {...props} />, {
     wrapper: ({ children }) => (
       <I18nProvider locale="en-US" blob={{ core, editor, modules }}>{children}</I18nProvider>
@@ -96,7 +99,10 @@ function render(props: { initial?: TimetableData; onChange?: (data: TimetableDat
 
 const rows = () => screen.queryAllByTestId('timetable-note-row');
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  storeSettings.timezone = BERLIN;
+});
 
 describe('DatesTab list', () => {
   it('lists what is coming for the whole family by day, and hides what has passed', () => {
@@ -134,8 +140,28 @@ describe('DatesTab list', () => {
     data.timetables = data.timetables.map((timetable) => ({ ...timetable, notes: [] }));
     render({ initial: data });
     expect(screen.getByText('Nothing coming up')).toBeTruthy();
-    expect(upcomingNoteCount(data, NOW)).toBe(0);
-    expect(upcomingNoteCount(household(), NOW)).toBe(3);
+    expect(upcomingNoteCount(data, BERLIN, NOW)).toBe(0);
+    expect(upcomingNoteCount(household(), BERLIN, NOW)).toBe(3);
+  });
+
+  // 00:30 on Friday 11 September in Auckland is still Thursday the 10th in
+  // UTC and in Chicago, so a laptop in either zone would call Friday
+  // "Tomorrow" while the household is already living it.
+  const AUCKLAND_JUST_AFTER_MIDNIGHT = new Date('2026-09-10T12:30:00Z');
+
+  it("names today by the household's calendar, not the laptop's", () => {
+    storeSettings.timezone = 'Pacific/Auckland';
+    render({ now: AUCKLAND_JUST_AFTER_MIDNIGHT });
+    expect(screen.getByText(/^Today · /)).toBeTruthy();
+    expect(screen.queryByText(/^Tomorrow · /)).toBeNull();
+  });
+
+  it("counts upcoming dates from the household's today", () => {
+    const data = household();
+    data.timetables[0].notes!.push({ id: 'thu', date: '2026-09-10', kind: 'bring', text: 'Donnerstag' });
+    // Thursday the 10th is already over in Auckland.
+    expect(upcomingNoteCount(data, 'Pacific/Auckland', AUCKLAND_JUST_AFTER_MIDNIGHT)).toBe(3);
+    expect(upcomingNoteCount(data, 'America/Chicago', AUCKLAND_JUST_AFTER_MIDNIGHT)).toBe(4);
   });
 
   it('removes a date', () => {

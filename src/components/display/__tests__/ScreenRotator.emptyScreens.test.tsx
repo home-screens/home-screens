@@ -28,11 +28,12 @@ vi.mock('../useLiveConfig', () => ({
   useLiveConfig: (
     screens: Screen[],
     settings: GlobalSettings,
+    hubTimezone: string,
     profiles: unknown,
     _displayId: string | undefined,
     displays: unknown,
     rules: DisplayRule[] | undefined,
-  ) => ({ screens, settings, profiles, rules, displays: displays ?? [] }),
+  ) => ({ screens, settings: { ...settings, timezone: settings.timezone || hubTimezone }, profiles, rules, displays: displays ?? [] }),
 }));
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
@@ -89,7 +90,7 @@ describe('ScreenRotator with an unfinished screen in the list', () => {
   });
 
   it('rotates past the empty screen instead of showing it', () => {
-    render(<ScreenRotator screens={[screenOf('home'), emptyScreen('blank'), screenOf('weather')]} settings={makeSettings()} />);
+    render(<ScreenRotator hubTimezone="UTC" screens={[screenOf('home'), emptyScreen('blank'), screenOf('weather')]} settings={makeSettings()} />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(rendered()).toBe('home');
 
@@ -103,7 +104,7 @@ describe('ScreenRotator with an unfinished screen in the list', () => {
   });
 
   it('leaves no dot for a screen the rotation skips', () => {
-    render(<ScreenRotator screens={[screenOf('home'), emptyScreen('blank'), screenOf('weather')]} settings={makeSettings()} />);
+    render(<ScreenRotator hubTimezone="UTC" screens={[screenOf('home'), emptyScreen('blank'), screenOf('weather')]} settings={makeSettings()} />);
     act(() => { vi.advanceTimersByTime(0); });
 
     // The active dot is the pause control and does not name its screen; the
@@ -114,7 +115,7 @@ describe('ScreenRotator with an unfinished screen in the list', () => {
   });
 
   it('still shows the setup watermark when every screen is empty', () => {
-    render(<ScreenRotator screens={[emptyScreen('one'), emptyScreen('two')]} settings={makeSettings()} />);
+    render(<ScreenRotator hubTimezone="UTC" screens={[emptyScreen('one'), emptyScreen('two')]} settings={makeSettings()} />);
     act(() => { vi.advanceTimersByTime(0); });
 
     expect(dom.getByTestId('empty-display-hint')).toBeTruthy();
@@ -123,7 +124,7 @@ describe('ScreenRotator with an unfinished screen in the list', () => {
 
   it('shows the empty screen when it is the one being previewed', () => {
     render(
-      <ScreenRotator
+      <ScreenRotator hubTimezone="UTC"
         screens={[screenOf('home'), emptyScreen('blank')]}
         settings={makeSettings()}
         initialScreenId="blank"

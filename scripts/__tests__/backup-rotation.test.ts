@@ -46,3 +46,35 @@ describe('upgrade backup rotation', () => {
     expect(readFileSync(path.join(backups, JSON.parse(result.stdout).file), 'utf8')).toBe('{"current":true}');
   });
 });
+
+describe('upgrade backup times', () => {
+  const run = (action: string, tz: string) => spawnSync('bash', [path.join(directory, 'scripts/upgrade.sh'), action], {
+    cwd: directory,
+    encoding: 'utf8',
+    env: { ...process.env, TZ: tz },
+  });
+
+  it('lists each backup with a real instant, whatever zone the Pi is in', () => {
+    // 3 am in Chicago, 08:00 UTC.
+    const instant = Date.parse('2026-09-24T08:00:00Z') / 1000;
+    save('config-v1.12.2-20260924-080000.json', instant);
+    for (const tz of ['UTC', 'America/Chicago', 'Europe/Berlin']) {
+      const result = run('list-backups', tz);
+      expect(result.status, result.stderr).toBe(0);
+      const [entry] = JSON.parse(result.stdout) as { name: string; modified: string }[];
+      expect(entry.modified).toBe('2026-09-24T08:00:00Z');
+      expect(Date.parse(entry.modified)).toBe(instant * 1000);
+    }
+  });
+
+  it('names a new snapshot in UTC, not the Pi zone', () => {
+    const before = Math.floor(Date.now() / 1000) * 1000;
+    const result = run('backup', 'America/Chicago');
+    expect(result.status, result.stdout + result.stderr).toBe(0);
+    const file = JSON.parse(result.stdout).file as string;
+    const [, d, t] = /-(\d{8})-(\d{6})\.json$/.exec(file)!;
+    const stamped = Date.parse(`${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4)}Z`);
+    expect(stamped).toBeGreaterThanOrEqual(before);
+    expect(stamped).toBeLessThanOrEqual(Date.now());
+  });
+});

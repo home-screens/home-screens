@@ -83,7 +83,7 @@ export interface WeekCardProps {
   /** The card's style: the module's, with the heading taken off. */
   style: ModuleStyle;
   showStartTimes?: boolean;
-  timeFormat?: TimeFormat;
+  timeFormat: TimeFormat;
   /** The box the module lays this card out in, inside its padding and border. */
   box: { width: number; height: number };
   /** The size every card in the row draws at, Text size and the floor included. */

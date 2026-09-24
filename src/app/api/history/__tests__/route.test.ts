@@ -7,6 +7,12 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
+let householdZone: string | undefined;
+vi.mock('@/lib/config-cache', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/config-cache')>()),
+  readConfigCached: vi.fn(async () => ({ settings: { timezone: householdZone } })),
+}));
+
 const dummyRequest = new NextRequest('http://localhost/api/history');
 
 function makeMuffinLabsResponse(events: Array<{ year: string; text: string }>) {
@@ -65,6 +71,8 @@ describe('GET /api/history', () => {
     vi.resetModules();
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-03-09T12:00:00Z'));
+    // Pinned so the day under test does not depend on the machine's zone.
+    householdZone = 'UTC';
   });
 
   afterEach(() => {
@@ -336,5 +344,82 @@ describe('GET /api/history', () => {
     expect(json.events[0].source).toBe('wikipedia');
     const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
     expect(calls.every((c: string[]) => !c[0].includes('muffinlabs.com'))).toBe(true);
+  });
+
+  describe('uses the household day for every date', () => {
+    function urlsFetched(): string[] {
+      return (fetch as ReturnType<typeof vi.fn>).mock.calls.map((c: string[]) => c[0]);
+    }
+
+    it('asks both sources for the household day on a UTC hub in the evening', async () => {
+      // 8 pm in Chicago on Sep 22 is already Sep 23 in UTC.
+      vi.setSystemTime(new Date('2026-09-23T01:00:00Z'));
+      householdZone = 'America/Chicago';
+      mockBothSources([{ year: '1959', text: 'Barbie' }], []);
+
+      const GET = await importGET();
+      const json = await (await GET(dummyRequest)).json();
+
+      const urls = urlsFetched();
+      expect(urls.find((u) => u.includes('wikimedia.org'))).toContain('/onthisday/events/09/22');
+      expect(urls.find((u) => u.includes('muffinlabs.com'))).toBe('https://history.muffinlabs.com/date/9/22');
+      expect(json.date).toBe('2026-09-22');
+    });
+
+    it('fetches the new day at household midnight rather than serving yesterday from cache', async () => {
+      householdZone = 'America/Chicago';
+      mockBothSources([], [{ year: 1916, text: 'Evening event' }]);
+      const GET = await importGET();
+
+      // 6 pm Sep 22 Chicago, then 7:30 pm (UTC has rolled to Sep 23): same day, one fetch.
+      vi.setSystemTime(new Date('2026-09-22T23:00:00Z'));
+      await GET(dummyRequest);
+      vi.setSystemTime(new Date('2026-09-23T00:30:00Z'));
+      await GET(dummyRequest);
+      expect(urlsFetched().filter((u) => u.includes('wikimedia.org'))).toHaveLength(1);
+
+      // 00:30 Sep 23 Chicago: a new household day, fetched for Sep 23.
+      vi.setSystemTime(new Date('2026-09-23T05:30:00Z'));
+      const json = await (await GET(dummyRequest)).json();
+      const wiki = urlsFetched().filter((u) => u.includes('wikimedia.org'));
+      expect(wiki).toHaveLength(2);
+      expect(wiki[1]).toContain('/09/23');
+      expect(json.date).toBe('2026-09-23');
+    });
+
+    it('serves the day a display names when its clock turns midnight before the hub', async () => {
+      // 23:59:58 Sep 22 in Chicago on the hub; the display already reads Sep 23.
+      vi.setSystemTime(new Date('2026-09-23T04:59:58Z'));
+      householdZone = 'America/Chicago';
+      mockBothSources([], [{ year: 1916, text: 'Event' }]);
+      const GET = await importGET();
+
+      const json = await (await GET(new NextRequest('http://localhost/api/history?day=2026-09-23'))).json();
+      expect(urlsFetched().find((u) => u.includes('wikimedia.org'))).toContain('/09/23');
+      expect(json.date).toBe('2026-09-23');
+    });
+
+    it('ignores a named day more than a day from the household today', async () => {
+      vi.setSystemTime(new Date('2026-09-23T17:00:00Z'));
+      householdZone = 'America/Chicago';
+      mockBothSources([], [{ year: 1916, text: 'Event' }]);
+      const GET = await importGET();
+
+      const json = await (await GET(new NextRequest('http://localhost/api/history?day=2026-12-25'))).json();
+      expect(json.date).toBe('2026-09-23');
+    });
+
+    it('uses the household day east of UTC too', async () => {
+      // 00:30 on Sep 1 in Berlin is still Aug 31 in UTC.
+      vi.setSystemTime(new Date('2026-08-31T22:30:00Z'));
+      householdZone = 'Europe/Berlin';
+      mockBothSources([], [{ year: 1939, text: 'Event' }]);
+
+      const GET = await importGET();
+      const json = await (await GET(dummyRequest)).json();
+
+      expect(urlsFetched().find((u) => u.includes('wikimedia.org'))).toContain('/09/01');
+      expect(json.date).toBe('2026-09-01');
+    });
   });
 });

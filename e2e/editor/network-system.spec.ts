@@ -154,7 +154,8 @@ const CHANGELOG = {
 
 const BACKUPS = {
   backups: [
-    { name: 'config-backup-2026-07-01.json', size: 4096, modified: '2026-07-01T12:00:00Z' },
+    // Named the way upgrade.sh names them: the running version, then a UTC stamp.
+    { name: 'config-v1.2.2-20260701-120000.json', size: 4096, modified: '2026-07-01T12:00:00Z' },
     // The copy upgrade.sh pins before the first early-access or test build.
     { name: 'last-stable-config.json', size: 4096, modified: '2026-06-30T12:00:00Z' },
   ],
@@ -635,20 +636,27 @@ test.describe('Defaults › System', () => {
     // The Config Backups section moved from the System page to Backups & data
     // in the settings reorganization; the data source (/api/system/backups)
     // is unchanged, so the same stubs cover it.
-    await putConfig(request, baseConfig());
+    await putConfig(request, baseConfig({ settings: { timezone: 'America/Chicago' } }));
     const stubs = await setupSystemStubs(page);
 
     await page.goto('/editor/settings?section=defaults&page=data');
 
     await expect(page.getByRole('heading', { name: 'Automatic snapshots' })).toBeVisible();
-    await expect(page.getByText('config-backup-2026-07-01.json')).toBeVisible();
+    // Each row leads with what the snapshot is and when it was taken at home;
+    // the UTC-stamped file name only rides along underneath.
+    const rows = page.getByTestId('config-backup-row');
+    await expect(rows.nth(0)).toContainText('Before updating from 1.2.2');
+    await expect(rows.nth(0)).toContainText('Wednesday, Jul 1, 2026, 7:00 AM');
+    await expect(rows.nth(0)).toContainText('4.0 KB');
+    await expect(page.getByText('config-v1.2.2-20260701-120000.json')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Download' }).first()).toBeVisible();
     // exact — the Full Backup section's "Restore Backup" button lives on the
     // same page now, and role-name matching is substring by default.
     await expect(page.getByRole('button', { name: 'Restore', exact: true }).first()).toBeVisible();
-    // The pinned pre-prerelease copy says what it is for; the rotating ones don't.
+    // The pinned pre-prerelease copy says what it is, and that it is kept.
     await expect(page.getByText('last-stable-config.json')).toBeVisible();
-    await expect(page.getByText(/Your settings from before the first early access or test build/)).toHaveCount(1);
+    await expect(rows.nth(1)).toContainText('Last settings before trying early versions');
+    await expect(rows.nth(1)).toContainText('Kept');
 
     assertNoRealSystemCall(stubs);
   });
@@ -958,9 +966,13 @@ test.describe('Defaults › System', () => {
     // exact — avoids the Full Backup section's "Restore Backup" button.
     await page.getByRole('button', { name: 'Restore', exact: true }).first().click();
 
-    // Confirm dialog (ConfirmModal, mounted in the editor layout).
+    // Confirm dialog (ConfirmModal, mounted in the editor layout), in the
+    // row's own words rather than the raw file name.
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByText('Restore these settings?')).toBeVisible();
+    await expect(dialog.getByText(/^Before updating from 1\.2\.2, saved /)).toBeVisible();
+    await expect(dialog.getByText(/config-v1\.2\.2/)).toHaveCount(0);
     await dialog.getByRole('button', { name: 'Restore' }).click();
 
     // Stub returns { ok: true } → success message.
@@ -969,7 +981,7 @@ test.describe('Defaults › System', () => {
     assertNoRealSystemCall(stubs);
     // The UI POSTed the backup name to the (stubbed) restore route.
     const posted = stubs.posted['/api/system/backups'] as Array<{ name: string }>;
-    expect(posted?.[0]?.name).toBe('config-backup-2026-07-01.json');
+    expect(posted?.[0]?.name).toBe('config-v1.2.2-20260701-120000.json');
   });
 
   test('restart-service confirms, hits the stubbed power route, and shows scheduled status', async ({ page, request }) => {

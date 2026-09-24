@@ -54,7 +54,7 @@ function sectionOf(text: string, title: string, before: string, after: string): 
 describe('fullscreen views bucket events by the display timezone', () => {
   it('week-list puts a UTC event on its Auckland day', () => {
     const { container } = render(
-      <WeekListView events={[event]} timezone={TZ} config={config} scale={scale} today={today} now={now} />,
+      <WeekListView events={[event]} timezone={TZ} config={config} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const text = container.textContent ?? '';
@@ -64,7 +64,7 @@ describe('fullscreen views bucket events by the display timezone', () => {
 
   it('agenda puts a UTC event on its Auckland day', () => {
     const { container } = render(
-      <AgendaView events={[event]} timezone={TZ} config={{ ...config, view: 'agenda' }} scale={scale} today={today} now={now} />,
+      <AgendaView events={[event]} timezone={TZ} config={{ ...config, view: 'agenda' }} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const text = container.textContent ?? '';
@@ -86,6 +86,7 @@ describe('fullscreen views bucket events by the display timezone', () => {
         scale={scale}
         today={today}
         now={now}
+        timeFormat="12h"
       />,
       { wrapper: Wrapper },
     );
@@ -105,6 +106,7 @@ describe('fullscreen views bucket events by the display timezone', () => {
         scale={scale}
         today={today}
         now={now}
+        timeFormat="12h"
       />,
       { wrapper: Wrapper },
     );
@@ -117,7 +119,7 @@ describe('fullscreen views bucket events by the display timezone', () => {
 
   it('month-grid places the event in the 25th, not the 24th', () => {
     const { container } = render(
-      <MonthGridView events={[event]} timezone={TZ} config={{ ...config, view: 'month-grid' }} scale={scale} today={today} now={now} />,
+      <MonthGridView events={[event]} timezone={TZ} config={{ ...config, view: 'month-grid' }} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     // Cells carry no day attribute; assert by text order between day numbers.

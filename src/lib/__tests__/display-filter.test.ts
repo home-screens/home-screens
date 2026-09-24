@@ -740,6 +740,27 @@ describe('findScreenById', () => {
 /* ─── Per-display settings overrides ─── */
 
 describe('filterConfigForDisplay — per-display overrides', () => {
+  it('ignores a timezone (or any undeclared key) left in display.settings', () => {
+    // A hand-edited or imported config can carry one. The household runs on
+    // one clock, so it must not move this display's sleep and schedules onto
+    // a zone the editor and the hub never see.
+    const config = makeConfig({
+      settings: makeSettings({ timezone: 'America/Chicago', latitude: 44.7 }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { timezone: 'Europe/London', latitude: 51.5, rotationIntervalMs: 5000 } as DisplayNode['settings'],
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.timezone).toBe('America/Chicago');
+    expect(filtered?.settings.latitude).toBe(44.7);
+    // Declared overrides still win.
+    expect(filtered?.settings.rotationIntervalMs).toBe(5000);
+  });
+
   it('fullscreenTheme override beats the global value', () => {
     const config = makeConfig({
       settings: makeSettings({ fullscreenTheme: 'linen' }),

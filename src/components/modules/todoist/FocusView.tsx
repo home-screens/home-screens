@@ -1,9 +1,9 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { TodoistConfig } from '@/types/config';
+import type { TodoistConfig, TimeFormat } from '@/types/config';
 import type { TodoistTask } from './todoist-utils';
-import { daysBetween, buildTaskTree } from './todoist-utils';
+import { dueDaysFromToday, buildTaskTree } from './todoist-utils';
 import { TaskRow } from './ListView';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
@@ -13,30 +13,30 @@ export default function FocusView({
   config,
   now,
   onComplete,
+  timeFormat,
+  timezone,
 }: {
   allTasks: TodoistTask[];
   config: TodoistConfig;
   now: Date;
   onComplete?: (taskId: string) => void;
+  timeFormat?: TimeFormat;
+  /** Household zone: which day counts as today, and the clock times read on. */
+  timezone?: string;
 }) {
   const tr = useTranslate('modules');
-  const focusTasks = useMemo(() => {
-    return allTasks.filter((t) => {
-      if (!t.due) return false;
-      const dueDate = new Date(t.due.datetime ?? t.due.date + 'T23:59:59');
-      const diff = daysBetween(dueDate, now);
-      return diff <= 0; // today or overdue
-    });
-  }, [allTasks, now]);
-
-  const overdue = focusTasks.filter((t) => {
-    const dueDate = new Date(t.due!.datetime ?? t.due!.date + 'T23:59:59');
-    return daysBetween(dueDate, now) < 0;
-  });
-  const today = focusTasks.filter((t) => {
-    const dueDate = new Date(t.due!.datetime ?? t.due!.date + 'T23:59:59');
-    return daysBetween(dueDate, now) === 0;
-  });
+  const { overdue, today, focusTasks } = useMemo(() => {
+    const overdue: TodoistTask[] = [];
+    const today: TodoistTask[] = [];
+    const focusTasks: TodoistTask[] = [];
+    for (const t of allTasks) {
+      const diff = dueDaysFromToday(t.due, now, timezone);
+      if (diff === null || diff > 0) continue;
+      (diff < 0 ? overdue : today).push(t);
+      focusTasks.push(t);
+    }
+    return { overdue, today, focusTasks };
+  }, [allTasks, now, timezone]);
 
   const totalToday = today.length + overdue.length;
 
@@ -100,6 +100,8 @@ export default function FocusView({
                       config={config}
                       now={now}
                       onComplete={onComplete}
+                      timeFormat={timeFormat}
+                      timezone={timezone}
                     />
                   ))}
               </div>
@@ -134,6 +136,8 @@ export default function FocusView({
                       config={config}
                       now={now}
                       onComplete={onComplete}
+                      timeFormat={timeFormat}
+                      timezone={timezone}
                     />
                   ))}
               </div>

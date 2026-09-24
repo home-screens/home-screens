@@ -7,7 +7,7 @@ import { Wind, Droplets, Sun, Gauge, Sunset } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
 import { windUnitLabel } from '@/lib/weather/units';
 import {
-  hourLabel, smoothPath, nowcastVerdict, tzHour, hourlyInstant, isNightHour, spanHours,
+  hourLabel, smoothPath, nowcastVerdict, tzHour, isNightHour, spanHours,
   LANDSCAPE_LEFT_FRACTION, STRIP_COLUMNS, CANVAS_PAD_X_U, CARD_PAD_X_U, HOURLY_RAIN_SHOWN_PCT,
 } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
@@ -401,7 +401,7 @@ function TempRibbon({ p, strip = false }: { p: WeatherViewProps; strip?: boolean
   ));
 
   const meta = hrs.map((h) => {
-    const hour = tzHour(hourlyInstant(h), p.timezone);
+    const hour = tzHour(new Date(h.time), p.timezone);
     return { hour, isNight: isNightHour(hour, p.sun) };
   });
 

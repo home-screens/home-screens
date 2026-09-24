@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 
 /**
- * The device-clock offer on the settings Location page.
+ * The hub-clock offer on the settings Location page.
  *
  * A Pi flashed from a prebuilt image runs UTC. The household then picks its
- * own zone in the editor, and nothing ever tells them the two disagree. This
- * is the row that does, plus the one button that reconciles them.
+ * own zone in the editor, and the screens follow that zone whatever the hub's
+ * own clock says. Matching the hub's clock only tidies its log files, so the
+ * offer is an optional line inside Clock check, never a box of its own that
+ * reads like a new problem the moment a zone is picked.
  *
  * What this pins:
- *   - the offer appears only on a real disagreement: not while the server
+ *   - the offer lives inside Clock check, marked optional;
+ *   - it appears only on a real disagreement: not while the server
  *     time is still in flight, not with no zone chosen, not for two spellings
  *     of one zone;
  *   - pressing it PUTs the *configured* zone (never the device's) and then
@@ -62,11 +65,11 @@ const offer = () => screen.queryByTestId('device-clock-offer');
 
 async function clickMatch() {
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: "Match the device's clock" }));
+    fireEvent.click(screen.getByRole('button', { name: /^Set the hub to / }));
   });
 }
 
-describe('LocationSection device-clock offer', () => {
+describe('LocationSection hub-clock offer', () => {
   beforeEach(() => {
     deviceZone = 'UTC';
     putResponse = { status: 200, body: { ok: true } };
@@ -89,15 +92,30 @@ describe('LocationSection device-clock offer', () => {
 
   afterEach(() => cleanup());
 
-  it('names both zones when the device disagrees with the screens', async () => {
+  it("offers, inside Clock check and marked optional, to set the hub to home's zone", async () => {
     renderSection('Europe/Berlin');
     await waitFor(() => expect(offer()).not.toBeNull());
-    expect(offer()!.textContent).toContain("This device's clock is set to UTC");
-    expect(offer()!.textContent).toContain('your screens show Europe/Berlin');
-    // The plan's limit-to-state rule: this sets one device's clock, and the
-    // copy must not read as if it fixes every screen in the house.
-    expect(offer()!.textContent).toContain('Your screens show the right time either way');
-    expect(offer()!.textContent).toContain('the timestamps the device keeps for itself');
+    // Folded into the diagnostic, not a box of its own next to the picker.
+    expect(offer()!.closest('details')).not.toBeNull();
+    expect(offer()!.closest('details')!.contains(screen.getByTestId('clock-check'))).toBe(true);
+    expect(offer()!.textContent).toContain('Optional');
+    // It sets the hub's clock only, and the copy must not read as if it
+    // fixes the screens.
+    expect(offer()!.textContent).toContain("The hub's own clock is on UTC.");
+    expect(offer()!.textContent).toContain('only makes its log files easier to read');
+    expect(screen.getByRole('button', { name: 'Set the hub to Berlin time' })).toBeTruthy();
+  });
+
+  it('shows the time on the screens first, then this computer and the hub', async () => {
+    renderSection('Europe/Berlin');
+    await waitFor(() => expect(offer()).not.toBeNull());
+    const cells = [...screen.getByTestId('clock-check').children].map((c) => c.textContent ?? '');
+    expect(cells[0]).toMatch(/^Your screens.*Berlin time$/);
+    expect(cells[1]).toMatch(/^This computer/);
+    expect(cells[2]).toMatch(/^The hub.*UTC$/);
+    // Travelling is fine: the advice no longer says to change the home zone
+    // whenever this computer disagrees.
+    expect(screen.getByText(/Your screens always follow the time zone above/)).toBeTruthy();
   });
 
   it('stays quiet until the device has actually reported its zone', () => {
@@ -110,7 +128,7 @@ describe('LocationSection device-clock offer', () => {
   it('stays quiet when no zone has been chosen', async () => {
     renderSection('');
     await waitFor(() => expect(mocks.editorFetch).toHaveBeenCalledWith('/api/time'));
-    // An unset zone means the display follows the device: nothing to reconcile.
+    // An unset zone gets the "pick your time zone" notice instead of this offer.
     expect(offer()).toBeNull();
   });
 
@@ -140,7 +158,7 @@ describe('LocationSection device-clock offer', () => {
     await waitFor(() => expect(offer()).toBeNull());
     expect(mocks.editorFetch.mock.calls.filter(([url]) => url === '/api/time')).toHaveLength(2);
     // The confirmation outlives the row it replaced.
-    expect(screen.getByText("The device's clock now matches your screens.")).toBeTruthy();
+    expect(screen.getByText("The hub's clock now matches your screens.")).toBeTruthy();
   });
 
   it('offers to reconcile a zone whose modern name the Intl list omits', async () => {
@@ -149,7 +167,7 @@ describe('LocationSection device-clock offer', () => {
     // meant a household on Kyiv never saw the offer at all.
     renderSection('Europe/Kyiv');
     await waitFor(() => expect(offer()).not.toBeNull());
-    expect(offer()!.textContent).toContain('your screens show Europe/Kyiv');
+    expect(screen.getByRole('button', { name: 'Set the hub to Kyiv time' })).toBeTruthy();
 
     await clickMatch();
     // And the zone sent is the spelling the household chose, untranslated.
@@ -168,15 +186,15 @@ describe('LocationSection device-clock offer', () => {
     await waitFor(() => expect(offer()).not.toBeNull());
     await clickMatch();
     await waitFor(() => expect(offer()).toBeNull());
-    expect(screen.queryByText("The device's clock now matches your screens.")).not.toBeNull();
+    expect(screen.queryByText("The hub's clock now matches your screens.")).not.toBeNull();
 
     // Picking a new zone brings the mismatch back, and "now matches your
-    // screens" underneath it would contradict the row above.
+    // screens" underneath it would contradict the line above.
     await act(async () => {
       rerender(section('Asia/Tokyo'));
     });
     await waitFor(() => expect(offer()).not.toBeNull());
-    expect(screen.queryByText("The device's clock now matches your screens.")).toBeNull();
+    expect(screen.queryByText("The hub's clock now matches your screens.")).toBeNull();
   });
 
   it('drops a failure notice once a different zone is chosen', async () => {

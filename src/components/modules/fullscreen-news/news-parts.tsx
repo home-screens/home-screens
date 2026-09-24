@@ -21,8 +21,8 @@ export function SourceMeta({
   size: number;
   style?: CSSProperties;
 }) {
-  const { options, theme, accent, t, locale, now } = ctx;
-  const age = options.showTimestamp ? formatNewsAge(item.timestamp, t, locale, now) : '';
+  const { options, theme, accent, t, locale, now, timezone } = ctx;
+  const age = options.showTimestamp ? formatNewsAge(item.timestamp, t, { locale, timezone }, now) : '';
   const showSource = options.showSource && !!item.source;
   const breaking = isBreaking(item, now);
   if (!showSource && !age && !breaking) return null;

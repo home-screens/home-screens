@@ -108,8 +108,11 @@ export default function ListsItemRow({ item, todayISO, members, onToggle, onEdit
         {...attributes}
         {...listeners}
         aria-label={t('lists.item.move', { text: item.text })}
+        // 44 wide for small fingers; the negative margin takes back the row's
+        // gap so the item text moves over as little as possible.
         style={{
-          width: 28,
+          width: 44,
+          marginRight: -4,
           minHeight: 44,
           flex: 'none',
           display: 'flex',

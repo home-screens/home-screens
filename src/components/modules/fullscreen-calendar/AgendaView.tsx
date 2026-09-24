@@ -5,9 +5,9 @@ import { EventMarker } from '../shared/EventMarker';
 import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
-  parseEventDate, parseEventWallTime, formatEventTime,
+  parseEventWallTime, formatEventTime,
   bucketEventsForDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel, isWeekendDay,
-  eventRowTimeLabel, isPastInAgendaGroup, withSavedSuffix,
+  eventRowTimeLabel, isPastInAgendaGroup, withSavedSuffix, clampAgendaDays,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -22,7 +22,6 @@ import { DayArtLayer } from '../shared/DayArtLayer';
 import type { CalendarEvent, CalendarViewProps } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, eventAriaLabel } from './list-view-bits';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import Glyph from '@/components/ui/Glyph';
 
 interface DayGroupEvent {
@@ -35,12 +34,12 @@ interface DayGroupEvent {
 // row below the fold. Keep only the most recent few finished rows.
 const FINISHED_TODAY_MAX = 3;
 
-export function AgendaView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, owners }: CalendarViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
-  const daysAhead = config.agendaDaysAhead ?? 14;
+  const daysAhead = clampAgendaDays(config.agendaDaysAhead);
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.agendaShowDescription === true;
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
@@ -263,9 +262,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                 </div>
               )}
               {weather && (
-                // True instant, not the wall-time `start`: the hourly weather
-                // index keys on epoch ms, so a shifted Date misses its bucket.
-                <EventWeatherLine weather={weather} start={parseEventDate(ev.start)} fontSize={fontSize} marginTop={scale.bu * 0.25} />
+                <EventWeatherLine weather={weather} start={ev.start} timezone={timezone} fontSize={fontSize} marginTop={scale.bu * 0.25} />
               )}
               {description && (
                 <div style={{

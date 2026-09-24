@@ -359,6 +359,7 @@
     "now": "Now"
   },
   "meal-planner": {
+    "loading": "Loading meals…",
     "noMealsPlannedYet": "No meals planned yet",
     "noMealsPlanned": "No meals planned",
     "noMealPlanned": "No meal planned",
@@ -596,7 +597,7 @@
       "rotationWeekly": "rotate weekly",
       "rotationSchedule": "schedule",
       "nobody": "Nobody yet",
-      "rotatedShort": "← rot",
+      "takingTurns": "(taking turns)",
       "arrow": "→"
     },
     "choreForm": {
@@ -970,6 +971,18 @@
       "snow": "Bundle up today",
       "thunderstorm": "Storms expected",
       "clear": "Beautiful day ahead"
+    },
+    "weatherEvening": {
+      "rain": "Rainy evening ahead",
+      "snow": "Bundle up this evening",
+      "thunderstorm": "Storms expected this evening",
+      "clear": "Lovely evening ahead"
+    },
+    "weatherNight": {
+      "rain": "Rain tonight",
+      "snow": "Snow tonight",
+      "thunderstorm": "Storms tonight",
+      "clear": "Clear skies tonight"
     }
   },
   "affirmations": {

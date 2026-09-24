@@ -105,7 +105,7 @@ function DayBand({ p, day: d, index: i, last, min, range, marks }: DayProps & { 
       {today && <Tint p={p} />}
       <div style={{ width: s * 12, flex: 'none', position: 'relative' }}>
         <div style={{ fontSize: s * 3, fontWeight: today ? 700 : 500, letterSpacing: '-.01em', color: today ? 'var(--fsw-text)' : 'var(--fsw-text-2)' }}>
-          {dayName(d.date, i, p)}
+          {dayName(d.date, p)}
         </div>
         <div style={{ fontSize: s * 1.6, fontWeight: 500, color: 'var(--fsw-text-3)', marginTop: u * .3 }}>{shortDate(d.date, p)}</div>
       </div>
@@ -153,7 +153,7 @@ function DayColumn({ p, day: d, index: i, last, range, marks }: DayProps) {
     }}>
       {today && <Tint p={p} />}
       <div style={{ position: 'relative', fontSize: s * 2.2, fontWeight: today ? 700 : 500, color: today ? 'var(--fsw-text)' : 'var(--fsw-text-2)' }}>
-        {dayName(d.date, i, p)}
+        {dayName(d.date, p)}
       </div>
       <div style={{ position: 'relative', fontSize: s * 1.3, fontWeight: 500, color: 'var(--fsw-text-3)', marginTop: u * .2 }}>{shortDate(d.date, p)}</div>
       <div style={{ position: 'relative', marginTop: u * 1.2, color: today ? p.accent : 'var(--fsw-text-2)', display: 'grid' }}>

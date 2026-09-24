@@ -2,10 +2,13 @@
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { downloadBlob } from '@/lib/download';
+import { backupFileName } from '@/lib/backup-file-name';
+import { formatDateInTZ, formatTimeInTZ } from '@/lib/timezone';
 import type { LayoutExport } from '@/types/layout-export';
 import type { BackupReminderSettings } from '@/types/config';
 import Button from '@/components/ui/Button';
@@ -15,19 +18,18 @@ import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import LayoutImportModal from '@/components/editor/LayoutImportModal';
 import TemplateFlow from '@/components/editor/TemplateFlow';
 import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModal';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
 import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
 import { attachCustomIcons, fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
 import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
 import { refreshCustomIcons } from '@/hooks/useCustomIcons';
+import { householdTimeFormat } from '@/lib/clock-time';
+import { describeConfigBackup, LAST_STABLE_BACKUP } from '@/lib/config-backup-label';
 
 interface DataSectionProps {
   onSettingsImported: () => void;
 }
-
-/** Name of the snapshot `upgrade.sh backup` pins when a release build is about to be replaced by a prerelease one. */
-const LAST_STABLE_BACKUP = 'last-stable-config.json';
 
 interface ConfigBackupFile {
   name: string;
@@ -62,6 +64,32 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const { importConfig, config, updateSettings, saveConfig, selectedScreenId } = useEditorStore();
+  // The household's zone and date style, so the file name and the "Last
+  // backup" date read the way the wall would say them.
+  const timezone = useEditorHouseholdTimezone();
+  const formattingLocale = useFormattingLocale();
+  const hour12 = householdTimeFormat(config?.settings?.timeFormat, formattingLocale) === '12h';
+  /** When a config backup was written, on the household's clock; '' when the hub could not read it. */
+  const backupWrittenAt = (modified: string): string => {
+    const at = new Date(modified);
+    if (!modified || isNaN(at.getTime())) return '';
+    const day = formatDateInTZ(at, timezone, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' }, formattingLocale);
+    return `${day}, ${formatTimeInTZ(at, { timezone, locale: formattingLocale, hour12 })}`;
+  };
+  /**
+   * What a snapshot is, in words, from its file name. The name itself is a
+   * UTC stamp that reads as the wrong hour at home, so it only rides along
+   * small, for anyone matching it against a file on disk.
+   */
+  const backupLabel = (name: string): string => {
+    const info = describeConfigBackup(name);
+    switch (info.kind) {
+      case 'lastStable': return t('settings.dataPage.configBackups.kinds.lastStable');
+      case 'update': return t('settings.dataPage.configBackups.kinds.update', { version: info.version });
+      case 'migration': return t('settings.dataPage.configBackups.kinds.migration', { version: info.version });
+      default: return t('settings.dataPage.configBackups.kinds.other');
+    }
+  };
 
   const intervalOptions = useMemo(
     () => [
@@ -145,10 +173,12 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       .catch(() => {});
   }, []);
 
-  const handleRestoreConfigBackup = useCallback(async (name: string) => {
+  const handleRestoreConfigBackup = useCallback(async (name: string, what: string, when: string) => {
     const ok = await useConfirmStore.getState().confirm({
       title: t('settings.dataPage.configBackups.restoreDialog.title'),
-      message: t('settings.dataPage.configBackups.restoreDialog.message', { name }),
+      message: when
+        ? t('settings.dataPage.configBackups.restoreDialog.message', { what, when })
+        : t('settings.dataPage.configBackups.restoreDialog.messageNoDate', { what }),
       confirmLabel: t('settings.dataPage.configBackups.restoreDialog.confirm'),
     });
     if (!ok) return;
@@ -234,12 +264,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       }
 
       const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      const date = new Date().toISOString().slice(0, 10);
-      // A distinct filename so a file holding keys is identifiable at a
-      // glance in a downloads folder.
-      const filename = withCredentials
-        ? `home-screens-backup-with-keys-${date}.json`
-        : `home-screens-backup-${date}.json`;
+      const filename = backupFileName(timezone, { withKeys: withCredentials });
       downloadBlob(blob, filename);
       setLastBackupDate(new Date().toISOString());
       // Pressing the button used to change nothing on screen: the file
@@ -252,7 +277,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     } finally {
       setBackupBusy(false);
     }
-  }, [includeCredentials, t]);
+  }, [includeCredentials, timezone, t]);
 
   // Say what a restore replaces before the OS file picker takes over the
   // screen. Opening the picker first put the destructive explanation after
@@ -600,43 +625,54 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
               {t('settings.dataPage.configBackups.empty')}
             </p>
           ) : (
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {configBackups.map((b) => (
-                <div
-                  key={b.name}
-                  className="flex items-center justify-between rounded-md px-3 py-2 bg-hs-input border border-hs-border"
-                >
-                  <div className="min-w-0">
-                    <span className="text-xs text-hs-text-body font-mono">{b.name}</span>
-                    <span className="text-xs text-hs-text-faint ml-2">
-                      {t('settings.dataPage.configBackups.sizeKb', { size: (b.size / 1024).toFixed(1) })}
-                    </span>
-                    {/* The copy pinned before the first early-access or test
-                        build. The rotation never removes it, and it is the one
-                        a normal release is guaranteed to read. */}
-                    {b.name === LAST_STABLE_BACKUP && (
-                      <span className="block text-xs text-hs-text-faint mt-0.5">
-                        {t('settings.dataPage.configBackups.lastStableHelp')}
-                      </span>
-                    )}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {configBackups.map((b) => {
+                const what = backupLabel(b.name);
+                const when = backupWrittenAt(b.modified);
+                const size = t('settings.dataPage.configBackups.sizeKb', {
+                  size: (b.size / 1024).toLocaleString(formattingLocale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+                });
+                return (
+                  <div
+                    key={b.name}
+                    data-testid="config-backup-row"
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 bg-hs-card border border-hs-border"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-hs-text-primary">
+                        {what}
+                        {/* The copy pinned before the first early access or
+                            test build. The rotation never removes it, and it
+                            is the one a normal release is guaranteed to read. */}
+                        {b.name === LAST_STABLE_BACKUP && (
+                          <span className="ml-1.5 rounded-full border border-hs-border-strong px-1.5 text-[10.5px] text-hs-text-muted align-[1px]">
+                            {t('settings.dataPage.configBackups.keptBadge')}
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-hs-text-muted">
+                        {when ? `${when} \u00b7 ${size}` : size}
+                      </p>
+                      <p className="text-[11px] text-hs-text-faint font-mono truncate mt-0.5">{b.name}</p>
+                    </div>
+                    <div className="flex items-center gap-3.5 shrink-0">
+                      <a
+                        href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
+                        download={b.name}
+                        className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                      >
+                        {t('settings.dataPage.configBackups.download')}
+                      </a>
+                      <button
+                        onClick={() => handleRestoreConfigBackup(b.name, what, when)}
+                        className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                      >
+                        {t('settings.dataPage.configBackups.restore')}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
-                      download={b.name}
-                      className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                    >
-                      {t('settings.dataPage.configBackups.download')}
-                    </a>
-                    <button
-                      onClick={() => handleRestoreConfigBackup(b.name)}
-                      className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                    >
-                      {t('settings.dataPage.configBackups.restore')}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
           {restoreStatus && (
@@ -687,7 +723,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
             <p className="text-xs text-hs-text-faint">
               {lastBackupDate
                 ? t('settings.dataPage.backupReminder.lastBackup', {
-                    date: new Date(lastBackupDate).toLocaleDateString(),
+                    date: formatDateInTZ(new Date(lastBackupDate), timezone, { dateStyle: 'medium' }, formattingLocale),
                   })
                 : t('settings.dataPage.backupReminder.noBackups')}
             </p>

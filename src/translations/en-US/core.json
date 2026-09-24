@@ -367,5 +367,10 @@
     "addYourOwnLink": "Add your own picture",
     "photosPrompt": "Want your own pictures for meals and chores?",
     "photosButton": "Add them here"
+  },
+  "noTimezone": {
+    "title": "No time zone yet.",
+    "body": "Your screens use the hub's clock ({zone}), so times can be off.",
+    "action": "Pick time zone"
   }
 }

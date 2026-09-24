@@ -36,7 +36,7 @@
 
 import type { DisplayRule } from '@/types/config';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
-import { collectSourceKeys, containsTimeCondition, evaluateConditionsTri } from '@/lib/schedule';
+import { collectSourceKeys, containsTimeCondition, evaluateConditionsTri, type ScheduleClock } from '@/lib/schedule';
 
 /** Minimum time a `while`-mode takeover stays up, to ride out condition flaps. */
 export const MIN_WHILE_HOLD_MS = 5_000;
@@ -172,7 +172,7 @@ function ruleReferencesAny(rule: DisplayRule, keys: ReadonlySet<string>): boolea
 export function evaluateRuleCondition(
   rule: DisplayRule,
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): boolean | 'unknown' {
   // An empty tree means "always true" for visibility; for a RULE it must
   // mean "never fires" — an always-true rule can never produce an edge into
@@ -193,7 +193,7 @@ export function takeoverDeadline(
   state: RuleEngineState,
   rules: readonly DisplayRule[],
   states: ReadonlyMap<string, SharedStateEntry>,
-  now: Date = new Date(),
+  now: ScheduleClock = new Date(),
 ): number | null {
   const takeover = state.takeover;
   if (!takeover) return null;
@@ -295,7 +295,7 @@ export function computeArmed(
 export function computeCurrent(
   rules: readonly DisplayRule[],
   states: ReadonlyMap<string, SharedStateEntry>,
-  nowDate: Date,
+  nowDate: ScheduleClock,
 ): { current: Map<string, boolean | 'unknown'>; fingerprints: Map<string, string> } {
   const current = new Map<string, boolean | 'unknown'>();
   const fingerprints = new Map<string, string>();
@@ -423,13 +423,13 @@ export function advanceRuleEngine(
   renderableScreenIds: ReadonlySet<string>,
   now: number,
   /**
-   * Wall-clock instant, shifted to the display's timezone, used ONLY to
+   * The display's wall clock (`wallClockParts` in its timezone), used ONLY to
    * evaluate `time` conditions. Separate from the epoch `now` above, which
    * drives cooldown/hold math and must stay a real UTC epoch. Defaults to
    * `new Date(now)` so callers that don't use time conditions (and tests) can
    * pass the epoch alone.
    */
-  nowDate: Date = new Date(now),
+  nowDate: ScheduleClock = new Date(now),
 ): RuleEngineStep {
   // Phase 1 — where every rule stands right now.
   const { current, fingerprints } = computeCurrent(rules, states, nowDate);

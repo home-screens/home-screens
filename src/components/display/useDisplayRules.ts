@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { DisplayRule, Screen } from '@/types/config';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
-import { createTZDate } from '@/lib/timezone';
+import { wallClockParts } from '@/lib/timezone';
 import {
   advanceRuleEngine,
   collectRuleSourceKeys,
@@ -102,7 +102,7 @@ export function useDisplayRules(
   const [sleepRequest, requestSleep] = useReducer((n: number) => n + 1, 0);
 
   useEffect(() => {
-    const nowDate = createTZDate(timezone);
+    const nowDate = wallClockParts(new Date(), timezone);
     const { next, wake, sleep } = advanceRuleEngine(
       engineRef.current, ruleList, states, renderableScreenIds, Date.now(), nowDate,
     );

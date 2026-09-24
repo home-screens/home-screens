@@ -25,11 +25,12 @@ vi.mock('../useLiveConfig', () => ({
   useLiveConfig: (
     screens: Screen[],
     settings: GlobalSettings,
+    hubTimezone: string,
     profiles: unknown,
     _displayId: string | undefined,
     displays: unknown,
     rules: DisplayRule[] | undefined,
-  ) => ({ screens, settings, profiles, rules, displays: displays ?? [] }),
+  ) => ({ screens, settings: { ...settings, timezone: settings.timezone || hubTimezone }, profiles, rules, displays: displays ?? [] }),
 }));
 vi.mock('../useSharedDisplayData', () => ({ useSharedDisplayData: () => ({}) }));
 vi.mock('../usePrefetchNextScreen', () => ({ usePrefetchNextScreen: () => {} }));
@@ -94,7 +95,7 @@ describe('ScreenRotator screen dots', () => {
   });
 
   it('draws no dots or progress line when switched off, and keeps rotating', () => {
-    render(<ScreenRotator screens={SCREENS} settings={makeSettings({ showPaginationDots: false })} />);
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings({ showPaginationDots: false })} />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(dom.queryByTestId('pagination-dots')).toBeNull();
     expect(dom.queryByTestId('rotation-progress')).toBeNull();
@@ -106,21 +107,21 @@ describe('ScreenRotator screen dots', () => {
   it('releases a pause that was on when the dots were switched off', () => {
     // Never auto-resumes, so only the dots switch can release it.
     const paused = makeSettings({ pauseTimeoutSeconds: 0 });
-    const { rerender } = render(<ScreenRotator screens={SCREENS} settings={paused} />);
+    const { rerender } = render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={paused} />);
     act(() => { vi.advanceTimersByTime(0); });
     doubleTapActiveDot();
     expect(dom.getByTestId('pause-pill')).toBeTruthy();
     act(() => { vi.advanceTimersByTime(5000); });
     expect(rendered()).toBe('home');
 
-    rerender(<ScreenRotator screens={SCREENS} settings={{ ...paused, showPaginationDots: false }} />);
+    rerender(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={{ ...paused, showPaginationDots: false }} />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(dom.queryByTestId('pause-pill')).toBeNull();
     act(() => { vi.advanceTimersByTime(1000); });
     expect(rendered()).toBe('weather');
 
     // Turning the dots back on does not bring the old pause back.
-    rerender(<ScreenRotator screens={SCREENS} settings={paused} />);
+    rerender(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={paused} />);
     act(() => { vi.advanceTimersByTime(0); });
     expect(dom.queryByTestId('pause-pill')).toBeNull();
     act(() => { vi.advanceTimersByTime(1000); });

@@ -11,6 +11,7 @@ import {
   CARD_PAD_X_U, CARD_PAD_Y_U, DAILY_RAIN_SHOWN_PCT, MIN_BAR_PCT,
 } from './weather-view-utils';
 import { tempColor } from './temp-ramp';
+import { isoDateInTZ } from '@/lib/timezone';
 
 /** Section label: small, tracked-out, muted. Shared by every card. */
 export function Label({ children, s, style }: { children: React.ReactNode; s: number; style?: React.CSSProperties }) {
@@ -237,7 +238,7 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
                 width: s * 11, flex: 'none', fontSize: s * 2, letterSpacing: '-.01em',
                 fontWeight: i === 0 ? 700 : 500,
                 color: i === 0 ? 'var(--fsw-text)' : 'var(--fsw-text-2)',
-              }}>{dayName(d.date, i, p)}</div>
+              }}>{dayName(d.date, p)}</div>
               <div style={{ width: s * 4.6, flex: 'none', display: 'grid', placeItems: 'center', color: i === 0 ? p.accent : 'var(--fsw-text-2)' }}>
                 <Icon style={{ width: s * 3.4, height: s * 3.4 }} strokeWidth={1.6} />
               </div>
@@ -275,12 +276,21 @@ function calendarDate(dateStr: string): Date {
   return new Date(`${dateStr}T00:00:00Z`);
 }
 
-/** "Today" for the first row, else the short weekday name. */
-export function dayName(dateStr: string, index: number, p: WeatherViewProps): string {
-  if (index === 0) return p.t('fullscreen-weather.today');
+/** A forecast date's short weekday name ("Tue") in the household's locale. */
+export function weekdayShort(dateStr: string, locale: string): string {
   const d = calendarDate(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr;
-  return cachedFormat(p.locale, { weekday: 'short', timeZone: 'UTC' }).format(d);
+  return cachedFormat(locale, { weekday: 'short', timeZone: 'UTC' }).format(d);
+}
+
+/**
+ * "Today" for the household's today, else the short weekday name. Compared by
+ * date, not position: late in the evening a provider can have nothing left
+ * for today, and its first row is then tomorrow.
+ */
+export function dayName(dateStr: string, p: WeatherViewProps): string {
+  if (dateStr === isoDateInTZ(p.now, p.timezone)) return p.t('fullscreen-weather.today');
+  return weekdayShort(dateStr, p.locale);
 }
 
 /** "Aug 24" — the date under a day name, in the household's locale. */
@@ -368,7 +378,7 @@ export function DayTallBands({ p }: { p: WeatherViewProps }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: u * 1.2, position: 'relative' }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: s * 2.7, fontWeight: today ? 700 : 500, letterSpacing: '-.01em', color: today ? 'var(--fsw-text)' : 'var(--fsw-text-2)' }}>
-                    {dayName(d.date, i, p)}
+                    {dayName(d.date, p)}
                   </div>
                   <div style={{ fontSize: s * 1.5, fontWeight: 500, color: 'var(--fsw-text-3)', marginTop: u * .2 }}>{shortDate(d.date, p)}</div>
                 </div>

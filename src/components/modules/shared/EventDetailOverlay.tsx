@@ -10,7 +10,8 @@ import { useTranslate, useFormattingLocale, formatDateSync, formatRelativeTime }
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
-import { DEFAULT_TIME_FORMAT, type CalendarEvent, type EventTapStyle, type TimeFormat } from '@/types/config';
+import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
+import { householdTimeFormat } from '@/lib/clock-time';
 
 // A kiosk nobody is standing at must not show an event detail forever.
 export const EVENT_DETAIL_AUTO_DISMISS_MS = 45_000;
@@ -32,9 +33,10 @@ export function describeEventTime(
   now: Date,
   locale: string,
   labels: { allDay: string; today: string; happeningNow: string },
-  timeFormat: TimeFormat = DEFAULT_TIME_FORMAT,
+  savedTimeFormat?: TimeFormat,
   timezone?: string,
 ): EventTimeText {
+  const timeFormat = householdTimeFormat(savedTimeFormat, locale);
   // Both callers pass a display-timezone `now` (useTZClock / createTZDate),
   // so the event bounds are read on the same wall clock — mixing a true epoch
   // instant with the shifted `now` drifts by the OS↔display offset.

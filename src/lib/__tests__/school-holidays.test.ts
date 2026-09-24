@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { promises as fs, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -12,6 +12,12 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   };
 });
 
+let householdZone: string | undefined;
+vi.mock('@/lib/config-cache', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/config-cache')>()),
+  readConfigCached: vi.fn(async () => ({ settings: { timezone: householdZone } })),
+}));
+
 import { fetchWithTimeout } from '@/lib/api-utils';
 import {
   clearSchoolHolidayCaches,
@@ -21,6 +27,7 @@ import {
   getSchoolHolidays,
   getSubdivisions,
   pickLocalizedName,
+  schoolYearOf,
   SchoolHolidaysError,
   type LocalizedText,
 } from '@/lib/school-holidays';
@@ -498,7 +505,7 @@ describe('getSubdivisions', () => {
     const probe = new URL(requestedUrls().find((u) => u.includes('/SchoolHolidays'))!);
     expect(probe.searchParams.get('countryIsoCode')).toBe('DE');
     expect(probe.searchParams.has('subdivisionCode')).toBe(false);
-    expect(probe.searchParams.get('validFrom')).toBe(`${currentSchoolYear()}-09-01`);
+    expect(probe.searchParams.get('validFrom')).toBe(`${await currentSchoolYear()}-09-01`);
   });
 });
 
@@ -531,10 +538,29 @@ describe('the North Rhine-Westphalia fixture', () => {
   });
 });
 
-describe('currentSchoolYear', () => {
+describe('schoolYearOf', () => {
   it('starts a new school year in September', () => {
-    expect(currentSchoolYear(new Date('2026-08-31T12:00:00'))).toBe(2025);
-    expect(currentSchoolYear(new Date('2026-09-01T12:00:00'))).toBe(2026);
-    expect(currentSchoolYear(new Date('2027-01-15T12:00:00'))).toBe(2026);
+    expect(schoolYearOf('2026-08-31')).toBe(2025);
+    expect(schoolYearOf('2026-09-01')).toBe(2026);
+    expect(schoolYearOf('2027-01-15')).toBe(2026);
+  });
+});
+
+describe('currentSchoolYear', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    householdZone = undefined;
+  });
+
+  it('counts from the household day, not the hub clock', async () => {
+    // 00:30 on Sep 1 in Berlin is still Aug 31 in UTC.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-08-31T22:30:00Z'));
+    householdZone = 'Europe/Berlin';
+    expect(await currentSchoolYear()).toBe(2026);
+    // 7 pm on Aug 31 in Chicago is already Sep 1 in UTC.
+    vi.setSystemTime(new Date('2026-09-01T00:00:00Z'));
+    householdZone = 'America/Chicago';
+    expect(await currentSchoolYear()).toBe(2025);
   });
 });

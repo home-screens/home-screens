@@ -6,8 +6,8 @@ import { noShrink } from './fixed-size';
 import type { ClockViewProps } from './types';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
-export default function ClockAnalogView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
-  const { hours, minutes, seconds } = parseClockTime(config.format24h, now);
+export default function ClockAnalogView({ config, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+  const { hours, minutes, seconds } = parseClockTime(config.format24h, time);
 
   const hourAngle = ((hours % 12) + minutes / 60) * 30;
   const minuteAngle = (minutes + seconds / 60) * 6;

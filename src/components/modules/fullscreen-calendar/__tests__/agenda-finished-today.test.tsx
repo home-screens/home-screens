@@ -41,7 +41,7 @@ afterEach(cleanup);
 describe('fullscreen agenda with agendaShowFinishedToday', () => {
   it('keeps only the most recent few finished rows so upcoming rows stay on screen', () => {
     const { queryByText } = render(
-      <AgendaView events={[...finished, dinner]} config={{ ...base, agendaShowFinishedToday: true }} scale={scale} today={today} now={now} />,
+      <AgendaView events={[...finished, dinner]} config={{ ...base, agendaShowFinishedToday: true }} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(queryByText('Finished 7')).toBeNull();
@@ -54,7 +54,7 @@ describe('fullscreen agenda with agendaShowFinishedToday', () => {
 
   it('dims the finished rows it keeps via dimPastEvents', () => {
     const { getByText } = render(
-      <AgendaView events={[...finished, dinner]} config={{ ...base, agendaShowFinishedToday: true }} scale={scale} today={today} now={now} />,
+      <AgendaView events={[...finished, dinner]} config={{ ...base, agendaShowFinishedToday: true }} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     const done = getByText('Finished 11').closest('[data-event-id]') as HTMLElement;
@@ -65,7 +65,7 @@ describe('fullscreen agenda with agendaShowFinishedToday', () => {
 
   it('does not trim anything when the flag is off', () => {
     const { queryByText } = render(
-      <AgendaView events={[...finished, dinner]} config={base} scale={scale} today={today} now={now} />,
+      <AgendaView events={[...finished, dinner]} config={base} scale={scale} today={today} now={now} timeFormat="12h" />,
       { wrapper: Wrapper },
     );
     expect(queryByText('Finished 7')).not.toBeNull();

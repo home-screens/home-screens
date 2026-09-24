@@ -1,9 +1,11 @@
 'use client';
 
-import { DEFAULT_TIME_FORMAT, type WeatherConfig, type WeatherView, type ModuleStyle, type TimeFormat } from '@/types/config';
+import type { WeatherConfig, WeatherView, ModuleStyle, TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
+import { useWallClock } from '@/hooks/useTZClock';
+import { forecastFromToday } from '@/lib/weather/daily';
 import { useTranslate } from '@/i18n';
 import { resolveWeatherLocationLabel } from './location-label';
 import { EditorSettingsLink } from '../EditorSettingsLink';
@@ -19,6 +21,7 @@ import WeatherCompactView from './WeatherCompactView';
 import WeatherTableView from './WeatherTableView';
 import WeatherPrecipitationView from './WeatherPrecipitationView';
 import WeatherAlertsView from './WeatherAlertsView';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 interface WeatherModuleProps {
   config: WeatherConfig;
@@ -85,8 +88,9 @@ const VIEW_COMPONENTS = {
   alerts: WeatherAlertsView,
 };
 
-export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, timeFormat = DEFAULT_TIME_FORMAT, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError }: WeatherModuleProps) {
+export default function WeatherModule({ config, style, hourly, forecast, minutely, alerts, units = 'imperial', timezone, timeFormat: savedTimeFormat, locationMissing, locationSettingsHref, locationName, latitude, longitude, weatherError }: WeatherModuleProps) {
   const view = config.view ?? 'hourly';
+  const timeFormat = useHouseholdTimeFormat(savedTimeFormat);
   const scaleFactor = SCALE_FACTORS[view] ?? 0.09;
   const { containerRef, scaledFontSize } = useScaledFontSize(style, scaleFactor);
   // Second measurement on the view box (outer height minus the label). Not
@@ -99,6 +103,9 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
   // opposed to a provider that answered with nothing (empty arrays).
   const waiting = hourly === undefined && forecast === undefined && !locationMissing;
   const stalled = useLoadingStalled(waiting && !weatherError, WEATHER_STALL_MS);
+  // Ticks, so yesterday's row leaves at the household's midnight rather than
+  // at the next refresh.
+  const { isoDate: todayISO } = useWallClock(timezone);
 
   if (locationMissing) {
     return (
@@ -170,7 +177,7 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
           <ViewComponent
             config={config}
             hourly={hourly ?? []}
-            forecast={forecast ?? []}
+            forecast={forecastFromToday(forecast ?? [], todayISO)}
             minutely={minutely}
             alerts={alerts}
             units={units}

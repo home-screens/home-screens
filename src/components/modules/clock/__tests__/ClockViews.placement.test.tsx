@@ -25,7 +25,9 @@ function config(over: Partial<ClockConfig> = {}): ClockConfig {
 function viewProps(over: Partial<ClockConfig>, props: Partial<ClockViewProps> = {}): ClockViewProps {
   return {
     config: config(over),
+    instant: NOON_ISH,
     now: NOON_ISH,
+    time: { hours: 14, minutes: 5, seconds: 9 },
     scaledFontSize: 40,
     autoFontSize: 40,
     fitToBox: true,

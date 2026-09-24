@@ -18,13 +18,15 @@ import { Fragment, useId, useMemo, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import ScheduleWeekStrip from '@/components/editor/ScheduleWeekStrip';
+import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import { useScheduleWindow } from '@/hooks/useScheduleWindow';
 import { useEditorStore } from '@/stores/editor-store';
 import { useFormattingLocale, formatRelativeTime, type TranslateFn } from '@/i18n';
 import type { EditorSharedState, SharedStateSource } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch, useStateKeyDescriptor } from '@/hooks/useStateKeySearch';
 import { buildSuggestions, producerLabel } from '@/lib/state-key-suggestions';
-import { conditionVerdict, type ConditionVerdict } from '@/lib/condition-verdicts';
+import { conditionVerdict, verdictStatesFor, type ConditionVerdict } from '@/lib/condition-verdicts';
+import type { ScheduleClock } from '@/lib/schedule';
 import { unhealthyNoteForKeys } from '@/lib/provider-health-hint';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { MAX_CONDITION_DEPTH } from '@/lib/display-filter';
@@ -757,6 +759,7 @@ function TimeConditionEditor({
           )}
         </div>
       </div>
+      <HomeTimeHint className="" />
       {/* The old hint went on to explain that an end earlier than the start
           crosses midnight. The strip draws that, so only the part it cannot
           draw is left. */}
@@ -784,7 +787,7 @@ function ConditionEditor({
   liveState?: EditorSharedState;
   plugins?: Map<string, LoadedPlugin>;
   verdictStates: ReadonlyMap<string, SharedStateEntry> | null;
-  now: Date;
+  now: ScheduleClock;
   depth: number;
   t: TranslateFn;
 }) {
@@ -795,6 +798,9 @@ function ConditionEditor({
   const keyForDescriptor =
     condition.kind === 'state' || condition.kind === 'numeric' ? condition.sourceKey : '';
   const descriptor = useStateKeyDescriptor(keyForDescriptor);
+  // A node that only reads the clock gets its verdict from the household
+  // clock without a display report; one that reads a key waits for a report.
+  const nodeStates = verdictStatesFor([condition], verdictStates);
 
   return (
     <div className="rounded border border-hs-border-strong bg-hs-card p-2 space-y-2">
@@ -811,10 +817,10 @@ function ConditionEditor({
             <option key={k} value={k}>{t(`visibilityConditions.kinds.${k}`)}</option>
           ))}
         </select>
-        {verdictStates && (
+        {nodeStates && (
           <ConditionVerdictChip
-            verdict={conditionVerdict(condition, verdictStates, now)}
-            source={liveState?.source}
+            verdict={conditionVerdict(condition, nodeStates, now)}
+            source={verdictStates ? liveState?.source : 'editor'}
             t={t}
           />
         )}
@@ -1009,16 +1015,17 @@ export default function ConditionTreeEditor({
    *  named in the "nothing publishes this key" hint. */
   plugins?: Map<string, LoadedPlugin>;
   /**
-   * Wall clock for `time`-condition verdicts. Callers pass a ticking,
-   * timezone-shifted `now` (via `useConditionClock`) so a time chip stays
+   * Wall clock for `time`-condition verdicts. Callers pass a ticking
+   * display-zone reading (via `useConditionClock`) so a time chip stays
    * live; defaults to a fixed instant for callers with no time conditions.
    */
-  now?: Date;
+  now?: ScheduleClock;
   t: TranslateFn;
 }) {
   // One states map per snapshot for the whole tree; null (no fresh report)
-  // renders every node without a verdict chip. Freshness is owned by the
-  // poll loop in useDisplaySharedState, which re-evaluates it every tick.
+  // renders every node that reads a key without a verdict chip (clock-only
+  // nodes are still judged). Freshness is owned by the poll loop in
+  // useDisplaySharedState, which re-evaluates it every tick.
   const verdictStates = liveState?.states ?? null;
   const nowDate = now ?? new Date();
   return (

@@ -60,7 +60,7 @@ To set up a Pi as a display-only Pi pointing at an existing hub:
 
 After install and reboot, the Pi contacts the hub and appears in the editor under **Settings > Displays** as waiting to be added. See the [Multi-display guide](/docs/multi-display).
 
-Once added, a display-only Pi keeps its own software up to date on its own: it checks the hub nightly and at every start, downloads updates only when the hub has a newer version, verifies the download before applying it, and keeps the previous version for rollback. A display that is awake and in use is never restarted to finish an update. Pis installed before this existed show a one-line setup command in the editor next to their display.
+Once added, a display-only Pi keeps its own software up to date on its own: it checks the hub every hour and at every start, downloads updates only when the hub has a newer version, verifies the download before applying it, and keeps the previous version for rollback. A display that is awake and in use is never restarted to finish an update: it waits until the screen is asleep or, with no sleep schedule, the middle of the night in your home's time zone. Pis installed before this existed show a one-line setup command in the editor next to their display.
 
 ## What the installer does
 

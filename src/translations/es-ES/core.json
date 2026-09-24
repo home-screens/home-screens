@@ -367,5 +367,10 @@
     "addYourOwnLink": "Añadir una imagen tuya",
     "photosPrompt": "¿Quieres tus propias imágenes para las comidas y las tareas?",
     "photosButton": "Añádelas aquí"
+  },
+  "noTimezone": {
+    "title": "Aún no hay zona horaria.",
+    "body": "Tus pantallas usan el reloj del hub ({zone}), así que las horas pueden estar mal.",
+    "action": "Elegir zona horaria"
   }
 }

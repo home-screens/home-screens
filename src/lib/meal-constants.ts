@@ -1,5 +1,5 @@
 import { localISODate } from './timezone';
-import { formatClockTime, resolveTimeFormat } from './clock-time';
+import { formatClockTime } from './clock-time';
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize, TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
@@ -275,6 +275,24 @@ export function getWeekDatesForRange(
   return dates;
 }
 
+/**
+ * The week a planner left open should show once today rolls from `prevToday`
+ * to `today`, as an aligned ISO week start. A viewer parked on the week that
+ * held the old today moves with it, so a phone open past Sunday midnight lands
+ * on the new week that "Clear week" and "Copy last week" will act on. A viewer
+ * who navigated to another week stays there.
+ */
+export function weekStartAfterDayChange(
+  viewedWeekStart: string,
+  prevToday: string,
+  today: string,
+  weekStartDay: 'sunday' | 'monday' = 'sunday',
+): string {
+  const viewed = getWeekRange(fromISODate(viewedWeekStart), weekStartDay).start;
+  if (viewed !== getWeekRange(fromISODate(prevToday), weekStartDay).start) return viewed;
+  return getWeekRange(fromISODate(today), weekStartDay).start;
+}
+
 /** Filter plan entries to those within a date range (inclusive) */
 export function filterPlanToWeek(
   plan: PlannedMeal[],
@@ -507,21 +525,22 @@ export function resolvePlannedMealTime(
  */
 export function formatMealTime(
   time: string | undefined,
-  format: TimeFormat = '12h',
+  format: TimeFormat,
 ): string {
   return formatClockTime(time, format);
 }
 
 /**
  * Effective meal time format: an explicit meal override wins, otherwise the
- * household global, otherwise 12h. Every formatMealTime call site resolves
- * through this so "follow global" stays consistent across surfaces.
+ * household's (already resolved, see `settingsTimeFormat`). Every
+ * formatMealTime call site resolves through this so "follow global" stays
+ * consistent across surfaces.
  */
 export function resolveMealTimeFormat(
   meal: { timeFormat?: TimeFormat } | undefined | null,
-  global: TimeFormat | undefined,
+  global: TimeFormat,
 ): TimeFormat {
-  return resolveTimeFormat(meal?.timeFormat, global);
+  return meal?.timeFormat ?? global;
 }
 
 /**

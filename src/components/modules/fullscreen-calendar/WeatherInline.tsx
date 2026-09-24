@@ -51,15 +51,18 @@ export function DayWeatherBadge({ weather, day, fontSize, align = 'end' }: {
   );
 }
 
-/** Event-row forecast at the event's start time (hourly → daily fallback). */
-export function EventWeatherLine({ weather, start, fontSize, marginTop }: {
+/** Event-row forecast at the event's start time (hourly → daily fallback).
+ *  `start` is the event's own start string; `weatherForEvent` reads it on
+ *  both the real and the household clock. */
+export function EventWeatherLine({ weather, start, timezone, fontSize, marginTop }: {
   weather: CalendarWeather;
-  start: Date;
+  start: string;
+  timezone: string | undefined;
   fontSize: number;
   marginTop?: number;
 }) {
   if (weather.placement !== 'events' && weather.placement !== 'days-and-events') return null;
-  const wx = weatherForEvent(weather.hourlyIndex, weather.forecast, start);
+  const wx = weatherForEvent(weather.hourlyIndex, weather.forecast, start, timezone);
   if (!wx) return null;
   const Icon = wx.icon ? getWeatherIcon(wx.icon, 'outline') : null;
   return (

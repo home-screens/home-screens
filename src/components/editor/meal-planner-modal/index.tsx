@@ -5,8 +5,10 @@ import { uuid } from '@/lib/uuid';
 import {
   DEFAULT_MEAL_EMOJI,
   toISODate,
+  fromISODate,
   getWeekRange,
   getWeekDatesForRange,
+  weekStartAfterDayChange,
   filterPlanToWeek,
   resolveMealTimeFormat,
 } from '@/lib/meal-constants';
@@ -23,6 +25,7 @@ import {
   restorePlanEntries,
 } from '@/lib/meal-plan-actions';
 import { useEditorStore } from '@/stores/editor-store';
+import { useEditorHouseholdToday } from '@/components/editor/useEditorHouseholdClock';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
@@ -32,6 +35,7 @@ import MealPickerPopover from './MealPickerPopover';
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings } from '@/types/config';
 import type { MealEdit } from '@/lib/meal-client';
 import { useTranslate } from '@/i18n';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 // ── Props ────────────────────────────────────────────────────
 
@@ -67,7 +71,7 @@ export default function MealPlannerModal({
   const t = useTranslate('editor');
   // Household GlobalSettings.timeFormat — resolves the effective format when
   // the shared meal settings carry no explicit override.
-  const globalTf = useEditorStore((s) => s.config?.settings?.timeFormat);
+  const globalTf = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
   const tabLabelMap = useMemo<Record<SidebarTab, string>>(
     () => ({
       library: t('mealPlannerModal.tabs.library'),
@@ -88,17 +92,32 @@ export default function MealPlannerModal({
   const [toast, setToast] = useState<{ message: string; undo?: () => void } | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
 
+  // The household's day, not the laptop's: the wall is already on next week
+  // from the household's midnight, whatever zone this laptop is in.
+  const todayISO = useEditorHouseholdToday();
+
   const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => {
-    const { start } = getWeekRange(new Date(), weekStartDay);
+    const { start } = getWeekRange(fromISODate(todayISO), weekStartDay);
     return new Date(start + 'T12:00:00');
   });
+  // Left open past the household's week boundary, the planner follows today
+  // onto the new week unless someone navigated to a different week.
+  const shownToday = useRef(todayISO);
+  useEffect(() => {
+    const before = shownToday.current;
+    if (before === todayISO) return;
+    shownToday.current = todayISO;
+    setViewingWeekStart((prev) => {
+      const start = weekStartAfterDayChange(toISODate(prev), before, todayISO, weekStartDay);
+      return start === toISODate(prev) ? prev : fromISODate(start);
+    });
+  }, [todayISO, weekStartDay]);
 
   const viewedWeekDates = useMemo(
     () => getWeekDatesForRange(toISODate(viewingWeekStart), weekStartDay),
     [viewingWeekStart, weekStartDay],
   );
 
-  const todayISO = toISODate(new Date());
   const isCurrentWeek = viewedWeekDates.includes(todayISO);
 
   const weekPlan = useMemo(
@@ -115,9 +134,9 @@ export default function MealPlannerModal({
   }, []);
 
   const jumpToToday = useCallback(() => {
-    const { start } = getWeekRange(new Date(), weekStartDay);
+    const { start } = getWeekRange(fromISODate(todayISO), weekStartDay);
     setViewingWeekStart(new Date(start + 'T12:00:00'));
-  }, [weekStartDay]);
+  }, [todayISO, weekStartDay]);
 
   const showToast = useCallback((message: string, undo?: () => void) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -341,6 +360,7 @@ export default function MealPlannerModal({
           timeFormat={resolveMealTimeFormat(settings, globalTf)}
           selectedMealId={selectedMealId}
           weekDates={viewedWeekDates}
+          todayISO={todayISO}
           isCurrentWeek={isCurrentWeek}
           onSelectMeal={selectMeal}
           onRemoveMeal={removeSlotMeal}

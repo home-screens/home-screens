@@ -27,11 +27,13 @@ interface TodoistModuleProps {
   /** Household 12/24 choice, threaded by buildModuleProps. Absent means nobody
    *  has chosen, and due times fall back to the locale's own hour cycle. */
   timeFormat?: TimeFormat;
+  /** Household zone: which day counts as today, and the clock due times read on. */
+  timezone?: string;
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['todoist']?.ttlMs ?? 60_000;
 
-export default function TodoistModule({ config, style, timeFormat }: TodoistModuleProps) {
+export default function TodoistModule({ config, style, timeFormat, timezone }: TodoistModuleProps) {
   const t = useTranslate('modules');
   const [data, error] = useFetchData<TodoistData>(todoistUrl(), config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
 
@@ -100,10 +102,10 @@ export default function TodoistModule({ config, style, timeFormat }: TodoistModu
       ? data.tasks
       : data.tasks.filter((t) => !completedIds.has(t.id));
     const filtered = filterTasks(visible, config);
-    const sorted = sortTasks(filtered, config.sortBy);
+    const sorted = sortTasks(filtered, config.sortBy, timezone);
     const limited = sorted.slice(0, config.maxTasks ?? 30);
     return { tasks: limited, filteredAll: filtered, totalCount: filtered.length };
-  }, [data, config, completedIds]);
+  }, [data, config, completedIds, timezone]);
 
   const title = config.title || 'Todoist';
   const showTitle = config.showTitle !== false;
@@ -156,11 +158,11 @@ export default function TodoistModule({ config, style, timeFormat }: TodoistModu
             </div>
           </div>
         ) : viewMode === 'board' ? (
-          <BoardView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} />
+          <BoardView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} timezone={timezone} />
         ) : viewMode === 'focus' ? (
-          <FocusView allTasks={filteredAll} config={config} now={now} onComplete={onComplete} />
+          <FocusView allTasks={filteredAll} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} timezone={timezone} />
         ) : (
-          <ListView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} />
+          <ListView tasks={tasks} config={config} now={now} onComplete={onComplete} timeFormat={timeFormat} timezone={timezone} />
         )}
       </div>
     </ModuleWrapper>

@@ -2,7 +2,7 @@ import { addDays, differenceInMinutes, startOfDay } from 'date-fns';
 import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, ScheduleStartAnchor, TimeFormat, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
-import { toTZWallTime } from '@/lib/timezone';
+import { parseDateInTZ, toTZWallTime } from '@/lib/timezone';
 
 /** Clamp a multi-week grid's weeksToShow to its 2-12 range. The view and the
  * fetch window share these bounds; 6 is the default when unset or not a
@@ -20,6 +20,15 @@ export function clampWeeksToShow(value: number | undefined): number {
 export function clampRollingWeeks(value: number | undefined): number {
   if (!Number.isFinite(value)) return 6;
   return Math.min(8, Math.max(1, value as number));
+}
+
+/** The fullscreen agenda's day count, `agendaDaysAhead` clamped to 1-30 (the
+ *  editor offers 7-30). Shared by the view, its legend and the fetch window,
+ *  so every drawn day is inside the fetch. Default 14 when unset or not a
+ *  positive number. */
+export function clampAgendaDays(value: number | undefined): number {
+  if (!Number.isFinite(value) || (value as number) <= 0) return 14;
+  return Math.min(30, Math.max(1, Math.floor(value as number)));
 }
 
 /** Clamp a grid's gridMaxEventsPerCell to its 2-10 range. Unset or not a
@@ -144,11 +153,32 @@ export function parseEventWallTime(dateStr: string, timezone?: string): Date {
 }
 
 /**
- * Compare two CalendarEvent start dates for sorting.
- * Uses parseEventDate to avoid the UTC-midnight bug on date-only strings.
+ * The real instant an event bound names. Timed strings with a zone are
+ * instants already. Date-only strings (all-day bounds) and zone-less timed
+ * strings are wall times, so they are read in `timezone`: an all-day event
+ * starts at the household's midnight. `parseEventDate` reads them in the
+ * machine's zone instead, which on a Pi left at UTC ends a Chicago all-day
+ * event at 7 pm the evening before, so anything that compares event bounds
+ * with a real window or a real "now" goes through here.
  */
-export function compareEventStarts(aStart: string, bStart: string): number {
-  return parseEventDate(aStart).getTime() - parseEventDate(bStart).getTime();
+export function parseEventInstant(dateStr: string, timezone: string | undefined): Date {
+  return parseDateInTZ(dateStr, timezone);
+}
+
+/**
+ * Compare two CalendarEvent start strings for sorting, on the household's
+ * wall clock: timed starts are shifted into `timezone` so they share a clock
+ * with all-day dates, which are wall dates already. Comparing a real instant
+ * with a machine-midnight all-day date put tonight's 7:30 pm event after
+ * tomorrow's birthday on a UTC Pi in Chicago. On a tie (an all-day row and a
+ * midnight start) the all-day row goes first, as every list view shows it.
+ */
+export function compareEventStarts(aStart: string, bStart: string, timezone: string | undefined): number {
+  const diff = parseEventWallTime(aStart, timezone).getTime() - parseEventWallTime(bStart, timezone).getTime();
+  if (diff) return diff;
+  const aAllDay = !aStart.includes('T');
+  const bAllDay = !bStart.includes('T');
+  return aAllDay === bAllDay ? 0 : aAllDay ? -1 : 1;
 }
 
 /** Whether an event renders as all-day: the flag, or a date-only start. */
@@ -349,7 +379,7 @@ export function bucketEventsForDay<T extends { start: string; end: string; allDa
     })
     .sort((a, b) => {
       if (a.isAllDayRow !== b.isAllDayRow) return a.isAllDayRow ? -1 : 1;
-      return compareEventStarts(a.ev.start, b.ev.start);
+      return compareEventStarts(a.ev.start, b.ev.start, timezone);
     });
 }
 

@@ -842,7 +842,6 @@ test('admin deletes a reward through the reward form and it round-trips', async 
 // The meal-planner panels roll back through the same useDebouncedSave/
 // throwIfNotOk pairing, so one surface is enough to pin the behavior.
 
-/** Today as the YYYY-MM-DD key the completion store uses (local time, like todayStr). */
 // The sentence is built on the phone from its own dictionary; the route only
 // sends the numbers. It used to arrive as English text whatever the language.
 for (const [locale, tab, sentence] of [

@@ -5,18 +5,17 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
+import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
 
-export default function ClockWordView({ config, now, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockWordView({ config, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const words = timeToWords(t, hours, minutes);
+  const words = timeToWords(t, time.hours, time.minutes);
 
   const dateStr = config.showDate
-    ? formatDateSync(now, config.dateFormat || 'EEEE, MMMM d', { locale })
+    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
   return (

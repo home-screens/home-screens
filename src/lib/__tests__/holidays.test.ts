@@ -65,6 +65,8 @@ describe('fetchAvailableCountries', () => {
 // ---------------------------------------------------------------------------
 // fetchHolidayEvents
 // ---------------------------------------------------------------------------
+// The windows below are written as UTC days, so the household zone is UTC;
+// the tests at the end cover a household elsewhere.
 describe('fetchHolidayEvents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -73,7 +75,7 @@ describe('fetchHolidayEvents', () => {
   it('fetches holidays and converts to CalendarEvent format', async () => {
     mockFetch.mockResolvedValueOnce(mockJsonResponse(sampleHolidays));
 
-    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z', 'UTC');
 
     // Should only include Public holidays (4 total, Valentine's is Observance)
     expect(events).toHaveLength(4);
@@ -88,7 +90,7 @@ describe('fetchHolidayEvents', () => {
   it('filters out non-Public holidays (Observances)', async () => {
     mockFetch.mockResolvedValueOnce(mockJsonResponse(sampleHolidays));
 
-    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z', 'UTC');
     const titles = events.map((e) => e.title);
     expect(titles).not.toContain("Valentine's Day");
   });
@@ -97,7 +99,7 @@ describe('fetchHolidayEvents', () => {
     mockFetch.mockResolvedValueOnce(mockJsonResponse(sampleHolidays));
 
     // Only January holidays
-    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-01-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-01-31T00:00:00Z', 'UTC');
     expect(events).toHaveLength(2);
     expect(events[0].title).toBe("New Year's Day");
     expect(events[1].title).toBe('Martin Luther King Jr. Day');
@@ -106,7 +108,7 @@ describe('fetchHolidayEvents', () => {
   it('generates correct all-day event fields', async () => {
     mockFetch.mockResolvedValueOnce(mockJsonResponse(sampleHolidays));
 
-    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z', 'UTC');
     const newYear = events[0];
 
     expect(newYear.allDay).toBe(true);
@@ -129,7 +131,7 @@ describe('fetchHolidayEvents', () => {
         { date: '2026-01-01', localName: "New Year's", name: "New Year's", countryCode: 'US', types: ['Public'] },
       ]));
 
-    const events = await fetchHolidayEvents('US', '2025-12-01T00:00:00Z', '2026-01-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2025-12-01T00:00:00Z', '2026-01-31T00:00:00Z', 'UTC');
 
     // Should have called fetch twice (once per year)
     expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -140,7 +142,7 @@ describe('fetchHolidayEvents', () => {
 
   it('throws when API returns error', async () => {
     mockFetch.mockResolvedValueOnce(mockErrorResponse(404));
-    await expect(fetchHolidayEvents('XX', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z')).rejects.toThrow('Failed to fetch holidays: 404');
+    await expect(fetchHolidayEvents('XX', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z', 'UTC')).rejects.toThrow('Failed to fetch holidays: 404');
   });
 
   it('pins fixed-date holidays back to their true calendar date', async () => {
@@ -151,7 +153,7 @@ describe('fetchHolidayEvents', () => {
     ];
     mockFetch.mockResolvedValueOnce(mockJsonResponse(observed));
 
-    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2026-01-01T00:00:00Z', '2026-12-31T00:00:00Z', 'UTC');
 
     const july4 = events.find((e) => e.title === 'Independence Day')!;
     expect(july4.start).toBe('2026-07-04');
@@ -171,7 +173,7 @@ describe('fetchHolidayEvents', () => {
     ];
     mockFetch.mockResolvedValueOnce(mockJsonResponse(observed));
 
-    const events = await fetchHolidayEvents('US', '2021-01-01T00:00:00Z', '2021-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2021-01-01T00:00:00Z', '2021-12-31T00:00:00Z', 'UTC');
     expect(events.map((e) => e.start)).toEqual(['2021-07-04', '2021-12-25']);
   });
 
@@ -182,7 +184,7 @@ describe('fetchHolidayEvents', () => {
       { date: '2021-12-31', localName: "New Year's Day", name: "New Year's Day", countryCode: 'US', types: ['Public'] },
     ]));
 
-    const events = await fetchHolidayEvents('US', '2022-01-01T00:00:00Z', '2022-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2022-01-01T00:00:00Z', '2022-12-31T00:00:00Z', 'UTC');
     expect(events).toHaveLength(1);
     expect(events[0].start).toBe('2022-01-01');
     expect(events[0].id).toBe('holiday-US-2022-01-01-new-year-s-day');
@@ -194,7 +196,7 @@ describe('fetchHolidayEvents', () => {
       { date: '2021-12-27', localName: 'Christmas Day', name: 'Christmas Day', countryCode: 'GB', types: ['Public'] },
     ]));
 
-    const events = await fetchHolidayEvents('GB', '2021-01-01T00:00:00Z', '2021-12-31T00:00:00Z');
+    const events = await fetchHolidayEvents('GB', '2021-01-01T00:00:00Z', '2021-12-31T00:00:00Z', 'UTC');
     expect(events[0].start).toBe('2021-12-27');
   });
 
@@ -204,7 +206,39 @@ describe('fetchHolidayEvents', () => {
     ];
     mockFetch.mockResolvedValueOnce(mockJsonResponse(observanceOnly));
 
-    const events = await fetchHolidayEvents('US', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z');
+    const events = await fetchHolidayEvents('US', '2026-02-01T00:00:00Z', '2026-02-28T00:00:00Z', 'UTC');
     expect(events).toHaveLength(0);
+  });
+});
+
+describe('fetchHolidayEvents on the household day', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const christmas = [
+    { date: '2026-12-24', localName: 'Christmas Eve', name: 'Christmas Eve', countryCode: 'US', types: ['Public'] },
+    { date: '2026-12-25', localName: 'Christmas Day', name: 'Christmas Day', countryCode: 'US', types: ['Public'] },
+  ];
+
+  it("keeps today's holiday in the evening west of UTC", async () => {
+    // 8 pm on Christmas in Chicago is already the 26th in UTC. Slicing the
+    // ISO string took the 26th and Christmas vanished from the wall.
+    mockFetch.mockResolvedValueOnce(mockJsonResponse(christmas));
+    const events = await fetchHolidayEvents('US', '2026-12-26T02:00:00Z', '2026-12-31T00:00:00Z', 'America/Chicago');
+    expect(events.map((e) => e.start)).toEqual(['2026-12-25']);
+  });
+
+  it("drops yesterday's holiday after midnight east of UTC", async () => {
+    // 6 am on Christmas in Auckland is still Christmas Eve in UTC.
+    mockFetch.mockResolvedValueOnce(mockJsonResponse(christmas));
+    const events = await fetchHolidayEvents('US', '2026-12-24T17:00:00Z', '2026-12-31T00:00:00Z', 'Pacific/Auckland');
+    expect(events.map((e) => e.start)).toEqual(['2026-12-25']);
+  });
+
+  it('reads a date-only bound as that day', async () => {
+    mockFetch.mockResolvedValueOnce(mockJsonResponse(christmas));
+    const events = await fetchHolidayEvents('US', '2026-12-25', '2026-12-31', 'America/Chicago');
+    expect(events.map((e) => e.start)).toEqual(['2026-12-25']);
   });
 });

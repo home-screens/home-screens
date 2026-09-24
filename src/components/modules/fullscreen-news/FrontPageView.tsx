@@ -166,9 +166,9 @@ function Masthead({ title, ctx, timezone, locale }: { title: string; ctx: NewsVi
 }
 
 function GridCard({ item, ctx, wide, landscape }: { item: NewsDisplayItem; ctx: NewsViewContext; wide: boolean; landscape: boolean }) {
-  const { scale, theme, accent, options, onTap, t, locale, now } = ctx;
+  const { scale, theme, accent, options, onTap, t, locale, now, timezone } = ctx;
   const { bu, s } = scale;
-  const meta = metaParts(item, options, formatNewsAge(item.timestamp, t, locale, now)).join(' · ');
+  const meta = metaParts(item, options, formatNewsAge(item.timestamp, t, { locale, timezone }, now)).join(' · ');
   const thumbSize = bu * 13.9;
 
   return (

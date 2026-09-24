@@ -69,6 +69,25 @@ export const COMMON_TIMEZONES: readonly TimezoneOption[] = [
   { label: 'UTC', value: 'UTC' },
 ];
 
+const CURATED_ZONE_LABELS = new Map(COMMON_TIMEZONES.map((tz) => [tz.value, tz.label]));
+
+/**
+ * A zone in the words the picker shows it: the curated label for common zones
+ * ("Mumbai" for Asia/Kolkata), otherwise the id's last segment with spaces
+ * ("Los Angeles", "Kiritimati", "UTC" for Etc/UTC).
+ */
+export function timezoneLabel(zone: string): string {
+  return CURATED_ZONE_LABELS.get(zone) ?? zone.split('/').pop()!.replace(/_/g, ' ');
+}
+
+/**
+ * Whether a zone is named after a place ("Chicago time" reads right) or is a
+ * bare offset like UTC or Etc/GMT+5, which is named as it is.
+ */
+export function isPlaceTimezone(zone: string): boolean {
+  return zone.includes('/') && !zone.startsWith('Etc/');
+}
+
 /**
  * Full IANA zone list for pickers: `Intl.supportedValuesOf('timeZone')` when
  * the runtime supports it, COMMON_TIMEZONES otherwise — the fallback contract
@@ -168,6 +187,16 @@ export function localISODate(d: Date = new Date()): string {
 }
 
 /**
+ * The calendar day an instant falls on in `timezone`, as `YYYY-MM-DD`; the
+ * process's own day without one. Use this for "today" and for keying real
+ * instants by day. `toISOString().slice(0, 10)` is the UTC day, and
+ * `localISODate(new Date())` is whatever zone the machine happens to be in.
+ */
+export function isoDateInTZ(instant: Date = new Date(), timezone?: string): string {
+  return localISODate(toTZWallTime(instant, timezone));
+}
+
+/**
  * A Date's own calendar day and clock time as `YYYY-MM-DDTHH:mm`: the value an
  * `<input type="datetime-local">` reads and writes.
  *
@@ -256,6 +285,99 @@ export function toTZWallTime(date: Date, timezone?: string): Date {
 }
 
 /**
+ * An instant's wall-clock reading in a zone, as plain numbers.
+ *
+ * Schedule, sleep and condition checks read this instead of a shifted Date.
+ * `toTZWallTime` rebuilds its result in the machine's own zone, so a household
+ * time that falls in the machine's spring-forward gap comes back an hour late:
+ * 02:30 in London on 2026-03-08 reads as 03:30 on a Chicago laptop, because
+ * Chicago skips that hour that night. Plain numbers have no gap to fall into.
+ */
+export interface WallClock {
+  /** 0 = Sunday, the same numbering as `Date.getDay()`. */
+  dayOfWeek: number;
+  /** Minutes since the zone's midnight, 0 to 1439. */
+  minuteOfDay: number;
+  /** The zone's calendar day, `YYYY-MM-DD`. */
+  isoDate: string;
+}
+
+const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const wallClockFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Read `instant` on `timezone`'s wall clock, straight from Intl. Without a zone
+ * (or with one this runtime does not know) it reads the Date's own local
+ * getters, which is also the right reading for a shifted Date or a synthetic
+ * calendar probe built with `new Date(y, m, d, h, min)`.
+ */
+export function wallClockParts(instant: Date = new Date(), timezone?: string): WallClock {
+  if (timezone && !isNaN(instant.getTime())) {
+    try {
+      let formatter = wallClockFormatters.get(timezone);
+      if (!formatter) {
+        // 'en-US' for ASCII digits and English weekday names, as in
+        // `toTZWallTime`: these parts are parsed, never shown.
+        formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          weekday: 'short',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23',
+        });
+        wallClockFormatters.set(timezone, formatter);
+      }
+      const parts = formatter.formatToParts(instant);
+      const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+      return {
+        dayOfWeek: WEEKDAY_NAMES.indexOf(get('weekday')),
+        minuteOfDay: (Number(get('hour')) % 24) * 60 + Number(get('minute')),
+        isoDate: `${get('year')}-${get('month')}-${get('day')}`,
+      };
+    } catch {
+      // Unknown zone: read the Date's own clock below, as toTZWallTime does.
+    }
+  }
+  return {
+    dayOfWeek: instant.getDay(),
+    minuteOfDay: instant.getHours() * 60 + instant.getMinutes(),
+    isoDate: localISODate(instant),
+  };
+}
+
+/**
+ * Response header on `GET /api/config` naming the hub's own zone, which is the
+ * household's zone while none is saved. The display and the editor read it from
+ * the same response as the config, so a hub whose clock zone changes is picked
+ * up on their next load or poll.
+ */
+export const HUB_TIMEZONE_HEADER = 'X-Hub-Timezone';
+
+/**
+ * The zone the household runs in: the saved one, or the hub's own while none
+ * is saved. Every surface resolves an unset zone to the hub, never to the
+ * machine it happens to run on. The hub already keeps the family's data by its
+ * own clock (chore days, to-do resets, the phone), so a UTC kiosk or a
+ * travelling laptop falling back to itself used to show a different hour and
+ * day from the chore chart next to it.
+ */
+export function resolveHouseholdTimezone(saved: string | undefined, hubZone: string): string {
+  return saved || hubZone;
+}
+
+/** `settings` with its zone resolved (see `resolveHouseholdTimezone`). */
+export function withHouseholdTimezone<S extends { timezone?: string }>(
+  settings: S,
+  hubZone: string,
+): S & { timezone: string } {
+  if (settings.timezone) return settings as S & { timezone: string };
+  return { ...settings, timezone: hubZone };
+}
+
+/**
  * How a clock time should be rendered: which zone, which locale, and 12 or 24
  * hour.
  *
@@ -330,34 +452,15 @@ export function formatDateInTZ(
   }
 }
 
-/**
- * Parse a naive datetime string (no Z or offset) as if it were in the
- * given timezone, returning a Date with the correct UTC epoch.
- *
- * If the string already has timezone info (Z, +HH:MM), it's parsed as-is.
- * Used by CountdownModule to interpret user-entered dates correctly.
- */
-export function parseDateInTZ(dateStr: string, timezone?: string): Date {
-  const parsed = new Date(dateStr);
-  if (!timezone || isNaN(parsed.getTime())) return parsed;
+const NAIVE_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3})\d*)?)?)?$/;
+const offsetFormatters = new Map<string, Intl.DateTimeFormat>();
 
-  // If the string has explicit timezone info, it's already absolute
-  if (/Z|[+-]\d{2}:?\d{2}\s*$/.test(dateStr.trim())) return parsed;
-
-  // Extract the parts the user intended (parsed in OS local time)
-  const year = parsed.getFullYear();
-  const month = parsed.getMonth();
-  const day = parsed.getDate();
-  const hour = parsed.getHours();
-  const min = parsed.getMinutes();
-  const sec = parsed.getSeconds();
-
-  // Create a UTC guess and find how far off the target timezone is
-  try {
-    const utcGuess = Date.UTC(year, month, day, hour, min, sec);
-    // 'en-US' is intentional — see `createTZDate` for the rationale
-    // (machine extraction needs ASCII digits, not user-facing format).
-    const parts = new Intl.DateTimeFormat('en-US', {
+/** `timezone`'s UTC offset at `instantMs`, in ms (Chicago in winter: -6 h). */
+function zoneOffsetMs(instantMs: number, timezone: string): number {
+  let formatter = offsetFormatters.get(timezone);
+  if (!formatter) {
+    // 'en-US' for ASCII digits, as in `toTZWallTime`.
+    formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       year: 'numeric',
       month: 'numeric',
@@ -365,19 +468,78 @@ export function parseDateInTZ(dateStr: string, timezone?: string): Date {
       hour: 'numeric',
       minute: 'numeric',
       second: 'numeric',
-      hour12: false,
-    }).formatToParts(new Date(utcGuess));
+      hourCycle: 'h23',
+    });
+    offsetFormatters.set(timezone, formatter);
+  }
+  const wholeSecond = Math.floor(instantMs / 1000) * 1000;
+  const parts = formatter.formatToParts(new Date(wholeSecond));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
+  const wallAsUtc = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour') % 24, get('minute'), get('second'));
+  return wallAsUtc - wholeSecond;
+}
 
-    const get = (type: Intl.DateTimeFormatPartTypes) =>
-      parseInt(parts.find((p) => p.type === type)?.value ?? '0', 10);
+/**
+ * The real instant of a wall-clock reading in `timezone`, with the same
+ * choices as Temporal's "compatible" rule: a reading the zone passes twice on
+ * fall-back night is the first pass, and one the zone skips on spring-forward
+ * night is moved on by the size of the skip (02:30 in a skipped hour is 03:30).
+ */
+function wallTimeToInstant(wallAsUtc: number, timezone: string): number {
+  const DAY = 86_400_000;
+  const before = zoneOffsetMs(wallAsUtc - DAY, timezone);
+  const after = zoneOffsetMs(wallAsUtc + DAY, timezone);
+  const early = wallAsUtc - before;
+  const late = wallAsUtc - after;
+  const earlyHolds = zoneOffsetMs(early, timezone) === before;
+  const lateHolds = zoneOffsetMs(late, timezone) === after;
+  if (earlyHolds && lateHolds) return Math.min(early, late);
+  if (earlyHolds) return early;
+  if (lateHolds) return late;
+  return early;
+}
 
-    const tzHour = get('hour') === 24 ? 0 : get('hour');
-    const tzLocal = new Date(get('year'), get('month') - 1, get('day'), tzHour, get('minute'), get('second'));
-    const intended = new Date(year, month, day, hour, min, sec);
-    const offsetMs = intended.getTime() - tzLocal.getTime();
+/**
+ * Parse a naive datetime string (no Z or offset) as if it were in the
+ * given timezone, returning a Date with the correct UTC epoch.
+ *
+ * A bare `YYYY-MM-DD` is that day's midnight in `timezone`, not the UTC
+ * midnight `new Date()` reads it as. If the string already has timezone info
+ * (Z, +HH:MM), it's parsed as-is. Without a timezone (or with one this
+ * runtime does not know) a naive string is read on this machine's clock.
+ * The wall-clock parts come from the string itself, never from a Date built
+ * in the machine's zone, so the result does not depend on where it runs.
+ */
+export function parseDateInTZ(dateStr: string, timezone?: string): Date {
+  const trimmed = dateStr.trim();
+  // Explicit zone info makes the string an instant already
+  if (/Z|[+-]\d{2}:?\d{2}\s*$/.test(trimmed)) return new Date(dateStr);
 
-    return new Date(utcGuess + offsetMs);
+  let wallAsUtc: number;
+  let local: Date;
+  const match = NAIVE_DATE_TIME.exec(trimmed);
+  if (match) {
+    const [y, mo, d, h, mi, s] = match.slice(1, 7).map((v) => (v === undefined ? 0 : Number(v)));
+    const ms = match[7] ? Number(match[7].padEnd(3, '0')) : 0;
+    wallAsUtc = Date.UTC(y, mo - 1, d, h, mi, s, ms);
+    local = new Date(y, mo - 1, d, h, mi, s, ms);
+  } else {
+    // Free-form input: let the engine read it on this machine's clock, then
+    // take the wall-clock parts it found.
+    local = new Date(dateStr);
+    if (isNaN(local.getTime())) return local;
+    wallAsUtc = Date.UTC(
+      local.getFullYear(), local.getMonth(), local.getDate(),
+      local.getHours(), local.getMinutes(), local.getSeconds(), local.getMilliseconds(),
+    );
+  }
+  if (!timezone) return local;
+
+  try {
+    return new Date(wallTimeToInstant(wallAsUtc, timezone));
   } catch {
-    return parsed;
+    // Invalid timezone: read it on this machine's clock
+    return local;
   }
 }

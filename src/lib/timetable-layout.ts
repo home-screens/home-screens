@@ -34,7 +34,7 @@
  *   "s 16:0" for a pick-up at 16:00 are not small text, they are wrong text.
  */
 
-import { DEFAULT_TIME_FORMAT, type TimeFormat, type TimetableDetail } from '@/types/config';
+import type { TimeFormat, TimetableDetail } from '@/types/config';
 import type { FamilyMember } from '@/types/family';
 import type {
   DayKey,
@@ -48,7 +48,7 @@ import type {
 import { DAY_KEYS } from '@/types/timetables';
 import { initialsOf } from '@/lib/calendar-people';
 import { parseTimeToMinutes } from '@/lib/sleep-timeline';
-import { localISODate, toTZWallTime } from '@/lib/timezone';
+import { isoDateInTZ, toTZWallTime } from '@/lib/timezone';
 
 // ---------------------------------------------------------------------------
 // Tuning constants
@@ -528,7 +528,7 @@ export function isoWeekNumber(isoDate: string): number {
 
 /** The display's calendar date for an instant, as 'YYYY-MM-DD'. */
 export function dateInZone(now: Date, timeZone?: string): string {
-  return localISODate(toTZWallTime(now, timeZone));
+  return isoDateInTZ(now, timeZone);
 }
 
 /** Minutes past midnight on the display's clock. */
@@ -1278,7 +1278,7 @@ export interface CardMetricsInput {
   /** The footer also says which weeks differ, which usually takes a second line. */
   hasLegend?: boolean;
   /** The household's clock. A 12-hour time is half as wide again. */
-  timeFormat?: TimeFormat;
+  timeFormat: TimeFormat;
   /**
    * What the card has given up to draw at the size it was asked for. Omitted,
    * it has given up nothing, which is the case whenever the card chose its own
@@ -1547,10 +1547,11 @@ function gutterMetrics(input: CardMetricsInput, base: number, times: GutterTimes
   const folded = input.rows?.some((row) => row.kind === 'fold') ?? false;
   if (times === 'none' && !folded) return { px: wanted, timePx };
 
-  // The same fallback the component formats with. These two disagreeing is the
-  // whole bug: a household that never touched the clock setting drew "12:45 PM"
-  // in a gutter budgeted for "12:45", so every row lost its last characters.
-  const width = TIME_WIDTH_EM[input.timeFormat ?? DEFAULT_TIME_FORMAT];
+  // The clock the component formats with, resolved once by the module. A
+  // fallback here that disagreed with the component's was a bug: a household
+  // that never touched the clock setting drew "12:45 PM" in a gutter budgeted
+  // for "12:45", so every row lost its last characters.
+  const width = TIME_WIDTH_EM[input.timeFormat];
   let px = Math.max(wanted, timePx * width + GUTTER_PAD_PX);
   const cap = Math.max(wanted, input.cardWidth * GUTTER_MAX_SHARE);
   if (px > cap) {
@@ -2559,7 +2560,7 @@ export interface TimetableCardInput {
   /** Module setting: the time each period starts, beside its number. Omitted = shown. */
   showStartTimes?: boolean;
   /** The household's clock, which decides how wide every time on the card is. */
-  timeFormat?: TimeFormat;
+  timeFormat: TimeFormat;
   /**
    * The length of the words the component will put around a time, a room or a
    * date, and of the sentences it composes out of them, in characters.
@@ -2593,7 +2594,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
   const icons = timetable.icons === true;
   const badgedCourse = usualCourse(timetable);
   const words = input.words ?? DEFAULT_WORDS;
-  const format = input.timeFormat ?? DEFAULT_TIME_FORMAT;
+  const format = input.timeFormat;
 
   /**
    * How much width a cell in one of the two kinds of column has, in pixels.

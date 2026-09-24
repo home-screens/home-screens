@@ -1,7 +1,8 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import type { Screen, GlobalSettings, ModuleInstance } from '@/types/config';
+import type { Screen, ModuleInstance } from '@/types/config';
+import type { DisplaySettings } from './useLiveConfig';
 import { getModuleComponent } from '@/lib/module-components';
 import { getLocation } from '@/lib/location';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -14,7 +15,7 @@ interface BackgroundProviderLayerProps {
   /** ALL configured screens (pre-profile-filter) — a producer must run even
    *  when its home screen is rotated out or excluded by the active profile. */
   screens: Screen[];
-  settings: GlobalSettings;
+  settings: DisplaySettings;
   sharedData: SharedDisplayData;
 }
 

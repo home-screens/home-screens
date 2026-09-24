@@ -14,9 +14,11 @@ function mockWa(body: unknown) {
   );
 }
 
+// `time` is the location's zone-less wall clock (Chicago, 5 hours behind UTC
+// in April); `time_epoch` is the same hour as a real instant.
 function waHour(overrides: Record<string, unknown> = {}) {
   return {
-    time: '2026-04-18 12:00',
+    time: '2026-04-18 07:00',
     time_epoch: NOW_EPOCH,
     temp_c: 12,
     temp_f: 53.6,
@@ -79,7 +81,9 @@ describe('WeatherAPIProvider', () => {
 
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({
-      time: '2026-04-18 12:00',
+      // The real instant, not the zone-less "2026-04-18 07:00" a browser
+      // would read in its own zone.
+      time: '2026-04-18T12:00:00.000Z',
       temp: 12,
       feelsLike: 10,
       humidity: 60,

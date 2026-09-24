@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import {
-  parseEventDate, parseEventWallTime, weekStartsOnFor, formatEventTime,
+  parseEventWallTime, weekStartsOnFor, formatEventTime,
   bucketEventsForDay, eventStatusSlot, eventKindLabel, isWeekendDay,
   eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
@@ -20,7 +20,6 @@ import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { CountdownPill, EventProgressBar, eventAriaLabel } from './list-view-bits';
-import { DEFAULT_TIME_FORMAT } from '@/types/config';
 import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, eventOwner, initialsOf } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
@@ -28,7 +27,7 @@ import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 
-export function WeekListView({ events, timezone, config, scale, today, now, timeFormat = DEFAULT_TIME_FORMAT, weather, failingSourceIds, owners, extras }: CalendarViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, extras }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -351,9 +350,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
           </div>
         )}
         {!isAllDay && weather && (
-          // True instant, not the wall-time `start`: the hourly weather
-          // index keys on epoch ms, so a shifted Date misses its bucket.
-          <EventWeatherLine weather={weather} start={parseEventDate(event.start)} fontSize={fontSize} marginTop={2} />
+          <EventWeatherLine weather={weather} start={event.start} timezone={timezone} fontSize={fontSize} marginTop={2} />
         )}
         {description && (
           <div style={{

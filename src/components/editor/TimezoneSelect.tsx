@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import Combobox from '@/components/ui/Combobox';
-import { COMMON_TIMEZONES, listTimezoneValues } from '@/lib/timezone';
+import { listTimezoneValues, timezoneLabel } from '@/lib/timezone';
 import type { ComboboxOption } from '@/lib/combobox-filter';
 import { useTranslate } from '@/i18n';
 
@@ -12,7 +12,7 @@ interface TimezoneSelectProps {
   /**
    * Label for the pinned `value: ''` default row (already translated, zone
    * name interpolated) — e.g. "Use display setting (Europe/Berlin)" in module
-   * config panels, "System default (Europe/Berlin)" on the settings page.
+   * config panels, "Not picked yet" on the settings page.
    */
   defaultOptionLabel: string;
   ariaLabel: string;
@@ -22,12 +22,10 @@ interface TimezoneSelectProps {
   inputClassName?: string;
 }
 
-const CURATED_LABELS = new Map(COMMON_TIMEZONES.map((tz) => [tz.value, tz.label]));
-
 /**
- * Timezone picker over the generic Combobox: friendly label for curated
- * zones (COMMON_TIMEZONES), city segment otherwise; the IANA id rides as the
- * description so search matches "kolkata" as well as "mumbai".
+ * Timezone picker over the generic Combobox: each zone by `timezoneLabel`,
+ * with the IANA id riding as the description so search matches "kolkata" as
+ * well as "mumbai".
  */
 export default function TimezoneSelect({
   value, onChange, defaultOptionLabel, ariaLabel, id, ariaDescribedBy, inputClassName,
@@ -38,7 +36,7 @@ export default function TimezoneSelect({
       { value: '', label: defaultOptionLabel, pinned: true },
       ...listTimezoneValues().map((zone): ComboboxOption => ({
         value: zone,
-        label: CURATED_LABELS.get(zone) ?? zone.split('/').pop()!.replace(/_/g, ' '),
+        label: timezoneLabel(zone),
         // Zone-less ids like "UTC" would render as "UTC (UTC)" when closed.
         description: zone.includes('/') ? zone : undefined,
       })),

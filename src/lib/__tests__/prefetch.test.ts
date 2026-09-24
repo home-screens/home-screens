@@ -4,7 +4,8 @@ import { prefetchScreen } from '@/lib/prefetch';
 import { displayCache } from '@/lib/display-cache';
 import type { Screen } from '@/types/config';
 
-vi.mock('@/lib/schedule', () => ({
+vi.mock('@/lib/schedule', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/schedule')>()),
   isModuleVisible: vi.fn(() => true),
   isModuleEnabled: vi.fn((mod: { enabled?: boolean }) => mod.enabled !== false),
 }));
@@ -62,6 +63,16 @@ describe('prefetchScreen', () => {
     expect(mock).toHaveBeenCalledTimes(2);
     expect(mock.mock.calls.map((c) => c[0])).toContain('/api/quote');
     expect(mock.mock.calls.map((c) => c[0])).toContain('/api/jokes');
+  });
+
+  it('warms the same day-keyed URL the History module fetches', async () => {
+    const mock = mockFetchOk({ date: '2026-09-24', events: [] });
+    const screen = makeScreen([{ type: 'history' }]);
+
+    // The household clock, as the display hands it over.
+    await prefetchScreen(screen, { dayOfWeek: 4, minuteOfDay: 10, isoDate: '2026-09-24' });
+
+    expect(mock.mock.calls[0][0]).toBe('/api/history?sources=muffinlabs,wikipedia&day=2026-09-24');
   });
 
   it('skips modules not in the fetch registry', async () => {
