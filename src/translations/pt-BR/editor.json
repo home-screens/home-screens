@@ -2523,6 +2523,7 @@
     "albumTip": "Dica: Álbuns Compartilhados também podem tocar ao vivo, sem baixar. Escolha \"Álbum Compartilhado do iCloud\" como fonte de fotos nas configurações de uma apresentação.",
     "errors": {
       "invalid": "Isso não parece um link do iCloud. Copie o link de novo e tente outra vez.",
+      "unreachable": "Não foi possível acessar o iCloud agora. Verifique a conexão com a internet e tente outra vez.",
       "expired": "Este link não funciona mais. Links de fotos do iCloud param de funcionar depois de mais ou menos um mês; peça um link novo e tente de novo.",
       "busy": "Outra importação já está em andamento. Espere ela terminar.",
       "tooMany": "Este link tem fotos demais para salvar de uma vez. Tente um álbum ou link menor.",

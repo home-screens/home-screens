@@ -2523,6 +2523,7 @@
     "albumTip": "Consejo: los álbumes compartidos también pueden mostrarse en vivo, sin descargar. Elige \"Álbum compartido de iCloud\" como fuente de fotos en los ajustes de una presentación.",
     "errors": {
       "invalid": "Eso no parece un enlace de iCloud. Copia el enlace de nuevo e inténtalo otra vez.",
+      "unreachable": "No se pudo conectar con iCloud ahora mismo. Comprueba la conexión a internet e inténtalo otra vez.",
       "expired": "Este enlace ya no funciona. Los enlaces de fotos de iCloud dejan de funcionar después de un mes aproximadamente; pide uno nuevo e inténtalo de nuevo.",
       "busy": "Ya hay otra importación en curso. Espera a que termine.",
       "tooMany": "Este enlace tiene demasiadas fotos para guardarlas todas a la vez. Prueba con un álbum o enlace más pequeño.",

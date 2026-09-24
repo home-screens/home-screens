@@ -2523,6 +2523,7 @@
     "albumTip": "Astuce : les albums partagés peuvent aussi être affichés en direct, sans téléchargement. Choisissez « Album partagé iCloud » comme source de photos dans les réglages d'un diaporama.",
     "errors": {
       "invalid": "Cela ne ressemble pas à un lien iCloud. Copiez le lien à nouveau et réessayez.",
+      "unreachable": "Impossible de joindre iCloud pour le moment. Vérifiez la connexion Internet et réessayez.",
       "expired": "Ce lien ne fonctionne plus. Les liens photos iCloud expirent après environ un mois ; demandez un nouveau lien et réessayez.",
       "busy": "Un autre import est déjà en cours. Attendez qu'il se termine.",
       "tooMany": "Ce lien contient trop de photos pour tout enregistrer d'un coup. Essayez avec un album ou un lien plus petit.",

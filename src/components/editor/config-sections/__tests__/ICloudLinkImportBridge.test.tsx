@@ -107,4 +107,36 @@ describe('ICloudLinkImportBridge', () => {
     expect(view.getByText(/isn't working anymore/)).toBeTruthy();
     expect(onSaved).not.toHaveBeenCalled();
   });
+
+  it('blames the link only when the server rejected the link', async () => {
+    editorFetch.mockResolvedValue(jsonResponse({ error: 'invalid-link' }, 400));
+
+    const view = renderVideoBridge(vi.fn());
+    fireEvent.click(view.getByText('Save to library'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+
+    expect(view.getByText(/doesn't look like an iCloud link/)).toBeTruthy();
+  });
+
+  it('says iCloud could not be reached when the server fails, not that the link is wrong', async () => {
+    // withAuth's catch-all: Apple timing out surfaces as a 500 with the route's fallback text.
+    editorFetch.mockResolvedValue(jsonResponse({ error: 'Failed to start iCloud import' }, 500));
+
+    const view = renderVideoBridge(vi.fn());
+    fireEvent.click(view.getByText('Save to library'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+
+    expect(view.getByText(/Couldn't reach iCloud/)).toBeTruthy();
+    expect(view.queryByText(/doesn't look like an iCloud link/)).toBeNull();
+  });
+
+  it('says iCloud could not be reached when the request never gets an answer', async () => {
+    editorFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const view = renderVideoBridge(vi.fn());
+    fireEvent.click(view.getByText('Save to library'));
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+
+    expect(view.getByText(/Couldn't reach iCloud/)).toBeTruthy();
+  });
 });

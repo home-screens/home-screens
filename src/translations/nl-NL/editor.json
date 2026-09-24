@@ -2523,6 +2523,7 @@
     "albumTip": "Tip: gedeelde albums kunnen ook live worden getoond, zonder downloaden. Kies 'Gedeeld iCloud-album' als fotobron in de instellingen van een diavoorstelling.",
     "errors": {
       "invalid": "Dit lijkt geen iCloud-link te zijn. Kopieer de link opnieuw en probeer het nog eens.",
+      "unreachable": "iCloud is nu niet bereikbaar. Controleer de internetverbinding en probeer het nog eens.",
       "expired": "Deze link werkt niet meer. iCloud-fotolinks stoppen na ongeveer een maand; vraag een nieuwe link en probeer het opnieuw.",
       "busy": "Er loopt al een import. Wacht even tot die klaar is.",
       "tooMany": "Deze link bevat te veel foto's om in één keer op te slaan. Probeer een kleiner album of een kleinere link.",

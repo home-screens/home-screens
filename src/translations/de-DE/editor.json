@@ -2523,6 +2523,7 @@
     "albumTip": "Tipp: Geteilte Alben können auch live abgespielt werden, ohne Download. Wähle in den Einstellungen einer Diashow „Geteiltes iCloud-Album“ als Fotoquelle.",
     "errors": {
       "invalid": "Das sieht nicht wie ein iCloud-Link aus. Kopiere den Link erneut und versuche es noch einmal.",
+      "unreachable": "iCloud ist gerade nicht erreichbar. Prüfe die Internetverbindung und versuche es noch einmal.",
       "expired": "Dieser Link funktioniert nicht mehr. iCloud-Fotolinks laufen nach etwa einem Monat ab. Bitte um einen neuen Link und versuche es erneut.",
       "busy": "Es läuft bereits ein Import. Warte kurz, bis er fertig ist.",
       "tooMany": "Dieser Link enthält zu viele Fotos, um alle auf einmal zu speichern. Versuche es mit einem kleineren Album oder Link.",

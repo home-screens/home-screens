@@ -5,7 +5,7 @@ import { useLibraryImportJob, type LibraryImportJobStatus } from './useLibraryIm
 export type ICloudImportJobStatus = LibraryImportJobStatus;
 
 /** Maps to the `icloudImport.errors.*` translation keys. */
-export type ICloudImportErrorKey = 'invalid' | 'expired' | 'busy' | 'tooMany' | 'lost';
+export type ICloudImportErrorKey = 'invalid' | 'expired' | 'busy' | 'tooMany' | 'lost' | 'unreachable';
 
 /**
  * Start-and-poll client for /api/icloud/import, shared by every surface that
@@ -18,12 +18,17 @@ export type ICloudImportErrorKey = 'invalid' | 'expired' | 'busy' | 'tooMany' | 
 export function useICloudImport(onFinished?: (job: ICloudImportJobStatus) => void) {
   const { start: startJob, reset, running, finished, job, errorCode } = useLibraryImportJob('/api/icloud/import', onFinished);
 
+  // Only a code the server actually sent about the link says the link is
+  // wrong. Anything else (a 500 because Apple timed out, a dropped request)
+  // means iCloud couldn't be reached, and blaming the link sends people off
+  // re-copying a link that was fine.
   const errorKey: ICloudImportErrorKey | null = errorCode === null ? null
-    : errorCode === 'link-expired' ? 'expired'
-      : errorCode === 'busy' ? 'busy'
-        : errorCode === 'too-many-items' ? 'tooMany'
-          : errorCode === 'lost' ? 'lost'
-            : 'invalid';
+    : errorCode === 'invalid-link' || errorCode === 'invalid-folder' ? 'invalid'
+      : errorCode === 'link-expired' ? 'expired'
+        : errorCode === 'busy' ? 'busy'
+          : errorCode === 'too-many-items' ? 'tooMany'
+            : errorCode === 'lost' ? 'lost'
+              : 'unreachable';
 
   const start = async (url: string, folder: string) => {
     if (!url.trim() || running) return;

@@ -2523,6 +2523,7 @@
     "albumTip": "Tip: Delte album kan også vises live uden at blive hentet. Vælg 'Delt iCloud-album' som fotokilde i et diasshows indstillinger.",
     "errors": {
       "invalid": "Det ligner ikke et iCloud-link. Kopiér linket igen, og prøv en gang til.",
+      "unreachable": "Kunne ikke få forbindelse til iCloud lige nu. Tjek internetforbindelsen, og prøv igen.",
       "expired": "Dette link virker ikke længere. iCloud-fotolinks holder op med at virke efter cirka en måned; bed om et nyt link, og prøv igen.",
       "busy": "En anden import kører allerede. Vent, til den er færdig.",
       "tooMany": "Dette link har for mange billeder til at gemme på én gang. Prøv et mindre album eller link.",

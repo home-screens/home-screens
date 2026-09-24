@@ -2523,6 +2523,7 @@
     "albumTip": "Tip: Shared Albums can also play live without downloading. Pick \"iCloud Shared Album\" as the photo source in a slideshow's settings.",
     "errors": {
       "invalid": "That doesn't look like an iCloud link. Copy the link again and try once more.",
+      "unreachable": "Couldn't reach iCloud right now. Check the internet connection and try again.",
       "expired": "This link isn't working anymore. iCloud photo links stop working after about a month, so ask for a fresh one and try again.",
       "busy": "Another import is already running. Give it a moment to finish.",
       "tooMany": "This link has too many photos to save all at once. Try a smaller album or link.",
