@@ -9720,6 +9720,15 @@
             "text": "ChoreDefinition[]"
           },
           "description": "Chore definitions (see ChoreDefinition)"
+        },
+        {
+          "name": "settings",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "ChoreSettings"
+          },
+          "description": "Household chore settings (see ChoreSettings). Missing = the defaults"
         }
       ]
     },
@@ -9862,6 +9871,15 @@
             "text": "Record<string, number[]>"
           },
           "description": "With `rotation` set to `schedule`: each family group ID to the days (0 to 6) everyone in it has the chore"
+        },
+        {
+          "name": "bonus",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "ChoreBonus"
+          },
+          "description": "Set on a bonus chore: an extra that only earns tickets and never counts against anyone"
         }
       ]
     },
@@ -9878,6 +9896,24 @@
             "text": "ChoreCompletion[]"
           },
           "description": "Chores done, one entry per person per day (see ChoreCompletion). Entries older than 90 days are removed"
+        },
+        {
+          "name": "grabs",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "ChoreGrab[]"
+          },
+          "description": "Up-for-grabs chores someone is holding (see ChoreGrab). Lapsed ones are ignored when read and dropped after 90 days"
+        },
+        {
+          "name": "bonusResets",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "Record<string, string>"
+          },
+          "description": "When a grown-up last put each \"when I put it back\" bonus chore back, by chore ID, as an ISO timestamp"
         }
       ]
     },
@@ -9912,6 +9948,36 @@
             "text": "string"
           },
           "description": "The day it was done, as `YYYY-MM-DD`"
+        },
+        {
+          "name": "status",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"skipped\"",
+            "values": [
+              "skipped"
+            ]
+          },
+          "description": "`skipped` marks a chore a grown-up set to \"not today\" for this person: it pays nothing and leaves every count. Omitted = done."
+        },
+        {
+          "name": "at",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "When it was marked, as an ISO timestamp. Missing on entries saved before it was recorded."
+        },
+        {
+          "name": "endedGrab",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "The day of the person's own grab this finished, as `YYYY-MM-DD`. Un-ticking hands that grab back, with its own date, so a tick and an un-tick never restart how long it lasts; un-ticking a tick nobody had grabbed for (a grown-up's slip) hands nothing back."
         }
       ]
     }
@@ -10199,6 +10265,42 @@
         },
         {
           "method": "PUT",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/chores/grab",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "open"
+        }
+      ]
+    },
+    {
+      "path": "/api/chores/put-back",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/chores/settings",
+      "methods": [
+        {
+          "method": "PUT",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/chores/skip",
+      "methods": [
+        {
+          "method": "POST",
           "access": "session"
         }
       ]

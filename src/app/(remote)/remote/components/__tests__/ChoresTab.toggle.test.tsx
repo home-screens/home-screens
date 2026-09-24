@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { DEFAULT_CHORE_SETTINGS } from '@/lib/chore-bonus';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
@@ -69,10 +70,10 @@ function wrapper({ children }: { children: ReactNode }) {
 
 /** `isAdmin` is what /remote passes and /chores does not. */
 async function openTab(isAdmin: boolean) {
-  render(<ChoresTab config={config} choreData={{ chores: [chore], revision: 'r1' }} isAdmin={isAdmin} />, { wrapper });
+  render(<ChoresTab config={config} choreData={{ chores: [chore], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' }} isAdmin={isAdmin} />, { wrapper });
   // The mounted fetch mirrors the seeded completions into the row's state.
   await act(async () => {});
-  return screen.getByRole('button', { name: /Load the dishwasher/ });
+  return screen.getByRole('button', { name: /: Load the dishwasher$/ });
 }
 
 beforeEach(() => {

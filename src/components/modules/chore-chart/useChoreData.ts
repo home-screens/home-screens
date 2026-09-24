@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
-import type { ChoreDefinition, ChoreCompletion, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
+import type { ChoreDefinition, ChoreCompletion, ChoreGrab, ChoreSettings, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
+import { bonusTicketsEarned, countsSinceReset, readChoreSettings, resetViewDay, resolveBonusFor, type BonusItem, type BonusMarks, type BonusRefusal } from '@/lib/chore-bonus';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useFetchData } from '@/hooks/useFetchData';
 import type { FetchError } from '@/lib/fetch-error';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
-import { choresUrl, choresDataUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { choresUrl, choresDataUrl, choreGrabUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { RewardRedemption, RewardDefinition } from '@/lib/reward-data';
 import {
   type ResolvedAssignment,
@@ -16,7 +17,7 @@ import {
   type WeekDayData,
   todayStr,
   parseISO,
-  completionKey,
+  buildCompletionSet,
   getWeekDatesFor,
   resolveAssignmentsFor,
   computeWeeklyPoints,
@@ -24,7 +25,7 @@ import {
   countWeekAssignments,
   isDayFullyComplete,
 } from './types';
-import { choresAssignedTo } from '@/lib/chore-assignments';
+import { choresOwedBy } from '@/lib/chore-assignments';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
 import { planChoreToggle, readOverspentNotice, type OverspentNotice } from './chore-toggle';
@@ -46,10 +47,15 @@ export interface ChoreDataConfig {
 
 interface ChoresResponse {
   completions: ChoreCompletion[];
+  grabs?: ChoreGrab[];
+  bonusResets?: Record<string, string>;
+  /** The hub's calendar day. */
+  today?: string;
 }
 
 interface ChoreDataResponse {
   chores: ChoreDefinition[];
+  settings?: unknown;
 }
 
 interface RewardsResponse {
@@ -79,7 +85,19 @@ interface ChoreDataState {
   rewardsError: FetchError | null;
   /** Set only while a source has no data at all; a failed refresh of good data is not an error here. */
   error: FetchError | null;
-  toggleComplete: (choreId: string, memberId: string) => Promise<void>;
+  /** Resolves with whether the hub took it, and why not when it refused (a bonus chore someone else has). */
+  toggleComplete: (choreId: string, memberId: string) => Promise<ChoreWriteOutcome>;
+  /** Today's bonus chores, each with who can do it and where it stands. They never count toward anything. */
+  todayBonus: BonusItem[];
+  /** The hub's calendar day (the screen's own until the hub answers), as `YYYY-MM-DD`. */
+  today: string;
+  /** Whether `today` is the hub's yet. A date header waits for it rather than naming the screen's own day first. */
+  todayKnown: boolean;
+  /** The lists bonus chores are resolved from, for questions like "is this person at the grab limit?". */
+  bonusMarks: BonusMarks;
+  choreSettings: ChoreSettings;
+  /** Grab an up-for-grabs chore for someone, or let their grab go. */
+  grabChore: (choreId: string, memberId: string, action: 'grab' | 'let-go') => Promise<ChoreWriteOutcome>;
   /** An un-tick that took someone below zero tickets, until it clears itself. */
   overspentNotice: OverspentNotice | null;
   /**
@@ -89,6 +107,12 @@ interface ChoreDataState {
    */
   applyRedemption: (result: RedemptionResult) => void;
 }
+
+/** What a tick or a grab came to. `refusal` and `memberId` come from a 409: who got there first. */
+export type ChoreWriteOutcome =
+  /** `changed` is false when the hub had nothing to do (already done this time round). */
+  | { ok: true; changed?: boolean }
+  | { ok: false; refusal?: BonusRefusal; memberId?: string };
 
 export interface RedemptionResult {
   balances?: Record<string, number>;
@@ -106,6 +130,8 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const [fetchedChoreData, choreDataError] = useFetchData<ChoreDataResponse>(choresDataUrl(), 60_000);
   const [fetchedRewards, rewardsFetchError] = useFetchData<RewardsResponse>(rewardsUrl(), choreChartTtl);
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
+  const [grabs, setGrabs] = useState<ChoreGrab[]>([]);
+  const [bonusResets, setBonusResets] = useState<Record<string, string>>({});
   // Mirror fetchedRewards into local state so toggleComplete can overwrite it
   // from the POST response for instant balance updates on the same device.
   const [rewards, setRewards] = useState<RewardsResponse | null>(null);
@@ -119,9 +145,13 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
 
   const { members, groups, loading: familyLoading, loaded: familyLoaded, error: familyError } = useFamilyData();
   const chores = useMemo(() => fetchedChoreData?.chores ?? [], [fetchedChoreData]);
+  const choreSettings = useMemo(() => readChoreSettings(fetchedChoreData?.settings), [fetchedChoreData]);
 
   useEffect(() => {
-    if (fetchedCompletions) setCompletions(fetchedCompletions.completions ?? []);
+    if (!fetchedCompletions) return;
+    setCompletions(fetchedCompletions.completions ?? []);
+    setGrabs(fetchedCompletions.grabs ?? []);
+    setBonusResets(fetchedCompletions.bonusResets ?? {});
   }, [fetchedCompletions]);
   useEffect(() => {
     if (!fetchedRewards) return;
@@ -144,27 +174,32 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
   const rewardsLoading = !knownRewards && !rewardsFetchError;
   const rewardsError = knownRewards ? null : rewardsFetchError;
 
-  const completionSet = useMemo(() => {
-    const set = new Set<string>();
-    for (const c of completions) {
-      set.add(completionKey(c.choreId, c.memberId, c.date));
-    }
-    return set;
-  }, [completions]);
+  const completionSet = useMemo(() => buildCompletionSet(completions), [completions]);
+  // Today is the hub's calendar day once it has said so, as on the phone: a
+  // display-only Pi on another clock or time zone must not draw, grab or tick
+  // a different day. Its own clock covers the first paint.
+  const today = fetchedCompletions?.today ?? todayStr();
+
+  const bonusMarks = useMemo<BonusMarks>(() => ({ completions, grabs, bonusResets }), [completions, grabs, bonusResets]);
+  const todayBonus = useMemo(
+    // The wall and the card are kid-facing: a put-back chore done on an
+    // earlier day waits for a grown-up out of sight.
+    () => resolveBonusFor(chores, members, today, bonusMarks, groups, choreSettings, today).filter((item) => !item.waiting),
+    [chores, members, bonusMarks, groups, choreSettings, today],
+  );
 
   const todayAssignments = useMemo(
-    () => resolveAssignmentsFor(chores, members, todayStr(), completionSet, groups),
-    [chores, members, completionSet, groups],
+    () => resolveAssignmentsFor(chores, members, today, completionSet, groups),
+    [chores, members, completionSet, groups, today],
   );
 
   // Per-member stats (streaks computed client-side with config context)
   const memberStats = useMemo(() => {
     const stats = new Map<string, MemberStats>();
-    const today = todayStr();
-    const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
+    const weekDates = getWeekDatesFor(parseISO(today), config.weekStartDay);
 
     for (const member of members) {
-      const myAssignments = todayAssignments.filter((a) => a.memberId === member.id);
+      const myAssignments = todayAssignments.filter((a) => a.memberId === member.id && !a.isSkipped);
       const completed = myAssignments.filter((a) => a.isCompleted).length;
       const total = myAssignments.length;
 
@@ -182,7 +217,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         completed,
         percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
         streak,
-        weeklyPoints,
+        weeklyPoints: weeklyPoints + bonusTicketsEarned(chores, member.id, weekDates, completions),
         weeklyPointsTotal,
         rewardBalance: rewards?.balances?.[member.id] ?? 0,
         weekAssigned: countWeekAssignments(chores, member.id, weekDates, groups),
@@ -190,13 +225,12 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     }
 
     return stats;
-  }, [members, groups, chores, todayAssignments, completionSet, config.weekStartDay, rewards]);
+  }, [members, groups, chores, todayAssignments, completionSet, completions, config.weekStartDay, rewards, today]);
 
   // Week data for star chart — aligned to configured week start day
   const weekData = useMemo(() => {
     const days: WeekDayData[] = [];
-    const today = todayStr();
-    const weekDates = getWeekDatesFor(new Date(), config.weekStartDay);
+    const weekDates = getWeekDatesFor(parseISO(today), config.weekStartDay);
 
     for (const date of weekDates) {
       const dayOfWeek = parseISO(date).getDay();
@@ -207,7 +241,9 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       for (const member of members) {
         // A star is earned when ALL assigned chores for that day are completed
         memberStars[member.id] = isDayFullyComplete(chores, member.id, date, completionSet, groups);
-        memberAssigned[member.id] = choresAssignedTo(chores, member.id, date, groups).length > 0;
+        // A day where everything was marked "not today" is no day at all:
+        // neither a star nor a miss.
+        memberAssigned[member.id] = choresOwedBy(chores, member.id, date, completionSet, groups).length > 0;
       }
 
       days.push({
@@ -221,7 +257,7 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     }
 
     return days;
-  }, [members, groups, chores, completionSet, config.weekStartDay, dayNames]);
+  }, [members, groups, chores, completionSet, config.weekStartDay, dayNames, today]);
 
   // Server truth from a write we made ourselves. Primes the shared cache so
   // sibling module instances do not re-read stale data, and opens the override
@@ -243,15 +279,23 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     });
   }, [publishRewards]);
 
+  // A refused write answers with the lists as they stand; without them (an
+  // older hub, a broken body) the screen goes back to what it had.
+  const applyMarks = useCallback((body: Partial<ChoresResponse> | null, completionsBefore: ChoreCompletion[], grabsBefore: ChoreGrab[]) => {
+    setCompletions(body?.completions ?? completionsBefore);
+    setGrabs(body?.grabs ?? grabsBefore);
+    if (body?.bonusResets) setBonusResets(body.bonusResets);
+  }, []);
+
   const toggleComplete = useCallback(async (choreId: string, memberId: string) => {
-    const today = todayStr();
     // One plan drives both the optimistic update and the direction the server
     // is told, so the screen and the request can never disagree. It is worked
     // out here rather than inside a state updater: React may run an updater
     // during the next render instead of at the call, and the direction has to
     // be known now, for the request going out on this line.
     const snapshot = completions;
-    const plan = planChoreToggle(snapshot, choreId, memberId, today);
+    const chore = chores.find((c) => c.id === choreId);
+    const plan = planChoreToggle(snapshot, choreId, memberId, today, (c) => !chore || countsSinceReset(chore, c, bonusResets, resetViewDay(today, today)));
 
     setCompletions(plan.completions);
 
@@ -262,9 +306,17 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reqBody),
       });
+      if (res.status === 409) {
+        // Someone else has this bonus chore: the answer carries the lists as
+        // they stand, so the wall shows who has it at once, not at the next poll.
+        const refused = await res.json().catch(() => null);
+        applyMarks(refused, snapshot, grabs);
+        return { ok: false, refusal: refused?.reason, memberId: refused?.memberId };
+      }
       if (!res.ok) throw new Error('Failed to toggle');
       const data: ChoreToggleResponse = await res.json();
       setCompletions(data.completions ?? []);
+      if (data.grabs) setGrabs(data.grabs);
       // Update rewards from the POST response so ticket balances reflect the
       // new credit/debit instantly — without waiting for the next rewards poll.
       // Also prime the shared cache so sibling module instances (e.g. a
@@ -276,10 +328,39 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
       // screen says so rather than leaving a kid to find a negative balance
       // later with nothing to explain it.
       setOverspentNotice(readOverspentNotice(data.overspent, members));
+      return { ok: true, changed: data.changed !== false };
     } catch {
       setCompletions(snapshot);
+      return { ok: false };
     }
-  }, [publishRewards, members, completions]);
+  }, [publishRewards, members, completions, chores, bonusResets, grabs, applyMarks, today]);
+
+  const grabChore = useCallback(async (choreId: string, memberId: string, action: 'grab' | 'let-go'): Promise<ChoreWriteOutcome> => {
+    const snapshot = grabs;
+    setGrabs(action === 'grab'
+      ? [...snapshot.filter((g) => g.choreId !== choreId), { choreId, memberId, date: today }]
+      : snapshot.filter((g) => !(g.choreId === choreId && g.memberId === memberId)));
+    try {
+      const res = await displayFetch(choreGrabUrl(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choreId, memberId, action }),
+      });
+      if (res.status === 409) {
+        const refused = await res.json().catch(() => null);
+        applyMarks(refused, completions, snapshot);
+        return { ok: false, refusal: refused?.reason, memberId: refused?.memberId };
+      }
+      if (!res.ok) throw new Error('Failed to grab');
+      const data: ChoreToggleResponse = await res.json();
+      setCompletions(data.completions ?? []);
+      setGrabs(data.grabs ?? []);
+      return { ok: true };
+    } catch {
+      setGrabs(snapshot);
+      return { ok: false };
+    }
+  }, [grabs, completions, applyMarks, today]);
 
   // The notice is a passing message, not a state of the world: it clears
   // itself so a wall display is not left holding it for the rest of the day.
@@ -312,6 +393,12 @@ export function useChoreData(config: ChoreDataConfig): ChoreDataState {
     rewardsError,
     error,
     toggleComplete,
+    todayBonus,
+    today,
+    todayKnown: typeof fetchedCompletions?.today === 'string',
+    bonusMarks,
+    choreSettings,
+    grabChore,
     overspentNotice,
     applyRedemption,
   };

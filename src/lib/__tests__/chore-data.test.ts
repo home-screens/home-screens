@@ -30,7 +30,7 @@ afterEach(async () => {
 describe('readChoreData', () => {
   it('returns empty data when file does not exist', async () => {
     const data = await readChoreData();
-    expect(data).toEqual({ chores: [] });
+    expect(data).toEqual({ chores: [], settings: { grabLimit: 1, grabHold: 'day' } });
   });
 
   it('reads existing chore data', async () => {

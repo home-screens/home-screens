@@ -861,7 +861,7 @@ for (const [locale, tab, sentence] of [
 
     await page.goto('/remote');
     await page.getByRole('button', { name: tab, exact: true }).click();
-    await page.getByRole('button', { name: /Feed the dog/ }).click();
+    await page.getByRole('button', { name: /: Feed the dog$/ }).click();
     await expect(page.getByText(sentence, { exact: true })).toBeVisible();
   });
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import ChoreIcon, { MEMBER_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
@@ -34,9 +34,30 @@ function ConfirmRemove({ title, body, confirmLabel, variant, busy, onCancel, onC
   const t = useTranslate('core');
   const ref = useFocusTrap<HTMLDivElement>();
   const id = useId();
+  // Escape answers this question wherever focus is (a click on its text
+  // leaves none inside), and only this question: the window it sits in, and
+  // any form open there, stay.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (!busy) onCancel();
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [busy, onCancel]);
   return (
-    <div className={`fixed inset-0 z-[160] flex justify-center bg-black/60 ${variant === 'mobile' ? 'items-end' : 'items-center p-5'}`} role="alertdialog" aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={`${id}-body`}>
-      <div ref={ref} className={`w-full border border-hs-border bg-hs-panel p-5 shadow-xl ${variant === 'mobile' ? 'max-w-[640px] rounded-t-2xl pb-[max(20px,env(safe-area-inset-bottom))]' : 'max-w-sm rounded-2xl'}`} onKeyDown={(event) => { if (event.key === 'Escape' && !busy) onCancel(); }}>
+    <div
+      className={`fixed inset-0 z-[160] flex justify-center bg-black/60 ${variant === 'mobile' ? 'items-end' : 'items-center p-5'}`}
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby={`${id}-title`}
+      aria-describedby={`${id}-body`}
+      // A click on the dimmed backdrop cancels, as on every other question.
+      onClick={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}
+    >
+      <div ref={ref} tabIndex={-1} className={`w-full border border-hs-border bg-hs-panel p-5 shadow-xl outline-none ${variant === 'mobile' ? 'max-w-[640px] rounded-t-2xl pb-[max(20px,env(safe-area-inset-bottom))]' : 'max-w-sm rounded-2xl'}`}>
         <h3 id={`${id}-title`} className="font-semibold text-hs-text-primary">{title}</h3>
         <p id={`${id}-body`} className="mt-3 text-sm leading-relaxed text-hs-text-muted">{body}</p>
         <div className={`mt-5 flex gap-2 ${variant === 'mobile' ? 'flex-col' : 'justify-end'}`}>
@@ -61,12 +82,20 @@ function MemberStack({ members, extra }: { members: readonly FamilyMember[]; ext
 }
 
 /** One revision-checked roster editor, used by the editor and the phone. */
-export default function FamilyManager({ onChanged, variant = 'desktop', chores, timetables }: { onChanged?: () => void; variant?: Variant; chores?: readonly ChoreDefinition[]; timetables?: readonly Timetable[] } = {}) {
+export default function FamilyManager({ onChanged, onEditingChange, variant = 'desktop', chores, timetables }: {
+  onChanged?: () => void;
+  /** True while a person or group form or a remove question is open, so a window holding this can stay open. */
+  onEditingChange?: (editing: boolean) => void;
+  variant?: Variant;
+  chores?: readonly ChoreDefinition[];
+  timetables?: readonly Timetable[];
+} = {}) {
   const t = useTranslate('core');
   const { members, groups, revision, loading, error, refresh } = useFamilyData();
   const [choreData] = useFetchData<{ chores: ChoreDefinition[] }>(chores ? '' : choresDataUrl(), 60_000);
   const definitions = chores ?? choreData?.chores;
-  const choreCounts = useMemo(() => definitions && new Map(members.map((member) => [member.id, definitions.filter((chore) => choreAssigneeIds(chore, groups).includes(member.id) || Object.hasOwn(chore.schedule ?? {}, member.id)).length])), [members, groups, definitions]);
+  // Chores each person owes; a bonus chore is only open to them, so it is not counted.
+  const choreCounts = useMemo(() => definitions && new Map(members.map((member) => [member.id, definitions.filter((chore) => !chore.bonus && (choreAssigneeIds(chore, groups).includes(member.id) || Object.hasOwn(chore.schedule ?? {}, member.id))).length])), [members, groups, definitions]);
   const [timetableData] = useFetchData<{ data: TimetableData }>(timetables ? '' : timetablesUrl(), 60_000);
   const savedTimetables = timetables ?? timetableData?.data?.timetables;
   const hasTimetable = useMemo(() => savedTimetables && new Set(savedTimetables.map((timetable) => timetable.memberId)), [savedTimetables]);
@@ -75,6 +104,8 @@ export default function FamilyManager({ onChanged, variant = 'desktop', chores, 
   const [groupDraft, setGroupDraft] = useState<GroupDraft | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<{ group: FamilyGroup; baseline: FamilySnapshot; choreCount: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  const editing = draft !== null || groupDraft !== null || deleting !== null || deletingGroup !== null;
+  useEffect(() => { onEditingChange?.(editing); }, [editing, onEditingChange]);
   const [notice, setNotice] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const formId = useId();
@@ -284,7 +315,7 @@ export default function FamilyManager({ onChanged, variant = 'desktop', chores, 
       )}
       {deleting && <ConfirmRemove
         title={t('family.removeTitle', { name: deleting.member.name })}
-        body={[deleting.choreCount !== undefined && t('family.removeChoreCount', { name: deleting.member.name, count: deleting.choreCount }), deleting.hasTimetable && t('family.removeTimetable', { name: deleting.member.name }), t('family.removeDescription', { name: deleting.member.name })].filter(Boolean).join(' ')}
+        body={[!!deleting.choreCount && t('family.removeChoreCount', { name: deleting.member.name, count: deleting.choreCount }), deleting.hasTimetable && t('family.removeTimetable', { name: deleting.member.name }), t('family.removeDescription', { name: deleting.member.name })].filter(Boolean).join(' ')}
         confirmLabel={t('family.remove')}
         variant={variant} busy={busy} onCancel={() => setDeleting(null)}
         onConfirm={() => void save(deleting.baseline, deleting.baseline.members.filter((member) => member.id !== deleting.member.id), [deleting.member.id])} />}

@@ -22,7 +22,7 @@ export interface ChoreRow {
   timeOfDay: ChoreTimeOfDay;
   points: number;
   /** `viaGroup` marks the people who have the chore through a family group; they sit first, inside the group pill. */
-  assignees: { memberId: string; isCompleted: boolean; viaGroup?: boolean }[];
+  assignees: { memberId: string; isCompleted: boolean; isSkipped?: boolean; viaGroup?: boolean }[];
   /** The first family group the chore goes to, by name. Set only when someone on the row has it through a group. */
   groupLabel?: string;
   /** How many further groups the chore goes to; the pill shows them as "+1" rather than more names. */
@@ -49,7 +49,7 @@ export function buildChoreRows(
   for (const a of assignments) {
     const existing = choreMap.get(a.chore.id);
     if (existing) {
-      existing.assignees.push({ memberId: a.memberId, isCompleted: a.isCompleted, viaGroup: viaGroup.get(a.chore.id)?.has(a.memberId) });
+      existing.assignees.push({ memberId: a.memberId, isCompleted: a.isCompleted, isSkipped: a.isSkipped, viaGroup: viaGroup.get(a.chore.id)?.has(a.memberId) });
     } else {
       const named = a.groupIds.flatMap((id) => familyGroups.find((group) => group.id === id) ?? []);
       const inGroup = new Set(named.flatMap((group) => group.memberIds));
@@ -60,7 +60,7 @@ export function buildChoreRows(
         choreEmoji: a.chore.emoji,
         timeOfDay: a.chore.timeOfDay,
         points: a.chore.points,
-        assignees: [{ memberId: a.memberId, isCompleted: a.isCompleted, viaGroup: inGroup.has(a.memberId) }],
+        assignees: [{ memberId: a.memberId, isCompleted: a.isCompleted, isSkipped: a.isSkipped, viaGroup: inGroup.has(a.memberId) }],
         ...(named.length > 0 ? { groupLabel: named[0].name, groupExtra: named.length - 1 } : {}),
       });
     }

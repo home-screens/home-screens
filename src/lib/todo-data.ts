@@ -3,7 +3,7 @@ import path from 'path';
 import { createJsonStore } from './json-store';
 import { withDataTransaction } from './data-transaction';
 import { readConfig, updateConfigAtomic } from './config';
-import { readConfigCached } from './config-cache';
+import { householdTimezone } from './household-day';
 import { toTZWallTime } from './timezone';
 import { isValidISODate } from './api-utils';
 import { mapConfigModules } from './migrations/module-walk';
@@ -74,21 +74,6 @@ async function readTodoDataUnlocked(): Promise<TodoData> {
     }
   }
   return updateTodoData((data) => data);
-}
-
-/**
- * The household's timezone from Settings, the fallback for a list whose
- * repeat carries no zone of its own. Read through the 1.5s config cache:
- * every display polls this store every 5s and parsing the whole config for
- * one field on each read is not worth it. Unset or unreadable means the
- * hub's own clock.
- */
-async function householdTimezone(): Promise<string | undefined> {
-  try {
-    return (await readConfigCached()).settings?.timezone || undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 /**

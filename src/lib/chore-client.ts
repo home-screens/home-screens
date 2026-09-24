@@ -1,4 +1,5 @@
-import type { ChoreDefinition } from '@/types/config';
+import type { ChoreDefinition, ChoreSettings } from '@/types/config';
+import { readChoreSettings } from './chore-bonus';
 
 /**
  * What `GET /api/chores/data` (and the server-rendered phone pages) hand out:
@@ -8,7 +9,11 @@ import type { ChoreDefinition } from '@/types/config';
  */
 export interface ChoreSnapshot {
   chores: ChoreDefinition[];
+  /** Household chore settings, saved on their own (`PUT /api/chores/settings`). */
+  settings: ChoreSettings;
   revision: string;
+  /** The household's day when the page was drawn on the hub, so its first paint shows the same day as the hub. */
+  today?: string;
 }
 
 /**
@@ -21,7 +26,7 @@ export function asChoreSnapshot(json: unknown): ChoreSnapshot | null {
   const d = json as Record<string, unknown> | null;
   if (!d || typeof d !== 'object') return null;
   if (!Array.isArray(d.chores) || typeof d.revision !== 'string' || !d.revision) return null;
-  return { chores: d.chores as ChoreDefinition[], revision: d.revision };
+  return { chores: d.chores as ChoreDefinition[], settings: readChoreSettings(d.settings), revision: d.revision };
 }
 
 /** `editorFetch` on the editor and phone; the wall never writes chores. */

@@ -192,13 +192,13 @@ describe('GET /api/chores', () => {
     expect(json.completions.some((c: { date: string }) => c.date === stale)).toBe(false);
   });
 
-  it('returns an empty array when no completions exist', async () => {
+  it('returns empty lists, the hub day and the chore settings when no completions exist', async () => {
     // fakeFs is empty — readFile throws ENOENT, route returns { completions: [] }
     const res = await GET();
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json).toEqual({ completions: [] });
+    expect(json).toEqual({ completions: [], grabs: [], bonusResets: {}, today: daysAgo(0), settings: { grabLimit: 1, grabHold: 'day' } });
   });
 
   it('writes back to disk when purgeOld evicts at least one completion', async () => {

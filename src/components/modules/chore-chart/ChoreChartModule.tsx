@@ -69,10 +69,12 @@ export default function ChoreChartModule({ config, style, timezone }: ChoreChart
     if (view === 'today') {
       // One row per chore, however many people share it: the view draws the
       // assignees as a run of dots on that single row.
+      // Bonus chores follow under a section of their own.
       const times = new Set(assignments.map((a) => a.chore.timeOfDay));
+      const bonus = data.todayBonus.length;
       return {
-        rows: new Set(assignments.map((a) => a.chore.id)).size,
-        sections: config.showTimeOfDay === false ? 0 : times.size,
+        rows: new Set(assignments.map((a) => a.chore.id)).size + bonus,
+        sections: (config.showTimeOfDay === false ? 0 : times.size) + (bonus > 0 ? 1 : 0),
       };
     }
     if (view === 'star-chart') {

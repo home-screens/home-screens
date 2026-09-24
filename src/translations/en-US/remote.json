@@ -122,6 +122,55 @@
       "ariaLabel": "Which day to show",
       "yesterday": "Yesterday",
       "today": "Today"
+    },
+    "notToday": {
+      "chip": "Not today",
+      "ariaLabel": "{chore}, not today"
+    },
+    "bonus": {
+      "sectionHint": "Extra tickets. Grab a job to keep it, or do one everyone can.",
+      "grab": "Grab it",
+      "grabAriaLabel": "Grab {chore} for {tickets}",
+      "letGo": "Let it go",
+      "onIt": "{name}'s on it",
+      "didIt": "{name} did it",
+      "youGrabbedIt": "You grabbed it. Tick it when you're done.",
+      "youGotIt": "You got it! +{n}",
+      "finishYoursFirst": "Finish yours first",
+      "refused": {
+        "grabbed": "{name} is already on that one.",
+        "taken": "{name} already did that one.",
+        "limit": "{name} needs to finish or let go of their other bonus chore first.",
+        "notYours": "That bonus chore isn't for {name}.",
+        "notToday": "That bonus chore isn't on today.",
+        "limitMany": "{name} needs to finish or let go of another bonus chore first."
+      },
+      "limitLine": "Finish your grab first, or tick this if it's done.",
+      "youDidItOn": "You did it {day}",
+      "didItOn": "{name} did it {day}",
+      "limitLineMany": "Finish one of your grabs first, or tick this if it's done.",
+      "yours": "Yours",
+      "didItToday": "{name} did it today",
+      "youDidItToday": "You did it today",
+      "youreOnIt": "You're on it"
+    },
+    "dayMenu": {
+      "didIt": "{name} did it",
+      "notDone": "{name} didn't do it after all",
+      "notTodayFor": "Not today for {name}",
+      "notTodayHint": "No tickets, and it won't count against {name}",
+      "notTodayEveryone": "Not today for everyone",
+      "notTodayEveryoneHint": "Everyone who hasn't done it yet",
+      "undoNotToday": "It's on today for {name} after all",
+      "letGoOf": "Let go of {name}'s grab",
+      "putBack": "Put it back",
+      "putBackHint": "Open it up for grabs again",
+      "open": "More for {chore}",
+      "onTodayEveryone": "It's on today for everyone after all"
+    },
+    "putBackConfirm": {
+      "title": "Put it back?",
+      "description": "{chore} opens up again. Tickets already earned for it stay earned."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Rotation",
       "addSubmit": "Add Chore",
       "saveSubmit": "Save Chore",
-      "deleteButton": "Delete Chore"
+      "deleteButton": "Delete Chore",
+      "grabRulesNote": "How many one person can grab, and when a grab ends, are set for the whole household, under Bonus in Manage."
     },
     "choreDelete": {
       "title": "Delete \"{name}\"?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Choose a Meal",
       "emptyLibrary": "No saved meals yet. Type one above for tonight, or save the meals you cook often.",
-        "typePlaceholder": "Type a meal, like Tacos",
-        "typeLabel": "Type a meal for this day",
-        "typeAdd": "Add",
+      "typePlaceholder": "Type a meal, like Tacos",
+      "typeLabel": "Type a meal for this day",
+      "typeAdd": "Add",
       "prepTimeShort": "{minutes}m",
       "removeMealButton": "Remove Meal",
       "subtitle": "{slot} · {day}"
@@ -752,5 +802,13 @@
       "body": "Photos show up here once a photo slideshow is on one of your screens."
     },
     "howTo": "Add one from a computer: open {url} and put it on a screen."
+  },
+  "choreSettings": {
+    "title": "Chore settings",
+    "grabbingHeading": "Grabbing bonus chores",
+    "letGoHint": "A grown-up can always let go of someone's grab: tap the ••• next to the chore on the Today tab.",
+    "save": "Save",
+    "saveFailed": "That didn't save. Try again.",
+    "changeAriaLabel": "Change how bonus chores are grabbed"
   }
 }

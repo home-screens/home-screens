@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { ChevronRight, Plus } from 'lucide-react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
-import type { ChoreDefinition } from '@/types/config';
+import type { ChoreDefinition, ChoreSettings } from '@/types/config';
 import {
   choreAssigneeIds,
   addChoreToList,
@@ -13,7 +13,7 @@ import {
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
-import { buildChoreAssigneeLine, buildChoreSummaryLine, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
+import { buildChoreAssigneeLine, buildChoreSummaryLine, getChoreRotationSummaryKey, grabRulesSummary } from '@/components/modules/chore-chart/chore-form-presentation';
 import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 import FamilyManager from '@/components/family/FamilyManager';
 import ChoreFormOverlay from './ChoreFormOverlay';
@@ -27,6 +27,10 @@ interface ChoresManageViewProps {
   chores: ChoreDefinition[];
   onFamilyChanged: () => void;
   onChoresChange: (chores: ChoreDefinition[]) => void;
+  /** The household's grab rules, shown above the bonus chores. */
+  choreSettings: ChoreSettings;
+  /** Opens the household chore settings (how bonus chores are grabbed). */
+  onOpenSettings: () => void;
 }
 
 export default function ChoresManageView({
@@ -36,6 +40,8 @@ export default function ChoresManageView({
   chores,
   onFamilyChanged,
   onChoresChange,
+  choreSettings,
+  onOpenSettings,
 }: ChoresManageViewProps) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
@@ -146,12 +152,46 @@ export default function ChoresManageView({
             </div>
           )}
 
-          {chores.map((chore) => {
+          {/* Bonus chores follow the regular ones under their own heading; the sort is stable. */}
+          {[...chores].sort((a, b) => Number(!!a.bonus) - Number(!!b.bonus)).map((chore, i, listed) => {
             const rotationKey = getChoreRotationSummaryKey(chore, groups);
             const rotationLabel = rotationKey ? tModules(rotationKey) : null;
             return (
+              <Fragment key={chore.id}>
+              {chore.bonus && !listed[i - 1]?.bonus && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f59e0b', margin: '16px 0 8px' }}>
+                    <span aria-hidden>✋</span>{tModules('chore-chart.bonus.heading')}
+                  </div>
+                  {/* The household's grab rules, where the chores they govern are,
+                      saying what they are now. Shown with any bonus chore, so the
+                      form's note always has a line to point to. */}
+                  <div data-testid="grab-rules" style={{
+                    display: 'flex', alignItems: 'center', gap: 10, margin: '0 0 10px', padding: '10px 12px',
+                    borderRadius: 12, border: '1px solid var(--hs-border)', background: 'var(--hs-bg-card)',
+                  }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.35, color: 'var(--hs-text-muted)' }}>
+                      <strong style={{ color: 'var(--hs-text-body)', fontWeight: 600 }}>{grabRulesSummary(choreSettings, tModules).limit}</strong>
+                      {/* No break before the dot, so it never starts a line. */}
+                      {'\u00a0· '}{grabRulesSummary(choreSettings, tModules).hold}
+                    </span>
+                    <button
+                      type="button"
+                      className="press-scale"
+                      data-testid="open-chore-settings"
+                      onClick={onOpenSettings}
+                      aria-label={t('choreSettings.changeAriaLabel')}
+                      style={{
+                        flexShrink: 0, minHeight: 44, padding: '0 16px', borderRadius: 999, border: '1px solid var(--hs-border-strong)',
+                        background: 'var(--hs-bg-hover)', color: 'var(--hs-text-body)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                      }}
+                    >
+                      {tModules('chore-chart.settings.change')}
+                    </button>
+                  </div>
+                </>
+              )}
               <button
-                key={chore.id}
                 className="press-scale"
                 aria-label={t('choresManage.chores.editAriaLabel', { name: chore.name })}
                 onClick={() => setOverlay({ type: 'chore-form', chore })}
@@ -180,7 +220,8 @@ export default function ChoresManageView({
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    background: 'var(--hs-bg-hover)',
+                    background: chore.bonus ? 'color-mix(in srgb, #f59e0b 14%, transparent)' : 'var(--hs-bg-hover)',
+                    border: chore.bonus ? '1px dashed color-mix(in srgb, #f59e0b 60%, transparent)' : 'none',
                   }}
                 >
                   <ChoreIcon
@@ -207,6 +248,7 @@ export default function ChoresManageView({
                 </div>
                 <ChevronRight size={20} color="var(--hs-text-faint)" style={{ flexShrink: 0 }} />
               </button>
+              </Fragment>
             );
           })}
 

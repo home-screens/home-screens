@@ -52,7 +52,31 @@ Kids check off chores in three places: on the wall if it is a touchscreen, on th
 
 Un-checking takes a press-and-hold on the kids' page, so a stray tap cannot undo a sibling's work. If a chore was done but never checked off, a grown-up can fix it later: the **Today** tab on the family remote has a strip of past days above the list. Tap a day, tick the chore, and the tickets are paid out as if it had been checked off at the time. Un-ticking an old one takes the tickets back, and the remote warns you if that would push someone's balance below zero because they already spent them.
 
-## 5. Rewards and tickets
+## 5. Bonus chores and "up for grabs"
+
+Some jobs are extras rather than duties: washing the car, sweeping the porch, reading for twenty minutes. Make them **bonus chores**. When you add a chore, switch **Kind of chore** from **Regular** to **Bonus**. A bonus chore only earns tickets. It never counts against anyone: it is left out of the day's progress, the stars and the streaks, so nobody falls behind for skipping one.
+
+Choose who gets the tickets:
+
+- **Up for grabs**: one person gets it. A kid taps **Grab it** to keep it for themselves, and everyone else sees whose it is ("Cleo's on it") and cannot take it. They tick it when they are done, or tap **Let it go** (under the chore's name) to put it back up for grabs. A kid who already did the job can simply tick it. Un-ticking it again gives it back to them, not to everyone.
+- **Everyone can**: everyone it is open to can do it once and get the tickets, like a reading bonus.
+
+**Who can do it** works like any chore: pick people or a group. **Comes back** says when a done bonus chore is open again: every day, every week (once someone does it, it is done until next Monday), or only when a grown-up puts it back. A chore marked "when I put it back" shows **Put it back** on its row for grown-ups once it is done, and after its day it leaves the wall and the kids' page until you do. Switching a chore between Regular and Bonus keeps everything else about it, so switching back gets its days, turns and time of day back. Bonus chores follow days of the week, not a date: a one-time chore switched to Bonus gets its date's weekday and "when I put it back", which keeps a one-off job done once someone does it.
+
+On the Full-Screen Chore Chart, bonus chores sit in their own band under the family: two rows at most, or one row on a landscape screen (beside the date when the chart is laid out by person), with grabbed chores first. When there are more, **+N more** opens the rest. Tap **Grab it** and pick who is grabbing it; tap a grabbed chore when it is done. On the family remote they have their own **Bonus** section under each person's list.
+
+Two household settings decide how grabbing works. They are shown in one line under the **Bonus** heading, above the bonus chores, on the family remote's **Chores > Manage** list and in the editor's chore window; tap **Change** there. They are also on **Settings > Family** in the editor:
+
+- **How many can one person grab at once**: one at a time (the default), two, three, or no limit. It stops the fastest kid grabbing everything at breakfast.
+- **When does a grab end?**: at bedtime (the default: if it isn't done that day, anyone can grab it the next time it comes up), or when the chore comes back, so a weekly one stays theirs until Monday. The second suits big jobs that take a weekend. A "when I put it back" chore's grab lasts a week, and always until the next day the chore shows up.
+
+A grown-up can always free someone's grab: tap the **•••** next to the chore on the family remote's **Today** tab. Looking back at an earlier day of the same week, a weekly bonus chore shows the week as it stands ("Dax did it Wednesday", "Ada's on it"); it is changed from today's page, not from that day.
+
+## 6. Not today
+
+Sometimes a chore cannot be done: a kid is home sick, or there is no school so nobody packs a school bag. On the family remote's **Today** tab, tap the **•••** next to the chore (or press and hold it) and choose **Not today** for that person, or **Not today for everyone**. It shows a dashed ring, pays no tickets, and is left out of the day's count, so nobody's stars or streak break over it; a day where everything is "not today" reads as a day off. Tap it again if it turns out to be on after all, or use **It's on today for everyone after all** in the same menu. Kids cannot mark a chore "not today" themselves.
+
+## 7. Rewards and tickets
 
 Under **Chores > Rewards** on the family remote:
 
@@ -61,11 +85,11 @@ Under **Chores > Rewards** on the family remote:
 - **Balances** shows everyone's tickets and lets a grown-up adjust them by hand.
 - **History** lists every reward that has been redeemed.
 
-Tickets are earned automatically as chores are checked off, using each chore's ticket value.
+Tickets are earned automatically as chores are checked off, using each chore's ticket value. Bonus chores pay the same way.
 
 ## What kids can and cannot do
 
-The kids' page and the wall let anyone check off today's chores, look at yesterday, and spend tickets. Adding or changing people, chores or rewards, adjusting balances, and checking off earlier days all live on the family remote, behind the password once you set one. The kids' page stays open even then, so a shared tablet never needs a login. That is worth knowing before you give a guest your WiFi password.
+The kids' page and the wall let anyone check off today's chores, grab and let go of bonus chores, look at yesterday, and spend tickets. Adding or changing people, chores or rewards, adjusting balances, and checking off earlier days all live on the family remote, behind the password once you set one. The kids' page stays open even then, so a shared tablet never needs a login. That is worth knowing before you give a guest your WiFi password.
 
 ## Next steps
 

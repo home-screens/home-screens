@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Vælg mindst én person eller gruppe",
         "selectAtLeastOneDay": "Vælg mindst én dag",
         "familyNotReady": "Din familie indlæses stadig. Prøv igen om lidt."
-      }
+      },
+      "kindLabel": "Slags pligt",
+      "kindRegular": "Almindelig",
+      "kindBonus": "Bonus",
+      "bonusHint": "Bonuspligter giver kun billetter. De tæller aldrig imod nogen.",
+      "comesBackLabel": "Kommer igen",
+      "claimLabel": "Hvem får billetterne",
+      "claimFirstHint": "Én person snupper den og får billetterne.",
+      "claimEachHint": "Alle herunder kan gøre den én gang, hver gang den kommer igen.",
+      "whoCanLabel": "Hvem kan gøre den",
+      "comesBackHint": {
+        "daily": "Den er ledig igen hver dag, den dukker op, også selv om nogen lavede den dagen før.",
+        "weekly": "Når nogen har lavet den, er den klaret indtil næste mandag.",
+        "manual": "Den er klaret, indtil en voksen trykker på »Sæt den tilbage« under Pligter på telefonen."
+      },
+      "groupsHintBonus": "Alle i en gruppe kan gøre den. Kommer der nogen med i gruppen senere, kan de også.",
+      "comesBackHintEach": {
+        "daily": "Alle kan gøre den én gang hver dag, den dukker op.",
+        "weekly": "Alle kan gøre den én gang om ugen. Den er ledig igen om mandagen.",
+        "manual": "Alle kan gøre den én gang, indtil en voksen sætter den tilbage under Pligter på telefonen."
+      },
+      "onceBonusNote": "Bonuspligter dukker op på deres ugedage, ikke på en dato. Til en pligt, der kun skal gøres én gang, holder »Når jeg sætter den tilbage« den klaret, når nogen har gjort den."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "Markér {chore} som klaret for {member}",
       "undoChore": "Fortryd {chore} for {member}"
+    },
+    "bonus": {
+      "heading": "Bonus",
+      "bandHint": "Ekstra billetter. Snup en, så er den din.",
+      "upForGrabs": "Først til mølle",
+      "everyoneCan": "Alle kan",
+      "comesBack": {
+        "daily": "Hver dag",
+        "weekly": "Hver uge",
+        "manual": "Når jeg sætter den tilbage"
+      },
+      "comesBackSummary": {
+        "daily": "ny hver dag",
+        "weekly": "én gang om ugen",
+        "manual": "til den sættes tilbage"
+      },
+      "grab": "Snup den",
+      "onIt": "{name} er i gang",
+      "didIt": "{name} klarede den",
+      "tapWhenDone": "Tryk, når du er færdig",
+      "eachTickets": "{n} til hver",
+      "whoGrabbing": "Hvem snupper den?",
+      "whoDidIt": "Hvem klarede den?",
+      "hasOne": "Har allerede en",
+      "letGo": "Giv slip",
+      "notToday": "Ikke i dag",
+      "cancel": "Annullér",
+      "more": "+{n} mere",
+      "moreTitle": "Flere bonuspligter",
+      "hasOneNamed": "Har snuppet {chore}",
+      "refused": {
+        "grabbed": "{name} er allerede i gang med den",
+        "taken": "{name} har allerede klaret den",
+        "other": "Den bonuspligt er ikke ledig lige nu"
+      },
+      "didItOn": "{name} klarede den i {day}s",
+      "bandHintEach": "Ekstra billetter. Alle kan gøre dem én gang."
+    },
+    "settings": {
+      "grabLimitLabel": "Hvor mange kan én person snuppe ad gangen?",
+      "grabLimit": {
+        "1": "Én ad gangen",
+        "2": "To ad gangen",
+        "3": "Tre ad gangen",
+        "0": "Ingen grænse"
+      },
+      "grabLimitHint": {
+        "1": "Gør den færdig eller giv slip, før du snupper en ny.",
+        "0": "Alle kan snuppe så mange, de vil."
+      },
+      "grabHoldLabel": "Hvor længe er en snuppet pligt deres?",
+      "grabHold": {
+        "day": "Til sengetid",
+        "until-back": "Til pligten kommer igen"
+      },
+      "grabHoldHint": {
+        "day": "Bliver den ikke lavet den dag, kan alle snuppe den, næste gang den kommer.",
+        "until-back": "Den er deres, til de bliver færdige eller giver slip, eller til pligten kommer igen (om mandagen, hvis den er ugentlig). En pligt, du selv sætter tilbage, er deres i højst en uge. Godt til store opgaver."
+      },
+      "summary": {
+        "limit": {
+          "1": "Én ad gangen",
+          "2": "To ad gangen",
+          "3": "Tre ad gangen",
+          "0": "Ingen grænse"
+        },
+        "hold": {
+          "day": "en snuppet pligt gælder til sengetid",
+          "until-back": "en snuppet pligt gælder, til den kommer igen"
+        }
+      },
+      "change": "Ret",
+      "close": "Luk"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "Markér {chore} som klaret for {member}",
       "undoChore": "Fortryd {chore} for {member}",
       "undoCompleting": "Fortryd, at {chore} blev klaret",
-      "undoUncompleting": "Fortryd, at {chore} blev sat tilbage"
+      "undoUncompleting": "Fortryd, at {chore} blev sat tilbage",
+      "notToday": "{chore}: ikke i dag for {member}"
     },
     "timeOfDay": {
       "morning": "Morgen",
@@ -682,7 +777,7 @@
         "one": "−{count} billet",
         "other": "−{count} billetter"
       },
-      "memberTickets": "{member}s billetter",
+      "memberTickets": "Billetter for {member}",
       "rewardCost": {
         "one": "{count} billet",
         "other": "{count} billetter"
@@ -745,7 +840,8 @@
         "thisWeek": "Denne uge",
         "earlier": "Tidligere"
       }
-    }
+    },
+    "saveFailed": "Det blev ikke gemt. Prøv igen."
   },
   "sports": {
     "loading": "Indlæser resultater…",

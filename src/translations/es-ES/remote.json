@@ -122,6 +122,55 @@
       "ariaLabel": "Qué día mostrar",
       "yesterday": "Ayer",
       "today": "Hoy"
+    },
+    "notToday": {
+      "chip": "Hoy no",
+      "ariaLabel": "{chore}, hoy no"
+    },
+    "bonus": {
+      "sectionHint": "Tickets extra. Pídete una tarea y será tuya, o haz una de las que son para todos.",
+      "grab": "Me la pido",
+      "grabAriaLabel": "Pedirse {chore} por {tickets}",
+      "letGo": "La dejo",
+      "onIt": "{name} está en ello",
+      "didIt": "{name} la ha hecho",
+      "youGrabbedIt": "¡Te la has pedido! Márcala cuando termines.",
+      "youGotIt": "¡Conseguido! +{n}",
+      "finishYoursFirst": "Termina primero la tuya",
+      "refused": {
+        "grabbed": "{name} ya está con esa.",
+        "taken": "{name} ya ha hecho esa.",
+        "limit": "{name} tiene que terminar o dejar primero su otra tarea extra.",
+        "notYours": "Esa tarea extra no es para {name}.",
+        "notToday": "Esa tarea extra no toca hoy.",
+        "limitMany": "{name} tiene que terminar o dejar primero otra tarea extra."
+      },
+      "limitLine": "Termina primero la que te has pedido, o marca esta si ya la has hecho.",
+      "youDidItOn": "La hiciste el {day}",
+      "didItOn": "{name} la hizo el {day}",
+      "limitLineMany": "Termina primero una de las que te has pedido, o marca esta si ya la has hecho.",
+      "yours": "Tuya",
+      "didItToday": "{name} la ha hecho hoy",
+      "youDidItToday": "La has hecho hoy",
+      "youreOnIt": "Es tuya"
+    },
+    "dayMenu": {
+      "didIt": "{name} la ha hecho",
+      "notDone": "Al final {name} no la ha hecho",
+      "notTodayFor": "Hoy no para {name}",
+      "notTodayHint": "Sin tickets, y no cuenta en contra de {name}",
+      "notTodayEveryone": "Hoy no la hace nadie",
+      "notTodayEveryoneHint": "Todos los que aún no la han hecho",
+      "undoNotToday": "Al final sí le toca hoy a {name}",
+      "letGoOf": "Dejar libre la que se pidió {name}",
+      "putBack": "Volver a abrirla",
+      "putBackHint": "Que se pueda pedir otra vez",
+      "open": "Más opciones para {chore}",
+      "onTodayEveryone": "Al final sí les toca hoy a todos"
+    },
+    "putBackConfirm": {
+      "title": "¿Volver a abrirla?",
+      "description": "«{chore}» vuelve a estar disponible. Los tickets que ya se ganaron con ella no se pierden."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Rotación",
       "addSubmit": "Añadir tarea",
       "saveSubmit": "Guardar tarea",
-      "deleteButton": "Eliminar tarea"
+      "deleteButton": "Eliminar tarea",
+      "grabRulesNote": "Cuántas tareas puede pedirse una persona, y cuándo deja de ser suya, se elige para toda la casa en Extra, en la pestaña Gestionar."
     },
     "choreDelete": {
       "title": "¿Eliminar «{name}»?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Elige una comida",
       "emptyLibrary": "Aún no hay comidas guardadas. Escribe una arriba para hoy, o guarda las que cocinas a menudo.",
-        "typePlaceholder": "Escribe una comida, por ejemplo Tacos",
-        "typeLabel": "Escribir una comida para este día",
-        "typeAdd": "Añadir",
+      "typePlaceholder": "Escribe una comida, por ejemplo Tacos",
+      "typeLabel": "Escribir una comida para este día",
+      "typeAdd": "Añadir",
       "prepTimeShort": "{minutes} min",
       "removeMealButton": "Quitar comida",
       "subtitle": "{slot} · {day}"
@@ -752,5 +802,13 @@
       "body": "Las fotos aparecerán aquí en cuanto haya un pase de fotos en alguna de tus pantallas."
     },
     "howTo": "Añádelo desde un ordenador: abre {url} y ponlo en una pantalla."
+  },
+  "choreSettings": {
+    "title": "Ajustes de tareas",
+    "grabbingHeading": "Pedirse tareas extra",
+    "letGoHint": "Una persona mayor siempre puede dejar libre una tarea que alguien se ha pedido: toca ••• junto a la tarea en la pestaña Hoy.",
+    "save": "Guardar",
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "changeAriaLabel": "Cambiar cómo se piden las tareas extra"
   }
 }

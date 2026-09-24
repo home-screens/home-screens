@@ -88,6 +88,9 @@ export default function ChoreRowItem({
   const ticketLabel = showPoints && row.points > 1
     ? t(row.points === 1 ? 'fullscreen-chore-chart.ticketCount' : 'fullscreen-chore-chart.ticketsCount', { count: row.points })
     : '';
+  // Everyone on the row is let off today: one "Not today" pill says so
+  // instead of a row of dashes.
+  const allSkipped = row.assignees.length > 0 && row.assignees.every((a) => a.isSkipped);
   const hasIcon = !!row.choreEmoji;
   const iconSize = fontSize * 0.9;
   const gap = fontSize * 0.5;
@@ -139,7 +142,7 @@ export default function ChoreRowItem({
         fontSize: nameSize,
         fontWeight: 500,
         letterSpacing: '-0.01em',
-        color: 'var(--fcc-text)',
+        color: allSkipped ? 'var(--fcc-text-3)' : 'var(--fcc-text)',
         minWidth: 0,
         overflow: 'hidden',
         lineHeight: LINE_HEIGHT,
@@ -173,6 +176,7 @@ export default function ChoreRowItem({
         key={a.memberId}
         memberId={a.memberId}
         isCompleted={a.isCompleted}
+        isSkipped={a.isSkipped}
         dotSize={dotSize}
         choreId={row.choreId}
         choreName={row.choreName}
@@ -187,7 +191,20 @@ export default function ChoreRowItem({
   // A chore that goes to a family group keeps every ring (each is that
   // person's own tick and tap target) and wraps the group's rings in one
   // labelled pill; anyone named on top of the group follows outside it.
-  const dots = (
+  // The NOT TODAY pill stands for several people off at once; one person's
+  // dashed ring says the same in far less room, leaving the name its width.
+  const dots = allSkipped && row.assignees.length > 1 ? (
+    <span
+      data-testid="fcc-not-today"
+      style={{
+        display: 'flex', alignItems: 'center', height: dotSize * 1.15, padding: `0 ${fontSize * 0.7}px`, flexShrink: 0,
+        border: '2px dashed var(--fcc-border)', borderRadius: 999, color: 'var(--fcc-text-3)',
+        fontSize: fontSize * 0.62, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap',
+      }}
+    >
+      {t('chore-chart.bonus.notToday')}
+    </span>
+  ) : (
     <div style={{ display: 'flex', alignItems: 'center', gap: dotGap(dotSize), flexShrink: 0 }}>
       {pill ? (
         <>

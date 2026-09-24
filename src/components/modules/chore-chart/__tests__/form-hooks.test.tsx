@@ -243,3 +243,55 @@ describe('useChoreForm with family groups', () => {
     expect(submitted(result.current)).toMatchObject({ name: 'Dishes, renamed', assigneeIds: ['ann'], assigneeGroupIds: ['kids'] });
   });
 });
+
+describe('useChoreForm Regular and Bonus', () => {
+  const scheduled = saved({
+    assigneeIds: ['ann', 'ben'], rotation: 'schedule', schedule: { ann: [1, 3], ben: [2, 4] },
+    daysOfWeek: [1, 2, 3, 4], timeOfDay: 'evening',
+  });
+
+  it('flipping to Bonus and back changes nothing about the regular setup', () => {
+    const { result } = renderHook(() => useChoreForm(scheduled, members, [kids], true));
+    act(() => result.current.setKind('bonus'));
+    act(() => result.current.setKind('regular'));
+    const back = submitted(result.current);
+    expect(back).toMatchObject({ rotation: 'schedule', schedule: { ann: [1, 3], ben: [2, 4] }, timeOfDay: 'evening' });
+    expect(back.bonus).toBeUndefined();
+  });
+
+  it('saves a bonus chore with its regular setup kept, and gets it back when it turns regular again', () => {
+    const once = saved({ frequency: 'once', specificDate: '2026-10-01', rotation: 'rotate-weekly', assigneeIds: ['ann', 'ben'], timeOfDay: 'morning' });
+    const { result } = renderHook(() => useChoreForm(once, members, [kids], true));
+    act(() => result.current.setKind('bonus'));
+    const asBonus = submitted(result.current);
+    expect(asBonus).toMatchObject({ frequency: 'once', specificDate: '2026-10-01', rotation: 'rotate-weekly', timeOfDay: 'morning' });
+    // A one-off job as a bonus chore: done until put back.
+    expect(asBonus.bonus).toMatchObject({ claim: 'first', comesBack: 'manual' });
+    expect(asBonus.bonus?.since).toBeTruthy();
+
+    const { result: again } = renderHook(() => useChoreForm({ ...once, ...asBonus }, members, [kids], true));
+    act(() => again.current.setKind('regular'));
+    expect(submitted(again.current)).toMatchObject({ frequency: 'once', specificDate: '2026-10-01', rotation: 'rotate-weekly', timeOfDay: 'morning' });
+  });
+
+  it('gives a one-time chore with no days its date\'s weekday when it turns bonus', () => {
+    const once = saved({ frequency: 'once', specificDate: '2026-10-01', daysOfWeek: [], assigneeIds: ['ann'] });
+    const { result } = renderHook(() => useChoreForm(once, members, [kids], true));
+    act(() => result.current.setKind('bonus'));
+    expect(result.current.canSave).toBe(true);
+    expect(submitted(result.current)).toMatchObject({ daysOfWeek: [4], bonus: { comesBack: 'manual' } });
+  });
+
+  it('never saves fewer than 0 tickets', () => {
+    const { result } = renderHook(() => useChoreForm(saved({ assigneeIds: ['ann'] }), members, [kids], true));
+    act(() => result.current.setPoints('-5'));
+    expect(submitted(result.current).points).toBe(0);
+  });
+
+  it('keeps a bonus chore\'s stamp when its kind or comes back changes', () => {
+    const bonusChore = saved({ assigneeIds: ['ann'], bonus: { claim: 'first', comesBack: 'daily', since: 'stamp' } });
+    const { result } = renderHook(() => useChoreForm(bonusChore, members, [kids], true));
+    act(() => result.current.setComesBack('weekly'));
+    expect(submitted(result.current).bonus).toEqual({ claim: 'first', comesBack: 'weekly', since: 'stamp' });
+  });
+});

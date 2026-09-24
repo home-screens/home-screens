@@ -699,8 +699,12 @@ function MatchingFieldsSection({
           onClick={() => navigate(settingsHref(settingsFieldRoute(f), { highlight: f.fieldId }))}
           className="w-full flex items-center gap-2 pl-7 pr-3.5 py-1.5 text-[13px] transition-colors border-l-2 border-transparent text-hs-text-muted hover:text-hs-text-body hover:bg-hs-hover"
         >
-          <span className="flex-1 min-w-0 truncate text-left">{resolveSettingsFieldLabel(f, t)}</span>
-          <span className="text-[10px] text-hs-text-faint truncate max-w-[72px]">{pageLabelById[f.pageId]}</span>
+          {/* The page name goes under the field name, which keeps the whole
+              width: long field names only differ at the end. */}
+          <span className="flex-1 min-w-0 text-left">
+            <span className="block">{resolveSettingsFieldLabel(f, t)}</span>
+            <span className="block text-[10px] text-hs-text-faint truncate">{pageLabelById[f.pageId]}</span>
+          </span>
         </button>
       ))}
     </>

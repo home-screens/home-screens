@@ -1,6 +1,7 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useTranslate } from '@/i18n';
 
 export default function ConfirmSheet({
@@ -13,6 +14,8 @@ export default function ConfirmSheet({
   onConfirm,
   onCancel,
   zIndex = 60,
+  settleMs = 0,
+  guardTaps = false,
 }: {
   title: string;
   description: string;
@@ -24,6 +27,14 @@ export default function ConfirmSheet({
   onCancel: () => void;
   /** Raise above a bottom sheet (z 101) when confirming from inside one. */
   zIndex?: number;
+  /**
+   * Taps in the first few milliseconds are ignored. For a sheet opened from a
+   * button in the same spot with the same words, where a double tap would
+   * otherwise confirm (or dismiss) it before anyone read it.
+   */
+  settleMs?: number;
+  /** As on `BottomSheet`: over a list where a stray second tap would tick or pay for something. */
+  guardTaps?: boolean;
 }) {
   // Defaults route through `core.actions` so callers don't need to translate
   // them locally. Callers that want a custom label (e.g. "Delete Member",
@@ -31,6 +42,12 @@ export default function ConfirmSheet({
   const tCore = useTranslate('core');
   const resolvedConfirmLabel = confirmLabel ?? tCore('actions.confirm');
   const resolvedCancelLabel = cancelLabel ?? tCore('actions.cancel');
+  const [openedAt] = useState(() => Date.now());
+  useSheetTapGuard(guardTaps);
+  const settled = (action: () => void) => () => {
+    if (Date.now() - openedAt < settleMs) return;
+    action();
+  };
 
   return (
     <div
@@ -42,7 +59,7 @@ export default function ConfirmSheet({
         display: 'flex',
         alignItems: 'flex-end',
       }}
-      onClick={onCancel}
+      onClick={settled(onCancel)}
     >
       {/* A real dialog role, so the confirm button can be addressed as "the
           button inside the sheet" rather than "the last button with this
@@ -75,7 +92,7 @@ export default function ConfirmSheet({
         </div>
         <button
           className="press-btn"
-          onClick={onConfirm}
+          onClick={settled(onConfirm)}
           style={{
             width: '100%',
             minHeight: 48,

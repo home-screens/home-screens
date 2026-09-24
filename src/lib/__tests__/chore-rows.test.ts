@@ -21,7 +21,7 @@ function makeAssignment(
   memberId: string,
   isCompleted = false,
 ): ResolvedAssignment {
-  return { chore, memberId, isCompleted, groupIds: chore.assigneeGroupIds ?? [] };
+  return { chore, memberId, isCompleted, isSkipped: false, groupIds: chore.assigneeGroupIds ?? [] };
 }
 
 describe('getUniqueInitials', () => {

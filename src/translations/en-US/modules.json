@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Select at least one person or group",
         "selectAtLeastOneDay": "Select at least one day",
         "familyNotReady": "Your family is still loading. Try again in a moment."
-      }
+      },
+      "kindLabel": "Kind of chore",
+      "kindRegular": "Regular",
+      "kindBonus": "Bonus",
+      "bonusHint": "Bonus chores only earn tickets. They never count against anyone.",
+      "comesBackLabel": "Comes back",
+      "claimLabel": "Who gets the tickets",
+      "claimFirstHint": "One person grabs it and gets the tickets.",
+      "claimEachHint": "Everyone below can do it once each time it comes back.",
+      "whoCanLabel": "Who can do it",
+      "comesBackHint": {
+        "daily": "Open again each day it shows up, even if someone did it the day before.",
+        "weekly": "Once someone does it, it's done until next Monday.",
+        "manual": "Stays done until a grown-up taps Put it back in Chores on the phone."
+      },
+      "groupsHintBonus": "Everyone in a group can do it. Add someone to the group later and they can too.",
+      "comesBackHintEach": {
+        "daily": "Each person can do it once on each day it shows up.",
+        "weekly": "Each person can do it once a week. It opens again on Monday.",
+        "manual": "Each person can do it once, until a grown-up taps Put it back in Chores on the phone."
+      },
+      "onceBonusNote": "Bonus chores show up on their days, not on a date. For a one-off job, When I put it back keeps it done once someone does it."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "Complete {chore} for {member}",
       "undoChore": "Undo {chore} for {member}"
+    },
+    "bonus": {
+      "heading": "Bonus",
+      "bandHint": "Extra tickets. Grab one and it's yours.",
+      "upForGrabs": "Up for grabs",
+      "everyoneCan": "Everyone can",
+      "comesBack": {
+        "daily": "Every day",
+        "weekly": "Every week",
+        "manual": "When I put it back"
+      },
+      "comesBackSummary": {
+        "daily": "new each day",
+        "weekly": "once a week",
+        "manual": "until put back"
+      },
+      "grab": "Grab it",
+      "onIt": "{name}'s on it",
+      "didIt": "{name} did it",
+      "tapWhenDone": "Tap when done",
+      "eachTickets": "{n} each",
+      "whoGrabbing": "Who's grabbing it?",
+      "whoDidIt": "Who did it?",
+      "hasOne": "Has one",
+      "letGo": "Let it go",
+      "notToday": "Not today",
+      "cancel": "Cancel",
+      "more": "+{n} more",
+      "moreTitle": "More bonus chores",
+      "hasOneNamed": "Has {chore}",
+      "refused": {
+        "grabbed": "{name} is already on that one",
+        "taken": "{name} already did that one",
+        "other": "That bonus chore isn't open right now"
+      },
+      "didItOn": "{name} did it {day}",
+      "bandHintEach": "Extra tickets. Everyone can do these once."
+    },
+    "settings": {
+      "grabLimitLabel": "How many can one person grab at once?",
+      "grabLimit": {
+        "1": "One at a time",
+        "2": "Two at a time",
+        "3": "Three at a time",
+        "0": "No limit"
+      },
+      "grabLimitHint": {
+        "1": "Finish or let go of it before grabbing another.",
+        "0": "Anyone can grab as many as they like."
+      },
+      "grabHoldLabel": "When does a grab end?",
+      "grabHold": {
+        "day": "At bedtime",
+        "until-back": "When the chore comes back"
+      },
+      "grabHoldHint": {
+        "day": "If it isn't done that day, anyone can grab it the next time it comes up.",
+        "until-back": "It stays theirs until they finish it or let it go, or the chore comes back, like a weekly one on Monday. A chore you put back yourself stays theirs for a week at most. Good for big jobs."
+      },
+      "summary": {
+        "limit": {
+          "1": "One grab at a time",
+          "2": "Two grabs at a time",
+          "3": "Three grabs at a time",
+          "0": "No limit on grabs"
+        },
+        "hold": {
+          "day": "a grab ends at bedtime",
+          "until-back": "a grab lasts until the chore comes back"
+        }
+      },
+      "change": "Change",
+      "close": "Close"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "Complete {chore} for {member}",
       "undoChore": "Undo {chore} for {member}",
       "undoCompleting": "Undo completing {chore}",
-      "undoUncompleting": "Undo uncompleting {chore}"
+      "undoUncompleting": "Undo uncompleting {chore}",
+      "notToday": "{chore}: not today for {member}"
     },
     "timeOfDay": {
       "morning": "Morning",
@@ -745,7 +840,8 @@
         "thisWeek": "This week",
         "earlier": "Earlier"
       }
-    }
+    },
+    "saveFailed": "That didn't save. Try again."
   },
   "sports": {
     "loading": "Loading scores…",

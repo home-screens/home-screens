@@ -35,8 +35,11 @@ const CASES: Record<string, { doc: Doc; afterRemoval: Doc; restore: { missing: n
     restore: { missing: 3 },
   },
   'data/chore-completions.json': {
-    doc: { completions: [{ choreId: 'x', memberId: 'gone' }, { choreId: 'x', memberId: 'kept' }] },
-    afterRemoval: { completions: [{ choreId: 'x', memberId: 'kept' }] },
+    doc: {
+      completions: [{ choreId: 'x', memberId: 'gone' }, { choreId: 'x', memberId: 'kept' }],
+      grabs: [{ choreId: 'y', memberId: 'gone' }, { choreId: 'z', memberId: 'kept' }],
+    },
+    afterRemoval: { completions: [{ choreId: 'x', memberId: 'kept' }], grabs: [{ choreId: 'z', memberId: 'kept' }] },
     restore: { missing: 0, evidence: { historicalOrphans: { policy: 'preserve-ledger-entries-without-creating-members', completions: [{ choreId: 'x', memberId: 'gone' }] } } },
   },
   'data/rewards.json': {

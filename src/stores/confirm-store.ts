@@ -6,6 +6,11 @@ interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: 'danger' | 'primary';
+  /**
+   * Where the keyboard goes when the dialog closes, if what had focus before
+   * is gone (a menu item from the menu that opened it).
+   */
+  returnFocus?: Element | null;
 }
 
 export interface ChoiceOption {
@@ -47,8 +52,12 @@ export const useConfirmStore = create<ConfirmState>((set, get) => ({
   resolve: null,
   resolveChoice: null,
 
+  // One question at a time: a second one while another is open is answered
+  // "no" at once, rather than silently replacing the first (whose answer was
+  // then never given).
   confirm: (opts) =>
     new Promise<boolean>((resolve) => {
+      if (get().open) { resolve(false); return; }
       const options = typeof opts === 'string' ? { message: opts } : opts;
       set({ open: true, isAlert: false, options, choices: null, resolve, resolveChoice: null });
     }),

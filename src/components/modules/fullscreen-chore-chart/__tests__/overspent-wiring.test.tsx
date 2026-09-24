@@ -42,7 +42,7 @@ function today(): string {
 const choreDataResult = [{ chores }, null] as const;
 const rewardsResult = [{ balances: { 'kid-1': 0 }, rewards: [], redemptions: [] }, null] as const;
 // Seeded as done, so the tap under test is an un-tick.
-const completionsResult = [{ completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today() }] }, null] as const;
+const completionsResult = [{ completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today() }], today: today() }, null] as const;
 
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: (url: string) => {

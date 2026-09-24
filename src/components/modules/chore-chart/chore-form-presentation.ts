@@ -1,4 +1,4 @@
-import type { ChoreDefinition, ChoreResetFrequency, ChoreRotation } from '@/types/config';
+import type { ChoreBonusClaim, ChoreBonusComesBack, ChoreDefinition, ChoreResetFrequency, ChoreRotation, ChoreSettings } from '@/types/config';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { TranslateFn } from '@/i18n';
 import { choreAssigneeIds, getTimeOfDayLabelKey } from './types';
@@ -16,6 +16,26 @@ export type ChoreValidationHintKind =
   | 'selectAtLeastOnePersonOrGroup'
   | 'selectAtLeastOneDay'
   | 'familyNotReady';
+
+/**
+ * The line under a bonus chore's Comes back: what coming back means for who
+ * gets the tickets. "Done until next Monday" is wrong for an everyone-can
+ * chore, where each person still gets their turn.
+ */
+export function comesBackHintKey(claim: ChoreBonusClaim, comesBack: ChoreBonusComesBack): string {
+  return `chore-chart.choreForm.${claim === 'each' ? 'comesBackHintEach' : 'comesBackHint'}.${comesBack}`;
+}
+
+/**
+ * The household's grab rules as one line ("One grab at a time · a grab ends
+ * at bedtime"), shown above the bonus chores on the phone and in the editor.
+ */
+export function grabRulesSummary(settings: ChoreSettings, t: TranslateFn): { limit: string; hold: string } {
+  return {
+    limit: t(`chore-chart.settings.summary.limit.${settings.grabLimit}`),
+    hold: t(`chore-chart.settings.summary.hold.${settings.grabHold}`),
+  };
+}
 
 /** Every day of the week, Sunday first, matching `ChoreDefinition.daysOfWeek`. */
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
@@ -88,6 +108,23 @@ export function buildChoreSummaryLine(args: {
   dayNames: readonly string[];
 }): string {
   const { chore, t, dayNames } = args;
+  const ticketsLabel = chore.points === 1
+    ? t('chore-chart.choreSummary.ticketCountSingular', { count: chore.points })
+    : t('chore-chart.choreSummary.ticketCountPlural', { count: chore.points });
+  // A bonus chore shows on its days whatever frequency it kept from its regular life.
+  const showDays = (!!chore.bonus || chore.frequency !== 'once') && chore.daysOfWeek.length > 0 && chore.daysOfWeek.length < EVERY_DAY.length;
+  const daysLabel = showDays
+    ? [...chore.daysOfWeek].sort((a, b) => a - b).map((d) => dayNames[d]).join(', ')
+    : null;
+
+  // A bonus chore has no time of day and no frequency of its own: it says
+  // what kind it is and when it comes back ("Up for grabs · every week · 5 tickets").
+  if (chore.bonus) {
+    const kindLabel = t(chore.bonus.claim === 'first' ? 'chore-chart.bonus.upForGrabs' : 'chore-chart.bonus.everyoneCan');
+    const comesBackLabel = t(`chore-chart.bonus.comesBackSummary.${chore.bonus.comesBack}`);
+    return [kindLabel, comesBackLabel, daysLabel, ticketsLabel].filter(Boolean).join(' · ');
+  }
+
   let frequencyLabel: string;
   if (chore.frequency === 'daily') frequencyLabel = t('chore-chart.choreSummary.daily');
   else if (chore.frequency === 'biweekly') frequencyLabel = t('chore-chart.choreSummary.biweekly');
@@ -97,15 +134,7 @@ export function buildChoreSummaryLine(args: {
       : t('chore-chart.choreSummary.onceNoDate');
   } else frequencyLabel = t('chore-chart.choreSummary.weekly');
 
-  const showDays = chore.frequency !== 'once' && chore.daysOfWeek.length > 0 && chore.daysOfWeek.length < EVERY_DAY.length;
-  const daysLabel = showDays
-    ? [...chore.daysOfWeek].sort((a, b) => a - b).map((d) => dayNames[d]).join(', ')
-    : null;
-
   const timeOfDayLabel = t(getTimeOfDayLabelKey(chore.timeOfDay));
-  const ticketsLabel = chore.points === 1
-    ? t('chore-chart.choreSummary.ticketCountSingular', { count: chore.points })
-    : t('chore-chart.choreSummary.ticketCountPlural', { count: chore.points });
 
   return [frequencyLabel, daysLabel, timeOfDayLabel, ticketsLabel].filter(Boolean).join(' · ');
 }
@@ -130,6 +159,8 @@ export function buildChoreAssigneeLine(args: {
 
 /** The "(rotate weekly)" suffix key for a chore list row, or null when everyone has it every time. */
 export function getChoreRotationSummaryKey(chore: ChoreDefinition, groups: readonly FamilyGroup[]): string | null {
+  // A bonus chore keeps its regular turns for later but is not shared by them.
+  if (chore.bonus) return null;
   if (chore.rotation === 'schedule') return 'chore-chart.choreSummary.rotationSchedule';
   if (chore.rotation === 'fixed' || choreAssigneeIds(chore, groups).length <= 1) return null;
   return chore.rotation === 'rotate-daily'

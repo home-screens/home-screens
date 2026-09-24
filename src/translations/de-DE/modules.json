@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Wähle mindestens eine Person oder Gruppe aus",
         "selectAtLeastOneDay": "Wähle mindestens einen Tag aus",
         "familyNotReady": "Deine Familie wird noch geladen. Versuch es gleich noch einmal."
-      }
+      },
+      "kindLabel": "Art der Aufgabe",
+      "kindRegular": "Normal",
+      "kindBonus": "Bonus",
+      "bonusHint": "Bonusaufgaben bringen nur Extra-Tickets. Sie zählen nie als verpasst.",
+      "comesBackLabel": "Kommt wieder",
+      "claimLabel": "Wer die Tickets bekommt",
+      "claimFirstHint": "Eine Person schnappt sie sich und bekommt die Tickets.",
+      "claimEachHint": "Jedes Mal, wenn sie wiederkommt, darf jede Person unten sie einmal machen.",
+      "whoCanLabel": "Wer sie machen darf",
+      "comesBackHint": {
+        "daily": "An jedem Tag, an dem sie dran ist, wieder frei, auch wenn jemand sie am Tag davor gemacht hat.",
+        "weekly": "Hat sie jemand gemacht, ist sie bis nächsten Montag erledigt.",
+        "manual": "Bleibt erledigt, bis ein Erwachsener am Handy unter „Aufgaben“ auf „Wieder freigeben“ tippt."
+      },
+      "groupsHintBonus": "Alle in einer Gruppe dürfen sie machen. Wer später zur Gruppe kommt, darf es auch.",
+      "comesBackHintEach": {
+        "daily": "Jede Person darf sie an jedem Tag, an dem sie dran ist, einmal machen.",
+        "weekly": "Jede Person darf sie einmal pro Woche machen. Am Montag geht es von vorn los.",
+        "manual": "Jede Person darf sie einmal machen, bis ein Erwachsener sie am Handy unter „Aufgaben“ wieder freigibt."
+      },
+      "onceBonusNote": "Bonusaufgaben kommen an ihren Wochentagen, nicht an einem Datum. Für eine einmalige Aufgabe passt „Wenn ich sie wieder freigebe“: Dann bleibt sie erledigt, sobald jemand sie gemacht hat."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "{chore} für {member} abhaken",
       "undoChore": "{chore} für {member} rückgängig machen"
+    },
+    "bonus": {
+      "heading": "Bonus",
+      "bandHint": "Extra-Tickets. Schnapp dir eine Aufgabe, dann gehört sie dir.",
+      "upForGrabs": "Zum Schnappen",
+      "everyoneCan": "Alle dürfen",
+      "comesBack": {
+        "daily": "Jeden Tag",
+        "weekly": "Jede Woche",
+        "manual": "Wenn ich sie wieder freigebe"
+      },
+      "comesBackSummary": {
+        "daily": "jeden Tag neu",
+        "weekly": "einmal pro Woche",
+        "manual": "bis sie wieder freigegeben wird"
+      },
+      "grab": "Schnappen",
+      "onIt": "{name} ist dran",
+      "didIt": "{name} hat's geschafft",
+      "tapWhenDone": "Tippen, wenn fertig",
+      "eachTickets": "je {n}",
+      "whoGrabbing": "Wer schnappt sie sich?",
+      "whoDidIt": "Wer hat sie gemacht?",
+      "hasOne": "Hat schon eine",
+      "letGo": "Abgeben",
+      "notToday": "Heute nicht",
+      "cancel": "Abbrechen",
+      "more": "+{n} weitere",
+      "moreTitle": "Weitere Bonusaufgaben",
+      "hasOneNamed": "Hat schon: {chore}",
+      "refused": {
+        "grabbed": "{name} ist da schon dran",
+        "taken": "{name} hat die schon gemacht",
+        "other": "Diese Bonusaufgabe ist gerade nicht frei"
+      },
+      "didItOn": "{name} hat sie am {day} gemacht",
+      "bandHintEach": "Extra-Tickets. Alle dürfen die hier einmal machen."
+    },
+    "settings": {
+      "grabLimitLabel": "Wie viele darf sich eine Person auf einmal schnappen?",
+      "grabLimit": {
+        "1": "Eine auf einmal",
+        "2": "Zwei auf einmal",
+        "3": "Drei auf einmal",
+        "0": "So viele man will"
+      },
+      "grabLimitHint": {
+        "1": "Erst fertig machen oder abgeben, dann die nächste schnappen.",
+        "0": "Alle dürfen sich so viele schnappen, wie sie wollen."
+      },
+      "grabHoldLabel": "Wie lange gilt eine geschnappte Aufgabe?",
+      "grabHold": {
+        "day": "Bis zum Schlafengehen",
+        "until-back": "Bis die Aufgabe wiederkommt"
+      },
+      "grabHoldHint": {
+        "day": "Wird sie an dem Tag nicht fertig, kann sie jeder schnappen, wenn sie das nächste Mal dran ist.",
+        "until-back": "Die Person behält sie, bis sie fertig ist oder sie abgibt, oder bis die Aufgabe wiederkommt, bei einer wöchentlichen also am Montag. Eine Aufgabe, die du selbst wieder freigibst, behält sie höchstens eine Woche. Gut für große Aufgaben."
+      },
+      "summary": {
+        "limit": {
+          "1": "Eine Aufgabe auf einmal schnappen",
+          "2": "Zwei Aufgaben auf einmal schnappen",
+          "3": "Drei Aufgaben auf einmal schnappen",
+          "0": "Beliebig viele schnappen"
+        },
+        "hold": {
+          "day": "eine geschnappte Aufgabe gilt bis zum Schlafengehen",
+          "until-back": "eine geschnappte Aufgabe gilt, bis sie wiederkommt"
+        }
+      },
+      "change": "Ändern",
+      "close": "Schließen"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "{chore} für {member} abhaken",
       "undoChore": "{chore} für {member} rückgängig machen",
       "undoCompleting": "Geschafft-Markierung von {chore} rückgängig machen",
-      "undoUncompleting": "Abwählen von {chore} rückgängig machen"
+      "undoUncompleting": "Abwählen von {chore} rückgängig machen",
+      "notToday": "{chore}: heute nicht für {member}"
     },
     "timeOfDay": {
       "morning": "Morgen",
@@ -745,7 +840,8 @@
         "thisWeek": "Diese Woche",
         "earlier": "Früher"
       }
-    }
+    },
+    "saveFailed": "Das hat nicht geklappt. Versuch es noch mal."
   },
   "sports": {
     "loading": "Spielstände werden geladen…",

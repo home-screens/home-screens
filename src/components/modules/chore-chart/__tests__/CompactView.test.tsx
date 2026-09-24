@@ -42,8 +42,8 @@ function renderCompact(opts: { done?: boolean; points?: number; showPoints?: boo
         config={config}
         data={{
           members: [noah], groups: [], chores: [c],
-          todayAssignments: [{ chore: c, memberId: noah.id, isCompleted: !!opts.done, groupIds: [] }],
-          completionSet, memberStats: stats, toggleComplete,
+          todayAssignments: [{ chore: c, memberId: noah.id, isCompleted: !!opts.done, isSkipped: false, groupIds: [] }],
+          completionSet, memberStats: stats, toggleComplete, today: todayStr(),
         }}
         width={600}
         fontSize={16}

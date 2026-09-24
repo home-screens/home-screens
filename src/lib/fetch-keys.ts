@@ -170,6 +170,11 @@ export function choresUrl(): string {
   return '/api/chores';
 }
 
+/** Grabs and lets go of up-for-grabs bonus chores. A write, so it is never cached or prefetched. */
+export function choreGrabUrl(): string {
+  return '/api/chores/grab';
+}
+
 export function choresDataUrl(): string {
   return '/api/chores/data';
 }

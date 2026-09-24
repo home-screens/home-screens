@@ -60,7 +60,7 @@ export function buildMemberRows(
       choreEmoji: a.chore.emoji,
       timeOfDay: a.chore.timeOfDay,
       points: a.chore.points,
-      assignees: [{ memberId: a.memberId, isCompleted: a.isCompleted }],
+      assignees: [{ memberId: a.memberId, isCompleted: a.isCompleted, isSkipped: a.isSkipped }],
     })));
   }
   return rows;

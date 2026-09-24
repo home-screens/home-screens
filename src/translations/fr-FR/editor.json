@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Ajoutez votre foyer une seule fois. Noms, couleurs et emojis accompagnent chaque personne dans les tâches, les récompenses, les calendriers et les emplois du temps."
+      "description": "Ajoutez votre foyer une seule fois. Noms, couleurs et emojis accompagnent chaque personne dans les tâches, les récompenses, les calendriers et les emplois du temps.",
+      "chores": {
+        "heading": "Tâches bonus",
+        "description": "Comment les tâches bonus se prennent. Les Paramètres des tâches du téléphone changent ces deux mêmes réglages.",
+        "grabLimitLabel": "Combien de tâches bonus une personne peut prendre à la fois",
+        "grabHoldLabel": "Jusqu'à quand une tâche bonus prise reste réservée",
+        "saveFailed": "Ça n'a pas été enregistré. Réessayez.",
+        "saved": "Enregistré"
+      }
     },
     "touchAlignment": {
       "label": "Alignement du tactile",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Planning hebdomadaire",
       "coverageLabel": "Couverture : {covered} jours sur 7",
       "addSubmit": "Ajouter la tâche",
-      "saveSubmit": "Enregistrer"
+      "saveSubmit": "Enregistrer",
+      "grabRulesNote": "Le nombre de tâches qu'une personne peut prendre, et jusqu'à quand elles lui restent réservées, se règlent pour toute la famille, sous Bonus dans la liste des tâches."
     },
     "preview": {
       "columnTitleNew": "Nouvelle tâche",
@@ -2551,7 +2560,8 @@
       "noChores": "Aucune tâche",
       "weeklyTotalsHeading": "Totaux de la semaine",
       "memberLine": "{chores} tâches, {tickets} tickets"
-    }
+    },
+    "finishFormFirst": "Enregistre ou annule d'abord le formulaire ouvert."
   },
   "todoListModal": {
     "title": "Modifier la liste",

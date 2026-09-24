@@ -122,6 +122,55 @@
       "ariaLabel": "Welcher Tag angezeigt wird",
       "yesterday": "Gestern",
       "today": "Heute"
+    },
+    "notToday": {
+      "chip": "Heute nicht",
+      "ariaLabel": "{chore}, heute nicht"
+    },
+    "bonus": {
+      "sectionHint": "Extra-Tickets. Schnapp dir eine Aufgabe für dich allein oder mach eine, die alle machen dürfen.",
+      "grab": "Schnappen",
+      "grabAriaLabel": "{chore} für {tickets} schnappen",
+      "letGo": "Abgeben",
+      "onIt": "{name} ist dran",
+      "didIt": "{name} hat's geschafft",
+      "youGrabbedIt": "Du hast sie dir geschnappt. Hak sie ab, wenn du fertig bist.",
+      "youGotIt": "Geschafft! +{n}",
+      "finishYoursFirst": "Mach erst deine fertig",
+      "refused": {
+        "grabbed": "{name} ist da schon dran.",
+        "taken": "{name} hat die schon gemacht.",
+        "limit": "{name} muss erst die andere Bonusaufgabe fertig machen oder abgeben.",
+        "notYours": "Diese Bonusaufgabe ist nicht für {name}.",
+        "notToday": "Diese Bonusaufgabe gibt es heute nicht.",
+        "limitMany": "{name} muss erst eine andere Bonusaufgabe fertig machen oder abgeben."
+      },
+      "limitLine": "Mach erst fertig, was du dir geschnappt hast. Schon gemacht? Dann hak diese ab.",
+      "youDidItOn": "Du hast sie am {day} gemacht",
+      "didItOn": "{name} hat sie am {day} gemacht",
+      "limitLineMany": "Mach erst eine deiner geschnappten Aufgaben fertig. Schon gemacht? Dann hak diese ab.",
+      "yours": "Deine",
+      "didItToday": "{name} hat sie heute gemacht",
+      "youDidItToday": "Du hast sie heute gemacht",
+      "youreOnIt": "Du kümmerst dich drum"
+    },
+    "dayMenu": {
+      "didIt": "{name} hat's geschafft",
+      "notDone": "{name} hat sie doch nicht gemacht",
+      "notTodayFor": "Heute nicht für {name}",
+      "notTodayHint": "Keine Tickets, und für {name} zählt sie nicht als verpasst",
+      "notTodayEveryone": "Heute nicht für alle",
+      "notTodayEveryoneHint": "Alle, die sie noch nicht gemacht haben",
+      "undoNotToday": "Für {name} heute doch dran",
+      "letGoOf": "{name} die Aufgabe abnehmen",
+      "putBack": "Wieder freigeben",
+      "putBackHint": "Dann kann sie sich wieder jemand schnappen",
+      "open": "Mehr zu {chore}",
+      "onTodayEveryone": "Für alle heute doch dran"
+    },
+    "putBackConfirm": {
+      "title": "Wieder freigeben?",
+      "description": "„{chore}“ ist dann wieder frei. Schon verdiente Tickets bleiben erhalten."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Wer macht's?",
       "addSubmit": "Aufgabe hinzufügen",
       "saveSubmit": "Aufgabe speichern",
-      "deleteButton": "Aufgabe löschen"
+      "deleteButton": "Aufgabe löschen",
+      "grabRulesNote": "Wie viele Aufgaben sich eine Person schnappen darf und wie lange eine geschnappte Aufgabe gilt, stellst du für die ganze Familie unter „Bonus“ in „Verwalten“ ein."
     },
     "choreDelete": {
       "title": "„{name}“ löschen?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Mahlzeit auswählen",
       "emptyLibrary": "Noch keine gespeicherten Mahlzeiten. Tippe oben eine für heute ein oder speichere die, die du oft kochst.",
-        "typePlaceholder": "Mahlzeit eintippen, zum Beispiel Tacos",
-        "typeLabel": "Mahlzeit für diesen Tag eintippen",
-        "typeAdd": "Hinzufügen",
+      "typePlaceholder": "Mahlzeit eintippen, zum Beispiel Tacos",
+      "typeLabel": "Mahlzeit für diesen Tag eintippen",
+      "typeAdd": "Hinzufügen",
       "prepTimeShort": "{minutes} Min.",
       "removeMealButton": "Mahlzeit entfernen",
       "subtitle": "{slot} · {day}"
@@ -752,5 +802,13 @@
       "body": "Fotos erscheinen hier, sobald eine Diashow auf einem deiner Bildschirme liegt."
     },
     "howTo": "Füge sie am Computer hinzu: Öffne {url} und lege sie auf einen Bildschirm."
+  },
+  "choreSettings": {
+    "title": "Aufgaben-Einstellungen",
+    "grabbingHeading": "Bonusaufgaben schnappen",
+    "letGoHint": "Ein Erwachsener kann jemandem eine geschnappte Aufgabe jederzeit wieder abnehmen: im Tab „Heute“ neben der Aufgabe auf ••• tippen.",
+    "save": "Speichern",
+    "saveFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
+    "changeAriaLabel": "Ändern, wie Bonusaufgaben geschnappt werden"
   }
 }

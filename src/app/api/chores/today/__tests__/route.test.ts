@@ -12,7 +12,8 @@ vi.mock('@/lib/auth', () => ({
 vi.mock('@/lib/chore-data', () => ({
   readChoreData: vi.fn(),
 }));
-vi.mock('@/lib/chore-completion-data', () => ({
+vi.mock('@/lib/chore-completion-data', async (importOriginal) => ({
+  ...await importOriginal<typeof import('@/lib/chore-completion-data')>(),
   readCompletions: vi.fn(),
 }));
 
@@ -158,6 +159,27 @@ describe('GET /api/chores/today', () => {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     expect(body.date).toBe(today);
+  });
+
+  it('leaves out a chore marked not today, and lists bonus chores on their own', async () => {
+    const car = { ...dishes, id: 'chore-car', name: 'Wash the car', assigneeIds: ['kid-1', 'kid-2'], daysOfWeek: [], bonus: { claim: 'first', comesBack: 'daily' } } as ChoreDefinition;
+    vi.mocked(readChoreData).mockResolvedValue({ chores: [...choreData.chores, car], settings: { grabLimit: 1, grabHold: 'day' } } as never);
+    // Grabs only hold today, so this one is made and read today.
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    vi.mocked(readCompletions).mockResolvedValue({
+      completions: [{ choreId: 'chore-dishes', memberId: 'kid-1', date: today, status: 'skipped' }],
+      grabs: [{ choreId: 'chore-car', memberId: 'kid-2', date: today }],
+    } as never);
+
+    const body = await (await GET(request())).json();
+    const ada = body.members.find((m: { id: string }) => m.id === 'kid-1');
+    expect(ada.chores.map((c: { id: string }) => c.id)).not.toContain('chore-dishes');
+    expect(ada.chores.map((c: { id: string }) => c.id)).not.toContain('chore-car');
+    expect(body.bonus).toEqual([{
+      id: 'chore-car', name: 'Wash the car', points: 5, kind: 'up-for-grabs', openTo: ['kid-1', 'kid-2'],
+      state: { status: 'grabbed', memberId: 'kid-2' },
+    }]);
   });
 
   it('rejects malformed and impossible dates with 400', async () => {

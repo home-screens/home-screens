@@ -32,7 +32,7 @@ function chore(id: string): ChoreDefinition {
  */
 function heavyAssignments(id: string, count: number) {
   return Array.from({ length: count }, (_, i) => ({
-    chore: chore(`${id}-${i}`), memberId: id, isCompleted: false, groupIds: [],
+    chore: chore(`${id}-${i}`), memberId: id, isCompleted: false, isSkipped: false, groupIds: [],
   }));
 }
 
@@ -103,7 +103,7 @@ describe('BoardView un-ticking', () => {
   function board(isCompleted: boolean) {
     const toggleComplete = vi.fn(async () => {});
     const members = [member('solo')];
-    const todayAssignments = [{ chore: chore('solo'), memberId: 'solo', isCompleted, groupIds: [] }];
+    const todayAssignments = [{ chore: chore('solo'), memberId: 'solo', isCompleted, isSkipped: false, groupIds: [] }];
     const memberStats = new Map<string, MemberStats>([
       ['solo', { total: 1, completed: isCompleted ? 1 : 0, percentage: 0, streak: 0, weeklyPoints: 0, weeklyPointsTotal: 0, rewardBalance: 0, weekAssigned: 1 }],
     ]);

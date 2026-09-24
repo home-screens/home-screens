@@ -18,6 +18,12 @@ function isoToday(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+/** 18:00 today, inside the dinner window, on the same local day as `isoToday()`. */
+function dinnerTimeToday(): Date {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 18, 0, 0);
+}
+
 /** A week with nothing in the library at all, the way it arrives from the phone. */
 const typedOnly = () => ({
   savedMeals: [],
@@ -28,6 +34,9 @@ const VIEWS: MealPlannerView[] = ['today', 'week', 'list', 'compact', 'next-meal
 
 for (const view of VIEWS) {
   test(`meal-planner ${view} shows a meal typed straight into the day`, async ({ page, request }) => {
+    // next-meal drops tonight's dinner once dinner is over, so on the real
+    // clock this failed every evening. Every view renders at dinner time.
+    await page.clock.setFixedTime(dinnerTimeToday());
     await seedMeals(request, typedOnly());
     const meals = buildModuleInstance('meal-planner', { view });
     const display = await renderOnDisplay(page, request, baseConfig({

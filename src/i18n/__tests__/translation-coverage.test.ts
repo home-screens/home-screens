@@ -300,6 +300,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // "Bonus" is the same word in this language (bonus chores).
+    'modules|chore-chart.bonus.heading',
+    'modules|chore-chart.choreForm.kindBonus',
     // "Person" is the same word in Danish (a label beside an icon's use).
     'core|customIcons.kinds.person',
     // Wall names that are the same word in Danish.
@@ -327,6 +330,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|displayHero.stateOffline',
   ]),
   'de-DE': new Set([
+    // "Bonus" is the same word in this language (bonus chores).
+    'modules|chore-chart.bonus.heading',
+    'modules|chore-chart.choreForm.kindBonus',
     // "Name", "Person" and "Routine" are the same words in German.
     'core|customIcons.review.nameLabel',
     'core|customIcons.kinds.person',
@@ -483,6 +489,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.minutesShort',
   ]),
   'fr-FR': new Set([
+    // "Bonus" is the same word in this language (bonus chores).
+    'modules|chore-chart.bonus.heading',
+    'modules|chore-chart.choreForm.kindBonus',
     // "Routine" is the same word in French.
     'core|customIcons.kinds.routine',
     // "Dates" is the French word too.
@@ -628,6 +637,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.stepMinutes',
   ]),
   'nl-NL': new Set([
+    // "Bonus" is the same word in this language (bonus chores).
+    'modules|chore-chart.bonus.heading',
+    'modules|chore-chart.choreForm.kindBonus',
     // "Routine" is the same word in Dutch.
     'core|customIcons.kinds.routine',
     // "In {group}": the preposition "in" is the same word in this language.

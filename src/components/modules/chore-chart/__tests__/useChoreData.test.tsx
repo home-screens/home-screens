@@ -36,13 +36,22 @@ const chores: ChoreDefinition[] = [
     id: 'chore-1', name: 'Dishwasher', emoji: '', points: 3, frequency: 'daily',
     daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['kid-1'], rotation: 'fixed',
   },
+  {
+    id: 'garage', name: 'Clean out the garage', emoji: '', points: 20, frequency: 'daily',
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['kid-1'], rotation: 'fixed',
+    bonus: { claim: 'first', comesBack: 'manual' },
+  },
 ];
 
 // Stable references: the hook mirrors each fetch result into state from an
 // effect keyed on it, so a fresh object per render would re-render forever.
 const choreDataResult = [{ chores }, null] as const;
 const rewardsResult = [{ balances: {}, rewards: [], redemptions: [] }, null] as const;
-let completionsResult: readonly [{ completions: Array<{ choreId: string; memberId: string; date: string }> }, null] =
+type Marks = {
+  completions: Array<{ choreId: string; memberId: string; date: string; status?: 'skipped'; at?: string }>;
+  bonusResets?: Record<string, string>;
+};
+let completionsResult: readonly [Marks, null] =
   [{ completions: [] }, null];
 
 vi.mock('@/hooks/useFetchData', () => ({
@@ -133,5 +142,27 @@ describe('an overspent balance reaches the screen', () => {
     await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
 
     expect(result.current.overspentNotice).toBeNull();
+  });
+});
+
+describe('a chore put back by a grown-up', () => {
+  it('is ticked as new, not un-ticked, when the same person did it earlier that day', async () => {
+    completionsResult = [{
+      completions: [{ choreId: 'garage', memberId: 'kid-1', date: today(), at: `${today()}T08:00:00.000Z` }],
+      bonusResets: { garage: `${today()}T09:00:00.000Z` },
+    }, null];
+    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    await act(async () => { await result.current.toggleComplete('garage', 'kid-1'); });
+    expect(posted).toEqual([expect.objectContaining({ choreId: 'garage', direction: 'complete' })]);
+  });
+});
+
+describe('the week behind the stars', () => {
+  it('leaves a day out when everything on it was marked not today', () => {
+    completionsResult = [{ completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today(), status: 'skipped' }] }, null];
+    const { result } = renderHook(() => useChoreData(config), { wrapper });
+    const day = result.current.weekData.find((d) => d.date === today())!;
+    expect(day.memberAssigned['kid-1']).toBe(false);
+    expect(day.memberStars['kid-1']).toBe(false);
   });
 });

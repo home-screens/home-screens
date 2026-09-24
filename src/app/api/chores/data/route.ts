@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readChoreData, readChoreSnapshot, writeChoreData } from '@/lib/chore-data';
+import { readChoreData, readChoreSnapshot, writeChoreList } from '@/lib/chore-data';
 import { contentRevision } from '@/lib/content-revision';
+import { DEFAULT_CHORE_SETTINGS, isValidBonus, readChoreSettings, stampBonusSince } from '@/lib/chore-bonus';
+import { householdTimestamp } from '@/lib/household-day';
 import type { ChoreDefinition } from '@/types/config';
 import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertRequiredArrays, parseJsonBody } from '@/lib/api-utils';
 import { withFamilyData, validateGroupReferences, validateMemberReferences } from '@/lib/family-api';
@@ -40,19 +42,30 @@ export const PUT = withAuth(async (request: NextRequest) => {
     // removing a group, the chore counts and the chore lists all read.
     const dayRows = (value: unknown) => value === undefined || (typeof value === 'object' && value !== null && !Array.isArray(value)
       && Object.values(value).every((days) => Array.isArray(days) && days.every((day) => Number.isInteger(day) && day >= 0 && day <= 6)));
+    // A bonus chore keeps its regular schedule untouched while it is a bonus
+    // chore (who can do it is picked apart from it), so the rows only have to
+    // match the named groups on a regular chore.
     if (chores.some((chore) => !dayRows(chore.schedule) || !dayRows(chore.groupSchedule)
-      || Object.keys(chore.groupSchedule ?? {}).some((id) => !chore.assigneeGroupIds?.includes(id)))) {
+      || (!chore.bonus && Object.keys(chore.groupSchedule ?? {}).some((id) => !chore.assigneeGroupIds?.includes(id))))) {
       return NextResponse.json({ error: 'A chore schedule needs days for each person or group on it.' }, { status: 400 });
+    }
+    if (chores.some((chore) => chore.points !== undefined && (typeof chore.points !== 'number' || !Number.isFinite(chore.points) || chore.points < 0))) {
+      return NextResponse.json({ error: 'Tickets for a chore must be 0 or more.' }, { status: 400 });
+    }
+    if (chores.some((chore) => !isValidBonus(chore.bonus))) {
+      return NextResponse.json({ error: 'A bonus chore needs a kind and a time it comes back.' }, { status: 400 });
     }
     // A list that cannot be read has nothing to compare against; the write is
     // what repairs it, and the empty guard below keeps its own reading.
     let current: ChoreDefinition[] | null = null;
-    try { current = (await readChoreData()).chores; } catch { /* unreadable */ }
+    let settings = DEFAULT_CHORE_SETTINGS;
+    try { ({ chores: current, settings } = await readChoreData()); } catch { /* unreadable */ }
     if (current && revision !== contentRevision(current)) {
       return NextResponse.json({
         error: 'Somebody else changed the chores. Reload the page and make your change again.',
         reason: 'revision',
         chores: current,
+        settings,
         revision: contentRevision(current),
       }, { status: 409 });
     }
@@ -69,7 +82,8 @@ export const PUT = withAuth(async (request: NextRequest) => {
     if (groupReferences) return groupReferences;
     const guard = await guardEmptyOverwrite([chores], async () => [current ?? []], 'chore', force);
     if (guard) return guard;
-    await writeChoreData({ chores });
-    return NextResponse.json({ chores, revision: contentRevision(chores) });
+    const stamped = stampBonusSince(chores, current ?? [], await householdTimestamp());
+    const saved = await writeChoreList(stamped);
+    return NextResponse.json({ chores: stamped, settings: readChoreSettings(saved.settings), revision: contentRevision(stamped) });
   });
 }, 'Failed to write chore data');

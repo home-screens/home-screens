@@ -80,7 +80,7 @@
   "choresTab": {
     "changedElsewhere": "En anden har ændret pligterne. Din seneste ændring blev ikke gemt. Prøv igen.",
     "header": "Pligter",
-    "headerFor": "{name}s pligter",
+    "headerFor": "Pligter for {name}",
     "switchHint": "Er du ikke {name}? Tryk på dit navn for at skifte.",
     "subNav": {
       "today": "I dag",
@@ -102,7 +102,7 @@
     "memberAriaLabelAllDone": "{name} (afsluttet)",
     "history": {
       "editingPrefix": "Du sætter flueben for ",
-      "editingNote": "Her vises dagens opgaveliste, så opgaver du lige har tilføjet, kan se ud som om de blev sprunget over.",
+      "editingNote": "Her vises dagens liste over pligter, så pligter, du lige har tilføjet, kan se ud som om de blev sprunget over.",
       "lockedMessage": "Bed en voksen tilføje de pligter du mangler.",
       "editingSuffix": ". Billetter tæller stadig med i dag."
     },
@@ -122,6 +122,55 @@
       "ariaLabel": "Hvilken dag der vises",
       "yesterday": "I går",
       "today": "I dag"
+    },
+    "notToday": {
+      "chip": "Ikke i dag",
+      "ariaLabel": "{chore}, ikke i dag"
+    },
+    "bonus": {
+      "sectionHint": "Ekstra billetter. Snup en opgave, så er den din, eller gør en, som alle kan.",
+      "grab": "Snup den",
+      "grabAriaLabel": "Snup {chore} for {tickets}",
+      "letGo": "Giv slip",
+      "onIt": "{name} er i gang",
+      "didIt": "{name} klarede den",
+      "youGrabbedIt": "Du snuppede den. Sæt flueben, når du er færdig.",
+      "youGotIt": "Godt klaret! +{n}",
+      "finishYoursFirst": "Gør din færdig først",
+      "refused": {
+        "grabbed": "{name} er allerede i gang med den.",
+        "taken": "{name} har allerede klaret den.",
+        "limit": "{name} skal først gøre sin anden bonuspligt færdig eller give slip på den.",
+        "notYours": "Den bonuspligt er ikke til {name}.",
+        "notToday": "Den bonuspligt er der ikke i dag.",
+        "limitMany": "{name} skal først gøre en anden bonuspligt færdig eller give slip på den."
+      },
+      "limitLine": "Gør den, du har snuppet, færdig først, eller sæt flueben her, hvis den er klaret.",
+      "youDidItOn": "Du klarede den i {day}s",
+      "didItOn": "{name} klarede den i {day}s",
+      "limitLineMany": "Gør en af dem, du har snuppet, færdig først, eller sæt flueben her, hvis den er klaret.",
+      "yours": "Din",
+      "didItToday": "{name} klarede den i dag",
+      "youDidItToday": "Du klarede den i dag",
+      "youreOnIt": "Den er din"
+    },
+    "dayMenu": {
+      "didIt": "{name} klarede den",
+      "notDone": "{name} har alligevel ikke lavet den",
+      "notTodayFor": "Ikke i dag for {name}",
+      "notTodayHint": "Ingen billetter, og det tæller ikke imod {name}",
+      "notTodayEveryone": "Ikke i dag for alle",
+      "notTodayEveryoneHint": "Alle, der ikke har gjort den endnu",
+      "undoNotToday": "Den er alligevel med i dag for {name}",
+      "letGoOf": "{name} giver slip på den",
+      "putBack": "Sæt den tilbage",
+      "putBackHint": "Så kan den snuppes igen",
+      "open": "Flere valg for {chore}",
+      "onTodayEveryone": "Den er alligevel med i dag for alle"
+    },
+    "putBackConfirm": {
+      "title": "Sæt den tilbage?",
+      "description": "»{chore}« bliver ledig igen. Ingen mister de billetter, de allerede har fået for den."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Rotation",
       "addSubmit": "Tilføj pligt",
       "saveSubmit": "Gem pligt",
-      "deleteButton": "Slet pligt"
+      "deleteButton": "Slet pligt",
+      "grabRulesNote": "Hvor mange én person kan snuppe, og hvor længe en snuppet pligt er deres, indstilles for hele familien under Bonus på fanen Administrér."
     },
     "choreDelete": {
       "title": "Slet \"{name}\"?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Vælg et måltid",
       "emptyLibrary": "Ingen gemte måltider endnu. Skriv et herover til i aften, eller gem dem I tit laver.",
-        "typePlaceholder": "Skriv et måltid, for eksempel tacos",
-        "typeLabel": "Skriv et måltid til denne dag",
-        "typeAdd": "Tilføj",
+      "typePlaceholder": "Skriv et måltid, for eksempel tacos",
+      "typeLabel": "Skriv et måltid til denne dag",
+      "typeAdd": "Tilføj",
       "prepTimeShort": "{minutes}m",
       "removeMealButton": "Fjern måltid",
       "subtitle": "{slot} · {day}"
@@ -436,8 +486,8 @@
       "empty": "Der er ikke tilføjet belønninger endnu",
       "memberFallback": "dette medlem",
       "confirmTitle": "Indløs {name}?",
-      "confirmDescriptionSingular": "Det bruger {cost} billet af {memberName}s saldo. Tilbage: {remaining}",
-      "confirmDescriptionPlural": "Det bruger {cost} billetter af {memberName}s saldo. Tilbage: {remaining}",
+      "confirmDescriptionSingular": "Det koster {memberName} {cost} billet. Tilbage: {remaining}",
+      "confirmDescriptionPlural": "Det koster {memberName} {cost} billetter. Tilbage: {remaining}",
       "confirmLabelSingular": "Indløs for {cost} billet",
       "confirmLabelPlural": "Indløs for {cost} billetter",
       "emptyKid": "Ingen belønninger endnu. En voksen kan tilføje nogle fra sin telefon.",
@@ -752,5 +802,13 @@
       "body": "Billeder dukker op her, så snart der er et billedshow på en af dine skærme."
     },
     "howTo": "Tilføj det fra en computer: åbn {url}, og læg det på en skærm."
+  },
+  "choreSettings": {
+    "title": "Indstillinger for pligter",
+    "grabbingHeading": "Når bonuspligter snuppes",
+    "letGoHint": "En voksen kan altid give en snuppet pligt fri: tryk på ••• ud for pligten på fanen I dag.",
+    "save": "Gem",
+    "saveFailed": "Kunne ikke gemme. Prøv igen.",
+    "changeAriaLabel": "Skift, hvordan bonuspligter snuppes"
   }
 }

@@ -224,7 +224,7 @@
     "saving": "Gemmer…",
     "conflict": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",
     "removeTitle": "Fjern {name}?",
-    "removeDescription": "Når du fjerner {name}, slettes personens opgavetildelinger, planer, historik, billetter og adgang til belønninger. Valget af personens kalendere glemmes også. Opgaver uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
+    "removeDescription": "Når du fjerner {name}, slettes personens pligter, planer, historik, billetter og adgang til belønninger. Valget af personens kalendere glemmes også. Pligter uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
     "remove": "Fjern person",
     "editName": "Rediger {name}",
     "moveUp": "Flyt {name} op",
@@ -235,12 +235,12 @@
     "page": "Side {page} af {total}",
     "limit": "Du kan tilføje op til {count} personer. Alle, der allerede er her, bevares og kan stadig redigeres eller fjernes.",
     "choreCount": {
-      "one": "{count} opgave",
-      "other": "{count} opgaver"
+      "one": "{count} pligt",
+      "other": "{count} pligter"
     },
     "removeChoreCount": {
-      "one": "{name} har {count} tildelt opgave.",
-      "other": "{name} har {count} tildelte opgaver."
+      "one": "{name} har {count} pligt.",
+      "other": "{name} har {count} pligter."
     },
     "hasTimetable": "Har et skema",
     "removeTimetable": "{name} har et skema, og det bliver også fjernet.",

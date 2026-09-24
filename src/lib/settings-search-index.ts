@@ -202,6 +202,9 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },
   { pageId: 'calendar', fieldId: 'calendar.hideDeclined', labelKey: 'settings.calendarPage.google.hideDeclinedLabel' },
 
+  { pageId: 'family', fieldId: 'family.grabLimit', labelKey: 'settings.familyPage.chores.grabLimitLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'grab limit', 'up for grabs', 'chores', 'chore settings', 'extra tickets', 'at once'] },
+  { pageId: 'family', fieldId: 'family.grabHold', labelKey: 'settings.familyPage.chores.grabHoldLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'up for grabs', 'chores', 'chore settings', 'bedtime', 'extra tickets', 'comes back'] },
+
   { pageId: 'meals', fieldId: 'meals.enabledSlots', labelKey: 'settings.mealsPage.slots.heading' },
   { pageId: 'meals', fieldId: 'meals.weekStartDay', labelKey: 'settings.mealsPage.weekStart.heading', keywordKeys: ['settings.mealsPage.weekStart.heading'] },
   { pageId: 'meals', fieldId: 'meals.timeFormat', labelKey: 'settings.mealsPage.timeFormat.heading', keywordKeys: ['settings.mealsPage.timeFormat.description', 'settings.mealsPage.timeFormat.twelveHourLabel', 'settings.mealsPage.timeFormat.twentyFourHourLabel'], keywords: ['clock'] },

@@ -4,7 +4,7 @@ import type { FamilyGroup, FamilyMember } from '@/types/family';
 
 import type { ChoreChartConfig, ChoreDefinition } from '@/types/config';
 import type { ResolvedAssignment, MemberStats } from '../types';
-import { todayStr, completionKey, choreAppliesToday, resolveAssignee } from '../types';
+import { completionKey, choreAppliesToday, isChoreSkipped, parseISO, resolveAssignee } from '../types';
 import { choreIconSize, choreTapSize, partitionMembers } from '../layout';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
@@ -24,7 +24,9 @@ interface CompactViewProps {
     todayAssignments: ResolvedAssignment[];
     completionSet: Set<string>;
     memberStats: Map<string, MemberStats>;
-    toggleComplete: (choreId: string, memberId: string) => Promise<void>;
+    toggleComplete: (choreId: string, memberId: string) => Promise<unknown>;
+    /** The hub's calendar day. */
+    today: string;
   };
   /** Measured box width in px (0 until measured). */
   width: number;
@@ -42,9 +44,8 @@ const touchColumnPx = (fontSize: number) => choreTapSize(fontSize) + 8;
 const MAX_COLUMNS_SHARE = 0.45;
 
 export function CompactView({ config, data, width, fontSize }: CompactViewProps) {
-  const { members, chores, completionSet, memberStats, toggleComplete } = data;
-  const today = todayStr();
-  const dayOfWeek = new Date().getDay();
+  const { members, chores, completionSet, memberStats, toggleComplete, today } = data;
+  const dayOfWeek = parseISO(today).getDay();
   const allowTouch = config.allowDisplayComplete;
   const t = useTranslate('modules');
   const [pressedKey, press] = usePressedKey();
@@ -74,6 +75,14 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
   );
 
   const checkbox = (chore: ChoreDefinition, member: FamilyMember) => {
+    // Marked "not today" on the phone: a dash, nothing to tick.
+    if (isChoreSkipped(completionSet, chore.id, member.id, today)) {
+      return (
+        <span key={member.id} data-testid="chore-compact-skipped" aria-label={`${chore.name}: ${member.name}`} style={{ width: columnWidth, textAlign: 'center', opacity: 0.45, fontWeight: 700 }}>
+          –
+        </span>
+      );
+    }
     const done = completionSet.has(completionKey(chore.id, member.id, today));
     const key = `${chore.id}:${member.id}`;
     // A ticked box is the one a passing tap must not clear.
@@ -119,6 +128,13 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
       {/* Divider */}
       <div style={{ borderBottom: `1px solid ${DIVIDER.visible}`, marginBottom: '0.3em' }} />
 
+      {/* Everyone's chores marked "not today": say so, rather than an empty grid. */}
+      {active.length === 0 && todayChores.some((c) => !c.bonus) && (
+        <div data-testid="chore-compact-day-off" className="flex-1 flex items-center justify-center" style={{ opacity: TEXT_OPACITY.secondary }}>
+          {t('chore-chart.dayOff')}
+        </div>
+      )}
+
       {/* Grid */}
       <FitRows>
         {todayChores.map((chore) => {
@@ -143,15 +159,16 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
                 // One cell per chore. A chore with one person keeps its
                 // checkbox (still tappable); a shared chore reads "2/6".
                 assignees.length === 1 ? checkbox(chore, assignees[0]) : (() => {
-                  const done = assignees.filter((m) => completionSet.has(completionKey(chore.id, m.id, today))).length;
-                  return done === assignees.length ? (
+                  const owedBy = assignees.filter((m) => !isChoreSkipped(completionSet, chore.id, m.id, today));
+                  const done = owedBy.filter((m) => completionSet.has(completionKey(chore.id, m.id, today))).length;
+                  return done === owedBy.length ? (
                     <span data-testid="chore-compact-aggregate" style={{ width: columnWidth, textAlign: 'center', fontSize: '1.2em' }}>{'✅'}</span>
                   ) : (
                     <span
                       data-testid="chore-compact-aggregate"
                       style={{ minWidth: '2.6em', textAlign: 'center', fontSize: '0.75em', fontWeight: 600, padding: '0.15em 0.5em', borderRadius: 999, backgroundColor: ink(0.08), fontVariantNumeric: 'tabular-nums' }}
                     >
-                      {done}/{assignees.length}
+                      {done}/{owedBy.length}
                     </span>
                   );
                 })()
@@ -173,7 +190,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
       </FitRows>
 
       {/* Summary row */}
-      <div style={{ borderTop: `1px solid ${DIVIDER.visible}`, marginTop: '0.3em', paddingTop: '0.3em' }}>
+      {active.length > 0 && <div style={{ borderTop: `1px solid ${DIVIDER.visible}`, marginTop: '0.3em', paddingTop: '0.3em' }}>
         <div className="flex items-center gap-2" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>
           <span>{t('chore-chart.doneLabel')}</span>
           <div className="flex-1" />
@@ -188,7 +205,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
             );
           })}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

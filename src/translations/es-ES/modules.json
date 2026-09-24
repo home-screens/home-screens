@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Selecciona al menos una persona o un grupo",
         "selectAtLeastOneDay": "Selecciona al menos un día",
         "familyNotReady": "Tu familia todavía se está cargando. Inténtalo de nuevo en un momento."
-      }
+      },
+      "kindLabel": "Tipo de tarea",
+      "kindRegular": "Normal",
+      "kindBonus": "Extra",
+      "bonusHint": "Las tareas extra solo dan tickets. Nunca cuentan en contra de nadie.",
+      "comesBackLabel": "Vuelve a salir",
+      "claimLabel": "Quién gana los tickets",
+      "claimFirstHint": "Una persona se la pide y gana los tickets.",
+      "claimEachHint": "Cada vez que vuelva a salir, todos los de abajo pueden hacerla una vez.",
+      "whoCanLabel": "Quién puede hacerla",
+      "comesBackHint": {
+        "daily": "Vuelve a estar libre cada día que sale, aunque alguien la hiciera el día anterior.",
+        "weekly": "Cuando alguien la hace, queda hecha hasta el próximo lunes.",
+        "manual": "Queda hecha hasta que una persona mayor toque «Volver a abrirla» en Tareas, en el teléfono."
+      },
+      "groupsHintBonus": "Todas las personas de un grupo pueden hacerla. Si añades a alguien al grupo más tarde, también podrá.",
+      "comesBackHintEach": {
+        "daily": "Cada persona puede hacerla una vez cada día que sale.",
+        "weekly": "Cada persona puede hacerla una vez por semana. Vuelve a estar libre el lunes.",
+        "manual": "Cada persona puede hacerla una vez, hasta que una persona mayor la vuelva a abrir en Tareas, en el teléfono."
+      },
+      "onceBonusNote": "Las tareas extra salen en sus días de la semana, no en una fecha. Para una tarea de una sola vez, «Cuando la vuelva a abrir» la deja hecha en cuanto alguien la hace."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "Marcar {chore} para {member}",
       "undoChore": "Deshacer {chore} para {member}"
+    },
+    "bonus": {
+      "heading": "Extra",
+      "bandHint": "Tickets extra. Pídete una tarea y será tuya.",
+      "upForGrabs": "Quien la pida",
+      "everyoneCan": "Para todos",
+      "comesBack": {
+        "daily": "Cada día",
+        "weekly": "Cada semana",
+        "manual": "Cuando la vuelva a abrir"
+      },
+      "comesBackSummary": {
+        "daily": "nueva cada día",
+        "weekly": "una vez por semana",
+        "manual": "hasta que se vuelva a abrir"
+      },
+      "grab": "Me la pido",
+      "onIt": "{name} está en ello",
+      "didIt": "{name} la ha hecho",
+      "tapWhenDone": "Toca cuando termines",
+      "eachTickets": "{n} cada uno",
+      "whoGrabbing": "¿Quién se la pide?",
+      "whoDidIt": "¿Quién la ha hecho?",
+      "hasOne": "Ya tiene una",
+      "letGo": "La dejo",
+      "notToday": "Hoy no",
+      "cancel": "Cancelar",
+      "more": "+{n} más",
+      "moreTitle": "Más tareas extra",
+      "hasOneNamed": "Ya tiene: {chore}",
+      "refused": {
+        "grabbed": "{name} ya está con esa",
+        "taken": "{name} ya ha hecho esa",
+        "other": "Esa tarea extra no está libre ahora mismo"
+      },
+      "didItOn": "{name} la hizo el {day}",
+      "bandHintEach": "Tickets extra. Todos pueden hacerlas una vez."
+    },
+    "settings": {
+      "grabLimitLabel": "¿Cuántas puede pedirse una persona a la vez?",
+      "grabLimit": {
+        "1": "Una a la vez",
+        "2": "Dos a la vez",
+        "3": "Tres a la vez",
+        "0": "Sin límite"
+      },
+      "grabLimitHint": {
+        "1": "Hay que terminarla o dejarla antes de pedirse otra.",
+        "0": "Cada uno puede pedirse todas las que quiera."
+      },
+      "grabHoldLabel": "¿Cuánto dura una tarea pedida?",
+      "grabHold": {
+        "day": "Hasta la hora de dormir",
+        "until-back": "Hasta que la tarea vuelva a salir"
+      },
+      "grabHoldHint": {
+        "day": "Si no se termina ese día, cualquiera puede pedírsela la próxima vez que salga.",
+        "until-back": "Sigue siendo suya hasta que la termine o la deje, o hasta que la tarea vuelva a salir (el lunes si es semanal). Una tarea que vuelves a abrir tú sigue siendo suya una semana como mucho. Va bien para trabajos grandes."
+      },
+      "summary": {
+        "limit": {
+          "1": "Una tarea pedida a la vez",
+          "2": "Dos tareas pedidas a la vez",
+          "3": "Tres tareas pedidas a la vez",
+          "0": "Sin límite de tareas pedidas"
+        },
+        "hold": {
+          "day": "una tarea pedida es suya hasta la hora de dormir",
+          "until-back": "una tarea pedida es suya hasta que vuelva a salir"
+        }
+      },
+      "change": "Cambiar",
+      "close": "Cerrar"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "Marcar {chore} para {member}",
       "undoChore": "Deshacer {chore} para {member}",
       "undoCompleting": "Deshacer marcar {chore}",
-      "undoUncompleting": "Deshacer desmarcar {chore}"
+      "undoUncompleting": "Deshacer desmarcar {chore}",
+      "notToday": "{chore}: hoy no para {member}"
     },
     "timeOfDay": {
       "morning": "Mañana",
@@ -745,7 +840,8 @@
         "thisWeek": "Esta semana",
         "earlier": "Antes"
       }
-    }
+    },
+    "saveFailed": "No se ha guardado. Inténtalo de nuevo."
   },
   "sports": {
     "loading": "Cargando resultados…",

@@ -80,7 +80,7 @@
   "choresTab": {
     "changedElsewhere": "Quelqu'un d'autre a modifié les tâches. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît.",
     "header": "Tâches",
-    "headerFor": "Les tâches de {name}",
+    "headerFor": "Tâches pour {name}",
     "switchHint": "Ce n’est pas {name} ? Touche ton nom pour changer.",
     "subNav": {
       "today": "Aujourd'hui",
@@ -122,6 +122,55 @@
       "ariaLabel": "Jour à afficher",
       "yesterday": "Hier",
       "today": "Aujourd'hui"
+    },
+    "notToday": {
+      "chip": "Pas aujourd'hui",
+      "ariaLabel": "{chore}, pas aujourd'hui"
+    },
+    "bonus": {
+      "sectionHint": "Des tickets en plus. Prends une tâche et elle est à toi, ou fais une tâche ouverte à tous.",
+      "grab": "Je la prends",
+      "grabAriaLabel": "Prendre {chore} pour {tickets}",
+      "letGo": "Je la rends",
+      "onIt": "{name} s'en occupe",
+      "didIt": "{name} l'a faite",
+      "youGrabbedIt": "Tu l'as prise. Coche-la quand tu as fini.",
+      "youGotIt": "Bien joué ! +{n}",
+      "finishYoursFirst": "Finis d'abord la tienne",
+      "refused": {
+        "grabbed": "{name} s'occupe déjà de celle-là.",
+        "taken": "{name} a déjà fait celle-là.",
+        "limit": "{name} doit d'abord finir ou rendre son autre tâche bonus.",
+        "notYours": "Cette tâche bonus n'est pas pour {name}.",
+        "notToday": "Cette tâche bonus n'est pas prévue aujourd'hui.",
+        "limitMany": "{name} doit d'abord finir ou rendre une autre tâche bonus."
+      },
+      "limitLine": "Finis d'abord celle que tu as prise, ou coche celle-ci si elle est faite.",
+      "youDidItOn": "Tu l'as faite {day}",
+      "didItOn": "{name} l'a faite {day}",
+      "limitLineMany": "Finis d'abord une de celles que tu as prises, ou coche celle-ci si elle est faite.",
+      "yours": "À toi",
+      "didItToday": "{name} l'a faite aujourd'hui",
+      "youDidItToday": "Tu l'as faite aujourd'hui",
+      "youreOnIt": "Tu t'en occupes"
+    },
+    "dayMenu": {
+      "didIt": "{name} l'a faite",
+      "notDone": "Finalement, {name} ne l'a pas faite",
+      "notTodayFor": "Pas aujourd'hui pour {name}",
+      "notTodayHint": "Pas de tickets, et {name} garde sa série",
+      "notTodayEveryone": "Pas aujourd'hui pour tout le monde",
+      "notTodayEveryoneHint": "Tous ceux qui ne l'ont pas encore faite",
+      "undoNotToday": "Finalement, c'est au programme aujourd'hui pour {name}",
+      "letGoOf": "Libérer la tâche prise par {name}",
+      "putBack": "La remettre en jeu",
+      "putBackHint": "Elle redevient à prendre",
+      "open": "Plus d'options pour {chore}",
+      "onTodayEveryone": "Finalement, c'est au programme aujourd'hui pour tout le monde"
+    },
+    "putBackConfirm": {
+      "title": "La remettre en jeu ?",
+      "description": "« {chore} » redevient libre. Les tickets déjà gagnés avec cette tâche ne sont pas perdus."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Qui s'en occupe ?",
       "addSubmit": "Ajouter la tâche",
       "saveSubmit": "Enregistrer la tâche",
-      "deleteButton": "Supprimer la tâche"
+      "deleteButton": "Supprimer la tâche",
+      "grabRulesNote": "Le nombre de tâches qu'une personne peut prendre, et jusqu'à quand elles lui restent réservées, se règlent pour toute la famille, sous Bonus dans l'onglet Gérer."
     },
     "choreDelete": {
       "title": "Supprimer « {name} » ?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Choisir un repas",
       "emptyLibrary": "Aucun repas enregistré pour l'instant. Tape celui de ce soir ci-dessus, ou enregistre ceux que tu cuisines souvent.",
-        "typePlaceholder": "Tape un repas, par exemple Tacos",
-        "typeLabel": "Taper un repas pour ce jour",
-        "typeAdd": "Ajouter",
+      "typePlaceholder": "Tape un repas, par exemple Tacos",
+      "typeLabel": "Taper un repas pour ce jour",
+      "typeAdd": "Ajouter",
       "prepTimeShort": "{minutes} min",
       "removeMealButton": "Retirer le repas",
       "subtitle": "{slot} · {day}"
@@ -752,5 +802,13 @@
       "body": "Les photos apparaîtront ici dès qu'un diaporama sera sur l'un de vos écrans."
     },
     "howTo": "Ajoutez-le depuis un ordinateur : ouvrez {url} et posez-le sur un écran."
+  },
+  "choreSettings": {
+    "title": "Paramètres des tâches",
+    "grabbingHeading": "Prendre des tâches bonus",
+    "letGoHint": "Un adulte peut toujours libérer une tâche prise par quelqu'un : touche le bouton ••• à côté de la tâche dans l'onglet Aujourd'hui.",
+    "save": "Enregistrer",
+    "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
+    "changeAriaLabel": "Modifier la façon de prendre les tâches bonus"
   }
 }

@@ -48,7 +48,9 @@ export default function ChoreHistoryBanner({ viewingDate, canEdit }: ChoreHistor
     >
       <span>
         {t('choresTab.history.editingPrefix')}
-        <strong style={{ fontWeight: 700 }}>{formatBannerDate(viewingDate, locale)}</strong>
+        {/* A short month that ends in a dot ("Sept.") meets the suffix's own
+            full stop, which every locale opens with: keep one, not "Sept.. Tickets". */}
+        <strong style={{ fontWeight: 700 }}>{formatBannerDate(viewingDate, locale).replace(/\.$/, '')}</strong>
         {t('choresTab.history.editingSuffix')}
       </span>
       <span style={{ fontSize: 11, opacity: 0.75 }}>{t('choresTab.history.editingNote')}</span>

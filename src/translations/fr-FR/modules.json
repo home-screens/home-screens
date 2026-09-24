@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Sélectionne au moins une personne ou un groupe",
         "selectAtLeastOneDay": "Sélectionne au moins un jour",
         "familyNotReady": "Ta famille est encore en cours de chargement. Réessaie dans un instant."
-      }
+      },
+      "kindLabel": "Type de tâche",
+      "kindRegular": "Habituelle",
+      "kindBonus": "Bonus",
+      "bonusHint": "Les tâches bonus rapportent juste des tickets en plus. Si personne ne les fait, ce n'est pas grave.",
+      "comesBackLabel": "Revient",
+      "claimLabel": "Qui gagne les tickets",
+      "claimFirstHint": "Une seule personne la prend et gagne les tickets.",
+      "claimEachHint": "Chaque personne ci-dessous peut la faire une fois, chaque fois qu'elle revient.",
+      "whoCanLabel": "Qui peut la faire",
+      "comesBackHint": {
+        "daily": "De nouveau libre chaque jour où elle apparaît, même si quelqu'un l'a faite la veille.",
+        "weekly": "Quand quelqu'un l'a faite, elle reste faite jusqu'au lundi suivant.",
+        "manual": "Elle reste faite jusqu'à ce qu'un adulte touche « La remettre en jeu » dans Tâches, sur le téléphone."
+      },
+      "groupsHintBonus": "Tous les membres d'un groupe peuvent la faire. Si quelqu'un rejoint le groupe plus tard, il pourra la faire aussi.",
+      "comesBackHintEach": {
+        "daily": "Chaque personne peut la faire une fois, chaque jour où elle apparaît.",
+        "weekly": "Chaque personne peut la faire une fois par semaine. Elle redevient libre le lundi.",
+        "manual": "Chaque personne peut la faire une fois, jusqu'à ce qu'un adulte la remette en jeu dans Tâches, sur le téléphone."
+      },
+      "onceBonusNote": "Les tâches bonus reviennent certains jours de la semaine, pas à une date. Pour une tâche à faire une seule fois : « Quand je la remets en jeu ». Elle reste alors faite dès que quelqu'un l'a faite."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "Cocher {chore} pour {member}",
       "undoChore": "Annuler {chore} pour {member}"
+    },
+    "bonus": {
+      "heading": "Bonus",
+      "bandHint": "Des tickets en plus. Prends une tâche, elle est à toi.",
+      "upForGrabs": "À prendre",
+      "everyoneCan": "Pour tous",
+      "comesBack": {
+        "daily": "Chaque jour",
+        "weekly": "Chaque semaine",
+        "manual": "Quand je la remets en jeu"
+      },
+      "comesBackSummary": {
+        "daily": "nouvelle chaque jour",
+        "weekly": "une fois par semaine",
+        "manual": "jusqu'à remise en jeu"
+      },
+      "grab": "Je la prends",
+      "onIt": "{name} s'en occupe",
+      "didIt": "{name} l'a faite",
+      "tapWhenDone": "Touche quand c'est fait",
+      "eachTickets": "{n} chacun",
+      "whoGrabbing": "Qui la prend ?",
+      "whoDidIt": "Qui l'a faite ?",
+      "hasOne": "En a déjà une",
+      "letGo": "Je la rends",
+      "notToday": "Pas aujourd'hui",
+      "cancel": "Annuler",
+      "more": "+{n} autres",
+      "moreTitle": "Autres tâches bonus",
+      "hasOneNamed": "A déjà pris : {chore}",
+      "refused": {
+        "grabbed": "{name} s'occupe déjà de celle-là",
+        "taken": "{name} a déjà fait celle-là",
+        "other": "Cette tâche bonus n'est pas libre pour le moment"
+      },
+      "didItOn": "{name} l'a faite {day}",
+      "bandHintEach": "Des tickets en plus. Chacun peut les faire une fois."
+    },
+    "settings": {
+      "grabLimitLabel": "Combien de tâches une personne peut-elle prendre à la fois ?",
+      "grabLimit": {
+        "1": "Une à la fois",
+        "2": "Deux à la fois",
+        "3": "Trois à la fois",
+        "0": "Sans limite"
+      },
+      "grabLimitHint": {
+        "1": "Il faut finir ou rendre sa tâche avant d'en prendre une autre.",
+        "0": "Chacun peut en prendre autant qu'il veut."
+      },
+      "grabHoldLabel": "Jusqu'à quand une tâche prise reste réservée ?",
+      "grabHold": {
+        "day": "Jusqu'au coucher",
+        "until-back": "Jusqu'à ce que la tâche revienne"
+      },
+      "grabHoldHint": {
+        "day": "Si elle n'est pas faite ce jour-là, n'importe qui peut la prendre la prochaine fois qu'elle revient.",
+        "until-back": "Elle lui reste réservée jusqu'à ce qu'elle soit finie ou rendue, ou que la tâche revienne (le lundi pour une tâche de la semaine). Une tâche que tu remets en jeu toi-même lui reste réservée une semaine au plus. Pratique pour les grosses tâches."
+      },
+      "summary": {
+        "limit": {
+          "1": "Une tâche prise à la fois",
+          "2": "Deux tâches prises à la fois",
+          "3": "Trois tâches prises à la fois",
+          "0": "Pas de limite de tâches prises"
+        },
+        "hold": {
+          "day": "une tâche prise reste réservée jusqu'au coucher",
+          "until-back": "une tâche prise reste réservée jusqu'à ce qu'elle revienne"
+        }
+      },
+      "change": "Modifier",
+      "close": "Fermer"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "Cocher {chore} pour {member}",
       "undoChore": "Annuler {chore} pour {member}",
       "undoCompleting": "Annuler la validation de {chore}",
-      "undoUncompleting": "Annuler le décochage de {chore}"
+      "undoUncompleting": "Annuler le décochage de {chore}",
+      "notToday": "{chore} : pas aujourd'hui pour {member}"
     },
     "timeOfDay": {
       "morning": "Matin",
@@ -745,7 +840,8 @@
         "thisWeek": "Cette semaine",
         "earlier": "Plus tôt"
       }
-    }
+    },
+    "saveFailed": "Ça n'a pas été enregistré. Réessaie."
   },
   "sports": {
     "loading": "Chargement des scores…",

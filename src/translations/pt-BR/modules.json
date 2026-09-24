@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Selecione pelo menos uma pessoa ou um grupo",
         "selectAtLeastOneDay": "Selecione pelo menos um dia",
         "familyNotReady": "Sua família ainda está carregando. Tente de novo em instantes."
-      }
+      },
+      "kindLabel": "Tipo de tarefa",
+      "kindRegular": "Normal",
+      "kindBonus": "Bônus",
+      "bonusHint": "Tarefas bônus só valem tickets. Ninguém fica devendo se não fizer.",
+      "comesBackLabel": "Volta a aparecer",
+      "claimLabel": "Quem ganha os tickets",
+      "claimFirstHint": "Uma pessoa pega a tarefa e ganha os tickets.",
+      "claimEachHint": "Cada pessoa abaixo pode fazer uma vez sempre que a tarefa voltar.",
+      "whoCanLabel": "Quem pode fazer",
+      "comesBackHint": {
+        "daily": "Fica livre de novo todo dia em que aparece, mesmo que alguém tenha feito no dia anterior.",
+        "weekly": "Depois que alguém faz, ela fica feita até a próxima segunda-feira.",
+        "manual": "Fica feita até um adulto tocar em \"Reabrir\" na aba Tarefas do celular."
+      },
+      "groupsHintBonus": "Todos em um grupo podem fazer. Quem entrar no grupo depois também pode.",
+      "comesBackHintEach": {
+        "daily": "Cada pessoa pode fazer uma vez em cada dia em que ela aparece.",
+        "weekly": "Cada pessoa pode fazer uma vez por semana. Ela fica livre de novo na segunda-feira.",
+        "manual": "Cada pessoa pode fazer uma vez, até um adulto tocar em \"Reabrir\" na aba Tarefas do celular."
+      },
+      "onceBonusNote": "Tarefas bônus aparecem nos dias da semana escolhidos, não em uma data. Para uma tarefa de uma vez só, escolha \"Quando eu reabrir\": ela fica feita assim que alguém fizer."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "Concluir {chore} para {member}",
       "undoChore": "Desfazer {chore} para {member}"
+    },
+    "bonus": {
+      "heading": "Bônus",
+      "bandHint": "Tickets extras. Pegou, é sua!",
+      "upForGrabs": "Quem pegar leva",
+      "everyoneCan": "Todos podem",
+      "comesBack": {
+        "daily": "Todo dia",
+        "weekly": "Toda semana",
+        "manual": "Quando eu reabrir"
+      },
+      "comesBackSummary": {
+        "daily": "volta todo dia",
+        "weekly": "volta toda semana",
+        "manual": "até ser reaberta"
+      },
+      "grab": "Pegar",
+      "onIt": "{name} está fazendo",
+      "didIt": "{name} fez",
+      "tapWhenDone": "Toque quando terminar",
+      "eachTickets": "{n} cada",
+      "whoGrabbing": "Quem vai pegar?",
+      "whoDidIt": "Quem fez?",
+      "hasOne": "Já tem uma",
+      "letGo": "Devolver",
+      "notToday": "Hoje não",
+      "cancel": "Cancelar",
+      "more": "+{n} a mais",
+      "moreTitle": "Mais tarefas bônus",
+      "hasOneNamed": "Já pegou: {chore}",
+      "refused": {
+        "grabbed": "{name} já está fazendo essa",
+        "taken": "{name} já fez essa",
+        "other": "Essa tarefa bônus não está livre agora"
+      },
+      "didItOn": "{name} fez {day}",
+      "bandHintEach": "Tickets extras. Todo mundo pode fazer uma vez."
+    },
+    "settings": {
+      "grabLimitLabel": "Quantas tarefas uma pessoa pode pegar ao mesmo tempo?",
+      "grabLimit": {
+        "1": "Uma por vez",
+        "2": "Duas por vez",
+        "3": "Três por vez",
+        "0": "Sem limite"
+      },
+      "grabLimitHint": {
+        "1": "Termine ou devolva a tarefa antes de pegar outra.",
+        "0": "Cada um pode pegar quantas quiser."
+      },
+      "grabHoldLabel": "Até quando a tarefa fica com quem pegou?",
+      "grabHold": {
+        "day": "Até a hora de dormir",
+        "until-back": "Até a tarefa voltar"
+      },
+      "grabHoldHint": {
+        "day": "Se não terminar no dia, qualquer um pode pegar da próxima vez que ela aparecer.",
+        "until-back": "Fica com a pessoa até ela terminar ou devolver, ou até a tarefa voltar (na segunda-feira, se for semanal). Uma tarefa que você mesmo reabre fica com a pessoa por no máximo uma semana. Bom para tarefas grandes."
+      },
+      "summary": {
+        "limit": {
+          "1": "Pegar uma por vez",
+          "2": "Pegar duas por vez",
+          "3": "Pegar três por vez",
+          "0": "Pegar sem limite"
+        },
+        "hold": {
+          "day": "a tarefa pegada vale até a hora de dormir",
+          "until-back": "a tarefa pegada vale até ela voltar"
+        }
+      },
+      "change": "Mudar",
+      "close": "Fechar"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "Concluir {chore} para {member}",
       "undoChore": "Desfazer {chore} para {member}",
       "undoCompleting": "Desfazer conclusão de {chore}",
-      "undoUncompleting": "Desfazer desmarcação de {chore}"
+      "undoUncompleting": "Desfazer desmarcação de {chore}",
+      "notToday": "{chore}: hoje não para {member}"
     },
     "timeOfDay": {
       "morning": "Manhã",
@@ -745,7 +840,8 @@
         "thisWeek": "Esta semana",
         "earlier": "Antes"
       }
-    }
+    },
+    "saveFailed": "Não deu para salvar. Tente de novo."
   },
   "sports": {
     "loading": "Carregando placares…",

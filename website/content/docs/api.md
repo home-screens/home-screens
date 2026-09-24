@@ -24,7 +24,7 @@ There are three levels of protection:
 
 Endpoints below that say "requires a valid session" are the first level. Endpoints that say "display access" are the second, and a browser session works for those too.
 
-A few endpoints are open at every level on purpose, and each one says so where it appears: `GET`/`POST /api/chores` and `GET`/`POST /api/rewards` (so the kid-facing `/chores` page keeps working when a password is set), `GET /api/plugins/registry`, `GET /api/system/build-id`, and `GET /api/plugins/auth/callback`.
+A few endpoints are open at every level on purpose, and each one says so where it appears: `GET`/`POST /api/chores`, `POST /api/chores/grab` and `GET`/`POST /api/rewards` (so the kid-facing `/chores` page keeps working when a password is set), `GET /api/plugins/registry`, `GET /api/system/build-id`, and `GET /api/plugins/auth/callback`.
 
 ### Using the display token
 
@@ -368,20 +368,27 @@ curl "http://<hub>:3000/api/display/power-state?display=kitchen&applied=on"
 
 ### GET /api/chores
 
-Returns chore completion records. Automatically purges entries older than 90 days. Public on the LAN with no authentication so the kid-facing `/chores` view works even when the editor password is set.
+Returns chore completion records, the bonus chores someone has grabbed, and when each "when I put it back" bonus chore was last put back. Automatically purges entries older than 90 days. Public on the LAN with no authentication so the kid-facing `/chores` view works even when the editor password is set.
 
 **Response:**
 ```json
 {
   "completions": [
-    {
-      "choreId": "chore-1",
-      "memberId": "member-1",
-      "date": "2026-03-08"
-    }
-  ]
+    { "choreId": "chore-1", "memberId": "member-1", "date": "2026-03-08", "at": "2026-03-08T07:42:10.000Z" },
+    { "choreId": "chore-2", "memberId": "member-1", "date": "2026-03-08", "status": "skipped" }
+  ],
+  "grabs": [
+    { "choreId": "chore-9", "memberId": "member-2", "date": "2026-03-08" }
+  ],
+  "bonusResets": { "chore-10": "2026-03-01T18:00:00.000-06:00" },
+  "today": "2026-03-08",
+  "settings": { "grabLimit": 1, "grabHold": "day" }
 }
 ```
+
+`today` is the household's calendar day: today in the time zone set in Settings (the hub's own clock when none is set). Every chore route uses it, and the family remote, the kids' page, the wall and the card take it as their today, so a screen with a wrong clock or in another time zone still shows the household's day.
+
+A completion with `"status": "skipped"` is a chore a grown-up marked "not today": it pays nothing and counts as neither done nor missed. `at` is when the entry was made; older entries do not have it.
 
 ### POST /api/chores
 
@@ -411,6 +418,10 @@ The `date` field must be a real `YYYY-MM-DD` calendar date within the last 90 da
 }
 ```
 
+The response also carries `grabs` and `bonusResets`, as `GET` does.
+
+Ticking a **bonus chore** follows its rules. The person must be someone it is open to. An up-for-grabs chore can be finished once each time it comes round, and only by whoever grabbed it, if anyone has. A refusal is a `409` with a `reason` (`not-yours`, `taken` or `grabbed`) and, for `taken` and `grabbed`, the `memberId` who has it. An everyone-can chore already done this time round is a no-op (`changed: false`). A bonus chore is also refused (`not-today`) on a day it does not show up, and a tick for any day of the round someone is holding today is refused while they hold it. A refusal carries `completions`, `grabs` and `bonusResets` as they stand. Finishing an up-for-grabs chore in today's round ends its grab; ticking an earlier round (yesterday's daily chore) leaves today's grab alone; un-ticking one that finished the person's own grab today gives the grab back, unless they now hold as many grabs as the household allows, when it goes back up for grabs. A completion that finished a grab carries `endedGrab`, the date of that grab, and an un-tick hands the grab back with that same date. Ticking a chore marked "not today" replaces the mark.
+
 `changed` reports whether this call actually flipped anything, `false` means the directional request found the chore already in the requested state (and no points moved). `rewards` is the full updated reward state and is included whenever the toggled chore is worth more than zero points, so the client doesn't have to re-fetch `/api/rewards`. It is omitted for zero-point chores. `overspent` is only present in the deficit case described above.
 
 ### GET /api/chores/today
@@ -437,11 +448,33 @@ Returns the **resolved** per-member chore list for one day, who actually owes wh
 }
 ```
 
-Every member appears, including those with no chores that day (empty `chores` array).
+Every member appears, including those with no chores that day (empty `chores` array). A chore marked "not today" for someone is left out of their list.
+
+Bonus chores are owed by nobody, so they are not in any member's list. They come in their own `bonus` array: each has `id`, `name`, `points`, `kind` (`up-for-grabs` or `everyone-can`) and `openTo` (member IDs). An up-for-grabs one has `state`: `{ "status": "open" }`, `{ "status": "grabbed", "memberId": ... }` or `{ "status": "done", "memberId": ..., "date": ... }`. An everyone-can one has `doneBy`, the member IDs who have done it this time round.
+
+### POST /api/chores/grab
+
+Grabs an up-for-grabs bonus chore for someone, or lets their grab go. Public on the LAN like `POST /api/chores`, so the kids' page and the wall can grab. A grab is always for the hub's today, whatever day the asking screen thinks it is.
+
+**Body:** `{ "choreId": "chore-9", "memberId": "member-2", "action": "grab" }` (or `"action": "let-go"`). A new grab is the only one on its chore.
+
+A grab is refused with `409` and a `reason`: `not-bonus` (not an up-for-grabs chore), `not-yours`, `not-today` (it does not show up today), `taken` or `grabbed` (with the `memberId` who has it), or `limit` (the person already holds as many as the household allows; only chores that show up today count). A refusal carries the current lists, like a tick's. Letting go works for anyone's grab. **Response:** `{ "completions": [...], "grabs": [...], "bonusResets": {...} }`.
+
+### POST /api/chores/skip
+
+Marks a chore "not today" for some of the people who have it that day, or takes the mark away. Requires a valid session. **Body:** `{ "choreId": "chore-1", "memberIds": ["member-1"], "date": "2026-03-08", "skipped": true }`. The date must be within the last 90 days, and everyone listed must have the chore that day (a bonus chore is refused). Someone who already did the chore that day keeps it done. **Response:** as `POST /api/chores/grab`.
+
+### POST /api/chores/put-back
+
+Opens a done "when I put it back" bonus chore up again. Requires a valid session. **Body:** `{ "choreId": "chore-10" }`. The completions that paid for it stay; they just stop counting. **Response:** as `POST /api/chores/grab`.
+
+### PUT /api/chores/settings
+
+Saves the household chore settings. Requires a valid session. **Body:** `{ "grabLimit": 1, "grabHold": "day" }`. `grabLimit` is how many up-for-grabs chores one person can hold at once: `1`, `2`, `3`, or `0` for no limit. `grabHold` is how long an unfinished grab lasts: `day` (until the end of the day) or `until-back` (until the chore comes back). Anything else is answered with `400`. **Response:** `{ "settings": {...} }`.
 
 ### GET /api/chores/data
 
-Returns `{ "chores": [...], "revision": "..." }` from `data/chores.json`. Display access. A save has to quote the `revision` back. Each definition contains `id`, `name`, `emoji`, `points`, frequency fields, `assigneeIds`, an optional `assigneeGroupIds`, rotation and, for a scheduled chore, a `schedule` map of member ID to days plus an optional `groupSchedule` map of group ID to days. A save is refused with a 400 when a `groupSchedule` row names a group that is not in the chore's `assigneeGroupIds`. Member IDs and group IDs refer to the `members` and `groups` returned by `/api/family`. `GET /api/chores/today` already expands groups for you.
+Returns `{ "chores": [...], "settings": {...}, "revision": "..." }` from `data/chores.json`. Display access. `settings` are the household chore settings (see `PUT /api/chores/settings`); the `revision` covers the chore list only. A save has to quote the `revision` back. Each definition contains `id`, `name`, `emoji`, `points`, frequency fields, `assigneeIds`, an optional `assigneeGroupIds`, rotation and, for a scheduled chore, a `schedule` map of member ID to days plus an optional `groupSchedule` map of group ID to days. A bonus chore carries `bonus: { "claim": "first" | "each", "comesBack": "daily" | "weekly" | "manual" }` and is always `frequency: "daily"` and `rotation: "fixed"`; a save that breaks that is refused with a `400`. A save is refused with a 400 when a `groupSchedule` row names a group that is not in the chore's `assigneeGroupIds`. Member IDs and group IDs refer to the `members` and `groups` returned by `/api/family`. `GET /api/chores/today` already expands groups for you.
 
 ### PUT /api/chores/data
 

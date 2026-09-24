@@ -615,7 +615,28 @@
         "selectAtLeastOnePersonOrGroup": "Kies minstens één persoon of groep",
         "selectAtLeastOneDay": "Kies minstens één dag",
         "familyNotReady": "Je gezin wordt nog geladen. Probeer het zo nog eens."
-      }
+      },
+      "kindLabel": "Soort klusje",
+      "kindRegular": "Gewoon",
+      "kindBonus": "Bonus",
+      "bonusHint": "Bonusklusjes leveren alleen extra tickets op. Het is nooit erg als iemand ze niet doet.",
+      "comesBackLabel": "Komt terug",
+      "claimLabel": "Wie krijgt de tickets",
+      "claimFirstHint": "Eén persoon pakt het en krijgt de tickets.",
+      "claimEachHint": "Iedereen hieronder mag het één keer doen, elke keer dat het terugkomt.",
+      "whoCanLabel": "Wie mag het doen",
+      "comesBackHint": {
+        "daily": "Is weer te doen op elke dag dat het op de lijst staat, ook als iemand het de dag ervoor al deed.",
+        "weekly": "Heeft iemand het gedaan, dan is het klaar tot volgende maandag.",
+        "manual": "Blijft klaar tot een volwassene op de telefoon bij Klusjes op “Weer openzetten” tikt."
+      },
+      "groupsHintBonus": "Iedereen in een groep mag het doen. Wie later bij de groep komt, mag het ook.",
+      "comesBackHintEach": {
+        "daily": "Iedereen mag het één keer doen op elke dag dat het op de lijst staat.",
+        "weekly": "Iedereen mag het één keer per week doen. Op maandag begint het opnieuw.",
+        "manual": "Iedereen mag het één keer doen, tot een volwassene op de telefoon bij Klusjes op “Weer openzetten” tikt."
+      },
+      "onceBonusNote": "Bonusklusjes komen terug op hun dagen, niet op een datum. Voor een klusje van één keer kies je “Als ik het weer openzet”: dan blijft het klaar zodra iemand het gedaan heeft."
     },
     "unknownAssignee": "?",
     "store": {
@@ -635,6 +656,79 @@
     "ariaLabels": {
       "completeChore": "{chore} afvinken voor {member}",
       "undoChore": "{chore} voor {member} ongedaan maken"
+    },
+    "bonus": {
+      "heading": "Bonus",
+      "bandHint": "Extra tickets. Pak er een en het is van jou.",
+      "upForGrabs": "Te pakken",
+      "everyoneCan": "Iedereen mag",
+      "comesBack": {
+        "daily": "Elke dag",
+        "weekly": "Elke week",
+        "manual": "Als ik het weer openzet"
+      },
+      "comesBackSummary": {
+        "daily": "elke dag opnieuw",
+        "weekly": "één keer per week",
+        "manual": "tot je het weer openzet"
+      },
+      "grab": "Pakken",
+      "onIt": "{name} is ermee bezig",
+      "didIt": "{name} heeft het gedaan",
+      "tapWhenDone": "Tik als je klaar bent",
+      "eachTickets": "{n} per persoon",
+      "whoGrabbing": "Wie pakt het?",
+      "whoDidIt": "Wie heeft het gedaan?",
+      "hasOne": "Heeft er al een",
+      "letGo": "Teruggeven",
+      "notToday": "Vandaag niet",
+      "cancel": "Annuleren",
+      "more": "+{n} meer",
+      "moreTitle": "Meer bonusklusjes",
+      "hasOneNamed": "Heeft al: {chore}",
+      "refused": {
+        "grabbed": "{name} is daar al mee bezig",
+        "taken": "{name} heeft die al gedaan",
+        "other": "Dat bonusklusje kan nu even niet"
+      },
+      "didItOn": "{name} heeft het {day} gedaan",
+      "bandHintEach": "Extra tickets. Iedereen mag deze één keer doen."
+    },
+    "settings": {
+      "grabLimitLabel": "Hoeveel mag één persoon tegelijk pakken?",
+      "grabLimit": {
+        "1": "Eén tegelijk",
+        "2": "Twee tegelijk",
+        "3": "Drie tegelijk",
+        "0": "Onbeperkt"
+      },
+      "grabLimitHint": {
+        "1": "Maak het eerst af of geef het terug voordat je een ander pakt.",
+        "0": "Iedereen mag er zoveel pakken als ze willen."
+      },
+      "grabHoldLabel": "Hoe lang blijft een gepakt klusje van iemand?",
+      "grabHold": {
+        "day": "Tot bedtijd",
+        "until-back": "Tot het klusje terugkomt"
+      },
+      "grabHoldHint": {
+        "day": "Is het die dag niet af, dan mag iedereen het pakken als het weer aan de beurt is.",
+        "until-back": "Het blijft van die persoon tot die het afmaakt of teruggeeft, of tot het klusje terugkomt (bij een wekelijks klusje op maandag). Een klusje dat je zelf weer openzet, blijft hoogstens een week van die persoon. Handig voor grote klussen."
+      },
+      "summary": {
+        "limit": {
+          "1": "Eén klusje tegelijk pakken",
+          "2": "Twee klusjes tegelijk pakken",
+          "3": "Drie klusjes tegelijk pakken",
+          "0": "Onbeperkt pakken"
+        },
+        "hold": {
+          "day": "een gepakt klusje blijft van iemand tot bedtijd",
+          "until-back": "een gepakt klusje blijft van iemand tot het terugkomt"
+        }
+      },
+      "change": "Wijzigen",
+      "close": "Sluiten"
     }
   },
   "fullscreen-chore-chart": {
@@ -664,7 +758,8 @@
       "completeChore": "{chore} afvinken voor {member}",
       "undoChore": "{chore} voor {member} ongedaan maken",
       "undoCompleting": "Afvinken van {chore} ongedaan maken",
-      "undoUncompleting": "Terugdraaien van {chore} ongedaan maken"
+      "undoUncompleting": "Terugdraaien van {chore} ongedaan maken",
+      "notToday": "{chore}: vandaag niet voor {member}"
     },
     "timeOfDay": {
       "morning": "Ochtend",
@@ -745,7 +840,8 @@
         "thisWeek": "Deze week",
         "earlier": "Eerder"
       }
-    }
+    },
+    "saveFailed": "Dat is niet opgeslagen. Probeer het nog eens."
   },
   "sports": {
     "loading": "Uitslagen laden…",

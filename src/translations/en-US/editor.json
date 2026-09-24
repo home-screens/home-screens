@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Add your household once. Names, colors and emoji follow each person across chores, rewards, calendars and school timetables."
+      "description": "Add your household once. Names, colors and emoji follow each person across chores, rewards, calendars and school timetables.",
+      "chores": {
+        "heading": "Bonus chores",
+        "description": "How bonus chores are grabbed. The phone's Chore settings change the same two things.",
+        "grabLimitLabel": "How many bonus chores one person can grab at once",
+        "grabHoldLabel": "When a grab of a bonus chore ends",
+        "saveFailed": "That didn't save. Try again.",
+        "saved": "Saved"
+      }
     },
     "touchAlignment": {
       "label": "Touch alignment",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Weekly Schedule",
       "coverageLabel": "Coverage: {covered} of 7 days",
       "addSubmit": "Add Chore",
-      "saveSubmit": "Save"
+      "saveSubmit": "Save",
+      "grabRulesNote": "How many one person can grab, and when a grab ends, are set for the whole household, under Bonus in the chore list."
     },
     "preview": {
       "columnTitleNew": "New Chore",
@@ -2551,7 +2560,8 @@
       "noChores": "No chores",
       "weeklyTotalsHeading": "Weekly totals",
       "memberLine": "{chores} chores, {tickets} tickets"
-    }
+    },
+    "finishFormFirst": "Save or cancel the open form first."
   },
   "todoListModal": {
     "title": "Edit list",

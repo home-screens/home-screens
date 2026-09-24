@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Adicione sua família uma única vez. Nomes, cores e emojis acompanham cada pessoa nas tarefas, recompensas, calendários e horários escolares."
+      "description": "Adicione sua família uma única vez. Nomes, cores e emojis acompanham cada pessoa nas tarefas, recompensas, calendários e horários escolares.",
+      "chores": {
+        "heading": "Tarefas bônus",
+        "description": "Regras para pegar tarefas bônus. As Configurações das tarefas no celular mudam essas mesmas duas coisas.",
+        "grabLimitLabel": "Quantas tarefas bônus uma pessoa pode pegar ao mesmo tempo",
+        "grabHoldLabel": "Até quando uma tarefa bônus fica com quem pegou",
+        "saveFailed": "Não deu para salvar. Tente de novo.",
+        "saved": "Salvo"
+      }
     },
     "touchAlignment": {
       "label": "Alinhamento do toque",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Agenda semanal",
       "coverageLabel": "Cobertura: {covered} de 7 dias",
       "addSubmit": "Adicionar tarefa",
-      "saveSubmit": "Salvar"
+      "saveSubmit": "Salvar",
+      "grabRulesNote": "O número de tarefas que uma pessoa pode pegar, e até quando, vale para a família toda: veja em Bônus, na lista de tarefas."
     },
     "preview": {
       "columnTitleNew": "Nova tarefa",
@@ -2551,7 +2560,8 @@
       "noChores": "Sem tarefas",
       "weeklyTotalsHeading": "Totais da semana",
       "memberLine": "{chores} tarefas, {tickets} tickets"
-    }
+    },
+    "finishFormFirst": "Salve ou cancele primeiro o formulário aberto."
   },
   "todoListModal": {
     "title": "Editar lista",

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readConfig } from '@/lib/config';
 import { readChoreData } from '@/lib/chore-data';
+import { isValidBonus } from '@/lib/chore-bonus';
 import { readCompletions } from '@/lib/chore-completion-data';
 import { readMealData } from '@/lib/meal-data';
 import { readRewardData } from '@/lib/reward-data';
@@ -281,6 +282,7 @@ function validateContentSections(body: FamilyRestoreContent): string | null {
   const stringArray = (value: unknown): value is string[] => Array.isArray(value) && value.every((entry) => typeof entry === 'string');
   if (body.chores !== undefined && (!record(body.chores) || !Array.isArray(body.chores.chores)
     || body.chores.chores.some((chore) => !record(chore) || typeof chore.id !== 'string' || !stringArray(chore.assigneeIds) || (chore.assigneeGroupIds !== undefined && !stringArray(chore.assigneeGroupIds))
+      || !isValidBonus(chore.bonus)
       || [chore.schedule, chore.groupSchedule].some((rows) => rows !== undefined && (!record(rows) || Object.values(rows).some((days) => !Array.isArray(days) || days.some((day) => !Number.isInteger(day) || day < 0 || day > 6))))))) return 'Chore data needs valid chores and assignee lists.';
   if (body.choreCompletions !== undefined && (!record(body.choreCompletions) || !Array.isArray(body.choreCompletions.completions)
     || body.choreCompletions.completions.some((entry) => !record(entry) || typeof entry.choreId !== 'string' || typeof entry.memberId !== 'string' || typeof entry.date !== 'string'))) return 'Chore history needs valid completion entries.';

@@ -4,11 +4,13 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
-import { Sunrise, Sun, Sunset, Clock, Settings } from 'lucide-react';
+import { Sunrise, Sun, Sunset, Clock, Settings, Hand } from 'lucide-react';
 import type {
   ChoreChartConfig,
   ChoreDefinition,
   ChoreCompletion,
+  ChoreGrab,
+  ChoreSettings,
   ChoreTimeOfDay,
   ChoreToggleRequest,
   ChoreToggleResponse,
@@ -17,7 +19,10 @@ import { asChoreSnapshot, ChoreSession, type ChoreSnapshot } from '@/lib/chore-c
 import {
   resolveAssignee,
   choreAppliesToday,
+  buildCompletionSet,
   completionKey,
+  isChoreComplete,
+  isChoreSkipped,
   todayStr,
   addDaysISO,
   TIME_OF_DAY_META,
@@ -25,12 +30,17 @@ import {
   getCurrentTimeOfDay,
 } from '@/components/modules/chore-chart/types';
 import { planChoreToggle } from '@/components/modules/chore-chart/chore-toggle';
+import { atGrabLimit, canPutBack, readChoreSettings, countsSinceReset, resetViewDay, resolveBonusFor, type BonusMarks, type BonusRefusal } from '@/lib/chore-bonus';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoreHistoryBanner from './ChoreHistoryBanner';
 import ChoreRow from './ChoreRow';
+import BonusChoreRow from './BonusChoreRow';
+import ChoreActionSheet, { type ChoreAction } from './ChoreActionSheet';
+import ChoreSettingsSheet from './ChoreSettingsSheet';
+import ConfirmSheet from './ConfirmSheet';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
 import { logger } from '@/lib/logger';
@@ -49,6 +59,8 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
  * on whichever grown-up happens to be first in the list.
  */
 const SELECTED_MEMBER_STORAGE_KEY = 'hs-chores-selected-member';
+/** How long a message under a bonus row ("Cleo is already on that one") stays. */
+const ROW_NOTICE_MS = 5000;
 /** How long the "all done" celebration stays up. */
 const CELEBRATION_MS = 4000;
 
@@ -107,10 +119,15 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   // A list the hub handed us (a reload, or a conflict's current copy) is
   // already saved: the auto-save below must not send it straight back.
   const adoptedRef = useRef<ChoreDefinition[] | null>(null);
+  const [choreSettings, setChoreSettings] = useState<ChoreSettings>(choreData.settings);
+  // Bumped when a settings save starts and ends: a poll that overlapped one
+  // read the file before it and would put the old rules back.
+  const settingsSaveRef = useRef(0);
   const adoptChores = useCallback((snapshot: ChoreSnapshot) => {
     adoptedRef.current = snapshot.chores;
     session.adopt(snapshot);
     setChores(snapshot.chores);
+    setChoreSettings(snapshot.settings);
   }, [session]);
   // Only the exact empty list produced by a deliberate last-chore deletion
   // may bypass the server guard. Missing props or reload data never grant it.
@@ -120,9 +137,11 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
 
   // Re-render at midnight and advance the viewing window if the user is on "today"
   // Both initial values come from a single snapshot so they can't straddle midnight.
-  const initialDate = useRef(todayStr()).current;
+  // The hub's day as the page was drawn: the first paint matches it on any clock.
+  const initialDate = useRef(choreData.today ?? todayStr()).current;
   const [dateKey, setDateKey] = useState(initialDate);
   const [viewingDate, setViewingDate] = useState<string>(initialDate);
+  const [hubToday, setHubToday] = useState<string | null>(choreData.today ?? null);
 
   // ── Today view state ──
   // Shared with the Rewards view: the kid who checked off their chores is the
@@ -131,6 +150,24 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     () => defaultMemberFor(members, groups, chores, initialDate),
   );
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
+  // Who is holding which bonus chore, and when each "put it back" one was last put back.
+  const [grabs, setGrabs] = useState<ChoreGrab[]>([]);
+  const [bonusResets, setBonusResets] = useState<Record<string, string>>({});
+  // The grown-up's menu for one chore, opened by holding it; and the settings sheet.
+  const [menuChoreId, setMenuChoreId] = useState<string | null>(null);
+  // "Cleo is already on that one": said under the row that was tapped, and
+  // gone after a few seconds, not in a red banner at the top of the page.
+  // Kept with the person and day it was said to: switching to another child
+  // or day must not show it under their row.
+  const [rowNotice, setRowNotice] = useState<{ choreId: string; memberId: string; date: string; text: string; limit?: boolean } | null>(null);
+  useEffect(() => {
+    if (!rowNotice) return;
+    const id = setTimeout(() => setRowNotice(null), ROW_NOTICE_MS);
+    return () => clearTimeout(id);
+  }, [rowNotice]);
+  // A put-back waiting for the grown-up to confirm it.
+  const [putBackChoreId, setPutBackChoreId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
   // Ticket balances per member, shown beside the progress header so a kid sees
   // the count grow as they check things off. null until the first fetch lands.
@@ -214,32 +251,36 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     }
   }, [members, groups, selectedMemberId, chores, initialDate]);
 
+  // Every chore route answers with the same lists. Each is kept identity-
+  // stable when its content is unchanged, so a quiet poll re-renders nothing.
+  const applyMarks = useCallback((data: Partial<BonusMarks>) => {
+    const keep = <T,>(next: T | undefined) => (prev: T): T =>
+      next === undefined || JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+    setCompletions(keep(data.completions as ChoreCompletion[] | undefined));
+    setGrabs(keep(data.grabs as ChoreGrab[] | undefined));
+    setBonusResets(keep(data.bonusResets as Record<string, string> | undefined));
+  }, []);
+
   // Fetch completions
   const fetchCompletions = useCallback(async () => {
     // Cancel any prior in-flight poll
     fetchAbortRef.current?.abort();
     const controller = new AbortController();
     fetchAbortRef.current = controller;
+    const settingsSave = settingsSaveRef.current;
     try {
       const res = await editorFetch('/api/chores', { signal: controller.signal });
       if (!res.ok) return;
       const data = await res.json();
       if (!isMountedRef.current || controller.signal.aborted) return;
-      setCompletions((prev) => {
-        const next: ChoreCompletion[] = data.completions ?? [];
-        if (
-          prev.length === next.length &&
-          prev.every((c, i) => {
-            const n = next[i];
-            return c.choreId === n.choreId && c.memberId === n.memberId && c.date === n.date;
-          })
-        ) {
-          return prev; // identity-stable when content unchanged
-        }
-        return next;
-      });
+      applyMarks(data);
+      if (typeof data?.today === 'string') setHubToday(data.today);
+      if (data?.settings && settingsSave === settingsSaveRef.current) {
+        const next = readChoreSettings(data.settings);
+        setChoreSettings((prev) => (prev.grabLimit === next.grabLimit && prev.grabHold === next.grabHold ? prev : next));
+      }
     } catch { /* silent (includes AbortError) */ }
-  }, []);
+  }, [applyMarks]);
 
   const showBalances = !!config.showPoints;
   const fetchBalances = useCallback(async () => {
@@ -268,29 +309,31 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   useEffect(() => {
     const check = () => {
       const now = todayStr();
-      if (now !== dateKey) {
-        setDateKey(now);
-        // If the user was parked on what used to be today, walk them forward.
-        // If they're explicitly viewing a past day, leave them alone.
-        setViewingDate((prev) => (prev === dateKey ? now : prev));
-      }
+      if (now !== dateKey) setDateKey(now);
     };
     const timer = setInterval(check, 30_000);
     return () => clearInterval(timer);
   }, [dateKey]);
 
-  const realToday = dateKey;
+  // Today is the hub's calendar day once it has said so: a phone with a wrong
+  // clock (or near midnight) must not show or tick a different day than the
+  // wall and the other phones. The phone's own clock covers the first paint
+  // and a hub that cannot be reached.
+  const realToday = hubToday ?? dateKey;
+  // If the user was parked on what used to be today, walk them forward.
+  // If they're explicitly viewing a past day, leave them alone.
+  const shownToday = useRef(realToday);
+  useEffect(() => {
+    const before = shownToday.current;
+    if (before === realToday) return;
+    shownToday.current = realToday;
+    setViewingDate((prev) => (prev === before ? realToday : prev));
+  }, [realToday]);
   const isViewingPast = viewingDate !== realToday;
   const canEdit = !isViewingPast || isAdmin;
 
   // Completion lookup
-  const completionSet = useMemo(() => {
-    const set = new Set<string>();
-    for (const c of completions) {
-      set.add(completionKey(c.choreId, c.memberId, c.date));
-    }
-    return set;
-  }, [completions]);
+  const completionSet = useMemo(() => buildCompletionSet(completions), [completions]);
 
   // Assignments for the selected member on the currently-viewed date.
   // Authored order within each time-of-day section is kept as-is: the
@@ -299,7 +342,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   const myAssignments = useMemo(() => {
     const day = viewingDate;
     const dayOfWeek = new Date(day + 'T00:00:00').getDay();
-    const assignments: { choreId: string; choreName: string; choreEmoji: string; timeOfDay: ChoreTimeOfDay; points: number; isCompleted: boolean }[] = [];
+    const assignments: { choreId: string; choreName: string; choreEmoji: string; timeOfDay: ChoreTimeOfDay; points: number; isCompleted: boolean; isSkipped: boolean }[] = [];
 
     for (const chore of chores) {
       if (!choreAppliesToday(chore, dayOfWeek, day)) continue;
@@ -312,7 +355,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         choreEmoji: chore.emoji,
         timeOfDay: chore.timeOfDay,
         points: chore.points,
-        isCompleted: completionSet.has(completionKey(chore.id, selectedMemberId, day)),
+        isCompleted: isChoreComplete(completionSet, chore.id, selectedMemberId, day),
+        isSkipped: isChoreSkipped(completionSet, chore.id, selectedMemberId, day),
       });
     }
 
@@ -332,8 +376,25 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     return groups;
   }, [myAssignments]);
 
-  const totalDone = myAssignments.filter((a) => a.isCompleted).length;
-  const totalCount = myAssignments.length;
+  // A chore marked "not today" is owed by nobody, so it is out of the count.
+  const owed = myAssignments.filter((a) => !a.isSkipped);
+  const totalDone = owed.filter((a) => a.isCompleted).length;
+  const totalCount = owed.length;
+
+  // Bonus chores open to the person picked. They never count; they only pay.
+  const marks = useMemo<BonusMarks>(() => ({ completions, grabs, bonusResets }), [completions, grabs, bonusResets]);
+  const bonusItems = useMemo(
+    () => resolveBonusFor(chores, members, viewingDate, marks, groups, choreSettings, realToday)
+      // A put-back chore done on an earlier day is a grown-up's to reopen; kids do not see it.
+      .filter((item) => item.eligibleIds.includes(selectedMemberId) && (isAdmin || !item.waiting)),
+    [chores, members, viewingDate, marks, groups, choreSettings, selectedMemberId, isAdmin, realToday],
+  );
+  const selectedAtLimit = atGrabLimit(selectedMemberId, chores, realToday, marks, choreSettings, groups);
+  const onlyBonus = myAssignments.length === 0 && bonusItems.length > 0;
+  // "Finish your grab first" goes as soon as it stops being true.
+  const limitNoticeStale = !!rowNotice?.limit && !selectedAtLimit;
+  useEffect(() => { if (limitNoticeStale) setRowNotice(null); }, [limitNoticeStale]);
+
 
   // Per-member completion counts for tabs (on the currently-viewed date)
   const memberTabStats = useMemo(() => {
@@ -346,8 +407,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
       for (const c of chores) {
         if (!choreAppliesToday(c, dayOfWeek, day)) continue;
         if (!resolveAssignee(c, day, groups).includes(member.id)) continue;
+        if (isChoreSkipped(completionSet, c.id, member.id, day)) continue;
         total++;
-        if (completionSet.has(completionKey(c.id, member.id, day))) done++;
+        if (isChoreComplete(completionSet, c.id, member.id, day)) done++;
       }
       stats[member.id] = { total, done };
     }
@@ -366,10 +428,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     // Was this the last open chore of the day for this member? Decided before
     // the optimistic update so the celebration fires exactly once, on the tap
     // that finished the list (not on a poll that happens to agree).
-    const target = myAssignments.find((a) => a.choreId === choreId);
+    const target = owed.find((a) => a.choreId === choreId);
     const finishesEverything =
       !!target && !target.isCompleted && !isViewingPast &&
-      myAssignments.every((a) => a.isCompleted || a.choreId === choreId);
+      owed.every((a) => a.isCompleted || a.choreId === choreId);
     if (finishesEverything && selectedMember) {
       clearTimeout(celebrationTimer.current);
       setCelebration({ name: selectedMember.name, key: Date.now() });
@@ -382,7 +444,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     // leave it undone. Worked out here rather than inside a state updater:
     // React may run an updater during the next render instead of at the call,
     // and the direction has to be known now, for the request below.
-    const plan = planChoreToggle(completions, choreId, selectedMemberId, day);
+    const chore = chores.find((c) => c.id === choreId);
+    const plan = planChoreToggle(completions, choreId, selectedMemberId, day, (c) => !chore || countsSinceReset(chore, c, bonusResets, resetViewDay(day, realToday)));
 
     // Optimistic update
     setCompletions(plan.completions);
@@ -399,10 +462,22 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reqBody),
       });
+      if (res.status === 409) {
+        // A bonus chore someone else got to first: say who under the row, and
+        // show where it stands now from the lists the answer carries.
+        const refused = await res.json().catch(() => null);
+        if (!isMountedRef.current) return;
+        if (refused?.completions) applyMarks(refused);
+        else void fetchCompletions();
+        if (!quietRefusal(refused?.reason)) {
+          setRowNotice({ choreId, memberId: selectedMemberId, date: day, text: refused?.reason ? refusalMessage(refused) : t('choresTab.saveFailed') });
+        }
+        return;
+      }
       if (!res.ok) throw new Error('Failed to toggle');
       const data: ChoreToggleResponse = await res.json();
       if (!isMountedRef.current) return;
-      setCompletions(data.completions ?? []);
+      applyMarks(data);
       if (data.rewards?.balances) setBalances(data.rewards.balances);
       if (data.overspent) {
         const { memberId, balance } = data.overspent;
@@ -426,10 +501,165 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     }
   };
 
-  const dayName = (() => {
-    const [y, m, d] = viewingDate.split('-').map(Number);
+  const nameOf = (id: string | undefined) => members.find((m) => m.id === id)?.name ?? t('choresTab.overspentSomeone');
+  // On the kids' page a "limit" refusal needs no notice: the lists it carries
+  // redraw the row with its own "Finish your grab first" line, said to "you".
+  const quietRefusal = (reason: BonusRefusal | undefined) => reason === 'limit' && !isAdmin;
+  function refusalMessage(refused: { reason: BonusRefusal; memberId?: string }): string {
+    switch (refused.reason) {
+      case 'grabbed': return t('choresTab.bonus.refused.grabbed', { name: nameOf(refused.memberId) });
+      case 'taken': return t('choresTab.bonus.refused.taken', { name: nameOf(refused.memberId) });
+      case 'limit': return t(choreSettings.grabLimit > 1 ? 'choresTab.bonus.refused.limitMany' : 'choresTab.bonus.refused.limit', { name: nameOf(selectedMemberId) });
+      case 'not-yours': return t('choresTab.bonus.refused.notYours', { name: nameOf(selectedMemberId) });
+      case 'not-today': return t('choresTab.bonus.refused.notToday');
+      default: return t('choresTab.saveFailed');
+    }
+  }
+
+  // Grab, let go, not today and put back all answer with the chore lists.
+  const postMarks = async (url: string, body: unknown, busyKey: string, rowChoreId?: string) => {
+    setToggling((prev) => new Set(prev).add(busyKey));
+    try {
+      const res = await editorFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => null);
+      if (!isMountedRef.current) return;
+      if (!res.ok) {
+        if (res.status === 409 && data?.reason && rowChoreId) {
+          if (data.completions) applyMarks(data);
+          else void fetchCompletions();
+          if (!quietRefusal(data.reason)) setRowNotice({ choreId: rowChoreId, memberId: selectedMemberId, date: viewingDate, text: refusalMessage(data) });
+          return;
+        }
+        setLastWarning(t('choresTab.saveFailed'));
+        void fetchCompletions();
+        return;
+      }
+      applyMarks(data ?? {});
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      if (isMountedRef.current) {
+        setLastWarning(t('choresTab.saveFailed'));
+        void fetchCompletions();
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setToggling((prev) => {
+          const next = new Set(prev);
+          next.delete(busyKey);
+          return next;
+        });
+      }
+    }
+  };
+  const grabChore = (choreId: string) =>
+    postMarks('/api/chores/grab', { choreId, memberId: selectedMemberId, action: 'grab' }, `bonus-${choreId}`, choreId);
+  const letGoOfChore = (choreId: string, memberId: string) =>
+    postMarks('/api/chores/grab', { choreId, memberId, action: 'let-go' }, `bonus-${choreId}`, choreId);
+  const markNotToday = (choreId: string, memberIds: string[], skipped: boolean) =>
+    postMarks('/api/chores/skip', { choreId, memberIds, date: viewingDate, skipped }, completionKey(choreId, selectedMemberId, viewingDate));
+  const putBack = (choreId: string) => postMarks('/api/chores/put-back', { choreId }, `bonus-${choreId}`);
+
+  const saveSettings = async (next: ChoreSettings): Promise<boolean> => {
+    settingsSaveRef.current += 1;
+    try {
+      const res = await editorFetch('/api/chores/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(next),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      setChoreSettings(data.settings ?? next);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      settingsSaveRef.current += 1;
+    }
+  };
+
+  // What the grown-up's menu offers for a chore, for the person picked, on the
+  // day on screen; null when there is nothing to offer, and then the row has
+  // no ••• and no hold.
+  const menuFor = (choreId: string): { title: string; actions: ChoreAction[] } | null => {
+    const chore = chores.find((c) => c.id === choreId);
+    const person = selectedMember;
+    if (!chore || !person) return null;
+    const actions: ChoreAction[] = [];
+    if (chore.bonus) {
+      const item = bonusItems.find((i) => i.chore.id === chore.id);
+      if (!item) return null;
+      const doneOn = item.grab ? (item.grab.status === 'done' && item.grab.memberId === person.id ? item.grab.date : undefined) : item.doneOn[person.id];
+      // On an earlier day of today's round, a held chore is finished or let go
+      // from today's page: a tick here would finish today's job.
+      const held = item.grab?.status === 'grabbed' && (item.grab.memberId !== person.id || item.roundIsToday);
+      if (doneOn === viewingDate) {
+        actions.push({ id: 'toggle', mark: '✓', label: t('choresTab.dayMenu.notDone', { name: person.name }), onSelect: () => void toggle(chore.id) });
+      } else if (!doneOn && item.grab?.status !== 'done' && !held) {
+        actions.push({ id: 'toggle', mark: '✓', label: t('choresTab.dayMenu.didIt', { name: person.name }), onSelect: () => void toggle(chore.id) });
+      }
+      if (item.grab?.status === 'grabbed' && !item.roundIsToday) {
+        const holder = item.grab.memberId;
+        actions.push({ id: 'let-go', mark: '✋', label: t('choresTab.dayMenu.letGoOf', { name: nameOf(holder) }), onSelect: () => letGoOfChore(chore.id, holder) });
+      }
+      if (canPutBack(item) && !isViewingPast) {
+        actions.push({ id: 'put-back', mark: '↺', label: t('choresTab.dayMenu.putBack'), hint: t('choresTab.dayMenu.putBackHint'), onSelect: () => setPutBackChoreId(chore.id) });
+      }
+      return actions.length ? { title: chore.name, actions } : null;
+    }
+    const mine = myAssignments.find((a) => a.choreId === chore.id);
+    if (!mine) return null;
+    if (mine.isSkipped) {
+      actions.push({ id: 'undo-skip', mark: '↺', label: t('choresTab.dayMenu.undoNotToday', { name: person.name }), onSelect: () => markNotToday(chore.id, [person.id], false) });
+    } else {
+      actions.push({
+        id: 'toggle', mark: '✓',
+        label: mine.isCompleted ? t('choresTab.dayMenu.notDone', { name: person.name }) : t('choresTab.dayMenu.didIt', { name: person.name }),
+        onSelect: () => void toggle(chore.id),
+      });
+      if (!mine.isCompleted) {
+        actions.push({ id: 'skip', mark: '–', label: t('choresTab.dayMenu.notTodayFor', { name: person.name }), hint: t('choresTab.dayMenu.notTodayHint', { name: person.name }), onSelect: () => markNotToday(chore.id, [person.id], true) });
+      }
+    }
+    const everyone = resolveAssignee(chore, viewingDate, groups).filter((id) => members.some((m) => m.id === id));
+    const openForEveryone = everyone.filter((id) => !isChoreComplete(completionSet, chore.id, id, viewingDate) && !isChoreSkipped(completionSet, chore.id, id, viewingDate));
+    if (everyone.length > 1 && openForEveryone.length > 0) {
+      actions.push({ id: 'skip-all', mark: '–', label: t('choresTab.dayMenu.notTodayEveryone'), hint: t('choresTab.dayMenu.notTodayEveryoneHint', { n: openForEveryone.length }), onSelect: () => markNotToday(chore.id, openForEveryone, true) });
+    }
+    // Undo "not today for everyone" in one go, not one person at a time.
+    const skippedForSomeone = everyone.filter((id) => isChoreSkipped(completionSet, chore.id, id, viewingDate));
+    if (skippedForSomeone.length > 1) {
+      actions.push({ id: 'undo-skip-all', mark: '↺', label: t('choresTab.dayMenu.onTodayEveryone'), onSelect: () => markNotToday(chore.id, skippedForSomeone, false) });
+    }
+    return { title: chore.name, actions };
+  };
+  const menuActions = menuChoreId ? menuFor(menuChoreId) : null;
+  // What the menu offered when it opened. A refresh that changes the choices
+  // (someone grabbed the chore meanwhile) closes it rather than swapping a
+  // choice under the finger: "Ada did it" must not become "Let go of Bram's grab".
+  const menuChoices = (menu: { actions: ChoreAction[] } | null) => menu?.actions.map((a) => `${a.id}:${a.label}`).join('|') ?? '';
+  const [menuOpenedWith, setMenuOpenedWith] = useState('');
+  const openMenu = (choreId: string) => {
+    setMenuChoreId(choreId);
+    setMenuOpenedWith(menuChoices(menuFor(choreId)));
+  };
+  const menuChanged = menuActions !== null && menuChoices(menuActions) !== menuOpenedWith;
+  useEffect(() => { if (menuChanged) setMenuChoreId(null); }, [menuChanged]);
+  // A menu belongs to the child and day it was opened on. Left set, a menu
+  // with nothing to offer opened by itself on the next child or day.
+  useEffect(() => { setMenuChoreId(null); }, [selectedMemberId, viewingDate]);
+  const menuEmpty = menuChoreId !== null && menuActions === null;
+  useEffect(() => { if (menuEmpty) setMenuChoreId(null); }, [menuEmpty]);
+
+  const formatDay = (iso: string) => {
+    const [y, m, d] = iso.split('-').map(Number);
     return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'long' });
-  })();
+  };
+  const dayName = formatDay(viewingDate);
   const currentTimeOfDay = getCurrentTimeOfDay(new Date().getHours());
   const yesterday = addDaysISO(realToday, -1);
   const balance = balances?.[selectedMemberId] ?? 0;
@@ -546,6 +776,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           groups={groups}
           familyReady={familyRevision !== null}
           chores={chores}
+          choreSettings={choreSettings}
           onFamilyChanged={() => {
             void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((json) => {
               const snapshot = asChoreSnapshot(json);
@@ -559,6 +790,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
             intentionalEmpty.current = chores.length > 0 && next.length === 0 ? next : null;
             setChores(next);
           }}
+          onOpenSettings={() => setShowSettings(true)}
         />
       ) : members.length === 0 || chores.length === 0 ? (
         /* Empty state */
@@ -684,7 +916,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                       alignItems: 'center',
                       gap: 6,
                       padding: '8px 14px',
-                      minHeight: 44,
+                      // A fixed height: the ✓ that appears when someone finishes
+                      // is taller than the name, and grew the chip, moving the
+                      // whole list under a finger.
+                      height: 44,
                       maxWidth: '100%',
                       borderRadius: 999,
                       border: `2px solid ${isActive ? member.color : 'transparent'}`,
@@ -716,7 +951,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                     >
                       {member.name}
                     </span>
-                    {allDone && <span style={{ fontSize: 12, marginLeft: -2, flexShrink: 0 }}>&#10003;</span>}
+                    {allDone && <span style={{ fontSize: 12, lineHeight: 1, marginLeft: -2, flexShrink: 0 }}>&#10003;</span>}
                   </button>
                 );
               })}
@@ -728,15 +963,23 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                   key={celebration.key}
                   role="status"
                   className="hs-pop-in"
+                  // Drawn over the page, not in it: pushing the list down and
+                  // pulling it back up 4 s later moved chores under a finger.
                   style={{
+                    position: 'fixed',
+                    top: 12,
+                    left: 16,
+                    right: 16,
+                    zIndex: 70,
+                    pointerEvents: 'none',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
                     padding: '12px 16px',
-                    marginBottom: 10,
                     borderRadius: 12,
-                    background: `color-mix(in srgb, ${selectedMember?.color ?? accentColor} 16%, transparent)`,
+                    background: `color-mix(in srgb, ${selectedMember?.color ?? accentColor} 16%, var(--hs-bg-panel))`,
                     border: `1px solid color-mix(in srgb, ${selectedMember?.color ?? accentColor} 40%, transparent)`,
                     color: 'var(--hs-text-primary)',
                     fontSize: 16,
@@ -749,9 +992,15 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
               )}
 
               <div style={{ padding: '0 0 12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+                {/* A fixed height: "All done!" and the ticket count changing must
+                    not nudge the list under a finger. */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8, height: 26 }}>
                   <span style={{ fontSize: 13, color: 'var(--hs-text-faint)' }}>
-                    {t('choresTab.progress.completion', { done: totalDone, total: totalCount })}
+                    {/* Everything "not today" leaves nothing to count: a day off, not 0/0.
+                        Someone with only bonus chores has nothing to count at all. */}
+                    {totalCount === 0 && myAssignments.length > 0
+                      ? tModules('chore-chart.dayOff')
+                      : onlyBonus ? null : t('choresTab.progress.completion', { done: totalDone, total: totalCount })}
                     {totalCount > 0 && totalDone === totalCount && (
                       <span style={{ color: 'var(--hs-success)', fontWeight: 500, marginLeft: 8 }}>{t('choresTab.progress.allDone')}</span>
                     )}
@@ -780,7 +1029,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                     </span>
                   )}
                 </div>
-                <div style={{ height: 8, background: 'var(--hs-border)', borderRadius: 4, overflow: 'hidden' }}>
+                {!onlyBonus && <div style={{ height: 8, background: 'var(--hs-border)', borderRadius: 4, overflow: 'hidden' }}>
                   <div
                     style={{
                       height: '100%',
@@ -790,11 +1039,11 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                       transition: 'width 0.3s ease',
                     }}
                   />
-                </div>
+                </div>}
               </div>
 
               <div style={{ paddingBottom: 80 }}>
-                {myAssignments.length === 0 && (
+                {myAssignments.length === 0 && bonusItems.length === 0 && (
                   <div style={{ textAlign: 'center', padding: '48px 0' }}>
                     <p style={{ fontSize: 14, color: 'var(--hs-text-faint)' }}>{t('choresTab.noChoresToday')}</p>
                   </div>
@@ -806,7 +1055,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
 
                   const TodIcon = TOD_ICONS[section];
                   const isCurrent = !isViewingPast && section === currentTimeOfDay;
-                  const sectionAllDone = items.every((a) => a.isCompleted);
+                  const sectionAllDone = items.every((a) => a.isCompleted || a.isSkipped);
 
                   return (
                     <div key={section} style={{ marginBottom: 16 }}>
@@ -823,8 +1072,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                         >
                           {tModules(getTimeOfDayLabelKey(section))}
                         </span>
+                        {/* lineHeight 1: the ✓ is taller than the label, and made the
+                            heading grow, moving every row under it, when a section finished. */}
                         {sectionAllDone && (
-                          <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--hs-success)' }}>&#10003;</span>
+                          <span style={{ marginLeft: 'auto', fontSize: 12, lineHeight: 1, color: 'var(--hs-success)' }}>&#10003;</span>
                         )}
                       </div>
 
@@ -839,17 +1090,96 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
                             holdToUncheck={!isAdmin}
                             checkedColor={selectedMember?.color ?? accentColor}
                             showPoints={!!config.showPoints}
-                            onToggle={() => toggle(assignment.choreId)}
+                            onToggle={() => {
+                              // A grown-up's tap on a "not today" takes the mark away.
+                              if (assignment.isSkipped) void markNotToday(assignment.choreId, [selectedMemberId], false);
+                              else void toggle(assignment.choreId);
+                            }}
+                            onLongPress={isAdmin && canEdit ? () => openMenu(assignment.choreId) : undefined}
+                            onMenu={isAdmin && canEdit ? () => openMenu(assignment.choreId) : undefined}
+                            view={`${selectedMemberId}:${viewingDate}`}
                           />
                         );
                       })}
                     </div>
                   );
                 })}
+
+                {bonusItems.length > 0 && (
+                  <div data-testid="bonus-section" style={{ marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0 2px' }}>
+                      <Hand size={16} color="#f59e0b" strokeWidth={2} />
+                      <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#f59e0b' }}>
+                        {tModules('chore-chart.bonus.heading')}
+                      </span>
+                    </div>
+                    {/* The hint says what to do; on a past day there is nothing to grab. */}
+                    {!isViewingPast && (
+                      <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '0 0 8px' }}>{t('choresTab.bonus.sectionHint')}</p>
+                    )}
+                    {bonusItems.map((item) => (
+                      <BonusChoreRow
+                        key={item.chore.id}
+                        item={item}
+                        memberId={selectedMemberId}
+                        members={members}
+                        date={viewingDate}
+                        today={realToday}
+                        formatDay={formatDay}
+                        canEdit={canEdit}
+                        canGrab={!isViewingPast}
+                        atLimit={selectedAtLimit}
+                        grabLimit={choreSettings.grabLimit}
+                        isBusy={toggling.has(`bonus-${item.chore.id}`) || toggling.has(completionKey(item.chore.id, selectedMemberId, viewingDate))}
+                        holdToUncheck={!isAdmin}
+                        checkedColor={selectedMember?.color ?? accentColor}
+                        onTick={() => void toggle(item.chore.id)}
+                        onGrab={() => void grabChore(item.chore.id)}
+                        onLimitTap={() => setRowNotice({
+                          choreId: item.chore.id, memberId: selectedMemberId, date: viewingDate, limit: true,
+                          // A grown-up is told about the child by name; a kid, as "you".
+                          text: isAdmin
+                            ? t(choreSettings.grabLimit > 1 ? 'choresTab.bonus.refused.limitMany' : 'choresTab.bonus.refused.limit', { name: nameOf(selectedMemberId) })
+                            : t(choreSettings.grabLimit > 1 ? 'choresTab.bonus.limitLineMany' : 'choresTab.bonus.limitLine'),
+                        })}
+                        onLetGo={() => void letGoOfChore(item.chore.id, selectedMemberId)}
+                        notice={rowNotice && rowNotice.choreId === item.chore.id && rowNotice.memberId === selectedMemberId && rowNotice.date === viewingDate ? rowNotice.text : null}
+                        onLongPress={isAdmin && menuFor(item.chore.id) ? () => openMenu(item.chore.id) : undefined}
+                        onMenu={isAdmin && menuFor(item.chore.id) ? () => openMenu(item.chore.id) : undefined}
+                        onPutBack={isAdmin && !isViewingPast && canPutBack(item) ? () => setPutBackChoreId(item.chore.id) : undefined}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </>
+      )}
+
+      {putBackChoreId && (
+        <ConfirmSheet
+          title={t('choresTab.putBackConfirm.title')}
+          description={t('choresTab.putBackConfirm.description', { chore: chores.find((c) => c.id === putBackChoreId)?.name ?? '' })}
+          confirmLabel={t('choresTab.dayMenu.putBack')}
+          confirmColor="var(--hs-accent)"
+          settleMs={500}
+          guardTaps
+          onConfirm={() => { const id = putBackChoreId; setPutBackChoreId(null); void putBack(id); }}
+          onCancel={() => setPutBackChoreId(null)}
+        />
+      )}
+
+      {menuActions && menuActions.actions.length > 0 && (
+        <ChoreActionSheet
+          title={menuActions.title}
+          subtitle={`${selectedMember?.name ?? ''} · ${dayName}`}
+          actions={menuActions.actions}
+          onClose={() => setMenuChoreId(null)}
+        />
+      )}
+      {showSettings && (
+        <ChoreSettingsSheet settings={choreSettings} onSave={saveSettings} onClose={() => setShowSettings(false)} />
       )}
     </div>
   );

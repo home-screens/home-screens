@@ -78,7 +78,7 @@ function renderView(opts: {
 function renderOne(opts: { isCompleted?: boolean; points?: number; cfg?: Partial<ChoreChartConfig> } = {}) {
   const { toggleComplete } = renderView({
     assignments: [{
-      chore: chore(opts.points ?? 3), memberId: 'kid-1', isCompleted: opts.isCompleted ?? false, groupIds: [],
+      chore: chore(opts.points ?? 3), memberId: 'kid-1', isCompleted: opts.isCompleted ?? false, isSkipped: false, groupIds: [],
     }],
     cfg: opts.cfg,
   });
@@ -94,7 +94,7 @@ describe('one row per chore, one dot per person', () => {
     renderView({
       members: [noah, mia, liam],
       assignments: ['kid-1', 'kid-2', 'kid-3'].map((memberId) => ({
-        chore: shared, memberId, isCompleted: false, groupIds: [],
+        chore: shared, memberId, isCompleted: false, isSkipped: false, groupIds: [],
       })),
     });
 
@@ -107,7 +107,7 @@ describe('one row per chore, one dot per person', () => {
     renderView({
       members: [noah, mia, liam],
       assignments: ['kid-1', 'kid-2', 'kid-3'].map((memberId) => ({
-        chore: shared, memberId, isCompleted: false, groupIds: [],
+        chore: shared, memberId, isCompleted: false, isSkipped: false, groupIds: [],
       })),
     });
 
@@ -125,9 +125,9 @@ describe('one row per chore, one dot per person', () => {
     renderView({
       members: [noah, mia, liam],
       assignments: [
-        { chore: shared, memberId: 'kid-2', isCompleted: true, groupIds: [] },
-        { chore: shared, memberId: 'kid-3', isCompleted: false, groupIds: [] },
-        { chore: shared, memberId: 'kid-1', isCompleted: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-2', isCompleted: true, isSkipped: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-3', isCompleted: false, isSkipped: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-1', isCompleted: false, isSkipped: false, groupIds: [] },
       ],
     });
 
@@ -140,7 +140,7 @@ describe('one row per chore, one dot per person', () => {
     const { toggleComplete } = renderView({
       members: [noah, mia, liam],
       assignments: ['kid-1', 'kid-2', 'kid-3'].map((memberId) => ({
-        chore: shared, memberId, isCompleted: false, groupIds: [],
+        chore: shared, memberId, isCompleted: false, isSkipped: false, groupIds: [],
       })),
     });
 
@@ -160,7 +160,7 @@ describe('one row per chore, one dot per person', () => {
       members: [noah, mia, liam],
       groups: [kids],
       assignments: ['kid-1', 'kid-2', 'kid-3'].map((memberId) => ({
-        chore: shared, memberId, isCompleted: false, groupIds: ['kids'],
+        chore: shared, memberId, isCompleted: false, isSkipped: false, groupIds: ['kids'],
       })),
     });
 
@@ -228,8 +228,8 @@ describe('un-ticking a finished chore on the wall', () => {
     const { toggleComplete } = renderView({
       members: [noah, mia],
       assignments: [
-        { chore: shared, memberId: 'kid-1', isCompleted: true, groupIds: [] },
-        { chore: shared, memberId: 'kid-2', isCompleted: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-1', isCompleted: true, isSkipped: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-2', isCompleted: false, isSkipped: false, groupIds: [] },
       ],
     });
 
@@ -250,8 +250,8 @@ function renderTwoFinished() {
   const named = (id: string, name: string): ChoreDefinition => ({ ...chore(3), id, name });
   const { toggleComplete } = renderView({
     assignments: [
-      { chore: named('chore-a', 'Feed the cat'), memberId: 'kid-1', isCompleted: true, groupIds: [] },
-      { chore: named('chore-b', 'Water the plants'), memberId: 'kid-1', isCompleted: true, groupIds: [] },
+      { chore: named('chore-a', 'Feed the cat'), memberId: 'kid-1', isCompleted: true, isSkipped: false, groupIds: [] },
+      { chore: named('chore-b', 'Water the plants'), memberId: 'kid-1', isCompleted: true, isSkipped: false, groupIds: [] },
     ],
   });
   return {
@@ -351,7 +351,7 @@ describe('what a chore is worth', () => {
     renderView({
       members: [noah, mia, liam],
       assignments: ['kid-1', 'kid-2', 'kid-3'].map((memberId) => ({
-        chore: shared, memberId, isCompleted: false, groupIds: [],
+        chore: shared, memberId, isCompleted: false, isSkipped: false, groupIds: [],
       })),
     });
 
@@ -366,12 +366,56 @@ describe('a wall that cannot be tapped', () => {
       members: [noah, mia],
       cfg: { allowDisplayComplete: false },
       assignments: [
-        { chore: shared, memberId: 'kid-1', isCompleted: true, groupIds: [] },
-        { chore: shared, memberId: 'kid-2', isCompleted: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-1', isCompleted: true, isSkipped: false, groupIds: [] },
+        { chore: shared, memberId: 'kid-2', isCompleted: false, isSkipped: false, groupIds: [] },
       ],
     });
 
     expect(screen.getAllByTestId('chore-assignee-dot')).toHaveLength(2);
     expect(screen.queryAllByRole('button')).toHaveLength(0);
+  });
+});
+
+describe('TodayView bonus chores', () => {
+  const windows = {
+    ...chore(3), id: 'windows', name: 'Wash the windows',
+    bonus: { claim: 'each' as const, comesBack: 'weekly' as const },
+  };
+  const car = {
+    ...chore(5), id: 'car', name: 'Wash the car',
+    bonus: { claim: 'first' as const, comesBack: 'weekly' as const },
+  };
+
+  function renderBonus() {
+    render(wrap(
+      <TodayView
+        config={config()}
+        data={{
+          members: [noah, mia],
+          groups: [],
+          todayAssignments: [],
+          memberStats: statsFor([noah.id, mia.id]),
+          toggleComplete: vi.fn(async () => {}),
+          today: '2026-09-23',
+          todayBonus: [
+            { chore: windows, eligibleIds: [noah.id, mia.id], doneIds: [mia.id], doneOn: { [mia.id]: '2026-09-22' }, roundIsToday: false, waiting: false },
+            { chore: car, eligibleIds: [noah.id], grab: { status: 'done', memberId: noah.id, date: '2026-09-21' }, doneIds: [], doneOn: {}, roundIsToday: false, waiting: false },
+          ],
+        }}
+        fontSize={16}
+      />,
+    ));
+  }
+
+  it('leaves a dot done on another day this week out of reach, and keeps today\'s open one', () => {
+    renderBonus();
+    expect(screen.queryByRole('button', { name: /Wash the windows for Mia/ })).toBeNull();
+    expect(screen.getByRole('img', { name: 'Mia did it Tuesday' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Wash the windows for Noah/ })).toBeTruthy();
+  });
+
+  it('says which day an earlier finish was', () => {
+    renderBonus();
+    expect(screen.getByText('Noah did it Monday')).toBeTruthy();
   });
 });

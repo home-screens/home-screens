@@ -361,6 +361,7 @@ describe('sortChores', () => {
       chore: makeChore({ timeOfDay: overrides.timeOfDay ?? 'morning' }),
       memberId: 'alice',
       isCompleted: overrides.completed ?? false,
+      isSkipped: false,
       groupIds: [],
       ...overrides,
     };

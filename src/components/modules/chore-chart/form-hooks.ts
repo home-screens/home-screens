@@ -4,13 +4,15 @@ import type { FamilyGroup, FamilyMember } from '@/types/family';
 
 import { useMemo, useState } from 'react';
 import type {
+  ChoreBonusClaim,
+  ChoreBonusComesBack,
   ChoreDefinition,
   ChoreResetFrequency,
   ChoreTimeOfDay,
   ChoreRotation,
 } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
-import { choreAssigneeIds, todayStr } from './types';
+import { choreAssigneeIds, parseISO, todayStr } from './types';
 import {
   canChoreRotate,
   defaultChoreDays,
@@ -31,7 +33,15 @@ import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
  * that shared logic so the two surfaces can never drift.
  */
 
+/** Whether the chore is owed by the people on it, or a bonus that only earns tickets. */
+export type ChoreKind = 'regular' | 'bonus';
+
 export interface ChoreFormState {
+  kind: ChoreKind;
+  /** Bonus only: who gets the tickets. */
+  bonusClaim: ChoreBonusClaim;
+  /** Bonus only: when it is open again once done. */
+  comesBack: ChoreBonusComesBack;
   name: string;
   emoji: string;
   points: string;
@@ -53,6 +63,9 @@ export interface ChoreFormState {
   /** Whether the form asks how the chore is shared: two or more people, a group, or a schedule. */
   canRotate: boolean;
 
+  setKind: (v: ChoreKind) => void;
+  setBonusClaim: (v: ChoreBonusClaim) => void;
+  setComesBack: (v: ChoreBonusComesBack) => void;
   setName: (v: string) => void;
   setEmoji: (v: string) => void;
   setPoints: (v: string) => void;
@@ -95,6 +108,9 @@ export function useChoreForm(
    */
   familyReady: boolean,
 ): ChoreFormState {
+  const [kind, setKindState] = useState<ChoreKind>(initial?.bonus ? 'bonus' : 'regular');
+  const [bonusClaim, setBonusClaim] = useState<ChoreBonusClaim>(initial?.bonus?.claim ?? 'first');
+  const [comesBack, setComesBack] = useState<ChoreBonusComesBack>(initial?.bonus?.comesBack ?? 'daily');
   const [name, setName] = useState(initial?.name ?? '');
   const [emoji, setEmoji] = useState(initial?.emoji ?? DEFAULT_CHORE_ICON);
   const [points, setPoints] = useState(initial?.points?.toString() ?? '1');
@@ -126,9 +142,11 @@ export function useChoreForm(
     if (!assigneeGroupIds.includes(group.id)) continue;
     for (const memberId of group.memberIds) coveredByGroup.set(memberId, [...(coveredByGroup.get(memberId) ?? []), group.name]);
   }
-  const saved = finalizeChoreAssignment({ rotation, schedule, groupSchedule, assigneeIds, assigneeGroupIds, groups });
+  // A bonus chore is open to everyone picked, every time: no turns, no grid.
+  const isBonus = kind === 'bonus';
+  const saved = finalizeChoreAssignment({ rotation: isBonus ? 'fixed' : rotation, schedule, groupSchedule, assigneeIds, assigneeGroupIds, groups });
   const goesToNobody = familyReady && (saved.assigneeGroupIds?.length ?? 0) > 0 && choreAssigneeIds(saved, groups).length === 0;
-  const canRotate = canChoreRotate({ assigneeCount, assigneeGroupIdsLength: assigneeGroupIds.length, rotation });
+  const canRotate = !isBonus && canChoreRotate({ assigneeCount, assigneeGroupIdsLength: assigneeGroupIds.length, rotation });
 
   // Changing how often a chore comes around changes what its day row means:
   // daily is every day, weekly and every-other-week are "pick which days" and
@@ -193,6 +211,23 @@ export function useChoreForm(
   const unscheduledMembers = members.filter((m) => !scheduleMembers.includes(m.id));
   const unscheduledGroups = groups.filter((group) => !Object.hasOwn(groupSchedule, group.id));
 
+  // Turning a chore into a bonus one takes it off any schedule grid (its rows
+  // become the picked people and groups) and off a one-time date: a bonus
+  // chore shows up on its days until it is done, then comes back.
+  // Flipping the kind changes nothing else: a bonus chore keeps its regular
+  // setup (frequency, date, turns, schedule grid, time of day) untouched, and
+  // the bonus rules ignore it, so flipping back gets all of it back.
+  // Switching kinds keeps every regular field for a switch back. The one
+  // exception is a one-time chore: a bonus chore shows on weekdays, not a
+  // date, and its day row would start empty. It gets its date's weekday and
+  // "when I put it back", which is what a one-off job becomes as a bonus chore.
+  const setKind = (next: ChoreKind) => {
+    setKindState(next);
+    if (next !== 'bonus' || frequency !== 'once' || initial?.bonus) return;
+    if (daysOfWeek.length === 0) setDaysOfWeek([parseISO(specificDate).getDay()]);
+    setComesBack('manual');
+  };
+
   const toggleDay = (d: number) => {
     setDaysPicked(true);
     setDaysOfWeek((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
@@ -206,26 +241,54 @@ export function useChoreForm(
     setPickedGroupIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
-  const scheduleHasAssignment = rotation !== 'schedule' || scheduleDays.length > 0;
+  const scheduleHasAssignment = isBonus || rotation !== 'schedule' || scheduleDays.length > 0;
   const validationHintKind = getChoreValidationHintKind({
     name,
-    rotation,
+    rotation: isBonus ? 'fixed' : rotation,
     scheduleHasAssignment,
     assigneeIdsLength: assigneeIds.length,
     assigneeGroupIdsLength: assigneeGroupIds.length,
     hasGroups: groups.length > 0,
     familyReady,
-    frequency,
+    frequency: isBonus ? 'daily' : frequency,
     daysOfWeekLength: daysOfWeek.length,
   });
   const canSave = validationHintKind === null;
 
   const submit = (onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void) => {
     if (!canSave) return;
+    // A typed minus sign gets past the box's minimum: tickets never go below 0.
+    const tickets = Number.isNaN(parseInt(points)) ? 1 : Math.max(0, parseInt(points));
+    if (isBonus) {
+      // Who can do it is the people and groups picked; the regular setup is
+      // saved as it stands so switching back to regular restores it.
+      onSubmit({
+        name: name.trim(),
+        emoji,
+        points: tickets,
+        frequency,
+        daysOfWeek,
+        timeOfDay,
+        ...saved,
+        rotation,
+        ...(rotation === 'schedule' ? { schedule, groupSchedule } : {}),
+        ...(frequency === 'once' ? { specificDate } : {}),
+        // A chore that just became a bonus chore starts its count now; one that
+        // already was keeps its stamp. The hub restamps with its own clock.
+        bonus: {
+          claim: bonusClaim,
+          comesBack,
+          ...(initial?.bonus
+            ? (initial.bonus.since ? { since: initial.bonus.since } : {})
+            : { since: new Date().toISOString() }),
+        },
+      });
+      return;
+    }
     onSubmit({
       name: name.trim(),
       emoji,
-      points: Number.isNaN(parseInt(points)) ? 1 : parseInt(points),
+      points: tickets,
       frequency,
       daysOfWeek: rotation === 'schedule' ? scheduleDays : daysOfWeek,
       timeOfDay,
@@ -235,6 +298,7 @@ export function useChoreForm(
   };
 
   return {
+    kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
     name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
     assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule, canRotate, coveredByGroup, goesToNobody,
     setName, setEmoji, setPoints, setFrequency, setSpecificDate, setTimeOfDay,

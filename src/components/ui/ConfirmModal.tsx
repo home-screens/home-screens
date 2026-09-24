@@ -7,38 +7,85 @@ import { useTranslate } from '@/i18n';
 import Button from './Button';
 
 export default function ConfirmModal() {
-  const { open, options, isAlert, choices, respond, respondChoice } = useConfirmStore();
+  const open = useConfirmStore((state) => state.open);
+  // Mounted only while open, so its focus trap attaches to a real dialog and
+  // takes the keyboard off whatever sat behind it.
+  return open ? <ConfirmDialog /> : null;
+}
+
+function ConfirmDialog() {
+  const { options, isAlert, choices, respond, respondChoice } = useConfirmStore();
   const tCore = useTranslate('core');
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!open) return;
-      if (choices) {
-        // A multi-way question has no safe Enter default — only Escape
-        // (dismiss without doing anything) is bound.
-        if (e.key === 'Escape') respondChoice(null);
-        return;
-      }
-      if (e.key === 'Escape') respond(false);
-      if (e.key === 'Enter') respond(true);
-    },
-    [open, choices, respond, respondChoice],
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  const dismiss = useCallback(() => {
+    if (choices) respondChoice(null);
+    else respond(false);
+  }, [choices, respond, respondChoice]);
 
   const trapRef = useFocusTrap<HTMLDivElement>();
 
-  if (!open) return null;
+  // While the dialog is up the keyboard is the dialog's, whatever has focus:
+  // - Escape dismisses it.
+  // - Tab and Shift+Tab cycle its own buttons only.
+  // - A key aimed at anything outside (focus lost by a click, or a button
+  //   behind) is cancelled and focus comes back to the dialog: Enter must
+  //   never press a button behind it, Cmd+Z never undo a form behind it.
+  // - Inside, Enter and Space press the focused button (Cancel first), never
+  //   a default; nothing travels on to what is behind.
+  // Caught on the way down, before any other handler on the page.
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const panel = trapRef.current;
+      const buttons = panel ? [...panel.querySelectorAll<HTMLElement>('button:not([disabled])')] : [];
+      const inside = !!panel && e.target instanceof Node && panel.contains(e.target);
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        dismiss();
+        return;
+      }
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        if (buttons.length === 0) return;
+        const at = buttons.indexOf(document.activeElement as HTMLElement);
+        const next = at < 0 ? 0 : (at + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length;
+        buttons[next].focus();
+        return;
+      }
+      if (!inside || !(e.target instanceof HTMLButtonElement)) {
+        e.preventDefault();
+        if (!inside) buttons[0]?.focus();
+      }
+    },
+    [dismiss, trapRef],
+  );
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [handleKeyDown]);
+
+  // After the trap hands focus back: when that had nowhere to go (the menu
+  // item that opened the dialog is gone), the caller's fallback takes it.
+  const returnFocus = options.returnFocus;
+  useEffect(() => () => {
+    if (returnFocus instanceof HTMLElement && returnFocus.isConnected
+      && (!document.activeElement || document.activeElement === document.body)) returnFocus.focus();
+  }, [returnFocus]);
 
   const variant = options.variant ?? 'danger';
 
   return (
-    <div className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label={options.title ?? tCore('actions.confirm')}>
-      <div ref={trapRef} className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-sm shadow-2xl">
+    <div
+      className="fixed inset-0 z-confirm flex items-center justify-center bg-black/60"
+      role="dialog"
+      aria-modal="true"
+      aria-label={options.title ?? tCore('actions.confirm')}
+      // A click on the dimmed backdrop dismisses, as in every other window.
+      onClick={(e) => { if (e.target === e.currentTarget) dismiss(); }}
+    >
+      {/* Focusable itself, so a click on its text keeps focus in the dialog. */}
+      <div ref={trapRef} tabIndex={-1} className="bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-sm shadow-2xl outline-none">
         {options.title && (
           <div className="px-5 pt-4 pb-0">
             <h3 className="text-sm font-semibold text-hs-text-primary">{options.title}</h3>

@@ -224,7 +224,7 @@
     "saving": "Salvando…",
     "conflict": "Alguém alterou a família enquanto você editava. A lista atual está sendo exibida. Faça sua alteração novamente.",
     "removeTitle": "Remover {name}?",
-    "removeDescription": "Ao remover {name}, as atribuições de tarefas, horários, histórico, saldo de tíquetes e acesso às recompensas dessa pessoa são apagados. A escolha dos calendários dela também é esquecida. Tarefas que ficarem sem ninguém responsável são excluídas. Isso não pode ser desfeito.",
+    "removeDescription": "Ao remover {name}, as atribuições de tarefas, horários, histórico, saldo de tickets e acesso às recompensas dessa pessoa são apagados. A escolha dos calendários dela também é esquecida. Tarefas que ficarem sem ninguém responsável são excluídas. Isso não pode ser desfeito.",
     "remove": "Remover pessoa",
     "editName": "Editar {name}",
     "moveUp": "Mover {name} para cima",
@@ -235,10 +235,12 @@
     "page": "Página {page} de {total}",
     "limit": "Você pode adicionar até {count} pessoas. Todas as pessoas existentes são preservadas e ainda podem ser editadas ou removidas.",
     "choreCount": {
+      "zero": "{count} tarefas",
       "one": "{count} tarefa",
       "other": "{count} tarefas"
     },
     "removeChoreCount": {
+      "zero": "{name} tem {count} tarefas atribuídas.",
       "one": "{name} tem {count} tarefa atribuída.",
       "other": "{name} tem {count} tarefas atribuídas."
     },

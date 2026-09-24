@@ -182,6 +182,26 @@ export function localISODateTime(d: Date = new Date()): string {
   return `${localISODate(d)}T${h}:${min}`;
 }
 
+/**
+ * An instant as an ISO timestamp written in `timezone`'s own offset
+ * ("2026-09-23T20:47:00.000-05:00"); the process's zone without one. Its
+ * first ten characters are the calendar day there, which any reader can take
+ * without knowing the zone.
+ */
+export function timestampInTZ(now: Date = new Date(), timezone?: string): string {
+  const wall = toTZWallTime(now, timezone);
+  // The wall time is read to the second; the milliseconds are the instant's
+  // own. Dropping them made a stamp sort before a tick made in the same second.
+  const ms = now.getMilliseconds();
+  const offset = timezone
+    ? Math.round((Date.UTC(wall.getFullYear(), wall.getMonth(), wall.getDate(), wall.getHours(), wall.getMinutes(), wall.getSeconds()) - (now.getTime() - ms)) / 60000)
+    : -now.getTimezoneOffset();
+  const pad = (n: number, w = 2) => String(n).padStart(w, '0');
+  const abs = Math.abs(offset);
+  return `${localISODate(wall)}T${pad(wall.getHours())}:${pad(wall.getMinutes())}:${pad(wall.getSeconds())}.${pad(ms, 3)}`
+    + `${offset >= 0 ? '+' : '-'}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
+}
+
 export function createTZDate(timezone?: string): Date {
   return toTZWallTime(new Date(), timezone);
 }

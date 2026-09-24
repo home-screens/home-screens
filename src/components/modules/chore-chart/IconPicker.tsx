@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import ChoreIcon, { getIconDef, toLucideValue } from './ChoreIcon';
@@ -64,6 +64,34 @@ function filterIcons(icons: string[], search: string, t: TranslateFn): string[] 
     const label = t(`chore-chart.iconLabels.${name}`);
     return name.toLowerCase().includes(q) || label.toLowerCase().includes(q);
   });
+}
+
+/**
+ * Arrow keys, Home and End move the focus between the buttons of an icon grid.
+ * The grid wraps to the panel's width, so Up and Down find the icon in the
+ * row above or below nearest in line with the one focused.
+ */
+function moveIconFocus(event: KeyboardEvent<HTMLElement>) {
+  const buttons = [...event.currentTarget.querySelectorAll<HTMLElement>(':scope > button')];
+  const from = buttons.indexOf(document.activeElement as HTMLElement);
+  if (from < 0) return;
+  let to: number | undefined;
+  if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+    const here = buttons[from];
+    const down = event.key === 'ArrowDown';
+    const rows = buttons.filter((b) => (down ? b.offsetTop > here.offsetTop : b.offsetTop < here.offsetTop));
+    if (rows.length) {
+      const rowTop = down ? Math.min(...rows.map((b) => b.offsetTop)) : Math.max(...rows.map((b) => b.offsetTop));
+      const row = rows.filter((b) => b.offsetTop === rowTop);
+      const nearest = row.reduce((best, b) => (Math.abs(b.offsetLeft - here.offsetLeft) < Math.abs(best.offsetLeft - here.offsetLeft) ? b : best));
+      to = buttons.indexOf(nearest);
+    }
+  } else {
+    to = { ArrowRight: from + 1, ArrowLeft: from - 1, Home: 0, End: buttons.length - 1 }[event.key];
+  }
+  if (to === undefined || to < 0 || to >= buttons.length) return;
+  event.preventDefault();
+  buttons[to].focus();
 }
 
 export default function IconPicker({ value, onChange, icons, label, variant, suggestedName }: IconPickerProps) {
@@ -272,19 +300,23 @@ export default function IconPicker({ value, onChange, icons, label, variant, sug
 
       <EditorCustomIconSection value={value} onPick={onChange} query={search} suggestedName={suggestedName} />
       <div className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">{tCore('customIcons.builtInIcons')}</div>
-      <div className="flex flex-wrap gap-1.5">
-        {filtered.map((name) => {
+      {/* One tab stop for the whole grid, arrow keys inside it: sixty-odd
+          icons used to sit between the chore's name and everything below. */}
+      <div role="group" aria-label={label} className="flex flex-wrap gap-1.5" onKeyDown={moveIconFocus}>
+        {filtered.map((name, index) => {
           const def = getIconDef(name);
           if (!def) return null;
           const lucideVal = toLucideValue(name);
           const isSelected = value === lucideVal;
           const Icon = def.component;
+          const anySelected = filtered.some((n) => value === toLucideValue(n));
           return (
             <button
               key={name}
               type="button"
               onClick={() => onChange(lucideVal)}
               aria-pressed={isSelected}
+              tabIndex={isSelected || (!anySelected && index === 0) ? 0 : -1}
               className={`flex flex-col items-center gap-0.5 rounded-lg transition-all px-1.5 py-1.5 ${
                 isSelected
                   ? 'ring-2 ring-white ring-offset-1 ring-offset-hs-panel scale-105'

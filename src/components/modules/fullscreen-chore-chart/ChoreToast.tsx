@@ -27,10 +27,18 @@ interface ChoreToastProps {
    * statement about a balance rather than something to undo.
    */
   notice?: string | null;
+  /**
+   * A tick or grab that did not go through, already worded: a bonus refusal
+   * ("Esme is already on that one") carries the grab hand, anything else
+   * ("That didn't save") no mark.
+   */
+  alert?: { text: string; bonus: boolean } | null;
   /** Text scale: 1 draws 24px text, sized for a 1080-wide wall panel. */
   scale?: number;
   /** Distance from the bottom edge, so the toast clears the footer. */
   bottom?: number;
+  /** Set to draw at the top instead (while a sheet covers the bottom). */
+  top?: number;
 }
 
 const TOAST_DURATION = 4000;
@@ -62,7 +70,10 @@ function ToastEntry({
         alignItems: 'center',
         gap: fontSize * 0.5,
         padding: `${fontSize * 0.55}px ${fontSize * 0.8}px`,
-        background: 'var(--fcc-surface)',
+        // Laid over the theme's solid background, as the sheets are: a
+        // frosted theme's surface alone let the chart show through.
+        backgroundColor: 'var(--fcc-bg)',
+        backgroundImage: 'linear-gradient(var(--fcc-surface), var(--fcc-surface))',
         border: '1px solid var(--fcc-border)',
         borderLeft: `${Math.max(4, fontSize * 0.25)}px solid ${toast.memberColor}`,
         borderRadius: fontSize * 0.6,
@@ -119,15 +130,18 @@ function ToastEntry({
  * the tickets are already spent, and putting the chore back would only move
  * the balance again.
  */
-function NoticeEntry({ notice, scale }: { notice: string; scale: number }) {
+function NoticeEntry({ notice, scale, testId = 'chore-overspent-toast', mark = '\u{1F39F}' }: { notice: string; scale: number; testId?: string; mark?: string }) {
   const fontSize = 24 * scale;
   return (
     <div
-      data-testid="chore-overspent-toast"
+      data-testid={testId}
       style={{
         pointerEvents: 'auto',
         padding: `${fontSize * 0.55}px ${fontSize * 0.8}px`,
-        background: 'var(--fcc-surface)',
+        // Laid over the theme's solid background, as the sheets are: a
+        // frosted theme's surface alone let the chart show through.
+        backgroundColor: 'var(--fcc-bg)',
+        backgroundImage: 'linear-gradient(var(--fcc-surface), var(--fcc-surface))',
         border: '1px solid var(--fcc-border)',
         borderLeft: `${Math.max(4, fontSize * 0.25)}px solid var(--fcc-accent)`,
         borderRadius: fontSize * 0.6,
@@ -139,16 +153,16 @@ function NoticeEntry({ notice, scale }: { notice: string; scale: number }) {
         color: 'var(--fcc-text)',
       }}
     >
-      &#127903; {notice}
+      {mark ? `${mark} ` : ''}{notice}
     </div>
   );
 }
 
-export default function ChoreToast({ toasts, onDismiss, onUndo, notice, scale = 1, bottom = 16 }: ChoreToastProps) {
+export default function ChoreToast({ toasts, onDismiss, onUndo, notice, alert, scale = 1, bottom = 16, top }: ChoreToastProps) {
   // Show at most 3 toasts
   const visible = toasts.slice(-3);
 
-  if (visible.length === 0 && !notice) return null;
+  if (visible.length === 0 && !notice && !alert) return null;
 
   return (
     <>
@@ -163,7 +177,7 @@ export default function ChoreToast({ toasts, onDismiss, onUndo, notice, scale = 
         aria-live="polite"
         style={{
           position: 'absolute',
-          bottom,
+          ...(top !== undefined ? { top } : { bottom }),
           left: 0,
           right: 0,
           display: 'flex',
@@ -171,7 +185,8 @@ export default function ChoreToast({ toasts, onDismiss, onUndo, notice, scale = 
           alignItems: 'center',
           gap: 8 * scale,
           pointerEvents: 'none',
-          zIndex: 10,
+          // Above the bonus sheets (40): a tick made inside one must keep its Undo in reach.
+          zIndex: 50,
         }}
       >
         {visible.map((toast) => (
@@ -180,6 +195,7 @@ export default function ChoreToast({ toasts, onDismiss, onUndo, notice, scale = 
           </div>
         ))}
         {notice && <NoticeEntry notice={notice} scale={scale} />}
+        {alert && <NoticeEntry notice={alert.text} scale={scale} testId="chore-refused-toast" mark={alert.bonus ? '\u270B' : ''} />}
       </div>
     </>
   );

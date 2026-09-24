@@ -1,4 +1,4 @@
-import type { ChoreCompletion } from '@/types/config';
+import type { ChoreCompletion, ChoreGrab } from '@/types/config';
 import { createJsonStore } from './json-store';
 
 export interface CompletionsData {
@@ -7,6 +7,10 @@ export interface CompletionsData {
    * removed
    */
   completions: ChoreCompletion[];
+  /** Up-for-grabs chores someone is holding (see ChoreGrab). Lapsed ones are ignored when read and dropped after 90 days */
+  grabs?: ChoreGrab[];
+  /** When a grown-up last put each "when I put it back" bonus chore back, by chore ID, as an ISO timestamp */
+  bonusResets?: Record<string, string>;
 }
 
 /**
@@ -32,3 +36,8 @@ export const updateCompletionsAtomic = store.updateAtomic;
  * transaction as the reward points it moves. See `planUpdate` in json-store.
  */
 export const planCompletionsUpdate = store.planUpdate;
+
+/** The lists every chore surface reads, as every chore route answers them. */
+export function choreMarks(data: CompletionsData): Required<CompletionsData> {
+  return { completions: data.completions, grabs: data.grabs ?? [], bonusResets: data.bonusResets ?? {} };
+}

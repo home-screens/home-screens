@@ -95,9 +95,11 @@ export default function ModuleContextMenu({
         className="w-full px-3 py-1.5 text-left text-sm text-hs-danger hover:bg-hs-card"
         onClick={async () => {
           onClose();
-          if (await useConfirmStore.getState().confirm(
-            buildModuleDeleteConfirm(resolveModuleLabel(mod.type, t), t, tCore),
-          )) {
+          if (await useConfirmStore.getState().confirm({
+            ...buildModuleDeleteConfirm(resolveModuleLabel(mod.type, t), t, tCore),
+            // The menu item is gone when the dialog closes: back to the module.
+            returnFocus: document.querySelector(`[data-module-id="${CSS.escape(mod.id)}"]`),
+          })) {
             removeModule(screenId, mod.id);
           }
         }}

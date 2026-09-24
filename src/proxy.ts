@@ -174,15 +174,16 @@ function isDisplayAccessiblePost(pathname: string): boolean {
 
 /**
  * POST routes the unauthenticated /chores kid view needs:
- *   /api/chores  → toggle a chore completion
- *   /api/rewards → redeem a reward
+ *   /api/chores       → toggle a chore completion
+ *   /api/chores/grab  → grab a bonus chore, or let it go
+ *   /api/rewards      → redeem a reward
  *
  * Exact match (not prefix) — the admin-only sub-paths /api/chores/data and
  * /api/rewards/data must stay protected, since reward editing and manual
  * balance adjustments live there. Both handlers do their own input
  * validation and (for redemptions) balance checks.
  */
-const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/rewards']);
+const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/chores/grab', '/api/rewards']);
 
 function isKidViewPost(pathname: string): boolean {
   return KID_VIEW_POST_ROUTES.has(pathname);

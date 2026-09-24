@@ -127,9 +127,9 @@ export function lookupKey(
   if (typeof cursor === 'object') {
     if (vars && typeof vars.count === 'number' && isPluralFormObject(cursor)) {
       // An explicit `zero` branch wins at nought, before the CLDR category.
-      // None of the seven shipped locales has a plural rule for 0, so every
-      // one of them answers `other`, and a string written to say "Import"
-      // rather than "Import 0 timetables" would never be reached.
+      // CLDR has no `zero` category for any shipped locale: most answer
+      // `other` at 0, and fr and pt answer `one` ("0 tarefa"). A string
+      // written for nought ("Import", "0 tarefas") is only reached this way.
       const cat = vars.count === 0 && typeof cursor.zero === 'string'
         ? 'zero'
         : pluralCategory(locale, vars.count);

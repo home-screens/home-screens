@@ -21,7 +21,7 @@ interface BoardViewProps {
     todayAssignments: ResolvedAssignment[];
     completionSet: Set<string>;
     memberStats: Map<string, MemberStats>;
-    toggleComplete: (choreId: string, memberId: string) => Promise<void>;
+    toggleComplete: (choreId: string, memberId: string) => Promise<unknown>;
   };
   /** Measured box width in px (0 until measured). */
   width: number;
@@ -119,7 +119,8 @@ export function BoardView({ config, data, width, fontSize, authoredFontSize }: B
             style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))`, gap: COLUMN_GAP }}
           >
             {row.map((member) => {
-              const myAssignments = todayAssignments.filter((a) => a.memberId === member.id);
+              // A chore marked "not today" is owed by nobody; the board lists what is owed.
+              const myAssignments = todayAssignments.filter((a) => a.memberId === member.id && !a.isSkipped);
               const sorted = sortChores(myAssignments, config.showTimeOfDay);
               const stats = memberStats.get(member.id);
               const pct = stats?.percentage ?? 0;

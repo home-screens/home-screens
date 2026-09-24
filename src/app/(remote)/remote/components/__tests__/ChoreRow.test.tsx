@@ -40,6 +40,7 @@ function row(opts: { isCompleted: boolean; holdToUncheck?: boolean; readOnly?: b
       checkedColor="#f59e0b"
       showPoints
       onToggle={onToggle}
+      view="kid:2026-09-23"
     />,
   );
   return { onToggle, button: screen.getByRole('button') };

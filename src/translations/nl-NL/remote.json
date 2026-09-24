@@ -102,7 +102,7 @@
     "memberAriaLabelAllDone": "{name} (alles klaar)",
     "history": {
       "editingPrefix": "Je vinkt af voor ",
-      "editingNote": "Dit toont de takenlijst van vandaag, dus taken die je pas hebt toegevoegd kunnen gemist lijken.",
+      "editingNote": "Dit toont de klusjeslijst van vandaag, dus klusjes die je pas hebt toegevoegd kunnen gemist lijken.",
       "lockedMessage": "Vraag een volwassene om gemiste klusjes toe te voegen.",
       "editingSuffix": ". Tickets tellen nog steeds mee voor vandaag."
     },
@@ -122,6 +122,55 @@
       "ariaLabel": "Welke dag wordt getoond",
       "yesterday": "Gisteren",
       "today": "Vandaag"
+    },
+    "notToday": {
+      "chip": "Vandaag niet",
+      "ariaLabel": "{chore}, vandaag niet"
+    },
+    "bonus": {
+      "sectionHint": "Extra tickets. Pak een klusje, dan is het van jou. Of doe er een dat iedereen mag doen.",
+      "grab": "Pakken",
+      "grabAriaLabel": "{chore} pakken voor {tickets}",
+      "letGo": "Teruggeven",
+      "onIt": "{name} is ermee bezig",
+      "didIt": "{name} heeft het gedaan",
+      "youGrabbedIt": "Je hebt het gepakt. Vink het af als je klaar bent.",
+      "youGotIt": "Gelukt! +{n}",
+      "finishYoursFirst": "Maak eerst die van jou af",
+      "refused": {
+        "grabbed": "{name} is daar al mee bezig.",
+        "taken": "{name} heeft die al gedaan.",
+        "limit": "{name} moet eerst het andere bonusklusje afmaken of teruggeven.",
+        "notYours": "Dat bonusklusje is niet voor {name}.",
+        "notToday": "Dat bonusklusje staat vandaag niet op de lijst.",
+        "limitMany": "{name} moet eerst een ander bonusklusje afmaken of teruggeven."
+      },
+      "limitLine": "Maak eerst je gepakte klusje af, of vink dit af als je het al gedaan hebt.",
+      "youDidItOn": "Je hebt het {day} gedaan",
+      "didItOn": "{name} heeft het {day} gedaan",
+      "limitLineMany": "Maak eerst een van je gepakte klusjes af, of vink dit af als je het al gedaan hebt.",
+      "yours": "Van jou",
+      "didItToday": "{name} heeft het vandaag gedaan",
+      "youDidItToday": "Je hebt het vandaag gedaan",
+      "youreOnIt": "Je bent ermee bezig"
+    },
+    "dayMenu": {
+      "didIt": "{name} heeft het gedaan",
+      "notDone": "{name} heeft het toch niet gedaan",
+      "notTodayFor": "Vandaag niet voor {name}",
+      "notTodayHint": "Geen tickets, maar {name} verliest er ook niets door",
+      "notTodayEveryone": "Vandaag voor niemand meer",
+      "notTodayEveryoneHint": "Iedereen die het nog niet gedaan heeft",
+      "undoNotToday": "Toch wel vandaag voor {name}",
+      "letGoOf": "Klusje van {name} weer vrijgeven",
+      "putBack": "Weer openzetten",
+      "putBackHint": "Dan is het weer voor het grijpen",
+      "open": "Meer voor {chore}",
+      "onTodayEveryone": "Toch wel vandaag voor iedereen"
+    },
+    "putBackConfirm": {
+      "title": "Weer openzetten?",
+      "description": "Dan kan “{chore}” weer gedaan worden. Wie er al tickets voor kreeg, mag die houden."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Wie doet het?",
       "addSubmit": "Klusje toevoegen",
       "saveSubmit": "Klusje opslaan",
-      "deleteButton": "Klusje verwijderen"
+      "deleteButton": "Klusje verwijderen",
+      "grabRulesNote": "Hoeveel één persoon mag pakken en hoe lang een gepakt klusje van iemand blijft, stel je voor het hele gezin in onder Bonus op het tabblad Beheren."
     },
     "choreDelete": {
       "title": "\"{name}\" verwijderen?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Kies een maaltijd",
       "emptyLibrary": "Nog geen opgeslagen maaltijden. Tik er hierboven een in voor vanavond, of sla op wat je vaak kookt.",
-        "typePlaceholder": "Tik een maaltijd in, bijvoorbeeld Taco’s",
-        "typeLabel": "Een maaltijd voor deze dag intikken",
-        "typeAdd": "Toevoegen",
+      "typePlaceholder": "Tik een maaltijd in, bijvoorbeeld Taco’s",
+      "typeLabel": "Een maaltijd voor deze dag intikken",
+      "typeAdd": "Toevoegen",
       "prepTimeShort": "{minutes} min",
       "removeMealButton": "Maaltijd verwijderen",
       "subtitle": "{slot} · {day}"
@@ -752,5 +802,13 @@
       "body": "Foto's verschijnen hier zodra er een fotoreeks op een van je schermen staat."
     },
     "howTo": "Voeg er een toe vanaf een computer: open {url} en zet hem op een scherm."
+  },
+  "choreSettings": {
+    "title": "Klusjesinstellingen",
+    "grabbingHeading": "Bonusklusjes pakken",
+    "letGoHint": "Een volwassene kan een gepakt klusje altijd weer vrijgeven: tik op de ••• naast het klusje op het tabblad Vandaag.",
+    "save": "Opslaan",
+    "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+    "changeAriaLabel": "Wijzigen hoe bonusklusjes gepakt worden"
   }
 }

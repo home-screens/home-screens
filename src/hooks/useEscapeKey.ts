@@ -12,7 +12,9 @@ export function useEscapeKey(onEscape: () => void, enabled = true) {
   useEffect(() => {
     if (!enabled) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onEscape();
+      // Already answered by something on top (a confirm, a panel inside the
+      // modal): one Escape closes one thing.
+      if (e.key === 'Escape' && !e.defaultPrevented) onEscape();
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);

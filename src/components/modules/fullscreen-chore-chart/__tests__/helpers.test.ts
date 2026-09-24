@@ -36,7 +36,7 @@ function makeAssignment(
   memberId: string,
   isCompleted = false,
 ): ResolvedAssignment {
-  return { chore, memberId, isCompleted, groupIds: chore.assigneeGroupIds ?? [] };
+  return { chore, memberId, isCompleted, isSkipped: false, groupIds: chore.assigneeGroupIds ?? [] };
 }
 
 describe('getOrientation', () => {
@@ -175,8 +175,8 @@ describe('buildMemberRows', () => {
     ], true);
     expect([...rows.keys()]).toEqual(['a', 'b']);
     expect(rows.get('a')!.map((r) => r.choreId)).toEqual(['bed', 'dishes']);
-    expect(rows.get('a')![0].assignees).toEqual([{ memberId: 'a', isCompleted: false }]);
-    expect(rows.get('b')![0].assignees).toEqual([{ memberId: 'b', isCompleted: true }]);
+    expect(rows.get('a')![0].assignees).toEqual([{ memberId: 'a', isCompleted: false, isSkipped: false }]);
+    expect(rows.get('b')![0].assignees).toEqual([{ memberId: 'b', isCompleted: true, isSkipped: false }]);
   });
 
   it('skips members with nothing today', () => {

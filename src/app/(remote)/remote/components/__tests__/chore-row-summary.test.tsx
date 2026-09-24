@@ -38,6 +38,8 @@ function list(chores: ChoreDefinition[]) {
       groups={[]}
       familyReady
       chores={chores}
+      choreSettings={{ grabLimit: 1, grabHold: 'day' }}
+      onOpenSettings={vi.fn()}
       onFamilyChanged={vi.fn()}
       onChoresChange={vi.fn()}
     />,

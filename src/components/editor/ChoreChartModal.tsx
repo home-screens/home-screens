@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Fragment, useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { asChoreSnapshot, ChoreSession, type ChoreSnapshot } from '@/lib/chore-client';
 import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
 import { displayCache } from '@/lib/display-cache';
@@ -12,12 +12,15 @@ import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useConfirmStore } from '@/stores/confirm-store';
+import { useEscapeKey } from '@/hooks/useEscapeKey';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type {
   ChoreDefinition,
+  ChoreBonusComesBack,
   ChoreResetFrequency,
   ChoreTimeOfDay,
   ChoreRotation,
+  ChoreSettings,
 } from '@/types/config';
 import {
   getOrderedDays,
@@ -37,9 +40,12 @@ import ChoreIcon, {
 import { Users, X } from 'lucide-react';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
-import { buildChoreAssigneeLine, buildChoreSummaryLine, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
+import { buildChoreAssigneeLine, buildChoreSummaryLine, comesBackHintKey, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
+import GrabRulesLine from './GrabRulesLine';
 import { groupMembers } from '@/lib/family-groups';
+import { bonusShowsOn } from '@/lib/chore-bonus';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
+import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
 
 // ── Props ─────────────────────────────────────────────────────────
 
@@ -50,6 +56,9 @@ interface ChoreChartModalProps {
 }
 
 // ── Chore Form ────────────────────────────────────────────────────
+
+const KINDS = ['regular', 'bonus'] as const;
+const CLAIMS = ['first', 'each'] as const;
 
 function ChoreForm({
   initial,
@@ -83,6 +92,7 @@ function ChoreForm({
 
   const f = useChoreForm(initial, members, groups, familyReady);
   const {
+    kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
     name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
     assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule, canRotate, coveredByGroup, goesToNobody,
     setName, setEmoji, setPoints, setFrequency, setSpecificDate, setTimeOfDay,
@@ -93,6 +103,8 @@ function ChoreForm({
     canSave, validationHintKind,
   } = f;
   const submit = () => f.submit(onSubmit);
+  const isBonus = kind === 'bonus';
+  const onSchedule = !isBonus && rotation === 'schedule';
 
   const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(tModules);
 
@@ -103,10 +115,39 @@ function ChoreForm({
         placeholder={t('choreChartModal.choreForm.namePlaceholder')}
         value={name}
         onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && submit()}
+        // preventDefault: the same Enter must not go on to click whatever the
+        // saved form hands focus to (the chore's Edit button), reopening it.
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
         className={MODAL_INPUT_CLASS}
         autoFocus
       />
+
+      <div className="space-y-1">
+        <span className="text-xs text-hs-text-muted">{tModules('chore-chart.choreForm.kindLabel')}</span>
+        <div
+          role="radiogroup"
+          aria-label={tModules('chore-chart.choreForm.kindLabel')}
+          onKeyDown={radioGroupKeyDown(KINDS, kind, setKind)}
+          className="flex gap-1 rounded-md bg-hs-card p-0.5"
+        >
+          {KINDS.map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={kind === value}
+              tabIndex={radioTabIndex(KINDS, kind, value)}
+              onClick={() => setKind(value)}
+              className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
+                kind === value ? 'bg-hs-accent-soft text-hs-accent' : 'text-hs-text-faint hover:bg-hs-hover'
+              }`}
+            >
+              {tModules(value === 'regular' ? 'chore-chart.choreForm.kindRegular' : 'chore-chart.choreForm.kindBonus')}
+            </button>
+          ))}
+        </div>
+        {isBonus && <p className="text-[11px] text-hs-text-faint">{tModules('chore-chart.choreForm.bonusHint')}</p>}
+      </div>
 
       <IconPicker
         value={emoji}
@@ -125,22 +166,40 @@ function ChoreForm({
             type="number"
             value={points}
             onChange={(e) => setPoints(e.target.value)}
+            // Enter saves from here too, as from the name.
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
             className={MODAL_INPUT_CLASS}
             min={0}
           />
         </label>
-        <label className="flex flex-col gap-0.5 flex-1">
-          <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.frequencyLabel')}</span>
-          <select
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
-            className={MODAL_INPUT_CLASS}
-          >
-            {CHORE_FREQUENCIES.map((opt) => (
-              <option key={opt.value} value={opt.value}>{frequencyLabelMap[opt.value]}</option>
-            ))}
-          </select>
-        </label>
+        {isBonus ? (
+          <label className="flex flex-col gap-0.5 flex-1">
+            <span className="text-xs text-hs-text-muted">{tModules('chore-chart.choreForm.comesBackLabel')}</span>
+            <select
+              value={comesBack}
+              onChange={(e) => setComesBack(e.target.value as ChoreBonusComesBack)}
+              className={MODAL_INPUT_CLASS}
+            >
+              {(['daily', 'weekly', 'manual'] as const).map((value) => (
+                <option key={value} value={value}>{tModules(`chore-chart.bonus.comesBack.${value}`)}</option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <label className="flex flex-col gap-0.5 flex-1">
+            <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.frequencyLabel')}</span>
+            <select
+              value={frequency}
+              onChange={(e) => setFrequency(e.target.value as ChoreResetFrequency)}
+              className={MODAL_INPUT_CLASS}
+            >
+              {CHORE_FREQUENCIES.map((opt) => (
+                <option key={opt.value} value={opt.value}>{frequencyLabelMap[opt.value]}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        {!isBonus && (
         <label className="flex flex-col gap-0.5 flex-1">
           <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.timeOfDayLabel')}</span>
           <select
@@ -155,16 +214,63 @@ function ChoreForm({
             ))}
           </select>
         </label>
+        )}
       </div>
 
-      {rotation !== 'schedule' && (
+      {isBonus && (
+        <div className="-mt-1 space-y-1">
+          <p className="text-[11px] text-hs-text-faint">{tModules(comesBackHintKey(bonusClaim, comesBack))}</p>
+          {frequency === 'once' && (
+            <p className="text-[11px] text-hs-text-faint" data-testid="chore-once-bonus-note">{tModules('chore-chart.choreForm.onceBonusNote')}</p>
+          )}
+        </div>
+      )}
+
+      {isBonus && (
+        <div className="space-y-1">
+          <span className="text-xs text-hs-text-muted">{tModules('chore-chart.choreForm.claimLabel')}</span>
+          <div
+            role="radiogroup"
+            aria-label={tModules('chore-chart.choreForm.claimLabel')}
+            onKeyDown={radioGroupKeyDown(CLAIMS, bonusClaim, setBonusClaim)}
+            className="space-y-1"
+          >
+            {CLAIMS.map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={bonusClaim === value}
+                tabIndex={radioTabIndex(CLAIMS, bonusClaim, value)}
+                onClick={() => setBonusClaim(value)}
+                className={`w-full text-left rounded px-2 py-1.5 border transition-colors ${
+                  bonusClaim === value ? 'border-hs-accent/60 bg-hs-accent-soft' : 'border-hs-border-strong/50 hover:bg-hs-hover'
+                }`}
+              >
+                <span className="block text-xs font-medium text-hs-text-body">
+                  {tModules(value === 'first' ? 'chore-chart.bonus.upForGrabs' : 'chore-chart.bonus.everyoneCan')}
+                </span>
+                <span className="block text-[11px] text-hs-text-faint">
+                  {tModules(value === 'first' ? 'chore-chart.choreForm.claimFirstHint' : 'chore-chart.choreForm.claimEachHint')}
+                </span>
+              </button>
+            ))}
+          </div>
+          {/* The grab limit and when a grab ends are household-wide, set on Settings > Family. */}
+          {bonusClaim === 'first' && (
+            <p className="text-[11px] text-hs-text-faint">{t('choreChartModal.choreForm.grabRulesNote')}</p>
+          )}
+        </div>
+      )}
+
+      {!onSchedule && (
         <>
           {/* Days — date picker for one-time, day-of-week toggles for recurring */}
           <div className="space-y-1.5">
             <span className="text-xs text-hs-text-muted">
-              {frequency === 'once' ? t('choreChartModal.choreForm.dateLabel') : t('fields.days')}
+              {frequency === 'once' && !isBonus ? t('choreChartModal.choreForm.dateLabel') : t('fields.days')}
             </span>
-            {frequency === 'once' ? (
+            {frequency === 'once' && !isBonus ? (
               <input
                 type="date"
                 value={specificDate}
@@ -177,6 +283,9 @@ function ChoreForm({
                   <button
                     key={d}
                     type="button"
+                    // One letter can stand for two days: name it, and say whether it is on.
+                    aria-label={dayNamesShort[d]}
+                    aria-pressed={daysOfWeek.includes(d)}
                     onClick={() => toggleDay(d)}
                     className={`flex-1 py-1 rounded text-xs font-medium transition-all ${
                       daysOfWeek.includes(d)
@@ -193,7 +302,9 @@ function ChoreForm({
 
           {/* Assignees */}
           <div className="space-y-1.5">
-            <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.assignToLabel')}</span>
+            <span className="text-xs text-hs-text-muted">
+              {isBonus ? tModules('chore-chart.choreForm.whoCanLabel') : t('choreChartModal.choreForm.assignToLabel')}
+            </span>
             {/* A household that never made a group sees the form it always had. */}
             {groups.length > 0 && (
               <>
@@ -218,7 +329,7 @@ function ChoreForm({
                   ))}
                 </div>
                 <p className={`text-[11px] ${goesToNobody ? 'text-hs-warning' : 'text-hs-text-faint'}`}>
-                  {tModules(goesToNobody ? 'chore-chart.choreForm.emptyGroupNote' : 'chore-chart.choreForm.groupsHint')}
+                  {tModules(goesToNobody ? 'chore-chart.choreForm.emptyGroupNote' : isBonus ? 'chore-chart.choreForm.groupsHintBonus' : 'chore-chart.choreForm.groupsHint')}
                 </p>
                 <div className="text-[11px] text-hs-text-faint">{tModules('chore-chart.choreForm.peopleLabel')}</div>
               </>
@@ -228,6 +339,7 @@ function ChoreForm({
                 <button
                   key={m.id}
                   type="button"
+                  aria-pressed={assigneeIds.includes(m.id)}
                   onClick={() => toggleAssignee(m.id)}
                   // Ticking a group does not tick its people, so show who it already covers.
                   title={coveredByGroup.has(m.id) ? tModules('chore-chart.choreForm.groupMemberNote', { group: coveredByGroup.get(m.id)!.join(', ') }) : undefined}
@@ -250,7 +362,7 @@ function ChoreForm({
       )}
 
       {/* Schedule grid (when rotation = schedule) */}
-      {rotation === 'schedule' && (
+      {onSchedule && (
         <div className="space-y-1.5">
           <span className="text-xs text-hs-text-muted">{t('choreChartModal.choreForm.weeklyScheduleLabel')}</span>
           {/* Day headers */}
@@ -323,6 +435,8 @@ function ChoreForm({
                         <button
                           key={d}
                           type="button"
+                          aria-pressed={isOn}
+                          aria-label={`${member.name}, ${dayNamesShort[d]}`}
                           onClick={() => toggleScheduleDay(memberId, d)}
                           className={`flex-1 aspect-square rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
                             isOn ? '' : 'bg-hs-card text-hs-text-faint'
@@ -502,7 +616,7 @@ function WeeklyPreview({
         const isToday = day === today;
         const dateStr = localDateStr(getWeekDate(day));
 
-        const dayChores = chores.filter((c) => choreAppliesToday(c, day, dateStr));
+        const dayChores = chores.filter((c) => (c.bonus ? bonusShowsOn(c, dateStr) : choreAppliesToday(c, day, dateStr)));
 
         return (
           <div key={day}>
@@ -522,7 +636,7 @@ function WeeklyPreview({
             ) : (
               dayChores.map((chore) => {
                 const assignees = resolveAssignee(chore, dateStr, groups);
-                const isRotated = chore.rotation !== 'fixed' && choreAssigneeIds(chore, groups).length > 1;
+                const isRotated = !chore.bonus && chore.rotation !== 'fixed' && choreAssigneeIds(chore, groups).length > 1;
                 return (
                   <div
                     key={chore.id}
@@ -531,6 +645,15 @@ function WeeklyPreview({
                     {chore.emoji && <ChoreIcon value={chore.emoji} size={12} color="currentColor" />}
                     <span className="text-hs-text-secondary">{chore.name}</span>
                     <span className="text-hs-text-faint">{tModules('chore-chart.choreSummary.arrow')}</span>
+                    {chore.bonus && (
+                      <span className="text-hs-accent">
+                        {tModules(chore.bonus.claim === 'first' ? 'chore-chart.bonus.upForGrabs' : 'chore-chart.bonus.everyoneCan')}
+                        {/* Who it is open to, since a bonus chore is nobody's on the day. */}
+                        <span className="text-hs-text-faint">
+                          {': '}{buildChoreAssigneeLine({ chore, members, groups, unknownLabel: tModules('chore-chart.unknownAssignee'), nobodyLabel: tModules('chore-chart.choreSummary.nobody') })}
+                        </span>
+                      </span>
+                    )}
                     {assignees.map((aid) => {
                       const m = members.find((x) => x.id === aid);
                       if (!m) return null;
@@ -590,6 +713,9 @@ interface ChoreColumnProps {
   setShowAddChore: (v: boolean) => void;
   setEditingChoreId: (v: string | null) => void;
   deleteChore: (id: string) => void;
+  /** The household's grab rules, once loaded. */
+  choreSettings: ChoreSettings | null;
+  setChoreSettings: (next: ChoreSettings) => void;
 }
 
 function ChoreColumn({
@@ -603,6 +729,8 @@ function ChoreColumn({
   setShowAddChore,
   setEditingChoreId,
   deleteChore,
+  choreSettings,
+  setChoreSettings,
 }: ChoreColumnProps) {
   const t = useTranslate('editor');
   const tModules = useTranslate('modules');
@@ -618,6 +746,7 @@ function ChoreColumn({
         {members.length > 0 && (
           <button
             type="button"
+            data-add-chore
             onClick={() => {
               setShowAddChore(true);
               setEditingChoreId(null);
@@ -653,12 +782,25 @@ function ChoreColumn({
 
         {chores
           .filter((c) => !choreSearch || c.name.toLowerCase().includes(choreSearch.toLowerCase()))
-          .map((chore) => {
+          // Bonus chores follow the regular ones under their own heading; the sort is stable.
+          .sort((a, b) => Number(!!a.bonus) - Number(!!b.bonus))
+          .map((chore, i, listed) => {
             const rotationKey = getChoreRotationSummaryKey(chore, groups);
             const rotationSuffix = rotationKey ? tModules(rotationKey) : null;
             return (
+            <Fragment key={chore.id}>
+            {chore.bonus && !listed[i - 1]?.bonus && (
+              <>
+                <div className="pt-2 text-[11px] font-semibold uppercase tracking-wide text-hs-accent">
+                  {tModules('chore-chart.bonus.heading')}
+                </div>
+                {/* The grab rules, next to the chores they govern (shown with any bonus chore). */}
+                {choreSettings && (
+                  <GrabRulesLine settings={choreSettings} onSaved={setChoreSettings} />
+                )}
+              </>
+            )}
             <div
-              key={chore.id}
               className={`group flex items-start gap-2.5 rounded-lg p-2.5 transition-colors border ${
                 editingChoreId === chore.id
                   ? 'bg-hs-hover border-hs-border-strong'
@@ -691,9 +833,10 @@ function ChoreColumn({
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+              <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity shrink-0">
                 <button
                   type="button"
+                  data-edit-chore={chore.id}
                   onClick={() => {
                     setEditingChoreId(chore.id);
                     setShowAddChore(false);
@@ -713,6 +856,7 @@ function ChoreColumn({
                 </button>
               </div>
             </div>
+            </Fragment>
             );
           })}
       </div>
@@ -826,13 +970,40 @@ export default function ChoreChartModal({
   // A list the hub handed us (the load, a reload, or a conflict's current
   // copy) is already saved: the auto-save below must not send it back.
   const adoptedRef = useRef<ChoreDefinition[] | null>(null);
+  const [choreSettings, setChoreSettings] = useState<ChoreSettings | null>(null);
   const adoptChores = useCallback((snapshot: ChoreSnapshot) => {
     adoptedRef.current = snapshot.chores;
     session.adopt(snapshot);
     setChores(snapshot.chores);
+    setChoreSettings(snapshot.settings);
   }, [session]);
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
+  const choreFormOpen = showAddChore || editingChoreId !== null;
+  const [familyEditing, setFamilyEditing] = useState(false);
+  const closeChoreForm = useCallback(() => { setShowAddChore(false); setEditingChoreId(null); }, []);
+  // A confirm on top (deleting a chore) takes its own Escape; the form under it stays.
+  const confirmOpen = useConfirmStore((state) => state.open);
+  useEscapeKey(closeChoreForm, choreFormOpen && !confirmOpen && !familyEditing);
+  // When the chore form closes (saved, added, cancelled or Escape), the
+  // keyboard goes back to where it came from: the chore's Edit button, or
+  // + Add Chore. Left alone it fell to the page, sixty Tabs from the list.
+  const formFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (choreFormOpen) {
+      formFor.current = editingChoreId ?? 'add';
+      return;
+    }
+    const was = formFor.current;
+    if (!was) return;
+    formFor.current = null;
+    // On the next frame: the key that closed the form has finished by then.
+    const id = requestAnimationFrame(() => {
+      const edit = was === 'add' ? null : document.querySelector<HTMLElement>(`[data-edit-chore="${CSS.escape(was)}"]`);
+      (edit ?? document.querySelector<HTMLElement>('[data-add-chore]'))?.focus();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [choreFormOpen, editingChoreId]);
   const [choreSearch, setChoreSearch] = useState('');
 
   useEffect(() => {
@@ -898,6 +1069,8 @@ export default function ChoreChartModal({
     });
     if (!ok) return;
     setChores((prev) => removeChoreFromList(prev, id));
+    // The chore open in the form is gone: so is its form.
+    if (editingChoreId === id) setEditingChoreId(null);
   };
 
   return (
@@ -905,6 +1078,10 @@ export default function ChoreChartModal({
       title={t('choreChartModal.title')}
       subtitle={t('choreChartModal.subtitleMembersChores', { members: members.length, chores: chores.length })}
       maxWidth="max-w-6xl"
+      // While a chore, person or group is open in a form, Escape closes that
+      // form (below) rather than the whole window, which threw the edit away.
+      closable={!choreFormOpen && !familyEditing}
+      closeBlockedHint={t('choreChartModal.finishFormFirst')}
       onClose={() => { flushSave(); displayCache.invalidate('/api/chores/data'); onClose(); }}
     >
       {loadError && (
@@ -930,7 +1107,7 @@ export default function ChoreChartModal({
       ) : (
       <div className="flex flex-1 min-h-0">
           <div className="w-[300px] shrink-0 overflow-y-auto border-r border-hs-border-strong p-3">
-            <FamilyManager chores={chores} onChanged={() => {
+            <FamilyManager chores={chores} onEditingChange={setFamilyEditing} onChanged={() => {
               void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((json) => {
                 const snapshot = asChoreSnapshot(json);
                 if (!snapshot) throw new Error('Malformed chore data');
@@ -949,6 +1126,8 @@ export default function ChoreChartModal({
             setShowAddChore={setShowAddChore}
             setEditingChoreId={setEditingChoreId}
             deleteChore={deleteChore}
+            choreSettings={choreSettings}
+            setChoreSettings={setChoreSettings}
           />
           <PreviewColumn
             chores={chores}

@@ -3964,6 +3964,56 @@ export interface ChoreDefinition {
    * later has the chore on those days too. Every group here is also named in `assigneeGroupIds`.
    */
   groupSchedule?: Record<string, number[]>;
+  /**
+   * Set on a bonus chore: an extra that only earns tickets and never counts against anyone
+   *
+   * A bonus chore is open to everyone in `assigneeIds` and `assigneeGroupIds`, on the days in
+   * `daysOfWeek`. `frequency` is always `daily` and `rotation` always `fixed` on one.
+   */
+  bonus?: ChoreBonus;
+}
+
+/**
+ * Who gets a bonus chore's tickets.
+ * - `first` up for grabs: one person grabs it and gets the tickets
+ * - `each`  everyone it is open to can do it once and get the tickets
+ */
+export type ChoreBonusClaim = 'first' | 'each';
+
+/**
+ * When a done bonus chore is open again.
+ * - `daily`  the next day it shows up
+ * - `weekly` the next week (weeks run Monday to Sunday)
+ * - `manual` when a grown-up puts it back
+ */
+export type ChoreBonusComesBack = 'daily' | 'weekly' | 'manual';
+
+export interface ChoreBonus {
+  /** Who gets the tickets */
+  claim: ChoreBonusClaim;
+  /** When it is open again once done */
+  comesBack: ChoreBonusComesBack;
+  /**
+   * When it became a bonus chore, as an ISO timestamp. Ticks from before it do not count, so a
+   * regular chore turned into a bonus one does not start out done. Set by the chore save when a
+   * chore becomes a bonus chore, and kept through later edits; missing on older bonus chores
+   */
+  since?: string;
+}
+
+/**
+ * How long a grab of an up-for-grabs chore lasts when it is not finished.
+ * - `day`        until the end of the day it was grabbed
+ * - `until-back` until the chore comes back (the end of the week for a weekly one)
+ */
+export type ChoreGrabHold = 'day' | 'until-back';
+
+/** Household settings for chores, kept in `data/chores.json` beside the chores. */
+export interface ChoreSettings {
+  /** How many up-for-grabs chores one person can hold at once; 0 = no limit */
+  grabLimit: number;
+  /** How long an unfinished grab lasts */
+  grabHold: ChoreGrabHold;
 }
 
 export interface ChoreCompletion {
@@ -3972,6 +4022,29 @@ export interface ChoreCompletion {
   /** Who did it */
   memberId: string;
   /** The day it was done, as `YYYY-MM-DD` */
+  date: string;
+  /**
+   * `skipped` marks a chore a grown-up set to "not today" for this person: it pays nothing and
+   * leaves every count. Omitted = done.
+   */
+  status?: 'skipped';
+  /** When it was marked, as an ISO timestamp. Missing on entries saved before it was recorded. */
+  at?: string;
+  /**
+   * The day of the person's own grab this finished, as `YYYY-MM-DD`. Un-ticking hands that grab
+   * back, with its own date, so a tick and an un-tick never restart how long it lasts; un-ticking
+   * a tick nobody had grabbed for (a grown-up's slip) hands nothing back.
+   */
+  endedGrab?: string;
+}
+
+/** Someone has grabbed an up-for-grabs chore and not finished it yet. */
+export interface ChoreGrab {
+  /** The chore */
+  choreId: string;
+  /** Who grabbed it */
+  memberId: string;
+  /** The day it was grabbed, as `YYYY-MM-DD` */
   date: string;
 }
 
@@ -3993,6 +4066,10 @@ export interface ChoreToggleRequest {
 /** Response body for GET and POST /api/chores. */
 export interface ChoreToggleResponse {
   completions: ChoreCompletion[];
+  /** Up-for-grabs chores someone is holding. */
+  grabs?: ChoreGrab[];
+  /** When a grown-up last put each "when I put it back" bonus chore back, by chore ID (ISO timestamp). */
+  bonusResets?: Record<string, string>;
   /** Present on POST responses so the client can update its rewards cache
    *  instantly after toggling, instead of waiting for the next rewards poll. */
   rewards?: RewardData;

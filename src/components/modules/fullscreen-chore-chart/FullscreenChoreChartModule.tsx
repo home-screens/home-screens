@@ -18,6 +18,10 @@ import FamilyEmptyState from '../FamilyEmptyState';
 import TimeBand from './TimeBand';
 import MemberStrip from './MemberStrip';
 import MemberBand, { memberHeaderHeight } from './MemberBand';
+import BonusBand, { BonusMoreSheet, GrabbedSheet, GrabPickerSheet } from './BonusBand';
+import { atGrabLimit, type BonusItem } from '@/lib/chore-bonus';
+import { parseISO } from '@/lib/chore-assignments';
+import type { ChoreWriteOutcome } from '@/components/modules/chore-chart/useChoreData';
 import FitList from './FitList';
 import { Star } from 'lucide-react';
 import StarChart from './StarChart';
@@ -48,6 +52,21 @@ interface FullscreenChoreChartModuleProps {
   fullscreenTheme?: string;
   timezone?: string;
 }
+
+/** How long "Esme got it first" stays in the toast strip. */
+const BONUS_ALERT_MS = 5000;
+/**
+ * After a tap opens or closes a sheet, a second tap near the same spot is
+ * ignored for this long: it belongs to the same double tap, and what is under
+ * the finger now (a name in the picker that just opened, a ring on the chart
+ * a closing sheet uncovered) is not what it was aimed at. Taps anywhere else
+ * go through at once.
+ */
+const NEAR_TAP_GUARD_MS = 2000;
+/** A sheet that opened or closed this soon after a tap did so because of it (not a change from another screen). */
+const TAP_CAUSED_MS = 800;
+/** How near counts, at the reference 1080 px width. */
+const NEAR_TAP_RADIUS_REF = 130;
 
 /** Width the block sizes below are authored against. */
 const REF_W = 1080;
@@ -132,11 +151,33 @@ export default function FullscreenChoreChartModule({
   const pad = 40 * k * d;
   const weekProgress = config.weekProgress ?? 'chips';
 
-  const { todayAssignments, memberStats, weekData, members, groups, chores, rewards, recentRedemptions, allRedemptions, toggleComplete, applyRedemption, overspentNotice, isLoading, error, rewardsLoading, rewardsError } = useChoreData(config);
+  const { todayAssignments, memberStats, weekData, members, groups, chores, rewards, recentRedemptions, allRedemptions, toggleComplete, applyRedemption, overspentNotice, isLoading, error, rewardsLoading, rewardsError, todayBonus, bonusMarks, choreSettings, grabChore, today, todayKnown } = useChoreData(config);
+  // Which bonus tile has a sheet open: the grab picker, or the grabbed tile's
+  // "did it / let it go". Held by chore id so the sheet reads the latest poll.
+  const [bonusSheet, setBonusSheet] = useState<{ kind: 'pick' | 'grabbed'; choreId: string } | { kind: 'more'; choreIds: string[] } | null>(null);
+  // "Esme got it first": a refused tick or grab, said in the toast strip for a
+  // few seconds. The wall cannot tell who tapped, so it names who has it.
+  const [bonusAlert, setBonusAlert] = useState<{ text: string; bonus: boolean } | null>(null);
+  useEffect(() => {
+    if (!bonusAlert) return;
+    const id = setTimeout(() => setBonusAlert(null), BONUS_ALERT_MS);
+    return () => clearTimeout(id);
+  }, [bonusAlert]);
+  const closeBonusSheet = useCallback(() => setBonusSheet(null), []);
+  const lastPointer = useRef<{ x: number; y: number; at: number } | null>(null);
+  const nearTapGuard = useRef<{ x: number; y: number; until: number } | null>(null);
+  useEffect(() => {
+    const tap = lastPointer.current;
+    // Only a sheet this wall's own tap opened or closed: one closed by a change
+    // on another screen leaves the spot of an old touch free.
+    if (tap && Date.now() - tap.at < TAP_CAUSED_MS) nearTapGuard.current = { x: tap.x, y: tap.y, until: Date.now() + NEAR_TAP_GUARD_MS };
+  }, [bonusSheet]);
   // Un-ticking hands tickets back that may already have been spent. The card
   // chart says so at its foot; here it rides in the toast strip.
   const overspentMessage = useOverspentMessage(overspentNotice);
-  const allowTouch = config.allowDisplayComplete ?? true;
+  // Not until the day's ticks have arrived: before that every chore draws
+  // open, and a tap would tick one already done, or date it by this screen's clock.
+  const allowTouch = (config.allowDisplayComplete ?? true) && todayKnown;
   const byPerson = (config.layout ?? 'by-time') === 'by-person';
   // Who is on the chart: chips for people with chores today, one line for a
   // day off, nothing for a parent with no chores this week (a 0/0 card and
@@ -209,32 +250,83 @@ export default function FullscreenChoreChartModule({
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const handleToggle = useCallback(({ choreId, memberId, choreName, memberName, memberColor, wasCompleted }: ToggleParams) => {
-    toggleComplete(choreId, memberId);
+  // Words for a write the hub refused: who has it, when that is known. Only
+  // a bonus refusal gets bonus words; anything else (a regular chore, a lost
+  // connection) is a plain "didn't save".
+  const refusalText = useCallback((outcome: ChoreWriteOutcome) => {
+    if (outcome.ok) return null;
+    if (!outcome.refusal) return t('fullscreen-chore-chart.saveFailed');
+    const name = members.find((m) => m.id === outcome.memberId)?.name;
+    if (outcome.refusal === 'grabbed' && name) return t('chore-chart.bonus.refused.grabbed', { name });
+    if (outcome.refusal === 'taken' && name) return t('chore-chart.bonus.refused.taken', { name });
+    return t('chore-chart.bonus.refused.other');
+  }, [members, t]);
+
+  const refusalAlert = useCallback((outcome: ChoreWriteOutcome) => {
+    const text = refusalText(outcome);
+    return text ? { text, bonus: !outcome.ok && !!outcome.refusal } : null;
+  }, [refusalText]);
+
+  // The toast (with its Undo) only goes up once the hub has taken the tick:
+  // a refused tick says who has the chore instead.
+  const handleToggle = useCallback(async ({ choreId, memberId, choreName, memberName, memberColor, wasCompleted }: ToggleParams) => {
+    const outcome = await toggleComplete(choreId, memberId);
+    if (!outcome.ok) {
+      setBonusAlert(refusalAlert(outcome));
+      return;
+    }
+    // A try that went through clears an earlier "didn't save".
+    setBonusAlert(null);
+    // Nothing changed on the hub: no toast claiming it did.
+    if (!outcome.changed) return;
     const id = String(++toastIdRef.current);
     setToasts((prev) => [...prev.slice(-2), { id, choreId, memberId, choreName, memberName, memberColor, wasCompleted: !wasCompleted }]);
-  }, [toggleComplete]);
+  }, [toggleComplete, refusalAlert]);
 
-  const handleUndo = useCallback((toastId: string) => {
+  const handleGrab = useCallback(async (choreId: string, memberId: string, action: 'grab' | 'let-go') => {
+    const outcome = await grabChore(choreId, memberId, action);
+    if (!outcome.ok) setBonusAlert(refusalAlert(outcome));
+  }, [grabChore, refusalAlert]);
+
+  // An Undo that did not go through says so, as a tick does: a kid who
+  // thinks it was undone would otherwise keep tickets nobody earned.
+  const handleUndo = useCallback(async (toastId: string) => {
     const toast = toastsRef.current.find((t) => t.id === toastId);
-    if (toast) toggleComplete(toast.choreId, toast.memberId);
     setToasts((prev) => prev.filter((t) => t.id !== toastId));
-  }, [toggleComplete]);
+    if (!toast) return;
+    const outcome = await toggleComplete(toast.choreId, toast.memberId);
+    if (outcome.ok) {
+      setBonusAlert(null);
+      return;
+    }
+    setBonusAlert(refusalAlert(outcome));
+    // The toast comes back with its Undo, so "try again" has something to tap:
+    // a finished bonus tile cannot be tapped to undo.
+    if (!outcome.refusal) setToasts((prev) => [...prev.slice(-2), { ...toast, id: String(++toastIdRef.current) }]);
+  }, [toggleComplete, refusalAlert]);
 
   // Build chore rows grouped by time-of-day; dots keep household order.
   const memberOrder = useMemo(() => new Map(members.map((m, i) => [m.id, i])), [members]);
   const choreGroups = useMemo(() => buildChoreRows(todayAssignments, memberOrder, groups), [todayAssignments, memberOrder, groups]);
 
-  // Overall completion
-  const totalChores = todayAssignments.length;
-  const totalDone = todayAssignments.filter((a) => a.isCompleted).length;
+  // Overall completion. A chore marked "not today" is owed by nobody, and
+  // bonus chores never count, so neither is in the sum.
+  const owedToday = todayAssignments.filter((a) => !a.isSkipped);
+  const totalChores = owedToday.length;
+  const totalDone = owedToday.filter((a) => a.isCompleted).length;
   const overallPct = totalChores > 0 ? Math.round((totalDone / totalChores) * 100) : 0;
 
   // Date — `tzNow.getDay()` is correct because shifted-Date local-time
   // methods read in target zone, but `formatDateInTZ` needs a real UTC
   // instant so its internal `Intl` shift doesn't double-apply.
-  const dayName = formatDateInTZ(new Date(), timezone, { weekday: 'long' }, locale);
-  const dateStr = formatDateInTZ(new Date(), timezone, { month: 'long', day: 'numeric', year: 'numeric' }, locale);
+  // With no time zone set, the header names the hub's day, as the chores
+  // under it are: a screen on another clock no longer says Thursday above
+  // Wednesday's list.
+  // Blank until the hub has said which day it is: the server's first paint
+  // and a screen on another clock would otherwise name different days.
+  const headerDate = parseISO(today);
+  const dayName = todayKnown ? formatDateInTZ(headerDate, undefined, { weekday: 'long' }, locale) : '\u00a0';
+  const dateStr = todayKnown ? formatDateInTZ(headerDate, undefined, { month: 'long', day: 'numeric', year: 'numeric' }, locale) : '\u00a0';
 
   // Member lookup
   const memberMap = useMemo(() => {
@@ -472,6 +564,87 @@ export default function FullscreenChoreChartModule({
     )
   );
 
+  // The band never grows past the medium text size: bigger text is for the
+  // chores that count, and a growing band took their room.
+  const bonusScale = k * Math.min(typoMul, 1);
+  const tileProps = {
+    memberMap,
+    initialsMap,
+    s: bonusScale,
+    allowTouch,
+    today,
+    formatDay: (iso: string) => {
+      const [y, m, d] = iso.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'long' });
+    },
+    onOpenGrab: (item: BonusItem) => setBonusSheet({ kind: 'pick', choreId: item.chore.id }),
+    onOpenGrabbed: (item: BonusItem) => setBonusSheet({ kind: 'grabbed', choreId: item.chore.id }),
+    onToggle: handleToggle,
+  };
+  const bonusTiles = todayBonus.length > 0 && (
+    <BonusBand
+      items={todayBonus}
+      isLandscape={isLandscape}
+      onOpenMore={(hidden) => setBonusSheet({ kind: 'more', choreIds: hidden.map((i) => i.chore.id) })}
+      {...tileProps}
+    />
+  );
+  // A landscape wall by person has room to spare beside the date, where the
+  // family chips sit in the other layout: the band goes there, and the
+  // people's chores keep the full height below.
+  const bonusInHeader = isLandscape && byPerson;
+  const bonusBand = bonusTiles && !bonusInHeader && (
+    <div style={{ flexShrink: 0, padding: `${18 * k}px ${pad}px ${4 * k}px` }}>{bonusTiles}</div>
+  );
+  const sheetItem = bonusSheet && bonusSheet.kind !== 'more' ? todayBonus.find((i) => i.chore.id === bonusSheet.choreId) : undefined;
+  const sheetHolder = sheetItem?.grab?.status === 'grabbed' ? memberMap.get(sheetItem.grab.memberId) : undefined;
+  // A sheet whose chore changed elsewhere (grabbed, finished, let go on
+  // another screen) closes for good. Left open but hidden, it came back by
+  // itself when the chore changed back, under whoever was tapping the chart.
+  const sheetShowing = bonusSheet?.kind === 'more'
+    ? bonusSheet.choreIds.some((id) => todayBonus.some((i) => i.chore.id === id))
+    : !!(bonusSheet && sheetItem && ((bonusSheet.kind === 'pick' && sheetItem.grab?.status === 'open') || (bonusSheet.kind === 'grabbed' && sheetHolder)));
+  useEffect(() => { if (bonusSheet && !sheetShowing) setBonusSheet(null); }, [bonusSheet, sheetShowing]);
+  // At the grab limit, the chore a person is holding, so the picker can say what to finish first.
+  const heldBy = (memberId: string) => {
+    if (!atGrabLimit(memberId, chores, today, bonusMarks, choreSettings, groups)) return null;
+    // Every chore they hold: at a limit of two, naming one hid the other.
+    return todayBonus.filter((i) => i.grab?.status === 'grabbed' && i.grab.memberId === memberId).map((i) => i.chore.name).join(', ');
+  };
+  const bonusSheets = bonusSheet?.kind === 'more' ? (
+    <BonusMoreSheet
+      isLandscape={isLandscape}
+      // In the band's order (grabbed, open, everyone can, done), as the ids were handed over.
+      items={bonusSheet.choreIds.flatMap((id) => todayBonus.filter((i) => i.chore.id === id))}
+      onClose={closeBonusSheet}
+      {...tileProps}
+    />
+  ) : bonusSheet && sheetItem && (
+    bonusSheet.kind === 'pick' && sheetItem.grab?.status === 'open' ? (
+      <GrabPickerSheet
+        item={sheetItem}
+        memberMap={memberMap}
+        initialsMap={initialsMap}
+        s={bonusScale}
+        heldBy={heldBy}
+        onPick={(memberId) => { void handleGrab(sheetItem.chore.id, memberId, 'grab'); closeBonusSheet(); }}
+        onClose={closeBonusSheet}
+      />
+    ) : bonusSheet.kind === 'grabbed' && sheetHolder ? (
+      <GrabbedSheet
+        item={sheetItem}
+        holder={sheetHolder}
+        s={bonusScale}
+        onDone={() => {
+          void handleToggle({ choreId: sheetItem.chore.id, memberId: sheetHolder.id, choreName: sheetItem.chore.name, memberName: sheetHolder.name, memberColor: sheetHolder.color, wasCompleted: false });
+          closeBonusSheet();
+        }}
+        onLetGo={() => { void handleGrab(sheetItem.chore.id, sheetHolder.id, 'let-go'); closeBonusSheet(); }}
+        onClose={closeBonusSheet}
+      />
+    ) : null
+  );
+
   const listGrid = sectionCount > 0 && (
     <div
       ref={listRef}
@@ -605,6 +778,14 @@ export default function FullscreenChoreChartModule({
     <div
       ref={containerRef}
       className="fcc-root"
+      onPointerDownCapture={(e) => { lastPointer.current = { x: e.clientX, y: e.clientY, at: Date.now() }; }}
+      onClickCapture={(e) => {
+        const near = nearTapGuard.current;
+        if (!near || Date.now() > near.until || e.detail === 0) return;
+        if (Math.hypot(e.clientX - near.x, e.clientY - near.y) > NEAR_TAP_RADIUS_REF * k) return;
+        e.stopPropagation();
+        e.preventDefault();
+      }}
       style={{
         width: '100%',
         height: '100%',
@@ -616,6 +797,9 @@ export default function FullscreenChoreChartModule({
         ...buildThemeCSSVars('fcc', theme),
         // Empty accentColor follows the theme's own accent (see the registry default).
         '--fcc-accent': resolveFullscreenAccent(config.accentColor, theme, DEFAULT_ACCENT_COLOR),
+        // Bonus chores draw in the accent; on a light theme it is darkened so
+        // amber on white still reads from across the room.
+        '--fcc-bonus': theme.isDark ? 'var(--fcc-accent)' : 'color-mix(in srgb, var(--fcc-accent) 62%, #000)',
         colorScheme: theme.isDark ? 'dark' : 'light',
       } as React.CSSProperties}
     >
@@ -694,14 +878,15 @@ export default function FullscreenChoreChartModule({
               {rewardsButton && <div style={{ marginTop: 14 * k, display: 'flex' }}>{rewardsButton}</div>}
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
-              <div style={{ width: '100%' }}>
-                {byPerson ? dayOffLine : (
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 * k }}>
+                {byPerson ? <>{dayOffLine}{bonusTiles}</> : (
                   <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} maxPerRow={4} />
                 )}
               </div>
             </div>
           </div>
 
+          {bonusBand}
           {listGrid}
           {sectionCount === 0 && (
             <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>{emptyState}</div>
@@ -755,6 +940,7 @@ export default function FullscreenChoreChartModule({
           )}
           {byPerson && <div style={{ height: 12 * k, flexShrink: 0 }} />}
 
+          {bonusBand}
           {listGrid}
           {sectionCount === 0 && (
             <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>{emptyState}</div>
@@ -767,8 +953,11 @@ export default function FullscreenChoreChartModule({
         </>
       )}
 
+      {effectiveView === 'chores' && !historyVariant && bonusSheets}
+
       {/* Touch completion toasts — always rendered */}
-      {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={handleUndo} notice={overspentMessage} scale={tc} bottom={footer ? 96 * k : 20 * k} />}
+      {/* With a sheet open the toasts go to the top, clear of its Cancel. */}
+      {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={(id) => void handleUndo(id)} notice={overspentMessage} alert={bonusAlert} scale={tc} bottom={footer ? 96 * k : 20 * k} top={bonusSheet ? 20 * k : undefined} />}
     </div>
   );
 }

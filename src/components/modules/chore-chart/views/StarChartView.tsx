@@ -3,7 +3,7 @@
 import type { FamilyMember } from '@/types/family';
 
 import type { ChoreChartConfig} from '@/types/config';
-import { todayStr, type MemberStats, type WeekDayData } from '../types';
+import { type MemberStats, type WeekDayData } from '../types';
 import { balanceRows, fitPerRow, starIconSize, starLegendIconSize, weekMembers } from '../layout';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
@@ -16,6 +16,8 @@ interface StarChartViewProps {
     members: FamilyMember[];
     memberStats: Map<string, MemberStats>;
     weekData: WeekDayData[];
+    /** The hub's calendar day. */
+    today: string;
   };
   /** Measured box width in px (0 until measured). */
   width: number;
@@ -99,7 +101,7 @@ export function StarChartView({ config, data, width, fontSize }: StarChartViewPr
                     // ISO string compare in local terms — `new Date('YYYY-MM-DD')`
                     // parses as UTC midnight, which marked tomorrow as missed
                     // every evening west of Greenwich.
-                    const isPast = day.date < todayStr();
+                    const isPast = day.date < data.today;
                     // A day with nothing assigned is neither earned nor missed.
                     const assigned = day.memberAssigned[member.id];
                     return (

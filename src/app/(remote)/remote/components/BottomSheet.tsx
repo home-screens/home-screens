@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 
 /**
  * A short sheet that slides up from the bottom of the phone: the item and
@@ -14,13 +15,21 @@ export default function BottomSheet({
   children,
   zIndex = 200,
   testId,
+  guardTaps = false,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   zIndex?: number;
   testId?: string;
+  /**
+   * When it closes from a tap, a second tap near there is ignored for a
+   * moment: for a sheet over a list where that tap would tick or pay for
+   * something (the chore menu).
+   */
+  guardTaps?: boolean;
 }) {
+  useSheetTapGuard(guardTaps);
   return (
     <div
       style={{

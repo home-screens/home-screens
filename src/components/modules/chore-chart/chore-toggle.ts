@@ -21,14 +21,25 @@ export function planChoreToggle(
   choreId: string,
   memberId: string,
   date: string,
+  /**
+   * Whether a finished entry still counts. A bonus chore a grown-up put back
+   * has earlier rounds that no longer do (`countsSinceReset`): ticking it again
+   * is a new round, not an un-tick of the old one. Defaults to every entry.
+   */
+  counts: (completion: ChoreCompletion) => boolean = () => true,
 ): ChoreTogglePlan {
-  const existing = completions.findIndex(
-    (c) => c.choreId === choreId && c.memberId === memberId && c.date === date,
-  );
+  const sameDay = (c: ChoreCompletion) => c.choreId === choreId && c.memberId === memberId && c.date === date;
+  // A "not today" mark is not a finished chore: ticking over it completes the
+  // chore, and the server replaces the mark the same way.
+  const existing = completions.findIndex((c) => sameDay(c) && !c.status && counts(c));
   if (existing >= 0) {
     return { direction: 'uncomplete', completions: completions.filter((_, i) => i !== existing) };
   }
-  return { direction: 'complete', completions: [...completions, { choreId, memberId, date }] };
+  // Stamped like the server stamps it, so the new round counts on screen at once.
+  return {
+    direction: 'complete',
+    completions: [...completions.filter((c) => !(sameDay(c) && c.status)), { choreId, memberId, date, at: new Date().toISOString() }],
+  };
 }
 
 /** An un-tick that took someone's tickets below zero, in the words a screen needs. */

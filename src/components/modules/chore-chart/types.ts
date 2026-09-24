@@ -4,7 +4,7 @@ import type {
   ChoreTimeOfDay,
 } from '@/types/config';
 import { uuid } from '@/lib/uuid';
-import { choresAssignedTo, isChoreComplete, localDateStr, parseISO, type ChoreGroup, type ResolvedAssignment } from '@/lib/chore-assignments';
+import { choresAssignedTo, choresOwedBy, isChoreComplete, localDateStr, parseISO, type ChoreGroup, type ResolvedAssignment } from '@/lib/chore-assignments';
 
 // ── Assignment / completion core (re-exported from the lib layer) ──
 //
@@ -14,8 +14,8 @@ import { choresAssignedTo, isChoreComplete, localDateStr, parseISO, type ChoreGr
 // components keep one import site.
 
 export {
-  choreAppliesToday, choreAssigneeIds, choresAssignedTo, completionKey, isAssignedOn, isChoreComplete,
-  localDateStr, parseISO, resolveAssignee, resolveAssignmentsFor, todayStr,
+  buildCompletionSet, choreAppliesToday, choreAssigneeIds, choresAssignedTo, choresOwedBy, completionKey, isAssignedOn,
+  isChoreComplete, isChoreSkipped, localDateStr, parseISO, resolveAssignee, resolveAssignmentsFor, todayStr,
 } from '@/lib/chore-assignments';
 export type { ChoreGroup, ResolvedAssignment } from '@/lib/chore-assignments';
 
@@ -153,7 +153,7 @@ export function getCurrentTimeOfDay(hour: number): ChoreTimeOfDay {
 /** Whether `memberId` completed every chore assigned to them on `date`.
  *  A day with no assigned chores returns `false` (no chores earns no star);
  *  callers that must distinguish "nothing assigned" from "assigned but not
- *  done" (e.g. the streak walk) check `choresAssignedTo(...).length`. */
+ *  done" (e.g. the streak walk) check `choresOwedBy(...).length`. */
 export function isDayFullyComplete(
   chores: ChoreDefinition[],
   memberId: string,
@@ -161,7 +161,7 @@ export function isDayFullyComplete(
   completionSet: Set<string>,
   groups: readonly ChoreGroup[],
 ): boolean {
-  const assigned = choresAssignedTo(chores, memberId, date, groups);
+  const assigned = choresOwedBy(chores, memberId, date, completionSet, groups);
   if (assigned.length === 0) return false;
   return assigned.every((c) => isChoreComplete(completionSet, c.id, memberId, date));
 }
@@ -209,7 +209,7 @@ export function computeDayEntries(
     let earned = 0;
     let anyDone = false;
     for (const member of members) {
-      const assigned = choresAssignedTo(chores, member.id, cursor, groups);
+      const assigned = choresOwedBy(chores, member.id, cursor, completionSet, groups);
       if (assigned.length === 0) continue; // vacation days aren't punished
       total += 1;
       let allDone = true;
@@ -250,7 +250,7 @@ export function computeWeeklyPoints(
   let earned = 0;
   let total = 0;
   for (const date of weekDates) {
-    for (const chore of choresAssignedTo(chores, memberId, date, groups)) {
+    for (const chore of choresOwedBy(chores, memberId, date, completionSet, groups)) {
       total += chore.points;
       if (isChoreComplete(completionSet, chore.id, memberId, date)) {
         earned += chore.points;
@@ -260,7 +260,9 @@ export function computeWeeklyPoints(
   return { earned, total };
 }
 
-/** How many chore assignments a member has across `weekDates`. */
+/** How many chore assignments a member has across `weekDates`. A "not
+ *  today" still counts here: it says whether the person is on the chart this
+ *  week at all, not what they owe. */
 export function countWeekAssignments(
   chores: ChoreDefinition[],
   memberId: string,
@@ -288,7 +290,7 @@ export function computeStreak(
   sd.setDate(sd.getDate() - 1); // start from yesterday
   for (let i = 0; i < 30; i++) {
     const date = localDateStr(sd);
-    const assigned = choresAssignedTo(chores, memberId, date, groups);
+    const assigned = choresOwedBy(chores, memberId, date, completionSet, groups);
 
     if (assigned.length === 0) {
       // No chores assigned — skip day without breaking streak

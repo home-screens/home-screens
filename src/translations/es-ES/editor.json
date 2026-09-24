@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Añade tu hogar una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, recompensas, calendarios y horarios escolares."
+      "description": "Añade tu hogar una sola vez. Los nombres, colores y emojis acompañan a cada persona en tareas, recompensas, calendarios y horarios escolares.",
+      "chores": {
+        "heading": "Tareas extra",
+        "description": "Cómo se piden las tareas extra. Los Ajustes de tareas del teléfono cambian estas mismas dos cosas.",
+        "grabLimitLabel": "Cuántas tareas extra puede pedirse una persona a la vez",
+        "grabHoldLabel": "Cuánto dura una tarea extra que alguien se ha pedido",
+        "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+        "saved": "Guardado"
+      }
     },
     "touchAlignment": {
       "label": "Alineación táctil",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Calendario semanal",
       "coverageLabel": "Cobertura: {covered} de 7 días",
       "addSubmit": "Añadir tarea",
-      "saveSubmit": "Guardar"
+      "saveSubmit": "Guardar",
+      "grabRulesNote": "Cuántas tareas puede pedirse una persona, y cuándo deja de ser suya, se elige para toda la casa en Extra, en la lista de tareas."
     },
     "preview": {
       "columnTitleNew": "Nueva tarea",
@@ -2551,7 +2560,8 @@
       "noChores": "Sin tareas",
       "weeklyTotalsHeading": "Totales semanales",
       "memberLine": "{chores} tareas, {tickets} tickets"
-    }
+    },
+    "finishFormFirst": "Guarda o cancela primero el formulario abierto."
   },
   "todoListModal": {
     "title": "Editar lista",

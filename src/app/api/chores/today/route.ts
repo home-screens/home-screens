@@ -4,12 +4,14 @@ import { withDisplayAuth, isValidISODate } from '@/lib/api-utils';
 import { readFamilyData } from '@/lib/family-data';
 import { withFamilyData } from '@/lib/family-api';
 import { readChoreData } from '@/lib/chore-data';
-import { readCompletions } from '@/lib/chore-completion-data';
+import { choreMarks, readCompletions } from '@/lib/chore-completion-data';
 import {
-  choresAssignedTo,
+  buildCompletionSet,
+  choresOwedBy,
   completionKey,
-  todayStr,
 } from '@/lib/chore-assignments';
+import { resolveBonusFor } from '@/lib/chore-bonus';
+import { householdToday } from '@/lib/household-day';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +24,9 @@ export const dynamic = 'force-dynamic';
  * external callers — the Home Assistant voice package's "what chores does
  * Alice have left?" — get exactly what the chore chart renders.
  *
+ * A chore marked "not today" is left out: nobody owes it. Bonus chores are
+ * listed on their own under `bonus`, since nobody owes those either.
+ *
  * Optional `?date=YYYY-MM-DD` resolves a different day (any date: the
  * assignment rules are pure date math and the read is side-effect free).
  */
@@ -33,24 +38,21 @@ export const GET = withDisplayAuth(async (request: NextRequest) => withFamilyDat
       { status: 400 },
     );
   }
-  const date = dateParam ?? todayStr();
+  const today = await householdToday();
+  const date = dateParam ?? today;
 
   const [data, completionData, family] = await Promise.all([
     readChoreData(),
     readCompletions(),
     readFamilyData(),
   ]);
-  const done = new Set(
-    completionData.completions.map((c) =>
-      completionKey(c.choreId, c.memberId, c.date),
-    ),
-  );
+  const done = buildCompletionSet(completionData.completions);
 
   const groups = family.groups ?? [];
   const members = family.members.map((m) => ({
     id: m.id,
     name: m.name,
-    chores: choresAssignedTo(data.chores, m.id, date, groups).map((c) => ({
+    chores: choresOwedBy(data.chores, m.id, date, done, groups).map((c) => ({
       id: c.id,
       name: c.name,
       points: c.points,
@@ -59,5 +61,15 @@ export const GET = withDisplayAuth(async (request: NextRequest) => withFamilyDat
     })),
   }));
 
-  return NextResponse.json({ date, members });
+  const bonus = resolveBonusFor(data.chores, family.members, date, choreMarks(completionData), groups, data.settings, today)
+    .map((item) => ({
+      id: item.chore.id,
+      name: item.chore.name,
+      points: item.chore.points,
+      kind: item.chore.bonus.claim === 'first' ? 'up-for-grabs' : 'everyone-can',
+      openTo: item.eligibleIds,
+      ...(item.grab ? { state: item.grab } : { doneBy: item.doneIds }),
+    }));
+
+  return NextResponse.json({ date, members, bonus });
 }), "Failed to resolve the day's chores");

@@ -16,6 +16,8 @@ interface CRUDModalShellProps {
    *  flight, so a stray keypress can't orphan it. Defaults to always closable,
    *  matching every caller before this took a ModalFrame underneath. */
   closable?: boolean;
+  /** Said on the greyed Done and × while `closable` is off, so it is clear what to do. */
+  closeBlockedHint?: string;
   onClose: () => void;
   children: ReactNode;
 }
@@ -28,6 +30,7 @@ export default function CRUDModalShell({
   headerActions,
   hideFooter,
   closable = true,
+  closeBlockedHint,
   onClose,
   children,
 }: CRUDModalShellProps) {
@@ -49,6 +52,7 @@ export default function CRUDModalShell({
             <button
               onClick={onClose}
               disabled={!closable}
+              title={!closable ? closeBlockedHint : undefined}
               aria-label={tCore('actions.close')}
               className="text-hs-text-muted hover:text-hs-text-body text-lg leading-none w-7 h-7 flex items-center justify-center rounded hover:bg-hs-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
             >
@@ -61,7 +65,9 @@ export default function CRUDModalShell({
 
         {!hideFooter && (
           <div className="flex items-center justify-end px-5 py-3 border-t border-hs-border-strong">
-            <Button size="sm" variant="primary" onClick={onClose}>
+            {/* Off whenever × is: closing then would drop work in progress (an open form, a save). */}
+            {!closable && closeBlockedHint && <span className="mr-3 text-xs text-hs-text-muted">{closeBlockedHint}</span>}
+            <Button size="sm" variant="primary" onClick={onClose} disabled={!closable} title={!closable ? closeBlockedHint : undefined}>
               {t('modals.crud.done')}
             </Button>
           </div>

@@ -1,6 +1,6 @@
 import type { FamilyMember } from '@/types/family';
 import type { ChoreCompletion, ChoreDefinition, MealSettings, MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
-import { completionKey, resolveAssignmentsFor, type ChoreGroup } from '@/lib/chore-assignments';
+import { buildCompletionSet, resolveAssignmentsFor, type ChoreGroup } from '@/lib/chore-assignments';
 import { SLOT_ORDER, resolveMealWithEntry } from '@/lib/meal-constants';
 
 /**
@@ -59,9 +59,8 @@ export function buildExtrasIndex(opts: {
 }): ExtrasIndex {
   const byDate: Record<string, DayExtras> = {};
   const members: ExtrasIndex['members'] = {};
-  const completionSet = new Set<string>();
+  const completionSet = buildCompletionSet(opts.chores?.completions ?? []);
   if (opts.chores) {
-    for (const c of opts.chores.completions) completionSet.add(completionKey(c.choreId, c.memberId, c.date));
     for (const m of opts.chores.members) members[m.id] = { name: m.name, color: m.color, emoji: m.emoji };
   }
   const enabledSlots = new Set(opts.meals?.settings.enabledSlots ?? []);
@@ -79,7 +78,8 @@ export function buildExtrasIndex(opts: {
     }
     let chores: DayChoreExtra | null = null;
     if (opts.chores) {
-      const assignments = resolveAssignmentsFor(opts.chores.chores, opts.chores.members, date, completionSet, opts.chores.groups);
+      const assignments = resolveAssignmentsFor(opts.chores.chores, opts.chores.members, date, completionSet, opts.chores.groups)
+        .filter((a) => !a.isSkipped);
       if (assignments.length > 0) {
         const seen = new Set(assignments.map((a) => a.memberId));
         chores = {

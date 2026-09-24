@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Voeg je huishouden één keer toe. Namen, kleuren en emoji’s volgen elke persoon bij taken, beloningen, agenda’s en roosters."
+      "description": "Voeg je huishouden één keer toe. Namen, kleuren en emoji’s volgen elke persoon bij klusjes, beloningen, kalenders en roosters.",
+      "chores": {
+        "heading": "Bonusklusjes",
+        "description": "Hoe bonusklusjes gepakt worden. De klusjesinstellingen op de telefoon passen dezelfde twee dingen aan.",
+        "grabLimitLabel": "Hoeveel bonusklusjes één persoon tegelijk mag pakken",
+        "grabHoldLabel": "Hoe lang een gepakt bonusklusje van iemand blijft",
+        "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+        "saved": "Opgeslagen"
+      }
     },
     "touchAlignment": {
       "label": "Uitlijning van aanraking",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Weekschema",
       "coverageLabel": "Dekking: {covered} van 7 dagen",
       "addSubmit": "Klusje toevoegen",
-      "saveSubmit": "Opslaan"
+      "saveSubmit": "Opslaan",
+      "grabRulesNote": "Hoeveel één persoon mag pakken en hoe lang een gepakt klusje van iemand blijft, stel je voor het hele gezin in onder Bonus in de klusjeslijst."
     },
     "preview": {
       "columnTitleNew": "Nieuw klusje",
@@ -2551,7 +2560,8 @@
       "noChores": "Geen klusjes",
       "weeklyTotalsHeading": "Weektotalen",
       "memberLine": "{chores} klusjes, {tickets} tickets"
-    }
+    },
+    "finishFormFirst": "Sla eerst het open formulier op of annuleer het."
   },
   "todoListModal": {
     "title": "Lijst bewerken",

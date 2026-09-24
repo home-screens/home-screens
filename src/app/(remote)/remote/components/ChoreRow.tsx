@@ -1,8 +1,10 @@
 'use client';
 
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock, MoreHorizontal } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
+import { useLongPress } from '@/hooks/useLongPress';
+import { useMovedTapGuard } from '@/hooks/useMovedTapGuard';
 import { useTranslate } from '@/i18n';
 
 /** Minimal shape the row renders from — the parent's assignment carries more fields. */
@@ -12,6 +14,8 @@ export interface ChoreRowAssignment {
   choreEmoji: string;
   points: number;
   isCompleted: boolean;
+  /** A grown-up marked it "not today" for this person. */
+  isSkipped?: boolean;
 }
 
 interface ChoreRowProps {
@@ -30,6 +34,12 @@ interface ChoreRowProps {
   checkedColor: string;
   showPoints: boolean;
   onToggle: () => void;
+  /** Grown-ups only: a hold (or right-click) opens the chore's menu. */
+  onLongPress?: () => void;
+  /** Grown-ups only: a visible "..." that opens the same menu, so it can be found without knowing to hold. */
+  onMenu?: () => void;
+  /** The person and day on screen: picking another redraws the list without it counting as the row moving. */
+  view: string;
 }
 
 /**
@@ -45,15 +55,25 @@ export default function ChoreRow({
   checkedColor,
   showPoints,
   onToggle,
+  onLongPress,
+  onMenu,
+  view,
 }: ChoreRowProps) {
   const t = useTranslate('remote');
   const done = assignment.isCompleted;
+  const skipped = !!assignment.isSkipped && !done;
   const holdMode = holdToUncheck && done && !readOnly && !isToggling;
 
   // The gesture itself lives in the hook, shared with the wall chart so the
   // two surfaces cannot drift apart on what a tap and a hold each mean.
   const hold = useHoldToUncheck();
-  const handlers = hold.rowHandlers(assignment.choreId, holdMode, onToggle);
+  const longPress = useLongPress();
+  // A "not today" is a grown-up's mark: a kid's tap does nothing to it, and a
+  // grown-up's tap takes it away again.
+  // A tap right after the row slid on screen was meant for what was there before.
+  const { ref: rowRef, guard } = useMovedTapGuard<HTMLElement>(view);
+  const tapHandlers = skipped && !onLongPress ? {} : hold.rowHandlers(assignment.choreId, holdMode, guard(onToggle)!);
+  const handlers = longPress(guard(onLongPress), tapHandlers);
   const holding = hold.holdingKey === assignment.choreId;
   const hint = hold.hintKey === assignment.choreId;
 
@@ -63,7 +83,7 @@ export default function ChoreRow({
     alignItems: 'center',
     gap: 12,
     padding: '14px 16px',
-    background: done ? 'var(--hs-bg-card)' : 'var(--hs-bg-hover)',
+    background: done || skipped ? 'var(--hs-bg-card)' : 'var(--hs-bg-hover)',
     borderRadius: 12,
     marginBottom: 6,
     cursor: readOnly ? ('default' as const) : ('pointer' as const),
@@ -79,7 +99,18 @@ export default function ChoreRow({
     touchAction: 'pan-y' as const,
   };
 
-  const checkbox = readOnly ? (
+  const checkbox = skipped ? (
+    <div
+      aria-hidden="true"
+      style={{
+        width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: '2px dashed var(--hs-border-strong)', color: 'var(--hs-text-faint)', fontWeight: 700,
+      }}
+    >
+      –
+    </div>
+  ) : readOnly ? (
     // Locked chip: kid-viewing-past — visually distinct, not interactive
     <div
       style={{
@@ -147,25 +178,41 @@ export default function ChoreRow({
         </span>
       )}
 
-      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* The hold hint takes the name's place rather than adding a line: a row
+          that grows and shrinks moves the rows under it, and a second tap
+          then lands on the wrong chore. */}
+      <span style={{ flex: 1, minWidth: 0, position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span
           style={{
             fontSize: 15,
             fontWeight: 500,
             textDecoration: done ? 'line-through' : 'none',
-            color: done ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
+            color: done || skipped ? 'var(--hs-text-faint)' : 'var(--hs-text-body)',
+            visibility: hint ? 'hidden' : 'visible',
           }}
         >
           {assignment.choreName}
         </span>
         {hint && (
-          <span role="status" style={{ fontSize: 12, color: checkedColor, fontWeight: 500 }}>
+          <span
+            role="status"
+            style={{
+              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+              fontSize: 13, color: checkedColor, fontWeight: 600, lineHeight: 1.25,
+            }}
+          >
             {t('choresTab.holdToUncheckHint')}
           </span>
         )}
       </span>
 
-      {showPoints && assignment.points > 0 && (
+      {skipped && (
+        <span style={{ fontSize: 11, flexShrink: 0, padding: '2px 8px', borderRadius: 999, border: '1px dashed var(--hs-border-strong)', color: 'var(--hs-text-faint)' }}>
+          {t('choresTab.notToday.chip')}
+        </span>
+      )}
+
+      {!skipped && showPoints && assignment.points > 0 && (
         <span
           style={{
             fontSize: 11,
@@ -185,24 +232,46 @@ export default function ChoreRow({
     </>
   );
 
-  if (readOnly) {
+  if (readOnly || (skipped && !onLongPress)) {
     // Non-interactive row: not a button, no press-scale, not announced as clickable.
-    return <div style={rowStyle}>{rowInner}</div>;
+    return <div ref={rowRef as React.RefObject<HTMLDivElement>} style={rowStyle}>{rowInner}</div>;
   }
 
-  return (
+  const rowButton = (
     <button
+      ref={onMenu ? undefined : (rowRef as React.RefObject<HTMLButtonElement>)}
       className="press-scale"
       {...handlers}
       disabled={isToggling}
       aria-label={
-        done
-          ? t('choresTab.choreAriaLabelCompleted', { chore: assignment.choreName })
-          : t('choresTab.choreAriaLabelMarkComplete', { chore: assignment.choreName })
+        skipped
+          ? t('choresTab.notToday.ariaLabel', { chore: assignment.choreName })
+          : done
+            ? t('choresTab.choreAriaLabelCompleted', { chore: assignment.choreName })
+            : t('choresTab.choreAriaLabelMarkComplete', { chore: assignment.choreName })
       }
-      style={rowStyle}
+      style={onMenu ? { ...rowStyle, marginBottom: 0, flex: 1, minWidth: 0 } : rowStyle}
     >
       {rowInner}
     </button>
+  );
+  if (!onMenu) return rowButton;
+
+  return (
+    <div ref={rowRef as React.RefObject<HTMLDivElement>} style={{ display: 'flex', alignItems: 'stretch', gap: 4, marginBottom: 6 }}>
+      {rowButton}
+      <button
+        type="button"
+        data-testid={`chore-menu-${assignment.choreId}`}
+        onClick={guard(onMenu)}
+        aria-label={t('choresTab.dayMenu.open', { chore: assignment.choreName })}
+        style={{
+          flexShrink: 0, width: 40, border: 'none', borderRadius: 12, background: 'var(--hs-bg-card)',
+          color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+        }}
+      >
+        <MoreHorizontal size={20} aria-hidden />
+      </button>
+    </div>
   );
 }

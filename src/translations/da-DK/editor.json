@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Tilføj din husstand én gang. Navne, farver og emojis følger hver person i pligter, belønninger, kalendere og skemaer."
+      "description": "Tilføj din husstand én gang. Navne, farver og emojis følger hver person i pligter, belønninger, kalendere og skemaer.",
+      "chores": {
+        "heading": "Bonuspligter",
+        "description": "Sådan snuppes bonuspligter. Indstillinger for pligter på telefonen ændrer de samme to ting.",
+        "grabLimitLabel": "Hvor mange bonuspligter én person kan snuppe ad gangen",
+        "grabHoldLabel": "Hvor længe en snuppet bonuspligt er deres",
+        "saveFailed": "Kunne ikke gemme. Prøv igen.",
+        "saved": "Gemt"
+      }
     },
     "touchAlignment": {
       "label": "Justering af berøring",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Ugeskema",
       "coverageLabel": "Dækning: {covered} af 7 dage",
       "addSubmit": "Tilføj pligt",
-      "saveSubmit": "Gem"
+      "saveSubmit": "Gem",
+      "grabRulesNote": "Hvor mange én person kan snuppe, og hvor længe en snuppet pligt er deres, indstilles for hele familien under Bonus i listen over pligter."
     },
     "preview": {
       "columnTitleNew": "Ny pligt",
@@ -2551,7 +2560,8 @@
       "noChores": "Ingen pligter",
       "weeklyTotalsHeading": "Ugen i alt",
       "memberLine": "{chores} pligter, {tickets} billetter"
-    }
+    },
+    "finishFormFirst": "Gem eller annullér først den åbne formular."
   },
   "todoListModal": {
     "title": "Rediger liste",
@@ -2973,7 +2983,7 @@
       "title": "Fjern dette skema?",
       "message": "Alt andet om {name} bliver. Kun skoleugen ryger.",
       "confirmLabel": "Fjern skema",
-      "action": "Fjern {name}s skema"
+      "action": "Fjern skemaet for {name}"
     }
   },
   "propertyPanel": {

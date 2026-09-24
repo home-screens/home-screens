@@ -10,6 +10,8 @@ interface MemberDotProps extends Omit<ComponentPropsWithoutRef<'div'>, 'color' |
   /** Shown inside a still-to-do dot. Empty where every dot in a section is the same person. */
   initial?: string;
   isCompleted: boolean;
+  /** A grown-up marked the chore "not today" for this person: a dashed grey ring with their initial (a dash without one), not their colour. */
+  isSkipped?: boolean;
   /** Merged over the computed style, for the caller's own layout needs. */
   style?: CSSProperties;
   /** Drawn inside the dot, over its face: the card's hold-progress ring. */
@@ -34,10 +36,12 @@ export default function MemberDot({
   color,
   initial = '',
   isCompleted,
+  isSkipped = false,
   style,
   children,
   ...rest
 }: MemberDotProps) {
+  const ring = Math.max(3, Math.round(size * 0.06));
   return (
     <div
       {...rest}
@@ -52,10 +56,12 @@ export default function MemberDot({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        ...(isCompleted
+        ...(isSkipped
+          ? { border: `${ring}px dashed var(--hs-dot-skipped, #78716c)`, color: 'var(--hs-dot-skipped, #78716c)', fontSize: size * (initial ? (initial.length > 1 ? 0.34 : 0.42) : 0.5), fontWeight: 700, lineHeight: 1 }
+          : isCompleted
           ? { background: color }
           : {
-              border: `${Math.max(3, Math.round(size * 0.06))}px solid ${color}`,
+              border: `${ring}px solid ${color}`,
               background: `color-mix(in srgb, ${color} 16%, transparent)`,
               color,
               fontSize: size * (initial.length > 1 ? 0.34 : 0.42),
@@ -65,7 +71,7 @@ export default function MemberDot({
         ...style,
       }}
     >
-      {isCompleted ? <Check size={size * 0.55} color="white" strokeWidth={3} /> : initial}
+      {isSkipped ? (initial || '–') : isCompleted ? <Check size={size * 0.55} color="white" strokeWidth={3} /> : initial}
       {children}
     </div>
   );

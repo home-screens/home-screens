@@ -104,7 +104,7 @@
       "editingPrefix": "Você está marcando ",
       "editingNote": "Esta é a lista de tarefas de hoje, então tarefas adicionadas há pouco podem parecer perdidas.",
       "lockedMessage": "Peça a um adulto para adicionar tarefas que você perdeu.",
-      "editingSuffix": ". Os tíquetes continuam contando para hoje."
+      "editingSuffix": ". Os tickets continuam contando para hoje."
     },
     "progress": {
       "completion": "{done}/{total} concluídas",
@@ -122,6 +122,55 @@
       "ariaLabel": "Qual dia mostrar",
       "yesterday": "Ontem",
       "today": "Hoje"
+    },
+    "notToday": {
+      "chip": "Hoje não",
+      "ariaLabel": "{chore}, hoje não"
+    },
+    "bonus": {
+      "sectionHint": "Tickets extras. Pegue uma tarefa e ela fica sua, ou faça uma que é para todos.",
+      "grab": "Pegar",
+      "grabAriaLabel": "Pegar {chore} por {tickets}",
+      "letGo": "Devolver",
+      "onIt": "{name} está fazendo",
+      "didIt": "{name} fez",
+      "youGrabbedIt": "Você pegou! Marque quando terminar.",
+      "youGotIt": "Você ganhou! +{n}",
+      "finishYoursFirst": "Termine a sua primeiro",
+      "refused": {
+        "grabbed": "{name} já está fazendo essa.",
+        "taken": "{name} já fez essa.",
+        "limit": "{name} precisa terminar ou devolver a outra tarefa bônus primeiro.",
+        "notYours": "Essa tarefa bônus não é para {name}.",
+        "notToday": "Essa tarefa bônus não é para hoje.",
+        "limitMany": "{name} precisa terminar ou devolver outra tarefa bônus primeiro."
+      },
+      "limitLine": "Termine primeiro a que você pegou, ou marque esta se já fez.",
+      "youDidItOn": "Você fez {day}",
+      "didItOn": "{name} fez {day}",
+      "limitLineMany": "Termine primeiro uma das que você pegou, ou marque esta se já fez.",
+      "yours": "Sua",
+      "didItToday": "{name} fez hoje",
+      "youDidItToday": "Você fez hoje",
+      "youreOnIt": "É sua"
+    },
+    "dayMenu": {
+      "didIt": "{name} fez",
+      "notDone": "{name} não fez, na verdade",
+      "notTodayFor": "Hoje não para {name}",
+      "notTodayHint": "Sem tickets, mas {name} não fica devendo",
+      "notTodayEveryone": "Hoje ninguém faz",
+      "notTodayEveryoneHint": "Todo mundo que ainda não fez",
+      "undoNotToday": "Hoje sim para {name}",
+      "letGoOf": "Liberar a tarefa que {name} pegou",
+      "putBack": "Reabrir",
+      "putBackHint": "Deixar livre para pegar de novo",
+      "open": "Mais opções para {chore}",
+      "onTodayEveryone": "Hoje sim para todo mundo"
+    },
+    "putBackConfirm": {
+      "title": "Reabrir?",
+      "description": "\"{chore}\" fica livre de novo. Quem já ganhou tickets com ela não perde nada."
     }
   },
   "choreHistoryNav": {
@@ -190,7 +239,8 @@
       "rotationLabel": "Rodízio",
       "addSubmit": "Adicionar tarefa",
       "saveSubmit": "Salvar tarefa",
-      "deleteButton": "Excluir tarefa"
+      "deleteButton": "Excluir tarefa",
+      "grabRulesNote": "O número de tarefas que uma pessoa pode pegar, e até quando, vale para a família toda: veja em Bônus, na aba Gerenciar."
     },
     "choreDelete": {
       "title": "Excluir \"{name}\"?",
@@ -316,9 +366,9 @@
     "picker": {
       "title": "Escolha uma refeição",
       "emptyLibrary": "Nenhuma refeição salva ainda. Escreva uma acima para hoje, ou salve as que você faz sempre.",
-        "typePlaceholder": "Escreva uma refeição, como Tacos",
-        "typeLabel": "Escrever uma refeição para este dia",
-        "typeAdd": "Adicionar",
+      "typePlaceholder": "Escreva uma refeição, como Tacos",
+      "typeLabel": "Escrever uma refeição para este dia",
+      "typeAdd": "Adicionar",
       "prepTimeShort": "{minutes} min",
       "removeMealButton": "Remover refeição",
       "subtitle": "{slot} · {day}"
@@ -752,5 +802,13 @@
       "body": "As fotos aparecem aqui assim que houver uma apresentação de fotos em alguma das suas telas."
     },
     "howTo": "Adicione a partir de um computador: abra {url} e coloque em uma tela."
+  },
+  "choreSettings": {
+    "title": "Configurações das tarefas",
+    "grabbingHeading": "Pegar tarefas bônus",
+    "letGoHint": "Um adulto sempre pode liberar a tarefa que alguém pegou: toque no ••• ao lado da tarefa na aba Hoje.",
+    "save": "Salvar",
+    "saveFailed": "Não deu para salvar. Tente de novo.",
+    "changeAriaLabel": "Mudar como as tarefas bônus são pegas"
   }
 }

@@ -2330,7 +2330,15 @@
       }
     },
     "familyPage": {
-      "description": "Füge deinen Haushalt einmal hinzu. Namen, Farben und Emojis begleiten jede Person in Aufgaben, Belohnungen, Kalendern und Stundenplänen."
+      "description": "Füge deinen Haushalt einmal hinzu. Namen, Farben und Emojis begleiten jede Person in Aufgaben, Belohnungen, Kalendern und Stundenplänen.",
+      "chores": {
+        "heading": "Bonusaufgaben",
+        "description": "Wie Bonusaufgaben geschnappt werden. Die Aufgaben-Einstellungen am Handy ändern dieselben zwei Dinge.",
+        "grabLimitLabel": "Wie viele Bonusaufgaben sich eine Person gleichzeitig schnappen darf",
+        "grabHoldLabel": "Wie lange eine geschnappte Bonusaufgabe gilt",
+        "saveFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
+        "saved": "Gespeichert"
+      }
     },
     "touchAlignment": {
       "label": "Touch-Ausrichtung",
@@ -2540,7 +2548,8 @@
       "weeklyScheduleLabel": "Wochenplan",
       "coverageLabel": "Abgedeckt: {covered} von 7 Tagen",
       "addSubmit": "Aufgabe hinzufügen",
-      "saveSubmit": "Speichern"
+      "saveSubmit": "Speichern",
+      "grabRulesNote": "Wie viele Aufgaben sich eine Person schnappen darf und wie lange eine geschnappte Aufgabe gilt, legst du für die ganze Familie unter „Bonus“ in der Aufgabenliste fest."
     },
     "preview": {
       "columnTitleNew": "Neue Aufgabe",
@@ -2551,7 +2560,8 @@
       "noChores": "Keine Aufgaben",
       "weeklyTotalsHeading": "Wochensumme",
       "memberLine": "{chores} Aufgaben, {tickets} Tickets"
-    }
+    },
+    "finishFormFirst": "Speichere oder verwirf zuerst das offene Formular."
   },
   "todoListModal": {
     "title": "Liste bearbeiten",

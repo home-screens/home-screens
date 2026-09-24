@@ -13,6 +13,7 @@ import MediaLibraryPage from '@/components/editor/settings/MediaLibraryPage';
 import CustomIconsPage from '@/components/editor/settings/CustomIconsPage';
 import CalendarSection from '@/components/editor/settings/CalendarSection';
 import FamilyManager from '@/components/family/FamilyManager';
+import ChoreSettingsSection from './ChoreSettingsSection';
 import MealsSection from '@/components/editor/settings/MealsSection';
 import PhoneSection from '@/components/editor/settings/PhoneSection';
 import AutomationSection from '@/components/editor/settings/AutomationSection';
@@ -168,7 +169,12 @@ export default function DefaultsPageContent({
       />
     ),
 
-    family: <FamilyManager />,
+    family: (
+      <>
+        <FamilyManager />
+        <ChoreSettingsSection />
+      </>
+    ),
 
     meals: <MealsSection />,
 

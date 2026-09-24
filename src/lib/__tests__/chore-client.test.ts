@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ChoreDefinition } from '@/types/config';
 import { ChoreSession, asChoreSnapshot } from '../chore-client';
+import { DEFAULT_CHORE_SETTINGS } from '../chore-bonus';
 
 const chore = (id: string) => ({ id, name: id, assigneeIds: [] }) as unknown as ChoreDefinition;
 const ok = (json: unknown) => ({ ok: true, status: 200, json: async () => json }) as unknown as Response;
@@ -9,7 +10,7 @@ const bodyOf = (call: unknown[]) => JSON.parse((call[1] as RequestInit).body as 
 
 describe('asChoreSnapshot', () => {
   it('accepts only a list with a revision to quote', () => {
-    expect(asChoreSnapshot({ chores: [], revision: 'r1' })).toEqual({ chores: [], revision: 'r1' });
+    expect(asChoreSnapshot({ chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' })).toEqual({ chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
     expect(asChoreSnapshot({})).toBeNull();
     expect(asChoreSnapshot({ chores: [] })).toBeNull();
     expect(asChoreSnapshot({ chores: 'no', revision: 'r1' })).toBeNull();
@@ -26,7 +27,7 @@ describe('ChoreSession', () => {
       .mockImplementationOnce(() => new Promise<Response>((resolve) => { release = resolve; }))
       .mockImplementationOnce(async (_url: string, init: RequestInit) =>
         ok({ chores: JSON.parse(init.body as string).chores, revision: 'r3' }));
-    const session = new ChoreSession(fetcher, { chores: [], revision: 'r1' });
+    const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
 
     const first = session.save([chore('a')], false);
     const second = session.save([chore('a'), chore('b')], false);
@@ -40,9 +41,9 @@ describe('ChoreSession', () => {
   });
 
   it('reports a conflict with the adopted list and drops saves queued behind it', async () => {
-    const theirs = { chores: [chore('theirs')], revision: 'r2' };
+    const theirs = { chores: [chore('theirs')], settings: DEFAULT_CHORE_SETTINGS, revision: 'r2' };
     const fetcher = vi.fn().mockResolvedValue(status(409, { reason: 'revision', error: 'Somebody else changed the chores.', ...theirs }));
-    const session = new ChoreSession(fetcher, { chores: [], revision: 'r1' });
+    const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
 
     const first = session.save([chore('mine')], false);
     const second = session.save([chore('mine'), chore('mine-2')], false);
@@ -61,7 +62,7 @@ describe('ChoreSession', () => {
     const fetcher = vi.fn()
       .mockResolvedValueOnce(status(500, { error: 'boom' }))
       .mockResolvedValueOnce(ok({ chores: [chore('a')], revision: 'r2' }));
-    const session = new ChoreSession(fetcher, { chores: [], revision: 'r1' });
+    const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
     await expect(session.save([chore('a')], false)).rejects.toThrow('HTTP 500');
     await expect(session.save([chore('a')], false)).resolves.toMatchObject({ kind: 'saved' });
   });

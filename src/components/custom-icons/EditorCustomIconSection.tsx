@@ -182,7 +182,11 @@ function ReviewPanel({ upload }: { upload: ReturnType<typeof useCustomIconUpload
             maxLength={32}
             value={review.name}
             onChange={(event) => upload.setName(event.target.value)}
-            onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void upload.confirm(); } }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') { event.preventDefault(); void upload.confirm(); }
+              // Escape backs out of this picture only, not the window it sits in.
+              if (event.key === 'Escape') { event.preventDefault(); upload.cancel(); }
+            }}
             className={`${MODAL_INPUT_CLASS} mb-2`}
           />
           <div className="flex gap-2">

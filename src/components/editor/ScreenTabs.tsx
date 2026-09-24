@@ -331,9 +331,11 @@ export default function ScreenTabs() {
                   const screen = screens.find((s) => s.id === contextMenu.screenId);
                   setContextMenu(null);
                   if (!screen) return;
-                  if (await useConfirmStore.getState().confirm(
-                    buildScreenDeleteConfirm(screen, t, tCore),
-                  )) {
+                  if (await useConfirmStore.getState().confirm({
+                    ...buildScreenDeleteConfirm(screen, t, tCore),
+                    // The menu item is gone when the dialog closes: back to the selected tab.
+                    returnFocus: document.querySelector('[data-active="true"]'),
+                  })) {
                     removeScreen(contextMenu.screenId);
                   }
                 }}

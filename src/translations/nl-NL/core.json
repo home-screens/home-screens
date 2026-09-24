@@ -216,7 +216,7 @@
     "emoji": "Emoji (optioneel)",
     "color": "Kleur",
     "emptyTitle": "Nog niemand toegevoegd",
-    "emptyDescription": "Voeg de mensen in je huishouden toe. Ze zijn dan beschikbaar bij taken, beloningen, agenda’s en roosters.",
+    "emptyDescription": "Voeg de mensen in je huishouden toe. Ze zijn dan beschikbaar bij klusjes, beloningen, kalenders en roosters.",
     "loadFailed": "Je gezin kon niet worden geladen.",
     "saveFailed": "Je gezin kon niet worden opgeslagen.",
     "retry": "Opnieuw proberen",
@@ -224,7 +224,7 @@
     "saving": "Opslaan…",
     "conflict": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",
     "removeTitle": "{name} verwijderen?",
-    "removeDescription": "Als je {name} verwijdert, worden de toegewezen taken, schema’s, geschiedenis, tickets en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Taken waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "removeDescription": "Als je {name} verwijdert, worden de klusjes, schema’s, geschiedenis, tickets en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Klusjes waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "remove": "Persoon verwijderen",
     "editName": "{name} bewerken",
     "moveUp": "{name} omhoog",
@@ -235,18 +235,18 @@
     "page": "Pagina {page} van {total}",
     "limit": "Je kunt maximaal {count} personen toevoegen. Iedereen die er al is, blijft behouden en kan nog worden bewerkt of verwijderd.",
     "choreCount": {
-      "one": "{count} taak",
-      "other": "{count} taken"
+      "one": "{count} klusje",
+      "other": "{count} klusjes"
     },
     "removeChoreCount": {
-      "one": "{name} heeft {count} toegewezen taak.",
-      "other": "{name} heeft {count} toegewezen taken."
+      "one": "{name} heeft {count} klusje.",
+      "other": "{name} heeft {count} klusjes."
     },
     "hasTimetable": "Heeft een rooster",
     "removeTimetable": "{name} heeft een rooster, en dat wordt ook verwijderd.",
     "groups": {
       "title": "Groepen",
-      "description": "Zet mensen bij elkaar zodat een kalender \"Kinderen\" kan tonen in plaats van vijf namen, en een taak in één keer naar hen allemaal kan gaan. Iemand kan in meer dan één groep zitten.",
+      "description": "Zet mensen bij elkaar zodat een kalender \"Kinderen\" kan tonen in plaats van vijf namen, en een klusje in één keer naar hen allemaal kan gaan. Iemand kan in meer dan één groep zitten.",
       "add": "Groep toevoegen",
       "edit": "Groep bewerken",
       "name": "Groepsnaam",
@@ -258,13 +258,13 @@
       "removeTitle": "{name} verwijderen?",
       "removeDescription": "Schermen die alleen {name} tonen, tonen weer iedereen. Niemand wordt uit het gezin verwijderd.",
       "removeChoreCount": {
-        "one": "{count} taak gaat naar {name}. Hij blijft in je lijst staan en wacht tot je iemand kiest als er verder niemand op staat.",
-        "other": "{count} taken gaan naar {name}. Ze blijven in je lijst staan, en taken waar verder niemand op staat wachten tot je iemand kiest."
+        "one": "{count} klusje gaat naar {name}. Het blijft in je lijst staan en wacht tot je iemand kiest als er verder niemand op staat.",
+        "other": "{count} klusjes gaan naar {name}. Ze blijven in je lijst staan, en klusjes waar verder niemand op staat wachten tot je iemand kiest."
       },
       "saved": "Groepen opgeslagen.",
       "saveFailed": "De groepen konden niet worden opgeslagen.",
       "limit": "Je kunt maximaal {count} groepen maken.",
-      "hint": "Groepen worden gebruikt door de kleurlegenda van de kalender en het filter \"Alleen tonen\". Een taak kan ook naar een groep gaan. Beloningen geef je nog steeds aan personen."
+      "hint": "Groepen worden gebruikt door de kleurlegenda van de kalender en het filter \"Alleen tonen\". Een klusje kan ook naar een groep gaan. Beloningen geef je nog steeds aan personen."
     }
   },
   "customIcons": {

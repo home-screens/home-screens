@@ -12,7 +12,7 @@ vi.mock('@/lib/chore-data', async () => {
   const readChoreData = vi.fn();
   return {
     readChoreData,
-    writeChoreData: vi.fn(),
+    writeChoreList: vi.fn(),
     readChoreSnapshot: vi.fn(async () => {
       const { chores } = await readChoreData();
       return { chores, revision: contentRevision(chores) };
@@ -36,7 +36,7 @@ vi.mock('@/lib/data-transaction', () => ({
 
 import { readFamilyData } from '@/lib/family-data';
 import { GET, PUT } from '@/app/api/chores/data/route';
-import { readChoreData, writeChoreData } from '@/lib/chore-data';
+import { readChoreData, writeChoreList } from '@/lib/chore-data';
 import { contentRevision } from '@/lib/content-revision';
 
 const emptyData = { chores: [] };
@@ -48,7 +48,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(readFamilyData).mockResolvedValue({ members: [{ id: 'm1', name: 'Alice', color: '#ff0000', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }] });
   vi.mocked(readChoreData).mockResolvedValue(emptyData as never);
-  vi.mocked(writeChoreData).mockResolvedValue(undefined);
+  vi.mocked(writeChoreList).mockImplementation(async (chores) => ({ chores }));
 });
 
 // ------- GET tests -------
@@ -98,7 +98,7 @@ describe('PUT /api/chores/data', () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(writeChoreData).toHaveBeenCalledWith(populatedData);
+    expect(writeChoreList).toHaveBeenCalledWith(populatedData.chores);
     expect(json).not.toHaveProperty('members');
     expect(json.revision).toBe(contentRevision(populatedData.chores));
   });
@@ -113,7 +113,7 @@ describe('PUT /api/chores/data', () => {
     it('refuses a write that quotes no revision', async () => {
       const res = await PUT(makePutRequest(populatedData));
       expect(res.status).toBe(400);
-      expect(writeChoreData).not.toHaveBeenCalled();
+      expect(writeChoreList).not.toHaveBeenCalled();
     });
 
     /* Two phones both loaded [original]; the second to save must not drop
@@ -127,7 +127,7 @@ describe('PUT /api/chores/data', () => {
       expect(json.reason).toBe('revision');
       expect(json.chores).toEqual(populatedData.chores);
       expect(json.revision).toBe(contentRevision(populatedData.chores));
-      expect(writeChoreData).not.toHaveBeenCalled();
+      expect(writeChoreList).not.toHaveBeenCalled();
     });
   });
 
@@ -137,7 +137,7 @@ describe('PUT /api/chores/data', () => {
     expect(res.status).toBe(409);
     const json = await res.json();
     expect(json.code).toBe('refresh_required');
-    expect(writeChoreData).not.toHaveBeenCalled();
+    expect(writeChoreList).not.toHaveBeenCalled();
   });
 
   it('returns 400 when chores is not an array', async () => {
@@ -155,7 +155,7 @@ describe('PUT /api/chores/data', () => {
       expect(res.status).toBe(409);
       const json = await res.json();
       expect(json.error).toContain('empty payload');
-      expect(writeChoreData).not.toHaveBeenCalled();
+      expect(writeChoreList).not.toHaveBeenCalled();
     });
 
     it('allows empty payload when existing data is also empty', async () => {
@@ -164,7 +164,7 @@ describe('PUT /api/chores/data', () => {
       const res = await PUT(await makeCurrentPutRequest({ chores: [] }));
 
       expect(res.status).toBe(200);
-      expect(writeChoreData).toHaveBeenCalled();
+      expect(writeChoreList).toHaveBeenCalled();
     });
 
     it('allows empty payload when force flag is true', async () => {
@@ -173,7 +173,7 @@ describe('PUT /api/chores/data', () => {
       const res = await PUT(await makeCurrentPutRequest({ chores: [], force: true }));
 
       expect(res.status).toBe(200);
-      expect(writeChoreData).toHaveBeenCalled();
+      expect(writeChoreList).toHaveBeenCalled();
     });
 
     it('allows empty payload when readChoreData fails (cannot verify existing)', async () => {
@@ -182,7 +182,7 @@ describe('PUT /api/chores/data', () => {
       const res = await PUT(await makeCurrentPutRequest({ chores: [] }));
 
       expect(res.status).toBe(200);
-      expect(writeChoreData).toHaveBeenCalled();
+      expect(writeChoreList).toHaveBeenCalled();
     });
   });
 
@@ -195,12 +195,18 @@ describe('PUT /api/chores/data', () => {
     const res = await PUT(await makeCurrentPutRequest(newData));
 
     expect(res.status).toBe(200);
-    expect(writeChoreData).toHaveBeenCalledWith(newData);
+    expect(writeChoreList).toHaveBeenCalledWith(newData.chores);
   });
   it('rejects a malformed assignee list before writing', async () => {
     const res = await PUT(await makeCurrentPutRequest({ chores: [{ id: "c1", assigneeIds: "m1" }] }));
     expect(res.status).toBe(400);
-    expect(writeChoreData).not.toHaveBeenCalled();
+    expect(writeChoreList).not.toHaveBeenCalled();
+  });
+
+  it('refuses a chore worth fewer than 0 tickets', async () => {
+    const res = await PUT(await makeCurrentPutRequest({ chores: [{ ...populatedData.chores[0], points: -5 }] }));
+    expect(res.status).toBe(400);
+    expect(writeChoreList).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -209,7 +215,7 @@ describe('PUT /api/chores/data', () => {
   ])('rejects assignments to absent family members', async (chore) => {
     const res = await PUT(await makeCurrentPutRequest({ chores: [chore] }));
     expect(res.status).toBe(409);
-    expect(writeChoreData).not.toHaveBeenCalled();
+    expect(writeChoreList).not.toHaveBeenCalled();
   });
 
   describe('chores handed to a group', () => {
@@ -221,13 +227,13 @@ describe('PUT /api/chores/data', () => {
       vi.mocked(readFamilyData).mockResolvedValue({ members: [member], groups: [kids] });
       const res = await PUT(await makeCurrentPutRequest({ chores: [groupChore] }));
       expect(res.status).toBe(200);
-      expect(writeChoreData).toHaveBeenCalledWith({ chores: [groupChore] });
+      expect(writeChoreList).toHaveBeenCalledWith([groupChore]);
     });
 
     it('refuses a chore newly pointed at a group that was removed', async () => {
       const res = await PUT(await makeCurrentPutRequest({ chores: [groupChore] }));
       expect(res.status).toBe(409);
-      expect(writeChoreData).not.toHaveBeenCalled();
+      expect(writeChoreList).not.toHaveBeenCalled();
     });
 
     it('hands a page holding an old chore list the current one, even when it names a removed group', async () => {
@@ -258,7 +264,7 @@ describe('PUT /api/chores/data', () => {
       const res = await PUT(await makeCurrentPutRequest({ chores: [{ id: 'c1', name: 'Dishes', emoji: 'dish', frequency: 'daily', assigneeIds: ['gone'] }] }));
       expect(res.status).toBe(409);
       expect((await res.json()).reason).toBeUndefined();
-      expect(writeChoreData).not.toHaveBeenCalled();
+      expect(writeChoreList).not.toHaveBeenCalled();
     });
 
     it('saves a chore that a removed group left with nobody', async () => {
@@ -270,7 +276,7 @@ describe('PUT /api/chores/data', () => {
       vi.mocked(readFamilyData).mockResolvedValue({ members: [member], groups: [kids] });
       const scheduled = { ...groupChore, rotation: 'schedule', groupSchedule: { kids: [1, 3] } };
       expect((await PUT(await makeCurrentPutRequest({ chores: [scheduled] }))).status).toBe(200);
-      expect(writeChoreData).toHaveBeenCalledWith({ chores: [scheduled] });
+      expect(writeChoreList).toHaveBeenCalledWith([scheduled]);
       expect((await PUT(await makeCurrentPutRequest({ chores: [{ ...scheduled, assigneeGroupIds: undefined }] }))).status).toBe(400);
       expect((await PUT(await makeCurrentPutRequest({ chores: [{ ...scheduled, groupSchedule: { kids: [7] } }] }))).status).toBe(400);
     });
