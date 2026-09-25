@@ -126,7 +126,7 @@ describe('coordinator barriers', () => {
 
 /**
  * Plan 64 requires every participating read and write path to join the
- * coordinator: API handlers, server rendering, the short-TTL config cache,
+ * coordinator: API handlers, server rendering, the config read cache,
  * background work, migration and the backup export. That audit was manual, so
  * assert it: a future refactor that reads a participating store directly, or a
  * new hot path that skips the lock to go faster, fails here rather than

@@ -25,7 +25,8 @@ test('the display keeps rendering the last-good config when /api/config polls fa
   // 3s /api/config poll is severed. A mutable flag lets us restore the route
   // later without re-registering (mirrors the build-id test's `served` flip).
   let blockConfig = true;
-  await page.route('**/api/config', (route) => (blockConfig ? route.abort() : route.continue()));
+  // By path: the wall's poll carries `?display=`, which a glob would not match.
+  await page.route((url) => url.pathname === '/api/config', (route) => (blockConfig ? route.abort() : route.continue()));
 
   await page.goto('/display');
   await expect(page.getByText('LAST GOOD CONFIG')).toBeVisible();

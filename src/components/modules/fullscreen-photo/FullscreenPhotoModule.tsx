@@ -267,8 +267,9 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // Per-item rotation: photos advance on the timer, videos on onEnded —
   // an all-photo list degenerates to the plain fixed-interval rotation.
   // The list URL keys the batch, so a periodic refresh is held until the
-  // current pass completes instead of re-dealing mid-slideshow.
-  const [files, photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl);
+  // current pass completes instead of re-dealing mid-slideshow. The module
+  // id carries the position across the screen rotating away and back.
+  const [files, photoIndex, advance] = useMediaRotation(isSinglePhoto ? NO_ITEMS : items, intervalMs, config.shuffle ?? false, playVideos, listUrl, moduleId);
 
   // The swap waits for the incoming image: see useCrossfadeLayers.
   const currentItem = isSinglePhoto || files.length === 0 ? null : files[photoIndex] ?? null;

@@ -649,7 +649,7 @@ describe('updateConfigAtomic — no-op detection', () => {
 
 });
 
-describe('write invalidation of the short-TTL read cache', () => {
+describe('write invalidation of the config read cache', () => {
   it('writeConfig makes the very next readConfigCached observe the save', async () => {
     const { readConfigCached, __resetConfigReadCacheForTests } = await import('../config-cache');
     __resetConfigReadCacheForTests();
@@ -658,9 +658,8 @@ describe('write invalidation of the short-TTL read cache', () => {
       ...before,
       screens: [{ id: 'added', name: 'Added', backgroundImage: '', modules: [] }],
     });
-    // Well inside the 1.5s TTL — without invalidation this would serve the
-    // pre-write snapshot and a freshly adopted display's first hw-stats
-    // POST would 403.
+    // Without this a stale snapshot would be served and a freshly adopted
+    // display's first hw-stats POST would 403.
     const after = await readConfigCached();
     expect(after.screens.map((s) => s.id)).toEqual(['added']);
     __resetConfigReadCacheForTests();

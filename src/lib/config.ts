@@ -99,9 +99,10 @@ export function configRevision(config: ScreenConfiguration): string {
 
 export async function writeConfig(config: ScreenConfiguration): Promise<void> {
   await configStore.write(config);
-  // Drop the short-TTL read cache so /api/displays and the adopted-display
-  // check see this save on their very next poll instead of up to 1.5s later
-  // (a freshly adopted display's first hw-stats POST must not 403).
+  // Drop the read cache so /api/displays and the adopted-display check see
+  // this save on their very next poll, and a read already in flight cannot
+  // put the old document back (a freshly adopted display's first hw-stats
+  // POST must not 403).
   invalidateConfigReadCache();
 }
 
@@ -149,7 +150,7 @@ export function updateConfigAtomic(
       return result;
     })
     .then((result) => {
-      // Invalidate the short-TTL read cache even on the no-op path — cheaper
+      // Invalidate the read cache even on the no-op path — cheaper
       // than detecting it, and a spurious re-read costs one disk hit.
       invalidateConfigReadCache();
       return result;

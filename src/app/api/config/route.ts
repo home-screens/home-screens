@@ -10,7 +10,7 @@ import { saveImportedConfig } from '@/lib/family-import';
 import { readTransactionFile, withDataTransaction } from '@/lib/data-transaction';
 import { settleFamilyMigration } from '@/lib/family-data';
 import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
-import { getAllScreens } from '@/lib/display-filter';
+import { getAllScreens, LEGACY_DISPLAY_ID } from '@/lib/display-filter';
 import { syncKioskConf, applyDisplaySettings, applyLabwcRc, resolveHubPanel } from '@/lib/kiosk';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
@@ -49,18 +49,62 @@ function scopeToDisplay(config: ScreenConfiguration, displayId: string): ScreenC
   return { ...config, displays };
 }
 
+/**
+ * What walls are sent, worked out once per cached config object. The cache
+ * hands every poll the same object until config.json changes, so the
+ * document's hash and each display's body are computed once per version
+ * instead of once per poll. Safe only because that object is read-only.
+ */
+interface WallAnswers {
+  revision: string;
+  bodies: Map<string, string>;
+}
+const wallAnswers = new WeakMap<ScreenConfiguration, WallAnswers>();
+
+function answersFor(config: ScreenConfiguration): WallAnswers {
+  let answers = wallAnswers.get(config);
+  if (!answers) {
+    answers = { revision: configRevision(config), bodies: new Map() };
+    wallAnswers.set(config, answers);
+  }
+  return answers;
+}
+
+function wallBody(config: ScreenConfiguration, answers: WallAnswers, displayId: string): string {
+  const kept = answers.bodies.get(displayId);
+  if (kept !== undefined) return kept;
+  // An unknown id leaves no matching node, so the client's filter returns null
+  // and it self-heals to /display. That is the existing deleted-display path.
+  const body = JSON.stringify(scopeToDisplay(config, displayId));
+  // Only ids the config knows are kept, so made-up ids cannot grow the map.
+  if (displayId === LEGACY_DISPLAY_ID || config.displays?.some((display) => display.id === displayId)) {
+    answers.bodies.set(displayId, body);
+  }
+  return body;
+}
+
+/**
+ * A wall's URL names its display, so the document's revision and the hub's
+ * zone (the one header a wall reads besides the body) say what it would be
+ * sent. URI-encoding keeps the zone inside the characters an ETag allows.
+ */
+function wallEtag(revision: string, zone: string): string {
+  return `"${revision}.${encodeURIComponent(zone)}"`;
+}
+
 export const GET = withDisplayAuth(async (request: NextRequest) => {
-  // A kiosk asks for its own slice; the editor asks for the whole document.
+  // A kiosk names its display, and a single-display wall names the legacy
+  // slot; the editor names none and gets the whole document.
   const displayId = new URL(request.url).searchParams.get('display');
 
   // Before reading: the upgrade fold rewrites config.json, and a revision
   // handed out just before it runs is stale by the time the editor saves.
   const config = await withFamilyData(async () => {
     await settleTodoMigration();
-    // A wall polls this every 3 seconds forever, so serve it from the 1.5s
-    // cache and skip re-parsing the whole document per tick. The editor's
-    // read stays uncached: its revision has to be computed from bytes just
-    // read or a save can be compared against a stale hash.
+    // A wall polls this every 3 seconds forever, so it reads the cache,
+    // which parses the file again only when it changes. The editor's read
+    // stays uncached: its revision has to be computed from bytes just read
+    // or a save can be compared against a stale hash.
     return displayId ? readConfigCached() : readConfig();
   });
   // Start detached telemetry only after leaving the family transaction.
@@ -69,12 +113,22 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   // The revision is always the WHOLE document's hash, filtered response or
   // not: it is the editor's compare-and-swap token, and a hash over a scoped
   // body would never match what PUT compares against.
-  const headers = withRevision(config);
-  if (!displayId) return NextResponse.json(config, { headers });
+  if (!displayId) return NextResponse.json(config, { headers: withRevision(config) });
 
-  // An unknown id leaves no matching node, so the client's filter returns null
-  // and it self-heals to /display. That is the existing deleted-display path.
-  return NextResponse.json(scopeToDisplay(config, displayId), { headers });
+  const answers = answersFor(config);
+  const zone = hubTimezone();
+  const headers = {
+    [CONFIG_REVISION_HEADER]: answers.revision,
+    [HUB_TIMEZONE_HEADER]: zone,
+    ETag: wallEtag(answers.revision, zone),
+  };
+  // The wall sends back the ETag of the answer it last applied.
+  if (request.headers.get('if-none-match') === headers.ETag) {
+    return new NextResponse(null, { status: 304, headers });
+  }
+  return new NextResponse(wallBody(config, answers, displayId), {
+    headers: { ...headers, 'Content-Type': 'application/json' },
+  });
 }, 'Failed to read config');
 
 /**

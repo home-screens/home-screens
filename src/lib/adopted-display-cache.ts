@@ -1,7 +1,7 @@
 import { readConfigCached } from './config-cache';
 
 /**
- * Adopted-display-id view over the shared short-TTL config cache
+ * Adopted-display-id view over the shared config cache
  * (`config-cache.ts`).
  *
  * The reporter's `POST /api/display/hw-stats` calls `requireAdoptedDisplay`

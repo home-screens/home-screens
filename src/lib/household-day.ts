@@ -14,8 +14,8 @@ export function hubTimezone(): string {
 
 /**
  * The household's time zone: the one saved in Settings, or the hub's own while
- * none is saved or the config is unreadable. Read through the 1.5 s config
- * cache: chore screens poll every 15 s and to-do screens every 5 s.
+ * none is saved or the config is unreadable. Read through the config cache:
+ * chore screens poll every 15 s and to-do screens every 5 s.
  */
 export async function householdTimezone(): Promise<string> {
   try {

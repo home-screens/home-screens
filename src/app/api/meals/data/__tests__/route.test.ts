@@ -78,7 +78,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(readMealData).mockResolvedValue(emptyData as never);
   vi.mocked(writeMealData).mockResolvedValue(undefined);
-  // The GET reads config through the shared 1.5s read cache; without a reset,
+  // The GET reads config through the shared read cache; without a reset,
   // a config.json seeded mid-suite would be shadowed by a prior test's read.
   __resetConfigReadCacheForTests();
 });

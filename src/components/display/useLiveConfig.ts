@@ -5,7 +5,7 @@ import type { Screen, GlobalSettings, ScreenConfiguration, Profile, DisplayRule 
 import type { InstalledPlugin } from '@/types/plugins';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
-import { filterConfigForDisplay } from '@/lib/display-filter';
+import { filterConfigForDisplay, LEGACY_DISPLAY_ID } from '@/lib/display-filter';
 import { dataFingerprint } from '@/lib/config-data-fingerprint';
 import { stableStringify } from '@/lib/stable-stringify';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -89,6 +89,9 @@ export function useLiveConfig(
 
   useEffect(() => {
     let mounted = true;
+    // The ETag of the config answer last applied. Sent back on every poll, so
+    // an unchanged config is a bodiless 304 instead of the whole document.
+    let configEtag = '';
 
     /**
      * Reload the page when the server was redeployed.
@@ -119,11 +122,14 @@ export function useLiveConfig(
         // Ask for this display's slice. The response keeps every display's
         // id and name (display-control targets siblings by id) but only this
         // one's screens, so a wall no longer downloads and diffs every other
-        // display's layout every 3 seconds. Without a displayId the whole
-        // document comes back, which is what single-display mode wants.
+        // display's layout every 3 seconds. A single-display wall names the
+        // legacy slot and gets the whole document. Naming a display at all
+        // is what serves the poll from the hub's config cache.
         const res = await displayFetch(
-          displayId ? `/api/config?display=${encodeURIComponent(displayId)}` : '/api/config',
+          `/api/config?display=${encodeURIComponent(displayId ?? LEGACY_DISPLAY_ID)}`,
+          configEtag ? { headers: { 'If-None-Match': configEtag } } : undefined,
         );
+        // A 304 lands here too: nothing changed since the last answer applied.
         if (!res.ok || !mounted) return false;
         const text = await res.text();
         const hubZone = res.headers?.get?.(HUB_TIMEZONE_HEADER) || hubTimezoneRef.current;
@@ -191,6 +197,9 @@ export function useLiveConfig(
             }
           }
         }
+        // Only once the answer is applied: an answer that failed to parse
+        // must be sent again in full, not waved through as unchanged.
+        configEtag = res.headers?.get?.('ETag') ?? '';
       } catch (err) {
         // Keep the current config on failure. Logged rather than silent: a
         // permanently failing config poll is otherwise invisible on a kiosk.

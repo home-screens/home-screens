@@ -14,17 +14,17 @@ vi.mock('@/lib/config', async (importOriginal) => {
     readConfig: vi.fn(),
     writeConfig: vi.fn(),
     updateConfigAtomic: vi.fn(),
+    configRevision: vi.fn(actual.configRevision),
   };
 });
 
-// The cached read is the same document here; the route's own caching choice
-// is not what these tests are about, and a module-level TTL cache would leak
-// between cases.
+// The cached read is the same document here, and a module-level cache would
+// leak between cases. Which read a request takes is still visible.
 vi.mock('@/lib/config-cache', () => ({
-  readConfigCached: async () => {
+  readConfigCached: vi.fn(async () => {
     const { readConfig } = await import('@/lib/config');
     return readConfig();
-  },
+  }),
   invalidateConfigReadCache: vi.fn(),
   __resetConfigReadCacheForTests: vi.fn(),
 }));
@@ -41,6 +41,7 @@ vi.mock('@/lib/telemetry', () => ({
 
 import { GET, PUT } from '@/app/api/config/route';
 import { readConfig, writeConfig, updateConfigAtomic, configRevision } from '@/lib/config';
+import { readConfigCached } from '@/lib/config-cache';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { HUB_TIMEZONE_HEADER } from '@/lib/timezone';
 import { withDataTransaction } from '@/lib/data-transaction';
@@ -181,6 +182,74 @@ describe('GET /api/config?display=', () => {
     const json = await res.json();
 
     expect(json.displays).toEqual(multiDisplayConfig.displays);
+  });
+});
+
+/* ─── Wall polls ──────────────────────────────────
+ * Every wall asks every 3 seconds forever. A single-display wall used to name
+ * no display, which is how the editor asks, so it took the uncached read.
+ */
+
+describe('GET /api/config from a wall', () => {
+  const legacyConfig = { ...dummyConfig, version: 7 };
+
+  beforeEach(() => {
+    vi.mocked(readConfig).mockResolvedValue(legacyConfig as never);
+  });
+
+  it('serves a single-display wall the whole document from the cache', async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config?display=__default__'));
+
+    expect(await res.json()).toEqual(legacyConfig);
+    expect(readConfigCached).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the editor on the uncached read', async () => {
+    await GET(new NextRequest('http://localhost/api/config'));
+    expect(readConfigCached).not.toHaveBeenCalled();
+  });
+
+  it('answers an unchanged config with a bodiless 304', async () => {
+    const first = await GET(new NextRequest('http://localhost/api/config?display=__default__'));
+    const etag = first.headers.get('ETag');
+    expect(etag).toBeTruthy();
+
+    const again = await GET(new NextRequest('http://localhost/api/config?display=__default__', {
+      headers: { 'If-None-Match': etag! },
+    }));
+    expect(again.status).toBe(304);
+    expect(await again.text()).toBe('');
+    // A 304 still names the revision and the zone, as a 200 would.
+    expect(again.headers.get(CONFIG_REVISION_HEADER)).toBe(configRevision(legacyConfig as never));
+    expect(again.headers.get(HUB_TIMEZONE_HEADER)).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  });
+
+  it('sends the new config in full once it changes', async () => {
+    const first = await GET(new NextRequest('http://localhost/api/config?display=__default__'));
+    const etag = first.headers.get('ETag')!;
+
+    const edited = { ...legacyConfig, screens: [{ id: 's2', name: 'Edited', modules: [] }] };
+    vi.mocked(readConfig).mockResolvedValue(edited as never);
+    const res = await GET(new NextRequest('http://localhost/api/config?display=__default__', {
+      headers: { 'If-None-Match': etag },
+    }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).not.toBe(etag);
+    expect((await res.json()).screens[0].name).toBe('Edited');
+  });
+
+  it('hashes each version of the config once, however many polls ask', async () => {
+    const version = { ...dummyConfig, version: 8 };
+    vi.mocked(readConfig).mockResolvedValue(version as never);
+    vi.mocked(configRevision).mockClear();
+
+    for (let i = 0; i < 3; i++) await GET(new NextRequest('http://localhost/api/config?display=__default__'));
+    expect(configRevision).toHaveBeenCalledOnce();
+  });
+
+  it('gives the editor no ETag, so its revision always comes from a fresh read', async () => {
+    const res = await GET(new NextRequest('http://localhost/api/config'));
+    expect(res.headers.get('ETag')).toBeNull();
   });
 });
 

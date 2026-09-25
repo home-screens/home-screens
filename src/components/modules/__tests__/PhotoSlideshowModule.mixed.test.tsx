@@ -38,9 +38,13 @@ function makeConfig(overrides: Partial<PhotoSlideshowConfig> = {}): PhotoSlidesh
   };
 }
 
+// A remount of the same module resumes where it left off, so every render
+// here is its own module.
+let renderCount = 0;
+
 function renderSlideshow(config: PhotoSlideshowConfig) {
   return render(
-    <PhotoSlideshowModule config={config} style={style} screenId="s1" moduleId="m1" />,
+    <PhotoSlideshowModule config={config} style={style} screenId="s1" moduleId={`m${++renderCount}`} />,
     { wrapper: Wrapper },
   );
 }

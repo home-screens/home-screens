@@ -416,6 +416,12 @@ export const SLUG_RE = /^[a-z0-9][a-z0-9-]*$/;
 const MAX_DISPLAY_ID_LEN = 64;
 
 /**
+ * The name a single-display wall goes by where a display id is expected: the
+ * command queue it drains and the `?display=` it polls its config with.
+ */
+export const LEGACY_DISPLAY_ID = '__default__';
+
+/**
  * IDs a display may never claim, because the command layer already gives
  * them a meaning. `all` is the broadcast keyword in `enqueueCommand`
  * (`display-commands.ts`), so a display actually named `all` would turn
@@ -429,7 +435,7 @@ const MAX_DISPLAY_ID_LEN = 64;
  * than a partial one that relies on the slug rule staying as strict as it
  * is today.
  */
-export const RESERVED_DISPLAY_IDS: ReadonlySet<string> = new Set(['all', '__default__']);
+export const RESERVED_DISPLAY_IDS: ReadonlySet<string> = new Set(['all', LEGACY_DISPLAY_ID]);
 
 /**
  * Hard upper bound on per-display canvas dimensions. 16384 is well past

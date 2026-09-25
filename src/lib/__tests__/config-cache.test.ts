@@ -4,7 +4,10 @@ vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
 }));
 
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
 import { readConfig } from '@/lib/config';
+import { getDataRoot } from '@/lib/data-transaction';
 import {
   readConfigCached,
   invalidateConfigReadCache,
@@ -23,9 +26,12 @@ beforeEach(() => {
   __resetConfigReadCacheForTests();
 });
 
-afterEach(() => {
+afterEach(async () => {
   vi.useRealTimers();
+  await fs.rm(configPath(), { force: true });
 });
+
+const configPath = () => path.join(getDataRoot(), 'data/config.json');
 
 describe('readConfigCached', () => {
   it('coalesces concurrent cold reads into one readConfig call', async () => {
@@ -44,13 +50,21 @@ describe('readConfigCached', () => {
     expect(readConfig).toHaveBeenCalledTimes(1);
   });
 
-  it('serves from cache within the TTL and re-reads after expiry', async () => {
-    vi.useFakeTimers();
+  it('keeps serving an unchanged file, however long walls poll it', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
     vi.mocked(readConfig).mockResolvedValue(CONFIG);
+    await fs.writeFile(configPath(), '{}');
     await readConfigCached();
-    await readConfigCached();
+    vi.setSystemTime(Date.now() + 60 * 60_000);
+    expect(await readConfigCached()).toBe(CONFIG);
     expect(readConfig).toHaveBeenCalledTimes(1);
-    vi.advanceTimersByTime(2_000);
+  });
+
+  it('reads again as soon as the file changes, with no save in this process', async () => {
+    vi.mocked(readConfig).mockResolvedValue(CONFIG);
+    await fs.writeFile(configPath(), '{}');
+    await readConfigCached();
+    await fs.writeFile(configPath(), '{"edited":true}');
     await readConfigCached();
     expect(readConfig).toHaveBeenCalledTimes(2);
   });
@@ -84,7 +98,7 @@ describe('readConfigCached', () => {
 });
 
 describe('invalidateConfigReadCache', () => {
-  it('makes the next call re-read immediately, ignoring the TTL', async () => {
+  it('makes the next call re-read immediately, before the file looks changed', async () => {
     vi.mocked(readConfig).mockResolvedValue(CONFIG);
     await readConfigCached();
     invalidateConfigReadCache();
@@ -95,7 +109,7 @@ describe('invalidateConfigReadCache', () => {
   it('a read in flight when the cache is invalidated cannot repopulate it', async () => {
     // The write-invalidation race: a read starts, a config write lands and
     // invalidates, then the pre-write read resolves late. Its snapshot must
-    // not be cached, or the write would be invisible for a full TTL.
+    // not be cached, or the write would be invisible until the file changed again.
     let release!: (value: ScreenConfiguration) => void;
     vi.mocked(readConfig).mockReturnValueOnce(
       new Promise<ScreenConfiguration>((resolve) => {
@@ -111,32 +125,6 @@ describe('invalidateConfigReadCache', () => {
     const FRESH = { ...CONFIG, version: 5 } as ScreenConfiguration;
     vi.mocked(readConfig).mockResolvedValue(FRESH);
     expect(await readConfigCached()).toBe(FRESH);
-    expect(readConfig).toHaveBeenCalledTimes(2);
-  });
-});
-
-describe('TTL accounting', () => {
-  it('counts the TTL from when the read STARTS, not when it resolves', async () => {
-    vi.useFakeTimers();
-    let release!: (value: ScreenConfiguration) => void;
-    vi.mocked(readConfig).mockReturnValueOnce(
-      new Promise<ScreenConfiguration>((resolve) => {
-        release = resolve;
-      }),
-    );
-    const first = readConfigCached();
-    await vi.waitFor(() => expect(readConfig).toHaveBeenCalled());
-    vi.advanceTimersByTime(1_000); // a slow disk read
-    release(CONFIG);
-    await first;
-
-    vi.advanceTimersByTime(400); // 1.4s since read start — still cached
-    await readConfigCached();
-    expect(readConfig).toHaveBeenCalledTimes(1);
-
-    vi.advanceTimersByTime(200); // 1.6s since read start — expired
-    vi.mocked(readConfig).mockResolvedValue(CONFIG);
-    await readConfigCached();
     expect(readConfig).toHaveBeenCalledTimes(2);
   });
 });

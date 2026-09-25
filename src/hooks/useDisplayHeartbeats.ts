@@ -8,11 +8,10 @@ import type { DisplaysApiResponse } from '@/lib/displays-api-types';
 /**
  * The `/api/displays` heartbeat poll shared by SettingsSidebar,
  * DisplaysIndexPage, and PerDisplayPage — each previously hand-rolled the
- * same 5s loop with divergent visibility handling. The 5s cadence is what
- * the route's tiny readConfig cache (1.5s TTL) was sized for, so multiple
- * open editor surfaces collapse to one disk read per cycle; pausing on
- * hidden tabs keeps a background editor window from polling the hub Pi
- * forever.
+ * same 5s loop with divergent visibility handling. The route reads the
+ * shared config cache, so several open editor surfaces cost one parse per
+ * config change rather than one per poll; pausing on hidden tabs keeps a
+ * background editor window from polling the hub Pi forever.
  *
  * Fetch failures are silent and keep the previous snapshot — blanking the
  * status pills / heartbeat dots on a transient network blip would read as

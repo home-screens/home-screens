@@ -38,9 +38,13 @@ function makeConfig(overrides: Partial<FullscreenPhotoConfig> = {}): FullscreenP
   };
 }
 
+// A remount of the same module resumes where it left off, so every render
+// here is its own module.
+let renderCount = 0;
+
 function renderFullscreen(config: FullscreenPhotoConfig) {
   return render(
-    <FullscreenPhotoModule config={config} style={style} screenId="s1" moduleId="m1" />,
+    <FullscreenPhotoModule config={config} style={style} screenId="s1" moduleId={`m${++renderCount}`} />,
     { wrapper: Wrapper },
   );
 }

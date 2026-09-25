@@ -208,3 +208,140 @@ describe('useMediaRotation shuffle toggle', () => {
     expect(result.current[0]).toBe(batchA);
   });
 });
+
+describe('useMediaRotation resume across remounts', () => {
+  // A screen unmounts its modules when it rotates away. Each case uses its
+  // own id: the saved points outlive any one render, as they do on a wall.
+  const items = [photo(0), photo(1), photo(2), photo(3)];
+  const mount = (id: string | undefined, list = items, key = '/api/photos', shuffle = false) => renderHook(
+    ({ list: current, key: source }) => useMediaRotation(current, 5000, shuffle, true, source, id),
+    { initialProps: { list, key } },
+  );
+  /** Show the second slide for most of its turn, then leave. */
+  const leaveOnSecondSlide = (first: ReturnType<typeof mount>) => {
+    act(() => vi.advanceTimersByTime(5001)); // → index 1
+    act(() => vi.advanceTimersByTime(4000));
+    first.unmount();
+  };
+
+  it('comes back on the slide after the one that was showing', () => {
+    leaveOnSecondSlide(mount('resume-next'));
+
+    const second = mount('resume-next', [...items]);
+    expect(second.result.current[1]).toBe(2);
+    act(() => vi.advanceTimersByTime(5001));
+    expect(second.result.current[1]).toBe(3);
+  });
+
+  it('shows a slide again when the screen left just after it came up', () => {
+    // The default interval and screen dwell are both 30 s, so the advance and
+    // the rotation land together: the slide that just came up was never seen.
+    const first = mount('resume-same');
+    act(() => vi.advanceTimersByTime(5001)); // → index 1
+    act(() => vi.advanceTimersByTime(100));
+    first.unmount();
+
+    expect(mount('resume-same', [...items]).result.current[1]).toBe(1);
+  });
+
+  it('waits for the list to arrive, as a module does on a cold mount', () => {
+    leaveOnSecondSlide(mount('resume-late'));
+
+    const second = mount('resume-late', []);
+    expect(second.result.current[0]).toEqual([]);
+    second.rerender({ list: [...items], key: '/api/photos' });
+    expect(second.result.current[1]).toBe(2);
+  });
+
+  it('keeps the shuffled order, so a pass still visits every slide once', () => {
+    const first = mount('resume-shuffle', items, '/api/photos', true);
+    const seen = [first.result.current[1]];
+    act(() => vi.advanceTimersByTime(5001));
+    seen.push(first.result.current[1]);
+    act(() => vi.advanceTimersByTime(4000));
+    first.unmount();
+
+    const second = mount('resume-shuffle', [...items], '/api/photos', true);
+    seen.push(second.result.current[1]);
+    act(() => vi.advanceTimersByTime(5001));
+    seen.push(second.result.current[1]);
+    expect(new Set(seen).size).toBe(items.length);
+  });
+
+  it('plays the fresh URLs of the list it came back to, in the saved order', () => {
+    // Video URLs carry a signed token that runs out, and a screen can come
+    // back hours later; the saved pass must not replay the old tokens.
+    const signed = (token: string) => [
+      { url: `/api/immich/video?assetId=a&mt=${token}`, type: 'video' as const },
+      { url: `/api/immich/video?assetId=b&mt=${token}`, type: 'video' as const },
+      { url: `/api/immich/video?assetId=c&mt=${token}`, type: 'video' as const },
+      { url: `/api/immich/video?assetId=d&mt=${token}`, type: 'video' as const },
+    ];
+    const first = mount('resume-tokens', signed('old'));
+    act(() => first.result.current[2]()); // → index 1
+    act(() => vi.advanceTimersByTime(4000));
+    first.unmount();
+
+    // The list came back in another order, as a shuffled album's does.
+    const fresh = signed('new').reverse();
+    const second = mount('resume-tokens', fresh);
+    const [batch, index] = second.result.current;
+    expect(batch.every((item) => item.url.endsWith('mt=new'))).toBe(true);
+    expect(batch[index].url).toBe('/api/immich/video?assetId=c&mt=new');
+  });
+
+  it('starts from the top on a new deal of different photos', () => {
+    leaveOnSecondSlide(mount('resume-deal'));
+
+    const dealt = [photo(10), photo(11), photo(12), photo(13)];
+    const second = mount('resume-deal', dealt);
+    expect(second.result.current[0]).toBe(dealt);
+    expect(second.result.current[1]).toBe(0);
+  });
+
+  it('starts a new pass on the newest list when the last slide was already seen', () => {
+    const first = mount('resume-wrap');
+    for (let i = 0; i < 3; i++) act(() => vi.advanceTimersByTime(5001)); // → index 3
+    act(() => vi.advanceTimersByTime(4000));
+    first.unmount();
+
+    const refreshed = [...items];
+    const second = mount('resume-wrap', refreshed);
+    expect(second.result.current[0]).toBe(refreshed);
+    expect(second.result.current[1]).toBe(0);
+  });
+
+  it('starts from the top for a different folder or album', () => {
+    leaveOnSecondSlide(mount('resume-source', items, '/api/photos?folder=a'));
+
+    expect(mount('resume-source', [...items], '/api/photos?folder=b').result.current[1]).toBe(0);
+  });
+
+  it('starts from the top when the list grew or shrank', () => {
+    leaveOnSecondSlide(mount('resume-length'));
+
+    expect(mount('resume-length', [...items, photo(4)]).result.current[1]).toBe(0);
+  });
+
+  it('does not resume without an id (the editor preview)', () => {
+    leaveOnSecondSlide(mount(undefined));
+
+    expect(mount(undefined, [...items]).result.current[1]).toBe(0);
+  });
+
+  it('starts a new folder from the top when it is picked while the slideshow is up', () => {
+    // An uncached folder clears the list while it loads. The same number of
+    // photos coming back is the new folder, not the old one to resume.
+    const folderA = [photo(0), photo(1), photo(2), photo(3)];
+    const folderB = [photo(20), photo(21), photo(22), photo(23)];
+    const view = mount('resume-switch', folderA, '/api/photos?folder=a');
+    act(() => vi.advanceTimersByTime(5001)); // → index 1
+
+    view.rerender({ list: folderA, key: '/api/photos?folder=b' }); // the old list, one render
+    view.rerender({ list: [], key: '/api/photos?folder=b' });
+    view.rerender({ list: folderB, key: '/api/photos?folder=b' });
+    expect(view.result.current[0]).toBe(folderB);
+    expect(view.result.current[1]).toBe(0);
+  });
+
+});

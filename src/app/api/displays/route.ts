@@ -36,8 +36,8 @@ export const GET = withDisplayAuth(async (request) => {
   // Adoption-check shortcut: only the registered display IDs are needed,
   // and we read those from the cached config to avoid hammering the disk
   // when many Pis poll for adoption simultaneously. The editor Displays
-  // tab and every unadopted Pi hit this route every 5 s; the shared 1.5 s
-  // cache (`config-cache.ts`) collapses those polls onto one disk read.
+  // tab and every unadopted Pi hit this route every 5 s; the shared cache
+  // (`config-cache.ts`) parses the file once per change, not once per poll.
   if (id) {
     const config = await readConfigCached();
     const adopted = (config.displays ?? []).some((d) => d.id === id);

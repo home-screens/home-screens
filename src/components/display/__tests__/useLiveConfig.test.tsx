@@ -23,7 +23,7 @@ vi.mock('@/lib/display-fetch', () => ({
     if (url === '/api/system/build-id') {
       return { ok: true, text: async () => 'build-1' };
     }
-    if (url === '/api/config') {
+    if (url === '/api/config?display=__default__') {
       return { ok: true, text: async () => configBody };
     }
     if (url === '/api/plugins/installed') {

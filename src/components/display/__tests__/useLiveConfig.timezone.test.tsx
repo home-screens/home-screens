@@ -33,7 +33,7 @@ vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (url: string) => {
     if (!pollsAnswer) return new Promise(() => {});
     if (url === '/api/system/build-id') return { ok: true, text: async () => 'build-1' };
-    if (url === '/api/config') {
+    if (url === '/api/config?display=__default__') {
       return {
         ok: true,
         text: async () => configBody,

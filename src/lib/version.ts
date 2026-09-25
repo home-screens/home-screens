@@ -131,7 +131,7 @@ let cachedPackageVersion: string | null = null;
  * server (an upgrade restarts the process), and this is now on the
  * `/api/displays` path, which the editor polls every 5s from several surfaces
  * at once. Without the cache each poll costs a `readFile` + `JSON.parse` on a
- * route deliberately built around a shared 1.5s config cache.
+ * route deliberately built around a shared config cache.
  */
 export async function getPackageVersion(): Promise<string> {
   if (cachedPackageVersion !== null) return cachedPackageVersion;

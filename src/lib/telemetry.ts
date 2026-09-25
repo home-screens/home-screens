@@ -422,6 +422,13 @@ export async function buildBeaconPayload(
 
 let sending = false;
 
+/**
+ * When the next beacon is due, once telemetry.json has been read. Every wall
+ * poll of GET /api/config calls in, and only a beacon moves the date, so the
+ * file is read once per process instead of every few seconds.
+ */
+let nextBeaconDueAt = 0;
+
 async function sendBeacon(payload: TelemetryBeacon): Promise<boolean> {
   try {
     // Fire-and-forget: a dropped beacon is not worth retrying, and the next
@@ -447,6 +454,7 @@ async function sendBeacon(payload: TelemetryBeacon): Promise<boolean> {
 export async function maybeSendBeacon(config: ScreenConfiguration): Promise<void> {
   // Opt-out check: undefined means enabled (opt-out model)
   if (config.settings.telemetryEnabled === false) return;
+  if (Date.now() < nextBeaconDueAt) return;
 
   // Prevent concurrent sends (multiple /api/config requests within ms)
   if (sending) return;
@@ -459,13 +467,17 @@ export async function maybeSendBeacon(config: ScreenConfiguration): Promise<void
     // Interval check: only send once per 24h
     if (telemetryData.lastBeaconAt) {
       const lastSent = new Date(telemetryData.lastBeaconAt).getTime();
-      if (now - lastSent < BEACON_INTERVAL_MS) return;
+      if (now - lastSent < BEACON_INTERVAL_MS) {
+        nextBeaconDueAt = lastSent + BEACON_INTERVAL_MS;
+        return;
+      }
     }
 
     // Write lastBeaconAt before sending to prevent beacon storms on disk/network errors.
     // Worst case: we skip one cycle (24h wait) if the send fails — the safe direction.
     telemetryData.lastBeaconAt = new Date().toISOString();
     await writeTelemetryData(telemetryData);
+    nextBeaconDueAt = now + BEACON_INTERVAL_MS;
 
     const payload = await buildBeaconPayload(config, telemetryData);
     await sendBeacon(payload);

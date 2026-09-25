@@ -14,6 +14,9 @@ let TELEMETRY_PATH: string;
 
 beforeEach(async () => {
   vi.restoreAllMocks();
+  // Each test's dynamic import gets a fresh module: the beacon's due time is
+  // kept in memory, and one test's beacon must not hold back the next's.
+  vi.resetModules();
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'home-screens-telemetry-test-'));
   origCwd = process.cwd;
   process.cwd = () => tmpDir;
@@ -968,6 +971,59 @@ describe('maybeSendBeacon', () => {
     await Promise.all([maybeSendBeacon(config), maybeSendBeacon(config)]);
 
     // Only one fetch should have been made
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('does not read telemetry.json again until the next beacon is due', async () => {
+    // Every wall poll of /api/config calls in; the due time is remembered.
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+    await fs.mkdir(path.dirname(TELEMETRY_PATH), { recursive: true });
+    await fs.writeFile(TELEMETRY_PATH, JSON.stringify({
+      installId: 'due-test',
+      firstSeenAt: '2025-01-01T00:00:00.000Z',
+      lastBeaconAt: new Date().toISOString(),
+    }), 'utf-8');
+
+    const { maybeSendBeacon } = await import('../telemetry');
+    const config = makeConfig();
+    await maybeSendBeacon(config);
+
+    // Were the file read again, this long-ago date would send a beacon.
+    await fs.writeFile(TELEMETRY_PATH, JSON.stringify({
+      installId: 'due-test',
+      firstSeenAt: '2025-01-01T00:00:00.000Z',
+      lastBeaconAt: '2025-01-01T00:00:00.000Z',
+    }), 'utf-8');
+    await maybeSendBeacon(config);
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    vi.useFakeTimers({ now: Date.now() + 24 * 60 * 60 * 1000 + 1, toFake: ['Date'] });
+    try {
+      await maybeSendBeacon(config);
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('remembers a beacon it just sent', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 204 }));
+    await fs.mkdir(path.dirname(TELEMETRY_PATH), { recursive: true });
+    await fs.writeFile(TELEMETRY_PATH, JSON.stringify({
+      installId: 'sent-test',
+      firstSeenAt: '2025-01-01T00:00:00.000Z',
+      lastBeaconAt: '2025-01-01T00:00:00.000Z',
+    }), 'utf-8');
+
+    const { maybeSendBeacon } = await import('../telemetry');
+    const config = makeConfig();
+    await maybeSendBeacon(config);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+
+    // Not read (a missing file would be recreated with a new install id).
+    await fs.rm(TELEMETRY_PATH);
+    await maybeSendBeacon(config);
+    await expect(fs.access(TELEMETRY_PATH)).rejects.toThrow();
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
 });

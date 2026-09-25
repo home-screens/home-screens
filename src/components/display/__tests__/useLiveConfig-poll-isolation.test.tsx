@@ -43,7 +43,7 @@ vi.mock('@/lib/display-fetch', () => ({
       if (buildIdThrows) throw new Error('build-id down');
       return { ok: true, text: async () => 'build-1' };
     }
-    if (url === '/api/config') {
+    if (url === '/api/config?display=__default__') {
       if (configThrows) throw new Error('config down');
       return { ok: configOk, text: async () => configBody };
     }
