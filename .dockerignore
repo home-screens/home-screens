@@ -1,0 +1,17 @@
+.git/
+.github/
+.next/
+node_modules/
+out/
+build/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.env*
+*.tsbuildinfo
+data/*
+!data/secrets.example.json
+public/backgrounds/*
+!public/backgrounds/default.svg
+.claude/

@@ -1,0 +1,20 @@
+# Example for running the community Docker image. Copy to compose.yaml and adjust.
+# See "Running in Docker" in README.md for what does and doesn't work.
+services:
+  home-screens:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      # Everything you set up lives in data/; your pictures and videos in backgrounds/.
+      - ./data:/app/data
+      - ./backgrounds:/app/public/backgrounds
+    environment:
+      TZ: America/Chicago
+      # When a reverse proxy sits in front, set its IP so logins and the IP
+      # allowlist see real visitors instead of the proxy:
+      # HS_TRUSTED_PROXIES: 192.168.1.10
+    # The image runs as user 1000. If your folders belong to someone else
+    # (Unraid appdata is usually 99:100), chown them to 1000 or uncomment:
+    # user: "99:100"
+    restart: unless-stopped
