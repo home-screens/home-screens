@@ -8,6 +8,7 @@ import {
   getDensityMultiplier,
   resolveFullscreenAccent,
   surfaceBackdrop,
+  barBackdrop,
   onAccentFor,
   resolveFullscreenOnAccent,
 } from '../fullscreen-themes';
@@ -171,6 +172,22 @@ describe('surfaceBackdrop', () => {
     // render surface for no visual change, so flat themes get `none`.
     expect(surfaceBackdrop(getThemeTokens('linen'))).toBe('none');
     expect(surfaceBackdrop(getThemeTokens('obsidian'))).toBe('blur(20px)');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// barBackdrop
+// ---------------------------------------------------------------------------
+describe('barBackdrop', () => {
+  it('blurs only over an atmosphere layer', () => {
+    // Every flat theme's background is one solid colour; blurring it changes
+    // nothing on screen but still costs a backdrop pass on every repaint.
+    for (const theme of FULLSCREEN_THEMES) {
+      const expected = theme.tokens.bgImage ? /^blur\(\d+px\)$/ : /^none$/;
+      expect(barBackdrop(theme.tokens), theme.id).toMatch(expected);
+    }
+    expect(barBackdrop(getThemeTokens('linen'))).toBe('none');
+    expect(barBackdrop(getThemeTokens('obsidian'))).toBe('blur(16px)');
   });
 });
 

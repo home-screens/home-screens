@@ -23,7 +23,7 @@ import { hasExtras } from '@/lib/calendar-extras';
 import { toISODate } from '@/lib/meal-constants';
 import { useCalendarExtras } from './useCalendarExtras';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
-import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop } from '@/lib/fullscreen-themes';
+import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop, barBackdrop } from '@/lib/fullscreen-themes';
 import { brightenForDark, eventBg, eventBorder, resolveCalendarAccent } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { heldPulseKeyframes } from '@/lib/held-pulse';
@@ -374,7 +374,6 @@ export default function FullscreenCalendarModule({
         '--cal-card-shadow': theme.cardShadow,
         '--cal-past-opacity': String(theme.pastOpacity),
         '--cal-weekend-shade': theme.surfaceAlt,
-        '--cal-header-blur': theme.isDark ? '16px' : '12px',
         // A user color still gets the dark-theme lift; a theme's own accent is
         // already tuned for its background and is used verbatim.
         '--cal-accent': config.accentColor
@@ -393,7 +392,8 @@ export default function FullscreenCalendarModule({
         // atmosphere layer a flat slab would punch a hole in the gradient, so
         // those themes get the header's frosted treatment instead.
         '--cal-band-bg': theme.bgImage ? theme.headerBg : theme.bg,
-        '--cal-band-backdrop': theme.bgImage ? `blur(${theme.isDark ? '16px' : '12px'})` : 'none',
+        // Header and bands share one frost, and only over an atmosphere layer.
+        '--cal-bar-backdrop': barBackdrop(theme),
       } as React.CSSProperties}
     >
       <style>{cssTokens}</style>
@@ -601,8 +601,8 @@ ${heldPulseKeyframes('fsc-today-pulse', { rest: 0, peak: 1, periodMs: 4000 })}
   align-items: center;
   padding: 0 1.5%;
   background: var(--cal-header-bg);
-  backdrop-filter: blur(var(--cal-header-blur));
-  -webkit-backdrop-filter: blur(var(--cal-header-blur));
+  backdrop-filter: var(--cal-bar-backdrop);
+  -webkit-backdrop-filter: var(--cal-bar-backdrop);
   border-bottom: 1px solid var(--cal-border-subtle);
   position: relative;
   z-index: 20;

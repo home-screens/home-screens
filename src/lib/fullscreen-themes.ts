@@ -509,6 +509,16 @@ export function surfaceBackdrop(tokens: FullscreenThemeTokens): string {
   return tokens.surfaceBlur ? `blur(${tokens.surfaceBlur})` : 'none';
 }
 
+/** The `backdrop-filter` for bars that sit over the board's own background
+ *  (the calendar header, the agenda's sticky day bands). A flat theme's
+ *  background is one solid colour, and a blurred solid colour is the same
+ *  colour, so only themes with an atmosphere layer get a blur; everywhere
+ *  else it would re-blur the bar on every repaint for nothing. */
+export function barBackdrop(tokens: FullscreenThemeTokens): string {
+  if (!tokens.bgImage) return 'none';
+  return `blur(${tokens.isDark ? '16px' : '12px'})`;
+}
+
 /**
  * Build CSS custom properties from theme tokens with a module-specific prefix.
  * Returns a mapping like `{ '--prefix-bg': theme.bg, ... }` for the common

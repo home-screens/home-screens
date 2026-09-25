@@ -216,7 +216,7 @@
             "textColor": "#ffffff",
             "fontFamily": "Inter, system-ui, sans-serif",
             "fontSize": 16,
-            "backdropBlur": 12
+            "backdropBlur": 0
           }
         }
       ]

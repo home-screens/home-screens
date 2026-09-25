@@ -372,6 +372,15 @@ const FULLSCREEN_STYLE: Partial<import('@/types/config').ModuleStyle> = {
   padding: 0, borderRadius: 0, backdropBlur: 0, backgroundColor: 'transparent', borderWidth: 0, shadowSize: 0,
 };
 
+/**
+ * Picture cards (image, video, slideshow, web embed, rain map) start without
+ * the frosted card blur. Their picture covers the card, so the blur only
+ * shows around the edges (a title strip, the bars beside a `contain` picture,
+ * the rain map's frame), yet the GPU redoes it on every video, crossfade and
+ * radar frame. Existing cards keep whatever they saved.
+ */
+const MEDIA_CARD_BLUR = { backdropBlur: 0 } as const;
+
 const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Full Screen --
   {
@@ -805,6 +814,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       mapStyle: 'dark',
     },
     defaultSize: { w: 500, h: 500 },
+    defaultStyle: MEDIA_CARD_BLUR,
     dataRequirements: ['location'],
   },
 
@@ -1167,6 +1177,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       alt: '',
     },
     defaultSize: { w: 540, h: 360 },
+    defaultStyle: MEDIA_CARD_BLUR,
   },
   {
     type: 'video',
@@ -1183,7 +1194,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       loop: true,
     },
     defaultSize: { w: 540, h: 360 },
-    defaultStyle: { padding: 0 },
+    defaultStyle: { padding: 0, ...MEDIA_CARD_BLUR },
   },
   {
     type: 'photo-slideshow',
@@ -1202,6 +1213,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       maxVideoDurationMs: 60_000,
     },
     defaultSize: { w: 500, h: 400 },
+    defaultStyle: MEDIA_CARD_BLUR,
   },
   {
     type: 'qr-code',
@@ -1237,7 +1249,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       title: '',
     },
     defaultSize: { w: 540, h: 360 },
-    defaultStyle: { padding: 0 },
+    defaultStyle: { padding: 0, ...MEDIA_CARD_BLUR },
   },
   {
     type: 'icon',

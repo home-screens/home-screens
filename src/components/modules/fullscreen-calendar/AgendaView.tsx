@@ -103,8 +103,8 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           background: dayFill
             ? `linear-gradient(${dayFill}, ${dayFill}), var(--cal-band-bg)`
             : 'var(--cal-band-bg)',
-          backdropFilter: 'var(--cal-band-backdrop)',
-          WebkitBackdropFilter: 'var(--cal-band-backdrop)',
+          backdropFilter: 'var(--cal-bar-backdrop)',
+          WebkitBackdropFilter: 'var(--cal-bar-backdrop)',
           zIndex: 5,
           display: 'flex',
           alignItems: 'center',

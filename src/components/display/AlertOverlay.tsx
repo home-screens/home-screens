@@ -66,10 +66,11 @@ function BannerItem({ alert, onDismiss, s, label }: { alert: DisplayAlert; onDis
         gap: 22 * s,
         padding: `${26 * s}px ${30 * s}px`,
         borderRadius: 22 * s,
-        backgroundColor: 'rgba(20, 22, 28, 0.7)',
+        // No backdrop-filter: a banner can stand for a day over modules that
+        // repaint (clocks, video), and a blur re-runs on every one of those
+        // frames. A darker plain fill reads almost the same.
+        backgroundColor: 'rgba(20, 22, 28, 0.88)',
         border: `2px solid ${colors.border}`,
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
         color: '#fff',
         width: `${BANNER_WIDTH_FRACTION * 100}%`,
         animation: 'alert-slide-in 0.3s ease-out',
