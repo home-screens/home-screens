@@ -18,6 +18,10 @@ import MenuBoardView from './MenuBoardView';
 import NextMealView from './NextMealView';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useTranslate } from '@/i18n';
+import { heldPulseKeyframes } from '@/lib/held-pulse';
+
+// The now dot's blink, redrawn 12 times a second rather than on every refresh.
+const NOW_DOT_PULSE_KEYFRAMES = heldPulseKeyframes('fmpPulse', { rest: 1, peak: 0.3, periodMs: 2000 });
 
 interface MealDataResponse {
   savedMeals: SavedMeal[];
@@ -184,12 +188,9 @@ export default function FullscreenMealPlannerModule({
           background-image: var(--fmp-bg-image);
           color: var(--fmp-text);
         }
-        @keyframes fmpPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
+        ${NOW_DOT_PULSE_KEYFRAMES}
         .fmp-now-dot {
-          animation: fmpPulse 2s ease-in-out infinite;
+          animation: fmpPulse 2s linear infinite;
         }
         .fmp-scroll {
           overflow-y: auto;

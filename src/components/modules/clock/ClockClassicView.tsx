@@ -7,6 +7,7 @@ import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
 import { clockDatePattern } from './date-pattern';
+import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
 import type { ClockViewProps } from './types';
 
 export default function ClockClassicView({ config, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
@@ -45,12 +46,9 @@ export default function ClockClassicView({ config, now, time, scaledFontSize, au
       style={clockAlignmentStyle(config, 'column')}
     >
       <style>{`
-        @keyframes clock-colon-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
+        ${COLON_PULSE_KEYFRAMES}
         .clock-colon-pulse {
-          animation: clock-colon-pulse 2s ease-in-out infinite;
+          animation: ${COLON_PULSE_ANIMATION};
         }
       `}</style>
 

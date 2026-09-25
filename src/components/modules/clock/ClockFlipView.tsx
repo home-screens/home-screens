@@ -5,6 +5,7 @@ import { parseClockTime } from '@/lib/date-info';
 import { fitBaseSize, fitFactor, flipRowWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
+import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
 
 const FLIP_DURATION = 500; // ms
 
@@ -184,12 +185,9 @@ export default function ClockFlipView({ config, time, scaledFontSize, autoFontSi
             transform: perspective(400px) rotateX(-90deg);
           }
         }
-        @keyframes flip-colon-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
+        ${COLON_PULSE_KEYFRAMES}
         .clock-flip-colon {
-          animation: flip-colon-pulse 2s ease-in-out infinite;
+          animation: ${COLON_PULSE_ANIMATION};
         }
       `}</style>
 

@@ -54,9 +54,10 @@ const NAME_FLASH_MS = 2_000;
  * fingers on a wall-mounted panel, not a mouse. The pill is sized to be read
  * from across the room (22px at the wall's native pixels).
  *
- * The progress line is a compositor animation, not a rAF loop: a Pi paints
- * one transform per frame and the main thread stays free. See `ProgressFill`
- * for why it is a Web Animation pinned to `startedAt` rather than a CSS one.
+ * The progress line is a compositor animation, not a rAF loop, stepped one
+ * pixel at a time so a Pi draws a frame only when the line visibly grows and
+ * the main thread stays free. See `ProgressFill` for why it is a Web
+ * Animation pinned to `startedAt` rather than a CSS one.
  */
 export default function PaginationDots({
   screens,
@@ -351,9 +352,15 @@ function ProgressFill({ startedAt, durationMs, paused }: RotationProgress & { pa
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || typeof el.animate !== 'function') return;
+    // One step per device pixel of the track: the line still looks
+    // continuous, but Chromium only draws when it grows a pixel (about 7
+    // frames a second on a 30 s dwell) instead of on every refresh. The rect
+    // includes the display's scale, so these are the pixels on the glass.
+    const trackPx = el.parentElement?.getBoundingClientRect().width || PAGINATION_PROGRESS_W_PX;
+    const steps = Math.max(1, Math.round(trackPx * (window.devicePixelRatio || 1)));
     const anim = el.animate(
       [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
-      { duration: durationMs, easing: 'linear', fill: 'forwards' },
+      { duration: durationMs, easing: `steps(${steps})`, fill: 'forwards' },
     );
     const elapsed = Math.min(Math.max(Date.now() - startedAt, 0), durationMs);
     const timelineNow = typeof document.timeline?.currentTime === 'number'

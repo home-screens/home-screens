@@ -148,6 +148,9 @@ describe('PaginationDots', () => {
       expect(animations).toHaveLength(1);
       expect(animations[0].options.duration).toBe(30_000);
       expect(animations[0].startTime).toBe(100_000 - 12_000);
+      // One step per pixel of the track (jsdom has no layout, so the 200px
+      // minimum at a device pixel ratio of 1).
+      expect(animations[0].options.easing).toBe('steps(200)');
 
       // A parent re-render seconds later must not touch the running animation.
       act(() => { vi.advanceTimersByTime(5_000); });

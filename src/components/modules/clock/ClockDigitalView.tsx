@@ -4,6 +4,7 @@ import { parseClockTime } from '@/lib/date-info';
 import { fitBaseSize, digitalRowWidth, fitFactor } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
+import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
 import { ink } from '@/lib/constants';
 
 // Seven-segment digit map: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
@@ -82,12 +83,9 @@ function Colon({ size, color }: { size: number; color: string }) {
       style={{ width: size * 0.25, height: size }}
     >
       <style>{`
-        @keyframes digital-colon-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
+        ${COLON_PULSE_KEYFRAMES}
         .clock-digital-colon {
-          animation: digital-colon-pulse 2s ease-in-out infinite;
+          animation: ${COLON_PULSE_ANIMATION};
         }
       `}</style>
       <div

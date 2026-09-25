@@ -26,6 +26,7 @@ import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop } from '@/lib/fullscreen-themes';
 import { brightenForDark, eventBg, eventBorder, resolveCalendarAccent } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+import { heldPulseKeyframes } from '@/lib/held-pulse';
 import { ScheduleView } from './ScheduleView';
 import { WeekListView } from './WeekListView';
 import { MonthGridView } from './MonthGridView';
@@ -552,11 +553,10 @@ const cssTokens = `
 
 /* Today highlight pulse. The glow is a composited pseudo-element fading in
    and out: animating box-shadow on the marker itself repaints the gradient
-   tiles beneath it on every frame, forever, on atmosphere themes. */
-@keyframes fsc-today-pulse {
-  0%, 100% { opacity: 0; }
-  50%      { opacity: 1; }
-}
+   tiles beneath it on every frame, forever, on atmosphere themes. Its
+   keyframes are held samples so the wall redraws 12 times a second, not on
+   every refresh (held-pulse.ts). */
+${heldPulseKeyframes('fsc-today-pulse', { rest: 0, peak: 1, periodMs: 4000 })}
 .fsc-today-pulse {
   position: relative;
 }
@@ -568,7 +568,7 @@ const cssTokens = `
   box-shadow: 0 0 8px 2px var(--cal-accent);
   pointer-events: none;
   will-change: opacity;
-  animation: fsc-today-pulse 4s ease-in-out infinite;
+  animation: fsc-today-pulse 4s linear infinite;
 }
 
 /* Skeleton shimmer */
