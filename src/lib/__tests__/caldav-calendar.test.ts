@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('tsdav', () => ({
   createDAVClient: vi.fn(),
@@ -11,7 +11,7 @@ import {
   fetchICloudEvents,
   normalizeAppleColor,
   parseVCardBirthday,
-  clearBirthdayCache,
+  clearICloudCaches,
 } from '@/lib/caldav-calendar';
 import type { ICloudAccount } from '@/lib/icloud-accounts';
 import type { ICloudSource } from '@/types/config';
@@ -77,7 +77,7 @@ function installClients(caldav: MockClient, carddav: MockClient = mockClient()) 
 
 beforeEach(() => {
   vi.clearAllMocks();
-  clearBirthdayCache();
+  clearICloudCaches();
 });
 
 describe('normalizeAppleColor', () => {
@@ -404,7 +404,7 @@ describe('fetchICloudEvents', () => {
     expect(overlapping.map((e) => e.start)).toEqual(['2026-07-20']);
 
     // Window ending exactly at the birthday's local midnight excludes it
-    clearBirthdayCache();
+    clearICloudCaches();
     installClients(mockClient(), carddav());
     const { events: excluded } = await fetchICloudEvents(
       [source], [ACCOUNT],
@@ -432,7 +432,7 @@ describe('fetchICloudEvents', () => {
     expect(west.map((e) => e.start)).toEqual(['2026-07-20']);
 
     // 1 am on Jul 21 in Auckland is 13:00Z on the 20th: the birthday is over.
-    clearBirthdayCache();
+    clearICloudCaches();
     installClients(mockClient(), carddav());
     const { events: east } = await fetchICloudEvents(
       [source], [ACCOUNT], '2026-07-20T13:00:00.000Z', '2026-07-27T13:00:00.000Z', 'Pacific/Auckland',
@@ -464,5 +464,73 @@ describe('fetchICloudEvents', () => {
 
     // Sorted by start: birthday (Jul 10) before dentist (Jul 15)
     expect(events.map((e) => e.title)).toEqual(['Alice', 'Dentist']);
+  });
+});
+
+// Signing in and finding the calendar home is kept for an hour per account,
+// so each fetch goes straight to the event queries.
+describe('signed-in iCloud client', () => {
+  const caldavLogins = () =>
+    mockCreateClient.mock.calls.filter(([opts]) => (opts as { defaultAccountType?: string }).defaultAccountType === 'caldav');
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('is reused by the next fetch', async () => {
+    const caldav = mockClient();
+    installClients(caldav);
+
+    await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(caldavLogins()).toHaveLength(1);
+    expect(caldav.fetchCalendarObjects).toHaveBeenCalledTimes(2);
+  });
+
+  it('signs in again with a new app password', async () => {
+    installClients(mockClient());
+
+    await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    await fetchICloudEvents([calendarSource()], [{ ...ACCOUNT, appPassword: 'eeee-ffff-gggg-hhhh' }], TIME_MIN, TIME_MAX);
+
+    expect(caldavLogins()).toHaveLength(2);
+    expect(caldavLogins()[1][0]).toMatchObject({ credentials: { password: 'eeee-ffff-gggg-hhhh' } });
+  });
+
+  it('signs in again after an hour', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-07-10T12:00:00Z'));
+    installClients(mockClient());
+
+    await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    vi.setSystemTime(new Date('2026-07-10T13:00:01Z'));
+    await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(caldavLogins()).toHaveLength(2);
+  });
+
+  it('is dropped when a calendar query fails, so the next fetch signs in again', async () => {
+    installClients(mockClient({ fetchCalendarObjects: vi.fn().mockRejectedValueOnce(new Error('401')).mockResolvedValue([]) }));
+
+    const failed = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    const recovered = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(failed.results[0]).toMatchObject({ ok: false, messageKey: 'icloudCalendarFailed' });
+    expect(recovered.results[0].ok).toBe(true);
+    expect(caldavLogins()).toHaveLength(2);
+  });
+
+  it('is not kept when signing in fails', async () => {
+    const caldav = mockClient();
+    mockCreateClient.mockRejectedValueOnce(new Error('401'));
+
+    const failed = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+    installClients(caldav);
+    const recovered = await fetchICloudEvents([calendarSource()], [ACCOUNT], TIME_MIN, TIME_MAX);
+
+    expect(failed.results[0]).toMatchObject({ ok: false, messageKey: 'icloudUnreachable' });
+    expect(recovered.results[0].ok).toBe(true);
+    expect(caldavLogins()).toHaveLength(2);
   });
 });

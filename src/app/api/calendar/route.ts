@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { fetchCalendarEvents } from '@/lib/google-calendar';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, errorResponse, SetupError } from '@/lib/api-utils';
-import { compareEventStarts, parseEventInstant } from '@/lib/calendar-utils';
-import { isoDateInTZ } from '@/lib/timezone';
-import { CALENDAR_FETCH_MAX_EVENTS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
+import { compareEventStarts, householdDayStart } from '@/lib/calendar-utils';
+import { CALENDAR_FETCH_MAX_EVENTS, CALENDAR_MAX_WINDOW_MS, CALENDAR_REFRESH_MS, DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';
 import { fetchHolidayEvents } from '@/lib/holidays';
 import { budgetEvents, mergeSourceStatus, recordSourceStatus, withSavedEvents, type SourceFetchResult } from '@/lib/calendar-source-status';
 import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } from '@/types/config';
@@ -36,16 +34,15 @@ interface CalendarParams {
   icloudKey: string;
 }
 
-// Hard ceiling on the requested window span. Bounds two costs that scale with
-// span and aren't bounded by the event cap: recurring-event expansion in the ICS
-// parser, and the number of distinct cache keys (which embed the window). The
-// widest in-app request is a 12-week multi-week grid plus padding (~87
-// days), so this only ever clamps a hand-crafted LAN request.
-const MAX_WINDOW_MS = 400 * 86400000;
-
 const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
   auth: 'display',
-  ttlMs: 2 * 60 * 1000,
+  // Just under the walls' poll, so each wall still gets fresh events every
+  // poll while walls and the editor asking within the same few minutes share
+  // one fetch. Any longer and a lone wall would get the previous poll's
+  // answer every other time. Anyone asking while a refresh is already
+  // running gets the previous copy rather than waiting behind it.
+  ttlMs: CALENDAR_REFRESH_MS - 30_000,
+  staleWhileRefreshMs: CALENDAR_REFRESH_MS,
   prepare: async (request) => {
     const searchParams = request.nextUrl.searchParams;
     let config;
@@ -72,15 +69,19 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
 
     const timezone = config.settings.timezone;
 
-    // Round to nearest minute so cache keys are reusable
-    const nowMs = Math.floor(Date.now() / 60000) * 60000;
+    const now = new Date();
     // The default window opens at the start of the household's today, not
     // at now: the sources test all-day rows against it, and a start of "now"
     // ends today's all-day events, birthdays and holidays early wherever the
     // hub's clock and the household's day disagree (a UTC Pi dropped them
     // from 7 pm in Chicago). List views hide finished rows themselves, and
     // budgetEvents keeps what ended today apart from the upcoming budget.
-    const todayStartMs = parseEventInstant(isoDateInTZ(new Date(nowMs), timezone), timezone).getTime();
+    const todayStartMs = householdDayStart(now, 0, timezone).getTime();
+    // It closes at the end of the household's day `daysAhead` days out. Both
+    // bounds are midnights, so the cache key holds all day: walls leave
+    // timeMax off exactly so it does (getCalendarFetchWindow), and assume
+    // this default reaches at least startOfDay(now) + daysAhead.
+    const defaultEndMs = householdDayStart(now, daysAhead + 1, timezone).getTime();
     // Optional window overrides (displays widen the window for month/week
     // grid views). Unparseable values fall back to the defaults, and both
     // are re-serialized so cache keys stay canonical.
@@ -91,9 +92,9 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
     };
     const defaultWindowMs = daysAhead * 86400000;
     const timeMinMs = parseTimeParam(searchParams.get('timeMin')) ?? todayStartMs;
-    let timeMaxMs = parseTimeParam(searchParams.get('timeMax')) ?? nowMs + defaultWindowMs;
+    let timeMaxMs = parseTimeParam(searchParams.get('timeMax')) ?? defaultEndMs;
     if (timeMaxMs <= timeMinMs) timeMaxMs = timeMinMs + defaultWindowMs;
-    if (timeMaxMs - timeMinMs > MAX_WINDOW_MS) timeMaxMs = timeMinMs + MAX_WINDOW_MS;
+    if (timeMaxMs - timeMinMs > CALENDAR_MAX_WINDOW_MS) timeMaxMs = timeMinMs + CALENDAR_MAX_WINDOW_MS;
     const timeMin = new Date(timeMinMs).toISOString();
     const timeMax = new Date(timeMaxMs).toISOString();
 
@@ -145,7 +146,9 @@ const { GET, cache } = cachedProxyRoute<CalendarPayload, CalendarParams>({
 
     const [google, ical, icloud, holidays] = await Promise.all([
       !calendarIds.length ? NO_FAMILY : runFamily(
-        () => fetchCalendarEvents(calendarIds, timeMin, timeMax, hideDeclined),
+        // Lazy, like the other families: a household without Google Calendar
+        // never loads the Google client library.
+        async () => (await import('@/lib/google-calendar')).fetchCalendarEvents(calendarIds, timeMin, timeMax, hideDeclined),
         // The email local part stands in for the calendar name the API would
         // have supplied, matching the editor's own fallback. A missing or
         // expired sign-in (SetupError) gets its own key so the display can

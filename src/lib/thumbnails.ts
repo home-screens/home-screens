@@ -1,7 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import sharp from 'sharp';
 import { getDataRoot } from '@/lib/data-root';
 
 /**
@@ -69,6 +68,10 @@ export async function thumbnailPath(absPath: string, libraryPath: string, width:
   if (pending) return pending;
   const job = (async () => {
     await fs.mkdir(root, { recursive: true });
+    // Loaded here, not at the top: the serve route that imports this file is
+    // what every wall with a library background asks, and walls never want
+    // a thumbnail, so they should not pay for loading the image library.
+    const { default: sharp } = await import('sharp');
     const buffer = await sharp(absPath)
       .rotate()
       .resize({ width, withoutEnlargement: true })

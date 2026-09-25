@@ -4,6 +4,7 @@ import {
   parseEventDate,
   compareEventStarts,
   parseEventInstant,
+  householdDayStart,
   isEventOnDay,
   isEventUpcoming,
   applyTitleFilter,
@@ -140,6 +141,26 @@ describe('compareEventStarts', () => {
   it('puts an all-day row first when it ties with a midnight start', () => {
     expect(compareEventStarts('2026-09-23T00:00:00-05:00', '2026-09-23', 'America/Chicago')).toBeGreaterThan(0);
     expect(compareEventStarts('2026-09-23', '2026-09-23T00:00:00-05:00', 'America/Chicago')).toBeLessThan(0);
+  });
+});
+
+describe('householdDayStart', () => {
+  it("steps from the household's today, not the hub's", () => {
+    // 8 pm on Sep 22 in Chicago is already Sep 23 in UTC.
+    const now = new Date('2026-09-23T01:00:00Z');
+    expect(householdDayStart(now, 0, 'America/Chicago').toISOString()).toBe('2026-09-22T05:00:00.000Z');
+    expect(householdDayStart(now, 1, 'America/Chicago').toISOString()).toBe('2026-09-23T05:00:00.000Z');
+    expect(householdDayStart(now, -1, 'America/Chicago').toISOString()).toBe('2026-09-21T05:00:00.000Z');
+  });
+
+  it('lands on midnight across a daylight-saving change', () => {
+    // Chicago goes from UTC-5 to UTC-6 on Nov 1.
+    const now = new Date('2026-10-30T15:00:00Z');
+    expect(householdDayStart(now, 3, 'America/Chicago').toISOString()).toBe('2026-11-02T06:00:00.000Z');
+  });
+
+  it('crosses month and year ends', () => {
+    expect(householdDayStart(new Date('2026-12-30T12:00:00Z'), 3, 'UTC').toISOString()).toBe('2027-01-02T00:00:00.000Z');
   });
 });
 

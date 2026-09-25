@@ -22,7 +22,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: pkg.version,
   },
-  serverExternalPackages: ['node-ical', 'googleapis'],
+  serverExternalPackages: ['node-ical', '@googleapis/calendar'],
   experimental: {
     workerThreads: false,
     cpus: 2,
@@ -35,12 +35,6 @@ const nextConfig = {
   },
   outputFileTracingIncludes: {
     '/api/calendar': ['./node_modules/temporal-polyfill/**/*'],
-    // Counters the './docs/**' exclude below, which the tracer applies as an
-    // unanchored substring match and would otherwise delete the Google Docs
-    // API out of googleapis, making the whole module fail to load at runtime
-    // (broke calendar in v1.11.0-rc.1). Verified: includes are applied after
-    // excludes, so this wins.
-    '/api/calendars': ['./node_modules/googleapis/build/src/apis/docs/**/*'],
   },
   // Next's file tracer sweeps trees the server never reads from disk into
   // the standalone output: source, tests, docs, the marketing site,
@@ -58,11 +52,10 @@ const nextConfig = {
   // CAUTION if it ever goes live again: the tracer matches these globs as
   // unanchored substrings (picomatch contains: true), so a pattern like
   // './docs/**' also deletes any node_modules path containing a 'docs/'
-  // segment. That stripped the Google Docs API out of googleapis and broke
-  // calendar in v1.11.0-rc.1 (countered by the googleapis entry in
-  // outputFileTracingIncludes above). The '/**' key (all routes) also
-  // avoids Next's internal 'next-server' entry, which a bare '*' key would
-  // additionally match.
+  // segment. That stripped the Google Docs API out of the full googleapis
+  // package and broke calendar in v1.11.0-rc.1. The '/**' key (all routes)
+  // also avoids Next's internal 'next-server' entry, which a bare '*' key
+  // would additionally match.
   outputFileTracingExcludes: {
     '/**': [
       './src/app/**',

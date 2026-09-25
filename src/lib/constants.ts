@@ -60,6 +60,14 @@ export const CALENDAR_STATE_REPUBLISH_MS = 60 * 1000;
 // default.
 export const DEFAULT_CALENDAR_DAYS_AHEAD = 7;
 
+// Hard ceiling on a calendar window's span. Bounds two costs that scale with
+// span and aren't bounded by the event cap: recurring-event expansion in the
+// ICS parser, and the number of distinct cache keys (which embed the window).
+// The route clamps every request to it, and the ICS feed cache never parses a
+// wider window than it. The widest in-app request is a 12-week multi-week grid
+// plus padding (~87 days), so this only ever clamps a hand-crafted LAN request.
+export const CALENDAR_MAX_WINDOW_MS = 400 * 86400000;
+
 // Safety cap on the merged `/api/calendar` payload. Not a user setting: the
 // grids draw whatever their window holds, and list views trim themselves
 // (the calendar module's agenda has its own per-module `maxEvents`). This

@@ -2,7 +2,7 @@
  * Wire types for the opt-in credential section of a backup bundle.
  *
  * Kept in their own module (with type-only imports) so the editor can import
- * `CredentialEnvelope` without pulling `auth.ts`, `googleapis`, or anything
+ * `CredentialEnvelope` without pulling `auth.ts`, the Google client, or anything
  * else server-side into the client bundle.
  */
 

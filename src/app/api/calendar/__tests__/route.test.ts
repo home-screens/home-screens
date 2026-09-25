@@ -703,6 +703,71 @@ describe('cache behavior', () => {
     expect(mockFetchGoogle).toHaveBeenCalledTimes(2);
   });
 
+  it('answers a wall asking again minutes later from the cache', async () => {
+    // Walls leave the window off; the default used to end at the current
+    // minute, which made every poll a new cache key.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'] }));
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+
+      vi.setSystemTime(new Date('2026-09-22T15:00:00Z'));
+      await GET(makeRequest());
+      vi.setSystemTime(new Date('2026-09-22T15:04:00Z'));
+      await GET(makeRequest());
+
+      expect(mockFetchGoogle).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('refreshes once the answer is older than just under the walls\' 5-minute poll', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'] }));
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+
+      vi.setSystemTime(new Date('2026-09-22T15:00:00Z'));
+      await GET(makeRequest());
+      vi.setSystemTime(new Date('2026-09-22T15:04:31Z'));
+      await GET(makeRequest());
+
+      expect(mockFetchGoogle).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('hands out the previous answer while a refresh of it is running', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      mockReadConfig.mockResolvedValue(makeConfig({ googleCalendarIds: ['primary'] }));
+      mockFetchGoogle.mockResolvedValueOnce({
+        events: [makeEvent('g1', '2026-09-22T18:00:00Z', 'Before')], results: [{ id: 'primary', ok: true }],
+      });
+      vi.setSystemTime(new Date('2026-09-22T15:00:00Z'));
+      await GET(makeRequest());
+
+      let finish!: (value: Awaited<ReturnType<typeof fetchCalendarEvents>>) => void;
+      mockFetchGoogle.mockReturnValueOnce(new Promise((resolve) => { finish = resolve; }));
+      vi.setSystemTime(new Date('2026-09-22T15:05:00Z'));
+      // The wall whose poll found the answer expired waits for the refresh...
+      const polling = GET(makeRequest());
+      await vi.waitFor(() => expect(mockFetchGoogle).toHaveBeenCalledTimes(2));
+      // ...while anyone else asking meanwhile gets the previous answer at once.
+      const meanwhile = await (await GET(makeRequest())).json();
+      expect(meanwhile.events.map((e: CalendarEvent) => e.title)).toEqual(['Before']);
+
+      finish({ events: [makeEvent('g2', '2026-09-22T18:00:00Z', 'After')], results: [{ id: 'primary', ok: true }] });
+      const refreshed = await (await polling).json();
+      expect(refreshed.events.map((e: CalendarEvent) => e.title)).toEqual(['After']);
+      expect(mockFetchGoogle).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('cache.clear() causes subsequent requests to fetch fresh data', async () => {
     mockReadConfig.mockResolvedValue(
       makeConfig({ googleCalendarIds: ['primary'] }),
@@ -767,7 +832,7 @@ describe('time parameters', () => {
 
       const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
       expect(timeMinArg).toBe('2026-09-22T05:00:00.000Z');
-      expect(timeMaxArg).toBe('2026-09-30T01:00:00.000Z');
+      expect(timeMaxArg).toBe('2026-09-30T05:00:00.000Z');
     } finally {
       vi.useRealTimers();
     }
@@ -790,7 +855,7 @@ describe('time parameters', () => {
     expect(new Date(timeMaxArg).getTime() - new Date(timeMinArg).getTime()).toBe(7 * 86400000);
   });
 
-  it("defaults to the household's start of today through now + daysAhead", async () => {
+  it("defaults to the household's today through the end of the day daysAhead out", async () => {
     // 8 pm in Chicago, already Sep 23 in UTC. The window must still open at
     // Chicago's midnight: a window opening at "now" ended today's all-day
     // events, birthdays and holidays at 7 pm on a hub left at UTC.
@@ -806,8 +871,8 @@ describe('time parameters', () => {
 
       const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
       expect(timeMinArg).toBe('2026-09-22T05:00:00.000Z');
-      // The end is still now (rounded to the minute) plus daysAhead.
-      expect(timeMaxArg).toBe('2026-10-07T01:00:00.000Z');
+      // Chicago's midnight after Oct 6, the 14th day after today.
+      expect(timeMaxArg).toBe('2026-10-07T05:00:00.000Z');
     } finally {
       vi.useRealTimers();
     }
@@ -832,20 +897,61 @@ describe('time parameters', () => {
   });
 
   it('defaults daysAhead to 7 when not configured', async () => {
-    const config = makeConfig({ googleCalendarIds: ['primary'] });
-    // Remove daysAhead to trigger the ?? 7 fallback
-    delete (config.settings.calendar as unknown as Record<string, unknown>).daysAhead;
-    mockReadConfig.mockResolvedValue(config);
-    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-09-23T01:00:30Z'));
+      const config = withTimezone(makeConfig({ googleCalendarIds: ['primary'] }), 'America/Chicago');
+      // Remove daysAhead to trigger the ?? 7 fallback
+      delete (config.settings.calendar as unknown as Record<string, unknown>).daysAhead;
+      mockReadConfig.mockResolvedValue(config);
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
 
-    const before = Math.floor(Date.now() / 60000) * 60000;
-    await GET(makeRequest());
-    const after = Math.floor(Date.now() / 60000) * 60000;
+      await GET(makeRequest());
 
-    const [, , timeMaxArg] = mockFetchGoogle.mock.calls[0];
-    const timeMaxMs = new Date(timeMaxArg).getTime();
-    expect(timeMaxMs).toBeGreaterThanOrEqual(before + 7 * 86400000);
-    expect(timeMaxMs).toBeLessThanOrEqual(after + 7 * 86400000);
+      expect(mockFetchGoogle.mock.calls[0][2]).toBe('2026-09-30T05:00:00.000Z');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('keeps the default window on midnights across a daylight-saving change', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      // Chicago leaves daylight saving on Nov 1; the window ends on Nov 5.
+      vi.setSystemTime(new Date('2026-10-28T15:00:00Z'));
+      mockReadConfig.mockResolvedValue(
+        withTimezone(makeConfig({ googleCalendarIds: ['primary'], daysAhead: 7 }), 'America/Chicago'),
+      );
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+
+      await GET(makeRequest());
+
+      const [, timeMinArg, timeMaxArg] = mockFetchGoogle.mock.calls[0];
+      expect(timeMinArg).toBe('2026-10-28T05:00:00.000Z');
+      expect(timeMaxArg).toBe('2026-11-05T06:00:00.000Z');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('asks with the same default window all day', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      mockReadConfig.mockResolvedValue(
+        withTimezone(makeConfig({ googleCalendarIds: ['primary'] }), 'America/Chicago'),
+      );
+      mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
+
+      vi.setSystemTime(new Date('2026-09-22T06:00:00Z'));
+      await GET(makeRequest());
+      cache.clear();
+      vi.setSystemTime(new Date('2026-09-23T04:59:00Z'));
+      await GET(makeRequest());
+
+      expect(mockFetchGoogle.mock.calls[1]).toEqual(mockFetchGoogle.mock.calls[0]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('a default-window fetch is never trimmed below the safety cap', async () => {

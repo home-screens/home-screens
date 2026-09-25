@@ -377,6 +377,27 @@ describe('createTTLCache', () => {
     expect(cache.get('key-0')).toBeNull(); // evicted
     expect(cache.get('key-1')).toBe(1);    // still present
   });
+
+  it('keeps an expired entry for getStale only, and only for staleMs', () => {
+    const cache = createTTLCache<string>(1000, 500);
+    cache.set('k', 'v');
+
+    vi.advanceTimersByTime(1001);
+    expect(cache.get('k')).toBeNull();
+    expect(cache.getStale('k')).toBe('v');
+
+    vi.advanceTimersByTime(500);
+    expect(cache.getStale('k')).toBeNull();
+  });
+
+  it('has nothing stale to give without staleMs', () => {
+    const cache = createTTLCache<string>(1000);
+    cache.set('k', 'v');
+    expect(cache.getStale('k')).toBe('v');
+
+    vi.advanceTimersByTime(1001);
+    expect(cache.getStale('k')).toBeNull();
+  });
 });
 
 describe('getLocationFromConfig', () => {
@@ -962,6 +983,54 @@ describe('cachedProxyRoute', () => {
     expect(execute).toHaveBeenCalledOnce();
     expect(await r1.json()).toEqual({ n: 1 });
     expect(await r2.json()).toEqual({ n: 1 });
+  });
+
+  it('with staleWhileRefreshMs, hands the expired answer to callers who arrive during a refresh', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const execute = vi.fn()
+      .mockResolvedValueOnce({ n: 1 })
+      .mockImplementationOnce(async () => {
+        await gate;
+        return { n: 2 };
+      });
+    const { GET } = cachedProxyRoute({ ttlMs: 60_000, staleWhileRefreshMs: 60_000, execute, errorMessage: 'Failed' });
+
+    await GET(new NextRequest('http://localhost/api/test'));
+    vi.advanceTimersByTime(60_001);
+
+    // The caller that finds the answer expired waits for the refresh...
+    const refreshing = GET(new NextRequest('http://localhost/api/test'));
+    await vi.waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
+    // ...and one arriving meanwhile gets the previous answer at once.
+    expect(await (await GET(new NextRequest('http://localhost/api/test'))).json()).toEqual({ n: 1 });
+
+    release();
+    expect(await (await refreshing).json()).toEqual({ n: 2 });
+    expect(execute).toHaveBeenCalledTimes(2);
+  });
+
+  it('without staleWhileRefreshMs, callers arriving during a refresh wait for it', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const execute = vi.fn()
+      .mockResolvedValueOnce({ n: 1 })
+      .mockImplementationOnce(async () => {
+        await gate;
+        return { n: 2 };
+      });
+    const { GET } = cachedProxyRoute({ ttlMs: 60_000, execute, errorMessage: 'Failed' });
+
+    await GET(new NextRequest('http://localhost/api/test'));
+    vi.advanceTimersByTime(60_001);
+
+    const first = GET(new NextRequest('http://localhost/api/test'));
+    await vi.waitFor(() => expect(execute).toHaveBeenCalledTimes(2));
+    const second = GET(new NextRequest('http://localhost/api/test'));
+    release();
+
+    expect(await (await first).json()).toEqual({ n: 2 });
+    expect(await (await second).json()).toEqual({ n: 2 });
   });
 
   it('does not coalesce misses on different keys', async () => {

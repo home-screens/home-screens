@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+import type { auth as googleAuth } from '@googleapis/calendar';
 import { getSecret } from '@/lib/secrets';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import type { StoredGoogleTokens } from '@/lib/google-token-store';
@@ -103,18 +103,21 @@ export async function loadTokens(): Promise<StoredGoogleTokens | null> {
 }
 
 /**
- * A googleapis client carrying a currently valid access token. Refresh is
- * handled by the token store before the client is built, so the client
- * itself never needs to refresh mid-call.
+ * A Google Calendar client carrying a currently valid access token. Refresh
+ * is handled by the token store before the client is built, so the client
+ * itself never needs to refresh mid-call. The client library is loaded here
+ * rather than at the top of the file: the sign-in routes share this file and
+ * are all plain `fetch`, so opening Settings > Calendar loads none of it.
  */
-export async function getAuthenticatedClient(): Promise<import('googleapis').Common.OAuth2Client | null> {
+export async function getAuthenticatedClient(): Promise<InstanceType<typeof googleAuth.OAuth2> | null> {
   const accessToken = await store.getAccessToken();
   if (!accessToken) {
     log.error('No usable Google tokens (missing, expired without refresh token, or refresh rejected)');
     return null;
   }
   const { clientId, clientSecret } = await store.getClientCredentials();
-  const client = new google.auth.OAuth2(clientId, clientSecret);
+  const { auth } = await import('@googleapis/calendar');
+  const client = new auth.OAuth2(clientId, clientSecret);
   client.setCredentials({ access_token: accessToken });
   return client;
 }

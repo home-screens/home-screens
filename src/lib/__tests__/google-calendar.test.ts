@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock the auth module
 vi.mock('@/lib/google-auth', () => ({
@@ -11,18 +11,16 @@ const mockCalendarListList = vi.fn();
 const mockColorsGet = vi.fn();
 const mockCalendarsGet = vi.fn();
 
-vi.mock('googleapis', () => ({
-  google: {
-    calendar: () => ({
-      events: { list: mockEventsList },
-      calendarList: { list: mockCalendarListList },
-      colors: { get: mockColorsGet },
-      calendars: { get: mockCalendarsGet },
-    }),
-  },
+vi.mock('@googleapis/calendar', () => ({
+  calendar: () => ({
+    events: { list: mockEventsList },
+    calendarList: { list: mockCalendarListList },
+    colors: { get: mockColorsGet },
+    calendars: { get: mockCalendarsGet },
+  }),
 }));
 
-import { fetchCalendarEvents } from '../google-calendar';
+import { clearGoogleCalendarCache, fetchCalendarEvents } from '../google-calendar';
 import { SetupError } from '@/lib/api-utils';
 import { getAuthenticatedClient } from '@/lib/google-auth';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
@@ -33,8 +31,8 @@ const mockGetAuth = vi.mocked(getAuthenticatedClient);
 // Helpers
 // ---------------------------------------------------------------------------
 
-function setupAuth() {
-  mockGetAuth.mockResolvedValue({} as never);
+function setupAuth(accessToken = 'ya29.first') {
+  mockGetAuth.mockResolvedValue({ credentials: { access_token: accessToken } } as never);
 }
 
 function setupCalendarList(calendars: { id: string; summary?: string; backgroundColor?: string }[]) {
@@ -71,6 +69,7 @@ function setupEvents(calendarId: string, events: Record<string, unknown>[]) {
 describe('fetchCalendarEvents', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearGoogleCalendarCache();
     setupEventLabels([]);
   });
 
@@ -429,6 +428,19 @@ describe('fetchCalendarEvents', () => {
       expect(mockEventsList.mock.calls[0][0]).toMatchObject({ pageToken: undefined, maxResults: 2500 });
     });
 
+    it('asks only for the event fields it reads, and the page token', async () => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1' }]);
+      setupColors({});
+      setupPagedEvents([[evt('a')]]);
+
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+
+      expect(mockEventsList.mock.calls[0][0].fields).toBe(
+        'items(id,summary,start,end,location,description,colorId,eventLabelId,attendees(self,responseStatus)),nextPageToken',
+      );
+    });
+
     it('stops paging a runaway calendar at the safety cap', async () => {
       setupAuth();
       setupCalendarList([{ id: 'cal1' }]);
@@ -475,6 +487,95 @@ describe('fetchCalendarEvents', () => {
       const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31', true);
 
       expect(events.map((e) => e.title)).toEqual(['kept-a', 'kept-b']);
+    });
+  });
+
+  // Names, colors and label colors are asked for once an hour per sign-in,
+  // not ahead of every events fetch.
+  describe('calendar details cache', () => {
+    const event = { id: 'e1', summary: 'Tagged', start: { dateTime: '2026-01-15T10:00:00Z' }, end: { dateTime: '2026-01-15T11:00:00Z' }, eventLabelId: 'lbl' };
+
+    beforeEach(() => {
+      setupAuth();
+      setupCalendarList([{ id: 'cal1', summary: 'Work', backgroundColor: '#4285f4' }]);
+      setupColors({});
+      setupEventLabels([{ id: 'lbl', backgroundColor: '#ff0000' }]);
+      setupEvents('cal1', [event]);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('reuses the calendar list, palette and label colors within the hour', async () => {
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+      const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-02-28');
+
+      expect(mockCalendarListList).toHaveBeenCalledTimes(1);
+      expect(mockColorsGet).toHaveBeenCalledTimes(1);
+      expect(mockCalendarsGet).toHaveBeenCalledTimes(1);
+      expect(mockEventsList).toHaveBeenCalledTimes(2);
+      expect(events[0]).toMatchObject({ sourceName: 'Work', calendarColor: '#ff0000' });
+    });
+
+    it('asks again once the hour is up', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-01-10T12:00:00Z'));
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+      vi.setSystemTime(new Date('2026-01-10T13:00:01Z'));
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+
+      expect(mockCalendarListList).toHaveBeenCalledTimes(2);
+      expect(mockCalendarsGet).toHaveBeenCalledTimes(2);
+    });
+
+    it('asks again for a new sign-in', async () => {
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+      setupAuth('ya29.second');
+      setupCalendarList([{ id: 'cal1', summary: 'Other account', backgroundColor: '#00ff00' }]);
+      const { events } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+
+      expect(mockCalendarListList).toHaveBeenCalledTimes(2);
+      expect(mockCalendarsGet).toHaveBeenCalledTimes(2);
+      expect(events[0].sourceName).toBe('Other account');
+    });
+
+    it('asks again when a calendar is picked that the list was never checked for', async () => {
+      await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+      setupCalendarList([
+        { id: 'cal1', summary: 'Work', backgroundColor: '#4285f4' },
+        { id: 'cal2', summary: 'Soccer', backgroundColor: '#0b8043' },
+      ]);
+      const { results } = await fetchCalendarEvents(['cal1', 'cal2'], '2026-01-01', '2026-01-31');
+
+      expect(mockCalendarListList).toHaveBeenCalledTimes(2);
+      expect(results.map((r) => r.name)).toEqual(['Work', 'Soccer']);
+    });
+
+    it('does not ask again on every fetch for a calendar the list never has', async () => {
+      await fetchCalendarEvents(['cal1', 'primary'], '2026-01-01', '2026-01-31');
+      await fetchCalendarEvents(['cal1', 'primary'], '2026-01-01', '2026-01-31');
+
+      expect(mockCalendarListList).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not keep a failed calendar list', async () => {
+      mockCalendarListList.mockRejectedValueOnce(new Error('503'));
+      await expect(fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31')).rejects.toThrow('503');
+      const { results } = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+
+      expect(mockCalendarListList).toHaveBeenCalledTimes(2);
+      expect(results).toEqual([{ id: 'cal1', name: 'Work', ok: true }]);
+    });
+
+    it('does not keep a failed label color lookup', async () => {
+      mockCalendarsGet.mockRejectedValueOnce(new Error('forbidden'));
+      const first = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+      const second = await fetchCalendarEvents(['cal1'], '2026-01-01', '2026-01-31');
+
+      expect(mockCalendarsGet).toHaveBeenCalledTimes(2);
+      expect(first.events[0].calendarColor).toBe('#4285f4');
+      expect(second.events[0].calendarColor).toBe('#ff0000');
     });
   });
 });

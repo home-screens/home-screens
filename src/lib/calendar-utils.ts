@@ -2,7 +2,7 @@ import { addDays, differenceInMinutes, startOfDay } from 'date-fns';
 import type { AgendaSeparators, CalendarEvent, CalendarTitleFilter, ScheduleStartAnchor, TimeFormat, WeekStartDay } from '@/types/config';
 import { formatDateSync } from '@/i18n/formatters';
 import type { TranslateFn } from '@/i18n';
-import { parseDateInTZ, toTZWallTime } from '@/lib/timezone';
+import { isoDateInTZ, parseDateInTZ, toTZWallTime } from '@/lib/timezone';
 
 /** Clamp a multi-week grid's weeksToShow to its 2-12 range. The view and the
  * fetch window share these bounds; 6 is the default when unset or not a
@@ -163,6 +163,17 @@ export function parseEventWallTime(dateStr: string, timezone?: string): Date {
  */
 export function parseEventInstant(dateStr: string, timezone: string | undefined): Date {
   return parseDateInTZ(dateStr, timezone);
+}
+
+/**
+ * The instant the household's day `offsetDays` after the one `now` falls on
+ * begins. Steps whole calendar days rather than 24-hour spans, so a bound
+ * stays on midnight across a daylight-saving change.
+ */
+export function householdDayStart(now: Date, offsetDays: number, timezone: string | undefined): Date {
+  const [y, m, d] = isoDateInTZ(now, timezone).split('-').map(Number);
+  const day = new Date(Date.UTC(y, m - 1, d + offsetDays)).toISOString().slice(0, 10);
+  return parseEventInstant(day, timezone);
 }
 
 /**

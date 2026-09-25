@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import ical from 'node-ical';
 import type { ICalSource } from '@/types/config';
 import { silenceConsole } from '@/test-utils';
 
@@ -37,7 +38,7 @@ vi.mock('@/lib/url-safety', () => ({
 }));
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { checkICalUrl, fetchICalEvents } from '@/lib/ical-calendar';
+import { checkICalUrl, clearICalFeedCache, fetchICalEvents } from '@/lib/ical-calendar';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
 
@@ -149,6 +150,7 @@ silenceConsole(['error', 'warn']);
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  clearICalFeedCache();
 });
 
 afterEach(() => {
@@ -831,6 +833,155 @@ END:VCALENDAR`;
       } finally {
         vi.useRealTimers();
       }
+    });
+  });
+
+  // Walls and the editor ask with different windows every few minutes; a
+  // feed is downloaded at most once a minute and an unchanged one is never
+  // parsed twice.
+  describe('feed cache', () => {
+    const NOW = new Date('2025-03-12T12:00:00Z');
+    const MARCH = ['2025-03-01T00:00:00Z', '2025-03-31T00:00:00Z'] as const;
+    const titles = (events: { title: string }[]) => events.map((e) => e.title);
+
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(NOW);
+      mockFetch.mockReset();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function respond(body: string | null, init: ResponseInit = {}) {
+      mockFetch.mockResolvedValueOnce(new Response(body, { status: 200, ...init }));
+    }
+
+    function later(ms: number) {
+      vi.setSystemTime(new Date(NOW.getTime() + ms));
+    }
+
+    it('answers different windows within a minute from one download', async () => {
+      respond(SIMPLE_ICS);
+      const month = await fetchICalEvents([makeSource()], ...MARCH);
+      const day = await fetchICalEvents([makeSource()], '2025-03-16T00:00:00Z', '2025-03-17T00:00:00Z');
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(titles(month.events)).toEqual(['Morning Meeting', 'Afternoon Review']);
+      expect(titles(day.events)).toEqual(['Afternoon Review']);
+      expect(day.results).toEqual([{ id: 'src-1', name: 'Test Calendar', ok: true }]);
+    });
+
+    it('shares one download between asks that arrive together', async () => {
+      respond(SIMPLE_ICS);
+      const [month, day] = await Promise.all([
+        fetchICalEvents([makeSource()], ...MARCH),
+        fetchICalEvents([makeSource()], '2025-03-15T00:00:00Z', '2025-03-16T00:00:00Z'),
+      ]);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(titles(month.events)).toEqual(['Morning Meeting', 'Afternoon Review']);
+      expect(titles(day.events)).toEqual(['Morning Meeting']);
+    });
+
+    it('asks again with its validators after a minute, and does not parse a 304', async () => {
+      const parse = vi.spyOn(ical.sync, 'parseICS');
+      respond(SIMPLE_ICS, { headers: { ETag: '"v1"', 'Last-Modified': 'Tue, 11 Mar 2025 08:00:00 GMT' } });
+      await fetchICalEvents([makeSource()], ...MARCH);
+
+      later(61_000);
+      respond(null, { status: 304 });
+      const { events, results } = await fetchICalEvents([makeSource()], ...MARCH);
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch.mock.calls[1][1]).toMatchObject({
+        headers: { 'If-None-Match': '"v1"', 'If-Modified-Since': 'Tue, 11 Mar 2025 08:00:00 GMT' },
+      });
+      expect(parse).toHaveBeenCalledTimes(1);
+      expect(titles(events)).toEqual(['Morning Meeting', 'Afternoon Review']);
+      expect(results[0].ok).toBe(true);
+    });
+
+    it('does not parse a body identical to the last one', async () => {
+      const parse = vi.spyOn(ical.sync, 'parseICS');
+      respond(SIMPLE_ICS);
+      await fetchICalEvents([makeSource()], ...MARCH);
+
+      later(61_000);
+      respond(SIMPLE_ICS);
+      const { events } = await fetchICalEvents([makeSource()], ...MARCH);
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(parse).toHaveBeenCalledTimes(1);
+      expect(events).toHaveLength(2);
+    });
+
+    it('parses a body that changed', async () => {
+      respond(SIMPLE_ICS);
+      await fetchICalEvents([makeSource()], ...MARCH);
+
+      later(61_000);
+      respond(ALL_DAY_ICS);
+      const { events } = await fetchICalEvents([makeSource()], ...MARCH);
+
+      expect(titles(events)).toEqual(['Conference Day']);
+    });
+
+    it('does not keep a failed download', async () => {
+      respond('busy', { status: 503 });
+      const failed = await fetchICalEvents([makeSource()], ...MARCH);
+      respond(SIMPLE_ICS);
+      const recovered = await fetchICalEvents([makeSource()], ...MARCH);
+
+      expect(failed.results[0]).toMatchObject({ ok: false, messageKey: 'linkHttpError' });
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(titles(recovered.events)).toEqual(['Morning Meeting', 'Afternoon Review']);
+    });
+
+    it('downloads the whole feed again for a window the kept events do not reach', async () => {
+      const parse = vi.spyOn(ical.sync, 'parseICS');
+      respond(RECURRING_ICS, { headers: { ETag: '"v1"' } });
+      await fetchICalEvents([makeSource()], ...MARCH);
+
+      // A year out is past the window kept around today, so a 304 would not
+      // help: the body is asked for outright and parsed again.
+      respond(RECURRING_ICS, { headers: { ETag: '"v1"' } });
+      const { events } = await fetchICalEvents([makeSource()], '2025-03-01T00:00:00Z', '2026-03-01T00:00:00Z');
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch.mock.calls[1][1]).toMatchObject({ headers: {} });
+      expect(parse).toHaveBeenCalledTimes(2);
+      expect(events).toHaveLength(10);
+    });
+
+    it('widens the parse to the window kept around today, but not for an ask far from it', async () => {
+      const expand = vi.spyOn(ical, 'expandRecurringEvent');
+      const lastSpanDays = () => {
+        const { from, to } = expand.mock.calls.at(-1)![1];
+        return (to.getTime() - from.getTime()) / 86_400_000;
+      };
+      respond(RECURRING_ICS);
+      await fetchICalEvents([makeSource()], ...MARCH);
+      expect(lastSpanDays()).toBeGreaterThan(100);
+
+      // Five years back: joined to today's window it would span over 1,800
+      // days, far past the 400 the route allows any window.
+      respond(RECURRING_ICS);
+      const { events, results } = await fetchICalEvents([makeSource()], '2020-03-01T00:00:00Z', '2020-03-02T00:00:00Z');
+      expect(lastSpanDays()).toBe(1);
+      expect(events).toEqual([]);
+      expect(results[0].ok).toBe(true);
+    });
+
+    it('keeps the answer for a source apart from a differently labelled one', async () => {
+      respond(SIMPLE_ICS);
+      await fetchICalEvents([makeSource()], ...MARCH);
+      respond(SIMPLE_ICS);
+      const { events } = await fetchICalEvents([makeSource({ color: '#22c55e' })], ...MARCH);
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(events.every((e) => e.calendarColor === '#22c55e')).toBe(true);
     });
   });
 });

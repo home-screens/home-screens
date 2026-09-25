@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { google } from 'googleapis';
+import { calendar as googleCalendar } from '@googleapis/calendar';
 import { getAuthenticatedClient, loadTokens } from '@/lib/google-auth';
 import { withAuth } from '@/lib/api-utils';
 
@@ -21,7 +21,7 @@ export const GET = withAuth(async () => {
     return NextResponse.json({ error: reason }, { status: 403 });
   }
 
-  const calendar = google.calendar({ version: 'v3', auth });
+  const calendar = googleCalendar({ version: 'v3', auth });
   const res = await calendar.calendarList.list();
   const items = res.data.items ?? [];
 

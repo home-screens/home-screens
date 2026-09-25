@@ -278,21 +278,30 @@ export async function getLocationFromConfig(
 
 /**
  * Creates a simple in-memory cache with TTL expiration.
- * Expired entries are cleaned up on access and when at capacity.
+ * Expired entries are cleaned up on access and when at capacity. With
+ * `staleMs`, an expired entry is kept that much longer for `getStale`.
  */
 const SERVER_CACHE_MAX_ENTRIES = 50;
 
-export function createTTLCache<T>(ttlMs: number) {
+export function createTTLCache<T>(ttlMs: number, staleMs = 0) {
   const cache = new Map<string, { data: T; expiresAt: number }>();
+  // Look an entry up, dropping it once it is past any use.
+  const live = (key: string) => {
+    const entry = cache.get(key);
+    if (entry && Date.now() > entry.expiresAt + staleMs) {
+      cache.delete(key);
+      return undefined;
+    }
+    return entry;
+  };
   return {
     get(key: string): T | null {
-      const entry = cache.get(key);
-      if (!entry) return null;
-      if (Date.now() > entry.expiresAt) {
-        cache.delete(key);
-        return null;
-      }
-      return entry.data;
+      const entry = live(key);
+      return entry && Date.now() <= entry.expiresAt ? entry.data : null;
+    },
+    /** Like `get`, but also answers with an expired entry for up to `staleMs`. */
+    getStale(key: string): T | null {
+      return live(key)?.data ?? null;
     },
     /** `entryTtlMs` overrides the cache-wide TTL for this entry only —
      *  used by callers whose TTL varies per request (the plugin proxy). */
@@ -540,6 +549,13 @@ export function withMediaTokenAuth<C = unknown>(
 
 interface CachedProxyRouteBase {
   ttlMs: number;
+  /**
+   * How long past `ttlMs` an answer is kept for requests that arrive while
+   * a refresh of it is already running: they get the previous copy instead
+   * of waiting. The request that finds the answer expired still waits for
+   * the refresh, so a poller never gets older data than without this.
+   */
+  staleWhileRefreshMs?: number;
   errorMessage: string;
   /** Auth tier for this route. 'display' accepts session or display token; 'session' requires session only. */
   auth?: 'display' | 'session';
@@ -595,7 +611,7 @@ export function cachedProxyRoute<T>(config: CachedProxyRouteOptions<T>): { GET: 
 export function cachedProxyRoute<T>(config: CachedProxyRouteCustomOptions<T>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
 export function cachedProxyRoute<T, P>(config: CachedProxyRoutePreparedOptions<T, P>): { GET: (request: NextRequest) => Promise<NextResponse>; cache: ReturnType<typeof createTTLCache<T>> };
 export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T, P>) {
-  const cache = createTTLCache<T>(config.ttlMs);
+  const cache = createTTLCache<T>(config.ttlMs, config.staleWhileRefreshMs);
 
   // Single-flight: when the TTL lapses, every display polling the endpoint
   // misses at once — coalesce concurrent misses on one key into a single
@@ -621,6 +637,12 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
     return 'data' in settled ? NextResponse.json(settled.data) : settled.response;
   };
 
+  // A fresh answer, or the previous one while a refresh of it is running.
+  const cachedResponse = (key: string): NextResponse | null => {
+    const data = cache.get(key) ?? (inflight.has(key) ? cache.getStale(key) : null);
+    return data ? NextResponse.json(data) : null;
+  };
+
   const GET = async (request: NextRequest) => {
     try {
       if (config.auth === 'display') await requireDisplayAuth(request, getClientIP(request));
@@ -629,16 +651,16 @@ export function cachedProxyRoute<T, P = never>(config: CachedProxyRouteConfig<T,
       if (isPreparedConfig(config)) {
         const prepared = await config.prepare(request);
         const key = config.cacheKey(prepared);
-        const cached = cache.get(key);
-        if (cached) return NextResponse.json(cached);
+        const cached = cachedResponse(key);
+        if (cached) return cached;
 
         return await runShared(key, () => config.execute(prepared, request));
       }
 
       const keyFn = config.cacheKey ?? (() => '_');
       const key = await keyFn(request);
-      const cached = cache.get(key);
-      if (cached) return NextResponse.json(cached);
+      const cached = cachedResponse(key);
+      if (cached) return cached;
 
       if (isCustomConfig(config)) {
         return await runShared(key, () => config.execute(request));

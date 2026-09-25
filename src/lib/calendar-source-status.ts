@@ -84,7 +84,7 @@ const EARLIER_BUDGET_SHARE = 0.25;
  * date-only end as UTC midnight, which dropped today's saved all-day rows
  * from an evening fetch west of UTC.
  */
-function overlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date, timezone: string | undefined): boolean {
+export function eventOverlapsWindow(ev: CalendarEvent, windowStart: Date, windowEnd: Date, timezone: string | undefined): boolean {
   return parseEventInstant(ev.end, timezone) > windowStart && parseEventInstant(ev.start, timezone) < windowEnd;
 }
 
@@ -125,13 +125,13 @@ export function withSavedEvents(
       const kept = (lastGoodEvents.get(r.id) ?? []).filter(
         (ev) =>
           !freshIds.has(ev.id)
-          && !overlapsWindow(ev, windowStart, windowEnd, timezone)
+          && !eventOverlapsWindow(ev, windowStart, windowEnd, timezone)
           && parseEventInstant(ev.end, timezone).getTime() >= retainAfter,
       );
       lastGoodEvents.set(r.id, [...kept, ...fresh]);
     } else {
       const saved = lastGoodEvents.get(r.id) ?? [];
-      out.push(...saved.filter((ev) => overlapsWindow(ev, windowStart, windowEnd, timezone)));
+      out.push(...saved.filter((ev) => eventOverlapsWindow(ev, windowStart, windowEnd, timezone)));
     }
   }
   return out;

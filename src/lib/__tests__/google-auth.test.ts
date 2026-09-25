@@ -28,16 +28,18 @@ vi.mock('@/lib/json-store', () => ({
 }));
 
 const mockSetCredentials = vi.fn();
+// Counts loads of the client library itself, which clearing mocks between
+// tests would not reset: the sign-in paths must never load it.
+const library = vi.hoisted(() => ({ loads: 0 }));
 
-vi.mock('googleapis', () => {
+vi.mock('@googleapis/calendar', () => {
+  library.loads++;
   // Must use function (not arrow) so it can be called with `new`
   const mockOAuth2 = vi.fn(function (this: Record<string, unknown>) {
     this.setCredentials = mockSetCredentials;
   });
   return {
-    google: {
-      auth: { OAuth2: mockOAuth2 },
-    },
+    auth: { OAuth2: mockOAuth2 },
   };
 });
 
@@ -460,6 +462,20 @@ describe('disconnect', () => {
 // ── getAuthenticatedClient ───────────────────────────────────────────
 
 describe('getAuthenticatedClient', () => {
+  // First in this block: every test above ran the sign-in paths without
+  // building a client, so the library must not have loaded yet.
+  it('loads the Google client library only when it builds a client', async () => {
+    expect(library.loads).toBe(0);
+    setupCredentials();
+    setupTokensFile(null);
+    expect(await getAuthenticatedClient()).toBeNull();
+    expect(library.loads).toBe(0);
+
+    setupTokensFile({ access_token: 'ya29.something' });
+    expect(await getAuthenticatedClient()).not.toBeNull();
+    expect(library.loads).toBe(1);
+  });
+
   it('returns null when no tokens exist', async () => {
     setupCredentials();
     setupTokensFile(null);

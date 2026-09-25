@@ -1,8 +1,8 @@
 /**
  * Route-level tests for `GET /api/calendars`.
  *
- * Mocks `google-auth` (client + token inspection) and the `googleapis`
- * calendar client. The missing-credential branch is the important surface: with
+ * Mocks `google-auth` (client + token inspection) and the `@googleapis/calendar`
+ * client. The missing-credential branch is the important surface: with
  * no authenticated client, the route returns a 403 whose message depends on why
  * auth failed (no tokens / no refresh token / refresh failed) and makes NO
  * upstream call. Auth stubbed at `requireSession`.
@@ -21,8 +21,8 @@ vi.mock('@/lib/google-auth', () => ({
 }));
 
 const { calendarListMock } = vi.hoisted(() => ({ calendarListMock: vi.fn() }));
-vi.mock('googleapis', () => ({
-  google: { calendar: vi.fn(() => ({ calendarList: { list: calendarListMock } })) },
+vi.mock('@googleapis/calendar', () => ({
+  calendar: vi.fn(() => ({ calendarList: { list: calendarListMock } })),
 }));
 
 import { NextRequest } from 'next/server';

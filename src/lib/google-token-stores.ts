@@ -8,8 +8,8 @@ import { createGoogleTokenStore } from './google-token-store';
  * exactly one instance per path — a second handle would have its own queue
  * and could interleave a write with an in-flight token refresh. Anything that
  * needs a store (including the credential backup) imports it from here, which
- * also keeps `googleapis` — pulled in by google-auth.ts — off the import path
- * of callers that only need to read or write the tokens file.
+ * also keeps google-auth.ts and the Google client library it loads off the
+ * import path of callers that only need to read or write the tokens file.
  */
 
 /** Google Calendar: device-code flow, "TVs and Limited Input devices" client. */

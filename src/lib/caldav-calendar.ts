@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { createDAVClient, type DAVCalendar } from 'tsdav';
 import type { CalendarEvent, ICloudSource } from '@/types/config';
 import type { ICloudAccount } from '@/lib/icloud-accounts';
@@ -60,6 +61,36 @@ async function createClient(account: ICloudAccount, type: 'caldav' | 'carddav') 
       }),
     `iCloud ${type} login`,
   );
+}
+
+// Signing in and finding the account's calendar home is several round trips
+// before the first event query, and its answer only changes with the account,
+// so the signed-in calendar client is kept for an hour per account. A new app
+// password is a different key, and a calendar query that fails drops the
+// client, so a revoked password or a moved calendar home is looked up afresh
+// on the next fetch.
+const CALDAV_CLIENT_TTL_MS = 60 * 60 * 1000;
+
+type CalDAVClient = Awaited<ReturnType<typeof createClient>>;
+
+const caldavClients = new Map<string, { credential: string; at: number; client: Promise<CalDAVClient> }>();
+
+function credentialKey(account: ICloudAccount): string {
+  return createHash('sha256').update(`${account.appleId}\n${account.appPassword}`).digest('hex');
+}
+
+function cachedCalDAVClient(account: ICloudAccount): Promise<CalDAVClient> {
+  const credential = credentialKey(account);
+  const cached = caldavClients.get(account.id);
+  if (cached && cached.credential === credential && Date.now() - cached.at < CALDAV_CLIENT_TTL_MS) return cached.client;
+  const entry = { credential, at: Date.now(), client: createClient(account, 'caldav') };
+  caldavClients.set(account.id, entry);
+  entry.client.catch(() => forgetCalDAVClient(account, entry.client));
+  return entry.client;
+}
+
+function forgetCalDAVClient(account: ICloudAccount, client: Promise<CalDAVClient>): void {
+  if (caldavClients.get(account.id)?.client === client) caldavClients.delete(account.id);
 }
 
 /**
@@ -189,10 +220,11 @@ async function fetchAccountEvents(
   // createClient failure (bad app password, iCloud outage) fails only the
   // calendar sources — the results collected above (invalid URLs) keep their
   // own wording, and birthdays still get their independent attempt below.
-  let client: Awaited<ReturnType<typeof createClient>> | null = null;
-  if (calendarSources.length) {
+  const pendingClient = calendarSources.length ? cachedCalDAVClient(account) : null;
+  let client: CalDAVClient | null = null;
+  if (pendingClient) {
     try {
-      client = await createClient(account, 'caldav');
+      client = await pendingClient;
     } catch (err) {
       log.warn(`iCloud sign-in failed for ${account.appleId}`, err);
       for (const s of calendarSources) {
@@ -200,7 +232,7 @@ async function fetchAccountEvents(
       }
     }
   }
-  if (client && calendarSources.length) {
+  if (client && pendingClient) {
     const caldavClient = client;
     const settled = await settleSourceFetches(
       calendarSources,
@@ -227,6 +259,7 @@ async function fetchAccountEvents(
       },
       (source, reason) => {
         log.warn(`iCloud calendar fetch failed for ${account.appleId}`, reason);
+        forgetCalDAVClient(account, pendingClient);
         return [{ id: source.id, name: source.name, ok: false, error: "Couldn't load this calendar from iCloud", messageKey: 'icloudCalendarFailed' }];
       },
     );
@@ -257,14 +290,15 @@ interface AccountBirthday {
 }
 
 // Parsed birthdays only change when contacts are edited, so refetching and
-// parsing the whole address book on every 2-minute calendar cache miss is
-// wasted work on the Pi. Cache the derived list per account for the local
-// calendar day; failures are never cached.
+// parsing the whole address book on every calendar cache miss is wasted work
+// on the Pi. Cache the derived list per account for the local calendar day;
+// failures are never cached.
 const birthdayCache = new Map<string, { day: string; birthdays: AccountBirthday[] }>();
 
 /** @internal exported for test isolation */
-export function clearBirthdayCache(): void {
+export function clearICloudCaches(): void {
   birthdayCache.clear();
+  caldavClients.clear();
 }
 
 async function loadAccountBirthdays(account: ICloudAccount): Promise<AccountBirthday[]> {
