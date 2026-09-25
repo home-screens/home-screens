@@ -95,6 +95,34 @@ The script installs Node.js 22, Chromium, system dependencies, creates the syste
 sudo reboot
 ```
 
+### Running in Docker (community, limited)
+
+The Docker image runs the Home Screens server so any browser on your network can be a display. It is for people who don't use a Raspberry Pi as their hub.
+
+```bash
+cp compose.example.yaml compose.yaml   # adjust the time zone, folders and user
+docker compose up -d --build
+```
+
+Then open `http://<your-server>:3000/editor`.
+
+**What works:** the editor, the phone remote, every module, plugins, backups, and any browser (a laptop, tablet or TV) as a display.
+
+**What doesn't work in Docker.** These settings only make sense on a Raspberry Pi and will fail or do nothing:
+- Update, roll back, and automatic updates
+- Restart and reboot
+- WiFi, hostname and network settings
+- Turning the screen off, and screen rotation (set these on the device showing the display)
+- Hardware stats
+
+**Updating:** stop the container, copy your `data` and `backgrounds` folders somewhere safe, rebuild or pull the image, and start it again. Your settings upgrade themselves on first start. Don't go back to an older version without restoring the copy you made: older versions can't always read settings saved by newer ones.
+
+**Tips**
+- Keep both folders on volumes: `data` holds everything you set up, `backgrounds` holds your pictures and videos.
+- The container runs as user 1000. If saving fails with a permission error, make the folders owned by that user or run the container as their owner.
+- Names ending in `.local` (like `homeassistant.local`) often don't resolve inside containers. Use the IP address instead.
+- If a reverse proxy sits in front, set `HS_TRUSTED_PROXIES` to its IP address.
+
 ### Local Development
 
 ```bash

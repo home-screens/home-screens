@@ -14,3 +14,4 @@ data/*
 !data/secrets.example.json
 public/backgrounds/*
 !public/backgrounds/default.svg
+.claude/
