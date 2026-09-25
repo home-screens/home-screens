@@ -50,7 +50,7 @@ If you call the API from a page served somewhere else on purpose (a dashboard on
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
-If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [alert](#post-api-display-alert), and [module-command](#post-api-display-module-command) (next story on a news module). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [module-enabled](#post-api-display-module-enabled) (show or hide one module), [alert](#post-api-display-alert), and [module-command](#post-api-display-module-command) (next story on a news module). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
 
 ### Targeting a display (multi-display)
 
@@ -59,7 +59,7 @@ When the hub has more than one display registered, every display-control endpoin
 - **Query string**: append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
 - **JSON body field**: `{ "displayId": "<id>", … }` (POST only).
 
-Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command) and rejected for read-only or mutate-config actions (status, profile). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
+Use the reserved word `all` as the display target to broadcast to every registered display plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command) and rejected for read-only or mutate-config actions (status, profile, module-enabled). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
 
 Calls with no display target continue to drive the legacy single-display queue, so single-display installs and existing scripts keep working unchanged. See the [Multi-display guide](/docs/multi-display) for the full multi-display setup.
 
@@ -241,6 +241,18 @@ Switches the active profile. Persists the selection to the config file. Display 
 An unknown display returns `404 { "error": "Unknown display: <id>" }`, and a profile that display can't use returns `404 { "error": "Unknown profile: <id>" }`. The config is updated in one read-modify-write step, so switching a profile here can't wipe out an editor save happening at the same moment.
 
 **Response:** `{ "ok": true, "profile": "profile-id", "displayId": "kitchen" }`
+
+### POST /api/display/module-enabled
+
+Shows or hides one module, the same switch as **Hide** and **Show** on a module in the editor. The change is saved to the config file, so a hidden module stays hidden until something shows it again, and displays pick it up within a few seconds. Display access, a display token is enough, so a Home Assistant automation can hide a module without the editor password; the display token cannot save the whole layout with `PUT /api/config`, so this is the way to do it. Does **not** accept `all` as a target.
+
+**Body:** `{ "moduleId": "clock-1", "enabled": false, "displayId": "kitchen" }` (`enabled` optional, leave it out to toggle; `displayId` optional)
+
+`moduleId` is the module's `id` from `GET /api/config`, under `screens[].modules[]` on a single display or `displays[].screens[].modules[]` once you have more than one. Without `displayId` the hub looks on every display; with it, only on that display's screens. `enabled` must be `true` or `false`, anything else returns `400` rather than toggling. An unknown module returns `404 { "error": "Unknown module: <id>" }` and an unknown display returns `404 { "error": "Unknown display: <id>" }`.
+
+The config is updated in one read-modify-write step, so this can't wipe out an editor save happening at the same moment. An editor that is open with unsaved changes will say the layout was changed somewhere else when it next saves; choosing **Keep mine** there puts the module back the way the editor had it.
+
+**Response:** `{ "ok": true, "command": "module-enabled", "moduleId": "clock-1", "enabled": false }` (`enabled` is the module's state after the call, which is how you read the result of a toggle)
 
 ### POST /api/display/alert
 

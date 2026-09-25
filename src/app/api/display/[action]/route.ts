@@ -18,6 +18,7 @@ import { updateConfigAtomic } from '@/lib/config';
 import { getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 import { validateBrowserStats } from '@/lib/hardware-stats';
+import type { ModuleInstance, Screen, ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -148,10 +149,14 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
   const { action } = await params;
 
   // Broadcast is allowed for command-enqueue actions (simple commands, brightness,
-  // alert) and disallowed for read-only or mutate-config actions (status, profile).
-  // goto-screen is an enqueue action but still excluded: screen sets differ per
-  // display, so a name/id target has no meaning fanned out to every display.
-  const noBroadcast = action === 'profile' || action === 'status' || action === 'goto-screen';
+  // alert) and disallowed for read-only or mutate-config actions (status, profile,
+  // module-enabled). goto-screen is an enqueue action but still excluded: screen
+  // sets differ per display, so a name/id target has no meaning fanned out to
+  // every display.
+  const noBroadcast = action === 'profile'
+    || action === 'module-enabled'
+    || action === 'status'
+    || action === 'goto-screen';
   const validated = getDisplayIdFromQuery(request, { allowBroadcast: !noBroadcast });
   if (validated instanceof NextResponse) return validated;
   const queryDisplayId = validated;
@@ -171,6 +176,8 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
       return handleSleepOverride(request, queryDisplayId);
     case 'profile':
       return handleProfile(request, queryDisplayId);
+    case 'module-enabled':
+      return handleModuleEnabled(request, queryDisplayId);
     case 'alert':
       return handleAlert(request, queryDisplayId);
     case 'module-command':
@@ -383,6 +390,112 @@ async function handleProfile(
   } catch (error) {
     return errorResponse(error, 'Failed to update profile');
   }
+}
+
+const MAX_MODULE_ID_LENGTH = 128;
+
+/**
+ * POST /api/display/module-enabled  { moduleId, enabled? }
+ *
+ * Shows or hides one module by writing its `enabled` flag, the same switch as
+ * the editor's Show / Hide menu item. Leaving out `enabled` toggles. Walls pick
+ * the change up on their next config poll.
+ *
+ * Display access, like `profile`, so Home Assistant can drive it with the
+ * display token instead of holding the editor password. Unlike `profile` this
+ * is a layout edit the display never makes itself, but the reach is the same
+ * as the other command verbs: it hides a module, it cannot add, move or
+ * reconfigure one.
+ */
+async function handleModuleEnabled(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<Response> {
+  const body = await safeJson(request);
+  const moduleId = typeof body?.moduleId === 'string' ? body.moduleId.trim() : '';
+  if (moduleId.length === 0 || moduleId.length > MAX_MODULE_ID_LENGTH) {
+    return NextResponse.json(
+      { error: 'moduleId must be a module id from the config (non-empty string)' },
+      { status: 400 },
+    );
+  }
+  // Only a missing key toggles: a string "false" or a null must not quietly
+  // flip the module the other way.
+  const requested = body?.enabled;
+  if (requested !== undefined && typeof requested !== 'boolean') {
+    return NextResponse.json(
+      { error: 'enabled must be true or false, or left out to toggle' },
+      { status: 400 },
+    );
+  }
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: false });
+  if (displayId instanceof NextResponse) return displayId;
+  try {
+    const seen: { outcome?: ModuleEnabledOutcome } = {};
+    await updateConfigAtomic((config) => {
+      const outcome = setModuleEnabled(config, moduleId, requested, displayId);
+      seen.outcome = outcome;
+      return 'config' in outcome ? outcome.config : config;
+    });
+    // updateConfigAtomic only resolves after running the mutator.
+    const outcome = seen.outcome!;
+    if ('error' in outcome) {
+      return NextResponse.json({ error: outcome.error }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true, command: 'module-enabled', moduleId, enabled: outcome.enabled });
+  } catch (error) {
+    return errorResponse(error, 'Failed to update module');
+  }
+}
+
+type ModuleEnabledOutcome =
+  | { config: ScreenConfiguration; enabled: boolean }
+  | { error: string };
+
+/**
+ * The scope is every screen a wall can render: `config.screens` on a
+ * single-display install, every display's screens once the registry exists
+ * (`config.screens` is then a frozen snapshot nothing renders), or only
+ * `displayId`'s screens when one is named.
+ *
+ * The editor mints fresh module ids on every copy, but an imported layout can
+ * still repeat one. Every match takes the state the first match resolves to,
+ * so a toggle never leaves the copies disagreeing. Already in that state
+ * returns the same config reference, which `updateConfigAtomic` treats as no
+ * write.
+ */
+function setModuleEnabled(
+  config: ScreenConfiguration,
+  moduleId: string,
+  requested: boolean | undefined,
+  displayId: string | undefined,
+): ModuleEnabledOutcome {
+  const displays = config.displays;
+  if (displayId && !displays?.some((d) => d.id === displayId)) {
+    return { error: `Unknown display: ${displayId}` };
+  }
+  const multiDisplay = !!displays && displays.length > 0;
+  const inScope = (id: string) => !displayId || id === displayId;
+  const screens: Screen[] = multiDisplay
+    ? displays.filter((d) => inScope(d.id)).flatMap((d) => d.screens)
+    : config.screens;
+  const matches = screens.flatMap((s) => s.modules).filter((m) => m.id === moduleId);
+  if (matches.length === 0) {
+    return { error: `Unknown module: ${moduleId}` };
+  }
+  const enabled = requested ?? matches[0].enabled === false;
+  if (matches.every((m) => (m.enabled !== false) === enabled)) {
+    return { config, enabled };
+  }
+  // Showing clears the flag rather than writing `true`, as the editor does.
+  const apply = (mod: ModuleInstance): ModuleInstance =>
+    mod.id === moduleId ? { ...mod, enabled: enabled ? undefined : false } : mod;
+  const applyToScreens = (list: Screen[]): Screen[] =>
+    list.map((s) => (s.modules.some((m) => m.id === moduleId) ? { ...s, modules: s.modules.map(apply) } : s));
+  const next = multiDisplay
+    ? { ...config, displays: displays.map((d) => (inScope(d.id) ? { ...d, screens: applyToScreens(d.screens) } : d)) }
+    : { ...config, screens: applyToScreens(config.screens) };
+  return { config: next, enabled };
 }
 
 async function handleAlert(

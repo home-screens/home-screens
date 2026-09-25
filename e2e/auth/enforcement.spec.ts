@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { writeSandboxFile } from '../helpers/sandbox';
-import { baseConfig, makeScreen } from '../helpers/config-fixtures';
+import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { putConfig, todayCalendarEvents } from '../helpers/api';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { stubModuleData } from '../helpers/stubs';
@@ -184,6 +184,39 @@ test('uploaded day art reaches the wall through the display token', async ({ pag
     // Hand the serial flow back the sandbox default screen it asserts on.
     await putConfig(admin, baseConfig());
     await admin.dispose();
+  }
+});
+
+test('the display token can show and hide a module, though it cannot save the layout', async ({ playwright, baseURL }) => {
+  // Home Assistant holds only the display token. It is refused the whole-config
+  // save, so hiding a module has to go through the module-enabled verb.
+  const admin = await playwright.request.newContext({ baseURL });
+  expect((await admin.post('/api/auth/login', { data: { password: PASSWORD } })).ok()).toBe(true);
+  const { displayToken } = await (await admin.get('/api/auth/display-token')).json();
+  const target = textModule('TOKEN HIDES ME');
+  await putConfig(admin, baseConfig({ screens: [makeScreen('s1', 'S1', [target])] }));
+  const bearer = { authorization: `Bearer ${displayToken}` };
+  const anon = await playwright.request.newContext({ baseURL });
+
+  try {
+    const config = await (await anon.get('/api/config', { headers: bearer })).json();
+    expect((await anon.put('/api/config', { headers: bearer, data: config })).status()).toBe(401);
+
+    expect((await anon.post('/api/display/module-enabled', { data: { moduleId: target.id, enabled: false } })).status()).toBe(401);
+    const hide = await anon.post('/api/display/module-enabled', {
+      headers: bearer,
+      data: { moduleId: target.id, enabled: false },
+    });
+    expect(hide.status()).toBe(200);
+    expect(await hide.json()).toEqual({ ok: true, command: 'module-enabled', moduleId: target.id, enabled: false });
+
+    const saved = await (await admin.get('/api/config')).json();
+    expect(saved.screens[0].modules[0].enabled).toBe(false);
+  } finally {
+    // Hand the serial flow back the sandbox default screen it asserts on.
+    await putConfig(admin, baseConfig());
+    await admin.dispose();
+    await anon.dispose();
   }
 });
 

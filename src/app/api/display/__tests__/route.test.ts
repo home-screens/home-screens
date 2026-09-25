@@ -726,6 +726,211 @@ describe('POST /api/display/profile', () => {
   });
 });
 
+describe('POST /api/display/module-enabled', () => {
+  type TestModule = { id: string; type: string; enabled?: boolean };
+  type TestScreen = { id: string; modules: TestModule[] };
+  type TestConfig = {
+    version: number;
+    screens: TestScreen[];
+    settings: never;
+    displays?: Array<{ id: string; name: string; screens: TestScreen[] }>;
+  };
+
+  const mod = (id: string, enabled?: boolean): TestModule =>
+    enabled === undefined ? { id, type: 'clock' } : { id, type: 'clock', enabled };
+  const screen = (id: string, modules: TestModule[]): TestScreen => ({ id, modules });
+  const legacy = (screens: TestScreen[]): TestConfig => ({ version: 3, screens, settings: {} as never });
+  const multi = (
+    displays: Array<{ id: string; screens: TestScreen[] }>,
+    frozen: TestScreen[] = [],
+  ): TestConfig => ({
+    version: 3,
+    screens: frozen,
+    settings: {} as never,
+    displays: displays.map((d) => ({ ...d, name: d.id })),
+  });
+
+  function seed(config: TestConfig) {
+    vi.mocked(readConfig).mockResolvedValue(config as never);
+    vi.mocked(writeConfig).mockResolvedValue(undefined);
+  }
+
+  /** What lands on disk: undefined keys drop out exactly as they do in the real write. */
+  function written(): TestConfig {
+    return JSON.parse(JSON.stringify(vi.mocked(writeConfig).mock.calls[0][0]));
+  }
+
+  function send(body: Record<string, unknown>, query = '') {
+    const req = new NextRequest(`http://localhost/api/display/module-enabled${query}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return POST(req, makeParams('module-enabled'));
+  }
+
+  it('hides a module on a single-display install', async () => {
+    seed(legacy([screen('s1', [mod('clock-1'), mod('other')])]));
+
+    const res = await send({ moduleId: 'clock-1', enabled: false });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, command: 'module-enabled', moduleId: 'clock-1', enabled: false });
+    expect(written().screens[0].modules).toEqual([mod('clock-1', false), mod('other')]);
+  });
+
+  it('showing clears the flag rather than writing true, as the editor does', async () => {
+    seed(legacy([screen('s1', [mod('clock-1', false)])]));
+
+    const res = await send({ moduleId: 'clock-1', enabled: true });
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).enabled).toBe(true);
+    expect(written().screens[0].modules[0]).toEqual({ id: 'clock-1', type: 'clock' });
+  });
+
+  it('toggles when enabled is left out, both ways', async () => {
+    seed(legacy([screen('s1', [mod('clock-1')])]));
+    const hide = await send({ moduleId: 'clock-1' });
+    expect((await hide.json()).enabled).toBe(false);
+    expect(written().screens[0].modules[0].enabled).toBe(false);
+
+    vi.mocked(writeConfig).mockClear();
+    seed(legacy([screen('s1', [mod('clock-1', false)])]));
+    const show = await send({ moduleId: 'clock-1' });
+    expect((await show.json()).enabled).toBe(true);
+    expect(written().screens[0].modules[0].enabled).toBeUndefined();
+  });
+
+  it('edits the display screens once displays exist, never the frozen legacy snapshot', async () => {
+    seed(multi(
+      [{ id: 'main', screens: [screen('s1', [mod('clock-1')])] }],
+      [screen('s1', [mod('clock-1')])],
+    ));
+
+    const res = await send({ moduleId: 'clock-1', enabled: false });
+
+    expect(res.status).toBe(200);
+    const saved = written();
+    expect(saved.displays![0].screens[0].modules[0].enabled).toBe(false);
+    expect(saved.screens[0].modules[0].enabled).toBeUndefined();
+  });
+
+  it('finds a module on any display when no display is named', async () => {
+    seed(multi([
+      { id: 'main', screens: [screen('s1', [mod('a')])] },
+      { id: 'kitchen', screens: [screen('s2', [mod('b')])] },
+    ]));
+
+    const res = await send({ moduleId: 'b', enabled: false });
+
+    expect(res.status).toBe(200);
+    const saved = written();
+    expect(saved.displays![0].screens[0].modules[0].enabled).toBeUndefined();
+    expect(saved.displays![1].screens[0].modules[0].enabled).toBe(false);
+  });
+
+  it('a named display narrows the search, from the body or the query', async () => {
+    const twoCopies = () => multi([
+      { id: 'main', screens: [screen('s1', [mod('dup')])] },
+      { id: 'kitchen', screens: [screen('s2', [mod('dup')])] },
+    ]);
+
+    seed(twoCopies());
+    await send({ moduleId: 'dup', enabled: false, displayId: 'kitchen' });
+    let saved = written();
+    expect(saved.displays![0].screens[0].modules[0].enabled).toBeUndefined();
+    expect(saved.displays![1].screens[0].modules[0].enabled).toBe(false);
+
+    vi.mocked(writeConfig).mockClear();
+    seed(twoCopies());
+    await send({ moduleId: 'dup', enabled: false }, '?display=main');
+    saved = written();
+    expect(saved.displays![0].screens[0].modules[0].enabled).toBe(false);
+    expect(saved.displays![1].screens[0].modules[0].enabled).toBeUndefined();
+  });
+
+  it('a toggle settles every copy of a repeated id on the first copy’s flipped state', async () => {
+    seed(multi([
+      { id: 'main', screens: [screen('s1', [mod('dup')])] },
+      { id: 'kitchen', screens: [screen('s2', [mod('dup', false)])] },
+    ]));
+
+    const res = await send({ moduleId: 'dup' });
+
+    expect((await res.json()).enabled).toBe(false);
+    const saved = written();
+    expect(saved.displays![0].screens[0].modules[0].enabled).toBe(false);
+    expect(saved.displays![1].screens[0].modules[0].enabled).toBe(false);
+  });
+
+  it('asking for the state it is already in hands back the same config, so nothing is written', async () => {
+    const config = legacy([screen('s1', [mod('clock-1', false)])]);
+    seed(config);
+
+    const res = await send({ moduleId: 'clock-1', enabled: false });
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).enabled).toBe(false);
+    // The real updateConfigAtomic skips the disk write when the mutator
+    // returns the config it was given; the mock forwards it to writeConfig.
+    expect(vi.mocked(writeConfig).mock.calls[0][0]).toBe(config);
+  });
+
+  it('returns 404 for an unknown module or display, and changes nothing', async () => {
+    const config = multi([{ id: 'main', screens: [screen('s1', [mod('clock-1')])] }]);
+
+    seed(config);
+    const noModule = await send({ moduleId: 'nope', enabled: false });
+    expect(noModule.status).toBe(404);
+    expect((await noModule.json()).error).toBe('Unknown module: nope');
+
+    seed(config);
+    const noDisplay = await send({ moduleId: 'clock-1', enabled: false, displayId: 'kitchen' });
+    expect(noDisplay.status).toBe(404);
+    expect((await noDisplay.json()).error).toBe('Unknown display: kitchen');
+
+    // Both misses hand the config back untouched, which the real store skips writing.
+    expect(writeConfig).toHaveBeenCalledTimes(2);
+    for (const [arg] of vi.mocked(writeConfig).mock.calls) expect(arg).toBe(config);
+
+    // A module that lives on another display is not found on the one named.
+    seed(multi([
+      { id: 'main', screens: [screen('s1', [mod('clock-1')])] },
+      { id: 'kitchen', screens: [] },
+    ]));
+    expect((await send({ moduleId: 'clock-1', displayId: 'kitchen' })).status).toBe(404);
+  });
+
+  it('returns 404 when a display is named on a single-display install', async () => {
+    seed(legacy([screen('s1', [mod('clock-1')])]));
+    const res = await send({ moduleId: 'clock-1', enabled: false, displayId: 'kitchen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('rejects a missing, blank, non-string or oversized moduleId', async () => {
+    for (const moduleId of [undefined, '', '   ', 42, 'x'.repeat(129)]) {
+      const res = await send({ moduleId, enabled: false });
+      expect(res.status).toBe(400);
+    }
+    expect(readConfig).not.toHaveBeenCalled();
+  });
+
+  it('rejects an enabled value that is not a boolean instead of toggling', async () => {
+    for (const enabled of ['false', 'true', 0, 1, null]) {
+      const res = await send({ moduleId: 'clock-1', enabled });
+      expect(res.status).toBe(400);
+    }
+    expect(readConfig).not.toHaveBeenCalled();
+  });
+
+  it('rejects the all broadcast target', async () => {
+    const res = await send({ moduleId: 'clock-1', enabled: false }, '?display=all');
+    expect(res.status).toBe(400);
+    expect(readConfig).not.toHaveBeenCalled();
+  });
+});
+
 describe('POST /api/display/alert', () => {
   it('enqueues alert with title and message', async () => {
     const res = await POST(

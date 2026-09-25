@@ -228,7 +228,7 @@ http://<ip>:3000/api/display/wake?token=<token>
 
 The `?token=` form works only on `/api/display/*` URLs, deliberately, so the token cannot leak through browser history or referrer headers on other pages. A browser already logged in to the editor works too, since a valid session is accepted anywhere the token is.
 
-The display token covers every command on this page, including profile switching, the only writes it can make are the ones the display itself performs.
+The display token covers every command on this page. Only two of them save anything: switching profiles, and showing or hiding a module. The token cannot change the rest of your layout or your settings.
 
 ### Commands with payloads
 
@@ -250,6 +250,14 @@ Brightness works by fading a black layer over the page, not by changing the pane
 curl -X POST http://<ip>:3000/api/display/profile \
   -H 'Content-Type: application/json' \
   -d '{"profile": "nighttime"}'
+```
+
+**Show or hide a module**: hide one module, or bring it back, by its id (the module's `id` in `GET /api/config`). Leave out `enabled` to flip it. It stays that way until something changes it again, including the editor:
+
+```bash
+curl -X POST http://<ip>:3000/api/display/module-enabled \
+  -H 'Content-Type: application/json' \
+  -d '{"moduleId": "clock-1", "enabled": false}'
 ```
 
 **Go to screen**: jump straight to a screen by its name (or id) instead of stepping through the rotation. The display matches the name against its own screen list, ignoring case, and ignores names it doesn't have:

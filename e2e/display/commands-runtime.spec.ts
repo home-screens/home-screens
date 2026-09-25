@@ -142,6 +142,29 @@ test('goto-screen jumps to a screen by name (case-insensitive) or id, and ignore
   expect(res.status()).toBe(400);
 });
 
+test('module-enabled hides one module on the wall, and a toggle brings it back', async ({ page, request }) => {
+  const id = 'cmd-module-enabled';
+  const target = textModule('MODULE THAT HIDES');
+  await openDisplay(
+    page,
+    request,
+    displayConfig(id, [
+      makeScreen('s', 'S', [textModule('MODULE THAT STAYS'), { ...target, position: { x: 100, y: 400 } }]),
+    ]),
+    id,
+  );
+  await expect(page.getByText('MODULE THAT HIDES', { exact: true })).toBeVisible();
+
+  // Not a queued command: the verb writes config, and the wall sees it on its
+  // next config poll.
+  await sendCommand(request, id, 'module-enabled', { moduleId: target.id, enabled: false });
+  await expect(page.getByText('MODULE THAT HIDES', { exact: true })).toHaveCount(0, { timeout: 8000 });
+  await expect(page.getByText('MODULE THAT STAYS', { exact: true })).toBeVisible();
+
+  await sendCommand(request, id, 'module-enabled', { moduleId: target.id });
+  await expect(page.getByText('MODULE THAT HIDES', { exact: true })).toBeVisible({ timeout: 8000 });
+});
+
 test('sleep blacks out the display; wake restores content and resumes a paused rotator', async ({ page, request }) => {
   const id = 'cmd-sleep';
   await openDisplay(
