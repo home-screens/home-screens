@@ -8,21 +8,21 @@ import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
-import { useAuthImageState } from '@/components/display/useAuthImage';
 import VideoLayer from './shared/VideoLayer';
-import { useCrossfadeLayers, type LayerIndex } from './shared/useCrossfadeLayers';
+import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from './shared/useCrossfadeLayers';
+import type { PictureBox } from '@/lib/media-paths';
 
 /** Renders a single slide layer, fetching API-served images through displayFetch for auth.
  *  The <img> stays mounted while the blob loads so the CSS opacity transition fires on
  *  a style change rather than on mount (which would cause a hard pop instead of a fade).
  *  It reports load/failure so the crossfade only brings it up once painted. */
-function SlideLayer({ src, active, objectFit, isFade, onReady, onFailed }: {
-  src: string; active: boolean; objectFit?: React.CSSProperties['objectFit']; isFade: boolean;
+function SlideLayer({ src, box, active, objectFit, isFade, onReady, onFailed }: {
+  src: string; box?: PictureBox; active: boolean; objectFit?: React.CSSProperties['objectFit']; isFade: boolean;
   onReady?: () => void; onFailed?: () => void;
 }) {
-  // Never render the previous slide's blob here: the layer holds the next
-  // slide while it loads and stays hidden until its own image is ready.
-  const { url: authSrc, status } = useAuthImageState(src, { holdPrevious: false });
+  // Never the previous slide's picture: the layer holds the next slide while
+  // it loads and stays hidden until its own image is ready.
+  const { url: authSrc, status } = useSlideImage(src, box);
   const onFailedRef = useRef(onFailed);
   onFailedRef.current = onFailed;
   useEffect(() => {
@@ -40,7 +40,7 @@ function SlideLayer({ src, active, objectFit, isFade, onReady, onFailed }: {
         zIndex: active ? 1 : 0,
         visibility: authSrc ? 'visible' : 'hidden',
       }}
-      onLoad={onReady}
+      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady)}
       onError={onFailed}
     />
   );
@@ -53,12 +53,14 @@ interface PhotoSlideshowModuleProps {
   // neither, so video slides show posters and rotate on the photo timer there.
   screenId?: string;
   moduleId?: string;
+  /** The card's size in canvas pixels (registry `needsBoxSize`). */
+  boxSize?: PictureBox;
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['photo-slideshow']?.ttlMs ?? 600_000;
 export const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
 
-export default function PhotoSlideshowModule({ config, style, screenId, moduleId }: PhotoSlideshowModuleProps) {
+export default function PhotoSlideshowModule({ config, style, screenId, moduleId, boxSize }: PhotoSlideshowModuleProps) {
   const t = useTranslate('modules');
   const playVideos = !!(screenId && moduleId);
 
@@ -125,6 +127,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
     return (
       <SlideLayer
         src={item.url}
+        box={boxSize}
         active={active}
         objectFit={config.objectFit}
         isFade={isFade}

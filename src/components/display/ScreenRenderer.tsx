@@ -42,7 +42,8 @@ import { getLocation } from '@/lib/location';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { resolveModuleStyle } from '@/lib/module-style';
 import BackgroundShadeOverlay from '@/components/BackgroundShadeOverlay';
-import { resolveScreenBackground, type RotationAnswer } from '@/lib/screen-background';
+import { screenBackgroundSrc, type RotationAnswer } from '@/lib/screen-background';
+import { displaySizedUrl } from '@/lib/media-paths';
 
 interface ScreenRendererProps {
   screen: Screen;
@@ -114,9 +115,12 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
     [screen.modules, now, states],
   );
 
-  const screenBackground = resolveScreenBackground(screen, rotatingBackground);
-  // Module-requested override takes priority over screen background
-  const rawBackground = overrideBackground || screenBackground;
+  const canvas = { w: displayW, h: displayH };
+  // Module-requested override takes priority over screen background. A
+  // library picture is asked for at the canvas size (see displaySizedUrl).
+  const rawBackground = overrideBackground
+    ? displaySizedUrl(overrideBackground, canvas)
+    : screenBackgroundSrc(screen, rotatingBackground, canvas);
   // Fetch API-served images through displayFetch so the Bearer token is used
   // (plain <img> tags don't carry Authorization headers)
   const backgroundImage = useAuthImage(rawBackground || undefined) || '';

@@ -19,6 +19,7 @@ import { MediaTypesFields } from './MediaTypesFields';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, FullscreenPhotoConfig, FullscreenPhotoTransition } from '@/types/config';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 
 type Config = Partial<FullscreenPhotoConfig>;
 type PhotoSource = NonNullable<FullscreenPhotoConfig['source']>;
@@ -141,7 +142,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
               {c.file && (
                 <div className="mt-1.5">
                   <img
-                    src={c.file}
+                    src={tileThumbnailUrl(c.file)}
                     alt=""
                     loading="lazy"
                     className="w-full max-h-32 rounded object-cover border border-hs-border-strong"
@@ -172,7 +173,7 @@ export function FullscreenPhotoConfigSection({ mod, screenId }: { mod: ModuleIns
                     {previewImages.map((img) => (
                       <img
                         key={img}
-                        src={img}
+                        src={tileThumbnailUrl(img)}
                         alt=""
                         loading="lazy"
                         className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"

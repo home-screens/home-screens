@@ -268,6 +268,59 @@ describe('thumbnails (w= param)', () => {
   });
 });
 
+describe('wall copies (w= and h= params)', () => {
+  async function seedPng(name: string, width: number, height: number) {
+    await fs.writeFile(path.join(bgsDir, name), await sharp({
+      create: { width, height, channels: 3, background: '#2266cc' },
+    }).png().toBuffer());
+  }
+
+  it('serves a JPEG that still covers the box, with the original\'s tag', async () => {
+    await seedPng('camera.png', 4000, 3000);
+    const GET = await getGET();
+    const original = await GET(makeRequest({ file: 'camera.png' }));
+    const res = await GET(makeRequest({ file: 'camera.png', w: '1080', h: '1920' }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toBe('image/jpeg');
+    expect(res.headers.get('ETag')).toBe(original.headers.get('ETag'));
+    const meta = await sharp(Buffer.from(await res.arrayBuffer())).metadata();
+    expect([meta.width, meta.height]).toEqual([2560, 1920]);
+  });
+
+  it('serves the original when it is already about the size of the box', async () => {
+    await seedPng('fits.png', 1080, 1920);
+    const GET = await getGET();
+    const res = await GET(makeRequest({ file: 'fits.png', w: '1080', h: '1920' }));
+    expect(res.headers.get('Content-Type')).toBe('image/png');
+    expect((await sharp(Buffer.from(await res.arrayBuffer())).metadata()).width).toBe(1080);
+  });
+
+  it('serves the original for a box that is not on the list, and never a grid tile', async () => {
+    await seedPng('camera.png', 4000, 3000);
+    const GET = await getGET();
+    for (const box of [{ w: '1000', h: '1920' }, { w: '480', h: 'x' }]) {
+      const res = await GET(makeRequest({ file: 'camera.png', ...box }));
+      expect(res.headers.get('Content-Type')).toBe('image/png');
+    }
+    expect(await fs.readdir(path.join(tmpDir, 'data', 'thumbnails')).catch(() => [])).toEqual([]);
+  });
+
+  it('leaves gif whole', async () => {
+    await fs.writeFile(path.join(bgsDir, 'party.gif'), 'GIF89a');
+    const GET = await getGET();
+    const res = await GET(makeRequest({ file: 'party.gif', w: '1080', h: '1920' }));
+    expect(res.headers.get('Content-Type')).toBe('image/gif');
+  });
+
+  it('falls back to the original when the picture cannot be decoded', async () => {
+    await fs.writeFile(path.join(bgsDir, 'broken.jpg'), 'not a jpeg');
+    const GET = await getGET();
+    const res = await GET(makeRequest({ file: 'broken.jpg', w: '1080', h: '1920' }));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('not a jpeg');
+  });
+});
+
 describe('image revalidation', () => {
   it('tags images by size and mtime, answers a matching If-None-Match with 304, and never expires them', async () => {
     await fs.writeFile(path.join(bgsDir, 'pic.jpg'), 'jpeg bytes');

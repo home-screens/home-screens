@@ -17,6 +17,7 @@ import PaginationDots from './PaginationDots';
 import { useDisplayControl } from './useDisplayControl';
 import { useDisplayRules } from './useDisplayRules';
 import { useBackgroundRotation } from './useBackgroundRotation';
+import { screenBackgroundSrc } from '@/lib/screen-background';
 import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
 import { useSharedDisplayData } from './useSharedDisplayData';
 import { usePrefetchNextScreen } from './usePrefetchNextScreen';
@@ -458,10 +459,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     });
   }, [settings]);
 
-  // Prefetch next screen's API data before rotation fires
+  // Prefetch next screen's API data and background before rotation fires
   usePrefetchNextScreen(
     screens, screenKey, currentIndex, currentDuration, displayState, settings.timezone,
     takeoverScreen !== null,
+    (screen) => screenBackgroundSrc(screen, rotatingBackgrounds[screen.id], { w: displayW, h: displayH }),
   );
 
   // Boot warm-up: every other screen's module data, one screen every 400ms,

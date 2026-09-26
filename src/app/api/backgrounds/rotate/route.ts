@@ -3,12 +3,13 @@ import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { readConfig } from '@/lib/config';
-import { BACKGROUNDS_DIR } from '@/lib/constants';
+import { BACKGROUNDS_DIR, DEFAULT_DISPLAY_HEIGHT, DEFAULT_DISPLAY_WIDTH } from '@/lib/constants';
 import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
 import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
 import { immichFetch } from '@/lib/immich';
 import { fetchICloudMedia } from '@/lib/icloud-media';
 import { writeLibraryFile, MAX_IMPORT_IMAGE_BYTES } from '@/lib/library-files';
+import { removeThumbnails } from '@/lib/thumbnails';
 import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { findScreenById } from '@/lib/display-filter';
 import {
@@ -18,7 +19,7 @@ import {
   type BackgroundCache,
   type RotationCacheEntry,
 } from '@/lib/background-rotation-cache';
-import type { BackgroundRotation } from '@/types/config';
+import type { BackgroundRotation, ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,19 +57,37 @@ async function pruneRotationFiles(cache: BackgroundCache): Promise<void> {
   candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
   for (const { name } of candidates.slice(PRUNE_KEEP_RECENT)) {
     await fs.unlink(path.join(BGS, name)).catch(() => { /* best effort */ });
+    // The wall asked for a copy sized to its screen; it goes with the file.
+    await removeThumbnails(name);
   }
 }
 
-async function fetchAndSavePhoto(query: string, accessKey: string): Promise<string | null> {
-  // Fetch random photo metadata from Unsplash
+/** The canvas a screen is painted on: its display's own size, or the shared one. */
+function canvasOf(config: ScreenConfiguration, screenId: string): { w: number; h: number } {
+  const owner = config.displays?.find((display) => display.screens.some((s) => s.id === screenId));
+  return {
+    w: owner?.displayWidth ?? config.settings?.displayWidth ?? DEFAULT_DISPLAY_WIDTH,
+    h: owner?.displayHeight ?? config.settings?.displayHeight ?? DEFAULT_DISPLAY_HEIGHT,
+  };
+}
+
+async function fetchAndSavePhoto(query: string, accessKey: string, canvas: { w: number; h: number }): Promise<string | null> {
+  // A photo shaped like the wall: a portrait photo on a landscape wall was
+  // blown up to fill the width and cropped to a strip.
+  const orientation = canvas.w > canvas.h * 1.1 ? 'landscape' : canvas.h > canvas.w * 1.1 ? 'portrait' : 'squarish';
   const res = await fetchWithTimeout(
-    `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=portrait&content_filter=high`,
+    `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=${orientation}&content_filter=high`,
     { headers: { Authorization: `Client-ID ${accessKey}` } },
   );
   if (!res.ok) return null;
 
   const photo = await res.json();
-  const imageUrl = photo.urls?.regular;
+  // `raw` takes Unsplash's resizing parameters, so the download is cropped
+  // to the canvas; `regular` is 1080 px wide whatever the wall.
+  const raw: string | undefined = photo.urls?.raw;
+  const imageUrl = raw
+    ? `${raw}${raw.includes('?') ? '&' : '?'}fit=crop&w=${canvas.w}&h=${canvas.h}&q=80&fm=jpg`
+    : photo.urls?.regular;
   const photoId = photo.id;
   if (!imageUrl || !photoId) return null;
 
@@ -249,7 +268,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       if (!accessKey) {
         return NextResponse.json({ path: entry?.path || screen.backgroundImage || null });
       }
-      newPath = await fetchAndSavePhoto(rotation.query, accessKey);
+      newPath = await fetchAndSavePhoto(rotation.query, accessKey, canvasOf(config, screenId));
     }
 
     if (newPath) {

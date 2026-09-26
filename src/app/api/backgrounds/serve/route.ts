@@ -7,7 +7,8 @@ import { withMediaTokenAuth } from '@/lib/api-utils';
 import { parseRangeHeader } from '@/lib/http-range';
 import { toWebStream } from '@/lib/web-stream';
 import { IMAGE_MIME_BY_EXT, VIDEO_MIME_BY_EXT } from '@/lib/library-files';
-import { canThumbnail, thumbnailPath, thumbnailWidth } from '@/lib/thumbnails';
+import { thumbnailPath, thumbnailWidth, wallCopyPath } from '@/lib/thumbnails';
+import { canResizePicture, displaySizeBox } from '@/lib/media-paths';
 import { logger } from '@/lib/logger';
 
 const log = logger('backgrounds-serve');
@@ -114,18 +115,29 @@ export const GET = withMediaTokenAuth(async (request: NextRequest) => {
     return new NextResponse(null, { status: 304, headers: cacheHeaders });
   }
 
-  // `w=<width>` asks for the small WebP copy the library grid shows; the
-  // wall and the viewer never pass it and get the original. A copy that
-  // cannot be made (an undecodable file) falls back to the original.
-  const width = thumbnailWidth(request.nextUrl.searchParams.get('w'));
-  if (width && canThumbnail(filePath)) {
+  // `w=<width>` alone asks for the small WebP copy a picker grid shows;
+  // `w` and `h` together ask for a copy that covers a box on the wall (see
+  // `displaySizedUrl`). The media viewer passes neither and gets the
+  // original, and so does any copy that cannot be made (an undecodable file)
+  // or would not be worth it (the original is already about that size).
+  const params = request.nextUrl.searchParams;
+  if (canResizePicture(filePath)) {
     try {
-      const thumb = await thumbnailPath(filePath, filename, width);
-      return new NextResponse(await fs.readFile(thumb), {
-        headers: { 'Content-Type': 'image/webp', ...cacheHeaders },
-      });
+      let copy: string | null = null;
+      if (params.has('h')) {
+        const box = displaySizeBox(params.get('w'), params.get('h'));
+        if (box) copy = await wallCopyPath(filePath, filename, box);
+      } else {
+        const width = thumbnailWidth(params.get('w'));
+        if (width) copy = await thumbnailPath(filePath, filename, width);
+      }
+      if (copy) {
+        return new NextResponse(await fs.readFile(copy), {
+          headers: { 'Content-Type': IMAGE_MIME_BY_EXT[path.extname(copy)] ?? 'image/webp', ...cacheHeaders },
+        });
+      }
     } catch (err) {
-      log.debug(`Thumbnail failed for ${filename}, serving the original:`, err);
+      log.debug(`Resized copy failed for ${filename}, serving the original:`, err);
     }
   }
 

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MediaListItem } from '@/types/config';
+import { useAuthImageState, type AuthImageState } from '@/components/display/useAuthImage';
+import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 
 /**
  * How long a slide whose image failed to load keeps the previous slide on
@@ -12,6 +14,43 @@ import type { MediaListItem } from '@/types/config';
 export const FAILED_SLIDE_SKIP_MS = 2_000;
 
 export type LayerIndex = 0 | 1;
+
+/**
+ * For a slide layer's `onLoad`: report the layer ready once its picture is
+ * decoded, not merely downloaded. `onLoad` fires before the decode, so on a
+ * Pi the decode of the incoming photo landed in the first frames of the fade
+ * and stuttered it; waiting for `decode()` starts the fade on a picture that
+ * is ready to paint. A layer whose picture changed while decoding stays
+ * quiet: the new picture's own load reports it.
+ */
+export function readyWhenDecoded(img: HTMLImageElement, onReady: (() => void) | undefined): void {
+  if (!onReady) return;
+  if (typeof img.decode !== 'function') {
+    onReady();
+    return;
+  }
+  const src = img.src;
+  img.decode()
+    .catch(() => { /* a picture that cannot decode fires onError instead */ })
+    .then(() => {
+      if (img.src === src) onReady();
+    });
+}
+
+/**
+ * The picture for one slide layer: a library photo at a size that covers
+ * `box` rather than the camera original. A new slide never shows the previous
+ * slide's picture while it loads (the layer stays hidden until its own image
+ * is ready), but a new size of the same photo does keep the old size up: in
+ * the editor, dragging a card's corner past a size step would otherwise blank
+ * the photo until the new copy arrived.
+ */
+export function useSlideImage(src: string, box: PictureBox | undefined): AuthImageState {
+  const shownFor = useRef<string | null>(null);
+  const state = useAuthImageState(displaySizedUrl(src, box), { holdPrevious: shownFor.current === src });
+  if (state.status === 'ready') shownFor.current = src;
+  return state;
+}
 
 export interface CrossfadeLayers<T> {
   /** What each of the two layers is showing (or loading). */

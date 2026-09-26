@@ -175,7 +175,7 @@ export function resolveProvider(
  * same props wherever it renders.
  */
 export function buildModuleProps(
-  mod: { id?: string; type: ModuleType; config: Record<string, unknown> },
+  mod: { id?: string; type: ModuleType; config: Record<string, unknown>; size?: { w: number; h: number } },
   source: ModuleDataSource,
 ): Record<string, unknown> {
   const props: Record<string, unknown> = {
@@ -267,6 +267,9 @@ export function buildModuleProps(
     props.displayId = source.renderDisplayId;
     props.screenId = source.screenId;
     props.moduleId = mod.id;
+  }
+  if (def?.needsBoxSize && mod.size) {
+    props.boxSize = { w: mod.size.w, h: mod.size.h };
   }
 
   // Editor preview of a location-dependent module with no location: the

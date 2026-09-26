@@ -9,6 +9,7 @@ import type { MediaListItem } from '@/types/config';
 import { useEscapeKey } from '@/hooks/useEscapeKey';
 import { editorFetch } from '@/lib/editor-fetch';
 import { displayCache } from '@/lib/display-cache';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 import ImageSearchBrowser, { type BrowsePhoto, type SearchResult } from './ImageSearchBrowser';
 import ICloudImportPanel from './ICloudImportPanel';
 import { useTranslate } from '@/i18n';
@@ -554,9 +555,10 @@ function MediaGrid({
                     </>
                   ) : (
                     <img
-                      src={item.url}
+                      src={tileThumbnailUrl(item.url)}
                       alt=""
                       loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   )}

@@ -916,6 +916,9 @@ EOF_JOB
     # prefix a missing APP_DIR fails the unit before the restore command ever
     # starts. With it, ExecStartPre runs from / and ExecStart then finds the
     # restored directory.
+    # UV_THREADPOOL_SIZE: Node's default pool of 4 threads is shared by every
+    # file read, DNS lookup and picture resize, so one resize could hold up the
+    # wall's polls. It only takes effect when set before Node starts.
     DESIRED_SERVICE="[Unit]
 Description=Home Screens Next.js Server
 After=network-online.target
@@ -933,6 +936,7 @@ TimeoutStopSec=15
 KillMode=mixed
 Environment=NODE_ENV=production
 Environment=PORT=${PORT}
+Environment=UV_THREADPOOL_SIZE=8
 
 [Install]
 WantedBy=multi-user.target"

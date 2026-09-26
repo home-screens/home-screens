@@ -42,6 +42,7 @@ vi.mock('@/lib/json-store', () => ({
 }));
 
 vi.mock('@/lib/config', () => ({ readConfig: vi.fn().mockResolvedValue({}) }));
+vi.mock('@/lib/thumbnails', () => ({ removeThumbnails: vi.fn() }));
 vi.mock('@/lib/display-filter', () => ({ findScreenById: vi.fn() }));
 vi.mock('@/lib/immich', () => ({ immichFetch: vi.fn() }));
 vi.mock('@/lib/icloud-album', () => ({ fetchSharedStreamsAlbum: vi.fn() }));
@@ -67,6 +68,8 @@ import { fetchCloudKitAlbum } from '@/lib/icloud-link';
 import { getUnsplashAccessKey } from '@/lib/unsplash';
 import { getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout } from '@/lib/api-utils';
+import { removeThumbnails } from '@/lib/thumbnails';
+import { readConfig } from '@/lib/config';
 import { GET } from '@/app/api/backgrounds/rotate/route';
 
 const mockFindScreen = vi.mocked(findScreenById);
@@ -278,6 +281,50 @@ describe('GET /api/backgrounds/rotate — Unsplash rotation', () => {
     // Metadata fetch + image download.
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(fsMock.writeFile).toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/backgrounds/rotate: Unsplash sized to the wall', () => {
+  const unsplashRotation = { enabled: true, source: 'unsplash', query: 'lakes', intervalMinutes: 60 } as never;
+
+  function photoResponse() {
+    return new Response(JSON.stringify({
+      id: 'p9',
+      urls: { raw: 'https://images.unsplash.com/photo-p9?ixid=abc', regular: 'https://images.unsplash.com/photo-p9-regular' },
+    }), { status: 200 });
+  }
+
+  it('asks for a photo shaped like the display that owns the screen, cropped to its canvas', async () => {
+    vi.mocked(readConfig).mockResolvedValueOnce({
+      settings: { displayWidth: 1080, displayHeight: 1920 },
+      displays: [{ id: 'kitchen', name: 'Kitchen', displayWidth: 1920, displayHeight: 1080, screens: [{ id: 's1' }] }],
+      screens: [],
+    } as never);
+    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
+    mockUnsplashKey.mockResolvedValue('unsplash-key');
+    mockFetch
+      .mockResolvedValueOnce(photoResponse())
+      .mockResolvedValueOnce(new Response(new Uint8Array([7]), { status: 200 }));
+
+    await GET(rotateReq());
+
+    expect(String(mockFetch.mock.calls[0][0])).toContain('orientation=landscape');
+    expect(mockFetch.mock.calls[1][0]).toBe(
+      'https://images.unsplash.com/photo-p9?ixid=abc&fit=crop&w=1920&h=1080&q=80&fm=jpg',
+    );
+  });
+
+  it('falls back to the shared canvas, portrait by default', async () => {
+    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
+    mockUnsplashKey.mockResolvedValue('unsplash-key');
+    mockFetch
+      .mockResolvedValueOnce(photoResponse())
+      .mockResolvedValueOnce(new Response(new Uint8Array([7]), { status: 200 }));
+
+    await GET(rotateReq());
+
+    expect(String(mockFetch.mock.calls[0][0])).toContain('orientation=portrait');
+    expect(String(mockFetch.mock.calls[1][0])).toContain('&w=1080&h=1920');
   });
 });
 
@@ -525,6 +572,8 @@ describe('GET /api/backgrounds/rotate — rotation file pruning', () => {
     const unlinked = fsMock.unlink.mock.calls.map(([p]) => String(p).split('/').pop()).sort();
     // 10 unreferenced candidates, newest 8 kept as the grace buffer.
     expect(unlinked).toEqual(['rotation-icloud-stale0.jpg', 'rotation-icloud-stale1.jpg']);
+    // Their wall-sized copies go with them.
+    expect(vi.mocked(removeThumbnails).mock.calls.map(([name]) => name).sort()).toEqual(unlinked);
   });
 
   it('does not prune on a request that served from cache', async () => {

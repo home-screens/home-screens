@@ -15,6 +15,7 @@ import {
   type StarterBackgroundGroup,
 } from '@/lib/starter-backgrounds';
 import { logger } from '@/lib/logger';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 
 const log = logger('backgrounds');
 
@@ -237,7 +238,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
                     currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
                   }`}
                 >
-                  <img src={bg} alt="" className="w-full h-full object-cover" />
+                  <img src={tileThumbnailUrl(bg)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </button>
               </div>
             ))}

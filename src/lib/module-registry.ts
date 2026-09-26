@@ -150,6 +150,12 @@ export interface ModuleDefinition {
    */
   needsInstanceAddress?: boolean;
   /**
+   * True for modules that paint a picture filling their box. They receive
+   * `boxSize` (the module's size in canvas pixels) and ask the hub for a copy
+   * of a library picture sized to cover it instead of the camera original.
+   */
+  needsBoxSize?: boolean;
+  /**
    * True for modules that render a built-in title of their own (a fixed
    * header like "Traffic", or a configurable one like todo's). The editor shows
    * a hint under Card Title so users know the two would stack, and points at
@@ -528,6 +534,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     type: 'fullscreen-photo',
     needsInstanceAddress: true,
+    needsBoxSize: true,
     label: 'Full-Screen Photo Viewer',
     icon: Image,
     category: 'Full Screen',
@@ -1168,6 +1175,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'image',
+    needsBoxSize: true,
     label: 'Image',
     icon: ImageIcon,
     category: 'Media & Display',
@@ -1199,6 +1207,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   {
     type: 'photo-slideshow',
     needsInstanceAddress: true,
+    needsBoxSize: true,
     label: 'Photo Slideshow',
     icon: Image,
     category: 'Media & Display',

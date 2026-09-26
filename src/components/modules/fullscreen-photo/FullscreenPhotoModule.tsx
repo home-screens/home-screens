@@ -6,7 +6,6 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
-import { useAuthImageState } from '@/components/display/useAuthImage';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
@@ -15,13 +14,17 @@ import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { QRCodeSVG } from 'qrcode.react';
 import VideoLayer from '../shared/VideoLayer';
-import { useCrossfadeLayers, type LayerIndex } from '../shared/useCrossfadeLayers';
+import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from '../shared/useCrossfadeLayers';
+import type { PictureBox } from '@/lib/media-paths';
 import { householdTimeFormat } from '@/lib/clock-time';
 
 const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
 const NO_ITEMS: MediaListItem[] = [];
 
 // ── Ken Burns keyframes (injected once) ──────
+
+/** The largest scale either Ken Burns keyframe reaches. */
+const KEN_BURNS_MAX_SCALE = 1.18;
 
 const KEN_BURNS_CSS = `
 @keyframes kb-a {
@@ -38,6 +41,7 @@ const KEN_BURNS_CSS = `
 
 function SlideLayer({
   src,
+  box,
   active,
   objectFit,
   transition,
@@ -47,6 +51,8 @@ function SlideLayer({
   onFailed,
 }: {
   src: string;
+  /** The screen's size in canvas pixels, for a library photo's sized copy. */
+  box?: PictureBox;
   active: boolean;
   objectFit?: React.CSSProperties['objectFit'];
   transition: FullscreenPhotoConfig['transition'];
@@ -57,9 +63,12 @@ function SlideLayer({
   /** The image for `src` could not be fetched or decoded. */
   onFailed?: () => void;
 }) {
-  // Never render the previous slide's blob here: the layer holds the next
-  // slide while it loads and stays hidden until its own image is ready.
-  const { url: authSrc, status } = useAuthImageState(src, { holdPrevious: false });
+  // Never the previous slide's picture: the layer holds the next slide while
+  // it loads and stays hidden until its own image is ready. Ken Burns zooms
+  // in by up to 18%, so it asks for a copy that much larger to stay sharp at
+  // the end of the pan.
+  const sizedBox = box && kenBurns ? { w: box.w * KEN_BURNS_MAX_SCALE, h: box.h * KEN_BURNS_MAX_SCALE } : box;
+  const { url: authSrc, status } = useSlideImage(src, sizedBox);
   const onFailedRef = useRef(onFailed);
   onFailedRef.current = onFailed;
   useEffect(() => {
@@ -116,7 +125,7 @@ function SlideLayer({
       alt=""
       className="absolute inset-0 w-full h-full"
       style={{ ...transitionStyle, ...kenBurnsStyle }}
-      onLoad={onReady}
+      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady)}
       onError={onFailed}
     />
   );
@@ -244,9 +253,11 @@ interface FullscreenPhotoModuleProps {
   // neither, so video slides show posters and rotate on the photo timer there.
   screenId?: string;
   moduleId?: string;
+  /** The module's size in canvas pixels (registry `needsBoxSize`). */
+  boxSize?: PictureBox;
 }
 
-export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, timeFormat, screenId, moduleId }: FullscreenPhotoModuleProps) {
+export default function FullscreenPhotoModule({ config, timezone, fullscreenTheme, timeFormat, screenId, moduleId, boxSize }: FullscreenPhotoModuleProps) {
   const t = useTranslate('modules');
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -316,6 +327,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
         {config.kenBurns && <style>{KEN_BURNS_CSS}</style>}
         <SlideLayer
           src={config.file}
+          box={boxSize}
           active
           objectFit={config.objectFit}
           transition="none"
@@ -387,6 +399,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     return (
       <SlideLayer
         src={item.url}
+        box={boxSize}
         active={active}
         objectFit={config.objectFit}
         transition={transition}

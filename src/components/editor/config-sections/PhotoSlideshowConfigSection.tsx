@@ -14,6 +14,7 @@ import { OneDrivePhotoSourceSection } from './OneDrivePhotoSourceSection';
 import { ICloudAlbumSourceSection } from './ICloudAlbumSourceSection';
 import { GooglePhotosImportSection } from './GooglePhotosImportSection';
 import { MediaTypesFields } from './MediaTypesFields';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 import type { ModuleInstance } from '@/types/config';
 
 export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -113,7 +114,7 @@ export function PhotoSlideshowConfigSection({ mod, screenId }: { mod: ModuleInst
                   {previewImages.map((img) => (
                     <img
                       key={img}
-                      src={img}
+                      src={tileThumbnailUrl(img)}
                       alt=""
                       loading="lazy"
                       className="w-12 h-12 rounded object-cover flex-shrink-0 border border-hs-border-strong"

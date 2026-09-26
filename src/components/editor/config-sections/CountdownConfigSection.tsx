@@ -18,6 +18,7 @@ import HolidayPickerModal from '@/components/editor/HolidayPickerModal';
 import { useEditorHouseholdNow } from '@/components/editor/useEditorHouseholdClock';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
 import HomeTimeHint from '@/components/editor/HomeTimeHint';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 
 export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -231,7 +232,7 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
               {ev.backgroundImage ? (
                 <>
                   <img
-                    src={ev.backgroundImage}
+                    src={tileThumbnailUrl(ev.backgroundImage)}
                     alt=""
                     className="w-8 h-8 rounded object-cover"
                   />

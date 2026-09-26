@@ -4,9 +4,12 @@ import { useEffect, useRef } from 'react';
 import type { Screen } from '@/types/config';
 import { prefetchScreen } from '@/lib/prefetch';
 import { wallClockParts } from '@/lib/timezone';
+import { preloadAuthImage } from './useAuthImage';
 
 /**
- * Prefetches the next screen's module data ~5s before rotation fires.
+ * Prefetches the next screen's module data ~5s before rotation fires, and
+ * its background picture when `backgroundOf` names one, so the screen
+ * paints with its own picture instead of fading in over the previous one.
  *
  * When `currentDurationMs === 0` the current screen is sticky and will
  * never auto-advance, so there is nothing to prefetch for — the hook
@@ -35,9 +38,15 @@ export function usePrefetchNextScreen(
    * aligned with the full dwell the rotation timer restarts with.
    */
   suspended?: boolean,
+  /** The picture a screen will paint behind its modules, as the renderer asks for it. */
+  backgroundOf?: (screen: Screen) => string | undefined,
 ) {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const screensRef = useRef(screens);
+  // Read when the timer fires: the rotation's answers change on their own
+  // schedule and must not restart the countdown.
+  const backgroundOfRef = useRef(backgroundOf);
+  backgroundOfRef.current = backgroundOf;
 
   useEffect(() => {
     screensRef.current = screens;
@@ -52,7 +61,9 @@ export function usePrefetchNextScreen(
     const delay = Math.max(currentDurationMs - 5000, 0);
 
     timerRef.current = setTimeout(() => {
-      prefetchScreen(screensRef.current[nextIndex], wallClockParts(new Date(), timezone));
+      const next = screensRef.current[nextIndex];
+      prefetchScreen(next, wallClockParts(new Date(), timezone));
+      preloadAuthImage(backgroundOfRef.current?.(next));
     }, delay);
 
     return () => {

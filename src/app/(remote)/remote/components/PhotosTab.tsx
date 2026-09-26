@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { deleteLibraryImage, usageNames, type DirectoryInfo } from '@/lib/library-client';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 import { useTranslate } from '@/i18n';
 import ConfirmSheet from './ConfirmSheet';
 
@@ -325,9 +326,10 @@ export default function PhotosTab({ directory: initialDirectory }: { directory: 
           {images.map((img) => (
             <div key={img} className="relative aspect-square">
               <img
-                src={img}
+                src={tileThumbnailUrl(img)}
                 alt=""
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover rounded-lg"
               />
               {/* Always visible: the badge used to be invisible until the tile

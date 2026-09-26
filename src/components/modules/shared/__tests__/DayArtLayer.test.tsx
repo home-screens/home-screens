@@ -13,6 +13,7 @@ import { describe, it, expect, afterEach, vi, beforeEach } from 'vitest';
 import { act, cleanup, render } from '@testing-library/react';
 import React from 'react';
 import { DayArtLayer } from '../DayArtLayer';
+import { __resetAuthImageCacheForTests } from '@/components/display/useAuthImage';
 import { NO_DECOR, type DayDecor } from '@/lib/calendar-rules';
 
 const displayFetch = vi.hoisted(() => vi.fn());
@@ -22,6 +23,7 @@ const art = (over: Partial<DayDecor>): DayDecor => ({ ...NO_DECOR, backgroundIma
 
 describe('DayArtLayer', () => {
   beforeEach(() => {
+    __resetAuthImageCacheForTests();
     displayFetch.mockReset();
     // jsdom has no object URLs; the hook only needs a stable string back.
     URL.createObjectURL = vi.fn(() => 'blob:art');
@@ -101,7 +103,7 @@ describe('DayArtLayer', () => {
     expect(displayFetch).toHaveBeenCalledWith(serve);
 
     await act(async () => {
-      resolveFetch({ ok: true, blob: async () => new Blob(['x']) });
+      resolveFetch({ ok: true, headers: new Headers(), blob: async () => new Blob(['x']) });
     });
     const el = container.querySelector('[data-day-art-image]') as HTMLElement;
     expect(el.style.backgroundImage).toBe('url("blob:art")');

@@ -7,6 +7,7 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Button from '@/components/ui/Button';
 import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import { tileThumbnailUrl } from '@/lib/media-paths';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 
@@ -104,7 +105,7 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
           <span className="text-xs text-hs-text-muted">{t('configSections.image.preview')}</span>
           <div className="mt-1 rounded-md overflow-hidden border border-hs-border-strong">
             <img
-              src={c.src as string}
+              src={tileThumbnailUrl(c.src as string)}
               alt={(c.alt as string) || ''}
               className="w-full max-h-28 object-cover"
             />

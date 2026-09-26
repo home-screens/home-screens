@@ -25,6 +25,7 @@ import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvas
 import { useCanvasDragState } from '@/hooks/useCanvasDragState';
 import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { resolveScreenBackground } from '@/lib/screen-background';
+import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance, BackgroundShade } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
@@ -485,6 +486,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
             <PageBackgroundProvider>
               <CanvasBackground
                 screenBackground={resolveScreenBackground(currentScreen, rotatingBackground)}
+                canvas={{ w: displayWidth, h: displayHeight }}
                 shade={currentScreen.shade}
               />
               {snapEnabled && <GridOverlay scale={effectiveScale} />}
@@ -580,9 +582,15 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 }
 
 /** Reads the PageBackgroundContext override and renders the appropriate background, plus its shade overlay */
-function CanvasBackground({ screenBackground, shade }: { screenBackground: string | undefined; shade: BackgroundShade | undefined }) {
+function CanvasBackground({ screenBackground, canvas, shade }: {
+  screenBackground: string | undefined;
+  canvas: PictureBox;
+  shade: BackgroundShade | undefined;
+}) {
   const { overrideBackground } = usePageBackground();
-  const bg = overrideBackground || screenBackground;
+  // The same canvas-sized copy the wall asks for, not the camera original:
+  // the hub makes it once for both.
+  const bg = displaySizedUrl(overrideBackground || screenBackground, canvas);
   // A missing file falls back to the solid color, the same as on the wall;
   // the screen settings panel is where the missing path is reported.
   const [broken, setBroken] = useState<string | null>(null);

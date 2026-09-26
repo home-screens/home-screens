@@ -5,15 +5,18 @@ import type { ImageConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { ModuleEmptyState } from './ModuleStates';
 import { useAuthImage } from '@/components/display/useAuthImage';
+import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 
 interface ImageModuleProps {
   config: ImageConfig;
   style: ModuleStyle;
+  /** The card's size in canvas pixels (registry `needsBoxSize`). */
+  boxSize?: PictureBox;
 }
 
-export default function ImageModule({ config, style }: ImageModuleProps) {
+export default function ImageModule({ config, style, boxSize }: ImageModuleProps) {
   const t = useTranslate('modules');
-  const src = useAuthImage(config.src || undefined);
+  const src = useAuthImage(displaySizedUrl(config.src || undefined, boxSize));
 
   if (!config.src) {
     return <ModuleEmptyState style={style} type="image" message={t('image.empty')} />;

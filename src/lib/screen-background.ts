@@ -1,4 +1,5 @@
 import type { Screen } from '@/types/config';
+import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 
 /**
  * What background rotation has answered for one screen: the photo it is
@@ -21,4 +22,18 @@ export function resolveScreenBackground(
   if (!screen.backgroundRotation?.enabled) return screen.backgroundImage || undefined;
   if (rotation === undefined) return undefined;
   return rotation || screen.backgroundImage || undefined;
+}
+
+/**
+ * The URL the wall fetches for a screen's picture: a library picture is asked
+ * for at the canvas size rather than as the camera original. The rotator's
+ * preload and the renderer must agree on it, or the preload warms a picture
+ * the screen never asks for.
+ */
+export function screenBackgroundSrc(
+  screen: Pick<Screen, 'backgroundImage' | 'backgroundRotation'>,
+  rotation: RotationAnswer,
+  canvas: PictureBox,
+): string | undefined {
+  return displaySizedUrl(resolveScreenBackground(screen, rotation), canvas);
 }
