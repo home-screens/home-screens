@@ -164,12 +164,15 @@ test('per-display routes render each display, and /display resolves main inline'
 });
 
 test.describe('useLiveConfig reload paths', () => {
-  // useLiveConfig polls three endpoints every CONFIG_POLL_MS (3s):
-  //   1. /api/system/build-id — a changed id hard-reloads the page.
-  //   2. /api/config — a changed body updates screens/settings/displays in place.
-  //   3. /api/plugins/installed — a changed pluginHash re-runs loadPlugins().
+  // The display's 3s heartbeat (the command drain) names three revisions that
+  // useLiveConfig follows:
+  //   1. buildId — a changed id hard-reloads the page.
+  //   2. config — a new ETag fetches /api/config and updates screens/settings/
+  //      displays in place.
+  //   3. plugins — a new revision fetches /api/plugins/installed, whose changed
+  //      pluginHash re-runs loadPlugins().
   // Each test below drives exactly one of those signals and asserts the
-  // observable reaction, with poll timeouts comfortably above the 3s interval.
+  // observable reaction, with timeouts comfortably above the 3s beat.
 
   const plugin = (config: Record<string, unknown> = {}): ModuleInstance =>
     ({
@@ -200,25 +203,27 @@ test.describe('useLiveConfig reload paths', () => {
       screens: [makeScreen('only', 'Only', [textModule('BUILD RELOAD')])],
     }));
 
-    // Stub /api/system/build-id so we control the value the poll compares.
-    // The first poll captures `served`; a later poll with a new value reloads.
+    // Rewrite the heartbeat's build id so we control the value the display
+    // compares. The first beat captures `served`; a later beat with a new
+    // value reloads. By path: a glob would not match a `?display=` query.
     let served = 'build-1';
     let hits = 0;
-    await page.route('**/api/system/build-id', (route) => {
-      hits++;
-      return route.fulfill({
-        status: 200,
-        contentType: 'text/plain',
-        headers: { 'Cache-Control': 'no-store' },
-        body: served,
-      });
+    await page.route((url) => url.pathname === '/api/display/commands', async (route) => {
+      try {
+        const response = await route.fetch();
+        const body = await response.json();
+        hits++;
+        await route.fulfill({ response, json: { ...body, revisions: { ...body.revisions, buildId: served } } });
+      } catch {
+        // The reload tore down a beat in flight; the reloaded page beats again.
+      }
     });
 
     await page.goto('/display');
     await expect(page.getByText('BUILD RELOAD')).toBeVisible();
 
-    // Wait for a second poll before flipping: hits >= 2 guarantees the first
-    // poll fully resolved and stored `build-1` in buildIdRef, so the flip is a
+    // Wait for a second beat before flipping: hits >= 2 guarantees the first
+    // beat fully resolved and stored `build-1` in buildIdRef, so the flip is a
     // real change (not the first-seen no-op that only primes the ref).
     await expect.poll(() => hits, { timeout: 12000 }).toBeGreaterThanOrEqual(2);
 
@@ -232,6 +237,66 @@ test.describe('useLiveConfig reload paths', () => {
     await expect(page.getByText('BUILD RELOAD')).toBeVisible();
   });
 
+  test('a refused heartbeat still reloads the kiosk onto a new build', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('only', 'Only', [textModule('REFUSED BEAT')])],
+    }));
+
+    // A deploy that changed auth leaves the old page's heartbeat refused. The
+    // page must still learn of the new build, from the public build-id route.
+    await page.route((url) => url.pathname === '/api/display/commands', (route) =>
+      route.fulfill({ status: 401, json: { error: 'Unauthorized' } }),
+    );
+    let served = 'build-1';
+    let hits = 0;
+    await page.route('**/api/system/build-id', (route) => {
+      hits++;
+      return route.fulfill({ status: 200, contentType: 'text/plain', body: served });
+    });
+
+    await page.goto('/display');
+    await expect(page.getByText('REFUSED BEAT')).toBeVisible();
+    await expect.poll(() => hits, { timeout: 12000 }).toBeGreaterThanOrEqual(2);
+
+    const reloaded = page.waitForEvent('load', { timeout: 15000 });
+    served = 'build-2';
+    await reloaded;
+    await expect(page.getByText('REFUSED BEAT')).toBeVisible();
+  });
+
+  test('a hub rolled back to before revisions still reloads the kiosk onto its build', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('only', 'Only', [textModule('OLDER HUB')])],
+    }));
+
+    // An older hub drains commands with a 200 that names no revisions. The
+    // page must still learn the build changed, from the public build-id route.
+    await page.route((url) => url.pathname === '/api/display/commands', async (route) => {
+      try {
+        const response = await route.fetch();
+        const { revisions: _dropped, ...older } = await response.json();
+        await route.fulfill({ response, json: older });
+      } catch {
+        // The reload tore down a beat in flight; the reloaded page beats again.
+      }
+    });
+    let served = 'build-1';
+    let hits = 0;
+    await page.route('**/api/system/build-id', (route) => {
+      hits++;
+      return route.fulfill({ status: 200, contentType: 'text/plain', body: served });
+    });
+
+    await page.goto('/display');
+    await expect(page.getByText('OLDER HUB')).toBeVisible();
+    await expect.poll(() => hits, { timeout: 12000 }).toBeGreaterThanOrEqual(2);
+
+    const reloaded = page.waitForEvent('load', { timeout: 15000 });
+    served = 'build-2';
+    await reloaded;
+    await expect(page.getByText('OLDER HUB')).toBeVisible();
+  });
+
   test('a changed plugin hash re-runs loadPlugins and renders the new bundle without a manual reload', async ({ page, request, sandboxDir }) => {
     // Seed the fixture plugin; its default bundle renders config.label verbatim.
     seedFixturePlugin(sandboxDir);
@@ -239,19 +304,20 @@ test.describe('useLiveConfig reload paths', () => {
       screens: [makeScreen('s1', 'S1', [plugin({ label: 'PLUGIN BUNDLE V1' })])],
     }));
 
-    // Count /api/plugins/installed polls (observe-only, no interception) so we
-    // can bump the version only after the first poll captured the old hash.
+    // Count /api/plugins/installed answers (observe-only, no interception) so
+    // we can bump the version only after the first beat captured the old hash.
     let installedHits = 0;
-    page.on('request', (req) => {
-      if (req.url().includes('/api/plugins/installed')) installedHits++;
+    page.on('response', (res) => {
+      if (res.url().includes('/api/plugins/installed')) installedHits++;
     });
 
     await page.goto('/display');
     await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
     await expect(page.getByText('PLUGIN BUNDLE V1')).toBeVisible();
 
-    // hits >= 2 => the mount poll AND one interval poll ran, so useLiveConfig's
-    // pluginHashRef holds the v1.0.0 hash. Bumping now is a real change.
+    // hits >= 2 => the rotator's own loadPlugins AND the first beat's list
+    // fetch were answered, so useLiveConfig's pluginHashRef holds the v1.0.0
+    // hash. Bumping now is a real change.
     await expect.poll(() => installedHits, { timeout: 12000 }).toBeGreaterThanOrEqual(2);
 
     // Write the new bundle first (so it's on disk when the reload fetches it),
@@ -278,8 +344,8 @@ test.describe('useLiveConfig reload paths', () => {
       }],
     });
 
-    // No page.reload() anywhere: the poll detects the hash change and swaps the
-    // registered component in place.
+    // No page.reload() anywhere: the next beat names a new list revision, the
+    // fetched list's hash changed, and the registered component swaps in place.
     await expect(page.getByText('PLUGIN BUNDLE V2')).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('PLUGIN BUNDLE V1')).toBeHidden();
   });
@@ -299,9 +365,9 @@ test.describe('useLiveConfig reload paths', () => {
     await expect(page.getByRole('menuitem', { name: 'All displays' })).toBeVisible();
     await expect(page.getByRole('menuitem', { name: 'Kitchen' })).toBeHidden();
 
-    // Add a second display to config.displays. useLiveConfig's /api/config poll
-    // picks up the changed JSON, re-runs setDisplays, and threads the new list
-    // into the module as availableDisplays — no reload.
+    // Add a second display to config.displays. The next beat names a new
+    // config ETag, useLiveConfig fetches the changed JSON, re-runs setDisplays,
+    // and threads the new list into the module as availableDisplays — no reload.
     const cfg = await getConfig(request);
     (cfg.displays as unknown[]).push({
       id: 'kitchen',

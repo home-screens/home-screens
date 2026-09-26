@@ -156,7 +156,7 @@ User interactions flow through the editor canvas, which dispatches actions to th
 
 #### Display Flow
 
-The display reads `data/config.json` via `GET /api/config` (polling every 3 seconds). The `ScreenRotator` selects the active screen, the `ScreenRenderer` lays out modules, and each `ModuleWrapper` renders its individual module component.
+The display reads `data/config.json` via `GET /api/config`, fetching it again whenever its 3-second heartbeat (`GET /api/display/commands`) says the config changed. The `ScreenRotator` selects the active screen, the `ScreenRenderer` lays out modules, and each `ModuleWrapper` renders its individual module component.
 
 When `config.displays` is populated, the global `config.screens` is no longer the source of truth: each `DisplayNode` in that array owns its own `screens`, dimensions, and optionally its own profiles, and the server filters the config down to the requesting display before rendering. With `config.displays` unset the app stays in single-display mode and reads `config.screens` directly. See [Multi-Display](/docs/multi-display).
 

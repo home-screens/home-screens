@@ -53,7 +53,7 @@ WATCH_PID=$!
 
 PATH="${WORK}/bin:${PATH}" \
 HS_POWER_STATE_URL="file://${STATE}" \
-HS_POWER_POLL_SECONDS=0.2 \
+HS_POWER_POLL_SECONDS=0.2 HS_POWER_IDLE_POLL_SECONDS=0.2 \
   "${APP_DIR}/scripts/kiosk-power-agent.sh" "${WATCH_PID}" &
 AGENT_PID=$!
 
@@ -130,7 +130,7 @@ sleep 300 &
 WATCH_PID=$!
 PATH="${WORK}/bin:${PATH}" \
 HS_POWER_STATE_URL="file://${STATE}" \
-HS_POWER_POLL_SECONDS=0.2 \
+HS_POWER_POLL_SECONDS=0.2 HS_POWER_IDLE_POLL_SECONDS=0.2 \
   "${APP_DIR}/scripts/kiosk-power-agent.sh" "${WATCH_PID}" &
 AGENT_PID=$!
 wait_for '^--off \*$' 1 "expected wlopm --off before sending TERM"
@@ -185,7 +185,7 @@ echo "HDMI-A-1 on" > "${LISTING}"
 sleep 300 &
 WATCH_PID=$!
 PATH="${LATE_BIN}:/usr/bin:/bin" HS_POWER_STATE_URL="file://${STATE}" \
-HS_POWER_RETRY_SECONDS=0.2 HS_POWER_POLL_SECONDS=0.2 \
+HS_POWER_RETRY_SECONDS=0.2 HS_POWER_POLL_SECONDS=0.2 HS_POWER_IDLE_POLL_SECONDS=0.2 \
   bash "${APP_DIR}/scripts/kiosk-power-agent.sh" "${WATCH_PID}" &
 AGENT_PID=$!
 sleep 0.6
@@ -193,6 +193,32 @@ sleep 0.6
 cp "${WORK}/bin/wlopm" "${LATE_BIN}/wlopm"
 wait_for '^--on \*$' 1 "expected the startup --on once wlopm appeared"
 wait_for '^--off \*$' 1 "expected --off from normal polling once wlopm appeared"
+kill "${AGENT_PID}" 2>/dev/null; wait "${AGENT_PID}" 2>/dev/null || true
+AGENT_PID=""
+kill "${WATCH_PID}" 2>/dev/null; wait "${WATCH_PID}" 2>/dev/null || true
+WATCH_PID=""
+
+echo "Test 10: a lit panel asks every idle interval, a dark one every poll interval"
+: > "${ARGV_LOG}"
+echo '{"power":"off"}' > "${STATE}"
+echo "HDMI-A-1 off" > "${LISTING}"
+sleep 300 &
+WATCH_PID=$!
+PATH="${WORK}/bin:${PATH}" \
+HS_POWER_STATE_URL="file://${STATE}" \
+HS_POWER_POLL_SECONDS=0.2 HS_POWER_IDLE_POLL_SECONDS=3 \
+  "${APP_DIR}/scripts/kiosk-power-agent.sh" "${WATCH_PID}" &
+AGENT_PID=$!
+wait_for '^--off \*$' 1 "expected --off from the first poll"
+# Dark: the fast interval, so the hub's on is followed at once.
+echo '{"power":"on"}' > "${STATE}"
+wait_for '^--on \*$' 2 "expected --on within a fast poll of the hub answering on"
+# Lit: the idle interval, so an off is not followed within a second...
+echo '{"power":"off"}' > "${STATE}"
+sleep 1
+[ "$(count_of '^--off \*$')" -eq 1 ] || { echo "FAIL: a lit panel polled faster than the idle interval"; cat "${ARGV_LOG}"; exit 1; }
+# ...but is followed once the idle interval is up.
+wait_for '^--off \*$' 2 "expected --off after the idle interval"
 kill "${AGENT_PID}" 2>/dev/null; wait "${AGENT_PID}" 2>/dev/null || true
 AGENT_PID=""
 kill "${WATCH_PID}" 2>/dev/null; wait "${WATCH_PID}" 2>/dev/null || true

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
+import { subscribeRevisions } from '@/lib/display-heartbeat';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { materializeSession } from '@/lib/timer-logic';
 import { setShowingTimerSession } from '@/lib/timer-presence';
@@ -15,7 +16,6 @@ import CascadeTimerView from './timer-views/CascadeTimerView';
 import PathTimerView from './timer-views/PathTimerView';
 import TimerCelebration from './timer-views/TimerCelebration';
 
-const SESSION_POLL_MS = 3_000;
 const TICK_MS = 250;
 
 interface TimerOverlayProps {
@@ -32,10 +32,11 @@ interface TimerOverlayProps {
 
 /**
  * Full-screen takeover for a running timer/routine session, started from
- * /remote. Polls the hub every few seconds for session *events* (start,
- * skip, cancel) and derives the live countdown locally from the session's
- * epoch timestamps via `materializeSession` — so poll latency affects only
- * how fast a takeover appears, never countdown accuracy.
+ * /remote. Fetches the session when the heartbeat names a new revision (a
+ * start, skip, pause or cancel was saved) and derives the live countdown,
+ * step advances and expiry locally from the session's epoch timestamps via
+ * `materializeSession` — so beat latency affects only how fast a takeover
+ * appears, never countdown accuracy.
  *
  * Sits ABOVE SleepOverlay (same z, later in DOM): starting a timer at a
  * sleeping display is an explicit wake intent. Below AlertOverlay so urgent
@@ -47,24 +48,34 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   const [serverSession, setServerSession] = useState<TimerSession | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
-  const refresh = useCallback(async () => {
+  /** Fetch the session. Resolves true once it is applied. */
+  const refresh = useCallback(async (): Promise<boolean> => {
     try {
       const res = await displayFetch('/api/timers/session');
-      if (!res.ok) return;
+      if (!res.ok) return false;
       const json = (await res.json()) as { session: TimerSession | null };
       setServerSession(json.session);
       setNow(Date.now());
+      return true;
     } catch {
       // Keep the last known session — local materialization still advances
       // and expires it, so a hub blip can't strand a stale takeover.
+      return false;
     }
   }, []);
 
-  useEffect(() => {
-    void refresh();
-    const id = setInterval(() => void refresh(), SESSION_POLL_MS);
-    return () => clearInterval(id);
-  }, [refresh]);
+  // The session revision last applied. Advanced only after a successful
+  // fetch, so a failed one is retried on the next beat.
+  const appliedRevisionRef = useRef<string | null>(null);
+  const fetchingRef = useRef(false);
+  useEffect(() => subscribeRevisions(({ timer }) => {
+    if (timer === undefined || timer === appliedRevisionRef.current || fetchingRef.current) return;
+    fetchingRef.current = true;
+    void refresh().then((applied) => {
+      fetchingRef.current = false;
+      if (applied) appliedRevisionRef.current = timer;
+    });
+  }), [refresh]);
 
   const live: MaterializedTimerSession | null = useMemo(
     () => materializeSession(serverSession, now),
@@ -72,7 +83,7 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   );
 
   // Target match derives from the raw session (targets are immutable per
-  // session), so it can gate the tick without depending on `live`.
+  // session).
   const matches =
     !serverSession ||
     serverSession.targets === 'all' ||
@@ -82,8 +93,10 @@ export default function TimerOverlay({ displayId, viewport }: TimerOverlayProps)
   // Fast local tick only while this display is actually showing the session.
   // Keyed on the session id, not `live` — materialization returns a fresh
   // object every tick, which would tear down and rebuild this interval 4x/s.
-  // Non-targeted displays skip the tick entirely and just keep the 3s poll.
-  const tickingSessionId = serverSession && matches ? serverSession.id : null;
+  // Non-targeted displays skip the tick entirely. The tick stops once the
+  // session expires here: the hub keeps the finished session on file, so no
+  // new revision (and no fetch) ever arrives to clear `serverSession`.
+  const tickingSessionId = live && matches ? live.id : null;
   useEffect(() => {
     if (!tickingSessionId) return;
     const id = setInterval(() => setNow(Date.now()), TICK_MS);

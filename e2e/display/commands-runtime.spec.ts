@@ -11,7 +11,7 @@ import type { ScreenConfiguration, Screen } from '@/types/config';
  * assert it reacts to commands drained from its per-display queue.
  *
  * useDisplayCommands (src/hooks/useDisplayCommands.ts) polls
- * `GET /api/display/commands?display=<id>` every COMMAND_POLL_MS (3s) and
+ * `GET /api/display/commands?display=<id>` every HEARTBEAT_MS (3s) and
  * dispatches each drained command to a handler in
  * src/components/display/useDisplayControl.ts. Every assertion therefore
  * rides at least one 3s poll — timeouts are set comfortably above that.

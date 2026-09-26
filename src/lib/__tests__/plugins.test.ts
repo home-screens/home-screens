@@ -15,6 +15,8 @@ import {
   setPluginSettings,
   getPluginSettings,
   getInstalledPlugins,
+  getInstalledRevision,
+  getPluginHash,
 } from '@/lib/plugins';
 import type { RegistryPlugin, PluginManifest } from '@/types/plugins';
 
@@ -687,5 +689,44 @@ describe('getInstalledPlugins cache invalidation', () => {
     }));
     const second = await getInstalledPlugins();
     expect(second.plugins.map((p) => p.id)).toEqual(['second-a', 'second-b']);
+  });
+});
+
+describe('getInstalledRevision', () => {
+  // A wall reads /api/plugins/installed only when this revision moves, and
+  // that read is also how it picks up a plugin settings save. So unlike the
+  // plugin hash, which must ignore settings, the revision must follow them.
+  const origCwd = process.cwd();
+  let tmpCwd: string;
+  let installedPath: string;
+
+  const installed = (settings: Record<string, unknown>) => JSON.stringify({
+    schemaVersion: 1,
+    plugins: [
+      { id: 'clock', version: '1.0.0', installedAt: '2026-01-01', enabled: true, moduleType: 'clock', settings },
+    ],
+  });
+
+  beforeEach(async () => {
+    tmpCwd = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-installed-revision-cwd-'));
+    await fs.mkdir(path.join(tmpCwd, 'data', 'plugins'), { recursive: true });
+    process.chdir(tmpCwd);
+    installedPath = path.join(tmpCwd, 'data', 'plugins', 'installed.json');
+  });
+
+  afterEach(async () => {
+    process.chdir(origCwd);
+    await fs.rm(tmpCwd, { recursive: true, force: true });
+  });
+
+  it('holds still while the file does, and moves with a settings save the hash ignores', async () => {
+    await fs.writeFile(installedPath, installed({ url: 'http://a' }));
+    const revision = await getInstalledRevision();
+    const hash = await getPluginHash();
+    expect(await getInstalledRevision()).toBe(revision);
+
+    await fs.writeFile(installedPath, installed({ url: 'http://bb' }));
+    expect(await getInstalledRevision()).not.toBe(revision);
+    expect(await getPluginHash()).toBe(hash);
   });
 });

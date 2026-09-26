@@ -9,6 +9,7 @@ import { filterConfigForDisplay, LEGACY_DISPLAY_ID } from '@/lib/display-filter'
 import { dataFingerprint } from '@/lib/config-data-fingerprint';
 import { stableStringify } from '@/lib/stable-stringify';
 import { usePluginStore } from '@/stores/plugin-store';
+import { subscribeRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
 import { HUB_TIMEZONE_HEADER, withHouseholdTimezone } from '@/lib/timezone';
 import { logger } from '@/lib/logger';
 
@@ -25,9 +26,6 @@ export type DisplaySettings = GlobalSettings & { timezone: string };
 /** Minimal display descriptor surfaced to modules that need to target displays */
 export type DisplayDescriptor = { id: string; name: string };
 
-/** How often the display polls for config changes (ms) */
-const CONFIG_POLL_MS = 3_000;
-
 /** Per-plugin settings fingerprints (lowercased id → stable-stringified settings). */
 type SettingsFingerprints = Map<string, string>;
 
@@ -40,8 +38,11 @@ function fingerprintsEqual(a: SettingsFingerprints, b: SettingsFingerprints): bo
 }
 
 /**
- * Poll /api/config and return live screens + settings + profiles,
- * falling back to the server-rendered props until the first successful fetch.
+ * Follow the heartbeat (`display-heartbeat`) and return live screens +
+ * settings + profiles, falling back to the server-rendered props until the
+ * first successful fetch. Each beat names the current build, config and
+ * plugin list; this reloads on a new build and fetches the config or the
+ * plugin list only when theirs differs from the one last applied.
  *
  * When `displayId` is provided, the fetched config is filtered through
  * `filterConfigForDisplay` (the same pure function the server-side per-display
@@ -49,8 +50,8 @@ function fingerprintsEqual(a: SettingsFingerprints, b: SettingsFingerprints): bo
  * In single-display mode (`displayId` undefined) no filtering is applied —
  * the rotator sees the entire config exactly as today.
  *
- * `hubTimezone` is the hub's own zone from the server render; each poll
- * replaces it with the one the config response names (`HUB_TIMEZONE_HEADER`).
+ * `hubTimezone` is the hub's own zone from the server render; each config
+ * fetch replaces it with the one the response names (`HUB_TIMEZONE_HEADER`).
  * Server and client start from the same zone, so the first client render
  * matches the server's HTML wherever the kiosk's own clock is set.
  */
@@ -77,39 +78,36 @@ export function useLiveConfig(
   const buildIdRef = useRef<string>('');
   const pluginHashRef = useRef<string>('');
   const settingsFpsRef = useRef<SettingsFingerprints | null>(null);
-  // Re-entrancy guard: a plugin reload can outlast the poll interval on a
-  // slow Pi — without this, the next tick would start a second reload while
-  // the first is still swapping registrations.
-  const pollInFlightRef = useRef(false);
-  // Self-heal on display deletion: once the first successful poll has landed,
-  // if a later poll finds the display missing from the config we hard-reload.
+  // Re-entrancy guard: a plugin reload can outlast a beat on a slow Pi —
+  // without this, the next beat would start a second reload while the first
+  // is still swapping registrations.
+  const syncInFlightRef = useRef(false);
+  // Self-heal on display deletion: once the first config fetch has landed,
+  // if a later one finds the display missing from the config we hard-reload.
   // The server-side per-display page then either renders DisplayNotFound
   // (display gone) or remounts the rotator (display came back).
   const displayReloadingRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
-    // The ETag of the config answer last applied. Sent back on every poll, so
-    // an unchanged config is a bodiless 304 instead of the whole document.
+    // The ETag of the config answer last applied. A beat naming another one
+    // means the config changed; it is sent back with the fetch, so a change
+    // that was undone meanwhile is a bodiless 304.
     let configEtag = '';
+    // The plugin-list revision last applied. Advanced only once the list is
+    // live, so a failed reload is retried on the next beat.
+    let pluginsRevision = '';
 
     /**
      * Reload the page when the server was redeployed.
-     * Returns true when a reload is under way and the rest of the tick should stop.
+     * Returns true when a reload is under way and the rest of the beat should stop.
      */
-    async function checkBuildId(): Promise<boolean> {
-      try {
-        const buildRes = await displayFetch('/api/system/build-id');
-        if (!buildRes.ok || !mounted) return false;
-        const newBuildId = await buildRes.text();
-        if (buildIdRef.current && newBuildId !== buildIdRef.current) {
-          window.location.reload();
-          return true;
-        }
-        buildIdRef.current = newBuildId;
-      } catch {
-        // A failed build-id check must not stop the config or plugin sync.
+    function reloadOnNewBuild(buildId: string): boolean {
+      if (buildIdRef.current && buildId !== buildIdRef.current) {
+        window.location.reload();
+        return true;
       }
+      buildIdRef.current = buildId;
       return false;
     }
 
@@ -121,10 +119,10 @@ export function useLiveConfig(
       try {
         // Ask for this display's slice. The response keeps every display's
         // id and name (display-control targets siblings by id) but only this
-        // one's screens, so a wall no longer downloads and diffs every other
-        // display's layout every 3 seconds. A single-display wall names the
-        // legacy slot and gets the whole document. Naming a display at all
-        // is what serves the poll from the hub's config cache.
+        // one's screens, so a wall never downloads and diffs every other
+        // display's layout. A single-display wall names the legacy slot and
+        // gets the whole document. Naming a display at all is what serves
+        // the read from the hub's config cache.
         const res = await displayFetch(
           `/api/config?display=${encodeURIComponent(displayId ?? LEGACY_DISPLAY_ID)}`,
           configEtag ? { headers: { 'If-None-Match': configEtag } } : undefined,
@@ -182,7 +180,7 @@ export function useLiveConfig(
                 // into DisplayNotFound on a dead URL, while /display lets
                 // the server-side redirect land us on whichever display is
                 // now the default. The guard prevents a navigation loop if
-                // the navigation itself somehow fires the poll again before
+                // the navigation itself somehow fires the fetch again before
                 // the page unmounts.
                 displayReloadingRef.current = true;
                 window.location.href = '/display';
@@ -201,15 +199,19 @@ export function useLiveConfig(
         // must be sent again in full, not waved through as unchanged.
         configEtag = res.headers?.get?.('ETag') ?? '';
       } catch (err) {
-        // Keep the current config on failure. Logged rather than silent: a
-        // permanently failing config poll is otherwise invisible on a kiosk.
-        log.warn('Config poll failed:', err);
+        // Keep the current config on failure; the next beat asks again.
+        // Logged rather than silent: a permanently failing config fetch is
+        // otherwise invisible on a kiosk.
+        log.warn('Config fetch failed:', err);
       }
       return false;
     }
 
-    /** Reload plugins or push changed plugin settings. */
-    async function syncPlugins(): Promise<void> {
+    /**
+     * Reload plugins or push changed plugin settings.
+     * Returns true once the fetched list is live.
+     */
+    async function syncPlugins(): Promise<boolean> {
       try {
         const pluginRes = await displayFetch('/api/plugins/installed');
         if (pluginRes.ok && mounted) {
@@ -224,7 +226,7 @@ export function useLiveConfig(
             // Plugin set changed — reload plugins, only commit hash on
             // success. loadPlugins resolves false (rather than rejecting)
             // when the reload was a no-op because its installed-list fetch
-            // failed; keeping the old hash makes the next poll retry the
+            // failed; keeping the old hash makes the next beat retry the
             // reload instead of believing the new set is already live.
             try {
               const ok = await usePluginStore.getState().loadPlugins('display');
@@ -233,8 +235,10 @@ export function useLiveConfig(
                 // loadAllPlugins refreshed the settings map wholesale
                 settingsFpsRef.current = newFps;
               }
+              return ok;
             } catch {
-              // Don't advance hash — retry on next poll
+              // Don't advance hash — retry on next beat
+              return false;
             }
           } else {
             // The hash deliberately excludes settings (a settings save must
@@ -256,15 +260,17 @@ export function useLiveConfig(
             }
             pluginHashRef.current = newHash;
             settingsFpsRef.current = newFps;
+            return true;
           }
         }
       } catch {
         // ignore plugin check failures
       }
+      return false;
     }
 
     /**
-     * One tick: three independent jobs.
+     * One beat: three independent jobs, each run only when its revision moved.
      *
      * Each job owns its own try/catch so a failure in one cannot skip the
      * others. They used to share a single `try` and a single early return, so a
@@ -276,25 +282,28 @@ export function useLiveConfig(
      * must release the re-entrancy guard. Leaking it would stop the kiosk from
      * picking up any config edit for the rest of its uptime, silently.
      */
-    async function poll() {
-      if (pollInFlightRef.current) return;
-      pollInFlightRef.current = true;
+    async function onBeat(revisions: DisplayRevisions) {
+      if (syncInFlightRef.current || !mounted) return;
+      syncInFlightRef.current = true;
       try {
         // A reload or self-heal navigation means this page is going away;
-        // continuing the tick would race the unmount.
-        if (await checkBuildId()) return;
-        if (await syncConfig()) return;
-        await syncPlugins();
+        // continuing the beat would race the unmount.
+        if (revisions.buildId !== undefined && reloadOnNewBuild(revisions.buildId)) return;
+        if (revisions.config !== undefined && revisions.config !== configEtag) {
+          if (await syncConfig()) return;
+        }
+        if (revisions.plugins !== undefined && revisions.plugins !== pluginsRevision) {
+          if (await syncPlugins()) pluginsRevision = revisions.plugins;
+        }
       } finally {
-        pollInFlightRef.current = false;
+        syncInFlightRef.current = false;
       }
     }
 
-    poll();
-    const id = setInterval(poll, CONFIG_POLL_MS);
+    const unsubscribe = subscribeRevisions((revisions) => { void onBeat(revisions); });
     return () => {
       mounted = false;
-      clearInterval(id);
+      unsubscribe();
     };
   }, [displayId]);
 

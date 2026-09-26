@@ -5,26 +5,27 @@
  * affect fetched data (position, size, zIndex, style, schedule, visibility,
  * enabled) must NOT clear the display cache, while data-affecting changes
  * (module config, settings) still must. Observes the real seam — a spy on
- * displayCache.clear — with the poll loop driven by fake timers.
+ * displayCache.clear — with each config change announced by a beat.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, cleanup } from '@testing-library/react';
 import type { GlobalSettings, Screen, ScreenConfiguration } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { displayCache } from '@/lib/display-cache';
+import { publishRevisions } from '@/lib/display-heartbeat';
 import { useLiveConfig } from '../useLiveConfig';
 
-// The current config body served by the mocked /api/config, mutable per step.
+// The current config body served by the mocked /api/config, mutable per step,
+// and its ETag, which the beat names.
 let configBody = '';
+let configEtag = '';
+let configVersion = 0;
 
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (url: string) => {
-    if (url === '/api/system/build-id') {
-      return { ok: true, text: async () => 'build-1' };
-    }
     if (url === '/api/config?display=__default__') {
-      return { ok: true, text: async () => configBody };
+      return { ok: true, text: async () => configBody, headers: new Headers({ ETag: configEtag }) };
     }
     if (url === '/api/plugins/installed') {
       return { ok: true, json: async () => ({ pluginHash: '', plugins: [] }) };
@@ -55,10 +56,13 @@ function weatherModule(overrides: Partial<Screen['modules'][number]> = {}): Scre
 
 const initial = makeConfig([weatherModule()]);
 
-/** Flush one poll cycle: the 3s interval plus the awaited fetch microtasks. */
-async function advanceOnePoll() {
+/** Serve a new config and announce it with a beat, then flush the fetch. */
+async function serve(config: ScreenConfiguration) {
+  configBody = JSON.stringify(config);
+  configEtag = `"v${++configVersion}"`;
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(3_000);
+    publishRevisions({ config: configEtag, plugins: 'p' });
+    await vi.advanceTimersByTimeAsync(0);
   });
 }
 
@@ -68,10 +72,10 @@ describe('useLiveConfig scoped cache invalidation', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     clearSpy = vi.spyOn(displayCache, 'clear');
-    configBody = JSON.stringify(initial);
   });
 
   afterEach(() => {
+    cleanup();
     vi.useRealTimers();
     clearSpy.mockRestore();
   });
@@ -80,16 +84,14 @@ describe('useLiveConfig scoped cache invalidation', () => {
     const { unmount } = renderHook(() =>
       useLiveConfig(initial.screens, initial.settings, 'UTC'),
     );
-    // First poll (immediate): fingerprint ref is empty, so the mount clear
-    // still happens — a remounted rotator must not trust the module-global
-    // cache blindly.
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(0);
-    });
+    // First beat: fingerprint ref is empty, so the mount clear still
+    // happens — a remounted rotator must not trust the module-global cache
+    // blindly.
+    await serve(initial);
     expect(clearSpy).toHaveBeenCalledTimes(1);
 
     // Position + style + visibility change only: bytes differ, data doesn't.
-    configBody = JSON.stringify(
+    await serve(
       makeConfig([
         weatherModule({
           position: { x: 500, y: 500 },
@@ -98,21 +100,16 @@ describe('useLiveConfig scoped cache invalidation', () => {
         }),
       ]),
     );
-    await advanceOnePoll();
     expect(clearSpy).toHaveBeenCalledTimes(1);
 
     // Module config change: fetched data can differ, cache must clear.
-    configBody = JSON.stringify(
-      makeConfig([weatherModule({ config: { view: 'forecast' } })]),
-    );
-    await advanceOnePoll();
+    await serve(makeConfig([weatherModule({ config: { view: 'forecast' } })]));
     expect(clearSpy).toHaveBeenCalledTimes(2);
 
     // Settings change (e.g. timezone): also data-affecting.
     const settingsChanged = makeConfig([weatherModule({ config: { view: 'forecast' } })]);
     (settingsChanged.settings as { timezone?: string }).timezone = 'America/Chicago';
-    configBody = JSON.stringify(settingsChanged);
-    await advanceOnePoll();
+    await serve(settingsChanged);
     expect(clearSpy).toHaveBeenCalledTimes(3);
 
     unmount();

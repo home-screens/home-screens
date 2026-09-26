@@ -35,10 +35,11 @@ const WATCH_KEY = 'plugin:e2e-fixture:watch';
 
 /**
  * Rewrite the sandbox's `plugins/installed.json` to hold exactly one entry per
- * given version (or none). A live display polls `/api/plugins/installed` every
- * 3s; changing the set changes the `pluginHash` it returns, which drives the
- * display's `loadAllPlugins` reload on the next poll. An empty list removes the
- * fixture plugin entirely; a bumped version keeps it installed across a reload.
+ * given version (or none). A live display's 3s heartbeat names the installed
+ * list's revision; a changed set makes it fetch `/api/plugins/installed`, whose
+ * changed `pluginHash` drives the display's `loadAllPlugins` reload. An empty
+ * list removes the fixture plugin entirely; a bumped version keeps it installed
+ * across a reload.
  */
 function writeInstalled(sandboxDir: string, versions: string[]): void {
   writeSandboxFile(sandboxDir, 'plugins/installed.json', {
@@ -340,8 +341,8 @@ test('the Text module resolves state tokens, filters, and template variables, en
  */
 test('uninstalling a plugin purges its shared-state keys on reload; the gated module hides after the grace window', async ({ page, request, sandboxDir }) => {
   // 22s of the budget is real waiting the test cannot compress: 4s for the
-  // display's first plugin-hash poll, up to 3s for the reload poll, then the
-  // 15s tombstone grace. Nothing is asserted mid-grace, so the bound below is
+  // display's first heartbeat to record the plugin hash, up to 3s for the beat
+  // that announces the change, then the 15s tombstone grace. Nothing is asserted mid-grace, so the bound below is
   // "eventually gone", not a race the timing pins down.
   test.setTimeout(70_000);
   const gate: ModuleVisibility = {
@@ -354,14 +355,15 @@ test('uninstalling a plugin purges its shared-state keys on reload; the gated mo
   await expect(page.locator('[data-plugin-marker="e2e"]')).toBeVisible();
   await expect(page.getByText('PURGE CONTENT')).toBeVisible();
 
-  // The display's config poll records the current plugin hash on its first
-  // pass WITHOUT reloading; mutating installed.json before that lands would
-  // just reset the baseline and never trigger a reload. One poll cycle (3s) is
-  // plenty — wait past it before removing the plugin.
+  // The display's first heartbeat records the current plugin hash WITHOUT
+  // reloading; mutating installed.json before that lands would just reset the
+  // baseline and never trigger a reload. One beat (3s) is plenty — wait past
+  // it before removing the plugin.
   await page.waitForTimeout(4000);
 
-  // Remove the plugin. Next poll (≤3s) sees a changed pluginHash → reload →
-  // e2e-fixture is gone from the new set → its keys tombstone (15s grace).
+  // Remove the plugin. The next beat (≤3s) names a new list revision → the
+  // list's changed pluginHash → reload → e2e-fixture is gone from the new set
+  // → its keys tombstone (15s grace).
   writeInstalled(sandboxDir, []);
 
   // Through the grace window the gate still reads 'on', so the module stays.

@@ -125,7 +125,7 @@ This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo
 
 ### GET /api/display/commands
 
-**Client protocol.** Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
+**Client protocol.** Returns and drains all pending commands from the queue. The display polls this endpoint every 3 seconds as its heartbeat. Pass `?display=<id>` to drain a specific display's queue; without it the legacy default queue is drained.
 
 **Response:**
 ```json
@@ -134,11 +134,23 @@ This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo
     { "type": "wake" },
     { "type": "brightness", "payload": { "value": 50 } }
   ],
-  "sharedStateWatched": false
+  "sharedStateWatched": false,
+  "revisions": {
+    "buildId": "Xb2kQ7pL0sR4",
+    "plugins": "9f1c0a7e5d3b2c41",
+    "config": "\"4e0f9a1c.America%2FChicago\"",
+    "timer": "c02d6b19e8a4f7a0"
+  }
 }
 ```
 
+`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with) and the timer session (`GET /api/timers/session`). The display fetches each of those only when its value differs from the one it last applied. A value the hub could not work out is left out, and the display keeps what it has for it.
+
 `sharedStateWatched` tells the screen whether anyone is currently watching its shared values in the editor. While it is `true`, the screen reports changes as they happen instead of waiting for its next 30-second heartbeat, so the editor sees live values; while it is `false`, it stays on the slower schedule. A display client that ignores this flag still works, it just never speeds up.
+
+### GET /api/display/revisions
+
+The `revisions` object from the command drain on its own, `{ "revisions": { ... } }`, without draining anything or counting as the display checking in. The editor's Preview window uses it to follow edits without taking the real display's commands. Display access.
 
 ### GET /api/display/status
 
@@ -362,7 +374,7 @@ After it runs once, that Pi updates itself from `/api/display/kiosk-bundle` from
 
 ### GET /api/display/power-state
 
-**Client protocol.** Polled every few seconds by the panel power helper in a Pi's kiosk session (`scripts/kiosk-power-agent.sh`). Answers whether that display's screen should be powered right now:
+**Client protocol.** Polled by the panel power helper in a Pi's kiosk session (`scripts/kiosk-power-agent.sh`): every 3 seconds while the screen is off, so a wake lights it at once, and every 15 seconds while it is on. Answers whether that display's screen should be powered right now:
 
 ```bash
 curl "http://<hub>:3000/api/display/power-state?display=kitchen&applied=on"
@@ -607,7 +619,7 @@ Replaces the routine list wholesale (the list is capped at 50 and edited from a 
 
 ### GET /api/timers/session
 
-Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. Displays poll this every few seconds and compute the live countdown locally from the returned timestamps, so poll latency only delays the start, it never affects countdown accuracy. Display access.
+Returns the active session with elapsed auto-advancing steps already applied, or `{ "session": null }` when nothing is running. Displays fetch this when their 3-second heartbeat says the session changed, and compute the live countdown, step changes and the end locally from the returned timestamps, so request latency only delays the start, it never affects countdown accuracy. Display access.
 
 ### POST /api/timers/session
 

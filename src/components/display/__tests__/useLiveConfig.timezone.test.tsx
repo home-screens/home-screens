@@ -12,12 +12,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, cleanup, renderHook } from '@testing-library/react';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import type { GlobalSettings, ScreenConfiguration } from '@/types/config';
 import { HUB_TIMEZONE_HEADER, wallClockParts } from '@/lib/timezone';
+import { publishRevisions } from '@/lib/display-heartbeat';
 import { useWallClock } from '@/hooks/useTZClock';
 import { useLiveConfig } from '../useLiveConfig';
 
@@ -32,7 +33,6 @@ vi.mock('@/stores/plugin-store', () => ({
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (url: string) => {
     if (!pollsAnswer) return new Promise(() => {});
-    if (url === '/api/system/build-id') return { ok: true, text: async () => 'build-1' };
     if (url === '/api/config?display=__default__') {
       return {
         ok: true,
@@ -56,6 +56,14 @@ function makeConfig(timezone?: string): ScreenConfiguration {
 const HUB = 'Pacific/Kiritimati';
 const OTHER_HUB = 'Asia/Kathmandu';
 
+/** A beat naming a config revision; the hub's ETag carries its zone too. */
+async function beat(config: string) {
+  await act(async () => {
+    publishRevisions({ config, plugins: 'p' });
+    await vi.advanceTimersByTimeAsync(0);
+  });
+}
+
 describe('useLiveConfig resolves an unset zone to the hub', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -64,6 +72,7 @@ describe('useLiveConfig resolves an unset zone to the hub', () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.useRealTimers();
   });
 
@@ -83,32 +92,33 @@ describe('useLiveConfig resolves an unset zone to the hub', () => {
     expect(result.current.timezoneSaved).toBe(true);
   });
 
-  it("follows the hub's zone named by each config poll", async () => {
+  it("follows the hub's zone named by each config fetch", async () => {
     const initial = makeConfig();
     configBody = JSON.stringify(initial);
     hubHeader = HUB;
     const { result } = renderHook(() => useLiveConfig(initial.screens, initial.settings, HUB));
-    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    await beat(`"r1.${HUB}"`);
     expect(result.current.settings.timezone).toBe(HUB);
 
     // The hub's clock moved (the Location page's device-clock button) while
-    // the config bytes stayed the same: the display must still pick it up.
+    // the config bytes stayed the same: the zone is part of the ETag the
+    // beat names, so the display still fetches and picks it up.
     hubHeader = OTHER_HUB;
-    await act(async () => { await vi.advanceTimersByTimeAsync(3_000); });
+    await beat(`"r1.${OTHER_HUB}"`);
     expect(result.current.settings.timezone).toBe(OTHER_HUB);
 
     // Saving a zone wins over the hub's.
     configBody = JSON.stringify(makeConfig('Europe/Berlin'));
-    await act(async () => { await vi.advanceTimersByTimeAsync(3_000); });
+    await beat(`"r2.${OTHER_HUB}"`);
     expect(result.current.settings.timezone).toBe('Europe/Berlin');
     expect(result.current.timezoneSaved).toBe(true);
   });
 
-  it('keeps the server-rendered hub zone when a poll names none', async () => {
+  it('keeps the server-rendered hub zone when a config answer names none', async () => {
     const initial = makeConfig();
     configBody = JSON.stringify(initial);
     const { result } = renderHook(() => useLiveConfig(initial.screens, initial.settings, HUB));
-    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    await beat('"r1"');
     expect(result.current.settings.timezone).toBe(HUB);
   });
 });

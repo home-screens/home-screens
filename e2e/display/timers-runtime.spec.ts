@@ -10,14 +10,15 @@ import type { ScreenConfiguration } from '@/types/config';
  * session lifecycle through its real routes and assert what the display does.
  *
  * The mechanics that shape every timeout below (src/components/display/
- * TimerOverlay.tsx): the overlay polls `GET /api/timers/session` every
- * SESSION_POLL_MS (3s) for session *events* — start, pause, skip, cancel — and
- * derives the countdown locally from the session's epoch timestamps on a
- * TICK_MS (250ms) tick. So anything server-initiated (a pause posted by
- * /remote) rides at least one 3s poll, while anything time-derived (a step
- * elapsing, a hold surfacing, the session expiring) lands on the local tick
- * with no poll involved. `/api/timers/session` also caches reads for 1s, but
- * mutations invalidate it, so controls surface on the next poll either way.
+ * TimerOverlay.tsx): the overlay fetches `GET /api/timers/session` when the
+ * display's 3s heartbeat names a new session revision, which only session
+ * *events* change (start, pause, skip, cancel), and derives the countdown
+ * locally from the session's epoch timestamps on a TICK_MS (250ms) tick. So
+ * anything server-initiated (a pause posted by /remote) rides at least one 3s
+ * beat, while anything time-derived (a step elapsing, a hold surfacing, the
+ * session expiring) lands on the local tick with no request involved. Session
+ * reads are cached for 1s, but mutations invalidate the cache, so controls
+ * surface on the next beat either way.
  *
  * Every session here uses seconds-scale durations (MIN_STEP_SEC is 5) and the
  * `ring` view, whose dial holds the countdown, the "Done!" tap pill, and the

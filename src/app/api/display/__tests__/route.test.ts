@@ -41,6 +41,18 @@ vi.mock('@/lib/config', () => ({
   }),
 }));
 
+const REVISIONS = { buildId: 'build-1', plugins: 'p1', config: '"c1.UTC"', timer: 't1' };
+// How many drains had happened when the revisions were read: the heartbeat
+// must read them first, since drained commands exist only in its answer.
+let drainsBeforeRevisions: number | null = null;
+vi.mock('@/lib/display-revisions', () => ({
+  readDisplayRevisions: vi.fn(async () => {
+    const { drainCommands } = await import('@/lib/display-commands');
+    drainsBeforeRevisions = vi.mocked(drainCommands).mock.calls.length;
+    return REVISIONS;
+  }),
+}));
+
 vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(),
   requireDisplayAuth: vi.fn(),
@@ -105,6 +117,28 @@ describe('GET /api/display/commands', () => {
     const json = await res.json();
 
     expect(json.sharedStateWatched).toBe(true);
+  });
+
+  it('carries the revisions, read before the queue is drained', async () => {
+    vi.mocked(drainCommands).mockReturnValue([]);
+
+    const res = await GET(makeRequest(), makeParams('commands'));
+    const json = await res.json();
+
+    expect(json.revisions).toEqual(REVISIONS);
+    expect(drainsBeforeRevisions).toBe(0);
+    expect(drainCommands).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GET /api/display/revisions', () => {
+  it('answers the revisions without draining or counting as a heartbeat', async () => {
+    const res = await GET(makeRequest(), makeParams('revisions'));
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json).toEqual({ revisions: REVISIONS });
+    expect(drainCommands).not.toHaveBeenCalled();
   });
 });
 

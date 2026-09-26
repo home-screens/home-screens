@@ -149,7 +149,7 @@ describe('ScreenRotator start screen and preview mode', () => {
     expect(rendered()).toBe('weather');
     expect(dom.getByTestId('pause-pill')).toBeTruthy();
 
-    // Third arg of useDisplayCommands / last arg of useStatusReporter is `enabled`.
+    // Third arg of useDisplayCommands is `drain`; last arg of useStatusReporter is `enabled`.
     expect(useDisplayCommands).toHaveBeenCalled();
     expect(useDisplayCommands.mock.calls.every((c) => c[2] === false)).toBe(true);
     expect(useStatusReporter.mock.calls.every((c) => c[c.length - 1] === false)).toBe(true);

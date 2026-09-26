@@ -13,6 +13,7 @@ import type { BrowserStats } from '@/lib/hardware-stats';
 import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
 import { getShowingTimerSession, subscribeTimerPresence } from '@/lib/timer-presence';
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
+import { publishRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
 import type { AlertType } from '@/types/config';
 
 export interface CommandHandlers {
@@ -84,7 +85,7 @@ function currentBrowserStats(): BrowserStats | undefined {
   };
 }
 
-const COMMAND_POLL_MS = 3_000;
+const HEARTBEAT_MS = 3_000;
 
 /**
  * Whether an editor is currently watching this display's shared-state
@@ -126,120 +127,161 @@ function withDisplayParam(url: string, displayId: string | undefined): string {
 }
 
 /**
- * Polls /api/display/commands every 3s and dispatches to handler callbacks.
- * Commands are drained from the server queue on each poll.
+ * The display's heartbeat: one request to the hub every 3s. It drains this
+ * display's command queue (dispatching each command to the handlers) and
+ * hands the answer's revisions to `display-heartbeat`, whose readers
+ * (useLiveConfig, TimerOverlay) fetch their data only when it changed.
  *
- * When `displayId` is provided, the poll targets that display's queue and
+ * When `displayId` is provided, the beat drains that display's queue and
  * also registers it in the hub's `knownDisplays` set (so it shows up in
  * the editor's "Unadopted Displays" section before being formally added).
+ *
+ * `drain` is false for an editor preview window: it reads the revisions
+ * alone, so it follows edits without draining the real display's queue or
+ * standing in for its heartbeat.
  */
-export function useDisplayCommands(handlers: CommandHandlers, displayId?: string, enabled = true) {
+export function useDisplayCommands(handlers: CommandHandlers, displayId?: string, drain = true) {
   const handlersRef = useRef(handlers);
   useEffect(() => {
     handlersRef.current = handlers;
   });
 
   useEffect(() => {
-    // An editor preview window must not drain the real display's queue.
-    if (!enabled) return;
     let mounted = true;
 
-    async function poll() {
-      try {
-        const res = await displayFetch(withDisplayParam('/api/display/commands', displayId));
-        if (!res.ok || !mounted) return;
-        const { commands, sharedStateWatched } = (await res.json()) as {
-          commands: DisplayCommand[];
-          sharedStateWatched?: boolean;
-        };
-        editorWatchingSharedState = sharedStateWatched === true;
-        if (!Array.isArray(commands)) return;
-
-        for (const cmd of commands) {
-          if (!mounted) break;
-          switch (cmd.type) {
-            case 'wake':
-              handlersRef.current.wake();
-              break;
-            case 'sleep':
-              handlersRef.current.sleep();
-              break;
-            case 'next-screen':
-              handlersRef.current.nextScreen();
-              break;
-            case 'prev-screen':
-              handlersRef.current.prevScreen();
-              break;
-            case 'goto-screen':
-              if (typeof cmd.payload?.screen === 'string') {
-                handlersRef.current.gotoScreen(cmd.payload.screen);
-              }
-              break;
-            case 'sleep-override':
-              if (typeof cmd.payload?.minutes === 'number' && cmd.payload.minutes > 0) {
-                handlersRef.current.sleepOverride(cmd.payload.minutes);
-              }
-              break;
-            case 'brightness':
-              if (typeof cmd.payload?.value === 'number') {
-                handlersRef.current.setBrightness(cmd.payload.value);
-              }
-              break;
-            case 'reload':
-              handlersRef.current.reload();
-              break;
-            case 'clear-alerts':
-              useAlertStore.getState().clearAlerts();
-              break;
-            case 'alert': {
-              const p = cmd.payload;
-              if (p && (p.title || p.message)) {
-                handlersRef.current.showAlert({
-                  type: (p.type as AlertType) ?? 'info',
-                  title: (p.title as string) ?? '',
-                  message: (p.message as string) ?? '',
-                  duration: typeof p.duration === 'number' ? p.duration : undefined,
-                  icon: typeof p.icon === 'string' ? p.icon : undefined,
-                  dismissible: typeof p.dismissible === 'boolean' ? p.dismissible : undefined,
-                  wake: typeof p.wake === 'boolean' ? p.wake : undefined,
-                });
-              }
-              break;
+    function runCommands(commands: DisplayCommand[]) {
+      for (const cmd of commands) {
+        if (!mounted) break;
+        switch (cmd.type) {
+          case 'wake':
+            handlersRef.current.wake();
+            break;
+          case 'sleep':
+            handlersRef.current.sleep();
+            break;
+          case 'next-screen':
+            handlersRef.current.nextScreen();
+            break;
+          case 'prev-screen':
+            handlersRef.current.prevScreen();
+            break;
+          case 'goto-screen':
+            if (typeof cmd.payload?.screen === 'string') {
+              handlersRef.current.gotoScreen(cmd.payload.screen);
             }
-            case 'module-command': {
-              const p = cmd.payload;
-              if (p && typeof p.module === 'string' && typeof p.action === 'string') {
-                const value = typeof p.value === 'string' || typeof p.value === 'number' ? p.value : undefined;
-                dispatchModuleCommand({ module: p.module, action: p.action, value });
-              }
-              break;
+            break;
+          case 'sleep-override':
+            if (typeof cmd.payload?.minutes === 'number' && cmd.payload.minutes > 0) {
+              handlersRef.current.sleepOverride(cmd.payload.minutes);
             }
-            case 'dump-console-log': {
-              const entries = snapshotConsoleBuffer();
-              displayFetch('/api/display/console-log', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  displayId: displayId ?? MAIN_DISPLAY_ID,
-                  entries,
-                }),
-              }).catch(() => {});
-              break;
+            break;
+          case 'brightness':
+            if (typeof cmd.payload?.value === 'number') {
+              handlersRef.current.setBrightness(cmd.payload.value);
             }
+            break;
+          case 'reload':
+            handlersRef.current.reload();
+            break;
+          case 'clear-alerts':
+            useAlertStore.getState().clearAlerts();
+            break;
+          case 'alert': {
+            const p = cmd.payload;
+            if (p && (p.title || p.message)) {
+              handlersRef.current.showAlert({
+                type: (p.type as AlertType) ?? 'info',
+                title: (p.title as string) ?? '',
+                message: (p.message as string) ?? '',
+                duration: typeof p.duration === 'number' ? p.duration : undefined,
+                icon: typeof p.icon === 'string' ? p.icon : undefined,
+                dismissible: typeof p.dismissible === 'boolean' ? p.dismissible : undefined,
+                wake: typeof p.wake === 'boolean' ? p.wake : undefined,
+              });
+            }
+            break;
           }
+          case 'module-command': {
+            const p = cmd.payload;
+            if (p && typeof p.module === 'string' && typeof p.action === 'string') {
+              const value = typeof p.value === 'string' || typeof p.value === 'number' ? p.value : undefined;
+              dispatchModuleCommand({ module: p.module, action: p.action, value });
+            }
+            break;
+          }
+          case 'dump-console-log': {
+            const entries = snapshotConsoleBuffer();
+            displayFetch('/api/display/console-log', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                displayId: displayId ?? MAIN_DISPLAY_ID,
+                entries,
+              }),
+            }).catch(() => {});
+            break;
+          }
+        }
+      }
+    }
+
+    /**
+     * A beat that names no build (refused after a deploy that changed auth,
+     * or answered by a hub older than revisions) must still let the wall
+     * notice a new build, or it could never reload onto the code that hub
+     * serves. The build-id endpoint is public for this.
+     */
+    async function publishBuildIdAlone() {
+      try {
+        const res = await displayFetch('/api/system/build-id');
+        if (res.ok && mounted) publishRevisions({ buildId: await res.text() });
+      } catch {
+        // The hub is unreachable; the next beat tries again.
+      }
+    }
+
+    async function beat() {
+      try {
+        const res = await displayFetch(
+          drain ? withDisplayParam('/api/display/commands', displayId) : '/api/display/revisions',
+        );
+        if (!mounted) return;
+        if (!res.ok) {
+          await publishBuildIdAlone();
+          return;
+        }
+        const { commands, sharedStateWatched, revisions } = (await res.json()) as {
+          commands?: DisplayCommand[];
+          sharedStateWatched?: boolean;
+          revisions?: DisplayRevisions;
+        };
+        if (drain) {
+          editorWatchingSharedState = sharedStateWatched === true;
+          if (Array.isArray(commands)) runCommands(commands);
+        }
+        // After the commands, which were drained on the hub and exist
+        // nowhere else: a reader's fetch must never stand in their way.
+        if (!mounted) return;
+        if (revisions) {
+          publishRevisions(revisions);
+        } else {
+          // A hub from before revisions existed (after a rollback) drains
+          // commands but names no build. Without this the page would never
+          // reload onto that hub's code, and never see another change.
+          await publishBuildIdAlone();
         }
       } catch {
         // silent — keep polling
       }
     }
 
-    poll();
-    const id = setInterval(poll, COMMAND_POLL_MS);
+    beat();
+    const id = setInterval(beat, HEARTBEAT_MS);
     return () => {
       mounted = false;
       clearInterval(id);
     };
-  }, [displayId, enabled]);
+  }, [displayId, drain]);
 }
 
 /**

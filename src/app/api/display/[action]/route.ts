@@ -15,6 +15,7 @@ import {
   type DisplayCommandType,
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
+import { readDisplayRevisions } from '@/lib/display-revisions';
 import { getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 import { validateBrowserStats } from '@/lib/hardware-stats';
@@ -71,7 +72,8 @@ function getDisplayIdFromQuery(
 
 /**
  * GET handler — used for:
- * - /api/display/commands?display=<id>      → drain that display's queue
+ * - /api/display/commands?display=<id>      → drain that display's queue (the wall's heartbeat)
+ * - /api/display/revisions                  → the heartbeat's revisions alone, draining nothing
  * - /api/display/status?display=<id>        → read last-known status (per display), null before the first heartbeat
  * - /api/display/shared-state?display=<id>  → read last-reported shared-state snapshot
  * - /api/display/wake?display=<id>          → simple commands via GET (bookmarkable)
@@ -80,9 +82,9 @@ function getDisplayIdFromQuery(
 export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => {
   const { action } = await params;
 
-  // Drain, status, and shared-state are read-only and have no broadcast
-  // meaning. Simple commands and broadcast (`?display=all`) are only valid
-  // through the command-enqueue path below.
+  // Drain, status, shared-state and revisions are read-only and have no
+  // broadcast meaning. Simple commands and broadcast (`?display=all`) are
+  // only valid through the command-enqueue path below.
   const isCommandAction = SIMPLE_COMMANDS.has(action as DisplayCommandType);
   const validated = getDisplayIdFromQuery(request, { allowBroadcast: isCommandAction });
   if (validated instanceof NextResponse) return validated;
@@ -90,6 +92,11 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
 
   switch (action) {
     case 'commands': {
+      // The wall's one 3 s request. `revisions` says whether its config,
+      // plugins, timer session or build changed, so it fetches those only
+      // when they do. Read before draining: once drained, commands exist
+      // only in this response, so nothing may be awaited between the two.
+      const revisions = await readDisplayRevisions();
       const commands = drainCommands(displayId);
       // `sharedStateWatched` tells the display whether an editor is
       // currently polling its shared-state snapshot — only then does the
@@ -97,7 +104,14 @@ export const GET = withDisplayAuth<RouteContext>(async (request, { params }) => 
       return NextResponse.json({
         commands,
         sharedStateWatched: hasSharedStateInterest(displayId),
+        revisions,
       });
+    }
+    case 'revisions': {
+      // An editor preview window follows edits like a wall does, but must
+      // neither drain the real display's commands nor count as its
+      // heartbeat (a live-looking preview could hold a panel off).
+      return NextResponse.json({ revisions: await readDisplayRevisions() });
     }
     case 'status': {
       // `null` (not a 404) until the display's first heartbeat: the phone and

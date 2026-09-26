@@ -26,8 +26,9 @@ interface UseDisplayControlParams {
   /** Multi-display routing key (undefined = legacy single-display mode). */
   displayId?: string;
   /**
-   * False for an editor preview window: no command polling and no status
-   * reports, so the preview never drains or impersonates the real display.
+   * False for an editor preview window: its heartbeat drains no commands and
+   * it sends no status reports, so the preview never drains or impersonates
+   * the real display. It still reads the revisions, to follow edits.
    */
   hubTransport?: boolean;
 }

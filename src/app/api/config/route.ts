@@ -10,12 +10,13 @@ import { saveImportedConfig } from '@/lib/family-import';
 import { readTransactionFile, withDataTransaction } from '@/lib/data-transaction';
 import { settleFamilyMigration } from '@/lib/family-data';
 import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
-import { getAllScreens, LEGACY_DISPLAY_ID } from '@/lib/display-filter';
+import { getAllScreens } from '@/lib/display-filter';
+import { answersFor, wallBody, wallEtag } from '@/lib/wall-config';
 import { syncKioskConf, applyDisplaySettings, applyLabwcRc, resolveHubPanel } from '@/lib/kiosk';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { maybeSendBeacon } from '@/lib/telemetry';
 import { validateConfigForWrite } from '@/lib/config-validation';
-import type { ScreenConfiguration, DisplayNode } from '@/types/config';
+import type { ScreenConfiguration } from '@/types/config';
 import { logger } from '@/lib/logger';
 
 const log = logger('kiosk');
@@ -31,67 +32,6 @@ function withRevision(config: ScreenConfiguration): Record<string, string> {
   return { [CONFIG_REVISION_HEADER]: configRevision(config), [HUB_TIMEZONE_HEADER]: hubTimezone() };
 }
 
-/**
- * Trim every display except `displayId` down to the identity the display
- * client actually reads from a sibling: `display-control` targets other
- * displays by id and labels them by name, and nothing on the wall reads
- * another display's screens.
- *
- * `screens: []` on a sibling therefore means "not sent", not "empty". Only
- * the requested display's node is complete, which is what
- * `filterConfigForDisplay` resolves against. Anything that needs a real
- * sibling node must read the unfiltered config.
- */
-function scopeToDisplay(config: ScreenConfiguration, displayId: string): ScreenConfiguration {
-  const displays = config.displays?.map<DisplayNode>((display) =>
-    display.id === displayId ? display : { id: display.id, name: display.name, screens: [] },
-  );
-  return { ...config, displays };
-}
-
-/**
- * What walls are sent, worked out once per cached config object. The cache
- * hands every poll the same object until config.json changes, so the
- * document's hash and each display's body are computed once per version
- * instead of once per poll. Safe only because that object is read-only.
- */
-interface WallAnswers {
-  revision: string;
-  bodies: Map<string, string>;
-}
-const wallAnswers = new WeakMap<ScreenConfiguration, WallAnswers>();
-
-function answersFor(config: ScreenConfiguration): WallAnswers {
-  let answers = wallAnswers.get(config);
-  if (!answers) {
-    answers = { revision: configRevision(config), bodies: new Map() };
-    wallAnswers.set(config, answers);
-  }
-  return answers;
-}
-
-function wallBody(config: ScreenConfiguration, answers: WallAnswers, displayId: string): string {
-  const kept = answers.bodies.get(displayId);
-  if (kept !== undefined) return kept;
-  // An unknown id leaves no matching node, so the client's filter returns null
-  // and it self-heals to /display. That is the existing deleted-display path.
-  const body = JSON.stringify(scopeToDisplay(config, displayId));
-  // Only ids the config knows are kept, so made-up ids cannot grow the map.
-  if (displayId === LEGACY_DISPLAY_ID || config.displays?.some((display) => display.id === displayId)) {
-    answers.bodies.set(displayId, body);
-  }
-  return body;
-}
-
-/**
- * A wall's URL names its display, so the document's revision and the hub's
- * zone (the one header a wall reads besides the body) say what it would be
- * sent. URI-encoding keeps the zone inside the characters an ETag allows.
- */
-function wallEtag(revision: string, zone: string): string {
-  return `"${revision}.${encodeURIComponent(zone)}"`;
-}
-
 export const GET = withDisplayAuth(async (request: NextRequest) => {
   // A kiosk names its display, and a single-display wall names the legacy
   // slot; the editor names none and gets the whole document.
@@ -101,8 +41,9 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   // handed out just before it runs is stale by the time the editor saves.
   const config = await withFamilyData(async () => {
     await settleTodoMigration();
-    // A wall polls this every 3 seconds forever, so it reads the cache,
-    // which parses the file again only when it changes. The editor's read
+    // A wall reads the cache, which parses the file again only when it
+    // changes; so does its 3 s heartbeat, whose config revision is the ETag
+    // below, so the two can never disagree about a version. The editor's read
     // stays uncached: its revision has to be computed from bytes just read
     // or a save can be compared against a stale hash.
     return displayId ? readConfigCached() : readConfig();

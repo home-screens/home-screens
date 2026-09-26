@@ -8,8 +8,10 @@ import {
   isValidTargets,
   materializeSession,
   pauseSession,
+  readSessionRevision,
   resumeSession,
   startSession,
+  updateSessionAtomic,
   validateRoutines,
 } from '../timer-data';
 import type { Routine, TimerSession } from '@/types/timers';
@@ -236,5 +238,24 @@ describe('isValidTargets', () => {
     [null, false],
   ])('%j → %s', (input, expected) => {
     expect(isValidTargets(input)).toBe(expected);
+  });
+});
+
+describe('readSessionRevision', () => {
+  // Displays fetch the session only when this moves, so every saved change
+  // must move it and nothing else may.
+  it('moves on each saved change and holds still between them', async () => {
+    await updateSessionAtomic(() => ({ session: null }));
+    const idle = await readSessionRevision();
+    expect(await readSessionRevision()).toBe(idle);
+
+    const started = start();
+    await updateSessionAtomic(() => ({ session: started }));
+    const running = await readSessionRevision();
+    expect(running).not.toBe(idle);
+    expect(await readSessionRevision()).toBe(running);
+
+    await updateSessionAtomic(() => ({ session: cancelSession(started, T0 + 1_000) }));
+    expect(await readSessionRevision()).not.toBe(running);
   });
 });

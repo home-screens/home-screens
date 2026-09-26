@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { createJsonStore } from './json-store';
 import type { Routine, TimerSession } from '@/types/timers';
 
@@ -46,10 +47,10 @@ export const updateRoutinesAtomic = routinesStore.updateAtomic;
 export const writeRoutinesFile = routinesStore.write;
 export const readSessionFile = sessionStore.read;
 
-// Every display polls the session GET every ~3s forever, including houses
-// with no timer running — a short read cache turns that steady state into
-// one file read per second instead of one per display per poll (same idea
-// as /api/displays' readConfig cache). Keyed to cwd because unit tests
+// Every display's 3s heartbeat reads the session revision forever, including
+// houses with no timer running — a short read cache turns that steady state
+// into one file read per second instead of one per display per beat (same
+// idea as /api/displays' readConfig cache). Keyed to cwd because unit tests
 // repoint process.cwd() per test while mocking Date.now to a constant,
 // which would otherwise keep a stale entry "fresh" across tests.
 const SESSION_READ_TTL_MS = 1_000;
@@ -63,6 +64,24 @@ export async function readSessionCached(): Promise<SessionFile> {
   const data = await sessionStore.read();
   sessionCache = { at: Date.now(), cwd, data };
   return data;
+}
+
+const sessionRevisions = new WeakMap<SessionFile, string>();
+
+/**
+ * A revision of the stored session for the wall's heartbeat: a display reads
+ * the session GET again only when this moves. Countdowns, auto-steps and
+ * expiry are derived from the session's timestamps on the display, so only a
+ * write (start, pause, skip, cancel, ...) changes what a display needs.
+ */
+export async function readSessionRevision(): Promise<string> {
+  const file = await readSessionCached();
+  let revision = sessionRevisions.get(file);
+  if (!revision) {
+    revision = createHash('sha256').update(JSON.stringify(file.session)).digest('hex').slice(0, 16);
+    sessionRevisions.set(file, revision);
+  }
+  return revision;
 }
 
 /** Atomic session mutation; invalidates the read cache so controls surface immediately. */

@@ -1,14 +1,16 @@
 // @vitest-environment jsdom
 
 /**
- * A wall polls its config every 3 seconds forever. It sends back the ETag of
- * the answer it last applied, so the hub can answer an unchanged config with
- * a bodiless 304 instead of the whole document.
+ * A wall's heartbeat names the ETag its config read would be answered with.
+ * The wall fetches only when that differs from the ETag of the answer it last
+ * applied, and sends that ETag back, so a change undone in the meantime is a
+ * bodiless 304 instead of the whole document.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
+import { act, cleanup, renderHook } from '@testing-library/react';
 import type { GlobalSettings, ScreenConfiguration } from '@/types/config';
+import { publishRevisions } from '@/lib/display-heartbeat';
 import { useLiveConfig } from '../useLiveConfig';
 
 let configBody = '';
@@ -21,7 +23,6 @@ vi.mock('@/stores/plugin-store', () => ({
 
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (url: string, init?: RequestInit) => {
-    if (url === '/api/system/build-id') return { ok: true, text: async () => 'build-1' };
     if (url === '/api/config?display=__default__') {
       const sent = new Headers(init?.headers).get('If-None-Match');
       sentEtags.push(sent);
@@ -40,8 +41,12 @@ function makeConfig(screenName: string): ScreenConfiguration {
   } as unknown as ScreenConfiguration;
 }
 
-async function poll(ms: number) {
-  await act(async () => { await vi.advanceTimersByTimeAsync(ms); });
+/** One beat naming the ETag the hub would answer with right now. */
+async function beat() {
+  await act(async () => {
+    publishRevisions({ config: configEtag, plugins: 'p' });
+    await vi.advanceTimersByTimeAsync(0);
+  });
 }
 
 describe('useLiveConfig config ETag', () => {
@@ -51,27 +56,46 @@ describe('useLiveConfig config ETag', () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.useRealTimers();
   });
 
-  it('sends back the ETag it applied, keeps its config on a 304, and applies a change', async () => {
+  it('fetches only when the beat names another ETag, and sends back the one it applied', async () => {
     const initial = makeConfig('First');
     configBody = JSON.stringify(initial);
     configEtag = '"a.UTC"';
     const { result } = renderHook(() => useLiveConfig(initial.screens, initial.settings, 'UTC'));
-    await poll(0);
+    await beat();
     expect(sentEtags).toEqual([null]);
 
-    await poll(3_000);
-    expect(sentEtags[1]).toBe('"a.UTC"');
+    // Unchanged: no request at all.
+    await beat();
+    expect(sentEtags).toHaveLength(1);
     expect(result.current.screens[0].name).toBe('First');
 
     configBody = JSON.stringify(makeConfig('Second'));
     configEtag = '"b.UTC"';
-    await poll(3_000);
+    await beat();
+    expect(sentEtags[1]).toBe('"a.UTC"');
     expect(result.current.screens[0].name).toBe('Second');
-    await poll(3_000);
-    expect(sentEtags[3]).toBe('"b.UTC"');
+    await beat();
+    expect(sentEtags).toHaveLength(2);
+  });
+
+  it('keeps its config on a 304 for a change that was undone before it asked', async () => {
+    const initial = makeConfig('First');
+    configBody = JSON.stringify(initial);
+    configEtag = '"a.UTC"';
+    const { result } = renderHook(() => useLiveConfig(initial.screens, initial.settings, 'UTC'));
+    await beat();
+
+    // The beat saw "b", but by the time the wall asks the hub is back on "a".
+    await act(async () => {
+      publishRevisions({ config: '"b.UTC"', plugins: 'p' });
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(sentEtags[1]).toBe('"a.UTC"');
+    expect(result.current.screens[0].name).toBe('First');
   });
 
   it('asks again in full after an answer it could not apply', async () => {
@@ -79,18 +103,18 @@ describe('useLiveConfig config ETag', () => {
     configBody = JSON.stringify(initial);
     configEtag = '"a.UTC"';
     const { result } = renderHook(() => useLiveConfig(initial.screens, initial.settings, 'UTC'));
-    await poll(0);
+    await beat();
 
-    // A torn answer must not be remembered as applied, or every later poll
-    // would get a 304 for a config the wall never showed.
+    // A torn answer must not be remembered as applied, or every later beat
+    // would look unchanged for a config the wall never showed.
     configBody = '{"screens": [';
     configEtag = '"b.UTC"';
-    await poll(3_000);
-    await poll(3_000);
+    await beat();
+    await beat();
     expect(sentEtags[2]).toBe('"a.UTC"');
 
     configBody = JSON.stringify(makeConfig('Second'));
-    await poll(3_000);
+    await beat();
     expect(result.current.screens[0].name).toBe('Second');
   });
 });

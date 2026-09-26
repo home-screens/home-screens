@@ -17,6 +17,10 @@
 # a row force the panel on, and the EXIT trap turns it on when this script
 # dies, so a kiosk restart mid-sleep never strands the panel dark.
 #
+# It asks every 3 s while the panel is off, so a touch or a remote wake lights
+# the panel almost at once, and every 15 s while it is on: that is nearly all
+# of the time, and it only delays the panel following the overlay into sleep.
+#
 # Usage:
 #   kiosk-power-agent.sh [<watch-pid>]
 #
@@ -28,9 +32,10 @@
 # has neither: it asks as `main` at localhost on the port in data/port.conf.
 #
 # Test hooks (never set in production):
-#   HS_POWER_STATE_URL      full URL to poll instead of the hub (curl handles file://)
-#   HS_POWER_POLL_SECONDS   poll interval (default 3)
-#   HS_POWER_RETRY_SECONDS  how often to look for a missing wlopm (default 60)
+#   HS_POWER_STATE_URL          full URL to poll instead of the hub (curl handles file://)
+#   HS_POWER_POLL_SECONDS       poll interval while the panel is off (default 3)
+#   HS_POWER_IDLE_POLL_SECONDS  poll interval while the panel is on (default 15)
+#   HS_POWER_RETRY_SECONDS      how often to look for a missing wlopm (default 60)
 #
 # Keep this self-contained: it ships to spokes through the kiosk bundle and
 # runs with no repo checkout around it.
@@ -40,11 +45,12 @@ APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 KIOSK_CONF="${APP_DIR}/data/kiosk.conf"
 WATCH_PID="${1:-}"
 POLL_SECONDS="${HS_POWER_POLL_SECONDS:-3}"
+IDLE_POLL_SECONDS="${HS_POWER_IDLE_POLL_SECONDS:-15}"
 RETRY_SECONDS="${HS_POWER_RETRY_SECONDS:-60}"
-# Consecutive failed polls before the panel is forced on. At the default
-# cadence that is nine seconds of hub silence — long enough to ride out a
-# restart of the hub service, short enough that a dead hub never leaves a
-# dark panel for long.
+# Consecutive failed polls before the panel is forced on. Only a dark panel
+# polls fast enough for this to matter, so it is nine seconds of hub silence —
+# long enough to ride out a restart of the hub service, short enough that a
+# dead hub never leaves a dark panel for long.
 MAX_FAILURES=3
 
 log() {
@@ -163,5 +169,9 @@ while :; do
     set_power off
   fi
 
-  sleep "${POLL_SECONDS}"
+  if [ "${APPLIED}" = "off" ]; then
+    sleep "${POLL_SECONDS}"
+  else
+    sleep "${IDLE_POLL_SECONDS}"
+  fi
 done

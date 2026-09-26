@@ -1,18 +1,21 @@
 // @vitest-environment jsdom
 
 /**
- * The three jobs in useLiveConfig's poll tick must fail independently.
+ * useLiveConfig follows the heartbeat: each beat names the current config and
+ * plugin-list revisions, and the hook fetches only the ones that moved.
  *
- * They used to share one `try` and one early return: `if (!res.ok) return`
- * after the `/api/config` fetch skipped plugin-change detection entirely. So
- * enabling or disabling a plugin while `/api/config` was briefly 500ing left
- * the display running the old plugin set until some later tick happened to
- * succeed at *both* fetches, with nothing logged.
+ * The two jobs must also fail independently. They used to share one `try`
+ * and one early return: `if (!res.ok) return` after the `/api/config` fetch
+ * skipped plugin-change detection entirely. So enabling or disabling a plugin
+ * while `/api/config` was briefly 500ing left the display running the old
+ * plugin set until some later tick happened to succeed at *both* fetches,
+ * with nothing logged.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, cleanup } from '@testing-library/react';
 import type { GlobalSettings, ScreenConfiguration } from '@/types/config';
+import { publishRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
 import { useLiveConfig } from '../useLiveConfig';
 
 // Per-endpoint behaviour, mutable per test step.
@@ -20,9 +23,10 @@ let configOk = true;
 let configThrows = false;
 let pluginsOk = true;
 let pluginsThrow = false;
-let buildIdThrows = false;
 let configBody = '';
+let configEtag = '"c1"';
 let pluginHash = 'hash-1';
+const fetched: string[] = [];
 
 const loadPlugins = vi.fn().mockResolvedValue(true);
 const setPluginSettingsMap = vi.fn();
@@ -39,13 +43,10 @@ vi.mock('@/stores/plugin-store', () => ({
 
 vi.mock('@/lib/display-fetch', () => ({
   displayFetch: async (url: string) => {
-    if (url === '/api/system/build-id') {
-      if (buildIdThrows) throw new Error('build-id down');
-      return { ok: true, text: async () => 'build-1' };
-    }
+    fetched.push(url);
     if (url === '/api/config?display=__default__') {
       if (configThrows) throw new Error('config down');
-      return { ok: configOk, text: async () => configBody };
+      return { ok: configOk, text: async () => configBody, headers: new Headers({ ETag: configEtag }) };
     }
     if (url === '/api/plugins/installed') {
       if (pluginsThrow) throw new Error('plugins down');
@@ -67,17 +68,18 @@ function makeConfig(screenName: string): ScreenConfiguration {
 
 const initial = makeConfig('S1');
 
-async function advanceOnePoll() {
+async function beat(revisions: DisplayRevisions) {
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(3_000);
+    publishRevisions({ buildId: 'build-1', ...revisions });
+    await vi.advanceTimersByTimeAsync(0);
   });
 }
 
+/** Mount and apply the first beat, which fetches both. */
 async function mountAndSettle() {
   const rendered = renderHook(() => useLiveConfig(initial.screens, initial.settings, 'UTC'));
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(0);
-  });
+  await beat({ config: '"c1"', plugins: 'p1' });
+  fetched.length = 0;
   return rendered;
 }
 
@@ -87,91 +89,123 @@ beforeEach(() => {
   configThrows = false;
   pluginsOk = true;
   pluginsThrow = false;
-  buildIdThrows = false;
   configBody = JSON.stringify(initial);
+  configEtag = '"c1"';
   pluginHash = 'hash-1';
-  loadPlugins.mockClear();
+  fetched.length = 0;
+  loadPlugins.mockReset().mockResolvedValue(true);
   setPluginSettingsMap.mockClear();
 });
 
 afterEach(() => {
+  cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
-describe('useLiveConfig poll job isolation', () => {
-  it('still detects a plugin change when /api/config returns a non-ok status', async () => {
-    const { unmount } = await mountAndSettle();
+describe('useLiveConfig follows the heartbeat', () => {
+  it('fetches nothing while every revision matches what it applied', async () => {
+    await mountAndSettle();
 
-    // Config endpoint starts failing; the plugin set changes in the same tick.
+    await beat({ config: '"c1"', plugins: 'p1' });
+    await beat({ config: '"c1"', plugins: 'p1' });
+
+    expect(fetched).toEqual([]);
+  });
+
+  it('fetches only the config when only the config revision moved', async () => {
+    const { result } = await mountAndSettle();
+
+    configBody = JSON.stringify(makeConfig('Renamed'));
+    configEtag = '"c2"';
+    await beat({ config: '"c2"', plugins: 'p1' });
+
+    expect(fetched).toEqual(['/api/config?display=__default__']);
+    expect(result.current.screens[0].name).toBe('Renamed');
+  });
+
+  it('ignores a field the beat left out', async () => {
+    await mountAndSettle();
+
+    await beat({});
+
+    expect(fetched).toEqual([]);
+  });
+
+  it('retries a failed plugin reload on the next beat, then stops once it lands', async () => {
+    await mountAndSettle();
+
+    pluginHash = 'hash-2';
+    loadPlugins.mockResolvedValueOnce(false);
+    await beat({ config: '"c1"', plugins: 'p2' });
+    expect(loadPlugins).toHaveBeenCalledTimes(1);
+
+    await beat({ config: '"c1"', plugins: 'p2' });
+    expect(loadPlugins).toHaveBeenCalledTimes(2);
+
+    await beat({ config: '"c1"', plugins: 'p2' });
+    expect(loadPlugins).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('useLiveConfig beat job isolation', () => {
+  it('still detects a plugin change when /api/config returns a non-ok status', async () => {
+    await mountAndSettle();
+
+    // Config endpoint starts failing; the plugin set changes in the same beat.
     configOk = false;
     pluginHash = 'hash-2';
-    await advanceOnePoll();
+    await beat({ config: '"c2"', plugins: 'p2' });
 
     expect(loadPlugins).toHaveBeenCalled();
-    unmount();
   });
 
   it('still detects a plugin change when /api/config throws', async () => {
-    const { unmount } = await mountAndSettle();
+    await mountAndSettle();
 
     configThrows = true;
     pluginHash = 'hash-2';
-    await advanceOnePoll();
+    await beat({ config: '"c2"', plugins: 'p2' });
 
     expect(loadPlugins).toHaveBeenCalled();
-    unmount();
-  });
-
-  it('still detects a plugin change when the build-id check throws', async () => {
-    const { unmount } = await mountAndSettle();
-
-    buildIdThrows = true;
-    pluginHash = 'hash-2';
-    await advanceOnePoll();
-
-    expect(loadPlugins).toHaveBeenCalled();
-    unmount();
   });
 
   it('still applies a config change when /api/plugins/installed fails', async () => {
-    const { result, unmount } = await mountAndSettle();
+    const { result } = await mountAndSettle();
 
     pluginsThrow = true;
     configBody = JSON.stringify(makeConfig('Renamed'));
-    await advanceOnePoll();
+    configEtag = '"c2"';
+    await beat({ config: '"c2"', plugins: 'p2' });
 
     expect(result.current.screens[0].name).toBe('Renamed');
-    unmount();
   });
 
-  it('keeps polling after a failed tick rather than wedging the re-entrancy guard', async () => {
-    const { result, unmount } = await mountAndSettle();
+  it('keeps following beats after a failed one rather than wedging the re-entrancy guard', async () => {
+    const { result } = await mountAndSettle();
 
-    // A tick where everything fails must still release the in-flight guard.
+    // A beat where everything fails must still release the in-flight guard.
     configThrows = true;
     pluginsThrow = true;
-    buildIdThrows = true;
-    await advanceOnePoll();
+    await beat({ config: '"c2"', plugins: 'p2' });
 
-    // Recovery: the next tick must be able to apply a config change.
+    // Recovery: the next beat must be able to apply a config change.
     configThrows = false;
     pluginsThrow = false;
-    buildIdThrows = false;
     configBody = JSON.stringify(makeConfig('Recovered'));
-    await advanceOnePoll();
+    configEtag = '"c2"';
+    await beat({ config: '"c2"', plugins: 'p2' });
 
     expect(result.current.screens[0].name).toBe('Recovered');
-    unmount();
   });
 
   it('does not reload plugins when the hash is unchanged', async () => {
-    const { unmount } = await mountAndSettle();
-    loadPlugins.mockClear();
+    await mountAndSettle();
 
-    await advanceOnePoll();
+    // A settings save moves the list's revision but not its hash.
+    await beat({ config: '"c1"', plugins: 'p2' });
 
+    expect(fetched).toEqual(['/api/plugins/installed']);
     expect(loadPlugins).not.toHaveBeenCalled();
-    unmount();
   });
 });

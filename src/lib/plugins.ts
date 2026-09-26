@@ -27,7 +27,7 @@ const installedStore = createJsonStore<InstalledPluginsFile>({
   defaultValue: { schemaVersion: 1, plugins: [] },
 });
 
-// In-memory cache for installed.json (avoids disk reads every 3s poll).
+// In-memory cache for installed.json (avoids a disk read on every wall heartbeat).
 // Keyed on path + mtime + size: same-tick writes can share an mtimeMs, and
 // the lazy store path means one cache variable can point at several absolute
 // paths (tests swap cwd), so mtime alone cannot prove the data still fresh.
@@ -519,6 +519,24 @@ export async function getPluginHash(): Promise<string> {
     .sort()
     .join('|');
   return crypto.createHash('sha256').update(content).digest('hex').slice(0, 16);
+}
+
+const installedRevisions = new WeakMap<InstalledPluginsFile, string>();
+
+/**
+ * A revision of the whole installed list, for the wall's heartbeat: a wall
+ * reads `/api/plugins/installed` again only when this moves. Unlike
+ * `getPluginHash` it covers settings, because that read is also how a wall
+ * picks up a plugin settings save. Memoized per cached file object.
+ */
+export async function getInstalledRevision(): Promise<string> {
+  const installed = await getInstalledPlugins();
+  let revision = installedRevisions.get(installed);
+  if (!revision) {
+    revision = crypto.createHash('sha256').update(JSON.stringify(installed)).digest('hex').slice(0, 16);
+    installedRevisions.set(installed, revision);
+  }
+  return revision;
 }
 
 // --- Manifest validation ---
