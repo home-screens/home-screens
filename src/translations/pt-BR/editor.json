@@ -3054,7 +3054,7 @@
       "shadowSize": "Tamanho da sombra",
       "background": "Fundo",
       "borderColor": "Cor da borda",
-      "colorAlpha": "O quanto esta cor é intensa",
+      "colorAlpha": "Intensidade",
       "textColor": "Cor do texto",
       "textScale": "Tamanho do texto",
       "textScaleHint": "100% é o tamanho normal do texto deste módulo. Deslize para deixá-lo maior ou menor.",

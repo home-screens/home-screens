@@ -3054,7 +3054,7 @@
       "shadowSize": "Schattengröße",
       "background": "Hintergrund",
       "borderColor": "Rahmenfarbe",
-      "colorAlpha": "Wie kräftig diese Farbe ist",
+      "colorAlpha": "Farbstärke",
       "textColor": "Textfarbe",
       "textScale": "Textgröße",
       "textScaleHint": "100 % ist die normale Textgröße dieses Moduls. Schiebe, um sie größer oder kleiner zu machen.",

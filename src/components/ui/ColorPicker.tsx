@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { parseCssColorToRgb, parseEditableColor, withCssColorAlpha } from '@/lib/hex-color';
+import Slider from './Slider';
 
 interface ColorPickerProps {
   label: string;
@@ -16,7 +17,7 @@ interface ColorPickerProps {
    * separate slider rather than a richer swatch.
    */
   showAlpha?: boolean;
-  /** Screen-reader name for the see-through slider. Required by `showAlpha`. */
+  /** Caption above the see-through slider. Required by `showAlpha`. */
   alphaLabel?: string;
   /** Pairs with `resetLabel`: when both are set and `value` differs from
    *  `defaultValue`, a reset button appears. Passing one without the other
@@ -71,67 +72,68 @@ export default function ColorPicker({
   };
 
   return (
-    <label className="flex items-center justify-between gap-2">
-      <span className="text-xs text-hs-text-muted">{label}</span>
-      <div className="flex items-center gap-2">
-        {defaultValue !== undefined && resetLabel !== undefined && value !== defaultValue && (
-          <button
-            type="button"
-            title={resetLabel}
-            aria-label={resetLabel}
-            // The button sits inside the <label>, so without preventDefault the
-            // label's activation forwards the click to the color input and pops
-            // the OS color picker on top of the reset.
-            onClick={(e) => { e.preventDefault(); onChange(defaultValue); setDraft(defaultValue); }}
-            className="text-xs text-hs-text-muted hover:text-hs-text-body cursor-pointer"
-          >
-            ↺
-          </button>
-        )}
-        <input
-          type="color"
-          value={swatch}
-          onChange={(e) => setSwatch(e.target.value)}
-          className="w-8 h-8 rounded border border-hs-border-strong bg-transparent cursor-pointer"
-        />
-        {showAlpha && alphaLabel !== undefined && (
+    // The see-through slider gets its own full-width line, like every other
+    // slider in the Style panel: beside the swatch and the text box it pushed
+    // the row past the panel's edge. It sits outside the colour row's <label>,
+    // whose clicks all open the OS colour picker.
+    <div className="flex flex-col gap-1.5">
+      <label className="flex items-center justify-between gap-2">
+        <span className="text-xs text-hs-text-muted">{label}</span>
+        <div className="flex items-center gap-2">
+          {defaultValue !== undefined && resetLabel !== undefined && value !== defaultValue && (
+            <button
+              type="button"
+              title={resetLabel}
+              aria-label={resetLabel}
+              // The button sits inside the <label>, so without preventDefault the
+              // label's activation forwards the click to the color input and pops
+              // the OS color picker on top of the reset.
+              onClick={(e) => { e.preventDefault(); onChange(defaultValue); setDraft(defaultValue); }}
+              className="text-xs text-hs-text-muted hover:text-hs-text-body cursor-pointer"
+            >
+              ↺
+            </button>
+          )}
           <input
-            type="range"
-            min={0}
-            max={100}
-            step={1}
-            value={Math.round(alpha * 100)}
-            title={alphaLabel}
-            aria-label={alphaLabel}
-            onChange={(e) => setAlpha(Number(e.target.value) / 100)}
-            // Inside the <label>, so a drag must not also open the OS picker.
-            onClick={(e) => e.preventDefault()}
-            className="w-16 cursor-pointer accent-hs-accent"
+            type="color"
+            value={swatch}
+            onChange={(e) => setSwatch(e.target.value)}
+            className="w-8 h-8 rounded border border-hs-border-strong bg-transparent cursor-pointer"
           />
-        )}
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => {
-            const trimmed = draft.trim();
-            if (HEX_RE.test(trimmed)) {
-              // Normalize 3-digit hex to 6-digit so ${color}XX opacity suffixes work
-              const normalized = trimmed.length === 4
-                ? `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`
-                : trimmed;
-              onChange(normalized);
-              setDraft(normalized);
-            } else if (isSupportedColor(trimmed)) {
-              onChange(trimmed);
-              setDraft(trimmed);
-            } else {
-              setDraft(value);
-            }
-          }}
-          className="w-28 px-2 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => {
+              const trimmed = draft.trim();
+              if (HEX_RE.test(trimmed)) {
+                // Normalize 3-digit hex to 6-digit so ${color}XX opacity suffixes work
+                const normalized = trimmed.length === 4
+                  ? `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`
+                  : trimmed;
+                onChange(normalized);
+                setDraft(normalized);
+              } else if (isSupportedColor(trimmed)) {
+                onChange(trimmed);
+                setDraft(trimmed);
+              } else {
+                setDraft(value);
+              }
+            }}
+            className="w-28 px-2 py-1 text-xs bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
+          />
+        </div>
+      </label>
+      {showAlpha && alphaLabel !== undefined && (
+        <Slider
+          label={alphaLabel}
+          value={Math.round(alpha * 100)}
+          min={0}
+          max={100}
+          displayValue={`${Math.round(alpha * 100)}%`}
+          onChange={(v) => setAlpha(v / 100)}
         />
-      </div>
-    </label>
+      )}
+    </div>
   );
 }

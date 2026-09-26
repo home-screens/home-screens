@@ -3054,7 +3054,7 @@
       "shadowSize": "Skyggestørrelse",
       "background": "Baggrund",
       "borderColor": "Kantfarve",
-      "colorAlpha": "Hvor kraftig denne farve er",
+      "colorAlpha": "Farvestyrke",
       "textColor": "Tekstfarve",
       "textScale": "Tekststørrelse",
       "textScaleHint": "100 % er modulets normale tekststørrelse. Træk for at gøre den større eller mindre.",

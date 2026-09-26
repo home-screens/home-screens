@@ -3054,7 +3054,7 @@
       "shadowSize": "Schaduwgrootte",
       "background": "Achtergrond",
       "borderColor": "Randkleur",
-      "colorAlpha": "Hoe sterk deze kleur is",
+      "colorAlpha": "Kleursterkte",
       "textColor": "Tekstkleur",
       "textScale": "Tekstgrootte",
       "textScaleHint": "100% is de normale tekstgrootte van deze module. Schuif om die groter of kleiner te maken.",

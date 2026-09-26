@@ -3054,7 +3054,7 @@
       "shadowSize": "Shadow Size",
       "background": "Background",
       "borderColor": "Border Color",
-      "colorAlpha": "How strong this color is",
+      "colorAlpha": "Color strength",
       "textColor": "Text Color",
       "textScale": "Text size",
       "textScaleHint": "100% is this module's normal text size. Slide to make it bigger or smaller.",

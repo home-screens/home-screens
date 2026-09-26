@@ -3054,7 +3054,7 @@
       "shadowSize": "Taille de l'ombre",
       "background": "Arrière-plan",
       "borderColor": "Couleur de bordure",
-      "colorAlpha": "À quel point cette couleur est intense",
+      "colorAlpha": "Intensité",
       "textColor": "Couleur du texte",
       "textScale": "Taille du texte",
       "textScaleHint": "100 % est la taille de texte normale de ce module. Fais glisser pour l'agrandir ou la réduire.",
