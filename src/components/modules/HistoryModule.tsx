@@ -32,7 +32,7 @@ export default function HistoryModule({ config, style, timezone }: HistoryModule
   const [data, error] = useFetchData<HistoryResponse>(
     historyUrl(config, { today }),
     config.refreshIntervalMs ?? DEFAULT_REFRESH_MS,
-    historyUrl(config),
+    { datasetKey: historyUrl(config) },
   );
   const events = data?.events ?? [];
 

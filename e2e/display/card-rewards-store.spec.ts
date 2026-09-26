@@ -167,8 +167,14 @@ test.describe('chore-chart rewards store', () => {
       await posted;
       await expect(mod).toContainText(String(before - 2));
 
-      // Two more chores polls land; the balance they rebuild must be the spent one.
-      for (let i = 0; i < 2; i++) await page.waitForResponse((r) => /\/api\/chores(\?|$)/.test(r.url()) && r.request().method() === 'GET');
+      // Two more chores reads land; the balance they rebuild must be the spent
+      // one. A wall reads the chores when they change, so change them twice
+      // (from another screen) without touching the rewards.
+      for (const grabLimit of [2, 1]) {
+        const read = page.waitForResponse((r) => /\/api\/chores(\?|$)/.test(r.url()) && r.request().method() === 'GET');
+        expect((await request.put('/api/chores/settings', { data: { grabLimit, grabHold: 'day' } })).ok()).toBe(true);
+        await read;
+      }
       await expect(mod.getByText(String(before), { exact: true })).toHaveCount(0);
       await expect(mod).toContainText(String(before - 2));
     });

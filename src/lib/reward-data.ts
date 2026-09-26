@@ -34,8 +34,11 @@ export interface RewardData {
 
 const EMPTY: RewardData = { rewards: [], balances: {}, redemptions: [] };
 
+/** Where rewards, balances and redemptions live, relative to the data root. */
+export const REWARDS_FILE = 'data/rewards.json';
+
 const store = createJsonStore<RewardData>({
-  path: 'data/rewards.json',
+  path: REWARDS_FILE,
   defaultValue: EMPTY,
   backup: true,
   errorHandling: 'throw-corrupt',

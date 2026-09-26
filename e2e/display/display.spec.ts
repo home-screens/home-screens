@@ -163,6 +163,49 @@ test('per-display routes render each display, and /display resolves main inline'
   expect(page.url()).toContain('/display');
 });
 
+/**
+ * The page is rendered from the config, and hands the wall that config's
+ * ETag, so the first beats find it current: a freshly loaded wall fetches its
+ * config only once something is saved. Fetching it anyway used to empty the
+ * data cache as the page came up, and every module read its data again.
+ */
+test.describe('a freshly loaded wall starts from the config it was rendered with', () => {
+  // The three ways a wall page renders: one display, the main one of several
+  // (drawn inline at /display), and a named one.
+  const single = (text: string) => baseConfig({ screens: [makeScreen('only', 'Only', [textModule(text)])] });
+  const several = (main: string, kitchen: string) => baseConfig({
+    displays: [
+      { id: 'main', name: 'Main', screens: [makeScreen('m1', 'M1', [textModule(main)])] },
+      { id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k1', 'K1', [textModule(kitchen)])] },
+    ],
+  });
+  const cases = [
+    { name: 'a single-display wall', route: '/display', configFor: (text: string) => single(text) },
+    { name: 'the main display of several', route: '/display', configFor: (text: string) => several(text, 'KITCHEN WALL') },
+    { name: 'a named display', route: '/display/kitchen', configFor: (text: string) => several('MAIN WALL', text) },
+  ];
+
+  for (const { name, route, configFor } of cases) {
+    test(`${name} fetches its config only after a save`, async ({ page, request }) => {
+      await putConfig(request, configFor('AS RENDERED'));
+      const configReads: string[] = [];
+      page.on('request', (r) => {
+        if (r.method() === 'GET' && new URL(r.url()).pathname === '/api/config') configReads.push(r.url());
+      });
+      const beat = () => page.waitForResponse((r) => new URL(r.url()).pathname === '/api/display/commands', { timeout: 10_000 });
+
+      await page.goto(route);
+      await expect(page.getByText('AS RENDERED')).toBeVisible();
+      for (let i = 0; i < 3; i++) await beat();
+      expect(configReads).toEqual([]);
+
+      await putConfig(request, configFor('AFTER A SAVE'));
+      await expect(page.getByText('AFTER A SAVE')).toBeVisible({ timeout: 10_000 });
+      expect(configReads).toHaveLength(1);
+    });
+  }
+});
+
 test.describe('useLiveConfig reload paths', () => {
   // The display's 3s heartbeat (the command drain) names three revisions that
   // useLiveConfig follows:

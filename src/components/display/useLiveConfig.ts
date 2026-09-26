@@ -54,6 +54,11 @@ function fingerprintsEqual(a: SettingsFingerprints, b: SettingsFingerprints): bo
  * fetch replaces it with the one the response names (`HUB_TIMEZONE_HEADER`).
  * Server and client start from the same zone, so the first client render
  * matches the server's HTML wherever the kiosk's own clock is set.
+ *
+ * `initialConfigEtag` is the ETag of the config the server rendered from
+ * (`wallConfigEtag`). The first beat names the same one unless the config
+ * was saved since, so a freshly loaded wall neither fetches the config again
+ * nor clears the data its modules just read.
  */
 export function useLiveConfig(
   initialScreens: Screen[],
@@ -63,6 +68,7 @@ export function useLiveConfig(
   displayId?: string,
   initialDisplays?: DisplayDescriptor[],
   initialRules?: DisplayRule[],
+  initialConfigEtag?: string,
 ) {
   const [screens, setScreens] = useState(initialScreens);
   const [settings, setSettings] = useState<DisplaySettings>(() => withHouseholdTimezone(initialSettings, hubTimezone));
@@ -87,13 +93,16 @@ export function useLiveConfig(
   // The server-side per-display page then either renders DisplayNotFound
   // (display gone) or remounts the rotator (display came back).
   const displayReloadingRef = useRef(false);
+  // Read once, when the effect starts: it describes the server render only.
+  const initialConfigEtagRef = useRef(initialConfigEtag);
 
   useEffect(() => {
     let mounted = true;
-    // The ETag of the config answer last applied. A beat naming another one
-    // means the config changed; it is sent back with the fetch, so a change
-    // that was undone meanwhile is a bodiless 304.
-    let configEtag = '';
+    // The ETag of the config answer last applied, starting with the one the
+    // page was rendered from. A beat naming another one means the config
+    // changed; it is sent back with the fetch, so a change that was undone
+    // meanwhile is a bodiless 304.
+    let configEtag = initialConfigEtagRef.current ?? '';
     // The plugin-list revision last applied. Advanced only once the list is
     // live, so a failed reload is retried on the next beat.
     let pluginsRevision = '';

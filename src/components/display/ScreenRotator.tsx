@@ -81,13 +81,19 @@ interface ScreenRotatorProps {
    * command polling or status reports. What the Preview button opens.
    */
   preview?: boolean;
+  /**
+   * The ETag a wall's config read would have been answered with when the
+   * server rendered this page (`wallConfigEtag`). The live config starts from
+   * it, so a freshly loaded wall fetches the config only if it changed since.
+   */
+  configEtag?: string;
 }
 
-export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, hubTimezone, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false }: ScreenRotatorProps) {
+export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, hubTimezone, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false, configEtag }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
-  const { screens: allScreens, settings, timezoneSaved, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, hubTimezone, initialProfiles, displayId, initialDisplays, initialRules);
+  const { screens: allScreens, settings, timezoneSaved, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, hubTimezone, initialProfiles, displayId, initialDisplays, initialRules, configEtag);
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);

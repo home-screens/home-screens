@@ -154,7 +154,7 @@ describe('POST /api/chores/grab', () => {
       // A grab of a put-back chore lasts a week under "until it comes back".
       grabs: [{ choreId: 'porch', memberId: 'bram', date: oldDay }, { choreId: 'porch', memberId: 'cleo', date: recentDay }],
     });
-    const marks = await (await readMarks()).json();
+    const marks = await (await readMarks(new NextRequest('http://localhost/api/chores'))).json();
     expect(marks.completions).toEqual([{ choreId: 'garage', memberId: 'ada', date: oldDay }]);
     expect(marks.grabs).toEqual([{ choreId: 'porch', memberId: 'cleo', date: recentDay }]);
     expect(await (await grabIt('garage', 'bram')).json()).toMatchObject({ reason: 'taken', memberId: 'ada' });

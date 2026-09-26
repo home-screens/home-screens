@@ -11,7 +11,8 @@ import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import { useOverspentMessage } from '@/components/modules/chore-chart/ChoreOverspentNotice';
 import { partitionMembers, weekMembers } from '@/components/modules/chore-chart/layout';
-import { createTZDate, formatDateInTZ } from '@/lib/timezone';
+import { formatDateInTZ } from '@/lib/timezone';
+import { useTZClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreToast, { type ToastItem } from './ChoreToast';
 import FamilyEmptyState from '../FamilyEmptyState';
@@ -189,8 +190,9 @@ export default function FullscreenChoreChartModule({
   // `.getHours()`. `formatDateInTZ` further down takes a real UTC instant
   // (`new Date()`) so it can do its own zone shift via `Intl.DateTimeFormat`;
   // passing the shifted Date would double-shift and yield the wrong day
-  // near midnight.
-  const tzNow = createTZDate(timezone);
+  // near midnight. It ticks, so the time-of-day band moves on the hour even
+  // while no chore changes and nothing else re-renders the chart.
+  const tzNow = useTZClock(timezone);
   const currentTod = getCurrentTimeOfDay(tzNow.getHours());
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);

@@ -5,6 +5,7 @@ import type { TodoistConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useRealClock } from '@/hooks/useTZClock';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { MetadataText } from './shared/MetadataText';
@@ -110,10 +111,10 @@ export default function TodoistModule({ config, style, timeFormat, timezone }: T
   const title = config.title || 'Todoist';
   const showTitle = config.showTitle !== false;
   const viewMode = config.viewMode ?? 'list';
-  // Stabilize `now` so useMemo deps in child views don't bust on every render.
-  // Recompute only when fresh data arrives from the API.
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed to data, not time; re-snapshot `now` only when fresh API data arrives
-  const now = useMemo(() => new Date(), [data]);
+  // A minute clock: the same Date between ticks, so memos in the child views
+  // hold, and a new one each minute, so Today turns into Yesterday at
+  // midnight even when a poll brings the same tasks (and so the same object).
+  const now = useRealClock();
 
   const gate = moduleGate({ style, data, error, loadingMessage: t('todoist.loading') });
   if (gate) return gate;

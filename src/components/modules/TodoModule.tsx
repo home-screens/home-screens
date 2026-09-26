@@ -13,8 +13,8 @@ import { usePressedKey } from './shared/usePressedKey';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import { classifyDue, formatDueLabel, localISODate, parseISODate } from '@/lib/todo-due-labels';
-import { createTZDate } from '@/lib/timezone';
 import { useFetchData } from '@/hooks/useFetchData';
+import { useTZClock } from '@/hooks/useTZClock';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
 import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
@@ -483,8 +483,7 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
 
   useEffect(() => {
     if (!fetched) return;
-    if (Date.now() < overrideUntilRef.current) return;
-    setOverrides((prev) => {
+    const reconcile = () => setOverrides((prev) => {
       const next: Record<string, boolean> = {};
       for (const id of pendingRef.current) {
         if (id in prev) next[id] = prev[id];
@@ -494,6 +493,17 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
       if (prevKeys.length === Object.keys(next).length && prevKeys.every((k) => next[k] === prev[k])) return prev;
       return next;
     });
+    const wait = overrideUntilRef.current - Date.now();
+    if (wait <= 0) {
+      reconcile();
+      return;
+    }
+    // Inside the window, reconcile when it closes rather than on the next
+    // poll: a poll that brings nothing new hands back the same lists and does
+    // not run this again, so a change another screen made inside the window
+    // would otherwise stay hidden behind the override.
+    const timer = setTimeout(reconcile, wait);
+    return () => clearTimeout(timer);
     // pendingRef is a stable ref from useOptimisticMutation; listed to satisfy
     // exhaustive-deps without changing when this effect runs.
   }, [fetched, pendingRef]);
@@ -556,8 +566,10 @@ export default function TodoModule({ config, style, screenId, moduleId, timezone
 
   // "Today" for the due chips is the household's day, not the Pi's: the
   // shipped image keeps the OS on UTC, so an item due today would read
-  // Overdue from early evening onwards otherwise.
-  const now = createTZDate(timezone);
+  // Overdue from early evening onwards otherwise. A ticking clock, because an
+  // unchanged poll no longer re-renders the card: "Due today" turns into
+  // "Overdue" at midnight without anyone touching the list.
+  const now = useTZClock(timezone);
   const ctx: RowContext = { accentColor, showDueDates, showAssignees, members, now, locale, t };
 
   // First fetch still in flight: a plain card, never a crash. A failed fetch

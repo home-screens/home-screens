@@ -3,26 +3,36 @@ import { NextRequest } from 'next/server';
 
 // --- fs/promises mock: in-memory file store ---------------------------------
 const fakeFs = new Map<string, string>();
+// Every write is a new identity, as a rename onto the path is on disk.
+let writes = 0;
+const identity = new Map<string, number>();
 
 vi.mock('fs', () => {
+  const missing = () => {
+    const err = new Error('ENOENT') as NodeJS.ErrnoException;
+    err.code = 'ENOENT';
+    return err;
+  };
   return {
     promises: {
       readFile: vi.fn(async (p: string) => {
-        if (!fakeFs.has(p)) {
-          const err = new Error('ENOENT') as NodeJS.ErrnoException;
-          err.code = 'ENOENT';
-          throw err;
-        }
+        if (!fakeFs.has(p)) throw missing();
         return fakeFs.get(p)!;
       }),
       writeFile: vi.fn(async (p: string, contents: string) => {
         fakeFs.set(p, contents);
+        identity.set(p, ++writes);
+      }),
+      stat: vi.fn(async (p: string) => {
+        if (!fakeFs.has(p)) throw missing();
+        return { ino: identity.get(p) ?? 0, size: fakeFs.get(p)!.length, mtimeMs: identity.get(p) ?? 0 };
       }),
       mkdir: vi.fn(async () => undefined),
       rename: vi.fn(async (from: string, to: string) => {
         if (fakeFs.has(from)) {
           fakeFs.set(to, fakeFs.get(from)!);
           fakeFs.delete(from);
+          identity.set(to, ++writes);
         }
       }),
     },
@@ -38,6 +48,7 @@ vi.mock('@/lib/auth', () => ({
 
 // --- chore-data mock --------------------------------------------------------
 vi.mock('@/lib/chore-data', () => ({
+  CHORES_FILE: 'data/chores.json',
   readChoreData: vi.fn(),
   writeChoreData: vi.fn(),
 }));
@@ -47,6 +58,7 @@ vi.mock('@/lib/chore-data', () => ({
 // completion and the points can be published in one commit. One planner
 // serves both directions: a positive delta credits, a negative one debits.
 vi.mock('@/lib/reward-data', () => ({
+  REWARDS_FILE: 'data/rewards.json',
   planPointsMove: vi.fn(),
 }));
 
@@ -140,11 +152,18 @@ function daysAhead(n: number): string {
 
 function seedCompletions(completions: Array<Record<string, string>>): void {
   fakeFs.set(DATA_FILE, JSON.stringify({ completions }));
+  identity.set(DATA_FILE, ++writes);
+}
+
+/** A chores read, as a wall (`?days=`) or a browser holding an answer (`If-None-Match`) sends it. */
+function getRequest(query = '', etag?: string): NextRequest {
+  return new NextRequest(`http://localhost/api/chores${query}`, etag ? { headers: { 'If-None-Match': etag } } : undefined);
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   fakeFs.clear();
+  identity.clear();
 
   vi.mocked(readChoreData).mockResolvedValue({ chores: choreDataFixture.chores } as never);
   vi.mocked(readFamilyData).mockResolvedValue({ members: choreDataFixture.members } as never);
@@ -183,7 +202,7 @@ describe('GET /api/chores', () => {
       { choreId: 'chore-pts5', memberId: 'kid-1', date: stale },
     ]);
 
-    const res = await GET();
+    const res = await GET(getRequest());
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -194,7 +213,7 @@ describe('GET /api/chores', () => {
 
   it('returns empty lists, the hub day and the chore settings when no completions exist', async () => {
     // fakeFs is empty — readFile throws ENOENT, route returns { completions: [] }
-    const res = await GET();
+    const res = await GET(getRequest());
     const json = await res.json();
 
     expect(res.status).toBe(200);
@@ -210,7 +229,7 @@ describe('GET /api/chores', () => {
       },
     ]);
 
-    await GET();
+    await GET(getRequest());
 
     // Stale entry exists → purge mutates the array → enqueueOp persists the change.
     expect(fsPromises.writeFile).toHaveBeenCalled();
@@ -226,11 +245,117 @@ describe('GET /api/chores', () => {
       },
     ]);
 
-    await GET();
+    await GET(getRequest());
 
     // No churn: a quiescent display polling every 15s must NOT touch the disk
     // when nothing is old enough to purge.
     expect(fsPromises.writeFile).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/chores revalidation', () => {
+  it('answers with an ETag the browser has to check before reusing', async () => {
+    seedCompletions([{ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0) }]);
+
+    const res = await GET(getRequest());
+
+    expect(res.headers.get('ETag')).toMatch(/^"[0-9a-f]{24}"$/);
+    expect(res.headers.get('Cache-Control')).toBe('no-cache');
+  });
+
+  it('answers an unchanged read with a bodiless 304 and never reads either file', async () => {
+    seedCompletions([{ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0) }]);
+    const etag = (await GET(getRequest())).headers.get('ETag')!;
+    vi.mocked(readChoreData).mockClear();
+    vi.mocked(fsPromises.readFile).mockClear();
+
+    const res = await GET(getRequest('', etag));
+
+    expect(res.status).toBe(304);
+    expect(await res.text()).toBe('');
+    expect(res.headers.get('ETag')).toBe(etag);
+    expect(readChoreData).not.toHaveBeenCalled();
+    expect(fsPromises.readFile).not.toHaveBeenCalledWith(DATA_FILE, expect.anything());
+  });
+
+  it('answers in full once a write changed the file', async () => {
+    seedCompletions([]);
+    const etag = (await GET(getRequest())).headers.get('ETag')!;
+
+    await POST(makePostRequest({ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0) }));
+    const res = await GET(getRequest('', etag));
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('ETag')).not.toBe(etag);
+    expect((await res.json()).completions).toEqual([expect.objectContaining({ choreId: 'chore-pts5', date: daysAgo(0) })]);
+  });
+
+  it('names the bytes on disk after a clean-up, so the next read of them is a 304', async () => {
+    seedCompletions([
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(CHORE_HISTORY_DAYS + 5) },
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0) },
+    ]);
+
+    const cleaned = await GET(getRequest());
+    expect(fsPromises.writeFile).toHaveBeenCalled();
+
+    const again = await GET(getRequest('', cleaned.headers.get('ETag')!));
+    expect(again.status).toBe(304);
+  });
+
+  it('gives every length of history the same ETag, since they are one set of files', async () => {
+    seedCompletions([{ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0) }]);
+
+    const all = await GET(getRequest());
+    const recent = await GET(getRequest('?days=31'));
+
+    expect(recent.headers.get('ETag')).toBe(all.headers.get('ETag'));
+    expect((await GET(getRequest('?days=31', all.headers.get('ETag')!))).status).toBe(304);
+  });
+});
+
+describe('GET /api/chores?days=', () => {
+  const manual = {
+    id: 'garage', name: 'Garage', emoji: 'car', points: 20, frequency: 'daily',
+    daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['kid-1'], rotation: 'fixed',
+    bonus: { claim: 'first', comesBack: 'manual' },
+  };
+
+  it('sends only the recent days, and keeps what holds a put-back chore closed however old', async () => {
+    vi.mocked(readChoreData).mockResolvedValue({ chores: [...choreDataFixture.chores, manual], settings: { grabLimit: 1, grabHold: 'day' } } as never);
+    seedCompletions([
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0) },
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(31) },
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(32) },
+      { choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(60) },
+      { choreId: 'garage', memberId: 'kid-1', date: daysAgo(60) },
+    ]);
+
+    const recent = await (await GET(getRequest('?days=31'))).json();
+    const all = await (await GET(getRequest())).json();
+
+    expect(recent.completions.map((c: { choreId: string; date: string }) => `${c.choreId}@${c.date}`)).toEqual([
+      `chore-pts5@${daysAgo(0)}`,
+      `chore-pts5@${daysAgo(31)}`,
+      `garage@${daysAgo(60)}`,
+    ]);
+    expect(all.completions).toHaveLength(5);
+    expect(recent.today).toBe(all.today);
+    expect(recent.settings).toEqual(all.settings);
+  });
+
+  it('never writes the shorter history back to disk', async () => {
+    seedCompletions([{ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(60) }]);
+
+    await GET(getRequest('?days=7'));
+
+    expect(fsPromises.writeFile).not.toHaveBeenCalled();
+    expect(JSON.parse(fakeFs.get(DATA_FILE)!).completions).toHaveLength(1);
+  });
+
+  it.each(['0', '91', '7.5', 'week', ''])('refuses days=%s', async (days) => {
+    const res = await GET(getRequest(`?days=${days}`));
+    expect(res.status).toBe(400);
   });
 });
 

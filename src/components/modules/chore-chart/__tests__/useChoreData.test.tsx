@@ -12,11 +12,13 @@ import type { ChoreDefinition } from '@/types/config';
 // test, so it is the only call that reaches a spy.
 
 const posted: Array<Record<string, unknown>> = [];
+const postedTo: string[] = [];
 let postResponse: Record<string, unknown> = { completions: [], changed: true };
 
 vi.mock('@/lib/display-fetch', () => ({
-  displayFetch: vi.fn(async (_url: string, init?: RequestInit) => {
+  displayFetch: vi.fn(async (url: string, init?: RequestInit) => {
     posted.push(JSON.parse(String(init?.body ?? '{}')));
+    postedTo.push(url);
     return { ok: true, json: async () => postResponse } as unknown as Response;
   }),
 }));
@@ -51,7 +53,7 @@ type Marks = {
   completions: Array<{ choreId: string; memberId: string; date: string; status?: 'skipped'; at?: string }>;
   bonusResets?: Record<string, string>;
 };
-let completionsResult: readonly [Marks, null] =
+let completionsResult: readonly [Marks & { today?: string }, null] =
   [{ completions: [] }, null];
 
 vi.mock('@/hooks/useFetchData', () => ({
@@ -63,6 +65,7 @@ vi.mock('@/hooks/useFetchData', () => ({
 }));
 
 const { useChoreData } = await import('../useChoreData');
+const { displayCache } = await import('@/lib/display-cache');
 
 const config = {
   weekStartDay: 'monday' as const,
@@ -83,6 +86,8 @@ function today(): string {
 
 beforeEach(() => {
   posted.length = 0;
+  postedTo.length = 0;
+  vi.restoreAllMocks();
   completionsResult = [{ completions: [] }, null];
   postResponse = { completions: [], changed: true };
 });
@@ -164,5 +169,52 @@ describe('the week behind the stars', () => {
     const day = result.current.weekData.find((d) => d.date === today())!;
     expect(day.memberAssigned['kid-1']).toBe(false);
     expect(day.memberStars['kid-1']).toBe(false);
+  });
+});
+
+describe('a write reaches every card showing the chores', () => {
+  it('ticks through the plain chores route, not the recent-history read', async () => {
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
+    await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
+    expect(postedTo).toEqual(['/api/chores']);
+  });
+
+  it("publishes the lists a tick answers with over the chores read, keeping the hub's day", async () => {
+    completionsResult = [{ completions: [], today: today() }, null];
+    const replace = vi.spyOn(displayCache, 'replace');
+    const done = [{ choreId: 'chore-1', memberId: 'kid-1', date: today() }];
+    postResponse = { completions: done, grabs: [], bonusResets: {}, changed: true };
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
+    await act(async () => {});
+
+    await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
+
+    expect(replace).toHaveBeenCalledWith(
+      '/api/chores?days=31',
+      { completions: done, grabs: [], bonusResets: {}, today: today() },
+      expect.any(Number),
+    );
+  });
+
+  it('publishes the rewards a tick moved, so every card shows the new balance at once', async () => {
+    completionsResult = [{ completions: [], today: today() }, null];
+    const replace = vi.spyOn(displayCache, 'replace');
+    const moved = { rewards: [], balances: { 'kid-1': 3 }, redemptions: [] };
+    postResponse = { completions: [], changed: true, rewards: moved };
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
+    await act(async () => {});
+
+    await act(async () => { await result.current.toggleComplete('chore-1', 'kid-1'); });
+
+    expect(replace).toHaveBeenCalledWith('/api/rewards', moved, expect.any(Number));
+  });
+
+  it('publishes a redemption the same way', () => {
+    const replace = vi.spyOn(displayCache, 'replace');
+    const { result } = renderHook(() => useChoreData(config, undefined), { wrapper });
+
+    act(() => result.current.applyRedemption({ balances: { 'kid-1': 1 }, redemptions: [] }));
+
+    expect(replace).toHaveBeenCalledWith('/api/rewards', { rewards: [], balances: { 'kid-1': 1 }, redemptions: [] }, expect.any(Number));
   });
 });

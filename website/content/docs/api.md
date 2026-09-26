@@ -139,12 +139,14 @@ This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo
     "buildId": "Xb2kQ7pL0sR4",
     "plugins": "9f1c0a7e5d3b2c41",
     "config": "\"4e0f9a1c.America%2FChicago\"",
-    "timer": "c02d6b19e8a4f7a0"
+    "timer": "c02d6b19e8a4f7a0",
+    "chores": "\"b1e7d05c9a3f28e64d0c7a19\"",
+    "rewards": "\"7f20c4a9e15d3b86c0f94e2a\""
   }
 }
 ```
 
-`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with) and the timer session (`GET /api/timers/session`). The display fetches each of those only when its value differs from the one it last applied. A value the hub could not work out is left out, and the display keeps what it has for it.
+`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), and the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with). The display fetches each of those only when its value differs from the one it last applied. A value the hub could not work out is left out, and the display keeps what it has for it.
 
 `sharedStateWatched` tells the screen whether anyone is currently watching its shared values in the editor. While it is `true`, the screen reports changes as they happen instead of waiting for its next 30-second heartbeat, so the editor sees live values; while it is `false`, it stays on the slower schedule. A display client that ignores this flag still works, it just never speeds up.
 
@@ -393,6 +395,10 @@ curl "http://<hub>:3000/api/display/power-state?display=kitchen&applied=on"
 ### GET /api/chores
 
 Returns chore completion records, the bonus chores someone has grabbed, and when each "when I put it back" bonus chore was last put back. Automatically purges entries older than 90 days. Public on the LAN with no authentication so the kid-facing `/chores` view works even when the editor password is set.
+
+**Query:** `days` (optional, a whole number from 1 to 90) sends only that many days of history before today. Completions that still keep a "when I put it back" chore done, and grabs that still hold, come whatever their age, so today and this week look the same as with the whole history. The wall and the kids' page ask for `?days=31`, which covers a 30-day streak. Anything else is a `400`.
+
+**Caching:** the answer carries an `ETag` and `Cache-Control: no-cache`, so a browser checks before reusing it. A request whose `If-None-Match` matches gets an empty `304`. The `ETag` is the same for every `days`, and changes when the chores, their settings or the completions are saved, when the household's day changes, or after an update. `GET /api/rewards` works the same way for the rewards, balances and redemptions.
 
 **Response:**
 ```json

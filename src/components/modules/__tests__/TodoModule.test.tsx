@@ -341,6 +341,31 @@ describe('TodoModule tap to check off', () => {
     expect(pressed(container, 'Take out trash')).toBe('true');
   });
 
+  /* Polls that bring nothing new hand back the same object, so nothing but
+   * the window itself closing may be waited on: another screen unchecking the
+   * item inside the window must show once it closes, with no poll after. */
+  it('shows a change another screen made inside the override window once the window closes', async () => {
+    vi.useFakeTimers();
+    try {
+      displayFetch.mockResolvedValue(okResponse(true));
+      const { container, rerenderSame } = renderInteractive();
+      await act(async () => { fireEvent.click(row(container, 'Take out trash')); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      expect(pressed(container, 'Take out trash')).toBe('true');
+
+      // Another screen unchecks it; the poll lands inside the window.
+      mockLists = { lists: [groceries()] };
+      await act(async () => { rerenderSame(); });
+      expect(pressed(container, 'Take out trash')).toBe('true');
+
+      // Later polls answer with the same bytes: the same object, no new render.
+      await act(async () => { await vi.advanceTimersByTimeAsync(5_001); });
+      expect(pressed(container, 'Take out trash')).toBe('false');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('reflects a check-off arriving from another surface via a later poll', async () => {
     const { container, rerenderSame } = renderInteractive();
     expect(pressed(container, 'Take out trash')).toBe('false');

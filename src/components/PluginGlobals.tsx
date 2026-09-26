@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import type { HsSdk } from '@/types/plugins';
@@ -83,10 +83,19 @@ function PluginLoadingState({ loading, error, children }: { loading?: boolean; e
  * SDK wrapper around the host `useFetchData`: plugins were written against a
  * string error (and render it straight into JSX), so the classified host
  * error is flattened back to its message here.
+ *
+ * They were also written against every successful fetch handing them a new
+ * `data` object and a new `updatedAt`. The host now keeps one object while
+ * the answer is unchanged, and a plugin that keyed a memo or effect on `data`
+ * to mean "a fetch happened" (a `now` for due labels, say) would stop moving.
+ * So plugins keep the old contract: `updatedAt` moves on every fetch, and each
+ * one gets its own deep copy, nested objects included.
  */
 function usePluginFetchData<T>(url: string, refreshMs: number): [T | null, string | null, number | null] {
-  const [data, error, updatedAt] = useFetchData<T>(url, refreshMs);
-  return [data, error?.message ?? null, updatedAt];
+  const [data, error, updatedAt] = useFetchData<T>(url, refreshMs, { stampEveryFetch: true });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- updatedAt is the fetch that asks for a new copy
+  const fresh = useMemo(() => (data === null ? null : structuredClone(data)), [data, updatedAt]);
+  return [fresh, error?.message ?? null, updatedAt];
 }
 
 /**

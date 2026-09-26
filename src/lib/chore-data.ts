@@ -16,8 +16,11 @@ export interface ChoreData {
 
 const EMPTY: ChoreData = { chores: [] };
 
+/** Where the chores and household chore settings live, relative to the data root. */
+export const CHORES_FILE = 'data/chores.json';
+
 const store = createJsonStore<ChoreData>({
-  path: 'data/chores.json',
+  path: CHORES_FILE,
   defaultValue: EMPTY,
   backup: true,
   errorHandling: 'throw-corrupt',

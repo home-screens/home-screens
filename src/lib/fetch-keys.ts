@@ -4,6 +4,8 @@
  * ensuring the prefetched URL always matches what the module requests.
  */
 
+import { RECENT_CHORE_DAYS } from '@/components/modules/chore-chart/types';
+
 // Typed config interfaces lack index signatures, making Record<string, unknown>
 // incompatible — `any` is an intentional variance escape for structural compatibility.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -171,7 +173,13 @@ export function videoModuleUrl(config: AnyConfig): string | null {
   return `/api/backgrounds?media=videos&file=${encodeURIComponent(file)}`;
 }
 
+/** The chore history a wall, card or kids' page reads: the recent days only (see RECENT_CHORE_DAYS). */
 export function choresUrl(): string {
+  return `/api/chores?days=${RECENT_CHORE_DAYS}`;
+}
+
+/** Ticks and un-ticks a chore. A write, so it is never cached or prefetched. */
+export function choreToggleUrl(): string {
   return '/api/chores';
 }
 
@@ -236,11 +244,11 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
   'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
   video:              { buildUrl: videoModuleUrl, ttlMs: 600_000 },    // media-token refresh cadence
-  // 5s poll (instead of 30s) so cross-device toggles — e.g. a kid checks off a
-  // chore on their phone's /chores page — surface on the wall dashboard within
-  // ~5s instead of 30s. The same-device case is already instant because
-  // useChoreData's POST response overwrites local state directly.
-  'chore-chart':             { buildUrl: choresUrl, ttlMs: 5_000 },             // server: no cache
+  // A wall reads the chores when its heartbeat names a new revision, so a
+  // check-off on a phone's /chores page shows within a beat. The 5s poll is
+  // for surfaces without a heartbeat (the editor's canvas). The same-device
+  // case is already instant because useChoreData publishes the POST response.
+  'chore-chart':             { buildUrl: choresUrl, ttlMs: 5_000 },             // server: ETag, 304 when unchanged
   'fullscreen-chore-chart':  { buildUrl: choresUrl, ttlMs: 5_000 },             // shared useChoreData hook
   'meal-planner':            { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache
   'fullscreen-meal-planner': { buildUrl: mealsDataUrl, ttlMs: 60_000 },         // server: no cache

@@ -6,6 +6,9 @@ import { contentRevision } from '@/lib/content-revision';
 import { readFamilyData } from '@/lib/family-data';
 import { withFamilyData } from '@/lib/family-api';
 import { isRewardEligibleFor, canAffordReward } from '@/lib/reward-rules';
+import { withDataTransaction } from '@/lib/data-transaction';
+import { householdToday } from '@/lib/household-day';
+import { holdsEtag, revalidatedHeaders, rewardsEtag } from '@/lib/chore-revisions';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,12 +19,18 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET — returns rewards, balances, and recent redemptions (display polls this),
- * plus the revision a whole-list save of the rewards has to quote back.
+ * plus the revision a whole-list save of the rewards has to quote back. An
+ * unchanged answer is a bodiless 304 (see `chore-revisions`).
  */
-export const GET = async () => {
+export const GET = async (request: NextRequest) => {
   try {
-    const data = await readRewardData();
-    return NextResponse.json({ ...data, revision: contentRevision(data.rewards) });
+    // One pass through the coordinator, so the ETag names the bytes it is sent with.
+    return await withDataTransaction(async () => {
+      const etag = await rewardsEtag(await householdToday());
+      if (holdsEtag(request, etag)) return new NextResponse(null, { status: 304, headers: revalidatedHeaders(etag) });
+      const data = await readRewardData();
+      return NextResponse.json({ ...data, revision: contentRevision(data.rewards) }, { headers: revalidatedHeaders(etag) });
+    });
   } catch (error) {
     return publicErrorResponse(error, 'Failed to read rewards');
   }

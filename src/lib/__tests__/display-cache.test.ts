@@ -4,9 +4,11 @@ import { mockFetch as stubFetch } from '@/test-utils';
 // We can't import the singleton directly for isolated tests, so we
 // import the module and test the exported singleton, clearing between tests.
 import { displayCache } from '@/lib/display-cache';
+import { publishRevisions, __resetHeartbeatForTests } from '@/lib/display-heartbeat';
 
 beforeEach(() => {
   displayCache.clear();
+  __resetHeartbeatForTests();
   vi.useFakeTimers();
   vi.restoreAllMocks();
 });
@@ -158,7 +160,7 @@ describe('displayCache', () => {
       vi.stubGlobal('fetch', vi.fn(() =>
         fetchPromise.then(() => ({
           ok: true,
-          json: () => Promise.resolve({ data: 1 }),
+          text: () => Promise.resolve(JSON.stringify({ data: 1 })),
         })),
       ));
 
@@ -285,7 +287,7 @@ describe('displayCache', () => {
       const mockFetch = vi.fn(() =>
         fetchPromise.then(() => ({
           ok: true,
-          json: () => Promise.resolve({ data: 1 }),
+          text: () => Promise.resolve(JSON.stringify({ data: 1 })),
         })),
       );
       vi.stubGlobal('fetch', mockFetch);
@@ -332,9 +334,9 @@ describe('displayCache', () => {
         if (pending === 'response') await ready;
         return {
           ok: true,
-          json: async () => {
+          text: async () => {
             if (pending === 'body') await ready;
-            return { images: ['deleted.jpg'] };
+            return JSON.stringify({ images: ['deleted.jpg'] });
           },
         };
       }));
@@ -354,7 +356,7 @@ describe('displayCache', () => {
       const ready = new Promise<void>((resolve) => { release = resolve; });
       vi.stubGlobal('fetch', vi.fn(async () => {
         await ready;
-        return { ok: true, json: async () => ({ value: 'fetched' }) };
+        return { ok: true, text: async () => JSON.stringify({ value: 'fetched' }) };
       }));
 
       const images = displayCache.prefetch('/api/backgrounds?directory=album', 60_000);
@@ -375,11 +377,11 @@ describe('displayCache', () => {
       const mockFetch = vi.fn()
         .mockImplementationOnce(async () => {
           await oldReady;
-          return { ok: true, json: async () => ({ images: ['deleted.jpg'] }) };
+          return { ok: true, text: async () => JSON.stringify({ images: ['deleted.jpg'] }) };
         })
         .mockImplementation(async () => {
           await newReady;
-          return { ok: true, json: async () => ({ images: [] }) };
+          return { ok: true, text: async () => JSON.stringify({ images: [] }) };
         });
       vi.stubGlobal('fetch', mockFetch);
 
@@ -412,7 +414,7 @@ describe('displayCache', () => {
       vi.stubGlobal('fetch', vi.fn(() =>
         fetchPromise.then(() => ({
           ok: true,
-          json: () => Promise.resolve({ staleData: true }),
+          text: () => Promise.resolve(JSON.stringify({ staleData: true })),
         })),
       ));
 
@@ -434,7 +436,7 @@ describe('displayCache', () => {
       const bodyReady = new Promise<void>((r) => { resolveBody = r; });
       vi.stubGlobal('fetch', vi.fn(async () => ({
         ok: true,
-        json: () => bodyReady.then(() => ({ revision: 'before-save' })),
+        text: () => bodyReady.then(() => JSON.stringify({ revision: 'before-save' })),
       })));
 
       const prefetchPromise = displayCache.prefetch('/api/todo/lists', 60_000);
@@ -452,7 +454,7 @@ describe('displayCache', () => {
       vi.stubGlobal('fetch', vi.fn(() =>
         fetchPromise.then(() => ({
           ok: true,
-          json: () => Promise.resolve({ revision: 'before-save' }),
+          text: () => Promise.resolve(JSON.stringify({ revision: 'before-save' })),
         })),
       ));
 
@@ -471,6 +473,118 @@ describe('displayCache', () => {
       await displayCache.prefetch('/api/test', 60_000);
 
       expect(displayCache.get('/api/test')?.data).toEqual({ fresh: true });
+    });
+  });
+
+  // ── bodies: an unchanged answer keeps its data ──────────────────
+
+  describe('storeBody', () => {
+    it('hands back the data it already holds when the bytes are the same', () => {
+      const first = displayCache.storeBody('/api/family', '{"members":["ada"]}', 60_000);
+      const again = displayCache.storeBody('/api/family', '{"members":["ada"]}', 60_000);
+      expect(again).toBe(first);
+    });
+
+    it('parses anew when the bytes change', () => {
+      const first = displayCache.storeBody('/api/family', '{"members":["ada"]}', 60_000);
+      const next = displayCache.storeBody('/api/family', '{"members":["ada","bram"]}', 60_000);
+      expect(next).not.toBe(first);
+      expect(next).toEqual({ members: ['ada', 'bram'] });
+    });
+
+    it('restarts the TTL even when nothing changed', () => {
+      displayCache.storeBody('/api/family', '{}', 5_000);
+      vi.advanceTimersByTime(4_000);
+      displayCache.storeBody('/api/family', '{}', 5_000);
+      vi.advanceTimersByTime(4_000);
+      expect(displayCache.get('/api/family')?.stale).toBe(false);
+    });
+
+    it.each(['set', 'replace'] as const)('treats the next answer as new after %s, whatever its bytes', (how) => {
+      const fetched = displayCache.storeBody('/api/todo/lists', '{"lists":[]}', 60_000);
+      displayCache[how]('/api/todo/lists', { lists: ['written'] }, 60_000);
+      const after = displayCache.storeBody('/api/todo/lists', '{"lists":[]}', 60_000);
+      expect(after).not.toBe(fetched);
+      expect(after).toEqual({ lists: [] });
+    });
+
+    it('throws on a body that is not JSON, like Response.json()', () => {
+      expect(() => displayCache.storeBody('/api/family', '<html>', 60_000)).toThrow();
+    });
+  });
+
+  // ── reads the heartbeat reports on ──────────────────────────────
+
+  describe('freshness from the heartbeat', () => {
+    it('keeps a followed read fresh past its TTL while the beat names its revision', () => {
+      publishRevisions({ chores: '"r1"' });
+      displayCache.storeBody('/api/chores?days=31', '{}', 5_000, '"r1"');
+      vi.advanceTimersByTime(4_000);
+      publishRevisions({ chores: '"r1"' });
+      vi.advanceTimersByTime(4_000);
+      publishRevisions({ chores: '"r1"' });
+
+      expect(displayCache.get('/api/chores?days=31')?.stale).toBe(false);
+      expect(displayCache.isStale('/api/chores?days=31')).toBe(false);
+    });
+
+    it('makes it stale the moment a beat names another revision, inside its TTL', () => {
+      publishRevisions({ chores: '"r1"' });
+      displayCache.storeBody('/api/chores?days=31', '{}', 60_000, '"r1"');
+      publishRevisions({ chores: '"r2"' });
+      expect(displayCache.isStale('/api/chores?days=31')).toBe(true);
+    });
+
+    it('counts data a write published as stale until a fetch at the new revision', () => {
+      publishRevisions({ rewards: '"r1"' });
+      displayCache.replace('/api/rewards', { balances: {} }, 60_000);
+      expect(displayCache.isStale('/api/rewards')).toBe(true);
+    });
+
+    it('goes back to the TTL once beats stop coming', () => {
+      publishRevisions({ chores: '"r1"' });
+      displayCache.storeBody('/api/chores?days=31', '{}', 5_000, '"r1"');
+      vi.advanceTimersByTime(11_000);
+      expect(displayCache.isStale('/api/chores?days=31')).toBe(true);
+    });
+
+    it('leaves reads the heartbeat does not report on to their TTL', () => {
+      publishRevisions({ chores: '"r1"' });
+      displayCache.storeBody('/api/family', '{}', 5_000, undefined);
+      vi.advanceTimersByTime(4_000);
+      publishRevisions({ chores: '"r1"' });
+      expect(displayCache.isStale('/api/family')).toBe(false);
+      vi.advanceTimersByTime(2_000);
+      expect(displayCache.isStale('/api/family')).toBe(true);
+    });
+
+    it('tags a prefetch made before any beat with its answer\'s ETag, so the first beat finds it current', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => ({
+        ok: true,
+        headers: new Headers({ ETag: '"r1"' }),
+        text: async () => '{"completions":[]}',
+      })));
+      await displayCache.prefetch('/api/chores?days=31', 5_000);
+
+      publishRevisions({ chores: '"r1"' });
+      expect(displayCache.isStale('/api/chores?days=31')).toBe(false);
+      publishRevisions({ chores: '"r2"' });
+      expect(displayCache.isStale('/api/chores?days=31')).toBe(true);
+    });
+
+    it('does not prefetch a followed read the beat says is current, and does once it changes', async () => {
+      const spy = stubFetch({ completions: [] });
+      publishRevisions({ chores: '"r1"' });
+      await displayCache.prefetch('/api/chores?days=31', 5_000);
+      vi.advanceTimersByTime(8_000);
+      publishRevisions({ chores: '"r1"' });
+      await displayCache.prefetch('/api/chores?days=31', 5_000);
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      publishRevisions({ chores: '"r2"' });
+      await displayCache.prefetch('/api/chores?days=31', 5_000);
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(displayCache.isStale('/api/chores?days=31')).toBe(false);
     });
   });
 });

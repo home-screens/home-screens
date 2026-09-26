@@ -3,6 +3,7 @@ import { getDisplayToken } from '@/lib/auth';
 import { filterConfigForDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import { hubTimezone } from '@/lib/household-day';
+import { wallConfigEtag } from '@/lib/wall-config';
 import DisplayNotFound from '@/components/display/DisplayNotFound';
 import { parseDisplaySearchParams, type DisplaySearchParams } from '@/lib/display-search-params';
 
@@ -49,6 +50,7 @@ export default async function DisplayPage({
         rules={filtered.rules}
         displayToken={displayToken}
         hubTimezone={hubTimezone()}
+        configEtag={wallConfigEtag(config)}
         displayId={displayId}
         initialDisplays={availableDisplays}
         {...preview}

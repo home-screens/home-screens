@@ -65,6 +65,13 @@ export interface DayEntry {
  *  both reference this so they cannot drift. */
 export const CHORE_HISTORY_DAYS = 90;
 
+/** The history a wall, a card or the kids' page asks for (`GET /api/chores?days=`):
+ *  the 30 days a streak looks back over, plus today. What still holds a
+ *  put-back chore closed comes whatever its age, so today and this week draw
+ *  exactly as they do from the whole history. Only the grown-ups' history
+ *  strip on the phone needs all CHORE_HISTORY_DAYS. */
+export const RECENT_CHORE_DAYS = 31;
+
 export { getOrderedDays } from '@/lib/meal-constants';
 
 export const TIME_OF_DAY_META: Record<ChoreTimeOfDay, { icon: string; order: number }> = {

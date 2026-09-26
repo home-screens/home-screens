@@ -151,7 +151,7 @@ export function useSharedDisplayData(screens: Screen[], settings: DisplaySetting
   const [calendarData, calendarError, calendarUpdatedAt] = useFetchData(
     calendarUrl,
     CALENDAR_REFRESH_MS,
-    calendarDatasetKey,
+    { datasetKey: calendarDatasetKey },
   );
 
   // Failure ≠ empty: the calendar modules must distinguish "the fetch is

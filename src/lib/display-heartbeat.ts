@@ -20,6 +20,10 @@ export interface DisplayRevisions {
   config?: string;
   /** The stored timer session (`/api/timers/session`). */
   timer?: string;
+  /** The ETag `GET /api/chores` would be answered with, whatever its `?days=`. */
+  chores?: string;
+  /** The ETag `GET /api/rewards` would be answered with. */
+  rewards?: string;
 }
 
 type Listener = (revisions: DisplayRevisions) => void;
@@ -29,8 +33,32 @@ type Listener = (revisions: DisplayRevisions) => void;
 // are mounted elsewhere in the same display page.
 const listeners = new Set<Listener>();
 
+/**
+ * Data reads the heartbeat reports on, by path: `useFetchData` and the
+ * display cache fetch these when the beat names a new revision instead of on
+ * their polling interval. The revision the heartbeat names for each is
+ * exactly the ETag the read answers with (`answerRevision` relies on it). The
+ * query is not part of the key, because the hub gives every `?days=` of the
+ * chore history one revision.
+ */
+const FOLLOWED_READS: Record<string, 'chores' | 'rewards'> = {
+  '/api/chores': 'chores',
+  '/api/rewards': 'rewards',
+};
+
+/**
+ * How long a beat is trusted: three missed 3 s beats. After that (a beat that
+ * hangs, a hub that stopped answering) reads go back to their own interval,
+ * so a stuck heartbeat never freezes the data on screen.
+ */
+const FOLLOW_MS = 10_000;
+
+let latest: { revisions: DisplayRevisions; at: number } | null = null;
+
 /** Hand one beat's revisions to every reader. Called on every beat, changed or not. */
 export function publishRevisions(revisions: DisplayRevisions): void {
+  // Before the listeners run, so a fetch one of them starts records this beat.
+  latest = { revisions, at: Date.now() };
   for (const listener of listeners) listener(revisions);
 }
 
@@ -40,4 +68,20 @@ export function subscribeRevisions(listener: Listener): () => void {
   return () => {
     listeners.delete(listener);
   };
+}
+
+/**
+ * The revision the latest beat names for a data read, or undefined when the
+ * read is not one the heartbeat reports on, no recent beat named it, or this
+ * page takes no heartbeat at all (the editor, the phone). Undefined means the
+ * read keeps its own polling interval.
+ */
+export function followedRevision(url: string): string | undefined {
+  const field = FOLLOWED_READS[url.split('?')[0]];
+  if (!field || !latest || Date.now() - latest.at > FOLLOW_MS) return undefined;
+  return latest.revisions[field];
+}
+
+export function __resetHeartbeatForTests(): void {
+  latest = null;
 }

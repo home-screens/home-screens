@@ -6,7 +6,8 @@ import { readChoreData } from '@/lib/chore-data';
 import { readFamilyData } from '@/lib/family-data';
 import { atGrabLimit, checkBonusComplete, grabHolds, resetViewDay, countsSinceReset, readChoreSettings, isBonusChore, pruneChoreMarks, tickEndsGrabs, type BonusCheck } from '@/lib/chore-bonus';
 import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
-import { commitDataTransaction, type TransactionChange } from '@/lib/data-transaction';
+import { commitDataTransaction, withDataTransaction, type TransactionChange } from '@/lib/data-transaction';
+import { choresEtag, holdsEtag, revalidatedHeaders } from '@/lib/chore-revisions';
 import { planPointsMove } from '@/lib/reward-data';
 import type { RewardData } from '@/lib/reward-data';
 import { choreMarks, planCompletionsUpdate, updateCompletionsAtomic } from '@/lib/chore-completion-data';
@@ -20,30 +21,64 @@ function historyCutoff(today: string): string {
   return addDaysISO(today, -CHORE_HISTORY_DAYS);
 }
 
+/** `?days=`: how much history the caller wants, or null when it is not 1 to CHORE_HISTORY_DAYS. */
+function readHistoryDays(raw: string | null): number | null {
+  if (raw === null) return CHORE_HISTORY_DAYS;
+  const days = Number(raw);
+  return Number.isInteger(days) && days >= 1 && days <= CHORE_HISTORY_DAYS ? days : null;
+}
+
 // Public on the LAN — no auth wrapper. The /chores route is the unauthenticated
 // kid view, so its data endpoint must be readable/writable without a session.
 // The /remote surface is also unauthenticated at the page level; admin-only
 // endpoints it calls (system/stats, backup, system/power) enforce auth via
 // their own `withAuth` wrappers, not via anything gating /remote itself.
-export const GET = async () => {
+export const GET = async (request: NextRequest) => {
   try {
-    // Always go through updateAtomic (so we observe in-flight POST writes), but
-    // only persist when the clean-up actually evicted something — otherwise a
-    // quiescent display polling every 15s would churn the disk forever.
-    // Returning the same reference signals "no-op, skip the write".
-    // The chores say which old entries still hold a "when I put it back" chore
-    // closed; when they cannot be read, nothing is cleaned up this time.
-    let saved: Awaited<ReturnType<typeof readChoreData>> | null = null;
-    try { saved = await readChoreData(); } catch { /* unreadable: skip the clean-up */ }
-    const today = await householdToday();
-    const result = await updateCompletionsAtomic((data) => (saved
-      ? pruneChoreMarks(data, saved.chores, historyCutoff(today), readChoreSettings(saved.settings).grabHold, today)
-      : data));
-    // `today` is the hub's calendar day: phones use it as theirs, so a phone
-    // with a wrong clock still shows and ticks the household's day.
-    // The household settings ride along, so a phone's rules line and sheet
-    // follow a change made on another screen without a reload.
-    return NextResponse.json({ ...choreMarks(result), today, ...(saved ? { settings: readChoreSettings(saved.settings) } : {}) });
+    const days = readHistoryDays(request.nextUrl.searchParams.get('days'));
+    if (days === null) {
+      return NextResponse.json({ error: `days must be a whole number from 1 to ${CHORE_HISTORY_DAYS}` }, { status: 400 });
+    }
+    // One pass through the coordinator: no write lands between the revision
+    // and the read, so the ETag always names the bytes it is sent with.
+    return await withDataTransaction(async () => {
+      const today = await householdToday();
+      // Walls and phones ask every few seconds and the lists change a few
+      // times a day: an unchanged answer is a stat of two files, not a read.
+      const etag = await choresEtag(today);
+      if (holdsEtag(request, etag)) return new NextResponse(null, { status: 304, headers: revalidatedHeaders(etag) });
+
+      // Only persist when the clean-up actually evicted something. Returning
+      // the same reference signals "no-op, skip the write". Behind the ETag
+      // this runs once per change and once a day, not once per poll.
+      // The chores say which old entries still hold a "when I put it back"
+      // chore closed; when they cannot be read, nothing is cleaned up this time.
+      let saved: Awaited<ReturnType<typeof readChoreData>> | null = null;
+      try { saved = await readChoreData(); } catch { /* unreadable: skip the clean-up */ }
+      let cleaned = false;
+      const result = await updateCompletionsAtomic((data) => {
+        if (!saved) return data;
+        const next = pruneChoreMarks(data, saved.chores, historyCutoff(today), readChoreSettings(saved.settings).grabHold, today);
+        cleaned = next !== data;
+        return next;
+      });
+      // A clean-up wrote the file, so the answer is a revision later.
+      const answered = cleaned ? await choresEtag(today) : etag;
+      // A shorter history is the same clean-up with a nearer cutoff: it keeps
+      // what holds a put-back chore closed and the grabs that still hold, so
+      // today and this week draw exactly as they do from the whole history.
+      const marks = saved && days < CHORE_HISTORY_DAYS
+        ? pruneChoreMarks(result, saved.chores, addDaysISO(today, -days), readChoreSettings(saved.settings).grabHold, today)
+        : result;
+      // `today` is the hub's calendar day: phones use it as theirs, so a phone
+      // with a wrong clock still shows and ticks the household's day.
+      // The household settings ride along, so a phone's rules line and sheet
+      // follow a change made on another screen without a reload.
+      return NextResponse.json(
+        { ...choreMarks(marks), today, ...(saved ? { settings: readChoreSettings(saved.settings) } : {}) },
+        { headers: revalidatedHeaders(answered) },
+      );
+    });
   } catch (error) {
     return publicErrorResponse(error, 'Failed to read chore completions');
   }

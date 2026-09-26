@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import type { GlobalSettings, ScreenConfiguration } from '@/types/config';
 import { publishRevisions } from '@/lib/display-heartbeat';
+import { displayCache } from '@/lib/display-cache';
 import { useLiveConfig } from '../useLiveConfig';
 
 let configBody = '';
@@ -58,6 +59,7 @@ describe('useLiveConfig config ETag', () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('fetches only when the beat names another ETag, and sends back the one it applied', async () => {
@@ -116,5 +118,39 @@ describe('useLiveConfig config ETag', () => {
     configBody = JSON.stringify(makeConfig('Second'));
     await beat();
     expect(result.current.screens[0].name).toBe('Second');
+  });
+
+  describe('starting from the config the page was rendered with', () => {
+    const rendered = (initial: ScreenConfiguration, etag: string) =>
+      renderHook(() => useLiveConfig(initial.screens, initial.settings, 'UTC', undefined, undefined, undefined, undefined, etag));
+
+    it('fetches nothing, and keeps the data its modules just read, while the beat names the same ETag', async () => {
+      const initial = makeConfig('First');
+      configBody = JSON.stringify(initial);
+      configEtag = '"a.UTC"';
+      const clear = vi.spyOn(displayCache, 'clear');
+      const { result } = rendered(initial, '"a.UTC"');
+
+      await beat();
+      await beat();
+
+      expect(sentEtags).toEqual([]);
+      expect(clear).not.toHaveBeenCalled();
+      expect(result.current.screens[0].name).toBe('First');
+    });
+
+    it('fetches a config saved since the render, sending the rendered ETag back', async () => {
+      const initial = makeConfig('First');
+      configBody = JSON.stringify(makeConfig('Second'));
+      configEtag = '"b.UTC"';
+      const { result } = rendered(initial, '"a.UTC"');
+
+      await beat();
+
+      expect(sentEtags).toEqual(['"a.UTC"']);
+      expect(result.current.screens[0].name).toBe('Second');
+      await beat();
+      expect(sentEtags).toHaveLength(1);
+    });
   });
 });

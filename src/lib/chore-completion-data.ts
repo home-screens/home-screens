@@ -13,6 +13,9 @@ export interface CompletionsData {
   bonusResets?: Record<string, string>;
 }
 
+/** Where the completions, grabs and put-backs live, relative to the data root. */
+export const CHORE_COMPLETIONS_FILE = 'data/chore-completions.json';
+
 /**
  * Single store instance for data/chore-completions.json. Every reader and
  * writer (the /api/chores toggle route AND /api/backup restore) must go
@@ -21,7 +24,7 @@ export interface CompletionsData {
  * cycles and drop completions.
  */
 const store = createJsonStore<CompletionsData>({
-  path: 'data/chore-completions.json',
+  path: CHORE_COMPLETIONS_FILE,
   defaultValue: { completions: [] },
   errorHandling: 'throw-corrupt',
   backup: true,

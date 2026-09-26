@@ -16,6 +16,7 @@ import {
   photoSlideshowUrl,
   videoModuleUrl,
   choresUrl,
+  choreToggleUrl,
   choresDataUrl,
   mealsDataUrl,
   FETCH_KEY_REGISTRY,
@@ -339,7 +340,9 @@ describe('static URL builders', () => {
   it('historyUrl with only muffinlabs', () => expect(historyUrl({ sourceWikipedia: false })).toBe('/api/history?sources=muffinlabs'));
   it('quoteUrl', () => expect(quoteUrl()).toBe('/api/quote'));
   it('dadJokeUrl', () => expect(dadJokeUrl()).toBe('/api/jokes'));
-  it('choresUrl', () => expect(choresUrl()).toBe('/api/chores'));
+  // A wall reads the recent history; a tick goes to the route itself.
+  it('choresUrl', () => expect(choresUrl()).toBe('/api/chores?days=31'));
+  it('choreToggleUrl', () => expect(choreToggleUrl()).toBe('/api/chores'));
   it('choresDataUrl', () => expect(choresDataUrl()).toBe('/api/chores/data'));
   it('mealsDataUrl', () => expect(mealsDataUrl()).toBe('/api/meals/data'));
 });

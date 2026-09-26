@@ -9,7 +9,8 @@ import { bonusDisplayOrder, type BonusItem } from '@/lib/chore-bonus';
 import { TIME_OF_DAY_META, getCurrentTimeOfDay, parseISO } from '../types';
 import { buildChoreRows, getUniqueInitials, type ChoreRow } from '@/lib/chore-rows';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
-import { createTZDate, formatDateInTZ, isoDateInTZ } from '@/lib/timezone';
+import { formatDateInTZ, isoDateInTZ } from '@/lib/timezone';
+import { useTZClock } from '@/hooks/useTZClock';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import MemberDot from '../../shared/MemberDot';
@@ -56,7 +57,9 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
   // which reads `getHours()`. `formatDateInTZ` does its own zone shift via
   // `Intl.DateTimeFormat`, so it must receive a real UTC instant; passing
   // `tzNow` would shift twice and yield the wrong weekday near midnight.
-  const tzNow = createTZDate(timezone);
+  // Ticking, so the time-of-day band moves on the hour even while no chore
+  // changes and nothing else re-renders the card.
+  const tzNow = useTZClock(timezone);
   const currentTime = getCurrentTimeOfDay(tzNow.getHours());
 
   // The hub's day, as the chores listed are; the household's own clock only

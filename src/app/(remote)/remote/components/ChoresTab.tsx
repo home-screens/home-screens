@@ -41,7 +41,8 @@ import ChoreActionSheet, { type ChoreAction } from './ChoreActionSheet';
 import ChoreSettingsSheet from './ChoreSettingsSheet';
 import ConfirmSheet from './ConfirmSheet';
 import ChoresManageView from './ChoresManageView';
-import RewardsView from './RewardsView';
+import RewardsView, { type RewardsData } from './RewardsView';
+import { choresUrl } from '@/lib/fetch-keys';
 import { logger } from '@/lib/logger';
 import { useHouseholdNow, useHouseholdToday } from '../household-clock';
 import AtHomePill from './AtHomePill';
@@ -171,9 +172,11 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
   const [putBackChoreId, setPutBackChoreId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [toggling, setToggling] = useState<Set<string>>(new Set());
-  // Ticket balances per member, shown beside the progress header so a kid sees
-  // the count grow as they check things off. null until the first fetch lands.
-  const [balances, setBalances] = useState<Record<string, number> | null>(null);
+  // The rewards answer, shared with the Rewards view: one poll feeds both the
+  // ticket balances beside the progress header (so a kid sees the count grow
+  // as they check things off) and the store. null until the first read lands.
+  const [rewardsData, setRewardsData] = useState<RewardsData | null>(null);
+  const balances = rewardsData?.balances ?? null;
   const [celebration, setCelebration] = useState<{ name: string; key: number } | null>(null);
   const celebrationTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete)
@@ -271,7 +274,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
     fetchAbortRef.current = controller;
     const settingsSave = settingsSaveRef.current;
     try {
-      const res = await editorFetch('/api/chores', { signal: controller.signal });
+      // The kids' page never looks further back than yesterday, so it asks
+      // for the recent history; the grown-ups' history strip needs it all.
+      const res = await editorFetch(isAdmin ? '/api/chores' : choresUrl(), { signal: controller.signal });
       if (!res.ok) return;
       const data = await res.json();
       if (!isMountedRef.current || controller.signal.aborted) return;
@@ -282,31 +287,36 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
         setChoreSettings((prev) => (prev.grabLimit === next.grabLimit && prev.grabHold === next.grabHold ? prev : next));
       }
     } catch { /* silent (includes AbortError) */ }
-  }, [applyMarks]);
+  }, [applyMarks, isAdmin]);
 
   const showBalances = !!config.showPoints;
-  const fetchBalances = useCallback(async () => {
+  const fetchRewards = useCallback(async () => {
     try {
       const res = await editorFetch('/api/rewards');
       if (!res.ok) return;
       const data = await res.json();
       if (!isMountedRef.current) return;
-      setBalances(data.balances ?? {});
+      setRewardsData(data);
     } catch { /* silent */ }
   }, []);
 
   useEffect(() => {
     fetchCompletions();
-    if (showBalances) fetchBalances();
-    const interval = setInterval(() => {
-      fetchCompletions();
-      if (showBalances) fetchBalances();
-    }, 15_000);
+    const interval = setInterval(fetchCompletions, 15_000);
     return () => {
       clearInterval(interval);
       fetchAbortRef.current?.abort();
     };
-  }, [fetchCompletions, fetchBalances, showBalances]);
+  }, [fetchCompletions]);
+
+  // Read only while the balances or the Rewards view are on screen.
+  const wantsRewards = showBalances || subView === 'rewards';
+  useEffect(() => {
+    if (!wantsRewards) return;
+    fetchRewards();
+    const interval = setInterval(fetchRewards, 15_000);
+    return () => clearInterval(interval);
+  }, [fetchRewards, wantsRewards]);
 
   // Today is the hub's calendar day once it has said so: a phone with a wrong
   // clock (or near midnight) must not show or tick a different day than the
@@ -471,7 +481,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
       const data: ChoreToggleResponse = await res.json();
       if (!isMountedRef.current) return;
       applyMarks(data);
-      if (data.rewards?.balances) setBalances(data.rewards.balances);
+      // The rewards a toggle moved points in; the reward list itself did not
+      // change, so the revision a save quotes stays the one already held.
+      const moved = data.rewards;
+      if (moved) setRewardsData((prev) => (prev ? { ...prev, ...moved } : prev));
       if (data.overspent) {
         const { memberId, balance } = data.overspent;
         const owed = Math.abs(balance);
@@ -767,6 +780,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
           isAdmin={isAdmin}
           selectedMemberId={selectedMemberId}
           onSelectMember={selectMember}
+          data={rewardsData}
+          setData={setRewardsData}
+          refreshData={fetchRewards}
         />
       ) : subView === 'manage' && isAdmin ? (
         <ChoresManageView
@@ -783,7 +799,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false }: Chores
               adoptChores(snapshot);
             }).catch(() => setLastWarning(t('choresTab.saveFailed')));
             void fetchCompletions();
-            void fetchBalances();
+            void fetchRewards();
           }}
           onChoresChange={(next) => {
             intentionalEmpty.current = chores.length > 0 && next.length === 0 ? next : null;

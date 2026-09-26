@@ -9,7 +9,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import type { FetchError } from '@/lib/fetch-error';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
-import { choresUrl, choresDataUrl, choreGrabUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { choresUrl, choresDataUrl, choreGrabUrl, choreToggleUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { RewardRedemption, RewardDefinition } from '@/lib/reward-data';
 import {
   type ResolvedAssignment,
@@ -114,6 +114,15 @@ export type ChoreWriteOutcome =
   | { ok: true; changed?: boolean }
   | { ok: false; refusal?: BonusRefusal; memberId?: string };
 
+/** The lists in a chore write's answer, without anything else it carries (rewards, `changed`). */
+function marksOf(body: Partial<ChoresResponse>): Partial<ChoresResponse> {
+  return {
+    ...(body.completions ? { completions: body.completions } : {}),
+    ...(body.grabs ? { grabs: body.grabs } : {}),
+    ...(body.bonusResets ? { bonusResets: body.bonusResets } : {}),
+  };
+}
+
 export interface RedemptionResult {
   balances?: Record<string, number>;
   redemptions?: RewardRedemption[];
@@ -122,8 +131,9 @@ export interface RedemptionResult {
 /** `timezone` is the display's household zone; it only covers the first paint (see `today`). */
 export function useChoreData(config: ChoreDataConfig, timezone: string | undefined): ChoreDataState {
   // TTLs come from the shared registry so the prefetch system and the hook
-  // stay in lockstep — see fetch-keys.ts. Drops to 5s give phone→wall
-  // cross-device toggles a 5s worst-case lag.
+  // stay in lockstep (see fetch-keys.ts). On a wall the heartbeat decides when
+  // the chores and rewards are read (within a beat of a change); the 5s poll
+  // is for places without one, like the editor's canvas.
   const choreChartTtl = FETCH_KEY_REGISTRY['chore-chart']?.ttlMs ?? 5_000;
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -133,15 +143,9 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
   const [completions, setCompletions] = useState<ChoreCompletion[]>([]);
   const [grabs, setGrabs] = useState<ChoreGrab[]>([]);
   const [bonusResets, setBonusResets] = useState<Record<string, string>>({});
-  // Mirror fetchedRewards into local state so toggleComplete can overwrite it
-  // from the POST response for instant balance updates on the same device.
-  const [rewards, setRewards] = useState<RewardsResponse | null>(null);
-  // Timestamp of the last server-truth rewards write we applied from a POST
-  // response. A /api/rewards GET isn't serialized with the rewards opQueue, so
-  // a poll launched before our toggle can arrive AFTER the toggle response and
-  // carry a pre-credit balance. We silence those stale polls during an
-  // override window just long enough for the next poll to catch up.
-  const rewardsOverrideUntil = useRef<number>(0);
+  // A write's answer reaches this through `displayCache.replace` (see
+  // `publishRewards`), which also retires any poll that was already out.
+  const rewards = fetchedRewards;
   const [overspentNotice, setOverspentNotice] = useState<OverspentNotice | null>(null);
 
   const { members, groups, loading: familyLoading, loaded: familyLoaded, error: familyError } = useFamilyData();
@@ -154,13 +158,6 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     setGrabs(fetchedCompletions.grabs ?? []);
     setBonusResets(fetchedCompletions.bonusResets ?? {});
   }, [fetchedCompletions]);
-  useEffect(() => {
-    if (!fetchedRewards) return;
-    // Drop polls that land inside the override window — they may be replies
-    // to in-flight fetches that predate the current server-truth balance.
-    if (Date.now() < rewardsOverrideUntil.current) return;
-    setRewards(fetchedRewards);
-  }, [fetchedRewards]);
 
   const isLoading = (!fetchedCompletions && !completionsError) || (!fetchedChoreData && !choreDataError) || familyLoading;
   // Only a source with nothing to show counts. A failed refresh keeps the
@@ -169,11 +166,8 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     ?? (fetchedChoreData ? null : choreDataError)
     ?? (familyLoaded ? null : familyError);
 
-  // `rewards` trails `fetchedRewards` by one render (it is mirrored through an
-  // effect), so read through to the fetch rather than flashing an empty feed.
-  const knownRewards = rewards ?? fetchedRewards;
-  const rewardsLoading = !knownRewards && !rewardsFetchError;
-  const rewardsError = knownRewards ? null : rewardsFetchError;
+  const rewardsLoading = !rewards && !rewardsFetchError;
+  const rewardsError = rewards ? null : rewardsFetchError;
 
   const completionSet = useMemo(() => buildCompletionSet(completions), [completions]);
   // Today is the hub's calendar day once it has said so, as on the phone: a
@@ -261,17 +255,26 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     return days;
   }, [members, groups, chores, completionSet, config.weekStartDay, dayNames, today]);
 
-  // Server truth from a write we made ourselves. Primes the shared cache so
-  // sibling module instances do not re-read stale data, and opens the override
-  // window so a stale in-flight poll cannot flash the old balance back.
+  // Server truth from a write we made ourselves, published the way every
+  // write's answer is: every card on this screen shows it at once, a poll
+  // that was already out cannot land on top of it, and the next answer counts
+  // as new even when its bytes match the last one fetched.
   const publishRewards = useCallback((next: RewardsResponse) => {
-    setRewards(next);
-    displayCache.set(rewardsUrl(), next, choreChartTtl);
-    rewardsOverrideUntil.current = Date.now() + choreChartTtl;
+    displayCache.replace(rewardsUrl(), next, choreChartTtl);
   }, [choreChartTtl]);
 
   const latestRewards = useRef<RewardsResponse | null>(null);
-  useEffect(() => { latestRewards.current = knownRewards ?? null; }, [knownRewards]);
+  useEffect(() => { latestRewards.current = rewards ?? null; }, [rewards]);
+
+  // The same for the lists a chore write answers with, laid over the latest
+  // chores answer so its day and settings stay. Before the first answer there
+  // is nothing to lay them over (and no tap: the chart waits for the hub's day).
+  const latestChores = useRef<ChoresResponse | null>(null);
+  useEffect(() => { latestChores.current = fetchedCompletions ?? null; }, [fetchedCompletions]);
+  const publishMarks = useCallback((marks: Partial<ChoresResponse>) => {
+    const current = latestChores.current;
+    if (current) displayCache.replace(choresUrl(), { ...current, ...marks }, choreChartTtl);
+  }, [choreChartTtl]);
   const applyRedemption = useCallback((result: RedemptionResult) => {
     const current = latestRewards.current;
     publishRewards({
@@ -287,7 +290,8 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     setCompletions(body?.completions ?? completionsBefore);
     setGrabs(body?.grabs ?? grabsBefore);
     if (body?.bonusResets) setBonusResets(body.bonusResets);
-  }, []);
+    if (body?.completions) publishMarks(marksOf(body));
+  }, [publishMarks]);
 
   const toggleComplete = useCallback(async (choreId: string, memberId: string) => {
     // One plan drives both the optimistic update and the direction the server
@@ -303,7 +307,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
 
     try {
       const reqBody: ChoreToggleRequest = { choreId, memberId, date: today, direction: plan.direction };
-      const res = await displayFetch(choresUrl(), {
+      const res = await displayFetch(choreToggleUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reqBody),
@@ -319,12 +323,9 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
       const data: ChoreToggleResponse = await res.json();
       setCompletions(data.completions ?? []);
       if (data.grabs) setGrabs(data.grabs);
+      publishMarks(marksOf(data));
       // Update rewards from the POST response so ticket balances reflect the
-      // new credit/debit instantly — without waiting for the next rewards poll.
-      // Also prime the shared cache so sibling module instances (e.g. a
-      // dashboard tab that mounts later) don't re-read stale data, and set the
-      // override window so a stale in-flight poll can't flash the old balance
-      // back until the next poll returns a fresh snapshot.
+      // new credit/debit instantly, without waiting for the next rewards read.
       if (data.rewards) publishRewards(data.rewards);
       // Un-ticking takes the tickets back, and they may already be spent. The
       // screen says so rather than leaving a kid to find a negative balance
@@ -335,7 +336,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
       setCompletions(snapshot);
       return { ok: false };
     }
-  }, [publishRewards, members, completions, chores, bonusResets, grabs, applyMarks, today]);
+  }, [publishRewards, publishMarks, members, completions, chores, bonusResets, grabs, applyMarks, today]);
 
   const grabChore = useCallback(async (choreId: string, memberId: string, action: 'grab' | 'let-go'): Promise<ChoreWriteOutcome> => {
     const snapshot = grabs;
@@ -357,12 +358,13 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
       const data: ChoreToggleResponse = await res.json();
       setCompletions(data.completions ?? []);
       setGrabs(data.grabs ?? []);
+      publishMarks(marksOf(data));
       return { ok: true };
     } catch {
       setGrabs(snapshot);
       return { ok: false };
     }
-  }, [grabs, completions, applyMarks, today]);
+  }, [grabs, completions, applyMarks, publishMarks, today]);
 
   // The notice is a passing message, not a state of the world: it clears
   // itself so a wall display is not left holding it for the rest of the day.
@@ -389,7 +391,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     memberStats,
     weekData,
     recentRedemptions,
-    allRedemptions: knownRewards?.redemptions ?? EMPTY_REDEMPTIONS,
+    allRedemptions: rewards?.redemptions ?? EMPTY_REDEMPTIONS,
     isLoading,
     rewardsLoading,
     rewardsError,

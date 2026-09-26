@@ -3,9 +3,14 @@
  * Stale-while-revalidate semantics: expired entries return data with
  * `stale: true` — they are never deleted. `null` only on cold start.
  * Bounded at MAX_ENTRIES with LRU eviction to stay safe on Pi.
+ *
+ * An entry is expired by its TTL, except for a read the wall's heartbeat
+ * reports on (`followedRevision`): that one is fresh for as long as the
+ * latest beat names the revision it was fetched at, however old it is.
  */
 
 import { displayFetch } from '@/lib/display-fetch';
+import { followedRevision } from '@/lib/display-heartbeat';
 import { logger } from '@/lib/logger';
 
 const log = logger('display-cache');
@@ -15,6 +20,27 @@ interface CacheEntry {
   fetchedAt: number;
   ttlMs: number;
   lastAccessed: number;
+  /**
+   * The response body `data` was parsed from. An answer with the same bytes
+   * hands back this `data` rather than a copy, so nothing keyed on it
+   * re-renders or re-derives. Absent for data a write published or a
+   * caller stored whole, which makes the next answer count as new.
+   */
+  body?: string;
+  /** For a read the heartbeat reports on, the revision its answer is at (see `answerRevision`). */
+  revision?: string;
+}
+
+/**
+ * The revision a fetched answer is at: its own ETag, which for every read the
+ * heartbeat reports on is the very value the heartbeat names, so a read made
+ * before the first beat already counts as current when that beat arrives.
+ * Without one (an older hub, a stubbed answer), `asked`: the revision the
+ * latest beat named when the request went out, which the answer is at least
+ * as new as.
+ */
+export function answerRevision(res: Response, asked: string | undefined): string | undefined {
+  return res.headers?.get?.('ETag') ?? asked;
 }
 
 export interface CacheStats {
@@ -62,18 +88,39 @@ class DisplayDataCache {
     }
     this._hits++;
     entry.lastAccessed = Date.now();
-    const stale = Date.now() - entry.fetchedAt > entry.ttlMs;
-    return { data: entry.data as T, stale, fetchedAt: entry.fetchedAt };
+    return { data: entry.data as T, stale: this.expired(url, entry), fetchedAt: entry.fetchedAt };
+  }
+
+  /** The entry's data and fetch time, without counting a hit or touching its LRU place. */
+  peek<T>(url: string): { data: T; fetchedAt: number } | null {
+    const entry = this.cache.get(url);
+    return entry ? { data: entry.data as T, fetchedAt: entry.fetchedAt } : null;
   }
 
   /** Store data with TTL. Evicts LRU entry if at capacity. */
   set(url: string, data: unknown, ttlMs: number): void {
+    this.put(url, { data, fetchedAt: Date.now(), ttlMs, lastAccessed: Date.now() });
+  }
+
+  /**
+   * Store a fetched response body and return its data. When the bytes match
+   * the entry's, the entry's own `data` comes back: a poll that changed
+   * nothing hands every subscriber the object it already holds.
+   * `revision` is `answerRevision` of the response.
+   * Throws when the body is not JSON, like `Response.json()`.
+   */
+  storeBody(url: string, body: string, ttlMs: number, revision?: string): unknown {
+    const entry = this.cache.get(url);
+    const data = entry?.body === body ? entry.data : JSON.parse(body);
+    this.put(url, { data, fetchedAt: Date.now(), ttlMs, lastAccessed: Date.now(), body, revision });
+    return data;
+  }
+
+  private put(url: string, entry: CacheEntry): void {
     if (!this.cache.has(url) && this.cache.size >= MAX_ENTRIES) {
       this.evictLRU();
     }
-    this.cache.set(url, {
-      data, fetchedAt: Date.now(), ttlMs, lastAccessed: Date.now(),
-    });
+    this.cache.set(url, entry);
   }
 
   /**
@@ -99,10 +146,15 @@ class DisplayDataCache {
     }
   }
 
-  /** True if entry is missing or past TTL */
-  private isStale(url: string): boolean {
+  /** True if the entry is missing or expired (see the top of this file). */
+  isStale(url: string): boolean {
     const entry = this.cache.get(url);
-    if (!entry) return true;
+    return !entry || this.expired(url, entry);
+  }
+
+  private expired(url: string, entry: CacheEntry): boolean {
+    const live = followedRevision(url);
+    if (live !== undefined) return entry.revision !== live;
     return Date.now() - entry.fetchedAt > entry.ttlMs;
   }
 
@@ -194,14 +246,15 @@ class DisplayDataCache {
   private async doFetch(url: string, ttlMs: number, isCurrent: () => boolean): Promise<void> {
     const gen = this.generation;
     const published = this.published.get(url) ?? 0;
+    const revision = followedRevision(url);
     try {
       const res = await displayFetch(url);
       if (!res.ok) return;
-      const data = await res.json();
+      const body = await res.text();
       // Checked after the body too: a write can publish or invalidate while
       // it downloads. Superseded requests must not warm the cache again.
       if (isCurrent() && gen === this.generation && published === (this.published.get(url) ?? 0)) {
-        this.set(url, data, ttlMs);
+        this.storeBody(url, body, ttlMs, answerRevision(res, revision));
       }
     } catch (err) {
       log.debug('fetch failed, keeping stale entry:', err);

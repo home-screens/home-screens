@@ -2,7 +2,7 @@
 
 import type { FamilyMember } from '@/types/family';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo, type Dispatch, type SetStateAction } from 'react';
 import { Plus, Minus } from 'lucide-react';
 
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
@@ -16,7 +16,7 @@ import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming } from '@/lib
 
 // ── Types ────────────────────────────────────────────────────────────
 
-interface RewardsData {
+export interface RewardsData {
   rewards: RewardDefinition[];
   balances: Record<string, number>;
   redemptions: RewardRedemption[];
@@ -36,6 +36,14 @@ interface RewardsViewProps {
    */
   selectedMemberId: string;
   onSelectMember: (id: string) => void;
+  /**
+   * The rewards answer, owned by ChoresTab: its poll also feeds the ticket
+   * balances on the Today view, so the two never read the rewards twice.
+   * `setData` takes this view's optimistic edits and `refreshData` re-reads.
+   */
+  data: RewardsData | null;
+  setData: Dispatch<SetStateAction<RewardsData | null>>;
+  refreshData: () => Promise<void>;
 }
 
 type InnerView = 'redeem' | 'rewards' | 'balances' | 'history';
@@ -48,30 +56,16 @@ export default function RewardsView({
   isAdmin = false,
   selectedMemberId,
   onSelectMember,
+  data,
+  setData,
+  refreshData,
 }: RewardsViewProps) {
   const t = useTranslate('remote');
-  const [data, setData] = useState<RewardsData | null>(null);
   const [innerView, setInnerView] = useState<InnerView>('redeem');
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
   const [adjusting, setAdjusting] = useState<Set<string>>(new Set());
   const [saveError, setSaveError] = useState<'failed' | 'conflict' | null>(null);
-
-  // ── Fetch ──
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await editorFetch('/api/rewards');
-      if (!res.ok) return;
-      const json = await res.json();
-      setData(json);
-    } catch { /* silent */ }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 15_000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
 
   // ── Derived ──
   const selectedMember = members.find((m) => m.id === selectedMemberId);
@@ -110,10 +104,10 @@ export default function RewardsView({
         setData((prev) => prev ? { ...prev, balances: result.balances, redemptions: result.redemptions } : prev);
       } else {
         // Balance may have changed — refresh so the user sees the real state
-        await fetchData();
+        await refreshData();
       }
     } catch {
-      await fetchData();
+      await refreshData();
     }
     setRedeemTarget(null);
   };
@@ -147,7 +141,7 @@ export default function RewardsView({
       if (!res.ok) {
         setData(snapshot);
         setSaveError(res.status === 409 && json?.reason === 'revision' ? 'conflict' : 'failed');
-        await fetchData();
+        await refreshData();
         return;
       }
       if (json?.revision) {
@@ -158,7 +152,7 @@ export default function RewardsView({
       if (isSessionExpired(err)) return;
       setData(snapshot);
       setSaveError('failed');
-      await fetchData();
+      await refreshData();
     }
   };
 
