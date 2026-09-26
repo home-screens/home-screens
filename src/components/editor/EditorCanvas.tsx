@@ -24,6 +24,7 @@ import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvasBaseScale';
 import { useCanvasDragState } from '@/hooks/useCanvasDragState';
 import { useActiveBackground } from '@/hooks/useActiveBackground';
+import { resolveScreenBackground } from '@/lib/screen-background';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance, BackgroundShade } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
@@ -295,7 +296,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
 
   // Poll the server-side background cache so the editor shows the same
   // rotating background that the display is using.
-  const activeBackground = useActiveBackground(
+  const rotatingBackground = useActiveBackground(
     currentScreen?.id,
     currentScreen?.backgroundRotation?.enabled ?? false,
   );
@@ -483,7 +484,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
           >
             <PageBackgroundProvider>
               <CanvasBackground
-                screenBackground={activeBackground || currentScreen.backgroundImage}
+                screenBackground={resolveScreenBackground(currentScreen, rotatingBackground)}
                 shade={currentScreen.shade}
               />
               {snapEnabled && <GridOverlay scale={effectiveScale} />}

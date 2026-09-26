@@ -24,7 +24,7 @@ import type { TransitionEffect } from '@/types/config';
  * These assert the swap happens and that no effect throws a pageerror.
  */
 
-// 1x1 transparent GIF — the screen's static (pre-rotation) background.
+// 1x1 transparent GIF: the screen's own background, which rotation stands in for.
 const STATIC_BG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 // Distinct non-/api/ paths the stubbed rotate endpoint hands back per screen.
 const ROTATED_A = '/e2e-rotated/photo-a.jpg';
@@ -47,16 +47,23 @@ function rotatingScreen(id: string, name: string, label: string, query: string) 
   });
 }
 
-test('background rotation replaces the static background with the fetched image', async ({ page, request }) => {
-  await page.route('**/api/backgrounds/rotate*', (route) =>
-    route.fulfill({ json: { path: ROTATED_A, fresh: true } }),
-  );
+test('background rotation paints the fetched image without showing the static one first', async ({ page, request }) => {
+  // The lookup is held open so the wall can be looked at before it answers.
+  let answer!: () => void;
+  const answered = new Promise<void>((resolve) => { answer = resolve; });
+  await page.route('**/api/backgrounds/rotate*', async (route) => {
+    await answered;
+    await route.fulfill({ json: { path: ROTATED_A, fresh: true } });
+  });
   await putConfig(request, baseConfig({
     screens: [rotatingScreen('r', 'R', 'ROTATING SCREEN', 'mountains')],
   }));
   await page.goto('/display');
   await expect(page.getByText('ROTATING SCREEN')).toBeVisible();
-  // The background advances off the static image to the fetched rotation path.
+  // Painting the static image here is what made every load flash it before the photo.
+  await expect(page.locator(`img[src="${STATIC_BG}"]`)).toHaveCount(0);
+
+  answer();
   await expect(page.locator('img').first()).toHaveAttribute('src', ROTATED_A);
 });
 

@@ -262,6 +262,30 @@ test.describe('background picker', () => {
     await expect(page.getByTestId('background-tab-nasa')).toHaveAttribute('title', 'Needs a free key');
   });
 
+  test('a rotating screen paints its photo without showing its own picture first', async ({ page, request }) => {
+    // The lookup is held open so the canvas can be looked at before it answers.
+    let answer!: () => void;
+    const answered = new Promise<void>((resolve) => { answer = resolve; });
+    await page.route('**/api/backgrounds/rotate*', async (route) => {
+      await answered;
+      await route.fulfill({ json: { path: '/starter-backgrounds/dusk.svg', fresh: false } });
+    });
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Screen 1', [textModule('ROTATING')], {
+        backgroundImage: '/starter-backgrounds/ocean.svg',
+        backgroundRotation: { enabled: true, source: 'unsplash', query: 'nature landscape', intervalMinutes: 60 },
+      })],
+    }));
+    await page.goto('/editor');
+    const canvas = page.getByTestId('editor-canvas');
+    await expect(canvas.getByText('ROTATING')).toBeVisible();
+    // Painting the own picture here is what made every load flash it before the photo.
+    await expect(canvas.locator('img[src="/starter-backgrounds/ocean.svg"]')).toHaveCount(0);
+
+    answer();
+    await expect(canvas.locator('img[src="/starter-backgrounds/dusk.svg"]')).toHaveCount(1);
+  });
+
   test('picking a shipped background persists it to the screen', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     await page.goto('/editor');

@@ -42,11 +42,12 @@ import { getLocation } from '@/lib/location';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { resolveModuleStyle } from '@/lib/module-style';
 import BackgroundShadeOverlay from '@/components/BackgroundShadeOverlay';
+import { resolveScreenBackground, type RotationAnswer } from '@/lib/screen-background';
 
 interface ScreenRendererProps {
   screen: Screen;
   settings: DisplaySettings;
-  rotatingBackground?: string;
+  rotatingBackground?: RotationAnswer;
   sharedData: SharedDisplayData;
   displayW: number;
   displayH: number;
@@ -113,8 +114,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
     [screen.modules, now, states],
   );
 
-  const rotation = screen.backgroundRotation;
-  const screenBackground = rotation?.enabled ? (rotatingBackground || screen.backgroundImage) : screen.backgroundImage;
+  const screenBackground = resolveScreenBackground(screen, rotatingBackground);
   // Module-requested override takes priority over screen background
   const rawBackground = overrideBackground || screenBackground;
   // Fetch API-served images through displayFetch so the Bearer token is used
