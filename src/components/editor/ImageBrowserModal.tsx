@@ -273,7 +273,7 @@ export default function ImageBrowserModal({
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="flex-1 overflow-y-auto p-4">
             <ImageSearchBrowser
               categories={unsplashCategories}
               onSearch={handleUnsplashSearch}

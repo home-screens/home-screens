@@ -93,7 +93,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
   }
 
   return (
-    <>
+    <div className="space-y-3">
       {/* Album filter + refresh */}
       <div className="flex gap-1.5">
         <select
@@ -149,6 +149,6 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
       <p className="text-[9px] text-hs-text-faint text-center">
         {t('imageBrowsers.immich.attribution')}
       </p>
-    </>
+    </div>
   );
 }
