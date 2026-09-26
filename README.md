@@ -12,11 +12,13 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 
 ## Screenshots
 
-![Editor view — module palette and canvas](docs/images/editor-1.png)
+![Four screens on the wall: a family hub over a photo, the chore chart, the next three days, and a kitchen board](docs/images/wall.png)
 
-![Editor view — property panel and settings](docs/images/editor-2.png)
+![The editor with the family hub screen open and the weather module selected](docs/images/editor.png)
 
-![Editor view — more modules](docs/images/editor-3.png)
+![The editor's Style panel for a meal planner on a light kitchen screen](docs/images/editor-style.png)
+
+![The phone remote: display control, chores, the meal plan, shared lists, and timers](docs/images/remote.png)
 
 ## Features
 
