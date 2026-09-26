@@ -224,28 +224,33 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
         <div className={tileGrid}>{patternWalls.map(wallTile)}</div>
       </StarterGroup>
 
-      <p className="mt-3 text-[10px] text-hs-text-faint">{t('backgroundPicker.yourPicturesHeading')}</p>
-      <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
-        {localBackgrounds.map((bg) => (
-          <div key={bg}>
-            <button
-              onClick={() => pick(bg)}
-              className={`${tileAspect} w-full rounded border overflow-hidden ${
-                currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
-              }`}
-            >
-              <img src={bg} alt="" className="w-full h-full object-cover" />
-            </button>
+      <div className="mt-3 space-y-2">
+        <p className="text-[10px] text-hs-text-faint">{t('backgroundPicker.yourPicturesHeading')}</p>
+        {/* Not rendered while empty, so the button sits one gap under the heading, not two. */}
+        {localBackgrounds.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
+            {localBackgrounds.map((bg) => (
+              <div key={bg}>
+                <button
+                  onClick={() => pick(bg)}
+                  className={`${tileAspect} w-full rounded border overflow-hidden ${
+                    currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
+                  }`}
+                >
+                  <img src={bg} alt="" className="w-full h-full object-cover" />
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
+        {uploadError && (
+          <p className="text-xs text-hs-danger">{uploadError}</p>
+        )}
+        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} data-file-input="" className="hidden" />
+        <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="w-full">
+          {isLoading ? t('settings.localBackgrounds.uploadingButton') : t('settings.localBackgrounds.uploadButton')}
+        </Button>
       </div>
-      {uploadError && (
-        <p className="text-xs text-hs-danger">{uploadError}</p>
-      )}
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} data-file-input="" className="hidden" />
-      <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="w-full">
-        {isLoading ? t('settings.localBackgrounds.uploadingButton') : t('settings.localBackgrounds.uploadButton')}
-      </Button>
     </>
   );
 }
