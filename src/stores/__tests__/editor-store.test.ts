@@ -1738,6 +1738,66 @@ describe('editor store', () => {
       }));
     });
 
+    it('discardDraft holds saves while it loads the hub\'s copy, then lets saving resume', async () => {
+      const store = setupStoreWithConfig();
+      const hubCopy = makeConfig({ version: 7 } as Partial<ScreenConfiguration>);
+      let resolveLoad!: () => void;
+      fetchMock.mockImplementationOnce(() => new Promise((resolve) => {
+        resolveLoad = () => resolve({ ok: true, status: 200, headers: { get: () => null }, json: async () => hubCopy });
+      }));
+
+      const discarded = store.getState().discardDraft();
+      expect(store.getState().isDirty).toBe(false);
+      expect(store.getState().saveHeld).toBe(true);
+      // Under the hold a save returns without a PUT: only the GET is out.
+      await store.getState().saveConfig();
+      expect(fetchMock).toHaveBeenCalledOnce();
+      expect((fetchMock.mock.calls[0]![1] as RequestInit | undefined)?.method).toBeUndefined();
+
+      resolveLoad();
+      await discarded;
+      expect(store.getState().saveHeld).toBe(false);
+      expect(store.getState().config).toEqual(hubCopy);
+
+      // Browser Back onto the editor, then an edit: it saves again.
+      mockFetchOk();
+      store.setState({ isDirty: true });
+      await store.getState().saveConfig();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect((fetchMock.mock.calls[1]![1] as RequestInit).method).toBe('PUT');
+    });
+
+    it('discardDraft keeps the hold when the hub cannot be read', async () => {
+      const store = setupStoreWithConfig();
+      fetchMock.mockRejectedValueOnce(new Error('offline'));
+      await store.getState().discardDraft();
+      expect(store.getState().saveHeld).toBe(true);
+      await store.getState().saveConfig();
+      expect(fetchMock).toHaveBeenCalledOnce();
+    });
+
+    it('discardDraft releases a caller queued behind an in-flight save instead of hanging it', async () => {
+      const store = setupStoreWithConfig();
+      let resolveFetch!: () => void;
+      fetchMock.mockImplementation((_url: string, init?: RequestInit) => {
+        // The discard's GET fails fast; only the PUT is held open.
+        if (init?.method !== 'PUT') return Promise.reject(new Error('offline'));
+        return new Promise<{ ok: boolean; status: number }>((resolve) => {
+          resolveFetch = () => resolve({ ok: true, status: 200 });
+        });
+      });
+
+      const first = store.getState().saveConfig();
+      const queued = store.getState().saveConfig();
+      void store.getState().discardDraft();
+      resolveFetch();
+      await first;
+      await expect(queued).resolves.toBeUndefined();
+      // The queued run returned under the hold: one PUT, plus the discard's GET.
+      const puts = fetchMock.mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'PUT');
+      expect(puts).toHaveLength(1);
+    });
+
     it('sets isSaving to true during save', async () => {
       const store = setupStoreWithConfig();
       let capturedIsSaving = false;

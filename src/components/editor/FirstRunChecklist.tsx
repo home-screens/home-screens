@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Check, Circle, X } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
@@ -144,9 +145,9 @@ export default function FirstRunChecklist() {
             can only ever show the weather. */}
         <ChecklistItem done={steps.family} label={t('firstRun.steps.family')}>
           {!steps.family && (
-            <a href={settingsPath({ kind: 'defaults', page: 'family' })} className="text-xs text-hs-accent hover:underline">
+            <Link href={settingsPath({ kind: 'defaults', page: 'family' })} className="text-xs text-hs-accent hover:underline">
               {t('firstRun.steps.familyLink')}
-            </a>
+            </Link>
           )}
         </ChecklistItem>
         <ChecklistItem
@@ -157,23 +158,23 @@ export default function FirstRunChecklist() {
           note={onlyZoneMissing ? t('firstRun.steps.locationZoneMissing') : undefined}
         >
           {!steps.location && (
-            <a href={settingsPath({ kind: 'defaults', page: 'location' })} className="text-xs text-hs-accent hover:underline">
+            <Link href={settingsPath({ kind: 'defaults', page: 'location' })} className="text-xs text-hs-accent hover:underline">
               {t('firstRun.steps.locationLink')}
-            </a>
+            </Link>
           )}
         </ChecklistItem>
         {/* No tick: nothing on the hub records that the phone surface was
             opened, and a tick from clicking the link would be a guess. */}
         <ChecklistItem done={steps.phone} label={t('firstRun.steps.phone')}>
-          <a href={settingsPath({ kind: 'defaults', page: 'phone' })} className="text-xs text-hs-accent hover:underline">
+          <Link href={settingsPath({ kind: 'defaults', page: 'phone' })} className="text-xs text-hs-accent hover:underline">
             {t('firstRun.steps.phoneLink')}
-          </a>
+          </Link>
         </ChecklistItem>
         <ChecklistItem done={steps.password} label={t('firstRun.steps.password')}>
           {!steps.password && (
-            <a href={settingsPath({ kind: 'defaults', page: 'security' })} className="text-xs text-hs-accent hover:underline">
+            <Link href={settingsPath({ kind: 'defaults', page: 'security' })} className="text-xs text-hs-accent hover:underline">
               {t('firstRun.steps.passwordLink')}
-            </a>
+            </Link>
           )}
         </ChecklistItem>
       </ol>

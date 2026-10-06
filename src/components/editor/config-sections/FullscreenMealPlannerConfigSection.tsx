@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import FullscreenAccentPicker from './FullscreenAccentPicker';
@@ -141,7 +142,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Mobile hint */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.fullscreen-meal-planner.mobileHintPrefix')}{' '}
-        <a href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</a>{' '}
+        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</Link>{' '}
         {t('configSections.fullscreen-meal-planner.mobileHintTail')}
       </p>
       <PhoneSurfaceLinks context="meals" />

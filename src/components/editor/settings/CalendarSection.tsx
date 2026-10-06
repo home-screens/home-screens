@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { X } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -215,12 +216,12 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           keys" and the page's own H1 said "Integrations". */}
       <p className="text-xs text-hs-text-faint">
         {t('settings.calendarPage.google.credentialsSetupPrefix')}
-        <a
+        <Link
           href={settingsPath({ kind: 'defaults', page: 'integrations' })}
           className="text-hs-accent hover:text-hs-accent-hover underline"
         >
           {t('settings.sidebar.navLabels.integrations')}
-        </a>
+        </Link>
         {t('settings.calendarPage.google.credentialsSetupSuffix')}
       </p>
     </div>
@@ -284,12 +285,12 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
           )}
           <p className="text-xs text-hs-text-faint">
             {t('settings.calendarPage.google.verifyCredentialsPart1')}
-            <a
+            <Link
               href={settingsPath({ kind: 'defaults', page: 'integrations' })}
               className="text-hs-accent hover:text-hs-accent-hover underline"
             >
               {t('settings.calendarPage.google.settingsIntegrationsLink')}
-            </a>
+            </Link>
             {t('settings.calendarPage.google.verifyCredentialsPart2')}
             <a
               href="https://console.cloud.google.com/apis/credentials"

@@ -100,4 +100,33 @@ describe('useSettingsAutosave', () => {
     expect(body.settings.rotationIntervalMs).toBe(60_000);
     expect(useEditorStore.getState().saveConflict).toBeNull();
   });
+
+  it('stages an edit still inside the debounce into the store when the page unmounts', () => {
+    const { result, unmount } = mount();
+    act(() => { result.current.updateGroup('display', { rotationInterval: 60 }); });
+    // Leave inside the 500ms window: the form state goes with the page, but
+    // the store keeps the edit for the editor's auto-save to carry.
+    unmount();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    const store = useEditorStore.getState();
+    expect(store.config?.settings.rotationIntervalMs).toBe(60_000);
+    expect(store.isDirty).toBe(true);
+  });
+
+  it('flushPendingEdits stages now, and the debounce does not stage a second time', () => {
+    const { result } = mount();
+    act(() => { result.current.updateGroup('display', { rotationInterval: 60 }); });
+    act(() => { result.current.flushPendingEdits(); });
+    expect(useEditorStore.getState().config?.settings.rotationIntervalMs).toBe(60_000);
+
+    act(() => { vi.advanceTimersByTime(1_000); });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('flushPendingEdits is a no-op with nothing waiting', () => {
+    const { result } = mount();
+    act(() => { result.current.flushPendingEdits(); });
+    expect(useEditorStore.getState().isDirty).toBe(false);
+  });
 });

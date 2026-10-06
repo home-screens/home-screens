@@ -113,7 +113,7 @@ function SettingsPageContent() {
   // hydration, dirty tracking, 500ms debounce, coalesced "Saved" toast)
   // stay in one place. `storeIsSaving`/`storeSaveError` are passed in so
   // the toast also fires for per-display subtab direct saves.
-  const { state, setState, updateGroup, saving, saveMessage, savedFieldIds } = useSettingsAutosave({
+  const { state, setState, updateGroup, saving, saveMessage, savedFieldIds, flushPendingEdits } = useSettingsAutosave({
     settings,
     updateSettings,
     saveConfig,
@@ -137,7 +137,10 @@ function SettingsPageContent() {
   }, [router]);
 
   function handleBack() {
-    // Reload config in case it was modified by system restore — but never
+    // An edit still inside the form's debounce goes into the store first, so
+    // the check below sees it and the editor's auto-save carries it.
+    flushPendingEdits();
+    // Reload config in case it was modified by system restore, but never
     // over edits that haven't reached the hub yet (a save that is failing or
     // still queued), which a reload would silently throw away.
     const { isDirty, isSaving } = useEditorStore.getState();

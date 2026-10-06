@@ -65,6 +65,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     configRevision: null,
     hubTimezone: null,
     saveConflict: null,
+    saveHeld: false,
     configGeneration: 0,
     _pendingResave: null,
     snapEnabled: true,

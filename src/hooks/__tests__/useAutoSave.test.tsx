@@ -50,7 +50,7 @@ describe('useAutoSave validity gate', () => {
     cleanup();
     vi.useRealTimers();
     vi.unstubAllGlobals();
-    useEditorStore.setState({ config: null, isDirty: false, isSaving: false, saveError: null, saveConflict: null });
+    useEditorStore.setState({ config: null, isDirty: false, isSaving: false, saveError: null, saveConflict: null, saveHeld: false });
   });
 
   it('holds auto-save while a save conflict waits on the user', async () => {
@@ -108,6 +108,42 @@ describe('useAutoSave validity gate', () => {
     renderHook(() => useAutoSave());
     await act(() => vi.advanceTimersByTimeAsync(2000));
 
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it('holds auto-save and the leave-page prompt once the draft is discarded', async () => {
+    const addListener = vi.spyOn(window, 'addEventListener');
+    useEditorStore.setState({ config: makeConfig(), isDirty: true, isSaving: false, saveError: null });
+    renderHook(() => useAutoSave());
+    expect(addListener).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+
+    // The editor crashed drawing this draft; the error screen gives it up
+    // before the timer runs.
+    const removeListener = vi.spyOn(window, 'removeEventListener');
+    act(() => { void useEditorStore.getState().discardDraft(); });
+    await act(() => vi.advanceTimersByTimeAsync(2000));
+
+    // The discard's own GET is the only request: no PUT went out.
+    const puts = fetchMock.mock.calls.filter((c) => (c[1] as RequestInit | undefined)?.method === 'PUT');
+    expect(puts).toHaveLength(0);
+    expect(useEditorStore.getState().isDirty).toBe(false);
+    // The prompt is gone too, or it would hold the reload that recovers.
+    expect(removeListener).toHaveBeenCalledWith('beforeunload', expect.any(Function));
+  });
+
+  it('keeps saving after a save conflict is resolved for "mine"', async () => {
+    // Reaching the timer again after a hold is lifted is what makes the
+    // layout-level hook safe to leave mounted across every editor route.
+    useEditorStore.setState({
+      config: makeConfig(), isDirty: true, isSaving: false, saveError: null,
+      saveConflict: { theirs: makeConfig(), revision: 'rev-9' },
+    });
+    renderHook(() => useAutoSave());
+    await act(() => vi.advanceTimersByTimeAsync(2000));
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    act(() => { useEditorStore.setState({ saveConflict: null }); });
+    await act(() => vi.advanceTimersByTimeAsync(2000));
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 });

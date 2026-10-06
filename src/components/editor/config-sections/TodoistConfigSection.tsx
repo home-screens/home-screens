@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Toggle from '@/components/ui/Toggle';
 import RefreshIntervalSlider from './RefreshIntervalSlider';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -33,12 +34,12 @@ function TodoistTokenStatus() {
       ) : (
         <p className="text-[10px] text-hs-text-faint">
           {t('configSections.todoist.notConfigured')}{' '}
-          <a
+          <Link
             href={settingsPath({ kind: 'defaults', page: 'integrations' })}
             className="text-hs-accent hover:text-hs-accent-hover underline"
           >
             {t('configSections.todoist.settingsIntegrationsLink')}
-          </a>
+          </Link>
         </p>
       )}
     </div>

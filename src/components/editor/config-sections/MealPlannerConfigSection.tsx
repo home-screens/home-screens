@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useTranslate } from '@/i18n';
 import Toggle from '@/components/ui/Toggle';
@@ -102,7 +103,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           (in the editor) or the /remote settings drawer. */}
       <p className="text-[11px] text-hs-text-faint leading-relaxed">
         {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
-        <a href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</a>{' '}
+        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</Link>{' '}
         {t('configSections.meal-planner.sharedSettingsSuffix')}
       </p>
       <PhoneSurfaceLinks context="meals" />

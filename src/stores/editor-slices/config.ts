@@ -103,6 +103,7 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
           configGeneration: get().configGeneration + 1,
           loadError: null,
           saveConflict: null,
+          saveHeld: false,
           saveError: null,
           saveErrorKind: null,
           selectedDisplayId,
@@ -132,7 +133,8 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
       // A refused save waits on the user (Load theirs / Keep mine); retrying
       // meanwhile would be refused again and replace the version they are
       // looking at. resolveSaveConflict clears the flag before it saves.
-      if (state.saveConflict) return;
+      // A held draft is one the editor crashed on; see discardDraft.
+      if (state.saveConflict || state.saveHeld) return;
       // Coalesce concurrent saves: if one is already in flight, return a
       // deferred promise that resolves when the *next* save run completes.
       // Multiple coalesced callers share a single deferred so they all
@@ -254,6 +256,17 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
           });
         }
       }
+    },
+
+    discardDraft: async () => {
+      // A re-save queued behind an in-flight PUT is left in place: the
+      // in-flight save's finally block runs it, saveConfig returns at once
+      // under the hold, and whoever awaits it is released rather than hung.
+      set({ saveHeld: true, isDirty: false });
+      // The load is what lifts the hold. The error screen reloads the page,
+      // but browser Back gets there first and lands on a page that keeps the
+      // config already in memory, so the hold must not depend on a reload.
+      await get().loadConfig();
     },
 
     resolveSaveConflict: async (choice) => {

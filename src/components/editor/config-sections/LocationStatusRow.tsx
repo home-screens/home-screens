@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { MapPin } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { getLocation } from '@/lib/location';
@@ -44,12 +45,12 @@ export function LocationStatusRow({ mod }: { mod: ModuleInstance }) {
       data-testid="location-status-row"
     >
       <p className="text-hs-text-body">{t('configSections.locationRow.notSet')}</p>
-      <a
+      <Link
         href={settingsPath({ kind: 'defaults', page: 'location' })}
         className="mt-1 inline-block font-medium text-hs-accent hover:underline"
       >
         {t('configSections.locationRow.setUp')}
-      </a>
+      </Link>
     </div>
   );
 }

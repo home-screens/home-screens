@@ -67,11 +67,10 @@ export default function RulesSection({ embedded = false }: RulesSectionProps) {
   useDebouncedSave({
     values: [config?.rules, config?.displays],
     debounceMs: 500,
-    // The settings page has no `useAutoSave` safety net (that lives on
-    // /editor), and the reorg put Rules behind an intra-page `?panel=` tab bar
-    // that unmounts this section on one click. Without the flush, a toggle or
-    // drag followed by a tab click inside 500ms cancelled the pending PUT and
-    // the edit was gone on the next load, with no warning.
+    // Rules sits behind an intra-page `?panel=` tab bar that unmounts this
+    // section on one click. The editor's auto-save in the (editor) layout
+    // would pick a dirty store up 800ms later; the flush sends the edit the
+    // moment the tab is left instead.
     flushOnUnmount: true,
     save: () => saveConfig(),
     onError: (err) => log.error('Rule auto-save failed:', err),

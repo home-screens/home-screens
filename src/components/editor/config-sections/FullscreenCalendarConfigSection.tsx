@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Toggle from '@/components/ui/Toggle';
 import FullscreenAccentPicker from './FullscreenAccentPicker';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -198,9 +199,9 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
               ? t('configSections.fullscreen-calendar.peopleConfigured', { count: peopleCount })
               : t('configSections.fullscreen-calendar.peopleHint')}
             {' '}
-            <a href={settingsPath({ kind: 'defaults', page: 'calendar' })} className="text-hs-accent hover:underline">
+            <Link href={settingsPath({ kind: 'defaults', page: 'calendar' })} className="text-hs-accent hover:underline">
               {t('configSections.fullscreen-calendar.peopleLink')}
-            </a>
+            </Link>
           </p>
         )}
         {isTimeGrid && (

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { Check, ChevronRight } from 'lucide-react';
 import SecretField, { type SecretCheck, type SecretStatus } from './shared/SecretField';
@@ -292,12 +293,12 @@ function HostedGoogleCard({
             </p>
             <div className="mt-2 flex flex-wrap gap-x-[18px] gap-y-1 text-xs">
               {calendarReady && (
-                <a
+                <Link
                   href={settingsPath({ kind: 'defaults', page: 'calendar' })}
                   className="text-hs-accent hover:underline"
                 >
                   {t('settings.integrationsPage.google.ready.connectCalendar')}
-                </a>
+                </Link>
               )}
               {photosReady && (
                 <a

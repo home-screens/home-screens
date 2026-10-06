@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import LabeledSelect from '@/components/ui/LabeledSelect';
@@ -35,9 +36,9 @@ function Hint({ children }: { children: React.ReactNode }) {
 function MatchCalendarsLink() {
   const t = useTranslate('editor');
   return (
-    <a href={settingsPath({ kind: 'defaults', page: 'calendar' })} className="text-hs-accent hover:underline">
+    <Link href={settingsPath({ kind: 'defaults', page: 'calendar' })} className="text-hs-accent hover:underline">
       {t('configSections.calendarPeople.matchCalendars')}
-    </a>
+    </Link>
   );
 }
 

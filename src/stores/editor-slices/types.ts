@@ -65,6 +65,13 @@ export interface EditorCoreState extends EditorSelection {
    */
   saveConflict: SaveConflict | null;
   /**
+   * Set by `discardDraft`: the config in memory is one the editor could not
+   * draw, and it must not reach the hub while the page is being reloaded.
+   * Every save and the leave-page prompt stand down until a load replaces
+   * the draft.
+   */
+  saveHeld: boolean;
+  /**
    * Bumped whenever the whole config is replaced from outside the editing
    * session (load, restore/import, "load their changes"), as opposed to
    * mutated by an edit. Forms that hold their own copy of settings re-hydrate
@@ -105,6 +112,14 @@ export interface ConfigActions {
    * the hub's version.
    */
   resolveSaveConflict: (choice: 'theirs' | 'mine') => Promise<void>;
+  /**
+   * Give up the unsaved draft because the editor crashed drawing it: hold
+   * every save, drop the dirty flag and load the hub's copy, which lifts the
+   * hold. The route error screen reloads the page too, but browser Back can
+   * bring the editor back before that with the store it had; the load is
+   * what makes that editor save again.
+   */
+  discardDraft: () => Promise<void>;
   /** `revision` is the hub's revision of exactly this config (a restore's
    *  read-back), so the next save is not refused as a conflict. */
   importConfig: (json: string, revision?: string | null) => void;

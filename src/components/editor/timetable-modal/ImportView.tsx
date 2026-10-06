@@ -16,6 +16,7 @@
  * people who are already in Family.
  */
 
+import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { ChevronRight, Table } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -865,9 +866,9 @@ function NotInFamily({ name, href }: { name: string; href: string }) {
   return (
     <span>
       {before}
-      <a href={href} className="text-hs-accent hover:underline">
+      <Link href={href} className="text-hs-accent hover:underline">
         {t('timetableModal.import.addPerson', { name })}
-      </a>
+      </Link>
       {after}
     </span>
   );

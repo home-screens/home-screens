@@ -54,6 +54,13 @@ interface UseSettingsAutosaveReturn {
    * off screen entirely.
    */
   savedFieldIds: ReadonlySet<string>;
+  /**
+   * Stage an edit still inside the debounce into the store now, without
+   * saving it. For a caller about to leave the page: the editor's auto-save
+   * in the (editor) layout takes a dirty store from there, whereas the form
+   * state alone would go with the page.
+   */
+  flushPendingEdits: () => void;
 }
 
 /**
@@ -89,6 +96,10 @@ export function useSettingsAutosave({
   // auto-save infrastructure further down.
   const userDirtyRef = useRef(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // True from an edit until the debounce fires or `flushPendingEdits` stages
+  // it: `autoSaveTimerRef` keeps its last handle after firing, so it cannot
+  // say whether anything is still waiting.
+  const editPendingRef = useRef(false);
   useEffect(() => {
     if (settings && !settingsInitRef.current) {
       settingsInitRef.current = true;
@@ -110,6 +121,7 @@ export function useSettingsAutosave({
     seenGenerationRef.current = configGeneration;
     if (!settingsInitRef.current) return;
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    editPendingRef.current = false;
     userDirtyRef.current = false;
     setState(toFormState(useEditorStore.getState().config?.settings));
   }, [configGeneration]);
@@ -177,10 +189,26 @@ export function useSettingsAutosave({
     }
   }, [storeIsSaving, storeSaveError]);
 
+  const flushPendingEdits = useCallback(() => {
+    if (!editPendingRef.current) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    editPendingRef.current = false;
+    updateSettings(toConfigSettings(latestStateRef.current));
+  }, [updateSettings]);
+
+  // Leaving the page inside the debounce (Back, a sidebar link out of
+  // Settings) used to clear the timer with the edit still only in form
+  // state, which went with the page. Order against the debounce effect's
+  // cleanup does not matter: that one clears the timer but leaves
+  // `editPendingRef` set, so the edit is staged either way.
+  useEffect(() => () => flushPendingEdits(), [flushPendingEdits]);
+
   useEffect(() => {
     if (!settingsInitRef.current || !userDirtyRef.current) return;
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    editPendingRef.current = true;
     autoSaveTimerRef.current = setTimeout(async () => {
+      editPendingRef.current = false;
       // Always stage the form into the store, even while a save conflict
       // waits on the user: "Keep mine" saves the store's config, so an edit
       // typed while the conflict banner is up has to be in it or it is lost.
@@ -234,5 +262,5 @@ export function useSettingsAutosave({
     setSaveMessage(null);
   }, []);
 
-  return { state, setState, updateGroup, saving, saveMessage, savedFieldIds };
+  return { state, setState, updateGroup, saving, saveMessage, savedFieldIds, flushPendingEdits };
 }

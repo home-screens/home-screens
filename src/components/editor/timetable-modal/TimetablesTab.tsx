@@ -9,6 +9,7 @@
  * window only ever says which of them has a timetable.
  */
 
+import Link from 'next/link';
 import { Table, Trash2 } from 'lucide-react';
 import { useConfirmStore } from '@/stores/confirm-store';
 import LabeledField from '@/components/ui/LabeledField';
@@ -184,12 +185,12 @@ export default function TimetablesTab({
 
         <p className={`border-t border-hs-border px-3 py-2 ${PROSE_CLASS} text-hs-text-faint`}>
           {footerBefore}
-          <a
+          <Link
             href={settingsPath({ kind: 'defaults', page: 'family' })}
             className="text-hs-accent hover:underline"
           >
             {t('timetableModal.rail.footerLink')}
-          </a>
+          </Link>
           {footerAfter}
         </p>
       </div>

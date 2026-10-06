@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { Pencil, Users } from 'lucide-react';
 import clsx from 'clsx';
@@ -248,9 +249,9 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
             <Users className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{t('configSections.timetable.fromFamily')}</span>
             <span aria-hidden="true">&middot;</span>
-            <a href={FAMILY_PAGE} className="text-hs-accent underline hover:text-hs-accent-hover">
+            <Link href={FAMILY_PAGE} className="text-hs-accent underline hover:text-hs-accent-hover">
               {t('configSections.timetable.manageFamily')}
-            </a>
+            </Link>
           </p>
         </>
       ) : (
@@ -259,12 +260,12 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
           <p className="mt-1.5 text-[11px] leading-relaxed text-hs-text-muted">
             {t('configSections.timetable.noFamily')}
           </p>
-          <a
+          <Link
             href={FAMILY_PAGE}
             className="mt-2 inline-block rounded-md bg-hs-accent px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-hs-accent-hover"
           >
             {t('configSections.timetable.openFamily')}
-          </a>
+          </Link>
         </div>
       )}
 

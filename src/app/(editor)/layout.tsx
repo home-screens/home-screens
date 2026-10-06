@@ -3,6 +3,7 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 import PluginGlobals from '@/components/PluginGlobals';
 import PluginGlobalsEditor from '@/components/PluginGlobalsEditor';
 import EditorStateProviderLayer from '@/components/editor/EditorStateProviderLayer';
+import EditorAutoSave from '@/components/editor/EditorAutoSave';
 import BackupReminderToast from '@/components/editor/BackupReminderToast';
 import UpdateAvailableToast from '@/components/editor/UpdateAvailableToast';
 import { readConfig } from '@/lib/config';
@@ -67,6 +68,11 @@ export default async function EditorLayout({ children }: { children: React.React
         {/* Demand-driven state providers run in the editor too, publishing to
             this tab's bus so condition verdicts work with no display open. */}
         <EditorStateProviderLayer />
+        {/* Here rather than on /editor so the debounced save and the
+            leave-page prompt cover Settings too and survive the moves
+            between the two routes; the draft they protect lives in the
+            store, which does the same. */}
+        <EditorAutoSave />
         {children}
         <ConfirmModal />
         <BackupReminderToast />

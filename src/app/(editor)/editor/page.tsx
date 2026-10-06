@@ -14,7 +14,6 @@ import {
 import ConfigLoadError from '@/components/editor/ConfigLoadError';
 import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
 import { usePluginStore } from '@/stores/plugin-store';
-import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
 import { useCanvasKeyboardShortcuts } from '@/hooks/useCanvasKeyboardShortcuts';
 import { resolveDragPosition } from '@/lib/alignment-guides';
@@ -51,8 +50,6 @@ export default function EditorPage() {
   } = useEditorStore();
   const loadError = useEditorStore((state) => state.loadError);
 
-
-  const { isDirty, saveConfig } = useAutoSave();
   useUndoRedoShortcuts();
   useCanvasKeyboardShortcuts();
 
@@ -68,13 +65,6 @@ export default function EditorPage() {
   }, []);
   const router = useRouter();
   const householdZone = useEditorHouseholdZone();
-  const openSettings = async (path: string) => {
-    // A failing save must not make this dead: the store (and its unsaved
-    // edits) survives the client-side navigation, and the toolbar has already
-    // said why the save failed.
-    if (isDirty) await saveConfig().catch(() => {});
-    router.push(path);
-  };
   const canvasScaleRef = useRef(0.4);
   const canvasElRef = useRef<HTMLDivElement | null>(null);
   // dnd-kit's event.delta on a DragEndEvent is the translate applied to the
@@ -279,7 +269,7 @@ export default function EditorPage() {
             </Button>
             <Button
               variant="secondary"
-              onClick={() => void openSettings('/editor/settings')}
+              onClick={() => router.push('/editor/settings')}
             >
               {t('page.toolbar.settingsButton')}
             </Button>
@@ -288,7 +278,14 @@ export default function EditorPage() {
               title={t('page.toolbar.previewTitle')}
               onClick={() => {
                 if (!config) return;
-                // Open the screen being edited, rotation held, in a new tab —
+                // The preview reads the saved config, so an edit still inside
+                // the 800ms debounce would show stale. Start the save now; it
+                // cannot be awaited, since window.open after an await is a
+                // popup to the browser. The display picks up a save that
+                // lands after its first read through the heartbeat revision.
+                const { isDirty, saveConfig } = useEditorStore.getState();
+                if (isDirty) void saveConfig().catch(() => {});
+                // Open the screen being edited, rotation held, in a new tab,
                 // not screen 1 of the display after a 30s wait.
                 const displays = config.displays ?? [];
                 const active = displays.find((d) => d.id === selectedDisplayId) ?? displays[0];
@@ -322,7 +319,7 @@ export default function EditorPage() {
               className="mx-4 mt-3"
               onPick={(e) => {
                 e.preventDefault();
-                void openSettings(PICK_TIMEZONE_HREF);
+                router.push(PICK_TIMEZONE_HREF);
               }}
             />
             <EditorCanvas onScaleChange={handleScaleChange} canvasRef={canvasElRef} />
