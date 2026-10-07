@@ -3,8 +3,8 @@ import { getLatestImageRelease } from '@/lib/changelog'
 const RELEASES_FALLBACK =
   'https://github.com/home-screens/home-screens/releases'
 
-export function LatestImageLink({ label }: { label?: string }) {
-  const release = getLatestImageRelease()
+export async function LatestImageLink({ label }: { label?: string }) {
+  const release = await getLatestImageRelease()
 
   if (!release) {
     return (

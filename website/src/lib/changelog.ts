@@ -103,37 +103,53 @@ export interface LatestImageRelease {
   releaseUrl: string;
 }
 
-// Tags whose GitHub release actually publishes a `home-screens-<tag>.img.xz` image.
-// Checked in rather than derived: no way to tell from the version number alone,
-// and this repo is a static export with no network at build time. Add a tag here
-// when a release ships an image; remove it if the image is later withdrawn.
-const IMAGE_RELEASE_TAGS = new Set([
-  'v1.12.2',
-  'v1.8.0',
-  'v1.7.0',
-  'v1.6.0',
-  'v1.5.0',
-  'v1.4.1',
-  'v1.3.0',
-  'v1.2.0',
-  'v1.1.0',
-  'v1.0.0',
-  'v0.25.0',
-  'v0.23.0',
-]);
+const RELEASE_BY_TAG_API =
+  'https://api.github.com/repos/home-screens/home-screens/releases/tags';
 
-// Returns the newest release with a published SD card image, or null when none
-// of the tags above has release notes on the site yet.
-export function getLatestImageRelease(): LatestImageRelease | null {
-  const latest = getChangelog().find((entry) =>
-    IMAGE_RELEASE_TAGS.has(entry.tag),
-  );
-  if (!latest) return null;
-  const asset = `home-screens-${latest.tag}.img.xz`;
-  return {
-    tag: latest.tag,
-    version: latest.version,
-    imageUrl: `https://github.com/home-screens/home-screens/releases/download/${latest.tag}/${asset}`,
-    releaseUrl: `https://github.com/home-screens/home-screens/releases/tag/${latest.tag}`,
-  };
+// The asset names on a tag's GitHub release: [] when the tag has notes here but
+// no published release, null when GitHub could not answer.
+async function fetchReleaseAssetNames(tag: string): Promise<string[] | null> {
+  try {
+    const res = await fetch(`${RELEASE_BY_TAG_API}/${tag}`, {
+      headers: { Accept: 'application/vnd.github+json' },
+    });
+    if (res.status === 404) return [];
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const release = (await res.json()) as { assets: { name: string }[] };
+    return release.assets.map((asset) => asset.name);
+  } catch (error) {
+    console.warn(
+      `Could not look up the ${tag} release on GitHub (${error}); the image download link falls back to the releases page.`,
+    );
+    return null;
+  }
+}
+
+// Not every release ships an SD card image, and an image is attached only after
+// it passes on real hardware, sometimes days after its release. So the build
+// asks GitHub instead of keeping a list: the newest release with notes here and
+// a `home-screens-<tag>.img.xz` attached, usually the first one asked about.
+// Null when there is none or GitHub could not be reached.
+async function findLatestImageRelease(): Promise<LatestImageRelease | null> {
+  for (const { tag, version } of getChangelog()) {
+    const assets = await fetchReleaseAssetNames(tag);
+    if (assets === null) return null;
+    const asset = `home-screens-${tag}.img.xz`;
+    if (!assets.includes(asset)) continue;
+    return {
+      tag,
+      version,
+      imageUrl: `https://github.com/home-screens/home-screens/releases/download/${tag}/${asset}`,
+      releaseUrl: `https://github.com/home-screens/home-screens/releases/tag/${tag}`,
+    };
+  }
+  return null;
+}
+
+let latestImageRelease: Promise<LatestImageRelease | null> | undefined;
+
+// One lookup per build or dev server, however many pages render the link.
+export function getLatestImageRelease(): Promise<LatestImageRelease | null> {
+  latestImageRelease ??= findLatestImageRelease();
+  return latestImageRelease;
 }
