@@ -5,6 +5,7 @@ import { execSync } from 'node:child_process'
 import { getAllPosts } from '@/lib/blog'
 import { navigation } from '@/lib/docs-navigation'
 import { getChangelog, RECENT_ENTRY_LIMIT } from '@/lib/changelog'
+import { getDirectoryPlugins } from '@/lib/plugins'
 
 export const dynamic = 'force-static'
 
@@ -31,8 +32,14 @@ function docPageLastModified(href: string): Date {
   return getFileLastModified(path.join(CONTENT_DIR, 'docs', `${slug}.md`))
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://homescreens.dev'
+  const plugins = await getDirectoryPlugins()
+  const pluginsLastMod = plugins.reduce<Date>(
+    (latest, plugin) =>
+      plugin.updatedAt && new Date(plugin.updatedAt) > latest ? new Date(plugin.updatedAt) : latest,
+    new Date(0),
+  )
 
   let changelogLastMod = new Date()
   let archivedEntries: ReturnType<typeof getChangelog> = []
@@ -90,6 +97,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/plugins`,
+      lastModified: pluginsLastMod,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    ...plugins.map((plugin) => ({
+      url: `${baseUrl}/plugins/${plugin.id}`,
+      lastModified: plugin.updatedAt ? new Date(plugin.updatedAt) : pluginsLastMod,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })),
     ...archiveEntry,
     {
       url: `${baseUrl}${docIndexHref}`,

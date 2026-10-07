@@ -5,6 +5,7 @@
 export const siteNavLinks = [
   { label: 'Features', href: '/#features' },
   { label: 'Modules', href: '/#modules' },
+  { label: 'Plugins', href: '/plugins' },
   { label: 'Templates', href: '/#templates' },
   { label: 'Docs', href: '/docs' },
   { label: 'Blog', href: '/blog' },

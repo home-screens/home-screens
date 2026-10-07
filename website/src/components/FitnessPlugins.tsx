@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   Activity,
@@ -15,29 +16,27 @@ import { Container } from '@/components/Container';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Reveal } from '@/components/Reveal';
 import { Badge } from '@/components/ui/badge';
+import {
+  LOCAL_SCREENSHOTS,
+  SCREENSHOT_HEIGHT,
+  SCREENSHOT_WIDTH,
+} from '@/lib/plugin-screenshots';
 
 const STRAVA_ORANGE = '#FC4C02';
 const GARMIN_BLUE = '#3b82f6';
 
 // Real module renders screenshotted off a live display with Playwright —
-// actual rides, sleep, and routes, not mockups or fixture data.
-const STRAVA_SHOTS: Shot[] = [
-  { src: '/images/plugins/strava/route-map.webp', label: 'Route map' },
-  { src: '/images/plugins/strava/latest-hero.webp', label: 'Latest activity' },
-  { src: '/images/plugins/strava/recent-activities.webp', label: 'Recent activities' },
-  { src: '/images/plugins/strava/training-volume.webp', label: 'Training volume' },
-  { src: '/images/plugins/strava/year-poster.webp', label: 'Year so far' },
-  { src: '/images/plugins/strava/goal-progress.webp', label: 'Goal progress' },
-];
+// actual rides, sleep, and routes, not mockups or fixture data. The same
+// list feeds the plugin pages under /plugins.
+const STRAVA_SHOTS: Shot[] = LOCAL_SCREENSHOTS.strava.map((shot) => ({
+  src: shot.src,
+  label: shot.caption ?? '',
+}));
 
-const GARMIN_SHOTS: Shot[] = [
-  { src: '/images/plugins/garmin/summary.webp', label: 'Daily summary' },
-  { src: '/images/plugins/garmin/body-battery.webp', label: 'Body Battery' },
-  { src: '/images/plugins/garmin/sleep.webp', label: 'Sleep' },
-  { src: '/images/plugins/garmin/weekly.webp', label: 'Weekly training' },
-  { src: '/images/plugins/garmin/latest-activity.webp', label: 'Latest activity' },
-  { src: '/images/plugins/garmin/training-readiness.webp', label: 'Training readiness' },
-];
+const GARMIN_SHOTS: Shot[] = LOCAL_SCREENSHOTS.garmin.map((shot) => ({
+  src: shot.src,
+  label: shot.caption ?? '',
+}));
 
 export function FitnessPlugins() {
   return (
@@ -101,7 +100,7 @@ export function FitnessPlugins() {
                     'Fitness trend, segment PRs, gear mileage, milestones — even your Eddington number.',
                 },
               ]}
-              repoUrl="https://github.com/home-screens/home-screens-plugin-strava"
+              href="/plugins/strava"
             />
 
             <PluginCard
@@ -131,7 +130,7 @@ export function FitnessPlugins() {
                     'Publishes steps, sleep, and Body Battery as shared state — show a wind-down note when your battery runs low.',
                 },
               ]}
-              repoUrl="https://github.com/home-screens/home-screens-plugin-garmin"
+              href="/plugins/garmin"
             />
           </div>
         </Reveal>
@@ -150,7 +149,7 @@ function PluginCard({
   shots,
   intervalMs,
   features,
-  repoUrl,
+  href,
 }: {
   name: string;
   accent: string;
@@ -159,7 +158,7 @@ function PluginCard({
   shots: Shot[];
   intervalMs: number;
   features: { icon: LucideIcon; title: string; description: string }[];
-  repoUrl: string;
+  href: string;
 }) {
   return (
     <div className="flex flex-col rounded-2xl border border-[#222] bg-[#111] p-6 sm:p-8">
@@ -188,12 +187,12 @@ function PluginCard({
       </div>
 
       <div className="mt-auto border-t border-[#1d1d1d] pt-4">
-        <a
-          href={repoUrl}
+        <Link
+          href={href}
           className="text-sm font-medium text-neutral-400 transition-colors hover:text-white"
         >
-          Setup guide &rarr;
-        </a>
+          See the plugin &rarr;
+        </Link>
       </div>
     </div>
   );
@@ -242,8 +241,8 @@ function ShotCarousel({
             key={shot.src}
             src={shot.src}
             alt={`${plugin} plugin — ${shot.label} view`}
-            width={1280}
-            height={840}
+            width={SCREENSHOT_WIDTH}
+            height={SCREENSHOT_HEIGHT}
             loading={i === 0 ? 'eager' : 'lazy'}
             className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700"
             style={{ opacity: i === index ? 1 : 0 }}

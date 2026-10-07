@@ -1,6 +1,6 @@
 /**
- * Render every docs page from the static export and check the things a
- * reader notices first:
+ * Render every docs page, and the plugin directory pages, from the static
+ * export and check the things a reader notices first:
  *
  *   - nothing pans the page sideways on a phone (390px) or a laptop (1440px)
  *   - inline code shows no literal backticks
@@ -16,7 +16,7 @@
  */
 import { chromium } from 'playwright'
 import { createServer } from 'node:http'
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -73,6 +73,17 @@ function idsOf(urlPath: string): Set<string> | null {
   return ids
 }
 
+/** /plugins, /plugins/submit and one page per plugin in the export. */
+function pluginPages(): string[] {
+  const dir = path.join(OUT, 'plugins')
+  if (!existsSync(dir)) return []
+  const ids = readdirSync(dir)
+    .filter((name) => name.endsWith('.html'))
+    .map((name) => name.replace(/\.html$/, ''))
+    .sort()
+  return ['/plugins', ...ids.map((id) => `/plugins/${id}`)]
+}
+
 interface PageReport {
   href: string
   overflowPhone: number
@@ -89,7 +100,9 @@ async function main(): Promise<void> {
   const onlyArg = process.argv.find((a) => a.startsWith('--only='))?.slice(7)
     ?? (process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : undefined)
   const only = onlyArg ? new Set(onlyArg.split(',')) : null
-  const hrefs = navigation.flatMap((s) => s.links.map((l) => l.href)).filter((h) => !only || only.has(h))
+  const hrefs = [...navigation.flatMap((s) => s.links.map((l) => l.href)), ...pluginPages()].filter(
+    (h) => !only || only.has(h),
+  )
 
   const { baseURL, close } = await serve()
   const browser = await chromium.launch()
@@ -106,7 +119,8 @@ async function main(): Promise<void> {
         })
         await page.goto(href, { waitUntil: 'networkidle' })
         const measured = await page.evaluate(() => {
-          const article = document.querySelector('article')
+          // Docs pages wrap their body in an article; the plugin pages have none, so main stands in.
+          const article = document.querySelector('article') ?? document.querySelector('main')
           const overflow = Math.max(0, document.documentElement.scrollWidth - window.innerWidth)
           let backticks = 0
           for (const code of Array.from(document.querySelectorAll('article code'))) {

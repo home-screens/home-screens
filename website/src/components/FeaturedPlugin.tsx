@@ -89,8 +89,8 @@ export function FeaturedPlugin() {
 
             <div className="mt-10 flex flex-wrap items-center gap-4">
               <Button href="/docs/plugins">How plugins work</Button>
-              <Button href="/docs/plugins#home-assistant" variant="outline">
-                Set it up
+              <Button href="/plugins/home-assistant" variant="outline">
+                See the plugin
               </Button>
             </div>
           </div>

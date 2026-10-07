@@ -3,9 +3,13 @@ import { join } from 'node:path'
 
 import { ImageResponse } from 'next/og'
 
+import { createElement } from 'react'
+
 import { LogoMark } from '@/components/LogoMark'
 import { getAllPosts } from './blog'
 import { navigation } from './docs-navigation'
+import { loadIconNode } from './plugin-icon-data'
+import { getDirectoryPlugin } from './plugins'
 
 export const ogSize = { width: 1200, height: 630 }
 export const ogContentType = 'image/png'
@@ -63,14 +67,48 @@ export function createBlogOgImage(slug: string) {
   }
 }
 
+/** A plugin page's card: its icon, name, author and category. */
+export async function createPluginOgImage(id: string) {
+  const plugin = await getDirectoryPlugin(id)
+  if (!plugin) {
+    return createOgImage({ title: 'Plugins', section: '', sectionLabel: 'Plugins' })
+  }
+  const node = await loadIconNode(plugin.icon)
+  return createOgImage({
+    title: plugin.name,
+    section: plugin.category,
+    sectionLabel: 'Plugins',
+    subtitle: `by ${plugin.author}${plugin.verified ? ' · Verified by the Home Screens team' : ''}`,
+    icon: node ? (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={72}
+        height={72}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#67E8F9"
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {node.map(([tag, attrs], i) => createElement(tag, { ...attrs, key: i }))}
+      </svg>
+    ) : undefined,
+  })
+}
+
 function createOgImage({
   title,
   section,
   sectionLabel,
+  subtitle,
+  icon,
 }: {
   title: string
   section: string
   sectionLabel: string
+  subtitle?: string
+  icon?: React.ReactNode
 }) {
   const fontSize = title.length > 24 ? 52 : title.length > 16 ? 60 : 68
 
@@ -165,17 +203,49 @@ function createOgImage({
               alignItems: 'center',
             }}
           >
-            <span
-              style={{
-                fontSize: `${fontSize}px`,
-                fontWeight: 700,
-                color: '#F1F5F9',
-                lineHeight: 1.15,
-                letterSpacing: '-0.02em',
-              }}
-            >
-              {title}
-            </span>
+            {icon && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '128px',
+                  height: '128px',
+                  marginRight: '36px',
+                  borderRadius: '32px',
+                  backgroundColor: 'rgba(103, 232, 249, 0.06)',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: 'rgba(103, 232, 249, 0.2)',
+                }}
+              >
+                {icon}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span
+                style={{
+                  fontSize: `${fontSize}px`,
+                  fontWeight: 700,
+                  color: '#F1F5F9',
+                  lineHeight: 1.15,
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {title}
+              </span>
+              {subtitle && (
+                <span
+                  style={{
+                    marginTop: '16px',
+                    fontSize: '24px',
+                    color: '#94A3B8',
+                  }}
+                >
+                  {subtitle}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Footer */}

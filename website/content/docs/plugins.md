@@ -10,6 +10,8 @@ nextjs:
 
 Plugins are extra modules made for Home Screens: Home Assistant, Garmin, Strava, and whatever comes next. Installing one takes two clicks in the editor, and from then on its modules sit in the same list as the built-in ones. {% .lead %}
 
+Browse every plugin, with pictures and version notes, at [homescreens.dev/plugins](/plugins).
+
 ## Install a plugin
 
 1. In the editor, click **Plugins** in the top right.

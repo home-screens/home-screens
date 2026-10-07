@@ -5,15 +5,16 @@ import { DISCORD_INVITE_URL, siteNavLinks } from '@/lib/site-navigation';
 // The footer renders on every marketing surface, not just the homepage, so the
 // homepage section links have to come from siteNavLinks (which uses absolute
 // /#section paths) rather than bare #section fragments that only resolve on /.
-const homepageSections = siteNavLinks.filter((link) =>
-  link.href.startsWith('/#'),
+// The plugin directory sits with them: it is a product page, not a resource.
+const productLinks = siteNavLinks.filter(
+  (link) => link.href.startsWith('/#') || link.href === '/plugins',
 );
 
 const columns = [
   {
     title: 'Product',
     links: [
-      ...homepageSections,
+      ...productLinks,
       { label: 'vs MagicMirror / Dakboard', href: '/vs' },
     ],
   },
