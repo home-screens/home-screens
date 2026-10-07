@@ -46,7 +46,7 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   exit 1
 fi
 
-# Run lint, tests, typecheck, and the production build in parallel — abort if any fail
+# Run lint and tests alongside the typecheck and then the production build; abort if any fail
 echo "Running pre-release checks..."
 # Each check runs in its own subshell that exits with the check's status, not
 # sed's: macOS bash 3.2 forgets a background pipeline's pipefail status once the
@@ -55,11 +55,15 @@ FAILED=""
 ( npm run lint     2>&1 | sed 's/^/  [lint] /';  exit "${PIPESTATUS[0]}" ) &  PID_LINT=$!
 ( npm test         2>&1 | sed 's/^/  [test] /';  exit "${PIPESTATUS[0]}" ) &  PID_TEST=$!
 ( npx tsc --noEmit 2>&1 | sed 's/^/  [types] /'; exit "${PIPESTATUS[0]}" ) &  PID_TYPES=$!
+
+# The build starts only once the type check is done: tsconfig includes
+# .next/types, which next build deletes and rewrites as it starts, and tsc
+# fails with TS6053 when a file it already listed disappears before it reads it.
+wait $PID_TYPES || FAILED="$FAILED types"
 ( npm run build    2>&1 | sed 's/^/  [build] /'; exit "${PIPESTATUS[0]}" ) &  PID_BUILD=$!
 
 wait $PID_LINT  || FAILED="$FAILED lint"
 wait $PID_TEST  || FAILED="$FAILED test"
-wait $PID_TYPES || FAILED="$FAILED types"
 wait $PID_BUILD || FAILED="$FAILED build"
 
 if [[ -n "$FAILED" ]]; then
