@@ -50,12 +50,14 @@ function Header() {
         <div className="mr-6 flex xl:hidden">
           <MobileNavigation />
         </div>
-        <div className="flex items-center gap-8">
+        {/* Same spacing as the marketing Header, so the links do not move when
+            someone crosses between the docs and the rest of the site. */}
+        <div className="flex items-center gap-12">
           <Link href="/" aria-label="Home page">
             <DocsLogomark className="h-9 w-9 lg:hidden" />
             <DocsLogo className="hidden lg:flex" />
           </Link>
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden xl:flex items-center gap-8">
             {siteNavLinks.map((link) => (
               <Link
                 key={link.href}
