@@ -3,6 +3,7 @@ import { slugifyWithCounter } from '@sindresorhus/slugify'
 import React, { type ReactNode } from 'react'
 
 import { Fence } from '@/components/docs/Fence'
+import type { ImageDimensions } from './image-dimensions'
 import { FENCE_PLACEHOLDER_PREFIX, prepareReadme, resolveReadmeUrl } from './plugin-readme'
 
 /**
@@ -19,15 +20,29 @@ function ScrollingTable({ children }: { children: ReactNode }) {
   )
 }
 
-function ReadmeImage({ src, alt, title }: { src: string; alt?: string; title?: string }) {
-  // Sizes are unknown for a picture that lives in someone else's repo, so the
-  // image is boxed by width and keeps its own ratio once it loads.
+function ReadmeImage({ src, alt, title, width, height }: { src: string; alt?: string; title?: string; width?: number; height?: number }) {
+  // The build read each picture's size (getReadmeImageSizes), so the box is
+  // reserved before the picture arrives. A picture the build could not read
+  // is boxed by width and takes its own ratio once it loads.
   return (
-    <img src={src} alt={alt ?? ''} title={title} loading="lazy" decoding="async" className="max-w-full rounded-lg" />
+    <img
+      src={src}
+      alt={alt ?? ''}
+      title={title}
+      width={width}
+      height={height}
+      loading="lazy"
+      decoding="async"
+      className="h-auto max-w-full rounded-lg"
+    />
   )
 }
 
-export function renderReadme(markdown: string, repo: string): ReactNode | null {
+export function renderReadme(
+  markdown: string,
+  repo: string,
+  imageSizes: Record<string, ImageDimensions> = {},
+): ReactNode | null {
   const prepared = prepareReadme(markdown)
   if (!prepared.markdown) return null
 
@@ -85,10 +100,12 @@ export function renderReadme(markdown: string, repo: string): ReactNode | null {
         ...defaultNodes.image,
         transform(node, cfg) {
           const attributes = node.transformAttributes(cfg)
+          const src = resolveReadmeUrl(String(attributes.src ?? ''), repo, 'image')
           return new Tag('ReadmeImage', {
-            src: resolveReadmeUrl(String(attributes.src ?? ''), repo, 'image'),
+            src,
             alt: attributes.alt,
             title: attributes.title,
+            ...(imageSizes[src] ?? {}),
           })
         },
       },

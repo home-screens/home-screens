@@ -2,7 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { derivePlugin, type DirectoryPlugin } from './plugin-directory'
-import { readmeUrl } from './plugin-readme'
+import { imageDimensions, type ImageDimensions } from './image-dimensions'
+import { readmeImageUrls, readmeUrl } from './plugin-readme'
 import {
   DEFAULT_REGISTRY_URL,
   type PluginRegistry,
@@ -137,4 +138,38 @@ export function getPluginReadme(plugin: Pick<DirectoryPlugin, 'id' | 'repo'>): P
     readmeCache.set(plugin.id, pending)
   }
   return pending
+}
+
+const MAX_README_IMAGES = 24
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+
+/**
+ * The pixel size of every picture a README shows, keyed by the URL the
+ * renderer will put in `src`, so each `<img>` can carry width and height and
+ * the page keeps its shape while pictures load. A picture that cannot be
+ * fetched, is too big, or is in a format the header reader does not know is
+ * left out and renders unsized; the page checker reports those, which is
+ * how a broken picture in a plugin's README gets noticed.
+ */
+export async function getReadmeImageSizes(
+  plugin: Pick<DirectoryPlugin, 'repo'>,
+  markdown: string,
+): Promise<Record<string, ImageDimensions>> {
+  const urls = readmeImageUrls(markdown, plugin.repo).slice(0, MAX_README_IMAGES)
+  const sizes: Record<string, ImageDimensions> = {}
+  await Promise.all(urls.map(async (url) => {
+    try {
+      const res = await fetch(url)
+      if (!res.ok) return
+      const length = Number(res.headers.get('content-length') ?? 0)
+      if (length > MAX_IMAGE_BYTES) return
+      const bytes = new Uint8Array(await res.arrayBuffer())
+      if (bytes.byteLength > MAX_IMAGE_BYTES) return
+      const size = imageDimensions(bytes)
+      if (size) sizes[url] = size
+    } catch {
+      // Unreachable picture: rendered without a size, reported by the checker.
+    }
+  }))
+  return sizes
 }

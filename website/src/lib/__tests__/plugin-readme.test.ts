@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { FENCE_PLACEHOLDER_PREFIX, prepareReadme, resolveReadmeUrl } from '../plugin-readme'
+import { FENCE_PLACEHOLDER_PREFIX, prepareReadme, readmeImageUrls, resolveReadmeUrl } from '../plugin-readme'
 
 describe('prepareReadme', () => {
   it('drops the leading H1 but keeps later headings', () => {
@@ -32,5 +32,35 @@ describe('resolveReadmeUrl', () => {
     expect(resolveReadmeUrl('https://homescreens.dev/docs', repo, 'link')).toBe('https://homescreens.dev/docs')
     expect(resolveReadmeUrl('#views', repo, 'link')).toBe('#views')
     expect(resolveReadmeUrl('mailto:a@b.c', repo, 'link')).toBe('mailto:a@b.c')
+  })
+})
+
+describe('readmeImageUrls', () => {
+  const repo = 'mara/home-screens-plugin-transit'
+  it('lists each picture once, resolved to the repo, and skips code blocks', () => {
+    const source = [
+      '# Transit',
+      '',
+      '![Departures board](screenshots/board.webp)',
+      '',
+      '| A | B |',
+      '|---|---|',
+      '| ![Compact](./screenshots/compact.webp "Compact") | ![Hosted](https://homescreens.dev/images/x.webp) |',
+      '',
+      '```md',
+      '![not fetched](screenshots/example.webp)',
+      '```',
+      '',
+      '![Again](screenshots/board.webp)',
+    ].join('\n')
+    expect(readmeImageUrls(source, repo)).toEqual([
+      'https://raw.githubusercontent.com/mara/home-screens-plugin-transit/HEAD/screenshots/board.webp',
+      'https://raw.githubusercontent.com/mara/home-screens-plugin-transit/HEAD/screenshots/compact.webp',
+      'https://homescreens.dev/images/x.webp',
+    ])
+  })
+
+  it('answers an empty list for a README without pictures', () => {
+    expect(readmeImageUrls('# Plain\n\nJust words.', repo)).toEqual([])
   })
 })

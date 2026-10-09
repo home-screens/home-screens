@@ -21,7 +21,7 @@ import {
 } from '@/lib/plugin-directory'
 import { NO_PERMISSIONS_LABEL, orderedPermissions, PERMISSION_COPY } from '@/lib/plugin-permissions'
 import { renderReadme } from '@/lib/plugin-readme-render'
-import { getDirectoryPlugin, getDirectoryPlugins, getPluginReadme } from '@/lib/plugins'
+import { getDirectoryPlugin, getDirectoryPlugins, getPluginReadme, getReadmeImageSizes } from '@/lib/plugins'
 
 export async function generateStaticParams() {
   const plugins = await getDirectoryPlugins()
@@ -55,7 +55,8 @@ export default async function PluginPage({ params }: { params: Promise<{ id: str
   if (!plugin) notFound()
 
   const readme = await getPluginReadme(plugin)
-  const about = readme ? renderReadme(readme, plugin.repo) : null
+  const imageSizes = readme ? await getReadmeImageSizes(plugin, readme) : {}
+  const about = readme ? renderReadme(readme, plugin.repo, imageSizes) : null
   const permissions = orderedPermissions(plugin.permissions)
   const version = plugin.shownVersion
   const url = `https://homescreens.dev/plugins/${plugin.id}`

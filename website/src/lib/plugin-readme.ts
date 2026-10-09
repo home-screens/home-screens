@@ -56,6 +56,20 @@ export function resolveReadmeUrl(
     : `https://github.com/${repo}/blob/HEAD/${path}`
 }
 
+/**
+ * Every picture the README's prose points at, resolved the way the renderer
+ * will resolve it, in order and without repeats. Fenced code is skipped so a
+ * markdown example inside a code block never becomes a fetch at build time.
+ */
+export function readmeImageUrls(markdown: string, repo: string): string[] {
+  const { markdown: prose } = prepareReadme(markdown)
+  const urls = new Set<string>()
+  for (const match of prose.matchAll(/!\[[^\]]*\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) {
+    urls.add(resolveReadmeUrl(match[1], repo, 'image'))
+  }
+  return [...urls]
+}
+
 export function readmeUrl(repo: string): string {
   return `https://raw.githubusercontent.com/${repo}/HEAD/README.md`
 }
