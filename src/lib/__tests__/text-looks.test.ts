@@ -168,7 +168,9 @@ describe('textLooksNeedClock', () => {
 describe('lookSetsAnything', () => {
   it('is false for a rule with only conditions', () => {
     expect(lookSetsAnything({ id: 'a', when: [] })).toBe(false);
-    expect(lookSetsAnything({ id: 'a', when: [], text: '' })).toBe(true);
+    // Blank words are the Show text as switch's starting state, not a change.
+    expect(lookSetsAnything({ id: 'a', when: [], text: '' })).toBe(false);
+    expect(lookSetsAnything({ id: 'a', when: [], text: 'Warm' })).toBe(true);
     expect(lookSetsAnything({ id: 'a', when: [], opacity: 1 })).toBe(true);
   });
 });
@@ -205,5 +207,34 @@ describe('lookContentOpacity', () => {
     expect(lookContentOpacity({ ...DEFAULT_MODULE_STYLE, backdropBlur: 12 }, { opacity: 0.5 })).toBe(0.5);
     expect(lookContentOpacity({ ...DEFAULT_MODULE_STYLE, backdropBlur: 0 }, { opacity: 0.5 })).toBeUndefined();
     expect(lookContentOpacity({ ...DEFAULT_MODULE_STYLE, backdropBlur: 12 }, { textColor: '#1' })).toBeUndefined();
+  });
+});
+
+describe('blank words and icons', () => {
+  // The editor's Show text as switch starts the words empty under a "Keep the
+  // content above" placeholder. A blank that counted as set wiped the words
+  // off the wall and, by first-rule-wins, hid the words of every look below.
+  const blankWords: TextLook = { id: 'blank', when: [], text: '' };
+  const spacesIcon: TextLook = { id: 'spaces', when: [], icon: '  ' };
+  const below: TextLook = { id: 'below', when: [], text: 'Warm out', icon: '🌞' };
+
+  it('does not count blank words or a blank icon as something the look sets', () => {
+    expect(lookSetsAnything(blankWords)).toBe(false);
+    expect(lookSetsAnything(spacesIcon)).toBe(false);
+    expect(lookSetsAnything({ ...blankWords, textColor: '#fff' })).toBe(true);
+  });
+
+  it('keeps the module content and lets a lower look set the words', () => {
+    const r = resolveTextLooks([blankWords, spacesIcon, below], states({}));
+    expect(r.overrides.text).toBe('Warm out');
+    expect(r.overrides.icon).toBe('🌞');
+    expect(r.verdicts.get('blank')).toBe('overruled');
+    expect(r.verdicts.get('spaces')).toBe('overruled');
+    expect(r.showing).toEqual(['below']);
+  });
+
+  it('leaves the words alone when the only matching look has blank words', () => {
+    const r = resolveTextLooks([{ ...blankWords, textColor: '#f00' }], states({}));
+    expect(r.overrides).toEqual({ textColor: '#f00' });
   });
 });

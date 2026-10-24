@@ -66,10 +66,12 @@ describe('usePreviewData weather requests', () => {
     expect(weatherUrls).toEqual(['/api/weather?provider=open-meteo']);
   });
 
-  it('tells the property panel how many forecast days each source sent', async () => {
+  it('tells the property panel how many forecast days and hours each source sent', async () => {
     const forecast = [{ date: '2026-10-18' }, { date: '2026-10-19' }, { date: '2026-10-20' }];
+    const hour = { temp: 10, description: 'Clear sky', icon: 'sun', precipProbability: 0 };
+    const hourly = [{ ...hour, time: '2026-10-18T12:00:00Z' }, { ...hour, time: '2026-10-18T13:00:00Z' }];
     mocks.editorFetch.mockImplementation(async () =>
-      new Response(JSON.stringify({ hourly: [], forecast }), {
+      new Response(JSON.stringify({ hourly, forecast }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       }));
@@ -80,6 +82,7 @@ describe('usePreviewData weather requests', () => {
     });
 
     expect(usePreviewWeatherStore.getState().forecastDays).toEqual({ 'open-meteo': 3 });
+    expect(usePreviewWeatherStore.getState().forecastHours).toEqual({ 'open-meteo': 2 });
   });
 
   it('does not report a missing key for an unused provider whose key is saved', async () => {

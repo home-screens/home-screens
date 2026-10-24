@@ -29,6 +29,12 @@ export interface ModuleStatusContext {
   verdictStates?: ReadonlyMap<string, SharedStateEntry> | null;
   /** 'editor' values drop the "on the display" claim from condition wording. */
   source?: 'display' | 'editor' | null;
+  /**
+   * The household name of a state key, as the condition picker shows it
+   * ("Temperature right now" for `weather.temperature`). Undefined for a key
+   * nobody advertises, so the chip shows the key itself.
+   */
+  keyLabel?: (key: string) => string | undefined;
 }
 
 /** Tailwind classes for the corner badge on the canvas, per tone. */
@@ -129,16 +135,24 @@ export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusConte
         ? (evaluateVisibility(mod.visibility, states, now) ? 'met' : 'unmet')
         : null;
       const key = firstSourceKey({ conditions });
+      const keyName = key ? (ctx.keyLabel?.(key) ?? key) : undefined;
       // With no display report, a clock-only verdict is the editor's own.
       const onDisplay = ctx.source !== 'editor' && !(timeOnly && !verdictStates);
+      // "Waiting for <key>" only while there is no verdict. Once the display
+      // has reported, the chip says what the panel says: showing or hidden.
+      // Naming the key after the value arrived read as if nothing had.
       out.push({
         key: 'condition',
         tone: verdict === 'met' ? 'active' : verdict === 'unmet' ? 'waiting' : 'background',
         label: timeOnly
           ? t(verdict === 'met' ? 'draggableModule.status.conditionTimeMet' : 'draggableModule.status.conditionTimeUnmet')
-          : key
-            ? t('draggableModule.status.conditionOnKey', { key })
-            : t('draggableModule.status.conditionNoKey'),
+          : verdict === 'met'
+            ? t('draggableModule.status.conditionMet')
+            : verdict === 'unmet'
+              ? t('draggableModule.status.conditionUnmet')
+              : keyName
+                ? t('draggableModule.status.conditionOnKey', { key: keyName })
+                : t('draggableModule.status.conditionNoKey'),
         detail:
           verdict === 'met'
             ? t(onDisplay ? 'draggableModule.conditionMetTitle' : 'draggableModule.conditionMetTitleEditor')
@@ -166,13 +180,14 @@ export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusConte
     });
     const waiting = showing.length === 0 && Array.from(result.verdicts.values()).some((v) => v === 'unknown');
     const key = waiting ? firstSourceKey({ conditions }) : undefined;
+    const keyName = key ? (ctx.keyLabel?.(key) ?? key) : undefined;
     out.push({
       key: 'looks',
       tone: names.length > 0 ? 'active' : waiting ? 'background' : 'waiting',
       label: names.length > 0
         ? t('draggableModule.status.lookShowing', { name: names.join(', ') })
         : waiting
-          ? (key ? t('draggableModule.status.lookWaiting', { key }) : t('draggableModule.status.lookWaitingNoKey'))
+          ? (keyName ? t('draggableModule.status.lookWaiting', { key: keyName }) : t('draggableModule.status.lookWaitingNoKey'))
           : t('draggableModule.status.lookNone'),
       detail: names.length > 0
         ? t('draggableModule.lookShowingTitle', { name: names.join(', ') })

@@ -141,6 +141,8 @@
       "scheduledInactiveDetail": "{summary} It is off the wall right now.",
       "conditionOnKey": "Waiting for {key}",
       "conditionNoKey": "Waiting for a live value",
+      "conditionMet": "Showing now",
+      "conditionUnmet": "Hidden now",
       "conditionTimeMet": "Showing at this time",
       "conditionTimeUnmet": "Hidden at this time",
       "background": "Runs in the background",
@@ -4613,7 +4615,6 @@
       "iconStyle": "Icon Style",
       "dataProvider": "Weather source",
       "hoursToShow": "Hours to Show",
-      "hoursToShowHint": "Weather sources give up to a day and a half ahead, so 36 is the most that will show.",
       "daysToShow": "Days to Show",
       "showFeaturedDay": "Show large first day",
       "showRelativeDayLabels": "Use Today and Tmrw labels",
@@ -4674,6 +4675,16 @@
         "weatherApiFree": "A free WeatherAPI key sends 3 days. Paid plans send more.",
         "useOpenMeteo": "Use Open-Meteo for this module",
         "changeHousehold": "Or change the weather source in Settings"
+      },
+      "forecastHours": {
+        "sends": {
+          "one": "{source} sends {count} hour.",
+          "other": "{source} sends {count} hours."
+        },
+        "capped": {
+          "one": "{source} only sends {count} hour, so the chart stops there.",
+          "other": "{source} only sends {count} hours, so the chart stops there."
+        }
       },
       "sections": {
         "source": "Weather data",

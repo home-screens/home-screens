@@ -141,6 +141,8 @@
       "scheduledInactiveDetail": "{summary} Não está na parede agora.",
       "conditionOnKey": "Esperando {key}",
       "conditionNoKey": "Esperando um valor ao vivo",
+      "conditionMet": "Aparece agora",
+      "conditionUnmet": "Escondido agora",
       "conditionTimeMet": "Aparece neste horário",
       "conditionTimeUnmet": "Escondido neste horário",
       "background": "Roda em segundo plano",
@@ -4613,7 +4615,6 @@
       "iconStyle": "Estilo do ícone",
       "dataProvider": "Fonte da previsão",
       "hoursToShow": "Horas a mostrar",
-      "hoursToShowHint": "As fontes de clima dão até um dia e meio à frente, então no máximo 36 horas aparecem.",
       "daysToShow": "Dias a mostrar",
       "showFeaturedDay": "Mostrar primeiro dia em destaque",
       "showRelativeDayLabels": "Usar Hoje e Amanhã",
@@ -4674,6 +4675,16 @@
         "weatherApiFree": "Uma chave gratuita da WeatherAPI envia 3 dias. Planos pagos enviam mais.",
         "useOpenMeteo": "Usar Open-Meteo neste módulo",
         "changeHousehold": "Ou mudar a fonte do tempo nas Configurações"
+      },
+      "forecastHours": {
+        "sends": {
+          "one": "{source} envia {count} hora.",
+          "other": "{source} envia {count} horas."
+        },
+        "capped": {
+          "one": "{source} só envia {count} hora, então a exibição para aí.",
+          "other": "{source} só envia {count} horas, então a exibição para aí."
+        }
       },
       "sections": {
         "source": "Dados do tempo",

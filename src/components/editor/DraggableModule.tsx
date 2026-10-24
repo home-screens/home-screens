@@ -11,6 +11,7 @@ import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import { isModuleEnabled, type ScheduleClock } from '@/lib/schedule';
 import { describeModuleStatus, STATUS_BADGE_CLASS } from '@/lib/module-status';
+import { useStateKeyLabel } from '@/hooks/useStateKeyLabel';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { buildModuleProps, type ModuleDataSource } from '@/lib/module-props';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
@@ -110,9 +111,10 @@ export default function DraggableModule({
   // date-fns-backed; the canvas re-renders every module on every clock tick
   // and shared-state poll, so this must not redo the formatting work when
   // nothing about THIS module's status actually changed.
+  const keyLabel = useStateKeyLabel();
   const statuses = useMemo(
-    () => describeModuleStatus(mod, { t, now, formattingLocale, timeFormat, verdictStates, source }),
-    [mod, t, now, formattingLocale, timeFormat, verdictStates, source],
+    () => describeModuleStatus(mod, { t, now, formattingLocale, timeFormat, verdictStates, source, keyLabel }),
+    [mod, t, now, formattingLocale, timeFormat, verdictStates, source, keyLabel],
   );
 
   return (

@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WeatherAPIProvider } from '../weatherapi';
 
 // WeatherAPI returns temps/wind in both C/F and kph/mph in a single payload;
-// the provider selects by unit. Hourly entries are filtered to time_epoch >= now,
-// so pin `Date.now` and place fixtures at/after it.
+// the provider selects by unit. Hourly entries keep the hour in progress and
+// drop older ones (time_epoch >= now - 3600, as every other provider does), so
+// pin `Date.now` and place fixtures around it.
 
 const NOW = Date.parse('2026-04-18T12:00:00Z');
 const NOW_EPOCH = Math.floor(NOW / 1000);
@@ -135,7 +136,9 @@ describe('WeatherAPIProvider', () => {
     expect(out.map((h) => h.icon)).toEqual(['sun', 'moon']);
   });
 
-  it('getHourly drops hours before now', async () => {
+  it('getHourly keeps the hour in progress and drops older hours', async () => {
+    // The strip's "Now" is the hour that started up to an hour ago. Dropping it
+    // made "Now" show the next hour's forecast and skipped that hour's column.
     spy = mockWa({
       current: { is_day: 1 },
       forecast: {
@@ -143,7 +146,8 @@ describe('WeatherAPIProvider', () => {
           date: '2026-04-18',
           day: {},
           hour: [
-            waHour({ time_epoch: NOW_EPOCH - 3600 }), // past — filtered out
+            waHour({ time_epoch: NOW_EPOCH - 7200, temp_c: 9 }), // two hours back: gone
+            waHour({ time_epoch: NOW_EPOCH - 3600, temp_c: 11 }), // the hour in progress: kept
             waHour({ time_epoch: NOW_EPOCH + 3600, temp_c: 14 }),
           ],
         }],
@@ -151,8 +155,7 @@ describe('WeatherAPIProvider', () => {
     });
 
     const out = await new WeatherAPIProvider('key').getHourly(44.71, -93.42, 'metric');
-    expect(out).toHaveLength(1);
-    expect(out[0].temp).toBe(14);
+    expect(out.map((h) => h.temp)).toEqual([11, 14]);
   });
 
   it('getForecast maps day summaries with metric units and code 1003 → cloud-sun', async () => {

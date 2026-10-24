@@ -94,3 +94,30 @@ describe('ForecastDaysHint', () => {
     expect(screen.queryByRole('link')).toBeNull();
   });
 });
+
+describe('ForecastDaysHint for hours', () => {
+  beforeEach(() => {
+    usePreviewWeatherStore.setState({ forecastDays: {}, forecastHours: {} });
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('reads the hour count the source sent, not the day count', () => {
+    usePreviewWeatherStore.setState({ forecastDays: { pirateweather: 7 }, forecastHours: { pirateweather: 48 } });
+    render({ provider: 'pirateweather', requested: 48, unit: 'hours' });
+
+    expect(screen.getByTestId('forecast-hours-hint').textContent).toBe('Pirate Weather sends 48 hours.');
+    expect(screen.queryByTestId('forecast-hours-capped')).toBeNull();
+  });
+
+  it('warns when the ask passes the hours the source sends, without the free-key note', () => {
+    usePreviewWeatherStore.setState({ forecastDays: { weatherapi: 3 }, forecastHours: { weatherapi: 40 } });
+    render({ provider: 'weatherapi', requested: 48, unit: 'hours' });
+
+    const capped = screen.getByTestId('forecast-hours-capped');
+    expect(capped.textContent).toContain('WeatherAPI.com only sends 40 hours, so the chart stops there.');
+    expect(capped.textContent).not.toContain('free WeatherAPI key');
+  });
+});

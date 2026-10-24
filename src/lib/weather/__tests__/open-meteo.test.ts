@@ -40,7 +40,7 @@ describe('OpenMeteoProvider', () => {
         wind_direction_10m: [200, 215],
         wind_gusts_10m: [31, 36],
         precipitation_probability: [10, 55],
-        surface_pressure: [1012.4, 1011.6],
+        pressure_msl: [1012.4, 1011.6],
         dew_point_2m: [5.3, 5.8],
         is_day: [1, 1],
       },
@@ -79,7 +79,7 @@ describe('OpenMeteoProvider', () => {
       hourly: {
         time: [T0], temperature_2m: [54], apparent_temperature: [50], relative_humidity_2m: [60],
         weather_code: [0], wind_speed_10m: [11], precipitation_probability: [0],
-        surface_pressure: [1015], dew_point_2m: [41], is_day: [1],
+        pressure_msl: [1015], dew_point_2m: [41], is_day: [1],
       },
     });
     const out = await new OpenMeteoProvider().getHourly(44.71, -93.42, 'imperial');
@@ -94,7 +94,7 @@ describe('OpenMeteoProvider', () => {
       hourly: {
         time: [T0], temperature_2m: [8], apparent_temperature: [6], relative_humidity_2m: [70],
         weather_code: [0], wind_speed_10m: [5], precipitation_probability: [0],
-        surface_pressure: [1015], dew_point_2m: [3], is_day: [0],
+        pressure_msl: [1015], dew_point_2m: [3], is_day: [0],
       },
     });
     const out = await new OpenMeteoProvider().getHourly(44.71, -93.42, 'metric');
@@ -106,7 +106,7 @@ describe('OpenMeteoProvider', () => {
       hourly: {
         time: [T0 - 7200, T0], temperature_2m: [1, 12], apparent_temperature: [0, 10],
         relative_humidity_2m: [90, 60], weather_code: [3, 0], wind_speed_10m: [2, 18],
-        precipitation_probability: [0, 10], surface_pressure: [1000, 1012], dew_point_2m: [0, 5], is_day: [1, 1],
+        precipitation_probability: [0, 10], pressure_msl: [1000, 1012], dew_point_2m: [0, 5], is_day: [1, 1],
       },
     });
     const out = await new OpenMeteoProvider().getHourly(44.71, -93.42, 'metric');

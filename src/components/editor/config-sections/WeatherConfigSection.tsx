@@ -16,6 +16,7 @@ import type { ModuleInstance, WeatherConfig, WeatherView, WeatherIconSet } from 
 import { settingsPath } from '@/lib/settings-route';
 import { KEYED_PROVIDER_IDS, WeatherSourceSelect, useConfiguredWeatherProviders } from './WeatherSourceSelect';
 import { ForecastDaysHint } from './ForecastDaysHint';
+import { useForecastHoursSent } from '@/stores/preview-weather-store';
 
 /**
  * What a provider's payload can carry, so the editor offers a toggle or a
@@ -91,8 +92,14 @@ const VIEW_FIELDS: Record<WeatherView, readonly Field[]> = {
   narrative: ['icons', 'days', 'relativeDays', 'highLow'],
 };
 
-/** Sources give up to a day and a half ahead; past this the field asks for hours no source has. */
-const MAX_HOURS = 36;
+/**
+ * The hours field's ceiling while the preview has not yet said how many hours
+ * the module's source sends. Most sources send two days; once the real count
+ * lands (48 for Pirate Weather, 155 for NOAA) the field caps there instead.
+ * A fixed 36 here refused the 48 the wall could draw and told the household
+ * no source went further.
+ */
+const FALLBACK_MAX_HOURS = 48;
 /** No source sends more than a week of days; every provider trims to seven. */
 const MAX_DAYS = 7;
 
@@ -137,6 +144,8 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   const followsHousehold = !c.provider || c.provider === 'global';
   const effectiveProvider = followsHousehold ? (globalProvider ?? 'open-meteo') : c.provider!;
   const caps = PROVIDER_CAPS[effectiveProvider] ?? {};
+  const hoursSent = useForecastHoursSent(effectiveProvider);
+  const maxHours = hoursSent != null && hoursSent > 0 ? hoursSent : FALLBACK_MAX_HOURS;
   // A keyed provider with no key renders nothing but "No weather data" on the
   // wall, and nothing in the editor says why. Surface it here, next to the
   // module, with a link to where the key goes. Only judged once a real
@@ -216,11 +225,17 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
             label={t('configSections.weather.hoursToShow')}
             type="number"
             min={2}
-            max={MAX_HOURS}
+            max={maxHours}
             value={c.hoursToShow ?? 8}
-            onChange={(v) => set({ hoursToShow: Math.min(MAX_HOURS, Number(v)) })}
+            onChange={(v) => set({ hoursToShow: Math.min(maxHours, Number(v)) })}
           />
-          <span className="text-xs text-hs-text-muted">{t('configSections.weather.hoursToShowHint')}</span>
+          <ForecastDaysHint
+            provider={effectiveProvider}
+            requested={c.hoursToShow ?? 8}
+            unit="hours"
+            followsHousehold={followsHousehold}
+            onPickOpenMeteo={() => set({ provider: 'open-meteo' })}
+          />
         </>
       )}
       {has('days') && (

@@ -115,6 +115,7 @@ export function usePreviewData(): PreviewData {
 
       const byProvider: Record<string, ProviderWeatherData> = {};
       const forecastDays: Record<string, number> = {};
+      const forecastHours: Record<string, number> = {};
       for (const result of results) {
         if (result.status === 'fulfilled' && result.value) {
           byProvider[result.value.provider] = {
@@ -126,12 +127,15 @@ export function usePreviewData(): PreviewData {
           if (Array.isArray(result.value.forecast)) {
             forecastDays[result.value.provider] = result.value.forecast.length;
           }
+          if (Array.isArray(result.value.hourly)) {
+            forecastHours[result.value.provider] = result.value.hourly.length;
+          }
         }
       }
       setPreviewData((prev) => ({ ...prev, weatherByProvider: byProvider, weatherErrors: errors }));
-      // The property panel's days fields read this to say where each source
-      // stops. A failed source is left out, so its field says nothing.
-      usePreviewWeatherStore.getState().setForecastDays(forecastDays);
+      // The property panel's days and hours fields read these to say where
+      // each source stops. A failed source is left out, so its field says nothing.
+      usePreviewWeatherStore.getState().setForecastLengths({ days: forecastDays, hours: forecastHours });
     }
 
     return () => {

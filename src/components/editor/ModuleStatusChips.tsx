@@ -3,6 +3,7 @@
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
 import { describeModuleStatus, STATUS_CHIP_CLASS } from '@/lib/module-status';
+import { useStateKeyLabel } from '@/hooks/useStateKeyLabel';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { SharedStateSource } from '@/hooks/useEditorSharedState';
 import type { ModuleInstance } from '@/types/config';
@@ -35,6 +36,7 @@ export default function ModuleStatusChips({
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
+  const keyLabel = useStateKeyLabel();
   const statuses = describeModuleStatus(mod, {
     t,
     now,
@@ -42,6 +44,7 @@ export default function ModuleStatusChips({
     timeFormat,
     verdictStates,
     source,
+    keyLabel,
   });
   if (statuses.length === 0) return null;
   const shown = compact ? statuses.slice(0, 1) : statuses;

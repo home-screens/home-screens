@@ -178,3 +178,30 @@ describe('describeModuleStatus', () => {
     expect(statuses[1].label).toBe('Runs in the background');
   });
 });
+
+describe('a condition chip once the display has reported', () => {
+  const gated = mod({ visibility: { conditions: [{ kind: 'state', sourceKey: 'weather.condition', equals: 'rain' }] } });
+  const reported = (value: string) => new Map<string, SharedStateEntry>([['weather.condition', { value, updatedAt: 0 }]]);
+
+  it('says showing or hidden rather than waiting for the key', () => {
+    // Three testers read "Waiting for weather.precip_chance_today" as "nothing
+    // has arrived" while the panel beside it said the value and the verdict.
+    const [met] = describeModuleStatus(gated, { ...ctx, verdictStates: reported('rain'), source: 'display' });
+    expect(met.label).toBe('Showing now');
+    expect(met.tone).toBe('active');
+    const [unmet] = describeModuleStatus(gated, { ...ctx, verdictStates: reported('clear'), source: 'display' });
+    expect(unmet.label).toBe('Hidden now');
+    expect(unmet.tone).toBe('waiting');
+  });
+
+  it('names the key the way the picker does while it is still waiting', () => {
+    const keyLabel = (key: string) => (key === 'weather.condition' ? 'Weather right now' : undefined);
+    const [status] = describeModuleStatus(gated, { ...ctx, keyLabel });
+    expect(status.label).toBe('Waiting for Weather right now');
+    const [raw] = describeModuleStatus(
+      mod({ visibility: { conditions: [{ kind: 'state', sourceKey: 'garage.door', equals: 'open' }] } }),
+      { ...ctx, keyLabel },
+    );
+    expect(raw.label).toBe('Waiting for garage.door');
+  });
+});

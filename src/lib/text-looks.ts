@@ -49,9 +49,23 @@ export interface TextLookResult {
 const NO_OVERRIDES: TextLookOverrides = Object.freeze({});
 const EMPTY_RESULT: TextLookResult = { overrides: NO_OVERRIDES, verdicts: new Map(), showing: [] };
 
+/**
+ * What the look sets for `property`, or undefined when it sets nothing there.
+ * Blank words and a blank icon count as unset: the editor's Show text as
+ * switch starts the words empty under a "Keep the content above" placeholder,
+ * and an icon cleared to "" means the module's own icon. A blank that counted
+ * as set wiped the words off the wall and, since the first rule to set a
+ * property wins, hid the words of every look below it too.
+ */
+function lookValue(look: TextLook, property: TextLookProperty): unknown {
+  const value = look[property];
+  if ((property === 'text' || property === 'icon') && typeof value === 'string' && value.trim() === '') return undefined;
+  return value;
+}
+
 /** True when the look sets at least one property. */
 export function lookSetsAnything(look: TextLook): boolean {
-  return TEXT_LOOK_PROPERTIES.some((p) => look[p] !== undefined);
+  return TEXT_LOOK_PROPERTIES.some((p) => lookValue(look, p) !== undefined);
 }
 
 const NO_STATES: ReadonlyMap<string, SharedStateEntry> = new Map();
@@ -99,7 +113,7 @@ export function resolveTextLooks(
     }
     let contributed = false;
     for (const property of TEXT_LOOK_PROPERTIES) {
-      const value = look[property];
+      const value = lookValue(look, property);
       if (value === undefined || overrides[property] !== undefined) continue;
       (overrides as Record<string, unknown>)[property] = value;
       contributed = true;

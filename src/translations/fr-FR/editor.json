@@ -141,6 +141,8 @@
       "scheduledInactiveDetail": "{summary} Il n'est pas au mur en ce moment.",
       "conditionOnKey": "En attente de {key}",
       "conditionNoKey": "En attente d'une valeur en direct",
+      "conditionMet": "Affiché maintenant",
+      "conditionUnmet": "Masqué maintenant",
       "conditionTimeMet": "Affiché à cette heure-ci",
       "conditionTimeUnmet": "Masqué à cette heure-ci",
       "background": "Tourne en arrière-plan",
@@ -4613,7 +4615,6 @@
       "iconStyle": "Style d'icône",
       "dataProvider": "Source météo",
       "hoursToShow": "Heures à afficher",
-      "hoursToShowHint": "Les services météo donnent jusqu'à un jour et demi d'avance, 36 heures au plus s'affichent.",
       "daysToShow": "Jours à afficher",
       "showFeaturedDay": "Afficher le premier jour en grand",
       "showRelativeDayLabels": "Utiliser Aujourd’hui et Demain",
@@ -4674,6 +4675,16 @@
         "weatherApiFree": "Une clé WeatherAPI gratuite envoie 3 jours. Les offres payantes en envoient plus.",
         "useOpenMeteo": "Utiliser Open-Meteo pour ce module",
         "changeHousehold": "Ou changer la source météo dans les Paramètres"
+      },
+      "forecastHours": {
+        "sends": {
+          "one": "{source} envoie {count} heure.",
+          "other": "{source} envoie {count} heures."
+        },
+        "capped": {
+          "one": "{source} n'envoie que {count} heure, l'affichage s'arrête donc là.",
+          "other": "{source} n'envoie que {count} heures, l'affichage s'arrête donc là."
+        }
       },
       "sections": {
         "source": "Données météo",

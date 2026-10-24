@@ -74,7 +74,7 @@ export class WeatherAPIProvider implements WeatherProvider {
 
     const allHours = data.forecast.forecastday.flatMap((d) => d.hour);
     const nowEpoch = Math.floor(Date.now() / 1000);
-    const hours = allHours.filter((h) => h.time_epoch >= nowEpoch);
+    const hours = allHours.filter((h) => h.time_epoch >= nowEpoch - 3600);
     return hours.map((h) => ({
       // WeatherAPI's own `time` is the location's wall clock with no zone
       // ("2026-09-23 14:00"). A browser parses that in its own zone, so a Pi

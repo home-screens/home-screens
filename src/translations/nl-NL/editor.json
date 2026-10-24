@@ -141,6 +141,8 @@
       "scheduledInactiveDetail": "{summary} Nu niet te zien op het display.",
       "conditionOnKey": "Wacht op {key}",
       "conditionNoKey": "Wacht op een live-waarde",
+      "conditionMet": "Nu zichtbaar",
+      "conditionUnmet": "Nu verborgen",
       "conditionTimeMet": "Zichtbaar op dit tijdstip",
       "conditionTimeUnmet": "Verborgen op dit tijdstip",
       "background": "Draait op de achtergrond",
@@ -4613,7 +4615,6 @@
       "iconStyle": "Pictogramstijl",
       "dataProvider": "Weerbron",
       "hoursToShow": "Aantal uren tonen",
-      "hoursToShowHint": "Weerbronnen kijken tot anderhalve dag vooruit, dus meer dan 36 uur wordt niet getoond.",
       "daysToShow": "Aantal dagen tonen",
       "showFeaturedDay": "Eerste dag groot tonen",
       "showRelativeDayLabels": "Vandaag en morgen gebruiken",
@@ -4674,6 +4675,16 @@
         "weatherApiFree": "Een gratis WeatherAPI-sleutel stuurt 3 dagen. Betaalde abonnementen sturen meer.",
         "useOpenMeteo": "Open-Meteo gebruiken voor deze module",
         "changeHousehold": "Of de weerbron wijzigen in Instellingen"
+      },
+      "forecastHours": {
+        "sends": {
+          "one": "{source} stuurt {count} uur.",
+          "other": "{source} stuurt {count} uur."
+        },
+        "capped": {
+          "one": "{source} stuurt maar {count} uur, dus daar stopt de weergave.",
+          "other": "{source} stuurt maar {count} uur, dus daar stopt de weergave."
+        }
       },
       "sections": {
         "source": "Weergegevens",

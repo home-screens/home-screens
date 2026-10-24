@@ -16,7 +16,7 @@ interface OMHourlyResponse {
   /** Same unit as `wind_speed_10m` (`wind_speed_unit` covers both). */
   wind_gusts_10m?: number[];
   precipitation_probability: number[];
-  surface_pressure: number[];
+  pressure_msl: number[];
   dew_point_2m: number[];
   uv_index: number[];
   is_day: number[];
@@ -44,7 +44,7 @@ export class OpenMeteoProvider implements WeatherProvider {
     const params = new URLSearchParams({
       latitude: String(lat),
       longitude: String(lon),
-      hourly: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation_probability,surface_pressure,dew_point_2m,uv_index,is_day',
+      hourly: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation_probability,pressure_msl,dew_point_2m,uv_index,is_day',
       temperature_unit: isMetric ? 'celsius' : 'fahrenheit',
       wind_speed_unit: isMetric ? 'kmh' : 'mph',
       precipitation_unit: isMetric ? 'mm' : 'inch',
@@ -76,7 +76,7 @@ export class OpenMeteoProvider implements WeatherProvider {
         windDirection: h.wind_direction_10m?.[i] ?? undefined,
         windGust: h.wind_gusts_10m?.[i] ?? undefined,
         precipProbability: h.precipitation_probability[i] ?? 0,
-        pressure: h.surface_pressure[i] != null ? Math.round(h.surface_pressure[i]) : undefined,
+        pressure: h.pressure_msl[i] != null ? Math.round(h.pressure_msl[i]) : undefined,
         dewPoint: h.dew_point_2m[i] != null ? Math.round(h.dew_point_2m[i]) : undefined,
         uvIndex: h.uv_index?.[i] != null ? Math.round(h.uv_index[i]) : undefined,
       });

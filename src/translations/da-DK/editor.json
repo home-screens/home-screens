@@ -141,6 +141,8 @@
       "scheduledInactiveDetail": "{summary} Det vises ikke på væggen lige nu.",
       "conditionOnKey": "Venter på {key}",
       "conditionNoKey": "Venter på en live-værdi",
+      "conditionMet": "Vises nu",
+      "conditionUnmet": "Skjult nu",
       "conditionTimeMet": "Vises på dette tidspunkt",
       "conditionTimeUnmet": "Skjult på dette tidspunkt",
       "background": "Kører i baggrunden",
@@ -4613,7 +4615,6 @@
       "iconStyle": "Ikonstil",
       "dataProvider": "Vejrkilde",
       "hoursToShow": "Timer der vises",
-      "hoursToShowHint": "Vejrkilder giver op til halvandet døgn frem, så højst 36 timer vises.",
       "daysToShow": "Dage der vises",
       "showFeaturedDay": "Vis første dag stort",
       "showRelativeDayLabels": "Brug I dag og I morgen",
@@ -4674,6 +4675,16 @@
         "weatherApiFree": "En gratis WeatherAPI-nøgle sender 3 dage. Betalte planer sender flere.",
         "useOpenMeteo": "Brug Open-Meteo til dette modul",
         "changeHousehold": "Eller skift vejrkilden i Indstillinger"
+      },
+      "forecastHours": {
+        "sends": {
+          "one": "{source} sender {count} time.",
+          "other": "{source} sender {count} timer."
+        },
+        "capped": {
+          "one": "{source} sender kun {count} time, så visningen stopper der.",
+          "other": "{source} sender kun {count} timer, så visningen stopper der."
+        }
       },
       "sections": {
         "source": "Vejrdata",
