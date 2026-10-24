@@ -1262,7 +1262,7 @@
       "pressureSteady": "Stabiel",
       "hourly": "Uurverwachting",
       "days": "{days}-daagse verwachting",
-      "map": "Neerslag",
+      "map": "Regenkaart",
       "now": "Nu",
       "gusts": "Windstoten: {speed} {unit} {dir}",
       "windFrom": "Uit het {dir}",

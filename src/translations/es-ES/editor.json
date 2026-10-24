@@ -1271,7 +1271,7 @@
       "searchWords": "emoji emojis personalizado propio subir pegatina foto imagen dibujo icono iconos"
     },
     "integrationsPage": {
-      "description": "Claves y accesos que desbloquean contenido extra: calendarios, fotos, tráfico, noticias. Se guardan en este dispositivo y no se envían a ningún sitio.",
+      "description": "Claves y accesos que desbloquean contenido extra: calendarios, fotos, tráfico, noticias. Se quedan en este dispositivo. Un inicio de sesión de Google con la app de Home Screens se renueva a través de su asistente de acceso, que no guarda nada.",
       "loadingStatus": "Cargando estado de las integraciones...",
       "summary": {
         "configuredCountPart1": " de ",

@@ -1271,7 +1271,7 @@
       "searchWords": "emoji ikon ikoner billede billeder foto upload uploade klistermærke sticker egne eget"
     },
     "integrationsPage": {
-      "description": "Nøgler og logins, der låser op for ekstra indhold: kalendere, billeder, trafik, nyheder. De bliver på denne enhed og sendes ingen steder hen.",
+      "description": "Nøgler og logins, der låser op for ekstra indhold: kalendere, billeder, trafik, nyheder. De bliver på denne enhed. Et Google-login med Home Screens' app fornyes gennem dets login-hjælper, som ikke gemmer noget.",
       "loadingStatus": "Indlæser status for integrationer…",
       "summary": {
         "configuredCountPart1": " af ",
@@ -1328,7 +1328,7 @@
           "title": "Brug din egen Google-app",
           "hintClosed": "De fleste hjem har ikke brug for det.",
           "hintOpen": "Til dem, der hellere vil have deres eget Google Cloud-projekt.",
-          "hintOn": "Logger dig ind lige nu.",
+          "hintOn": "I brug. Din egen Google-app logger dig ind.",
           "hintOff": "Gemt, men ikke i brug. Home Screens' app logger dig ind.",
           "warning": "Hvis du gemmer din egen app, skal alle, der allerede er logget ind med Google, logge ind igen, fordi et login kun virker med den app, det kom fra.",
           "switchCallout": "Skifter du app, bliver Google logget ud. Log ind igen bagefter på siden Kalender eller i et fotomodul."

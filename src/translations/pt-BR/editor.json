@@ -1271,7 +1271,7 @@
       "searchWords": "emoji emojis personalizado enviar upload figurinha adesivo foto imagem ícone icone"
     },
     "integrationsPage": {
-      "description": "Chaves e acessos que liberam conteúdo extra: calendários, fotos, trânsito, notícias. Ficam neste aparelho e não são enviados a lugar nenhum.",
+      "description": "Chaves e acessos que liberam conteúdo extra: calendários, fotos, trânsito, notícias. Ficam neste aparelho. Um login do Google com o app do Home Screens é renovado pelo ajudante de login, que não guarda nada.",
       "loadingStatus": "Carregando status das integrações...",
       "summary": {
         "configuredCountPart1": " de ",

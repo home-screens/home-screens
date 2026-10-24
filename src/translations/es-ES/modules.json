@@ -1267,7 +1267,7 @@
       "pressureSteady": "Estable",
       "hourly": "Previsión por horas",
       "days": "Previsión de {days} días",
-      "map": "Precipitación",
+      "map": "Mapa de lluvia",
       "now": "Ahora",
       "gusts": "Rachas: {speed} {unit} {dir}",
       "windFrom": "Del {dir}",

@@ -1271,7 +1271,7 @@
       "searchWords": "emoji émoji émoticône personnalisé importer ajouter autocollant sticker photo image icône icone"
     },
     "integrationsPage": {
-      "description": "Clés et identifiants qui débloquent du contenu supplémentaire : agendas, photos, trafic, actualités. Ils restent sur cet appareil et ne sont envoyés nulle part.",
+      "description": "Clés et identifiants qui débloquent du contenu supplémentaire : agendas, photos, trafic, actualités. Ils restent sur cet appareil. Une connexion Google avec l'appli de Home Screens se renouvelle via son assistant de connexion, qui ne conserve rien.",
       "loadingStatus": "Chargement de l'état des intégrations…",
       "summary": {
         "configuredCountPart1": " sur ",
@@ -1328,7 +1328,7 @@
           "title": "Utiliser votre propre appli Google",
           "hintClosed": "La plupart des foyers n'en ont pas besoin.",
           "hintOpen": "Pour ceux qui préfèrent gérer leur propre projet Google Cloud.",
-          "hintOn": "Vous connecte en ce moment.",
+          "hintOn": "Utilisée. Votre propre appli Google vous connecte.",
           "hintOff": "Enregistrée, mais pas utilisée. L'appli de Home Screens vous connecte.",
           "warning": "Si vous enregistrez votre propre appli, toute personne déjà connectée avec Google devra se reconnecter, car une connexion ne fonctionne qu'avec l'appli qui l'a créée.",
           "switchCallout": "Changer d'appli déconnecte Google. Reconnectez-vous ensuite sur la page Calendrier ou dans un module photo."

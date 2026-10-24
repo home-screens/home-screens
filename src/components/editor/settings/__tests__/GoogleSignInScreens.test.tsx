@@ -112,7 +112,7 @@ describe('Google card on the API keys page', () => {
       OWN_SAVED,
     );
     expect(view.getByText('Using your own Google app')).toBeTruthy();
-    expect(view.getByText('Signing you in now.')).toBeTruthy();
+    expect(view.getByText('In use. Your own Google app signs you in.')).toBeTruthy();
     expect(view.getByText('Google Photos is ready to use')).toBeTruthy();
     expect(view.queryByText('Connect Google Calendar →')).toBeNull();
     expect(view.getByText('Calendar Client ID')).toBeTruthy();

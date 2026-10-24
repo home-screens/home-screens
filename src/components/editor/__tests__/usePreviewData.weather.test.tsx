@@ -4,6 +4,8 @@ import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEditorStore } from '@/stores/editor-store';
 import { usePreviewWeatherStore } from '@/stores/preview-weather-store';
+import { sharedStateStore } from '@/lib/shared-state-store';
+import { WEATHER_STATE_KEYS } from '@/lib/weather-state';
 import type { ScreenConfiguration } from '@/types/config';
 import { usePreviewData } from '../usePreviewData';
 
@@ -83,6 +85,28 @@ describe('usePreviewData weather requests', () => {
 
     expect(usePreviewWeatherStore.getState().forecastDays).toEqual({ 'open-meteo': 3 });
     expect(usePreviewWeatherStore.getState().forecastHours).toEqual({ 'open-meteo': 2 });
+  });
+
+  it('puts the household weather facts on the editor bus so the canvas can read them', async () => {
+    // The canvas Text module reads tokens and looks from this tab's bus; the
+    // wall publishes these from its own fetch, so without this the wall showed
+    // a weather look the canvas never did.
+    const hour = { temp: 71, description: 'Clear sky', icon: 'sun', precipProbability: 10 };
+    const hourly = [{ ...hour, time: new Date(Date.now() + 60_000).toISOString() }];
+    mocks.editorFetch.mockImplementation(async () =>
+      new Response(JSON.stringify({ hourly, forecast: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }));
+    const { unmount } = renderHook(() => usePreviewData());
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+
+    expect(sharedStateStore.snapshot().get(WEATHER_STATE_KEYS.temperature)?.value).toBe('71');
+    expect(sharedStateStore.snapshot().get(WEATHER_STATE_KEYS.condition)?.value).toBe('clear');
+    unmount();
   });
 
   it('does not report a missing key for an unused provider whose key is saved', async () => {

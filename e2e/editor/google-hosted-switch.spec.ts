@@ -54,7 +54,7 @@ base.describe('on by default', () => {
       const card = page.getByTestId('google-own-app-switch');
       await expect(card).toHaveAttribute('aria-checked', 'true');
       await expect(page.getByText('Using your own Google app')).toBeVisible();
-      await expect(page.getByText('Signing you in now.')).toBeVisible();
+      await expect(page.getByText('In use. Your own Google app signs you in.')).toBeVisible();
       await expect(page.getByTestId('google-ready')).toContainText('Google Photos is ready to use');
 
       // Off: saved like any setting, and the hub is asked again at once. The

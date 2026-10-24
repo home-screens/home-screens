@@ -9,6 +9,9 @@ import { useCalendarFetchQuery } from './useCalendarFetchQuery';
 import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import { eventBus } from '@/lib/event-bus';
 import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/derive';
+import { sharedStateStore } from '@/lib/shared-state-store';
+import { deriveWeatherState, WEATHER_STATE_KEY_LIST, type WeatherStatePayload } from '@/lib/weather-state';
+import { HOST_STATE_REPUBLISH_MS } from '@/lib/constants';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 import type { PreviewData } from '@/lib/module-props';
 import { logger } from '@/lib/logger';
@@ -199,6 +202,31 @@ export function usePreviewData(): PreviewData {
     const alertsEvent = deriveWeatherAlerts(globalWeather.alerts as WeatherAlert[] | undefined);
     if (alertsEvent) eventBus.publish('weather.alerts', alertsEvent);
   }, [globalWeather, units]);
+
+  // Publish the same weather facts the wall puts on its bus (weather-state.ts)
+  // onto this tab's bus, from the household source the preview already
+  // fetched. The canvas Text module reads its tokens and looks from the tab's
+  // own bus, as plugin providers feed it through EditorStateProviderLayer;
+  // without this the wall showed a weather look while the canvas kept the
+  // plain text and "Outside it is – and –", and on a fresh install, where the
+  // weather keys are the only keys, no look ever previewed. The editor never
+  // reports a heartbeat, so nothing here reaches the hub or a display, and a
+  // fresh display snapshot still wins for the verdict chips.
+  const timezone = useEditorStore((s) => s.config?.settings?.timezone);
+  useEffect(() => {
+    if (!globalWeather) {
+      for (const key of WEATHER_STATE_KEY_LIST) sharedStateStore.clearKey(key);
+      return;
+    }
+    const payload = globalWeather as WeatherStatePayload;
+    const tick = () => {
+      const values = deriveWeatherState(payload, new Date(), { timezone });
+      for (const [key, value] of Object.entries(values)) sharedStateStore.publish(key, value);
+    };
+    tick();
+    const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
+    return () => clearInterval(timer);
+  }, [globalWeather, timezone]);
 
   return previewData;
 }

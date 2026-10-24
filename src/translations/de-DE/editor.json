@@ -1271,7 +1271,7 @@
       "searchWords": "emoji eigene eigenes hochladen sticker aufkleber foto bild bilder icon symbol"
     },
     "integrationsPage": {
-      "description": "Schlüssel und Anmeldungen, die zusätzliche Inhalte freischalten: Kalender, Fotos, Verkehr, Nachrichten. Sie bleiben auf diesem Gerät und werden nirgendwohin gesendet.",
+      "description": "Schlüssel und Anmeldungen, die zusätzliche Inhalte freischalten: Kalender, Fotos, Verkehr, Nachrichten. Sie bleiben auf diesem Gerät. Eine Google-Anmeldung über die App von Home Screens wird über deren Anmeldehelfer erneuert, der nichts speichert.",
       "loadingStatus": "Integrationsstatus wird geladen …",
       "summary": {
         "configuredCountPart1": " von ",
@@ -1328,7 +1328,7 @@
           "title": "Eigene Google-App verwenden",
           "hintClosed": "Die meisten Haushalte brauchen das nicht.",
           "hintOpen": "Für alle, die lieber ihr eigenes Google-Cloud-Projekt betreiben.",
-          "hintOn": "Meldet dich gerade an.",
+          "hintOn": "Aktiv. Deine eigene Google-App meldet dich an.",
           "hintOff": "Gespeichert, aber nicht aktiv. Die App von Home Screens meldet dich an.",
           "warning": "Wenn du eine eigene App speicherst, müssen sich alle, die schon mit Google angemeldet sind, neu anmelden, denn eine Anmeldung funktioniert nur mit der App, von der sie stammt.",
           "switchCallout": "Ein Wechsel der App meldet Google ab. Melde dich danach auf der Seite Kalender oder in einem Fotomodul neu an."

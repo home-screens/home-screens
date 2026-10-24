@@ -1267,7 +1267,7 @@
       "pressureSteady": "Stable",
       "hourly": "Prévisions horaires",
       "days": "Prévisions sur {days} jours",
-      "map": "Précipitations",
+      "map": "Carte des pluies",
       "now": "Maint.",
       "gusts": "Rafales : {speed} {unit} {dir}",
       "windFrom": "Du {dir}",

@@ -1271,7 +1271,7 @@
       "searchWords": "emoji eigen uploaden sticker foto afbeelding plaatje pictogram icoon"
     },
     "integrationsPage": {
-      "description": "Sleutels en logins die extra inhoud vrijgeven: agenda’s, foto’s, verkeer, nieuws. Ze blijven op dit apparaat en gaan nergens heen.",
+      "description": "Sleutels en logins die extra inhoud vrijgeven: agenda’s, foto’s, verkeer, nieuws. Ze blijven op dit apparaat. Een Google-aanmelding met de app van Home Screens wordt vernieuwd via de aanmeldhulp, die niets bewaart.",
       "loadingStatus": "Status van integraties laden…",
       "summary": {
         "configuredCountPart1": " van ",
@@ -1328,7 +1328,7 @@
           "title": "Je eigen Google-app gebruiken",
           "hintClosed": "De meeste huishoudens hebben dit niet nodig.",
           "hintOpen": "Voor wie liever een eigen Google Cloud-project beheert.",
-          "hintOn": "Meldt je nu aan.",
+          "hintOn": "In gebruik. Je eigen Google-app meldt je aan.",
           "hintOff": "Opgeslagen, niet in gebruik. De app van Home Screens meldt je aan.",
           "warning": "Als je je eigen app opslaat, moet iedereen die al met Google is aangemeld zich opnieuw aanmelden, want een aanmelding werkt alleen met de app waar die vandaan komt.",
           "switchCallout": "Wisselen van app meldt Google af. Meld je daarna opnieuw aan op de pagina Kalender of in een fotomodule."

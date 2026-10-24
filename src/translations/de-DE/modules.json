@@ -1262,7 +1262,7 @@
       "pressureSteady": "Gleichbleibend",
       "hourly": "Stündliche Vorhersage",
       "days": "{days}-Tage-Vorhersage",
-      "map": "Niederschlag",
+      "map": "Regenkarte",
       "now": "Jetzt",
       "gusts": "Böen: {speed} {unit} {dir}",
       "windFrom": "Aus {dir}",

@@ -3,6 +3,7 @@
 import SunCalc from 'suncalc';
 import { formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
 import { moonTimesForDay } from '@/lib/moon-times';
+import { moonPhaseKey, type MoonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { useRealClock } from '@/hooks/useTZClock';
 import type { MoonPhaseConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -26,16 +27,26 @@ interface MoonPhaseModuleProps {
   timeFormat?: TimeFormat;
 }
 
+/** This module's own string ids for the shared phase rule's keys. */
+const PHASE_STRING: Record<MoonPhaseKey, string> = {
+  new: 'newMoon',
+  waxingCrescent: 'waxingCrescent',
+  firstQuarter: 'firstQuarter',
+  waxingGibbous: 'waxingGibbous',
+  full: 'fullMoon',
+  waningGibbous: 'waningGibbous',
+  lastQuarter: 'lastQuarter',
+  waningCrescent: 'waningCrescent',
+};
+
+/**
+ * The same phase rule the weather views use, so two modules on one screen
+ * never name today's moon differently. This module used to split the cycle
+ * into eighths and called a 97% moon full two days early while the Sun and
+ * moon view beside it said waxing gibbous.
+ */
 function getPhaseName(phase: number, t: TranslateFn): string {
-  if (phase < 0.0625) return t('moon-phase.phases.newMoon');
-  if (phase < 0.1875) return t('moon-phase.phases.waxingCrescent');
-  if (phase < 0.3125) return t('moon-phase.phases.firstQuarter');
-  if (phase < 0.4375) return t('moon-phase.phases.waxingGibbous');
-  if (phase < 0.5625) return t('moon-phase.phases.fullMoon');
-  if (phase < 0.6875) return t('moon-phase.phases.waningGibbous');
-  if (phase < 0.8125) return t('moon-phase.phases.lastQuarter');
-  if (phase < 0.9375) return t('moon-phase.phases.waningCrescent');
-  return t('moon-phase.phases.newMoon');
+  return t(`moon-phase.phases.${PHASE_STRING[moonPhaseKey(phase)]}`);
 }
 
 function MoonVisual({ phase }: { phase: number }) {

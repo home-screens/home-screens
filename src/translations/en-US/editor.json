@@ -1271,7 +1271,7 @@
       "searchWords": "emoji custom upload sticker photo picture icon"
     },
     "integrationsPage": {
-      "description": "Keys and logins that unlock extra content: calendars, photos, traffic, news. They are stored on this device and never sent anywhere else.",
+      "description": "Keys and logins that unlock extra content: calendars, photos, traffic, news. They stay on this device. A Google sign-in with Home Screens' app renews through its sign-in helper, which keeps nothing.",
       "loadingStatus": "Loading integration status...",
       "summary": {
         "configuredCountPart1": " of ",
@@ -1328,7 +1328,7 @@
           "title": "Use your own Google app",
           "hintClosed": "Most homes don't need this.",
           "hintOpen": "For people who'd rather run their own Google Cloud project.",
-          "hintOn": "Signing you in now.",
+          "hintOn": "In use. Your own Google app signs you in.",
           "hintOff": "Saved, not in use. Home Screens' app signs you in.",
           "warning": "If you save your own app, anyone already signed in with Google will need to sign in again, because a sign-in only works with the app it came from.",
           "switchCallout": "Switching apps signs Google out. Sign in again afterwards on the Calendar page or in a photo module."

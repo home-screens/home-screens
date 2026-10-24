@@ -324,7 +324,7 @@ The two phone addresses (the kids' chores page and the family remote) with QR co
 
 ### API keys
 
-Keys and logins that unlock extra content, one card per service, each showing whether it is set up. They are stored on the Pi and never sent anywhere else. Weather keys are the exception and live on their provider's card under **Settings > Weather**.
+Keys and logins that unlock extra content, one card per service, each showing whether it is set up. They stay on the Pi. The one thing that leaves it is a Google sign-in made with Home Screens' built-in app, which renews through the Home Screens sign-in helper; the helper keeps nothing. Weather keys are the exception and live on their provider's card under **Settings > Weather**.
 
 The Google card needs nothing for Google Calendar or Google Photos: both sign in with Home Screens' own Google app. It holds the Maps key for traffic and, folded under **Use your own Google app**, the fields for running your own Google Cloud project instead (see [for the calendar](/docs/calendars#own-google-app) and [for Google Photos](/docs/backgrounds#use-your-own-google-app)).
 

@@ -1262,7 +1262,7 @@
       "pressureSteady": "Stabilt",
       "hourly": "Timeprognose",
       "days": "{days}-dages prognose",
-      "map": "Nedbør",
+      "map": "Regnkort",
       "now": "Nu",
       "gusts": "Vindstød: {speed} {unit} {dir}",
       "windFrom": "Fra {dir}",
