@@ -129,6 +129,18 @@ describe('describeModuleStatus', () => {
       expect(ok.label).toBe('Look: Look 2');
     });
 
+    it('lists two looks in effect as two names, not one look called both', () => {
+      // Two matching looks that set different things both apply; the chip
+      // and its title say so in the plural.
+      const both = mod({ type: 'text', config: { content: 'x', looks: [looks[0], { id: 'warm', name: 'Warm', when: [{ kind: 'numeric' as const, sourceKey: 'plugin:ha:temp', above: 20 }], borderColor: '#ff0' }] } });
+      const [status] = describeModuleStatus(both, { ...ctx, verdictStates: at('25') });
+      expect(status.label).toBe('Looks: Too warm, Warm');
+      expect(status.detail).toBe('The looks Too warm and Warm are changing this module right now.');
+      const [single] = describeModuleStatus(both, { ...ctx, verdictStates: at('21') });
+      expect(single.label).toBe('Look: Warm');
+      expect(single.detail).toBe('The look "Warm" is changing this module right now.');
+    });
+
     it('says when no look matches', () => {
       const [none] = describeModuleStatus(text, { ...ctx, verdictStates: at('23') });
       expect(none.tone).toBe('waiting');

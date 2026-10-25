@@ -14,7 +14,7 @@ Ten minutes from a blank display to a clock, weather, a calendar and a chore cha
 
 Open the address the wall is showing (`http://home-screens.local:3000` on the pre-built image) on a laptop or desktop. The editor needs a wide window, so a phone shows a menu instead and offers to copy the address for you.
 
-{% screenshot name="editor-empty-screen" caption="A brand-new editor. The screen is empty, and the panel on the right lists the four things worth doing first." /%}
+{% screenshot name="editor-empty-screen" caption="A brand-new editor. The screen is empty, and the panel on the right lists the five things worth doing first." /%}
 
 The editor has five areas, and you will use all of them today:
 

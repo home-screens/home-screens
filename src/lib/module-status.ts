@@ -94,6 +94,15 @@ function firstSourceKey(node: unknown): string | undefined {
  * the chip in the property panel all read from this one list, so they can
  * never describe the same module differently.
  */
+/** "Mild and Warm" in the household's language; a plain comma list where the runtime has no list rules. */
+function formatList(items: string[], locale: string): string {
+  try {
+    return new Intl.ListFormat(locale, { type: 'conjunction' }).format(items);
+  } catch {
+    return items.join(', ');
+  }
+}
+
 export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusContext): ModuleStatus[] {
   const { t, now, verdictStates } = ctx;
   const out: ModuleStatus[] = [];
@@ -181,16 +190,21 @@ export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusConte
     const waiting = showing.length === 0 && Array.from(result.verdicts.values()).some((v) => v === 'unknown');
     const key = waiting ? firstSourceKey({ conditions }) : undefined;
     const keyName = key ? (ctx.keyLabel?.(key) ?? key) : undefined;
+    // Two looks in effect at once (each setting a different thing) are two
+    // names, not one look called "Mild, Warm": the chip lists them and the
+    // title says "The looks Mild and Warm are changing this module".
+    const many = names.length > 1;
+    const nameList = many ? formatList(names, ctx.formattingLocale) : names[0];
     out.push({
       key: 'looks',
       tone: names.length > 0 ? 'active' : waiting ? 'background' : 'waiting',
       label: names.length > 0
-        ? t('draggableModule.status.lookShowing', { name: names.join(', ') })
+        ? t(many ? 'draggableModule.status.looksShowing' : 'draggableModule.status.lookShowing', { name: names.join(', ') })
         : waiting
           ? (keyName ? t('draggableModule.status.lookWaiting', { key: keyName }) : t('draggableModule.status.lookWaitingNoKey'))
           : t('draggableModule.status.lookNone'),
       detail: names.length > 0
-        ? t('draggableModule.lookShowingTitle', { name: names.join(', ') })
+        ? t(many ? 'draggableModule.looksShowingTitle' : 'draggableModule.lookShowingTitle', { name: nameList })
         : waiting
           ? t('draggableModule.lookWaitingTitle')
           : t('draggableModule.lookNoneTitle'),

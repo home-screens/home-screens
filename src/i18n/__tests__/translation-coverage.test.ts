@@ -427,6 +427,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'es-ES': new Set([
     // 'Color' is the Spanish word too
     'core|family.color',
+    // "{key}: no" is the Spanish "no" as well.
+    'editor|conditionSummary.isNo',
     'remote|lists.colourSwatch',
     'remote|lists.listSheet.colourLabel',
     // "Diagonal" is the same word in Spanish.

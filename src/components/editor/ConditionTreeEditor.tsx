@@ -184,6 +184,7 @@ export function SourceKeyInput({
   options,
   liveState,
   plugins,
+  unknownKeyHint,
   t,
 }: {
   value: string;
@@ -192,6 +193,12 @@ export function SourceKeyInput({
   liveState?: EditorSharedState;
   /** Loaded plugins, for naming an unhealthy provider in the unknown hint. */
   plugins?: Map<string, LoadedPlugin>;
+  /**
+   * What a key nobody publishes means here. The default is the Conditions
+   * panel's wording about the module following its "Before data arrives"
+   * setting; a host without that setting (a Text look) says its own.
+   */
+  unknownKeyHint?: string;
   t: TranslateFn;
 }) {
   const formattingLocale = useFormattingLocale();
@@ -454,7 +461,7 @@ export function SourceKeyInput({
       )}
       {unknown && !liveEntry && !withinPickGrace && (
         <span className="text-[10px] text-hs-warning">
-          {t('visibilityConditions.sourceKeyUnknown')}
+          {unknownKeyHint ?? t('visibilityConditions.sourceKeyUnknown')}
           {healthNote && (
             <span className="text-hs-text-dim">
               {' · '}
@@ -782,6 +789,7 @@ function ConditionEditor({
   options,
   liveState,
   plugins,
+  unknownKeyHint,
   verdictStates,
   now,
   depth,
@@ -793,6 +801,7 @@ function ConditionEditor({
   options: readonly ProvidedStateKey[];
   liveState?: EditorSharedState;
   plugins?: Map<string, LoadedPlugin>;
+  unknownKeyHint?: string;
   verdictStates: ReadonlyMap<string, SharedStateEntry> | null;
   now: ScheduleClock;
   depth: number;
@@ -849,6 +858,7 @@ function ConditionEditor({
             options={options}
             liveState={liveState}
             plugins={plugins}
+            unknownKeyHint={unknownKeyHint}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -913,6 +923,7 @@ function ConditionEditor({
             options={options}
             liveState={liveState}
             plugins={plugins}
+            unknownKeyHint={unknownKeyHint}
             t={t}
           />
           <div className="grid grid-cols-2 gap-2">
@@ -971,6 +982,7 @@ function ConditionEditor({
               options={options}
               liveState={liveState}
               plugins={plugins}
+              unknownKeyHint={unknownKeyHint}
               verdictStates={verdictStates}
               now={now}
               t={t}
@@ -1011,6 +1023,7 @@ export default function ConditionTreeEditor({
   options,
   liveState,
   plugins,
+  unknownKeyHint,
   now,
   t,
 }: {
@@ -1021,6 +1034,8 @@ export default function ConditionTreeEditor({
   /** Loaded plugins, threaded to the key input so an unhealthy provider can be
    *  named in the "nothing publishes this key" hint. */
   plugins?: Map<string, LoadedPlugin>;
+  /** The key input's wording for a key nobody publishes; see `SourceKeyInput`. */
+  unknownKeyHint?: string;
   /**
    * Wall clock for `time`-condition verdicts. Callers pass a ticking
    * display-zone reading (via `useConditionClock`) so a time chip stays
@@ -1045,6 +1060,7 @@ export default function ConditionTreeEditor({
           options={options}
           liveState={liveState}
           plugins={plugins}
+          unknownKeyHint={unknownKeyHint}
           verdictStates={verdictStates}
           now={nowDate}
           t={t}

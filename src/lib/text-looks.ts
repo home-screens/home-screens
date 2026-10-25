@@ -13,7 +13,8 @@
  *   nothing; the module's own style is the fallback, so there is no default row
  */
 
-import type { ModuleStyle, TextLook } from '@/types/config';
+import { DEFAULT_MODULE_STYLE, type ModuleStyle, type TextLook } from '@/types/config';
+import { colorWithAlpha } from '@/lib/module-style';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { collectSourceKeys, containsTimeCondition, evaluateConditionsTri, type ScheduleClock } from '@/lib/schedule';
 import { extractSharedStateKeys } from '@/lib/shared-state-template';
@@ -181,6 +182,12 @@ export function applyTextLook(style: ModuleStyle, overrides: TextLookOverrides):
   if (overrides.opacity !== undefined) {
     const own = typeof style.opacity === 'number' && Number.isFinite(style.opacity) ? style.opacity : 1;
     next.opacity = Math.max(0, Math.min(1, own * overrides.opacity));
+    // Under backdrop blur the card's opacity reaches only the fill (see
+    // `lookContentOpacity`), so the border kept its full color while the
+    // words and the fill faded. The fade goes into the border's alpha too.
+    if (next.backdropBlur > 0 && next.borderWidth > 0) {
+      next.borderColor = colorWithAlpha(next.borderColor ?? DEFAULT_MODULE_STYLE.borderColor, overrides.opacity);
+    }
   }
   return next;
 }

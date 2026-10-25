@@ -200,6 +200,16 @@ describe('applyTextLook', () => {
   it('multiplies fade with the card\'s own solidity', () => {
     expect(applyTextLook(style, { opacity: 0.5 }).opacity).toBeCloseTo(0.4);
   });
+
+  it('fades the border with the content under backdrop blur, where the card opacity reaches only the fill', () => {
+    const blurred = { ...style, backdropBlur: 12, borderColor: 'rgb(255, 0, 0)' };
+    expect(applyTextLook(blurred, { opacity: 0.5 }).borderColor).toBe('rgba(255, 0, 0, 0.5)');
+    // A look's own border color fades the same way.
+    expect(applyTextLook(blurred, { opacity: 0.5, borderColor: '#00ff00' }).borderColor).toBe('rgba(0, 255, 0, 0.5)');
+    // Without blur the wrapper's opacity already dims the border; no border, nothing to fade.
+    expect(applyTextLook({ ...style, backdropBlur: 0, borderColor: 'rgb(255, 0, 0)' }, { opacity: 0.5 }).borderColor).toBe('rgb(255, 0, 0)');
+    expect(applyTextLook({ ...blurred, borderWidth: 0 }, { opacity: 0.5 }).borderColor).toBe('rgb(255, 0, 0)');
+  });
 });
 
 describe('lookContentOpacity', () => {

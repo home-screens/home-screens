@@ -119,11 +119,13 @@ function RuleNameEditor({ initial, otherNames, onCommit, onCancel }: {
 }
 
 export function RuleCard({
-  index, total, name, expanded, onToggle, onRename, otherNames, onMove, onRemove, summary, trailing, children,
+  index, total, name, defaultName, expanded, onToggle, onRename, otherNames, onMove, onRemove, summary, trailing, children,
 }: {
   index: number;
   total: number;
   name: string | undefined;
+  /** The title of an unnamed card; "Rule {n}" unless the list calls its rows something else. */
+  defaultName?: string;
   expanded: boolean;
   onToggle: () => void;
   onRename: (name: string | undefined) => void;
@@ -159,7 +161,7 @@ export function RuleCard({
           >
             <ChevronRight className={`h-3 w-3 flex-none text-hs-text-faint transition-transform duration-200 ${expanded ? 'rotate-90' : ''}`} aria-hidden="true" />
             <span className={`truncate text-xs font-semibold ${name ? 'text-hs-text-body' : 'text-hs-text-muted'}`} data-rule-name="">
-              {name ?? t(`${KEY}.ruleTitle`, { n: index + 1 })}
+              {name ?? defaultName ?? t(`${KEY}.ruleTitle`, { n: index + 1 })}
             </span>
           </button>
         )}

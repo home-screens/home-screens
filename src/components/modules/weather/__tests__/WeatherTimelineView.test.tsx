@@ -54,6 +54,14 @@ describe('WeatherTimelineView', () => {
     expect(container.querySelector('[data-testid="weather-hour"] .min-w-\\[9em\\]')).toBeTruthy();
   });
 
+  it('gives the rain chance room for two digits and the sign in the row layout', () => {
+    stubBox(500, 500);
+    renderView(<WeatherTimelineView {...viewProps({}, { hoursToShow: 8 })} />);
+    const label = screen.getAllByText('10%')[0] as HTMLElement;
+    expect(label.style.minWidth).toBe('2.6em');
+    expect(label.className).toContain('tabular-nums');
+  });
+
   it('names the span by elapsed time, not by entry count, for a three-hourly source', () => {
     stubBox(640, 360);
     const threeHourly = hourlyRun(24).filter((_, i) => i % 3 === 0);

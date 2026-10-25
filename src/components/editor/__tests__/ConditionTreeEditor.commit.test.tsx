@@ -86,6 +86,14 @@ describe('SourceKeyInput commit-on-blur', () => {
     expect(container.textContent).toContain('sourceKeyUnknown');
   });
 
+  it('says what a host without a "Before data arrives" setting makes of an unknown key', () => {
+    const { container } = render(
+      <SourceKeyInput value="garage.door" onChange={() => {}} options={OPTIONS} unknownKeyHint="this look changes nothing" t={t} />,
+    );
+    expect(container.textContent).toContain('this look changes nothing');
+    expect(container.textContent).not.toContain('sourceKeyUnknown');
+  });
+
   it('does not flag an empty draft as invalid (incomplete, not wrong)', () => {
     const { container } = render(
       <SourceKeyInput value="" onChange={() => {}} options={OPTIONS} t={t} />,

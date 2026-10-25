@@ -63,9 +63,9 @@ export interface CardCtx {
  * padding, its label and the line under the instrument have had theirs
  * (about 12.5 type units together, from `Card`, `CardLabel` and `Sentence`).
  */
-function instrumentSize(ctx: CardCtx, s: number, fallback: number): number {
+function instrumentSize(ctx: CardCtx, s: number, fallback: number, reserve = 0): number {
   if (ctx.width == null || ctx.height == null) return fallback;
-  return Math.max(s * 5, Math.min(ctx.width * .5, ctx.height - s * 12.5));
+  return Math.max(s * 5, Math.min(ctx.width * .5, ctx.height - s * (12.5 + reserve)));
 }
 
 /**
@@ -380,20 +380,26 @@ function MoonCard({ p, ctx, style }: CardProps) {
   const foot = upcoming
     ? t(p, upcoming[0], { time: clockTime(p, upcoming[1]) })
     : p.t('fullscreen-weather.moon.illuminated', { percent: Math.round(illum.fraction * 100) });
+  // The label is the short word "Moon" and the phase name is the card's
+  // reading, in the body: as the label it was tracked uppercase on one line
+  // and a 293 px landscape card cut "Waxing Gibbous" to "WAXING GIBBO...",
+  // with the longer names of other languages cut harder.
+  const phaseName = p.t(`fullscreen-weather.moon.${moonPhaseKey(illum.phase)}`);
   return (
     <Card u={u} testId="fsw-card-moon" style={style}>
-      <CardLabel icon={Moon} s={s}>{p.t(`fullscreen-weather.moon.${moonPhaseKey(illum.phase)}`)}</CardLabel>
+      <CardLabel icon={Moon} s={s}>{t(p, 'moon')}</CardLabel>
       {isShortCell(ctx, s) ? (
         <>
-          <div style={{ fontSize: s * 3, fontWeight: 500, marginTop: u, lineHeight: 1.2 }}>{foot}</div>
-          <Sentence s={s} style={{ opacity: .85 }}>{p.t('fullscreen-weather.moon.illuminated', { percent: Math.round(illum.fraction * 100) })}</Sentence>
+          <div style={{ fontSize: s * 3, fontWeight: 500, marginTop: u, lineHeight: 1.2 }} data-testid="fsw-moon-phase">{phaseName}</div>
+          <Sentence s={s} style={{ opacity: .85 }}>{foot}</Sentence>
         </>
       ) : (
         <>
           <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: `${u * .5}px 0` }}>
-            <MoonImage phase={illum.phase} size={instrumentSize(ctx, s, ctx.land ? s * 10 : s * 11.5)} />
+            <MoonImage phase={illum.phase} size={instrumentSize(ctx, s, ctx.land ? s * 9 : s * 10.5, 2.6)} />
           </div>
-          <div style={{ fontSize: s * 2.4, textAlign: 'center', flex: 'none' }}>{foot}</div>
+          <div style={{ fontSize: s * 2.4, fontWeight: 500, textAlign: 'center', flex: 'none', lineHeight: 1.2 }} data-testid="fsw-moon-phase">{phaseName}</div>
+          <div style={{ fontSize: s * 2.1, textAlign: 'center', flex: 'none', opacity: .85, marginTop: s * .3 }}>{foot}</div>
         </>
       )}
     </Card>

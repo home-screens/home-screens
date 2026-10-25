@@ -1,8 +1,10 @@
 /**
- * A condition list in a few words, for a rule card's header: "above 24",
- * "22 to 24", "Front door is open", "9:00 PM to 6:00 AM", "any of 3". The
- * header has one line, so this reads the shape of each root condition and
- * joins them; the full detail lives in the open card.
+ * A condition list in a few words, for a rule card's header: "Temperature
+ * right now above 24", "Front door is open", "9:00 PM to 6:00 AM", "any of
+ * 3". The header has one line, so this reads the shape of each root
+ * condition and joins them; the full detail lives in the open card. Every
+ * leaf names its key: a temperature look and a rain-chance look that both
+ * read "above 50" were telling the two apart by nothing.
  */
 
 import type { TimeFormat, VisibilityCondition } from '@/types/config';
@@ -31,22 +33,37 @@ function valueText(value: string | string[] | undefined): string {
   return value ?? '';
 }
 
+/** `true` or `false` as a bus value, however the condition spells the comparison; null for anything else. */
+function truthOf(c: Extract<VisibilityCondition, { kind: 'state' }>): boolean | null {
+  const value = c.equals ?? c.notEquals;
+  if (value !== 'true' && value !== 'false') return null;
+  return (value === 'true') === (c.notEquals === undefined);
+}
+
 function describeOne(c: VisibilityCondition, ctx: ConditionSummaryContext): string {
   const { t, formattingLocale } = ctx;
+  const keyLabel = (sourceKey: string) => (sourceKey ? (ctx.labelFor?.(sourceKey) ?? keyTail(sourceKey)) : t(`${KEY}.noKey`));
   switch (c.kind) {
     case 'numeric': {
+      const key = keyLabel(c.sourceKey);
       const n = (v: number) => formatNumber(v, { locale: formattingLocale, maximumFractionDigits: 3 });
       if (c.above !== undefined && c.below !== undefined) {
-        return t(`${KEY}.between`, { a: n(c.above), b: n(c.below) });
+        return t(`${KEY}.between`, { key, a: n(c.above), b: n(c.below) });
       }
-      if (c.above !== undefined) return t(`${KEY}.above`, { n: n(c.above) });
-      if (c.below !== undefined) return t(`${KEY}.below`, { n: n(c.below) });
-      return t(`${KEY}.anyNumber`);
+      if (c.above !== undefined) return t(`${KEY}.above`, { key, n: n(c.above) });
+      if (c.below !== undefined) return t(`${KEY}.below`, { key, n: n(c.below) });
+      return t(`${KEY}.anyNumber`, { key });
     }
     case 'state': {
-      const label = c.sourceKey ? (ctx.labelFor?.(c.sourceKey) ?? keyTail(c.sourceKey)) : t(`${KEY}.noKey`);
+      const label = keyLabel(c.sourceKey);
       const value = valueText(c.equals ?? c.notEquals);
       if (value === '') return label;
+      // A yes-or-no key's name is already the sentence ("A weather warning is
+      // in force"), so "… is true" only repeats it and "… is false" denies
+      // it clumsily. The name alone means yes; a short "no" after it means no.
+      const truth = truthOf(c);
+      if (truth === true) return label;
+      if (truth === false) return t(`${KEY}.isNo`, { key: label });
       return t(c.notEquals !== undefined ? `${KEY}.isNot` : `${KEY}.is`, { key: label, value });
     }
     case 'time': {

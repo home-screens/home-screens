@@ -122,6 +122,7 @@ function LookFields({
           options={options}
           liveState={liveState}
           plugins={plugins}
+          unknownKeyHint={t(`${KEY}.sourceKeyUnknown`)}
           now={now}
           t={t}
         />
@@ -266,6 +267,7 @@ function LookCard({
       otherNames={otherNames}
       onMove={onMove}
       onRemove={onRemove}
+      defaultName={t('draggableModule.status.lookUnnamed', { n: index + 1 })}
       summary={summary}
       trailing={(
         <>
@@ -327,7 +329,9 @@ export function TextLooksEditor({ looks, onChange }: {
   );
 
   const { expanded, toggle, expand } = useExpandedRules();
-  const ruleTitle = (n: number) => t('configSections.ruleList.ruleTitle', { n });
+  // The same name the canvas chip gives an unnamed look ("Look 2"), so one
+  // look is never "Rule 2" in this list and "Look 2" on the canvas.
+  const lookTitle = (n: number) => t('draggableModule.status.lookUnnamed', { n });
 
   const pillFor = (look: TextLook): PillVerdict | null => {
     if (look.when.length === 0 && !lookSetsAnything(look)) return 'always';
@@ -355,7 +359,7 @@ export function TextLooksEditor({ looks, onChange }: {
           look={look}
           index={i}
           total={list.length}
-          otherNames={otherRuleNames(list, i, ruleTitle)}
+          otherNames={otherRuleNames(list, i, lookTitle)}
           expanded={expanded.has(look.id)}
           verdict={pillFor(look)}
           onToggle={() => toggle(look.id)}

@@ -280,7 +280,9 @@ function Rows({ entries, units, axis, iconSet, tWeather, gradient, gradId, narro
                 <span className="flex-1 relative overflow-hidden rounded-full" style={{ height: '0.35em', background: 'color-mix(in srgb, currentColor 12%, transparent)' }}>
                   <span className="absolute left-0 top-0 bottom-0 rounded-full" style={{ width: `${e.rain}%`, background: RAIN_COLOR }} />
                 </span>
-                <span className="text-right font-semibold" style={{ width: '2em', fontSize: '0.65em', color: RAIN_COLOR }}>{e.rain}%</span>
+                {/* Wide enough for two digits and the sign: a fixed 2em column
+                    held "48%" at its width and let the sign run off the card. */}
+                <span className="text-right font-semibold tabular-nums whitespace-nowrap" style={{ minWidth: '2.6em', fontSize: '0.65em', color: RAIN_COLOR }}>{e.rain}%</span>
               </span>
               {!narrow && (
                 <span className="text-right whitespace-nowrap" style={col.wind}>

@@ -100,6 +100,24 @@ describe('TextLooksEditor', () => {
     expect(ref.current![0].borderColor).toBeUndefined();
   });
 
+  it('titles an unnamed card the way the canvas chip names it, and names the key in its summary', () => {
+    const { container } = renderLooks([
+      { id: 'a', when: [{ kind: 'numeric', sourceKey: 'plugin:foo:temp', above: 24 }], textColor: '#f00' },
+      { id: 'b', when: [{ kind: 'state', sourceKey: 'plugin:foo:alert', equals: 'true' }], textColor: '#ff0' },
+    ]);
+    expect(card(container, 0).querySelector('[data-rule-name]')?.textContent).toBe('Look 1');
+    expect(card(container, 1).querySelector('[data-rule-name]')?.textContent).toBe('Look 2');
+    expect(card(container, 0).querySelector('[data-rule-summary]')?.textContent).toBe('temp above 24');
+    expect(card(container, 1).querySelector('[data-rule-summary]')?.textContent).toBe('alert');
+  });
+
+  it('tells a look on a key nobody publishes that it changes nothing, not that the module waits', async () => {
+    const { container } = renderLooks([{ id: 'a', when: [{ kind: 'state', sourceKey: 'garage.door', equals: 'open' }], textColor: '#f00' }]);
+    await click(card(container).querySelector('[data-rule-toggle]'));
+    expect(container.textContent).toContain('this look changes nothing');
+    expect(container.textContent).not.toContain('Before data arrives');
+  });
+
   it('judges a key-reading look on the editor bus and says what it is waiting for', async () => {
     const look: TextLook = {
       id: 'hot',
