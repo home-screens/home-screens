@@ -5234,7 +5234,7 @@
     "whenUnknownLabel": "Mientras la fuente de datos aún no ha informado",
     "whenUnknownHide": "Ocultar el módulo",
     "whenUnknownShow": "Mostrar el módulo",
-    "noProvidersHint": "Todavía no se comparte nada. Conecta un calendario o instala el complemento de Home Assistant para puertas, luces y quién está en casa. Mientras tanto, Hora del día es la condición que funciona.",
+    "noProvidersHint": "Todavía no se comparte nada. Indica tu ubicación para el tiempo, conecta un calendario o instala el complemento de Home Assistant para puertas, luces y quién está en casa. Mientras tanto, Hora del día es la condición que funciona.",
     "noConditionsHint": "Aún no hay condiciones. El módulo se muestra siempre hasta que añadas una.",
     "sourceKeyInvalid": "Escribe una clave de estado solo con letras minúsculas, números y _ : . -",
     "invalidHint": "Estas condiciones aún no se pueden guardar. Corrige los campos marcados.",

@@ -5234,7 +5234,7 @@
     "whenUnknownLabel": "Tant que la source de données n'a rien signalé",
     "whenUnknownHide": "Masquer le module",
     "whenUnknownShow": "Afficher le module",
-    "noProvidersHint": "Rien n'est encore partagé. Connectez un agenda, ou installez le module Home Assistant pour les portes, les lumières et qui est à la maison. En attendant, Heure de la journée est la condition qui fonctionne.",
+    "noProvidersHint": "Rien n'est encore partagé. Indiquez votre lieu pour la météo, connectez un agenda, ou installez le module Home Assistant pour les portes, les lumières et qui est à la maison. En attendant, Heure de la journée est la condition qui fonctionne.",
     "noConditionsHint": "Aucune condition pour l'instant. Le module reste affiché tant que vous n'en ajoutez pas.",
     "sourceKeyInvalid": "Saisissez une clé d'état avec uniquement des lettres minuscules, des chiffres et _ : . -",
     "invalidHint": "Ces conditions ne peuvent pas encore être enregistrées. Corrige les champs signalés.",

@@ -5234,7 +5234,7 @@
     "whenUnknownLabel": "Zolang de gegevensbron nog niets heeft gemeld",
     "whenUnknownHide": "Module verbergen",
     "whenUnknownShow": "Module tonen",
-    "noProvidersHint": "Er wordt nog niets gedeeld. Koppel een agenda, of installeer de Home Assistant-add-on voor deuren, lampen en wie er thuis is. Tot die tijd werkt de voorwaarde Tijdstip.",
+    "noProvidersHint": "Er wordt nog niets gedeeld. Stel je locatie in voor het weer, koppel een agenda, of installeer de Home Assistant-add-on voor deuren, lampen en wie er thuis is. Tot die tijd werkt de voorwaarde Tijdstip.",
     "noConditionsHint": "Nog geen voorwaarden. De module wordt altijd getoond totdat je er een toevoegt.",
     "sourceKeyInvalid": "Voer een statussleutel in met alleen kleine letters, cijfers en _ : . -",
     "invalidHint": "Deze voorwaarden kunnen nog niet worden opgeslagen. Corrigeer de gemarkeerde velden.",

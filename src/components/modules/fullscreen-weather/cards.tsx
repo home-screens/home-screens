@@ -80,6 +80,29 @@ export function isShortCell(ctx: CardCtx, s: number): boolean {
   return ctx.height != null && ctx.height - s * 12.5 < s * 8;
 }
 
+/** The sun arc at its full height, in type units: the phone's, a little taller on the tablet. */
+const SUN_ARC_S = { portrait: 6.6, land: 8 };
+/** An arc squeezed below this is a line with a dot on it: the card reads as a number and a line instead. */
+const SUN_ARC_MIN_S = 3.5;
+
+/**
+ * How tall the sun card's arc may draw in its cell, or null when the cell
+ * is too short for one. The sun card is the one card that puts its big
+ * reading (the lead time, at the BigValue size plus its margin) above its
+ * instrument, which the shared short-cell rule does not count, so a cell a
+ * little over the shared floor seated the arc at full height and drew it
+ * through the time and the line under it. The arc gives up height first
+ * and the card falls back to its short form only below the arc's floor.
+ */
+export function sunArcHeight(ctx: CardCtx, s: number, u: number): number | null {
+  const full = s * (ctx.land ? SUN_ARC_S.land : SUN_ARC_S.portrait);
+  if (ctx.height == null) return full;
+  const timeLine = s * (ctx.land ? 5.2 : 6) + u;
+  const room = ctx.height - s * 12.5 - timeLine;
+  if (room < s * SUN_ARC_MIN_S) return null;
+  return Math.min(full, room);
+}
+
 /**
  * A landscape cell with more height than the tablet's low, wide air quality
  * banner uses (about 22 type units), where the banner's bar-at-the-foot
@@ -328,16 +351,17 @@ function SunCard({ p, ctx, style }: CardProps) {
   const leadSunrise = afterSunset || beforeSunrise;
   const lead = leadSunrise ? (tomorrowSunrise ?? p.sun.sunrise) : p.sun.sunset;
   const other = leadSunrise ? p.sun.sunset : p.sun.sunrise;
+  const arcHeight = isShortCell(ctx, s) ? null : sunArcHeight(ctx, s, u);
   return (
     <Card u={u} testId="fsw-card-sun" style={style}>
       <CardLabel icon={leadSunrise ? Sunrise : Sunset} s={s}>{t(p, leadSunrise ? 'sunrise' : 'sunset')}</CardLabel>
       <BigValue s={s} style={{ fontSize: ctx.land ? s * 5.2 : s * 6, marginTop: u }}>{clockTime(p, lead)}</BigValue>
-      {isShortCell(ctx, s) ? (
+      {arcHeight == null ? (
         <Sentence s={s} style={{ opacity: .85 }}>{t(p, leadSunrise ? 'sunsetAt' : 'sunriseAt', { time: clockTime(p, other) })}</Sentence>
       ) : (
         <>
           <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <SunArc sunriseFrac={sunriseHour / 24} sunsetFrac={sunsetHour / 24} nowFrac={nowHour / 24} height={ctx.land ? s * 8 : s * 6.6} />
+            <SunArc sunriseFrac={sunriseHour / 24} sunsetFrac={sunsetHour / 24} nowFrac={nowHour / 24} height={arcHeight} />
           </div>
           <div style={{ fontSize: s * 2.5, flex: 'none' }}>{t(p, leadSunrise ? 'sunsetAt' : 'sunriseAt', { time: clockTime(p, other) })}</div>
         </>

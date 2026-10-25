@@ -5234,7 +5234,7 @@
     "whenUnknownLabel": "While the data source hasn't reported yet",
     "whenUnknownHide": "Hide the module",
     "whenUnknownShow": "Show the module",
-    "noProvidersHint": "Nothing is being shared yet. Connect a calendar, or install the Home Assistant add-on for doors, lights and who's home. Until then, Time of day is the condition that works.",
+    "noProvidersHint": "Nothing is being shared yet. Set your location for weather, connect a calendar, or install the Home Assistant add-on for doors, lights and who's home. Until then, Time of day is the condition that works.",
     "noConditionsHint": "No conditions yet. The module always shows until you add one.",
     "sourceKeyInvalid": "Enter a state key using lowercase letters, numbers, and _ : . - only.",
     "invalidHint": "These conditions cannot be saved yet. Fix the highlighted fields.",

@@ -43,3 +43,26 @@ describe('WeatherNarrativeView', () => {
     expect(screen.queryByText(/H:58°/)).toBeNull();
   });
 });
+
+describe('WeatherNarrativeView in a wide strip', () => {
+  it('stands the days side by side when the box is much wider than tall', () => {
+    stubBox(1040, 160);
+    const { container } = renderView(<WeatherNarrativeView {...viewProps({ forecast: NOAA }, { daysToShow: 5 })} />);
+    const root = container.querySelector('[data-weather-narrative-mode]')!;
+    expect(root.getAttribute('data-weather-narrative-mode')).toBe('columns');
+    const list = container.querySelector('[data-weather-day]')!.parentElement as HTMLElement;
+    expect(list.style.gridTemplateColumns).toBe('repeat(5, minmax(0, 1fr))');
+    expect(container.querySelectorAll('[data-weather-day]')).toHaveLength(5);
+    expect(screen.getAllByTestId('weather-narrative-text')).toHaveLength(5);
+  });
+
+  it('keeps the list in a box of ordinary shape, and for a single day', () => {
+    stubBox(640, 360);
+    const wide = renderView(<WeatherNarrativeView {...viewProps({ forecast: NOAA })} />);
+    expect(wide.container.querySelector('[data-weather-narrative-mode]')!.getAttribute('data-weather-narrative-mode')).toBe('rows');
+    wide.unmount();
+    stubBox(1040, 160);
+    const one = renderView(<WeatherNarrativeView {...viewProps({ forecast: NOAA }, { daysToShow: 1 })} />);
+    expect(one.container.querySelector('[data-weather-narrative-mode]')!.getAttribute('data-weather-narrative-mode')).toBe('rows');
+  });
+});

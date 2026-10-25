@@ -14,6 +14,34 @@ import type { WeatherViewProps } from './types';
 const RAIN_SHOWN_PCT = 5;
 
 /**
+ * The most text the view draws per unit of width: the module's starting
+ * size comes from the box height alone, so a tall side column got type
+ * sized for a box ten times wider, with hour labels taller than the gaps
+ * between them. Twelve ems across keeps the temperature, a few hour
+ * labels and the end callouts readable in a column; a wide box never
+ * reaches the cap.
+ */
+export const EMS_ACROSS = 12;
+
+/** The chart's type size for a box: the module's size, capped by the width. */
+export function ribbonFontSize(scaledFontSize: number, boxWidth: number): number {
+  return boxWidth > 0 ? Math.min(scaledFontSize, boxWidth / EMS_ACROSS) : scaledFontSize;
+}
+
+/** About how wide a label of `chars` characters is at `px`, for anchoring and thinning. */
+const textWidth = (chars: number, px: number) => chars * px * 0.6;
+
+/**
+ * Which hour labels to draw: about eight across, and never closer than a
+ * label's width plus a gap, so a narrow box thins them instead of stacking
+ * "12345678p" in one smudge.
+ */
+export function hourTickEvery(count: number, step: number, labelPx: number, labelChars: number): number {
+  const minSpacing = textWidth(labelChars, labelPx) + labelPx * 0.7;
+  return Math.max(1, Math.round(count / 8), step > 0 ? Math.ceil(minSpacing / step) : 1);
+}
+
+/**
  * The temperature ribbon: the Panorama curve on its own.
  *
  * The next hours as a spline coloured by the temperature ramp, with night
@@ -26,14 +54,16 @@ const RAIN_SHOWN_PCT = 5;
 export default function WeatherRibbonView({ config, hourly, units, timezone, timeFormat, scaledFontSize, latitude, longitude }: WeatherViewProps) {
   const t = useTranslate('modules');
   const sun = useSunTimes(latitude, longitude, timezone);
+  const [outerRef, box] = useViewBox();
   const [chartRef, chart] = useViewBox();
   const uid = useId();
   const hrs = hourly.slice(0, Math.max(2, config.hoursToShow || 8));
   const now = hourly[0];
   const showTitle = config.showTitle !== false;
+  const fontSize = ribbonFontSize(scaledFontSize, box.width);
 
   return (
-    <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
+    <div ref={outerRef} className="w-full h-full flex flex-col" style={{ fontSize: `${fontSize}px` }}>
       {showTitle && (
         /* The header is a container query root (em here is its own fitted
            size): the condition goes first when the row is under 23em, then the
@@ -59,7 +89,7 @@ export default function WeatherRibbonView({ config, hourly, units, timezone, tim
         <div ref={chartRef} className="flex-1 min-h-0 relative" data-testid="weather-ribbon">
           {chart.width > 0 && chart.height > 0 && (
             <Ribbon
-              hrs={hrs} width={chart.width} height={chart.height} fontSize={scaledFontSize}
+              hrs={hrs} width={chart.width} height={chart.height} fontSize={fontSize}
               units={units} timezone={timezone} timeFormat={timeFormat} sun={sun} uid={uid}
             />
           )}
@@ -109,15 +139,19 @@ function Ribbon({ hrs, width: W, height: H, fontSize: fs, units, timezone, timeF
   const loI = temps.indexOf(Math.min(...temps));
   const labelPx = fs * 0.8;
   const labelGap = fs * 0.4;
-  // Above the point when there is room, below it otherwise; an extreme at
-  // either end is anchored inward so it cannot hang past the box, and at
-  // the start it steps past the now mark.
+  // Above the point when there is room, below it otherwise. An extreme whose
+  // centred label would reach past either edge is anchored inward instead,
+  // judged by the label's own width: the last point sits half an em in from
+  // the edge, which a wide chart's rule by position never counted as the
+  // end, so the low's label hung off a narrow box. At the start it steps
+  // past the now mark.
   const callout = (i: number) => {
     const above = y(temps[i]) - labelGap;
     const fitsAbove = above - labelPx * 0.8 >= 0;
     const ty = fitsAbove ? above : Math.min(baseline - 2, y(temps[i]) + labelGap + labelPx * 0.85);
-    const atStart = x(i) < W * 0.05;
-    const atEnd = x(i) > W * 0.95;
+    const half = textWidth(`${Math.round(temps[i])}°`.length, labelPx) / 2;
+    const atStart = x(i) - half < 0;
+    const atEnd = x(i) + half > W;
     const anchor = atStart ? 'start' : atEnd ? 'end' : 'middle';
     const tx = atStart ? x(i) + fs * 0.5 : x(i);
     return (
@@ -127,17 +161,20 @@ function Ribbon({ hrs, width: W, height: H, fontSize: fs, units, timezone, timeF
     );
   };
 
-  // Hour ticks: about eight across, the outermost anchored inward so a
-  // centred label never hangs half outside the box.
-  const tickEvery = Math.max(1, Math.round(N / 8));
+  // Hour ticks: as many as the width seats, the outermost anchored inward
+  // so a centred label never hangs half outside the box.
+  const axisPx = fs * 0.7;
+  const axisLabelChars = timeFormat === '24h' ? 2 : 3;
+  const tickEvery = hourTickEvery(N, step, axisPx, axisLabelChars);
   const axisLabels = meta.map((m, i) => {
     if (i % tickEvery !== 0) return null;
-    const atStart = x(i) < W * 0.05;
-    const atEnd = x(i) > W * 0.95;
+    const half = textWidth(axisLabelChars, axisPx) / 2;
+    const atStart = x(i) - half < 0;
+    const atEnd = x(i) + half > W;
     const anchor = atStart ? 'start' : atEnd ? 'end' : 'middle';
     const tx = atStart ? 1 : atEnd ? W - 1 : x(i);
     return (
-      <text key={`a${i}`} x={tx} y={H - AXIS * 0.2} fontSize={fs * 0.7} fontWeight={500} fill="currentColor" opacity={TEXT_OPACITY.dim} textAnchor={anchor}>
+      <text key={`a${i}`} x={tx} y={H - AXIS * 0.2} fontSize={axisPx} fontWeight={500} fill="currentColor" opacity={TEXT_OPACITY.dim} textAnchor={anchor}>
         {hourLabel(Math.floor(m.hour), timeFormat)}
       </text>
     );

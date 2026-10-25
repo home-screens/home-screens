@@ -68,3 +68,22 @@ describe('WeatherSunView', () => {
     expect(screen.getByText('Location not set')).toBeTruthy();
   });
 });
+
+describe('WeatherSunView stacked floor', () => {
+  it('keeps the sun card at the height its content needs when stacked, so the moon overflows instead of the times', () => {
+    stubBox(500, 500);
+    const stacked = renderView(<WeatherSunView {...viewProps()} />);
+    expect(stacked.getByTestId('weather-sun-card').style.minHeight).toBe('7em');
+    stacked.unmount();
+    // A short stacked box has no headline, and the floor drops with it.
+    stubBox(120, 150);
+    const short = renderView(<WeatherSunView {...viewProps()} />);
+    expect(short.queryByText('of daylight today')).toBeNull();
+    expect(short.getByTestId('weather-sun-card').style.minHeight).toBe('4em');
+    short.unmount();
+    // Side by side the cards share the width, not the height.
+    stubBox(640, 360);
+    const side = renderView(<WeatherSunView {...viewProps()} />);
+    expect(side.getByTestId('weather-sun-card').style.minHeight).toBe('');
+  });
+});

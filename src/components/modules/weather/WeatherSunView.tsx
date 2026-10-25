@@ -41,6 +41,13 @@ export default function WeatherSunView({ config, timezone, timeFormat, scaledFon
   const dropMoon = box.width > 0 && (landscape ? box.width < 420 : box.height < 320);
   const dropHeadline = box.height > 0 && box.height < 160;
   const fullMoonCaption = box.width >= 480;
+  // Stacked, the sun card keeps the height its own content needs (headline,
+  // the arc at its floor, the times row), so a box too short for both cards
+  // pushes the moon past the bottom edge, where the fit loop measures it and
+  // shrinks the type. Left free to shrink, the card was squeezed to make
+  // room for the moon and its times row printed across the moon's name in
+  // any square box, with nothing overflowing the wrapper for the loop to see.
+  const sunCardMinHeight = landscape ? undefined : dropHeadline ? '4em' : '7em';
 
   const { boxRef, contentRef, fontSize } = useFitFontSize(scaledFontSize, [landscape, dropMoon, dropHeadline, fullMoonCaption, config.showTitle !== false].join('|'));
 
@@ -75,7 +82,7 @@ export default function WeatherSunView({ config, timezone, timeFormat, scaledFon
     <div ref={outerRef} className="w-full h-full">
       <div ref={boxRef} className="w-full h-full overflow-hidden" style={{ fontSize: `${fontSize}px` }} data-weather-sun-mode={landscape ? 'side' : 'stacked'}>
         <div ref={contentRef} className={`w-full h-full flex ${landscape ? 'flex-row gap-[1.5em]' : 'flex-col gap-[0.6em]'}`}>
-          <div className="flex-1 min-w-0 min-h-0 flex flex-col" data-testid="weather-sun-card">
+          <div className="flex-1 min-w-0 min-h-0 flex flex-col" style={{ minHeight: sunCardMinHeight }} data-testid="weather-sun-card">
             {!dropHeadline && (
               <>
                 <div className="font-light tabular-nums leading-none" style={{ fontSize: '1.8em' }}>

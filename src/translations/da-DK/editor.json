@@ -5234,7 +5234,7 @@
     "whenUnknownLabel": "Mens datakilden endnu ikke har rapporteret",
     "whenUnknownHide": "Skjul modulet",
     "whenUnknownShow": "Vis modulet",
-    "noProvidersHint": "Der deles ikke noget endnu. Tilslut en kalender, eller installér Home Assistant-tilføjelsen for døre, lys og hvem der er hjemme. Indtil da er Tidspunkt på dagen den betingelse, der virker.",
+    "noProvidersHint": "Der deles ikke noget endnu. Angiv din placering for vejret, tilslut en kalender, eller installér Home Assistant-tilføjelsen for døre, lys og hvem der er hjemme. Indtil da er Tidspunkt på dagen den betingelse, der virker.",
     "noConditionsHint": "Ingen betingelser endnu. Modulet vises altid, indtil du tilføjer en.",
     "sourceKeyInvalid": "Indtast en tilstandsnøgle med kun små bogstaver, tal og _ : . -",
     "invalidHint": "Disse betingelser kan ikke gemmes endnu. Ret de markerede felter.",

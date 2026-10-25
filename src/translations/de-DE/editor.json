@@ -5234,7 +5234,7 @@
     "whenUnknownLabel": "Solange die Datenquelle noch nichts gemeldet hat",
     "whenUnknownHide": "Modul ausblenden",
     "whenUnknownShow": "Modul anzeigen",
-    "noProvidersHint": "Es wird noch nichts geteilt. Verbinde einen Kalender oder installiere das Home-Assistant-Add-on für Türen, Lichter und wer zu Hause ist. Bis dahin funktioniert die Bedingung Tageszeit.",
+    "noProvidersHint": "Es wird noch nichts geteilt. Lege deinen Standort fest für das Wetter, verbinde einen Kalender oder installiere das Home-Assistant-Add-on für Türen, Lichter und wer zu Hause ist. Bis dahin funktioniert die Bedingung Tageszeit.",
     "noConditionsHint": "Noch keine Bedingungen. Das Modul wird immer angezeigt, bis eine hinzugefügt wird.",
     "sourceKeyInvalid": "Einen Zustandsschlüssel nur mit Kleinbuchstaben, Ziffern und _ : . - eingeben.",
     "invalidHint": "Diese Bedingungen können noch nicht gespeichert werden. Die markierten Felder korrigieren.",
