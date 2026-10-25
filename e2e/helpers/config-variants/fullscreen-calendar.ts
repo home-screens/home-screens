@@ -878,10 +878,13 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('FREE DAY E2E')(mod); await expect(mod).not.toContainText('No events'); },
   },
   {
-    // A 14-day agenda window always crosses at least one week start, so the
-    // "Week of" rule renders; month beats week when boundaries coincide.
+    // A 14-day agenda window always crosses at least one week start after
+    // today, so the "Week of" rule renders. 'weeks' alone keeps the assertion
+    // date-proof: with 'weeks-and-months' a month divider takes precedence
+    // whenever that week start lands on the 1st, which it did on a Sunday
+    // October 25 with November 1 the next Sunday.
     type: 'fullscreen-calendar', name: 'agenda-separators', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'agenda', agendaSeparators: 'weeks-and-months' },
+    config: { view: 'agenda', agendaSeparators: 'weeks' },
     expect: has('Week of'),
   },
   {

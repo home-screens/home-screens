@@ -84,9 +84,9 @@ export const TEXT_VARIANTS: ConfigVariant[] = [
       const span = mod.locator('span', { hasText: 'E2E LOOK WORDS' }).first();
       await expect(span).toHaveCSS('color', 'rgb(255, 0, 0)');
       const wrapper = mod.locator('div[style*="border"]').first();
-      await expect(wrapper).toHaveCSS('border-color', 'rgb(0, 255, 0)');
       // The card is blurred by default, so its fade is baked into the
-      // background alpha and the words fade on their own.
+      // border and background alpha and the words fade on their own.
+      await expect(wrapper).toHaveCSS('border-color', 'rgba(0, 255, 0, 0.5)');
       await expect(wrapper).toHaveCSS('background-color', 'rgba(0, 0, 255, 0.5)');
       await expect(mod.locator('div[style*="opacity"]', { hasText: 'E2E LOOK WORDS' }).first()).toHaveCSS('opacity', '0.5');
     },
