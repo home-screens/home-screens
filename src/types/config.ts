@@ -12,6 +12,7 @@ export type BuiltinModuleType =
   | 'video'
   | 'quote'
   | 'todo'
+  | 'notes'
   | 'sticky-note'
   | 'greeting'
   | 'news'
@@ -2681,6 +2682,80 @@ export interface TimetableConfig {
    * Omitted = on
    */
   nextWeekFromFriday?: boolean;
+}
+
+// Notes module config
+export type NotesView =
+  | 'board' | 'cards' | 'sticky' | 'bubbles' | 'spotlight' | 'compact' | 'count'
+  | 'strip' | 'ticker' | 'timeline' | 'focus' | 'by-person' | 'pinned-new' | 'latest'
+  | 'chalkboard' | 'letterboard' | 'whiteboard' | 'fridge' | 'notebook' | 'receipt' | 'neon' | 'headline';
+/** Which notes a view draws: every live note, only the pinned ones, or only the important ones. */
+export type NotesFilter = 'all' | 'pinned' | 'important';
+
+/**
+ * A Notes module shows the family notes board from `data/notes.json` (see
+ * `types/notes.ts` and `lib/notes-data.ts`). Notes are posted from the phone
+ * and never stored on the module, so one board can sit on any number of
+ * screens, each in its own view.
+ */
+export interface NotesConfig {
+  /**
+   * How the board is drawn. `board` (rows), `cards`, `sticky` (paper in each person's colour),
+   * `bubbles` (a family chat), `spotlight` (one note at a time, large), `compact` (one line each),
+   * `count` (a tile with the number of notes), `strip` (a one-line bar that steps through the notes),
+   * `ticker` (a one-line bar that scrolls), `timeline` (notes under day headings), `focus` (the first
+   * note large, the next two small), `by-person` (one row per family member), `pinned-new` (pinned
+   * notes beside new ones) or `latest` (the newest note alone). The materials draw their own surface
+   * and typeface in place of the card's style: `chalkboard`, `letterboard` (one note at a time in
+   * block letters), `whiteboard`, `fridge`, `notebook`, `receipt`, `neon` (one note at a time, glowing)
+   * and `headline` (a newspaper front page)
+   */
+  view: NotesView;
+  /**
+   * Heading override. Empty shows "Notes"
+   *
+   * Read by every view that draws a heading (not strip, ticker, count or latest).
+   */
+  title?: string;
+  /**
+   * Show the heading. Omitted = shown
+   *
+   * Read by the same views as `title`.
+   */
+  showTitle?: boolean;
+  /**
+   * How many notes to draw before "and N more" (1 to 20). Omitted = 5
+   *
+   * Read by board, cards, sticky, bubbles, compact, timeline, focus and pinned-new. The stepping
+   * and scrolling views walk every note; count, latest and by-person ignore it.
+   */
+  maxNotes?: number;
+  /**
+   * Show who wrote each note. Omitted = shown
+   *
+   * Ignored by count and by-person, which are about people.
+   */
+  showAuthor?: boolean;
+  /**
+   * Show how long ago each note was posted. Omitted = shown
+   *
+   * Ignored by count and by-person, which draw no age.
+   */
+  showAge?: boolean;
+  /**
+   * Show every note, only pinned notes, or only important notes. Omitted = every note
+   *
+   * Ignored by timeline and by-person, which show the whole board by design.
+   */
+  filter?: NotesFilter;
+  /**
+   * Seconds each note stays before the spotlight and strip views move to the next (5 to 60). Omitted = 10
+   */
+  stepSeconds?: number;
+  /**
+   * How slowly the ticker scrolls: seconds per note (3 to 30). Omitted = 8
+   */
+  tickerSpeed?: number;
 }
 
 // Sticky note module config

@@ -3,7 +3,7 @@ title: Module Reference
 nextjs:
   metadata:
     title: Module Reference
-    description: Every configuration option for all 45 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
+    description: Every configuration option for all 46 built-in Home Screens modules, clocks, weather, calendars, sports, news, chore charts, meal planners, and more.
     alternates:
       canonical: /docs/module-reference
 ---
@@ -304,6 +304,48 @@ Shows one of the family's shared lists (see [Lists](/docs/lists)). Items live in
 {% fields /%}
 
 When every item is done the heading shows a green tick and "All done" in every view. A list with a repeat schedule says when it starts fresh.
+{% /module %}
+
+{% module type="notes" %}
+Shows the family notes board (see [Notes](/docs/notes)). Notes live in `data/notes.json`, not on the module, so one board can sit on any number of screens, each in its own view. They are written from the family remote's Notes tab or from the editor's **Manage notes** window (`NotesBoardModal`, at the top of the module's settings), which has the phone's fields: post with From, Show for, Pin to top and Important, edit a live note's text, author and life, take it down, and post again or delete from Gone. The module itself only reads them.
+
+{% fields /%}
+
+Every view takes the live notes (no expiry, or one still ahead), applies `filter`, and sorts them pinned first, then newest first. Views that read `maxNotes` draw that many and say "and N more" for the rest. In the layouts, important notes are drawn in the danger colour and pinned notes carry a pin; the materials mark them their own way. Neither has a colour setting. A board with nothing on it shows "Nothing on the board. Write a note on your phone and it shows up here.", and a filter with nothing matching says "No pinned notes right now." or "No important notes right now."
+
+**View details** (the fourteen layouts, which take the card's style):
+
+- **board**: One row per note: the author's initial in their colour, name and age, and up to two lines of text. The default.
+- **cards**: A card per note. One column under 400 px wide, two up to 900 px, three above; a pinned note spans the row.
+- **sticky**: Paper notes in a lightened version of each author's colour with dark ink, each at a small fixed lean worked out from the note, never animated. Important notes are on red paper.
+- **bubbles**: A read-only family chat: avatar, name in the author's colour and a speech bubble, newest at the bottom.
+- **spotlight**: One note in large type with dots and "2 of 6". Steps every `stepSeconds` with a plain swap and no transition; a pinned or important note gets two turns in a row.
+- **compact**: One line per note, cut with an ellipsis, the age on the right.
+- **count**: The number of live notes, a stack of author bubbles ("+N" past four) and how many are important. An empty board shows 0 with the empty line under it instead of the empty state.
+- **strip**: A one-line bar: author, one note and "3 of 6". Steps like spotlight; a long note is trimmed, never scrolled.
+- **ticker**: Every live note in one continuous crawl, a dot between notes, at `tickerSpeed` seconds per note.
+- **timeline**: Notes under day headings (Today, Yesterday, then earlier days), strictly newest first, so pinned notes do not jump the queue.
+- **focus**: The first note large, the next two as single lines, then "and N more".
+- **by-person**: One row per family member in roster order with their newest note and a count; a member with none shows "No notes". Notes with no author, or whose author was removed, get a trailing "Someone" row only when there are any.
+- **pinned-new**: Two columns: pinned notes on the left, the rest newest first on the right. With nothing pinned the left column says "Nothing pinned" and keeps its width.
+- **latest**: The newest note alone, large, with no stepping and no counter.
+
+**Materials:** eight more views, grouped as Materials under the layouts in the view picker. A material draws its own surface, colours and typeface from the faces the app already bundles, so it owns the card's `backgroundColor`, `textColor`, `borderColor`, `borderWidth`, `fontFamily` and `backdropBlur`: the editor hides those Style controls while one is picked, and the material's own look wins if they are set. The registry's `ownsStyleFields` is a function of the instance config for this. Font size, padding, radius, opacity and shadow still apply. Nothing animates.
+
+- **chalkboard**: Slate in a wooden frame with a chalk tray. Chalk handwriting (Caveat), names in the member colour lightened, the pinned note starred and an important one in yellow chalk. Rows; reads `maxNotes` and the heading.
+- **letterboard**: Black felt in an oak frame with white plastic letters (Bebas Neue) and a letter tag for the author. One note at a time, stepping every `stepSeconds` like spotlight.
+- **whiteboard**: Glossy white with a marker tray. Each note in its author's marker colour (the member colour darkened), a magnet as the author bubble, an important one underlined in red. Rows; reads `maxNotes` and the heading.
+- **fridge**: Brushed steel with white paper scraps under magnets in the author's colour, each at a slight lean. Two magnets for a pinned note, pink paper for an important one. Cards; reads `maxNotes`.
+- **notebook**: A spiral page with blue rules and a red margin; notes in blue pen (Caveat) with the author's initial in the margin, red pen for important, a star for pinned. Reads `maxNotes`.
+- **receipt**: Thermal paper in monospace capitals (JetBrains Mono) with dashed rules, a total line and a barcode; pinned rows are marked `[PIN]` and important rows `***`. Rows; reads `maxNotes` and the heading.
+- **neon**: A dark wall with the note as a glowing tube sign (Pacifico) in the author's colour inside a tube frame, the glow drawn with text shadow only. One note at a time, stepping every `stepSeconds`.
+- **headline**: A newspaper front page: the masthead is `title` ("The Family Times" when empty), the pinned note is the headline (Playfair) with a byline, the rest run in two columns (Lora) with a red "Important:" kicker. Reads `maxNotes`.
+
+The materials honour `filter`, `showAuthor` and `showAge` like the layouts. Only chalkboard, whiteboard, receipt and headline draw a heading.
+
+**State keys:** every display publishes `notes.count`, `notes.important` and `notes.pinned` (counts of live notes) on the shared state bus, whether or not a Notes module is on the screen, so a module's conditions, a display rule or a Text module's `{notes.count}` token can use them. An empty board publishes 0 rather than nothing.
+
+A note whose author is removed from the family keeps its text and loses its author, and shows as from "Someone".
 {% /module %}
 
 {% module type="sticky-note" %}

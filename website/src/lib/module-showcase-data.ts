@@ -35,6 +35,7 @@ export const MODULE_SHOWCASE: Record<string, string[]> = {
   'Knowledge & Fun': ['Dad Joke', 'Quote', 'Word of the Day', 'This Day in History'],
   Personal: [
     'To-Do List',
+    'Notes',
     'Sticky Note',
     'Greeting',
     'Todoist',

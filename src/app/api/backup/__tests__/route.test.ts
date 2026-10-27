@@ -137,6 +137,7 @@ describe('GET /api/backup', () => {
         'routines',
         'todos',
         'family',
+        'notes',
       ].sort(),
     );
     // A household that has never saved a timetable exports no timetables
@@ -217,6 +218,7 @@ describe('POST /api/backup — restore', () => {
       rewards: true,
       routines: true,
       timetables: false,
+      notes: true,
       customIcons: false,
     });
     expect(json.missingIcons).toBe(0);

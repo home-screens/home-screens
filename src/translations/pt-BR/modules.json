@@ -1340,5 +1340,46 @@
       "high": "Alto, protetor solar",
       "veryHigh": "Muito alto, se cubra bem"
     }
+  },
+  "notes": {
+    "name": "Recados",
+    "defaultTitle": "Recados",
+    "empty": "Nada no mural. Escreva um recado no celular e ele aparece aqui.",
+    "emptyPinned": "Nenhum recado fixado agora.",
+    "emptyImportant": "Nenhum recado importante agora.",
+    "someone": "Alguém",
+    "andMore": "e mais {n}",
+    "count": {
+      "zero": "{count} recados",
+      "one": "{count} recado",
+      "other": "{count} recados"
+    },
+    "countLabel": {
+      "zero": "recados no mural",
+      "one": "recado no mural",
+      "other": "recados no mural"
+    },
+    "important": "Importante",
+    "importantCount": {
+      "zero": "{count} importantes",
+      "one": "{count} importante",
+      "other": "{count} importantes"
+    },
+    "pinned": "Fixados",
+    "new": "Novos",
+    "nothingPinned": "Nada fixado",
+    "noNotes": "Nenhum recado",
+    "latest": "Último recado",
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "of": "{index} de {total}",
+    "masthead": "Folha da Família",
+    "edition": "Última edição",
+    "byline": "Por {name}",
+    "importantLead": "Importante:",
+    "receiptTotal": "Total",
+    "receiptThanks": "Obrigado pela leitura",
+    "receiptSummary": "Fixados {pinned} · Importantes {important}",
+    "pinnedOne": "Fixado"
   }
 }

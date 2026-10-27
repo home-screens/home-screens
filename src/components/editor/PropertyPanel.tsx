@@ -24,7 +24,7 @@ import { isStateProducerType } from '@/lib/provided-state-keys';
 import { stackExtremes } from '@/lib/module-utils';
 import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
-import { getModuleDefinition, resolveModuleDescription, resolveModuleLabel, styleReachesModule } from '@/lib/module-registry';
+import { getModuleDefinition, resolveModuleDescription, resolveModuleLabel, styleReachesModule, ownedStyleFields } from '@/lib/module-registry';
 import { buildModuleDeleteConfirm } from '@/lib/delete-confirmations';
 import { moduleDocsUrl } from '@/lib/module-docs';
 import { useTranslate, type TranslateFn } from '@/i18n';
@@ -50,6 +50,7 @@ import {
   VideoConfigSection,
   QuoteConfigSection,
   TodoConfigSection,
+  NotesConfigSection,
   StickyNoteConfigSection,
   GreetingConfigSection,
   NewsConfigSection,
@@ -339,7 +340,7 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
   const basePx = moduleBaseFontSize(textDef);
   const fittedPx = useFittedPx(mod.id, !!textDef?.autoSizesText);
   const textPercent = displayTextPercent(s, textDef, fittedPx);
-  const owned = new Set(def?.ownsStyleFields ?? []);
+  const owned = ownedStyleFields(def, mod.config);
 
   return (
     <>
@@ -347,29 +348,37 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
         <div className="space-y-3">
           <Slider label={t('propertyPanel.fields.borderRadius')} value={s.borderRadius} min={0} max={50} onChange={(v) => set({ borderRadius: v })} />
           <Slider label={t('propertyPanel.fields.padding')} value={s.padding} min={0} max={64} onChange={(v) => set({ padding: v })} />
-          <Slider label={t('propertyPanel.fields.borderWidth')} value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
+          {!owned.has('borderWidth') && (
+            <Slider label={t('propertyPanel.fields.borderWidth')} value={s.borderWidth ?? 0} min={0} max={4} onChange={(v) => set({ borderWidth: v })} />
+          )}
         </div>
       </PropertyGroup>
 
       <PropertyGroup title={t('propertyPanel.sections.effects')} accent={2}>
         <div className="space-y-3">
           <Slider label={t('propertyPanel.fields.opacity')} value={s.opacity} min={0} max={1} step={0.05} onChange={(v) => set({ opacity: v })} />
-          <Slider label={t('propertyPanel.fields.backdropBlur')} value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
+          {!owned.has('backdropBlur') && (
+            <Slider label={t('propertyPanel.fields.backdropBlur')} value={s.backdropBlur} min={0} max={40} step={0.5} onChange={(v) => set({ backdropBlur: v })} />
+          )}
           <Slider label={t('propertyPanel.fields.shadowSize')} value={s.shadowSize ?? 0} min={0} max={48} onChange={(v) => set({ shadowSize: v })} />
         </div>
       </PropertyGroup>
 
+      {!(owned.has('backgroundColor') && owned.has('borderColor') && owned.has('textColor')) && (
       <PropertyGroup title={t('fields.color')} accent={3}>
         <div className="space-y-3">
           {!owned.has('backgroundColor') && (
             <ColorPicker label={t('propertyPanel.fields.background')} value={s.backgroundColor} onChange={(v) => set({ backgroundColor: v })} showAlpha alphaLabel={t('propertyPanel.fields.colorAlpha')} />
           )}
-          <ColorPicker label={t('propertyPanel.fields.borderColor')} value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} showAlpha alphaLabel={t('propertyPanel.fields.colorAlpha')} />
+          {!owned.has('borderColor') && (
+            <ColorPicker label={t('propertyPanel.fields.borderColor')} value={s.borderColor ?? 'rgba(255, 255, 255, 0.15)'} onChange={(v) => set({ borderColor: v })} showAlpha alphaLabel={t('propertyPanel.fields.colorAlpha')} />
+          )}
           {!owned.has('textColor') && (
             <ColorPicker label={t('propertyPanel.fields.textColor')} value={s.textColor} onChange={(v) => set({ textColor: v })} />
           )}
         </div>
       </PropertyGroup>
+      )}
 
       <PropertyGroup title={t('propertyPanel.sections.text')} accent={4}>
         <div className="space-y-3">
@@ -420,7 +429,9 @@ function StyleSection({ mod, screenId, t }: { mod: ModuleInstance; screenId: str
               )}
             </div>
           )}
-          <FontFamilyPicker value={s.fontFamily} onChange={(v) => set({ fontFamily: v })} />
+          {!owned.has('fontFamily') && (
+            <FontFamilyPicker value={s.fontFamily} onChange={(v) => set({ fontFamily: v })} />
+          )}
         </div>
       </PropertyGroup>
     </>
@@ -443,6 +454,7 @@ export const CONFIG_SECTIONS: Record<BuiltinModuleType, ConfigSectionFC> = {
   video: VideoConfigSection,
   quote: QuoteConfigSection,
   todo: TodoConfigSection,
+  notes: NotesConfigSection,
   'sticky-note': StickyNoteConfigSection,
   greeting: GreetingConfigSection,
   news: NewsConfigSection,

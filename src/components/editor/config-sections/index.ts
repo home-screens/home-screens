@@ -8,6 +8,7 @@ export { ImageConfigSection } from './ImageConfigSection';
 export { VideoConfigSection } from './VideoConfigSection';
 export { QuoteConfigSection } from './QuoteConfigSection';
 export { TodoConfigSection } from './TodoConfigSection';
+export { NotesConfigSection } from './NotesConfigSection';
 export { StickyNoteConfigSection } from './StickyNoteConfigSection';
 export { GreetingConfigSection } from './GreetingConfigSection';
 export { NewsConfigSection } from './NewsConfigSection';

@@ -44,6 +44,13 @@ vi.mock('@/hooks/useStateKeySearch', () => ({
   useStateKeySearch: () => mocks.searchResult,
 }));
 
+// The notes board's keys are offered on every household with no setting
+// behind them. These cases are about the plugin branches of the tab, so the
+// host's always-present keys are kept out of the counts.
+vi.mock('@/lib/notes-state', () => ({
+  notesProvidedStateKeys: () => [],
+}));
+
 // Import after mocks are registered so the module sees the mocked deps.
 import SharedStateSection from '../SharedStateSection';
 import { BROWSE_SEARCH_LIMIT } from '@/lib/state-key-search';

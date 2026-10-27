@@ -1,42 +1,76 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { Plus } from 'lucide-react';
-import { useTranslate } from '@/i18n';
-import { TODO_LIMITS } from '@/types/todos';
 
-interface ListsAddBarProps {
-  listName: string;
-  /** Resolves to false when the item could not be saved. */
+interface AddBarProps {
+  /** The field's placeholder, also its accessible name. */
+  placeholder: string;
+  /** Accessible name of the plus button. */
+  buttonLabel: string;
+  maxLength: number;
+  /** Resolves to false when the text could not be saved. */
   onAdd: (text: string) => Promise<boolean>;
+  /**
+   * When set, the plus opens a fuller form instead of saving, handed
+   * whatever was typed, and so does Return on an empty field. Return with
+   * text in the field still saves straight away (the Notes tab).
+   */
+  onExpand?: (text: string) => void;
+  /** Hold the text outside, so a caller can hand back a draft its form did not use. */
+  value?: string;
+  onValueChange?: Dispatch<SetStateAction<string>>;
+  enterKeyHint?: 'done' | 'send';
+  inputTestId: string;
+  buttonTestId?: string;
 }
 
-/** Height of the bar itself, without the safe area. The tab pads for it. */
+/** Height of the bar itself, without the safe area. A tab pads for it. */
 export const ADD_BAR_HEIGHT = 68;
 
 /**
  * The fast path: type, return, type the next one. Pinned above the tab bar
  * (64px plus the safe area) and keeps focus after each add so a whole
  * grocery run can be typed without touching the field again. Options live
- * in the item sheet, not here.
+ * in the tab's sheet, not here.
  *
- * The field clears at once, for the next item. Text that then fails to save
+ * The field clears at once, for the next entry. Text that then fails to save
  * comes back into it (unless something newer is already being typed), so a
  * dropped connection never costs what was typed.
  */
-export default function ListsAddBar({ listName, onAdd }: ListsAddBarProps) {
-  const t = useTranslate('remote');
-  const [text, setText] = useState('');
+export default function AddBar({
+  placeholder,
+  buttonLabel,
+  maxLength,
+  onAdd,
+  onExpand,
+  value,
+  onValueChange,
+  enterKeyHint = 'done',
+  inputTestId,
+  buttonTestId,
+}: AddBarProps) {
+  const [ownText, setOwnText] = useState('');
+  const text = value ?? ownText;
+  const setText = onValueChange ?? setOwnText;
   const inputRef = useRef<HTMLInputElement>(null);
 
   const submit = () => {
     const clean = text.trim();
-    if (!clean) return;
+    if (!clean) {
+      onExpand?.('');
+      return;
+    }
     void onAdd(clean).then((saved) => {
       if (!saved) setText((now) => (now.trim() ? now : clean));
     });
     setText('');
     inputRef.current?.focus();
+  };
+
+  const expand = () => {
+    onExpand?.(text.trim() ? text : '');
+    setText('');
   };
 
   return (
@@ -65,11 +99,11 @@ export default function ListsAddBar({ listName, onAdd }: ListsAddBarProps) {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          maxLength={TODO_LIMITS.maxItemTextLength}
-          placeholder={t('lists.addBar.placeholder', { list: listName })}
-          aria-label={t('lists.addBar.placeholder', { list: listName })}
-          data-testid="todo-add-input"
-          enterKeyHint="done"
+          maxLength={maxLength}
+          placeholder={placeholder}
+          aria-label={placeholder}
+          data-testid={inputTestId}
+          enterKeyHint={enterKeyHint}
           autoComplete="off"
           style={{
             flex: 1,
@@ -86,9 +120,11 @@ export default function ListsAddBar({ listName, onAdd }: ListsAddBarProps) {
           }}
         />
         <button
-          type="submit"
+          type={onExpand ? 'button' : 'submit'}
+          onClick={onExpand ? expand : undefined}
           className="press-btn"
-          aria-label={t('lists.addBar.submit')}
+          aria-label={buttonLabel}
+          data-testid={buttonTestId}
           style={{
             width: 48,
             height: 48,

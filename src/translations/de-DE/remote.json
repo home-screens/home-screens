@@ -5,7 +5,8 @@
     "lists": "Listen",
     "meals": "Mahlzeiten",
     "photos": "Fotos",
-    "timers": "Timer"
+    "timers": "Timer",
+    "notes": "Notizen"
   },
   "statusBar": {
     "title": "Fernsteuerung",
@@ -1057,7 +1058,11 @@
       "title": "Noch keine Diashow",
       "body": "Fotos erscheinen hier, sobald eine Diashow auf einem deiner Bildschirme liegt."
     },
-    "howTo": "Füge sie am Computer hinzu: Öffne {url} und lege sie auf einen Bildschirm."
+    "howTo": "Füge sie am Computer hinzu: Öffne {url} und lege sie auf einen Bildschirm.",
+    "notes": {
+      "title": "Noch keine Pinnwand",
+      "body": "Notizen erscheinen hier, sobald eine Pinnwand auf einem deiner Bildschirme hängt."
+    }
   },
   "choreSettings": {
     "title": "Aufgaben-Einstellungen",
@@ -1069,5 +1074,65 @@
   },
   "atHome": {
     "pill": "Zu Hause ist es {day}, {time}"
+  },
+  "notes": {
+    "title": "Notizen",
+    "onWall": {
+      "zero": "Nichts an der Wand",
+      "one": "{count} an der Wand",
+      "other": "{count} an der Wand"
+    },
+    "writeNote": "Schreib eine Notiz",
+    "post": "An die Wand hängen",
+    "newNote": "Neue Notiz",
+    "editNote": "Notiz bearbeiten",
+    "noteLabel": "Notiz",
+    "counter": "{used} / {max}",
+    "fromLabel": "Von",
+    "nobody": "Niemand",
+    "someone": "Jemand",
+    "lifeLabel": "Wie lange sichtbar",
+    "life": {
+      "12h": "12 Std.",
+      "1d": "1 Tag",
+      "3d": "3 Tage",
+      "7d": "1 Woche",
+      "keep": "Immer"
+    },
+    "lifeHelp": "Die Zeit läuft ab dem Aufhängen. Wähle noch einmal, dann beginnt sie jetzt von vorn.",
+    "pin": "Oben anpinnen",
+    "pinned": "Angepinnt",
+    "important": "Wichtig",
+    "save": "Speichern",
+    "takeDown": "Jetzt von der Wand nehmen",
+    "gone": "Nicht mehr an der Wand ({count})",
+    "goneIn": "Hängt noch {time}",
+    "postAgain": "Wieder aufhängen",
+    "delete": "Löschen",
+    "deleteConfirm": "Diese Notiz endgültig löschen?",
+    "keeps": "Bleibt hängen",
+    "timeLeft": {
+      "minute": {
+        "one": "Noch {count} Min.",
+        "other": "Noch {count} Min."
+      },
+      "hour": {
+        "one": "Noch {count} Std.",
+        "other": "Noch {count} Std."
+      },
+      "day": {
+        "one": "Noch {count} Tag",
+        "other": "Noch {count} Tage"
+      }
+    },
+    "justNow": "Gerade eben",
+    "empty": {
+      "title": "Noch nichts an der Pinnwand",
+      "body": "Schreib unten eine Notiz, dann hängt sie ein paar Sekunden später an der Wand. Notizen verschwinden von selbst, wenn die gewählte Zeit um ist."
+    },
+    "loadError": "Die Notizen konnten nicht geladen werden.",
+    "retry": "Noch einmal versuchen",
+    "saveError": "Das hat nicht geklappt. Versuch es noch einmal.",
+    "editAria": "Notiz von {name} bearbeiten"
   }
 }

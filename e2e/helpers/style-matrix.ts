@@ -1,4 +1,4 @@
-import { getAllModuleDefinitions, getModuleDefinition, styleReachesModule } from '@/lib/module-registry';
+import { getAllModuleDefinitions, getModuleDefinition, ownedStyleFields, styleReachesModule } from '@/lib/module-registry';
 import { type ModuleStyle, type ModuleType } from '@/types/config';
 
 /**
@@ -79,8 +79,9 @@ export const STYLE_EXEMPTIONS: StyleExemptions = {
  * whose controls the editor hides. A field hidden there and probed here would
  * be a failure with nothing for anyone to fix.
  */
-export function probesFor(type: ModuleType): StyleProbe[] {
-  const owned = new Set(getModuleDefinition(type)?.ownsStyleFields ?? []);
+export function probesFor(type: ModuleType, config?: Record<string, unknown>): StyleProbe[] {
+  const def = getModuleDefinition(type);
+  const owned = ownedStyleFields(def, config ?? def?.defaultConfig ?? {});
   return STYLE_PROBES.filter((p) => !owned.has(p.field));
 }
 

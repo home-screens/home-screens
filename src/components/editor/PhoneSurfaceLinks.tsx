@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ChevronRight, Copy, ListChecks, ListTodo, Check, Images, Smartphone, UtensilsCrossed } from 'lucide-react';
+import { ChevronRight, Copy, ListChecks, ListTodo, Check, Images, MessageSquareText, Smartphone, UtensilsCrossed } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
@@ -22,6 +22,7 @@ const CHIP_ICONS: Record<PhoneContext, Partial<Record<PhoneSurface, LucideIcon>>
   meals: { remote: UtensilsCrossed },
   photos: { remote: Images },
   lists: { remote: ListTodo },
+  notes: { remote: MessageSquareText },
 };
 
 interface PhoneSurfaceLinksProps {

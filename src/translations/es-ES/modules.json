@@ -1340,5 +1340,43 @@
       "high": "Alto, protector solar",
       "veryHigh": "Muy alto, cúbrete bien"
     }
+  },
+  "notes": {
+    "name": "Notas",
+    "defaultTitle": "Notas",
+    "empty": "No hay nada en el tablón. Escribe una nota en el móvil y aparecerá aquí.",
+    "emptyPinned": "Ahora mismo no hay notas fijadas.",
+    "emptyImportant": "Ahora mismo no hay notas importantes.",
+    "someone": "Alguien",
+    "andMore": "y {n} más",
+    "count": {
+      "one": "{count} nota",
+      "other": "{count} notas"
+    },
+    "countLabel": {
+      "one": "nota en el tablón",
+      "other": "notas en el tablón"
+    },
+    "important": "Importante",
+    "importantCount": {
+      "one": "{count} importante",
+      "other": "{count} importantes"
+    },
+    "pinned": "Fijadas",
+    "new": "Nuevas",
+    "nothingPinned": "Nada fijado",
+    "noNotes": "Sin notas",
+    "latest": "Última nota",
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "of": "{index} de {total}",
+    "masthead": "La Gaceta de Casa",
+    "edition": "Última edición",
+    "byline": "Por {name}",
+    "importantLead": "Importante:",
+    "receiptTotal": "Total",
+    "receiptThanks": "Gracias por leer",
+    "receiptSummary": "Fijadas {pinned} · Importantes {important}",
+    "pinnedOne": "Fijada"
   }
 }

@@ -5,7 +5,8 @@
     "lists": "Listes",
     "meals": "Repas",
     "photos": "Photos",
-    "timers": "Minuteurs"
+    "timers": "Minuteurs",
+    "notes": "Notes"
   },
   "statusBar": {
     "title": "Télécommande",
@@ -1057,7 +1058,11 @@
       "title": "Pas encore de diaporama",
       "body": "Les photos apparaîtront ici dès qu'un diaporama sera sur l'un de vos écrans."
     },
-    "howTo": "Ajoutez-le depuis un ordinateur : ouvrez {url} et posez-le sur un écran."
+    "howTo": "Ajoutez-le depuis un ordinateur : ouvrez {url} et posez-le sur un écran.",
+    "notes": {
+      "title": "Pas encore de tableau de notes",
+      "body": "Les notes apparaîtront ici dès qu'un tableau de notes sera sur l'un de vos écrans."
+    }
   },
   "choreSettings": {
     "title": "Paramètres des tâches",
@@ -1069,5 +1074,65 @@
   },
   "atHome": {
     "pill": "À la maison : {day}, {time}"
+  },
+  "notes": {
+    "title": "Notes",
+    "onWall": {
+      "zero": "Rien sur le mur",
+      "one": "{count} sur le mur",
+      "other": "{count} sur le mur"
+    },
+    "writeNote": "Écris une note",
+    "post": "Afficher sur le mur",
+    "newNote": "Nouvelle note",
+    "editNote": "Modifier la note",
+    "noteLabel": "Message",
+    "counter": "{used} / {max}",
+    "fromLabel": "De la part de",
+    "nobody": "Personne",
+    "someone": "Quelqu'un",
+    "lifeLabel": "Durée sur le mur",
+    "life": {
+      "12h": "12 heures",
+      "1d": "1 jour",
+      "3d": "3 jours",
+      "7d": "7 jours",
+      "keep": "Toujours"
+    },
+    "lifeHelp": "Le compte à rebours a démarré quand la note a été affichée. Choisis à nouveau une durée pour le relancer maintenant.",
+    "pin": "Épingler en haut",
+    "pinned": "Épinglée",
+    "important": "Importante",
+    "save": "Enregistrer",
+    "takeDown": "Retirer du mur maintenant",
+    "gone": "Retirées ({count})",
+    "goneIn": "Retirée dans {time}",
+    "postAgain": "Remettre sur le mur",
+    "delete": "Supprimer",
+    "deleteConfirm": "Supprimer cette note pour de bon ?",
+    "keeps": "Reste affichée",
+    "timeLeft": {
+      "minute": {
+        "one": "Encore {count} min",
+        "other": "Encore {count} min"
+      },
+      "hour": {
+        "one": "Encore {count} h",
+        "other": "Encore {count} h"
+      },
+      "day": {
+        "one": "Encore {count} jour",
+        "other": "Encore {count} jours"
+      }
+    },
+    "justNow": "À l'instant",
+    "empty": {
+      "title": "Rien sur le tableau pour le moment",
+      "body": "Écris une note ci-dessous et elle apparaîtra sur le mur quelques secondes plus tard. Les notes s'en vont toutes seules après la durée choisie."
+    },
+    "loadError": "Impossible de charger les notes.",
+    "retry": "Réessayer",
+    "saveError": "Ça n'a pas été enregistré. Réessaie.",
+    "editAria": "Modifier la note de {name}"
   }
 }

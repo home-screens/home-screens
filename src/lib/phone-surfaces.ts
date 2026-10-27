@@ -26,7 +26,7 @@ export const PHONE_SURFACE_PATHS: Record<PhoneSurface, string> = {
  * offered and which copy the chip carries — a chip in the photo module should
  * say "add photos", not name a URL.
  */
-export const PHONE_CONTEXTS = ['chores', 'meals', 'photos', 'lists'] as const;
+export const PHONE_CONTEXTS = ['chores', 'meals', 'photos', 'lists', 'notes'] as const;
 
 export type PhoneContext = (typeof PHONE_CONTEXTS)[number];
 
@@ -39,6 +39,7 @@ export const SURFACES_BY_CONTEXT: Record<PhoneContext, readonly PhoneSurface[]> 
   meals: ['remote'],
   photos: ['remote'],
   lists: ['remote'],
+  notes: ['remote'],
 };
 
 /** The `/remote` tab each context belongs to (see `BottomTabBar`). */
@@ -47,6 +48,7 @@ const CONTEXT_TABS: Record<PhoneContext, string> = {
   meals: 'meals',
   photos: 'photos',
   lists: 'lists',
+  notes: 'notes',
 };
 
 /**

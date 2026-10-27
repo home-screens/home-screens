@@ -5,7 +5,8 @@
     "lists": "Lists",
     "meals": "Meals",
     "photos": "Photos",
-    "timers": "Timers"
+    "timers": "Timers",
+    "notes": "Notes"
   },
   "statusBar": {
     "title": "Remote",
@@ -1057,7 +1058,11 @@
       "title": "No photo slideshow yet",
       "body": "Photos show up here once a photo slideshow is on one of your screens."
     },
-    "howTo": "Add one from a computer: open {url} and put it on a screen."
+    "howTo": "Add one from a computer: open {url} and put it on a screen.",
+    "notes": {
+      "title": "No notes board yet",
+      "body": "Notes show up here once a Notes board is on one of your screens."
+    }
   },
   "choreSettings": {
     "title": "Chore settings",
@@ -1069,5 +1074,65 @@
   },
   "atHome": {
     "pill": "It's {day}, {time} at home"
+  },
+  "notes": {
+    "title": "Notes",
+    "onWall": {
+      "zero": "Nothing on the wall",
+      "one": "{count} on the wall",
+      "other": "{count} on the wall"
+    },
+    "writeNote": "Write a note",
+    "post": "Put it on the wall",
+    "newNote": "New note",
+    "editNote": "Edit note",
+    "noteLabel": "Note",
+    "counter": "{used} / {max}",
+    "fromLabel": "From",
+    "nobody": "Nobody",
+    "someone": "Someone",
+    "lifeLabel": "Show for",
+    "life": {
+      "12h": "12 hours",
+      "1d": "1 day",
+      "3d": "3 days",
+      "7d": "1 week",
+      "keep": "Keep"
+    },
+    "lifeHelp": "Counted from when the note was posted. Pick again to start over from now.",
+    "pin": "Pin to top",
+    "pinned": "Pinned",
+    "important": "Important",
+    "save": "Save",
+    "takeDown": "Take it down now",
+    "gone": "Gone ({count})",
+    "goneIn": "Gone in {time}",
+    "postAgain": "Post again",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this note for good?",
+    "keeps": "Keeps",
+    "timeLeft": {
+      "minute": {
+        "one": "{count} min left",
+        "other": "{count} min left"
+      },
+      "hour": {
+        "one": "{count} h left",
+        "other": "{count} h left"
+      },
+      "day": {
+        "one": "{count} day left",
+        "other": "{count} days left"
+      }
+    },
+    "justNow": "Just now",
+    "empty": {
+      "title": "Nothing on the board yet",
+      "body": "Write a note below and it shows up on the wall a few seconds later. Notes come down on their own after the time you pick."
+    },
+    "loadError": "Couldn't load the notes.",
+    "retry": "Try again",
+    "saveError": "That didn't save. Try again.",
+    "editAria": "Edit note from {name}"
   }
 }

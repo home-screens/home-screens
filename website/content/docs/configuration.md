@@ -29,6 +29,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/google-tokens.json` | Google Calendar OAuth tokens | (internal) |
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
 | `data/todos.json` | Shared to-do lists (items, due days, people, repeats) | `/api/todo/lists` |
+| `data/notes.json` | The family notes board: each note's text, who wrote it, pinned, important and when it comes down | `/api/notes` |
 | `data/timetables.json` | School timetables: schools and bell times, the shared subject list, one week per person | `/api/timetables` |
 | `data/school-holidays.json` | Last-good copy of the school and public holiday dates looked up for a region | `/api/timetables/holidays` |
 | `data/routines.json` | Saved timer routines (the steps, not a running timer) | `/api/timers/routines` |
@@ -339,6 +340,10 @@ Each entry in `completions`:
 ### data/todos.json
 
 The family's shared to-do lists (see [Lists](/docs/lists)). Each list has a name, a colour, an optional start-fresh repeat, and its items with done state, due day and who it is for. A To-Do module only stores which list it shows, so editing a screen never touches a list and the same list can sit on any number of screens. The phone, the wall and the editor all write through `/api/todo/lists`.
+
+### data/notes.json
+
+The family notes board (see [Notes](/docs/notes)). Each note has its text, who wrote it (or nobody), whether it is pinned or important, the **Show for** length it was given, and when it leaves the wall (`expiresAt`, or `null` for a note that stays). A Notes module stores only how it looks, never notes, so every board on every screen shows the same notes. Notes that came down stay in the file for 7 days for the phone's Gone group, then the next change clears them. The phone writes through `/api/notes`; the wall reads `/api/notes?live=1`, which leaves out the ones that came down.
 
 ## Display Resolution Presets
 

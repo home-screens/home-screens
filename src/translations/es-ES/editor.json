@@ -325,7 +325,8 @@
       "icon": "Icono",
       "shape": "Forma y separador",
       "display-control": "Control del display",
-      "traffic": "Tráfico / trayecto"
+      "traffic": "Tráfico / trayecto",
+      "notes": "Notas"
     },
     "descriptions": {
       "fullscreen-calendar": "Toda tu semana o tu mes, a pantalla completa",
@@ -372,7 +373,8 @@
       "icon": "Un solo símbolo, como un corazón o un coche",
       "shape": "Líneas y bloques para separar cosas",
       "display-control": "Botones táctiles para encender, apagar o cambiar de pantalla",
-      "traffic": "Cuánto se tarda en llegar al trabajo o al cole"
+      "traffic": "Cuánto se tarda en llegar al trabajo o al cole",
+      "notes": "Notas que la familia escribe en el móvil y que se ven en la pared durante el tiempo elegido"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendario eventos semana mes familia",
@@ -419,7 +421,8 @@
       "icon": "icono simbolo símbolo logo dibujo",
       "shape": "linea línea separador caja borde recuadro",
       "display-control": "tactil táctil botones encender apagar brillo pantalla",
-      "traffic": "trafico tráfico trayecto ruta coche trabajo cole"
+      "traffic": "trafico tráfico trayecto ruta coche trabajo cole",
+      "notes": "notas tablón corcho mensaje familia nevera frigorífico pósit recado aviso"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Quitar"
     }
   },
+  "notesBoardModal": {
+    "title": "Notas de la familia",
+    "subtitle": {
+      "zero": "Nada en la pared · quitadas: {gone}",
+      "one": "{count} en la pared · quitadas: {gone}",
+      "other": "{count} en la pared · quitadas: {gone}"
+    },
+    "newNote": "Nueva nota",
+    "textLabel": "Nota",
+    "textPlaceholder": "Escribe una nota para la familia…",
+    "counter": "{used} / {max}",
+    "fromLabel": "De parte de",
+    "nobody": "Nadie",
+    "someone": "Alguien",
+    "lifeLabel": "Mostrar durante",
+    "life": {
+      "12h": "12 horas",
+      "1d": "1 día",
+      "3d": "3 días",
+      "7d": "1 semana",
+      "keep": "Siempre"
+    },
+    "lifeHelp": "Si lo cambias, el tiempo empieza a contar de nuevo desde ahora.",
+    "pin": "Fijar arriba",
+    "important": "Importante",
+    "post": "Colgar",
+    "postHint": "También puedes pulsar Ctrl+Intro (o Cmd+Intro en un Mac)",
+    "onWall": "En la pared",
+    "empty": "Ahora mismo no hay nada en la pared. Escribe una nota arriba y aparecerá unos segundos después.",
+    "rowTextLabel": "Nota de {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "Queda {count} min",
+        "other": "Quedan {count} min"
+      },
+      "hour": {
+        "one": "Queda {count} h",
+        "other": "Quedan {count} h"
+      },
+      "day": {
+        "one": "Queda {count} día",
+        "other": "Quedan {count} días"
+      }
+    },
+    "takeDown": "Quitar de la pared",
+    "gone": "Quitadas ({count})",
+    "goneHelp": "Notas que se han quitado de la pared en la última semana. Puedes volver a colgar la que quieras.",
+    "postAgain": "Volver a colgar",
+    "delete": "Eliminar",
+    "deleteConfirm": {
+      "title": "Eliminar nota",
+      "message": "La nota desaparecerá para siempre y no se podrá volver a colgar.",
+      "confirmLabel": "Eliminar"
+    },
+    "loadError": "No se pudieron cargar las notas. Cierra esta ventana y vuelve a abrirla."
+  },
   "mealPlannerModal": {
     "title": "Planificador de comidas",
     "subtitleMealsPlanned": "{meals} comidas · {planned} planeadas",
@@ -4987,6 +5046,46 @@
         "overruled": "Este aspecto coincide, pero uno de más arriba ya cambia todo lo que cambia este. Súbelo para que gane.",
         "always": "Sin condiciones, así que este aspecto se aplica todo el tiempo."
       }
+    },
+    "notes": {
+      "viewBoard": "Tablón",
+      "viewCards": "Tarjetas",
+      "viewSticky": "Pósits",
+      "viewBubbles": "Burbujas de chat",
+      "viewSpotlight": "Una a una",
+      "viewCompact": "Compacta",
+      "viewCount": "Contador",
+      "viewStrip": "Franja",
+      "viewTicker": "Texto en movimiento",
+      "viewTimeline": "Por días",
+      "viewFocus": "Enfoque",
+      "viewByPerson": "Por persona",
+      "viewPinnedNew": "Fijadas y nuevas",
+      "viewLatest": "La más reciente",
+      "title": "Título",
+      "defaultTitle": "Notas",
+      "showTitle": "Mostrar título",
+      "maxNotes": "Notas que se muestran",
+      "showAuthor": "Mostrar quién la escribió",
+      "showAge": "Mostrar hace cuánto se escribió",
+      "filter": "Qué notas",
+      "filterAll": "Todas las notas",
+      "filterPinned": "Solo las fijadas",
+      "filterImportant": "Solo las importantes",
+      "manageNotes": "Gestionar notas",
+      "stepSeconds": "Segundos por nota",
+      "tickerSpeed": "Velocidad (segundos por nota)",
+      "viewChalkboard": "Pizarra de tiza",
+      "viewLetterboard": "Letrero de fieltro",
+      "viewWhiteboard": "Pizarra blanca",
+      "viewFridge": "Nevera",
+      "viewNotebook": "Cuaderno",
+      "viewReceipt": "Ticket de compra",
+      "viewNeon": "Neón",
+      "viewHeadline": "Periódico",
+      "groupLayouts": "Disposiciones",
+      "groupMaterials": "Objetos reales",
+      "materialHelp": "Este aspecto tiene sus propios colores y su propia letra, así que los ajustes de fondo, color del texto, borde y tipo de letra no se aplican."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "Hay un aviso meteorológico activo",
       "alertSeverity": "Gravedad del aviso meteorológico",
       "alertTitle": "Nombre del aviso meteorológico"
+    },
+    "notes": {
+      "count": "Notas en el tablón",
+      "important": "Notas importantes en el tablón",
+      "pinned": "Notas fijadas en el tablón"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Editar listas desde el móvil"
+      },
+      "notes": {
+        "remote": "Escribir notas desde el móvil"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Las tareas en el móvil",
         "meals": "Las comidas en el móvil",
         "photos": "Las fotos en el móvil",
-        "lists": "Listas en el móvil"
+        "lists": "Listas en el móvil",
+        "notes": "Las notas en el móvil"
       },
       "lede": "Escanea con la cámara del móvil o escribe la dirección. Funciona en cualquier dispositivo de tu wifi.",
       "passwordHint": "Puedes pedir una contraseña en Ajustes, en el apartado Seguridad.",

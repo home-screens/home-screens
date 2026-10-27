@@ -17,6 +17,9 @@ import { getCalendarFetchWindow } from '@/lib/calendar-window';
 import { buildCalendarUrl, googleCalendarIdList, hasCalendarFeedSources } from '@/lib/calendar-sources';
 import { CALENDAR_STATE_KEY_LIST, deriveCalendarState } from '@/lib/calendar-state';
 import { WEATHER_STATE_KEY_LIST, deriveWeatherState, type WeatherStatePayload } from '@/lib/weather-state';
+import { deriveNotesState } from '@/lib/notes-state';
+import { notesUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import type { Note } from '@/types/notes';
 import { sharedStateStore } from '@/lib/shared-state-store';
 import { HOST_STATE_REPUBLISH_MS } from '@/lib/constants';
 import { createTZDate } from '@/lib/timezone';
@@ -172,6 +175,23 @@ export function useSharedDisplayData(
     const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
     return () => clearInterval(timer);
   }, [globalWeatherData, timezone]);
+
+  // Publish the notes board's counts (see notes-state.ts). The same read every
+  // Notes module makes, followed by the heartbeat's `notes` revision, so the
+  // keys exist on a display that shows no Notes module and a layout can hide
+  // a board that has nothing on it. Counts only, re-derived on the interval
+  // so a note that expires leaves the count without a fetch.
+  const [notesData] = useFetchData<{ notes: Note[] }>(notesUrl(), FETCH_KEY_REGISTRY.notes.ttlMs);
+  useEffect(() => {
+    const notes = notesData?.notes;
+    if (!Array.isArray(notes)) return;
+    const tick = () => {
+      for (const [key, value] of Object.entries(deriveNotesState(notes, new Date()))) sharedStateStore.publish(key, String(value));
+    };
+    tick();
+    const timer = setInterval(tick, HOST_STATE_REPUBLISH_MS);
+    return () => clearInterval(timer);
+  }, [notesData]);
 
   const calendarIdList = googleCalendarIdList(settings.calendar);
   const hasFeedSources = hasCalendarFeedSources(settings.calendar);

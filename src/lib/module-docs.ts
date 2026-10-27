@@ -39,6 +39,7 @@ export const MODULE_DOCS_ANCHOR: Record<BuiltinModuleType, string> = {
   'word-of-day': 'word-of-the-day',
   history: 'this-day-in-history',
   todo: 'to-do-list',
+  notes: 'notes',
   'sticky-note': 'sticky-note',
   greeting: 'greeting',
   todoist: 'todoist',
@@ -70,6 +71,7 @@ export const MODULE_DOCS_ANCHOR: Record<BuiltinModuleType, string> = {
 export const MODULE_DOCS_PAGE: Partial<Record<BuiltinModuleType, string>> = {
   timetable: `${DOCS_ROOT}/school-timetable`,
   todo: `${DOCS_ROOT}/lists`,
+  notes: `${DOCS_ROOT}/notes`,
   'chore-chart': `${DOCS_ROOT}/chores`,
   'meal-planner': `${DOCS_ROOT}/meals`,
 };

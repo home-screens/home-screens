@@ -20,6 +20,7 @@ const builtinComponentEntries = {
   quote: dynamic(() => import('@/components/modules/QuoteModule')),
   todo: dynamic(() => import('@/components/modules/TodoModule')),
   'sticky-note': dynamic(() => import('@/components/modules/StickyNoteModule')),
+  notes: dynamic(() => import('@/components/modules/notes/NotesModule')),
   greeting: dynamic(() => import('@/components/modules/GreetingModule')),
   news: dynamic(() => import('@/components/modules/NewsModule')),
   'stock-ticker': dynamic(() => import('@/components/modules/StockTickerModule')),

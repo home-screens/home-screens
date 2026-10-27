@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedHouseholdChores, seedMeals, seedTimetables, seedTodos } from '../helpers/api';
+import { seedHouseholdChores, seedMeals, seedNotes, seedTimetables, seedTodos } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES } from '../helpers/module-fixtures';
@@ -80,6 +80,7 @@ async function renderAt(page: Page, request: Parameters<typeof renderOnDisplay>[
   if (fx.seed === 'meals') await seedMeals(request);
   if (fx.seed === 'todos') seedTodos(sandboxDir);
   if (fx.seed === 'timetables') seedTimetables(sandboxDir);
+  if (fx.seed === 'notes') seedNotes(sandboxDir);
   const mod = buildModuleInstance(type, fx.config);
   mod.size = size;
   const display = await renderOnDisplay(page, request, baseConfig({

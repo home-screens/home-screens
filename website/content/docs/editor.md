@@ -109,6 +109,7 @@ Each module type has its own configuration options. For example:
 - **Clock**: toggle 24-hour format, seconds, date display
 - **Countdown**: add/remove events with labels and dates
 - **To-Do**: add/edit/check off items
+- **Notes**: **Manage notes** opens the **Family notes** window to post notes, change them, take them down and post them again, the same things the phone's Notes tab does (see [Notes](/docs/notes#4-write-notes-from-the-editor))
 - **News**: pick the feeds it shows, from the built-in list or your own links (see [News](/docs/news))
 - **Stock Ticker**: enter comma-separated stock symbols
 - **Display Control**: pick layout (Bar / Pad / Panel / Arrows), default target (self / all / specific display), allow runtime retargeting
@@ -139,9 +140,11 @@ Every module can be styled except the full-screen ones and Display Control, whic
 
 The sticky note has no Background or Text Color here: its paper colour is the note's own **Note Color** setting, and its ink is always dark so it reads on any paper.
 
+The Notes module's eight material views (Chalkboard, Letterboard, Whiteboard, Fridge, Notebook, Receipt, Neon and Headline) bring their own surface, colours and lettering, so while one is picked there is no Background, Text Color, Border Color, Border Width, Frosted glass or Font Family here. Everything else, such as Text size, corner rounding, space inside, Solid and Shadow Size, still works. The fourteen other Notes views take every setting.
+
 **Text**
 
-- **Text size**: a percent of the size the module shows on its own, from 10% to 450%. The clock, date, countdown, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, school timetable and multi-month calendar fit their text to their box, so 100% is that fitted size and the slider makes it smaller or larger from there. Every other module's 100% is its base size. A module that was given a pixel size in an older version shows that size as a percent of what it shows on its own, so nothing changes until you move the slider
+- **Text size**: a percent of the size the module shows on its own, from 10% to 450%. The clock, date, countdown, greeting, weather, news, quote, dad joke, word of the day, this day in history, affirmations, sticky note, to-do list, notes board, school timetable and multi-month calendar fit their text to their box, so 100% is that fitted size and the slider makes it smaller or larger from there. Every other module's 100% is its base size. A module that was given a pixel size in an older version shows that size as a percent of what it shows on its own, so nothing changes until you move the slider
 - **Text thickness**: make all of the module's text lighter or bolder (100–900). Leave it on Default to keep the module's built-in look, and use Reset to default to go back. The title always stays at its normal weight
 - **Font Family**: choose from available fonts
 

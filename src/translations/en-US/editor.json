@@ -325,7 +325,8 @@
       "icon": "Icon",
       "shape": "Shape & Divider",
       "display-control": "Display Control",
-      "traffic": "Traffic / Commute"
+      "traffic": "Traffic / Commute",
+      "notes": "Notes"
     },
     "descriptions": {
       "fullscreen-calendar": "Your whole week or month, filling the screen",
@@ -372,7 +373,8 @@
       "icon": "A single symbol, like a heart or a car",
       "shape": "Lines and blocks for separating things",
       "display-control": "Buttons to wake, sleep or change screens by touch",
-      "traffic": "How long the drive to work or school takes"
+      "traffic": "How long the drive to work or school takes",
+      "notes": "Notes the family writes on the phone, shown on the wall until they expire"
     },
     "keywords": {
       "fullscreen-calendar": "agenda schedule events week month family",
@@ -419,7 +421,8 @@
       "icon": "symbol picture logo glyph",
       "shape": "line divider box border separator rule",
       "display-control": "touch buttons sleep wake brightness next screen",
-      "traffic": "commute drive route traffic school work"
+      "traffic": "commute drive route traffic school work",
+      "notes": "notes board message family fridge post"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Remove"
     }
   },
+  "notesBoardModal": {
+    "title": "Family notes",
+    "subtitle": {
+      "zero": "Nothing on the wall · {gone} gone",
+      "one": "{count} on the wall · {gone} gone",
+      "other": "{count} on the wall · {gone} gone"
+    },
+    "newNote": "New note",
+    "textLabel": "Note",
+    "textPlaceholder": "Write a note for the family...",
+    "counter": "{used} / {max}",
+    "fromLabel": "From",
+    "nobody": "Nobody",
+    "someone": "Someone",
+    "lifeLabel": "Show for",
+    "life": {
+      "12h": "12 hours",
+      "1d": "1 day",
+      "3d": "3 days",
+      "7d": "1 week",
+      "keep": "Keep"
+    },
+    "lifeHelp": "Changing this starts the time over from now.",
+    "pin": "Pin to top",
+    "important": "Important",
+    "post": "Post",
+    "postHint": "Ctrl+Enter (or Cmd+Enter on a Mac) posts too",
+    "onWall": "On the wall",
+    "empty": "Nothing on the wall right now. Write a note above and it shows up a few seconds later.",
+    "rowTextLabel": "Note from {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "{count} min left",
+        "other": "{count} min left"
+      },
+      "hour": {
+        "one": "{count} h left",
+        "other": "{count} h left"
+      },
+      "day": {
+        "one": "{count} day left",
+        "other": "{count} days left"
+      }
+    },
+    "takeDown": "Take down",
+    "gone": "Gone ({count})",
+    "goneHelp": "Notes that came down in the last week. Post one again to put it back on the wall.",
+    "postAgain": "Post again",
+    "delete": "Delete",
+    "deleteConfirm": {
+      "title": "Delete note",
+      "message": "This note goes away for good. It can't be posted again.",
+      "confirmLabel": "Delete"
+    },
+    "loadError": "Couldn't load the notes. Try closing and opening this again."
+  },
   "mealPlannerModal": {
     "title": "Meal Planner",
     "subtitleMealsPlanned": "{meals} meals · {planned} planned",
@@ -4987,6 +5046,46 @@
         "overruled": "This look matches, but a look above it already sets everything it sets. Move it up to let it win.",
         "always": "No conditions, so this look applies all the time."
       }
+    },
+    "notes": {
+      "viewBoard": "Board",
+      "viewCards": "Cards",
+      "viewSticky": "Sticky",
+      "viewBubbles": "Bubbles",
+      "viewSpotlight": "Spotlight",
+      "viewCompact": "Compact",
+      "viewCount": "Count",
+      "viewStrip": "Strip",
+      "viewTicker": "Ticker",
+      "viewTimeline": "Timeline",
+      "viewFocus": "Focus",
+      "viewByPerson": "By person",
+      "viewPinnedNew": "Pinned and new",
+      "viewLatest": "Latest",
+      "title": "Heading",
+      "defaultTitle": "Notes",
+      "showTitle": "Show title",
+      "maxNotes": "Notes to show",
+      "showAuthor": "Show who",
+      "showAge": "Show how long ago",
+      "filter": "Which notes",
+      "filterAll": "Every note",
+      "filterPinned": "Pinned only",
+      "filterImportant": "Important only",
+      "manageNotes": "Manage notes",
+      "stepSeconds": "Seconds per note",
+      "tickerSpeed": "Scroll speed (seconds per note)",
+      "viewChalkboard": "Chalkboard",
+      "viewLetterboard": "Letterboard",
+      "viewWhiteboard": "Whiteboard",
+      "viewFridge": "Fridge",
+      "viewNotebook": "Notebook",
+      "viewReceipt": "Receipt",
+      "viewNeon": "Neon",
+      "viewHeadline": "Headline",
+      "groupLayouts": "Layouts",
+      "groupMaterials": "Materials",
+      "materialHelp": "This look brings its own colors and lettering, so the background, text color, border and font settings do not apply."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "A weather warning is in force",
       "alertSeverity": "How serious the weather warning is",
       "alertTitle": "Weather warning name"
+    },
+    "notes": {
+      "count": "Notes on the board",
+      "important": "Important notes on the board",
+      "pinned": "Pinned notes on the board"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Edit lists from a phone"
+      },
+      "notes": {
+        "remote": "Write notes from a phone"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Chores on a phone",
         "meals": "Meals on a phone",
         "photos": "Photos on a phone",
-        "lists": "Lists on a phone"
+        "lists": "Lists on a phone",
+        "notes": "Notes on a phone"
       },
       "lede": "Scan with a phone camera, or type the address in. Works on any device on your home wifi.",
       "passwordHint": "You can ask for a password in Settings, under Security.",

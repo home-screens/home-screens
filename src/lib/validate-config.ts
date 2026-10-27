@@ -28,7 +28,7 @@ export interface ConfigDiagnostic {
 const BUILTIN_MODULE_TYPE_MAP: Record<BuiltinModuleType, true> = {
   'clock': true, 'calendar': true, 'weather': true, 'countdown': true,
   'dad-joke': true, 'text': true, 'image': true, 'video': true, 'quote': true,
-  'todo': true, 'sticky-note': true, 'greeting': true, 'news': true,
+  'todo': true, 'notes': true, 'sticky-note': true, 'greeting': true, 'news': true,
   'stock-ticker': true, 'crypto': true, 'word-of-day': true, 'history': true,
   'moon-phase': true, 'sunrise-sunset': true, 'photo-slideshow': true,
   'qr-code': true, 'year-progress': true, 'traffic': true, 'sports': true,

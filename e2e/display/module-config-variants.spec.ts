@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedFamily, seedHouseholdChores, seedMeals, seedRedemptions, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedFamily, seedHouseholdChores, seedMeals, seedNotes, seedRedemptions, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { CONFIG_VARIANTS, type ConfigVariant } from '../helpers/config-variants';
@@ -42,6 +42,7 @@ async function renderVariant(page: Page, request: APIRequestContext, sandboxDir:
   if (variant.seed === 'meals') await seedMeals(request, variant.seedData ?? undefined);
   if (variant.seed === 'todos') seedTodos(sandboxDir, (variant.seedData as Parameters<typeof seedTodos>[1]) ?? undefined);
   if (variant.seed === 'timetables') seedTimetables(sandboxDir, (variant.seedData as Parameters<typeof seedTimetables>[1]) ?? undefined);
+  if (variant.seed === 'notes') seedNotes(sandboxDir, (variant.seedData as Parameters<typeof seedNotes>[1]) ?? undefined);
 
   const variantModule = buildModuleInstance(variant.type, variant.config);
   variantModule.id = `${variant.type}-v`;

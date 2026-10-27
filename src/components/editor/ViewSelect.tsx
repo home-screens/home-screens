@@ -7,7 +7,8 @@ interface ViewSelectProps<T extends string> {
   label?: string;
   value: T;
   onChange: (value: T) => void;
-  options: ReadonlyArray<{ value: T; label: string }>;
+  /** `group` puts options under an `<optgroup>`; groups appear in first-seen order, ungrouped options first. */
+  options: ReadonlyArray<{ value: T; label: string; group?: string }>;
   className?: string;
 }
 
@@ -28,8 +29,15 @@ export default function ViewSelect<T extends string>({
         onChange={(e) => onChange(e.target.value as T)}
         className={className}
       >
-        {options.map((v) => (
+        {options.filter((v) => !v.group).map((v) => (
           <option key={v.value} value={v.value}>{v.label}</option>
+        ))}
+        {[...new Set(options.map((v) => v.group).filter((g): g is string => !!g))].map((group) => (
+          <optgroup key={group} label={group}>
+            {options.filter((v) => v.group === group).map((v) => (
+              <option key={v.value} value={v.value}>{v.label}</option>
+            ))}
+          </optgroup>
         ))}
       </select>
     </label>

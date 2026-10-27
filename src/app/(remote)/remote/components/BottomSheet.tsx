@@ -12,6 +12,7 @@ import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
  */
 export default function BottomSheet({
   title,
+  titleAside,
   onClose,
   children,
   zIndex = 200,
@@ -19,6 +20,8 @@ export default function BottomSheet({
   guardTaps = false,
 }: {
   title: string;
+  /** Small text on the right of the title row: a character count, a time left. */
+  titleAside?: ReactNode;
   onClose: () => void;
   children: ReactNode;
   zIndex?: number;
@@ -76,8 +79,25 @@ export default function BottomSheet({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--hs-text-primary)', marginBottom: 14 }}>
-          {title}
+        <div
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: 'var(--hs-text-primary)',
+            marginBottom: 14,
+            ...(titleAside !== undefined ? { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 } : {}),
+          }}
+        >
+          {titleAside !== undefined ? (
+            <>
+              <span>{title}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--hs-text-faint)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                {titleAside}
+              </span>
+            </>
+          ) : (
+            title
+          )}
         </div>
         {children}
       </div>

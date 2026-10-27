@@ -4556,6 +4556,163 @@
       ]
     },
     {
+      "type": "notes",
+      "label": "Notes",
+      "category": "Personal",
+      "anchor": "notes",
+      "configInterface": "NotesConfig",
+      "defaultSize": {
+        "w": 440,
+        "h": 520
+      },
+      "fillsCanvas": false,
+      "fields": [
+        {
+          "name": "view",
+          "optional": false,
+          "type": {
+            "kind": "string",
+            "text": "NotesView",
+            "values": [
+              "board",
+              "cards",
+              "sticky",
+              "bubbles",
+              "spotlight",
+              "compact",
+              "count",
+              "strip",
+              "ticker",
+              "timeline",
+              "focus",
+              "by-person",
+              "pinned-new",
+              "latest",
+              "chalkboard",
+              "letterboard",
+              "whiteboard",
+              "fridge",
+              "notebook",
+              "receipt",
+              "neon",
+              "headline"
+            ]
+          },
+          "description": "How the board is drawn. `board` (rows), `cards`, `sticky` (paper in each person's colour), `bubbles` (a family chat), `spotlight` (one note at a time, large), `compact` (one line each), `count` (a tile with the number of notes), `strip` (a one-line bar that steps through the notes), `ticker` (a one-line bar that scrolls), `timeline` (notes under day headings), `focus` (the first note large, the next two small), `by-person` (one row per family member), `pinned-new` (pinned notes beside new ones) or `latest` (the newest note alone). The materials draw their own surface and typeface in place of the card's style: `chalkboard`, `letterboard` (one note at a time in block letters), `whiteboard`, `fridge`, `notebook`, `receipt`, `neon` (one note at a time, glowing) and `headline` (a newspaper front page)",
+          "default": "board"
+        },
+        {
+          "name": "title",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "Heading override. Empty shows \"Notes\"",
+          "default": ""
+        },
+        {
+          "name": "showTitle",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show the heading. Omitted = shown",
+          "default": true
+        },
+        {
+          "name": "maxNotes",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "How many notes to draw before \"and N more\" (1 to 20). Omitted = 5",
+          "default": 5
+        },
+        {
+          "name": "showAuthor",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show who wrote each note. Omitted = shown",
+          "default": true
+        },
+        {
+          "name": "showAge",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show how long ago each note was posted. Omitted = shown",
+          "default": true
+        },
+        {
+          "name": "filter",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "NotesFilter",
+            "values": [
+              "all",
+              "pinned",
+              "important"
+            ]
+          },
+          "description": "Show every note, only pinned notes, or only important notes. Omitted = every note",
+          "default": "all"
+        },
+        {
+          "name": "stepSeconds",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Seconds each note stays before the spotlight and strip views move to the next (5 to 60). Omitted = 10",
+          "default": 10
+        },
+        {
+          "name": "tickerSpeed",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "How slowly the ticker scrolls: seconds per note (3 to 30). Omitted = 8",
+          "default": 8
+        }
+      ],
+      "views": [
+        "board",
+        "cards",
+        "sticky",
+        "bubbles",
+        "spotlight",
+        "compact",
+        "count",
+        "strip",
+        "ticker",
+        "timeline",
+        "focus",
+        "by-person",
+        "pinned-new",
+        "latest",
+        "chalkboard",
+        "letterboard",
+        "whiteboard",
+        "fridge",
+        "notebook",
+        "receipt",
+        "neon",
+        "headline"
+      ]
+    },
+    {
       "type": "sticky-note",
       "label": "Sticky Note",
       "category": "Personal",
@@ -8458,6 +8615,7 @@
               "video",
               "quote",
               "todo",
+              "notes",
               "sticky-note",
               "greeting",
               "news",
@@ -9296,6 +9454,7 @@
         "video",
         "quote",
         "todo",
+        "notes",
         "sticky-note",
         "greeting",
         "news",
@@ -11003,6 +11162,32 @@
         {
           "method": "GET",
           "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/notes",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        },
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/notes/{noteId}",
+      "methods": [
+        {
+          "method": "PATCH",
+          "access": "session"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
         }
       ]
     },

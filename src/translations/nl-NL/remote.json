@@ -5,7 +5,8 @@
     "lists": "Lijsten",
     "meals": "Maaltijden",
     "photos": "Foto's",
-    "timers": "Timers"
+    "timers": "Timers",
+    "notes": "Notities"
   },
   "statusBar": {
     "title": "Afstandsbediening",
@@ -1057,7 +1058,11 @@
       "title": "Nog geen diavoorstelling",
       "body": "Foto's verschijnen hier zodra er een diavoorstelling op een van je schermen staat."
     },
-    "howTo": "Voeg er een toe vanaf een computer: open {url} en zet hem op een scherm."
+    "howTo": "Voeg er een toe vanaf een computer: open {url} en zet hem op een scherm.",
+    "notes": {
+      "title": "Nog geen prikbord",
+      "body": "Notities verschijnen hier zodra er een prikbord op een van je schermen staat."
+    }
   },
   "choreSettings": {
     "title": "Klusjesinstellingen",
@@ -1069,5 +1074,65 @@
   },
   "atHome": {
     "pill": "Thuis is het {day}, {time}"
+  },
+  "notes": {
+    "title": "Notities",
+    "onWall": {
+      "zero": "Niets op de muur",
+      "one": "{count} op de muur",
+      "other": "{count} op de muur"
+    },
+    "writeNote": "Schrijf een notitie",
+    "post": "Op de muur zetten",
+    "newNote": "Nieuwe notitie",
+    "editNote": "Notitie bewerken",
+    "noteLabel": "Notitie",
+    "counter": "{used} / {max}",
+    "fromLabel": "Van",
+    "nobody": "Niemand",
+    "someone": "Iemand",
+    "lifeLabel": "Hoe lang zichtbaar",
+    "life": {
+      "12h": "12 uur",
+      "1d": "1 dag",
+      "3d": "3 dagen",
+      "7d": "7 dagen",
+      "keep": "Altijd"
+    },
+    "lifeHelp": "De tijd loopt vanaf het moment dat de notitie op de muur kwam. Kies nog een keer om vanaf nu opnieuw te beginnen.",
+    "pin": "Vastzetten",
+    "pinned": "Vastgezet",
+    "important": "Belangrijk",
+    "save": "Opslaan",
+    "takeDown": "Nu van de muur halen",
+    "gone": "Niet meer op de muur ({count})",
+    "goneIn": "Nog {time} op de muur",
+    "postAgain": "Terug op de muur",
+    "delete": "Verwijderen",
+    "deleteConfirm": "Deze notitie voorgoed verwijderen?",
+    "keeps": "Blijft staan",
+    "timeLeft": {
+      "minute": {
+        "one": "Nog {count} min",
+        "other": "Nog {count} min"
+      },
+      "hour": {
+        "one": "Nog {count} uur",
+        "other": "Nog {count} uur"
+      },
+      "day": {
+        "one": "Nog {count} dag",
+        "other": "Nog {count} dagen"
+      }
+    },
+    "justNow": "Zojuist",
+    "empty": {
+      "title": "Nog niets op het prikbord",
+      "body": "Schrijf hieronder een notitie en een paar seconden later staat hij op de muur. Notities verdwijnen vanzelf na de tijd die je kiest."
+    },
+    "loadError": "De notities konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "saveError": "Dat is niet opgeslagen. Probeer het opnieuw.",
+    "editAria": "Notitie van {name} bewerken"
   }
 }

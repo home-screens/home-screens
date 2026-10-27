@@ -65,6 +65,7 @@ export default async function RemotePage() {
     s.modules.some((m) => MEAL_MODULE_TYPES.includes(m.type)),
   );
   const hasLists = allScreens.some((s) => s.modules.some((m) => m.type === 'todo'));
+  const hasNotes = allScreens.some((s) => s.modules.some((m) => m.type === 'notes'));
 
   const hasPhotos = allScreens.some((s) => s.modules.some((m) => PHOTO_MODULE_TYPES.includes(m.type)));
   // The Photos tab opens on the first folder a wall shows. Only a slideshow
@@ -93,7 +94,7 @@ export default async function RemotePage() {
 
   return (
     <RemoteClient
-      initialData={{ screens, displayScreens, profiles, activeProfile, choreConfig, choreData, hasLists, hasMeals, hasPhotos, photoDirectory, slideshowScreens, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
+      initialData={{ screens, displayScreens, profiles, activeProfile, choreConfig, choreData, hasLists, hasNotes, hasMeals, hasPhotos, photoDirectory, slideshowScreens, backupReminder, displays, displayProfiles, updateNotification, updateChannel }}
     />
   );
 }

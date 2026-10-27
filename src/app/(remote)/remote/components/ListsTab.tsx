@@ -23,7 +23,7 @@ import { FamilySettingsView } from './SettingsSheet';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import ListsListSheet, { weekdayNames } from './ListsListSheet';
 import ListsNewListSheet from './ListsNewListSheet';
-import ListsAddBar, { ADD_BAR_HEIGHT } from './ListsAddBar';
+import AddBar, { ADD_BAR_HEIGHT } from './AddBar';
 import { HIT_TARGET, PRIMARY_BUTTON, SHEET_FIELD } from './lists-styles';
 import { useHouseholdToday } from '../household-clock';
 import AtHomePill from './AtHomePill';
@@ -393,7 +393,13 @@ export default function ListsTab({ selectedListId, onSelectList }: ListsTabProps
               {/* Room for the add bar pinned above the tab bar. */}
               <div style={{ height: ADD_BAR_HEIGHT }} />
 
-              <ListsAddBar listName={selectedList.name} onAdd={(text) => api.addItem(selectedList.id, text)} />
+              <AddBar
+                placeholder={t('lists.addBar.placeholder', { list: selectedList.name })}
+                buttonLabel={t('lists.addBar.submit')}
+                maxLength={TODO_LIMITS.maxItemTextLength}
+                onAdd={(text) => api.addItem(selectedList.id, text)}
+                inputTestId="todo-add-input"
+              />
             </>
           )}
         </>

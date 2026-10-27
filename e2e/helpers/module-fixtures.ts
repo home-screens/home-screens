@@ -2,7 +2,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { getModuleDefinition, getAllModuleDefinitions } from '@/lib/module-registry';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance, ModuleType } from '@/types/config';
-import { E2E_TIMETABLE_SEED_MEMBER_IDS, E2E_TODO_LIST_ID } from './api';
+import { E2E_NOTE_MEMBERS, E2E_NOTE_TEXTS, E2E_TIMETABLE_SEED_MEMBER_IDS, E2E_TODO_LIST_ID } from './api';
 
 /**
  * A per-module E2E fixture. Mirrors the app's own module-registry pattern: one
@@ -23,7 +23,7 @@ export interface ModuleFixture {
   /** Stub key (see e2e/helpers/stubs.ts STUBS) — networked modules only. */
   stubKey?: string;
   /** Which local API to seed before rendering — local-data modules only. */
-  seed?: 'chores' | 'meals' | 'todos' | 'timetables';
+  seed?: 'chores' | 'meals' | 'todos' | 'timetables' | 'notes';
   /** Config overrides merged over the registry defaultConfig. */
   config?: Record<string, unknown>;
   /** Assertion proving the module rendered its expected content. */
@@ -215,6 +215,18 @@ export const MODULE_FIXTURES: Record<ModuleType, ModuleFixture> = {
     type: 'todo', kind: 'local-data', seed: 'todos',
     config: { listId: E2E_TODO_LIST_ID },
     expect: containsText('ACTIVE ITEM'),
+  },
+  // The notes board lives in the shared store (data/notes.json) and the
+  // authors in the roster. The pinned note sorts first, so it is drawn in any
+  // box (the Board view folds notes that do not fit into "and N more"), and
+  // its author's name proves the roster was read too: the empty state is one
+  // plain card, so anything less would pass on an unseeded store.
+  notes: {
+    type: 'notes', kind: 'local-data', seed: 'notes',
+    expect: async (mod) => {
+      await containsText(E2E_NOTE_TEXTS.pinned)(mod);
+      await containsText(E2E_NOTE_MEMBERS.sam.name)(mod);
+    },
   },
 
   // ---- Networked ----

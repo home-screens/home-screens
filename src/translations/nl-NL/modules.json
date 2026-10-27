@@ -1335,5 +1335,43 @@
       "high": "Hoog, zonnebrand",
       "veryHigh": "Zeer hoog, goed bedekken"
     }
+  },
+  "notes": {
+    "name": "Prikbord",
+    "defaultTitle": "Notities",
+    "empty": "Niets op het prikbord. Schrijf een notitie op je telefoon en hij verschijnt hier.",
+    "emptyPinned": "Op dit moment geen vastgezette notities.",
+    "emptyImportant": "Op dit moment geen belangrijke notities.",
+    "someone": "Iemand",
+    "andMore": "en nog {n}",
+    "count": {
+      "one": "{count} notitie",
+      "other": "{count} notities"
+    },
+    "countLabel": {
+      "one": "notitie op het prikbord",
+      "other": "notities op het prikbord"
+    },
+    "important": "Belangrijk",
+    "importantCount": {
+      "one": "{count} belangrijk",
+      "other": "{count} belangrijk"
+    },
+    "pinned": "Vastgezet",
+    "new": "Nieuw",
+    "nothingPinned": "Niets vastgezet",
+    "noNotes": "Geen notities",
+    "latest": "Nieuwste notitie",
+    "today": "Vandaag",
+    "yesterday": "Gisteren",
+    "of": "{index} van {total}",
+    "masthead": "De Gezinscourant",
+    "edition": "Avondeditie",
+    "byline": "Door {name}",
+    "importantLead": "Belangrijk:",
+    "receiptTotal": "Totaal",
+    "receiptThanks": "Bedankt voor het lezen",
+    "receiptSummary": "Vastgezet {pinned} · Belangrijk {important}",
+    "pinnedOne": "Vastgezet"
   }
 }

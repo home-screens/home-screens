@@ -36,7 +36,8 @@ import RemoteToast from './components/RemoteToast';
 import ChoresTab from './components/ChoresTab';
 import TimersTab from './components/TimersTab';
 import ListsTab from './components/ListsTab';
-import { ADD_BAR_HEIGHT } from './components/ListsAddBar';
+import NotesTab from './components/NotesTab';
+import { ADD_BAR_HEIGHT } from './components/AddBar';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
 import YourIconsPrompt from './components/YourIconsPrompt';
@@ -56,6 +57,8 @@ interface RemoteInitialData {
   choreData: ChoreSnapshot;
   /** A To-Do module exists on some screen, so the Lists tab has somewhere to show. */
   hasLists: boolean;
+  /** A Notes module exists on some screen, so a note posted here shows up on a wall. */
+  hasNotes: boolean;
   hasMeals: boolean;
   hasPhotos: boolean;
   /** The library folder the Photos tab opens on: the first one a wall shows. */
@@ -80,7 +83,7 @@ interface RemoteInitialData {
 }
 
 /** Tabs `?tab=` may name, mirroring the bottom bar. */
-const TABS = ['control', 'timers', 'chores', 'lists', 'meals', 'photos'];
+const TABS = ['control', 'timers', 'chores', 'lists', 'notes', 'meals', 'photos'];
 
 /** How long the reconnecting banner may stand after a hub restart / reboot before giving up. */
 const RECONNECT_WINDOW_MS: Record<PowerAction, number> = {
@@ -150,6 +153,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const [alertOpen, setAlertOpen] = useState(false);
   const hasChores = initialData.choreConfig !== null;
   const hasLists = initialData.hasLists;
+  const hasNotes = initialData.hasNotes;
   const hasMeals = initialData.hasMeals;
   const hasPhotos = initialData.hasPhotos;
 
@@ -477,6 +481,13 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
               </div>
               <div className="h-20" />
             </>
+          ) : activeTab === 'notes' ? (
+            <>
+              <div className="px-4 pb-8 pt-4">
+                {hasNotes ? <NotesTab /> : <TabNotSetUp kind="notes" />}
+              </div>
+              <div className="h-20" />
+            </>
           ) : activeTab === 'meals' ? (
             <>
               <div className="px-4 pb-8 pt-4">
@@ -497,7 +508,9 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           ) : null}
         </div>
 
-        <RemoteToast raisedBy={activeTab === 'lists' && hasLists ? ADD_BAR_HEIGHT : 0} />
+        <RemoteToast
+          raisedBy={(activeTab === 'lists' && hasLists) || (activeTab === 'notes' && hasNotes) ? ADD_BAR_HEIGHT : 0}
+        />
         <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />
       </div>
     </DisplayTargetContext.Provider>

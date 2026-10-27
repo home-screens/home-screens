@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { seedHouseholdChores, seedMeals, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { seedHouseholdChores, seedMeals, seedNotes, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, fixturesByKind, matrixSettings, MODULE_FIXTURES } from '../helpers/module-fixtures';
@@ -29,6 +29,7 @@ for (const fx of fixturesByKind('local-data')) {
     if (fx.seed === 'meals') await seedMeals(request);
     if (fx.seed === 'todos') seedTodos(sandboxDir);
     if (fx.seed === 'timetables') seedTimetables(sandboxDir);
+    if (fx.seed === 'notes') seedNotes(sandboxDir);
     const config = baseConfig({
       screens: [makeScreen('s1', 'S1', [buildModuleInstance(fx.type, fx.config)])],
       settings: matrixSettings(),

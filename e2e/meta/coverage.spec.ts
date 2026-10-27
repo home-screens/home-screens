@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import path from 'path';
 import { test, expect } from '@playwright/test';
-import { getAllModuleDefinitions, getModuleDefinition } from '@/lib/module-registry';
+import { getAllModuleDefinitions, getModuleDefinition, ownedStyleFields } from '@/lib/module-registry';
 import type { ModuleStyle, ModuleType } from '@/types/config';
 import { DEFAULT_PAGE_IDS, PER_DISPLAY_SUBTABS } from '@/lib/settings-route';
 import { LOCALES } from '@/i18n/manifest';
@@ -83,7 +83,7 @@ test('every built-in module type has an E2E fixture, and no fixture is stale', (
   expect(stale, `Fixtures reference unknown module types: ${stale.join(', ')}`).toEqual([]);
 
   // Guards against a silent registry shrink (e.g. a bad merge dropping types).
-  expect(builtin.length).toBe(45);
+  expect(builtin.length).toBe(46);
 });
 
 /**
@@ -659,6 +659,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'fullscreen-chore-chart', key: 'layout', union: 'FullscreenChoreChartLayout' },
   { type: 'timetable', key: 'layout', union: 'TimetableLayout' },
   { type: 'timetable', key: 'detail', union: 'TimetableDetail' },
+  { type: 'notes', key: 'filter', union: 'NotesFilter' },
 ];
 
 /**
@@ -1049,7 +1050,8 @@ test('every style-matrix exemption names a probed module and a probed control', 
 
   const owned = Object.entries(STYLE_EXEMPTIONS)
     .flatMap(([type, byField]) => {
-      const own = new Set(getModuleDefinition(type as ModuleType)?.ownsStyleFields ?? []);
+      const def = getModuleDefinition(type as ModuleType);
+      const own = ownedStyleFields(def, def?.defaultConfig ?? {});
       return Object.keys(byField ?? {}).filter((f) => own.has(f as keyof ModuleStyle)).map((f) => `${type}.${f}`);
     });
   expect(

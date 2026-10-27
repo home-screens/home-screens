@@ -5,7 +5,8 @@
     "lists": "Lister",
     "meals": "Måltider",
     "photos": "Billeder",
-    "timers": "Timere"
+    "timers": "Timere",
+    "notes": "Noter"
   },
   "statusBar": {
     "title": "Fjernbetjening",
@@ -1057,7 +1058,11 @@
       "title": "Der er ikke noget billedshow endnu",
       "body": "Billeder dukker op her, så snart der er et billedshow på en af dine skærme."
     },
-    "howTo": "Tilføj det fra en computer: åbn {url}, og læg det på en skærm."
+    "howTo": "Tilføj det fra en computer: åbn {url}, og læg det på en skærm.",
+    "notes": {
+      "title": "Der er ikke nogen opslagstavle endnu",
+      "body": "Noter dukker op her, så snart der er en opslagstavle på en af dine skærme."
+    }
   },
   "choreSettings": {
     "title": "Indstillinger for pligter",
@@ -1069,5 +1074,65 @@
   },
   "atHome": {
     "pill": "Derhjemme er det {day}, {time}"
+  },
+  "notes": {
+    "title": "Noter",
+    "onWall": {
+      "zero": "Intet på væggen",
+      "one": "{count} på væggen",
+      "other": "{count} på væggen"
+    },
+    "writeNote": "Skriv en note",
+    "post": "Sæt den op på væggen",
+    "newNote": "Ny note",
+    "editNote": "Rediger note",
+    "noteLabel": "Din note",
+    "counter": "{used} / {max}",
+    "fromLabel": "Fra",
+    "nobody": "Ingen",
+    "someone": "Nogen",
+    "lifeLabel": "Hvor længe",
+    "life": {
+      "12h": "12 timer",
+      "1d": "1 dag",
+      "3d": "3 dage",
+      "7d": "1 uge",
+      "keep": "Altid"
+    },
+    "lifeHelp": "Tiden tælles fra, da noten blev sat op. Vælg igen for at starte forfra nu.",
+    "pin": "Fastgør øverst",
+    "pinned": "Fastgjort",
+    "important": "Vigtig",
+    "save": "Gem",
+    "takeDown": "Tag den ned nu",
+    "gone": "Taget ned ({count})",
+    "goneIn": "Væk om {time}",
+    "postAgain": "Sæt op igen",
+    "delete": "Slet",
+    "deleteConfirm": "Slet denne note for altid?",
+    "keeps": "Bliver hængende",
+    "timeLeft": {
+      "minute": {
+        "one": "{count} min. tilbage",
+        "other": "{count} min. tilbage"
+      },
+      "hour": {
+        "one": "{count} t. tilbage",
+        "other": "{count} t. tilbage"
+      },
+      "day": {
+        "one": "{count} dag tilbage",
+        "other": "{count} dage tilbage"
+      }
+    },
+    "justNow": "Lige nu",
+    "empty": {
+      "title": "Der er ikke noget på opslagstavlen endnu",
+      "body": "Skriv en note herunder, så dukker den op på væggen få sekunder efter. Noter forsvinder af sig selv, når den tid, du har valgt, er gået."
+    },
+    "loadError": "Noterne kunne ikke hentes.",
+    "retry": "Prøv igen",
+    "saveError": "Det blev ikke gemt. Prøv igen.",
+    "editAria": "Rediger note fra {name}"
   }
 }

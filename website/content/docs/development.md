@@ -21,7 +21,7 @@ src/
     (remote)/chores/         # The kids' chore page
     api/                     # API routes (see API Routes section below)
   components/
-    modules/                 # All 45 module components + ModuleWrapper
+    modules/                 # All 46 module components + ModuleWrapper
     display/                 # ScreenRotator, ScreenRenderer, SleepOverlay
     editor/                  # Canvas, palette, property panel, settings, backgrounds
     ui/                      # Shared UI primitives (Button, Slider, Toggle, ColorPicker)
@@ -36,6 +36,7 @@ data/                        # All runtime state; never committed
   secrets.json               # API keys
   meals.json                 # Meal planner state + shared settings
   todos.json                 # Shared to-do lists
+  notes.json                 # Family notes board
   family.json                # Shared household identities and aliases
   chores.json                # Chore definitions (member IDs refer to family.json)
   chore-completions.json     # Completion history
@@ -80,7 +81,7 @@ There are currently **{% $stats.moduleCount %} modules** organized into {% $stat
 | **Weather & Environment** | weather, moon-phase, sunrise-sunset, air-quality, rain-map |
 | **News & Finance** | news, stock-ticker, crypto, sports, standings |
 | **Knowledge & Fun** | dad-joke, quote, word-of-day, history |
-| **Personal** | todo, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart, timetable |
+| **Personal** | todo, notes, sticky-note, greeting, todoist, garbage-day, affirmations, meal-planner, chore-chart, timetable |
 | **Health & Fitness** | *(no built-ins; reserved for plugins such as Strava and Garmin. The palette hides the category while it is empty.)* |
 | **Media & Display** | text, image, video, photo-slideshow, qr-code, iframe, icon, shape, display-control |
 | **Travel** | traffic |
@@ -201,7 +202,7 @@ API routes live in `src/app/api/*/route.ts` and serve as server-side proxies for
 | **Weather** | `weather`, `rain-map` | Weather data ({% $stats.weatherProviderCount %} providers) and rain radar tiles |
 | **Calendar** | `calendar`, `calendar/status`, `calendars`, `icloud/accounts`, `icloud/calendars`, `holidays` | Google Calendar events and per-source health, iCloud CalDAV accounts and calendars, holiday feeds |
 | **Data** | `jokes`, `quote`, `news`, `history`, `stocks`, `crypto`, `sports`, `sports/team`, `sports/teams`, `standings`, `todoist`, `air-quality`, `traffic`, `nasa` | External data proxies |
-| **Family data** | `family`, `family/groups`, `chores`, `chores/grab`, `chores/skip`, `chores/put-back`, `chores/settings`, `rewards`, `meals`, `timers/routines`, `timers/session`, `todo/lists`, `timetables/*` | The family roster and groups, and local chore, reward, meal-plan, timer-routine, to-do list and school timetable state |
+| **Family data** | `family`, `family/groups`, `chores`, `chores/grab`, `chores/skip`, `chores/put-back`, `chores/settings`, `rewards`, `meals`, `timers/routines`, `timers/session`, `todo/lists`, `notes`, `timetables/*` | The family roster and groups, and local chore, reward, meal-plan, timer-routine, to-do list, notes board and school timetable state |
 | **Displays** | `displays`, `display/[action]`, `display/hw-stats`, `display/console-log`, `display/kiosk-bundle`, `display/kiosk-bootstrap`, `display/power-state` | Display registry and heartbeats, remote control, hardware telemetry, log capture, kiosk self-update bundle for display-only Pis, screen power for the kiosk's power helper |
 | **Plugins** | `plugins/registry`, `plugins/installed`, `plugins/install`, `plugins/install-external`, `plugins/manifest/*`, `plugins/bundle/*`, `plugins/asset/*`, `plugins/dev`, `plugins/migrate-config`, `plugins/proxy/*`, `plugins/secrets/*`, `plugins/settings/*`, `plugins/auth/*` | Plugin registry, install lifecycle, asset serving, API proxy, secrets, settings, server-side auth |
 | **Network** | `system/network`, `system/network/wifi/*`, `system/network/hostname`, `system/network/ip`, `system/network/confirm`, `system/network/diagnostics` | WiFi scan and connect, hostname, static IP, and connectivity checks |

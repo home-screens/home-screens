@@ -90,6 +90,17 @@ const CASES: Record<string, { doc: Doc; afterRemoval: Doc; restore: { missing: n
       evidence: { timetableRepairs: { policy: 'drop-timetables-whose-person-is-missing', records: [{ before: { memberId: 'gone' }, removedMemberId: 'gone' }] } },
     },
   },
+  'data/notes.json': {
+    doc: { notes: [
+      { id: 'n1', text: 'Dentist at 3:40', authorId: 'gone', pinned: false, important: true, life: '1d', createdAt: now, updatedAt: now, expiresAt: null },
+      { id: 'n2', text: 'Tacos Friday?', authorId: 'kept', pinned: false, important: false, life: '1d', createdAt: now, updatedAt: now, expiresAt: null },
+    ] },
+    afterRemoval: { notes: [
+      { id: 'n1', text: 'Dentist at 3:40', pinned: false, important: true, life: '1d', createdAt: now, updatedAt: now, expiresAt: null },
+      { id: 'n2', text: 'Tacos Friday?', authorId: 'kept', pinned: false, important: false, life: '1d', createdAt: now, updatedAt: now, expiresAt: null },
+    ] },
+    restore: { missing: 1 },
+  },
 };
 
 describe('chores handed to a group', () => {
@@ -141,6 +152,28 @@ describe('chores handed to a group', () => {
 
   it('refuses a removal when a saved group list is not a list of ids', () => {
     expect(() => domain.removeMembers({ chores: [{ id: 'crew', assigneeIds: [], assigneeGroupIds: 'kids' }] }, new Set(['gone']))).toThrow();
+  });
+});
+
+describe('notes board', () => {
+  const domain = MEMBER_REFERENCE_DOMAINS.find((entry) => entry.path === 'data/notes.json')!;
+  const note = (overrides: Doc = {}): Doc => ({ id: 'n1', text: 'Dentist at 3:40', pinned: false, important: false, life: '1d', createdAt: now, updatedAt: now, expiresAt: null, ...overrides });
+
+  it('refuses to restore a board that would not pass the store check, with its plain reason', () => {
+    expect(() => domain.planRestore({ notes: [note({ text: '   ' })] }, new Set(['kept']), new Set())).toThrow('Note 1 is missing its text');
+    expect(() => domain.planRestore({ notes: [note(), note()] }, new Set(['kept']), new Set())).toThrow('Note 2 repeats the id of another note');
+    expect(() => domain.planRestore({ notes: 'nope' }, new Set(['kept']), new Set())).toThrow('Notes must be an object with a notes array');
+  });
+
+  it('names the note by its text and id when its author is missing', () => {
+    const plan = domain.planRestore({ notes: [note({ authorId: 'gone' })] }, new Set(['kept']), new Set());
+    expect(plan.missing).toEqual(['data/notes.json, notes[0] "Dentist at 3:40" (id "n1"), authorId: "gone"']);
+  });
+
+  it('leaves a note posted by nobody alone on removal and on restore', () => {
+    const doc = { notes: [note()] };
+    expect(domain.removeMembers(doc, new Set(['gone']))).toEqual(doc);
+    expect(domain.planRestore(doc, new Set(), new Set())).toEqual({ missing: [], evidence: {} });
   });
 });
 

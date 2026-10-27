@@ -7,11 +7,12 @@ import {
   Moon, Sunrise, Image, QrCode, BarChart3, Car, Trophy, Wind,
   ListChecks, CloudRain, CalendarRange, Trash2, Medal, Sparkles, CloudSunRain,
   Calendar, Globe, UtensilsCrossed, ClipboardList, Columns3, LayoutGrid,
-  Star, Shapes, Video, School,
+  Star, Shapes, Video, School, MessageSquareText,
 } from 'lucide-react';
 import { DEFAULT_ACCENT_COLOR } from './meal-constants';
 import { FETCH_KEY_REGISTRY } from './fetch-keys';
 import { resolveLucideIcon } from './lucide-resolver';
+import { isMaterialView } from './notes-rules';
 import { pluginStateKey } from '@/lib/plugin-state-keys';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { DEFAULT_FULLSCREEN_WEATHER_CARDS } from '@/lib/fullscreen-weather-cards';
@@ -129,7 +130,9 @@ export interface ModuleDefinition {
    * existing note, which carries the never-painted white default (plan 50,
    * item 20).
    */
-  ownsStyleFields?: ReadonlyArray<keyof import('@/types/config').ModuleStyle>;
+  ownsStyleFields?:
+    | ReadonlyArray<keyof import('@/types/config').ModuleStyle>
+    | ((config: Record<string, unknown>) => ReadonlyArray<keyof import('@/types/config').ModuleStyle>);
   /**
    * True for modules that act on a specific display and therefore need to know
    * which display they are rendering as (`renderDisplayId`).
@@ -274,6 +277,20 @@ export function registerPluginModule(
 /** Unregister a module (used when uninstalling plugins). */
 export function unregisterModule(type: ModuleType): void {
   registry.delete(type);
+}
+
+/**
+ * The Style fields an instance paints from its own settings, so the editor
+ * hides their controls and the style matrix never probes them. A list owns
+ * the fields for every instance (the sticky note); a function owns them per
+ * instance, for a module whose views include materials that bring their own
+ * surface and ink (the notes board's chalkboard) beside views that take the
+ * card's style.
+ */
+export function ownedStyleFields(def: ModuleDefinition | undefined, config: Record<string, unknown>): ReadonlySet<keyof import('@/types/config').ModuleStyle> {
+  const owns = def?.ownsStyleFields;
+  if (!owns) return new Set();
+  return new Set(typeof owns === 'function' ? owns(config) : owns);
 }
 
 export function getModuleDefinition(type: ModuleType): ModuleDefinition | undefined {
@@ -1005,6 +1022,30 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showAssignees: true,
     },
     defaultSize: { w: 440, h: 420 },
+  },
+  {
+    type: 'notes',
+    autoSizesText: true,
+    // A material view (chalkboard, letterboard, ...) is its own card: it
+    // paints the surface, the ink and the face, so those controls are hidden
+    // for it; the layout views take the card's style like any module.
+    ownsStyleFields: (config) => (isMaterialView(config.view) ? ['backgroundColor', 'textColor', 'borderColor', 'borderWidth', 'fontFamily', 'backdropBlur'] : []),
+    label: 'Notes',
+    icon: MessageSquareText,
+    category: 'Personal',
+    hasOwnTitle: true,
+    defaultConfig: {
+      view: 'board',
+      title: '',
+      showTitle: true,
+      maxNotes: 5,
+      showAuthor: true,
+      showAge: true,
+      filter: 'all',
+      stepSeconds: 10,
+      tickerSpeed: 8,
+    },
+    defaultSize: { w: 440, h: 520 },
   },
   {
     type: 'sticky-note',

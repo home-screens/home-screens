@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedHouseholdChores, seedMeals, seedRedemptions, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedHouseholdChores, seedMeals, seedNotes, seedRedemptions, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { VIEW_MATRIX, type ViewSpec } from '../helpers/view-matrix';
@@ -14,6 +14,8 @@ import { VIEW_MATRIX, type ViewSpec } from '../helpers/view-matrix';
  * uncaught exception fires (a `pageerror` is how a React render crash surfaces).
  * Pinning per-view markers across ~95 view combos would be brittle; the render
  * matrix already pins happy-path content for the default view of each module.
+ * A row may still carry its own `expect` (the notes board does: all its views
+ * read one seeded store, so each can be held to what it draws from it).
  * The `*View` unions in src/types/config.ts are held in lockstep with VIEW_MATRIX
  * by the ratchet in e2e/meta/coverage.spec.ts.
  */
@@ -32,15 +34,20 @@ async function renderView(page: Page, request: APIRequestContext, sandboxDir: st
   if (spec.seed === 'meals') await seedMeals(request);
   if (spec.seed === 'todos') seedTodos(sandboxDir);
   if (spec.seed === 'timetables') seedTimetables(sandboxDir);
+  if (spec.seed === 'notes') seedNotes(sandboxDir);
 
   const instance = buildModuleInstance(spec.type, { ...(spec.config ?? {}), [spec.key]: view });
+  const size = spec.sizes?.[view];
+  if (size) instance.size = size;
   await putConfig(request, baseConfig({
     screens: [makeScreen('s1', 'S1', [instance])],
     settings: matrixSettings(),
   }));
   await page.goto('/display');
 
-  await expect(page.locator(`[data-module-type="${spec.type}"]`).first()).toBeVisible();
+  const mod = page.locator(`[data-module-type="${spec.type}"]`).first();
+  await expect(mod).toBeVisible();
+  if (spec.expect) await spec.expect(mod, view, page);
   expect(pageErrors, `${spec.type}/${view} threw an uncaught error`).toEqual([]);
 }
 

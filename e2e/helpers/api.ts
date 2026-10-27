@@ -1,8 +1,9 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import path from 'path';
 import { expect, type APIResponse, type APIRequestContext } from '@playwright/test';
 import type { ScreenConfiguration } from '@/types/config';
 import type { TimetableData } from '@/types/timetables';
+import { NOTE_LIFE_MS, type Note, type NoteLife } from '@/types/notes';
 
 export async function getConfig(request: APIRequestContext): Promise<ScreenConfiguration> {
   const res = await request.get('/api/config');
@@ -231,6 +232,103 @@ export function seedTodos(sandboxDir: string, seed: TodoSeed = todoSeed()): void
 
 /** Default swatches for seeded members that name none (the roster's own first few). */
 const SEED_MEMBER_COLORS = ['#f472b6', '#60a5fa', '#4ade80', '#fbbf24', '#a78bfa'];
+
+/** The two people the default notes seed names as authors. */
+export const E2E_NOTE_MEMBERS = {
+  sam: { id: 'notes-sam', name: 'Sam', color: '#f472b6' },
+  riley: { id: 'notes-riley', name: 'Riley', color: '#60a5fa' },
+} as const;
+
+/**
+ * The texts of the default notes seed, one per kind of note. Plain sentences
+ * that share no word with the module's own labels ("Pinned", "Important",
+ * "Notes", "Someone"), so a text match can only be the note itself.
+ */
+export const E2E_NOTE_TEXTS = {
+  /** Pinned, by Sam, posted three hours ago, kept until taken down. */
+  pinned: 'Grandma visits on Friday',
+  /** Important, by Riley, posted two hours ago, for three days. */
+  important: 'Dentist at four today',
+  /** By nobody in particular, posted an hour ago, for one day: the newest note. */
+  plain: 'Pizza is in the fridge',
+} as const;
+
+export interface NoteSeedItem {
+  /** Omitted = `e2e-note-<index>`. */
+  id?: string;
+  text: string;
+  authorId?: string;
+  pinned?: boolean;
+  important?: boolean;
+  /** Omitted = '1d', the store's own default. */
+  life?: NoteLife;
+  /** How long ago the note was posted, in minutes. Omitted = 60. */
+  ageMinutes?: number;
+  /**
+   * When the note leaves the wall, in minutes from now: negative for a note
+   * already gone. Omitted = worked out from `life` and the posting time, the
+   * way the store does it (`keep` never leaves).
+   */
+  expiresInMinutes?: number;
+}
+
+export interface NotesSeed {
+  notes?: NoteSeedItem[];
+  /** Written to the family roster (`data/family.json`), where the wall reads authors' names and colours. */
+  members?: Array<{ id: string; name: string; color?: string; emoji?: string }>;
+}
+
+/** Default seed: one pinned note, one important note and one from nobody, by two people. */
+export function notesSeed(): NotesSeed {
+  return {
+    members: [E2E_NOTE_MEMBERS.sam, E2E_NOTE_MEMBERS.riley],
+    notes: [
+      { id: 'e2e-note-pinned', text: E2E_NOTE_TEXTS.pinned, authorId: E2E_NOTE_MEMBERS.sam.id, pinned: true, life: 'keep', ageMinutes: 180 },
+      { id: 'e2e-note-important', text: E2E_NOTE_TEXTS.important, authorId: E2E_NOTE_MEMBERS.riley.id, important: true, life: '3d', ageMinutes: 120 },
+      { id: 'e2e-note-plain', text: E2E_NOTE_TEXTS.plain, life: '1d', ageMinutes: 60 },
+    ],
+  };
+}
+
+/**
+ * Seed the family notes board. Like the to-do seed this writes the worker's
+ * private `data/notes.json` directly rather than posting: the API stamps
+ * every note "now", and the wall's order, its ages and its expiry are all
+ * about time, so a fixture has to choose when each note was posted and when
+ * it leaves. Written through a rename like the store's own writes, so the
+ * file's signature (and with it the board's ETag and the heartbeat's
+ * `notes` revision) always moves. `{}` empties the board and leaves the
+ * roster alone.
+ */
+export function seedNotes(sandboxDir: string, seed: NotesSeed = notesSeed()): void {
+  const now = Date.now();
+  const notes: Note[] = (seed.notes ?? []).map((n, i) => {
+    const posted = now - (n.ageMinutes ?? 60) * 60_000;
+    const life = n.life ?? '1d';
+    const expires = n.expiresInMinutes !== undefined
+      ? now + n.expiresInMinutes * 60_000
+      : life === 'keep' ? null : posted + NOTE_LIFE_MS[life];
+    return {
+      id: n.id ?? `e2e-note-${i}`,
+      text: n.text,
+      ...(n.authorId ? { authorId: n.authorId } : {}),
+      pinned: !!n.pinned,
+      important: !!n.important,
+      life,
+      createdAt: new Date(posted).toISOString(),
+      updatedAt: new Date(posted).toISOString(),
+      expiresAt: expires === null ? null : new Date(expires).toISOString(),
+    };
+  });
+  const dataDir = path.join(sandboxDir, 'data');
+  mkdirSync(dataDir, { recursive: true });
+  const file = path.join(dataDir, 'notes.json');
+  writeFileSync(`${file}.e2e-tmp`, JSON.stringify({ notes }, null, 2));
+  renameSync(`${file}.e2e-tmp`, file);
+  if (seed.members) {
+    seedFamily(sandboxDir, seed.members.map((m, i) => ({ color: SEED_MEMBER_COLORS[i % SEED_MEMBER_COLORS.length], ...m })));
+  }
+}
 
 /**
  * The people the timetable fixtures name. A timetable points at a person by

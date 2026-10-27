@@ -8,7 +8,7 @@ nextjs:
       canonical: /docs/api
 ---
 
-The editor, the remote and every display talk to the hub through its API under `/api/`. This page documents the endpoints you would call yourself from a script, a bookmark or a home automation system such as Home Assistant: [display control](#display-control), [chores](#chores), [meals](#meals), [timers](#timers) and [backups](#backups). Every other endpoint is listed under [All endpoints](#all-endpoints) with the access it needs. Those are the app's own plumbing, and the route file under `src/app/api/` is the reference for each one.
+The editor, the remote and every display talk to the hub through its API under `/api/`. This page documents the endpoints you would call yourself from a script, a bookmark or a home automation system such as Home Assistant: [display control](#display-control), [chores](#chores), [meals](#meals), [timers](#timers), [notes](#notes) and [backups](#backups). Every other endpoint is listed under [All endpoints](#all-endpoints) with the access it needs. Those are the app's own plumbing, and the route file under `src/app/api/` is the reference for each one.
 
 ## Access
 
@@ -152,13 +152,14 @@ This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo
     "timer": "c02d6b19e8a4f7a0",
     "chores": "\"b1e7d05c9a3f28e64d0c7a19\"",
     "rewards": "\"7f20c4a9e15d3b86c0f94e2a\"",
+    "notes": "\"5a0e93c1d7b2f468e1c09b3d\"",
     "library": "mfh3k2a1.4",
     "calendar": "mfh3k2a1.0"
   }
 }
 ```
 
-`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), and the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with). The display fetches each of those only when its value differs from the one it last applied.
+`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with), and the notes board (`notes` is the `ETag` of `GET /api/notes`). The display fetches each of those only when its value differs from the one it last applied.
 
 `library` and `calendar` speed up reads that keep their own polling. `library` moves when a picture or video is uploaded, imported, replaced, moved, renamed or deleted; `calendar` moves when a Google Calendar sign-in or disconnect changes what the hub can read, or when the household switches between its own Google app and Home Screens' app on the API keys page. Once a new value has held for a whole beat, the display re-reads its slideshow lists or its calendar at once instead of waiting for their next 10-minute or 5-minute poll, so a burst of uploads from a phone causes one re-read. Both are counters the hub keeps in memory, so a hub restart changes them once and every display re-reads. A value the hub could not work out is left out, and the display keeps what it has for it.
 
@@ -708,6 +709,62 @@ Display access on purpose, touch kiosks post `step-done` when a kid taps Done. E
 
 ---
 
+## Notes
+
+The family notes board (see [Notes](/docs/notes)), written from the remote's Notes tab and drawn by the Notes module. Like lists and chores it is family data: it lives in `data/notes.json`, not in the display config.
+
+A note is `{ id, text, authorId?, pinned, important, life, createdAt, updatedAt, expiresAt }`. `text` is plain text, trimmed, at most 500 characters. `authorId` is a member ID from `/api/family`, absent for a note from nobody. `life` is how long it stays on the wall: `12h`, `1d`, `3d`, `7d` or `keep`. `expiresAt` is the instant it leaves the wall, or `null` for `keep`. A note whose `expiresAt` has passed is gone: off the wall and kept for the phone's Gone group for 7 days, after which the next write drops it. The board holds at most 200 notes.
+
+### GET /api/notes
+
+Returns `{ "notes": [...] }`, unsorted: every note the 7-day sweep has not dropped, live and gone. `?live=1` returns only the notes on the wall right now, which is what the wall and the Notes module ask for. Display access.
+
+**Caching:** the answer carries an `ETag` and `Cache-Control: no-cache`. A request whose `If-None-Match` matches gets an empty `304`. The `ETag` is the same with and without `live`, and changes when the board is saved or after an update. The display heartbeat names the same value (`revisions.notes`), so a wall asks again only when a phone changed the board. A note running out of time does not change the `ETag`, so a caller that keeps a `?live=1` answer should drop notes whose `expiresAt` has passed itself, as the wall does.
+
+**Response:**
+```json
+{
+  "notes": [
+    {
+      "id": "8c1f2a4e-...",
+      "text": "Dentist tomorrow at 3:40. I am picking you up.",
+      "authorId": "member-1",
+      "pinned": false,
+      "important": true,
+      "life": "1d",
+      "createdAt": "2026-10-26T14:02:00.000Z",
+      "updatedAt": "2026-10-26T14:02:00.000Z",
+      "expiresAt": "2026-10-27T14:02:00.000Z"
+    }
+  ]
+}
+```
+
+### POST /api/notes
+
+Posts a note. Requires a valid session; a display token is not enough, because the wall only reads the board.
+
+**Body:** `{ "text": "...", "authorId": "member-1", "life": "1d", "pinned": false, "important": true }`. Only `text` is required. `life` defaults to `1d`, `pinned` and `important` to `false`, and an absent, empty or `null` `authorId` posts the note from nobody. The body is capped at 8 KB. Empty or overlong text, an unknown `life`, or a flag that is not `true` or `false` is answered with `400`. When the board already holds 200 notes, the oldest gone notes make room; a board of 200 live notes is answered with `409`.
+
+**Response:** `{ "notes": [...], "created": { ... } }`: every note, live and gone, so a phone can reconcile in one step, and the note just made.
+
+### PATCH /api/notes/:noteId
+
+Changes a note, or takes it down or puts it back. Requires a valid session.
+
+**Body:** any of `text`, `authorId` (`null` clears it), `pinned`, `important` and `life`. Sending `life`, even the one the note already has, starts its time on the wall again from now; leave it out to keep the expiry. Or send an `action` instead:
+
+- `{ "action": "take-down" }` sets `expiresAt` to now, so the note leaves the wall and moves to Gone. A note that is already gone is left as it is.
+- `{ "action": "repost" }` puts a note back on the wall as if just posted: `createdAt` becomes now and `expiresAt` is worked out again from its `life`.
+
+Any other `action` is answered with `400`, and an unknown `noteId` with `404`. **Response:** `{ "notes": [...] }`.
+
+### DELETE /api/notes/:noteId
+
+Removes the note for good. Requires a valid session. An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
+
+---
+
 ## School timetables
 
 The school week of each child, edited from the timetables window in the editor and drawn by the School Timetable module. Like chores and meals this is family data: it lives in `data/timetables.json`, not in the display config. One document holds every school's bell schedule, the subject list everyone shares, and one week per person, keyed by the `memberId` of a person in `/api/family`. See [School timetable](/docs/school-timetable).
@@ -750,7 +807,7 @@ Take and restore a full household backup, the same thing **Settings > Backups & 
 
 ### GET/POST /api/backup
 
-Full household backup bundle, exports `config`, `family`, `chores`, `choreCompletions`, `meals`, `rewards`, `routines`, `todos`, and `timetables` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
+Full household backup bundle, exports `config`, `family`, `chores`, `choreCompletions`, `meals`, `rewards`, `routines`, `todos`, `notes`, and `timetables` as a single JSON file with a `_type: "home-screens-backup"` envelope and a `_version` marker (currently `2`). POST accepts the same shape (plus a legacy config-only format) to restore everything at once. Session required.
 
 GET never returns credentials or icon pictures. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. It can also carry an optional `customIcons` section, the pictures the family added as icons: the editor and the phone fetch it from `GET /api/backup/custom-icons` (session required; `?summary=1` answers only `{ "count": ..., "bytes": ... }`) and add it when **Include your icons** is on. Restoring a bundle without it keeps the icons already on the hub, and anything pointing at an icon the hub does not have shows a standard icon. This is what **Settings > Backups & data > Save a copy** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 

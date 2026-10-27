@@ -3,6 +3,7 @@ import type { CalendarSettings, GlobalSettings, ModuleInstance, ModuleType, Scre
 import { collectProvidedStateKeys, isStateProducerType } from '../provided-state-keys';
 import { CALENDAR_STATE_KEYS } from '../calendar-state';
 import { WEATHER_STATE_KEYS } from '../weather-state';
+import { NOTES_STATE_KEYS } from '../notes-state';
 
 // Definitions are controlled per-test; malformed shapes must be testable
 // here even though registerPluginModule filters them on the real path
@@ -164,13 +165,16 @@ describe('collectProvidedStateKeys host keys', () => {
     ...over,
   } as GlobalSettings);
   const located = { latitude: 44.7, longitude: -93.4 };
+  // The notes board needs no setting, so its keys close every host list.
+  const NOTES_KEYS = Object.values(NOTES_STATE_KEYS);
+  const hostKeys = (...args: Parameters<typeof collectProvidedStateKeys>) => collectProvidedStateKeys(...args).map((k) => k.key);
 
   it('offers the calendar keys when a calendar source is configured', () => {
     const keys = collectProvidedStateKeys([], {
       t,
       settings: settings({ calendar: calendar({ googleCalendarIds: ['family@example.com'] }) }),
     });
-    expect(keys.map((k) => k.key)).toEqual(Object.values(CALENDAR_STATE_KEYS));
+    expect(keys.map((k) => k.key)).toEqual([...Object.values(CALENDAR_STATE_KEYS), ...NOTES_KEYS]);
   });
 
   it('recognizes every source type, not just Google', () => {
@@ -181,18 +185,26 @@ describe('collectProvidedStateKeys host keys', () => {
       { holidayCountry: 'US' },
     ];
     for (const over of feeds) {
-      expect(collectProvidedStateKeys([], { t, settings: settings({ calendar: calendar(over) }) })).not.toEqual([]);
+      expect(hostKeys([], { t, settings: settings({ calendar: calendar(over) }) })).toContain(CALENDAR_STATE_KEYS.nextEventTitle);
     }
   });
 
-  it('withholds them when nothing would ever be fetched', () => {
-    expect(collectProvidedStateKeys([], { t, settings: settings() })).toEqual([]);
-    expect(collectProvidedStateKeys([], { t })).toEqual([]);
+  it('withholds them when nothing would ever be fetched, leaving only the notes board', () => {
+    expect(hostKeys([], { t, settings: settings() })).toEqual(NOTES_KEYS);
+    expect(hostKeys([], { t })).toEqual(NOTES_KEYS);
     // A disabled feed is not a source.
-    expect(collectProvidedStateKeys([], {
+    expect(hostKeys([], {
       t,
       settings: settings({ calendar: calendar({ icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://x/y.ics', color: '#fff', enabled: false }] }) }),
-    })).toEqual([]);
+    })).toEqual(NOTES_KEYS);
+  });
+
+  it('always offers the notes board keys, labelled through the dictionary', () => {
+    expect(collectProvidedStateKeys([], { t })).toEqual([
+      { key: 'notes.count', label: 't:stateKeys.notes.count', sampleValues: ['3'] },
+      { key: 'notes.important', label: 't:stateKeys.notes.important', sampleValues: ['1'] },
+      { key: 'notes.pinned', label: 't:stateKeys.notes.pinned', sampleValues: ['1'] },
+    ]);
   });
 
   it('omits them entirely when no host context is passed', () => {
@@ -210,22 +222,22 @@ describe('collectProvidedStateKeys host keys', () => {
 
   it('offers the weather chance keys when a location is configured', () => {
     const keys = collectProvidedStateKeys([], { t, settings: settings({ ...located, weather: weather('open-meteo') }) });
-    expect(keys.map((k) => k.key)).toEqual(CHANCE_KEYS);
+    expect(keys.map((k) => k.key)).toEqual([...CHANCE_KEYS, ...NOTES_KEYS]);
   });
 
   it('adds the warning keys only when the default provider sends warnings', () => {
     for (const provider of ['pirateweather', 'noaa']) {
       const keys = collectProvidedStateKeys([], { t, settings: settings({ ...located, weather: weather(provider) }) });
-      expect(keys.map((k) => k.key)).toEqual([...CHANCE_KEYS, ...ALERT_KEYS]);
+      expect(keys.map((k) => k.key)).toEqual([...CHANCE_KEYS, ...ALERT_KEYS, ...NOTES_KEYS]);
     }
     for (const provider of ['openweathermap', 'weatherapi', 'yr', 'smhi', 'metoffice', 'envcanada']) {
       const keys = collectProvidedStateKeys([], { t, settings: settings({ ...located, weather: weather(provider) }) });
-      expect(keys.map((k) => k.key)).toEqual(CHANCE_KEYS);
+      expect(keys.map((k) => k.key)).toEqual([...CHANCE_KEYS, ...NOTES_KEYS]);
     }
   });
 
   it('withholds the warning keys without a location even on a warning provider', () => {
-    expect(collectProvidedStateKeys([], { t, settings: settings({ weather: weather('noaa') }) })).toEqual([]);
+    expect(hostKeys([], { t, settings: settings({ weather: weather('noaa') }) })).toEqual(NOTES_KEYS);
   });
 
   it('reads the legacy weather location when the top-level fields are absent', () => {
@@ -236,10 +248,10 @@ describe('collectProvidedStateKeys host keys', () => {
         weather: { provider: 'open-meteo', latitude: 44.7, longitude: -93.4, units: 'metric' },
       } as GlobalSettings,
     });
-    expect(keys.map((k) => k.key)).toEqual(CHANCE_KEYS);
+    expect(keys.map((k) => k.key)).toEqual([...CHANCE_KEYS, ...NOTES_KEYS]);
   });
 
-  it('lists calendar keys, then weather keys, when both are configured', () => {
+  it('lists calendar keys, then weather keys, then the notes board, when both are configured', () => {
     const keys = collectProvidedStateKeys([], {
       t,
       settings: settings({ ...located, weather: weather('pirateweather'), calendar: calendar({ holidayCountry: 'US' }) }),
@@ -247,6 +259,7 @@ describe('collectProvidedStateKeys host keys', () => {
     expect(keys.map((k) => k.key)).toEqual([
       ...Object.values(CALENDAR_STATE_KEYS),
       ...Object.values(WEATHER_STATE_KEYS),
+      ...NOTES_KEYS,
     ]);
   });
 

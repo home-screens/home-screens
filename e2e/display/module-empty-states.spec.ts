@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedHouseholdChores, seedMeals, seedTimetables, seedTodos } from '../helpers/api';
+import { putConfig, seedHouseholdChores, seedMeals, seedNotes, seedTimetables, seedTodos } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { EMPTY_STATE_FIXTURES, type EmptyStateFixture } from '../helpers/empty-state-fixtures';
@@ -37,6 +37,7 @@ async function renderEmptyState(page: Page, fixture: EmptyStateFixture, request:
     // the roster empty, which would take the people a timetable row names
     // with it and turn its empty state into the wrong one.
     seedTimetables(sandboxDir, fixture.timetableSeed ?? {});
+    seedNotes(sandboxDir, fixture.notesSeed ?? {});
   }
 
   const mod = buildModuleInstance(fixture.type, fixture.config ?? {});

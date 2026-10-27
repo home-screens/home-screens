@@ -556,6 +556,7 @@ data/chores.json                 # Chore definitions
 data/chore-completions.json      # Chore history: who did what, and when
 data/rewards.json                # Chore rewards data (definitions, balances, redemptions)
 data/todos.json                  # Shared to-do lists
+data/notes.json                  # Family notes board
 data/timetables.json             # School timetables
 data/routines.json               # Saved timer routines
 data/custom-icons/               # The family's own icons

@@ -26,6 +26,7 @@ export const navigation = [
       { title: 'Chores and rewards', href: '/docs/chores' },
       { title: 'Meals', href: '/docs/meals' },
       { title: 'Lists', href: '/docs/lists' },
+      { title: 'Notes', href: '/docs/notes' },
       { title: 'School timetable', href: '/docs/school-timetable' },
       { title: 'Photos and backgrounds', href: '/docs/backgrounds' },
       { title: 'News', href: '/docs/news' },

@@ -36,6 +36,8 @@ export interface DisplayRevisions {
    * up in seconds rather than on the calendar's 5-minute poll.
    */
   calendar?: string;
+  /** The ETag `GET /api/notes` would be answered with: the family notes board. */
+  notes?: string;
 }
 
 type Listener = (revisions: DisplayRevisions) => void;
@@ -53,9 +55,10 @@ const listeners = new Set<Listener>();
  * query is not part of the key, because the hub gives every `?days=` of the
  * chore history one revision.
  */
-const FOLLOWED_READS: Record<string, 'chores' | 'rewards'> = {
+const FOLLOWED_READS: Record<string, 'chores' | 'rewards' | 'notes'> = {
   '/api/chores': 'chores',
   '/api/rewards': 'rewards',
+  '/api/notes': 'notes',
 };
 
 /**

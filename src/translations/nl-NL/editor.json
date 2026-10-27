@@ -325,7 +325,8 @@
       "icon": "Pictogram",
       "shape": "Vorm & scheidingslijn",
       "display-control": "Displaybediening",
-      "traffic": "Verkeer / Forenzen"
+      "traffic": "Verkeer / Forenzen",
+      "notes": "Prikbord"
     },
     "descriptions": {
       "fullscreen-calendar": "Je hele week of maand, schermvullend",
@@ -372,7 +373,8 @@
       "icon": "Eén symbool, zoals een hartje of een auto",
       "shape": "Lijnen en blokken om dingen te scheiden",
       "display-control": "Knoppen om met een tik te wekken, te laten slapen of van scherm te wisselen",
-      "traffic": "Hoe lang de rit naar werk of school duurt"
+      "traffic": "Hoe lang de rit naar werk of school duurt",
+      "notes": "Notities die het gezin op de telefoon schrijft, op het scherm tot hun tijd om is"
     },
     "keywords": {
       "fullscreen-calendar": "agenda kalender afspraken evenementen week maand gezin",
@@ -419,7 +421,8 @@
       "icon": "pictogram icoon symbool logo",
       "shape": "lijn vorm scheidingslijn kader blok rand",
       "display-control": "aanraken knoppen slapen wekken helderheid volgend scherm",
-      "traffic": "verkeer file reistijd route werk school woon-werk"
+      "traffic": "verkeer file reistijd route werk school woon-werk",
+      "notes": "notities prikbord briefjes berichten mededelingen gezin koelkast memo"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Verwijderen"
     }
   },
+  "notesBoardModal": {
+    "title": "Gezinsnotities",
+    "subtitle": {
+      "zero": "Niets op de muur · {gone} weg",
+      "one": "{count} op de muur · {gone} weg",
+      "other": "{count} op de muur · {gone} weg"
+    },
+    "newNote": "Nieuwe notitie",
+    "textLabel": "Notitie",
+    "textPlaceholder": "Schrijf een notitie voor het gezin...",
+    "counter": "{used} / {max}",
+    "fromLabel": "Van",
+    "nobody": "Niemand",
+    "someone": "Iemand",
+    "lifeLabel": "Hoe lang zichtbaar",
+    "life": {
+      "12h": "12 uur",
+      "1d": "1 dag",
+      "3d": "3 dagen",
+      "7d": "7 dagen",
+      "keep": "Altijd"
+    },
+    "lifeHelp": "Als je dit verandert, begint de tijd vanaf nu opnieuw.",
+    "pin": "Vastzetten",
+    "important": "Belangrijk",
+    "post": "Op de muur zetten",
+    "postHint": "Ctrl+Enter (of Cmd+Enter op een Mac) werkt ook",
+    "onWall": "Op de muur",
+    "empty": "Er staat nu niets op de muur. Schrijf hierboven een notitie en een paar seconden later staat hij erop.",
+    "rowTextLabel": "Notitie van {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "Nog {count} min",
+        "other": "Nog {count} min"
+      },
+      "hour": {
+        "one": "Nog {count} uur",
+        "other": "Nog {count} uur"
+      },
+      "day": {
+        "one": "Nog {count} dag",
+        "other": "Nog {count} dagen"
+      }
+    },
+    "takeDown": "Van de muur halen",
+    "gone": "Niet meer op de muur ({count})",
+    "goneHelp": "Notities die de afgelopen week van de muur zijn verdwenen. Je kunt ze hier weer op de muur zetten.",
+    "postAgain": "Terug op de muur",
+    "delete": "Verwijderen",
+    "deleteConfirm": {
+      "title": "Notitie verwijderen",
+      "message": "Deze notitie is dan voorgoed weg. Je kunt hem niet meer terugzetten.",
+      "confirmLabel": "Verwijderen"
+    },
+    "loadError": "De notities konden niet worden geladen. Sluit dit venster en open het opnieuw."
+  },
   "mealPlannerModal": {
     "title": "Maaltijdplanner",
     "subtitleMealsPlanned": "{meals} maaltijden · {planned} gepland",
@@ -4987,6 +5046,46 @@
         "overruled": "Dit uiterlijk past, maar een uiterlijk erboven stelt al alles in wat dit instelt. Zet het hoger om het te laten winnen.",
         "always": "Geen voorwaarden, dus dit uiterlijk geldt altijd."
       }
+    },
+    "notes": {
+      "viewBoard": "Bord",
+      "viewCards": "Kaarten",
+      "viewSticky": "Plakbriefjes",
+      "viewBubbles": "Tekstballonnen",
+      "viewSpotlight": "Uitgelicht",
+      "viewCompact": "Compact",
+      "viewCount": "Aantal",
+      "viewStrip": "Balk",
+      "viewTicker": "Lichtkrant",
+      "viewTimeline": "Tijdlijn",
+      "viewFocus": "Focus",
+      "viewByPerson": "Per persoon",
+      "viewPinnedNew": "Vastgezet en nieuw",
+      "viewLatest": "Nieuwste",
+      "title": "Kop",
+      "defaultTitle": "Notities",
+      "showTitle": "Kop tonen",
+      "maxNotes": "Aantal notities",
+      "showAuthor": "Tonen wie het schreef",
+      "showAge": "Tonen hoe lang geleden",
+      "filter": "Welke notities",
+      "filterAll": "Alle notities",
+      "filterPinned": "Alleen vastgezette",
+      "filterImportant": "Alleen belangrijke",
+      "manageNotes": "Notities beheren",
+      "stepSeconds": "Seconden per notitie",
+      "tickerSpeed": "Snelheid (seconden per notitie)",
+      "viewChalkboard": "Krijtbord",
+      "viewLetterboard": "Letterbord",
+      "viewWhiteboard": "Whiteboard",
+      "viewFridge": "Koelkast",
+      "viewNotebook": "Schrift",
+      "viewReceipt": "Kassabon",
+      "viewNeon": "Neonlicht",
+      "viewHeadline": "Krant",
+      "groupLayouts": "Indelingen",
+      "groupMaterials": "Materialen",
+      "materialHelp": "Deze weergave heeft eigen kleuren en letters, dus de instellingen voor achtergrond, tekstkleur, rand en lettertype gelden hier niet."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "Er geldt een weerwaarschuwing",
       "alertSeverity": "Hoe ernstig de weerwaarschuwing is",
       "alertTitle": "Naam van de weerwaarschuwing"
+    },
+    "notes": {
+      "count": "Notities op het prikbord",
+      "important": "Belangrijke notities op het prikbord",
+      "pinned": "Vastgezette notities op het prikbord"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Lijsten bewerken vanaf een telefoon"
+      },
+      "notes": {
+        "remote": "Notities schrijven op een telefoon"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Klusjes op een telefoon",
         "meals": "Maaltijden op een telefoon",
         "photos": "Foto's op een telefoon",
-        "lists": "Lijsten op een telefoon"
+        "lists": "Lijsten op een telefoon",
+        "notes": "Notities op een telefoon"
       },
       "lede": "Scan met de camera van je telefoon of typ het adres in. Werkt op elk apparaat op je wifi thuis.",
       "passwordHint": "Je kunt om een wachtwoord vragen bij Instellingen, onder Beveiliging.",

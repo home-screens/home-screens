@@ -7,7 +7,7 @@ import {
   CloudSun, Moon, Sunrise, Wind, CloudRain,
   Newspaper, TrendingUp, Bitcoin, Trophy, Medal,
   Laugh, Quote, BookOpen, History,
-  ListTodo, StickyNote, HandMetal, ListChecks, Trash2, Sparkles, UtensilsCrossed, ClipboardList, School,
+  ListTodo, MessageSquareText, StickyNote, HandMetal, ListChecks, Trash2, Sparkles, UtensilsCrossed, ClipboardList, School,
   Type, ImageIcon, Image, Video, QrCode, Globe, LayoutGrid, Star, Shapes,
   Car,
 } from 'lucide-react';
@@ -30,7 +30,7 @@ const icons: Record<string, LucideIcon> = {
   Weather: CloudSun, 'Moon Phase': Moon, 'Sunrise / Sunset': Sunrise, 'Air Quality': Wind, 'Rain Map': CloudRain,
   News: Newspaper, 'Stock Ticker': TrendingUp, Crypto: Bitcoin, 'Sports Scores': Trophy, Standings: Medal,
   'Dad Joke': Laugh, Quote, 'Word of the Day': BookOpen, 'This Day in History': History,
-  'To-Do List': ListTodo, 'Sticky Note': StickyNote, Greeting: HandMetal, Todoist: ListChecks, 'Garbage Day': Trash2,
+  'To-Do List': ListTodo, Notes: MessageSquareText, 'Sticky Note': StickyNote, Greeting: HandMetal, Todoist: ListChecks, 'Garbage Day': Trash2,
   Affirmations: Sparkles, 'Meal Planner': UtensilsCrossed, 'Chore Chart': ClipboardList,
   'School Timetable': School,
   Text: Type, Image: ImageIcon, Video, 'Photo Slideshow': Image, 'QR Code': QrCode, 'Web Embed': Globe, Icon: Star,

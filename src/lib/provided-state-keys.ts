@@ -3,6 +3,7 @@ import { getAllModuleDefinitions, getModuleDefinition, type ProvidedStateKey } f
 import { calendarProvidedStateKeys } from '@/lib/calendar-state';
 import { providerSendsWeatherAlerts, weatherProvidedStateKeys } from '@/lib/weather-state';
 import { hasAnyCalendarSource } from '@/lib/calendar-sources';
+import { notesProvidedStateKeys } from '@/lib/notes-state';
 import { getLocation } from '@/lib/location';
 import type { TranslateFn } from '@/i18n';
 import { logger } from '@/lib/logger';
@@ -54,6 +55,9 @@ function collectHostStateKeys(host: HostStateKeyContext): ProvidedStateKey[] {
   if (getLocation(host.settings)) {
     out.push(...weatherProvidedStateKeys(host.t, { alerts: providerSendsWeatherAlerts(host.settings?.weather?.provider) }));
   }
+  // The notes board needs no setting: the shell reads it on every display,
+  // and an empty board publishes zeros rather than nothing.
+  out.push(...notesProvidedStateKeys(host.t));
   return out;
 }
 

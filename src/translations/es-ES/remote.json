@@ -5,7 +5,8 @@
     "lists": "Listas",
     "meals": "Comidas",
     "photos": "Fotos",
-    "timers": "Temporizadores"
+    "timers": "Temporizadores",
+    "notes": "Notas"
   },
   "statusBar": {
     "title": "Mando",
@@ -1057,7 +1058,11 @@
       "title": "Aún no hay pase de fotos",
       "body": "Las fotos aparecerán aquí en cuanto haya un pase de fotos en alguna de tus pantallas."
     },
-    "howTo": "Añádelo desde un ordenador: abre {url} y ponlo en una pantalla."
+    "howTo": "Añádelo desde un ordenador: abre {url} y ponlo en una pantalla.",
+    "notes": {
+      "title": "Aún no hay tablón de notas",
+      "body": "Las notas aparecerán aquí en cuanto haya un tablón de notas en alguna de tus pantallas."
+    }
   },
   "choreSettings": {
     "title": "Ajustes de tareas",
@@ -1069,5 +1074,65 @@
   },
   "atHome": {
     "pill": "En casa es {day}, {time}"
+  },
+  "notes": {
+    "title": "Notas",
+    "onWall": {
+      "zero": "Nada en la pared",
+      "one": "{count} en la pared",
+      "other": "{count} en la pared"
+    },
+    "writeNote": "Escribe una nota",
+    "post": "Colgar en la pared",
+    "newNote": "Nueva nota",
+    "editNote": "Editar nota",
+    "noteLabel": "Nota",
+    "counter": "{used} / {max}",
+    "fromLabel": "De parte de",
+    "nobody": "Nadie",
+    "someone": "Alguien",
+    "lifeLabel": "Mostrar durante",
+    "life": {
+      "12h": "12 horas",
+      "1d": "1 día",
+      "3d": "3 días",
+      "7d": "1 semana",
+      "keep": "Siempre"
+    },
+    "lifeHelp": "El tiempo cuenta desde que se colgó la nota. Elige otra vez para empezar de nuevo desde ahora.",
+    "pin": "Fijar arriba",
+    "pinned": "Fijada",
+    "important": "Importante",
+    "save": "Guardar",
+    "takeDown": "Quitar de la pared",
+    "gone": "Quitadas ({count})",
+    "goneIn": "Se quita dentro de {time}",
+    "postAgain": "Volver a colgar",
+    "delete": "Eliminar",
+    "deleteConfirm": "¿Eliminar esta nota para siempre?",
+    "keeps": "Se queda",
+    "timeLeft": {
+      "minute": {
+        "one": "Queda {count} min",
+        "other": "Quedan {count} min"
+      },
+      "hour": {
+        "one": "Queda {count} h",
+        "other": "Quedan {count} h"
+      },
+      "day": {
+        "one": "Queda {count} día",
+        "other": "Quedan {count} días"
+      }
+    },
+    "justNow": "Ahora mismo",
+    "empty": {
+      "title": "Todavía no hay nada en el tablón",
+      "body": "Escribe una nota abajo y aparecerá en la pared unos segundos después. Las notas se quitan solas cuando pasa el tiempo que elijas."
+    },
+    "loadError": "No se pudieron cargar las notas.",
+    "retry": "Reintentar",
+    "saveError": "No se pudo guardar. Inténtalo de nuevo.",
+    "editAria": "Editar la nota de {name}"
   }
 }

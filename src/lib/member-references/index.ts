@@ -3,6 +3,7 @@ import { choreReferences } from './chores';
 import { choreCompletionReferences } from './chore-completions';
 import { rewardReferences } from './rewards';
 import { todoReferences } from './todos';
+import { notesReferences } from './notes';
 import { timetableReferences } from './timetables';
 import type { MemberReferenceDomain } from './contract';
 
@@ -23,4 +24,5 @@ export const MEMBER_REFERENCE_DOMAINS: readonly MemberReferenceDomain[] = [
   rewardReferences,
   todoReferences,
   timetableReferences,
+  notesReferences,
 ];

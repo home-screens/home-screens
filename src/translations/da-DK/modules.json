@@ -1335,5 +1335,43 @@
       "high": "Højt, solcreme",
       "veryHigh": "Meget højt, dæk dig godt til"
     }
+  },
+  "notes": {
+    "name": "Opslagstavle",
+    "defaultTitle": "Noter",
+    "empty": "Intet på opslagstavlen. Skriv en note på din telefon, så dukker den op her.",
+    "emptyPinned": "Ingen fastgjorte noter lige nu.",
+    "emptyImportant": "Ingen vigtige noter lige nu.",
+    "someone": "Nogen",
+    "andMore": "og {n} mere",
+    "count": {
+      "one": "{count} note",
+      "other": "{count} noter"
+    },
+    "countLabel": {
+      "one": "note på tavlen",
+      "other": "noter på tavlen"
+    },
+    "important": "Vigtig",
+    "importantCount": {
+      "one": "{count} vigtig",
+      "other": "{count} vigtige"
+    },
+    "pinned": "Fastgjorte",
+    "new": "Nye",
+    "nothingPinned": "Intet fastgjort",
+    "noNotes": "Ingen noter",
+    "latest": "Nyeste note",
+    "today": "I dag",
+    "yesterday": "I går",
+    "of": "{index} af {total}",
+    "masthead": "Familietidende",
+    "edition": "Aftenudgave",
+    "byline": "Af {name}",
+    "importantLead": "Vigtigt:",
+    "receiptTotal": "I alt",
+    "receiptThanks": "Tak for kigget",
+    "receiptSummary": "Fastgjorte {pinned} · Vigtige {important}",
+    "pinnedOne": "Fastgjort"
   }
 }

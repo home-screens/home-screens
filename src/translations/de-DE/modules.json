@@ -1335,5 +1335,43 @@
       "high": "Hoch, Sonnencreme",
       "veryHigh": "Sehr hoch, gut bedecken"
     }
+  },
+  "notes": {
+    "name": "Pinnwand",
+    "defaultTitle": "Notizen",
+    "empty": "Nichts an der Pinnwand. Schreib eine Notiz auf dem Handy, dann erscheint sie hier.",
+    "emptyPinned": "Gerade keine angepinnten Notizen.",
+    "emptyImportant": "Gerade keine wichtigen Notizen.",
+    "someone": "Jemand",
+    "andMore": "und {n} weitere",
+    "count": {
+      "one": "{count} Notiz",
+      "other": "{count} Notizen"
+    },
+    "countLabel": {
+      "one": "Notiz an der Pinnwand",
+      "other": "Notizen an der Pinnwand"
+    },
+    "important": "Wichtig",
+    "importantCount": {
+      "one": "{count} wichtige",
+      "other": "{count} wichtige"
+    },
+    "pinned": "Angepinnt",
+    "new": "Neu",
+    "nothingPinned": "Nichts angepinnt",
+    "noNotes": "Keine Notizen",
+    "latest": "Neueste Notiz",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "of": "{index} von {total}",
+    "masthead": "Der Familienbote",
+    "edition": "Spätausgabe",
+    "byline": "Text: {name}",
+    "importantLead": "Wichtig:",
+    "receiptTotal": "Summe",
+    "receiptThanks": "Danke fürs Lesen",
+    "receiptSummary": "Angepinnt {pinned} · Wichtig {important}",
+    "pinnedOne": "Angepinnt"
   }
 }

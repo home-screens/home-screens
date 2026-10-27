@@ -1335,5 +1335,43 @@
       "high": "High, sunscreen",
       "veryHigh": "Very high, cover up"
     }
+  },
+  "notes": {
+    "name": "Notes",
+    "defaultTitle": "Notes",
+    "empty": "Nothing on the board. Write a note on your phone and it shows up here.",
+    "emptyPinned": "No pinned notes right now.",
+    "emptyImportant": "No important notes right now.",
+    "someone": "Someone",
+    "andMore": "and {n} more",
+    "count": {
+      "one": "{count} note",
+      "other": "{count} notes"
+    },
+    "countLabel": {
+      "one": "note on the board",
+      "other": "notes on the board"
+    },
+    "important": "Important",
+    "importantCount": {
+      "one": "{count} important",
+      "other": "{count} important"
+    },
+    "pinned": "Pinned",
+    "new": "New",
+    "nothingPinned": "Nothing pinned",
+    "noNotes": "No notes",
+    "latest": "Latest note",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "of": "{index} of {total}",
+    "masthead": "The Family Times",
+    "edition": "Late edition",
+    "byline": "By {name}",
+    "importantLead": "Important:",
+    "receiptTotal": "Total",
+    "receiptThanks": "Thank you for reading",
+    "receiptSummary": "Pinned {pinned} · Important {important}",
+    "pinnedOne": "Pinned"
   }
 }

@@ -134,6 +134,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|mealPlannerModal.picker.prepTimeShort',
   'editor|mealPlannerModal.weekGrid.prepTimeMin',
   'editor|modulePalette.pluginBadge',
+  // "{used} / {max}": the length counter in the editor's notes window, pure interpolation.
+  'editor|notesBoardModal.counter',
   'editor|page.toolbar.pluginsButton',
   'editor|propertyPanel.fields.x',
   'editor|propertyPanel.fields.y',
@@ -283,6 +285,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // "{slot} · {day}": pure interpolation, nothing to translate.
   'remote|mealsPlan.picker.subtitle',
   'remote|mealsTab.weekView.prepTimeMin',
+  // "{used} / {max}": the note length counter, pure interpolation.
+  'remote|notes.counter',
   'remote|settingsSheet.data.heading',
   'remote|settingsSheet.system.heading',
   'remote|settingsSheet.theme.system',
@@ -332,6 +336,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Video" is the same word here (the phone's photo viewer and tile labels).
     'remote|photosTab.videoLabel',
     'remote|photosTab.viewer.videoDetails',
+    // "Whiteboard" and "Layouts" are the everyday Danish words too (the notes views and their picker heading).
+    'editor|configSections.notes.viewWhiteboard',
+    'editor|configSections.notes.groupLayouts',
   ]),
   'de-DE': new Set([
     // "Bonus" is the same word in this language (bonus chores).
@@ -423,6 +430,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Video" is the same word here (the phone's photo viewer and tile labels).
     'remote|photosTab.videoLabel',
     'remote|photosTab.viewer.videoDetails',
+    // "Whiteboard", "Letterboard" and "Layouts" are the everyday German words too (the notes views and their picker heading).
+    'editor|configSections.notes.viewWhiteboard',
+    'editor|configSections.notes.viewLetterboard',
+    'editor|configSections.notes.groupLayouts',
   ]),
   'es-ES': new Set([
     // 'Color' is the Spanish word too
@@ -495,6 +506,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.addMinute',
     'remote|timers.minUnit',
     'remote|timers.minutesShort',
+    // "Total" is what a Spanish till receipt prints (the notes Receipt view).
+    'modules|notes.receiptTotal',
   ]),
   'fr-FR': new Set([
     // "Conditions" is the same word in French (the Weather module's Conditions view).
@@ -649,6 +662,18 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|photosTab.photoLabel',
     'remote|photosTab.addFromGoogle',
     'remote|photosTab.viewer.label',
+    // "Notes" is the French word too (the notes board's name, tab and heading).
+    'remote|tabs.notes',
+    'remote|notes.title',
+    'modules|notes.name',
+    'modules|notes.defaultTitle',
+    'editor|registry.types.notes',
+    'editor|configSections.notes.defaultTitle',
+    // 'Focus' and 'Compact' are the French words too (the notes views, as in the to-do views).
+    'editor|configSections.notes.viewFocus',
+    'editor|configSections.notes.viewCompact',
+    // "Total" is what a French till receipt prints (the notes Receipt view).
+    'modules|notes.receiptTotal',
   ]),
   'nl-NL': new Set([
     // Dutch standings abbreviate a win as W (gewonnen), same letter as English.
@@ -798,6 +823,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Video" is the same word here (the phone's photo viewer and tile labels).
     'remote|photosTab.videoLabel',
     'remote|photosTab.viewer.videoDetails',
+    // 'Focus' and 'Compact' are the Dutch words too (the notes views, as in the to-do views).
+    'editor|configSections.notes.viewFocus',
+    'editor|configSections.notes.viewCompact',
+    // "Whiteboard" is the everyday Dutch word too (the notes Whiteboard view).
+    'editor|configSections.notes.viewWhiteboard',
   ]),
   'pt-BR': new Set([
     'remote|lists.itemSheet.textLabel',
@@ -879,6 +909,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.minUnit',
     'remote|timers.minutesShort',
     'remote|timers.title',
+    // "Layouts" is the everyday Brazilian word too (the notes view picker heading).
+    'editor|configSections.notes.groupLayouts',
+    // "Total" is what a Brazilian till receipt prints (the notes Receipt view).
+    'modules|notes.receiptTotal',
   ]),
 };
 

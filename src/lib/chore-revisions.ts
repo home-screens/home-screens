@@ -1,10 +1,8 @@
 import { createHash } from 'crypto';
-import { promises as fs } from 'fs';
-import path from 'path';
 import { readBuildId } from './build-id';
 import { CHORES_FILE } from './chore-data';
 import { CHORE_COMPLETIONS_FILE } from './chore-completion-data';
-import { getDataRoot } from './data-transaction';
+import { fileSignature } from './file-signature';
 import { REWARDS_FILE } from './reward-data';
 import { FAMILY_FILE_PATH } from './constants';
 
@@ -21,16 +19,6 @@ import { FAMILY_FILE_PATH } from './constants';
  * The heartbeat hands the same values to walls, so a wall fetches either list
  * only when it changed.
  */
-
-async function fileSignature(relative: string): Promise<string> {
-  try {
-    const stat = await fs.stat(path.join(getDataRoot(), relative));
-    return `${stat.ino}:${stat.size}:${stat.mtimeMs}`;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return 'missing';
-    throw error;
-  }
-}
 
 async function revisionOf(files: readonly string[], today: string): Promise<string> {
   const parts = await Promise.all([readBuildId(), ...files.map(fileSignature)]);

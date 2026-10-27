@@ -325,7 +325,8 @@
       "icon": "Symbol",
       "shape": "Form & Trenner",
       "display-control": "Anzeigesteuerung",
-      "traffic": "Verkehr & Pendelwege"
+      "traffic": "Verkehr & Pendelwege",
+      "notes": "Pinnwand"
     },
     "descriptions": {
       "fullscreen-calendar": "Deine ganze Woche oder der ganze Monat, bildschirmfüllend",
@@ -372,7 +373,8 @@
       "icon": "Ein einzelnes Symbol, etwa ein Herz oder ein Auto",
       "shape": "Linien und Flächen zum Abtrennen",
       "display-control": "Per Fingertipp aufwecken, schlafen legen oder Bildschirme wechseln",
-      "traffic": "Wie lange die Fahrt zur Arbeit oder zur Schule dauert"
+      "traffic": "Wie lange die Fahrt zur Arbeit oder zur Schule dauert",
+      "notes": "Familiennotizen vom Handy, die an der Wand hängen, bis ihre Zeit um ist"
     },
     "keywords": {
       "fullscreen-calendar": "kalender termine agenda woche monat familie",
@@ -419,7 +421,8 @@
       "icon": "symbol icon zeichen piktogramm logo",
       "shape": "linie trenner strich kasten rahmen form",
       "display-control": "touch tippen knoepfe knöpfe aufwecken schlafen helligkeit bildschirm",
-      "traffic": "verkehr pendeln fahrt route stau arbeit schule"
+      "traffic": "verkehr pendeln fahrt route stau arbeit schule",
+      "notes": "notizen pinnwand nachricht mitteilung familie kühlschrank kuehlschrank zettel"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Entfernen"
     }
   },
+  "notesBoardModal": {
+    "title": "Familiennotizen",
+    "subtitle": {
+      "zero": "Nichts an der Wand · {gone} weg",
+      "one": "{count} an der Wand · {gone} weg",
+      "other": "{count} an der Wand · {gone} weg"
+    },
+    "newNote": "Neue Notiz",
+    "textLabel": "Notiz",
+    "textPlaceholder": "Schreib eine Notiz für die Familie …",
+    "counter": "{used} / {max}",
+    "fromLabel": "Von",
+    "nobody": "Niemand",
+    "someone": "Jemand",
+    "lifeLabel": "Wie lange sichtbar",
+    "life": {
+      "12h": "12 Stunden",
+      "1d": "1 Tag",
+      "3d": "3 Tage",
+      "7d": "1 Woche",
+      "keep": "Immer"
+    },
+    "lifeHelp": "Wenn du das änderst, beginnt die Zeit ab jetzt von vorn.",
+    "pin": "Oben anpinnen",
+    "important": "Wichtig",
+    "post": "Aufhängen",
+    "postHint": "Geht auch mit Strg+Enter (am Mac mit Cmd+Enter)",
+    "onWall": "An der Wand",
+    "empty": "Gerade hängt nichts an der Wand. Schreib oben eine Notiz, dann erscheint sie ein paar Sekunden später.",
+    "rowTextLabel": "Notiz von {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "Noch {count} Min.",
+        "other": "Noch {count} Min."
+      },
+      "hour": {
+        "one": "Noch {count} Std.",
+        "other": "Noch {count} Std."
+      },
+      "day": {
+        "one": "Noch {count} Tag",
+        "other": "Noch {count} Tage"
+      }
+    },
+    "takeDown": "Von der Wand nehmen",
+    "gone": "Nicht mehr an der Wand ({count})",
+    "goneHelp": "Notizen, die in der letzten Woche von der Wand genommen wurden oder abgelaufen sind. Häng eine wieder auf, um sie zurückzuholen.",
+    "postAgain": "Wieder aufhängen",
+    "delete": "Löschen",
+    "deleteConfirm": {
+      "title": "Notiz löschen",
+      "message": "Diese Notiz ist dann endgültig weg. Sie kann nicht wieder aufgehängt werden.",
+      "confirmLabel": "Löschen"
+    },
+    "loadError": "Die Notizen konnten nicht geladen werden. Schließe das Fenster und öffne es noch einmal."
+  },
   "mealPlannerModal": {
     "title": "Mahlzeitenplaner",
     "subtitleMealsPlanned": "{meals} Mahlzeiten · {planned} eingeplant",
@@ -4987,6 +5046,46 @@
         "overruled": "Dieses Aussehen passt, aber eins darüber setzt bereits alles, was es setzt. Schiebe es nach oben, damit es gewinnt.",
         "always": "Keine Bedingungen, dieses Aussehen gilt also die ganze Zeit."
       }
+    },
+    "notes": {
+      "viewBoard": "Tafel",
+      "viewCards": "Karten",
+      "viewSticky": "Klebezettel",
+      "viewBubbles": "Sprechblasen",
+      "viewSpotlight": "Im Rampenlicht",
+      "viewCompact": "Kompakt",
+      "viewCount": "Anzahl",
+      "viewStrip": "Leiste",
+      "viewTicker": "Laufschrift",
+      "viewTimeline": "Zeitleiste",
+      "viewFocus": "Fokus",
+      "viewByPerson": "Nach Person",
+      "viewPinnedNew": "Angepinnt und neu",
+      "viewLatest": "Neueste Notiz",
+      "title": "Überschrift",
+      "defaultTitle": "Notizen",
+      "showTitle": "Überschrift anzeigen",
+      "maxNotes": "Angezeigte Notizen",
+      "showAuthor": "Zeigen, von wem",
+      "showAge": "Zeigen, wie lange her",
+      "filter": "Welche Notizen",
+      "filterAll": "Alle Notizen",
+      "filterPinned": "Nur angepinnte",
+      "filterImportant": "Nur wichtige",
+      "manageNotes": "Notizen verwalten",
+      "stepSeconds": "Sekunden pro Notiz",
+      "tickerSpeed": "Tempo der Laufschrift (Sekunden pro Notiz)",
+      "viewChalkboard": "Kreidetafel",
+      "viewLetterboard": "Letterboard",
+      "viewWhiteboard": "Whiteboard",
+      "viewFridge": "Kühlschrank",
+      "viewNotebook": "Schulheft",
+      "viewReceipt": "Kassenbon",
+      "viewNeon": "Neonschild",
+      "viewHeadline": "Zeitung",
+      "groupLayouts": "Layouts",
+      "groupMaterials": "Motive",
+      "materialHelp": "Diese Ansicht hat ihre eigenen Farben und ihre eigene Schrift. Hintergrund, Textfarbe, Rahmen und Schriftart gelten hier deshalb nicht."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "Eine Wetterwarnung gilt",
       "alertSeverity": "Wie ernst die Wetterwarnung ist",
       "alertTitle": "Name der Wetterwarnung"
+    },
+    "notes": {
+      "count": "Notizen an der Pinnwand",
+      "important": "Wichtige Notizen an der Pinnwand",
+      "pinned": "Angepinnte Notizen an der Pinnwand"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Listen vom Handy aus bearbeiten"
+      },
+      "notes": {
+        "remote": "Notizen am Handy schreiben"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Aufgaben am Handy",
         "meals": "Mahlzeiten am Handy",
         "photos": "Fotos am Handy",
-        "lists": "Listen auf dem Handy"
+        "lists": "Listen auf dem Handy",
+        "notes": "Notizen am Handy"
       },
       "lede": "Mit der Handykamera scannen oder die Adresse eintippen. Funktioniert auf jedem Gerät im WLAN zu Hause.",
       "passwordHint": "Unter Einstellungen, Bereich Sicherheit, könnt ihr ein Passwort verlangen.",

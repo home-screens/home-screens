@@ -1340,5 +1340,46 @@
       "high": "Élevé, crème solaire",
       "veryHigh": "Très élevé, bien se couvrir"
     }
+  },
+  "notes": {
+    "name": "Notes",
+    "defaultTitle": "Notes",
+    "empty": "Rien sur le tableau. Écris une note sur ton téléphone et elle apparaîtra ici.",
+    "emptyPinned": "Aucune note épinglée pour le moment.",
+    "emptyImportant": "Aucune note importante pour le moment.",
+    "someone": "Quelqu'un",
+    "andMore": "et {n} de plus",
+    "count": {
+      "one": "{count} note",
+      "other": "{count} notes",
+      "many": "{count} notes"
+    },
+    "countLabel": {
+      "one": "note sur le tableau",
+      "other": "notes sur le tableau",
+      "many": "notes sur le tableau"
+    },
+    "important": "Importante",
+    "importantCount": {
+      "one": "{count} importante",
+      "other": "{count} importantes",
+      "many": "{count} importantes"
+    },
+    "pinned": "Épinglées",
+    "new": "Récentes",
+    "nothingPinned": "Rien d'épinglé",
+    "noNotes": "Aucune note",
+    "latest": "Dernière note",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "of": "{index} sur {total}",
+    "masthead": "La Gazette de la famille",
+    "edition": "Dernière édition",
+    "byline": "Par {name}",
+    "importantLead": "Important :",
+    "receiptTotal": "Total",
+    "receiptThanks": "Merci de votre lecture",
+    "receiptSummary": "Épinglées {pinned} · Importantes {important}",
+    "pinnedOne": "Épinglée"
   }
 }

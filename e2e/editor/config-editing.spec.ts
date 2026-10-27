@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { getConfig, putConfig, seedDisplaySharedState, seedTimetables } from '../helpers/api';
+import { getConfig, putConfig, seedDisplaySharedState, seedNotes, seedTimetables, E2E_NOTE_TEXTS } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { autosaved, moduleConfig, selectModule } from '../helpers/editor';
@@ -850,6 +850,38 @@ test('todo: editing the heading persists', async ({ page, request }) => {
   });
 
   expect((await moduleConfig(request, 'todo')).title).toBe('MY TODOS');
+});
+
+test('notes: editing the heading persists and re-renders the preview', async ({ page, request, sandboxDir }) => {
+  // A board with notes on it: an empty one draws the empty state, which has
+  // no heading to rename.
+  seedNotes(sandboxDir);
+  await selectModule(page, request, buildModuleInstance('notes'));
+  await expect(page.locator('[data-module-id="notes-1"]')).toContainText(E2E_NOTE_TEXTS.pinned);
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Heading', { exact: true }).fill('FRIDGE DOOR');
+  });
+
+  expect((await moduleConfig(request, 'notes')).title).toBe('FRIDGE DOOR');
+  await expect(page.locator('[data-module-id="notes-1"]')).toContainText('FRIDGE DOOR');
+});
+
+test('notes: switching View persists and shows only the controls that view reads', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('notes'));
+  // Board draws a heading and a capped list.
+  await expect(page.getByLabel('Heading', { exact: true })).toBeVisible();
+  await expect(page.getByRole('slider', { name: 'Notes to show' })).toBeVisible();
+
+  await autosaved(page, async () => {
+    await viewSelect(page).selectOption('ticker');
+  });
+
+  expect((await moduleConfig(request, 'notes')).view).toBe('ticker');
+  // The crawl has no heading and walks every note: its speed replaces both.
+  await expect(page.getByRole('slider', { name: 'Scroll speed' })).toBeVisible();
+  await expect(page.getByLabel('Heading', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('slider', { name: 'Notes to show' })).toHaveCount(0);
 });
 
 test('sticky-note: editing Content persists', async ({ page, request }) => {
@@ -2632,6 +2664,50 @@ test.describe('PropertyPanel Style section', () => {
     await styleSection(page).click();
     await expect(page.getByText('Text Color', { exact: true })).toBeVisible();
     await expect(page.getByText('Background', { exact: true })).toBeVisible();
+  });
+
+  // The notes board owns its card per instance: its layouts take the card's
+  // style, its materials (chalkboard, receipt, neon...) bring their own
+  // surface and lettering, so the controls come and go with the view.
+  test('a notes board in a material look gives up its card controls and gets them back as a layout', async ({ page, request }) => {
+    await selectModule(page, request, buildModuleInstance('notes'));
+    const picker = viewSelect(page);
+    const help = page.getByText('This look brings its own colors and lettering');
+    // What a material owns: the card's colours, border, glass and face.
+    const owned = [
+      page.getByText('Background', { exact: true }),
+      page.getByText('Text Color', { exact: true }),
+      page.getByText('Border Color', { exact: true }),
+      page.getByRole('slider', { name: 'Border Width' }),
+      page.getByRole('slider', { name: 'Frosted glass' }),
+      page.getByRole('combobox', { name: 'Font Family', exact: true }),
+    ];
+    // The looks come in two groups, the fourteen layouts first.
+    await expect(picker.locator('optgroup')).toHaveCount(2);
+    await expect(picker.locator('optgroup').nth(0)).toHaveAttribute('label', 'Layouts');
+    await expect(picker.locator('optgroup').nth(1)).toHaveAttribute('label', 'Materials');
+    await expect(picker.locator('optgroup[label="Layouts"] option')).toHaveCount(14);
+    await expect(picker.locator('optgroup[label="Materials"] option')).toHaveCount(8);
+    await expect(picker.locator('optgroup[label="Materials"] option', { hasText: 'Chalkboard' })).toHaveAttribute('value', 'chalkboard');
+    await expect(help).toHaveCount(0);
+    await styleSection(page).click();
+    for (const control of owned) await expect(control).toBeVisible();
+
+    await autosaved(page, async () => {
+      await picker.selectOption('chalkboard');
+    });
+    expect((await moduleConfig(request, 'notes')).view).toBe('chalkboard');
+    await expect(help).toBeVisible();
+    for (const control of owned) await expect(control).toHaveCount(0);
+    // What it does not own stays: the text size still reaches the lettering.
+    await expect(page.getByRole('slider', { name: 'Text size' })).toBeVisible();
+
+    await autosaved(page, async () => {
+      await picker.selectOption('board');
+    });
+    expect((await moduleConfig(request, 'notes')).view).toBe('board');
+    await expect(help).toHaveCount(0);
+    for (const control of owned) await expect(control).toBeVisible();
   });
 
   test('a plugin keeps it — plugins paint their own card from style', async ({ page, request, sandboxDir }) => {

@@ -325,7 +325,8 @@
       "icon": "Ícone",
       "shape": "Forma e divisor",
       "display-control": "Controle da tela",
-      "traffic": "Trânsito / Trajeto"
+      "traffic": "Trânsito / Trajeto",
+      "notes": "Recados"
     },
     "descriptions": {
       "fullscreen-calendar": "Sua semana ou seu mês, ocupando a tela toda",
@@ -372,7 +373,8 @@
       "icon": "Um símbolo só, como um coração ou um carro",
       "shape": "Linhas e blocos para separar as coisas",
       "display-control": "Botões para acordar, dormir ou trocar de tela com um toque",
-      "traffic": "Quanto tempo leva para chegar ao trabalho ou à escola"
+      "traffic": "Quanto tempo leva para chegar ao trabalho ou à escola",
+      "notes": "Recados que a família escreve no celular e que ficam na parede pelo tempo escolhido"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendario compromissos eventos semana mes familia",
@@ -419,7 +421,8 @@
       "icon": "icone simbolo figura logo desenho",
       "shape": "linha divisor caixa borda separador forma",
       "display-control": "toque botoes dormir acordar brilho trocar tela",
-      "traffic": "transito trajeto rota caminho trabalho escola"
+      "traffic": "transito trajeto rota caminho trabalho escola",
+      "notes": "recados mural bilhete mensagem familia geladeira notas aviso lembrete quadro"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Remover"
     }
   },
+  "notesBoardModal": {
+    "title": "Recados da família",
+    "subtitle": {
+      "zero": "Nada na parede · {gone} fora da parede",
+      "one": "{count} na parede · {gone} fora da parede",
+      "other": "{count} na parede · {gone} fora da parede"
+    },
+    "newNote": "Novo recado",
+    "textLabel": "Recado",
+    "textPlaceholder": "Escreva um recado para a família...",
+    "counter": "{used} / {max}",
+    "fromLabel": "De",
+    "nobody": "Ninguém",
+    "someone": "Alguém",
+    "lifeLabel": "Quanto tempo fica",
+    "life": {
+      "12h": "12 horas",
+      "1d": "1 dia",
+      "3d": "3 dias",
+      "7d": "1 semana",
+      "keep": "Sempre"
+    },
+    "lifeHelp": "Se você mudar isso, o tempo recomeça a partir de agora.",
+    "pin": "Fixar no topo",
+    "important": "Importante",
+    "post": "Colocar na parede",
+    "postHint": "Ctrl+Enter (ou Cmd+Enter no Mac) também coloca o recado na parede",
+    "onWall": "Na parede",
+    "empty": "Nada na parede agora. Escreva um recado aqui em cima e ele aparece alguns segundos depois.",
+    "rowTextLabel": "Recado de {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "Falta {count} min",
+        "other": "Faltam {count} min"
+      },
+      "hour": {
+        "one": "Falta {count} h",
+        "other": "Faltam {count} h"
+      },
+      "day": {
+        "one": "Falta {count} dia",
+        "other": "Faltam {count} dias"
+      }
+    },
+    "takeDown": "Tirar da parede",
+    "gone": "Fora da parede ({count})",
+    "goneHelp": "Recados que saíram da parede na última semana. Coloque um de novo para ele voltar à parede.",
+    "postAgain": "Colocar de novo",
+    "delete": "Excluir",
+    "deleteConfirm": {
+      "title": "Excluir recado",
+      "message": "Este recado vai sumir de vez. Não dá para colocar de novo na parede.",
+      "confirmLabel": "Excluir"
+    },
+    "loadError": "Não foi possível carregar os recados. Feche e abra de novo."
+  },
   "mealPlannerModal": {
     "title": "Planejador de refeições",
     "subtitleMealsPlanned": "{meals} refeições · {planned} planejadas",
@@ -4987,6 +5046,46 @@
         "overruled": "Este visual combina, mas um visual acima já muda tudo o que ele muda. Suba-o para ele vencer.",
         "always": "Sem condições, então este visual vale o tempo todo."
       }
+    },
+    "notes": {
+      "viewBoard": "Quadro",
+      "viewCards": "Cartões",
+      "viewSticky": "Post-its",
+      "viewBubbles": "Balões de conversa",
+      "viewSpotlight": "Destaque",
+      "viewCompact": "Compacta",
+      "viewCount": "Total",
+      "viewStrip": "Faixa",
+      "viewTicker": "Letreiro",
+      "viewTimeline": "Linha do tempo",
+      "viewFocus": "Foco",
+      "viewByPerson": "Por pessoa",
+      "viewPinnedNew": "Fixados e novos",
+      "viewLatest": "Mais recente",
+      "title": "Título",
+      "defaultTitle": "Recados",
+      "showTitle": "Mostrar título",
+      "maxNotes": "Recados exibidos",
+      "showAuthor": "Mostrar quem escreveu",
+      "showAge": "Mostrar quando foi escrito",
+      "filter": "Quais recados",
+      "filterAll": "Todos os recados",
+      "filterPinned": "Só os fixados",
+      "filterImportant": "Só os importantes",
+      "manageNotes": "Gerenciar recados",
+      "stepSeconds": "Segundos por recado",
+      "tickerSpeed": "Velocidade do letreiro (segundos por recado)",
+      "viewChalkboard": "Lousa",
+      "viewLetterboard": "Quadro de letras",
+      "viewWhiteboard": "Quadro branco",
+      "viewFridge": "Geladeira",
+      "viewNotebook": "Caderno",
+      "viewReceipt": "Cupom fiscal",
+      "viewNeon": "Placa de neon",
+      "viewHeadline": "Jornal",
+      "groupLayouts": "Layouts",
+      "groupMaterials": "Temas",
+      "materialHelp": "Este tema tem cores e letras próprias, então os ajustes de fundo, cor do texto, borda e fonte não se aplicam."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "Há um alerta de tempo em vigor",
       "alertSeverity": "Gravidade do alerta de tempo",
       "alertTitle": "Nome do alerta de tempo"
+    },
+    "notes": {
+      "count": "Recados no mural",
+      "important": "Recados importantes no mural",
+      "pinned": "Recados fixados no mural"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Editar listas pelo celular"
+      },
+      "notes": {
+        "remote": "Escrever recados pelo celular"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Tarefas no celular",
         "meals": "Refeições no celular",
         "photos": "Fotos no celular",
-        "lists": "Listas no celular"
+        "lists": "Listas no celular",
+        "notes": "Recados no celular"
       },
       "lede": "Escaneie com a câmera do celular ou digite o endereço. Funciona em qualquer aparelho no wifi de casa.",
       "passwordHint": "Você pode pedir uma senha em Configurações, na parte de Segurança.",

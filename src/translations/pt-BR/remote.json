@@ -5,7 +5,8 @@
     "lists": "Listas",
     "meals": "Refeições",
     "photos": "Fotos",
-    "timers": "Timers"
+    "timers": "Timers",
+    "notes": "Recados"
   },
   "statusBar": {
     "title": "Controle remoto",
@@ -1058,7 +1059,11 @@
       "title": "Ainda não há apresentação de fotos",
       "body": "As fotos aparecem aqui assim que houver uma apresentação de fotos em alguma das suas telas."
     },
-    "howTo": "Adicione a partir de um computador: abra {url} e coloque em uma tela."
+    "howTo": "Adicione a partir de um computador: abra {url} e coloque em uma tela.",
+    "notes": {
+      "title": "Ainda não há mural de recados",
+      "body": "Os recados aparecem aqui assim que houver um mural de recados em alguma das suas telas."
+    }
   },
   "choreSettings": {
     "title": "Configurações das tarefas",
@@ -1070,5 +1075,65 @@
   },
   "atHome": {
     "pill": "Em casa é {day}, {time}"
+  },
+  "notes": {
+    "title": "Recados",
+    "onWall": {
+      "zero": "Nada na parede",
+      "one": "{count} na parede",
+      "other": "{count} na parede"
+    },
+    "writeNote": "Escreva um recado",
+    "post": "Colocar na parede",
+    "newNote": "Novo recado",
+    "editNote": "Editar recado",
+    "noteLabel": "Recado",
+    "counter": "{used} / {max}",
+    "fromLabel": "De",
+    "nobody": "Ninguém",
+    "someone": "Alguém",
+    "lifeLabel": "Quanto tempo fica",
+    "life": {
+      "12h": "12 horas",
+      "1d": "1 dia",
+      "3d": "3 dias",
+      "7d": "1 semana",
+      "keep": "Sempre"
+    },
+    "lifeHelp": "O tempo conta desde que o recado foi colocado. Escolha de novo para recomeçar a partir de agora.",
+    "pin": "Fixar no topo",
+    "pinned": "Fixado",
+    "important": "Importante",
+    "save": "Salvar",
+    "takeDown": "Tirar da parede agora",
+    "gone": "Fora da parede ({count})",
+    "goneIn": "Sai em {time}",
+    "postAgain": "Colocar de novo",
+    "delete": "Excluir",
+    "deleteConfirm": "Excluir este recado de vez?",
+    "keeps": "Fica sempre",
+    "timeLeft": {
+      "minute": {
+        "one": "Falta {count} min",
+        "other": "Faltam {count} min"
+      },
+      "hour": {
+        "one": "Falta {count} h",
+        "other": "Faltam {count} h"
+      },
+      "day": {
+        "one": "Falta {count} dia",
+        "other": "Faltam {count} dias"
+      }
+    },
+    "justNow": "Agora mesmo",
+    "empty": {
+      "title": "Nada no mural ainda",
+      "body": "Escreva um recado aqui embaixo e ele aparece na parede alguns segundos depois. Os recados saem sozinhos quando acabar o tempo que você escolher."
+    },
+    "loadError": "Não foi possível carregar os recados.",
+    "retry": "Tentar de novo",
+    "saveError": "Não deu para salvar. Tente de novo.",
+    "editAria": "Editar recado de {name}"
   }
 }

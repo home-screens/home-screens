@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { ScreenConfiguration, ChoreDefinition } from '@/types/config';
 import type { FamilyData } from '@/types/family';
 import type { TodoData } from '@/types/todos';
+import type { NotesData } from '@/types/notes';
 import type { TimetableData } from '@/types/timetables';
 import { planFamilyMerge, type LegacyFamilyMember } from './family-merge';
 import { readConfig } from './config';
@@ -21,6 +22,7 @@ export interface FamilyRestoreContent {
   rewards?: unknown;
   routines?: unknown;
   todos?: TodoData;
+  notes?: NotesData;
   timetables?: TimetableData;
 }
 const json = (value: unknown) => JSON.stringify(value, null, 2);
@@ -100,7 +102,7 @@ export async function planFamilyRestore(body: FamilyRestoreContent): Promise<{ c
   for (const [key, path] of [
     ['choreCompletions', 'data/chore-completions.json'], ['meals', 'data/meals.json'],
     ['rewards', 'data/rewards.json'], ['routines', 'data/routines.json'], ['todos', 'data/todos.json'],
-    ['timetables', 'data/timetables.json'],
+    ['timetables', 'data/timetables.json'], ['notes', 'data/notes.json'],
   ] as const) if (body[key] !== undefined) files.set(path, body[key]);
   if (body.config && hasLegacy(body.config)) {
     const beforeTodos = await readTransactionFile('data/todos.json');

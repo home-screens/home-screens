@@ -32,6 +32,15 @@ const LISTS_TAB: Tab = {
   svgPath: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.008v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.008v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z',
 };
 
+/** A page with a folded corner and two lines of writing; the Notes tab's empty board draws it too. */
+export const NOTE_ICON_PATH = 'M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3zM15 3v6h6M8 13h8M8 17h5';
+
+const NOTES_TAB: Tab = {
+  id: 'notes',
+  labelKey: 'tabs.notes',
+  svgPath: NOTE_ICON_PATH,
+};
+
 const MEALS_TAB: Tab = {
   id: 'meals',
   labelKey: 'tabs.meals',
@@ -49,10 +58,12 @@ interface BottomTabBarProps {
   onChange: (tab: string) => void;
 }
 
-// Every tab, always. Chores/Lists/Meals/Photos used to be hidden until the
-// matching module existed, which made a fresh install look like those features
-// were not included; each one now opens on a TabNotSetUp panel explaining the gap.
-const TABS: Tab[] = [CONTROL_TAB, TIMERS_TAB, CHORES_TAB, LISTS_TAB, MEALS_TAB, PHOTOS_TAB];
+// Every tab, always. Chores/Lists/Notes/Meals/Photos used to be hidden until
+// the matching module existed, which made a fresh install look like those
+// features were not included; each one now opens on a TabNotSetUp panel
+// explaining the gap. Lists, Notes and Meals sit together: the things the
+// family types.
+const TABS: Tab[] = [CONTROL_TAB, TIMERS_TAB, CHORES_TAB, LISTS_TAB, NOTES_TAB, MEALS_TAB, PHOTOS_TAB];
 
 export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps) {
   const t = useTranslate('remote');

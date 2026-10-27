@@ -325,7 +325,8 @@
       "icon": "Icône",
       "shape": "Forme et séparateur",
       "display-control": "Contrôle de l'affichage",
-      "traffic": "Trafic / trajet"
+      "traffic": "Trafic / trajet",
+      "notes": "Notes"
     },
     "descriptions": {
       "fullscreen-calendar": "Toute votre semaine ou votre mois, en plein écran",
@@ -372,7 +373,8 @@
       "icon": "Un seul symbole, un cœur ou une voiture par exemple",
       "shape": "Des traits et des blocs pour séparer les éléments",
       "display-control": "Des boutons tactiles pour réveiller, mettre en veille ou changer d'écran",
-      "traffic": "Le temps de trajet jusqu'au travail ou à l'école"
+      "traffic": "Le temps de trajet jusqu'au travail ou à l'école",
+      "notes": "Des notes que la famille écrit sur le téléphone, affichées sur le mur pendant la durée choisie"
     },
     "keywords": {
       "fullscreen-calendar": "agenda calendrier evenements rendez-vous semaine mois famille",
@@ -419,7 +421,8 @@
       "icon": "icone symbole pictogramme logo",
       "shape": "trait ligne separateur bloc cadre bordure",
       "display-control": "tactile boutons veille reveil luminosite ecran suivant",
-      "traffic": "trajet route circulation embouteillage bouchons travail ecole"
+      "traffic": "trajet route circulation embouteillage bouchons travail ecole",
+      "notes": "notes tableau message messages mot memo pense-bete rappel frigo post-it famille"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Retirer"
     }
   },
+  "notesBoardModal": {
+    "title": "Notes de la famille",
+    "subtitle": {
+      "zero": "Rien sur le mur · {gone} hors du mur",
+      "one": "{count} sur le mur · {gone} hors du mur",
+      "other": "{count} sur le mur · {gone} hors du mur"
+    },
+    "newNote": "Nouvelle note",
+    "textLabel": "Message",
+    "textPlaceholder": "Écris une note pour la famille…",
+    "counter": "{used} / {max}",
+    "fromLabel": "De la part de",
+    "nobody": "Personne",
+    "someone": "Quelqu'un",
+    "lifeLabel": "Durée sur le mur",
+    "life": {
+      "12h": "12 heures",
+      "1d": "1 jour",
+      "3d": "3 jours",
+      "7d": "7 jours",
+      "keep": "Toujours"
+    },
+    "lifeHelp": "Changer la durée relance le compte à rebours à partir de maintenant.",
+    "pin": "Épingler en haut",
+    "important": "Importante",
+    "post": "Afficher sur le mur",
+    "postHint": "Ctrl+Entrée (ou Cmd+Entrée sur Mac) l'affiche aussi",
+    "onWall": "Sur le mur",
+    "empty": "Rien sur le mur pour le moment. Écris une note ci-dessus et elle apparaîtra sur le mur quelques secondes plus tard.",
+    "rowTextLabel": "Note de {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "Encore {count} min",
+        "other": "Encore {count} min"
+      },
+      "hour": {
+        "one": "Encore {count} h",
+        "other": "Encore {count} h"
+      },
+      "day": {
+        "one": "Encore {count} jour",
+        "other": "Encore {count} jours"
+      }
+    },
+    "takeDown": "Retirer du mur",
+    "gone": "Retirées ({count})",
+    "goneHelp": "Les notes retirées du mur ces 7 derniers jours. Tu peux en remettre une sur le mur.",
+    "postAgain": "Remettre sur le mur",
+    "delete": "Supprimer",
+    "deleteConfirm": {
+      "title": "Supprimer la note",
+      "message": "Cette note disparaîtra pour de bon. Elle ne pourra plus être remise sur le mur.",
+      "confirmLabel": "Supprimer"
+    },
+    "loadError": "Impossible de charger les notes. Ferme cette fenêtre et rouvre-la."
+  },
   "mealPlannerModal": {
     "title": "Planificateur de repas",
     "subtitleMealsPlanned": "{meals} repas · {planned} prévus",
@@ -4987,6 +5046,46 @@
         "overruled": "Cette apparence correspond, mais une apparence au-dessus règle déjà tout ce qu'elle règle. Montez-la pour la faire gagner.",
         "always": "Aucune condition, cette apparence s'applique donc tout le temps."
       }
+    },
+    "notes": {
+      "viewBoard": "Tableau",
+      "viewCards": "Cartes",
+      "viewSticky": "Post-it",
+      "viewBubbles": "Bulles",
+      "viewSpotlight": "À la une",
+      "viewCompact": "Compact",
+      "viewCount": "Compteur",
+      "viewStrip": "Bandeau",
+      "viewTicker": "Bandeau défilant",
+      "viewTimeline": "Chronologie",
+      "viewFocus": "Focus",
+      "viewByPerson": "Par personne",
+      "viewPinnedNew": "Épinglées et récentes",
+      "viewLatest": "La plus récente",
+      "title": "Titre",
+      "defaultTitle": "Notes",
+      "showTitle": "Afficher le titre",
+      "maxNotes": "Notes affichées",
+      "showAuthor": "Afficher qui l'a écrite",
+      "showAge": "Afficher depuis combien de temps",
+      "filter": "Quelles notes",
+      "filterAll": "Toutes les notes",
+      "filterPinned": "Épinglées uniquement",
+      "filterImportant": "Importantes uniquement",
+      "manageNotes": "Gérer les notes",
+      "stepSeconds": "Secondes par note",
+      "tickerSpeed": "Vitesse de défilement (secondes par note)",
+      "viewChalkboard": "Ardoise",
+      "viewLetterboard": "Tableau à lettres",
+      "viewWhiteboard": "Tableau blanc",
+      "viewFridge": "Frigo",
+      "viewNotebook": "Cahier",
+      "viewReceipt": "Ticket de caisse",
+      "viewNeon": "Néon",
+      "viewHeadline": "Journal",
+      "groupLayouts": "Dispositions",
+      "groupMaterials": "Décors",
+      "materialHelp": "Cette apparence a ses propres couleurs et sa propre écriture, donc les réglages d'arrière-plan, de couleur du texte, de bordure et de police ne s'appliquent pas."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "Une alerte météo est en cours",
       "alertSeverity": "Gravité de l’alerte météo",
       "alertTitle": "Nom de l’alerte météo"
+    },
+    "notes": {
+      "count": "Notes sur le tableau",
+      "important": "Notes importantes sur le tableau",
+      "pinned": "Notes épinglées sur le tableau"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Modifier les listes depuis un téléphone"
+      },
+      "notes": {
+        "remote": "Écrire des notes depuis un téléphone"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Les tâches sur un téléphone",
         "meals": "Les repas sur un téléphone",
         "photos": "Les photos sur un téléphone",
-        "lists": "Listes sur un téléphone"
+        "lists": "Listes sur un téléphone",
+        "notes": "Les notes sur un téléphone"
       },
       "lede": "Scannez avec l'appareil photo du téléphone, ou saisissez l'adresse. Fonctionne sur tout appareil connecté à votre wifi.",
       "passwordHint": "Vous pouvez demander un mot de passe dans Réglages, section Sécurité.",

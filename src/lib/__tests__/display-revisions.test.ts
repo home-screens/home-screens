@@ -1,4 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { promises as fs } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import type { ScreenConfiguration } from '@/types/config';
 
 vi.mock('@/lib/build-id', () => ({ readBuildId: vi.fn() }));
@@ -22,10 +25,19 @@ import { wallEtag } from '@/lib/wall-config';
 import { readDisplayRevisions } from '@/lib/display-revisions';
 import { bumpLibraryRevision, libraryRevision } from '@/lib/library-revision';
 import { bumpCalendarRevision, calendarRevision } from '@/lib/calendar-revision';
+import { notesEtag } from '@/lib/notes-revision';
+import { writeNotesData } from '@/lib/notes-data';
 
 const CONFIG = { screens: [], settings: { timezone: 'UTC' } } as unknown as ScreenConfiguration;
 
-beforeEach(() => {
+// The notes board's revision is a stat of data/notes.json, so each test gets
+// its own data directory.
+let root: string;
+
+beforeEach(async () => {
+  root = await fs.mkdtemp(path.join(os.tmpdir(), 'hs-display-revisions-'));
+  await fs.mkdir(path.join(root, 'data'));
+  vi.spyOn(process, 'cwd').mockReturnValue(root);
   vi.mocked(readBuildId).mockResolvedValue('build-1');
   vi.mocked(readConfigCached).mockResolvedValue(CONFIG);
   vi.mocked(getInstalledRevision).mockResolvedValue('plugins-1');
@@ -33,6 +45,11 @@ beforeEach(() => {
   vi.mocked(householdToday).mockResolvedValue('2026-09-25');
   vi.mocked(choresEtag).mockImplementation(async (today) => `"chores-${today}"`);
   vi.mocked(rewardsEtag).mockImplementation(async (today) => `"rewards-${today}"`);
+});
+
+afterEach(async () => {
+  vi.restoreAllMocks();
+  await fs.rm(root, { recursive: true, force: true });
 });
 
 describe('readDisplayRevisions', () => {
@@ -44,9 +61,31 @@ describe('readDisplayRevisions', () => {
       timer: 'timer-1',
       chores: '"chores-2026-09-25"',
       rewards: '"rewards-2026-09-25"',
+      notes: await notesEtag(),
       library: libraryRevision(),
       calendar: calendarRevision(),
     });
+  });
+
+  it('names the notes board by the ETag its read answers with, and a new one once the board is saved', async () => {
+    const before = await readDisplayRevisions();
+    expect(before.notes).toMatch(/^"[0-9a-f]+"$/);
+    await writeNotesData({ notes: [] });
+    const after = await readDisplayRevisions();
+    expect(after.notes).toBe(await notesEtag());
+    expect(after.notes).not.toBe(before.notes);
+    expect({ ...after, notes: undefined }).toEqual({ ...before, notes: undefined });
+  });
+
+  it('leaves out only the notes when the board cannot be looked at', async () => {
+    // A file where the data folder should be: stat answers ENOTDIR, not ENOENT.
+    await fs.rm(path.join(root, 'data'), { recursive: true });
+    await fs.writeFile(path.join(root, 'data'), '');
+
+    const revisions = await readDisplayRevisions();
+
+    expect(revisions.notes).toBeUndefined();
+    expect(revisions).toMatchObject({ buildId: 'build-1', chores: '"chores-2026-09-25"', rewards: '"rewards-2026-09-25"' });
   });
 
   it('names a new library revision once an upload, delete or move bumps it', async () => {

@@ -1,6 +1,7 @@
 import { E2E_TIMETABLE_MEMBER_IDS, E2E_TODO_LIST_ID } from './api';
 import { expect, type Locator, type Page } from '@playwright/test';
 import type { ModuleType } from '@/types/config';
+import { NOTES_MATERIAL_VIEWS } from '@/lib/notes-rules';
 
 /**
  * Empty/error-state coverage data. Each row drives one module into its empty
@@ -26,6 +27,8 @@ export interface EmptyStateFixture {
   todoSeed?: import('./api').TodoSeed;
   /** Seed the timetable store and the roster it names (timetable rows only). */
   timetableSeed?: import('./api').TimetableSeed;
+  /** Seed the notes board with these notes (notes rows only). Omitted = an empty board. */
+  notesSeed?: import('./api').NotesSeed;
   /** Config overrides merged over the registry defaultConfig. */
   config?: Record<string, unknown>;
   /** Assertion proving the empty state (and its kid-friendly copy) rendered. */
@@ -209,5 +212,64 @@ export const EMPTY_STATE_FIXTURES: EmptyStateFixture[] = [
     timetableSeed: { members: [{ id: E2E_TIMETABLE_MEMBER_IDS.leon, name: 'Leon' }] },
     config: { memberIds: [E2E_TIMETABLE_MEMBER_IDS.leon] },
     expect: showsCopy('No timetable yet. A grown-up can add one in the editor.'),
+  },
+  {
+    // Nothing posted: the board says where notes come from.
+    type: 'notes', name: 'no-notes', kind: 'local-data',
+    config: {},
+    expect: showsCopy('Nothing on the board. Write a note on your phone and it shows up here.'),
+  },
+  {
+    // Only a note that has come down: the phone still lists it under Gone,
+    // the wall never draws it, so the board reads as empty.
+    type: 'notes', name: 'only-gone', kind: 'local-data',
+    notesSeed: { notes: [{ text: 'Gone note', ageMinutes: 120, expiresInMinutes: -5 }] },
+    config: {},
+    expect: async (mod) => {
+      await showsCopy('Nothing on the board. Write a note on your phone and it shows up here.')(mod);
+      await expect(mod).not.toContainText('Gone note');
+    },
+  },
+  {
+    // Count keeps its tile on an empty board: 0 is still information, with
+    // the empty line beneath it instead of the empty-state card.
+    type: 'notes', name: 'count-zero', kind: 'local-data',
+    config: { view: 'count' },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-count')).toHaveText('0');
+      await showsCopy('notes on the board')(mod);
+      await showsCopy('Nothing on the board. Write a note on your phone and it shows up here.')(mod);
+    },
+  },
+  // A material has nothing to paint on an empty board, and its ink on a bare
+  // surface would vanish on a dark wall, so every material falls back to the
+  // ordinary empty card with the standard words.
+  ...[...NOTES_MATERIAL_VIEWS].map((view): EmptyStateFixture => ({
+    type: 'notes', name: `material-empty-${view}`, kind: 'local-data',
+    config: { view },
+    expect: async (mod) => {
+      await showsCopy('Nothing on the board. Write a note on your phone and it shows up here.')(mod);
+      await expect(mod.getByTestId('notes-module')).toHaveCount(0);
+    },
+  })),
+  {
+    // A note is up but none is pinned, so the pinned-only board says so
+    // rather than looking empty.
+    type: 'notes', name: 'none-pinned', kind: 'local-data',
+    notesSeed: { notes: [{ text: 'Unpinned note', important: true }] },
+    config: { filter: 'pinned' },
+    expect: async (mod) => {
+      await showsCopy('No pinned notes right now.')(mod);
+      await expect(mod).not.toContainText('Unpinned note');
+    },
+  },
+  {
+    type: 'notes', name: 'none-important', kind: 'local-data',
+    notesSeed: { notes: [{ text: 'Ordinary note', pinned: true }] },
+    config: { filter: 'important' },
+    expect: async (mod) => {
+      await showsCopy('No important notes right now.')(mod);
+      await expect(mod).not.toContainText('Ordinary note');
+    },
   },
 ];

@@ -40,6 +40,8 @@ Choose the bin beside their name. The confirmation names the person, shows how m
 
 A [school timetable](/docs/school-timetable) belongs to one person, so theirs is deleted with them and the confirmation says so. The schools, bell times and subjects stay, because the rest of the family shares them.
 
+[Notes](/docs/notes) they wrote stay on the board, because they belong to the whole family. The wall shows them as from "Someone".
+
 ## After upgrading
 
 Existing chore members keep their identities, so their assignments, tickets and completion history stay connected. Calendar people join the same list. An existing identity is matched first; otherwise a calendar person merges with a single person whose name matches after ignoring case and extra spaces. Two distinct chore members named Alex stay separate. Ambiguous calendar names remain separate as well.
@@ -50,4 +52,4 @@ Backups include the family list. Restoring an older backup without a family sect
 
 An older backup can contain reward access for someone who was already removed. Restore clears that person's reward access while preserving ticket balances and history. If a reward has nobody left who can claim it, it is turned off; edit its people and turn it back on when ready. The original reward details are kept in the migration record.
 
-If chore or to-do assignments name people or groups missing from the restored family, restore stops before changing files. The message lists each affected file, record and missing person ID together. Use a backup containing those family records, or remove the listed assignments and try again.
+If chore or to-do assignments, or the writers of notes, name people or groups missing from the restored family, restore stops before changing files. The message lists each affected file, record and missing person ID together. Use a backup containing those family records, or remove the listed assignments and try again.

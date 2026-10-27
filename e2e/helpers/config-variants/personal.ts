@@ -1,7 +1,9 @@
-import { E2E_TIMETABLE_MEMBER_IDS, E2E_TIMETABLE_SEED_MEMBER_IDS, E2E_TODO_LIST_ID } from '../api';
+import { E2E_NOTE_MEMBERS, E2E_NOTE_TEXTS, E2E_TIMETABLE_MEMBER_IDS, E2E_TIMETABLE_SEED_MEMBER_IDS, E2E_TODO_LIST_ID, type NotesSeed } from '../api';
 import { expect } from '@playwright/test';
+import { NOTES_MATERIAL_VIEWS } from '@/lib/notes-rules';
 import type { ConfigVariant } from './types';
-import { has, lacks, child, redStyle, matches } from './shared';
+import { NOTES_VIEW_SIZES } from '../view-matrix';
+import { has, lacks, child, redStyle, matches, notMatches } from './shared';
 
 /** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
 
@@ -95,6 +97,20 @@ const CHORES_TWO_TIMES = {
   chores: [
     { id: 'c-eve', name: 'Alpha Evening Chore', emoji: '🌙', points: 1, frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'evening', assigneeIds: ['m1'], rotation: 'fixed' },
     { id: 'c-morn', name: 'Zulu Morning Chore', emoji: '🌅', points: 1, frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'morning', assigneeIds: ['m1'], rotation: 'fixed' },
+  ],
+};
+
+// --- Notes seeds -------------------------------------------------------------
+
+/**
+ * Two plain notes by nobody: neither pinned nor important, so the stepping
+ * views give each one turn and the walk reaches "2 of 2" after exactly one
+ * step.
+ */
+const NOTES_TWO_PLAIN: NotesSeed = {
+  notes: [
+    { id: 'step-a', text: 'Step note alpha', ageMinutes: 10 },
+    { id: 'step-b', text: 'Step note bravo', ageMinutes: 20 },
   ],
 };
 
@@ -436,4 +452,119 @@ export const PERSONAL_VARIANTS: ConfigVariant[] = [
     config: { memberIds: [E2E_TIMETABLE_MEMBER_IDS.leon], showStartTimes: false },
     expect: lacks('Leon', '9:45'),
   },
+
+  // =========================== NOTES (local-data) ===========================
+  // Every row reads the default notes seed (notesSeed() in ../api) unless it
+  // brings its own: a pinned note by Sam, an important one by Riley and a
+  // newer one by nobody.
+  {
+    // One note drawn; the other two fold into the tail line.
+    type: 'notes', name: 'max-notes-one', kind: 'local-data', seed: 'notes',
+    config: { maxNotes: 1 },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-note')).toHaveCount(1);
+      await expect(mod.getByTestId('notes-note')).toContainText(E2E_NOTE_TEXTS.pinned);
+      await expect(mod.getByTestId('notes-more')).toHaveText('and 2 more');
+    },
+  },
+  {
+    // Bubble and name go from every note; the notes stay.
+    type: 'notes', name: 'hide-author', kind: 'local-data', seed: 'notes',
+    config: { showAuthor: false },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-note')).toHaveCount(3);
+      await expect(mod.getByTestId('notes-author')).toHaveCount(0);
+      await expect(mod).not.toContainText(E2E_NOTE_MEMBERS.sam.name);
+      await expect(mod).not.toContainText('Someone');
+    },
+  },
+  {
+    // The seeded notes are one to three hours old, so with the age on each
+    // reads "<n>h ago"; with it off no age is left anywhere on the board.
+    type: 'notes', name: 'hide-age', kind: 'local-data', seed: 'notes',
+    config: { showAge: false },
+    expect: async (mod) => {
+      await has(E2E_NOTE_TEXTS.pinned)(mod);
+      await notMatches(/\bago\b/)(mod);
+    },
+  },
+  {
+    type: 'notes', name: 'filter-pinned', kind: 'local-data', seed: 'notes',
+    config: { filter: 'pinned' },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-note')).toHaveCount(1);
+      await lacks(E2E_NOTE_TEXTS.pinned, E2E_NOTE_TEXTS.important)(mod);
+      await expect(mod).not.toContainText(E2E_NOTE_TEXTS.plain);
+    },
+  },
+  {
+    type: 'notes', name: 'filter-important', kind: 'local-data', seed: 'notes',
+    config: { filter: 'important' },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-note')).toHaveCount(1);
+      await lacks(E2E_NOTE_TEXTS.important, E2E_NOTE_TEXTS.pinned)(mod);
+      await expect(mod).not.toContainText(E2E_NOTE_TEXTS.plain);
+    },
+  },
+  {
+    // Spotlight walks the board one note per step. At 5 s a step the walk
+    // reaches the second of two notes inside 8 s of the board drawing; at the
+    // default 10 s it would not.
+    type: 'notes', name: 'step-seconds', kind: 'local-data', seed: 'notes', seedData: NOTES_TWO_PLAIN,
+    config: { view: 'spotlight', stepSeconds: 5 },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-step')).toContainText('1 of 2');
+      await expect(mod.getByTestId('notes-step')).toContainText('2 of 2', { timeout: 8_000 });
+    },
+  },
+  {
+    // The crawl runs through TickerMarquee: 3 notes x 20 s = 60 s (the
+    // default 8 s a note would be 24 s).
+    type: 'notes', name: 'ticker-speed', kind: 'local-data', seed: 'notes',
+    config: { view: 'ticker', tickerSpeed: 20 },
+    expect: async (mod) => {
+      await has(E2E_NOTE_TEXTS.plain)(mod);
+      await expect(mod.locator('.animate-ticker-scroll').first()).toHaveCSS('animation-duration', '60s');
+    },
+  },
+  {
+    // The Heading names the paper: it replaces the default masthead.
+    type: 'notes', name: 'headline-masthead', kind: 'local-data', seed: 'notes',
+    size: NOTES_VIEW_SIZES.headline,
+    config: { view: 'headline', title: 'The Maple Street Post' },
+    expect: async (mod) => {
+      await has(E2E_NOTE_TEXTS.pinned)(mod);
+      await lacks('The Maple Street Post', 'The Family Times')(mod);
+    },
+  },
+  {
+    // The till prints the Heading in capitals (CSS, so the rendered text is
+    // what is read) as the first line of the roll.
+    type: 'notes', name: 'receipt-heading', kind: 'local-data', seed: 'notes',
+    size: NOTES_VIEW_SIZES.receipt,
+    config: { view: 'receipt', title: 'Kitchen roll' },
+    expect: async (mod) => {
+      await has(E2E_NOTE_TEXTS.pinned)(mod);
+      await expect(mod).toHaveText(/^\s*KITCHEN ROLL\s/, { useInnerText: true });
+    },
+  },
+  // Each material draws its author its own way (see expectNotesView in
+  // ../view-matrix, which proves every one does by default), so each gets a
+  // row proving Show who takes it away. Sam signed the pinned note, which
+  // every material draws first (the stepping ones start on it), so that name
+  // going is part of the proof.
+  ...[...NOTES_MATERIAL_VIEWS].map((view): ConfigVariant => ({
+    type: 'notes', name: `material-hide-author-${view}`, kind: 'local-data', seed: 'notes',
+    size: NOTES_VIEW_SIZES[view],
+    config: { view, showAuthor: false },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('notes-note').first()).toBeVisible();
+      await has(E2E_NOTE_TEXTS.pinned)(mod);
+      await expect(mod.getByTestId('notes-author')).toHaveCount(0);
+      // Headline has no author test id (its byline and credits are words),
+      // so the names going is the proof there.
+      await expect(mod).not.toContainText(E2E_NOTE_MEMBERS.sam.name);
+      await expect(mod).not.toContainText(E2E_NOTE_MEMBERS.riley.name);
+    },
+  })),
 ];

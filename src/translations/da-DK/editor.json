@@ -325,7 +325,8 @@
       "icon": "Ikon",
       "shape": "Figur og skillelinje",
       "display-control": "Skærmstyring",
-      "traffic": "Trafik / pendling"
+      "traffic": "Trafik / pendling",
+      "notes": "Opslagstavle"
     },
     "descriptions": {
       "fullscreen-calendar": "Hele ugen eller måneden, så den fylder skærmen",
@@ -372,7 +373,8 @@
       "icon": "Ét symbol, for eksempel et hjerte eller en bil",
       "shape": "Streger og felter til at dele tingene op med",
       "display-control": "Knapper til at vække, slukke eller skifte skærm med et tryk",
-      "traffic": "Hvor lang tid turen til arbejde eller skole tager"
+      "traffic": "Hvor lang tid turen til arbejde eller skole tager",
+      "notes": "Noter, som familien skriver på telefonen, og som hænger på væggen, til tiden er gået"
     },
     "keywords": {
       "fullscreen-calendar": "kalender aftaler begivenheder uge måned familie",
@@ -419,7 +421,8 @@
       "icon": "ikon symbol logo tegn",
       "shape": "streg skillelinje boks kant ramme figur",
       "display-control": "tryk knapper tænd sluk vække lysstyrke skærm",
-      "traffic": "pendling køretur rute trafik arbejde skole"
+      "traffic": "pendling køretur rute trafik arbejde skole",
+      "notes": "noter opslagstavle beskeder familie køleskab seddel sedler huskeseddel"
     }
   },
   "settings": {
@@ -2717,6 +2720,62 @@
       "confirmLabel": "Fjern"
     }
   },
+  "notesBoardModal": {
+    "title": "Familiens noter",
+    "subtitle": {
+      "zero": "Intet på væggen · {gone} taget ned",
+      "one": "{count} på væggen · {gone} taget ned",
+      "other": "{count} på væggen · {gone} taget ned"
+    },
+    "newNote": "Ny note",
+    "textLabel": "Din note",
+    "textPlaceholder": "Skriv en note til familien…",
+    "counter": "{used} / {max}",
+    "fromLabel": "Fra",
+    "nobody": "Ingen",
+    "someone": "Nogen",
+    "lifeLabel": "Hvor længe",
+    "life": {
+      "12h": "12 timer",
+      "1d": "1 dag",
+      "3d": "3 dage",
+      "7d": "1 uge",
+      "keep": "Altid"
+    },
+    "lifeHelp": "Hvis du ændrer det, starter tiden forfra nu.",
+    "pin": "Fastgør øverst",
+    "important": "Vigtig",
+    "post": "Sæt op",
+    "postHint": "Ctrl+Enter (eller Cmd+Enter på en Mac) sætter den også op",
+    "onWall": "På væggen",
+    "empty": "Der er ikke noget på væggen lige nu. Skriv en note ovenfor, så dukker den op få sekunder efter.",
+    "rowTextLabel": "Note fra {name}",
+    "timeLeft": {
+      "minute": {
+        "one": "{count} min. tilbage",
+        "other": "{count} min. tilbage"
+      },
+      "hour": {
+        "one": "{count} t. tilbage",
+        "other": "{count} t. tilbage"
+      },
+      "day": {
+        "one": "{count} dag tilbage",
+        "other": "{count} dage tilbage"
+      }
+    },
+    "takeDown": "Tag ned",
+    "gone": "Taget ned ({count})",
+    "goneHelp": "Noter, der er taget ned inden for den sidste uge. Sæt en op igen for at få den tilbage på væggen.",
+    "postAgain": "Sæt op igen",
+    "delete": "Slet",
+    "deleteConfirm": {
+      "title": "Slet note",
+      "message": "Noten forsvinder for altid. Den kan ikke sættes op igen.",
+      "confirmLabel": "Slet"
+    },
+    "loadError": "Noterne kunne ikke hentes. Luk vinduet og åbn det igen."
+  },
   "mealPlannerModal": {
     "title": "Madplan",
     "subtitleMealsPlanned": "{meals} måltider · {planned} planlagt",
@@ -4987,6 +5046,46 @@
         "overruled": "Dette udseende passer, men et udseende ovenover sætter allerede alt det, det sætter. Flyt det op, så det vinder.",
         "always": "Ingen betingelser, så dette udseende gælder hele tiden."
       }
+    },
+    "notes": {
+      "viewBoard": "Tavle",
+      "viewCards": "Kort",
+      "viewSticky": "Sedler",
+      "viewBubbles": "Talebobler",
+      "viewSpotlight": "I rampelyset",
+      "viewCompact": "Kompakt",
+      "viewCount": "Antal",
+      "viewStrip": "Stribe",
+      "viewTicker": "Bånd",
+      "viewTimeline": "Tidslinje",
+      "viewFocus": "Fokus",
+      "viewByPerson": "Efter person",
+      "viewPinnedNew": "Fastgjorte og nye",
+      "viewLatest": "Nyeste",
+      "title": "Overskrift",
+      "defaultTitle": "Noter",
+      "showTitle": "Vis overskrift",
+      "maxNotes": "Maks. antal noter",
+      "showAuthor": "Vis hvem",
+      "showAge": "Vis, hvor længe siden",
+      "filter": "Hvilke noter",
+      "filterAll": "Alle noter",
+      "filterPinned": "Kun fastgjorte",
+      "filterImportant": "Kun vigtige",
+      "manageNotes": "Administrer noter",
+      "stepSeconds": "Sekunder pr. note",
+      "tickerSpeed": "Båndhastighed (sek./note)",
+      "viewChalkboard": "Kridttavle",
+      "viewLetterboard": "Bogstavtavle",
+      "viewWhiteboard": "Whiteboard",
+      "viewFridge": "Køleskab",
+      "viewNotebook": "Kladdehæfte",
+      "viewReceipt": "Kvittering",
+      "viewNeon": "Neonskilt",
+      "viewHeadline": "Avis",
+      "groupLayouts": "Layouts",
+      "groupMaterials": "Materialer",
+      "materialHelp": "Dette udseende har sine egne farver og sin egen skrift, så indstillingerne for baggrund, tekstfarve, kant og skrifttype gælder ikke her."
     }
   },
   "imageBrowsers": {
@@ -5293,6 +5392,11 @@
       "alertActive": "Et vejrvarsel gælder",
       "alertSeverity": "Hvor alvorligt vejrvarslet er",
       "alertTitle": "Navn på vejrvarslet"
+    },
+    "notes": {
+      "count": "Noter på tavlen",
+      "important": "Vigtige noter på tavlen",
+      "pinned": "Fastgjorte noter på tavlen"
     }
   },
   "phoneSurfaces": {
@@ -5322,6 +5426,9 @@
       },
       "lists": {
         "remote": "Rediger lister fra en telefon"
+      },
+      "notes": {
+        "remote": "Skriv noter fra en telefon"
       }
     },
     "dialog": {
@@ -5329,7 +5436,8 @@
         "chores": "Pligter på en telefon",
         "meals": "Måltider på en telefon",
         "photos": "Billeder på en telefon",
-        "lists": "Lister på en telefon"
+        "lists": "Lister på en telefon",
+        "notes": "Noter på en telefon"
       },
       "lede": "Scan med telefonens kamera, eller skriv adressen. Virker på alle enheder på jeres wifi derhjemme.",
       "passwordHint": "I kan bede om en adgangskode under Indstillinger, i Sikkerhed.",

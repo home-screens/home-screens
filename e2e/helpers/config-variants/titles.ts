@@ -1,4 +1,4 @@
-import { E2E_TODO_LIST_ID } from '../api';
+import { E2E_NOTE_TEXTS, E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { lacks } from './shared';
@@ -50,6 +50,23 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => {
       await expect(mod).toContainText('E2E OVERRIDE');
       await expect(mod).not.toContainText('E2E TODO');
+    },
+  },
+  {
+    // The board's own heading ("Notes") goes, the notes stay. No seeded note
+    // says "Notes", and the match is case-sensitive.
+    type: 'notes', name: 'hide-title', kind: 'local-data', seed: 'notes',
+    config: { showTitle: false },
+    expect: lacks(E2E_NOTE_TEXTS.pinned, 'Notes'),
+  },
+  {
+    // The title field replaces the board's own heading.
+    type: 'notes', name: 'title-override', kind: 'local-data', seed: 'notes',
+    config: { title: 'E2E NOTES TITLE' },
+    expect: async (mod) => {
+      await expect(mod).toContainText('E2E NOTES TITLE');
+      await expect(mod).toContainText(E2E_NOTE_TEXTS.pinned);
+      await expect(mod).not.toContainText('Notes');
     },
   },
   {

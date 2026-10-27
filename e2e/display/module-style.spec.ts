@@ -1,14 +1,17 @@
 import { test, expect } from '../fixtures';
 import type { Locator, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedHouseholdChores, seedMeals, seedTimetables, seedTodos, todayCalendarEvents } from '../helpers/api';
+import { putConfig, seedHouseholdChores, seedMeals, seedNotes, seedTimetables, seedTodos, todayCalendarEvents, E2E_NOTE_TEXTS } from '../helpers/api';
 import { renderOnDisplay } from '../helpers/display';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings, MODULE_FIXTURES, type ModuleFixture } from '../helpers/module-fixtures';
 import { PLACEHOLDER, QUARANTINE, galleryInstant, mountClientSide, pinRandom, settle } from '../helpers/deterministic-render';
-import { STYLE_EXEMPTIONS, probesFor, styleMatrixTypes } from '../helpers/style-matrix';
+import { STYLE_EXEMPTIONS, STYLE_PROBES, probesFor, styleMatrixTypes, type StyleProbe } from '../helpers/style-matrix';
 import { seedFixturePlugin, FIXTURE_PLUGIN_TYPE } from '../helpers/fixture-plugin';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance } from '@/types/config';
+import { getModuleDefinition, ownedStyleFields } from '@/lib/module-registry';
+import { NOTES_MATERIAL_VIEWS } from '@/lib/notes-rules';
+import { NOTES_VIEW_SIZES } from '../helpers/view-matrix';
 
 /**
  * Every Style control the editor offers has to reach the module.
@@ -47,6 +50,7 @@ async function prepare(page: Page, request: Parameters<typeof putConfig>[0], san
   if (fx?.seed === 'meals') await seedMeals(request);
   if (fx?.seed === 'todos') seedTodos(sandboxDir);
   if (fx?.seed === 'timetables') seedTimetables(sandboxDir);
+  if (fx?.seed === 'notes') seedNotes(sandboxDir);
 }
 
 async function probeEveryControl(
@@ -54,6 +58,13 @@ async function probeEveryControl(
   request: Parameters<typeof putConfig>[0],
   mod: ModuleInstance,
   assertContent: (target: Locator) => Promise<void>,
+  /**
+   * Probes that must NOT repaint: fields the instance owns (its registry
+   * `ownsStyleFields` for this config), whose controls the editor hides. A
+   * stale value left from before the module took the field over must not
+   * show through with nothing in the editor to clear it.
+   */
+  inert: StyleProbe[] = [],
 ) {
   const settings = matrixSettings();
   // Two-phase mount so every text node is client-rendered under the fake
@@ -79,7 +90,10 @@ async function probeEveryControl(
     'Find the motion and pin it (see deterministic-render.ts), or quarantine the module there with the reason.',
   ).toBe(true);
 
-  for (const [i, probe] of probesFor(mod.type).entries()) {
+  // The probes follow the instance, not just the type: a notes board in a
+  // material view owns its colours and face, so only its other controls are
+  // probed.
+  for (const [i, probe] of probesFor(mod.type, mod.config).entries()) {
     const exempt = STYLE_EXEMPTIONS[mod.type]?.[probe.field];
     if (exempt) continue;
     // One field off the default at a time, so a failure names the control.
@@ -101,6 +115,22 @@ async function probeEveryControl(
       'Make the module honour it, or add a reasoned STYLE_EXEMPTIONS entry in e2e/helpers/style-matrix.ts.',
     ).toBe(false);
   }
+
+  for (const [i, probe] of inert.entries()) {
+    const zIndex = i + 50;
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [{ ...mod, zIndex, style: { ...mod.style, [probe.field]: probe.value } }])],
+      settings,
+    }));
+    await expect(target).toHaveCSS('z-index', String(zIndex), { timeout: 20_000 });
+    await settle(page);
+    const probed = await shoot(target);
+    expect(
+      probed.equals(base),
+      `${mod.type}: Style > ${probe.field} is owned by this instance (its control is hidden in the editor), ` +
+      `yet changing it to ${JSON.stringify(probe.value)} repainted the module, so a value set before it took the field over still shows.`,
+    ).toBe(true);
+  }
 }
 
 for (const type of styleMatrixTypes()) {
@@ -114,6 +144,36 @@ for (const type of styleMatrixTypes()) {
     // The fixture's own assertion is the wait for real content: probing a
     // loading state would compare the wrong tree entirely.
     await probeEveryControl(page, request, mod, (target) => fx.expect(target, page));
+  });
+}
+
+/**
+ * The notes board's materials (chalkboard, receipt, neon and the rest) bring
+ * their own surface, ink and lettering, so the instance owns Background, Text
+ * color and Font (`ownsStyleFields` is a function of the config for notes)
+ * and the editor hides those controls. The type's row above runs the default
+ * Board view, which owns nothing; these run each material at its design size
+ * and hold it to both halves of the bargain: the controls it still offers
+ * repaint it, and the ones it owns do not. The stepping materials (letterboard,
+ * neon) step at the slowest setting so no swap lands between two shots.
+ */
+for (const view of NOTES_MATERIAL_VIEWS) {
+  test(`notes (${view}) honours the Style controls it offers and ignores the ones it owns`, async ({ page, request, sandboxDir }) => {
+    await prepare(page, request, sandboxDir, MODULE_FIXTURES.notes);
+    const mod = buildModuleInstance('notes', { view, stepSeconds: 60 });
+    mod.size = NOTES_VIEW_SIZES[view] ?? mod.size;
+    const owned = ownedStyleFields(getModuleDefinition('notes'), mod.config);
+    expect(owned.size, `a ${view} board should own its card's colours and face`).toBeGreaterThan(0);
+    await probeEveryControl(
+      page,
+      request,
+      mod,
+      async (target) => {
+        await expect(target.getByTestId('notes-note').first()).toBeVisible();
+        await expect(target).toContainText(E2E_NOTE_TEXTS.pinned);
+      },
+      STYLE_PROBES.filter((p) => owned.has(p.field)),
+    );
   });
 }
 
