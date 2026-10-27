@@ -416,9 +416,10 @@ test('a stored numeric condition on a searchable key shows its current value and
 
 test('the source-key suggestion dropdown commits a key via ArrowDown + Enter', async ({ page, request, sandboxDir }) => {
   // Suggestions are sourced from background-provider modules on this display, so
-  // seed the fixture plugin as a background provider — its advertised key
-  // (plugin:e2e-fixture:flag) becomes the sole dropdown suggestion. A separate
-  // text module holds the condition being authored.
+  // seed the fixture plugin as a background provider. Its advertised key
+  // (plugin:e2e-fixture:flag) sits in the dropdown next to the hub's own keys
+  // (the notes counts), so the test narrows the list by typing before it
+  // arrows down. A separate text module holds the condition being authored.
   seedFixturePlugin(sandboxDir);
 
   const provider: ModuleInstance = {
@@ -453,7 +454,14 @@ test('the source-key suggestion dropdown commits a key via ArrowDown + Enter', a
   await keyInput.click(); // focus opens the custom suggestion dropdown
   await expect(page.getByRole('option').filter({ hasText: FIXTURE_STATE_KEY })).toBeVisible();
 
-  // ArrowDown highlights the first suggestion; Enter commits it into the input
+  // Typing filters the catalogue down to the fixture key; a typed draft only
+  // commits on blur, so nothing saves yet.
+  await keyInput.fill('flag');
+  const list = page.getByRole('listbox', { name: 'What to check' });
+  await expect(list.getByRole('option')).toHaveCount(1);
+  await expect(list.getByRole('option').filter({ hasText: FIXTURE_STATE_KEY })).toBeVisible();
+
+  // ArrowDown highlights the one suggestion; Enter commits it into the input
   // (a deliberate pick, so it commits immediately rather than waiting for blur).
   await autosaved(page, async () => {
     await keyInput.press('ArrowDown');

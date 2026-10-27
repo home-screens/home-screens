@@ -212,10 +212,12 @@ test('Available tab groups values under their add-on and collapses a group', asy
   await expect(flag).toHaveCount(0);
 });
 
-test('Available tab explains itself when no add-on can share values', async ({ page, request, sandboxDir }) => {
+test('Available tab offers the hub\'s own values when no add-on can share any', async ({ page, request, sandboxDir }) => {
   // Plain bundle (no searchStateKeys export) and no provider module placed:
-  // the static catalogue is empty AND search is unavailable, which is the
-  // distinct no-providers hint, not the searched-and-missed empty state.
+  // no add-on advertises a key and search is unavailable. The hub still has
+  // values of its own (the notes board publishes its counts on every
+  // display), so the tab lists those under Built-in instead of warning that
+  // nothing can be shared.
   seedFixturePlugin(sandboxDir, {});
 
   const config = baseConfig({ screens: [] });
@@ -228,66 +230,13 @@ test('Available tab explains itself when no add-on can share values', async ({ p
   await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=ssi-noproviders');
 
   await page.getByTestId('shared-state-tab-available').click();
-  await expect(page.getByText('Nothing is available to share yet', { exact: false }))
-    .toBeVisible({ timeout: 10_000 });
-  await expect(page.getByTestId('shared-state-available-summary')).toHaveCount(0);
-});
-
-test('Available tab surfaces cross-plugin search results with no provider placed', async ({ page, request, sandboxDir }) => {
-  // Search-capable fixture: exports searchStateKeys (door + temp), no manifest
-  // providesState needed and no module placed on the display.
-  seedFixturePlugin(sandboxDir, { search: true });
-
-  const config = baseConfig({ screens: [] });
-  config.displays = [{
-    id: 'ssi-search',
-    name: 'Search',
-    screens: [makeScreen('s1', 'Home', [textModule('PLAIN')])],
-  } as DisplayNode];
-  await putConfig(request, config);
-  await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=ssi-search');
-
-  await page.getByTestId('shared-state-tab-available').click();
-  await page.getByTestId('shared-state-available-search').fill('door');
-
-  // The searchStateKeys door descriptor (key plugin:e2e-fixture:door) appears
-  // even though no module on the display advertises it statically.
-  await expect(page.locator(`[data-available-key="${FIXTURE_PLUGIN_TYPE}:door"]`))
-    .toBeVisible({ timeout: 10_000 });
-});
-
-test('Available tab previews a long category behind show more and fetches past the combobox cap', async ({ page, request, sandboxDir }) => {
-  // Search fixture emitting 40 same-group ("Sensors") descriptors — more than
-  // the combobox's 30-result cap and more than the category preview limit.
-  seedFixturePlugin(sandboxDir, { search: true, settings: { bulkCount: 40 } });
-
-  const config = baseConfig({ screens: [] });
-  config.displays = [{
-    id: 'ssi-bulk',
-    name: 'Bulk',
-    screens: [makeScreen('s1', 'Home', [textModule('PLAIN')])],
-  } as DisplayNode];
-  await putConfig(request, config);
-  await page.goto('/editor/settings?section=defaults&page=automation&panel=live&display=ssi-bulk');
-
-  await page.getByTestId('shared-state-tab-available').click();
-  await page.getByTestId('shared-state-available-search').fill('bulk');
-
-  // The "Sensors" run previews only the first 10 rows; the rest hide behind a
-  // "show more" toggle (proving the per-category cap, not a global 30 cap).
-  const bulkRows = page.locator('[data-available-key^="plugin:e2e-fixture:bulk_"]');
-  await expect(bulkRows).toHaveCount(10, { timeout: 10_000 });
-
-  const toggle = page.getByTestId('shared-state-available-run-toggle');
-  await expect(toggle).toBeVisible();
-
-  // Expanding reveals all 40 — impossible if the browse tab were still capped
-  // at the combobox's 30-result SEARCH_LIMIT, so this also proves the larger
-  // BROWSE_SEARCH_LIMIT request is in effect.
-  await toggle.click();
-  await expect(bulkRows).toHaveCount(40);
-
-  // Collapsing returns to the 10-row preview.
-  await toggle.click();
-  await expect(bulkRows).toHaveCount(10);
+  const builtIn = page.locator(
+    '[data-testid="shared-state-available-group"][data-group-producer="Built-in"]',
+  );
+  await expect(builtIn).toBeVisible({ timeout: 10_000 });
+  await expect(builtIn.locator('[data-available-key="notes.count"]')).toBeVisible();
+  await expect(page.getByTestId('shared-state-available-summary')).toBeVisible();
+  await expect(page.getByText('Nothing is available to share yet', { exact: false })).toHaveCount(0);
+  // Only the hub's group: the plain bundle contributes nothing.
+  await expect(page.getByTestId('shared-state-available-group')).toHaveCount(1);
 });

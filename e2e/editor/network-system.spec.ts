@@ -1118,8 +1118,10 @@ test.describe('Defaults › System', () => {
     await page.getByRole('dialog').getByRole('button', { name: 'Go back to v1.2.2' }).click();
 
     await expect(page.getByRole('heading', { name: 'Rolling back to v1.2.2' })).toBeVisible({ timeout: 15_000 });
-    // Going back is not called an upgrade.
-    await expect(page.getByText("You're back on v1.2.2.")).toBeVisible();
+    // Going back is not called an upgrade. The finished line sits in the
+    // progress header and, until the reload countdown replaces it, in the
+    // footer too, so take the first match rather than a strict one.
+    await expect(page.getByText("You're back on v1.2.2.").first()).toBeVisible();
     await expect(page.getByText('Upgrade complete!')).toHaveCount(0);
     await expect(page.getByTestId('upgrade-restart-needed')).toHaveText(
       'One more step: restart the device to finish the update. You can do it here once the page reloads.',
