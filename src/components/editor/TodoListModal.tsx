@@ -46,23 +46,32 @@ function ItemRow({
 }) {
   const t = useTranslate('editor');
   const [text, setText] = useState(item.text);
-  const [editing, setEditing] = useState(false);
+  // Counts keystrokes, not text changes: the save follows what was typed
+  // here, never the server's wording being adopted. Keyed on the text
+  // itself, adopting a stale copy (the row's blur lands before the save's
+  // answer) scheduled a save of the old words over the new ones.
+  const [edits, setEdits] = useState(0);
+  const typed = useRef(text);
+  typed.current = text;
+  const editing = useRef(false);
 
   // Text is local-first: the row keeps what was typed and the debounced save
   // catches up. A pending edit is flushed when the row unmounts (modal closed
   // or item removed); `onSaveText` skips items that no longer exist.
   const { flush, hasPending } = useDebouncedSave({
-    values: [text],
-    save: () => onSaveText(item.id, text),
+    values: [edits],
+    save: () => onSaveText(item.id, typed.current),
     flushOnUnmount: true,
   });
 
-  // Adopt the server's wording while this row is not being edited, so a
-  // rename made on a phone shows here instead of sitting behind a stale
-  // copy that the next blur would write back over it.
+  // Adopt the server's wording when it changes and this row is not mid-edit,
+  // so a rename made on a phone shows here instead of sitting behind a stale
+  // copy. Only a change of the server's text counts: leaving the field is
+  // not a reason to re-read it, since the save sent on blur has not been
+  // answered yet.
   useEffect(() => {
-    if (!editing && !hasPending()) setText(item.text);
-  }, [item.text, editing, hasPending]);
+    if (!editing.current && !hasPending()) setText(item.text);
+  }, [item.text, hasPending]);
 
   return (
     <li className="flex items-center gap-2 rounded-md border border-hs-border bg-hs-card/60 px-2 py-1">
@@ -77,10 +86,10 @@ function ItemRow({
         type="text"
         value={text}
         maxLength={TODO_LIMITS.maxItemTextLength}
-        onChange={(e) => setText(e.target.value)}
-        onFocus={() => setEditing(true)}
+        onChange={(e) => { setText(e.target.value); setEdits((n) => n + 1); }}
+        onFocus={() => { editing.current = true; }}
         onBlur={() => {
-          setEditing(false);
+          editing.current = false;
           // Only a real pending edit: a click through an untouched row must
           // not write its copy of the text back to the server.
           if (hasPending()) flush();
@@ -164,7 +173,6 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       return false;
     }
     setList(next);
-    setError(null);
     return true;
   }, [listId, t]);
 
@@ -197,6 +205,9 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       inFlight.current += 1;
       try {
         const { lists } = await sendTodoWrite(editorFetch, req, saveFailed);
+        // A write that went through clears an earlier refusal; the reconcile
+        // after a refusal does not, or the message would vanish unread.
+        setError(null);
         if (seq !== requestSeq.current) {
           droppedResponse.current = true;
           return true;
