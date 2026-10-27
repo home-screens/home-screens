@@ -1,10 +1,11 @@
 /**
  * Route-level tests for `/api/system/network/wifi/saved` (GET list + DELETE).
  *
- * Mocks `network-commands` (connection listing + secret reads) and
+ * Mocks `network-commands` (profile listing, active lookup, secret reads) and
  * `isAuthEnabled`; the real UUID validator runs on DELETE. Covers the
- * empty-on-nmcli-failure GET, the wifi-only filtering, the password-reveal
- * branch, and the DELETE validation / success / failure paths.
+ * empty-on-nmcli-failure GET, the real-SSID and adapter fields, the
+ * password-reveal branch, and the DELETE validation, management gate,
+ * confirmed bypass, success and failure paths.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -30,17 +31,30 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('@/lib/network-commands', () => ({
-  nmcli: vi.fn(async () => ''),
   nmcliSudo: vi.fn(async () => ''),
+  listWifiProfiles: vi.fn(async () => []),
+  findActiveDevice: vi.fn(async () => null),
+  getManagementInterface: vi.fn(async () => 'wlan0'),
+  getOtherReachableAddress: vi.fn(async () => null),
+  isPotentiallyManagementInterface: vi.fn(() => false),
 }));
 
 import { NextRequest } from 'next/server';
 import { GET, DELETE } from '../route';
-import { nmcli, nmcliSudo } from '@/lib/network-commands';
+import {
+  nmcliSudo,
+  listWifiProfiles,
+  findActiveDevice,
+  getOtherReachableAddress,
+  isPotentiallyManagementInterface,
+} from '@/lib/network-commands';
 import { isAuthEnabled } from '@/lib/auth';
 
-const mockNmcli = vi.mocked(nmcli);
 const mockNmcliSudo = vi.mocked(nmcliSudo);
+const mockListProfiles = vi.mocked(listWifiProfiles);
+const mockFindActive = vi.mocked(findActiveDevice);
+const mockOtherAddress = vi.mocked(getOtherReachableAddress);
+const mockIsManagement = vi.mocked(isPotentiallyManagementInterface);
 const mockIsAuthEnabled = vi.mocked(isAuthEnabled);
 
 const VALID_UUID = '12345678-1234-1234-1234-123456789abc';
@@ -67,28 +81,31 @@ describe('GET /api/system/network/wifi/saved', () => {
   });
 
   it('returns an empty list when nmcli fails', async () => {
-    mockNmcli.mockRejectedValue(new Error('nmcli unavailable'));
+    mockListProfiles.mockRejectedValue(new Error('nmcli unavailable'));
     const res = await GET(getRequest());
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
   });
 
-  it('lists only wifi connections, mapping autoconnect and last-used', async () => {
-    // NAME:UUID:TYPE:AUTOCONNECT:TIMESTAMP — one wifi, one ethernet (filtered out).
-    mockNmcli.mockResolvedValue(
-      `HomeNet:${VALID_UUID}:802-11-wireless:yes:1700000000\n` +
-        `Wired connection 1:aaaa:802-3-ethernet:yes:1700000001`,
-    );
+  it('lists profiles with their real SSID, pinned adapter, autoconnect and last-used', async () => {
+    mockListProfiles.mockResolvedValue([
+      { name: 'HomeNet (wlan1)', uuid: VALID_UUID, ssid: 'HomeNet', iface: 'wlan1', autoconnect: true, timestamp: 1700000000 },
+      { name: 'preconfigured', uuid: 'aaaaaaaa-0000-0000-0000-000000000000', ssid: 'HomeNet', autoconnect: true, timestamp: 0 },
+    ]);
     const res = await GET(getRequest());
     const body = await res.json();
-    expect(body).toHaveLength(1);
-    expect(body[0]).toMatchObject({ id: VALID_UUID, name: 'HomeNet', ssid: 'HomeNet', autoconnect: true });
+    expect(body).toHaveLength(2);
+    expect(body[0]).toMatchObject({ id: VALID_UUID, name: 'HomeNet (wlan1)', ssid: 'HomeNet', iface: 'wlan1', autoconnect: true });
     expect(body[0].lastUsed).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(body[0].password).toBeUndefined();
+    expect(body[1]).toMatchObject({ name: 'preconfigured', ssid: 'HomeNet', lastUsed: 'never' });
+    expect(body[1].iface).toBeUndefined();
   });
 
   it('reveals passwords when requested and auth is enabled', async () => {
-    mockNmcli.mockResolvedValue(`HomeNet:${VALID_UUID}:802-11-wireless:yes:1700000000`);
+    mockListProfiles.mockResolvedValue([
+      { name: 'HomeNet', uuid: VALID_UUID, ssid: 'HomeNet', autoconnect: true, timestamp: 1700000000 },
+    ]);
     mockIsAuthEnabled.mockResolvedValue(true);
     mockNmcliSudo.mockResolvedValue('802-11-wireless-security.psk:supersecret');
     const res = await GET(getRequest(true));
@@ -102,6 +119,9 @@ describe('DELETE /api/system/network/wifi/saved', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockNmcliSudo.mockResolvedValue('');
+    mockFindActive.mockResolvedValue(null);
+    mockOtherAddress.mockResolvedValue(null);
+    mockIsManagement.mockReturnValue(false);
   });
 
   it('rejects an invalid connection UUID with 400', async () => {
@@ -111,10 +131,56 @@ describe('DELETE /api/system/network/wifi/saved', () => {
     expect(mockNmcliSudo).not.toHaveBeenCalled();
   });
 
-  it('deletes a saved connection and returns ok', async () => {
+  it('deletes a profile that is not active without asking', async () => {
     const res = await DELETE(deleteRequest({ connectionId: VALID_UUID }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
+    expect(mockNmcliSudo).toHaveBeenCalledWith(['connection', 'delete', VALID_UUID]);
+  });
+
+  it('deletes a profile active on another adapter without asking', async () => {
+    mockFindActive.mockResolvedValue('wlan1');
+    mockIsManagement.mockReturnValue(false);
+    const res = await DELETE(deleteRequest({ connectionId: VALID_UUID }));
+    expect(await res.json()).toEqual({ ok: true });
+    expect(mockIsManagement).toHaveBeenCalledWith('wlan0', 'wlan1');
+  });
+
+  it('asks before forgetting the network the page is served over, naming the other address', async () => {
+    mockFindActive.mockResolvedValue('wlan0');
+    mockIsManagement.mockReturnValue(true);
+    mockOtherAddress.mockResolvedValue('192.168.0.56');
+    const res = await DELETE(deleteRequest({ connectionId: VALID_UUID }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ requiresConfirmation: true, warningKind: 'forget', otherAddress: '192.168.0.56' });
+    expect(mockOtherAddress).toHaveBeenCalledWith('wlan0');
+    expect(mockNmcliSudo).not.toHaveBeenCalled();
+  });
+
+  it('leaves the address out when no other adapter has one', async () => {
+    mockFindActive.mockResolvedValue('wlan0');
+    mockIsManagement.mockReturnValue(true);
+    const res = await DELETE(deleteRequest({ connectionId: VALID_UUID }));
+    const body = await res.json();
+    expect(body.requiresConfirmation).toBe(true);
+    expect(body.otherAddress).toBeUndefined();
+  });
+
+  it('fails closed when the active lookup throws', async () => {
+    mockFindActive.mockRejectedValue(new Error('nmcli unavailable'));
+    const res = await DELETE(deleteRequest({ connectionId: VALID_UUID }));
+    const body = await res.json();
+    expect(body).toMatchObject({ requiresConfirmation: true, warningKind: 'unknown' });
+    expect(mockNmcliSudo).not.toHaveBeenCalled();
+  });
+
+  it('deletes the management profile once confirmed, without looking again', async () => {
+    mockFindActive.mockResolvedValue('wlan0');
+    mockIsManagement.mockReturnValue(true);
+    const res = await DELETE(deleteRequest({ connectionId: VALID_UUID, confirmed: true }));
+    expect(await res.json()).toEqual({ ok: true });
+    expect(mockFindActive).not.toHaveBeenCalled();
     expect(mockNmcliSudo).toHaveBeenCalledWith(['connection', 'delete', VALID_UUID]);
   });
 

@@ -17,13 +17,15 @@ vi.mock('@/lib/auth', () => ({
 vi.mock('@/lib/network-commands', () => ({
   nmcli: vi.fn(async () => ''),
   nmcliSudo: vi.fn(async () => ''),
+  listWifiProfiles: vi.fn(async () => []),
 }));
 
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
-import { nmcli } from '@/lib/network-commands';
+import { nmcli, listWifiProfiles } from '@/lib/network-commands';
 
 const mockNmcli = vi.mocked(nmcli);
+const mockListProfiles = vi.mocked(listWifiProfiles);
 
 function getRequest(iface: string): NextRequest {
   return new NextRequest(`http://localhost/api/system/network/wifi/scan?iface=${iface}`, { method: 'GET' });
@@ -40,6 +42,7 @@ describe('GET /api/system/network/wifi/scan', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
+    mockListProfiles.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -53,10 +56,13 @@ describe('GET /api/system/network/wifi/scan', () => {
   });
 
   it('scans and returns parsed, saved-flagged networks', async () => {
+    // The saved flag matches on the profile's real SSID, so a pinned
+    // "HomeNet (wlan1)" profile still marks HomeNet as saved.
+    mockListProfiles.mockResolvedValue([
+      { name: 'HomeNet (wlan1)', uuid: 'u1', ssid: 'HomeNet', iface: 'wlan1', autoconnect: true, timestamp: 0 },
+    ]);
     mockNmcli.mockImplementation(async (args: string[]) => {
       const j = args.join(' ');
-      // Saved connections list (NAME:TYPE)
-      if (j.includes('-f NAME,TYPE')) return 'HomeNet:802-11-wireless\nWired:802-3-ethernet';
       // Scan results: SSID:BSSID:SIGNAL:SECURITY:FREQ:IN-USE
       if (j.includes('device wifi list')) {
         return (

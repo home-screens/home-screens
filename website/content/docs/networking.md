@@ -104,10 +104,11 @@ Every network change that touches the **management interface**: the one your bro
 ### WiFi
 
 - **Scan nearby networks**: lists SSIDs with signal strength, security type, and an "already saved" flag. Scans are rate-limited to one per interface every 15 s (`GET /api/system/network/wifi/scan`).
-- **Connect**: click a network, enter the password if required, confirm the disconnect warning if you're on WiFi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`).
-- **Saved Networks**: list, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
-- **Forget**: `DELETE /api/system/network/wifi/saved` drops a saved profile.
-- **Disconnect**: brings a saved connection down without deleting it (`POST /api/system/network/wifi/disconnect`).
+- **Connect**: click a network, enter the password if required, confirm the disconnect warning if you're on WiFi yourself. Supports open, WPA2, and WPA3 networks (`POST /api/system/network/wifi/connect`). Each adapter gets its own saved entry, named after the network and the adapter (`HomeNet (wlan1)`), so a USB adapter can join the network the built-in WiFi is already on. Connecting again to a network you have saved updates that entry, password included.
+- **Hidden networks**: **Connect to hidden network...** takes a typed-in name and password for a network that does not broadcast its name.
+- **Saved Networks**: list with the adapter each entry belongs to, autoconnect status, last-used timestamp, and passwords (readable only when editor auth is enabled, via `GET /api/system/network/wifi/saved?showPasswords=true`).
+- **Forget**: `DELETE /api/system/network/wifi/saved` drops a saved entry. Forgetting the network your browser is connected through asks first, and names the address the Pi still answers on when it has another adapter.
+- **Disconnect**: brings a saved connection down without deleting it (`POST /api/system/network/wifi/disconnect`). The same warning, with the same address hint, appears when it is the network you are browsing over.
 
 ### IP address
 

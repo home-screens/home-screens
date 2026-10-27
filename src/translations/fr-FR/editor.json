@@ -1462,13 +1462,22 @@
         "cancelButton": "Annuler",
         "connectButton": "Se connecter",
         "connectingButton": "Connexion…",
-        "defaultConnectError": "Échec de la connexion"
+        "defaultConnectError": "Échec de la connexion",
+        "savedPasswordPlaceholder": "Laissez vide pour utiliser le mot de passe enregistré"
       },
       "managementWarning": {
         "heading": "Avertissement : interface de gestion",
         "autoRevertHint": "Si ce changement coupe la connectivité, il sera automatiquement annulé après 60 secondes.",
         "cancelButton": "Annuler",
-        "proceedButton": "J'ai compris, continuer"
+        "proceedButton": "J'ai compris, continuer",
+        "kinds": {
+          "connect": "Vous accédez à cette page par cet adaptateur. Changer son Wi-Fi peut vous déconnecter un instant.",
+          "disconnect": "Vous accédez à cette page par ce réseau. Le déconnecter coupera cet appareil de ce réseau.",
+          "forget": "Vous accédez à cette page par ce réseau. L'oublier coupera cet appareil de ce réseau.",
+          "unknown": "Impossible de savoir si c'est le réseau que vous utilisez en ce moment. Continuer pourrait rendre cet appareil injoignable."
+        },
+        "reachAt": "Ensuite, ouvrez plutôt cette page à l'adresse {url}.",
+        "noOtherAddress": "Ensuite, cet appareil ne sera joignable que lorsqu'il aura rejoint un réseau."
       },
       "rollback": {
         "polling": {
@@ -1500,7 +1509,9 @@
         "forgetButton": "Oublier",
         "forgetConfirmYes": "Oui",
         "forgetConfirmNo": "Non",
-        "forgettingButton": "Suppression…"
+        "forgettingButton": "Suppression…",
+        "onAdapter": "via {device}",
+        "forgetError": "Impossible de retirer ce réseau. Vérifiez que l'appareil est toujours joignable et réessayez."
       },
       "ipSettings": {
         "heading": "Paramètres IP ({device})",

@@ -24,6 +24,9 @@ import {
   getManagementInterface,
   isPotentiallyManagementInterface,
   readConnectionIpv4Settings,
+  listWifiProfiles,
+  findActiveDevice,
+  getOtherReachableAddress,
   __resetForTests,
 } from '@/lib/network-commands';
 
@@ -411,6 +414,40 @@ describe('uninhibitWatchdog', () => {
 /* ─── getManagementInterface ─────────────────── */
 
 describe('getManagementInterface', () => {
+  it('names the adapter that owns the address the request arrived on', async () => {
+    mockExecFileSuccess('3: wlan0    inet 192.168.86.143/24 brd 192.168.86.255 scope global dynamic noprefixroute wlan0\\       valid_lft 77791sec preferred_lft 77791sec\n');
+    const iface = await getManagementInterface('192.168.50.170', '192.168.86.143');
+    expect(iface).toBe('wlan0');
+    const [cmd, args] = vi.mocked(execFile).mock.calls[0] as unknown as [string, string[]];
+    expect(cmd).toBe('ip');
+    expect(args).toEqual(['-4', '-o', 'addr', 'show', 'to', '192.168.86.143']);
+    // The route lookup toward the client was not needed
+    expect(execFile).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to the route lookup when no adapter owns the local address', async () => {
+    vi.mocked(execFile).mockImplementation(
+      (_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
+        const a = args as string[];
+        const stdout = a[0] === '-4' ? '' : '192.168.50.170 via 192.168.0.1 dev wlan1 src 192.168.0.56 uid 1001\n';
+        (cb as (err: Error | null, result: { stdout: string; stderr: string }) => void)(null, { stdout, stderr: '' });
+        return {} as ReturnType<typeof execFile>;
+      },
+    );
+    expect(await getManagementInterface('192.168.50.170', '10.0.0.9')).toBe('wlan1');
+    expect(execFile).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a loopback or malformed local address', async () => {
+    mockExecFileSuccess('192.168.1.100 dev eth0 src 192.168.1.1 uid 0\n');
+    expect(await getManagementInterface('192.168.1.100', '127.0.0.1')).toBe('eth0');
+    expect(vi.mocked(execFile).mock.calls[0][1]).toEqual(['route', 'get', '192.168.1.100']);
+    vi.clearAllMocks();
+    mockExecFileSuccess('192.168.1.100 dev eth0 src 192.168.1.1 uid 0\n');
+    expect(await getManagementInterface('192.168.1.100', '1.2.3.4; rm -rf /')).toBe('eth0');
+    expect(vi.mocked(execFile).mock.calls[0][1]).toEqual(['route', 'get', '192.168.1.100']);
+  });
+
   it('parses "dev <iface>" from ip route get output', async () => {
     mockExecFileSuccess('192.168.1.100 dev eth0 src 192.168.1.1 uid 0\n');
 
@@ -547,5 +584,144 @@ describe('readConnectionIpv4Settings', () => {
     mockExecFileFailure(new Error('nmcli failed'));
 
     await expect(readConnectionIpv4Settings('uuid-1')).rejects.toThrow('nmcli failed');
+  });
+});
+
+/* ─── nmcliSudo timeout option ───────────────── */
+
+describe('nmcliSudo timeout', () => {
+  it('uses the 15 s default', async () => {
+    mockExecFileSuccess('ok');
+    await nmcliSudo(['connection', 'show']);
+    const opts = vi.mocked(execFile).mock.calls[0][2] as { timeout: number };
+    expect(opts.timeout).toBe(15_000);
+  });
+
+  it('lets a caller wait longer for an activation', async () => {
+    mockExecFileSuccess('ok');
+    await nmcliSudo(['--wait', '45', 'connection', 'up', 'uuid', 'x'], { timeoutMs: 55_000 });
+    const opts = vi.mocked(execFile).mock.calls[0][2] as { timeout: number };
+    expect(opts.timeout).toBe(55_000);
+  });
+});
+
+/* ─── listWifiProfiles ───────────────────────── */
+
+describe('listWifiProfiles', () => {
+  const PINNED = '3dedc095-8d54-4c45-aba4-486c1d87c9a2';
+  const IMAGER = 'ebe26580-30fc-427f-9395-0bb5b3191301';
+
+  function answerByArgs(answers: (args: string[]) => string) {
+    vi.mocked(execFile).mockImplementation(
+      (_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
+        (cb as (err: Error | null, result: { stdout: string; stderr: string }) => void)(
+          null,
+          { stdout: answers(args as string[]), stderr: '' },
+        );
+        return {} as ReturnType<typeof execFile>;
+      },
+    );
+  }
+
+  it('returns wifi profiles with their real SSID and pinned adapter', async () => {
+    answerByArgs((args) => {
+      if (args.includes('NAME,UUID,TYPE,AUTOCONNECT,TIMESTAMP')) {
+        return (
+          `HomeNet (wlan1):${PINNED}:802-11-wireless:yes:1700000000\n` +
+          `preconfigured:${IMAGER}:802-11-wireless:yes:0\n` +
+          `Wired connection 1:aaaa:802-3-ethernet:yes:5\n` +
+          `lo:bbbb:loopback:no:0\n`
+        );
+      }
+      if (args.includes(PINNED)) return 'HomeNet\nwlan1\n';
+      if (args.includes(IMAGER)) return 'HomeNet\n\n';
+      return '';
+    });
+
+    const profiles = await listWifiProfiles();
+    expect(profiles).toEqual([
+      { name: 'HomeNet (wlan1)', uuid: PINNED, ssid: 'HomeNet', iface: 'wlan1', autoconnect: true, timestamp: 1700000000 },
+      { name: 'preconfigured', uuid: IMAGER, ssid: 'HomeNet', autoconnect: true, timestamp: 0 },
+    ]);
+  });
+
+  it('unescapes colons in an SSID and falls back to the name when the detail read fails', async () => {
+    vi.mocked(execFile).mockImplementation(
+      (_cmd: unknown, args: unknown, _opts: unknown, cb: unknown) => {
+        const a = args as string[];
+        const done = cb as (err: Error | null, result?: { stdout: string; stderr: string }) => void;
+        if (a.includes('NAME,UUID,TYPE,AUTOCONNECT,TIMESTAMP')) {
+          done(null, { stdout: `a\\:b (wlan0):${PINNED}:802-11-wireless:no:0\nOld:${IMAGER}:802-11-wireless:yes:0\n`, stderr: '' });
+        } else if (a.includes(PINNED)) {
+          done(null, { stdout: 'a\\:b\nwlan0\n', stderr: '' });
+        } else {
+          done(new Error('gone'));
+        }
+        return {} as ReturnType<typeof execFile>;
+      },
+    );
+
+    const profiles = await listWifiProfiles();
+    expect(profiles[0]).toMatchObject({ name: 'a:b (wlan0)', ssid: 'a:b', iface: 'wlan0', autoconnect: false });
+    expect(profiles[1]).toMatchObject({ name: 'Old', ssid: 'Old' });
+    expect(profiles[1].iface).toBeUndefined();
+  });
+
+  it('propagates a failure of the listing itself', async () => {
+    mockExecFileFailure(new Error('nmcli missing'));
+    await expect(listWifiProfiles()).rejects.toThrow('nmcli missing');
+  });
+});
+
+/* ─── findActiveDevice ───────────────────────── */
+
+describe('findActiveDevice', () => {
+  it('returns the device an active connection is on', async () => {
+    mockExecFileSuccess('aaaa:wlan0\nbbbb:wlan1\n');
+    expect(await findActiveDevice('bbbb')).toBe('wlan1');
+  });
+
+  it('returns null when the connection is not active', async () => {
+    mockExecFileSuccess('aaaa:wlan0\n');
+    expect(await findActiveDevice('zzzz')).toBeNull();
+  });
+
+  it('throws when nmcli fails so callers can fail closed', async () => {
+    mockExecFileFailure(new Error('boom'));
+    await expect(findActiveDevice('aaaa')).rejects.toThrow('boom');
+  });
+});
+
+/* ─── getOtherReachableAddress ───────────────── */
+
+describe('getOtherReachableAddress', () => {
+  const IP_ADDR =
+    '1: lo    inet 127.0.0.1/8 scope host lo\\       valid_lft forever preferred_lft forever\n' +
+    '3: wlan0    inet 192.168.86.143/24 brd 192.168.86.255 scope global dynamic noprefixroute wlan0\\       valid_lft 79107sec preferred_lft 79107sec\n' +
+    '4: wlan1    inet 192.168.0.56/24 brd 192.168.0.255 scope global dynamic noprefixroute wlan1\\       valid_lft 4852807sec preferred_lft 4852807sec\n';
+
+  it('names an address on another adapter', async () => {
+    mockExecFileSuccess(IP_ADDR);
+    expect(await getOtherReachableAddress('wlan0')).toBe('192.168.0.56');
+    expect(await getOtherReachableAddress('wlan1')).toBe('192.168.86.143');
+  });
+
+  it('asks the kernel for global IPv4 addresses only', async () => {
+    mockExecFileSuccess(IP_ADDR);
+    await getOtherReachableAddress('wlan0');
+    expect(vi.mocked(execFile).mock.calls[0][0]).toBe('ip');
+    expect(vi.mocked(execFile).mock.calls[0][1]).toEqual(['-4', '-o', 'addr', 'show', 'scope', 'global']);
+  });
+
+  it('returns null when the excluded adapter is the only one with an address', async () => {
+    mockExecFileSuccess('3: wlan0    inet 192.168.86.143/24 brd 192.168.86.255 scope global dynamic wlan0\\       valid_lft 1sec\n');
+    expect(await getOtherReachableAddress('wlan0')).toBeNull();
+  });
+
+  it('skips the loopback and returns null when ip fails', async () => {
+    mockExecFileSuccess('1: lo    inet 127.0.0.1/8 scope host lo\n');
+    expect(await getOtherReachableAddress('wlan0')).toBeNull();
+    mockExecFileFailure(new Error('no ip'));
+    expect(await getOtherReachableAddress('wlan0')).toBeNull();
   });
 });

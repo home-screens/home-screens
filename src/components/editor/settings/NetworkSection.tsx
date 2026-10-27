@@ -13,6 +13,7 @@ import HostnameSection from './network/HostnameSection';
 import IPSettingsPanel from './network/IPSettingsPanel';
 import DiagnosticsSection from './network/DiagnosticsSection';
 import type { NetworkOverview, NetworkInterface, WifiNetwork } from '@/lib/network-types';
+import { managementWarningText } from './network/management-warning';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 
@@ -39,6 +40,7 @@ export default function NetworkSection() {
 
   const [managementWarning, setManagementWarning] = useState<{
     warning: string;
+    autoRevert: boolean;
     onProceed: () => void;
   } | null>(null);
 
@@ -95,6 +97,9 @@ export default function NetworkSection() {
     setConnectModalOpen(false);
     setHiddenNetworkOpen(false);
     setConnectTarget(null);
+    // A failed join still leaves the new saved entry behind, so the list
+    // must catch up even when the dialog is dismissed on an error
+    setSavedRefreshKey((k) => k + 1);
   }, []);
 
   const handleManagementWarning = useCallback(
@@ -103,6 +108,7 @@ export default function NetworkSection() {
       // so the retry callback and its state setters remain valid
       setManagementWarning({
         warning,
+        autoRevert: true,
         onProceed: () => {
           setManagementWarning(null);
           retryWithConfirm();
@@ -146,6 +152,8 @@ export default function NetworkSection() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          // The reply is lost when this is the network the page arrives over
+          signal: AbortSignal.timeout(20_000),
         });
 
         const data = await res.json();
@@ -153,7 +161,8 @@ export default function NetworkSection() {
         if (data.requiresConfirmation) {
           setDisconnectingUuid(null);
           setManagementWarning({
-            warning: data.warning,
+            warning: managementWarningText(t, data, window.location.port),
+            autoRevert: false,
             onProceed: () => {
               setManagementWarning(null);
               handleDisconnect(connectionUuid, iface, true);
@@ -171,7 +180,7 @@ export default function NetworkSection() {
         setDisconnectingUuid(null);
       }
     },
-    [fetchOverview],
+    [fetchOverview, t],
   );
 
   const handleDisconnectClick = useCallback(
@@ -268,7 +277,7 @@ export default function NetworkSection() {
                       currentIPv4={iface.ipv4}
                       isManagementInterface={iface.isManagementInterface}
                       onConfirmationRequired={(warning, onConfirm) => {
-                        setManagementWarning({ warning, onProceed: () => { setManagementWarning(null); onConfirm(); } });
+                        setManagementWarning({ warning, autoRevert: true, onProceed: () => { setManagementWarning(null); onConfirm(); } });
                       }}
                       onRollbackStarted={(id) => setRollbackId(id)}
                       onApplied={fetchOverview}
@@ -343,6 +352,7 @@ export default function NetworkSection() {
       {managementWarning && (
         <ManagementWarningModal
           warning={managementWarning.warning}
+          autoRevert={managementWarning.autoRevert}
           onProceed={managementWarning.onProceed}
           onCancel={() => setManagementWarning(null)}
         />

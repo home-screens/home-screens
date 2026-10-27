@@ -4,7 +4,7 @@ import os from 'os';
 import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { nmcli, getManagementInterface } from '@/lib/network-commands';
-import { withAuth, getClientIP } from '@/lib/api-utils';
+import { withAuth, getClientIP, getLocalIP } from '@/lib/api-utils';
 import { parseTerseFields } from '@/lib/network-parse';
 import type {
   IPv4Info,
@@ -116,7 +116,7 @@ export const GET = withAuth(async (request: NextRequest) => {
 
   // Step 4: Detect management interface
   const clientIP = getClientIP(request);
-  const managementIface = await getManagementInterface(clientIP);
+  const managementIface = await getManagementInterface(clientIP, getLocalIP(request));
 
   // Step 5: Build UUID map for active connections
   const connectionUuids = new Map<string, string>();

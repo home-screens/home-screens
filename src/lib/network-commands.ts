@@ -18,6 +18,7 @@ import { promisify } from 'util';
 import { writeFile, unlink } from 'fs/promises';
 import { randomUUID } from 'crypto';
 import { logger } from '@/lib/logger';
+import { parseTerseFields } from '@/lib/network-parse';
 
 const log = logger('network-commands');
 
@@ -68,12 +69,17 @@ export async function nmcli(args: string[]): Promise<string> {
  * through the write mutex.
  *
  * @param args - Argument array for nmcli (sudo is prepended).
+ * @param options.timeoutMs - Longer than the 15 s default only for a call
+ *        that legitimately waits on the radio, such as `connection up`.
  * @returns stdout from the command.
  */
-export async function nmcliSudo(args: string[]): Promise<string> {
+export async function nmcliSudo(
+  args: string[],
+  options: { timeoutMs?: number } = {},
+): Promise<string> {
   const task = writeMutex.then(async () => {
     const { stdout } = await execFileAsync('sudo', ['nmcli', ...args], {
-      timeout: NMCLI_TIMEOUT_MS,
+      timeout: options.timeoutMs ?? NMCLI_TIMEOUT_MS,
       env: EXEC_ENV,
     });
     return stdout;
@@ -304,25 +310,46 @@ export async function uninhibitWatchdog(): Promise<void> {
 
 /* ─── Management interface detection ─────────── */
 
+/** Strict dotted-quad check before an address goes anywhere near execFile. */
+function isValidIPv4(ip: string): boolean {
+  if (!IPV4_REGEX.test(ip)) return false;
+  return ip.split('.').every((part) => parseInt(part, 10) <= 255);
+}
+
 /**
- * Determine which network interface serves the given client IP
- * by asking the kernel routing table.
+ * Determine which network interface the browser is talking to the hub over.
  *
- * @param clientIP - The IPv4 address to look up (validated first).
- * @returns The interface name (e.g. "eth0") or `null` if the IP
- *          is invalid or the route lookup fails.
+ * The adapter that owns the address the request arrived on is the answer
+ * whenever that address is known (`localIP`, stamped from the socket by
+ * `server-ip-patch.ts`). The older route lookup toward the client remains
+ * the fallback: it names the adapter replies leave through, which is only
+ * the same thing when the client sits on one of the hub's own subnets. A
+ * laptop on a third subnet reaching wlan0's address would otherwise be
+ * attributed to whichever adapter holds the default route.
+ *
+ * @param clientIP - The client's IPv4 address (validated first).
+ * @param localIP - The hub address the request arrived on, when known.
+ * @returns The interface name (e.g. "eth0") or `null` if neither lookup
+ *          can say.
  */
-export async function getManagementInterface(clientIP: string): Promise<string | null> {
-  // Validate the IP before passing to execFile
-  if (!IPV4_REGEX.test(clientIP)) {
-    return null;
+export async function getManagementInterface(clientIP: string, localIP = ''): Promise<string | null> {
+  if (localIP && isValidIPv4(localIP) && localIP !== '127.0.0.1') {
+    try {
+      const { stdout } = await execFileAsync('ip', ['-4', '-o', 'addr', 'show', 'to', localIP], {
+        timeout: NMCLI_TIMEOUT_MS,
+        env: EXEC_ENV,
+      });
+      // "3: wlan0    inet 192.168.86.143/24 brd ... scope global dynamic noprefixroute wlan0\ ..."
+      const match = stdout.match(/^\d+:\s+(\S+)\s+inet\s/m);
+      if (match) return match[1];
+    } catch {
+      // Fall through to the route lookup
+    }
   }
 
-  // Additional range validation on each octet
-  const parts = clientIP.split('.');
-  for (const part of parts) {
-    const num = parseInt(part, 10);
-    if (num > 255) return null;
+  // Validate the IP before passing to execFile
+  if (!isValidIPv4(clientIP)) {
+    return null;
   }
 
   try {
@@ -358,6 +385,108 @@ export function isPotentiallyManagementInterface(
 ): boolean {
   if (managementIface === null || candidate === null) return true;
   return managementIface === candidate;
+}
+
+/* ─── Saved Wi-Fi profiles ───────────────────── */
+
+export interface WifiProfile {
+  name: string;
+  uuid: string;
+  /** The network the profile joins; differs from `name` for pinned `<ssid> (<iface>)` profiles. */
+  ssid: string;
+  /** Adapter the profile is pinned to, when it is. */
+  iface?: string;
+  autoconnect: boolean;
+  /** Unix seconds of the last activation, 0 when never used. */
+  timestamp: number;
+}
+
+/**
+ * Every saved Wi-Fi profile with its real SSID. `connection show` in list
+ * mode cannot print per-setting fields, so the SSID and pinned adapter come
+ * from one `-g` read per profile.
+ */
+export async function listWifiProfiles(): Promise<WifiProfile[]> {
+  const output = await nmcli([
+    '-t', '-f', 'NAME,UUID,TYPE,AUTOCONNECT,TIMESTAMP',
+    'connection', 'show',
+  ]);
+
+  const rows: Array<{ name: string; uuid: string; autoconnect: boolean; timestamp: number }> = [];
+  for (const line of output.split('\n')) {
+    if (!line.trim()) continue;
+    const fields = parseTerseFields(line);
+    if (fields.length < 5 || fields[2] !== '802-11-wireless') continue;
+    const [name, uuid, , autoconnect, timestamp] = fields;
+    rows.push({ name, uuid, autoconnect: autoconnect === 'yes', timestamp: parseInt(timestamp, 10) || 0 });
+  }
+
+  return Promise.all(
+    rows.map(async (row) => {
+      let ssid = row.name;
+      let iface: string | undefined;
+      try {
+        const detail = await nmcli([
+          '-g', '802-11-wireless.ssid,connection.interface-name',
+          'connection', 'show', row.uuid,
+        ]);
+        const [ssidLine = '', ifaceLine = ''] = detail.split('\n');
+        const realSsid = ssidLine.replace(/\\:/g, ':').trim();
+        if (realSsid) ssid = realSsid;
+        const pinned = ifaceLine.trim();
+        if (pinned) iface = pinned;
+      } catch {
+        // Fall back to the name, which is the SSID for profiles made outside Home Screens
+      }
+      return { ...row, ssid, ...(iface && { iface }) };
+    }),
+  );
+}
+
+/* ─── Active connection lookup ───────────────── */
+
+/**
+ * The device a saved connection is currently active on, or `null` when it is
+ * not active. Throws when nmcli fails so callers can fail closed.
+ */
+export async function findActiveDevice(connectionUuid: string): Promise<string | null> {
+  const output = await nmcli([
+    '-t', '-f', 'UUID,DEVICE',
+    'connection', 'show', '--active',
+  ]);
+  for (const line of output.split('\n')) {
+    if (!line.trim()) continue;
+    const fields = parseTerseFields(line);
+    if (fields.length >= 2 && fields[0] === connectionUuid) return fields[1] || null;
+  }
+  return null;
+}
+
+/* ─── Other reachable address ────────────────── */
+
+/**
+ * An IPv4 address this device answers on through an adapter other than
+ * `excludeIface`, for the warning shown before a change cuts the adapter the
+ * browser is using. `null` when no other adapter holds an address.
+ */
+export async function getOtherReachableAddress(excludeIface: string | null): Promise<string | null> {
+  try {
+    const { stdout } = await execFileAsync('ip', ['-4', '-o', 'addr', 'show', 'scope', 'global'], {
+      timeout: NMCLI_TIMEOUT_MS,
+      env: EXEC_ENV,
+    });
+    // Lines: "3: wlan0    inet 192.168.86.143/24 brd ... scope global ..."
+    for (const line of stdout.split('\n')) {
+      const match = line.match(/^\d+:\s+(\S+)\s+inet\s+(\d{1,3}(?:\.\d{1,3}){3})\//);
+      if (!match) continue;
+      const [, dev, address] = match;
+      if (dev === 'lo' || (excludeIface && dev === excludeIface)) continue;
+      return address;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 /* ─── Source-based routing ───────────────────── */

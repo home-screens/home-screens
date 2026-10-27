@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
+import ManagementWarningModal from './ManagementWarningModal';
+import { managementWarningText } from './management-warning';
 import { useTranslate, useFormattingLocale, type TranslateFn } from '@/i18n';
 import type { SavedNetwork } from '@/lib/network-types';
 import { formatDateInTZ } from '@/lib/timezone';
@@ -46,6 +48,13 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   // Connection id whose forget stalled on the device password; retried after the grant
   const [sudoRetryId, setSudoRetryId] = useState<string | null>(null);
   const [showPasswords, setShowPasswords] = useState(false);
+  // The last Forget that failed, shown under the list instead of leaving the row stuck
+  const [forgetError, setForgetError] = useState<string | null>(null);
+  // Forgetting the network this page arrives over asks first, like Disconnect does
+  const [managementWarning, setManagementWarning] = useState<{
+    warning: string;
+    onProceed: () => void;
+  } | null>(null);
 
   /* ── Fetch saved networks ──────────────────── */
 
@@ -77,28 +86,49 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
   /* ── Forget a network ──────────────────────── */
 
   const handleForget = useCallback(
-    async (connectionId: string) => {
+    async (connectionId: string, confirmed = false) => {
       setForgettingId(connectionId);
+      setForgetError(null);
       try {
+        const body: Record<string, unknown> = { connectionId };
+        if (confirmed) body.confirmed = true;
+        // Bounded: forgetting the network this page arrives over drops the
+        // reply, and without a deadline the row sat on "Removing..." until
+        // the browser gave up on the socket minutes later
         const res = await editorFetch('/api/system/network/wifi/saved', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ connectionId }),
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(20_000),
         });
-        if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        if (data.requiresConfirmation) {
+          setManagementWarning({
+            warning: managementWarningText(t, data, window.location.port),
+            onProceed: () => {
+              setManagementWarning(null);
+              handleForget(connectionId, true);
+            },
+          });
+          return;
+        }
+        if (res.ok && data.ok) {
           setNetworks((prev) => prev.filter((n) => n.id !== connectionId));
+        } else if (data.needsSudoPassword) {
+          setSudoRetryId(connectionId);
         } else {
-          const data = await res.json().catch(() => ({}));
-          if (data.needsSudoPassword) setSudoRetryId(connectionId);
+          setForgetError(data.error ?? t('settings.networkPage.savedNetworks.forgetError'));
         }
       } catch {
-        // Silently fail — network will remain in list
+        // The response never came back, which is what happens when the
+        // forgotten network was the one carrying this page
+        setForgetError(t('settings.networkPage.savedNetworks.forgetError'));
       } finally {
         setForgettingId(null);
         setConfirmForgetId(null);
       }
     },
-    [],
+    [t],
   );
 
   if (loading) {
@@ -176,9 +206,15 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
             {/* Network info */}
             <div className="flex-1 min-w-0">
               <span className="text-sm text-hs-text-primary truncate block">
-                {network.name}
+                {network.ssid}
               </span>
               <div className="flex items-center gap-2 text-xs text-hs-text-muted">
+                {network.iface && (
+                  <>
+                    <span>{t('settings.networkPage.savedNetworks.onAdapter', { device: network.iface })}</span>
+                    <span className="text-hs-text-faint">&middot;</span>
+                  </>
+                )}
                 <span>{formatLastUsed(network.lastUsed, t, formattingLocale, timezone)}</span>
                 {network.autoconnect && (
                   <>
@@ -231,6 +267,17 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
           </div>
         ))}
       </div>
+      {forgetError && (
+        <p className="mt-2 text-xs text-hs-danger">{forgetError}</p>
+      )}
+      {managementWarning && (
+        <ManagementWarningModal
+          warning={managementWarning.warning}
+          autoRevert={false}
+          onProceed={managementWarning.onProceed}
+          onCancel={() => setManagementWarning(null)}
+        />
+      )}
     </section>
   );
 }

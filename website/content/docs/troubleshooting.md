@@ -333,6 +333,15 @@ A running hub answers with its version, for example `{"ok":true,"version":"1.13.
 
 The installer applies WiFi hardening (infinite reconnect retries, disabled MAC randomization, disabled IPv6 on WiFi, masked suspend). See [Networking > WiFi reliability](/docs/networking#wi-fi-reliability).
 
+### Connecting to WiFi fails with "key-mgmt: property is missing"
+
+On releases before 1.15, **Settings > Network > Connect** failed with `802-11-wireless-security.key-mgmt: property is missing` whenever the Pi already had a saved entry for that network: reconnecting to your own network, retyping its password, or joining it from a USB adapter. The cause is a bug in the `nmcli` that ships with Raspberry Pi OS Trixie (NetworkManager 1.50 to 1.54.3), which rebuilds a reused saved entry without its security type. Update Home Screens; 1.15 creates its own saved entry per network and adapter and never reuses one. If you cannot update yet, join from a terminal instead:
+
+```bash
+sudo nmcli connection add type wifi ifname wlan0 con-name "HomeNet (wlan0)" ssid "HomeNet" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "your-password"
+sudo nmcli connection up "HomeNet (wlan0)"
+```
+
 ### A display is stuck on a deleted address
 
 If you delete a display under **Settings > Displays** while its Pi is still pointed at the old address, the Pi shows a **display not found** screen with a 60-second countdown and a **Go to the main display now** button. Let it finish or click the button; it moves to the hub's default display with no power cycle. A brand-new Pi that has never been added skips the countdown and waits to be added. See the [Multi-display guide](/docs/multi-display#if-something-goes-wrong).

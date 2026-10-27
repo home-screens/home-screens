@@ -1462,13 +1462,22 @@
         "cancelButton": "Cancel",
         "connectButton": "Connect",
         "connectingButton": "Connecting...",
-        "defaultConnectError": "Connection failed"
+        "defaultConnectError": "Connection failed",
+        "savedPasswordPlaceholder": "Leave empty to use the saved password"
       },
       "managementWarning": {
         "heading": "Management Interface Warning",
         "autoRevertHint": "If this change breaks connectivity, it will be automatically reverted after 60 seconds.",
         "cancelButton": "Cancel",
-        "proceedButton": "I understand, proceed"
+        "proceedButton": "I understand, proceed",
+        "kinds": {
+          "connect": "You're reaching this page through this adapter. Changing its Wi-Fi may disconnect you for a moment.",
+          "disconnect": "You're reaching this page through this network. Disconnecting it will cut this device off from it.",
+          "forget": "You're reaching this page through this network. Forgetting it will cut this device off from it.",
+          "unknown": "We can't tell whether this is the network you're using right now. Going ahead could make this device unreachable."
+        },
+        "reachAt": "After that, open this page at {url} instead.",
+        "noOtherAddress": "After that, this device can't be reached until it joins a network again."
       },
       "rollback": {
         "polling": {
@@ -1500,7 +1509,9 @@
         "forgetButton": "Forget",
         "forgetConfirmYes": "Yes",
         "forgetConfirmNo": "No",
-        "forgettingButton": "Removing..."
+        "forgettingButton": "Removing...",
+        "onAdapter": "on {device}",
+        "forgetError": "Couldn't remove this network. Check the device is still reachable and try again."
       },
       "ipSettings": {
         "heading": "IP Settings ({device})",

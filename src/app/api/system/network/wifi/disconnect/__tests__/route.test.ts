@@ -15,17 +15,24 @@ vi.mock('@/lib/auth', () => ({
 }));
 
 vi.mock('@/lib/network-commands', () => ({
-  nmcli: vi.fn(async () => ''),
   nmcliSudo: vi.fn(async () => ''),
+  findActiveDevice: vi.fn(async () => null),
   getManagementInterface: vi.fn(async () => 'eth0'),
+  getOtherReachableAddress: vi.fn(async () => null),
   isPotentiallyManagementInterface: vi.fn(() => false),
 }));
 
 import { NextRequest } from 'next/server';
 import { POST } from '../route';
-import { nmcli, nmcliSudo, isPotentiallyManagementInterface } from '@/lib/network-commands';
+import {
+  nmcliSudo,
+  findActiveDevice,
+  getOtherReachableAddress,
+  isPotentiallyManagementInterface,
+} from '@/lib/network-commands';
 
-const mockNmcli = vi.mocked(nmcli);
+const mockFindActive = vi.mocked(findActiveDevice);
+const mockOtherAddress = vi.mocked(getOtherReachableAddress);
 const mockNmcliSudo = vi.mocked(nmcliSudo);
 const mockIsManagement = vi.mocked(isPotentiallyManagementInterface);
 
@@ -43,7 +50,8 @@ describe('POST /api/system/network/wifi/disconnect', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsManagement.mockReturnValue(false);
-    mockNmcli.mockResolvedValue('');
+    mockFindActive.mockResolvedValue(null);
+    mockOtherAddress.mockResolvedValue(null);
     mockNmcliSudo.mockResolvedValue('');
   });
 
@@ -56,7 +64,7 @@ describe('POST /api/system/network/wifi/disconnect', () => {
 
   it('disconnects a non-management connection and returns ok', async () => {
     // Active on wlan0, not the management interface.
-    mockNmcli.mockResolvedValue(`${VALID_UUID}:wlan0:activated`);
+    mockFindActive.mockResolvedValue('wlan0');
     mockIsManagement.mockReturnValue(false);
     const res = await POST(postRequest({ connectionId: VALID_UUID }));
     expect(res.status).toBe(200);
@@ -64,27 +72,38 @@ describe('POST /api/system/network/wifi/disconnect', () => {
     expect(mockNmcliSudo).toHaveBeenCalledWith(['connection', 'down', VALID_UUID]);
   });
 
-  it('asks for confirmation before disconnecting the management interface', async () => {
-    mockNmcli.mockResolvedValue(`${VALID_UUID}:eth0:activated`);
+  it('asks for confirmation before disconnecting the management interface, naming the other address', async () => {
+    mockFindActive.mockResolvedValue('eth0');
     mockIsManagement.mockReturnValue(true);
+    mockOtherAddress.mockResolvedValue('192.168.0.56');
     const res = await POST(postRequest({ connectionId: VALID_UUID }));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.requiresConfirmation).toBe(true);
+    expect(body).toMatchObject({ requiresConfirmation: true, warningKind: 'disconnect', otherAddress: '192.168.0.56' });
+    expect(mockOtherAddress).toHaveBeenCalledWith('eth0');
     expect(mockNmcliSudo).not.toHaveBeenCalled();
   });
 
+  it('leaves the address out when no other adapter has one', async () => {
+    mockFindActive.mockResolvedValue('eth0');
+    mockIsManagement.mockReturnValue(true);
+    const res = await POST(postRequest({ connectionId: VALID_UUID }));
+    const body = await res.json();
+    expect(body.requiresConfirmation).toBe(true);
+    expect(body.otherAddress).toBeUndefined();
+  });
+
   it('fails closed and requires confirmation when the active lookup throws', async () => {
-    mockNmcli.mockRejectedValue(new Error('nmcli unavailable'));
+    mockFindActive.mockRejectedValue(new Error('nmcli unavailable'));
     const res = await POST(postRequest({ connectionId: VALID_UUID }));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.requiresConfirmation).toBe(true);
+    expect(body).toMatchObject({ requiresConfirmation: true, warningKind: 'unknown' });
     expect(mockNmcliSudo).not.toHaveBeenCalled();
   });
 
   it('maps an nmcli disconnect failure to a 500 with its stderr', async () => {
-    mockNmcli.mockResolvedValue(`${VALID_UUID}:wlan0:activated`);
+    mockFindActive.mockResolvedValue('wlan0');
     mockNmcliSudo.mockRejectedValueOnce(Object.assign(new Error('x'), { stderr: 'connection down failed' }));
     const res = await POST(postRequest({ connectionId: VALID_UUID, confirmed: true }));
     expect(res.status).toBe(500);

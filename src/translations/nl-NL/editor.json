@@ -1462,13 +1462,22 @@
         "cancelButton": "Annuleren",
         "connectButton": "Verbinden",
         "connectingButton": "Verbinden…",
-        "defaultConnectError": "Verbinden mislukt"
+        "defaultConnectError": "Verbinden mislukt",
+        "savedPasswordPlaceholder": "Laat leeg om het opgeslagen wachtwoord te gebruiken"
       },
       "managementWarning": {
         "heading": "Waarschuwing voor beheerinterface",
         "autoRevertHint": "Als deze wijziging de verbinding verbreekt, wordt deze na 60 seconden automatisch teruggedraaid.",
         "cancelButton": "Annuleren",
-        "proceedButton": "Ik begrijp het, doorgaan"
+        "proceedButton": "Ik begrijp het, doorgaan",
+        "kinds": {
+          "connect": "Je bereikt deze pagina via deze adapter. Als je zijn wifi wijzigt, kan de verbinding even wegvallen.",
+          "disconnect": "Je bereikt deze pagina via dit netwerk. Als je het verbreekt, is dit apparaat daarover niet meer bereikbaar.",
+          "forget": "Je bereikt deze pagina via dit netwerk. Als je het vergeet, is dit apparaat daarover niet meer bereikbaar.",
+          "unknown": "We kunnen niet zien of dit het netwerk is dat je nu gebruikt. Als je doorgaat, is dit apparaat misschien niet meer bereikbaar."
+        },
+        "reachAt": "Open deze pagina daarna op {url}.",
+        "noOtherAddress": "Daarna is dit apparaat pas weer bereikbaar als het weer op een netwerk zit."
       },
       "rollback": {
         "polling": {
@@ -1500,7 +1509,9 @@
         "forgetButton": "Vergeten",
         "forgetConfirmYes": "Ja",
         "forgetConfirmNo": "Nee",
-        "forgettingButton": "Verwijderen…"
+        "forgettingButton": "Verwijderen…",
+        "onAdapter": "via {device}",
+        "forgetError": "Dit netwerk kon niet worden verwijderd. Kijk of het apparaat nog bereikbaar is en probeer het opnieuw."
       },
       "ipSettings": {
         "heading": "IP-instellingen ({device})",

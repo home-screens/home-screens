@@ -1462,13 +1462,22 @@
         "cancelButton": "Annullér",
         "connectButton": "Forbind",
         "connectingButton": "Forbinder…",
-        "defaultConnectError": "Forbindelsen mislykkedes"
+        "defaultConnectError": "Forbindelsen mislykkedes",
+        "savedPasswordPlaceholder": "Lad stå tomt for at bruge den gemte adgangskode"
       },
       "managementWarning": {
         "heading": "Advarsel om dit eget netværkskort",
         "autoRevertHint": "Hvis ændringen afbryder forbindelsen, fortrydes den automatisk efter 60 sekunder.",
         "cancelButton": "Annullér",
-        "proceedButton": "Jeg forstår, fortsæt"
+        "proceedButton": "Jeg forstår, fortsæt",
+        "kinds": {
+          "connect": "Du bruger denne adapter til at nå siden her. Skifter du dens wi-fi, kan forbindelsen falde ud et øjeblik.",
+          "disconnect": "Du bruger dette netværk til at nå siden her. Afbryder du det, kan enheden ikke længere nås gennem det.",
+          "forget": "Du bruger dette netværk til at nå siden her. Glemmer du det, kan enheden ikke længere nås gennem det.",
+          "unknown": "Vi kan ikke se, om det er netværket, du bruger lige nu. Fortsætter du, kan enheden måske ikke nås bagefter."
+        },
+        "reachAt": "Åbn bagefter siden her på {url} i stedet.",
+        "noOtherAddress": "Bagefter kan enheden først nås igen, når den er på et netværk igen."
       },
       "rollback": {
         "polling": {
@@ -1500,7 +1509,9 @@
         "forgetButton": "Glem",
         "forgetConfirmYes": "Ja",
         "forgetConfirmNo": "Nej",
-        "forgettingButton": "Fjerner…"
+        "forgettingButton": "Fjerner…",
+        "onAdapter": "via {device}",
+        "forgetError": "Netværket kunne ikke fjernes. Tjek, at enheden stadig kan nås, og prøv igen."
       },
       "ipSettings": {
         "heading": "IP-indstillinger ({device})",

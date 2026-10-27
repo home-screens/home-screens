@@ -31,6 +31,15 @@ import { normalizeIp } from './ip-allowlist';
 export const CLIENT_IP_HEADER = 'x-hs-client-ip';
 
 /**
+ * Server-stamped header carrying the address the request arrived ON (the
+ * socket's local address). It names the adapter the browser is actually
+ * using, which a route lookup toward the client cannot: with two adapters on
+ * different subnets, `ip route get <client>` answers with the default route
+ * for any client on a third subnet. Written by `server-ip-patch.ts`.
+ */
+export const LOCAL_IP_HEADER = 'x-hs-local-ip';
+
+/**
  * Server-stamped header: `1` when the TCP peer is one of HS_TRUSTED_PROXIES,
  * so a forwarded header (`X-Forwarded-Host`) describes the real client, and
  * `0` otherwise. Written by `server-ip-patch.ts` over anything the client sent.

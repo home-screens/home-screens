@@ -4,7 +4,7 @@ import { readConfig } from '@/lib/config';
 import { requireSession, requireDisplayAuth, getMediaTokenSecret } from '@/lib/auth';
 import { verifyMediaToken } from '@/lib/media-token';
 import { getSecret, type SecretKey } from '@/lib/secrets';
-import { CLIENT_IP_HEADER } from '@/lib/client-ip';
+import { CLIENT_IP_HEADER, LOCAL_IP_HEADER } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
 import { FamilyError, isFamilyDataError } from './family-errors';
 
@@ -457,6 +457,15 @@ export function createRateLimiter(maxAttempts: number, windowMs: number) {
  */
 export function getClientIP(request: NextRequest): string {
   return request.headers.get(CLIENT_IP_HEADER) || 'unknown';
+}
+
+/**
+ * The address this request arrived on, stamped from the socket by
+ * `server-ip-patch.ts`. Empty when the patch is not installed (tests, or a
+ * runtime without the instrumentation hook).
+ */
+export function getLocalIP(request: NextRequest): string {
+  return request.headers.get(LOCAL_IP_HEADER) || '';
 }
 
 /**

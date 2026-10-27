@@ -1462,13 +1462,22 @@
         "cancelButton": "Cancelar",
         "connectButton": "Conectar",
         "connectingButton": "Conectando...",
-        "defaultConnectError": "Falha na conexão"
+        "defaultConnectError": "Falha na conexão",
+        "savedPasswordPlaceholder": "Deixe em branco para usar a senha salva"
       },
       "managementWarning": {
         "heading": "Aviso da interface de gerenciamento",
         "autoRevertHint": "Se essa mudança quebrar a conectividade, será revertida automaticamente após 60 segundos.",
         "cancelButton": "Cancelar",
-        "proceedButton": "Entendi, prosseguir"
+        "proceedButton": "Entendi, prosseguir",
+        "kinds": {
+          "connect": "Você está chegando a esta página por este adaptador. Trocar o Wi-Fi dele pode desconectar você por um momento.",
+          "disconnect": "Você está chegando a esta página por esta rede. Desconectar vai tirar este aparelho dela.",
+          "forget": "Você está chegando a esta página por esta rede. Esquecer vai tirar este aparelho dela.",
+          "unknown": "Não dá para saber se esta é a rede que você está usando agora. Se continuar, este aparelho pode ficar inacessível."
+        },
+        "reachAt": "Depois disso, abra esta página em {url}.",
+        "noOtherAddress": "Depois disso, não dá para chegar a este aparelho até que ele entre em uma rede de novo."
       },
       "rollback": {
         "polling": {
@@ -1500,7 +1509,9 @@
         "forgetButton": "Esquecer",
         "forgetConfirmYes": "Sim",
         "forgetConfirmNo": "Não",
-        "forgettingButton": "Removendo..."
+        "forgettingButton": "Removendo...",
+        "onAdapter": "por {device}",
+        "forgetError": "Não foi possível remover esta rede. Veja se o aparelho ainda está acessível e tente de novo."
       },
       "ipSettings": {
         "heading": "Configurações de IP ({device})",

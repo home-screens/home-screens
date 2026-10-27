@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, getClientIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, getClientIP, parseJsonBody, execErrorMessage, getLocalIP } from '@/lib/api-utils';
 import {
   nmcli,
   nmcliSudo,
@@ -147,7 +147,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
 
   // 4. Determine whether this connection is on the management interface
   const clientIP = getClientIP(request);
-  const managementIface = await getManagementInterface(clientIP);
+  const managementIface = await getManagementInterface(clientIP, getLocalIP(request));
 
   // Get the device associated with this connection to compare
   const connectionDevice = await getDeviceForConnection(connectionId);

@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, getClientIP, getLocalIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import { requireSudo } from '@/lib/sudo-grant';
-import { nmcli, nmcliSudo } from '@/lib/network-commands';
+import {
+  nmcliSudo,
+  listWifiProfiles,
+  findActiveDevice,
+  getManagementInterface,
+  getOtherReachableAddress,
+  isPotentiallyManagementInterface,
+} from '@/lib/network-commands';
 import { validateUUID } from '@/lib/network-validation';
-import { parseTerseFields } from '@/lib/network-parse';
 import { isAuthEnabled } from '@/lib/auth';
 import type { SavedNetwork } from '@/lib/network-types';
 
@@ -16,44 +22,22 @@ export const GET = withAuth(async (request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const showPasswords = searchParams.get('showPasswords') === 'true';
 
-  // List all connections with relevant fields
-  // TIMESTAMP is a Unix epoch (seconds) for last-used time
-  let output: string;
+  let profiles;
   try {
-    output = await nmcli([
-      '-t', '-f', 'NAME,UUID,TYPE,AUTOCONNECT,TIMESTAMP',
-      'connection', 'show',
-    ]);
+    profiles = await listWifiProfiles();
   } catch {
     return NextResponse.json([]);
   }
 
-  const savedNetworks: SavedNetwork[] = [];
-
-  for (const line of output.split('\n')) {
-    if (!line.trim()) continue;
-    const fields = parseTerseFields(line);
-    if (fields.length < 5) continue;
-
-    const [name, uuid, type, autoconnect, timestamp] = fields;
-
-    // Filter to WiFi connections only
-    if (type !== '802-11-wireless') continue;
-
-    const epochSec = parseInt(timestamp, 10);
-    const lastUsed =
-      epochSec > 0
-        ? new Date(epochSec * 1000).toISOString()
-        : 'never';
-
-    savedNetworks.push({
-      id: uuid,
-      name,
-      ssid: name, // Connection name typically matches SSID
-      autoconnect: autoconnect === 'yes',
-      lastUsed,
-    });
-  }
+  const savedNetworks: SavedNetwork[] = profiles.map((p) => ({
+    id: p.uuid,
+    name: p.name,
+    ssid: p.ssid,
+    ...(p.iface && { iface: p.iface }),
+    autoconnect: p.autoconnect,
+    // TIMESTAMP is a Unix epoch (seconds) for last-used time
+    lastUsed: p.timestamp > 0 ? new Date(p.timestamp * 1000).toISOString() : 'never',
+  }));
 
   // Optionally retrieve passwords — only when auth is configured
   if (showPasswords) {
@@ -89,11 +73,16 @@ export const GET = withAuth(async (request: NextRequest) => {
 
 /* ─── DELETE: Forget a saved connection ──────── */
 
+interface ForgetRequest {
+  connectionId: string;
+  confirmed?: boolean;
+}
+
 export const DELETE = withAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ connectionId: string }>(request);
+  const body = await parseJsonBody<ForgetRequest>(request);
   if (body instanceof NextResponse) return body;
 
-  const { connectionId } = body;
+  const { connectionId, confirmed } = body;
 
   // 1. Validate connection UUID
   const uuidResult = validateUUID(connectionId);
@@ -104,7 +93,46 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   const sudo = await requireSudo();
   if (sudo) return sudo;
 
-  // 2. Delete the saved connection
+  // 2. Forgetting the profile the browser is coming in over drops that
+  // connection, and the response with it: the button sat on "Removing..."
+  // forever. Ask first, the same way Disconnect does, and say where the
+  // device will still answer.
+  if (!confirmed) {
+    let activeDevice: string | null = null;
+    let lookupFailed = false;
+    try {
+      activeDevice = await findActiveDevice(connectionId);
+    } catch {
+      lookupFailed = true;
+    }
+
+    if (lookupFailed) {
+      return NextResponse.json({
+        requiresConfirmation: true,
+        warningKind: 'unknown',
+        warning:
+          'Unable to determine if this network serves your current session. ' +
+          'Forgetting it may make this device unreachable.',
+      });
+    }
+
+    if (activeDevice) {
+      const managementIface = await getManagementInterface(getClientIP(request), getLocalIP(request));
+      if (isPotentiallyManagementInterface(managementIface, activeDevice)) {
+        const otherAddress = await getOtherReachableAddress(activeDevice);
+        return NextResponse.json({
+          requiresConfirmation: true,
+          warningKind: 'forget',
+          ...(otherAddress && { otherAddress }),
+          warning:
+            "This is the network you're using to access this page. " +
+            'Forgetting it will disconnect this device from it.',
+        });
+      }
+    }
+  }
+
+  // 3. Delete the saved connection
   try {
     await nmcliSudo(['connection', 'delete', connectionId]);
     return NextResponse.json({ ok: true });

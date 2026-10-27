@@ -1462,13 +1462,22 @@
         "cancelButton": "Abbrechen",
         "connectButton": "Verbinden",
         "connectingButton": "Wird verbunden …",
-        "defaultConnectError": "Verbindung fehlgeschlagen"
+        "defaultConnectError": "Verbindung fehlgeschlagen",
+        "savedPasswordPlaceholder": "Leer lassen, um das gespeicherte Passwort zu verwenden"
       },
       "managementWarning": {
         "heading": "Warnung: Management-Schnittstelle",
         "autoRevertHint": "Wenn diese Änderung die Verbindung unterbricht, wird sie nach 60 Sekunden automatisch zurückgesetzt.",
         "cancelButton": "Abbrechen",
-        "proceedButton": "Ich verstehe, fortfahren"
+        "proceedButton": "Ich verstehe, fortfahren",
+        "kinds": {
+          "connect": "Du erreichst diese Seite über diesen Adapter. Ein Wechsel seines WLANs kann dich kurz trennen.",
+          "disconnect": "Du erreichst diese Seite über dieses Netzwerk. Wenn du es trennst, ist dieses Gerät darüber nicht mehr erreichbar.",
+          "forget": "Du erreichst diese Seite über dieses Netzwerk. Wenn du es vergisst, ist dieses Gerät darüber nicht mehr erreichbar.",
+          "unknown": "Wir können nicht erkennen, ob das gerade dein Netzwerk ist. Wenn du fortfährst, ist dieses Gerät vielleicht nicht mehr erreichbar."
+        },
+        "reachAt": "Öffne diese Seite danach stattdessen unter {url}.",
+        "noOtherAddress": "Danach ist dieses Gerät erst wieder erreichbar, wenn es wieder in einem Netzwerk ist."
       },
       "rollback": {
         "polling": {
@@ -1500,7 +1509,9 @@
         "forgetButton": "Vergessen",
         "forgetConfirmYes": "Ja",
         "forgetConfirmNo": "Nein",
-        "forgettingButton": "Wird entfernt …"
+        "forgettingButton": "Wird entfernt …",
+        "onAdapter": "über {device}",
+        "forgetError": "Das Netzwerk konnte nicht entfernt werden. Prüfe, ob das Gerät noch erreichbar ist, und versuche es noch einmal."
       },
       "ipSettings": {
         "heading": "IP-Einstellungen ({device})",

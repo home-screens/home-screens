@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { nmcli, nmcliSudo } from '@/lib/network-commands';
+import { nmcli, nmcliSudo, listWifiProfiles } from '@/lib/network-commands';
 import { validateInterfaceRegex } from '@/lib/network-validation';
 import { withAuth } from '@/lib/api-utils';
 import { parseTerseFields } from '@/lib/network-parse';
@@ -39,7 +39,7 @@ export const GET = withAuth(async (request: NextRequest) => {
   // results appear in `wifi list`. Using `--rescan yes` alone is insufficient
   // as it doesn't wait long enough for the hardware scan to complete.
   let scanOutput: string;
-  let savedOutput: string;
+  let savedSsids: Set<string>;
 
   try {
     // Trigger rescan (requires sudo for polkit authorization)
@@ -50,14 +50,18 @@ export const GET = withAuth(async (request: NextRequest) => {
     // Wait for hardware scan to complete
     await new Promise((resolve) => setTimeout(resolve, 4000));
 
-    // List results + saved connections in parallel
-    [scanOutput, savedOutput] = await Promise.all([
+    // List results + saved profiles in parallel. The saved badge matches on
+    // each profile's real SSID, not its name, so a pinned "HomeNet (wlan1)"
+    // profile still marks HomeNet as saved.
+    let profiles;
+    [scanOutput, profiles] = await Promise.all([
       nmcli([
         '--get-values', 'SSID,BSSID,SIGNAL,SECURITY,FREQ,IN-USE',
         'device', 'wifi', 'list', 'ifname', iface,
       ]),
-      nmcli(['-t', '-f', 'NAME,TYPE', 'connection', 'show']),
+      listWifiProfiles(),
     ]);
+    savedSsids = new Set(profiles.map((p) => p.ssid));
   } catch (err: unknown) {
     const isNotFound =
       err && typeof err === 'object' && 'code' in err && err.code === 'ENOENT';
@@ -70,17 +74,6 @@ export const GET = withAuth(async (request: NextRequest) => {
     // For other errors (e.g. interface not found), also return empty array
     // so the UI can show "no networks found" rather than an error state
     return NextResponse.json([]);
-  }
-
-  // Build a Set of saved WiFi SSIDs from connection list
-  // nmcli connection show output: NAME:TYPE (one per line)
-  const savedSsids = new Set<string>();
-  for (const line of savedOutput.split('\n')) {
-    if (!line.trim()) continue;
-    const fields = parseTerseFields(line);
-    if (fields.length >= 2 && fields[1] === '802-11-wireless') {
-      savedSsids.add(fields[0]);
-    }
   }
 
   // Parse scan results

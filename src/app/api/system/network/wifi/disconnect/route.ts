@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, getClientIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, getClientIP, getLocalIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
 import {
-  nmcli,
   nmcliSudo,
+  findActiveDevice,
   getManagementInterface,
+  getOtherReachableAddress,
   isPotentiallyManagementInterface,
 } from '@/lib/network-commands';
 import { validateUUID } from '@/lib/network-validation';
-import { parseTerseFields } from '@/lib/network-parse';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,25 +36,14 @@ export const POST = withAuth(async (request: NextRequest) => {
   // 2. Look up which device this connection is active on
   let activeDevice: string | null = null;
   try {
-    const output = await nmcli([
-      '-t', '-f', 'UUID,DEVICE,STATE',
-      'connection', 'show', '--active',
-    ]);
-
-    for (const line of output.split('\n')) {
-      if (!line.trim()) continue;
-      const fields = parseTerseFields(line);
-      if (fields.length >= 3 && fields[0] === connectionId) {
-        activeDevice = fields[1];
-        break;
-      }
-    }
+    activeDevice = await findActiveDevice(connectionId);
   } catch {
     // Could not look up active connections — fail-closed: require confirmation
     // since we can't determine if this is the management interface
     if (!confirmed) {
       return NextResponse.json({
         requiresConfirmation: true,
+        warningKind: 'unknown',
         warning:
           'Unable to determine if this connection serves your current session. ' +
           'Disconnecting may make this device unreachable.',
@@ -65,13 +54,18 @@ export const POST = withAuth(async (request: NextRequest) => {
   // 3. Check if disconnecting the management interface
   if (activeDevice) {
     const clientIP = getClientIP(request);
-    const managementIface = await getManagementInterface(clientIP);
+    const managementIface = await getManagementInterface(clientIP, getLocalIP(request));
     // Fail-closed: if management detection fails, assume worst case
     const isManagement = isPotentiallyManagementInterface(managementIface, activeDevice);
 
     if (isManagement && !confirmed) {
+      // Name the address the device keeps answering on, when it has one,
+      // so a second adapter is a way back in rather than a surprise.
+      const otherAddress = await getOtherReachableAddress(activeDevice);
       return NextResponse.json({
         requiresConfirmation: true,
+        warningKind: 'disconnect',
+        ...(otherAddress && { otherAddress }),
         warning:
           "This is the interface you're using to access this page. " +
           'Disconnecting may make this device unreachable.',

@@ -7,6 +7,7 @@ import ModalFrame from '@/components/ui/ModalFrame';
 import SudoPasswordPrompt from '@/components/editor/SudoPasswordPrompt';
 import { useTranslate } from '@/i18n';
 import type { NetworkInterface, WifiNetwork } from '@/lib/network-types';
+import { managementWarningText } from './management-warning';
 
 /* ─── Props ────────────────────────────────── */
 
@@ -50,6 +51,9 @@ export default function WifiConnectModal({
   const [hiddenSsidInput, setHiddenSsidInput] = useState(hiddenSsid ?? '');
 
   const effectiveSsid = network ? ssid : hiddenSsidInput;
+  // A secured network needs a password, unless it is saved and the saved one
+  // can be reused; a typed-in hidden name may be an open network
+  const passwordMissing = !!network && !isOpen && !network.saved && !password;
 
   /* ── Connect handler ───────────────────────── */
 
@@ -66,10 +70,15 @@ export default function WifiConnectModal({
       setError(null);
 
       try {
+        // The server builds one pinned profile per network per adapter from
+        // these; the scan's security type picks WPA2 or WPA3 and a typed-in
+        // name needs the hidden flag or NetworkManager never probes for it.
         const body: Record<string, unknown> = {
           ssid: effectiveSsid.trim(),
           iface,
+          hidden: !network,
         };
+        if (network) body.security = network.security;
         if (!isOpen && password) {
           body.password = password;
         }
@@ -81,13 +90,18 @@ export default function WifiConnectModal({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          // The server itself gives the join 45 s; past that the reply is not coming
+          signal: AbortSignal.timeout(90_000),
         });
 
         const data = await res.json();
 
         if (data.requiresConfirmation) {
           setConnecting(false);
-          onManagementWarning(data.warning, () => doConnectRef.current?.(true));
+          onManagementWarning(
+            managementWarningText(t, data, window.location.port),
+            () => doConnectRef.current?.(true),
+          );
           return;
         }
 
@@ -109,7 +123,7 @@ export default function WifiConnectModal({
         setConnecting(false);
       }
     },
-    [effectiveSsid, password, iface, isOpen, onConnected, onManagementWarning, t],
+    [effectiveSsid, password, iface, isOpen, network, onConnected, onManagementWarning, t],
   );
 
   useEffect(() => {
@@ -160,7 +174,11 @@ export default function WifiConnectModal({
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-hs-bg border border-hs-border rounded px-3 py-2 pr-16 text-sm text-hs-text-primary focus:outline-none focus:border-hs-accent"
-                  placeholder={t('settings.networkPage.wifiConnect.passwordPlaceholder')}
+                  placeholder={
+                    network?.saved
+                      ? t('settings.networkPage.wifiConnect.savedPasswordPlaceholder')
+                      : t('settings.networkPage.wifiConnect.passwordPlaceholder')
+                  }
                   autoFocus={!!network}
                 />
                 <button
@@ -219,7 +237,7 @@ export default function WifiConnectModal({
             <Button variant="secondary" type="button" onClick={onClose} disabled={connecting}>
               {t('settings.networkPage.wifiConnect.cancelButton')}
             </Button>
-            <Button variant="primary" type="submit" disabled={connecting || !effectiveSsid.trim()}>
+            <Button variant="primary" type="submit" disabled={connecting || !effectiveSsid.trim() || passwordMissing}>
               {connecting
                 ? t('settings.networkPage.wifiConnect.connectingButton')
                 : t('settings.networkPage.wifiConnect.connectButton')}

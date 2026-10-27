@@ -67,6 +67,19 @@ export interface DiagnosticsResult {
 
 /* ─── /api/system/network/wifi/* ────────────── */
 
+/**
+ * A network change that would cut the adapter the browser is using answers
+ * with this instead of acting. `warning` is the English fallback; the editor
+ * composes its own text from `warningKind` and `otherAddress`.
+ */
+export interface ManagementConfirmation {
+  requiresConfirmation: true;
+  warningKind: 'connect' | 'disconnect' | 'forget' | 'unknown';
+  /** An address on another adapter this device keeps answering on, when it has one. */
+  otherAddress?: string;
+  warning: string;
+}
+
 export interface WifiNetwork {
   ssid: string;
   bssid: string;
@@ -81,6 +94,8 @@ export interface SavedNetwork {
   id: string;
   name: string;
   ssid: string;
+  /** Adapter the profile is pinned to; unset for profiles made outside Home Screens. */
+  iface?: string;
   autoconnect: boolean;
   lastUsed: string;
   password?: string;
