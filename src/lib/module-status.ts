@@ -3,7 +3,7 @@ import { evaluateVisibility, isModuleEnabled, isModuleVisible, type ScheduleCloc
 import { describeSchedule } from '@/lib/schedule-summary';
 import { referencesStateKeys, verdictStatesFor } from '@/lib/condition-verdicts';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
-import type { ModuleInstance, TextLook, TimeFormat } from '@/types/config';
+import type { ModuleInstance, Screen, TextLook, TimeFormat } from '@/types/config';
 import { resolveTextLooks } from '@/lib/text-looks';
 import type { TranslateFn } from '@/i18n/types';
 
@@ -66,6 +66,17 @@ export function moduleReadsLiveValues(mod: ModuleInstance): boolean {
     return Array.isArray(looks) && looks.length > 0;
   }
   return false;
+}
+
+/**
+ * True when the editor needs live values to describe this screen: the screen
+ * itself is gated by conditions, or any module on it reads live values. The
+ * canvas arms the display poll on this, for the reason `moduleReadsLiveValues`
+ * gives.
+ */
+export function screenReadsLiveValues(screen: Pick<Screen, 'visibility' | 'modules'>): boolean {
+  if ((screen.visibility?.conditions?.length ?? 0) > 0) return true;
+  return screen.modules.some(moduleReadsLiveValues);
 }
 
 /** The first state key a condition tree mentions, for "waiting for <key>". */

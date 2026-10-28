@@ -19,7 +19,7 @@ import {
 import { resolveDragPosition, type AlignmentGuide } from '@/lib/alignment-guides';
 import { getLocation } from '@/lib/location';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
-import { moduleReadsLiveValues } from '@/lib/module-status';
+import { screenReadsLiveValues } from '@/lib/module-status';
 import { useWallClock } from '@/hooks/useTZClock';
 import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvasBaseScale';
@@ -293,7 +293,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   // Live shared-state snapshot for the condition badges. Poll only while
   // something on this display is actually gated — the GET also arms the
   // display's fast re-reporting, so an idle editor shouldn't hold it open.
-  const anyConditionGated = activeScreens.some((s) => s.modules.some(moduleReadsLiveValues));
+  const anyConditionGated = activeScreens.some(screenReadsLiveValues);
   const liveState = useEditorSharedState(selectedDisplayId, anyConditionGated);
   const verdictStates = liveState.states;
 

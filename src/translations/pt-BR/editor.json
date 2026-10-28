@@ -169,6 +169,7 @@
     "stickyTooltip": "fica: não avança sozinha, precisa de um toque ou do controle remoto",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "agendada",
+    "conditionalTooltip": "aparece só quando as condições correspondem",
     "disabledTooltip": "desativada, não é mostrada na tela",
     "disabledIndicatorAriaLabel": "Desativada",
     "disabledBadge": "Desligada",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Nada referencia esta chave.",
       "referencedByLabel": "Usada por",
       "ruleRefLabel": "Regra: {name}",
+      "screenRefLabel": "Tela: {name}",
       "builtInProducer": "Integrado",
       "producerLabel": "De {producer}",
       "providerHealthSince": "desde {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Até"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Portas, luzes e quem está em casa vêm do complemento do Home Assistant. Instale-o e eles também aparecem aqui."
+    "addOnHint": "Portas, luzes e quem está em casa vêm do complemento do Home Assistant. Instale-o e eles também aparecem aqui.",
+    "screen": {
+      "enableHelp": "Incluir esta tela na rotação só enquanto os valores ao vivo dos serviços conectados corresponderem (por exemplo, o próximo evento do calendário começa em menos de uma hora).",
+      "noConditionsHint": "Nenhuma condição ainda. A tela sempre aparece até você adicionar uma.",
+      "allMustMatchHint": "Todas as condições devem corresponder para a tela aparecer.",
+      "whenUnknownHide": "Deixar a tela de fora",
+      "whenUnknownShow": "Manter a tela"
+    }
   },
   "stateKeys": {
     "calendar": {

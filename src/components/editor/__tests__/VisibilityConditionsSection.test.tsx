@@ -15,7 +15,7 @@ vi.mock('@/lib/editor-fetch', () => ({
   throwIfNotOk: () => {},
 }));
 
-import VisibilityConditionsSection from '../VisibilityConditionsSection';
+import VisibilityConditionsSection, { VisibilityConditionsEditor } from '../VisibilityConditionsSection';
 
 function renderSection(conditions: VisibilityCondition[]) {
   const mod = { id: 'm', type: 'text', config: {}, visibility: { conditions } } as unknown as ModuleInstance;
@@ -59,5 +59,25 @@ describe('visibility conditions that only read the clock', () => {
     renderSection([morning, { kind: 'state', sourceKey: 'door', equals: 'open' }]);
     expect(screen.getByText(editor.visibilityConditions.whenUnknownTitle)).toBeTruthy();
     expect(screen.getByText(editor.visibilityConditions.outcome.noLiveData)).toBeTruthy();
+  });
+});
+
+describe('the screen variant of the editor', () => {
+  it('says screen where the module variant says module, and uses the title it is given', () => {
+    render(
+      <I18nProvider locale="en-US" blob={{ core, editor }}>
+        <VisibilityConditionsEditor
+          visibility={{ conditions: [{ kind: 'state', sourceKey: 'door', equals: 'open' }] }}
+          onChange={() => {}}
+          subject="screen"
+          statusTitle="Screen conditions"
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText("Screen conditions")).toBeTruthy();
+    expect(screen.getByText(editor.visibilityConditions.screen.enableHelp)).toBeTruthy();
+    expect(screen.queryByText(editor.visibilityConditions.enableHelp)).toBeNull();
+    expect(screen.getByText(editor.visibilityConditions.screen.whenUnknownHide)).toBeTruthy();
+    expect(screen.queryByText(editor.visibilityConditions.whenUnknownHide)).toBeNull();
   });
 });

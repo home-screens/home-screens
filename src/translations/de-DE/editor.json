@@ -169,6 +169,7 @@
     "stickyTooltip": "bleibt – wechselt nicht von selbst; braucht ein Tippen oder die Fernbedienung",
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "geplant",
+    "conditionalTooltip": "nur wenn Bedingungen zutreffen",
     "disabledTooltip": "deaktiviert – wird auf dem Display nicht angezeigt",
     "disabledIndicatorAriaLabel": "Deaktiviert",
     "disabledBadge": "Aus",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Nichts referenziert diesen Schlüssel.",
       "referencedByLabel": "Genutzt von",
       "ruleRefLabel": "Regel: {name}",
+      "screenRefLabel": "Bildschirm: {name}",
       "builtInProducer": "Integriert",
       "producerLabel": "Von {producer}",
       "providerHealthSince": "seit {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Bis"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Türen, Lichter und wer zu Hause ist kommen vom Home-Assistant-Add-on. Installiere es, dann erscheinen sie auch hier."
+    "addOnHint": "Türen, Lichter und wer zu Hause ist kommen vom Home-Assistant-Add-on. Installiere es, dann erscheinen sie auch hier.",
+    "screen": {
+      "enableHelp": "Diesen Bildschirm nur in die Rotation aufnehmen, solange Live-Werte aus verbundenen Diensten zutreffen (z. B. der nächste Kalendertermin beginnt in weniger als einer Stunde).",
+      "noConditionsHint": "Noch keine Bedingungen. Der Bildschirm wird immer angezeigt, bis eine hinzugefügt wird.",
+      "allMustMatchHint": "Alle Bedingungen müssen zutreffen, damit der Bildschirm angezeigt wird.",
+      "whenUnknownHide": "Bildschirm auslassen",
+      "whenUnknownShow": "Bildschirm weiter anzeigen"
+    }
   },
   "stateKeys": {
     "calendar": {

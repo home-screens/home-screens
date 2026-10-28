@@ -159,6 +159,8 @@ Account credentials (Apple ID + app-specific password) are **not** stored in the
 
 {% type-reference name="Screen" /%}
 
+A screen's three gates (`enabled`, `schedule`, `visibility`) are AND-combined, like a module's: a screen takes part in the rotation only when it is enabled, its schedule window matches, and its visibility conditions are met. See [Screen-level scheduling](/docs/profiles#screen-level-scheduling) and [Screen-level conditions](/docs/profiles#screen-level-conditions).
+
 #### BackgroundRotation
 
 {% type-reference name="BackgroundRotation" /%}

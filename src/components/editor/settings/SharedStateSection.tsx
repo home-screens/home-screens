@@ -78,6 +78,9 @@ export function referenceLabel(ref: StateKeyReference, t: TranslateFn): string {
   if (ref.kind === 'rule') {
     return t('settings.sharedStatePage.ruleRefLabel', { name: ref.ruleName });
   }
+  if (ref.kind === 'screen') {
+    return t('settings.sharedStatePage.screenRefLabel', { name: ref.screenName });
+  }
   const moduleLabel = resolveModuleLabel(ref.moduleType as ModuleType, t);
   return `${moduleLabel} · ${ref.screenName}`;
 }

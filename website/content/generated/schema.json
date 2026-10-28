@@ -8437,6 +8437,15 @@
             "text": "ModuleSchedule"
           },
           "description": "Only put this screen in the rotation during these days and times (see ModuleSchedule). When no scheduled screen matches, every enabled screen shows"
+        },
+        {
+          "name": "visibility",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "ModuleVisibility"
+          },
+          "description": "Only put this screen in the rotation while live values meet these conditions (see ModuleVisibility). Works together with the on/off switch and the schedule: all three must agree. When no screen is left, every enabled screen shows"
         }
       ]
     },

@@ -35,7 +35,8 @@ import { useTapRotationHold } from './useTapRotationHold';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
 import { useWallClock } from '@/hooks/useTZClock';
-import { resolveProfile, isModuleVisible } from '@/lib/schedule';
+import { resolveProfile, isScreenInRotation, collectScreenConditionSourceKeys } from '@/lib/schedule';
+import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
 import { useIdleCursor } from '@/hooks/useIdleCursor';
@@ -97,6 +98,23 @@ interface ScreenRotatorProps {
 const clearAlerts = () => useAlertStore.getState().clearAlerts();
 const hideShownPhoto = () => usePhotoShowStore.getState().hide();
 
+/**
+ * Where the display lands when the rotation set changes (see the effect that
+ * calls it). Exported for tests.
+ */
+export function placeAfterSetChange(previous: Screen[], previousIndex: number, next: Screen[]): number {
+  if (next.length === 0) return 0;
+  const shown = previous[previousIndex];
+  if (!shown) return 0;
+  const kept = next.findIndex((s) => s.id === shown.id);
+  if (kept !== -1) return kept;
+  for (let i = previousIndex + 1; i < previous.length; i++) {
+    const follower = next.findIndex((s) => s.id === previous[i].id);
+    if (follower !== -1) return follower;
+  }
+  return 0;
+}
+
 export default function ScreenRotator({ screens: initialScreens, settings: initialSettings, hubTimezone, profiles: initialProfiles, rules: initialRules, displayToken, displayId, initialDisplays, initialScreenId, preview = false, configEtag }: ScreenRotatorProps) {
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
@@ -151,21 +169,28 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Re-evaluate profile schedule every minute (timezone-aware)
   const now = useWallClock(settings.timezone, 60_000);
 
-  // Filter out screens whose schedule excludes "now".
+  // Filter out screens whose schedule excludes "now" or whose visibility
+  // conditions are not met. The subscription is scoped to the keys the
+  // screens' own condition trees reference (same targeted pattern as
+  // ScreenRenderer and useDisplayRules), so a publish to any other key never
+  // re-renders the rotator, and a config with no conditional screen never
+  // subscribes at all. `time` conditions ride the minute clock above.
   // Falls back to enabledScreens when the filter leaves nothing — better to
   // show something than a blank kiosk. Mirrors resolveProfileScreens'
   // "no match → all screens" safety.
-  const scheduledScreens = useMemo(() => {
-    const filtered = enabledScreens.filter((s) => isModuleVisible(s.schedule, now));
+  const screenConditionKeys = useMemo(() => collectScreenConditionSourceKeys(enabledScreens), [enabledScreens]);
+  const screenStates = useSharedStateKeys(screenConditionKeys);
+  const availableScreens = useMemo(() => {
+    const filtered = enabledScreens.filter((s) => isScreenInRotation(s, now, screenStates));
     return filtered.length > 0 ? filtered : enabledScreens;
-  }, [enabledScreens, now]);
+  }, [enabledScreens, now, screenStates]);
 
   // The profile in effect is what the heartbeat reports, not the manual pick:
   // a scheduled profile overrides the pick, and a phone that showed the pick
   // would name screens the wall is not showing.
   const resolvedProfile = useMemo(
-    () => resolveProfile(scheduledScreens, profiles, settings.activeProfile, now),
-    [scheduledScreens, profiles, settings.activeProfile, now],
+    () => resolveProfile(availableScreens, profiles, settings.activeProfile, now),
+    [availableScreens, profiles, settings.activeProfile, now],
   );
 
   // Last filter before the rotation list is final: a screen nobody has put
@@ -241,6 +266,13 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // usePauseRotation) on every screen change.
   const safeIndexRef = useRef(safeIndex);
   useEffect(() => { safeIndexRef.current = safeIndex; }, [safeIndex]);
+  // nextScreen and prevScreen read the screen count the same way: nextScreen
+  // is the rotation timer's onAdvance, and a new identity re-arms the dwell.
+  // A conditional screen leaving or joining mid-dwell must not restart the
+  // countdown for the screen that is showing (and a gate that flips often
+  // could otherwise hold rotation forever).
+  const screenCountRef = useRef(screens.length);
+  useEffect(() => { screenCountRef.current = screens.length; }, [screens.length]);
 
   // Any navigation also forgets the requested start screen (see
   // startScreenRef): both the pin and the "land here when the rotation next
@@ -261,16 +293,18 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const nextScreen = useCallback(() => {
     releaseActiveTakeover();
     forgetStartScreen();
-    if (screens.length <= 1) return;
-    transition(() => { setCurrentIndex((prev) => (prev + 1) % screens.length); });
-  }, [screens.length, releaseActiveTakeover, forgetStartScreen, transition]);
+    const count = screenCountRef.current;
+    if (count <= 1) return;
+    transition(() => { setCurrentIndex((prev) => (prev + 1) % count); });
+  }, [releaseActiveTakeover, forgetStartScreen, transition]);
 
   const prevScreen = useCallback(() => {
     releaseActiveTakeover();
     forgetStartScreen();
-    if (screens.length <= 1) return;
-    transition(() => { setCurrentIndex((prev) => (prev - 1 + screens.length) % screens.length); }, 'backward');
-  }, [screens.length, releaseActiveTakeover, forgetStartScreen, transition]);
+    const count = screenCountRef.current;
+    if (count <= 1) return;
+    transition(() => { setCurrentIndex((prev) => (prev - 1 + count) % count); }, 'backward');
+  }, [releaseActiveTakeover, forgetStartScreen, transition]);
 
   const resetRotation = useCallback(() => {
     setRotationEpoch((e) => e + 1);
@@ -495,32 +529,54 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // preview window, which shows one screen and never rotates.
   useBootWarmup(screens, screenKey, safeIndex, settings.timezone, !preview);
 
-  // Reset currentIndex when the active screen set changes (handles both length
-  // changes and same-length profile switches with different screens). No
-  // animation — this is a hard reset. usePauseRotation clears pause on the
-  // same key. The first set that contains the requested start screen lands
-  // on it instead of screen 1 (and unpins it); until then it stays pinned.
+  // Re-place currentIndex when the active screen set changes. No animation —
+  // this is a hard re-placement. usePauseRotation clears pause on the same
+  // key. The first set that contains the requested start screen lands on it
+  // instead (and unpins it); until then it stays pinned.
   //
-  // Keyed by the last screenKey handled: React Strict Mode (dev) runs mount
-  // effects twice, and a second run for the same key must not treat the
-  // just-consumed start screen as "gone" and reset to screen 1.
-  const screensRef = useRef(screens);
-  screensRef.current = screens;
+  // Where the display lands: on the screen it was showing, if the new set
+  // still has it (its index may have moved); otherwise on the first screen
+  // that followed it in the old order and is still present; otherwise screen
+  // 1. A schedule boundary or a profile switch used to reset to screen 1
+  // every time, which was tolerable once a day. A conditional screen can
+  // flip several times an hour (the next event crosses an hour away, a
+  // sensor toggles), and yanking the wall back to screen 1 each time read as
+  // a glitch. A profile switch still lands on screen 1 in practice, because
+  // the screen it was showing is rarely in the new profile.
+  //
+  // The placement happens during render, not in an effect: the commit that
+  // delivers a new set must already show the settled screen. Clamping first
+  // and moving in an effect painted screen 1 for one frame, which unmounted
+  // the modules of the screen that was staying (an open recipe closed, a
+  // paged list went back to page 1) before the effect brought them back.
+  // This is React's adjust-state-during-render pattern: the set-state calls
+  // below make React rerun this render with the new index before anything
+  // reaches the DOM. `currentIndex` is still the index into the old list
+  // here, which is what placeAfterSetChange needs.
+  const [settledSet, setSettledSet] = useState<{ key: string; screens: Screen[] }>({ key: screenKey, screens });
+  if (settledSet.key !== screenKey) {
+    const start = startScreenRef.current;
+    const startIndex = start ? screens.findIndex((s) => s.id === start) : -1;
+    setSettledSet({ key: screenKey, screens });
+    setCurrentIndex(startIndex !== -1 ? startIndex : placeAfterSetChange(settledSet.screens, currentIndex, screens));
+  }
+
+  // Consuming the requested start screen stays in an effect (it mutates the
+  // ref and drops the pin). Keyed by the last screenKey handled: React Strict
+  // Mode (dev) runs mount effects twice, and a second run for the same key
+  // must not treat the just-consumed start screen as "gone".
   const handledScreenKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (handledScreenKeyRef.current === screenKey) return;
     handledScreenKeyRef.current = screenKey;
     const start = startScreenRef.current;
-    if (start) {
-      const index = screensRef.current.findIndex((s) => s.id === start);
-      if (index !== -1) {
-        startScreenRef.current = null;
-        setPinnedScreenId(null);
-        setCurrentIndex(index);
-        return;
-      }
-    }
-    setCurrentIndex(0);
+    if (!start) return;
+    const index = screens.findIndex((s) => s.id === start);
+    if (index === -1) return;
+    startScreenRef.current = null;
+    setPinnedScreenId(null);
+    setCurrentIndex(index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- screenKey is the id list of `screens`; the effect runs once per set change, by design
   }, [screenKey]);
 
   // The one pause-clear that cannot live in usePauseRotation: it needs
@@ -603,9 +659,13 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
 
   // Restart the rotation timer whenever the current screen changes so the
   // new screen gets its full dwell time (not the residual from the previous).
+  // Keyed on the screen's id, not its index: when another screen leaves the
+  // rotation the index of the one showing can shift while the screen itself
+  // stays, and that is not a screen change.
+  const currentScreenId = currentScreen?.id ?? null;
   useEffect(() => {
     setRotationEpoch((e) => e + 1);
-  }, [safeIndex]);
+  }, [currentScreenId]);
 
   // Nothing to show — no screens resolve (none configured, or every one
   // disabled), or every resolved screen is empty (no modules and no

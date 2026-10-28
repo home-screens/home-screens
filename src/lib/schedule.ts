@@ -351,6 +351,38 @@ export function collectConditionSourceKeys(modules: ModuleInstance[]): string[] 
   return Array.from(keys).sort();
 }
 
+/**
+ * Whether a screen takes part in the rotation right now: on, inside its
+ * schedule window, and its visibility conditions met. The one predicate the
+ * rotator, the editor's screen badges and the tests share, so the three
+ * screen gates can never be combined two different ways.
+ */
+export function isScreenInRotation(
+  screen: Pick<Screen, 'enabled' | 'schedule' | 'visibility'>,
+  now: ScheduleClock,
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean {
+  return screen.enabled !== false
+    && isModuleVisible(screen.schedule, now)
+    && evaluateVisibility(screen.visibility, states, now);
+}
+
+/**
+ * All sourceKeys referenced by the screens' OWN visibility trees (not their
+ * modules'), deduped and sorted. Disabled screens are skipped: they never
+ * reach the rotation filter, so their keys would be a subscription nobody
+ * reads. Lets the rotator subscribe to only the keys that can change the
+ * rotation set.
+ */
+export function collectScreenConditionSourceKeys(screens: Screen[]): string[] {
+  const keys = new Set<string>();
+  for (const screen of screens) {
+    if (screen.enabled === false) continue;
+    if (screen.visibility?.conditions) collectSourceKeys(screen.visibility.conditions, keys);
+  }
+  return Array.from(keys).sort();
+}
+
 /** String equality where an array means "matches any" (HA's array semantics). */
 function matchesAny(value: string, expected: string | string[]): boolean {
   return Array.isArray(expected) ? expected.includes(value) : value === expected;

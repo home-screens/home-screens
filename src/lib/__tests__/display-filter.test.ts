@@ -1253,6 +1253,20 @@ describe('validateAllSchedules', () => {
     expect(validateAllSchedules(config)).toMatch(/screen "s1"/);
   });
 
+  it('catches malformed visibility conditions on a screen, naming the screen', () => {
+    const screen = makeScreen('s1');
+    screen.visibility = { conditions: [{ kind: 'numeric', sourceKey: 'calendar.next_event_in_minutes', below: Number.NaN }] };
+    const config = makeConfig({ screens: [screen] });
+    expect(validateAllSchedules(config)).toMatch(/screen "s1"/);
+    expect(validateAllSchedules(config)).not.toMatch(/module/);
+  });
+
+  it('accepts well-formed visibility conditions on a screen', () => {
+    const screen = makeScreen('s1');
+    screen.visibility = { conditions: [{ kind: 'numeric', sourceKey: 'calendar.next_event_in_minutes', below: 60 }] };
+    expect(validateAllSchedules(makeConfig({ screens: [screen] }))).toBeNull();
+  });
+
   it('catches a malformed schedule on a display-owned screen', () => {
     const screen = makeScreen('k-s1');
     screen.schedule = { startTime: 'noon' };

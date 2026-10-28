@@ -7,10 +7,12 @@ import { SHORT_SCREEN_DURATION_MS } from '@/lib/constants';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
 import { ScreenScheduleSection } from './ScreenScheduleSection';
+import { ScreenVisibilitySection } from './ScreenVisibilitySection';
 
 /**
  * Shown in the right property panel when a screen is selected but no module
- * is selected. Currently exposes the per-screen rotation duration override.
+ * is selected: the per-screen rotation duration override, the screen's
+ * schedule and its visibility conditions.
  *
  * Inherit → Override → numeric (seconds) input → Reset. Similar in spirit to
  * the per-display Settings > OverrideRow pattern, but without a Defaults-page
@@ -145,12 +147,25 @@ export default function ScreenSettingsSection() {
 
         {/*
           ScreenScheduleSection delegates to ScheduleEditor, which renders its
-          own four PropertyGroups (Status / Days / Time window / Behavior).
-          Wrapping it in another PropertyGroup nests groups inside groups —
+          own four PropertyGroups (Status / Days / Time window / Behavior), and
+          ScreenVisibilitySection does the same with the conditions editor.
+          Wrapping them in another PropertyGroup nests groups inside groups —
           the design system isn't built for that, so we render the inner
           groups directly here just like ModuleSection does for ScheduleSection.
+          Both editors open with a "Status" group inside a module's accordions;
+          stacked here with no accordion between them, each first group is
+          named after what it gates instead.
         */}
-        <ScreenScheduleSection screenId={screen.id} schedule={screen.schedule} />
+        <ScreenScheduleSection
+          screenId={screen.id}
+          schedule={screen.schedule}
+          statusTitle={t('propertyPanel.sections.schedule')}
+        />
+        <ScreenVisibilitySection
+          screenId={screen.id}
+          visibility={screen.visibility}
+          statusTitle={t('propertyPanel.sections.conditions')}
+        />
       </div>
     </AccordionSection>
   );

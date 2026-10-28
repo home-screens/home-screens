@@ -65,6 +65,11 @@ describe('referenceLabel', () => {
     expect(referenceLabel(ref, t)).toBe('settings.sharedStatePage.ruleRefLabel(Doorbell)');
   });
 
+  it('names a screen that conditions itself on the key', () => {
+    const ref: StateKeyReference = { kind: 'screen', screenId: 's-travel', screenName: 'Travel' };
+    expect(referenceLabel(ref, t)).toBe('settings.sharedStatePage.screenRefLabel(Travel)');
+  });
+
   it('labels a built-in module by its registry translation key plus screen name', () => {
     expect(referenceLabel(moduleRef('text'), t)).toBe('registry.types.text · Home');
   });

@@ -2,8 +2,8 @@
  * Demand-driven shared-state key computation.
  *
  * The host knows exactly which shared-state keys a display needs: every
- * `sourceKey` in a module's visibility-condition tree plus every `{key}`
- * token in a Text module's content (and, later, display-rule conditions).
+ * `sourceKey` in a screen's or a module's visibility-condition tree plus
+ * every `{key}` token in a Text module's content and display-rule conditions.
  * This module generalizes that into a display-wide demand set and groups it
  * by owning plugin, so `PluginServiceLayer` can hand each plugin's
  * `stateProvider` exactly the keys it must publish — no second module, no
@@ -24,8 +24,9 @@ type RuleConditions = Pick<DisplayRule, 'when' | 'enabled'>;
 
 /**
  * The single config traversal behind both `collectDemandedKeys` and
- * `collectKeyReferences`: every key source (module visibility conditions,
- * Text module tokens, display-rule conditions) and every skip rule (disabled
+ * `collectKeyReferences`: every key source (screen visibility conditions,
+ * module visibility conditions, Text module tokens, display-rule conditions)
+ * and every skip rule (disabled
  * screens/modules/rules, empty authoring-time keys) lives here exactly once,
  * so the demand-driven providers and the editor's bus inspector can never
  * disagree about which keys the config references.
@@ -40,11 +41,18 @@ type RuleConditions = Pick<DisplayRule, 'when' | 'enabled'>;
 function walkReferencedKeys<R extends RuleConditions>(
   screens: Screen[],
   rules: readonly R[] | undefined,
+  onScreenKey: (key: string, screen: Screen) => void,
   onModuleKey: (key: string, screen: Screen, mod: ModuleInstance) => void,
   onRuleKey: (key: string, rule: R) => void,
 ): void {
   for (const screen of screens) {
     if (screen.enabled === false) continue;
+    if (screen.visibility?.conditions) {
+      const keys = new Set<string>();
+      collectSourceKeys(screen.visibility.conditions, keys);
+      keys.delete('');
+      for (const key of keys) onScreenKey(key, screen);
+    }
     for (const mod of screen.modules) {
       if (mod.enabled === false) continue;
       const keys = new Set<string>();
@@ -74,8 +82,8 @@ function walkReferencedKeys<R extends RuleConditions>(
 }
 
 /**
- * All shared-state keys referenced anywhere on this display: module
- * visibility conditions + Text module tokens + display-rule conditions.
+ * All shared-state keys referenced anywhere on this display: screen and
+ * module visibility conditions + Text module tokens + display-rule conditions.
  *
  * Callers pass ALL of the display's screens, pre-profile-filter, for the
  * same reason `BackgroundProviderLayer` does: a profile switch must not
@@ -85,12 +93,13 @@ function walkReferencedKeys<R extends RuleConditions>(
 export function collectDemandedKeys(screens: Screen[], rules?: readonly RuleConditions[]): Set<string> {
   const demanded = new Set<string>();
   const add = (key: string) => demanded.add(key);
-  walkReferencedKeys(screens, rules, add, add);
+  walkReferencedKeys(screens, rules, add, add, add);
   return demanded;
 }
 
 /** One consumer of a shared-state key, for the editor's bus inspector. */
 export type StateKeyReference =
+  | { kind: 'screen'; screenId: string; screenName: string }
   | { kind: 'module'; screenId: string; screenName: string; moduleId: string; moduleType: string }
   | { kind: 'rule'; ruleId: string; ruleName: string };
 
@@ -117,6 +126,7 @@ export function collectKeyReferences(
   walkReferencedKeys(
     screens,
     rules,
+    (key, screen) => add(key, { kind: 'screen', screenId: screen.id, screenName: screen.name }),
     (key, screen, mod) =>
       add(key, {
         kind: 'module',

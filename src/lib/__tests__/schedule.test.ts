@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { isModuleEnabled, isModuleVisible, resolveProfile, resolveProfileScreens, resolveSpanDays, scheduleShape } from '../schedule';
+import { collectScreenConditionSourceKeys, isModuleEnabled, isModuleVisible, isScreenInRotation, resolveProfile, resolveProfileScreens, resolveSpanDays, scheduleShape } from '../schedule';
+import type { SharedStateEntry } from '@/lib/shared-state-types';
 import type { ModuleInstance, Screen, Profile } from '@/types/config';
 
 // Helper: create a Date for a specific day/time
@@ -500,5 +501,75 @@ describe('resolveProfile', () => {
     const stale: Profile = { id: 'stale', name: 'Stale', screenIds: ['x'] };
     expect(resolveProfile(allScreens, [stale], 'stale', makeDate(1, 10, 0)))
       .toEqual({ screens: allScreens, profileId: null, scheduled: false });
+  });
+});
+
+describe('isScreenInRotation', () => {
+  const entry = (value: string): SharedStateEntry => ({ value, updatedAt: 0 } as SharedStateEntry);
+  const states = (pairs: Record<string, string>) =>
+    new Map(Object.entries(pairs).map(([k, v]) => [k, entry(v)]));
+  const base: Screen = { id: 's', name: 'S', backgroundImage: '', modules: [] };
+  const monday10 = makeDate(1, 10, 0);
+  const soon = { conditions: [{ kind: 'numeric' as const, sourceKey: 'calendar.next_event_in_minutes', below: 60 }] };
+
+  it('is in with no gates set', () => {
+    expect(isScreenInRotation(base, monday10, new Map())).toBe(true);
+  });
+
+  it('is out when switched off, whatever the other gates say', () => {
+    expect(isScreenInRotation({ ...base, enabled: false }, monday10, new Map())).toBe(false);
+  });
+
+  it('follows the schedule window', () => {
+    const screen = { ...base, schedule: { startTime: '07:00', endTime: '09:00' } };
+    expect(isScreenInRotation(screen, makeDate(1, 8, 0), new Map())).toBe(true);
+    expect(isScreenInRotation(screen, monday10, new Map())).toBe(false);
+  });
+
+  it('follows the conditions over live values', () => {
+    const screen = { ...base, visibility: soon };
+    expect(isScreenInRotation(screen, monday10, states({ 'calendar.next_event_in_minutes': '45' }))).toBe(true);
+    expect(isScreenInRotation(screen, monday10, states({ 'calendar.next_event_in_minutes': '180' }))).toBe(false);
+  });
+
+  it('stays out while a value is unpublished, unless whenUnknown says show', () => {
+    expect(isScreenInRotation({ ...base, visibility: soon }, monday10, new Map())).toBe(false);
+    expect(isScreenInRotation({ ...base, visibility: { ...soon, whenUnknown: 'show' } }, monday10, new Map())).toBe(true);
+  });
+
+  it('needs the schedule AND the conditions to agree', () => {
+    const screen = { ...base, schedule: { startTime: '07:00', endTime: '09:00' }, visibility: soon };
+    const met = states({ 'calendar.next_event_in_minutes': '45' });
+    expect(isScreenInRotation(screen, makeDate(1, 8, 0), met)).toBe(true);
+    expect(isScreenInRotation(screen, monday10, met)).toBe(false);
+    expect(isScreenInRotation(screen, makeDate(1, 8, 0), states({ 'calendar.next_event_in_minutes': '180' }))).toBe(false);
+  });
+});
+
+describe('collectScreenConditionSourceKeys', () => {
+  const screen = (id: string, extra: Partial<Screen>): Screen =>
+    ({ id, name: id, backgroundImage: '', modules: [], ...extra });
+
+  it('collects the screens\' own keys, deduped and sorted, and ignores module keys', () => {
+    const screens = [
+      screen('a', { visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:ha:home', equals: 'on' }] } }),
+      screen('b', {
+        visibility: { conditions: [
+          { kind: 'numeric', sourceKey: 'calendar.next_event_in_minutes', below: 60 },
+          { kind: 'or', conditions: [{ kind: 'state', sourceKey: 'plugin:ha:home', equals: 'on' }] },
+        ] },
+        modules: [{ id: 'm', type: 'clock', position: { x: 0, y: 0 }, size: { w: 1, h: 1 }, zIndex: 0, config: {}, style: {},
+          visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:ha:module-only', equals: 'on' }] } } as unknown as ModuleInstance],
+      }),
+    ];
+    expect(collectScreenConditionSourceKeys(screens)).toEqual(['calendar.next_event_in_minutes', 'plugin:ha:home']);
+  });
+
+  it('skips disabled screens and time-only trees', () => {
+    const screens = [
+      screen('off', { enabled: false, visibility: { conditions: [{ kind: 'state', sourceKey: 'plugin:ha:a', equals: 'on' }] } }),
+      screen('clock', { visibility: { conditions: [{ kind: 'time', startTime: '07:00', endTime: '09:00' }] } }),
+    ];
+    expect(collectScreenConditionSourceKeys(screens)).toEqual([]);
   });
 });

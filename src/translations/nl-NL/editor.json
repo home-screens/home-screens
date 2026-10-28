@@ -169,6 +169,7 @@
     "stickyTooltip": "blijft: wisselt niet vanzelf, heeft een tik of de afstandsbediening nodig",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "gepland",
+    "conditionalTooltip": "alleen getoond als voorwaarden overeenkomen",
     "disabledTooltip": "uitgeschakeld, niet getoond op display",
     "disabledIndicatorAriaLabel": "Uitgeschakeld",
     "disabledBadge": "Uit",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Niets gebruikt deze sleutel.",
       "referencedByLabel": "Gebruikt door",
       "ruleRefLabel": "Regel: {name}",
+      "screenRefLabel": "Scherm: {name}",
       "builtInProducer": "Ingebouwd",
       "producerLabel": "Van {producer}",
       "providerHealthSince": "sinds {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Tot"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Deuren, lampen en wie er thuis is komen van de Home Assistant-add-on. Installeer die en ze verschijnen hier ook."
+    "addOnHint": "Deuren, lampen en wie er thuis is komen van de Home Assistant-add-on. Installeer die en ze verschijnen hier ook.",
+    "screen": {
+      "enableHelp": "Neem dit scherm alleen op in de rotatie zolang live waarden van gekoppelde diensten overeenkomen (bijvoorbeeld de volgende agenda-afspraak begint over minder dan een uur).",
+      "noConditionsHint": "Nog geen voorwaarden. Het scherm wordt altijd getoond totdat je er een toevoegt.",
+      "allMustMatchHint": "Alle voorwaarden moeten overeenkomen om het scherm te tonen.",
+      "whenUnknownHide": "Scherm weglaten",
+      "whenUnknownShow": "Scherm erin houden"
+    }
   },
   "stateKeys": {
     "calendar": {

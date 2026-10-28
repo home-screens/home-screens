@@ -98,7 +98,7 @@ Select a module to open its settings in the **Property Panel** on the right. Rel
 The panel has two operating states:
 
 - **Module selected**: collapsible sections in this order: **Position & Size**, **Style**, **Module settings** (the module's own options), then for plugins **Connection** and **Secrets**, and finally **Visibility**, **Schedule**, and **Conditions**. A **Delete Module** button sits at the bottom. The Background picker is hidden while a module is selected, so the panel stays focused on the module's own fields.
-- **No module selected**: the panel shows **Screen settings** (the screen's name and module count, a rotation-duration override, and a schedule for the screen itself), followed by the Background picker for the current screen. You can set rotation, screen schedules, and backgrounds without first dropping a module on the canvas.
+- **No module selected**: the panel shows **Screen settings** (the screen's name and module count, a rotation-duration override, and a schedule and conditions for the screen itself), followed by the Background picker for the current screen. You can set rotation, screen schedules and conditions, and backgrounds without first dropping a module on the canvas.
 
 The six full-screen modules (full-screen calendar, weather, news, chore chart, meal planner, and photo) always fill the whole screen, so they have no Position & Size or Style sections at all. They sit in their own palette group, **Full-Screen Views**, and are framed on the canvas with a tinted border and their name.
 

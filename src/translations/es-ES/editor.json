@@ -169,6 +169,7 @@
     "stickyTooltip": "fija: no avanza sola, necesita un toque o el mando",
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "programada",
+    "conditionalTooltip": "se muestra solo si las condiciones coinciden",
     "disabledTooltip": "desactivada, no se muestra en el display",
     "disabledIndicatorAriaLabel": "Desactivada",
     "disabledBadge": "Apagada",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Nada referencia esta clave.",
       "referencedByLabel": "Usada por",
       "ruleRefLabel": "Regla: {name}",
+      "screenRefLabel": "Pantalla: {name}",
       "builtInProducer": "Integrado",
       "producerLabel": "De {producer}",
       "providerHealthSince": "desde {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Hasta"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Las puertas, las luces y quién está en casa vienen del complemento de Home Assistant. Instálalo y también aparecerán aquí."
+    "addOnHint": "Las puertas, las luces y quién está en casa vienen del complemento de Home Assistant. Instálalo y también aparecerán aquí.",
+    "screen": {
+      "enableHelp": "Incluir esta pantalla en la rotación solo mientras los valores en vivo de tus servicios conectados coincidan (por ejemplo, el próximo evento del calendario empieza en menos de una hora).",
+      "noConditionsHint": "Aún no hay condiciones. La pantalla se muestra siempre hasta que añadas una.",
+      "allMustMatchHint": "Todas las condiciones deben coincidir para que la pantalla se muestre.",
+      "whenUnknownHide": "Dejar la pantalla fuera",
+      "whenUnknownShow": "Mantener la pantalla"
+    }
   },
   "stateKeys": {
     "calendar": {

@@ -885,8 +885,11 @@ export function validateDisplayRules(
  */
 export function validateAllSchedules(config: ScreenConfiguration): string | null {
   const checkScreen = (screen: Screen, where: string): string | null => {
-    const screenError = validateModuleSchedule(screen.schedule, `${where} screen "${screen.id}"`);
+    const screenContext = `${where} screen "${screen.id}"`;
+    const screenError = validateModuleSchedule(screen.schedule, screenContext);
     if (screenError) return screenError;
+    const screenVisibilityError = validateModuleVisibility(screen.visibility, screenContext);
+    if (screenVisibilityError) return screenVisibilityError;
     for (const mod of screen.modules ?? []) {
       const modContext = `${where} screen "${screen.id}" module "${mod.id}"`;
       const modError = validateModuleSchedule((mod as ModuleInstance).schedule, modContext);

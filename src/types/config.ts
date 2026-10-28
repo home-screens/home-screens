@@ -412,6 +412,17 @@ export interface Screen {
    * When present, screen only rotates in during matching days/times.
    */
   schedule?: ModuleSchedule;
+  /**
+   * Only put this screen in the rotation while live values meet these conditions (see
+   * ModuleVisibility). Works together with the on/off switch and the schedule: all three must
+   * agree. When no screen is left, every enabled screen shows
+   *
+   * Same tree, evaluator and `whenUnknown` gate as `ModuleInstance.visibility`,
+   * applied by ScreenRotator in the same filter as `schedule`, before profile
+   * resolution. A `showScreen` rule can still pin a screen these conditions
+   * keep out of the rotation.
+   */
+  visibility?: ModuleVisibility;
 }
 
 export interface WeatherSettings {

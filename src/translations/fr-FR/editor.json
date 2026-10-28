@@ -169,6 +169,7 @@
     "stickyTooltip": "fixe: n'avance pas tout seul , il faut un appui ou la télécommande",
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "planifié",
+    "conditionalTooltip": "affiché seulement si les conditions correspondent",
     "disabledTooltip": "désactivé, non affiché",
     "disabledIndicatorAriaLabel": "Désactivé",
     "disabledBadge": "Inactif",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Rien ne référence cette clé.",
       "referencedByLabel": "Utilisée par",
       "ruleRefLabel": "Règle : {name}",
+      "screenRefLabel": "Écran : {name}",
       "builtInProducer": "Intégré",
       "producerLabel": "De {producer}",
       "providerHealthSince": "depuis {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Jusqu'à"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Les portes, les lumières et qui est à la maison viennent du module Home Assistant. Installez-le et ils apparaîtront ici aussi."
+    "addOnHint": "Les portes, les lumières et qui est à la maison viennent du module Home Assistant. Installez-le et ils apparaîtront ici aussi.",
+    "screen": {
+      "enableHelp": "N'inclure cet écran dans la rotation que lorsque les valeurs en direct de vos services connectés correspondent (par exemple le prochain événement du calendrier commence dans moins d'une heure).",
+      "noConditionsHint": "Aucune condition pour l'instant. L'écran reste affiché tant que vous n'en ajoutez pas.",
+      "allMustMatchHint": "Toutes les conditions doivent correspondre pour que l'écran s'affiche.",
+      "whenUnknownHide": "Laisser l'écran de côté",
+      "whenUnknownShow": "Garder l'écran"
+    }
   },
   "stateKeys": {
     "calendar": {

@@ -118,14 +118,46 @@ export function VisibilityOutcomeLine({
   );
 }
 
+/** What the conditions gate; picks the wording, nothing else. */
+export type VisibilitySubject = 'module' | 'screen';
+
+/**
+ * The module adapter: reads the module's tree and writes it back through
+ * `updateModule`. Everything that renders lives in `VisibilityConditionsEditor`
+ * below, which the screen panel mounts with its own save path and wording.
+ */
 export default function VisibilityConditionsSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
+  const updateModule = useEditorStore((s) => s.updateModule);
+  return (
+    <VisibilityConditionsEditor
+      visibility={mod.visibility}
+      onChange={(next) => updateModule(screenId, mod.id, { visibility: next })}
+      subject="module"
+    />
+  );
+}
+
+export function VisibilityConditionsEditor({
+  visibility,
+  onChange,
+  subject,
+  statusTitle,
+}: {
+  visibility: ModuleVisibility | undefined;
+  onChange: (next: ModuleVisibility | undefined) => void;
+  subject: VisibilitySubject;
+  /** Title of the first group; defaults to "Status" (see ScheduleEditor). */
+  statusTitle?: string;
+}) {
   const t = useTranslate('editor');
   const config = useEditorStore((s) => s.config);
   const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
-  const updateModule = useEditorStore((s) => s.updateModule);
 
-  const visibility = mod.visibility;
   const enabled = !!visibility;
+  // The strings that name the thing being gated have a screen variant under
+  // `visibilityConditions.screen`; everything else is shared.
+  const subjectKey = (key: string) =>
+    subject === 'screen' ? `visibilityConditions.screen.${key}` : `visibilityConditions.${key}`;
 
   // Live values from the selected display's last heartbeat, for the
   // current-value hint and case-mismatch warning on condition inputs.
@@ -173,15 +205,14 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
     [visibility],
   );
 
-  const setVisibility = (next: ModuleVisibility | undefined) =>
-    updateModule(screenId, mod.id, { visibility: next });
+  const setVisibility = onChange;
 
   const setConditions = (conditions: VisibilityCondition[]) =>
     setVisibility({ ...(visibility ?? {}), conditions });
 
   return (
     <div className="space-y-3">
-      <PropertyGroup title={t('visibilityConditions.statusTitle')} accent={1}>
+      <PropertyGroup title={statusTitle ?? t('visibilityConditions.statusTitle')} accent={1}>
         <Toggle
           label={t('visibilityConditions.enableLabel')}
           checked={enabled}
@@ -190,7 +221,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
             setVisibility(on ? { conditions: [] } : undefined)
           }
         />
-        <p className="text-xs text-hs-text-dim mt-1">{t('visibilityConditions.enableHelp')}</p>
+        <p className="text-xs text-hs-text-dim mt-1">{t(subjectKey('enableHelp'))}</p>
       </PropertyGroup>
 
       {enabled && visibility && (
@@ -201,7 +232,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                 <p className="text-xs text-hs-warning">{t('visibilityConditions.noProvidersHint')}</p>
               )}
               {visibility.conditions.length === 0 && (
-                <p className="text-xs text-hs-text-dim">{t('visibilityConditions.noConditionsHint')}</p>
+                <p className="text-xs text-hs-text-dim">{t(subjectKey('noConditionsHint'))}</p>
               )}
               {visibility.conditions.length > 0 && (
                 <VisibilityOutcomeLine
@@ -231,7 +262,7 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                 t={t}
               />
               {visibility.conditions.length > 1 && (
-                <p className="text-[10px] text-hs-text-dim">{t('visibilityConditions.allMustMatchHint')}</p>
+                <p className="text-[10px] text-hs-text-dim">{t(subjectKey('allMustMatchHint'))}</p>
               )}
             </div>
           </PropertyGroup>
@@ -252,8 +283,8 @@ export default function VisibilityConditionsSection({ mod, screenId }: { mod: Mo
                   }
                   className={INPUT_CLASS}
                 >
-                  <option value="hide">{t('visibilityConditions.whenUnknownHide')}</option>
-                  <option value="show">{t('visibilityConditions.whenUnknownShow')}</option>
+                  <option value="hide">{t(subjectKey('whenUnknownHide'))}</option>
+                  <option value="show">{t(subjectKey('whenUnknownShow'))}</option>
                 </select>
               </label>
             </PropertyGroup>

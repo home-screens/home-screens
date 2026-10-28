@@ -169,6 +169,7 @@
     "stickyTooltip": "bliver: skifter ikke af sig selv, kræver et tryk eller fjernbetjeningen",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "planlagt",
+    "conditionalTooltip": "vises kun, når betingelserne passer",
     "disabledTooltip": "slået fra, vises ikke på displayet",
     "disabledIndicatorAriaLabel": "Slået fra",
     "disabledBadge": "Fra",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Intet refererer denne nøgle.",
       "referencedByLabel": "Bruges af",
       "ruleRefLabel": "Regel: {name}",
+      "screenRefLabel": "Skærm: {name}",
       "builtInProducer": "Indbygget",
       "producerLabel": "Fra {producer}",
       "providerHealthSince": "siden {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Til"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Døre, lys og hvem der er hjemme kommer fra Home Assistant-tilføjelsen. Installér den, så dukker de også op her."
+    "addOnHint": "Døre, lys og hvem der er hjemme kommer fra Home Assistant-tilføjelsen. Installér den, så dukker de også op her.",
+    "screen": {
+      "enableHelp": "Tag kun denne skærm med i rotationen, så længe live-værdier fra forbundne tjenester passer (f.eks. næste kalenderaftale begynder om under en time).",
+      "noConditionsHint": "Ingen betingelser endnu. Skærmen vises altid, indtil du tilføjer en.",
+      "allMustMatchHint": "Alle betingelser skal passe, for at skærmen vises.",
+      "whenUnknownHide": "Lad skærmen være ude",
+      "whenUnknownShow": "Behold skærmen"
+    }
   },
   "stateKeys": {
     "calendar": {

@@ -113,9 +113,26 @@ When a schedule is defined, the screen tab shows a small clock icon badge (paral
 
 Screen, module and profile schedules all use the same [schedule shape](/docs/configuration#module-schedule).
 
+## Screen-level conditions
+
+A screen can also wait for live values, the same way a module's [Conditions](/docs/editor#conditions) do. The values come from Home Screens itself (the next calendar event, how many events are on today, the weather right now) and from plugins that share state, such as a Home Assistant sensor. A travel-times screen that only matters when somebody is about to leave is the typical use: keep it out of the rotation until an event is less than an hour away.
+
+### Setting screen conditions
+
+1. Select the screen tab and open **Screen settings** (the right-hand panel when no module is selected)
+2. Below the schedule, turn on **Show only when conditions match**
+3. Click **Add condition** and pick what to check. For "an event is coming up", choose **Number is in range**, pick **Minutes until the next event** and set **Below** to 60. For "something is on the calendar right now", choose **Value matches**, pick **An event is happening now** and set it to `true`
+4. Under **Before data arrives**, decide what happens while a value has not been reported yet: **Leave the screen out** (the default) or **Keep the screen in**
+
+A screen with conditions shows a small eye badge on its tab, next to the clock badge a schedule adds. While you edit, the panel says whether the screen is in the rotation on the display right now and why, with the display's live value next to each condition.
+
+Schedule and conditions work together: a screen with both only shows inside its hours **and** while its conditions match. So "weekday mornings, and only when an event is coming up" is a schedule for Monday to Friday 06:30 to 09:15 plus the next-event condition.
+
 ### How screen visibility is evaluated
 
-Screen schedules are re-evaluated every minute, piggybacking on the same timezone-aware clock used by profile and module schedules. Evaluation happens **before profile resolution**, so a scheduled-off screen never enters the candidate set, even if the active profile explicitly references it. Manual navigation respects this too: scheduled-off screens are left out entirely, so the screen dots, swipes, the remote and a Display Control module's next and previous buttons all skip them.
+Screen schedules are re-evaluated every minute, piggybacking on the same timezone-aware clock used by profile and module schedules, and screen conditions the moment a value they read changes. Evaluation happens **before profile resolution**, so a screen that is scheduled off or whose conditions are not met never enters the candidate set, even if the active profile explicitly references it. Manual navigation respects this too: such screens are left out entirely, so the screen dots, swipes, the remote and a Display Control module's next and previous buttons all skip them.
+
+When a screen joins or leaves, the display keeps showing the screen it was on and carries on from there; it only moves when the screen it was showing is the one that left. If every screen is scheduled or conditioned out, every enabled screen shows rather than a blank display. A [display rule](#display-rules) can still bring up a screen its conditions keep out of the rotation, which is how an alert screen that never rotates on its own is built.
 
 Every schedule on this page, whether for a screen, a profile or a module, reads the clock in the time zone set under **Settings > Location & language**. Until you pick one, every display follows the hub's own clock.
 

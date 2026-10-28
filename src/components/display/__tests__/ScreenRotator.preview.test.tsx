@@ -134,11 +134,12 @@ describe('ScreenRotator start screen and preview mode', () => {
     expect(rendered()).toBe('weather');
 
     // A profile switch that now includes 'alert' must not yank the display
-    // back to it (the screen set changed, so the rotation resets to its first).
+    // back to it: the screen set changed, and the display keeps the screen it
+    // was showing (weather is still in the new set).
     const wider: Profile[] = [{ id: 'day', name: 'Day', screenIds: ['home', 'weather', 'alert'] }];
     rerender(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={makeSettings()} profiles={wider} initialScreenId="alert" preview />);
     act(() => { vi.advanceTimersByTime(0); });
-    expect(rendered()).toBe('home');
+    expect(rendered()).toBe('weather');
   });
 
   it('preview holds rotation and keeps the tab out of the hub\'s command and status traffic', () => {

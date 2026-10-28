@@ -3,7 +3,7 @@
 import { useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Clock, MoreHorizontal, X } from 'lucide-react';
+import { Clock, Eye, MoreHorizontal, X } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { Screen } from '@/types/config';
 
@@ -84,6 +84,7 @@ export default function ScreenTab({
   const clampedTransform = transform ? { ...transform, y: 0, scaleX: 1, scaleY: 1 } : null;
 
   const isDisabled = screen.enabled === false;
+  const isConditional = (screen.visibility?.conditions.length ?? 0) > 0;
 
   const style = {
     transform: CSS.Transform.toString(clampedTransform),
@@ -109,6 +110,7 @@ export default function ScreenTab({
         if (screen.rotationDurationMs === 0) parts.push(t('screenTabs.stickyTooltip'));
         else if (screen.rotationDurationMs != null) parts.push(t('screenTabs.secondsSuffix', { seconds: Math.round(screen.rotationDurationMs / 1000) }));
         if (screen.schedule) parts.push(t('screenTabs.scheduledTooltip'));
+        if (isConditional) parts.push(t('screenTabs.conditionalTooltip'));
         if (isDisabled) parts.push(t('screenTabs.disabledTooltip'));
         return parts.join(' · ');
       })()}
@@ -148,6 +150,13 @@ export default function ScreenTab({
             <Clock
               className="ml-0.5 h-3 w-3 text-hs-text-faint"
               aria-hidden="true"
+            />
+          )}
+          {isConditional && (
+            <Eye
+              className="ml-0.5 h-3 w-3 text-hs-text-faint"
+              aria-hidden="true"
+              data-testid="screen-tab-conditional"
             />
           )}
           {isDisabled && (

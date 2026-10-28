@@ -169,6 +169,7 @@
     "stickyTooltip": "stays: doesn't rotate on its own, needs a tap or the remote",
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "scheduled",
+    "conditionalTooltip": "shown only when conditions match",
     "disabledTooltip": "disabled, not shown on display",
     "disabledIndicatorAriaLabel": "Disabled",
     "disabledBadge": "Off",
@@ -1919,6 +1920,7 @@
       "unreferencedLabel": "Nothing references this key.",
       "referencedByLabel": "Used by",
       "ruleRefLabel": "Rule: {name}",
+      "screenRefLabel": "Screen: {name}",
       "builtInProducer": "Built-in",
       "producerLabel": "From {producer}",
       "providerHealthSince": "since {time}"
@@ -5382,7 +5384,14 @@
       "untilLabel": "Until"
     },
     "providerHealthNote": "{plugin}: {message}",
-    "addOnHint": "Doors, lights and who's home come from the Home Assistant add-on. Install it and they appear here too."
+    "addOnHint": "Doors, lights and who's home come from the Home Assistant add-on. Install it and they appear here too.",
+    "screen": {
+      "enableHelp": "Put this screen in the rotation only while live values from your connected services match (for example the next calendar event is less than an hour away).",
+      "noConditionsHint": "No conditions yet. The screen always shows until you add one.",
+      "allMustMatchHint": "All conditions must match for the screen to show.",
+      "whenUnknownHide": "Leave the screen out",
+      "whenUnknownShow": "Keep the screen in"
+    }
   },
   "stateKeys": {
     "calendar": {

@@ -617,3 +617,39 @@ test('the weather keys stay off the bus without a location', async ({ page, requ
   await page.waitForTimeout(1_500);
   await expect(page.getByText('RAIN LIKELY')).toHaveCount(0);
 });
+
+test('a screen conditioned on a plugin key leaves and rejoins the rotation live, and the wall keeps its place', async ({ page, request }) => {
+  // The fixture plugin sits on both always-on screens so a producer stays
+  // mounted whichever one is up. The middle screen is gated on flag = on; the
+  // plugin publishes flag=on on mount, so the rotation starts as A -> GATED -> C.
+  const gate: ModuleVisibility = {
+    conditions: [{ kind: 'state', sourceKey: FIXTURE_STATE_KEY, equals: 'on' }],
+  };
+  await putConfig(request, baseConfig({
+    screens: [
+      makeScreen('a', 'A', [pluginModule({ id: 'plug-a' }), textModule('ALWAYS A')]),
+      makeScreen('gated', 'Gated', [textModule('GATED SCREEN')], { visibility: gate }),
+      makeScreen('c', 'C', [pluginModule({ id: 'plug-c' }), textModule('ALWAYS C')]),
+    ],
+    settings: { rotationIntervalMs: 1500 },
+  }));
+  await stubModuleData(page);
+  await page.goto('/display');
+  await expect(page.getByText('ALWAYS A')).toBeVisible();
+  await waitForSdk(page);
+  // Three screens rotate: the gated one has its turn.
+  await expect(page.getByText('GATED SCREEN')).toBeVisible({ timeout: 6000 });
+  await expect(page.getByText('ALWAYS C')).toBeVisible({ timeout: 6000 });
+
+  // The gate closes while C is showing: C stays up (no jump back to A), and
+  // the next step goes to A, skipping the gated screen.
+  await publishState(page, 'flag', 'off');
+  await expect(page.getByText('ALWAYS C')).toBeVisible();
+  await expect(page.getByText('ALWAYS A')).toBeVisible({ timeout: 6000 });
+  await expect(page.getByText('ALWAYS C')).toBeVisible({ timeout: 6000 });
+  await expect(page.getByText('GATED SCREEN')).toBeHidden();
+
+  // Reopening the gate puts the screen back in its slot.
+  await publishState(page, 'flag', 'on');
+  await expect(page.getByText('GATED SCREEN')).toBeVisible({ timeout: 6000 });
+});

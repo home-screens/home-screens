@@ -180,6 +180,19 @@ describe('collectDemandedKeys', () => {
     expect(collectDemandedKeys(screens).size).toBe(0);
   });
 
+  it("includes a screen's own visibility keys, and skips them on a disabled screen", () => {
+    const gated: Screen = {
+      ...makeScreen('travel', []),
+      visibility: { conditions: [stateCondition('calendar.busy_now'), stateCondition('')] },
+    };
+    const off: Screen = {
+      ...makeScreen('off', []),
+      enabled: false,
+      visibility: { conditions: [stateCondition('plugin:ha:never')] },
+    };
+    expect(collectDemandedKeys([gated, off])).toEqual(new Set(['calendar.busy_now']));
+  });
+
   it('includes keys referenced by rule condition trees', () => {
     const rules = [
       { when: [stateCondition('plugin:ha:doorbell')] },
@@ -211,6 +224,18 @@ describe('collectKeyReferences', () => {
     ]);
     expect(refs.get('plugin:ha:temp')).toEqual([
       { kind: 'module', screenId: 'b', screenName: 'b', moduleId: text.id, moduleType: 'text' },
+    ]);
+  });
+
+  it('lists the screen itself as a consumer of its own visibility keys', () => {
+    const mod = makeModule({ visibility: { conditions: [stateCondition('plugin:ha:home')] } });
+    const screen: Screen = {
+      ...makeScreen('travel', [mod]),
+      visibility: { conditions: [stateCondition('plugin:ha:home')] },
+    };
+    expect(collectKeyReferences([screen]).get('plugin:ha:home')).toEqual([
+      { kind: 'screen', screenId: 'travel', screenName: 'travel' },
+      { kind: 'module', screenId: 'travel', screenName: 'travel', moduleId: mod.id, moduleType: 'icon' },
     ]);
   });
 

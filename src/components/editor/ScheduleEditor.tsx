@@ -16,11 +16,17 @@ import type { ModuleSchedule } from '@/types/config';
 interface ScheduleEditorProps {
   schedule: ModuleSchedule | undefined;
   onChange: (next: ModuleSchedule | undefined) => void;
+  /**
+   * Title of the first group. Defaults to "Status", which is right inside a
+   * module's Schedule accordion; the screen panel stacks this editor above
+   * the conditions editor and names each after what it gates.
+   */
+  statusTitle?: string;
 }
 
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
 
-export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
+export function ScheduleEditor({ schedule, onChange, statusTitle }: ScheduleEditorProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
@@ -64,7 +70,7 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
 
   return (
     <div className="space-y-3">
-      <PropertyGroup title={t('scheduleEditor.statusTitle')} accent={1}>
+      <PropertyGroup title={statusTitle ?? t('scheduleEditor.statusTitle')} accent={1}>
         <Toggle label={t('scheduleEditor.enableLabel')} checked={enabled} onChange={toggleEnabled} />
       </PropertyGroup>
 
