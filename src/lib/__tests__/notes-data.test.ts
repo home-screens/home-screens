@@ -52,7 +52,10 @@ function note(id: string, overrides: Partial<Note> = {}): Note {
     life: '1d',
     createdAt: '2026-10-20T15:00:00.000Z',
     updatedAt: '2026-10-20T15:00:00.000Z',
-    expiresAt: '2026-10-21T15:00:00.000Z',
+    // Relative to the real clock: the store sweeps a note a week after it
+    // expires, and a fixed date here turned every default note into a
+    // swept one the week after it was written.
+    expiresAt: fromNow(DAY),
     ...overrides,
   };
 }
