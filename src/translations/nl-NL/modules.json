@@ -1144,7 +1144,10 @@
     "thisDisplayTag": "dit display",
     "allDisplays": "Alle displays",
     "brightnessValue": "Helderheid {percent}%",
-    "brightnessUnknown": "Helderheid, nog niet gemeld"
+    "brightnessUnknown": "Helderheid, nog niet gemeld",
+    "dockEmpty": "Nog geen schermen",
+    "unnamedScreen": "Scherm {number}",
+    "goTo": "Naar {name}"
   },
   "timetable": {
     "name": "Rooster",

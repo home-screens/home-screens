@@ -113,6 +113,10 @@
       "chooseTemplate": "Elegir una plantilla"
     },
     "dotsGuide": "Los puntos de pantalla aparecen aquí",
+    "pinnedGhost": {
+      "tag": "En todas las pantallas, desde {screen}",
+      "title": "Está en {screen}. Haz clic para editarlo allí."
+    },
     "moduleMenu": {
       "selectBehind": "Seleccionar el módulo de detrás",
       "hide": "Ocultar en pantalla",
@@ -130,6 +134,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones",
     "backgroundProviderTitle": "Se ejecuta oculto en segundo plano, nunca se muestra en pantalla",
+    "everyScreenTitle": "Se muestra en todas las pantallas de este display, encima de los módulos de cada pantalla",
     "conditionMetTitle": "Condiciones cumplidas, visible en la pantalla ahora",
     "conditionUnmetTitle": "Condiciones sin cumplir, oculto en la pantalla ahora",
     "conditionMetTitleEditor": "Condiciones cumplidas, se mostraría ahora",
@@ -146,6 +151,7 @@
       "conditionTimeMet": "Visible a esta hora",
       "conditionTimeUnmet": "Oculto a esta hora",
       "background": "Funciona en segundo plano",
+      "everyScreen": "En todas las pantallas",
       "lookShowing": "Aspecto: {name}",
       "looksShowing": "Aspectos: {name}",
       "lookNone": "Ningún aspecto coincide",
@@ -231,6 +237,7 @@
     "secondsUnit": "segundos",
     "stickyBadge": "Fija",
     "stickyHint": "Ponlo a 0 para quedarte en esta pantalla hasta que alguien la toque o use el mando.",
+    "rotationOffHint": "La rotación automática está desactivada en esta pantalla, así que cada pantalla se queda hasta que alguien pasa a otra.",
     "shortDurationWarning": "Con menos de {seconds} segundos, la pantalla puede cambiar antes de que las noticias y el tiempo terminen de cargar.",
     "inheritsHintBefore": "Se ve durante ",
     "inheritsHintValue": "{seconds} segundos",
@@ -888,6 +895,9 @@
         "flipHelp": "Actívalo si tu monitor está montado al revés. Gira la pantalla 180° desde su orientación base."
       },
       "fields": {
+        "rotateLabel": "Rotación automática",
+        "rotateToggle": "Pasar por las pantallas",
+        "rotateHelp": "Desactivada, la pantalla se queda donde está hasta que alguien toca los puntos o un botón del dock, desliza o usa el mando.",
         "rotationIntervalLabel": "Intervalo de rotación de pantallas",
         "rotationIntervalHelp": "Cuánto tiempo se muestra cada pantalla antes de pasar automáticamente a la siguiente. Solo se aplica si tienes varias pantallas configuradas.",
         "paginationDotsLabel": "Puntos de pantalla",
@@ -1041,6 +1051,7 @@
         "appearanceHeading": "Apariencia",
         "fields": {
           "rotationIntervalSeconds": "{seconds} segundos",
+          "rotationOff": "Desactivada",
           "paginationDotsLabelDisabled": "Desactivado",
           "pauseEnabledLabelDisabled": "Desactivado",
           "swipeEnabledLabelDisabled": "Desactivado",
@@ -3256,6 +3267,8 @@
     "visibility": {
       "enabledLabel": "Mostrar en pantalla",
       "enabledHelp": "Cuando esto está apagado, el módulo nunca aparece en el display. Se queda aquí para que puedas volver a encenderlo.",
+      "everyScreenLabel": "Mostrar en todas las pantallas",
+      "everyScreenHelp": "Dibuja este módulo en todas las pantallas de este display, encima de lo que haya, y lo mantiene en su sitio mientras cambian las pantallas.",
       "backgroundProviderLabel": "Ejecutar oculto en segundo plano",
       "backgroundProviderHelp": "Da valores a otros módulos. Esta copia nunca se ve en pantalla; si además quieres mostrar el módulo, añade una segunda copia sin este ajuste.",
       "backgroundProviderObsoleteHint": "Este plugin ahora comparte sus datos automáticamente. Esta copia oculta ya no es necesaria y puede eliminarse."
@@ -3697,12 +3710,15 @@
       "layoutPad": "Panel táctil",
       "layoutPanel": "Panel",
       "layoutNav": "Flechas",
+      "layoutDock": "Dock",
       "defaultTarget": "Destino predeterminado",
       "targetSelf": "Este display (propio)",
       "targetAll": "Todos los displays",
       "legacyHint": "Solo hay una pantalla, así que es la que se controla.",
       "allowRetargeting": "Permitir al usuario cambiar el destino en tiempo de ejecución",
-      "compact": "Solo iconos, sin texto"
+      "compact": "Solo iconos, sin texto",
+      "dockHint": "Un botón por cada pantalla de este display. Toca uno para ir directamente a esa pantalla.",
+      "dockExtras": "Mostrar también Dormir y Brillo"
     },
     "financial": {
       "viewCards": "Tarjetas",

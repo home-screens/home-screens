@@ -189,6 +189,14 @@ describe('describeModuleStatus', () => {
     expect(statuses.map((s) => s.key)).toEqual(['schedule', 'backgroundProvider']);
     expect(statuses[1].label).toBe('Runs in the background');
   });
+
+  it('reports a module shown on every screen, but not when it is switched off', () => {
+    const statuses = describeModuleStatus(mod({ showOnEveryScreen: true }), ctx);
+    expect(statuses.map((s) => s.key)).toEqual(['everyScreen']);
+    expect(statuses[0].label).toBe('On every screen');
+    // Off is the one thing worth saying about a module that is off.
+    expect(describeModuleStatus(mod({ showOnEveryScreen: true, enabled: false }), ctx).map((s) => s.key)).toEqual(['disabled']);
+  });
 });
 
 describe('a condition chip once the display has reported', () => {

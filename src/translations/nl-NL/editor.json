@@ -113,6 +113,10 @@
       "chooseTemplate": "Kies een sjabloon"
     },
     "dotsGuide": "Hier verschijnen de schermstippen",
+    "pinnedGhost": {
+      "tag": "Op elk scherm, van {screen}",
+      "title": "Staat op {screen}. Klik om hem daar te bewerken."
+    },
     "moduleMenu": {
       "selectBehind": "Module erachter selecteren",
       "hide": "Verbergen op display",
@@ -130,6 +134,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
     "backgroundProviderTitle": "Draait verborgen op de achtergrond, wordt nooit op het display getoond",
+    "everyScreenTitle": "Staat op elk scherm van dit display, bovenop de modules van dat scherm",
     "conditionMetTitle": "Voorwaarden voldaan, nu zichtbaar op het scherm",
     "conditionUnmetTitle": "Voorwaarden niet voldaan, nu verborgen op het scherm",
     "conditionMetTitleEditor": "Voorwaarden voldaan, zou nu zichtbaar zijn",
@@ -146,6 +151,7 @@
       "conditionTimeMet": "Zichtbaar op dit tijdstip",
       "conditionTimeUnmet": "Verborgen op dit tijdstip",
       "background": "Draait op de achtergrond",
+      "everyScreen": "Op elk scherm",
       "lookShowing": "Uiterlijk: {name}",
       "looksShowing": "Uiterlijken: {name}",
       "lookNone": "Geen uiterlijk past",
@@ -231,6 +237,7 @@
     "secondsUnit": "seconden",
     "stickyBadge": "Vast",
     "stickyHint": "Zet dit op 0 om op dit scherm te blijven tot iemand erop tikt of de afstandsbediening gebruikt.",
+    "rotationOffHint": "Automatisch wisselen staat uit voor dit display, dus elk scherm blijft staan tot iemand verder gaat.",
     "shortDurationWarning": "Korter dan {seconds} seconden en het scherm kan al wisselen voordat nieuws en weer klaar zijn met laden.",
     "inheritsHintBefore": "Staat ",
     "inheritsHintValue": "{seconds} seconden",
@@ -888,6 +895,9 @@
         "flipHelp": "Inschakelen als je monitor ondersteboven is gemonteerd. Draait het display 180° ten opzichte van de basisoriëntatie."
       },
       "fields": {
+        "rotateLabel": "Automatisch wisselen",
+        "rotateToggle": "Door de schermen wisselen",
+        "rotateHelp": "Uit houdt het display op één scherm tot iemand op de puntjes of een dockknop tikt, veegt of de afstandsbediening gebruikt.",
         "rotationIntervalLabel": "Schermrotatie-interval",
         "rotationIntervalHelp": "Hoe lang elk scherm wordt getoond voordat automatisch naar het volgende wordt gewisseld. Geldt alleen als je meerdere schermen hebt geconfigureerd.",
         "paginationDotsLabel": "Schermstippen",
@@ -1041,6 +1051,7 @@
         "appearanceHeading": "Uiterlijk",
         "fields": {
           "rotationIntervalSeconds": "{seconds} seconden",
+          "rotationOff": "Uit",
           "paginationDotsLabelDisabled": "Uitgeschakeld",
           "pauseEnabledLabelDisabled": "Uitgeschakeld",
           "swipeEnabledLabelDisabled": "Uitgeschakeld",
@@ -3256,6 +3267,8 @@
     "visibility": {
       "enabledLabel": "Tonen op display",
       "enabledHelp": "Staat dit uit, dan komt de module nooit op het display. Hij blijft hier staan zodat je hem weer aan kunt zetten.",
+      "everyScreenLabel": "Op elk scherm tonen",
+      "everyScreenHelp": "Tekent deze module op elk scherm van dit display, bovenop wat er al staat, en houdt hem op zijn plek terwijl de schermen wisselen.",
       "backgroundProviderLabel": "Verborgen op de achtergrond uitvoeren",
       "backgroundProviderHelp": "Levert waarden aan andere modules. Deze kopie komt nooit op het scherm; wil je de module ook laten zien, voeg dan een tweede kopie toe zonder deze instelling.",
       "backgroundProviderObsoleteHint": "Deze plugin deelt zijn gegevens nu automatisch. Deze verborgen kopie is niet meer nodig en kan worden verwijderd."
@@ -3697,12 +3710,15 @@
       "layoutPad": "Pad",
       "layoutPanel": "Paneel",
       "layoutNav": "Pijlen",
+      "layoutDock": "Dock",
       "defaultTarget": "Standaarddoel",
       "targetSelf": "Dit display (zelf)",
       "targetAll": "Alle displays",
       "legacyHint": "Er is maar één display, dus dit is het display dat wordt bediend.",
       "allowRetargeting": "Gebruiker mag het doel tijdens gebruik wijzigen",
-      "compact": "Alleen pictogrammen, geen tekst"
+      "compact": "Alleen pictogrammen, geen tekst",
+      "dockHint": "Eén knop per scherm van dit display. Tik erop om meteen naar dat scherm te gaan.",
+      "dockExtras": "Ook Slapen en Helderheid tonen"
     },
     "financial": {
       "viewCards": "Kaarten",

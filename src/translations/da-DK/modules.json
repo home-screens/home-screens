@@ -1144,7 +1144,10 @@
     "thisDisplayTag": "dette display",
     "allDisplays": "Alle displays",
     "brightnessValue": "Lysstyrke {percent} %",
-    "brightnessUnknown": "Lysstyrke, ikke meldt endnu"
+    "brightnessUnknown": "Lysstyrke, ikke meldt endnu",
+    "dockEmpty": "Ingen skærme endnu",
+    "unnamedScreen": "Skærm {number}",
+    "goTo": "Gå til {name}"
   },
   "timetable": {
     "name": "Skema",

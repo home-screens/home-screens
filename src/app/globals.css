@@ -410,6 +410,13 @@ body {
   animation: none;
 }
 
+/* Modules shown on every screen hold still while the canvas changes. */
+::view-transition-old(pinned-modules),
+::view-transition-new(pinned-modules),
+::view-transition-group(pinned-modules) {
+  animation: none;
+}
+
 ::view-transition-old(sleep-overlay),
 ::view-transition-new(sleep-overlay) {
   animation: none;

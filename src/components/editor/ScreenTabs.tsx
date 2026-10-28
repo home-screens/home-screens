@@ -13,6 +13,7 @@ import {
 } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { isRotationOff } from '@/lib/resolve-screen-duration';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
 import { useTabRename } from '@/hooks/useTabRename';
@@ -88,6 +89,7 @@ export default function ScreenTabs() {
   }, [setContextMenu]);
 
   if (!config) return null;
+  const rotationOff = isRotationOff(config.settings, selectedDisplayId ? config.displays?.find((d) => d.id === selectedDisplayId) : undefined);
 
   const handleExportScreen = (screenId: string) => {
     setExportScreenId(screenId);
@@ -133,6 +135,7 @@ export default function ScreenTabs() {
                     key={screen.id}
                     screen={screen}
                     isSelected={screen.id === selectedScreenId}
+                    rotationOff={rotationOff}
                     isEditing={editingId === screen.id}
                     editValue={editValue}
                     onSelect={() => selectScreen(screen.id)}

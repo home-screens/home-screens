@@ -71,13 +71,15 @@ export function createScreenSlice(
       if (!src) return;
       // Fresh ids throughout: the screen id so profiles/rules never see two
       // screens sharing one id, and module ids so per-module state keyed by
-      // id (todo taps, selection) can't bleed between the two copies.
+      // id (todo taps, selection) can't bleed between the two copies. A
+      // module shown on every screen is drawn once for the whole display, so
+      // the copy's flag comes off: two would stack on every screen.
       const cloned = structuredClone(src);
       const copy: Screen = {
         ...cloned,
         id: uuidv4(),
         name: copyName ?? `${src.name} copy`,
-        modules: cloned.modules.map((m) => ({ ...m, id: uuidv4() })),
+        modules: cloned.modules.map((m) => ({ ...m, id: uuidv4(), showOnEveryScreen: undefined })),
       };
       mutateConfig((cfg) => {
         const screens = getActiveScreens(cfg, selectedDisplayId);

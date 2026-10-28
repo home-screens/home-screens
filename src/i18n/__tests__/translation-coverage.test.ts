@@ -68,6 +68,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.countdown.precisionAuto',
   'editor|configSections.display-control.layout',
   'editor|configSections.display-control.layoutPanel',
+  // "Dock" is the Mac's word for it in every shipped language.
+  'editor|configSections.display-control.layoutDock',
   'editor|configSections.fullscreen-calendar.anchorWeekend',
   'editor|configSections.fullscreen-calendar.googleCalendar',
   'editor|configSections.fullscreen-calendar.googleCalendarNumbered',

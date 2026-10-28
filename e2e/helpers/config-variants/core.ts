@@ -512,6 +512,27 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('input[type="range"]')).toHaveCount(0);
     },
   },
+  // Dock: one button per screen of the rotation (the fixture has one), no
+  // navigation or sleep buttons unless the extras are switched on.
+  {
+    type: 'display-control', name: 'layout-dock', kind: 'network-free',
+    config: { layout: 'dock' },
+    expect: async (mod) => {
+      await child('[data-layout="dock"]')(mod);
+      await expect(mod.locator('button[aria-label^="Go to"]').first()).toBeVisible();
+      await expect(mod.locator('button[aria-current="true"]')).toHaveCount(1);
+      await expect(mod.locator('button[aria-label="Brightness"]')).toHaveCount(0);
+    },
+  },
+  {
+    type: 'display-control', name: 'dock-extras', kind: 'network-free',
+    config: { layout: 'dock', dockExtras: true },
+    expect: async (mod) => {
+      await expect(mod.locator('button[aria-label^="Go to"]').first()).toBeVisible();
+      await expect(mod.locator('button[aria-label="Brightness"]')).toBeVisible();
+      await expect(mod.locator('button[aria-label="Sleep (hold to confirm)"]')).toBeVisible();
+    },
+  },
   // Icons only: the buttons keep their aria-labels but lose their words.
   {
     type: 'display-control', name: 'compact', kind: 'network-free',

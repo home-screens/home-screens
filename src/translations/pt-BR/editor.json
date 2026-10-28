@@ -113,6 +113,10 @@
       "chooseTemplate": "Escolher um modelo"
     },
     "dotsGuide": "Os pontos de tela aparecem aqui",
+    "pinnedGhost": {
+      "tag": "Em todas as telas, de {screen}",
+      "title": "Está em {screen}. Clique para editar lá."
+    },
     "moduleMenu": {
       "selectBehind": "Selecionar o módulo de trás",
       "hide": "Ocultar no display",
@@ -130,6 +134,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Só aparece quando suas condições são atendidas",
     "backgroundProviderTitle": "Executa oculto em segundo plano, nunca é exibido no display",
+    "everyScreenTitle": "Aparece em todas as telas deste display, por cima dos módulos de cada tela",
     "conditionMetTitle": "Condições atendidas, visível na tela agora",
     "conditionUnmetTitle": "Condições não atendidas, oculto na tela agora",
     "conditionMetTitleEditor": "Condições atendidas, apareceria agora",
@@ -146,6 +151,7 @@
       "conditionTimeMet": "Aparece neste horário",
       "conditionTimeUnmet": "Escondido neste horário",
       "background": "Roda em segundo plano",
+      "everyScreen": "Em todas as telas",
       "lookShowing": "Visual: {name}",
       "looksShowing": "Visuais: {name}",
       "lookNone": "Nenhum visual combina",
@@ -231,6 +237,7 @@
     "secondsUnit": "segundos",
     "stickyBadge": "Fixa",
     "stickyHint": "Coloque 0 para ficar nesta tela até alguém tocar nela ou usar o controle remoto.",
+    "rotationOffHint": "A rotação automática está desativada neste display, então cada tela fica até alguém passar adiante.",
     "shortDurationWarning": "Com menos de {seconds} segundos, a tela pode mudar antes de as notícias e o clima terminarem de carregar.",
     "inheritsHintBefore": "Aparece por ",
     "inheritsHintValue": "{seconds} segundos",
@@ -888,6 +895,9 @@
         "flipHelp": "Ative se seu monitor estiver montado de cabeça para baixo. Gira a tela 180° em relação à orientação base."
       },
       "fields": {
+        "rotateLabel": "Rotação automática",
+        "rotateToggle": "Passar pelas telas",
+        "rotateHelp": "Desativada, o display fica em uma tela até alguém tocar nos pontos ou em um botão do dock, deslizar ou usar o controle remoto.",
         "rotationIntervalLabel": "Intervalo de rotação de telas",
         "rotationIntervalHelp": "Por quanto tempo cada tela é mostrada antes de avançar automaticamente. Só se aplica quando há várias telas configuradas.",
         "paginationDotsLabel": "Pontos de tela",
@@ -1041,6 +1051,7 @@
         "appearanceHeading": "Aparência",
         "fields": {
           "rotationIntervalSeconds": "{seconds} segundos",
+          "rotationOff": "Desativada",
           "paginationDotsLabelDisabled": "Desativado",
           "pauseEnabledLabelDisabled": "Desativada",
           "swipeEnabledLabelDisabled": "Desativado",
@@ -3256,6 +3267,8 @@
     "visibility": {
       "enabledLabel": "Mostrar no display",
       "enabledHelp": "Quando isto está desligado, o módulo nunca aparece no display. Ele continua aqui para você poder ligar de novo.",
+      "everyScreenLabel": "Mostrar em todas as telas",
+      "everyScreenHelp": "Desenha este módulo em todas as telas deste display, por cima do que estiver lá, e o mantém no lugar enquanto as telas mudam.",
       "backgroundProviderLabel": "Executar oculto em segundo plano",
       "backgroundProviderHelp": "Fornece valores para outros módulos. Esta cópia nunca aparece na tela; para também mostrar o módulo, adicione uma segunda cópia sem esta opção.",
       "backgroundProviderObsoleteHint": "Este plugin agora compartilha seus dados automaticamente. Esta cópia oculta não é mais necessária e pode ser excluída."
@@ -3697,12 +3710,15 @@
       "layoutPad": "Painel de toques",
       "layoutPanel": "Painel",
       "layoutNav": "Setas",
+      "layoutDock": "Dock",
       "defaultTarget": "Destino padrão",
       "targetSelf": "Esta tela (própria)",
       "targetAll": "Todas as telas",
       "legacyHint": "Só há uma tela, então é ela que é controlada.",
       "allowRetargeting": "Permitir que o usuário altere o destino em tempo de execução",
-      "compact": "Só ícones, sem texto"
+      "compact": "Só ícones, sem texto",
+      "dockHint": "Um botão por tela deste display. Toque em um para ir direto para aquela tela.",
+      "dockExtras": "Mostrar também Dormir e Brilho"
     },
     "financial": {
       "viewCards": "Cartões",

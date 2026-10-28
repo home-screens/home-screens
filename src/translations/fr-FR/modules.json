@@ -1149,7 +1149,10 @@
     "thisDisplayTag": "cet affichage",
     "allDisplays": "Tous les affichages",
     "brightnessValue": "Luminosité {percent} %",
-    "brightnessUnknown": "Luminosité, pas encore signalée"
+    "brightnessUnknown": "Luminosité, pas encore signalée",
+    "dockEmpty": "Pas encore d'écrans",
+    "unnamedScreen": "Écran {number}",
+    "goTo": "Aller à {name}"
   },
   "timetable": {
     "name": "Emploi du temps",

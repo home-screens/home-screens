@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { LayoutDashboard, Monitor, Plus, Copy } from 'lucide-react';
+import { LayoutDashboard, Monitor, Plus, Copy, Layers } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useEditorStore, getActiveScreens, getActiveDimensions, getActiveFullscreenTheme } from '@/stores/editor-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
@@ -34,7 +34,13 @@ import { isScreenEmpty, getDisplayProfiles, getActiveProfileId } from '@/lib/dis
 import { displayShowsPaginationDots } from '@/lib/pagination-dots';
 import { resolveProfileScreens } from '@/lib/schedule';
 import { usePreviewData } from './usePreviewData';
-import DraggableModule from './DraggableModule';
+import DraggableModule, { ModulePreview } from './DraggableModule';
+import { collectPinnedModules } from '@/lib/pinned-modules';
+import { getModuleDefinition } from '@/lib/module-registry';
+import { buildModuleShadow } from '@/lib/module-style';
+import type { ModuleDataSource } from '@/lib/module-props';
+import { RotationProvider, type RotationState } from '@/components/display/rotation-context';
+import { toDockScreen } from '@/lib/screen-dock';
 import ModuleContextMenu, { type ModuleMenuState } from './ModuleContextMenu';
 import SelectionOverlay from './SelectionOverlay';
 import { useFamilyData } from '@/hooks/useFamilyData';
@@ -73,6 +79,76 @@ function EmptyScreenPlaceholder({ scale, screenId, t }: { scale: number; screenI
           className="inline-flex items-center gap-1.5"
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * A module another screen of this display shows on every screen, drawn where
+ * the wall will draw it: the real module at full strength, above this
+ * screen's modules the way the wall's PinnedModuleLayer sits above the
+ * canvas, with a dashed accent outline as the only hint that it is not this
+ * screen's own. It takes no pointer, so the modules under it stay
+ * selectable; only the tag does, and a click there goes to the home screen
+ * with the module selected, which is the one place it can be edited.
+ */
+function PinnedGhost({ mod, scale, from, dataSource, onJump, t }: {
+  mod: ModuleInstance;
+  scale: number;
+  from: string;
+  dataSource: ModuleDataSource;
+  onJump: () => void;
+  t: TranslateFn;
+}) {
+  const [hot, setHot] = useState(false);
+  const itemCards = !!getModuleDefinition(mod.type)?.itemCards;
+  const cardRadius = itemCards ? undefined : mod.style.borderRadius * scale;
+  const title = t('canvas.pinnedGhost.title', { screen: from });
+  return (
+    <div
+      data-testid="pinned-ghost"
+      data-module-id={mod.id}
+      data-module-type={mod.type}
+      className={`absolute pointer-events-none outline-[1.5px] outline-offset-[-1.5px] outline-hs-accent/70 ${hot ? 'outline' : 'outline-dashed'}`}
+      style={{
+        left: mod.position.x * scale,
+        top: mod.position.y * scale,
+        width: mod.size.w * scale,
+        height: mod.size.h * scale,
+        // Above every module (their zIndex is small), under the selection
+        // ring (9000) so a module dragged out from under a pinned box keeps
+        // its handles in view, and under the dots guide (9990): the wall
+        // draws the dots over a pinned module too.
+        zIndex: 8999,
+        borderRadius: cardRadius,
+        boxShadow: !itemCards && (mod.style.shadowSize ?? 0) > 0
+          ? buildModuleShadow(mod.style.shadowSize ?? 0, scale)
+          : undefined,
+      }}
+      aria-hidden
+    >
+      <div className="w-full h-full overflow-hidden" style={{ borderRadius: cardRadius }}>
+        <div style={{ width: mod.size.w, height: mod.size.h, zoom: scale }}>
+          <ModulePreview mod={mod} source={dataSource} />
+        </div>
+      </div>
+      <button
+        type="button"
+        data-testid="pinned-ghost-tag"
+        className="pointer-events-auto absolute top-0 left-0 flex items-center gap-1 rounded-br bg-hs-accent/85 px-1.5 py-0.5 text-white whitespace-nowrap hover:underline underline-offset-2"
+        style={{ fontSize: Math.max(7, 9 * scale), borderTopLeftRadius: mod.style.borderRadius * scale }}
+        title={title}
+        aria-label={title}
+        onMouseEnter={() => setHot(true)}
+        onMouseLeave={() => setHot(false)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onJump();
+        }}
+      >
+        <Layers size={Math.max(8, 10 * scale)} strokeWidth={2} aria-hidden="true" />
+        {t('canvas.pinnedGhost.tag', { screen: from })}
+      </button>
     </div>
   );
 }
@@ -199,7 +275,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   const t = useTranslate('editor');
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerCanvasRef = useRef<HTMLDivElement>(null);
-  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, resizeModule, addScreen, copyScreensFromDisplay } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, selectScreen, resizeModule, addScreen, copyScreensFromDisplay } = useEditorStore();
   const previewData = usePreviewData();
 
   // In multi-display mode, the canvas renders at the currently-selected
@@ -338,14 +414,39 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   // and more than one screen rotates, and what rotates is the active
   // profile's slice of the enabled screens, the same resolution the kiosk
   // runs (schedule windows aside).
-  const rotatingScreenCount = useMemo(() => {
-    if (!config) return 0;
+  const rotatingScreens = useMemo(() => {
+    if (!config) return [];
     const enabled = activeScreens.filter((s) => s.enabled !== false);
     const display = selectedDisplayId ? config.displays?.find((d) => d.id === selectedDisplayId) : undefined;
     const profiles = display ? getDisplayProfiles(display, config.profiles) : config.profiles;
-    return resolveProfileScreens(enabled, profiles, getActiveProfileId(config, selectedDisplayId), now).length;
+    return resolveProfileScreens(enabled, profiles, getActiveProfileId(config, selectedDisplayId), now);
   }, [config, activeScreens, selectedDisplayId, now]);
+  const rotatingScreenCount = rotatingScreens.length;
   const showDotsGuide = rotatingScreenCount > 1 && !!config && displayShowsPaginationDots(config.settings, activeDisplay);
+
+  // Modules other screens of this display show on every screen, drawn here
+  // as ghosts where the wall will draw them (same list the wall's
+  // PinnedModuleLayer mounts). The selected screen's own pinned modules are
+  // ordinary, editable modules on this canvas. A switched-off module is
+  // skipped: it is not on the wall and its home screen is where it is dimmed.
+  const pinnedGhosts = useMemo(
+    () => collectPinnedModules(activeScreens).filter((p) => p.screenId !== selectedScreenId && p.mod.enabled !== false),
+    [activeScreens, selectedScreenId],
+  );
+  const screenLabel = useCallback((screenId: string) => {
+    const index = activeScreens.findIndex((s) => s.id === screenId);
+    const name = activeScreens[index]?.name.trim();
+    return name || t('screenTabs.newScreenName', { number: index + 1 });
+  }, [activeScreens, t]);
+
+  // The Display Control dock on the canvas shows the real rotation with the
+  // selected tab marked. A tap there selects the module like any other, so
+  // the jump is a no-op here.
+  const rotationState = useMemo<RotationState>(() => ({
+    screens: rotatingScreens.map(toDockScreen),
+    activeIndex: rotatingScreens.findIndex((s) => s.id === selectedScreenId),
+    goToScreen: () => {},
+  }), [rotatingScreens, selectedScreenId]);
 
   if (!currentScreen) {
     // A display with no screens at all is a different problem from "nothing
@@ -495,6 +596,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
               {isScreenEmpty(currentScreen) && (
                 <EmptyScreenPlaceholder scale={effectiveScale} screenId={currentScreen.id} t={t} />
               )}
+              <RotationProvider value={rotationState}>
               {currentScreen.modules.map((mod) => (
                 <DraggableModule
                   key={mod.id}
@@ -508,6 +610,21 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                   source={liveState.source}
                 />
               ))}
+              {pinnedGhosts.map(({ mod, screenId }) => (
+                <PinnedGhost
+                  key={mod.id}
+                  mod={mod}
+                  scale={effectiveScale}
+                  from={screenLabel(screenId)}
+                  dataSource={previewSource}
+                  onJump={() => {
+                    selectScreen(screenId);
+                    selectModule(mod.id);
+                  }}
+                  t={t}
+                />
+              ))}
+              </RotationProvider>
               {showDotsGuide && (
                 <DotsGuide screenCount={rotatingScreenCount} scale={effectiveScale} t={t} />
               )}

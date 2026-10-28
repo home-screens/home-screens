@@ -27,6 +27,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
     pad: t('configSections.display-control.layoutPad'),
     panel: t('configSections.display-control.layoutPanel'),
     nav: t('configSections.display-control.layoutNav'),
+    dock: t('configSections.display-control.layoutDock'),
   };
 
   return (
@@ -34,7 +35,7 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
       <div>
         <span className="text-xs text-hs-text-muted uppercase tracking-wider">{t('configSections.display-control.layout')}</span>
         <div className="grid grid-cols-2 gap-2 mt-1">
-          {(['bar', 'pad', 'panel', 'nav'] as const).map((opt) => (
+          {(['bar', 'pad', 'panel', 'nav', 'dock'] as const).map((opt) => (
             <button
               key={opt}
               type="button"
@@ -50,6 +51,19 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
           ))}
         </div>
       </div>
+
+      {c.layout === 'dock' && (
+        <>
+          <p className="text-[11px] text-hs-text-faint">
+            {t('configSections.display-control.dockHint')}
+          </p>
+          <Toggle
+            label={t('configSections.display-control.dockExtras')}
+            checked={c.dockExtras === true}
+            onChange={(v) => set({ dockExtras: v })}
+          />
+        </>
+      )}
 
       <Toggle
         label={t('configSections.display-control.compact')}

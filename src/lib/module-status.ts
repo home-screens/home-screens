@@ -1,4 +1,4 @@
-import { Clock, Eye, EyeOff, Palette, PowerOff, type LucideIcon } from 'lucide-react';
+import { Clock, Eye, EyeOff, Layers, Palette, PowerOff, type LucideIcon } from 'lucide-react';
 import { evaluateVisibility, isModuleEnabled, isModuleVisible, type ScheduleClock } from '@/lib/schedule';
 import { describeSchedule } from '@/lib/schedule-summary';
 import { referencesStateKeys, verdictStatesFor } from '@/lib/condition-verdicts';
@@ -10,7 +10,7 @@ import type { TranslateFn } from '@/i18n/types';
 export type ModuleStatusTone = 'off' | 'waiting' | 'active' | 'background';
 
 export interface ModuleStatus {
-  key: 'disabled' | 'schedule' | 'condition' | 'looks' | 'backgroundProvider';
+  key: 'disabled' | 'schedule' | 'condition' | 'looks' | 'backgroundProvider' | 'everyScreen';
   tone: ModuleStatusTone;
   /** Short enough for a chip on the canvas: "Hidden", "Mon to Fri, 7:00 AM to 9:00 AM". */
   label: string;
@@ -230,6 +230,14 @@ export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusConte
       label: t('draggableModule.status.background'),
       detail: t('draggableModule.backgroundProviderTitle'),
       icon: EyeOff,
+    });
+  } else if (mod.showOnEveryScreen && isModuleEnabled(mod)) {
+    out.push({
+      key: 'everyScreen',
+      tone: 'background',
+      label: t('draggableModule.status.everyScreen'),
+      detail: t('draggableModule.everyScreenTitle'),
+      icon: Layers,
     });
   }
 

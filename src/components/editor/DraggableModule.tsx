@@ -22,7 +22,7 @@ import { buildModuleShadow, resolveModuleStyle } from '@/lib/module-style';
 // Memoized: this renders the real module component (animations, canvases,
 // videos), and the canvas re-renders on every shared-state poll and clock
 // tick — none of which may reset module-internal state.
-const ModulePreview = memo(function ModulePreview({ mod, source }: { mod: ModuleInstance; source: ModuleDataSource }) {
+export const ModulePreview = memo(function ModulePreview({ mod, source }: { mod: ModuleInstance; source: ModuleDataSource }) {
   // `modules`, not `editor`: the crash fallback is the same string the display
   // shows, and it belongs beside `common.pluginNotAvailable`.
   const tModules = useTranslate('modules');

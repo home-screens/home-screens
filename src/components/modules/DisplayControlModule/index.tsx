@@ -11,7 +11,11 @@ import { BarLayout } from './BarLayout';
 import { PadLayout } from './PadLayout';
 import { PanelLayout } from './PanelLayout';
 import { NavLayout } from './NavLayout';
+import { DockLayout } from './DockLayout';
+import { useRotation } from '@/components/display/rotation-context';
 import type { LayoutProps } from './types';
+
+const EMPTY_SCREENS: never[] = [];
 
 export interface DisplayControlModuleProps {
   config: DisplayControlConfig;
@@ -108,6 +112,25 @@ export default function DisplayControlModule({
     void dispatchDisplayCommand(currentTarget, 'brightness', { value: pct });
   }, [currentTarget, dispatchDisplayCommand, markSent]);
 
+  // The dock lists this display's own rotation and jumps it directly when the
+  // target is this display: no hub round trip, so the tap lands at once, the
+  // same path a tap on the dots takes. Another display gets a `goto-screen`
+  // by name, since ids differ per display and the hub refuses a broadcast
+  // of it; "All displays" is this display locally plus every other one by name.
+  const rotation = useRotation();
+  const onGoto = useCallback((index: number) => {
+    const screen = rotation?.screens[index];
+    if (!screen) return;
+    const targetsSelf = currentTarget === undefined || currentTarget === renderDisplayId;
+    if (targetsSelf || currentTarget === 'all') rotation?.goToScreen(index);
+    if (targetsSelf) return;
+    const payload = { screen: screen.name.trim() || screen.id };
+    const others = currentTarget === 'all'
+      ? availableDisplays.filter((d) => d.id !== renderDisplayId).map((d) => d.id)
+      : [currentTarget];
+    for (const id of others) void dispatchDisplayCommand(id, 'goto-screen', payload);
+  }, [rotation, currentTarget, renderDisplayId, availableDisplays, dispatchDisplayCommand]);
+
   const layoutProps: LayoutProps = {
     currentTarget,
     setCurrentTarget,
@@ -131,6 +154,16 @@ export default function DisplayControlModule({
       return <PadLayout {...layoutProps} />;
     case 'nav':
       return <NavLayout {...layoutProps} />;
+    case 'dock':
+      return (
+        <DockLayout
+          {...layoutProps}
+          screens={rotation?.screens ?? EMPTY_SCREENS}
+          activeIndex={rotation?.activeIndex ?? -1}
+          onGoto={onGoto}
+          extras={config.dockExtras === true}
+        />
+      );
     case 'panel':
     default:
       return <PanelLayout {...layoutProps} />;

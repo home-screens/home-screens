@@ -1144,7 +1144,10 @@
     "thisDisplayTag": "dieses Display",
     "allDisplays": "Alle Displays",
     "brightnessValue": "Helligkeit {percent} %",
-    "brightnessUnknown": "Helligkeit, noch nicht gemeldet"
+    "brightnessUnknown": "Helligkeit, noch nicht gemeldet",
+    "dockEmpty": "Noch keine Bildschirme",
+    "unnamedScreen": "Bildschirm {number}",
+    "goTo": "Zu {name}"
   },
   "timetable": {
     "name": "Stundenplan",

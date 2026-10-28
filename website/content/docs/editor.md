@@ -200,6 +200,8 @@ Outside that window the display skips the screen in rotation, exactly as if you 
 
 The global rotation interval lives in **Settings > Screen > Rotation & appearance**. Screens cycle in order at this interval. The display view shows small indicator dots at the bottom, unless **Screen dots** is turned off.
 
+**Automatic rotation** on the same page turns the cycling off altogether: the wall stays on whatever screen it is showing until someone taps the dots or a Display Control button, swipes, or uses the family remote. Each display can have its own setting under **Per display**. With rotation off, a screen's own time (below) has no effect. This is the setting for a touchscreen you flip through by hand, for example with the Display Control module's **Dock** layout, which shows one button per screen.
+
 Any screen can have its own time. Click an empty area of the canvas, then under **Screen settings** click **Use a different time** and set it, or reset to go back to the shared default. A screen with its own time shows a small pill on its tab (for example `10s`) so you can see it at a glance.
 
 Setting a screen's time to **0** makes it **sticky**: the wall stays on that screen until something moves it along (the family remote, a Display Control module, or a swipe). The tab shows an amber `0s` pill as a warning. Useful for a dinner timer or a guest-mode photo frame.
@@ -430,6 +432,7 @@ Beyond scheduling, the Property Panel has two separate sections that control whe
 ### Visibility
 
 - **Show on display**: turn a module off without deleting it. A hidden module disappears from the display (and stops fetching data) but stays visible, dimmed, in the editor so you can turn it back on later.
+- **Show on every screen**: draws the module on every screen of this display, on top of whatever is there, and keeps it in place while the screens change. It stays on the screen you placed it on, which is where you move, resize and style it; every other screen shows it as a ghost with a tag that takes you back there. The schedule and conditions still apply. This is how a Display Control dock, a clock or a ticker follows the whole rotation. Duplicating the screen or the module gives the copy an ordinary module, so the display never draws two.
 - **Run hidden in the background**: keeps a module's data running behind the scenes without ever drawing it on screen, so the values it shares stay fresh across screen rotation. This one is background-only: if you want the widget visible too, add a second copy without this turned on. It only shows up on modules that can share values in the first place.
 
 ### Conditions

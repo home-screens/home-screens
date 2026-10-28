@@ -339,6 +339,20 @@ export interface ModuleInstance {
    * un-flagged instance.
    */
   backgroundProvider?: boolean;
+  /**
+   * Show the module on every screen of this display, on top of whatever is there, and keep it in
+   * place while the screens change
+   *
+   * When true, the display draws this instance once in a layer above the
+   * rotating canvas (PinnedModuleLayer) instead of on its home screen, so it
+   * never remounts on rotation and holds still through the screen
+   * transition. The home screen still owns it: position, size, style,
+   * schedule and conditions all apply as usual. Exclusive with
+   * `backgroundProvider`.
+   *
+   * @default false
+   */
+  showOnEveryScreen?: boolean;
 }
 
 export interface BackgroundRotation {
@@ -712,7 +726,12 @@ export interface AutoUpdateSettings {
 export type GoogleAppPreference = 'own' | 'hosted';
 
 export interface GlobalSettings {
-  /** How long each screen shows before the next one, in milliseconds */
+  /**
+   * How long each screen shows before the next one, in milliseconds. `0` turns automatic rotation
+   * off: the display stays on a screen until someone taps, swipes or sends it somewhere
+   *
+   * 0 wins over a screen's own `rotationDurationMs` (see resolveScreenDuration).
+   */
   rotationIntervalMs: number;
   /** Canvas width in pixels */
   displayWidth: number;
@@ -1003,7 +1022,7 @@ export interface DisplayNodeSettings {
   displayHeight?: number;
   /** Screen rotation */
   displayTransform?: 'normal' | '90' | '180' | '270';
-  /** How long each screen shows, in milliseconds */
+  /** How long each screen shows, in milliseconds; `0` turns automatic rotation off for this display */
   rotationIntervalMs?: number;
   /** How one screen changes to the next */
   transitionEffect?: TransitionEffect;
@@ -4057,11 +4076,21 @@ export interface DisplayControlConfig {
   /**
    * Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap,
    * `panel` a grid with the brightness slider always visible, `nav` just two big Previous and Next
-   * buttons
+   * buttons, `dock` one button per screen of this display, tap to jump straight to it
    *
-   * 'nav' is the pared-back one: just Previous and Next, nothing else.
+   * 'nav' is the pared-back one: just Previous and Next, nothing else. 'dock'
+   * lists the display's own rotation (from RotationContext) and jumps locally
+   * when the target is this display.
    */
-  layout: 'bar' | 'pad' | 'panel' | 'nav';
+  layout: 'bar' | 'pad' | 'panel' | 'nav' | 'dock';
+  /**
+   * With the `dock` layout: also show Sleep and Brightness after a divider at the end of the dock
+   *
+   * Ignored by the other layouts.
+   *
+   * @default false
+   */
+  dockExtras?: boolean;
   /**
    * Which display the buttons control. `self` resolves to the display the module is rendered on
    *

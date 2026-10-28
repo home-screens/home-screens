@@ -121,6 +121,9 @@ export function createModuleSlice(
       const copy: Omit<ModuleInstance, 'zIndex'> = {
         ...structuredClone(src),
         id: uuidv4(),
+        // A module shown on every screen is drawn once for the whole
+        // display; its copy starts as an ordinary module of this screen.
+        showOnEveryScreen: undefined,
         // One grid step down-right so the copy is visibly its own module;
         // fillsCanvas modules stay pinned at the origin.
         position: fillsCanvas

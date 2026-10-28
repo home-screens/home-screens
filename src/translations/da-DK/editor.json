@@ -113,6 +113,10 @@
       "chooseTemplate": "Vælg en skabelon"
     },
     "dotsGuide": "Skærmprikkerne vises her",
+    "pinnedGhost": {
+      "tag": "På alle skærme, fra {screen}",
+      "title": "Ligger på {screen}. Klik for at redigere det der."
+    },
     "moduleMenu": {
       "selectBehind": "Vælg modulet bagved",
       "hide": "Skjul på displayet",
@@ -130,6 +134,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
     "backgroundProviderTitle": "Kører skjult i baggrunden, vises aldrig på skærmen",
+    "everyScreenTitle": "Vises på alle skærme på dette display, oven på skærmens egne moduler",
     "conditionMetTitle": "Betingelser opfyldt, vises på skærmen nu",
     "conditionUnmetTitle": "Betingelser ikke opfyldt, skjult på skærmen nu",
     "conditionMetTitleEditor": "Betingelser opfyldt, ville vises nu",
@@ -146,6 +151,7 @@
       "conditionTimeMet": "Vises på dette tidspunkt",
       "conditionTimeUnmet": "Skjult på dette tidspunkt",
       "background": "Kører i baggrunden",
+      "everyScreen": "På alle skærme",
       "lookShowing": "Udseende: {name}",
       "looksShowing": "Udseender: {name}",
       "lookNone": "Intet udseende passer",
@@ -231,6 +237,7 @@
     "secondsUnit": "sekunder",
     "stickyBadge": "Fastlåst",
     "stickyHint": "Sæt den til 0 for at blive på denne skærm, indtil nogen trykker på den eller bruger fjernbetjeningen.",
+    "rotationOffHint": "Automatisk skift er slået fra for dette display, så hver skærm bliver stående, indtil nogen skifter videre.",
     "shortDurationWarning": "Under {seconds} sekunder kan skærmen skifte, før nyheder og vejr er færdige med at indlæse.",
     "inheritsHintBefore": "Vises i ",
     "inheritsHintValue": "{seconds} sekunder",
@@ -888,6 +895,9 @@
         "flipHelp": "Slå til, hvis skærmen er monteret på hovedet. Drejer visningen 180° i forhold til grundretningen."
       },
       "fields": {
+        "rotateLabel": "Automatisk skift",
+        "rotateToggle": "Skift mellem skærmene",
+        "rotateHelp": "Slået fra bliver displayet på én skærm, indtil nogen trykker på prikkerne eller en dock-knap, swiper eller bruger fjernbetjeningen.",
         "rotationIntervalLabel": "Interval for skærmskift",
         "rotationIntervalHelp": "Hvor længe hver skærm vises, før der automatisk skiftes til den næste. Gælder kun, når du har flere skærme.",
         "paginationDotsLabel": "Skærmprikker",
@@ -1041,6 +1051,7 @@
         "appearanceHeading": "Udseende",
         "fields": {
           "rotationIntervalSeconds": "{seconds} sekunder",
+          "rotationOff": "Slået fra",
           "paginationDotsLabelDisabled": "Slået fra",
           "pauseEnabledLabelDisabled": "Slået fra",
           "swipeEnabledLabelDisabled": "Slået fra",
@@ -3256,6 +3267,8 @@
     "visibility": {
       "enabledLabel": "Vis på skærmen",
       "enabledHelp": "Når den er slået fra, vises modulet aldrig på displayet. Det bliver stående her, så du kan slå det til igen.",
+      "everyScreenLabel": "Vis på alle skærme",
+      "everyScreenHelp": "Tegner dette modul på alle skærme på dette display, oven på det, der allerede er der, og holder det på plads, mens skærmene skifter.",
       "backgroundProviderLabel": "Kør skjult i baggrunden",
       "backgroundProviderHelp": "Leverer værdier til andre moduler. Denne kopi vises aldrig på skærmen; vil du også vise modulet, så tilføj en kopi mere uden denne indstilling.",
       "backgroundProviderObsoleteHint": "Dette plugin deler nu sine data automatisk. Denne skjulte kopi er ikke længere nødvendig og kan slettes."
@@ -3697,12 +3710,15 @@
       "layoutPad": "Knapfelt",
       "layoutPanel": "Panel",
       "layoutNav": "Pile",
+      "layoutDock": "Dock",
       "defaultTarget": "Standardmål",
       "targetSelf": "Dette display (sig selv)",
       "targetAll": "Alle displays",
       "legacyHint": "Der er kun én skærm, så det er den, der styres.",
       "allowRetargeting": "Lad brugeren skifte mål undervejs",
-      "compact": "Kun ikoner, ingen ord"
+      "compact": "Kun ikoner, ingen ord",
+      "dockHint": "Én knap pr. skærm på dette display. Tryk på en for at hoppe direkte til den skærm.",
+      "dockExtras": "Vis også Sov og Lysstyrke"
     },
     "financial": {
       "viewCards": "Kort",

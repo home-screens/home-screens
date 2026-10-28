@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { controlMetrics, popoverMetrics } from '../metrics';
+import { controlMetrics, dockMetrics, popoverMetrics } from '../metrics';
 
 const panel = (w: number, h: number, over: Partial<Parameters<typeof controlMetrics>[0]> = {}) =>
   controlMetrics({ w, h, layout: 'panel', compact: false, showPicker: false, ...over });
@@ -109,5 +109,56 @@ describe('controlMetrics', () => {
     const m = popoverMetrics();
     expect(m.showCaption).toBe(true);
     expect(m.thumb).toBeGreaterThan(20);
+  });
+});
+
+describe('dockMetrics', () => {
+  const dock = (w: number, h: number, over: Partial<Parameters<typeof dockMetrics>[0]> = {}) =>
+    dockMetrics({ w, h, count: 6, extras: false, compact: false, pickerH: 0, ...over });
+
+  it('keeps the names in the default box and drops them when the tiles get small', () => {
+    const wall = dock(720, 140);
+    expect(wall.showWords).toBe(true);
+    expect(wall.label).toBeGreaterThanOrEqual(11);
+    expect(wall.tile).toBeGreaterThanOrEqual(52);
+
+    const strip = dock(440, 96, { count: 5 });
+    expect(strip.showWords).toBe(false);
+    expect(strip.label).toBe(0);
+
+    const crowded = dock(720, 140, { count: 12 });
+    expect(crowded.showWords).toBe(false);
+    expect(crowded.tile).toBeGreaterThanOrEqual(40);
+  });
+
+  it('fits the pill inside the box along its axis, down to the finger floor', () => {
+    for (const [w, h, count] of [[720, 140, 6], [1040, 150, 8], [300, 72, 4], [720, 140, 12], [900, 150, 6]]) {
+      const m = dock(w, h, { count, extras: w === 900 });
+      const n = count + (w === 900 ? 2 : 0);
+      const run = n * m.tile + (n - 1) * m.gap + m.padIn * 2 + (w === 900 ? m.gap * 2 + 1 : 0);
+      // Either it fits, or every tile is already at the floor and the pill scrolls.
+      expect(run <= w - m.outer * 2 + 0.001 || m.tile === 40).toBe(true);
+      const acrossUsed = m.tile + (m.showWords ? m.label * 1.35 : 0) + m.marker * 2.2 + m.padIn * 2;
+      expect(acrossUsed).toBeLessThanOrEqual(h - m.outer * 2 + 0.001);
+    }
+  });
+
+  it('turns into a side dock in a tall box and keeps names only when they fit beside the tiles', () => {
+    const slim = dock(170, 560);
+    expect(slim.vertical).toBe(true);
+    expect(slim.showWords).toBe(false);
+
+    const wide = dock(300, 560);
+    expect(wide.vertical).toBe(true);
+    expect(wide.showWords).toBe(true);
+  });
+
+  it('honours compact and the picker row', () => {
+    expect(dock(720, 140, { compact: true }).showWords).toBe(false);
+    expect(dock(720, 140, { pickerH: 40 }).tile).toBeLessThan(dock(720, 140).tile);
+  });
+
+  it('assumes the default box before the first measurement', () => {
+    expect(dock(0, 0)).toEqual(dock(720, 140));
   });
 });

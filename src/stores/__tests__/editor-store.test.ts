@@ -352,6 +352,23 @@ describe('editor store', () => {
   });
 
   describe('duplicateModule', () => {
+    it('drops "show on every screen" from the copy', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].modules = [{
+        id: 'mod-1', type: 'clock', position: { x: 40, y: 60 }, size: { w: 400, h: 200 },
+        zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE }, showOnEveryScreen: true,
+      }];
+      store.setState({ config, selectedModuleId: 'mod-1' });
+
+      store.getState().duplicateModule('screen-1', 'mod-1');
+
+      const mods = store.getState().config!.screens[0].modules;
+      expect(mods).toHaveLength(2);
+      expect(mods[0].showOnEveryScreen).toBe(true);
+      expect(mods[1].showOnEveryScreen).toBeUndefined();
+    });
+
     it('clones the module one grid step away and selects the copy', () => {
       const store = useEditorStore;
       const config = makeConfig();
@@ -420,6 +437,22 @@ describe('editor store', () => {
       expect(screens[2].id).toBe('screen-2');
       expect(store.getState().selectedScreenId).toBe(copy.id);
       expect(store.getState().selectedModuleId).toBeNull();
+    });
+
+    it('drops "show on every screen" from the copy so the display does not draw it twice', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens = [{
+        id: 'screen-1', name: 'Home', backgroundImage: '',
+        modules: [{ id: 'mod-1', type: 'display-control', position: { x: 0, y: 0 }, size: { w: 720, h: 140 }, zIndex: 1, config: {}, style: { ...DEFAULT_MODULE_STYLE }, showOnEveryScreen: true }],
+      }];
+      store.setState({ config, selectedScreenId: 'screen-1' });
+
+      store.getState().duplicateScreen('screen-1');
+
+      const screens = store.getState().config!.screens;
+      expect(screens[0].modules[0].showOnEveryScreen).toBe(true);
+      expect(screens[1].modules[0].showOnEveryScreen).toBeUndefined();
     });
   });
 

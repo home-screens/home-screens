@@ -173,7 +173,7 @@ A screen's three gates (`enabled`, `schedule`, `visibility`) are AND-combined, l
 
 {% type-reference name="ModuleInstance" /%}
 
-The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combined: a module renders only when it is enabled, its schedule window matches, and its visibility conditions are met.
+The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combined: a module renders only when it is enabled, its schedule window matches, and its visibility conditions are met. A module with `showOnEveryScreen` passes the same gates but is drawn once, above the rotating canvas, on every screen of its display rather than on its home screen alone.
 
 ### ModuleSchedule
 

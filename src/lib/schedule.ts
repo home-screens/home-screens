@@ -30,6 +30,22 @@ export function readScheduleClock(now: ScheduleClock): WallClock {
  * (`enabled === false`). Undefined / true both mean "enabled".
  * Mirrors the `Screen.enabled` convention used by ScreenRotator and the remote view.
  */
+/**
+ * The three AND-combined gates every module instance passes before it is
+ * drawn anywhere: the on/off switch, the schedule and the visibility
+ * conditions. Shared by the screen renderer and PinnedModuleLayer so a module
+ * pinned to every screen obeys exactly the rules it obeyed on its home
+ * screen. `now` is the display-zone minute clock, so a `time` condition
+ * re-evaluates on the existing minute tick with no extra timer.
+ */
+export function passesModuleGates(
+  mod: ModuleInstance,
+  now: ScheduleClock,
+  states: ReadonlyMap<string, SharedStateEntry>,
+): boolean {
+  return isModuleEnabled(mod) && isModuleVisible(mod.schedule, now) && evaluateVisibility(mod.visibility, states, now);
+}
+
 export function isModuleEnabled(mod: Pick<ModuleInstance, 'enabled'>): boolean {
   return mod.enabled !== false;
 }

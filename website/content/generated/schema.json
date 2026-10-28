@@ -7252,16 +7252,27 @@
           "optional": false,
           "type": {
             "kind": "string",
-            "text": "\"bar\" | \"pad\" | \"panel\" | \"nav\"",
+            "text": "\"bar\" | \"pad\" | \"panel\" | \"nav\" | \"dock\"",
             "values": [
               "bar",
               "pad",
               "panel",
-              "nav"
+              "nav",
+              "dock"
             ]
           },
-          "description": "Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap, `panel` a grid with the brightness slider always visible, `nav` just two big Previous and Next buttons",
+          "description": "Control layout, `bar` is a single row, `pad` a grid of large buttons with brightness on tap, `panel` a grid with the brightness slider always visible, `nav` just two big Previous and Next buttons, `dock` one button per screen of this display, tap to jump straight to it",
           "default": "panel"
+        },
+        {
+          "name": "dockExtras",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "With the `dock` layout: also show Sleep and Brightness after a divider at the end of the dock",
+          "defaultText": "false"
         },
         {
           "name": "defaultTarget",
@@ -7443,7 +7454,7 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "How long each screen shows before the next one, in milliseconds",
+          "description": "How long each screen shows before the next one, in milliseconds. `0` turns automatic rotation off: the display stays on a screen until someone taps, swipes or sends it somewhere",
           "default": 30000
         },
         {
@@ -8735,6 +8746,16 @@
             "text": "boolean"
           },
           "description": "Never draw the module; run it in the background instead, so the values it publishes keep updating while other screens show"
+        },
+        {
+          "name": "showOnEveryScreen",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show the module on every screen of this display, on top of whatever is there, and keep it in place while the screens change",
+          "defaultText": "false"
         }
       ]
     },
@@ -9317,7 +9338,7 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "How long each screen shows, in milliseconds"
+          "description": "How long each screen shows, in milliseconds; `0` turns automatic rotation off for this display"
         },
         {
           "name": "transitionEffect",

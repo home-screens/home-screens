@@ -1144,7 +1144,10 @@
     "thisDisplayTag": "this display",
     "allDisplays": "All displays",
     "brightnessValue": "Brightness {percent}%",
-    "brightnessUnknown": "Brightness, not reported yet"
+    "brightnessUnknown": "Brightness, not reported yet",
+    "dockEmpty": "No screens yet",
+    "unnamedScreen": "Screen {number}",
+    "goTo": "Go to {name}"
   },
   "timetable": {
     "name": "School Timetable",

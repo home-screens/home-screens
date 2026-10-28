@@ -1149,7 +1149,10 @@
     "thisDisplayTag": "este display",
     "allDisplays": "Todos los displays",
     "brightnessValue": "Brillo {percent} %",
-    "brightnessUnknown": "Brillo, aún sin informar"
+    "brightnessUnknown": "Brillo, aún sin informar",
+    "dockEmpty": "Aún no hay pantallas",
+    "unnamedScreen": "Pantalla {number}",
+    "goTo": "Ir a {name}"
   },
   "timetable": {
     "name": "Horario escolar",

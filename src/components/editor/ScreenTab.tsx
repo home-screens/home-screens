@@ -52,6 +52,8 @@ interface ScreenTabProps {
   onDelete: (e: React.MouseEvent) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   canDelete: boolean;
+  /** Automatic rotation is off for this display, so a screen's own time is ignored and its badge would mislead. */
+  rotationOff: boolean;
 }
 
 export default function ScreenTab({
@@ -67,6 +69,7 @@ export default function ScreenTab({
   onDelete,
   onContextMenu,
   canDelete,
+  rotationOff,
 }: ScreenTabProps) {
   const t = useTranslate('editor');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -145,7 +148,7 @@ export default function ScreenTab({
       ) : (
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
-          {screen.rotationDurationMs != null && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
+          {screen.rotationDurationMs != null && !rotationOff && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
           {screen.schedule && (
             <Clock
               className="ml-0.5 h-3 w-3 text-hs-text-faint"

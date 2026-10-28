@@ -185,3 +185,114 @@ export function controlMetrics(box: ControlBox): ControlMetrics {
 export function popoverMetrics(): ControlMetrics {
   return controlMetrics({ w: 320, h: 440, layout: 'panel', compact: false, showPicker: false });
 }
+
+/**
+ * Sizing model for the dock layout. A different shape from the four button
+ * layouts: the dock is a centred pill with one tile per screen, as wide as its
+ * screens rather than stretched to the box, so the numbers depend on the
+ * screen count as much as the box.
+ *
+ * Words first: their row is reserved across the dock and the tile takes what
+ * is left. Only when that tile would fall under `WORDS_FLOOR` do the words go,
+ * and the tiles then shrink toward `TILE_FLOOR` (a finger). Past that the
+ * pill scrolls along its axis rather than shrinking further.
+ */
+export interface DockMetrics {
+  /** A tall box lays the dock down its side, names to the right of the tiles. */
+  vertical: boolean;
+  /** Tile side, px (tiles are square). */
+  tile: number;
+  /** Gap between tiles and the basis for the divider's margins. */
+  gap: number;
+  /** Padding inside the pill. */
+  padIn: number;
+  /** Padding between the box edge and the pill. */
+  outer: number;
+  /** Name type size, px (0 when the words are dropped). */
+  label: number;
+  showWords: boolean;
+  /** Diameter of the "showing now" dot under (beside) the active tile. */
+  marker: number;
+  /** Corner radius of a tile and of the pill. */
+  radius: number;
+  pillRadius: number;
+  /** Icon box inside a tile. */
+  icon: number;
+}
+
+export interface DockBox {
+  w: number;
+  h: number;
+  /** Screens in the dock. */
+  count: number;
+  /** Two extra tiles (Sleep, Brightness) after a divider. */
+  extras: boolean;
+  compact: boolean;
+  /** Height the target picker row takes off the top (0 when hidden). */
+  pickerH: number;
+}
+
+const DOCK_UNMEASURED = { w: 720, h: 140 };
+const TILE_FLOOR = 40;
+const TILE_CAP = 128;
+/** Smallest tile that still carries its name. */
+const WORDS_FLOOR = 52;
+
+export function dockMetrics(box: DockBox): DockMetrics {
+  const w = box.w > 0 ? box.w : DOCK_UNMEASURED.w;
+  const h = Math.max(0, (box.h > 0 ? box.h : DOCK_UNMEASURED.h) - box.pickerH);
+  const count = Math.max(1, box.count) + (box.extras ? 2 : 0);
+  const vertical = h > 0 && w / h <= 0.75;
+  const min = Math.min(w, h);
+  const outer = clamp(min * 0.06, 4, 12);
+  const availW = Math.max(0, w - outer * 2);
+  const availH = Math.max(0, h - outer * 2);
+  // Along the dock the tiles line up; across it sit the tile, the words and
+  // the marker.
+  const along = vertical ? availH : availW;
+  const across = vertical ? availW : availH;
+
+  const fit = (withWords: boolean) => {
+    let tile = clamp(across * 0.62, TILE_FLOOR, TILE_CAP);
+    if (withWords && !vertical) {
+      // Reserve the words row from a first guess at the type size, then size
+      // the tile to what is left.
+      const guess = clamp(tile * 0.22, 11, 20);
+      const padGuess = clamp(tile * 0.16, 6, 18);
+      tile = clamp(across - padGuess * 2 - guess * 1.35 - clamp(tile * 0.08, 4, 7) * 2.2, TILE_FLOOR, TILE_CAP);
+    }
+    let gap = clamp(tile * 0.16, 4, 16);
+    let padIn = clamp(tile * 0.16, 6, 18);
+    const dividerRun = box.extras ? gap * 2 + 1 : 0;
+    const need = count * tile + (count - 1) * gap + padIn * 2 + dividerRun;
+    if (need > along) {
+      tile = clamp((along - padIn * 2 - (count - 1) * gap - dividerRun) / count, TILE_FLOOR, TILE_CAP);
+      gap = clamp(tile * 0.16, 4, 16);
+      padIn = clamp(tile * 0.16, 6, 18);
+    }
+    const label = clamp(tile * 0.22, 11, 20);
+    const ok = !withWords
+      || (tile >= WORDS_FLOOR && (!vertical || tile + label * 7 + padIn * 2 <= across));
+    return { tile, gap, padIn, label, ok };
+  };
+
+  let r = box.compact ? null : fit(true);
+  const showWords = r !== null && r.ok;
+  if (!showWords) r = fit(false);
+  const { tile, gap, padIn } = r!;
+  const label = showWords ? r!.label : 0;
+
+  return {
+    vertical,
+    tile,
+    gap,
+    padIn,
+    outer,
+    label,
+    showWords,
+    marker: clamp(tile * 0.08, 4, 7),
+    radius: tile * 0.26,
+    pillRadius: clamp(tile * 0.3, 10, 28),
+    icon: Math.round(tile * 0.56),
+  };
+}

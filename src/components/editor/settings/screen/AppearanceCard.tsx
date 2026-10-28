@@ -10,6 +10,9 @@ import type { DisplayState } from '@/lib/settings-form';
 import type { TransitionEffect } from '@/types/config';
 import { useTranslate, tOrFallback } from '@/i18n';
 
+/** Seeded when rotation is switched back on, so the slider has somewhere to start. */
+const DEFAULT_ROTATION_SECONDS = 30;
+
 interface AppearanceCardProps {
   values: DisplayState;
   onChange: (updates: Partial<DisplayState>) => void;
@@ -66,21 +69,37 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
   return (
     <div className="mb-5">
       <div className="rounded-lg border border-hs-border bg-hs-panel/40">
-      <FieldRow fieldId="display.rotationInterval">
-        <FieldLabel>{t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}</FieldLabel>
-        <Slider
-          label=""
-          value={rotationInterval}
-          min={5}
-          max={Math.max(600, rotationInterval)}
-          step={5}
-          displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: rotationInterval })}
-          onChange={(v) => onChange({ rotationInterval: v })}
+      {/* 0 seconds is "do not rotate": the wall stays on a screen until a
+          tap, a swipe or the remote moves it (resolveScreenDuration). */}
+      <FieldRow fieldId="display.rotateAutomatically">
+        <FieldLabel>{t('settings.defaultDisplayPage.fields.rotateLabel')}</FieldLabel>
+        <Toggle
+          label={t('settings.defaultDisplayPage.fields.rotateToggle')}
+          checked={rotationInterval > 0}
+          onChange={(v) => onChange({ rotationInterval: v ? DEFAULT_ROTATION_SECONDS : 0 })}
         />
         <FieldHelp>
-          {t('settings.defaultDisplayPage.fields.rotationIntervalHelp')}
+          {t('settings.defaultDisplayPage.fields.rotateHelp')}
         </FieldHelp>
       </FieldRow>
+
+      {rotationInterval > 0 && (
+        <FieldRow fieldId="display.rotationInterval">
+          <FieldLabel>{t('settings.defaultDisplayPage.fields.rotationIntervalLabel')}</FieldLabel>
+          <Slider
+            label=""
+            value={rotationInterval}
+            min={5}
+            max={Math.max(600, rotationInterval)}
+            step={5}
+            displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: rotationInterval })}
+            onChange={(v) => onChange({ rotationInterval: v })}
+          />
+          <FieldHelp>
+            {t('settings.defaultDisplayPage.fields.rotationIntervalHelp')}
+          </FieldHelp>
+        </FieldRow>
+      )}
 
       <FieldRow fieldId="display.showPaginationDots">
         <FieldLabel>{t('settings.defaultDisplayPage.fields.paginationDotsLabel')}</FieldLabel>

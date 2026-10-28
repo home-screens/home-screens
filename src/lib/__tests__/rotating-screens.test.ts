@@ -20,6 +20,17 @@ function makeScreen(id: string, modules: ModuleInstance[] = [], extra: Partial<S
 }
 
 describe('selectRotatingScreens', () => {
+  it('drops a screen whose only modules are shown on every screen or run hidden', () => {
+    const full = makeScreen('s1', [makeModule()]);
+    const dockOnly = makeScreen('s2', [{ ...makeModule('dock'), showOnEveryScreen: true }, { ...makeModule('bg'), backgroundProvider: true }]);
+    const dockOnWallpaper = makeScreen('s3', [{ ...makeModule('dock'), showOnEveryScreen: true }], { backgroundImage: '/bg.jpg' });
+    const dockWithClock = makeScreen('s4', [{ ...makeModule('dock'), showOnEveryScreen: true }, makeModule('clock')]);
+
+    expect(selectRotatingScreens([full, dockOnly, dockOnWallpaper, dockWithClock])).toEqual([full, dockOnWallpaper, dockWithClock]);
+    // Nothing else to show: the list stays as it is, like the all-empty case.
+    expect(selectRotatingScreens([dockOnly])).toEqual([dockOnly]);
+  });
+
   it('drops a screen with nothing on it from a rotation that has content elsewhere', () => {
     const full1 = makeScreen('s1', [makeModule()]);
     const blank = makeScreen('s2');

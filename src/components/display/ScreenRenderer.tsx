@@ -5,7 +5,7 @@ import type { Screen, ModuleInstance } from '@/types/config';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
-import { isModuleEnabled, isModuleVisible, evaluateVisibility, collectConditionSourceKeys, type ScheduleClock } from '@/lib/schedule';
+import { passesModuleGates, collectConditionSourceKeys, type ScheduleClock } from '@/lib/schedule';
 import { DISPLAY_BACKGROUND } from '@/lib/constants';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
@@ -20,7 +20,10 @@ import { useTranslate } from '@/i18n';
  * the filter expression.
  *
  * `backgroundProvider` instances are unconditionally excluded here: they are
- * background-ONLY and render solely inside BackgroundProviderLayer.
+ * background-ONLY and render solely inside BackgroundProviderLayer. So are
+ * `showOnEveryScreen` instances, which PinnedModuleLayer draws once above
+ * the rotating canvas; drawing them here too would double them on their home
+ * screen and remount them on every rotation.
  */
 export const isModuleRenderable = (
   mod: ModuleInstance,
@@ -28,12 +31,8 @@ export const isModuleRenderable = (
   states: ReadonlyMap<string, SharedStateEntry>,
 ): boolean =>
   !mod.backgroundProvider &&
-  isModuleEnabled(mod) &&
-  isModuleVisible(mod.schedule, now) &&
-  // `now` is the same display-zone minute clock the schedule check uses, so
-  // a `time` visibility condition re-evaluates on the existing minute tick — no
-  // extra timer needed on the display's module path.
-  evaluateVisibility(mod.visibility, states, now);
+  !mod.showOnEveryScreen &&
+  passesModuleGates(mod, now, states);
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
 import { useAuthImage } from './useAuthImage';

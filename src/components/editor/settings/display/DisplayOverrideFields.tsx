@@ -24,6 +24,8 @@ interface DisplayOverrideFieldsProps {
 }
 
 const DEFAULTS_HREF = settingsHref({ kind: 'defaults', page: 'screen' });
+/** Seeded when a display's rotation is switched back on. */
+const DEFAULT_ROTATION_SECONDS = 30;
 
 /**
  * The inheritable half of the per-display Overrides subtab: rotation &
@@ -97,20 +99,33 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
             onReset={() => setOverride('rotationIntervalMs', undefined)}
             defaultsPageHref={DEFAULTS_HREF}
             defaultsPageLabel={DEFAULTS_LABEL}
-            formatValue={(v) => t('settings.perDisplayPage.display.fields.rotationIntervalSeconds', { seconds: v })}
+            formatValue={(v) => (v > 0
+              ? t('settings.perDisplayPage.display.fields.rotationIntervalSeconds', { seconds: v })
+              : t('settings.perDisplayPage.display.fields.rotationOff'))}
             displayName={display.name}
           >
             {({ value, onChange, disabled }) => (
-              <Slider
-                label=""
-                value={value}
-                min={5}
-                max={Math.max(600, value)}
-                step={5}
-                displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
-                onChange={onChange}
-                disabled={disabled}
-              />
+              <div className="space-y-2">
+                {/* 0 is "do not rotate" for this display alone. */}
+                <Toggle
+                  label={t('settings.defaultDisplayPage.fields.rotateToggle')}
+                  checked={value > 0}
+                  disabled={disabled}
+                  onChange={(v) => onChange(v ? DEFAULT_ROTATION_SECONDS : 0)}
+                />
+                {value > 0 && (
+                  <Slider
+                    label=""
+                    value={value}
+                    min={5}
+                    max={Math.max(600, value)}
+                    step={5}
+                    displayValue={t('settings.defaultDisplayPage.fields.cursorHideValue', { seconds: value })}
+                    onChange={onChange}
+                    disabled={disabled}
+                  />
+                )}
+              </div>
             )}
           </OverrideRow>
 

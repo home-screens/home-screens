@@ -113,6 +113,10 @@
       "chooseTemplate": "Choose a template"
     },
     "dotsGuide": "Screen dots show here",
+    "pinnedGhost": {
+      "tag": "On every screen, from {screen}",
+      "title": "Placed on {screen}. Click to edit it there."
+    },
     "moduleMenu": {
       "selectBehind": "Select the module behind",
       "hide": "Hide on display",
@@ -130,6 +134,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Shows only when its conditions are met",
     "backgroundProviderTitle": "Runs hidden in the background and never shown on the display",
+    "everyScreenTitle": "Shows on every screen of this display, on top of that screen's modules",
     "conditionMetTitle": "Conditions met, showing on the display now",
     "conditionUnmetTitle": "Conditions not met, hidden on the display now",
     "conditionMetTitleEditor": "Conditions met, would show right now",
@@ -146,6 +151,7 @@
       "conditionTimeMet": "Showing at this time",
       "conditionTimeUnmet": "Hidden at this time",
       "background": "Runs in the background",
+      "everyScreen": "On every screen",
       "lookShowing": "Look: {name}",
       "looksShowing": "Looks: {name}",
       "lookNone": "No look matches",
@@ -231,6 +237,7 @@
     "secondsUnit": "seconds",
     "stickyBadge": "Sticky",
     "stickyHint": "Set this to 0 to stay on this screen until someone taps it or uses the remote.",
+    "rotationOffHint": "Automatic rotation is off for this display, so every screen stays up until someone moves it along.",
     "shortDurationWarning": "Shorter than {seconds} seconds and the screen may change before its news and weather finish loading.",
     "inheritsHintBefore": "Shows for ",
     "inheritsHintValue": "{seconds} seconds",
@@ -888,6 +895,9 @@
         "flipHelp": "Enable if your monitor is mounted upside-down. Rotates the display 180° from its base orientation."
       },
       "fields": {
+        "rotateLabel": "Automatic rotation",
+        "rotateToggle": "Rotate through the screens",
+        "rotateHelp": "Off keeps the display on one screen until someone taps the dots or a dock button, swipes, or uses the remote.",
         "rotationIntervalLabel": "Screen rotation interval",
         "rotationIntervalHelp": "How long each screen is shown before automatically cycling to the next. Only applies when you have multiple screens configured.",
         "paginationDotsLabel": "Screen dots",
@@ -1041,6 +1051,7 @@
         "appearanceHeading": "Appearance",
         "fields": {
           "rotationIntervalSeconds": "{seconds} seconds",
+          "rotationOff": "Off",
           "paginationDotsLabelDisabled": "Disabled",
           "pauseEnabledLabelDisabled": "Disabled",
           "swipeEnabledLabelDisabled": "Disabled",
@@ -3256,6 +3267,8 @@
     "visibility": {
       "enabledLabel": "Show on display",
       "enabledHelp": "When this is off the module never appears on the display. It stays here so you can switch it back on.",
+      "everyScreenLabel": "Show on every screen",
+      "everyScreenHelp": "Draws this module on every screen of this display, on top of whatever is there, and keeps it in place while the screens change.",
       "backgroundProviderLabel": "Run hidden in the background",
       "backgroundProviderHelp": "Provides state to other modules. This copy never appears on screen - to also show the module, add a second copy without this setting.",
       "backgroundProviderObsoleteHint": "This plugin now shares its data automatically. This hidden copy is no longer needed and can be deleted."
@@ -3697,12 +3710,15 @@
       "layoutPad": "Pad",
       "layoutPanel": "Panel",
       "layoutNav": "Arrows",
+      "layoutDock": "Dock",
       "defaultTarget": "Default target",
       "targetSelf": "This display (self)",
       "targetAll": "All displays",
       "legacyHint": "There's only one display, so this is the one it controls.",
       "allowRetargeting": "Allow user to change target at runtime",
-      "compact": "Icons only, no words"
+      "compact": "Icons only, no words",
+      "dockHint": "One button per screen of this display. Tap one to jump straight to that screen.",
+      "dockExtras": "Also show Sleep and Brightness"
     },
     "financial": {
       "viewCards": "Cards",

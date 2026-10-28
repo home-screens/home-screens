@@ -289,8 +289,11 @@ export default function SettingsSidebar({ onAddDisplay }: SettingsSidebarProps) 
         config?.settings?.showPaginationDots ?? FORM_DEFAULTS.display.showPaginationDots,
         config?.displays,
       ),
+      // The interval slider is only on the page while the shared default
+      // rotates (AppearanceCard); with no config yet, assume it does.
+      rotationOn: (config?.settings?.rotationIntervalMs ?? 1) > 0,
     }),
-    [config?.settings?.advancedMode, config?.settings?.transitionEffect, config?.settings?.showPaginationDots, config?.displays, profilesForSelectedDisplay, isMultiDisplay],
+    [config?.settings?.advancedMode, config?.settings?.transitionEffect, config?.settings?.showPaginationDots, config?.settings?.rotationIntervalMs, config?.displays, profilesForSelectedDisplay, isMultiDisplay],
   );
   const filteredFields = useMemo(
     () =>

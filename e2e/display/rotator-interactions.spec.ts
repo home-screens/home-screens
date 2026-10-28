@@ -280,10 +280,11 @@ test.describe('plugin navigate events', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Screen-set switch (profile activation) resets index to 0 and clears pause.
+// Screen-set switch (profile activation): the showing screen keeps its place
+// when the new set still has it (placeAfterSetChange), and the pause clears.
 // ---------------------------------------------------------------------------
 
-test('activating a profile mid-session resets the rotator to the first screen and clears pause', async ({ page, request }) => {
+test('activating a profile mid-session keeps the showing screen, drops the rest and clears pause', async ({ page, request }) => {
   // Start with all three screens and no active profile. The profile is defined
   // but dormant (no schedule, not active), so all screens rotate initially.
   const profile: Profile = { id: 'subset', name: 'Subset', screenIds: ['a', 'b'] };
@@ -296,20 +297,22 @@ test('activating a profile mid-session resets the rotator to the first screen an
   await renderOnDisplay(page, request, config);
   await expect(page.getByText(A, { exact: true })).toBeVisible();
 
-  // Navigate to B (index 1) and pause there — a non-zero index AND paused, the
-  // two pieces of state the switch must clear.
+  // Navigate to B (index 1) and pause there.
   await page.getByRole('button', { name: 'Go to screen 2: B' }).click();
   await expect(page.getByText(B, { exact: true })).toBeVisible();
   await page.locator('button[aria-current="true"]').dblclick();
   await expect(page.getByTestId('pause-pill')).toBeVisible();
 
   // Activate the profile mid-session. useLiveConfig picks up the PUT within its
-  // 3s poll; the resolved screen set becomes [A, B] — a different screenKey,
-  // which fires ScreenRotator's reset effect (currentIndex→0, paused→false).
+  // 3s poll; the resolved screen set becomes [A, B] — a different screenKey.
+  // B is still in the set, so the wall stays on it (no flash to A); the pause
+  // is a hard reset on any set change.
   config.settings.activeProfile = 'subset';
   await putConfig(request, config);
 
-  await expect(page.getByText(A, { exact: true })).toBeVisible({ timeout: 9000 });
+  await expect(page.getByRole('button', { name: 'Go to screen 1: A' })).toBeVisible({ timeout: 9000 });
+  await expect(page.getByText(B, { exact: true })).toBeVisible();
+  await expect(page.getByTestId('pagination-dots').getByRole('button')).toHaveCount(2);
   await expect(page.getByTestId('pause-pill')).toHaveCount(0);
   // C is no longer in the active set, so it never mounts.
   await expect(page.getByText(C, { exact: true })).toHaveCount(0);

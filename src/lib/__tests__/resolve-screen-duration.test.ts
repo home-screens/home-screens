@@ -59,4 +59,10 @@ describe('resolveScreenDuration', () => {
     const settings = makeSettings(30_000);
     expect(resolveScreenDuration(screen, settings)).toBe(0);
   });
+
+  it('stays put everywhere when automatic rotation is off, even on a screen with its own time', () => {
+    const settings = makeSettings(0);
+    expect(resolveScreenDuration(makeScreen(), settings)).toBe(0);
+    expect(resolveScreenDuration(makeScreen({ rotationDurationMs: 15_000 }), settings)).toBe(0);
+  });
 });

@@ -130,7 +130,19 @@ describe('conditionally-rendered field gating', () => {
     profileCount: 0,
     transitionEffect: 'fade',
     dotDefaultsInUse: true,
+    rotationOn: true,
   };
+
+  it('offers the rotation switch always and the interval only while rotation is on', () => {
+    const toggle = SETTINGS_FIELD_INDEX.find((f) => f.fieldId === 'display.rotateAutomatically')!;
+    const interval = SETTINGS_FIELD_INDEX.find((f) => f.fieldId === 'display.rotationInterval')!;
+    expect(isSettingsFieldReachable(toggle, DEFAULT_INSTALL)).toBe(true);
+    expect(isSettingsFieldReachable(toggle, { ...DEFAULT_INSTALL, rotationOn: false })).toBe(true);
+    expect(isSettingsFieldReachable(interval, DEFAULT_INSTALL)).toBe(true);
+    // AppearanceCard unmounts the slider row when the switch is off, so a hit
+    // there would lead nowhere.
+    expect(isSettingsFieldReachable(interval, { ...DEFAULT_INSTALL, rotationOn: false })).toBe(false);
+  });
 
   it('keeps the update choice reachable without advanced mode', () => {
     // Which builds to be offered is a user decision, not a developer control,
@@ -206,7 +218,7 @@ describe('conditionally-rendered field gating', () => {
     expect(isSettingsFieldReachable(entry, DEFAULT_INSTALL)).toBe(true);
     expect(
       isSettingsFieldReachable(entry, {
-        advancedMode: true, isMultiDisplay: true, profileCount: 5, transitionEffect: 'none', dotDefaultsInUse: false,
+        advancedMode: true, isMultiDisplay: true, profileCount: 5, transitionEffect: 'none', dotDefaultsInUse: false, rotationOn: false,
       }),
     ).toBe(true);
   });

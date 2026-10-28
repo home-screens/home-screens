@@ -4,6 +4,7 @@ import { useState, useEffect, useLayoutEffect, useCallback, useRef, useMemo } fr
 import type { Screen, GlobalSettings, Profile, DisplayRule } from '@/types/config';
 import ScreenRenderer from './ScreenRenderer';
 import BackgroundProviderLayer from './BackgroundProviderLayer';
+import PinnedModuleLayer from './PinnedModuleLayer';
 import EmptyDisplayHint from './EmptyDisplayHint';
 import { isScreenEmpty } from '@/lib/display-filter';
 import { selectRotatingScreens } from '@/lib/rotating-screens';
@@ -46,6 +47,8 @@ import { pluginEventBus } from '@/lib/plugin-events';
 import { setHostSettings } from '@/lib/plugin-host-settings';
 import { setDisplayToken } from '@/lib/display-fetch';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
+import { RotationProvider, type RotationState } from '@/components/display/rotation-context';
+import { toDockScreen } from '@/lib/screen-dock';
 import { installConsoleBuffer } from '@/lib/console-buffer';
 import { showsPaginationDots } from '@/lib/pagination-dots';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
@@ -342,6 +345,28 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     goToScreen(index);
     clearPause();
   }, [screens, goToScreen, clearPause]);
+
+  // What the Display Control dock sees: the rotation list with each screen's
+  // icon settled once per list, the showing index, and a jump that clears a
+  // pause the way a dot tap does.
+  const dockScreens = useMemo(() => screens.map(toDockScreen), [screens]);
+  const jumpTo = useCallback((index: number) => {
+    if (index < 0 || index >= screens.length) return;
+    goToScreen(index);
+    clearPause();
+  }, [screens.length, goToScreen, clearPause]);
+  // Marked: the screen in front of the user, which during a rule takeover
+  // or a pinned start screen is not the rotation's own index. A takeover
+  // screen outside the rotation marks nothing, which is the truth.
+  const renderedScreenId = renderedScreen?.id;
+  const rotationState = useMemo<RotationState>(
+    () => ({
+      screens: dockScreens,
+      activeIndex: renderedScreenId ? dockScreens.findIndex((s) => s.id === renderedScreenId) : -1,
+      goToScreen: jumpTo,
+    }),
+    [dockScreens, renderedScreenId, jumpTo],
+  );
 
   // Status reports name the takeover screen when one is pinned, so the
   // editor's "currently showing" readout stays truthful during a rule firing.
@@ -726,6 +751,8 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const canvasPush = urgentInset > 0 && viewportSize.h > 0
     ? `translateY(${urgentInset}px) scale(${Math.max(0.3, (viewportSize.h - urgentInset) / viewportSize.h)})`
     : 'none';
+  const canvasOffsetTop = viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0;
+  const canvasOffsetLeft = viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0;
 
   return (
     <div ref={cursorRef} style={{
@@ -738,36 +765,58 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {/* renderedScreen is the takeover screen while a rule is firing,
           resolved from the display's full screen list (an alert screen may
           be deliberately excluded from normal rotation). */}
-      {showHint || !renderedScreen ? (
-        settings.setupHintEnabled === false
-          ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
-          : <EmptyDisplayHint deliberatelyEmpty={deliberatelyEmpty} />
-      ) : (
-        <div
-          data-testid="display-canvas"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            // Center the scaled renderer using padding — flex centering doesn't
-            // work because the ScreenRenderer's layout box (1920x1080) is larger
-            // than the viewport, and overflow: hidden clips the layout box before
-            // transform. With transformOrigin: top left on the renderer, we
-            // position it manually.
-            paddingTop: viewportSize.h > 0 ? Math.max(0, (viewportSize.h - displayH * scale) / 2) : 0,
-            paddingLeft: viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0,
-            boxSizing: 'border-box',
-            transform: canvasPush,
-            transformOrigin: 'top center',
-            transition: 'transform 300ms ease',
-          }}
-        >
-          {/* The preview surface keeps tappable modules (display-control)
-              from commanding the real kiosk this window is standing in for. */}
-          <ModuleSurfaceProvider value={preview ? 'preview' : 'display'}>
-            <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
-          </ModuleSurfaceProvider>
-        </div>
-      )}
+      {/* The preview surface keeps tappable modules (display-control)
+          from commanding the real kiosk this window is standing in for. */}
+      <ModuleSurfaceProvider value={preview ? 'preview' : 'display'}>
+        <RotationProvider value={rotationState}>
+          {showHint || !renderedScreen ? (
+            settings.setupHintEnabled === false
+              ? <div style={{ width: '100vw', height: '100vh', backgroundColor: '#000' }} />
+              : <EmptyDisplayHint deliberatelyEmpty={deliberatelyEmpty} />
+          ) : (
+            <div
+              data-testid="display-canvas"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                // Center the scaled renderer using padding — flex centering doesn't
+                // work because the ScreenRenderer's layout box (1920x1080) is larger
+                // than the viewport, and overflow: hidden clips the layout box before
+                // transform. With transformOrigin: top left on the renderer, we
+                // position it manually.
+                paddingTop: canvasOffsetTop,
+                paddingLeft: canvasOffsetLeft,
+                boxSizing: 'border-box',
+                transform: canvasPush,
+                transformOrigin: 'top center',
+                transition: 'transform 300ms ease',
+              }}
+            >
+              <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+            </div>
+          )}
+          {/* Modules flagged "Show on every screen", drawn once above the
+              canvas with its exact geometry, so they survive rotation and
+              hold still through the transition. Below the dots and every
+              overlay: no z-index, later in the DOM than the canvas. Outside
+              the hint branch: the flag follows the display, not the
+              profile, so a profile of empty screens still shows them. */}
+          <PinnedModuleLayer
+            screens={allScreens}
+            settings={settings}
+            sharedData={sharedData}
+            now={now}
+            displayW={displayW}
+            displayH={displayH}
+            scale={scale}
+            offsetTop={canvasOffsetTop}
+            offsetLeft={canvasOffsetLeft}
+            transform={canvasPush}
+            availableDisplays={displays}
+            displayId={displayId}
+          />
+        </RotationProvider>
+      </ModuleSurfaceProvider>
 
       {/* Sibling of ScreenRenderer inside the stable outer div, so state
           producers persist across screen rotation. Uses allScreens (not the

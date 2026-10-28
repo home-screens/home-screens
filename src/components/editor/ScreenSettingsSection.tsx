@@ -1,5 +1,6 @@
 'use client';
 
+import { isRotationOff } from '@/lib/resolve-screen-duration';
 import { useMemo, useState } from 'react';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
@@ -38,6 +39,10 @@ export default function ScreenSettingsSection() {
 
   const defaultMs = config.settings.rotationIntervalMs;
   const defaultSec = Math.round(defaultMs / 1000);
+  // Automatic rotation off (globally or for this display) overrides every
+  // screen's own time, so the field would be a lie; a sentence replaces it.
+  const displayNode = selectedDisplayId ? config.displays?.find((d) => d.id === selectedDisplayId) : undefined;
+  const rotationOff = isRotationOff(config.settings, displayNode);
   const overrideMs = screen.rotationDurationMs;
   const isOverridden = overrideMs !== undefined;
   const isSticky = isOverridden && overrideMs === 0;
@@ -84,7 +89,25 @@ export default function ScreenSettingsSection() {
         <PropertyGroup title={t('fields.rotation')} accent={1}>
           {/* Inheriting: the sentence IS the label, so there is no second copy
               of it to squeeze a button against — both used to wrap. */}
-          {!isOverridden ? (
+          {rotationOff ? (
+            <>
+              <p className="text-xs text-hs-text-muted" data-testid="screen-rotation-off">
+                {t('screenSettings.rotationOffHint')}
+              </p>
+              {/* An override saved before rotation went off is ignored now,
+                  but it is still there and would come back with rotation;
+                  the reset stays so it can be cleared without a detour. */}
+              {isOverridden && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-2 text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors"
+                >
+                  {t('screenSettings.resetButton')}
+                </button>
+              )}
+            </>
+          ) : !isOverridden ? (
             <>
               <p className="text-xs text-hs-text-muted">
                 {t('screenSettings.inheritsHintBefore')}

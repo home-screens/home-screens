@@ -255,7 +255,8 @@ function OverrideChip({
  * can be unit-tested as a whole when the test infra grows beyond node.
  */
 
-function formatRotationInterval(ms: number): string {
+function formatRotationInterval(ms: number, t: TranslateFn): string {
+  if (ms <= 0) return t('settings.perDisplayPage.display.fields.rotationOff');
   return `${Math.round(ms / 1000)}s`;
 }
 
@@ -364,8 +365,8 @@ function formatOverrideComparison(
       // The only required-on-GlobalSettings field, so the default is
       // safe to read unguarded.
       return compare(
-        formatRotationInterval(overrideValue as number),
-        formatRotationInterval(defaultValue as number),
+        formatRotationInterval(overrideValue as number, t),
+        formatRotationInterval(defaultValue as number, t),
       );
     case 'transitionEffect':
       return compare(

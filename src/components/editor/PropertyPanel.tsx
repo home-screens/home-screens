@@ -844,6 +844,35 @@ export default function PropertyPanel({
             <p id={`module-enabled-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
               {t('propertyPanel.visibility.enabledHelp')}
             </p>
+            {/* Drawn once above the rotating canvas, so it cannot also be a
+                hidden background copy: the two switches are exclusive. Turning
+                one on clears the other, and a switch hides only while the
+                other is on and its own flag is off, so a config carrying both
+                (hand-edited) still shows both and either can be cleared. */}
+            {(selectedModule.backgroundProvider !== true || selectedModule.showOnEveryScreen === true) && (
+              <>
+                <label htmlFor={`module-every-screen-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
+                  <input
+                    id={`module-every-screen-toggle-${selectedModule.id}`}
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={selectedModule.showOnEveryScreen === true}
+                    aria-describedby={`module-every-screen-help-${selectedModule.id}`}
+                    onChange={(e) =>
+                      updateModule(selectedScreenId, selectedModule.id, {
+                        // Omit the field entirely when off so configs stay clean.
+                        showOnEveryScreen: e.target.checked ? true : undefined,
+                        ...(e.target.checked ? { backgroundProvider: undefined } : {}),
+                      })
+                    }
+                  />
+                  <span className="block">{t('propertyPanel.visibility.everyScreenLabel')}</span>
+                </label>
+                <p id={`module-every-screen-help-${selectedModule.id}`} className="text-xs text-hs-text-dim mt-1 ml-6">
+                  {t('propertyPanel.visibility.everyScreenHelp')}
+                </p>
+              </>
+            )}
             {(() => {
               // Plugins that export a stateProvider publish automatically —
               // the background flag is meaningless for them, so hide the
@@ -852,8 +881,13 @@ export default function PropertyPanel({
               // plus the toggle so the flag can be switched off.
               const hasStateProvider = Boolean(loadedPlugin?.manifest.exports?.stateProvider);
               const isFlagged = selectedModule.backgroundProvider === true;
-              if (hasStateProvider && !isFlagged) return null;
-              if (!hasStateProvider && !isStateProducerType(selectedModule.type)) return null;
+              // A set flag always gets its switch, whatever the module type,
+              // so a hand-edited config can be put right from here.
+              if (!isFlagged) {
+                if (selectedModule.showOnEveryScreen === true) return null;
+                if (hasStateProvider) return null;
+                if (!isStateProducerType(selectedModule.type)) return null;
+              }
               return (
                 <>
                   <label htmlFor={`module-bg-provider-toggle-${selectedModule.id}`} className="flex items-start gap-2 cursor-pointer text-sm mt-3">
@@ -867,6 +901,7 @@ export default function PropertyPanel({
                         updateModule(selectedScreenId, selectedModule.id, {
                           // Omit the field entirely when off so configs stay clean.
                           backgroundProvider: e.target.checked ? true : undefined,
+                          ...(e.target.checked ? { showOnEveryScreen: undefined } : {}),
                         })
                       }
                     />

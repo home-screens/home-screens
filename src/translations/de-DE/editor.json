@@ -113,6 +113,10 @@
       "chooseTemplate": "Vorlage wählen"
     },
     "dotsGuide": "Hier erscheinen die Screen-Punkte",
+    "pinnedGhost": {
+      "tag": "Auf jedem Screen, von {screen}",
+      "title": "Liegt auf {screen}. Klicke, um es dort zu bearbeiten."
+    },
     "moduleMenu": {
       "selectBehind": "Modul dahinter auswählen",
       "hide": "Auf dem Display ausblenden",
@@ -130,6 +134,7 @@
   "draggableModule": {
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
     "backgroundProviderTitle": "Läuft versteckt im Hintergrund – wird nie auf dem Display angezeigt",
+    "everyScreenTitle": "Erscheint auf jedem Screen dieses Displays, über den Modulen des jeweiligen Screens",
     "conditionMetTitle": "Bedingungen erfüllt, wird auf dem Display angezeigt",
     "conditionUnmetTitle": "Bedingungen nicht erfüllt, auf dem Display ausgeblendet",
     "conditionMetTitleEditor": "Bedingungen erfüllt, würde gerade angezeigt",
@@ -146,6 +151,7 @@
       "conditionTimeMet": "Zu dieser Zeit sichtbar",
       "conditionTimeUnmet": "Zu dieser Zeit ausgeblendet",
       "background": "Läuft im Hintergrund",
+      "everyScreen": "Auf jedem Screen",
       "lookShowing": "Aussehen: {name}",
       "looksShowing": "Aussehen: {name}",
       "lookNone": "Kein Aussehen passt",
@@ -231,6 +237,7 @@
     "secondsUnit": "Sekunden",
     "stickyBadge": "Fix",
     "stickyHint": "Stelle das auf 0, damit dieser Bildschirm bleibt, bis jemand ihn antippt oder die Fernbedienung benutzt.",
+    "rotationOffHint": "Der automatische Wechsel ist für dieses Display aus, jeder Bildschirm bleibt also, bis jemand weiterschaltet.",
     "shortDurationWarning": "Unter {seconds} Sekunden wechselt der Bildschirm womöglich, bevor Nachrichten und Wetter fertig geladen sind.",
     "inheritsHintBefore": "Wird ",
     "inheritsHintValue": "{seconds} Sekunden",
@@ -888,6 +895,9 @@
         "flipHelp": "Aktivieren, wenn dein Monitor verkehrt herum montiert ist. Dreht die Anzeige um 180° gegenüber der Grundausrichtung."
       },
       "fields": {
+        "rotateLabel": "Automatischer Wechsel",
+        "rotateToggle": "Bildschirme durchwechseln",
+        "rotateHelp": "Aus hält den Bildschirm, bis jemand auf die Punkte oder einen Dock-Knopf tippt, wischt oder die Fernbedienung benutzt.",
         "rotationIntervalLabel": "Bildschirmwechsel-Intervall",
         "rotationIntervalHelp": "Wie lange jeder Bildschirm angezeigt wird, bevor automatisch zum nächsten gewechselt wird. Gilt nur, wenn mehrere Bildschirme konfiguriert sind.",
         "paginationDotsLabel": "Bildschirmpunkte",
@@ -1041,6 +1051,7 @@
         "appearanceHeading": "Erscheinungsbild",
         "fields": {
           "rotationIntervalSeconds": "{seconds} Sekunden",
+          "rotationOff": "Aus",
           "paginationDotsLabelDisabled": "Deaktiviert",
           "pauseEnabledLabelDisabled": "Deaktiviert",
           "swipeEnabledLabelDisabled": "Deaktiviert",
@@ -3256,6 +3267,8 @@
     "visibility": {
       "enabledLabel": "Auf Display anzeigen",
       "enabledHelp": "Wenn das aus ist, erscheint das Modul nie auf dem Display. Es bleibt aber hier, damit du es wieder einschalten kannst.",
+      "everyScreenLabel": "Auf jedem Screen anzeigen",
+      "everyScreenHelp": "Zeigt dieses Modul auf jedem Screen dieses Displays, über allem, was dort liegt, und hält es an Ort und Stelle, während die Screens wechseln.",
       "backgroundProviderLabel": "Versteckt im Hintergrund ausführen",
       "backgroundProviderHelp": "Stellt anderen Modulen Werte bereit. Diese Kopie ist nie auf dem Bildschirm zu sehen. Soll das Modul auch angezeigt werden, füge eine zweite Kopie ohne diese Einstellung hinzu.",
       "backgroundProviderObsoleteHint": "Dieses Plugin teilt seine Daten jetzt automatisch. Diese versteckte Kopie wird nicht mehr benötigt und kann gelöscht werden."
@@ -3697,12 +3710,15 @@
       "layoutPad": "Pad",
       "layoutPanel": "Panel",
       "layoutNav": "Pfeile",
+      "layoutDock": "Dock",
       "defaultTarget": "Standardziel",
       "targetSelf": "Dieses Display (selbst)",
       "targetAll": "Alle Displays",
       "legacyHint": "Es gibt nur ein Display, also wird genau dieses gesteuert.",
       "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern",
-      "compact": "Nur Symbole, keine Wörter"
+      "compact": "Nur Symbole, keine Wörter",
+      "dockHint": "Ein Knopf pro Bildschirm dieses Displays. Antippen springt direkt zu dem Bildschirm.",
+      "dockExtras": "Auch Schlafen und Helligkeit zeigen"
     },
     "financial": {
       "viewCards": "Karten",

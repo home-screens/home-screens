@@ -1,5 +1,6 @@
 import type { Screen } from '@/types/config';
 import { isScreenEmpty } from '@/lib/display-filter';
+import { isPinnedModule } from '@/lib/pinned-modules';
 
 /**
  * The screens the wall actually cycles through.
@@ -16,6 +17,11 @@ import { isScreenEmpty } from '@/lib/display-filter';
  * as blank is a different conversation from the wall showing a screen nobody
  * has filled in yet.
  *
+ * A screen whose only modules are drawn elsewhere (shown on every screen, or
+ * hidden background copies) has nothing of its own to show either: a
+ * dedicated "Dock" screen holding the pinned dock would otherwise get a turn
+ * as a blank screen with the dock over it, plus a dot and a dock tile.
+ *
  * When every screen is empty the whole list comes back unchanged. That is the
  * fresh-install shape, where the display's setup watermark (see the hint in
  * ScreenRotator) is the right answer rather than an empty rotation, and it
@@ -23,6 +29,13 @@ import { isScreenEmpty } from '@/lib/display-filter';
  * profile filters above it already use.
  */
 export function selectRotatingScreens(screens: Screen[]): Screen[] {
-  const withContent = screens.filter((screen) => !isScreenEmpty(screen));
+  const withContent = screens.filter((screen) => !hasNothingOfItsOwn(screen));
   return withContent.length > 0 ? withContent : screens;
+}
+
+function hasNothingOfItsOwn(screen: Screen): boolean {
+  if (isScreenEmpty(screen)) return true;
+  return !screen.backgroundImage
+    && !screen.backgroundRotation?.enabled
+    && screen.modules.every((mod) => isPinnedModule(mod) || mod.backgroundProvider === true);
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ModuleInstance } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { isModuleRenderable } from '../ScreenRenderer';
+import { passesModuleGates } from '@/lib/schedule';
 
 function makeModule(overrides: Partial<ModuleInstance> & { id: string }): ModuleInstance {
   return {
@@ -46,6 +47,15 @@ describe('isModuleRenderable', () => {
     expect(
       isModuleRenderable(makeModule({ id: 'bg', backgroundProvider: true }), new Date(), new Map()),
     ).toBe(false);
+  });
+
+  it('leaves showOnEveryScreen instances to the pinned layer', () => {
+    const pinned = makeModule({ id: 'pinned', showOnEveryScreen: true });
+    expect(isModuleRenderable(pinned, new Date(), new Map())).toBe(false);
+    // The gates themselves ignore both layer flags: the pinned layer applies
+    // them to the modules it owns.
+    expect(passesModuleGates(pinned, new Date(), new Map())).toBe(true);
+    expect(passesModuleGates(makeModule({ id: 'off', showOnEveryScreen: true, enabled: false }), new Date(), new Map())).toBe(false);
   });
 
   it('gates on shared-state visibility conditions', () => {
