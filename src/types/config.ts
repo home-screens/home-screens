@@ -4071,6 +4071,23 @@ export interface DateConfig {
   accentColor: string;
 }
 
+/** One button of a Display Control dock (see DisplayControlConfig.dockButtons) */
+export interface DockButton {
+  /** The screen this button opens */
+  screenId: string;
+  /** The words under the tile. Unset uses the screen's name */
+  label?: string;
+  /**
+   * The tile's icon: an emoji, a Font Awesome pick or one of your own pictures. Unset uses the icon
+   * of the screen's biggest module
+   *
+   * Same stored forms as the calendar badge icons (`parseIconValue`).
+   */
+  icon?: string;
+  /** The tile's colour. Unset uses the dock's own palette, by position */
+  color?: string;
+}
+
 // Display control module config
 export interface DisplayControlConfig {
   /**
@@ -4091,6 +4108,14 @@ export interface DisplayControlConfig {
    * @default false
    */
   dockExtras?: boolean;
+  /**
+   * With the `dock` layout: which screens get a button, in this order, each with an optional name,
+   * icon and colour of its own (see DockButton). Unset gives every screen of the rotation a button
+   *
+   * Ignored by the other layouts. A button whose screen no longer exists or
+   * is switched off is skipped on the wall. An empty list draws no buttons.
+   */
+  dockButtons?: DockButton[];
   /**
    * Which display the buttons control. `self` resolves to the display the module is rendered on
    *

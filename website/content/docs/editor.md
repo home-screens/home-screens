@@ -200,7 +200,7 @@ Outside that window the display skips the screen in rotation, exactly as if you 
 
 The global rotation interval lives in **Settings > Screen > Rotation & appearance**. Screens cycle in order at this interval. The display view shows small indicator dots at the bottom, unless **Screen dots** is turned off.
 
-**Automatic rotation** on the same page turns the cycling off altogether: the wall stays on whatever screen it is showing until someone taps the dots or a Display Control button, swipes, or uses the family remote. Each display can have its own setting under **Per display**. With rotation off, a screen's own time (below) has no effect. This is the setting for a touchscreen you flip through by hand, for example with the Display Control module's **Dock** layout, which shows one button per screen.
+**Automatic rotation** on the same page turns the cycling off altogether: the wall stays on whatever screen it is showing until someone taps the dots or a Display Control button, swipes, or uses the family remote. Each display can have its own setting under **Per display**. With rotation off, a screen's own time (below) has no effect. This is the setting for a touchscreen you flip through by hand, for example with the Display Control module's **Dock** layout, which shows one button per screen, or only the screens you choose, each with its own name, icon and color if you like.
 
 Any screen can have its own time. Click an empty area of the canvas, then under **Screen settings** click **Use a different time** and set it, or reset to go back to the shared default. A screen with its own time shows a small pill on its tab (for example `10s`) so you can see it at a glance.
 

@@ -439,14 +439,16 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
     return name || t('screenTabs.newScreenName', { number: index + 1 });
   }, [activeScreens, t]);
 
-  // The Display Control dock on the canvas shows the real rotation with the
-  // selected tab marked. A tap there selects the module like any other, so
-  // the jump is a no-op here.
+  // The Display Control dock on the canvas shows the real rotation, with the
+  // display's other switched-on screens there for a dock with its own
+  // buttons, and the selected tab marked. A tap there selects the module
+  // like any other, so showing a screen is a no-op here.
   const rotationState = useMemo<RotationState>(() => ({
     screens: rotatingScreens.map(toDockScreen),
-    activeIndex: rotatingScreens.findIndex((s) => s.id === selectedScreenId),
-    goToScreen: () => {},
-  }), [rotatingScreens, selectedScreenId]);
+    allScreens: activeScreens.filter((s) => s.enabled !== false).map(toDockScreen),
+    activeScreenId: selectedScreenId ?? null,
+    showScreen: () => {},
+  }), [rotatingScreens, activeScreens, selectedScreenId]);
 
   if (!currentScreen) {
     // A display with no screens at all is a different problem from "nothing

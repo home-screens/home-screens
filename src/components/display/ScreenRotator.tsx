@@ -346,26 +346,39 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     clearPause();
   }, [screens, goToScreen, clearPause]);
 
-  // What the Display Control dock sees: the rotation list with each screen's
-  // icon settled once per list, the showing index, and a jump that clears a
-  // pause the way a dot tap does.
+  // What the Display Control dock sees: the rotation list and every
+  // switched-on screen, each with its icon settled once per list, the screen
+  // in front of the user (during a rule takeover or a pinned screen not the
+  // rotation's own index), and a way to show a screen that clears a pause
+  // the way a dot tap does.
   const dockScreens = useMemo(() => screens.map(toDockScreen), [screens]);
-  const jumpTo = useCallback((index: number) => {
-    if (index < 0 || index >= screens.length) return;
-    goToScreen(index);
+  const dockAllScreens = useMemo(() => enabledScreens.map(toDockScreen), [enabledScreens]);
+  const showScreen = useCallback((screenId: string) => {
+    const index = screens.findIndex((s) => s.id === screenId);
+    if (index !== -1) {
+      goToScreen(index);
+      clearPause();
+      return;
+    }
+    if (!enabledScreens.some((s) => s.id === screenId)) return;
+    // Not rotating right now (off its schedule, condition unmet, off-profile):
+    // a dock button for it still works. Pin it the way a requested start
+    // screen is pinned, with a fresh dwell; the next move, timed or by hand,
+    // releases it (forgetStartScreen), and with rotation off it stays.
+    releaseActiveTakeover();
+    transition(() => { setPinnedScreenId(screenId); });
+    setRotationEpoch((e) => e + 1);
     clearPause();
-  }, [screens.length, goToScreen, clearPause]);
-  // Marked: the screen in front of the user, which during a rule takeover
-  // or a pinned start screen is not the rotation's own index. A takeover
-  // screen outside the rotation marks nothing, which is the truth.
-  const renderedScreenId = renderedScreen?.id;
+  }, [screens, enabledScreens, goToScreen, clearPause, releaseActiveTakeover, transition]);
+  const renderedScreenId = renderedScreen?.id ?? null;
   const rotationState = useMemo<RotationState>(
     () => ({
       screens: dockScreens,
-      activeIndex: renderedScreenId ? dockScreens.findIndex((s) => s.id === renderedScreenId) : -1,
-      goToScreen: jumpTo,
+      allScreens: dockAllScreens,
+      activeScreenId: renderedScreenId,
+      showScreen,
     }),
-    [dockScreens, renderedScreenId, jumpTo],
+    [dockScreens, dockAllScreens, renderedScreenId, showScreen],
   );
 
   // Status reports name the takeover screen when one is pinned, so the

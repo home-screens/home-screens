@@ -1,4 +1,4 @@
-import type { ModuleType, Screen } from '@/types/config';
+import type { DockButton, ModuleType, Screen } from '@/types/config';
 
 /**
  * What the Display Control dock knows about one screen of the rotation. Built
@@ -7,9 +7,16 @@ import type { ModuleType, Screen } from '@/types/config';
  */
 export interface DockScreen {
   id: string;
+  /** The screen's own name; what a `goto-screen` to another display sends. */
   name: string;
   /** The module that stands for the screen on its tile; null for an empty screen. */
   iconType: ModuleType | null;
+  /** Words under the tile when the button has its own; otherwise the name. */
+  label?: string;
+  /** The button's own icon (emoji, `fa:` or `custom:` value) instead of the module's. */
+  icon?: string;
+  /** The button's own colour instead of the palette's. */
+  color?: string;
 }
 
 /**
@@ -32,6 +39,36 @@ export function dominantModuleType(screen: Pick<Screen, 'modules'>): ModuleType 
 
 export function toDockScreen(screen: Pick<Screen, 'id' | 'name' | 'modules'>): DockScreen {
   return { id: screen.id, name: screen.name, iconType: dominantModuleType(screen) };
+}
+
+/**
+ * The dock's list. Without `buttons` it is the rotation as it stands. With
+ * them, each button in order, looked up among every switched-on screen of
+ * the display so a screen outside the rotation right now (off its schedule,
+ * condition unmet, off-profile) keeps its button; a button whose screen is
+ * gone or switched off is skipped. Overrides ride along as the tile's own
+ * label, icon and colour; an empty label counts as unset.
+ */
+export function resolveDockButtons(
+  buttons: readonly DockButton[] | undefined,
+  rotation: readonly DockScreen[],
+  allScreens: readonly DockScreen[],
+): DockScreen[] {
+  if (!buttons) return [...rotation];
+  const byId = new Map(allScreens.map((s) => [s.id, s]));
+  const out: DockScreen[] = [];
+  for (const button of buttons) {
+    const screen = byId.get(button.screenId);
+    if (!screen) continue;
+    const label = button.label?.trim();
+    out.push({
+      ...screen,
+      ...(label ? { label } : {}),
+      ...(button.icon ? { icon: button.icon } : {}),
+      ...(button.color ? { color: button.color } : {}),
+    });
+  }
+  return out;
 }
 
 /**

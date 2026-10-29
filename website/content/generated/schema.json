@@ -7275,6 +7275,15 @@
           "defaultText": "false"
         },
         {
+          "name": "dockButtons",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "DockButton[]"
+          },
+          "description": "With the `dock` layout: which screens get a button, in this order, each with an optional name, icon and colour of its own (see DockButton). Unset gives every screen of the rotation a button"
+        },
+        {
           "name": "defaultTarget",
           "optional": false,
           "type": {

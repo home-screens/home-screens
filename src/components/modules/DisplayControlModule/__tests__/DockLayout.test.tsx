@@ -16,14 +16,17 @@ const displays = [
   { id: 'hallway', name: 'Hallway' },
 ];
 
+const SCREENS: RotationState['screens'] = [
+  { id: 's1', name: 'Home', iconType: 'clock' },
+  { id: 's2', name: 'Calendar', iconType: 'calendar' },
+  { id: 's3', name: '  ', iconType: null },
+];
 const rotation = (over: Partial<RotationState> = {}): RotationState => ({
-  screens: [
-    { id: 's1', name: 'Home', iconType: 'clock' },
-    { id: 's2', name: 'Calendar', iconType: 'calendar' },
-    { id: 's3', name: '  ', iconType: null },
-  ],
-  activeIndex: 1,
-  goToScreen: vi.fn(),
+  screens: SCREENS,
+  // 'alert' is switched on but not rotating: off its schedule, say.
+  allScreens: [...SCREENS, { id: 'alert', name: 'Alert', iconType: 'text' }],
+  activeScreenId: 's2',
+  showScreen: vi.fn(),
   ...over,
 });
 
@@ -62,7 +65,7 @@ describe('DisplayControlModule dock layout', () => {
     const state = rotation();
     render(wrap(<DisplayControlModule config={base} availableDisplays={displays} />, state));
     fireEvent.click(screen.getByRole('button', { name: 'Go to Home' }));
-    expect(state.goToScreen).toHaveBeenCalledWith(0);
+    expect(state.showScreen).toHaveBeenCalledWith('s1');
     expect(gotoCalls()).toEqual([]);
   });
 
@@ -70,7 +73,7 @@ describe('DisplayControlModule dock layout', () => {
     const state = rotation();
     render(wrap(<DisplayControlModule config={{ ...base, defaultTarget: 'hallway' }} availableDisplays={displays} />, state));
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Go to Screen 3' })); });
-    expect(state.goToScreen).not.toHaveBeenCalled();
+    expect(state.showScreen).not.toHaveBeenCalled();
     expect(gotoCalls()).toEqual([{ url: '/api/display/goto-screen', body: { screen: 's3', displayId: 'hallway' } }]);
   });
 
@@ -78,7 +81,7 @@ describe('DisplayControlModule dock layout', () => {
     const state = rotation();
     render(wrap(<DisplayControlModule config={{ ...base, defaultTarget: 'all' }} availableDisplays={displays} />, state));
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Go to Calendar' })); });
-    expect(state.goToScreen).toHaveBeenCalledWith(1);
+    expect(state.showScreen).toHaveBeenCalledWith('s2');
     expect(gotoCalls()).toEqual([{ url: '/api/display/goto-screen', body: { screen: 'Calendar', displayId: 'hallway' } }]);
   });
 
@@ -99,6 +102,38 @@ describe('DisplayControlModule dock layout', () => {
     const popover = screen.getByTestId('display-control-dock-popover');
     expect(screen.getByTestId('display-control-dock').contains(popover)).toBe(false);
     expect(popover.querySelector('input[type="range"]')).toBeTruthy();
+  });
+
+  it('with its own buttons lists those screens in that order, rotating or not, and skips a gone one', () => {
+    const state = rotation();
+    const dockButtons = [{ screenId: 'alert' }, { screenId: 'gone' }, { screenId: 's1' }];
+    render(wrap(<DisplayControlModule config={{ ...base, dockButtons }} availableDisplays={displays} />, state));
+    const names = screen.getAllByRole('button', { name: /^Go to/ }).map((b) => b.getAttribute('aria-label'));
+    expect(names).toEqual(['Go to Alert', 'Go to Home']);
+    // The showing screen is not in the dock, so nothing is marked.
+    expect(screen.queryByRole('button', { name: /^Go to/, current: 'true' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Go to Alert' }));
+    expect(state.showScreen).toHaveBeenCalledWith('alert');
+  });
+
+  it('draws a button with its own name, icon and colour, and sends the screen name to another display', async () => {
+    const state = rotation();
+    const dockButtons = [{ screenId: 's2', label: 'Kids', icon: '✅', color: '#ef4444' }, { screenId: 's1' }];
+    render(wrap(<DisplayControlModule config={{ ...base, defaultTarget: 'all', dockButtons }} availableDisplays={displays} />, state));
+    const kids = screen.getByRole('button', { name: 'Go to Kids' });
+    expect(kids.getAttribute('aria-current')).toBe('true');
+    expect(kids.textContent).toContain('✅');
+    expect(kids.textContent).toContain('Kids');
+    const tile = kids.querySelector('span[style*="background"]') as HTMLElement;
+    expect(tile.style.background).toContain('rgb(239, 68, 68)');
+    await act(async () => { fireEvent.click(kids); });
+    expect(state.showScreen).toHaveBeenCalledWith('s2');
+    expect(gotoCalls()).toEqual([{ url: '/api/display/goto-screen', body: { screen: 'Calendar', displayId: 'hallway' } }]);
+  });
+
+  it('with an empty button list says there are no screens', () => {
+    render(wrap(<DisplayControlModule config={{ ...base, dockButtons: [] }} availableDisplays={displays} />, rotation()));
+    expect(screen.getByText('No screens yet')).toBeTruthy();
   });
 
   it('says so when nothing rotates here', () => {

@@ -5,6 +5,7 @@ import { LayoutGrid } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { dockTileColor, type DockScreen } from '@/lib/screen-dock';
+import Glyph from '@/components/ui/Glyph';
 import { useElementBox } from '@/hooks/useElementBox';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
@@ -89,19 +90,24 @@ export function DockLayout(props: DockLayoutProps) {
             className={`flex max-h-full max-w-full overflow-auto border border-white/15 bg-hs-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl backdrop-saturate-150 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${m.vertical ? 'flex-col items-stretch' : 'flex-row items-end'}`}
             style={{ gap: m.gap, padding: m.padIn, borderRadius: m.pillRadius }}
           >
-            {screens.map((screen, i) => (
-              <DockTile
-                key={screen.id}
-                m={m}
-                name={screen.name.trim() || t('display-control.unnamedScreen', { number: i + 1 })}
-                color={dockTileColor(i)}
-                active={i === activeIndex}
-                ariaLabel={t('display-control.goTo', { name: screen.name.trim() || t('display-control.unnamedScreen', { number: i + 1 }) })}
-                onClick={() => onGoto(i)}
-              >
-                <ScreenGlyph type={screen.iconType} size={m.icon} />
-              </DockTile>
-            ))}
+            {screens.map((screen, i) => {
+              const name = screen.label || screen.name.trim() || t('display-control.unnamedScreen', { number: i + 1 });
+              return (
+                <DockTile
+                  key={screen.id}
+                  m={m}
+                  name={name}
+                  color={screen.color || dockTileColor(i)}
+                  active={i === activeIndex}
+                  ariaLabel={t('display-control.goTo', { name })}
+                  onClick={() => onGoto(i)}
+                >
+                  {screen.icon
+                    ? <OwnGlyph value={screen.icon} size={m.icon} />
+                    : <ScreenGlyph type={screen.iconType} size={m.icon} />}
+                </DockTile>
+              );
+            })}
 
             {extras && (
               <>
@@ -241,6 +247,19 @@ function TileName({ m, name }: { m: DockMetrics; name: string }) {
       }}
     >
       {name}
+    </span>
+  );
+}
+
+/** A button's own icon: an emoji, a Font Awesome pick or a household picture, sized like the module icons. */
+function OwnGlyph({ value, size }: { value: string; size: number }) {
+  return (
+    <span
+      className="flex items-center justify-center leading-none"
+      style={{ fontSize: Math.round(size * 0.92), width: size, height: size }}
+      aria-hidden="true"
+    >
+      <Glyph value={value} pictureSize={`${size}px`} />
     </span>
   );
 }

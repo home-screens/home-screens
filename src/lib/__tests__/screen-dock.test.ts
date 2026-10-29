@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { dominantModuleType, dockTileColor, DOCK_PALETTE, toDockScreen } from '@/lib/screen-dock';
+import { dominantModuleType, dockTileColor, DOCK_PALETTE, resolveDockButtons, toDockScreen, type DockScreen } from '@/lib/screen-dock';
 import type { ModuleInstance } from '@/types/config';
 
 const mod = (type: ModuleInstance['type'], w: number, h: number): ModuleInstance => ({
@@ -32,5 +32,31 @@ describe('dockTileColor', () => {
     expect(dockTileColor(0)).toBe(DOCK_PALETTE[0]);
     expect(dockTileColor(DOCK_PALETTE.length)).toBe(DOCK_PALETTE[0]);
     expect(dockTileColor(3)).toBe(DOCK_PALETTE[3]);
+  });
+});
+
+describe('resolveDockButtons', () => {
+  const home: DockScreen = { id: 'home', name: 'Home', iconType: 'clock' };
+  const cal: DockScreen = { id: 'cal', name: 'Calendar', iconType: 'calendar' };
+  const alert: DockScreen = { id: 'alert', name: 'Alert', iconType: 'text' };
+  const rotation = [home, cal];
+  const all = [home, cal, alert];
+
+  it('is the rotation when the dock has no buttons of its own', () => {
+    expect(resolveDockButtons(undefined, rotation, all)).toEqual(rotation);
+  });
+  it('follows the buttons in order, reaches screens outside the rotation and skips a gone one', () => {
+    expect(resolveDockButtons([{ screenId: 'alert' }, { screenId: 'gone' }, { screenId: 'home' }], rotation, all))
+      .toEqual([alert, home]);
+    expect(resolveDockButtons([], rotation, all)).toEqual([]);
+  });
+  it('carries a label, icon and colour, and treats a blank label as unset', () => {
+    expect(resolveDockButtons([
+      { screenId: 'cal', label: ' Kids ', icon: 'fa:solid:check', color: '#ef4444' },
+      { screenId: 'home', label: '   ' },
+    ], rotation, all)).toEqual([
+      { ...cal, label: 'Kids', icon: 'fa:solid:check', color: '#ef4444' },
+      home,
+    ]);
   });
 });

@@ -533,6 +533,15 @@ export const CORE_VARIANTS: ConfigVariant[] = [
       await expect(mod.locator('button[aria-label="Sleep (hold to confirm)"]')).toBeVisible();
     },
   },
+  // The dock's own buttons: only the listed screen, under its own name.
+  {
+    type: 'display-control', name: 'dock-buttons', kind: 'network-free',
+    config: { layout: 'dock', dockButtons: [{ screenId: 's1', label: 'Start', icon: '🏠', color: '#ef4444' }] },
+    expect: async (mod) => {
+      await expect(mod.locator('button[aria-label="Go to Start"]')).toBeVisible();
+      await expect(mod.locator('button[aria-label^="Go to"]')).toHaveCount(1);
+    },
+  },
   // Icons only: the buttons keep their aria-labels but lose their words.
   {
     type: 'display-control', name: 'compact', kind: 'network-free',

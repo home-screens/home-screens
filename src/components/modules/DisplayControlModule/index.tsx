@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DisplayControlConfig } from '@/types/config';
 import { dispatchDisplayCommand as dispatchToHub } from '@/lib/display-dispatch';
 import { useModuleSurface } from '@/components/modules/module-surface';
@@ -13,9 +13,10 @@ import { PanelLayout } from './PanelLayout';
 import { NavLayout } from './NavLayout';
 import { DockLayout } from './DockLayout';
 import { useRotation } from '@/components/display/rotation-context';
+import { resolveDockButtons, type DockScreen } from '@/lib/screen-dock';
 import type { LayoutProps } from './types';
 
-const EMPTY_SCREENS: never[] = [];
+const EMPTY_SCREENS: DockScreen[] = [];
 
 export interface DisplayControlModuleProps {
   config: DisplayControlConfig;
@@ -118,18 +119,25 @@ export default function DisplayControlModule({
   // by name, since ids differ per display and the hub refuses a broadcast
   // of it; "All displays" is this display locally plus every other one by name.
   const rotation = useRotation();
+  // The dock's own list when it has one, else the rotation (resolveDockButtons).
+  const dockScreens = useMemo(
+    () => (rotation ? resolveDockButtons(config.dockButtons, rotation.screens, rotation.allScreens) : EMPTY_SCREENS),
+    [rotation, config.dockButtons],
+  );
+  const activeScreenId = rotation?.activeScreenId ?? null;
+  const dockActiveIndex = activeScreenId ? dockScreens.findIndex((s) => s.id === activeScreenId) : -1;
   const onGoto = useCallback((index: number) => {
-    const screen = rotation?.screens[index];
+    const screen = dockScreens[index];
     if (!screen) return;
     const targetsSelf = currentTarget === undefined || currentTarget === renderDisplayId;
-    if (targetsSelf || currentTarget === 'all') rotation?.goToScreen(index);
+    if (targetsSelf || currentTarget === 'all') rotation?.showScreen(screen.id);
     if (targetsSelf) return;
     const payload = { screen: screen.name.trim() || screen.id };
     const others = currentTarget === 'all'
       ? availableDisplays.filter((d) => d.id !== renderDisplayId).map((d) => d.id)
       : [currentTarget];
     for (const id of others) void dispatchDisplayCommand(id, 'goto-screen', payload);
-  }, [rotation, currentTarget, renderDisplayId, availableDisplays, dispatchDisplayCommand]);
+  }, [rotation, dockScreens, currentTarget, renderDisplayId, availableDisplays, dispatchDisplayCommand]);
 
   const layoutProps: LayoutProps = {
     currentTarget,
@@ -158,8 +166,8 @@ export default function DisplayControlModule({
       return (
         <DockLayout
           {...layoutProps}
-          screens={rotation?.screens ?? EMPTY_SCREENS}
-          activeIndex={rotation?.activeIndex ?? -1}
+          screens={dockScreens}
+          activeIndex={dockActiveIndex}
           onGoto={onGoto}
           extras={config.dockExtras === true}
         />

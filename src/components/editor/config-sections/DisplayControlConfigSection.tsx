@@ -1,12 +1,16 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useEditorStore } from '@/stores/editor-store';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledField from '@/components/ui/LabeledField';
 import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
-import type { ModuleInstance, DisplayControlConfig, DisplayNode } from '@/types/config';
+import { getActiveScreens } from '@/lib/editor-multi-display';
+import { controlMetrics, dockCapacity } from '@/components/modules/DisplayControlModule/metrics';
+import { DEFAULT_MODULE_STYLE, type ModuleInstance, type DisplayControlConfig, type DisplayNode, type Screen } from '@/types/config';
+import { DockButtonsList } from './DockButtonsList';
 
 // A frozen module-level empty array so the Zustand selector below returns a
 // referentially-stable value when no displays registry is configured (legacy
@@ -14,13 +18,31 @@ import type { ModuleInstance, DisplayControlConfig, DisplayNode } from '@/types/
 // return a new reference every render, tripping useSyncExternalStore into an
 // infinite render loop (React #185) the moment this section mounts.
 const EMPTY_DISPLAYS: DisplayNode[] = [];
+const EMPTY_SCREENS: Screen[] = [];
 
 export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<DisplayControlConfig>(mod, screenId);
   const displays = useEditorStore((s) => s.config?.displays ?? EMPTY_DISPLAYS);
+  const config = useEditorStore((s) => s.config);
+  const selectedDisplayId = useEditorStore((s) => s.selectedDisplayId);
+  // The screens the dock can list: this display's own, in editor order.
+  const displayScreens = useMemo(
+    () => (config ? getActiveScreens(config, selectedDisplayId) : EMPTY_SCREENS),
+    [config, selectedDisplayId],
+  );
 
   const legacy = displays.length === 0;
+  const showPicker = c.allowRetargeting === true && !legacy;
+  // How many buttons the dock holds: the wall measures the module's padding
+  // box, which is its size less the frame's padding and border.
+  const capacity = useMemo(() => {
+    const inset = (mod.style.padding ?? DEFAULT_MODULE_STYLE.padding) + (mod.style.borderWidth ?? DEFAULT_MODULE_STYLE.borderWidth);
+    const w = Math.max(0, mod.size.w - inset * 2);
+    const h = Math.max(0, mod.size.h - inset * 2);
+    const pm = controlMetrics({ w, h, layout: 'bar', compact: c.compact === true, showPicker });
+    return dockCapacity({ w, h, extras: c.dockExtras === true, pickerH: showPicker ? pm.pickerH + pm.gap : 0 });
+  }, [mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, showPicker]);
 
   const LAYOUT_LABELS: Record<DisplayControlConfig['layout'], string> = {
     bar: t('configSections.display-control.layoutBar'),
@@ -61,6 +83,13 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
             label={t('configSections.display-control.dockExtras')}
             checked={c.dockExtras === true}
             onChange={(v) => set({ dockExtras: v })}
+          />
+          <DockButtonsList
+            value={c.dockButtons}
+            onChange={(dockButtons) => set({ dockButtons })}
+            screens={displayScreens}
+            capacity={capacity}
+            compact={c.compact === true}
           />
         </>
       )}

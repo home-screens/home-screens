@@ -218,6 +218,8 @@ export interface DockMetrics {
   pillRadius: number;
   /** Icon box inside a tile. */
   icon: number;
+  /** The tiles do not fit along the box even at their smallest, so the pill scrolls. */
+  overflow: boolean;
 }
 
 export interface DockBox {
@@ -263,17 +265,26 @@ export function dockMetrics(box: DockBox): DockMetrics {
     }
     let gap = clamp(tile * 0.16, 4, 16);
     let padIn = clamp(tile * 0.16, 6, 18);
-    const dividerRun = box.extras ? gap * 2 + 1 : 0;
-    const need = count * tile + (count - 1) * gap + padIn * 2 + dividerRun;
-    if (need > along) {
-      tile = clamp((along - padIn * 2 - (count - 1) * gap - dividerRun) / count, TILE_FLOOR, TILE_CAP);
-      gap = clamp(tile * 0.16, 4, 16);
-      padIn = clamp(tile * 0.16, 6, 18);
+    const divider = (g: number) => (box.extras ? g * 2 + 1 : 0);
+    const run = (t: number, g: number, p: number) => count * t + (count - 1) * g + p * 2 + divider(g);
+    if (run(tile, gap, padIn) > along) {
+      const shrunk = clamp((along - padIn * 2 - (count - 1) * gap - divider(gap)) / count, TILE_FLOOR, TILE_CAP);
+      const shrunkGap = clamp(shrunk * 0.16, 4, 16);
+      const shrunkPad = clamp(shrunk * 0.16, 6, 18);
+      // Shrinking only pays when it makes the dock fit. A dock that would
+      // scroll even at the floor keeps its comfortable tiles and their names
+      // and scrolls, rather than scrolling small nameless tiles.
+      if (run(shrunk, shrunkGap, shrunkPad) <= along + 0.5) {
+        tile = shrunk;
+        gap = shrunkGap;
+        padIn = shrunkPad;
+      }
     }
     const label = clamp(tile * 0.22, 11, 20);
     const ok = !withWords
       || (tile >= WORDS_FLOOR && (!vertical || tile + label * 7 + padIn * 2 <= across));
-    return { tile, gap, padIn, label, ok };
+    const overflow = run(tile, gap, padIn) > along + 0.5;
+    return { tile, gap, padIn, label, ok, overflow };
   };
 
   let r = box.compact ? null : fit(true);
@@ -294,5 +305,33 @@ export function dockMetrics(box: DockBox): DockMetrics {
     radius: tile * 0.26,
     pillRadius: clamp(tile * 0.3, 10, 28),
     icon: Math.round(tile * 0.56),
+    overflow: r!.overflow,
   };
+}
+
+export interface DockCapacity {
+  /** Most screen tiles that fit along the box with their names. */
+  withNames: number;
+  /** Most screen tiles that fit at all; past this the pill scrolls. */
+  iconsOnly: number;
+}
+
+const CAPACITY_CEILING = 99;
+
+/**
+ * How many screen buttons a dock of this box holds before it scrolls, with
+ * and without names, so the editor can say so next to the list. Counts up
+ * through the same metrics the wall draws with; the extras take their two
+ * tiles off the top.
+ */
+export function dockCapacity(box: Omit<DockBox, 'count' | 'compact'>): DockCapacity {
+  let withNames = 0;
+  let iconsOnly = 0;
+  for (let count = 1; count <= CAPACITY_CEILING; count += 1) {
+    const m = dockMetrics({ ...box, count, compact: false });
+    if (m.overflow) break;
+    iconsOnly = count;
+    if (m.showWords) withNames = count;
+  }
+  return { withNames, iconsOnly };
 }
