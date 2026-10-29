@@ -3732,11 +3732,10 @@
       "dockButtonColor": "Farbe",
       "dockButtonColorAny": "Beliebige Farbe",
       "dockButtonColorOwn": "Wie das Dock",
-      "dockFitBase": "Bei dieser Größe passen {names} Knöpfe mit Namen ins Dock, oder {icons} nur mit Symbolen.",
-      "dockFitCompact": "Bei dieser Größe passen {icons} Knöpfe ins Dock.",
+      "dockFitBase": "Bei dieser Größe zeigt das Dock {fits} Knöpfe auf einmal.",
+      "dockFitShort": "Es ist zu niedrig für die Namen. Mach es höher, damit sie erscheinen.",
       "dockFitOne": "Dein Knopf passt.",
       "dockFitAll": "Deine {count} Knöpfe passen.",
-      "dockFitNoNames": "Du hast {count}, darum fallen die Namen weg und nur die Symbole bleiben.",
       "dockFitScroll": "Du hast {count}, darum scrollt das Dock. Mach das Modul größer oder schalte einige aus.",
       "dockFitScrollEvery": "Dieses Display hat {count} Bildschirme, darum scrollt das Dock. Mach das Modul größer oder wähle aus, welche Bildschirme einen Knopf bekommen."
     },

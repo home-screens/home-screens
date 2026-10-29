@@ -310,26 +310,20 @@ function TilePreview({ color, icon, screen }: { color?: string; icon?: string; s
  */
 function FitHint({ capacity, count, compact, everyScreen = false }: { capacity: DockCapacity; count: number; compact: boolean; everyScreen?: boolean }) {
   const t = useTranslate('editor');
-  const namesApply = !compact && capacity.withNames > 0;
-  const base = namesApply
-    ? t(`${KEY}.dockFitBase`, { names: capacity.withNames, icons: capacity.iconsOnly })
-    : t(`${KEY}.dockFitCompact`, { icons: capacity.iconsOnly });
-  let state: string;
+  const parts = [t(`${KEY}.dockFitBase`, { fits: capacity.fits })];
   let warn = false;
-  if (count > capacity.iconsOnly) {
-    state = t(everyScreen ? `${KEY}.dockFitScrollEvery` : `${KEY}.dockFitScroll`, { count });
-    warn = true;
-  } else if (namesApply && count > capacity.withNames) {
-    state = t(`${KEY}.dockFitNoNames`, { count });
+  if (count > capacity.fits) {
+    parts.push(t(everyScreen ? `${KEY}.dockFitScrollEvery` : `${KEY}.dockFitScroll`, { count }));
     warn = true;
   } else if (count === 1) {
-    state = t(`${KEY}.dockFitOne`);
+    parts.push(t(`${KEY}.dockFitOne`));
   } else {
-    state = t(`${KEY}.dockFitAll`, { count });
+    parts.push(t(`${KEY}.dockFitAll`, { count }));
   }
+  if (!compact && !capacity.names) parts.push(t(`${KEY}.dockFitShort`));
   return (
     <p data-testid="dock-fit-hint" data-warn={warn ? 'true' : 'false'} className={`text-[11px] leading-relaxed ${warn ? 'text-hs-warning' : 'text-hs-text-faint'}`}>
-      {base} {state}
+      {parts.join(' ')}
     </p>
   );
 }

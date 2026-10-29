@@ -116,7 +116,7 @@ describe('dockMetrics', () => {
   const dock = (w: number, h: number, over: Partial<Parameters<typeof dockMetrics>[0]> = {}) =>
     dockMetrics({ w, h, count: 6, extras: false, compact: false, pickerH: 0, ...over });
 
-  it('keeps the names in the default box and drops them when the tiles get small', () => {
+  it('keeps the names in the default box and drops them only when the box is too short for them', () => {
     const wall = dock(720, 140);
     expect(wall.showWords).toBe(true);
     expect(wall.label).toBeGreaterThanOrEqual(11);
@@ -126,18 +126,22 @@ describe('dockMetrics', () => {
     expect(strip.showWords).toBe(false);
     expect(strip.label).toBe(0);
 
+    // A crowd changes nothing about the tiles: same size, same names, the pill scrolls.
     const crowded = dock(720, 140, { count: 12 });
-    expect(crowded.showWords).toBe(false);
-    expect(crowded.tile).toBeGreaterThanOrEqual(40);
+    expect(crowded.showWords).toBe(true);
+    expect(crowded.tile).toBe(wall.tile);
+    expect(crowded.overflow).toBe(true);
   });
 
-  it('fits the pill inside the box along its axis, down to the finger floor', () => {
+  it('fits the pill inside the box along its axis, or scrolls at the same tile size', () => {
     for (const [w, h, count] of [[720, 140, 6], [1040, 150, 8], [300, 72, 4], [720, 140, 12], [900, 150, 6]]) {
       const m = dock(w, h, { count, extras: w === 900 });
       const n = count + (w === 900 ? 2 : 0);
-      const run = n * m.tile + (n - 1) * m.gap + m.padIn * 2 + (w === 900 ? m.gap * 2 + 1 : 0);
-      // Either it fits, or every tile is already at the floor and the pill scrolls.
-      expect(run <= w - m.outer * 2 + 0.001 || m.tile === 40).toBe(true);
+      const run = n * m.slot + (n - 1) * m.gap + m.padIn * 2 + (w === 900 ? m.gap * 2 + 1 : 0);
+      expect(run <= w - m.outer * 2 + 0.001).toBe(!m.overflow);
+      // A named button's slot leaves room for its name; without names the slot is the tile.
+      expect(m.slot).toBe(m.showWords ? m.tile * 1.5 : m.tile);
+      expect(m.tile).toBe(dock(w, h, { count: 1, extras: w === 900 }).tile);
       const acrossUsed = m.tile + (m.showWords ? m.label * 1.35 : 0) + m.marker * 2.2 + m.padIn * 2;
       expect(acrossUsed).toBeLessThanOrEqual(h - m.outer * 2 + 0.001);
     }

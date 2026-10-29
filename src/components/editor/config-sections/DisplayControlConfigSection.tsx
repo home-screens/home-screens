@@ -8,6 +8,7 @@ import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
 import { useTranslate } from '@/i18n';
 import { getActiveScreens } from '@/lib/editor-multi-display';
+import { getModuleDefinition } from '@/lib/module-registry';
 import { controlMetrics, dockCapacity } from '@/components/modules/DisplayControlModule/metrics';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance, type DisplayControlConfig, type DisplayNode, type Screen } from '@/types/config';
 import { DockButtonsList } from './DockButtonsList';
@@ -35,14 +36,19 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
   const legacy = displays.length === 0;
   const showPicker = c.allowRetargeting === true && !legacy;
   // How many buttons the dock holds: the wall measures the module's padding
-  // box, which is its size less the frame's padding and border.
+  // box, which is its size less the card's padding and border. A cardless
+  // module (this one, by its registry entry) draws no card, so the box is
+  // the whole module.
   const capacity = useMemo(() => {
-    const inset = (mod.style.padding ?? DEFAULT_MODULE_STYLE.padding) + (mod.style.borderWidth ?? DEFAULT_MODULE_STYLE.borderWidth);
+    const cardless = getModuleDefinition(mod.type)?.cardless === true;
+    const inset = cardless
+      ? 0
+      : (mod.style.padding ?? DEFAULT_MODULE_STYLE.padding) + (mod.style.borderWidth ?? DEFAULT_MODULE_STYLE.borderWidth);
     const w = Math.max(0, mod.size.w - inset * 2);
     const h = Math.max(0, mod.size.h - inset * 2);
     const pm = controlMetrics({ w, h, layout: 'bar', compact: c.compact === true, showPicker });
     return dockCapacity({ w, h, extras: c.dockExtras === true, pickerH: showPicker ? pm.pickerH + pm.gap : 0 });
-  }, [mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, showPicker]);
+  }, [mod.type, mod.size.w, mod.size.h, mod.style.padding, mod.style.borderWidth, c.compact, c.dockExtras, showPicker]);
 
   const LAYOUT_LABELS: Record<DisplayControlConfig['layout'], string> = {
     bar: t('configSections.display-control.layoutBar'),

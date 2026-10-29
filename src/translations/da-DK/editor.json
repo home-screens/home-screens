@@ -3732,11 +3732,10 @@
       "dockButtonColor": "Farve",
       "dockButtonColorAny": "Anden farve",
       "dockButtonColorOwn": "Dockens egen",
-      "dockFitBase": "I denne størrelse er der plads til {names} knapper med navne i docken, eller {icons} kun med ikoner.",
-      "dockFitCompact": "I denne størrelse er der plads til {icons} knapper i docken.",
+      "dockFitBase": "I denne størrelse viser docken {fits} knapper ad gangen.",
+      "dockFitShort": "Den er for lav til navnene. Gør den højere for at se dem.",
       "dockFitOne": "Din knap passer.",
       "dockFitAll": "Dine {count} knapper passer.",
-      "dockFitNoNames": "Du har {count}, så navnene forsvinder, og kun ikonerne bliver.",
       "dockFitScroll": "Du har {count}, så docken scroller. Gør modulet større, eller sluk nogle.",
       "dockFitScrollEvery": "Dette display har {count} skærme, så docken scroller. Gør modulet større, eller vælg hvilke skærme der får en knap."
     },

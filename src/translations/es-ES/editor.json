@@ -3732,11 +3732,10 @@
       "dockButtonColor": "Color de la ficha",
       "dockButtonColorAny": "Otro color",
       "dockButtonColorOwn": "El del dock",
-      "dockFitBase": "Con este tamaño, en el dock caben {names} botones con su nombre, o {icons} solo con iconos.",
-      "dockFitCompact": "Con este tamaño, en el dock caben {icons} botones.",
+      "dockFitBase": "Con este tamaño, el dock muestra {fits} botones a la vez.",
+      "dockFitShort": "Es demasiado bajo para los nombres. Hazlo más alto para verlos.",
       "dockFitOne": "Tu botón cabe.",
       "dockFitAll": "Tus {count} botones caben.",
-      "dockFitNoNames": "Tienes {count}, así que los nombres desaparecen y solo quedan los iconos.",
       "dockFitScroll": "Tienes {count}, así que el dock se desplaza. Haz el módulo más grande o apaga algunos.",
       "dockFitScrollEvery": "Este display tiene {count} pantallas, así que el dock se desplaza. Haz el módulo más grande o elige qué pantallas tienen botón."
     },

@@ -3732,11 +3732,10 @@
       "dockButtonColor": "Kleur",
       "dockButtonColorAny": "Andere kleur",
       "dockButtonColorOwn": "Die van het dock",
-      "dockFitBase": "Op deze grootte passen er {names} knoppen met naam in het dock, of {icons} met alleen pictogrammen.",
-      "dockFitCompact": "Op deze grootte passen er {icons} knoppen in het dock.",
+      "dockFitBase": "Op deze grootte toont het dock {fits} knoppen tegelijk.",
+      "dockFitShort": "Het is te laag voor de namen. Maak het hoger om ze te zien.",
       "dockFitOne": "Je knop past.",
       "dockFitAll": "Je {count} knoppen passen.",
-      "dockFitNoNames": "Je hebt er {count}, dus de namen vallen weg en alleen de pictogrammen blijven.",
       "dockFitScroll": "Je hebt er {count}, dus het dock scrolt. Maak de module groter of zet er een paar uit.",
       "dockFitScrollEvery": "Dit display heeft {count} schermen, dus het dock scrolt. Maak de module groter of kies welke schermen een knop krijgen."
     },

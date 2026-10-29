@@ -3732,11 +3732,10 @@
       "dockButtonColor": "Color",
       "dockButtonColorAny": "Any color",
       "dockButtonColorOwn": "Dock's own",
-      "dockFitBase": "At this size the dock fits {names} buttons with their names, or {icons} with icons only.",
-      "dockFitCompact": "At this size the dock fits {icons} buttons.",
+      "dockFitBase": "At this size the dock shows {fits} buttons at a time.",
+      "dockFitShort": "It is too short for the names. Make it taller to show them.",
       "dockFitOne": "Your button fits.",
       "dockFitAll": "Your {count} buttons fit.",
-      "dockFitNoNames": "You have {count}, so the names will go and only the icons show.",
       "dockFitScroll": "You have {count}, so the dock scrolls. Make the module bigger or switch some off.",
       "dockFitScrollEvery": "This display has {count} screens, so the dock scrolls. Make the module bigger or choose which screens get a button."
     },

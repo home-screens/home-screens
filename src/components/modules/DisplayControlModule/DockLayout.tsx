@@ -88,7 +88,11 @@ export function DockLayout(props: DockLayoutProps) {
             // so a drag across it must scroll it, not change the screen.
             data-swipe-ignore=""
             className={`flex max-h-full max-w-full overflow-auto border border-white/15 bg-hs-card/60 shadow-[0_10px_30px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl backdrop-saturate-150 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${m.vertical ? 'flex-col items-stretch' : 'flex-row items-end'}`}
-            style={{ gap: m.gap, padding: m.padIn, borderRadius: m.pillRadius }}
+            style={{
+              gap: m.gap,
+              padding: m.vertical ? `${m.padIn}px ${m.padAcross}px` : `${m.padAcross}px ${m.padIn}px`,
+              borderRadius: m.pillRadius,
+            }}
           >
             {screens.map((screen, i) => {
               const name = screen.label || screen.name.trim() || t('display-control.unnamedScreen', { number: i + 1 });
@@ -171,8 +175,9 @@ export function DockLayout(props: DockLayoutProps) {
 const ITEM_CLASS =
   'relative flex shrink-0 items-center justify-center min-w-0 min-h-0 text-hs-text-primary transition-transform active:scale-95';
 
+/** Every button takes the same slot, so the tiles sit evenly whatever their names say. */
 function itemStyle(m: DockMetrics): CSSProperties {
-  return m.vertical ? { width: '100%' } : { paddingBottom: m.marker + Math.max(3, m.marker * 0.8) };
+  return m.vertical ? { width: '100%' } : { width: m.slot, paddingBottom: m.marker + Math.max(3, m.marker * 0.8) };
 }
 
 /** A screen's tile: coloured square, name, and the "showing now" dot. */
@@ -243,7 +248,7 @@ function TileName({ m, name }: { m: DockMetrics; name: string }) {
         fontSize: m.label,
         marginTop: m.vertical ? undefined : Math.max(3, m.label * 0.3),
         marginLeft: m.vertical ? m.gap : undefined,
-        maxWidth: m.vertical ? undefined : m.tile * 1.6,
+        maxWidth: m.vertical ? undefined : m.slot,
       }}
     >
       {name}
