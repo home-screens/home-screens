@@ -1,6 +1,6 @@
 import { createJsonStore } from './json-store';
 import type { TransactionChange } from './data-transaction';
-import { canAffordReward } from '@/lib/reward-rules';
+import { canAffordReward, goalsWithout, type SavingsGoals } from '@/lib/reward-rules';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -24,10 +24,30 @@ export interface RewardRedemption {
   redeemedAt: string;    // ISO timestamp
 }
 
+/**
+ * A grown-up giving or taking tickets by hand. Tickets from chores are not
+ * rows here: they are read back from the completions, which already say what
+ * was done and when. Only the moves nothing else records are kept.
+ */
+export interface RewardAdjustment {
+  id: string;
+  memberId: string;
+  /** The change that actually applied: a take-away that hit zero records what came off, not what was asked. */
+  delta: number;
+  /** Why, in the grown-up's words. Absent on a quick +1 / -1. */
+  reason?: string;
+  /** When, as an ISO timestamp. */
+  at: string;
+}
+
 export interface RewardData {
   rewards: RewardDefinition[];
   balances: Record<string, number>;  // memberId → lifetime point balance
   redemptions: RewardRedemption[];
+  /** Each person's reward to save toward, by member id. Absent until someone picks one. */
+  goals?: SavingsGoals;
+  /** Hand adjustments, kept 90 days like redemptions. Absent until the first one. */
+  adjustments?: RewardAdjustment[];
 }
 
 // ── Store ────────────────────────────────────────────────────────────
@@ -48,15 +68,23 @@ const store = createJsonStore<RewardData>({
 
 const PURGE_DAYS = 90;
 
+/** Redemptions and adjustments older than the window are dropped; the rest of the file is untouched. */
 function purgeOldRedemptions(data: RewardData): RewardData {
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - PURGE_DAYS);
   const cutoffMs = cutoff.getTime();
-  const cleaned = data.redemptions.filter(
+  const redemptions = data.redemptions.filter(
     (r) => new Date(r.redeemedAt).getTime() >= cutoffMs,
   );
-  if (cleaned.length === data.redemptions.length) return data;
-  return { ...data, redemptions: cleaned };
+  const adjustments = data.adjustments?.filter((a) => new Date(a.at).getTime() >= cutoffMs);
+  const sameRedemptions = redemptions.length === data.redemptions.length;
+  const sameAdjustments = !data.adjustments || adjustments!.length === data.adjustments.length;
+  if (sameRedemptions && sameAdjustments) return data;
+  return {
+    ...data,
+    redemptions: sameRedemptions ? data.redemptions : redemptions,
+    ...(sameAdjustments ? {} : { adjustments }),
+  };
 }
 
 /**
@@ -82,32 +110,57 @@ export async function writeRewardData(data: RewardData): Promise<void> {
   await store.write(data);
 }
 
-/** Replace reward definitions atomically (preserves balances/redemptions). */
+/**
+ * Replace reward definitions atomically (preserves balances/redemptions).
+ * A goal pointing at a reward that is no longer in the list goes with it.
+ */
 export function updateRewardDefinitions(rewards: RewardDefinition[]): Promise<RewardData> {
-  return updateRewards((data) => ({ ...data, rewards }));
+  return updateRewards((data) => {
+    const ids = new Set(rewards.map((r) => r.id));
+    return withGoals({ ...data, rewards }, goalsWithout(data.goals, (_member, rewardId) => !ids.has(rewardId)));
+  });
 }
 
-/** Add points to a member's balance (called on chore completion). */
-export function creditPoints(memberId: string, points: number): Promise<RewardData> {
-  return updateRewards((data) => ({
-    ...data,
-    balances: {
-      ...data.balances,
-      [memberId]: (data.balances[memberId] ?? 0) + points,
-    },
-  }));
+/** `data` with these goals, and without the key at all when there are none left. */
+function withGoals(data: RewardData, goals: SavingsGoals | undefined): RewardData {
+  if (goals === data.goals) return data;
+  const { goals: _dropped, ...rest } = data;
+  return goals && Object.keys(goals).length > 0 ? { ...rest, goals } : rest;
 }
 
-/** Subtract points from a member's balance, flooring at 0.
- *  Used for admin manual balance adjustments where going negative isn't desired. */
-export function debitPoints(memberId: string, points: number): Promise<RewardData> {
-  return updateRewards((data) => ({
-    ...data,
-    balances: {
-      ...data.balances,
-      [memberId]: Math.max(0, (data.balances[memberId] ?? 0) - points),
-    },
-  }));
+/** Pick, or with `null` clear, the reward this person is saving toward. */
+export function setSavingsGoal(memberId: string, rewardId: string | null): Promise<RewardData> {
+  return updateRewards((data) => {
+    if (rewardId === null) return withGoals(data, goalsWithout(data.goals, (member) => member === memberId));
+    if (data.goals?.[memberId] === rewardId) return data;
+    return { ...data, goals: { ...data.goals, [memberId]: rewardId } };
+  });
+}
+
+/**
+ * A grown-up gives (`delta` above zero) or takes tickets by hand. Taking
+ * floors the balance at zero, as it always has, and the row records what
+ * actually came off so the ledger adds up to the balance. A move that
+ * changes nothing (taking from zero) writes nothing.
+ */
+export function adjustPoints(memberId: string, delta: number, reason?: string): Promise<RewardData> {
+  return updateRewards((data) => {
+    const before = data.balances[memberId] ?? 0;
+    const after = Math.max(0, before + delta);
+    if (after === before) return data;
+    const adjustment: RewardAdjustment = {
+      id: crypto.randomUUID(),
+      memberId,
+      delta: after - before,
+      ...(reason ? { reason } : {}),
+      at: new Date().toISOString(),
+    };
+    return {
+      ...data,
+      balances: { ...data.balances, [memberId]: after },
+      adjustments: [...(data.adjustments ?? []), adjustment],
+    };
+  });
 }
 
 /** Record a redemption and debit the cost from the member's balance. */
@@ -130,14 +183,16 @@ export function redeemReward(
       redeemedAt: new Date().toISOString(),
     };
 
-    return {
+    // The reward they were saving for is theirs now; the bar starts over.
+    const goals = goalsWithout(data.goals, (member, rewardId) => member === memberId && rewardId === reward.id);
+    return withGoals({
       ...data,
       balances: {
         ...data.balances,
         [memberId]: balance - reward.cost,
       },
       redemptions: [...data.redemptions, redemption],
-    };
+    }, goals);
   });
 }
 

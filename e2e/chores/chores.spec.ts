@@ -240,10 +240,14 @@ test('kid sees a previously-redeemed reward in the History tab', async ({ page, 
   await page.getByRole('button', { name: 'Rewards', exact: true }).click();
   await page.getByRole('button', { name: 'History', exact: true }).click();
 
-  // The history entry reads "Pip redeemed Ice Cream Trip — 2 tickets" — assert
-  // the full attributed line (other specs' redemptions share this worker's log,
-  // so the member+reward pairing is what makes it unambiguously this one).
-  await expect(page.getByText('Pip redeemed Ice Cream Trip')).toBeVisible();
+  // History is Pip's own ticket feed: the reward as a spent row with its cost.
+  const feed = page.getByTestId('tickets-feed');
+  const row = feed.getByTestId('tickets-row').filter({ hasText: 'Ice Cream Trip' }).first();
+  await expect(row).toBeVisible();
+  await expect(row).toContainText('−2');
+  await expect(row).toContainText('Reward');
+  // Kids see their own history, never a picker for someone else's.
+  await expect(feed.getByRole('button', { name: 'Pip' })).toHaveCount(0);
 });
 
 // ── Kid completion toggle & multi-member view ─────────────────────────
@@ -396,8 +400,112 @@ test('finishing the last chore celebrates and the ticket balance shows on Today'
   await page.getByRole('button', { name: 'Mark complete: Feed the cat' }).click();
   await posted;
 
-  await expect(page.getByText('Great job, Wren!')).toBeVisible();
+  // The sheet rises with the day's numbers, and Nice! closes it.
+  const sheet = page.getByTestId('day-complete-sheet');
+  await expect(sheet).toBeVisible();
+  await expect(sheet).toContainText('All done, Wren!');
+  await expect(sheet).toContainText('1 of 1 chore · earned 2 tickets today');
+  await sheet.getByRole('button', { name: 'Nice!' }).click();
+  await expect(sheet).toBeHidden();
   await expect(balanceChip).toContainText(`${before + 2} tickets`);
+});
+
+test('the celebration stays off when the full-screen chart says Off', async ({ page, request, sandboxDir }) => {
+  await putConfig(request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [{ ...choreChartModule(), type: 'fullscreen-chore-chart', config: { ...choreChartModule().config, celebration: 'off' } }])],
+  }));
+  await seedHouseholdChores(request, sandboxDir, {
+      members: [{ id: 'm-off', name: 'Ola', emoji: '', color: '#4ade80' }],
+      chores: [{
+        id: 'c-off', name: 'Water the fern', emoji: '', points: 1, frequency: 'daily',
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-off'], rotation: 'fixed',
+      }],
+    });
+  const today = todayISO();
+  if (await completionExists(request, 'c-off', 'm-off', today)) {
+    await request.post('/api/chores', { data: { choreId: 'c-off', memberId: 'm-off', date: today } });
+  }
+  await page.goto('/chores');
+  const posted = page.waitForResponse((r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok());
+  await page.getByRole('button', { name: 'Mark complete: Water the fern' }).click();
+  await posted;
+  await expect(page.getByText('All done!')).toBeVisible();
+  await expect(page.getByTestId('day-complete-sheet')).toHaveCount(0);
+});
+
+// ── Savings goal, steps and the ticket history ────────────────────────
+
+test('kid picks something to save for and sees the bar on Rewards and Today', async ({ page, request, sandboxDir }) => {
+  // One chore, so Today has a list (and the header the goal line sits under) rather than the empty state.
+  await seedHouseholdChores(request, sandboxDir, {
+    members: [{ id: 'm-goal', name: 'Bram', emoji: '', color: '#60a5fa' }],
+    chores: [{ id: 'c-goal', name: 'Feed the fish', emoji: '', points: 1, frequency: 'daily', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-goal'], rotation: 'fixed' }],
+  });
+  await seedRewards(request, [
+    { id: 'rw-lego', name: 'Lego set', emoji: 'lucide:blocks', cost: 10, description: '', memberIds: [], enabled: true },
+    { id: 'rw-ice', name: 'Ice cream', emoji: 'lucide:ice-cream', cost: 3, description: '', memberIds: [], enabled: true },
+  ]);
+  // Four tickets on top of whatever this worker already gave Bram, so the
+  // numbers below are read back from the hub rather than assumed.
+  await request.post('/api/rewards/data', { data: { memberId: 'm-goal', amount: 4 } });
+  await request.post('/api/rewards/goal', { data: { memberId: 'm-goal', rewardId: null } });
+  const balance = ((await (await request.get('/api/rewards')).json()).balances as Record<string, number>)['m-goal'] ?? 0;
+
+  await page.goto('/chores');
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await expect(page.getByTestId('savings-goal-empty')).toBeVisible();
+  await page.getByTestId('savings-goal-empty').click();
+
+  const saved = page.waitForResponse((r) => r.url().includes('/api/rewards/goal') && r.ok());
+  await page.getByTestId('savings-goal-option-rw-lego').click();
+  await saved;
+
+  const card = page.getByTestId('savings-goal-card');
+  await expect(card).toContainText('Lego set');
+  await expect(card).toContainText(`${Math.min(balance, 10)} of 10 tickets`);
+  await expect(page.getByTestId('savings-goal-chip')).toBeVisible();
+  await expect.poll(async () => ((await (await request.get('/api/rewards')).json()).goals ?? {})['m-goal']).toBe('rw-lego');
+
+  // Today carries one line for it, and a tap goes back to Rewards.
+  await page.getByRole('button', { name: 'Today', exact: true }).click();
+  const line = page.getByTestId('today-goal-line');
+  await expect(line).toContainText('Lego set');
+  await line.click();
+  await expect(card).toBeVisible();
+
+  // Stop saving empties the card again.
+  await card.click();
+  await page.getByTestId('savings-goal-stop').click();
+  await expect(page.getByTestId('savings-goal-empty')).toBeVisible();
+  await expect.poll(async () => ((await (await request.get('/api/rewards')).json()).goals ?? {})['m-goal']).toBeUndefined();
+});
+
+test('a chore with steps opens its list under the row', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
+    members: [{ id: 'm-steps', name: 'Cleo', emoji: '', color: '#4ade80' }],
+    chores: [
+      {
+        id: 'c-steps', name: 'Tidy your room', emoji: '', points: 2, frequency: 'daily',
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'evening', assigneeIds: ['m-steps'], rotation: 'fixed',
+        steps: 'Clothes in the hamper\nBooks on the shelf\nLego in the bin',
+      },
+      {
+        id: 'c-plain', name: 'Feed the cat', emoji: '', points: 1, frequency: 'daily',
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'evening', assigneeIds: ['m-steps'], rotation: 'fixed',
+      },
+    ],
+  });
+  await page.goto('/chores');
+  await expect(page.getByTestId('chore-steps-list-c-steps')).toHaveCount(0);
+  await expect(page.getByTestId('chore-steps-c-plain')).toHaveCount(0);
+  await page.getByRole('button', { name: 'How to do Tidy your room' }).click();
+  const list = page.getByTestId('chore-steps-list-c-steps');
+  await expect(list).toBeVisible();
+  // Each step is numbered by hand; the words are the second span.
+  await expect(list.locator('li > span:last-child')).toHaveText(['Clothes in the hamper', 'Books on the shelf', 'Lego in the bin']);
+  await expect(list.locator('li').first()).toContainText('1.');
+  await page.getByRole('button', { name: 'Hide the steps for Tidy your room' }).click();
+  await expect(list).toHaveCount(0);
 });
 
 test('a chore given to a group shows for everyone in it, and follows the group when someone joins', async ({ page, request, sandboxDir }) => {

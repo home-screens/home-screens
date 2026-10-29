@@ -3893,7 +3893,15 @@
       "editChoreChart": "Edit Chore Chart",
       "viewRewardHistory": "Reward History (Day by Day)",
       "viewRewardTotals": "Reward History (Totals)",
-      "viewRewardSpotlight": "Reward History (Spotlight)"
+      "viewRewardSpotlight": "Reward History (Spotlight)",
+      "celebration": "Celebration",
+      "celebrationLabel": "When someone finishes every chore",
+      "celebrationOff": "Off",
+      "celebrationSimple": "Simple",
+      "celebrationBig": "Big",
+      "celebrationHelp": "Simple shows a card over the chart. Big takes over the whole screen.",
+      "celebrationSound": "Play a sound",
+      "celebrationSoundHelp": "A short chime when the card appears"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Default (from Settings)",

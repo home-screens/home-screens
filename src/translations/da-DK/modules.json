@@ -617,7 +617,8 @@
         "selectAtLeastOnePerson": "Vælg mindst én person",
         "selectAtLeastOnePersonOrGroup": "Vælg mindst én person eller gruppe",
         "selectAtLeastOneDay": "Vælg mindst én dag",
-        "familyNotReady": "Din familie indlæses stadig. Prøv igen om lidt."
+        "familyNotReady": "Din familie indlæses stadig. Prøv igen om lidt.",
+        "tooManySteps": "Højst 12 trin"
       },
       "kindLabel": "Slags pligt",
       "kindRegular": "Almindelig",
@@ -639,7 +640,11 @@
         "weekly": "Alle kan gøre den én gang om ugen. Den er ledig igen om mandagen.",
         "manual": "Alle kan gøre den én gang, indtil en voksen sætter den tilbage under Pligter på telefonen."
       },
-      "onceBonusNote": "Bonuspligter dukker op på deres ugedage, ikke på en dato. Til en pligt, der kun skal gøres én gang, holder »Når jeg sætter den tilbage« den klaret, når nogen har gjort den."
+      "onceBonusNote": "Bonuspligter dukker op på deres ugedage, ikke på en dato. Til en pligt, der kun skal gøres én gang, holder »Når jeg sætter den tilbage« den klaret, når nogen har gjort den.",
+      "stepsLabel": "Trin",
+      "stepsPlaceholder": "Ét trin per linje",
+      "stepsHint": "Ét trin per linje, op til 12. Numrene kommer af sig selv.",
+      "stepsCount": "{lines} af {maxLines} trin · {chars}/{maxChars}"
     },
     "unknownAssignee": "?",
     "store": {
@@ -834,7 +839,8 @@
         "one": "{member} brugte 1 billet på {reward}",
         "other": "{member} brugte {count} billetter på {reward}"
       },
-      "history": "Historik"
+      "history": "Historik",
+      "errorChanged": "Billetterne har lige ændret sig. Kig igen."
     },
     "rewardHistory": {
       "subtitle": "Det har familien brugt billetter på",
@@ -868,7 +874,34 @@
         "earlier": "Tidligere"
       }
     },
-    "saveFailed": "Det blev ikke gemt. Prøv igen."
+    "saveFailed": "Det blev ikke gemt. Prøv igen.",
+    "goal": {
+      "toGo": {
+        "one": "1 billet mere",
+        "other": "{count} billetter mere"
+      },
+      "ready": "Nok sparet op!",
+      "savingForThis": "Sparer op til denne",
+      "toGoShort": {
+        "one": "1 mere",
+        "other": "{count} mere"
+      }
+    },
+    "celebration": {
+      "allDone": "Alt er klaret, {name}!",
+      "everyChore": "Alle pligter for {day} er klaret",
+      "choresDone": "pligter klaret",
+      "ticketsToday": "billetter i dag",
+      "dayStreak": "dage i træk",
+      "summaryChores": {
+        "one": "{done} af {count} pligt",
+        "other": "{done} af {count} pligter"
+      },
+      "summaryTickets": {
+        "one": "{count} billet i dag",
+        "other": "{count} billetter i dag"
+      }
+    }
   },
   "sports": {
     "loading": "Indlæser resultater…",

@@ -4203,6 +4203,13 @@ export interface ChoreDefinition {
    * `daysOfWeek`. `frequency` is always `daily` and `rotation` always `fixed` on one.
    */
   bonus?: ChoreBonus;
+  /**
+   * How to do it, one step per line, shown under the chore on the phone when the kid asks
+   *
+   * Plain text, at most 12 lines and 500 characters; `normalizeChoreSteps` is what the forms save.
+   * The wall never shows it.
+   */
+  steps?: string;
 }
 
 /**
@@ -4371,6 +4378,14 @@ export type FullscreenChoreChartWeekProgress = 'chips' | 'strip' | 'grid' | 'off
  */
 export type FullscreenChoreChartLayout = 'by-time' | 'by-person';
 
+/**
+ * What the chart does when someone finishes every chore they have today.
+ * - `off`    nothing
+ * - `simple` a card over the dimmed chart with confetti
+ * - `big`    the whole screen, in that person's color
+ */
+export type FullscreenChoreCelebration = 'off' | 'simple' | 'big';
+
 export interface FullscreenChoreChartConfig {
   /**
    * Display mode: `chores` (daily chore board), `rewards-store` (browse and redeem rewards), or one
@@ -4419,6 +4434,19 @@ export interface FullscreenChoreChartConfig {
    * inherit the display default from Settings > Screen
    */
   theme?: string;
+  /**
+   * What happens when someone finishes every chore they have today: `off`, `simple` (a card over
+   * the chart with confetti) or `big` (the whole screen). Omitted = `simple`
+   *
+   * The phone follows the same choice. A tick from any phone or display counts: the chart notices
+   * the day finishing in the data, not in its own taps.
+   */
+  celebration?: FullscreenChoreCelebration;
+  /**
+   * Play a short chime with the celebration. Off by default, so a wall in a kitchen stays quiet
+   * at six in the morning
+   */
+  celebrationSound?: boolean;
 }
 
 // Fullscreen meal planner module config

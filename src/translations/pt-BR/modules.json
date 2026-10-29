@@ -617,7 +617,8 @@
         "selectAtLeastOnePerson": "Selecione pelo menos uma pessoa",
         "selectAtLeastOnePersonOrGroup": "Selecione pelo menos uma pessoa ou um grupo",
         "selectAtLeastOneDay": "Selecione pelo menos um dia",
-        "familyNotReady": "Sua família ainda está carregando. Tente de novo em instantes."
+        "familyNotReady": "Sua família ainda está carregando. Tente de novo em instantes.",
+        "tooManySteps": "No máximo 12 passos"
       },
       "kindLabel": "Tipo de tarefa",
       "kindRegular": "Normal",
@@ -639,7 +640,11 @@
         "weekly": "Cada pessoa pode fazer uma vez por semana. Ela fica livre de novo na segunda-feira.",
         "manual": "Cada pessoa pode fazer uma vez, até um adulto tocar em \"Reabrir\" na aba Tarefas do celular."
       },
-      "onceBonusNote": "Tarefas bônus aparecem nos dias da semana escolhidos, não em uma data. Para uma tarefa de uma vez só, escolha \"Quando eu reabrir\": ela fica feita assim que alguém fizer."
+      "onceBonusNote": "Tarefas bônus aparecem nos dias da semana escolhidos, não em uma data. Para uma tarefa de uma vez só, escolha \"Quando eu reabrir\": ela fica feita assim que alguém fizer.",
+      "stepsLabel": "Passos",
+      "stepsPlaceholder": "Um passo por linha",
+      "stepsHint": "Um passo por linha, até 12. Os números são adicionados sozinhos.",
+      "stepsCount": "{lines} de {maxLines} passos · {chars}/{maxChars}"
     },
     "unknownAssignee": "?",
     "store": {
@@ -834,7 +839,8 @@
         "one": "{member} gastou 1 ticket em {reward}",
         "other": "{member} gastou {count} tickets em {reward}"
       },
-      "history": "Histórico"
+      "history": "Histórico",
+      "errorChanged": "Os tickets acabaram de mudar. Dê outra olhada."
     },
     "rewardHistory": {
       "subtitle": "Em que a família gastou os tickets",
@@ -868,7 +874,34 @@
         "earlier": "Antes"
       }
     },
-    "saveFailed": "Não deu para salvar. Tente de novo."
+    "saveFailed": "Não deu para salvar. Tente de novo.",
+    "goal": {
+      "toGo": {
+        "one": "falta 1 ticket",
+        "other": "faltam {count} tickets"
+      },
+      "ready": "Já tem o suficiente!",
+      "savingForThis": "Juntando para isto",
+      "toGoShort": {
+        "one": "falta 1",
+        "other": "faltam {count}"
+      }
+    },
+    "celebration": {
+      "allDone": "Tudo pronto, {name}!",
+      "everyChore": "Todas as tarefas de {day} estão feitas",
+      "choresDone": "tarefas feitas",
+      "ticketsToday": "tickets hoje",
+      "dayStreak": "dias seguidos",
+      "summaryChores": {
+        "one": "{done} de {count} tarefa",
+        "other": "{done} de {count} tarefas"
+      },
+      "summaryTickets": {
+        "one": "{count} ticket hoje",
+        "other": "{count} tickets hoje"
+      }
+    }
   },
   "sports": {
     "loading": "Carregando placares…",

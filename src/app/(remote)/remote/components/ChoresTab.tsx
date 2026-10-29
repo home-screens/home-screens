@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import { isFamilySnapshot, useFamilyData, type FamilySnapshot } from '@/hooks/useFamilyData';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
-import { Sunrise, Sun, Sunset, Clock, Settings, Hand } from 'lucide-react';
+import { Sunrise, Sun, Sunset, Clock, Settings, Hand, ChevronRight } from 'lucide-react';
 import type {
   ChoreChartConfig,
   ChoreDefinition,
@@ -14,6 +14,7 @@ import type {
   ChoreTimeOfDay,
   ChoreToggleRequest,
   ChoreToggleResponse,
+  FullscreenChoreCelebration,
 } from '@/types/config';
 import { asChoreSnapshot, ChoreSession, type ChoreSnapshot } from '@/lib/chore-client';
 import {
@@ -42,6 +43,10 @@ import ChoreSettingsSheet from './ChoreSettingsSheet';
 import ConfirmSheet from './ConfirmSheet';
 import ChoresManageView from './ChoresManageView';
 import RewardsView, { type RewardsData } from './RewardsView';
+import DayCompleteSheet from './DayCompleteSheet';
+import { goalProgress, resolveSavingsGoal } from '@/lib/reward-rules';
+import { choreStepLines } from '@/components/modules/chore-chart/chore-form-presentation';
+import { forgetCelebrated, rememberCelebrated, wasCelebratedToday } from '@/lib/celebrated-today';
 import { choresUrl } from '@/lib/fetch-keys';
 import { logger } from '@/lib/logger';
 import { useHouseholdNow, useHouseholdToday } from '../household-clock';
@@ -63,8 +68,6 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 const SELECTED_MEMBER_STORAGE_KEY = 'hs-chores-selected-member';
 /** How long a message under a bonus row ("Cleo is already on that one") stays. */
 const ROW_NOTICE_MS = 5000;
-/** How long the "all done" celebration stays up. */
-const CELEBRATION_MS = 4000;
 
 function readRememberedMember(): string | null {
   try {
@@ -98,8 +101,12 @@ function defaultMemberFor(members: FamilyMember[], groups: FamilyGroup[], chores
 const SAVE_RETRY_MS = 10_000;
 
 interface ChoresTabProps {
-  /** Display settings read from the first chore module placed on a screen. */
-  config: ChoreChartConfig;
+  /**
+   * Display settings read from the first chore module placed on a screen, plus
+   * what a finished day looks like, from the full-screen chart (`simple` when
+   * there is none).
+   */
+  config: ChoreChartConfig & { celebration?: FullscreenChoreCelebration };
   /**
    * Household members and chores from the shared data file, read server-side
    * so the first paint is populated. These are data, not module config, which
@@ -195,8 +202,13 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   // as they check things off) and the store. null until the first read lands.
   const [rewardsData, setRewardsData] = useState<RewardsData | null>(null);
   const balances = rewardsData?.balances ?? null;
-  const [celebration, setCelebration] = useState<{ name: string; key: number } | null>(null);
-  const celebrationTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // The "all done" sheet, with the day's numbers as they stood at the tick that finished it.
+  const [celebration, setCelebration] = useState<{ memberId: string; done: number; total: number; tickets: number; key: number } | null>(null);
+  const celebrationStyle = config.celebration ?? 'simple';
+  // Which chores have their steps open under the row, for the person and day
+  // they were opened on. Several may be open: closing one as another opens
+  // moved the rows under the finger.
+  const [openSteps, setOpenSteps] = useState<ReadonlySet<string>>(() => new Set());
   // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete)
   // or a failed auto-save. Rendered as a dismissible banner so the user gets
   // in-UI feedback without DevTools.
@@ -258,7 +270,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      clearTimeout(celebrationTimer.current);
     };
   }, []);
 
@@ -281,10 +292,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     rememberMember(id);
   }, []);
 
-  // The celebration belongs to the member and day it was earned on.
+  // The celebration and the open steps belong to the member and day they were earned on.
   useEffect(() => {
-    clearTimeout(celebrationTimer.current);
     setCelebration(null);
+    setOpenSteps(new Set());
   }, [selectedMemberId, viewingDate]);
 
   // Each new poll cancels the previous in-flight poll.
@@ -385,7 +396,14 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     if (!wantsRewards) return;
     fetchRewards();
     const interval = setInterval(fetchRewards, 15_000);
-    return () => clearInterval(interval);
+    // A phone picked up again reads at once: two parents giving tickets
+    // within a quarter of a minute were otherwise looking at different numbers.
+    const onVisible = () => { if (document.visibilityState === 'visible') void fetchRewards(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [fetchRewards, wantsRewards, inRewardsView]);
 
   // Today is the hub's calendar day once it has said so: a phone with a wrong
@@ -415,7 +433,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   const myAssignments = useMemo(() => {
     const day = viewingDate;
     const dayOfWeek = new Date(day + 'T00:00:00').getDay();
-    const assignments: { choreId: string; choreName: string; choreEmoji: string; timeOfDay: ChoreTimeOfDay; points: number; isCompleted: boolean; isSkipped: boolean }[] = [];
+    const assignments: { choreId: string; choreName: string; choreEmoji: string; timeOfDay: ChoreTimeOfDay; points: number; isCompleted: boolean; isSkipped: boolean; steps: string[] }[] = [];
 
     for (const chore of chores) {
       if (!choreAppliesToday(chore, dayOfWeek, day)) continue;
@@ -430,6 +448,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
         points: chore.points,
         isCompleted: isChoreComplete(completionSet, chore.id, selectedMemberId, day),
         isSkipped: isChoreSkipped(completionSet, chore.id, selectedMemberId, day),
+        steps: choreStepLines(chore.steps),
       });
     }
 
@@ -490,6 +509,10 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   }, [members, groups, chores, viewingDate, completionSet]);
 
   const selectedMember = members.find((m) => m.id === selectedMemberId);
+  // What they are saving for, drawn under the progress header while the balances are shown.
+  const goal = showBalances && rewardsData ? resolveSavingsGoal(rewardsData, selectedMemberId) : null;
+  const goalState = goal ? goalProgress(balances?.[selectedMemberId] ?? 0, goal) : null;
+  const closeCelebration = useCallback(() => setCelebration(null), []);
 
   // Toggle completion — accepts the viewing date so backdated edits hit the right day
   const toggle = async (choreId: string) => {
@@ -505,10 +528,12 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     const finishesEverything =
       !!target && !target.isCompleted && !isViewingPast &&
       owed.every((a) => a.isCompleted || a.choreId === choreId);
-    if (finishesEverything && selectedMember) {
-      clearTimeout(celebrationTimer.current);
-      setCelebration({ name: selectedMember.name, key: Date.now() });
-      celebrationTimer.current = setTimeout(() => setCelebration(null), CELEBRATION_MS);
+    // Once per kid per day, remembered in the browser: an un-tick and a
+    // re-tick is a correction, not a second finish, even after a reload.
+    if (finishesEverything && selectedMember && celebrationStyle !== 'off' && !wasCelebratedToday(selectedMemberId, day)) {
+      rememberCelebrated(selectedMemberId, day);
+      const tickets = owed.reduce((sum, a) => sum + ((a.isCompleted || a.choreId === choreId) ? a.points : 0), 0);
+      setCelebration({ memberId: selectedMember.id, done: owed.length, total: owed.length, tickets, key: Date.now() });
     }
 
     // One plan drives both the optimistic update and the direction the server
@@ -579,8 +604,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
       // with no network, stayed looking done) and then quietly was not.
       setCompletions((current) => (current === plan.completions ? before : current));
       if (finishesEverything) {
-        clearTimeout(celebrationTimer.current);
         setCelebration(null);
+        forgetCelebrated(selectedMemberId, day);
       }
       if (!isSessionExpired(err)) {
         setRowNotice({ choreId, memberId: selectedMemberId, date: day, text: t('choresTab.saveFailed') });
@@ -1088,37 +1113,16 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
             </div>
 
             <div className="md:flex-1 md:min-w-0">
-              {celebration && (
-                <div
+              {celebration && selectedMember && selectedMember.id === celebration.memberId && (
+                <DayCompleteSheet
                   key={celebration.key}
-                  role="status"
-                  className="hs-pop-in"
-                  // Drawn over the page, not in it: pushing the list down and
-                  // pulling it back up 4 s later moved chores under a finger.
-                  style={{
-                    position: 'fixed',
-                    top: 12,
-                    left: 16,
-                    right: 16,
-                    zIndex: 70,
-                    pointerEvents: 'none',
-                    boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    padding: '12px 16px',
-                    borderRadius: 12,
-                    background: `color-mix(in srgb, ${selectedMember?.color ?? accentColor} 16%, var(--hs-bg-panel))`,
-                    border: `1px solid color-mix(in srgb, ${selectedMember?.color ?? accentColor} 40%, transparent)`,
-                    color: 'var(--hs-text-primary)',
-                    fontSize: 16,
-                    fontWeight: 700,
-                  }}
-                >
-                  <span aria-hidden="true">🎉</span>
-                  {t('choresTab.celebration', { name: celebration.name })}
-                </div>
+                  member={selectedMember}
+                  done={celebration.done}
+                  total={celebration.total}
+                  tickets={celebration.tickets}
+                  onClose={closeCelebration}
+                  modal={!isAdmin}
+                />
               )}
 
               <div style={{ padding: '0 0 12px' }}>
@@ -1170,6 +1174,40 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
                     }}
                   />
                 </div>}
+                {/* What they are saving for, as one fixed-height line: icon, name,
+                    bar, how far to go. A tap opens Rewards. Fixed so it never
+                    nudges the list, and absent rather than empty without a goal. */}
+                {goal && goalState && (
+                  <button
+                    type="button"
+                    data-testid="today-goal-line"
+                    className="press-scale"
+                    onClick={() => setSubView('rewards')}
+                    aria-label={t('choresTab.goalLine.ariaLabel', { name: goal.name })}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: 44, marginTop: 4,
+                      background: 'none', border: 'none', padding: 0, color: 'var(--hs-text-muted)', fontSize: 13, cursor: 'pointer', textAlign: 'left',
+                    }}
+                  >
+                    <span style={{ flexShrink: 0, display: 'inline-flex' }}>
+                      <ChoreIcon value={goal.emoji} size={16} color={selectedMember?.color ?? accentColor} />
+                    </span>
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '48%' }}>
+                      {t('choresTab.goalLine.label', { name: goal.name })}
+                    </span>
+                    <span style={{ flex: 1, height: 5, background: 'var(--hs-border)', borderRadius: 9, overflow: 'hidden', minWidth: 24 }}>
+                      <span style={{ display: 'block', height: '100%', borderRadius: 9, background: selectedMember?.color ?? accentColor, width: `${goalState.fraction * 100}%`, transition: 'width 0.3s ease' }} />
+                    </span>
+                    <span style={{ whiteSpace: 'nowrap', flexShrink: 0, color: goalState.reached ? (selectedMember?.color ?? accentColor) : undefined, fontWeight: goalState.reached ? 600 : 400 }}>
+                      {goalState.reached
+                        ? t('choresTab.goalLine.ready')
+                        : goalState.stillNeeded === 1
+                          ? t('choresTab.goalLine.moreToGoSingular', { n: goalState.stillNeeded })
+                          : t('choresTab.goalLine.moreToGoPlural', { n: goalState.stillNeeded })}
+                    </span>
+                    <ChevronRight size={16} aria-hidden style={{ flexShrink: 0, color: 'var(--hs-text-faint)' }} />
+                  </button>
+                )}
               </div>
 
               <div style={{ paddingBottom: 80 }}>
@@ -1229,6 +1267,14 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
                             onMenu={isAdmin && canEdit ? () => openMenu(assignment.choreId) : undefined}
                             view={`${selectedMemberId}:${viewingDate}`}
                             notice={rowNotice && rowNotice.choreId === assignment.choreId && rowNotice.memberId === selectedMemberId && rowNotice.date === viewingDate ? rowNotice.text : null}
+                            steps={assignment.steps}
+                            stepsOpen={openSteps.has(assignment.choreId)}
+                            onToggleSteps={() => setOpenSteps((open) => {
+                              const next = new Set(open);
+                              if (next.has(assignment.choreId)) next.delete(assignment.choreId);
+                              else next.add(assignment.choreId);
+                              return next;
+                            })}
                           />
                         );
                       })}

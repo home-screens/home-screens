@@ -617,7 +617,8 @@
         "selectAtLeastOnePerson": "Kies minstens één persoon",
         "selectAtLeastOnePersonOrGroup": "Kies minstens één persoon of groep",
         "selectAtLeastOneDay": "Kies minstens één dag",
-        "familyNotReady": "Je gezin wordt nog geladen. Probeer het zo nog eens."
+        "familyNotReady": "Je gezin wordt nog geladen. Probeer het zo nog eens.",
+        "tooManySteps": "Hoogstens 12 stappen"
       },
       "kindLabel": "Soort klusje",
       "kindRegular": "Gewoon",
@@ -639,7 +640,11 @@
         "weekly": "Iedereen mag het één keer per week doen. Op maandag begint het opnieuw.",
         "manual": "Iedereen mag het één keer doen, tot een volwassene op de telefoon bij Klusjes op “Weer openzetten” tikt."
       },
-      "onceBonusNote": "Bonusklusjes komen terug op hun dagen, niet op een datum. Voor een klusje van één keer kies je “Als ik het weer openzet”: dan blijft het klaar zodra iemand het gedaan heeft."
+      "onceBonusNote": "Bonusklusjes komen terug op hun dagen, niet op een datum. Voor een klusje van één keer kies je “Als ik het weer openzet”: dan blijft het klaar zodra iemand het gedaan heeft.",
+      "stepsLabel": "Stappen",
+      "stepsPlaceholder": "Eén stap per regel",
+      "stepsHint": "Eén stap per regel, tot 12. De nummers komen vanzelf.",
+      "stepsCount": "{lines} van {maxLines} stappen · {chars}/{maxChars}"
     },
     "unknownAssignee": "?",
     "store": {
@@ -834,7 +839,8 @@
         "one": "{member} heeft 1 ticket besteed aan {reward}",
         "other": "{member} heeft {count} tickets besteed aan {reward}"
       },
-      "history": "Geschiedenis"
+      "history": "Geschiedenis",
+      "errorChanged": "De tickets zijn net veranderd. Kijk nog eens."
     },
     "rewardHistory": {
       "subtitle": "Waar het gezin tickets aan heeft uitgegeven",
@@ -868,7 +874,34 @@
         "earlier": "Eerder"
       }
     },
-    "saveFailed": "Dat is niet opgeslagen. Probeer het nog eens."
+    "saveFailed": "Dat is niet opgeslagen. Probeer het nog eens.",
+    "goal": {
+      "toGo": {
+        "one": "nog 1 ticket",
+        "other": "nog {count} tickets"
+      },
+      "ready": "Genoeg gespaard!",
+      "savingForThis": "Spaardoel",
+      "toGoShort": {
+        "one": "nog 1",
+        "other": "nog {count}"
+      }
+    },
+    "celebration": {
+      "allDone": "Alles klaar, {name}!",
+      "everyChore": "Alle klusjes voor {day} zijn gedaan",
+      "choresDone": "klusjes gedaan",
+      "ticketsToday": "tickets vandaag",
+      "dayStreak": "dagen op rij",
+      "summaryChores": {
+        "one": "{done} van {count} klusje",
+        "other": "{done} van {count} klusjes"
+      },
+      "summaryTickets": {
+        "one": "{count} ticket vandaag",
+        "other": "{count} tickets vandaag"
+      }
+    }
   },
   "sports": {
     "loading": "Uitslagen laden…",

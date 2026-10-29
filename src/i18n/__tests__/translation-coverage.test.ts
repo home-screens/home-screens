@@ -307,6 +307,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // "Bonus" is the same word in this language (the ticket history's bonus line).
+    'remote|rewardsView.tickets.bonusLine',
     // "Bonus" is the same word in this language (bonus chores).
     'modules|chore-chart.bonus.heading',
     'modules|chore-chart.choreForm.kindBonus',
@@ -343,6 +345,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
   ]),
   'de-DE': new Set([
+    // "Bonus" is the same word in this language (the ticket history's bonus line).
+    'remote|rewardsView.tickets.bonusLine',
     // "Bonus" is the same word in this language (bonus chores).
     'modules|chore-chart.bonus.heading',
     'modules|chore-chart.choreForm.kindBonus',
@@ -438,6 +442,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
   ]),
   'es-ES': new Set([
+    // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
+    'remote|rewardsView.adjust.ticketsLabel',
     // 'Color' is the Spanish word too
     'core|family.color',
     // "{key}: no" is the Spanish "no" as well.
@@ -512,6 +518,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'fr-FR': new Set([
+    // "Bonus", "tickets" and "Simple" are the same words in this language.
+    'remote|rewardsView.tickets.bonusLine',
+    'remote|rewardsView.adjust.ticketsLabel',
+    'editor|configSections.fullscreen-chore-chart.celebrationSimple',
     // "Conditions" is the same word in French (the Weather module's Conditions view).
     'editor|configSections.fullscreen-weather.viewConditions',
     // "Bonus" is the same word in this language (bonus chores).
@@ -678,6 +688,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'nl-NL': new Set([
+    // "Bonus" and "tickets" are the same words in this language.
+    'remote|rewardsView.tickets.bonusLine',
+    'remote|rewardsView.adjust.ticketsLabel',
     // Dutch standings abbreviate a win as W (gewonnen), same letter as English.
     'modules|sports.win',
     // "Media" is the Dutch word too (a template category).
@@ -832,6 +845,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewWhiteboard',
   ]),
   'pt-BR': new Set([
+    // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
+    'remote|rewardsView.adjust.ticketsLabel',
     'remote|lists.itemSheet.textLabel',
     // 'Item' is the Portuguese word too
     'editor|todoListModal.itemTextLabel',

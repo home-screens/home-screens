@@ -46,20 +46,26 @@ const CASES: Record<string, { doc: Doc; afterRemoval: Doc; restore: { missing: n
     doc: {
       rewards: [{ id: 'r', memberIds: ['gone', 'kept'], enabled: true }, { id: 'o', memberIds: ['gone'], enabled: true }],
       balances: { gone: 3, kept: 4 },
+      goals: { gone: 'o', kept: 'r' },
       redemptions: [{ memberId: 'gone' }],
+      adjustments: [{ id: 'a1', memberId: 'gone', delta: 2, at: now }],
     },
     afterRemoval: {
       // The reward that was only theirs is switched off, not opened to everyone.
       rewards: [{ id: 'r', memberIds: ['kept'], enabled: true }, { id: 'o', memberIds: [], enabled: false }],
       balances: { kept: 4 },
+      goals: { kept: 'r' },
       redemptions: [{ memberId: 'gone' }],
+      adjustments: [{ id: 'a1', memberId: 'gone', delta: 2, at: now }],
     },
     restore: {
       missing: 0,
       doc: {
         rewards: [{ id: 'r', memberIds: ['kept'], enabled: true }, { id: 'o', memberIds: [], enabled: false }],
         balances: { gone: 3, kept: 4 },
+        goals: { kept: 'r' },
         redemptions: [{ memberId: 'gone' }],
+        adjustments: [{ id: 'a1', memberId: 'gone', delta: 2, at: now }],
       },
       evidence: {
         historicalOrphans: { policy: 'preserve-ledger-entries-without-creating-members', balances: { gone: 3 } },
@@ -67,6 +73,7 @@ const CASES: Record<string, { doc: Doc; afterRemoval: Doc; restore: { missing: n
           { before: { id: 'r', memberIds: ['gone', 'kept'], enabled: true }, removedMemberIds: ['gone'], disabled: false },
           { before: { id: 'o', memberIds: ['gone'], enabled: true }, removedMemberIds: ['gone'], disabled: true },
         ] },
+        savingsGoalRepairs: { policy: 'drop-goal-without-member-or-reward', records: [{ memberId: 'gone', rewardId: 'o', missing: 'member' }] },
       },
     },
   },
@@ -152,6 +159,27 @@ describe('chores handed to a group', () => {
 
   it('refuses a removal when a saved group list is not a list of ids', () => {
     expect(() => domain.removeMembers({ chores: [{ id: 'crew', assigneeIds: [], assigneeGroupIds: 'kids' }] }, new Set(['gone']))).toThrow();
+  });
+});
+
+describe('savings goals', () => {
+  const domain = MEMBER_REFERENCE_DOMAINS.find((entry) => entry.path === 'data/rewards.json')!;
+
+  it('drops a goal naming a reward the restored file does not have, and keeps the rest', () => {
+    const doc = { rewards: [{ id: 'r', memberIds: [], enabled: true }], balances: {}, goals: { kept: 'vanished' }, redemptions: [] };
+    const plan = domain.planRestore(doc, new Set(['kept']), new Set());
+    expect(plan.doc).toEqual({ rewards: doc.rewards, balances: {}, redemptions: [] });
+    expect(plan.evidence).toEqual({ savingsGoalRepairs: { policy: 'drop-goal-without-member-or-reward', records: [{ memberId: 'kept', rewardId: 'vanished', missing: 'reward' }] } });
+  });
+
+  it('leaves the goals key out once the last person saving is removed', () => {
+    const doc = { rewards: [{ id: 'r', memberIds: [], enabled: true }], balances: { gone: 1 }, goals: { gone: 'r' }, redemptions: [] };
+    expect(domain.removeMembers(doc, new Set(['gone']))).toEqual({ rewards: doc.rewards, balances: {}, redemptions: [] });
+  });
+
+  it('refuses goals that are not a member mapping', () => {
+    const doc = { rewards: [], balances: {}, goals: ['r'], redemptions: [] };
+    expect(() => domain.planRestore(doc, new Set(['kept']), new Set())).toThrow('Reward goals must be a member mapping.');
   });
 });
 

@@ -120,7 +120,6 @@
     "choreAriaLabelCompleted": "Geschafft: {chore}",
     "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
     "holdToUncheckHint": "Gedrückt halten, um den Haken zu entfernen",
-    "celebration": "Super gemacht, {name}!",
     "dayToggle": {
       "ariaLabel": "Welcher Tag angezeigt wird",
       "yesterday": "Gestern",
@@ -178,7 +177,30 @@
       "description": "„{chore}“ ist dann wieder frei. Schon verdiente Tickets bleiben erhalten."
     },
     "loadError": "Deine Aufgaben konnten nicht geladen werden. Prüfe, ob der Hub an ist, und versuch es noch einmal.",
-    "retry": "Noch einmal versuchen"
+    "retry": "Noch einmal versuchen",
+    "goalLine": {
+      "moreToGoSingular": "noch {n} Ticket",
+      "moreToGoPlural": "noch {n} Tickets",
+      "ready": "Genug gespart!",
+      "ariaLabel": "Sparziel: {name}. Belohnungen öffnen",
+      "label": "Sparziel: {name}"
+    },
+    "steps": {
+      "show": "So geht {chore}",
+      "hide": "Schritte für {chore} ausblenden"
+    },
+    "dayComplete": {
+      "title": "Alles geschafft, {name}!",
+      "close": "Super!",
+      "summaryChores": {
+        "one": "{done} von {count} Aufgabe",
+        "other": "{done} von {count} Aufgaben"
+      },
+      "summaryTickets": {
+        "one": "1 Ticket heute verdient",
+        "other": "{count} Tickets heute verdient"
+      }
+    }
   },
   "choreHistoryNav": {
     "jumpToTodayAriaLabel": "Zu heute springen",
@@ -466,7 +488,17 @@
     "everyone": "Alle",
     "deleteConfirm": {
       "title": "Belohnung löschen",
-      "description": "Möchtest du „{name}“ wirklich löschen? Bisherige Einlösungen bleiben erhalten."
+      "description": "„{name}“ löschen? Schon vergebene Belohnungen bleiben in der Geschichte.",
+      "goalClears": {
+        "one": "Das Sparziel wird beendet.",
+        "other": "Ihre Sparziele werden beendet."
+      }
+    },
+    "saverOne": "{names} spart darauf.",
+    "saverMany": "{names} sparen darauf.",
+    "hiddenWithSavers": {
+      "one": "{names} sieht das Sparziel nicht, solange das versteckt ist.",
+      "other": "{names} sehen ihre Sparziele nicht, solange das versteckt ist."
     }
   },
   "alertSender": {
@@ -516,10 +548,21 @@
       "confirmLabelSingular": "Einlösen für {cost} Ticket",
       "confirmLabelPlural": "Einlösen für {cost} Tickets",
       "emptyKid": "Noch keine Belohnungen. Ein Erwachsener kann welche am Handy hinzufügen.",
-      "balanceLabelNamed": "Tickets von {name}",
+      "balanceLabelNamed": {
+        "one": "Ticket für {name}",
+        "other": "Tickets für {name}"
+      },
       "switchHint": "Nicht {name}? Wähle deinen Namen im Tab „Heute“.",
       "refused": "Das hat nicht geklappt. Dafür sind nicht mehr genug Tickets da.",
-      "failed": "Das hat nicht geklappt. Versuch es noch einmal."
+      "failed": "Das hat nicht geklappt. Versuch es noch einmal.",
+      "goalClears": "Darauf spart {name}. Nach dem Einlösen ist das Sparziel erledigt.",
+      "goalFurther": "Danach fehlen für {goal} noch {n} Tickets.",
+      "gotIt": "{name} hat {reward} bekommen.",
+      "gotItKid": "Du hast {reward} bekommen! Zeig es einem Erwachsenen.",
+      "noTicketsHint": "Erledige deine Aufgaben unter Heute, um Tickets zu verdienen.",
+      "alreadyGot": "{name} hat {reward} gerade eben schon bekommen.",
+      "alreadyGotKid": "Du hast {reward} gerade eben schon bekommen!",
+      "changed": "{name}s Tickets haben sich gerade geändert. Schau noch mal."
     },
     "manage": {
       "heading": "Belohnungen",
@@ -545,7 +588,77 @@
         "afterRewardPlural": " eingelöst für {n} Tickets"
       }
     },
-    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen."
+    "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+    "goal": {
+      "heading": "Sparziel",
+      "pick": "Etwas aussuchen, worauf du sparst",
+      "progressSingular": "{have} von {cost} Tickets · noch {n}",
+      "progressPlural": "{have} von {cost} Tickets · noch {n}",
+      "reached": "Genug Tickets! Tippen zum Einlösen.",
+      "change": "Ändern",
+      "changeAriaLabel": "Sparziel: {name}. Sparziel ändern",
+      "savingChip": "Sparziel",
+      "sheetTitle": "Sparen für…",
+      "sheetHint": "{name}s Tickets zählen hierfür. Wenn {name} es bekommen hat, such dir etwas Neues aus.",
+      "sheetEmpty": "Noch keine Belohnungen, auf die man sparen kann.",
+      "stop": "Nicht mehr sparen",
+      "failed": "Das wurde nicht gespeichert. Versuch es noch mal.",
+      "headingFor": "{name} spart auf",
+      "pickFor": "Etwas aussuchen, worauf {name} spart",
+      "sheetTitleFor": "Ein Sparziel für {name}",
+      "stopFor": "{name}s Sparziel beenden",
+      "redeemAriaLabel": "Genug gespart für {name}. Einlösen",
+      "reachedFor": "{name} hat genug. Tippen, um es zu geben."
+    },
+    "adjust": {
+      "button": "Tickets geben oder nehmen…",
+      "title": "Tickets geben oder nehmen",
+      "hint": "Wähle wen, wie viele, und sag warum.",
+      "less": "Eins weniger",
+      "more": "Eins mehr",
+      "ticketsLabel": {
+        "one": "Ticket",
+        "other": "Tickets"
+      },
+      "eachLabel": {
+        "one": "Ticket pro Person",
+        "other": "Tickets pro Person"
+      },
+      "reasonPlaceholder": "Warum? (optional)",
+      "reasonHint": "Steht dann in der Ticket-Geschichte.",
+      "pickSomeone": "Wähle jemanden",
+      "failed": "Das wurde nicht gespeichert. Versuch es noch mal.",
+      "chooseHowMany": "Wähle, wie viele",
+      "manyPeople": "{count} Personen",
+      "give": "{names} {amount} geben",
+      "take": "{names} {amount} abziehen",
+      "shortOne": "{name} hat nur {n}, mehr geht nicht ab.",
+      "shortMany": "{names} haben nicht so viele; sie landen bei 0.",
+      "nothingToTake": "{names} hat keine Tickets zum Abziehen",
+      "reasonTrimmed": "Nur die ersten {max} Zeichen passen."
+    },
+    "tickets": {
+      "earned": "verdient",
+      "spent": "ausgegeben",
+      "adjusted": "von Erwachsenen",
+      "window": "Letzte 30 Tage",
+      "empty": "Noch keine Tickets bewegt.",
+      "failed": "Die Ticket-Geschichte konnte nicht geladen werden.",
+      "removedChore": "Eine gelöschte Aufgabe",
+      "tookOne": "Ein Erwachsener hat welche abgezogen",
+      "gaveSome": "Ein Erwachsener hat welche gegeben",
+      "rewardLine": "Belohnung",
+      "bonusLine": "Bonus",
+      "grownUpLine": "Erwachsener",
+      "bucket": {
+        "today": "Heute",
+        "yesterday": "Gestern",
+        "thisWeek": "Diese Woche",
+        "earlier": "Früher"
+      },
+      "gaveAdmin": "Von einem Erwachsenen gegeben",
+      "tookAdmin": "Von einem Erwachsenen abgezogen"
+    }
   },
   "settingsSheet": {
     "title": "Einstellungen",

@@ -18,7 +18,7 @@ import FamilyManager from '@/components/family/FamilyManager';
 import ChoreIcon, { CHORE_ICONS } from '@/components/modules/chore-chart/ChoreIcon';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
-import { comesBackHintKey } from '@/components/modules/chore-chart/chore-form-presentation';
+import { CHORE_STEPS_MAX_CHARS, comesBackHintKey, describeStepsCount } from '@/components/modules/chore-chart/chore-form-presentation';
 import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
@@ -173,9 +173,9 @@ export default function ChoreFormOverlay({
   const f = useChoreForm(initial, members, groups, familyReady, today);
   const {
     kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
-    name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
+    name, emoji, points, steps, frequency, daysOfWeek, specificDate, timeOfDay,
     assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule, canRotate, coveredByGroup, goesToNobody,
-    setName, setEmoji, setPoints, setFrequency, setSpecificDate, setTimeOfDay,
+    setName, setEmoji, setPoints, setSteps, setFrequency, setSpecificDate, setTimeOfDay,
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleGroup, toggleScheduleDay, addMemberToSchedule, toggleGroupScheduleDay, addGroupToSchedule,
     removeMemberFromSchedule, removeGroupFromSchedule,
@@ -184,6 +184,7 @@ export default function ChoreFormOverlay({
   } = f;
   const isBonus = kind === 'bonus';
   const onSchedule = !isBonus && rotation === 'schedule';
+  const stepsCount = describeStepsCount(steps, tModules);
   const dirty = useFormDirty([
     kind, bonusClaim, comesBack, name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay, assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule,
   ]);
@@ -275,6 +276,24 @@ export default function ChoreFormOverlay({
             style={INPUT_STYLE}
             autoFocus
           />
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <div style={LABEL_STYLE}>{tModules('chore-chart.choreForm.stepsLabel')}</div>
+          <textarea
+            data-testid="chore-steps"
+            placeholder={tModules('chore-chart.choreForm.stepsPlaceholder')}
+            value={steps}
+            onChange={(e) => setSteps(e.target.value)}
+            rows={5}
+            maxLength={CHORE_STEPS_MAX_CHARS}
+            style={{ ...INPUT_STYLE, minHeight: 120, resize: 'vertical', lineHeight: 1.4, fontFamily: 'inherit' }}
+          />
+          <p style={{ fontSize: 12, color: 'var(--hs-text-faint)', margin: '6px 0 0' }}>
+            {tModules('chore-chart.choreForm.stepsHint')}
+          </p>
+          {/* Its own line: beside the hint it wrapped and moved the form as it came and went. */}
+          {stepsCount && <p data-testid="chore-steps-count" style={{ fontSize: 12, margin: '2px 0 0', fontVariantNumeric: 'tabular-nums', color: stepsCount.over ? 'var(--hs-danger)' : 'var(--hs-text-faint)' }}>{stepsCount.text}</p>}
         </div>
 
         <div style={{ marginBottom: 24 }}>

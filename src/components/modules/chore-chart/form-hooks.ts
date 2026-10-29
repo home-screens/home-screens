@@ -20,6 +20,7 @@ import {
   getChoreValidationHintKind,
   scheduleDaysCovered,
   type ChoreValidationHintKind,
+  normalizeChoreSteps,
 } from './chore-form-presentation';
 import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
 
@@ -45,6 +46,8 @@ export interface ChoreFormState {
   name: string;
   emoji: string;
   points: string;
+  /** The Steps field as typed; `normalizeChoreSteps` is applied on save. */
+  steps: string;
   frequency: ChoreResetFrequency;
   daysOfWeek: number[];
   specificDate: string;
@@ -69,6 +72,7 @@ export interface ChoreFormState {
   setName: (v: string) => void;
   setEmoji: (v: string) => void;
   setPoints: (v: string) => void;
+  setSteps: (value: string) => void;
   setFrequency: (v: ChoreResetFrequency) => void;
   setSpecificDate: (v: string) => void;
   setTimeOfDay: (v: ChoreTimeOfDay) => void;
@@ -121,6 +125,7 @@ export function useChoreForm(
   const [name, setName] = useState(initial?.name ?? '');
   const [emoji, setEmoji] = useState(initial?.emoji ?? DEFAULT_CHORE_ICON);
   const [points, setPoints] = useState(initial?.points?.toString() ?? '1');
+  const [steps, setSteps] = useState(initial?.steps ?? '');
   const [frequency, setFrequencyState] = useState<ChoreResetFrequency>(initial?.frequency ?? 'daily');
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>(initial?.daysOfWeek ?? defaultChoreDays(initial?.frequency ?? 'daily'));
   // Whether the days on the row are somebody's choice rather than the row the
@@ -259,6 +264,7 @@ export function useChoreForm(
     familyReady,
     frequency: isBonus ? 'daily' : frequency,
     daysOfWeekLength: daysOfWeek.length,
+    stepsLines: steps.split(/\r?\n/).filter((line) => line.trim().length > 0).length,
   });
   const canSave = validationHintKind === null;
 
@@ -266,6 +272,8 @@ export function useChoreForm(
     if (!canSave) return;
     // A typed minus sign gets past the box's minimum: tickets never go below 0.
     const tickets = Number.isNaN(parseInt(points)) ? 1 : Math.max(0, parseInt(points));
+    const normalizedSteps = normalizeChoreSteps(steps);
+    const stepsField = normalizedSteps ? { steps: normalizedSteps } : {};
     if (isBonus) {
       // Who can do it is the people and groups picked; the regular setup is
       // saved as it stands so switching back to regular restores it.
@@ -273,6 +281,7 @@ export function useChoreForm(
         name: name.trim(),
         emoji,
         points: tickets,
+        ...stepsField,
         frequency,
         daysOfWeek,
         timeOfDay,
@@ -296,6 +305,7 @@ export function useChoreForm(
       name: name.trim(),
       emoji,
       points: tickets,
+      ...stepsField,
       frequency,
       daysOfWeek: rotation === 'schedule' ? scheduleDays : daysOfWeek,
       timeOfDay,
@@ -306,9 +316,9 @@ export function useChoreForm(
 
   return {
     kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
-    name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
+    name, emoji, points, steps, frequency, daysOfWeek, specificDate, timeOfDay,
     assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule, canRotate, coveredByGroup, goesToNobody,
-    setName, setEmoji, setPoints, setFrequency, setSpecificDate, setTimeOfDay,
+    setName, setEmoji, setPoints, setSteps, setFrequency, setSpecificDate, setTimeOfDay,
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleGroup, toggleScheduleDay, addMemberToSchedule, toggleGroupScheduleDay, addGroupToSchedule,
     removeMemberFromSchedule, removeGroupFromSchedule,

@@ -617,7 +617,8 @@
         "selectAtLeastOnePerson": "Wähle mindestens eine Person aus",
         "selectAtLeastOnePersonOrGroup": "Wähle mindestens eine Person oder Gruppe aus",
         "selectAtLeastOneDay": "Wähle mindestens einen Tag aus",
-        "familyNotReady": "Deine Familie wird noch geladen. Versuch es gleich noch einmal."
+        "familyNotReady": "Deine Familie wird noch geladen. Versuch es gleich noch einmal.",
+        "tooManySteps": "Höchstens 12 Schritte"
       },
       "kindLabel": "Art der Aufgabe",
       "kindRegular": "Normal",
@@ -639,7 +640,11 @@
         "weekly": "Jede Person darf sie einmal pro Woche machen. Am Montag geht es von vorn los.",
         "manual": "Jede Person darf sie einmal machen, bis ein Erwachsener sie am Handy unter „Aufgaben“ wieder freigibt."
       },
-      "onceBonusNote": "Bonusaufgaben kommen an ihren Wochentagen, nicht an einem Datum. Für eine einmalige Aufgabe passt „Wenn ich sie wieder freigebe“: Dann bleibt sie erledigt, sobald jemand sie gemacht hat."
+      "onceBonusNote": "Bonusaufgaben kommen an ihren Wochentagen, nicht an einem Datum. Für eine einmalige Aufgabe passt „Wenn ich sie wieder freigebe“: Dann bleibt sie erledigt, sobald jemand sie gemacht hat.",
+      "stepsLabel": "Schritte",
+      "stepsPlaceholder": "Ein Schritt pro Zeile",
+      "stepsHint": "Ein Schritt pro Zeile, bis zu 12. Die Nummern kommen von selbst.",
+      "stepsCount": "{lines} von {maxLines} Schritten · {chars}/{maxChars}"
     },
     "unknownAssignee": "?",
     "store": {
@@ -834,7 +839,8 @@
         "one": "{member} hat 1 Ticket für {reward} ausgegeben",
         "other": "{member} hat {count} Tickets für {reward} ausgegeben"
       },
-      "history": "Verlauf"
+      "history": "Verlauf",
+      "errorChanged": "Die Tickets haben sich gerade geändert. Schau noch mal."
     },
     "rewardHistory": {
       "subtitle": "Wofür die Familie Tickets ausgegeben hat",
@@ -868,7 +874,34 @@
         "earlier": "Früher"
       }
     },
-    "saveFailed": "Das hat nicht geklappt. Versuch es noch mal."
+    "saveFailed": "Das hat nicht geklappt. Versuch es noch mal.",
+    "goal": {
+      "toGo": {
+        "one": "noch 1 Ticket",
+        "other": "noch {count} Tickets"
+      },
+      "ready": "Genug gespart!",
+      "savingForThis": "Sparziel",
+      "toGoShort": {
+        "one": "noch 1",
+        "other": "noch {count}"
+      }
+    },
+    "celebration": {
+      "allDone": "Alles geschafft, {name}!",
+      "everyChore": "Alle Aufgaben für {day} sind erledigt",
+      "choresDone": "Aufgaben erledigt",
+      "ticketsToday": "Tickets heute",
+      "dayStreak": "Tage in Folge",
+      "summaryChores": {
+        "one": "{done} von {count} Aufgabe",
+        "other": "{done} von {count} Aufgaben"
+      },
+      "summaryTickets": {
+        "one": "{count} Ticket heute",
+        "other": "{count} Tickets heute"
+      }
+    }
   },
   "sports": {
     "loading": "Spielstände werden geladen…",

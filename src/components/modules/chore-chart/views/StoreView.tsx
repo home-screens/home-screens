@@ -196,7 +196,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
     <button
       type="button"
       data-testid="store-redeem"
-      onClick={() => selected && redeem.ask(reward, selected)}
+      onClick={() => selected && redeem.ask(reward, selected, balances[selected.id] ?? 0)}
       className="flex shrink-0 items-center whitespace-nowrap rounded-full"
       style={{ minHeight, padding: '0 0.95em', fontSize: '0.72em', fontWeight: 800, background: accent, color: onAccent, border: 'none', fontFamily: 'inherit', cursor: 'pointer' }}
     >
@@ -405,7 +405,7 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(4.2em, 1fr))', gap: '0.4em' }}>
             {members.filter((m) => isRewardOfferedTo(choosingFor, m.id)).map((m) => {
               const ok = canAffordReward(balances[m.id] ?? 0, choosingFor);
-              return chip(m, { dim: !ok, withBalance: true, outlined: true, onPick: ok ? () => redeem.ask(choosingFor, m) : undefined, testId: 'store-who' });
+              return chip(m, { dim: !ok, withBalance: true, outlined: true, onPick: ok ? () => redeem.ask(choosingFor, m, balances[m.id] ?? 0) : undefined, testId: 'store-who' });
             })}
           </div>
         </>,

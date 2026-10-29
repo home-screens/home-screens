@@ -120,7 +120,6 @@
     "choreAriaLabelCompleted": "Hecha: {chore}",
     "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
     "holdToUncheckHint": "Mantén pulsado para desmarcar",
-    "celebration": "¡Muy bien, {name}!",
     "dayToggle": {
       "ariaLabel": "Qué día mostrar",
       "yesterday": "Ayer",
@@ -178,7 +177,30 @@
       "description": "«{chore}» vuelve a estar disponible. Los tickets que ya se ganaron con ella no se pierden."
     },
     "loadError": "No se pudieron cargar tus tareas. Comprueba que el hub está encendido y vuelve a intentarlo.",
-    "retry": "Intentar de nuevo"
+    "retry": "Intentar de nuevo",
+    "goalLine": {
+      "moreToGoSingular": "falta {n} ticket",
+      "moreToGoPlural": "faltan {n} tickets",
+      "ready": "¡Ya hay suficiente!",
+      "ariaLabel": "Ahorrando para {name}. Abrir recompensas",
+      "label": "Ahorrando para {name}"
+    },
+    "steps": {
+      "show": "Cómo hacer {chore}",
+      "hide": "Ocultar los pasos de {chore}"
+    },
+    "dayComplete": {
+      "title": "¡Todo listo, {name}!",
+      "close": "¡Genial!",
+      "summaryChores": {
+        "one": "{done} de {count} tarea",
+        "other": "{done} de {count} tareas"
+      },
+      "summaryTickets": {
+        "one": "1 ticket ganado hoy",
+        "other": "{count} tickets ganados hoy"
+      }
+    }
   },
   "choreHistoryNav": {
     "jumpToTodayAriaLabel": "Ir a hoy",
@@ -466,7 +488,17 @@
     "everyone": "Todos",
     "deleteConfirm": {
       "title": "Eliminar premio",
-      "description": "¿Seguro que quieres eliminar «{name}»? El historial de canjes se conservará."
+      "description": "¿Eliminar \"{name}\"? Las recompensas ya dadas se quedan en el historial.",
+      "goalClears": {
+        "one": "Esa meta se borrará.",
+        "other": "Sus metas se borrarán."
+      }
+    },
+    "saverOne": "{names} está ahorrando para esto.",
+    "saverMany": "{names} están ahorrando para esto.",
+    "hiddenWithSavers": {
+      "one": "{names} no verá su meta mientras esté oculta.",
+      "other": "{names} no verán sus metas mientras esté oculta."
     }
   },
   "alertSender": {
@@ -516,10 +548,21 @@
       "confirmLabelSingular": "Canjear por {cost} ticket",
       "confirmLabelPlural": "Canjear por {cost} tickets",
       "emptyKid": "Aún no hay premios. Una persona mayor puede añadirlos desde su teléfono.",
-      "balanceLabelNamed": "tickets de {name}",
+      "balanceLabelNamed": {
+        "one": "ticket de {name}",
+        "other": "tickets de {name}"
+      },
       "switchHint": "¿No eres {name}? Elige tu nombre en la pestaña Hoy.",
       "refused": "No se pudo canjear. Ya no hay suficientes tickets para eso.",
-      "failed": "No se pudo canjear. Inténtalo de nuevo."
+      "failed": "No se pudo canjear. Inténtalo de nuevo.",
+      "goalClears": "Es la meta de {name}. Se borra al canjearla.",
+      "goalFurther": "Después faltarán {n} tickets para {goal}.",
+      "gotIt": "{name} consiguió {reward}.",
+      "gotItKid": "¡Conseguiste {reward}! Enséñaselo a un adulto.",
+      "noTicketsHint": "Haz tus tareas en la pestaña Hoy para ganar tickets.",
+      "alreadyGot": "{name} ya consiguió {reward} hace un momento.",
+      "alreadyGotKid": "¡Ya conseguiste {reward} hace un momento!",
+      "changed": "Los tickets de {name} acaban de cambiar. Vuelve a mirar."
     },
     "manage": {
       "heading": "Premios",
@@ -545,7 +588,77 @@
         "afterRewardPlural": " por {n} tickets"
       }
     },
-    "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "goal": {
+      "heading": "Ahorrando para",
+      "pick": "Elige algo para lo que ahorrar",
+      "progressSingular": "{have} de {cost} tickets · falta {n}",
+      "progressPlural": "{have} de {cost} tickets · faltan {n}",
+      "reached": "¡Tickets suficientes! Toca para canjear.",
+      "change": "Cambiar",
+      "changeAriaLabel": "Ahorrando para {name}. Cambiar la meta",
+      "savingChip": "Ahorrando",
+      "sheetTitle": "Ahorrar para…",
+      "sheetHint": "Los tickets de {name} cuentan para esto. Cuando {name} lo consiga, elige otra cosa.",
+      "sheetEmpty": "Aún no hay recompensas para las que ahorrar.",
+      "stop": "Dejar de ahorrar",
+      "failed": "No se guardó. Inténtalo otra vez.",
+      "headingFor": "{name} está ahorrando para",
+      "pickFor": "Elige algo para lo que {name} ahorre",
+      "sheetTitleFor": "Una meta para {name}",
+      "stopFor": "Quitar la meta de {name}",
+      "redeemAriaLabel": "Ya hay suficiente para {name}. Canjear",
+      "reachedFor": "{name} ya tiene suficiente. Toca para dárselo."
+    },
+    "adjust": {
+      "button": "Dar o quitar tickets…",
+      "title": "Dar o quitar tickets",
+      "hint": "Elige a quién, cuántos y di por qué.",
+      "less": "Uno menos",
+      "more": "Uno más",
+      "ticketsLabel": {
+        "one": "ticket",
+        "other": "tickets"
+      },
+      "eachLabel": {
+        "one": "ticket a cada uno",
+        "other": "tickets a cada uno"
+      },
+      "reasonPlaceholder": "¿Por qué? (opcional)",
+      "reasonHint": "Aparece en su historial de tickets.",
+      "pickSomeone": "Elige a alguien",
+      "failed": "No se guardó. Inténtalo otra vez.",
+      "chooseHowMany": "Elige cuántos",
+      "manyPeople": "{count} personas",
+      "give": "Dar {amount} a {names}",
+      "take": "Quitar {amount} a {names}",
+      "shortOne": "{name} solo tiene {n}; se le quitarán esos.",
+      "shortMany": "{names} no tienen tantos; se quedarán en 0.",
+      "nothingToTake": "{names} no tiene tickets que quitar",
+      "reasonTrimmed": "Solo caben las primeras {max} letras."
+    },
+    "tickets": {
+      "earned": "ganados",
+      "spent": "gastados",
+      "adjusted": "de adultos",
+      "window": "Últimos 30 días",
+      "empty": "Todavía no se ha movido ningún ticket.",
+      "failed": "No se pudo cargar el historial de tickets.",
+      "removedChore": "Una tarea que se eliminó",
+      "tookOne": "Un adulto quitó algunos",
+      "gaveSome": "Un adulto dio algunos",
+      "rewardLine": "Recompensa",
+      "bonusLine": "Extra",
+      "grownUpLine": "Adulto",
+      "bucket": {
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "thisWeek": "Esta semana",
+        "earlier": "Antes"
+      },
+      "gaveAdmin": "Dado por un adulto",
+      "tookAdmin": "Quitado por un adulto"
+    }
   },
   "settingsSheet": {
     "title": "Ajustes",

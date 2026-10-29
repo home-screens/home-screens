@@ -502,6 +502,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-calendar.eventTapStyle': 'covered-elsewhere', // interactive.spec.ts
   'fullscreen-calendar.weekCollapsePastDays': 'timing-only',
   'fullscreen-chore-chart.allowDisplayComplete': 'covered-elsewhere',
+  'fullscreen-chore-chart.celebrationSound': 'not-observable', // a synthesized chime through the AudioContext; headless Chromium has no speaker to assert on
   'fullscreen-chore-chart.density': 'style-only',
   'fullscreen-chore-chart.typographySize': 'style-only',
   'fullscreen-meal-planner.density': 'style-only',
@@ -657,6 +658,7 @@ const EXTRA_DISCRIMINATORS: Array<{ type: string; key: string; union?: string; m
   { type: 'fullscreen-chore-chart', key: 'weekStartDay', union: 'WeekStartDay' },
   { type: 'fullscreen-chore-chart', key: 'weekProgress', union: 'FullscreenChoreChartWeekProgress' },
   { type: 'fullscreen-chore-chart', key: 'layout', union: 'FullscreenChoreChartLayout' },
+  { type: 'fullscreen-chore-chart', key: 'celebration', union: 'FullscreenChoreCelebration' },
   { type: 'timetable', key: 'layout', union: 'TimetableLayout' },
   { type: 'timetable', key: 'detail', union: 'TimetableDetail' },
   { type: 'notes', key: 'filter', union: 'NotesFilter' },
@@ -1202,6 +1204,8 @@ const PUBLIC_ROUTES: Record<string, string> = {
   '/api/i18n/[locale]': 'ships the UI dictionaries. Every surface needs them before login, and they are the same strings for every household.',
   '/api/plugins/auth/callback': 'the OAuth redirect target. The provider sends the browser here with no session; the HMAC-signed state is what proves the exchange is ours.',
   '/api/plugins/registry': 'a read-only index of publicly available plugins, identical for every household.',
+  '/api/rewards/goal': 'the /chores kid view picks what a child is saving for with no session, exactly as it redeems through /api/rewards. It moves no tickets.',
+  '/api/rewards/ledger': 'the /chores kid view reads a child\'s own ticket history with no session, the same chores, rewards and reasons GET /api/rewards and the chore list already hand it.',
   '/api/system/build-id': 'the running build string, which the client polls to notice a deploy. It carries nothing about the household.',
 };
 

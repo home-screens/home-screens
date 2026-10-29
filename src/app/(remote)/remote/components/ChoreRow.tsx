@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Lock, MoreHorizontal } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Lock, MoreHorizontal } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { useLongPress } from '@/hooks/useLongPress';
@@ -40,6 +40,10 @@ interface ChoreRowProps {
   onMenu?: () => void;
   /** The person and day on screen: picking another redraws the list without it counting as the row moving. */
   view: string;
+  /** How to do it, one entry per step (`choreStepLines`). With any, the row gets a chevron that opens the list under it. */
+  steps?: string[];
+  stepsOpen?: boolean;
+  onToggleSteps?: () => void;
   /**
    * A line under the row, for a tap that did not go through ("That didn't
    * save"). Under the row, not in a banner above the list: a banner moves
@@ -65,6 +69,9 @@ export default function ChoreRow({
   onMenu,
   view,
   notice,
+  steps,
+  stepsOpen,
+  onToggleSteps,
 }: ChoreRowProps) {
   const t = useTranslate('remote');
   const done = assignment.isCompleted;
@@ -239,14 +246,61 @@ export default function ChoreRow({
     </>
   );
 
+  const stepsButton = steps && steps.length > 0 && onToggleSteps ? (
+    <button
+      type="button"
+      data-testid={`chore-steps-${assignment.choreId}`}
+      // Not behind the moved-tap guard: opening steps never costs a ticket, and
+      // a chevron that goes dead for three seconds after the list shifted reads as broken.
+      onClick={onToggleSteps}
+      aria-expanded={!!stepsOpen}
+      aria-label={t(stepsOpen ? 'choresTab.steps.hide' : 'choresTab.steps.show', { chore: assignment.choreName })}
+      style={{
+        flexShrink: 0, width: 48, border: 'none', borderRadius: 12,
+        background: stepsOpen ? `color-mix(in srgb, ${checkedColor} 15%, transparent)` : 'var(--hs-bg-card)',
+        color: stepsOpen ? checkedColor : 'var(--hs-text-faint)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+      }}
+    >
+      {stepsOpen ? <ChevronUp size={20} aria-hidden /> : <ChevronDown size={20} aria-hidden />}
+    </button>
+  ) : null;
+  // Under the row, never above it: the finger that opened it stays on the same chore.
+  const stepsPanel = stepsOpen && steps && steps.length > 0 ? (
+    <ol
+      data-testid={`chore-steps-list-${assignment.choreId}`}
+      style={{
+        margin: '-3px 0 10px', padding: '10px 14px', listStyle: 'none',
+        background: 'var(--hs-bg-card)', border: '1px solid var(--hs-border)', borderRadius: 12,
+        fontSize: 15, lineHeight: 1.55, color: 'var(--hs-text-body)',
+      }}
+    >
+      {/* The numbers are drawn by hand: the page's base styles drop list markers. */}
+      {steps.map((step, i) => (
+        <li key={i} style={{ display: 'flex', gap: 8 }}>
+          <span aria-hidden style={{ flexShrink: 0, minWidth: 18, textAlign: 'right', fontWeight: 700, color: checkedColor, fontVariantNumeric: 'tabular-nums' }}>{i + 1}.</span>
+          <span>{step}</span>
+        </li>
+      ))}
+    </ol>
+  ) : null;
+
   if (readOnly || (skipped && !onLongPress)) {
     // Non-interactive row: not a button, no press-scale, not announced as clickable.
-    return <div ref={rowRef as React.RefObject<HTMLDivElement>} style={rowStyle}>{rowInner}</div>;
+    const plain = <div ref={rowRef as React.RefObject<HTMLDivElement>} style={stepsButton ? { ...rowStyle, marginBottom: 0, flex: 1, minWidth: 0 } : rowStyle}>{rowInner}</div>;
+    if (!stepsButton) return plain;
+    return (
+      <>
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, marginBottom: 6 }}>{plain}{stepsButton}</div>
+        {stepsPanel}
+      </>
+    );
   }
 
+  const sideButtons = !!stepsButton || !!onMenu;
   const rowButton = (
     <button
-      ref={onMenu ? undefined : (rowRef as React.RefObject<HTMLButtonElement>)}
+      ref={sideButtons ? undefined : (rowRef as React.RefObject<HTMLButtonElement>)}
       className="press-scale"
       {...handlers}
       disabled={isToggling}
@@ -257,7 +311,7 @@ export default function ChoreRow({
             ? t('choresTab.choreAriaLabelCompleted', { chore: assignment.choreName })
             : t('choresTab.choreAriaLabelMarkComplete', { chore: assignment.choreName })
       }
-      style={onMenu ? { ...rowStyle, marginBottom: 0, flex: 1, minWidth: 0 } : rowStyle}
+      style={sideButtons ? { ...rowStyle, marginBottom: 0, flex: 1, minWidth: 0 } : rowStyle}
     >
       {rowInner}
     </button>
@@ -267,25 +321,30 @@ export default function ChoreRow({
       {notice}
     </p>
   ) : null;
-  if (!onMenu) return <>{rowButton}{noticeLine}</>;
+  if (!sideButtons) return <>{rowButton}{noticeLine}</>;
 
   return (
     <>
-    <div ref={rowRef as React.RefObject<HTMLDivElement>} style={{ display: 'flex', alignItems: 'stretch', gap: 4, marginBottom: 6 }}>
+    {/* An 8 px gap and 48 px buttons: a thumb aiming at the chevron must not tick the chore. */}
+    <div ref={rowRef as React.RefObject<HTMLDivElement>} style={{ display: 'flex', alignItems: 'stretch', gap: 8, marginBottom: 6 }}>
       {rowButton}
-      <button
-        type="button"
-        data-testid={`chore-menu-${assignment.choreId}`}
-        onClick={guard(onMenu)}
-        aria-label={t('choresTab.dayMenu.open', { chore: assignment.choreName })}
-        style={{
-          flexShrink: 0, width: 40, border: 'none', borderRadius: 12, background: 'var(--hs-bg-card)',
-          color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-        }}
-      >
-        <MoreHorizontal size={20} aria-hidden />
-      </button>
+      {stepsButton}
+      {onMenu && (
+        <button
+          type="button"
+          data-testid={`chore-menu-${assignment.choreId}`}
+          onClick={guard(onMenu)}
+          aria-label={t('choresTab.dayMenu.open', { chore: assignment.choreName })}
+          style={{
+            flexShrink: 0, width: 48, border: 'none', borderRadius: 12, background: 'var(--hs-bg-card)',
+            color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+          }}
+        >
+          <MoreHorizontal size={20} aria-hidden />
+        </button>
+      )}
     </div>
+    {stepsPanel}
     {noticeLine}
     </>
   );

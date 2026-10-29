@@ -495,6 +495,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       typographySize: 'medium',
       // Empty = follow the theme's own accent (see FullscreenThemeTokens.accent).
       accentColor: '',
+      celebration: 'simple',
+      celebrationSound: false,
     },
     defaultSize: { w: 1080, h: 1920 },
     defaultStyle: FULLSCREEN_STYLE,

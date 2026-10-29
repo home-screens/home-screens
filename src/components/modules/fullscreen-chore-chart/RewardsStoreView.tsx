@@ -19,12 +19,14 @@ import RedeemedBanner from './rewards/RedeemedBanner';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useRedeemReward } from '../shared/useRedeemReward';
 import { fitStore, feedMetrics, hiddenBelow } from './rewards/storeLayout';
-import { isRewardOfferedTo, sortRedemptionsNewestFirst } from '@/lib/reward-rules';
+import { isRewardOfferedTo, resolveSavingsGoal, sortRedemptionsNewestFirst } from '@/lib/reward-rules';
 
 interface RewardsStoreViewProps {
   members: FamilyMember[];
   rewards: RewardDefinition[];
   balances: Record<string, number>;
+  /** Each person's reward to save toward, by member id. */
+  goals?: Record<string, string>;
   /** Every redemption the hub still holds; the feed sorts and trims it. */
   redemptions: RewardRedemption[];
   /** min(w, h) / 1080: chrome and tap targets scale with this alone. */
@@ -50,6 +52,7 @@ export function RewardsStoreView({
   members,
   rewards,
   balances,
+  goals,
   redemptions,
   k,
   typoMul,
@@ -120,6 +123,7 @@ export function RewardsStoreView({
 
   const selectedMember = members.find((m) => m.id === selectedMemberId) ?? null;
   const currentBalance = selectedMemberId !== null ? (localBalances[selectedMemberId] ?? 0) : 0;
+  const goalReward = selectedMemberId !== null ? resolveSavingsGoal({ rewards, goals }, selectedMemberId) : null;
 
   const memberRedemptions = useMemo(
     () => (selectedMemberId
@@ -132,8 +136,8 @@ export function RewardsStoreView({
   const { redeemed } = redeem;
   const askForSelected = redeem.ask;
   const handleOpenConfirm = useCallback((reward: RewardDefinition) => {
-    if (selectedMember) askForSelected(reward, selectedMember);
-  }, [askForSelected, selectedMember]);
+    if (selectedMember) askForSelected(reward, selectedMember, localBalances[selectedMember.id] ?? 0);
+  }, [askForSelected, selectedMember, localBalances]);
 
   // ── Sizing ──────────────────────────────────────────────────────────
   // Text follows the chore list next door (30px names at k = 1, medium);
@@ -265,6 +269,7 @@ export function RewardsStoreView({
               key={reward.id}
               reward={reward}
               balance={currentBalance}
+              isGoal={goalReward?.id === reward.id}
               allowTouch={allowTouch}
               onRedeem={handleOpenConfirm}
               metrics={fit.metrics}

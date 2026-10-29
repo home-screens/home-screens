@@ -3893,7 +3893,15 @@
       "editChoreChart": "Editar quadro de tarefas",
       "viewRewardHistory": "Histórico de recompensas (dia a dia)",
       "viewRewardTotals": "Histórico de recompensas (totais)",
-      "viewRewardSpotlight": "Histórico de recompensas (destaque)"
+      "viewRewardSpotlight": "Histórico de recompensas (destaque)",
+      "celebration": "Comemoração",
+      "celebrationLabel": "Quando alguém termina todas as tarefas",
+      "celebrationOff": "Não",
+      "celebrationSimple": "Simples",
+      "celebrationBig": "Grande",
+      "celebrationHelp": "Simples mostra um cartão sobre o quadro. Grande ocupa a tela inteira.",
+      "celebrationSound": "Tocar um som",
+      "celebrationSoundHelp": "Um toque curto quando o cartão aparece"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Padrão (das configurações)",

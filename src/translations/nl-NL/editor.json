@@ -3893,7 +3893,15 @@
       "editChoreChart": "Klusjeslijst bewerken",
       "viewRewardHistory": "Beloningsgeschiedenis (dag voor dag)",
       "viewRewardTotals": "Beloningsgeschiedenis (totalen)",
-      "viewRewardSpotlight": "Beloningsgeschiedenis (in de schijnwerper)"
+      "viewRewardSpotlight": "Beloningsgeschiedenis (in de schijnwerper)",
+      "celebration": "Feestje",
+      "celebrationLabel": "Als iemand alle klusjes af heeft",
+      "celebrationOff": "Uit",
+      "celebrationSimple": "Eenvoudig",
+      "celebrationBig": "Groot",
+      "celebrationHelp": "Eenvoudig toont een kaart over het bord. Groot neemt het hele scherm.",
+      "celebrationSound": "Geluid afspelen",
+      "celebrationSoundHelp": "Een kort geluidje als de kaart verschijnt"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Standaard (uit Instellingen)",

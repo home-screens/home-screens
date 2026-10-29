@@ -11,6 +11,8 @@ import { canAffordReward, ticketsStillNeeded } from '@/lib/reward-rules';
 interface RewardCardProps {
   reward: RewardDefinition;
   balance: number;
+  /** This is the reward the kid is saving for: a tag says so. */
+  isGoal?: boolean;
   /** False when the wall is read-only: no Redeem pill, nothing to tap. */
   allowTouch: boolean;
   onRedeem: (reward: RewardDefinition) => void;
@@ -35,11 +37,13 @@ const clampDesc = clampLines(DESC_MAX_LINES);
  * more tickets it takes, in the same slot the pill would fill, so nothing
  * reflows when they switch members.
  */
-export default function RewardCard({ reward, balance, allowTouch, onRedeem, metrics: m, onAccent }: RewardCardProps) {
+export default function RewardCard({ reward, balance, isGoal = false, allowTouch, onRedeem, metrics: m, onAccent }: RewardCardProps) {
   const tr = useTranslate('modules');
   const canAfford = canAffordReward(balance, reward);
   const tappable = allowTouch && canAfford;
   const Tag: 'button' | 'div' = tappable ? 'button' : 'div';
+  // The pill's own height plus a little air, so the glyph under it never touches it.
+  const tagHeight = m.pillText * 0.62 * 1.2 + m.pillText * 0.44 + m.pillText * 0.3;
 
   let slot: React.ReactNode;
   if (!canAfford) {
@@ -93,9 +97,10 @@ export default function RewardCard({ reward, balance, allowTouch, onRedeem, metr
         height: '100%',
         minWidth: 0,
         gap: m.gap,
-        padding: `${m.padY}px ${m.padX}px`,
+        // A tagged card leaves room for its pill above the hero glyph.
+        padding: `${isGoal ? m.padY + tagHeight : m.padY}px ${m.padX}px ${m.padY}px`,
         background: 'var(--fcc-surface)',
-        border: `${m.border}px solid var(--fcc-border)`,
+        border: `${m.border}px solid ${isGoal && canAfford ? 'var(--fcc-accent)' : 'var(--fcc-border)'}`,
         borderRadius: m.radius,
         boxShadow: 'var(--fcc-card-shadow)',
         color: 'var(--fcc-text)',
@@ -103,8 +108,35 @@ export default function RewardCard({ reward, balance, allowTouch, onRedeem, metr
         cursor: tappable ? 'pointer' : 'default',
         outline: 'none',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
+      {isGoal && (
+        <span
+          data-testid="fcc-reward-goal-tag"
+          style={{
+            position: 'absolute',
+            top: m.padY * 0.45,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            maxWidth: `calc(100% - ${m.padX * 2}px)`,
+            padding: `${m.pillText * 0.22}px ${m.pillText * 0.7}px`,
+            borderRadius: 999,
+            background: 'var(--fcc-accent)',
+            color: onAccent,
+            fontSize: m.pillText * 0.62,
+            fontWeight: 800,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            lineHeight: 1.2,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {tr(canAfford ? 'fullscreen-chore-chart.goal.ready' : 'fullscreen-chore-chart.goal.savingForThis')}
+        </span>
+      )}
       <div
         style={{
           height: m.hero,

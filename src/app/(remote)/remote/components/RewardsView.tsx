@@ -11,8 +11,12 @@ import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import ConfirmSheet from './ConfirmSheet';
 import RewardFormOverlay from './RewardFormOverlay';
-import { formatTimeAgoLocalized } from '@/lib/chore-constants';
-import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming } from '@/lib/reward-rules';
+import { SavingsGoalCard, SavingsGoalSheet } from './SavingsGoalCard';
+import AdjustTicketsSheet from './AdjustTicketsSheet';
+import TicketsFeed from './TicketsFeed';
+import { useHouseholdTimezone } from '../household-clock';
+import { showToast } from '../remote-toast';
+import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, resolveSavingsGoal, type SavingsGoals } from '@/lib/reward-rules';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -20,6 +24,8 @@ export interface RewardsData {
   rewards: RewardDefinition[];
   balances: Record<string, number>;
   redemptions: RewardRedemption[];
+  /** Each person's reward to save toward. Absent until someone picks one. */
+  goals?: SavingsGoals;
   /** Quoted on every save of the reward list; see `contentRevision`. */
   revision: string;
 }
@@ -65,7 +71,10 @@ export default function RewardsView({
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
   const [adjusting, setAdjusting] = useState<Set<string>>(new Set());
-  const [saveError, setSaveError] = useState<'failed' | 'conflict' | 'redeemRefused' | 'redeemFailed' | null>(null);
+  const [saveError, setSaveError] = useState<'failed' | 'conflict' | 'redeemRefused' | 'redeemFailed' | 'goalFailed' | 'adjustFailed' | null>(null);
+  const [goalSheetOpen, setGoalSheetOpen] = useState(false);
+  const [adjustSheetOpen, setAdjustSheetOpen] = useState(false);
+  const timeZone = useHouseholdTimezone();
 
   // ── Derived ──
   const selectedMember = members.find((m) => m.id === selectedMemberId);
@@ -77,18 +86,8 @@ export default function RewardsView({
     return data.rewards.filter((r) => isRewardOfferedTo(r, selectedMemberId));
   }, [data, selectedMemberId]);
 
-  const sortedRedemptions = useMemo(() => {
-    if (!data) return [];
-    return [...data.redemptions].sort(
-      (a, b) => new Date(b.redeemedAt).getTime() - new Date(a.redeemedAt).getTime(),
-    );
-  }, [data]);
-
-  // Map memberId → color for history dots
-  const memberColorMap = useMemo(
-    () => new Map(members.map((m) => [m.id, m.color])),
-    [members],
-  );
+  // The reward this person is saving for, while it is still one they could redeem.
+  const goal = data ? resolveSavingsGoal(data, selectedMemberId) : null;
 
   // ── Handlers ──
   const handleRedeem = async () => {
@@ -97,17 +96,41 @@ export default function RewardsView({
       const res = await editorFetch('/api/rewards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId }),
+        // The balance this sheet was built from: the hub refuses if it has moved.
+        body: JSON.stringify({ rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId, expectedBalance: data?.balances[redeemTarget.memberId] ?? 0 }),
       });
       if (res.ok) {
-        const result = await res.json();
+        const result = await res.json() as { balances: Record<string, number>; redemptions: RewardRedemption[]; goals?: SavingsGoals };
         setSaveError(null);
-        setData((prev) => prev ? { ...prev, balances: result.balances, redemptions: result.redemptions } : prev);
+        // Goals too: the one for this reward is gone, and the card must say so
+        // now, not at the next poll, or a kid is told to spend again.
+        setData((prev) => prev ? { ...prev, balances: result.balances, redemptions: result.redemptions, goals: result.goals ?? {} } : prev);
+        // Said out loud: a sheet that just closes does not feel like getting it.
+        const who = members.find((m) => m.id === redeemTarget.memberId)?.name ?? '';
+        showToast(t(isAdmin ? 'rewardsView.redeem.gotIt' : 'rewardsView.redeem.gotItKid', { name: who, reward: redeemTarget.reward.name }));
       } else {
         // Said out loud: a sheet that just closes reads as "you got it".
-        // A 400 is the hub finding too few tickets (another phone spent
-        // them); the refresh then shows what is really left.
-        setSaveError(res.status === 400 ? 'redeemRefused' : 'redeemFailed');
+        // A 400 is the hub finding too few tickets. When that is because this
+        // very reward was redeemed from another device a moment ago, the kid
+        // already has it, and "not enough tickets" would send them asking for
+        // it again. The refresh then shows what is really left.
+        const refused = await res.json().catch(() => null) as { reason?: string; balances?: Record<string, number>; redemptions?: RewardRedemption[]; goals?: SavingsGoals } | null;
+        const moved = res.status === 409 && refused?.reason === 'balance';
+        const fresh = moved ? refused : await editorFetch('/api/rewards').then((r) => (r.ok ? r.json() : null)).catch(() => null) as { redemptions?: RewardRedemption[] } | null;
+        const justGot = (moved || res.status === 400) && !!fresh?.redemptions?.some((r) => r.memberId === redeemTarget.memberId && r.rewardId === redeemTarget.reward.id && Date.now() - new Date(r.redeemedAt).getTime() < 10 * 60_000);
+        const who = members.find((m) => m.id === redeemTarget.memberId)?.name ?? '';
+        if (justGot) {
+          setSaveError(null);
+          showToast(t(isAdmin ? 'rewardsView.redeem.alreadyGot' : 'rewardsView.redeem.alreadyGotKid', { name: who, reward: redeemTarget.reward.name }));
+        } else if (moved) {
+          setSaveError(null);
+          showToast(t('rewardsView.redeem.changed', { name: who }));
+        } else {
+          setSaveError(res.status === 400 ? 'redeemRefused' : 'redeemFailed');
+        }
+        if (moved && refused?.balances) {
+          setData((prev) => (prev ? { ...prev, balances: refused.balances!, redemptions: refused.redemptions ?? prev.redemptions, goals: refused.goals ?? {} } : prev));
+        }
         await refreshData();
       }
     } catch (err) {
@@ -167,7 +190,8 @@ export default function RewardsView({
     const updated = editingReward === 'new'
       ? [...existing, reward]
       : existing.map((r) => (r.id === reward.id ? reward : r));
-    setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [], revision: prev?.revision ?? '' }));
+    // Everything else stays: dropping the goals here blanked every kid's card until the next poll.
+    setData((prev) => ({ ...prev, rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [], revision: prev?.revision ?? '' }));
     setEditingReward(null);
     await persistRewards(updated, snapshot);
   };
@@ -175,7 +199,7 @@ export default function RewardsView({
   const handleDeleteReward = async (id: string) => {
     const snapshot = data;
     const updated = (data?.rewards ?? []).filter((r) => r.id !== id);
-    setData((prev) => ({ rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [], revision: prev?.revision ?? '' }));
+    setData((prev) => ({ ...prev, rewards: updated, balances: prev?.balances ?? {}, redemptions: prev?.redemptions ?? [], revision: prev?.revision ?? '' }));
     setEditingReward(null);
     await persistRewards(updated, snapshot, true);
   };
@@ -215,6 +239,62 @@ export default function RewardsView({
       next.delete(memberId);
       return next;
     });
+  };
+
+  /**
+   * Pick (or clear) what this person is saving for. Optimistic: the bar is
+   * drawn at once; a refusal puts the old pick back and says so.
+   */
+  const handleSetGoal = async (rewardId: string | null) => {
+    const snapshot = data;
+    setData((prev) => {
+      if (!prev) return prev;
+      const goals = { ...prev.goals };
+      if (rewardId) goals[selectedMemberId] = rewardId;
+      else delete goals[selectedMemberId];
+      return { ...prev, goals };
+    });
+    try {
+      const res = await editorFetch('/api/rewards/goal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: selectedMemberId, rewardId }),
+      });
+      if (res.ok) {
+        const result = await res.json() as { goals?: SavingsGoals };
+        setSaveError(null);
+        setData((prev) => (prev ? { ...prev, goals: result.goals ?? {} } : prev));
+      } else {
+        setData(snapshot);
+        setSaveError('goalFailed');
+        await refreshData();
+      }
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      setData(snapshot);
+      setSaveError('goalFailed');
+    }
+  };
+
+  /** Several people, the same amount each, with a reason. Nothing optimistic: the sheet waits for the hub. */
+  const handleAdjustMany = async (memberIds: string[], amount: number, reason: string) => {
+    try {
+      const res = await editorFetch('/api/rewards/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberIds, amount, ...(reason ? { reason } : {}) }),
+      });
+      if (res.ok) {
+        const result = await res.json() as { balances: Record<string, number> };
+        setSaveError(null);
+        setData((prev) => (prev ? { ...prev, balances: result.balances } : prev));
+      } else {
+        setSaveError('adjustFailed');
+        await refreshData();
+      }
+    } catch (err) {
+      if (!isSessionExpired(err)) setSaveError('adjustFailed');
+    }
   };
 
   // ── Inner nav colors ──
@@ -294,6 +374,9 @@ export default function RewardsView({
           selectedColor={selectedColor}
           rewards={availableRewards}
           onRedeem={(reward) => setRedeemTarget({ reward, memberId: selectedMemberId })}
+          goal={goal}
+          onOpenGoal={() => setGoalSheetOpen(true)}
+          forOther={isAdmin}
         />
       )}
 
@@ -311,14 +394,40 @@ export default function RewardsView({
           data={data}
           members={members}
           onAdjust={handleAdjust}
+          onOpenAdjust={() => setAdjustSheetOpen(true)}
         />
       )}
 
       {innerView === 'history' && (
-        <HistorySection
-          t={t}
-          redemptions={sortedRedemptions}
-          memberColorMap={memberColorMap}
+        <TicketsFeed
+          members={members}
+          memberId={selectedMemberId}
+          onSelectMember={onSelectMember}
+          showMemberPicker={isAdmin}
+          isAdmin={isAdmin}
+          timeZone={timeZone}
+          version={data?.balances}
+        />
+      )}
+
+      {goalSheetOpen && (
+        <SavingsGoalSheet
+          memberName={selectedMember?.name ?? t('rewardsView.redeem.memberFallback')}
+          rewards={availableRewards}
+          goalId={goal?.id ?? null}
+          color={selectedColor}
+          forOther={isAdmin}
+          onPick={(rewardId) => void handleSetGoal(rewardId)}
+          onClose={() => setGoalSheetOpen(false)}
+        />
+      )}
+
+      {adjustSheetOpen && (
+        <AdjustTicketsSheet
+          members={members}
+          balances={data?.balances ?? {}}
+          onSubmit={handleAdjustMany}
+          onClose={() => setAdjustSheetOpen(false)}
         />
       )}
 
@@ -329,9 +438,20 @@ export default function RewardsView({
           ? t('rewardsView.ticketCountSingular', { n: remaining })
           : t('rewardsView.ticketCountPlural', { n: remaining });
         const memberName = selectedMember?.name ?? t('rewardsView.redeem.memberFallback');
-        const description = cost === 1
+        // What this does to the goal: clears it, or leaves it short. Nothing
+        // is said when the goal stays affordable after the spend.
+        const goalLine = goal
+          ? goal.id === redeemTarget.reward.id
+            ? t('rewardsView.redeem.goalClears', { name: memberName })
+            : remaining < goal.cost
+              ? t('rewardsView.redeem.goalFurther', { goal: goal.name, n: goal.cost - remaining })
+              : null
+          : null;
+        const base = cost === 1
           ? t('rewardsView.redeem.confirmDescriptionSingular', { cost, memberName, remaining: remainingTickets })
           : t('rewardsView.redeem.confirmDescriptionPlural', { cost, memberName, remaining: remainingTickets });
+        // Two sentences: the base line ends without a full stop in some locales.
+        const description = goalLine ? `${base.replace(/[.。]$/, '')}. ${goalLine}` : base;
         const confirmLabel = cost === 1
           ? t('rewardsView.redeem.confirmLabelSingular', { cost })
           : t('rewardsView.redeem.confirmLabelPlural', { cost });
@@ -356,6 +476,7 @@ export default function RewardsView({
         <RewardFormOverlay
           reward={editingReward === 'new' ? null : editingReward}
           members={members}
+          savers={editingReward === 'new' ? [] : members.filter((m) => data?.goals?.[m.id] === editingReward.id).map((m) => m.name)}
           onSave={handleSaveReward}
           onDelete={editingReward !== 'new' ? handleDeleteReward : undefined}
           onBack={() => setEditingReward(null)}
@@ -370,6 +491,8 @@ const REWARD_ERROR_KEYS = {
   conflict: 'rewardsView.changedElsewhere',
   redeemRefused: 'rewardsView.redeem.refused',
   redeemFailed: 'rewardsView.redeem.failed',
+  goalFailed: 'rewardsView.goal.failed',
+  adjustFailed: 'rewardsView.adjust.failed',
 } as const;
 
 // ── Redeem Section ───────────────────────────────────────────────────
@@ -384,6 +507,9 @@ function RedeemSection({
   selectedColor,
   rewards,
   onRedeem,
+  goal,
+  onOpenGoal,
+  forOther,
 }: {
   t: ReturnType<typeof useTranslate>;
   members: FamilyMember[];
@@ -395,6 +521,11 @@ function RedeemSection({
   selectedColor: string;
   rewards: RewardDefinition[];
   onRedeem: (reward: RewardDefinition) => void;
+  /** What this person is saving for, if anything; the card under the balance. */
+  goal: RewardDefinition | null;
+  onOpenGoal: () => void;
+  /** A grown-up looking at a kid's goal: the card names the kid rather than saying "you". */
+  forOther: boolean;
 }) {
   const selectedMember = members.find((m) => m.id === selectedMemberId);
   return (
@@ -460,7 +591,7 @@ function RedeemSection({
           <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', fontWeight: 500, marginTop: 4 }}>
             {showMemberPicker || !selectedMember
               ? t('rewardsView.redeem.balanceLabel')
-              : t('rewardsView.redeem.balanceLabelNamed', { name: selectedMember.name })}
+              : t('rewardsView.redeem.balanceLabelNamed', { name: selectedMember.name, count: balance })}
           </div>
         </div>
         <div
@@ -484,6 +615,15 @@ function RedeemSection({
           {t('rewardsView.redeem.switchHint', { name: selectedMember.name })}
         </p>
       )}
+
+      {/* A kid with nothing yet is told where tickets come from. */}
+      {!showMemberPicker && balance <= 0 && (
+        <p data-testid="no-tickets-hint" style={{ fontSize: 12.5, color: 'var(--hs-text-muted)', margin: '-6px 2px 14px', lineHeight: 1.4 }}>
+          {t('rewardsView.redeem.noTicketsHint')}
+        </p>
+      )}
+
+      <SavingsGoalCard goal={goal} balance={balance} color={selectedColor} onOpen={onOpenGoal} onRedeem={goal && canAffordReward(balance, goal) ? () => onRedeem(goal) : undefined} memberName={selectedMember?.name ?? ''} forOther={forOther} />
 
       <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontSize: 14 }}>🎟️</span>
@@ -536,7 +676,14 @@ function RedeemSection({
               <ChoreIcon value={reward.emoji} size={20} color={selectedColor} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>{reward.name}</div>
+              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)' }}>
+                {reward.name}
+                {goal?.id === reward.id && (
+                  <span data-testid="savings-goal-chip" style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: selectedColor, background: `color-mix(in srgb, ${selectedColor} 15%, transparent)`, borderRadius: 999, padding: '3px 8px', verticalAlign: 2 }}>
+                    {t('rewardsView.goal.savingChip')}
+                  </span>
+                )}
+              </div>
               {reward.description && (
                 <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', marginTop: 1 }}>{reward.description}</div>
               )}
@@ -679,11 +826,14 @@ function BalancesSection({
   data,
   members,
   onAdjust,
+  onOpenAdjust,
 }: {
   t: ReturnType<typeof useTranslate>;
   data: RewardsData | null;
   members: FamilyMember[];
   onAdjust: (memberId: string, amount: number) => void;
+  /** The sheet for several people, an amount and a reason. */
+  onOpenAdjust: () => void;
 }) {
   return (
     <>
@@ -738,8 +888,10 @@ function BalancesSection({
           <button
             className="press-scale-xs"
             onClick={() => onAdjust(member.id, -1)}
+            disabled={(data?.balances[member.id] ?? 0) <= 0}
             aria-label={t('rewardsView.balances.adjustDownAriaLabel', { name: member.name })}
             style={{
+              opacity: (data?.balances[member.id] ?? 0) <= 0 ? 0.4 : 1,
               width: 40,
               height: 40,
               marginRight: 8,
@@ -776,69 +928,19 @@ function BalancesSection({
           </button>
         </div>
       ))}
-    </>
-  );
-}
-
-// ── History Section ──────────────────────────────────────────────────
-
-function HistorySection({
-  t,
-  redemptions,
-  memberColorMap,
-}: {
-  t: ReturnType<typeof useTranslate>;
-  redemptions: RewardRedemption[];
-  memberColorMap: Map<string, string>;
-}) {
-  const tCore = useTranslate('core');
-  return (
-    <>
-      <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: 'var(--hs-text-faint)', padding: '8px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontSize: 14 }}>📜</span>
-        {t('rewardsView.history.heading')}
-      </div>
-
-      {redemptions.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--hs-text-faint)', fontSize: 14 }}>
-          {t('rewardsView.history.empty')}
-        </div>
-      )}
-
-      {redemptions.map((r) => (
-        <div
-          key={r.id}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 0',
-            borderBottom: '1px solid var(--hs-bg-card)',
-            fontSize: 13,
-          }}
-        >
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: '50%',
-              background: memberColorMap.get(r.memberId) ?? 'var(--hs-text-faint)',
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ flex: 1, color: 'var(--hs-text-muted)' }}>
-            <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.memberName}</strong>
-            {t('rewardsView.history.entry.beforeReward')}
-            <strong style={{ color: 'var(--hs-text-body)', fontWeight: 500 }}>{r.rewardName}</strong>
-            {r.cost === 1
-              ? t('rewardsView.history.entry.afterRewardSingular', { n: r.cost })
-              : t('rewardsView.history.entry.afterRewardPlural', { n: r.cost })}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
-            {formatTimeAgoLocalized(r.redeemedAt, tCore)}
-          </div>
-        </div>
-      ))}
+      <button
+        type="button"
+        data-testid="adjust-tickets-open"
+        className="press-scale"
+        onClick={onOpenAdjust}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', minHeight: 48, marginTop: 4,
+          border: '1px dashed var(--hs-border-strong)', borderRadius: 12, background: 'transparent',
+          color: 'var(--hs-text-muted)', fontSize: 14, fontWeight: 500, cursor: 'pointer',
+        }}
+      >
+        <Plus size={18} /> {t('rewardsView.adjust.button')}
+      </button>
     </>
   );
 }

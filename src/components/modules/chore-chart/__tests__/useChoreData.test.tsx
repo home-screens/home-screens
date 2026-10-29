@@ -218,3 +218,22 @@ describe('a write reaches every card showing the chores', () => {
     expect(replace).toHaveBeenCalledWith('/api/rewards', { rewards: [], balances: { 'kid-1': 1 }, redemptions: [] }, expect.any(Number));
   });
 });
+
+describe('loading covers the beat between the chores and their ticks', () => {
+  it('never reports loaded with the fetched ticks still missing from the counts', async () => {
+    completionsResult = [{ completions: [{ choreId: 'chore-1', memberId: 'kid-1', date: today() }] }, null];
+    const seen: Array<{ isLoading: boolean; completed: number | undefined }> = [];
+    renderHook(() => {
+      const r = useChoreData(config, undefined);
+      seen.push({ isLoading: r.isLoading, completed: r.memberStats.get('kid-1')?.completed });
+      return r;
+    }, { wrapper });
+    await act(async () => {});
+
+    // The ticks land one effect after the fetch. A render that said "loaded"
+    // while the kid still stood at zero is what made the wall celebrate a day
+    // that was finished before it opened.
+    expect(seen.some((s) => !s.isLoading)).toBe(true);
+    for (const s of seen) if (!s.isLoading) expect(s.completed).toBe(1);
+  });
+});

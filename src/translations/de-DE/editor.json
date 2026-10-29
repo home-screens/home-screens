@@ -3893,7 +3893,15 @@
       "editChoreChart": "Aufgabenplan bearbeiten",
       "viewRewardHistory": "Belohnungsverlauf (Tag für Tag)",
       "viewRewardTotals": "Belohnungsverlauf (Summen)",
-      "viewRewardSpotlight": "Belohnungsverlauf (Im Rampenlicht)"
+      "viewRewardSpotlight": "Belohnungsverlauf (Im Rampenlicht)",
+      "celebration": "Feier",
+      "celebrationLabel": "Wenn jemand alle Aufgaben geschafft hat",
+      "celebrationOff": "Aus",
+      "celebrationSimple": "Einfach",
+      "celebrationBig": "Groß",
+      "celebrationHelp": "Einfach zeigt eine Karte über der Tafel. Groß nimmt den ganzen Bildschirm.",
+      "celebrationSound": "Ton abspielen",
+      "celebrationSoundHelp": "Ein kurzer Klang, wenn die Karte erscheint"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Standard (aus Einstellungen)",

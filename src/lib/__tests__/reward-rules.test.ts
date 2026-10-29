@@ -7,6 +7,9 @@ import {
   ticketsStillNeeded,
   ticketsAfterRedeeming,
   sortRedemptionsNewestFirst,
+  resolveSavingsGoal,
+  goalProgress,
+  goalsWithout,
 } from '../reward-rules';
 
 const reward = (overrides: Partial<RewardDefinition> = {}): RewardDefinition =>
@@ -90,5 +93,38 @@ describe('sortRedemptionsNewestFirst', () => {
       redemption('2', '2026-09-20T03:00:00Z'),
     ];
     expect(sortRedemptionsNewestFirst(list).map((r) => r.id)).toEqual(['2', '1', 'bad']);
+  });
+});
+
+describe('savings goal', () => {
+  const movie: RewardDefinition = { id: 'movie', name: 'Movie', emoji: '', cost: 10, description: '', memberIds: [], enabled: true };
+  const mine: RewardDefinition = { id: 'mine', name: 'Mine', emoji: '', cost: 4, description: '', memberIds: ['kid'], enabled: true };
+  const off: RewardDefinition = { id: 'off', name: 'Off', emoji: '', cost: 4, description: '', memberIds: [], enabled: false };
+  const rewards = [movie, mine, off];
+
+  it('resolves to the reward while it is still one the person could redeem', () => {
+    expect(resolveSavingsGoal({ rewards, goals: { kid: 'movie' } }, 'kid')).toBe(movie);
+    expect(resolveSavingsGoal({ rewards, goals: { kid: 'mine' } }, 'kid')).toBe(mine);
+  });
+
+  it('is no goal when the reward is gone, switched off, someone else\'s, or never picked', () => {
+    expect(resolveSavingsGoal({ rewards, goals: { kid: 'vanished' } }, 'kid')).toBeNull();
+    expect(resolveSavingsGoal({ rewards, goals: { kid: 'off' } }, 'kid')).toBeNull();
+    expect(resolveSavingsGoal({ rewards, goals: { other: 'mine' } }, 'other')).toBeNull();
+    expect(resolveSavingsGoal({ rewards }, 'kid')).toBeNull();
+  });
+
+  it('measures progress for the bar, capped at full', () => {
+    expect(goalProgress(4, movie)).toEqual({ have: 4, cost: 10, stillNeeded: 6, fraction: 0.4, reached: false });
+    expect(goalProgress(12, movie)).toEqual({ have: 12, cost: 10, stillNeeded: 0, fraction: 1, reached: true });
+    expect(goalProgress(-3, movie)).toEqual({ have: 0, cost: 10, stillNeeded: 13, fraction: 0, reached: false });
+    expect(goalProgress(0, { ...movie, cost: 0 })).toEqual({ have: 0, cost: 0, stillNeeded: 0, fraction: 1, reached: true });
+  });
+
+  it('drops the goals a predicate picks out and hands back the same object when none match', () => {
+    const goals = { kid: 'movie', other: 'mine' };
+    expect(goalsWithout(goals, (_m, rewardId) => rewardId === 'mine')).toEqual({ kid: 'movie' });
+    expect(goalsWithout(goals, () => false)).toBe(goals);
+    expect(goalsWithout(undefined, () => true)).toBeUndefined();
   });
 });

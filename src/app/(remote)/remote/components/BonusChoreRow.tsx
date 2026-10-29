@@ -296,7 +296,7 @@ export default function BonusChoreRow({
             data-testid={`chore-menu-${chore.id}`}
             onClick={guard(onMenu)}
             aria-label={t('choresTab.dayMenu.open', { chore: chore.name })}
-            style={{ flexShrink: 0, width: 40, height: 56, border: 'none', background: 'none', color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+            style={{ flexShrink: 0, width: 48, height: 56, border: 'none', background: 'none', color: 'var(--hs-text-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
             <MoreHorizontal size={20} aria-hidden />
           </button>

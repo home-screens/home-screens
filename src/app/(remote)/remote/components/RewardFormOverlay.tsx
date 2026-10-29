@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
@@ -18,6 +18,8 @@ import ConfirmSheet from './ConfirmSheet';
 interface RewardFormOverlayProps {
   reward: RewardDefinition | null; // null = add mode
   members: FamilyMember[];
+  /** Names of the people saving for this reward: said on the form, and before hiding or deleting it. */
+  savers?: string[];
   onSave: (reward: RewardDefinition) => void;
   onDelete?: (id: string) => void;
   onBack: () => void;
@@ -26,12 +28,18 @@ interface RewardFormOverlayProps {
 export default function RewardFormOverlay({
   reward,
   members,
+  savers = [],
   onSave,
   onDelete,
   onBack,
 }: RewardFormOverlayProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
+  const locale = useFormattingLocale();
+  const saverNames = new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(savers);
+  const saverLine = savers.length === 0 ? null : t(savers.length === 1 ? 'rewardForm.saverOne' : 'rewardForm.saverMany', { names: saverNames });
+  const goalClearsLine = t('rewardForm.deleteConfirm.goalClears', { count: savers.length });
+  const hiddenLine = savers.length === 0 ? null : t('rewardForm.hiddenWithSavers', { names: saverNames, count: savers.length });
   const isEdit = reward !== null;
   const [name, setName] = useState(reward?.name ?? '');
   const [emoji, setEmoji] = useState(reward?.emoji ?? DEFAULT_REWARD_ICON);
@@ -133,6 +141,12 @@ export default function RewardFormOverlay({
             onChange={(e) => setName(e.target.value)}
             autoFocus
           />
+          {/* Said here, before anyone hides or deletes it, not only in the delete sheet. */}
+          {saverLine && (
+            <p data-testid="reward-savers" style={{ fontSize: 12.5, color: 'var(--hs-text-muted)', margin: '8px 2px 0' }}>
+              {saverLine}
+            </p>
+          )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
@@ -188,6 +202,10 @@ export default function RewardFormOverlay({
                 {enabled ? t('rewardForm.visible') : t('rewardForm.hidden')}
               </span>
             </button>
+            {/* Hiding parks the kids' goals: their cards go empty until it is shown again. */}
+            {!enabled && hiddenLine && (
+              <p data-testid="reward-hidden-savers" style={{ fontSize: 12, color: 'var(--hs-text-muted)', margin: '8px 2px 0', lineHeight: 1.4 }}>{hiddenLine}</p>
+            )}
           </div>
         </div>
 
@@ -253,7 +271,7 @@ export default function RewardFormOverlay({
       {confirmDelete && (
         <ConfirmSheet
           title={t('rewardForm.deleteConfirm.title')}
-          description={t('rewardForm.deleteConfirm.description', { name: reward?.name ?? '' })}
+          description={`${t('rewardForm.deleteConfirm.description', { name: reward?.name ?? '' })}${saverLine ? ` ${saverLine} ${goalClearsLine}` : ''}`}
           confirmLabel={tCore('actions.delete')}
           onConfirm={() => {
             setConfirmDelete(false);

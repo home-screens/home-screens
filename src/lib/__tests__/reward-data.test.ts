@@ -151,48 +151,110 @@ describe('updateRewardDefinitions', () => {
   });
 });
 
-describe('creditPoints', () => {
-  it('initializes a new member balance from zero', async () => {
-    const result = await mod.creditPoints('alice', 5);
+describe('adjustPoints', () => {
+  it('initializes a new member balance from zero and records the move', async () => {
+    const result = await mod.adjustPoints('alice', 5, 'Helped with the groceries');
     expect(result.balances.alice).toBe(5);
+    expect(result.adjustments).toHaveLength(1);
+    expect(result.adjustments![0]).toMatchObject({ memberId: 'alice', delta: 5, reason: 'Helped with the groceries' });
+    expect(result.adjustments![0].at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it('adds to an existing balance', async () => {
-    await mod.creditPoints('alice', 3);
-    const result = await mod.creditPoints('alice', 4);
+  it('adds to an existing balance, and leaves the reason off a row that has none', async () => {
+    await mod.adjustPoints('alice', 3);
+    const result = await mod.adjustPoints('alice', 4);
     expect(result.balances.alice).toBe(7);
+    expect(result.adjustments!.map((a) => a.delta)).toEqual([3, 4]);
+    expect('reason' in result.adjustments![1]).toBe(false);
   });
 
   it('does not disturb other members balances', async () => {
-    await mod.creditPoints('alice', 5);
-    await mod.creditPoints('bob', 2);
-    const result = await mod.creditPoints('alice', 1);
+    await mod.adjustPoints('alice', 5);
+    await mod.adjustPoints('bob', 2);
+    const result = await mod.adjustPoints('alice', 1);
     expect(result.balances).toEqual({ alice: 6, bob: 2 });
+  });
+
+  it('subtracts from an existing balance', async () => {
+    await mod.adjustPoints('alice', 10);
+    const result = await mod.adjustPoints('alice', -3);
+    expect(result.balances.alice).toBe(7);
+    expect(result.adjustments![1].delta).toBe(-3);
+  });
+
+  it('floors at zero and records only what came off', async () => {
+    await mod.adjustPoints('alice', 2);
+    const result = await mod.adjustPoints('alice', -10);
+    expect(result.balances.alice).toBe(0);
+    expect(result.adjustments![1].delta).toBe(-2);
+  });
+
+  it('writes nothing when taking from a member with nothing', async () => {
+    const result = await mod.adjustPoints('ghost', -5);
+    expect(result.balances.ghost).toBeUndefined();
+    expect(result.adjustments).toBeUndefined();
+  });
+
+  it('purges adjustments older than the 90-day cutoff along with redemptions', async () => {
+    const now = new Date('2026-04-08T12:00:00Z');
+    const old = new Date(now.getTime() - 91 * 24 * 60 * 60 * 1000).toISOString();
+    const fresh = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString();
+    await writeRewardsFile({
+      rewards: [], balances: { a: 1 }, redemptions: [],
+      adjustments: [
+        { id: 'old', memberId: 'a', delta: 1, at: old },
+        { id: 'new', memberId: 'a', delta: 1, at: fresh },
+      ],
+    });
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+    const data = await mod.readRewardData();
+    expect(data.adjustments!.map((a) => a.id)).toEqual(['new']);
+    // A mutation persists the purge, as it does for redemptions.
+    await mod.adjustPoints('a', 1);
+    expect((await readRewardsFile()).adjustments!.map((a) => a.id)).toEqual(['new', expect.any(String)]);
   });
 });
 
-describe('debitPoints', () => {
-  it('subtracts from an existing balance', async () => {
-    await mod.creditPoints('alice', 10);
-    const result = await mod.debitPoints('alice', 3);
-    expect(result.balances.alice).toBe(7);
+describe('setSavingsGoal', () => {
+  it('records the reward a member is saving for', async () => {
+    const result = await mod.setSavingsGoal('alice', 'r-movie');
+    expect(result.goals).toEqual({ alice: 'r-movie' });
+    expect((await readRewardsFile()).goals).toEqual({ alice: 'r-movie' });
   });
 
-  it('floors at zero rather than going negative', async () => {
-    await mod.creditPoints('alice', 2);
-    const result = await mod.debitPoints('alice', 10);
-    expect(result.balances.alice).toBe(0);
+  it('replaces an earlier pick and leaves other members alone', async () => {
+    await mod.setSavingsGoal('alice', 'r-movie');
+    await mod.setSavingsGoal('bob', 'r-ice');
+    const result = await mod.setSavingsGoal('alice', 'r-ice');
+    expect(result.goals).toEqual({ alice: 'r-ice', bob: 'r-ice' });
   });
 
-  it('treats missing members as a zero balance', async () => {
-    const result = await mod.debitPoints('ghost', 5);
-    expect(result.balances.ghost).toBe(0);
+  it('clears a goal with null, and drops the key once nobody is saving', async () => {
+    await mod.setSavingsGoal('alice', 'r-movie');
+    const result = await mod.setSavingsGoal('alice', null);
+    expect('goals' in result).toBe(false);
+    expect('goals' in (await readRewardsFile())).toBe(false);
+  });
+
+  it('clears the goal when that reward is redeemed, and keeps a different one', async () => {
+    await mod.writeRewardData({ rewards: [MOVIE_NIGHT, ICE_CREAM], balances: { alice: 20, bob: 20 }, redemptions: [], goals: { alice: 'r-movie', bob: 'r-movie' } });
+    await mod.redeemReward(ICE_CREAM, 'alice', 'Alice');
+    expect((await readRewardsFile()).goals).toEqual({ alice: 'r-movie', bob: 'r-movie' });
+    await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
+    expect((await readRewardsFile()).goals).toEqual({ bob: 'r-movie' });
+  });
+
+  it('drops goals whose reward is deleted from the list', async () => {
+    await mod.writeRewardData({ rewards: [MOVIE_NIGHT, ICE_CREAM], balances: {}, redemptions: [], goals: { alice: 'r-movie', bob: 'r-ice' } });
+    const result = await mod.updateRewardDefinitions([ICE_CREAM]);
+    expect(result.goals).toEqual({ bob: 'r-ice' });
   });
 });
 
 describe('planPointsMove', () => {
   it('plans a credit without publishing it', async () => {
-    await mod.creditPoints('alice', 10);
+    await mod.adjustPoints('alice', 10);
     const plan = await mod.planPointsMove('alice', 5);
 
     expect(plan.balance).toBe(15);
@@ -205,7 +267,7 @@ describe('planPointsMove', () => {
   });
 
   it('allows the balance to go negative and signals it', async () => {
-    await mod.creditPoints('alice', 2);
+    await mod.adjustPoints('alice', 2);
     const plan = await mod.planPointsMove('alice', -5);
     expect(plan.balance).toBe(-3);
     expect(plan.wentNegative).toBe(true);
@@ -218,8 +280,8 @@ describe('planPointsMove', () => {
   });
 
   it('blocks redemptions while the balance is negative', async () => {
-    await mod.creditPoints('alice', 2);
-    await mod.debitPoints('alice', 10); // floors at 0
+    await mod.adjustPoints('alice', 2);
+    await mod.adjustPoints('alice', -10); // floors at 0
     await mod.writeRewardData({ rewards: [MOVIE_NIGHT], balances: { alice: -8 }, redemptions: [] });
     await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow('Insufficient balance');
   });
@@ -227,12 +289,12 @@ describe('planPointsMove', () => {
 
 describe('redeemReward', () => {
   it('throws Insufficient balance when the member cannot afford it', async () => {
-    await mod.creditPoints('alice', 3);
+    await mod.adjustPoints('alice', 3);
     await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow('Insufficient balance');
   });
 
   it('leaves the balance untouched on a failed redemption', async () => {
-    await mod.creditPoints('alice', 3);
+    await mod.adjustPoints('alice', 3);
     await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow();
     const data = await mod.readRewardData();
     expect(data.balances.alice).toBe(3);
@@ -240,7 +302,7 @@ describe('redeemReward', () => {
   });
 
   it('debits cost and records a redemption on success', async () => {
-    await mod.creditPoints('alice', 15);
+    await mod.adjustPoints('alice', 15);
     const result = await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
 
     expect(result.balances.alice).toBe(5); // 15 - 10
@@ -256,7 +318,7 @@ describe('redeemReward', () => {
   });
 
   it('appends rather than replacing existing redemption history', async () => {
-    await mod.creditPoints('alice', 25);
+    await mod.adjustPoints('alice', 25);
     await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
     const result = await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
     expect(result.redemptions).toHaveLength(2);
@@ -264,7 +326,7 @@ describe('redeemReward', () => {
   });
 
   it('allows redeeming exactly the balance (boundary)', async () => {
-    await mod.creditPoints('alice', 10);
+    await mod.adjustPoints('alice', 10);
     const result = await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
     expect(result.balances.alice).toBe(0);
     expect(result.redemptions).toHaveLength(1);
@@ -275,17 +337,17 @@ describe('enqueueOp serialization', () => {
   it('serializes concurrent credits so none are lost', async () => {
     // Fire a batch of concurrent credit operations. If the op queue were
     // broken (read-modify-write races) the final balance would undercount.
-    const ops = Array.from({ length: 20 }, () => mod.creditPoints('alice', 1));
+    const ops = Array.from({ length: 20 }, () => mod.adjustPoints('alice', 1));
     await Promise.all(ops);
     const data = await mod.readRewardData();
     expect(data.balances.alice).toBe(20);
   });
 
   it('recovers from a failed op without poisoning the queue', async () => {
-    await mod.creditPoints('alice', 3);
+    await mod.adjustPoints('alice', 3);
     await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow('Insufficient balance');
     // Subsequent ops should still work
-    const result = await mod.creditPoints('alice', 10);
+    const result = await mod.adjustPoints('alice', 10);
     expect(result.balances.alice).toBe(13);
   });
 });
@@ -327,18 +389,18 @@ describe('redemption purge persistence', () => {
     vi.setSystemTime(NOW);
   }
 
-  it('drops expired redemptions from disk on creditPoints', async () => {
+  it('drops expired redemptions from disk when giving tickets', async () => {
     await seedStale();
-    await mod.creditPoints('alice', 3);
+    await mod.adjustPoints('alice', 3);
 
     const onDisk = await readRewardsFile();
     expect(onDisk.redemptions.map((r) => r.id)).toEqual(['kept']);
     expect(onDisk.balances.alice).toBe(18);
   });
 
-  it('drops expired redemptions from disk on debitPoints', async () => {
+  it('drops expired redemptions from disk when taking tickets', async () => {
     await seedStale();
-    await mod.debitPoints('alice', 2);
+    await mod.adjustPoints('alice', -2);
 
     const onDisk = await readRewardsFile();
     expect(onDisk.redemptions.map((r) => r.id)).toEqual(['kept']);

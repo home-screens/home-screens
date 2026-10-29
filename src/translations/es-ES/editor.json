@@ -3893,7 +3893,15 @@
       "editChoreChart": "Editar tareas",
       "viewRewardHistory": "Historial de premios (día a día)",
       "viewRewardTotals": "Historial de premios (totales)",
-      "viewRewardSpotlight": "Historial de premios (destacado)"
+      "viewRewardSpotlight": "Historial de premios (destacado)",
+      "celebration": "Celebración",
+      "celebrationLabel": "Cuando alguien termina todas sus tareas",
+      "celebrationOff": "No",
+      "celebrationSimple": "Sencilla",
+      "celebrationBig": "Grande",
+      "celebrationHelp": "Sencilla muestra una tarjeta sobre el tablero. Grande ocupa toda la pantalla.",
+      "celebrationSound": "Reproducir un sonido",
+      "celebrationSoundHelp": "Un sonido corto cuando aparece la tarjeta"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Predeterminado (de Ajustes)",

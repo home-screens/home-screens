@@ -5,6 +5,7 @@ import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import ChoresTab from '../remote/components/ChoresTab';
 import ChoresEmptyState from './ChoresEmptyState';
 import CustomIconSeed from '@/components/custom-icons/CustomIconSeed';
+import RemoteToast from '../remote/components/RemoteToast';
 import { readCustomIcons } from '@/lib/custom-icon-data';
 import { withUrls } from '@/lib/custom-icon-http';
 
@@ -43,6 +44,7 @@ export default async function ChoresPage() {
       <div className="mx-auto max-w-3xl">
         <CustomIconSeed icons={customIcons} />
         <ChoresTab config={choreConfig} choreData={choreData} family={family} />
+        <RemoteToast />
       </div>
     </div>
   );

@@ -774,6 +774,54 @@ test('admin adjusts a ticket balance up and down from the Balances tab', async (
   await expect.poll(readBalance).toBe(before + 1);
 });
 
+test('admin gives several people tickets at once with a reason, and the history shows it', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
+    members: [
+      { id: 'm-ga', name: 'Ada', emoji: '', color: '#f472b6' },
+      { id: 'm-gb', name: 'Bram', emoji: '', color: '#60a5fa' },
+    ],
+    chores: [],
+  });
+  const readBalances = async () => (await (await request.get('/api/rewards')).json()).balances as Record<string, number>;
+  const before = await readBalances();
+
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Chores', exact: true }).click();
+  await page.getByRole('button', { name: 'Rewards', exact: true }).click();
+  await page.getByRole('button', { name: 'Balances', exact: true }).click();
+  await page.getByTestId('adjust-tickets-open').click();
+
+  const sheet = page.getByTestId('adjust-tickets-sheet');
+  // Nobody is pre-ticked: a tired parent setting only the amount must not give to the first kid by accident.
+  await expect(sheet.getByTestId('adjust-submit')).toHaveText('Pick someone');
+  await sheet.getByTestId('adjust-member-m-ga').click();
+  await sheet.getByTestId('adjust-member-m-gb').click();
+  await sheet.getByRole('button', { name: 'One more' }).click();
+  await sheet.getByRole('button', { name: 'One more' }).click();
+  await expect(sheet.getByTestId('adjust-amount')).toHaveText('+3');
+  await sheet.getByTestId('adjust-reason').fill('Helped carry the groceries');
+  await expect(sheet.getByTestId('adjust-submit')).toHaveText('Give 3 tickets to Ada and Bram');
+
+  const posted = page.waitForResponse((r) => r.url().includes('/api/rewards/data') && r.request().method() === 'POST' && r.ok());
+  await sheet.getByTestId('adjust-submit').click();
+  await posted;
+  await expect(sheet).toBeHidden();
+
+  await expect.poll(async () => (await readBalances())['m-ga'] ?? 0).toBe((before['m-ga'] ?? 0) + 3);
+  await expect.poll(async () => (await readBalances())['m-gb'] ?? 0).toBe((before['m-gb'] ?? 0) + 3);
+  const adjustments = (await (await request.get('/api/rewards')).json()).adjustments as Array<{ memberId: string; delta: number; reason?: string }>;
+  expect(adjustments.filter((a) => a.reason === 'Helped carry the groceries').map((a) => [a.memberId, a.delta])).toEqual([['m-ga', 3], ['m-gb', 3]]);
+
+  // The reason shows under Bram's adjusted row in the ticket history.
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  const feed = page.getByTestId('tickets-feed');
+  await feed.getByRole('button', { name: 'Bram' }).click();
+  const row = feed.getByTestId('tickets-row').filter({ hasText: 'Helped carry the groceries' }).first();
+  await expect(row).toBeVisible();
+  await expect(row).toContainText('+3');
+  await expect(feed.getByTestId('tickets-tile-adjusted')).toContainText('+');
+});
+
 test('admin edits a reward through the reward form and it round-trips', async ({ page, request, sandboxDir }) => {
   await seedHouseholdChores(request, sandboxDir, {
     members: [{ id: 'm-rw', name: 'Toby', emoji: '🦊', color: '#f59e0b' }],

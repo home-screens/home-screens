@@ -183,7 +183,7 @@ function isDisplayAccessiblePost(pathname: string): boolean {
  * balance adjustments live there. Both handlers do their own input
  * validation and (for redemptions) balance checks.
  */
-const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/chores/grab', '/api/rewards']);
+const KID_VIEW_POST_ROUTES = new Set(['/api/chores', '/api/chores/grab', '/api/rewards', '/api/rewards/goal']);
 
 function isKidViewPost(pathname: string): boolean {
   return KID_VIEW_POST_ROUTES.has(pathname);

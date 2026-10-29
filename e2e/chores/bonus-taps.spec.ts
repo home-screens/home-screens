@@ -148,16 +148,20 @@ test.describe('phone', () => {
     expect(await done(request, 'bt-bed')).toHaveLength(1);
   });
 
-  test('the all-done banner does not move the bonus rows', async ({ page }) => {
+  test('the all-done sheet does not move the bonus rows', async ({ page }) => {
     await openKidPage(page);
     const car = page.getByTestId('bonus-row-bt-car');
     const before = (await car.boundingBox())!.y;
     await page.getByRole('button', { name: /: Make your bed$/ }).click();
-    await page.waitForTimeout(3100);
+    await page.waitForTimeout(600);
     await page.getByRole('button', { name: /: Pack your bag$/ }).click();
-    await expect(page.getByRole('status').filter({ hasText: /Ada/ }).first()).toBeVisible();
+    const sheet = page.getByTestId('day-complete-sheet');
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toContainText('All done, Ada!');
+    // Drawn over the page, so the rows under it stay put, while it is up and after it goes.
     expect((await car.boundingBox())!.y).toBe(before);
-    await page.waitForTimeout(4500);
+    await sheet.getByRole('button', { name: 'Nice!' }).click();
+    await expect(sheet).toBeHidden();
     expect((await car.boundingBox())!.y).toBe(before);
   });
 });

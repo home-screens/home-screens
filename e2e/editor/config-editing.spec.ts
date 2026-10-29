@@ -1196,6 +1196,23 @@ test('fullscreen-chore-chart: toggling Show Rewards Button persists', async ({ p
   expect((await moduleConfig(request, 'fullscreen-chore-chart')).showRewardsButton).toBe(true);
 });
 
+test('fullscreen-chore-chart: picking a celebration size persists and Off hides the sound switch', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-chore-chart'));
+
+  // The celebration is a three-way radio group; Simple is the default.
+  await expect(page.getByRole('switch', { name: 'Play a sound' })).toBeVisible();
+  await autosaved(page, async () => {
+    await page.getByRole('radio', { name: 'Big' }).click();
+  });
+  expect((await moduleConfig(request, 'fullscreen-chore-chart')).celebration).toBe('big');
+
+  await autosaved(page, async () => {
+    await page.getByRole('radio', { name: 'Off' }).click();
+  });
+  expect((await moduleConfig(request, 'fullscreen-chore-chart')).celebration).toBe('off');
+  await expect(page.getByRole('switch', { name: 'Play a sound' })).toHaveCount(0);
+});
+
 test('fullscreen-meal-planner: toggling Show Emoji persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('fullscreen-meal-planner'));
 

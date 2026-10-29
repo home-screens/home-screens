@@ -23,11 +23,19 @@ import BonusBand, { BonusMoreSheet, GrabbedSheet, GrabPickerSheet } from './Bonu
 import { atGrabLimit, type BonusItem } from '@/lib/chore-bonus';
 import { parseISO } from '@/lib/chore-assignments';
 import type { ChoreWriteOutcome } from '@/components/modules/chore-chart/useChoreData';
+import type { MemberStats } from '@/components/modules/chore-chart/types';
 import FitList from './FitList';
 import { Star } from 'lucide-react';
 import StarChart from './StarChart';
 import WeekStrip from './WeekStrip';
 import { RewardsStoreView } from './RewardsStoreView';
+import DayCompleteOverlay, { type DayCompleteEvent } from './DayCompleteOverlay';
+import { detectDayComplete } from '@/lib/chore-celebration';
+import { rememberCelebrated, wasCelebratedToday } from '@/lib/celebrated-today';
+import { resolveSavingsGoal } from '@/lib/reward-rules';
+
+const EMPTY_GOALS: Record<string, string> = {};
+import type { RewardDefinition } from '@/lib/reward-data';
 import { RewardHistoryView, type RewardHistoryVariant } from './RewardHistoryView';
 import { type ChoreRow, buildChoreRows, getUniqueInitials } from '@/lib/chore-rows';
 import {
@@ -152,7 +160,7 @@ export default function FullscreenChoreChartModule({
   const pad = 40 * k * d;
   const weekProgress = config.weekProgress ?? 'chips';
 
-  const { todayAssignments, memberStats, weekData, members, groups, chores, rewards, recentRedemptions, allRedemptions, toggleComplete, applyRedemption, overspentNotice, isLoading, error, rewardsLoading, rewardsError, todayBonus, bonusMarks, choreSettings, grabChore, today, todayKnown } = useChoreData(config, timezone);
+  const { todayAssignments, memberStats, weekData, members, groups, chores, rewards, goals, recentRedemptions, allRedemptions, toggleComplete, applyRedemption, overspentNotice, isLoading, error, rewardsLoading, rewardsError, todayBonus, bonusMarks, choreSettings, grabChore, today, todayKnown } = useChoreData(config, timezone);
   // Which bonus tile has a sheet open: the grab picker, or the grabbed tile's
   // "did it / let it go". Held by chore id so the sheet reads the latest poll.
   const [bonusSheet, setBonusSheet] = useState<{ kind: 'pick' | 'grabbed'; choreId: string } | { kind: 'more'; choreIds: string[] } | null>(null);
@@ -248,6 +256,18 @@ export default function FullscreenChoreChartModule({
     return b;
   }, [memberStats]);
 
+  // Each person's savings goal, resolved once for every chip.
+  const goalMap = useMemo(() => {
+    const map = new Map<string, RewardDefinition>();
+    for (const member of members) {
+      const goal = resolveSavingsGoal({ rewards, goals }, member.id);
+      if (goal) map.set(member.id, goal);
+    }
+    return map;
+  }, [members, rewards, goals]);
+  // The by-person headers grow a line while anyone has a goal, all of them together.
+  const anyGoalBand = !!config.showPoints && goalMap.size > 0;
+
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
@@ -330,6 +350,67 @@ export default function FullscreenChoreChartModule({
   const dayName = todayKnown ? formatDateInTZ(headerDate, undefined, { weekday: 'long' }, locale) : '\u00a0';
   const dateStr = todayKnown ? formatDateInTZ(headerDate, undefined, { month: 'long', day: 'numeric', year: 'numeric' }, locale) : '\u00a0';
 
+  // ── Day-complete celebration ──
+  // Noticed in the counts, whichever screen or phone made the tick. The
+  // previous snapshot is kept so the first one never celebrates what was
+  // already done. One at a time: a second finisher waits their turn.
+  const celebrationKind = config.celebration ?? 'simple';
+  const prevStats = useRef<Map<string, MemberStats> | null>(null);
+  const [celebrationQueue, setCelebrationQueue] = useState<DayCompleteEvent[]>([]);
+  const celebrationIdRef = useRef(0);
+  // Who has been celebrated today lives in `celebrated-today.ts`, in the
+  // browser: an un-tick and a re-tick is a correction, not a second finish,
+  // and a screen rotation or reload must not hand the party out again.
+  const todayAssignmentsRef = useRef(todayAssignments);
+  useEffect(() => { todayAssignmentsRef.current = todayAssignments; }, [todayAssignments]);
+  useEffect(() => {
+    // Not while the data is still arriving: an empty first map followed by
+    // the real one would read as everyone finishing at once.
+    if (isLoading) return;
+    const finished = detectDayComplete(prevStats.current, memberStats);
+    prevStats.current = memberStats;
+    if (finished.length === 0 || celebrationKind === 'off') return;
+    const finishers: DayCompleteEvent['members'] = [];
+    let done = 0;
+    let total = 0;
+    let tickets = 0;
+    let streak: number | null = null;
+    for (const memberId of finished) {
+      if (wasCelebratedToday(memberId, today)) continue;
+      const member = members.find((m) => m.id === memberId);
+      const stats = memberStats.get(memberId);
+      if (!member || !stats) continue;
+      rememberCelebrated(memberId, today);
+      finishers.push(member);
+      done += stats.completed;
+      total += stats.total;
+      tickets += todayAssignmentsRef.current
+        .filter((a) => a.memberId === memberId && a.isCompleted && !a.isSkipped)
+        .reduce((sum, a) => sum + a.chore.points, 0);
+      // A streak tile from two days: one day is not a streak yet. Only for a lone finisher.
+      streak = config.showStreaks && stats.streak >= 2 ? stats.streak : null;
+    }
+    // Everyone who finished in the same beat shares one card, and someone
+    // finishing while a card is up joins that card rather than queueing a
+    // second one: after dinner the whole family often finishes within a
+    // minute, and five cards in a row would cover the chart for half a minute.
+    if (finishers.length > 0) {
+      setCelebrationQueue((queue) => {
+        const showing = queue[0];
+        if (!showing) return [{ id: ++celebrationIdRef.current, members: finishers, done, total, tickets, streak: finishers.length === 1 ? streak : null, dayName }];
+        const merged = { ...showing, members: [...showing.members, ...finishers], done: showing.done + done, total: showing.total + total, tickets: showing.tickets + tickets, streak: null };
+        return [merged, ...queue.slice(1)];
+      });
+    }
+    // `members` and `dayName` are read for the words, not watched: only a
+    // change in the counts is a finish.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberStats, isLoading, celebrationKind]);
+  // A tap clears everything waiting; the timer takes one card at a time.
+  const dismissCelebration = useCallback((all: boolean) => setCelebrationQueue((queue) => (all ? [] : queue.slice(1))), []);
+  const celebration = celebrationKind !== 'off' ? celebrationQueue[0] ?? null : null;
+
+
   // Member lookup
   const memberMap = useMemo(() => {
     const map = new Map<string, (typeof members)[number]>();
@@ -398,7 +479,7 @@ export default function FullscreenChoreChartModule({
   if (!isLandscape && !byPerson) {
     cells = [sections];
   } else if (!isLandscape) {
-    const wideHeader = memberHeaderHeight(28 * tx, false);
+    const wideHeader = memberHeaderHeight(28 * tx, false, anyGoalBand);
     const need = sections.reduce((sum, sec) => sum + sec.rows.length * ROW_HEIGHT_FLOOR * k + wideHeader, 0) + Math.max(0, sections.length - 1) * bandGap;
     cols = listHeight > 0 && need > listHeight && sections.length > 1 ? 2 : 1;
     cells = splitInOrder(sections, weightOf, cols);
@@ -429,7 +510,7 @@ export default function FullscreenChoreChartModule({
     const bandLabel = Math.min(24 * tx, name * 0.8);
     const memberName = Math.min(28 * tx, name * 0.95);
     const bandHeader = config.showTimeOfDay ? bandLabel * 2.2 : 0;
-    const memberHeader = memberHeaderHeight(memberName, compactHeader);
+    const memberHeader = memberHeaderHeight(memberName, compactHeader, anyGoalBand);
     const header = byPerson ? memberHeader : bandHeader;
     let tightest = Infinity;
     let tightestRows = 0;
@@ -538,6 +619,8 @@ export default function FullscreenChoreChartModule({
         showTimeOfDay={config.showTimeOfDay}
         weekData={weekData}
         detail={chipDetail}
+        goal={config.showPoints ? goalMap.get(sec.member.id) ?? null : null}
+        reserveGoalRow={anyGoalBand}
         memberMap={memberMap}
         initialsMap={initialsMap}
         allowTouch={allowTouch}
@@ -841,6 +924,7 @@ export default function FullscreenChoreChartModule({
           members={members}
           rewards={rewards}
           balances={rewardBalances}
+          goals={config.showPoints ? goals : EMPTY_GOALS}
           redemptions={allRedemptions}
           k={k}
           typoMul={typoMul}
@@ -880,7 +964,7 @@ export default function FullscreenChoreChartModule({
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14 * k }}>
                 {byPerson ? <>{dayOffLine}{bonusTiles}</> : (
-                  <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} maxPerRow={4} />
+                  <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={12 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} goals={goalMap} availableWidth={memberStripWidth} maxPerRow={4} />
                 )}
               </div>
             </div>
@@ -935,7 +1019,7 @@ export default function FullscreenChoreChartModule({
           </div>
           {!byPerson && (
             <div style={{ padding: `${24 * k}px ${pad}px`, flexShrink: 0, borderBottom: '1px solid var(--fcc-border-sub)' }}>
-              <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={14 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} availableWidth={memberStripWidth} maxPerRow={3} />
+              <MemberStrip members={activeMembers} dayOff={dayOffMembers} memberStats={memberStats} weekData={weekData} detail={chipDetail} c={chipScale} gap={14 * k} showStreaks={config.showStreaks} showPoints={config.showPoints} goals={goalMap} availableWidth={memberStripWidth} maxPerRow={3} />
             </div>
           )}
           {byPerson && <div style={{ height: 12 * k, flexShrink: 0 }} />}
@@ -954,6 +1038,21 @@ export default function FullscreenChoreChartModule({
       )}
 
       {effectiveView === 'chores' && !historyVariant && bonusSheets}
+
+      {/* Someone just finished their day. Drawn over the chart, whatever view it is on. */}
+      {celebration && (
+        <DayCompleteOverlay
+          // Keyed on the card, not its names: a kid joining updates the words in place, with no second pop-in or chime.
+          key={celebration.id}
+          event={celebration}
+          kind={celebrationKind === 'big' ? 'big' : 'simple'}
+          // The Big stack was sized for a portrait panel; a landscape TV is 1080 tall, so it scales from the short side.
+          k={isLandscape ? k * 0.62 : k}
+          tc={isLandscape ? tc * 0.62 : tc}
+          sound={config.celebrationSound ?? false}
+          onDone={dismissCelebration}
+        />
+      )}
 
       {/* Touch completion toasts — always rendered */}
       {/* With a sheet open the toasts go to the top, clear of its Cancel. */}

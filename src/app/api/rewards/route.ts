@@ -40,9 +40,9 @@ export const GET = async (request: NextRequest) => {
 export const POST = async (request: NextRequest) => {
   try {
     return await withFamilyData(async () => {
-    const body = await parseJsonBody<{ rewardId?: string; memberId?: string }>(request);
+    const body = await parseJsonBody<{ rewardId?: string; memberId?: string; expectedBalance?: unknown }>(request);
     if (body instanceof NextResponse) return body;
-    const { rewardId, memberId } = body;
+    const { rewardId, memberId, expectedBalance } = body;
 
     if (!rewardId || !memberId) {
       return NextResponse.json(
@@ -72,6 +72,20 @@ export const POST = async (request: NextRequest) => {
 
     // Check balance
     const balance = rewardData.balances[memberId] ?? 0;
+    // The balance the sheet was built from. When it has moved since (the kid
+    // redeemed this at the tablet while the parent's phone still said "has
+    // enough"), the tap is refused with the real numbers rather than charging
+    // twice: the small everyday rewards are exactly the ones a kid can still
+    // afford a second time.
+    if (typeof expectedBalance === 'number' && expectedBalance !== balance) {
+      return NextResponse.json({
+        error: 'The tickets changed since this was opened. Have another look.',
+        reason: 'balance',
+        balances: rewardData.balances,
+        redemptions: rewardData.redemptions,
+        goals: rewardData.goals ?? {},
+      }, { status: 409 });
+    }
     if (!canAffordReward(balance, reward)) {
       return NextResponse.json(
         { error: 'Insufficient point balance' },
@@ -94,7 +108,8 @@ export const POST = async (request: NextRequest) => {
       }
       throw err;
     }
-    return NextResponse.json({ balances: result.balances, redemptions: result.redemptions });
+    // Goals too: redeeming the reward someone was saving for clears their goal.
+    return NextResponse.json({ balances: result.balances, redemptions: result.redemptions, goals: result.goals ?? {} });
     });
   } catch (error) {
     return publicErrorResponse(error, 'Failed to redeem reward');

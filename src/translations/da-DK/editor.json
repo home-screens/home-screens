@@ -3893,7 +3893,15 @@
       "editChoreChart": "Redigér pligtskema",
       "viewRewardHistory": "Belønningshistorik (dag for dag)",
       "viewRewardTotals": "Belønningshistorik (totaler)",
-      "viewRewardSpotlight": "Belønningshistorik (i rampelyset)"
+      "viewRewardSpotlight": "Belønningshistorik (i rampelyset)",
+      "celebration": "Fejring",
+      "celebrationLabel": "Når nogen har klaret alle pligter",
+      "celebrationOff": "Fra",
+      "celebrationSimple": "Enkel",
+      "celebrationBig": "Stor",
+      "celebrationHelp": "Enkel viser et kort over tavlen. Stor fylder hele skærmen.",
+      "celebrationSound": "Afspil en lyd",
+      "celebrationSoundHelp": "En kort klokke, når kortet dukker op"
     },
     "fullscreen-meal-planner": {
       "themeDefault": "Standard (fra Indstillinger)",

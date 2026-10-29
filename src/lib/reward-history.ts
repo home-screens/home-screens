@@ -1,4 +1,5 @@
-import type { RewardRedemption } from './reward-data';
+import type { RewardAdjustment, RewardRedemption } from './reward-data';
+import type { ChoreCompletion, ChoreDefinition } from '@/types/config';
 import { sortRedemptionsNewestFirst } from './reward-rules';
 import { isoDateInTZ } from './timezone';
 import { daysBetween } from './todo-due-labels';
@@ -88,4 +89,162 @@ export function summarizeRedemptions(
     if (!favorite || count > favorite.count) favorite = { rewardName, count };
   }
   return { ticketsSpent: recent.reduce((sum, r) => sum + r.cost, 0), count: recent.length, favorite };
+}
+
+// ── The ticket ledger ────────────────────────────────────────────────
+
+/**
+ * One move of tickets for one person, as the phone's Tickets feed lists it.
+ * Earned rows come from the completions, spent rows from the redemptions and
+ * adjusted rows from the hand adjustments, so the feed adds up to the balance
+ * without a second copy of any of them.
+ */
+export interface TicketLedgerRow {
+  id: string;
+  kind: 'earned' | 'spent' | 'adjusted';
+  /**
+   * The change. Null on a chore that has since been removed: the completion
+   * says it was done, and nothing says what it paid.
+   */
+  delta: number | null;
+  /**
+   * The chore's or reward's name, or the grown-up's reason. Null when there
+   * is nothing to say (a removed chore, a quick +1 with no reason); the
+   * surface words those itself.
+   */
+  title: string | null;
+  /** The chore was a bonus chore, so the row can say so. */
+  bonus?: boolean;
+  /** The household day it happened on, `YYYY-MM-DD`. */
+  date: string;
+  /** The instant, when one was recorded. Completions saved before timestamps have only a day. */
+  at?: string;
+}
+
+export interface TicketLedgerSources {
+  memberId: string;
+  completions: readonly ChoreCompletion[];
+  chores: readonly ChoreDefinition[];
+  redemptions: readonly RewardRedemption[];
+  adjustments: readonly RewardAdjustment[];
+  timeZone?: string;
+}
+
+/** A sortable instant: the recorded one, or midday of the day for a row that only has a day. */
+function sortKey(row: TicketLedgerRow): number {
+  const ms = row.at ? new Date(row.at).getTime() : new Date(`${row.date}T12:00:00Z`).getTime();
+  return Number.isNaN(ms) ? -Infinity : ms;
+}
+
+/** A row's household day from its instant, or null when the instant cannot be read. */
+function dayOf(at: string, timeZone?: string): string | null {
+  const instant = new Date(at);
+  return Number.isNaN(instant.getTime()) ? null : isoDateInTZ(instant, timeZone);
+}
+
+/**
+ * Every ticket move for one person, newest first. A completion that was
+ * skipped ("not today") moved nothing and is left out, as is a chore worth
+ * nothing: a row that says +0 is noise. A completion of a chore that no
+ * longer exists is kept with no number, so the feed still shows the day was
+ * done. A row whose instant cannot be read sorts last rather than
+ * scrambling the rest, as `sortRedemptionsNewestFirst` does.
+ */
+export function buildTicketLedger(sources: TicketLedgerSources): TicketLedgerRow[] {
+  const { memberId, timeZone } = sources;
+  const choresById = new Map(sources.chores.map((chore) => [chore.id, chore]));
+  const rows: TicketLedgerRow[] = [];
+
+  for (const completion of sources.completions) {
+    if (completion.memberId !== memberId || completion.status === 'skipped') continue;
+    const chore = choresById.get(completion.choreId);
+    if (chore && chore.points <= 0) continue;
+    rows.push({
+      id: `earned:${completion.choreId}:${completion.date}`,
+      kind: 'earned',
+      delta: chore ? chore.points : null,
+      title: chore ? chore.name : null,
+      ...(chore?.bonus ? { bonus: true } : {}),
+      date: completion.date,
+      ...(completion.at ? { at: completion.at } : {}),
+    });
+  }
+
+  for (const redemption of sources.redemptions) {
+    if (redemption.memberId !== memberId) continue;
+    rows.push({
+      id: `spent:${redemption.id}`,
+      kind: 'spent',
+      delta: -redemption.cost,
+      title: redemption.rewardName,
+      date: dayOf(redemption.redeemedAt, timeZone) ?? '',
+      at: redemption.redeemedAt,
+    });
+  }
+
+  for (const adjustment of sources.adjustments) {
+    if (adjustment.memberId !== memberId || adjustment.delta === 0) continue;
+    rows.push({
+      id: `adjusted:${adjustment.id}`,
+      kind: 'adjusted',
+      delta: adjustment.delta,
+      title: adjustment.reason ?? null,
+      date: dayOf(adjustment.at, timeZone) ?? '',
+      at: adjustment.at,
+    });
+  }
+
+  return rows.sort((a, b) => {
+    const am = sortKey(a);
+    const bm = sortKey(b);
+    return am === bm ? 0 : bm > am ? 1 : -1;
+  });
+}
+
+export interface TicketLedgerSummary {
+  earned: number;
+  spent: number;
+  /** Net of the hand adjustments: a +5 and a -1 is +4. */
+  adjusted: number;
+}
+
+/** Totals over the last `days` household calendar days, today included. */
+export function summarizeTicketLedger(
+  rows: readonly TicketLedgerRow[],
+  now: Date,
+  days = SUMMARY_DAYS,
+  timeZone?: string,
+): TicketLedgerSummary {
+  const today = isoDateInTZ(now, timeZone);
+  const summary: TicketLedgerSummary = { earned: 0, spent: 0, adjusted: 0 };
+  for (const row of rows) {
+    if (row.delta === null) continue;
+    const ago = daysBetween(row.date, today);
+    if (ago === null || ago < 0 || ago >= days) continue;
+    if (row.kind === 'earned') summary.earned += row.delta;
+    else if (row.kind === 'spent') summary.spent += -row.delta;
+    else summary.adjusted += row.delta;
+  }
+  return summary;
+}
+
+export interface TicketLedgerGroup {
+  bucket: RedemptionBucket;
+  rows: TicketLedgerRow[];
+}
+
+/** The ledger split into the same day buckets the redemption feeds use. Rows are expected newest first. */
+export function groupTicketLedgerByDay(rows: readonly TicketLedgerRow[], now: Date, timeZone?: string): TicketLedgerGroup[] {
+  const today = isoDateInTZ(now, timeZone);
+  const byBucket = new Map<RedemptionBucket, TicketLedgerRow[]>();
+  for (const row of rows) {
+    const bucket = bucketFor(daysBetween(row.date, today));
+    const list = byBucket.get(bucket);
+    if (list) list.push(row);
+    else byBucket.set(bucket, [row]);
+  }
+  return REDEMPTION_BUCKETS.flatMap((bucket) => {
+    const list = byBucket.get(bucket);
+    return list ? [{ bucket, rows: list }] : [];
+  });
 }

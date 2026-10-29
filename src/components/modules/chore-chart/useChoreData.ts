@@ -31,6 +31,7 @@ import { isoDateInTZ } from '@/lib/timezone';
 import { planChoreToggle, readOverspentNotice, type OverspentNotice } from './chore-toggle';
 
 const EMPTY_REDEMPTIONS: RewardRedemption[] = [];
+const EMPTY_GOALS: Record<string, string> = {};
 
 /** How long the overspent message stays on the wall before it clears itself. */
 const OVERSPENT_NOTICE_MS = 12_000;
@@ -62,6 +63,8 @@ interface RewardsResponse {
   rewards?: RewardDefinition[];
   balances: Record<string, number>;
   redemptions?: RewardRedemption[];
+  /** Each person's reward to save toward, by member id; absent until someone picks one. */
+  goals?: Record<string, string>;
 }
 
 interface ChoreDataState {
@@ -70,6 +73,8 @@ interface ChoreDataState {
   groups: FamilyGroup[];
   chores: ChoreDefinition[];
   rewards: RewardDefinition[];
+  /** Each person's reward to save toward, by member id (`{}` when nobody is saving). */
+  goals: Record<string, string>;
   todayAssignments: ResolvedAssignment[];
   completionSet: Set<string>;
   memberStats: Map<string, MemberStats>;
@@ -126,6 +131,8 @@ function marksOf(body: Partial<ChoresResponse>): Partial<ChoresResponse> {
 export interface RedemptionResult {
   balances?: Record<string, number>;
   redemptions?: RewardRedemption[];
+  /** Every goal after the redeem: the one for this reward is gone. */
+  goals?: Record<string, string>;
 }
 
 /** `timezone` is the display's household zone; it only covers the first paint (see `today`). */
@@ -152,14 +159,20 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
   const chores = useMemo(() => fetchedChoreData?.chores ?? [], [fetchedChoreData]);
   const choreSettings = useMemo(() => readChoreSettings(fetchedChoreData?.settings), [fetchedChoreData]);
 
+  // Whether the marks on screen are the fetched ones. The copy below lands an
+  // effect after the fetch, so for one render the chores are there and the
+  // ticks are not: a chart reading that render saw everyone at zero and then,
+  // a beat later, "finishing". Loading covers that beat.
+  const [marksApplied, setMarksApplied] = useState(false);
   useEffect(() => {
     if (!fetchedCompletions) return;
     setCompletions(fetchedCompletions.completions ?? []);
     setGrabs(fetchedCompletions.grabs ?? []);
     setBonusResets(fetchedCompletions.bonusResets ?? {});
+    setMarksApplied(true);
   }, [fetchedCompletions]);
 
-  const isLoading = (!fetchedCompletions && !completionsError) || (!fetchedChoreData && !choreDataError) || familyLoading;
+  const isLoading = (!fetchedCompletions && !completionsError) || (fetchedCompletions ? !marksApplied : false) || (!fetchedChoreData && !choreDataError) || familyLoading;
   // Only a source with nothing to show counts. A failed refresh keeps the
   // last good data, and the chart keeps drawing it.
   const error = (fetchedCompletions ? null : completionsError)
@@ -281,6 +294,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
       rewards: current?.rewards,
       balances: result.balances ?? current?.balances ?? {},
       redemptions: result.redemptions ?? current?.redemptions,
+      goals: result.goals ?? current?.goals,
     });
   }, [publishRewards]);
 
@@ -386,6 +400,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     groups,
     chores,
     rewards: rewards?.rewards ?? [],
+    goals: rewards?.goals ?? EMPTY_GOALS,
     todayAssignments,
     completionSet,
     memberStats,

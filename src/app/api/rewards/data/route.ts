@@ -4,8 +4,7 @@ import { withAuth, guardEmptyOverwrite, assertRequiredArrays, parseJsonBody } fr
 import {
   readRewardData,
   updateRewardDefinitions,
-  creditPoints,
-  debitPoints,
+  adjustPoints,
 } from '@/lib/reward-data';
 import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
 import { contentRevision } from '@/lib/content-revision';
@@ -60,25 +59,42 @@ export const PUT = withAuth(async (request: NextRequest) => withFamilyData(async
   return NextResponse.json({ rewards: result.rewards, revision: contentRevision(result.rewards) });
 }), 'Failed to write reward data');
 
-/** POST — manual balance adjustment (parents only). */
-export const POST = withAuth(async (request: NextRequest) => withFamilyData(async () => {
-  const body = await parseJsonBody<{ memberId?: string; amount?: number }>(request);
-  if (body instanceof NextResponse) return body;
-  const { memberId, amount } = body;
+/** The most a reason may say; it is one line under a row on a phone. */
+const REASON_MAX_CHARS = 80;
 
-  if (!memberId || typeof amount !== 'number' || amount === 0) {
+/**
+ * POST — a grown-up gives or takes tickets by hand (parents only). One
+ * person as `memberId`, or several as `memberIds`, the same `amount` each,
+ * with an optional `reason` that lands in their ticket history. Every person
+ * is checked before anyone is written, so a list naming someone who was
+ * removed changes nothing.
+ */
+export const POST = withAuth(async (request: NextRequest) => withFamilyData(async () => {
+  const body = await parseJsonBody<{ memberId?: unknown; memberIds?: unknown; amount?: unknown; reason?: unknown }>(request);
+  if (body instanceof NextResponse) return body;
+  const { amount } = body;
+
+  const memberIds = Array.isArray(body.memberIds)
+    ? body.memberIds
+    : typeof body.memberId === 'string' ? [body.memberId] : [];
+  const validIds = memberIds.length > 0 && memberIds.every((id) => typeof id === 'string' && id.length > 0);
+  if (!validIds || typeof amount !== 'number' || !Number.isInteger(amount) || amount === 0) {
     return NextResponse.json(
       { error: 'Missing memberId or invalid amount' },
       { status: 400 },
     );
   }
+  if (body.reason !== undefined && typeof body.reason !== 'string') {
+    return NextResponse.json({ error: 'The reason must be text' }, { status: 400 });
+  }
+  const reason = (body.reason ?? '').trim().slice(0, REASON_MAX_CHARS) || undefined;
 
-  const references = await validateMemberReferences([memberId]);
+  const unique = [...new Set(memberIds as string[])];
+  const references = await validateMemberReferences(unique);
   if (references) return references;
 
-  const result = amount > 0
-    ? await creditPoints(memberId, amount)
-    : await debitPoints(memberId, Math.abs(amount));
+  let result = await adjustPoints(unique[0], amount, reason);
+  for (const memberId of unique.slice(1)) result = await adjustPoints(memberId, amount, reason);
 
-  return NextResponse.json({ balances: result.balances });
+  return NextResponse.json({ balances: result.balances, adjustments: result.adjustments ?? [] });
 }), 'Failed to adjust balance');

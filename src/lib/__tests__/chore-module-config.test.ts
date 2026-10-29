@@ -84,7 +84,22 @@ describe('resolveChoreModuleConfig', () => {
       allowDisplayComplete: true,
       accentColor: '#f59e0b',
       view: 'board',
+      celebration: 'simple',
     });
+  });
+
+  it('follows the first full-screen chart for what a finished day looks like', () => {
+    const config = makeConfig({
+      screens: [
+        makeScreen('s1', [makeModule('chore-chart')]),
+        makeScreen('s2', [makeModule('fullscreen-chore-chart', { celebration: 'off' })]),
+        makeScreen('s3', [makeModule('fullscreen-chore-chart', { celebration: 'big' })]),
+      ],
+    });
+    const resolved = resolveChoreModuleConfig(config);
+    // The card chart on s1 still provides the rest of the settings.
+    expect(resolved?.showPoints).toBe(true);
+    expect(resolved?.celebration).toBe('off');
   });
 
   it('always allows completion from a phone regardless of the module toggle', () => {

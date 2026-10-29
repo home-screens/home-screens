@@ -617,7 +617,8 @@
         "selectAtLeastOnePerson": "Select at least one person",
         "selectAtLeastOnePersonOrGroup": "Select at least one person or group",
         "selectAtLeastOneDay": "Select at least one day",
-        "familyNotReady": "Your family is still loading. Try again in a moment."
+        "familyNotReady": "Your family is still loading. Try again in a moment.",
+        "tooManySteps": "Keep it to 12 steps"
       },
       "kindLabel": "Kind of chore",
       "kindRegular": "Regular",
@@ -639,7 +640,11 @@
         "weekly": "Each person can do it once a week. It opens again on Monday.",
         "manual": "Each person can do it once, until a grown-up taps Put it back in Chores on the phone."
       },
-      "onceBonusNote": "Bonus chores show up on their days, not on a date. For a one-off job, When I put it back keeps it done once someone does it."
+      "onceBonusNote": "Bonus chores show up on their days, not on a date. For a one-off job, When I put it back keeps it done once someone does it.",
+      "stepsLabel": "Steps",
+      "stepsPlaceholder": "One step per line",
+      "stepsHint": "One step per line, up to 12. Numbers are added for you.",
+      "stepsCount": "{lines} of {maxLines} steps · {chars}/{maxChars}"
     },
     "unknownAssignee": "?",
     "store": {
@@ -834,7 +839,8 @@
         "one": "{member} spent 1 ticket on {reward}",
         "other": "{member} spent {count} tickets on {reward}"
       },
-      "history": "History"
+      "history": "History",
+      "errorChanged": "The tickets changed just now. Have another look."
     },
     "rewardHistory": {
       "subtitle": "What the family has spent tickets on",
@@ -868,7 +874,34 @@
         "earlier": "Earlier"
       }
     },
-    "saveFailed": "That didn't save. Try again."
+    "saveFailed": "That didn't save. Try again.",
+    "goal": {
+      "toGo": {
+        "one": "1 ticket to go",
+        "other": "{count} tickets to go"
+      },
+      "ready": "Enough saved!",
+      "savingForThis": "Saving for this",
+      "toGoShort": {
+        "one": "1 more",
+        "other": "{count} more"
+      }
+    },
+    "celebration": {
+      "allDone": "All done, {name}!",
+      "everyChore": "Every chore for {day} is finished",
+      "choresDone": "chores done",
+      "ticketsToday": "tickets today",
+      "dayStreak": "day streak",
+      "summaryChores": {
+        "one": "{done} of {count} chore",
+        "other": "{done} of {count} chores"
+      },
+      "summaryTickets": {
+        "one": "{count} ticket today",
+        "other": "{count} tickets today"
+      }
+    }
   },
   "sports": {
     "loading": "Loading scores…",

@@ -120,7 +120,6 @@
     "choreAriaLabelCompleted": "Completed: {chore}",
     "saveFailed": "Failed to save. Please try again.",
     "holdToUncheckHint": "Press and hold to un-check",
-    "celebration": "Great job, {name}!",
     "dayToggle": {
       "ariaLabel": "Which day to show",
       "yesterday": "Yesterday",
@@ -178,7 +177,30 @@
       "description": "{chore} opens up again. Tickets already earned for it stay earned."
     },
     "loadError": "Couldn't load your chores. Check the hub is on and try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "goalLine": {
+      "moreToGoSingular": "{n} ticket to go",
+      "moreToGoPlural": "{n} tickets to go",
+      "ready": "Enough saved!",
+      "ariaLabel": "Saving for {name}. Open Rewards",
+      "label": "Saving for {name}"
+    },
+    "steps": {
+      "show": "How to do {chore}",
+      "hide": "Hide the steps for {chore}"
+    },
+    "dayComplete": {
+      "title": "All done, {name}!",
+      "close": "Nice!",
+      "summaryChores": {
+        "one": "{done} of {count} chore",
+        "other": "{done} of {count} chores"
+      },
+      "summaryTickets": {
+        "one": "earned 1 ticket today",
+        "other": "earned {count} tickets today"
+      }
+    }
   },
   "choreHistoryNav": {
     "jumpToTodayAriaLabel": "Jump to today",
@@ -466,7 +488,17 @@
     "everyone": "Everyone",
     "deleteConfirm": {
       "title": "Delete Reward",
-      "description": "Are you sure you want to delete \"{name}\"? Existing redemption history will be preserved."
+      "description": "Delete \"{name}\"? Rewards already given stay in the history.",
+      "goalClears": {
+        "one": "That goal will be cleared.",
+        "other": "Their goals will be cleared."
+      }
+    },
+    "saverOne": "{names} is saving for this.",
+    "saverMany": "{names} are saving for this.",
+    "hiddenWithSavers": {
+      "one": "{names} won't see their goal while this is hidden.",
+      "other": "{names} won't see their goals while this is hidden."
     }
   },
   "alertSender": {
@@ -516,10 +548,21 @@
       "confirmLabelSingular": "Redeem for {cost} ticket",
       "confirmLabelPlural": "Redeem for {cost} tickets",
       "emptyKid": "No rewards yet. A grown-up can add some from their phone.",
-      "balanceLabelNamed": "tickets for {name}",
+      "balanceLabelNamed": {
+        "one": "ticket for {name}",
+        "other": "tickets for {name}"
+      },
       "switchHint": "Not {name}? Pick your name on the Today tab.",
       "refused": "That didn't go through. There aren't enough tickets for it any more.",
-      "failed": "That didn't go through. Try again."
+      "failed": "That didn't go through. Try again.",
+      "goalClears": "This is what {name} is saving for. The goal is cleared once it's redeemed.",
+      "goalFurther": "{goal} will be {n} tickets away after this.",
+      "gotIt": "{name} got {reward}.",
+      "gotItKid": "You got {reward}! Show a grown-up.",
+      "noTicketsHint": "Do your chores on the Today tab to earn tickets.",
+      "alreadyGot": "{name} already got {reward} a moment ago.",
+      "alreadyGotKid": "You already got {reward} a moment ago!",
+      "changed": "{name}'s tickets changed just now. Have another look."
     },
     "manage": {
       "heading": "Rewards",
@@ -545,7 +588,77 @@
         "afterRewardPlural": " for {n} tickets"
       }
     },
-    "saveFailed": "Failed to save. Please try again."
+    "saveFailed": "Failed to save. Please try again.",
+    "goal": {
+      "heading": "Saving for",
+      "pick": "Pick something to save for",
+      "progressSingular": "{have} of {cost} tickets · {n} more to go",
+      "progressPlural": "{have} of {cost} tickets · {n} more to go",
+      "reached": "Enough tickets! Tap to redeem.",
+      "change": "Change",
+      "changeAriaLabel": "Saving for {name}. Change what to save for",
+      "savingChip": "Saving",
+      "sheetTitle": "Save for…",
+      "sheetHint": "{name}'s tickets count towards this. After {name} gets it, pick something new.",
+      "sheetEmpty": "No rewards to save for yet.",
+      "stop": "Stop saving",
+      "failed": "That didn't save. Try again.",
+      "headingFor": "{name} is saving for",
+      "pickFor": "Pick something for {name} to save for",
+      "sheetTitleFor": "A goal for {name}",
+      "stopFor": "Stop {name}'s goal",
+      "redeemAriaLabel": "Enough saved for {name}. Redeem it",
+      "reachedFor": "{name} has enough. Tap to give it."
+    },
+    "adjust": {
+      "button": "Give or take tickets…",
+      "title": "Give or take tickets",
+      "hint": "Pick who, how many, and say why.",
+      "less": "One fewer",
+      "more": "One more",
+      "ticketsLabel": {
+        "one": "ticket",
+        "other": "tickets"
+      },
+      "eachLabel": {
+        "one": "ticket each",
+        "other": "tickets each"
+      },
+      "reasonPlaceholder": "Why? (optional)",
+      "reasonHint": "Shows up in their ticket history.",
+      "pickSomeone": "Pick someone",
+      "failed": "That didn't save. Try again.",
+      "chooseHowMany": "Choose how many",
+      "manyPeople": "{count} people",
+      "give": "Give {amount} to {names}",
+      "take": "Take {amount} from {names}",
+      "shortOne": "{name} only has {n}, so that's all that comes off.",
+      "shortMany": "{names} don't have that many; they'll go down to 0.",
+      "nothingToTake": "{names} has no tickets to take",
+      "reasonTrimmed": "Only the first {max} letters fit."
+    },
+    "tickets": {
+      "earned": "earned",
+      "spent": "spent",
+      "adjusted": "from grown-ups",
+      "window": "Last 30 days",
+      "empty": "No tickets have moved yet.",
+      "failed": "Couldn't load the ticket history.",
+      "removedChore": "A chore that was removed",
+      "tookOne": "A grown-up took some",
+      "gaveSome": "A grown-up gave some",
+      "rewardLine": "Reward",
+      "bonusLine": "Bonus",
+      "grownUpLine": "Grown-up",
+      "bucket": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "earlier": "Earlier"
+      },
+      "gaveAdmin": "Given by a grown-up",
+      "tookAdmin": "Taken by a grown-up"
+    }
   },
   "settingsSheet": {
     "title": "Settings",

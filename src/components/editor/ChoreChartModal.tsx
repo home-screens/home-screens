@@ -40,7 +40,7 @@ import ChoreIcon, {
 import { ListChecks, Users, X } from 'lucide-react';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
-import { buildChoreAssigneeLine, buildChoreSummaryLine, comesBackHintKey, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
+import { CHORE_STEPS_MAX_CHARS, buildChoreAssigneeLine, buildChoreSummaryLine, comesBackHintKey, describeStepsCount, getChoreRotationSummaryKey } from '@/components/modules/chore-chart/chore-form-presentation';
 import GrabRulesLine from './GrabRulesLine';
 import StarterChoresPanel from './StarterChoresPanel';
 import { STARTER_CHORE_COUNT } from '@/lib/starter-chores';
@@ -98,9 +98,9 @@ function ChoreForm({
   const f = useChoreForm(initial, members, groups, familyReady, householdToday);
   const {
     kind, bonusClaim, comesBack, setKind, setBonusClaim, setComesBack,
-    name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay,
+    name, emoji, points, steps, frequency, daysOfWeek, specificDate, timeOfDay,
     assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule, canRotate, coveredByGroup, goesToNobody,
-    setName, setEmoji, setPoints, setFrequency, setSpecificDate, setTimeOfDay,
+    setName, setEmoji, setPoints, setSteps, setFrequency, setSpecificDate, setTimeOfDay,
     switchToSchedule, switchFromSchedule, setRotation,
     toggleDay, toggleAssignee, toggleGroup, toggleScheduleDay, addMemberToSchedule, toggleGroupScheduleDay, addGroupToSchedule,
     removeMemberFromSchedule, removeGroupFromSchedule,
@@ -109,6 +109,7 @@ function ChoreForm({
   } = f;
   const submit = () => f.submit(onSubmit);
   const isBonus = kind === 'bonus';
+  const stepsCount = describeStepsCount(steps, tModules);
   const onSchedule = !isBonus && rotation === 'schedule';
 
   const { frequencyLabelMap, rotationLabelMap } = useChoreLabelMaps(tModules);
@@ -126,6 +127,21 @@ function ChoreForm({
         className={MODAL_INPUT_CLASS}
         autoFocus
       />
+
+      <label className="flex flex-col gap-0.5">
+        <span className="text-xs text-hs-text-muted">{tModules('chore-chart.choreForm.stepsLabel')}</span>
+        <textarea
+          data-testid="chore-steps"
+          placeholder={tModules('chore-chart.choreForm.stepsPlaceholder')}
+          value={steps}
+          onChange={(e) => setSteps(e.target.value)}
+          rows={5}
+          maxLength={CHORE_STEPS_MAX_CHARS}
+          className={`${MODAL_INPUT_CLASS} resize-y min-h-[110px] leading-snug`}
+        />
+        <span className="text-[11px] text-hs-text-faint">{tModules('chore-chart.choreForm.stepsHint')}</span>
+        {stepsCount && <span data-testid="chore-steps-count" className={`text-[11px] tabular-nums ${stepsCount.over ? 'text-hs-danger' : 'text-hs-text-faint'}`}>{stepsCount.text}</span>}
+      </label>
 
       <div className="space-y-1">
         <span className="text-xs text-hs-text-muted">{tModules('chore-chart.choreForm.kindLabel')}</span>

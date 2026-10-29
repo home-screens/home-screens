@@ -120,7 +120,6 @@
     "choreAriaLabelCompleted": "Afsluttet: {chore}",
     "saveFailed": "Kunne ikke gemme. Prøv igen.",
     "holdToUncheckHint": "Hold nede for at fjerne fluebenet",
-    "celebration": "Godt gået, {name}!",
     "dayToggle": {
       "ariaLabel": "Hvilken dag der vises",
       "yesterday": "I går",
@@ -178,7 +177,30 @@
       "description": "»{chore}« bliver ledig igen. Ingen mister de billetter, de allerede har fået for den."
     },
     "loadError": "Dine pligter kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
-    "retry": "Prøv igen"
+    "retry": "Prøv igen",
+    "goalLine": {
+      "moreToGoSingular": "{n} billet mere",
+      "moreToGoPlural": "{n} billetter mere",
+      "ready": "Nok sparet op!",
+      "ariaLabel": "Sparer op til {name}. Åbn belønninger",
+      "label": "Sparer op til {name}"
+    },
+    "steps": {
+      "show": "Sådan gør du {chore}",
+      "hide": "Skjul trinnene for {chore}"
+    },
+    "dayComplete": {
+      "title": "Alt er klaret, {name}!",
+      "close": "Flot!",
+      "summaryChores": {
+        "one": "{done} af {count} pligt",
+        "other": "{done} af {count} pligter"
+      },
+      "summaryTickets": {
+        "one": "1 billet tjent i dag",
+        "other": "{count} billetter tjent i dag"
+      }
+    }
   },
   "choreHistoryNav": {
     "jumpToTodayAriaLabel": "Spring til i dag",
@@ -466,7 +488,17 @@
     "everyone": "Alle",
     "deleteConfirm": {
       "title": "Slet belønning",
-      "description": "Er du sikker på, at du vil slette \"{name}\"? Historikken over indløsninger bliver bevaret."
+      "description": "Slet \"{name}\"? Belønninger, der allerede er givet, bliver i historikken.",
+      "goalClears": {
+        "one": "Det sparemål slettes.",
+        "other": "Deres sparemål slettes."
+      }
+    },
+    "saverOne": "{names} sparer op til denne.",
+    "saverMany": "{names} sparer op til denne.",
+    "hiddenWithSavers": {
+      "one": "{names} kan ikke se sit sparemål, mens det her er skjult.",
+      "other": "{names} kan ikke se deres sparemål, mens det her er skjult."
     }
   },
   "alertSender": {
@@ -516,10 +548,21 @@
       "confirmLabelSingular": "Indløs for {cost} billet",
       "confirmLabelPlural": "Indløs for {cost} billetter",
       "emptyKid": "Ingen belønninger endnu. En voksen kan tilføje nogle fra sin telefon.",
-      "balanceLabelNamed": "billetter til {name}",
+      "balanceLabelNamed": {
+        "one": "billet til {name}",
+        "other": "billetter til {name}"
+      },
       "switchHint": "Er du ikke {name}? Vælg dit navn under I dag.",
       "refused": "Det gik ikke igennem. Der er ikke længere billetter nok til det.",
-      "failed": "Det gik ikke igennem. Prøv igen."
+      "failed": "Det gik ikke igennem. Prøv igen.",
+      "goalClears": "Det er det, {name} sparer op til. Sparemålet slettes, når det er indløst.",
+      "goalFurther": "Bagefter mangler der {n} billetter til {goal}.",
+      "gotIt": "{name} fik {reward}.",
+      "gotItKid": "Du fik {reward}! Vis det til en voksen.",
+      "noTicketsHint": "Klar dine pligter under I dag for at tjene billetter.",
+      "alreadyGot": "{name} fik allerede {reward} for et øjeblik siden.",
+      "alreadyGotKid": "Du fik allerede {reward} for et øjeblik siden!",
+      "changed": "{name}s billetter har lige ændret sig. Kig igen."
     },
     "manage": {
       "heading": "Belønninger",
@@ -545,7 +588,77 @@
         "afterRewardPlural": " for {n} billetter"
       }
     },
-    "saveFailed": "Kunne ikke gemme. Prøv igen."
+    "saveFailed": "Kunne ikke gemme. Prøv igen.",
+    "goal": {
+      "heading": "Sparer op til",
+      "pick": "Vælg noget at spare op til",
+      "progressSingular": "{have} af {cost} billetter · {n} mere",
+      "progressPlural": "{have} af {cost} billetter · {n} mere",
+      "reached": "Billetter nok! Tryk for at indløse.",
+      "change": "Skift",
+      "changeAriaLabel": "Sparer op til {name}. Skift mål",
+      "savingChip": "Sparemål",
+      "sheetTitle": "Spar op til…",
+      "sheetHint": "{name}s billetter tæller til det her. Når {name} har fået det, så vælg noget nyt.",
+      "sheetEmpty": "Ingen belønninger at spare op til endnu.",
+      "stop": "Stop med at spare",
+      "failed": "Det blev ikke gemt. Prøv igen.",
+      "headingFor": "{name} sparer op til",
+      "pickFor": "Vælg noget, {name} skal spare op til",
+      "sheetTitleFor": "Et sparemål for {name}",
+      "stopFor": "Stop {name}s sparemål",
+      "redeemAriaLabel": "Nok sparet op til {name}. Indløs",
+      "reachedFor": "{name} har nok. Tryk for at give den."
+    },
+    "adjust": {
+      "button": "Giv eller tag billetter…",
+      "title": "Giv eller tag billetter",
+      "hint": "Vælg hvem, hvor mange, og sig hvorfor.",
+      "less": "En mindre",
+      "more": "En mere",
+      "ticketsLabel": {
+        "one": "billet",
+        "other": "billetter"
+      },
+      "eachLabel": {
+        "one": "billet hver",
+        "other": "billetter hver"
+      },
+      "reasonPlaceholder": "Hvorfor? (valgfrit)",
+      "reasonHint": "Vises i deres billethistorik.",
+      "pickSomeone": "Vælg nogen",
+      "failed": "Det blev ikke gemt. Prøv igen.",
+      "chooseHowMany": "Vælg hvor mange",
+      "manyPeople": "{count} personer",
+      "give": "Giv {names} {amount}",
+      "take": "Tag {amount} fra {names}",
+      "shortOne": "{name} har kun {n}, så det er alt, der ryger.",
+      "shortMany": "{names} har ikke så mange; de ryger ned på 0.",
+      "nothingToTake": "{names} har ingen billetter at tage",
+      "reasonTrimmed": "Kun de første {max} tegn er der plads til."
+    },
+    "tickets": {
+      "earned": "tjent",
+      "spent": "brugt",
+      "adjusted": "fra voksne",
+      "window": "Seneste 30 dage",
+      "empty": "Ingen billetter har flyttet sig endnu.",
+      "failed": "Billethistorikken kunne ikke hentes.",
+      "removedChore": "En pligt, der er fjernet",
+      "tookOne": "En voksen tog nogle",
+      "gaveSome": "En voksen gav nogle",
+      "rewardLine": "Belønning",
+      "bonusLine": "Bonus",
+      "grownUpLine": "Voksen",
+      "bucket": {
+        "today": "I dag",
+        "yesterday": "I går",
+        "thisWeek": "Denne uge",
+        "earlier": "Tidligere"
+      },
+      "gaveAdmin": "Givet af en voksen",
+      "tookAdmin": "Taget af en voksen"
+    }
   },
   "settingsSheet": {
     "title": "Indstillinger",

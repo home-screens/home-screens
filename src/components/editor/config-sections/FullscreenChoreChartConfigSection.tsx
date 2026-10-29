@@ -5,6 +5,8 @@ import Toggle from '@/components/ui/Toggle';
 import FullscreenAccentPicker from './FullscreenAccentPicker';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import LabeledField from '@/components/ui/LabeledField';
+import SegmentedControl from '@/components/ui/SegmentedControl';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { useFamilyData } from '@/hooks/useFamilyData';
@@ -22,6 +24,7 @@ import type {
   FullscreenChoreChartView,
   FullscreenChoreChartWeekProgress,
   FullscreenChoreChartLayout,
+  FullscreenChoreCelebration,
 } from '@/types/config';
 
 type Config = Partial<FullscreenChoreChartConfig>;
@@ -65,6 +68,13 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
     { value: 'by-time', label: t('configSections.fullscreen-chore-chart.layoutByTime') },
     { value: 'by-person', label: t('configSections.fullscreen-chore-chart.layoutByPerson') },
   ];
+
+  const CELEBRATION_OPTIONS: { value: FullscreenChoreCelebration; label: string }[] = [
+    { value: 'off', label: t('configSections.fullscreen-chore-chart.celebrationOff') },
+    { value: 'simple', label: t('configSections.fullscreen-chore-chart.celebrationSimple') },
+    { value: 'big', label: t('configSections.fullscreen-chore-chart.celebrationBig') },
+  ];
+  const celebration = c.celebration ?? 'simple';
 
   const [showModal, setShowModal] = useState(false);
   const { data: choreData, refetch: refetchCounts } = useEditorData<{ chores?: unknown[] }>('/api/chores/data');
@@ -188,6 +198,38 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
             checked={c.allowDisplayComplete ?? true}
             onChange={(v) => set({ allowDisplayComplete: v })}
           />
+
+          {/* Celebration: what the chart does when someone finishes their day. */}
+          <div className="pt-1 border-t border-hs-border-strong space-y-2">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-hs-text-faint">
+              {t('configSections.fullscreen-chore-chart.celebration')}
+            </div>
+            <div className="space-y-1">
+              <LabeledField label={t('configSections.fullscreen-chore-chart.celebrationLabel')} as="div">
+                <SegmentedControl
+                  label={t('configSections.fullscreen-chore-chart.celebrationLabel')}
+                  value={celebration}
+                  onChange={(v) => set({ celebration: v })}
+                  options={CELEBRATION_OPTIONS}
+                />
+              </LabeledField>
+              <p className="text-[11px] leading-relaxed text-hs-text-faint">
+                {t('configSections.fullscreen-chore-chart.celebrationHelp')}
+              </p>
+            </div>
+            {celebration !== 'off' && (
+              <>
+                <Toggle
+                  label={t('configSections.fullscreen-chore-chart.celebrationSound')}
+                  checked={c.celebrationSound ?? false}
+                  onChange={(v) => set({ celebrationSound: v })}
+                />
+                <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
+                  {t('configSections.fullscreen-chore-chart.celebrationSoundHelp')}
+                </p>
+              </>
+            )}
+          </div>
 
           {/* Open Modal */}
           <div className="pt-1 border-t border-hs-border-strong space-y-1.5">

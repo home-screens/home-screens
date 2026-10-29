@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest';
 import type { ChoreDefinition } from '@/types/config';
 import type { TranslateFn } from '@/i18n';
 import {
+  CHORE_STEPS_MAX_CHARS,
+  CHORE_STEPS_MAX_LINES,
   buildChoreAssigneeLine,
   buildChoreSummaryLine,
+  choreStepLines,
+  normalizeChoreSteps,
   defaultChoreDays,
   finalizeChoreAssignment,
   getChoreRotationSummaryKey,
@@ -412,5 +416,37 @@ describe('chores handed to a group', () => {
     const chore = { assigneeIds: [], assigneeGroupIds: ['kids'], rotation: 'rotate-daily' } as unknown as ChoreDefinition;
     expect(getChoreRotationSummaryKey(chore, [kids])).toBe('chore-chart.choreSummary.rotationDaily');
     expect(getChoreRotationSummaryKey({ ...chore, assigneeGroupIds: ['solo'] }, [solo])).toBeNull();
+  });
+});
+
+describe('chore steps', () => {
+  it('keeps one step per line, trimmed, with blank lines gone', () => {
+    expect(normalizeChoreSteps('  Make the bed \n\n\nHamper\r\n  ')).toBe('Make the bed\nHamper');
+  });
+
+  it('strips numbering and bullets someone typed, since the list numbers itself', () => {
+    expect(normalizeChoreSteps('1. Bed\n2) Hamper\n- Books\n• Lego\n* Floor\n10. Done')).toBe('Bed\nHamper\nBooks\nLego\nFloor\nDone');
+    expect(normalizeChoreSteps('3 - Lego into the bin\nStep 4: Floor\n5: Vacuum')).toBe('Lego into the bin\nFloor\nVacuum');
+    // A number that is part of the step stays.
+    expect(normalizeChoreSteps('Read 20 minutes\n3 songs')).toBe('Read 20 minutes\n3 songs');
+  });
+
+  it('is nothing at all when nothing is left', () => {
+    expect(normalizeChoreSteps('')).toBeUndefined();
+    expect(normalizeChoreSteps('  \n \n')).toBeUndefined();
+    expect(normalizeChoreSteps(undefined)).toBeUndefined();
+    expect(normalizeChoreSteps(null)).toBeUndefined();
+  });
+
+  it('caps the lines and the characters', () => {
+    const many = Array.from({ length: 20 }, (_, i) => `Step ${i + 1}`).join('\n');
+    expect(choreStepLines(normalizeChoreSteps(many))).toHaveLength(CHORE_STEPS_MAX_LINES);
+    const long = normalizeChoreSteps('x'.repeat(600))!;
+    expect(long).toHaveLength(CHORE_STEPS_MAX_CHARS);
+  });
+
+  it('lists the saved steps for the phone', () => {
+    expect(choreStepLines('Bed\nHamper')).toEqual(['Bed', 'Hamper']);
+    expect(choreStepLines(undefined)).toEqual([]);
   });
 });

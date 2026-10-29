@@ -120,7 +120,6 @@
     "choreAriaLabelCompleted": "Klaar: {chore}",
     "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
     "holdToUncheckHint": "Houd ingedrukt om het vinkje weg te halen",
-    "celebration": "Goed gedaan, {name}!",
     "dayToggle": {
       "ariaLabel": "Welke dag wordt getoond",
       "yesterday": "Gisteren",
@@ -178,7 +177,30 @@
       "description": "Dan kan “{chore}” weer gedaan worden. Wie er al tickets voor kreeg, mag die houden."
     },
     "loadError": "Je klusjes konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
-    "retry": "Opnieuw proberen"
+    "retry": "Opnieuw proberen",
+    "goalLine": {
+      "moreToGoSingular": "nog {n} ticket",
+      "moreToGoPlural": "nog {n} tickets",
+      "ready": "Genoeg gespaard!",
+      "ariaLabel": "Sparen voor {name}. Beloningen openen",
+      "label": "Sparen voor {name}"
+    },
+    "steps": {
+      "show": "Hoe doe je {chore}",
+      "hide": "Stappen voor {chore} verbergen"
+    },
+    "dayComplete": {
+      "title": "Alles klaar, {name}!",
+      "close": "Top!",
+      "summaryChores": {
+        "one": "{done} van {count} klusje",
+        "other": "{done} van {count} klusjes"
+      },
+      "summaryTickets": {
+        "one": "1 ticket verdiend vandaag",
+        "other": "{count} tickets verdiend vandaag"
+      }
+    }
   },
   "choreHistoryNav": {
     "jumpToTodayAriaLabel": "Naar vandaag",
@@ -466,7 +488,17 @@
     "everyone": "Iedereen",
     "deleteConfirm": {
       "title": "Beloning verwijderen",
-      "description": "Weet je zeker dat je \"{name}\" wilt verwijderen? De inwisselgeschiedenis blijft bewaard."
+      "description": "\"{name}\" verwijderen? Al gegeven beloningen blijven in de geschiedenis.",
+      "goalClears": {
+        "one": "Dat spaardoel wordt gewist.",
+        "other": "Hun spaardoelen worden gewist."
+      }
+    },
+    "saverOne": "{names} spaart hiervoor.",
+    "saverMany": "{names} sparen hiervoor.",
+    "hiddenWithSavers": {
+      "one": "{names} ziet het spaardoel niet zolang dit verborgen is.",
+      "other": "{names} zien hun spaardoelen niet zolang dit verborgen is."
     }
   },
   "alertSender": {
@@ -516,10 +548,21 @@
       "confirmLabelSingular": "Inwisselen voor {cost} ticket",
       "confirmLabelPlural": "Inwisselen voor {cost} tickets",
       "emptyKid": "Nog geen beloningen. Een volwassene kan ze toevoegen via de telefoon.",
-      "balanceLabelNamed": "tickets van {name}",
+      "balanceLabelNamed": {
+        "one": "ticket voor {name}",
+        "other": "tickets voor {name}"
+      },
       "switchHint": "Ben jij niet {name}? Kies je naam op het tabblad Vandaag.",
       "refused": "Dat is niet gelukt. Er zijn niet meer genoeg tickets voor.",
-      "failed": "Dat is niet gelukt. Probeer het opnieuw."
+      "failed": "Dat is niet gelukt. Probeer het opnieuw.",
+      "goalClears": "Hier spaart {name} voor. Na het inwisselen is het spaardoel weg.",
+      "goalFurther": "Daarna is {goal} nog {n} tickets weg.",
+      "gotIt": "{name} heeft {reward} gekregen.",
+      "gotItKid": "Je hebt {reward} gekregen! Laat het aan een volwassene zien.",
+      "noTicketsHint": "Doe je klusjes op het tabblad Vandaag om tickets te verdienen.",
+      "alreadyGot": "{name} heeft {reward} net al gekregen.",
+      "alreadyGotKid": "Je hebt {reward} net al gekregen!",
+      "changed": "De tickets van {name} zijn net veranderd. Kijk nog eens."
     },
     "manage": {
       "heading": "Beloningen",
@@ -545,7 +588,77 @@
         "afterRewardPlural": " ingewisseld voor {n} tickets"
       }
     },
-    "saveFailed": "Opslaan mislukt. Probeer het opnieuw."
+    "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+    "goal": {
+      "heading": "Sparen voor",
+      "pick": "Kies iets om voor te sparen",
+      "progressSingular": "{have} van {cost} tickets · nog {n} te gaan",
+      "progressPlural": "{have} van {cost} tickets · nog {n} te gaan",
+      "reached": "Genoeg tickets! Tik om in te wisselen.",
+      "change": "Wijzig",
+      "changeAriaLabel": "Sparen voor {name}. Spaardoel wijzigen",
+      "savingChip": "Spaardoel",
+      "sheetTitle": "Sparen voor…",
+      "sheetHint": "De tickets van {name} tellen hiervoor. Als {name} het heeft, kies dan iets nieuws.",
+      "sheetEmpty": "Nog geen beloningen om voor te sparen.",
+      "stop": "Stoppen met sparen",
+      "failed": "Dat is niet opgeslagen. Probeer het nog eens.",
+      "headingFor": "{name} spaart voor",
+      "pickFor": "Kies iets waar {name} voor spaart",
+      "sheetTitleFor": "Een spaardoel voor {name}",
+      "stopFor": "Spaardoel van {name} stoppen",
+      "redeemAriaLabel": "Genoeg gespaard voor {name}. Inwisselen",
+      "reachedFor": "{name} heeft genoeg. Tik om het te geven."
+    },
+    "adjust": {
+      "button": "Tickets geven of afnemen…",
+      "title": "Tickets geven of afnemen",
+      "hint": "Kies wie, hoeveel, en zeg waarom.",
+      "less": "Eén minder",
+      "more": "Eén meer",
+      "ticketsLabel": {
+        "one": "ticket",
+        "other": "tickets"
+      },
+      "eachLabel": {
+        "one": "ticket per persoon",
+        "other": "tickets per persoon"
+      },
+      "reasonPlaceholder": "Waarom? (niet verplicht)",
+      "reasonHint": "Komt in hun ticketgeschiedenis te staan.",
+      "pickSomeone": "Kies iemand",
+      "failed": "Dat is niet opgeslagen. Probeer het nog eens.",
+      "chooseHowMany": "Kies hoeveel",
+      "manyPeople": "{count} mensen",
+      "give": "{names} {amount} geven",
+      "take": "{amount} van {names} afnemen",
+      "shortOne": "{name} heeft er maar {n}, meer gaat er niet af.",
+      "shortMany": "{names} hebben er niet zoveel; ze gaan naar 0.",
+      "nothingToTake": "{names} heeft geen tickets om af te nemen",
+      "reasonTrimmed": "Alleen de eerste {max} tekens passen."
+    },
+    "tickets": {
+      "earned": "verdiend",
+      "spent": "uitgegeven",
+      "adjusted": "van volwassenen",
+      "window": "Laatste 30 dagen",
+      "empty": "Er zijn nog geen tickets verplaatst.",
+      "failed": "De ticketgeschiedenis kon niet worden geladen.",
+      "removedChore": "Een klusje dat is verwijderd",
+      "tookOne": "Een volwassene heeft er wat afgenomen",
+      "gaveSome": "Een volwassene heeft er wat gegeven",
+      "rewardLine": "Beloning",
+      "bonusLine": "Bonus",
+      "grownUpLine": "Volwassene",
+      "bucket": {
+        "today": "Vandaag",
+        "yesterday": "Gisteren",
+        "thisWeek": "Deze week",
+        "earlier": "Eerder"
+      },
+      "gaveAdmin": "Gegeven door een volwassene",
+      "tookAdmin": "Afgenomen door een volwassene"
+    }
   },
   "settingsSheet": {
     "title": "Instellingen",

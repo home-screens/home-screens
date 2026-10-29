@@ -8,6 +8,8 @@ import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { Flame, Star, Ticket } from 'lucide-react';
 import ChoreRowItem from './ChoreRowItem';
 import type { MemberChipDetail } from './MemberStrip';
+import type { RewardDefinition } from '@/lib/reward-data';
+import GoalLine from './GoalLine';
 import type { ToggleParams } from './helpers';
 import type { ChoreRow } from '@/lib/chore-rows';
 
@@ -24,6 +26,10 @@ interface MemberBandHeaderProps {
   /** `stars` draws the week's seven stars at the right edge, the way a member
    *  chip does; the chips are hidden in the by-person layout. */
   detail: MemberChipDetail;
+  /** The reward this person is saving for, when the chart shows tickets. */
+  goal?: RewardDefinition | null;
+  /** Someone has a goal: a header without one keeps the row empty so names line up. */
+  reserveGoalRow?: boolean;
   /**
    * Narrow column: the fraction goes under the name and the stars under the
    * bar, so the name is never the thing that gives way.
@@ -33,8 +39,10 @@ interface MemberBandHeaderProps {
 }
 
 /** Band height the header needs, as a multiple of the name size. */
-export function memberHeaderHeight(fontSize: number, compact: boolean): number {
-  return fontSize * (compact ? 4.7 : 3.1);
+export function memberHeaderHeight(fontSize: number, compact: boolean, withGoal = false): number {
+  // The goal line is a stat-sized line plus its gap, added for every header
+  // at once so the bands stay even.
+  return fontSize * (compact ? 4.7 : 3.1) + (withGoal ? fontSize * 1.25 : 0);
 }
 
 /**
@@ -42,7 +50,7 @@ export function memberHeaderHeight(fontSize: number, compact: boolean): number {
  * fraction, and the thin progress bar the member chip carries elsewhere. The
  * member strip is hidden in this layout, so this is where the numbers live.
  */
-export function MemberBandHeader({ member, stats, height, fontSize, showStreaks, showPoints, weekData, detail, compact = false, style }: MemberBandHeaderProps) {
+export function MemberBandHeader({ member, stats, height, fontSize, showStreaks, showPoints, weekData, detail, compact = false, style, goal, reserveGoalRow = false }: MemberBandHeaderProps) {
   const avatar = Math.min(height * 0.7, fontSize * 2);
   const statSize = fontSize * 0.75;
   const starSize = fontSize * 0.75;
@@ -122,6 +130,14 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
         <div style={{ height: Math.max(4, fontSize * 0.18), background: 'var(--fcc-border)', borderRadius: 999, marginTop: fontSize * 0.25, overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 999, background: member.color, width: `${stats?.percentage ?? 0}%`, transition: 'width 0.5s ease' }} />
         </div>
+        {showPoints && goal ? (
+          <div style={{ marginTop: fontSize * 0.25 }}>
+            <GoalLine goal={goal} balance={stats?.rewardBalance ?? 0} size={statSize} bar={false} />
+          </div>
+        ) : reserveGoalRow ? (
+          // Every header keeps the row while anyone has a goal, so the names line up across the columns.
+          <div aria-hidden style={{ marginTop: fontSize * 0.25, height: statSize * 1.3 }} />
+        ) : null}
         {compact && stars}
       </div>
       {!compact && stars}
@@ -150,6 +166,10 @@ interface MemberBandProps {
   showTimeOfDay: boolean;
   weekData: WeekDayData[];
   detail: MemberChipDetail;
+  /** The reward this person is saving for, when the chart shows tickets. */
+  goal?: RewardDefinition | null;
+  /** Someone has a goal: a header without one keeps the row empty so names line up. */
+  reserveGoalRow?: boolean;
   memberMap: Map<string, FamilyMember>;
   initialsMap: Map<string, string>;
   allowTouch: boolean;
@@ -174,6 +194,8 @@ export default function MemberBand({
   showTimeOfDay,
   weekData,
   detail,
+  goal,
+  reserveGoalRow = false,
   memberMap,
   initialsMap,
   allowTouch,
@@ -192,6 +214,8 @@ export default function MemberBand({
         detail={detail}
         compact={compact}
         style={{ padding: `0 ${fontSize * 0.3}px ${headerFontSize * 0.2}px` }}
+        goal={goal}
+        reserveGoalRow={reserveGoalRow}
       />
       {rows.map((row, i) => (
         <ChoreRowItem

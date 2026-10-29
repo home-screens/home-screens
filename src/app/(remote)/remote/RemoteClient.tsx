@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import type { DisplayStatus } from '@/lib/display-commands';
-import type { ChoreChartConfig } from '@/types/config';
 import type { ChoreSnapshot } from '@/lib/chore-client';
 import { useTranslate } from '@/i18n';
 import { useRemoteStatus, useAllDisplayStatuses, usePendingCommand } from './hooks';
@@ -34,6 +33,7 @@ import { useUpdateNotification } from '@/hooks/useUpdateNotification';
 import BottomTabBar from './components/BottomTabBar';
 import RemoteToast from './components/RemoteToast';
 import ChoresTab from './components/ChoresTab';
+import type { PhoneChoreConfig } from '@/lib/chore-module-config';
 import TimersTab from './components/TimersTab';
 import ListsTab from './components/ListsTab';
 import NotesTab from './components/NotesTab';
@@ -52,7 +52,7 @@ interface RemoteInitialData {
   profiles: Array<{ id: string; name: string }>;
   /** Global active profile — used for the All target and legacy single-display installs. */
   activeProfile: string | undefined;
-  choreConfig: ChoreChartConfig | null;
+  choreConfig: PhoneChoreConfig | null;
   /** Household members and chores from `data/chores.json`, not module config. */
   choreData: ChoreSnapshot;
   /** A To-Do module exists on some screen, so the Lists tab has somewhere to show. */

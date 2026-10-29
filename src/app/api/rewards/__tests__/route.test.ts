@@ -93,6 +93,24 @@ describe('/api/rewards family identities', () => {
     expect(redeemReward).not.toHaveBeenCalled();
   });
 
+  it('refuses a redeem built from a balance that has since moved, with the real numbers', async () => {
+    const stale = new NextRequest('http://localhost/api/rewards', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rewardId: 'r1', memberId: 'm1', expectedBalance: 7 }),
+    });
+    const res = await POST(stale);
+    expect(res.status).toBe(409);
+    expect(await res.json()).toMatchObject({ reason: 'balance', balances: { m1: 5 } });
+    expect(redeemReward).not.toHaveBeenCalled();
+  });
+
+  it('goes ahead when the balance the sheet saw is still the balance', async () => {
+    const fresh = new NextRequest('http://localhost/api/rewards', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rewardId: 'r1', memberId: 'm1', expectedBalance: 5 }),
+    });
+    expect((await POST(fresh)).status).toBe(200);
+    expect(redeemReward).toHaveBeenCalled();
+  });
+
   it('preserves member-specific reward eligibility', async () => {
     vi.mocked(readRewardData).mockResolvedValue({ ...data, rewards: [{ ...reward, memberIds: ['other'] }] });
     expect((await POST(request())).status).toBe(403);

@@ -3,7 +3,11 @@
 import { formatRemaining, type TimerTranslate } from './shared';
 import type { MaterializedTimerSession } from '@/types/timers';
 
-const CONFETTI = [
+/**
+ * Ten confetti pieces: [top at scale 1, left %, width, height, color, rotation].
+ * Shared with the chore chart's day-complete overlay so both celebrate alike.
+ */
+export const CONFETTI = [
   [180, 13, 26, 44, '#f472b6', 24], [320, 79, 22, 38, '#fbbf24', -32],
   [120, 55, 20, 36, '#60a5fa', 58], [520, 20, 24, 40, '#34d399', -14],
   [640, 83, 20, 34, '#a78bfa', 40], [260, 35, 18, 32, '#e8503a', -52],

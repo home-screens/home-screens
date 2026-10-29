@@ -15,6 +15,7 @@ export type ChoreValidationHintKind =
   | 'selectAtLeastOnePerson'
   | 'selectAtLeastOnePersonOrGroup'
   | 'selectAtLeastOneDay'
+  | 'tooManySteps'
   | 'familyNotReady';
 
 /**
@@ -68,6 +69,8 @@ export function getChoreValidationHintKind(args: {
   frequency: ChoreResetFrequency;
   /** Days on the day row. A recurring chore with none reads as "never" and is not saved. */
   daysOfWeekLength: number;
+  /** Lines in the Steps box. Past the cap the save waits rather than dropping the extra ones unseen. */
+  stepsLines?: number;
 }): ChoreValidationHintKind | null {
   if (!args.familyReady) return 'familyNotReady';
   if (!args.name.trim()) return 'enterName';
@@ -81,6 +84,7 @@ export function getChoreValidationHintKind(args: {
   if (args.rotation !== 'schedule' && args.frequency !== 'once' && args.daysOfWeekLength === 0) {
     return 'selectAtLeastOneDay';
   }
+  if ((args.stepsLines ?? 0) > CHORE_STEPS_MAX_LINES) return 'tooManySteps';
   return null;
 }
 
@@ -233,4 +237,57 @@ export function finalizeChoreAssignment(args: {
 /** Whether "how is it shared" is a real question for this chore, which is also when the form asks it. */
 export function canChoreRotate(args: { assigneeCount: number; assigneeGroupIdsLength: number; rotation: ChoreRotation }): boolean {
   return args.assigneeCount >= 2 || args.assigneeGroupIdsLength > 0 || args.rotation === 'schedule';
+}
+
+// ── Steps ────────────────────────────────────────────────────────────
+
+/** The most a chore's steps may hold, so a pasted essay does not become a row. */
+export const CHORE_STEPS_MAX_CHARS = 500;
+/** The most steps a chore may list. Twelve is already a long list for a kid. */
+export const CHORE_STEPS_MAX_LINES = 12;
+
+/**
+ * A line's own numbering or bullet, which the list draws itself: "1.", "2)",
+ * "3:", "4 -", "Step 5." and a leading "-", "•" or "*". A number that is part
+ * of the step ("3 songs", "20 minutes") has no mark after it and stays.
+ */
+const LEADING_MARKER = /^\s*(?:(?:step\s*)?\d{1,2}\s*[.):-]\s*|[-•*]\s+)/i;
+
+/**
+ * What is saved from the Steps field: one step per line, trimmed, blank lines
+ * gone, any numbering someone typed stripped so the list numbers itself, and
+ * both caps applied. Nothing left means no steps, not an empty string.
+ */
+export function normalizeChoreSteps(raw: string | undefined | null): string | undefined {
+  if (!raw) return undefined;
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line) => line.replace(LEADING_MARKER, '').trim())
+    .filter((line) => line.length > 0)
+    .slice(0, CHORE_STEPS_MAX_LINES);
+  const joined = lines.join('\n').slice(0, CHORE_STEPS_MAX_CHARS).trimEnd();
+  return joined.length > 0 ? joined : undefined;
+}
+
+/** The steps as the phone lists them, one entry per numbered line. */
+export function choreStepLines(steps: string | undefined): string[] {
+  if (!steps) return [];
+  return steps.split('\n').map((line) => line.trim()).filter((line) => line.length > 0);
+}
+
+/**
+ * The counter beside the Steps hint, once the list is near either cap: how
+ * many steps and characters of the allowed, red past a cap (the box itself
+ * cannot go past the character cap; lines past the twelfth are dropped on
+ * save). Null while there is plenty of room, so a short list has no clutter.
+ */
+export function describeStepsCount(raw: string, t: TranslateFn): { text: string; over: boolean } | null {
+  const lines = raw.split(/\r?\n/).filter((line) => line.trim().length > 0).length;
+  const chars = raw.length;
+  if (lines < CHORE_STEPS_MAX_LINES - 3 && chars < CHORE_STEPS_MAX_CHARS - 100) return null;
+  // Past the line cap the counter turns red and the Save button's own hint
+  // says "Keep it to 12 steps": one instruction, not two that disagree.
+  const over = lines > CHORE_STEPS_MAX_LINES || chars >= CHORE_STEPS_MAX_CHARS;
+  const text = t('chore-chart.choreForm.stepsCount', { lines, maxLines: CHORE_STEPS_MAX_LINES, chars, maxChars: CHORE_STEPS_MAX_CHARS });
+  return { text, over };
 }

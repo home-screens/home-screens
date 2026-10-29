@@ -1,4 +1,4 @@
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has } from './shared';
 
@@ -23,6 +23,19 @@ const TAGGED_MEALS = {
     { slot: 'dinner', mealId: 'meal-t', date: mealISO(0) },
   ],
 };
+
+/**
+ * Tick the seeded kid's one chore for today through the API, the way a phone
+ * would, so the chart sees the day finish in the data. Undone first, since
+ * the sandbox keeps its ticks between rows.
+ */
+async function finishSeededDay(page: Page): Promise<void> {
+  const { today } = await (await page.request.get('/api/chores')).json() as { today: string };
+  await page.request.post('/api/chores', { data: { choreId: 'c1', memberId: 'm1', date: today, direction: 'uncomplete' } });
+  await page.waitForTimeout(400);
+  const res = await page.request.post('/api/chores', { data: { choreId: 'c1', memberId: 'm1', date: today, direction: 'complete' } });
+  expect(res.ok(), `POST /api/chores answered ${res.status()}`).toBe(true);
+}
 
 /** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
 export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
@@ -121,6 +134,45 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
     type: 'fullscreen-chore-chart', name: 'hide-time-of-day', kind: 'local-data', seed: 'chores',
     config: { view: 'chores', showTimeOfDay: false },
     expect: async (mod) => { await has('Feed the dog')(mod); await expect(mod).not.toContainText('Anytime'); },
+  },
+  {
+    // celebration 'simple': finishing the day (the seeded kid's one chore,
+    // ticked through the API after the chart is up) draws the card over the
+    // dimmed chart.
+    type: 'fullscreen-chore-chart', name: 'celebration-simple', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', celebration: 'simple' },
+    expect: async (mod, page) => {
+      await has('Feed the dog')(mod);
+      await finishSeededDay(page);
+      const overlay = mod.locator('[data-testid="fcc-day-complete"]');
+      await expect(overlay).toHaveAttribute('data-celebration', 'simple');
+      await expect(overlay).toContainText('All done, Avery!');
+      await expect(overlay).toContainText('1 of 1 chore');
+    },
+  },
+  {
+    // celebration 'big' takes the whole screen instead of a card.
+    type: 'fullscreen-chore-chart', name: 'celebration-big', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', celebration: 'big' },
+    expect: async (mod, page) => {
+      await has('Feed the dog')(mod);
+      await finishSeededDay(page);
+      const overlay = mod.locator('[data-testid="fcc-day-complete"]');
+      await expect(overlay).toHaveAttribute('data-celebration', 'big');
+      await expect(overlay).toContainText('chores done');
+    },
+  },
+  {
+    // celebration 'off': the same finish draws nothing.
+    type: 'fullscreen-chore-chart', name: 'celebration-off', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', celebration: 'off' },
+    expect: async (mod, page) => {
+      await has('Feed the dog')(mod);
+      await finishSeededDay(page);
+      // The tick lands on the chart (the dot fills), and no overlay follows it.
+      await expect(mod.getByRole('button', { name: 'Undo Feed the dog for Avery' })).toBeVisible();
+      await expect(mod.locator('[data-testid="fcc-day-complete"]')).toHaveCount(0);
+    },
   },
   {
     // darkMode:false migrates to the light 'linen' theme (colorScheme light vs the dark default).

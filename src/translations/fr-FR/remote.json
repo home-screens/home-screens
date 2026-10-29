@@ -120,7 +120,6 @@
     "choreAriaLabelCompleted": "Fait : {chore}",
     "saveFailed": "Échec de l'enregistrement. Réessaie.",
     "holdToUncheckHint": "Appuie longuement pour décocher",
-    "celebration": "Bravo, {name} !",
     "dayToggle": {
       "ariaLabel": "Jour à afficher",
       "yesterday": "Hier",
@@ -178,7 +177,30 @@
       "description": "« {chore} » redevient libre. Les tickets déjà gagnés avec cette tâche ne sont pas perdus."
     },
     "loadError": "Impossible de charger tes tâches. Vérifie que le hub est allumé et réessaie.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "goalLine": {
+      "moreToGoSingular": "encore {n} ticket",
+      "moreToGoPlural": "encore {n} tickets",
+      "ready": "Assez économisé !",
+      "ariaLabel": "Objectif : {name}. Ouvrir les récompenses",
+      "label": "Objectif : {name}"
+    },
+    "steps": {
+      "show": "Comment faire {chore}",
+      "hide": "Cacher les étapes de {chore}"
+    },
+    "dayComplete": {
+      "title": "Tout est fait, {name} !",
+      "close": "Super !",
+      "summaryChores": {
+        "one": "{done} tâche sur {count}",
+        "other": "{done} tâches sur {count}"
+      },
+      "summaryTickets": {
+        "one": "1 ticket gagné aujourd'hui",
+        "other": "{count} tickets gagnés aujourd'hui"
+      }
+    }
   },
   "choreHistoryNav": {
     "jumpToTodayAriaLabel": "Aller à aujourd'hui",
@@ -466,7 +488,17 @@
     "everyone": "Tout le monde",
     "deleteConfirm": {
       "title": "Supprimer la récompense",
-      "description": "Veux-tu vraiment supprimer « {name} » ? L'historique des échanges sera conservé."
+      "description": "Supprimer « {name} » ? Les récompenses déjà données restent dans l'historique.",
+      "goalClears": {
+        "one": "Cet objectif sera effacé.",
+        "other": "Leurs objectifs seront effacés."
+      }
+    },
+    "saverOne": "{names} économise pour ça.",
+    "saverMany": "{names} économisent pour ça.",
+    "hiddenWithSavers": {
+      "one": "{names} ne verra pas son objectif tant que c'est masqué.",
+      "other": "{names} ne verront pas leurs objectifs tant que c'est masqué."
     }
   },
   "alertSender": {
@@ -516,10 +548,21 @@
       "confirmLabelSingular": "Échanger pour {cost} ticket",
       "confirmLabelPlural": "Échanger pour {cost} tickets",
       "emptyKid": "Aucune récompense pour l'instant. Un grand peut en ajouter depuis son téléphone.",
-      "balanceLabelNamed": "tickets de {name}",
+      "balanceLabelNamed": {
+        "one": "ticket pour {name}",
+        "other": "tickets pour {name}"
+      },
       "switchHint": "Ce n'est pas {name} ? Choisis ton nom dans l'onglet Aujourd'hui.",
       "refused": "Ça n'a pas marché. Il n'y a plus assez de tickets pour ça.",
-      "failed": "Ça n'a pas marché. Réessaie."
+      "failed": "Ça n'a pas marché. Réessaie.",
+      "goalClears": "C'est l'objectif de {name}. Il est effacé une fois échangé.",
+      "goalFurther": "Après ça, il manquera {n} tickets pour {goal}.",
+      "gotIt": "{name} a obtenu {reward}.",
+      "gotItKid": "Tu as obtenu {reward} ! Montre-le à un adulte.",
+      "noTicketsHint": "Fais tes tâches dans l'onglet Aujourd'hui pour gagner des tickets.",
+      "alreadyGot": "{name} a déjà obtenu {reward} à l'instant.",
+      "alreadyGotKid": "Tu as déjà obtenu {reward} à l'instant !",
+      "changed": "Les tickets de {name} viennent de changer. Regarde à nouveau."
     },
     "manage": {
       "heading": "Récompenses",
@@ -545,7 +588,77 @@
         "afterRewardPlural": " pour {n} tickets"
       }
     },
-    "saveFailed": "Échec de l'enregistrement. Réessaie."
+    "saveFailed": "Échec de l'enregistrement. Réessaie.",
+    "goal": {
+      "heading": "Objectif",
+      "pick": "Choisis quelque chose pour lequel économiser",
+      "progressSingular": "{have} tickets sur {cost} · encore {n}",
+      "progressPlural": "{have} tickets sur {cost} · encore {n}",
+      "reached": "Assez de tickets ! Touche pour échanger.",
+      "change": "Changer",
+      "changeAriaLabel": "Objectif : {name}. Changer d'objectif",
+      "savingChip": "Objectif",
+      "sheetTitle": "Économiser pour…",
+      "sheetHint": "Les tickets de {name} comptent pour ça. Quand {name} l'a obtenu, choisis autre chose.",
+      "sheetEmpty": "Pas encore de récompense pour laquelle économiser.",
+      "stop": "Arrêter d'économiser",
+      "failed": "Ça n'a pas été enregistré. Réessaie.",
+      "headingFor": "{name} économise pour",
+      "pickFor": "Choisis un objectif pour {name}",
+      "sheetTitleFor": "Un objectif pour {name}",
+      "stopFor": "Arrêter l'objectif de {name}",
+      "redeemAriaLabel": "Assez économisé pour {name}. Échanger",
+      "reachedFor": "{name} en a assez. Touche pour le donner."
+    },
+    "adjust": {
+      "button": "Donner ou retirer des tickets…",
+      "title": "Donner ou retirer des tickets",
+      "hint": "Choisis qui, combien, et dis pourquoi.",
+      "less": "Un de moins",
+      "more": "Un de plus",
+      "ticketsLabel": {
+        "one": "ticket",
+        "other": "tickets"
+      },
+      "eachLabel": {
+        "one": "ticket chacun",
+        "other": "tickets chacun"
+      },
+      "reasonPlaceholder": "Pourquoi ? (facultatif)",
+      "reasonHint": "Apparaît dans leur historique de tickets.",
+      "pickSomeone": "Choisis quelqu'un",
+      "failed": "Ça n'a pas été enregistré. Réessaie.",
+      "chooseHowMany": "Choisis combien",
+      "manyPeople": "{count} personnes",
+      "give": "Donner {amount} à {names}",
+      "take": "Retirer {amount} à {names}",
+      "shortOne": "{name} n'en a que {n}, c'est tout ce qui partira.",
+      "shortMany": "{names} n'en ont pas autant ; ils passeront à 0.",
+      "nothingToTake": "{names} n'a pas de tickets à retirer",
+      "reasonTrimmed": "Seules les {max} premières lettres tiennent."
+    },
+    "tickets": {
+      "earned": "gagnés",
+      "spent": "dépensés",
+      "adjusted": "des adultes",
+      "window": "30 derniers jours",
+      "empty": "Aucun ticket n'a encore bougé.",
+      "failed": "Impossible de charger l'historique des tickets.",
+      "removedChore": "Une tâche supprimée",
+      "tookOne": "Un adulte en a retiré",
+      "gaveSome": "Un adulte en a donné",
+      "rewardLine": "Récompense",
+      "bonusLine": "Bonus",
+      "grownUpLine": "Adulte",
+      "bucket": {
+        "today": "Aujourd'hui",
+        "yesterday": "Hier",
+        "thisWeek": "Cette semaine",
+        "earlier": "Avant"
+      },
+      "gaveAdmin": "Donné par un adulte",
+      "tookAdmin": "Retiré par un adulte"
+    }
   },
   "settingsSheet": {
     "title": "Paramètres",

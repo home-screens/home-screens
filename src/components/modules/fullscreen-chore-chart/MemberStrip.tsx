@@ -5,6 +5,8 @@ import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/
 import { balanceRows, fitPerRow } from '@/components/modules/chore-chart/layout';
 import { Flame, Star, Ticket } from 'lucide-react';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import type { RewardDefinition } from '@/lib/reward-data';
+import GoalLine from './GoalLine';
 import { useTranslate } from '@/i18n';
 
 /**
@@ -26,10 +28,18 @@ interface MemberChipProps {
   compact: boolean;
   showStreaks: boolean;
   showPoints?: boolean;
+  /** The reward this person is saving for, already checked to be theirs to redeem. */
+  goal?: RewardDefinition | null;
+  /** Someone in the strip has a goal: a chip without one keeps the row empty so every chip is the same height. */
+  reserveGoalRow?: boolean;
+  /** The chip is wide enough (a landscape panel) for the long goal words beside the bar. */
+  wideChip?: boolean;
 }
 
-function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, showPoints }: MemberChipProps) {
+function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, showPoints, goal, reserveGoalRow, wideChip }: MemberChipProps) {
   const avatar = (compact ? 56 : 68) * c;
+  const goalSize = 22 * c;
+  const compactGoalSize = 19 * c;
   const nameSize = (compact ? 25 : 28) * c;
   const statSize = 22 * c;
   const starSize = 22 * c;
@@ -84,6 +94,15 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
             {member.name}
           </div>
           <div style={{ marginTop: 1 * c, whiteSpace: 'nowrap', overflow: 'hidden' }}>{stat}</div>
+          {/* One line for the goal too, never on the stat line: the ticket count
+              is the number kids check and it must not be the thing that clips. */}
+          {goal ? (
+            <div style={{ marginTop: 3 * c, overflow: 'hidden' }}>
+              <GoalLine goal={goal} balance={stats?.rewardBalance ?? 0} size={compactGoalSize} bar={false} short testId="fcc-chip-goal-compact" />
+            </div>
+          ) : reserveGoalRow ? (
+            <div aria-hidden style={{ marginTop: 3 * c, height: compactGoalSize * 1.3 }} />
+          ) : null}
         </div>
       ) : (
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
@@ -116,6 +135,16 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
               <div style={{ height: '100%', borderRadius: 3 * c, background: member.color, width: `${stats?.percentage ?? 0}%` }} />
             </div>
           )}
+          {/* What they are saving for. Every chip in the strip keeps the row while
+              anyone has a goal, so chips with and without stay the same height.
+              Under a day bar the line has no bar of its own. */}
+          {goal ? (
+            <div style={{ marginTop: 9 * c }}>
+              <GoalLine goal={goal} balance={stats?.rewardBalance ?? 0} size={goalSize} bar={detail === 'stars'} wide={wideChip} />
+            </div>
+          ) : reserveGoalRow ? (
+            <div aria-hidden style={{ marginTop: 9 * c, height: goalSize * 1.3 }} />
+          ) : null}
         </div>
       )}
     </div>
@@ -136,6 +165,8 @@ interface MemberStripProps {
   gap: number;
   showStreaks: boolean;
   showPoints?: boolean;
+  /** Each person's resolved savings goal, from `resolveSavingsGoal`; a person missing here has none. */
+  goals?: ReadonlyMap<string, RewardDefinition>;
   availableWidth: number;
   /** Chips across before a second row: 3 on a portrait panel, 4 in landscape. */
   maxPerRow?: number;
@@ -160,6 +191,7 @@ export default function MemberStrip({
   gap,
   showStreaks,
   showPoints,
+  goals,
   availableWidth,
   maxPerRow = 3,
 }: MemberStripProps) {
@@ -179,6 +211,8 @@ export default function MemberStrip({
     : fullPerRow;
   const rows = balanceRows(members, perRow);
   const columns = rows[0]?.length ?? 1;
+  const anyGoal = !!showPoints && members.some((m) => goals?.has(m.id));
+  const chipWidth = (availableWidth - gap * (columns - 1)) / columns;
   const lone = members.length === 1;
 
   return (
@@ -196,6 +230,9 @@ export default function MemberStrip({
               compact={compact}
               showStreaks={showStreaks}
               showPoints={showPoints}
+              goal={showPoints ? goals?.get(member.id) ?? null : null}
+              reserveGoalRow={anyGoal}
+              wideChip={chipWidth >= 420 * c}
             />
           ))}
         </div>

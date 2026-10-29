@@ -894,6 +894,31 @@
             "text": "string"
           },
           "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
+        },
+        {
+          "name": "celebration",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "FullscreenChoreCelebration",
+            "values": [
+              "off",
+              "simple",
+              "big"
+            ]
+          },
+          "description": "What happens when someone finishes every chore they have today: `off`, `simple` (a card over the chart with confetti) or `big` (the whole screen). Omitted = `simple`",
+          "default": "simple"
+        },
+        {
+          "name": "celebrationSound",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Play a short chime with the celebration. Off by default, so a wall in a kitchen stays quiet at six in the morning",
+          "default": false
         }
       ],
       "views": [
@@ -10328,6 +10353,15 @@
             "text": "ChoreBonus"
           },
           "description": "Set on a bonus chore: an extra that only earns tickets and never counts against anyone"
+        },
+        {
+          "name": "steps",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "How to do it, one step per line, shown under the chore on the phone when the kid asks"
         }
       ]
     },
@@ -11497,6 +11531,24 @@
         {
           "method": "PUT",
           "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/rewards/goal",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "open"
+        }
+      ]
+    },
+    {
+      "path": "/api/rewards/ledger",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "open"
         }
       ]
     },

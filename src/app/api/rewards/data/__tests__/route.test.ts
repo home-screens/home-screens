@@ -11,11 +11,11 @@ vi.mock('@/lib/data-transaction', () => ({
   withDataTransaction: (operation: () => Promise<unknown>) => operation(),
   onDataTransactionCommit: vi.fn(),
 }));
-vi.mock('@/lib/reward-data', () => ({ readRewardData: vi.fn(), updateRewardDefinitions: vi.fn(), creditPoints: vi.fn(), debitPoints: vi.fn() }));
+vi.mock('@/lib/reward-data', () => ({ readRewardData: vi.fn(), updateRewardDefinitions: vi.fn(), adjustPoints: vi.fn() }));
 
 import { POST, PUT } from '../route';
 import { readFamilyData } from '@/lib/family-data';
-import { readRewardData, updateRewardDefinitions, creditPoints, debitPoints } from '@/lib/reward-data';
+import { readRewardData, updateRewardDefinitions, adjustPoints } from '@/lib/reward-data';
 import { contentRevision } from '@/lib/content-revision';
 
 const reward = { id: 'r1', name: 'Movie', emoji: '', description: '', cost: 2, memberIds: ['m1'], enabled: true };
@@ -29,8 +29,7 @@ beforeEach(() => {
   vi.mocked(readFamilyData).mockResolvedValue({ members: [{ id: 'm1', name: 'Alex', color: '#aabbcc', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' }] });
   vi.mocked(readRewardData).mockResolvedValue(data);
   vi.mocked(updateRewardDefinitions).mockResolvedValue(data);
-  vi.mocked(creditPoints).mockResolvedValue(data);
-  vi.mocked(debitPoints).mockResolvedValue(data);
+  vi.mocked(adjustPoints).mockResolvedValue(data);
 });
 
 /** The revision a client that loaded the current mock would quote. */
@@ -66,7 +65,39 @@ describe('/api/rewards/data family references', () => {
 
   it.each([4, -4])('adjusts an existing member balance by %s', async (amount) => {
     expect((await POST(request('POST', { memberId: 'm1', amount }))).status).toBe(200);
-    expect(amount > 0 ? creditPoints : debitPoints).toHaveBeenCalledWith('m1', 4);
+    expect(adjustPoints).toHaveBeenCalledWith('m1', amount, undefined);
+  });
+
+  it('adjusts several people at once with one reason, each once', async () => {
+    vi.mocked(readFamilyData).mockResolvedValue({ members: [
+      { id: 'm1', name: 'Alex', color: '#aabbcc', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+      { id: 'm2', name: 'Bo', color: '#aabbcc', createdAt: '2026-01-01T00:00:00.000Z', updatedAt: '2026-01-01T00:00:00.000Z' },
+    ] });
+    const res = await POST(request('POST', { memberIds: ['m1', 'm2', 'm1'], amount: 5, reason: '  Helped with the groceries  ' }));
+    expect(res.status).toBe(200);
+    expect(vi.mocked(adjustPoints).mock.calls).toEqual([['m1', 5, 'Helped with the groceries'], ['m2', 5, 'Helped with the groceries']]);
+    expect(await res.json()).toEqual({ balances: data.balances, adjustments: [] });
+  });
+
+  it('caps the reason and treats a blank one as none', async () => {
+    await POST(request('POST', { memberId: 'm1', amount: 1, reason: 'x'.repeat(100) }));
+    expect(adjustPoints).toHaveBeenLastCalledWith('m1', 1, 'x'.repeat(80));
+    await POST(request('POST', { memberId: 'm1', amount: 1, reason: '   ' }));
+    expect(adjustPoints).toHaveBeenLastCalledWith('m1', 1, undefined);
+  });
+
+  it.each([
+    ['no people', { memberIds: [], amount: 1 }],
+    ['a fraction', { memberId: 'm1', amount: 1.5 }],
+    ['a reason that is not text', { memberId: 'm1', amount: 1, reason: 7 }],
+  ])('refuses %s', async (_label, body) => {
+    expect((await POST(request('POST', body))).status).toBe(400);
+    expect(adjustPoints).not.toHaveBeenCalled();
+  });
+
+  it('writes nobody when one of several people was removed', async () => {
+    expect((await POST(request('POST', { memberIds: ['m1', 'deleted'], amount: 4 }))).status).toBe(409);
+    expect(adjustPoints).not.toHaveBeenCalled();
   });
 
   it('refuses a write that quotes no revision', async () => {
@@ -88,7 +119,6 @@ describe('/api/rewards/data family references', () => {
 
   it('cannot recreate a removed member balance', async () => {
     expect((await POST(request('POST', { memberId: 'deleted', amount: 4 }))).status).toBe(409);
-    expect(creditPoints).not.toHaveBeenCalled();
-    expect(debitPoints).not.toHaveBeenCalled();
+    expect(adjustPoints).not.toHaveBeenCalled();
   });
 });
