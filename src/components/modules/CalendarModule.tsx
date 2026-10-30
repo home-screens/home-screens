@@ -33,6 +33,8 @@ interface CalendarModuleProps {
   timezone?: string;
   timeFormat?: TimeFormat;
   calendarStatus?: CalendarFetchStatus;
+  /** Attached only while the display's first calendar fetch is still out (see buildModuleProps). */
+  calendarLoading?: boolean;
   /** Attached only while at least one source is failing (see buildModuleProps). */
   sourceStatus?: CalendarSourceStatus[];
   /** Attached only while Settings > Calendar names nothing to fetch (see buildModuleProps). */
@@ -66,7 +68,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   rolling: GridView,
 };
 
-export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, sourceStatus, calendarSetup, people, groups, peopleState }: CalendarModuleProps) {
+export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const rawEvents = events ?? EMPTY_EVENTS;
@@ -168,7 +170,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // Only a failure with NO successful fetch ever renders the "can't load"
   // message (see calendarStatusView).
   const status = calendarStatusView({
-    calendarSetup, calendarStatus, failingSources, hasLiveSource,
+    calendarSetup, calendarLoading, calendarStatus, failingSources, hasLiveSource,
     timezone, timeFormat: resolvedTimeFormat, locale, now, today, t,
   });
 
@@ -187,11 +189,15 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     );
   }
 
-  if (status.kind === 'cantLoad') {
+  if (status.kind === 'cantLoad' || status.kind === 'loading') {
+    // Neither is a free day: the first fetch is still out, or it has only
+    // ever failed. Same quiet line, different words.
     return (
       <ModuleWrapper style={style}>
-        <div className="flex items-center justify-center h-full">
-          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>{t('calendar.cantLoadEvents')}</p>
+        <div className="flex items-center justify-center h-full" data-testid={status.kind === 'loading' ? 'calendar-loading' : undefined}>
+          <p style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.tertiary }}>
+            {t(status.kind === 'loading' ? 'calendar.loadingEvents' : 'calendar.cantLoadEvents')}
+          </p>
         </div>
       </ModuleWrapper>
     );

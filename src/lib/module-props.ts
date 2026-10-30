@@ -223,6 +223,15 @@ export function buildModuleProps(
   if (needsCalendar && source.calendarStatus?.error != null) {
     props.calendarStatus = source.calendarStatus;
   }
+  // Presence semantic once more: attached only on a display whose configured
+  // calendar fetch has not answered yet (no success, no failure), so a
+  // module shows "loading" instead of claiming an empty day it has not
+  // checked. The editor preview has no fetch loop (calendarStatus null)
+  // and keeps its placeholder; an unconfigured calendar keeps its setup card.
+  if (needsCalendar && source.calendarConfigured && source.calendarStatus
+    && source.calendarStatus.error == null && source.calendarStatus.updatedAt == null && !source.calendarEvents) {
+    props.calendarLoading = true;
+  }
   // Same presence semantic per source: attached only while at least one
   // source is failing, so healthy displays and the editor build identical
   // props and never re-render over an all-ok status array.

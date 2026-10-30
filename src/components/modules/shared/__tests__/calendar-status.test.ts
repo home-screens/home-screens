@@ -71,6 +71,11 @@ describe('calendarStatusView', () => {
       .toEqual({ kind: 'badge', text: 'calendar.signInAgain', loud: false });
   });
 
+  it('reports loading while the first fetch is still out, after the setup card and before any failure', () => {
+    expect(calendarStatusView({ ...base, ...healthy, calendarLoading: true })).toEqual({ kind: 'loading' });
+    expect(calendarStatusView({ ...base, ...healthy, calendarLoading: true, calendarSetup: 'noSources' })).toMatchObject({ kind: 'setup' });
+  });
+
   it('reports cantLoad for a failing fetch that never succeeded', () => {
     expect(calendarStatusView({ ...base, ...healthy, calendarStatus: { error: 'x', updatedAt: null } })).toEqual({ kind: 'cantLoad' });
   });

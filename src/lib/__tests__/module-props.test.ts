@@ -149,6 +149,23 @@ describe('buildModuleProps', () => {
     expect(props).not.toHaveProperty('events');
   });
 
+  it('flags a configured calendar as loading only on a display whose first fetch is still out', () => {
+    // Nothing fetched yet, nothing failed: the module must not claim a free day.
+    const pending = toDisplaySource(displaySettings, LOCATION, emptyShared());
+    expect(buildModuleProps(instance('calendar'), pending).calendarLoading).toBe(true);
+    expect(buildModuleProps(instance('fullscreen-calendar'), pending).calendarLoading).toBe(true);
+    expect(buildModuleProps(instance('clock'), pending)).not.toHaveProperty('calendarLoading');
+    // Answered, failed, unconfigured, or the editor preview: not loading.
+    expect(buildModuleProps(instance('calendar'), displaySource())).not.toHaveProperty('calendarLoading');
+    const failed = toDisplaySource(displaySettings, LOCATION, { ...emptyShared(), calendarStatus: { error: 'boom', updatedAt: null } });
+    expect(buildModuleProps(instance('calendar'), failed)).not.toHaveProperty('calendarLoading');
+    const unconfigured = toDisplaySource({ ...displaySettings, calendar: undefined }, LOCATION, emptyShared());
+    expect(buildModuleProps(instance('calendar'), unconfigured)).not.toHaveProperty('calendarLoading');
+    expect(buildModuleProps(instance('calendar'), toEditorSource(previewSettings, {
+      weatherErrors: {}, weatherByProvider: {}, calendarEvents: null, calendarSourceStatus: null,
+    }))).not.toHaveProperty('calendarLoading');
+  });
+
   it('the editor preview passes per-source health through like the display does', () => {
     // A feed the hub cannot reach must badge its saved rows in the preview
     // too; only the whole-fetch status (calendarStatus) is display-only.

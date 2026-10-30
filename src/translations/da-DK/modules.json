@@ -130,6 +130,7 @@
     "fromTime": "Fra {time}",
     "untilTime": "Indtil {time}",
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
+    "loadingEvents": "Indlæser begivenheder…",
     "weekOf": "Ugen fra {date}",
     "legendLabel": "Kalenderkilder",
     "publicHolidays": "Helligdage",

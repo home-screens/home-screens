@@ -174,6 +174,8 @@ interface FullscreenCalendarModuleProps {
   loading?: boolean;
   fullscreenTheme?: string;
   calendarStatus?: CalendarFetchStatus;
+  /** Attached only while the display's first calendar fetch is still out (see buildModuleProps). */
+  calendarLoading?: boolean;
   /** Attached only while at least one source is failing (see buildModuleProps). */
   sourceStatus?: CalendarSourceStatus[];
   /** Attached only while Settings > Calendar names nothing to fetch (see buildModuleProps). */
@@ -198,6 +200,7 @@ export default function FullscreenCalendarModule({
   loading,
   fullscreenTheme,
   calendarStatus,
+  calendarLoading,
   sourceStatus,
   calendarSetup,
   people,
@@ -328,7 +331,9 @@ export default function FullscreenCalendarModule({
     || (wantsExtras && hasExtras(extras, weekDates));
   const personView = config.view === 'family-grid' || config.view === 'free-time';
   const peopleUnavailable = (personView || rosterPending) && !!peopleState;
-  const isLoading = (loading && !hasContent) || ((personView || rosterPending) && peopleState === 'loading');
+  // The first fetch still out (see buildModuleProps): the skeleton, never an
+  // empty week, since a person view would draw everyone with nothing on.
+  const isLoading = calendarLoading === true || (loading && !hasContent) || ((personView || rosterPending) && peopleState === 'loading');
 
   // Failure ≠ empty: while the shared calendar fetch is failing, the events
   // on screen are the kept last-good payload — badge them as not updating
@@ -339,7 +344,7 @@ export default function FullscreenCalendarModule({
   // be empty (an agenda after the day's last event) is a normal empty day,
   // not an outage.
   const status = calendarStatusView({
-    calendarSetup, calendarStatus, failingSources, hasLiveSource,
+    calendarSetup, calendarLoading, calendarStatus, failingSources, hasLiveSource,
     timezone, timeFormat, locale, now, today, t,
   });
   const neverLoaded = status.kind === 'cantLoad';

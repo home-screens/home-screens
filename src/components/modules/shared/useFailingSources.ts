@@ -17,6 +17,8 @@ export type CalendarSetupNeed = 'signIn' | 'noSources';
 
 export type CalendarStatusView =
   | { kind: 'ok' }
+  /** A configured calendar whose first fetch has not answered yet: not a free day either. */
+  | { kind: 'loading' }
   /** A failure with no successful fetch ever: an outage, not a free day. */
   | { kind: 'cantLoad' }
   /** Setup problems replace the events entirely (see the mockup for audit item 73). */
@@ -70,10 +72,11 @@ export function formatSince(fetchedAt: number, opts: SinceFormatOpts): { text: s
  *
  * 1. Nothing configured, or every source the module uses needs a Google
  *    sign-in: the setup card, instead of events that quietly age.
- * 2. The shared fetch failing with no successful fetch ever: "can't load".
- * 3. The shared fetch failing with kept events: "Not updating since …",
+ * 2. The shared fetch has not answered yet: "loading", never an empty day.
+ * 3. The shared fetch failing with no successful fetch ever: "can't load".
+ * 4. The shared fetch failing with kept events: "Not updating since …",
  *    loud after a day.
- * 4. The fetch is fine but a source the module uses is failing: named for a
+ * 5. The fetch is fine but a source the module uses is failing: named for a
  *    single source, generic for several, and the sign-in wording when only
  *    Google is affected but other calendars still update.
  *
@@ -83,6 +86,8 @@ export function formatSince(fetchedAt: number, opts: SinceFormatOpts): { text: s
  */
 export function calendarStatusView(opts: {
   calendarSetup: CalendarSetupNeed | undefined;
+  /** Attached only while the display's first calendar fetch is still out (see buildModuleProps). */
+  calendarLoading?: boolean;
   calendarStatus: CalendarFetchStatus | undefined;
   failingSources: CalendarSourceStatus[];
   hasLiveSource: boolean;
@@ -104,6 +109,8 @@ export function calendarStatusView(opts: {
   const needsSignIn = failingSources.length > 0
     && failingSources.every((s) => s.messageKey === GOOGLE_NOT_SIGNED_IN_KEY);
   if (needsSignIn && !opts.hasLiveSource) return setupCard('signIn');
+
+  if (opts.calendarLoading) return { kind: 'loading' };
 
   const fetchFailed = calendarStatus?.error != null;
   if (fetchFailed) {

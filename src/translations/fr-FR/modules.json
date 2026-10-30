@@ -130,6 +130,7 @@
     "fromTime": "À partir de {time}",
     "untilTime": "Jusqu'à {time}",
     "cantLoadEvents": "Impossible de charger les événements pour le moment",
+    "loadingEvents": "Chargement des événements…",
     "weekOf": "Semaine du {date}",
     "legendLabel": "Sources du calendrier",
     "publicHolidays": "Jours fériés",

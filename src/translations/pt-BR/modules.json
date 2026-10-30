@@ -130,6 +130,7 @@
     "fromTime": "A partir de {time}",
     "untilTime": "Até {time}",
     "cantLoadEvents": "Não foi possível carregar os eventos agora",
+    "loadingEvents": "Carregando eventos…",
     "weekOf": "Semana de {date}",
     "legendLabel": "Fontes do calendário",
     "publicHolidays": "Feriados nacionais",

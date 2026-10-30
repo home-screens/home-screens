@@ -130,6 +130,7 @@
     "fromTime": "Vanaf {time}",
     "untilTime": "Tot {time}",
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
+    "loadingEvents": "Afspraken laden…",
     "weekOf": "Week van {date}",
     "legendLabel": "Kalenderbronnen",
     "publicHolidays": "Officiële feestdagen",
