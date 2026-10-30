@@ -29,6 +29,8 @@ interface PinnedModuleLayerProps {
   offsetLeft: number;
   /** The urgent-alert push the canvas carries (`'none'` when no bar is up). */
   transform: string;
+  /** True while the wall is asleep: keep the layout, stop drawing (see canvasAsleep in ScreenRotator). */
+  hidden?: boolean;
   availableDisplays?: Array<{ id: string; name: string }>;
   displayId?: string;
 }
@@ -49,7 +51,7 @@ interface PinnedModuleLayerProps {
  * once a minute and on every shared-state publish it subscribes to.
  */
 const PinnedModuleLayer = memo(function PinnedModuleLayer({
-  screens, settings, sharedData, now, displayW, displayH, scale, offsetTop, offsetLeft, transform, availableDisplays = [], displayId,
+  screens, settings, sharedData, now, displayW, displayH, scale, offsetTop, offsetLeft, transform, hidden = false, availableDisplays = [], displayId,
 }: PinnedModuleLayerProps) {
   const tModules = useTranslate('modules');
   // A pinned plugin module resolves through getModuleComponent, which only
@@ -77,10 +79,11 @@ const PinnedModuleLayer = memo(function PinnedModuleLayer({
     transformOrigin: 'top center',
     transition: 'transform 300ms ease',
     pointerEvents: 'none',
+    contentVisibility: hidden ? 'hidden' : undefined,
   };
 
   return (
-    <div data-testid="pinned-layer" style={outer}>
+    <div data-testid="pinned-layer" data-asleep={hidden ? '' : undefined} style={outer}>
       <div
         style={{
           width: displayW,

@@ -191,7 +191,8 @@ test('a takeover surfaces on a sleeping display and sleep resumes when it releas
     dimBrightness: 40,
     schedule: windowAround(-120, 120),
   };
-  await renderOnDisplay(page, request, config);
+  // The schedule may have the display asleep (mounted, not drawn) at first paint.
+  await renderOnDisplay(page, request, config, '/display', { ready: 'attached' });
   await waitForSdk(page);
 
   // The SleepOverlay's dim layer (z-index 9997) goes fully opaque when asleep.
@@ -246,8 +247,11 @@ test('a sleep rule puts the display to sleep on a fresh edge (no schedule involv
   await expect.poll(overlayOpacity, { timeout: 10_000, intervals: [250] }).toBeGreaterThan(0.98);
 
   // The rotation screen is untouched underneath the opaque overlay — sleep did
-  // not pin a takeover, so home is still the rendered screen.
-  await expect(page.getByText('HOME ANCHOR')).toBeVisible();
+  // not pin a takeover, so home is still the rendered screen: mounted for an
+  // instant wake, but no longer drawn (nothing animates under the black).
+  await expect(page.getByText('HOME ANCHOR')).toBeAttached();
+  await expect(page.getByTestId('display-canvas')).toHaveAttribute('data-asleep', '');
+  await expect(page.getByTestId('display-canvas')).toHaveCSS('content-visibility', 'hidden');
 });
 
 test('the status heartbeat names the takeover screen while a rule is firing', async ({ page, request }) => {
@@ -330,7 +334,8 @@ test('a wake rule lights a scheduled-asleep display and holds it awake', async (
     dimBrightness: 40,
     schedule: windowAround(-120, 120),
   };
-  await renderOnDisplay(page, request, config);
+  // The schedule may have the display asleep (mounted, not drawn) at first paint.
+  await renderOnDisplay(page, request, config, '/display', { ready: 'attached' });
   await waitForSdk(page);
 
   const overlayOpacity = async () => {

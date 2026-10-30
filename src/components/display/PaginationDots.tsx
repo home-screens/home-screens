@@ -34,6 +34,8 @@ interface PaginationDotsProps {
   pausedUntil?: number | null;
   /** Progress line under the active dot; null hides it (sticky screen, or off in settings). */
   progress?: RotationProgress | null;
+  /** True while the wall is asleep: keep the layout, stop drawing (see canvasAsleep in ScreenRotator). */
+  hidden?: boolean;
 }
 
 /** How long the screen name stays up after a tap. */
@@ -67,6 +69,7 @@ export default function PaginationDots({
   onResume,
   pausedUntil = null,
   progress = null,
+  hidden = false,
 }: PaginationDotsProps) {
   const t = useTranslate('core');
   const [flashedName, setFlashedName] = useState<string | null>(null);
@@ -179,6 +182,7 @@ export default function PaginationDots({
           gap: 6,
           zIndex: 100,
           viewTransitionName: 'pagination',
+          contentVisibility: hidden ? 'hidden' : undefined,
         }}
       >
         {paused && (

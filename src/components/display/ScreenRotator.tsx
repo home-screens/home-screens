@@ -429,6 +429,20 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const contentIsLive = displayState === 'active'
     || (displayState === 'dimmed' && brightnessOverride !== null);
 
+  /**
+   * Whether the canvas is under the black sleep layer with nothing to show.
+   *
+   * While asleep the canvas keeps its layout but stops drawing
+   * (`content-visibility: hidden` below), so an all-night wall does not keep
+   * animating its clocks, slideshows and colons under a layer nobody sees;
+   * wake is instant because nothing is unmounted or re-measured. A dimmed
+   * display keeps drawing (the content is visible at low brightness), and so
+   * does a takeover that overrides sleep (the alert screen must show).
+   * Everything outside the canvas (state providers, plugin services, rules,
+   * overlays, the command and config polls) runs as before.
+   */
+  const canvasAsleep = displayState === 'asleep' && !takeoverOverridesSleep;
+
   // Two holds, two gates. interactionHeld is true while an overlay (e.g. an
   // open recipe) is up, and turns off both the swipe gesture below and the
   // rotation timer further down. rotationHeld is also true for a moment after
@@ -789,9 +803,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           ) : (
             <div
               data-testid="display-canvas"
+              data-asleep={canvasAsleep ? '' : undefined}
               style={{
                 position: 'absolute',
                 inset: 0,
+                contentVisibility: canvasAsleep ? 'hidden' : undefined,
                 // Center the scaled renderer using padding — flex centering doesn't
                 // work because the ScreenRenderer's layout box (1920x1080) is larger
                 // than the viewport, and overflow: hidden clips the layout box before
@@ -825,6 +841,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             offsetTop={canvasOffsetTop}
             offsetLeft={canvasOffsetLeft}
             transform={canvasPush}
+            hidden={canvasAsleep}
             availableDisplays={displays}
             displayId={displayId}
           />
@@ -852,6 +869,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           onResume={preview ? undefined : clearPause}
           pausedUntil={pausedUntil}
           progress={preview ? null : rotationProgress}
+          hidden={canvasAsleep}
         />
       )}
 

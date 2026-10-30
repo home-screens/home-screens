@@ -72,7 +72,9 @@ test('a sleep schedule window containing now blacks out the display', async ({ p
   }));
   await page.clock.install();
   await page.goto('/display');
-  await expect(page.getByText('AWAKE CONTENT')).toBeVisible();
+  // Attached, not visible: the schedule covers now, so the manager may have
+  // the canvas asleep (mounted, not drawn) from the first paint.
+  await expect(page.getByText('AWAKE CONTENT')).toBeAttached();
 
   // See file-header note: 31s of virtual time survives a mid-window effect
   // reset and still lands a clean 10s cycle, then a short real poll rides the
@@ -83,6 +85,10 @@ test('a sleep schedule window containing now blacks out the display', async ({ p
     .poll(() => overlayOpacity(page), { timeout: 5_000, intervals: [100] })
     .toBeGreaterThan(0.98);
   await expect(overlay(page)).toHaveCount(1);
+  // Under the black layer the canvas stays mounted but stops drawing, so an
+  // all-night wall does not keep animating for nobody.
+  await expect(page.getByTestId('display-canvas')).toHaveCSS('content-visibility', 'hidden');
+  await expect(page.getByText('AWAKE CONTENT')).toBeAttached();
 });
 
 test('a sleep schedule window that excludes now leaves content visible', async ({ page, request }) => {
@@ -108,7 +114,7 @@ test('an overnight sleep window (start > end) spanning midnight blacks out the d
   }));
   await page.clock.install();
   await page.goto('/display');
-  await expect(page.getByText('AWAKE CONTENT')).toBeVisible();
+  await expect(page.getByText('AWAKE CONTENT')).toBeAttached();
 
   await page.clock.runFor(31_000);
   await expect

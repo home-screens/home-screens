@@ -61,10 +61,15 @@ async function openDisplay(
   request: APIRequestContext,
   config: ScreenConfiguration,
   id: string,
+  // `attached` for a display whose sleep schedule covers now: a sleeping
+  // canvas stays mounted but is not drawn, which Playwright reads as hidden.
+  ready: 'visible' | 'attached' = 'visible',
 ): Promise<void> {
   await putConfig(request, config);
   await page.goto(`/display/${id}`);
-  await expect(page.locator('[data-module-type]').first()).toBeVisible();
+  const first = page.locator('[data-module-type]').first();
+  if (ready === 'attached') await expect(first).toBeAttached();
+  else await expect(first).toBeVisible();
 }
 
 test('next-screen and prev-screen navigate the visible screen', async ({ page, request }) => {
@@ -239,6 +244,7 @@ test('sleep-override holds the display awake against an active sleep schedule; a
       },
     }),
     id,
+    'attached',
   );
 
   // The schedule blacks the display out within the first tick.
@@ -292,6 +298,7 @@ test('the default wake hold keeps a plain wake alive through the sleep window, a
       },
     ),
     id,
+    'attached',
   );
 
   // The schedule blacks the display out within the first tick.
@@ -315,7 +322,8 @@ test('the default wake hold keeps a plain wake alive through the sleep window, a
   // next-screen on the sleeping display wakes it onto the other screen
   // (previously it navigated invisibly under the opaque overlay), and the
   // wake carries the same hold.
-  const onAlpha = await page.getByText('HOLD SCREEN ALPHA', { exact: true }).isVisible();
+  // Asleep, so "which screen is up" is which one is mounted (one screen at a time), not which is drawn.
+  const onAlpha = (await page.getByText('HOLD SCREEN ALPHA', { exact: true }).count()) > 0;
   await sendCommand(request, id, 'next-screen');
   await page.clock.runFor(3_000);
   await expect(page.locator(OVERLAY)).toHaveCount(0);

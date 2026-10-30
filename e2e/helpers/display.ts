@@ -18,10 +18,20 @@ export async function renderOnDisplay(
   request: APIRequestContext,
   config: ScreenConfiguration,
   path = '/display',
+  opts: {
+    /**
+     * `attached` for a display that may already be asleep when it comes up:
+     * a sleeping canvas is kept mounted but not drawn (`content-visibility:
+     * hidden`), which Playwright reads as not visible.
+     */
+    ready?: 'visible' | 'attached';
+  } = {},
 ): Promise<DisplayHandle> {
   await putConfig(request, config);
   await page.goto(path);
-  await expect(page.locator('[data-module-type]').first()).toBeVisible();
+  const first = page.locator('[data-module-type]').first();
+  if (opts.ready === 'attached') await expect(first).toBeAttached();
+  else await expect(first).toBeVisible();
   return {
     module(typeOrId: string): Locator {
       // Match on type first (the common case); callers wanting a specific
