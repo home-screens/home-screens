@@ -10,12 +10,14 @@ import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { SectionHeader } from '../shared/SectionHeader';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle } from '@/types/config';
 import { EventCard } from './EventCard';
 import { formatRelativeDay, type EventDisplayStyle } from './support';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { NO_DAY_NOTES, dayNotesFor, type DayNotes } from '@/lib/day-notes';
 
-export function AgendaView({ events, config, style, today, now, accentColor, eventStyle }: {
+export function AgendaView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -23,6 +25,8 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The family's day notes; absent or empty when the Day notes switch is off. */
+  dayNotes?: DayNotes;
 }) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -69,8 +73,19 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
         out.push({ date: groupDate, events: [ev] });
       }
     }
+    // A day with a note and no events still gets its heading, from today to
+    // the last day the list reaches (at least a week out, so a quiet calendar
+    // still shows what is coming).
+    if (dayNotes && dayNotes !== NO_DAY_NOTES) {
+      const lastListed = out.length > 0 ? out[out.length - 1].date : today;
+      const end = lastListed > addDays(today, 6) ? lastListed : addDays(today, 6);
+      for (let day = today; day <= end; day = addDays(day, 1)) {
+        if (dayNotesFor(dayNotes, day).length > 0 && !out.some((g) => isSameDay(g.date, day))) out.push({ date: day, events: [] });
+      }
+      out.sort((a, b) => a.date.getTime() - b.date.getTime());
+    }
     return out;
-  }, [events, now, maxEvents, showFinishedToday, timezone, today]);
+  }, [events, now, maxEvents, showFinishedToday, timezone, today, dayNotes]);
 
   if (groups.length === 0) {
     return (
@@ -87,6 +102,7 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
           ? boundaryBetween(groups[gi - 1].date, date, config.agendaSeparators, weekStartsOn)
           : null;
         const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone, isDark: true });
+        const notes = dayNotesFor(dayNotes, date);
         return (
         <div key={date.toISOString()} style={mergeCellDecor({ borderRadius: decor.background || decor.backgroundImage || decor.borderColor ? 6 : undefined }, decor)}>
           {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
@@ -102,7 +118,7 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
             <div className="flex items-center gap-2 mb-2">
               <div className="flex-1" style={{ height: 2, backgroundColor: ink(0.18) }} />
               <span className="shrink-0 uppercase tracking-wider" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary, fontWeight: 600 }}>
-                {t('calendar.weekOf', { date: formatDateSync(addDays(date, -((date.getDay() - weekStartsOn + 7) % 7)), 'MMM d', { locale }) })}
+                {t('calendar.weekOf', { date: formatDateSync(addDays(date, -((date.getDay() - weekStartsOn + 7) % 7)), dayMonthPattern(locale, 'short'), { locale }) })}
               </span>
               <div className="flex-1" style={{ height: 2, backgroundColor: ink(0.18) }} />
             </div>
@@ -114,6 +130,7 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
             <DayBadges badges={decor.badges} style={{ fontSize: '0.75em' }} />
             <div className="flex-1 h-px" style={{ backgroundColor: ink(0.1) }} />
           </div>
+          <DayNoteLines notes={notes} tone="module" lines={3} style={{ fontSize: '0.82em', padding: '0.35em 0.55em', marginBottom: '0.4em', borderRadius: 5 }} />
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => {
               const start = parseEventWallTime(ev.start, timezone);

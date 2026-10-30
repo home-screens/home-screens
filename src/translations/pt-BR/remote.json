@@ -1176,6 +1176,10 @@
     "notes": {
       "title": "Ainda não há mural de recados",
       "body": "Os recados aparecem aqui assim que houver um mural de recados em alguma das suas telas."
+    },
+    "dayNotes": {
+      "title": "Nenhum calendário mostra recados do dia ainda",
+      "body": "Os recados do dia aparecem em um calendário. Coloque um calendário em uma das suas telas ou ligue a opção Recados do dia nas configurações dele."
     }
   },
   "choreSettings": {
@@ -1191,6 +1195,11 @@
   },
   "notes": {
     "title": "Recados",
+    "pages": {
+      "board": "Mural",
+      "calendar": "Calendário"
+    },
+    "boardToCalendar": "Algo para um dia específico? Coloque no calendário",
     "onWall": {
       "zero": "Nada na parede",
       "one": "{count} na parede",
@@ -1247,6 +1256,24 @@
     "loadError": "Não foi possível carregar os recados.",
     "retry": "Tentar de novo",
     "saveError": "Não deu para salvar. Tente de novo.",
-    "editAria": "Editar recado de {name}"
+    "editAria": "Editar recado de {name}",
+    "dayNotes": {
+      "sub": "Os recados do dia vão para os calendários da parede",
+      "nextDays": "Próximos 7 dias",
+      "addForDay": "Adicionar um recado para este dia",
+      "addAnother": "Adicionar outro recado",
+      "addAria": "Adicionar um recado para {day}",
+      "editAria": "Mudar o recado de {day}",
+      "sheetHint": "Aparece neste dia nos calendários da parede.",
+      "placeholder": "Dia da foto, sem aula…",
+      "put": "Colocar no calendário",
+      "remove": "Apagar",
+      "loadError": "Não foi possível carregar os recados do dia.",
+      "saveError": "Não deu para salvar. Tente de novo.",
+      "saved": "Salvo para {day}. Aparece na parede quando esse dia estiver em um calendário.",
+      "removed": "Recado apagado",
+      "undo": "Desfazer",
+      "atLimit": "Um recado do dia não pode ser maior que isso."
+    }
   }
 }

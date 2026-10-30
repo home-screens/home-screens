@@ -932,6 +932,113 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
 
+  // ================= DAY NOTES =================
+  // The family's note for a day, written on the phone, drawn on that day in
+  // every calendar whose Day notes switch is on (unset = on).
+
+  {
+    type: 'calendar', name: 'day-notes-daily', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { viewMode: 'daily', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
+      await expect(mod.locator('[data-day-note]').nth(1)).toContainText('E2E DAY NOTE TOMORROW');
+    },
+  },
+  {
+    // Several notes on one day: each is its own line, in the order written.
+    type: 'calendar', name: 'day-notes-several-daily', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    seedData: { 0: ['E2E FIRST NOTE', 'E2E SECOND NOTE', 'E2E THIRD NOTE'] },
+    config: { viewMode: 'daily', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]')).toHaveText([/E2E FIRST NOTE/, /E2E SECOND NOTE/, /E2E THIRD NOTE/]);
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'day-notes-several-month', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    seedData: { 0: ['E2E FIRST NOTE', 'E2E SECOND NOTE'] },
+    config: { view: 'month-grid', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]')).toHaveText([/E2E FIRST NOTE/, /E2E SECOND NOTE/]);
+      await has('Dentist Appointment')(mod);
+    },
+  },
+  {
+    // Off: the events still draw, the notes do not.
+    type: 'calendar', name: 'day-notes-off', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { viewMode: 'daily', showDayNotes: false },
+    expect: async (mod) => {
+      await has('Dentist Appointment')(mod);
+      await expect(mod.locator('[data-day-note]')).toHaveCount(0);
+    },
+  },
+  {
+    // A day with a note and no events still gets its own heading in the agenda.
+    type: 'calendar', name: 'day-notes-agenda-note-only-day', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    seedData: { 3: 'E2E NOTE ONLY DAY' },
+    config: { viewMode: 'agenda', showDayNotes: true },
+    expect: async (mod) => {
+      await has('Dentist Appointment')(mod);
+      await expect(mod.locator('[data-day-note]')).toContainText('E2E NOTE ONLY DAY');
+    },
+  },
+  {
+    type: 'calendar', name: 'day-notes-month', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { viewMode: 'month', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'day-notes-week-list', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { view: 'week-list', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'day-notes-schedule', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { view: 'schedule', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[role="columnheader"] [data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
+    },
+  },
+  {
+    // No calendar picked yet: the notes still draw, in place of the setup card.
+    type: 'calendar', name: 'day-notes-no-sources', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    settings: { calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 } },
+    config: { viewMode: 'daily', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
+      await expect(mod).not.toContainText('No calendars picked yet');
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'day-notes-no-sources-fullscreen', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    settings: { calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 } },
+    config: { view: 'week-list', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
+      await expect(mod).not.toContainText('No calendars picked yet');
+    },
+  },
+  {
+    // Free Time: today's note beside the title, tomorrow's in the Tomorrow list.
+    type: 'fullscreen-calendar', name: 'day-notes-free-time', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { view: 'free-time', showDayNotes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('header [data-day-note]')).toContainText('E2E DAY NOTE TODAY');
+      await expect(mod.locator('[data-day-note]').filter({ hasText: 'E2E DAY NOTE TOMORROW' })).toBeVisible();
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'day-notes-fullscreen-off', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
+    config: { view: 'week-list', showDayNotes: false },
+    expect: async (mod) => {
+      await has('Dentist Appointment')(mod);
+      await expect(mod.locator('[data-day-note]')).toHaveCount(0);
+    },
+  },
+
   // ================= WEEK LIST HOUSEHOLD ROWS =================
 
   {

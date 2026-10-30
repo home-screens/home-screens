@@ -243,6 +243,11 @@ export function notesUrl(): string {
   return '/api/notes?live=1';
 }
 
+/** Every calendar's read of the day notes (`data/day-notes.json`). */
+export function dayNotesUrl(): string {
+  return '/api/day-notes';
+}
+
 /** What a URL builder may know beyond the module's config. */
 export interface FetchKeyContext {
   /** The household's calendar day, `YYYY-MM-DD`. */
@@ -292,6 +297,9 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   // The notes board is family data like lists: the same 5s poll for surfaces
   // without a heartbeat, and the heartbeat's `notes` revision on a wall.
   notes:                     { buildUrl: notesUrl, ttlMs: 5_000 },           // server: ETag, 304 when unchanged
+  // Day notes are read by every calendar, never by a module of their own:
+  // the same 5s poll without a heartbeat, the `dayNotes` revision on a wall.
+  'day-notes':               { buildUrl: dayNotesUrl, ttlMs: 5_000 },        // server: ETag, 304 when unchanged
   // Timetables change about twice a school year, so the poll only has to be
   // quick enough that an edit in the editor reaches the wall while somebody is
   // still standing in front of it.

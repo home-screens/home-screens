@@ -14,10 +14,12 @@ import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useElementBox } from '@/hooks/useElementBox';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarGridTheme, ModuleStyle } from '@/types/config';
 import { withAlpha, type EventDisplayStyle } from './support';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { EventCard } from './EventCard';
 
 /** Gutter for the month and multi-week grids: 2px, double the week grid's
@@ -43,6 +45,23 @@ const PILL_PAD_PX = 4;
 const PILL_LINE_EM = 1.05;
 /** A modern all-day pill is a plain block, so its line is the cell's own 1.5em. */
 const BLOCK_PILL_LINE_EM = 1.5;
+
+/**
+ * A day note: one line of 0.66em type at a 1.3 line height with 0.14em of
+ * padding above and below it, then a 2px gap. Each of a day's notes is
+ * charged to the cell before its pills are counted, so "+N more" never hides
+ * behind them.
+ */
+const NOTE_FONT_EM = 0.66;
+const NOTE_HEIGHT_EM = NOTE_FONT_EM * (1.3 + 2 * 0.14);
+const NOTE_GAP_PX = 2;
+const GRID_NOTE_STYLE = { fontSize: `${NOTE_FONT_EM}em`, padding: '0.14em 0.35em', marginBottom: NOTE_GAP_PX } as const;
+
+/** The room a cell has for pills once its day notes have taken their lines. */
+function roomAfterNotes(room: number, noteCount: number, fontSize: number): number {
+  if (noteCount === 0 || room <= 0) return room;
+  return Math.max(1, room - noteCount * (NOTE_HEIGHT_EM * fontSize + NOTE_GAP_PX));
+}
 
 /** A busy-day dot: about 0.4em so it reads on a wall, never below 5px. */
 const DOT_SIZE = 'max(5px, 0.4em)';
@@ -192,6 +211,8 @@ interface GridViewProps {
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The family's day notes; absent or empty when the Day notes switch is off. */
+  dayNotes?: DayNotes;
 }
 
 type GridSkeletonProps = GridViewProps & { grid: ResolvedGrid; t: TranslateFn; locale: string };
@@ -290,7 +311,7 @@ export function GridView(props: GridViewProps) {
   return <GridModernView {...props} grid={grid} theme={theme} t={t} locale={locale} />;
 }
 
-function GridBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle, grid }: GridSkeletonProps) {
+function GridBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle, grid, dayNotes }: GridSkeletonProps) {
   const showWeekNumbers = (config.showWeekNumbers ?? false) && grid.kind !== 'rolling';
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
@@ -312,8 +333,8 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
   const [weeksRef, { rowHeight, fontSize }] = useWeekRowHeight(weeks.length);
   const room = rowHeight > 0 ? rowHeight - CELL_TOP_PAD_PX - (1.35 * 0.65 * dayLabelScale * fontSize + 2) : 0;
   const pillHeight = PILL_LINE_EM * fontSize + PILL_PAD_PX;
-  const listIn = (dayEvents: CalendarEvent[]) => gridCellEvents({
-    heights: dayEvents.map(() => pillHeight), room, moreHeight: 0.825 * fontSize, gap: PILL_GAP_PX, max: maxPerCell,
+  const listIn = (dayEvents: CalendarEvent[], noteCount: number) => gridCellEvents({
+    heights: dayEvents.map(() => pillHeight), room: roomAfterNotes(room, noteCount, fontSize), moreHeight: 0.825 * fontSize, gap: PILL_GAP_PX, max: maxPerCell,
   });
 
   return (
@@ -334,7 +355,8 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
               const isMuted = grid.isMuted(date, isToday);
               const marksMonthStart = grid.marksMonthStart(date);
               const dayEvents = eventsByDay.get(date.getTime()) ?? [];
-              const listed = listIn(dayEvents);
+              const notes = dayNotesFor(dayNotes, date);
+              const listed = listIn(dayEvents, notes.length);
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
               const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
               const cellFill = isToday
@@ -379,6 +401,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                     {hasBirthday && <span aria-hidden="true">🎂</span>}
                     <DayBadges badges={decor.badges} />
                   </span>
+                  <DayNoteLines notes={notes} tone="module" style={GRID_NOTE_STYLE} />
                   {listed.kind === 'dots'
                     ? <DayDots events={dayEvents} accentColor={accentColor} />
                     : <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={listed.shown} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />}
@@ -488,7 +511,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
  * theme only swaps the pill treatment (GridPill); gridEventStyle /
  * gridEventPillBackground do not apply here. data-grid-theme carries the
  * active theme for tests. */
-function GridModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme, grid }: GridSkeletonProps & { theme: Exclude<CalendarGridTheme, 'banner'> }) {
+function GridModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme, grid, dayNotes }: GridSkeletonProps & { theme: Exclude<CalendarGridTheme, 'banner'> }) {
   const showWeekNumbers = (config.showWeekNumbers ?? false) && grid.kind !== 'rolling';
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
@@ -511,9 +534,9 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
   const room = rowHeight > 0 ? rowHeight - CELL_TOP_PAD_PX - (1.4 * dayLabelScale + 0.1) * fontSize : 0;
   const timedPill = PILL_LINE_EM * fontSize + PILL_PAD_PX;
   const allDayPill = BLOCK_PILL_LINE_EM * fontSize + PILL_PAD_PX;
-  const listIn = (dayEvents: CalendarEvent[]) => gridCellEvents({
+  const listIn = (dayEvents: CalendarEvent[], noteCount: number) => gridCellEvents({
     heights: dayEvents.map((ev) => (isAllDayEvent(ev) ? allDayPill : timedPill)),
-    room, moreHeight: 0.9 * fontSize, gap: PILL_GAP_PX, max: maxPerCell,
+    room: roomAfterNotes(room, noteCount, fontSize), moreHeight: 0.9 * fontSize, gap: PILL_GAP_PX, max: maxPerCell,
   });
 
   return (
@@ -531,7 +554,8 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
               const marksMonthStart = grid.marksMonthStart(date);
               const isWeekend = isWeekendDay(date);
               const dayEvents = eventsByDay.get(date.getTime()) ?? [];
-              const listed = listIn(dayEvents);
+              const notes = dayNotesFor(dayNotes, date);
+              const listed = listIn(dayEvents, notes.length);
               const shown = listed.kind === 'pills' ? dayEvents.slice(0, listed.shown) : [];
               const overflow = listed.kind === 'pills' ? dayEvents.length - shown.length : 0;
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
@@ -575,12 +599,13 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                           opacity: isMuted ? TEXT_OPACITY.dim : marksMonthStart ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                         }}
                       >
-                        {formatDateSync(date, marksMonthStart ? 'MMM d' : 'd', { locale })}
+                        {formatDateSync(date, marksMonthStart ? dayMonthPattern(locale, 'short') : 'd', { locale })}
                       </span>
                     )}
                     {hasBirthday && <span aria-hidden="true" className="shrink-0" style={{ fontSize: scaledEm(0.6, dayLabelScale), marginLeft: '0.2em' }}>🎂</span>}
                     <DayBadges badges={decor.badges} style={{ fontSize: scaledEm(0.65, dayLabelScale), marginLeft: '0.25em' }} />
                   </div>
+                  <DayNoteLines notes={notes} tone="module" style={isMuted ? { ...GRID_NOTE_STYLE, opacity: TEXT_OPACITY.dim } : GRID_NOTE_STYLE} />
                   <div className="flex flex-col gap-px overflow-hidden" style={isMuted ? { opacity: TEXT_OPACITY.dim } : undefined}>
                     {shown.map((ev) => {
                       const pill = <GridPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} locale={locale} />;

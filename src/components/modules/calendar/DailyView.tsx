@@ -15,6 +15,8 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle, TimeFormat } from '@/types/config';
 import { EventCard } from './EventCard';
 import type { EventDisplayStyle } from './support';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 
 /** Thin accent rule marking "now" in today's column, between already-ended
  *  and upcoming/running events. Purely a visual echo of what each row's own
@@ -103,7 +105,7 @@ export function buildDailyRows(
   return rows;
 }
 
-export function DailyView({ events, config, style, today, now, accentColor, eventStyle }: {
+export function DailyView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -111,6 +113,8 @@ export function DailyView({ events, config, style, today, now, accentColor, even
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The family's day notes; absent or empty when the Day notes switch is off. */
+  dayNotes?: DayNotes;
 }) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -134,6 +138,7 @@ export function DailyView({ events, config, style, today, now, accentColor, even
       {days.map(({ date, events: dayEvents }) => {
         const isToday = isSameDay(date, today);
         const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
+        const notes = dayNotesFor(dayNotes, date);
         return (
           <div key={date.toISOString()} className="flex-1 flex flex-col min-w-0 rounded" style={mergeCellDecor({}, decor)}>
             {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
@@ -152,14 +157,18 @@ export function DailyView({ events, config, style, today, now, accentColor, even
                 {formatDateSync(date, 'MMM', { locale })}
               </p>
             </div>
+            <DayNoteLines notes={notes} tone="module" lines={3} style={{ fontSize: '0.82em', padding: '0.35em 0.5em', marginBottom: '0.5em', borderRadius: 5 }} />
             <div className="flex flex-col gap-1.5 overflow-hidden flex-1">
               {dayEvents.length === 0 ? (
-                <div
-                  className="flex items-center justify-center rounded-lg px-2.5 py-3"
-                  style={{ backgroundColor: ink(0.06) }}
-                >
-                  <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{emptyDayText || t('calendar.noEvents')}</p>
-                </div>
+                // A day with a note already says something; "No events" under it is noise.
+                notes.length === 0 && (
+                  <div
+                    className="flex items-center justify-center rounded-lg px-2.5 py-3"
+                    style={{ backgroundColor: ink(0.06) }}
+                  >
+                    <p style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary }}>{emptyDayText || t('calendar.noEvents')}</p>
+                  </div>
+                )
               ) : (
                 buildDailyRows(dayEvents, {
                   date, isToday, now, timezone: eventStyle.timezone, locale,

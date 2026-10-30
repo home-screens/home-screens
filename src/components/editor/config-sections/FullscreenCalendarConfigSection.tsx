@@ -23,6 +23,7 @@ import { clampRollingWeeks } from '@/lib/calendar-utils';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
+import { CalendarDayNotesToggle } from './CalendarDayNotesToggle';
 
 const SHOW_DESCRIPTION_KEY = {
   'schedule': 'scheduleShowDescription',
@@ -189,6 +190,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
           <LegendModeSelect value={c.legendMode ?? 'calendars'} onChange={(next) => set({ legendMode: next })} owners={roster.owners} groups={roster.groups} />
         )}
         <NameTagsToggle checked={c.showNameTags === true} onChange={(next) => set({ showNameTags: next })} owners={roster.owners} />
+        <CalendarDayNotesToggle checked={c.showDayNotes !== false} onChange={(next) => set({ showDayNotes: next })} />
       </CalendarGroup>
 
       {/* ── This view: every view-gated field, pooled ── */}

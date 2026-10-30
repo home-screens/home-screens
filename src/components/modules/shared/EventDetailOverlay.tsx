@@ -6,7 +6,7 @@ import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
 import { parseEventWallTime, isEventOnDay, formatEventTime, eventKindGlyph, eventKindLabel } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
-import { useTranslate, useFormattingLocale, formatDateSync, formatRelativeTime } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDayRange, formatRelativeTime, fullDateHeading } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
@@ -48,7 +48,7 @@ export function describeEventTime(
     // All-day ends are exclusive (a one-day event on Aug 7 ends Aug 8).
     const lastDay = addDays(end, -1);
     if (!isSameDay(start, lastDay) && lastDay > start) {
-      main += ` · ${formatDateSync(start, 'MMM d', { locale })} – ${formatDateSync(lastDay, 'MMM d', { locale })}`;
+      main += ` · ${formatDayRange(start, lastDay, locale, { month: 'short', year: false })}`;
     }
     // isEventOnDay's all-day branch does half-open interval overlap against
     // [date, date+1day) — it needs a midnight, not a mid-day timestamp, or
@@ -161,7 +161,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
         color: theme.textMuted,
         marginBottom: 'clamp(8px, 1.3vmin, 14px)',
       }}>
-        {formatDateSync(start, 'EEEE, MMMM d', { locale })}
+        {fullDateHeading(start, locale)}
       </div>
       <div style={{
         fontFamily: "var(--font-dm-serif), 'DM Serif Display', Georgia, serif",

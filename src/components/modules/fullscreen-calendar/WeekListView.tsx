@@ -9,7 +9,7 @@ import {
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps, RowCtx } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
@@ -26,8 +26,10 @@ import { EventMarker } from '../shared/EventMarker';
 import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor } from '@/lib/day-notes';
 
-export function WeekListView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, extras }: CalendarViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, extras, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -57,6 +59,7 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
 
     const shouldCollapse = isPast && config.weekCollapsePastDays;
     const dayExtras = extras?.byDate[toISODate(day)];
+    const notes = dayNotesFor(dayNotes, day);
     const decor = dayDecorFor(config, day, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
     const dayFill = dayCellFill(isToday, showTodayBg, isWeekendDay(day), config);
 
@@ -91,7 +94,7 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
           alignItems: 'baseline',
           gap: scale.bu * 0.8,
         }}>
-          {formatDateSync(day, 'EEEE, MMMM d', { locale })}
+          {fullDateHeading(day, locale)}
           {isToday && showTodayMarker && (
             <span style={{
               fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
@@ -112,6 +115,16 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
         </div>
 
         {!shouldCollapse && (<>
+          {/* The family's notes for the day, before anything else on it */}
+          {notes.length > 0 && (
+            <DayNoteLines
+              notes={notes}
+              tone="fullscreen"
+              lines={3}
+              style={{ fontSize: fontSize * 1.235, padding: `${fontSize * 0.46}px ${fontSize * 0.77}px`, margin: `${scale.bu * 0.74}px 0 ${scale.bu * 0.55}px`, borderRadius: 6 }}
+            />
+          )}
+
           {/* All-day events (plus promoted middle days) */}
           {allDayEvs.map(({ ev, segment }) => (
             <EventRow key={ev.id} event={ev} segment={segment} rowDate={day} now={now} ctx={rowCtx} weather={weather} isAllDay showDescription={showDescription} failingSourceIds={failingSourceIds} />
@@ -127,8 +140,8 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
             <DayExtrasRows day={dayExtras} members={extras.members} fontSize={fontSize} scale={scale} hasEvents={dayEvents.length > 0} t={t} />
           )}
 
-          {/* Empty day */}
-          {dayEvents.length === 0 && !dayExtras && (
+          {/* Empty day: a note alone already says something */}
+          {dayEvents.length === 0 && !dayExtras && notes.length === 0 && (
             <div style={{
               padding: `${scale.bu * 0.7}px 0`,
               fontSize: fontSize * 0.95,

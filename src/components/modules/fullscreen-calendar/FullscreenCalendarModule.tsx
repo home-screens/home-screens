@@ -22,6 +22,9 @@ import type { CalendarFetchStatus, CalendarPerson, CalendarSourceStatus, Calenda
 import { hasExtras } from '@/lib/calendar-extras';
 import { toISODate } from '@/lib/meal-constants';
 import { useCalendarExtras } from './useCalendarExtras';
+import { useDayNotes } from '@/hooks/useDayNotes';
+import { dayNotesFor, hasDayNoteIn } from '@/lib/day-notes';
+import { DayNoteLine, dayNoteColors } from '../shared/DayNoteLine';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop, barBackdrop } from '@/lib/fullscreen-themes';
 import { brightenForDark, eventBg, eventBorder, resolveCalendarAccent } from '@/lib/calendar-event-surface';
@@ -318,15 +321,32 @@ export default function FullscreenCalendarModule({
     weekDates,
   );
 
+  // The family's day notes, shared by every calendar; the switch is on unless set off.
+  const dayNotes = useDayNotes(config.showDayNotes !== false);
+  // Whether a day this view draws has a note: such a view is drawn even with
+  // no events in the feed. Up Next only ever shows today's and tomorrow's.
+  const notesInView = useMemo(() => {
+    const window = traits.legendWindow({ today, weekStartsOn: weekStartsOnFor(config.startDay), config, scaleWidth: scale.width });
+    const end = config.view === 'up-next' ? addDays(today, 2) : window.end;
+    const days: Date[] = [];
+    for (let day = window.start; day < end; day = addDays(day, 1)) days.push(day);
+    return hasDayNoteIn(dayNotes, days);
+  }, [dayNotes, traits, today, config, scale.width]);
+
+  // The one-day views carry today's notes beside the title, since the title
+  // is their day heading; the header has room for one line, so they share it.
+  const titleNote = config.view === 'day-timeline' || config.view === 'free-time' ? dayNotesFor(dayNotes, today).join(' · ') : '';
+
   const viewProps = useMemo<CalendarViewProps>(
-    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras }),
-    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras],
+    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes }),
+    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes],
   );
   const hasEvents = events.length > 0;
-  // Views with something to say on an empty feed: the family grid and free
-  // time still draw every configured person, and a week list can be all
-  // meals and chores.
+  // Views with something to say on an empty feed: a day note in view, the
+  // family grid and free time still draw every configured person, and a week
+  // list can be all meals and chores.
   const hasContent = hasEvents
+    || notesInView
     || ((config.view === 'family-grid' || config.view === 'free-time') && (visiblePeople?.length ?? 0) > 0)
     || (wantsExtras && hasExtras(extras, weekDates));
   const personView = config.view === 'family-grid' || config.view === 'free-time';
@@ -385,6 +405,9 @@ export default function FullscreenCalendarModule({
           ? (theme.isDark ? brightenForDark(config.accentColor) : resolvedAccent)
           : resolvedAccent,
         '--cal-accent-bg': eventBg(resolvedAccent, theme.isDark ? 0.20 : 0.12, theme.isDark),
+        // Day notes: a strong yellow wash reads as olive over a near-black
+        // theme, so dark themes take a lighter wash with brighter words.
+        ...dayNoteColors(theme.isDark),
         '--cal-accent-surface': eventBg(resolvedAccent, theme.isDark ? 0.32 : 0.22, theme.isDark),
         '--cal-today-fill': todayFill,
         '--cal-bg-image': theme.bgImage ?? 'none',
@@ -416,6 +439,20 @@ export default function FullscreenCalendarModule({
         >
           {headerTitle}
         </h1>
+        {titleNote && (
+          <DayNoteLine
+            text={titleNote}
+            tone="fullscreen"
+            style={{
+              fontSize: scale.bu * 1.55 * scale.typoMul,
+              padding: `${scale.bu * 0.45}px ${scale.bu}px`,
+              marginLeft: scale.bu * 0.8,
+              borderRadius: 6,
+              flexShrink: 1,
+              maxWidth: '50%',
+            }}
+          />
+        )}
         <div style={{ flex: 1 }} />
         {status.kind === 'badge' ? (
           // The not-updating pill takes the weather pill's slot so the
@@ -465,7 +502,10 @@ export default function FullscreenCalendarModule({
 
       {/* View area */}
       <div className="fsc-content" style={{ flex: 1, minHeight: 0 }}>
-        {status.kind === 'setup' ? (
+        {/* No calendar picked yet shows the setup card, unless a day in view
+            has a note: day notes need no calendar account, so the view draws
+            them on their own rather than hiding what the phone just saved. */}
+        {status.kind === 'setup' && !(status.setup === 'noSources' && notesInView) ? (
           <CalendarSetupCard
             title={status.title}
             hint={status.hint}

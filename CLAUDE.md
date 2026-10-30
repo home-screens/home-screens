@@ -95,6 +95,7 @@ Settings is split into **Defaults** (shared values, pages listed in `DEFAULT_PAG
 | `chores.json`, `chore-completions.json`, `rewards.json` | `src/lib/chore-data.ts`, `src/lib/chore-completion-data.ts`, `src/lib/reward-data.ts` | Chore definitions; completions, bonus-chore grabs and put-backs; rewards, balances and redemptions. |
 | `meals.json` | `src/lib/meal-data.ts` | Meal planner state and settings, shared by `/remote` and every module instance. |
 | `todos.json` | `src/lib/todo-data.ts` | Shared to-do lists; a `todo` module points at a `listId` and never carries items. Only door is `/api/todo/lists*`. |
+| `day-notes.json` | `src/lib/day-notes-data.ts` | Calendar day notes, a list of `{ id, date, text }` (up to three per day), written from `/remote` Notes > Calendar and drawn by every calendar with `showDayNotes` on. Rules in `src/lib/day-notes.ts`; swept six weeks after the day on the next write. |
 | `notes.json` | `src/lib/notes-data.ts` | Family notes board; the wall reads `/api/notes?live=1`, the phone and the editor's Manage notes window (`NotesBoardModal`) read everything. Expired notes are kept a week for the phone's Gone group, then swept on the next write. |
 | `routines.json`, `timer-session.json` | `src/lib/timer-data.ts` | Authored routines vs hot running session; displays derive countdowns from timestamps. |
 | `timetables.json` | `src/lib/timetable-data.ts` | School bell times and one week per family member, revision-checked (409 on stale save). |

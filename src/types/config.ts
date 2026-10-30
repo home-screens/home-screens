@@ -1824,6 +1824,13 @@ export interface FullscreenCalendarConfig {
    */
   showNameTags?: boolean;
   /**
+   * Day notes: show the short note someone wrote for a day on the phone (Notes, then Calendar),
+   * above that day's events
+   *
+   * Unset means on. The notes live in data/day-notes.json, shared by every calendar.
+   */
+  showDayNotes?: boolean;
+  /**
    * What the color key lists: `calendars` (one row per calendar), `people` (one avatar per family
    * member who owns a calendar with an event in view, plus Everyone for shared calendars) or
    * `groups` (one row per family group as a stack of avatars, then members in no group, then
@@ -2026,6 +2033,13 @@ export interface CalendarConfig {
    * default false
    */
   showNameTags?: boolean;
+  /**
+   * Day notes: show the short note someone wrote for a day on the phone (Notes, then Calendar),
+   * above that day's events
+   *
+   * Unset means on. The notes live in data/day-notes.json, shared by every calendar.
+   */
+  showDayNotes?: boolean;
   /**
    * What the color key lists: `calendars` (one row per calendar), `people` (one avatar per family
    * member who owns a calendar with an event in view, plus Everyone for shared calendars) or

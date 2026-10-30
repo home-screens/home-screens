@@ -27,7 +27,6 @@ import type { Dictionary, TranslateFn } from './types';
 import { resolveLocaleChain, resolveShippedLocale, lookupKey } from './fallback';
 import { DEFAULT_LOCALE, FALLBACK_LOCALE } from './manifest';
 import { getCachedNamespace, hydrateFromBlob, loadNamespace } from './loader';
-import { preloadDateLocale } from './formatters';
 import { logger } from '@/lib/logger';
 
 const log = logger('i18n');
@@ -48,11 +47,6 @@ interface I18nContextValue {
    * so the reference identity is the source of truth for re-renders.
    */
   namespaces: Map<string, Map<string, Dictionary>>;
-  /**
-   * Bumped on date-fns locale preload so consumers that depend on the
-   * formatting locale re-derive even when the namespace map is unchanged.
-   */
-  version: number;
   /** Internal helper for the hook to request a missing namespace. */
   requestNamespace: (namespace: string) => void;
 }
@@ -121,7 +115,6 @@ export function I18nProvider({
   const [namespaceMaps, setNamespaceMaps] = useState<Map<string, Map<string, Dictionary>>>(() =>
     buildInitialMap(blob, locale),
   );
-  const [version, setVersion] = useState(0);
 
   // Tracks `(locale, namespace)` pairs that already have an in-flight or
   // settled load. Keying on the locale-qualified string is essential: when
@@ -151,36 +144,6 @@ export function I18nProvider({
     [locale],
   );
 
-  // Date-fns locale preload effect. The server-side layouts already call
-  // `preloadDateLocale(locale)` (and the formatting locale when it
-  // differs) so the first paint is correct; this effect handles the
-  // runtime change case (e.g. user switches language or formatting
-  // locale in the editor — the next clock tick should render in the
-  // newly-loaded date-fns locale, not the previous one). The
-  // `setVersion` bump invalidates `useTranslate` callbacks and triggers
-  // a re-render of every consumer once the new locale lands. No-op when
-  // the locale was already preloaded server-side (the formatter caches
-  // by tag).
-  //
-  // We preload BOTH `locale` and `resolvedFormattingLocale` because they
-  // can differ — translation lookups need the UI tag, while
-  // `formatDateSync` (clock/date views) needs the formatting tag.
-  useEffect(() => {
-    let cancelled = false;
-    void Promise.all([
-      preloadDateLocale(locale),
-      resolvedFormattingLocale === locale
-        ? Promise.resolve()
-        : preloadDateLocale(resolvedFormattingLocale),
-    ]).then(() => {
-      if (cancelled) return;
-      setVersion((v) => v + 1);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [locale, resolvedFormattingLocale]);
-
   // Loader effect — drains `pendingRef` and the `requestedNamespaces` prop
   // into actual `loadNamespace` calls. Keyed on locale + tick so locale
   // changes always re-evaluate which loads are needed.
@@ -195,7 +158,7 @@ export function I18nProvider({
     // Immutable update helper — clones the outer Map and the affected
     // inner Map before patching the new (tag → dict) entry, then hands
     // the clone to setState. Consumers re-render because the outer Map
-    // identity changes, not because of a side-channel `version` bump.
+    // identity changes.
     const writeDict = (namespace: string, tag: string, dict: Dictionary) => {
       setNamespaceMaps((prev) => {
         const prevInner = prev.get(namespace) ?? new Map<string, Dictionary>();
@@ -232,10 +195,9 @@ export function I18nProvider({
       locale,
       formattingLocale: resolvedFormattingLocale,
       namespaces: namespaceMaps,
-      version,
       requestNamespace,
     }),
-    [locale, resolvedFormattingLocale, namespaceMaps, version, requestNamespace],
+    [locale, resolvedFormattingLocale, namespaceMaps, requestNamespace],
   );
 
   return <I18nContext.Provider value={ctxValue}>{children}</I18nContext.Provider>;
@@ -291,9 +253,8 @@ export function useTranslate(namespace: string): TranslateFn {
     requestNamespace(namespace);
   }, [requestNamespace, namespace, locale]);
 
-  // Re-derive a stable `t` whenever the locale, namespace, or version
-  // changes. We deliberately depend on `ctx.version` so updates from
-  // background loads propagate.
+  // Re-derive a stable `t` whenever the locale, the namespace or the loaded
+  // dictionaries change (a background load hands in a new map).
   return useCallback<TranslateFn>(
     (key, vars) => {
       const inner = namespaces.get(namespace);
@@ -311,8 +272,7 @@ export function useTranslate(namespace: string): TranslateFn {
       warnMissingKeyOnce(namespace, key, locale);
       return key;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [namespace, locale, namespaces, ctx.version],
+    [namespace, locale, namespaces],
   );
 }
 

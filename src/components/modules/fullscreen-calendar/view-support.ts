@@ -11,6 +11,7 @@ import type { ForecastDay } from '@/lib/weather/types';
 import type { CalendarEvent, CalendarPerson, FullscreenCalendarConfig, TimeFormat, WeatherPlacement } from '@/types/config';
 import type { ExtrasIndex } from '@/lib/calendar-extras';
 import type { FullscreenEventStyle } from '@/lib/fullscreen-themes';
+import type { DayNotes } from '@/lib/day-notes';
 
 /**
  * Shared types, helpers, and hooks for the fullscreen calendar views.
@@ -67,6 +68,8 @@ export interface CalendarViewProps {
   owners?: ReadonlyMap<string, EventOwner>;
   /** Week list household rows (planned meals + chore progress), keyed by local ISO date. */
   extras?: ExtrasIndex;
+  /** The family's day notes (absent or empty when the module's Day notes switch is off). */
+  dayNotes?: DayNotes;
 }
 
 /**

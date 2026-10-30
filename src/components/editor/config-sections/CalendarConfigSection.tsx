@@ -16,6 +16,7 @@ import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
+import { CalendarDayNotesToggle } from './CalendarDayNotesToggle';
 
 // Stable selector fallback — a literal `?? []` inside a zustand selector
 // re-renders forever when the key is absent (React #185, tab crash).
@@ -54,6 +55,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     showLegend?: CalendarLegendPlacement;
     legendMode?: CalendarLegendMode;
     showNameTags?: boolean;
+    showDayNotes?: boolean;
     peopleFilter?: CalendarPeopleFilterValue;
     dimPastEvents?: boolean;
     showNowRule?: boolean;
@@ -166,6 +168,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
           <LegendModeSelect value={c.legendMode ?? 'calendars'} onChange={(next) => set({ legendMode: next })} owners={roster.owners} groups={roster.groups} />
         )}
         <NameTagsToggle checked={c.showNameTags === true} onChange={(next) => set({ showNameTags: next })} owners={roster.owners} />
+        <CalendarDayNotesToggle checked={c.showDayNotes !== false} onChange={(next) => set({ showDayNotes: next })} />
       </CalendarGroup>
 
       {/* ── This view: every view-gated field, pooled ── */}

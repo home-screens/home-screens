@@ -6,16 +6,17 @@ import {
   addDays, isSameDay, isSameMonth, getWeek,
 } from 'date-fns';
 import { isEventOnDay, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import { dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventBg } from '@/lib/calendar-event-surface';
 import { mergeCellDecor } from '@/lib/calendar-rules';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import type { CalendarViewProps } from './view-support';
 import { useContainerHeight } from './shared-time-grid';
-import { GridCellBody } from './grid-view-bits';
+import { GridCellBody, gridNotesHeight } from './grid-view-bits';
+import { dayNotesFor } from '@/lib/day-notes';
 
-export function MonthGridView({ events, timezone, config, scale, today, now, owners }: CalendarViewProps) {
+export function MonthGridView({ events, timezone, config, scale, today, now, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -95,6 +96,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
           const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));
           const hasBirthday = dayEvents.some(ev => ev.kind === 'birthday');
           const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
+          const notes = dayNotesFor(dayNotes, day);
 
           // Auto-calculate max visible events from the measured grid height
           // (header, legend, and weekday row already excluded); the estimate
@@ -103,9 +105,10 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
           // so budget double the pill height.
           const approxCellHeight = (containerH > 0 ? containerH : scale.height - scale.bu * 7) / weekCount;
           const pillHeight = fontSize * (wrapTitles ? 2.0 : 1.0);
+          const noteHeight = gridNotesHeight(notes.length, fontSize, scale);
           const autoMax = config.monthMaxEventsPerCell > 0
             ? config.monthMaxEventsPerCell
-            : Math.max(2, Math.floor((approxCellHeight - fontSize * 2) / pillHeight));
+            : Math.max(2, Math.floor((approxCellHeight - fontSize * 2 - noteHeight) / pillHeight));
 
           return (
             <div key={day.toISOString()} style={{ display: 'contents' }}>
@@ -126,7 +129,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
               )}
               <div
                 role="gridcell"
-                aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, 'MMMM d', { locale }), count: dayEvents.length })}
+                aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, dayMonthPattern(locale), { locale }), count: dayEvents.length })}
                 style={mergeCellDecor({
                   borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                   borderBottom: '1px solid var(--cal-border-subtle)',
@@ -150,6 +153,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
                 {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
                 <GridCellBody
                   day={day}
+                  notes={notes}
                   dayEvents={dayEvents}
                   maxEvents={autoMax}
                   fontSize={fontSize}

@@ -344,7 +344,7 @@
       "fullscreen-news": "Nieuwskoppen, schermvullend",
       "fullscreen-weather": "De weersverwachting, schermvullend",
       "clock": "De tijd, in achttien verschillende stijlen",
-      "calendar": "Je volgende afspraken in een lijst",
+      "calendar": "Je afspraken als lijst, week of maand",
       "countdown": "Dagen tot een verjaardag, reis of grote dag",
       "date": "Alleen de datum van vandaag",
       "year-progress": "Hoeveel van het jaar, de maand of de dag voorbij is",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "Iemand die niet meer op de gezinslijst staat",
       "peopleFilterStaleGroup": "Een verwijderde groep",
       "peopleFilterClear": "Iedereen tonen"
+    },
+    "calendarDayNotes": {
+      "label": "Dagnotities",
+      "hint": "Korte notities die je gezin op de telefoon voor een dag schrijft (Notities, dan Kalender). Ze staan boven de afspraken van die dag.",
+      "hintNone": "Nog niets geschreven. Voeg er een toe op de telefoon: Notities, dan Kalender."
     },
     "textLooks": {
       "hint": "Verander de kleur, het icoon of de woorden als een live-waarde past. De bovenste regel wint als twee hetzelfde instellen. Past er niets, dan houdt de tekst zijn eigen stijl.",

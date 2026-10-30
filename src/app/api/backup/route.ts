@@ -9,6 +9,7 @@ import { readRewardData } from '@/lib/reward-data';
 import { readRoutinesFile, validateRoutines } from '@/lib/timer-data';
 import { readTodoData, validateTodoData, settleTodoMigration } from '@/lib/todo-data';
 import { readNotesData, validateNotesData } from '@/lib/notes-data';
+import { readDayNotesData, validateDayNotesData } from '@/lib/day-notes-data';
 import { readSavedTimetables, validateTimetableData } from '@/lib/timetable-data';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
@@ -43,7 +44,7 @@ export const GET = withAuth(async () => withFamilyData(async () => {
   // in parallel the very first export after an upgrade could pair a
   // pre-fold config with post-fold lists and back up neither faithfully.
   await settleTodoMigration();
-  const [config, chores, completions, meals, rewards, routines, todos, family, timetables, notes] = await Promise.all([
+  const [config, chores, completions, meals, rewards, routines, todos, family, timetables, notes, dayNotes] = await Promise.all([
     readConfig(),
     readChoreData(),
     readCompletions(),
@@ -56,6 +57,7 @@ export const GET = withAuth(async () => withFamilyData(async () => {
     // document; a backup carries the document on its own.
     readSavedTimetables(),
     readNotesData(),
+    readDayNotesData(),
   ]);
 
   const bundle = {
@@ -73,6 +75,7 @@ export const GET = withAuth(async () => withFamilyData(async () => {
     todos,
     family,
     notes,
+    dayNotes,
     // Left out entirely when nothing has been saved, so a restore does not
     // create the file with one household's language of subject names in it.
     ...(timetables ? { timetables } : {}),
@@ -198,6 +201,11 @@ export const POST = withAuth(async (request: NextRequest) => {
       const err = validateNotesData(body.notes);
       if (err) return NextResponse.json({ error: err }, { status: 400 });
     }
+    // And the calendar's day notes.
+    if (body.dayNotes !== undefined) {
+      const err = validateDayNotesData(body.dayNotes);
+      if (err) return NextResponse.json({ error: err }, { status: 400 });
+    }
 
     // Decrypt before any write: a wrong password must cost nothing, and the
     // client's fallback is to re-post the same bundle with `credentials`
@@ -259,6 +267,7 @@ export const POST = withAuth(async (request: NextRequest) => {
         routines: !!body.routines,
         timetables: !!body.timetables,
         notes: !!body.notes,
+        dayNotes: !!body.dayNotes,
         customIcons: !!icons,
       },
       missingIcons,

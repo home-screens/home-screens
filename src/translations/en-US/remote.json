@@ -1175,6 +1175,10 @@
     "notes": {
       "title": "No notes board yet",
       "body": "Notes show up here once a Notes board is on one of your screens."
+    },
+    "dayNotes": {
+      "title": "No calendar shows day notes yet",
+      "body": "Day notes show up on a calendar. Put a calendar on one of your screens, or turn on Day notes in its settings."
     }
   },
   "choreSettings": {
@@ -1190,6 +1194,11 @@
   },
   "notes": {
     "title": "Notes",
+    "pages": {
+      "board": "Board",
+      "calendar": "Calendar"
+    },
+    "boardToCalendar": "Something for a day? Put it on the calendar",
     "onWall": {
       "zero": "Nothing on the wall",
       "one": "{count} on the wall",
@@ -1246,6 +1255,24 @@
     "loadError": "Couldn't load the notes.",
     "retry": "Try again",
     "saveError": "That didn't save. Try again.",
-    "editAria": "Edit note from {name}"
+    "editAria": "Edit note from {name}",
+    "dayNotes": {
+      "sub": "Day notes go on the calendars on the wall",
+      "nextDays": "Next 7 days",
+      "addForDay": "Add a note for this day",
+      "addAnother": "Add another note",
+      "addAria": "Add a note for {day}",
+      "editAria": "Change the note for {day}",
+      "sheetHint": "Goes on this day in the calendars on the wall.",
+      "placeholder": "Picture day, no school…",
+      "put": "Put it on the calendar",
+      "remove": "Remove",
+      "loadError": "Couldn't load the day notes.",
+      "saveError": "That didn't save. Try again.",
+      "saved": "Saved for {day}. It shows on the wall when that day is on a calendar.",
+      "removed": "Note removed",
+      "undo": "Undo",
+      "atLimit": "That's as long as a day note can be."
+    }
   }
 }

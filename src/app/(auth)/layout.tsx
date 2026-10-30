@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { readConfig } from '@/lib/config';
-import { I18nProvider, preloadDateLocale } from '@/i18n';
+import { I18nProvider } from '@/i18n';
 import { buildLocaleBlob } from '@/i18n/server-blob';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 
@@ -22,11 +22,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   // post-mount fetch renders a blank screen with the literal
   // `login.checkingAuth` centered on it until the request lands. There is no
   // surrounding chrome to hide it behind, and the wait is longest on the Pi.
-  // Built in parallel with the date-fns preload — independent disk reads.
-  const [blob] = await Promise.all([
-    buildLocaleBlob(locale, ['core']),
-    preloadDateLocale(locale),
-  ]);
+  const blob = await buildLocaleBlob(locale, ['core']);
 
   return (
     <I18nProvider locale={locale} blob={blob}>

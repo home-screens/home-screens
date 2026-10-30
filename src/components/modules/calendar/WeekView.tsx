@@ -10,8 +10,10 @@ import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle } from '@/types/config';
 import { withAlpha, type EventDisplayStyle } from './support';
 import { DayCellEvents, WeekNumberCell, gridTemplateFor, scaledEm } from './grid';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 
-export function WeekView({ events, config, style, today, now, accentColor, eventStyle }: {
+export function WeekView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -19,6 +21,8 @@ export function WeekView({ events, config, style, today, now, accentColor, event
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The family's day notes; absent or empty when the Day notes switch is off. */
+  dayNotes?: DayNotes;
 }) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -44,8 +48,9 @@ export function WeekView({ events, config, style, today, now, accentColor, event
         )}
         {dayRows.map(({ date, decor }) => {
           const isToday = isSameDay(date, today);
+          const notes = dayNotesFor(dayNotes, date);
           return (
-            <div key={date.toISOString()} className="text-center py-1">
+            <div key={date.toISOString()} className="text-center py-1 min-w-0">
               <p className="uppercase tracking-wider" style={{ fontSize: scaledEm(0.6, dayLabelScale), opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
                 {formatDateSync(date, 'EEE', { locale })}
               </p>
@@ -65,6 +70,8 @@ export function WeekView({ events, config, style, today, now, accentColor, event
                 {formatDateSync(date, 'd', { locale })}
               </div>
               <DayBadges badges={decor.badges} style={{ justifyContent: 'center', display: 'flex', fontSize: scaledEm(0.75, dayLabelScale) }} />
+              {/* Under the date, so every column's events still start on one line. */}
+              <DayNoteLines notes={notes} tone="module" style={{ fontSize: '0.6em', padding: '0.18em 0.4em', marginTop: '0.35em' }} />
             </div>
           );
         })}

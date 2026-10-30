@@ -64,7 +64,7 @@ A **routine** is a saved list of timed steps, each with its own emoji and length
 
 - **Chores** is where grown-ups add people, chores (from scratch or from a ready-made list) and rewards, and fix a missed day. See [Chores and rewards](/docs/chores).
 - **Lists** holds the family's to-do lists: add, tick, reorder, give things a due day or a person, and make new lists. See [Lists](/docs/lists).
-- **Notes** is the family notes board. Type a note in the bar above the tabs and press return to put it up for a day, or tap **+** to say who it is from, how long it stays on the wall, and whether it is pinned or important. Tap a note to change it or take it down. Notes that came down sit in **Gone** for a week, where you can post them again or delete them. See [Notes](/docs/notes).
+- **Notes** is the family notes board. Type a note in the bar above the tabs and press return to put it up for a day, or tap **+** to say who it is from, how long it stays on the wall, and whether it is pinned or important. Tap a note to change it or take it down. Notes that came down sit in **Gone** for a week, where you can post them again or delete them. See [Notes](/docs/notes). The tab's **Calendar** page holds day notes: tap a day to put a short line on it (up to three a day), and every calendar on the wall shows it on that day. See [Day notes](/docs/calendars#day-notes).
 - **Meals** holds the meal library, the weekly plan and the grocery list. See [Meals](/docs/meals).
 - **Photos** appears when a photo slideshow is on a screen, and opens on the folder the wall shows. Folders a wall shows come first and say which wall. Add photos and videos from the phone (big photos are made smaller before they are sent), from an iCloud link, or from Google Photos once the hub is signed in to Google from a computer. Tap a photo to see it full size, delete it, move it to another folder, or put it on the wall for a minute; **Select** picks several at once. Folders can be made, renamed and deleted here too. It is the same library **Settings > Pictures & videos** manages. A slideshow always keeps its last picture, and a photo a screen uses on its own (a background) stays put.
   Videos recorded on an iPhone in the default High Efficiency format do not play on a Raspberry Pi, so the phone turns them away; on the iPhone, open the Settings app, then **Camera** and **Formats**, and choose **Most Compatible** to record videos the wall can play.
@@ -106,7 +106,7 @@ It stays open even when a password is set, so a bookmark on a tablet just works.
 | Chores: adding or editing people, chores, rewards, balances, earlier days | Signed in |
 | Lists: ticking an item | Signed in, or the wall itself |
 | Lists: adding, editing, moving or removing, and making or deleting lists | Signed in |
-| Notes: writing, changing, taking down or deleting a note | Signed in |
+| Notes: writing, changing, taking down or deleting a note, and day notes | Signed in |
 | Meals: ticking a grocery item | Signed in, or with the display key, as [Voice Control](/docs/voice-control) does |
 | Meals: the plan, the library and meal settings | Signed in |
 | Photos | Signed in |

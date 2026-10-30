@@ -1,7 +1,7 @@
 'use client';
 
 import { isSameDay } from 'date-fns';
-import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
+import { dayMonthPattern, formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import { birthdayAge } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventOwner, type EventOwner } from '@/lib/calendar-people';
@@ -10,6 +10,7 @@ import { eventSurface } from '@/lib/calendar-event-surface';
 import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
 import type { DayDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
+import { DayNoteLines } from '../shared/DayNoteLine';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { clampStyle, resolveTodayHighlight } from './view-support';
 import type { CalendarScale, CalendarViewProps } from './view-support';
@@ -24,8 +25,22 @@ import type { FullscreenCalendarConfig } from '@/types/config';
  * pill budget, computed by each view) and `showMonthName` (rolling grids
  * cross months mid-row, so their 1sts render "MMM d").
  */
+/**
+ * A day note in a day-grid cell: one line at 0.9 of the cell's type with
+ * 0.15 of it as padding above and below, then a small gap. Bigger than the
+ * event titles on purpose: it is the thing to notice from across the room.
+ */
+const GRID_NOTE_FONT = 0.9;
+
+/** The height a day's notes take from a cell's pill budget, px (one line each). */
+export function gridNotesHeight(count: number, fontSize: number, scale: CalendarScale): number {
+  return count * (fontSize * GRID_NOTE_FONT * 1.3 + fontSize * 0.3 + scale.bu * 0.28);
+}
+
 export interface GridCellBodyProps {
   day: Date;
+  /** The family's notes for this day, one line each under the day number. */
+  notes?: readonly string[];
   dayEvents: CalendarViewProps['events'];
   /** Total pill budget for the cell; all-day and birthday rows count against it. */
   maxEvents: number;
@@ -41,7 +56,7 @@ export interface GridCellBodyProps {
   owners?: ReadonlyMap<string, EventOwner>;
 }
 
-export function GridCellBody({ day, dayEvents, maxEvents, showMonthName = false, fontSize, scale, config, today, decor, owners }: GridCellBodyProps) {
+export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName = false, fontSize, scale, config, today, decor, owners }: GridCellBodyProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const wrapTitles = config.wrapEventTitles === true;
@@ -81,12 +96,20 @@ export function GridCellBody({ day, dayEvents, maxEvents, showMonthName = false,
             fontWeight: 600,
             color: 'var(--cal-text-primary)',
           }}>
-            {marksMonthStart ? formatDateSync(day, 'MMM d', { locale }) : formatDateSync(day, 'd', { locale })}
+            {marksMonthStart ? formatDateSync(day, dayMonthPattern(locale, 'short'), { locale }) : formatDateSync(day, 'd', { locale })}
           </span>
         )}
         {hasBirthday && <span aria-hidden="true" style={{ fontSize: fontSize * 0.7 }}>🎂</span>}
         <DayBadges badges={decor.badges} style={{ fontSize: fontSize * 0.8 }} />
       </div>
+
+      {notes && (
+        <DayNoteLines
+          notes={notes}
+          tone="fullscreen"
+          style={{ fontSize: fontSize * GRID_NOTE_FONT, padding: `${fontSize * 0.15}px ${fontSize * 0.385}px`, marginBottom: scale.bu * 0.28 }}
+        />
+      )}
 
       {/* All-day span bars */}
       {allDayEvs.map(ev => {

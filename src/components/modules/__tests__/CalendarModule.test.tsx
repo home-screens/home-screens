@@ -11,6 +11,12 @@ installResizeObserverStub();
 
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import CalendarModule from '../CalendarModule';
+import { NO_DAY_NOTES, type DayNotes } from '@/lib/day-notes';
+import { localISODate } from '@/lib/timezone';
+
+// The day notes read; no notes unless a test hands some in.
+const dayNotesMock = vi.fn((_enabled: boolean): DayNotes => NO_DAY_NOTES);
+vi.mock('@/hooks/useDayNotes', () => ({ useDayNotes: (enabled: boolean) => dayNotesMock(enabled) }));
 
 const style: ModuleStyle = { ...DEFAULT_MODULE_STYLE };
 
@@ -1083,6 +1089,32 @@ describe('CalendarModule feed health', () => {
     expect(getByTestId('calendar-setup-card').getAttribute('data-setup')).toBe('noSources');
     expect(getByText('No calendars picked yet')).not.toBeNull();
     expect(getByText('Choose which calendars to show in Settings › Calendar.')).not.toBeNull();
+  });
+
+  it('draws the view with its day note when nothing is picked but a day in view has a note', () => {
+    dayNotesMock.mockImplementation(() => ({ [localISODate(addDays(NOW, 1))]: ['Picture day'] }));
+    try {
+      const { queryByTestId, getByText } = render(
+        <Wrapper><CalendarModule config={makeConfig()} style={style} calendarSetup="noSources" /></Wrapper>,
+      );
+      expect(queryByTestId('calendar-setup-card')).toBeNull();
+      expect(getByText('Picture day')).not.toBeNull();
+    } finally {
+      dayNotesMock.mockImplementation(() => NO_DAY_NOTES);
+    }
+  });
+
+  it('keeps the no-calendars card when the only note is on a day the view does not draw', () => {
+    dayNotesMock.mockImplementation(() => ({ [localISODate(addDays(NOW, 30))]: ['Far off'] }));
+    try {
+      const { getByTestId, queryByText } = render(
+        <Wrapper><CalendarModule config={makeConfig()} style={style} calendarSetup="noSources" /></Wrapper>,
+      );
+      expect(getByTestId('calendar-setup-card').getAttribute('data-setup')).toBe('noSources');
+      expect(queryByText('Far off')).toBeNull();
+    } finally {
+      dayNotesMock.mockImplementation(() => NO_DAY_NOTES);
+    }
   });
 
   it('shows the sign-in card instead of saved events when every source needs a Google sign-in', () => {

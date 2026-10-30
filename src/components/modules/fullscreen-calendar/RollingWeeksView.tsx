@@ -3,12 +3,13 @@
 import { useMemo } from 'react';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { clampRollingWeeks, isEventOnDay, isWeekendDay } from '@/lib/calendar-utils';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import { dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventBg } from '@/lib/calendar-event-surface';
 import { mergeCellDecor } from '@/lib/calendar-rules';
 import { DayArtLayer } from '../shared/DayArtLayer';
-import { GridCellBody } from './grid-view-bits';
+import { GridCellBody, gridNotesHeight } from './grid-view-bits';
+import { dayNotesFor } from '@/lib/day-notes';
 import { rollingRangeTitle } from './view-traits';
 import { useContainerHeight } from './shared-time-grid';
 import type { CalendarViewProps } from './view-support';
@@ -20,7 +21,7 @@ import type { CalendarViewProps } from './view-support';
  * derived from each date (not the column), no past or out-of-month days
  * exist, and the 1st of each month crossed renders "MMM d".
  */
-export function RollingWeeksView({ events, timezone, config, scale, today, now, owners }: CalendarViewProps) {
+export function RollingWeeksView({ events, timezone, config, scale, today, now, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -42,7 +43,7 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
   // shape as the month grid, whose rows are 5-6 where ours are 1-8.
   const approxCellHeight = (containerH > 0 ? containerH : scale.height - scale.bu * 7) / weeks;
   const pillHeight = fontSize * (wrapTitles ? 2.0 : 1.0);
-  const autoMax = Math.max(2, Math.floor((approxCellHeight - fontSize * 2) / pillHeight));
+  const autoMax = (noteHeight: number) => Math.max(2, Math.floor((approxCellHeight - fontSize * 2 - noteHeight) / pillHeight));
 
   return (
     <div role="grid" aria-label={rollingRangeTitle(today, weeks, locale)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -81,12 +82,13 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
           const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));
           const hasBirthday = dayEvents.some(ev => ev.kind === 'birthday');
           const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
+          const notes = dayNotesFor(dayNotes, day);
 
           return (
             <div
               key={day.toISOString()}
               role="gridcell"
-              aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, 'MMMM d', { locale }), count: dayEvents.length })}
+              aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, dayMonthPattern(locale), { locale }), count: dayEvents.length })}
               style={mergeCellDecor({
                 borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                 borderBottom: '1px solid var(--cal-border-subtle)',
@@ -107,8 +109,9 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
               {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
               <GridCellBody
                 day={day}
+                notes={notes}
                 dayEvents={dayEvents}
-                maxEvents={autoMax}
+                maxEvents={autoMax(gridNotesHeight(notes.length, fontSize, scale))}
                 showMonthName
                 fontSize={fontSize}
                 scale={scale}

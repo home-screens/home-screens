@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDateSync } from '@/i18n';
+import { dayMonthPattern, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarScale } from './view-support';
 
@@ -104,7 +104,7 @@ export function WeekSeparator({ weekStart, scale, fontSize, t, locale }: {
         padding: `${scale.bu * 0.1}px ${scale.bu * 0.7}px`,
         whiteSpace: 'nowrap',
       }}>
-        {t('fullscreen-calendar.weekOf', { date: formatDateSync(weekStart, 'MMM d', { locale }) })}
+        {t('fullscreen-calendar.weekOf', { date: formatDateSync(weekStart, dayMonthPattern(locale, 'short'), { locale }) })}
       </span>
       <div style={line} />
     </div>

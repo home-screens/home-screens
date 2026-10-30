@@ -15,7 +15,6 @@ import type {
 } from '@/types/timetables';
 import { installResizeObserverStub, I18nWrapper as Wrapper } from '../../__tests__/helpers/harness';
 import { I18nProvider } from '@/i18n/provider';
-import { preloadDateLocale } from '@/i18n';
 import deDEModules from '@/translations/de-DE/modules.json';
 import deDECore from '@/translations/de-DE/core.json';
 import nlNLModules from '@/translations/nl-NL/modules.json';
@@ -812,7 +811,6 @@ describe('the language the wall is in', () => {
   // the wall is only German once the German one has been loaded, the same way
   // the provider warms it at startup.
   beforeAll(async () => {
-    await preloadDateLocale('de-DE');
   });
 
   const inGerman = (over: Partial<TimetableConfig> = {}) => renderModule(over, {}, GermanWrapper);

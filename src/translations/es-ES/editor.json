@@ -344,7 +344,7 @@
       "fullscreen-news": "Los titulares, a pantalla completa",
       "fullscreen-weather": "La previsión del tiempo, a pantalla completa",
       "clock": "La hora, con dieciocho estilos a elegir",
-      "calendar": "Tus próximos eventos en una lista",
+      "calendar": "Tus eventos en lista, por semana o por mes",
       "countdown": "Los días que faltan para un cumpleaños, un viaje o una fecha especial",
       "date": "La fecha de hoy y nada más",
       "year-progress": "Cuánto ha pasado del año, del mes o del día",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "Alguien que ya no está en la familia",
       "peopleFilterStaleGroup": "Un grupo que se quitó",
       "peopleFilterClear": "Mostrar a todos"
+    },
+    "calendarDayNotes": {
+      "label": "Notas del día",
+      "hint": "Notas cortas que tu familia escribe en el móvil para un día concreto (Notas y luego Calendario). Aparecen encima de los eventos de ese día.",
+      "hintNone": "Todavía no hay ninguna. Añade una en el móvil: Notas y luego Calendario."
     },
     "textLooks": {
       "hint": "Cambia el color, el icono o las palabras cuando un valor en vivo coincide. La regla de arriba gana cuando dos cambian lo mismo. Si ninguna coincide, el texto conserva su propio estilo.",

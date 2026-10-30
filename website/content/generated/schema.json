@@ -657,6 +657,16 @@
           "description": "Name tags: put the owning family member's initials, in their color, where the calendar dot goes. Who owns which calendar is set in Settings > Calendar > People. Calendars nobody owns keep a plain dot"
         },
         {
+          "name": "showDayNotes",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Day notes: show the short note someone wrote for a day on the phone (Notes, then Calendar), above that day's events",
+          "default": true
+        },
+        {
           "name": "legendMode",
           "optional": true,
           "type": {
@@ -2451,6 +2461,16 @@
             "text": "boolean"
           },
           "description": "Name tags: put the owning family member's initials, in their color, where the calendar dot goes. Who owns which calendar is set in Settings > Calendar > People. Calendars nobody owns keep a plain dot"
+        },
+        {
+          "name": "showDayNotes",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Day notes: show the short note someone wrote for a day on the phone (Notes, then Calendar), above that day's events",
+          "default": true
         },
         {
           "name": "legendMode",
@@ -10868,6 +10888,32 @@
         {
           "method": "GET",
           "access": "media"
+        }
+      ]
+    },
+    {
+      "path": "/api/day-notes",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        },
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/day-notes/{id}",
+      "methods": [
+        {
+          "method": "PATCH",
+          "access": "session"
+        },
+        {
+          "method": "DELETE",
+          "access": "session"
         }
       ]
     },

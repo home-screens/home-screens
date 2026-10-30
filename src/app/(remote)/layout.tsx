@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import '@/app/globals.css';
 import { readConfig } from '@/lib/config';
-import { I18nProvider, preloadDateLocale, resolveShippedLocale } from '@/i18n';
+import { I18nProvider, resolveShippedLocale } from '@/i18n';
 import { buildLocaleBlob } from '@/i18n/server-blob';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { isoDateInTZ, resolveHouseholdTimezone } from '@/lib/timezone';
@@ -30,8 +30,7 @@ export default async function RemoteLayout({ children }: { children: React.React
   const config = await readConfig().catch(() => null);
   const locale = config?.settings?.locale ?? DEFAULT_LOCALE;
   // formattingLocale falls back to locale (cascade also lives in
-  // <I18nProvider>; we resolve it here so the server-side preload
-  // covers both tags before first paint).
+  // <I18nProvider>; resolved here so the server render and the client agree).
   const formattingLocale = config?.settings?.formattingLocale ?? resolveShippedLocale(locale);
   // The phone's own zone is not the household's. With none set, the household
   // runs on the hub's clock, so the phone is handed the hub's zone by name.
@@ -43,15 +42,7 @@ export default async function RemoteLayout({ children }: { children: React.React
   // a kid reading `chores.markDone` has no way to know it is a loading state.
   // ~48 KB for the three namespaces, against the 188 KB the editor layout
   // already inlines.
-  //
-  // Built in parallel with the date-fns preload, which keeps `formatDateSync`
-  // (used on hot tick paths) in the active locale on first paint instead of
-  // falling through to en-US.
-  const [blob] = await Promise.all([
-    buildLocaleBlob(locale, ['core', 'modules', 'remote']),
-    preloadDateLocale(locale),
-    formattingLocale === locale ? Promise.resolve() : preloadDateLocale(formattingLocale),
-  ]);
+  const blob = await buildLocaleBlob(locale, ['core', 'modules', 'remote']);
 
   return (
     <I18nProvider

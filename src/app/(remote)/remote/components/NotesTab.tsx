@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useMemo, useState, type CSSProperties } from 'react';
-import { ChevronDown, ChevronUp, Pin, RotateCcw, TriangleAlert } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pin, RotateCcw, TriangleAlert } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { arrangeNotes, formatNoteAge, goneNotes, initialOf, timeLeftParts } from '@/lib/notes-rules';
@@ -14,7 +14,9 @@ import ConfirmSheet from './ConfirmSheet';
 import NotesSheet from './NotesSheet';
 import { readRememberedAuthor, rememberAuthor } from './notes-author';
 import { DANGER_BUTTON, GHOST_BUTTON } from './lists-styles';
-import { NOTE_ICON_PATH } from './BottomTabBar';
+import { NOTE_ICON_PATH, NoteGlyph } from '@/components/notes/NoteGlyph';
+import DayNotesPage from './DayNotesPage';
+import TabNotSetUp from './TabNotSetUp';
 
 const MINUTE_MS = 60_000;
 
@@ -99,8 +101,74 @@ function AuthorBubble({ member }: { member: FamilyMember | undefined }) {
   );
 }
 
+export type NotesPage = 'board' | 'calendar';
+
+const PAGE_ICONS: Record<NotesPage, React.ReactNode> = {
+  board: <NoteGlyph strokeWidth={1.8} style={{ width: 16, height: 16 }} />,
+  calendar: <CalendarDays size={16} strokeWidth={1.8} aria-hidden="true" />,
+};
+
 /**
- * The /remote Notes tab: the family notes board from `data/notes.json`.
+ * The /remote Notes tab: two pages under one title. Board is the family notes
+ * board; Calendar is the day notes every calendar on the wall draws. A page
+ * with nowhere to show yet (no Notes card, no calendar with Day notes on)
+ * explains that instead, so the switch never hides a page.
+ */
+export default function NotesTab({ page, onPageChange, boardReady, calendarReady }: {
+  page: NotesPage;
+  onPageChange: (page: NotesPage) => void;
+  boardReady: boolean;
+  calendarReady: boolean;
+}) {
+  const t = useTranslate('remote');
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0 12px' }}>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
+          {t('notes.title')}
+        </h2>
+      </div>
+      <div role="tablist" aria-label={t('notes.title')} style={{ display: 'flex', gap: 2, padding: 3, background: 'var(--hs-bg-panel)', borderRadius: 10, marginBottom: 14 }}>
+        {(['board', 'calendar'] as const).map((p) => (
+          <button
+            key={p}
+            type="button"
+            role="tab"
+            aria-selected={page === p}
+            data-testid={`notes-page-${p}`}
+            onClick={() => onPageChange(p)}
+            style={{
+              flex: 1,
+              minHeight: 44,
+              padding: '8px 6px',
+              fontSize: 13,
+              fontWeight: 600,
+              borderRadius: 8,
+              border: 'none',
+              cursor: 'pointer',
+              background: page === p ? 'var(--hs-border)' : 'transparent',
+              color: page === p ? 'var(--hs-text-primary)' : 'var(--hs-text-faint)',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+            }}
+          >
+            {PAGE_ICONS[p]}
+            {t(`notes.pages.${p}`)}
+          </button>
+        ))}
+      </div>
+      {page === 'board'
+        ? (boardReady ? <NotesBoard onOpenCalendar={calendarReady ? () => onPageChange('calendar') : undefined} /> : <TabNotSetUp kind="notes" />)
+        : (calendarReady ? <DayNotesPage /> : <TabNotSetUp kind="dayNotes" />)}
+    </div>
+  );
+}
+
+/**
+ * The Board page: the family notes board from `data/notes.json`.
  * Live notes in wall order (pinned first, then newest), each a card that
  * opens the edit sheet; the notes that came down in the last week in a
  * folded Gone group with Post again and Delete; and the write bar pinned
@@ -108,7 +176,10 @@ function AuthorBubble({ member }: { member: FamilyMember | undefined }) {
  * author for the default time; the plus opens the full sheet with whatever
  * was typed carried in.
  */
-export default function NotesTab() {
+function NotesBoard({ onOpenCalendar }: {
+  /** Opens the Calendar page; absent when no calendar shows day notes. */
+  onOpenCalendar?: () => void;
+}) {
   const t = useTranslate('remote');
   const locale = useFormattingLocale();
   const timezone = useHouseholdTimezone();
@@ -147,12 +218,6 @@ export default function NotesTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0 12px' }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--hs-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
-          {t('notes.title')}
-        </h2>
-      </div>
-
       {!loaded && loadError ? (
         <div className="mt-3 p-4 rounded-[14px] bg-hs-card border border-hs-border-strong" data-testid="notes-load-error">
           <p className="text-[13px] text-hs-text-faint">{t('notes.loadError')}</p>
@@ -184,9 +249,27 @@ export default function NotesTab() {
               <div style={{ fontSize: 14, color: 'var(--hs-text-faint)', marginTop: 6, lineHeight: 1.45 }}>{t('notes.empty.body')}</div>
             </div>
           ) : (
-            <div data-testid="notes-on-wall" style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '-6px 0 12px' }}>
+            <div data-testid="notes-on-wall" style={{ fontSize: 13, color: 'var(--hs-text-faint)', margin: '0 0 12px' }}>
               {t('notes.onWall', { count: live.length })}
             </div>
+          )}
+
+          {/* The board's write bar cannot pick a day; people try it first. */}
+          {onOpenCalendar && (
+            <button
+              type="button"
+              data-testid="notes-to-calendar"
+              onClick={onOpenCalendar}
+              style={{
+                width: '100%', minHeight: 44, display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px', padding: '0 12px',
+                borderRadius: 10, border: '1px solid var(--hs-border)', background: 'transparent', color: 'var(--hs-text-muted)',
+                fontSize: 13, fontWeight: 600, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              <CalendarDays size={16} aria-hidden="true" style={{ flex: 'none' }} />
+              <span style={{ flex: 1 }}>{t('notes.boardToCalendar')}</span>
+              <ChevronRight size={16} aria-hidden="true" style={{ flex: 'none' }} />
+            </button>
           )}
 
           {live.map((note) => {

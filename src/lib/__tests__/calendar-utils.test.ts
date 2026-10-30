@@ -33,6 +33,7 @@ import {
   formatEventTimeCompact,
   allDaySpanSegment,
   formatMonthRangeLabel,
+  formatEventDuration,
 } from '@/lib/calendar-utils';
 import { legendSources, eventsInWindow } from '@/lib/calendar-legend';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -1122,5 +1123,22 @@ describe('clampRollingWeeks', () => {
     expect(clampRollingWeeks(8)).toBe(8);
     expect(clampRollingWeeks(12)).toBe(8);
     expect(clampRollingWeeks(99)).toBe(8);
+  });
+});
+
+describe('formatEventDuration', () => {
+  const at = (h: number, m = 0) => new Date(2026, 9, 30, h, m);
+
+  it('keeps the short English form', () => {
+    expect(formatEventDuration(at(9), at(9, 45), 'en-US')).toBe('45m');
+    expect(formatEventDuration(at(9), at(11), 'en-US')).toBe('2h');
+    expect(formatEventDuration(at(9), at(10, 30), 'en-US')).toBe('1h 30m');
+  });
+
+  it('writes hours and minutes in the wall\'s language', () => {
+    expect(formatEventDuration(at(9), at(10, 30), 'de-DE')).toBe('1 Std. 30 Min.');
+    // French keeps each number and its unit together with no-break spaces.
+    expect(formatEventDuration(at(9), at(10, 30), 'fr-FR').replace(/[\u00a0\u202f]/g, ' ')).toBe('1 h 30 min');
+    expect(formatEventDuration(at(9), at(10, 30), 'nl-NL')).toBe('1 uur 30 min');
   });
 });

@@ -344,7 +344,7 @@
       "fullscreen-news": "As manchetes, ocupando a tela toda",
       "fullscreen-weather": "A previsão do tempo, ocupando a tela toda",
       "clock": "A hora, em dezoito estilos diferentes",
-      "calendar": "Seus próximos compromissos em uma lista",
+      "calendar": "Seus eventos em lista, por semana ou por mês",
       "countdown": "Quantos dias faltam para um aniversário, uma viagem ou um dia especial",
       "date": "Só a data de hoje",
       "year-progress": "Quanto já passou do ano, do mês ou do dia",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "Alguém que não está mais na família",
       "peopleFilterStaleGroup": "Um grupo que foi removido",
       "peopleFilterClear": "Mostrar todo mundo"
+    },
+    "calendarDayNotes": {
+      "label": "Recados do dia",
+      "hint": "Recados curtos que a família escreve no celular para um dia (em Recados, depois Calendário). Aparecem acima dos eventos daquele dia.",
+      "hintNone": "Nada escrito ainda. Adicione um no celular: Recados, depois Calendário."
     },
     "textLooks": {
       "hint": "Mude a cor, o ícone ou as palavras quando um valor ao vivo combinar. A regra de cima vence quando duas mudam a mesma coisa. Sem combinação, o texto mantém o próprio estilo.",

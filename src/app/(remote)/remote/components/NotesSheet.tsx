@@ -145,6 +145,8 @@ export default function NotesSheet(props: NotesSheetProps) {
       titleAside={aside}
       onClose={close}
       testId="notes-sheet"
+      // A new note was asked for by tapping +, so the keyboard is wanted.
+      initialFocus={props.mode === 'new' ? 'field' : 'container'}
     >
       <form
         onSubmit={(e) => {

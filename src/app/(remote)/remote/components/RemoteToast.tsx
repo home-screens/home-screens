@@ -26,7 +26,31 @@ export default function RemoteToast({ raisedBy = 0 }: { raisedBy?: number }) {
       className="pointer-events-none fixed left-0 right-0 z-[90] flex justify-center px-5"
       style={{ bottom }}
     >
-      {toast && (
+      {toast?.action ? (
+        // A toast with a button: the message still closes it, the button acts.
+        <div
+          key={toast.id}
+          data-testid="remote-toast"
+          data-tone={toast.tone}
+          className="pointer-events-auto flex max-w-full items-center gap-1 rounded-full border bg-hs-card border-hs-border-strong pl-4 pr-1.5 py-1 text-[13px] font-medium text-hs-text-primary shadow-[0_6px_24px_rgba(0,0,0,0.35)] backdrop-blur-sm"
+        >
+          <button type="button" onClick={dismissToast} className="min-h-[40px] text-left">
+            {toast.message}
+          </button>
+          <button
+            type="button"
+            data-testid="remote-toast-action"
+            onClick={() => {
+              const { onPress } = toast.action!;
+              dismissToast();
+              onPress();
+            }}
+            className="min-h-[40px] rounded-full px-3.5 font-bold text-hs-accent"
+          >
+            {toast.action.label}
+          </button>
+        </div>
+      ) : toast && (
         <button
           key={toast.id}
           type="button"

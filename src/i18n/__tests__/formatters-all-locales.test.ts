@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  formatDate,
+  formatDateSync,
   formatNumber,
   formatRelativeTime,
   __resetFormatterLocaleCacheForTests,
@@ -59,7 +59,7 @@ describe('formatters across the remaining shipped locales', () => {
   for (const locale of OTHER_LOCALES) {
     describe(locale, () => {
       it('formatDate: weekday is localized', async () => {
-        const out = await formatDate(MONDAY, 'EEEE', { locale });
+        const out = formatDateSync(MONDAY, 'EEEE', { locale });
         expect(out).toBe(EXPECTED_WEEKDAY[locale]);
       });
 

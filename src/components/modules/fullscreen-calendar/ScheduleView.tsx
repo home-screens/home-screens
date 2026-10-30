@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import { parseEventWallTime, isEventOnDay, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { autoScheduleDays, clampStyle, dayCellFill, resolveTodayHighlight, useDayDecors, useDayList } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
@@ -23,6 +23,8 @@ import { eventAriaLabel } from './list-view-bits';
 import Glyph from '@/components/ui/Glyph';
 import { eventOwner } from '@/lib/calendar-people';
 import { TagPrefix } from '../shared/EventMarker';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor } from '@/lib/day-notes';
 
 /**
  * One equal column per day, for the day headers, the all-day lane and the
@@ -32,7 +34,7 @@ import { TagPrefix } from '../shared/EventMarker';
  */
 const dayColumns = (count: number) => `repeat(${count}, minmax(0, 1fr))`;
 
-export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat, weather, owners }: CalendarViewProps) {
+export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat, weather, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -116,6 +118,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
           {days.map((day, dayIdx) => {
             const isToday = isSameDay(day, today);
             const isWeekend = isWeekendDay(day);
+            const notes = dayNotesFor(dayNotes, day);
             return (
               <div
                 key={day.toISOString()}
@@ -159,6 +162,8 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                 </div>
                 <DayBadges badges={decorByDay[dayIdx].badges} style={{ justifyContent: 'center', display: 'flex', fontSize: fontSize * 0.8, marginTop: scale.bu * 0.2 }} />
                 {weather && <DayWeatherBadge weather={weather} day={day} fontSize={fontSize} align="center" />}
+                {/* Under the date, so the hours below never move. */}
+                <DayNoteLines notes={notes} tone="fullscreen" style={{ fontSize: fontSize * 0.965, padding: `${fontSize * 0.23}px ${fontSize * 0.46}px`, marginTop: scale.bu * 0.46 }} />
               </div>
             );
           })}
@@ -220,7 +225,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                 <div
                   key={day.toISOString()}
                   role="gridcell"
-                  aria-label={formatDateSync(day, 'EEEE, MMMM d', { locale })}
+                  aria-label={fullDateHeading(day, locale)}
                   style={mergeCellDecor({
                     position: 'relative',
                     borderLeft: '1px solid var(--cal-border-subtle)',

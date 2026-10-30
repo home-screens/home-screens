@@ -11,7 +11,7 @@ import {
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, fullDateHeading } from '@/i18n';
 import { MapPin } from 'lucide-react';
 import { clippedListFade, dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
@@ -23,6 +23,8 @@ import type { CalendarEvent, CalendarViewProps } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
 import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, eventAriaLabel } from './list-view-bits';
 import Glyph from '@/components/ui/Glyph';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor } from '@/lib/day-notes';
 
 interface DayGroupEvent {
   ev: CalendarEvent;
@@ -34,7 +36,7 @@ interface DayGroupEvent {
 // row below the fold. Keep only the most recent few finished rows.
 const FINISHED_TODAY_MAX = 3;
 
-export function AgendaView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners }: CalendarViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -60,7 +62,8 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
         if (dropped.size > 0) dayEvents = dayEvents.filter(d => !dropped.has(d.ev.id));
       }
 
-      if (config.agendaHideEmptyDays && dayEvents.length === 0) continue;
+      // A day with a note is not empty, even with Hide empty days on.
+      if (config.agendaHideEmptyDays && dayEvents.length === 0 && dayNotesFor(dayNotes, date).length === 0) continue;
       // Boundary vs the previous RENDERED group, computed here on the full
       // ordered list — landscape splits groups across two columns, and a
       // per-column computation would drop any separator landing at the top
@@ -70,12 +73,13 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
       groups.push({ date, events: dayEvents, boundary });
     }
     return groups;
-  }, [events, today, now, daysAhead, config.agendaHideEmptyDays, config.agendaShowFinishedToday, config.agendaSeparators, weekStartsOn, timezone]);
+  }, [events, today, now, daysAhead, config.agendaHideEmptyDays, config.agendaShowFinishedToday, config.agendaSeparators, weekStartsOn, timezone, dayNotes]);
 
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);
     const decor = dayDecorFor(config, date, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
     const dayFill = dayCellFill(isGroupToday, showTodayBg, isWeekendDay(date), config);
+    const notes = dayNotesFor(dayNotes, date);
 
     return (
       <div key={date.toISOString()} style={mergeCellDecor({
@@ -110,7 +114,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           alignItems: 'center',
           gap: scale.bu * 0.6,
         }}>
-          {formatDateSync(date, 'EEEE, MMMM d', { locale })}
+          {fullDateHeading(date, locale)}
           {isGroupToday && showTodayMarker && (
             <span style={{
               fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
@@ -127,8 +131,17 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           {weather && <DayWeatherBadge weather={weather} day={date} fontSize={fontSize} />}
         </div>
 
-        {/* Event cards */}
-        {dayEvents.length === 0 && (
+        {notes.length > 0 && (
+          <DayNoteLines
+            notes={notes}
+            tone="fullscreen"
+            lines={3}
+            style={{ fontSize: fontSize * 1.1, padding: `${fontSize * 0.4}px ${fontSize * 0.7}px`, margin: `${scale.bu * 0.2}px 0 ${scale.bu * 0.5}px`, borderRadius: 6 }}
+          />
+        )}
+
+        {/* Event cards; a note alone already says something */}
+        {dayEvents.length === 0 && notes.length === 0 && (
           <div style={{
             fontSize: fontSize * 0.95,
             fontStyle: 'italic',

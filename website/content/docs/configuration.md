@@ -30,6 +30,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/icloud-accounts.json` | iCloud account credentials (app-specific passwords) for calendar sync | `/api/icloud/accounts` |
 | `data/todos.json` | Shared to-do lists (items, due days, people, repeats) | `/api/todo/lists` |
 | `data/notes.json` | The family notes board: each note's text, who wrote it, pinned, important and when it comes down | `/api/notes` |
+| `data/day-notes.json` | Day notes: short lines for a day, up to three per day, drawn on that day in every calendar | `/api/day-notes` |
 | `data/timetables.json` | School timetables: schools and bell times, the shared subject list, one week per person | `/api/timetables` |
 | `data/school-holidays.json` | Last-good copy of the school and public holiday dates looked up for a region | `/api/timetables/holidays` |
 | `data/routines.json` | Saved timer routines (the steps, not a running timer) | `/api/timers/routines` |
@@ -346,6 +347,10 @@ The family's shared to-do lists (see [Lists](/docs/lists)). Each list has a name
 ### data/notes.json
 
 The family notes board (see [Notes](/docs/notes)). Each note has its text, who wrote it (or nobody), whether it is pinned or important, the **Show for** length it was given, and when it leaves the wall (`expiresAt`, or `null` for a note that stays). A Notes module stores only how it looks, never notes, so every board on every screen shows the same notes. Notes that came down stay in the file for 7 days for the phone's Gone group, then the next change clears them. The phone writes through `/api/notes`; the wall reads `/api/notes?live=1`, which leaves out the ones that came down.
+
+### data/day-notes.json
+
+The calendar's day notes (see [Day notes](/docs/calendars#day-notes)): a list of notes, each with its own `id`, its day as `YYYY-MM-DD` and its words, up to three per day. Notes belong to the household, not to a calendar or a person, so every calendar on every screen draws the same ones unless its **Day notes** switch is off. A note is kept for six weeks after its day, then the next change clears it. The phone adds through `POST /api/day-notes` and changes or removes one note through `/api/day-notes/:id`; every calendar reads `/api/day-notes`.
 
 ## Display Resolution Presets
 

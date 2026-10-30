@@ -13,10 +13,14 @@ export interface RemoteToast {
   id: number;
   message: string;
   tone: 'info' | 'error';
+  /** One button beside the message, such as Undo; pressing it runs `onPress` and closes the toast. */
+  action?: { label: string; onPress: () => void };
 }
 
 const INFO_MS = 3_500;
 const ERROR_MS = 6_000;
+/** A toast with a button stays long enough to read it and reach the button. */
+const ACTION_MS = 7_000;
 
 let current: RemoteToast | null = null;
 let counter = 0;
@@ -27,14 +31,14 @@ function emit(): void {
   for (const fn of listeners) fn();
 }
 
-export function showToast(message: string, tone: RemoteToast['tone'] = 'info'): void {
+export function showToast(message: string, tone: RemoteToast['tone'] = 'info', action?: RemoteToast['action']): void {
   clearTimeout(hideTimer);
-  current = { id: ++counter, message, tone };
+  current = { id: ++counter, message, tone, ...(action ? { action } : {}) };
   emit();
   hideTimer = setTimeout(() => {
     current = null;
     emit();
-  }, tone === 'error' ? ERROR_MS : INFO_MS);
+  }, action ? ACTION_MS : tone === 'error' ? ERROR_MS : INFO_MS);
 }
 
 export function dismissToast(): void {

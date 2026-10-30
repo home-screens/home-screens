@@ -124,6 +124,10 @@ Notes are written on the family remote or in the editor. Once you [set a passwor
 
 Removing a person under **Settings > Family** keeps every note they wrote. Their notes stay on the wall, shown as from "Someone".
 
+## Notes for a day on the calendar
+
+The Notes tab on the phone has two pages, switched at the top: **Board** is this notes board, and **Calendar** holds day notes, short lines for a day ("Picture day", "No school") that every calendar on the wall shows on that day. Under the Board's write bar, **Something for a day? Put it on the calendar** opens the Calendar page. See [Day notes](/docs/calendars#day-notes).
+
 ## Where the data lives
 
 Notes are kept on the hub in `data/notes.json`, next to lists, chores and meals, and are included in backups. They are not part of the layout, so editing a screen in the editor never touches a note.

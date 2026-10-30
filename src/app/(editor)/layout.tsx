@@ -7,7 +7,7 @@ import EditorAutoSave from '@/components/editor/EditorAutoSave';
 import BackupReminderToast from '@/components/editor/BackupReminderToast';
 import UpdateAvailableToast from '@/components/editor/UpdateAvailableToast';
 import { readConfig } from '@/lib/config';
-import { I18nProvider, preloadDateLocale, resolveShippedLocale } from '@/i18n';
+import { I18nProvider, resolveShippedLocale } from '@/i18n';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { buildLocaleBlob } from '@/i18n/server-blob';
 
@@ -38,18 +38,9 @@ export default async function EditorLayout({ children }: { children: React.React
   const config = await readConfig().catch(() => null);
   const locale = config?.settings?.locale ?? DEFAULT_LOCALE;
   // formattingLocale falls back to locale (cascade also lives in
-  // <I18nProvider>; we resolve it here so the server-side preload
-  // covers both tags before first paint).
+  // <I18nProvider>; resolved here so the server render and the client agree).
   const formattingLocale = config?.settings?.formattingLocale ?? resolveShippedLocale(locale);
-  // Preload the date-fns locale(s) server-side so `formatDateSync` (used
-  // on hot tick paths) renders day/month names in the active locale on
-  // first paint instead of falling through to en-US. Built in parallel
-  // with the dictionary blob — they're independent disk reads.
-  const [blob] = await Promise.all([
-    buildLocaleBlob(locale, ['core', 'modules', 'editor', 'weather']),
-    preloadDateLocale(locale),
-    formattingLocale === locale ? Promise.resolve() : preloadDateLocale(formattingLocale),
-  ]);
+  const blob = await buildLocaleBlob(locale, ['core', 'modules', 'editor', 'weather']);
 
   return (
     <I18nProvider

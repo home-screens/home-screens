@@ -344,7 +344,7 @@
       "fullscreen-news": "Overskrifter, så de fylder skærmen",
       "fullscreen-weather": "Vejrudsigten, så den fylder skærmen",
       "clock": "Klokken i atten forskellige stilarter",
-      "calendar": "Dine næste begivenheder i en liste",
+      "calendar": "Dine begivenheder som liste, uge eller måned",
       "countdown": "Dage til en fødselsdag, en ferie eller den store dag",
       "date": "Dagens dato helt for sig",
       "year-progress": "Hvor meget af året, måneden eller dagen der er gået",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "En, der ikke længere er på familielisten",
       "peopleFilterStaleGroup": "En gruppe, der er fjernet",
       "peopleFilterClear": "Vis alle"
+    },
+    "calendarDayNotes": {
+      "label": "Dagsnoter",
+      "hint": "Korte noter til en dag, som familien skriver på telefonen under Noter > Kalender. De står over dagens aftaler.",
+      "hintNone": "Der er ikke skrevet nogen dagsnoter endnu. Skriv en på telefonen under Noter > Kalender."
     },
     "textLooks": {
       "hint": "Skift farve, ikon eller ord, når en live-værdi passer. Den øverste regel vinder, når to ændrer det samme. Passer ingen, beholder teksten sin egen stil.",

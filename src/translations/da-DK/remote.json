@@ -1175,6 +1175,10 @@
     "notes": {
       "title": "Der er ikke nogen opslagstavle endnu",
       "body": "Noter dukker op her, så snart der er en opslagstavle på en af dine skærme."
+    },
+    "dayNotes": {
+      "title": "Ingen kalender viser dagsnoter endnu",
+      "body": "Dagsnoter vises i en kalender. Sæt en kalender på en af dine skærme, eller slå Dagsnoter til i kalenderens indstillinger."
     }
   },
   "choreSettings": {
@@ -1190,6 +1194,11 @@
   },
   "notes": {
     "title": "Noter",
+    "pages": {
+      "board": "Opslagstavle",
+      "calendar": "Kalender"
+    },
+    "boardToCalendar": "Noget til en bestemt dag? Sæt det i kalenderen",
     "onWall": {
       "zero": "Intet på væggen",
       "one": "{count} på væggen",
@@ -1246,6 +1255,24 @@
     "loadError": "Noterne kunne ikke hentes.",
     "retry": "Prøv igen",
     "saveError": "Det blev ikke gemt. Prøv igen.",
-    "editAria": "Rediger note fra {name}"
+    "editAria": "Rediger note fra {name}",
+    "dayNotes": {
+      "sub": "Dagsnoter vises i kalenderne på væggen",
+      "nextDays": "De næste 7 dage",
+      "addForDay": "Tilføj en note til denne dag",
+      "addAnother": "Tilføj en note mere",
+      "addAria": "Tilføj en note til {day}",
+      "editAria": "Ret noten for {day}",
+      "sheetHint": "Vises på denne dag i kalenderne på væggen.",
+      "placeholder": "Skolefoto, skolefri…",
+      "put": "Sæt den i kalenderen",
+      "remove": "Fjern",
+      "loadError": "Dagsnoterne kunne ikke hentes.",
+      "saveError": "Det blev ikke gemt. Prøv igen.",
+      "saved": "Gemt til {day}. Noten vises på væggen, når en kalender viser den dag.",
+      "removed": "Noten er fjernet",
+      "undo": "Fortryd",
+      "atLimit": "Længere kan en dagsnote ikke være."
+    }
   }
 }

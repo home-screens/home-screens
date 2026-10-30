@@ -278,6 +278,31 @@ export interface NotesSeed {
   members?: Array<{ id: string; name: string; color?: string; emoji?: string }>;
 }
 
+/** The day notes `seedDayNotes` writes by default, on today and tomorrow. */
+export const E2E_DAY_NOTES = { today: 'E2E DAY NOTE TODAY', tomorrow: 'E2E DAY NOTE TOMORROW' } as const;
+
+/**
+ * Seed the calendar's day notes: the worker's private `data/day-notes.json`,
+ * keyed by days from today on this machine's clock (the sandbox sets no
+ * household zone, so the hub's day is the browser's), one note or several
+ * per day. Written through a rename like the store's own writes, so the
+ * file's ETag and the heartbeat's `dayNotes` revision always move.
+ */
+export function seedDayNotes(sandboxDir: string, byOffset: Record<number, string | string[]> = { 0: E2E_DAY_NOTES.today, 1: E2E_DAY_NOTES.tomorrow }): void {
+  const notes: Array<{ id: string; date: string; text: string }> = [];
+  for (const [offset, texts] of Object.entries(byOffset)) {
+    const d = new Date();
+    d.setDate(d.getDate() + Number(offset));
+    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    for (const text of [texts].flat()) notes.push({ id: `e2e-day-note-${notes.length + 1}`, date, text });
+  }
+  const dataDir = path.join(sandboxDir, 'data');
+  mkdirSync(dataDir, { recursive: true });
+  const file = path.join(dataDir, 'day-notes.json');
+  writeFileSync(`${file}.e2e-tmp`, JSON.stringify({ notes }, null, 2));
+  renameSync(`${file}.e2e-tmp`, file);
+}
+
 /** Default seed: one pinned note, one important note and one from nobody, by two people. */
 export function notesSeed(): NotesSeed {
   return {

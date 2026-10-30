@@ -37,6 +37,7 @@ data/                        # All runtime state; never committed
   meals.json                 # Meal planner state + shared settings
   todos.json                 # Shared to-do lists
   notes.json                 # Family notes board
+  day-notes.json             # Day notes drawn on the calendars
   family.json                # Shared household identities and aliases
   chores.json                # Chore definitions (member IDs refer to family.json)
   chore-completions.json     # Completion history

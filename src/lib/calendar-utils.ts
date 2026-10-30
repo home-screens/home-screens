@@ -633,13 +633,28 @@ export function eventStatusSlot(opts: {
   return { countdown: countdown || null, progress: null };
 }
 
-/** "45m", "1h 30m" between two instants — the compact module's row suffix. */
-export function formatEventDuration(start: Date, end: Date): string {
+const DURATION_UNITS = new Map<string, { hour: Intl.NumberFormat; minute: Intl.NumberFormat }>();
+
+/**
+ * "45m", "1h 30m" between two instants, the compact module's row suffix, in
+ * the language's own units: English keeps its compact letters, the others
+ * their usual short words ("1 Std. 30 Min.", "1 h 30 min").
+ */
+export function formatEventDuration(start: Date, end: Date, locale: string): string {
+  let units = DURATION_UNITS.get(locale);
+  if (!units) {
+    const unitDisplay = locale.split('-')[0] === 'en' ? 'narrow' : 'short';
+    units = {
+      hour: new Intl.NumberFormat(locale, { style: 'unit', unit: 'hour', unitDisplay }),
+      minute: new Intl.NumberFormat(locale, { style: 'unit', unit: 'minute', unitDisplay }),
+    };
+    DURATION_UNITS.set(locale, units);
+  }
   const mins = differenceInMinutes(end, start);
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) return units.minute.format(mins);
   const hrs = Math.floor(mins / 60);
   const rem = mins % 60;
-  return rem > 0 ? `${hrs}h ${rem}m` : `${hrs}h`;
+  return rem > 0 ? `${units.hour.format(hrs)} ${units.minute.format(rem)}` : units.hour.format(hrs);
 }
 
 /**
@@ -660,12 +675,14 @@ export function eventRowTimeLabel(opts: {
   /** Required when `single` is 'duration'. */
   start?: Date;
   end?: Date;
+  /** The formatting language, for the duration's units (`single: 'duration'`). */
+  locale?: string;
 }): string {
   if (opts.segment === 'first') return opts.t(`${opts.ns}.fromTime`, { time: opts.startLabel });
   if (opts.segment === 'last') return opts.t(`${opts.ns}.untilTime`, { time: opts.endLabel });
   if (opts.single === 'start') return opts.startLabel;
   if (opts.single === 'duration' && opts.start && opts.end) {
-    return `${opts.startLabel} · ${formatEventDuration(opts.start, opts.end)}`;
+    return `${opts.startLabel} · ${formatEventDuration(opts.start, opts.end, opts.locale ?? 'en-US')}`;
   }
   return `${opts.startLabel} – ${opts.endLabel}`;
 }

@@ -1,23 +1,24 @@
 /**
  * Locale-aware date / number / relative-time formatters.
  *
- * date-fns drives `formatDate`, with locales lazy-loaded from
- * `date-fns/locale/<tag>` and cached in a Map. `formatNumber` and
- * `formatRelativeTime` use `Intl.NumberFormat` / `Intl.RelativeTimeFormat`
- * directly — no locale data ships with the bundle.
- *
- * `formatDateSync` exists for hot paths where awaiting a dynamic import is
- * not feasible (the clock module's tick handler, for example). It uses the
- * en-US default if the locale's date-fns bundle hasn't been loaded yet —
- * production code should call `preloadDateLocale(tag)` once at provider
- * mount to warm the cache.
+ * date-fns drives `formatDateSync` with the shipped languages' date-fns
+ * locales bundled up front (about 2 KB each, gzipped). They used to load on
+ * demand, which meant the first render on any surface (a wall above all)
+ * formatted in English until the import landed, and anything memoized from
+ * that render (the month grid's title) stayed English until midnight.
+ * `formatNumber` and `formatRelativeTime` use `Intl.NumberFormat` /
+ * `Intl.RelativeTimeFormat` directly.
  */
 
 import { format as dfFormat } from 'date-fns';
 import type { Locale as DateFnsLocale } from 'date-fns';
-import { logger } from '@/lib/logger';
-
-const log = logger('i18n');
+import { enUS } from 'date-fns/locale/en-US';
+import { de } from 'date-fns/locale/de';
+import { fr } from 'date-fns/locale/fr';
+import { es } from 'date-fns/locale/es';
+import { nl } from 'date-fns/locale/nl';
+import { ptBR } from 'date-fns/locale/pt-BR';
+import { da } from 'date-fns/locale/da';
 
 interface DateFormatOpts {
   locale: string;
@@ -49,143 +50,33 @@ function relativeTimeFormatter(locale: string, numeric: 'always' | 'auto', style
   return rtf;
 }
 
-const LOCALE_CACHE = new Map<string, DateFnsLocale>();
-const LOCALE_PENDING = new Map<string, Promise<DateFnsLocale>>();
-
 /**
- * date-fns publishes locales as separate entry points (e.g.
- * `date-fns/locale/de`) that export a single named binding. The binding
- * names are camel-cased (`enUS`, `ptBR`, `de`, `fr`…), so we read the
- * matching property out of the namespace object after `await import()`.
- *
- * Vite/Next can't statically analyze a fully dynamic `import()` argument,
- * but an explicit switch keeps each path tree-shakable and lets the
- * bundler emit one chunk per locale.
+ * The date-fns locale for a language tag. Any region of a shipped language
+ * reads with that language's day and month names (`de-AT` in German), like
+ * the rest of the app; anything else reads in US English.
  */
-async function importDateFnsLocale(tag: string): Promise<DateFnsLocale> {
-  // Any region of a shipped language reads with that language's day and month
-  // names (`de-AT` in German), like the rest of the app.
-  const language = tag.split('-')[0];
-  switch (language === 'pt' ? 'pt-BR' : language === 'en' ? 'en-US' : language) {
-    case 'en-US': {
-      const m = await import('date-fns/locale/en-US');
-      return m.enUS;
-    }
-    case 'de':
-    case 'de-DE': {
-      const m = await import('date-fns/locale/de');
-      return m.de;
-    }
-    case 'fr':
-    case 'fr-FR': {
-      const m = await import('date-fns/locale/fr');
-      return m.fr;
-    }
-    case 'es':
-    case 'es-ES': {
-      const m = await import('date-fns/locale/es');
-      return m.es;
-    }
-    case 'nl':
-    case 'nl-NL': {
-      const m = await import('date-fns/locale/nl');
-      return m.nl;
-    }
-    case 'pt-BR': {
-      const m = await import('date-fns/locale/pt-BR');
-      return m.ptBR;
-    }
-    case 'da':
-    case 'da-DK': {
-      const m = await import('date-fns/locale/da');
-      return m.da;
-    }
-    default: {
-      const m = await import('date-fns/locale/en-US');
-      return m.enUS;
-    }
+function dateFnsLocale(tag: string): DateFnsLocale {
+  switch (tag.split('-')[0]) {
+    case 'de': return de;
+    case 'fr': return fr;
+    case 'es': return es;
+    case 'nl': return nl;
+    case 'pt': return ptBR;
+    case 'da': return da;
+    default: return enUS;
   }
 }
 
 /**
- * Lazily load and cache the date-fns locale object for `tag`.
- * Concurrent calls for the same tag share a single in-flight import.
- */
-export async function preloadDateLocale(tag: string): Promise<DateFnsLocale> {
-  const cached = LOCALE_CACHE.get(tag);
-  if (cached) return cached;
-
-  const pending = LOCALE_PENDING.get(tag);
-  if (pending) return pending;
-
-  const promise = importDateFnsLocale(tag).then((locale) => {
-    LOCALE_CACHE.set(tag, locale);
-    LOCALE_PENDING.delete(tag);
-    return locale;
-  }).catch((err) => {
-    LOCALE_PENDING.delete(tag);
-    throw err;
-  });
-
-  LOCALE_PENDING.set(tag, promise);
-  return promise;
-}
-
-/**
- * Return the cached date-fns locale for `tag`, or `undefined` if it hasn't
- * been preloaded. `formatDateSync` consults this before falling back to en-US.
- */
-function getCachedDateLocale(tag: string): DateFnsLocale | undefined {
-  return LOCALE_CACHE.get(tag);
-}
-
-/**
- * Format `date` against `pattern` using the locale-specific date-fns bundle.
- * Awaits the dynamic locale import on first use; subsequent calls are
- * synchronous-fast (just a Map hit + the date-fns format call).
- */
-export async function formatDate(
-  date: Date | number,
-  pattern: string,
-  opts: DateFormatOpts,
-): Promise<string> {
-  const locale = await preloadDateLocale(opts.locale);
-  return dfFormat(date, pattern, { locale });
-}
-
-// Warn-once-per-locale latch for formatDateSync cache misses. Same
-// pattern as the provider's missing-key warning so a hot tick loop
-// doesn't drown the dev console.
-const SYNC_CACHE_MISS_WARNINGS = new Set<string>();
-
-/**
- * Synchronous variant of `formatDate`. If the requested locale isn't loaded
- * yet, the en-US default is used (which is statically imported by date-fns).
- *
- * Use this on render-hot paths where awaiting an import would tear the UI;
- * call `preloadDateLocale` once at provider mount so the cache is warm
- * before the first tick.
- *
- * In dev mode, warns once per locale when the cache is missed so callers
- * notice when they forgot to preload the locale.
+ * Format `date` against a date-fns `pattern` in the language `opts.locale`
+ * names. Synchronous on every path: the shipped languages are bundled.
  */
 export function formatDateSync(
   date: Date | number,
   pattern: string,
   opts: DateFormatOpts,
 ): string {
-  const locale = getCachedDateLocale(opts.locale);
-  if (locale) {
-    return dfFormat(date, pattern, { locale });
-  }
-  if (process.env.NODE_ENV === 'development' && !SYNC_CACHE_MISS_WARNINGS.has(opts.locale)) {
-    SYNC_CACHE_MISS_WARNINGS.add(opts.locale);
-    log.warn(
-      `formatDateSync: locale "${opts.locale}" not preloaded; ` +
-        `falling back to en-US. Call preloadDateLocale("${opts.locale}") at startup.`,
-    );
-  }
-  return dfFormat(date, pattern);
+  return dfFormat(date, pattern, { locale: dateFnsLocale(opts.locale) });
 }
 
 /**
@@ -394,12 +285,34 @@ export function formatRelativeTime(
   return rtf.format(Math.round(deltaSec / year), 'year');
 }
 
-/** @internal — for tests. Reset the date-fns locale cache. */
+/**
+ * A day as a heading in the language's own order and with its first letter
+ * capitalized: "Monday, November 2", "Montag, 2. November", "Lundi 2 novembre"
+ * (`month: 'short'` for "Monday, Nov 2").
+ */
+export function fullDateHeading(date: Date | number, locale: string, month: 'long' | 'short' = 'long'): string {
+  const text = formatDateSync(date, fullDatePattern(locale, month), { locale });
+  return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
+}
+
+/**
+ * A run of days in the language's own order, collapsing what the ends share:
+ * "October 25 – 31, 2026", "25.–31. Oktober 2026", "October 30 – November 3,
+ * 2026". `month: 'short'` and `year: false` for tighter labels.
+ */
+export function formatDayRange(start: Date, end: Date, locale: string, opts: { month?: 'long' | 'short'; year?: boolean } = {}): string {
+  const fmt = new Intl.DateTimeFormat(locale, {
+    month: opts.month ?? 'long',
+    day: 'numeric',
+    ...(opts.year === false ? {} : { year: 'numeric' }),
+  });
+  // Intl spaces the dash with thin spaces; the app's titles use plain ones.
+  return fmt.formatRange(start, end).replace(/[\u2009\u202f]/g, ' ');
+}
+
+/** @internal For tests: reset the pattern caches. */
 export function __resetFormatterLocaleCacheForTests(): void {
   DAY_PATTERN_CACHE.clear();
   DAY_MONTH_PATTERN_CACHE.clear();
   FULL_DATE_PATTERN_CACHE.clear();
-  LOCALE_CACHE.clear();
-  LOCALE_PENDING.clear();
-  SYNC_CACHE_MISS_WARNINGS.clear();
 }

@@ -8,10 +8,14 @@ interface FocusTrapOptions {
    * Where focus lands when the trap mounts. `first` (the default) is the
    * first control inside. `container` is the element itself, which must carry
    * `tabIndex={-1}`: for a sheet on a phone, where focusing a text field
-   * would open the keyboard over a sheet nobody has read yet.
+   * would open the keyboard over a sheet nobody has read yet. `field` is the
+   * first text box inside (the container when there is none): for a sheet
+   * opened by a tap that already meant "write", where the keyboard is wanted.
    */
-  focus?: 'first' | 'container';
+  focus?: 'first' | 'container' | 'field';
 }
+
+const FIELDS = 'input:not([disabled]):not([type="hidden"]), textarea:not([disabled])';
 
 /**
  * Traps keyboard focus inside the referenced element while mounted.
@@ -28,6 +32,9 @@ export function useFocusTrap<T extends HTMLElement>({ focus = 'first' }: FocusTr
 
     if (focus === 'container') {
       el.focus({ preventScroll: true });
+    } else if (focus === 'field') {
+      const field = el.querySelector<HTMLElement>(FIELDS);
+      (field ?? el).focus({ preventScroll: true });
     } else {
       // Auto-focus the first focusable child
       const first = el.querySelector<HTMLElement>(FOCUSABLE);

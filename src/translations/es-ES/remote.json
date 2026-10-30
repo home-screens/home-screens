@@ -1175,6 +1175,10 @@
     "notes": {
       "title": "Aún no hay tablón de notas",
       "body": "Las notas aparecerán aquí en cuanto haya un tablón de notas en alguna de tus pantallas."
+    },
+    "dayNotes": {
+      "title": "Ningún calendario muestra todavía notas del día",
+      "body": "Las notas del día aparecen en un calendario. Pon un calendario en alguna de tus pantallas o activa «Notas del día» en sus ajustes."
     }
   },
   "choreSettings": {
@@ -1190,6 +1194,11 @@
   },
   "notes": {
     "title": "Notas",
+    "pages": {
+      "board": "Tablón",
+      "calendar": "Calendario"
+    },
+    "boardToCalendar": "¿Algo para un día concreto? Ponlo en el calendario",
     "onWall": {
       "zero": "Nada en la pared",
       "one": "{count} en la pared",
@@ -1246,6 +1255,24 @@
     "loadError": "No se pudieron cargar las notas.",
     "retry": "Reintentar",
     "saveError": "No se pudo guardar. Inténtalo de nuevo.",
-    "editAria": "Editar la nota de {name}"
+    "editAria": "Editar la nota de {name}",
+    "dayNotes": {
+      "sub": "Las notas del día van en los calendarios de la pared",
+      "nextDays": "Próximos 7 días",
+      "addForDay": "Añadir una nota para este día",
+      "addAnother": "Añadir otra nota",
+      "addAria": "Añadir una nota para el {day}",
+      "editAria": "Cambiar la nota del {day}",
+      "sheetHint": "Se añade a este día en los calendarios de la pared.",
+      "placeholder": "Foto de clase, no hay cole…",
+      "put": "Ponerla en el calendario",
+      "remove": "Quitar",
+      "loadError": "No se pudieron cargar las notas del día.",
+      "saveError": "No se pudo guardar. Inténtalo de nuevo.",
+      "saved": "Guardada para el {day}. Saldrá en la pared cuando un calendario muestre ese día.",
+      "removed": "Nota quitada",
+      "undo": "Deshacer",
+      "atLimit": "Una nota del día no puede ser más larga."
+    }
   }
 }

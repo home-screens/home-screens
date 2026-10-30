@@ -344,7 +344,7 @@
       "fullscreen-news": "Les titres de l'actualité, en plein écran",
       "fullscreen-weather": "Les prévisions météo, en plein écran",
       "clock": "L'heure, avec dix-huit styles au choix",
-      "calendar": "Vos prochains rendez-vous en liste",
+      "calendar": "Vos événements en liste, à la semaine ou au mois",
       "countdown": "Les jours restants avant un anniversaire, un voyage ou un grand jour",
       "date": "La date du jour, et rien d'autre",
       "year-progress": "La part de l'année, du mois ou du jour déjà écoulée",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "Quelqu'un qui n'est plus dans la famille",
       "peopleFilterStaleGroup": "Un groupe supprimé",
       "peopleFilterClear": "Afficher tout le monde"
+    },
+    "calendarDayNotes": {
+      "label": "Notes du jour",
+      "hint": "De courtes notes que votre famille écrit pour un jour précis sur le téléphone, dans Notes puis Calendrier. Elles s'affichent au-dessus des événements de ce jour-là.",
+      "hintNone": "Rien d'écrit pour l'instant. Ajoutez-en une sur le téléphone, dans Notes puis Calendrier."
     },
     "textLooks": {
       "hint": "Changez la couleur, l'icône ou les mots quand une valeur en direct correspond. La règle du haut gagne quand deux règles changent la même chose. Sans correspondance, le texte garde son propre style.",

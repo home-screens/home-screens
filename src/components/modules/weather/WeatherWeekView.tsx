@@ -7,7 +7,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { localISODate } from '@/lib/timezone';
-import { formatDateSync } from '@/i18n';
+import { dayMonthPattern, formatDateSync } from '@/i18n';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { ForecastDay } from '@/lib/weather';
 import type { WeekRange } from '../fullscreen-weather/weather-view-utils';
@@ -73,7 +73,7 @@ export default function WeatherWeekView({ config, hourly, forecast, units, timez
   const labels = { today: tCore('today'), tomorrowShort: t('weather.tomorrowShort') };
   const relative = config.showRelativeDayLabels !== false;
   const name = (d: ForecastDay) => dayLabel(d.date, todayISO, locale, labels, relative);
-  const shortDate = (d: ForecastDay) => formatDateSync(new Date(d.date + 'T12:00:00'), 'MMM d', { locale });
+  const shortDate = (d: ForecastDay) => formatDateSync(new Date(d.date + 'T12:00:00'), dayMonthPattern(locale, 'short'), { locale });
   const props: DayProps = { config, units, scale, tWeather, name, shortDate };
 
   return (

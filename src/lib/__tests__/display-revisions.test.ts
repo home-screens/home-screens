@@ -27,6 +27,8 @@ import { bumpLibraryRevision, libraryRevision } from '@/lib/library-revision';
 import { bumpCalendarRevision, calendarRevision } from '@/lib/calendar-revision';
 import { notesEtag } from '@/lib/notes-revision';
 import { writeNotesData } from '@/lib/notes-data';
+import { dayNotesEtag } from '@/lib/day-notes-revision';
+import { updateDayNotesData } from '@/lib/day-notes-data';
 
 const CONFIG = { screens: [], settings: { timezone: 'UTC' } } as unknown as ScreenConfiguration;
 
@@ -62,6 +64,7 @@ describe('readDisplayRevisions', () => {
       chores: '"chores-2026-09-25"',
       rewards: '"rewards-2026-09-25"',
       notes: await notesEtag(),
+      dayNotes: await dayNotesEtag(),
       library: libraryRevision(),
       calendar: calendarRevision(),
     });
@@ -77,7 +80,17 @@ describe('readDisplayRevisions', () => {
     expect({ ...after, notes: undefined }).toEqual({ ...before, notes: undefined });
   });
 
-  it('leaves out only the notes when the board cannot be looked at', async () => {
+  it('names the day notes by the ETag their read answers with, and a new one once a note is saved', async () => {
+    const before = await readDisplayRevisions();
+    expect(before.dayNotes).toMatch(/^"[0-9a-f]+"$/);
+    await updateDayNotesData(() => ({ notes: [{ id: 'd1', date: '2099-11-04', text: 'Picture day' }] }));
+    const after = await readDisplayRevisions();
+    expect(after.dayNotes).toBe(await dayNotesEtag());
+    expect(after.dayNotes).not.toBe(before.dayNotes);
+    expect({ ...after, dayNotes: undefined }).toEqual({ ...before, dayNotes: undefined });
+  });
+
+  it('leaves out only the notes and day notes when their folder cannot be looked at', async () => {
     // A file where the data folder should be: stat answers ENOTDIR, not ENOENT.
     await fs.rm(path.join(root, 'data'), { recursive: true });
     await fs.writeFile(path.join(root, 'data'), '');
@@ -85,6 +98,7 @@ describe('readDisplayRevisions', () => {
     const revisions = await readDisplayRevisions();
 
     expect(revisions.notes).toBeUndefined();
+    expect(revisions.dayNotes).toBeUndefined();
     expect(revisions).toMatchObject({ buildId: 'build-1', chores: '"chores-2026-09-25"', rewards: '"rewards-2026-09-25"' });
   });
 

@@ -1175,6 +1175,10 @@
     "notes": {
       "title": "Pas encore de tableau de notes",
       "body": "Les notes apparaîtront ici dès qu'un tableau de notes sera sur l'un de vos écrans."
+    },
+    "dayNotes": {
+      "title": "Aucun calendrier n'affiche encore les notes du jour",
+      "body": "Les notes du jour apparaissent dans un calendrier. Ajoutez un calendrier sur l'un de vos écrans, ou activez « Notes du jour » dans ses réglages."
     }
   },
   "choreSettings": {
@@ -1190,6 +1194,11 @@
   },
   "notes": {
     "title": "Notes",
+    "pages": {
+      "board": "Tableau",
+      "calendar": "Calendrier"
+    },
+    "boardToCalendar": "Quelque chose pour un jour précis ? Mets-le dans le calendrier",
     "onWall": {
       "zero": "Rien sur le mur",
       "one": "{count} sur le mur",
@@ -1246,6 +1255,24 @@
     "loadError": "Impossible de charger les notes.",
     "retry": "Réessayer",
     "saveError": "Ça n'a pas été enregistré. Réessaie.",
-    "editAria": "Modifier la note de {name}"
+    "editAria": "Modifier la note de {name}",
+    "dayNotes": {
+      "sub": "Les notes du jour s'affichent sur les calendriers du mur",
+      "nextDays": "Les 7 prochains jours",
+      "addForDay": "Ajouter une note pour ce jour",
+      "addAnother": "Ajouter une autre note",
+      "addAria": "Ajouter une note pour le {day}",
+      "editAria": "Modifier la note du {day}",
+      "sheetHint": "S'affiche ce jour-là sur les calendriers du mur.",
+      "placeholder": "Photo de classe, pas d'école…",
+      "put": "Mettre dans le calendrier",
+      "remove": "Retirer",
+      "loadError": "Impossible de charger les notes du jour.",
+      "saveError": "Ça n'a pas été enregistré. Réessaie.",
+      "saved": "Note enregistrée pour {day}. Elle s'affiche sur le mur dès qu'un calendrier montre ce jour.",
+      "removed": "Note retirée",
+      "undo": "Annuler",
+      "atLimit": "Une note du jour ne peut pas être plus longue."
+    }
   }
 }

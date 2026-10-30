@@ -25,6 +25,8 @@ import { GlyphPrefix } from '@/components/ui/Glyph';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { fitChips } from './chip-budget';
 import type { FullscreenCalendarConfig } from '@/types/config';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor } from '@/lib/day-notes';
 
 // Chip metrics, shared by EventChip and the cell budget so a cell charges a
 // chip exactly what it draws: vertical padding (base units), the 1px gap
@@ -77,7 +79,7 @@ interface CellEvent {
  * sit once on the Everyone row, and a cell that overflows shows "+N" rather
  * than shrinking its text — the board must stay legible at seven people.
  */
-export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat, weather, people, failingSourceIds }: CalendarViewProps) {
+export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat, weather, people, failingSourceIds, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -125,7 +127,10 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   // renders, or the centered stack bleeds under the module header above and
   // over the grid below.
   const hasDayWeather = weather != null && (weather.placement === 'days' || weather.placement === 'days-and-events');
-  const headerH = fontSize * (hasDayWeather ? 5.4 : 4.4);
+  // Each day note adds a line under the date (0.85 type at a 1.3 line
+  // height, its padding, and the stack's gap); the busiest day sets the row.
+  const mostNotes = Math.max(0, ...days.map((day) => dayNotesFor(dayNotes, day).length));
+  const headerH = fontSize * ((hasDayWeather ? 5.4 : 4.4) + 1.7 * mostNotes);
   // Rows are capped so one or two calendars never become a giant band, but
   // the old cap left a four-person household ~500px short of the bottom on a
   // portrait board, which read as a truncated grid rather than a finished
@@ -157,6 +162,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
         {days.map((day, dayIdx) => {
           const isToday = isSameDay(day, today);
           const isWeekend = isWeekendDay(day);
+          const notes = dayNotesFor(dayNotes, day);
           return (
             <div
               key={day.toISOString()}
@@ -188,6 +194,11 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
               </div>
               <DayBadges badges={decorByDay[dayIdx].badges} style={{ justifyContent: 'center', display: 'flex', fontSize: fontSize * 0.8 }} />
               {weather && <DayWeatherBadge weather={weather} day={day} fontSize={fontSize} align="center" />}
+              <DayNoteLines
+                notes={notes}
+                tone="fullscreen"
+                style={{ fontSize: fontSize * 0.85, padding: `${fontSize * 0.15}px ${fontSize * 0.35}px`, alignSelf: 'stretch', margin: `0 ${scale.bu * 0.3}px` }}
+              />
             </div>
           );
         })}

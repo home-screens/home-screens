@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
-import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
+import { useFormattingLocale, useTranslate, formatDateSync, dayMonthPattern } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
@@ -23,7 +23,7 @@ export default function WeekView({
 
   const weekStartDate = new Date(weekDates[0] + 'T12:00:00');
   const weekEndDate = new Date(weekDates[6] + 'T12:00:00');
-  const formatShort = (d: Date) => formatDateSync(d, 'MMM d', { locale });
+  const formatShort = (d: Date) => formatDateSync(d, dayMonthPattern(locale, 'short'), { locale });
   const dateRange = `${formatShort(weekStartDate)} – ${formatShort(weekEndDate)}`;
 
   // Only slots the week actually uses get a column: with Snack on and one

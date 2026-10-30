@@ -31,15 +31,12 @@ import {
   getLocalizedMonthNames,
   formatShortDayMonth,
 } from '@/lib/meal-constants';
-import { preloadDateLocale } from '@/i18n/formatters';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 
 // ── getLocalizedMonthNames ──
 
 describe('getLocalizedMonthNames', () => {
   it('returns 12 entries indexed 0=January, in the requested locale', async () => {
-    await preloadDateLocale('en-US');
-    await preloadDateLocale('de-DE');
     const en = getLocalizedMonthNames('en-US');
     expect(en).toHaveLength(12);
     expect(en[0]).toBe('January');
@@ -86,7 +83,6 @@ describe('getLocalizedDayNames', () => {
   it('returns 7 entries indexed 0=Sunday … 6=Saturday', async () => {
     // Preload the date-fns en-US bundle before reading sync — the sync
     // variant falls back silently when the cache is cold.
-    await preloadDateLocale('en-US');
     const names = getLocalizedDayNames('en-US', 'full');
     expect(names).toHaveLength(7);
     expect(names[0]).toBe('Sunday');
@@ -94,7 +90,6 @@ describe('getLocalizedDayNames', () => {
   });
 
   it('returns short forms for format="short"', async () => {
-    await preloadDateLocale('en-US');
     const names = getLocalizedDayNames('en-US', 'short');
     expect(names).toHaveLength(7);
     expect(names[0]).toBe('Sun');
@@ -111,10 +106,10 @@ describe('getLocalizedDayNames', () => {
     expect(getLocalizedDayNames('da-DK', 'short')[0]).toBe('søn.');
   });
 
-  it('reads the locale with no date bundle preloaded', () => {
-    // Deliberately no `preloadDateLocale`. The sync date-fns path falls
-    // back to en-US on a cold cache, so a wall that rendered before the
-    // bundle landed showed English weekday names in a German household.
+  it('reads the locale on the first call', () => {
+    // The date-fns locales once loaded on demand and fell back to en-US on a
+    // cold cache, so a wall that rendered first showed English weekday names
+    // in a German household.
     expect(getLocalizedDayNames('de-DE', 'full')[0]).toBe('Sonntag');
     expect(getLocalizedDayNames('fr-FR', 'short')[1]).toBe('lun.');
   });
@@ -122,7 +117,6 @@ describe('getLocalizedDayNames', () => {
   it('honors the locale argument (de-DE returns German names)', async () => {
     // Regression guard for the en-US literal cutover. After preloading
     // the de-DE date-fns bundle, the names array must be German.
-    await preloadDateLocale('de-DE');
     const names = getLocalizedDayNames('de-DE', 'full');
     expect(names).toHaveLength(7);
     // Sunday in German is "Sonntag", Saturday is "Samstag" — both

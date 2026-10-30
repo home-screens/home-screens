@@ -98,7 +98,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
           segment,
           startLabel: formatEventTime(start, timeFormat, locale),
           endLabel: formatEventTime(end, timeFormat, locale),
-          t, ns: 'calendar', single: 'duration', start, end,
+          t, ns: 'calendar', single: 'duration', start, end, locale,
         })),
     event, eventStyle.failingSourceIds, t,
   );

@@ -1,5 +1,5 @@
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
-import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
+import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor, px } from './meal-planner-utils';
@@ -20,7 +20,7 @@ export default function MenuBoardView({
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
   const todayISO = toISODate(now);
-  const dateStr = formatDateSync(now, 'EEEE, MMMM d', { locale });
+  const dateStr = fullDateHeading(now, locale);
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
   const courses = activeOrder

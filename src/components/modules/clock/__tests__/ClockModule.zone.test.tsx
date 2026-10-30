@@ -13,7 +13,6 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import { I18nProvider } from '@/i18n/provider';
-import { preloadDateLocale } from '@/i18n';
 import enUSModules from '@/translations/en-US/modules.json';
 import daDKModules from '@/translations/da-DK/modules.json';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -31,7 +30,6 @@ class NoopResizeObserver {
 
 beforeAll(async () => {
   vi.stubGlobal('ResizeObserver', NoopResizeObserver);
-  await preloadDateLocale('da-DK');
 });
 afterAll(() => vi.unstubAllGlobals());
 afterEach(() => {

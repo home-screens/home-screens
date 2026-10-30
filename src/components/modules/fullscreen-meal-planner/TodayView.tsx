@@ -1,5 +1,5 @@
 import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
-import { useFormattingLocale, useTranslate, formatDateSync } from '@/i18n';
+import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import { getDifficultyColor, px } from './meal-planner-utils';
@@ -57,7 +57,7 @@ export default function TodayView({
     return currentHour >= w.end;
   };
 
-  const dateStr = formatDateSync(now, 'EEEE, MMMM d', { locale });
+  const dateStr = fullDateHeading(now, locale);
   const pillStyle: React.CSSProperties = {
     fontSize: P(26), color: 'var(--fmp-text-3)',
     background: 'var(--fmp-border-sub)', padding: `${P(8)}px ${P(20)}px`,

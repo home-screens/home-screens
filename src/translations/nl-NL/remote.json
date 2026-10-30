@@ -1175,6 +1175,10 @@
     "notes": {
       "title": "Nog geen prikbord",
       "body": "Notities verschijnen hier zodra er een prikbord op een van je schermen staat."
+    },
+    "dayNotes": {
+      "title": "Nog geen kalender met dagnotities",
+      "body": "Dagnotities verschijnen in een kalender. Zet een kalender op een van je schermen, of zet Dagnotities aan in de instellingen van een kalender die er al staat."
     }
   },
   "choreSettings": {
@@ -1190,6 +1194,11 @@
   },
   "notes": {
     "title": "Notities",
+    "pages": {
+      "board": "Prikbord",
+      "calendar": "Kalender"
+    },
+    "boardToCalendar": "Iets voor een bepaalde dag? Zet het in de kalender",
     "onWall": {
       "zero": "Niets op de muur",
       "one": "{count} op de muur",
@@ -1246,6 +1255,24 @@
     "loadError": "De notities konden niet worden geladen.",
     "retry": "Opnieuw proberen",
     "saveError": "Dat is niet opgeslagen. Probeer het opnieuw.",
-    "editAria": "Notitie van {name} bewerken"
+    "editAria": "Notitie van {name} bewerken",
+    "dayNotes": {
+      "sub": "Dagnotities komen in de kalenders aan de muur",
+      "nextDays": "Komende 7 dagen",
+      "addForDay": "Notitie voor deze dag toevoegen",
+      "addAnother": "Nog een notitie toevoegen",
+      "addAria": "Notitie voor {day} toevoegen",
+      "editAria": "Notitie voor {day} wijzigen",
+      "sheetHint": "Komt bij deze dag in de kalenders aan de muur.",
+      "placeholder": "Schoolfotograaf, studiedag…",
+      "put": "In de kalender zetten",
+      "remove": "Weghalen",
+      "loadError": "De dagnotities konden niet worden geladen.",
+      "saveError": "Dat is niet opgeslagen. Probeer het opnieuw.",
+      "saved": "Bewaard voor {day}. Je ziet het op de muur zodra een kalender die dag laat zien.",
+      "removed": "Notitie weggehaald",
+      "undo": "Ongedaan maken",
+      "atLimit": "Langer kan een dagnotitie niet zijn."
+    }
   }
 }

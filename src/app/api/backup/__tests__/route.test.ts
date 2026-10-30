@@ -18,6 +18,7 @@ vi.mock('@/lib/auth', async (importActual) => ({
 import { GET, POST } from '@/app/api/backup/route';
 import { POST as POST_CREDENTIALS } from '@/app/api/backup/credentials/route';
 import { readConfig, writeConfig } from '@/lib/config';
+import { readDayNotesData, updateDayNotesData } from '@/lib/day-notes-data';
 import { readFamilyData, writeFamilyData } from '@/lib/family-data';
 import { writeChoreData } from '@/lib/chore-data';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
@@ -138,6 +139,7 @@ describe('GET /api/backup', () => {
         'todos',
         'family',
         'notes',
+        'dayNotes',
       ].sort(),
     );
     // A household that has never saved a timetable exports no timetables
@@ -194,8 +196,11 @@ describe('POST /api/backup — restore', () => {
 
     await writeConfig(seededConfig);
     await writeChoreData(seededChores);
+    await updateDayNotesData(() => ({ notes: [{ id: 'd1', date: '2099-11-04', text: 'Picture day' }] }));
 
     const bundle = await (await GET(getReq())).json();
+    expect(bundle.dayNotes).toEqual({ notes: [{ id: 'd1', date: '2099-11-04', text: 'Picture day' }] });
+    await updateDayNotesData(() => ({ notes: [] }));
 
     // Wipe both stores.
     await writeConfig(cleanConfig);
@@ -219,11 +224,13 @@ describe('POST /api/backup — restore', () => {
       routines: true,
       timetables: false,
       notes: true,
+      dayNotes: true,
       customIcons: false,
     });
     expect(json.missingIcons).toBe(0);
 
     expect((await readConfig()).screens[0].id).toBe('roundtrip-screen');
+    expect((await readDayNotesData()).notes).toEqual([{ id: 'd1', date: '2099-11-04', text: 'Picture day' }]);
     const restoredChores = await readFamilyData();
     expect(restoredChores.members).toHaveLength(1);
     expect(restoredChores.members[0].id).toBe('m1');
@@ -309,6 +316,14 @@ describe('POST /api/backup — restore', () => {
     expect((await res.json()).error).toMatch(/screens/);
     // The bad config must not have been written.
     expect((await readConfig()).screens[0].id).toBe('default');
+  });
+
+  it('refuses a bundle whose day notes are malformed, and writes nothing', async () => {
+    await updateDayNotesData(() => ({ notes: [{ id: 'd1', date: '2099-11-04', text: 'Picture day' }] }));
+    const res = await POST(postReq({ _type: 'home-screens-backup', dayNotes: { notes: [{ id: 'x', date: 'someday', text: 'Nope' }] } }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toMatch(/Day note/);
+    expect((await readDayNotesData()).notes).toEqual([{ id: 'd1', date: '2099-11-04', text: 'Picture day' }]);
   });
 
   it('refuses a backup made by a newer version, as a bundle or a bare config, and writes nothing', async () => {

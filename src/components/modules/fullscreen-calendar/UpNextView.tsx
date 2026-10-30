@@ -7,7 +7,7 @@ import {
   parseEventWallTime, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
 } from '@/lib/calendar-utils';
 import { buildUpNextModel, UP_NEXT_LATER_MAX, type UpNextTimedEvent } from '@/lib/calendar-up-next';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import { MapPin } from 'lucide-react';
 import type { CalendarViewProps, CalendarWeather, RowCtx } from './view-support';
 import { eventSurface, eventBorder } from '@/lib/calendar-event-surface';
@@ -17,6 +17,8 @@ import { EventWeatherLine } from './WeatherInline';
 import { EventProgressBar, eventAriaLabel } from './list-view-bits';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { sanitizeEventDescription } from '@/lib/event-description';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor } from '@/lib/day-notes';
 
 /**
  * The hallway view: one event rendered huge (what is next, or what is
@@ -24,7 +26,7 @@ import { sanitizeEventDescription } from '@/lib/event-description';
  * that day, what already happened today, and tomorrow. The type size is
  * driven by the hero, not a grid, so it reads from across a room.
  */
-export function UpNextView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners }: CalendarViewProps) {
+export function UpNextView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners , dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -43,6 +45,8 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
     [events, now, today, timezone, laterCount, showEarlier, showTomorrow],
   );
   const { hero, heroIsRunning, heroDay, heroToday, later, running: runningRows, earlier, allDayToday, tomorrowRows, remainingToday, tomorrow } = model;
+  const todayNotes = dayNotesFor(dayNotes, today);
+  const tomorrowNotes = showTomorrow ? dayNotesFor(dayNotes, tomorrow) : [];
   const pad = scale.bu * 3.5;
   const sectionGap = scale.bu * 3;
   const isLandscape = scale.orientation === 'landscape';
@@ -98,13 +102,19 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
           fontFamily: "var(--font-dm-serif), 'DM Serif Display', Georgia, serif",
           fontSize: fontSize * 3.6, lineHeight: 1.05, color: 'var(--cal-text-primary)',
         }}>
-          {formatDateSync(today, 'EEEE, MMMM d', { locale })}
+          {fullDateHeading(today, locale)}
         </div>
         <div style={{ fontSize: fontSize * 1.9, color: 'var(--cal-text-secondary)', marginTop: scale.bu * 0.6, fontVariantNumeric: 'tabular-nums' }}>
           {formatEventTime(now, timeFormat, locale)}
           {' · '}
           {t('fullscreen-calendar.upNext.moreToday', { count: remainingToday })}
         </div>
+        <DayNoteLines
+          notes={todayNotes}
+          tone="fullscreen"
+          lines={2}
+          style={{ fontSize: fontSize * 1.6, padding: `${scale.bu * 0.5}px ${scale.bu * 1.1}px`, marginTop: scale.bu * 1.2, borderRadius: 8 }}
+        />
       </div>
 
       {/* All-day banner */}
@@ -190,9 +200,15 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
         </Section>
       )}
 
-      {/* Tomorrow */}
-      {tomorrowRows.length > 0 && (
+      {/* Tomorrow: its note first, and the section shows for a note alone */}
+      {(tomorrowRows.length > 0 || tomorrowNotes.length > 0) && (
         <Section title={t('fullscreen-calendar.upNext.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })} fontSize={fontSize}>
+          <DayNoteLines
+            notes={tomorrowNotes}
+            tone="fullscreen"
+            lines={2}
+            style={{ fontSize: fontSize * 1.25, padding: `${scale.bu * 0.4}px ${scale.bu * 0.9}px`, marginBottom: scale.bu * 0.6, borderRadius: 6 }}
+          />
           {tomorrowRows.map((ev) => (
             <ListRow
               key={ev.id}

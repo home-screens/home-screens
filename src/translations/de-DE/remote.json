@@ -1175,6 +1175,10 @@
     "notes": {
       "title": "Noch keine Pinnwand",
       "body": "Notizen erscheinen hier, sobald eine Pinnwand auf einem deiner Bildschirme hängt."
+    },
+    "dayNotes": {
+      "title": "Noch kein Kalender zeigt Tagesnotizen",
+      "body": "Tagesnotizen erscheinen in einem Kalender. Lege einen Kalender auf einen deiner Bildschirme oder schalte in seinen Einstellungen die Tagesnotizen ein."
     }
   },
   "choreSettings": {
@@ -1190,6 +1194,11 @@
   },
   "notes": {
     "title": "Notizen",
+    "pages": {
+      "board": "Pinnwand",
+      "calendar": "Kalender"
+    },
+    "boardToCalendar": "Etwas für einen bestimmten Tag? Trag es in den Kalender ein",
     "onWall": {
       "zero": "Nichts an der Wand",
       "one": "{count} an der Wand",
@@ -1246,6 +1255,24 @@
     "loadError": "Die Notizen konnten nicht geladen werden.",
     "retry": "Noch einmal versuchen",
     "saveError": "Das hat nicht geklappt. Versuch es noch einmal.",
-    "editAria": "Notiz von {name} bearbeiten"
+    "editAria": "Notiz von {name} bearbeiten",
+    "dayNotes": {
+      "sub": "Tagesnotizen stehen im Kalender an der Wand",
+      "nextDays": "Die nächsten 7 Tage",
+      "addForDay": "Notiz für diesen Tag hinzufügen",
+      "addAnother": "Noch eine Notiz hinzufügen",
+      "addAria": "Notiz für {day} hinzufügen",
+      "editAria": "Notiz für {day} ändern",
+      "sheetHint": "Steht dann bei diesem Tag im Kalender an der Wand.",
+      "placeholder": "z. B. Fototag, schulfrei…",
+      "put": "In den Kalender eintragen",
+      "remove": "Entfernen",
+      "loadError": "Die Tagesnotizen konnten nicht geladen werden.",
+      "saveError": "Das hat nicht geklappt. Versuch es noch einmal.",
+      "saved": "Für {day} gespeichert. Die Notiz steht an der Wand, sobald dieser Tag im Kalender zu sehen ist.",
+      "removed": "Notiz entfernt",
+      "undo": "Rückgängig",
+      "atLimit": "Länger kann eine Tagesnotiz nicht sein."
+    }
   }
 }

@@ -99,7 +99,15 @@ describe('describeEventTime', () => {
       timedEvent({ allDay: true, start: '2026-08-07', end: '2026-08-10' }),
       NOW, 'en-US', LABELS,
     );
-    expect(out.main).toBe('All Day · Aug 7 – Aug 9');
+    expect(out.main).toBe('All Day · Aug 7 – 9');
+  });
+
+  it('writes the range in the wall\'s language and order', () => {
+    const out = describeEventTime(
+      timedEvent({ allDay: true, start: '2026-08-07', end: '2026-08-10' }),
+      NOW, 'de-DE', LABELS,
+    );
+    expect(out.main).toBe('All Day · 7.–9. Aug.');
   });
 });
 

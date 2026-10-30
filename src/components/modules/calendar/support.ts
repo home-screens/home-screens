@@ -1,6 +1,6 @@
 import type { EventOwner } from '@/lib/calendar-people';
 import { startOfDay } from 'date-fns';
-import { formatDateSync } from '@/i18n';
+import { fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { TimeFormat } from '@/types/config';
 
@@ -50,5 +50,5 @@ export function formatRelativeDay(
   if (diffDays === 0) return tCore('today');
   if (diffDays === 1) return tCore('tomorrow');
   if (diffDays === -1) return tCore('yesterday');
-  return formatDateSync(date, 'EEEE, MMM d', { locale });
+  return fullDateHeading(date, locale, 'short');
 }

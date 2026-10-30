@@ -2,57 +2,39 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   dayMonthPattern,
   dayOfMonthPattern,
-  formatDate,
   fullDatePattern,
   formatDateSync,
+  formatDayRange,
   formatNumber,
+  fullDateHeading,
   formatRelativeTime,
-  preloadDateLocale,
   __resetFormatterLocaleCacheForTests,
 } from '@/i18n/formatters';
 
-describe('formatDate', () => {
-  beforeEach(() => {
-    __resetFormatterLocaleCacheForTests();
-  });
-
+describe('formatDateSync', () => {
   // Use a fixed timestamp so the test is deterministic regardless of TZ.
   // 2024-03-04 10:30 UTC is a Monday — keeps weekday strings stable.
   const fixed = new Date('2024-03-04T10:30:00Z');
 
-  it('en-US: "EEEE, MMMM d" → "Monday, March 4"', async () => {
-    const out = await formatDate(fixed, 'EEEE, MMMM d', { locale: 'en-US' });
-    expect(out).toBe('Monday, March 4');
+  it('en-US: "EEEE, MMMM d" → "Monday, March 4"', () => {
+    expect(formatDateSync(fixed, 'EEEE, MMMM d', { locale: 'en-US' })).toBe('Monday, March 4');
   });
 
-  it('de-DE: weekday names are German', async () => {
-    const out = await formatDate(fixed, 'EEEE', { locale: 'de-DE' });
-    expect(out).toBe('Montag');
+  it('writes every shipped language on the very first call, with nothing loaded first', () => {
+    // The locales used to load on demand, and a first render (a wall's)
+    // formatted in English until the import landed.
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'de-DE' })).toBe('Montag');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'fr-FR' })).toBe('lundi');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'es-ES' })).toBe('lunes');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'nl-NL' })).toBe('maandag');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'pt-BR' })).toBe('segunda-feira');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'da-DK' })).toBe('mandag');
   });
 
-  it('fr-FR: weekday names are French', async () => {
-    const out = await formatDate(fixed, 'EEEE', { locale: 'fr-FR' });
-    expect(out).toBe('lundi');
-  });
-});
-
-describe('formatDateSync', () => {
-  beforeEach(() => {
-    __resetFormatterLocaleCacheForTests();
-  });
-
-  const fixed = new Date('2024-03-04T10:30:00Z');
-
-  it('falls back to en-US when the locale isn\'t loaded yet', () => {
-    // Cache is empty after reset; sync call should still work.
-    const out = formatDateSync(fixed, 'EEEE', { locale: 'de-DE' });
-    expect(out).toBe('Monday');
-  });
-
-  it('uses the cached locale once preloaded', async () => {
-    await preloadDateLocale('de-DE');
-    const out = formatDateSync(fixed, 'EEEE', { locale: 'de-DE' });
-    expect(out).toBe('Montag');
+  it('reads a region of a shipped language in that language, and anything else in US English', () => {
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'de-AT' })).toBe('Montag');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'pt-PT' })).toBe('segunda-feira');
+    expect(formatDateSync(fixed, 'EEEE', { locale: 'ja-JP' })).toBe('Monday');
   });
 });
 
@@ -86,11 +68,11 @@ describe('dayOfMonthPattern', () => {
   });
 
   it('composes into a pattern each language spells its own way', async () => {
-    const de = await formatDate(backToSchool, `EEEE, ${dayOfMonthPattern('de-DE')} MMMM`, {
+    const de = formatDateSync(backToSchool, `EEEE, ${dayOfMonthPattern('de-DE')} MMMM`, {
       locale: 'de-DE',
     });
     expect(de).toBe('Montag, 2. November');
-    const en = await formatDate(backToSchool, `EEEE, ${dayOfMonthPattern('en-US')} MMMM`, {
+    const en = formatDateSync(backToSchool, `EEEE, ${dayOfMonthPattern('en-US')} MMMM`, {
       locale: 'en-US',
     });
     expect(en).toBe('Monday, 2 November');
@@ -132,7 +114,6 @@ describe('formatRelativeTime', () => {
     // the suite. `Intl.RelativeTimeFormat` is part of the platform — no
     // date-fns dependency needed — but the preload also covers any future
     // formatter that does need the locale bundle warmed up.
-    await preloadDateLocale('de-DE');
     const t = Date.now();
     expect(formatRelativeTime(t, t, { locale: 'de-DE' })).toBe('jetzt');
   });
@@ -181,12 +162,10 @@ describe('dayMonthPattern and fullDatePattern', () => {
   // languages join with are all the language's own business.
   for (const locale of ['en-US', 'de-DE', 'fr-FR', 'es-ES', 'nl-NL', 'pt-BR', 'da-DK']) {
     it(`${locale}: writes the day and month the way the locale does`, async () => {
-      await preloadDateLocale(locale);
       expect(formatDateSync(fixed, dayMonthPattern(locale), { locale })).toBe(intl(locale, false));
     });
 
     it(`${locale}: writes the weekday, day and month the way the locale does`, async () => {
-      await preloadDateLocale(locale);
       expect(formatDateSync(fixed, fullDatePattern(locale), { locale })).toBe(intl(locale, true));
     });
   }
@@ -204,5 +183,35 @@ describe('dayMonthPattern and fullDatePattern', () => {
   it('falls back to the bare day and month for a tag Intl cannot read', () => {
     expect(dayMonthPattern('not a locale')).toBe('d MMMM');
     expect(fullDatePattern('not a locale')).toBe('EEEE, d MMMM');
+  });
+});
+
+describe('fullDateHeading', () => {
+  const sunday = new Date(2026, 9, 25);
+
+  it('writes the weekday and date the way each language does, starting with a capital', () => {
+    expect(fullDateHeading(sunday, 'en-US')).toBe('Sunday, October 25');
+    expect(fullDateHeading(sunday, 'de-DE')).toBe('Sonntag, 25. Oktober');
+    expect(fullDateHeading(sunday, 'fr-FR')).toBe('Dimanche 25 octobre');
+  });
+});
+
+describe('formatDayRange', () => {
+  const start = new Date(2026, 9, 25);
+  const end = new Date(2026, 9, 31);
+
+  it('names a month once when the range stays inside it, in each language\'s order', () => {
+    expect(formatDayRange(start, end, 'en-US')).toBe('October 25 – 31, 2026');
+    expect(formatDayRange(start, end, 'de-DE')).toBe('25.–31. Oktober 2026');
+  });
+
+  it('names both months across a month end, and leaves the year off when asked', () => {
+    const opts = { month: 'short', year: false } as const;
+    expect(formatDayRange(end, new Date(2026, 10, 6), 'en-US', opts)).toBe('Oct 31 – Nov 6');
+    expect(formatDayRange(end, new Date(2026, 10, 6), 'de-DE', opts)).toBe('31. Okt. – 6. Nov.');
+  });
+
+  it('spaces the dash with plain spaces, never the thin ones Intl uses', () => {
+    expect(formatDayRange(end, new Date(2027, 0, 2), 'en-US', { month: 'short' })).toBe('Oct 31, 2026 – Jan 2, 2027');
   });
 });

@@ -1,6 +1,6 @@
 import { addDays, endOfWeek, startOfDay, startOfWeek } from 'date-fns';
 import { CalendarClock, CalendarRange, Columns3, Grid3X3, Hourglass, List, ScrollText, Users, Zap, type LucideIcon } from 'lucide-react';
-import { formatDateSync } from '@/i18n';
+import { formatDateSync, formatDayRange, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { clampAgendaDays, clampRollingWeeks, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
@@ -53,35 +53,19 @@ export interface ViewTraits {
   legendWindow(ctx: ViewWindowCtx): { start: Date; end: Date };
 }
 
-/** "March 2 – 8, 2026" for the week containing today; both month names when
- *  the week crosses a month ("August 30 – September 5, 2026"), both full
- *  dates when it crosses a year. */
+/** "March 2 – 8, 2026" for the week containing today, in the language's own
+ *  order ("2.–8. März 2026"); both month names when the week crosses a month,
+ *  both full dates when it crosses a year. */
 function weekRangeTitle(today: Date, weekStartsOn: 0 | 1, locale: string): string {
-  const weekStart = startOfWeek(today, { weekStartsOn });
-  const weekEnd = endOfWeek(today, { weekStartsOn });
-  if (weekStart.getFullYear() !== weekEnd.getFullYear()) {
-    return `${formatDateSync(weekStart, 'MMMM d, yyyy', { locale })} – ${formatDateSync(weekEnd, 'MMMM d, yyyy', { locale })}`;
-  }
-  if (weekStart.getMonth() !== weekEnd.getMonth()) {
-    return `${formatDateSync(weekStart, 'MMMM d', { locale })} – ${formatDateSync(weekEnd, 'MMMM d, yyyy', { locale })}`;
-  }
-  return `${formatDateSync(weekStart, 'MMMM d', { locale })} – ${formatDateSync(weekEnd, 'd, yyyy', { locale })}`;
+  return formatDayRange(startOfWeek(today, { weekStartsOn }), endOfWeek(today, { weekStartsOn }), locale);
 }
 
 /** "September 11 – October 22, 2026" for the rolling window starting today
- *  (`weeks` rows of 7). Same formatting rules as the schedule title: both
- *  month names when the range crosses a month, both full dates across a
- *  year. Exported so the view's aria label and the trait share one string. */
+ *  (`weeks` rows of 7), with the same rules as the week title. Exported so
+ *  the view's aria label and the trait share one string. */
 export function rollingRangeTitle(today: Date, weeks: number, locale: string): string {
   const start = startOfDay(today);
-  const endDay = addDays(start, weeks * 7 - 1);
-  if (start.getFullYear() !== endDay.getFullYear()) {
-    return `${formatDateSync(start, 'MMMM d, yyyy', { locale })} – ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
-  }
-  if (start.getMonth() !== endDay.getMonth()) {
-    return `${formatDateSync(start, 'MMMM d', { locale })} – ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
-  }
-  return `${formatDateSync(start, 'MMMM d', { locale })} – ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
+  return formatDayRange(start, addDays(start, weeks * 7 - 1), locale);
 }
 
 /** The schedule view's resolved first column and column count — the same
@@ -105,11 +89,7 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
       // The range starts at the anchor-resolved first column, which is only
       // `today` for the default anchor.
       const { start, count } = scheduleGeometry(today, config, scaleWidth);
-      const endDay = addDays(start, count - 1);
-      if (start.getMonth() === endDay.getMonth()) {
-        return `${formatDateSync(start, 'MMMM d', { locale })} – ${formatDateSync(endDay, 'd, yyyy', { locale })}`;
-      }
-      return `${formatDateSync(start, 'MMMM d', { locale })} – ${formatDateSync(endDay, 'MMMM d, yyyy', { locale })}`;
+      return formatDayRange(start, addDays(start, count - 1), locale);
     },
     legendWindow({ today, weekStartsOn, config, scaleWidth }) {
       const { start, count } = scheduleGeometry(today, config, scaleWidth);
@@ -140,7 +120,7 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsToday',
     isTimeGrid: true, isListView: false, isPersonView: false, isSingleDay: true,
     weather: { days: false, events: false },
-    headerTitle: ({ today, locale }) => formatDateSync(today, 'EEEE, MMMM d', { locale }),
+    headerTitle: ({ today, locale }) => fullDateHeading(today, locale),
     legendWindow: ({ today, weekStartsOn }) => viewDayWindow({ kind: 'days', today, weekStartsOn, count: 1 }),
   },
   agenda: {

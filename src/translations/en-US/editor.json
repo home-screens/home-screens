@@ -344,7 +344,7 @@
       "fullscreen-news": "Headlines, filling the screen",
       "fullscreen-weather": "The forecast, filling the screen",
       "clock": "The time, in any of eighteen looks",
-      "calendar": "Your next events in a list",
+      "calendar": "Your events as a list, a week or a month",
       "countdown": "Days until a birthday, trip or big day",
       "date": "Today's date on its own",
       "year-progress": "How much of the year, month or day has gone",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "Someone no longer on the family list",
       "peopleFilterStaleGroup": "A group that was removed",
       "peopleFilterClear": "Show everyone"
+    },
+    "calendarDayNotes": {
+      "label": "Day notes",
+      "hint": "Short notes your family writes for a day on the phone, under Notes, then Calendar. They show above that day's events.",
+      "hintNone": "Nothing written yet. Add one on the phone under Notes, then Calendar."
     },
     "textLooks": {
       "hint": "Change the color, icon or words when a live value matches. The top rule wins when two set the same thing. With no match, the text keeps its own style.",

@@ -84,6 +84,16 @@ The same list drives three options on both calendar modules, under **What shows*
 - **Color key** can list calendars, people or [groups](/docs/family#groups). With groups, five kids collapse to one "Kids" row drawn as a stack of their avatars, then anyone in no group, then **Everyone** for shared calendars and holidays. Only people and groups with an event in view appear.
 - **Show only these people** points a screen at a few people or a group. It follows the family list, so adding someone to "Kids" adds them to every screen that shows the Kids. Shared calendars and holidays stay visible unless you untick **Also show shared calendars and holidays**. It applies together with the calendar tick boxes above it.
 
+## Day notes {% #day-notes %}
+
+"Picture day." "Bring boots." "Late start, school at 10." A day note is a short line for a day, written on a phone and shown on that day in every calendar on the wall, above the day's events. It is not an event: it has no time, no calendar and no person, so it never needs a calendar account. It shows on a calendar that is set to one person's events, and on a calendar module before any calendar is picked.
+
+To write one, open the family remote on a phone, tap **Notes**, then **Calendar** at the top (the Board page has a link to it too). The page lists today and the six days after it; the arrows move a week at a time, up to a year ahead. Tap **Add a note for this day** to write one, or tap a note to change it or remove it; a removed note can be put back with **Undo** for a few seconds. A note is up to 60 characters, and a day holds up to three, each its own line on the wall. A note shows once its day is on a calendar: a calendar that shows this week does not show next week's notes yet.
+
+Where the notes go depends on the view: under the date in the daily columns, the week grid, the schedule and the family grid; on their own lines under the day number in the month, multi-week and rolling grids (they take their room before the events are counted, so "+2 more" stays true); as the first rows under the day's heading in the agenda and the week list, where a day with only notes still gets its heading; beside the date on the full-screen calendar's Day and Free Time views, with tomorrow's at the top of Free Time's Tomorrow list; and under the date and in the Tomorrow list on Up Next.
+
+Each calendar module has a **Day notes** switch under **What shows**, on unless you turn it off. Notes from days that have passed stay on their day for six weeks, then are tidied away. They live in `data/day-notes.json` and are included in backups.
+
 ## Public holidays
 
 **Public Holidays** adds a country's holidays to every calendar module. Pick the country and they appear alongside your own events, styled a little differently so they are easy to tell apart.

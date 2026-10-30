@@ -36,7 +36,7 @@ import ChoresTab from './components/ChoresTab';
 import type { PhoneChoreConfig } from '@/lib/chore-module-config';
 import TimersTab from './components/TimersTab';
 import ListsTab from './components/ListsTab';
-import NotesTab from './components/NotesTab';
+import NotesTab, { type NotesPage } from './components/NotesTab';
 import { ADD_BAR_HEIGHT } from './components/AddBar';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
@@ -59,6 +59,8 @@ interface RemoteInitialData {
   hasLists: boolean;
   /** A Notes module exists on some screen, so a note posted here shows up on a wall. */
   hasNotes: boolean;
+  /** A calendar on some screen shows day notes, so the Notes tab's Calendar page reaches a wall. */
+  hasDayNoteCalendar: boolean;
   hasMeals: boolean;
   hasPhotos: boolean;
   /** The library folder the Photos tab opens on: the first one a wall shows. */
@@ -154,6 +156,10 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const hasChores = initialData.choreConfig !== null;
   const hasLists = initialData.hasLists;
   const hasNotes = initialData.hasNotes;
+  const hasDayNoteCalendar = initialData.hasDayNoteCalendar;
+  // The Notes tab's page, held here like the Lists tab's list: switching tabs
+  // unmounts NotesTab, and the add bar's raise below follows the page.
+  const [notesPage, setNotesPage] = useState<NotesPage>(hasNotes ? 'board' : 'calendar');
   const hasMeals = initialData.hasMeals;
   const hasPhotos = initialData.hasPhotos;
 
@@ -484,7 +490,9 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           ) : activeTab === 'notes' ? (
             <>
               <div className="px-4 pb-8 pt-4">
-                {hasNotes ? <NotesTab /> : <TabNotSetUp kind="notes" />}
+                {hasNotes || hasDayNoteCalendar
+                  ? <NotesTab page={notesPage} onPageChange={setNotesPage} boardReady={hasNotes} calendarReady={hasDayNoteCalendar} />
+                  : <TabNotSetUp kind="notes" />}
               </div>
               <div className="h-20" />
             </>
@@ -509,7 +517,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
         </div>
 
         <RemoteToast
-          raisedBy={(activeTab === 'lists' && hasLists) || (activeTab === 'notes' && hasNotes) ? ADD_BAR_HEIGHT : 0}
+          raisedBy={(activeTab === 'lists' && hasLists) || (activeTab === 'notes' && hasNotes && notesPage === 'board') ? ADD_BAR_HEIGHT : 0}
         />
         <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />
       </div>

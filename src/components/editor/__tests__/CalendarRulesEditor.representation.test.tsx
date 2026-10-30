@@ -13,7 +13,6 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import React, { useState } from 'react';
 import { I18nProvider } from '@/i18n/provider';
-import { preloadDateLocale } from '@/i18n/formatters';
 import { CalendarRulesEditor } from '../config-sections/CalendarRulesEditor';
 import type { CalendarDayRule } from '@/types/config';
 
@@ -55,7 +54,6 @@ describe('day-rule cards represent every legal match', () => {
   afterEach(cleanup);
 
   it('a month with no day reads as "every day of one month" with that month picked', async () => {
-    await preloadDateLocale('en-US');
     const stateRef = ref();
     const { container } = render(<Harness initial={[{ id: 'r1', match: { months: [11] } }]} stateRef={stateRef} />);
     const card = container.querySelector('[data-rule-card]')!;
@@ -70,7 +68,6 @@ describe('day-rule cards represent every legal match', () => {
   });
 
   it('month labels follow the formatting locale, not a dictionary', async () => {
-    await preloadDateLocale('de-DE');
     const stateRef = ref();
     const { container } = render(<Harness initial={[{ id: 'r1', match: { months: [2] } }]} stateRef={stateRef} locale="de-DE" />);
     await expand(container.querySelector('[data-rule-card]')!);

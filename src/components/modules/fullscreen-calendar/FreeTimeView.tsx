@@ -9,12 +9,14 @@ import {
   type BusyBlock, type FreeGap, type PersonRow,
 } from '@/lib/calendar-people';
 import { PersonAvatar, PeopleHint } from './person-view-bits';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { formatHourLabel } from './shared-time-grid';
 import type { TimeFormat } from '@/types/config';
+import { DayNoteLines } from '../shared/DayNoteLine';
+import { dayNotesFor } from '@/lib/day-notes';
 
 /** Gaps shorter than this are not "free time", just a breather. */
 const MIN_GAP_HOURS = 0.5;
@@ -37,7 +39,7 @@ interface PersonDay {
  * row's) are busy for every track, since dinner is dinner for the whole
  * household.
  */
-export function FreeTimeView({ events, timezone, config, scale, today, now, timeFormat, people }: CalendarViewProps) {
+export function FreeTimeView({ events, timezone, config, scale, today, now, timeFormat, people, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -87,6 +89,8 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
   }, [events, people, today, tomorrow, timezone, hourStart, hourEnd, fromHour, showTomorrow, everyoneLabel, householdLabel]);
 
   const { todayRows, tomorrowRows, everyoneToday, everyoneTomorrow } = model;
+  // Today's note sits beside the module's title; tomorrow's opens the Tomorrow list.
+  const tomorrowNotes = showTomorrow ? dayNotesFor(dayNotes, tomorrow) : [];
   const span = hourEnd - hourStart;
   const x = (h: number) => `${(((h - hourStart) / span) * 100).toFixed(3)}%`;
   // Wide enough for a real calendar name ("Smith family") next to the
@@ -109,7 +113,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
           {t('fullscreen-calendar.freeTime.today')}
         </span>
         <span style={{ fontSize: fontSize * 1.3, color: 'var(--cal-text-secondary)' }}>
-          {formatDateSync(today, 'EEEE, MMM d', { locale })} {'·'} {formatEventTime(now, timeFormat, locale)}
+          {fullDateHeading(today, locale, 'short')} {'·'} {formatEventTime(now, timeFormat, locale)}
         </span>
       </div>
       <HourAxis hourStart={hourStart} hourEnd={hourEnd} nameColW={nameColW} sidePad={sidePad} fontSize={fontSize} am={am} pm={pm} timeFormat={timeFormat} />
@@ -161,12 +165,17 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
         </div>
       </div>
 
-      {/* Tomorrow, compact */}
-      {showTomorrow && tomorrowRows.length > 0 && (
+      {/* Tomorrow, compact: its note first, and the section shows for a note alone */}
+      {showTomorrow && (tomorrowRows.length > 0 || tomorrowNotes.length > 0) && (
         <div style={{ margin: `${scale.bu * 2}px ${sidePad}px ${scale.bu * 1.6}px`, flexShrink: 0 }}>
           <div style={{ fontSize: fontSize * 1.05, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cal-text-tertiary)', marginBottom: scale.bu * 0.6 }}>
             {t('fullscreen-calendar.freeTime.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })}
           </div>
+          <DayNoteLines
+            notes={tomorrowNotes}
+            tone="fullscreen"
+            style={{ fontSize: fontSize * 1.1, padding: `${fontSize * 0.35}px ${fontSize * 0.7}px`, marginBottom: scale.bu * 0.6, borderRadius: 6 }}
+          />
           {tomorrowRows.map(({ row, blocks, dayGaps }) => (
             <div key={row.id} style={{ display: 'grid', gridTemplateColumns: `${nameColW}px 1fr`, alignItems: 'center', height: fontSize * 3.6, borderTop: '1px solid var(--cal-border-subtle)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 0.6, fontSize: fontSize * 1.1, fontWeight: 600, color: 'var(--cal-text-primary)', minWidth: 0, paddingRight: scale.bu * 0.8 }}>

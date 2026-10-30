@@ -1,6 +1,7 @@
 'use client';
 
 import { useTranslate } from '@/i18n';
+import { NOTE_ICON_PATH } from '@/components/notes/NoteGlyph';
 
 interface Tab {
   id: string;
@@ -32,8 +33,6 @@ const LISTS_TAB: Tab = {
   svgPath: 'M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.008v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.008v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z',
 };
 
-/** A page with a folded corner and two lines of writing; the Notes tab's empty board draws it too. */
-export const NOTE_ICON_PATH = 'M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3zM15 3v6h6M8 13h8M8 17h5';
 
 const NOTES_TAB: Tab = {
   id: 'notes',
@@ -78,7 +77,7 @@ export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps)
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`flex-1 max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 transition-colors ${
+              className={`flex-1 max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 px-0.5 transition-colors ${
                 activeTab === tab.id ? 'text-hs-accent' : 'text-hs-text-faint'
               }`}
               aria-label={label}
@@ -87,7 +86,10 @@ export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps)
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d={tab.svgPath} />
               </svg>
-              <span className="text-[12px] font-semibold tracking-tight">{label}</span>
+              {/* Each tab is as wide as its word, so "Mahlzeiten" takes the
+                  room "Timer" leaves. On a narrow phone the type shrinks a
+                  little so seven words still fit with a gap between them. */}
+              <span className="whitespace-nowrap font-semibold tracking-tight" style={{ fontSize: 'clamp(10.5px, 3.2vw, 12px)' }}>{label}</span>
             </button>
           );
         })}

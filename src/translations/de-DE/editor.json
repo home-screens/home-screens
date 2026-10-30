@@ -344,7 +344,7 @@
       "fullscreen-news": "Schlagzeilen, bildschirmfüllend",
       "fullscreen-weather": "Die Vorhersage, bildschirmfüllend",
       "clock": "Die Uhrzeit, in achtzehn verschiedenen Designs",
-      "calendar": "Deine nächsten Termine als Liste",
+      "calendar": "Deine Termine als Liste, Woche oder Monat",
       "countdown": "Tage bis zum Geburtstag, zur Reise oder zum großen Tag",
       "date": "Nur das heutige Datum",
       "year-progress": "Wie viel vom Jahr, Monat oder Tag schon vorbei ist",
@@ -5065,6 +5065,11 @@
       "peopleFilterStaleMember": "Jemand, der nicht mehr auf der Familienliste steht",
       "peopleFilterStaleGroup": "Eine entfernte Gruppe",
       "peopleFilterClear": "Alle anzeigen"
+    },
+    "calendarDayNotes": {
+      "label": "Tagesnotizen",
+      "hint": "Kurze Notizen für einen Tag, die deine Familie am Handy unter Notizen > Kalender schreibt. Sie stehen über den Terminen des Tages.",
+      "hintNone": "Noch keine Tagesnotiz geschrieben. Schreib am Handy unter Notizen > Kalender eine."
     },
     "textLooks": {
       "hint": "Farbe, Symbol oder Wörter ändern, wenn ein Live-Wert passt. Die oberste Regel gewinnt, wenn zwei dasselbe setzen. Passt keine, behält der Text seinen eigenen Stil.",

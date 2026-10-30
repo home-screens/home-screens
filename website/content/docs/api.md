@@ -159,7 +159,7 @@ This endpoint is read-only, all writes go through `PUT /api/config` so undo/redo
 }
 ```
 
-`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with), and the notes board (`notes` is the `ETag` of `GET /api/notes`). The display fetches each of those only when its value differs from the one it last applied.
+`revisions` says whether anything else on the screen changed: the running build (a new one reloads the page), the installed plugin list including plugin settings (`GET /api/plugins/installed`), the config (`config` is exactly the `ETag` that `GET /api/config?display=<id>` would answer with), the timer session (`GET /api/timers/session`), the chore history and rewards (`chores` and `rewards` are exactly the `ETag`s that `GET /api/chores` and `GET /api/rewards` would answer with), the notes board (`notes` is the `ETag` of `GET /api/notes`), and the day notes (`dayNotes` is the `ETag` of `GET /api/day-notes`). The display fetches each of those only when its value differs from the one it last applied.
 
 `library` and `calendar` speed up reads that keep their own polling. `library` moves when a picture or video is uploaded, imported, replaced, moved, renamed or deleted; `calendar` moves when a Google Calendar sign-in or disconnect changes what the hub can read, or when the household switches between its own Google app and Home Screens' app on the API keys page. Once a new value has held for a whole beat, the display re-reads its slideshow lists or its calendar at once instead of waiting for their next 10-minute or 5-minute poll, so a burst of uploads from a phone causes one re-read. Both are counters the hub keeps in memory, so a hub restart changes them once and every display re-reads. A value the hub could not work out is left out, and the display keeps what it has for it.
 
@@ -762,6 +762,32 @@ Any other `action` is answered with `400`, and an unknown `noteId` with `404`. *
 ### DELETE /api/notes/:noteId
 
 Removes the note for good. Requires a valid session. An unknown `noteId` is answered with `404`. **Response:** `{ "notes": [...] }`.
+
+---
+
+## Day notes
+
+Short lines for a day that every calendar draws on that day (see [Day notes](/docs/calendars#day-notes)), written from the remote's Notes tab, Calendar page. They live in `data/day-notes.json`, not in the display config. Each note is `{ "id", "date", "text" }`: `date` is `YYYY-MM-DD` on the household's calendar (the time zone in Settings, or the hub's own), and `text` is plain words, trimmed, with runs of spaces and line breaks made one space, at most 60 characters (an emoji counts as one). A day holds up to 3 notes. Notes are kept for 42 days after their day; the next write drops older ones.
+
+### GET /api/day-notes
+
+Returns `{ "notes": [{ "id": "…", "date": "2026-11-04", "text": "Picture day" }, ...] }`: every kept note, past days included, in the order they were written. Display access.
+
+**Caching:** the answer carries an `ETag` and `Cache-Control: no-cache`, and a request whose `If-None-Match` matches gets an empty `304`. The display heartbeat names the same value (`revisions.dayNotes`), so a calendar asks again only when a note changed.
+
+### POST /api/day-notes
+
+Adds a note to a day. Requires a valid session; a display token is not enough, because the wall only reads day notes.
+
+**Body:** `{ "date": "2026-11-04", "text": "Picture day" }`. A day before today, a day more than a year out, a date that is not a real day, empty text or text over 60 characters is answered with `400`; a day that already has 3 notes with `409`. **Response:** `{ "notes": [ ... ], "created": { "id", "date", "text" } }`, every kept note plus the new one with its id, so a phone can reconcile in one step.
+
+### PATCH /api/day-notes/:id
+
+Changes one note's words. Requires a valid session. **Body:** `{ "text": "Picture day, wear blue" }`. Empty text removes the note. A note that is gone answers `404`; text over 60 characters, or a note whose day has passed, answers `400`. **Response:** `{ "notes": [ ... ] }`.
+
+### DELETE /api/day-notes/:id
+
+Removes one note. Requires a valid session. A note that is already gone answers the notes unchanged. **Response:** `{ "notes": [ ... ] }`.
 
 ---
 

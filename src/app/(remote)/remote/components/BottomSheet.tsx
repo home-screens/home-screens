@@ -1,6 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { X } from 'lucide-react';
+import { useTranslate } from '@/i18n';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 
@@ -18,6 +20,7 @@ export default function BottomSheet({
   zIndex = 200,
   testId,
   guardTaps = false,
+  initialFocus = 'container',
 }: {
   title: string;
   /** Small text on the right of the title row: a character count, a time left. */
@@ -32,11 +35,18 @@ export default function BottomSheet({
    * something (the chore menu).
    */
   guardTaps?: boolean;
+  /**
+   * Where focus lands as it opens. `container` (the default) keeps a phone's
+   * keyboard down over a sheet nobody has read yet; `field` focuses the first
+   * text box, for a sheet opened by a tap that already meant "write".
+   */
+  initialFocus?: 'container' | 'field';
 }) {
+  const tCore = useTranslate('core');
   useSheetTapGuard(guardTaps);
   // A sheet says it is a modal dialog, so the keyboard has to treat it as
   // one: focus moves into it, Tab stays inside it, Escape closes it.
-  const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
+  const dialogRef = useFocusTrap<HTMLDivElement>({ focus: initialFocus });
   return (
     <div
       style={{
@@ -85,19 +95,30 @@ export default function BottomSheet({
             fontWeight: 700,
             color: 'var(--hs-text-primary)',
             marginBottom: 14,
-            ...(titleAside !== undefined ? { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 } : {}),
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
           }}
         >
-          {titleAside !== undefined ? (
-            <>
-              <span>{title}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--hs-text-faint)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                {titleAside}
-              </span>
-            </>
-          ) : (
-            title
+          <span style={{ flex: 1, minWidth: 0 }}>{title}</span>
+          {titleAside !== undefined && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--hs-text-faint)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              {titleAside}
+            </span>
           )}
+          {/* Tapping the dimmed area closes too, but kids and grandparents look for a way out. */}
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={tCore('actions.close')}
+            data-testid="sheet-close"
+            style={{
+              flex: 'none', width: 40, height: 40, margin: '-8px -8px -8px 0', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 10, border: 'none', background: 'transparent', color: 'var(--hs-text-faint)', cursor: 'pointer',
+            }}
+          >
+            <X size={20} aria-hidden="true" />
+          </button>
         </div>
         {children}
       </div>

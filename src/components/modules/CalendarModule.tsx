@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { startOfDay } from 'date-fns';
+import { addDays, startOfDay } from 'date-fns';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
@@ -25,6 +25,8 @@ import { AgendaView } from './calendar/AgendaView';
 import { WeekView } from './calendar/WeekView';
 import { GridView } from './calendar/grid';
 import { householdTimeFormat } from '@/lib/clock-time';
+import { useDayNotes } from '@/hooks/useDayNotes';
+import { hasDayNoteIn, type DayNotes } from '@/lib/day-notes';
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -59,6 +61,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   now: Date;
   accentColor: string;
   eventStyle: EventDisplayStyle;
+  dayNotes: DayNotes;
 }>> = {
   daily: DailyView,
   agenda: AgendaView,
@@ -117,6 +120,8 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
   }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone]);
   const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
+  // The family's day notes, shared by every calendar; the switch is on unless set off.
+  const dayNotes = useDayNotes(config.showDayNotes !== false);
   // Legend ring, not-updating badge, and per-row "saved" suffixes all key
   // off this shared derivation (see useFailingSources).
   const { failingSources, failingSourceIds, hasLiveSource } = useFailingSources({ sourceStatus, sourceFilter });
@@ -126,18 +131,28 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // filter). Only the view→window mapping lives here; the date math and the
   // holidays-label remap are shared (calendar-legend).
   const legendPlacement = config.showLegend ?? 'off';
-  const legend = useMemo<LegendRow[]>(() => {
-    if (legendPlacement === 'off') return [];
+  // The days the view draws; the agenda has no day bound beyond the upcoming filter.
+  const viewWindow = useMemo(() => {
     const weekStartsOn = weekStartsOnFor(config.startDay);
-    const window =
-      viewMode === 'daily' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.daysToShow ?? 3 })
+    return viewMode === 'daily' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.daysToShow ?? 3 })
       : viewMode === 'week' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
       : viewMode === 'month' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
       : viewMode === 'multi-week' ? viewDayWindow({ kind: 'weeks', today, weekStartsOn, count: clampWeeksToShow(config.weeksToShow) })
       : viewMode === 'rolling' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampRollingWeeks(config.weeksToShow) * 7 })
       : null; // agenda
-    return buildLegendRows(allEvents, window, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
-  }, [legendPlacement, viewMode, config.startDay, config.daysToShow, config.weeksToShow, today, allEvents, timezone, t, config.legendMode, people, groups]);
+  }, [viewMode, config.startDay, config.daysToShow, config.weeksToShow, today]);
+  const legend = useMemo<LegendRow[]>(() => {
+    if (legendPlacement === 'off') return [];
+    return buildLegendRows(allEvents, viewWindow, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
+  }, [legendPlacement, viewWindow, allEvents, timezone, t, config.legendMode, people, groups]);
+  // Whether a day the view draws has a note. The agenda lists note days from
+  // today for at least a week (AgendaView), so that week is its range here.
+  const notesInView = useMemo(() => {
+    const { start, end } = viewWindow ?? { start: today, end: addDays(today, 7) };
+    const days: Date[] = [];
+    for (let day = start; day < end; day = addDays(day, 1)) days.push(day);
+    return hasDayNoteIn(dayNotes, days);
+  }, [viewWindow, today, dayNotes]);
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
   const gridEventStyle = config.gridEventStyle;
@@ -174,7 +189,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     timezone, timeFormat: resolvedTimeFormat, locale, now, today, t,
   });
 
-  if (status.kind === 'setup') {
+  // No calendar picked yet replaces the view with the setup card, unless a
+  // day in view has a note: day notes need no calendar account, so the view
+  // draws them on their own rather than hiding what the phone just saved.
+  if (status.kind === 'setup' && !(status.setup === 'noSources' && notesInView)) {
     return (
       <ModuleWrapper style={style}>
         <CalendarSetupCard
@@ -245,7 +263,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           />
         )}
         <div className="flex-1 min-h-0">
-          <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} />
+          <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} />
         </div>
         {legendPlacement === 'footer' && (
           <CalendarLegend
