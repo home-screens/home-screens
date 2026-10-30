@@ -10362,6 +10362,15 @@
             "text": "string"
           },
           "description": "How to do it, one step per line, shown under the chore on the phone when the kid asks"
+        },
+        {
+          "name": "starterId",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "Which starter chore this was picked from, so the starter list can mark it as added in any language"
         }
       ]
     },

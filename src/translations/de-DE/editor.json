@@ -837,8 +837,8 @@
           "placeholder": "Füge deinen WeatherAPI-Schlüssel ein"
         },
         "openWeatherMap": {
-          "tagline": "One-Call-3.0-Abonnement",
-          "keyHint": "Erfordert ein One-Call-3.0-Abonnement auf openweathermap.org.",
+          "tagline": "Kostenloser Schlüssel · weltweit",
+          "keyHint": "Kostenlos auf openweathermap.org; ein kostenloser Konto-Schlüssel reicht.",
           "placeholder": "Füge deinen OpenWeatherMap-API-Schlüssel ein"
         },
         "pirateWeather": {
@@ -5420,7 +5420,7 @@
       "waitingForKeys": "wartet auf {keys}",
       "keyNotPicked": "bei einer Bedingung ist noch kein Schlüssel gewählt",
       "conditionsNotMet": "die Bedingungen treffen nicht zu",
-      "seeLiveValues": "Alle Live-Werte findest du unter Einstellungen → Live-Werte."
+      "seeLiveValues": "Jede Bedingung zeigt, was das Display gerade sieht, und alle Werte stehen unter Einstellungen > Automatisierung > Geteilte Werte."
     },
     "time": {
       "fromLabel": "Von",

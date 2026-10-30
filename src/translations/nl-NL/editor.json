@@ -837,8 +837,8 @@
           "placeholder": "Plak je WeatherAPI-sleutel"
         },
         "openWeatherMap": {
-          "tagline": "One Call 3.0-abonnement",
-          "keyHint": "Vereist een One Call 3.0-abonnement op openweathermap.org.",
+          "tagline": "Gratis sleutel · wereldwijd",
+          "keyHint": "Gratis op openweathermap.org; een gratis accountsleutel is genoeg.",
           "placeholder": "Plak je OpenWeatherMap API-sleutel"
         },
         "pirateWeather": {
@@ -5420,7 +5420,7 @@
       "waitingForKeys": "wacht op {keys}",
       "keyNotPicked": "bij een voorwaarde is nog geen sleutel gekozen",
       "conditionsNotMet": "de voorwaarden kloppen niet",
-      "seeLiveValues": "Je vindt alle live waarden onder Instellingen → Live waarden."
+      "seeLiveValues": "Elke voorwaarde laat zien wat het display nu ziet, en alle waarden staan onder Instellingen > Automatisering > Gedeelde waarden."
     },
     "time": {
       "fromLabel": "Van",

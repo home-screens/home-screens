@@ -837,8 +837,8 @@
           "placeholder": "Paste your WeatherAPI key"
         },
         "openWeatherMap": {
-          "tagline": "One Call 3.0 subscription",
-          "keyHint": "Requires a One Call 3.0 subscription at openweathermap.org.",
+          "tagline": "Free key · worldwide",
+          "keyHint": "Free at openweathermap.org; a free account key is all it needs.",
           "placeholder": "Paste your OpenWeatherMap API key"
         },
         "pirateWeather": {
@@ -5420,7 +5420,7 @@
       "waitingForKeys": "waiting for {keys}",
       "keyNotPicked": "a condition doesn't have a key picked yet",
       "conditionsNotMet": "the conditions don't match",
-      "seeLiveValues": "You can see every live value under Settings → Live values."
+      "seeLiveValues": "Each condition shows what the display sees now, and every key is listed under Settings > Automation > Shared state."
     },
     "time": {
       "fromLabel": "From",

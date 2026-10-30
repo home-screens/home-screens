@@ -103,6 +103,21 @@ describe('already added', () => {
     ]);
     expect([...added]).toEqual(['make-bed']);
   });
+
+  it('matches a chore picked from the list by its starter id whatever language the picker is in', () => {
+    const english = getStarterChoresForLocale('en-US');
+    const [picked] = buildStarterChores(english, new Set(['make-bed']), { assigneeIds: ['a'], assigneeGroupIds: [] });
+    expect(picked.starterId).toBe('make-bed');
+    const german = getStarterChoresForLocale('de-DE');
+    expect([...starterIdsAlreadyAdded(german, [picked])]).toEqual(['make-bed']);
+  });
+
+  it('matches a chore saved before starter ids by its name in any shipped language', () => {
+    const german = getStarterChoresForLocale('de-DE');
+    const englishName = getStarterChoresForLocale('en-US').find((s) => s.id === 'make-bed')!.name;
+    expect([...starterIdsAlreadyAdded(german, [{ name: englishName.toUpperCase() }])]).toEqual(['make-bed']);
+    expect([...starterIdsAlreadyAdded(german, [{ name: 'Something else', starterId: undefined }])]).toEqual([]);
+  });
 });
 
 describe('who the batch goes to by default', () => {
@@ -126,6 +141,7 @@ describe('building chores from a selection', () => {
     expect(built).toEqual([
       {
         name: 'Make your bed',
+        starterId: 'make-bed',
         emoji: 'lucide:bed',
         points: 1,
         frequency: 'daily',
@@ -137,6 +153,7 @@ describe('building chores from a selection', () => {
       },
       {
         name: 'Take out the trash',
+        starterId: 'take-out-trash',
         emoji: 'lucide:trash',
         points: 3,
         frequency: 'weekly',

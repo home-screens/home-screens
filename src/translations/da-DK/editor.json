@@ -837,8 +837,8 @@
           "placeholder": "Indsæt din WeatherAPI-nøgle"
         },
         "openWeatherMap": {
-          "tagline": "One Call 3.0-abonnement",
-          "keyHint": "Kræver et One Call 3.0-abonnement på openweathermap.org.",
+          "tagline": "Gratis nøgle · hele verden",
+          "keyHint": "Gratis på openweathermap.org; en gratis kontonøgle er nok.",
           "placeholder": "Indsæt din OpenWeatherMap-API-nøgle"
         },
         "pirateWeather": {
@@ -5420,7 +5420,7 @@
       "waitingForKeys": "venter på {keys}",
       "keyNotPicked": "en betingelse mangler stadig en nøgle",
       "conditionsNotMet": "betingelserne passer ikke",
-      "seeLiveValues": "Du kan se alle live-værdier under Indstillinger → Live-værdier."
+      "seeLiveValues": "Hver betingelse viser, hvad skærmen ser lige nu, og alle værdier står under Indstillinger > Automatisering > Delte værdier."
     },
     "time": {
       "fromLabel": "Fra",

@@ -837,8 +837,8 @@
           "placeholder": "Cole sua chave da WeatherAPI"
         },
         "openWeatherMap": {
-          "tagline": "Assinatura One Call 3.0",
-          "keyHint": "Requer assinatura One Call 3.0 em openweathermap.org.",
+          "tagline": "Chave gratuita · mundo todo",
+          "keyHint": "Grátis em openweathermap.org; a chave de uma conta gratuita já basta.",
           "placeholder": "Cole sua chave de API do OpenWeatherMap"
         },
         "pirateWeather": {
@@ -5420,7 +5420,7 @@
       "waitingForKeys": "aguardando {keys}",
       "keyNotPicked": "uma condição ainda não tem chave escolhida",
       "conditionsNotMet": "as condições não correspondem",
-      "seeLiveValues": "Você pode ver todos os valores ao vivo em Configurações → Valores ao vivo."
+      "seeLiveValues": "Cada condição mostra o que o display vê agora, e todos os valores aparecem em Configurações > Automação > Estado compartilhado."
     },
     "time": {
       "fromLabel": "De",

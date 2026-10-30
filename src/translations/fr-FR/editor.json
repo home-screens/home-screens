@@ -837,8 +837,8 @@
           "placeholder": "Colle ta clé WeatherAPI"
         },
         "openWeatherMap": {
-          "tagline": "Abonnement One Call 3.0",
-          "keyHint": "Nécessite un abonnement One Call 3.0 sur openweathermap.org.",
+          "tagline": "Clé gratuite · monde entier",
+          "keyHint": "Gratuit sur openweathermap.org ; une clé de compte gratuite suffit.",
           "placeholder": "Colle ta clé API OpenWeatherMap"
         },
         "pirateWeather": {
@@ -5420,7 +5420,7 @@
       "waitingForKeys": "en attente de {keys}",
       "keyNotPicked": "une condition n'a pas encore de clé choisie",
       "conditionsNotMet": "les conditions ne correspondent pas",
-      "seeLiveValues": "Vous pouvez voir toutes les valeurs en direct dans Réglages → Valeurs en direct."
+      "seeLiveValues": "Chaque condition montre ce que l'écran voit actuellement, et toutes les valeurs sont listées dans Réglages > Automatisation > État partagé."
     },
     "time": {
       "fromLabel": "De",

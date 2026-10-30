@@ -4210,6 +4210,13 @@ export interface ChoreDefinition {
    * The wall never shows it.
    */
   steps?: string;
+  /**
+   * Which starter chore this was picked from, so the starter list can mark it as added in any language
+   *
+   * A `StarterChoreId` from the catalog; `buildStarterChores` sets it. A chore written by hand has none,
+   * and `starterIdsAlreadyAdded` falls back to its name in every shipped language.
+   */
+  starterId?: string;
 }
 
 /**

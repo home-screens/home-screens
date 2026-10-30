@@ -70,17 +70,39 @@ function normalizeName(name: string): string {
   return name.trim().toLocaleLowerCase();
 }
 
+/** Every name a starter goes by across the shipped languages, normalized, keyed by starter id. */
+let namesInEveryLocale: Map<StarterChoreId, Set<string>> | null = null;
+function starterNamesInEveryLocale(): Map<StarterChoreId, Set<string>> {
+  if (namesInEveryLocale) return namesInEveryLocale;
+  const byId = new Map<StarterChoreId, Set<string>>();
+  for (const spec of STARTER_CHORE_CATALOG) byId.set(spec.id, new Set());
+  for (const table of Object.values(STARTER_CHORE_NAMES_BY_LOCALE)) {
+    for (const spec of STARTER_CHORE_CATALOG) byId.get(spec.id)!.add(normalizeName(table[spec.id]));
+  }
+  namesInEveryLocale = byId;
+  return byId;
+}
+
 /**
- * The ids of starters the household already has: a chore with the same name,
+ * The ids of starters the household already has. A chore picked from the
+ * list carries its `starterId`, which matches whatever language the picker
+ * is in now. A chore from before that was saved, or one written by hand,
+ * counts when its name is the starter's name in any shipped language,
  * ignoring case and surrounding spaces. Those rows show as "Already added"
- * and cannot be picked again, so reopening the list never duplicates a chore.
+ * and cannot be picked again, so reopening the list, in any language,
+ * never duplicates a chore.
  */
 export function starterIdsAlreadyAdded(
   starters: readonly StarterChore[],
-  chores: readonly Pick<ChoreDefinition, 'name'>[],
+  chores: readonly Pick<ChoreDefinition, 'name' | 'starterId'>[],
 ): Set<StarterChoreId> {
-  const existing = new Set(chores.map((chore) => normalizeName(chore.name)));
-  return new Set(starters.filter((starter) => existing.has(normalizeName(starter.name))).map((starter) => starter.id));
+  const byStarterId = new Set(chores.map((chore) => chore.starterId).filter((id): id is string => !!id));
+  const existingNames = new Set(chores.map((chore) => normalizeName(chore.name)));
+  const names = starterNamesInEveryLocale();
+  return new Set(starters
+    .filter((starter) => byStarterId.has(starter.id)
+      || [...(names.get(starter.id) ?? [])].some((name) => existingNames.has(name)))
+    .map((starter) => starter.id));
 }
 
 export interface StarterAssignment {
@@ -171,6 +193,7 @@ export function buildStarterChores(
     .filter((starter) => pickedIds.has(starter.id))
     .map((starter) => ({
       name: starter.name,
+      starterId: starter.id,
       // The icon prefix `ChoreIcon` reads; the catalog holds bare icon names.
       emoji: `lucide:${starter.icon}`,
       points: starter.points,
