@@ -117,7 +117,7 @@ describe('meal planner', () => {
   });
 
   it("follows today onto the new week when left open past the household's Sunday midnight", () => {
-    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
     // 11:58 pm Sunday 20 September in Auckland.
     vi.setSystemTime(new Date('2026-09-20T11:58:00Z'));
     const settings = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: {} } as unknown as MealSettings;

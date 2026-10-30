@@ -29,6 +29,12 @@ export function pad(n: number) {
  * is). The four fixed precisions map their unit set unconditionally, zero
  * values included.
  */
+/** How often the countdown must tick: every second only when its unit set shows seconds. */
+export function countdownTickMs(precision: CountdownPrecision): number {
+  const showsSeconds = precision === 'auto' || PRECISION_UNITS[precision].includes('seconds');
+  return showsSeconds ? 1000 : 60_000;
+}
+
 export function selectCountdownUnits(time: TimeRemaining, precision: CountdownPrecision): UnitValue[] {
   const values: Record<Unit, number> = {
     days: time.days,

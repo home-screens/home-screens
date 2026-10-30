@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { createTZDate, toTZWallTime, wallClockParts, type WallClock } from '@/lib/timezone';
+import { subscribeAlignedTick } from '@/lib/aligned-ticker';
 import { useFirstRenderInstant } from './useRenderInstant';
 
 /**
- * `enabled: false` freezes the returned value and skips the recurring
- * interval entirely — for a caller that only needs `now` when something
+ * `enabled: false` freezes the returned value and skips the recurring tick
+ * entirely, for a caller that only needs `now` when something
  * time-dependent is actually in view, so the rest of its tree doesn't
  * re-render every tick for no reason.
  *
@@ -14,6 +15,11 @@ import { useFirstRenderInstant } from './useRenderInstant';
  * `useFirstRenderInstant`), and the mount effect replaces it with the real
  * one, so a page hydrated across the hour or midnight never keeps the
  * server's stale text.
+ *
+ * Ticks land just past each multiple of `intervalMs` on the wall clock
+ * (see `aligned-ticker`): a minute clock mounted at hh:mm:40 changes at
+ * the next minute, not 60 s later, and every clock on the screen with the
+ * same cadence updates in the same render.
  */
 export function useTZClock(timezone: string | undefined, intervalMs = 60_000, enabled = true): Date {
   const firstInstant = useFirstRenderInstant();
@@ -21,8 +27,7 @@ export function useTZClock(timezone: string | undefined, intervalMs = 60_000, en
   useEffect(() => {
     if (!enabled) return;
     setNow(createTZDate(timezone));
-    const interval = setInterval(() => setNow(createTZDate(timezone)), intervalMs);
-    return () => clearInterval(interval);
+    return subscribeAlignedTick(intervalMs, () => setNow(createTZDate(timezone)));
   }, [timezone, intervalMs, enabled]);
   return now;
 }
@@ -62,8 +67,7 @@ export function useWallClock(timezone: string | undefined, intervalMs = 60_000, 
   useEffect(() => {
     if (!enabled) return;
     setClock((prev) => nextWallClock(prev, timezone));
-    const interval = setInterval(() => setClock((prev) => nextWallClock(prev, timezone)), intervalMs);
-    return () => clearInterval(interval);
+    return subscribeAlignedTick(intervalMs, () => setClock((prev) => nextWallClock(prev, timezone)));
   }, [timezone, intervalMs, enabled]);
   return clock;
 }

@@ -104,7 +104,7 @@ describe('the Meals tab', () => {
   describe('left open across the household week boundary', () => {
     const settings = { ...DEFAULT_MEAL_SETTINGS, weekStartDay: 'monday' as const };
     beforeEach(() => {
-      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
       vi.setSystemTime(new Date('2026-09-27T21:58:00Z'));
     });
 

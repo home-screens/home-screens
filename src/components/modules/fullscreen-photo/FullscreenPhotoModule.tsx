@@ -186,8 +186,10 @@ function NoPhotosYet({ theme, t, cloudHint }: { theme: FullscreenThemeTokens; t:
 // ── Clock overlay ────────────────────────────
 
 function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: FullscreenThemeTokens; backdrop: ClockBackdropSettings; timezone?: string; timeFormat?: TimeFormat }) {
-  // Display-timezone clock, not browser-local — the Pi's OS timezone may differ
-  const time = useTZClock(timezone, 1000);
+  // Display-timezone clock, not browser-local: the Pi's OS timezone may differ.
+  // The overlay shows minutes only, so it ticks on the minute (aligned, see
+  // useTZClock), not every second.
+  const time = useTZClock(timezone, 60_000);
   const locale = useFormattingLocale();
 
   const is12Hour = householdTimeFormat(timeFormat, locale) === '12h';

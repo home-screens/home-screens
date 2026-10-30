@@ -8,7 +8,7 @@ import { useRealClock } from '@/hooks/useTZClock';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import { ModuleEmptyState } from '../ModuleStates';
-import { processEvents } from './countdown-utils';
+import { countdownTickMs, processEvents } from './countdown-utils';
 import CountdownAllView from './CountdownAllView';
 import CountdownNextView from './CountdownNextView';
 import type { CountdownViewProps } from './types';
@@ -26,8 +26,9 @@ interface CountdownModuleProps {
 
 export default function CountdownModule({ config, style, timezone }: CountdownModuleProps) {
   // The shared ticking clock, so the server's render instant is what the
-  // countdown hydrates with and the mount tick patches whatever moved.
-  const now = useRealClock(1000);
+  // countdown hydrates with and the mount tick patches whatever moved. A
+  // precision without seconds only changes on the minute, so it ticks there.
+  const now = useRealClock(countdownTickMs(config.precision ?? 'auto'));
   const moduleId = useId();
   const scale = config.scale ?? 1;
   const basePx = 28 * scale;
