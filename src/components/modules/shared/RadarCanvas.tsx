@@ -373,8 +373,12 @@ export default function RadarCanvas({
       {/* Both layers hang off a zero-size anchor at the box centre, which
           sits on the configured coordinates; tile offsets are relative to it.
           The tiles carry max-w-none: the global img reset caps width at 100%
-          of the parent, and 100% of a zero-size anchor is nothing. */}
-      <div className="absolute left-1/2 top-1/2">
+          of the parent, and 100% of a zero-size anchor is nothing.
+          The base tiles get their own compositor layer: they never change,
+          but they carry a colour filter, and painted in with the radar every
+          radar step repainted them through it, which a Raspberry Pi 4 could
+          not do at full frame rate. */}
+      <div className="absolute left-1/2 top-1/2" style={{ willChange: 'transform' }}>
         {tileGrid.map((tile) => (
           <img
             key={`base-${tile.x}-${tile.y}`}
@@ -468,7 +472,9 @@ export default function RadarCanvas({
                         ? 'rgba(74, 222, 128, 0.6)'
                         : 'rgba(255, 255, 255, 0.35)',
                     boxShadow: isCurrent ? '0 0 4px rgba(255,255,255,0.5)' : 'none',
-                    transition: 'background-color 200ms, box-shadow 200ms',
+                    // No colour or shadow fade between frames: every step of
+                    // one repaints, and on a Raspberry Pi 4 that redraw cost
+                    // the whole wall half its frame rate while a map ran.
                   }}
                 />
               </div>

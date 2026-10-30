@@ -150,8 +150,6 @@ function Keyframes() {
         .fsw-sky { --fsw-moon-size: min(10cqh, 7cqw); --fsw-moon-left: 80cqw; --fsw-moon-top: 2cqh; }
         .fsw-sky-moon-hero { --fsw-moon-size: min(13cqh, 9cqw); --fsw-moon-left: 78cqw; --fsw-moon-top: 9cqh; }
       }
-      @keyframes fsw-sky-twinkle { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
-      @keyframes fsw-sky-breathe { from { transform: scale(1); } to { transform: scale(1.07); } }
       ${FALL_HEIGHTS.map((h) => `@keyframes fsw-sky-fall-${h} { from { transform: translate3d(0,-${h}px,0); } to { transform: translate3d(0,0,0); } }`).join('\n      ')}
       ${SWAY_AMPS.map((a) => `@keyframes fsw-sky-sway-${a} { from { transform: translate3d(-${a}px,0,0); } to { transform: translate3d(${a}px,0,0); } }`).join('\n      ')}
       @keyframes fsw-sky-flash { 0%, 100% { opacity: 0; } 46% { opacity: 0; } 46.6% { opacity: .32; } 47.4% { opacity: .06; } 48.2% { opacity: .22; } 49.5% { opacity: 0; } }
@@ -162,12 +160,17 @@ function Keyframes() {
 /**
  * The star field: one generated tile (public/sky/stars.png, white on
  * transparent, from scripts/sky-sprites.mjs) repeated in both directions,
- * twice at different scales so the repeat never reads, each breathing on its
- * own twinkle cycle. A cool haze sits behind it up and to the right.
+ * twice at different scales so the repeat never reads. A cool haze sits
+ * behind it up and to the right.
+ *
+ * The stars hold still. A layer that animates is redrawn in full on every
+ * frame, and two twinkling full-screen layers held a portrait Raspberry Pi 4
+ * at about 40 frames a second; still, they are flattened into the sky behind
+ * them and cost nothing.
  */
 const STAR_LAYERS = [
-  { size: '540px 960px', position: '0 0', opacity: .95, dur: 7, delay: 0 },
-  { size: '918px 1632px', position: '310px 140px', opacity: .5, dur: 11, delay: 3 },
+  { size: '540px 960px', position: '0 0', opacity: .68 },
+  { size: '918px 1632px', position: '310px 140px', opacity: .68 },
 ];
 
 function Stars() {
@@ -177,24 +180,26 @@ function Stars() {
       {STAR_LAYERS.map((l, i) => (
         <div key={i} style={{
           position: 'absolute', inset: 0, backgroundImage: 'url(/sky/stars.png)', backgroundRepeat: 'repeat',
-          backgroundSize: l.size, backgroundPosition: l.position,
-          opacity: l.opacity, animation: `fsw-sky-twinkle ${l.dur}s ease-in-out ${l.delay}s infinite`,
+          backgroundSize: l.size, backgroundPosition: l.position, opacity: l.opacity,
         }} />
       ))}
     </>
   );
 }
 
-/** The sun: a soft glow high above the canvas by day, sitting on the horizon at golden hour. */
+/**
+ * The sun: a soft glow high above the canvas by day, sitting on the horizon at
+ * golden hour. It holds still: a slow swell made it a layer redrawn on every
+ * frame, which held golden hour on a Raspberry Pi 4 at about 44 frames a second.
+ */
 function Sun({ low }: { low: boolean }) {
   return (
     <div style={{
       position: 'absolute', width: 900, height: 900, borderRadius: '50%', left: '50%', marginLeft: -450,
-      top: low ? '51%' : -560, willChange: 'transform',
+      top: low ? '51%' : -560,
       background: low
         ? 'radial-gradient(circle, rgba(255,236,190,1) 0%, rgba(255,170,90,.6) 12%, rgba(255,120,80,.25) 28%, transparent 60%)'
         : 'radial-gradient(circle, rgba(255,246,214,.95) 0%, rgba(255,222,140,.55) 14%, rgba(255,200,90,.22) 30%, transparent 60%)',
-      animation: 'fsw-sky-breathe 9s ease-in-out infinite alternate',
     }} />
   );
 }
