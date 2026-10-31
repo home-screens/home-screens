@@ -112,6 +112,7 @@ export default function MenuBoardView({
             <MealTapTarget
               meal={course.meal}
               mode={recipeTapMode}
+              serving={{ date: todayISO, slot: course.slot }}
               style={{ display: 'flex', alignItems: 'center', gap: P(30), minWidth: 0, textAlign: anyPictured ? 'left' : 'center' }}
             >
               {pictured ? (

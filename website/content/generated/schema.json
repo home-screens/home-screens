@@ -961,10 +961,12 @@
               "week",
               "today",
               "menu-board",
-              "next-meal"
+              "next-meal",
+              "recipe",
+              "grocery"
             ]
           },
-          "description": "Display style: `week`, `today`, `menu-board`, or `next-meal`",
+          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), or `grocery` (the grocery list)",
           "default": "week"
         },
         {
@@ -1068,10 +1070,11 @@
             "values": [
               "off",
               "qr",
+              "card",
               "iframe"
             ]
           },
-          "description": "What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page)",
+          "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
           "default": "off"
         },
         {
@@ -1083,13 +1086,25 @@
           },
           "description": "Show the view title (\"Today's Meals\", \"This Week's Meals\", \"Today's Menu\")",
           "default": true
+        },
+        {
+          "name": "interactive",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Let people use the wall on a touch screen: tick things off the grocery list and step through a recipe. A tick writes to the family's list, never to the layout",
+          "default": true
         }
       ],
       "views": [
         "week",
         "today",
         "menu-board",
-        "next-meal"
+        "next-meal",
+        "recipe",
+        "grocery"
       ]
     },
     {
@@ -5335,10 +5350,11 @@
               "today",
               "next-meal",
               "compact",
-              "list"
+              "list",
+              "grocery"
             ]
           },
-          "description": "Display style: `week`, `today`, `next-meal`, `compact`, or `list`",
+          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, or `grocery` (the grocery list)",
           "default": "week"
         },
         {
@@ -5390,10 +5406,11 @@
             "values": [
               "off",
               "qr",
+              "card",
               "iframe"
             ]
           },
-          "description": "What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or `iframe` (embed the recipe page)",
+          "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
           "default": "off"
         },
         {
@@ -5405,6 +5422,16 @@
           },
           "description": "Show the \"Today's Meals\" label in the today view",
           "default": true
+        },
+        {
+          "name": "interactive",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Let people tick things off the grocery list on a touch screen. A tick writes to the family's list, never to the layout",
+          "default": true
         }
       ],
       "views": [
@@ -5412,7 +5439,8 @@
         "today",
         "next-meal",
         "compact",
-        "list"
+        "list",
+        "grocery"
       ]
     },
     {

@@ -398,7 +398,7 @@
     },
     "scanToOpenRecipe": "Scan for at åbne opskriften",
     "tapToDismiss": "Tryk hvor som helst for at lukke",
-    "openRecipeAria": "Åbn opskriften for {name}",
+    "openRecipeAria": "Åbn opskriften på {name}",
     "showQrInstead": "Vis QR-kode",
     "closeRecipe": "Luk",
     "planFromPhoneHint": "Planlæg måltider fra en telefon: åbn {url} og tryk på Måltider",
@@ -414,7 +414,41 @@
     "mealieNotConnected": "Mealie er ikke forbundet",
     "mealieNotConnectedHint": "Forbind den under Indstillinger på computeren for at vise madplanen.",
     "mealieTokenRefused": "Mealie lukker ikke Home Screens ind længere",
-    "mealieTokenRefusedHint": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise madplanen."
+    "mealieTokenRefusedHint": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise madplanen.",
+    "recipe": {
+      "prep": "Forberedelse",
+      "cook": "Tilberedning",
+      "serves": "Portioner",
+      "ingredients": "Ingredienser",
+      "steps": "Sådan gør du",
+      "notes": "Noter",
+      "stepOf": "Trin {step} af {total}",
+      "stepsRange": "{from} til {to} af {total}",
+      "back": "Tilbage",
+      "nextStep": "Næste trin",
+      "loading": "Henter opskriften",
+      "failed": "Kan ikke hente opskriften lige nu",
+      "stepAria": "Trin {step}",
+      "openCourseAria": "Åbn opskriften på {name}",
+      "scanForPhone": "Scan for at åbne opskriften på din telefon",
+      "closesItself": "Lukker af sig selv efter 10 minutter"
+    },
+    "grocery": {
+      "thisWeek": "Ugens indkøb",
+      "toGet": "{count} at købe",
+      "got": "{count} købt",
+      "page": "{page} af {pages}",
+      "tickAria": "Kryds {item} af",
+      "noMealieList": "Ingen indkøbsliste i Mealie endnu",
+      "noMealieListHint": "Lav en i Mealie, så dukker den op her.",
+      "mealieDone": "Alt på {list} er krydset af",
+      "mealieEmpty": "Intet på {list} endnu",
+      "mealieEmptyHint": "Tilføj ting på telefonen eller i Mealie.",
+      "localDone": "Intet mere at købe",
+      "localDoneHint": "Alt på ugens liste er krydset af.",
+      "localEmpty": "Intet at købe endnu",
+      "localEmptyHint": "Planlæg måltider med ingredienser, så dukker de op her."
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Ugens måltider",
@@ -436,7 +470,11 @@
       "now": "Nu",
       "comingUp": "Snart",
       "tomorrow": "I morgen"
-    }
+    },
+    "noRecipeToday": "Ingen opskrift i dag",
+    "noRecipeTodayHint": "Ingen af de måltider, der er tilbage i dag, har en opskrift. Morgendagens opskrift vises her, når dagens måltider er slut.",
+    "noRecipeTomorrow": "Ingen opskrift i morgen",
+    "noRecipeTomorrowHint": "Intet, der er planlagt til i morgen, har en opskrift endnu."
   },
   "chore-chart": {
     "rewardHistory": "Belønningshistorik",

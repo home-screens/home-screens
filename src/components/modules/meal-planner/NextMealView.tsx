@@ -76,7 +76,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
         className="flex flex-col items-center gap-2"
       >
         {/* Emoji + name (time/tags/prep stay outside the tap target) */}
-        <MealTapTarget meal={meal} mode={recipeTapMode} className="flex flex-col items-center gap-2">
+        <MealTapTarget meal={meal} mode={recipeTapMode} serving={{ date: mealDate, slot }} className="flex flex-col items-center gap-2">
           {(config.showEmoji ?? true) && mealHasPicture(meal) && (
             <MealPicture meal={meal} photoSize="4.4em" size="min" emojiStyle={{ fontSize: '2.5em', lineHeight: 1 }} />
           )}

@@ -29,6 +29,7 @@ type Config = {
   accentColor?: string;
   tapRecipeAction?: RecipeTapAction;
   showTitle?: boolean;
+  interactive?: boolean;
 };
 
 export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
@@ -41,6 +42,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
     { value: 'next-meal', label: t('configSections.meal-planner.viewNextMeal') },
     { value: 'compact', label: t('configSections.meal-planner.viewCompact') },
     { value: 'list', label: t('configSections.meal-planner.viewList') },
+    { value: 'grocery', label: t('configSections.meal-planner.viewGrocery') },
   ];
   const [showModal, setShowModal] = useState(false);
   const { mealData, handleModalUpdate, toggleGroceryItem, saveError, reload, showMealieRange, mealieWeeks, suggestFromMealie } = useMealPlannerData<Config>({
@@ -83,13 +85,33 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         options={[
           { value: 'off', label: t('configSections.meal-planner.tapRecipeActionOff') },
           { value: 'qr', label: t('configSections.meal-planner.tapRecipeActionQr') },
+          { value: 'card', label: t('configSections.meal-planner.tapRecipeActionCard') },
           { value: 'iframe', label: t('configSections.meal-planner.tapRecipeActionIframe') },
         ]}
       />
+      {c.tapRecipeAction === 'card' && (
+        <p className="text-[11px] text-hs-text-faint leading-relaxed">
+          {t('configSections.meal-planner.tapRecipeActionCardHint')}
+        </p>
+      )}
       {c.tapRecipeAction === 'iframe' && (
         <p className="text-[11px] text-hs-text-faint leading-relaxed">
           {t('configSections.meal-planner.tapRecipeActionIframeHint')}
         </p>
+      )}
+
+      {/* Ticking the grocery list on the wall */}
+      {view === 'grocery' && (
+        <>
+          <Toggle
+            label={t('configSections.meal-planner.interactive')}
+            checked={c.interactive !== false}
+            onChange={(v) => set({ interactive: v })}
+          />
+          <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            {t('configSections.meal-planner.interactiveHint')}
+          </p>
+        </>
       )}
 
       {/* Accent Color */}

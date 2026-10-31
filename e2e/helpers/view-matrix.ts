@@ -189,8 +189,8 @@ export const VIEW_MATRIX: ViewSpec[] = [
     'board', 'star-chart', 'today', 'progress', 'compact', 'reward-history', 'rewards-store'] },
   { type: 'fullscreen-chore-chart', key: 'view', kind: 'local-data', seed: 'chores', views: [
     'chores', 'rewards-store', 'reward-history', 'reward-totals', 'reward-spotlight'] },
-  { type: 'meal-planner', key: 'view', kind: 'local-data', seed: 'meals', views: ['week', 'today', 'next-meal', 'compact', 'list'] },
-  { type: 'fullscreen-meal-planner', key: 'view', kind: 'local-data', seed: 'meals', views: ['week', 'today', 'menu-board', 'next-meal'] },
+  { type: 'meal-planner', key: 'view', kind: 'local-data', seed: 'meals', views: ['week', 'today', 'next-meal', 'compact', 'list', 'grocery'] },
+  { type: 'fullscreen-meal-planner', key: 'view', kind: 'local-data', seed: 'meals', views: ['week', 'today', 'menu-board', 'next-meal', 'recipe', 'grocery'] },
   { type: 'fullscreen-weather', key: 'view', kind: 'networked', stubKey: 'weather', views: ['panorama', 'strip', 'almanac', 'ambient', 'week', 'hourly', 'forecast', 'conditions'] },
   { type: 'timetable', key: 'view', kind: 'local-data', seed: 'timetables', config: { memberIds: E2E_TIMETABLE_SEED_MEMBER_IDS },
     views: ['week', 'day'] },

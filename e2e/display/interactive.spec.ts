@@ -280,6 +280,50 @@ test.describe('meal-planner recipe tap', () => {
     await expect(dialog).toBeHidden();
   });
 
+  test("'card' draws a saved meal's recipe even with no link, and closes", async ({ page, request }) => {
+    await stubModuleData(page);
+    await seedMeals(request, {
+      savedMeals: [{
+        id: 'meal-w', name: 'Waffles', emoji: '🧇', prepTime: 10, cookTime: 15, servings: 4,
+        ingredients: [{ name: 'Flour', amount: '2 cups' }, { name: 'Eggs', amount: '2' }],
+        notes: 'Heat the iron on 4.',
+      }],
+      plan: [{ slot: 'dinner', mealId: 'meal-w', date: isoToday() }],
+    });
+    const meal = buildModuleInstance('meal-planner', { view: 'today', tapRecipeAction: 'card' });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [meal])],
+    }));
+
+    await display.module('meal-planner').getByText('Waffles').click();
+
+    const card = page.getByTestId('recipe-card');
+    await expect(card).toBeVisible();
+    await expect(card.getByTestId('recipe-serving')).toContainText(/dinner/i);
+    await expect(card.getByTestId('recipe-ingredients')).toContainText('Flour');
+    await expect(card.getByTestId('recipe-ingredients')).toContainText('2 cups');
+    await expect(card.getByTestId('recipe-notes')).toContainText('Heat the iron on 4.');
+    // A meal with no link has nothing for a phone to open.
+    await expect(card.getByTestId('recipe-card-qr')).toHaveCount(0);
+
+    await card.getByTestId('recipe-card-close').click();
+    await expect(card).toBeHidden();
+  });
+
+  test("'card' leaves a meal with no recipe untappable", async ({ page, request }) => {
+    await stubModuleData(page);
+    await seedMeals(request, {
+      savedMeals: [{ id: 'meal-1', name: 'Pizza Night', emoji: '🍕' }],
+      plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoToday() }],
+    });
+    const meal = buildModuleInstance('meal-planner', { view: 'today', tapRecipeAction: 'card' });
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [meal])],
+    }));
+    await expect(display.module('meal-planner').getByText('Pizza Night')).toBeVisible();
+    await expect(display.module('meal-planner').getByRole('button', { name: /Pizza Night/ })).toHaveCount(0);
+  });
+
   test('rotation holds while a recipe overlay is open, then resumes', async ({ page, request }) => {
     await stubModuleData(page);
     await seedRecipeMeal(request);

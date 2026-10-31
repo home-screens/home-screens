@@ -4198,6 +4198,8 @@
       "viewToday": "Today",
       "viewMenuBoard": "Menu Board",
       "viewNextMeal": "Next Meal",
+      "viewRecipe": "Recipe",
+      "viewGrocery": "Grocery List",
       "densityCozy": "Roomy",
       "densitySnug": "Compact",
       "typographySize": "Text size",
@@ -4214,8 +4216,12 @@
       "tapRecipeAction": "Tap Meal to Open Recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
+      "tapRecipeActionCard": "Show recipe card",
       "tapRecipeActionIframe": "Open recipe on display",
       "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view.",
+      "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display, with a code to open the recipe on a phone. Works for meals saved with ingredients or notes too.",
+      "interactive": "Tap on the Wall",
+      "interactiveHint": "Lets people tick things off the grocery list and step through a recipe on a touch screen. Turn it off on a display without one.",
       "mobileHintTail": "so every meal module stays in sync."
     },
     "fullscreen-photo": {
@@ -4429,6 +4435,7 @@
       "viewNextMeal": "Next Meal (Hero)",
       "viewCompact": "Compact (Today + Tomorrow)",
       "viewList": "Full Week List",
+      "viewGrocery": "Grocery List",
       "showEmoji": "Show Pictures",
       "showPrepTime": "Show Cooking Time",
       "showTags": "Show Tags",
@@ -4442,8 +4449,12 @@
       "tapRecipeAction": "Tap Meal to Open Recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
+      "tapRecipeActionCard": "Show recipe card",
       "tapRecipeActionIframe": "Open recipe on display",
-      "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view."
+      "tapRecipeActionIframeHint": "Some recipe sites don't allow being opened inside Home Screens and will show a blank page. If that happens, tap the Show QR code button in the recipe view.",
+      "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display, with a code to open the recipe on a phone. Works for meals saved with ingredients or notes too.",
+      "interactive": "Tap on the Wall",
+      "interactiveHint": "Lets people tick things off the grocery list on a touch screen. Turn it off on a display without one."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",

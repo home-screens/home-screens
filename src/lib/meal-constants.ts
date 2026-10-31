@@ -561,6 +561,9 @@ export function currentMealSlot(
  * Both the small meal-planner card and the fullscreen Next Meal view resolve
  * through this, so the two can never disagree about what's next. Returns
  * null only when nothing is planned in the coming week.
+ *
+ * `accept` narrows "a meal" (the Recipe view wants the next one that has a
+ * recipe); a meal it turns down is passed over, never treated as over.
  */
 export function getNextPlannedMeal(
   todayISO: string,
@@ -569,6 +572,7 @@ export function getNextPlannedMeal(
   savedMeals: SavedMeal[] | undefined,
   slots: readonly MealSlotType[],
   defaults: Partial<Record<MealSlotType, string>> = {},
+  accept?: (meal: SavedMeal | null) => boolean,
 ): NextPlannedMeal | null {
   const base = new Date(todayISO + 'T12:00:00');
   for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
@@ -582,7 +586,7 @@ export function getNextPlannedMeal(
       if (phases[i] === 'over') continue;
       const { slot } = served[i];
       const { meal, name, courses, notes } = resolveMealWithEntry(date, slot, plan, savedMeals);
-      if (!name) continue;
+      if (!name || (accept && !accept(meal))) continue;
       const context = dayOffset === 0
         ? (phases[i] === 'now' ? 'now' : 'upcoming')
         : dayOffset === 1 ? 'tomorrow' : 'future';

@@ -34,6 +34,8 @@ export interface MealPlannerViewProps {
    * own background would not read.
    */
   photoBackdrop?: boolean;
+  /** A real display with taps switched on (`config.interactive`): tick boxes, recipe step buttons. */
+  interactive: boolean;
 }
 
 /**

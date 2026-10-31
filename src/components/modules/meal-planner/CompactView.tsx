@@ -77,7 +77,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
 
                   {name ? (
                     <div className="flex items-center gap-1 min-w-0 flex-1">
-                      <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1 min-w-0">
+                      <MealTapTarget meal={meal} mode={recipeTapMode} serving={{ date, slot }} className="flex items-center gap-1 min-w-0">
                         {showEmoji && mealHasPicture(meal) && (
                           <span className="shrink-0" style={{ fontSize: '0.7em', display: meal?.photoUrl ? 'flex' : undefined }}>
                             <MealPicture meal={meal} photoSize="1.6em" pictureSize="1.6em" />

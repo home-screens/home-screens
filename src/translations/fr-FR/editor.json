@@ -4198,6 +4198,8 @@
       "viewToday": "Aujourd'hui",
       "viewMenuBoard": "Tableau du menu",
       "viewNextMeal": "Prochain repas",
+      "viewRecipe": "Recette",
+      "viewGrocery": "Liste de courses",
       "densityCozy": "Aéré",
       "densitySnug": "Serré",
       "typographySize": "Taille du texte",
@@ -4214,8 +4216,12 @@
       "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
       "tapRecipeActionOff": "Désactivé",
       "tapRecipeActionQr": "Afficher le code QR",
-      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran",
+      "tapRecipeActionCard": "Afficher la fiche recette",
+      "tapRecipeActionIframe": "Ouvrir la recette sur l'affichage",
       "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette.",
+      "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage, avec un code QR pour ouvrir la recette sur un téléphone. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes.",
+      "interactive": "Activer le tactile sur le mur",
+      "interactiveHint": "Permet de cocher des articles de la liste de courses et de suivre une recette étape par étape sur un écran tactile. Désactive-le si l'affichage n'est pas tactile.",
       "mobileHintTail": "pour que tous les modules de repas restent synchronisés."
     },
     "fullscreen-photo": {
@@ -4429,6 +4435,7 @@
       "viewNextMeal": "Prochain repas (Hero)",
       "viewCompact": "Compact (aujourd'hui + demain)",
       "viewList": "Liste complète de la semaine",
+      "viewGrocery": "Liste de courses",
       "showEmoji": "Afficher les images",
       "showPrepTime": "Afficher le temps total",
       "showTags": "Afficher les étiquettes",
@@ -4442,8 +4449,12 @@
       "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
       "tapRecipeActionOff": "Désactivé",
       "tapRecipeActionQr": "Afficher le code QR",
-      "tapRecipeActionIframe": "Ouvrir la recette sur l'écran",
-      "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette."
+      "tapRecipeActionCard": "Afficher la fiche recette",
+      "tapRecipeActionIframe": "Ouvrir la recette sur l'affichage",
+      "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette.",
+      "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage, avec un code QR pour ouvrir la recette sur un téléphone. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes.",
+      "interactive": "Activer le tactile sur le mur",
+      "interactiveHint": "Permet de cocher des articles de la liste de courses sur un écran tactile. Désactive-le si l'affichage n'est pas tactile."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",

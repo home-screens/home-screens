@@ -414,7 +414,44 @@
     "mealieNotConnected": "Mealie no está conectado",
     "mealieNotConnectedHint": "Conéctalo en Ajustes en el ordenador para ver el plan de comidas.",
     "mealieTokenRefused": "Mealie ya no deja entrar a Home Screens",
-    "mealieTokenRefusedHint": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver el plan de comidas."
+    "mealieTokenRefusedHint": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver el plan de comidas.",
+    "recipe": {
+      "prep": "Preparación",
+      "cook": "Cocción",
+      "serves": "Raciones",
+      "ingredients": "Ingredientes",
+      "steps": "Pasos",
+      "notes": "Notas",
+      "stepOf": "Paso {step} de {total}",
+      "stepsRange": "Del {from} al {to} de {total}",
+      "back": "Atrás",
+      "nextStep": "Siguiente paso",
+      "loading": "Cargando la receta",
+      "failed": "Ahora mismo no se puede cargar la receta",
+      "stepAria": "Paso {step}",
+      "openCourseAria": "Abrir la receta de {name}",
+      "scanForPhone": "Escanea para abrir la receta en tu móvil",
+      "closesItself": "Se cierra sola a los 10 minutos"
+    },
+    "grocery": {
+      "thisWeek": "Compra de esta semana",
+      "toGet": "{count} por comprar",
+      "got": {
+        "one": "{count} tachado",
+        "other": "{count} tachados"
+      },
+      "page": "{page} de {pages}",
+      "tickAria": "Tachar {item}",
+      "noMealieList": "Mealie aún no tiene listas de la compra",
+      "noMealieListHint": "Crea una en Mealie y aparecerá aquí.",
+      "mealieDone": "Ya está todo tachado en {list}",
+      "mealieEmpty": "Todavía no hay nada en {list}",
+      "mealieEmptyHint": "Añade cosas desde el móvil o en Mealie.",
+      "localDone": "No queda nada por comprar",
+      "localDoneHint": "Todo lo de la lista de esta semana está tachado.",
+      "localEmpty": "Aún no hay nada que comprar",
+      "localEmptyHint": "Planifica comidas con ingredientes para llenar esta lista."
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Comidas de esta semana",
@@ -436,7 +473,11 @@
       "now": "Ahora",
       "comingUp": "A continuación",
       "tomorrow": "Mañana"
-    }
+    },
+    "noRecipeToday": "No hay receta para hoy",
+    "noRecipeTodayHint": "Ninguna de las comidas que quedan hoy tiene receta. La de mañana aparecerá aquí cuando terminen las comidas de hoy.",
+    "noRecipeTomorrow": "No hay receta para mañana",
+    "noRecipeTomorrowHint": "Ninguna comida planeada para mañana tiene receta todavía."
   },
   "chore-chart": {
     "rewardHistory": "Historial de recompensas",

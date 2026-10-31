@@ -95,7 +95,7 @@ function SlotCard({
       {/* Meal content */}
       <div className="px-3 pb-2.5 pt-0.5">
         {name ? (
-          <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-start gap-2 w-full">
+          <MealTapTarget meal={meal} mode={recipeTapMode} serving={{ date: todayISO, slot }} className="flex items-start gap-2 w-full">
             {showEmoji && mealHasPicture(meal) && (
               <MealPicture
                 meal={meal}

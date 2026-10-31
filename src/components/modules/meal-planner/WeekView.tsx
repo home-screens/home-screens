@@ -176,6 +176,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                         <MealTapTarget
                           meal={meal}
                           mode={recipeTapMode}
+                          serving={{ date, slot }}
                           className={layout.pictureAbove ? 'flex flex-col items-start min-w-0' : 'flex items-center min-w-0'}
                           style={{ gap: WEEK_GAP_PX }}
                         >

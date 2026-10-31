@@ -396,8 +396,8 @@
       "tomorrow": "Demain",
       "next": "Suivant"
     },
-    "scanToOpenRecipe": "Scannez pour ouvrir la recette",
-    "tapToDismiss": "Touchez n'importe où pour fermer",
+    "scanToOpenRecipe": "Scanne pour ouvrir la recette",
+    "tapToDismiss": "Touche n'importe où pour fermer",
     "openRecipeAria": "Ouvrir la recette de {name}",
     "showQrInstead": "Afficher le code QR",
     "closeRecipe": "Fermer",
@@ -414,7 +414,44 @@
     "mealieNotConnected": "Mealie n'est pas connecté",
     "mealieNotConnectedHint": "Connecte-le dans les Réglages sur l'ordinateur pour afficher le planning.",
     "mealieTokenRefused": "Mealie ne laisse plus entrer Home Screens",
-    "mealieTokenRefusedHint": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher le planning."
+    "mealieTokenRefusedHint": "Enregistre un nouveau jeton Mealie dans les Réglages sur l'ordinateur pour afficher le planning.",
+    "recipe": {
+      "prep": "Préparation",
+      "cook": "Cuisson",
+      "serves": "Portions",
+      "ingredients": "Ingrédients",
+      "steps": "Étapes",
+      "notes": "Notes",
+      "stepOf": "Étape {step} sur {total}",
+      "stepsRange": "{from} à {to} sur {total}",
+      "back": "Retour",
+      "nextStep": "Étape suivante",
+      "loading": "On récupère la recette",
+      "failed": "Impossible de récupérer la recette pour le moment",
+      "stepAria": "Étape {step}",
+      "openCourseAria": "Ouvrir la recette de {name}",
+      "scanForPhone": "Scanne pour ouvrir la recette sur ton téléphone",
+      "closesItself": "Se ferme automatiquement après 10 minutes"
+    },
+    "grocery": {
+      "thisWeek": "Courses de la semaine",
+      "toGet": "{count} à acheter",
+      "got": {
+        "one": "{count} coché",
+        "other": "{count} cochés"
+      },
+      "page": "{page} sur {pages}",
+      "tickAria": "Cocher {item}",
+      "noMealieList": "Mealie n'a pas encore de liste de courses",
+      "noMealieListHint": "Crée-en une dans Mealie et elle apparaîtra ici.",
+      "mealieDone": "Tout est coché sur la liste « {list} »",
+      "mealieEmpty": "Rien sur la liste « {list} » pour l'instant",
+      "mealieEmptyHint": "Ajoute des articles sur le téléphone ou dans Mealie.",
+      "localDone": "Plus rien à acheter",
+      "localDoneHint": "Tout est coché sur la liste de la semaine.",
+      "localEmpty": "Rien à acheter pour l'instant",
+      "localEmptyHint": "Planifie des repas avec des ingrédients pour remplir cette liste."
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Repas de la semaine",
@@ -436,7 +473,11 @@
       "now": "Maintenant",
       "comingUp": "Bientôt",
       "tomorrow": "Demain"
-    }
+    },
+    "noRecipeToday": "Pas de recette pour aujourd'hui",
+    "noRecipeTodayHint": "Aucun des repas encore à venir aujourd'hui n'a de recette. Celle de demain s'affichera ici une fois les repas du jour terminés.",
+    "noRecipeTomorrow": "Pas de recette pour demain",
+    "noRecipeTomorrowHint": "Aucun repas prévu demain n'a encore de recette."
   },
   "chore-chart": {
     "rewardHistory": "Historique des récompenses",

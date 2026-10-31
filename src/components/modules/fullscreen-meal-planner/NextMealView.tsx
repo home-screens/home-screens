@@ -104,6 +104,7 @@ export default function NextMealView({
       <MealTapTarget
         meal={meal}
         mode={recipeTapMode}
+        serving={{ date, slot }}
         style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center',
           gap: P(28), maxWidth: '100%',

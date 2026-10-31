@@ -17,11 +17,16 @@ import { TodayView } from './TodayView';
 import { NextMealView } from './NextMealView';
 import { CompactView } from './CompactView';
 import { ListView } from './ListView';
+import { GroceryView } from './GroceryView';
 import { mealieWords } from '../shared/mealie-problem';
+import { MealRecipeContext, type MealRecipeContextValue } from '../shared/MealRecipeContext';
+import { useWallGrocery } from '../shared/useWallGrocery';
+import type { GroceryChecked } from '@/lib/grocery-checks';
 
 interface MealDataResponse {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
+  groceryChecked?: GroceryChecked;
   settings?: MealSettings;
   /** Household GlobalSettings.timeFormat, reported alongside the settings */
   globalTimeFormat?: TimeFormat;
@@ -33,11 +38,13 @@ interface MealPlannerModuleProps {
   config: MealPlannerConfig;
   style: ModuleStyle;
   timezone?: string;
+  /** The display's full-screen theme, which a recipe card is drawn in. */
+  fullscreenTheme?: string;
   screenId?: string;
   moduleId?: string;
 }
 
-export default function MealPlannerModule({ config, style, timezone, screenId, moduleId }: MealPlannerModuleProps) {
+export default function MealPlannerModule({ config, style, timezone, fullscreenTheme, screenId, moduleId }: MealPlannerModuleProps) {
   const t = useTranslate('modules');
   const now = useTZClock(timezone, 60_000);
   const view = config.view ?? 'week';
@@ -74,10 +81,34 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
     ? fullPlan.length > 0
     : plan.length > 0;
 
+  const recipeContext = useMemo<MealRecipeContextValue>(
+    () => ({ theme: fullscreenTheme, plan: fullPlan, savedMeals, settings, timeFormat, now }),
+    [fullscreenTheme, fullPlan, savedMeals, settings, timeFormat, now],
+  );
+  // The grocery list the family uses: Mealie's while the plan lives there,
+  // otherwise this week's from the planned meals. Read only by that view.
+  const grocerySource = view !== 'grocery' || !mealData ? 'off' : merged?.source === 'mealie' ? 'mealie' : 'local';
+  const localGrocery = useMemo(
+    () => (mealData ? { plan: mealData.plan, savedMeals: mealData.savedMeals, groceryChecked: mealData.groceryChecked, settings } : null),
+    [mealData, settings],
+  );
+  const grocery = useWallGrocery(grocerySource, localGrocery, todayISO);
+  // Ticks need a real display; the editor preview draws the rows only.
+  const groceryTappable = config.interactive !== false && !!screenId && !!moduleId;
+
   // Until the first answer the plan is unknown, not empty: "No meals planned
   // yet" flashed on every load of a slow Pi.
   if (mealData === null) {
     return <ModuleLoadingState style={style} message={t('meal-planner.loading')} error={mealError} />;
+  }
+
+  // The grocery list is not the plan: it has its own empty and out-of-reach states.
+  if (view === 'grocery') {
+    return (
+      <ModuleWrapper style={style}>
+        <GroceryView config={config} grocery={grocery} tappable={groceryTappable} />
+      </ModuleWrapper>
+    );
   }
 
   // Mealie never answered and there is no copy: say so rather than "nothing
@@ -108,11 +139,13 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
 
   return (
     <ModuleWrapper style={style}>
+      <MealRecipeContext.Provider value={recipeContext}>
       {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} />}
       {view === 'today' && <TodayView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'next-meal' && <NextMealView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
       {view === 'list' && <ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      </MealRecipeContext.Provider>
     </ModuleWrapper>
   );
 }

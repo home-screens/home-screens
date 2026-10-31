@@ -3644,7 +3644,7 @@ export interface AffirmationsConfig {
 }
 
 // Meal planner module config
-export type MealPlannerView = 'week' | 'today' | 'next-meal' | 'compact' | 'list';
+export type MealPlannerView = 'week' | 'today' | 'next-meal' | 'compact' | 'list' | 'grocery';
 export type MealSlotType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export type GroceryCategory = 'produce' | 'dairy' | 'meat' | 'seafood' | 'bakery' | 'pantry' | 'frozen' | 'beverages' | 'other';
@@ -3834,14 +3834,17 @@ export interface MealSettings {
 }
 
 /**
- * What tapping a meal with a saved recipeUrl does on the display:
- * 'qr' shows a fullscreen QR overlay, 'iframe' embeds the recipe page.
- * In the editor preview the recipe always opens in a new tab instead.
+ * What tapping a meal does on the display: 'qr' shows a fullscreen QR overlay
+ * of its recipe link, 'card' draws the recipe (ingredients and steps) on a
+ * card over the wall, 'iframe' embeds the recipe page. 'qr' and 'iframe'
+ * need a recipe link; 'card' needs a recipe (a Mealie recipe, or a saved
+ * meal with ingredients or notes). In the editor preview a recipe link
+ * always opens in a new tab instead.
  */
-export type RecipeTapAction = 'off' | 'qr' | 'iframe';
+export type RecipeTapAction = 'off' | 'qr' | 'card' | 'iframe';
 
 export interface MealPlannerConfig {
-  /** Display style: `week`, `today`, `next-meal`, `compact`, or `list` */
+  /** Display style: `week`, `today`, `next-meal`, `compact`, `list`, or `grocery` (the grocery list) */
   view: MealPlannerView;
   /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
@@ -3856,8 +3859,8 @@ export interface MealPlannerConfig {
   /** Accent color for highlights */
   accentColor: string;
   /**
-   * What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or
-   * `iframe` (embed the recipe page)
+   * What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the
+   * recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)
    */
   tapRecipeAction?: RecipeTapAction;
   /**
@@ -3866,6 +3869,14 @@ export interface MealPlannerConfig {
    * Show the "Today's Meals" label in the today view. Omitted = shown.
    */
   showTitle?: boolean;
+  /**
+   * Let people tick things off the grocery list on a touch screen. A tick writes to the family's
+   * list, never to the layout
+   *
+   * Omitted = on, the same as the registry default, so a module made before
+   * the grocery view existed takes taps too.
+   */
+  interactive?: boolean;
 }
 
 // Icon module config (Font Awesome)
@@ -4535,10 +4546,13 @@ export interface FullscreenChoreChartConfig {
 }
 
 // Fullscreen meal planner module config
-export type FullscreenMealPlannerView = 'week' | 'today' | 'menu-board' | 'next-meal';
+export type FullscreenMealPlannerView = 'week' | 'today' | 'menu-board' | 'next-meal' | 'recipe' | 'grocery';
 
 export interface FullscreenMealPlannerConfig {
-  /** Display style: `week`, `today`, `menu-board`, or `next-meal` */
+  /**
+   * Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), or
+   * `grocery` (the grocery list)
+   */
   view: FullscreenMealPlannerView;
   /** Layout density: `cozy` or `snug` */
   density: 'cozy' | 'snug';
@@ -4567,8 +4581,8 @@ export interface FullscreenMealPlannerConfig {
    */
   theme?: string;
   /**
-   * What tapping a meal with a saved recipe link does: `off`, `qr` (fullscreen QR code overlay), or
-   * `iframe` (embed the recipe page)
+   * What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the
+   * recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)
    */
   tapRecipeAction?: RecipeTapAction;
   /**
@@ -4577,6 +4591,13 @@ export interface FullscreenMealPlannerConfig {
    * Show the view title ("Today's Meals", "This Week's Meals", "Today's Menu"). Omitted = shown.
    */
   showTitle?: boolean;
+  /**
+   * Let people use the wall on a touch screen: tick things off the grocery list and step through a
+   * recipe. A tick writes to the family's list, never to the layout
+   *
+   * Omitted = on, the same as the registry default.
+   */
+  interactive?: boolean;
 }
 
 // Fullscreen weather module config

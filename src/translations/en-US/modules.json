@@ -414,7 +414,41 @@
     "mealieNotConnected": "Mealie isn't connected",
     "mealieNotConnectedHint": "Connect it in Settings on the computer to show the meal plan.",
     "mealieTokenRefused": "Mealie isn't letting Home Screens in",
-    "mealieTokenRefusedHint": "Save a new Mealie token in Settings on the computer to show the meal plan."
+    "mealieTokenRefusedHint": "Save a new Mealie token in Settings on the computer to show the meal plan.",
+    "recipe": {
+      "prep": "Prep",
+      "cook": "Cook",
+      "serves": "Serves",
+      "ingredients": "Ingredients",
+      "steps": "Steps",
+      "notes": "Notes",
+      "stepOf": "Step {step} of {total}",
+      "stepsRange": "{from} to {to} of {total}",
+      "back": "Back",
+      "nextStep": "Next step",
+      "loading": "Getting the recipe",
+      "failed": "Couldn't get the recipe right now",
+      "stepAria": "Step {step}",
+      "openCourseAria": "Open the recipe for {name}",
+      "scanForPhone": "Scan to open it on your phone",
+      "closesItself": "Closes by itself after 10 minutes"
+    },
+    "grocery": {
+      "thisWeek": "This Week's Groceries",
+      "toGet": "{count} to get",
+      "got": "{count} got",
+      "page": "{page} of {pages}",
+      "tickAria": "Tick off {item}",
+      "noMealieList": "No shopping list in Mealie yet",
+      "noMealieListHint": "Make one in Mealie and it shows up here.",
+      "mealieDone": "{list} is all done",
+      "mealieEmpty": "Nothing on {list} yet",
+      "mealieEmptyHint": "Add things on the phone or in Mealie.",
+      "localDone": "Nothing left to buy",
+      "localDoneHint": "Everything on this week's list is ticked off.",
+      "localEmpty": "Nothing to buy yet",
+      "localEmptyHint": "Plan meals that have ingredients and they land here."
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "This Week's Meals",
@@ -436,7 +470,11 @@
       "now": "Now",
       "comingUp": "Coming Up",
       "tomorrow": "Tomorrow"
-    }
+    },
+    "noRecipeToday": "No recipe for today",
+    "noRecipeTodayHint": "Nothing still to come today has a recipe. Tomorrow's shows up here once today's meals are over.",
+    "noRecipeTomorrow": "No recipe for tomorrow",
+    "noRecipeTomorrowHint": "Nothing planned for tomorrow has a recipe yet."
   },
   "chore-chart": {
     "rewardHistory": "Reward History",

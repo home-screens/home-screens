@@ -4198,6 +4198,8 @@
       "viewToday": "Heute",
       "viewMenuBoard": "Menütafel",
       "viewNextMeal": "Nächste Mahlzeit",
+      "viewRecipe": "Rezept",
+      "viewGrocery": "Einkaufsliste",
       "densityCozy": "Locker",
       "densitySnug": "Kompakt",
       "typographySize": "Textgröße",
@@ -4214,8 +4216,12 @@
       "tapRecipeAction": "Rezept per Tippen öffnen",
       "tapRecipeActionOff": "Aus",
       "tapRecipeActionQr": "QR-Code anzeigen",
+      "tapRecipeActionCard": "Rezeptkarte anzeigen",
       "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
       "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
+      "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display, mit einem QR-Code, um das Rezept am Handy zu öffnen. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind.",
+      "interactive": "Antippen an der Wand",
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken und ein Rezept Schritt für Schritt durchgehen. Schalte das bei einem Display ohne Touchscreen aus.",
       "mobileHintTail": "damit alle Mahlzeiten-Module gleich bleiben."
     },
     "fullscreen-photo": {
@@ -4429,6 +4435,7 @@
       "viewNextMeal": "Nächste Mahlzeit (Hero)",
       "viewCompact": "Kompakt (heute + morgen)",
       "viewList": "Vollständige Wochenliste",
+      "viewGrocery": "Einkaufsliste",
       "showEmoji": "Bilder anzeigen",
       "showPrepTime": "Gesamtzeit anzeigen",
       "showTags": "Tags anzeigen",
@@ -4442,8 +4449,12 @@
       "tapRecipeAction": "Rezept per Tippen öffnen",
       "tapRecipeActionOff": "Aus",
       "tapRecipeActionQr": "QR-Code anzeigen",
+      "tapRecipeActionCard": "Rezeptkarte anzeigen",
       "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
-      "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“."
+      "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
+      "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display, mit einem QR-Code, um das Rezept am Handy zu öffnen. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind.",
+      "interactive": "Antippen an der Wand",
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken. Schalte das bei einem Display ohne Touchscreen aus."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",

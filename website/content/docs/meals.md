@@ -46,6 +46,8 @@ A meal saved as a side, dessert or drink (its **Kind of dish**) says so in the l
 
 You cannot type straight into the list. To add something, add it as an ingredient to a meal in the library.
 
+Put the list on the wall with the **Grocery List** view of either Meal Planner module. On a touchscreen anyone can tick things off right there, and the ticks are the same ones the phone shows.
+
 ## Settings
 
 The gear on the Meals tab, and the **Meals** page in the editor's Settings, edit the same things: which slots you use (breakfast, lunch, dinner, snack), which day your week starts on, the default time for each slot, and whether times show as 12-hour or 24-hour (or follow the household setting under Location & language). They are shared, so a change on the phone changes every meal planner on every display.
@@ -70,6 +72,7 @@ From then on:
 - Each recipe shows its whole time from Mealie, prep plus cooking.
 - Changes made in Mealie reach the wall within about two minutes.
 - The **Grocery** tab on the phone and in the editor's meal planner shows your Mealie shopping list, sorted by the labels you set up in Mealie. Check things off as you shop and they are checked off in Mealie too; changes made in the Mealie app show up within about half a minute. Things checked off before you opened the tab fold away at the bottom, and anything put back on the list comes back up to its aisle.
+- The **Grocery List** view on the wall shows that same Mealie list, and ticks made on a touchscreen go to Mealie too.
 - Type something in the box at the top of the Grocery tab ("milk") and it goes on the list in Mealie, with **Undo** for a few seconds in case it went on the wrong list. Something already on the list isn't added twice, and something checked off is put back instead.
 - If you keep more than one list in Mealie, pick the one you shop from at the top of the Grocery tab. It is one choice for the whole family: the phone, the editor and voice ("what's on the grocery list?") all use that list, and the tab says so with an **Undo**. Until anyone picks, it is the list you made first.
 
@@ -79,7 +82,9 @@ Mealie 2.0 or newer is needed. Only want the meals on your calendar? Mealie 3.29
 
 ## Recipes on the wall
 
-A meal with a recipe link does more on a touchscreen: tap it and the wall shows a QR code that opens the recipe on your phone, or opens the page right there on the display.
+The **Recipe** view of the Full-Screen Meal Planner shows the next meal's recipe big enough to cook from: the ingredients and the numbered steps, from Mealie or from the ingredients and notes saved with a meal. A long recipe turns its pages by itself; on a touchscreen, **Next step** moves through the steps and keeps the screen from moving on while you cook.
+
+On a touchscreen, tapping a meal can do more too (*Tap Meal to Open Recipe* in the module's settings): **Show recipe card** opens the same recipe on a card over the wall, with a QR code to take it along on your phone. **Show QR code** shows just the code, and **Open recipe on display** opens a meal's recipe link right there.
 
 ## Next steps
 

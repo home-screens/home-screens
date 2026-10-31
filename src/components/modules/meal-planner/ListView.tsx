@@ -134,7 +134,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
                       </span>
 
                       {/* Meal info */}
-                      <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <MealTapTarget meal={meal} mode={recipeTapMode} serving={{ date, slot }} className="flex items-center gap-1.5 min-w-0 flex-1">
                         {showEmoji && mealHasPicture(meal) && (
                           <span className="shrink-0" style={{ fontSize: '0.8em', display: meal?.photoUrl ? 'flex' : undefined }}>
                             <MealPicture meal={meal} photoSize="1.4em" pictureSize={GRID_PICTURE_SIZE} />

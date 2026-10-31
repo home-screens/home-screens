@@ -251,6 +251,7 @@ export default function WeekView({
                       <MealTapTarget
                         meal={meal}
                         mode={recipeTapMode}
+                        serving={{ date, slot }}
                         style={{
                           display: 'flex', flexDirection: landscape ? 'row' : 'column', alignItems: 'center',
                           gap: landscape ? P(14) : P(8), maxWidth: '100%', minWidth: 0,

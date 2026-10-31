@@ -4198,6 +4198,8 @@
       "viewToday": "I dag",
       "viewMenuBoard": "Menutavle",
       "viewNextMeal": "Næste måltid",
+      "viewRecipe": "Opskrift",
+      "viewGrocery": "Indkøbsliste",
       "densityCozy": "Luftig",
       "densitySnug": "Kompakt",
       "typographySize": "Tekststørrelse",
@@ -4214,8 +4216,12 @@
       "tapRecipeAction": "Tryk på et måltid for opskriften",
       "tapRecipeActionOff": "Fra",
       "tapRecipeActionQr": "Vis QR-kode",
-      "tapRecipeActionIframe": "Åbn opskriften på skærmen",
+      "tapRecipeActionCard": "Vis opskriftskort",
+      "tapRecipeActionIframe": "Åbn opskriften på displayet",
       "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen.",
+      "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet, med en kode til at åbne opskriften på en telefon. Virker også for måltider, der er gemt med ingredienser eller noter.",
+      "interactive": "Tryk på displayet",
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten og gå trin for trin gennem en opskrift. Slå det fra, hvis displayet ikke er en touchskærm.",
       "mobileHintTail": "så alle måltidsmoduler holdes ens."
     },
     "fullscreen-photo": {
@@ -4429,6 +4435,7 @@
       "viewNextMeal": "Næste måltid (stort)",
       "viewCompact": "Kompakt (i dag + i morgen)",
       "viewList": "Hele ugen som liste",
+      "viewGrocery": "Indkøbsliste",
       "showEmoji": "Vis billeder",
       "showPrepTime": "Vis samlet tid",
       "showTags": "Vis tags",
@@ -4442,8 +4449,12 @@
       "tapRecipeAction": "Tryk på et måltid for opskriften",
       "tapRecipeActionOff": "Fra",
       "tapRecipeActionQr": "Vis QR-kode",
-      "tapRecipeActionIframe": "Åbn opskriften på skærmen",
-      "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen."
+      "tapRecipeActionCard": "Vis opskriftskort",
+      "tapRecipeActionIframe": "Åbn opskriften på displayet",
+      "tapRecipeActionIframeHint": "Nogle opskriftssider kan ikke åbnes i Home Screens og forbliver tomme. Tryk i så fald på »Vis QR-kode« i opskriftsvisningen.",
+      "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet, med en kode til at åbne opskriften på en telefon. Virker også for måltider, der er gemt med ingredienser eller noter.",
+      "interactive": "Tryk på displayet",
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten. Slå det fra, hvis displayet ikke er en touchskærm."
     },
     "moon-phase": {
       "showIllumination": "Vis oplyst i %",

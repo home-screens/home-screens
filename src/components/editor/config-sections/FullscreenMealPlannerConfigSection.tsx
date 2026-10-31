@@ -38,6 +38,8 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     { value: 'today', label: t('configSections.fullscreen-meal-planner.viewToday') },
     { value: 'menu-board', label: t('configSections.fullscreen-meal-planner.viewMenuBoard') },
     { value: 'next-meal', label: t('configSections.fullscreen-meal-planner.viewNextMeal') },
+    { value: 'recipe', label: t('configSections.fullscreen-meal-planner.viewRecipe') },
+    { value: 'grocery', label: t('configSections.fullscreen-meal-planner.viewGrocery') },
   ] as const;
 
   const DENSITY_OPTIONS = [
@@ -104,13 +106,33 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         options={[
           { value: 'off', label: t('configSections.fullscreen-meal-planner.tapRecipeActionOff') },
           { value: 'qr', label: t('configSections.fullscreen-meal-planner.tapRecipeActionQr') },
+          { value: 'card', label: t('configSections.fullscreen-meal-planner.tapRecipeActionCard') },
           { value: 'iframe', label: t('configSections.fullscreen-meal-planner.tapRecipeActionIframe') },
         ]}
       />
+      {c.tapRecipeAction === 'card' && (
+        <p className="text-[11px] text-hs-text-faint leading-relaxed">
+          {t('configSections.fullscreen-meal-planner.tapRecipeActionCardHint')}
+        </p>
+      )}
       {c.tapRecipeAction === 'iframe' && (
         <p className="text-[11px] text-hs-text-faint leading-relaxed">
           {t('configSections.fullscreen-meal-planner.tapRecipeActionIframeHint')}
         </p>
+      )}
+
+      {/* Ticking the grocery list and stepping through a recipe on the wall */}
+      {(view === 'recipe' || view === 'grocery') && (
+        <>
+          <Toggle
+            label={t('configSections.fullscreen-meal-planner.interactive')}
+            checked={c.interactive !== false}
+            onChange={(v) => set({ interactive: v })}
+          />
+          <p className="text-[11px] text-hs-text-faint leading-relaxed">
+            {t('configSections.fullscreen-meal-planner.interactiveHint')}
+          </p>
+        </>
       )}
 
       {/* Accent Color */}

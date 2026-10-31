@@ -537,6 +537,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Dessert" is the French word for a meal's dessert course and kind of dish.
     'modules|meal-planner.courses.dessert',
     'core|meal.kind.dessert',
+    // "Notes" is the French word too (the wall recipe's Notes card, as on the phone's meal form).
+    'modules|meal-planner.recipe.notes',
     // "Bonus", "tickets" and "Simple" are the same words in this language.
     'remote|rewardsView.tickets.bonusLine',
     'remote|rewardsView.adjust.ticketsLabel',

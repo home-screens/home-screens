@@ -4198,6 +4198,8 @@
       "viewToday": "Vandaag",
       "viewMenuBoard": "Menubord",
       "viewNextMeal": "Volgende maaltijd",
+      "viewRecipe": "Recept",
+      "viewGrocery": "Boodschappenlijst",
       "densityCozy": "Ruim",
       "densitySnug": "Krap",
       "typographySize": "Tekstgrootte",
@@ -4214,8 +4216,12 @@
       "tapRecipeAction": "Tik op een maaltijd voor het recept",
       "tapRecipeActionOff": "Uit",
       "tapRecipeActionQr": "QR-code tonen",
-      "tapRecipeActionIframe": "Recept op het scherm openen",
+      "tapRecipeActionCard": "Receptkaart tonen",
+      "tapRecipeActionIframe": "Recept op het display openen",
       "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
+      "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display, met een code om het recept op een telefoon te openen. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen.",
+      "interactive": "Tikken op het display",
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken en stap voor stap door een recept gaan. Zet dit uit op een display zonder touchscreen.",
       "mobileHintTail": "zodat alle maaltijdmodules gelijk blijven."
     },
     "fullscreen-photo": {
@@ -4429,6 +4435,7 @@
       "viewNextMeal": "Volgende maaltijd (hero)",
       "viewCompact": "Compact (vandaag + morgen)",
       "viewList": "Volledige weeklijst",
+      "viewGrocery": "Boodschappenlijst",
       "showEmoji": "Afbeeldingen tonen",
       "showPrepTime": "Totale tijd tonen",
       "showTags": "Tags tonen",
@@ -4442,8 +4449,12 @@
       "tapRecipeAction": "Tik op een maaltijd voor het recept",
       "tapRecipeActionOff": "Uit",
       "tapRecipeActionQr": "QR-code tonen",
-      "tapRecipeActionIframe": "Recept op het scherm openen",
-      "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave."
+      "tapRecipeActionCard": "Receptkaart tonen",
+      "tapRecipeActionIframe": "Recept op het display openen",
+      "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
+      "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display, met een code om het recept op een telefoon te openen. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen.",
+      "interactive": "Tikken op het display",
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken. Zet dit uit op een display zonder touchscreen."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",

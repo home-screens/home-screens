@@ -414,7 +414,41 @@
     "mealieNotConnected": "Mealie ist nicht verbunden",
     "mealieNotConnectedHint": "Verbinde es in den Einstellungen am Computer, dann erscheint der Essensplan.",
     "mealieTokenRefused": "Mealie lässt Home Screens nicht mehr rein",
-    "mealieTokenRefusedHint": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheint der Essensplan."
+    "mealieTokenRefusedHint": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheint der Essensplan.",
+    "recipe": {
+      "prep": "Vorbereitung",
+      "cook": "Kochzeit",
+      "serves": "Portionen",
+      "ingredients": "Zutaten",
+      "steps": "Schritte",
+      "notes": "Notizen",
+      "stepOf": "Schritt {step} von {total}",
+      "stepsRange": "{from} bis {to} von {total}",
+      "back": "Zurück",
+      "nextStep": "Nächster Schritt",
+      "loading": "Rezept wird geladen",
+      "failed": "Das Rezept lässt sich gerade nicht laden",
+      "stepAria": "Schritt {step}",
+      "openCourseAria": "Rezept für {name} öffnen",
+      "scanForPhone": "Scannen, um das Rezept am Handy zu öffnen",
+      "closesItself": "Schließt sich nach 10 Minuten von selbst"
+    },
+    "grocery": {
+      "thisWeek": "Einkaufsliste für diese Woche",
+      "toGet": "{count} zu holen",
+      "got": "{count} abgehakt",
+      "page": "{page} von {pages}",
+      "tickAria": "{item} abhaken",
+      "noMealieList": "In Mealie gibt es noch keine Einkaufsliste",
+      "noMealieListHint": "Leg in Mealie eine an, dann erscheint sie hier.",
+      "mealieDone": "{list}: alles abgehakt",
+      "mealieEmpty": "{list} ist noch leer",
+      "mealieEmptyHint": "Füg am Handy oder in Mealie etwas hinzu.",
+      "localDone": "Nichts mehr zu kaufen",
+      "localDoneHint": "Auf der Liste dieser Woche ist alles abgehakt.",
+      "localEmpty": "Noch nichts zu kaufen",
+      "localEmptyHint": "Plane Mahlzeiten mit Zutaten, dann füllt sich die Liste hier."
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Mahlzeiten diese Woche",
@@ -436,7 +470,11 @@
       "now": "Jetzt",
       "comingUp": "Als Nächstes",
       "tomorrow": "Morgen"
-    }
+    },
+    "noRecipeToday": "Kein Rezept für heute",
+    "noRecipeTodayHint": "Heute ist nichts mehr mit Rezept geplant. Das Rezept für morgen erscheint hier, sobald die Mahlzeiten von heute vorbei sind.",
+    "noRecipeTomorrow": "Kein Rezept für morgen",
+    "noRecipeTomorrowHint": "Für morgen ist noch nichts mit Rezept geplant."
   },
   "chore-chart": {
     "rewardHistory": "Belohnungsverlauf",

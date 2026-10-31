@@ -414,7 +414,41 @@
     "mealieNotConnected": "Mealie is niet gekoppeld",
     "mealieNotConnectedHint": "Koppel het in Instellingen op de computer om de maaltijdplanning te zien.",
     "mealieTokenRefused": "Mealie laat Home Screens niet meer binnen",
-    "mealieTokenRefusedHint": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de maaltijdplanning te zien."
+    "mealieTokenRefusedHint": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de maaltijdplanning te zien.",
+    "recipe": {
+      "prep": "Voorbereiding",
+      "cook": "Bereiding",
+      "serves": "Porties",
+      "ingredients": "Ingrediënten",
+      "steps": "Stappen",
+      "notes": "Notities",
+      "stepOf": "Stap {step} van {total}",
+      "stepsRange": "{from} t/m {to} van {total}",
+      "back": "Terug",
+      "nextStep": "Volgende stap",
+      "loading": "Het recept wordt opgehaald",
+      "failed": "Kan het recept nu niet ophalen",
+      "stepAria": "Stap {step}",
+      "openCourseAria": "Recept voor {name} openen",
+      "scanForPhone": "Scan om het recept op je telefoon te openen",
+      "closesItself": "Sluit vanzelf na 10 minuten"
+    },
+    "grocery": {
+      "thisWeek": "Boodschappen van deze week",
+      "toGet": "{count} te halen",
+      "got": "{count} gehaald",
+      "page": "{page} van {pages}",
+      "tickAria": "{item} afvinken",
+      "noMealieList": "Nog geen boodschappenlijst in Mealie",
+      "noMealieListHint": "Maak er een in Mealie, dan verschijnt die hier.",
+      "mealieDone": "Alles op {list} is afgevinkt",
+      "mealieEmpty": "Nog niets op {list}",
+      "mealieEmptyHint": "Voeg iets toe op de telefoon of in Mealie.",
+      "localDone": "Niets meer te halen",
+      "localDoneHint": "Alles op de lijst van deze week is afgevinkt.",
+      "localEmpty": "Nog niets te halen",
+      "localEmptyHint": "Plan maaltijden met ingrediënten om hier de boodschappen te zien."
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Maaltijden deze week",
@@ -436,7 +470,11 @@
       "now": "Nu",
       "comingUp": "Hierna",
       "tomorrow": "Morgen"
-    }
+    },
+    "noRecipeToday": "Geen recept voor vandaag",
+    "noRecipeTodayHint": "Wat vandaag nog op het menu staat, heeft geen recept. Het recept van morgen verschijnt hier zodra de maaltijden van vandaag voorbij zijn.",
+    "noRecipeTomorrow": "Geen recept voor morgen",
+    "noRecipeTomorrowHint": "Wat voor morgen gepland is, heeft nog geen recept."
   },
   "chore-chart": {
     "rewardHistory": "Beloningsgeschiedenis",

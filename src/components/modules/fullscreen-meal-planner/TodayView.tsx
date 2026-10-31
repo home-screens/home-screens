@@ -109,6 +109,7 @@ export default function TodayView({
               <MealTapTarget
                 meal={heroMeal}
                 mode={recipeTapMode}
+                serving={{ date: day, slot: heroSlot }}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center',
                   gap: P(22), maxWidth: '100%',
@@ -226,6 +227,7 @@ export default function TodayView({
                     <MealTapTarget
                       meal={meal}
                       mode={recipeTapMode}
+                      serving={{ date: day, slot: sl }}
                       style={{ display: 'flex', alignItems: 'center', gap: P(24), flex: 1, minWidth: 0, padding: `${P(18)}px 0` }}
                     >
                       {showEmoji && mealHasPicture(meal) && (

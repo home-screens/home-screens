@@ -11,10 +11,17 @@ import { useTranslate } from '@/i18n';
  * same rule the phone and the editor follow (`mealShownMinutes`).
  */
 export function useMealMinutes(): (meal: SavedMeal | null | undefined, short?: boolean) => string | null {
-  const t = useTranslate('modules');
+  const minutesText = useMinutesText();
   return useCallback((meal, short = false) => {
     const total = mealShownMinutes(meal);
-    if (!total) return null;
+    return total ? minutesText(total, short) : null;
+  }, [minutesText]);
+}
+
+/** A number of minutes as the wall writes a time ("1 hr 30 min", or "1h 30m" with `short`). */
+export function useMinutesText(): (total: number, short?: boolean) => string {
+  const t = useTranslate('modules');
+  return useCallback((total, short = false) => {
     const { hours, minutes } = splitMinutes(total);
     const end = short ? 'Short' : '';
     if (hours === 0) return t(`meal-planner.time.minutes${end}`, { minutes });

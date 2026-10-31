@@ -89,6 +89,10 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 - **today**: Focused view of today's meals with large cards and details. Once the day's last meal is over it shows tomorrow's.
 - **menu-board**: Restaurant-style board layout for displaying the week's menu.
 - **next-meal**: Large display of the next upcoming meal with context label.
+- **recipe**: The next meal's recipe, big enough to read across the kitchen: its photo or emoji, prep and cook time, how many it serves, the other dishes of that meal, the ingredients and numbered steps (a Home Screens meal shows its notes instead of steps). It shows the next meal that has a recipe, skipping meals typed straight into the plan like "Eating out", and moves to tomorrow once today's meals are over. A long recipe splits into pages that turn every 30 seconds; later pages drop the ingredients so the steps get the whole screen. With `interactive` on, **Back** and **Next step** move through the steps (the screen stays put while someone is cooking along), tapping a step jumps to it, and tapping a side or dessert opens its own recipe. In landscape the ingredients sit on the left and the steps on the right.
+- **grocery**: The grocery list the family uses, in two columns (three in landscape): the Mealie shopping list while the meal plan lives in [Mealie](/docs/meals#mealie), otherwise this week's list built from the planned meals, the same one the phone shows. Only what is still to get is drawn; the header counts what is left and what is ticked. With `interactive` on, tap an item to tick it off: it is crossed out where it is for a moment, so a wrong tap can be undone, then leaves the list.
+
+**Tapping a meal:** `tapRecipeAction` works as on the [Meal Planner](#meal-planner), with the recipe card drawn in this module's theme.
 {% /module %}
 
 {% module type="fullscreen-weather" %}
@@ -396,7 +400,7 @@ A meal planning module for organizing daily meals across configurable slots (bre
 
 {% fields /%}
 
-**Recipe links:** Meals saved with a recipe link (added from `/remote` > Meals) can open that recipe right on the display. With `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding, the QR option always works). In the editor preview, tapping opens the recipe in a new browser tab instead.
+**Tapping a meal:** With `card`, tapping a meal shows its recipe on a card over the wall: the ingredients, the numbered steps with **Back** and **Next step**, the meal's other dishes (tap one to see its recipe), and a QR code to open the recipe on your phone. It works for every Mealie recipe and for any meal saved with ingredients or notes, even without a recipe link, and closes after ten minutes with nobody touching it. The card uses the display's full-screen theme (Settings > Screen). Meals saved with a recipe link (added from `/remote` > Meals) can also open that link: with `qr`, tapping the meal shows a fullscreen QR code you scan with your phone; with `iframe`, the recipe page opens in an overlay on the display itself (some recipe sites block embedding, and a Mealie page asks the display to sign in, so the QR option or the card work better). In the editor preview, tapping opens the recipe link in a new browser tab instead.
 
 Enabled slots, week start day, default slot times, and 12/24h formatting are **household-level settings** edited once under `/remote` > Meals > Settings, every meal-planner module across every display picks them up from `data/meals.json` automatically. The time format defaults to the household **Time format** setting (Settings → Defaults → Location & language); pick an explicit 12- or 24-hour option in meal settings only if meals should differ from it. Meal data (saved meals and weekly plan) lives in the same file and is shared across the standard widget, fullscreen display, editor, and remote via `/api/meals/data`. The plan uses ISO date strings (e.g. `"2026-04-04"`) to support multi-week planning with week navigation. Old day-of-week configs are auto-migrated. Entries older than 12 weeks are pruned automatically.
 
@@ -407,6 +411,7 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 - **next-meal**: Large display of the next upcoming meal with context label (Now/Coming Up/Tomorrow).
 - **compact**: Two-column layout showing Today and Tomorrow side-by-side.
 - **list**: Full week listed vertically with day headers, showing only days with meals.
+- **grocery**: The grocery list the family uses: the Mealie shopping list while the meal plan lives in [Mealie](/docs/meals#mealie), otherwise this week's list built from the planned meals. Only what is still to get is shown, grouped like the phone shows it, with pages that turn every 15 seconds when the list is long. With `interactive` on, tap an item to tick it off; the pages hold still for a minute after a tick.
 {% /module %}
 
 {% module type="chore-chart" %}

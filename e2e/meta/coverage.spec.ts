@@ -506,6 +506,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'fullscreen-chore-chart.density': 'style-only',
   'fullscreen-chore-chart.typographySize': 'style-only',
   'fullscreen-meal-planner.density': 'style-only',
+  'fullscreen-meal-planner.interactive': 'covered-elsewhere', // meal-recipe-grocery.spec.ts (Next step and grocery ticks)
   'fullscreen-meal-planner.tapRecipeAction': 'covered-elsewhere',
   'fullscreen-meal-planner.typographySize': 'style-only',
   'fullscreen-photo.directory': 'fetch-only',
@@ -523,6 +524,7 @@ const FIELD_DECISIONS: Record<string, FieldDecision> = {
   'history.sourceMuffinLabs': 'fetch-only',
   'history.sourceWikipedia': 'fetch-only',
   'iframe.refreshIntervalMs': 'timing-only',
+  'meal-planner.interactive': 'covered-elsewhere', // meal-recipe-grocery.spec.ts (boxes on, and no boxes when off)
   'meal-planner.tapRecipeAction': 'covered-elsewhere',
   // Needs a story to appear on a SECOND refresh after the first load; the stub answers the same body every time.
   'news.showNewMarker': 'not-observable',
