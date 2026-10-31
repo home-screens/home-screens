@@ -1017,7 +1017,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show prep time in minutes",
+          "description": "Show how long each meal takes to make, prep and cooking together",
           "default": true
         },
         {
@@ -5358,7 +5358,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show prep time in minutes",
+          "description": "Show how long each meal takes to make, prep and cooking together",
           "default": true
         },
         {

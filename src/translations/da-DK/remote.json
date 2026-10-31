@@ -382,8 +382,7 @@
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} t",
-      "hoursMinutes": "{hours} t {minutes} min",
-      "prep": "{time} forberedelse"
+      "hoursMinutes": "{hours} t {minutes} min"
     },
     "notice": {
       "copied": "Sidste uges måltider er kopieret.",

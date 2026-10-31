@@ -76,21 +76,14 @@ describe('formatShownMinutes', () => {
     'mealsTab.duration.minutes': '{minutes}m',
     'mealsTab.duration.hours': '{hours}h',
     'mealsTab.duration.hoursMinutes': '{hours}h {minutes}m',
-    'mealsTab.duration.prep': '{time} prep',
   };
   const t = (key: string, vars: Record<string, string | number> = {}) =>
     words[key].replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name]));
 
   it('prints minutes, whole hours and hours with minutes', () => {
-    expect(formatShownMinutes({ minutes: 45, kind: 'total' }, t)).toBe('45m');
-    expect(formatShownMinutes({ minutes: 60, kind: 'total' }, t)).toBe('1h');
-    expect(formatShownMinutes({ minutes: 140, kind: 'total' }, t)).toBe('2h 20m');
-  });
-
-  it('says prep for the family own meals only where asked', () => {
-    expect(formatShownMinutes({ minutes: 15, kind: 'prep' }, t, true)).toBe('15m prep');
-    expect(formatShownMinutes({ minutes: 15, kind: 'prep' }, t)).toBe('15m');
-    expect(formatShownMinutes({ minutes: 140, kind: 'total' }, t, true)).toBe('2h 20m');
+    expect(formatShownMinutes(45, t)).toBe('45m');
+    expect(formatShownMinutes(60, t)).toBe('1h');
+    expect(formatShownMinutes(140, t)).toBe('2h 20m');
   });
 });
 

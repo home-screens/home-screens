@@ -1671,12 +1671,12 @@ test('meal-planner: switching the View persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'meal-planner')).view).toBe('today');
 });
 
-test('meal-planner: toggling Show Prep Time off persists', async ({ page, request }) => {
+test('meal-planner: toggling Show Cooking Time off persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('meal-planner'));
 
   // showPrepTime defaults on (?? true) → one click flips it off.
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Prep Time' }).click();
+    await page.getByRole('switch', { name: 'Show Cooking Time' }).click();
   });
 
   expect((await moduleConfig(request, 'meal-planner')).showPrepTime).toBe(false);

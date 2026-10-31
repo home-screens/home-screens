@@ -16,22 +16,21 @@ describe('isMealieMeal', () => {
 });
 
 describe('mealShownMinutes', () => {
-  it('shows a Mealie recipe its whole time, prep plus cook', () => {
-    expect(mealShownMinutes(meal(RECIPE, { prepTime: 20, cookTime: 120 }))).toEqual({ minutes: 140, kind: 'total' });
+  it('shows the whole time, prep plus cook, for every meal', () => {
+    expect(mealShownMinutes(meal(RECIPE, { prepTime: 20, cookTime: 120 }))).toBe(140);
+    expect(mealShownMinutes(meal('gulasch', { prepTime: 20, cookTime: 90 }))).toBe(110);
   });
 
-  it('shows a Mealie recipe with only one of the two times that one', () => {
-    // A recipe saved with only a total arrives with it as its prep time.
-    expect(mealShownMinutes(meal(RECIPE, { prepTime: 45 }))).toEqual({ minutes: 45, kind: 'total' });
-    expect(mealShownMinutes(meal(RECIPE, { cookTime: 30 }))).toEqual({ minutes: 30, kind: 'total' });
-  });
-
-  it('keeps prep time for the family own meals, cook time left out', () => {
-    expect(mealShownMinutes(meal('tacos', { prepTime: 15, cookTime: 30 }))).toEqual({ minutes: 15, kind: 'prep' });
+  it('shows the one time a meal has when only one is set', () => {
+    // A Mealie recipe saved with only a total arrives with it as its prep time.
+    expect(mealShownMinutes(meal(RECIPE, { prepTime: 45 }))).toBe(45);
+    expect(mealShownMinutes(meal(RECIPE, { cookTime: 30 }))).toBe(30);
+    expect(mealShownMinutes(meal('salad', { prepTime: 10 }))).toBe(10);
+    expect(mealShownMinutes(meal('pizza', { cookTime: 15 }))).toBe(15);
   });
 
   it('shows nothing when there is no time, or no meal', () => {
-    expect(mealShownMinutes(meal('tacos', { cookTime: 30 }))).toBeNull();
+    expect(mealShownMinutes(meal('tacos'))).toBeNull();
     expect(mealShownMinutes(meal(RECIPE))).toBeNull();
     expect(mealShownMinutes(meal(RECIPE, { prepTime: 0, cookTime: 0 }))).toBeNull();
     expect(mealShownMinutes(null)).toBeNull();

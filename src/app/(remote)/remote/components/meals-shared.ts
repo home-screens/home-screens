@@ -1,6 +1,6 @@
 import type { MealCourseKind, MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
 import { toISODate, fromISODate, alignToWeekStart, type ResolvedPlanEntry } from '@/lib/meal-constants';
-import { splitMinutes, type ShownMinutes } from '@/lib/meal-dish-rules';
+import { splitMinutes } from '@/lib/meal-dish-rules';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
 /**
@@ -155,22 +155,17 @@ export interface MealSlotRef {
 }
 
 /**
- * A cooking time as the phone prints it ("45m", "1h", "2h 20m"), with the
- * words from the `remote` dictionary. A meal of the family's own says "prep"
- * where the sentence has room for it (`withPrep`).
+ * A cooking time (`mealShownMinutes`) as the phone prints it ("45m", "1h",
+ * "2h 20m"), with the words from the `remote` dictionary.
  */
 export function formatShownMinutes(
-  shown: ShownMinutes,
+  total: number,
   t: (key: string, vars?: Record<string, string | number>) => string,
-  withPrep = false,
 ): string {
-  const { hours, minutes } = splitMinutes(shown.minutes);
-  const time = hours === 0
-    ? t('mealsTab.duration.minutes', { minutes })
-    : minutes === 0
-      ? t('mealsTab.duration.hours', { hours })
-      : t('mealsTab.duration.hoursMinutes', { hours, minutes });
-  return withPrep && shown.kind === 'prep' ? t('mealsTab.duration.prep', { time }) : time;
+  const { hours, minutes } = splitMinutes(total);
+  if (hours === 0) return t('mealsTab.duration.minutes', { minutes });
+  if (minutes === 0) return t('mealsTab.duration.hours', { hours });
+  return t('mealsTab.duration.hoursMinutes', { hours, minutes });
 }
 
 /** Open a page of Mealie's in a new tab, leaving the phone on the Meals tab. */

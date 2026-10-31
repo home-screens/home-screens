@@ -382,8 +382,7 @@
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} u",
-      "hoursMinutes": "{hours} u {minutes} min",
-      "prep": "{time} voorbereiding"
+      "hoursMinutes": "{hours} u {minutes} min"
     },
     "notice": {
       "copied": "Maaltijden van vorige week gekopieerd.",

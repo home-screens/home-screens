@@ -226,8 +226,8 @@ export function mealieRecipeToMeal(recipe: MealieRecipeSummary, ctx: MealieConte
   const cook = minutes(recipe.performTimeSeconds, recipe.performTime ?? recipe.cookTime);
   if (prep) meal.prepTime = prep;
   if (cook) meal.cookTime = cook;
-  // A recipe with only a total time shows it where the views show prep time,
-  // which is the one time they draw.
+  // A recipe with only a total time keeps it as its prep time, so the views,
+  // which show prep plus cook, still show it.
   if (!prep && !cook) {
     const total = minutes(recipe.totalTimeSeconds, recipe.totalTime);
     if (total) meal.prepTime = total;

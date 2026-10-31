@@ -382,8 +382,7 @@
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
-      "hoursMinutes": "{hours} h {minutes}",
-      "prep": "{time} de préparation"
+      "hoursMinutes": "{hours} h {minutes}"
     },
     "notice": {
       "copied": "Repas de la semaine dernière copiés.",

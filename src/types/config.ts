@@ -3845,7 +3845,11 @@ export interface MealPlannerConfig {
   view: MealPlannerView;
   /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
-  /** Show prep time in minutes */
+  /**
+   * Show how long each meal takes to make, prep and cooking together
+   *
+   * The key keeps its name from when it showed prep time only.
+   */
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;
@@ -4545,7 +4549,11 @@ export interface FullscreenMealPlannerConfig {
    * it
    */
   accentColor: string;
-  /** Show prep time in minutes */
+  /**
+   * Show how long each meal takes to make, prep and cooking together
+   *
+   * The key keeps its name from when it showed prep time only.
+   */
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;

@@ -193,8 +193,8 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await expect(mod.locator('.fmp-root')).toHaveAttribute('style', /--fmp-accent:\s*#ff0000/i); },
   },
   {
-    // showPrepTime gates the "25 min" line under today's dinner card.
-    type: 'fullscreen-meal-planner', name: 'hide-prep-time', kind: 'local-data', seed: 'meals',
+    // showPrepTime gates the "25 min" cooking time under today's dinner card.
+    type: 'fullscreen-meal-planner', name: 'hide-cooking-time', kind: 'local-data', seed: 'meals',
     config: { view: 'week', showPrepTime: false },
     expect: async (mod) => { await has('Spaghetti Night')(mod); await expect(mod).not.toContainText('25 min'); },
   },

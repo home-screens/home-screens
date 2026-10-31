@@ -51,6 +51,38 @@ test('the week from Mealie shows its courses, and a typed dessert lands in Meali
     .toContain('Ice cream sundae');
 });
 
+test.describe('on a touch phone', () => {
+  test.use({ hasTouch: true, isMobile: true });
+
+  for (const delay of [0, 300]) {
+    test(`a double tap on a dish's remove button takes off only that dish (Mealie answers in ${delay} ms)`, async ({ page, request }) => {
+      mealie = await startFakeMealie();
+      await connectFakeMealie(request, mealie);
+      // A real Mealie takes a moment to answer, and the list moves only then.
+      await page.route('**/api/mealie/plan**', async (route) => {
+        if (route.request().method() !== 'GET') await new Promise((done) => setTimeout(done, delay));
+        await route.continue();
+      });
+      await page.goto('/remote');
+      await page.getByRole('button', { name: 'Meals', exact: true }).tap();
+      await page.getByRole('button', { name: 'Plan', exact: true }).tap();
+      await page.getByRole('button', { name: /Change Harvest Chili/ }).first().tap();
+
+      // The middle dish, as a child would: the one under it slides up into the finger's way.
+      const box = (await page.getByRole('button', { name: 'Remove Apple Crumble' }).boundingBox())!;
+      const spot = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      await page.touchscreen.tap(spot.x, spot.y);
+      await page.waitForTimeout(170);
+      await page.touchscreen.tap(spot.x, spot.y);
+
+      const today = () => mealie!.entries.filter((e) => e.date === fakeMealieDay(0)).map((e) => e.entryType).sort();
+      await expect.poll(today).toEqual(['breakfast', 'dinner', 'drink', 'lunch', 'side']);
+      await page.waitForTimeout(1500);
+      expect(today()).toEqual(['breakfast', 'dinner', 'drink', 'lunch', 'side']);
+    });
+  }
+});
+
 test('Suggest asks first, fills only the empty dinners in Mealie, and Undo takes them back', async ({ page, request }) => {
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);

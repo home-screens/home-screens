@@ -47,10 +47,10 @@ export default function MealsLibraryView({
   // lazy-fetch the 113KB editor.json just to render three words. Core
   // is already loaded by the remote layout.
   const tCore = useTranslate('core');
-  // A meal's cooking time as the phone writes it everywhere else ("2h 20m prep").
+  // A meal's cooking time as the phone writes it everywhere else ("2h 20m").
   const cookingTime = (meal: SavedMeal) => {
     const shown = mealShownMinutes(meal);
-    return shown ? <span>{formatShownMinutes(shown, t, true)}</span> : null;
+    return shown ? <span>{formatShownMinutes(shown, t)}</span> : null;
   };
   return (
     <div style={{ paddingBottom: 80 }}>

@@ -839,7 +839,7 @@ export const CORE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('Spaghetti Night')(mod); await expect(mod).not.toContainText('🍝'); },
   },
   {
-    type: 'meal-planner', name: 'hide-prep-time', kind: 'local-data', seed: 'meals',
+    type: 'meal-planner', name: 'hide-cooking-time', kind: 'local-data', seed: 'meals',
     config: { view: 'today', showPrepTime: false },
     expect: async (mod) => { await has('Spaghetti Night')(mod); await expect(mod).not.toContainText('25 min'); },
   },

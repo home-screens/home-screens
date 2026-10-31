@@ -16,6 +16,7 @@ import {
 } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useTranslate } from '@/i18n';
 import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
 import { useMealieCourseCategory } from '@/components/meals/useMealieCourseCategory';
@@ -66,6 +67,9 @@ export default function MealPickerSheet(props: MealPickerSheetProps) {
   const t = useTranslate('remote');
   const title = useTitle(target);
   const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
+  // The tap that picks a dish closes the picker: a second tap of a double
+  // tap must not land on the meal sheet under it ("Change the drink").
+  useSheetTapGuard();
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 110, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>

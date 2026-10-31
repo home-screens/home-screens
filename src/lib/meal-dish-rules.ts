@@ -4,7 +4,7 @@ import { formatTagLabel, normalizeTag, type LibraryFilter } from './meal-constan
 
 /**
  * Small rules about how a dish is offered and described wherever the family
- * plans meals: which cooking time a row shows, how typed words narrow the
+ * plans meals: the cooking time a row shows, how typed words narrow the
  * family's own meals, and which of them a course picker lists first. The
  * phone and the editor draw these their own way; what they show must agree.
  */
@@ -14,28 +14,17 @@ export function isMealieMeal(meal: Pick<SavedMeal, 'id'> | null | undefined): bo
   return !!meal && parseMealieMealId(meal.id) !== null;
 }
 
-/** The one cooking time a row shows for a dish, in minutes, and which time it is. */
-export interface ShownMinutes {
-  minutes: number;
-  /** `total` for a Mealie recipe (prep plus cook), `prep` for a meal of the family's own. */
-  kind: 'total' | 'prep';
-}
-
 /**
- * Which cooking time to show beside a dish.
- *
- * Mealie recipes show the whole time, prep plus cook: Mealie families fill in
- * total time more often than prep, and a recipe saved with only a total
- * already arrives with it as its prep time. The family's own meals keep
- * showing prep time, as they always have. Nothing to show gives null.
+ * The cooking time to show beside a dish, in minutes: the whole time, prep
+ * plus cook, or whichever of the two is set. Prep alone sent whoever cooks a
+ * stew to start it an hour late. Mealie recipes and the family's own meals
+ * follow the same rule (a Mealie recipe saved with only a total arrives with
+ * it as its prep time). Nothing to show gives null.
  */
-export function mealShownMinutes(meal: SavedMeal | null | undefined): ShownMinutes | null {
+export function mealShownMinutes(meal: SavedMeal | null | undefined): number | null {
   if (!meal) return null;
-  if (isMealieMeal(meal)) {
-    const total = (meal.prepTime ?? 0) + (meal.cookTime ?? 0);
-    return total > 0 ? { minutes: total, kind: 'total' } : null;
-  }
-  return meal.prepTime && meal.prepTime > 0 ? { minutes: meal.prepTime, kind: 'prep' } : null;
+  const total = (meal.prepTime ?? 0) + (meal.cookTime ?? 0);
+  return total > 0 ? total : null;
 }
 
 /** Whole hours and the minutes left over, for "2h 20m". */

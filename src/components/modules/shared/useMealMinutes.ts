@@ -7,14 +7,13 @@ import { useTranslate } from '@/i18n';
 
 /**
  * A dish's time as the wall writes it ("2 hr 20 min", or "2h 20m" with
- * `short`), or null when it has none. Mealie recipes show their whole time
- * and the family's own meals their prep time, the same rule the phone and the
- * editor follow (`mealShownMinutes`).
+ * `short`), or null when it has none: its whole time, prep plus cook, the
+ * same rule the phone and the editor follow (`mealShownMinutes`).
  */
 export function useMealMinutes(): (meal: SavedMeal | null | undefined, short?: boolean) => string | null {
   const t = useTranslate('modules');
   return useCallback((meal, short = false) => {
-    const total = mealShownMinutes(meal)?.minutes;
+    const total = mealShownMinutes(meal);
     if (!total) return null;
     const { hours, minutes } = splitMinutes(total);
     const end = short ? 'Short' : '';

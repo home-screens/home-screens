@@ -20,7 +20,7 @@ The planner is empty until you add meals, which you do on a phone or in the edit
 
 ## 2. Build a meal library
 
-Open the family remote (Settings > On your phone shows the address), tap **Meals**, then **Library**. Add the meals your family actually eats: a name and an emoji are enough. Prep and cook time, difficulty, servings, a recipe link, notes, a star rating, a favorite heart and tags (quick, healthy, vegetarian and more) are all optional, and ingredients are what feed the grocery list later.
+Open the family remote (Settings > On your phone shows the address), tap **Meals**, then **Library**. Add the meals your family actually eats: a name and an emoji are enough. Prep and cook time, difficulty, servings, a recipe link, notes, a star rating, a favorite heart and tags (quick, healthy, vegetarian and more) are all optional, and ingredients are what feed the grocery list later. A meal shows its prep and cook time added together, so whoever cooks knows when to start.
 
 ## 3. Plan the week
 
@@ -67,7 +67,7 @@ From then on:
 - Sides, desserts and drinks in Mealie show up as part of that day's dinner.
 - **Suggest** fills the week's empty dinners with your Mealie recipes and never replaces a planned meal. A night covered by a meal plan rule in Mealie ("Friday is pizza night") follows the rule; otherwise Home Screens picks from your Dinner or Main category if you have one, or else from anything that isn't in a dessert, drink, side, breakfast or starter category. **Undo** right after takes those picks back out of Mealie.
 - A serving time set for one meal, and the order of a meal's dishes, are kept by Home Screens, because Mealie has no place for them. Mealie will not show them.
-- Each recipe shows its whole time in Mealie (prep plus cooking); the family's own meals show their prep time.
+- Each recipe shows its whole time from Mealie, prep plus cooking.
 - Changes made in Mealie reach the wall within about two minutes.
 - The grocery list stays in Mealie. The phone's **Grocery** tab has a button that opens it.
 

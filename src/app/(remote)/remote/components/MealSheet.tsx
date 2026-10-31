@@ -14,6 +14,8 @@ import {
 import { getMealCourseLabelKey } from '@/lib/meal-courses';
 import { mealShownMinutes, mealTagLabel } from '@/lib/meal-dish-rules';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
+import { guardAfterRowRemoved } from '@/lib/sheet-tap-guard';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
@@ -139,6 +141,9 @@ export default function MealSheet({
   const locale = useFormattingLocale();
   const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
   const bodyRef = useRef<HTMLDivElement>(null);
+  // A double tap on a choice that closes the sheet (Clear, a dish taken off)
+  // never reaches the plan under it.
+  useSheetTapGuard();
 
   // The meal went (cleared here, or on another phone): nothing left to show.
   const gone = !planned;
@@ -158,7 +163,7 @@ export default function MealSheet({
   const mainName = main?.name ?? planned.customText?.trim() ?? null;
   const mainShown = mealShownMinutes(main);
   const mainTag = main?.tags?.[0];
-  const mainMeta = [mainShown ? formatShownMinutes(mainShown, t, true) : null, main && mainTag ? mealTagLabel(main, mainTag) : null].filter(Boolean).join(' · ');
+  const mainMeta = [mainShown ? formatShownMinutes(mainShown, t) : null, main && mainTag ? mealTagLabel(main, mainTag) : null].filter(Boolean).join(' · ');
   const courses = (planned.courses ?? []).map((course, index) => {
     const meal = course.mealId ? byId.get(course.mealId) ?? null : null;
     return { course, index, meal, name: meal?.name ?? course.customText?.trim() ?? t('mealsPlan.slot.mealFallback') };
@@ -330,7 +335,7 @@ export default function MealSheet({
                     <MiniButton label={t('mealSheet.moveDown', { meal: name })} disabled={index === courses.length - 1} onClick={() => onMoveCourse(index, index + 1)}>
                       <ArrowDown size={16} strokeWidth={2} aria-hidden />
                     </MiniButton>
-                    <MiniButton label={t('mealSheet.remove', { meal: name })} onClick={() => onRemoveCourse(index)}>
+                    <MiniButton label={t('mealSheet.remove', { meal: name })} onClick={() => { guardAfterRowRemoved(); onRemoveCourse(index); }}>
                       <X size={16} strokeWidth={2} aria-hidden />
                     </MiniButton>
                   </div>

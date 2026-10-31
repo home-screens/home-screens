@@ -66,3 +66,13 @@ export function guardAfterSheetClose(): void {
   if (!press || Date.now() - press.at > CAUSED_MS) return;
   guard = { x: press.x, y: press.y, until: Date.now() + SHEET_TAP_GUARD_MS };
 }
+
+/**
+ * Call when a tap removed a row from a list: the rows under it move up, and
+ * the second tap of a double tap would land on the one that took its place
+ * (the dessert under a removed side). Ignored the same way as after a sheet
+ * closes.
+ */
+export function guardAfterRowRemoved(): void {
+  guardAfterSheetClose();
+}
