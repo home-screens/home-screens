@@ -1,5 +1,5 @@
 import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
-import { DEFAULT_MEAL_SETTINGS } from './meal-constants';
+import { DEFAULT_MEAL_SETTINGS, SLOT_ORDER } from './meal-constants';
 
 /**
  * The rules for editing the shared meal settings, as pure transforms.
@@ -20,6 +20,10 @@ import { DEFAULT_MEAL_SETTINGS } from './meal-constants';
 /**
  * Turn a meal slot on or off.
  *
+ * A slot turned back on takes its place in the day (`SLOT_ORDER`), not the
+ * end of the list: the phone's settings draw the list as it stands before
+ * saving, and Snack came back after Dinner.
+ *
  * Returns the settings unchanged when the toggle would leave no slots at all -
  * a week with nothing to fill is not a state either surface offers a way out
  * of. Callers detect the refusal by identity (`next === settings`) and skip
@@ -29,7 +33,7 @@ export function toggleMealSlot(settings: MealSettings, slot: MealSlotType): Meal
   const enabled = settings.enabledSlots.includes(slot);
   const enabledSlots = enabled
     ? settings.enabledSlots.filter((s) => s !== slot)
-    : [...settings.enabledSlots, slot];
+    : SLOT_ORDER.filter((s) => s === slot || settings.enabledSlots.includes(s));
   if (enabledSlots.length === 0) return settings;
   return { ...settings, enabledSlots };
 }

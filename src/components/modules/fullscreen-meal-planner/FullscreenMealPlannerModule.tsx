@@ -15,7 +15,7 @@ import MealPhotoBackdrop from './MealPhotoBackdrop';
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
 import type { GroceryChecked } from '@/lib/grocery-checks';
-import { getActiveSlot, DEFAULT_MEAL_SETTINGS, DEFAULT_ACCENT_COLOR, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat, resolveMealWithEntry, getNextPlannedMeal } from '@/lib/meal-constants';
+import { DEFAULT_MEAL_SETTINGS, DEFAULT_ACCENT_COLOR, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead, minutesOfDay } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import WeekView from './WeekView';
@@ -92,9 +92,9 @@ export default function FullscreenMealPlannerModule({
   // ── Current time (display timezone, not browser-local) ──
   const now = useTZClock(timezone, 60_000);
 
-  const currentHour = now.getHours();
+  const nowMinutes = minutesOfDay(now);
   const slots = settings.enabledSlots;
-  const activeSlot = getActiveSlot(currentHour, slots);
+  const defaultTimes = settings.defaultSlotTimes;
   const view = config.view ?? 'week';
 
   const todayISO = toISODate(now);
@@ -106,6 +106,8 @@ export default function FullscreenMealPlannerModule({
     () => filterPlanToWeek(fullPlan, weekStart, weekEnd),
     [fullPlan, weekStart, weekEnd],
   );
+  // Today's meal being served now, by its serving time (`currentMealSlot`).
+  const activeSlot = currentMealSlot(todayISO, nowMinutes, slots, plan, savedMeals, defaultTimes);
 
   // The today, menu-board and next-meal views are authored to fill a 1080
   // canvas at `medium` (see `px` in meal-planner-utils). A larger
@@ -127,10 +129,10 @@ export default function FullscreenMealPlannerModule({
     // not actually consider empty.
     // A meal's courses are lines of their own in the views that list them,
     // so a dessert added to tonight has to be able to shrink the view.
-    const tally = (name: string | null, meal: SavedMeal | null, courses: ResolvedCourse[] = [], notes: string | null = null) => {
+    const tally = (name: string | null, meal: SavedMeal | null, courses: ResolvedCourse[] = [], notes: readonly string[] = []) => {
       if (!name) return;
       count += 1 + courses.length;
-      length += name.length + (notes?.length ?? 0) + (meal?.tags?.join('').length ?? 0)
+      length += name.length + notes.join('').length + (meal?.tags?.join('').length ?? 0)
         + courses.reduce((n, c) => n + c.name.length, 0);
     };
     if (view === 'week') {
@@ -139,8 +141,15 @@ export default function FullscreenMealPlannerModule({
         tally(name, meal, courses, notes);
       }
     } else if (view === 'next-meal') {
-      const next = getNextPlannedMeal(todayISO, currentHour, fullPlan, savedMeals, slots);
+      const next = getNextPlannedMeal(todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes);
       tally(next?.name ?? null, next?.meal ?? null, next?.courses, next?.notes);
+    } else if (view === 'today') {
+      // Late in the evening Today shows tomorrow (`mealDayLead`).
+      const day = mealDayLead(todayISO, nowMinutes, slots, fullPlan, savedMeals, defaultTimes)?.date ?? todayISO;
+      for (const slot of slots) {
+        const { meal, name, courses, notes } = resolveMealWithEntry(day, slot, fullPlan, savedMeals);
+        tally(name, meal, courses, notes);
+      }
     } else {
       for (const slot of slots) {
         const { meal, name, courses, notes } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
@@ -148,14 +157,14 @@ export default function FullscreenMealPlannerModule({
       }
     }
     return { mealCount: count, textLength: length };
-  }, [view, todayISO, currentHour, fullPlan, plan, savedMeals, slots]);
+  }, [view, todayISO, nowMinutes, fullPlan, plan, savedMeals, slots, defaultTimes]);
 
   // Next Meal over the dish's photo: the backdrop and the light text only
   // once the photo is in, never light text on the theme's own background.
   const showEmoji = config.showEmoji ?? true;
   const nextMeal = useMemo(
-    () => (view === 'next-meal' && showEmoji ? getNextPlannedMeal(todayISO, currentHour, fullPlan, savedMeals, slots)?.meal ?? null : null),
-    [view, showEmoji, todayISO, currentHour, fullPlan, savedMeals, slots],
+    () => (view === 'next-meal' && showEmoji ? getNextPlannedMeal(todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes)?.meal ?? null : null),
+    [view, showEmoji, todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes],
   );
   const backdrop = useAuthImageState(mealPhotoSrc(nextMeal, 'full'));
   const backdropUrl = backdrop.status === 'ready' ? backdrop.url : undefined;
@@ -277,7 +286,9 @@ export default function FullscreenMealPlannerModule({
           }}
         >
           {view === 'week' && <WeekView {...viewProps} />}
-          {view === 'today' && <TodayView {...viewProps} />}
+          {/* The whole plan: late in the evening Today shows tomorrow, which
+              can be in next week. */}
+          {view === 'today' && <TodayView {...viewProps} plan={fullPlan} />}
           {view === 'menu-board' && <MenuBoardView {...viewProps} />}
           {view === 'next-meal' && <NextMealView {...viewProps} plan={fullPlan} />}
         </div>

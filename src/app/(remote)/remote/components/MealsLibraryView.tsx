@@ -2,8 +2,9 @@
 
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
-import { INPUT_STYLE, CARD_STYLE } from './meals-shared';
+import { INPUT_STYLE, CARD_STYLE, formatShownMinutes } from './meals-shared';
 import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel, type LibraryFilter } from '@/lib/meal-constants';
+import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
 import Glyph from '@/components/ui/Glyph';
@@ -46,6 +47,11 @@ export default function MealsLibraryView({
   // lazy-fetch the 113KB editor.json just to render three words. Core
   // is already loaded by the remote layout.
   const tCore = useTranslate('core');
+  // A meal's cooking time as the phone writes it everywhere else ("2h 20m prep").
+  const cookingTime = (meal: SavedMeal) => {
+    const shown = mealShownMinutes(meal);
+    return shown ? <span>{formatShownMinutes(shown, t, true)}</span> : null;
+  };
   return (
     <div style={{ paddingBottom: 80 }}>
       <input
@@ -132,7 +138,7 @@ export default function MealsLibraryView({
                 {meal.category && meal.category !== 'main' && (
                   <span style={{ fontWeight: 600, color: 'var(--hs-text-muted)' }}>{tCore(`meal.kind.${meal.category}`)}</span>
                 )}
-                {meal.prepTime && <span>{t('mealsTab.library.prepTimeMin', { minutes: meal.prepTime })}</span>}
+                {cookingTime(meal)}
                 {meal.difficulty && <span>{tCore(`meal.difficulty.${meal.difficulty}`)}</span>}
               </div>
               {meal.tags && meal.tags.length > 0 && (

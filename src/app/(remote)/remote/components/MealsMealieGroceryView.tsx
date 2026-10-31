@@ -3,6 +3,7 @@
 import { ExternalLink, ShoppingCart } from 'lucide-react';
 import { mealieShoppingListsUrl } from '@/lib/meal-sources';
 import { useTranslate } from '@/i18n';
+import { useMealieLink } from '@/components/meals/useMealieLink';
 import { CenterMessage } from './MealieRecipeParts';
 import { openOutside } from './meals-shared';
 
@@ -13,6 +14,7 @@ import { openOutside } from './meals-shared';
  */
 export default function MealsMealieGroceryView({ baseUrl }: { baseUrl: string | undefined }) {
   const t = useTranslate('remote');
+  const mealieLink = useMealieLink();
   return (
     <div data-testid="mealie-grocery" style={{ paddingBottom: 80 }}>
       <CenterMessage
@@ -25,7 +27,7 @@ export default function MealsMealieGroceryView({ baseUrl }: { baseUrl: string | 
           <button
             type="button"
             className="press-btn"
-            onClick={() => openOutside(mealieShoppingListsUrl(baseUrl))}
+            onClick={() => openOutside(mealieLink(mealieShoppingListsUrl(baseUrl)))}
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 24px',
               minHeight: 44, borderRadius: 10, border: 'none', background: '#f59e0b', color: '#000',

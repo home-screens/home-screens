@@ -1373,6 +1373,11 @@
         "testing": "Testing…",
         "testHelp": "Checks the address and the token together.",
         "notConnected": "Not connected",
+        "optional": "Optional, not set up",
+        "checking": "Checking…",
+        "tokenRefused": "Token not accepted",
+        "notAnswering": "Not answering",
+        "couldNotCheck": "Couldn't check",
         "removeConfirm": {
           "title": "Stop showing the meal plan?",
           "message": "Your meal plan comes from Mealie. Without its address and token, the wall and the phone can't show it until you add them again or set the meal plan back to Home Screens in Settings > Meals.",
@@ -1645,6 +1650,8 @@
         "mealieHousehold": "{household} household",
         "mealieConnected": "Connected",
         "mealieNotAnswering": "Not answering right now",
+        "mealieTokenRefused": "Token not accepted",
+        "tokenRefused": "Mealie doesn't accept the saved token any more, so the meal plan can't update. Make a new token in Mealie and paste it on the",
         "connectFirst": "Only if your family uses Mealie, a separate recipe app. To plan in it, connect it first on the",
         "apiKeysLink": "API keys page",
         "connectedOffer": "Mealie is connected. Choose it to plan with the recipes and plan you keep there.",
@@ -1682,7 +1689,9 @@
       },
       "reset": {
         "button": "Reset to defaults",
-        "help": "Restores breakfast/lunch/dinner, Sunday week start, 12-hour format, and clears all default times."
+        "help": "Turns on breakfast, lunch and dinner and turns off snack, starts the week on Sunday, follows the global time format and clears the default serving times. Planned meals are not changed.",
+        "confirmTitle": "Reset meal settings?",
+        "confirmButton": "Reset"
       },
       "description": "Which meals your household plans, and when they usually happen."
     },
@@ -2882,22 +2891,37 @@
     "toast": {
       "changesSaved": "Changes saved",
       "mealDeleted": "\"{name}\" deleted",
-      "mealRemoved": "Meal removed",
+      "mealDeletedPlanned": "\"{name}\" deleted and taken off the plan for {days}",
+      "moreDays": {
+        "one": "{count} more day",
+        "other": "{count} more days"
+      },
+      "mealRemoved": "Took {name} off",
+      "mealRemovedWithCourses": {
+        "one": "Took {name} off, and the dish with it",
+        "other": "Took {name} off, and the {count} dishes with it"
+      },
+      "mealChanged": "Changed to {name}",
       "randomSuggested": "Random meals suggested!",
       "lastWeekCopied": "Last week copied!",
+      "lastWeekCopiedDates": "Copied the meals from {from}",
       "weekCleared": "Week cleared",
       "undoButton": "Undo",
       "courseRemoved": "Removed from this meal",
       "saveFailed": "That change didn't save. Try again.",
       "mealieSaveFailed": "Mealie didn't take that change. Check that it's running, then try again.",
       "mealieAllPlanned": "Every dinner this week is already planned.",
+      "mealieAllPlannedDates": "Every dinner for {range} is already planned.",
       "mealieNoDinners": "Suggest fills empty dinners, and dinner is turned off in the meal settings.",
       "mealieSuggested": {
         "one": "Planned a dinner for {days}.",
         "other": "Planned dinners for {days}."
       },
       "mealieSuggestedEveryNight": "Planned a dinner for every night this week.",
-      "mealieNothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie."
+      "mealieSuggestedEveryNightDates": "Planned a dinner for every night of {range}.",
+      "mealieNothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie.",
+      "mealieTokenSaveFailed": "Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in Settings > API keys.",
+      "mealieNotConnectedSaveFailed": "Mealie isn't connected, so that change wasn't saved. Add its address and token in Settings > API keys."
     },
     "library": {
       "searchPlaceholder": "Search meals...",
@@ -2940,7 +2964,16 @@
     "grocery": {
       "itemsCount": "{checked} of {total} items",
       "fromThisWeek": "From this week",
-      "emptyMessage": "Plan meals with ingredients to see your shopping list"
+      "fromDates": "From {range}",
+      "emptyMessage": "Plan meals with ingredients to see your shopping list",
+      "withoutIngredients": {
+        "one": "{count} planned meal has no ingredients yet: {names}",
+        "other": "{count} planned meals have no ingredients yet: {names}"
+      },
+      "moreMeals": {
+        "one": "{count} more",
+        "other": "{count} more"
+      }
     },
     "weekGrid": {
       "todayLabel": "Today",
@@ -2949,20 +2982,20 @@
       "suggestBusy": "Picking dinners…",
       "copyLastWeekButton": "Copy Last Week",
       "clearButton": "Clear",
-      "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Previous week",
       "nextWeekAriaLabel": "Next week",
       "coursesCount": {
         "one": "{count} more with this meal",
         "other": "{count} more with this meal"
       },
-      "removeMealAriaLabel": "Remove {name}"
+      "removeMealAriaLabel": "Remove {name}",
+      "mealCellAriaLabel": "{name}, {slot}, {day}",
+      "planCellAriaLabel": "Plan {slot} for {day}"
     },
     "picker": {
       "title": "Choose a Meal",
       "searchPlaceholder": "Search meals...",
       "noMealsFound": "No meals found",
-      "prepTimeShort": "{minutes}m",
       "titleAdd": {
         "side": "Add a side",
         "dessert": "Add a dessert",
@@ -3018,6 +3051,8 @@
       "lastUpdated": "Last updated {time}",
       "subtitle": "{planned} planned this week",
       "subtitleHousehold": "{household} household · {planned} planned this week",
+      "subtitleDates": "{planned} planned for {range}",
+      "subtitleHouseholdDates": "{household} household · {planned} planned for {range}",
       "openMealie": "Open Mealie",
       "tryAgain": "Try again",
       "unreachableTitle": "Can't reach Mealie right now",
@@ -3028,8 +3063,8 @@
       "tokenRefusedBody": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it in Settings > API keys.",
       "paused": "Planning is paused until Mealie is back.",
       "pausedSince": "Planning is paused until Mealie is back. This is the plan from {time}.",
-      "weekLoading": "Getting this week from Mealie…",
-      "weekFailed": "We couldn't get this week from Mealie.",
+      "weekLoading": "Getting {range} from Mealie…",
+      "weekFailed": "We couldn't get {range} from Mealie.",
       "libraryNote": "Recipes live in Mealie. Click one to see it here.",
       "detailEmpty": "Click a meal on the week, or a recipe in the Library, to see it here.",
       "serves": {
@@ -3039,7 +3074,10 @@
       "readOnlyNote": "This recipe lives in Mealie. Change it there and it updates here within a couple of minutes.",
       "groceryTitle": "Your shopping list lives in Mealie",
       "groceryBody": "While your meal plan is in Mealie, so is your list. Open Mealie to see what you need and tick things off.",
-      "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them."
+      "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them.",
+      "tokenFix": "Make a new token in Mealie and paste it in Settings > API keys.",
+      "tokenPaused": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused.",
+      "tokenPausedSince": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused. This is the plan from {time}."
     },
     "popover": {
       "savesToMealie": "Saves to Mealie",

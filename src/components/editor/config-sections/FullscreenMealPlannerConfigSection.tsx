@@ -11,6 +11,7 @@ import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useMealPlannerData } from '@/hooks/useMealPlannerData';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
+import { mealSaveFailedKey } from '@/components/editor/meal-planner-modal/save-failed-words';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
@@ -142,8 +143,10 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         >
           {t('configSections.fullscreen-meal-planner.editMealPlanner')}
         </Button>
+        {/* The meal change, not the layout: meals save on their own, so the
+            editor's Saved can be right while this is not. */}
         {saveError && (
-          <p role="alert" className="text-xs text-hs-danger">{t('common.saveError')}</p>
+          <p role="alert" className="text-xs text-hs-danger">{t(mealSaveFailedKey(saveError, mealData.source === 'mealie'))}</p>
         )}
       </div>
 

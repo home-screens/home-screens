@@ -7,6 +7,7 @@ import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
+import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import MealThumb from './MealThumb';
 import { RetryButton } from './MealsMealieStatus';
@@ -29,6 +30,7 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
   const typed = query.trim();
   const search = useMealieRecipeSearch(editorFetch, { search: query, filter, category: typed ? undefined : category, enabled: true });
   const count = useMealieRecipeCount(true);
+  const mealieLink = useMealieLink();
 
   // The household's categories for the chips; without them the Library still
   // works from Favorites, Recently made and All.
@@ -85,7 +87,7 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
           key={meal.id}
           type="button"
           data-testid="mealie-library-card"
-          onClick={() => openOutside(meal.recipeUrl)}
+          onClick={() => openOutside(meal.recipeUrl && mealieLink(meal.recipeUrl))}
           aria-label={t('mealie.library.openRecipeAriaLabel', { meal: meal.name })}
           style={{
             ...CARD_STYLE,
@@ -136,7 +138,7 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
         {baseUrl && (
           <button
             type="button"
-            onClick={() => openOutside(baseUrl)}
+            onClick={() => openOutside(mealieLink(baseUrl))}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap', minHeight: 32, padding: 0,
               border: 'none', background: 'transparent', color: 'var(--hs-accent-hover, var(--hs-accent))',

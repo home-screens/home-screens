@@ -8,6 +8,7 @@ import { MealClientError, MealSession, type MealEdit, type MealSnapshot, type Me
 import type { MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { mealieSaveFailedWords } from '../components/MealsMealieStatus';
 
 export function useMealsData() {
   const t = useTranslate('remote');
@@ -114,14 +115,21 @@ export function useMealsData() {
       return true;
     } catch (err) {
       if (isSessionExpired(err)) return false;
-      setSaveError(err instanceof MealClientError ? 'Failed to save. Please try again.' : 'Network error. Please try again.');
+      if (err instanceof MealClientError) {
+        // Why Mealie refused, when it was Mealie: a refused token is not
+        // fixed by trying again.
+        const words = mealieSaveFailedWords(err.problem);
+        setSaveError(words ? t(words) : t('mealsTab.saveFailed'));
+      } else {
+        setSaveError('Network error. Please try again.');
+      }
       if (session.current && session.idle) adoptData(session.current);
       // A save Mealie refused is often Mealie going away: ask again, so the
       // tab shows that and pauses planning instead of failing the next tap.
       if (session.current?.source === 'mealie') void fetchData();
       return false;
     }
-  }, [session, adoptData, fetchData]);
+  }, [session, adoptData, fetchData, t]);
 
   /**
    * Mealie's own picks for the empty meals among `cells` (Suggest, in Mealie
@@ -135,7 +143,10 @@ export function useMealsData() {
       return { created, skipped, entries };
     } catch (err) {
       if (isSessionExpired(err)) return null;
-      setSaveError(t('mealie.suggest.failed'));
+      // A refused token or a missing connection says so; Mealie having
+      // trouble keeps the "try again in a moment" line.
+      const problem = err instanceof MealClientError ? err.problem : undefined;
+      setSaveError(t((problem !== 'unreachable' && mealieSaveFailedWords(problem)) || 'mealie.suggest.failed'));
       void fetchData();
       return null;
     }

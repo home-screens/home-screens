@@ -23,7 +23,15 @@ describe('toggleMealSlot', () => {
   it('turns a slot off and back on', () => {
     const off = toggleMealSlot(settings(), 'lunch');
     expect(off.enabledSlots).toEqual(['breakfast', 'dinner']);
-    expect(toggleMealSlot(off, 'lunch').enabledSlots).toEqual(['breakfast', 'dinner', 'lunch']);
+    expect(toggleMealSlot(off, 'lunch').enabledSlots).toEqual(['breakfast', 'lunch', 'dinner']);
+  });
+
+  /* The phone draws the unsaved list as it stands: an appended slot put
+   * Snack after Dinner until Save. */
+  it('puts a slot turned back on in its place in the day', () => {
+    const on = toggleMealSlot(settings({ enabledSlots: ['breakfast', 'lunch', 'dinner'] }), 'snack');
+    expect(on.enabledSlots).toEqual(['breakfast', 'lunch', 'snack', 'dinner']);
+    expect(toggleMealSlot(settings({ enabledSlots: ['dinner'] }), 'breakfast').enabledSlots).toEqual(['breakfast', 'dinner']);
   });
 
   /* Both surfaces carried this rule separately. A week with nothing to fill is

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, type KeyboardEvent, type ReactNode } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex, resolveMealWithEntry, formatShortDayMonth, formatMealTime } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -55,6 +55,17 @@ interface WeekGridProps {
   replacement?: ReactNode;
 }
 
+/**
+ * Enter or Space on a focused cell opens it, as a click does. Only on the
+ * cell itself: the serving-time chip and the remove button inside a planned
+ * cell answer their own keys.
+ */
+function isOpenKey(e: KeyboardEvent<HTMLElement>): boolean {
+  if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return false;
+  e.preventDefault();
+  return true;
+}
+
 export default function WeekGrid({
   plan,
   savedMeals,
@@ -88,6 +99,7 @@ export default function WeekGrid({
   const tModules = useTranslate('modules');
   const locale = useFormattingLocale();
   const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
+  const dayNamesFull = useMemo(() => getLocalizedDayNames(locale, 'full'), [locale]);
   // Sort slots into chronological order regardless of config toggle order
   const orderedSlots = SLOT_ORDER.filter((s) => slots.includes(s));
 
@@ -191,6 +203,7 @@ export default function WeekGrid({
             const isToday = isCurrentWeek && date === todayISO;
             const dayIdx = dateToDayIndex(date);
             const shortDate = formatShortDayMonth(date, locale);
+            const dayLabel = `${dayNamesFull[dayIdx]} ${shortDate}`;
 
             return orderedSlots.map((slot, slotIdx) => {
               const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
@@ -198,6 +211,15 @@ export default function WeekGrid({
                 ? activeCell.date === date && activeCell.slot === slot
                 : !!meal && selectedMealId === meal.id;
               const time = dishTime(meal);
+              const slotLabel = tModules(getMealSlotLabelKey(slot));
+              // A click, or Enter or Space on the focused cell: the meal's
+              // popover (its details while planning is paused), or the picker
+              // for an empty one.
+              const openCell = (cell: HTMLElement) => {
+                if (!name) onEmptyCellClick(date, slot);
+                else if (editable) onOpenMeal(date, slot, cell.getBoundingClientRect());
+                else if (meal) onSelectMeal(meal.id);
+              };
 
               return (
                 <div key={`${date}-${slot}`} style={{ display: 'contents' }}>
@@ -250,13 +272,16 @@ export default function WeekGrid({
                       backgroundColor: isToday ? 'rgba(245,158,11,0.02)' : undefined,
                     }}
                   >
+                    {/* Planned or empty, the cell is one div, so it keeps the
+                        keyboard's place when a meal is picked or cleared. */}
                     {name ? (
                       <div
-                        onClick={(e) => {
-                          if (editable) onOpenMeal(date, slot, e.currentTarget.getBoundingClientRect());
-                          else if (meal) onSelectMeal(meal.id);
-                        }}
-                        className={`relative flex flex-col gap-1 px-2.5 py-2 rounded-lg border cursor-pointer transition-all group ${
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t('mealPlannerModal.weekGrid.mealCellAriaLabel', { name, slot: slotLabel, day: dayLabel })}
+                        onClick={(e) => openCell(e.currentTarget)}
+                        onKeyDown={(e) => { if (isOpenKey(e)) openCell(e.currentTarget); }}
+                        className={`relative h-full flex flex-col gap-1 px-2.5 py-2 rounded-lg border cursor-pointer transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 ${
                           isSelected
                             ? 'border-amber-500/45 bg-amber-500/6'
                             : 'bg-hs-card/60 border-hs-border-strong/50 hover:bg-hs-card hover:border-hs-border-strong'
@@ -265,12 +290,14 @@ export default function WeekGrid({
                         <div className="flex items-center gap-2 min-w-0">
                           <DishPicture meal={meal} size={32} />
                           <div className="flex-1 min-w-0">
-                            {/* pr-3 keeps the count clear of the hover × in the corner. */}
-                            <div className={`flex items-center gap-1.5 min-w-0 ${editable ? 'pr-3' : ''}`}>
-                              <span className="text-xs font-semibold text-hs-text-body truncate">{name}</span>
+                            {/* A name takes two lines before it is cut: the columns
+                                share the window evenly, and one line was too narrow
+                                for names like "Scrambled Eggs and Toast". */}
+                            <div className="flex items-start gap-1.5 min-w-0">
+                              <span className="text-xs font-semibold text-hs-text-body line-clamp-2 break-words">{name}</span>
                               {courses.length > 0 && (
                                 <span
-                                  className="shrink-0 px-1.5 rounded-full bg-white/8 text-[10px] font-bold leading-[15px] text-hs-text-muted tabular-nums"
+                                  className="shrink-0 mt-px px-1.5 rounded-full bg-white/8 text-[10px] font-bold leading-[15px] text-hs-text-muted tabular-nums"
                                   title={t('mealPlannerModal.weekGrid.coursesCount', { count: courses.length })}
                                 >
                                   +{courses.length}
@@ -296,6 +323,8 @@ export default function WeekGrid({
                             {formatMealTime(planned.time, timeFormat)}
                           </span>
                         ) : null}
+                        {/* Sits on the card's corner, outside the text, so the
+                            name needs no room kept for it. */}
                         {editable && (
                           <button
                             type="button"
@@ -304,18 +333,24 @@ export default function WeekGrid({
                               onRemoveMeal(date, slot);
                             }}
                             aria-label={t('mealPlannerModal.weekGrid.removeMealAriaLabel', { name })}
-                            className="absolute top-1 right-1 w-5 h-5 rounded bg-transparent text-hs-text-faint opacity-0 group-hover:opacity-100 hover:text-hs-danger hover:bg-hs-danger/10 transition flex items-center justify-center text-xs"
+                            className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full border border-hs-border-strong bg-hs-panel text-hs-text-faint opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-hs-danger hover:border-hs-danger/50 transition flex items-center justify-center text-[11px] leading-none"
                           >
                             &times;
                           </button>
                         )}
                       </div>
                     ) : editable ? (
+                      // A quiet + says the meal can be planned before the
+                      // pointer finds it.
                       <div
-                        onClick={() => onEmptyCellClick(date, slot)}
-                        className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-hs-border-strong cursor-pointer transition group"
+                        role="button"
+                        tabIndex={0}
+                        aria-label={t('mealPlannerModal.weekGrid.planCellAriaLabel', { slot: slotLabel, day: dayLabel })}
+                        onClick={(e) => openCell(e.currentTarget)}
+                        onKeyDown={(e) => { if (isOpenKey(e)) openCell(e.currentTarget); }}
+                        className="flex items-center justify-center h-full min-h-[48px] rounded-lg border border-dashed border-transparent hover:border-hs-border-strong focus-visible:border-hs-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 cursor-pointer transition group"
                       >
-                        <span className="text-sm text-transparent group-hover:text-hs-text-faint">
+                        <span aria-hidden className="text-sm text-hs-text-faint/60 group-hover:text-hs-text-faint group-focus-visible:text-hs-text-faint">
                           +
                         </span>
                       </div>

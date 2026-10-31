@@ -2,7 +2,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useOrigin, isLoopbackHost, __resetOriginForTests } from '../useOrigin';
+import { useOrigin, __resetOriginForTests } from '../useOrigin';
+import { isLoopbackHost } from '@/lib/loopback-host';
 
 // jsdom's default location is http://localhost:3000/, the kiosk-on-the-hub case.
 function mockAddress(body: unknown, ok = true) {
@@ -13,7 +14,7 @@ function mockAddress(body: unknown, ok = true) {
 
 describe('isLoopbackHost', () => {
   it('recognises every spelling of "this machine" and nothing else', () => {
-    for (const h of ['localhost', 'LOCALHOST', 'hub.localhost', '127.0.0.1', '127.1.2.3', '[::1]', '0.0.0.0']) {
+    for (const h of ['localhost', 'LOCALHOST', 'hub.localhost', '127.0.0.1', '127.1.2.3', '[::1]', '::1', '0.0.0.0']) {
       expect(isLoopbackHost(h), h).toBe(true);
     }
     for (const h of ['192.168.1.20', 'homescreens.local', 'localhost.example.com', '10.0.0.1']) {

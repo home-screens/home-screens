@@ -4,7 +4,11 @@ import {
   getOrderedDays,
   resolveMealWithEntry,
   getNextPlannedMeal,
-  getActiveSlot,
+  currentMealSlot,
+  mealDayLead,
+  mealPhases,
+  mealServingTime,
+  servingOrder,
   formatTagLabel,
   capitalize,
   normalizeTag,
@@ -26,7 +30,7 @@ import {
   resolveMealTimeFormat,
   alignToWeekStart,
   SLOT_ORDER,
-  SLOT_WINDOWS,
+  SLOT_USUAL_TIMES,
   SLOT_META,
   getLocalizedDayNames,
   getLocalizedMonthNames,
@@ -320,58 +324,102 @@ describe('copyWeekEntries', () => {
   });
 });
 
-// ── getActiveSlot ──
+// ── Now and next, by serving time ──
 
-describe('getActiveSlot', () => {
-  const allSlots: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+describe('now and next by serving time', () => {
+  const DAY = '2026-10-31';
+  const TOMORROW = '2026-11-01';
+  const meals: SavedMeal[] = [
+    { id: 'lasagne', name: 'Lasagne' },
+    { id: 'oats', name: 'Oatmeal' },
+    { id: 'soup', name: 'Soup' },
+  ];
+  const slots: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+  const at = (h: number, m = 0) => h * 60 + m;
+  const plan: PlannedMeal[] = [
+    { date: DAY, slot: 'breakfast', mealId: 'oats' },
+    { date: DAY, slot: 'dinner', mealId: 'lasagne', time: '17:30' },
+    { date: TOMORROW, slot: 'breakfast', mealId: 'oats' },
+  ];
 
-  it('returns breakfast during morning hours', () => {
-    expect(getActiveSlot(5, allSlots)).toBe('breakfast');
-    expect(getActiveSlot(9, allSlots)).toBe('breakfast');
+  it('serves a meal at its own time, else the household time, else the usual one', () => {
+    expect(mealServingTime({ date: DAY, slot: 'dinner', time: '17:30' }, 'dinner', { dinner: '19:00' })).toBe('17:30');
+    expect(mealServingTime({ date: DAY, slot: 'dinner' }, 'dinner', { dinner: '19:00' })).toBe('19:00');
+    expect(mealServingTime(undefined, 'dinner', {})).toBe(SLOT_USUAL_TIMES.dinner);
   });
 
-  it('returns lunch during midday hours', () => {
-    expect(getActiveSlot(10, allSlots)).toBe('lunch');
-    expect(getActiveSlot(13, allSlots)).toBe('lunch');
+  it('is now from a quarter of an hour before to an hour and a half after', () => {
+    const served = [{ at: at(17, 30) }];
+    expect(mealPhases(served, at(17, 14))).toEqual(['later']);
+    expect(mealPhases(served, at(17, 15))).toEqual(['now']);
+    expect(mealPhases(served, at(18, 59))).toEqual(['now']);
+    expect(mealPhases(served, at(19))).toEqual(['over']);
   });
 
-  it('returns snack during afternoon hours', () => {
-    expect(getActiveSlot(14, allSlots)).toBe('snack');
-    expect(getActiveSlot(16, allSlots)).toBe('snack');
+  it('hands over to the next meal as soon as its window opens', () => {
+    const served = [{ at: at(12) }, { at: at(13) }];
+    expect(mealPhases(served, at(12, 44))).toEqual(['now', 'later']);
+    expect(mealPhases(served, at(12, 45))).toEqual(['over', 'now']);
   });
 
-  it('returns dinner during evening hours', () => {
-    expect(getActiveSlot(17, allSlots)).toBe('dinner');
-    expect(getActiveSlot(20, allSlots)).toBe('dinner');
+  it('marks a 5:30 dinner now at 5:20 and not at 5:10 or 8:30', () => {
+    expect(currentMealSlot(DAY, at(17, 10), slots, plan, meals, {})).toBeNull();
+    expect(currentMealSlot(DAY, at(17, 20), slots, plan, meals, {})).toBe('dinner');
+    expect(currentMealSlot(DAY, at(20, 30), slots, plan, meals, {})).toBeNull();
   });
 
-  it('returns null outside all slot windows', () => {
-    expect(getActiveSlot(0, allSlots)).toBeNull();
-    expect(getActiveSlot(4, allSlots)).toBeNull();
-    expect(getActiveSlot(21, allSlots)).toBeNull();
-    expect(getActiveSlot(23, allSlots)).toBeNull();
+  it('never makes an empty slot now', () => {
+    // Lunch time, with nothing planned for lunch.
+    expect(currentMealSlot(DAY, at(12), slots, plan, meals, {})).toBeNull();
   });
 
-  it('returns null when no slots are enabled', () => {
-    expect(getActiveSlot(12, [])).toBeNull();
+  it('orders a day by serving time, not by slot', () => {
+    const brunch: PlannedMeal[] = [
+      { date: DAY, slot: 'breakfast', mealId: 'oats', time: '11:30' },
+      { date: DAY, slot: 'lunch', mealId: 'soup', time: '11:00' },
+    ];
+    expect(servingOrder(DAY, slots, brunch, meals, {}).filter((s) => s.planned).map((s) => s.slot)).toEqual(['lunch', 'breakfast']);
+    expect(currentMealSlot(DAY, at(11, 20), slots, brunch, meals, {})).toBe('breakfast');
   });
 
-  it('skips disabled slots and returns null if no match', () => {
-    expect(getActiveSlot(12, ['breakfast'])).toBeNull();
+  it('leads with tomorrow\'s breakfast once dinner is over', () => {
+    expect(getNextPlannedMeal(DAY, at(17, 20), plan, meals, slots)).toMatchObject({ slot: 'dinner', context: 'now' });
+    expect(getNextPlannedMeal(DAY, at(16), plan, meals, slots)).toMatchObject({ slot: 'dinner', context: 'upcoming' });
+    expect(getNextPlannedMeal(DAY, at(19, 5), plan, meals, slots)).toMatchObject({ slot: 'breakfast', date: TOMORROW, context: 'tomorrow' });
   });
 
-  it('skips disabled slots and returns match when available', () => {
-    expect(getActiveSlot(12, ['lunch', 'dinner'])).toBe('lunch');
+  it('reads the household times for meals with none of their own', () => {
+    const untimed: PlannedMeal[] = [{ date: DAY, slot: 'dinner', mealId: 'lasagne' }];
+    expect(getNextPlannedMeal(DAY, at(19, 5), untimed, meals, slots)?.context).toBe('now');
+    expect(getNextPlannedMeal(DAY, at(19, 5), untimed, meals, slots, { dinner: '17:00' })).toBeNull();
   });
 
-  it('boundary: slot window start is inclusive', () => {
-    expect(getActiveSlot(10, allSlots)).toBe('lunch');
-    expect(getActiveSlot(17, allSlots)).toBe('dinner');
-  });
+  describe('mealDayLead', () => {
+    it('leads with the meal being served, then the next planned one', () => {
+      expect(mealDayLead(DAY, at(17, 20), slots, plan, meals, {})).toMatchObject({ date: DAY, slot: 'dinner', now: true });
+      // Lunch time with no lunch: the dinner to come leads, not the gap.
+      expect(mealDayLead(DAY, at(12), slots, plan, meals, {})).toMatchObject({ date: DAY, slot: 'dinner', now: false, over: ['breakfast'] });
+    });
 
-  it('boundary: slot window end is exclusive', () => {
-    expect(getActiveSlot(10, allSlots)).not.toBe('breakfast');
-    expect(getActiveSlot(14, allSlots)).not.toBe('lunch');
+    it('shows an unplanned slot still ahead once the planned meals are over', () => {
+      const breakfastOnly: PlannedMeal[] = [{ date: DAY, slot: 'breakfast', mealId: 'oats' }];
+      expect(mealDayLead(DAY, at(14), slots, breakfastOnly, meals, {})).toMatchObject({ date: DAY, slot: 'snack', now: false });
+      expect(mealDayLead(DAY, at(18), slots, breakfastOnly, meals, {})).toMatchObject({ date: DAY, slot: 'dinner', now: true });
+    });
+
+    it('moves on to tomorrow once all of today is over', () => {
+      expect(mealDayLead(DAY, at(22, 30), slots, plan, meals, {})).toEqual({ date: TOMORROW, slot: 'breakfast', now: false, over: [] });
+    });
+
+    it('agrees with Next meal late in the evening', () => {
+      const lead = mealDayLead(DAY, at(22, 30), slots, plan, meals, {});
+      const next = getNextPlannedMeal(DAY, at(22, 30), plan, meals, slots);
+      expect([lead?.date, lead?.slot]).toEqual([next?.date, next?.slot]);
+    });
+
+    it('is null with no slot switched on', () => {
+      expect(mealDayLead(DAY, at(12), [], plan, meals, {})).toBeNull();
+    });
   });
 });
 
@@ -444,12 +492,10 @@ describe('SLOT_ORDER', () => {
   });
 });
 
-describe('SLOT_WINDOWS', () => {
-  it('windows are non-overlapping and in order', () => {
-    const ordered = SLOT_ORDER.map((s) => SLOT_WINDOWS[s]);
-    for (let i = 1; i < ordered.length; i++) {
-      expect(ordered[i].start).toBeGreaterThanOrEqual(ordered[i - 1].end);
-    }
+describe('SLOT_USUAL_TIMES', () => {
+  it('serves the slots in the day order', () => {
+    const times = SLOT_ORDER.map((s) => SLOT_USUAL_TIMES[s]);
+    expect([...times].sort()).toEqual(times);
   });
 });
 
@@ -686,15 +732,17 @@ describe('resolveMealWithEntry', () => {
     expect(resolveMealWithEntry('2026-04-05', 'dinner', blank, meals).name).toBeNull();
   });
 
-  it('shows the note written on the plan for that day before the note on the dish', () => {
+  it('shows the note written on the plan for that day, then the note on the dish', () => {
     const withNotes: SavedMeal[] = [{ id: 'm1', name: 'Tacos', notes: 'Double the salsa' }];
     expect(resolveMealWithEntry('2026-04-01', 'dinner', [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1', notes: 'Grandma visits' }], withNotes).notes)
-      .toBe('Grandma visits');
+      .toEqual(['Grandma visits', 'Double the salsa']);
     expect(resolveMealWithEntry('2026-04-01', 'dinner', [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1', notes: '  ' }], withNotes).notes)
-      .toBe('Double the salsa');
+      .toEqual(['Double the salsa']);
+    expect(resolveMealWithEntry('2026-04-01', 'dinner', [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1', notes: 'Double the salsa ' }], withNotes).notes)
+      .toEqual(['Double the salsa']);
     expect(resolveMealWithEntry('2026-04-02', 'lunch', [{ date: '2026-04-02', slot: 'lunch', customText: 'School lunch', notes: 'Pizza day' }], withNotes).notes)
-      .toBe('Pizza day');
-    expect(resolveMealWithEntry('2026-04-03', 'dinner', [], withNotes).notes).toBeNull();
+      .toEqual(['Pizza day']);
+    expect(resolveMealWithEntry('2026-04-03', 'dinner', [], withNotes).notes).toEqual([]);
   });
 });
 
@@ -706,7 +754,7 @@ describe('getNextPlannedMeal with a typed-in meal', () => {
    * through this, so a typed meal used to be skipped over on both. */
   it('finds a slot holding only typed text', () => {
     const plan: PlannedMeal[] = [{ date: '2026-04-01', slot: 'dinner', customText: 'Takeaway' }];
-    const next = getNextPlannedMeal('2026-04-01', 8, plan, meals, slots);
+    const next = getNextPlannedMeal('2026-04-01', 8 * 60, plan, meals, slots);
     expect(next?.name).toBe('Takeaway');
     expect(next?.meal).toBeNull();
     expect(next?.slot).toBe('dinner');
@@ -717,20 +765,20 @@ describe('getNextPlannedMeal with a typed-in meal', () => {
       { date: '2026-04-01', slot: 'lunch', customText: 'Leftovers' },
       { date: '2026-04-01', slot: 'dinner', mealId: 'm1' },
     ];
-    const next = getNextPlannedMeal('2026-04-01', 8, plan, meals, slots);
+    const next = getNextPlannedMeal('2026-04-01', 8 * 60, plan, meals, slots);
     expect(next?.name).toBe('Leftovers');
   });
 
   it('carries the saved meal through when there is one', () => {
     const plan: PlannedMeal[] = [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1' }];
-    const next = getNextPlannedMeal('2026-04-01', 8, plan, meals, slots);
+    const next = getNextPlannedMeal('2026-04-01', 8 * 60, plan, meals, slots);
     expect(next?.meal?.id).toBe('m1');
     expect(next?.name).toBe('Tacos');
   });
 
   it('skips an entry whose saved meal has been deleted', () => {
     const plan: PlannedMeal[] = [{ date: '2026-04-01', slot: 'dinner', mealId: 'gone' }];
-    expect(getNextPlannedMeal('2026-04-01', 8, plan, meals, slots)).toBeNull();
+    expect(getNextPlannedMeal('2026-04-01', 8 * 60, plan, meals, slots)).toBeNull();
   });
 });
 

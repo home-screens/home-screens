@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getDifficultyColor, countPlanned } from '../meal-planner-utils';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
-import { toISODate, getNextPlannedMeal } from '@/lib/meal-constants';
+import { toISODate, getNextPlannedMeal, minutesOfDay } from '@/lib/meal-constants';
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -47,27 +47,27 @@ describe('getDifficultyColor', () => {
 });
 
 // ---------------------------------------------------------------------------
-// getNextPlannedMeal — "now" context (currently in a slot window)
+// getNextPlannedMeal — "now" context (a meal being served)
 // ---------------------------------------------------------------------------
 describe('getNextPlannedMeal', () => {
-  describe('currently in a slot window', () => {
-    it('returns "now" when hour falls within breakfast window (5-10)', () => {
-      // Wed Apr 1 2026, 7am
-      const now = new Date(2026, 3, 1, 7, 0);
+  describe('a meal being served', () => {
+    it('returns "now" a quarter of an hour before the usual breakfast time', () => {
+      // Wed Apr 1 2026, 7:15am; breakfast is usually at 7:30
+      const now = new Date(2026, 3, 1, 7, 15);
       const todayISO = toISODate(now);
       const plan = [makePlan(todayISO, 'breakfast', 'm1')];
-      const result = getNextPlannedMeal(toISODate(now), now.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('now');
       expect(result!.slot).toBe('breakfast');
       expect(result!.name).toBe('Pancakes');
     });
 
-    it('returns "now" when in dinner window (17-21)', () => {
+    it('returns "now" at the usual dinner time', () => {
       const today = new Date(2026, 3, 1, 18, 0); // Wed 6pm
       const todayISO = toISODate(today);
       const plan = [makePlan(todayISO, 'dinner', 'm4')];
-      const result = getNextPlannedMeal(toISODate(today), today.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(today), minutesOfDay(today), plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('now');
       expect(result!.slot).toBe('dinner');
@@ -80,7 +80,7 @@ describe('getNextPlannedMeal', () => {
       const today = new Date(2026, 3, 1, 4, 0); // 4am, before any slot
       const todayISO = toISODate(today);
       const plan = [makePlan(todayISO, 'breakfast', 'm1')];
-      const result = getNextPlannedMeal(toISODate(today), today.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(today), minutesOfDay(today), plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('upcoming');
       expect(result!.slot).toBe('breakfast');
@@ -90,7 +90,7 @@ describe('getNextPlannedMeal', () => {
       const today = new Date(2026, 3, 1, 4, 0); // 4am
       const todayISO = toISODate(today);
       const plan = [makePlan(todayISO, 'dinner', 'm4')];
-      const result = getNextPlannedMeal(toISODate(today), today.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(today), minutesOfDay(today), plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('upcoming');
       expect(result!.slot).toBe('dinner');
@@ -104,7 +104,7 @@ describe('getNextPlannedMeal', () => {
       tomorrow.setDate(today.getDate() + 1);
       const tomorrowISO = toISODate(tomorrow);
       const plan = [makePlan(tomorrowISO, 'breakfast', 'm1')];
-      const result = getNextPlannedMeal(toISODate(today), today.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(today), minutesOfDay(today), plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('tomorrow');
       expect(result!.slot).toBe('breakfast');
@@ -118,7 +118,7 @@ describe('getNextPlannedMeal', () => {
       sun.setDate(sat.getDate() + 1);
       const sunISO = toISODate(sun);
       const plan = [makePlan(sunISO, 'breakfast', 'm1')];
-      const result = getNextPlannedMeal(toISODate(sat), sat.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(sat), minutesOfDay(sat), plan, meals, allSlots);
       expect(result).not.toBeNull();
       expect(result!.context).toBe('tomorrow');
       expect(result!.date).toBe(sunISO);
@@ -130,13 +130,13 @@ describe('getNextPlannedMeal', () => {
       const now = new Date(2026, 3, 1, 12, 0);
       const todayISO = toISODate(now);
       const plan = [makePlan(todayISO, 'lunch', 'm2')];
-      const result = getNextPlannedMeal(toISODate(now), now.getHours(), plan, meals, []);
+      const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, meals, []);
       expect(result).toBeNull();
     });
 
     it('returns null when no meals are planned for today or tomorrow', () => {
       const now = new Date(2026, 3, 1, 12, 0);
-      const result = getNextPlannedMeal(toISODate(now), now.getHours(), [], meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), [], meals, allSlots);
       expect(result).toBeNull();
     });
 
@@ -144,7 +144,7 @@ describe('getNextPlannedMeal', () => {
       const now = new Date(2026, 3, 1, 7, 0);
       const todayISO = toISODate(now);
       const plan = [makePlan(todayISO, 'breakfast', 'nonexistent')];
-      const result = getNextPlannedMeal(toISODate(now), now.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, meals, allSlots);
       expect(result).toBeNull();
     });
 
@@ -155,7 +155,7 @@ describe('getNextPlannedMeal', () => {
         makePlan(todayISO, 'breakfast', 'm1'),
         makePlan(todayISO, 'lunch', 'm2'),
       ];
-      const result = getNextPlannedMeal(toISODate(now), now.getHours(), plan, meals, ['lunch']);
+      const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, meals, ['lunch']);
       expect(result).not.toBeNull();
       expect(result!.slot).toBe('lunch');
       expect(result!.context).toBe('upcoming');
@@ -165,7 +165,7 @@ describe('getNextPlannedMeal', () => {
       const now = new Date(2026, 3, 1, 7, 0);
       const todayISO = toISODate(now);
       const plan: PlannedMeal[] = [{ date: todayISO, slot: 'breakfast', mealId: '' }];
-      const result = getNextPlannedMeal(toISODate(now), now.getHours(), plan, meals, allSlots);
+      const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, meals, allSlots);
       expect(result).toBeNull();
     });
   });

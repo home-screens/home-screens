@@ -13,8 +13,8 @@ import { useMealMinutes } from '../shared/useMealMinutes';
  * height between the two ornaments, so four meals fill a 1920px panel and
  * two get twice the air rather than a stack stranded in the top third. Each
  * dish has its picture beside its name and its courses (sides, dessert,
- * drink) listed under it. Sizes are authored canvas pixels at 1080 wide /
- * `medium` (see `px`).
+ * drink) listed under it, the pictures in one column and the names in the
+ * next. Sizes are authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function MenuBoardView({
   settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
@@ -40,6 +40,12 @@ export default function MenuBoardView({
   // A wide panel with a full four-meal day reads better two-up; anything
   // shorter stays a single centred column like the portrait board.
   const twoUp = landscape && meals.length >= 4;
+  // With a picture anywhere on the board, every row keeps a picture's width
+  // at its start, so the pictures stand in one column and a meal typed in
+  // with none starts where the names do. A board with no pictures centres
+  // each meal instead, as there is no column to line up with.
+  const anyPictured = showEmoji && meals.some((c) => mealHasPicture(c.meal));
+  const align = anyPictured ? 'flex-start' : 'center';
 
   const divider = (
     <div style={{ width: '70%', display: 'flex', alignItems: 'center', gap: P(16), flexShrink: 0 }}>
@@ -75,13 +81,16 @@ export default function MenuBoardView({
 
       <div style={{ margin: `${P(30)}px 0`, width: '100%', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>{divider}</div>
 
-      {/* Courses */}
+      {/* Courses: as wide as the widest meal and centred, so the rows share
+          a left edge; a name too long for the panel wraps at its edge. Two-up,
+          each column is as wide as its widest meal. */}
       <div
         {...{ [FIT_MEASURE_ATTR]: '' }}
         style={{
-          flex: 1, minHeight: 0, width: '100%',
+          flex: 1, minHeight: 0,
+          width: twoUp ? '100%' : 'fit-content', maxWidth: '100%',
           display: twoUp ? 'grid' : 'flex',
-          gridTemplateColumns: twoUp ? '1fr 1fr' : undefined,
+          gridTemplateColumns: twoUp ? 'repeat(2, minmax(0, max-content))' : undefined,
           alignItems: twoUp ? 'center' : undefined,
           flexDirection: 'column', justifyContent: 'space-evenly',
           rowGap: twoUp ? P(40) : undefined,
@@ -92,96 +101,92 @@ export default function MenuBoardView({
             {t('fullscreen-meal-planner.noMealsPlannedToday')}
           </div>
         ) : meals.map((course, i) => {
-          // The picture sits beside the name for every dish, emoji too, so a
-          // board mixing photos and emoji lines up; typed text has none and
-          // stays centred.
+          // Emoji count as pictures too, so a board mixing photos and emoji
+          // lines up.
           const pictured = showEmoji && mealHasPicture(course.meal);
           const minutes = showPrepTime ? mealMinutes(course.meal) : null;
-          const prep = minutes || (showDifficulty && course.meal?.difficulty) ? (
-            <div style={{
-              display: 'flex', justifyContent: 'center', gap: P(20),
-              fontSize: P(26), color: 'var(--fmp-text-3)', marginTop: pictured ? P(12) : 0,
-            }}>
-              {minutes && (
-                <span>&#128339; {minutes}</span>
-              )}
-              {showDifficulty && course.meal?.difficulty && (() => {
-                const dc = getDifficultyColor(course.meal.difficulty);
-                return <span style={{ color: dc ?? undefined }}>{course.meal.difficulty}</span>;
-              })()}
-            </div>
-          ) : null;
           return (
           <div key={course.slot} style={{ display: 'contents' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: P(14) }}>
-              {/* Slot pill + serving time */}
-              <span style={{
-                fontSize: P(24), fontWeight: 700, textTransform: 'uppercase' as const,
-                letterSpacing: '0.14em', color: course.meta.color,
-                background: `${course.meta.color}1a`,
-                padding: `${P(8)}px ${P(22)}px`, borderRadius: P(10),
-                display: 'inline-flex', alignItems: 'baseline', gap: P(12),
-              }}>
-                <span>{t(getMealSlotLabelKey(course.slot))}</span>
-                {course.time && (
-                  <span style={{
-                    fontWeight: 600, color: 'var(--fmp-text-3)', letterSpacing: 0,
-                    textTransform: 'none' as const, fontVariantNumeric: 'tabular-nums',
-                  }}>
-                    {formatMealTime(course.time, timeFormat)}
-                  </span>
-                )}
-              </span>
-
-              {/* Picture beside the name, courses under it */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: P(30), width: '100%', maxWidth: P(860) }}>
-                <MealTapTarget
+            {/* Picture beside everything else, which shares one edge: slot
+                pill, name, courses, note, cooking time */}
+            <MealTapTarget
+              meal={course.meal}
+              mode={recipeTapMode}
+              style={{ display: 'flex', alignItems: 'center', gap: P(30), minWidth: 0, textAlign: anyPictured ? 'left' : 'center' }}
+            >
+              {pictured ? (
+                <MealPicture
                   meal={course.meal}
-                  mode={recipeTapMode}
-                  style={{ display: 'flex', alignItems: 'center', gap: P(30), minWidth: 0 }}
-                >
-                  {pictured && (
-                    <MealPicture
-                      meal={course.meal}
-                      photoSize={`${P(140)}px`}
-                      emojiStyle={{
-                        width: P(140), height: P(140), flexShrink: 0, display: 'flex',
-                        alignItems: 'center', justifyContent: 'center', fontSize: P(110), lineHeight: 1,
-                      }}
-                    />
-                  )}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: pictured ? 'flex-start' : 'center', minWidth: 0 }}>
-                    <div style={{
-                      fontFamily: headerFont, fontSize: P(64), fontWeight: 400, lineHeight: 1.05,
-                      color: 'var(--fmp-text)', letterSpacing: '-0.01em', textAlign: pictured ? 'left' : 'center',
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden',
+                  photoSize={`${P(140)}px`}
+                  emojiStyle={{
+                    width: P(140), height: P(140), flexShrink: 0, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', fontSize: P(110), lineHeight: 1,
+                  }}
+                />
+              ) : anyPictured && (
+                <span aria-hidden="true" style={{ width: P(140), flexShrink: 0 }} />
+              )}
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: align }}>
+                {/* Slot pill + serving time */}
+                <span style={{
+                  fontSize: P(24), fontWeight: 700, textTransform: 'uppercase' as const,
+                  letterSpacing: '0.14em', color: course.meta.color,
+                  background: `${course.meta.color}1a`,
+                  padding: `${P(8)}px ${P(22)}px`, borderRadius: P(10),
+                  display: 'inline-flex', alignItems: 'baseline', gap: P(12),
+                  marginBottom: P(14),
+                }}>
+                  <span>{t(getMealSlotLabelKey(course.slot))}</span>
+                  {course.time && (
+                    <span style={{
+                      fontWeight: 600, color: 'var(--fmp-text-3)', letterSpacing: 0,
+                      textTransform: 'none' as const, fontVariantNumeric: 'tabular-nums',
                     }}>
-                      {course.name}
-                    </div>
-                    <MealCourseLines
-                      courses={course.courses}
-                      labelSize={`${P(22)}px`}
-                      nameSize={`${P(32)}px`}
-                      gap={`${P(16)}px`}
-                      rowGap={`${P(6)}px`}
-                      labelStyle={{ color: 'var(--fmp-text-3)', fontWeight: 700, letterSpacing: '0.14em' }}
-                      nameStyle={{ color: 'var(--fmp-text-2)', lineHeight: 1.2, whiteSpace: 'normal' }}
-                      style={{ marginTop: P(14), gridTemplateColumns: 'auto auto' }}
-                    />
-                    {course.notes && (
-                      <div style={{
-                        fontSize: P(26), fontStyle: 'italic', color: 'var(--fmp-text-2)',
-                        lineHeight: 1.3, marginTop: P(10), textAlign: pictured ? 'left' : 'center',
-                      }}>
-                        {course.notes}
-                      </div>
-                    )}
-                    {pictured && prep}
+                      {formatMealTime(course.time, timeFormat)}
+                    </span>
+                  )}
+                </span>
+                {/* Wraps across the whole row; three lines hold a long name
+                    even at the largest text size. */}
+                <div style={{
+                  fontFamily: headerFont, fontSize: P(64), fontWeight: 400, lineHeight: 1.05,
+                  color: 'var(--fmp-text)', letterSpacing: '-0.01em',
+                  display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden',
+                }}>
+                  {course.name}
+                </div>
+                <MealCourseLines
+                  courses={course.courses}
+                  labelSize={`${P(22)}px`}
+                  nameSize={`${P(32)}px`}
+                  gap={`${P(16)}px`}
+                  rowGap={`${P(6)}px`}
+                  centered={!anyPictured}
+                  labelStyle={{ color: 'var(--fmp-text-3)', fontWeight: 700, letterSpacing: '0.14em' }}
+                  nameStyle={{ color: 'var(--fmp-text-2)', lineHeight: 1.2, whiteSpace: 'normal' }}
+                  style={{ marginTop: P(14) }}
+                />
+                {course.notes.map((note) => (
+                  <div key={note} style={{
+                    fontSize: P(26), fontStyle: 'italic', color: 'var(--fmp-text-2)',
+                    lineHeight: 1.3, marginTop: P(10),
+                  }}>
+                    {note}
                   </div>
-                </MealTapTarget>
+                ))}
+                {(minutes || (showDifficulty && course.meal?.difficulty)) && (
+                  <div style={{ display: 'flex', gap: P(20), fontSize: P(26), color: 'var(--fmp-text-3)', marginTop: P(12) }}>
+                    {minutes && (
+                      <span>&#128339; {minutes}</span>
+                    )}
+                    {showDifficulty && course.meal?.difficulty && (() => {
+                      const dc = getDifficultyColor(course.meal.difficulty);
+                      return <span style={{ color: dc ?? undefined }}>{course.meal.difficulty}</span>;
+                    })()}
+                  </div>
+                )}
               </div>
-              {!pictured && prep}
-            </div>
+            </MealTapTarget>
 
             {/* Separator between meals (single column only) */}
             {!twoUp && i < meals.length - 1 && (

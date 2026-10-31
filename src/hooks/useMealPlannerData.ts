@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { MealSession, type MealEdit, type MealieRange, type MealSnapshot } from '@/lib/meal-client';
-import type { MealieWireBlock } from '@/lib/meal-sources';
+import { MealClientError, MealSession, type MealEdit, type MealieRange, type MealSnapshot } from '@/lib/meal-client';
+import type { MealieProblem, MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { displayCache } from '@/lib/display-cache';
 import type {
@@ -34,6 +34,22 @@ export interface MealsPayload {
    */
   loaded: boolean;
 }
+
+/**
+ * Why the last meal save failed: Mealie's reason when Mealie refused it, so
+ * a refused token is not reported as Mealie being down, or nothing more than
+ * that it failed.
+ */
+export interface MealSaveFailure {
+  problem?: MealieProblem;
+}
+
+function saveFailure(err: unknown): MealSaveFailure {
+  return { problem: err instanceof MealClientError ? err.problem : undefined };
+}
+
+/** How often an open planner window asks the hub for the meals again. */
+const OPEN_REFRESH_MS = 15_000;
 
 const EMPTY_PAYLOAD = (): MealsPayload => ({
   savedMeals: [],
@@ -106,7 +122,7 @@ export function useMealPlannerData<C>({
   showModal: boolean;
 }) {
   const [mealData, setMealData] = useState<MealsPayload>(EMPTY_PAYLOAD);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<MealSaveFailure | null>(null);
   const [session] = useState(() => new MealSession(editorFetch));
 
   const fetchMealData = useCallback(() => {
@@ -116,6 +132,24 @@ export function useMealPlannerData<C>({
   }, [session]);
 
   useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
+
+  // While the window is open, ask again every so often (as often as the
+  // phone's Meals tab does) and when the tab comes back into view, so a meal
+  // planned on the phone shows here without a save from this side first. A
+  // copy answered while a save is on its way is not adopted, and the meal
+  // being edited in Detail keeps its fields, so nothing typed is replaced.
+  useEffect(() => {
+    if (!showModal) return;
+    const whenVisible = () => {
+      if (document.visibilityState === 'visible') fetchMealData();
+    };
+    document.addEventListener('visibilitychange', whenVisible);
+    const poll = setInterval(whenVisible, OPEN_REFRESH_MS);
+    return () => {
+      document.removeEventListener('visibilitychange', whenVisible);
+      clearInterval(poll);
+    };
+  }, [showModal, fetchMealData]);
 
   // Assigned during render, NOT in an effect: `handleModalUpdate` can fire in
   // the same tick as a `setMealData`, and an effect-deferred ref would still
@@ -174,7 +208,7 @@ export function useMealPlannerData<C>({
       // Roll back so the panel stops showing an edit the server rejected:
       // to the loaded copy, or to nothing when there is none.
       setMealData(session.current ? view(session.current) : EMPTY_PAYLOAD());
-      setSaveError('save-failed');
+      setSaveError(saveFailure(err));
     }
   }, [session]);
 
@@ -196,7 +230,7 @@ export function useMealPlannerData<C>({
     } catch (err) {
       if (isSessionExpired(err)) return;
       apply(direction === 'check' ? 'uncheck' : 'check');
-      setSaveError('save-failed');
+      setSaveError(saveFailure(err));
     }
   }, [session]);
 
@@ -230,7 +264,7 @@ export function useMealPlannerData<C>({
       if (session.idle) setMealData(view(snapshot));
       return { created, skipped, entries };
     } catch (err) {
-      if (!isSessionExpired(err)) setSaveError('save-failed');
+      if (!isSessionExpired(err)) setSaveError(saveFailure(err));
       return null;
     }
   }, [session]);

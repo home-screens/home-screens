@@ -9,7 +9,8 @@ import { useTranslate } from '@/i18n';
  * The pieces the recipe picker and the Library share while the plan lives in
  * Mealie: the search box, the Favorites and Recently made shortcuts, the
  * grey rows that hold the place while the hub asks Mealie, and the centred
- * messages for nothing found or no answer.
+ * messages for nothing found or no answer. The picker's search box and
+ * chips serve the family's own meals too.
  */
 
 export function RecipeSearchBox({
@@ -17,11 +18,14 @@ export function RecipeSearchBox({
   onChange,
   placeholder,
   ariaLabel,
+  onEnter,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   ariaLabel: string;
+  /** The keyboard's Enter key, with the box (the search itself runs as words are typed). */
+  onEnter?: (input: HTMLInputElement) => void;
 }) {
   const t = useTranslate('remote');
   const [focused, setFocused] = useState(false);
@@ -51,6 +55,11 @@ export function RecipeSearchBox({
         inputMode="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onEnter && ((e) => {
+          if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
+          e.preventDefault();
+          onEnter(e.currentTarget);
+        })}
         placeholder={placeholder}
         aria-label={ariaLabel}
         maxLength={100}

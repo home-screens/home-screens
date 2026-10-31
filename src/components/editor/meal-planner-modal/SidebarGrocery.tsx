@@ -2,8 +2,15 @@
 
 import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
-import { generateGroceryList, groceryListNeedsHeadings, GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
-import { useTranslate } from '@/i18n';
+import {
+  generateGroceryList,
+  groceryListNeedsHeadings,
+  plannedMealsWithoutIngredients,
+  shortNameList,
+  GROCERY_CATEGORY_ORDER,
+} from '@/lib/grocery-utils';
+import { useLocale, useTranslate } from '@/i18n';
+import type { ShownWeek } from '@/lib/meal-plan-words';
 
 interface SidebarGroceryProps {
   plan: PlannedMeal[];
@@ -11,9 +18,11 @@ interface SidebarGroceryProps {
   /** The viewed week's ticks (`groceryChecksForWeek`) */
   checkedItems: readonly string[];
   onToggleItem: (key: string) => void;
+  /** The week the list is for: "this week" only while it is this week. */
+  week: ShownWeek;
 }
 
-export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem }: SidebarGroceryProps) {
+export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem, week }: SidebarGroceryProps) {
   const t = useTranslate('editor');
   // Grocery category labels live in `core.meal.grocery.categoryLabels.*`
   // (shared with /remote).
@@ -24,6 +33,8 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
   );
 
   const showHeadings = groceryListNeedsHeadings(groceryMap);
+  const locale = useLocale();
+  const withoutIngredients = useMemo(() => plannedMealsWithoutIngredients(plan, meals), [plan, meals]);
 
   let total = 0;
   let checked = 0;
@@ -45,7 +56,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
             <span className="text-sm font-semibold text-hs-text-secondary">
               {t('mealPlannerModal.grocery.itemsCount', { checked, total })}
             </span>
-            <span className="text-[11px] text-hs-text-faint">{t('mealPlannerModal.grocery.fromThisWeek')}</span>
+            <span className="text-[11px] text-hs-text-faint">{week.thisWeek ? t('mealPlannerModal.grocery.fromThisWeek') : t('mealPlannerModal.grocery.fromDates', { range: week.range })}</span>
           </div>
           <div className="h-1 bg-hs-card rounded-full overflow-hidden">
             <div
@@ -53,6 +64,18 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
               style={{ width: `${pct}%` }}
             />
           </div>
+          {withoutIngredients.length > 0 && (
+            <p data-grocery-without-ingredients className="mt-2 text-xs leading-snug text-hs-text-muted">
+              {t('mealPlannerModal.grocery.withoutIngredients', {
+                count: withoutIngredients.length,
+                names: shortNameList(
+                  withoutIngredients.map((m) => m.name),
+                  locale,
+                  (count) => t('mealPlannerModal.grocery.moreMeals', { count }),
+                ),
+              })}
+            </p>
+          )}
         </div>
 
         {/* Empty state */}

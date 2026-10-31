@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { CookingPot, Smartphone } from 'lucide-react';
+import { CloudOff, CookingPot, Smartphone } from 'lucide-react';
 import type { MealPlanSource } from '@/types/config';
-import { editorFetch } from '@/lib/editor-fetch';
+import { mealieProblem } from '@/lib/meal-sources';
+import { useMealieCheck } from '@/hooks/useMealieCheck';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
+import { mealieProblemWords } from './MealsMealieStatus';
 
 interface MealsSettingsPlanSourceSectionProps {
   /** The sheet's draft: Mealie, or unset for Home Screens. */
@@ -18,27 +19,6 @@ interface MealsSettingsPlanSourceSectionProps {
 }
 
 /**
- * Whose household's plan Mealie would show, for "Mealie is connected to the
- * Family household". Asked once as the sheet opens; the line reads without a
- * name when Mealie cannot say.
- */
-function useMealieHousehold(enabled: boolean): string | null {
-  const [household, setHousehold] = useState<string | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    let live = true;
-    editorFetch('/api/mealie/validate')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((d: { ok?: boolean; household?: unknown } | null) => {
-        if (live && d?.ok && typeof d.household === 'string' && d.household.trim()) setHousehold(d.household.trim());
-      })
-      .catch(() => { /* the line reads without a name */ });
-    return () => { live = false; };
-  }, [enabled]);
-  return household;
-}
-
-/**
  * Where the family's meal plan lives: Home Screens, or Mealie. First in the
  * sheet because it changes the most. Mealie can be chosen once the computer
  * has connected it (Settings > API keys); it takes effect on Save, like the
@@ -46,7 +26,12 @@ function useMealieHousehold(enabled: boolean): string | null {
  */
 export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSource, mealieConnected, onChange }: MealsSettingsPlanSourceSectionProps) {
   const t = useTranslate('remote');
-  const household = useMealieHousehold(mealieConnected);
+  // Asked once as the sheet opens: whose household's plan Mealie would show
+  // ("connected to the Family household"), or that Mealie refuses the saved
+  // token. The line reads without a name while asking or when Mealie is away.
+  const check = useMealieCheck(mealieConnected);
+  const household = check?.ok ? check.household.trim() || null : null;
+  const tokenRefused = check?.ok === false && check.failure !== 'network' && mealieProblem(check.failure) === 'token';
   const onMealie = planSource === 'mealie';
   // A Mealie that was disconnected after the switch can still be switched off.
   const mealieOff = !mealieConnected && !onMealie;
@@ -74,8 +59,28 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
   // A choice not saved yet says what Save will do; nothing changes before then.
   const switching = planSource !== savedPlanSource;
   let note: React.ReactNode;
-  if (switching) {
-    note = <p style={noteStyle}>{t(onMealie ? 'mealsSettings.planSource.switchingToMealieNote' : 'mealsSettings.planSource.switchingToHomeNote')}</p>;
+  if (switching && !onMealie) {
+    note = <p style={noteStyle}>{t('mealsSettings.planSource.switchingToHomeNote')}</p>;
+  } else if (tokenRefused) {
+    // Ahead of what Mealie would do: nothing comes from it or saves to it
+    // until a new token is saved, and that is done on the computer, not by
+    // waiting. The same words as the Plan tab's.
+    const words = mealieProblemWords('token');
+    note = (
+      <div
+        role="status"
+        data-testid="meals-plan-source-token"
+        style={{ margin: '10px 0 0', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.28)', borderRadius: 10, padding: '10px 12px' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '19px' }}>
+          <CloudOff size={16} strokeWidth={2} aria-hidden style={{ color: '#f59e0b', flex: 'none' }} />
+          {t(`${words}.title`)}
+        </div>
+        <p style={{ margin: '4px 0 0 24px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>{t(`${words}.description`)}</p>
+      </div>
+    );
+  } else if (switching) {
+    note = <p style={noteStyle}>{t('mealsSettings.planSource.switchingToMealieNote')}</p>;
   } else if (onMealie) {
     note = <p style={noteStyle}>{t('mealsSettings.planSource.onNote')}</p>;
   } else if (mealieConnected) {

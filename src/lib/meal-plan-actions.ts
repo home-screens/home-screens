@@ -81,6 +81,25 @@ export function setPlanSlotText(
   return [...rest, next];
 }
 
+/**
+ * Whether putting `pick` (a meal by id, or typed text) in place of a slot's
+ * main dish, or of its course at `courseIndex`, changes one dish for another:
+ * the change a notice offers to take back, since one tap in the picker made
+ * it. Filling an empty place, or picking the dish already there, replaces
+ * nothing.
+ */
+export function replacesDish(
+  entry: PlannedMeal | undefined,
+  courseIndex: number | null,
+  pick: { mealId?: string; customText?: string },
+): boolean {
+  const dish = courseIndex === null ? entry : entry?.courses?.[courseIndex];
+  const typed = dish?.customText?.trim();
+  if (!dish || (!dish.mealId && !typed)) return false;
+  if (pick.mealId) return dish.mealId !== pick.mealId;
+  return !!dish.mealId || typed !== pick.customText?.trim();
+}
+
 /** Empty one slot: its main dish and every course with it. */
 export function clearPlanSlot(plan: PlannedMeal[], date: string, slot: MealSlotType): PlannedMeal[] {
   return plan.filter((p) => !(p.date === date && p.slot === slot));
@@ -117,18 +136,49 @@ export function clearPlanWeek(plan: PlannedMeal[], weekDates: readonly string[])
 }
 
 /**
- * Fill the given week with a random pick from the library, replacing whatever
- * that week held. Other weeks are untouched. A household with no saved meals
- * has nothing to pick from.
+ * Fill the given week with suggested meals from the library
+ * (`generateRandomPlan`), replacing whatever that week held. Other weeks are
+ * untouched, and tell it which slot each meal is usually planned in. A
+ * household with no saved meals has nothing to pick from.
  */
 export function shufflePlanWeek(
   plan: PlannedMeal[],
   savedMeals: SavedMeal[],
   slots: MealSlotType[],
   weekDates: string[],
+  random?: () => number,
 ): PlannedMeal[] {
   if (savedMeals.length === 0) return plan;
-  return replaceWeekInPlan(plan, weekDates, generateRandomPlan(savedMeals, slots, weekDates));
+  const inWeek = new Set(weekDates);
+  const history = plan.filter((p) => !inWeek.has(p.date));
+  return replaceWeekInPlan(plan, weekDates, generateRandomPlan(savedMeals, slots, weekDates, { history, random }));
+}
+
+/**
+ * Suggest's picks for the week, made once: the week's new entries, for an
+ * edit that only places them (`placePlanWeek`). Both surfaces run an edit
+ * twice, once for the screen and again for the save (and again on a newer
+ * copy after a conflict); a pick made inside the edit showed one week and
+ * saved another.
+ */
+export function suggestPlanWeek(
+  plan: PlannedMeal[],
+  savedMeals: SavedMeal[],
+  slots: MealSlotType[],
+  weekDates: string[],
+  random?: () => number,
+): PlannedMeal[] {
+  const inWeek = new Set(weekDates);
+  return shufflePlanWeek(plan, savedMeals, slots, weekDates, random).filter((p) => inWeek.has(p.date));
+}
+
+/**
+ * Put `entries` in place of whatever the given week holds, leaving the other
+ * weeks alone: a suggested week going in, or the week as it was coming back
+ * on Undo.
+ */
+export function placePlanWeek(plan: PlannedMeal[], weekDates: readonly string[], entries: PlannedMeal[]): PlannedMeal[] {
+  return [...clearPlanWeek(plan, weekDates), ...entries];
 }
 
 /**
@@ -183,6 +233,29 @@ export function removeSavedMeal(
     if (planEntryHasContent(next)) nextPlan.push(next);
   }
   return { savedMeals: savedMeals.filter((m) => m.id !== mealId), plan: nextPlan };
+}
+
+/**
+ * The plan entries `removeSavedMeal` would change: every meal the dish is
+ * planned in, as the main dish or as a course. What a delete asks about
+ * (the days) and what its Undo puts back.
+ */
+export function plannedEntriesOfMeal(plan: PlannedMeal[], mealId: string): PlannedMeal[] {
+  return plan.filter((p) => p.mealId === mealId || (p.courses?.some((c) => c.mealId === mealId) ?? false));
+}
+
+/**
+ * Undo a delete: the meal goes back in the library and `entries` (from
+ * `plannedEntriesOfMeal`, taken before the delete) back on the plan as they
+ * were, over whatever has been planned in those slots since.
+ */
+export function restoreSavedMeal(
+  savedMeals: SavedMeal[],
+  plan: PlannedMeal[],
+  meal: SavedMeal,
+  entries: PlannedMeal[],
+): { savedMeals: SavedMeal[]; plan: PlannedMeal[] } {
+  return { savedMeals: upsertSavedMeal(savedMeals, meal), plan: restorePlanEntries(plan, entries) };
 }
 
 /** Star or unstar a saved meal. */

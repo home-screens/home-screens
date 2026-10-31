@@ -368,7 +368,7 @@
     "noMealPlanned": "Nenhuma refeição planejada",
     "nothingPlannedThisWeek": "Nada planejado esta semana",
     "todaysMeals": "Refeições de hoje",
-    "now": "agora",
+    "now": "Agora",
     "servingAt": "servir às {time}",
     "time": {
       "minutes": "{minutes} min",
@@ -392,7 +392,7 @@
     },
     "nextMealLabels": {
       "now": "Agora",
-      "comingUp": "Em breve",
+      "comingUp": "A seguir",
       "tomorrow": "Amanhã",
       "next": "Próxima"
     },
@@ -403,7 +403,7 @@
     "closeRecipe": "Fechar",
     "planFromPhoneHint": "Planeje as refeições pelo celular: abra {url} e toque em Refeições",
     "courses": {
-      "main": "Também",
+      "main": "Prato",
       "side": "Acompanhamento",
       "dessert": "Sobremesa",
       "drink": "Bebida"
@@ -421,6 +421,8 @@
     "todaysMeals": "Refeições de hoje",
     "todaysMenu": "Cardápio de hoje",
     "alsoToday": "Também hoje",
+    "tomorrowsMeals": "Refeições de amanhã",
+    "alsoTomorrow": "Também amanhã",
     "noMealPlanned": "Nenhuma refeição planejada",
     "notPlanned": "Não planejada",
     "noMealsPlannedToday": "Nenhuma refeição planejada para hoje",
@@ -428,12 +430,11 @@
     "mealsPlannedCount": "{filled} de {total} refeições planejadas",
     "heroLabels": {
       "now": "Agora",
-      "upNext": "A seguir",
-      "tonight": "Hoje à noite"
+      "upNext": "A seguir"
     },
     "nextMealLabels": {
       "now": "Agora",
-      "comingUp": "Em breve",
+      "comingUp": "A seguir",
       "tomorrow": "Amanhã"
     }
   },

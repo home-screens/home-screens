@@ -11,6 +11,7 @@ import {
   MealClientError,
   MAX_CONFLICT_RETRIES,
   searchMealieRecipes,
+  fetchMealieRecipeDetail,
   withoutSuggested,
   type MealFetch,
   type MealSnapshot,
@@ -436,6 +437,24 @@ describe('the plan living in Mealie', () => {
     const base = await loadMeals(fetcher);
     await expect(saveMealEdit(fetcher, base, () => ({ savedMeals: [meal('new')] }))).rejects.toThrow('Recipes live in Mealie');
     expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('says why Mealie refused a save, a Suggest or a recipe, so a refused token is not read as Mealie being down', async () => {
+    const refused = (failure: string) => status(400, { error: 'Mealie did not accept the key.', failure });
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(mealiePayload()))
+      .mockResolvedValueOnce(refused('key-rejected'))
+      .mockResolvedValueOnce(refused('key-rejected'))
+      .mockResolvedValueOnce(status(502, { error: "We couldn't reach Mealie.", failure: 'unreachable' }))
+      .mockResolvedValueOnce(status(500, { error: 'Failed to save the Mealie plan' }));
+    const session = new MealSession(fetcher);
+    await session.load();
+    const problemOf = (p: Promise<unknown>) => p.then(() => 'saved', (err: MealClientError) => err.problem);
+    expect(await problemOf(session.save((c) => ({ plan: c.plan.filter((p) => p.slot !== 'dinner') })))).toBe('token');
+    expect(await problemOf(session.suggestFromMealie([{ date: '2026-11-01', slot: 'dinner' }]))).toBe('token');
+    expect(await problemOf(fetchMealieRecipeDetail(fetcher, '0f1e2d3c-4b5a-4968-8776-655443322110'))).toBe('unreachable');
+    // A refusal that is not about Mealie names no problem.
+    expect(await problemOf(session.save((c) => ({ plan: c.plan.filter((p) => p.slot !== 'lunch') })))).toBeUndefined();
   });
 });
 

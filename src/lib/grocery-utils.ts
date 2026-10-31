@@ -1,6 +1,8 @@
 import type { SavedMeal, PlannedMeal } from '@/types/config';
 import { guessGroceryCategory } from '@/lib/grocery-categories';
 import { planEntryMealIds } from '@/lib/meal-courses';
+import { sumGroceryAmounts } from '@/lib/grocery-amounts';
+import { SLOT_ORDER } from '@/lib/meal-constants';
 
 export const GROCERY_CATEGORY_ORDER = ['produce', 'meat', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
 
@@ -30,6 +32,49 @@ export function groceryListNeedsHeadings(
   return list.size > 1;
 }
 
+function hasIngredients(meal: SavedMeal): boolean {
+  return (meal.ingredients ?? []).some((ing) => typeof ing.name === 'string' && ing.name.trim() !== '');
+}
+
+/**
+ * The family's saved meals planned in the week that have no ingredients yet,
+ * once each, in the order they come in the week. They add nothing to the
+ * grocery list, so the list says which they are: a roast with no ingredients
+ * typed in would otherwise leave the chicken off it without a word. A meal
+ * typed straight into the plan has no ingredients to add and is not one.
+ */
+export function plannedMealsWithoutIngredients(
+  planArr: readonly PlannedMeal[],
+  meals: readonly SavedMeal[],
+): SavedMeal[] {
+  const mealMap = new Map(meals.map((m) => [m.id, m]));
+  const inOrder = [...planArr].sort(
+    (a, b) => a.date.localeCompare(b.date) || SLOT_ORDER.indexOf(a.slot) - SLOT_ORDER.indexOf(b.slot),
+  );
+  const found = new Map<string, SavedMeal>();
+  for (const entry of inOrder) {
+    for (const id of planEntryMealIds(entry)) {
+      const meal = mealMap.get(id);
+      if (meal && !found.has(id) && !hasIngredients(meal)) found.set(id, meal);
+    }
+  }
+  return [...found.values()];
+}
+
+/**
+ * Names for a one-line notice, joined the way the language joins a list:
+ * every name up to four, else the first three and `more(rest)` ("Soup,
+ * Oatmeal, Popcorn and 2 more").
+ */
+export function shortNameList(names: readonly string[], locale: string, more: (count: number) => string): string {
+  const shown = names.length > 4 ? [...names.slice(0, 3), more(names.length - 3)] : [...names];
+  try {
+    return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(shown);
+  } catch {
+    return shown.join(', ');
+  }
+}
+
 /**
  * Generate a grocery list grouped by category from one week's planned meals.
  *
@@ -42,7 +87,7 @@ export function generateGroceryList(
   checkedItems: readonly string[],
 ): Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }> {
   const mealMap = new Map(meals.map((m) => [m.id, m]));
-  const grouped = new Map<string, Map<string, string>>(); // category -> name -> amount
+  const grouped = new Map<string, Map<string, string[]>>(); // category -> name -> amounts
 
   // A meal's courses are shopped for like its main dish: the side and the
   // dessert need their ingredients too.
@@ -65,13 +110,9 @@ export function generateGroceryList(
       const displayCat = cat === 'seafood' ? 'meat' : cat;
       if (!grouped.has(displayCat)) grouped.set(displayCat, new Map());
       const catMap = grouped.get(displayCat)!;
-      const existing = catMap.get(ing.name.toLowerCase());
-      const amt = ing.amount ?? '';
-      if (existing && amt) {
-        catMap.set(ing.name.toLowerCase(), `${existing}, ${amt}`);
-      } else if (!existing) {
-        catMap.set(ing.name.toLowerCase(), amt);
-      }
+      const key = ing.name.toLowerCase();
+      if (!catMap.has(key)) catMap.set(key, []);
+      catMap.get(key)!.push(ing.amount ?? '');
     }
   }
 
@@ -79,9 +120,10 @@ export function generateGroceryList(
   for (const catKey of GROCERY_CATEGORY_ORDER) {
     const catMap = grouped.get(catKey);
     if (!catMap || catMap.size === 0) continue;
-    const items = Array.from(catMap.entries()).map(([name, amount]) => ({
+    const items = Array.from(catMap.entries()).map(([name, amounts]) => ({
       name: name.charAt(0).toUpperCase() + name.slice(1),
-      amount,
+      // "Ground beef 5 lb" for a week that plans it three times, not "2 lb, 2 lb, 1 lb".
+      amount: sumGroceryAmounts(amounts),
       checked: checkedItems.includes(name.toLowerCase()),
     }));
     items.sort((a, b) => {

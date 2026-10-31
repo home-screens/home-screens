@@ -1373,6 +1373,11 @@
         "testing": "Testando…",
         "testHelp": "Verifica o endereço e o token juntos.",
         "notConnected": "Não conectado",
+        "optional": "Opcional, não configurado",
+        "checking": "Verificando…",
+        "tokenRefused": "Token não aceito",
+        "notAnswering": "Não responde",
+        "couldNotCheck": "Não deu para verificar",
         "removeConfirm": {
           "title": "Parar de mostrar o plano de refeições?",
           "message": "Seu plano de refeições vem do Mealie. Sem o endereço e o token, a tela e o celular não conseguem mostrá-lo até você adicioná-los de novo ou voltar o plano para o Home Screens em Configurações > Refeições.",
@@ -1645,6 +1650,8 @@
         "mealieHousehold": "Casa {household}",
         "mealieConnected": "Conectado",
         "mealieNotAnswering": "Não está respondendo agora",
+        "mealieTokenRefused": "Token não aceito",
+        "tokenRefused": "O Mealie não aceita mais o token salvo, então o plano de refeições não é atualizado. Crie um novo token no Mealie e cole-o na página",
         "connectFirst": "Só se a sua família usa o Mealie, um app de receitas à parte. Para planejar nele, conecte-o primeiro na página",
         "apiKeysLink": "Chaves de API",
         "connectedOffer": "O Mealie está conectado. Escolha-o para planejar com as receitas e o plano que você mantém lá.",
@@ -1682,7 +1689,9 @@
       },
       "reset": {
         "button": "Redefinir para o padrão",
-        "help": "Restaura café da manhã/almoço/jantar, semana iniciando no domingo, formato 12 horas, e limpa todos os horários padrão."
+        "help": "Liga café da manhã, almoço e jantar e desliga o lanche, faz a semana começar no domingo, segue a configuração global para o formato de hora e limpa os horários padrão de refeição. As refeições já planejadas não mudam.",
+        "confirmTitle": "Redefinir as configurações de refeições?",
+        "confirmButton": "Redefinir"
       },
       "description": "Quais refeições a família planeja e a que horas costumam ser."
     },
@@ -2882,22 +2891,37 @@
     "toast": {
       "changesSaved": "Alterações salvas",
       "mealDeleted": "\"{name}\" excluída",
-      "mealRemoved": "Refeição removida",
+      "mealDeletedPlanned": "\"{name}\" excluída e tirada do plano: {days}",
+      "moreDays": {
+        "one": "mais {count} dia",
+        "other": "mais {count} dias"
+      },
+      "mealRemoved": "{name} foi tirado",
+      "mealRemovedWithCourses": {
+        "one": "{name} foi tirado, com o prato que o acompanhava",
+        "other": "{name} foi tirado, com os {count} pratos que o acompanhavam"
+      },
+      "mealChanged": "Trocado por {name}",
       "randomSuggested": "Refeições aleatórias sugeridas!",
       "lastWeekCopied": "Semana passada copiada!",
+      "lastWeekCopiedDates": "Refeições da semana de {from} copiadas",
       "weekCleared": "Semana limpa",
       "undoButton": "Desfazer",
       "courseRemoved": "Removido desta refeição",
       "saveFailed": "Essa mudança não foi salva. Tente de novo.",
       "mealieSaveFailed": "O Mealie não aceitou essa mudança. Veja se ele está rodando e tente de novo.",
       "mealieAllPlanned": "Todos os jantares desta semana já estão planejados.",
+      "mealieAllPlannedDates": "Todos os jantares da semana de {range} já estão planejados.",
       "mealieNoDinners": "Sugerir preenche jantares vazios, e o jantar está desligado nas configurações de refeições.",
       "mealieSuggested": {
         "one": "Um jantar planejado para {days}.",
         "other": "Jantares planejados para {days}."
       },
       "mealieSuggestedEveryNight": "Um jantar planejado para cada noite desta semana.",
-      "mealieNothingFits": "O Mealie não tinha receitas para sugerir para essas refeições. Confira as regras do plano de refeições no Mealie."
+      "mealieSuggestedEveryNightDates": "Um jantar planejado para cada noite da semana de {range}.",
+      "mealieNothingFits": "O Mealie não tinha receitas para sugerir para essas refeições. Confira as regras do plano de refeições no Mealie.",
+      "mealieTokenSaveFailed": "O Mealie não está deixando o Home Screens entrar, então essa mudança não foi salva. Crie um novo token no Mealie e cole-o em Configurações > Chaves de API.",
+      "mealieNotConnectedSaveFailed": "O Mealie não está conectado, então essa mudança não foi salva. Adicione o endereço e o token dele em Configurações > Chaves de API."
     },
     "library": {
       "searchPlaceholder": "Pesquisar refeições...",
@@ -2940,7 +2964,16 @@
     "grocery": {
       "itemsCount": "{checked} de {total} itens",
       "fromThisWeek": "Desta semana",
-      "emptyMessage": "Planeje refeições com ingredientes para ver sua lista de compras"
+      "fromDates": "Da semana de {range}",
+      "emptyMessage": "Planeje refeições com ingredientes para ver sua lista de compras",
+      "withoutIngredients": {
+        "one": "{count} refeição planejada ainda não tem ingredientes: {names}",
+        "other": "{count} refeições planejadas ainda não têm ingredientes: {names}"
+      },
+      "moreMeals": {
+        "one": "mais {count}",
+        "other": "mais {count}"
+      }
     },
     "weekGrid": {
       "todayLabel": "Hoje",
@@ -2949,20 +2982,20 @@
       "suggestBusy": "Escolhendo jantares…",
       "copyLastWeekButton": "Copiar semana passada",
       "clearButton": "Limpar",
-      "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Semana anterior",
       "nextWeekAriaLabel": "Próxima semana",
       "coursesCount": {
         "one": "Mais {count} com esta refeição",
         "other": "Mais {count} com esta refeição"
       },
-      "removeMealAriaLabel": "Remover {name}"
+      "removeMealAriaLabel": "Remover {name}",
+      "mealCellAriaLabel": "{name}, {slot}, {day}",
+      "planCellAriaLabel": "Planejar {slot} para {day}"
     },
     "picker": {
       "title": "Escolha uma refeição",
       "searchPlaceholder": "Pesquisar refeições...",
       "noMealsFound": "Nenhuma refeição encontrada",
-      "prepTimeShort": "{minutes} min",
       "titleAdd": {
         "side": "Adicionar um acompanhamento",
         "dessert": "Adicionar uma sobremesa",
@@ -3018,6 +3051,8 @@
       "lastUpdated": "Atualizado às {time}",
       "subtitle": "{planned} planejadas nesta semana",
       "subtitleHousehold": "Casa {household} · {planned} planejadas nesta semana",
+      "subtitleDates": "{planned} planejadas na semana de {range}",
+      "subtitleHouseholdDates": "Casa {household} · {planned} planejadas na semana de {range}",
       "openMealie": "Abrir o Mealie",
       "tryAgain": "Tentar de novo",
       "unreachableTitle": "Não foi possível falar com o Mealie agora",
@@ -3028,8 +3063,8 @@
       "tokenRefusedBody": "O Mealie não aceita mais o token salvo. Talvez ele tenha sido apagado no Mealie. Crie um novo lá e salve-o em Configurações > Chaves de API.",
       "paused": "O planejamento está pausado até o Mealie voltar.",
       "pausedSince": "O planejamento está pausado até o Mealie voltar. Este é o plano das {time}.",
-      "weekLoading": "Buscando esta semana no Mealie…",
-      "weekFailed": "Não conseguimos buscar esta semana no Mealie.",
+      "weekLoading": "Buscando a semana de {range} no Mealie…",
+      "weekFailed": "Não conseguimos buscar a semana de {range} no Mealie.",
       "libraryNote": "As receitas ficam no Mealie. Clique em uma para vê-la aqui.",
       "detailEmpty": "Clique numa refeição da semana ou numa receita da biblioteca para vê-la aqui.",
       "serves": {
@@ -3039,7 +3074,10 @@
       "readOnlyNote": "Esta receita fica no Mealie. Mude-a lá e ela se atualiza aqui em poucos minutos.",
       "groceryTitle": "Sua lista de compras fica no Mealie",
       "groceryBody": "Enquanto seu plano de refeições estiver no Mealie, sua lista também fica lá. Abra o Mealie para ver o que você precisa e marcar o que já pegou.",
-      "ingredientsFailed": "O Mealie não enviou os ingredientes. Abra a receita no Mealie para vê-los."
+      "ingredientsFailed": "O Mealie não enviou os ingredientes. Abra a receita no Mealie para vê-los.",
+      "tokenFix": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API.",
+      "tokenPaused": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API. Até lá, o planejamento fica pausado.",
+      "tokenPausedSince": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API. Até lá, o planejamento fica pausado. Este é o plano das {time}."
     },
     "popover": {
       "savesToMealie": "Salva no Mealie",

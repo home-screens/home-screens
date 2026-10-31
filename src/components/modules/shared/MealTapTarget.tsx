@@ -3,6 +3,8 @@
 import { lazy, Suspense, useState, type CSSProperties, type ReactNode } from 'react';
 import type { RecipeTapAction, SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
+import { isMealieMeal } from '@/lib/meal-dish-rules';
+import { useMealieLink } from '@/components/meals/useMealieLink';
 
 // Lazy so qrcode.react is only fetched/parsed after the first tap — most
 // displays run with tapRecipeAction 'off' and never pay for it.
@@ -61,21 +63,10 @@ export function MealTapTarget({ meal, mode, className, style, children }: MealTa
   }
 
   if (mode === 'link') {
-    // Editor preview: the canvas wrapper sets pointer-events: none, so the
-    // anchor opts back in; stopPropagation keeps the click from selecting
-    // the module (drags need 5px of movement, so plain clicks are safe).
     return (
-      <a
-        href={recipeUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-        style={{ ...style, pointerEvents: 'auto', cursor: 'pointer' }}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <RecipeLink meal={meal} recipeUrl={recipeUrl} className={className} style={style}>
         {children}
-      </a>
+      </RecipeLink>
     );
   }
 
@@ -113,5 +104,28 @@ export function MealTapTarget({ meal, mode, className, style, children }: MealTa
         </Suspense>
       )}
     </>
+  );
+}
+
+/**
+ * Editor preview: the canvas wrapper sets pointer-events: none, so the anchor
+ * opts back in; stopPropagation keeps the click from selecting the module
+ * (drags need 5px of movement, so plain clicks are safe). A Mealie recipe
+ * opens through the address this browser can reach Mealie at.
+ */
+function RecipeLink({ meal, recipeUrl, className, style, children }: { meal: SavedMeal; recipeUrl: string; className?: string; style?: CSSProperties; children: ReactNode }) {
+  const mealieLink = useMealieLink();
+  return (
+    <a
+      href={isMealieMeal(meal) ? mealieLink(recipeUrl) : recipeUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      style={{ ...style, pointerEvents: 'auto', cursor: 'pointer' }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </a>
   );
 }

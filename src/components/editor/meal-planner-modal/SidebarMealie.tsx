@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import { ExternalLink, Heart, History, Pencil, Search, ShoppingCart, X } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import { editorFetch } from '@/lib/editor-fetch';
-import { fetchMealieRecipeDetail, type MealieRecipeDetailWire, type MealieRecipeFilter } from '@/lib/meal-client';
+import { fetchMealieRecipeDetail, MealClientError, type MealieRecipeDetailWire, type MealieRecipeFilter } from '@/lib/meal-client';
+import type { MealieProblem } from '@/lib/meal-sources';
 import { parseMealieMealId } from '@/lib/mealie-map';
 import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
+import { useMealieLink } from '@/components/meals/useMealieLink';
 import MealPicture from '@/components/meals/MealPicture';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
@@ -108,6 +110,7 @@ export function MealieLibrary({
         {results.error && !results.loading && (
           <div className="px-3 py-6 text-center">
             <p className="text-sm font-semibold text-hs-text-body">{t(results.problem === 'not-connected' ? 'mealPlannerModal.mealie.notConnectedTitle' : results.problem === 'token' ? 'mealPlannerModal.mealie.tokenRefusedTitle' : 'mealPlannerModal.picker.mealieError')}</p>
+            {results.problem === 'token' && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t('mealPlannerModal.mealie.tokenFix')}</p>}
             <button
               type="button"
               onClick={results.retry}
@@ -159,6 +162,7 @@ export function MealieLibrary({
 export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
   const t = useTranslate('editor');
   const dishTime = useDishTime();
+  const mealieLink = useMealieLink();
 
   if (!meal) {
     return (
@@ -188,7 +192,7 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
       {meta && <div className="mt-0.5 text-xs text-hs-text-faint">{meta}</div>}
       {meal.recipeUrl && (
         <div className="mt-3">
-          <a href={meal.recipeUrl} target="_blank" rel="noopener noreferrer" className={linkButton}>
+          <a href={mealieLink(meal.recipeUrl)} target="_blank" rel="noopener noreferrer" className={linkButton}>
             {t('mealPlannerModal.openInMealie')}
             <ExternalLink className="w-3.5 h-3.5" aria-hidden />
           </a>
@@ -206,13 +210,16 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
 /** The recipe's ingredients from Mealie, two to a row, read only. */
 function MealieIngredients({ recipeId }: { recipeId: string | null }) {
   const t = useTranslate('editor');
-  const [state, setState] = useState<{ id: string; detail: MealieRecipeDetailWire | null; failed: boolean } | null>(null);
+  const [state, setState] = useState<{ id: string; detail: MealieRecipeDetailWire | null; failed: boolean; problem?: MealieProblem } | null>(null);
   useEffect(() => {
     if (!recipeId) return;
     const controller = new AbortController();
     fetchMealieRecipeDetail(editorFetch, recipeId, controller.signal).then(
       (detail) => setState({ id: recipeId, detail, failed: false }),
-      () => { if (!controller.signal.aborted) setState({ id: recipeId, detail: null, failed: true }); },
+      (err) => {
+        if (controller.signal.aborted) return;
+        setState({ id: recipeId, detail: null, failed: true, problem: err instanceof MealClientError ? err.problem : undefined });
+      },
     );
     return () => controller.abort();
   }, [recipeId]);
@@ -229,7 +236,17 @@ function MealieIngredients({ recipeId }: { recipeId: string | null }) {
           {Array.from({ length: 6 }, (_, i) => <div key={i} className="h-3 rounded bg-hs-card" />)}
         </div>
       ) : current.failed || !current.detail ? (
-        <p className="text-xs text-hs-text-faint">{t('mealPlannerModal.mealie.ingredientsFailed')}</p>
+        // Mealie refusing the token is not Mealie losing the ingredients.
+        current.problem === 'token' ? (
+          <p className="text-xs text-hs-text-faint">
+            <span className="block font-semibold text-hs-text-muted">{t('mealPlannerModal.mealie.tokenRefusedTitle')}</span>
+            {t('mealPlannerModal.mealie.tokenFix')}
+          </p>
+        ) : current.problem === 'not-connected' ? (
+          <p className="text-xs text-hs-text-faint">{t('mealPlannerModal.mealie.notConnectedTitle')}</p>
+        ) : (
+          <p className="text-xs text-hs-text-faint">{t('mealPlannerModal.mealie.ingredientsFailed')}</p>
+        )
       ) : (
         <ul className="grid grid-cols-2 gap-x-3">
           {current.detail.ingredients.map((ing, i) => (

@@ -74,6 +74,16 @@ describe('course edits', () => {
     expect(plan[0].courses).toEqual([{ kind: 'side', mealId: 'naan' }, { kind: 'drink', customText: 'Lemonade' }]);
   });
 
+  it('places a new course by kind: a side ahead of the drink, a second dessert beside the first', () => {
+    let plan = [dinner({ mealId: 'tikka', courses: [{ kind: 'drink', customText: 'Lassi' }, { kind: 'dessert', customText: 'Kulfi' }] })];
+    plan = addPlanCourse(plan, DAY, 'dinner', { kind: 'side', mealId: 'naan' });
+    plan = addPlanCourse(plan, DAY, 'dinner', { kind: 'main', customText: 'Dal' });
+    expect(plan[0].courses?.map((c) => c.customText ?? c.mealId)).toEqual(['Dal', 'naan', 'Lassi', 'Kulfi']);
+    plan = addPlanCourse(plan, DAY, 'dinner', { kind: 'dessert', customText: 'Cookies' });
+    // The hand-made "Lassi before Kulfi" stays; the new dessert joins Kulfi.
+    expect(plan[0].courses?.map((c) => c.customText ?? c.mealId)).toEqual(['Dal', 'naan', 'Lassi', 'Kulfi', 'Cookies']);
+  });
+
   it('starts a meal from just a course', () => {
     const plan = addPlanCourse([], DAY, 'dinner', { kind: 'side', customText: 'Big salad' });
     expect(plan).toEqual([dinner({ courses: [{ kind: 'side', customText: 'Big salad' }] })]);
@@ -159,7 +169,7 @@ describe('drawing courses', () => {
 
   it('hands the next meal its courses', () => {
     const plan = [dinner({ mealId: 'tikka', courses: [{ kind: 'side', mealId: 'naan' }] })];
-    const next = getNextPlannedMeal(DAY, 12, plan, savedMeals, ['dinner']);
+    const next = getNextPlannedMeal(DAY, 12 * 60, plan, savedMeals, ['dinner']);
     expect(next?.name).toBe('tikka');
     expect(next?.courses.map((c) => c.name)).toEqual(['naan']);
   });

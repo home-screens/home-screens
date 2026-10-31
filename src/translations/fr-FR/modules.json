@@ -368,7 +368,7 @@
     "noMealPlanned": "Aucun repas prévu",
     "nothingPlannedThisWeek": "Rien de prévu cette semaine",
     "todaysMeals": "Repas du jour",
-    "now": "maintenant",
+    "now": "Maintenant",
     "servingAt": "servi à {time}",
     "time": {
       "minutes": "{minutes} min",
@@ -403,7 +403,7 @@
     "closeRecipe": "Fermer",
     "planFromPhoneHint": "Planifie les repas depuis un téléphone : ouvre {url} et touche Repas",
     "courses": {
-      "main": "Aussi",
+      "main": "Plat",
       "side": "Accompagnement",
       "dessert": "Dessert",
       "drink": "Boisson"
@@ -421,6 +421,8 @@
     "todaysMeals": "Repas du jour",
     "todaysMenu": "Menu du jour",
     "alsoToday": "Aussi aujourd'hui",
+    "tomorrowsMeals": "Repas de demain",
+    "alsoTomorrow": "Aussi demain",
     "noMealPlanned": "Aucun repas prévu",
     "notPlanned": "Non prévu",
     "noMealsPlannedToday": "Aucun repas prévu aujourd'hui",
@@ -428,8 +430,7 @@
     "mealsPlannedCount": "{filled} repas sur {total} prévus",
     "heroLabels": {
       "now": "Maintenant",
-      "upNext": "Ensuite",
-      "tonight": "Ce soir"
+      "upNext": "Ensuite"
     },
     "nextMealLabels": {
       "now": "Maintenant",

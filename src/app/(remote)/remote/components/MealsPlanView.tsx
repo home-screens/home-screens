@@ -2,6 +2,7 @@
 
 import { useMemo, type CSSProperties } from 'react';
 import type { MealSlotType, TimeFormat } from '@/types/config';
+import type { MealieProblem } from '@/lib/meal-sources';
 import {
   SLOT_META,
   SLOT_ORDER,
@@ -23,11 +24,11 @@ interface MealsPlanViewProps extends MealsViewProps {
   /** The plan lives in Mealie: no "add meals to your library first" here. */
   fromMealie: boolean;
   /**
-   * Planning is paused (Mealie stopped answering): rows cannot be tapped,
-   * the buttons are off, and one message says why. `updatedAt` is when the
-   * copy on screen came from Mealie.
+   * Planning is paused (Mealie gave no answer): rows cannot be tapped, the
+   * buttons are off, and one message says why (`problem`). `updatedAt` is
+   * when the copy on screen came from Mealie.
    */
-  paused: { updatedAt: number | null } | null;
+  paused: { updatedAt: number | null; problem: MealieProblem } | null;
   onRetry: () => Promise<void> | void;
   /** Open the meal sheet on a planned meal. */
   onOpenMeal: (date: string, slot: MealSlotType) => void;
@@ -98,7 +99,7 @@ export default function MealsPlanView({
 
   return (
     <div style={{ paddingBottom: 80 }}>
-      {paused && <MealiePausedNotice updatedAt={paused.updatedAt} todayISO={todayISO} onRetry={onRetry} />}
+      {paused && <MealiePausedNotice updatedAt={paused.updatedAt} problem={paused.problem} todayISO={todayISO} onRetry={onRetry} />}
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <button

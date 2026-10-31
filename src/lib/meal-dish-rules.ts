@@ -1,6 +1,6 @@
-import type { MealCourseKind, SavedMeal } from '@/types/config';
+import type { MealCourseKind, MealSlotType, SavedMeal } from '@/types/config';
 import { parseMealieMealId } from './mealie-map';
-import { normalizeTag, type LibraryFilter } from './meal-constants';
+import { formatTagLabel, normalizeTag, type LibraryFilter } from './meal-constants';
 
 /**
  * Small rules about how a dish is offered and described wherever the family
@@ -45,6 +45,15 @@ export function splitMinutes(total: number): { hours: number; minutes: number } 
 }
 
 /**
+ * A tag as a dish's meta line prints it. The family's own tags are stored
+ * lowercase ("kid-friendly") and are dressed up; Mealie's categories and tags
+ * are names the family typed and are shown as typed.
+ */
+export function mealTagLabel(meal: Pick<SavedMeal, 'id'>, tag: string): string {
+  return isMealieMeal(meal) ? tag : formatTagLabel(tag);
+}
+
+/**
  * The family's own meals for a course picker: the ones saved as that kind of
  * dish first ("Add a side" leads with the sides), then everything else, each
  * in library order. Any meal can still be a side; the split only saves a
@@ -78,6 +87,22 @@ export function mealsForCourse(
   return { matching, others };
 }
 
+/**
+ * The family's own meals for the main dish of a meal: the ones tagged for
+ * that meal of the day first ("Breakfast" leads with the meals tagged
+ * breakfast), then everything else, each in library order. The same split
+ * the course pickers make by kind of dish.
+ */
+export function mealsForSlot(
+  savedMeals: readonly SavedMeal[],
+  slot: MealSlotType,
+): { matching: SavedMeal[]; others: SavedMeal[] } {
+  const matching: SavedMeal[] = [];
+  const others: SavedMeal[] = [];
+  for (const meal of savedMeals) (meal.tags?.some((tag) => normalizeTag(tag) === slot) ? matching : others).push(meal);
+  return { matching, others };
+}
+
 /** The family's saved meals whose name or a tag holds the typed words, in the order given. */
 export function searchSavedMeals(meals: SavedMeal[], query: string): SavedMeal[] {
   const q = query.trim().toLowerCase();
@@ -85,6 +110,18 @@ export function searchSavedMeals(meals: SavedMeal[], query: string): SavedMeal[]
   return meals.filter(
     (m) => m.name.toLowerCase().includes(q) || (m.tags ?? []).some((tag) => tag.toLowerCase().includes(q)),
   );
+}
+
+/**
+ * The saved meal the typed words name, ignoring case and extra spaces, or
+ * null. Typing "pancakes" means the family's Pancakes, with its picture and
+ * its ingredients, not a typed-in dish that only shares its name.
+ */
+export function savedMealNamed(meals: readonly SavedMeal[], words: string): SavedMeal | null {
+  const key = (text: string) => text.trim().replace(/\s+/g, ' ').toLowerCase();
+  const wanted = key(words);
+  if (!wanted) return null;
+  return meals.find((m) => key(m.name) === wanted) ?? null;
 }
 
 /**

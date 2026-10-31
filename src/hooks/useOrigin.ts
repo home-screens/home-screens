@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { displayFetch } from '@/lib/display-fetch';
+import { isLoopbackHost } from '@/lib/loopback-host';
 import type { HubAddressResponse } from '@/app/api/system/address/route';
 
 /**
@@ -33,12 +34,6 @@ export function useOrigin(): string {
     return () => { cancelled = true; };
   }, []);
   return origin;
-}
-
-/** `localhost`, `*.localhost`, `127.x`, `[::1]`, `0.0.0.0`: the hub's own machine. */
-export function isLoopbackHost(hostname: string): boolean {
-  const h = hostname.toLowerCase();
-  return h === 'localhost' || h.endsWith('.localhost') || h.startsWith('127.') || h === '[::1]' || h === '0.0.0.0';
 }
 
 let pending: Promise<string> | null = null;

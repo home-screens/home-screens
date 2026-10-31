@@ -106,6 +106,16 @@ function refusalMessage(json: unknown, fallback: string): string {
 }
 
 /**
+ * A refusal from one of the routes that talk to Mealie. When Mealie was the
+ * problem the route says how (`failure`), and the error carries it in the
+ * words a surface shows: a refused token is not Mealie being down.
+ */
+function mealieRefusal(kind: MealClientFailure, json: unknown, fallback: string): MealClientError {
+  const failure = (json as { failure?: MealieFailure } | null)?.failure;
+  return new MealClientError(kind, refusalMessage(json, fallback), failure ? mealieProblem(failure) : undefined);
+}
+
+/**
  * Load the stored meals. Rejects on any non-success status or an unusable
  * body: a surface that treated an error body as an empty library went on to
  * replace the real one with the first meal it added.
@@ -226,7 +236,7 @@ export async function loadMealieRange(fetcher: MealFetch, base: MealSnapshot, ra
   const json = await readJson(res);
   const block = (json as { mealie?: MealieWireBlock } | null)?.mealie;
   if (!res.ok || !block || !Array.isArray(block.plan)) {
-    throw new MealClientError('load', refusalMessage(json, 'Those weeks could not be loaded from Mealie.'));
+    throw mealieRefusal('load', json, 'Those weeks could not be loaded from Mealie.');
   }
   return { ...base, plan: block.plan, savedMeals: block.meals, mealie: block };
 }
@@ -260,10 +270,10 @@ async function saveMealieEdit(fetcher: MealFetch, base: MealSnapshot, edit: Meal
         current = theirs;
         continue;
       }
-      throw new MealClientError('conflict', refusalMessage(json, 'Somebody changed these meals in Mealie. Try again.'));
+      throw mealieRefusal('conflict', json, 'Somebody changed these meals in Mealie. Try again.');
     }
     const saved = res.ok ? asSnapshot(json, current.globalTimeFormat) : null;
-    if (!saved) throw new MealClientError('save', refusalMessage(json, 'The meals could not be saved to Mealie.'));
+    if (!saved) throw mealieRefusal('save', json, 'The meals could not be saved to Mealie.');
     displayCache.replace(mealsDataUrl(), saved, TTL_MS);
     return saved;
   }
@@ -352,7 +362,7 @@ export class MealSession {
       });
       const json = await readJson(res);
       const saved = res.ok ? asSnapshot(json, base.globalTimeFormat) : null;
-      if (!saved) throw new MealClientError('save', refusalMessage(json, "We couldn't reach Mealie."));
+      if (!saved) throw mealieRefusal('save', json, "We couldn't reach Mealie.");
       const suggested = (json as { suggested?: { created?: number; skipped?: number; entries?: MealieSuggestedEntry[] } }).suggested;
       counts = { created: suggested?.created ?? 0, skipped: suggested?.skipped ?? 0, entries: Array.isArray(suggested?.entries) ? suggested.entries : [] };
       displayCache.replace(mealsDataUrl(), saved, TTL_MS);
@@ -436,10 +446,7 @@ export async function searchMealieRecipes(
   const res = await fetcher(`/api/mealie/recipes${params.size ? `?${params}` : ''}`, { signal });
   const json = await readJson(res);
   const d = json as Partial<MealieRecipePage> | null;
-  if (!res.ok || !d || !Array.isArray(d.items)) {
-    const failure = (json as { failure?: MealieFailure } | null)?.failure;
-    throw new MealClientError('load', refusalMessage(json, "We couldn't reach Mealie."), mealieProblem(failure));
-  }
+  if (!res.ok || !d || !Array.isArray(d.items)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
   return { items: d.items, page: d.page ?? 1, totalPages: d.totalPages ?? 0, total: d.total ?? d.items.length };
 }
 
@@ -454,7 +461,7 @@ export async function fetchMealieCategories(fetcher: MealFetch, signal?: AbortSi
   const res = await fetcher('/api/mealie/categories', { signal });
   const json = await readJson(res);
   const list = (json as { categories?: unknown } | null)?.categories;
-  if (!res.ok || !Array.isArray(list)) throw new MealClientError('load', refusalMessage(json, "We couldn't reach Mealie."));
+  if (!res.ok || !Array.isArray(list)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
   return list.filter((c): c is MealieCategory => !!c && typeof c.name === 'string' && typeof c.slug === 'string');
 }
 
@@ -472,7 +479,7 @@ export async function fetchMealieRecipeDetail(fetcher: MealFetch, recipeId: stri
   const json = await readJson(res);
   const d = json as Partial<MealieRecipeDetailWire> | null;
   if (!res.ok || !d || !Array.isArray(d.ingredients) || !Array.isArray(d.steps) || !d.meal) {
-    throw new MealClientError('load', refusalMessage(json, "We couldn't reach Mealie."));
+    throw mealieRefusal('load', json, "We couldn't reach Mealie.");
   }
   return d as MealieRecipeDetailWire;
 }

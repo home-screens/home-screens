@@ -9,12 +9,15 @@ import {
   clearPlanSlot,
   setPlanSlotTime,
   clearPlanWeek,
-  shufflePlanWeek,
+  suggestPlanWeek,
+  placePlanWeek,
   copyPlanWeek,
   restorePlanEntries,
+  replacesDish,
 } from '@/lib/meal-plan-actions';
 import { addPlanCourse, movePlanCourse, removePlanCourse, setPlanCourse } from '@/lib/meal-courses';
 import { withoutSuggested, type MealEdit, type MealieSuggestedEntry } from '@/lib/meal-client';
+import { shownWeek } from '@/lib/meal-plan-words';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getWeekDates, type MealsConfirmAction } from '../components/meals-shared';
 
@@ -28,6 +31,8 @@ interface MealsPlanActionsParams {
   weekDates: ReturnType<typeof getWeekDates>;
   /** Origin of the viewed week — needed to address the *previous* week */
   viewingWeekStart: Date;
+  /** The household's day, `YYYY-MM-DD`: messages say "this week" only for its week. */
+  todayISO: string;
   setConfirmAction: Dispatch<SetStateAction<MealsConfirmAction | null>>;
   /** Plan saves go to Mealie: the confirm for clearing a meal says so, and Suggest asks Mealie. */
   savesToMealie: boolean;
@@ -35,6 +40,17 @@ interface MealsPlanActionsParams {
   suggestFromMealie: (cells: { date: string; slot: MealSlotType }[]) => Promise<{ created: number; skipped: number; entries: MealieSuggestedEntry[] } | null>;
   /** A short message at the bottom of the tab, with Undo when there is something to take back. */
   showNotice: (message: string, undo?: () => void) => void;
+  /**
+   * Keep these dishes drawable after the plan stops naming them. A Mealie
+   * copy carries only the recipes its plan uses, so an Undo would otherwise
+   * put back a meal the phone has no name or picture for until Mealie answers.
+   */
+  keepMeals: (meals: SavedMeal[]) => void;
+}
+
+/** The meal planned in a slot, if any. */
+function entryAt(plan: PlannedMeal[], date: string, slot: MealSlotType): PlannedMeal | undefined {
+  return plan.find((p) => p.date === date && p.slot === slot);
 }
 
 /**
@@ -51,14 +67,21 @@ export function useMealsPlanActions({
   settings,
   weekDates,
   viewingWeekStart,
+  todayISO,
   setConfirmAction,
   savesToMealie,
   suggestFromMealie,
   showNotice,
+  keepMeals,
 }: MealsPlanActionsParams) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
+  // "This week" in a message only while it is this week; any other is named by its dates.
+  const week = useMemo(
+    () => shownWeek(weekDates.map((d) => d.date), todayISO, formattingLocale),
+    [weekDates, todayISO, formattingLocale],
+  );
 
   // Filter plan to viewed week
   const weekPlan = useMemo(
@@ -90,14 +113,33 @@ export function useMealsPlanActions({
     await saveData((c) => ({ plan: transform(c.plan) }));
   }, [saveData, setPlan]);
 
-  const assignMealToSlot = useCallback(async (date: string, slot: MealSlotType, mealId: string) => {
-    await applyToPlan((p) => assignPlanSlot(p, date, slot, mealId));
-  }, [applyToPlan]);
+  /**
+   * A notice saying what one tap just did (a dish changed for another, a meal
+   * cleared), with Undo putting back `before`, the meal as it was. Undo
+   * replays against the plan as it is by then, like every edit here, so in
+   * Mealie mode it lands in Mealie as new entries. Shown as the change is
+   * made, not once Mealie has answered.
+   */
+  const offerBack = useCallback((message: string, before: PlannedMeal) => {
+    keepMeals(savedMeals.filter((m) => m.id === before.mealId || before.courses?.some((c) => c.mealId === m.id)));
+    showNotice(message, () => { void applyToPlan((p) => restorePlanEntries(p, [before])); });
+  }, [applyToPlan, keepMeals, savedMeals, showNotice]);
+
+  /** The main dish picked in the picker; replacing another one, the notice offers that back. */
+  const assignMealToSlot = useCallback(async (date: string, slot: MealSlotType, meal: SavedMeal) => {
+    const before = entryAt(planRef.current, date, slot);
+    const saved = applyToPlan((p) => assignPlanSlot(p, date, slot, meal.id));
+    if (before && replacesDish(before, null, { mealId: meal.id })) offerBack(t('mealsTab.notice.changed', { name: meal.name }), before);
+    await saved;
+  }, [applyToPlan, offerBack, t]);
 
   /** A meal typed straight into the slot, with no library entry behind it. */
   const setSlotText = useCallback(async (date: string, slot: MealSlotType, text: string) => {
-    await applyToPlan((p) => setPlanSlotText(p, date, slot, text));
-  }, [applyToPlan]);
+    const before = entryAt(planRef.current, date, slot);
+    const saved = applyToPlan((p) => setPlanSlotText(p, date, slot, text));
+    if (before && replacesDish(before, null, { customText: text })) offerBack(t('mealsTab.notice.changed', { name: text.trim() }), before);
+    await saved;
+  }, [applyToPlan, offerBack, t]);
 
   const clearSlot = useCallback(async (date: string, slot: MealSlotType) => {
     await applyToPlan((p) => clearPlanSlot(p, date, slot));
@@ -107,17 +149,27 @@ export function useMealsPlanActions({
    * Clear a whole meal from its sheet. A lone dish goes in one tap, as Remove
    * Meal always did; a meal with courses asks first, since one tap takes
    * several dishes off the plan (and, in Mealie mode, several entries out of
-   * Mealie). `onCleared` runs once the meal is gone, to close the sheet.
+   * Mealie). Either way the notice after offers it back. `onCleared` runs
+   * once the meal is gone, to close the sheet.
    */
   const clearMeal = useCallback((date: string, slot: MealSlotType, onCleared: () => void) => {
-    const { name, courses } = resolveMealWithEntry(date, slot, weekPlan, savedMeals);
-    if (courses.length === 0) {
+    const { name, courses, planned } = resolveMealWithEntry(date, slot, weekPlan, savedMeals);
+    const dish = name ?? tModules(getMealSlotLabelKey(slot));
+    const clear = () => {
       onCleared();
-      void clearSlot(date, slot);
+      const saved = clearSlot(date, slot);
+      if (planned) {
+        offerBack(courses.length === 0
+          ? t('mealsTab.notice.removed', { name: dish })
+          : t('mealsTab.notice.clearedMeal', { name: dish, count: courses.length }), planned);
+      }
+      return saved;
+    };
+    if (courses.length === 0) {
+      void clear();
       return;
     }
     const day = getLocalizedDayNames(formattingLocale, 'full')[dateToDayIndex(date)];
-    const dish = name ?? tModules(getMealSlotLabelKey(slot));
     setConfirmAction({
       title: t(`mealSheet.clearConfirm.title.${slot}`, { day }),
       description: t(savesToMealie ? 'mealSheet.clearConfirm.descriptionMealie' : 'mealSheet.clearConfirm.description', {
@@ -127,37 +179,42 @@ export function useMealsPlanActions({
       confirmLabel: t(`mealSheet.clearConfirm.confirm.${slot}`),
       onConfirm: async () => {
         setConfirmAction(null);
-        onCleared();
-        await clearSlot(date, slot);
+        await clear();
       },
     });
-  }, [weekPlan, savedMeals, clearSlot, setConfirmAction, savesToMealie, formattingLocale, t, tModules]);
+  }, [weekPlan, savedMeals, clearSlot, offerBack, setConfirmAction, savesToMealie, formattingLocale, t, tModules]);
 
   /** Add a side, a dessert, a drink or another main to a meal. */
   const addCourse = useCallback(async (date: string, slot: MealSlotType, course: MealCourse) => {
     await applyToPlan((p) => addPlanCourse(p, date, slot, course));
   }, [applyToPlan]);
 
-  /** Swap the course at `index` for another dish or typed text; it keeps its place. */
+  /**
+   * Swap the course at `index` for another dish or typed text (`name`, for
+   * the notice that offers the old one back); it keeps its place.
+   */
   const changeCourse = useCallback(async (
     date: string,
     slot: MealSlotType,
     index: number,
     change: { kind?: MealCourseKind; mealId?: string; customText?: string },
+    name: string,
   ) => {
-    await applyToPlan((p) => setPlanCourse(p, date, slot, index, change));
-  }, [applyToPlan]);
+    const before = entryAt(planRef.current, date, slot);
+    const saved = applyToPlan((p) => setPlanCourse(p, date, slot, index, change));
+    if (before && replacesDish(before, index, change)) offerBack(t('mealsTab.notice.changed', { name }), before);
+    await saved;
+  }, [applyToPlan, offerBack, t]);
 
   // A course goes on one tap, so the notice offers it back.
   const removeCourse = useCallback(async (date: string, slot: MealSlotType, index: number) => {
     const before = plan.find((p) => p.date === date && p.slot === slot);
     const course = before?.courses?.[index];
     const name = course ? (savedMeals.find((m) => m.id === course.mealId)?.name ?? course.customText ?? '') : '';
-    await applyToPlan((p) => removePlanCourse(p, date, slot, index));
-    if (before && course) {
-      showNotice(t('mealsTab.notice.removed', { name }), () => { void applyToPlan((p) => restorePlanEntries(p, [before])); });
-    }
-  }, [applyToPlan, plan, savedMeals, showNotice, t]);
+    const saved = applyToPlan((p) => removePlanCourse(p, date, slot, index));
+    if (before && course) offerBack(t('mealsTab.notice.removed', { name }), before);
+    await saved;
+  }, [applyToPlan, offerBack, plan, savedMeals, t]);
 
   const moveCourse = useCallback(async (date: string, slot: MealSlotType, from: number, to: number) => {
     await applyToPlan((p) => movePlanCourse(p, date, slot, from, to));
@@ -171,23 +228,27 @@ export function useMealsPlanActions({
     // Asked first (in Mealie mode it clears the family's Mealie week too),
     // and Undo after puts back what the week held.
     const before = weekPlan;
+    const { thisWeek, range } = week;
     setConfirmAction({
       title: t('mealsTab.confirm.clearWeek.title'),
-      description: t(savesToMealie ? 'mealsTab.confirm.clearWeek.descriptionMealie' : 'mealsTab.confirm.clearWeek.description'),
+      description: savesToMealie
+        ? (thisWeek ? t('mealsTab.confirm.clearWeek.descriptionMealie') : t('mealsTab.confirm.clearWeek.descriptionMealieDates', { range }))
+        : (thisWeek ? t('mealsTab.confirm.clearWeek.description') : t('mealsTab.confirm.clearWeek.descriptionDates', { range })),
       confirmLabel: t('mealsTab.confirm.clearWeek.confirmLabel'),
       onConfirm: async () => {
         const weekDateStrs = weekDates.map((d) => d.date);
         await applyToPlan((p) => clearPlanWeek(p, weekDateStrs));
         setConfirmAction(null);
-        showNotice(t('mealsTab.notice.cleared'), () => {
+        showNotice(thisWeek ? t('mealsTab.notice.cleared') : t('mealsTab.notice.clearedDates', { range }), () => {
           void applyToPlan((p) => restorePlanEntries(clearPlanWeek(p, weekDateStrs), before));
         });
       },
     });
-  }, [weekDates, weekPlan, applyToPlan, setConfirmAction, savesToMealie, showNotice, t]);
+  }, [weekDates, weekPlan, week, applyToPlan, setConfirmAction, savesToMealie, showNotice, t]);
 
   const suggestRandom = useCallback(async () => {
     const weekDateStrs = weekDates.map((d) => d.date);
+    const { thisWeek, range } = week;
     // With the plan in Mealie, Mealie suggests, by its own meal plan rules,
     // and only for the dinners nobody has planned, so nothing is replaced.
     // Dinners only: Mealie's random pick ignores what kind of meal it is
@@ -203,12 +264,14 @@ export function useMealsPlanActions({
         .filter((date) => !weekPlan.some((p) => p.date === date && p.slot === 'dinner'))
         .map((date) => ({ date, slot: 'dinner' as const }));
       if (empty.length === 0) {
-        showNotice(t('mealie.suggest.allPlanned'));
+        showNotice(thisWeek ? t('mealie.suggest.allPlanned') : t('mealie.suggest.allPlannedDates', { range }));
         return;
       }
       setConfirmAction({
-        title: t('mealie.suggest.confirmTitle'),
-        description: t('mealie.suggest.confirmDescription', { count: empty.length }),
+        title: t('mealie.suggest.confirmTitle', { count: empty.length }),
+        description: thisWeek
+          ? t('mealie.suggest.confirmDescription', { count: empty.length })
+          : t('mealie.suggest.confirmDescriptionDates', { count: empty.length, range }),
         confirmLabel: t('mealie.suggest.confirmLabel'),
         // Filling empty nights removes nothing: not the red of Clear.
         confirmColor: 'var(--hs-accent)',
@@ -225,31 +288,43 @@ export function useMealsPlanActions({
           // says every night rather than listing all seven.
           const dates = new Set(added.map((e) => e.date));
           const message = dates.size >= 7
-            ? t('mealie.suggest.doneEveryNight')
+            ? (thisWeek ? t('mealie.suggest.doneEveryNight') : t('mealie.suggest.doneEveryNightDates', { range }))
             : t('mealie.suggest.done', { count: result.created, days: formatDayList([...dates], formattingLocale) });
           showNotice(message, () => { void applyToPlan((p) => withoutSuggested(p, added)); });
         },
       });
       return;
     }
-    const suggest = () => applyToPlan((p) => shufflePlanWeek(p, savedMeals, settings.enabledSlots, weekDateStrs));
+    // Nothing in the library, nothing to pick from.
+    if (savedMeals.length === 0) return;
+    // What the week held, for Undo, as Copy Last Week keeps it.
+    const before = weekPlan;
+    const suggest = async () => {
+      // Picked once, then placed: the edit runs for the screen and again for
+      // the save, and a fresh pick each time showed one week and saved another.
+      const picked = suggestPlanWeek(planRef.current, savedMeals, settings.enabledSlots, weekDateStrs);
+      await applyToPlan((p) => placePlanWeek(p, weekDateStrs, picked));
+      showNotice(thisWeek ? t('mealsTab.notice.suggested') : t('mealsTab.notice.suggestedDates', { range }), () => {
+        void applyToPlan((p) => placePlanWeek(p, weekDateStrs, before));
+      });
+    };
     // An empty week has nothing to lose. One with meals in it is asked about
     // first, as Clear is: Suggest replaces the whole week, hand-picked meals
-    // included, and there is no undo on the phone.
-    if (weekPlan.length === 0 || savedMeals.length === 0) {
+    // included.
+    if (before.length === 0) {
       await suggest();
       return;
     }
     setConfirmAction({
-      title: t('mealsTab.confirm.suggestWeek.title'),
-      description: t('mealsTab.confirm.suggestWeek.description'),
+      title: thisWeek ? t('mealsTab.confirm.suggestWeek.title') : t('mealsTab.confirm.suggestWeek.titleDates', { range }),
+      description: thisWeek ? t('mealsTab.confirm.suggestWeek.description') : t('mealsTab.confirm.suggestWeek.descriptionDates', { range }),
       confirmLabel: t('mealsTab.confirm.suggestWeek.confirmLabel'),
       onConfirm: async () => {
-        await suggest();
         setConfirmAction(null);
+        await suggest();
       },
     });
-  }, [savedMeals, weekDates, weekPlan, settings.enabledSlots, applyToPlan, setConfirmAction, t, savesToMealie, suggestFromMealie, showNotice, formattingLocale]);
+  }, [savedMeals, weekDates, weekPlan, week, settings.enabledSlots, applyToPlan, setConfirmAction, t, savesToMealie, suggestFromMealie, showNotice, formattingLocale]);
 
   const copyLastWeek = useCallback(async () => {
     const prevStart = new Date(viewingWeekStart);
@@ -263,9 +338,13 @@ export function useMealsPlanActions({
     // Clear and Suggest are, since the copy replaces it (in Mealie, for the
     // whole family).
     const before = weekPlan;
+    // Another week than this one is named by its dates, and so is the one
+    // copied from: "last week" would read as the one before today's.
+    const { thisWeek, range } = week;
+    const from = shownWeek(prevWeekDates, todayISO, formattingLocale).range;
     const copy = async () => {
       await applyToPlan((p) => copyPlanWeek(p, prevWeekDates, weekDateStrs));
-      showNotice(t('mealsTab.notice.copied'), () => {
+      showNotice(thisWeek ? t('mealsTab.notice.copied') : t('mealsTab.notice.copiedDates', { from }), () => {
         void applyToPlan((p) => restorePlanEntries(clearPlanWeek(p, weekDateStrs), before));
       });
     };
@@ -274,15 +353,17 @@ export function useMealsPlanActions({
       return;
     }
     setConfirmAction({
-      title: t('mealsTab.confirm.copyWeek.title'),
-      description: t(savesToMealie ? 'mealsTab.confirm.copyWeek.descriptionMealie' : 'mealsTab.confirm.copyWeek.description'),
+      title: thisWeek ? t('mealsTab.confirm.copyWeek.title') : t('mealsTab.confirm.copyWeek.titleDates', { range, from }),
+      description: savesToMealie
+        ? (thisWeek ? t('mealsTab.confirm.copyWeek.descriptionMealie') : t('mealsTab.confirm.copyWeek.descriptionMealieDates', { range, from }))
+        : (thisWeek ? t('mealsTab.confirm.copyWeek.description') : t('mealsTab.confirm.copyWeek.descriptionDates', { range, from })),
       confirmLabel: t('mealsTab.confirm.copyWeek.confirmLabel'),
       onConfirm: async () => {
         setConfirmAction(null);
         await copy();
       },
     });
-  }, [viewingWeekStart, weekDates, weekPlan, settings.weekStartDay, applyToPlan, setConfirmAction, savesToMealie, showNotice, t]);
+  }, [viewingWeekStart, weekDates, weekPlan, week, todayISO, formattingLocale, settings.weekStartDay, applyToPlan, setConfirmAction, savesToMealie, showNotice, t]);
 
   const hasPreviousWeekEntries = useMemo(() => {
     const prevStart = new Date(viewingWeekStart);
@@ -295,6 +376,7 @@ export function useMealsPlanActions({
 
   return {
     weekPlan,
+    week,
     getMealForSlot,
     assignMealToSlot,
     setSlotText,

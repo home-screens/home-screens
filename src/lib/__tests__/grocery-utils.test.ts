@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { generateGroceryList, groceryListNeedsHeadings, GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
+import {
+  generateGroceryList,
+  groceryListNeedsHeadings,
+  plannedMealsWithoutIngredients,
+  shortNameList,
+  GROCERY_CATEGORY_ORDER,
+} from '@/lib/grocery-utils';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
 
 const meal = (id: string, ingredients: SavedMeal['ingredients']): SavedMeal => ({
@@ -36,7 +42,7 @@ describe('generateGroceryList', () => {
     expect(result.get('produce')!.items[0].name).toBe('Lettuce');
   });
 
-  it('merges duplicate ingredient amounts across meals', () => {
+  it("adds up an ingredient's amounts across meals", () => {
     const meals = [
       meal('a', [{ name: 'Butter', amount: '2 tbsp', category: 'dairy' }]),
       meal('b', [{ name: 'Butter', amount: '1 tbsp', category: 'dairy' }]),
@@ -49,7 +55,23 @@ describe('generateGroceryList', () => {
     const result = generateGroceryList(plan, meals, []);
     const dairy = result.get('dairy')!;
     expect(dairy.items).toHaveLength(1);
-    expect(dairy.items[0].amount).toBe('2 tbsp, 1 tbsp');
+    expect(dairy.items[0].amount).toBe('3 tbsp');
+  });
+
+  it('counts a meal planned twice in the week twice', () => {
+    const meals = [
+      meal('tacos', [{ name: 'Ground beef', amount: '2 lb' }]),
+      meal('chili', [{ name: 'Ground beef', amount: '1 lb' }, { name: 'Bread', amount: '1 loaf' }]),
+    ];
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-04', slot: 'dinner', mealId: 'tacos' },
+      { date: '2026-04-05', slot: 'dinner', mealId: 'chili' },
+      { date: '2026-04-06', slot: 'dinner', mealId: 'tacos' },
+      { date: '2026-04-07', slot: 'lunch', mealId: 'chili' },
+    ];
+    const items = [...generateGroceryList(plan, meals, []).values()].flatMap((g) => g.items);
+    expect(items.find((i) => i.name === 'Ground beef')!.amount).toBe('6 lb');
+    expect(items.find((i) => i.name === 'Bread')!.amount).toBe('2 loaves');
   });
 
   it('merges seafood into meat category', () => {
@@ -219,5 +241,50 @@ describe('groceryListNeedsHeadings', () => {
   it('leaves them off a single-aisle list', () => {
     expect(groceryListNeedsHeadings(list('other'))).toBe(false);
     expect(groceryListNeedsHeadings(list())).toBe(false);
+  });
+});
+
+describe('plannedMealsWithoutIngredients', () => {
+  const meals: SavedMeal[] = [
+    meal('roast', undefined),
+    meal('tacos', [{ name: 'Tortillas', amount: '8' }]),
+    meal('soup', []),
+    meal('blank', [{ name: '  ', amount: '1' }]),
+    meal('pie', undefined),
+  ];
+
+  it('names the planned meals that add nothing to the list, once each, in the order of the week', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-05', slot: 'dinner', mealId: 'soup' },
+      { date: '2026-04-04', slot: 'dinner', mealId: 'roast', courses: [{ kind: 'dessert', mealId: 'pie' }] },
+      { date: '2026-04-04', slot: 'lunch', mealId: 'tacos' },
+      { date: '2026-04-06', slot: 'dinner', mealId: 'roast' },
+      { date: '2026-04-06', slot: 'lunch', mealId: 'blank' },
+    ];
+    expect(plannedMealsWithoutIngredients(plan, meals).map((m) => m.id)).toEqual(['roast', 'pie', 'soup', 'blank']);
+  });
+
+  it('leaves out meals typed straight into the plan and meals no longer saved', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-04', slot: 'dinner', customText: 'Pizza night' },
+      { date: '2026-04-05', slot: 'dinner', mealId: 'gone' },
+      { date: '2026-04-06', slot: 'dinner', mealId: 'tacos' },
+    ];
+    expect(plannedMealsWithoutIngredients(plan, meals)).toEqual([]);
+  });
+});
+
+describe('shortNameList', () => {
+  const more = (count: number) => `${count} more`;
+
+  it('names up to four in full', () => {
+    expect(shortNameList(['Soup'], 'en-US', more)).toBe('Soup');
+    expect(shortNameList(['Soup', 'Pie'], 'en-US', more)).toBe('Soup and Pie');
+    expect(shortNameList(['A', 'B', 'C', 'D'], 'en-US', more)).toBe('A, B, C, and D');
+  });
+
+  it('names three and counts the rest past four', () => {
+    expect(shortNameList(['A', 'B', 'C', 'D', 'E'], 'en-US', more)).toBe('A, B, C, and 2 more');
+    expect(shortNameList(['A', 'B', 'C', 'D', 'E'], 'de-DE', (n) => `${n} weitere`)).toBe('A, B, C und 2 weitere');
   });
 });

@@ -10,6 +10,10 @@ import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseNames } from '../shared/MealCourseLines';
 import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 import { useMealMinutes } from '../shared/useMealMinutes';
+import { mealListScrollTop } from '@/lib/meal-list-scroll';
+
+/** Marks each day heading, the lines the scroll can stop at. */
+const DAY_HEADING_ATTR = 'data-list-day';
 
 interface ListViewProps {
   config: MealPlannerConfig;
@@ -36,15 +40,26 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
 
   // Nobody scrolls a wall: when the week is longer than the module, it starts
   // at today, so tonight's dinner and the days ahead are what shows, not the
-  // days already gone. Pinned again whenever the list changes size.
+  // days already gone, with a day heading as the top line (see
+  // mealListScrollTop). Pinned again whenever the list changes size. Offsets
+  // are against the list itself (it is the lines' offset parent), so a
+  // scaled canvas does not skew them.
   const listRef = useRef<HTMLDivElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
+  const spacerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const list = listRef.current;
-    if (!list) return;
+    const spacer = spacerRef.current;
+    if (!list || !spacer) return;
     const pin = () => {
       const today = todayRef.current;
-      list.scrollTop = today && list.scrollHeight > list.clientHeight ? today.offsetTop : 0;
+      const contentHeight = list.scrollHeight - spacer.offsetHeight;
+      const headings = Array.from(list.querySelectorAll<HTMLElement>(`[${DAY_HEADING_ATTR}]`), (el) => el.offsetTop);
+      const { top, spacer: room } = today
+        ? mealListScrollTop(headings, { top: today.offsetTop, bottom: today.offsetTop + today.offsetHeight }, list.clientHeight, contentHeight)
+        : { top: 0, spacer: 0 };
+      spacer.style.height = `${room}px`;
+      list.scrollTop = top;
     };
     pin();
     const observer = new ResizeObserver(pin);
@@ -75,7 +90,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
         return (
           <div key={date} ref={isToday ? todayRef : undefined} className="mb-2">
             {/* Day header */}
-            <div className="flex items-center gap-2 mb-1">
+            <div {...{ [DAY_HEADING_ATTR]: '' }} className="flex items-center gap-2 mb-1">
               <span
                 className="font-semibold"
                 style={{
@@ -108,12 +123,14 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
                       key={slot}
                       className="flex items-center gap-2 py-0.5"
                     >
-                      {/* Slot indicator */}
+                      {/* Slot indicator: the slot's short name in the wall's
+                          language ("A" for Abendessen), as the Week grid's
+                          narrow headings use */}
                       <span
                         className="uppercase tracking-wider font-medium shrink-0"
                         style={{ fontSize: '0.45em', color: meta.color, opacity: 0.6, width: '1.8em' }}
                       >
-                        {slot[0].toUpperCase()}
+                        {t(`meal-planner.slotShort.${slot}`)}
                       </span>
 
                       {/* Meal info */}
@@ -171,6 +188,8 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
           </div>
         );
       })}
+      {/* Room after the last day, when the scroll needs it (set by `pin`) */}
+      <div ref={spacerRef} aria-hidden="true" className="shrink-0" />
     </div>
   );
 }

@@ -20,10 +20,11 @@ import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { CountdownPill, EventProgressBar, eventAriaLabel } from './list-view-bits';
-import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
+import { formatMealTime, getMealSlotLabelKey, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, eventOwner, initialsOf } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
-import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
+import { weekMealLabels, type DayExtras, type ExtrasIndex } from '@/lib/calendar-extras';
+import type { MealSlotType, TimeFormat } from '@/types/config';
 import Glyph from '@/components/ui/Glyph';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
@@ -45,6 +46,10 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
   );
 
   const days = useWeekDays(today, weekStartsOnFor(config.startDay));
+  // Meal rows: the labels and times the week's rows share a column for, and
+  // the serving times in the meal settings' own format when they have one.
+  const mealLabels = useMemo(() => (extras ? weekMealLabels(extras, days.map(toISODate)) : null), [extras, days]);
+  const mealTimeFormat = resolveMealTimeFormat({ timeFormat: extras?.mealTimeFormat }, timeFormat);
 
   // Landscape: split the first four and last three days
   const leftDays = isLandscape ? days.slice(0, 4) : days;
@@ -138,7 +143,7 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
 
           {/* Household rows: planned meals, then the day's chore progress */}
           {dayExtras && extras && (
-            <DayExtrasRows day={dayExtras} members={extras.members} fontSize={fontSize} scale={scale} hasEvents={dayEvents.length > 0} t={t} />
+            <DayExtrasRows day={dayExtras} members={extras.members} fontSize={fontSize} scale={scale} hasEvents={dayEvents.length > 0} band={decor.background ?? dayFill} mealLabels={mealLabels} mealTimeFormat={mealTimeFormat} t={t} />
           )}
 
           {/* Empty day: a note alone already says something */}
@@ -201,19 +206,27 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
  * that day): the household has five kids, and a per-kid line each would
  * crowd out the events.
  */
-function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
+function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLabels, mealTimeFormat, t }: {
   day: DayExtras;
   members: ExtrasIndex['members'];
   fontSize: number;
   scale: CalendarScale;
   hasEvents: boolean;
+  /** The day's own fill (today's tint, a shaded weekend, a day rule's colour), if any. */
+  band?: string;
+  /** Every slot and serving time the week's meal rows name (see `weekMealLabels`). */
+  mealLabels: { slots: MealSlotType[]; times: string[] } | null;
+  mealTimeFormat: TimeFormat;
   t: TranslateFn;
 }) {
   const rowStyle: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: scale.bu * 0.8,
     padding: `${scale.bu * 0.45}px ${scale.bu * 0.8}px`,
     borderRadius: 6,
-    background: 'var(--cal-surface-alt)',
+    // The quieter surface with the day's fill laid over it again: a row on
+    // today's band stands off the band in the band's own colour, as a row on
+    // a plain day stands off the page, instead of a grey block over the tint.
+    background: band ? `linear-gradient(${band}, ${band}), var(--cal-surface-alt)` : 'var(--cal-surface-alt)',
     marginTop: scale.bu * 0.35,
   };
   const chores = day.chores;
@@ -230,14 +243,12 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
             style={{
               ...rowStyle,
               display: 'grid',
-              gridTemplateColumns: pictured ? `${fontSize * 4.2}px auto minmax(0, 1fr)` : `${fontSize * 4.2}px minmax(0, 1fr)`,
+              gridTemplateColumns: pictured ? 'max-content auto minmax(0, 1fr)' : 'max-content minmax(0, 1fr)',
               columnGap: scale.bu * 0.8,
               border: '1px dashed var(--cal-border)',
             }}
           >
-            <span style={{ fontSize: fontSize * 0.65, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cal-text-tertiary)' }}>
-              {t(getMealSlotLabelKey(meal.slot))}
-            </span>
+            <MealSlotLabel slot={meal.slot} time={meal.time} labels={mealLabels} timeFormat={mealTimeFormat} fontSize={fontSize} t={t} />
             {pictured && (
               <MealPicture meal={meal.meal} photoSize={`${fontSize * 1.75}px`} emojiStyle={{ fontSize, lineHeight: 1 }} />
             )}
@@ -286,6 +297,48 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
         </div>
       )}
     </div>
+  );
+}
+
+/** Takes up width and nothing else: no height, nothing to see or read aloud. */
+const WIDTH_ONLY: React.CSSProperties = { gridArea: '1 / 1', visibility: 'hidden', height: 0, overflow: 'hidden' };
+
+/**
+ * A meal row's first column: the slot's name, and its serving time under it.
+ *
+ * Each row is its own grid, so a fixed width cannot know how long the words
+ * are ("Abendessen" ran into the dish in a column sized for "Dinner"). Every
+ * row carries every label and time the week names, unseen and without
+ * height, so the column is as wide as the longest in every row and the
+ * pictures and names line up down the week.
+ */
+function MealSlotLabel({ slot, time, labels, timeFormat, fontSize, t }: {
+  slot: MealSlotType;
+  time?: string;
+  labels: { slots: MealSlotType[]; times: string[] } | null;
+  timeFormat: TimeFormat;
+  fontSize: number;
+  t: TranslateFn;
+}) {
+  const labelStyle: React.CSSProperties = { fontSize: fontSize * 0.65, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' };
+  const timeStyle: React.CSSProperties = { fontSize: fontSize * 0.75, fontWeight: 500, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' };
+  return (
+    <span style={{ display: 'grid', alignContent: 'center', color: 'var(--cal-text-tertiary)' }}>
+      <span style={{ display: 'grid' }}>
+        <span style={{ ...labelStyle, gridArea: '1 / 1' }}>{t(getMealSlotLabelKey(slot))}</span>
+        {labels?.slots.filter((s) => s !== slot).map((s) => (
+          <span key={s} aria-hidden="true" style={{ ...labelStyle, ...WIDTH_ONLY }}>{t(getMealSlotLabelKey(s))}</span>
+        ))}
+      </span>
+      {(time || (labels?.times.length ?? 0) > 0) && (
+        <span style={{ display: 'grid' }}>
+          {time && <span data-day-meal-time="" style={{ ...timeStyle, gridArea: '1 / 1' }}>{formatMealTime(time, timeFormat)}</span>}
+          {labels?.times.filter((other) => other !== time).map((other) => (
+            <span key={other} aria-hidden="true" style={{ ...timeStyle, ...WIDTH_ONLY }}>{formatMealTime(other, timeFormat)}</span>
+          ))}
+        </span>
+      )}
+    </span>
   );
 }
 

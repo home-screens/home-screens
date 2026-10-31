@@ -11,6 +11,7 @@ import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch'
 import { useMealieCourseCategory } from '@/components/meals/useMealieCourseCategory';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import { useReturnFocus } from '@/hooks/useReturnFocus';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 
@@ -109,6 +110,9 @@ export default function MealPickerPopover({
     setActive(firstMealId ? textOffset : query ? 0 : -1);
   }, [firstMealId, textOffset, query, filter, category]);
 
+  // Typing goes to the search at once; once a meal is picked (or the picker
+  // is closed), the keyboard is back on the cell or button that opened it.
+  useReturnFocus();
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   // Escape closes the picker only, not the window or the meal popover under
@@ -349,6 +353,7 @@ export default function MealPickerPopover({
           {onMealie && mealie.error && !loadingFirstPage && (
             <div className="px-3 py-5 text-center">
               <p className="text-sm font-semibold text-hs-text-body">{t(mealie.problem === 'not-connected' ? 'mealPlannerModal.mealie.notConnectedTitle' : mealie.problem === 'token' ? 'mealPlannerModal.mealie.tokenRefusedTitle' : 'mealPlannerModal.picker.mealieError')}</p>
+              {mealie.problem === 'token' && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t('mealPlannerModal.mealie.tokenFix')}</p>}
               <button
                 type="button"
                 onClick={mealie.retry}

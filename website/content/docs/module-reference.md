@@ -86,7 +86,7 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 **View details:**
 
 - **week**: Full 7-day grid with meal cards organized by slot, today highlighted.
-- **today**: Focused view of today's meals with large cards and details.
+- **today**: Focused view of today's meals with large cards and details. Once the day's last meal is over it shows tomorrow's.
 - **menu-board**: Restaurant-style board layout for displaying the week's menu.
 - **next-meal**: Large display of the next upcoming meal with context label.
 {% /module %}

@@ -25,7 +25,7 @@ const COURSE_KIND_SET: ReadonlySet<string> = new Set(COURSE_KINDS);
  */
 export const MAX_COURSES = 12;
 
-/** Translation key (modules namespace) for a course kind's label: "Also", "Side", "Dessert", "Drink". */
+/** Translation key (modules namespace) for a course kind's label: "Main", "Side", "Dessert", "Drink". */
 export function getMealCourseLabelKey(kind: MealCourseKind): string {
   return `meal-planner.courses.${kind}`;
 }
@@ -138,8 +138,24 @@ function updateEntry(
 }
 
 /**
+ * Where a new course of `kind` goes: after the last course of its kind or of
+ * a kind served before it (`COURSE_KINDS` order: main, side, dessert, drink),
+ * so a second dessert joins the first and a side added after the drink goes
+ * ahead of it. Only the new course is placed; an order the family made by
+ * hand stays as it is.
+ */
+function courseInsertIndex(courses: readonly MealCourse[], kind: MealCourseKind): number {
+  const rank = COURSE_KINDS.indexOf(kind);
+  for (let i = courses.length - 1; i >= 0; i--) {
+    if (COURSE_KINDS.indexOf(courses[i].kind) <= rank) return i + 1;
+  }
+  return 0;
+}
+
+/**
  * Add a course to a meal, creating the meal's entry when the slot was empty
- * (a dinner can start as just a side). A full list refuses the addition.
+ * (a dinner can start as just a side), in its place by kind (see
+ * `courseInsertIndex`). A full list refuses the addition.
  */
 export function addPlanCourse(
   plan: PlannedMeal[],
@@ -152,7 +168,8 @@ export function addPlanCourse(
   return updateEntry(plan, date, slot, (entry) => {
     const courses = entry?.courses ?? [];
     if (courses.length >= MAX_COURSES) return entry;
-    return { ...(entry ?? { date, slot }), courses: [...courses, clean] };
+    const at = courseInsertIndex(courses, clean.kind);
+    return { ...(entry ?? { date, slot }), courses: [...courses.slice(0, at), clean, ...courses.slice(at)] };
   });
 }
 

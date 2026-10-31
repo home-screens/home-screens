@@ -17,7 +17,7 @@ import {
   parseMealieSourceId,
   MealieMapError,
 } from '../mealie-map';
-import { mergeMealSources, mealieReadWindow, mealieStatus, canEditMergedPlan, type MealieWireBlock } from '../meal-sources';
+import { mergeMealSources, mealieLinkFor, mealieReadWindow, mealieStatus, canEditMergedPlan, type MealieWireBlock } from '../meal-sources';
 
 // Shapes as a real Mealie 3.29.0 answers them (recorded 2026-10-30), with
 // the household's own recipes swapped for made-up ones.
@@ -408,6 +408,41 @@ describe('mealieStatus', () => {
     expect(mealieStatus({ source: 'mealie', mealie: failed('key-rejected') })).toMatchObject({ state: 'unreachable', problem: 'token' });
     expect(mealieStatus({ source: 'mealie', mealie: failed('unreachable') })).toMatchObject({ state: 'unreachable', problem: 'unreachable' });
     expect(mealieStatus({ source: 'mealie', mealie: null })).toMatchObject({ state: 'unreachable', problem: 'unreachable' });
+  });
+
+  it('says why its last good copy is all there is: a refused token is not Mealie being down', () => {
+    const stale = (failure?: MealieWireBlock['failure']): MealieWireBlock => ({ ...failed(failure), status: 'stale', fetchedAt: 1_000 });
+    expect(mealieStatus({ source: 'mealie', mealie: stale('key-rejected') })).toEqual({ state: 'stale', updatedAt: 1_000, baseUrl: undefined, problem: 'token' });
+    expect(mealieStatus({ source: 'mealie', mealie: stale('unreachable') })).toMatchObject({ state: 'stale', problem: 'unreachable' });
+    expect(mealieStatus({ source: 'mealie', mealie: stale('upstream') })).toMatchObject({ state: 'stale', problem: 'unreachable' });
+  });
+});
+
+describe('mealieLinkFor', () => {
+  it('opens Mealie on the hub through the host the hub was reached on, keeping its scheme and port', () => {
+    expect(mealieLinkFor('http://localhost:9925', '192.168.50.241')).toBe('http://192.168.50.241:9925');
+    expect(mealieLinkFor('http://localhost:9925/g/home/r/pizza?x=1#steps', 'hub.local')).toBe('http://hub.local:9925/g/home/r/pizza?x=1#steps');
+    expect(mealieLinkFor('https://127.0.0.1:8443/shopping-lists', 'homescreens.lan')).toBe('https://homescreens.lan:8443/shopping-lists');
+    expect(mealieLinkFor('http://[::1]:9925/household/mealplan/planner/view', '192.168.1.20')).toBe('http://192.168.1.20:9925/household/mealplan/planner/view');
+    expect(mealieLinkFor('http://LOCALHOST/recipes', '10.0.0.4')).toBe('http://10.0.0.4/recipes');
+  });
+
+  it('brackets an IPv6 hub address', () => {
+    expect(mealieLinkFor('http://localhost:9925', 'fd00::5')).toBe('http://[fd00::5]:9925');
+    expect(mealieLinkFor('http://localhost:9925', '[fd00::5]')).toBe('http://[fd00::5]:9925');
+  });
+
+  it('leaves any other address exactly as saved', () => {
+    expect(mealieLinkFor('http://192.168.1.50:9925/g/home/r/pizza', '192.168.50.241')).toBe('http://192.168.1.50:9925/g/home/r/pizza');
+    expect(mealieLinkFor('https://mealie.example.com', 'hub.local')).toBe('https://mealie.example.com');
+    expect(mealieLinkFor('http://localhost.example.com:9925', 'hub.local')).toBe('http://localhost.example.com:9925');
+  });
+
+  it('changes nothing while the hub was reached on loopback too, or its host is not known yet', () => {
+    expect(mealieLinkFor('http://localhost:9925', 'localhost')).toBe('http://localhost:9925');
+    expect(mealieLinkFor('http://localhost:9925', '127.0.0.1')).toBe('http://localhost:9925');
+    expect(mealieLinkFor('http://localhost:9925', '')).toBe('http://localhost:9925');
+    expect(mealieLinkFor('http://localhost:9925', undefined)).toBe('http://localhost:9925');
   });
 });
 

@@ -22,10 +22,11 @@ import {
   resetMealSettings,
 } from '@/lib/meal-settings';
 import { settingsPath } from '@/lib/settings-route';
-import { useMealieHousehold } from '@/components/editor/useMealieCheck';
+import { useMealieCheck, type MealieCheck } from '@/hooks/useMealieCheck';
 import { MEALIE_CARD_FIELD_ID } from './MealieIntegrationCard';
 import { displayCache } from '@/lib/display-cache';
 import { useEditorStore } from '@/stores/editor-store';
+import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
@@ -68,7 +69,8 @@ export default function MealsSection() {
   const [settings, setSettings] = useState<MealSettings | null>(null);
   // Mealie's address and token are saved, so the plan can live there.
   const [mealieConnected, setMealieConnected] = useState(false);
-  const mealieHousehold = useMealieHousehold(mealieConnected);
+  // What Mealie says about the saved token: whose household, or why not.
+  const mealieCheck = useMealieCheck(mealieConnected);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<SaveStatus | null>(null);
@@ -226,6 +228,17 @@ export default function MealsSection() {
     apply((current) => setMealPlanSource(current, source));
   }, [apply]);
 
+  // Asked first: the default serving times it clears have no Undo. The
+  // question says what changes in the words shown under the button.
+  const resetToDefaults = useCallback(async () => {
+    const ok = await useConfirmStore.getState().confirm({
+      title: t('settings.mealsPage.reset.confirmTitle'),
+      message: t('settings.mealsPage.reset.help'),
+      confirmLabel: t('settings.mealsPage.reset.confirmButton'),
+    });
+    if (ok) apply(resetMealSettings);
+  }, [apply, t]);
+
   // ── Render ──
 
   if (loading) {
@@ -273,7 +286,7 @@ export default function MealsSection() {
       <PlanSourceChoice
         planSource={settings.planSource}
         mealieConnected={mealieConnected}
-        mealieHousehold={mealieHousehold}
+        mealieCheck={mealieCheck}
         saving={saving}
         onChange={setPlanSource}
       />
@@ -490,7 +503,7 @@ export default function MealsSection() {
       <section>
         <Button
           variant="secondary"
-          onClick={() => apply(resetMealSettings)}
+          onClick={resetToDefaults}
           disabled={saving}
         >
           {t('settings.mealsPage.reset.button')}
@@ -512,26 +525,34 @@ export default function MealsSection() {
 function PlanSourceChoice({
   planSource,
   mealieConnected,
-  mealieHousehold,
+  mealieCheck,
   saving,
   onChange,
 }: {
   planSource: MealPlanSource | undefined;
   mealieConnected: boolean;
-  mealieHousehold: string | null | undefined;
+  /** The hub's check of the saved address and token; `undefined` while it asks. */
+  mealieCheck: MealieCheck | undefined;
   saving: boolean;
   onChange: (source: MealPlanSource | undefined) => void;
 }) {
   const t = useTranslate('editor');
   const onMealie = planSource === 'mealie';
   const mealieCard = settingsPath({ kind: 'defaults', page: 'integrations' }, { highlight: MEALIE_CARD_FIELD_ID });
+  // Mealie refusing the token is not Mealie being away: it is fixed on the
+  // API keys page, not by waiting.
+  const tokenRefused = mealieConnected && mealieCheck?.ok === false && mealieCheck.failure === 'key-rejected';
   const mealieSub = !mealieConnected
     ? t('settings.mealsPage.planSource.mealieNotConnected')
-    : mealieHousehold
-      ? t('settings.mealsPage.planSource.mealieHousehold', { household: mealieHousehold })
-      : mealieHousehold === null
-        ? t('settings.mealsPage.planSource.mealieNotAnswering')
-        : t('settings.mealsPage.planSource.mealieConnected');
+    : !mealieCheck
+      ? t('settings.mealsPage.planSource.mealieConnected')
+      : mealieCheck.ok
+        ? mealieCheck.household
+          ? t('settings.mealsPage.planSource.mealieHousehold', { household: mealieCheck.household })
+          : t('settings.mealsPage.planSource.mealieConnected')
+        : tokenRefused
+          ? t('settings.mealsPage.planSource.mealieTokenRefused')
+          : t('settings.mealsPage.planSource.mealieNotAnswering');
   const choiceClass = (selected: boolean, disabled: boolean) =>
     `flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-md border transition ${
       selected
@@ -576,6 +597,11 @@ function PlanSourceChoice({
             {t('settings.mealsPage.planSource.connectFirst')}{' '}
             <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
           </>
+        ) : tokenRefused ? (
+          <span className="text-hs-warning">
+            {t('settings.mealsPage.planSource.tokenRefused')}{' '}
+            <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
+          </span>
         ) : onMealie ? (
           <>
             {t('settings.mealsPage.planSource.onMealie')}{' '}

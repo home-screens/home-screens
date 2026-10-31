@@ -91,11 +91,35 @@ describe('the Meals tab', () => {
     expect(result.current.todayISO).toBe(HOUSEHOLD_TODAY);
     expect(result.current.weekDates[0].date).toBe(HOUSEHOLD_TODAY);
     expect(result.current.isCurrentWeek).toBe(true);
-    expect(result.current.currentHour).toBe(0);
+    expect(result.current.nowMinutes).toBe(30);
 
     act(() => result.current.navigateWeek(-1));
     expect(result.current.weekDates[0].date).toBe('2026-09-21');
     act(() => result.current.jumpToToday());
+    expect(result.current.weekDates[0].date).toBe(HOUSEHOLD_TODAY);
+  });
+
+  // Reloaded on another week: the address kept it. The settings coming in
+  // (a Monday start after the Sunday default) leave the tab on that week,
+  // never on the week before it, even for one draw.
+  it('opens on the week kept across a reload, through the settings arriving', () => {
+    const drawn: string[] = [];
+    const monday = { ...DEFAULT_MEAL_SETTINGS, weekStartDay: 'monday' as const };
+    const { result, rerender } = renderHook(
+      ({ settings, loaded }) => {
+        const nav = useMealsWeekNav(settings, '2026-10-12', loaded);
+        drawn.push(nav.weekDates[0].date);
+        return nav;
+      },
+      { wrapper, initialProps: { settings: DEFAULT_MEAL_SETTINGS, loaded: false } },
+    );
+    rerender({ settings: monday, loaded: true });
+    expect([...new Set(drawn)]).toEqual(['2026-10-11', '2026-10-12']);
+    expect(result.current.isCurrentWeek).toBe(false);
+
+    // A week start changed after that still lands on this week.
+    rerender({ settings: DEFAULT_MEAL_SETTINGS, loaded: true });
+    rerender({ settings: monday, loaded: true });
     expect(result.current.weekDates[0].date).toBe(HOUSEHOLD_TODAY);
   });
 

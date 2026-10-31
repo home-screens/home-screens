@@ -24,19 +24,29 @@ export async function checkMealie(): Promise<MealieCheck> {
 }
 
 /**
+ * The hub's answer about Mealie, asked once while `enabled` (and again when
+ * `enabled` turns on): `undefined` while asking or when not asked.
+ */
+export function useMealieCheck(enabled: boolean): MealieCheck | undefined {
+  const [check, setCheck] = useState<MealieCheck | undefined>(undefined);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    checkMealie().then((result) => {
+      if (!cancelled) setCheck(result);
+    });
+    return () => { cancelled = true; };
+  }, [enabled]);
+  return enabled ? check : undefined;
+}
+
+/**
  * The name of the Mealie household whose plan shows, for the labels that say
  * so ("Family household"). Asked once while `enabled`; `undefined` while
  * asking, null when Mealie did not answer.
  */
 export function useMealieHousehold(enabled: boolean): string | null | undefined {
-  const [household, setHousehold] = useState<string | null | undefined>(undefined);
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-    checkMealie().then((result) => {
-      if (!cancelled) setHousehold(result.ok ? result.household : null);
-    });
-    return () => { cancelled = true; };
-  }, [enabled]);
-  return enabled ? household : null;
+  const check = useMealieCheck(enabled);
+  if (!enabled) return null;
+  return check ? (check.ok ? check.household : null) : undefined;
 }

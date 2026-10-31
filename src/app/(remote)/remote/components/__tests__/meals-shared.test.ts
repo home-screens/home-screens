@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { getWeekDates, currentActiveSlot, formatShownMinutes, mealTagLabel } from '../meals-shared';
+import { getWeekDates, formatShownMinutes } from '../meals-shared';
 import { toISODate } from '@/lib/meal-constants';
+import { readMealsPlace, writeMealsPlace } from '../meals-shared';
 
 describe('getWeekDates', () => {
   it('returns exactly 7 entries', () => {
@@ -70,41 +71,6 @@ describe('getWeekDates', () => {
   });
 });
 
-describe('currentActiveSlot', () => {
-  it('returns "breakfast" between 5am and 10am', () => {
-    const now = new Date(2026, 3, 3, 7, 30);
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBe('breakfast');
-  });
-
-  it('returns "lunch" between 10am and 2pm', () => {
-    const now = new Date(2026, 3, 3, 12, 0);
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBe('lunch');
-  });
-
-  it('returns "dinner" between 5pm and 9pm', () => {
-    const now = new Date(2026, 3, 3, 18, 30);
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBe('dinner');
-  });
-
-  it('returns null when current hour is outside any enabled slot window', () => {
-    const now = new Date(2026, 3, 3, 23, 30); // 11:30 PM, past dinner end
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBeNull();
-  });
-
-  it('skips disabled slots — returns "lunch" at snack time when snack is disabled', () => {
-    // Regression test for the active-slot bug: with snack disabled, we should
-    // never claim snack is active, but also shouldn't return a wrong slot.
-    const now = new Date(2026, 3, 3, 15, 0); // 3 PM, snack hour
-    // Snack disabled, no other slot covers 3 PM → null
-    expect(currentActiveSlot(['breakfast', 'lunch', 'dinner'], now)).toBeNull();
-  });
-
-  it('returns "snack" at 3 PM when snack is enabled', () => {
-    const now = new Date(2026, 3, 3, 15, 0);
-    expect(currentActiveSlot(['breakfast', 'lunch', 'snack', 'dinner'], now)).toBe('snack');
-  });
-});
-
 describe('formatShownMinutes', () => {
   const words: Record<string, string> = {
     'mealsTab.duration.minutes': '{minutes}m',
@@ -128,9 +94,32 @@ describe('formatShownMinutes', () => {
   });
 });
 
-describe('mealTagLabel', () => {
-  it('dresses up the family own tags and leaves Mealie names as typed', () => {
-    expect(mealTagLabel({ id: 'tacos' }, 'kid-friendly')).toBe('Kid-Friendly');
-    expect(mealTagLabel({ id: 'mealie:95da3cd9-6bd2-4ef2-a316-2dbcaa30b6fd' }, 'Kid friendly')).toBe('Kid friendly');
+describe('readMealsPlace', () => {
+  it('reads the tab and the week the address kept', () => {
+    expect(readMealsPlace('?tab=meals&meals=plan&week=2026-11-02')).toEqual({ view: 'plan', week: '2026-11-02' });
+    expect(readMealsPlace('?tab=meals&meals=grocery')).toEqual({ view: 'grocery', week: null });
+  });
+
+  it('opens on This Week for anything missing or not understood', () => {
+    expect(readMealsPlace('')).toEqual({ view: 'week', week: null });
+    expect(readMealsPlace('?meals=recipes&week=next')).toEqual({ view: 'week', week: null });
+    expect(readMealsPlace('?week=2026-02-31')).toEqual({ view: 'week', week: null });
+  });
+});
+
+describe('writeMealsPlace', () => {
+  it('keeps the place beside the other parameters and leaves This Week out', () => {
+    const url = new URL('http://hub.local/remote?tab=meals');
+    expect(writeMealsPlace(url, { view: 'library', week: '2026-11-09' })).toBe(true);
+    expect(url.search).toBe('?tab=meals&meals=library&week=2026-11-09');
+    expect(writeMealsPlace(url, { view: 'library', week: '2026-11-09' })).toBe(false);
+    expect(writeMealsPlace(url, { view: 'week', week: null })).toBe(true);
+    expect(url.search).toBe('?tab=meals');
+  });
+
+  it('reads back what it wrote', () => {
+    const url = new URL('http://hub.local/remote?tab=meals');
+    writeMealsPlace(url, { view: 'plan', week: '2026-10-26' });
+    expect(readMealsPlace(url.search)).toEqual({ view: 'plan', week: '2026-10-26' });
   });
 });

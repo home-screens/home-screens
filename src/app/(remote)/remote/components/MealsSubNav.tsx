@@ -31,15 +31,15 @@ const ICONS: Record<MealsSubView, React.ReactNode> = {
 interface MealsSubNavProps {
   subView: MealsSubView;
   setSubView: (v: MealsSubView) => void;
-  /** Label for the "week" tab — either "This Week" or the viewed date range */
-  weekLabel: string;
 }
 
-export default function MealsSubNav({ subView, setSubView, weekLabel }: MealsSubNavProps) {
+export default function MealsSubNav({ subView, setSubView }: MealsSubNavProps) {
   const t = useTranslate('remote');
 
+  // The week tab keeps its name whichever week is shown: the dates sit
+  // between the arrows below, and in the tab they wrapped onto two lines.
   const labels: Record<MealsSubView, string> = {
-    week: weekLabel,
+    week: t('mealsTab.subNav.week'),
     plan: t('mealsTab.subNav.plan'),
     library: t('mealsTab.subNav.library'),
     grocery: t('mealsTab.subNav.grocery'),

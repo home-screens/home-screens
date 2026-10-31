@@ -1,6 +1,6 @@
 import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
-import { buildExtrasIndex, hasExtras, EMPTY_EXTRAS } from '@/lib/calendar-extras';
+import { buildExtrasIndex, hasExtras, weekMealLabels, EMPTY_EXTRAS } from '@/lib/calendar-extras';
 import type { ChoreDefinition } from '@/types/config';
 
 const members: FamilyMember[] = [
@@ -65,6 +65,27 @@ describe('buildExtrasIndex', () => {
     });
     expect(index.byDate['2026-08-24'].meals[0].courses.map((c) => [c.kind, c.name])).toEqual([['side', 'Rice'], ['dessert', 'Flan']]);
     expect(index.byDate['2026-08-25'].meals[0]).toMatchObject({ name: 'Big salad', courses: [] });
+  });
+
+  it('gives each meal its serving time: its own, else the slot\'s usual one', () => {
+    const index = buildExtrasIndex({
+      dates,
+      meals: {
+        settings: { enabledSlots: ['breakfast', 'dinner'], defaultSlotTimes: { dinner: '18:00' }, timeFormat: '24h' },
+        savedMeals: [],
+        plan: [
+          { date: '2026-08-24', slot: 'breakfast', customText: 'Toast' },
+          { date: '2026-08-24', slot: 'dinner', customText: 'Soup' },
+          { date: '2026-08-25', slot: 'dinner', customText: 'Stew', time: '18:30' },
+        ],
+      },
+      chores: null,
+    });
+    expect(index.byDate['2026-08-24'].meals.map((m) => [m.name, m.time])).toEqual([['Toast', undefined], ['Soup', '18:00']]);
+    expect(index.byDate['2026-08-25'].meals[0].time).toBe('18:30');
+    expect(index.mealTimeFormat).toBe('24h');
+    expect(weekMealLabels(index, dates)).toEqual({ slots: ['breakfast', 'dinner'], times: ['18:00', '18:30'] });
+    expect(weekMealLabels(index, ['2026-08-25'])).toEqual({ slots: ['dinner'], times: ['18:30'] });
   });
 
   it('hasExtras reports whether any listed date has content', () => {

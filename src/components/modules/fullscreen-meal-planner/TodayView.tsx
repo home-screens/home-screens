@@ -1,4 +1,4 @@
-import { SLOT_META, SLOT_ORDER, SLOT_WINDOWS, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, fromISODate, formatMealTime, resolvePlannedMealTime, mealDayLead, minutesOfDay } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
@@ -16,50 +16,34 @@ import { useMealMinutes } from '../shared/useMealMinutes';
  * at 1080 wide / `medium` (see `px`), so typographySize keeps scaling it.
  */
 export default function TodayView({
-  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
+  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
-  const currentHour = now.getHours();
   const todayISO = toISODate(now);
   const activeOrder = SLOT_ORDER.filter((sl) => slots.includes(sl));
 
-  // Find current/hero meal + the badge label that goes with it.
-  // Three cases, in priority order:
-  //   1. Currently inside a slot window     → "Now"
-  //   2. Before some slot starts later today → "Up Next"
-  //   3. Past all of today's slots          → "Tonight" (show today's last slot)
-  // Without case 3, late-evening (e.g. 9:30pm — past dinner's [17,21) window)
-  // would fall back to activeOrder[0] = breakfast and mislabel it as "Now".
-  let heroSlot: typeof SLOT_ORDER[number];
-  let heroLabel: string;
-  if (activeSlot) {
-    heroSlot = activeSlot;
-    heroLabel = t('fullscreen-meal-planner.heroLabels.now');
-  } else {
-    const upcoming = activeOrder.find((sl) => currentHour < SLOT_WINDOWS[sl].start);
-    if (upcoming) {
-      heroSlot = upcoming;
-      heroLabel = t('fullscreen-meal-planner.heroLabels.upNext');
-    } else {
-      heroSlot = activeOrder[activeOrder.length - 1] ?? 'dinner';
-      heroLabel = t('fullscreen-meal-planner.heroLabels.tonight');
-    }
-  }
-  const { meal: heroMeal, planned: heroPlanned, name: heroName, courses: heroCourses, notes: heroNotes } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
+  // The hero is the meal being served, else the next one, by serving time
+  // (`mealDayLead`). Once all of today is over the view turns to tomorrow and
+  // leads with its first meal, as Next meal does by then, rather than keep
+  // tonight's finished dinner up until midnight. `plan` is the whole plan
+  // here, so tomorrow is there even when it starts a new week.
+  const lead = mealDayLead(todayISO, minutesOfDay(now), slots, plan, savedMeals, settings.defaultSlotTimes);
+  const day = lead?.date ?? todayISO;
+  const tomorrow = day !== todayISO;
+  const heroSlot = lead?.slot ?? activeOrder[0] ?? 'dinner';
+  const heroLabel = t(`fullscreen-meal-planner.heroLabels.${lead?.now ? 'now' : 'upNext'}`);
+  const { meal: heroMeal, planned: heroPlanned, name: heroName, courses: heroCourses, notes: heroNotes } = resolveMealWithEntry(day, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
 
   const otherSlots = activeOrder.filter((sl) => sl !== heroSlot);
   const heroAlone = otherSlots.length === 0;
 
-  const isSlotPast = (sl: typeof SLOT_ORDER[number]) => {
-    const w = SLOT_WINDOWS[sl];
-    return currentHour >= w.end;
-  };
+  const isSlotPast = (sl: typeof SLOT_ORDER[number]) => !!lead?.over.includes(sl);
 
-  const dateStr = fullDateHeading(now, locale);
+  const dateStr = fullDateHeading(tomorrow ? fromISODate(day) : now, locale);
   const pillStyle: React.CSSProperties = {
     fontSize: P(26), color: 'var(--fmp-text-3)',
     background: 'var(--fmp-border-sub)', padding: `${P(8)}px ${P(20)}px`,
@@ -75,7 +59,7 @@ export default function TodayView({
       {showTitle && (
         <div style={{ flexShrink: 0, marginBottom: P(36) }}>
           <div style={{ fontFamily: headerFont, fontSize: P(60), fontWeight: 400, lineHeight: 1, color: 'var(--fmp-text)', letterSpacing: '-0.01em' }}>
-            {t('fullscreen-meal-planner.todaysMeals')}
+            {t(tomorrow ? 'fullscreen-meal-planner.tomorrowsMeals' : 'fullscreen-meal-planner.todaysMeals')}
           </div>
           <div style={{ fontSize: P(26), color: 'var(--fmp-text-3)', marginTop: P(10) }}>
             {dateStr}
@@ -157,14 +141,14 @@ export default function TodayView({
                 labelStyle={{ color: 'var(--fmp-text-3)', fontWeight: 700 }}
                 nameStyle={{ color: 'var(--fmp-text-2)', fontWeight: 500, lineHeight: 1.2, whiteSpace: 'normal' }}
               />
-              {heroNotes && (
-                <span style={{
+              {heroNotes.map((note) => (
+                <span key={note} style={{
                   fontSize: P(30), fontStyle: 'italic', color: 'var(--fmp-text-2)',
                   maxWidth: '80%', lineHeight: 1.3,
                 }}>
-                  {heroNotes}
+                  {note}
                 </span>
-              )}
+              ))}
               {/* Meta pills */}
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: P(14), justifyContent: 'center' }}>
                 {showPrepTime && mealMinutes(heroMeal) && (
@@ -210,11 +194,11 @@ export default function TodayView({
               letterSpacing: '0.12em', color: 'var(--fmp-text-3)',
               margin: landscape ? `0 0 ${P(18)}px` : `${P(40)}px 0 ${P(18)}px`,
             }}>
-              {t('fullscreen-meal-planner.alsoToday')}
+              {t(tomorrow ? 'fullscreen-meal-planner.alsoTomorrow' : 'fullscreen-meal-planner.alsoToday')}
             </div>
             <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: P(18) }}>
               {otherSlots.map((sl) => {
-                const { meal, planned, name, courses } = resolveMealWithEntry(todayISO, sl, plan, savedMeals);
+                const { meal, planned, name, courses } = resolveMealWithEntry(day, sl, plan, savedMeals);
                 const slotTime = resolvePlannedMealTime(planned, sl, settings.defaultSlotTimes);
                 const meta = SLOT_META[sl];
                 const past = isSlotPast(sl);
@@ -223,12 +207,14 @@ export default function TodayView({
                   // Sized from its content, the spare height shared out: a
                   // dinner with three courses needs more room than "Not
                   // planned", and equal rows squeezed it against both edges.
+                  // The meal holds the space above and below itself, not the
+                  // row, so the colour bar's 60% is of the whole row.
                   <div key={sl} {...{ [FIT_MEASURE_ATTR]: '' }} style={{
                     flex: '1 1 auto', minHeight: 0,
                     background: 'var(--fmp-surface)', borderRadius: P(24),
                     border: '1px solid var(--fmp-border-sub)',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                    padding: `${P(18)}px ${P(32)}px`,
+                    padding: `0 ${P(32)}px`,
                     display: 'flex', alignItems: 'center', gap: P(24),
                     opacity: past ? `var(--fmp-past-op)` : 1,
                   } as React.CSSProperties}>
@@ -240,7 +226,7 @@ export default function TodayView({
                     <MealTapTarget
                       meal={meal}
                       mode={recipeTapMode}
-                      style={{ display: 'flex', alignItems: 'center', gap: P(24), flex: 1, minWidth: 0 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: P(24), flex: 1, minWidth: 0, padding: `${P(18)}px 0` }}
                     >
                       {showEmoji && mealHasPicture(meal) && (
                         <MealPicture meal={meal} photoSize={`${P(120)}px`} emojiStyle={{ fontSize: P(76), lineHeight: 1, flexShrink: 0 }} />

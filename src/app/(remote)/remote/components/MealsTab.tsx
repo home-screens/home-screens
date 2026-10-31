@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex } from '@/lib/meal-constants';
 import { useMealsTabData } from '../hooks/useMealsTabData';
-import type { MealPickTarget, MealsSubView } from './meals-shared';
+import { readMealsPlace, writeMealsPlace, type MealPickTarget, type MealsSubView } from './meals-shared';
 import MealsTabHeader from './MealsTabHeader';
 import MealsSubNav from './MealsSubNav';
 import MealsWeekNav from './MealsWeekNav';
@@ -25,10 +25,16 @@ export default function MealsTab() {
   const locale = useFormattingLocale();
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
+  // The tab and the week this tab was left on, from the address (see
+  // `readMealsPlace`), so a reload comes back to them.
+  const [place] = useState(() => (typeof window === 'undefined'
+    ? readMealsPlace('')
+    : readMealsPlace(window.location.search)));
   const {
     savedMeals,
     meals,
     weekPlan,
+    week,
     settings,
     globalTimeFormat,
     loading,
@@ -79,16 +85,32 @@ export default function MealsTab() {
     toggleFavorite,
     groceryList,
     groceryStats,
+    groceryWithoutIngredients,
     toggleGroceryItem,
     confirmAction,
     setConfirmAction,
     saveSettings,
-  } = useMealsTabData();
+  } = useMealsTabData(place.week);
 
-  const [subView, setSubView] = useState<MealsSubView>('week');
+  const [subView, setSubView] = useState<MealsSubView>(place.view);
+  // Leaving a sub-tab takes its notice along: an Undo for the plan does not
+  // follow the family onto the grocery list.
+  const openView = useCallback((view: MealsSubView) => {
+    if (view !== subView) dismissNotice();
+    setSubView(view);
+  }, [subView, dismissNotice]);
   const [showSettings, setShowSettings] = useState(false);
   const dayNamesFull = useMemo(() => getLocalizedDayNames(locale, 'full'), [locale]);
   const closeSheet = useCallback(() => setSheet(null), [setSheet]);
+
+  // Mirror the tab and the week shown into the address, once the household's
+  // week start has settled which week that is.
+  const placeWeek = isCurrentWeek ? null : weekDates[0].date;
+  useEffect(() => {
+    if (loading || loadError) return;
+    const url = new URL(window.location.href);
+    if (writeMealsPlace(url, { view: subView, week: placeWeek })) window.history.replaceState(window.history.state, '', url);
+  }, [loading, loadError, subView, placeWeek]);
 
   if (loading) {
     return (
@@ -129,18 +151,15 @@ export default function MealsTab() {
 
   const fromMealie = source === 'mealie';
   const baseUrl = status.state === 'local' ? undefined : status.baseUrl;
-  // Mealie stopped answering and this is its last good copy: viewing stays
-  // calm, planning pauses with one message.
-  const paused = fromMealie && !canEdit && status.state === 'stale' ? { updatedAt: status.updatedAt } : null;
+  // Mealie gave no answer and this is its last good copy: viewing stays
+  // calm, planning pauses with one message saying why.
+  const paused = fromMealie && !canEdit && status.state === 'stale' ? { updatedAt: status.updatedAt, problem: status.problem } : null;
   // No copy at all (or the hub could not fetch this week): say so instead of
   // drawing an empty week, which would read as nothing planned.
   const unreachable = fromMealie && (status.state === 'unreachable' || weekState === 'failed');
 
-  // Format week date range for header
-  const startDate = new Date(weekDates[0].date + 'T12:00:00');
-  const endDate = new Date(weekDates[6].date + 'T12:00:00');
-  const formatShort = (d: Date) => d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
-  const weekLabel = isCurrentWeek ? t('mealsTab.weekLabel.thisWeek') : `${formatShort(startDate)} – ${formatShort(endDate)}`;
+  // The week between the arrows: "This Week", or the dates of another.
+  const weekLabel = isCurrentWeek ? t('mealsTab.weekLabel.thisWeek') : week.range;
   const weekReady = weekState === 'ready';
 
   const sheetEntry = sheet ? getMealForSlot(sheet.date, sheet.slot).planned : undefined;
@@ -162,13 +181,21 @@ export default function MealsTab() {
     }
   }
 
+  // Where the notice and a save error sit: above the tab bar (and above the
+  // Library's add button), or, while a sheet is up, at the top of the screen
+  // over the dimmed page. At the bottom they covered the sheet's own rows
+  // (the serving time, Clear).
+  const toastPlace: CSSProperties = sheet || picker || confirmAction || showSettings
+    ? { top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }
+    : { bottom: subView === 'library' && !fromMealie ? 144 : 100 };
+
   return (
     <div>
       <MealsTabHeader todayISO={todayISO} onOpenSettings={() => setShowSettings(true)} />
       <MealsSourcePill status={status} todayISO={todayISO} />
       <AtHomePill style={{ marginTop: 8 }} />
 
-      <MealsSubNav subView={subView} setSubView={setSubView} weekLabel={weekLabel} />
+      <MealsSubNav subView={subView} setSubView={openView} />
 
       {(subView === 'week' || subView === 'plan' || (subView === 'grocery' && !fromMealie)) && (
         <MealsWeekNav
@@ -194,7 +221,8 @@ export default function MealsTab() {
           getMealForSlot={getMealForSlot}
           settings={settings}
           globalTimeFormat={globalTimeFormat}
-          setSubView={setSubView}
+          setSubView={openView}
+          onOpenMeal={(date, slot) => setSheet({ date, slot })}
         />
       )}
 
@@ -218,7 +246,7 @@ export default function MealsTab() {
           copyLastWeek={copyLastWeek}
           hasPreviousWeek={hasPreviousWeekEntries}
           settings={settings}
-          setSubView={setSubView}
+          setSubView={openView}
         />
       )}
 
@@ -255,7 +283,9 @@ export default function MealsTab() {
         <MealsGroceryView
           groceryList={groceryList}
           groceryStats={groceryStats}
+          withoutIngredients={groceryWithoutIngredients}
           toggleGroceryItem={toggleGroceryItem}
+          week={week}
         />
       ))}
 
@@ -295,7 +325,7 @@ export default function MealsTab() {
           onPickMeal={(meal) => pickMeal(picker, meal)}
           onPickText={(text) => pickText(picker, text)}
           onClose={() => setPicker(null)}
-          onOpenLibrary={() => { setSheet(null); setSubView('library'); }}
+          onOpenLibrary={() => { setSheet(null); openView('library'); }}
         />
       )}
 
@@ -327,7 +357,7 @@ export default function MealsTab() {
           onClick={notice.undo ? undefined : dismissNotice}
           style={{
             position: 'fixed',
-            bottom: 100,
+            ...toastPlace,
             left: '50%',
             transform: 'translateX(-50%)',
             width: 'max-content',
@@ -364,7 +394,7 @@ export default function MealsTab() {
         <div
           style={{
             position: 'fixed',
-            bottom: 100,
+            ...toastPlace,
             left: '50%',
             transform: 'translateX(-50%)',
             background: 'var(--hs-danger)',

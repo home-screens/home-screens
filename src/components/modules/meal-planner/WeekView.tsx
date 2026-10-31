@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { Fragment, useMemo, type CSSProperties } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
-import { pictureAboveName } from '@/lib/meal-week-cell';
+import { weekCellLayout, weekCellPieces, weekCellWords, WEEK_GAP_PX, WEEK_LINE_GAP_PX } from '@/lib/meal-week-cell';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseCount } from '../shared/MealCourseLines';
@@ -35,14 +35,23 @@ const CELL_INSET_X_PX = 6 * 2 + 2;
 const CELL_INSET_Y_PX = 2 * 2;
 /** The 1px gap the grid draws between its columns and between its rows. */
 const GRID_GAP_PX = 1;
-/** The gap (gap-1) a cell draws between the dish and its serving time. */
-const CELL_GAP_PX = 4;
 /** The picture's line beside or above a dish name: an emoji at 0.8em on a 1.5 line. */
 const PICTURE_LINE_EM = 0.8 * 1.5;
 /** A serving time's figures and its AM or PM, a character at a time, in em of its size. */
 const TIME_CHAR_EM = 0.6;
 /** The course count's padding either side, in em of its size. */
 const COUNT_PAD_EM = 0.42;
+/** The line under a name: the course count's pill is the taller of what it holds. */
+const SMALL_LINE_HEIGHT = 1.45;
+/** A word of a dish name too long for a line of its cell: cut with an ellipsis. */
+const LONG_WORD_STYLE: CSSProperties = {
+  display: 'inline-block',
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  verticalAlign: 'top',
+};
 
 export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode, fontSize }: WeekViewProps) {
   const t = useTranslate('modules');
@@ -69,7 +78,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
   const fullLabels = columnWidth >= FULL_LABEL_COLUMN_EM * fontSize;
   const slotLabel = (s: MealSlotType) => t(fullLabels ? `meal-planner.slots.${s}` : `meal-planner.slotShort.${s}`);
 
-  // The room a dish name has, for whether its picture sits beside it or above.
+  // The room each cell has, for how it lays out its dish (see weekCellLayout).
   const namePx = Math.max(0.72 * fontSize, 13);
   // The slot labels and the serving times share one small size.
   const smallPx = Math.max(0.55 * fontSize, 11);
@@ -132,20 +141,18 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                 const timeLabel = time ? formatMealTime(time, timeFormat) : '';
                 const pictured = showEmoji && mealHasPicture(meal);
                 const courseCount = courses.length;
-                // The time and the course count stack beside the name, so the
-                // wider of the two is what the name gives up.
-                const timePx = timeLabel.length * TIME_CHAR_EM * smallPx;
-                const countPx = courseCount > 0 ? (String(courseCount).length + 1) * TIME_CHAR_EM * smallPx + 2 * COUNT_PAD_EM * smallPx : 0;
-                const above = pictureAboveName({
+                const words = name ? weekCellWords(name) : [];
+                const layout = weekCellLayout({
                   cellPx,
                   rowPx,
                   namePx,
+                  nameChars: name?.length ?? 0,
+                  longestWordChars: Math.max(0, ...words.map((word) => word.length)),
                   picturePx: pictured ? PICTURE_LINE_EM * fontSize : 0,
-                  besidePx: timeLabel || courseCount > 0 ? Math.max(timePx, countPx) + CELL_GAP_PX : 0,
+                  timePx: timeLabel.length * TIME_CHAR_EM * smallPx,
+                  countPx: courseCount > 0 ? (String(courseCount).length + 1) * TIME_CHAR_EM * smallPx + 2 * COUNT_PAD_EM * smallPx : 0,
+                  smallLinePx: SMALL_LINE_HEIGHT * smallPx,
                 });
-                // With the picture above the name, the count rides beside the
-                // picture and the name keeps the whole width.
-                const countBesidePicture = above && courseCount > 0;
                 const count = <MealCourseCount count={courseCount} color={SLOT_META[slot].color} fontSize="max(0.55em, 11px)" />;
                 const picture = pictured && (
                   <span className="shrink-0" style={{ fontSize: '0.8em', display: meal?.photoUrl ? 'flex' : undefined }}>
@@ -155,8 +162,9 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                 return (
                   <div
                     key={slot}
-                    className="flex items-center gap-1 px-1.5 py-0.5 rounded min-w-0 self-stretch"
+                    className="flex flex-col justify-center px-1.5 py-0.5 rounded min-w-0 self-stretch overflow-hidden"
                     style={{
+                      gap: WEEK_LINE_GAP_PX,
                       backgroundColor: name ? SLOT_META[slot].bg : 'transparent',
                       borderLeft: isToday && name ? `2px solid ${SLOT_META[slot].color}40` : '2px solid transparent',
                     }}
@@ -168,48 +176,62 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                         <MealTapTarget
                           meal={meal}
                           mode={recipeTapMode}
-                          className={above ? 'flex flex-col items-start gap-1 min-w-0' : 'flex items-center gap-1 min-w-0'}
+                          className={layout.pictureAbove ? 'flex flex-col items-start min-w-0' : 'flex items-center min-w-0'}
+                          style={{ gap: WEEK_GAP_PX }}
                         >
-                          {countBesidePicture ? (
-                            <span className="flex items-center gap-1">{picture}{count}</span>
+                          {layout.countAt === 'picture' ? (
+                            <span className="flex items-center" style={{ gap: WEEK_GAP_PX }}>{picture}{count}</span>
                           ) : picture}
-                          {/* Two lines at most: rows are tall enough, columns are not. */}
                           <span
                             className="font-medium min-w-0"
                             style={{
                               fontSize: 'max(0.72em, 13px)',
                               lineHeight: 1.2,
                               opacity: TEXT_OPACITY.heading,
+                              maxWidth: '100%',
                               display: '-webkit-box',
-                              WebkitLineClamp: 2,
+                              WebkitLineClamp: layout.nameLines,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
-                              // A word wider than the column ("Cheeseburgers") breaks at
-                              // a hyphen where the browser knows the page's language, and
-                              // anywhere at all where it does not, so it never clips.
-                              // Breaking anywhere alone cut "Pancakes" to "Pancak / es".
-                              hyphens: 'auto',
-                              overflowWrap: 'anywhere',
+                              // Between words only: a browser hyphenates just the
+                              // languages it has a dictionary for, and a Pi may have
+                              // none, so breaking inside a word cut "Oatmeal" to
+                              // "Oatme / al". A word wider than the cell ends in an
+                              // ellipsis instead.
+                              overflowWrap: 'normal',
+                              wordBreak: 'normal',
+                              hyphens: 'manual',
+                              textOverflow: 'ellipsis',
                             }}
                           >
-                            {name}
+                            {/* Firefox puts that ellipsis only on a clamped name's
+                                last line, so a word clearly too long for a line gets
+                                a box of its own to end in one (see weekCellPieces). */}
+                            {weekCellPieces(words, layout.lineChars).map((piece, i) => (
+                              piece.box ? <span key={i} style={LONG_WORD_STYLE}>{piece.text}</span> : <Fragment key={i}>{piece.text}</Fragment>
+                            ))}
                           </span>
+                          {layout.countAt === 'name' && count}
                         </MealTapTarget>
-                        {(time || (courseCount > 0 && !countBesidePicture)) && (
-                          <span className="shrink-0 flex flex-col items-start" style={{ gap: 2 }}>
-                            {time && (
+                        {/* The serving time, under the name where it costs the
+                            name no width; left off when the row has no room. */}
+                        {(layout.showTime || layout.countAt === 'line') && (
+                          <span className="flex flex-wrap items-center min-w-0" style={{ gap: `${WEEK_LINE_GAP_PX}px ${WEEK_GAP_PX}px` }}>
+                            {layout.showTime && (
                               <span
+                                data-meal-week-time=""
                                 style={{
                                   fontSize: 'max(0.55em, 11px)',
                                   lineHeight: 1.3,
                                   opacity: TEXT_OPACITY.tertiary,
                                   fontVariantNumeric: 'tabular-nums',
+                                  whiteSpace: 'nowrap',
                                 }}
                               >
                                 {timeLabel}
                               </span>
                             )}
-                            {!countBesidePicture && count}
+                            {layout.countAt === 'line' && count}
                           </span>
                         )}
                       </>

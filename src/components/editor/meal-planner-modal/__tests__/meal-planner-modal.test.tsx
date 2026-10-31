@@ -176,7 +176,7 @@ describe('the meal planner window with the plan in Mealie', () => {
     expect(within(picker).getByText('No recipe. Mealie keeps it as a note.')).toBeTruthy();
     fireEvent.click(typed);
     const { plan } = edits[0]({ savedMeals: MEALIE_MEALS, plan: [MONDAY_DINNER] });
-    expect(plan!.find((p) => p.slot === 'dinner')!.courses!.at(-1)).toEqual({ kind: 'side', customText: 'Green salad' });
+    expect(plan!.find((p) => p.slot === 'dinner')!.courses).toContainEqual({ kind: 'side', customText: 'Green salad' });
     await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Add a side' })).toBeNull());
   });
 
@@ -187,6 +187,31 @@ describe('the meal planner window with the plan in Mealie', () => {
     expect((screen.getByRole('button', { name: /Suggest/ }) as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(dinnerCell());
     expect(screen.queryByTestId('meal-popover')).toBeNull();
+  });
+
+  it('says a refused token is the reason, and how to fix it, rather than Mealie being down', () => {
+    const fetchedAt = Date.parse('2026-09-21T20:10:00Z');
+    const stale: MealieWireBlock = { ...block('stale', fetchedAt), failure: 'key-rejected' };
+    const props = {
+      loaded: true,
+      savedMeals: stale.meals,
+      plan: stale.plan,
+      settings: SETTINGS,
+      groceryChecked: {},
+      onToggleGroceryItem: () => {},
+      accentColor: '#f59e0b',
+      onUpdate: () => {},
+      onClose: () => {},
+      source: 'mealie' as const,
+      mealie: stale,
+    };
+    const view = render(<MealPlannerModal {...props} />, { wrapper: Wrapper });
+    expect(view.getByText("Mealie isn't letting Home Screens in")).toBeTruthy();
+    expect(view.getByText('Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused. This is the plan from 3:10 PM.')).toBeTruthy();
+    expect(view.queryByText("Can't reach Mealie right now")).toBeNull();
+    // A save the hub refused for the same reason says so too.
+    view.rerender(<MealPlannerModal {...props} saveError={{ problem: 'token' }} />);
+    expect(view.getByRole('alert').textContent).toBe("Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in Settings > API keys.");
   });
 
   it('shows no week at all, rather than an empty one, when Mealie never answered', () => {
@@ -276,5 +301,45 @@ describe('courses without Mealie', () => {
     expect(edits[0]({ savedMeals: LOCAL, plan: PLAN }).plan![0].courses).toBeUndefined();
     fireEvent.click(within(screen.getByRole('status')).getByRole('button', { name: 'Undo' }));
     expect(edits[1]({ savedMeals: LOCAL, plan: [{ date: '2026-09-21', slot: 'dinner', mealId: 'tacos' }] }).plan).toEqual(PLAN);
+  });
+
+  it('offers back a dish changed for another and a cleared meal, naming the dish', () => {
+    const edits: MealEdit[] = [];
+    const library = [...LOCAL, { id: 'pizza', name: 'Pizza', emoji: '🍕', category: 'main' } as SavedMeal];
+    render(
+      <MealPlannerModal loaded savedMeals={library} plan={PLAN} settings={LOCAL_SETTINGS} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={(e) => edits.push(e)} onClose={() => {}} />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.click(dinnerCell());
+    // Detail shows the dish in the meal, follows it to the new one, and back on Undo.
+    expect(screen.getByDisplayValue('Tacos')).toBeTruthy();
+    fireEvent.click(within(screen.getByTestId('meal-popover')).getByRole('button', { name: 'Change' }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Choose a Meal' })).getByText('Pizza'));
+    expect(edits[0]({ savedMeals: library, plan: PLAN }).plan![0].mealId).toBe('pizza');
+    expect(screen.getByDisplayValue('Pizza')).toBeTruthy();
+    const changed = screen.getByRole('status');
+    expect(changed.textContent).toContain('Changed to Pizza');
+    fireEvent.click(within(changed).getByRole('button', { name: 'Undo' }));
+    const pizzaNight = [{ ...PLAN[0], mealId: 'pizza' }];
+    expect(edits[1]({ savedMeals: library, plan: pizzaNight }).plan).toEqual(PLAN);
+    expect(screen.getByDisplayValue('Tacos')).toBeTruthy();
+
+    fireEvent.click(within(screen.getByTestId('meal-popover')).getByRole('button', { name: 'Clear this dinner' }));
+    const cleared = screen.getByRole('status');
+    expect(cleared.textContent).toContain('Took Tacos off, and the dish with it');
+    fireEvent.click(within(cleared).getByRole('button', { name: 'Undo' }));
+    expect(edits[3]({ savedMeals: library, plan: [] }).plan).toEqual(PLAN);
+  });
+
+  it('can take back a Suggest, which replaced the week', () => {
+    const edits: MealEdit[] = [];
+    render(
+      <MealPlannerModal loaded savedMeals={LOCAL} plan={PLAN} settings={LOCAL_SETTINGS} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={(e) => edits.push(e)} onClose={() => {}} />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Suggest/ }));
+    fireEvent.click(within(screen.getByRole('status')).getByRole('button', { name: 'Undo' }));
+    const suggested = edits[0]({ savedMeals: LOCAL, plan: PLAN }).plan!;
+    expect(edits[1]({ savedMeals: LOCAL, plan: suggested }).plan).toEqual(PLAN);
   });
 });

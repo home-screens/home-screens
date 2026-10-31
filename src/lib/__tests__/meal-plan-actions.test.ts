@@ -12,6 +12,11 @@ import {
   removeSavedMeal,
   toggleSavedMealFavorite,
   restorePlanEntries,
+  replacesDish,
+  suggestPlanWeek,
+  placePlanWeek,
+  plannedEntriesOfMeal,
+  restoreSavedMeal,
 } from '../meal-plan-actions';
 
 const WEEK = ['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19'];
@@ -95,6 +100,35 @@ describe('setPlanSlotText', () => {
   });
 });
 
+describe('replacesDish', () => {
+  /* A dish changed for another in the picker gets a notice with Undo; a pick
+   * that fills an empty place, or picks what is there, has nothing to undo. */
+  it('is a change when the main dish was another meal or typed text', () => {
+    expect(replacesDish(entry('2026-09-15', 'm-1'), null, { mealId: 'm-2' })).toBe(true);
+    expect(replacesDish(entry('2026-09-15', 'm-1'), null, { customText: 'Tacos' })).toBe(true);
+    const typed = { date: '2026-09-15', slot: 'dinner', customText: 'Tacos' } as PlannedMeal;
+    expect(replacesDish(typed, null, { mealId: 'm-2' })).toBe(true);
+    expect(replacesDish(typed, null, { customText: 'Pizza' })).toBe(true);
+  });
+
+  it('is no change when nothing was there or the same dish is picked again', () => {
+    expect(replacesDish(undefined, null, { mealId: 'm-1' })).toBe(false);
+    expect(replacesDish(entry('2026-09-15', 'm-1'), null, { mealId: 'm-1' })).toBe(false);
+    const typed = { date: '2026-09-15', slot: 'dinner', customText: 'Tacos' } as PlannedMeal;
+    expect(replacesDish(typed, null, { customText: ' Tacos ' })).toBe(false);
+    // A dinner planned as only its sides has no main dish to replace.
+    const sidesOnly = { date: '2026-09-15', slot: 'dinner', courses: [{ kind: 'side', mealId: 's-1' }] } as PlannedMeal;
+    expect(replacesDish(sidesOnly, null, { mealId: 'm-1' })).toBe(false);
+  });
+
+  it('looks at the course being swapped', () => {
+    const withSide = entry('2026-09-15', 'm-1', { courses: [{ kind: 'side', mealId: 's-1' }] });
+    expect(replacesDish(withSide, 0, { mealId: 's-2' })).toBe(true);
+    expect(replacesDish(withSide, 0, { mealId: 's-1' })).toBe(false);
+    expect(replacesDish(withSide, 1, { mealId: 's-2' })).toBe(false);
+  });
+});
+
 describe('clearPlanSlot', () => {
   it('empties one slot and nothing else', () => {
     const plan = [entry('2026-09-15', 'm-1'), entry('2026-09-16', 'm-2')];
@@ -141,6 +175,44 @@ describe('shufflePlanWeek', () => {
   it('is a no-op for a household with no saved meals', () => {
     const plan = [entry('2026-09-15', 'm-1')];
     expect(shufflePlanWeek(plan, [], ['dinner'], WEEK)).toBe(plan);
+  });
+
+  it('reads the other weeks for where a meal with no slot tag belongs, not the week it replaces', () => {
+    const plan = [
+      entry('2026-09-08', 'popcorn', { slot: 'snack' }),
+      // Planned as a dinner in the week being replaced: not counted.
+      entry('2026-09-15', 'popcorn'),
+    ];
+    const next = shufflePlanWeek(plan, [meal('popcorn'), meal('tacos')], ['snack', 'dinner'], WEEK, () => 0);
+    const week = next.filter((p) => WEEK.includes(p.date));
+    expect(week.filter((p) => p.mealId === 'popcorn').every((p) => p.slot === 'snack')).toBe(true);
+    expect(week.filter((p) => p.slot === 'snack')).toHaveLength(7);
+    expect(week.filter((p) => p.slot === 'dinner').map((p) => p.mealId)).toEqual(['tacos']);
+  });
+});
+
+describe('suggestPlanWeek and placePlanWeek', () => {
+  /* Both surfaces run an edit twice (for the screen, then for the save): the
+   * pick is made once outside it, and the edit only places it, so the week
+   * shown is the week saved. */
+  it('picks the week once, and placing it gives the same plan every time', () => {
+    const plan = [entry('2026-09-22', 'm-keep'), entry('2026-09-15', 'm-old')];
+    const library = [meal('m-1'), meal('m-2'), meal('m-3')];
+    const picked = suggestPlanWeek(plan, library, ['dinner'], WEEK);
+    expect(picked.length).toBeGreaterThan(0);
+    expect(picked.every((p) => WEEK.includes(p.date))).toBe(true);
+    const shown = placePlanWeek(plan, WEEK, picked);
+    const saved = placePlanWeek(plan, WEEK, picked);
+    expect(saved).toEqual(shown);
+    expect(saved.filter((p) => p.date === '2026-09-22')).toEqual([entry('2026-09-22', 'm-keep')]);
+    expect(saved.some((p) => p.mealId === 'm-old')).toBe(false);
+  });
+
+  it('puts the week back as it was for Undo', () => {
+    const before = [entry('2026-09-15', 'm-old', { time: '18:30' })];
+    const plan = [entry('2026-09-22', 'm-keep'), ...before];
+    const suggested = placePlanWeek(plan, WEEK, suggestPlanWeek(plan, [meal('m-1')], ['dinner'], WEEK));
+    expect(placePlanWeek(suggested, WEEK, before)).toEqual(plan);
   });
 });
 
@@ -189,6 +261,33 @@ describe('removeSavedMeal', () => {
     );
     expect(next.savedMeals.map((m) => m.id)).toEqual(['m-2']);
     expect(next.plan.map((p) => p.mealId)).toEqual(['m-2']);
+  });
+});
+
+describe('plannedEntriesOfMeal', () => {
+  it('finds the meals a dish is the main dish of or a course in', () => {
+    const main = entry('2026-09-15', 'm-1');
+    const side = entry('2026-09-16', 'm-2', { courses: [{ kind: 'side', mealId: 'm-1' }] });
+    const other = entry('2026-09-17', 'm-3');
+    expect(plannedEntriesOfMeal([main, side, other], 'm-1')).toEqual([main, side]);
+  });
+});
+
+describe('restoreSavedMeal', () => {
+  /* Undo of a delete: the meal and every meal it was in come back as they
+   * were, the side included, over whatever was planned there since. */
+  it('puts the meal back in the library and on every day it was planned', () => {
+    const library = [meal('m-1'), meal('m-2')];
+    const plan = [
+      entry('2026-09-15', 'm-1', { time: '18:30' }),
+      entry('2026-09-16', 'm-2', { courses: [{ kind: 'side', mealId: 'm-1' }] }),
+    ];
+    const entries = plannedEntriesOfMeal(plan, 'm-1');
+    const deleted = removeSavedMeal(library, plan, 'm-1');
+    expect(deleted.plan).toEqual([entry('2026-09-16', 'm-2')]);
+    const back = restoreSavedMeal(deleted.savedMeals, deleted.plan, library[0], entries);
+    expect(back.savedMeals.map((m) => m.id).sort()).toEqual(['m-1', 'm-2']);
+    expect([...back.plan].sort((a, b) => a.date.localeCompare(b.date))).toEqual(plan);
   });
 });
 

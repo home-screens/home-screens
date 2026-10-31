@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
-import { generateGroceryList } from '@/lib/grocery-utils';
+import { generateGroceryList, plannedMealsWithoutIngredients } from '@/lib/grocery-utils';
 import { groceryChecksForWeek, type GroceryChecked } from '@/lib/grocery-checks';
 
 interface MealsGroceryParams {
@@ -17,7 +17,8 @@ interface MealsGroceryParams {
 
 /**
  * The grocery list derived from the viewed week's plan and ticks, plus its
- * checked/total counts. Purely derived: the checkbox writes go through
+ * checked/total counts and the planned meals that add nothing to it because
+ * they have no ingredients yet. Purely derived: the checkbox writes go through
  * `useMealsData`.
  */
 export function useMealsGrocery({ weekPlan, savedMeals, groceryChecked, week }: MealsGroceryParams) {
@@ -36,5 +37,10 @@ export function useMealsGrocery({ weekPlan, savedMeals, groceryChecked, week }: 
     return { total, checked };
   }, [groceryList]);
 
-  return { groceryList, groceryStats };
+  const withoutIngredients = useMemo(
+    () => plannedMealsWithoutIngredients(weekPlan, savedMeals),
+    [weekPlan, savedMeals],
+  );
+
+  return { groceryList, groceryStats, withoutIngredients };
 }

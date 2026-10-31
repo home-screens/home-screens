@@ -693,7 +693,7 @@ The hub talks to the household's [Mealie](https://mealie.io) with the address an
 
 Checks the saved connection: whether Mealie answers at the address, is version 2.0 or newer, and accepts the token. Requires a valid session.
 
-**Response:** `{ "ok": true, "version": "3.29.0", "household": "Family", "user": "Taylor" }`, or `{ "ok": false, "failure": "key-rejected", "version": "3.29.0" }`.
+**Response:** `{ "ok": true, "version": "3.29.0", "household": "Family", "user": "Taylor", "url": "http://192.168.1.20:9925" }`, or `{ "ok": false, "failure": "key-rejected", "version": "3.29.0", "url": "http://192.168.1.20:9925" }`. `url` is the saved address, as the hub uses it; it is left out only when no address is saved.
 
 ### GET /api/mealie/plan
 

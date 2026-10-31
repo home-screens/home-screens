@@ -1,11 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ChevronRight, CloudOff, Pencil, Search } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import type { MealieRecipeFilter } from '@/lib/meal-client';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
-import { mealShownMinutes, mealsForCourse } from '@/lib/meal-dish-rules';
+import { DEFAULT_MEAL_EMOJI, LIBRARY_FILTERS, getMealSlotLabelKey, type LibraryFilter } from '@/lib/meal-constants';
+import {
+  filterLibraryMeals,
+  mealShownMinutes,
+  mealsForCourse,
+  mealsForSlot,
+  mealTagLabel,
+  savedMealNamed,
+  searchSavedMeals,
+} from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useTranslate } from '@/i18n';
@@ -16,7 +24,7 @@ import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import MealThumb from './MealThumb';
 import { RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
-import { formatShownMinutes, mealTagLabel, type MealPickTarget } from './meals-shared';
+import { formatShownMinutes, type MealPickTarget } from './meals-shared';
 import { mealieProblemWords } from './MealsMealieStatus';
 
 interface MealPickerSheetProps {
@@ -50,11 +58,11 @@ function useTitle(target: MealPickTarget): string {
  * The recipe picker: what goes in a slot, a new course, or a swap for one.
  * With the plan in Mealie it searches Mealie's recipes live, with Favorites
  * and Recently made before anything is typed, and typed words become a note;
- * otherwise it lists the family's own meals, those saved as the kind being
- * added first, with the box for a meal typed in for one day on top.
+ * otherwise it searches the family's own meals as words are typed, with the
+ * Library's chips, and the same words can go on the plan as typed instead.
  */
 export default function MealPickerSheet(props: MealPickerSheetProps) {
-  const { fromMealie, onClose, subtitle, target } = props;
+  const { fromMealie, library, onClose, subtitle, target } = props;
   const t = useTranslate('remote');
   const title = useTitle(target);
   const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
@@ -79,9 +87,10 @@ export default function MealPickerSheet(props: MealPickerSheetProps) {
           position: 'relative',
           background: 'var(--hs-bg-body)',
           borderRadius: '16px 16px 0 0',
-          // Mealie's list fills in as it answers: a fixed height keeps the
-          // sheet from jumping while it does.
-          ...(fromMealie ? { height: '85vh' } : { maxHeight: '60vh' }),
+          // Mealie's list fills in as it answers, and the family's meals
+          // narrow as words are typed: a fixed height keeps the sheet (and
+          // the box under the finger) from jumping while they do.
+          ...(fromMealie || library.length > 0 ? { height: '85vh' } : { maxHeight: '60vh' }),
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 -8px 40px rgba(0,0,0,0.4)',
@@ -264,60 +273,111 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         )}
       </div>
       {typed && !search.error && (
-        // Pinned, never mixed into the results, so it never scrolls away; lit
-        // when Mealie found nothing and it is the way forward. Not offered
-        // while Mealie is not answering: the note could not be saved there.
-        <div style={{ padding: '12px 16px 24px', borderTop: '1px solid var(--hs-border)', flex: 'none', background: 'var(--hs-bg-body)' }}>
-          <button
-            type="button"
-            onClick={() => onPickText(typed)}
-            data-testid="mealie-type-instead"
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', minHeight: 56,
-              borderRadius: 12, border: `1px dashed ${nothingFound ? '#f59e0b' : 'var(--hs-border-strong)'}`,
-              background: nothingFound ? 'rgba(245,158,11,0.08)' : 'transparent',
-              textAlign: 'left', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            <span
-              aria-hidden
-              style={{
-                width: 36, height: 36, borderRadius: 8, border: '1px dashed var(--hs-border-strong)', color: 'var(--hs-text-faint)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none',
-              }}
-            >
-              <Pencil size={15} strokeWidth={2} />
-            </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {t('mealie.search.typeInstead', { query: typed })}
-              </span>
-              <span style={{ display: 'block', fontSize: 12, color: 'var(--hs-text-muted)', marginTop: 1, lineHeight: '17px' }}>
-                {t('mealie.search.typeInsteadNote')}
-              </span>
-            </span>
-            <ChevronRight size={18} strokeWidth={2} aria-hidden style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />
-          </button>
-        </div>
+        // Lit when Mealie found nothing and it is the way forward. Not
+        // offered while Mealie is not answering: the note could not be
+        // saved there.
+        <TypeInsteadRow
+          title={t('mealie.search.typeInstead', { query: typed })}
+          note={t('mealie.search.typeInsteadNote')}
+          lit={nothingFound}
+          onClick={() => onPickText(typed)}
+          testId="mealie-type-instead"
+        />
       )}
     </>
   );
 }
 
-/** The family's own meals, with the box for a meal typed in for one day. */
+/**
+ * Put the typed words on the plan instead of a recipe. Pinned under the
+ * list, never mixed into the results, so it never scrolls away and every
+ * match stays above it.
+ */
+function TypeInsteadRow({ title, note, lit, onClick, testId }: {
+  title: string;
+  note: string;
+  /** Nothing matched the words, so this is the way forward. */
+  lit: boolean;
+  onClick: () => void;
+  testId: string;
+}) {
+  return (
+    <div style={{ padding: '12px 16px 24px', borderTop: '1px solid var(--hs-border)', flex: 'none', background: 'var(--hs-bg-body)' }}>
+      <button
+        type="button"
+        onClick={onClick}
+        data-testid={testId}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', minHeight: 56,
+          borderRadius: 12, border: `1px dashed ${lit ? '#f59e0b' : 'var(--hs-border-strong)'}`,
+          background: lit ? 'rgba(245,158,11,0.08)' : 'transparent',
+          textAlign: 'left', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit',
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            width: 36, height: 36, borderRadius: 8, border: '1px dashed var(--hs-border-strong)', color: 'var(--hs-text-faint)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none',
+          }}
+        >
+          <Pencil size={15} strokeWidth={2} />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {title}
+          </span>
+          <span style={{ display: 'block', fontSize: 12, color: 'var(--hs-text-muted)', marginTop: 1, lineHeight: '17px' }}>
+            {note}
+          </span>
+        </span>
+        <ChevronRight size={18} strokeWidth={2} aria-hidden style={{ color: 'var(--hs-text-faint)', flex: 'none' }} />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The family's own meals, searched as words are typed (names and tags, as on
+ * the Library) and narrowed by the Library's chips, with the typed words
+ * offered last as a meal typed in for one day.
+ */
 function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPickText, onClose, onOpenLibrary }: MealPickerSheetProps) {
   const t = useTranslate('remote');
-  // A meal typed for one day only. Tonight is often not a library entry, and
-  // without this every dinner had to be saved to the library first, which is
-  // also what left the picker a dead end on a household that had saved none.
-  const [typedMeal, setTypedMeal] = useState(initialText);
-  const submit = () => {
-    if (typedMeal.trim()) onPickText(typedMeal);
+  const tModules = useTranslate('modules');
+  // One box for both: it narrows the meals as it is typed in, and the same
+  // words can go on the plan as typed. Tonight is often not a library entry,
+  // and a household that has saved none still needs a way out of the sheet.
+  // Changing a typed-in dish starts with its words, so a saved meal of that
+  // name shows first.
+  const [query, setQuery] = useState(initialText);
+  const [filter, setFilter] = useState<LibraryFilter>('all');
+  const typed = query.trim();
+  const found = useMemo(() => filterLibraryMeals(library, typed, filter), [library, typed, filter]);
+  // Whether the words match anything saved, whatever chip is on: typing
+  // them in is the way forward only when they do not.
+  const inLibrary = useMemo(() => !!typed && searchSavedMeals(library, typed).length > 0, [library, typed]);
+  // The main dish leads with the meals tagged for this meal of the day, a
+  // course with the meals saved as its kind.
+  const groups = target.pick === 'main' ? mealsForSlot(found, target.slot) : mealsForCourse(found, target.kind);
+  const groupTitle = target.pick === 'main' ? tModules(getMealSlotLabelKey(target.slot)) : t(`mealPicker.savedAs.${target.kind}`);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // A new search starts at the top of its list.
+  useEffect(() => {
+    listRef.current?.scrollTo({ top: 0 });
+  }, [typed, filter]);
+
+  // Enter takes the saved meal the words name, and types them in when they
+  // match nothing saved. With only partial matches it puts the keyboard
+  // away, so the list and the row under it are in view.
+  const enter = (input: HTMLInputElement) => {
+    if (!typed) return;
+    const named = savedMealNamed(library, typed);
+    if (named) onPickMeal(named);
+    else if (!inLibrary) onPickText(typed);
+    else input.blur();
   };
-  // Adding a side leads with the meals saved as sides; the main dish lists
-  // the library as it is.
-  const groups = target.pick === 'main' ? null : mealsForCourse(library, target.kind);
-  const kind = target.pick === 'main' ? null : target.kind;
 
   const row = (meal: SavedMeal) => {
     const chosen = chosenIds.has(meal.id);
@@ -333,7 +393,7 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
           textAlign: 'left' as const, color: 'inherit', fontFamily: 'inherit',
         }}
       >
-        <span style={{ fontSize: 24, lineHeight: 1 }}><Glyph value={meal.emoji ?? DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
+        <span style={{ fontSize: 24 }}><Glyph value={meal.emoji ?? DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
         <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: chosen ? '#f59e0b' : 'var(--hs-text-primary)' }}>
           {meal.name}
         </span>
@@ -350,38 +410,16 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
 
   return (
     <>
-      {/* Type tonight's dinner without saving it to the library first.
-          Sits above the list because it is the quickest way out of the
-          sheet, and it is the only way out when the library is empty. */}
-      <div style={{ display: 'flex', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--hs-border)', flex: 'none' }}>
-        <input
-          type="text"
-          value={typedMeal}
-          onChange={(e) => setTypedMeal(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+      <div style={{ padding: '12px 16px 0', flex: 'none' }}>
+        <RecipeSearchBox
+          value={query}
+          onChange={setQuery}
+          onEnter={enter}
           placeholder={target.pick === 'main' ? t('mealsPlan.picker.typePlaceholder') : t(`mealPicker.typePlaceholder.${target.kind}`)}
-          aria-label={t('mealsPlan.picker.typeLabel')}
-          maxLength={80}
-          style={{
-            flex: 1, minWidth: 0, minHeight: 44, padding: '10px 12px', borderRadius: 10, border: '1px solid var(--hs-border)',
-            background: 'var(--hs-bg-card)', color: 'var(--hs-text-primary)', fontSize: 14, fontFamily: 'inherit',
-          }}
+          ariaLabel={t('mealsPlan.picker.searchLabel')}
         />
-        <button
-          onClick={submit}
-          disabled={!typedMeal.trim()}
-          style={{
-            padding: '10px 18px', minHeight: 44, borderRadius: 10, border: 'none',
-            cursor: typedMeal.trim() ? 'pointer' : 'default',
-            background: typedMeal.trim() ? '#f59e0b' : 'var(--hs-bg-card)',
-            color: typedMeal.trim() ? '#000' : 'var(--hs-text-faint)',
-            fontSize: 14, fontWeight: 600, fontFamily: 'inherit', flexShrink: 0,
-          }}
-        >
-          {t('mealsPlan.picker.typeAdd')}
-        </button>
       </div>
-      <div style={{ overflow: 'auto', padding: '0 16px 16px', flex: 1, minHeight: 0, scrollbarWidth: 'none' as const }}>
+      <div ref={listRef} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 16px 16px', flex: 1, minHeight: 0, scrollbarWidth: 'none' as const }}>
         {library.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '20px 0 8px', color: 'var(--hs-text-faint)', fontSize: 13, lineHeight: 1.5 }}>
             <p style={{ margin: 0 }}>{t('mealsPlan.picker.emptyLibrary')}</p>
@@ -396,17 +434,43 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
               {t('mealsPlan.empty.addMealsButton')}
             </button>
           </div>
-        ) : groups && kind && groups.matching.length > 0 ? (
-          <>
-            {groupHeading(t(`mealPicker.savedAs.${kind}`))}
-            {groups.matching.map(row)}
-            {groups.others.length > 0 && groupHeading(t('mealPicker.everythingElse'))}
-            {groups.others.map(row)}
-          </>
         ) : (
-          <div style={{ paddingTop: 8 }}>{library.map(row)}</div>
+          <>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', padding: '10px 0 2px' }}>
+              {LIBRARY_FILTERS.map((f) => (
+                <FilterChip key={f} active={filter === f} onClick={() => setFilter(f)}>
+                  {t(`mealsTab.library.filters.${f}`)}
+                </FilterChip>
+              ))}
+            </div>
+            {found.length === 0 ? (
+              typed && !inLibrary ? (
+                <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealPicker.noneTitle', { query: typed })} description={t('mealPicker.noneDescription')} padding="32px 8px" />
+              ) : (
+                <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealsTab.library.empty.titleNoMatches')} description={t('mealsTab.library.empty.hintNoMatches')} padding="32px 8px" />
+              )
+            ) : groups.matching.length > 0 ? (
+              <>
+                {groupHeading(groupTitle)}
+                {groups.matching.map(row)}
+                {groups.others.length > 0 && groupHeading(t('mealPicker.everythingElse'))}
+                {groups.others.map(row)}
+              </>
+            ) : (
+              <div style={{ paddingTop: 8 }}>{found.map(row)}</div>
+            )}
+          </>
         )}
       </div>
+      {typed && (
+        <TypeInsteadRow
+          title={t('mealPicker.typeInstead', { query: typed })}
+          note={t('mealPicker.typeInsteadNote')}
+          lit={!inLibrary}
+          onClick={() => onPickText(typed)}
+          testId="meal-type-instead"
+        />
+      )}
     </>
   );
 }

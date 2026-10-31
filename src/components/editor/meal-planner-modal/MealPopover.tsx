@@ -5,8 +5,11 @@ import { ArrowDown, ArrowUp, ExternalLink, Plus, X } from 'lucide-react';
 import type { MealCourseKind, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealSlotLabelKey, formatMealTime } from '@/lib/meal-constants';
 import { COURSE_KINDS, MAX_COURSES, getMealCourseLabelKey } from '@/lib/meal-courses';
+import { mealTagLabel } from '@/lib/meal-dish-rules';
 import MealTimeChip from '@/components/meals/MealTimeChip';
+import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { useReturnFocus } from '@/hooks/useReturnFocus';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 
@@ -78,8 +81,14 @@ export default function MealPopover({
   const tModules = useTranslate('modules');
   const locale = useFormattingLocale();
   const dishTime = useDishTime();
+  const linkToMealie = useMealieLink();
   const ref = useRef<HTMLDivElement>(null);
   const [top, setTop] = useState(anchor.top);
+
+  // The keyboard moves in with it (Tab reaches its buttons next) and goes
+  // back to the meal's cell when it closes.
+  useReturnFocus();
+  useEffect(() => { ref.current?.focus({ preventScroll: true }); }, []);
 
   // Beside the clicked cell: to its left when there is room there without
   // covering the meal details in the sidebar (the dinner column is on the
@@ -136,8 +145,9 @@ export default function MealPopover({
   const mainName = mainMeal?.name ?? entry.customText?.trim() ?? null;
   const courses = entry.courses ?? [];
   const onMealie = source === 'mealie';
-  const mainMeta = [dishTime(mainMeal), mainMeal?.tags?.[0]].filter(Boolean).join(' · ');
-  const mealieLink = onMealie ? mainMeal?.recipeUrl : undefined;
+  const mainTag = mainMeal?.tags?.[0];
+  const mainMeta = [dishTime(mainMeal), mainMeal && mainTag ? mealTagLabel(mainMeal, mainTag) : null].filter(Boolean).join(' · ');
+  const mealieLink = onMealie && mainMeal?.recipeUrl ? linkToMealie(mainMeal.recipeUrl) : undefined;
 
   const iconBtn = 'w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:bg-hs-hover hover:text-hs-text-body disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-hs-text-faint transition';
 
@@ -146,8 +156,9 @@ export default function MealPopover({
       ref={ref}
       role="dialog"
       aria-label={`${slotLabel} · ${dateLabel}`}
+      tabIndex={-1}
       data-testid="meal-popover"
-      className="fixed z-[55] bg-hs-panel border border-hs-border-strong rounded-xl shadow-2xl"
+      className="fixed z-[55] bg-hs-panel border border-hs-border-strong rounded-xl shadow-2xl focus:outline-none"
       style={{ left, top, width: POPOVER_WIDTH }}
     >
       {/* Header */}

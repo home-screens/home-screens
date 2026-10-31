@@ -124,23 +124,27 @@ export function RetryButton({ onRetry, style }: { onRetry: () => Promise<void> |
 }
 
 /**
- * Planning paused: Mealie stopped answering, so a change could not be saved.
- * One plain message on the Plan tab and in the meal sheet; the copy on screen
+ * Planning paused: Mealie gave no answer, so a change could not be saved.
+ * One plain message on the Plan tab and in the meal sheet, saying why (a
+ * refused token says how to fix it; waiting will not); the copy on screen
  * stays, and the message goes by itself once Mealie answers again.
  */
 export function MealiePausedNotice({
   updatedAt,
+  problem,
   todayISO,
   onRetry,
   style,
 }: {
   updatedAt: number | null;
+  problem: MealieProblem;
   todayISO: string;
   onRetry: () => Promise<void> | void;
   style?: CSSProperties;
 }) {
   const t = useTranslate('remote');
   const copyTime = useCopyTime(updatedAt, todayISO);
+  const token = problem === 'token';
   return (
     <div
       role="status"
@@ -156,25 +160,36 @@ export function MealiePausedNotice({
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '20px' }}>
         <CloudOff size={18} strokeWidth={2} aria-hidden style={{ color: '#f59e0b', flex: 'none' }} />
-        {t('mealie.unreachable.title')}
+        {t(`${mealieProblemWords(problem)}.title`)}
       </div>
       <p style={{ margin: '4px 0 10px 26px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>
-        {copyTime ? t('mealie.paused.descriptionWithTime', { time: copyTime }) : t('mealie.paused.description')}
+        {copyTime
+          ? t(token ? 'mealie.paused.tokenDescriptionWithTime' : 'mealie.paused.descriptionWithTime', { time: copyTime })
+          : t(token ? 'mealie.paused.tokenDescription' : 'mealie.paused.description')}
       </p>
       <RetryButton onRetry={onRetry} style={{ marginLeft: 26, padding: '0 16px' }} />
     </div>
   );
 }
 
-/**
- * No copy of Mealie's plan at all: said in place of the week, because an
- * empty week would read as "nothing planned" when something is.
- */
 /** The phone's words for why there is no answer from Mealie (`.title`, `.description` under it). */
 export function mealieProblemWords(problem: MealieProblem | null): string {
   return { 'not-connected': 'mealie.notConnected', token: 'mealie.tokenRefused', unreachable: 'mealie.unreachable' }[problem ?? 'unreachable'];
 }
 
+/**
+ * The phone's line for a change Mealie did not take, by why: a key under
+ * `remote`, or null when Mealie was not the problem (the plain "failed to
+ * save" says it then).
+ */
+export function mealieSaveFailedWords(problem: MealieProblem | undefined): string | null {
+  return problem ? { 'not-connected': 'mealie.saveFailed.notConnected', token: 'mealie.saveFailed.token', unreachable: 'mealie.saveFailed.unreachable' }[problem] : null;
+}
+
+/**
+ * No copy of Mealie's plan at all: said in place of the week, because an
+ * empty week would read as "nothing planned" when something is.
+ */
 export function MealieUnreachable({ problem, onRetry }: { problem: MealieProblem; onRetry: () => Promise<void> | void }) {
   const t = useTranslate('remote');
   const words = mealieProblemWords(problem);

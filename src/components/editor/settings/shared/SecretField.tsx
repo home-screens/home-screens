@@ -62,6 +62,12 @@ interface Props {
   /** Show what is typed (a server address is not a secret, and a typo in dots cannot be spotted). */
   plainText?: boolean;
   /**
+   * What is saved, shown in the box so a typo can be spotted after the save
+   * too. Only for a `plainText` field: an address is not a secret. The box
+   * follows it until somebody types, and Save stays off while it matches.
+   */
+  savedValue?: string;
+  /**
    * The question to ask before Remove, worked out when Remove is pressed (it
    * may depend on how the key is being used right now); null to remove at once.
    */
@@ -78,10 +84,19 @@ export default function SecretField({
   validate,
   checkingLabel,
   plainText,
+  savedValue,
   removeQuestion,
 }: Props) {
   const t = useTranslate('editor');
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(savedValue ?? '');
+  // Typed in since the box last showed what is saved: a new saved value
+  // (the page learning it, or a save) never overwrites an edit in progress.
+  const [edited, setEdited] = useState(false);
+  const [shownSaved, setShownSaved] = useState(savedValue);
+  if (savedValue !== shownSaved) {
+    setShownSaved(savedValue);
+    if (!edited) setValue(savedValue ?? '');
+  }
   const [saveStatus, setSaveStatus] = useState<'idle' | 'checking' | 'saving' | 'saved' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [check, setCheck] = useState<Extract<SecretCheck, { ok: false }> | null>(null);
@@ -118,7 +133,9 @@ export default function SecretField({
         return;
       }
       setSaveStatus('saved');
-      setValue('');
+      // A plain-text box keeps showing what was saved; a secret's empties.
+      if (plainText) setEdited(false);
+      else setValue('');
       onSaved();
       setTimeout(() => setSaveStatus('idle'), 3000);
     } catch {
@@ -164,7 +181,7 @@ export default function SecretField({
           autoComplete="off"
           spellCheck={plainText ? false : undefined}
           value={value}
-          onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); setCheck(null); }}
+          onChange={(e) => { setValue(e.target.value); setEdited(true); setSaveStatus('idle'); setCheck(null); }}
           placeholder={placeholder}
           className="flex-1 min-w-0 rounded-md bg-hs-card border border-hs-border-strong text-sm text-hs-text-body px-3 py-2 focus:outline-none focus:border-hs-accent"
         />
@@ -172,7 +189,7 @@ export default function SecretField({
           variant="secondary"
           size="sm"
           onClick={() => handleSave()}
-          disabled={!value.trim() || saveStatus === 'saving' || saveStatus === 'checking'}
+          disabled={!value.trim() || value.trim() === savedValue || saveStatus === 'saving' || saveStatus === 'checking'}
         >
           {saveStatus === 'saving'
             ? t('settings.shared.secretField.savingButton')

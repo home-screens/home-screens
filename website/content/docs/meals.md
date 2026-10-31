@@ -26,7 +26,9 @@ Open the family remote (Settings > On your phone shows the address), tap **Meals
 
 Under **Plan**, tap a day and a slot and pick a meal from the library, or type one in ("Tacos") for a night that does not need a saved meal. Three shortcuts fill a week fast: **Copy Last Week**, **Suggest** (random picks from the library), and **Clear**.
 
-**This Week** shows the result, and arrows move to other weeks. The wall updates a few seconds after you save.
+**Week** shows the result, and arrows move to other weeks. The wall updates a few seconds after you save.
+
+A meal is marked **Now** from a quarter of an hour before its serving time until an hour and a half after, on the phone and on the wall. A meal with no time of its own goes by the usual time for that meal from the meal settings, or 7:30 AM for breakfast, noon for lunch, 3:30 PM for a snack and 6 PM for dinner when none is set. Then the next meal takes over, so late in the evening the wall already shows tomorrow's breakfast.
 
 {% screenshot name="remote-meals" phone=true caption="This week's dinners on the family remote. Today is marked and the next meal is highlighted." /%}
 

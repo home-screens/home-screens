@@ -8,8 +8,9 @@ import { stubModuleData } from '../helpers/stubs';
 import type { CalendarViewMode, FullscreenCalendarView, ModuleInstance } from '@/types/config';
 
 /** Local YYYY-MM-DD for today, matching how the meal planner keys plan entries. */
-function isoToday(): string {
+function isoToday(offsetDays = 0): string {
   const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
@@ -1190,9 +1191,13 @@ test.describe('fullscreen-meal-planner recipe tap', () => {
   test("'qr' opens the recipe QR overlay and dismisses", async ({ page, request }) => {
     // Block external so the QR overlay proves it makes zero upstream calls.
     await stubModuleData(page);
+    // Tomorrow too: late in the evening the Today view moves on to tomorrow.
     await seedMeals(request, {
       savedMeals: [{ id: 'fmp-meal', name: 'Sheet Pan Salmon', emoji: '🐟', prepTime: 30, recipeUrl: RECIPE_URL }],
-      plan: [{ slot: 'dinner', mealId: 'fmp-meal', date: isoToday() }],
+      plan: [
+        { slot: 'dinner', mealId: 'fmp-meal', date: isoToday() },
+        { slot: 'dinner', mealId: 'fmp-meal', date: isoToday(1) },
+      ],
     });
     const meal = buildModuleInstance('fullscreen-meal-planner', { view: 'today', tapRecipeAction: 'qr' });
     const display = await renderOnDisplay(page, request, baseConfig({

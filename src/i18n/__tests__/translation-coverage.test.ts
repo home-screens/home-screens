@@ -65,6 +65,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|mealsSettings.planSource.mealie',
   // "{slot}, {date}": the meal sheet's spoken name, two interpolated pieces.
   'remote|mealSheet.ariaLabel',
+  // "{name}, {slot}, {day}": a planned cell's spoken name in the planner window.
+  'editor|mealPlannerModal.weekGrid.mealCellAriaLabel',
   'editor|canvas.zoomPercent',
   // "{days}, {time}" — punctuation around two interpolated fragments.
   'editor|scheduleEditor.summary.short',
@@ -145,8 +147,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|mealPlannerModal.detail.minPlaceholder',
   'editor|mealPlannerModal.detail.recipeUrlPlaceholder',
   'editor|mealPlannerModal.detail.tagsLabel',
-  'editor|mealPlannerModal.picker.prepTimeShort',
-  'editor|mealPlannerModal.weekGrid.prepTimeMin',
   'editor|modulePalette.pluginBadge',
   // "{used} / {max}": the length counter in the editor's notes window, pure interpolation.
   'editor|notesBoardModal.counter',
@@ -293,10 +293,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|mealForm.minPlaceholder',
   'remote|mealForm.recipeUrlPlaceholder',
   'remote|mealForm.tagsLabel',
-  'remote|mealsPlan.picker.prepTimeShort',
   // "{slot} · {day}": pure interpolation, nothing to translate.
   'remote|mealsPlan.picker.subtitle',
-  'remote|mealsTab.weekView.prepTimeMin',
   // "{used} / {max}": the note length counter, pure interpolation.
   'remote|notes.counter',
   'remote|settingsSheet.data.heading',
@@ -844,6 +842,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.shared.secretField.detailsToggle',
     'remote|mealsTab.library.filters.comfort',
     'remote|mealsTab.subNav.plan',
+    // "Week" is the Dutch word too (the Meals tab's week view).
+    'remote|mealsTab.subNav.week',
     'remote|rewardsView.ticketCountPlural',
     'remote|rewardsView.ticketCountSingular',
     'remote|settingsSheet.system.hostLabel',

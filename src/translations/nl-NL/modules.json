@@ -368,7 +368,7 @@
     "noMealPlanned": "Geen maaltijd gepland",
     "nothingPlannedThisWeek": "Niets gepland deze week",
     "todaysMeals": "Maaltijden vandaag",
-    "now": "nu",
+    "now": "Nu",
     "servingAt": "geserveerd om {time}",
     "time": {
       "minutes": "{minutes} min",
@@ -392,7 +392,7 @@
     },
     "nextMealLabels": {
       "now": "Nu",
-      "comingUp": "Binnenkort",
+      "comingUp": "Hierna",
       "tomorrow": "Morgen",
       "next": "Volgende"
     },
@@ -403,7 +403,7 @@
     "closeRecipe": "Sluiten",
     "planFromPhoneHint": "Plan maaltijden via een telefoon: open {url} en tik op Maaltijden",
     "courses": {
-      "main": "Ook",
+      "main": "Hoofdgerecht",
       "side": "Bijgerecht",
       "dessert": "Toetje",
       "drink": "Drankje"
@@ -421,6 +421,8 @@
     "todaysMeals": "Maaltijden vandaag",
     "todaysMenu": "Menu vandaag",
     "alsoToday": "Ook vandaag",
+    "tomorrowsMeals": "Maaltijden morgen",
+    "alsoTomorrow": "Ook morgen",
     "noMealPlanned": "Geen maaltijd gepland",
     "notPlanned": "Niet gepland",
     "noMealsPlannedToday": "Vandaag geen maaltijden gepland",
@@ -428,12 +430,11 @@
     "mealsPlannedCount": "{filled} van {total} maaltijden gepland",
     "heroLabels": {
       "now": "Nu",
-      "upNext": "Hierna",
-      "tonight": "Vanavond"
+      "upNext": "Hierna"
     },
     "nextMealLabels": {
       "now": "Nu",
-      "comingUp": "Binnenkort",
+      "comingUp": "Hierna",
       "tomorrow": "Morgen"
     }
   },

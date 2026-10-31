@@ -1,4 +1,4 @@
-import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal, toISODate } from '@/lib/meal-constants';
+import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal, toISODate, minutesOfDay } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { getDifficultyColor, px } from './meal-planner-utils';
@@ -19,7 +19,7 @@ export default function NextMealView({
   const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
-  const next = getNextPlannedMeal(toISODate(now), now.getHours(), plan, savedMeals, slots);
+  const next = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, savedMeals, slots, settings.defaultSlotTimes);
 
   if (!next) {
     return (
@@ -134,15 +134,15 @@ export default function NextMealView({
         nameStyle={{ color: ink.text2, fontWeight: 500, lineHeight: 1.2, whiteSpace: 'normal' }}
       />
 
-      {/* Notes */}
-      {notes && (
-        <span style={{
+      {/* Notes: the day's, then the dish's own */}
+      {notes.map((note) => (
+        <span key={note} style={{
           fontSize: P(36), fontStyle: 'italic', color: ink.text2,
           maxWidth: '80%', lineHeight: 1.3,
         }}>
-          {notes}
+          {note}
         </span>
-      )}
+      ))}
 
       {/* Meta pills and tags share one row, like the today hero. */}
       {((showPrepTime && mealMinutes(meal)) || (showDifficulty && meal?.difficulty) || (showTags && meal?.tags && meal.tags.length > 0)) && (

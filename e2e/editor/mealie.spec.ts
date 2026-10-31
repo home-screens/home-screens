@@ -46,13 +46,16 @@ test('a token Mealie refuses is said plainly', async ({ page }) => {
   const card = await fillCard(page, mealie.url, 'not-the-token');
   await expect(card.getByTestId('mealie-test-result')).not.toContainText('Connected');
   await expect(card.getByTestId('mealie-test-result')).toContainText(/token/i);
+  // The pill says so too, and still does when the page is opened again.
+  await page.reload();
+  await expect(page.locator('[data-field-id="integrations.mealie"] button[aria-expanded]').first()).toContainText('Token not accepted');
 });
 
-test('a passing Test names the address and links to the Meals page', async ({ page }) => {
+test('a passing Test shows the saved address in its box and links to the Meals page', async ({ page }) => {
   mealie = await startFakeMealie();
   const card = await fillCard(page, mealie.url, FAKE_MEALIE_TOKEN);
   const result = card.getByTestId('mealie-test-result');
-  await expect(result).toContainText(mealie.url);
+  await expect(card.getByPlaceholder('e.g. http://192.168.1.50:9925')).toHaveValue(mealie.url);
   await result.getByRole('link', { name: /Meals settings/ }).click();
   await expect(page).toHaveURL(/page=meals/);
   await expect(page.locator('[data-field-id="meals.planSource"]')).toBeVisible();

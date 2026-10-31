@@ -1373,6 +1373,11 @@
         "testing": "Afprøver…",
         "testHelp": "Tjekker adressen og tokenet sammen.",
         "notConnected": "Ikke forbundet",
+        "optional": "Valgfri, ikke sat op",
+        "checking": "Tjekker…",
+        "tokenRefused": "Token ikke godkendt",
+        "notAnswering": "Svarer ikke",
+        "couldNotCheck": "Kunne ikke tjekke",
         "removeConfirm": {
           "title": "Stop med at vise madplanen?",
           "message": "Din madplan kommer fra Mealie. Uden adressen og tokenet kan skærmen og telefonen ikke vise den, før du tilføjer dem igen eller sætter madplanen tilbage til Home Screens under Indstillinger > Måltider.",
@@ -1645,6 +1650,8 @@
         "mealieHousehold": "Husstanden {household}",
         "mealieConnected": "Forbundet",
         "mealieNotAnswering": "Svarer ikke lige nu",
+        "mealieTokenRefused": "Token ikke godkendt",
+        "tokenRefused": "Mealie tager ikke længere imod det gemte token, så madplanen bliver ikke opdateret. Lav et nyt token i Mealie, og indsæt det på siden",
         "connectFirst": "Kun hvis jeres familie bruger Mealie, en separat opskrifts-app. For at planlægge i den skal den først forbindes på siden",
         "apiKeysLink": "API-nøgler",
         "connectedOffer": "Mealie er forbundet. Vælg det for at planlægge med de opskrifter og den plan, du har der.",
@@ -1682,7 +1689,9 @@
       },
       "reset": {
         "button": "Nulstil til standard",
-        "help": "Gendanner morgenmad, frokost og aftensmad, ugestart om søndagen og 12-timersformat, og rydder alle standardtider."
+        "help": "Slår morgenmad, frokost og aftensmad til og mellemmåltid fra, lader ugen starte om søndagen, følger den globale indstilling for tidsformat og rydder standardserveringstiderne. Planlagte måltider forbliver, som de er.",
+        "confirmTitle": "Nulstil indstillingerne for måltider?",
+        "confirmButton": "Nulstil"
       },
       "description": "Hvilke måltider I planlægger, og hvornår de plejer at være."
     },
@@ -2882,22 +2891,37 @@
     "toast": {
       "changesSaved": "Ændringerne er gemt",
       "mealDeleted": "\"{name}\" er slettet",
-      "mealRemoved": "Måltidet er fjernet",
+      "mealDeletedPlanned": "\"{name}\" er slettet og fjernet fra planen for {days}",
+      "moreDays": {
+        "one": "{count} dag mere",
+        "other": "{count} dage mere"
+      },
+      "mealRemoved": "{name} er taget af",
+      "mealRemovedWithCourses": {
+        "one": "{name} er taget af sammen med retten, der hørte til",
+        "other": "{name} er taget af sammen med de {count} retter, der hørte til"
+      },
+      "mealChanged": "Skiftet til {name}",
       "randomSuggested": "Tilfældige måltider foreslået!",
       "lastWeekCopied": "Sidste uge er kopieret!",
+      "lastWeekCopiedDates": "Måltiderne fra ugen {from} er kopieret",
       "weekCleared": "Ugen er ryddet",
       "undoButton": "Fortryd",
       "courseRemoved": "Fjernet fra dette måltid",
       "saveFailed": "Ændringen blev ikke gemt. Prøv igen.",
       "mealieSaveFailed": "Mealie tog ikke imod ændringen. Tjek, at den kører, og prøv igen.",
       "mealieAllPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",
+      "mealieAllPlannedDates": "Alle aftensmåltider i ugen {range} er allerede planlagt.",
       "mealieNoDinners": "Foreslå udfylder tomme aftensmåltider, og aftensmad er slået fra i måltidsindstillingerne.",
       "mealieSuggested": {
         "one": "Aftensmad planlagt til {days}.",
         "other": "Aftensmad planlagt til {days}."
       },
       "mealieSuggestedEveryNight": "Aftensmad planlagt til hver aften i denne uge.",
-      "mealieNothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie."
+      "mealieSuggestedEveryNightDates": "Aftensmad planlagt til hver aften i ugen {range}.",
+      "mealieNothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie.",
+      "mealieTokenSaveFailed": "Mealie lukker ikke Home Screens ind, så ændringen blev ikke gemt. Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler.",
+      "mealieNotConnectedSaveFailed": "Mealie er ikke forbundet, så ændringen blev ikke gemt. Tilføj adressen og tokenet under Indstillinger > API-nøgler."
     },
     "library": {
       "searchPlaceholder": "Søg efter måltider…",
@@ -2940,7 +2964,16 @@
     "grocery": {
       "itemsCount": "{checked} af {total} varer",
       "fromThisWeek": "Fra denne uge",
-      "emptyMessage": "Planlæg måltider med ingredienser for at se din indkøbsliste"
+      "fromDates": "Fra ugen {range}",
+      "emptyMessage": "Planlæg måltider med ingredienser for at se din indkøbsliste",
+      "withoutIngredients": {
+        "one": "{count} planlagt måltid har ingen ingredienser endnu: {names}",
+        "other": "{count} planlagte måltider har ingen ingredienser endnu: {names}"
+      },
+      "moreMeals": {
+        "one": "{count} til",
+        "other": "{count} til"
+      }
     },
     "weekGrid": {
       "todayLabel": "I dag",
@@ -2949,20 +2982,20 @@
       "suggestBusy": "Vælger aftensmad…",
       "copyLastWeekButton": "Kopiér sidste uge",
       "clearButton": "Ryd",
-      "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Forrige uge",
       "nextWeekAriaLabel": "Næste uge",
       "coursesCount": {
         "one": "{count} mere til dette måltid",
         "other": "{count} mere til dette måltid"
       },
-      "removeMealAriaLabel": "Fjern {name}"
+      "removeMealAriaLabel": "Fjern {name}",
+      "mealCellAriaLabel": "{name}, {slot}, {day}",
+      "planCellAriaLabel": "Planlæg {slot} til {day}"
     },
     "picker": {
       "title": "Vælg et måltid",
       "searchPlaceholder": "Søg efter måltider…",
       "noMealsFound": "Ingen måltider fundet",
-      "prepTimeShort": "{minutes}m",
       "titleAdd": {
         "side": "Tilføj tilbehør",
         "dessert": "Tilføj en dessert",
@@ -3018,6 +3051,8 @@
       "lastUpdated": "Sidst opdateret {time}",
       "subtitle": "{planned} planlagt denne uge",
       "subtitleHousehold": "Husstanden {household} · {planned} planlagt denne uge",
+      "subtitleDates": "{planned} planlagt i ugen {range}",
+      "subtitleHouseholdDates": "Husstanden {household} · {planned} planlagt i ugen {range}",
       "openMealie": "Åbn Mealie",
       "tryAgain": "Prøv igen",
       "unreachableTitle": "Kan ikke nå Mealie lige nu",
@@ -3028,8 +3063,8 @@
       "tokenRefusedBody": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det under Indstillinger > API-nøgler.",
       "paused": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
       "pausedSince": "Planlægningen er sat på pause, indtil Mealie er tilbage. Det her er planen fra {time}.",
-      "weekLoading": "Henter denne uge fra Mealie…",
-      "weekFailed": "Vi kunne ikke hente denne uge fra Mealie.",
+      "weekLoading": "Henter ugen {range} fra Mealie…",
+      "weekFailed": "Vi kunne ikke hente ugen {range} fra Mealie.",
       "libraryNote": "Opskrifterne ligger i Mealie. Klik på en for at se den her.",
       "detailEmpty": "Klik på et måltid i ugen eller en opskrift i biblioteket for at se det her.",
       "serves": {
@@ -3039,7 +3074,10 @@
       "readOnlyNote": "Denne opskrift ligger i Mealie. Ret den der, så er den opdateret her inden for et par minutter.",
       "groceryTitle": "Din indkøbsliste ligger i Mealie",
       "groceryBody": "Så længe din madplan ligger i Mealie, gør din liste også. Åbn Mealie for at se, hvad du mangler, og krydse ting af.",
-      "ingredientsFailed": "Mealie sendte ikke ingredienserne. Åbn opskriften i Mealie for at se dem."
+      "ingredientsFailed": "Mealie sendte ikke ingredienserne. Åbn opskriften i Mealie for at se dem.",
+      "tokenFix": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler.",
+      "tokenPaused": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause.",
+      "tokenPausedSince": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Det her er planen fra {time}."
     },
     "popover": {
       "savesToMealie": "Gemmes i Mealie",

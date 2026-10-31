@@ -3,6 +3,13 @@ import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { lacks } from './shared';
 
+/** Local YYYY-MM-DD `offsetDays` from today, as the meal planner keys its plan. */
+function localISODay(offsetDays: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 /**
  * `showTitle: false` rows — one per module that paints its own built-in
  * header ("Traffic", "Collection Schedule", "On This Day", ...). Each row
@@ -129,9 +136,18 @@ export const TITLE_VIEW_VARIANTS: ConfigVariant[] = [
     expect: lacks('Avery', 'Star Chart'),
   },
   {
+    // Planned tonight and tomorrow night: late in the evening the view shows
+    // tomorrow, under "Tomorrow's Meals".
     type: 'fullscreen-meal-planner', name: 'hide-title-today', kind: 'local-data', seed: 'meals',
+    seedData: {
+      savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝', prepTime: 25 }],
+      plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: localISODay(day) })),
+    },
     config: { view: 'today', showTitle: false },
-    expect: lacks('Spaghetti Night', "Today's Meals"),
+    expect: async (mod) => {
+      await lacks('Spaghetti Night', "Today's Meals")(mod);
+      await expect(mod).not.toContainText("Tomorrow's Meals");
+    },
   },
   {
     type: 'fullscreen-meal-planner', name: 'hide-title-menu-board', kind: 'local-data', seed: 'meals',

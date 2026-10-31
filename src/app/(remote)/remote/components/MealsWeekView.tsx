@@ -15,6 +15,7 @@ import {
 import { getMealCourseLabelKey } from '@/lib/meal-courses';
 import { mealHasPicture } from '@/components/meals/MealPicture';
 import { mealShownMinutes } from '@/lib/meal-dish-rules';
+import { shownWeek } from '@/lib/meal-plan-words';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatShownMinutes, type MealsViewProps } from './meals-shared';
 import MealThumb from './MealThumb';
@@ -24,6 +25,8 @@ interface MealsWeekViewProps extends MealsViewProps {
    *  the shared meal settings carry no explicit override */
   globalTimeFormat: TimeFormat;
   setSubView: (v: 'plan') => void;
+  /** Open the meal sheet on a planned meal, where a long name reads in full. */
+  onOpenMeal: (date: string, slot: MealSlotType) => void;
 }
 
 /** The bar, the photo and the gaps between them: where a course line starts. */
@@ -39,6 +42,7 @@ export default function MealsWeekView({
   settings,
   globalTimeFormat,
   setSubView,
+  onOpenMeal,
 }: MealsWeekViewProps) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
@@ -52,6 +56,10 @@ export default function MealsWeekView({
   // Only the slots the household plans: a snack Mealie holds stays off a
   // week that has no snack row, as it does on the wall.
   const nothingPlanned = weekDates.every(({ date }) => enabledSlotsOrdered.every((slot) => !getMealForSlot(date, slot).name));
+  const week = useMemo(
+    () => shownWeek(weekDates.map((d) => d.date), todayISO, formattingLocale),
+    [weekDates, todayISO, formattingLocale],
+  );
 
   // Open on today, not at the top of the week: by Friday evening tonight's
   // dinner was four finished days down the page.
@@ -127,11 +135,21 @@ export default function MealsWeekView({
 
               const shown = mealShownMinutes(meal);
               const hasPhoto = mealHasPicture(meal);
+              // A tap opens the meal sheet Plan opens: the whole name, the
+              // courses and the time, to read or change.
               return (
-                <div
+                <button
                   key={slot}
+                  type="button"
                   data-testid="meals-week-row"
+                  onClick={() => onOpenMeal(date, slot)}
                   style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    color: 'inherit',
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
                     padding: '10px 12px',
                     marginBottom: 6,
                     borderRadius: 12,
@@ -201,7 +219,7 @@ export default function MealsWeekView({
                       ))}
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -211,7 +229,7 @@ export default function MealsWeekView({
       {nothingPlanned && (
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
           <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
-            {t('mealsTab.weekView.empty.title')}
+            {week.thisWeek ? t('mealsTab.weekView.empty.title') : t('mealsTab.weekView.empty.titleDates', { range: week.range })}
           </p>
           <p style={{ fontSize: 13, color: 'var(--hs-text-faint)', marginBottom: 20 }}>
             {t('mealsTab.weekView.empty.description')}

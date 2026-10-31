@@ -10,18 +10,15 @@ const mealISO = (offsetDays = 0): string => {
 };
 
 /**
- * A tagged meal with difficulty, planned into every default slot today — so
- * the today/menu-board views always have a hero/course meal regardless of the
- * wall-clock hour, and tags/difficulty markers can render. (The shared
- * seedMeals fixture carries neither tags nor difficulty.)
+ * A tagged meal with difficulty, planned into every default slot today and
+ * tomorrow — so the today/menu-board views always have a hero/course meal
+ * regardless of the wall-clock hour (late in the evening the full-screen
+ * Today view moves on to tomorrow), and tags/difficulty markers can render.
+ * (The shared seedMeals fixture carries neither tags nor difficulty.)
  */
 const TAGGED_MEALS = {
   savedMeals: [{ id: 'meal-t', name: 'Tagged Feast', emoji: '🍲', prepTime: 15, tags: ['E2E-TAG'], difficulty: 'easy' }],
-  plan: [
-    { slot: 'breakfast', mealId: 'meal-t', date: mealISO(0) },
-    { slot: 'lunch', mealId: 'meal-t', date: mealISO(0) },
-    { slot: 'dinner', mealId: 'meal-t', date: mealISO(0) },
-  ],
+  plan: [0, 1].flatMap((day) => (['breakfast', 'lunch', 'dinner'] as const).map((slot) => ({ slot, mealId: 'meal-t', date: mealISO(day) }))),
 };
 
 /**

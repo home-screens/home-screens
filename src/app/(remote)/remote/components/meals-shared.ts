@@ -1,6 +1,6 @@
 import type { MealCourseKind, MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
-import { toISODate, getActiveSlot, alignToWeekStart, formatTagLabel, type ResolvedPlanEntry } from '@/lib/meal-constants';
-import { isMealieMeal, splitMinutes, type ShownMinutes } from '@/lib/meal-dish-rules';
+import { toISODate, fromISODate, alignToWeekStart, type ResolvedPlanEntry } from '@/lib/meal-constants';
+import { splitMinutes, type ShownMinutes } from '@/lib/meal-dish-rules';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
 /**
@@ -28,22 +28,6 @@ export function getWeekDates(
     result.push({ date: toISODate(d), dayIndex: d.getDay() });
   }
   return result;
-}
-
-/**
- * Get the currently-active meal slot based on the current hour and the
- * household's enabled slots. Returns the slot type, not an index, so callers
- * can compare directly against `slot === activeSlot` without index aliasing.
- *
- * `now` is the household's ticking wall clock (`useHouseholdNow`), so the
- * slot follows the hour at home rather than the phone's, and advances as the
- * clock crosses slot boundaries.
- */
-export function currentActiveSlot(
-  enabledSlots: MealSlotType[],
-  now: Date,
-): MealSlotType | null {
-  return getActiveSlot(now.getHours(), enabledSlots);
 }
 
 // Meal forms use slightly more compact inputs than chore forms
@@ -97,6 +81,35 @@ export const MEALS_SUB_VIEWS = ['week', 'plan', 'library', 'grocery'] as const;
 export type MealsSubView = (typeof MEALS_SUB_VIEWS)[number];
 
 /**
+ * Where the Meals tab was left, kept in the address beside the tab itself
+ * (`?tab=meals&meals=plan&week=2026-11-02`), so a reload or a detour through
+ * another tab comes back to it. `week` is the first day of the week shown,
+ * null for the week holding today, which is where the tab opens anyway.
+ */
+export interface MealsPlace {
+  view: MealsSubView;
+  week: string | null;
+}
+
+/** The place an address keeps. Anything missing or not understood is This Week. */
+export function readMealsPlace(search: string): MealsPlace {
+  const params = new URLSearchParams(search);
+  const view = MEALS_SUB_VIEWS.find((v) => v === params.get('meals')) ?? 'week';
+  const week = params.get('week');
+  return { view, week: week && toISODate(fromISODate(week)) === week ? week : null };
+}
+
+/** Write `place` into `url`, leaving This Week out. True when the address changed. */
+export function writeMealsPlace(url: URL, place: MealsPlace): boolean {
+  const before = url.search;
+  if (place.view === 'week') url.searchParams.delete('meals');
+  else url.searchParams.set('meals', place.view);
+  if (place.week) url.searchParams.set('week', place.week);
+  else url.searchParams.delete('week');
+  return url.search !== before;
+}
+
+/**
  * A pending destructive action awaiting confirmation. The Meals tab keeps at
  * most one of these at a time and renders it as a `ConfirmSheet`.
  */
@@ -114,7 +127,7 @@ export interface MealsViewProps {
   plan: PlannedMeal[];
   weekDates: ReturnType<typeof getWeekDates>;
   todayISO: string;
-  /** Slot type currently in its time window (e.g. "dinner" between 5pm–9pm), or null if outside any window */
+  /** Today's slot whose meal is being served now (`currentMealSlot`), or null between meals */
   activeSlot: MealSlotType | null;
   /**
    * One slot of the viewed week, ready to draw (`resolveMealWithEntry`): the
@@ -158,15 +171,6 @@ export function formatShownMinutes(
       ? t('mealsTab.duration.hours', { hours })
       : t('mealsTab.duration.hoursMinutes', { hours, minutes });
   return withPrep && shown.kind === 'prep' ? t('mealsTab.duration.prep', { time }) : time;
-}
-
-/**
- * A tag as the phone prints it. The family's own tags are stored lowercase
- * ("kid-friendly") and are dressed up; Mealie's categories and tags are
- * names the family typed and are shown as typed.
- */
-export function mealTagLabel(meal: Pick<SavedMeal, 'id'>, tag: string): string {
-  return isMealieMeal(meal) ? tag : formatTagLabel(tag);
 }
 
 /** Open a page of Mealie's in a new tab, leaving the phone on the Meals tab. */

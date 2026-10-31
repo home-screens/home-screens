@@ -345,9 +345,9 @@ test.describe('Meal-planner editor modal', () => {
     const saved = page.waitForResponse(
       (r) => r.url().includes('/api/meals/data') && r.request().method() === 'PUT' && r.ok(),
     );
-    // An empty slot is a click target holding a "+" that only inks on hover;
-    // it carries no role of its own, so select it by that glyph.
-    await page.getByRole('dialog').getByText('+', { exact: true }).first().click();
+    // An empty slot is a button named for what it plans ("Plan Breakfast for
+    // Monday 10/26"), reachable with Tab like every cell of the week.
+    await page.getByRole('dialog').getByRole('button', { name: /^Plan / }).first().click();
     // The picker floats above the modal in its own overlay; scope to it so the
     // library list behind the scrim is not what gets clicked.
     await expect(page.getByText('Choose a Meal')).toBeVisible();

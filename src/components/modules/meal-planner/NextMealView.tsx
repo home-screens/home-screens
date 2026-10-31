@@ -17,11 +17,12 @@ interface NextMealViewProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
-  currentHour: number;
+  /** Minutes after midnight at home (`minutesOfDay`). */
+  nowMinutes: number;
   recipeTapMode: RecipeTapMode;
 }
 
-export function NextMealView({ config, settings, timeFormat, plan, savedMeals, todayISO, currentHour, recipeTapMode }: NextMealViewProps) {
+export function NextMealView({ config, settings, timeFormat, plan, savedMeals, todayISO, nowMinutes, recipeTapMode }: NextMealViewProps) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
@@ -32,7 +33,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
   // Same walk-forward resolver the fullscreen Next Meal view uses: skip empty
   // slots until a planned meal is found (up to a week out), so the card never
   // says "Nothing planned" while meals are on the plan.
-  const next = getNextPlannedMeal(todayISO, currentHour, plan, savedMeals, slots);
+  const next = getNextPlannedMeal(todayISO, nowMinutes, plan, savedMeals, slots, settings.defaultSlotTimes);
 
   if (!next) {
     return (
@@ -125,13 +126,13 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
           </span>
         )}
 
-        {/* Notes */}
-        {notes && (
+        {/* Notes: the small module has room for one, the day's before the dish's */}
+        {notes[0] && (
           <p
             className="text-center italic max-w-[80%] leading-snug mt-1"
             style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}
           >
-            {notes}
+            {notes[0]}
           </p>
         )}
       </div>

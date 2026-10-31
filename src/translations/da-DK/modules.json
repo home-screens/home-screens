@@ -368,7 +368,7 @@
     "noMealPlanned": "Intet måltid planlagt",
     "nothingPlannedThisWeek": "Intet planlagt i denne uge",
     "todaysMeals": "Dagens måltider",
-    "now": "nu",
+    "now": "Nu",
     "servingAt": "serveres kl. {time}",
     "time": {
       "minutes": "{minutes} min",
@@ -403,7 +403,7 @@
     "closeRecipe": "Luk",
     "planFromPhoneHint": "Planlæg måltider fra en telefon: åbn {url} og tryk på Måltider",
     "courses": {
-      "main": "Også",
+      "main": "Hovedret",
       "side": "Tilbehør",
       "dessert": "Dessert",
       "drink": "Drikke"
@@ -421,6 +421,8 @@
     "todaysMeals": "Dagens måltider",
     "todaysMenu": "Dagens menu",
     "alsoToday": "Også i dag",
+    "tomorrowsMeals": "Morgendagens måltider",
+    "alsoTomorrow": "Også i morgen",
     "noMealPlanned": "Intet måltid planlagt",
     "notPlanned": "Ikke planlagt",
     "noMealsPlannedToday": "Ingen måltider planlagt til i dag",
@@ -428,8 +430,7 @@
     "mealsPlannedCount": "{filled} af {total} måltider planlagt",
     "heroLabels": {
       "now": "Nu",
-      "upNext": "Næste",
-      "tonight": "I aften"
+      "upNext": "Næste"
     },
     "nextMealLabels": {
       "now": "Nu",

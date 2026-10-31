@@ -5,6 +5,7 @@ import type { MealSettings, SavedMeal } from '@/types/config';
 import { groceryWeekKey } from '@/lib/grocery-checks';
 import { canEditMergedPlan, mealieStatus, rangeCovers } from '@/lib/meal-sources';
 import { isMealieMeal } from '@/lib/meal-dish-rules';
+import { currentMealSlot } from '@/lib/meal-constants';
 import { useMealsData } from './useMealsData';
 import { useMealsWeekNav } from './useMealsWeekNav';
 import { useMealsPlanActions } from './useMealsPlanActions';
@@ -29,8 +30,10 @@ export type MealsWeekState = 'ready' | 'loading' | 'failed';
  * state those pieces share (the meal sheet, the recipe picker, the confirm
  * dialog), where the plan comes from, and the settings write, which is the
  * one save that bypasses the meal/plan round trip.
+ *
+ * `keptWeek` is the week the address kept across a reload (`readMealsPlace`).
  */
-export function useMealsTabData() {
+export function useMealsTabData(keptWeek: string | null = null) {
   const {
     savedMeals,
     setSavedMeals,
@@ -63,8 +66,8 @@ export function useMealsTabData() {
   const [picker, setPicker] = useState<MealPickTarget | null>(null);
   const [sheet, setSheet] = useState<MealSlotRef | null>(null);
   const [confirmAction, setConfirmAction] = useState<MealsConfirmAction | null>(null);
-  // A plain message at the bottom of the tab that is not an error ("every
-  // meal this week is already planned"); it goes away on its own.
+  // A plain message over the tab that is not an error ("every meal this
+  // week is already planned"); it goes away on its own.
   const [notice, setNotice] = useState<{ message: string; undo?: () => void } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showNotice = useCallback((message: string, undo?: () => void) => {
@@ -72,6 +75,10 @@ export function useMealsTabData() {
     if (noticeTimer.current) clearTimeout(noticeTimer.current);
     // Long enough to reach Undo.
     noticeTimer.current = setTimeout(() => setNotice(null), undo ? 12_000 : 4_000);
+  }, []);
+  const dismissNotice = useCallback(() => {
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    setNotice(null);
   }, []);
   useEffect(() => () => { if (noticeTimer.current) clearTimeout(noticeTimer.current); }, []);
 
@@ -86,8 +93,25 @@ export function useMealsTabData() {
     const extra = [...pickedMeals.values()].filter((m) => !known.has(m.id));
     return extra.length > 0 ? [...savedMeals, ...extra] : savedMeals;
   }, [savedMeals, pickedMeals]);
+  // A Mealie dish a change took off the plan, kept so an Undo draws it at once.
+  const keepMeals = useCallback((list: SavedMeal[]) => {
+    const mealie = list.filter(isMealieMeal);
+    if (mealie.length === 0) return;
+    setPickedMeals((prev) => {
+      if (mealie.every((m) => prev.get(m.id) === m)) return prev;
+      const next = new Map(prev);
+      for (const m of mealie) next.set(m.id, m);
+      return next;
+    });
+  }, []);
 
-  const weekNav = useMealsWeekNav(settings);
+  const weekNav = useMealsWeekNav(settings, keptWeek, !loading && !loadError);
+  // Today's meal being served now, by its serving time: the same rule the
+  // wall's Today, Week and Next meal views use, so the phone's NOW agrees.
+  const activeSlotType = useMemo(
+    () => currentMealSlot(weekNav.todayISO, weekNav.nowMinutes, settings.enabledSlots, plan, meals, settings.defaultSlotTimes),
+    [weekNav.todayISO, weekNav.nowMinutes, settings.enabledSlots, settings.defaultSlotTimes, plan, meals],
+  );
 
   // Load once, again whenever the phone comes back to this page or back
   // onto the network, and every so often while it is open. A tab left open
@@ -137,10 +161,12 @@ export function useMealsTabData() {
     settings,
     weekDates: weekNav.weekDates,
     viewingWeekStart: weekNav.viewingWeekStart,
+    todayISO: weekNav.todayISO,
     setConfirmAction,
     savesToMealie: source === 'mealie',
     suggestFromMealie,
     showNotice,
+    keepMeals,
   });
 
   const library = useMealsLibrary({
@@ -153,6 +179,8 @@ export function useMealsTabData() {
     setSaving,
     setSaveError,
     setConfirmAction,
+    showNotice,
+    todayISO: weekNav.todayISO,
   });
 
   // Ticks belong to the list they were made on: the viewed week's.
@@ -176,9 +204,9 @@ export function useMealsTabData() {
       setPickedMeals((prev) => (prev.get(meal.id) === meal ? prev : new Map(prev).set(meal.id, meal)));
     }
     setPicker(null);
-    if (target.pick === 'main') void assignMealToSlot(target.date, target.slot, meal.id);
+    if (target.pick === 'main') void assignMealToSlot(target.date, target.slot, meal);
     else if (target.pick === 'add') void addCourse(target.date, target.slot, { kind: target.kind, mealId: meal.id });
-    else void changeCourse(target.date, target.slot, target.index, { mealId: meal.id });
+    else void changeCourse(target.date, target.slot, target.index, { mealId: meal.id }, meal.name);
   }, [assignMealToSlot, addCourse, changeCourse]);
 
   /** Words typed in the picker instead of a recipe (a note, in Mealie). */
@@ -188,7 +216,7 @@ export function useMealsTabData() {
     setPicker(null);
     if (target.pick === 'main') void setSlotText(target.date, target.slot, typed);
     else if (target.pick === 'add') void addCourse(target.date, target.slot, { kind: target.kind, customText: typed });
-    else void changeCourse(target.date, target.slot, target.index, { customText: typed });
+    else void changeCourse(target.date, target.slot, target.index, { customText: typed }, typed);
   }, [setSlotText, addCourse, changeCourse]);
 
   const saveSettings = useCallback(async (next: MealSettings): Promise<boolean> => {
@@ -221,6 +249,7 @@ export function useMealsTabData() {
     savedMeals,
     meals,
     weekPlan: planActions.weekPlan,
+    week: planActions.week,
     settings,
     globalTimeFormat,
     loading,
@@ -230,11 +259,11 @@ export function useMealsTabData() {
     saveError,
     setSaveError,
     notice,
-    dismissNotice: () => setNotice(null),
+    dismissNotice,
     form: library.form,
     weekDates: weekNav.weekDates,
     todayISO: weekNav.todayISO,
-    activeSlotType: weekNav.activeSlotType,
+    activeSlotType,
     isCurrentWeek: weekNav.isCurrentWeek,
     navigateWeek: weekNav.navigateWeek,
     jumpToToday: weekNav.jumpToToday,
@@ -271,6 +300,7 @@ export function useMealsTabData() {
     toggleFavorite: library.toggleFavorite,
     groceryList: grocery.groceryList,
     groceryStats: grocery.groceryStats,
+    groceryWithoutIngredients: grocery.withoutIngredients,
     toggleGroceryItem: toggleViewedGroceryItem,
     confirmAction,
     setConfirmAction,

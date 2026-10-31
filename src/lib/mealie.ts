@@ -218,9 +218,13 @@ export function mealieMajorVersion(version: string): number | null {
 }
 
 export type MealieValidation =
-  /** `url`: the address as the hub uses it, so the family can check it for a typo. */
+  /**
+   * `url`: the saved address, as the hub uses it when it is a web address and
+   * as typed when it is not, so the family can check it for a typo. Absent
+   * only when no address is saved.
+   */
   | { ok: true; version: string; household: string; user: string; url: string }
-  | { ok: false; failure: Exclude<MealieFailure, 'upstream'>; version?: string };
+  | { ok: false; failure: Exclude<MealieFailure, 'upstream'>; version?: string; url?: string };
 
 /**
  * The Test button: is there a Mealie at the address, is it new enough, and
@@ -232,33 +236,40 @@ export async function validateMealieConnection(): Promise<MealieValidation> {
   try {
     cfg = await getMealieConfig();
   } catch (err) {
-    if (err instanceof MealieError && err.failure === 'bad-address') return { ok: false, failure: 'bad-address' };
+    if (err instanceof MealieError && err.failure === 'bad-address') return { ok: false, failure: 'bad-address', ...(await savedAddress()) };
     throw err;
   }
-  if (!cfg) return { ok: false, failure: 'not-set-up' };
+  if (!cfg) return { ok: false, failure: 'not-set-up', ...(await savedAddress()) };
+  const url = cfg.url;
 
   let version: string;
   try {
-    const res = await fetchWithTimeout(`${cfg.url}/api/app/about`, { timeout: 5_000, retries: 0, headers: { Accept: 'application/json' } });
-    if (!res.ok) return { ok: false, failure: res.status === 404 ? 'not-mealie' : 'unreachable' };
+    const res = await fetchWithTimeout(`${url}/api/app/about`, { timeout: 5_000, retries: 0, headers: { Accept: 'application/json' } });
+    if (!res.ok) return { ok: false, failure: res.status === 404 ? 'not-mealie' : 'unreachable', url };
     const about = await res.json().catch(() => null) as { version?: unknown } | null;
-    if (!about || typeof about.version !== 'string') return { ok: false, failure: 'not-mealie' };
+    if (!about || typeof about.version !== 'string') return { ok: false, failure: 'not-mealie', url };
     version = about.version.replace(/^v/, '');
   } catch {
-    return { ok: false, failure: 'unreachable' };
+    return { ok: false, failure: 'unreachable', url };
   }
   const major = mealieMajorVersion(version);
-  if (major !== null && major < MEALIE_MIN_MAJOR_VERSION) return { ok: false, failure: 'too-old', version };
+  if (major !== null && major < MEALIE_MIN_MAJOR_VERSION) return { ok: false, failure: 'too-old', version, url };
 
   try {
     const user = await mealieJson<MealieUser>('/api/users/self', { timeout: 5_000, retries: 0 }, cfg);
     userCache.set(connectionKey(cfg), user);
-    return { ok: true, version, household: user.household, user: user.fullName || user.username, url: cfg.url };
+    return { ok: true, version, household: user.household, user: user.fullName || user.username, url };
   } catch (err) {
-    if (err instanceof MealieError && err.failure === 'key-rejected') return { ok: false, failure: 'key-rejected', version };
-    if (err instanceof MealieError && err.failure === 'unreachable') return { ok: false, failure: 'unreachable', version };
-    return { ok: false, failure: 'not-mealie', version };
+    if (err instanceof MealieError && err.failure === 'key-rejected') return { ok: false, failure: 'key-rejected', version, url };
+    if (err instanceof MealieError && err.failure === 'unreachable') return { ok: false, failure: 'unreachable', version, url };
+    return { ok: false, failure: 'not-mealie', version, url };
   }
+}
+
+/** The address saved for Mealie with no working connection to go with it: as the hub would use it, or as typed. */
+async function savedAddress(): Promise<{ url?: string }> {
+  const raw = (await getSecret('mealie_url'))?.trim();
+  return raw ? { url: normalizeMealieUrl(raw) ?? raw } : {};
 }
 
 // ── Who the key belongs to (for recipe page links) ──

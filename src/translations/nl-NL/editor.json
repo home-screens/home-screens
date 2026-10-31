@@ -1373,6 +1373,11 @@
         "testing": "Bezig met testen…",
         "testHelp": "Controleert het adres en de token samen.",
         "notConnected": "Niet verbonden",
+        "optional": "Optioneel, niet ingesteld",
+        "checking": "Bezig met controleren…",
+        "tokenRefused": "Token niet geaccepteerd",
+        "notAnswering": "Reageert niet",
+        "couldNotCheck": "Controleren lukte niet",
         "removeConfirm": {
           "title": "De maaltijdplanning niet meer tonen?",
           "message": "Je maaltijdplanning komt uit Mealie. Zonder het adres en de token kunnen het scherm en de telefoon hem niet tonen, tot je ze weer invult of de planning terugzet op Home Screens bij Instellingen > Maaltijden.",
@@ -1645,6 +1650,8 @@
         "mealieHousehold": "Huishouden {household}",
         "mealieConnected": "Verbonden",
         "mealieNotAnswering": "Antwoordt nu niet",
+        "mealieTokenRefused": "Token niet geaccepteerd",
+        "tokenRefused": "Mealie accepteert de opgeslagen token niet meer, dus de maaltijdplanning wordt niet bijgewerkt. Maak in Mealie een nieuwe token en plak die op de pagina",
         "connectFirst": "Alleen als jullie gezin Mealie gebruikt, een aparte recepten-app. Om daarin te plannen, koppel je hem eerst op de pagina",
         "apiKeysLink": "API-sleutels",
         "connectedOffer": "Mealie is verbonden. Kies het om te plannen met de recepten en de planning die je daar bijhoudt.",
@@ -1682,7 +1689,9 @@
       },
       "reset": {
         "button": "Terugzetten op standaardwaarden",
-        "help": "Herstelt ontbijt/lunch/avondeten, weekstart op zondag, 12-uursformaat en wist alle standaardtijden."
+        "help": "Zet ontbijt, lunch en avondeten aan en het tussendoortje uit, laat de week op zondag beginnen, volgt voor het tijdformaat de algemene instelling en wist de standaardtijden. Geplande maaltijden blijven zoals ze zijn.",
+        "confirmTitle": "Maaltijdinstellingen terugzetten?",
+        "confirmButton": "Terugzetten"
       },
       "description": "Welke maaltijden jullie plannen en wanneer die meestal zijn."
     },
@@ -2882,22 +2891,37 @@
     "toast": {
       "changesSaved": "Wijzigingen opgeslagen",
       "mealDeleted": "\"{name}\" verwijderd",
-      "mealRemoved": "Maaltijd verwijderd",
+      "mealDeletedPlanned": "\"{name}\" verwijderd en van het plan gehaald op {days}",
+      "moreDays": {
+        "one": "{count} andere dag",
+        "other": "{count} andere dagen"
+      },
+      "mealRemoved": "{name} weggehaald",
+      "mealRemovedWithCourses": {
+        "one": "{name} weggehaald, met het gerecht erbij",
+        "other": "{name} weggehaald, met de {count} gerechten erbij"
+      },
+      "mealChanged": "Veranderd in {name}",
       "randomSuggested": "Willekeurige maaltijden voorgesteld!",
       "lastWeekCopied": "Vorige week gekopieerd!",
+      "lastWeekCopiedDates": "Maaltijden van {from} gekopieerd",
       "weekCleared": "Week leeggemaakt",
       "undoButton": "Ongedaan maken",
       "courseRemoved": "Verwijderd uit deze maaltijd",
       "saveFailed": "Die wijziging is niet opgeslagen. Probeer het opnieuw.",
       "mealieSaveFailed": "Mealie heeft die wijziging niet overgenomen. Controleer of het draait en probeer het opnieuw.",
       "mealieAllPlanned": "Elk avondeten van deze week is al gepland.",
+      "mealieAllPlannedDates": "Elk avondeten van de week van {range} is al gepland.",
       "mealieNoDinners": "Voorstellen vult lege avondmaaltijden, en avondeten staat uit in de maaltijdinstellingen.",
       "mealieSuggested": {
         "one": "Een avondmaaltijd gepland voor {days}.",
         "other": "Avondmaaltijden gepland voor {days}."
       },
       "mealieSuggestedEveryNight": "Voor elke avond van deze week een avondmaaltijd gepland.",
-      "mealieNothingFits": "Mealie had geen recepten om voor te stellen voor die maaltijden. Kijk naar de regels van het maaltijdplan in Mealie."
+      "mealieSuggestedEveryNightDates": "Voor elke avond van de week van {range} een avondmaaltijd gepland.",
+      "mealieNothingFits": "Mealie had geen recepten om voor te stellen voor die maaltijden. Kijk naar de regels van het maaltijdplan in Mealie.",
+      "mealieTokenSaveFailed": "Mealie laat Home Screens niet binnen, dus die wijziging is niet opgeslagen. Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
+      "mealieNotConnectedSaveFailed": "Mealie is niet gekoppeld, dus die wijziging is niet opgeslagen. Vul het adres en de token in bij Instellingen > API-sleutels."
     },
     "library": {
       "searchPlaceholder": "Maaltijden zoeken…",
@@ -2940,7 +2964,16 @@
     "grocery": {
       "itemsCount": "{checked} van {total} items",
       "fromThisWeek": "Van deze week",
-      "emptyMessage": "Plan maaltijden met ingrediënten om je boodschappenlijst te zien"
+      "fromDates": "Van de week van {range}",
+      "emptyMessage": "Plan maaltijden met ingrediënten om je boodschappenlijst te zien",
+      "withoutIngredients": {
+        "one": "{count} geplande maaltijd heeft nog geen ingrediënten: {names}",
+        "other": "{count} geplande maaltijden hebben nog geen ingrediënten: {names}"
+      },
+      "moreMeals": {
+        "one": "nog {count}",
+        "other": "nog {count}"
+      }
     },
     "weekGrid": {
       "todayLabel": "Vandaag",
@@ -2949,20 +2982,20 @@
       "suggestBusy": "Avondmaaltijden kiezen…",
       "copyLastWeekButton": "Vorige week kopiëren",
       "clearButton": "Leegmaken",
-      "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Vorige week",
       "nextWeekAriaLabel": "Volgende week",
       "coursesCount": {
         "one": "Nog {count} bij deze maaltijd",
         "other": "Nog {count} bij deze maaltijd"
       },
-      "removeMealAriaLabel": "{name} verwijderen"
+      "removeMealAriaLabel": "{name} verwijderen",
+      "mealCellAriaLabel": "{name}, {slot}, {day}",
+      "planCellAriaLabel": "{slot} plannen voor {day}"
     },
     "picker": {
       "title": "Kies een maaltijd",
       "searchPlaceholder": "Maaltijden zoeken…",
       "noMealsFound": "Geen maaltijden gevonden",
-      "prepTimeShort": "{minutes} min",
       "titleAdd": {
         "side": "Bijgerecht toevoegen",
         "dessert": "Toetje toevoegen",
@@ -3018,6 +3051,8 @@
       "lastUpdated": "Laatst bijgewerkt {time}",
       "subtitle": "{planned} gepland deze week",
       "subtitleHousehold": "Huishouden {household} · {planned} gepland deze week",
+      "subtitleDates": "{planned} gepland in de week van {range}",
+      "subtitleHouseholdDates": "Huishouden {household} · {planned} gepland in de week van {range}",
       "openMealie": "Mealie openen",
       "tryAgain": "Opnieuw proberen",
       "unreachableTitle": "Mealie is nu niet bereikbaar",
@@ -3028,8 +3063,8 @@
       "tokenRefusedBody": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op bij Instellingen > API-sleutels.",
       "paused": "Plannen staat stil tot Mealie terug is.",
       "pausedSince": "Plannen staat stil tot Mealie terug is. Dit is de planning van {time}.",
-      "weekLoading": "Deze week wordt uit Mealie gehaald…",
-      "weekFailed": "We konden deze week niet uit Mealie halen.",
+      "weekLoading": "De week van {range} wordt uit Mealie gehaald…",
+      "weekFailed": "We konden de week van {range} niet uit Mealie halen.",
       "libraryNote": "De recepten staan in Mealie. Klik op een recept om het hier te zien.",
       "detailEmpty": "Klik op een maaltijd in de week, of een recept in de bibliotheek, om het hier te zien.",
       "serves": {
@@ -3039,7 +3074,10 @@
       "readOnlyNote": "Dit recept staat in Mealie. Pas het daar aan en het is hier binnen een paar minuten bijgewerkt.",
       "groceryTitle": "Je boodschappenlijst staat in Mealie",
       "groceryBody": "Zolang je maaltijdplanning in Mealie staat, staat je lijst daar ook. Open Mealie om te zien wat je nodig hebt en dingen af te vinken.",
-      "ingredientsFailed": "Mealie heeft de ingrediënten niet gestuurd. Open het recept in Mealie om ze te zien."
+      "ingredientsFailed": "Mealie heeft de ingrediënten niet gestuurd. Open het recept in Mealie om ze te zien.",
+      "tokenFix": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
+      "tokenPaused": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil.",
+      "tokenPausedSince": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is de planning van {time}."
     },
     "popover": {
       "savesToMealie": "Wordt opgeslagen in Mealie",

@@ -1368,11 +1368,16 @@
         "urlHelp": "Die Adresse, unter der du Mealie öffnest, mit Portnummer.",
         "tokenLabel": "API-Token",
         "tokenPlaceholder": "Füge dein Mealie-API-Token ein",
-        "tokenHelp": "Öffne in Mealie dein Profil, wähle API Tokens und erstelle eins. Du siehst den Essensplan des Haushalts der Person, die es erstellt.",
+        "tokenHelp": "Öffne in Mealie dein Profil, wähle API Tokens und erstelle eins. Du siehst den Essensplan des Haushalts der Person, die es erstellt hat.",
         "testButton": "Testen",
         "testing": "Wird getestet…",
         "testHelp": "Prüft Adresse und Token zusammen.",
         "notConnected": "Nicht verbunden",
+        "optional": "Optional, nicht eingerichtet",
+        "checking": "Wird geprüft…",
+        "tokenRefused": "Token nicht angenommen",
+        "notAnswering": "Antwortet nicht",
+        "couldNotCheck": "Prüfen nicht möglich",
         "removeConfirm": {
           "title": "Essensplan nicht mehr zeigen?",
           "message": "Dein Essensplan kommt aus Mealie. Ohne Adresse und Token können Wand und Handy ihn nicht zeigen, bis du sie wieder einträgst oder den Essensplan unter Einstellungen > Mahlzeiten auf Home Screens zurückstellst.",
@@ -1645,6 +1650,8 @@
         "mealieHousehold": "Haushalt {household}",
         "mealieConnected": "Verbunden",
         "mealieNotAnswering": "Antwortet gerade nicht",
+        "mealieTokenRefused": "Token nicht angenommen",
+        "tokenRefused": "Mealie nimmt das gespeicherte Token nicht mehr an, deshalb wird der Essensplan nicht mehr aktualisiert. Erstell in Mealie ein neues Token und füg es hier ein:",
         "connectFirst": "Nur wenn eure Familie Mealie nutzt, eine eigene Rezept-App. Um dort zu planen, verbindet es zuerst auf der Seite",
         "apiKeysLink": "API-Schlüssel",
         "connectedOffer": "Mealie ist verbunden. Wähle es, um mit den Rezepten und dem Plan aus Mealie zu planen.",
@@ -1682,7 +1689,9 @@
       },
       "reset": {
         "button": "Auf Standardwerte zurücksetzen",
-        "help": "Stellt Frühstück/Mittagessen/Abendessen, Wochenstart Sonntag und 12-Stunden-Format wieder her und entfernt alle Standardzeiten."
+        "help": "Schaltet Frühstück, Mittagessen und Abendessen ein und Snack aus, lässt die Woche am Sonntag beginnen, folgt beim Zeitformat der globalen Einstellung und entfernt die Standard-Essenszeiten. Geplante Mahlzeiten bleiben, wie sie sind.",
+        "confirmTitle": "Mahlzeiten-Einstellungen zurücksetzen?",
+        "confirmButton": "Zurücksetzen"
       },
       "description": "Welche Mahlzeiten ihr plant und wann sie üblicherweise stattfinden."
     },
@@ -2882,22 +2891,37 @@
     "toast": {
       "changesSaved": "Änderungen gespeichert",
       "mealDeleted": "„{name}“ gelöscht",
-      "mealRemoved": "Mahlzeit entfernt",
+      "mealDeletedPlanned": "„{name}“ gelöscht und aus dem Plan für {days} genommen",
+      "moreDays": {
+        "one": "{count} weiteren Tag",
+        "other": "{count} weitere Tage"
+      },
+      "mealRemoved": "{name} herausgenommen",
+      "mealRemovedWithCourses": {
+        "one": "{name} herausgenommen, mit dem Gericht dazu",
+        "other": "{name} herausgenommen, mit den {count} Gerichten dazu"
+      },
+      "mealChanged": "Geändert in {name}",
       "randomSuggested": "Zufallsmahlzeiten vorgeschlagen!",
       "lastWeekCopied": "Letzte Woche kopiert!",
+      "lastWeekCopiedDates": "Mahlzeiten vom {from} übernommen",
       "weekCleared": "Woche geleert",
       "undoButton": "Rückgängig",
       "courseRemoved": "Aus dieser Mahlzeit entfernt",
       "saveFailed": "Diese Änderung wurde nicht gespeichert. Versuch es noch einmal.",
       "mealieSaveFailed": "Mealie hat diese Änderung nicht übernommen. Prüfe, ob es läuft, und versuch es dann noch einmal.",
       "mealieAllPlanned": "Jedes Abendessen dieser Woche ist schon geplant.",
+      "mealieAllPlannedDates": "Jedes Abendessen der Woche vom {range} ist schon geplant.",
       "mealieNoDinners": "Vorschlagen füllt leere Abendessen, und Abendessen ist in den Mahlzeiten-Einstellungen ausgeschaltet.",
       "mealieSuggested": {
         "one": "Ein Abendessen für {days} geplant.",
         "other": "Abendessen für {days} geplant."
       },
       "mealieSuggestedEveryNight": "Für jeden Abend dieser Woche ein Abendessen geplant.",
-      "mealieNothingFits": "Mealie hatte für diese Mahlzeiten keine passenden Rezepte. Schau dir die Essensplan-Regeln in Mealie an."
+      "mealieSuggestedEveryNightDates": "Für jeden Abend der Woche vom {range} ein Abendessen geplant.",
+      "mealieNothingFits": "Mealie hatte für diese Mahlzeiten keine passenden Rezepte. Schau dir die Essensplan-Regeln in Mealie an.",
+      "mealieTokenSaveFailed": "Mealie lässt Home Screens nicht rein, deshalb wurde diese Änderung nicht gespeichert. Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
+      "mealieNotConnectedSaveFailed": "Mealie ist nicht verbunden, deshalb wurde diese Änderung nicht gespeichert. Trag Adresse und Token unter Einstellungen > API-Schlüssel ein."
     },
     "library": {
       "searchPlaceholder": "Mahlzeiten suchen…",
@@ -2940,7 +2964,16 @@
     "grocery": {
       "itemsCount": "{checked} von {total} Artikeln",
       "fromThisWeek": "Aus dieser Woche",
-      "emptyMessage": "Plan Mahlzeiten mit Zutaten ein, um die Einkaufsliste zu sehen"
+      "fromDates": "Aus der Woche vom {range}",
+      "emptyMessage": "Plan Mahlzeiten mit Zutaten ein, um die Einkaufsliste zu sehen",
+      "withoutIngredients": {
+        "one": "{count} geplante Mahlzeit hat noch keine Zutaten: {names}",
+        "other": "{count} geplante Mahlzeiten haben noch keine Zutaten: {names}"
+      },
+      "moreMeals": {
+        "one": "{count} weitere",
+        "other": "{count} weitere"
+      }
     },
     "weekGrid": {
       "todayLabel": "Heute",
@@ -2949,20 +2982,20 @@
       "suggestBusy": "Abendessen werden ausgesucht…",
       "copyLastWeekButton": "Letzte Woche kopieren",
       "clearButton": "Leeren",
-      "prepTimeMin": "{minutes} Min",
       "previousWeekAriaLabel": "Vorherige Woche",
       "nextWeekAriaLabel": "Nächste Woche",
       "coursesCount": {
         "one": "{count} weiteres dazu",
         "other": "{count} weitere dazu"
       },
-      "removeMealAriaLabel": "{name} entfernen"
+      "removeMealAriaLabel": "{name} entfernen",
+      "mealCellAriaLabel": "{name}, {slot}, {day}",
+      "planCellAriaLabel": "{slot} für {day} planen"
     },
     "picker": {
       "title": "Mahlzeit wählen",
       "searchPlaceholder": "Mahlzeiten suchen…",
       "noMealsFound": "Keine Mahlzeiten gefunden",
-      "prepTimeShort": "{minutes} Min",
       "titleAdd": {
         "side": "Beilage hinzufügen",
         "dessert": "Nachtisch hinzufügen",
@@ -3016,8 +3049,10 @@
     "mealie": {
       "fromMealie": "Aus Mealie",
       "lastUpdated": "Zuletzt aktualisiert {time}",
-      "subtitle": "{planned} diese Woche geplant",
-      "subtitleHousehold": "Haushalt {household} · {planned} diese Woche geplant",
+      "subtitle": "Mahlzeiten diese Woche: {planned}",
+      "subtitleHousehold": "Haushalt {household} · Mahlzeiten diese Woche: {planned}",
+      "subtitleDates": "Mahlzeiten vom {range}: {planned}",
+      "subtitleHouseholdDates": "Haushalt {household} · Mahlzeiten vom {range}: {planned}",
       "openMealie": "Mealie öffnen",
       "tryAgain": "Noch einmal versuchen",
       "unreachableTitle": "Mealie ist gerade nicht erreichbar",
@@ -3028,8 +3063,8 @@
       "tokenRefusedBody": "Mealie nimmt das gespeicherte Token nicht mehr an. Vielleicht wurde es in Mealie gelöscht. Erstell dort ein neues und speichere es unter Einstellungen > API-Schlüssel.",
       "paused": "Planen ist pausiert, bis Mealie wieder da ist.",
       "pausedSince": "Planen ist pausiert, bis Mealie wieder da ist. Das ist der Plan von {time}.",
-      "weekLoading": "Diese Woche wird aus Mealie geholt…",
-      "weekFailed": "Wir konnten diese Woche nicht aus Mealie holen.",
+      "weekLoading": "Die Woche vom {range} wird aus Mealie geholt…",
+      "weekFailed": "Wir konnten die Woche vom {range} nicht aus Mealie holen.",
       "libraryNote": "Die Rezepte liegen in Mealie. Klick eins an, um es hier zu sehen.",
       "detailEmpty": "Klick auf eine Mahlzeit in der Woche oder ein Rezept in der Bibliothek, um es hier zu sehen.",
       "serves": {
@@ -3038,8 +3073,11 @@
       },
       "readOnlyNote": "Dieses Rezept liegt in Mealie. Ändere es dort, dann ist es hier in ein paar Minuten aktuell.",
       "groceryTitle": "Deine Einkaufsliste liegt in Mealie",
-      "groceryBody": "Solange dein Essensplan in Mealie liegt, gilt das auch für deine Liste. Öffne Mealie, um zu sehen, was du brauchst, und Dinge abzuhaken.",
-      "ingredientsFailed": "Mealie hat die Zutaten nicht geschickt. Öffne das Rezept in Mealie, um sie zu sehen."
+      "groceryBody": "Solange dein Essensplan in Mealie liegt, ist auch deine Einkaufsliste dort. Öffne Mealie, um zu sehen, was du brauchst, und Sachen abzuhaken.",
+      "ingredientsFailed": "Mealie hat die Zutaten nicht geschickt. Öffne das Rezept in Mealie, um sie zu sehen.",
+      "tokenFix": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
+      "tokenPaused": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert.",
+      "tokenPausedSince": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert. Das ist der Plan von {time}."
     },
     "popover": {
       "savesToMealie": "Wird in Mealie gespeichert",
@@ -3055,7 +3093,7 @@
       "remove": "{name} entfernen",
       "missingMeal": "Eine entfernte Mahlzeit",
       "anotherMain": "Weiteres Hauptgericht",
-      "servingTime": "Essenszeit",
+      "servingTime": "Servierzeit",
       "usually": "meist {time}",
       "clear": {
         "breakfast": "Dieses Frühstück leeren",

@@ -368,7 +368,7 @@
     "noMealPlanned": "No meal planned",
     "nothingPlannedThisWeek": "Nothing planned this week",
     "todaysMeals": "Today's Meals",
-    "now": "now",
+    "now": "Now",
     "servingAt": "serving at {time}",
     "time": {
       "minutes": "{minutes} min",
@@ -403,7 +403,7 @@
     "closeRecipe": "Close",
     "planFromPhoneHint": "Plan meals from a phone: open {url} and tap Meals",
     "courses": {
-      "main": "Also",
+      "main": "Main",
       "side": "Side",
       "dessert": "Dessert",
       "drink": "Drink"
@@ -421,6 +421,8 @@
     "todaysMeals": "Today's Meals",
     "todaysMenu": "Today's Menu",
     "alsoToday": "Also Today",
+    "tomorrowsMeals": "Tomorrow's Meals",
+    "alsoTomorrow": "Also Tomorrow",
     "noMealPlanned": "No meal planned",
     "notPlanned": "Not planned",
     "noMealsPlannedToday": "No meals planned for today",
@@ -428,8 +430,7 @@
     "mealsPlannedCount": "{filled} of {total} meals planned",
     "heroLabels": {
       "now": "Now",
-      "upNext": "Up Next",
-      "tonight": "Tonight"
+      "upNext": "Up Next"
     },
     "nextMealLabels": {
       "now": "Now",

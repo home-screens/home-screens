@@ -532,4 +532,80 @@ describe('useMealPlannerData', () => {
     expect(result.current.mealData.groceryChecked).toEqual({});
     expect(result.current.saveError).not.toBeNull();
   });
+
+  /* ─── an open window follows the phone ─────────────────────
+   * A meal planned on the phone while the window was open only showed once
+   * the editor saved something. The open window now asks again every so
+   * often, and never adopts a copy over a save of its own still on its way.
+   */
+  describe('while the window is open', () => {
+    // Only the poll's clock is faked: the answers still settle on real time.
+    beforeEach(() => { vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] }); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    const settle = () => act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    const phonePlanned = { ...SERVER_PAYLOAD, plan: [...SERVER_PAYLOAD.plan, { id: 'phone-added' }], revision: 'rev-2' };
+
+    it('shows a meal planned on the phone without a save from here', async () => {
+      const fetchMock = vi.fn().mockResolvedValueOnce(ok(SERVER_PAYLOAD)).mockResolvedValue(ok(phonePlanned));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { result } = renderHook(() =>
+        useMealPlannerData({ mod: makeModule(), set: vi.fn(), showModal: true }),
+      );
+      await settle();
+      expect(result.current.mealData.plan).toHaveLength(1);
+
+      act(() => { vi.advanceTimersByTime(15_000); });
+      await settle();
+
+      expect(result.current.mealData.plan).toEqual(phonePlanned.plan);
+      expect(putBodies(fetchMock)).toEqual([]);
+    });
+
+    it('asks nothing more while the window is closed', async () => {
+      const fetchMock = mockFetchOk();
+      vi.stubGlobal('fetch', fetchMock);
+
+      renderHook(() => useMealPlannerData({ mod: makeModule(), set: vi.fn(), showModal: false }));
+      await settle();
+      act(() => { vi.advanceTimersByTime(60_000); });
+      await settle();
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps an edit whose save is on its way over a copy answered meanwhile', async () => {
+      let answerSave!: (value: unknown) => void;
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValueOnce(ok(SERVER_PAYLOAD))
+        .mockImplementationOnce(() => new Promise((resolve) => { answerSave = resolve; }))
+        // The poll, answered before the save landed: it has not got the edit.
+        .mockResolvedValueOnce(ok(SERVER_PAYLOAD));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { result } = renderHook(() =>
+        useMealPlannerData({ mod: makeModule(), set: vi.fn(), showModal: true }),
+      );
+      await settle();
+
+      let saving!: Promise<void>;
+      act(() => { saving = result.current.handleModalUpdate((c) => ({ plan: [...c.plan, ...entries('modal-added')] })); });
+      await settle();
+      expect(putBodies(fetchMock)).toHaveLength(1);
+
+      act(() => { vi.advanceTimersByTime(15_000); });
+      await settle();
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(result.current.mealData.plan).toEqual([...SERVER_PAYLOAD.plan, { id: 'modal-added' }]);
+
+      const saved = [...SERVER_PAYLOAD.plan, { id: 'modal-added' }];
+      await act(async () => {
+        answerSave(ok({ ...SERVER_PAYLOAD, plan: saved, revision: 'rev-2' }));
+        await saving;
+      });
+      expect(result.current.mealData.plan).toEqual(saved);
+    });
+  });
 });

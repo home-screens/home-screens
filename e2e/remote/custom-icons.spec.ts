@@ -54,7 +54,8 @@ test.beforeEach(async ({ request }) => {
 test('a picture added from the meal form shows on the wall', async ({ page, request }) => {
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Taco Tuesday', emoji: '🌮' }],
-    plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoDate(0) }],
+    // Tomorrow too: late in the evening the Today view moves on to tomorrow.
+    plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: isoDate(day) })),
   });
   await openMealForm(page, 'Taco Tuesday');
 
@@ -85,7 +86,7 @@ test('a picture added from the meal form shows on the wall', async ({ page, requ
 test('a meal whose picture was removed shows the usual plate', async ({ page, request }) => {
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Mystery stew', emoji: 'custom:zzzzzzzzzzzz' }],
-    plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoDate(0) }],
+    plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: isoDate(day) })),
   });
   await page.goto('/display');
   await expect(page.getByText('Mystery stew').first()).toBeVisible();

@@ -14,7 +14,9 @@ interface FamilyEmptyStateProps {
    * Where to go, with `{url}` standing in for the hub's phone address
    * ("Add chores from a phone: open {url} and tap Chores"). The address is
    * this display's own origin plus `/remote`, which is the one fact the
-   * person looking at the wall cannot otherwise know.
+   * person looking at the wall cannot otherwise know. A hint with no `{url}`
+   * (a fix made on the computer, or nothing to do but wait) shows as
+   * written, with no address.
    */
   hint: string;
   /**
@@ -37,6 +39,7 @@ export default function FamilyEmptyState({ icon, title, hint, fontSize, style }:
   // Scheme stripped for reading across a room; the bare path until the origin is known.
   const url = origin ? phoneSurfaceLabel('remote', origin) : phoneSurfaceUrl('remote', '');
   const [before, after] = hint.split('{url}');
+  const asksForUrl = after !== undefined;
 
   return (
     <div
@@ -49,7 +52,7 @@ export default function FamilyEmptyState({ icon, title, hint, fontSize, style }:
       <p style={{ fontSize: '0.8em', fontWeight: 600, opacity: TEXT_OPACITY.heading, lineHeight: 1.3 }}>{title}</p>
       <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.secondary, lineHeight: 1.45, maxWidth: '26em' }}>
         {before}
-        <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{url}</span>
+        {asksForUrl && <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{url}</span>}
         {after}
       </p>
     </div>

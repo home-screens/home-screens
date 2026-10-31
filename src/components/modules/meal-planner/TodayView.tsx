@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
-import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, currentMealSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -18,7 +18,8 @@ interface TodayViewProps {
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
-  currentHour: number;
+  /** Minutes after midnight at home (`minutesOfDay`). */
+  nowMinutes: number;
   recipeTapMode: RecipeTapMode;
 }
 
@@ -81,7 +82,9 @@ function SlotCard({
         )}
         {isActive && (
           <span
-            className="rounded-full px-1.5 py-px normal-case tracking-normal font-normal ml-auto"
+            // Capitals like the slot name beside it and every other "now"
+            // on the wall.
+            className="rounded-full px-1.5 py-px tracking-normal font-normal ml-auto"
             style={{ backgroundColor: `${meta.color}20`, fontSize: '0.9em' }}
           >
             {t('meal-planner.now')}
@@ -137,12 +140,13 @@ function SlotCard({
   );
 }
 
-export function TodayView({ config, settings, timeFormat, plan, savedMeals, todayISO, currentHour, recipeTapMode }: TodayViewProps) {
+export function TodayView({ config, settings, timeFormat, plan, savedMeals, todayISO, nowMinutes, recipeTapMode }: TodayViewProps) {
   const t = useTranslate('modules');
   // In the day's order (snack before dinner), as every other meal view lists
   // them, not the order the slots were switched on in.
   const slots = SLOT_ORDER.filter((slot) => settings.enabledSlots.includes(slot));
-  const activeSlot = getActiveSlot(currentHour, slots);
+  // The meal being served now, by its serving time, as on every other view.
+  const activeSlot = currentMealSlot(todayISO, nowMinutes, slots, plan, savedMeals, settings.defaultSlotTimes);
 
   return (
     <div className="flex flex-col h-full gap-2">

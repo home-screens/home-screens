@@ -9,6 +9,8 @@ import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import Glyph from '@/components/ui/Glyph';
 import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { isMealieMeal } from '@/lib/meal-dish-rules';
+import { useMealieLink } from '@/components/meals/useMealieLink';
 
 const QR_AUTO_DISMISS_MS = 30_000;
 const IFRAME_AUTO_CLOSE_MS = 10 * 60_000;
@@ -31,7 +33,10 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
   const t = useTranslate('modules');
   // Internal so the iframe variant can switch itself to the QR fallback.
   const [view, setView] = useState<'qr' | 'iframe'>(variant);
-  const recipeUrl = meal.recipeUrl ?? '';
+  // A Mealie recipe on a Mealie saved as `localhost` opens through the hub's
+  // address, which is what a phone scanning the code can reach.
+  const mealieLink = useMealieLink();
+  const recipeUrl = meal.recipeUrl ? (isMealieMeal(meal) ? mealieLink(meal.recipeUrl) : meal.recipeUrl) : '';
 
   // Hold screen rotation while open so the next screen doesn't unmount the
   // overlay out from under the reader; the timers below bound the hold.

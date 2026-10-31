@@ -7,6 +7,7 @@ import { filterLibraryMeals } from '@/lib/meal-dish-rules';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import Glyph from '@/components/ui/Glyph';
+import { useDishTime } from './dish-time';
 
 interface SidebarLibraryProps {
   meals: SavedMeal[];
@@ -33,6 +34,7 @@ export default function SidebarLibrary({
   // Tag + difficulty labels live in `core.meal.*` (shared with /remote so
   // both surfaces resolve them without lazy-fetching the editor bundle).
   const tCore = useTranslate('core');
+  const dishTime = useDishTime();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<LibraryFilter>('all');
 
@@ -87,8 +89,9 @@ export default function SidebarLibrary({
         </div>
       </div>
 
-      {/* Filter pills */}
-      <div className="flex gap-1.5 px-4 py-2 overflow-x-auto border-b border-hs-border-strong">
+      {/* Filter pills. They wrap: the kinds of dish pushed the tags out of a
+          row that scrolled with no visible scrollbar. */}
+      <div className="flex flex-wrap gap-1.5 px-4 py-2 border-b border-hs-border-strong">
         {LIBRARY_FILTERS.map((f) => (
           <button
             key={f}
@@ -133,9 +136,8 @@ export default function SidebarLibrary({
             const meta: string[] = [];
             // A side, dessert or drink says so; a main dish needs no label.
             if (meal.category && meal.category !== 'main') meta.push(tCore(`meal.kind.${meal.category}`));
-            if (meal.prepTime) {
-              meta.push(t('mealPlannerModal.picker.prepTimeShort', { minutes: meal.prepTime }));
-            }
+            const time = dishTime(meal);
+            if (time) meta.push(time);
             if (meal.difficulty) {
               meta.push(tCore(`meal.difficulty.${meal.difficulty}`));
             }

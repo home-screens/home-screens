@@ -121,13 +121,32 @@ export function getMealSlotLabelKey(slot: MealSlotType): string {
 /** Canonical slot ordering — matches chronological time windows */
 export const SLOT_ORDER: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
 
-/** Slot time windows — [start, end) in hours */
-export const SLOT_WINDOWS: Record<MealSlotType, { start: number; end: number }> = {
-  breakfast: { start: 5, end: 10 },
-  lunch:     { start: 10, end: 14 },
-  snack:     { start: 14, end: 17 },
-  dinner:    { start: 17, end: 21 },
+/**
+ * When a slot is usually served, for a meal with no time of its own in a
+ * household that has not set one for the slot. Only the "now" rule reads
+ * these (`mealServingTime`); a view prints a time only when the meal or the
+ * household gave one.
+ */
+export const SLOT_USUAL_TIMES: Record<MealSlotType, string> = {
+  breakfast: '07:30',
+  lunch:     '12:00',
+  snack:     '15:30',
+  dinner:    '18:00',
 };
+
+/**
+ * How long a meal counts as "now" around its serving time, in minutes.
+ *
+ * A quarter of an hour before is about when the family is called to the
+ * table; before that the same meal shows as coming up, and a 5:30 dinner
+ * marked now at 5:10 read as wrong. An hour and a half after covers a slow
+ * meal and the clearing up, and is short enough that the 5:30 dinner hands
+ * over to tomorrow's breakfast at 7 rather than holding the wall until
+ * bedtime, as fixed hour windows (dinner was 5 to 9 PM whatever time it was
+ * served) did. The next planned meal takes over as soon as its own quarter
+ * hour starts, so two meals are never now at once (`mealPhases`).
+ */
+export const MEAL_NOW_WINDOW = { before: 15, after: 90 } as const;
 
 const DAY_NAME_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
 
@@ -379,9 +398,9 @@ export function resolveMealWithEntry(
   plan: PlannedMeal[] | undefined,
   savedMeals: SavedMeal[] | undefined,
 ): ResolvedPlanEntry {
-  if (!plan) return { meal: null, planned: undefined, name: null, courses: [], notes: null };
+  if (!plan) return { meal: null, planned: undefined, name: null, courses: [], notes: [] };
   const planned = plan.find((p) => p.date === date && p.slot === slot);
-  if (!planned) return { meal: null, planned: undefined, name: null, courses: [], notes: null };
+  if (!planned) return { meal: null, planned: undefined, name: null, courses: [], notes: [] };
   const meal = planned.mealId && savedMeals
     ? savedMeals.find((m) => m.id === planned.mealId) ?? null
     : null;
@@ -398,12 +417,16 @@ export function resolveMealWithEntry(
 }
 
 /**
- * The note a planned meal shows: the one written on the plan for that day
- * ("Pizza day in the cafeteria", which is how Mealie keeps a note on its
- * plan), or else the dish's own note from the library.
+ * The notes a planned meal shows, the day's first: the one written on the
+ * plan for that day ("Soccer practice until 6"; Mealie keeps a note on its
+ * plan the same way), then the dish's own from the library ("Start it before
+ * school drop-off"). One of them, or none, when that is all there is; the
+ * same text twice shows once.
  */
-function plannedMealNotes(planned: PlannedMeal, meal: SavedMeal | null): string | null {
-  return planned.notes?.trim() || meal?.notes?.trim() || null;
+function plannedMealNotes(planned: PlannedMeal, meal: SavedMeal | null): string[] {
+  const day = planned.notes?.trim();
+  const dish = meal?.notes?.trim();
+  return [...new Set([day, dish].filter((note): note is string => !!note))];
 }
 
 /**
@@ -415,8 +438,8 @@ export interface ResolvedPlanEntry {
   planned: PlannedMeal | undefined;
   name: string | null;
   courses: ResolvedCourse[];
-  /** The note to show with it (see `plannedMealNotes`), or null. */
-  notes: string | null;
+  /** The notes to show with it, the day's first (see `plannedMealNotes`); empty for none. */
+  notes: string[];
 }
 
 export interface NextPlannedMeal {
@@ -432,42 +455,196 @@ export interface NextPlannedMeal {
   context: 'now' | 'upcoming' | 'tomorrow' | 'future';
   /** The meal's courses after the one it leads with. */
   courses: ResolvedCourse[];
-  /** The note to show with it, or null. */
-  notes: string | null;
+  /** The notes to show with it, the day's first; empty for none. */
+  notes: string[];
+}
+
+// ── Now and next, by serving time ───────────────────────────────────
+
+/**
+ * Minutes after midnight on a clock's own face. Pass the household's ticking
+ * clock (`useTZClock`, `useHouseholdNow`), whose local fields are the time at
+ * home.
+ */
+export function minutesOfDay(now: Date): number {
+  return now.getHours() * 60 + now.getMinutes();
+}
+
+/** "18:30" as minutes after midnight. */
+function clockMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 /**
- * Walk forward from the current hour to the first slot that actually has a
- * meal planned — today's remaining slots first, then up to a week ahead.
+ * When a meal is served, for deciding what is on now: its own time, else the
+ * household's time for the slot, else the slot's usual time.
+ */
+export function mealServingTime(
+  planned: PlannedMeal | undefined,
+  slot: MealSlotType,
+  defaults: Partial<Record<MealSlotType, string>>,
+): string {
+  return resolvePlannedMealTime(planned, slot, defaults) ?? SLOT_USUAL_TIMES[slot];
+}
+
+/** Where a meal stands against the clock. */
+export type MealTimePhase = 'later' | 'now' | 'over';
+
+export interface ServedSlot {
+  slot: MealSlotType;
+  /** When it is served, in minutes after midnight (`mealServingTime`). */
+  at: number;
+  /** Whether a meal is planned in it. */
+  planned: boolean;
+}
+
+/**
+ * A day's slots in the order they are served: by serving time, so a brunch
+ * set for 11:30 comes after a lunch at 11, and in the day's order when two
+ * share a time.
+ */
+export function servingOrder(
+  date: string,
+  slots: readonly MealSlotType[],
+  plan: PlannedMeal[] | undefined,
+  savedMeals: SavedMeal[] | undefined,
+  defaults: Partial<Record<MealSlotType, string>>,
+): ServedSlot[] {
+  return SLOT_ORDER.filter((slot) => slots.includes(slot))
+    .map((slot) => {
+      const { planned, name } = resolveMealWithEntry(date, slot, plan, savedMeals);
+      return { slot, at: clockMinutes(mealServingTime(planned, slot, defaults)), planned: name !== null };
+    })
+    .sort((a, b) => a.at - b.at);
+}
+
+/**
+ * Where each meal of `served` (in serving order) stands at `nowMinutes`, in
+ * the same order. A meal is now from `MEAL_NOW_WINDOW.before` minutes before
+ * its time until `.after` minutes after it, and over as soon as the next
+ * one's window opens, so the next meal leads from then on.
+ */
+export function mealPhases(served: readonly { at: number }[], nowMinutes: number): MealTimePhase[] {
+  return served.map(({ at }, i) => {
+    const next = served[i + 1];
+    const opens = at - MEAL_NOW_WINDOW.before;
+    const closes = Math.min(at + MEAL_NOW_WINDOW.after, next ? next.at - MEAL_NOW_WINDOW.before : Infinity);
+    if (nowMinutes < opens) return 'later';
+    return nowMinutes < closes ? 'now' : 'over';
+  });
+}
+
+/**
+ * The slot of `date` whose meal is being served at `nowMinutes` (see
+ * `mealPhases`), or null between meals. Only planned meals take turns, so an
+ * empty lunch never holds "now" and a dinner keeps it until its own window
+ * closes. The phone's This Week, the wall's Week and both Today views mark
+ * their "now" with this, and `getNextPlannedMeal` leads with the same meal.
+ */
+export function currentMealSlot(
+  date: string,
+  nowMinutes: number,
+  slots: readonly MealSlotType[],
+  plan: PlannedMeal[] | undefined,
+  savedMeals: SavedMeal[] | undefined,
+  defaults: Partial<Record<MealSlotType, string>>,
+): MealSlotType | null {
+  const planned = servingOrder(date, slots, plan, savedMeals, defaults).filter((s) => s.planned);
+  const now = mealPhases(planned, nowMinutes).indexOf('now');
+  return now < 0 ? null : planned[now].slot;
+}
+
+/**
+ * Walk forward from now to the first meal that is not over: the one being
+ * served, else today's next, then up to a week ahead in serving order.
  * Both the small meal-planner card and the fullscreen Next Meal view resolve
  * through this, so the two can never disagree about what's next. Returns
  * null only when nothing is planned in the coming week.
  */
 export function getNextPlannedMeal(
   todayISO: string,
-  hour: number,
+  nowMinutes: number,
   plan: PlannedMeal[] | undefined,
   savedMeals: SavedMeal[] | undefined,
-  slots: MealSlotType[],
+  slots: readonly MealSlotType[],
+  defaults: Partial<Record<MealSlotType, string>> = {},
 ): NextPlannedMeal | null {
-  const activeOrder = SLOT_ORDER.filter((s) => slots.includes(s));
-  if (activeOrder.length === 0) return null;
   const base = new Date(todayISO + 'T12:00:00');
   for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
     const d = new Date(base);
     d.setDate(base.getDate() + dayOffset);
     const date = toISODate(d);
-    for (const slot of activeOrder) {
-      if (dayOffset === 0 && hour >= SLOT_WINDOWS[slot].end) continue;
+    const served = servingOrder(date, slots, plan, savedMeals, defaults).filter((s) => s.planned);
+    // Only today is under way; a later day starts from its first meal.
+    const phases = mealPhases(served, dayOffset === 0 ? nowMinutes : -Infinity);
+    for (let i = 0; i < served.length; i++) {
+      if (phases[i] === 'over') continue;
+      const { slot } = served[i];
       const { meal, name, courses, notes } = resolveMealWithEntry(date, slot, plan, savedMeals);
       if (!name) continue;
       const context = dayOffset === 0
-        ? (hour >= SLOT_WINDOWS[slot].start ? 'now' : 'upcoming')
+        ? (phases[i] === 'now' ? 'now' : 'upcoming')
         : dayOffset === 1 ? 'tomorrow' : 'future';
       return { meal, name, slot, date, dayOffset, context, courses, notes };
     }
   }
   return null;
+}
+
+/** What a one-day view leads with; see `mealDayLead`. */
+export interface MealDayLead {
+  /** The day to show: today, or tomorrow once all of today is over. */
+  date: string;
+  /** The slot to lead with. */
+  slot: MealSlotType;
+  /** Whether that meal is being served now, rather than coming next. */
+  now: boolean;
+  /** The slots of that day already over. */
+  over: MealSlotType[];
+}
+
+/**
+ * What the full-screen Today view leads with at `nowMinutes`: the meal being
+ * served, else today's next planned meal, else the next slot today with
+ * nothing in it, so an unplanned dinner still shows as the evening's gap.
+ * Once every slot of today is over the view moves on to tomorrow and leads
+ * with its first meal, which is what Next meal shows by then. Null when no
+ * slot is switched on.
+ */
+export function mealDayLead(
+  todayISO: string,
+  nowMinutes: number,
+  slots: readonly MealSlotType[],
+  plan: PlannedMeal[] | undefined,
+  savedMeals: SavedMeal[] | undefined,
+  defaults: Partial<Record<MealSlotType, string>>,
+): MealDayLead | null {
+  const served = servingOrder(todayISO, slots, plan, savedMeals, defaults);
+  if (served.length === 0) return null;
+  // Planned meals take turns as `currentMealSlot` has them; an empty slot is
+  // timed on its own, as nobody's meal hands over to it.
+  const planned = served.filter((s) => s.planned);
+  const plannedPhases = mealPhases(planned, nowMinutes);
+  const phaseOf = (s: ServedSlot) => (s.planned ? plannedPhases[planned.indexOf(s)] : mealPhases([s], nowMinutes)[0]);
+
+  const lead = planned.find((s) => phaseOf(s) === 'now')
+    ?? planned.find((s) => phaseOf(s) === 'later')
+    ?? served.find((s) => phaseOf(s) !== 'over');
+  if (lead) {
+    return {
+      date: todayISO,
+      slot: lead.slot,
+      now: phaseOf(lead) === 'now',
+      over: served.filter((s) => phaseOf(s) === 'over').map((s) => s.slot),
+    };
+  }
+  const next = fromISODate(todayISO);
+  next.setDate(next.getDate() + 1);
+  const tomorrow = toISODate(next);
+  const tomorrowServed = servingOrder(tomorrow, slots, plan, savedMeals, defaults);
+  const first = tomorrowServed.find((s) => s.planned) ?? tomorrowServed[0];
+  return { date: tomorrow, slot: first.slot, now: false, over: [] };
 }
 
 /** Copy entries from one week to another, preserving day-of-week position */
@@ -481,16 +658,6 @@ export function copyWeekEntries(
     const idx = fromDates.indexOf(entry.date);
     return { ...entry, date: toDates[idx >= 0 ? idx : 0] };
   });
-}
-
-/** Get the active (current) meal slot based on time and enabled slots */
-export function getActiveSlot(hour: number, slots: MealSlotType[]): MealSlotType | null {
-  const active = SLOT_ORDER.filter((s) => slots.includes(s));
-  for (const s of active) {
-    const w = SLOT_WINDOWS[s];
-    if (hour >= w.start && hour < w.end) return s;
-  }
-  return null;
 }
 
 // ── Default MealSettings ────────────────────────────────────────────
@@ -622,11 +789,8 @@ export function resolveMealTimeFormat(
 /**
  * Suggested time presets shown as quick-pick buttons in MealTimeChip.
  *
- * Hand-authored per slot rather than derived from SLOT_WINDOWS so each slot
- * can reflect realistic household eating times. SLOT_WINDOWS still defines
- * the broader "active window" used for getActiveSlot, but those windows are
- * intentionally generous (5–10 AM for breakfast) and would produce unrealistic
- * presets like 5:30 AM. Edit this table directly to tune defaults per slot.
+ * Hand-authored per slot to reflect realistic household eating times. Edit
+ * this table directly to tune defaults per slot.
  */
 export const SLOT_TIME_PRESETS: Record<MealSlotType, string[]> = {
   breakfast: ['06:00', '06:30', '07:00', '07:30'],

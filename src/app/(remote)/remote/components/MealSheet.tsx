@@ -3,6 +3,7 @@
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
 import type { MealCourseKind, MealSettings, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
+import type { MealieProblem } from '@/lib/meal-sources';
 import {
   SLOT_META,
   formatMealTime,
@@ -11,13 +12,13 @@ import {
   resolvePlannedMealTime,
 } from '@/lib/meal-constants';
 import { getMealCourseLabelKey } from '@/lib/meal-courses';
-import { mealShownMinutes } from '@/lib/meal-dish-rules';
+import { mealShownMinutes, mealTagLabel } from '@/lib/meal-dish-rules';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';
-import { formatShownMinutes, mealTagLabel, type MealPickTarget } from './meals-shared';
+import { formatShownMinutes, type MealPickTarget } from './meals-shared';
 
 interface MealSheetProps {
   date: string;
@@ -31,8 +32,8 @@ interface MealSheetProps {
   todayISO: string;
   /** Changes save to Mealie (the subtitle says so, and the time note too). */
   fromMealie: boolean;
-  /** Planning is paused while Mealie is not answering; `updatedAt` is the copy's time. */
-  paused: { updatedAt: number | null } | null;
+  /** Planning is paused while Mealie gives no answer; `updatedAt` is the copy's time, `problem` why. */
+  paused: { updatedAt: number | null; problem: MealieProblem } | null;
   onRetry: () => Promise<void> | void;
   onClose: () => void;
   onPick: (target: MealPickTarget) => void;
@@ -218,23 +219,21 @@ export default function MealSheet({
         </div>
 
         <div ref={bodyRef} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '14px 16px 16px', flex: 1, minHeight: 0 }}>
-          {paused && <MealiePausedNotice updatedAt={paused.updatedAt} todayISO={todayISO} onRetry={onRetry} />}
+          {paused && <MealiePausedNotice updatedAt={paused.updatedAt} problem={paused.problem} todayISO={todayISO} onRetry={onRetry} />}
           <div aria-disabled={paused ? true : undefined} style={locked}>
             <div style={SECTION}>{t('mealSheet.mainDish')}</div>
             {mainName ? (
               <div style={{ ...CARD, display: 'flex', alignItems: 'center', gap: 12, padding: 10, borderRadius: 12 }}>
                 <MealThumb meal={main} typedMark size={56} radius={10} emojiSize={34} />
                 <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Whole, however long: the sheet is where a name cut short
+                      on This Week or Plan is read in full. */}
                   <div
                     style={{
                       fontSize: 15,
                       fontWeight: 600,
                       color: 'var(--hs-text-primary)',
                       lineHeight: '20px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
                       overflowWrap: 'anywhere',
                     }}
                   >
@@ -319,7 +318,7 @@ export default function MealSheet({
                       <span style={{ display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: '14px' }}>
                         {kindLabel}
                       </span>
-                      <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: meal ? 'var(--hs-text-primary)' : 'var(--hs-text-body)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '20px' }}>
+                      <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: meal ? 'var(--hs-text-primary)' : 'var(--hs-text-body)', overflowWrap: 'anywhere', lineHeight: '20px' }}>
                         {name}
                       </span>
                     </span>

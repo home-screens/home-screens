@@ -1,6 +1,7 @@
 import type { MealSettings, MealSlotType, PlannedMeal, SavedMeal, WeekStartDay } from '@/types/config';
 import type { MealieFailure } from './mealie';
 import { fromISODate, getWeekRange, toISODate } from './meal-constants';
+import { isLoopbackHost } from './loopback-host';
 
 /**
  * Where the plan a surface draws comes from, decided once for everyone.
@@ -139,11 +140,31 @@ export function mealieShoppingListsUrl(baseUrl: string): string {
 }
 
 /**
- * What a surface says about where its plan came from. `local`: nothing (the
- * plan is Home Screens' own). `ok`: fresh from Mealie. `stale`: Mealie is not
- * answering, this is the copy from `updatedAt`; planning waits. `unreachable`:
- * Mealie never answered and there is no copy at all.
+ * A link to Mealie that the device following it can open.
+ *
+ * Mealie running on the same Pi as the hub is saved as
+ * `http://localhost:9925`: right for the hub, which is where every call to
+ * Mealie goes from, but on a phone that address names the phone. A link to
+ * such an address takes `hubHostname`, the host the hub was reached on,
+ * keeping the scheme, the port and the rest of the link as saved. Any other
+ * address is left exactly as saved, and so is everything while the hub's own
+ * host is unknown or itself loopback.
  */
+export function mealieLinkFor(url: string, hubHostname: string | null | undefined): string {
+  const m = /^(https?:\/\/)([^/?#]*)(.*)$/is.exec(url);
+  if (!m || !hubHostname || isLoopbackHost(hubHostname)) return url;
+  const [, scheme, authority, rest] = m;
+  let saved: URL;
+  try {
+    saved = new URL(`${scheme}${authority}`);
+  } catch {
+    return url;
+  }
+  if (!isLoopbackHost(saved.hostname)) return url;
+  const host = hubHostname.includes(':') && !hubHostname.startsWith('[') ? `[${hubHostname}]` : hubHostname;
+  return `${scheme}${host}${saved.port ? `:${saved.port}` : ''}${rest}`;
+}
+
 /**
  * Why there is no plan from Mealie, in the words a family can act on: its
  * address or token is not saved, Mealie refused the token, or Mealie is not
@@ -157,17 +178,25 @@ export function mealieProblem(failure: MealieFailure | undefined): MealieProblem
   return 'unreachable';
 }
 
+/**
+ * What a surface says about where its plan came from. `local`: nothing (the
+ * plan is Home Screens' own). `ok`: fresh from Mealie. `stale`: Mealie gave
+ * no answer this time, this is the copy from `updatedAt`; planning waits.
+ * `unreachable`: Mealie never answered and there is no copy at all. Both of
+ * the last two say why (`problem`): a refused token is not fixed by waiting.
+ */
 export type MealieStatus =
   | { state: 'local' }
   | { state: 'ok'; updatedAt: number | null; baseUrl?: string }
-  | { state: 'stale'; updatedAt: number | null; baseUrl?: string }
+  | { state: 'stale'; updatedAt: number | null; baseUrl?: string; problem: MealieProblem }
   | { state: 'unreachable'; baseUrl?: string; problem: MealieProblem };
 
 export function mealieStatus(merged: Pick<MergedMeals, 'source' | 'mealie'>): MealieStatus {
   if (merged.source === 'local') return { state: 'local' };
   const block = merged.mealie;
   if (!block || block.status === 'failed') return { state: 'unreachable', baseUrl: block?.baseUrl, problem: mealieProblem(block?.failure) };
-  return { state: block.status, updatedAt: block.fetchedAt, baseUrl: block.baseUrl };
+  if (block.status === 'stale') return { state: 'stale', updatedAt: block.fetchedAt, baseUrl: block.baseUrl, problem: mealieProblem(block.failure) };
+  return { state: 'ok', updatedAt: block.fetchedAt, baseUrl: block.baseUrl };
 }
 
 /** True when `outer` holds every day of `inner`. */

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { SavedMeal } from '@/types/config';
-import { dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
+import { dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, mealsForSlot, mealTagLabel, savedMealNamed, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
 
 const meal = (id: string, extra: Partial<SavedMeal> = {}): SavedMeal => ({ id, name: id, ...extra });
 
@@ -51,6 +51,14 @@ describe('splitMinutes', () => {
   });
 });
 
+describe('mealTagLabel', () => {
+  it('dresses up the family own tags and leaves Mealie names as typed', () => {
+    expect(mealTagLabel(meal('tacos'), 'kid-friendly')).toBe('Kid-Friendly');
+    expect(mealTagLabel(meal('tacos'), 'healthy')).toBe('Healthy');
+    expect(mealTagLabel(meal(RECIPE), 'Kid friendly')).toBe('Kid friendly');
+  });
+});
+
 describe('mealsForCourse', () => {
   const library = [
     meal('tacos'),
@@ -88,6 +96,43 @@ describe('searchSavedMeals', () => {
 
   it('hands back every meal for blank words', () => {
     expect(searchSavedMeals(meals, '  ')).toBe(meals);
+  });
+});
+
+describe('mealsForSlot', () => {
+  const library = [
+    meal('tacos', { tags: ['quick'] }),
+    meal('pancakes', { tags: ['kid-friendly', 'breakfast'] }),
+    meal('oatmeal', { tags: ['Breakfast'] }),
+    meal('pbj', { tags: ['lunch'] }),
+    meal('salad'),
+  ];
+
+  it('leads with the meals tagged for that meal of the day, in library order', () => {
+    const { matching, others } = mealsForSlot(library, 'breakfast');
+    expect(matching.map((m) => m.id)).toEqual(['pancakes', 'oatmeal']);
+    expect(others.map((m) => m.id)).toEqual(['tacos', 'pbj', 'salad']);
+  });
+
+  it('lists everything as other when nothing is tagged for it', () => {
+    const { matching, others } = mealsForSlot(library, 'snack');
+    expect(matching).toEqual([]);
+    expect(others).toHaveLength(library.length);
+  });
+});
+
+describe('savedMealNamed', () => {
+  const library = [meal('a', { name: 'Pancakes' }), meal('b', { name: 'Sheet Pan  Salmon' })];
+
+  it('finds the meal the words name, ignoring case and extra spaces', () => {
+    expect(savedMealNamed(library, 'pancakes')?.id).toBe('a');
+    expect(savedMealNamed(library, '  sheet pan salmon ')?.id).toBe('b');
+  });
+
+  it('answers null for words that only appear in a name, or no words', () => {
+    expect(savedMealNamed(library, 'pan')).toBeNull();
+    expect(savedMealNamed(library, 'pancake')).toBeNull();
+    expect(savedMealNamed(library, ' ')).toBeNull();
   });
 });
 

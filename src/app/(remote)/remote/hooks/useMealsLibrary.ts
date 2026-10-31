@@ -8,9 +8,13 @@ import {
   upsertSavedMeal,
   removeSavedMeal,
   toggleSavedMealFavorite,
+  plannedEntriesOfMeal,
+  restorePlanEntries,
+  restoreSavedMeal,
 } from '@/lib/meal-plan-actions';
+import { formatPlannedDays } from '@/lib/meal-plan-words';
 import type { MealEdit } from '@/lib/meal-client';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useMealForm } from './useMealForm';
 import type { MealsConfirmAction } from '../components/meals-shared';
 
@@ -24,6 +28,10 @@ interface MealsLibraryParams {
   setSaving: Dispatch<SetStateAction<boolean>>;
   setSaveError: Dispatch<SetStateAction<string | null>>;
   setConfirmAction: Dispatch<SetStateAction<MealsConfirmAction | null>>;
+  /** A short message at the bottom of the tab, with Undo when there is something to take back. */
+  showNotice: (message: string, undo?: () => void) => void;
+  /** The household's day, `YYYY-MM-DD`: a delete names the days from here on that the meal is planned on. */
+  todayISO: string;
 }
 
 /**
@@ -41,8 +49,11 @@ export function useMealsLibrary({
   setSaving,
   setSaveError,
   setConfirmAction,
+  showNotice,
+  todayISO,
 }: MealsLibraryParams) {
   const t = useTranslate('remote');
+  const locale = useFormattingLocale();
 
   const form = useMealForm();
 
@@ -73,9 +84,14 @@ export function useMealsLibrary({
   const deleteMeal = () => {
     if (form.editingMeal === 'new' || form.editingMeal === null) return;
     const mealToDelete = form.editingMeal;
+    // The meals it is in, for the question (which days lose it) and for Undo.
+    const entries = plannedEntriesOfMeal(plan, mealToDelete.id);
+    const days = formatPlannedDays(entries.map((p) => p.date), todayISO, locale, (count) => t('mealsTab.confirm.deleteMeal.moreDays', { count }));
     setConfirmAction({
       title: t('mealsTab.confirm.deleteMeal.title', { name: mealToDelete.name }),
-      description: t('mealsTab.confirm.deleteMeal.description'),
+      description: days
+        ? t('mealsTab.confirm.deleteMeal.descriptionPlanned', { days })
+        : t('mealsTab.confirm.deleteMeal.description'),
       confirmLabel: t('mealsTab.confirm.deleteMeal.confirmLabel'),
       onConfirm: async () => {
         const next = removeSavedMeal(savedMeals, plan, mealToDelete.id);
@@ -83,6 +99,13 @@ export function useMealsLibrary({
         setPlan(next.plan);
         form.setEditingMeal(null);
         setConfirmAction(null);
+        // Undo puts the meal back in the library and on every day it was
+        // planned, over whatever has been planned there since.
+        showNotice(t('mealsTab.notice.deleted', { name: mealToDelete.name }), () => {
+          setSavedMeals((m) => upsertSavedMeal(m, mealToDelete));
+          setPlan((p) => restorePlanEntries(p, entries));
+          void saveData((c) => restoreSavedMeal(c.savedMeals, c.plan, mealToDelete, entries));
+        });
         // Both halves: deleting a meal also prunes the plan entries for it.
         await saveData((c) => removeSavedMeal(c.savedMeals, c.plan, mealToDelete.id));
       },

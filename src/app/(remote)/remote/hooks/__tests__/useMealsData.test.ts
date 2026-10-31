@@ -212,6 +212,33 @@ describe('useMealsData in Mealie mode', () => {
     expect(result.current.plan).toEqual(SHARED_PLAN);
   });
 
+  it('says Mealie refused the token when it did, for a save and for Suggest', async () => {
+    const refused = { ok: false, status: 400, json: async () => ({ error: 'Mealie did not accept the key.', failure: 'key-rejected' }) };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockResolvedValueOnce(refused)
+      .mockResolvedValue(ok(mealieAnswer(SHARED, SHARED_PLAN, 'stale')));
+    const { result } = await loaded(fetchMock);
+
+    await act(async () => { await result.current.saveData((c) => ({ plan: c.plan.filter(() => false) })); });
+    expect(result.current.saveError).toBe('mealie.saveFailed.token');
+
+    fetchMock.mockResolvedValueOnce(refused);
+    await act(async () => { await result.current.suggestFromMealie([{ date: THIS_WEEK, slot: 'dinner' }]); });
+    expect(result.current.saveError).toBe('mealie.saveFailed.token');
+  });
+
+  it('keeps the "try again in a moment" words when Mealie is only away', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockResolvedValueOnce({ ok: false, status: 502, json: async () => ({ error: "We couldn't reach Mealie.", failure: 'unreachable' }) })
+      .mockResolvedValue(ok(mealieAnswer(SHARED, SHARED_PLAN, 'stale')));
+    const { result } = await loaded(fetchMock);
+
+    await act(async () => { await result.current.suggestFromMealie([{ date: THIS_WEEK, slot: 'dinner' }]); });
+    expect(result.current.saveError).toBe('mealie.suggest.failed');
+  });
+
   it('reloads behind the loading line after the plan moved to the other app', async () => {
     let answer!: (value: unknown) => void;
     const fetchMock = vi.fn()
