@@ -174,12 +174,14 @@ export const PUT = withAuth(async (req: NextRequest) => {
       ? pruneGroceryChecked(carriedGroceryChecked, nextPlan, nextSettings.weekStartDay)
       : carriedGroceryChecked;
 
+    // What the hub keeps for itself (Mealie's extras, the chosen shopping
+    // list) is never in a client's body, so it comes along as stored.
     return {
+      ...existing,
       savedMeals: hasSavedMeals ? savedMeals : existing.savedMeals,
       plan: nextPlan,
       groceryChecked: nextGroceryChecked,
       settings: nextSettings,
-      ...(existing.mealieExtras ? { mealieExtras: existing.mealieExtras } : {}),
     };
   });
 

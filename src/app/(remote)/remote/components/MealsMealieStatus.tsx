@@ -11,7 +11,7 @@ import { useHouseholdClockFormat, useHouseholdTimezone } from '../household-cloc
  * When Mealie last answered, said in home time: "3:10 PM", or "Thursday
  * 3:10 PM" for a copy from another day (the hub keeps one for a day).
  */
-function useCopyTime(updatedAt: number | null | undefined, todayISO: string): string | null {
+export function useCopyTime(updatedAt: number | null | undefined, todayISO: string): string | null {
   const locale = useFormattingLocale();
   const home = useHouseholdTimezone();
   const hour12 = useHouseholdClockFormat() === '12h';

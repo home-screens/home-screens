@@ -652,7 +652,7 @@ Returns one week's grocery checked state. `?week=YYYY-MM-DD` picks the week hold
 
 ### GET /api/meals/grocery/list
 
-Returns the **resolved** grocery list for the current week, ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. While the meal plan lives in Mealie, the list does too: the answer is empty with `"source": "mealie"`. This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
+Returns the **resolved** grocery list for the current week, ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. While the meal plan lives in Mealie, the list does too: the answer is the Mealie shopping list the family shops from, with `"source": "mealie"` and `"list": { "id", "name" }`, one category per Mealie label (`category` is the label's name, `null` for items with none) and one item per thing, checked only when every line of it is: `name` is how the line says it ("eggs"), `alsoCalled` the food's own name when that differs ("egg"). This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
 
 **Response:**
 ```json
@@ -684,6 +684,8 @@ Toggles a grocery item's checked state on one week's list. If the item is alread
 `direction` is optional. Omitted, the call is the historical flip. Set to `"check"` or `"uncheck"`, the call only ever moves the item in that direction and is a no-op when it's already there, so a repeated voice "check off milk" can never silently un-check it. Any other value is rejected with `400`.
 
 **Response:** `{ "week": "2026-08-02", "groceryChecked": [...], "changed": true }`: that week's ticks after the call. `changed` reports whether this call actually flipped anything.
+
+While the meal plan lives in Mealie, the tick goes to the Mealie shopping list the family shops from instead, on every item with that `name` or `alsoCalled` (salt from two recipes is two items), and `week` is not used. **Response:** `{ "changed": true, "matched": 2, "source": "mealie" }`: `matched` is how many items carry the name, so `0` means it is not on the list.
 
 ## Mealie
 
@@ -729,6 +731,46 @@ If any meal's entries in Mealie are no longer the ones in `before`, nothing is w
 One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Requires a valid session.
 
 **Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "..." }], "page": 1, "totalPages": 29, "total": 848 }`
+
+### GET /api/mealie/shopping
+
+The household's Mealie shopping lists and one of them in full: `?list=<id>`, else the list the family shops from, else the one made first. Display access.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "lists": [{ "id": "a32f…", "name": "Costco run", "left": 15 }, { "id": "930a…", "name": "Groceries", "left": 45 }],
+  "list": {
+    "id": "930a…",
+    "name": "Groceries",
+    "groups": [
+      { "label": null, "items": [{ "id": "f57f…", "text": "Milk", "name": "Milk", "checked": false, "recipes": [] }] },
+      { "label": "Baking", "items": [{ "id": "a168…", "text": "140 grams flour", "name": "flour", "checked": false, "recipes": ["Yorkshire Puddings"] }] }
+    ]
+  },
+  "fetchedAt": 1793462400000,
+  "baseUrl": "http://192.168.1.20:9925"
+}
+```
+
+Groups follow the list's own label order in Mealie, items with no label first. `text` is the line as Mealie writes it, `note` (when there is one) the note under it, `name` the line without its amount and unit ("eggs"), `alsoCalled` the food's own name when that differs ("egg"), `recipes` the recipes it is on the list for. `left` counts what is still to get. `status` is `stale`, with a `failure`, while Mealie isn't answering and this is the last copy the hub had (kept a day). `list` is `null` when the household has no lists. When Mealie has never answered, the error carries the saved address as `baseUrl` too.
+
+### PUT /api/mealie/shopping
+
+The list the family shops from, for the phone, the editor and voice alike. Body `{ "list": "<id>" }`. Answers like `GET`, with that list; `404` when Mealie has no such list. Requires a valid session.
+
+### POST /api/mealie/shopping/items
+
+Puts a typed item on a list, the way Mealie's own box does. Body `{ "list": "<id>", "text": "Milk" }` (up to 200 characters). Answers like `GET`, with the list read fresh, plus `added`: the new item's id, or `null` when Mealie merged the words into an item already on the list. `404` with `"reason": "gone"` when Mealie no longer has the list. Requires a valid session.
+
+### PATCH /api/mealie/shopping/items/:itemId
+
+Ticks an item or puts it back. Body `{ "checked": true }`; nothing else can change. One-way: **Response** `{ "changed": false }` when it was already that way. `404` with `"reason": "gone"` when the item is no longer in Mealie. Display access, so a wall can tick.
+
+### DELETE /api/mealie/shopping/items/:itemId
+
+Takes an item off its list, for Undo right after adding it. Answers `{ "ok": true }`, also when the item was already gone. Requires a valid session.
 
 ### GET /api/mealie/image/:recipeId
 

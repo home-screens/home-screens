@@ -69,7 +69,9 @@ From then on:
 - A serving time set for one meal, and the order of a meal's dishes, are kept by Home Screens, because Mealie has no place for them. Mealie will not show them.
 - Each recipe shows its whole time from Mealie, prep plus cooking.
 - Changes made in Mealie reach the wall within about two minutes.
-- The grocery list stays in Mealie. The phone's **Grocery** tab has a button that opens it.
+- The **Grocery** tab on the phone and in the editor's meal planner shows your Mealie shopping list, sorted by the labels you set up in Mealie. Check things off as you shop and they are checked off in Mealie too; changes made in the Mealie app show up within about half a minute. Things checked off before you opened the tab fold away at the bottom, and anything put back on the list comes back up to its aisle.
+- Type something in the box at the top of the Grocery tab ("milk") and it goes on the list in Mealie, with **Undo** for a few seconds in case it went on the wrong list. Something already on the list isn't added twice, and something checked off is put back instead.
+- If you keep more than one list in Mealie, pick the one you shop from at the top of the Grocery tab. It is one choice for the whole family: the phone, the editor and voice ("what's on the grocery list?") all use that list, and the tab says so with an **Undo**. Until anyone picks, it is the list you made first.
 
 If Mealie stops answering, the wall keeps showing the last plan it had, and planning waits until Mealie is back. Switching back to **Home Screens** brings back the plan you had before; nothing in it was changed while Mealie was in charge.
 

@@ -34,10 +34,32 @@ export interface FakeEntry {
   recipeId: string | null;
 }
 
+/** One item on a shopping list, as Mealie keeps it. */
+export interface FakeShoppingItem {
+  id: string;
+  checked: boolean;
+  position: number;
+  quantity: number;
+  /** A typed item is all note; a recipe's item carries a food and maybe a unit. */
+  note: string;
+  food?: string;
+  unit?: string;
+  label?: { id: string; name: string };
+  recipeIds?: string[];
+}
+
+export interface FakeShoppingList {
+  id: string;
+  name: string;
+  createdAt: string;
+  items: FakeShoppingItem[];
+}
+
 export interface FakeMealie {
   url: string;
   recipes: FakeRecipe[];
   entries: FakeEntry[];
+  shoppingLists: FakeShoppingList[];
   /** Every request the hub made, method and path. */
   requests: string[];
   close(): Promise<void>;
@@ -77,6 +99,38 @@ export function defaultFakeEntries(): FakeEntry[] {
   ];
 }
 
+const PRODUCE = { id: 'aaaa0001-0000-4000-8000-000000000001', name: 'Produce' };
+const DAIRY = { id: 'aaaa0001-0000-4000-8000-000000000002', name: 'Dairy' };
+export const FAKE_GROCERIES_ID = 'bbbb0001-0000-4000-8000-000000000001';
+export const FAKE_COSTCO_ID = 'bbbb0001-0000-4000-8000-000000000002';
+
+/**
+ * Groceries (two labels, a recipe's onions, typed paper towels, bread ticked
+ * already, the list made first) and a Costco run with no labels, A to Z.
+ */
+export function defaultFakeShoppingLists(): FakeShoppingList[] {
+  const chili = FAKE_RECIPES[0].id;
+  return [
+    { id: FAKE_COSTCO_ID, name: 'Costco run', createdAt: '2026-09-12T18:00:00Z', items: [
+      { id: 'cccc0001-0000-4000-8000-000000000001', checked: false, position: 0, quantity: 1, note: 'Coffee beans' },
+      { id: 'cccc0001-0000-4000-8000-000000000002', checked: false, position: 1, quantity: 1, note: 'Toilet paper' },
+    ] },
+    { id: FAKE_GROCERIES_ID, name: 'Groceries', createdAt: '2026-03-02T09:00:00Z', items: [
+      { id: 'dddd0001-0000-4000-8000-000000000001', checked: false, position: 0, quantity: 2, note: '', food: 'onion', label: PRODUCE, recipeIds: [chili] },
+      { id: 'dddd0001-0000-4000-8000-000000000002', checked: false, position: 1, quantity: 1, note: '', food: 'milk', unit: 'cup', label: DAIRY },
+      { id: 'dddd0001-0000-4000-8000-000000000003', checked: false, position: 2, quantity: 1, note: 'Paper towels' },
+      { id: 'dddd0001-0000-4000-8000-000000000004', checked: true, position: 3, quantity: 0, note: 'Bread' },
+    ] },
+  ];
+}
+
+/** Mealie's own wording of an item: amount, unit, food, note. */
+function shoppingDisplay(i: FakeShoppingItem): string {
+  const amount = i.quantity ? String(i.quantity) : '';
+  const food = i.food ? (i.quantity > 1 ? `${i.food}s` : i.food) : '';
+  return [amount, i.unit ?? '', food, i.note].filter(Boolean).join(' ');
+}
+
 function recipeSummary(r: FakeRecipe) {
   return {
     id: r.id,
@@ -98,10 +152,32 @@ function recipeSummary(r: FakeRecipe) {
 }
 
 export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries()): Promise<FakeMealie> {
-  const state: FakeMealie = { url: '', recipes: FAKE_RECIPES, entries: [...entries], requests: [], close: async () => {} };
+  const state: FakeMealie = { url: '', recipes: FAKE_RECIPES, entries: [...entries], shoppingLists: defaultFakeShoppingLists(), requests: [], close: async () => {} };
   // Numbers the way Mealie on SQLite gives them: one past the highest left,
   // so deleting the newest entry hands its number to the next one made.
   const nextId = () => Math.max(999, ...state.entries.map((e) => e.id)) + 1;
+  const shoppingItem = (list: FakeShoppingList, i: FakeShoppingItem) => ({
+    id: i.id, shoppingListId: list.id, checked: i.checked, position: i.position, quantity: i.quantity, note: i.note,
+    display: shoppingDisplay(i), food: i.food ? { name: i.food } : null, unit: i.unit ? { name: i.unit } : null,
+    label: i.label ?? null, labelId: i.label?.id ?? null,
+    recipeReferences: (i.recipeIds ?? []).map((recipeId) => ({ recipeId, recipeQuantity: 1 })),
+    groupId: 'g1', householdId: 'h1',
+  });
+  const fullList = (list: FakeShoppingList) => ({
+    id: list.id, name: list.name, createdAt: list.createdAt,
+    listItems: list.items.map((i) => shoppingItem(list, i)),
+    labelSettings: [PRODUCE, DAIRY].map((label, position) => ({ position, label })),
+    recipeReferences: [...new Set(list.items.flatMap((i) => i.recipeIds ?? []))].map((recipeId) => ({
+      recipeId, recipe: { id: recipeId, name: state.recipes.find((r) => r.id === recipeId)?.name ?? null },
+    })),
+  });
+  const findItem = (id: string) => {
+    for (const list of state.shoppingLists) {
+      const item = list.items.find((i) => i.id === id);
+      if (item) return { list, item };
+    }
+    return null;
+  };
   const withRecipe = (e: FakeEntry) => {
     const recipe = state.recipes.find((r) => r.id === e.recipeId);
     return { ...e, groupId: 'g1', userId: 'u1', householdId: 'h1', recipe: recipe ? recipeSummary(recipe) : null };
@@ -171,6 +247,46 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
         state.entries.push(entry);
         return send(200, withRecipe(entry));
       }
+      if (path === '/api/households/shopping/lists' && req.method === 'GET') {
+        const items = state.shoppingLists.map((l) => ({ id: l.id, name: l.name }));
+        return send(200, { page: 1, per_page: -1, total: items.length, total_pages: 1, items });
+      }
+      const listOne = /^\/api\/households\/shopping\/lists\/([^/]+)$/.exec(path);
+      if (listOne && req.method === 'GET') {
+        const list = state.shoppingLists.find((l) => l.id === listOne[1]);
+        return list ? send(200, fullList(list)) : send(404, { detail: { message: 'Not found.' } });
+      }
+      if (path === '/api/households/shopping/items' && req.method === 'POST') {
+        const list = state.shoppingLists.find((l) => l.id === body.shoppingListId);
+        // Mealie answers an item for a list it does not have with a bare 500.
+        if (!list) { res.writeHead(500); return res.end('Internal Server Error'); }
+        const item: FakeShoppingItem = {
+          id: `eeee0001-0000-4000-8000-${String(Date.now() % 1e12).padStart(12, '0')}`,
+          checked: !!body.checked, position: body.position ?? 0, quantity: body.quantity ?? 1, note: body.note ?? '',
+        };
+        list.items.push(item);
+        return send(201, { createdItems: [shoppingItem(list, item)], updatedItems: [], deletedItems: [] });
+      }
+      const itemOne = /^\/api\/households\/shopping\/items\/([^/]+)$/.exec(path);
+      if (itemOne) {
+        const found = findItem(itemOne[1]);
+        if (!found) return send(404, { detail: { message: 'Not found.' } });
+        if (req.method === 'GET') return send(200, shoppingItem(found.list, found.item));
+        if (req.method === 'DELETE') {
+          found.list.items = found.list.items.filter((i) => i.id !== found.item.id);
+          return send(200, { message: '', error: false });
+        }
+        if (req.method === 'PUT') {
+          if (!body?.shoppingListId) return send(422, { detail: [{ type: 'missing', loc: ['body', 'shoppingListId'] }] });
+          // Mealie replaces the whole item: what the update leaves out is gone.
+          Object.assign(found.item, {
+            checked: !!body.checked, position: body.position ?? 0, quantity: body.quantity ?? 0, note: body.note ?? '',
+            food: body.food?.name ?? undefined, unit: body.unit?.name ?? undefined, label: body.label ?? undefined,
+            recipeIds: (body.recipeReferences ?? []).map((r: { recipeId: string }) => r.recipeId),
+          });
+          return send(200, { createdItems: [], updatedItems: [shoppingItem(found.list, found.item)], deletedItems: [] });
+        }
+      }
       const recipeOne = /^\/api\/recipes\/([0-9a-f-]{36})$/.exec(path);
       if (recipeOne) {
         const recipe = state.recipes.find((r) => r.id === recipeOne[1]);
@@ -223,6 +339,13 @@ export async function connectFakeMealie(request: APIRequestContext, mealie: Pick
     data: { settings: { enabledSlots: ['breakfast', 'lunch', 'dinner'], weekStartDay: 'sunday', defaultSlotTimes: { dinner: '18:00' }, planSource: 'mealie' } },
   });
   if (!res.ok()) throw new Error(`Switching the plan to Mealie failed: ${res.status()}`);
+  // The worker's meals.json keeps the list an earlier spec picked, and every
+  // fake's lists have the same ids: start each spec on Groceries. Not for a
+  // fake already closed, which is how a spec stands in for Mealie being down.
+  if (token === FAKE_MEALIE_TOKEN && 'shoppingLists' in mealie) {
+    const chosen = await request.put('/api/mealie/shopping', { data: { list: FAKE_GROCERIES_ID } });
+    if (!chosen.ok()) throw new Error(`Choosing the Groceries list failed: ${chosen.status()}`);
+  }
 }
 
 /** Put the worker's hub back on its own plan with no Mealie saved, so later specs never see Mealie. */

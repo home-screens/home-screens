@@ -631,16 +631,18 @@ describe('the plan living in Mealie', () => {
     expect(writeMealData).not.toHaveBeenCalled();
   });
 
-  it('keeps the hub notes on Mealie entries through a settings save', async () => {
+  it('keeps the hub notes and the chosen shopping list through a settings save', async () => {
     const extras = { 1: { time: '18:30', date: '2026-10-31' } };
-    vi.mocked(readMealData).mockResolvedValue({ ...emptyData, settings: mealieSettings, mealieExtras: extras } as never);
+    vi.mocked(readMealData).mockResolvedValue({ ...emptyData, settings: mealieSettings, mealieExtras: extras, mealieShoppingList: 'list-c' } as never);
     const res = await PUT(new NextRequest('http://localhost/api/meals/data', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ settings: { ...mealieSettings, weekStartDay: 'monday' } }),
     }));
     expect(res.status).toBe(200);
-    expect(vi.mocked(writeMealData).mock.calls[0][0]).toMatchObject({ mealieExtras: extras, settings: { planSource: 'mealie', weekStartDay: 'monday' } });
+    expect(vi.mocked(writeMealData).mock.calls[0][0]).toMatchObject({ mealieExtras: extras, mealieShoppingList: 'list-c', settings: { planSource: 'mealie', weekStartDay: 'monday' } });
+    // The hub's own choice never goes out to a surface.
+    expect((await res.json()).mealieShoppingList).toBeUndefined();
   });
 
   it('keeps courses on a local plan and drops broken ones', async () => {

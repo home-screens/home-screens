@@ -278,7 +278,7 @@ export default function MealsTab() {
       ))}
 
       {subView === 'grocery' && (fromMealie ? (
-        <MealsMealieGroceryView baseUrl={baseUrl} />
+        <MealsMealieGroceryView baseUrl={baseUrl} todayISO={todayISO} onError={setSaveError} />
       ) : (
         <MealsGroceryView
           groceryList={groceryList}

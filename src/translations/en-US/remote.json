@@ -1490,8 +1490,59 @@
       "openRecipeAriaLabel": "Open {meal} in Mealie"
     },
     "grocery": {
-      "title": "Your shopping list lives in Mealie",
-      "description": "While your meal plan is in Mealie, so is your list. Open Mealie to see what you need and tick things off."
+      "lists": "Shopping lists",
+      "listLeft": {
+        "one": "{list}, 1 thing to get",
+        "other": "{list}, {count} things to get"
+      },
+      "addPlaceholder": "Add to {list}",
+      "addButton": "Add",
+      "added": "{item} is on {list}",
+      "addedUnder": "{item} is on {list}, under {label}",
+      "already": "{item} is already on {list}",
+      "putBack": "{item} is back on {list}",
+      "undo": "Undo",
+      "picked": "Everyone sees {list} now.",
+      "moved": "Showing {list}, picked on another device.",
+      "gone": "{from} isn't in Mealie any more. Showing {list}.",
+      "hint": "Your Mealie list. What you check off here is checked off in Mealie too.",
+      "forRecipes": "for {recipes}",
+      "noLabel": "No label",
+      "inCart": "Checked off ({count})",
+      "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
+      "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",
+      "staleNotConnected": "Mealie isn't connected. This is the list from {time}.",
+      "staleConnection": "Can't reach Home Screens. This is the list from {time}.",
+      "loading": "Getting your list from Mealie…",
+      "noListsTitle": "Mealie has no shopping lists yet",
+      "noListsDescription": "Make a shopping list in Mealie and it shows up here.",
+      "emptyTitle": "Nothing on {list} yet",
+      "emptyDescription": "Add something above, or send a recipe's ingredients here from Mealie.",
+      "unreachableDescription": "Your list is safe in Mealie. Check that Mealie is running, then try again.",
+      "connectionTitle": "Can't reach Home Screens right now",
+      "connectionDescription": "Check that this phone is connected, then try again.",
+      "noConnection": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
+      "notSavedUnreachable": {
+        "one": "{items} wasn't saved. Mealie isn't answering, so try again in a moment.",
+        "other": "{items} weren't saved. Mealie isn't answering, so try again in a moment."
+      },
+      "notSavedToken": {
+        "one": "{items} wasn't saved. Mealie isn't letting Home Screens in.",
+        "other": "{items} weren't saved. Mealie isn't letting Home Screens in."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} wasn't saved. Mealie isn't connected.",
+        "other": "{items} weren't saved. Mealie isn't connected."
+      },
+      "notSavedConnection": {
+        "one": "{items} wasn't saved. Can't reach Home Screens, so check the connection and try again.",
+        "other": "{items} weren't saved. Can't reach Home Screens, so check the connection and try again."
+      },
+      "moreItems": {
+        "one": "1 more",
+        "other": "{count} more"
+      },
+      "listGone": "That list isn't in Mealie any more."
     },
     "suggest": {
       "allPlanned": "Every dinner this week is already planned.",

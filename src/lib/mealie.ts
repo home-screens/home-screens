@@ -147,14 +147,14 @@ export async function getMealieConfig(): Promise<MealieConfig | null> {
   return { url, apiKey: apiKey.trim() };
 }
 
-async function requireConfig(): Promise<MealieConfig> {
+export async function requireMealieConfig(): Promise<MealieConfig> {
   const cfg = await getMealieConfig();
   if (!cfg) throw new MealieError('not-set-up', 'Mealie is not connected');
   return cfg;
 }
 
 /** Keys caches by connection, so a new address or key never answers from the old one's copy. */
-function connectionKey(cfg: MealieConfig): string {
+export function mealieConnectionKey(cfg: MealieConfig): string {
   return `${cfg.url}#${createHash('sha256').update(cfg.apiKey).digest('hex').slice(0, 12)}`;
 }
 
@@ -167,7 +167,7 @@ export async function mealieFetch(
   init: FetchRetryOptions & { json?: unknown } = {},
   cfg?: MealieConfig,
 ): Promise<Response> {
-  const conn = cfg ?? await requireConfig();
+  const conn = cfg ?? await requireMealieConfig();
   const { json, headers, ...rest } = init;
   const method = (rest.method ?? 'GET').toUpperCase();
   let res: Response;
@@ -257,7 +257,7 @@ export async function validateMealieConnection(): Promise<MealieValidation> {
 
   try {
     const user = await mealieJson<MealieUser>('/api/users/self', { timeout: 5_000, retries: 0 }, cfg);
-    userCache.set(connectionKey(cfg), user);
+    userCache.set(mealieConnectionKey(cfg), user);
     return { ok: true, version, household: user.household, user: user.fullName || user.username, url };
   } catch (err) {
     if (err instanceof MealieError && err.failure === 'key-rejected') return { ok: false, failure: 'key-rejected', version, url };
@@ -277,8 +277,8 @@ async function savedAddress(): Promise<{ url?: string }> {
 const userCache = createTTLCache<MealieUser>(10 * 60_000);
 
 export async function getMealieUser(): Promise<MealieUser> {
-  const cfg = await requireConfig();
-  const key = connectionKey(cfg);
+  const cfg = await requireMealieConfig();
+  const key = mealieConnectionKey(cfg);
   const cached = userCache.get(key);
   if (cached) return cached;
   const user = await mealieJson<MealieUser>('/api/users/self', undefined, cfg);
@@ -338,11 +338,11 @@ export type MealiePlanResult =
 export async function readMealiePlan(start: string, end: string, { fresh = false } = {}): Promise<MealiePlanResult> {
   let cfg: MealieConfig;
   try {
-    cfg = await requireConfig();
+    cfg = await requireMealieConfig();
   } catch (err) {
     return { status: 'failed', failure: err instanceof MealieError ? err.failure : 'upstream' };
   }
-  const key = `${connectionKey(cfg)}|${start}|${end}`;
+  const key = `${mealieConnectionKey(cfg)}|${start}|${end}`;
   if (!fresh) {
     const cached = planCache.get(key);
     if (cached) return { status: 'ok', read: cached };
@@ -532,8 +532,8 @@ const recipeCache = createTTLCache<MealieRecipe>(10 * 60_000);
 
 /** One recipe by its id, from a ten-minute cache: recipes change far less often than the plan. */
 export async function getMealieRecipe(recipeId: string): Promise<MealieRecipe> {
-  const cfg = await requireConfig();
-  const key = `${connectionKey(cfg)}|${recipeId}`;
+  const cfg = await requireMealieConfig();
+  const key = `${mealieConnectionKey(cfg)}|${recipeId}`;
   const cached = recipeCache.get(key);
   if (cached) return cached;
   const recipe = await mealieJson<MealieRecipe>(`/api/recipes/${encodeURIComponent(recipeId)}`, undefined, cfg);

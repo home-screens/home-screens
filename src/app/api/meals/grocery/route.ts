@@ -9,6 +9,9 @@ import {
   pruneGroceryChecked,
   setGroceryCheck,
 } from '@/lib/grocery-checks';
+import { MealieShoppingGoneError, readMealieShopping, setMealieShoppingItemChecked } from '@/lib/mealie-shopping';
+import { mealieErrorResponse, mealieFailureResponse } from '@/lib/mealie-api';
+import { shoppingTicksForName } from '@/lib/shopping-list';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +48,13 @@ export const GET = withDisplayAuth(async (req: NextRequest) => {
  *  omitted it stays the historical flip; set, the call only ever moves the
  *  item in that direction and no-ops when it's already there — so a
  *  repeated voice "check off milk" can never silently un-check it. The
- *  response's `changed` reports whether this call actually flipped anything. */
+ *  response's `changed` reports whether this call actually flipped anything.
+ *
+ *  While the plan lives in Mealie the tick goes to the Mealie list the family
+ *  shops from, on every item of that name ("salt" from two recipes is two
+ *  items; "eggs" and "egg" both find "4 eggs"), and `week` is not used: a
+ *  Mealie list has no weeks. `matched` says how many items carry the name,
+ *  so a caller can tell "not on the list" (0) from "already done". */
 export const POST = withDisplayAuth(async (req: NextRequest) => {
   const body = await parseJsonBody<{ item?: unknown; direction?: unknown; week?: unknown }>(req);
   if (body instanceof NextResponse) return body;
@@ -65,6 +74,25 @@ export const POST = withDisplayAuth(async (req: NextRequest) => {
   }
   if (week !== undefined && (typeof week !== 'string' || !isValidISODate(week))) {
     return NextResponse.json({ error: WEEK_ERROR }, { status: 400 });
+  }
+  const stored = await readMealData();
+  if (stored.settings.planSource === 'mealie') {
+    // Fresh: a tick made in Mealie's app in the last few seconds counts.
+    const result = await readMealieShopping(stored.mealieShoppingList, { fresh: true });
+    if (result.status !== 'ok') return mealieFailureResponse(result.failure ?? 'unreachable');
+    if (!result.list) return NextResponse.json({ changed: false, matched: 0, source: 'mealie' });
+    const { ids, checked, matched } = shoppingTicksForName(result.list, item, direction);
+    let changed = false;
+    for (const id of ids) {
+      try {
+        changed = (await setMealieShoppingItemChecked(id, checked)) || changed;
+      } catch (err) {
+        // Cleared in Mealie a moment ago: nothing left to tick.
+        if (err instanceof MealieShoppingGoneError) continue;
+        return mealieErrorResponse(err);
+      }
+    }
+    return NextResponse.json({ changed, matched, source: 'mealie' });
   }
   const day = typeof week === 'string' ? week : await householdToday();
 

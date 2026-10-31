@@ -3072,8 +3072,61 @@
         "other": "Serves {count}"
       },
       "readOnlyNote": "This recipe lives in Mealie. Change it there and it updates here within a couple of minutes.",
-      "groceryTitle": "Your shopping list lives in Mealie",
-      "groceryBody": "While your meal plan is in Mealie, so is your list. Open Mealie to see what you need and tick things off.",
+      "grocery": {
+        "list": "Shopping list",
+        "listOption": {
+          "one": "{list} · 1 to get",
+          "other": "{list} · {count} to get"
+        },
+        "add": "Add",
+        "openList": "Open list in Mealie",
+        "addPlaceholder": "Add to {list}",
+        "added": "{item} is on {list}",
+        "addedUnder": "{item} is on {list}, under {label}",
+        "already": "{item} is already on {list}",
+        "putBack": "{item} is back on {list}",
+        "undo": "Undo",
+        "picked": "Everyone sees {list} now.",
+        "moved": "Showing {list}, picked on another device.",
+        "gone": "{from} isn't in Mealie any more. Showing {list}.",
+        "forRecipes": "for {recipes}",
+        "noLabel": "No label",
+        "inCart": "Checked off ({count})",
+        "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
+        "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",
+        "staleNotConnected": "Mealie isn't connected. This is the list from {time}.",
+        "staleConnection": "Can't reach Home Screens. This is the list from {time}.",
+        "loading": "Getting your list from Mealie…",
+        "noListsTitle": "Mealie has no shopping lists yet",
+        "noListsBody": "Make a shopping list in Mealie and it shows up here.",
+        "emptyTitle": "Nothing on {list} yet",
+        "emptyBody": "Add something above, or send a recipe's ingredients here from Mealie.",
+        "unreachableBody": "Your list is safe in Mealie. Check that Mealie is running, then try again.",
+        "connectionTitle": "Can't reach Home Screens right now",
+        "connectionBody": "Check this computer's connection, then try again.",
+        "noConnection": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
+        "notSavedUnreachable": {
+          "one": "{items} wasn't saved. Mealie isn't answering, so try again in a moment.",
+          "other": "{items} weren't saved. Mealie isn't answering, so try again in a moment."
+        },
+        "notSavedToken": {
+          "one": "{items} wasn't saved. Mealie isn't letting Home Screens in.",
+          "other": "{items} weren't saved. Mealie isn't letting Home Screens in."
+        },
+        "notSavedNotConnected": {
+          "one": "{items} wasn't saved. Mealie isn't connected.",
+          "other": "{items} weren't saved. Mealie isn't connected."
+        },
+        "notSavedConnection": {
+          "one": "{items} wasn't saved. Can't reach Home Screens, so check the connection and try again.",
+          "other": "{items} weren't saved. Can't reach Home Screens, so check the connection and try again."
+        },
+        "moreItems": {
+          "one": "1 more",
+          "other": "{count} more"
+        },
+        "listGone": "That list isn't in Mealie any more."
+      },
       "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them.",
       "tokenFix": "Make a new token in Mealie and paste it in Settings > API keys.",
       "tokenPaused": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused.",

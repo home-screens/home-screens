@@ -38,7 +38,6 @@ import { addPlanCourse, movePlanCourse, removePlanCourse, setPlanCourse } from '
 import {
   canEditMergedPlan,
   mealiePlannerUrl,
-  mealieShoppingListsUrl,
   mealieStatus,
   rangeCovers,
   type MealieWireBlock,
@@ -54,7 +53,8 @@ import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
 import SidebarGrocery from './SidebarGrocery';
-import { MealieDetail, MealieGrocery, MealieLibrary } from './SidebarMealie';
+import { MealieDetail, MealieLibrary } from './SidebarMealie';
+import { MealieGrocery } from './SidebarMealieGrocery';
 import WeekGrid from './WeekGrid';
 import MealPickerPopover, { type PickerPurpose } from './MealPickerPopover';
 import MealPopover from './MealPopover';
@@ -771,7 +771,11 @@ export default function MealPlannerModal({
             />
           ))}
           {sidebarTab === 'grocery' && (onMealie ? (
-            <MealieGrocery shoppingUrl={baseUrl ? mealieLink(mealieShoppingListsUrl(baseUrl)) : null} />
+            <MealieGrocery
+              planBaseUrl={baseUrl}
+              formatTime={(at) => formatClockMinutes(wallClockParts(new Date(at), householdZone).minuteOfDay, timeFormat)}
+              onError={(message) => showToast(message, undefined, true)}
+            />
           ) : (
             <SidebarGrocery
               plan={weekPlan}

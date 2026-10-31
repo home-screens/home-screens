@@ -9787,6 +9787,15 @@
             "text": "MealieExtras"
           },
           "description": "What the hub remembers about Mealie plan entries that Mealie cannot hold, keyed by entry id"
+        },
+        {
+          "name": "mealieShoppingList",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "The Mealie shopping list the family shops from, by id. Unset, or a list Mealie no longer has, means the one made first"
         }
       ]
     },
@@ -11328,6 +11337,41 @@
       "methods": [
         {
           "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/shopping",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        },
+        {
+          "method": "PUT",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/shopping/items",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/shopping/items/{itemId}",
+      "methods": [
+        {
+          "method": "PATCH",
+          "access": "display"
+        },
+        {
+          "method": "DELETE",
           "access": "session"
         }
       ]

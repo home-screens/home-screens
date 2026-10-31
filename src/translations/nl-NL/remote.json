@@ -1490,8 +1490,59 @@
       "openRecipeAriaLabel": "{meal} openen in Mealie"
     },
     "grocery": {
-      "title": "Je boodschappenlijst staat in Mealie",
-      "description": "Zolang je maaltijdplan in Mealie staat, staat je lijst daar ook. Open Mealie om te zien wat je nodig hebt en dingen af te vinken."
+      "lists": "Boodschappenlijsten",
+      "listLeft": {
+        "one": "{list}, nog 1 ding te halen",
+        "other": "{list}, nog {count} dingen te halen"
+      },
+      "addPlaceholder": "Toevoegen aan {list}",
+      "addButton": "Toevoegen",
+      "added": "{item} staat op {list}",
+      "addedUnder": "{item} staat op {list}, onder {label}",
+      "already": "{item} staat al op {list}",
+      "putBack": "{item} staat weer op {list}",
+      "undo": "Ongedaan maken",
+      "picked": "Iedereen ziet nu {list}.",
+      "moved": "Je ziet nu {list}, gekozen op een ander apparaat.",
+      "gone": "{from} staat niet meer in Mealie. Je ziet nu {list}.",
+      "hint": "Je Mealie-lijst. Wat je hier afvinkt, wordt ook in Mealie afgevinkt.",
+      "forRecipes": "voor {recipes}",
+      "noLabel": "Geen label",
+      "inCart": "Afgevinkt ({count})",
+      "staleUnreachable": "Mealie reageert niet. Dit is de lijst van {time}.",
+      "staleToken": "Mealie laat Home Screens niet meer binnen. Dit is de lijst van {time}.",
+      "staleNotConnected": "Mealie is niet gekoppeld. Dit is de lijst van {time}.",
+      "staleConnection": "Kan Home Screens niet bereiken. Dit is de lijst van {time}.",
+      "loading": "Je lijst wordt uit Mealie gehaald…",
+      "noListsTitle": "Mealie heeft nog geen boodschappenlijsten",
+      "noListsDescription": "Maak een boodschappenlijst in Mealie, dan verschijnt die hier.",
+      "emptyTitle": "Nog niets op {list}",
+      "emptyDescription": "Voeg hierboven iets toe, of stuur de ingrediënten van een recept vanuit Mealie hierheen.",
+      "unreachableDescription": "Je lijst is veilig in Mealie. Kijk of Mealie aan staat en probeer het dan opnieuw.",
+      "connectionTitle": "Kan Home Screens nu niet bereiken",
+      "connectionDescription": "Kijk of deze telefoon verbinding heeft en probeer het dan opnieuw.",
+      "noConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
+      "notSavedUnreachable": {
+        "one": "{items} is niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens.",
+        "other": "{items} zijn niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens."
+      },
+      "notSavedToken": {
+        "one": "{items} is niet opgeslagen. Mealie laat Home Screens niet meer binnen.",
+        "other": "{items} zijn niet opgeslagen. Mealie laat Home Screens niet meer binnen."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} is niet opgeslagen. Mealie is niet gekoppeld.",
+        "other": "{items} zijn niet opgeslagen. Mealie is niet gekoppeld."
+      },
+      "notSavedConnection": {
+        "one": "{items} is niet opgeslagen. Kan Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw.",
+        "other": "{items} zijn niet opgeslagen. Kan Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw."
+      },
+      "moreItems": {
+        "one": "nog 1",
+        "other": "nog {count}"
+      },
+      "listGone": "Die lijst staat niet meer in Mealie."
     },
     "suggest": {
       "allPlanned": "Elk avondeten van deze week is al gepland.",

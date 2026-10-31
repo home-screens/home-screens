@@ -20,6 +20,10 @@ vi.mock('@/lib/meal-data', () => ({
   readMealData: vi.fn(),
 }));
 
+vi.mock('@/lib/mealie-shopping', () => ({
+  readMealieShopping: vi.fn(),
+}));
+
 let householdZone: string | undefined;
 vi.mock('@/lib/config-cache', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/config-cache')>()),
@@ -30,6 +34,7 @@ import { NextRequest } from 'next/server';
 import { GET } from '../route';
 import { readMealData } from '@/lib/meal-data';
 import { getWeekRange } from '@/lib/meal-constants';
+import { readMealieShopping } from '@/lib/mealie-shopping';
 
 const mockRead = vi.mocked(readMealData);
 
@@ -60,17 +65,49 @@ describe('GET /api/meals/grocery/list', () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it('answers an empty list from Mealie while the plan lives there, not the old local plan\'s', async () => {
+  it("answers Mealie's list while the plan lives there, not the old local plan's", async () => {
     const { start } = getWeekRange(new Date(), 'sunday');
     mockRead.mockResolvedValue({
       savedMeals: [meal],
       plan: [{ date: start, slot: 'dinner', mealId: 'meal-1' }],
       groceryChecked: {},
       settings: { enabledSlots: ['dinner'], weekStartDay: 'sunday', defaultSlotTimes: {}, planSource: 'mealie' },
+      mealieShoppingList: 'list-g',
     } as never);
+    const item = (id: string, name: string, checked = false, alsoCalled?: string) => ({ id, text: name, name, ...(alsoCalled ? { alsoCalled } : {}), checked, recipes: [] });
+    vi.mocked(readMealieShopping).mockResolvedValue({
+      status: 'ok', lists: [], fetchedAt: 0, baseUrl: 'http://mealie.local',
+      list: { id: 'list-g', name: 'Groceries', groups: [
+        { label: null, items: [item('m', 'Milk'), item('e', 'eggs', false, 'egg')] },
+        { label: 'Spices', items: [item('s1', 'salt', true), item('s2', 'salt')] },
+      ] },
+    });
 
     const body = await (await GET(request())).json();
-    expect(body).toMatchObject({ categories: [], total: 0, checked: 0, source: 'mealie' });
+    expect(readMealieShopping).toHaveBeenCalledWith('list-g');
+    expect(body).toMatchObject({
+      categories: [
+        // The food's own name rides along, so "check off the egg" finds "4 eggs".
+        { category: null, items: [{ name: 'Milk', amount: '', checked: false }, { name: 'eggs', alsoCalled: 'egg', amount: '', checked: false }] },
+        // Said once, and still to get while either salt is.
+        { category: 'Spices', items: [{ name: 'salt', amount: '', checked: false }] },
+      ],
+      total: 3,
+      checked: 0,
+      source: 'mealie',
+      list: { id: 'list-g', name: 'Groceries' },
+    });
+  });
+
+  it("says it can't answer while Mealie has never answered", async () => {
+    mockRead.mockResolvedValue({
+      savedMeals: [], plan: [], groceryChecked: {},
+      settings: { enabledSlots: ['dinner'], weekStartDay: 'sunday', defaultSlotTimes: {}, planSource: 'mealie' },
+    } as never);
+    vi.mocked(readMealieShopping).mockResolvedValue({ status: 'failed', failure: 'unreachable' });
+    const res = await GET(request());
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ failure: 'unreachable' });
   });
 
   it('aggregates ingredients from this week\'s plan with checked state', async () => {

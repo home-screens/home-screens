@@ -3072,8 +3072,61 @@
         "other": "Pour {count} personnes"
       },
       "readOnlyNote": "Cette recette est dans Mealie. Modifie-la là-bas et elle se met à jour ici en quelques minutes.",
-      "groceryTitle": "Ta liste de courses est dans Mealie",
-      "groceryBody": "Tant que ton planning est dans Mealie, ta liste l'est aussi. Ouvre Mealie pour voir ce qu'il te faut et cocher les articles.",
+      "grocery": {
+        "list": "Liste de courses",
+        "listOption": {
+          "one": "{list} · 1 à acheter",
+          "other": "{list} · {count} à acheter"
+        },
+        "add": "Ajouter",
+        "openList": "Ouvrir la liste dans Mealie",
+        "addPlaceholder": "Ajouter à la liste {list}",
+        "added": "{item} est sur la liste {list}",
+        "addedUnder": "{item} est sur la liste {list}, dans {label}",
+        "already": "{item} est déjà sur la liste {list}",
+        "putBack": "{item} est de retour sur la liste {list}",
+        "undo": "Annuler",
+        "picked": "Tout le monde voit la liste {list} maintenant.",
+        "moved": "Voici la liste {list}, choisie sur un autre appareil.",
+        "gone": "La liste {from} n'existe plus dans Mealie. Voici la liste {list}.",
+        "forRecipes": "pour {recipes}",
+        "noLabel": "Aucune étiquette",
+        "inCart": "Cochés ({count})",
+        "staleUnreachable": "Mealie ne répond pas. Voici la liste de {time}.",
+        "staleToken": "Mealie ne laisse plus entrer Home Screens. Voici la liste de {time}.",
+        "staleNotConnected": "Mealie n'est pas connecté. Voici la liste de {time}.",
+        "staleConnection": "Home Screens est injoignable. Voici la liste de {time}.",
+        "loading": "On récupère ta liste dans Mealie…",
+        "noListsTitle": "Mealie n'a pas encore de liste de courses",
+        "noListsBody": "Crée une liste de courses dans Mealie et elle apparaîtra ici.",
+        "emptyTitle": "Rien dans la liste {list} pour l'instant",
+        "emptyBody": "Ajoute quelque chose ci-dessus, ou envoie ici les ingrédients d'une recette depuis Mealie.",
+        "unreachableBody": "Ta liste est en sécurité dans Mealie. Vérifie que Mealie fonctionne, puis réessaie.",
+        "connectionTitle": "Home Screens est injoignable pour le moment",
+        "connectionBody": "Vérifie la connexion de cet ordinateur, puis réessaie.",
+        "noConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
+        "notSavedUnreachable": {
+          "one": "{items} n'a pas été enregistré. Mealie ne répond pas, réessaie dans un instant.",
+          "other": "{items} n'ont pas été enregistrés. Mealie ne répond pas, réessaie dans un instant."
+        },
+        "notSavedToken": {
+          "one": "{items} n'a pas été enregistré. Mealie ne laisse plus entrer Home Screens.",
+          "other": "{items} n'ont pas été enregistrés. Mealie ne laisse plus entrer Home Screens."
+        },
+        "notSavedNotConnected": {
+          "one": "{items} n'a pas été enregistré. Mealie n'est pas connecté.",
+          "other": "{items} n'ont pas été enregistrés. Mealie n'est pas connecté."
+        },
+        "notSavedConnection": {
+          "one": "{items} n'a pas été enregistré. Home Screens est injoignable, vérifie la connexion et réessaie.",
+          "other": "{items} n'ont pas été enregistrés. Home Screens est injoignable, vérifie la connexion et réessaie."
+        },
+        "moreItems": {
+          "one": "1 autre",
+          "other": "{count} autres"
+        },
+        "listGone": "Cette liste n'existe plus dans Mealie."
+      },
       "ingredientsFailed": "Mealie n'a pas envoyé les ingrédients. Ouvre la recette dans Mealie pour les voir.",
       "tokenFix": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API.",
       "tokenPaused": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API. En attendant, la planification est en pause.",

@@ -11,9 +11,10 @@ import { getMealieConfig } from './mealie';
  * machinery), and the revision a save has to quote is always present.
  */
 export function mealsWire(data: MealData) {
-  const { timeFormatLegacyStripped: _marker, mealieExtras: _extras, ...rest } = data;
+  const { timeFormatLegacyStripped: _marker, mealieExtras: _extras, mealieShoppingList: _list, ...rest } = data;
   void _marker;
   void _extras;
+  void _list;
   return { ...rest, revision: mealRevision(data) };
 }
 

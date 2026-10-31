@@ -139,6 +139,11 @@ export function mealieShoppingListsUrl(baseUrl: string): string {
   return `${baseUrl}/shopping-lists`;
 }
 
+/** One shopping list's page in Mealie. */
+export function mealieShoppingListUrl(baseUrl: string, listId: string): string {
+  return `${mealieShoppingListsUrl(baseUrl)}/${encodeURIComponent(listId)}`;
+}
+
 /**
  * A link to Mealie that the device following it can open.
  *

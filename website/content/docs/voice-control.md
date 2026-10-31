@@ -115,7 +115,7 @@ What each mode actually changes on screen is up to you, see [house modes](#house
 | "who hasn't done their chores [today]" | Names anyone with nothing checked off yet |
 | "how many tickets does Alice have" | Their reward-point balance |
 | "what can Alice get with her tickets" | Rewards they can afford right now, or how far the closest one is |
-| "what's on the grocery list" | Everything still to buy from this week's planned meals |
+| "what's on the grocery list" | Everything still to buy from this week's planned meals, or from your Mealie shopping list while your meal plan is in Mealie |
 | "what's showing on the kitchen display" | The current screen's name, or that it's asleep |
 
 ### Checking things off
@@ -123,10 +123,12 @@ What each mode actually changes on screen is up to you, see [house modes](#house
 | Say | What happens |
 |---|---|
 | "Alice finished the dishes" / "mark the dishes done for Alice" | Checks it off for today and credits the points, the answer confirms them ("Nice! That's 2 points for Alice.") |
-| "check off the tortillas" / "we got milk" | Ticks it on the grocery list |
-| "put milk back on the list" / "we still need milk" | Unticks it |
+| "check off the tortillas" / "we got milk" | Checks it off the grocery list |
+| "put milk back on the list" / "we still need milk" | Puts it back on the list |
 
 Saying any of these twice is safe: repeats can never un-check a chore or a grocery item, the second time you just get told it's already done.
+
+While your meal plan is in Mealie, the grocery list is your Mealie shopping list, and the answers name it ("12 things to get on Groceries"). Things are found by the words on the list or by their plain name, so "check off the eggs" and "check off the egg" both find "4 eggs". If the answers don't name your list yet, download the package again: older copies leave those parts out.
 
 ---
 

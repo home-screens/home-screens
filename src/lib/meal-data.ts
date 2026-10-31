@@ -52,6 +52,15 @@ export interface MealData {
    * it already applied to Mealie's plan.
    */
   mealieExtras?: MealieExtras;
+  /**
+   * The Mealie shopping list the family shops from, by id. Unset, or a list Mealie no longer has, means the one made first
+   *
+   * One choice for the phone, the editor and the voice answer, picked on the
+   * Grocery tab. Kept outside `settings` because the settings sheets save
+   * their whole block from a draft, which would put back an older pick.
+   * Never sent to clients; `GET /api/mealie/shopping` says which list it is.
+   */
+  mealieShoppingList?: string;
 }
 
 const EMPTY: MealData = {
@@ -243,6 +252,7 @@ async function parseAndMigrate(
   };
   const mealieExtras = normalizeMealieExtras(raw.mealieExtras);
   if (mealieExtras) data.mealieExtras = mealieExtras;
+  if (typeof raw.mealieShoppingList === 'string' && raw.mealieShoppingList) data.mealieShoppingList = raw.mealieShoppingList;
 
   const needsMigration = (data.plan as unknown as Record<string, unknown>[]).some(
     (entry) => !('date' in entry && typeof entry.date === 'string') && 'day' in entry,

@@ -3,7 +3,17 @@ import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
-import { connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, FAKE_RECIPES, fakeMealieDay, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
+import {
+  connectFakeMealie,
+  defaultFakeEntries,
+  disconnectFakeMealie,
+  FAKE_COSTCO_ID,
+  FAKE_GROCERIES_ID,
+  FAKE_RECIPES,
+  fakeMealieDay,
+  startFakeMealie,
+  type FakeMealie,
+} from '../helpers/fake-mealie';
 
 /**
  * Planning on the phone with sides, desserts and drinks: against the plan in
@@ -49,6 +59,128 @@ test('the week from Mealie shows its courses, and a typed dessert lands in Meali
   await expect
     .poll(() => mealie!.entries.filter((e) => e.date === fakeMealieDay(0) && e.entryType === 'dessert').map((e) => e.title))
     .toContain('Ice cream sundae');
+});
+
+async function openGrocery(page: Page) {
+  await page.goto('/remote');
+  await openMeals(page);
+  await page.getByRole('button', { name: 'Grocery', exact: true }).click();
+}
+
+const groceryItem = (page: Page, text: string) => page.getByTestId('mealie-grocery-item').filter({ hasText: text });
+
+test("the Grocery tab is Mealie's list: a tick lands in Mealie with the item whole, and ticked items fold away", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await openGrocery(page);
+
+  // Typed items read as typed (not "1 Paper towels"); a recipe's item says what it is for.
+  await expect(groceryItem(page, 'Paper towels')).toHaveText(/^Paper towels$/);
+  await expect(groceryItem(page, '2 onions')).toContainText('for Harvest Chili');
+  await expect(page.getByTestId('mealie-grocery-count')).toHaveText('1 of 4 items');
+  // Bread was ticked in Mealie already: folded away until asked for.
+  await expect(groceryItem(page, 'Bread')).toHaveCount(0);
+  await page.getByTestId('mealie-grocery-cart').click();
+  await expect(groceryItem(page, 'Bread')).toHaveAttribute('data-checked', 'true');
+
+  await groceryItem(page, 'Paper towels').click();
+  const towels = () => mealie!.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!.items.find((i) => i.position === 2)!;
+  await expect.poll(() => towels().checked).toBe(true);
+  // Mealie replaces the whole item on an update: the name must survive the tick.
+  expect(towels().note).toBe('Paper towels');
+  // Still in place, ticked, so a wrong tap is one tap to undo.
+  await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'true');
+  await expect(page.getByTestId('mealie-grocery-count')).toHaveText('2 of 4 items');
+  await groceryItem(page, 'Paper towels').click();
+  await expect.poll(() => towels().checked).toBe(false);
+});
+
+test('adding to the list, and picking another list for everyone, voice included', async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await openGrocery(page);
+
+  const box = page.getByRole('textbox', { name: 'Add to Groceries' });
+  await box.fill('Lemons');
+  await box.press('Enter');
+  await expect(page.getByText('Lemons is on Groceries')).toBeVisible();
+  await expect(box).toHaveValue('');
+  const groceries = () => mealie!.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!.items;
+  // The way Mealie's own box adds it: the words as the note, quantity 0.
+  expect(groceries().find((i) => i.note === 'Lemons')).toMatchObject({ quantity: 0, checked: false });
+  await expect(groceryItem(page, 'Lemons')).toBeVisible();
+
+  await page.getByTestId('mealie-grocery-lists').getByRole('button', { name: /^Costco run/ }).click();
+  await expect(groceryItem(page, 'Coffee beans')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Add to Costco run' })).toBeVisible();
+  // One list for the whole family, and the tab says so.
+  await expect(page.getByTestId('mealie-grocery-notice')).toContainText('Everyone sees Costco run now.');
+
+  // The voice answer follows the pick, and "check off coffee beans" ticks it in Mealie.
+  await expect.poll(async () => (await (await request.get('/api/meals/grocery/list')).json()).list?.id).toBe(FAKE_COSTCO_ID);
+  const res = await request.post('/api/meals/grocery', { data: { item: 'coffee beans', direction: 'check' } });
+  expect(await res.json()).toEqual({ changed: true, matched: 1, source: 'mealie' });
+  expect(mealie.shoppingLists.find((l) => l.id === FAKE_COSTCO_ID)!.items[0]).toMatchObject({ note: 'Coffee beans', checked: true });
+});
+
+test("a tick Mealie doesn't take springs back and says why", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await openGrocery(page);
+  await expect(groceryItem(page, 'Paper towels')).toBeVisible();
+
+  await page.route('**/api/mealie/shopping/items/**', (route) => route.fulfill({
+    status: 502, contentType: 'application/json', body: JSON.stringify({ error: "We couldn't reach Mealie.", failure: 'unreachable' }),
+  }));
+  await groceryItem(page, 'Paper towels').click();
+  // Not Next's own route announcer, which is an alert too.
+  await expect(page.getByRole('alert').filter({ hasText: "Mealie isn't answering" })).toBeVisible();
+  await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'false');
+});
+
+test('words typed while an add is on its way are kept, and Undo takes an add back off the list', async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await openGrocery(page);
+  await page.route('**/api/mealie/shopping/items', async (route) => {
+    if (route.request().method() === 'POST') await new Promise((done) => setTimeout(done, 800));
+    await route.continue();
+  });
+
+  const box = page.getByRole('textbox', { name: 'Add to Groceries' });
+  await box.fill('pears');
+  await box.press('Enter');
+  // The box empties at once, so the next thing goes in clean.
+  await expect(box).toHaveValue('');
+  await box.pressSequentially('string cheese');
+  await expect(page.getByText('pears is on Groceries')).toBeVisible();
+  await expect(box).toHaveValue('string cheese');
+
+  const groceries = () => mealie!.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!.items.map((i) => i.note);
+  expect(groceries()).toContain('pears');
+  await page.getByTestId('mealie-grocery-added').getByRole('button', { name: 'Undo' }).click();
+  await expect.poll(groceries).not.toContain('pears');
+  await expect(groceryItem(page, 'pears')).toHaveCount(0);
+});
+
+test('something put back on the list elsewhere comes out of the fold, and a pick can be undone', async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await openGrocery(page);
+  await expect(page.getByTestId('mealie-grocery-cart')).toHaveText(/\(1\)/);
+
+  // Somebody says "we still need bread"; the tab reads again when it comes back into view.
+  await request.post('/api/meals/grocery', { data: { item: 'bread', direction: 'uncheck' } });
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await expect(groceryItem(page, 'Bread')).toHaveAttribute('data-checked', 'false');
+  await expect(page.getByTestId('mealie-grocery-cart')).toHaveCount(0);
+
+  await page.getByTestId('mealie-grocery-lists').getByRole('button', { name: /^Costco run/ }).click();
+  const notice = page.getByTestId('mealie-grocery-notice');
+  await expect(notice).toContainText('Everyone sees Costco run now.');
+  await notice.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByRole('textbox', { name: 'Add to Groceries' })).toBeVisible();
+  expect((await (await request.get('/api/mealie/shopping')).json()).list.id).toBe(FAKE_GROCERIES_ID);
 });
 
 test.describe('on a touch phone', () => {

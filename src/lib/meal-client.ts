@@ -5,6 +5,7 @@ import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayCache } from '@/lib/display-cache';
 import { mealieProblem, mergeMealSources, planCellChanges, rangeCovers, unionRange, type MealieProblem, type MealieWireBlock } from '@/lib/meal-sources';
 import type { MealieFailure } from '@/lib/mealie';
+import type { ShoppingList, ShoppingListSummary } from '@/lib/shopping-list';
 
 /** Where a save goes while the plan lives in Mealie. */
 const MEALIE_PLAN_URL = '/api/mealie/plan';
@@ -482,4 +483,131 @@ export async function fetchMealieRecipeDetail(fetcher: MealFetch, recipeId: stri
     throw mealieRefusal('load', json, "We couldn't reach Mealie.");
   }
   return d as MealieRecipeDetailWire;
+}
+
+// ── Mealie's shopping list ──
+
+/** What `GET /api/mealie/shopping` answers, and the writes that hand the list back. */
+export interface MealieShoppingWire {
+  /** `stale`: Mealie gave no answer this time; this is the copy from `fetchedAt`. */
+  status: 'ok' | 'stale';
+  failure?: MealieFailure;
+  lists: ShoppingListSummary[];
+  /** The list shown; null when the household has no list in Mealie. */
+  list: ShoppingList | null;
+  fetchedAt: number;
+  baseUrl: string;
+}
+
+const SHOPPING_URL = '/api/mealie/shopping';
+/**
+ * How long a shopping list request may take. A phone on a weak signal in a
+ * store can hang a request for minutes, with the list looking fresh and a tick
+ * looking saved the whole time; past this it counts as not reaching the hub.
+ */
+export const SHOPPING_REQUEST_TIMEOUT_MS = 15_000;
+
+/**
+ * The phone or laptop could not reach the hub at all (no connection, or no
+ * answer in time). Not Mealie's doing, so a surface says so differently.
+ */
+export class HubUnreachableError extends Error {
+  constructor() {
+    super("Couldn't reach Home Screens.");
+    this.name = 'HubUnreachableError';
+  }
+}
+
+/** A shopping list route's refusal, with Mealie's saved address when the hub sent it (for Open Mealie). */
+export class MealieShoppingRefusal extends MealClientError {
+  constructor(kind: MealClientFailure, message: string, problem: MealieProblem | undefined, readonly baseUrl?: string) {
+    super(kind, message, problem);
+    this.name = 'MealieShoppingRefusal';
+  }
+}
+
+async function shoppingFetch(fetcher: MealFetch, url: string, init?: RequestInit): Promise<Response> {
+  try {
+    return await fetcher(url, { ...init, signal: AbortSignal.timeout(SHOPPING_REQUEST_TIMEOUT_MS) });
+  } catch {
+    throw new HubUnreachableError();
+  }
+}
+
+function asShopping(json: unknown): MealieShoppingWire | null {
+  const d = json as Partial<MealieShoppingWire> | null;
+  if (!d || (d.status !== 'ok' && d.status !== 'stale') || !Array.isArray(d.lists) || typeof d.baseUrl !== 'string') return null;
+  const list = d.list && typeof d.list === 'object' && Array.isArray(d.list.groups) ? d.list : null;
+  return { status: d.status, ...(d.failure ? { failure: d.failure } : {}), lists: d.lists, list, fetchedAt: Number(d.fetchedAt) || Date.now(), baseUrl: d.baseUrl };
+}
+
+/**
+ * A refusal from a shopping list route. Something gone from Mealie (a list
+ * deleted there, an item somebody cleared) is a `conflict`: the surface
+ * reads the list again rather than saying Mealie is down.
+ */
+function shoppingRefusal(json: unknown, kind: MealClientFailure): MealClientError {
+  const d = json as { reason?: unknown; failure?: MealieFailure; baseUrl?: unknown } | null;
+  if (d?.reason === 'gone') return new MealClientError('conflict', refusalMessage(json, ''));
+  return new MealieShoppingRefusal(
+    kind,
+    refusalMessage(json, "We couldn't reach Mealie."),
+    d?.failure ? mealieProblem(d.failure) : undefined,
+    typeof d?.baseUrl === 'string' ? d.baseUrl : undefined,
+  );
+}
+
+async function shoppingAnswer(res: Response, kind: MealClientFailure): Promise<MealieShoppingWire> {
+  const json = await readJson(res);
+  const answer = res.ok ? asShopping(json) : null;
+  if (answer) return answer;
+  throw shoppingRefusal(json, kind);
+}
+
+/** The household's Mealie lists and one in full: `listId`, else the one the family shops from. */
+export async function loadMealieShopping(fetcher: MealFetch, listId?: string): Promise<MealieShoppingWire> {
+  return shoppingAnswer(await shoppingFetch(fetcher, listId ? `${SHOPPING_URL}?list=${encodeURIComponent(listId)}` : SHOPPING_URL), 'load');
+}
+
+/** Make `listId` the list the family shops from, on every surface and for voice. */
+export async function chooseMealieShoppingList(fetcher: MealFetch, listId: string): Promise<MealieShoppingWire> {
+  return shoppingAnswer(await shoppingFetch(fetcher, SHOPPING_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ list: listId }),
+  }), 'save');
+}
+
+/**
+ * Put a typed item ("Milk") on a Mealie list. Answers with the list read
+ * fresh and the new item's id (null when Mealie merged the words into an item
+ * already on the list), for Undo.
+ */
+export async function addToMealieShoppingList(fetcher: MealFetch, listId: string, text: string): Promise<{ wire: MealieShoppingWire; added: string | null }> {
+  const res = await shoppingFetch(fetcher, `${SHOPPING_URL}/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ list: listId, text }),
+  });
+  const json = await readJson(res);
+  const wire = res.ok ? asShopping(json) : null;
+  if (!wire) throw shoppingRefusal(json, 'save');
+  const added = (json as { added?: unknown }).added;
+  return { wire, added: typeof added === 'string' ? added : null };
+}
+
+/** Tick an item on a Mealie list, or put it back. */
+export async function tickMealieShoppingItem(fetcher: MealFetch, itemId: string, checked: boolean): Promise<void> {
+  const res = await shoppingFetch(fetcher, `${SHOPPING_URL}/items/${encodeURIComponent(itemId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ checked }),
+  });
+  if (!res.ok) throw shoppingRefusal(await readJson(res), 'save');
+}
+
+/** Take an item just added back off its list. */
+export async function removeMealieShoppingItem(fetcher: MealFetch, itemId: string): Promise<void> {
+  const res = await shoppingFetch(fetcher, `${SHOPPING_URL}/items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
+  if (!res.ok) throw shoppingRefusal(await readJson(res), 'save');
 }

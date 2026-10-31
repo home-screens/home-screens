@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ExternalLink, Heart, History, Pencil, Search, ShoppingCart, X } from 'lucide-react';
+import { ExternalLink, Heart, History, Pencil, Search, X } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import { editorFetch } from '@/lib/editor-fetch';
 import { fetchMealieRecipeDetail, MealClientError, type MealieRecipeDetailWire, type MealieRecipeFilter } from '@/lib/meal-client';
@@ -18,8 +18,9 @@ import DishPicture from './DishPicture';
 /**
  * The sidebar's three tabs while the plan lives in Mealie. Recipes are
  * Mealie's, so there is nothing to add, edit or delete here: the Library
- * browses them, Detail shows one read only with a way to open it in Mealie,
- * and Grocery points at Mealie's own shopping list.
+ * browses them and Detail shows one read only with a way to open it in
+ * Mealie. Grocery, the family's Mealie shopping list, is in
+ * `SidebarMealieGrocery.tsx`.
  */
 
 const linkButton =
@@ -261,26 +262,5 @@ function MealieIngredients({ recipeId }: { recipeId: string | null }) {
         </ul>
       )}
     </section>
-  );
-}
-
-// ── Grocery ──────────────────────────────────
-
-export function MealieGrocery({ shoppingUrl }: { shoppingUrl: string | null }) {
-  const t = useTranslate('editor');
-  return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-3">
-      <span className="w-11 h-11 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
-        <ShoppingCart className="w-5 h-5" aria-hidden />
-      </span>
-      <p className="text-sm font-semibold text-hs-text-body">{t('mealPlannerModal.mealie.groceryTitle')}</p>
-      <p className="text-xs text-hs-text-faint leading-relaxed max-w-[280px]">{t('mealPlannerModal.mealie.groceryBody')}</p>
-      {shoppingUrl && (
-        <a href={shoppingUrl} target="_blank" rel="noopener noreferrer" className={linkButton}>
-          {t('mealPlannerModal.mealie.openMealie')}
-          <ExternalLink className="w-3.5 h-3.5" aria-hidden />
-        </a>
-      )}
-    </div>
   );
 }

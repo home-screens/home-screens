@@ -1490,8 +1490,59 @@
       "openRecipeAriaLabel": "Abrir {meal} en Mealie"
     },
     "grocery": {
-      "title": "Tu lista de la compra está en Mealie",
-      "description": "Mientras tu plan de comidas esté en Mealie, tu lista también. Abre Mealie para ver lo que necesitas y marcar lo que ya tienes."
+      "lists": "Listas de la compra",
+      "listLeft": {
+        "one": "{list}, 1 cosa por comprar",
+        "other": "{list}, {count} cosas por comprar"
+      },
+      "addPlaceholder": "Añadir a {list}",
+      "addButton": "Añadir",
+      "added": "{item} está en {list}",
+      "addedUnder": "{item} está en {list}, en {label}",
+      "already": "{item} ya está en {list}",
+      "putBack": "{item} vuelve a estar en {list}",
+      "undo": "Deshacer",
+      "picked": "Ahora todos ven {list}.",
+      "moved": "Se muestra {list}, elegida en otro dispositivo.",
+      "gone": "{from} ya no está en Mealie. Se muestra {list}.",
+      "hint": "Tu lista de Mealie. Lo que marques aquí también se marca en Mealie.",
+      "forRecipes": "para {recipes}",
+      "noLabel": "Sin etiqueta",
+      "inCart": "Tachados ({count})",
+      "staleUnreachable": "Mealie no responde. Última copia: {time}.",
+      "staleToken": "Mealie ya no deja entrar a Home Screens. Última copia: {time}.",
+      "staleNotConnected": "Mealie no está conectado. Última copia: {time}.",
+      "staleConnection": "No se puede conectar con Home Screens. Última copia: {time}.",
+      "loading": "Cargando tu lista de Mealie…",
+      "noListsTitle": "Mealie aún no tiene listas de la compra",
+      "noListsDescription": "Crea una lista de la compra en Mealie y aparecerá aquí.",
+      "emptyTitle": "Todavía no hay nada en {list}",
+      "emptyDescription": "Añade algo arriba o envía aquí los ingredientes de una receta desde Mealie.",
+      "unreachableDescription": "Tu lista está a salvo en Mealie. Comprueba que Mealie esté funcionando y vuelve a intentarlo.",
+      "connectionTitle": "Ahora mismo no se puede conectar con Home Screens",
+      "connectionDescription": "Comprueba que este móvil esté conectado y vuelve a intentarlo.",
+      "noConnection": "No se pudo conectar con Home Screens, así que no se ha guardado. Comprueba la conexión y vuelve a intentarlo.",
+      "notSavedUnreachable": {
+        "one": "{items} no se ha guardado. Mealie no responde. Inténtalo de nuevo en un momento.",
+        "other": "{items} no se han guardado. Mealie no responde. Inténtalo de nuevo en un momento."
+      },
+      "notSavedToken": {
+        "one": "{items} no se ha guardado. Mealie ya no deja entrar a Home Screens.",
+        "other": "{items} no se han guardado. Mealie ya no deja entrar a Home Screens."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} no se ha guardado. Mealie no está conectado.",
+        "other": "{items} no se han guardado. Mealie no está conectado."
+      },
+      "notSavedConnection": {
+        "one": "{items} no se ha guardado. No se puede conectar con Home Screens. Comprueba la conexión y vuelve a intentarlo.",
+        "other": "{items} no se han guardado. No se puede conectar con Home Screens. Comprueba la conexión y vuelve a intentarlo."
+      },
+      "moreItems": {
+        "one": "1 más",
+        "other": "{count} más"
+      },
+      "listGone": "Esa lista ya no está en Mealie."
     },
     "suggest": {
       "allPlanned": "Todas las cenas de esta semana ya están planeadas.",

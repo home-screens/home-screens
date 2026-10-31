@@ -1490,8 +1490,59 @@
       "openRecipeAriaLabel": "Åbn {meal} i Mealie"
     },
     "grocery": {
-      "title": "Jeres indkøbsliste ligger i Mealie",
-      "description": "Så længe jeres madplan ligger i Mealie, gør jeres liste det også. Åbn Mealie for at se, hvad I mangler, og krydse af."
+      "lists": "Indkøbslister",
+      "listLeft": {
+        "one": "{list}, 1 ting at købe",
+        "other": "{list}, {count} ting at købe"
+      },
+      "addPlaceholder": "Tilføj til {list}",
+      "addButton": "Tilføj",
+      "added": "{item} er på {list}",
+      "addedUnder": "{item} er på {list}, under {label}",
+      "already": "{item} er allerede på {list}",
+      "putBack": "{item} er tilbage på {list}",
+      "undo": "Fortryd",
+      "picked": "Alle ser nu {list}.",
+      "moved": "Viser {list}, valgt på en anden enhed.",
+      "gone": "{from} findes ikke længere i Mealie. Viser {list}.",
+      "hint": "Din Mealie-liste. Det, du krydser af her, bliver også krydset af i Mealie.",
+      "forRecipes": "til {recipes}",
+      "noLabel": "Ingen etiket",
+      "inCart": "Afkrydset ({count})",
+      "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
+      "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",
+      "staleNotConnected": "Mealie er ikke forbundet. Dette er listen fra {time}.",
+      "staleConnection": "Kan ikke nå Home Screens. Dette er listen fra {time}.",
+      "loading": "Henter din liste fra Mealie…",
+      "noListsTitle": "Mealie har ingen indkøbslister endnu",
+      "noListsDescription": "Lav en indkøbsliste i Mealie, så dukker den op her.",
+      "emptyTitle": "Intet på {list} endnu",
+      "emptyDescription": "Tilføj noget ovenfor, eller send en opskrifts ingredienser hertil fra Mealie.",
+      "unreachableDescription": "Din liste ligger sikkert i Mealie. Tjek, at Mealie kører, og prøv igen.",
+      "connectionTitle": "Kan ikke nå Home Screens lige nu",
+      "connectionDescription": "Tjek, at telefonen er forbundet, og prøv igen.",
+      "noConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
+      "notSavedUnreachable": {
+        "one": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt.",
+        "other": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt."
+      },
+      "notSavedToken": {
+        "one": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere.",
+        "other": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere."
+      },
+      "notSavedNotConnected": {
+        "one": "{items} blev ikke gemt. Mealie er ikke forbundet.",
+        "other": "{items} blev ikke gemt. Mealie er ikke forbundet."
+      },
+      "notSavedConnection": {
+        "one": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen.",
+        "other": "{items} blev ikke gemt. Kan ikke nå Home Screens, så tjek forbindelsen, og prøv igen."
+      },
+      "moreItems": {
+        "one": "1 mere",
+        "other": "{count} mere"
+      },
+      "listGone": "Den liste findes ikke længere i Mealie."
     },
     "suggest": {
       "allPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",

@@ -1,6 +1,15 @@
 import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
-import { connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, FAKE_MEALIE_TOKEN, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
+import {
+  connectFakeMealie,
+  defaultFakeEntries,
+  disconnectFakeMealie,
+  FAKE_COSTCO_ID,
+  FAKE_GROCERIES_ID,
+  FAKE_MEALIE_TOKEN,
+  startFakeMealie,
+  type FakeMealie,
+} from '../helpers/fake-mealie';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { selectModule } from '../helpers/editor';
 
@@ -103,3 +112,33 @@ test('removing the token asks first while the meal plan lives in Mealie', async 
   await expect.poll(async () => (await status()).mealie_api_key).toBeFalsy();
 });
 
+test("the planner window's Grocery tab ticks and adds to the Mealie list, and its list menu picks for everyone", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await page.getByRole('button', { name: 'Grocery', exact: true }).click();
+
+  const grocery = page.getByTestId('mealie-grocery');
+  const item = (text: string) => grocery.getByTestId('mealie-grocery-item').filter({ hasText: text });
+  await expect(item('1 cup milk')).toBeVisible();
+  await expect(grocery.getByText('Dairy', { exact: true })).toBeVisible();
+
+  await item('1 cup milk').click();
+  const milk = () => mealie!.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!.items.find((i) => i.food === 'milk')!;
+  await expect.poll(() => milk().checked).toBe(true);
+  expect(milk()).toMatchObject({ unit: 'cup', label: { name: 'Dairy' } });
+
+  await grocery.getByRole('textbox', { name: 'Add to Groceries' }).fill('Birthday candles');
+  await grocery.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(item('Birthday candles')).toBeVisible();
+  expect(mealie.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!.items.some((i) => i.note === 'Birthday candles')).toBe(true);
+
+  await expect(grocery.getByText('Birthday candles is on Groceries')).toBeVisible();
+
+  await grocery.getByTestId('mealie-grocery-lists').selectOption(FAKE_COSTCO_ID);
+  await expect(item('Toilet paper')).toBeVisible();
+  await expect(grocery.getByTestId('mealie-grocery-notice')).toContainText('Everyone sees Costco run now.');
+  // The phone opens on the same list.
+  expect((await (await request.get('/api/mealie/shopping')).json()).list.id).toBe(FAKE_COSTCO_ID);
+});

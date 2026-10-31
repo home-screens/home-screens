@@ -172,6 +172,10 @@ rest:
           - categories
           - total
           - checked
+          # Set while the meal plan lives in Mealie: "mealie", and the
+          # Mealie shopping list the answer comes from ({ id, name }).
+          - source
+          - list
 
   # One block per display. Replace `kitchen` (both places) with your display ID.
   - resource_template: "http://{{ states('input_text.homescreens_host') }}/api/display/status?display=kitchen"
@@ -775,7 +779,8 @@ intent_script:
         {% endif %}
 
   # "what's on the grocery list", unchecked items from the hub-resolved
-  # weekly list. Capped so a huge week doesn't become a monologue.
+  # weekly list, or from the family's Mealie shopping list while the meal
+  # plan lives in Mealie. Capped so a huge list doesn't become a monologue.
   HomeScreensGroceryQuery:
     action:
       - action: homeassistant.update_entity
@@ -789,12 +794,19 @@ intent_script:
         {% else %}
           {% set cats = state_attr('sensor.home_screens_grocery_list', 'categories') or [] %}
           {% set left = cats | map(attribute='items') | sum(start=[]) | rejectattr('checked') | map(attribute='name') | list %}
+          {% set src = state_attr('sensor.home_screens_grocery_list', 'source') %}
+          {% set lst = state_attr('sensor.home_screens_grocery_list', 'list') %}
+          {% set named = lst.name if src == 'mealie' and lst else '' %}
           {% if state_attr('sensor.home_screens_grocery_list', 'total') | int == 0 %}
-            The grocery list is empty. Plan some meals and it fills itself in.
+            {% if src == 'mealie' %}
+              {{ ('There is nothing on ' ~ named) if named else 'There is no shopping list in Mealie' }} yet.
+            {% else %}
+              The grocery list is empty. Plan some meals and it fills itself in.
+            {% endif %}
           {% elif left | count == 0 %}
-            Everything on the grocery list is checked off.
+            Everything on {{ named or 'the grocery list' }} is checked off.
           {% else %}
-            {{ left | count }} thing{{ '' if left | count == 1 else 's' }} to get: {{ left[:10] | join(', ') }}{% if left | count > 10 %}, and {{ left | count - 10 }} more{% endif %}.
+            {{ left | count }} thing{{ '' if left | count == 1 else 's' }} to get{{ (' on ' ~ named) if named else '' }}: {{ left[:10] | join(', ') }}{% if left | count > 10 %}, and {{ left | count - 10 }} more{% endif %}.
           {% endif %}
         {% endif %}
 
@@ -813,7 +825,7 @@ intent_script:
             {% set cats = state_attr('sensor.home_screens_grocery_list', 'categories') or [] %}
             {% set all = cats | map(attribute='items') | sum(start=[]) %}
             {% set ns = namespace(n='') %}
-            {% for i in all if ns.n == '' and i.name | lower == item | trim | lower %}
+            {% for i in all if ns.n == '' and (i.name | lower == item | trim | lower or (i.alsoCalled or '') | lower == item | trim | lower) %}
               {% set ns.n = i.name %}
             {% endfor %}
             {{ ns.n }}
@@ -830,7 +842,7 @@ intent_script:
         {% set cats = state_attr('sensor.home_screens_grocery_list', 'categories') or [] %}
         {% set all = cats | map(attribute='items') | sum(start=[]) %}
         {% set ns = namespace(i=none) %}
-        {% for x in all if ns.i is none and x.name | lower == item | trim | lower %}
+        {% for x in all if ns.i is none and (x.name | lower == item | trim | lower or (x.alsoCalled or '') | lower == item | trim | lower) %}
           {% set ns.i = x %}
         {% endfor %}
         {% if st in ['unknown', 'unavailable'] %}
@@ -854,7 +866,7 @@ intent_script:
             {% set cats = state_attr('sensor.home_screens_grocery_list', 'categories') or [] %}
             {% set all = cats | map(attribute='items') | sum(start=[]) %}
             {% set ns = namespace(n='') %}
-            {% for i in all if ns.n == '' and i.name | lower == item | trim | lower %}
+            {% for i in all if ns.n == '' and (i.name | lower == item | trim | lower or (i.alsoCalled or '') | lower == item | trim | lower) %}
               {% set ns.n = i.name %}
             {% endfor %}
             {{ ns.n }}
@@ -871,7 +883,7 @@ intent_script:
         {% set cats = state_attr('sensor.home_screens_grocery_list', 'categories') or [] %}
         {% set all = cats | map(attribute='items') | sum(start=[]) %}
         {% set ns = namespace(i=none) %}
-        {% for x in all if ns.i is none and x.name | lower == item | trim | lower %}
+        {% for x in all if ns.i is none and (x.name | lower == item | trim | lower or (x.alsoCalled or '') | lower == item | trim | lower) %}
           {% set ns.i = x %}
         {% endfor %}
         {% if st in ['unknown', 'unavailable'] %}
