@@ -398,6 +398,9 @@ export default function FullscreenCalendarModule({
         '--cal-header-bg': theme.headerBg,
         '--cal-card-shadow': theme.cardShadow,
         '--cal-past-opacity': String(theme.pastOpacity),
+        // The quieter second surface: the week list's meal and chore rows,
+        // the family grid's name column and the rolling window's status line.
+        '--cal-surface-alt': theme.surfaceAlt,
         '--cal-weekend-shade': theme.surfaceAlt,
         // A user color still gets the dark-theme lift; a theme's own accent is
         // already tuned for its background and is used verbatim.

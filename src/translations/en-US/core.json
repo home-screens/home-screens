@@ -162,6 +162,12 @@
         "beverages": "Beverages",
         "other": "Other"
       }
+    },
+    "kind": {
+      "main": "Main dish",
+      "side": "Side",
+      "dessert": "Dessert",
+      "drink": "Drink"
     }
   },
   "timer": {
@@ -378,5 +384,14 @@
     "body": "Home Screens is having trouble reading its saved data. It will try again on its own in a moment.",
     "help": "If this doesn't go away, a grown-up can open Home Screens on a computer and put back a backup in Settings.",
     "retry": "Try again"
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serving time {time}, click to change",
+    "servingTimeTitle": "Serving time: {time}",
+    "setServingTime": "Set serving time",
+    "setTime": "+ Set time",
+    "setMealTime": "Set meal time",
+    "servingTime": "Serving time",
+    "clearTime": "Clear time"
   }
 }

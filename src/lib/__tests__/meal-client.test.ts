@@ -10,6 +10,8 @@ import {
   MealSession,
   MealClientError,
   MAX_CONFLICT_RETRIES,
+  searchMealieRecipes,
+  withoutSuggested,
   type MealFetch,
   type MealSnapshot,
 } from '../meal-client';
@@ -382,5 +384,129 @@ describe('MealSession', () => {
     await session.load();
     await expect(session.save(() => ({ plan: [entry('x')] }))).rejects.toBeInstanceOf(MealClientError);
     await expect(session.save(() => ({ plan: [entry('y')] }))).resolves.toMatchObject({ revision: 'rev-2' });
+  });
+});
+
+describe('the plan living in Mealie', () => {
+  const tikka: PlannedMeal = { date: '2026-10-31', slot: 'dinner', customText: 'Tikka', sourceId: 'mealie:96', courses: [{ kind: 'side', customText: 'Naan', sourceId: 'mealie:97' }] };
+  const lunch: PlannedMeal = { date: '2026-10-31', slot: 'lunch', customText: 'Soup', sourceId: 'mealie:95' };
+  const block = (plan: PlannedMeal[]) => ({ status: 'ok', plan, meals: [], range: { start: '2026-10-25', end: '2026-11-28' }, fetchedAt: 1 });
+  const mealiePayload = (plan: PlannedMeal[] = [tikka, lunch]) => payload({ settings: { planSource: 'mealie' } as never, mealie: block(plan) as never });
+
+  it('loads Mealie\'s plan in place of the local one', async () => {
+    const snapshot = await loadMeals(vi.fn().mockResolvedValue(ok(mealiePayload())));
+    expect(snapshot.source).toBe('mealie');
+    expect(snapshot.plan).toEqual([tikka, lunch]);
+    expect(snapshot.savedMeals).toEqual([]);
+  });
+
+  it('sends only the meals an edit changed, with the entries they held', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(mealiePayload()))
+      .mockResolvedValueOnce(ok(mealiePayload([{ ...tikka, courses: [] }, lunch])));
+    const base = await loadMeals(fetcher);
+    await saveMealEdit(fetcher, base, (c) => ({ plan: c.plan.map((p) => (p.slot === 'dinner' ? { ...p, courses: [{ kind: 'dessert', customText: 'Kulfi' }] } : p)) }));
+    expect(fetcher.mock.calls[1][0]).toBe('/api/mealie/plan');
+    expect(bodyOf(fetcher.mock.calls[1])).toEqual({
+      cells: [{ date: '2026-10-31', slot: 'dinner', before: ['mealie:96', 'mealie:97'], after: { ...tikka, courses: [{ kind: 'dessert', customText: 'Kulfi' }] } }],
+    });
+  });
+
+  it('sends a cleared meal as null', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(ok(mealiePayload())).mockResolvedValueOnce(ok(mealiePayload([lunch])));
+    const base = await loadMeals(fetcher);
+    await saveMealEdit(fetcher, base, (c) => ({ plan: c.plan.filter((p) => p.slot !== 'dinner') }));
+    expect(bodyOf(fetcher.mock.calls[1]).cells).toEqual([{ date: '2026-10-31', slot: 'dinner', before: ['mealie:96', 'mealie:97'], after: null }]);
+  });
+
+  it('re-applies the edit to Mealie\'s newer plan after a conflict', async () => {
+    const moved: PlannedMeal = { ...tikka, sourceId: 'mealie:300', courses: undefined };
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(mealiePayload()))
+      .mockResolvedValueOnce(status(409, { ...mealiePayload([moved, lunch]), reason: 'revision' }))
+      .mockResolvedValueOnce(ok(mealiePayload([moved, { ...lunch, customText: 'Stew' }])));
+    const base = await loadMeals(fetcher);
+    const saved = await saveMealEdit(fetcher, base, (c) => ({ plan: c.plan.map((p) => (p.slot === 'lunch' ? { ...p, customText: 'Stew' } : p)) }));
+    expect(bodyOf(fetcher.mock.calls[2]).cells).toEqual([{ date: '2026-10-31', slot: 'lunch', before: ['mealie:95'], after: { ...lunch, customText: 'Stew' } }]);
+    expect(saved.plan.find((p) => p.slot === 'lunch')?.customText).toBe('Stew');
+  });
+
+  it('refuses a library change: recipes live in Mealie', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(ok(mealiePayload()));
+    const base = await loadMeals(fetcher);
+    await expect(saveMealEdit(fetcher, base, () => ({ savedMeals: [meal('new')] }))).rejects.toThrow('Recipes live in Mealie');
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('paging Mealie past the shared weeks', () => {
+  const near: PlannedMeal = { date: '2026-10-31', slot: 'dinner', customText: 'Tacos', sourceId: 'mealie:1' };
+  const far: PlannedMeal = { date: '2026-12-12', slot: 'dinner', customText: 'Roast', sourceId: 'mealie:2' };
+  const block = (plan: PlannedMeal[], start: string, end: string) => ({ status: 'ok', plan, meals: [], range: { start, end }, fetchedAt: 1 });
+  const shared = () => payload({ settings: { planSource: 'mealie' } as never, mealie: block([near], '2026-10-25', '2026-11-28') as never });
+
+  it('loads the wider range once and keeps it through saves', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(shared()))
+      .mockResolvedValueOnce(ok({ mealie: block([near, far], '2026-10-25', '2026-12-19') }))
+      .mockResolvedValueOnce(ok({ ...shared(), mealie: block([near, { ...far, customText: 'Ham' }], '2026-10-25', '2026-12-19') }));
+    const session = new MealSession(fetcher);
+    await session.load();
+    const wide = await session.showMealieRange({ start: '2026-12-13', end: '2026-12-19' });
+    expect(fetcher.mock.calls[1][0]).toBe('/api/mealie/plan?start=2026-10-25&end=2026-12-19');
+    expect(wide.plan).toEqual([near, far]);
+    // Already in view: no second fetch.
+    await session.showMealieRange({ start: '2026-12-13', end: '2026-12-19' });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    const saved = await session.save((c) => ({ plan: c.plan.map((p) => (p.date === far.date ? { ...p, customText: 'Ham' } : p)) }));
+    expect(bodyOf(fetcher.mock.calls[2]).range).toEqual({ start: '2026-10-25', end: '2026-12-19' });
+    expect(saved.plan.find((p) => p.date === far.date)?.customText).toBe('Ham');
+  });
+
+  it('does nothing while the plan lives in Home Screens', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(ok(payload()));
+    const session = new MealSession(fetcher);
+    await session.load();
+    await session.showMealieRange({ start: '2026-12-13', end: '2026-12-19' });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('searchMealieRecipes', () => {
+  it('asks the hub with only the parameters that matter', async () => {
+    const fetcher = vi.fn().mockResolvedValue(ok({ items: [meal('mealie:x')], page: 1, totalPages: 3, total: 70 }));
+    const page = await searchMealieRecipes(fetcher, { search: ' pie ', filter: 'all', page: 1 });
+    expect(fetcher.mock.calls[0][0]).toBe('/api/mealie/recipes?search=pie');
+    expect(page.total).toBe(70);
+    await searchMealieRecipes(fetcher, { filter: 'favorites', page: 2 });
+    expect(fetcher.mock.calls[1][0]).toBe('/api/mealie/recipes?filter=favorites&page=2');
+  });
+
+  it('rejects with the hub\'s plain message when Mealie is down', async () => {
+    const fetcher = vi.fn().mockResolvedValue(status(502, { error: "We couldn't reach Mealie.", failure: 'unreachable' }));
+    await expect(searchMealieRecipes(fetcher, {})).rejects.toThrow("We couldn't reach Mealie.");
+  });
+
+  it('says why Mealie refused, so a picker can say "not connected" rather than "can\'t reach"', async () => {
+    const reasonFor = async (failure: string) => {
+      const fetcher = vi.fn().mockResolvedValue(status(400, { error: 'No.', failure }));
+      return searchMealieRecipes(fetcher, {}).catch((err: MealClientError) => err.problem);
+    };
+    expect(await reasonFor('not-set-up')).toBe('not-connected');
+    expect(await reasonFor('key-rejected')).toBe('token');
+    expect(await reasonFor('unreachable')).toBe('unreachable');
+  });
+});
+
+describe('withoutSuggested', () => {
+  const picked = { date: '2026-11-02', slot: 'dinner' as const, sourceId: 'mealie:9' };
+  it('clears the meals Suggest filled, and leaves one changed since', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-11-02', slot: 'dinner', mealId: 'mealie:x', sourceId: 'mealie:9' },
+      { date: '2026-11-03', slot: 'dinner', mealId: 'mealie:y', sourceId: 'mealie:10', courses: [{ kind: 'side', customText: 'Rice' }] },
+      { date: '2026-11-04', slot: 'dinner', customText: 'Tacos', sourceId: 'mealie:11' },
+    ];
+    expect(withoutSuggested(plan, [picked, { date: '2026-11-03', slot: 'dinner', sourceId: 'mealie:10' }]).map((p) => p.date)).toEqual(['2026-11-03', '2026-11-04']);
+    expect(withoutSuggested(plan, [])).toBe(plan);
   });
 });

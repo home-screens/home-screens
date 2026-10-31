@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { MealIngredient, GroceryCategory } from '@/types/config';
+import { COURSE_KINDS } from '@/lib/meal-courses';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
 import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
@@ -19,6 +20,8 @@ interface MealFormOverlayProps {
   saving: boolean;
   saveError: string | null;
 }
+
+/** The kinds of dish a meal can be saved as; "Add a side" lists the sides first. */
 
 export default function MealFormOverlay({
   form,
@@ -48,6 +51,8 @@ export default function MealFormOverlay({
     setFormServings,
     formDifficulty,
     setFormDifficulty,
+    formCategory,
+    setFormCategory,
     formTags,
     setFormTags,
     formIngredients,
@@ -63,7 +68,7 @@ export default function MealFormOverlay({
     nameInputRef,
   } = form;
   const dirty = useFormDirty([
-    formName, formEmoji, formPrepTime, formCookTime, formServings, formDifficulty,
+    formName, formEmoji, formPrepTime, formCookTime, formServings, formDifficulty, formCategory,
     formTags, formIngredients, formRecipeUrl, formNotes, formRating, formFavorite,
   ]);
 
@@ -232,7 +237,8 @@ export default function MealFormOverlay({
               return (
                 <button
                   key={d}
-                  onClick={() => setFormDifficulty(d)}
+                  aria-pressed={isSelected}
+                  onClick={() => setFormDifficulty(isSelected ? undefined : d)}
                   style={{
                     flex: 1,
                     padding: '12px 4px',
@@ -252,6 +258,38 @@ export default function MealFormOverlay({
               );
             })}
           </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <div style={LABEL_STYLE}>{t('mealForm.kindLabel')}</div>
+        <div role="radiogroup" aria-label={t('mealForm.kindLabel')} style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          {COURSE_KINDS.map((kind) => {
+            const isSelected = formCategory === kind;
+            return (
+              <button
+                key={kind}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => setFormCategory(kind)}
+                style={{
+                  padding: '10px 14px',
+                  minHeight: 44,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  borderRadius: 999,
+                  border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
+                  background: isSelected ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
+                  color: isSelected ? '#f59e0b' : 'var(--hs-text-faint)',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {tCore(`meal.kind.${kind}`)}
+              </button>
+            );
+          })}
         </div>
       </div>
 

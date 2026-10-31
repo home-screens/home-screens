@@ -162,6 +162,12 @@
         "beverages": "Drikkevarer",
         "other": "Andet"
       }
+    },
+    "kind": {
+      "main": "Hovedret",
+      "side": "Tilbehør",
+      "dessert": "Dessert",
+      "drink": "Drikke"
     }
   },
   "timer": {
@@ -378,5 +384,14 @@
     "body": "Home Screens har problemer med at læse sine gemte data. Den prøver selv igen om lidt.",
     "help": "Hvis det ikke går væk, kan en voksen åbne Home Screens på en computer og lægge en sikkerhedskopi tilbage under Indstillinger.",
     "retry": "Prøv igen"
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serveringstide {time}, klik for at ændre",
+    "servingTimeTitle": "Serveringstid: {time}",
+    "setServingTime": "Indstil serveringstid",
+    "setTime": "+ Indstil tid",
+    "setMealTime": "Indstil tid for måltid",
+    "servingTime": "Indstil tid for servering",
+    "clearTime": "Nulstil tid"
   }
 }

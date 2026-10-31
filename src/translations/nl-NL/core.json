@@ -162,6 +162,12 @@
         "beverages": "Dranken",
         "other": "Overig"
       }
+    },
+    "kind": {
+      "main": "Hoofdgerecht",
+      "side": "Bijgerecht",
+      "dessert": "Toetje",
+      "drink": "Drankje"
     }
   },
   "timer": {
@@ -378,5 +384,14 @@
     "body": "Home Screens heeft moeite met het lezen van de opgeslagen gegevens. Het probeert het zo vanzelf opnieuw.",
     "help": "Als dit niet weggaat, kan een volwassene Home Screens op een computer openen en bij Instellingen een back-up terugzetten.",
     "retry": "Opnieuw proberen"
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Serveertijd {time}, klik om te wijzigen",
+    "servingTimeTitle": "Serveertijd: {time}",
+    "setServingTime": "Serveertijd instellen",
+    "setTime": "+ Tijd instellen",
+    "setMealTime": "Maaltijdtijd instellen",
+    "servingTime": "Serveertijd",
+    "clearTime": "Tijd wissen"
   }
 }

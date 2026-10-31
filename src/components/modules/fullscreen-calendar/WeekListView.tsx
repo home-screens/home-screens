@@ -24,8 +24,9 @@ import { getMealSlotLabelKey, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, eventOwner, initialsOf } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
 import type { DayExtras, ExtrasIndex } from '@/lib/calendar-extras';
-import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import Glyph from '@/components/ui/Glyph';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseLines } from '../shared/MealCourseLines';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
 
@@ -219,16 +220,43 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, t }: {
   const avatarSize = fontSize * 1.3;
   return (
     <div data-day-extras="" style={{ marginTop: hasEvents ? scale.bu * 0.5 : 0, borderTop: hasEvents ? '1px solid var(--cal-border-subtle)' : undefined, paddingTop: hasEvents ? scale.bu * 0.3 : 0 }}>
-      {day.meals.map((meal) => (
-        <div key={meal.slot} data-day-meal="" style={{ ...rowStyle, border: '1px dashed var(--cal-border)' }}>
-          <span style={{ fontSize: fontSize * 0.65, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cal-text-tertiary)', width: fontSize * 4.2, flexShrink: 0 }}>
-            {t(getMealSlotLabelKey(meal.slot))}
-          </span>
-          <span style={{ fontSize: fontSize * 1.0, fontWeight: 600, color: 'var(--cal-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            <GlyphPrefix value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} />{meal.name}
-          </span>
-        </div>
-      ))}
+      {day.meals.map((meal) => {
+        // Label, picture, name across; the meal's courses under the name.
+        const pictured = mealHasPicture(meal.meal);
+        return (
+          <div
+            key={meal.slot}
+            data-day-meal=""
+            style={{
+              ...rowStyle,
+              display: 'grid',
+              gridTemplateColumns: pictured ? `${fontSize * 4.2}px auto minmax(0, 1fr)` : `${fontSize * 4.2}px minmax(0, 1fr)`,
+              columnGap: scale.bu * 0.8,
+              border: '1px dashed var(--cal-border)',
+            }}
+          >
+            <span style={{ fontSize: fontSize * 0.65, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--cal-text-tertiary)' }}>
+              {t(getMealSlotLabelKey(meal.slot))}
+            </span>
+            {pictured && (
+              <MealPicture meal={meal.meal} photoSize={`${fontSize * 1.75}px`} emojiStyle={{ fontSize, lineHeight: 1 }} />
+            )}
+            <span style={{ fontSize: fontSize * 1.0, fontWeight: 600, color: 'var(--cal-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {meal.name}
+            </span>
+            <MealCourseLines
+              courses={meal.courses}
+              labelSize={`${fontSize * 0.6}px`}
+              nameSize={`${fontSize * 0.9}px`}
+              gap={`${scale.bu * 0.7}px`}
+              rowGap="1px"
+              labelStyle={{ color: 'var(--cal-text-tertiary)', fontWeight: 700, letterSpacing: '0.08em' }}
+              nameStyle={{ color: 'var(--cal-text-secondary)', fontWeight: 500, lineHeight: 1.3 }}
+              style={{ gridColumn: pictured ? 3 : 2, marginTop: 1 }}
+            />
+          </div>
+        );
+      })}
       {chores && (
         <div data-day-chores="" style={rowStyle} aria-label={t('fullscreen-calendar.extras.choresDone', { done: chores.done, total: chores.total })}>
           <span style={{ display: 'flex', flexShrink: 0 }} aria-hidden="true">

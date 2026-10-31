@@ -55,7 +55,20 @@ vi.mock('@/lib/meal-data', () => {
   };
 });
 
+// Mealie is only read in Mealie mode; the block it builds is stubbed here and
+// tested on its own in mealie-map.test.ts and the /api/mealie routes.
+vi.mock('@/lib/mealie-plan', () => ({
+  buildDefaultMealieBlock: vi.fn(async () => ({
+    status: 'ok',
+    plan: [{ date: '2026-10-31', slot: 'dinner', customText: 'From Mealie', sourceId: 'mealie:1' }],
+    meals: [],
+    range: { start: '2026-10-25', end: '2026-11-28' },
+    fetchedAt: 1,
+  })),
+}));
+
 import { GET, PUT } from '@/app/api/meals/data/route';
+import { buildDefaultMealieBlock } from '@/lib/mealie-plan';
 import { readMealData, writeMealData } from '@/lib/meal-data';
 import { mealRevision } from '@/lib/meal-revision';
 import { __resetConfigReadCacheForTests } from '@/lib/config-cache';
@@ -580,5 +593,65 @@ describe('PUT /api/meals/data', () => {
       expect(json.plan).toEqual(populatedData.plan);
       expect(json.settings.weekStartDay).toBe('sunday');
     });
+  });
+});
+
+describe('the plan living in Mealie', () => {
+  const mealieSettings = { ...defaultSettings, planSource: 'mealie' };
+
+  it('adds Mealie\'s plan to the answer, and keeps the hub notes off the wire', async () => {
+    vi.mocked(readMealData).mockResolvedValue({ ...populatedData, settings: mealieSettings, mealieExtras: { 1: { time: '18:30', date: '2026-10-31' } } } as never);
+    const json = await (await GET(new NextRequest('http://localhost/api/meals/data'))).json();
+    expect(json.mealie.plan[0].customText).toBe('From Mealie');
+    expect(json.plan).toEqual(populatedData.plan);
+    expect(json.mealieExtras).toBeUndefined();
+    expect(buildDefaultMealieBlock).toHaveBeenCalledWith(expect.objectContaining({ planSource: 'mealie' }), { 1: { time: '18:30', date: '2026-10-31' } });
+  });
+
+  it('never asks Mealie while the plan lives in Home Screens', async () => {
+    vi.mocked(readMealData).mockResolvedValue(populatedData as never);
+    const json = await (await GET(new NextRequest('http://localhost/api/meals/data'))).json();
+    expect(json.mealie).toBeUndefined();
+    expect(buildDefaultMealieBlock).not.toHaveBeenCalled();
+  });
+
+  it('refuses a plan read from Mealie, so meals.json never keeps a copy of it', async () => {
+    vi.mocked(readMealData).mockResolvedValue(emptyData as never);
+    for (const plan of [
+      [{ date: '2026-10-31', slot: 'dinner', customText: 'Tacos', sourceId: 'mealie:1' }],
+      [{ date: '2026-10-31', slot: 'dinner', customText: 'Tacos', courses: [{ kind: 'side', customText: 'Rice', sourceId: 'mealie:2' }] }],
+    ]) {
+      const res = await PUT(new NextRequest('http://localhost/api/meals/data', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, revision: mealRevision(emptyData as never) }),
+      }));
+      expect(res.status).toBe(400);
+    }
+    expect(writeMealData).not.toHaveBeenCalled();
+  });
+
+  it('keeps the hub notes on Mealie entries through a settings save', async () => {
+    const extras = { 1: { time: '18:30', date: '2026-10-31' } };
+    vi.mocked(readMealData).mockResolvedValue({ ...emptyData, settings: mealieSettings, mealieExtras: extras } as never);
+    const res = await PUT(new NextRequest('http://localhost/api/meals/data', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ settings: { ...mealieSettings, weekStartDay: 'monday' } }),
+    }));
+    expect(res.status).toBe(200);
+    expect(vi.mocked(writeMealData).mock.calls[0][0]).toMatchObject({ mealieExtras: extras, settings: { planSource: 'mealie', weekStartDay: 'monday' } });
+  });
+
+  it('keeps courses on a local plan and drops broken ones', async () => {
+    vi.mocked(readMealData).mockResolvedValue(emptyData as never);
+    const plan = [{ date: '2026-10-31', slot: 'dinner', customText: 'Tacos', courses: [{ kind: 'side', customText: 'Rice' }, { kind: 'soup', customText: 'x' }] }];
+    const res = await PUT(new NextRequest('http://localhost/api/meals/data', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, revision: mealRevision(emptyData as never) }),
+    }));
+    expect(res.status).toBe(200);
+    expect(vi.mocked(writeMealData).mock.calls[0][0]).toMatchObject({ plan: [{ customText: 'Tacos', courses: [{ kind: 'side', customText: 'Rice' }] }] });
   });
 });

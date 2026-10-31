@@ -209,6 +209,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'family', fieldId: 'family.grabLimit', labelKey: 'settings.familyPage.chores.grabLimitLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'grab limit', 'up for grabs', 'chores', 'chore settings', 'extra tickets', 'at once'] },
   { pageId: 'family', fieldId: 'family.grabHold', labelKey: 'settings.familyPage.chores.grabHoldLabel', keywordKeys: ['settings.familyPage.chores.heading', 'settings.familyPage.chores.description'], keywords: ['bonus', 'grab', 'up for grabs', 'chores', 'chore settings', 'bedtime', 'extra tickets', 'comes back'] },
 
+  { pageId: 'meals', fieldId: 'meals.planSource', labelKey: 'settings.mealsPage.planSource.heading', keywordKeys: ['settings.mealsPage.planSource.description'], keywords: ['mealie', 'recipes', 'meal plan'] },
   { pageId: 'meals', fieldId: 'meals.enabledSlots', labelKey: 'settings.mealsPage.slots.heading' },
   { pageId: 'meals', fieldId: 'meals.weekStartDay', labelKey: 'settings.mealsPage.weekStart.heading', keywordKeys: ['settings.mealsPage.weekStart.heading'] },
   { pageId: 'meals', fieldId: 'meals.timeFormat', labelKey: 'settings.mealsPage.timeFormat.heading', keywordKeys: ['settings.mealsPage.timeFormat.description', 'settings.mealsPage.timeFormat.twelveHourLabel', 'settings.mealsPage.timeFormat.twentyFourHourLabel'], keywords: ['clock'] },
@@ -218,6 +219,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
 
   { pageId: 'integrations', fieldId: 'integrations.google', labelKey: 'settings.integrationsPage.google.name' },
   { pageId: 'integrations', fieldId: 'integrations.immich', labelKey: 'settings.integrationsPage.immich.name' },
+  { pageId: 'integrations', fieldId: 'integrations.mealie', labelKey: 'settings.integrationsPage.mealie.name', keywordKeys: ['settings.integrationsPage.mealie.description'], keywords: ['recipes', 'meal plan', 'api token'] },
   { pageId: 'integrations', fieldId: 'integrations.microsoft', labelKey: 'settings.integrationsPage.microsoft.name' },
   { pageId: 'integrations', fieldId: 'integrations.unsplash', labelKey: 'settings.integrationsPage.unsplash.name' },
   { pageId: 'integrations', fieldId: 'integrations.nasa', labelKey: 'settings.integrationsPage.nasa.name' },

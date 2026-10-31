@@ -388,6 +388,16 @@ test.describe('Meal-planner editor modal', () => {
         return plan.map((p) => p.date).sort();
       })
       .toEqual([lastWeekISO, todayISO].sort());
+
+    // Undo puts this week back the way it was: empty.
+    // The toast's Undo, not the editor toolbar's (an icon with the same name).
+    await page.getByRole('button', { name: 'Undo', exact: true }).filter({ hasText: 'Undo' }).click();
+    await expect
+      .poll(async () => {
+        const plan = (await (await request.get('/api/meals/data')).json()).plan as Array<{ date: string }>;
+        return plan.map((p) => p.date);
+      })
+      .toEqual([lastWeekISO]);
   });
 
   test('editing a saved meal round-trips the new name', async ({ page, request }) => {

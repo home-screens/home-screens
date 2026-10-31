@@ -592,7 +592,25 @@ Returns saved meals, weekly plan, grocery checked state, and shared meal-planner
     "timeFormat": "12h"
   },
   "globalTimeFormat": "12h",
+  "mealieConnected": false,
   "revision": "..."
+}
+```
+
+Planned meals can carry `courses`: the sides, desserts, drinks and other main dishes served with them, as `[{ "kind": "side", "mealId": "meal-2" }, { "kind": "dessert", "customText": "Ice cream" }]` (`kind` is `main`, `side`, `dessert` or `drink`). `mealieConnected` says whether a Mealie address and token are saved.
+
+While the plan lives in Mealie (`settings.planSource` is `"mealie"`), the answer also carries a `mealie` block: Mealie's plan for the week before the current one through three weeks after, in the same shape as `plan`, and the Mealie recipes it uses as `meals`. Each entry read from Mealie has a `sourceId` (`mealie:<entry id>`), on the meal and on each course. `status` is `ok`, `stale` (Mealie is not answering; this is the last copy, from `fetchedAt`) or `failed` (no copy at all). The top-level `plan` is still the one kept in `data/meals.json`, unused until the household switches back.
+
+```json
+{
+  "mealie": {
+    "status": "ok",
+    "plan": [{ "date": "2026-10-31", "slot": "dinner", "mealId": "mealie:0f1e2d3c-...", "sourceId": "mealie:96", "courses": [{ "kind": "side", "customText": "Salad", "sourceId": "mealie:97" }] }],
+    "meals": [{ "id": "mealie:0f1e2d3c-...", "name": "Lasagne", "prepTime": 20, "photoUrl": "/api/mealie/image/0f1e2d3c-...?v=dKYT" }],
+    "range": { "start": "2026-10-25", "end": "2026-11-28" },
+    "fetchedAt": 1793405803558,
+    "baseUrl": "http://192.168.1.20:9925"
+  }
 }
 ```
 
@@ -620,6 +638,8 @@ When `settings` is present it replaces the stored settings object: include `"tim
 
 When present, `savedMeals` and `plan` must be arrays, and `groceryChecked` must map the date each week starts on (`YYYY-MM-DD`) to that week's ticked item names; weeks with nothing planned are dropped, and a `plan` write drops the stored ticks of any week it leaves with nothing planned, so a cleared week starts its list over. When `settings` changes the week start day, the stored ticks move to the matching new weeks. An empty-overwrite guard fires when every `savedMeals` / `plan` field present in the body is `[]` and the existing data is not empty; the write is refused with `409` and you can resend with `force: true` to override. If the body sends both fields and only one of them is empty, that is a normal write and the guard stays out of the way. Settings-only and grocery-only writes skip the guard entirely.
 
+A `plan` holding entries read from Mealie (anything with a `sourceId`) is refused with `400`: those are saved with `PUT /api/mealie/plan`.
+
 A write that sends `savedMeals` or `plan` replaces that whole list, so it must also send the `revision` from the copy it was built from (from `GET` or the previous save); without one the answer is `400`. If the meals or the plan changed since that copy, the answer is `409` with `"reason": "revision"` and the meals as they are now, so make the change again on top of them and send the new `revision`. Settings-only and grocery-only writes need no revision and never move it.
 
 **Response:** the same shape as GET, including the `revision` to quote on the next save.
@@ -632,7 +652,7 @@ Returns one week's grocery checked state. `?week=YYYY-MM-DD` picks the week hold
 
 ### GET /api/meals/grocery/list
 
-Returns the **resolved** grocery list for the current week, ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
+Returns the **resolved** grocery list for the current week, ingredients aggregated from every meal planned this week, grouped by aisle, with each item's checked state. While the meal plan lives in Mealie, the list does too: the answer is empty with `"source": "mealie"`. This is what the remote's Grocery tab shows; the aggregation runs server-side with the same generator, so external callers don't have to re-derive it from the meal plan. "Current week" follows the shared week-start meal setting. Powers "what's on the grocery list?" in the [Voice Control guide](/docs/voice-control). Display access.
 
 **Response:**
 ```json
@@ -664,6 +684,55 @@ Toggles a grocery item's checked state on one week's list. If the item is alread
 `direction` is optional. Omitted, the call is the historical flip. Set to `"check"` or `"uncheck"`, the call only ever moves the item in that direction and is a no-op when it's already there, so a repeated voice "check off milk" can never silently un-check it. Any other value is rejected with `400`.
 
 **Response:** `{ "week": "2026-08-02", "groceryChecked": [...], "changed": true }`: that week's ticks after the call. `changed` reports whether this call actually flipped anything.
+
+## Mealie
+
+The hub talks to the household's [Mealie](https://mealie.io) with the address and token saved on Settings > API keys. Errors from Mealie come back as `{ "error": "...", "failure": "..." }`, where `failure` is one of `not-set-up`, `bad-address`, `unreachable`, `not-mealie`, `too-old`, `key-rejected` or `upstream`.
+
+### GET /api/mealie/validate
+
+Checks the saved connection: whether Mealie answers at the address, is version 2.0 or newer, and accepts the token. Requires a valid session.
+
+**Response:** `{ "ok": true, "version": "3.29.0", "household": "Family", "user": "Taylor" }`, or `{ "ok": false, "failure": "key-rejected", "version": "3.29.0" }`.
+
+### GET /api/mealie/plan
+
+Mealie's plan for `?start=YYYY-MM-DD&end=YYYY-MM-DD` (at most sixteen weeks), in the shape of the `mealie` block above, for weeks outside the ones `GET /api/meals/data` carries. Requires a valid session.
+
+### PUT /api/mealie/plan
+
+Writes changed meals to Mealie. Requires a valid session, and the plan must live in Mealie (otherwise `409`).
+
+**Body:**
+```json
+{
+  "cells": [
+    {
+      "date": "2026-10-31",
+      "slot": "dinner",
+      "before": ["mealie:96", "mealie:97"],
+      "after": { "mealId": "mealie:0f1e2d3c-...", "sourceId": "mealie:96", "time": "18:30", "courses": [{ "kind": "dessert", "customText": "Ice cream" }] }
+    }
+  ],
+  "range": { "start": "2026-10-25", "end": "2026-12-19" }
+}
+```
+
+Each cell is one meal as it should read now (`after`, or `null` to clear it) and the `sourceId`s it held in the copy the change was made from (`before`). An entry with a `sourceId` from that meal is updated in place, anything else is created, and entries left out are deleted. A typed `customText` becomes a Mealie note. A `mealId` must be a Mealie recipe (`mealie:<recipe id>`); a meal from the Home Screens library is refused with `400`. Mealie has no serving time or order for a day's entries, so Home Screens keeps `time` and the order of courses itself. `range` is optional: the days the sender has on screen, so the answer covers them.
+
+If any meal's entries in Mealie are no longer the ones in `before`, nothing is written and the answer is `409` with `"reason": "revision"` and the current plan. If Mealie stops part way, the answer is `502` with `"reason": "partial"` and the plan as Mealie now has it.
+
+**Response:** the same shape as `GET /api/meals/data`.
+
+### GET /api/mealie/recipes
+
+One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Requires a valid session.
+
+**Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "..." }], "page": 1, "totalPages": 29, "total": 848 }`
+
+### GET /api/mealie/image/:recipeId
+
+A recipe's photo, fetched from Mealie by the hub so a display never needs to reach Mealie itself. `?size=tiny|min|full` and `?v=` (the version the plan's `photoUrl` carries). Display access. Copies are kept under `data/thumbnails/mealie/` and are not part of backups.
 
 ---
 

@@ -5,8 +5,9 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseLines } from '../shared/MealCourseLines';
+import { useMealMinutes } from '../shared/useMealMinutes';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;
@@ -22,6 +23,7 @@ interface NextMealViewProps {
 
 export function NextMealView({ config, settings, timeFormat, plan, savedMeals, todayISO, currentHour, recipeTapMode }: NextMealViewProps) {
   const t = useTranslate('modules');
+  const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const slots = settings.enabledSlots;
   const showPrepTime = config.showPrepTime ?? true;
@@ -42,7 +44,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
     );
   }
 
-  const { meal, name, slot, date: mealDate, context } = next;
+  const { meal, name, slot, date: mealDate, context, courses, notes } = next;
   const label = context === 'future'
     ? formatDateSync(new Date(mealDate + 'T12:00:00'), 'EEEE', { locale })
     : t(`meal-planner.nextMealLabels.${{ now: 'now', upcoming: 'comingUp', tomorrow: 'tomorrow' }[context]}`);
@@ -74,8 +76,8 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
       >
         {/* Emoji + name (time/tags/prep stay outside the tap target) */}
         <MealTapTarget meal={meal} mode={recipeTapMode} className="flex flex-col items-center gap-2">
-          {(config.showEmoji ?? true) && meal?.emoji && (
-            <span style={{ fontSize: '2.5em', lineHeight: 1 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
+          {(config.showEmoji ?? true) && mealHasPicture(meal) && (
+            <MealPicture meal={meal} photoSize="4.4em" size="min" emojiStyle={{ fontSize: '2.5em', lineHeight: 1 }} />
           )}
           <p
             className="font-semibold text-center leading-tight"
@@ -99,6 +101,8 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
           </p>
         )}
 
+        <MealCourseLines courses={courses} labelSize="0.5em" nameSize="0.75em" gap="0.7em" centered />
+
         {/* Tags */}
         {showTags && meal?.tags && meal.tags.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1.5" style={{ fontSize: '0.55em' }}>
@@ -115,19 +119,19 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
         )}
 
         {/* Prep time */}
-        {showPrepTime && meal?.prepTime && (
+        {showPrepTime && mealMinutes(meal) && (
           <span className="flex items-center gap-1" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}>
-            <span>&#9201;</span> {t('meal-planner.prepTimeMin', { minutes: meal.prepTime })}
+            <span>&#9201;</span> {mealMinutes(meal)}
           </span>
         )}
 
         {/* Notes */}
-        {meal?.notes && (
+        {notes && (
           <p
             className="text-center italic max-w-[80%] leading-snug mt-1"
             style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.tertiary }}
           >
-            {meal.notes}
+            {notes}
           </p>
         )}
       </div>

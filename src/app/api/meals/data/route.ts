@@ -1,24 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, updateMealData, prunePlan, type MealData } from '@/lib/meal-data';
-import { readConfigCached } from '@/lib/config-cache';
 import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays, parseJsonBody } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 import { isGroceryChecked, normalizeGroceryChecked, pruneGroceryChecked, rekeyGroceryChecked } from '@/lib/grocery-checks';
 import { mealRevision } from '@/lib/meal-revision';
-import { settingsTimeFormat } from '@/lib/clock-time';
+import { normalizeStoredPlanEntry } from '@/lib/meal-courses';
+import { mealsAnswer, mealsWire } from '@/lib/meal-answer';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * The stored data as a client sees it: the internal migration marker never
- * goes on the wire (client state must not grow a dependency on migration
- * machinery), and the revision a save has to quote is always present.
- */
-function toWire(data: MealData) {
-  const { timeFormatLegacyStripped: _marker, ...rest } = data;
-  void _marker;
-  return { ...rest, revision: mealRevision(data) };
+function cameFromMealie(entry: unknown): boolean {
+  if (!entry || typeof entry !== 'object') return false;
+  const e = entry as { sourceId?: unknown; courses?: unknown };
+  if (e.sourceId !== undefined) return true;
+  return Array.isArray(e.courses) && e.courses.some((c) => !!c && typeof c === 'object' && (c as { sourceId?: unknown }).sourceId !== undefined);
 }
 
 /**
@@ -35,11 +31,7 @@ function toWire(data: MealData) {
  *
  */
 export const GET = withDisplayAuth(async () => {
-  const [data, config] = await Promise.all([readMealData(), readConfigCached()]);
-  return NextResponse.json({
-    ...toWire(data),
-    globalTimeFormat: settingsTimeFormat(config.settings),
-  });
+  return NextResponse.json(await mealsAnswer(await readMealData()));
 }, 'Failed to read meal data');
 
 /**
@@ -106,6 +98,16 @@ export const PUT = withAuth(async (req: NextRequest) => {
     );
   }
 
+  // A plan read from Mealie carries `sourceId`s and lives in Mealie: a surface
+  // that sends one here has lost track of where the plan is, and storing it
+  // would leave a copy of Mealie's week in meals.json.
+  if (hasPlan && plan.some(cameFromMealie)) {
+    return NextResponse.json(
+      { error: 'This meal plan lives in Mealie. Reopen the meal planner and try again.' },
+      { status: 400 },
+    );
+  }
+
   const replacesArrays = hasSavedMeals || hasPlan;
   if (replacesArrays && (typeof revision !== 'string' || !revision)) {
     return NextResponse.json(
@@ -125,7 +127,7 @@ export const PUT = withAuth(async (req: NextRequest) => {
         {
           error: 'Somebody else changed the meals. Your change was not saved; try it again.',
           reason: 'revision',
-          ...toWire(existing),
+          ...mealsWire(existing),
         },
         { status: 409 },
       );
@@ -155,7 +157,7 @@ export const PUT = withAuth(async (req: NextRequest) => {
       if (guard) throw guard;
     }
 
-    const nextPlan = hasPlan ? prunePlan(plan) : existing.plan;
+    const nextPlan = hasPlan ? prunePlan(plan.map(normalizeStoredPlanEntry)) : existing.plan;
     const nextSettings = hasSettings ? normalizeMealSettings(settings) : existing.settings;
     // Ticks are kept per week, keyed by the day the week starts on. Sent ticks
     // are taken as they are; stored ones follow a change of week start day to
@@ -177,14 +179,11 @@ export const PUT = withAuth(async (req: NextRequest) => {
       plan: nextPlan,
       groceryChecked: nextGroceryChecked,
       settings: nextSettings,
+      ...(existing.mealieExtras ? { mealieExtras: existing.mealieExtras } : {}),
     };
   });
 
   // The same shape as GET, so a client can adopt the response as its next
   // snapshot and hand it to the display cache without asking again.
-  const config = await readConfigCached();
-  return NextResponse.json({
-    ...toWire(data),
-    globalTimeFormat: settingsTimeFormat(config.settings),
-  });
+  return NextResponse.json(await mealsAnswer(data));
 }, 'Failed to update meal data');

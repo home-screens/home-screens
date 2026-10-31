@@ -42,12 +42,29 @@ describe('buildExtrasIndex', () => {
       chores: null,
     });
     expect(index.byDate['2026-08-24'].meals).toEqual([
-      { slot: 'breakfast', name: 'Cereal', emoji: undefined },
-      { slot: 'dinner', name: 'Tacos', emoji: '🌮' },
+      { slot: 'breakfast', name: 'Cereal', emoji: undefined, meal: null, courses: [] },
+      { slot: 'dinner', name: 'Tacos', emoji: '🌮', meal: { id: 'meal-1', name: 'Tacos', emoji: '🌮' }, courses: [] },
     ]);
     expect(index.byDate['2026-08-24'].chores).toBeNull();
     // A plan entry pointing at a deleted meal draws nothing.
     expect(index.byDate['2026-08-25']).toBeUndefined();
+  });
+
+  it('lists a meal\'s courses under it, and leads with the first when there is no main dish', () => {
+    const index = buildExtrasIndex({
+      dates,
+      meals: {
+        settings: { enabledSlots: ['dinner'] },
+        savedMeals: [{ id: 'meal-1', name: 'Tacos' }, { id: 'rice', name: 'Rice' }],
+        plan: [
+          { date: '2026-08-24', slot: 'dinner', mealId: 'meal-1', courses: [{ kind: 'side', mealId: 'rice' }, { kind: 'dessert', customText: 'Flan' }] },
+          { date: '2026-08-25', slot: 'dinner', courses: [{ kind: 'side', customText: 'Big salad' }] },
+        ],
+      },
+      chores: null,
+    });
+    expect(index.byDate['2026-08-24'].meals[0].courses.map((c) => [c.kind, c.name])).toEqual([['side', 'Rice'], ['dessert', 'Flan']]);
+    expect(index.byDate['2026-08-25'].meals[0]).toMatchObject({ name: 'Big salad', courses: [] });
   });
 
   it('hasExtras reports whether any listed date has content', () => {

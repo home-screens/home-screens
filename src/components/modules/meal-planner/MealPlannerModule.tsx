@@ -5,6 +5,7 @@ import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, ModuleSty
 import { useTZClock } from '@/hooks/useTZClock';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { mergeMealSources, type MealieWireBlock } from '@/lib/meal-sources';
 import { getWeekRange, filterPlanToWeek, toISODate, DEFAULT_MEAL_SETTINGS, resolveMealTimeFormat } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
@@ -16,6 +17,7 @@ import { TodayView } from './TodayView';
 import { NextMealView } from './NextMealView';
 import { CompactView } from './CompactView';
 import { ListView } from './ListView';
+import { mealieWords } from '../shared/mealie-problem';
 
 interface MealDataResponse {
   savedMeals: SavedMeal[];
@@ -23,6 +25,8 @@ interface MealDataResponse {
   settings?: MealSettings;
   /** Household GlobalSettings.timeFormat, reported alongside the settings */
   globalTimeFormat?: TimeFormat;
+  /** Mealie's plan, while the plan lives there (see `meal-sources.ts`). */
+  mealie?: MealieWireBlock;
 }
 
 interface MealPlannerModuleProps {
@@ -42,8 +46,14 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   const currentHour = now.getHours();
 
   const [mealData, mealError] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['meal-planner']?.ttlMs ?? 60_000);
-  const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
-  const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
+  // The plan lives in meals.json or in Mealie; the shared rule decides which
+  // one this wall draws, the same way the phone and the editor do.
+  const merged = useMemo(
+    () => (mealData ? mergeMealSources(mealData, mealData.settings ?? DEFAULT_MEAL_SETTINGS) : null),
+    [mealData],
+  );
+  const savedMeals = useMemo(() => merged?.savedMeals ?? [], [merged]);
+  const fullPlan = useMemo(() => merged?.plan ?? [], [merged]);
   // Settings live in the shared meals.json, edited via /remote.
   const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
   // Effective serving-time format: an explicit meal override wins, else the
@@ -68,6 +78,20 @@ export default function MealPlannerModule({ config, style, timezone, screenId, m
   // yet" flashed on every load of a slow Pi.
   if (mealData === null) {
     return <ModuleLoadingState style={style} message={t('meal-planner.loading')} error={mealError} />;
+  }
+
+  // Mealie never answered and there is no copy: say so rather than "nothing
+  // planned", which would be wrong, since the plan is in Mealie.
+  if (merged?.source === 'mealie' && merged.mealie?.status !== 'ok' && merged.mealie?.status !== 'stale') {
+    return (
+      <ModuleWrapper style={style}>
+        <FamilyEmptyState
+          icon={<>&#127869;</>}
+          title={t(`meal-planner.${mealieWords(merged?.mealie?.failure)}`)}
+          hint={t(`meal-planner.${mealieWords(merged?.mealie?.failure)}Hint`)}
+        />
+      </ModuleWrapper>
+    );
   }
 
   if (!hasMeals) {

@@ -47,7 +47,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   const typographySizeOptions = useTypographySizeOptions();
 
   const [showModal, setShowModal] = useState(false);
-  const { mealData, handleModalUpdate, toggleGroceryItem, saveError } = useMealPlannerData<Config>({
+  const { mealData, handleModalUpdate, toggleGroceryItem, saveError, reload, showMealieRange, mealieWeeks, suggestFromMealie } = useMealPlannerData<Config>({
     mod,
     set,
     showModal,
@@ -123,9 +123,17 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Open Modal */}
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-          <span>{t('configSections.fullscreen-meal-planner.savedMealsCount', { count: mealData.savedMeals.length })}</span>
-          <span>&middot;</span>
-          <span>{t('configSections.fullscreen-meal-planner.plannedCount', { count: mealData.plan.length })}</span>
+          {mealData.source === 'mealie' ? (
+            // Mealie's recipes are not a library kept here, and its plan here
+            // is only the weeks around today: say where the plan lives instead.
+            <span>{t('mealPlannerModal.mealie.fromMealie')}</span>
+          ) : (
+            <>
+              <span>{t('configSections.fullscreen-meal-planner.savedMealsCount', { count: mealData.savedMeals.length })}</span>
+              <span>&middot;</span>
+              <span>{t('configSections.fullscreen-meal-planner.plannedCount', { count: mealData.plan.length })}</span>
+            </>
+          )}
         </div>
         <Button
           variant="primary"
@@ -158,6 +166,14 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           accentColor={accentColor}
           onUpdate={handleModalUpdate}
           onClose={() => setShowModal(false)}
+          source={mealData.source}
+          mealie={mealData.mealie}
+          onShowMealieRange={showMealieRange}
+          mealieWeeks={mealieWeeks}
+          onReload={reload}
+          onSuggestFromMealie={suggestFromMealie}
+          saveError={saveError}
+          loaded={mealData.loaded}
         />
       )}
     </>

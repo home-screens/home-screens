@@ -24,6 +24,11 @@ export const dynamic = 'force-dynamic';
 export const GET = withDisplayAuth(async () => {
   const data = await readMealData();
   const { start, end } = getWeekRange(fromISODate(await householdToday()), data.settings.weekStartDay);
+  // While the plan lives in Mealie the shopping list does too: the plan kept
+  // here is not this week's any more, and a list built from it would be wrong.
+  if (data.settings.planSource === 'mealie') {
+    return NextResponse.json({ week: { start, end }, categories: [], total: 0, checked: 0, source: 'mealie' });
+  }
   const weekPlan = filterPlanToWeek(data.plan, start, end);
   const list = generateGroceryList(weekPlan, data.savedMeals, groceryChecksForWeek(data.groceryChecked, start));
 

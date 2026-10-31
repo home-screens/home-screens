@@ -2,7 +2,8 @@
 
 import { useState, useMemo, type Dispatch, type SetStateAction } from 'react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
-import { normalizeTag } from '@/lib/meal-constants';
+import type { LibraryFilter } from '@/lib/meal-constants';
+import { filterLibraryMeals } from '@/lib/meal-dish-rules';
 import {
   upsertSavedMeal,
   removeSavedMeal,
@@ -46,7 +47,7 @@ export function useMealsLibrary({
   const form = useMealForm();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterTag, setFilterTag] = useState<string>('all');
+  const [filterTag, setFilterTag] = useState<LibraryFilter>('all');
 
   const openNewMealForm = () => {
     form.openNew(() => setSaveError(null));
@@ -93,22 +94,10 @@ export function useMealsLibrary({
     await saveData((c) => ({ savedMeals: toggleSavedMealFavorite(c.savedMeals, mealId) }));
   };
 
-  const filteredMeals = useMemo(() => {
-    let result = savedMeals;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter((m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.tags?.some((t) => t.toLowerCase().includes(q)),
-      );
-    }
-    if (filterTag === 'favorites') {
-      result = result.filter((m) => m.isFavorite);
-    } else if (filterTag !== 'all') {
-      result = result.filter((m) => m.tags?.some((t) => normalizeTag(t) === filterTag));
-    }
-    return result;
-  }, [savedMeals, searchQuery, filterTag]);
+  const filteredMeals = useMemo(
+    () => filterLibraryMeals(savedMeals, searchQuery, filterTag),
+    [savedMeals, searchQuery, filterTag],
+  );
 
   return {
     form,

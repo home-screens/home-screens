@@ -113,6 +113,7 @@ Most of Home Screens needs no key at all. Keys that are needed live on **Setting
 | Google | Nothing to add for the Calendar sign-in or the Google Photos import: both work out of the box. The card holds a Maps key for traffic and commute times (Routes), and the fields for [your own Google app](/docs/calendars#own-google-app) if you would rather use one. |
 | TomTom | Traffic and commute times, as an alternative to Google. Turn on the **Geocoding**, **Reverse Geocoding** and **Routing** APIs on the key itself, not just the account. |
 | Immich | Photos from your own Immich photo library |
+| Mealie | Your Mealie recipes and meal plan on every meal planner (see [Plan with Mealie](/docs/meals#mealie)) |
 | Microsoft OneDrive | Photos from a OneDrive folder, after a one-time sign-in from the photo module (see [OneDrive photos](/docs/modules#one-drive-photos)) |
 | Unsplash | Free stock photo backgrounds (50 requests an hour on the free plan) |
 | NASA | The Astronomy Picture of the Day as a background. The image library search works without a key. |

@@ -370,8 +370,14 @@
     "todaysMeals": "Refeições de hoje",
     "now": "agora",
     "servingAt": "servir às {time}",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes} min",
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} h",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "minutesShort": "{minutes} min",
+      "hoursShort": "{hours} h",
+      "hoursMinutesShort": "{hours} h {minutes} min"
+    },
     "slotShort": {
       "breakfast": "C",
       "lunch": "A",
@@ -395,7 +401,20 @@
     "openRecipeAria": "Abrir a receita de {name}",
     "showQrInstead": "Mostrar código QR",
     "closeRecipe": "Fechar",
-    "planFromPhoneHint": "Planeje as refeições pelo celular: abra {url} e toque em Refeições"
+    "planFromPhoneHint": "Planeje as refeições pelo celular: abra {url} e toque em Refeições",
+    "courses": {
+      "main": "Também",
+      "side": "Acompanhamento",
+      "dessert": "Sobremesa",
+      "drink": "Bebida"
+    },
+    "withCourses": "com {dishes}",
+    "mealieUnreachable": "Não foi possível falar com o Mealie agora",
+    "mealieUnreachableHint": "O plano de refeições volta a aparecer quando o Mealie responder.",
+    "mealieNotConnected": "O Mealie não está conectado",
+    "mealieNotConnectedHint": "Conecte-o em Configurações no computador para mostrar o plano de refeições.",
+    "mealieTokenRefused": "O Mealie não está deixando o Home Screens entrar",
+    "mealieTokenRefusedHint": "Salve um novo token do Mealie em Configurações no computador para mostrar o plano de refeições."
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Refeições da semana",
@@ -407,8 +426,6 @@
     "noMealsPlannedToday": "Nenhuma refeição planejada para hoje",
     "noUpcomingMeals": "Nenhuma refeição planejada em breve",
     "mealsPlannedCount": "{filled} de {total} refeições planejadas",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes} min",
     "heroLabels": {
       "now": "Agora",
       "upNext": "A seguir",

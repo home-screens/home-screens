@@ -1037,7 +1037,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show meal emoji",
+          "description": "Show each meal's picture: its photo from Mealie, or its emoji",
           "default": true
         },
         {
@@ -5348,7 +5348,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show meal emoji",
+          "description": "Show each meal's picture: its photo from Mealie, or its emoji",
           "default": true
         },
         {
@@ -9778,6 +9778,15 @@
             "text": "boolean"
           },
           "description": "Set once the app has cleared an old time-format default from `settings`; leave it alone"
+        },
+        {
+          "name": "mealieExtras",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "MealieExtras"
+          },
+          "description": "What the hub remembers about Mealie plan entries that Mealie cannot hold, keyed by entry id"
         }
       ]
     },
@@ -9818,16 +9827,15 @@
           "optional": true,
           "type": {
             "kind": "string",
-            "text": "\"main\" | \"side\" | \"dessert\" | \"drink\" | \"snack\"",
+            "text": "MealCourseKind",
             "values": [
               "main",
               "side",
               "dessert",
-              "drink",
-              "snack"
+              "drink"
             ]
           },
-          "description": "Kind of dish"
+          "description": "Kind of dish: a main dish, a side, a dessert or a drink. Unset means a main dish."
         },
         {
           "name": "tags",
@@ -9923,6 +9931,15 @@
             "text": "boolean"
           },
           "description": "Marked as a favorite"
+        },
+        {
+          "name": "photoUrl",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "A picture of the dish, when it comes from Mealie"
         }
       ]
     },
@@ -10026,6 +10043,18 @@
             ]
           },
           "description": "`12h` or `24h` for meal times. Unset follows the household time format"
+        },
+        {
+          "name": "planSource",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"mealie\"",
+            "values": [
+              "mealie"
+            ]
+          },
+          "description": "Where the meal plan lives: unset for Home Screens, `mealie` for a connected Mealie"
         }
       ]
     },
@@ -10093,6 +10122,24 @@
             "text": "string"
           },
           "description": "Serving time, as 24-hour `HH:MM`, instead of the slot's default for this one day"
+        },
+        {
+          "name": "courses",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "MealCourse[]"
+          },
+          "description": "More dishes served with this meal: sides, desserts, drinks or another main dish (see MealCourse)"
+        },
+        {
+          "name": "sourceId",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "Set when the meal was read from Mealie"
         }
       ]
     },
@@ -11224,6 +11271,73 @@
         {
           "method": "GET",
           "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/categories",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/image/{recipeId}",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/plan",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        },
+        {
+          "method": "PUT",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/plan/suggest",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/recipe/{recipeId}",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/recipes",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/validate",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
         }
       ]
     },

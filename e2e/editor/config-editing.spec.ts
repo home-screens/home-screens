@@ -929,11 +929,11 @@ test('affirmations: toggling Weather-Aware Content persists', async ({ page, req
   expect((await moduleConfig(request, 'affirmations')).weatherAware).toBe(false);
 });
 
-test('meal-planner: toggling Show Emoji persists', async ({ page, request }) => {
+test('meal-planner: toggling Show Pictures persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('meal-planner'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Emoji' }).click();
+    await page.getByRole('switch', { name: 'Show Pictures' }).click();
   });
 
   expect((await moduleConfig(request, 'meal-planner')).showEmoji).toBe(false);
@@ -1213,11 +1213,11 @@ test('fullscreen-chore-chart: picking a celebration size persists and Off hides 
   await expect(page.getByRole('switch', { name: 'Play a sound' })).toHaveCount(0);
 });
 
-test('fullscreen-meal-planner: toggling Show Emoji persists', async ({ page, request }) => {
+test('fullscreen-meal-planner: toggling Show Pictures persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('fullscreen-meal-planner'));
 
   await autosaved(page, async () => {
-    await page.getByRole('switch', { name: 'Show Emoji' }).click();
+    await page.getByRole('switch', { name: 'Show Pictures' }).click();
   });
 
   expect((await moduleConfig(request, 'fullscreen-meal-planner')).showEmoji).toBe(false);

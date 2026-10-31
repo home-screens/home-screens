@@ -308,6 +308,7 @@
       "clearWeek": {
         "title": "¿Vaciar el plan?",
         "description": "Se quitarán todas las comidas planeadas para esta semana.",
+        "descriptionMealie": "Se quitarán todas las comidas planeadas para esta semana, también en Mealie.",
         "confirmLabel": "Vaciar semana"
       },
       "deleteMeal": {
@@ -319,6 +320,12 @@
         "title": "¿Cambiar las comidas de esta semana?",
         "description": "Sugerir elige comidas nuevas para toda la semana. Las comidas ya planeadas para esta semana se cambiarán por otras.",
         "confirmLabel": "Cambiar comidas"
+      },
+      "copyWeek": {
+        "title": "¿Sustituir esta semana por las comidas de la semana pasada?",
+        "description": "Las comidas ya planeadas para esta semana se sustituirán por las de la semana pasada.",
+        "descriptionMealie": "Las comidas ya planeadas para esta semana se sustituirán por las de la semana pasada, también en Mealie.",
+        "confirmLabel": "Sustituir comidas"
       }
     },
     "weekView": {
@@ -348,6 +355,9 @@
       "filters": {
         "all": "Todas",
         "favorites": "Favoritas",
+        "side": "Guarniciones",
+        "dessert": "Postres",
+        "drink": "Bebidas",
         "quick": "Rápida",
         "healthy": "Saludable",
         "comfort": "Reconfortante",
@@ -356,7 +366,19 @@
     },
     "loadError": "No se pudieron cargar tus comidas. Comprueba que el hub está encendido y vuelve a intentarlo.",
     "retry": "Intentar de nuevo",
-    "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
+    "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "duration": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} h",
+      "hoursMinutes": "{hours} h {minutes} min",
+      "prep": "{time} de preparación"
+    },
+    "notice": {
+      "copied": "Comidas de la semana pasada copiadas.",
+      "cleared": "Se han quitado las comidas de esta semana.",
+      "removed": "Se ha quitado {name}.",
+      "undo": "Deshacer"
+    }
   },
   "mealForm": {
     "titleNew": "Añadir comida",
@@ -374,6 +396,7 @@
     "servingsLabel": "Raciones",
     "servingsPlaceholder": "4",
     "difficultyLabel": "Dificultad",
+    "kindLabel": "Tipo de plato",
     "tagsLabel": "Etiquetas",
     "ingredientsLabel": "Ingredientes",
     "ingredientNamePlaceholder": "Nombre",
@@ -393,6 +416,7 @@
     "actions": {
       "suggest": "Sugerir",
       "suggestAriaLabel": "Sugerir comidas al azar",
+      "suggestMealieAriaLabel": "Rellenar las cenas vacías con recetas de Mealie",
       "copyLastWeek": "Copiar la semana pasada",
       "copyLastWeekAriaLabel": "Copiar el plan de la semana pasada",
       "clear": "Vaciar",
@@ -407,7 +431,11 @@
       "addMeal": "+ Añadir comida",
       "planSlotAriaLabel": "Planificar {slot} para {day}",
       "mealFallback": "comida",
-      "changeMealAriaLabel": "Cambiar {meal} de {slot}"
+      "changeMealAriaLabel": "Cambiar {meal} de {slot}",
+      "moreCoursesAriaLabel": {
+        "one": "y 1 plato más",
+        "other": "y {count} platos más"
+      }
     },
     "picker": {
       "title": "Elige una comida",
@@ -467,6 +495,17 @@
       "submit": "Guardar ajustes",
       "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
       "networkError": "Error de red. Inténtalo de nuevo."
+    },
+    "planSource": {
+      "heading": "Tu plan de comidas está en",
+      "homeScreens": "Home Screens",
+      "mealie": "Mealie",
+      "notConnectedNote": "Mealie es una app de recetas aparte que usan algunas familias. Si la usáis, conectadla en Ajustes en el ordenador. Si no, aquí no hay nada que hacer.",
+      "connectedNote": "Mealie está conectado al hogar «{household}». Elígelo para planificar con las recetas y el plan que tienes allí.",
+      "connectedNoteNoName": "Mealie está conectado. Elígelo para planificar con las recetas y el plan que tienes allí.",
+      "onNote": "Con Mealie, las comidas vienen de Mealie, aquí y en la pared, y lo que planees aquí se guarda en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
+      "switchingToMealieNote": "Al guardar, las comidas vendrán de Mealie aquí y en la pantalla, y lo que planees aquí se guardará en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
+      "switchingToHomeNote": "Al guardar, el móvil y la pantalla vuelven al plan de Home Screens que tenías antes. En Mealie no cambia nada."
     }
   },
   "rewardForm": {
@@ -964,15 +1003,6 @@
     "notConfigured": "Aún no hay tareas. Pídele a una persona mayor que añada una tabla de tareas a la pantalla.",
     "grownUpsLink": "Personas mayores: abrir el mando familiar"
   },
-  "mealTimeChip": {
-    "servingTimeAria": "Hora de servir {time}, haz clic para cambiar",
-    "servingTimeTitle": "Hora de servir: {time}",
-    "setServingTime": "Establecer hora de servir",
-    "setTime": "+ Establecer hora",
-    "setMealTime": "Establecer hora de la comida",
-    "servingTime": "Hora de servir",
-    "clearTime": "Borrar hora"
-  },
   "timers": {
     "title": "Temporizadores",
     "quickTimer": "Temporizador rápido",
@@ -1273,6 +1303,174 @@
       "removed": "Nota quitada",
       "undo": "Deshacer",
       "atLimit": "Una nota del día no puede ser más larga."
+    }
+  },
+  "mealSheet": {
+    "ariaLabel": "{slot}, {date}",
+    "savesToMealie": "Se guarda en Mealie",
+    "done": "Hecho",
+    "mainDish": "Plato principal",
+    "change": "Cambiar",
+    "changeAriaLabel": "Cambiar {meal}",
+    "chooseMain": "Elegir un plato principal",
+    "withThisMeal": "Con esta comida",
+    "swapAriaLabel": "Cambiar {meal} ({kind})",
+    "moveUp": "Subir {meal}",
+    "moveDown": "Bajar {meal}",
+    "remove": "Quitar {meal}",
+    "add": {
+      "side": "Añadir guarnición",
+      "dessert": "Añadir postre",
+      "drink": "Añadir bebida",
+      "main": "Añadir otro plato"
+    },
+    "servingTime": "Hora de servir",
+    "usualTime": "Normalmente a las {time}",
+    "timeThisMeal": "Solo para esta comida",
+    "timePick": "Elige una hora para esta comida",
+    "timeKeptHere": "Home Screens guarda esta hora. Mealie no tiene hora, así que no aparecerá allí.",
+    "clear": {
+      "breakfast": "Quitar este desayuno",
+      "lunch": "Quitar esta comida",
+      "snack": "Quitar esta merienda",
+      "dinner": "Quitar esta cena"
+    },
+    "clearConfirm": {
+      "title": {
+        "breakfast": "¿Quitar el desayuno del {day}?",
+        "lunch": "¿Quitar la comida del {day}?",
+        "snack": "¿Quitar la merienda del {day}?",
+        "dinner": "¿Quitar la cena del {day}?"
+      },
+      "confirm": {
+        "breakfast": "Quitar desayuno",
+        "lunch": "Quitar comida",
+        "snack": "Quitar merienda",
+        "dinner": "Quitar cena"
+      },
+      "description": {
+        "one": "Esto quita {dish} del plan, junto con el plato que va con él.",
+        "other": "Esto quita {dish} del plan, junto con los {count} platos que van con él."
+      },
+      "descriptionMealie": {
+        "one": "Esto quita {dish} del plan, también en Mealie, junto con el plato que va con él.",
+        "other": "Esto quita {dish} del plan, también en Mealie, junto con los {count} platos que van con él."
+      }
+    },
+    "timeAndOrderKeptHere": "Home Screens guarda esta hora y el orden de los platos. Mealie no tiene sitio para ninguno de los dos, así que allí no aparecerán."
+  },
+  "mealPicker": {
+    "cancel": "Cancelar",
+    "swap": {
+      "side": "Cambiar la guarnición",
+      "dessert": "Cambiar el postre",
+      "drink": "Cambiar la bebida",
+      "main": "Cambiar el otro plato"
+    },
+    "savedAs": {
+      "side": "Guarniciones",
+      "dessert": "Postres",
+      "drink": "Bebidas",
+      "main": "Platos principales"
+    },
+    "everythingElse": "Todo lo demás",
+    "typePlaceholder": {
+      "side": "Escribe una guarnición, como pan de ajo",
+      "dessert": "Escribe un postre, como helado",
+      "drink": "Escribe una bebida, como limonada",
+      "main": "Escribe una comida, como tacos"
+    }
+  },
+  "mealie": {
+    "pill": {
+      "label": "De Mealie",
+      "updated": "· Actualizado: {time}"
+    },
+    "openMealie": "Abrir Mealie",
+    "unreachable": {
+      "title": "Ahora mismo no se puede conectar con Mealie",
+      "description": "Tus comidas están en Mealie y Home Screens no puede llegar a ellas. Comprueba que Mealie está funcionando y vuelve a intentarlo."
+    },
+    "notConnected": {
+      "title": "Mealie no está conectado",
+      "description": "El plan de comidas está puesto para venir de Mealie, pero no están guardados su dirección o su token. Añádelos en el ordenador en Ajustes > Claves de API, o vuelve a poner el plan en Home Screens en los ajustes de comidas."
+    },
+    "tokenRefused": {
+      "title": "Mealie ya no deja entrar a Home Screens",
+      "description": "Mealie ya no acepta el token guardado. Puede que se borrara en Mealie. Crea uno nuevo allí y guárdalo en el ordenador en Ajustes > Claves de API."
+    },
+    "paused": {
+      "description": "La planificación está en pausa hasta que vuelva Mealie.",
+      "descriptionWithTime": "La planificación está en pausa hasta que vuelva Mealie. Última copia: {time}."
+    },
+    "search": {
+      "placeholder": "Buscar recetas en Mealie",
+      "placeholderCount": {
+        "one": "Buscar entre 1 receta en Mealie",
+        "other": "Buscar entre {count} recetas en Mealie"
+      },
+      "ariaLabel": "Buscar recetas en Mealie",
+      "clear": "Borrar la búsqueda",
+      "favorites": "Favoritas",
+      "recent": "Hechas hace poco",
+      "looking": "Buscando en Mealie…",
+      "recipeCount": {
+        "one": "1 receta",
+        "other": "{count} recetas"
+      },
+      "favoritesCount": {
+        "one": "1 favorita",
+        "other": "{count} favoritas, de la A a la Z"
+      },
+      "recentHeading": "Las más recientes primero",
+      "noneTitle": "No hay recetas llamadas «{query}» en Mealie",
+      "noneDescription": "Revisa cómo está escrito, o escríbelo tal cual. Irá al plan como una nota, sin receta.",
+      "noFavoritesTitle": "Aún no hay favoritas",
+      "noFavoritesDescription": "Toca el corazón de una receta en Mealie y aparecerá aquí.",
+      "noRecentTitle": "Aún no has hecho nada",
+      "noRecentDescription": "Las recetas que marques como hechas en Mealie aparecen aquí, las más recientes primero.",
+      "errorDescription": "Mealie no ha respondido. Comprueba que está funcionando y vuelve a intentarlo.",
+      "typeInstead": "Escribir «{query}» tal cual",
+      "typeInsteadNote": "Sin receta. Mealie lo guarda como nota.",
+      "categoryCount": {
+        "one": "1 receta en {category}",
+        "other": "{count} recetas en {category}"
+      },
+      "noneInCategoryTitle": "Todavía no hay recetas en {category}",
+      "noneInCategoryDescription": "Busca una receta por su nombre o elige Favoritas."
+    },
+    "library": {
+      "info": "Las recetas están en Mealie. Toca una para abrirla allí.",
+      "placeholder": "Buscar recetas…",
+      "placeholderCount": {
+        "one": "Buscar entre 1 receta…",
+        "other": "Buscar entre {count} recetas…"
+      },
+      "noneDescription": "Revisa cómo está escrito o prueba con una palabra más corta.",
+      "emptyTitle": "Aún no hay recetas en Mealie",
+      "emptyDescription": "Las recetas que añadas en Mealie aparecen aquí.",
+      "openRecipeAriaLabel": "Abrir {meal} en Mealie"
+    },
+    "grocery": {
+      "title": "Tu lista de la compra está en Mealie",
+      "description": "Mientras tu plan de comidas esté en Mealie, tu lista también. Abre Mealie para ver lo que necesitas y marcar lo que ya tienes."
+    },
+    "suggest": {
+      "allPlanned": "Todas las cenas de esta semana ya están planeadas.",
+      "nothingFits": "Mealie no tenía recetas que sugerir para esas comidas. Revisa las reglas del plan de comidas en Mealie.",
+      "failed": "Mealie no ha podido sugerir comidas ahora mismo. Inténtalo de nuevo en un momento.",
+      "noDinners": "Sugerir rellena las cenas vacías, y la cena está desactivada en los ajustes de comidas.",
+      "confirmTitle": "¿Rellenar las cenas vacías?",
+      "confirmDescription": {
+        "one": "Home Screens elige una cena de tus recetas de Mealie para la noche vacía de esta semana y la guarda en Mealie. Una noche con una regla del plan de comidas en Mealie sigue esa regla.",
+        "other": "Home Screens elige cenas de tus recetas de Mealie para las {count} noches vacías de esta semana y las guarda en Mealie. Las noches con una regla del plan de comidas en Mealie siguen esa regla."
+      },
+      "confirmLabel": "Rellenar cenas",
+      "done": {
+        "one": "Cena planeada para {days}.",
+        "other": "Cenas planeadas para {days}."
+      },
+      "doneEveryNight": "Cena planeada para cada noche de esta semana."
     }
   }
 }

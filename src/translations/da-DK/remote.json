@@ -307,7 +307,8 @@
     "confirm": {
       "clearWeek": {
         "title": "Nulstil madplan?",
-        "description": "Dette til fjerne alle planlagte måltider i denne uge.",
+        "description": "Dette fjerner alle planlagte måltider i denne uge.",
+        "descriptionMealie": "Dette fjerner alle planlagte måltider i denne uge, også i Mealie.",
         "confirmLabel": "Nulstil uge"
       },
       "deleteMeal": {
@@ -318,6 +319,12 @@
       "suggestWeek": {
         "title": "Erstat denne uges måltider?",
         "description": "Foreslå vælger nye måltider til hele ugen. De måltider, der allerede er planlagt i denne uge, bliver erstattet.",
+        "confirmLabel": "Erstat måltider"
+      },
+      "copyWeek": {
+        "title": "Erstat denne uge med sidste uges måltider?",
+        "description": "De måltider, der allerede er planlagt for denne uge, erstattes af sidste uges.",
+        "descriptionMealie": "De måltider, der allerede er planlagt for denne uge, erstattes af sidste uges, også i Mealie.",
         "confirmLabel": "Erstat måltider"
       }
     },
@@ -348,6 +355,9 @@
       "filters": {
         "all": "Alle",
         "favorites": "Favoritter",
+        "side": "Tilbehør",
+        "dessert": "Desserter",
+        "drink": "Drikke",
         "quick": "Hurtig",
         "healthy": "Sund",
         "comfort": "Trøstemad",
@@ -356,7 +366,19 @@
     },
     "loadError": "Dine måltider kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
     "retry": "Prøv igen",
-    "saveFailed": "Kunne ikke gemme. Prøv igen."
+    "saveFailed": "Kunne ikke gemme. Prøv igen.",
+    "duration": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} t",
+      "hoursMinutes": "{hours} t {minutes} min",
+      "prep": "{time} forberedelse"
+    },
+    "notice": {
+      "copied": "Sidste uges måltider er kopieret.",
+      "cleared": "Ugens måltider er fjernet.",
+      "removed": "{name} er taget af.",
+      "undo": "Fortryd"
+    }
   },
   "mealForm": {
     "titleNew": "Tilføj måltid",
@@ -374,6 +396,7 @@
     "servingsLabel": "Portioner",
     "servingsPlaceholder": "4",
     "difficultyLabel": "Sværhedsgrad",
+    "kindLabel": "Slags ret",
     "tagsLabel": "Tags",
     "ingredientsLabel": "Ingredienser",
     "ingredientNamePlaceholder": "Navn",
@@ -393,6 +416,7 @@
     "actions": {
       "suggest": "Foreslå",
       "suggestAriaLabel": "Foreslå tilfældige måltider",
+      "suggestMealieAriaLabel": "Udfyld de tomme aftensmåltider med opskrifter fra Mealie",
       "copyLastWeek": "Kopiér sidste uge",
       "copyLastWeekAriaLabel": "Kopiér sidste uges plan",
       "clear": "Ryd",
@@ -407,7 +431,11 @@
       "addMeal": "+ Tilføj måltid",
       "planSlotAriaLabel": "Planlæg {slot} til {day}",
       "mealFallback": "måltid",
-      "changeMealAriaLabel": "Skift {meal} for {slot}"
+      "changeMealAriaLabel": "Skift {meal} for {slot}",
+      "moreCoursesAriaLabel": {
+        "one": "og 1 ret mere",
+        "other": "og {count} retter mere"
+      }
     },
     "picker": {
       "title": "Vælg et måltid",
@@ -467,6 +495,17 @@
       "submit": "Gem indstillinger",
       "saveFailed": "Kunne ikke gemme. Prøv igen.",
       "networkError": "Netværksfejl. Prøv igen."
+    },
+    "planSource": {
+      "heading": "Jeres madplan ligger i",
+      "homeScreens": "Home Screens",
+      "mealie": "Mealie",
+      "notConnectedNote": "Mealie er en separat opskrifts-app, som nogle familier bruger. Hvis I gør, så forbind den under Indstillinger på computeren. Hvis ikke, er der intet at gøre her.",
+      "connectedNote": "Mealie er forbundet til husstanden “{household}”. Vælg det for at planlægge med de opskrifter og den madplan, I har der.",
+      "connectedNoteNoName": "Mealie er forbundet. Vælg det for at planlægge med de opskrifter og den madplan, I har der.",
+      "onNote": "Med Mealie kommer måltiderne fra Mealie, her og på væggen, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan gemmes og kommer tilbage, hvis du skifter tilbage.",
+      "switchingToMealieNote": "Når du har gemt, kommer måltiderne fra Mealie her og på skærmen, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan bliver gemt og kommer tilbage, hvis du skifter tilbage.",
+      "switchingToHomeNote": "Når du har gemt, viser telefonen og skærmen igen den Home Screens-plan, du havde før. Intet ændrer sig i Mealie."
     }
   },
   "rewardForm": {
@@ -964,15 +1003,6 @@
     "notConfigured": "Ingen pligter endnu. Bed en voksen om at tilføje et pligtskema til skærmen.",
     "grownUpsLink": "Voksne: åbn familiefjernbetjeningen"
   },
-  "mealTimeChip": {
-    "servingTimeAria": "Serveringstide {time}, klik for at ændre",
-    "servingTimeTitle": "Serveringstid: {time}",
-    "setServingTime": "Indstil serveringstid",
-    "setTime": "+ Indstil tid",
-    "setMealTime": "Indstil tid for måltid",
-    "servingTime": "Indstil tid for servering",
-    "clearTime": "Nulstil tid"
-  },
   "timers": {
     "title": "Timere",
     "quickTimer": "Hurtig timer",
@@ -1273,6 +1303,174 @@
       "removed": "Noten er fjernet",
       "undo": "Fortryd",
       "atLimit": "Længere kan en dagsnote ikke være."
+    }
+  },
+  "mealSheet": {
+    "ariaLabel": "{slot}, {date}",
+    "savesToMealie": "Gemmes i Mealie",
+    "done": "Færdig",
+    "mainDish": "Hovedret",
+    "change": "Skift",
+    "changeAriaLabel": "Skift {meal}",
+    "chooseMain": "Vælg en hovedret",
+    "withThisMeal": "Til dette måltid",
+    "swapAriaLabel": "Skift {meal} ({kind})",
+    "moveUp": "Flyt {meal} op",
+    "moveDown": "Flyt {meal} ned",
+    "remove": "Fjern {meal}",
+    "add": {
+      "side": "Tilføj tilbehør",
+      "dessert": "Tilføj dessert",
+      "drink": "Tilføj drikke",
+      "main": "Tilføj en hovedret mere"
+    },
+    "servingTime": "Serveringstid",
+    "usualTime": "Normalt kl. {time}",
+    "timeThisMeal": "Kun til dette måltid",
+    "timePick": "Vælg et tidspunkt til dette måltid",
+    "timeKeptHere": "Home Screens husker denne tid. Mealie har ingen tid, så den vises ikke der.",
+    "clear": {
+      "breakfast": "Fjern denne morgenmad",
+      "lunch": "Fjern denne frokost",
+      "snack": "Fjern dette mellemmåltid",
+      "dinner": "Fjern denne aftensmad"
+    },
+    "clearConfirm": {
+      "title": {
+        "breakfast": "Fjern morgenmaden {day}?",
+        "lunch": "Fjern frokosten {day}?",
+        "snack": "Fjern mellemmåltidet {day}?",
+        "dinner": "Fjern aftensmaden {day}?"
+      },
+      "confirm": {
+        "breakfast": "Fjern morgenmad",
+        "lunch": "Fjern frokost",
+        "snack": "Fjern mellemmåltid",
+        "dinner": "Fjern aftensmad"
+      },
+      "description": {
+        "one": "Det fjerner {dish} fra planen sammen med den ret, der hører til.",
+        "other": "Det fjerner {dish} fra planen sammen med de {count} retter, der hører til."
+      },
+      "descriptionMealie": {
+        "one": "Det fjerner {dish} fra planen, også i Mealie, sammen med den ret, der hører til.",
+        "other": "Det fjerner {dish} fra planen, også i Mealie, sammen med de {count} retter, der hører til."
+      }
+    },
+    "timeAndOrderKeptHere": "Home Screens husker dette tidspunkt og rækkefølgen af retterne. Mealie har ikke plads til nogen af dem, så de vises ikke der."
+  },
+  "mealPicker": {
+    "cancel": "Annullér",
+    "swap": {
+      "side": "Skift tilbehøret",
+      "dessert": "Skift desserten",
+      "drink": "Skift drikken",
+      "main": "Skift den anden hovedret"
+    },
+    "savedAs": {
+      "side": "Tilbehør",
+      "dessert": "Desserter",
+      "drink": "Drikke",
+      "main": "Hovedretter"
+    },
+    "everythingElse": "Alt det andet",
+    "typePlaceholder": {
+      "side": "Skriv tilbehør, fx hvidløgsbrød",
+      "dessert": "Skriv en dessert, fx is",
+      "drink": "Skriv en drik, fx saftevand",
+      "main": "Skriv et måltid, fx tacos"
+    }
+  },
+  "mealie": {
+    "pill": {
+      "label": "Fra Mealie",
+      "updated": "· Sidst opdateret {time}"
+    },
+    "openMealie": "Åbn Mealie",
+    "unreachable": {
+      "title": "Kan ikke nå Mealie lige nu",
+      "description": "Jeres måltider ligger i Mealie, og Home Screens kan ikke nå dem. Tjek, at Mealie kører, og prøv igen."
+    },
+    "notConnected": {
+      "title": "Mealie er ikke forbundet",
+      "description": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem på computeren under Indstillinger > API-nøgler, eller sæt madplanen tilbage til Home Screens i måltidsindstillingerne."
+    },
+    "tokenRefused": {
+      "title": "Mealie lukker ikke Home Screens ind længere",
+      "description": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det på computeren under Indstillinger > API-nøgler."
+    },
+    "paused": {
+      "description": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
+      "descriptionWithTime": "Planlægningen er sat på pause, indtil Mealie er tilbage. Dette er madplanen fra {time}."
+    },
+    "search": {
+      "placeholder": "Søg i opskrifter i Mealie",
+      "placeholderCount": {
+        "one": "Søg i 1 opskrift i Mealie",
+        "other": "Søg i {count} opskrifter i Mealie"
+      },
+      "ariaLabel": "Søg i opskrifter i Mealie",
+      "clear": "Ryd søgningen",
+      "favorites": "Favoritter",
+      "recent": "Lavet for nylig",
+      "looking": "Leder i Mealie…",
+      "recipeCount": {
+        "one": "1 opskrift",
+        "other": "{count} opskrifter"
+      },
+      "favoritesCount": {
+        "one": "1 favorit",
+        "other": "{count} favoritter, A til Å"
+      },
+      "recentHeading": "Senest lavet først",
+      "noneTitle": "Ingen opskrifter, der hedder “{query}”, i Mealie",
+      "noneDescription": "Tjek stavningen, eller skriv det ind i stedet. Så kommer det på madplanen som en note uden opskrift.",
+      "noFavoritesTitle": "Ingen favoritter endnu",
+      "noFavoritesDescription": "Tryk på hjertet ved en opskrift i Mealie, så dukker den op her.",
+      "noRecentTitle": "Intet lavet endnu",
+      "noRecentDescription": "Opskrifter, I markerer som lavet i Mealie, vises her, nyeste først.",
+      "errorDescription": "Mealie svarede ikke. Tjek, at det kører, og prøv igen.",
+      "typeInstead": "Skriv “{query}” i stedet",
+      "typeInsteadNote": "Ingen opskrift. Mealie gemmer det som en note.",
+      "categoryCount": {
+        "one": "1 opskrift i {category}",
+        "other": "{count} opskrifter i {category}"
+      },
+      "noneInCategoryTitle": "Ingen opskrifter i {category} endnu",
+      "noneInCategoryDescription": "Søg efter en opskrift ved navn, eller vælg Favoritter."
+    },
+    "library": {
+      "info": "Opskrifterne ligger i Mealie. Tryk på en for at åbne den der.",
+      "placeholder": "Søg i opskrifter…",
+      "placeholderCount": {
+        "one": "Søg i 1 opskrift…",
+        "other": "Søg i {count} opskrifter…"
+      },
+      "noneDescription": "Tjek stavningen, eller prøv et kortere ord.",
+      "emptyTitle": "Ingen opskrifter i Mealie endnu",
+      "emptyDescription": "Opskrifter, I tilføjer i Mealie, vises her.",
+      "openRecipeAriaLabel": "Åbn {meal} i Mealie"
+    },
+    "grocery": {
+      "title": "Jeres indkøbsliste ligger i Mealie",
+      "description": "Så længe jeres madplan ligger i Mealie, gør jeres liste det også. Åbn Mealie for at se, hvad I mangler, og krydse af."
+    },
+    "suggest": {
+      "allPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",
+      "nothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie.",
+      "failed": "Mealie kunne ikke foreslå måltider lige nu. Prøv igen om lidt.",
+      "noDinners": "Foreslå udfylder tomme aftensmåltider, og aftensmad er slået fra i måltidsindstillingerne.",
+      "confirmTitle": "Udfyld de tomme aftensmåltider?",
+      "confirmDescription": {
+        "one": "Home Screens vælger en aftensmad blandt dine Mealie-opskrifter til den tomme aften i denne uge og gemmer den i Mealie. En aften med en madplansregel i Mealie følger reglen.",
+        "other": "Home Screens vælger aftensmad blandt dine Mealie-opskrifter til de {count} tomme aftener i denne uge og gemmer dem i Mealie. Aftener med en madplansregel i Mealie følger reglen."
+      },
+      "confirmLabel": "Udfyld aftensmad",
+      "done": {
+        "one": "Aftensmad planlagt til {days}.",
+        "other": "Aftensmad planlagt til {days}."
+      },
+      "doneEveryNight": "Aftensmad planlagt til hver aften i denne uge."
     }
   }
 }

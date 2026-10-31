@@ -79,6 +79,8 @@ beforeEach(() => {
       google_web_client_secret: false,
     immich_url: false,
     immich_api_key: false,
+    mealie_url: false,
+    mealie_api_key: false,
     microsoft_client_id: false,
   });
 
@@ -268,6 +270,8 @@ describe('GET /api/system/stats - app stats', () => {
       google_web_client_secret: false,
         immich_url: false,
       immich_api_key: false,
+      mealie_url: false,
+      mealie_api_key: false,
       microsoft_client_id: false,
     });
 

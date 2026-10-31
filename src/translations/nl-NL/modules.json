@@ -370,8 +370,14 @@
     "todaysMeals": "Maaltijden vandaag",
     "now": "nu",
     "servingAt": "geserveerd om {time}",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes} min",
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} u",
+      "hoursMinutes": "{hours} u {minutes} min",
+      "minutesShort": "{minutes} min",
+      "hoursShort": "{hours} u",
+      "hoursMinutesShort": "{hours} u {minutes} min"
+    },
     "slotShort": {
       "breakfast": "O",
       "lunch": "L",
@@ -395,7 +401,20 @@
     "openRecipeAria": "Recept voor {name} openen",
     "showQrInstead": "QR-code tonen",
     "closeRecipe": "Sluiten",
-    "planFromPhoneHint": "Plan maaltijden via een telefoon: open {url} en tik op Maaltijden"
+    "planFromPhoneHint": "Plan maaltijden via een telefoon: open {url} en tik op Maaltijden",
+    "courses": {
+      "main": "Ook",
+      "side": "Bijgerecht",
+      "dessert": "Toetje",
+      "drink": "Drankje"
+    },
+    "withCourses": "met {dishes}",
+    "mealieUnreachable": "Mealie is nu niet bereikbaar",
+    "mealieUnreachableHint": "Het maaltijdplan komt terug zodra Mealie weer antwoordt.",
+    "mealieNotConnected": "Mealie is niet gekoppeld",
+    "mealieNotConnectedHint": "Koppel het in Instellingen op de computer om de maaltijdplanning te zien.",
+    "mealieTokenRefused": "Mealie laat Home Screens niet meer binnen",
+    "mealieTokenRefusedHint": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de maaltijdplanning te zien."
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Maaltijden deze week",
@@ -407,8 +426,6 @@
     "noMealsPlannedToday": "Vandaag geen maaltijden gepland",
     "noUpcomingMeals": "Geen aankomende maaltijden gepland",
     "mealsPlannedCount": "{filled} van {total} maaltijden gepland",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes} min",
     "heroLabels": {
       "now": "Nu",
       "upNext": "Hierna",

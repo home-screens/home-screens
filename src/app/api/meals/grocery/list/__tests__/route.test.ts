@@ -60,6 +60,19 @@ describe('GET /api/meals/grocery/list', () => {
   });
   afterEach(() => vi.useRealTimers());
 
+  it('answers an empty list from Mealie while the plan lives there, not the old local plan\'s', async () => {
+    const { start } = getWeekRange(new Date(), 'sunday');
+    mockRead.mockResolvedValue({
+      savedMeals: [meal],
+      plan: [{ date: start, slot: 'dinner', mealId: 'meal-1' }],
+      groceryChecked: {},
+      settings: { enabledSlots: ['dinner'], weekStartDay: 'sunday', defaultSlotTimes: {}, planSource: 'mealie' },
+    } as never);
+
+    const body = await (await GET(request())).json();
+    expect(body).toMatchObject({ categories: [], total: 0, checked: 0, source: 'mealie' });
+  });
+
   it('aggregates ingredients from this week\'s plan with checked state', async () => {
     const { start } = getWeekRange(new Date(), 'sunday');
     mockRead.mockResolvedValue({

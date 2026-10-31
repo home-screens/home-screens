@@ -16,6 +16,8 @@ export type SecretKey =
   | 'google_web_client_secret'
   | 'immich_url'
   | 'immich_api_key'
+  | 'mealie_url'
+  | 'mealie_api_key'
   | 'microsoft_client_id';
 
 type SecretsStore = Partial<Record<SecretKey, string>>;
@@ -36,6 +38,8 @@ const ALL_KEYS: SecretKey[] = [
   'google_web_client_secret',
   'immich_url',
   'immich_api_key',
+  'mealie_url',
+  'mealie_api_key',
   'microsoft_client_id',
 ];
 

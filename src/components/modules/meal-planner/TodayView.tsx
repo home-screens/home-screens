@@ -3,11 +3,12 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
-import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, getActiveSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseLines } from '../shared/MealCourseLines';
+import { useMealMinutes } from '../shared/useMealMinutes';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -44,7 +45,8 @@ function SlotCard({
   recipeTapMode: RecipeTapMode;
 }) {
   const t = useTranslate('modules');
-  const { meal, planned, name } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
+  const mealMinutes = useMealMinutes();
+  const { meal, planned, name, courses } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
   const meta = SLOT_META[slot];
   const showEmoji = config.showEmoji ?? true;
@@ -91,18 +93,25 @@ function SlotCard({
       <div className="px-3 pb-2.5 pt-0.5">
         {name ? (
           <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-start gap-2 w-full">
-            {showEmoji && meal?.emoji && (
-              <span className="shrink-0 mt-0.5" style={{ fontSize: '1.4em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
+            {showEmoji && mealHasPicture(meal) && (
+              <MealPicture
+                meal={meal}
+                photoSize="2.4em"
+                className="shrink-0"
+                style={{ marginTop: meal?.photoUrl ? 3 : 2 }}
+                emojiStyle={{ fontSize: '1.4em', lineHeight: 1.5 }}
+              />
             )}
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate" style={{ fontSize: '0.95em' }}>
                 {name}
               </p>
+              <MealCourseLines courses={courses} labelSize="0.5em" nameSize="0.72em" gap="0.6em" style={{ marginTop: 1 }} />
               {(showPrepTime || showTags) && (
                 <div className="flex flex-wrap items-center gap-1.5 mt-1" style={{ fontSize: '0.55em' }}>
-                  {showPrepTime && meal?.prepTime && (
+                  {showPrepTime && mealMinutes(meal) && (
                     <span className="flex items-center gap-0.5" style={{ opacity: TEXT_OPACITY.dim }}>
-                      <span>&#9201;</span> {t('meal-planner.prepTimeMin', { minutes: meal.prepTime })}
+                      <span>&#9201;</span> {mealMinutes(meal)}
                     </span>
                   )}
                   {showTags && meal?.tags?.map((tag) => (
@@ -130,7 +139,9 @@ function SlotCard({
 
 export function TodayView({ config, settings, timeFormat, plan, savedMeals, todayISO, currentHour, recipeTapMode }: TodayViewProps) {
   const t = useTranslate('modules');
-  const slots = settings.enabledSlots;
+  // In the day's order (snack before dinner), as every other meal view lists
+  // them, not the order the slots were switched on in.
+  const slots = SLOT_ORDER.filter((slot) => settings.enabledSlots.includes(slot));
   const activeSlot = getActiveSlot(currentHour, slots);
 
   return (

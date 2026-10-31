@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
-import { LIBRARY_FILTERS, type LibraryFilter, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { LIBRARY_FILTERS, type LibraryFilter, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { filterLibraryMeals } from '@/lib/meal-dish-rules';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import Glyph from '@/components/ui/Glyph';
@@ -41,6 +42,9 @@ export default function SidebarLibrary({
     () => ({
       all: t('mealPlannerModal.library.filters.all'),
       favorites: t('mealPlannerModal.library.filters.favorites'),
+      side: t('mealPlannerModal.library.filters.side'),
+      dessert: t('mealPlannerModal.library.filters.dessert'),
+      drink: t('mealPlannerModal.library.filters.drink'),
       quick: tCore('meal.tags.quick'),
       healthy: tCore('meal.tags.healthy'),
       comfort: tCore('meal.tags.comfort'),
@@ -49,33 +53,14 @@ export default function SidebarLibrary({
     [t, tCore],
   );
 
-  const filteredMeals = useMemo(() => {
-    let result = meals;
-
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.tags?.some((t) => t.toLowerCase().includes(q)),
-      );
-    }
-
-    if (filter === 'favorites') {
-      result = result.filter((m) => m.isFavorite);
-    } else if (filter !== 'all') {
-      result = result.filter((m) =>
-        m.tags?.some((t) => normalizeTag(t) === filter),
-      );
-    }
-
-    return result;
-  }, [meals, search, filter]);
+  const filteredMeals = useMemo(() => filterLibraryMeals(meals, search, filter), [meals, search, filter]);
 
   const isFiltered = Boolean(search) || filter !== 'all';
 
+  // The space under the tab bar, not the column's full height: h-full ran
+  // the list past the window by the tab bar's height and hid the footer.
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Search */}
       <div className="px-4 py-3 border-b border-hs-border-strong">
         <div className="relative">
@@ -146,6 +131,8 @@ export default function SidebarLibrary({
           filteredMeals.map((meal) => {
             const isSelected = meal.id === selectedMealId;
             const meta: string[] = [];
+            // A side, dessert or drink says so; a main dish needs no label.
+            if (meal.category && meal.category !== 'main') meta.push(tCore(`meal.kind.${meal.category}`));
             if (meal.prepTime) {
               meta.push(t('mealPlannerModal.picker.prepTimeShort', { minutes: meal.prepTime }));
             }

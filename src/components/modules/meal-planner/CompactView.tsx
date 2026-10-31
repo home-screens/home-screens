@@ -6,8 +6,8 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, toISODate, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseCount } from '../shared/MealCourseLines';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -58,7 +58,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
           {/* Meals */}
           <div className="flex flex-col gap-1 flex-1">
             {slots.map((slot) => {
-              const { meal, planned, name } = resolveMealWithEntry(date, slot, plan, savedMeals);
+              const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
               const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
               const meta = SLOT_META[slot];
               return (
@@ -78,13 +78,16 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
                   {name ? (
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                       <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1 min-w-0">
-                        {showEmoji && meal?.emoji && (
-                          <span className="shrink-0" style={{ fontSize: '0.7em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} pictureSize="1.6em" /></span>
+                        {showEmoji && mealHasPicture(meal) && (
+                          <span className="shrink-0" style={{ fontSize: '0.7em', display: meal?.photoUrl ? 'flex' : undefined }}>
+                            <MealPicture meal={meal} photoSize="1.6em" pictureSize="1.6em" />
+                          </span>
                         )}
                         <span className="truncate" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
                           {name}
                         </span>
                       </MealTapTarget>
+                      <MealCourseCount count={courses.length} color={meta.color} fontSize="0.55em" />
                       {time && (
                         <span
                           className="shrink-0 ml-auto"

@@ -6,13 +6,15 @@ import type { MealPlannerViewProps } from './meal-planner-utils';
 import { countPlanned } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 import FamilyEmptyState from '../FamilyEmptyState';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseNames } from '../shared/MealCourseLines';
+import { useMealMinutes } from '../shared/useMealMinutes';
 
 export default function WeekView({
   settings, timeFormat, savedMeals, plan, now, slots, activeSlot, bu, s, pad, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
+  const mealMinutes = useMealMinutes();
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
   const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
@@ -116,7 +118,7 @@ export default function WeekView({
               {/* Meal cards row */}
               <div style={{ display: 'flex', gap: s * 0.6 }}>
                 {usedSlots.map((slot) => {
-                  const { meal, planned, name } = resolveMealWithEntry(date, slot, plan, savedMeals);
+                  const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
                   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
                   const meta = SLOT_META[slot];
                   const isActiveSlot = isToday && slot === activeSlot;
@@ -185,10 +187,13 @@ export default function WeekView({
                           gap: s * 0.15, maxWidth: '100%',
                         }}
                       >
-                        {showEmoji && meal?.emoji && (
-                          <span style={{ fontSize: s * 3.2, lineHeight: 1.2 }}>
-                            <Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} />
-                          </span>
+                        {showEmoji && mealHasPicture(meal) && (
+                          <MealPicture
+                            meal={meal}
+                            photoSize={`${s * 5.6}px`}
+                            style={meal?.photoUrl ? { margin: `${s * 0.25}px 0` } : undefined}
+                            emojiStyle={{ fontSize: s * 3.2, lineHeight: 1.2 }}
+                          />
                         )}
                         <span style={{
                           fontSize: s * 1.1, fontWeight: 600, color: 'var(--fmp-text)',
@@ -198,6 +203,13 @@ export default function WeekView({
                           {name}
                         </span>
                       </MealTapTarget>
+                      <MealCourseNames
+                        courses={courses}
+                        style={{
+                          fontSize: s * 1.0, lineHeight: 1.25, color: 'var(--fmp-text-2)', maxWidth: '100%',
+                          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden',
+                        }}
+                      />
                       {time && (
                         <span style={{
                           fontSize: s * 0.9,
@@ -208,9 +220,9 @@ export default function WeekView({
                           {formatMealTime(time, timeFormat)}
                         </span>
                       )}
-                      {showPrepTime && meal?.prepTime && (
+                      {showPrepTime && mealMinutes(meal) && (
                         <span style={{ fontSize: s * 0.9, color: 'var(--fmp-text-3)' }}>
-                          {t('fullscreen-meal-planner.prepTimeMin', { minutes: meal.prepTime })}
+                          {mealMinutes(meal)}
                         </span>
                       )}
                     </div>

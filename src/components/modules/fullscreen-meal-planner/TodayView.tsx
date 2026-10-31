@@ -4,8 +4,9 @@ import type { MealPlannerViewProps } from './meal-planner-utils';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import { getDifficultyColor, px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseLines } from '../shared/MealCourseLines';
+import { useMealMinutes } from '../shared/useMealMinutes';
 
 /**
  * Today's meals, sized for a wall. The hero (the meal that matters right now)
@@ -18,6 +19,7 @@ export default function TodayView({
   settings, timeFormat, savedMeals, plan, now, slots, activeSlot, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
+  const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
   const currentHour = now.getHours();
@@ -46,7 +48,7 @@ export default function TodayView({
       heroLabel = t('fullscreen-meal-planner.heroLabels.tonight');
     }
   }
-  const { meal: heroMeal, planned: heroPlanned, name: heroName } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
+  const { meal: heroMeal, planned: heroPlanned, name: heroName, courses: heroCourses, notes: heroNotes } = resolveMealWithEntry(todayISO, heroSlot, plan, savedMeals);
   const heroTime = resolvePlannedMealTime(heroPlanned, heroSlot, settings.defaultSlotTimes);
 
   const otherSlots = activeOrder.filter((sl) => sl !== heroSlot);
@@ -128,8 +130,13 @@ export default function TodayView({
                   gap: P(22), maxWidth: '100%',
                 }}
               >
-                {showEmoji && heroMeal?.emoji && (
-                  <span style={{ fontSize: P(heroAlone ? 320 : 250), lineHeight: 1 }}><Glyph value={heroMeal?.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
+                {showEmoji && mealHasPicture(heroMeal) && (
+                  <MealPicture
+                    meal={heroMeal}
+                    size="min"
+                    photoSize={`${P(heroAlone ? 320 : 250)}px`}
+                    emojiStyle={{ fontSize: P(heroAlone ? 320 : 250), lineHeight: 1 }}
+                  />
                 )}
                 <span style={{
                   fontFamily: headerFont, fontSize: P(heroAlone ? 96 : 84), fontWeight: 400,
@@ -140,19 +147,29 @@ export default function TodayView({
                   {heroName}
                 </span>
               </MealTapTarget>
-              {heroMeal?.notes && (
+              <MealCourseLines
+                courses={heroCourses}
+                labelSize={`${P(24)}px`}
+                nameSize={`${P(36)}px`}
+                gap={`${P(20)}px`}
+                rowGap={`${P(8)}px`}
+                centered
+                labelStyle={{ color: 'var(--fmp-text-3)', fontWeight: 700 }}
+                nameStyle={{ color: 'var(--fmp-text-2)', fontWeight: 500, lineHeight: 1.2, whiteSpace: 'normal' }}
+              />
+              {heroNotes && (
                 <span style={{
                   fontSize: P(30), fontStyle: 'italic', color: 'var(--fmp-text-2)',
                   maxWidth: '80%', lineHeight: 1.3,
                 }}>
-                  {heroMeal.notes}
+                  {heroNotes}
                 </span>
               )}
               {/* Meta pills */}
               <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: P(14), justifyContent: 'center' }}>
-                {showPrepTime && heroMeal?.prepTime && (
+                {showPrepTime && mealMinutes(heroMeal) && (
                   <span style={pillStyle}>
-                    &#9201; {t('fullscreen-meal-planner.prepTimeMinShort', { minutes: heroMeal.prepTime })}
+                    &#9201; {mealMinutes(heroMeal, true)}
                   </span>
                 )}
                 {showDifficulty && heroMeal?.difficulty && (() => {
@@ -197,18 +214,21 @@ export default function TodayView({
             </div>
             <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: P(18) }}>
               {otherSlots.map((sl) => {
-                const { meal, planned, name } = resolveMealWithEntry(todayISO, sl, plan, savedMeals);
+                const { meal, planned, name, courses } = resolveMealWithEntry(todayISO, sl, plan, savedMeals);
                 const slotTime = resolvePlannedMealTime(planned, sl, settings.defaultSlotTimes);
                 const meta = SLOT_META[sl];
                 const past = isSlotPast(sl);
 
                 return (
+                  // Sized from its content, the spare height shared out: a
+                  // dinner with three courses needs more room than "Not
+                  // planned", and equal rows squeezed it against both edges.
                   <div key={sl} {...{ [FIT_MEASURE_ATTR]: '' }} style={{
-                    flex: 1, minHeight: 0,
+                    flex: '1 1 auto', minHeight: 0,
                     background: 'var(--fmp-surface)', borderRadius: P(24),
                     border: '1px solid var(--fmp-border-sub)',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-                    padding: `0 ${P(32)}px`,
+                    padding: `${P(18)}px ${P(32)}px`,
                     display: 'flex', alignItems: 'center', gap: P(24),
                     opacity: past ? `var(--fmp-past-op)` : 1,
                   } as React.CSSProperties}>
@@ -222,8 +242,8 @@ export default function TodayView({
                       mode={recipeTapMode}
                       style={{ display: 'flex', alignItems: 'center', gap: P(24), flex: 1, minWidth: 0 }}
                     >
-                      {showEmoji && meal?.emoji && (
-                        <span style={{ fontSize: P(76), lineHeight: 1, flexShrink: 0 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>
+                      {showEmoji && mealHasPicture(meal) && (
+                        <MealPicture meal={meal} photoSize={`${P(120)}px`} emojiStyle={{ fontSize: P(76), lineHeight: 1, flexShrink: 0 }} />
                       )}
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
@@ -251,11 +271,21 @@ export default function TodayView({
                         }}>
                           {name ?? t('fullscreen-meal-planner.notPlanned')}
                         </div>
+                        <MealCourseLines
+                          courses={courses}
+                          labelSize={`${P(20)}px`}
+                          nameSize={`${P(28)}px`}
+                          gap={`${P(14)}px`}
+                          rowGap={`${P(2)}px`}
+                          labelStyle={{ color: 'var(--fmp-text-3)', fontWeight: 700, letterSpacing: '0.1em' }}
+                          nameStyle={{ color: 'var(--fmp-text-2)', fontWeight: 500, lineHeight: 1.2 }}
+                          style={{ marginTop: P(8) }}
+                        />
                       </div>
                     </MealTapTarget>
-                    {showPrepTime && meal?.prepTime && (
+                    {showPrepTime && mealMinutes(meal) && (
                       <span style={{ fontSize: P(26), color: 'var(--fmp-text-3)', flexShrink: 0 }}>
-                        {t('fullscreen-meal-planner.prepTimeMinShort', { minutes: meal.prepTime })}
+                        {mealMinutes(meal, true)}
                       </span>
                     )}
                   </div>

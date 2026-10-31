@@ -1,5 +1,6 @@
 import type { SavedMeal, PlannedMeal } from '@/types/config';
 import { guessGroceryCategory } from '@/lib/grocery-categories';
+import { planEntryMealIds } from '@/lib/meal-courses';
 
 export const GROCERY_CATEGORY_ORDER = ['produce', 'meat', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
 
@@ -43,9 +44,10 @@ export function generateGroceryList(
   const mealMap = new Map(meals.map((m) => [m.id, m]));
   const grouped = new Map<string, Map<string, string>>(); // category -> name -> amount
 
-  for (const entry of planArr) {
-    if (!entry.mealId) continue;
-    const meal = mealMap.get(entry.mealId);
+  // A meal's courses are shopped for like its main dish: the side and the
+  // dessert need their ingredients too.
+  const plannedMeals = planArr.flatMap((entry) => planEntryMealIds(entry).map((id) => mealMap.get(id)));
+  for (const meal of plannedMeals) {
     if (!meal?.ingredients) continue;
     for (const ing of meal.ingredients) {
       // A row saved with no name (older meals from the phone) is not an item.

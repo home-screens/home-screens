@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  formatDayList,
   getOrderedDays,
   resolveMealWithEntry,
   getNextPlannedMeal,
@@ -684,6 +685,17 @@ describe('resolveMealWithEntry', () => {
     const blank: PlannedMeal[] = [{ date: '2026-04-05', slot: 'dinner', customText: '   ' }];
     expect(resolveMealWithEntry('2026-04-05', 'dinner', blank, meals).name).toBeNull();
   });
+
+  it('shows the note written on the plan for that day before the note on the dish', () => {
+    const withNotes: SavedMeal[] = [{ id: 'm1', name: 'Tacos', notes: 'Double the salsa' }];
+    expect(resolveMealWithEntry('2026-04-01', 'dinner', [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1', notes: 'Grandma visits' }], withNotes).notes)
+      .toBe('Grandma visits');
+    expect(resolveMealWithEntry('2026-04-01', 'dinner', [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1', notes: '  ' }], withNotes).notes)
+      .toBe('Double the salsa');
+    expect(resolveMealWithEntry('2026-04-02', 'lunch', [{ date: '2026-04-02', slot: 'lunch', customText: 'School lunch', notes: 'Pizza day' }], withNotes).notes)
+      .toBe('Pizza day');
+    expect(resolveMealWithEntry('2026-04-03', 'dinner', [], withNotes).notes).toBeNull();
+  });
 });
 
 describe('getNextPlannedMeal with a typed-in meal', () => {
@@ -756,6 +768,12 @@ describe('normalizeMealSettings', () => {
     expect(normalizeMealSettings(undefined).enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
     expect(normalizeMealSettings('a string').enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
     expect(normalizeMealSettings(42).enabledSlots).toEqual(DEFAULT_MEAL_SETTINGS.enabledSlots);
+  });
+
+  it('keeps the meals in the order of the day, whatever order they were switched on in', () => {
+    expect(normalizeMealSettings({ enabledSlots: ['dinner', 'breakfast', 'snack', 'lunch'] }).enabledSlots)
+      .toEqual(['breakfast', 'lunch', 'snack', 'dinner']);
+    expect(normalizeMealSettings({ enabledSlots: ['snack', 'breakfast'] }).enabledSlots).toEqual(['breakfast', 'snack']);
   });
 
   it('does not return a shared array reference (mutation safety)', () => {
@@ -859,3 +877,13 @@ describe('normalizeMealSettings timeFormat', () => {
     expect(DEFAULT_MEAL_SETTINGS.timeFormat).toBeUndefined();
   });
 });
+
+describe('formatDayList', () => {
+  it('names the days in calendar order, once each', () => {
+    // 2026-10-31 is a Saturday, 2026-11-01 a Sunday.
+    expect(formatDayList(['2026-11-01', '2026-10-31', '2026-11-01'], 'en-US')).toBe('Saturday and Sunday');
+    expect(formatDayList(['2026-10-31'], 'de-DE')).toBe('Samstag');
+    expect(formatDayList(['2026-10-29', '2026-10-30', '2026-10-31'], 'fr-FR')).toBe('jeudi, vendredi et samedi');
+  });
+});
+

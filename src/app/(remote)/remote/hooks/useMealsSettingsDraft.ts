@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import type { MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
+import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
 import {
   toggleMealSlot,
   setMealSlotDefaultTime,
   setMealWeekStart,
   setMealTimeFormat,
+  setMealPlanSource,
 } from '@/lib/meal-settings';
 import { useTranslate } from '@/i18n';
 
@@ -44,6 +45,8 @@ export function useMealsSettingsDraft(
 
   const setTimeFormat = (fmt: TimeFormat | undefined) => setDraft(setMealTimeFormat(draft, fmt));
 
+  const setPlanSource = (source: MealPlanSource | undefined) => setDraft(setMealPlanSource(draft, source));
+
   const handleSave = async () => {
     if (saving) return;
     setSaving(true);
@@ -69,6 +72,7 @@ export function useMealsSettingsDraft(
     setDefaultTime,
     setWeekStartDay,
     setTimeFormat,
+    setPlanSource,
     saving,
     saveError,
     handleSave,

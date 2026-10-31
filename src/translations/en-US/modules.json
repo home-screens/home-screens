@@ -370,8 +370,14 @@
     "todaysMeals": "Today's Meals",
     "now": "now",
     "servingAt": "serving at {time}",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes}m",
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} hr",
+      "hoursMinutes": "{hours} hr {minutes} min",
+      "minutesShort": "{minutes}m",
+      "hoursShort": "{hours}h",
+      "hoursMinutesShort": "{hours}h {minutes}m"
+    },
     "slotShort": {
       "breakfast": "B",
       "lunch": "L",
@@ -395,7 +401,20 @@
     "openRecipeAria": "Open recipe for {name}",
     "showQrInstead": "Show QR code",
     "closeRecipe": "Close",
-    "planFromPhoneHint": "Plan meals from a phone: open {url} and tap Meals"
+    "planFromPhoneHint": "Plan meals from a phone: open {url} and tap Meals",
+    "courses": {
+      "main": "Also",
+      "side": "Side",
+      "dessert": "Dessert",
+      "drink": "Drink"
+    },
+    "withCourses": "with {dishes}",
+    "mealieUnreachable": "Can't reach Mealie right now",
+    "mealieUnreachableHint": "The meal plan will show again when Mealie answers.",
+    "mealieNotConnected": "Mealie isn't connected",
+    "mealieNotConnectedHint": "Connect it in Settings on the computer to show the meal plan.",
+    "mealieTokenRefused": "Mealie isn't letting Home Screens in",
+    "mealieTokenRefusedHint": "Save a new Mealie token in Settings on the computer to show the meal plan."
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "This Week's Meals",
@@ -407,8 +426,6 @@
     "noMealsPlannedToday": "No meals planned for today",
     "noUpcomingMeals": "No upcoming meals planned",
     "mealsPlannedCount": "{filled} of {total} meals planned",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes}m",
     "heroLabels": {
       "now": "Now",
       "upNext": "Up Next",

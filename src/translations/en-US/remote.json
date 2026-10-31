@@ -308,6 +308,7 @@
       "clearWeek": {
         "title": "Clear plan?",
         "description": "This will remove all planned meals for this week.",
+        "descriptionMealie": "This will remove all planned meals for this week, in Mealie too.",
         "confirmLabel": "Clear Week"
       },
       "deleteMeal": {
@@ -318,6 +319,12 @@
       "suggestWeek": {
         "title": "Replace this week's meals?",
         "description": "Suggest picks new meals for the whole week. The meals already planned for this week will be replaced.",
+        "confirmLabel": "Replace meals"
+      },
+      "copyWeek": {
+        "title": "Replace this week with last week's meals?",
+        "description": "The meals already planned for this week will be replaced by last week's.",
+        "descriptionMealie": "The meals already planned for this week will be replaced by last week's, in Mealie too.",
         "confirmLabel": "Replace meals"
       }
     },
@@ -348,6 +355,9 @@
       "filters": {
         "all": "All",
         "favorites": "Favorites",
+        "side": "Sides",
+        "dessert": "Desserts",
+        "drink": "Drinks",
         "quick": "Quick",
         "healthy": "Healthy",
         "comfort": "Comfort",
@@ -356,7 +366,19 @@
     },
     "loadError": "Couldn't load your meals. Check the hub is on and try again.",
     "retry": "Try again",
-    "saveFailed": "That didn't save. Try again."
+    "saveFailed": "That didn't save. Try again.",
+    "duration": {
+      "minutes": "{minutes}m",
+      "hours": "{hours}h",
+      "hoursMinutes": "{hours}h {minutes}m",
+      "prep": "{time} prep"
+    },
+    "notice": {
+      "copied": "Copied last week's meals.",
+      "cleared": "Cleared this week's meals.",
+      "removed": "Took {name} off.",
+      "undo": "Undo"
+    }
   },
   "mealForm": {
     "titleNew": "Add Meal",
@@ -374,6 +396,7 @@
     "servingsLabel": "Servings",
     "servingsPlaceholder": "4",
     "difficultyLabel": "Difficulty",
+    "kindLabel": "Kind of dish",
     "tagsLabel": "Tags",
     "ingredientsLabel": "Ingredients",
     "ingredientNamePlaceholder": "Name",
@@ -393,6 +416,7 @@
     "actions": {
       "suggest": "Suggest",
       "suggestAriaLabel": "Suggest random meals",
+      "suggestMealieAriaLabel": "Fill the empty dinners with recipes from Mealie",
       "copyLastWeek": "Copy Last Week",
       "copyLastWeekAriaLabel": "Copy last week's plan",
       "clear": "Clear",
@@ -407,7 +431,11 @@
       "addMeal": "+ Add meal",
       "planSlotAriaLabel": "Plan {slot} for {day}",
       "mealFallback": "meal",
-      "changeMealAriaLabel": "Change {meal} for {slot}"
+      "changeMealAriaLabel": "Change {meal} for {slot}",
+      "moreCoursesAriaLabel": {
+        "one": "and 1 more dish",
+        "other": "and {count} more dishes"
+      }
     },
     "picker": {
       "title": "Choose a Meal",
@@ -467,6 +495,17 @@
       "submit": "Save Settings",
       "saveFailed": "Failed to save. Please try again.",
       "networkError": "Network error. Please try again."
+    },
+    "planSource": {
+      "heading": "Your meal plan lives in",
+      "homeScreens": "Home Screens",
+      "mealie": "Mealie",
+      "notConnectedNote": "Mealie is a separate recipe app some families use. If yours does, connect it in Settings on the computer. If not, there's nothing to do here.",
+      "connectedNote": "Mealie is connected to the {household} household. Choose it to plan with the recipes and plan you keep there.",
+      "connectedNoteNoName": "Mealie is connected. Choose it to plan with the recipes and plan you keep there.",
+      "onNote": "With Mealie, meals come from Mealie here and on the wall, and what you plan here saves to Mealie. Your Home Screens plan is kept, and comes back if you switch back.",
+      "switchingToMealieNote": "After you save, meals come from Mealie here and on the wall, and what you plan here saves to Mealie. Your Home Screens plan is kept, and comes back if you switch back.",
+      "switchingToHomeNote": "After you save, the phone and the wall go back to the Home Screens plan you had before. Nothing in Mealie changes."
     }
   },
   "rewardForm": {
@@ -964,15 +1003,6 @@
     "notConfigured": "No chores yet. Ask a grown-up to add a chore chart to the display.",
     "grownUpsLink": "Grown-ups: open the family remote"
   },
-  "mealTimeChip": {
-    "servingTimeAria": "Serving time {time}, click to change",
-    "servingTimeTitle": "Serving time: {time}",
-    "setServingTime": "Set serving time",
-    "setTime": "+ Set time",
-    "setMealTime": "Set meal time",
-    "servingTime": "Serving time",
-    "clearTime": "Clear time"
-  },
   "timers": {
     "title": "Timers",
     "quickTimer": "Quick timer",
@@ -1273,6 +1303,174 @@
       "removed": "Note removed",
       "undo": "Undo",
       "atLimit": "That's as long as a day note can be."
+    }
+  },
+  "mealSheet": {
+    "ariaLabel": "{slot}, {date}",
+    "savesToMealie": "Saves to Mealie",
+    "done": "Done",
+    "mainDish": "Main dish",
+    "change": "Change",
+    "changeAriaLabel": "Change {meal}",
+    "chooseMain": "Choose a main dish",
+    "withThisMeal": "With this meal",
+    "swapAriaLabel": "Change {meal} ({kind})",
+    "moveUp": "Move {meal} up",
+    "moveDown": "Move {meal} down",
+    "remove": "Remove {meal}",
+    "add": {
+      "side": "Add a side",
+      "dessert": "Add a dessert",
+      "drink": "Add a drink",
+      "main": "Add another main"
+    },
+    "servingTime": "Serving time",
+    "usualTime": "Usually {time}",
+    "timeThisMeal": "Just for this meal",
+    "timePick": "Pick a time for this meal",
+    "timeKeptHere": "Home Screens keeps this time. Mealie doesn't have one, so it won't show there.",
+    "clear": {
+      "breakfast": "Clear this breakfast",
+      "lunch": "Clear this lunch",
+      "snack": "Clear this snack",
+      "dinner": "Clear this dinner"
+    },
+    "clearConfirm": {
+      "title": {
+        "breakfast": "Clear {day}'s breakfast?",
+        "lunch": "Clear {day}'s lunch?",
+        "snack": "Clear {day}'s snack?",
+        "dinner": "Clear {day}'s dinner?"
+      },
+      "confirm": {
+        "breakfast": "Clear breakfast",
+        "lunch": "Clear lunch",
+        "snack": "Clear snack",
+        "dinner": "Clear dinner"
+      },
+      "description": {
+        "one": "This takes {dish} off the plan, along with the dish served with it.",
+        "other": "This takes {dish} off the plan, along with the {count} dishes served with it."
+      },
+      "descriptionMealie": {
+        "one": "This takes {dish} off the plan, in Mealie too, along with the dish served with it.",
+        "other": "This takes {dish} off the plan, in Mealie too, along with the {count} dishes served with it."
+      }
+    },
+    "timeAndOrderKeptHere": "Home Screens keeps this time and the order of the dishes. Mealie has no place for either, so they won't show there."
+  },
+  "mealPicker": {
+    "cancel": "Cancel",
+    "swap": {
+      "side": "Change the side",
+      "dessert": "Change the dessert",
+      "drink": "Change the drink",
+      "main": "Change the other main"
+    },
+    "savedAs": {
+      "side": "Sides",
+      "dessert": "Desserts",
+      "drink": "Drinks",
+      "main": "Mains"
+    },
+    "everythingElse": "Everything else",
+    "typePlaceholder": {
+      "side": "Type a side, like Garlic bread",
+      "dessert": "Type a dessert, like Ice cream",
+      "drink": "Type a drink, like Lemonade",
+      "main": "Type a meal, like Tacos"
+    }
+  },
+  "mealie": {
+    "pill": {
+      "label": "From Mealie",
+      "updated": "· Last updated {time}"
+    },
+    "openMealie": "Open Mealie",
+    "unreachable": {
+      "title": "Can't reach Mealie right now",
+      "description": "Your meals are in Mealie, and Home Screens can't get to it. Check that Mealie is running, then try again."
+    },
+    "notConnected": {
+      "title": "Mealie isn't connected",
+      "description": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them on the computer in Settings > API keys, or set the meal plan back to Home Screens in the meal settings."
+    },
+    "tokenRefused": {
+      "title": "Mealie isn't letting Home Screens in",
+      "description": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it on the computer in Settings > API keys."
+    },
+    "paused": {
+      "description": "Planning is paused until Mealie is back.",
+      "descriptionWithTime": "Planning is paused until Mealie is back. This is the plan from {time}."
+    },
+    "search": {
+      "placeholder": "Search recipes in Mealie",
+      "placeholderCount": {
+        "one": "Search 1 recipe in Mealie",
+        "other": "Search {count} recipes in Mealie"
+      },
+      "ariaLabel": "Search Mealie's recipes",
+      "clear": "Clear the search",
+      "favorites": "Favorites",
+      "recent": "Recently made",
+      "looking": "Looking in Mealie…",
+      "recipeCount": {
+        "one": "1 recipe",
+        "other": "{count} recipes"
+      },
+      "favoritesCount": {
+        "one": "1 favorite",
+        "other": "{count} favorites, A to Z"
+      },
+      "recentHeading": "Most recently made first",
+      "noneTitle": "No recipes called “{query}” in Mealie",
+      "noneDescription": "Check the spelling, or type it in instead. It goes on the plan as a note, with no recipe.",
+      "noFavoritesTitle": "No favorites yet",
+      "noFavoritesDescription": "Tap the heart on a recipe in Mealie and it shows up here.",
+      "noRecentTitle": "Nothing made yet",
+      "noRecentDescription": "Recipes you mark as made in Mealie show up here, newest first.",
+      "errorDescription": "Mealie didn't answer. Check that it is running, then try again.",
+      "typeInstead": "Type “{query}” instead",
+      "typeInsteadNote": "No recipe. Mealie keeps it as a note.",
+      "categoryCount": {
+        "one": "1 recipe in {category}",
+        "other": "{count} recipes in {category}"
+      },
+      "noneInCategoryTitle": "No recipes in {category} yet",
+      "noneInCategoryDescription": "Search for a recipe by name, or pick Favorites."
+    },
+    "library": {
+      "info": "Recipes live in Mealie. Tap one to open it there.",
+      "placeholder": "Search recipes…",
+      "placeholderCount": {
+        "one": "Search 1 recipe…",
+        "other": "Search {count} recipes…"
+      },
+      "noneDescription": "Check the spelling, or try a shorter word.",
+      "emptyTitle": "No recipes in Mealie yet",
+      "emptyDescription": "Recipes you add in Mealie show up here.",
+      "openRecipeAriaLabel": "Open {meal} in Mealie"
+    },
+    "grocery": {
+      "title": "Your shopping list lives in Mealie",
+      "description": "While your meal plan is in Mealie, so is your list. Open Mealie to see what you need and tick things off."
+    },
+    "suggest": {
+      "allPlanned": "Every dinner this week is already planned.",
+      "nothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie.",
+      "failed": "Mealie couldn't suggest meals right now. Try again in a moment.",
+      "noDinners": "Suggest fills empty dinners, and dinner is turned off in the meal settings.",
+      "confirmTitle": "Fill the empty dinners?",
+      "confirmDescription": {
+        "one": "Home Screens picks a dinner from your Mealie recipes for the empty night this week and saves it in Mealie. A night with a meal plan rule in Mealie follows the rule.",
+        "other": "Home Screens picks dinners from your Mealie recipes for the {count} empty nights this week and saves them in Mealie. Nights with a meal plan rule in Mealie follow the rule."
+      },
+      "confirmLabel": "Fill dinners",
+      "done": {
+        "one": "Planned a dinner for {days}.",
+        "other": "Planned dinners for {days}."
+      },
+      "doneEveryNight": "Planned a dinner for every night this week."
     }
   }
 }

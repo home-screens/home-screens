@@ -1,7 +1,8 @@
 import { localISODate } from './timezone';
 import { formatClockTime } from './clock-time';
-import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, FullscreenTypographySize, TimeFormat } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, MealPlanSource, FullscreenTypographySize, TimeFormat } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
+import { resolveCourses, type ResolvedCourse } from './meal-courses';
 
 // ── Shared defaults (used across editor + remote + config sections) ────
 
@@ -62,9 +63,13 @@ export const MEAL_TAGS = [
   'spicy', 'kid-friendly', 'meal-prep', 'gluten-free', 'dairy-free', 'batch-cook',
 ] as const;
 
-/** Library filter categories (for sidebar pill filters in both editor + remote) */
+/**
+ * Library filter pills, in both the editor and the phone: everything, the
+ * favorites, the kinds of dish that are not a main, then tags. Applied by
+ * `filterLibraryMeals`.
+ */
 export const LIBRARY_FILTERS = [
-  'all', 'favorites', 'quick', 'healthy', 'comfort', 'kid-friendly',
+  'all', 'favorites', 'side', 'dessert', 'drink', 'quick', 'healthy', 'comfort', 'kid-friendly',
 ] as const;
 export type LibraryFilter = (typeof LIBRARY_FILTERS)[number];
 
@@ -162,6 +167,16 @@ export function getLocalizedDayNames(
     result[dow] = formatter.format(anchor);
   }
   return result;
+}
+
+/**
+ * The days of `dates` in words, in calendar order and once each: "Saturday
+ * and Sunday", for a notice that says which nights something changed.
+ */
+export function formatDayList(dates: readonly string[], locale: string = DEFAULT_LOCALE): string {
+  const names = getLocalizedDayNames(locale, 'full');
+  const days = [...new Set(dates)].sort().map((date) => names[dateToDayIndex(date)]);
+  return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(days);
 }
 
 const MONTH_NAME_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
@@ -363,14 +378,45 @@ export function resolveMealWithEntry(
   slot: MealSlotType,
   plan: PlannedMeal[] | undefined,
   savedMeals: SavedMeal[] | undefined,
-): { meal: SavedMeal | null; planned: PlannedMeal | undefined; name: string | null } {
-  if (!plan) return { meal: null, planned: undefined, name: null };
+): ResolvedPlanEntry {
+  if (!plan) return { meal: null, planned: undefined, name: null, courses: [], notes: null };
   const planned = plan.find((p) => p.date === date && p.slot === slot);
-  if (!planned) return { meal: null, planned: undefined, name: null };
+  if (!planned) return { meal: null, planned: undefined, name: null, courses: [], notes: null };
   const meal = planned.mealId && savedMeals
     ? savedMeals.find((m) => m.id === planned.mealId) ?? null
     : null;
-  return { meal, planned, name: plannedMealName(meal, planned) };
+  const name = plannedMealName(meal, planned);
+  const courses = resolveCourses(planned, savedMeals);
+  // A meal planned as only its courses (a dinner that is just a salad, or a
+  // Mealie night with sides and no main) leads with its first course, so the
+  // slot shows what is planned instead of looking empty.
+  if (!name && courses.length > 0) {
+    const [lead, ...rest] = courses;
+    return { meal: lead.meal, planned, name: lead.name, courses: rest, notes: plannedMealNotes(planned, lead.meal) };
+  }
+  return { meal, planned, name, courses, notes: plannedMealNotes(planned, meal) };
+}
+
+/**
+ * The note a planned meal shows: the one written on the plan for that day
+ * ("Pizza day in the cafeteria", which is how Mealie keeps a note on its
+ * plan), or else the dish's own note from the library.
+ */
+function plannedMealNotes(planned: PlannedMeal, meal: SavedMeal | null): string | null {
+  return planned.notes?.trim() || meal?.notes?.trim() || null;
+}
+
+/**
+ * One slot of the plan, ready to draw: the main dish (or the first course
+ * when there is none), the entry behind it, and the courses still to list.
+ */
+export interface ResolvedPlanEntry {
+  meal: SavedMeal | null;
+  planned: PlannedMeal | undefined;
+  name: string | null;
+  courses: ResolvedCourse[];
+  /** The note to show with it (see `plannedMealNotes`), or null. */
+  notes: string | null;
 }
 
 export interface NextPlannedMeal {
@@ -384,6 +430,10 @@ export interface NextPlannedMeal {
   /** 0 = today, 1 = tomorrow, … */
   dayOffset: number;
   context: 'now' | 'upcoming' | 'tomorrow' | 'future';
+  /** The meal's courses after the one it leads with. */
+  courses: ResolvedCourse[];
+  /** The note to show with it, or null. */
+  notes: string | null;
 }
 
 /**
@@ -409,12 +459,12 @@ export function getNextPlannedMeal(
     const date = toISODate(d);
     for (const slot of activeOrder) {
       if (dayOffset === 0 && hour >= SLOT_WINDOWS[slot].end) continue;
-      const { meal, name } = resolveMealWithEntry(date, slot, plan, savedMeals);
+      const { meal, name, courses, notes } = resolveMealWithEntry(date, slot, plan, savedMeals);
       if (!name) continue;
       const context = dayOffset === 0
         ? (hour >= SLOT_WINDOWS[slot].start ? 'now' : 'upcoming')
         : dayOffset === 1 ? 'tomorrow' : 'future';
-      return { meal, name, slot, date, dayOffset, context };
+      return { meal, name, slot, date, dayOffset, context, courses, notes };
     }
   }
   return null;
@@ -486,8 +536,10 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
     : null;
   // Empty / all-invalid enabledSlots → fall back to defaults so the household
   // is never left with zero slots (which would silently render nothing everywhere).
+  // Kept in the day's order, not the order they were switched on, so every
+  // view lists a snack before dinner without sorting it itself.
   const enabledSlots: MealSlotType[] = filteredSlots && filteredSlots.length > 0
-    ? filteredSlots
+    ? SLOT_ORDER.filter((slot) => filteredSlots.includes(slot))
     : [...DEFAULT_MEAL_SETTINGS.enabledSlots];
 
   const weekStartDay: 'sunday' | 'monday' =
@@ -506,8 +558,15 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
 
   const timeFormat: TimeFormat | undefined =
     r.timeFormat === '24h' || r.timeFormat === '12h' ? r.timeFormat : undefined;
+  const planSource: MealPlanSource | undefined = r.planSource === 'mealie' ? r.planSource : undefined;
 
-  return { enabledSlots, weekStartDay, defaultSlotTimes, ...(timeFormat ? { timeFormat } : {}) };
+  return {
+    enabledSlots,
+    weekStartDay,
+    defaultSlotTimes,
+    ...(timeFormat ? { timeFormat } : {}),
+    ...(planSource ? { planSource } : {}),
+  };
 }
 
 // ── Time formatting & resolution ────────────────────────────────────

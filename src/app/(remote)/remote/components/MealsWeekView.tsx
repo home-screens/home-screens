@@ -1,11 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { MealSlotType, TimeFormat } from '@/types/config';
 import {
   SLOT_META,
   SLOT_ORDER,
-  SLOT_WINDOWS,
   formatMealTime,
   resolvePlannedMealTime,
   resolveMealTimeFormat,
@@ -13,10 +12,12 @@ import {
   getMealSlotLabelKey,
   formatShortDayMonth,
 } from '@/lib/meal-constants';
+import { getMealCourseLabelKey } from '@/lib/meal-courses';
+import { mealHasPicture } from '@/components/meals/MealPicture';
+import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import type { MealsViewProps } from './meals-shared';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
+import { formatShownMinutes, type MealsViewProps } from './meals-shared';
+import MealThumb from './MealThumb';
 
 interface MealsWeekViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -25,12 +26,15 @@ interface MealsWeekViewProps extends MealsViewProps {
   setSubView: (v: 'plan') => void;
 }
 
+/** The bar, the photo and the gaps between them: where a course line starts. */
+const BAR = 4;
+const PHOTO = 40;
+const GAP = 12;
+
 export default function MealsWeekView({
-  plan,
   weekDates,
   todayISO,
   activeSlot,
-  currentHour,
   getMealForSlot,
   settings,
   globalTimeFormat,
@@ -45,6 +49,19 @@ export default function MealsWeekView({
   );
   const enabledSlotsOrdered = SLOT_ORDER.filter((s) => settings.enabledSlots.includes(s));
   const effectiveTimeFormat = resolveMealTimeFormat(settings, globalTimeFormat);
+  // Only the slots the household plans: a snack Mealie holds stays off a
+  // week that has no snack row, as it does on the wall.
+  const nothingPlanned = weekDates.every(({ date }) => enabledSlotsOrdered.every((slot) => !getMealForSlot(date, slot).name));
+
+  // Open on today, not at the top of the week: by Friday evening tonight's
+  // dinner was four finished days down the page.
+  const todayRef = useRef<HTMLDivElement>(null);
+  const showsToday = weekDates.some(({ date }) => date === todayISO);
+  useEffect(() => {
+    if (showsToday && weekDates[0]?.date !== todayISO) todayRef.current?.scrollIntoView({ block: 'start' });
+    // Once per week shown: a later poll must not pull the page back.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showsToday, weekDates[0]?.date]);
 
   return (
     <div style={{ paddingBottom: 80 }}>
@@ -54,7 +71,7 @@ export default function MealsWeekView({
         const dayLabel = dayNamesFull[dayIndex];
 
         return (
-          <div key={date} style={{ marginBottom: 16 }}>
+          <div key={date} ref={isToday ? todayRef : undefined} style={{ marginBottom: 16, scrollMarginTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: isToday ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)' }}>
                 {dayLabel}
@@ -80,15 +97,12 @@ export default function MealsWeekView({
             </div>
 
             {enabledSlotsOrdered.map((slot: MealSlotType) => {
-              const { planned, meal } = getMealForSlot(date, slot);
-              const hasMeal = !!(meal || planned?.customText);
+              const { planned, meal, name, courses } = getMealForSlot(date, slot);
               const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
-              // A slot is "past" today if its window has ended (currentHour >= window.end)
-              const isPastSlot = isPast || (isToday && currentHour >= SLOT_WINDOWS[slot].end);
               const isCurrentSlot = isToday && slot === activeSlot;
               const slotLabel = tModules(getMealSlotLabelKey(slot));
 
-              if (!hasMeal) {
+              if (!name) {
                 return (
                   <div
                     key={slot}
@@ -100,7 +114,7 @@ export default function MealsWeekView({
                       marginBottom: 4,
                       borderRadius: 10,
                       border: '1px dashed var(--hs-border)',
-                      opacity: isPastSlot ? 0.4 : 0.6,
+                      opacity: isPast ? 0.4 : 0.6,
                     }}
                   >
                     <div style={{ width: 4, height: 28, borderRadius: 2, background: SLOT_META[slot].color, opacity: 0.3 }} />
@@ -111,48 +125,81 @@ export default function MealsWeekView({
                 );
               }
 
+              const shown = mealShownMinutes(meal);
+              const hasPhoto = mealHasPicture(meal);
               return (
                 <div
                   key={slot}
+                  data-testid="meals-week-row"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
                     padding: '10px 12px',
                     marginBottom: 6,
                     borderRadius: 12,
                     background: 'var(--hs-bg-panel)',
-                    opacity: isPastSlot ? 0.4 : 1,
+                    // Only earlier days fade: today's meals stay at full
+                    // strength all day, so tonight still reads as today after dinner.
+                    opacity: isPast ? 0.4 : 1,
                     border: isCurrentSlot ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
                     boxShadow: isCurrentSlot ? '0 0 12px rgba(245,158,11,0.08)' : 'none',
                   }}
                 >
-                  <div style={{ width: 4, height: 28, borderRadius: 2, background: SLOT_META[slot].color }} />
-                  {meal?.emoji && <span style={{ fontSize: 24 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 10, color: 'var(--hs-text-faint)', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>
-                        {slotLabel}{isCurrentSlot ? t('mealsTab.weekView.activeNowSuffix') : ''}
-                      </span>
-                      {time && (
-                        <span style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: SLOT_META[slot].color,
-                          fontVariantNumeric: 'tabular-nums',
-                        }}>
-                          {formatMealTime(time, effectiveTimeFormat)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: GAP }}>
+                    <div style={{ width: BAR, height: 28, borderRadius: 2, background: SLOT_META[slot].color, flex: 'none' }} />
+                    <MealThumb meal={meal} size={PHOTO} radius={8} emojiSize={24} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 10, color: 'var(--hs-text-faint)', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.04em', lineHeight: '15px' }}>
+                          {slotLabel}{isCurrentSlot ? t('mealsTab.weekView.activeNowSuffix') : ''}
                         </span>
-                      )}
+                        {time && (
+                          <span style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: SLOT_META[slot].color,
+                            fontVariantNumeric: 'tabular-nums',
+                            lineHeight: '16px',
+                          }}>
+                            {formatMealTime(time, effectiveTimeFormat)}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '21px' }}>
+                        {name}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {meal?.name ?? planned?.customText ?? ''}
-                    </div>
+                    {shown && (
+                      <span style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
+                        {formatShownMinutes(shown, t)}
+                      </span>
+                    )}
                   </div>
-                  {meal?.prepTime && (
-                    <span style={{ fontSize: 11, color: 'var(--hs-text-faint)', flexShrink: 0 }}>
-                      {t('mealsTab.weekView.prepTimeMin', { minutes: meal.prepTime })}
-                    </span>
+                  {courses.length > 0 && (
+                    <div
+                      data-testid="meals-week-courses"
+                      style={{
+                        margin: `8px 0 0 ${BAR + GAP + (hasPhoto ? PHOTO + GAP : 0)}px`,
+                        paddingTop: 7,
+                        borderTop: '1px solid var(--hs-border)',
+                        display: 'grid',
+                        // Every label as wide as the widest, so the names line
+                        // up whatever the language calls a side.
+                        gridTemplateColumns: 'minmax(50px, max-content) minmax(0, 1fr)',
+                        columnGap: 8,
+                        rowGap: 3,
+                        alignItems: 'baseline',
+                      }}
+                    >
+                      {courses.map((course, i) => (
+                        <div key={i} style={{ display: 'contents' }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: '18px', whiteSpace: 'nowrap' }}>
+                            {tModules(getMealCourseLabelKey(course.kind))}
+                          </span>
+                          <span style={{ fontSize: 13, color: 'var(--hs-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '18px', minWidth: 0 }}>
+                            {course.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               );
@@ -161,7 +208,7 @@ export default function MealsWeekView({
         );
       })}
 
-      {plan.length === 0 && (
+      {nothingPlanned && (
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
           <p style={{ fontSize: 15, color: 'var(--hs-text-faint)', marginBottom: 4 }}>
             {t('mealsTab.weekView.empty.title')}

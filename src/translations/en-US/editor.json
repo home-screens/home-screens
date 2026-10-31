@@ -1360,6 +1360,58 @@
         "apiKeyPlaceholder": "Paste your Immich API key",
         "apiKeyHelp": "Create at Immich → Account Settings → API Keys."
       },
+      "mealie": {
+        "name": "Mealie",
+        "description": "Recipes and meal plan",
+        "urlLabel": "Server URL",
+        "urlPlaceholder": "e.g. http://192.168.1.50:9925",
+        "urlHelp": "The address you open Mealie at, with its port number.",
+        "tokenLabel": "API token",
+        "tokenPlaceholder": "Paste your Mealie API token",
+        "tokenHelp": "In Mealie, open your profile, choose API Tokens and make one. You'll see the meal plan of the household of whoever makes it.",
+        "testButton": "Test",
+        "testing": "Testing…",
+        "testHelp": "Checks the address and the token together.",
+        "notConnected": "Not connected",
+        "removeConfirm": {
+          "title": "Stop showing the meal plan?",
+          "message": "Your meal plan comes from Mealie. Without its address and token, the wall and the phone can't show it until you add them again or set the meal plan back to Home Screens in Settings > Meals.",
+          "confirmLabel": "Remove"
+        },
+        "result": {
+          "connected": "Connected to the {household} household, Mealie {version}",
+          "checkedNow": "Checked just now.",
+          "not-set-up": {
+            "title": "Add the address and the token first.",
+            "body": "Type each one in above and press Save next to it, then test again."
+          },
+          "bad-address": {
+            "title": "That doesn't look like a web address.",
+            "body": "Type it the way you open Mealie in a browser, starting with http:// or https://."
+          },
+          "unreachable": {
+            "title": "We couldn't reach Mealie at that address.",
+            "body": "Check that it opens in a browser on this network, with the port number, and that Mealie is running."
+          },
+          "not-mealie": {
+            "title": "Something answered at that address, but it isn't Mealie.",
+            "body": "Check the address and the port number. It's the one you open Mealie at."
+          },
+          "too-old": {
+            "title": "This Mealie is too old (version {version}).",
+            "body": "Update it to 2.0 or newer, then test again."
+          },
+          "key-rejected": {
+            "title": "Mealie didn't accept that token.",
+            "body": "It may have been deleted in Mealie. Make a new one there and paste it above."
+          },
+          "network": {
+            "title": "We couldn't check right now.",
+            "body": "Home Screens didn't answer. Try again in a moment."
+          },
+          "mealsLink": "Use it for your meal plan in Meals settings"
+        }
+      },
       "microsoft": {
         "name": "Microsoft OneDrive",
         "description": "Photos from your OneDrive",
@@ -1582,6 +1634,22 @@
       "loading": "Loading meal settings…",
       "intro": {
         "text": "Shared meal-planner settings. These also appear in the family remote, and edits from either place stay in sync."
+      },
+      "planSource": {
+        "heading": "Your meal plan lives in",
+        "description": "Plan meals here, or, if your family keeps its recipes in the Mealie app, use the meal plan you keep there.",
+        "homeScreens": "Home Screens",
+        "homeScreensSub": "Planned here",
+        "mealie": "Mealie",
+        "mealieNotConnected": "Optional, not connected",
+        "mealieHousehold": "{household} household",
+        "mealieConnected": "Connected",
+        "mealieNotAnswering": "Not answering right now",
+        "connectFirst": "Only if your family uses Mealie, a separate recipe app. To plan in it, connect it first on the",
+        "apiKeysLink": "API keys page",
+        "connectedOffer": "Mealie is connected. Choose it to plan with the recipes and plan you keep there.",
+        "onMealie": "Every meal view, the phone and this editor now use your Mealie plan, and planning here saves to Mealie. Your Home Screens plan is kept, and comes back if you switch back.",
+        "mealieSettingsLink": "Mealie settings"
       },
       "status": {
         "loadFailed": "Failed to load meal settings.",
@@ -2802,6 +2870,7 @@
   },
   "mealPlannerModal": {
     "title": "Meal Planner",
+    "loading": "Loading meals…",
     "subtitleMealsPlanned": "{meals} meals · {planned} planned",
     "doneButton": "Done",
     "newMealName": "New Meal",
@@ -2817,7 +2886,18 @@
       "randomSuggested": "Random meals suggested!",
       "lastWeekCopied": "Last week copied!",
       "weekCleared": "Week cleared",
-      "undoButton": "Undo"
+      "undoButton": "Undo",
+      "courseRemoved": "Removed from this meal",
+      "saveFailed": "That change didn't save. Try again.",
+      "mealieSaveFailed": "Mealie didn't take that change. Check that it's running, then try again.",
+      "mealieAllPlanned": "Every dinner this week is already planned.",
+      "mealieNoDinners": "Suggest fills empty dinners, and dinner is turned off in the meal settings.",
+      "mealieSuggested": {
+        "one": "Planned a dinner for {days}.",
+        "other": "Planned dinners for {days}."
+      },
+      "mealieSuggestedEveryNight": "Planned a dinner for every night this week.",
+      "mealieNothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie."
     },
     "library": {
       "searchPlaceholder": "Search meals...",
@@ -2826,7 +2906,10 @@
       "addNewMealButton": "+ Add New Meal",
       "filters": {
         "all": "All",
-        "favorites": "Favs"
+        "favorites": "Favs",
+        "side": "Sides",
+        "dessert": "Desserts",
+        "drink": "Drinks"
       }
     },
     "detail": {
@@ -2841,6 +2924,7 @@
       "minPlaceholder": "min",
       "servingsLabel": "Servings",
       "difficultyLabel": "Difficulty",
+      "kindLabel": "Kind of dish",
       "tagsLabel": "Tags",
       "ingredientsLabel": "Ingredients",
       "ingredientNamePlaceholder": "Ingredient name",
@@ -2862,17 +2946,130 @@
       "todayLabel": "Today",
       "todayChip": "Today",
       "suggestButton": "Suggest",
+      "suggestBusy": "Picking dinners…",
       "copyLastWeekButton": "Copy Last Week",
       "clearButton": "Clear",
       "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Previous week",
-      "nextWeekAriaLabel": "Next week"
+      "nextWeekAriaLabel": "Next week",
+      "coursesCount": {
+        "one": "{count} more with this meal",
+        "other": "{count} more with this meal"
+      },
+      "removeMealAriaLabel": "Remove {name}"
     },
     "picker": {
       "title": "Choose a Meal",
       "searchPlaceholder": "Search meals...",
       "noMealsFound": "No meals found",
-      "prepTimeShort": "{minutes}m"
+      "prepTimeShort": "{minutes}m",
+      "titleAdd": {
+        "side": "Add a side",
+        "dessert": "Add a dessert",
+        "drink": "Add a drink",
+        "main": "Add another main dish"
+      },
+      "titleSwap": {
+        "side": "Change the side",
+        "dessert": "Change the dessert",
+        "drink": "Change the drink",
+        "main": "Change this main dish"
+      },
+      "searchMealiePlaceholder": "Search recipes in Mealie",
+      "clearSearch": "Clear search",
+      "favorites": "Favorites",
+      "recentlyMade": "Recently made",
+      "lookingInMealie": "Looking in Mealie…",
+      "recipesInMealie": {
+        "one": "{count} recipe in Mealie",
+        "other": "{count} recipes in Mealie"
+      },
+      "favoritesAtoZ": {
+        "one": "{count} favorite, A to Z",
+        "other": "{count} favorites, A to Z"
+      },
+      "recentlyMadeFirst": "Recently made, newest first",
+      "keysHint": "↑ ↓ to move, Enter to pick",
+      "typeInstead": "Type “{text}” instead",
+      "typeInsteadMealie": "No recipe. Mealie keeps it as a note.",
+      "typeInsteadLocal": "Goes on the plan as typed, not saved to your meals.",
+      "noRecipesCalled": "No recipes called “{text}” in Mealie",
+      "noRecipesHint": "Check the spelling, or type it in instead. It goes on the plan as a note, with no recipe.",
+      "mealieError": "We couldn't reach Mealie.",
+      "tryAgain": "Try again",
+      "noFavorites": "No favorites yet. Mark recipes as favorites in Mealie, or search above.",
+      "noRecentlyMade": "Nothing marked as made yet. Search above instead.",
+      "groupHeading": {
+        "side": "Sides",
+        "dessert": "Desserts",
+        "drink": "Drinks",
+        "main": "Main dishes"
+      },
+      "everythingElse": "Everything else",
+      "categoryCount": {
+        "one": "1 recipe in {category}",
+        "other": "{count} recipes in {category}"
+      },
+      "noneInCategory": "No recipes in {category} yet. Search above instead."
+    },
+    "openInMealie": "Open in Mealie",
+    "mealie": {
+      "fromMealie": "From Mealie",
+      "lastUpdated": "Last updated {time}",
+      "subtitle": "{planned} planned this week",
+      "subtitleHousehold": "{household} household · {planned} planned this week",
+      "openMealie": "Open Mealie",
+      "tryAgain": "Try again",
+      "unreachableTitle": "Can't reach Mealie right now",
+      "unreachableBody": "Your meals are in Mealie, and Home Screens can't get to it. Check that Mealie is running, then try again.",
+      "notConnectedTitle": "Mealie isn't connected",
+      "notConnectedBody": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them in Settings > API keys, or set the meal plan back to Home Screens in Settings > Meals.",
+      "tokenRefusedTitle": "Mealie isn't letting Home Screens in",
+      "tokenRefusedBody": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it in Settings > API keys.",
+      "paused": "Planning is paused until Mealie is back.",
+      "pausedSince": "Planning is paused until Mealie is back. This is the plan from {time}.",
+      "weekLoading": "Getting this week from Mealie…",
+      "weekFailed": "We couldn't get this week from Mealie.",
+      "libraryNote": "Recipes live in Mealie. Click one to see it here.",
+      "detailEmpty": "Click a meal on the week, or a recipe in the Library, to see it here.",
+      "serves": {
+        "one": "Serves {count}",
+        "other": "Serves {count}"
+      },
+      "readOnlyNote": "This recipe lives in Mealie. Change it there and it updates here within a couple of minutes.",
+      "groceryTitle": "Your shopping list lives in Mealie",
+      "groceryBody": "While your meal plan is in Mealie, so is your list. Open Mealie to see what you need and tick things off.",
+      "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them."
+    },
+    "popover": {
+      "savesToMealie": "Saves to Mealie",
+      "close": "Close",
+      "mainDish": "Main dish",
+      "noMainDish": "No main dish yet",
+      "change": "Change",
+      "choose": "Choose",
+      "withThisMeal": "With this meal",
+      "swapCourse": "Choose a different one",
+      "moveUp": "Move {name} up",
+      "moveDown": "Move {name} down",
+      "remove": "Remove {name}",
+      "missingMeal": "A meal that was removed",
+      "anotherMain": "Another main",
+      "servingTime": "Serving time",
+      "usually": "usually {time}",
+      "clear": {
+        "breakfast": "Clear this breakfast",
+        "lunch": "Clear this lunch",
+        "dinner": "Clear this dinner",
+        "snack": "Clear this snack"
+      },
+      "timeKeptHere": "Home Screens keeps this time. Mealie doesn't have one, so it won't show there.",
+      "timeAndOrderKeptHere": "Home Screens keeps this time and the order of the dishes. Mealie has no place for either, so they won't show there."
+    },
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} hr",
+      "hoursMinutes": "{hours} hr {minutes} min"
     }
   },
   "timetableModal": {
@@ -3913,7 +4110,7 @@
       "densityCozy": "Roomy",
       "densitySnug": "Compact",
       "typographySize": "Text size",
-      "showEmoji": "Show Emoji",
+      "showEmoji": "Show Pictures",
       "showPrepTime": "Show Prep Time",
       "showTags": "Show Tags",
       "showDifficulty": "Show Difficulty",
@@ -4141,7 +4338,7 @@
       "viewNextMeal": "Next Meal (Hero)",
       "viewCompact": "Compact (Today + Tomorrow)",
       "viewList": "Full Week List",
-      "showEmoji": "Show Emoji",
+      "showEmoji": "Show Pictures",
       "showPrepTime": "Show Prep Time",
       "showTags": "Show Tags",
       "accentColor": "Accent Color",

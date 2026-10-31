@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Globe,
   CheckCircle2,
@@ -11,6 +12,7 @@ import {
 import SecretField, { type SecretKey } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
 import GoogleIntegrationCard from './GoogleIntegrationCard';
+import MealieIntegrationCard, { MEALIE_CARD_FIELD_ID } from './MealieIntegrationCard';
 import { getStatusInfo } from './shared/integration-status';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useGoogleApps } from '@/hooks/useGoogleApps';
@@ -32,6 +34,9 @@ function UnsplashIcon() {
 export default function IntegrationsSection() {
   const t = useTranslate('editor');
   const { status, loading, refetch } = useSecretStatus();
+  // The Meals page links here to the Mealie card; arriving that way opens it
+  // so the address and token are right under the highlight.
+  const arrivingAt = useSearchParams()?.get('highlight') ?? null;
   // Which Google app signs in decides both the Google card and whether
   // Google counts as connected, so it is re-read whenever a key is saved.
   const { apps, loading: appsLoading, refetch: refetchApps } = useGoogleApps();
@@ -195,6 +200,12 @@ export default function IntegrationsSection() {
           {t('settings.integrationsPage.groups.services')}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
+          <MealieIntegrationCard
+            status={status}
+            onSaved={refetch}
+            defaultOpen={arrivingAt === MEALIE_CARD_FIELD_ID}
+          />
+
           <IntegrationCard
             fieldId="integrations.todoist"
             icon={<CheckCircle2 className="w-[18px] h-[18px] text-white" />}

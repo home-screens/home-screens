@@ -1,4 +1,4 @@
-import type { MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
+import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
 import { DEFAULT_MEAL_SETTINGS } from './meal-constants';
 
 /**
@@ -76,17 +76,38 @@ export function setMealTimeFormat(
 }
 
 /**
+ * Say where the meal plan lives: `'mealie'`, or `undefined` for Home Screens.
+ *
+ * The explicit `undefined` clears a stored choice the same way
+ * `setMealTimeFormat` does. Switching never touches the plan in `meals.json`:
+ * it is only hidden while Mealie holds the plan, and is back as it was when the
+ * family switches back.
+ */
+export function setMealPlanSource(
+  settings: MealSettings,
+  planSource: MealPlanSource | undefined,
+): MealSettings {
+  if (settings.planSource === planSource) return settings;
+  return { ...settings, planSource };
+}
+
+/**
  * The settings a household starts with, freshly cloned.
  *
  * Both collections are copied because `DEFAULT_MEAL_SETTINGS` is a module-level
  * object: handing its arrays out would let an edit on one surface mutate the
  * defaults every other reader sees. Default times reset to none rather than to
  * the shipped defaults, which carry none.
+ *
+ * Where the plan lives survives a reset: it is a choice about which app holds
+ * the plan, not a planning preference, and resetting slots and times should
+ * not quietly swap the family's whole plan for the one Home Screens kept.
  */
-export function resetMealSettings(): MealSettings {
+export function resetMealSettings(current?: MealSettings): MealSettings {
   return {
     ...DEFAULT_MEAL_SETTINGS,
     enabledSlots: [...DEFAULT_MEAL_SETTINGS.enabledSlots],
     defaultSlotTimes: {},
+    ...(current?.planSource ? { planSource: current.planSource } : {}),
   };
 }

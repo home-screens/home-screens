@@ -51,6 +51,7 @@ export const CONNECTABLE_SERVICES: ConnectableService[] = [
     requiredKeys: ['google_client_id', 'google_client_secret'],
   },
   { id: 'immich', label: 'Immich', initials: 'IM', page: 'integrations', keys: ['immich_url', 'immich_api_key'] },
+  { id: 'mealie', label: 'Mealie', initials: 'ME', page: 'integrations', keys: ['mealie_url', 'mealie_api_key'] },
   { id: 'microsoft', label: 'Microsoft', initials: 'MS', page: 'integrations', keys: ['microsoft_client_id'] },
   { id: 'unsplash', label: 'Unsplash', initials: 'UN', page: 'integrations', keys: ['unsplash_access_key'] },
   { id: 'nasa', label: 'NASA', initials: 'NA', page: 'integrations', keys: ['nasa_api_key'] },

@@ -6,6 +6,8 @@ import { readConfig } from './config';
 import { getAllScreens } from './display-filter';
 import { toISODate, DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from './meal-constants';
 import { normalizeGroceryChecked, type GroceryChecked } from './grocery-checks';
+import { normalizeStoredMeal, normalizeStoredPlanEntry } from './meal-courses';
+import { normalizeMealieExtras, type MealieExtras } from './mealie-map';
 import { logger } from '@/lib/logger';
 
 const log = logger('meal-settings-migration');
@@ -41,6 +43,15 @@ export interface MealData {
    * '12h' picked after the migration — see parseAndMigrate.
    */
   timeFormatLegacyStripped?: boolean;
+  /**
+   * What the hub remembers about Mealie plan entries that Mealie cannot hold, keyed by entry id
+   *
+   * A serving time set for one meal, and which meal a side, dessert or drink
+   * was planned with when it is not dinner (see `MealieEntryExtra`). Only
+   * written while the plan lives in Mealie; never sent to clients, which get
+   * it already applied to Mealie's plan.
+   */
+  mealieExtras?: MealieExtras;
 }
 
 const EMPTY: MealData = {
@@ -224,12 +235,14 @@ async function parseAndMigrate(
 ): Promise<{ data: MealData; migrated: boolean }> {
   const raw = (parsed && typeof parsed === 'object' ? parsed : {}) as Record<string, unknown>;
   const data: MealData = {
-    savedMeals: Array.isArray(raw.savedMeals) ? raw.savedMeals as SavedMeal[] : [],
-    plan: Array.isArray(raw.plan) ? raw.plan as PlannedMeal[] : [],
+    savedMeals: Array.isArray(raw.savedMeals) ? (raw.savedMeals as SavedMeal[]).map(normalizeStoredMeal) : [],
+    plan: Array.isArray(raw.plan) ? (raw.plan as PlannedMeal[]).map(normalizeStoredPlanEntry) : [],
     // The single list older builds kept for every week reads as nothing ticked.
     groceryChecked: normalizeGroceryChecked(raw.groceryChecked),
     settings: normalizeMealSettings(raw.settings),
   };
+  const mealieExtras = normalizeMealieExtras(raw.mealieExtras);
+  if (mealieExtras) data.mealieExtras = mealieExtras;
 
   const needsMigration = (data.plan as unknown as Record<string, unknown>[]).some(
     (entry) => !('date' in entry && typeof entry.date === 'string') && 'day' in entry,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getWeekDates, currentActiveSlot } from '../meals-shared';
+import { getWeekDates, currentActiveSlot, formatShownMinutes, mealTagLabel } from '../meals-shared';
 import { toISODate } from '@/lib/meal-constants';
 
 describe('getWeekDates', () => {
@@ -102,5 +102,35 @@ describe('currentActiveSlot', () => {
   it('returns "snack" at 3 PM when snack is enabled', () => {
     const now = new Date(2026, 3, 3, 15, 0);
     expect(currentActiveSlot(['breakfast', 'lunch', 'snack', 'dinner'], now)).toBe('snack');
+  });
+});
+
+describe('formatShownMinutes', () => {
+  const words: Record<string, string> = {
+    'mealsTab.duration.minutes': '{minutes}m',
+    'mealsTab.duration.hours': '{hours}h',
+    'mealsTab.duration.hoursMinutes': '{hours}h {minutes}m',
+    'mealsTab.duration.prep': '{time} prep',
+  };
+  const t = (key: string, vars: Record<string, string | number> = {}) =>
+    words[key].replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name]));
+
+  it('prints minutes, whole hours and hours with minutes', () => {
+    expect(formatShownMinutes({ minutes: 45, kind: 'total' }, t)).toBe('45m');
+    expect(formatShownMinutes({ minutes: 60, kind: 'total' }, t)).toBe('1h');
+    expect(formatShownMinutes({ minutes: 140, kind: 'total' }, t)).toBe('2h 20m');
+  });
+
+  it('says prep for the family own meals only where asked', () => {
+    expect(formatShownMinutes({ minutes: 15, kind: 'prep' }, t, true)).toBe('15m prep');
+    expect(formatShownMinutes({ minutes: 15, kind: 'prep' }, t)).toBe('15m');
+    expect(formatShownMinutes({ minutes: 140, kind: 'total' }, t, true)).toBe('2h 20m');
+  });
+});
+
+describe('mealTagLabel', () => {
+  it('dresses up the family own tags and leaves Mealie names as typed', () => {
+    expect(mealTagLabel({ id: 'tacos' }, 'kid-friendly')).toBe('Kid-Friendly');
+    expect(mealTagLabel({ id: 'mealie:95da3cd9-6bd2-4ef2-a316-2dbcaa30b6fd' }, 'Kid friendly')).toBe('Kid friendly');
   });
 });

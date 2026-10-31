@@ -1360,6 +1360,58 @@
         "apiKeyPlaceholder": "Indsæt din Immich-API-nøgle",
         "apiKeyHelp": "Opret den i Immich → Account Settings → API Keys."
       },
+      "mealie": {
+        "name": "Mealie",
+        "description": "Opskrifter og madplan",
+        "urlLabel": "Server-URL",
+        "urlPlaceholder": "f.eks. http://192.168.1.50:9925",
+        "urlHelp": "Adressen, du åbner Mealie på, med portnummeret.",
+        "tokenLabel": "API-token",
+        "tokenPlaceholder": "Indsæt dit Mealie-API-token",
+        "tokenHelp": "Åbn din profil i Mealie, vælg API Tokens, og lav et. Du ser madplanen for husstanden hos den, der laver det.",
+        "testButton": "Afprøv",
+        "testing": "Afprøver…",
+        "testHelp": "Tjekker adressen og tokenet sammen.",
+        "notConnected": "Ikke forbundet",
+        "removeConfirm": {
+          "title": "Stop med at vise madplanen?",
+          "message": "Din madplan kommer fra Mealie. Uden adressen og tokenet kan skærmen og telefonen ikke vise den, før du tilføjer dem igen eller sætter madplanen tilbage til Home Screens under Indstillinger > Måltider.",
+          "confirmLabel": "Fjern"
+        },
+        "result": {
+          "connected": "Forbundet til husstanden {household}, Mealie {version}",
+          "checkedNow": "Tjekket lige nu.",
+          "not-set-up": {
+            "title": "Tilføj først adressen og tokenet.",
+            "body": "Skriv hver af dem ovenfor, og tryk på Gem ved siden af. Test så igen."
+          },
+          "bad-address": {
+            "title": "Det ligner ikke en webadresse.",
+            "body": "Skriv den, som du åbner Mealie i en browser, med http:// eller https:// først."
+          },
+          "unreachable": {
+            "title": "Vi kunne ikke nå Mealie på den adresse.",
+            "body": "Tjek, at den åbner i en browser på dette netværk, med portnummeret, og at Mealie kører."
+          },
+          "not-mealie": {
+            "title": "Noget svarer på den adresse, men det er ikke Mealie.",
+            "body": "Tjek adressen og portnummeret. Det er den, du åbner Mealie på."
+          },
+          "too-old": {
+            "title": "Denne Mealie er for gammel (version {version}).",
+            "body": "Opdater den til 2.0 eller nyere, og afprøv igen."
+          },
+          "key-rejected": {
+            "title": "Mealie tog ikke imod det token.",
+            "body": "Det er måske slettet i Mealie. Lav et nyt der, og indsæt det ovenfor."
+          },
+          "network": {
+            "title": "Vi kunne ikke tjekke lige nu.",
+            "body": "Home Screens svarede ikke. Prøv igen om lidt."
+          },
+          "mealsLink": "Brug den til din madplan under indstillingerne for Måltider"
+        }
+      },
       "microsoft": {
         "name": "Microsoft OneDrive",
         "description": "Billeder fra din OneDrive",
@@ -1582,6 +1634,22 @@
       "loading": "Indlæser indstillinger for måltider…",
       "intro": {
         "text": "Fælles indstillinger for måltidsplanlægningen. De vises også i familiefjernbetjeningen, og ændringer holdes ens begge steder."
+      },
+      "planSource": {
+        "heading": "Din madplan ligger i",
+        "description": "Planlæg måltider her, eller brug madplanen fra appen Mealie, hvis jeres familie har sine opskrifter der.",
+        "homeScreens": "Home Screens",
+        "homeScreensSub": "Planlægges her",
+        "mealie": "Mealie",
+        "mealieNotConnected": "Valgfri, ikke forbundet",
+        "mealieHousehold": "Husstanden {household}",
+        "mealieConnected": "Forbundet",
+        "mealieNotAnswering": "Svarer ikke lige nu",
+        "connectFirst": "Kun hvis jeres familie bruger Mealie, en separat opskrifts-app. For at planlægge i den skal den først forbindes på siden",
+        "apiKeysLink": "API-nøgler",
+        "connectedOffer": "Mealie er forbundet. Vælg det for at planlægge med de opskrifter og den plan, du har der.",
+        "onMealie": "Alle madvisninger, telefonen og denne editor bruger nu din Mealie-plan, og det, du planlægger her, gemmes i Mealie. Din Home Screens-plan bliver gemt og kommer tilbage, hvis du skifter tilbage.",
+        "mealieSettingsLink": "Mealie-indstillinger"
       },
       "status": {
         "loadFailed": "Kunne ikke indlæse indstillingerne for måltider.",
@@ -2802,6 +2870,7 @@
   },
   "mealPlannerModal": {
     "title": "Madplan",
+    "loading": "Henter måltider…",
     "subtitleMealsPlanned": "{meals} måltider · {planned} planlagt",
     "doneButton": "Færdig",
     "newMealName": "Nyt måltid",
@@ -2817,7 +2886,18 @@
       "randomSuggested": "Tilfældige måltider foreslået!",
       "lastWeekCopied": "Sidste uge er kopieret!",
       "weekCleared": "Ugen er ryddet",
-      "undoButton": "Fortryd"
+      "undoButton": "Fortryd",
+      "courseRemoved": "Fjernet fra dette måltid",
+      "saveFailed": "Ændringen blev ikke gemt. Prøv igen.",
+      "mealieSaveFailed": "Mealie tog ikke imod ændringen. Tjek, at den kører, og prøv igen.",
+      "mealieAllPlanned": "Alle aftensmåltider i denne uge er allerede planlagt.",
+      "mealieNoDinners": "Foreslå udfylder tomme aftensmåltider, og aftensmad er slået fra i måltidsindstillingerne.",
+      "mealieSuggested": {
+        "one": "Aftensmad planlagt til {days}.",
+        "other": "Aftensmad planlagt til {days}."
+      },
+      "mealieSuggestedEveryNight": "Aftensmad planlagt til hver aften i denne uge.",
+      "mealieNothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie."
     },
     "library": {
       "searchPlaceholder": "Søg efter måltider…",
@@ -2826,7 +2906,10 @@
       "addNewMealButton": "+ Tilføj nyt måltid",
       "filters": {
         "all": "Alle",
-        "favorites": "Favoritter"
+        "favorites": "Favoritter",
+        "side": "Tilbehør",
+        "dessert": "Desserter",
+        "drink": "Drikke"
       }
     },
     "detail": {
@@ -2841,6 +2924,7 @@
       "minPlaceholder": "min",
       "servingsLabel": "Portioner",
       "difficultyLabel": "Sværhedsgrad",
+      "kindLabel": "Slags ret",
       "tagsLabel": "Tags",
       "ingredientsLabel": "Ingredienser",
       "ingredientNamePlaceholder": "Navn på ingrediens",
@@ -2862,17 +2946,130 @@
       "todayLabel": "I dag",
       "todayChip": "I dag",
       "suggestButton": "Foreslå",
+      "suggestBusy": "Vælger aftensmad…",
       "copyLastWeekButton": "Kopiér sidste uge",
       "clearButton": "Ryd",
       "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Forrige uge",
-      "nextWeekAriaLabel": "Næste uge"
+      "nextWeekAriaLabel": "Næste uge",
+      "coursesCount": {
+        "one": "{count} mere til dette måltid",
+        "other": "{count} mere til dette måltid"
+      },
+      "removeMealAriaLabel": "Fjern {name}"
     },
     "picker": {
       "title": "Vælg et måltid",
       "searchPlaceholder": "Søg efter måltider…",
       "noMealsFound": "Ingen måltider fundet",
-      "prepTimeShort": "{minutes}m"
+      "prepTimeShort": "{minutes}m",
+      "titleAdd": {
+        "side": "Tilføj tilbehør",
+        "dessert": "Tilføj en dessert",
+        "drink": "Tilføj en drikke",
+        "main": "Tilføj endnu en hovedret"
+      },
+      "titleSwap": {
+        "side": "Skift tilbehøret",
+        "dessert": "Skift desserten",
+        "drink": "Skift drikken",
+        "main": "Skift denne hovedret"
+      },
+      "searchMealiePlaceholder": "Søg i opskrifter i Mealie",
+      "clearSearch": "Ryd søgning",
+      "favorites": "Favoritter",
+      "recentlyMade": "Lavet for nylig",
+      "lookingInMealie": "Søger i Mealie…",
+      "recipesInMealie": {
+        "one": "{count} opskrift i Mealie",
+        "other": "{count} opskrifter i Mealie"
+      },
+      "favoritesAtoZ": {
+        "one": "{count} favorit, A til Å",
+        "other": "{count} favoritter, A til Å"
+      },
+      "recentlyMadeFirst": "Lavet for nylig, nyeste først",
+      "keysHint": "↑ ↓ for at flytte, Enter for at vælge",
+      "typeInstead": "Skriv \"{text}\" i stedet",
+      "typeInsteadMealie": "Ingen opskrift. Mealie gemmer det som en note.",
+      "typeInsteadLocal": "Kommer på planen, som det er skrevet, uden at blive gemt blandt dine måltider.",
+      "noRecipesCalled": "Ingen opskrifter med navnet \"{text}\" i Mealie",
+      "noRecipesHint": "Tjek stavningen, eller skriv det bare ind. Det kommer på planen som en note uden opskrift.",
+      "mealieError": "Vi kunne ikke nå Mealie.",
+      "tryAgain": "Prøv igen",
+      "noFavorites": "Ingen favoritter endnu. Markér opskrifter som favoritter i Mealie, eller søg ovenfor.",
+      "noRecentlyMade": "Intet er markeret som lavet endnu. Søg ovenfor i stedet.",
+      "groupHeading": {
+        "side": "Tilbehør",
+        "dessert": "Desserter",
+        "drink": "Drikke",
+        "main": "Hovedretter"
+      },
+      "everythingElse": "Alt andet",
+      "categoryCount": {
+        "one": "1 opskrift i {category}",
+        "other": "{count} opskrifter i {category}"
+      },
+      "noneInCategory": "Ingen opskrifter i {category} endnu. Søg ovenfor i stedet."
+    },
+    "openInMealie": "Åbn i Mealie",
+    "mealie": {
+      "fromMealie": "Fra Mealie",
+      "lastUpdated": "Sidst opdateret {time}",
+      "subtitle": "{planned} planlagt denne uge",
+      "subtitleHousehold": "Husstanden {household} · {planned} planlagt denne uge",
+      "openMealie": "Åbn Mealie",
+      "tryAgain": "Prøv igen",
+      "unreachableTitle": "Kan ikke nå Mealie lige nu",
+      "unreachableBody": "Dine måltider ligger i Mealie, og Home Screens kan ikke komme til det. Tjek, at Mealie kører, og prøv så igen.",
+      "notConnectedTitle": "Mealie er ikke forbundet",
+      "notConnectedBody": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem under Indstillinger > API-nøgler, eller sæt madplanen tilbage til Home Screens under Indstillinger > Måltider.",
+      "tokenRefusedTitle": "Mealie lukker ikke Home Screens ind længere",
+      "tokenRefusedBody": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det under Indstillinger > API-nøgler.",
+      "paused": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
+      "pausedSince": "Planlægningen er sat på pause, indtil Mealie er tilbage. Det her er planen fra {time}.",
+      "weekLoading": "Henter denne uge fra Mealie…",
+      "weekFailed": "Vi kunne ikke hente denne uge fra Mealie.",
+      "libraryNote": "Opskrifterne ligger i Mealie. Klik på en for at se den her.",
+      "detailEmpty": "Klik på et måltid i ugen eller en opskrift i biblioteket for at se det her.",
+      "serves": {
+        "one": "Til {count} person",
+        "other": "Til {count} personer"
+      },
+      "readOnlyNote": "Denne opskrift ligger i Mealie. Ret den der, så er den opdateret her inden for et par minutter.",
+      "groceryTitle": "Din indkøbsliste ligger i Mealie",
+      "groceryBody": "Så længe din madplan ligger i Mealie, gør din liste også. Åbn Mealie for at se, hvad du mangler, og krydse ting af.",
+      "ingredientsFailed": "Mealie sendte ikke ingredienserne. Åbn opskriften i Mealie for at se dem."
+    },
+    "popover": {
+      "savesToMealie": "Gemmes i Mealie",
+      "close": "Luk",
+      "mainDish": "Hovedret",
+      "noMainDish": "Ingen hovedret endnu",
+      "change": "Skift",
+      "choose": "Vælg",
+      "withThisMeal": "Til dette måltid",
+      "swapCourse": "Vælg noget andet",
+      "moveUp": "Flyt {name} op",
+      "moveDown": "Flyt {name} ned",
+      "remove": "Fjern {name}",
+      "missingMeal": "Et måltid, der er fjernet",
+      "anotherMain": "Endnu en hovedret",
+      "servingTime": "Spisetid",
+      "usually": "normalt {time}",
+      "clear": {
+        "breakfast": "Ryd denne morgenmad",
+        "lunch": "Ryd denne frokost",
+        "dinner": "Ryd denne aftensmad",
+        "snack": "Ryd dette mellemmåltid"
+      },
+      "timeKeptHere": "Home Screens husker denne tid. Mealie har ingen tid, så den vises ikke der.",
+      "timeAndOrderKeptHere": "Home Screens husker dette tidspunkt og rækkefølgen af retterne. Mealie har ikke plads til nogen af dem, så de vises ikke der."
+    },
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} t",
+      "hoursMinutes": "{hours} t {minutes} min"
     }
   },
   "timetableModal": {
@@ -3913,7 +4110,7 @@
       "densityCozy": "Luftig",
       "densitySnug": "Kompakt",
       "typographySize": "Tekststørrelse",
-      "showEmoji": "Vis emoji",
+      "showEmoji": "Vis billeder",
       "showPrepTime": "Vis forberedelsestid",
       "showTags": "Vis tags",
       "showDifficulty": "Vis sværhedsgrad",
@@ -4141,7 +4338,7 @@
       "viewNextMeal": "Næste måltid (stort)",
       "viewCompact": "Kompakt (i dag + i morgen)",
       "viewList": "Hele ugen som liste",
-      "showEmoji": "Vis emoji",
+      "showEmoji": "Vis billeder",
       "showPrepTime": "Vis forberedelsestid",
       "showTags": "Vis tags",
       "accentColor": "Accentfarve",

@@ -175,16 +175,18 @@ describe('getNextPlannedMeal', () => {
 // countPlanned
 // ---------------------------------------------------------------------------
 describe('countPlanned', () => {
-  it('counts meals with mealId as filled', () => {
+  it('counts every meal with something planned, typed in or only courses too', () => {
     const plan: PlannedMeal[] = [
       makePlan('2026-04-04', 'breakfast', 'm1'),
       makePlan('2026-04-04', 'lunch', 'm2'),
-      { date: '2026-04-04', slot: 'dinner' }, // no mealId
+      { date: '2026-04-04', slot: 'dinner' }, // nothing in it
+      { date: '2026-04-05', slot: 'dinner', customText: 'Pizza night' },
+      { date: '2026-04-06', slot: 'dinner', courses: [{ kind: 'side', customText: 'Salad' }] },
     ];
     const result = countPlanned(plan, 28);
-    expect(result.filled).toBe(2);
+    expect(result.filled).toBe(4);
     expect(result.total).toBe(28);
-    expect(result.pct).toBe(Math.round((2 / 28) * 100));
+    expect(result.pct).toBe(Math.round((4 / 28) * 100));
   });
 
   it('returns 0% for empty plan', () => {

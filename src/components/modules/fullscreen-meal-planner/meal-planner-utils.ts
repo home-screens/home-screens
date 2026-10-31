@@ -1,5 +1,6 @@
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { DIFFICULTY_COLORS } from '@/lib/meal-constants';
+import { planEntryHasContent } from '@/lib/meal-courses';
 import type { RecipeTapMode } from '../shared/MealTapTarget';
 
 export interface MealPlannerViewProps {
@@ -26,6 +27,13 @@ export interface MealPlannerViewProps {
   recipeTapMode: RecipeTapMode;
   /** Canvas is wider than tall; the today and menu-board views re-flow. */
   landscape: boolean;
+  /**
+   * The next meal's photo fills the module behind a dark scrim (Next Meal
+   * view only), so the view draws its text light and leaves out the big
+   * picture. Only true once the photo has loaded: light text on the theme's
+   * own background would not read.
+   */
+  photoBackdrop?: boolean;
 }
 
 /**
@@ -50,6 +58,8 @@ export function countPlanned(
   planArr: PlannedMeal[],
   totalSlots: number,
 ): { filled: number; total: number; pct: number } {
-  const filled = planArr.filter((p) => p.mealId).length;
+  // A meal typed straight in ("Pizza night") or planned as only its courses
+  // is planned too, not just one from the library.
+  const filled = planArr.filter(planEntryHasContent).length;
   return { filled, total: totalSlots, pct: totalSlots > 0 ? Math.round((filled / totalSlots) * 100) : 0 };
 }

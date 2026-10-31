@@ -123,3 +123,113 @@ describe('useMealsData grocery ticks', () => {
     expect(result.current.saveError).toBe('mealsTab.saveFailed');
   });
 });
+
+const RECIPE = 'mealie:95da3cd9-6bd2-4ef2-a316-2dbcaa30b6fd';
+
+/** The meals answer while the plan lives in Mealie: the stored plan is not what the tab draws. */
+function mealieAnswer(range: { start: string; end: string }, plan: unknown[], status: 'ok' | 'stale' | 'failed' = 'ok') {
+  return {
+    ...STORED,
+    plan: [{ date: THIS_WEEK, slot: 'dinner', customText: 'Local supper' }],
+    settings: { planSource: 'mealie' },
+    mealieConnected: true,
+    mealie: {
+      status,
+      plan,
+      meals: [{ id: RECIPE, name: 'Pastel de Choclo' }],
+      range,
+      fetchedAt: 1_793_408_451_625,
+      baseUrl: 'http://mealie.local',
+    },
+  };
+}
+
+const SHARED = { start: '2026-09-20', end: '2026-10-24' };
+const SHARED_PLAN = [{ date: THIS_WEEK, slot: 'dinner', mealId: RECIPE, sourceId: 'mealie:90' }];
+
+describe('useMealsData in Mealie mode', () => {
+  it('draws Mealie\'s plan and says where it came from', async () => {
+    const { result } = await loaded(vi.fn().mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN))));
+
+    expect(result.current.source).toBe('mealie');
+    expect(result.current.mealieConnected).toBe(true);
+    expect(result.current.mealie?.status).toBe('ok');
+    expect(result.current.plan).toEqual(SHARED_PLAN);
+    expect(result.current.savedMeals.map((m) => m.id)).toEqual([RECIPE]);
+  });
+
+  it('brings in a week beyond the shared ones and keeps it on the next reload', async () => {
+    const far = { start: '2026-11-22', end: '2026-11-28' };
+    const union = { start: SHARED.start, end: far.end };
+    const farPlan = [...SHARED_PLAN, { date: '2026-11-25', slot: 'dinner', customText: 'Leftovers', sourceId: 'mealie:195' }];
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockResolvedValueOnce(ok({ mealie: mealieAnswer(union, farPlan).mealie }))
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockResolvedValueOnce(ok({ mealie: mealieAnswer(union, farPlan).mealie }));
+    const { result } = await loaded(fetchMock);
+
+    await act(async () => { await result.current.showMealieRange(far); });
+
+    // One request for the days from the shared start to the far week's end.
+    expect(fetchMock.mock.calls[1][0]).toBe(`/api/mealie/plan?start=${union.start}&end=${union.end}`);
+    expect(result.current.plan).toEqual(farPlan);
+    expect(result.current.rangeLoading).toBe(false);
+    expect(result.current.rangeFailed).toBe(false);
+
+    await act(async () => { await result.current.fetchData(); });
+    expect(fetchMock.mock.calls[3][0]).toBe(`/api/mealie/plan?start=${union.start}&end=${union.end}`);
+    expect(result.current.plan).toEqual(farPlan);
+  });
+
+  it('says so when the hub does not answer for a paged week', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const { result } = await loaded(fetchMock);
+
+    await act(async () => { await result.current.showMealieRange({ start: '2026-11-22', end: '2026-11-28' }); });
+
+    expect(result.current.rangeFailed).toBe(true);
+    expect(result.current.plan).toEqual(SHARED_PLAN);
+  });
+
+  it('asks again after Mealie refuses a save, so the tab can pause planning', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({ error: "We couldn't reach Mealie." }) })
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN, 'stale')));
+    const { result } = await loaded(fetchMock);
+
+    let saved = true;
+    await act(async () => {
+      saved = await result.current.saveData((c) => ({ plan: c.plan.filter(() => false) }));
+    });
+
+    expect(saved).toBe(false);
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/mealie/plan');
+    await vi.waitFor(() => expect(result.current.mealie?.status).toBe('stale'));
+    expect(result.current.plan).toEqual(SHARED_PLAN);
+  });
+
+  it('reloads behind the loading line after the plan moved to the other app', async () => {
+    let answer!: (value: unknown) => void;
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(STORED))
+      .mockImplementationOnce(() => new Promise((resolve) => { answer = resolve; }));
+    const { result } = await loaded(fetchMock);
+    expect(result.current.source).toBe('local');
+
+    let reload!: Promise<void>;
+    act(() => { reload = result.current.reloadFresh(); });
+    expect(result.current.loading).toBe(true);
+    await act(async () => {
+      answer(ok(mealieAnswer(SHARED, SHARED_PLAN)));
+      await reload;
+    });
+
+    expect(result.current.loading).toBe(false);
+    expect(result.current.source).toBe('mealie');
+    expect(result.current.plan).toEqual(SHARED_PLAN);
+  });
+});

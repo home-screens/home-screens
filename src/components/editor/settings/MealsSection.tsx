@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { editorFetch } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import {
@@ -17,13 +18,17 @@ import {
   setMealSlotDefaultTime,
   setMealWeekStart,
   setMealTimeFormat,
+  setMealPlanSource,
   resetMealSettings,
 } from '@/lib/meal-settings';
+import { settingsPath } from '@/lib/settings-route';
+import { useMealieHousehold } from '@/components/editor/useMealieCheck';
+import { MEALIE_CARD_FIELD_ID } from './MealieIntegrationCard';
 import { displayCache } from '@/lib/display-cache';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
-import type { MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
+import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
 /**
@@ -61,6 +66,9 @@ export default function MealsSection() {
   const globalTf = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
 
   const [settings, setSettings] = useState<MealSettings | null>(null);
+  // Mealie's address and token are saved, so the plan can live there.
+  const [mealieConnected, setMealieConnected] = useState(false);
+  const mealieHousehold = useMealieHousehold(mealieConnected);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<SaveStatus | null>(null);
@@ -98,6 +106,7 @@ export default function MealsSection() {
         const data = await res.json();
         if (cancelled) return;
         setSettings(normalizeMealSettings(data.settings));
+        setMealieConnected(data.mealieConnected === true);
       } catch {
         if (!cancelled) setStatus({ message: t('settings.mealsPage.status.networkLoad'), kind: 'error' });
       } finally {
@@ -213,6 +222,10 @@ export default function MealsSection() {
     apply((current) => setMealSlotDefaultTime(current, slot, time));
   }, [apply]);
 
+  const setPlanSource = useCallback((source: MealPlanSource | undefined) => {
+    apply((current) => setMealPlanSource(current, source));
+  }, [apply]);
+
   // ── Render ──
 
   if (loading) {
@@ -255,6 +268,15 @@ export default function MealsSection() {
       <div className="max-w-xs">
         <PhoneSurfaceLinks context="meals" />
       </div>
+
+      {/* ── Where the plan lives ── */}
+      <PlanSourceChoice
+        planSource={settings.planSource}
+        mealieConnected={mealieConnected}
+        mealieHousehold={mealieHousehold}
+        saving={saving}
+        onChange={setPlanSource}
+      />
 
       {/* ── Meal Slots ── */}
       <section data-field-id="meals.enabledSlots">
@@ -478,5 +500,91 @@ export default function MealsSection() {
         </p>
       </section>
     </div>
+  );
+}
+
+/**
+ * "Your meal plan lives in": Home Screens or Mealie. Mealie can only be picked
+ * once its address and token are saved on the API keys page, which the line
+ * under the choice links to; switching back to Home Screens is always open,
+ * and the plan kept here comes back as it was.
+ */
+function PlanSourceChoice({
+  planSource,
+  mealieConnected,
+  mealieHousehold,
+  saving,
+  onChange,
+}: {
+  planSource: MealPlanSource | undefined;
+  mealieConnected: boolean;
+  mealieHousehold: string | null | undefined;
+  saving: boolean;
+  onChange: (source: MealPlanSource | undefined) => void;
+}) {
+  const t = useTranslate('editor');
+  const onMealie = planSource === 'mealie';
+  const mealieCard = settingsPath({ kind: 'defaults', page: 'integrations' }, { highlight: MEALIE_CARD_FIELD_ID });
+  const mealieSub = !mealieConnected
+    ? t('settings.mealsPage.planSource.mealieNotConnected')
+    : mealieHousehold
+      ? t('settings.mealsPage.planSource.mealieHousehold', { household: mealieHousehold })
+      : mealieHousehold === null
+        ? t('settings.mealsPage.planSource.mealieNotAnswering')
+        : t('settings.mealsPage.planSource.mealieConnected');
+  const choiceClass = (selected: boolean, disabled: boolean) =>
+    `flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-md border transition ${
+      selected
+        ? 'bg-hs-accent-soft border-hs-accent/40 text-hs-accent-hover'
+        : 'bg-hs-panel border-hs-border-strong text-hs-text-muted hover:border-hs-text-faint hover:text-hs-text-body'
+    } ${disabled ? 'opacity-45 cursor-not-allowed hover:border-hs-border-strong hover:text-hs-text-muted' : ''}`;
+  const linkClass = 'text-hs-accent hover:text-hs-accent-hover';
+
+  return (
+    <section data-field-id="meals.planSource">
+      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
+        {t('settings.mealsPage.planSource.heading')}
+      </h3>
+      <p className="text-xs text-hs-text-faint mb-3">
+        {t('settings.mealsPage.planSource.description')}
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => onChange(undefined)}
+          disabled={saving}
+          className={choiceClass(!onMealie, false)}
+          aria-pressed={!onMealie}
+        >
+          <span className="text-sm font-medium">{t('settings.mealsPage.planSource.homeScreens')}</span>
+          <span className="text-[11px] opacity-80">{t('settings.mealsPage.planSource.homeScreensSub')}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange('mealie')}
+          disabled={saving || (!mealieConnected && !onMealie)}
+          className={choiceClass(onMealie, !mealieConnected && !onMealie)}
+          aria-pressed={onMealie}
+        >
+          <span className="text-sm font-medium">{t('settings.mealsPage.planSource.mealie')}</span>
+          <span className="text-[11px] opacity-80">{mealieSub}</span>
+        </button>
+      </div>
+      <p className="mt-2.5 text-xs leading-[17px] text-hs-text-muted">
+        {!mealieConnected ? (
+          <>
+            {t('settings.mealsPage.planSource.connectFirst')}{' '}
+            <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
+          </>
+        ) : onMealie ? (
+          <>
+            {t('settings.mealsPage.planSource.onMealie')}{' '}
+            <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.mealieSettingsLink')} &rarr;</Link>
+          </>
+        ) : (
+          t('settings.mealsPage.planSource.connectedOffer')
+        )}
+      </p>
+    </section>
   );
 }

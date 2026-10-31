@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
 import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
+import { useConfirmStore } from '@/stores/confirm-store';
 
 const log = logger('secret-field');
 
@@ -22,6 +23,8 @@ export type SecretKey =
   | 'google_web_client_secret'
   | 'immich_url'
   | 'immich_api_key'
+  | 'mealie_url'
+  | 'mealie_api_key'
   | 'microsoft_client_id'
   // Weather provider keys
   | 'weatherapi_key'
@@ -56,6 +59,13 @@ interface Props {
   validate?: (value: string) => Promise<SecretCheck>;
   /** Shown in place of the Save button while `validate` runs. */
   checkingLabel?: string;
+  /** Show what is typed (a server address is not a secret, and a typo in dots cannot be spotted). */
+  plainText?: boolean;
+  /**
+   * The question to ask before Remove, worked out when Remove is pressed (it
+   * may depend on how the key is being used right now); null to remove at once.
+   */
+  removeQuestion?: () => Promise<{ title: string; message: string; confirmLabel: string } | null>;
 }
 
 export default function SecretField({
@@ -67,6 +77,8 @@ export default function SecretField({
   onSaved,
   validate,
   checkingLabel,
+  plainText,
+  removeQuestion,
 }: Props) {
   const t = useTranslate('editor');
   const [value, setValue] = useState('');
@@ -116,6 +128,8 @@ export default function SecretField({
   }
 
   async function handleDelete() {
+    const question = removeQuestion ? await removeQuestion().catch(() => null) : null;
+    if (question && !(await useConfirmStore.getState().confirm({ ...question, variant: 'danger' }))) return;
     try {
       const res = await editorFetch('/api/secrets', {
         method: 'DELETE',
@@ -146,7 +160,9 @@ export default function SecretField({
       </div>
       <div className="flex gap-2">
         <input
-          type="password"
+          type={plainText ? 'text' : 'password'}
+          autoComplete="off"
+          spellCheck={plainText ? false : undefined}
           value={value}
           onChange={(e) => { setValue(e.target.value); setSaveStatus('idle'); setCheck(null); }}
           placeholder={placeholder}

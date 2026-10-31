@@ -3665,8 +3665,12 @@ export interface SavedMeal {
   name: string;
   /** Emoji shown with the meal */
   emoji?: string;
-  /** Kind of dish */
-  category?: 'main' | 'side' | 'dessert' | 'drink' | 'snack';
+  /**
+   * Kind of dish: a main dish, a side, a dessert or a drink. Unset means a main dish.
+   *
+   * The same kinds a planned meal's courses use (`MealCourseKind`).
+   */
+  category?: MealCourseKind;
   /** Free-form tags */
   tags?: string[];
   /**
@@ -3699,6 +3703,36 @@ export interface SavedMeal {
   rating?: number;
   /** Marked as a favorite */
   isFavorite?: boolean;
+  /**
+   * A picture of the dish, when it comes from Mealie
+   *
+   * A hub URL (`/api/mealie/image/<recipe id>`), set only on meals read from
+   * Mealie while the plan lives there; meals in `meals.json` never carry one.
+   */
+  photoUrl?: string;
+}
+
+/** What a course adds to a planned meal: another main dish, a side, a dessert or a drink. */
+export type MealCourseKind = 'main' | 'side' | 'dessert' | 'drink';
+
+export interface MealCourse {
+  /** `main` (another main dish), `side`, `dessert` or `drink` */
+  kind: MealCourseKind;
+  /**
+   * The saved meal, by ID
+   *
+   * references SavedMeal.id
+   */
+  mealId?: string;
+  /** Text instead of a saved meal (e.g. `Garlic bread`) */
+  customText?: string;
+  /**
+   * Set when the course was read from Mealie
+   *
+   * `mealie:<plan entry id>`. Lets a save tell Mealie which entry it changes.
+   * Never stored in `meals.json`.
+   */
+  sourceId?: string;
 }
 
 export interface PlannedMeal {
@@ -3730,7 +3764,25 @@ export interface PlannedMeal {
    * Optional serving time in 24-hour "HH:MM" format (e.g. "18:30"). Per-instance: Tuesday's dinner can be at 6:30 while Friday's is at 7:00.
    */
   time?: string;
+  /**
+   * More dishes served with this meal: sides, desserts, drinks or another main dish (see MealCourse)
+   *
+   * In the order they were added. A meal can hold courses with no main dish of
+   * its own (a dinner planned as just a salad); views then lead with the first.
+   */
+  courses?: MealCourse[];
+  /**
+   * Set when the meal was read from Mealie
+   *
+   * `mealie:<plan entry id>` of the main dish. Lets a save tell Mealie which
+   * entry it changes. Never stored in `meals.json`: `PUT /api/meals/data`
+   * refuses a plan that carries one.
+   */
+  sourceId?: string;
 }
+
+/** Where the household's meal plan lives: unset for Home Screens itself, `mealie` for a connected Mealie. */
+export type MealPlanSource = 'mealie';
 
 /**
  * Shared meal-planner settings stored in `data/meals.json` (NOT per-module config).
@@ -3771,6 +3823,14 @@ export interface MealSettings {
    * settings block so /remote and all meal-planner module instances agree.
    */
   timeFormat?: TimeFormat;
+  /**
+   * Where the meal plan lives: unset for Home Screens, `mealie` for a connected Mealie
+   *
+   * With `mealie`, Mealie's plan replaces the one in `meals.json` on every
+   * surface and plan edits are written to Mealie. The local plan is kept and
+   * comes back when this is cleared.
+   */
+  planSource?: MealPlanSource;
 }
 
 /**
@@ -3783,7 +3843,7 @@ export type RecipeTapAction = 'off' | 'qr' | 'iframe';
 export interface MealPlannerConfig {
   /** Display style: `week`, `today`, `next-meal`, `compact`, or `list` */
   view: MealPlannerView;
-  /** Show meal emoji */
+  /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
   /** Show prep time in minutes */
   showPrepTime: boolean;
@@ -4489,7 +4549,7 @@ export interface FullscreenMealPlannerConfig {
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;
-  /** Show meal emoji */
+  /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
   /** Show difficulty indicator */
   showDifficulty: boolean;

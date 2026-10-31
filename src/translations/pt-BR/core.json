@@ -162,6 +162,12 @@
         "beverages": "Bebidas",
         "other": "Outros"
       }
+    },
+    "kind": {
+      "main": "Prato principal",
+      "side": "Acompanhamento",
+      "dessert": "Sobremesa",
+      "drink": "Bebida"
     }
   },
   "timer": {
@@ -380,5 +386,14 @@
     "body": "O Home Screens está com dificuldade para ler os dados salvos. Ele vai tentar de novo sozinho em instantes.",
     "help": "Se isso não passar, um adulto pode abrir o Home Screens em um computador e restaurar um backup nas Configurações.",
     "retry": "Tentar de novo"
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Hora de servir {time}, clique para alterar",
+    "servingTimeTitle": "Hora de servir: {time}",
+    "setServingTime": "Definir hora de servir",
+    "setTime": "+ Definir hora",
+    "setMealTime": "Definir hora da refeição",
+    "servingTime": "Hora de servir",
+    "clearTime": "Limpar hora"
   }
 }

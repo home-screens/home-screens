@@ -3,7 +3,7 @@
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, CARD_STYLE } from './meals-shared';
-import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel } from '@/lib/meal-constants';
+import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel, type LibraryFilter } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
 import Glyph from '@/components/ui/Glyph';
@@ -13,8 +13,8 @@ interface MealsLibraryViewProps {
   filteredMeals: SavedMeal[];
   searchQuery: string;
   setSearchQuery: (q: string) => void;
-  filterTag: string;
-  setFilterTag: (tag: string) => void;
+  filterTag: LibraryFilter;
+  setFilterTag: (filter: LibraryFilter) => void;
   form: MealFormState;
   openNewMealForm: () => void;
   openEditMealForm: (meal: SavedMeal) => void;
@@ -128,6 +128,10 @@ export default function MealsLibraryView({
                 {meal.name}
               </div>
               <div style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)' }}>
+                {/* A side, dessert or drink says so; a main dish needs no label. */}
+                {meal.category && meal.category !== 'main' && (
+                  <span style={{ fontWeight: 600, color: 'var(--hs-text-muted)' }}>{tCore(`meal.kind.${meal.category}`)}</span>
+                )}
                 {meal.prepTime && <span>{t('mealsTab.library.prepTimeMin', { minutes: meal.prepTime })}</span>}
                 {meal.difficulty && <span>{tCore(`meal.difficulty.${meal.difficulty}`)}</span>}
               </div>

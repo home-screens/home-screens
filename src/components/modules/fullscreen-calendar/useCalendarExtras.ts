@@ -6,12 +6,20 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { choresDataUrl, choresUrl, familyUrl, mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 import { buildExtrasIndex, EMPTY_EXTRAS, type ExtrasIndex } from '@/lib/calendar-extras';
+import { mergeMealSources, type MealieWireBlock } from '@/lib/meal-sources';
 import type { ChoreCompletion, ChoreDefinition, PlannedMeal, SavedMeal } from '@/types/config';
 
-interface MealsResponse { savedMeals?: SavedMeal[]; plan?: PlannedMeal[]; settings?: unknown }
+interface MealsResponse { savedMeals?: SavedMeal[]; plan?: PlannedMeal[]; settings?: unknown; mealie?: MealieWireBlock }
 interface ChoreDataResponse { chores?: ChoreDefinition[] }
 interface FamilyResponse { members?: FamilyMember[]; groups?: FamilyGroup[] }
 interface CompletionsResponse { completions?: ChoreCompletion[] }
+
+/** The calendar's meals, from wherever the plan lives (see `meal-sources.ts`). */
+function calendarMeals(meals: MealsResponse) {
+  const settings = normalizeMealSettings(meals.settings);
+  const { plan, savedMeals } = mergeMealSources(meals, settings);
+  return { plan, savedMeals, settings };
+}
 
 /**
  * Meals and chores for the week list's household rows. Reads the same
@@ -46,9 +54,7 @@ export function useCalendarExtras(
     const dateList = datesKey ? datesKey.split(',') : [];
     return buildExtrasIndex({
       dates: dateList,
-      meals: enabled.meals && meals
-        ? { plan: meals.plan ?? [], savedMeals: meals.savedMeals ?? [], settings: normalizeMealSettings(meals.settings) }
-        : null,
+      meals: enabled.meals && meals ? calendarMeals(meals) : null,
       chores: enabled.chores && choreData
         ? { members: family?.members ?? [], groups: family?.groups ?? [], chores: choreData.chores ?? [], completions: completions?.completions ?? [] }
         : null,

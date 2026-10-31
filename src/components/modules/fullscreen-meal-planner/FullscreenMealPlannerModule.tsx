@@ -7,6 +7,11 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { mergeMealSources, type MealieWireBlock } from '@/lib/meal-sources';
+import type { ResolvedCourse } from '@/lib/meal-courses';
+import { mealPhotoSrc } from '@/components/meals/MealPicture';
+import { useAuthImageState } from '@/components/display/useAuthImage';
+import MealPhotoBackdrop from './MealPhotoBackdrop';
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
 import type { GroceryChecked } from '@/lib/grocery-checks';
@@ -20,6 +25,7 @@ import NextMealView from './NextMealView';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useTranslate } from '@/i18n';
 import { heldPulseKeyframes } from '@/lib/held-pulse';
+import { mealieWords } from '../shared/mealie-problem';
 
 // The now dot's blink, redrawn 12 times a second rather than on every refresh.
 const NOW_DOT_PULSE_KEYFRAMES = heldPulseKeyframes('fmpPulse', { rest: 1, peak: 0.3, periodMs: 2000 });
@@ -31,6 +37,8 @@ interface MealDataResponse {
   settings?: MealSettings;
   /** Household GlobalSettings.timeFormat, reported alongside the settings */
   globalTimeFormat?: TimeFormat;
+  /** Mealie's plan, while the plan lives there (see `meal-sources.ts`). */
+  mealie?: MealieWireBlock;
 }
 
 interface FullscreenMealPlannerModuleProps {
@@ -53,8 +61,15 @@ export default function FullscreenMealPlannerModule({
   const t = useTranslate('modules');
   // ── Data fetching ──
   const [mealData, mealError] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['fullscreen-meal-planner']?.ttlMs ?? 60_000);
-  const savedMeals = useMemo(() => mealData?.savedMeals ?? [], [mealData?.savedMeals]);
-  const fullPlan = useMemo(() => mealData?.plan ?? [], [mealData?.plan]);
+  // The plan lives in meals.json or in Mealie; the shared rule decides which
+  // one this wall draws, the same way the phone and the editor do.
+  const merged = useMemo(
+    () => (mealData ? mergeMealSources(mealData, mealData.settings ?? DEFAULT_MEAL_SETTINGS) : null),
+    [mealData],
+  );
+  const savedMeals = useMemo(() => merged?.savedMeals ?? [], [merged]);
+  const mealieUnreachable = merged?.source === 'mealie' && merged.mealie?.status !== 'ok' && merged.mealie?.status !== 'stale';
+  const fullPlan = useMemo(() => merged?.plan ?? [], [merged]);
   // Settings live in the shared meals.json, edited via /remote.
   const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
   // Effective serving-time format: an explicit meal override wins, else the
@@ -110,33 +125,48 @@ export default function FullscreenMealPlannerModule({
     // A meal typed straight into the day draws text like any other, so it has
     // to be counted here or the fit is measured against a slot the view does
     // not actually consider empty.
-    const tally = (name: string | null, meal: SavedMeal | null) => {
+    // A meal's courses are lines of their own in the views that list them,
+    // so a dessert added to tonight has to be able to shrink the view.
+    const tally = (name: string | null, meal: SavedMeal | null, courses: ResolvedCourse[] = [], notes: string | null = null) => {
       if (!name) return;
-      count += 1;
-      length += name.length + (meal?.notes?.length ?? 0) + (meal?.tags?.join('').length ?? 0);
+      count += 1 + courses.length;
+      length += name.length + (notes?.length ?? 0) + (meal?.tags?.join('').length ?? 0)
+        + courses.reduce((n, c) => n + c.name.length, 0);
     };
     if (view === 'week') {
       for (const entry of plan) {
-        const { meal, name } = resolveMealWithEntry(entry.date, entry.slot, plan, savedMeals);
-        tally(name, meal);
+        const { meal, name, courses, notes } = resolveMealWithEntry(entry.date, entry.slot, plan, savedMeals);
+        tally(name, meal, courses, notes);
       }
     } else if (view === 'next-meal') {
       const next = getNextPlannedMeal(todayISO, currentHour, fullPlan, savedMeals, slots);
-      tally(next?.name ?? null, next?.meal ?? null);
+      tally(next?.name ?? null, next?.meal ?? null, next?.courses, next?.notes);
     } else {
       for (const slot of slots) {
-        const { meal, name } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
-        tally(name, meal);
+        const { meal, name, courses, notes } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
+        tally(name, meal, courses, notes);
       }
     }
     return { mealCount: count, textLength: length };
   }, [view, todayISO, currentHour, fullPlan, plan, savedMeals, slots]);
+
+  // Next Meal over the dish's photo: the backdrop and the light text only
+  // once the photo is in, never light text on the theme's own background.
+  const showEmoji = config.showEmoji ?? true;
+  const nextMeal = useMemo(
+    () => (view === 'next-meal' && showEmoji ? getNextPlannedMeal(todayISO, currentHour, fullPlan, savedMeals, slots)?.meal ?? null : null),
+    [view, showEmoji, todayISO, currentHour, fullPlan, savedMeals, slots],
+  );
+  const backdrop = useAuthImageState(mealPhotoSrc(nextMeal, 'full'));
+  const backdropUrl = backdrop.status === 'ready' ? backdrop.url : undefined;
 
   const stackRef = useRef<HTMLDivElement>(null);
   const { factor: fit, settled: fitSettled } = useFitScale(stackRef, [
     view, config.typographySize, config.density, dims.w, dims.h,
     config.showEmoji, config.showPrepTime, config.showTags, config.showDifficulty, config.showTitle,
     slots.length, mealCount, textLength,
+    // The backdrop takes the big picture out of the stack, which frees room.
+    !!backdropUrl,
   ]);
   const s = bu * typoMul * fit;
 
@@ -161,7 +191,7 @@ export default function FullscreenMealPlannerModule({
   const viewProps: MealPlannerViewProps = {
     config, settings, timeFormat, savedMeals, plan, now, slots, activeSlot,
     bu, s, pad,
-    showEmoji: config.showEmoji ?? true,
+    showEmoji,
     showPrepTime: config.showPrepTime ?? true,
     showTags: config.showTags ?? true,
     showDifficulty: config.showDifficulty ?? false,
@@ -169,6 +199,7 @@ export default function FullscreenMealPlannerModule({
     headerFont, bodyFont,
     recipeTapMode,
     landscape,
+    photoBackdrop: !!backdropUrl,
   };
 
   return (
@@ -206,7 +237,19 @@ export default function FullscreenMealPlannerModule({
         }
       `}</style>
 
-      {mealData === null ? (
+      {backdropUrl && mealData !== null && <MealPhotoBackdrop url={backdropUrl} />}
+      {mealieUnreachable ? (
+        // The plan is in Mealie and Mealie never answered: say so rather than
+        // "nothing planned", which would be wrong.
+        <div
+          data-testid="fmp-mealie-unreachable"
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: s * 1.5, textAlign: 'center', padding: pad }}
+        >
+          <span style={{ fontSize: s * 10, lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
+          <span style={{ fontFamily: headerFont, fontSize: s * 4, lineHeight: 1.1, color: 'var(--fmp-text)' }}>{t(`meal-planner.${mealieWords(merged?.mealie?.failure)}`)}</span>
+          <span style={{ fontSize: s * 2, color: 'var(--fmp-text-3)', maxWidth: '80%', lineHeight: 1.3 }}>{t(`meal-planner.${mealieWords(merged?.mealie?.failure)}Hint`)}</span>
+        </div>
+      ) : mealData === null ? (
         // Until the first answer the plan is unknown, not empty: the views
         // would say "No meals planned" on every load of a slow Pi.
         <div
@@ -229,6 +272,8 @@ export default function FullscreenMealPlannerModule({
             // be the content area and the content must be allowed to exceed it
             // while measuring.
             overflow: 'hidden',
+            // Above the photo backdrop, which is positioned in the root.
+            position: 'relative',
           }}
         >
           {view === 'week' && <WeekView {...viewProps} />}

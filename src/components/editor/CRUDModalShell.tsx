@@ -8,7 +8,8 @@ import { useTranslate } from '@/i18n';
 interface CRUDModalShellProps {
   title: string;
   icon?: ReactNode;
-  subtitle?: string;
+  /** Beside the title: a count, or a line with its own pieces (the meal planner's source pill). */
+  subtitle?: ReactNode;
   maxWidth?: string;
   headerActions?: ReactNode;
   hideFooter?: boolean;
@@ -44,7 +45,7 @@ export default function CRUDModalShell({
           <div className="flex items-center gap-3">
             {icon}
             <h2 id="crud-modal-title" className="text-sm font-semibold text-hs-text-primary">{title}</h2>
-            {subtitle && (
+            {subtitle != null && subtitle !== '' && (
               <span className="text-xs text-hs-text-muted">{subtitle}</span>
             )}
           </div>

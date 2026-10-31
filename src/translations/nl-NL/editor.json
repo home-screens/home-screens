@@ -1360,6 +1360,58 @@
         "apiKeyPlaceholder": "Plak je Immich API-sleutel",
         "apiKeyHelp": "Maak aan in Immich → Account Settings → API Keys."
       },
+      "mealie": {
+        "name": "Mealie",
+        "description": "Recepten en maaltijdplanning",
+        "urlLabel": "Server-URL",
+        "urlPlaceholder": "bijv. http://192.168.1.50:9925",
+        "urlHelp": "Het adres waarop je Mealie opent, met het poortnummer.",
+        "tokenLabel": "API-token",
+        "tokenPlaceholder": "Plak je Mealie API-token",
+        "tokenHelp": "Open in Mealie je profiel, kies API Tokens en maak er een. Je ziet de maaltijdplanning van het huishouden van degene die hem maakt.",
+        "testButton": "Testen",
+        "testing": "Bezig met testen…",
+        "testHelp": "Controleert het adres en de token samen.",
+        "notConnected": "Niet verbonden",
+        "removeConfirm": {
+          "title": "De maaltijdplanning niet meer tonen?",
+          "message": "Je maaltijdplanning komt uit Mealie. Zonder het adres en de token kunnen het scherm en de telefoon hem niet tonen, tot je ze weer invult of de planning terugzet op Home Screens bij Instellingen > Maaltijden.",
+          "confirmLabel": "Verwijderen"
+        },
+        "result": {
+          "connected": "Verbonden met huishouden {household}, Mealie {version}",
+          "checkedNow": "Zojuist gecontroleerd.",
+          "not-set-up": {
+            "title": "Vul eerst het adres en de token in.",
+            "body": "Vul ze hierboven in en druk naast elk op Opslaan. Test daarna opnieuw."
+          },
+          "bad-address": {
+            "title": "Dat lijkt geen webadres.",
+            "body": "Typ het zoals je Mealie in een browser opent, beginnend met http:// of https://."
+          },
+          "unreachable": {
+            "title": "We konden Mealie op dat adres niet bereiken.",
+            "body": "Controleer of het opent in een browser op dit netwerk, met het poortnummer, en of Mealie draait."
+          },
+          "not-mealie": {
+            "title": "Er antwoordt iets op dat adres, maar het is geen Mealie.",
+            "body": "Controleer het adres en het poortnummer. Het is het adres waarop je Mealie opent."
+          },
+          "too-old": {
+            "title": "Deze Mealie is te oud (versie {version}).",
+            "body": "Werk hem bij naar 2.0 of nieuwer en test daarna opnieuw."
+          },
+          "key-rejected": {
+            "title": "Mealie heeft die token niet geaccepteerd.",
+            "body": "Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en plak die hierboven."
+          },
+          "network": {
+            "title": "We konden het nu niet controleren.",
+            "body": "Home Screens gaf geen antwoord. Probeer het zo nog eens."
+          },
+          "mealsLink": "Gebruik het voor je maaltijdplanning bij de instellingen voor Maaltijden"
+        }
+      },
       "microsoft": {
         "name": "Microsoft OneDrive",
         "description": "Foto's uit je OneDrive",
@@ -1582,6 +1634,22 @@
       "loading": "Maaltijdinstellingen laden…",
       "intro": {
         "text": "Gedeelde instellingen voor de maaltijdplanner. Ze staan ook in de gezinsafstandsbediening en wijzigingen blijven overal gelijk."
+      },
+      "planSource": {
+        "heading": "Je maaltijdplanning staat in",
+        "description": "Plan de maaltijden hier of, als jullie gezin de recepten in de app Mealie bewaart, gebruik het maaltijdplan daar.",
+        "homeScreens": "Home Screens",
+        "homeScreensSub": "Hier gepland",
+        "mealie": "Mealie",
+        "mealieNotConnected": "Optioneel, niet gekoppeld",
+        "mealieHousehold": "Huishouden {household}",
+        "mealieConnected": "Verbonden",
+        "mealieNotAnswering": "Antwoordt nu niet",
+        "connectFirst": "Alleen als jullie gezin Mealie gebruikt, een aparte recepten-app. Om daarin te plannen, koppel je hem eerst op de pagina",
+        "apiKeysLink": "API-sleutels",
+        "connectedOffer": "Mealie is verbonden. Kies het om te plannen met de recepten en de planning die je daar bijhoudt.",
+        "onMealie": "Alle maaltijdweergaven, de telefoon en deze editor gebruiken nu je Mealie-planning, en wat je hier plant wordt in Mealie opgeslagen. Je Home Screens-planning blijft bewaard en komt terug als je terugschakelt.",
+        "mealieSettingsLink": "Mealie-instellingen"
       },
       "status": {
         "loadFailed": "Maaltijdinstellingen laden mislukt.",
@@ -2802,6 +2870,7 @@
   },
   "mealPlannerModal": {
     "title": "Maaltijdplanner",
+    "loading": "Maaltijden laden…",
     "subtitleMealsPlanned": "{meals} maaltijden · {planned} gepland",
     "doneButton": "Klaar",
     "newMealName": "Nieuwe maaltijd",
@@ -2817,7 +2886,18 @@
       "randomSuggested": "Willekeurige maaltijden voorgesteld!",
       "lastWeekCopied": "Vorige week gekopieerd!",
       "weekCleared": "Week leeggemaakt",
-      "undoButton": "Ongedaan maken"
+      "undoButton": "Ongedaan maken",
+      "courseRemoved": "Verwijderd uit deze maaltijd",
+      "saveFailed": "Die wijziging is niet opgeslagen. Probeer het opnieuw.",
+      "mealieSaveFailed": "Mealie heeft die wijziging niet overgenomen. Controleer of het draait en probeer het opnieuw.",
+      "mealieAllPlanned": "Elk avondeten van deze week is al gepland.",
+      "mealieNoDinners": "Voorstellen vult lege avondmaaltijden, en avondeten staat uit in de maaltijdinstellingen.",
+      "mealieSuggested": {
+        "one": "Een avondmaaltijd gepland voor {days}.",
+        "other": "Avondmaaltijden gepland voor {days}."
+      },
+      "mealieSuggestedEveryNight": "Voor elke avond van deze week een avondmaaltijd gepland.",
+      "mealieNothingFits": "Mealie had geen recepten om voor te stellen voor die maaltijden. Kijk naar de regels van het maaltijdplan in Mealie."
     },
     "library": {
       "searchPlaceholder": "Maaltijden zoeken…",
@@ -2826,7 +2906,10 @@
       "addNewMealButton": "+ Nieuwe maaltijd toevoegen",
       "filters": {
         "all": "Alle",
-        "favorites": "Fav"
+        "favorites": "Fav",
+        "side": "Bijgerechten",
+        "dessert": "Toetjes",
+        "drink": "Drankjes"
       }
     },
     "detail": {
@@ -2841,6 +2924,7 @@
       "minPlaceholder": "min",
       "servingsLabel": "Porties",
       "difficultyLabel": "Moeilijkheid",
+      "kindLabel": "Soort gerecht",
       "tagsLabel": "Labels",
       "ingredientsLabel": "Ingrediënten",
       "ingredientNamePlaceholder": "Naam ingrediënt",
@@ -2862,17 +2946,130 @@
       "todayLabel": "Vandaag",
       "todayChip": "Vandaag",
       "suggestButton": "Voorstel",
+      "suggestBusy": "Avondmaaltijden kiezen…",
       "copyLastWeekButton": "Vorige week kopiëren",
       "clearButton": "Leegmaken",
       "prepTimeMin": "{minutes} min",
       "previousWeekAriaLabel": "Vorige week",
-      "nextWeekAriaLabel": "Volgende week"
+      "nextWeekAriaLabel": "Volgende week",
+      "coursesCount": {
+        "one": "Nog {count} bij deze maaltijd",
+        "other": "Nog {count} bij deze maaltijd"
+      },
+      "removeMealAriaLabel": "{name} verwijderen"
     },
     "picker": {
       "title": "Kies een maaltijd",
       "searchPlaceholder": "Maaltijden zoeken…",
       "noMealsFound": "Geen maaltijden gevonden",
-      "prepTimeShort": "{minutes} min"
+      "prepTimeShort": "{minutes} min",
+      "titleAdd": {
+        "side": "Bijgerecht toevoegen",
+        "dessert": "Toetje toevoegen",
+        "drink": "Drankje toevoegen",
+        "main": "Nog een hoofdgerecht toevoegen"
+      },
+      "titleSwap": {
+        "side": "Bijgerecht wijzigen",
+        "dessert": "Toetje wijzigen",
+        "drink": "Drankje wijzigen",
+        "main": "Dit hoofdgerecht wijzigen"
+      },
+      "searchMealiePlaceholder": "Recepten zoeken in Mealie",
+      "clearSearch": "Zoekopdracht wissen",
+      "favorites": "Favorieten",
+      "recentlyMade": "Onlangs gemaakt",
+      "lookingInMealie": "Zoeken in Mealie…",
+      "recipesInMealie": {
+        "one": "{count} recept in Mealie",
+        "other": "{count} recepten in Mealie"
+      },
+      "favoritesAtoZ": {
+        "one": "{count} favoriet, A tot Z",
+        "other": "{count} favorieten, A tot Z"
+      },
+      "recentlyMadeFirst": "Onlangs gemaakt, nieuwste eerst",
+      "keysHint": "↑ ↓ om te bewegen, Enter om te kiezen",
+      "typeInstead": "In plaats daarvan “{text}” typen",
+      "typeInsteadMealie": "Geen recept. Mealie bewaart het als notitie.",
+      "typeInsteadLocal": "Komt zo in de planning, zonder bij je maaltijden te worden opgeslagen.",
+      "noRecipesCalled": "Geen recepten met de naam “{text}” in Mealie",
+      "noRecipesHint": "Controleer de spelling, of typ het gewoon in. Het komt als notitie in de planning, zonder recept.",
+      "mealieError": "We konden Mealie niet bereiken.",
+      "tryAgain": "Opnieuw proberen",
+      "noFavorites": "Nog geen favorieten. Markeer recepten als favoriet in Mealie, of zoek hierboven.",
+      "noRecentlyMade": "Nog niets gemarkeerd als gemaakt. Zoek hierboven.",
+      "groupHeading": {
+        "side": "Bijgerechten",
+        "dessert": "Toetjes",
+        "drink": "Drankjes",
+        "main": "Hoofdgerechten"
+      },
+      "everythingElse": "Al het andere",
+      "categoryCount": {
+        "one": "1 recept in {category}",
+        "other": "{count} recepten in {category}"
+      },
+      "noneInCategory": "Nog geen recepten in {category}. Zoek hierboven."
+    },
+    "openInMealie": "Openen in Mealie",
+    "mealie": {
+      "fromMealie": "Uit Mealie",
+      "lastUpdated": "Laatst bijgewerkt {time}",
+      "subtitle": "{planned} gepland deze week",
+      "subtitleHousehold": "Huishouden {household} · {planned} gepland deze week",
+      "openMealie": "Mealie openen",
+      "tryAgain": "Opnieuw proberen",
+      "unreachableTitle": "Mealie is nu niet bereikbaar",
+      "unreachableBody": "Je maaltijden staan in Mealie en Home Screens kan er niet bij. Controleer of Mealie draait en probeer het dan opnieuw.",
+      "notConnectedTitle": "Mealie is niet gekoppeld",
+      "notConnectedBody": "De maaltijdplanning komt uit Mealie, maar het adres of de token van Mealie is niet opgeslagen. Vul ze in bij Instellingen > API-sleutels, of zet de planning terug op Home Screens bij Instellingen > Maaltijden.",
+      "tokenRefusedTitle": "Mealie laat Home Screens niet meer binnen",
+      "tokenRefusedBody": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op bij Instellingen > API-sleutels.",
+      "paused": "Plannen staat stil tot Mealie terug is.",
+      "pausedSince": "Plannen staat stil tot Mealie terug is. Dit is de planning van {time}.",
+      "weekLoading": "Deze week wordt uit Mealie gehaald…",
+      "weekFailed": "We konden deze week niet uit Mealie halen.",
+      "libraryNote": "De recepten staan in Mealie. Klik op een recept om het hier te zien.",
+      "detailEmpty": "Klik op een maaltijd in de week, of een recept in de bibliotheek, om het hier te zien.",
+      "serves": {
+        "one": "Voor {count} persoon",
+        "other": "Voor {count} personen"
+      },
+      "readOnlyNote": "Dit recept staat in Mealie. Pas het daar aan en het is hier binnen een paar minuten bijgewerkt.",
+      "groceryTitle": "Je boodschappenlijst staat in Mealie",
+      "groceryBody": "Zolang je maaltijdplanning in Mealie staat, staat je lijst daar ook. Open Mealie om te zien wat je nodig hebt en dingen af te vinken.",
+      "ingredientsFailed": "Mealie heeft de ingrediënten niet gestuurd. Open het recept in Mealie om ze te zien."
+    },
+    "popover": {
+      "savesToMealie": "Wordt opgeslagen in Mealie",
+      "close": "Sluiten",
+      "mainDish": "Hoofdgerecht",
+      "noMainDish": "Nog geen hoofdgerecht",
+      "change": "Wijzigen",
+      "choose": "Kiezen",
+      "withThisMeal": "Bij deze maaltijd",
+      "swapCourse": "Iets anders kiezen",
+      "moveUp": "{name} omhoog",
+      "moveDown": "{name} omlaag",
+      "remove": "{name} verwijderen",
+      "missingMeal": "Een verwijderde maaltijd",
+      "anotherMain": "Nog een hoofdgerecht",
+      "servingTime": "Etenstijd",
+      "usually": "meestal {time}",
+      "clear": {
+        "breakfast": "Dit ontbijt leegmaken",
+        "lunch": "Deze lunch leegmaken",
+        "dinner": "Dit avondeten leegmaken",
+        "snack": "Dit tussendoortje leegmaken"
+      },
+      "timeKeptHere": "Home Screens onthoudt deze tijd. Mealie heeft geen tijd, dus daar zie je hem niet.",
+      "timeAndOrderKeptHere": "Home Screens onthoudt deze tijd en de volgorde van de gerechten. Mealie heeft voor geen van beide een plek, dus daar zie je ze niet."
+    },
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} u",
+      "hoursMinutes": "{hours} u {minutes} min"
     }
   },
   "timetableModal": {
@@ -3913,7 +4110,7 @@
       "densityCozy": "Ruim",
       "densitySnug": "Krap",
       "typographySize": "Tekstgrootte",
-      "showEmoji": "Emoji tonen",
+      "showEmoji": "Afbeeldingen tonen",
       "showPrepTime": "Bereidingstijd tonen",
       "showTags": "Tags tonen",
       "showDifficulty": "Moeilijkheid tonen",
@@ -4141,7 +4338,7 @@
       "viewNextMeal": "Volgende maaltijd (hero)",
       "viewCompact": "Compact (vandaag + morgen)",
       "viewList": "Volledige weeklijst",
-      "showEmoji": "Emoji tonen",
+      "showEmoji": "Afbeeldingen tonen",
       "showPrepTime": "Bereidingstijd tonen",
       "showTags": "Tags tonen",
       "accentColor": "Accentkleur",

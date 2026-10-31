@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { MealSession, type MealEdit, type MealSnapshot } from '@/lib/meal-client';
+import { MealSession, type MealEdit, type MealieRange, type MealSnapshot } from '@/lib/meal-client';
+import type { MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { displayCache } from '@/lib/display-cache';
 import type {
   ModuleInstance,
   MealSettings,
+  MealSlotType,
   SavedMeal,
   PlannedMeal,
 } from '@/types/config';
@@ -19,7 +21,30 @@ export interface MealsPayload {
   plan: PlannedMeal[];
   groceryChecked: GroceryChecked;
   settings: MealSettings;
+  /** Where `plan` and `savedMeals` came from; in Mealie mode they are Mealie's. */
+  source: MealSnapshot['source'];
+  /** Mealie's block (status, range, address) while the plan lives there. */
+  mealie: MealieWireBlock | null;
+  /** Mealie's address and token are saved. */
+  mealieConnected: boolean;
+  /**
+   * A load has landed. Until then the empty arrays here were never received
+   * (they read as the family's own plan with no meals), so nothing may plan
+   * against them.
+   */
+  loaded: boolean;
 }
+
+const EMPTY_PAYLOAD = (): MealsPayload => ({
+  savedMeals: [],
+  plan: [],
+  groceryChecked: {},
+  settings: { ...DEFAULT_MEAL_SETTINGS },
+  source: 'local',
+  mealie: null,
+  mealieConnected: false,
+  loaded: false,
+});
 
 /**
  * Legacy fields that used to be embedded in a meal-planner module's config
@@ -41,6 +66,10 @@ function view(snapshot: MealSnapshot): MealsPayload {
     plan: snapshot.plan,
     groceryChecked: snapshot.groceryChecked,
     settings: snapshot.settings,
+    source: snapshot.source,
+    mealie: snapshot.mealie,
+    mealieConnected: snapshot.mealieConnected,
+    loaded: true,
   };
 }
 
@@ -76,12 +105,7 @@ export function useMealPlannerData<C>({
   /** Re-fetch whenever the modal opens or closes so external edits land. */
   showModal: boolean;
 }) {
-  const [mealData, setMealData] = useState<MealsPayload>(() => ({
-    savedMeals: [],
-    plan: [],
-    groceryChecked: {},
-    settings: { ...DEFAULT_MEAL_SETTINGS },
-  }));
+  const [mealData, setMealData] = useState<MealsPayload>(EMPTY_PAYLOAD);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [session] = useState(() => new MealSession(editorFetch));
 
@@ -149,9 +173,7 @@ export function useMealPlannerData<C>({
       if (isSessionExpired(err)) return;
       // Roll back so the panel stops showing an edit the server rejected:
       // to the loaded copy, or to nothing when there is none.
-      setMealData(session.current
-        ? view(session.current)
-        : { savedMeals: [], plan: [], groceryChecked: {}, settings: { ...DEFAULT_MEAL_SETTINGS } });
+      setMealData(session.current ? view(session.current) : EMPTY_PAYLOAD());
       setSaveError('save-failed');
     }
   }, [session]);
@@ -178,5 +200,50 @@ export function useMealPlannerData<C>({
     }
   }, [session]);
 
-  return { mealData, handleModalUpdate, toggleGroceryItem, saveError };
+  /**
+   * In Mealie mode, bring the days of `range` into the copy when the modal
+   * pages past the weeks every answer carries. `mealieWeeks` says whether
+   * that is on its way or failed, so the week can say so instead of looking
+   * empty.
+   */
+  const [mealieWeeks, setMealieWeeks] = useState<'idle' | 'loading' | 'failed'>('idle');
+  const showMealieRange = useCallback(async (range: MealieRange) => {
+    setMealieWeeks('loading');
+    try {
+      const snapshot = await session.showMealieRange(range);
+      if (session.idle) setMealData(view(snapshot));
+      setMealieWeeks('idle');
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      setMealieWeeks('failed');
+    }
+  }, [session]);
+
+  /**
+   * Mealie's own picks for the empty meals among `cells` (Suggest, while the
+   * plan lives in Mealie). How many it filled and had nothing for, or null
+   * when the hub or Mealie refused.
+   */
+  const suggestFromMealie = useCallback(async (cells: { date: string; slot: MealSlotType }[]) => {
+    try {
+      const { snapshot, created, skipped, entries } = await session.suggestFromMealie(cells);
+      if (session.idle) setMealData(view(snapshot));
+      return { created, skipped, entries };
+    } catch (err) {
+      if (!isSessionExpired(err)) setSaveError('save-failed');
+      return null;
+    }
+  }, [session]);
+
+  return {
+    mealData,
+    handleModalUpdate,
+    toggleGroceryItem,
+    saveError,
+    /** Ask the hub again (after Mealie stopped answering). */
+    reload: fetchMealData,
+    showMealieRange,
+    mealieWeeks,
+    suggestFromMealie,
+  };
 }

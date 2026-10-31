@@ -1,13 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI, GRID_PICTURE_SIZE } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseNames } from '../shared/MealCourseLines';
+import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
+import { useMealMinutes } from '../shared/useMealMinutes';
 
 interface ListViewProps {
   config: MealPlannerConfig;
@@ -22,6 +24,7 @@ interface ListViewProps {
 
 export function ListView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode }: ListViewProps) {
   const t = useTranslate('modules');
+  const mealMinutes = useMealMinutes();
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
@@ -30,27 +33,47 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
   const weekDates = getWeekDatesForRange(start, weekStartDay);
   const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
+
+  // Nobody scrolls a wall: when the week is longer than the module, it starts
+  // at today, so tonight's dinner and the days ahead are what shows, not the
+  // days already gone. Pinned again whenever the list changes size.
+  const listRef = useRef<HTMLDivElement>(null);
+  const todayRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    const pin = () => {
+      const today = todayRef.current;
+      list.scrollTop = today && list.scrollHeight > list.clientHeight ? today.offsetTop : 0;
+    };
+    pin();
+    const observer = new ResizeObserver(pin);
+    observer.observe(list);
+    if (list.firstElementChild) observer.observe(list.firstElementChild);
+    return () => observer.disconnect();
+  }, [todayISO, plan, savedMeals]);
   const showPrepTime = config.showPrepTime ?? true;
   const showTags = config.showTags ?? true;
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto pr-1">
+    <div ref={listRef} className="relative flex flex-col h-full overflow-y-auto pr-1">
       {weekDates.map((date) => {
         const isToday = date === todayISO;
         const dayIdx = dateToDayIndex(date);
         const meals = slots.map((slot) => {
-          const { meal, planned, name } = resolveMealWithEntry(date, slot, plan, savedMeals);
+          const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
           return {
             slot,
             meal,
             name,
+            courses,
             time: resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes),
           };
         });
         const hasMeals = meals.some((m) => m.name);
 
         return (
-          <div key={date} className="mb-2">
+          <div key={date} ref={isToday ? todayRef : undefined} className="mb-2">
             {/* Day header */}
             <div className="flex items-center gap-2 mb-1">
               <span
@@ -77,7 +100,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
             {/* Meals */}
             {hasMeals ? (
               <div className="flex flex-col gap-0.5 pl-1">
-                {meals.map(({ slot, meal, name, time }) => {
+                {meals.map(({ slot, meal, name, time, courses }) => {
                   if (!name) return null;
                   const meta = SLOT_META[slot];
                   return (
@@ -95,11 +118,19 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
 
                       {/* Meal info */}
                       <MealTapTarget meal={meal} mode={recipeTapMode} className="flex items-center gap-1.5 min-w-0 flex-1">
-                        {showEmoji && meal?.emoji && (
-                          <span className="shrink-0" style={{ fontSize: '0.8em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} pictureSize={GRID_PICTURE_SIZE} /></span>
+                        {showEmoji && mealHasPicture(meal) && (
+                          <span className="shrink-0" style={{ fontSize: '0.8em', display: meal?.photoUrl ? 'flex' : undefined }}>
+                            <MealPicture meal={meal} photoSize="1.4em" pictureSize={GRID_PICTURE_SIZE} />
+                          </span>
                         )}
-                        <span className="truncate" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
-                          {name}
+                        <span className="flex flex-col min-w-0">
+                          <span className="truncate" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
+                            {name}
+                          </span>
+                          <MealCourseNames
+                            courses={courses}
+                            style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          />
                         </span>
                       </MealTapTarget>
 
@@ -115,8 +146,8 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
                             {formatMealTime(time, timeFormat)}
                           </span>
                         )}
-                        {showPrepTime && meal?.prepTime && (
-                          <span style={{ opacity: TEXT_OPACITY.tertiary }}>&#9201; {t('meal-planner.prepTimeMinShort', { minutes: meal.prepTime })}</span>
+                        {showPrepTime && mealMinutes(meal) && (
+                          <span style={{ opacity: TEXT_OPACITY.tertiary }}>&#9201; {mealMinutes(meal, true)}</span>
                         )}
                         {showTags && meal?.tags?.slice(0, 2).map((tag) => (
                           <span

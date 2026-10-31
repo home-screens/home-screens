@@ -1,8 +1,13 @@
-import type { SavedMeal, PlannedMeal, MealSettings, TimeFormat } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { normalizeMealSettings } from '@/lib/meal-constants';
 import { mealWriteBody, type MealDataWrite } from '@/lib/meal-write';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayCache } from '@/lib/display-cache';
+import { mealieProblem, mergeMealSources, planCellChanges, rangeCovers, unionRange, type MealieProblem, type MealieWireBlock } from '@/lib/meal-sources';
+import type { MealieFailure } from '@/lib/mealie';
+
+/** Where a save goes while the plan lives in Mealie. */
+const MEALIE_PLAN_URL = '/api/mealie/plan';
 import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type GroceryCheckDirection } from '@/lib/grocery-checks';
 
 /**
@@ -26,6 +31,16 @@ export interface MealSnapshot {
   globalTimeFormat: TimeFormat;
   /** Quoted back on every save of `savedMeals` or `plan`. */
   revision: string;
+  /**
+   * Where `plan` and `savedMeals` came from. In Mealie mode they are Mealie's
+   * plan and the recipes it uses (see `mergeMealSources`), and saves go to
+   * Mealie; the plan kept in `meals.json` is not on this copy at all.
+   */
+  source: 'local' | 'mealie';
+  /** Mealie's block as the hub sent it, in Mealie mode: status, range, address. */
+  mealie: MealieWireBlock | null;
+  /** Mealie's address and key are saved, so the plan can be switched to it. */
+  mealieConnected: boolean;
 }
 
 /**
@@ -42,7 +57,12 @@ export type MealEdit = (current: Pick<MealSnapshot, 'savedMeals' | 'plan'>) => M
 export type MealClientFailure = 'load' | 'save' | 'conflict';
 
 export class MealClientError extends Error {
-  constructor(readonly kind: MealClientFailure, message: string) {
+  constructor(
+    readonly kind: MealClientFailure,
+    message: string,
+    /** For a Mealie refusal: why, in the words a surface shows (not connected, token refused, unreachable). */
+    readonly problem?: MealieProblem,
+  ) {
     super(message);
     this.name = 'MealClientError';
   }
@@ -57,13 +77,21 @@ function asSnapshot(json: unknown, fallbackTimeFormat: TimeFormat): MealSnapshot
   const d = json as Record<string, unknown> | null;
   if (!d || typeof d !== 'object') return null;
   if (!Array.isArray(d.savedMeals) || !Array.isArray(d.plan) || typeof d.revision !== 'string' || !d.revision) return null;
+  const settings = normalizeMealSettings(d.settings);
+  const merged = mergeMealSources(
+    { savedMeals: d.savedMeals as SavedMeal[], plan: d.plan as PlannedMeal[], mealie: (d.mealie ?? null) as MealieWireBlock | null },
+    settings,
+  );
   return {
-    savedMeals: d.savedMeals as SavedMeal[],
-    plan: d.plan as PlannedMeal[],
+    savedMeals: merged.savedMeals,
+    plan: merged.plan,
     groceryChecked: normalizeGroceryChecked(d.groceryChecked),
-    settings: normalizeMealSettings(d.settings),
+    settings,
     globalTimeFormat: d.globalTimeFormat === '24h' || d.globalTimeFormat === '12h' ? d.globalTimeFormat : fallbackTimeFormat,
     revision: d.revision,
+    source: merged.source,
+    mealie: merged.mealie,
+    mealieConnected: d.mealieConnected === true,
   };
 }
 
@@ -140,7 +168,8 @@ function changedHalves(changes: MealDataWrite, current: Pick<MealSnapshot, 'save
  * canvas preview showing the same URL adopts it without a fetch. Transport
  * failures (including an expired session) propagate untouched.
  */
-export async function saveMealEdit(fetcher: MealFetch, base: MealSnapshot, edit: MealEdit): Promise<MealSnapshot> {
+export async function saveMealEdit(fetcher: MealFetch, base: MealSnapshot, edit: MealEdit, mealieRange?: MealieRange): Promise<MealSnapshot> {
+  if (base.source === 'mealie') return saveMealieEdit(fetcher, base, edit, mealieRange);
   let current = base;
   for (let attempt = 0; ; attempt++) {
     const changes = changedHalves(edit(current), current);
@@ -161,6 +190,80 @@ export async function saveMealEdit(fetcher: MealFetch, base: MealSnapshot, edit:
     }
     const saved = res.ok ? asSnapshot(json, current.globalTimeFormat) : null;
     if (!saved) throw new MealClientError('save', refusalMessage(json, 'The meals could not be saved.'));
+    displayCache.replace(mealsDataUrl(), saved, TTL_MS);
+    return saved;
+  }
+}
+
+/** A meal Mealie filled for Suggest, and the entry it became. */
+export interface MealieSuggestedEntry {
+  date: string;
+  slot: MealSlotType;
+  sourceId: string;
+}
+
+/**
+ * Take back what Suggest added: each meal it filled is cleared, as long as
+ * it still holds only the dish Mealie picked (one changed since is left be).
+ */
+export function withoutSuggested(plan: PlannedMeal[], entries: readonly MealieSuggestedEntry[]): PlannedMeal[] {
+  const added = new Set(entries.map((e) => `${e.date}|${e.slot}|${e.sourceId}`));
+  const next = plan.filter((p) => !(p.sourceId && !p.courses?.length && added.has(`${p.date}|${p.slot}|${p.sourceId}`)));
+  return next.length === plan.length ? plan : next;
+}
+
+export interface MealieRange {
+  start: string;
+  end: string;
+}
+
+/**
+ * Mealie's plan for `range` from the hub, put in place of the copy's plan: the
+ * days a surface pages to beyond the weeks every answer carries.
+ */
+export async function loadMealieRange(fetcher: MealFetch, base: MealSnapshot, range: MealieRange): Promise<MealSnapshot> {
+  const res = await fetcher(`${MEALIE_PLAN_URL}?start=${range.start}&end=${range.end}`);
+  const json = await readJson(res);
+  const block = (json as { mealie?: MealieWireBlock } | null)?.mealie;
+  if (!res.ok || !block || !Array.isArray(block.plan)) {
+    throw new MealClientError('load', refusalMessage(json, 'Those weeks could not be loaded from Mealie.'));
+  }
+  return { ...base, plan: block.plan, savedMeals: block.meals, mealie: block };
+}
+
+/**
+ * The Mealie-mode half of `saveMealEdit`: the same edit, written to Mealie.
+ *
+ * Only the meals the edit changed are sent, each with the Mealie entries it
+ * held in this copy. Somebody changing one of them in Mealie meanwhile comes
+ * back as the same 409 a local save gets, carrying Mealie's current plan, and
+ * the edit is re-applied to that. Recipes cannot be changed from here: they
+ * live in Mealie.
+ */
+async function saveMealieEdit(fetcher: MealFetch, base: MealSnapshot, edit: MealEdit, range?: MealieRange): Promise<MealSnapshot> {
+  let current = base;
+  for (let attempt = 0; ; attempt++) {
+    const changes = changedHalves(edit(current), current);
+    if (!changes) return current;
+    if (changes.savedMeals) throw new MealClientError('save', 'Recipes live in Mealie. Change them there.');
+    const cells = planCellChanges(current.plan, changes.plan!);
+    if (cells.length === 0) return current;
+    const res = await fetcher(MEALIE_PLAN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(range ? { cells, range } : { cells }),
+    });
+    const json = await readJson(res);
+    if (res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision') {
+      const theirs = asSnapshot(json, current.globalTimeFormat);
+      if (theirs && attempt < MAX_CONFLICT_RETRIES) {
+        current = theirs;
+        continue;
+      }
+      throw new MealClientError('conflict', refusalMessage(json, 'Somebody changed these meals in Mealie. Try again.'));
+    }
+    const saved = res.ok ? asSnapshot(json, current.globalTimeFormat) : null;
+    if (!saved) throw new MealClientError('save', refusalMessage(json, 'The meals could not be saved to Mealie.'));
     displayCache.replace(mealsDataUrl(), saved, TTL_MS);
     return saved;
   }
@@ -193,6 +296,12 @@ export class MealSession {
   /** Saves and ticks answered so far; a load that started before one is older than it. */
   private answered = 0;
 
+  /**
+   * The days of Mealie's plan this surface has in view, once it paged past
+   * the weeks every answer carries; saves and reloads keep them.
+   */
+  private mealieRange: MealieRange | undefined;
+
   constructor(private readonly fetcher: MealFetch) {}
 
   /** The last copy the hub answered with, or null before the first load. */
@@ -205,7 +314,12 @@ export class MealSession {
   }
 
   async load(): Promise<MealSnapshot> {
-    const attempt = loadMeals(this.fetcher);
+    const range = this.mealieRange;
+    const attempt = loadMeals(this.fetcher).then((loaded) =>
+      // A surface that paged further than the shared weeks keeps them.
+      loaded.source === 'mealie' && range && !rangeCovers(loaded.mealie?.range, range)
+        ? loadMealieRange(this.fetcher, loaded, unionRange(loaded.mealie?.range ?? range, range)).catch(() => loaded)
+        : loaded);
     this.loading = attempt;
     const answeredBefore = this.answered;
     try {
@@ -220,7 +334,46 @@ export class MealSession {
   }
 
   save(edit: MealEdit): Promise<MealSnapshot> {
-    return this.enqueue((base) => saveMealEdit(this.fetcher, base, edit));
+    return this.enqueue((base) => saveMealEdit(this.fetcher, base, edit, this.mealieRange));
+  }
+
+  /**
+   * Fill the empty meals among `cells` with Mealie's own picks (its meal plan
+   * rules decide). Meals already planned are left alone. Answered with the
+   * new copy and how many Mealie filled or had nothing for.
+   */
+  suggestFromMealie(cells: { date: string; slot: MealSlotType }[]): Promise<{ snapshot: MealSnapshot; created: number; skipped: number; entries: MealieSuggestedEntry[] }> {
+    let counts: { created: number; skipped: number; entries: MealieSuggestedEntry[] } = { created: 0, skipped: 0, entries: [] };
+    return this.enqueue(async (base) => {
+      const res = await this.fetcher(`${MEALIE_PLAN_URL}/suggest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(this.mealieRange ? { cells, range: this.mealieRange } : { cells }),
+      });
+      const json = await readJson(res);
+      const saved = res.ok ? asSnapshot(json, base.globalTimeFormat) : null;
+      if (!saved) throw new MealClientError('save', refusalMessage(json, "We couldn't reach Mealie."));
+      const suggested = (json as { suggested?: { created?: number; skipped?: number; entries?: MealieSuggestedEntry[] } }).suggested;
+      counts = { created: suggested?.created ?? 0, skipped: suggested?.skipped ?? 0, entries: Array.isArray(suggested?.entries) ? suggested.entries : [] };
+      displayCache.replace(mealsDataUrl(), saved, TTL_MS);
+      return saved;
+    }).then((snapshot) => ({ snapshot, ...counts }));
+  }
+
+  /**
+   * Bring Mealie's plan for `range` into this copy, for a surface paging to a
+   * week beyond the ones every answer carries. A no-op outside Mealie mode or
+   * when the copy already holds those days. Queued like a save, so it never
+   * lands on top of a newer answer.
+   */
+  showMealieRange(range: MealieRange): Promise<MealSnapshot> {
+    return this.enqueue(async (base) => {
+      if (base.source !== 'mealie' || rangeCovers(base.mealie?.range, range)) return base;
+      const wanted = unionRange(base.mealie?.range ?? range, range);
+      const next = await loadMealieRange(this.fetcher, base, wanted);
+      this.mealieRange = wanted;
+      return next;
+    });
   }
 
   /**
@@ -253,4 +406,73 @@ export class MealSession {
     this.tail = run.then(() => undefined, () => undefined);
     return run.finally(() => { this.pending -= 1; });
   }
+}
+
+/** One page of Mealie recipes, as the pickers show them. */
+export interface MealieRecipePage {
+  items: SavedMeal[];
+  page: number;
+  totalPages: number;
+  total: number;
+}
+
+export type MealieRecipeFilter = 'all' | 'favorites' | 'recent';
+
+/**
+ * Search the family's Mealie recipes through the hub, for the phone's and the
+ * editor's pickers. Each answer is a page of saved meals (ids `mealie:<id>`),
+ * searched live in Mealie; nothing is kept in Home Screens.
+ */
+export async function searchMealieRecipes(
+  fetcher: MealFetch,
+  opts: { search?: string; filter?: MealieRecipeFilter; category?: string; page?: number },
+  signal?: AbortSignal,
+): Promise<MealieRecipePage> {
+  const params = new URLSearchParams();
+  if (opts.search?.trim()) params.set('search', opts.search.trim());
+  if (opts.filter && opts.filter !== 'all') params.set('filter', opts.filter);
+  if (opts.category) params.set('category', opts.category);
+  if (opts.page && opts.page > 1) params.set('page', String(opts.page));
+  const res = await fetcher(`/api/mealie/recipes${params.size ? `?${params}` : ''}`, { signal });
+  const json = await readJson(res);
+  const d = json as Partial<MealieRecipePage> | null;
+  if (!res.ok || !d || !Array.isArray(d.items)) {
+    const failure = (json as { failure?: MealieFailure } | null)?.failure;
+    throw new MealClientError('load', refusalMessage(json, "We couldn't reach Mealie."), mealieProblem(failure));
+  }
+  return { items: d.items, page: d.page ?? 1, totalPages: d.totalPages ?? 0, total: d.total ?? d.items.length };
+}
+
+/** One of the household's Mealie recipe categories. */
+export interface MealieCategory {
+  name: string;
+  slug: string;
+}
+
+/** The household's Mealie categories, for the Library's filters. */
+export async function fetchMealieCategories(fetcher: MealFetch, signal?: AbortSignal): Promise<MealieCategory[]> {
+  const res = await fetcher('/api/mealie/categories', { signal });
+  const json = await readJson(res);
+  const list = (json as { categories?: unknown } | null)?.categories;
+  if (!res.ok || !Array.isArray(list)) throw new MealClientError('load', refusalMessage(json, "We couldn't reach Mealie."));
+  return list.filter((c): c is MealieCategory => !!c && typeof c.name === 'string' && typeof c.slug === 'string');
+}
+
+/** A Mealie recipe's ingredients and steps (see `mealieRecipeDetail`). */
+export interface MealieRecipeDetailWire {
+  meal: SavedMeal;
+  description?: string;
+  ingredients: { heading?: string; text: string }[];
+  steps: { heading?: string; text: string }[];
+}
+
+/** One Mealie recipe in full, by the id its saved meal carries (`mealie:<id>`). */
+export async function fetchMealieRecipeDetail(fetcher: MealFetch, recipeId: string, signal?: AbortSignal): Promise<MealieRecipeDetailWire> {
+  const res = await fetcher(`/api/mealie/recipe/${encodeURIComponent(recipeId)}`, { signal });
+  const json = await readJson(res);
+  const d = json as Partial<MealieRecipeDetailWire> | null;
+  if (!res.ok || !d || !Array.isArray(d.ingredients) || !Array.isArray(d.steps) || !d.meal) {
+    throw new MealClientError('load', refusalMessage(json, "We couldn't reach Mealie."));
+  }
+  return d as MealieRecipeDetailWire;
 }

@@ -370,8 +370,14 @@
     "todaysMeals": "Dagens måltider",
     "now": "nu",
     "servingAt": "serveres kl. {time}",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes}m",
+    "time": {
+      "minutes": "{minutes} min",
+      "hours": "{hours} t",
+      "hoursMinutes": "{hours} t {minutes} min",
+      "minutesShort": "{minutes}m",
+      "hoursShort": "{hours}t",
+      "hoursMinutesShort": "{hours}t {minutes}m"
+    },
     "slotShort": {
       "breakfast": "M",
       "lunch": "F",
@@ -395,7 +401,20 @@
     "openRecipeAria": "Åbn opskriften for {name}",
     "showQrInstead": "Vis QR-kode",
     "closeRecipe": "Luk",
-    "planFromPhoneHint": "Planlæg måltider fra en telefon: åbn {url} og tryk på Måltider"
+    "planFromPhoneHint": "Planlæg måltider fra en telefon: åbn {url} og tryk på Måltider",
+    "courses": {
+      "main": "Også",
+      "side": "Tilbehør",
+      "dessert": "Dessert",
+      "drink": "Drikke"
+    },
+    "withCourses": "med {dishes}",
+    "mealieUnreachable": "Kan ikke nå Mealie lige nu",
+    "mealieUnreachableHint": "Madplanen kommer tilbage, når Mealie svarer igen.",
+    "mealieNotConnected": "Mealie er ikke forbundet",
+    "mealieNotConnectedHint": "Forbind den under Indstillinger på computeren for at vise madplanen.",
+    "mealieTokenRefused": "Mealie lukker ikke Home Screens ind længere",
+    "mealieTokenRefusedHint": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise madplanen."
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Ugens måltider",
@@ -407,8 +426,6 @@
     "noMealsPlannedToday": "Ingen måltider planlagt til i dag",
     "noUpcomingMeals": "Ingen kommende måltider planlagt",
     "mealsPlannedCount": "{filled} af {total} måltider planlagt",
-    "prepTimeMin": "{minutes} min",
-    "prepTimeMinShort": "{minutes}m",
     "heroLabels": {
       "now": "Nu",
       "upNext": "Næste",

@@ -3,9 +3,9 @@
 /**
  * Meal-planner settings sheet for /remote.
  *
- * Exposes the *planning* settings that all meal modules share — which slots
- * are enabled, which day starts the week, and optional default serving times
- * per slot. Display-styling settings (view, density, accent color, etc.)
+ * Exposes the *planning* settings that all meal modules share: where the
+ * plan lives (Home Screens or Mealie), which slots are enabled, which day
+ * starts the week, and optional default serving times per slot. Display-styling settings (view, density, accent color, etc.)
  * stay in the editor; this sheet is purely about meal management.
  */
 
@@ -17,23 +17,26 @@ import MealsSettingsSlotsSection from './MealsSettingsSlotsSection';
 import MealsSettingsWeekStartSection from './MealsSettingsWeekStartSection';
 import MealsSettingsTimeFormatSection from './MealsSettingsTimeFormatSection';
 import MealsSettingsDefaultTimesSection from './MealsSettingsDefaultTimesSection';
+import MealsSettingsPlanSourceSection from './MealsSettingsPlanSourceSection';
 
 interface MealsSettingsSheetProps {
   settings: MealSettings;
   /** Household GlobalSettings.timeFormat — previews what "follow" resolves to */
   globalTimeFormat: TimeFormat;
+  /** Mealie's address and key are saved, so the plan can be switched to it. */
+  mealieConnected: boolean;
   /** Returns true on success, false on failure. Caller is responsible for
    *  reverting state on failure; the sheet stays open so the user can retry. */
   onSave: (next: MealSettings) => Promise<boolean>;
   onClose: () => void;
 }
 
-export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave, onClose }: MealsSettingsSheetProps) {
+export default function MealsSettingsSheet({ settings, globalTimeFormat, mealieConnected, onSave, onClose }: MealsSettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
 
   const {
-    draft, toggleSlot, setDefaultTime, setWeekStartDay, setTimeFormat,
+    draft, toggleSlot, setDefaultTime, setWeekStartDay, setTimeFormat, setPlanSource,
     saving, saveError, handleSave,
   } = useMealsSettingsDraft(settings, onSave, onClose);
 
@@ -108,6 +111,13 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, onSave,
         </div>
 
         <div style={{ overflow: 'auto', padding: '16px 16px 80px', flex: 1 }}>
+          <MealsSettingsPlanSourceSection
+            planSource={draft.planSource}
+            savedPlanSource={settings.planSource}
+            mealieConnected={mealieConnected}
+            onChange={setPlanSource}
+          />
+
           <MealsSettingsSlotsSection
             enabledSlots={draft.enabledSlots}
             onToggleSlot={toggleSlot}

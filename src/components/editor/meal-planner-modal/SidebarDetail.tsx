@@ -3,9 +3,11 @@
 import { ingredientsToSave } from '@/lib/meal-ingredients';
 import { useState, useEffect, useMemo } from 'react';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
+import { COURSE_KINDS } from '@/lib/meal-courses';
 import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import Button from '@/components/ui/Button';
+import { kindToSave, mealKind } from '@/lib/meal-dish-rules';
 import { useTranslate } from '@/i18n';
 import Glyph from '@/components/ui/Glyph';
 import EditorCustomIconSection from '@/components/custom-icons/EditorCustomIconSection';
@@ -86,6 +88,8 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
   const [cookTime, setCookTime] = useState<number | undefined>(undefined);
   const [servings, setServings] = useState<number | undefined>(undefined);
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard' | undefined>(undefined);
+  // What kind of dish it is: adding a side lists the sides first.
+  const [kind, setKind] = useState<NonNullable<SavedMeal['category']>>('main');
   const [tags, setTags] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<MealIngredient[]>([]);
   const [recipeUrl, setRecipeUrl] = useState('');
@@ -110,6 +114,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
     setCookTime(meal.cookTime);
     setServings(meal.servings);
     setDifficulty(meal.difficulty);
+    setKind(mealKind(meal));
     setTags((meal.tags ?? []).map(normalizeTag));
     setIngredients(meal.ingredients ? meal.ingredients.map((i) => ({ ...i })) : []);
     setRecipeUrl(meal.recipeUrl ?? '');
@@ -141,6 +146,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       cookTime: cookTime || undefined,
       servings: servings || undefined,
       difficulty: difficulty,
+      category: kindToSave(kind, meal.category),
       tags: tags.length > 0 ? tags : undefined,
       ingredients: ingredientsToSave(ingredients),
       recipeUrl: recipeUrl.trim() || undefined,
@@ -317,6 +323,28 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                 );
               })}
             </div>
+          </div>
+        </div>
+        <div>
+          <label className={labelClass}>{t('mealPlannerModal.detail.kindLabel')}</label>
+          <div className="flex flex-wrap gap-1" role="radiogroup" aria-label={t('mealPlannerModal.detail.kindLabel')}>
+            {COURSE_KINDS.map((k) => {
+              const isActive = kind === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  role="radio"
+                  aria-checked={isActive}
+                  className={`px-2.5 py-1.5 text-xs font-semibold rounded border transition ${
+                    isActive ? 'border-amber-500 bg-amber-500/8 text-amber-500' : 'border-hs-border-strong bg-hs-card text-hs-text-faint'
+                  }`}
+                  onClick={() => setKind(k)}
+                >
+                  {tCore(`meal.kind.${k}`)}
+                </button>
+              );
+            })}
           </div>
         </div>
 

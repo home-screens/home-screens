@@ -290,11 +290,10 @@ test('removing a planned meal from a slot round-trips', async ({ page, request }
   await page.getByRole('button', { name: 'Plan', exact: true }).click();
 
   // A filled slot is a button labelled "Change <meal> for <slot>". Tapping it
-  // opens the meal picker (it used to clear the slot outright), which marks
-  // the current meal and offers Remove Meal.
+  // opens the meal sheet (the dish, its courses and the serving time), whose
+  // Clear takes the meal off; a lone dish goes without asking.
   await page.getByRole('button', { name: /Change Spaghetti Night/ }).click();
-  await expect(page.getByRole('button', { name: /Spaghetti Night/ }).last()).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Remove Meal' }).click();
+  await page.getByRole('button', { name: 'Clear this dinner' }).click();
 
   await expect
     .poll(async () => (await getMealData(request)).plan.filter((p) => p.slot === 'dinner' && p.mealId === 'meal-1').length)

@@ -1,6 +1,7 @@
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { replaceWeekInPlan, copyWeekEntries } from './meal-constants';
 import { generateRandomPlan } from './meal-shuffle';
+import { planEntryHasContent } from './meal-courses';
 
 /**
  * What the meal planner's actions do to the plan and the saved-meal library,
@@ -64,14 +65,23 @@ export function setPlanSlotText(
 ): PlannedMeal[] {
   const trimmed = text.trim();
   const existing = plan.find((p) => p.date === date && p.slot === slot);
-  if (!trimmed) return existing ? clearPlanSlot(plan, date, slot) : plan;
   const rest = plan.filter((p) => !(p.date === date && p.slot === slot));
+  if (!trimmed) {
+    if (!existing) return plan;
+    // Emptying the main dish keeps the meal's courses: the sides and the
+    // dessert are still planned, only the dish they went with is gone.
+    if (!existing.courses?.length) return rest;
+    const kept: PlannedMeal = { ...existing };
+    delete kept.mealId;
+    delete kept.customText;
+    return [...rest, kept];
+  }
   const next: PlannedMeal = { ...(existing ?? {}), date, slot, customText: trimmed };
   delete next.mealId;
   return [...rest, next];
 }
 
-/** Empty one slot. */
+/** Empty one slot: its main dish and every course with it. */
 export function clearPlanSlot(plan: PlannedMeal[], date: string, slot: MealSlotType): PlannedMeal[] {
   return plan.filter((p) => !(p.date === date && p.slot === slot));
 }
@@ -146,17 +156,33 @@ export function upsertSavedMeal(savedMeals: SavedMeal[], meal: SavedMeal): Saved
  * Remove a meal from the library and every plan entry pointing at it.
  *
  * Both halves move together: a plan entry whose meal no longer exists renders
- * as an empty slot the user cannot clear.
+ * as an empty slot the user cannot clear. The meal goes from wherever it was
+ * planned, as the main dish or as a course; the rest of each meal stays, and
+ * an entry left with nothing in it goes too.
  */
 export function removeSavedMeal(
   savedMeals: SavedMeal[],
   plan: PlannedMeal[],
   mealId: string,
 ): { savedMeals: SavedMeal[]; plan: PlannedMeal[] } {
-  return {
-    savedMeals: savedMeals.filter((m) => m.id !== mealId),
-    plan: plan.filter((p) => p.mealId !== mealId),
-  };
+  const nextPlan: PlannedMeal[] = [];
+  for (const p of plan) {
+    const mainGoes = p.mealId === mealId;
+    const coursesGo = p.courses?.some((c) => c.mealId === mealId) ?? false;
+    if (!mainGoes && !coursesGo) {
+      nextPlan.push(p);
+      continue;
+    }
+    const next: PlannedMeal = { ...p };
+    if (mainGoes) delete next.mealId;
+    if (coursesGo) {
+      const courses = p.courses!.filter((c) => c.mealId !== mealId);
+      if (courses.length > 0) next.courses = courses;
+      else delete next.courses;
+    }
+    if (planEntryHasContent(next)) nextPlan.push(next);
+  }
+  return { savedMeals: savedMeals.filter((m) => m.id !== mealId), plan: nextPlan };
 }
 
 /** Star or unstar a saved meal. */

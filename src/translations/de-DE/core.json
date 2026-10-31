@@ -162,6 +162,12 @@
         "beverages": "Getränke",
         "other": "Sonstiges"
       }
+    },
+    "kind": {
+      "main": "Hauptgericht",
+      "side": "Beilage",
+      "dessert": "Nachtisch",
+      "drink": "Getränk"
     }
   },
   "timer": {
@@ -378,5 +384,14 @@
     "body": "Home Screens hat gerade Probleme, seine gespeicherten Daten zu lesen. Es versucht es gleich von selbst noch einmal.",
     "help": "Wenn das nicht verschwindet, kann ein Erwachsener Home Screens am Computer öffnen und in den Einstellungen eine Sicherung zurückspielen.",
     "retry": "Noch einmal versuchen"
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Servierzeit {time}, zum Ändern klicken",
+    "servingTimeTitle": "Servierzeit: {time}",
+    "setServingTime": "Servierzeit festlegen",
+    "setTime": "+ Zeit festlegen",
+    "setMealTime": "Mahlzeit-Zeit festlegen",
+    "servingTime": "Servierzeit",
+    "clearTime": "Zeit löschen"
   }
 }

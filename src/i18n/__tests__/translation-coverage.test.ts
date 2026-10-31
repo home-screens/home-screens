@@ -53,6 +53,18 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // Brand names of the sidebar footer's community links, spelled the same everywhere.
   'editor|settings.sidebar.github',
   'editor|settings.sidebar.discord',
+  // Brand and product names on the Mealie card and the Meals page's
+  // "Your meal plan lives in" choice, spelled the same everywhere.
+  'editor|settings.integrationsPage.mealie.name',
+  'editor|settings.mealsPage.planSource.homeScreens',
+  'editor|settings.mealsPage.planSource.mealie',
+  // "{minutes} min", the unit on a dish's time in the meal planner window.
+  'editor|mealPlannerModal.time.minutes',
+  // The phone's "Your meal plan lives in" choice: the two apps' names.
+  'remote|mealsSettings.planSource.homeScreens',
+  'remote|mealsSettings.planSource.mealie',
+  // "{slot}, {date}": the meal sheet's spoken name, two interpolated pieces.
+  'remote|mealSheet.ariaLabel',
   'editor|canvas.zoomPercent',
   // "{days}, {time}" — punctuation around two interpolated fragments.
   'editor|scheduleEditor.summary.short',
@@ -254,14 +266,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|fullscreen-calendar.freeTime.minutes',
   'modules|fullscreen-calendar.viewLabels.agenda',
   'modules|fullscreen-chore-chart.weeklyTicketsValue',
-  'modules|fullscreen-meal-planner.prepTimeMin',
-  'modules|fullscreen-meal-planner.prepTimeMinShort',
   'modules|fullscreen-weather.cards.wind',
   'modules|fullscreen-weather.nowcast.minutes',
   'modules|fullscreen-weather.stats.wind',
   'modules|garbage-day.frequency.weekly',
-  'modules|meal-planner.prepTimeMin',
-  'modules|meal-planner.prepTimeMinShort',
+  'modules|meal-planner.time.minutes',
+  'modules|meal-planner.time.minutesShort',
   'modules|rain-map.minutesAhead',
   'modules|stock-ticker.headers.symbol',
   'modules|todoist.priority.normal',
@@ -307,6 +317,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // "Dessert" is the Danish word too (a meal's course, a kind of dish).
+    'modules|meal-planner.courses.dessert',
+    'core|meal.kind.dessert',
     // "Bonus" is the same word in this language (the ticket history's bonus line).
     'remote|rewardsView.tickets.bonusLine',
     // "Bonus" is the same word in this language (bonus chores).
@@ -518,6 +531,14 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'fr-FR': new Set([
+    // "Desserts" is the French plural too (the meal picker's course heading, the library filter).
+    'editor|mealPlannerModal.picker.groupHeading.dessert',
+    'remote|mealPicker.savedAs.dessert',
+    'editor|mealPlannerModal.library.filters.dessert',
+    'remote|mealsTab.library.filters.dessert',
+    // "Dessert" is the French word for a meal's dessert course and kind of dish.
+    'modules|meal-planner.courses.dessert',
+    'core|meal.kind.dessert',
     // "Bonus", "tickets" and "Simple" are the same words in this language.
     'remote|rewardsView.tickets.bonusLine',
     'remote|rewardsView.adjust.ticketsLabel',

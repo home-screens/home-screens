@@ -2,6 +2,7 @@ import type { FamilyMember } from '@/types/family';
 import type { ChoreCompletion, ChoreDefinition, MealSettings, MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
 import { buildCompletionSet, resolveAssignmentsFor, type ChoreGroup } from '@/lib/chore-assignments';
 import { SLOT_ORDER, resolveMealWithEntry } from '@/lib/meal-constants';
+import type { ResolvedCourse } from '@/lib/meal-courses';
 
 /**
  * Household data the week list can draw next to calendar events: the day's
@@ -18,6 +19,10 @@ export interface DayMealExtra {
   slot: MealSlotType;
   name: string;
   emoji?: string;
+  /** The library or Mealie meal behind the row, for its picture; null for typed text. */
+  meal: SavedMeal | null;
+  /** The meal's sides, dessert, drink and other mains, listed under it. */
+  courses: ResolvedCourse[];
 }
 
 export interface DayChoreExtra {
@@ -70,10 +75,9 @@ export function buildExtrasIndex(opts: {
     if (opts.meals) {
       for (const slot of SLOT_ORDER) {
         if (!enabledSlots.has(slot)) continue;
-        const { meal, planned } = resolveMealWithEntry(date, slot, opts.meals.plan, opts.meals.savedMeals);
-        const name = meal?.name ?? planned?.customText?.trim();
+        const { meal, name, courses } = resolveMealWithEntry(date, slot, opts.meals.plan, opts.meals.savedMeals);
         if (!name) continue;
-        meals.push({ slot, name, emoji: meal?.emoji });
+        meals.push({ slot, name, emoji: meal?.emoji, meal, courses });
       }
     }
     let chores: DayChoreExtra | null = null;

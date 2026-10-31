@@ -162,6 +162,12 @@
         "beverages": "Boissons",
         "other": "Autre"
       }
+    },
+    "kind": {
+      "main": "Plat principal",
+      "side": "Accompagnement",
+      "dessert": "Dessert",
+      "drink": "Boisson"
     }
   },
   "timer": {
@@ -378,5 +384,14 @@
     "body": "Home Screens a du mal à lire ses données enregistrées. Il va réessayer tout seul dans un instant.",
     "help": "Si ça ne disparaît pas, un adulte peut ouvrir Home Screens sur un ordinateur et remettre une sauvegarde dans les Réglages.",
     "retry": "Réessayer"
+  },
+  "mealTimeChip": {
+    "servingTimeAria": "Heure de service {time}, clique pour modifier",
+    "servingTimeTitle": "Heure de service : {time}",
+    "setServingTime": "Définir l'heure de service",
+    "setTime": "+ Définir l'heure",
+    "setMealTime": "Définir l'heure du repas",
+    "servingTime": "Heure de service",
+    "clearTime": "Effacer l'heure"
   }
 }

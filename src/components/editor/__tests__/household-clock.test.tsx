@@ -96,7 +96,7 @@ describe('meal planner', () => {
   it("opens on the household's week with its today marked", () => {
     const settings = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: {} } as unknown as MealSettings;
     render(
-      <MealPlannerModal savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
+      <MealPlannerModal loaded savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
       { wrapper: Wrapper },
     );
     expect(screen.getByText(/Sep 21/)).toBeTruthy();
@@ -107,7 +107,7 @@ describe('meal planner', () => {
   it('names its week arrows for screen readers', () => {
     const settings = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: {} } as unknown as MealSettings;
     render(
-      <MealPlannerModal savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
+      <MealPlannerModal loaded savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
       { wrapper: Wrapper },
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));
@@ -122,7 +122,7 @@ describe('meal planner', () => {
     vi.setSystemTime(new Date('2026-09-20T11:58:00Z'));
     const settings = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: {} } as unknown as MealSettings;
     render(
-      <MealPlannerModal savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
+      <MealPlannerModal loaded savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
       { wrapper: Wrapper },
     );
     expect(screen.getByText(/Sep 14/)).toBeTruthy();
@@ -136,7 +136,7 @@ describe('meal planner', () => {
   it('names its week arrows for screen readers', () => {
     const settings = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: {} } as unknown as MealSettings;
     render(
-      <MealPlannerModal savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
+      <MealPlannerModal loaded savedMeals={[]} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
       { wrapper: Wrapper },
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next week' }));

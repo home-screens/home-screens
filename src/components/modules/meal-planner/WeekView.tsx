@@ -8,8 +8,9 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
 import { pictureAboveName } from '@/lib/meal-week-cell';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
-import Glyph from '@/components/ui/Glyph';
-import { DEFAULT_MEAL_EMOJI, GRID_PICTURE_SIZE } from '@/lib/meal-constants';
+import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
+import { MealCourseCount } from '../shared/MealCourseLines';
+import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -40,6 +41,8 @@ const CELL_GAP_PX = 4;
 const PICTURE_LINE_EM = 0.8 * 1.5;
 /** A serving time's figures and its AM or PM, a character at a time, in em of its size. */
 const TIME_CHAR_EM = 0.6;
+/** The course count's padding either side, in em of its size. */
+const COUNT_PAD_EM = 0.42;
 
 export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode, fontSize }: WeekViewProps) {
   const t = useTranslate('modules');
@@ -124,17 +127,31 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
 
               {/* Meal cells */}
               {slots.map((slot) => {
-                const { meal, planned, name } = resolveMealWithEntry(date, slot, plan, savedMeals);
+                const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
                 const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
                 const timeLabel = time ? formatMealTime(time, timeFormat) : '';
-                const pictured = showEmoji && !!meal?.emoji;
+                const pictured = showEmoji && mealHasPicture(meal);
+                const courseCount = courses.length;
+                // The time and the course count stack beside the name, so the
+                // wider of the two is what the name gives up.
+                const timePx = timeLabel.length * TIME_CHAR_EM * smallPx;
+                const countPx = courseCount > 0 ? (String(courseCount).length + 1) * TIME_CHAR_EM * smallPx + 2 * COUNT_PAD_EM * smallPx : 0;
                 const above = pictureAboveName({
                   cellPx,
                   rowPx,
                   namePx,
                   picturePx: pictured ? PICTURE_LINE_EM * fontSize : 0,
-                  besidePx: timeLabel ? timeLabel.length * TIME_CHAR_EM * smallPx + CELL_GAP_PX : 0,
+                  besidePx: timeLabel || courseCount > 0 ? Math.max(timePx, countPx) + CELL_GAP_PX : 0,
                 });
+                // With the picture above the name, the count rides beside the
+                // picture and the name keeps the whole width.
+                const countBesidePicture = above && courseCount > 0;
+                const count = <MealCourseCount count={courseCount} color={SLOT_META[slot].color} fontSize="max(0.55em, 11px)" />;
+                const picture = pictured && (
+                  <span className="shrink-0" style={{ fontSize: '0.8em', display: meal?.photoUrl ? 'flex' : undefined }}>
+                    <MealPicture meal={meal} photoSize="1.4em" pictureSize={GRID_PICTURE_SIZE} />
+                  </span>
+                );
                 return (
                   <div
                     key={slot}
@@ -153,9 +170,9 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                           mode={recipeTapMode}
                           className={above ? 'flex flex-col items-start gap-1 min-w-0' : 'flex items-center gap-1 min-w-0'}
                         >
-                          {pictured && (
-                            <span className="shrink-0" style={{ fontSize: '0.8em' }}><Glyph value={meal?.emoji} fallback={DEFAULT_MEAL_EMOJI} pictureSize={GRID_PICTURE_SIZE} /></span>
-                          )}
+                          {countBesidePicture ? (
+                            <span className="flex items-center gap-1">{picture}{count}</span>
+                          ) : picture}
                           {/* Two lines at most: rows are tall enough, columns are not. */}
                           <span
                             className="font-medium min-w-0"
@@ -178,16 +195,21 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
                             {name}
                           </span>
                         </MealTapTarget>
-                        {time && (
-                          <span
-                            className="shrink-0"
-                            style={{
-                              fontSize: 'max(0.55em, 11px)',
-                              opacity: TEXT_OPACITY.tertiary,
-                              fontVariantNumeric: 'tabular-nums',
-                            }}
-                          >
-                            {timeLabel}
+                        {(time || (courseCount > 0 && !countBesidePicture)) && (
+                          <span className="shrink-0 flex flex-col items-start" style={{ gap: 2 }}>
+                            {time && (
+                              <span
+                                style={{
+                                  fontSize: 'max(0.55em, 11px)',
+                                  lineHeight: 1.3,
+                                  opacity: TEXT_OPACITY.tertiary,
+                                  fontVariantNumeric: 'tabular-nums',
+                                }}
+                              >
+                                {timeLabel}
+                              </span>
+                            )}
+                            {!countBesidePicture && count}
                           </span>
                         )}
                       </>

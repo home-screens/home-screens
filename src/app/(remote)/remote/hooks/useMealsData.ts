@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useTranslate } from '@/i18n';
-import type { SavedMeal, PlannedMeal, MealSettings, TimeFormat } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { MealClientError, MealSession, type MealEdit, type MealSnapshot } from '@/lib/meal-client';
+import { MealClientError, MealSession, type MealEdit, type MealSnapshot, type MealieRange } from '@/lib/meal-client';
+import type { MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 
@@ -24,6 +25,14 @@ export function useMealsData() {
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  // Where the plan above came from. In Mealie mode `plan` and `savedMeals`
+  // are Mealie's plan and the recipes it uses, and saves go to Mealie.
+  const [source, setSource] = useState<MealSnapshot['source']>('local');
+  const [mealie, setMealie] = useState<MealieWireBlock | null>(null);
+  const [mealieConnected, setMealieConnected] = useState(false);
+  // A week beyond the ones every answer carries is on its way from Mealie.
+  const [rangeLoading, setRangeLoading] = useState(false);
+  const [rangeFailed, setRangeFailed] = useState(false);
 
   // Loads and saves share one session (`lib/meal-client.ts`): it keeps the
   // copy the hub last answered with, quotes its revision on every save, and
@@ -34,6 +43,9 @@ export function useMealsData() {
     setSavedMeals(snapshot.savedMeals);
     setPlan(snapshot.plan);
     setGroceryChecked(snapshot.groceryChecked);
+    setSource(snapshot.source);
+    setMealie(snapshot.mealie);
+    setMealieConnected(snapshot.mealieConnected);
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -42,9 +54,7 @@ export function useMealsData() {
       setLoadError(false);
       // A load answered while a save or a tick is out is older than its answer.
       if (!session.idle) return;
-      setSavedMeals(snapshot.savedMeals);
-      setPlan(snapshot.plan);
-      setGroceryChecked(snapshot.groceryChecked);
+      adoptData(snapshot);
       setSettings(snapshot.settings);
       setGlobalTimeFormat(snapshot.globalTimeFormat);
     } catch (err) {
@@ -53,7 +63,37 @@ export function useMealsData() {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, adoptData]);
+
+  /**
+   * Load again behind the loading line: after the plan moved between Home
+   * Screens and Mealie, the copy on screen is the other app's plan, and
+   * showing it for a moment under the new heading would be wrong.
+   */
+  const reloadFresh = useCallback(async () => {
+    setLoading(true);
+    await fetchData();
+  }, [fetchData]);
+
+  /**
+   * Bring Mealie's plan for `range` in, when the week shown is outside the
+   * weeks every answer carries. The session keeps those days through later
+   * saves and reloads; a copy that already holds them asks nothing.
+   */
+  const showMealieRange = useCallback(async (range: MealieRange) => {
+    setRangeLoading(true);
+    setRangeFailed(false);
+    try {
+      const snapshot = await session.showMealieRange(range);
+      if (session.idle) adoptData(snapshot);
+    } catch (err) {
+      // The hub did not answer for those weeks at all. (Mealie being down is
+      // not this: that arrives as the copy's own status.)
+      if (!isSessionExpired(err)) setRangeFailed(true);
+    } finally {
+      setRangeLoading(false);
+    }
+  }, [session, adoptData]);
 
   /**
    * Save one edit, written as a function of the copy it applies to (see
@@ -76,9 +116,30 @@ export function useMealsData() {
       if (isSessionExpired(err)) return false;
       setSaveError(err instanceof MealClientError ? 'Failed to save. Please try again.' : 'Network error. Please try again.');
       if (session.current && session.idle) adoptData(session.current);
+      // A save Mealie refused is often Mealie going away: ask again, so the
+      // tab shows that and pauses planning instead of failing the next tap.
+      if (session.current?.source === 'mealie') void fetchData();
       return false;
     }
-  }, [session, adoptData]);
+  }, [session, adoptData, fetchData]);
+
+  /**
+   * Mealie's own picks for the empty meals among `cells` (Suggest, in Mealie
+   * mode). Answers how many it filled and how many it had nothing for, or
+   * null when the hub or Mealie refused.
+   */
+  const suggestFromMealie = useCallback(async (cells: { date: string; slot: MealSlotType }[]) => {
+    try {
+      const { snapshot, created, skipped, entries } = await session.suggestFromMealie(cells);
+      if (session.idle) adoptData(snapshot);
+      return { created, skipped, entries };
+    } catch (err) {
+      if (isSessionExpired(err)) return null;
+      setSaveError(t('mealie.suggest.failed'));
+      void fetchData();
+      return null;
+    }
+  }, [session, adoptData, fetchData, t]);
 
   /**
    * Settings-only PUT — does not round-trip savedMeals/plan/groceryChecked.
@@ -147,5 +208,13 @@ export function useMealsData() {
     saveSettingsOnly,
     toggleGroceryItem,
     fetchData,
+    reloadFresh,
+    source,
+    mealie,
+    mealieConnected,
+    showMealieRange,
+    rangeLoading,
+    rangeFailed,
+    suggestFromMealie,
   };
 }

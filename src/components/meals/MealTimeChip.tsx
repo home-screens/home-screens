@@ -100,7 +100,9 @@ export default function MealTimeChip({
   align = 'left',
   popoverZIndex = 60,
 }: MealTimeChipProps) {
-  const t = useTranslate('remote');
+  // Core, not the phone's list: the editor draws this chip too, and loads
+  // `remote` only after the page is up, so the words arrived late there.
+  const t = useTranslate('core');
   const [isEditing, setIsEditing] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);

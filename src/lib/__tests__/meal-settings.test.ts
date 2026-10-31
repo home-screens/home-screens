@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import type { MealSettings } from '@/types/config';
-import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
+import { DEFAULT_MEAL_SETTINGS, normalizeMealSettings } from '@/lib/meal-constants';
 import {
   toggleMealSlot,
   setMealSlotDefaultTime,
   setMealWeekStart,
   setMealTimeFormat,
   resetMealSettings,
+  setMealPlanSource,
 } from '../meal-settings';
 
 function settings(overrides: Partial<MealSettings> = {}): MealSettings {
@@ -105,5 +106,29 @@ describe('resetMealSettings', () => {
     reset.enabledSlots.push('snack');
     expect(DEFAULT_MEAL_SETTINGS.enabledSlots).not.toContain('snack');
     expect(resetMealSettings().enabledSlots).not.toContain('snack');
+  });
+});
+
+describe('setMealPlanSource', () => {
+  const base = normalizeMealSettings({});
+
+  it('switches the plan to Mealie and back', () => {
+    const mealie = setMealPlanSource(base, 'mealie');
+    expect(mealie.planSource).toBe('mealie');
+    expect(setMealPlanSource(mealie, undefined).planSource).toBeUndefined();
+  });
+
+  it('is a no-op by identity when nothing changes', () => {
+    expect(setMealPlanSource(base, undefined)).toBe(base);
+  });
+
+  it('survives a reset of the planning settings', () => {
+    expect(resetMealSettings(setMealPlanSource(base, 'mealie')).planSource).toBe('mealie');
+    expect(resetMealSettings().planSource).toBeUndefined();
+  });
+
+  it('is only ever mealie or nothing after a read', () => {
+    expect(normalizeMealSettings({ planSource: 'mealie' }).planSource).toBe('mealie');
+    expect(normalizeMealSettings({ planSource: 'tandoor' }).planSource).toBeUndefined();
   });
 });
