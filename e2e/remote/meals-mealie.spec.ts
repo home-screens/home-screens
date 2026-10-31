@@ -291,3 +291,40 @@ test('a family without Mealie adds a side from its own meals', async ({ page, re
     })
     .toEqual([{ kind: 'side', mealId: 'rice' }]);
 });
+
+test("the Library's cookbook chips show only that cookbook's recipes", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await page.goto('/remote');
+  await openMeals(page);
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
+
+  const library = page.getByTestId('mealie-library');
+  await library.getByRole('button', { name: 'Weeknight dinners' }).click();
+  const cards = library.getByTestId('mealie-library-card');
+  await expect(cards).toHaveCount(2);
+  await expect(cards.filter({ hasText: 'Harvest Chili' })).toHaveCount(1);
+  await expect(cards.filter({ hasText: 'Mac and Cheese' })).toHaveCount(1);
+  await expect(library.getByRole('button', { name: 'Weeknight dinners' })).toHaveAttribute('aria-pressed', 'true');
+
+  // All takes the cookbook off again.
+  await library.getByRole('button', { name: 'All', exact: true }).click();
+  await expect(cards).toHaveCount(FAKE_RECIPES.length);
+});
+
+test("the picker's cookbook chips narrow the recipes to pick from", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await page.goto('/remote');
+  await openMeals(page);
+  await page.getByRole('button', { name: 'Plan', exact: true }).click();
+  await page.getByRole('button', { name: /Change Harvest Chili/ }).first().click();
+  await page.getByRole('button', { name: 'Add a side' }).click();
+
+  const picker = page.getByRole('dialog').filter({ has: page.getByRole('button', { name: 'Kids like it' }) });
+  await picker.getByRole('button', { name: 'Kids like it' }).click();
+  await expect(picker.getByText('2 recipes in Kids like it')).toBeVisible();
+  await expect(picker.getByRole('button', { name: /^Mac and Cheese/ })).toBeVisible();
+  await expect(picker.getByRole('button', { name: /^Blueberry Pancakes/ })).toBeVisible();
+  await expect(picker.getByRole('button', { name: /^Cheese Board/ })).toHaveCount(0);
+});

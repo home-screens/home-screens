@@ -33,17 +33,19 @@ export default function RecipeView({
     [todayISO, nowMinutes, plan, savedMeals, slots, settings.defaultSlotTimes],
   );
   const next = lead.kind === 'meal' ? lead.next : null;
-  const recipe = useMealRecipe(next?.meal ?? null);
+  const planned = next ? plan.find((p) => p.date === next.date && p.slot === next.slot) : undefined;
+  // A double batch planned in Mealie doubles the amounts and the servings.
+  const scale = planned?.scale ?? 1;
+  const recipe = useMealRecipe(next?.meal ?? null, scale);
   const [course, setCourse] = useState<SavedMeal | null>(null);
 
   const serving = useMemo(() => {
     if (!next) return null;
-    const planned = plan.find((p) => p.date === next.date && p.slot === next.slot);
     const time = resolvePlannedMealTime(planned, next.slot, settings.defaultSlotTimes);
     const servingNow = next.date === todayISO
       && currentMealSlot(todayISO, nowMinutes, slots, plan, savedMeals, settings.defaultSlotTimes) === next.slot;
     return { slot: next.slot, ...(time ? { time } : {}), now: servingNow };
-  }, [next, plan, settings.defaultSlotTimes, todayISO, nowMinutes, slots, savedMeals]);
+  }, [next, planned, plan, settings.defaultSlotTimes, todayISO, nowMinutes, slots, savedMeals]);
 
   if (!next) {
     const day = lead.kind === 'none' ? lead.day : 'today';
@@ -68,6 +70,7 @@ export default function RecipeView({
       <RecipeSheet
         meal={next.meal}
         recipe={recipe}
+        scale={scale}
         serving={serving}
         courses={next.courses}
         timeFormat={timeFormat}

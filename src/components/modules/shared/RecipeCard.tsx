@@ -43,7 +43,6 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const t = useTranslate('modules');
   const ctx = useMealRecipeContext();
   const [meal, setMeal] = useState(tapped);
-  const recipe = useMealRecipe(meal);
   const mealieLink = useMealieLink();
   const { w, h } = useViewport();
   useInteractionHold();
@@ -69,7 +68,8 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const unit = Math.min(w, h) / 1080;
   const P = (n: number) => n * unit;
   const landscape = w > h;
-  const { serving, courses } = useMemo(() => recipeServingAt(ctx, at, meal), [ctx, at, meal]);
+  const { serving, courses, scale } = useMemo(() => recipeServingAt(ctx, at, meal), [ctx, at, meal]);
+  const recipe = useMealRecipe(meal, scale);
   const recipeUrl = meal.recipeUrl ? (isMealieMeal(meal) ? mealieLink(meal.recipeUrl) : meal.recipeUrl) : '';
 
   if (typeof document === 'undefined') return null;
@@ -115,6 +115,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
         <RecipeSheet
           meal={meal}
           recipe={recipe}
+          scale={scale}
           serving={serving}
           courses={courses}
           timeFormat={ctx?.timeFormat ?? '12h'}

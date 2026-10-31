@@ -30,13 +30,26 @@ export function getMealCourseLabelKey(kind: MealCourseKind): string {
   return `meal-planner.courses.${kind}`;
 }
 
+/** The largest batch Home Screens takes from Mealie or sends back; anything past it is a typing slip. */
+export const MAX_RECIPE_SCALE = 100;
+
+/**
+ * A batch size worth keeping (Mealie's `recipeScale`): a positive number up
+ * to `MAX_RECIPE_SCALE`. Once (1), and anything that is not a size, read as
+ * undefined.
+ */
+export function normalizeRecipeScale(raw: unknown): number | undefined {
+  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0 || raw > MAX_RECIPE_SCALE || raw === 1) return undefined;
+  return Math.round(raw * 1000) / 1000;
+}
+
 /**
  * Coerce whatever arrived into a valid course list.
  *
  * A course names a saved meal or carries typed text; one with neither has
  * nothing to show and is dropped. `keepSource` is for a plan read from Mealie
- * or sent back to it, where `sourceId` says which Mealie entry a course is;
- * `meals.json` never stores one. Returns `undefined` for an empty list so a
+ * or sent back to it, where `sourceId` says which Mealie entry a course is
+ * and `scale` how many batches it makes; `meals.json` never stores either. Returns `undefined` for an empty list so a
  * meal without courses keeps the shape it always had.
  */
 export function normalizeMealCourses(raw: unknown, keepSource = false): MealCourse[] | undefined {
@@ -54,6 +67,8 @@ export function normalizeMealCourses(raw: unknown, keepSource = false): MealCour
     if (mealId) course.mealId = mealId;
     else if (customText) course.customText = customText;
     if (keepSource && typeof c.sourceId === 'string' && c.sourceId) course.sourceId = c.sourceId;
+    const scale = keepSource && mealId ? normalizeRecipeScale(c.scale) : undefined;
+    if (scale) course.scale = scale;
     courses.push(course);
   }
   return courses.length > 0 ? courses : undefined;
@@ -78,9 +93,10 @@ export function normalizeStoredMeal(meal: SavedMeal): SavedMeal {
  */
 export function normalizeStoredPlanEntry(entry: PlannedMeal): PlannedMeal {
   const hasCourses = entry.courses !== undefined;
-  if (!hasCourses && entry.sourceId === undefined) return entry;
+  if (!hasCourses && entry.sourceId === undefined && entry.scale === undefined) return entry;
   const next: PlannedMeal = { ...entry };
   delete next.sourceId;
+  delete next.scale;
   const courses = normalizeMealCourses(entry.courses);
   if (courses) next.courses = courses;
   else delete next.courses;
@@ -105,6 +121,8 @@ export interface ResolvedCourse {
   kind: MealCourseKind;
   meal: SavedMeal | null;
   name: string;
+  /** Batches of the recipe Mealie plans, when more or less than one. */
+  scale?: number;
 }
 
 /**
@@ -118,7 +136,7 @@ export function resolveCourses(entry: PlannedMeal | undefined, savedMeals: Saved
   for (const c of entry.courses) {
     const meal = c.mealId && savedMeals ? savedMeals.find((m) => m.id === c.mealId) ?? null : null;
     const name = meal?.name ?? c.customText?.trim();
-    if (name) out.push({ kind: c.kind, meal, name });
+    if (name) out.push({ kind: c.kind, meal, name, ...(c.scale ? { scale: c.scale } : {}) });
   }
   return out;
 }

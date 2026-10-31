@@ -10177,6 +10177,15 @@
             "text": "string"
           },
           "description": "Set when the meal was read from Mealie"
+        },
+        {
+          "name": "scale",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "How many batches of the main dish's recipe Mealie plans (2 is a double batch). Absent means one"
         }
       ]
     },
@@ -11313,6 +11322,15 @@
     },
     {
       "path": "/api/mealie/categories",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/mealie/cookbooks",
       "methods": [
         {
           "method": "GET",

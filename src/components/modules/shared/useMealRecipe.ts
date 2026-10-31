@@ -16,13 +16,14 @@ export type MealRecipeState =
 
 /**
  * A meal's recipe for the wall: a Mealie recipe read through the hub
- * (`/api/mealie/recipe/<id>`, display access), or a saved meal's own
- * ingredients and notes, which need no request.
+ * (`/api/mealie/recipe/<id>`, display access) with its amounts for `scale`
+ * batches, or a saved meal's own ingredients and notes, which need no
+ * request.
  */
-export function useMealRecipe(meal: SavedMeal | null): MealRecipeState {
+export function useMealRecipe(meal: SavedMeal | null, scale = 1): MealRecipeState {
   const mealieId = parseMealieMealId(meal?.id);
   const [wire, error] = useFetchData<MealieRecipeLines>(
-    mealieId ? `/api/mealie/recipe/${encodeURIComponent(mealieId)}` : '',
+    mealieId ? `/api/mealie/recipe/${encodeURIComponent(mealieId)}${scale !== 1 ? `?scale=${scale}` : ''}` : '',
     MEALIE_RECIPE_TTL_MS,
   );
   return useMemo<MealRecipeState>(() => {

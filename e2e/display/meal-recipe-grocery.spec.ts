@@ -3,7 +3,7 @@ import type { APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
-import { connectFakeMealie, disconnectFakeMealie, fakeMealieDay, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
+import { connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, fakeMealieDay, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
 
 /**
  * The Recipe view (Full-Screen Meal Planner) and the Grocery List view (both
@@ -172,6 +172,38 @@ test.describe('Recipe and Grocery List with the plan in Mealie', () => {
     await expect(card.getByTestId('recipe-card-qr')).toBeVisible();
     // Two steps fit on one page: read at a glance, no Back and Next.
     await expect(card.getByTestId('recipe-next')).toHaveCount(0);
+  });
+
+  test('a double batch planned in Mealie doubles the amounts and servings, and a save keeps it', async ({ page, request }) => {
+    const entries = defaultFakeEntries().map((e) => (e.entryType === 'dinner' ? { ...e, recipeScale: 2 } : e));
+    mealie = await startFakeMealie(entries);
+    await connectFakeMealie(request, mealie);
+    await show(request, 'fullscreen-meal-planner', { view: 'recipe' });
+    await page.goto('/display');
+
+    const mod = page.locator('[data-module-id="meals"]');
+    await expect(mod.getByTestId('recipe-batch')).toHaveText('Double');
+    // Four servings in Mealie, eight for a double batch.
+    await expect(mod.getByTestId('recipe-name').locator('xpath=..')).toContainText(/Serves\s*8/i);
+    // Mealie's parsed line doubles; a line it never parsed stays as written.
+    await expect(mod.getByTestId('recipe-ingredients')).toContainText('2 cups rice');
+    await expect(mod.getByTestId('recipe-ingredients')).toContainText('1 lb ground beef');
+
+    // A save that changes tonight's dinner, sent the way an older copy of the
+    // plan would (no batch size), leaves the double batch in Mealie.
+    const chili = mealie.entries.find((e) => e.date === day(0) && e.entryType === 'dinner')!;
+    type Cell = { date: string; slot: string; sourceId?: string; scale?: number; courses?: { sourceId?: string }[] };
+    const { mealie: block } = await (await request.get('/api/meals/data')).json() as { mealie: { plan: Cell[] } };
+    const { scale, ...tonight } = block.plan.find((p) => p.date === day(0) && p.slot === 'dinner')!;
+    expect(scale).toBe(2);
+    const before = [tonight.sourceId, ...(tonight.courses ?? []).map((c) => c.sourceId)];
+    const res = await request.put('/api/mealie/plan', {
+      data: { cells: [{ date: day(0), slot: 'dinner', before, after: { ...tonight, notes: 'Make extra for lunch' } }] },
+    });
+    expect(res.ok(), await res.text()).toBe(true);
+    const saved = mealie.entries.find((e) => e.id === chili.id)!;
+    expect(saved.text).toBe('Make extra for lunch');
+    expect(saved.recipeScale).toBe(2);
   });
 
   test('the full-screen Grocery List shows the family\'s Mealie list and ticks in Mealie', async ({ page, request }) => {

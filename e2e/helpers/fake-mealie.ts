@@ -32,6 +32,8 @@ export interface FakeEntry {
   title: string;
   text: string;
   recipeId: string | null;
+  /** Batches; Mealie answers 1 for an entry made or updated without one. */
+  recipeScale?: number;
 }
 
 /** One item on a shopping list, as Mealie keeps it. */
@@ -75,6 +77,12 @@ export const FAKE_RECIPES: FakeRecipe[] = [
   { id: '3c4d5e6f-7a8b-4c9d-8e0f-2a3b4c5d6e7f', slug: 'blueberry-pancakes', name: 'Blueberry Pancakes', photo: true, prepMinutes: 15 },
   { id: '4d5e6f7a-8b9c-4d0e-9f1a-3b4c5d6e7f80', slug: 'mac-and-cheese', name: 'Mac and Cheese', photo: true, prepMinutes: 25, categories: ['dinner'] },
   { id: '5e6f7a8b-9c0d-4e1f-8a2b-4c5d6e7f8091', slug: 'cheese-board', name: 'Cheese Board', photo: true, prepMinutes: 5 },
+];
+
+/** The household's cookbooks, by the recipes (slugs) in each. */
+export const FAKE_COOKBOOKS: { name: string; slug: string; recipes: string[] }[] = [
+  { name: 'Weeknight dinners', slug: 'weeknight-dinners', recipes: ['harvest-chili', 'mac-and-cheese'] },
+  { name: 'Kids like it', slug: 'kids-like-it', recipes: ['mac-and-cheese', 'blueberry-pancakes'] },
 ];
 
 /** Local `YYYY-MM-DD`, `offset` days from today: the household zone is the hub's, the same machine. */
@@ -180,7 +188,7 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
   };
   const withRecipe = (e: FakeEntry) => {
     const recipe = state.recipes.find((r) => r.id === e.recipeId);
-    return { ...e, groupId: 'g1', userId: 'u1', householdId: 'h1', recipe: recipe ? recipeSummary(recipe) : null };
+    return { ...e, recipeScale: e.recipeScale ?? 1, groupId: 'g1', userId: 'u1', householdId: 'h1', recipe: recipe ? recipeSummary(recipe) : null };
   };
 
   const server = http.createServer((req, res) => {
@@ -215,7 +223,7 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
         return send(200, { page: 1, per_page: -1, total: items.length, total_pages: 1, items, next: null, previous: null });
       }
       if (path === '/api/households/mealplans' && req.method === 'POST') {
-        const entry: FakeEntry = { id: nextId(), date: body.date, entryType: body.entryType, title: body.title ?? '', text: body.text ?? '', recipeId: body.recipeId ?? null };
+        const entry: FakeEntry = { id: nextId(), date: body.date, entryType: body.entryType, title: body.title ?? '', text: body.text ?? '', recipeId: body.recipeId ?? null, recipeScale: body.recipeScale ?? 1 };
         state.entries.push(entry);
         return send(201, withRecipe(entry));
       }
@@ -229,7 +237,8 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
           return send(200, withRecipe(gone));
         }
         if (req.method === 'PUT') {
-          state.entries[i] = { id, date: body.date, entryType: body.entryType, title: body.title ?? '', text: body.text ?? '', recipeId: body.recipeId ?? null };
+          // Mealie replaces the whole entry: a scale left out goes back to 1.
+          state.entries[i] = { id, date: body.date, entryType: body.entryType, title: body.title ?? '', text: body.text ?? '', recipeId: body.recipeId ?? null, recipeScale: body.recipeScale ?? 1 };
           return send(200, withRecipe(state.entries[i]));
         }
       }
@@ -293,12 +302,21 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
         if (!recipe) return send(404, { detail: 'Not found' });
         return send(200, {
           ...recipeSummary(recipe),
-          recipeIngredient: [{ display: '1 lb ground beef' }, { display: '2 cans kidney beans' }],
+          recipeIngredient: [
+            { display: '1 lb ground beef' },
+            { display: '2 cans kidney beans' },
+            { quantity: 1, unit: { name: 'cup', pluralName: 'cups', fraction: true }, food: { name: 'rice' }, display: '1 cup rice' },
+          ],
           recipeInstructions: [{ text: 'Brown the beef.' }, { text: 'Simmer with the beans.' }],
         });
       }
+      if (path === '/api/households/cookbooks') {
+        const items = FAKE_COOKBOOKS.map((c, position) => ({ id: `cb${position}`, name: c.name, slug: c.slug, position, public: false, queryFilterString: '' }));
+        return send(200, { page: 1, per_page: -1, total: items.length, total_pages: 1, items });
+      }
       if (path === '/api/recipes') {
         const search = (url.searchParams.get('search') ?? '').toLowerCase();
+        const cookbook = FAKE_COOKBOOKS.find((c) => c.slug === url.searchParams.get('cookbook'));
         const filter = url.searchParams.get('queryFilter') ?? '';
         const like = [...filter.matchAll(/name LIKE "%([^%]+)%"/g)].map((m) => m[1].toLowerCase());
         const ids = /id IN \[(.*)\]/.exec(filter)?.[1]?.match(/"([^"]+)"/g)?.map((s) => s.replace(/"/g, ''));
@@ -313,6 +331,7 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
             if (category[1] === 'IN' ? !inOne : inOne) return false;
           }
           if (search && !search.split(/\s+/).some((w) => name.includes(w))) return false;
+          if (cookbook && !cookbook.recipes.includes(r.slug)) return false;
           return true;
         });
         if (filter.includes('lastMade')) items = items.slice(0, 2);

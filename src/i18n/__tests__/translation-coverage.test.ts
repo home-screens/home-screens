@@ -270,6 +270,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|fullscreen-weather.nowcast.minutes',
   'modules|fullscreen-weather.stats.wind',
   'modules|garbage-day.frequency.weekly',
+  'modules|meal-planner.recipe.batchTimes',
   'modules|meal-planner.time.minutes',
   'modules|meal-planner.time.minutesShort',
   'modules|rain-map.minutesAhead',
@@ -453,6 +454,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
   ]),
   'es-ES': new Set([
+    // Triple is the Spanish word too (a triple batch).
+    'modules|meal-planner.recipe.batchTriple',
     // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
     'remote|rewardsView.adjust.ticketsLabel',
     // 'Color' is the Spanish word too
@@ -529,6 +532,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'fr-FR': new Set([
+    // Double and Triple are the French words too (a double batch).
+    'modules|meal-planner.recipe.batchDouble',
+    'modules|meal-planner.recipe.batchTriple',
     // "Desserts" is the French plural too (the meal picker's course heading, the library filter).
     'editor|mealPlannerModal.picker.groupHeading.dessert',
     'remote|mealPicker.savedAs.dessert',
@@ -709,6 +715,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'nl-NL': new Set([
+    // Half is the Dutch word too (a half batch).
+    'modules|meal-planner.recipe.batchHalf',
     // "Bonus" and "tickets" are the same words in this language.
     'remote|rewardsView.tickets.bonusLine',
     'remote|rewardsView.adjust.ticketsLabel',

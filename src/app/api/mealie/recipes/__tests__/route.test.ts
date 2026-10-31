@@ -32,7 +32,7 @@ describe('GET /api/mealie/recipes', () => {
 
   it('answers with Mealie recipes as saved meals', async () => {
     const res = await GET(req('?search=tik&filter=favorites&page=2'));
-    expect(searchMealieRecipes).toHaveBeenCalledWith({ search: 'tik', filter: 'favorites', category: undefined, page: 2 });
+    expect(searchMealieRecipes).toHaveBeenCalledWith({ search: 'tik', filter: 'favorites', category: undefined, cookbook: undefined, page: 2 });
     expect(await res.json()).toEqual({
       items: [{
         id: `mealie:${RECIPE.id}`,
@@ -50,6 +50,12 @@ describe('GET /api/mealie/recipes', () => {
   it('refuses an unknown filter or a made-up category', async () => {
     expect((await GET(req('?filter=everything'))).status).toBe(400);
     expect((await GET(req('?category=Not%20A%20Slug'))).status).toBe(400);
+    expect((await GET(req('?cookbook=../x'))).status).toBe(400);
+  });
+
+  it('passes a cookbook on to Mealie', async () => {
+    await GET(req('?cookbook=weeknight-dinners'));
+    expect(searchMealieRecipes).toHaveBeenCalledWith(expect.objectContaining({ cookbook: 'weeknight-dinners' }));
   });
 
   it('passes a category on to Mealie', async () => {

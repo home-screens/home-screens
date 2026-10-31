@@ -36,11 +36,13 @@ export interface MealieRecipeSearch {
  */
 export function useMealieRecipeSearch(
   fetcher: MealFetch,
-  { search, filter, category, enabled }: {
+  { search, filter, category, cookbook, enabled }: {
     search: string;
     filter: MealieRecipeFilter;
     /** Only this Mealie category (by slug), with the filter `all`. */
     category?: string;
+    /** Only this Mealie cookbook (by slug), with the filter `all`. */
+    cookbook?: string;
     enabled: boolean;
   },
 ): MealieRecipeSearch {
@@ -55,7 +57,7 @@ export function useMealieRecipeSearch(
   const [total, setTotal] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const query = search.trim();
-  const key = `${filter}|${category ?? ''}|${query}|${attempt}`;
+  const key = `${filter}|${category ?? ''}|${cookbook ?? ''}|${query}|${attempt}`;
   const keyRef = useRef(key);
   keyRef.current = key;
 
@@ -67,7 +69,7 @@ export function useMealieRecipeSearch(
     setError(null);
     setProblem(null);
     const timer = setTimeout(() => {
-      searchMealieRecipes(fetcher, { search: query, filter: query ? 'all' : filter, category, page: 1 }, controller.signal)
+      searchMealieRecipes(fetcher, { search: query, filter: query ? 'all' : filter, category, cookbook, page: 1 }, controller.signal)
         .then((result) => {
           setItems(result.items);
           setPage(1);
@@ -88,13 +90,13 @@ export function useMealieRecipeSearch(
       clearTimeout(timer);
       controller.abort();
     };
-  }, [fetcher, query, filter, category, enabled, attempt]);
+  }, [fetcher, query, filter, category, cookbook, enabled, attempt]);
 
   const loadMore = useCallback(() => {
     if (!enabled || loading || page >= totalPages) return;
     const startedFor = keyRef.current;
     const next = page + 1;
-    searchMealieRecipes(fetcher, { search: query, filter: query ? 'all' : filter, category, page: next })
+    searchMealieRecipes(fetcher, { search: query, filter: query ? 'all' : filter, category, cookbook, page: next })
       .then((result) => {
         // The words changed while this page was out: it belongs to old results.
         if (keyRef.current !== startedFor) return;
@@ -105,7 +107,7 @@ export function useMealieRecipeSearch(
         setPage(next);
       })
       .catch(() => { /* the list keeps what it has; scrolling again retries */ });
-  }, [enabled, loading, page, totalPages, fetcher, query, filter, category]);
+  }, [enabled, loading, page, totalPages, fetcher, query, filter, category, cookbook]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 

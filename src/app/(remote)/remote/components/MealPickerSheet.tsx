@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, CloudOff, Pencil, Search } from 'lucide-react';
+import { BookOpen, ChevronRight, CloudOff, Pencil, Search } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import type { MealieRecipeFilter } from '@/lib/meal-client';
 import { DEFAULT_MEAL_EMOJI, LIBRARY_FILTERS, getMealSlotLabelKey, type LibraryFilter } from '@/lib/meal-constants';
@@ -19,6 +19,7 @@ import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useTranslate } from '@/i18n';
 import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
+import { useMealieCookbooks } from '@/components/meals/useMealieCookbooks';
 import { useMealieCourseCategory } from '@/components/meals/useMealieCourseCategory';
 import Glyph from '@/components/ui/Glyph';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
@@ -161,8 +162,18 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
       setCategory(courseCategory.slug);
     }
   }, [categoryReady, categoryApplied, courseCategory]);
+  // The family's own sets of recipes ("Weeknight dinners"), after the shortcuts.
+  const cookbooks = useMealieCookbooks(editorFetch);
+  const [cookbook, setCookbook] = useState<string | undefined>(undefined);
+  const cookbookName = cookbooks.find((c) => c.slug === cookbook)?.name;
   const typed = query.trim();
-  const search = useMealieRecipeSearch(editorFetch, { search: query, filter, category: typed ? undefined : category, enabled: categoryReady });
+  const search = useMealieRecipeSearch(editorFetch, {
+    search: query,
+    filter,
+    category: typed ? undefined : category,
+    cookbook: typed ? undefined : cookbook,
+    enabled: categoryReady,
+  });
   const count = useMealieRecipeCount(true);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -175,6 +186,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
   let heading: string | null = null;
   if (!search.loading && !search.error && search.items.length > 0) {
     if (typed) heading = t('mealie.search.recipeCount', { count: search.total });
+    else if (cookbookName) heading = t('mealie.search.categoryCount', { count: search.total, category: cookbookName });
     else if (filter === 'favorites') heading = t('mealie.search.favoritesCount', { count: search.total });
     else if (category && courseCategory) heading = t('mealie.search.categoryCount', { count: search.total, category: courseCategory.name });
     else heading = t('mealie.search.recentHeading');
@@ -184,6 +196,8 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
   if (nothingFound) {
     empty = typed ? (
       <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneTitle', { query: typed })} description={t('mealie.search.noneDescription')} />
+    ) : cookbookName ? (
+      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: cookbookName })} description={t('mealie.search.noneInCategoryDescription')} />
     ) : category && courseCategory ? (
       <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: courseCategory.name })} description={t('mealie.search.noneInCategoryDescription')} />
     ) : filter === 'favorites' ? (
@@ -212,12 +226,13 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 16px 16px', flex: 1, minHeight: 0 }}
       >
         <RecipeShortcutChips
-          filter={category ? 'all' : filter}
+          filter={category || cookbook ? 'all' : filter}
           searching={!!typed}
           onFilter={(next) => {
             setQuery('');
             setFilter(next);
             setCategory(undefined);
+            setCookbook(undefined);
           }}
         >
           {courseCategory && (
@@ -227,11 +242,27 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
                 setQuery('');
                 setFilter('all');
                 setCategory(courseCategory.slug);
+                setCookbook(undefined);
               }}
             >
               {courseCategory.name}
             </FilterChip>
           )}
+          {cookbooks.map((c) => (
+            <FilterChip
+              key={c.slug}
+              active={!typed && cookbook === c.slug}
+              onClick={() => {
+                setQuery('');
+                setFilter('all');
+                setCategory(undefined);
+                setCookbook(c.slug);
+              }}
+              icon={<BookOpen size={13} strokeWidth={2} aria-hidden />}
+            >
+              {c.name}
+            </FilterChip>
+          ))}
         </RecipeShortcutChips>
         {heading && <div style={{ fontSize: 12, color: 'var(--hs-text-faint)', padding: '10px 0 2px' }}>{heading}</div>}
         {search.loading ? (

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
 const FILTERS: ReadonlySet<string> = new Set(['all', 'favorites', 'recent']);
 
 /**
- * GET /api/mealie/recipes?search=&filter=all|favorites|recent&category=&page=: one page
+ * GET /api/mealie/recipes?search=&filter=all|favorites|recent&category=&cookbook=&page=: one page
  * of the family's Mealie recipes for the phone's and the editor's pickers,
  * searched in Mealie each time and handed back as saved meals. Nothing is
  * copied into Home Screens.
@@ -25,11 +25,15 @@ export const GET = withAuth(async (request: NextRequest) => {
   if (category !== undefined && !/^[a-z0-9-]{1,100}$/.test(category)) {
     return NextResponse.json({ error: 'category must be a Mealie category slug' }, { status: 400 });
   }
+  const cookbook = params.get('cookbook') ?? undefined;
+  if (cookbook !== undefined && !/^[a-z0-9-]{1,100}$/.test(cookbook)) {
+    return NextResponse.json({ error: 'cookbook must be a Mealie cookbook slug' }, { status: 400 });
+  }
   try {
     const cfg = await getMealieConfig();
     if (!cfg) return mealieFailureResponse('not-set-up');
     const [result, user] = await Promise.all([
-      searchMealieRecipes({ search, filter: filter as MealieRecipeFilter, category, page: Number.isInteger(page) ? page : 1 }),
+      searchMealieRecipes({ search, filter: filter as MealieRecipeFilter, category, cookbook, page: Number.isInteger(page) ? page : 1 }),
       getMealieUser(),
     ]);
     const ctx = { baseUrl: cfg.url, groupSlug: user.groupSlug };

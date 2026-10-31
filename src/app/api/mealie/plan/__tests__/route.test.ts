@@ -66,6 +66,18 @@ describe('PUT /api/mealie/plan', () => {
     }]);
   });
 
+  it('keeps the batch sizes of a recipe and its courses, and drops them from typed text', async () => {
+    const chili = 'mealie:0f1e2d3c-4b5a-4968-8776-655443322110';
+    const naan = 'mealie:1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d';
+    await PUT(put({ cells: [cell({ after: { mealId: chili, scale: 2, sourceId: 'mealie:96', courses: [{ kind: 'side', mealId: naan, scale: 0.5 }, { kind: 'drink', customText: 'Milk', scale: 3 }] } })] }));
+    const after = vi.mocked(saveMealieCells).mock.calls[0][0][0].after!;
+    expect(after.scale).toBe(2);
+    expect(after.courses).toEqual([{ kind: 'side', mealId: naan, scale: 0.5 }, { kind: 'drink', customText: 'Milk' }]);
+    vi.mocked(saveMealieCells).mockClear();
+    await PUT(put({ cells: [cell({ after: { customText: 'Pizza', scale: 2 } })] }));
+    expect(vi.mocked(saveMealieCells).mock.calls[0][0][0].after!.scale).toBeUndefined();
+  });
+
   it('clears a meal with a null after', async () => {
     await PUT(put({ cells: [cell({ after: null })] }));
     expect(vi.mocked(saveMealieCells).mock.calls[0][0][0].after).toBeNull();

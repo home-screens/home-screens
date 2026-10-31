@@ -15,7 +15,7 @@ import { GET } from '../route';
 import { getMealieConfig, getMealieRecipe, getMealieUser, MealieError } from '@/lib/mealie';
 
 const ID = '0f1e2d3c-4b5a-4968-8776-655443322110';
-const get = (id: string) => GET(new NextRequest(`http://localhost/api/mealie/recipe/${id}`), { params: Promise.resolve({ recipeId: id }) });
+const get = (id: string, query = '') => GET(new NextRequest(`http://localhost/api/mealie/recipe/${id}${query}`), { params: Promise.resolve({ recipeId: id }) });
 
 describe('GET /api/mealie/recipe/[recipeId]', () => {
   beforeEach(() => {
@@ -35,6 +35,22 @@ describe('GET /api/mealie/recipe/[recipeId]', () => {
     expect(body.description).toBe('Warm.');
     expect(body.ingredients).toEqual([{ heading: 'For the pot', text: '1 lb beans' }, { text: '2 onions' }]);
     expect(body.steps).toEqual([{ text: 'Simmer.' }, { heading: 'Serve', text: 'Top with cheese.' }]);
+  });
+
+  it('multiplies the amounts for a double batch, leaving the meal as Mealie has it', async () => {
+    vi.mocked(getMealieRecipe).mockResolvedValue({
+      id: ID, slug: 'chili', name: 'Chili', recipeServings: 4,
+      recipeIngredient: [
+        { quantity: 1, unit: { name: 'pound', pluralName: 'pounds', fraction: true }, food: { name: 'beans' }, display: '1 pound beans' },
+        { quantity: 0, note: 'Salt to taste', display: 'Salt to taste' },
+      ],
+      recipeInstructions: [{ text: 'Simmer.' }],
+    });
+    const body = await (await get(ID, '?scale=2')).json();
+    expect(body.ingredients).toEqual([{ text: '2 pounds beans' }, { text: 'Salt to taste' }]);
+    expect(body.meal.servings).toBe(4);
+    expect((await get(ID, '?scale=1')).status).toBe(200);
+    for (const bad of ['0', '-1', 'two', '500']) expect((await get(ID, `?scale=${bad}`)).status).toBe(400);
   });
 
   it('refuses a made-up id and passes Mealie failures on', async () => {

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import type { MealSlotType, PlannedMeal } from '@/types/config';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { readMealData } from '@/lib/meal-data';
-import { normalizeMealCourses } from '@/lib/meal-courses';
+import { normalizeMealCourses, normalizeRecipeScale } from '@/lib/meal-courses';
 import { buildMealieBlock, isPlanDate, saveMealieCells, type MealieCellChange } from '@/lib/mealie-plan';
 import { mealieErrorResponse, mealieFailureResponse } from '@/lib/mealie-api';
 import { mealsAnswer } from '@/lib/meal-answer';
@@ -46,6 +46,8 @@ function parseAfter(raw: unknown, date: string, slot: MealSlotType): PlannedMeal
   if (typeof r.notes === 'string' && r.notes.trim()) after.notes = r.notes.trim().slice(0, 2000);
   if (typeof r.time === 'string' && /^([01]?\d|2[0-3]):[0-5]\d$/.test(r.time)) after.time = r.time;
   if (typeof r.sourceId === 'string' && r.sourceId) after.sourceId = r.sourceId;
+  const scale = after.mealId ? normalizeRecipeScale(r.scale) : undefined;
+  if (scale) after.scale = scale;
   const courses = normalizeMealCourses(r.courses, true);
   if (courses) after.courses = courses;
   return after;

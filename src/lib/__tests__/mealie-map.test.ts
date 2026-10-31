@@ -7,6 +7,7 @@ import {
   isUnchanged,
   mealieEntriesToPlan,
   mealieEntryExtra,
+  mealieIngredientText,
   mealieMealId,
   mealieRecipeToMeal,
   mealieRuleCovers,
@@ -234,7 +235,48 @@ describe('cellToMealieOps', () => {
     const changed = ops.entries.filter((e) => !isUnchanged(e));
     expect(changed).toHaveLength(1);
     expect(changed[0].existing?.id).toBe(tikka.id);
-    expect(changed[0].write).toEqual({ date: DAY, entryType: 'dinner', recipeId: RECIPE_IDS.pancakes, title: '', text: '' });
+    expect(changed[0].write).toEqual({ date: DAY, entryType: 'dinner', recipeId: RECIPE_IDS.pancakes, title: '', text: '', recipeScale: 1 });
+  });
+
+  describe('batch sizes', () => {
+    const double = entry(DAY, 'dinner', recipe('tikka'), { recipeScale: 2 });
+    const halfSide = entry(DAY, 'side', recipe('naan'), { recipeScale: 0.5 });
+    const scaled = [double, halfSide];
+    const readScaled = () => mealieEntriesToPlan(scaled, { ...ctx, extras: {} }).plan[0];
+
+    it('reads a double batch onto the dish and a half batch onto its side', () => {
+      const meal = readScaled();
+      expect(meal.scale).toBe(2);
+      expect(meal.courses?.[0].scale).toBe(0.5);
+      // Once is no batch size at all.
+      expect(read().scale).toBeUndefined();
+    });
+
+    it('sends the batch size back, so an edit elsewhere in the meal never resets it', () => {
+      const ops = cellToMealieOps(scaled, DAY, 'dinner', { ...readScaled(), notes: 'Make extra for lunch' });
+      const dish = ops.entries.find((e) => e.existing?.id === double.id)!;
+      expect(dish.write).toMatchObject({ recipeId: RECIPE_IDS.tikka, text: 'Make extra for lunch', recipeScale: 2 });
+      expect(isUnchanged(ops.entries.find((e) => e.existing?.id === halfSide.id)!)).toBe(true);
+    });
+
+    it('keeps the batch size Mealie has when a save does not name one', () => {
+      const { scale: _scale, ...withoutScale } = readScaled();
+      const ops = cellToMealieOps(scaled, DAY, 'dinner', withoutScale);
+      expect(ops.entries[0].write.recipeScale).toBe(2);
+      expect(isUnchanged(ops.entries[0])).toBe(true);
+    });
+
+    it('starts a different recipe at one batch', () => {
+      const { scale: _scale, ...withoutScale } = readScaled();
+      const ops = cellToMealieOps(scaled, DAY, 'dinner', { ...withoutScale, mealId: `mealie:${RECIPE_IDS.pancakes}` });
+      expect(ops.entries[0].write.recipeScale).toBe(1);
+    });
+
+    it('carries a batch size onto a new entry (a copied week)', () => {
+      const ops = cellToMealieOps([], '2026-11-06', 'dinner', { ...readScaled(), date: '2026-11-06', sourceId: undefined, courses: undefined });
+      expect(ops.entries[0].existing).toBeUndefined();
+      expect(ops.entries[0].write.recipeScale).toBe(2);
+    });
   });
 
   it('creates a new course and deletes a removed one', () => {
@@ -446,3 +488,32 @@ describe('mealieLinkFor', () => {
   });
 });
 
+
+describe('mealieIngredientText', () => {
+  const clove = { name: 'clove', pluralName: 'cloves', fraction: true };
+  const teaspoon = { name: 'teaspoon', pluralName: 'teaspoons', fraction: true };
+  const gram = { name: 'gram', pluralName: 'grams', abbreviation: 'g', useAbbreviation: true, fraction: false };
+
+  it('is Mealie\'s own line at one batch', () => {
+    expect(mealieIngredientText({ quantity: 2, unit: clove, food: { name: 'garlic' }, note: 'chopped', display: '2 cloves garlic chopped' })).toBe('2 cloves garlic chopped');
+  });
+
+  it('multiplies the amount and keeps the unit, food and note', () => {
+    expect(mealieIngredientText({ quantity: 2, unit: clove, food: { name: 'garlic' }, note: 'chopped', display: '2 cloves garlic chopped' }, 2)).toBe('4 cloves garlic chopped');
+  });
+
+  it('writes fractions the way Mealie does, as mixed numbers past one', () => {
+    expect(mealieIngredientText({ quantity: 0.75, unit: teaspoon, food: { name: 'garam masala' }, display: '¾ teaspoon garam masala' }, 2)).toBe('1 ¹/₂ teaspoons garam masala');
+    expect(mealieIngredientText({ quantity: 1, unit: teaspoon, food: { name: 'salt' }, display: '1 teaspoon salt' }, 0.5)).toBe('¹/₂ teaspoon salt');
+  });
+
+  it('makes a food plural when there is no unit, and keeps decimal units decimal', () => {
+    expect(mealieIngredientText({ quantity: 1, food: { name: 'onion', pluralName: 'onions' }, display: '1 onion' }, 2)).toBe('2 onions');
+    expect(mealieIngredientText({ quantity: 1.5, unit: gram, food: { name: 'yeast' }, display: '1.5 g yeast' }, 3)).toBe('4.5 g yeast');
+  });
+
+  it('leaves a line Mealie never read an amount from as it is', () => {
+    expect(mealieIngredientText({ quantity: 0, note: 'Salt to taste', display: 'Salt to taste' }, 2)).toBe('Salt to taste');
+    expect(mealieIngredientText({ quantity: 1, note: '2 cups flour', display: '1 2 cups flour' }, 2)).toBe('1 2 cups flour');
+  });
+});

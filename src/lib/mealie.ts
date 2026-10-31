@@ -62,6 +62,8 @@ export interface MealiePlanEntry {
   text: string;
   recipeId: string | null;
   recipe: MealieRecipeSummary | null;
+  /** How many times the recipe the meal makes: 2 is a double batch. Absent or 1 is once. */
+  recipeScale?: number | null;
   groupId?: string;
   userId?: string;
   householdId?: string;
@@ -84,6 +86,11 @@ export interface MealiePlanEntryWrite {
   title: string;
   text: string;
   recipeId: string | null;
+  /**
+   * The batch size. Mealie's update replaces the whole entry and resets a
+   * scale it is not sent to 1, so a write for a recipe always carries one.
+   */
+  recipeScale?: number;
 }
 
 // ── Failures ──
@@ -447,6 +454,8 @@ export async function searchMealieRecipes(opts: {
   filter?: MealieRecipeFilter;
   /** One of the household's Mealie categories, by slug. */
   category?: string;
+  /** One of the household's Mealie cookbooks, by slug. */
+  cookbook?: string;
   page?: number;
   perPage?: number;
 }): Promise<MealieRecipePage> {
@@ -457,6 +466,7 @@ export async function searchMealieRecipes(opts: {
   const search = opts.search?.trim();
   if (search) params.set('search', search);
   if (opts.category) params.set('categories', opts.category);
+  if (opts.cookbook) params.set('cookbook', opts.cookbook);
   if (opts.filter === 'recent') {
     params.set('orderBy', 'lastMade');
     params.set('orderDirection', 'desc');
@@ -522,9 +532,46 @@ export async function listMealieCategories(): Promise<MealieCategory[]> {
     .map((c) => ({ name: c.name, slug: c.slug }));
 }
 
+/** A cookbook: a saved set of the household's recipes ("Weeknight dinners"). */
+export interface MealieCookbook {
+  name: string;
+  slug: string;
+}
+
+/** The household's Mealie cookbooks, in the household's own order, for the Library's and the pickers' filters. */
+export async function listMealieCookbooks(): Promise<MealieCookbook[]> {
+  const page = await mealieJson<{ items?: { name?: string; slug?: string; position?: number }[] }>('/api/households/cookbooks?perPage=-1');
+  return (page?.items ?? [])
+    .filter((c): c is MealieCookbook & { position?: number } => typeof c.name === 'string' && typeof c.slug === 'string' && !!c.slug)
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name))
+    .map((c) => ({ name: c.name, slug: c.slug }));
+}
+
+/** An ingredient's unit, the parts of it a line is written with. */
+export interface MealieIngredientUnit {
+  name?: string | null;
+  pluralName?: string | null;
+  abbreviation?: string | null;
+  pluralAbbreviation?: string | null;
+  useAbbreviation?: boolean | null;
+  /** Amounts in this unit read as fractions ("1 ¹/₂ cups"), otherwise as decimals. */
+  fraction?: boolean | null;
+}
+
+/** One ingredient line of a recipe. */
+export interface MealieRecipeIngredient {
+  title?: string | null;
+  display?: string | null;
+  note?: string | null;
+  originalText?: string | null;
+  quantity?: number | null;
+  unit?: MealieIngredientUnit | null;
+  food?: { name?: string | null; pluralName?: string | null } | null;
+}
+
 /** A full recipe, as much of it as Home Screens reads. */
 export interface MealieRecipe extends MealieRecipeSummary {
-  recipeIngredient?: { title?: string | null; display?: string | null; note?: string | null; originalText?: string | null }[];
+  recipeIngredient?: MealieRecipeIngredient[];
   recipeInstructions?: { title?: string | null; text?: string | null }[];
 }
 

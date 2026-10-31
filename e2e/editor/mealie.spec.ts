@@ -92,6 +92,22 @@ test('Suggest in the planner window fills only the empty dinners in Mealie, and 
   await expect.poll(() => mealie!.entries.map((e) => e.id).sort()).toEqual([...before].sort());
 });
 
+test("the planner window's picker narrows to a Mealie cookbook", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await expect(page.locator('[data-meal-cell]').getByText('Harvest Chili')).toBeVisible();
+
+  await page.getByRole('button', { name: /^Plan Lunch for / }).first().click();
+  const picker = page.getByRole('dialog', { name: 'Choose a Meal' });
+  await expect(picker.getByRole('textbox', { name: 'Search recipes in Mealie' })).toBeVisible();
+  await picker.getByRole('button', { name: 'Weeknight dinners' }).click();
+  await expect(picker.getByText('2 recipes in Weeknight dinners')).toBeVisible();
+  await expect(picker.getByRole('button', { name: 'Weeknight dinners' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(picker.getByRole('button', { name: /Favorites/ })).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('removing the token asks first while the meal plan lives in Mealie', async ({ page, request }) => {
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);

@@ -93,15 +93,32 @@ export function mealieRecipe(lines: MealieRecipeLines): RecipeDetail {
   };
 }
 
-/** Prep, cook and serves, the ones the meal has, in that order. */
-export type RecipeStat = { kind: 'prep' | 'cook'; minutes: number } | { kind: 'serves'; count: number };
+/** Prep, cook, serves and the batch, the ones the meal has, in that order. */
+export type RecipeStat =
+  | { kind: 'prep' | 'cook'; minutes: number }
+  | { kind: 'serves'; count: number }
+  | { kind: 'batch'; scale: number };
 
-export function recipeStats(meal: SavedMeal): RecipeStat[] {
+/**
+ * The figures above a recipe for `scale` batches (Mealie's double batch is
+ * 2): it serves that many times as many, and says which batch it is. The
+ * times stay: a double batch of chili still simmers an hour.
+ */
+export function recipeStats(meal: SavedMeal, scale = 1): RecipeStat[] {
   const stats: RecipeStat[] = [];
   if (meal.prepTime && meal.prepTime > 0) stats.push({ kind: 'prep', minutes: meal.prepTime });
   if (meal.cookTime && meal.cookTime > 0) stats.push({ kind: 'cook', minutes: meal.cookTime });
-  if (meal.servings && meal.servings > 0) stats.push({ kind: 'serves', count: meal.servings });
+  if (meal.servings && meal.servings > 0) stats.push({ kind: 'serves', count: Math.round(meal.servings * scale * 10) / 10 });
+  if (scale !== 1) stats.push({ kind: 'batch', scale });
   return stats;
+}
+
+/** How a batch is said: "Double", "Triple", "Half", or "×1.5" for any other. */
+export function batchWord(scale: number): { key: 'batchDouble' | 'batchTriple' | 'batchHalf' } | { key: 'batchTimes'; scale: string } {
+  if (scale === 2) return { key: 'batchDouble' };
+  if (scale === 3) return { key: 'batchTriple' };
+  if (scale === 0.5) return { key: 'batchHalf' };
+  return { key: 'batchTimes', scale: String(Math.round(scale * 100) / 100) };
 }
 
 /** What the Recipe view shows: a meal, or that there is no recipe for the day it is on. */

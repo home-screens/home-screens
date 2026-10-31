@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import type { MealSlotType, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey } from '@/lib/meal-constants';
-import { mealHasRecipe, pageRecipeSteps, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
+import { batchWord, mealHasRecipe, pageRecipeSteps, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
 import { holdRotationFor } from '@/lib/interaction-hold';
 import { useFontsReady } from '@/hooks/useFontsReady';
 import { useTranslate } from '@/i18n';
@@ -35,6 +35,8 @@ export interface RecipeServing {
 interface RecipeSheetProps {
   meal: SavedMeal;
   recipe: MealRecipeState;
+  /** Batches planned (Mealie's double batch is 2): the servings and the batch figure follow it. */
+  scale?: number;
   serving: RecipeServing | null;
   courses: ResolvedCourse[];
   timeFormat: TimeFormat;
@@ -80,7 +82,7 @@ const SECTION_LABEL: CSSProperties = {
  * Next step move a marker through the steps and the page follows it.
  */
 export function RecipeSheet(props: RecipeSheetProps) {
-  const { meal, recipe, serving, courses, timeFormat, P, padding, headerFont, layout, showPicture, interactive, stepButtons = 'always', onCourse, resetKey, footer, headerEndGap } = props;
+  const { meal, recipe, scale = 1, serving, courses, timeFormat, P, padding, headerFont, layout, showPicture, interactive, stepButtons = 'always', onCourse, resetKey, footer, headerEndGap } = props;
   const t = useTranslate('modules');
   const minutesText = useMinutesText();
   const fontsReady = useFontsReady();
@@ -225,16 +227,24 @@ export function RecipeSheet(props: RecipeSheetProps) {
     );
   };
 
-  const stats = (value: number, label: number, gapPx: number) => {
-    const list = recipeStats(meal);
+  const batchText = (n: number) => {
+    const word = batchWord(n);
+    return word.key === 'batchTimes' ? t('meal-planner.recipe.batchTimes', { scale: word.scale }) : t(`meal-planner.recipe.${word.key}`);
+  };
+
+  const stats = (value: number, label: number, gapPx: number, m: boolean) => {
+    const list = recipeStats(meal, scale);
     if (list.length === 0) return null;
     return (
       <div style={{ display: 'flex', gap: P(gapPx), flexWrap: 'wrap' }}>
         {list.map((s) => (
           <div key={s.kind} style={{ display: 'flex', flexDirection: 'column', gap: P(2) }}>
             <span style={{ ...SECTION_LABEL, fontSize: P(label) }}>{t(`meal-planner.recipe.${s.kind}`)}</span>
-            <span style={{ fontSize: P(value), fontWeight: 600, color: 'var(--fmp-text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-              {s.kind === 'serves' ? s.count : minutesText(s.minutes)}
+            <span
+              data-testid={s.kind === 'batch' ? tid('recipe-batch', m) : undefined}
+              style={{ fontSize: P(value), fontWeight: 600, color: s.kind === 'batch' ? 'var(--fmp-accent)' : 'var(--fmp-text)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+            >
+              {s.kind === 'serves' ? s.count : s.kind === 'batch' ? batchText(s.scale) : minutesText(s.minutes)}
             </span>
           </div>
         ))}
@@ -471,7 +481,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(18), minWidth: 0 }}>
               {pill(24, measuring)}
               <div data-testid={measuring ? undefined : 'recipe-name'} style={nameStyle(78, 2)}>{meal.name}</div>
-              {stats(34, 19, 44)}
+              {stats(34, 19, 44, measuring)}
             </div>
           </div>
           {courseLine(30, measuring)}
@@ -516,7 +526,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             <div data-testid={measuring ? undefined : 'recipe-name'} style={nameStyle(60, 2)}>{meal.name}</div>
           </div>
         </div>
-        <div style={{ marginTop: P(26) }}>{stats(30, 18, 40)}</div>
+        <div style={{ marginTop: P(26) }}>{stats(30, 18, 40, measuring)}</div>
         {courseLine(22, measuring)}
         {recipe.status !== 'ready' && <div style={{ marginTop: P(26) }}>{status(measuring)}</div>}
         {(detail?.ingredients.length ?? 0) > 0 && (

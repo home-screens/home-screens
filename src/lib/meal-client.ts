@@ -436,13 +436,14 @@ export type MealieRecipeFilter = 'all' | 'favorites' | 'recent';
  */
 export async function searchMealieRecipes(
   fetcher: MealFetch,
-  opts: { search?: string; filter?: MealieRecipeFilter; category?: string; page?: number },
+  opts: { search?: string; filter?: MealieRecipeFilter; category?: string; cookbook?: string; page?: number },
   signal?: AbortSignal,
 ): Promise<MealieRecipePage> {
   const params = new URLSearchParams();
   if (opts.search?.trim()) params.set('search', opts.search.trim());
   if (opts.filter && opts.filter !== 'all') params.set('filter', opts.filter);
   if (opts.category) params.set('category', opts.category);
+  if (opts.cookbook) params.set('cookbook', opts.cookbook);
   if (opts.page && opts.page > 1) params.set('page', String(opts.page));
   const res = await fetcher(`/api/mealie/recipes${params.size ? `?${params}` : ''}`, { signal });
   const json = await readJson(res);
@@ -464,6 +465,21 @@ export async function fetchMealieCategories(fetcher: MealFetch, signal?: AbortSi
   const list = (json as { categories?: unknown } | null)?.categories;
   if (!res.ok || !Array.isArray(list)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
   return list.filter((c): c is MealieCategory => !!c && typeof c.name === 'string' && typeof c.slug === 'string');
+}
+
+/** One of the household's Mealie cookbooks ("Weeknight dinners"). */
+export interface MealieCookbook {
+  name: string;
+  slug: string;
+}
+
+/** The household's Mealie cookbooks, in the household's order, for the Library's and the pickers' filters. */
+export async function fetchMealieCookbooks(fetcher: MealFetch, signal?: AbortSignal): Promise<MealieCookbook[]> {
+  const res = await fetcher('/api/mealie/cookbooks', { signal });
+  const json = await readJson(res);
+  const list = (json as { cookbooks?: unknown } | null)?.cookbooks;
+  if (!res.ok || !Array.isArray(list)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
+  return list.filter((c): c is MealieCookbook => !!c && typeof c.name === 'string' && typeof c.slug === 'string');
 }
 
 /** A Mealie recipe's ingredients and steps (see `mealieRecipeDetail`). */

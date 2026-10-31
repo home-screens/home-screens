@@ -3733,6 +3733,13 @@ export interface MealCourse {
    * Never stored in `meals.json`.
    */
   sourceId?: string;
+  /**
+   * How many batches of the recipe Mealie plans (2 is a double batch). Absent means one
+   *
+   * Mealie's `recipeScale`, read with the plan and sent back on a save so it is
+   * never reset. Never stored in `meals.json`.
+   */
+  scale?: number;
 }
 
 export interface PlannedMeal {
@@ -3779,6 +3786,13 @@ export interface PlannedMeal {
    * refuses a plan that carries one.
    */
   sourceId?: string;
+  /**
+   * How many batches of the main dish's recipe Mealie plans (2 is a double batch). Absent means one
+   *
+   * Mealie's `recipeScale`, read with the plan and sent back on a save so it is
+   * never reset. Never stored in `meals.json`.
+   */
+  scale?: number;
 }
 
 /** Where the household's meal plan lives: unset for Home Screens itself, `mealie` for a connected Mealie. */

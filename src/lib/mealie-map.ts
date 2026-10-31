@@ -1,7 +1,8 @@
 import type { MealCourse, MealCourseKind, MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
 // Types only: this file is shared with the browser (MealPicture reads meal
 // ids), and `mealie.ts` is the hub's client with its secrets.
-import type { MealieEntryType, MealiePlanEntry, MealiePlanEntryWrite, MealieRecipe, MealieRecipeSummary } from './mealie';
+import type { MealieEntryType, MealiePlanEntry, MealiePlanEntryWrite, MealieRecipe, MealieRecipeIngredient, MealieRecipeSummary } from './mealie';
+import { normalizeRecipeScale } from './meal-courses';
 
 /**
  * How Mealie's meal plan reads as a Home Screens plan, and how a change made
@@ -259,6 +260,11 @@ function entryDish(entry: MealiePlanEntry, meals: Map<string, SavedMeal>, ctx: M
   return text ? { customText: text.split('\n')[0].slice(0, 80) } : null;
 }
 
+/** An entry's batch size other than once, or undefined. */
+function entryScale(entry: Pick<MealiePlanEntry, 'recipeScale'>): number | undefined {
+  return normalizeRecipeScale(entry.recipeScale);
+}
+
 /**
  * Mealie's entries as Home Screens' plan, and the recipes they use as saved
  * meals. `extras` adds what the hub remembers (serving times, which meal a
@@ -285,9 +291,11 @@ export function mealieEntriesToPlan(
     }
     const isSlotType = SLOT_OF_TYPE[entry.entryType] !== undefined;
     const hasMain = !!(cell.mealId || cell.customText);
+    const scale = entryScale(entry);
     if (isSlotType && !hasMain) {
       if (dish.mealId) cell.mealId = dish.mealId;
       else cell.customText = dish.customText;
+      if (dish.mealId && scale) cell.scale = scale;
       cell.sourceId = mealieSourceId(entry);
       // A recipe entry's text is Mealie's note on it; a note entry's text is
       // the note's own body, under its title.
@@ -301,6 +309,7 @@ export function mealieEntriesToPlan(
     order.set(course, mealieEntryExtra(ctx.extras, entry)?.order);
     if (dish.mealId) course.mealId = dish.mealId;
     else course.customText = dish.customText;
+    if (dish.mealId && scale) course.scale = scale;
     cell.courses = [...(cell.courses ?? []), course];
   }
   // Courses in the order the family put them in; ones Home Screens has no
@@ -352,11 +361,22 @@ export class MealieMapError extends Error {
   }
 }
 
-function dishWrite(dish: { mealId?: string; customText?: string }, base: Omit<MealiePlanEntryWrite, 'recipeId' | 'title'>): MealiePlanEntryWrite {
+/**
+ * The entry a dish is written as. A recipe keeps its batch size: the dish's
+ * own, else the one the entry already has for the same recipe, since
+ * Mealie's update resets a scale it is not sent and a meal edited on the
+ * phone (a note, a course) must not turn a double batch back into one.
+ */
+function dishWrite(
+  dish: { mealId?: string; customText?: string; scale?: number },
+  base: Omit<MealiePlanEntryWrite, 'recipeId' | 'title'>,
+  existing?: MealiePlanEntry,
+): MealiePlanEntryWrite {
   if (dish.mealId) {
     const recipeId = parseMealieMealId(dish.mealId);
     if (!recipeId) throw new MealieMapError('A meal from the Home Screens library cannot go in a Mealie plan');
-    return { ...base, recipeId, title: '' };
+    const kept = existing && existing.recipeId === recipeId ? entryScale(existing) : undefined;
+    return { ...base, recipeId, title: '', recipeScale: normalizeRecipeScale(dish.scale) ?? kept ?? 1 };
   }
   return { ...base, recipeId: null, title: dish.customText?.trim() ?? '' };
 }
@@ -366,7 +386,8 @@ function sameWrite(entry: MealiePlanEntry, write: MealiePlanEntryWrite): boolean
     && entry.entryType === write.entryType
     && (entry.recipeId ?? null) === write.recipeId
     && (entry.title ?? '') === write.title
-    && (entry.text ?? '') === write.text;
+    && (entry.text ?? '') === write.text
+    && (write.recipeId === null || (entryScale(entry) ?? 1) === (write.recipeScale ?? 1));
 }
 
 /**
@@ -400,8 +421,8 @@ export function cellToMealieOps(
   };
 
   if (after && (after.mealId || after.customText?.trim())) {
-    const write = dishWrite(after, { date, entryType: slot, text: after.notes?.trim() ?? '' });
     const existing = claim(after.sourceId);
+    const write = dishWrite(after, { date, entryType: slot, text: after.notes?.trim() ?? '' }, existing);
     entries.push({ existing, write, ...(after.time ? { extra: { time: after.time } } : {}) });
   }
   const courses = (after?.courses ?? []).filter((c) => c.mealId || c.customText?.trim());
@@ -409,7 +430,7 @@ export function cellToMealieOps(
     const entryType: MealieEntryType = course.kind === 'main' ? slot : TYPE_OF_COURSE[course.kind];
     const existing = claim(course.sourceId);
     // An existing note's longer text belongs to it, not to the course: keep it.
-    const write = dishWrite(course, { date, entryType, text: existing?.text ?? '' });
+    const write = dishWrite(course, { date, entryType, text: existing?.text ?? '' }, existing);
     // A side with breakfast reads back as dinner's unless the hub remembers,
     // and so does the order of a meal with more than one course.
     const needsSlot = course.kind !== 'main' && slot !== 'dinner';
@@ -457,10 +478,77 @@ export interface MealieRecipeDetail {
   steps: { heading?: string; text: string }[];
 }
 
-export function mealieRecipeDetail(recipe: MealieRecipe, ctx: MealieContext): MealieRecipeDetail {
+const SUPERSCRIPT: Record<string, string> = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+const SUBSCRIPT: Record<string, string> = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉' };
+/** Mealie's limits for an amount: three decimals, or a fraction over at most 32. */
+const QTY_PRECISION = 1000;
+const MAX_DENOMINATOR = 32;
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+/** `value` as the closest fraction with a denominator up to `MAX_DENOMINATOR`. */
+function toFraction(value: number): [number, number] {
+  let best: [number, number] = [Math.round(value), 1];
+  let bestError = Math.abs(value - best[0]);
+  for (let d = 2; d <= MAX_DENOMINATOR; d++) {
+    const n = Math.round(value * d);
+    const error = Math.abs(value - n / d);
+    if (error < bestError - 1e-12) {
+      const g = gcd(n, d);
+      best = [n / g, d / g];
+      bestError = error;
+    }
+  }
+  return best;
+}
+
+/** An amount as Mealie writes it: "2", "1.5", "¹/₂", "1 ³/₄". */
+function formatQuantity(quantity: number, fraction: boolean): string {
+  if (!fraction) {
+    const rounded = Math.round(quantity * QTY_PRECISION) / QTY_PRECISION;
+    return String(rounded);
+  }
+  const [n, d] = toFraction(quantity);
+  if (d === 1) return String(n);
+  const sup = (x: number) => String(x).split('').map((c) => SUPERSCRIPT[c]).join('');
+  const sub = (x: number) => String(x).split('').map((c) => SUBSCRIPT[c]).join('');
+  if (n <= d) return `${sup(n)}/${sub(d)}`;
+  return `${Math.floor(n / d)} ${sup(n % d)}/${sub(d)}`;
+}
+
+/**
+ * One ingredient as Mealie writes it, for `scale` batches: Mealie's own
+ * line once, otherwise the amount times `scale` with the unit and food made
+ * plural to match (the same rule as Mealie's `_format_display`, with its
+ * default of plural foods only when there is no unit). A line Mealie never
+ * parsed into an amount ("Salt to taste", "For brushing vegetable oil")
+ * reads the same at any scale.
+ */
+export function mealieIngredientText(ing: MealieRecipeIngredient, scale = 1): string {
+  const written = (ing.display || ing.note || ing.originalText || '').trim();
+  const quantity = typeof ing.quantity === 'number' && ing.quantity > 0 ? ing.quantity : 0;
+  if (scale === 1 || !quantity || (!ing.food && !ing.unit)) return written;
+  const amount = quantity * scale;
+  const parts = [formatQuantity(amount, !ing.unit || ing.unit.fraction !== false)];
+  const plural = amount > 1;
+  if (ing.unit) {
+    const abbreviated = ing.unit.useAbbreviation ? (plural ? ing.unit.pluralAbbreviation || ing.unit.abbreviation : ing.unit.abbreviation) : '';
+    const word = abbreviated || (plural ? ing.unit.pluralName || ing.unit.name : ing.unit.name);
+    if (word) parts.push(word);
+  }
+  const food = ing.food?.name ? (plural && !ing.unit ? ing.food.pluralName || ing.food.name : ing.food.name) : '';
+  if (food) parts.push(food);
+  if (ing.note?.trim()) parts.push(ing.note.trim());
+  return parts.join(' ').trim() || written;
+}
+
+/** `scale` batches of the recipe; the meal itself (and its servings) stays as Mealie has it. */
+export function mealieRecipeDetail(recipe: MealieRecipe, ctx: MealieContext, scale = 1): MealieRecipeDetail {
   const ingredients: MealieRecipeDetail['ingredients'] = [];
   for (const ing of recipe.recipeIngredient ?? []) {
-    const text = (ing.display || ing.note || ing.originalText || '').trim();
+    const text = mealieIngredientText(ing, scale);
     const heading = ing.title?.trim() || undefined;
     if (text || heading) ingredients.push({ ...(heading ? { heading } : {}), text });
   }

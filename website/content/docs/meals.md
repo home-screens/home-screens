@@ -65,7 +65,9 @@ If your family keeps its recipes in [Mealie](https://mealie.io), Home Screens ca
 From then on:
 
 - Every meal planner on every display, and the full-screen calendar's meal rows, show the plan from Mealie, with each recipe's photo.
-- Planning on the phone or in the editor writes straight to Mealie. The picker searches all your Mealie recipes as you type, with your favorites and recently made recipes one tap away. Adding a side, dessert or drink opens on your Mealie category of that name when you have one. Anything you type instead of picking a recipe becomes a note in Mealie.
+- Planning on the phone or in the editor writes straight to Mealie. The picker searches all your Mealie recipes as you type, with your favorites, recently made recipes and your Mealie cookbooks one tap away. Adding a side, dessert or drink opens on your Mealie category of that name when you have one. Anything you type instead of picking a recipe becomes a note in Mealie.
+- The phone's **Library** shows your Mealie recipes, with your categories and cookbooks as filters.
+- A meal planned in Mealie as a double batch (or any other amount) stays that way when you change it in Home Screens, and the wall's **Recipe** view and recipe card show the amounts and servings for that batch.
 - Sides, desserts and drinks in Mealie show up as part of that day's dinner.
 - **Suggest** fills the week's empty dinners with your Mealie recipes and never replaces a planned meal. A night covered by a meal plan rule in Mealie ("Friday is pizza night") follows the rule; otherwise Home Screens picks from your Dinner or Main category if you have one, or else from anything that isn't in a dessert, drink, side, breakfast or starter category. **Undo** right after takes those picks back out of Mealie.
 - A serving time set for one meal, and the order of a meal's dishes, are kept by Home Screens, because Mealie has no place for them. Mealie will not show them.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PlannedMeal, SavedMeal } from '@/types/config';
 import {
+  batchWord,
   mealHasRecipe,
   mealieRecipe,
   nextRecipeMeal,
@@ -144,5 +145,24 @@ describe('pageRecipeSteps', () => {
     const pages = [[0, 1], [2, 3], [4]];
     expect(recipePageOfStep(pages, 3)).toBe(1);
     expect(recipePageOfStep(pages, 9)).toBe(0);
+  });
+});
+
+describe('batches', () => {
+  const chili: SavedMeal = { id: 'x', name: 'Chili', prepTime: 15, cookTime: 60, servings: 4 };
+
+  it('serves as many times as many for a double batch, and says which batch it is', () => {
+    expect(recipeStats(chili, 2)).toEqual([
+      { kind: 'prep', minutes: 15 }, { kind: 'cook', minutes: 60 }, { kind: 'serves', count: 8 }, { kind: 'batch', scale: 2 },
+    ]);
+    expect(recipeStats(chili, 1.5).find((s) => s.kind === 'serves')).toEqual({ kind: 'serves', count: 6 });
+    expect(recipeStats(chili).some((s) => s.kind === 'batch')).toBe(false);
+  });
+
+  it('names the usual batches and writes any other as a multiple', () => {
+    expect(batchWord(2)).toEqual({ key: 'batchDouble' });
+    expect(batchWord(3)).toEqual({ key: 'batchTriple' });
+    expect(batchWord(0.5)).toEqual({ key: 'batchHalf' });
+    expect(batchWord(1.5)).toEqual({ key: 'batchTimes', scale: '1.5' });
   });
 });
