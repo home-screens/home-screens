@@ -3,6 +3,7 @@ import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { renderOnDisplay } from '../helpers/display';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { seedMeals } from '../helpers/api';
+import { dinnerTimeToday } from '../helpers/schedule-windows';
 import type { MealPlannerView } from '@/types/config';
 
 /**
@@ -16,12 +17,6 @@ import type { MealPlannerView } from '@/types/config';
 function isoToday(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-/** 18:00 today, inside the dinner window, on the same local day as `isoToday()`. */
-function dinnerTimeToday(): Date {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 18, 0, 0);
 }
 
 /** A week with nothing in the library at all, the way it arrives from the phone. */

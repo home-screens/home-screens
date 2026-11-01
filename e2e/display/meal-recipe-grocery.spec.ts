@@ -3,6 +3,7 @@ import type { APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
+import { dinnerTimeToday } from '../helpers/schedule-windows';
 import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
 import { connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, fakeMealieDay, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
 
@@ -145,14 +146,16 @@ test.describe('Recipe and Grocery List with the plan in Mealie', () => {
   });
 
   test('the Recipe view reads the steps from Mealie', async ({ page, request }) => {
+    // The plan has pancakes for breakfast, which the Recipe view shows until
+    // breakfast is over: read it at dinner time.
+    await page.clock.setFixedTime(dinnerTimeToday());
     mealie = await startFakeMealie();
     await connectFakeMealie(request, mealie);
     await show(request, 'fullscreen-meal-planner', { view: 'recipe' });
     await page.goto('/display');
 
     const mod = page.locator('[data-module-id="meals"]');
-    // Chili tonight, mac and cheese tomorrow: one of them, whatever the hour.
-    await expect(mod.getByTestId('recipe-name')).toHaveText(/Harvest Chili|Mac and Cheese/);
+    await expect(mod.getByTestId('recipe-name')).toHaveText('Harvest Chili');
     await expect(mod.getByTestId('recipe-ingredients')).toContainText('1 lb ground beef');
     await expect(mod.getByTestId('recipe-steps')).toContainText('Brown the beef.');
     // Taps on: Next step marks the first step.
@@ -178,6 +181,7 @@ test.describe('Recipe and Grocery List with the plan in Mealie', () => {
   });
 
   test('a double batch planned in Mealie doubles the amounts and servings, and a save keeps it', async ({ page, request }) => {
+    await page.clock.setFixedTime(dinnerTimeToday());
     const entries = defaultFakeEntries().map((e) => (e.entryType === 'dinner' ? { ...e, recipeScale: 2 } : e));
     mealie = await startFakeMealie(entries);
     await connectFakeMealie(request, mealie);

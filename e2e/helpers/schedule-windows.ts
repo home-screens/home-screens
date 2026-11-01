@@ -42,3 +42,14 @@ export function overnightWindowContainingNow(): TimeWindow {
   const gapEnd = gapStart + 2;
   return { startTime: fmt(gapEnd), endTime: fmt(gapStart) };
 }
+
+/**
+ * 18:00 today, inside the meal planner's dinner window and on the same local
+ * day the meal specs date their plans by. For `page.clock.setFixedTime`: the
+ * views that follow the next meal show breakfast in the morning and tomorrow
+ * once dinner is over, so on the real clock they fail at some hour of the day.
+ */
+export function dinnerTimeToday(): Date {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 18, 0, 0);
+}
