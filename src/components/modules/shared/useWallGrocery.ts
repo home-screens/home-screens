@@ -10,6 +10,7 @@ import { generateGroceryList } from '@/lib/grocery-utils';
 import { groceryChecksForWeek, type GroceryChecked } from '@/lib/grocery-checks';
 import { tickMealieShoppingItem, type MealieShoppingWire } from '@/lib/meal-client';
 import { wallGroceryFromLocal, wallGroceryFromMealie, wallGroceryRows, type WallGroceryItem, type WallGroceryRows } from '@/lib/grocery-wall';
+import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
 import { usePressedKey } from './usePressedKey';
 
 /** How often the wall reads the Mealie list again: a tick made at the store shows up within a minute. */
@@ -107,7 +108,13 @@ export function useWallGrocery(source: 'local' | 'mealie' | 'off', local: LocalG
   }, []);
 
   const [pressed, press] = usePressedKey();
+  // A child's double tap is one tap, as on the phone's list: the second half
+  // must not take back the tick the first one made.
+  const lastTap = useRef<{ id: string; at: number } | null>(null);
   const tick = useCallback((item: WallGroceryItem) => {
+    const now = Date.now();
+    if (lastTap.current?.id === item.id && now - lastTap.current.at < DOUBLE_TAP_MS) return;
+    lastTap.current = { id: item.id, at: now };
     const checked = !item.checked;
     const before = item.checked;
     if (checked) keepFor(item.id);

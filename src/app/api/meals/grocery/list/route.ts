@@ -7,7 +7,7 @@ import { generateGroceryList } from '@/lib/grocery-utils';
 import { groceryChecksForWeek } from '@/lib/grocery-checks';
 import { readMealieShopping } from '@/lib/mealie-shopping';
 import { mealieFailureResponse } from '@/lib/mealie-api';
-import { shoppingListByName } from '@/lib/shopping-list';
+import { shoppingCounts, shoppingListByName } from '@/lib/shopping-list';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,9 @@ export const dynamic = 'force-dynamic';
  * list the family shops from, one category per Mealie label (`category` is
  * the label's name, null for items with none), one item per thing as the
  * line says it ("eggs"), with the food's own name as `alsoCalled` when it
- * differs ("egg"), so the voice reply matches the Grocery tab.
+ * differs ("egg"), so the voice reply matches the Grocery tab. Two lines of
+ * one thing (flour for two recipes) are one name to say, but `total` and
+ * `checked` count lines, the way the Grocery tab counts them.
  */
 export const GET = withDisplayAuth(async () => {
   const data = await readMealData();
@@ -42,12 +44,12 @@ export const GET = withDisplayAuth(async () => {
         items: g.items.map((i) => ({ name: i.name, ...(i.alsoCalled ? { alsoCalled: i.alsoCalled } : {}), amount: '', checked: i.checked })),
       }))
       : [];
-    const items = categories.flatMap((c) => c.items);
+    const counts = result.list ? shoppingCounts(result.list) : { total: 0, got: 0 };
     return NextResponse.json({
       week: { start, end },
       categories,
-      total: items.length,
-      checked: items.filter((i) => i.checked).length,
+      total: counts.total,
+      checked: counts.got,
       source: 'mealie',
       list: result.list ? { id: result.list.id, name: result.list.name } : null,
     });

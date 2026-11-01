@@ -1508,6 +1508,12 @@
       "hint": "Deine Mealie-Liste. Was du hier abhakst, ist auch in Mealie abgehakt.",
       "forRecipes": "für {recipes}",
       "noLabel": "Keine Kategorie",
+      "toGet": {
+        "one": "Noch 1 Sache zu holen",
+        "other": "Noch {count} Sachen zu holen"
+      },
+      "allGot": "Alles abgehakt",
+      "openListAria": "{list} in Mealie öffnen (neue Seite)",
       "inCart": "Abgehakt ({count})",
       "staleUnreachable": "Mealie antwortet nicht. Das ist die Liste von {time}.",
       "staleToken": "Mealie lässt Home Screens nicht mehr rein. Das ist die Liste von {time}.",
@@ -1516,7 +1522,7 @@
       "loading": "Deine Liste wird aus Mealie geholt…",
       "noListsTitle": "In Mealie gibt es noch keine Einkaufsliste",
       "noListsDescription": "Leg in Mealie eine Einkaufsliste an, dann erscheint sie hier.",
-      "emptyTitle": "Noch nichts auf {list}",
+      "emptyTitle": "Auf der Liste {list} steht noch nichts",
       "emptyDescription": "Füg oben etwas hinzu oder schick die Zutaten eines Rezepts aus Mealie hierher.",
       "unreachableDescription": "Deine Liste ist in Mealie sicher. Schau, ob Mealie läuft, und versuch es dann noch mal.",
       "connectionTitle": "Home Screens ist gerade nicht erreichbar",

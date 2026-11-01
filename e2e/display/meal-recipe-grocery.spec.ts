@@ -3,6 +3,7 @@ import type { APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
+import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
 import { connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, fakeMealieDay, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
 
 /**
@@ -89,7 +90,9 @@ test.describe('Grocery List view, plan in Home Screens', () => {
       return ((await res.json()) as { groceryChecked: string[] }).groceryChecked;
     }).toContain('blueberries');
 
-    // A second tap on the crossed-out row puts it back.
+    // A second tap on the crossed-out row a moment later puts it back (a
+    // quicker one is the other half of a double tap, and is ignored).
+    await page.waitForTimeout(DOUBLE_TAP_MS + 50);
     await blueberries.click();
     await expect(blueberries).toHaveAttribute('aria-checked', 'false');
     await expect.poll(async () => {

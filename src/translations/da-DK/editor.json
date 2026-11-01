@@ -3091,6 +3091,12 @@
         "gone": "{from} findes ikke længere i Mealie. Viser {list}.",
         "forRecipes": "til {recipes}",
         "noLabel": "Ingen etiket",
+        "toGet": {
+          "one": "1 ting at købe",
+          "other": "{count} ting at købe"
+        },
+        "allGot": "Alt er krydset af",
+        "openListAria": "Åbn {list} i Mealie (ny side)",
         "inCart": "Afkrydset ({count})",
         "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
         "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",

@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
-import { useMealieShoppingList } from '../useMealieShoppingList';
+import { DOUBLE_TAP_MS, useMealieShoppingList } from '../useMealieShoppingList';
 import { HubUnreachableError, loadMealieShopping, tickMealieShoppingItem, type MealieShoppingWire } from '@/lib/meal-client';
 import type { ShoppingItem } from '@/lib/shopping-list';
 
@@ -60,8 +60,9 @@ const GROCERIES = (items: ShoppingItem[]) => ({ id: 'groceries', name: 'Grocerie
 
 afterEach(() => cleanup());
 
-async function open(h: ReturnType<typeof hub>, onError = vi.fn()) {
-  const view = renderHook(() => useMealieShoppingList(h.fetcher, { onError }));
+async function open(h: ReturnType<typeof hub>, onError: ((...args: unknown[]) => void) | { onSaved: () => void } = vi.fn<(...args: unknown[]) => void>()) {
+  const handlers = typeof onError === 'function' ? { onError } : { onError: vi.fn(), onSaved: onError.onSaved };
+  const view = renderHook(() => useMealieShoppingList(h.fetcher, handlers));
   await waitFor(() => expect(view.result.current.state).toBe('ready'));
   return view;
 }
@@ -117,8 +118,12 @@ describe('useMealieShoppingList', () => {
     const h = hub([GROCERIES([item('milk', 'Milk')])]);
     const { result } = await open(h);
 
+    // Two taps a moment apart: a change of mind, not a double tap.
+    const now = vi.spyOn(Date, 'now').mockReturnValue(1_000_000);
     act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    now.mockReturnValue(1_000_000 + DOUBLE_TAP_MS + 100);
     act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    now.mockRestore();
     expect(result.current.view.groups[0].items[0].checked).toBe(false);
     await waitFor(() => expect(h.ticks).toHaveLength(1));
     // The second waits for the first.
@@ -127,6 +132,33 @@ describe('useMealieShoppingList', () => {
     await act(async () => h.ticks[0].settle(json({ changed: true })));
     await waitFor(() => expect(h.ticks).toHaveLength(2));
     expect(h.ticks.map((t) => t.checked)).toEqual([true, false]);
+  });
+
+  it('takes a quick double tap on one item as one tap', async () => {
+    const h = hub([GROCERIES([item('milk', 'Milk'), item('eggs', 'Eggs')])]);
+    const { result } = await open(h);
+
+    const now = vi.spyOn(Date, 'now').mockReturnValue(2_000_000);
+    act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    now.mockReturnValue(2_000_000 + 120);
+    act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    // Another item right after is its own tap.
+    act(() => result.current.toggle(result.current.view.groups[0].items[1]));
+    now.mockRestore();
+    expect(result.current.view.groups[0].items.map((i) => i.checked)).toEqual([true, true]);
+    await waitFor(() => expect(h.ticks).toHaveLength(2));
+    expect(h.ticks.map((t) => t.checked)).toEqual([true, true]);
+  });
+
+  it('says when a write went through, so an older "not saved" can go', async () => {
+    const h = hub([GROCERIES([item('milk', 'Milk')])]);
+    const onSaved = vi.fn();
+    const { result } = await open(h, { onSaved });
+    act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    await waitFor(() => expect(h.ticks).toHaveLength(1));
+    expect(onSaved).not.toHaveBeenCalled();
+    await act(async () => h.ticks[0].settle(json({ changed: true })));
+    await waitFor(() => expect(onSaved).toHaveBeenCalledTimes(1));
   });
 
   it('keeps a tick on screen through a read that started before Mealie took it', async () => {

@@ -3091,6 +3091,12 @@
         "gone": "{from} isn't in Mealie any more. Showing {list}.",
         "forRecipes": "for {recipes}",
         "noLabel": "No label",
+        "toGet": {
+          "one": "1 thing to get",
+          "other": "{count} things to get"
+        },
+        "allGot": "All checked off",
+        "openListAria": "Open {list} in Mealie (new page)",
         "inCart": "Checked off ({count})",
         "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
         "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",

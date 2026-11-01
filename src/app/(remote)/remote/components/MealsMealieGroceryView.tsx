@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type CSSProperties, type FormEvent } from 'react';
+import { useCallback, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { ChevronRight, ExternalLink, Plus, ShoppingCart } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { HubUnreachableError, MealClientError } from '@/lib/meal-client';
@@ -46,12 +46,15 @@ export default function MealsMealieGroceryView({
   baseUrl: planBaseUrl,
   todayISO,
   onError,
+  onErrorResolved,
 }: {
   /** Mealie's address from the plan, for Open Mealie before the list has answered. */
   baseUrl: string | undefined;
   todayISO: string;
   /** Shows a write Mealie did not take. */
   onError: (message: string) => void;
+  /** A later write went through: the message this tab showed (and only that one) can go. */
+  onErrorResolved?: (message: string) => void;
 }) {
   const t = useTranslate('remote');
   const locale = useLocale();
@@ -60,16 +63,28 @@ export default function MealsMealieGroceryView({
     const shown = names.length > 3 ? [...names.slice(0, 3), t('mealie.grocery.moreItems', { count: names.length - 3 })] : names;
     return new Intl.ListFormat(locale, { type: 'conjunction' }).format(shown);
   }, [locale, t]);
+  // The last "not saved" this tab raised, so a later save can take it down
+  // without touching a message some other part of the Meals tab put up.
+  const raised = useRef<string | null>(null);
+  const raise = useCallback((message: string) => {
+    raised.current = message;
+    onError(message);
+  }, [onError]);
   const handleError = useCallback((err: unknown, action: MealieShoppingAction, items?: string[]) => {
     if (err instanceof MealClientError && err.kind === 'conflict') {
-      if (action !== 'tick') onError(t('mealie.grocery.listGone'));
+      if (action !== 'tick') raise(t('mealie.grocery.listGone'));
       return;
     }
     const reason = REASON[err instanceof HubUnreachableError ? 'connection' : (err instanceof MealClientError && err.problem) || 'unreachable'];
-    if (items?.length) onError(t(`mealie.grocery.notSaved${reason}`, { items: listFormat(items), count: items.length }));
-    else onError(t(reason === 'Connection' ? 'mealie.grocery.noConnection' : `mealie.saveFailed.${{ Unreachable: 'unreachable', Token: 'token', NotConnected: 'notConnected' }[reason]}`));
-  }, [onError, t, listFormat]);
-  const shopping = useMealieShoppingList(editorFetch, { onError: handleError });
+    if (items?.length) raise(t(`mealie.grocery.notSaved${reason}`, { items: listFormat(items), count: items.length }));
+    else raise(t(reason === 'Connection' ? 'mealie.grocery.noConnection' : `mealie.saveFailed.${{ Unreachable: 'unreachable', Token: 'token', NotConnected: 'notConnected' }[reason]}`));
+  }, [raise, t, listFormat]);
+  const handleSaved = useCallback(() => {
+    if (!raised.current) return;
+    onErrorResolved?.(raised.current);
+    raised.current = null;
+  }, [onErrorResolved]);
+  const shopping = useMealieShoppingList(editorFetch, { onError: handleError, onSaved: handleSaved });
   const copyTime = useCopyTime(shopping.stale ? shopping.fetchedAt : null, todayISO);
   const [draft, setDraft] = useState('');
   const [cartOpen, setCartOpen] = useState(false);
@@ -188,7 +203,8 @@ export default function MealsMealieGroceryView({
         type="button"
         data-testid="mealie-grocery-item"
         data-checked={item.checked ? 'true' : 'false'}
-        aria-pressed={item.checked}
+        role="checkbox"
+        aria-checked={item.checked}
         aria-busy={waiting || undefined}
         onClick={() => shopping.toggle(item)}
         style={{
@@ -349,8 +365,9 @@ export default function MealsMealieGroceryView({
           <>
             <div style={{ margin: '6px 0 16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                {/* What is left, like the list chips and the wall; the bar fills as things are checked off. */}
                 <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--hs-text-body)' }} data-testid="mealie-grocery-count">
-                  {t(total === 1 ? 'mealsGrocery.itemsCountSingular' : 'mealsGrocery.itemsCountPlural', { checked: got, total })}
+                  {total - got > 0 ? t('mealie.grocery.toGet', { count: total - got }) : t('mealie.grocery.allGot')}
                 </span>
                 <button
                   type="button"
@@ -373,6 +390,7 @@ export default function MealsMealieGroceryView({
                   <button
                     type="button"
                     onClick={openMealie}
+                    aria-label={t('mealie.grocery.openListAria', { list: list.name })}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 4, minHeight: 44, padding: 0, border: 'none', background: 'none',
                       color: 'var(--hs-text-muted)', fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', fontFamily: 'inherit',
@@ -396,11 +414,15 @@ export default function MealsMealieGroceryView({
               <div key={group.label ?? ''} style={{ marginBottom: 20 }}>
                 {headings && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    <span role="heading" aria-level={3} style={{ fontSize: 12, fontWeight: 700, color: 'var(--hs-text-faint)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                       {labelFor(group.label)}
                     </span>
-                    <span style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'var(--hs-bg-panel)', color: 'var(--hs-text-faint)', fontWeight: 500 }}>
-                      {group.items.filter((i) => i.checked).length}/{group.items.length}
+                    {/* What is left in this group, like the count above. */}
+                    <span
+                      aria-label={t('mealie.grocery.toGet', { count: group.items.filter((i) => !i.checked).length })}
+                      style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'var(--hs-bg-panel)', color: 'var(--hs-text-faint)', fontWeight: 500 }}
+                    >
+                      {group.items.filter((i) => !i.checked).length}
                     </span>
                   </div>
                 )}

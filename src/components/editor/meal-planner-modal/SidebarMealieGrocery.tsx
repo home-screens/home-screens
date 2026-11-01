@@ -157,7 +157,8 @@ export function MealieGrocery({
         type="button"
         data-testid="mealie-grocery-item"
         data-checked={item.checked ? 'true' : 'false'}
-        aria-pressed={item.checked}
+        role="checkbox"
+        aria-checked={item.checked}
         aria-busy={waiting || undefined}
         onClick={() => shopping.toggle(item)}
         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md border border-hs-border bg-hs-panel hover:bg-hs-card cursor-pointer transition mb-0.5 text-left ${item.checked ? 'opacity-40' : ''}`}
@@ -266,11 +267,18 @@ export function MealieGrocery({
             <>
               <div className="mb-4">
                 <div className="flex items-center justify-between gap-2 mb-1.5">
+                  {/* What is left, like the list menu and the wall; the bar fills as things are checked off. */}
                   <span className="text-sm font-semibold text-hs-text-secondary" data-testid="mealie-grocery-count">
-                    {t('mealPlannerModal.grocery.itemsCount', { checked: got, total })}
+                    {total - got > 0 ? t('mealPlannerModal.mealie.grocery.toGet', { count: total - got }) : t('mealPlannerModal.mealie.grocery.allGot')}
                   </span>
                   {href && (
-                    <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[11px] font-medium text-hs-text-muted hover:text-hs-text-body whitespace-nowrap">
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('mealPlannerModal.mealie.grocery.openListAria', { list: list.name })}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-hs-text-muted hover:text-hs-text-body whitespace-nowrap"
+                    >
                       {t('mealPlannerModal.mealie.grocery.openList')}
                       <ExternalLink className="w-3 h-3" aria-hidden />
                     </a>
@@ -292,11 +300,15 @@ export function MealieGrocery({
                 <div key={group.label ?? ''} className="mb-5">
                   {headings && (
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
+                      <span role="heading" aria-level={3} className="text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
                         {group.label ?? t('mealPlannerModal.mealie.grocery.noLabel')}
                       </span>
-                      <span className="ml-auto text-[10px] px-1.5 rounded bg-hs-card text-hs-text-faint">
-                        {group.items.filter((i) => i.checked).length}/{group.items.length}
+                      {/* What is left in this group, like the count above. */}
+                      <span
+                        aria-label={t('mealPlannerModal.mealie.grocery.toGet', { count: group.items.filter((i) => !i.checked).length })}
+                        className="ml-auto text-[10px] px-1.5 rounded bg-hs-card text-hs-text-faint"
+                      >
+                        {group.items.filter((i) => !i.checked).length}
                       </span>
                     </div>
                   )}

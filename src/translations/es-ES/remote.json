@@ -1508,6 +1508,12 @@
       "hint": "Tu lista de Mealie. Lo que marques aquí también se marca en Mealie.",
       "forRecipes": "para {recipes}",
       "noLabel": "Sin etiqueta",
+      "toGet": {
+        "one": "1 cosa por comprar",
+        "other": "{count} cosas por comprar"
+      },
+      "allGot": "Todo tachado",
+      "openListAria": "Abrir {list} en Mealie (página nueva)",
       "inCart": "Tachados ({count})",
       "staleUnreachable": "Mealie no responde. Última copia: {time}.",
       "staleToken": "Mealie ya no deja entrar a Home Screens. Última copia: {time}.",

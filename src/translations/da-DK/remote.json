@@ -1508,6 +1508,12 @@
       "hint": "Din Mealie-liste. Det, du krydser af her, bliver også krydset af i Mealie.",
       "forRecipes": "til {recipes}",
       "noLabel": "Ingen etiket",
+      "toGet": {
+        "one": "1 ting at købe",
+        "other": "{count} ting at købe"
+      },
+      "allGot": "Alt er krydset af",
+      "openListAria": "Åbn {list} i Mealie (ny side)",
       "inCart": "Afkrydset ({count})",
       "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
       "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",

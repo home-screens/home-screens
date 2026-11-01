@@ -1493,7 +1493,7 @@
     "grocery": {
       "lists": "Listas de compras",
       "listLeft": {
-        "one": "{list}, falta 1 item",
+        "one": "{list}, falta {count} item",
         "other": "{list}, faltam {count} itens"
       },
       "addPlaceholder": "Adicionar a {list}",
@@ -1509,6 +1509,12 @@
       "hint": "Sua lista do Mealie. O que você marcar aqui também fica marcado no Mealie.",
       "forRecipes": "para {recipes}",
       "noLabel": "Sem marcador",
+      "toGet": {
+        "one": "Falta {count} item",
+        "other": "Faltam {count} itens"
+      },
+      "allGot": "Tudo marcado",
+      "openListAria": "Abrir {list} no Mealie (nova página)",
       "inCart": "Marcados ({count})",
       "staleUnreachable": "O Mealie não está respondendo. Esta é a lista de {time}.",
       "staleToken": "O Mealie não está deixando o Home Screens entrar. Esta é a lista de {time}.",

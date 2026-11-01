@@ -37,6 +37,11 @@ const LINE_MS = 6000;
 const PENDING_AFTER_MS = 2000;
 /** Ticks that fail together are reported together. */
 const FAILURE_BATCH_MS = 400;
+/**
+ * A second tap on the same item this soon is the other half of a double tap,
+ * not a change of mind: a finger that meant to tick must not untick at once.
+ */
+export const DOUBLE_TAP_MS = 300;
 
 export type MealieShoppingAction = 'tick' | 'add' | 'choose' | 'undo';
 
@@ -118,9 +123,11 @@ function labelOf(list: ShoppingList | null, itemId: string | undefined): string 
  */
 export function useMealieShoppingList(
   fetcher: MealFetch,
-  { onError }: {
+  { onError, onSaved }: {
     /** `items` names what a failed tick or add was about. */
     onError: (err: unknown, action: MealieShoppingAction, items?: string[]) => void;
+    /** A tick, an add or a pick Mealie took: an earlier "not saved" is out of date. */
+    onSaved?: () => void;
   },
 ): MealieShoppingTab {
   const [answer, setAnswer] = useState<MealieShoppingWire | null>(null);
@@ -139,6 +146,9 @@ export function useMealieShoppingList(
 
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const onSavedRef = useRef(onSaved);
+  onSavedRef.current = onSaved;
+  const lastTap = useRef<{ id: string; at: number } | null>(null);
   const answerRef = useRef(answer);
   answerRef.current = answer;
   /** The list as drawn (ticks on their way included), for the add rules. */
@@ -291,6 +301,9 @@ export function useMealieShoppingList(
 
   const toggle = useCallback((item: ShoppingItem) => {
     if (choosingRef.current) return;
+    const now = Date.now();
+    if (lastTap.current?.id === item.id && now - lastTap.current.at < DOUBLE_TAP_MS) return;
+    lastTap.current = { id: item.id, at: now };
     setNotice((current) => (current?.kind === 'picked' ? current : null));
     const checked = !(ticksRef.current.get(item.id)?.checked ?? item.checked);
     ticksRef.current.set(item.id, { checked, settledBefore: Infinity });
@@ -305,7 +318,9 @@ export function useMealieShoppingList(
         const tick = ticksRef.current.get(item.id);
         // Settled by the next read to start; a later tap on the same item keeps its own.
         if (tick && tick.checked === checked) tick.settledBefore = seqRef.current + 1;
-        if (mounted.current) refreshSoon();
+        if (!mounted.current) return;
+        refreshSoon();
+        onSavedRef.current?.();
       },
       (err: unknown) => {
         const tick = ticksRef.current.get(item.id);
@@ -357,6 +372,7 @@ export function useMealieShoppingList(
       // says where it went rather than the page scrolling away from the box.
       if (newId) setAdded((current) => new Set([...current, newId]));
       adopt(wire, seq, 'write');
+      onSavedRef.current?.();
       showAdded({
         kind: 'added',
         text: words,
@@ -390,6 +406,7 @@ export function useMealieShoppingList(
         if (!mounted.current) return;
         setChoosing(null);
         adopt(next, seq, 'write');
+        onSavedRef.current?.();
         // One list for the whole family: say so, with a way back.
         if (!quiet && next.list) say({ kind: 'picked', list: next.list.name, undo: () => pickList(before.id, true) });
       },

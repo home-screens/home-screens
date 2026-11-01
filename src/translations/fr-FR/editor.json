@@ -3075,7 +3075,7 @@
       "grocery": {
         "list": "Liste de courses",
         "listOption": {
-          "one": "{list} · 1 à acheter",
+          "one": "{list} · {count} à acheter",
           "other": "{list} · {count} à acheter"
         },
         "add": "Ajouter",
@@ -3091,6 +3091,12 @@
         "gone": "La liste {from} n'existe plus dans Mealie. Voici la liste {list}.",
         "forRecipes": "pour {recipes}",
         "noLabel": "Aucune étiquette",
+        "toGet": {
+          "one": "{count} article à acheter",
+          "other": "{count} articles à acheter"
+        },
+        "allGot": "Tout est coché",
+        "openListAria": "Ouvrir la liste {list} dans Mealie (nouvelle page)",
         "inCart": "Cochés ({count})",
         "staleUnreachable": "Mealie ne répond pas. Voici la liste de {time}.",
         "staleToken": "Mealie ne laisse plus entrer Home Screens. Voici la liste de {time}.",

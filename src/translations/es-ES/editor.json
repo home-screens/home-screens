@@ -3091,6 +3091,12 @@
         "gone": "{from} ya no está en Mealie. Se muestra {list}.",
         "forRecipes": "para {recipes}",
         "noLabel": "Sin etiqueta",
+        "toGet": {
+          "one": "1 cosa por comprar",
+          "other": "{count} cosas por comprar"
+        },
+        "allGot": "Todo tachado",
+        "openListAria": "Abrir {list} en Mealie (página nueva)",
         "inCart": "Tachados ({count})",
         "staleUnreachable": "Mealie no responde. Última copia: {time}.",
         "staleToken": "Mealie ya no deja entrar a Home Screens. Última copia: {time}.",

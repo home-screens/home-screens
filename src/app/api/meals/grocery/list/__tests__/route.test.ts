@@ -92,8 +92,9 @@ describe('GET /api/meals/grocery/list', () => {
         // Said once, and still to get while either salt is.
         { category: 'Spices', items: [{ name: 'salt', amount: '', checked: false }] },
       ],
-      total: 3,
-      checked: 0,
+      // Counted in lines, like the Grocery tab: both salts, one of them checked.
+      total: 4,
+      checked: 1,
       source: 'mealie',
       list: { id: 'list-g', name: 'Groceries' },
     });

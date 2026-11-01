@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
+import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
 import {
   connectFakeMealie,
   defaultFakeEntries,
@@ -77,7 +78,8 @@ test("the Grocery tab is Mealie's list: a tick lands in Mealie with the item who
   // Typed items read as typed (not "1 Paper towels"); a recipe's item says what it is for.
   await expect(groceryItem(page, 'Paper towels')).toHaveText(/^Paper towels$/);
   await expect(groceryItem(page, '2 onions')).toContainText('for Harvest Chili');
-  await expect(page.getByTestId('mealie-grocery-count')).toHaveText('1 of 4 items');
+  // What is left to get, like the list chips.
+  await expect(page.getByTestId('mealie-grocery-count')).toHaveText('3 things to get');
   // Bread was ticked in Mealie already: folded away until asked for.
   await expect(groceryItem(page, 'Bread')).toHaveCount(0);
   await page.getByTestId('mealie-grocery-cart').click();
@@ -90,7 +92,9 @@ test("the Grocery tab is Mealie's list: a tick lands in Mealie with the item who
   expect(towels().note).toBe('Paper towels');
   // Still in place, ticked, so a wrong tap is one tap to undo.
   await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'true');
-  await expect(page.getByTestId('mealie-grocery-count')).toHaveText('2 of 4 items');
+  await expect(page.getByTestId('mealie-grocery-count')).toHaveText('2 things to get');
+  // A moment later, so it is a change of mind and not the second half of a double tap.
+  await page.waitForTimeout(DOUBLE_TAP_MS + 50);
   await groceryItem(page, 'Paper towels').click();
   await expect.poll(() => towels().checked).toBe(false);
 });
@@ -136,6 +140,26 @@ test("a tick Mealie doesn't take springs back and says why", async ({ page, requ
   // Not Next's own route announcer, which is an alert too.
   await expect(page.getByRole('alert').filter({ hasText: "Mealie isn't answering" })).toBeVisible();
   await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'false');
+
+  // Mealie answers again: the next tick saves, and the old "wasn't saved" goes.
+  await page.unroute('**/api/mealie/shopping/items/**');
+  await page.waitForTimeout(DOUBLE_TAP_MS + 50);
+  await groceryItem(page, 'Paper towels').click();
+  await expect(groceryItem(page, 'Paper towels')).toHaveAttribute('data-checked', 'true');
+  await expect(page.getByRole('alert').filter({ hasText: "Mealie isn't answering" })).toHaveCount(0);
+});
+
+test('a quick double tap on an item ticks it once', async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await openGrocery(page);
+  const towels = groceryItem(page, 'Paper towels');
+  await expect(towels).toHaveAttribute('role', 'checkbox');
+  await towels.dblclick();
+  await expect(towels).toHaveAttribute('aria-checked', 'true');
+  await expect.poll(() => mealie!.shoppingLists.find((l) => l.id === FAKE_GROCERIES_ID)!.items.find((i) => i.note === 'Paper towels')!.checked).toBe(true);
+  await page.waitForTimeout(500);
+  await expect(towels).toHaveAttribute('aria-checked', 'true');
 });
 
 test('words typed while an add is on its way are kept, and Undo takes an add back off the list', async ({ page, request }) => {

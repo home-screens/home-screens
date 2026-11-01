@@ -3091,6 +3091,12 @@
         "gone": "{from} staat niet meer in Mealie. Je ziet nu {list}.",
         "forRecipes": "voor {recipes}",
         "noLabel": "Geen label",
+        "toGet": {
+          "one": "Nog 1 ding te halen",
+          "other": "Nog {count} dingen te halen"
+        },
+        "allGot": "Alles afgevinkt",
+        "openListAria": "{list} openen in Mealie (nieuwe pagina)",
         "inCart": "Afgevinkt ({count})",
         "staleUnreachable": "Mealie reageert niet. Dit is de lijst van {time}.",
         "staleToken": "Mealie laat Home Screens niet meer binnen. Dit is de lijst van {time}.",
