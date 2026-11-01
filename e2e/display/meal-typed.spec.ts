@@ -47,6 +47,9 @@ for (const view of VIEWS) {
 }
 
 test('fullscreen meal planner shows one too', async ({ page, request }) => {
+  // Its Today view turns to tomorrow's meals once dinner is over, which on the
+  // real clock failed every evening.
+  await page.clock.setFixedTime(dinnerTimeToday());
   await seedMeals(request, typedOnly());
   const meals = buildModuleInstance('fullscreen-meal-planner', { view: 'today' });
   const display = await renderOnDisplay(page, request, baseConfig({
