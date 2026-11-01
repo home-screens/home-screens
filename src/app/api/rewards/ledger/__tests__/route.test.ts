@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 vi.mock('@/lib/family-data', () => ({ readFamilyData: vi.fn(), settleFamilyMigration: vi.fn().mockResolvedValue(undefined) }));
@@ -22,22 +22,31 @@ const member = { id: 'm1', name: 'Bram', color: '#aabbcc', createdAt: '2026-01-0
 const bed = { id: 'bed', name: 'Make your bed', emoji: '', points: 1, frequency: 'daily', daysOfWeek: [1], timeOfDay: 'morning', assigneeIds: ['m1'], rotation: 'fixed' };
 const request = (member?: string) => new NextRequest(`http://localhost/api/rewards/ledger${member ? `?member=${member}` : ''}`);
 
+// Evening at home, when it is already tomorrow in UTC: the chore is dated by
+// the household's day, which is the day the thirty-day totals end on.
+const householdZone = 'America/Chicago';
+const now = '2026-11-01T02:30:00.000Z';
+const homeDay = '2026-10-31';
+
 beforeEach(() => {
   vi.clearAllMocks();
-  const today = new Date().toISOString();
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(now));
   vi.mocked(readFamilyData).mockResolvedValue({ members: [member], migrated: true });
   vi.mocked(readRewardData).mockResolvedValue({
     rewards: [], balances: { m1: 4 },
-    redemptions: [{ id: 'x', rewardId: 'r', rewardName: 'Lego set', memberId: 'm1', memberName: 'Bram', cost: 10, redeemedAt: today }],
-    adjustments: [{ id: 'a', memberId: 'm1', delta: 5, reason: 'Groceries', at: today }, { id: 'b', memberId: 'm2', delta: 1, at: today }],
+    redemptions: [{ id: 'x', rewardId: 'r', rewardName: 'Lego set', memberId: 'm1', memberName: 'Bram', cost: 10, redeemedAt: now }],
+    adjustments: [{ id: 'a', memberId: 'm1', delta: 5, reason: 'Groceries', at: now }, { id: 'b', memberId: 'm2', delta: 1, at: now }],
   });
   vi.mocked(readChoreData).mockResolvedValue({ chores: [bed], settings: {} } as never);
   vi.mocked(readCompletions).mockResolvedValue({ completions: [
-    { choreId: 'bed', memberId: 'm1', date: today.slice(0, 10), at: today },
-    { choreId: 'bed', memberId: 'm2', date: today.slice(0, 10), at: today },
+    { choreId: 'bed', memberId: 'm1', date: homeDay, at: now },
+    { choreId: 'bed', memberId: 'm2', date: homeDay, at: now },
   ] });
-  vi.mocked(readConfig).mockResolvedValue({ settings: {} } as never);
+  vi.mocked(readConfig).mockResolvedValue({ settings: { timezone: householdZone } } as never);
 });
+
+afterEach(() => vi.useRealTimers());
 
 describe('GET /api/rewards/ledger', () => {
   it('answers one person\'s rows and totals, nobody else\'s', async () => {
