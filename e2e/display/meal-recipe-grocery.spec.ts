@@ -4,7 +4,7 @@ import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { dinnerTimeToday } from '../helpers/schedule-windows';
-import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 import { connectFakeMealie, defaultFakeEntries, disconnectFakeMealie, fakeMealieDay, startFakeMealie, type FakeMealie } from '../helpers/fake-mealie';
 
 /**
@@ -164,6 +164,8 @@ test.describe('Recipe and Grocery List with the plan in Mealie', () => {
   });
 
   test('tapping a Mealie dinner opens its recipe card, with no step buttons for a short recipe', async ({ page, request }) => {
+    // The Today view turns to tomorrow's meals once dinner is over.
+    await page.clock.setFixedTime(dinnerTimeToday());
     mealie = await startFakeMealie();
     await connectFakeMealie(request, mealie);
     await show(request, 'meal-planner', { view: 'today', tapRecipeAction: 'card' });

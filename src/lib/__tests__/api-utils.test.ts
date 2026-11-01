@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { errorResponse, publicErrorResponse, createTTLCache, createRateLimiter, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
+import { errorResponse, publicErrorResponse, createTTLCache, createLastGoodCache, createRateLimiter, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 import { DataTransactionError, FamilyError, FamilyMergeError } from '../family-errors';
 
@@ -396,6 +396,67 @@ describe('createTTLCache', () => {
     expect(cache.getStale('k')).toBe('v');
 
     vi.advanceTimersByTime(1001);
+    expect(cache.getStale('k')).toBeNull();
+  });
+});
+
+describe('createLastGoodCache', () => {
+  /** A load that answers `value` only once it is let go. */
+  function held<T>(value: T) {
+    let release!: () => void;
+    const promise = new Promise<T>((resolve) => { release = () => resolve(value); });
+    return { load: vi.fn(() => promise), release };
+  }
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shares one call between reads close together, then answers from the cache', async () => {
+    const cache = createLastGoodCache<string>(60_000, 60_000);
+    const first = held('plan');
+    const reads = [cache.read('k', first.load), cache.read('k', first.load)];
+    first.release();
+    expect(await Promise.all(reads)).toEqual(['plan', 'plan']);
+    expect(first.load).toHaveBeenCalledTimes(1);
+    const next = vi.fn(async () => 'other');
+    expect(await cache.read('k', next)).toBe('plan');
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('after clear(), a read already in flight is neither joined by a later read nor put back in the cache', async () => {
+    const cache = createLastGoodCache<string>(60_000, 60_000);
+    // A wall's poll starts reading.
+    const poll = held('before the save');
+    const polling = cache.read('k', poll.load);
+    // A save writes and clears; its answer reads again.
+    cache.clear();
+    expect(await cache.read('k', async () => 'after the save')).toBe('after the save');
+    // The poll finishes last, with what was there before the save.
+    poll.release();
+    expect(await polling).toBe('before the save');
+    expect(await cache.read('k', async () => 'asked again')).toBe('after the save');
+  });
+
+  it('never fills the cache from a read that started before a clear, even with nothing read since', async () => {
+    const cache = createLastGoodCache<string>(60_000, 60_000);
+    const poll = held('before the save');
+    const polling = cache.read('k', poll.load);
+    cache.clear();
+    poll.release();
+    await polling;
+    expect(await cache.read('k', async () => 'asked again')).toBe('asked again');
+  });
+
+  it('skips the cache when asked for a fresh read, and keeps the last good copy for getStale', async () => {
+    vi.useFakeTimers();
+    const cache = createLastGoodCache<string>(1000, 5000);
+    await cache.read('k', async () => 'one');
+    expect(await cache.read('k', async () => 'two', { fresh: true })).toBe('two');
+    vi.advanceTimersByTime(1001);
+    await expect(cache.read('k', async () => { throw new Error('down'); })).rejects.toThrow('down');
+    expect(cache.getStale('k')).toBe('two');
+    vi.advanceTimersByTime(5000);
     expect(cache.getStale('k')).toBeNull();
   });
 });

@@ -2,7 +2,7 @@
 
 import { useMemo, type KeyboardEvent, type ReactNode } from 'react';
 import type { SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
-import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex, resolveMealWithEntry, formatShortDayMonth, formatMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex, resolveMealWithEntry, formatShortDayMonth, formatMealTime, servingTimeView } from '@/lib/meal-constants';
 import { Shuffle, Copy, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -25,6 +25,10 @@ interface WeekGridProps {
    */
   editable: boolean;
   weekDates: string[];
+  /** The week's first to last day as the toasts name it (`shownWeek`), with the year when it is not this one. */
+  weekRange: string;
+  /** The household's usual serving time for each meal, shown for a meal with none of its own. */
+  defaultTimes: Partial<Record<MealSlotType, string>>;
   /** The household's calendar day, `YYYY-MM-DD`, for the Today column. */
   todayISO: string;
   isCurrentWeek: boolean;
@@ -76,6 +80,8 @@ export default function WeekGrid({
   activeCell,
   editable,
   weekDates,
+  weekRange,
+  defaultTimes,
   todayISO,
   isCurrentWeek,
   onSelectMeal,
@@ -103,12 +109,6 @@ export default function WeekGrid({
   // Sort slots into chronological order regardless of config toggle order
   const orderedSlots = SLOT_ORDER.filter((s) => slots.includes(s));
 
-  // Format week date range for header
-  const startDate = new Date(weekDates[0] + 'T12:00:00');
-  const endDate = new Date(weekDates[6] + 'T12:00:00');
-  const formatShort = (d: Date) => d.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
-  const dateRangeLabel = `${formatShort(startDate)} – ${formatShort(endDate)}`;
-
   const ghostBtn =
     'flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded border border-hs-border-strong bg-transparent text-hs-text-faint enabled:hover:text-hs-text-secondary enabled:hover:bg-hs-card transition disabled:opacity-40 disabled:cursor-not-allowed';
 
@@ -130,7 +130,7 @@ export default function WeekGrid({
           <ChevronLeft className="w-4 h-4" aria-hidden />
         </button>
         <span className="text-[11px] font-bold uppercase tracking-wider text-hs-text-faint min-w-[140px] text-center">
-          {loaded ? dateRangeLabel : null}
+          {loaded ? weekRange : null}
         </span>
         <button
           type="button"
@@ -211,6 +211,7 @@ export default function WeekGrid({
                 ? activeCell.date === date && activeCell.slot === slot
                 : !!meal && selectedMealId === meal.id;
               const time = dishTime(meal);
+              const serving = servingTimeView(planned, slot, defaultTimes);
               const slotLabel = tModules(getMealSlotLabelKey(slot));
               // A click, or Enter or Space on the focused cell: the meal's
               // popover (its details while planning is paused), or the picker
@@ -310,7 +311,7 @@ export default function WeekGrid({
                         {/* Time chip — self-anchors via its own positioned wrapper */}
                         {editable ? (
                           <MealTimeChip
-                            value={planned?.time}
+                            value={serving.value}
                             onChange={(t) => onSetSlotTime(date, slot, t)}
                             slot={slot}
                             variant="dark"
@@ -318,9 +319,12 @@ export default function WeekGrid({
                             compact
                             timeFormat={timeFormat}
                           />
-                        ) : planned?.time ? (
-                          <span className="w-fit px-1.5 py-0.5 rounded border border-hs-border-strong/50 text-[10px] font-semibold tabular-nums text-hs-text-muted">
-                            {formatMealTime(planned.time, timeFormat)}
+                        ) : serving.value ? (
+                          <span
+                            className="w-fit px-1.5 py-0.5 rounded border border-hs-border-strong/50 text-[10px] font-semibold tabular-nums text-hs-text-muted"
+                            title={serving.own ? undefined : t('mealPlannerModal.popover.usually', { time: formatMealTime(serving.value, timeFormat) })}
+                          >
+                            {formatMealTime(serving.value, timeFormat)}
                           </span>
                         ) : null}
                         {/* Sits on the card's corner, outside the text, so the

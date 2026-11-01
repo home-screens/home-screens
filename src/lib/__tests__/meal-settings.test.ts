@@ -8,6 +8,7 @@ import {
   setMealTimeFormat,
   resetMealSettings,
   setMealPlanSource,
+  canChooseMealiePlan,
 } from '../meal-settings';
 
 function settings(overrides: Partial<MealSettings> = {}): MealSettings {
@@ -138,5 +139,16 @@ describe('setMealPlanSource', () => {
   it('is only ever mealie or nothing after a read', () => {
     expect(normalizeMealSettings({ planSource: 'mealie' }).planSource).toBe('mealie');
     expect(normalizeMealSettings({ planSource: 'tandoor' }).planSource).toBeUndefined();
+  });
+});
+
+describe('canChooseMealiePlan', () => {
+  it('offers Mealie once it is connected', () => {
+    expect(canChooseMealiePlan(undefined, true)).toBe(true);
+    expect(canChooseMealiePlan(undefined, false)).toBe(false);
+  });
+
+  it('keeps Mealie chosen for a plan already there, connected or not', () => {
+    expect(canChooseMealiePlan('mealie', false)).toBe(true);
   });
 });

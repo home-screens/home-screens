@@ -1,6 +1,7 @@
 import type { MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
 import { getNextPlannedMeal, type NextPlannedMeal } from './meal-constants';
 import { isMealieMeal } from './meal-dish-rules';
+import type { MealieRecipeDetail } from './mealie-map';
 
 /**
  * A meal's recipe as the wall draws it (the Recipe view and the recipe card),
@@ -31,12 +32,6 @@ export interface RecipeDetail {
   steps: RecipeStep[];
   /** A saved meal's notes, one paragraph each; Mealie recipes have steps instead. */
   notes: string[];
-}
-
-/** What Mealie's recipe route answers (`mealieRecipeDetail`), the parts drawn here. */
-export interface MealieRecipeLines {
-  ingredients: { heading?: string; text: string }[];
-  steps: { heading?: string; text: string }[];
 }
 
 /**
@@ -84,8 +79,8 @@ export function savedMealRecipe(meal: SavedMeal): RecipeDetail {
   return { ingredients, steps: [], notes: paragraphs(meal.notes) };
 }
 
-/** A Mealie recipe's lines as the wall draws them. */
-export function mealieRecipe(lines: MealieRecipeLines): RecipeDetail {
+/** A Mealie recipe's lines, as the hub's recipe route answers them, the way the wall draws them. */
+export function mealieRecipe(lines: Pick<MealieRecipeDetail, 'ingredients' | 'steps'>): RecipeDetail {
   return {
     ingredients: lines.ingredients.map((l) => ({ ...(l.heading ? { heading: l.heading } : {}), text: l.text })),
     steps: lines.steps.map((s) => ({ ...(s.heading ? { heading: s.heading } : {}), ...splitStepLead(s.text) })),
@@ -150,13 +145,14 @@ export function nextRecipeMeal(
 }
 
 /**
- * Steps cut into pages of whole steps: the first page has `first` pixels for
- * steps (the header and the ingredients take the rest), every later page
- * `rest`. A step taller than a page gets a page of its own. The first page
- * may hold no step at all when the ingredients fill it. One page with every
- * step when nothing has been measured yet.
+ * Rows of measured `heights` cut into pages of whole rows: the first page has
+ * `first` pixels (a recipe's header and ingredients take the rest of its
+ * page), every later page `rest`. A row taller than a page gets a page of its
+ * own. The first page may hold no row at all when `first` is too small for
+ * one. One empty page for no rows. A recipe's steps page this way, and so do
+ * the wall's grocery columns.
  */
-export function pageRecipeSteps(heights: readonly number[], first: number, rest: number, gap: number): number[][] {
+export function pageByHeight(heights: readonly number[], first: number, rest: number, gap: number): number[][] {
   if (heights.length === 0) return [[]];
   const pages: number[][] = [[]];
   let room = first;

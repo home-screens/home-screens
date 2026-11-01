@@ -4,12 +4,14 @@ import { normalizeMealieUrl, mealieMajorVersion, searchWords } from '../mealie';
 import {
   cellToMealieOps,
   groupMealieEntries,
+  isMealieRecipeId,
   isUnchanged,
   mealieEntriesToPlan,
   mealieEntryExtra,
   mealieIngredientText,
   mealieMealId,
   mealieRecipeToMeal,
+  mealieRecipeUrl,
   mealieRuleCovers,
   mealieSourceId,
   normalizeMealieExtras,
@@ -120,6 +122,17 @@ describe('connection helpers', () => {
     expect(parseMealieSourceId(undefined)).toBeNull();
     expect(parseMealieMealId(mealieMealId(RECIPE_IDS.tikka))).toBe(RECIPE_IDS.tikka);
     expect(parseMealieMealId('tacos')).toBeNull();
+  });
+
+  it('takes only a recipe id into a path, and builds the hub address for a batch', () => {
+    expect(isMealieRecipeId(RECIPE_IDS.tikka)).toBe(true);
+    expect(isMealieRecipeId('0f1e2d3c4b5a49688776655443322110')).toBe(true);
+    expect(isMealieRecipeId('../../secrets')).toBe(false);
+    expect(isMealieRecipeId('tikka')).toBe(false);
+    expect(parseMealieMealId('mealie:../../secrets')).toBeNull();
+    expect(mealieRecipeUrl(RECIPE_IDS.tikka)).toBe(`/api/mealie/recipe/${RECIPE_IDS.tikka}`);
+    expect(mealieRecipeUrl(RECIPE_IDS.tikka, 2)).toBe(`/api/mealie/recipe/${RECIPE_IDS.tikka}?scale=2`);
+    expect(mealieRecipeUrl(RECIPE_IDS.tikka, 0.5)).toBe(`/api/mealie/recipe/${RECIPE_IDS.tikka}?scale=0.5`);
   });
 });
 
@@ -445,9 +458,10 @@ describe('mealieRuleCovers', () => {
 describe('mealieStatus', () => {
   const failed = (failure?: MealieWireBlock['failure']): MealieWireBlock => ({ status: 'failed', failure, plan: [], meals: [], range: { start: DAY, end: DAY }, fetchedAt: null });
 
-  it('says why there is no plan: not connected, the token refused, or Mealie not answering', () => {
+  it('says why there is no plan: not connected, the token refused, a Mealie it cannot use, or Mealie not answering', () => {
     expect(mealieStatus({ source: 'mealie', mealie: failed('not-set-up') })).toMatchObject({ state: 'unreachable', problem: 'not-connected' });
     expect(mealieStatus({ source: 'mealie', mealie: failed('key-rejected') })).toMatchObject({ state: 'unreachable', problem: 'token' });
+    expect(mealieStatus({ source: 'mealie', mealie: failed('too-old') })).toMatchObject({ state: 'unreachable', problem: 'setup' });
     expect(mealieStatus({ source: 'mealie', mealie: failed('unreachable') })).toMatchObject({ state: 'unreachable', problem: 'unreachable' });
     expect(mealieStatus({ source: 'mealie', mealie: null })).toMatchObject({ state: 'unreachable', problem: 'unreachable' });
   });
@@ -455,6 +469,7 @@ describe('mealieStatus', () => {
   it('says why its last good copy is all there is: a refused token is not Mealie being down', () => {
     const stale = (failure?: MealieWireBlock['failure']): MealieWireBlock => ({ ...failed(failure), status: 'stale', fetchedAt: 1_000 });
     expect(mealieStatus({ source: 'mealie', mealie: stale('key-rejected') })).toEqual({ state: 'stale', updatedAt: 1_000, baseUrl: undefined, problem: 'token' });
+    expect(mealieStatus({ source: 'mealie', mealie: stale('not-mealie') })).toMatchObject({ state: 'stale', problem: 'setup' });
     expect(mealieStatus({ source: 'mealie', mealie: stale('unreachable') })).toMatchObject({ state: 'stale', problem: 'unreachable' });
     expect(mealieStatus({ source: 'mealie', mealie: stale('upstream') })).toMatchObject({ state: 'stale', problem: 'unreachable' });
   });

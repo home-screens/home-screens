@@ -1,16 +1,23 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { PlannedMeal, SavedMeal } from '@/types/config';
 import { displayCache } from '@/lib/display-cache';
 import {
   loadMeals,
+  loadMealSettings,
+  loadMealieRange,
+  readMealAnswer,
   saveMealEdit,
+  saveMealSettings,
   saveGroceryCheck,
   saveMealPlanSource,
   MealSession,
   MealClientError,
+  HubUnreachableError,
   MAX_CONFLICT_RETRIES,
+  MEAL_REQUEST_TIMEOUT_MS,
+  mealieClientProblem,
   searchMealieRecipes,
   fetchMealieRecipeDetail,
   withoutSuggested,
@@ -85,6 +92,36 @@ describe('grocery ticks in a snapshot', () => {
   });
 });
 
+describe('readMealAnswer', () => {
+  /* The wall never saves, so it reads an answer without quoting its revision,
+   * and it gets the settings as the phone and the editor get them. */
+  it('reads an answer with no revision, its settings normalised', () => {
+    const answer = readMealAnswer({
+      ...payload({ settings: { enabledSlots: ['dinner', 'brunch', 'breakfast'], weekStartDay: 'friday' } as never }),
+      revision: undefined,
+    }, '12h');
+    expect(answer?.settings.enabledSlots).toEqual(['breakfast', 'dinner']);
+    expect(answer?.settings.weekStartDay).toBe('sunday');
+    expect(answer?.globalTimeFormat).toBe('24h');
+    expect(answer).not.toHaveProperty('revision');
+  });
+
+  it('draws the plan from Mealie while it lives there', () => {
+    const mealie = {
+      status: 'ok', plan: [entry('mealie-1')], meals: [meal('mealie-1')],
+      range: { start: '2026-09-13', end: '2026-10-10' }, fetchedAt: 1,
+    };
+    const answer = readMealAnswer({ ...payload({ settings: { planSource: 'mealie' } as never }), mealie }, '12h');
+    expect(answer?.source).toBe('mealie');
+    expect(answer?.plan).toEqual([entry('mealie-1')]);
+  });
+
+  it('is null for a body that is not a meal document', () => {
+    expect(readMealAnswer({ error: 'nope' }, '12h')).toBeNull();
+    expect(readMealAnswer(null, '12h')).toBeNull();
+  });
+});
+
 describe('saveGroceryCheck', () => {
   it('posts the tick with its week and direction and answers that week\'s ticks', async () => {
     const fetcher = vi.fn().mockResolvedValue(ok({ week: '2026-10-04', groceryChecked: ['lettuce'], changed: true }));
@@ -101,10 +138,11 @@ describe('saveGroceryCheck', () => {
     await expect(saveGroceryCheck(fetcher, 'soon', 'milk', 'check')).rejects.toThrow(/week must be a date/);
   });
 
-  it('lets a transport failure through untouched', async () => {
-    const failure = new Error('expired');
-    const fetcher = vi.fn().mockRejectedValue(failure);
-    await expect(saveGroceryCheck(fetcher, '2026-10-04', 'milk', 'check')).rejects.toBe(failure);
+  it('says a dropped connection is not reaching the hub, and lets an expired session through as it is', async () => {
+    const dropped = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(saveGroceryCheck(dropped, '2026-10-04', 'milk', 'check')).rejects.toBeInstanceOf(HubUnreachableError);
+    const expired = new Error('Session expired');
+    await expect(saveGroceryCheck(vi.fn().mockRejectedValue(expired), '2026-10-04', 'milk', 'check')).rejects.toBe(expired);
   });
 });
 
@@ -234,7 +272,7 @@ describe('MealSession', () => {
   it('runs saves in order, each from the copy the previous one was answered with', async () => {
     let revision = 1;
     const fetcher = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
-      if (!init) return ok(payload({ revision: 'rev-1' }));
+      if (!init?.method) return ok(payload({ revision: 'rev-1' }));
       const body = JSON.parse(init.body as string);
       revision += 1;
       return ok(payload({ plan: body.plan, revision: `rev-${revision}` }));
@@ -247,7 +285,7 @@ describe('MealSession', () => {
     const second = session.save((c) => ({ plan: [...c.plan, entry('b')] }));
     const [, last] = await Promise.all([first, second]);
 
-    const puts = fetcher.mock.calls.filter(([, init]) => init).map(bodyOf);
+    const puts = fetcher.mock.calls.filter(([, init]) => init?.method).map(bodyOf);
     expect(puts.map((b) => b.revision)).toEqual(['rev-1', 'rev-2']);
     expect(last.plan.map((p) => p.mealId)).toEqual(['m1', 'a', 'b']);
     expect(session.idle).toBe(true);
@@ -469,12 +507,12 @@ describe('the plan living in Mealie', () => {
 
   it('says why Mealie refused a save, a Suggest or a recipe, so a refused token is not read as Mealie being down', async () => {
     const refused = (failure: string) => status(400, { error: 'Mealie did not accept the key.', failure });
-    const fetcher = vi.fn()
-      .mockResolvedValueOnce(ok(mealiePayload()))
-      .mockResolvedValueOnce(refused('key-rejected'))
-      .mockResolvedValueOnce(refused('key-rejected'))
-      .mockResolvedValueOnce(status(502, { error: "We couldn't reach Mealie.", failure: 'unreachable' }))
-      .mockResolvedValueOnce(status(500, { error: 'Failed to save the Mealie plan' }));
+    const writes = [refused('key-rejected'), refused('key-rejected'), status(500, { error: 'Failed to save the Mealie plan' })];
+    // Reads answer with the plan; the session asks again after each refusal.
+    const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.startsWith('/api/mealie/recipe/')) return status(502, { error: "We couldn't reach Mealie.", failure: 'unreachable' });
+      return init?.method ? writes.shift()! : ok(mealiePayload());
+    });
     const session = new MealSession(fetcher);
     await session.load();
     const problemOf = (p: Promise<unknown>) => p.then(() => 'saved', (err: MealClientError) => err.problem);
@@ -517,6 +555,156 @@ describe('paging Mealie past the shared weeks', () => {
     await session.showMealieRange({ start: '2026-12-13', end: '2026-12-19' });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
+
+  /* Mealie went down and somebody paged a week ahead. The hub answers 200
+   * with no plan for days it has no copy of; taken as the plan, that wiped
+   * every week on screen, the old copy included. */
+  it('never puts an answer Mealie did not give in place of the copy', async () => {
+    const far = { start: '2026-12-13', end: '2026-12-19' };
+    const failed = { status: 'failed', failure: 'unreachable', plan: [], meals: [], range: { start: '2026-10-25', end: '2026-12-19' }, fetchedAt: null };
+    const fetcher = vi.fn(async (url: string) => (url.startsWith('/api/mealie/plan') ? ok({ mealie: failed }) : ok(shared())));
+    const session = new MealSession(fetcher);
+    await session.load();
+
+    await expect(session.showMealieRange(far)).rejects.toMatchObject({ kind: 'load', problem: 'unreachable' });
+    expect(session.current?.plan).toEqual([near]);
+    // An older copy of those days is not taken either.
+    const stale = vi.fn().mockResolvedValue(ok({ mealie: { ...failed, status: 'stale', fetchedAt: 1 } }));
+    await expect(loadMealieRange(stale, session.current!, far)).rejects.toBeInstanceOf(MealClientError);
+  });
+
+  it('asks nothing for the weeks it paged to while Mealie is not answering', async () => {
+    const stale = () => payload({ settings: { planSource: 'mealie' } as never, mealie: { ...block([near], '2026-10-25', '2026-11-28'), status: 'stale' } as never });
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(shared()))
+      .mockResolvedValueOnce(ok({ mealie: block([near, far], '2026-10-25', '2026-12-19') }))
+      .mockResolvedValueOnce(ok(stale()));
+    const session = new MealSession(fetcher);
+    await session.load();
+    await session.showMealieRange({ start: '2026-12-13', end: '2026-12-19' });
+
+    const reloaded = await session.load();
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(reloaded.mealie?.status).toBe('stale');
+    expect(reloaded.plan).toEqual([near]);
+  });
+});
+
+describe('asking the hub again after Mealie refused', () => {
+  const dinner: PlannedMeal = { date: '2026-10-31', slot: 'dinner', customText: 'Tacos', sourceId: 'mealie:1' };
+  const mealieCopy = (status: string) => payload({
+    settings: { planSource: 'mealie' } as never,
+    mealie: { status, plan: [dinner], meals: [], range: { start: '2026-10-25', end: '2026-11-28' }, fetchedAt: 1 } as never,
+  });
+  const down = status(502, { error: "We couldn't reach Mealie.", failure: 'unreachable' });
+
+  /* The phone asked again by hand and the editor waited up to 15 s for its
+   * poll, every edit in between failing with a toast. */
+  it('reads the copy again after a refused save and hands it over, so planning pauses', async () => {
+    const onRecheck = vi.fn();
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(mealieCopy('ok')))
+      .mockResolvedValueOnce(down)
+      .mockResolvedValueOnce(ok(mealieCopy('stale')));
+    const session = new MealSession(fetcher, onRecheck);
+    await session.load();
+
+    await expect(session.save((c) => ({ plan: c.plan.filter(() => false) }))).rejects.toMatchObject({ problem: 'unreachable' });
+    await vi.waitFor(() => expect(onRecheck).toHaveBeenCalledTimes(1));
+    expect(onRecheck.mock.calls[0][0].mealie.status).toBe('stale');
+    expect(session.current?.mealie?.status).toBe('stale');
+    expect(fetcher.mock.calls[2][0]).toBe('/api/meals/data');
+  });
+
+  it('reads the copy again after a refused Suggest', async () => {
+    const onRecheck = vi.fn();
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce(ok(mealieCopy('ok')))
+      .mockResolvedValueOnce(down)
+      .mockResolvedValueOnce(ok(mealieCopy('stale')));
+    const session = new MealSession(fetcher, onRecheck);
+    await session.load();
+
+    await expect(session.suggestFromMealie([{ date: '2026-11-01', slot: 'dinner' }])).rejects.toBeInstanceOf(MealClientError);
+    await vi.waitFor(() => expect(onRecheck).toHaveBeenCalledTimes(1));
+    expect(session.current?.mealie?.status).toBe('stale');
+  });
+
+  it('does not ask again when the hub itself was out of reach, or for the plan Home Screens keeps', async () => {
+    const onRecheck = vi.fn();
+    const mealie = vi.fn()
+      .mockResolvedValueOnce(ok(mealieCopy('ok')))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const away = new MealSession(mealie, onRecheck);
+    await away.load();
+    await expect(away.save((c) => ({ plan: c.plan.filter(() => false) }))).rejects.toBeInstanceOf(HubUnreachableError);
+
+    const local = vi.fn()
+      .mockResolvedValueOnce(ok(payload()))
+      .mockResolvedValueOnce(status(500, { error: 'boom' }));
+    const home = new MealSession(local, onRecheck);
+    await home.load();
+    await expect(home.save(() => ({ plan: [entry('x')] }))).rejects.toBeInstanceOf(MealClientError);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mealie).toHaveBeenCalledTimes(2);
+    expect(local).toHaveBeenCalledTimes(2);
+    expect(onRecheck).not.toHaveBeenCalled();
+  });
+});
+
+describe('reaching the hub', () => {
+  afterEach(() => { vi.useRealTimers(); });
+
+  /* Only the shopping list calls gave up on a hub that never answered; a
+   * plan load on a weak signal stayed open for minutes. */
+  it('gives up on a request the hub never answers', async () => {
+    vi.useFakeTimers();
+    const fetcher = vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('Timed out', 'TimeoutError')));
+    }));
+    const loading = loadMeals(fetcher);
+    const settled = expect(loading).rejects.toBeInstanceOf(HubUnreachableError);
+    await vi.advanceTimersByTimeAsync(MEAL_REQUEST_TIMEOUT_MS);
+    await settled;
+  });
+
+  it('lets the caller\'s own cancel through as it is', async () => {
+    const controller = new AbortController();
+    const cancelled = new DOMException('Aborted', 'AbortError');
+    const fetcher = vi.fn(async () => {
+      controller.abort();
+      throw cancelled;
+    });
+    await expect(searchMealieRecipes(fetcher, { search: 'pie' }, controller.signal)).rejects.toBe(cancelled);
+  });
+
+  /* A phone that lost the hub mid-search was told Mealie is down. */
+  it('names a lost hub a connection problem, not Mealie being down', async () => {
+    const search = searchMealieRecipes(vi.fn().mockRejectedValue(new TypeError('Failed to fetch')), { search: 'pie' });
+    expect(await search.catch(mealieClientProblem)).toBe('connection');
+    expect(mealieClientProblem(new MealClientError('load', 'No.', 'token'))).toBe('token');
+    expect(mealieClientProblem(new Error('anything else'))).toBe('unreachable');
+  });
+});
+
+describe('the meal settings', () => {
+  it('reads the settings with whether Mealie is connected', async () => {
+    const fetcher = vi.fn().mockResolvedValue(ok({ ...payload(), settings: { weekStartDay: 'monday' }, mealieConnected: true }));
+    const { settings, mealieConnected } = await loadMealSettings(fetcher);
+    expect(settings.weekStartDay).toBe('monday');
+    expect(settings.enabledSlots.length).toBeGreaterThan(0);
+    expect(mealieConnected).toBe(true);
+  });
+
+  it('saves only the settings and answers with them as the hub keeps them', async () => {
+    const next = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: {} } as never;
+    const fetcher = vi.fn().mockResolvedValue(ok({ ...payload(), settings: next }));
+    const saved = await saveMealSettings(fetcher, next);
+    expect(bodyOf(fetcher.mock.calls[0])).toEqual({ settings: next });
+    expect(saved.enabledSlots).toEqual(['dinner']);
+    await expect(saveMealSettings(vi.fn().mockResolvedValue(status(400, { error: 'No.' })), next)).rejects.toBeInstanceOf(MealClientError);
+  });
 });
 
 describe('searchMealieRecipes', () => {
@@ -541,6 +729,7 @@ describe('searchMealieRecipes', () => {
     };
     expect(await reasonFor('not-set-up')).toBe('not-connected');
     expect(await reasonFor('key-rejected')).toBe('token');
+    expect(await reasonFor('too-old')).toBe('setup');
     expect(await reasonFor('unreachable')).toBe('unreachable');
   });
 });

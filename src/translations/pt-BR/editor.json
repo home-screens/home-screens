@@ -1376,6 +1376,7 @@
         "optional": "Opcional, não configurado",
         "checking": "Verificando…",
         "tokenRefused": "Token não aceito",
+        "cantUse": "Não dá para usar",
         "notAnswering": "Não responde",
         "couldNotCheck": "Não deu para verificar",
         "removeConfirm": {
@@ -1662,7 +1663,9 @@
         "mealieConnected": "Conectado",
         "mealieNotAnswering": "Não está respondendo agora",
         "mealieTokenRefused": "Token não aceito",
+        "mealieSetup": "Não dá para usar",
         "tokenRefused": "O Mealie não aceita mais o token salvo, então o plano de refeições não é atualizado. Crie um novo token no Mealie e cole-o na página",
+        "setup": "O Home Screens não consegue usar este Mealie, então o plano de refeições não é atualizado. Se o endereço estiver certo, talvez o Mealie precise de uma atualização. Confira o endereço na página",
         "connectFirst": "Só se a sua família usa o Mealie, um app de receitas à parte. Para planejar nele, conecte-o primeiro na página",
         "apiKeysLink": "Chaves de API",
         "connectedOffer": "O Mealie está conectado. Escolha-o para planejar com as receitas e o plano que você mantém lá.",
@@ -2932,6 +2935,7 @@
       "mealieSuggestedEveryNightDates": "Um jantar planejado para cada noite da semana de {range}.",
       "mealieNothingFits": "O Mealie não tinha receitas para sugerir para essas refeições. Confira as regras do plano de refeições no Mealie.",
       "mealieTokenSaveFailed": "O Mealie não está deixando o Home Screens entrar, então essa mudança não foi salva. Crie um novo token no Mealie e cole-o em Configurações > Chaves de API.",
+      "mealieSetupSaveFailed": "O Home Screens não consegue usar este Mealie, então essa mudança não foi salva. Confira o endereço do Mealie em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização.",
       "mealieNotConnectedSaveFailed": "O Mealie não está conectado, então essa mudança não foi salva. Adicione o endereço e o token dele em Configurações > Chaves de API."
     },
     "library": {
@@ -3059,7 +3063,7 @@
     "openInMealie": "Abrir no Mealie",
     "mealie": {
       "fromMealie": "Do Mealie",
-      "lastUpdated": "Atualizado às {time}",
+      "lastUpdated": "Atualizado: {time}",
       "subtitle": "{planned} planejadas nesta semana",
       "subtitleHousehold": "Casa {household} · {planned} planejadas nesta semana",
       "subtitleDates": "{planned} planejadas na semana de {range}",
@@ -3072,8 +3076,10 @@
       "notConnectedBody": "O plano de refeições está definido para vir do Mealie, mas o endereço ou o token do Mealie não está salvo. Adicione-os em Configurações > Chaves de API, ou volte o plano para o Home Screens em Configurações > Refeições.",
       "tokenRefusedTitle": "O Mealie não está deixando o Home Screens entrar",
       "tokenRefusedBody": "O Mealie não aceita mais o token salvo. Talvez ele tenha sido apagado no Mealie. Crie um novo lá e salve-o em Configurações > Chaves de API.",
+      "setupTitle": "O Home Screens não consegue usar este Mealie",
+      "setupBody": "Confira o endereço do Mealie em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização.",
       "paused": "O planejamento está pausado até o Mealie voltar.",
-      "pausedSince": "O planejamento está pausado até o Mealie voltar. Este é o plano das {time}.",
+      "pausedSince": "O planejamento está pausado até o Mealie voltar. Este é o plano de {time}.",
       "weekLoading": "Buscando a semana de {range} no Mealie…",
       "weekFailed": "Não conseguimos buscar a semana de {range} no Mealie.",
       "libraryNote": "As receitas ficam no Mealie. Clique em uma para vê-la aqui.",
@@ -3111,6 +3117,7 @@
         "inCart": "Marcados ({count})",
         "staleUnreachable": "O Mealie não está respondendo. Esta é a lista de {time}.",
         "staleToken": "O Mealie não está deixando o Home Screens entrar. Esta é a lista de {time}.",
+        "staleSetup": "O Home Screens não consegue usar este Mealie. Esta é a lista de {time}.",
         "staleNotConnected": "O Mealie não está conectado. Esta é a lista de {time}.",
         "staleConnection": "Não foi possível conectar ao Home Screens. Esta é a lista de {time}.",
         "loading": "Buscando sua lista no Mealie…",
@@ -3122,6 +3129,10 @@
         "connectionTitle": "Não foi possível conectar ao Home Screens agora",
         "connectionBody": "Confira a conexão deste computador e tente de novo.",
         "noConnection": "Não foi possível conectar ao Home Screens, então isso não foi salvo. Confira a conexão e tente de novo.",
+        "notSaved": {
+          "one": "Não deu para salvar {items}. Tente de novo.",
+          "other": "Não deu para salvar {items}. Tente de novo."
+        },
         "notSavedUnreachable": {
           "one": "Não deu para salvar {items}. O Mealie não está respondendo. Tente de novo daqui a pouco.",
           "other": "Não deu para salvar {items}. O Mealie não está respondendo. Tente de novo daqui a pouco."
@@ -3129,6 +3140,10 @@
         "notSavedToken": {
           "one": "Não deu para salvar {items}. O Mealie não está deixando o Home Screens entrar.",
           "other": "Não deu para salvar {items}. O Mealie não está deixando o Home Screens entrar."
+        },
+        "notSavedSetup": {
+          "one": "Não deu para salvar {items}. O Home Screens não consegue usar este Mealie.",
+          "other": "Não deu para salvar {items}. O Home Screens não consegue usar este Mealie."
         },
         "notSavedNotConnected": {
           "one": "Não deu para salvar {items}. O Mealie não está conectado.",
@@ -3147,7 +3162,10 @@
       "ingredientsFailed": "O Mealie não enviou os ingredientes. Abra a receita no Mealie para vê-los.",
       "tokenFix": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API.",
       "tokenPaused": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API. Até lá, o planejamento fica pausado.",
-      "tokenPausedSince": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API. Até lá, o planejamento fica pausado. Este é o plano das {time}."
+      "tokenPausedSince": "Crie um novo token no Mealie e cole-o em Configurações > Chaves de API. Até lá, o planejamento fica pausado. Este é o plano de {time}.",
+      "setupFix": "Confira o endereço do Mealie em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização.",
+      "setupPaused": "Confira o endereço do Mealie em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização. Até lá, o planejamento fica pausado.",
+      "setupPausedSince": "Confira o endereço do Mealie em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização. Até lá, o planejamento fica pausado. Este é o plano de {time}."
     },
     "popover": {
       "savesToMealie": "Salva no Mealie",

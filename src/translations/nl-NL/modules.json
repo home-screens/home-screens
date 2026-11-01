@@ -368,6 +368,7 @@
     "noMealPlanned": "Geen maaltijd gepland",
     "nothingPlannedThisWeek": "Niets gepland deze week",
     "todaysMeals": "Maaltijden vandaag",
+    "tomorrowsMeals": "Maaltijden morgen",
     "now": "Nu",
     "servingAt": "geserveerd om {time}",
     "time": {
@@ -415,6 +416,8 @@
     "mealieNotConnectedHint": "Koppel het in Instellingen op de computer om de maaltijdplanning te zien.",
     "mealieTokenRefused": "Mealie laat Home Screens niet meer binnen",
     "mealieTokenRefusedHint": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de maaltijdplanning te zien.",
+    "mealieSetup": "Home Screens kan deze Mealie niet gebruiken",
+    "mealieSetupHint": "Controleer Mealie in Instellingen op de computer om de maaltijdplanning te zien.",
     "recipe": {
       "prep": "Voorbereiding",
       "cook": "Bereiding",

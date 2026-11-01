@@ -1,20 +1,15 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type { MealPlannerConfig } from '@/types/config';
 import { DIVIDER, TEXT_OPACITY, hasAccentColor, ink } from '@/lib/constants';
-import type { WallGroceryGroup, WallGroceryItem } from '@/lib/grocery-wall';
+import { wallGroceryFlatRows, type WallGroceryGroup, type WallGroceryItem } from '@/lib/grocery-wall';
 import { useTranslate } from '@/i18n';
-import { usePagedRotation } from '@/hooks/usePagedRotation';
 import FamilyEmptyState from '../FamilyEmptyState';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
+import { useGroceryPaging } from '../shared/useGroceryPaging';
 import { usePagedFit } from '../shared/usePagedFit';
 import type { WallGrocery } from '../shared/useWallGrocery';
-
-/** Pages of a long list turn this often. */
-export const GROCERY_PAGE_MS = 15_000;
-/** After a tick the page holds still this long, so the next tick is on the same page. */
-export const GROCERY_TICK_PAUSE_MS = 60_000;
 
 interface GroceryViewProps {
   config: MealPlannerConfig;
@@ -40,24 +35,11 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   const accent = hasAccentColor(config.accentColor) ? config.accentColor : TAP_CHECKBOX_ACCENT;
   const { rows, listName } = grocery;
 
-  // One row per item; the first item of a group carries the group's heading,
-  // so a heading never ends a page without its items.
-  const flat: { item: WallGroceryItem; heading: string | null }[] = [];
-  for (const group of rows.groups) {
-    group.items.forEach((item, i) => flat.push({ item, heading: i === 0 ? heading(group) : null }));
-  }
+  const flat = wallGroceryFlatRows(rows.groups, heading);
   const measureKey = flat.map(({ item, heading: h }) => `${item.id}|${item.text}|${item.note ?? ''}|${item.amount ?? ''}|${h ?? ''}`).join('\u0001') + `|${tappable}`;
   const { ref, pages } = usePagedFit('[data-grocery-row]', measureKey);
   const pageCount = pages?.length ?? 1;
-
-  const [lastTick, setLastTick] = useState(0);
-  const pausedNow = lastTick > 0;
-  useEffect(() => {
-    if (!lastTick) return;
-    const timer = setTimeout(() => setLastTick(0), GROCERY_TICK_PAUSE_MS);
-    return () => clearTimeout(timer);
-  }, [lastTick]);
-  const { index } = usePagedRotation(pageCount, pausedNow ? GROCERY_TICK_PAUSE_MS : GROCERY_PAGE_MS);
+  const { index, noteTick } = useGroceryPaging(pageCount);
   const visible = pages ? new Set(pages[index] ?? []) : null;
 
   if (grocery.state !== 'ready' || flat.length === 0) {
@@ -90,7 +72,7 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
               accent={accent}
               tappable={tappable}
               pressed={grocery.pressed === item.id}
-              onTick={() => { setLastTick(Date.now()); grocery.tick(item); }}
+              onTick={() => { noteTick(); grocery.tick(item); }}
             />
           </div>
         ))}

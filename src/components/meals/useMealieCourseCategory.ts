@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import type { MealCourseKind } from '@/types/config';
-import { fetchMealieCategories, type MealFetch, type MealieCategory } from '@/lib/meal-client';
+import { fetchMealieCategories, type MealFetch } from '@/lib/meal-client';
+import type { MealieCategory } from '@/lib/mealie';
 import { matchCourseCategory } from '@/lib/meal-dish-rules';
 import { getMealCourseLabelKey } from '@/lib/meal-courses';
 import { useTranslate } from '@/i18n';

@@ -1,33 +1,15 @@
-import type { MealCourseKind, MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
-import { toISODate, fromISODate, alignToWeekStart, type ResolvedPlanEntry } from '@/lib/meal-constants';
+import type { MealSlotType, SavedMeal, PlannedMeal, MealSettings } from '@/types/config';
+import { toISODate, fromISODate, type ResolvedPlanEntry } from '@/lib/meal-constants';
 import { splitMinutes } from '@/lib/meal-dish-rules';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
 /**
- * Compute the 7 dates of the week containing `referenceDate`, aligned to
- * the household's `weekStartDay`. Returns each date plus its `dayIndex`
- * (0=Sun…6=Sat). Callers that need a localized day-of-week name should look
- * it up via `getLocalizedDayNames(locale)[dayIndex]`, and a short date via
- * `formatShortDayMonth(date, locale)`. Keeping locale resolution out of this
- * helper makes it usable from non-React code paths.
- *
- * `referenceDate` is read through its local getters, so "this week" must be
- * the household's clock (`useHouseholdNow`), not `new Date()`: a phone in
- * another zone is on a different day around midnight and on Sunday night a
- * different week.
+ * One day of the week the Meals tab shows: its date and its `dayIndex`
+ * (0=Sun…6=Sat), for a localized name via `getLocalizedDayNames(locale)`.
  */
-export function getWeekDates(
-  referenceDate: Date,
-  weekStartDay: 'sunday' | 'monday' = 'sunday',
-): { date: string; dayIndex: number }[] {
-  const start = alignToWeekStart(referenceDate, weekStartDay);
-  const result: { date: string; dayIndex: number }[] = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(start);
-    d.setDate(start.getDate() + i);
-    result.push({ date: toISODate(d), dayIndex: d.getDay() });
-  }
-  return result;
+export interface MealsWeekDay {
+  date: string;
+  dayIndex: number;
 }
 
 // Meal forms use slightly more compact inputs than chore forms
@@ -125,7 +107,7 @@ export interface MealsConfirmAction {
 export interface MealsViewProps {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
-  weekDates: ReturnType<typeof getWeekDates>;
+  weekDates: MealsWeekDay[];
   todayISO: string;
   /** Today's slot whose meal is being served now (`currentMealSlot`), or null between meals */
   activeSlot: MealSlotType | null;
@@ -137,16 +119,6 @@ export interface MealsViewProps {
   /** Shared meal settings — drives enabled slots, week start, default times */
   settings: MealSettings;
 }
-
-/**
- * What the recipe picker is choosing: the main dish, a new course, or a
- * replacement for the course at `index`. An empty slot opens the picker for
- * its main dish straight away; the meal sheet opens it for the rest.
- */
-export type MealPickTarget =
-  | { date: string; slot: MealSlotType; pick: 'main' }
-  | { date: string; slot: MealSlotType; pick: 'add'; kind: MealCourseKind }
-  | { date: string; slot: MealSlotType; pick: 'swap'; kind: MealCourseKind; index: number };
 
 /** A planned meal, by day and slot: the one the meal sheet is open on. */
 export interface MealSlotRef {

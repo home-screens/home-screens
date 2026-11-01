@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { wallGroceryFromLocal, wallGroceryFromMealie, wallGroceryRows } from '../grocery-wall';
+import { wallGroceryFlatRows, wallGroceryFromLocal, wallGroceryFromMealie, wallGroceryRows } from '../grocery-wall';
+import { GROCERY_CATEGORY_ICONS } from '../grocery-utils';
 import type { ShoppingList } from '../shopping-list';
 
 const mealie: ShoppingList = {
@@ -35,6 +36,11 @@ describe('wallGroceryFromLocal', () => {
     ]);
   });
 
+  it('names a tick the way ticks are stored, whatever spaces the name came with', () => {
+    const list = new Map([['dairy', { items: [{ name: 'Milk ', amount: '', checked: false }] }]]);
+    expect(wallGroceryFromLocal(list)[0].items[0].id).toBe('milk');
+  });
+
   it('draws one aisle with no heading, as the phone does', () => {
     const list = new Map([['other', { items: [{ name: 'Foil', amount: '', checked: false }] }]]);
     expect(wallGroceryFromLocal(list)[0].aisle).toBeUndefined();
@@ -57,9 +63,29 @@ describe('wallGroceryRows', () => {
     expect(wallGroceryRows(groups, new Map([['c', true]]), new Set()).groups.map((g) => g.label)).toEqual([null]);
   });
 
+  it("counts each group's items still to get, not the crossed-out ones it keeps drawing", () => {
+    const rows = wallGroceryRows(groups, new Map([['c', true]]), new Set(['c']));
+    expect(rows.groups.map((g) => [g.label, g.items.length, g.left])).toEqual([[null, 1, 1], ['Produce', 1, 0]]);
+  });
+
   it('brings back an item put back from here', () => {
     const rows = wallGroceryRows(groups, new Map([['d', false]]), new Set());
     expect(rows.groups.map((g) => g.label)).toEqual([null, 'Produce', 'Household']);
     expect(rows).toMatchObject({ left: 3, got: 1 });
+  });
+});
+
+describe('wallGroceryFlatRows', () => {
+  it("puts each group's heading and aisle icon on its first item, and its count on every item", () => {
+    const local = wallGroceryFromLocal(new Map([
+      ['produce', { items: [{ name: 'Onions', amount: '', checked: false }, { name: 'Lemons', amount: '', checked: true }] }],
+      ['dairy', { items: [{ name: 'Milk', amount: '', checked: false }] }],
+    ]));
+    const rows = wallGroceryFlatRows(wallGroceryRows(local, new Map(), new Set(['lemons'])).groups, (g) => g.aisle ?? null);
+    expect(rows.map((r) => [r.item.id, r.heading, r.icon, r.left])).toEqual([
+      ['onions', 'produce', GROCERY_CATEGORY_ICONS.produce, 1],
+      ['lemons', null, undefined, 1],
+      ['milk', 'dairy', GROCERY_CATEGORY_ICONS.dairy, 1],
+    ]);
   });
 });

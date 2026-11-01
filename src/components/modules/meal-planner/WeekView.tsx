@@ -3,7 +3,7 @@
 import { Fragment, useMemo, type CSSProperties } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
 import { weekCellLayout, weekCellPieces, weekCellWords, WEEK_GAP_PX, WEEK_LINE_GAP_PX } from '@/lib/meal-week-cell';
@@ -62,11 +62,10 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
   const weekDates = getWeekDatesForRange(start, weekStartDay);
   const showEmoji = config.showEmoji ?? true;
   // Only slots the week uses get a column; four columns for one apple squeezed
-  // every dish name to a stub. A week with nothing in any slot keeps them all
-  // (the module shows its empty state before it gets here).
+  // every dish name to a stub. A week with nothing in any slot keeps them all,
+  // though the module shows its empty state before it gets here.
   const usedSlots = useMemo(() => {
-    const used = settings.enabledSlots.filter((slot) =>
-      weekDates.some((date) => resolveMealWithEntry(date, slot, plan, savedMeals).name));
+    const { usedSlots: used } = weekPlannedSlots(weekDates, settings.enabledSlots, plan, savedMeals);
     return used.length > 0 ? used : settings.enabledSlots;
   }, [settings.enabledSlots, weekDates, plan, savedMeals]);
   const slots = usedSlots;

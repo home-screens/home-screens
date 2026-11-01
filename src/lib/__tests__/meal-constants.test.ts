@@ -3,6 +3,8 @@ import {
   formatDayList,
   getOrderedDays,
   resolveMealWithEntry,
+  planHasDrawnMeal,
+  weekPlannedSlots,
   getNextPlannedMeal,
   currentMealSlot,
   mealDayLead,
@@ -37,6 +39,7 @@ import {
   formatShortDayMonth,
 } from '@/lib/meal-constants';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
+import { previousWeekDates, servingTimeView } from '@/lib/meal-constants';
 
 // ── getLocalizedMonthNames ──
 
@@ -222,6 +225,22 @@ describe('getWeekDatesForRange', () => {
     const dates = getWeekDatesForRange('2026-04-01', 'sunday');
     expect(dates[0]).toBe('2026-03-29'); // aligned to Sunday
     expect(dates[6]).toBe('2026-04-04');
+  });
+});
+
+describe('previousWeekDates', () => {
+  it('is the week before, aligned to a Monday start', () => {
+    // 2026-11-02 is a Monday.
+    const week = getWeekDatesForRange('2026-11-02', 'monday');
+    expect(previousWeekDates(week, 'monday')).toEqual([
+      '2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01',
+    ]);
+  });
+
+  it('is the week before, aligned to a Sunday start, across a month', () => {
+    const week = getWeekDatesForRange('2026-11-01', 'sunday');
+    expect(previousWeekDates(week, 'sunday')[0]).toBe('2026-10-25');
+    expect(previousWeekDates(week, 'sunday')[6]).toBe('2026-10-31');
   });
 });
 
@@ -675,6 +694,24 @@ describe('resolvePlannedMealTime', () => {
   });
 });
 
+/* The editor's chip said "+ Set time" for a dinner with no time of its own
+ * while the phone and the wall showed the usual 6:00 PM. */
+describe('servingTimeView', () => {
+  it('shows the usual time for a meal with none of its own', () => {
+    const planned: PlannedMeal = { date: '2026-04-01', slot: 'dinner', mealId: 'm1' };
+    expect(servingTimeView(planned, 'dinner', { dinner: '18:00' })).toEqual({ value: '18:00', own: false });
+  });
+
+  it("shows the meal's own time over the usual one", () => {
+    const planned: PlannedMeal = { date: '2026-04-01', slot: 'dinner', mealId: 'm1', time: '19:15' };
+    expect(servingTimeView(planned, 'dinner', { dinner: '18:00' })).toEqual({ value: '19:15', own: true });
+  });
+
+  it('shows nothing when neither is set', () => {
+    expect(servingTimeView(undefined, 'dinner', {})).toEqual({ value: undefined, own: false });
+  });
+});
+
 // ── resolveMealWithEntry ──
 
 describe('resolveMealWithEntry', () => {
@@ -744,6 +781,92 @@ describe('resolveMealWithEntry', () => {
       .toEqual(['Pizza day']);
     expect(resolveMealWithEntry('2026-04-03', 'dinner', [], withNotes).notes).toEqual([]);
   });
+
+  /* Mealie plans a dinner that is only a side, a double batch of it. The
+   * side leads the slot, and its batch has to lead with it, or the Recipe
+   * view and the recipe card showed single amounts and half the servings. */
+  it('carries the batch of the course a meal leads with when it has no main', () => {
+    const salad: SavedMeal[] = [{ id: 'salad', name: 'Big salad' }, { id: 'pie', name: 'Pie' }];
+    const sideOnly: PlannedMeal[] = [{
+      date: '2026-04-01', slot: 'dinner',
+      courses: [{ kind: 'side', mealId: 'salad', scale: 2 }, { kind: 'dessert', mealId: 'pie' }],
+    }];
+    const resolved = resolveMealWithEntry('2026-04-01', 'dinner', sideOnly, salad);
+    expect(resolved.name).toBe('Big salad');
+    expect(resolved.scale).toBe(2);
+    expect(resolved.kind).toBe('side');
+  });
+
+  /* Mealie keeps a day's entries in the order they were made: a drink made
+   * before the side led the Recipe view and Today's dinner. */
+  it('leads with the course nearest a main dish, whatever order the courses are in', () => {
+    const dishes: SavedMeal[] = [{ id: 'shake', name: 'Egg cream' }, { id: 'salad', name: 'Potato salad' }, { id: 'pie', name: 'Pie' }];
+    const resolved = resolveMealWithEntry('2026-04-01', 'dinner', [{
+      date: '2026-04-01', slot: 'dinner',
+      courses: [{ kind: 'drink', mealId: 'shake' }, { kind: 'dessert', mealId: 'pie' }, { kind: 'side', mealId: 'salad', scale: 2 }],
+    }], dishes);
+    expect(resolved).toMatchObject({ name: 'Potato salad', kind: 'side', scale: 2 });
+    expect(resolved.courses.map((c) => c.name)).toEqual(['Egg cream', 'Pie']);
+  });
+
+  it("carries the main dish's batch, and one batch when none is planned", () => {
+    expect(resolveMealWithEntry('2026-04-01', 'dinner', [{ date: '2026-04-01', slot: 'dinner', mealId: 'm1', scale: 3 }], meals))
+      .toMatchObject({ kind: 'main', scale: 3 });
+    expect(resolveMealWithEntry('2026-04-01', 'dinner', plan, meals)).toMatchObject({ kind: 'main', scale: 1 });
+    expect(resolveMealWithEntry('2026-04-03', 'dinner', plan, meals).scale).toBe(1);
+  });
+});
+
+describe('weekPlannedSlots', () => {
+  const meals: SavedMeal[] = [{ id: 'm1', name: 'Tacos' }, { id: 'm2', name: 'Soup' }];
+  const week = getWeekDatesForRange('2026-04-06', 'monday'); // Mon Apr 6 to Sun Apr 12
+  const slots: MealSlotType[] = ['breakfast', 'dinner']; // lunch switched off
+
+  /* A Monday dinner, and a lunch Mealie planned while the wall has lunch off.
+   * The full-screen footer said "2 of 7 meals planned" over one card. */
+  it('counts only the meals a week draws, not an entry in a slot that is off', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-06', slot: 'dinner', mealId: 'm1' },
+      { date: '2026-04-06', slot: 'lunch', mealId: 'm2' },
+    ];
+    expect(weekPlannedSlots(week, slots, plan, meals)).toEqual({ usedSlots: ['dinner'], filled: 1 });
+  });
+
+  /* The same week without the dinner: the full-screen Week said nothing was
+   * planned while the small Week drew a grid of dashes. Both read this now. */
+  it('reads a week holding only an entry in a slot that is off as empty', () => {
+    const plan: PlannedMeal[] = [{ date: '2026-04-06', slot: 'lunch', mealId: 'm2' }];
+    expect(weekPlannedSlots(week, slots, plan, meals)).toEqual({ usedSlots: [], filled: 0 });
+  });
+
+  it('counts a typed meal and one planned as only its courses, and keeps the slots in the order given', () => {
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-07', slot: 'dinner', customText: 'Pizza night' },
+      { date: '2026-04-08', slot: 'dinner', courses: [{ kind: 'side', customText: 'Salad' }] },
+      { date: '2026-04-09', slot: 'breakfast', mealId: 'm2' },
+      { date: '2026-04-10', slot: 'dinner' }, // nothing in it
+      { date: '2026-04-11', slot: 'dinner', mealId: 'gone' }, // its meal was deleted
+      { date: '2026-04-13', slot: 'dinner', mealId: 'm1' }, // next week
+    ];
+    expect(weekPlannedSlots(week, slots, plan, meals)).toEqual({ usedSlots: ['breakfast', 'dinner'], filled: 3 });
+  });
+});
+
+describe('planHasDrawnMeal', () => {
+  const meals: SavedMeal[] = [{ id: 'm1', name: 'Tacos' }];
+  const slots: MealSlotType[] = ['breakfast', 'dinner']; // lunch switched off
+
+  /* The small Next meal and Compact views showed their grids for a plan
+   * holding only a lunch while lunch is off; every other view said empty. */
+  it('finds no meal in a plan holding only an entry in a slot that is off, or an empty one', () => {
+    expect(planHasDrawnMeal([{ date: '2026-04-06', slot: 'lunch', mealId: 'm1' }], slots, meals)).toBe(false);
+    expect(planHasDrawnMeal([{ date: '2026-04-06', slot: 'dinner' }], slots, meals)).toBe(false);
+    expect(planHasDrawnMeal(undefined, slots, meals)).toBe(false);
+  });
+
+  it('finds a meal drawn in a slot that is on, in any week', () => {
+    expect(planHasDrawnMeal([{ date: '2026-05-20', slot: 'dinner', customText: 'Pizza night' }], slots, meals)).toBe(true);
+  });
 });
 
 describe('getNextPlannedMeal with a typed-in meal', () => {
@@ -774,6 +897,12 @@ describe('getNextPlannedMeal with a typed-in meal', () => {
     const next = getNextPlannedMeal('2026-04-01', 8 * 60, plan, meals, slots);
     expect(next?.meal?.id).toBe('m1');
     expect(next?.name).toBe('Tacos');
+  });
+
+  it('carries the plan entry behind it, so a view never looks it up again', () => {
+    const entry: PlannedMeal = { date: '2026-04-01', slot: 'dinner', mealId: 'm1', time: '18:30', scale: 2 };
+    const next = getNextPlannedMeal('2026-04-01', 8 * 60, [{ date: '2026-04-01', slot: 'lunch', customText: '  ' }, entry], meals, slots);
+    expect(next?.planned).toBe(entry);
   });
 
   it('skips an entry whose saved meal has been deleted', () => {

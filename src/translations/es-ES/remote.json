@@ -379,6 +379,7 @@
     "loadError": "No se pudieron cargar tus comidas. Comprueba que el hub está encendido y vuelve a intentarlo.",
     "retry": "Intentar de nuevo",
     "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
+    "saveFailedConnection": "No se pudo conectar con Home Screens, así que no se ha guardado. Comprueba la conexión y vuelve a intentarlo.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
@@ -1430,14 +1431,25 @@
       "title": "Mealie ya no deja entrar a Home Screens",
       "description": "Mealie ya no acepta el token guardado. Puede que se borrara en Mealie. Crea uno nuevo allí y guárdalo en el ordenador en Ajustes > Claves de API."
     },
+    "setup": {
+      "title": "Home Screens no puede usar este Mealie",
+      "description": "Comprueba la dirección de Mealie en el ordenador en Ajustes > Claves de API. Si es correcta, puede que Mealie necesite una actualización."
+    },
+    "connection": {
+      "title": "Ahora mismo no se puede conectar con Home Screens",
+      "description": "Comprueba que este móvil esté conectado y vuelve a intentarlo."
+    },
     "paused": {
       "description": "La planificación está en pausa hasta que vuelva Mealie.",
       "descriptionWithTime": "La planificación está en pausa hasta que vuelva Mealie. Última copia: {time}.",
       "tokenDescription": "Crea un token nuevo en Mealie y guárdalo en el ordenador en Ajustes > Claves de API. Hasta entonces, la planificación está en pausa.",
-      "tokenDescriptionWithTime": "Crea un token nuevo en Mealie y guárdalo en el ordenador en Ajustes > Claves de API. Hasta entonces, la planificación está en pausa. Última copia: {time}."
+      "tokenDescriptionWithTime": "Crea un token nuevo en Mealie y guárdalo en el ordenador en Ajustes > Claves de API. Hasta entonces, la planificación está en pausa. Última copia: {time}.",
+      "setupDescription": "Comprueba la dirección de Mealie en el ordenador en Ajustes > Claves de API. Si es correcta, puede que Mealie necesite una actualización. Hasta entonces, la planificación está en pausa.",
+      "setupDescriptionWithTime": "Comprueba la dirección de Mealie en el ordenador en Ajustes > Claves de API. Si es correcta, puede que Mealie necesite una actualización. Hasta entonces, la planificación está en pausa. Última copia: {time}."
     },
     "saveFailed": {
       "token": "Mealie no deja entrar a Home Screens, así que no se ha guardado.",
+      "setup": "Home Screens no puede usar este Mealie, así que no se ha guardado.",
       "notConnected": "Mealie no está conectado, así que no se ha guardado.",
       "unreachable": "Mealie no responde, así que no se ha guardado. Inténtalo de nuevo en un momento."
     },
@@ -1517,6 +1529,7 @@
       "inCart": "Tachados ({count})",
       "staleUnreachable": "Mealie no responde. Última copia: {time}.",
       "staleToken": "Mealie ya no deja entrar a Home Screens. Última copia: {time}.",
+      "staleSetup": "Home Screens no puede usar este Mealie. Última copia: {time}.",
       "staleNotConnected": "Mealie no está conectado. Última copia: {time}.",
       "staleConnection": "No se puede conectar con Home Screens. Última copia: {time}.",
       "loading": "Cargando tu lista de Mealie…",
@@ -1528,6 +1541,10 @@
       "connectionTitle": "Ahora mismo no se puede conectar con Home Screens",
       "connectionDescription": "Comprueba que este móvil esté conectado y vuelve a intentarlo.",
       "noConnection": "No se pudo conectar con Home Screens, así que no se ha guardado. Comprueba la conexión y vuelve a intentarlo.",
+      "notSaved": {
+        "one": "{items} no se ha guardado. Inténtalo de nuevo.",
+        "other": "{items} no se han guardado. Inténtalo de nuevo."
+      },
       "notSavedUnreachable": {
         "one": "{items} no se ha guardado. Mealie no responde. Inténtalo de nuevo en un momento.",
         "other": "{items} no se han guardado. Mealie no responde. Inténtalo de nuevo en un momento."
@@ -1535,6 +1552,10 @@
       "notSavedToken": {
         "one": "{items} no se ha guardado. Mealie ya no deja entrar a Home Screens.",
         "other": "{items} no se han guardado. Mealie ya no deja entrar a Home Screens."
+      },
+      "notSavedSetup": {
+        "one": "{items} no se ha guardado. Home Screens no puede usar este Mealie.",
+        "other": "{items} no se han guardado. Home Screens no puede usar este Mealie."
       },
       "notSavedNotConnected": {
         "one": "{items} no se ha guardado. Mealie no está conectado.",

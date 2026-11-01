@@ -1,8 +1,8 @@
 import { localISODate } from './timezone';
 import { formatClockTime } from './clock-time';
-import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, MealPlanSource, FullscreenTypographySize, TimeFormat } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, MealPlanSource, FullscreenTypographySize, TimeFormat, MealCourseKind } from '@/types/config';
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
-import { resolveCourses, type ResolvedCourse } from './meal-courses';
+import { COURSE_KINDS, resolveCourses, type ResolvedCourse } from './meal-courses';
 
 // ── Shared defaults (used across editor + remote + config sections) ────
 
@@ -327,6 +327,20 @@ export function getWeekDatesForRange(
 }
 
 /**
+ * The seven days of the week before `weekDates` (a week's `YYYY-MM-DD` days,
+ * in order), for Copy Last Week. Built with the household's `weekStartDay`:
+ * without it the window was shifted by a day for a Monday-start household.
+ */
+export function previousWeekDates(
+  weekDates: readonly string[],
+  weekStartDay: 'sunday' | 'monday' = 'sunday',
+): string[] {
+  const start = fromISODate(weekDates[0]);
+  start.setDate(start.getDate() - 7);
+  return getWeekDatesForRange(toISODate(start), weekStartDay);
+}
+
+/**
  * The week a planner left open should show once today rolls from `prevToday`
  * to `today`, as an aligned ISO week start. A viewer parked on the week that
  * held the old today moves with it, so a phone open past Sunday midnight lands
@@ -398,9 +412,9 @@ export function resolveMealWithEntry(
   plan: PlannedMeal[] | undefined,
   savedMeals: SavedMeal[] | undefined,
 ): ResolvedPlanEntry {
-  if (!plan) return { meal: null, planned: undefined, name: null, courses: [], notes: [] };
+  if (!plan) return { meal: null, planned: undefined, name: null, courses: [], notes: [], kind: 'main', scale: 1 };
   const planned = plan.find((p) => p.date === date && p.slot === slot);
-  if (!planned) return { meal: null, planned: undefined, name: null, courses: [], notes: [] };
+  if (!planned) return { meal: null, planned: undefined, name: null, courses: [], notes: [], kind: 'main', scale: 1 };
   const meal = planned.mealId && savedMeals
     ? savedMeals.find((m) => m.id === planned.mealId) ?? null
     : null;
@@ -408,12 +422,20 @@ export function resolveMealWithEntry(
   const courses = resolveCourses(planned, savedMeals);
   // A meal planned as only its courses (a dinner that is just a salad, or a
   // Mealie night with sides and no main) leads with its first course, so the
-  // slot shows what is planned instead of looking empty.
+  // slot shows what is planned instead of looking empty. Its batch goes with
+  // it: a double batch of that salad is still a double batch.
   if (!name && courses.length > 0) {
-    const [lead, ...rest] = courses;
-    return { meal: lead.meal, planned, name: lead.name, courses: rest, notes: plannedMealNotes(planned, lead.meal) };
+    // The course nearest a main dish leads (another main, then a side, a
+    // dessert, a drink), in the family's order within a kind: a drink made
+    // first in Mealie should not head a dinner of a salad and a pudding.
+    const lead = courses.reduce((best, c) => (COURSE_KINDS.indexOf(c.kind) < COURSE_KINDS.indexOf(best.kind) ? c : best));
+    const rest = courses.filter((c) => c !== lead);
+    return {
+      meal: lead.meal, planned, name: lead.name, courses: rest, notes: plannedMealNotes(planned, lead.meal),
+      kind: lead.kind, scale: lead.scale ?? 1,
+    };
   }
-  return { meal, planned, name, courses, notes: plannedMealNotes(planned, meal) };
+  return { meal, planned, name, courses, notes: plannedMealNotes(planned, meal), kind: 'main', scale: planned.scale ?? 1 };
 }
 
 /**
@@ -440,6 +462,48 @@ export interface ResolvedPlanEntry {
   courses: ResolvedCourse[];
   /** The notes to show with it, the day's first (see `plannedMealNotes`); empty for none. */
   notes: string[];
+  /** What the dish it leads with is: `main`, or the leading course's kind when there is no main. */
+  kind: MealCourseKind;
+  /** How many batches that dish makes (Mealie's double batch is 2); 1 for one. */
+  scale: number;
+}
+
+/**
+ * Which meals of the day a week shows and how many of them are planned: the
+ * slots among `slots` with a dish drawn on some day of `weekDates`, in the
+ * order given, and how many days and slots have one. "Drawn" is
+ * `resolveMealWithEntry`'s `name`, so an entry for a meal that is switched off
+ * (Mealie plans lunch whether or not the wall shows it) or one with nothing
+ * left in it counts for neither, and every week view agrees with its own
+ * cards and with the others on whether the week is empty.
+ */
+export function weekPlannedSlots(
+  weekDates: readonly string[],
+  slots: readonly MealSlotType[],
+  plan: PlannedMeal[] | undefined,
+  savedMeals: SavedMeal[] | undefined,
+): { usedSlots: MealSlotType[]; filled: number } {
+  const usedSlots: MealSlotType[] = [];
+  let filled = 0;
+  for (const slot of slots) {
+    const days = weekDates.filter((date) => resolveMealWithEntry(date, slot, plan, savedMeals).name !== null).length;
+    if (days > 0) usedSlots.push(slot);
+    filled += days;
+  }
+  return { usedSlots, filled };
+}
+
+/**
+ * Whether any entry of `plan` draws a dish in one of `slots`, by the same test
+ * as `weekPlannedSlots`: a lunch Mealie planned while the wall shows no lunch
+ * is not a meal to show.
+ */
+export function planHasDrawnMeal(
+  plan: PlannedMeal[] | undefined,
+  slots: readonly MealSlotType[],
+  savedMeals: SavedMeal[] | undefined,
+): boolean {
+  return (plan ?? []).some((p) => slots.includes(p.slot) && resolveMealWithEntry(p.date, p.slot, plan, savedMeals).name !== null);
 }
 
 export interface NextPlannedMeal {
@@ -457,6 +521,8 @@ export interface NextPlannedMeal {
   courses: ResolvedCourse[];
   /** The notes to show with it, the day's first; empty for none. */
   notes: string[];
+  /** The plan entry behind it, for its own time and batch. */
+  planned: PlannedMeal;
 }
 
 // ── Now and next, by serving time ───────────────────────────────────
@@ -585,12 +651,12 @@ export function getNextPlannedMeal(
     for (let i = 0; i < served.length; i++) {
       if (phases[i] === 'over') continue;
       const { slot } = served[i];
-      const { meal, name, courses, notes } = resolveMealWithEntry(date, slot, plan, savedMeals);
-      if (!name || (accept && !accept(meal))) continue;
+      const { meal, name, courses, notes, planned } = resolveMealWithEntry(date, slot, plan, savedMeals);
+      if (!name || !planned || (accept && !accept(meal))) continue;
       const context = dayOffset === 0
         ? (phases[i] === 'now' ? 'now' : 'upcoming')
         : dayOffset === 1 ? 'tomorrow' : 'future';
-      return { meal, name, slot, date, dayOffset, context, courses, notes };
+      return { meal, name, slot, date, dayOffset, context, courses, notes, planned };
     }
   }
   return null;
@@ -729,6 +795,8 @@ export function normalizeMealSettings(raw: unknown): MealSettings {
 
   const timeFormat: TimeFormat | undefined =
     r.timeFormat === '24h' || r.timeFormat === '12h' ? r.timeFormat : undefined;
+  // Kept with no Mealie connected: refusing it would refuse every other meal
+  // setting too, and every surface already says Mealie isn't connected.
   const planSource: MealPlanSource | undefined = r.planSource === 'mealie' ? r.planSource : undefined;
 
   return {
@@ -756,6 +824,20 @@ export function resolvePlannedMealTime(
 ): string | undefined {
   if (planned?.time) return planned.time;
   return defaults[slot];
+}
+
+/**
+ * What a meal's serving-time chip shows: the time the wall and the phone go
+ * by (`resolvePlannedMealTime`), and whether it is the meal's own (`own`) or
+ * the household's usual time for that meal standing in. Setting a time saves
+ * it as the meal's own; clearing it goes back to the usual one.
+ */
+export function servingTimeView(
+  planned: PlannedMeal | undefined,
+  slot: MealSlotType,
+  defaults: Partial<Record<MealSlotType, string>>,
+): { value: string | undefined; own: boolean } {
+  return { value: resolvePlannedMealTime(planned, slot, defaults), own: !!planned?.time };
 }
 
 /**

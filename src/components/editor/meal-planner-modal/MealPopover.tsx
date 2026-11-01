@@ -3,8 +3,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, ExternalLink, Plus, X } from 'lucide-react';
 import type { MealCourseKind, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
-import { getMealSlotLabelKey, formatMealTime } from '@/lib/meal-constants';
-import { COURSE_KINDS, MAX_COURSES, getMealCourseLabelKey } from '@/lib/meal-courses';
+import { getMealSlotLabelKey, formatMealTime, servingTimeView } from '@/lib/meal-constants';
+import { courseKindsToAdd, getMealCourseLabelKey } from '@/lib/meal-courses';
 import { mealTagLabel } from '@/lib/meal-dish-rules';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import { useMealieLink } from '@/components/meals/useMealieLink';
@@ -14,9 +14,6 @@ import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 
 const POPOVER_WIDTH = 360;
-
-/** The add buttons: the three course kinds, then another main dish. */
-const ADD_ORDER: readonly MealCourseKind[] = [...COURSE_KINDS.filter((k) => k !== 'main'), 'main'];
 const GAP = 8;
 
 interface MealPopoverProps {
@@ -35,8 +32,8 @@ interface MealPopoverProps {
   source: 'local' | 'mealie';
   timeFormat: TimeFormat;
   accentColor: string;
-  /** The slot's usual serving time from the shared settings, if any. */
-  defaultTime?: string;
+  /** The household's usual serving time for each meal, from the shared settings. */
+  defaultTimes: Partial<Record<MealSlotType, string>>;
   /** A picker is open on top: clicks and Escape belong to it. */
   suspended: boolean;
   onChangeMain: () => void;
@@ -66,7 +63,7 @@ export default function MealPopover({
   source,
   timeFormat,
   accentColor,
-  defaultTime,
+  defaultTimes,
   suspended,
   onChangeMain,
   onAddCourse,
@@ -148,6 +145,10 @@ export default function MealPopover({
   const mainTag = mainMeal?.tags?.[0];
   const mainMeta = [dishTime(mainMeal), mainMeal && mainTag ? mealTagLabel(mainMeal, mainTag) : null].filter(Boolean).join(' · ');
   const mealieLink = onMealie && mainMeal?.recipeUrl ? linkToMealie(mainMeal.recipeUrl) : undefined;
+  const addKinds = courseKindsToAdd(entry, !!mainName);
+  const usual = defaultTimes[slot];
+  // The meal's own time, or the usual one standing in, as the phone and the wall show it.
+  const time = servingTimeView(entry, slot, defaultTimes);
 
   const iconBtn = 'w-6 h-6 rounded flex items-center justify-center text-hs-text-faint hover:bg-hs-hover hover:text-hs-text-body disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-hs-text-faint transition';
 
@@ -267,10 +268,9 @@ export default function MealPopover({
             })}
           </ul>
         )}
-        {courses.length < MAX_COURSES && (
+        {addKinds.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2 mb-3.5">
-            {/* "Another main" needs a main dish to be another to. */}
-            {ADD_ORDER.filter((kind) => kind !== 'main' || !!mainName).map((kind) => (
+            {addKinds.map((kind) => (
               <button
                 key={kind}
                 type="button"
@@ -288,10 +288,10 @@ export default function MealPopover({
         <div className="flex items-center justify-between pt-2 border-t border-hs-border text-xs text-hs-text-muted">
           <span>
             {t('mealPlannerModal.popover.servingTime')}
-            {defaultTime && (
+            {usual && (
               <span className="text-hs-text-faint">
                 {' · '}
-                {t('mealPlannerModal.popover.usually', { time: formatMealTime(defaultTime, timeFormat) })}
+                {t('mealPlannerModal.popover.usually', { time: formatMealTime(usual, timeFormat) })}
               </span>
             )}
           </span>
@@ -300,7 +300,7 @@ export default function MealPopover({
               popover instead of below it and off screen. */}
           <span className="[&_[role=dialog]]:!top-auto [&_[role=dialog]]:!bottom-[calc(100%+4px)]">
           <MealTimeChip
-            value={entry.time}
+            value={time.value}
             onChange={onSetTime}
             slot={slot}
             variant="dark"

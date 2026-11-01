@@ -2,19 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { BookOpen, CloudOff, ExternalLink, Search } from 'lucide-react';
-import { fetchMealieCategories, type MealieCategory, type MealieRecipeFilter } from '@/lib/meal-client';
+import { fetchMealieCategories } from '@/lib/meal-client';
+import type { MealieCategory } from '@/lib/mealie';
 import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
-import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
-import { useMealieCookbooks } from '@/components/meals/useMealieCookbooks';
+import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import MealThumb from './MealThumb';
-import { RetryButton } from './MealsMealieStatus';
+import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
 import { CARD_STYLE, formatShownMinutes, openOutside } from './meals-shared';
-import { mealieProblemWords } from './MealsMealieStatus';
 
 /**
  * The Library while the plan lives in Mealie: a window onto Mealie's recipes,
@@ -24,19 +23,10 @@ import { mealieProblemWords } from './MealsMealieStatus';
  */
 export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | undefined }) {
   const t = useTranslate('remote');
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<MealieRecipeFilter>('favorites');
-  // One of Mealie's own categories or cookbooks, chosen from the chips after All.
-  const [category, setCategory] = useState<string | undefined>(undefined);
-  const [cookbook, setCookbook] = useState<string | undefined>(undefined);
+  // Favorites, Recently made, All, or one of Mealie's own categories or
+  // cookbooks, chosen from the chips after All.
+  const { query, setQuery, shortcut, choose, cookbooks, search } = useMealieRecipeBrowser(editorFetch);
   const typed = query.trim();
-  const search = useMealieRecipeSearch(editorFetch, {
-    search: query,
-    filter,
-    category: typed ? undefined : category,
-    cookbook: typed ? undefined : cookbook,
-    enabled: true,
-  });
   const count = useMealieRecipeCount(true);
   const mealieLink = useMealieLink();
 
@@ -48,8 +38,6 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
     fetchMealieCategories(editorFetch, controller.signal).then(setCategories, () => {});
     return () => controller.abort();
   }, []);
-  // The family's own sets of recipes ("Weeknight dinners"), after the categories.
-  const cookbooks = useMealieCookbooks(editorFetch);
 
   // More cards as the list nears its end; the page itself scrolls here.
   const endRef = useRef<HTMLDivElement>(null);
@@ -64,28 +52,22 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
     return () => seen.disconnect();
   }, [hasMore, loadMore]);
 
-  const pick = (next: MealieRecipeFilter, nextCategory?: string, nextCookbook?: string) => {
-    setQuery('');
-    setFilter(next);
-    setCategory(nextCategory);
-    setCookbook(nextCookbook);
-  };
-
+  const failed = mealieSearchFailedWords(search.problem);
   let body;
   if (search.loading) {
     body = <RecipeSkeletonRows count={4} square={64} radius={10} card />;
   } else if (search.error) {
     body = (
-      <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={t(`${mealieProblemWords(search.problem)}.title`)} description={search.problem === 'unreachable' || !search.problem ? t('mealie.search.errorDescription') : t(`${mealieProblemWords(search.problem)}.description`)} padding="48px 16px">
+      <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={t(failed.title)} description={t(failed.description)} padding="48px 16px">
         <RetryButton onRetry={search.retry} style={{ padding: '0 18px' }} />
       </CenterMessage>
     );
   } else if (search.items.length === 0) {
-    const [title, description] = typed
+    const [title, description] = shortcut.kind === 'search'
       ? [t('mealie.search.noneTitle', { query: typed }), t('mealie.library.noneDescription')]
-      : filter === 'favorites'
+      : shortcut.kind === 'favorites'
         ? [t('mealie.search.noFavoritesTitle'), t('mealie.search.noFavoritesDescription')]
-        : filter === 'recent'
+        : shortcut.kind === 'recent'
           ? [t('mealie.search.noRecentTitle'), t('mealie.search.noRecentDescription')]
           : [t('mealie.library.emptyTitle'), t('mealie.library.emptyDescription')];
     body = <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={title} description={description} padding="48px 16px" />;
@@ -167,20 +149,25 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
         placeholder={count ? t('mealie.library.placeholderCount', { count }) : t('mealie.library.placeholder')}
         ariaLabel={t('mealie.search.ariaLabel')}
       />
-      <RecipeShortcutChips filter={filter} searching={!!typed} onFilter={pick} style={{ paddingBottom: 12 }}>
-        <FilterChip active={!typed && filter === 'all' && !category && !cookbook} onClick={() => pick('all')}>
+      <RecipeShortcutChips
+        filter={shortcut.kind === 'favorites' || shortcut.kind === 'recent' ? shortcut.kind : 'all'}
+        searching={!!typed}
+        onFilter={choose}
+        style={{ paddingBottom: 12 }}
+      >
+        <FilterChip active={shortcut.kind === 'all'} onClick={() => choose('all')}>
           {t('mealsTab.library.filters.all')}
         </FilterChip>
         {categories.map((c) => (
-          <FilterChip key={c.slug} active={!typed && filter === 'all' && category === c.slug} onClick={() => pick('all', c.slug)}>
+          <FilterChip key={c.slug} active={shortcut.kind === 'category' && shortcut.slug === c.slug} onClick={() => choose({ category: c.slug })}>
             {c.name}
           </FilterChip>
         ))}
         {cookbooks.map((c) => (
           <FilterChip
             key={`cookbook-${c.slug}`}
-            active={!typed && filter === 'all' && cookbook === c.slug}
-            onClick={() => pick('all', undefined, c.slug)}
+            active={shortcut.kind === 'cookbook' && shortcut.slug === c.slug}
+            onClick={() => choose({ cookbook: c.slug })}
             icon={<BookOpen size={13} strokeWidth={2} aria-hidden />}
           >
             {c.name}

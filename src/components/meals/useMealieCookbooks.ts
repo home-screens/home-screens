@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchMealieCookbooks, type MealFetch, type MealieCookbook } from '@/lib/meal-client';
+import { fetchMealieCookbooks, type MealFetch } from '@/lib/meal-client';
+import type { MealieCookbook } from '@/lib/mealie';
 
 /**
  * The household's Mealie cookbooks for a row of filter chips, or none while

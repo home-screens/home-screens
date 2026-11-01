@@ -2,7 +2,8 @@
 
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, getMealSlotLabelKey, resolveMealWithEntry, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal } from '@/lib/meal-constants';
+import { SLOT_META, getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal } from '@/lib/meal-constants';
+import { mealTagLabel } from '@/lib/meal-dish-rules';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -45,11 +46,10 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
     );
   }
 
-  const { meal, name, slot, date: mealDate, context, courses, notes } = next;
+  const { meal, name, slot, date: mealDate, context, courses, notes, planned } = next;
   const label = context === 'future'
     ? formatDateSync(new Date(mealDate + 'T12:00:00'), 'EEEE', { locale })
     : t(`meal-planner.nextMealLabels.${{ now: 'now', upcoming: 'comingUp', tomorrow: 'tomorrow' }[context]}`);
-  const { planned } = resolveMealWithEntry(mealDate, slot, plan, savedMeals);
   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
   const meta = SLOT_META[slot];
 
@@ -113,7 +113,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
                 className="rounded-full px-2 py-0.5"
                 style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.dim }}
               >
-                {tag}
+                {mealTagLabel(meal, tag)}
               </span>
             ))}
           </div>

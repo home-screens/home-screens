@@ -189,10 +189,10 @@ describe('the meal planner window with the plan in Mealie', () => {
     expect(screen.queryByTestId('meal-popover')).toBeNull();
   });
 
-  it('says a refused token is the reason, and how to fix it, rather than Mealie being down', () => {
-    const fetchedAt = Date.parse('2026-09-21T20:10:00Z');
-    const stale: MealieWireBlock = { ...block('stale', fetchedAt), failure: 'key-rejected' };
-    const props = {
+  /** The window over Mealie's last good copy, kept because Mealie failed with `failure`. */
+  function staleProps(failure: MealieWireBlock['failure']) {
+    const stale: MealieWireBlock = { ...block('stale', Date.parse('2026-09-21T20:10:00Z')), failure };
+    return {
       loaded: true,
       savedMeals: stale.meals,
       plan: stale.plan,
@@ -205,6 +205,10 @@ describe('the meal planner window with the plan in Mealie', () => {
       source: 'mealie' as const,
       mealie: stale,
     };
+  }
+
+  it('says a refused token is the reason, and how to fix it, rather than Mealie being down', () => {
+    const props = staleProps('key-rejected');
     const view = render(<MealPlannerModal {...props} />, { wrapper: Wrapper });
     expect(view.getByText("Mealie isn't letting Home Screens in")).toBeTruthy();
     expect(view.getByText('Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused. This is the plan from 3:10 PM.')).toBeTruthy();
@@ -212,6 +216,16 @@ describe('the meal planner window with the plan in Mealie', () => {
     // A save the hub refused for the same reason says so too.
     view.rerender(<MealPlannerModal {...props} saveError={{ problem: 'token' }} />);
     expect(view.getByRole('alert').textContent).toBe("Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in Settings > API keys.");
+  });
+
+  it('says a Mealie it cannot use is the reason, and where to check, rather than Mealie being down', () => {
+    const props = staleProps('not-mealie');
+    const view = render(<MealPlannerModal {...props} />, { wrapper: Wrapper });
+    expect(view.getByText("Home Screens can't use this Mealie")).toBeTruthy();
+    expect(view.getByText("Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from 3:10 PM.")).toBeTruthy();
+    expect(view.queryByText("Can't reach Mealie right now")).toBeNull();
+    view.rerender(<MealPlannerModal {...props} saveError={{ problem: 'setup' }} />);
+    expect(view.getByRole('alert').textContent).toBe("Home Screens can't use this Mealie, so that change wasn't saved. Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.");
   });
 
   it('shows no week at all, rather than an empty one, when Mealie never answered', () => {
@@ -235,6 +249,36 @@ describe('the meal planner window with the plan in Mealie', () => {
     expect(view.getAllByText("Can't reach Mealie right now")).toHaveLength(2);
     expect(document.querySelector('[data-meal-cell]')).toBeNull();
     expect(view.queryByText(/planned this week/)).toBeNull();
+  });
+
+  /* The old copy was drawn over a week it does not hold, an empty grid that
+   * read as nothing planned. */
+  it('says a week the old copy does not hold is missing while Mealie is not answering, and asks nothing', () => {
+    const onShowMealieRange = vi.fn();
+    const stale: MealieWireBlock = { ...block('stale', Date.parse('2026-09-21T20:10:00Z')), plan: [], range: { start: '2026-09-28', end: '2026-10-25' } };
+    render(
+      <MealPlannerModal
+        loaded
+        savedMeals={[]}
+        plan={[]}
+        settings={SETTINGS}
+        groceryChecked={{}}
+        onToggleGroceryItem={() => {}}
+        accentColor="#f59e0b"
+        onUpdate={() => {}}
+        onClose={() => {}}
+        source="mealie"
+        mealie={stale}
+        onShowMealieRange={onShowMealieRange}
+      />,
+      { wrapper: Wrapper },
+    );
+    expect(screen.getByText(/^We couldn't get .+ from Mealie\.$/)).toBeTruthy();
+    expect(screen.getByText('Planning is paused until Mealie is back. This is the plan from 3:10 PM.')).toBeTruthy();
+    // No count for a week the copy does not hold: "0 planned" would read as nothing planned.
+    expect(screen.queryByText(/\d+ planned/)).toBeNull();
+    expect(document.querySelector('[data-meal-cell]')).toBeNull();
+    expect(onShowMealieRange).not.toHaveBeenCalled();
   });
 });
 
@@ -341,5 +385,66 @@ describe('courses without Mealie', () => {
     fireEvent.click(within(screen.getByRole('status')).getByRole('button', { name: 'Undo' }));
     const suggested = edits[0]({ savedMeals: LOCAL, plan: PLAN }).plan!;
     expect(edits[1]({ savedMeals: LOCAL, plan: suggested }).plan).toEqual(PLAN);
+  });
+
+  // The picker listed a main dish's meals in library order, as the phone did not.
+  it('leads a breakfast with the meals tagged for it, under its own heading', () => {
+    const library: SavedMeal[] = [{ id: 'tacos', name: 'Tacos' }, { id: 'pancakes', name: 'Pancakes', tags: ['breakfast'] }];
+    const settings = { ...LOCAL_SETTINGS, enabledSlots: ['breakfast', 'dinner'] } as MealSettings;
+    render(
+      <MealPlannerModal loaded savedMeals={library} plan={[]} settings={settings} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.click(document.querySelector('[data-meal-cell="2026-09-22|breakfast"] > div') as HTMLElement);
+    const picker = screen.getByRole('dialog', { name: 'Choose a Meal' });
+    const heading = within(picker).getByText('Breakfast');
+    const pancakes = within(picker).getByRole('button', { name: /Pancakes/ });
+    const elseHeading = within(picker).getByText('Everything else');
+    const tacos = within(picker).getByRole('button', { name: /Tacos/ });
+    expect(heading.compareDocumentPosition(pancakes) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(pancakes.compareDocumentPosition(elseHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(elseHeading.compareDocumentPosition(tacos) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  // Enter took the first match, Blueberry Pancakes, where the phone took Pancakes.
+  it('takes the saved meal the typed words name on Enter', () => {
+    const edits: MealEdit[] = [];
+    const library: SavedMeal[] = [{ id: 'blueberry', name: 'Blueberry Pancakes' }, { id: 'pancakes', name: 'Pancakes' }];
+    render(
+      <MealPlannerModal loaded savedMeals={library} plan={[]} settings={LOCAL_SETTINGS} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={(e) => edits.push(e)} onClose={() => {}} />,
+      { wrapper: Wrapper },
+    );
+    fireEvent.click(dinnerCell());
+    const box = within(screen.getByRole('dialog', { name: 'Choose a Meal' })).getByRole('textbox');
+    fireEvent.change(box, { target: { value: 'pancakes' } });
+    fireEvent.keyDown(box, { key: 'Enter' });
+    expect(edits[0]({ savedMeals: library, plan: [] }).plan).toEqual([{ date: '2026-09-21', slot: 'dinner', mealId: 'pancakes' }]);
+  });
+
+  // The chip said "Serving time" while the phone and the wall showed 6:00 PM.
+  it("shows the usual serving time on a meal with none of its own, and keeps one set for it", () => {
+    const edits: MealEdit[] = [];
+    render(
+      <MealPlannerModal loaded savedMeals={LOCAL} plan={PLAN} settings={LOCAL_SETTINGS} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={(e) => edits.push(e)} onClose={() => {}} />,
+      { wrapper: Wrapper },
+    );
+    const chip = within(dinnerCell()).getByRole('button', { name: 'Serving time 6:00 PM, click to change' });
+    fireEvent.click(chip);
+    fireEvent.change(within(dinnerCell()).getByLabelText('Serving time'), { target: { value: '19:15' } });
+    expect(edits[0]({ savedMeals: LOCAL, plan: PLAN }).plan![0].time).toBe('19:15');
+  });
+});
+
+describe('when Mealie last answered', () => {
+  // The hub keeps a copy for a day: last night's read as this afternoon's.
+  it('names the day of a copy from before today', () => {
+    // 8:10 PM on Sunday in Chicago; it is Monday noon there now.
+    const stale = block('stale', Date.parse('2026-09-21T01:10:00Z'));
+    render(
+      <MealPlannerModal loaded savedMeals={stale.meals} plan={stale.plan} settings={SETTINGS} groceryChecked={{}} onToggleGroceryItem={() => {}} accentColor="#f59e0b" onUpdate={() => {}} onClose={() => {}} source="mealie" mealie={stale} />,
+      { wrapper: Wrapper },
+    );
+    expect(screen.getByTestId('mealie-source-pill').textContent).toContain('Last updated Sunday 8:10 PM');
+    expect(screen.getByText('Planning is paused until Mealie is back. This is the plan from Sunday 8:10 PM.')).toBeTruthy();
   });
 });

@@ -59,4 +59,21 @@ describe('GET /api/mealie/image/[recipeId]', () => {
     vi.mocked(fetchMealieImage).mockRejectedValueOnce(new MealieError('unreachable', 'down'));
     expect((await get(ID)).status).toBe(502);
   });
+
+  it('answers a refused key or no Mealie set up the way every Mealie route does, not as Mealie being down', async () => {
+    vi.mocked(fetchMealieImage).mockRejectedValueOnce(new MealieError('key-rejected', 'Mealie did not accept the key', 401));
+    const refused = await get(ID);
+    expect(refused.status).toBe(400);
+    expect(await refused.json()).toMatchObject({ failure: 'key-rejected' });
+    vi.mocked(fetchMealieImage).mockRejectedValueOnce(new MealieError('not-set-up', 'Mealie is not connected'));
+    expect(await (await get(ID)).json()).toMatchObject({ failure: 'not-set-up' });
+  });
+
+  it('counts a photo cut off part way as Mealie not answering', async () => {
+    const cut = new Response(new ReadableStream({ start(controller) { controller.error(new Error('socket hang up')); } }));
+    vi.mocked(fetchMealieImage).mockResolvedValueOnce(cut);
+    const res = await get(ID);
+    expect(res.status).toBe(502);
+    expect(await res.json()).toMatchObject({ failure: 'unreachable' });
+  });
 });

@@ -3,6 +3,7 @@ import { guessGroceryCategory } from '@/lib/grocery-categories';
 import { planEntryMealIds } from '@/lib/meal-courses';
 import { sumGroceryAmounts } from '@/lib/grocery-amounts';
 import { SLOT_ORDER } from '@/lib/meal-constants';
+import { groceryItemKey } from '@/lib/grocery-checks';
 
 export const GROCERY_CATEGORY_ORDER = ['produce', 'meat', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
 
@@ -75,17 +76,21 @@ export function shortNameList(names: readonly string[], locale: string, more: (c
   }
 }
 
+export type GroceryList = Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>;
+
 /**
  * Generate a grocery list grouped by category from one week's planned meals.
  *
  * `checkedItems` is that same week's ticks (`groceryChecksForWeek`): a tick
- * belongs to the list it was made on, never to every week's.
+ * belongs to the list it was made on, never to every week's. Items are keyed
+ * the way ticks are stored (`groceryItemKey`), so an ingredient saved as
+ * "Milk " is the same item as a tick on "milk".
  */
 export function generateGroceryList(
-  planArr: PlannedMeal[],
-  meals: SavedMeal[],
+  planArr: readonly PlannedMeal[],
+  meals: readonly SavedMeal[],
   checkedItems: readonly string[],
-): Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }> {
+): GroceryList {
   const mealMap = new Map(meals.map((m) => [m.id, m]));
   const grouped = new Map<string, Map<string, string[]>>(); // category -> name -> amounts
 
@@ -110,13 +115,13 @@ export function generateGroceryList(
       const displayCat = cat === 'seafood' ? 'meat' : cat;
       if (!grouped.has(displayCat)) grouped.set(displayCat, new Map());
       const catMap = grouped.get(displayCat)!;
-      const key = ing.name.toLowerCase();
+      const key = groceryItemKey(ing.name);
       if (!catMap.has(key)) catMap.set(key, []);
       catMap.get(key)!.push(ing.amount ?? '');
     }
   }
 
-  const result = new Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>();
+  const result: GroceryList = new Map();
   for (const catKey of GROCERY_CATEGORY_ORDER) {
     const catMap = grouped.get(catKey);
     if (!catMap || catMap.size === 0) continue;
@@ -124,7 +129,7 @@ export function generateGroceryList(
       name: name.charAt(0).toUpperCase() + name.slice(1),
       // "Ground beef 5 lb" for a week that plans it three times, not "2 lb, 2 lb, 1 lb".
       amount: sumGroceryAmounts(amounts),
-      checked: checkedItems.includes(name.toLowerCase()),
+      checked: checkedItems.includes(name),
     }));
     items.sort((a, b) => {
       if (a.checked !== b.checked) return a.checked ? 1 : -1;
@@ -133,4 +138,24 @@ export function generateGroceryList(
     result.set(catKey, { items });
   }
   return result;
+}
+
+/**
+ * One week's grocery list as every surface shows it: the list
+ * (`generateGroceryList`), how much of it is ticked, and the planned meals
+ * that add nothing to it because they have no ingredients yet. `plan` is that
+ * week's entries and `checkedItems` that week's ticks.
+ */
+export function weekGroceryList(
+  plan: readonly PlannedMeal[],
+  meals: readonly SavedMeal[],
+  checkedItems: readonly string[],
+): { list: GroceryList; counts: { total: number; checked: number }; withoutIngredients: SavedMeal[] } {
+  const list = generateGroceryList(plan, meals, checkedItems);
+  const items = [...list.values()].flatMap((group) => group.items);
+  return {
+    list,
+    counts: { total: items.length, checked: items.filter((item) => item.checked).length },
+    withoutIngredients: plannedMealsWithoutIngredients(plan, meals),
+  };
 }

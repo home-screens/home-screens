@@ -1,7 +1,7 @@
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { replaceWeekInPlan, copyWeekEntries } from './meal-constants';
 import { generateRandomPlan } from './meal-shuffle';
-import { planEntryHasContent } from './meal-courses';
+import { addPlanCourse, planEntryHasContent, setPlanCourse, type MealPick, type MealPickTarget } from './meal-courses';
 
 /**
  * What the meal planner's actions do to the plan and the saved-meal library,
@@ -18,8 +18,8 @@ import { planEntryHasContent } from './meal-courses';
  *
  * It had already cost one double fix. Copying last week's plan has to build the
  * previous window with the household's `weekStartDay` or the seven days are
- * shifted by one for a Monday-start household; both copies carry that fix,
- * found and applied separately.
+ * shifted by one for a Monday-start household; that fix was found and applied
+ * separately on each surface, and the window is now `previousWeekDates`.
  *
  * Every transform returns the array it was given, unchanged and by identity,
  * when the action is a no-op. Callers use that to skip a save.
@@ -100,6 +100,31 @@ export function replacesDish(
   return !!dish.mealId || typed !== pick.customText?.trim();
 }
 
+/**
+ * Put what a picker handed back where it was opened for: the main dish
+ * (`assignPlanSlot`, or `setPlanSlotText` for typed words), a new course
+ * (`addPlanCourse`), or in place of a course (`setPlanCourse`).
+ */
+export function applyMealPick(plan: PlannedMeal[], target: MealPickTarget, pick: MealPick): PlannedMeal[] {
+  const { date, slot } = target;
+  if (target.pick === 'main') {
+    return 'mealId' in pick ? assignPlanSlot(plan, date, slot, pick.mealId) : setPlanSlotText(plan, date, slot, pick.customText);
+  }
+  if (target.pick === 'add') return addPlanCourse(plan, date, slot, { kind: target.kind, ...pick });
+  return setPlanCourse(plan, date, slot, target.index, pick);
+}
+
+/**
+ * The meal as it was before a pick that changes one dish for another
+ * (`replacesDish`), for the notice's Undo to put back; null when the pick
+ * only fills a place or adds a course, and there is nothing to take back.
+ */
+export function pickReplacedEntry(plan: PlannedMeal[], target: MealPickTarget, pick: MealPick): PlannedMeal | null {
+  if (target.pick === 'add') return null;
+  const entry = plan.find((p) => p.date === target.date && p.slot === target.slot);
+  return entry && replacesDish(entry, target.pick === 'swap' ? target.index : null, pick) ? entry : null;
+}
+
 /** Empty one slot: its main dish and every course with it. */
 export function clearPlanSlot(plan: PlannedMeal[], date: string, slot: MealSlotType): PlannedMeal[] {
   return plan.filter((p) => !(p.date === date && p.slot === slot));
@@ -110,7 +135,8 @@ export function clearPlanSlot(plan: PlannedMeal[], date: string, slot: MealSlotT
  *
  * An empty string counts as a clear and removes the field: `HH:MM` is the only
  * shape the readers accept, and a stored `""` fails `isValidTimeString` on the
- * next read. A slot with no meal in it has no time to set, so that is a no-op.
+ * next read. A slot with no meal in it has no time to set, so that is a no-op,
+ * and so is clearing a meal that only goes by the usual time.
  */
 export function setPlanSlotTime(
   plan: PlannedMeal[],
@@ -119,7 +145,7 @@ export function setPlanSlotTime(
   time: string | undefined,
 ): PlannedMeal[] {
   const existing = plan.find((p) => p.date === date && p.slot === slot);
-  if (!existing) return plan;
+  if (!existing || (existing.time || undefined) === (time || undefined)) return plan;
   const updated: PlannedMeal = { ...existing };
   if (time) {
     updated.time = time;
@@ -133,6 +159,50 @@ export function setPlanSlotTime(
 export function clearPlanWeek(plan: PlannedMeal[], weekDates: readonly string[]): PlannedMeal[] {
   const inWeek = new Set(weekDates);
   return plan.filter((p) => !inWeek.has(p.date));
+}
+
+/**
+ * Undo a cleared week: `cleared` (the week's entries, taken before the
+ * clear) go back on top of whatever is planned now. A meal planned in the
+ * week between Clear and Undo stays, unless it took the place of one that
+ * comes back.
+ */
+export function undoClearWeek(plan: PlannedMeal[], cleared: PlannedMeal[]): PlannedMeal[] {
+  return restorePlanEntries(plan, cleared);
+}
+
+/**
+ * The meals Suggest asks Mealie to fill in a week: its dinners nobody has
+ * planned. Dinners only, since Mealie's random pick ignores the kind of meal
+ * unless the household set meal plan rules there, and a random recipe for
+ * breakfast is nonsense; and only empty ones, so nothing is replaced.
+ * `no-dinners` when dinner is switched off, `all-planned` when every dinner
+ * is already planned.
+ */
+export function mealieSuggestCells(
+  plan: PlannedMeal[],
+  weekDates: readonly string[],
+  slots: readonly MealSlotType[],
+): { kind: 'no-dinners' } | { kind: 'all-planned' } | { kind: 'cells'; cells: { date: string; slot: 'dinner' }[] } {
+  if (!slots.includes('dinner')) return { kind: 'no-dinners' };
+  const cells = weekDates
+    .filter((date) => !plan.some((p) => p.date === date && p.slot === 'dinner'))
+    .map((date) => ({ date, slot: 'dinner' as const }));
+  return cells.length === 0 ? { kind: 'all-planned' } : { kind: 'cells', cells };
+}
+
+/**
+ * What Mealie's answer to Suggest comes to: `nothing` when it added no
+ * dinner (it had no recipe to suggest, or its rules allowed none), otherwise
+ * what it added, for Undo, how many, the nights they went on, and whether
+ * that was every night of the week, which reads better said than listed.
+ */
+export function mealieSuggestOutcome<E extends { date: string }>(
+  result: { created: number; entries: E[] },
+): { kind: 'nothing' } | { kind: 'added'; added: E[]; count: number; nights: string[]; everyNight: boolean } {
+  if (result.created === 0) return { kind: 'nothing' };
+  const nights = [...new Set(result.entries.map((e) => e.date))];
+  return { kind: 'added', added: result.entries, count: result.created, nights, everyNight: nights.length >= 7 };
 }
 
 /**

@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'crypto';
 import { getSecret } from './secrets';
-import { createTTLCache, fetchWithTimeout, type FetchRetryOptions } from './api-utils';
+import { createLastGoodCache, createTTLCache, fetchWithTimeout, type FetchRetryOptions } from './api-utils';
+import type { MealieContext } from './mealie-map';
 
 /**
  * The hub's side of a connected Mealie (https://mealie.io): where it is, how
@@ -208,7 +209,15 @@ export async function mealieJson<T>(
   cfg?: MealieConfig,
 ): Promise<T> {
   const res = await mealieFetch(path, init, cfg);
-  if (!res.ok) throw new MealieError('upstream', `Mealie answered ${res.status}`, res.status);
+  if (!res.ok) {
+    // Mealie answers even a missing page in JSON. A plain "not found" page
+    // means the saved address is some other web server, which waiting will
+    // not fix (a proxy's "bad gateway" while Mealie is down is still Mealie).
+    if (res.status === 404 && !res.headers.get('content-type')?.includes('json')) {
+      throw new MealieError('not-mealie', 'Something that is not Mealie answered at the address');
+    }
+    throw new MealieError('upstream', `Mealie answered ${res.status}`, res.status);
+  }
   const text = await res.text();
   if (!text) return undefined as T;
   try {
@@ -283,14 +292,20 @@ async function savedAddress(): Promise<{ url?: string }> {
 
 const userCache = createTTLCache<MealieUser>(10 * 60_000);
 
-export async function getMealieUser(): Promise<MealieUser> {
-  const cfg = await requireMealieConfig();
+async function getMealieUser(cfg: MealieConfig): Promise<MealieUser> {
   const key = mealieConnectionKey(cfg);
   const cached = userCache.get(key);
   if (cached) return cached;
   const user = await mealieJson<MealieUser>('/api/users/self', undefined, cfg);
   userCache.set(key, user);
   return user;
+}
+
+/** Where a recipe's links point: Mealie's address and the group its pages live under. */
+export async function getMealieContext(cfg?: MealieConfig): Promise<MealieContext> {
+  const conn = cfg ?? await requireMealieConfig();
+  const user = await getMealieUser(conn);
+  return { baseUrl: conn.url, groupSlug: user.groupSlug };
 }
 
 // ── The meal plan ──
@@ -311,8 +326,7 @@ export interface MealiePlanRead {
  */
 const PLAN_TTL_MS = 60_000;
 const PLAN_STALE_MS = 24 * 60 * 60_000;
-const planCache = createTTLCache<MealiePlanRead>(PLAN_TTL_MS, PLAN_STALE_MS);
-const planInflight = new Map<string, Promise<MealiePlanRead>>();
+const planCache = createLastGoodCache<MealiePlanRead>(PLAN_TTL_MS, PLAN_STALE_MS);
 
 /** Entries in date order, and within a day in the order they were made, so "the first dinner" is stable. */
 export function sortMealieEntries(entries: MealiePlanEntry[]): MealiePlanEntry[] {
@@ -320,16 +334,16 @@ export function sortMealieEntries(entries: MealiePlanEntry[]): MealiePlanEntry[]
 }
 
 async function loadPlan(cfg: MealieConfig, start: string, end: string): Promise<MealiePlanRead> {
-  const [page, user] = await Promise.all([
+  const [page, ctx] = await Promise.all([
     mealieJson<{ items?: MealiePlanEntry[] }>(
       `/api/households/mealplans?start_date=${start}&end_date=${end}&perPage=-1&orderBy=date&orderDirection=asc`,
       undefined,
       cfg,
     ),
-    getMealieUser(),
+    getMealieContext(cfg),
   ]);
   const entries = Array.isArray(page?.items) ? page.items : [];
-  return { entries: sortMealieEntries(entries), fetchedAt: Date.now(), baseUrl: cfg.url, groupSlug: user.groupSlug };
+  return { entries: sortMealieEntries(entries), fetchedAt: Date.now(), ...ctx };
 }
 
 export type MealiePlanResult =
@@ -350,24 +364,8 @@ export async function readMealiePlan(start: string, end: string, { fresh = false
     return { status: 'failed', failure: err instanceof MealieError ? err.failure : 'upstream' };
   }
   const key = `${mealieConnectionKey(cfg)}|${start}|${end}`;
-  if (!fresh) {
-    const cached = planCache.get(key);
-    if (cached) return { status: 'ok', read: cached };
-  }
-  let pending = fresh ? undefined : planInflight.get(key);
-  if (!pending) {
-    pending = loadPlan(cfg, start, end);
-    if (!fresh) {
-      planInflight.set(key, pending);
-      pending.finally(() => {
-        if (planInflight.get(key) === pending) planInflight.delete(key);
-      }).catch(() => {});
-    }
-  }
   try {
-    const read = await pending;
-    planCache.set(key, read);
-    return { status: 'ok', read };
+    return { status: 'ok', read: await planCache.read(key, () => loadPlan(cfg, start, end), { fresh }) };
   } catch (err) {
     const failure = err instanceof MealieError ? err.failure : 'upstream';
     const stale = planCache.getStale(key);
@@ -442,7 +440,14 @@ export interface MealieRecipePage {
   total: number;
 }
 
-export type MealieRecipeFilter = 'all' | 'favorites' | 'recent';
+/** Which recipes a picker lists: all of them, the household's favorites, or what was made most recently. */
+const MEALIE_RECIPE_FILTERS = ['all', 'favorites', 'recent'] as const;
+
+export type MealieRecipeFilter = typeof MEALIE_RECIPE_FILTERS[number];
+
+export function isMealieRecipeFilter(value: string): value is MealieRecipeFilter {
+  return (MEALIE_RECIPE_FILTERS as readonly string[]).includes(value);
+}
 
 /**
  * One page of Mealie's recipes for a picker: by name, the household's

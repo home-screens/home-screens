@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
-import {
-  addMealieShoppingItem,
-  isMealieShoppingId,
-  MealieShoppingGoneError,
-  readMealieShopping,
-} from '@/lib/mealie-shopping';
-import { mealieErrorResponse, mealieFailureResponse } from '@/lib/mealie-api';
+import { addMealieShoppingItem, isMealieShoppingId, readMealieShopping } from '@/lib/mealie-shopping';
+import { mealieShoppingResponse, withMealieErrors } from '@/lib/mealie-api';
+import { tidyShoppingText } from '@/lib/shopping-list';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,27 +17,17 @@ const MAX_TEXT = 200;
  * new item is in it, plus `added`: the new item's id, for Undo, or null when
  * Mealie merged the words into an item already on the list.
  */
-export const POST = withAuth(async (request: NextRequest) => {
+export const POST = withAuth(withMealieErrors(async (request: NextRequest) => {
   const body = await parseJsonBody<{ list?: unknown; text?: unknown }>(request, { maxBytes: 4 * 1024 });
   if (body instanceof NextResponse) return body;
   const { list, text } = body;
   if (!isMealieShoppingId(list)) {
     return NextResponse.json({ error: 'list must be a Mealie shopping list id' }, { status: 400 });
   }
-  const words = typeof text === 'string' ? text.trim().replace(/\s+/g, ' ') : '';
+  const words = typeof text === 'string' ? tidyShoppingText(text) : '';
   if (!words || words.length > MAX_TEXT) {
     return NextResponse.json({ error: `text must be 1 to ${MAX_TEXT} characters` }, { status: 400 });
   }
-  let added: string | null;
-  try {
-    added = await addMealieShoppingItem(list, words);
-  } catch (err) {
-    if (err instanceof MealieShoppingGoneError) {
-      return NextResponse.json({ error: "Mealie doesn't have that list any more.", reason: 'gone' }, { status: 404 });
-    }
-    return mealieErrorResponse(err);
-  }
-  const result = await readMealieShopping(list, { fresh: true });
-  if (result.status === 'failed') return mealieFailureResponse(result.failure, result.baseUrl ? { baseUrl: result.baseUrl } : undefined);
-  return NextResponse.json({ ...result, added });
-}, 'Failed to add to the Mealie shopping list');
+  const added = await addMealieShoppingItem(list, words);
+  return mealieShoppingResponse(await readMealieShopping(list, { fresh: true }), { added });
+}), 'Failed to add to the Mealie shopping list');

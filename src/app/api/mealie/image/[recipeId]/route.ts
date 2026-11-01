@@ -7,6 +7,8 @@ import { withDisplayAuth } from '@/lib/api-utils';
 import { getDataRoot } from '@/lib/data-root';
 import { THUMBNAIL_DIR } from '@/lib/thumbnails';
 import { fetchMealieImage, MealieError, type MealieImageSize } from '@/lib/mealie';
+import { isMealieRecipeId } from '@/lib/mealie-map';
+import { withMealieErrors } from '@/lib/mealie-api';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,11 +38,12 @@ function imageResponse(data: Uint8Array, versioned: boolean): Response {
  * display-only Pi may not reach the address the hub uses. Copies are kept
  * under `data/thumbnails/mealie/`, named by recipe, size and version, so a
  * wall reload or a second wall costs Mealie nothing; like every thumbnail
- * they are rebuilt on demand and never backed up.
+ * they are rebuilt on demand and never backed up. A Mealie problem answers
+ * the same way as on every other Mealie route.
  */
-export const GET = withDisplayAuth(async (request: NextRequest, ctx: RouteContext) => {
+export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest, ctx: RouteContext) => {
   const { recipeId } = await ctx.params;
-  if (!/^[0-9a-f-]{32,36}$/i.test(recipeId)) return NextResponse.json({ error: 'Unknown recipe' }, { status: 400 });
+  if (!isMealieRecipeId(recipeId)) return NextResponse.json({ error: 'Unknown recipe' }, { status: 400 });
   const size = SIZES[request.nextUrl.searchParams.get('size') ?? 'min'];
   if (!size) return NextResponse.json({ error: 'size must be tiny, min or full' }, { status: 400 });
   const version = request.nextUrl.searchParams.get('v') ?? '';
@@ -54,17 +57,13 @@ export const GET = withDisplayAuth(async (request: NextRequest, ctx: RouteContex
     // Not kept yet: ask Mealie.
   }
 
-  let res: Response;
-  let buf: Uint8Array;
-  try {
-    res = await fetchMealieImage(recipeId, size);
-    if (!res.ok) return NextResponse.json({ error: 'No photo' }, { status: 404 });
-    // Reading the body can fail too (Mealie dropping the connection under
-    // load): that is Mealie not answering, not a fault on the hub.
-    buf = new Uint8Array(await res.arrayBuffer());
-  } catch (err) {
-    return NextResponse.json({ error: 'Mealie is not answering', failure: err instanceof MealieError ? err.failure : 'unreachable' }, { status: 502 });
-  }
+  const res = await fetchMealieImage(recipeId, size);
+  if (!res.ok) return NextResponse.json({ error: 'No photo' }, { status: 404 });
+  // Reading the body can fail too (Mealie dropping the connection under
+  // load): that is Mealie not answering, not a fault on the hub.
+  const buf = new Uint8Array(await res.arrayBuffer().catch(() => {
+    throw new MealieError('unreachable', 'Mealie did not answer');
+  }));
   if (buf.byteLength === 0 || buf.byteLength > MAX_BYTES) return NextResponse.json({ error: 'No photo' }, { status: 404 });
 
   try {
@@ -80,4 +79,4 @@ export const GET = withDisplayAuth(async (request: NextRequest, ctx: RouteContex
     // A full or read-only disk only costs the next request another fetch.
   }
   return imageResponse(buf, !!version);
-}, 'Failed to load the recipe photo');
+}), 'Failed to load the recipe photo');

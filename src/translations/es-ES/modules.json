@@ -368,6 +368,7 @@
     "noMealPlanned": "No hay comida planeada",
     "nothingPlannedThisWeek": "Nada planeado esta semana",
     "todaysMeals": "Comidas de hoy",
+    "tomorrowsMeals": "Comidas de mañana",
     "now": "Ahora",
     "servingAt": "se sirve a las {time}",
     "time": {
@@ -415,6 +416,8 @@
     "mealieNotConnectedHint": "Conéctalo en Ajustes en el ordenador para ver el plan de comidas.",
     "mealieTokenRefused": "Mealie ya no deja entrar a Home Screens",
     "mealieTokenRefusedHint": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver el plan de comidas.",
+    "mealieSetup": "Home Screens no puede usar este Mealie",
+    "mealieSetupHint": "Revisa Mealie en Ajustes en el ordenador para ver el plan de comidas.",
     "recipe": {
       "prep": "Preparación",
       "cook": "Cocción",

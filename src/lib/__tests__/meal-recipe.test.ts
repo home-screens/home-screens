@@ -5,7 +5,7 @@ import {
   mealHasRecipe,
   mealieRecipe,
   nextRecipeMeal,
-  pageRecipeSteps,
+  pageByHeight,
   recipePageOfStep,
   recipeStats,
   savedMealRecipe,
@@ -120,25 +120,25 @@ describe('nextRecipeMeal', () => {
   });
 });
 
-describe('pageRecipeSteps', () => {
+describe('pageByHeight', () => {
   it('keeps every step on one page when it fits', () => {
-    expect(pageRecipeSteps([100, 100, 100], 400, 900, 10)).toEqual([[0, 1, 2]]);
+    expect(pageByHeight([100, 100, 100], 400, 900, 10)).toEqual([[0, 1, 2]]);
   });
 
   it('fills the first page, then the later ones, with whole steps', () => {
-    expect(pageRecipeSteps([150, 150, 200, 300, 300, 100], 320, 700, 20)).toEqual([[0, 1], [2, 3], [4, 5]]);
+    expect(pageByHeight([150, 150, 200, 300, 300, 100], 320, 700, 20)).toEqual([[0, 1], [2, 3], [4, 5]]);
   });
 
   it('starts the steps on page two when the ingredients fill page one', () => {
-    expect(pageRecipeSteps([200, 100], 120, 900, 10)).toEqual([[], [0, 1]]);
+    expect(pageByHeight([200, 100], 120, 900, 10)).toEqual([[], [0, 1]]);
   });
 
   it('gives a step taller than a page a page of its own', () => {
-    expect(pageRecipeSteps([100, 1200, 100], 300, 800, 10)).toEqual([[0], [1], [2]]);
+    expect(pageByHeight([100, 1200, 100], 300, 800, 10)).toEqual([[0], [1], [2]]);
   });
 
   it('answers one empty page for a recipe with no steps', () => {
-    expect(pageRecipeSteps([], 300, 800, 10)).toEqual([[]]);
+    expect(pageByHeight([], 300, 800, 10)).toEqual([[]]);
   });
 
   it('finds the page a step is on', () => {

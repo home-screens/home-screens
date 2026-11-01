@@ -9,6 +9,7 @@ import {
   fromISODate,
   getWeekRange,
   getWeekDatesForRange,
+  previousWeekDates,
   weekStartAfterDayChange,
   filterPlanToWeek,
   resolveMealTimeFormat,
@@ -17,11 +18,11 @@ import {
   getMealSlotLabelKey,
 } from '@/lib/meal-constants';
 import {
-  assignPlanSlot,
+  applyMealPick,
   clearPlanSlot,
-  setPlanSlotText,
   setPlanSlotTime,
   clearPlanWeek,
+  undoClearWeek,
   suggestPlanWeek,
   placePlanWeek,
   copyPlanWeek,
@@ -31,24 +32,27 @@ import {
   restorePlanEntries,
   plannedEntriesOfMeal,
   restoreSavedMeal,
-  replacesDish,
+  pickReplacedEntry,
+  mealieSuggestCells,
+  mealieSuggestOutcome,
 } from '@/lib/meal-plan-actions';
 import { formatPlannedDays, shownWeek } from '@/lib/meal-plan-words';
-import { addPlanCourse, movePlanCourse, removePlanCourse, setPlanCourse } from '@/lib/meal-courses';
+import { movePlanCourse, removePlanCourse, type MealPick, type MealPickTarget } from '@/lib/meal-courses';
 import {
   canEditMergedPlan,
   mealiePlannerUrl,
+  mealieRangeWanted,
   mealieStatus,
-  rangeCovers,
+  mealieWeekHeld,
   type MealieWireBlock,
 } from '@/lib/meal-sources';
-import { formatClockMinutes } from '@/lib/clock-time';
-import { wallClockParts } from '@/lib/timezone';
 import { groceryChecksForWeek, groceryWeekKey, type GroceryChecked } from '@/lib/grocery-checks';
 import { useEditorStore } from '@/stores/editor-store';
 import { useEditorHouseholdToday, useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { useMealieHousehold } from '@/hooks/useMealieCheck';
 import { useMealieLink } from '@/components/meals/useMealieLink';
+import { useCopyTimeWords } from '@/components/meals/useCopyTime';
+import { usePickedMeals } from '@/components/meals/usePickedMeals';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import SidebarLibrary from './SidebarLibrary';
 import SidebarDetail from './SidebarDetail';
@@ -56,7 +60,7 @@ import SidebarGrocery from './SidebarGrocery';
 import { MealieDetail, MealieLibrary } from './SidebarMealie';
 import { MealieGrocery } from './SidebarMealieGrocery';
 import WeekGrid from './WeekGrid';
-import MealPickerPopover, { type PickerPurpose } from './MealPickerPopover';
+import MealPickerPopover from './MealPickerPopover';
 import MealPopover from './MealPopover';
 import type { SavedMeal, PlannedMeal, MealSlotType, MealSettings, MealCourseKind } from '@/types/config';
 import { withoutSuggested, type MealEdit, type MealieRange, type MealieSuggestedEntry } from '@/lib/meal-client';
@@ -64,6 +68,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import type { MealSaveFailure } from '@/hooks/useMealPlannerData';
 import { mealSaveFailedKey } from './save-failed-words';
+import { mealieProblemKey } from './mealie-problem-words';
 
 // ── Props ────────────────────────────────────────────────────
 
@@ -115,12 +120,6 @@ interface MealPlannerModalProps {
 
 type SidebarTab = 'library' | 'detail' | 'grocery';
 
-interface PickerState {
-  date: string;
-  slot: MealSlotType;
-  purpose: PickerPurpose;
-}
-
 interface PopoverState {
   date: string;
   slot: MealSlotType;
@@ -129,13 +128,6 @@ interface PopoverState {
   bounds?: DOMRect;
   /** Where the sidebar ends: the popover keeps off the meal details beside the week. */
   minLeft?: number;
-}
-
-/** `YYYY-MM-DD` moved by `days`. */
-function shiftISODate(date: string, days: number): string {
-  const d = fromISODate(date);
-  d.setDate(d.getDate() + days);
-  return toISODate(d);
 }
 
 // ── Component ────────────────────────────────────────────────
@@ -182,14 +174,15 @@ export default function MealPlannerModal({
   const weekStartDay = settings.weekStartDay;
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('library');
   const [selectedMealId, setSelectedMealId] = useState<string | null>(null);
-  const [picker, setPicker] = useState<PickerState | null>(null);
+  const [picker, setPicker] = useState<MealPickTarget | null>(null);
   const [popover, setPopover] = useState<PopoverState | null>(null);
   // Pending new meal: created locally, only persisted when user saves from Detail tab
   const [pendingMeal, setPendingMeal] = useState<SavedMeal | null>(null);
   // Mealie recipes picked or opened here that the copy does not hold yet: a
   // recipe just put on the plan draws at once, before Mealie's answer
   // brings it along with the plan.
-  const [pickedMeals, setPickedMeals] = useState<SavedMeal[]>([]);
+  const picked = usePickedMeals(savedMeals);
+  const { keep: keepMeals, keepEntry } = picked;
   const [toast, setToast] = useState<{ message: string; undo?: () => void; error?: boolean } | null>(null);
   // Suggest in Mealie mode waits on Mealie, which can take a while: the button says so.
   const [suggesting, setSuggesting] = useState(false);
@@ -244,15 +237,16 @@ export default function MealPlannerModal({
 
   // ── Mealie: which days the copy holds, and whether planning is open ──
 
-  const weekStart = viewedWeekDates[0];
-  const weekEnd = viewedWeekDates[6];
-  // The week in view and the one before it, for Copy Last Week.
-  const wantedRange = useMemo(() => ({ start: shiftISODate(weekStart, -7), end: weekEnd }), [weekStart, weekEnd]);
-  const weekHeld = !onMealie || status.state === 'unreachable' || rangeCovers(mealie?.range, { start: weekStart, end: weekEnd });
+  // Paging past the weeks every answer carries: ask Mealie for the week and
+  // the one before it (for Copy Last Week), by the rule the phone uses too.
+  const shownRange = { start: viewedWeekDates[0], end: viewedWeekDates[6] };
+  const weekHeld = mealieWeekHeld({ source, mealie }, shownRange);
+  const wantedRange = mealieRangeWanted({ source, mealie }, shownRange);
+  const wantedStart = wantedRange?.start;
+  const wantedEnd = wantedRange?.end;
   useEffect(() => {
-    if (!onMealie || mealie?.status !== 'ok' || rangeCovers(mealie.range, wantedRange)) return;
-    onShowMealieRange?.(wantedRange);
-  }, [onMealie, mealie?.status, mealie?.range, wantedRange, onShowMealieRange]);
+    if (wantedStart && wantedEnd) onShowMealieRange?.({ start: wantedStart, end: wantedEnd });
+  }, [wantedStart, wantedEnd, onShowMealieRange]);
 
   const editable = loaded && canEditMergedPlan({ plan, savedMeals, source, mealie }) && weekHeld;
 
@@ -299,17 +293,12 @@ export default function MealPlannerModal({
     setSidebarTab('detail');
   }, []);
 
-  const rememberMeal = useCallback((meal: SavedMeal) => {
-    setPickedMeals((prev) => (prev.some((m) => m.id === meal.id) ? prev : [...prev, meal]));
-  }, []);
-
-  // Everything the plan can point at: the copy's meals, a new meal not saved
-  // yet, and Mealie recipes picked here that the copy does not hold yet.
-  const allMeals = useMemo(() => {
-    const known = new Set(savedMeals.map((m) => m.id));
-    const extra = pickedMeals.filter((m) => !known.has(m.id));
-    return [...savedMeals, ...(pendingMeal ? [pendingMeal] : []), ...extra];
-  }, [savedMeals, pendingMeal, pickedMeals]);
+  // Everything the plan can point at: the copy's meals, Mealie recipes
+  // picked here that the copy does not hold yet, and a new meal not saved yet.
+  const allMeals = useMemo(
+    () => (pendingMeal ? [...picked.meals, pendingMeal] : picked.meals),
+    [picked.meals, pendingMeal],
+  );
 
   const addMeal = useCallback(() => {
     const id = uuid();
@@ -386,16 +375,12 @@ export default function MealPlannerModal({
    * old one, as it followed the change.
    */
   const offerBack = useCallback((message: string, before: PlannedMeal, swapped?: { to: string; from: string }) => {
-    if (onMealie) {
-      for (const m of allMeals) {
-        if (m.id === before.mealId || before.courses?.some((c) => c.mealId === m.id)) rememberMeal(m);
-      }
-    }
+    keepEntry(before);
     showToast(message, () => {
       onUpdate((c) => ({ plan: restorePlanEntries(c.plan, [before]) }));
       if (swapped) setSelectedMealId((id) => (id === swapped.to ? swapped.from : id));
     });
-  }, [onMealie, allMeals, rememberMeal, onUpdate, showToast]);
+  }, [keepEntry, onUpdate, showToast]);
 
   const removeSlotMeal = useCallback((date: string, slot: MealSlotType) => {
     const { planned: removed, name, courses } = resolveMealWithEntry(date, slot, plan, allMeals);
@@ -414,36 +399,31 @@ export default function MealPlannerModal({
     // and only for the dinners nobody has planned, so nothing is replaced.
     // The phone's Suggest fills the same dinners.
     if (onMealie) {
-      // Dinners only: Mealie's random pick ignores the kind of meal unless the
-      // household set meal plan rules there, and a random recipe for
-      // breakfast is nonsense. The phone asks first; here, as with Clear Week,
-      // the toast's Undo takes back exactly what it added.
-      if (!slots.includes('dinner')) {
+      // The phone asks first; here, as with Clear Week, the toast's Undo
+      // takes back exactly what it added.
+      const ask = mealieSuggestCells(plan, viewedWeekDates, slots);
+      if (ask.kind === 'no-dinners') {
         showToast(t('mealPlannerModal.toast.mealieNoDinners'));
         return;
       }
-      const empty = viewedWeekDates
-        .filter((date) => !plan.some((p) => p.date === date && p.slot === 'dinner'))
-        .map((date) => ({ date, slot: 'dinner' as const }));
-      if (empty.length === 0) {
+      if (ask.kind === 'all-planned') {
         showToast(week.thisWeek ? t('mealPlannerModal.toast.mealieAllPlanned') : t('mealPlannerModal.toast.mealieAllPlannedDates', { range: week.range }));
         return;
       }
       if (!onSuggestFromMealie) return;
       setSuggesting(true);
-      void onSuggestFromMealie(empty).finally(() => setSuggesting(false)).then((result) => {
+      void onSuggestFromMealie(ask.cells).finally(() => setSuggesting(false)).then((result) => {
         if (!result) return;
-        if (result.created === 0) {
+        const outcome = mealieSuggestOutcome(result);
+        if (outcome.kind === 'nothing') {
           showToast(t('mealPlannerModal.toast.mealieNothingFits'));
           return;
         }
-        const added = result.entries;
-        const dates = new Set(added.map((e) => e.date));
-        const message = dates.size >= 7
+        const message = outcome.everyNight
           ? (week.thisWeek ? t('mealPlannerModal.toast.mealieSuggestedEveryNight') : t('mealPlannerModal.toast.mealieSuggestedEveryNightDates', { range: week.range }))
-          : t('mealPlannerModal.toast.mealieSuggested', { count: result.created, days: formatDayList([...dates], formattingLocale) });
+          : t('mealPlannerModal.toast.mealieSuggested', { count: outcome.count, days: formatDayList(outcome.nights, formattingLocale) });
         showToast(message, () => {
-          onUpdate((c) => ({ plan: withoutSuggested(c.plan, added) }));
+          onUpdate((c) => ({ plan: withoutSuggested(c.plan, outcome.added) }));
         });
       });
       return;
@@ -462,9 +442,7 @@ export default function MealPlannerModal({
   }, [onMealie, plan, weekPlan, week, onSuggestFromMealie, savedMeals, slots, viewedWeekDates, onUpdate, showToast, t, formattingLocale]);
 
   const copyLastWeek = useCallback(() => {
-    const prevStart = new Date(viewingWeekStart);
-    prevStart.setDate(prevStart.getDate() - 7);
-    const prevWeekDates = getWeekDatesForRange(toISODate(prevStart), weekStartDay);
+    const prevWeekDates = previousWeekDates(viewedWeekDates, weekStartDay);
     if (copyPlanWeek(plan, prevWeekDates, viewedWeekDates) === plan) return; // nothing planned last week
     // The copy replaces the week (in Mealie, for the whole family): Undo puts
     // back what the week held.
@@ -477,7 +455,7 @@ export default function MealPlannerModal({
     showToast(message, () => {
       onUpdate((c) => ({ plan: restorePlanEntries(clearPlanWeek(c.plan, viewedWeekDates), before) }));
     });
-  }, [plan, weekPlan, week, todayISO, formattingLocale, viewingWeekStart, viewedWeekDates, weekStartDay, onUpdate, showToast, t]);
+  }, [plan, weekPlan, week, todayISO, formattingLocale, viewedWeekDates, weekStartDay, onUpdate, showToast, t]);
 
   const clearWeek = useCallback(() => {
     if (weekPlan.length === 0) return;
@@ -485,17 +463,14 @@ export default function MealPlannerModal({
     setPopover(null);
     onUpdate((c) => ({ plan: clearPlanWeek(c.plan, viewedWeekDates) }));
     showToast(t('mealPlannerModal.toast.weekCleared'), () => {
-      // Restore the cleared week on top of whatever is planned now.
-      onUpdate((c) => ({ plan: restorePlanEntries(c.plan, cleared) }));
+      onUpdate((c) => ({ plan: undoClearWeek(c.plan, cleared) }));
     });
   }, [weekPlan, viewedWeekDates, onUpdate, showToast, t]);
 
   const hasPreviousWeekEntries = useMemo(() => {
-    const prevStart = new Date(viewingWeekStart);
-    prevStart.setDate(prevStart.getDate() - 7);
-    const prevWeekDates = getWeekDatesForRange(toISODate(prevStart), weekStartDay);
+    const prevWeekDates = previousWeekDates(viewedWeekDates, weekStartDay);
     return filterPlanToWeek(plan, prevWeekDates[0], prevWeekDates[6]).length > 0;
-  }, [plan, viewingWeekStart, weekStartDay]);
+  }, [plan, viewedWeekDates, weekStartDay]);
 
   // ── The meal popover and the picker ──
 
@@ -511,54 +486,44 @@ export default function MealPlannerModal({
   const closePopover = useCallback(() => setPopover(null), []);
 
   const openPicker = useCallback((date: string, slot: MealSlotType) => {
-    setPicker({ date, slot, purpose: { kind: 'main' } });
+    setPicker({ date, slot, pick: 'main' });
   }, []);
 
   const closePicker = useCallback(() => {
     setPicker(null);
   }, []);
 
+  /**
+   * Put what the picker handed back where it was opened for. A dish changed
+   * for another one, for everyone at once: the toast offers it back, naming
+   * the new dish (`name`).
+   */
+  const applyPick = useCallback((target: MealPickTarget, pick: MealPick, name: string, swapped?: { to: string; from: string }) => {
+    const before = pickReplacedEntry(plan, target, pick);
+    onUpdate((c) => ({ plan: applyMealPick(c.plan, target, pick) }));
+    if (before) offerBack(t('mealPlannerModal.toast.mealChanged', { name }), before, swapped);
+    setPicker(null);
+  }, [plan, onUpdate, offerBack, t]);
+
   const pickMeal = useCallback((meal: SavedMeal) => {
     if (!picker) return;
-    const { date, slot, purpose } = picker;
-    if (onMealie) rememberMeal(meal);
+    keepMeals([meal]);
     // Detail was showing the dish being replaced: it follows the new one
     // (in Mealie the old recipe leaves the list once it is off the plan).
-    const entry = plan.find((p) => p.date === date && p.slot === slot);
-    const replaced = purpose.kind === 'main'
-      ? resolveMealWithEntry(date, slot, plan, allMeals).meal?.id
-      : purpose.kind === 'swap' ? entry?.courses?.[purpose.index]?.mealId : undefined;
+    const replaced = picker.pick === 'main'
+      ? resolveMealWithEntry(picker.date, picker.slot, plan, allMeals).meal?.id
+      : picker.pick === 'swap'
+        ? plan.find((p) => p.date === picker.date && p.slot === picker.slot)?.courses?.[picker.index]?.mealId
+        : undefined;
     if (replaced && replaced === selectedMealId) setSelectedMealId(meal.id);
-    if (purpose.kind === 'main') {
-      onUpdate((c) => ({ plan: assignPlanSlot(c.plan, date, slot, meal.id) }));
-    } else if (purpose.kind === 'add') {
-      onUpdate((c) => ({ plan: addPlanCourse(c.plan, date, slot, { kind: purpose.course, mealId: meal.id }) }));
-    } else {
-      onUpdate((c) => ({ plan: setPlanCourse(c.plan, date, slot, purpose.index, { mealId: meal.id }) }));
-    }
-    // A dish changed for another one, for everyone at once: the toast offers it back.
-    if (entry && purpose.kind !== 'add' && replacesDish(entry, purpose.kind === 'swap' ? purpose.index : null, { mealId: meal.id })) {
-      offerBack(t('mealPlannerModal.toast.mealChanged', { name: meal.name }), entry, replaced ? { to: meal.id, from: replaced } : undefined);
-    }
-    setPicker(null);
-  }, [picker, onMealie, rememberMeal, onUpdate, offerBack, t, plan, allMeals, selectedMealId]);
+    applyPick(picker, { mealId: meal.id }, meal.name, replaced ? { to: meal.id, from: replaced } : undefined);
+  }, [picker, keepMeals, plan, allMeals, selectedMealId, applyPick]);
 
   const pickText = useCallback((text: string) => {
-    if (!picker || !text.trim()) return;
-    const { date, slot, purpose } = picker;
-    const entry = plan.find((p) => p.date === date && p.slot === slot);
-    if (purpose.kind === 'main') {
-      onUpdate((c) => ({ plan: setPlanSlotText(c.plan, date, slot, text) }));
-    } else if (purpose.kind === 'add') {
-      onUpdate((c) => ({ plan: addPlanCourse(c.plan, date, slot, { kind: purpose.course, customText: text }) }));
-    } else {
-      onUpdate((c) => ({ plan: setPlanCourse(c.plan, date, slot, purpose.index, { customText: text }) }));
-    }
-    if (entry && purpose.kind !== 'add' && replacesDish(entry, purpose.kind === 'swap' ? purpose.index : null, { customText: text })) {
-      offerBack(t('mealPlannerModal.toast.mealChanged', { name: text.trim() }), entry);
-    }
-    setPicker(null);
-  }, [picker, plan, onUpdate, offerBack, t]);
+    const typed = text.trim();
+    if (!picker || !typed) return;
+    applyPick(picker, { customText: typed }, typed);
+  }, [picker, applyPick]);
 
   const popoverEntry = popover ? plan.find((p) => p.date === popover.date && p.slot === popover.slot) : undefined;
   // The meal went (cleared here, or by a save from somewhere else): nothing to show.
@@ -596,9 +561,9 @@ export default function MealPlannerModal({
 
   const baseUrl = status.state === 'local' ? undefined : status.baseUrl;
   const plannerUrl = baseUrl ? mealieLink(mealiePlannerUrl(baseUrl)) : undefined;
-  const lastUpdated = status.state === 'stale' && status.updatedAt
-    ? formatClockMinutes(wallClockParts(new Date(status.updatedAt), householdZone).minuteOfDay, timeFormat)
-    : null;
+  // With the weekday when the copy is from another day: the hub keeps one for a day.
+  const copyTime = useCopyTimeWords({ todayISO, zone: householdZone, timeFormat });
+  const lastUpdated = status.state === 'stale' && status.updatedAt ? copyTime(status.updatedAt) : null;
 
   const retryButton = (onClick: (() => void) | undefined) => onClick && (
     <button
@@ -621,9 +586,7 @@ export default function MealPlannerModal({
 
   let gridNotice: React.ReactNode = null;
   let gridReplacement: React.ReactNode = null;
-  const problemWords = status.state === 'unreachable'
-    ? { 'not-connected': 'notConnected', token: 'tokenRefused', unreachable: 'unreachable' }[status.problem]
-    : null;
+  const problemWords = status.state === 'unreachable' ? mealieProblemKey(status.problem) : null;
   if (!loaded) {
     gridReplacement = loadingLine;
   } else if (onMealie && status.state === 'unreachable') {
@@ -632,36 +595,42 @@ export default function MealPlannerModal({
         <span className="w-11 h-11 rounded-full bg-hs-warning/10 text-hs-warning flex items-center justify-center">
           <TriangleAlert className="w-5 h-5" aria-hidden />
         </span>
-        <p className="text-sm font-semibold text-hs-text-body">{t(`mealPlannerModal.mealie.${problemWords}Title`)}</p>
-        <p className="text-xs text-hs-text-faint max-w-sm leading-relaxed">{t(`mealPlannerModal.mealie.${problemWords}Body`)}</p>
+        <p className="text-sm font-semibold text-hs-text-body">{t(`${problemWords}Title`)}</p>
+        <p className="text-xs text-hs-text-faint max-w-sm leading-relaxed">{t(`${problemWords}Body`)}</p>
         {retryButton(onReload)}
       </div>
     );
   } else if (onMealie && status.state === 'stale') {
-    // The last good copy, and why there is no newer one: a refused token
-    // says how to fix it, since waiting will not.
-    const token = status.problem === 'token';
+    // The last good copy, and why there is no newer one: a refused token or
+    // a Mealie Home Screens cannot use says how to fix it, since waiting
+    // will not.
+    const fix = status.problem === 'token' || status.problem === 'setup' ? status.problem : null;
     gridNotice = (
       <div className="mx-5 mt-3 flex items-start gap-2.5 rounded-lg border border-hs-warning/30 bg-hs-warning/10 px-3 py-2.5" role="status">
         <TriangleAlert className="w-4 h-4 mt-0.5 shrink-0 text-hs-warning" aria-hidden />
         <div className="flex-1 min-w-0 text-xs leading-[17px]">
-          <p className="font-semibold text-hs-warning">{t(`mealPlannerModal.mealie.${token ? 'tokenRefused' : 'unreachable'}Title`)}</p>
+          <p className="font-semibold text-hs-warning">{t(`${mealieProblemKey(fix ?? 'unreachable')}Title`)}</p>
           <p className="text-hs-text-muted">
             {lastUpdated
-              ? t(token ? 'mealPlannerModal.mealie.tokenPausedSince' : 'mealPlannerModal.mealie.pausedSince', { time: lastUpdated })
-              : t(token ? 'mealPlannerModal.mealie.tokenPaused' : 'mealPlannerModal.mealie.paused')}
+              ? t(fix ? `mealPlannerModal.mealie.${fix}PausedSince` : 'mealPlannerModal.mealie.pausedSince', { time: lastUpdated })
+              : t(fix ? `mealPlannerModal.mealie.${fix}Paused` : 'mealPlannerModal.mealie.paused')}
           </p>
         </div>
         {retryButton(onReload)}
       </div>
     );
-  } else if (onMealie && !weekHeld) {
+  }
+  // A week the copy does not hold: on its way from Mealie, or missing, when
+  // the hub did not answer for it or Mealie is not answering. Never drawn
+  // empty, which reads as nothing planned. While Mealie is not answering
+  // nothing is asked, and the paused line above has the Try again.
+  if (loaded && onMealie && status.state !== 'unreachable' && !weekHeld) {
     gridReplacement = (
       <div className="flex-1 flex flex-col items-center justify-center gap-3 p-10 text-center" role="status">
-        {mealieWeeks === 'failed' ? (
+        {mealieWeeks === 'failed' || !wantedRange ? (
           <>
             <p className="text-sm font-semibold text-hs-text-body">{t('mealPlannerModal.mealie.weekFailed', { range: week.range })}</p>
-            {retryButton(onShowMealieRange && (() => onShowMealieRange(wantedRange)))}
+            {wantedRange && retryButton(onShowMealieRange && (() => onShowMealieRange(wantedRange)))}
           </>
         ) : (
           <p className="text-sm text-hs-text-faint">{t('mealPlannerModal.mealie.weekLoading', { range: week.range })}</p>
@@ -673,8 +642,8 @@ export default function MealPlannerModal({
   const subtitle = onMealie ? (
     <span className="inline-flex items-center gap-2">
       <MealieSourcePill href={plannerUrl} lastUpdated={lastUpdated} />
-      {/* With no copy of the plan at all, a count of 0 would read as nothing planned. */}
-      {status.state !== 'unreachable' && (
+      {/* With no copy of the plan, or none of this week, a count of 0 would read as nothing planned. */}
+      {status.state !== 'unreachable' && weekHeld && (
         <span>
           {week.thisWeek
             ? (mealieHousehold
@@ -687,8 +656,6 @@ export default function MealPlannerModal({
       )}
     </span>
   ) : loaded ? t('mealPlannerModal.subtitleMealsPlanned', { meals: savedMeals.length, planned: plan.length }) : null;
-
-  const popoverDefaultTime = popover ? settings.defaultSlotTimes[popover.slot] : undefined;
 
   return (
     <CRUDModalShell
@@ -744,12 +711,12 @@ export default function MealPlannerModal({
           {sidebarTab === 'library' && (!loaded ? loadingLine : onMealie && problemWords ? (
             // The hub already knows Mealie cannot answer: say so at once.
             <div className="flex-1 flex flex-col items-center justify-center gap-2 p-8 text-center" role="status">
-              <p className="text-sm font-semibold text-hs-text-body">{t(`mealPlannerModal.mealie.${problemWords}Title`)}</p>
+              <p className="text-sm font-semibold text-hs-text-body">{t(`${problemWords}Title`)}</p>
             </div>
           ) : onMealie ? (
             <MealieLibrary
               selectedMealId={selectedMealId}
-              onSelectMeal={(meal) => { rememberMeal(meal); selectMeal(meal.id); }}
+              onSelectMeal={(meal) => { keepMeals([meal]); selectMeal(meal.id); }}
             />
           ) : (
             <SidebarLibrary
@@ -773,7 +740,7 @@ export default function MealPlannerModal({
           {sidebarTab === 'grocery' && (onMealie ? (
             <MealieGrocery
               planBaseUrl={baseUrl}
-              formatTime={(at) => formatClockMinutes(wallClockParts(new Date(at), householdZone).minuteOfDay, timeFormat)}
+              formatTime={copyTime}
               onError={(message) => showToast(message, undefined, true)}
             />
           ) : (
@@ -798,6 +765,8 @@ export default function MealPlannerModal({
           activeCell={popover ? { date: popover.date, slot: popover.slot } : null}
           editable={editable}
           weekDates={viewedWeekDates}
+          weekRange={week.range}
+          defaultTimes={settings.defaultSlotTimes}
           todayISO={todayISO}
           isCurrentWeek={isCurrentWeek}
           onSelectMeal={selectMeal}
@@ -833,11 +802,11 @@ export default function MealPlannerModal({
           source={source}
           timeFormat={timeFormat}
           accentColor={accentColor}
-          defaultTime={popoverDefaultTime}
+          defaultTimes={settings.defaultSlotTimes}
           suspended={picker !== null}
-          onChangeMain={() => setPicker({ date: popover.date, slot: popover.slot, purpose: { kind: 'main' } })}
-          onAddCourse={(kind: MealCourseKind) => setPicker({ date: popover.date, slot: popover.slot, purpose: { kind: 'add', course: kind } })}
-          onSwapCourse={(index, kind) => setPicker({ date: popover.date, slot: popover.slot, purpose: { kind: 'swap', course: kind, index } })}
+          onChangeMain={() => setPicker({ date: popover.date, slot: popover.slot, pick: 'main' })}
+          onAddCourse={(kind: MealCourseKind) => setPicker({ date: popover.date, slot: popover.slot, pick: 'add', kind })}
+          onSwapCourse={(index, kind) => setPicker({ date: popover.date, slot: popover.slot, pick: 'swap', kind, index })}
           onMoveCourse={moveCourse}
           onRemoveCourse={removeCourse}
           onSetTime={(time) => setSlotTime(popover.date, popover.slot, time)}
@@ -849,8 +818,7 @@ export default function MealPlannerModal({
       {/* ── Meal Picker Popover ── */}
       {picker && (
         <MealPickerPopover
-          target={{ date: picker.date, slot: picker.slot }}
-          purpose={picker.purpose}
+          target={picker}
           source={source}
           meals={savedMeals}
           onPickMeal={pickMeal}

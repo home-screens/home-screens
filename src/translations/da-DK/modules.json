@@ -368,6 +368,7 @@
     "noMealPlanned": "Intet måltid planlagt",
     "nothingPlannedThisWeek": "Intet planlagt i denne uge",
     "todaysMeals": "Dagens måltider",
+    "tomorrowsMeals": "Morgendagens måltider",
     "now": "Nu",
     "servingAt": "serveres kl. {time}",
     "time": {
@@ -415,6 +416,8 @@
     "mealieNotConnectedHint": "Forbind den under Indstillinger på computeren for at vise madplanen.",
     "mealieTokenRefused": "Mealie lukker ikke Home Screens ind længere",
     "mealieTokenRefusedHint": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise madplanen.",
+    "mealieSetup": "Home Screens kan ikke bruge denne Mealie",
+    "mealieSetupHint": "Tjek Mealie under Indstillinger på computeren for at vise madplanen.",
     "recipe": {
       "prep": "Forberedelse",
       "cook": "Tilberedning",

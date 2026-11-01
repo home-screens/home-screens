@@ -4,16 +4,17 @@ import { useEffect, useState } from 'react';
 import { ExternalLink, Heart, History, Pencil, Search, X } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import { editorFetch } from '@/lib/editor-fetch';
-import { fetchMealieRecipeDetail, MealClientError, type MealieRecipeDetailWire, type MealieRecipeFilter } from '@/lib/meal-client';
+import { fetchMealieRecipeDetail, MealClientError } from '@/lib/meal-client';
 import type { MealieProblem } from '@/lib/meal-sources';
-import { parseMealieMealId } from '@/lib/mealie-map';
-import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
+import { parseMealieMealId, type MealieRecipeDetail } from '@/lib/mealie-map';
+import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import MealPicture from '@/components/meals/MealPicture';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
+import { mealieRequestFailedKeys } from './mealie-problem-words';
 
 /**
  * The sidebar's three tabs while the plan lives in Mealie. Recipes are
@@ -37,10 +38,10 @@ export function MealieLibrary({
 }) {
   const t = useTranslate('editor');
   const dishTime = useDishTime();
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Exclude<MealieRecipeFilter, 'all'>>('favorites');
+  // Favorites and Recently made, or the words typed; no cookbook chips here.
+  const { query: search, setQuery: setSearch, shortcut, choose, search: results } = useMealieRecipeBrowser(editorFetch, { withCookbooks: false });
   const query = search.trim();
-  const results = useMealieRecipeSearch(editorFetch, { search, filter, enabled: true });
+  const failed = mealieRequestFailedKeys(results.problem, 'mealPlannerModal.picker.mealieError');
 
   function onScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
@@ -51,9 +52,9 @@ export function MealieLibrary({
     ? t('mealPlannerModal.picker.lookingInMealie')
     : results.error
       ? null
-      : query
+      : shortcut.kind === 'search'
         ? t('mealPlannerModal.picker.recipesInMealie', { count: results.total })
-        : filter === 'favorites'
+        : shortcut.kind === 'favorites'
           ? t('mealPlannerModal.picker.favoritesAtoZ', { count: results.total })
           : t('mealPlannerModal.picker.recentlyMadeFirst');
 
@@ -84,14 +85,14 @@ export function MealieLibrary({
         </div>
         <div className="flex gap-1.5">
           {(['favorites', 'recent'] as const).map((f) => {
-            const on = !query && filter === f;
+            const on = shortcut.kind === f;
             const Icon = f === 'favorites' ? Heart : History;
             return (
               <button
                 key={f}
                 type="button"
                 aria-pressed={on}
-                onClick={() => { setFilter(f); setSearch(''); }}
+                onClick={() => choose(f)}
                 className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
                   on
                     ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
@@ -110,8 +111,8 @@ export function MealieLibrary({
         {countLine && <div className="px-2 pb-1 text-[11px] text-hs-text-faint">{countLine}</div>}
         {results.error && !results.loading && (
           <div className="px-3 py-6 text-center">
-            <p className="text-sm font-semibold text-hs-text-body">{t(results.problem === 'not-connected' ? 'mealPlannerModal.mealie.notConnectedTitle' : results.problem === 'token' ? 'mealPlannerModal.mealie.tokenRefusedTitle' : 'mealPlannerModal.picker.mealieError')}</p>
-            {results.problem === 'token' && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t('mealPlannerModal.mealie.tokenFix')}</p>}
+            <p className="text-sm font-semibold text-hs-text-body">{t(failed.title)}</p>
+            {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t(failed.fix)}</p>}
             <button
               type="button"
               onClick={results.retry}
@@ -123,9 +124,9 @@ export function MealieLibrary({
         )}
         {!results.loading && !results.error && results.items.length === 0 && (
           <div className="px-3 py-6 text-center text-xs text-hs-text-faint leading-relaxed">
-            {query
+            {shortcut.kind === 'search'
               ? t('mealPlannerModal.picker.noRecipesCalled', { text: query })
-              : filter === 'favorites'
+              : shortcut.kind === 'favorites'
                 ? t('mealPlannerModal.picker.noFavorites')
                 : t('mealPlannerModal.picker.noRecentlyMade')}
           </div>
@@ -211,7 +212,7 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
 /** The recipe's ingredients from Mealie, two to a row, read only. */
 function MealieIngredients({ recipeId }: { recipeId: string | null }) {
   const t = useTranslate('editor');
-  const [state, setState] = useState<{ id: string; detail: MealieRecipeDetailWire | null; failed: boolean; problem?: MealieProblem } | null>(null);
+  const [state, setState] = useState<{ id: string; detail: MealieRecipeDetail | null; failed: boolean; problem?: MealieProblem } | null>(null);
   useEffect(() => {
     if (!recipeId) return;
     const controller = new AbortController();
@@ -227,6 +228,8 @@ function MealieIngredients({ recipeId }: { recipeId: string | null }) {
   if (!recipeId) return null;
   const current = state?.id === recipeId ? state : null;
   if (current?.detail && current.detail.ingredients.length === 0) return null;
+  // Mealie refusing the token is not Mealie losing the ingredients.
+  const failed = mealieRequestFailedKeys(current?.problem, 'mealPlannerModal.mealie.ingredientsFailed');
   return (
     <section className="mt-4" aria-label={t('mealPlannerModal.detail.ingredientsLabel')}>
       <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-hs-text-faint mb-1.5">
@@ -237,16 +240,13 @@ function MealieIngredients({ recipeId }: { recipeId: string | null }) {
           {Array.from({ length: 6 }, (_, i) => <div key={i} className="h-3 rounded bg-hs-card" />)}
         </div>
       ) : current.failed || !current.detail ? (
-        // Mealie refusing the token is not Mealie losing the ingredients.
-        current.problem === 'token' ? (
+        failed.fix ? (
           <p className="text-xs text-hs-text-faint">
-            <span className="block font-semibold text-hs-text-muted">{t('mealPlannerModal.mealie.tokenRefusedTitle')}</span>
-            {t('mealPlannerModal.mealie.tokenFix')}
+            <span className="block font-semibold text-hs-text-muted">{t(failed.title)}</span>
+            {t(failed.fix)}
           </p>
-        ) : current.problem === 'not-connected' ? (
-          <p className="text-xs text-hs-text-faint">{t('mealPlannerModal.mealie.notConnectedTitle')}</p>
         ) : (
-          <p className="text-xs text-hs-text-faint">{t('mealPlannerModal.mealie.ingredientsFailed')}</p>
+          <p className="text-xs text-hs-text-faint">{t(failed.title)}</p>
         )
       ) : (
         <ul className="grid grid-cols-2 gap-x-3">

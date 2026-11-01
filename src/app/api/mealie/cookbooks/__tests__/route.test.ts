@@ -7,19 +7,18 @@ vi.mock('@/lib/auth', () => ({
 }));
 vi.mock('@/lib/mealie', async (importOriginal) => {
   const real = await importOriginal<typeof import('@/lib/mealie')>();
-  return { ...real, getMealieConfig: vi.fn(), listMealieCookbooks: vi.fn() };
+  return { ...real, listMealieCookbooks: vi.fn() };
 });
 
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
-import { getMealieConfig, listMealieCookbooks, MealieError } from '@/lib/mealie';
+import { listMealieCookbooks, MealieError } from '@/lib/mealie';
 
 const req = () => new NextRequest('http://localhost/api/mealie/cookbooks');
 
 describe('GET /api/mealie/cookbooks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMealieConfig).mockResolvedValue({ url: 'http://mealie.local', apiKey: 'k' });
   });
 
   it('answers the cookbooks', async () => {
@@ -28,8 +27,12 @@ describe('GET /api/mealie/cookbooks', () => {
   });
 
   it('says when Mealie is not connected or down', async () => {
-    vi.mocked(getMealieConfig).mockResolvedValueOnce(null);
-    expect((await (await GET(req())).json()).failure).toBe('not-set-up');
+    // The real call, with no address or key saved in the test sandbox.
+    const real = await vi.importActual<typeof import('@/lib/mealie')>('@/lib/mealie');
+    vi.mocked(listMealieCookbooks).mockImplementationOnce(real.listMealieCookbooks);
+    const res = await GET(req());
+    expect(res.status).toBe(400);
+    expect((await res.json()).failure).toBe('not-set-up');
     vi.mocked(listMealieCookbooks).mockRejectedValue(new MealieError('unreachable', 'down'));
     expect((await GET(req())).status).toBe(502);
   });

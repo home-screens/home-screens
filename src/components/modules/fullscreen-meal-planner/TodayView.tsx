@@ -2,10 +2,11 @@ import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISO
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
-import { getDifficultyColor, px } from './meal-planner-utils';
+import { px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
+import { MealMetaPills } from '../shared/MealMetaPills';
 import { useMealMinutes } from '../shared/useMealMinutes';
 
 /**
@@ -150,31 +151,15 @@ export default function TodayView({
                   {note}
                 </span>
               ))}
-              {/* Meta pills */}
-              <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: P(14), justifyContent: 'center' }}>
-                {showPrepTime && mealMinutes(heroMeal) && (
-                  <span style={pillStyle}>
-                    &#9201; {mealMinutes(heroMeal, true)}
-                  </span>
-                )}
-                {showDifficulty && heroMeal?.difficulty && (() => {
-                  const dc = getDifficultyColor(heroMeal.difficulty);
-                  return (
-                    <span style={{
-                      ...pillStyle,
-                      color: dc ?? 'var(--fmp-text-3)',
-                      border: dc ? `1px solid ${dc}40` : undefined,
-                    }}>
-                      {heroMeal.difficulty}
-                    </span>
-                  );
-                })()}
-                {showTags && heroMeal?.tags?.map((tag) => (
-                  <span key={tag} style={pillStyle}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <MealMetaPills
+                meal={heroMeal}
+                showPrepTime={showPrepTime}
+                showDifficulty={showDifficulty}
+                showTags={showTags}
+                shortMinutes
+                pillStyle={pillStyle}
+                gap={P(14)}
+              />
             </>
           ) : (
             <span style={{ fontSize: P(60), fontFamily: headerFont, color: 'var(--fmp-text-3)', lineHeight: 1.1 }}>

@@ -3,12 +3,12 @@
 import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
 import {
-  generateGroceryList,
   groceryListNeedsHeadings,
-  plannedMealsWithoutIngredients,
   shortNameList,
+  weekGroceryList,
   GROCERY_CATEGORY_ORDER,
 } from '@/lib/grocery-utils';
+import { groceryItemKey } from '@/lib/grocery-checks';
 import { useLocale, useTranslate } from '@/i18n';
 import type { ShownWeek } from '@/lib/meal-plan-words';
 
@@ -27,23 +27,13 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
   // Grocery category labels live in `core.meal.grocery.categoryLabels.*`
   // (shared with /remote).
   const tCore = useTranslate('core');
-  const groceryMap = useMemo(
-    () => generateGroceryList(plan, meals, checkedItems),
+  const { list: groceryMap, counts: { total, checked }, withoutIngredients } = useMemo(
+    () => weekGroceryList(plan, meals, checkedItems),
     [plan, meals, checkedItems],
   );
 
   const showHeadings = groceryListNeedsHeadings(groceryMap);
   const locale = useLocale();
-  const withoutIngredients = useMemo(() => plannedMealsWithoutIngredients(plan, meals), [plan, meals]);
-
-  let total = 0;
-  let checked = 0;
-  for (const [, group] of groceryMap) {
-    for (const item of group.items) {
-      total++;
-      if (item.checked) checked++;
-    }
-  }
 
   const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
 
@@ -116,7 +106,7 @@ export default function SidebarGrocery({ plan, meals, checkedItems, onToggleItem
 
               {/* Items */}
               {group.items.map((item) => {
-                const itemKey = item.name.toLowerCase();
+                const itemKey = groceryItemKey(item.name);
                 const isChecked = item.checked;
 
                 return (

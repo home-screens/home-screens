@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
-import type { MealCourseKind, MealSettings, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
+import type { MealSettings, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
 import type { MealieProblem } from '@/lib/meal-sources';
 import {
   SLOT_META,
@@ -11,7 +11,7 @@ import {
   resolveMealTimeFormat,
   resolvePlannedMealTime,
 } from '@/lib/meal-constants';
-import { getMealCourseLabelKey } from '@/lib/meal-courses';
+import { courseKindsToAdd, getMealCourseLabelKey, type MealPickTarget } from '@/lib/meal-courses';
 import { mealShownMinutes, mealTagLabel } from '@/lib/meal-dish-rules';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
@@ -20,7 +20,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';
-import { formatShownMinutes, type MealPickTarget } from './meals-shared';
+import { formatShownMinutes } from './meals-shared';
 
 interface MealSheetProps {
   date: string;
@@ -109,13 +109,10 @@ function MiniButton({ label, disabled, onClick, children }: { label: string; dis
   );
 }
 
-/** The ways to add a course, in the order the sheet offers them. */
-const ADD_KINDS: readonly MealCourseKind[] = ['side', 'dessert', 'drink', 'main'];
-
 /**
  * One sheet for a whole planned meal: the main dish with Change, the courses
- * served with it (swap, move up and down, remove), four ways to add one, the
- * serving time, and Clear. Every change saves as it is made (in Mealie mode,
+ * served with it (swap, move up and down, remove), the ways to add one while
+ * it has room, the serving time, and Clear. Every change saves as it is made (in Mealie mode,
  * straight to Mealie).
  */
 export default function MealSheet({
@@ -168,6 +165,7 @@ export default function MealSheet({
     const meal = course.mealId ? byId.get(course.mealId) ?? null : null;
     return { course, index, meal, name: meal?.name ?? course.customText?.trim() ?? t('mealsPlan.slot.mealFallback') };
   });
+  const addKinds = courseKindsToAdd(planned, !!mainName);
   const locked: CSSProperties | undefined = paused ? { opacity: 0.45, pointerEvents: 'none' } : undefined;
 
   return (
@@ -342,36 +340,37 @@ export default function MealSheet({
                 </div>
               );
             })}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: courses.length > 0 ? 8 : 0 }}>
-              {/* "Another main" needs a main dish to be another to. */}
-              {ADD_KINDS.filter((kind) => kind !== 'main' || !!mainName).map((kind) => (
-                <button
-                  key={kind}
-                  type="button"
-                  onClick={() => onPick({ date, slot, pick: 'add', kind })}
-                  style={{
-                    minHeight: 44,
-                    borderRadius: 10,
-                    border: '1px dashed var(--hs-border-strong)',
-                    background: 'transparent',
-                    color: 'var(--hs-text-muted)',
-                    fontSize: 13,
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                    padding: '6px 8px',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    textAlign: 'center',
-                  }}
-                >
-                  <Plus size={15} strokeWidth={2} aria-hidden style={{ flex: 'none' }} />
-                  {t(`mealSheet.add.${kind}`)}
-                </button>
-              ))}
-            </div>
+            {addKinds.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: courses.length > 0 ? 8 : 0 }}>
+                {addKinds.map((kind) => (
+                  <button
+                    key={kind}
+                    type="button"
+                    onClick={() => onPick({ date, slot, pick: 'add', kind })}
+                    style={{
+                      minHeight: 44,
+                      borderRadius: 10,
+                      border: '1px dashed var(--hs-border-strong)',
+                      background: 'transparent',
+                      color: 'var(--hs-text-muted)',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      padding: '6px 8px',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Plus size={15} strokeWidth={2} aria-hidden style={{ flex: 'none' }} />
+                    {t(`mealSheet.add.${kind}`)}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div style={{ height: 16 }} />
             <div style={SECTION}>{t('mealSheet.servingTime')}</div>

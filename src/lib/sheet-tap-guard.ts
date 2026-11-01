@@ -8,6 +8,9 @@
  * One listener set for the whole page, in the capture phase, so it runs
  * before any component's own handlers: pointer, mouse and touch presses as
  * well as clicks, because a row's hold-to-uncheck acts on pointer up.
+ *
+ * The plain double tap on one tick box, which every grocery list guards the
+ * same way, is decided here too (`isRepeatTap`).
  */
 
 /** How long a second tap near the one that closed a sheet is ignored. */
@@ -75,4 +78,23 @@ export function guardAfterSheetClose(): void {
  */
 export function guardAfterRowRemoved(): void {
   guardAfterSheetClose();
+}
+
+/** Two taps this close together are one double tap. */
+export const DOUBLE_TAP_MS = 300;
+
+/** The last tap on a list of tick boxes: which item, and when. */
+export interface LastTap {
+  id: string;
+  at: number;
+}
+
+/**
+ * Whether a tap on `id` at `now` is the second half of a double tap on the
+ * same item, not a change of mind: a child's quick double tap on "Milk" must
+ * tick it once, not tick it and untick it again. A tap on another item always
+ * counts. The caller remembers the taps that count as `last`.
+ */
+export function isRepeatTap(last: LastTap | null, id: string, now: number): boolean {
+  return last !== null && last.id === id && now - last.at < DOUBLE_TAP_MS;
 }

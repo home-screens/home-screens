@@ -379,6 +379,7 @@
     "loadError": "Couldn't load your meals. Check the hub is on and try again.",
     "retry": "Try again",
     "saveFailed": "That didn't save. Try again.",
+    "saveFailedConnection": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
     "duration": {
       "minutes": "{minutes}m",
       "hours": "{hours}h",
@@ -1430,14 +1431,25 @@
       "title": "Mealie isn't letting Home Screens in",
       "description": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it on the computer in Settings > API keys."
     },
+    "setup": {
+      "title": "Home Screens can't use this Mealie",
+      "description": "Check Mealie's address on the computer in Settings > API keys. If it's right, Mealie may need an update."
+    },
+    "connection": {
+      "title": "Can't reach Home Screens right now",
+      "description": "Check that this phone is connected, then try again."
+    },
     "paused": {
       "description": "Planning is paused until Mealie is back.",
       "descriptionWithTime": "Planning is paused until Mealie is back. This is the plan from {time}.",
       "tokenDescription": "Make a new token in Mealie and save it on the computer in Settings > API keys. Until then, planning is paused.",
-      "tokenDescriptionWithTime": "Make a new token in Mealie and save it on the computer in Settings > API keys. Until then, planning is paused. This is the plan from {time}."
+      "tokenDescriptionWithTime": "Make a new token in Mealie and save it on the computer in Settings > API keys. Until then, planning is paused. This is the plan from {time}.",
+      "setupDescription": "Check Mealie's address on the computer in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused.",
+      "setupDescriptionWithTime": "Check Mealie's address on the computer in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from {time}."
     },
     "saveFailed": {
       "token": "Mealie isn't letting Home Screens in, so that wasn't saved.",
+      "setup": "Home Screens can't use this Mealie, so that wasn't saved.",
       "notConnected": "Mealie isn't connected, so that wasn't saved.",
       "unreachable": "Mealie isn't answering, so that wasn't saved. Try again in a moment."
     },
@@ -1517,6 +1529,7 @@
       "inCart": "Checked off ({count})",
       "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
       "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",
+      "staleSetup": "Home Screens can't use this Mealie. This is the list from {time}.",
       "staleNotConnected": "Mealie isn't connected. This is the list from {time}.",
       "staleConnection": "Can't reach Home Screens. This is the list from {time}.",
       "loading": "Getting your list from Mealie…",
@@ -1528,6 +1541,10 @@
       "connectionTitle": "Can't reach Home Screens right now",
       "connectionDescription": "Check that this phone is connected, then try again.",
       "noConnection": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
+      "notSaved": {
+        "one": "{items} wasn't saved. Try again.",
+        "other": "{items} weren't saved. Try again."
+      },
       "notSavedUnreachable": {
         "one": "{items} wasn't saved. Mealie isn't answering, so try again in a moment.",
         "other": "{items} weren't saved. Mealie isn't answering, so try again in a moment."
@@ -1535,6 +1552,10 @@
       "notSavedToken": {
         "one": "{items} wasn't saved. Mealie isn't letting Home Screens in.",
         "other": "{items} weren't saved. Mealie isn't letting Home Screens in."
+      },
+      "notSavedSetup": {
+        "one": "{items} wasn't saved. Home Screens can't use this Mealie.",
+        "other": "{items} weren't saved. Home Screens can't use this Mealie."
       },
       "notSavedNotConnected": {
         "one": "{items} wasn't saved. Mealie isn't connected.",

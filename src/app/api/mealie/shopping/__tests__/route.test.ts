@@ -11,13 +11,18 @@ vi.mock('@/lib/meal-data', () => ({ readMealData: vi.fn(), updateMealData: vi.fn
 vi.mock('@/lib/mealie-shopping', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/mealie-shopping')>()),
   readMealieShopping: vi.fn(),
-  mealieShoppingListExists: vi.fn(),
+}));
+// Choosing a list asks the household's lists for real, of a fake Mealie.
+vi.mock('@/lib/mealie', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/mealie')>()),
+  requireMealieConfig: vi.fn(),
+  mealieJson: vi.fn(),
 }));
 
 import { GET, PUT } from '../route';
 import { readMealData, updateMealData } from '@/lib/meal-data';
-import { mealieShoppingListExists, readMealieShopping } from '@/lib/mealie-shopping';
-import { MealieError } from '@/lib/mealie';
+import { clearMealieShoppingCache, readMealieShopping } from '@/lib/mealie-shopping';
+import { MealieError, mealieJson, requireMealieConfig } from '@/lib/mealie';
 
 const LIST_G = '930a09f2-00f6-44b3-89ec-449586cffcc0';
 const LIST_C = 'a32f9905-cb4b-48ed-9521-3098a7f9346b';
@@ -42,7 +47,15 @@ describe('/api/mealie/shopping', () => {
     vi.mocked(readMealData).mockImplementation(async () => stored);
     vi.mocked(updateMealData).mockImplementation(async (mutator) => (stored = await mutator(stored)));
     vi.mocked(readMealieShopping).mockResolvedValue(ANSWER);
-    vi.mocked(mealieShoppingListExists).mockResolvedValue(true);
+    clearMealieShoppingCache();
+    vi.mocked(requireMealieConfig).mockResolvedValue({ url: 'http://mealie.local', apiKey: 'k' });
+    vi.mocked(mealieJson).mockImplementation(async (path: string) => {
+      const lists = [{ id: LIST_C, name: 'Costco run' }, { id: LIST_G, name: 'Groceries' }];
+      if (path.startsWith('/api/households/shopping/lists?')) return { items: lists } as never;
+      const one = lists.find((l) => path.endsWith(`/lists/${l.id}`));
+      if (one) return { ...one, listItems: [] } as never;
+      throw new MealieError('upstream', 'Mealie answered 404', 404);
+    });
   });
 
   it('answers the list the family shops from', async () => {
@@ -78,10 +91,13 @@ describe('/api/mealie/shopping', () => {
     expect(readMealieShopping).toHaveBeenCalledWith(LIST_C);
   });
 
-  it("refuses a list Mealie doesn't have, and keeps the old choice", async () => {
-    vi.mocked(mealieShoppingListExists).mockResolvedValue(false);
-    const res = await PUT(put({ list: LIST_C }));
+  it('refuses a list somebody deleted in Mealie as gone, the same as adding to it, and keeps the old choice', async () => {
+    const deleted = '5b2c7e1a-9f3d-4c8b-a6e2-0d1f4a7b9c3e';
+    const res = await PUT(put({ list: deleted }));
     expect(res.status).toBe(404);
+    // `gone` is what tells the phone and the editor to read the lists again
+    // instead of saying Mealie isn't answering.
+    expect(await res.json()).toMatchObject({ reason: 'gone' });
     expect(stored.mealieShoppingList).toBe(LIST_G);
   });
 
@@ -91,7 +107,7 @@ describe('/api/mealie/shopping', () => {
   });
 
   it("says Mealie isn't answering instead of saving a list nobody could check", async () => {
-    vi.mocked(mealieShoppingListExists).mockRejectedValue(new MealieError('unreachable', 'Mealie did not answer'));
+    vi.mocked(mealieJson).mockRejectedValue(new MealieError('unreachable', 'Mealie did not answer'));
     const res = await PUT(put({ list: LIST_C }));
     expect(res.status).toBe(502);
     expect(stored.mealieShoppingList).toBe(LIST_G);

@@ -158,3 +158,13 @@ export function localDate(offsetDays: number): string {
   const d = dayAt(offsetDays);
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
+
+/**
+ * The shared meal seed's Spaghetti Night, planned tonight and tomorrow night.
+ * For the Today views, which turn to tomorrow once tonight's dinner is over:
+ * planned tonight alone, it was gone from them late in the evening.
+ */
+export const DINNER_TONIGHT_AND_TOMORROW = {
+  savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝', prepTime: 25 }],
+  plan: [0, 1].map((day) => ({ slot: 'dinner', mealId: 'meal-1', date: localDate(day) })),
+};

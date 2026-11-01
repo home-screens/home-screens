@@ -1376,6 +1376,7 @@
         "optional": "Optioneel, niet ingesteld",
         "checking": "Bezig met controleren…",
         "tokenRefused": "Token niet geaccepteerd",
+        "cantUse": "Niet bruikbaar",
         "notAnswering": "Reageert niet",
         "couldNotCheck": "Controleren lukte niet",
         "removeConfirm": {
@@ -1662,7 +1663,9 @@
         "mealieConnected": "Verbonden",
         "mealieNotAnswering": "Antwoordt nu niet",
         "mealieTokenRefused": "Token niet geaccepteerd",
+        "mealieSetup": "Niet bruikbaar",
         "tokenRefused": "Mealie accepteert de opgeslagen token niet meer, dus de maaltijdplanning wordt niet bijgewerkt. Maak in Mealie een nieuwe token en plak die op de pagina",
+        "setup": "Home Screens kan deze Mealie niet gebruiken, dus de maaltijdplanning wordt niet bijgewerkt. Klopt het adres, dan heeft Mealie misschien een update nodig. Controleer het adres op de pagina",
         "connectFirst": "Alleen als je gezin Mealie gebruikt, een aparte recepten-app. Om daarin te plannen, koppel je hem eerst op de pagina",
         "apiKeysLink": "API-sleutels",
         "connectedOffer": "Mealie is verbonden. Kies het om te plannen met de recepten en de planning die je daar bijhoudt.",
@@ -2932,6 +2935,7 @@
       "mealieSuggestedEveryNightDates": "Voor elke avond van de week van {range} een avondmaaltijd gepland.",
       "mealieNothingFits": "Mealie had geen recepten om voor te stellen voor die maaltijden. Kijk naar de regels van het maaltijdplan in Mealie.",
       "mealieTokenSaveFailed": "Mealie laat Home Screens niet binnen, dus die wijziging is niet opgeslagen. Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
+      "mealieSetupSaveFailed": "Home Screens kan deze Mealie niet gebruiken, dus die wijziging is niet opgeslagen. Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
       "mealieNotConnectedSaveFailed": "Mealie is niet gekoppeld, dus die wijziging is niet opgeslagen. Vul het adres en de token in bij Instellingen > API-sleutels."
     },
     "library": {
@@ -3072,6 +3076,8 @@
       "notConnectedBody": "De maaltijdplanning komt uit Mealie, maar het adres of de token van Mealie is niet opgeslagen. Vul ze in bij Instellingen > API-sleutels, of zet de planning terug op Home Screens bij Instellingen > Maaltijden.",
       "tokenRefusedTitle": "Mealie laat Home Screens niet meer binnen",
       "tokenRefusedBody": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op bij Instellingen > API-sleutels.",
+      "setupTitle": "Home Screens kan deze Mealie niet gebruiken",
+      "setupBody": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
       "paused": "Plannen staat stil tot Mealie terug is.",
       "pausedSince": "Plannen staat stil tot Mealie terug is. Dit is de planning van {time}.",
       "weekLoading": "De week van {range} wordt uit Mealie gehaald…",
@@ -3111,6 +3117,7 @@
         "inCart": "Afgevinkt ({count})",
         "staleUnreachable": "Mealie reageert niet. Dit is de lijst van {time}.",
         "staleToken": "Mealie laat Home Screens niet meer binnen. Dit is de lijst van {time}.",
+        "staleSetup": "Home Screens kan deze Mealie niet gebruiken. Dit is de lijst van {time}.",
         "staleNotConnected": "Mealie is niet gekoppeld. Dit is de lijst van {time}.",
         "staleConnection": "Kan Home Screens niet bereiken. Dit is de lijst van {time}.",
         "loading": "Je lijst wordt uit Mealie gehaald…",
@@ -3122,6 +3129,10 @@
         "connectionTitle": "Kan Home Screens nu niet bereiken",
         "connectionBody": "Kijk of deze computer verbinding heeft en probeer het dan opnieuw.",
         "noConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
+        "notSaved": {
+          "one": "{items} is niet opgeslagen. Probeer het opnieuw.",
+          "other": "{items} zijn niet opgeslagen. Probeer het opnieuw."
+        },
         "notSavedUnreachable": {
           "one": "{items} is niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens.",
           "other": "{items} zijn niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens."
@@ -3129,6 +3140,10 @@
         "notSavedToken": {
           "one": "{items} is niet opgeslagen. Mealie laat Home Screens niet meer binnen.",
           "other": "{items} zijn niet opgeslagen. Mealie laat Home Screens niet meer binnen."
+        },
+        "notSavedSetup": {
+          "one": "{items} is niet opgeslagen. Home Screens kan deze Mealie niet gebruiken.",
+          "other": "{items} zijn niet opgeslagen. Home Screens kan deze Mealie niet gebruiken."
         },
         "notSavedNotConnected": {
           "one": "{items} is niet opgeslagen. Mealie is niet gekoppeld.",
@@ -3147,7 +3162,10 @@
       "ingredientsFailed": "Mealie heeft de ingrediënten niet gestuurd. Open het recept in Mealie om ze te zien.",
       "tokenFix": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels.",
       "tokenPaused": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil.",
-      "tokenPausedSince": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is de planning van {time}."
+      "tokenPausedSince": "Maak in Mealie een nieuwe token en plak die bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is de planning van {time}.",
+      "setupFix": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig.",
+      "setupPaused": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil.",
+      "setupPausedSince": "Controleer het adres van Mealie bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil. Dit is de planning van {time}."
     },
     "popover": {
       "savesToMealie": "Wordt opgeslagen in Mealie",

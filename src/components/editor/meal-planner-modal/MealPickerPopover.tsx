@@ -2,29 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BookOpen, Heart, History, Pencil, Search, Tag, X } from 'lucide-react';
-import type { MealCourseKind, MealSlotType, SavedMeal } from '@/types/config';
+import type { SavedMeal } from '@/types/config';
 import { dateToDayIndex, getLocalizedDayNames, getMealSlotLabelKey } from '@/lib/meal-constants';
-import { mealsForCourse, searchSavedMeals } from '@/lib/meal-dish-rules';
+import type { MealPickTarget } from '@/lib/meal-courses';
+import { pickerEnterChoice, pickerMealGroups, searchSavedMeals } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
-import type { MealieRecipeFilter } from '@/lib/meal-client';
-import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
-import { useMealieCookbooks } from '@/components/meals/useMealieCookbooks';
-import { useMealieCourseCategory } from '@/components/meals/useMealieCourseCategory';
+import { useMealieRecipeBrowser, type RecipeShortcutChoice } from '@/components/meals/useMealieRecipeBrowser';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useReturnFocus } from '@/hooks/useReturnFocus';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
-
-/** What the picker is choosing: the main dish, a course to add, or a course to swap. */
-export type PickerPurpose =
-  | { kind: 'main' }
-  | { kind: 'add'; course: MealCourseKind }
-  | { kind: 'swap'; course: MealCourseKind; index: number };
+import { mealieRequestFailedKeys } from './mealie-problem-words';
 
 interface MealPickerPopoverProps {
-  target: { date: string; slot: MealSlotType };
-  purpose: PickerPurpose;
+  /** The meal and what is being chosen for it: the main dish, a course to add, or a course to swap. */
+  target: MealPickTarget;
   /** `mealie`: search Mealie's recipes live. `local`: the family's saved meals. */
   source: 'local' | 'mealie';
   /** The family's saved meals (not used in Mealie mode). */
@@ -42,7 +35,6 @@ const PLACEHOLDER_ROWS = 4;
 
 export default function MealPickerPopover({
   target,
-  purpose,
   source,
   meals,
   onPickMeal,
@@ -54,50 +46,29 @@ export default function MealPickerPopover({
   const formattingLocale = useFormattingLocale();
   const dishTime = useDishTime();
   const dayNamesFull = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<Exclude<MealieRecipeFilter, 'all'>>('favorites');
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
-  const query = search.trim();
   const onMealie = source === 'mealie';
 
-  // "Add a side" opens on the household's own Side category when it has one.
-  const courseKind = onMealie && purpose.kind !== 'main' ? purpose.course : null;
-  const { category: courseCategory, ready: categoryReady } = useMealieCourseCategory(editorFetch, courseKind);
-  const [category, setCategory] = useState<string | undefined>(undefined);
-  const [categoryApplied, setCategoryApplied] = useState(false);
-  useEffect(() => {
-    if (!categoryReady || categoryApplied) return;
-    setCategoryApplied(true);
-    if (courseCategory) setCategory(courseCategory.slug);
-  }, [categoryReady, categoryApplied, courseCategory]);
-  // The family's own sets of recipes ("Weeknight dinners"), after the shortcuts.
-  const cookbooks = useMealieCookbooks(editorFetch, onMealie);
-  const [cookbook, setCookbook] = useState<string | undefined>(undefined);
-  const cookbookName = cookbooks.find((c) => c.slug === cookbook)?.name;
-  const inCookbook = !query && !!cookbookName;
-  const inCategory = !query && !inCookbook && !!category && !!courseCategory;
-
-  const mealie = useMealieRecipeSearch(editorFetch, {
-    search,
-    filter: inCategory || inCookbook ? 'all' : filter,
-    category: inCategory ? category : undefined,
-    cookbook: inCookbook ? cookbook : undefined,
-    enabled: onMealie && categoryReady,
+  // Mealie's recipes, with the shortcuts before anything is typed; "Add a
+  // side" opens on the household's own Side category when it has one.
+  const browser = useMealieRecipeBrowser(editorFetch, {
+    courseKind: target.pick === 'main' ? null : target.kind,
+    enabled: onMealie,
   });
+  const { query: search, setQuery: setSearch, shortcut, courseCategory, cookbooks, search: mealie } = browser;
+  const query = search.trim();
 
-  // The family's own meals: when adding a side, the meals saved as a side
-  // come first under their own heading, then everything else.
+  // The family's own meals: the main dish leads with the meals tagged for
+  // this meal of the day, a course with the meals saved as its kind, each
+  // under its own heading, then everything else.
   const localGroups = useMemo(() => {
     if (onMealie) return null;
-    const found = searchSavedMeals(meals, query);
-    if (purpose.kind === 'main') return { matching: [], rest: found };
-    const { matching, others } = mealsForCourse(found, purpose.course);
-    return { matching, rest: others };
-  }, [onMealie, meals, query, purpose]);
+    return pickerMealGroups(searchSavedMeals(meals, query), target);
+  }, [onMealie, meals, query, target]);
 
   const mealRows: SavedMeal[] = useMemo(
-    () => (onMealie ? mealie.items : [...(localGroups?.matching ?? []), ...(localGroups?.rest ?? [])]),
+    () => (onMealie ? mealie.items : [...(localGroups?.matching ?? []), ...(localGroups?.others ?? [])]),
     [onMealie, mealie.items, localGroups],
   );
   // Typing it in is not offered while Mealie is not answering: the note
@@ -109,13 +80,19 @@ export default function MealPickerPopover({
   );
   const textOffset = offerText ? 1 : 0;
 
-  // The highlighted row for the arrow keys and Enter: the first meal when
-  // there is one, otherwise "Type it instead".
+  // The highlighted row for the arrow keys and Enter: the meal the words
+  // name when there is one (typing "pancakes" means Pancakes, not Blueberry
+  // Pancakes above it), otherwise the first meal, otherwise "Type it
+  // instead".
   const [active, setActive] = useState(-1);
   const firstMealId = mealRows[0]?.id;
+  const enterChoice = pickerEnterChoice(onMealie ? mealie.items : meals, query);
+  const namedId = enterChoice && 'meal' in enterChoice ? enterChoice.meal.id : undefined;
+  const namedRow = namedId ? mealRows.findIndex((m) => m.id === namedId) : -1;
+  const shown = shortcut.kind === 'category' || shortcut.kind === 'cookbook' ? `${shortcut.kind}:${shortcut.slug}` : shortcut.kind;
   useEffect(() => {
-    setActive(firstMealId ? textOffset : query ? 0 : -1);
-  }, [firstMealId, textOffset, query, filter, category, cookbook]);
+    setActive(namedRow >= 0 ? namedRow + textOffset : firstMealId ? textOffset : query ? 0 : -1);
+  }, [namedRow, firstMealId, textOffset, query, shown]);
 
   // Typing goes to the search at once; once a meal is picked (or the picker
   // is closed), the keyboard is back on the cell or button that opened it.
@@ -166,27 +143,34 @@ export default function MealPickerPopover({
     if (el.scrollTop + el.clientHeight > el.scrollHeight - 120) mealie.loadMore();
   }
 
+  /** Pick a shortcut chip, and go back to typing. */
+  function choose(choice: RecipeShortcutChoice) {
+    browser.choose(choice);
+    inputRef.current?.focus();
+  }
+
   const slotLabel = tModules(getMealSlotLabelKey(target.slot));
   const dayName = dayNamesFull[dateToDayIndex(target.date)] ?? '';
-  const title = purpose.kind === 'main'
+  const title = target.pick === 'main'
     ? t('mealPlannerModal.picker.title')
-    : purpose.kind === 'add'
-      ? t(`mealPlannerModal.picker.titleAdd.${purpose.course}`)
-      : t(`mealPlannerModal.picker.titleSwap.${purpose.course}`);
+    : target.pick === 'add'
+      ? t(`mealPlannerModal.picker.titleAdd.${target.kind}`)
+      : t(`mealPlannerModal.picker.titleSwap.${target.kind}`);
 
-  const loadingFirstPage = onMealie && (mealie.loading || !categoryReady);
+  const loadingFirstPage = onMealie && (mealie.loading || !browser.ready);
   const nothingFound = query && !loadingFirstPage && !mealie.error && mealRows.length === 0;
 
   let countLine: string | null = null;
   if (onMealie) {
     if (loadingFirstPage) countLine = t('mealPlannerModal.picker.lookingInMealie');
     else if (mealie.error) countLine = null;
-    else if (query) countLine = t('mealPlannerModal.picker.recipesInMealie', { count: mealie.total });
-    else if (inCookbook) countLine = t('mealPlannerModal.picker.categoryCount', { count: mealie.total, category: cookbookName });
-    else if (inCategory) countLine = t('mealPlannerModal.picker.categoryCount', { count: mealie.total, category: courseCategory.name });
-    else if (filter === 'favorites') countLine = t('mealPlannerModal.picker.favoritesAtoZ', { count: mealie.total });
+    else if (shortcut.kind === 'search') countLine = t('mealPlannerModal.picker.recipesInMealie', { count: mealie.total });
+    else if (shortcut.kind === 'cookbook' || shortcut.kind === 'category') {
+      countLine = t('mealPlannerModal.picker.categoryCount', { count: mealie.total, category: shortcut.name ?? '' });
+    } else if (shortcut.kind === 'favorites') countLine = t('mealPlannerModal.picker.favoritesAtoZ', { count: mealie.total });
     else countLine = t('mealPlannerModal.picker.recentlyMadeFirst');
   }
+  const failed = mealieRequestFailedKeys(mealie.problem, 'mealPlannerModal.picker.mealieError');
 
   const rowClass = (i: number) =>
     `flex items-center gap-3 w-full px-2 py-[7px] rounded-md text-left transition ${active === i ? 'bg-hs-card' : ''}`;
@@ -260,14 +244,14 @@ export default function MealPickerPopover({
           {onMealie && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {(['favorites', 'recent'] as const).map((f) => {
-                const on = !query && !inCategory && !inCookbook && filter === f;
+                const on = shortcut.kind === f;
                 const Icon = f === 'favorites' ? Heart : History;
                 return (
                   <button
                     key={f}
                     type="button"
                     aria-pressed={on}
-                    onClick={() => { setFilter(f); setCategory(undefined); setCookbook(undefined); setSearch(''); inputRef.current?.focus(); }}
+                    onClick={() => choose(f)}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
                       on
                         ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
@@ -282,10 +266,10 @@ export default function MealPickerPopover({
               {courseCategory && (
                 <button
                   type="button"
-                  aria-pressed={inCategory}
-                  onClick={() => { setCategory(courseCategory.slug); setCookbook(undefined); setSearch(''); inputRef.current?.focus(); }}
+                  aria-pressed={shortcut.kind === 'category'}
+                  onClick={() => choose({ category: courseCategory.slug })}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
-                    inCategory
+                    shortcut.kind === 'category'
                       ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
                       : 'border-hs-border-strong text-hs-text-faint hover:text-hs-text-muted'
                   }`}
@@ -295,13 +279,13 @@ export default function MealPickerPopover({
                 </button>
               )}
               {cookbooks.map((c) => {
-                const on = inCookbook && cookbook === c.slug;
+                const on = shortcut.kind === 'cookbook' && shortcut.slug === c.slug;
                 return (
                   <button
                     key={c.slug}
                     type="button"
                     aria-pressed={on}
-                    onClick={() => { setCookbook(c.slug); setSearch(''); inputRef.current?.focus(); }}
+                    onClick={() => choose({ cookbook: c.slug })}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-[3px] rounded-full text-[11.5px] border transition ${
                       on
                         ? 'border-amber-500/60 text-amber-500 bg-amber-500/8'
@@ -379,8 +363,8 @@ export default function MealPickerPopover({
 
           {onMealie && mealie.error && !loadingFirstPage && (
             <div className="px-3 py-5 text-center">
-              <p className="text-sm font-semibold text-hs-text-body">{t(mealie.problem === 'not-connected' ? 'mealPlannerModal.mealie.notConnectedTitle' : mealie.problem === 'token' ? 'mealPlannerModal.mealie.tokenRefusedTitle' : 'mealPlannerModal.picker.mealieError')}</p>
-              {mealie.problem === 'token' && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t('mealPlannerModal.mealie.tokenFix')}</p>}
+              <p className="text-sm font-semibold text-hs-text-body">{t(failed.title)}</p>
+              {failed.fix && <p className="mt-1 text-xs text-hs-text-faint leading-relaxed">{t(failed.fix)}</p>}
               <button
                 type="button"
                 onClick={mealie.retry}
@@ -393,11 +377,9 @@ export default function MealPickerPopover({
 
           {onMealie && !loadingFirstPage && !mealie.error && !query && mealRows.length === 0 && (
             <div className="px-3 py-5 text-center text-xs text-hs-text-faint leading-relaxed">
-              {inCookbook
-                ? t('mealPlannerModal.picker.noneInCategory', { category: cookbookName })
-                : inCategory
-                ? t('mealPlannerModal.picker.noneInCategory', { category: courseCategory.name })
-                : filter === 'favorites' ? t('mealPlannerModal.picker.noFavorites') : t('mealPlannerModal.picker.noRecentlyMade')}
+              {shortcut.kind === 'cookbook' || shortcut.kind === 'category'
+                ? t('mealPlannerModal.picker.noneInCategory', { category: shortcut.name ?? '' })
+                : shortcut.kind === 'favorites' ? t('mealPlannerModal.picker.noFavorites') : t('mealPlannerModal.picker.noRecentlyMade')}
             </div>
           )}
 
@@ -405,18 +387,18 @@ export default function MealPickerPopover({
 
           {!onMealie && localGroups && (
             <>
-              {localGroups.matching.length > 0 && purpose.kind !== 'main' && (
+              {localGroups.matching.length > 0 && (
                 <div className="px-2 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
-                  {t(`mealPlannerModal.picker.groupHeading.${purpose.course}`)}
+                  {target.pick === 'main' ? slotLabel : t(`mealPlannerModal.picker.groupHeading.${target.kind}`)}
                 </div>
               )}
               {localGroups.matching.map((meal, i) => mealRow(meal, i + textOffset))}
-              {localGroups.matching.length > 0 && localGroups.rest.length > 0 && (
+              {localGroups.matching.length > 0 && localGroups.others.length > 0 && (
                 <div className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-hs-text-faint">
                   {t('mealPlannerModal.picker.everythingElse')}
                 </div>
               )}
-              {localGroups.rest.map((meal, i) => mealRow(meal, i + textOffset + localGroups.matching.length))}
+              {localGroups.others.map((meal, i) => mealRow(meal, i + textOffset + localGroups.matching.length))}
               {!query && meals.length === 0 && (
                 <div className="flex items-center justify-center py-8 text-xs text-hs-text-faint">
                   {t('mealPlannerModal.picker.noMealsFound')}

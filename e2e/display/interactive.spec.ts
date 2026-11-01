@@ -232,10 +232,13 @@ test.describe('chore-chart on display', () => {
 test.describe('meal-planner recipe tap', () => {
   const RECIPE_URL = 'https://recipes.example.com/carbonara';
 
+  /** Dinner tonight and tomorrow night: late in the evening the Today view shows tomorrow. */
+  const bothNights = (mealId: string) => [0, 1].map((day) => ({ slot: 'dinner', mealId, date: isoToday(day) }));
+
   function seedRecipeMeal(request: Parameters<typeof seedMeals>[0]) {
     return seedMeals(request, {
       savedMeals: [{ id: 'meal-1', name: 'Spaghetti Carbonara', emoji: '🍝', prepTime: 25, recipeUrl: RECIPE_URL }],
-      plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoToday() }],
+      plan: bothNights('meal-1'),
     });
   }
 
@@ -288,7 +291,7 @@ test.describe('meal-planner recipe tap', () => {
         ingredients: [{ name: 'Flour', amount: '2 cups' }, { name: 'Eggs', amount: '2' }],
         notes: 'Heat the iron on 4.',
       }],
-      plan: [{ slot: 'dinner', mealId: 'meal-w', date: isoToday() }],
+      plan: bothNights('meal-w'),
     });
     const meal = buildModuleInstance('meal-planner', { view: 'today', tapRecipeAction: 'card' });
     const display = await renderOnDisplay(page, request, baseConfig({
@@ -314,7 +317,7 @@ test.describe('meal-planner recipe tap', () => {
     await stubModuleData(page);
     await seedMeals(request, {
       savedMeals: [{ id: 'meal-1', name: 'Pizza Night', emoji: '🍕' }],
-      plan: [{ slot: 'dinner', mealId: 'meal-1', date: isoToday() }],
+      plan: bothNights('meal-1'),
     });
     const meal = buildModuleInstance('meal-planner', { view: 'today', tapRecipeAction: 'card' });
     const display = await renderOnDisplay(page, request, baseConfig({

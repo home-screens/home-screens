@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPlannedDays, shownWeek } from '../meal-plan-words';
+import { copyTimeWords, formatPlannedDays, shownWeek } from '../meal-plan-words';
 
 const WEEK = ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'];
 const more = (count: number) => `${count} more`;
@@ -41,5 +41,27 @@ describe('formatPlannedDays', () => {
 
   it('reads in the household language', () => {
     expect(formatPlannedDays(['2026-11-02', '2026-11-12'], '2026-10-31', 'de-DE', more)).toBe('Montag und 12. Nov.');
+  });
+});
+
+/* The editor said only "9:10 PM" for a copy from last night, which read as
+ * this evening's; the phone said "Thursday 9:10 PM". */
+describe('copyTimeWords', () => {
+  const zone = 'America/Chicago';
+  // 9:10 PM in Chicago on Thursday, October 29, 2026.
+  const lastNight = Date.parse('2026-10-30T02:10:00Z');
+
+  it('says the time alone for a copy from today', () => {
+    expect(copyTimeWords(lastNight, { todayISO: '2026-10-29', zone, locale: 'en-US', hour12: true })).toBe('9:10 PM');
+  });
+
+  it('puts the weekday in front for a copy from another day', () => {
+    expect(copyTimeWords(lastNight, { todayISO: '2026-10-30', zone, locale: 'en-US', hour12: true })).toBe('Thursday 9:10 PM');
+    expect(copyTimeWords(lastNight, { todayISO: '2026-10-30', zone, locale: 'de-DE', hour12: false })).toBe('Donnerstag 21:10');
+  });
+
+  it("goes by the household's day, not the laptop's", () => {
+    // Already Friday in UTC, still Thursday at home.
+    expect(copyTimeWords(lastNight, { todayISO: '2026-10-29', zone, locale: 'en-US', hour12: false })).toBe('21:10');
   });
 });

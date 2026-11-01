@@ -1376,6 +1376,7 @@
         "optional": "Facultatif, non configuré",
         "checking": "Vérification…",
         "tokenRefused": "Jeton refusé",
+        "cantUse": "Impossible à utiliser",
         "notAnswering": "Ne répond pas",
         "couldNotCheck": "Vérification impossible",
         "removeConfirm": {
@@ -1662,7 +1663,9 @@
         "mealieConnected": "Connecté",
         "mealieNotAnswering": "Ne répond pas pour le moment",
         "mealieTokenRefused": "Jeton refusé",
+        "mealieSetup": "Impossible à utiliser",
         "tokenRefused": "Mealie n'accepte plus le jeton enregistré, donc le planning ne se met plus à jour. Crée un nouveau jeton dans Mealie et colle-le ici :",
+        "setup": "Home Screens ne peut pas utiliser ce Mealie, donc le planning ne se met plus à jour. Si l'adresse est bonne, Mealie a peut-être besoin d'une mise à jour. Vérifie l'adresse ici :",
         "connectFirst": "Seulement si ta famille utilise Mealie, une appli de recettes à part. Pour y planifier, connecte-la d'abord sur la page",
         "apiKeysLink": "Clés API",
         "connectedOffer": "Mealie est connecté. Choisis-le pour planifier avec les recettes et le planning que tu y tiens.",
@@ -2932,6 +2935,7 @@
       "mealieSuggestedEveryNightDates": "Un dîner prévu pour chaque soir de la semaine du {range}.",
       "mealieNothingFits": "Mealie n'avait aucune recette à proposer pour ces repas. Vérifie les règles du planning dans Mealie.",
       "mealieTokenSaveFailed": "Mealie ne laisse pas entrer Home Screens, donc cette modification n'a pas été enregistrée. Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API.",
+      "mealieSetupSaveFailed": "Home Screens ne peut pas utiliser ce Mealie, donc cette modification n'a pas été enregistrée. Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour.",
       "mealieNotConnectedSaveFailed": "Mealie n'est pas connecté, donc cette modification n'a pas été enregistrée. Ajoute son adresse et son jeton dans Réglages > Clés API."
     },
     "library": {
@@ -3059,7 +3063,7 @@
     "openInMealie": "Ouvrir dans Mealie",
     "mealie": {
       "fromMealie": "Depuis Mealie",
-      "lastUpdated": "Mis à jour à {time}",
+      "lastUpdated": "Mis à jour : {time}",
       "subtitle": "{planned} prévus cette semaine",
       "subtitleHousehold": "Foyer {household} · {planned} prévus cette semaine",
       "subtitleDates": "{planned} prévus la semaine du {range}",
@@ -3072,6 +3076,8 @@
       "notConnectedBody": "Le planning des repas doit venir de Mealie, mais l'adresse ou le jeton de Mealie n'est pas enregistré. Ajoute-les dans Réglages > Clés API, ou remets le planning sur Home Screens dans Réglages > Repas.",
       "tokenRefusedTitle": "Mealie ne laisse plus entrer Home Screens",
       "tokenRefusedBody": "Mealie n'accepte plus le jeton enregistré. Il a peut-être été supprimé dans Mealie. Crées-en un nouveau là-bas et enregistre-le dans Réglages > Clés API.",
+      "setupTitle": "Home Screens ne peut pas utiliser ce Mealie",
+      "setupBody": "Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour.",
       "paused": "La planification est en pause jusqu'au retour de Mealie.",
       "pausedSince": "La planification est en pause jusqu'au retour de Mealie. Voici le planning de {time}.",
       "weekLoading": "Récupération de la semaine du {range} dans Mealie…",
@@ -3111,6 +3117,7 @@
         "inCart": "Cochés ({count})",
         "staleUnreachable": "Mealie ne répond pas. Voici la liste de {time}.",
         "staleToken": "Mealie ne laisse plus entrer Home Screens. Voici la liste de {time}.",
+        "staleSetup": "Home Screens ne peut pas utiliser ce Mealie. Voici la liste de {time}.",
         "staleNotConnected": "Mealie n'est pas connecté. Voici la liste de {time}.",
         "staleConnection": "Home Screens est injoignable. Voici la liste de {time}.",
         "loading": "On récupère ta liste dans Mealie…",
@@ -3122,6 +3129,10 @@
         "connectionTitle": "Home Screens est injoignable pour le moment",
         "connectionBody": "Vérifie la connexion de cet ordinateur, puis réessaie.",
         "noConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
+        "notSaved": {
+          "one": "{items} n'a pas été enregistré. Réessaie.",
+          "other": "{items} n'ont pas été enregistrés. Réessaie."
+        },
         "notSavedUnreachable": {
           "one": "{items} n'a pas été enregistré. Mealie ne répond pas, réessaie dans un instant.",
           "other": "{items} n'ont pas été enregistrés. Mealie ne répond pas, réessaie dans un instant."
@@ -3129,6 +3140,10 @@
         "notSavedToken": {
           "one": "{items} n'a pas été enregistré. Mealie ne laisse plus entrer Home Screens.",
           "other": "{items} n'ont pas été enregistrés. Mealie ne laisse plus entrer Home Screens."
+        },
+        "notSavedSetup": {
+          "one": "{items} n'a pas été enregistré. Home Screens ne peut pas utiliser ce Mealie.",
+          "other": "{items} n'ont pas été enregistrés. Home Screens ne peut pas utiliser ce Mealie."
         },
         "notSavedNotConnected": {
           "one": "{items} n'a pas été enregistré. Mealie n'est pas connecté.",
@@ -3147,7 +3162,10 @@
       "ingredientsFailed": "Mealie n'a pas envoyé les ingrédients. Ouvre la recette dans Mealie pour les voir.",
       "tokenFix": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API.",
       "tokenPaused": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API. En attendant, la planification est en pause.",
-      "tokenPausedSince": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API. En attendant, la planification est en pause. Voici le planning de {time}."
+      "tokenPausedSince": "Crée un nouveau jeton dans Mealie et colle-le dans Réglages > Clés API. En attendant, la planification est en pause. Voici le planning de {time}.",
+      "setupFix": "Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour.",
+      "setupPaused": "Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause.",
+      "setupPausedSince": "Vérifie l'adresse de Mealie dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause. Voici le planning de {time}."
     },
     "popover": {
       "savesToMealie": "Enregistré dans Mealie",

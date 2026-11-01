@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
-import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime, formatShortDayMonth, fromISODate } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime, formatShortDayMonth, fromISODate, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, formatDayRange } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { countPlanned, px } from './meal-planner-utils';
+import { px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 import FamilyEmptyState from '../FamilyEmptyState';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -39,13 +39,16 @@ export default function WeekView({
 
   // Only slots the week actually uses get a column: with Snack on and one
   // apple planned, three empty tiles per day said nothing. A week with no
-  // meals at all is one panel that says where meals are planned.
-  const usedSlots = useMemo(
-    () => slots.filter((slot) => weekDates.some((date) => resolveMealWithEntry(date, slot, plan, savedMeals).name)),
+  // meals at all is one panel that says where meals are planned. The count
+  // is of the cards drawn, so a lunch Mealie planned while lunch is off is
+  // neither a card nor a meal planned.
+  const { usedSlots, filled } = useMemo(
+    () => weekPlannedSlots(weekDates, slots, plan, savedMeals),
     [slots, weekDates, plan, savedMeals],
   );
   const weekEmpty = usedSlots.length === 0;
-  const { filled, total, pct } = countPlanned(plan, weekDates.length * usedSlots.length);
+  const total = weekDates.length * usedSlots.length;
+  const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
 
   const isPast = (date: string) => date < todayISO;
   const pictureSize = P(landscape ? 76 : 84);

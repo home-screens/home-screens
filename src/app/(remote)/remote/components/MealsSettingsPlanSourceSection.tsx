@@ -3,6 +3,7 @@
 import { CloudOff, CookingPot, Smartphone } from 'lucide-react';
 import type { MealPlanSource } from '@/types/config';
 import { mealieProblem } from '@/lib/meal-sources';
+import { canChooseMealiePlan } from '@/lib/meal-settings';
 import { useMealieCheck } from '@/hooks/useMealieCheck';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
@@ -28,13 +29,14 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
   const t = useTranslate('remote');
   // Asked once as the sheet opens: whose household's plan Mealie would show
   // ("connected to the Family household"), or that Mealie refuses the saved
-  // token. The line reads without a name while asking or when Mealie is away.
+  // token or is not a Mealie Home Screens can use. The line reads without a
+  // name while asking or when Mealie is away.
   const check = useMealieCheck(mealieConnected);
   const household = check?.ok ? check.household.trim() || null : null;
-  const tokenRefused = check?.ok === false && check.failure !== 'network' && mealieProblem(check.failure) === 'token';
+  const problem = check?.ok === false && check.failure !== 'network' ? mealieProblem(check.failure) : null;
+  const fixInSettings = problem === 'token' || problem === 'setup' ? problem : null;
   const onMealie = planSource === 'mealie';
-  // A Mealie that was disconnected after the switch can still be switched off.
-  const mealieOff = !mealieConnected && !onMealie;
+  const mealieOff = !canChooseMealiePlan(planSource, mealieConnected);
 
   const option = (selected: boolean, disabled: boolean) => ({
     padding: 12,
@@ -61,15 +63,15 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
   let note: React.ReactNode;
   if (switching && !onMealie) {
     note = <p style={noteStyle}>{t('mealsSettings.planSource.switchingToHomeNote')}</p>;
-  } else if (tokenRefused) {
+  } else if (fixInSettings) {
     // Ahead of what Mealie would do: nothing comes from it or saves to it
-    // until a new token is saved, and that is done on the computer, not by
-    // waiting. The same words as the Plan tab's.
-    const words = mealieProblemWords('token');
+    // until the token, the address or Mealie itself is put right, which
+    // waiting will not do. The same words as the Plan tab's.
+    const words = mealieProblemWords(fixInSettings);
     note = (
       <div
         role="status"
-        data-testid="meals-plan-source-token"
+        data-testid={`meals-plan-source-${fixInSettings}`}
         style={{ margin: '10px 0 0', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.28)', borderRadius: 10, padding: '10px 12px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '19px' }}>

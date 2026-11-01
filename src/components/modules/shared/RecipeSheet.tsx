@@ -4,8 +4,9 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import type { MealSlotType, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey } from '@/lib/meal-constants';
-import { batchWord, mealHasRecipe, pageRecipeSteps, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
+import { batchWord, mealHasRecipe, pageByHeight, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
 import { holdRotationFor } from '@/lib/interaction-hold';
+import { useElementBox } from '@/hooks/useElementBox';
 import { useFontsReady } from '@/hooks/useFontsReady';
 import { useTranslate } from '@/i18n';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -91,10 +92,9 @@ export function RecipeSheet(props: RecipeSheetProps) {
   const paged = steps.length > 0;
 
   // ── Pages, measured from the hidden copy ──
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [rootRef, box] = useElementBox('padding');
   const firstListRef = useRef<HTMLDivElement>(null);
   const restListRef = useRef<HTMLDivElement>(null);
-  const [box, setBox] = useState<{ w: number; h: number } | null>(null);
   const [measured, setMeasured] = useState<{ key: string; pages: number[][] } | null>(null);
   const gap = 0;
   // Everything that moves a step or the room for them: the recipe's text, the
@@ -103,28 +103,16 @@ export function RecipeSheet(props: RecipeSheetProps) {
     () => [...steps.map((st) => `${st.heading ?? ''}${st.lead ?? ''}${st.text}`.length), '|', ...(detail?.ingredients ?? []).map((i) => i.text.length)].join(','),
     [steps, detail],
   );
-  const measureKey = `${resetKey}|${layout}|${box?.w}x${box?.h}|${fontsReady}|${contentKey}|${courses.length}|${P(100)}|${interactive}|${recipe.status}`;
-
-  useLayoutEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    setBox({ w: el.clientWidth, h: el.clientHeight });
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(() => {
-      setBox((prev) => (prev && prev.w === el.clientWidth && prev.h === el.clientHeight ? prev : { w: el.clientWidth, h: el.clientHeight }));
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  const measureKey = `${resetKey}|${layout}|${box.width}x${box.height}|${fontsReady}|${contentKey}|${courses.length}|${P(100)}|${interactive}|${recipe.status}`;
 
   const measuredKey = measured?.key;
   useLayoutEffect(() => {
-    if (!paged || !box || measuredKey === measureKey) return;
+    if (!paged || !box.height || measuredKey === measureKey) return;
     const first = firstListRef.current;
     const rest = restListRef.current;
     if (!first || !rest) return;
     const heights = Array.from(first.children).map((c) => (c as HTMLElement).offsetHeight);
-    setMeasured({ key: measureKey, pages: pageRecipeSteps(heights, first.clientHeight, rest.clientHeight, gap) });
+    setMeasured({ key: measureKey, pages: pageByHeight(heights, first.clientHeight, rest.clientHeight, gap) });
   }, [paged, box, measuredKey, measureKey]);
 
   const pages = useMemo(

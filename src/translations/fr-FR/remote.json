@@ -379,6 +379,7 @@
     "loadError": "Impossible de charger tes repas. Vérifie que le hub est allumé et réessaie.",
     "retry": "Réessayer",
     "saveFailed": "Ça n'a pas été enregistré. Réessaie.",
+    "saveFailedConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
@@ -1430,14 +1431,25 @@
       "title": "Mealie ne laisse plus entrer Home Screens",
       "description": "Mealie n'accepte plus le jeton enregistré. Il a peut-être été supprimé dans Mealie. Crées-en un nouveau là-bas et enregistre-le sur l'ordinateur dans Réglages > Clés API."
     },
+    "setup": {
+      "title": "Home Screens ne peut pas utiliser ce Mealie",
+      "description": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour."
+    },
+    "connection": {
+      "title": "Home Screens est injoignable pour le moment",
+      "description": "Vérifie que ce téléphone est connecté, puis réessaie."
+    },
     "paused": {
       "description": "La planification est en pause jusqu'au retour de Mealie.",
       "descriptionWithTime": "La planification est en pause jusqu'au retour de Mealie. Voici le planning de {time}.",
       "tokenDescription": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause.",
-      "tokenDescriptionWithTime": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause. Voici le planning de {time}."
+      "tokenDescriptionWithTime": "Crée un nouveau jeton dans Mealie et enregistre-le sur l'ordinateur dans Réglages > Clés API. En attendant, la planification est en pause. Voici le planning de {time}.",
+      "setupDescription": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause.",
+      "setupDescriptionWithTime": "Vérifie l'adresse de Mealie sur l'ordinateur dans Réglages > Clés API. Si elle est bonne, Mealie a peut-être besoin d'une mise à jour. En attendant, la planification est en pause. Voici le planning de {time}."
     },
     "saveFailed": {
       "token": "Mealie ne laisse pas entrer Home Screens, donc ça n'a pas été enregistré.",
+      "setup": "Home Screens ne peut pas utiliser ce Mealie, donc ça n'a pas été enregistré.",
       "notConnected": "Mealie n'est pas connecté, donc ça n'a pas été enregistré.",
       "unreachable": "Mealie ne répond pas, donc ça n'a pas été enregistré. Réessaie dans un instant."
     },
@@ -1517,6 +1529,7 @@
       "inCart": "Cochés ({count})",
       "staleUnreachable": "Mealie ne répond pas. Voici la liste de {time}.",
       "staleToken": "Mealie ne laisse plus entrer Home Screens. Voici la liste de {time}.",
+      "staleSetup": "Home Screens ne peut pas utiliser ce Mealie. Voici la liste de {time}.",
       "staleNotConnected": "Mealie n'est pas connecté. Voici la liste de {time}.",
       "staleConnection": "Home Screens est injoignable. Voici la liste de {time}.",
       "loading": "On récupère ta liste dans Mealie…",
@@ -1528,6 +1541,10 @@
       "connectionTitle": "Home Screens est injoignable pour le moment",
       "connectionDescription": "Vérifie que ce téléphone est connecté, puis réessaie.",
       "noConnection": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
+      "notSaved": {
+        "one": "{items} n'a pas été enregistré. Réessaie.",
+        "other": "{items} n'ont pas été enregistrés. Réessaie."
+      },
       "notSavedUnreachable": {
         "one": "{items} n'a pas été enregistré. Mealie ne répond pas, réessaie dans un instant.",
         "other": "{items} n'ont pas été enregistrés. Mealie ne répond pas, réessaie dans un instant."
@@ -1535,6 +1552,10 @@
       "notSavedToken": {
         "one": "{items} n'a pas été enregistré. Mealie ne laisse plus entrer Home Screens.",
         "other": "{items} n'ont pas été enregistrés. Mealie ne laisse plus entrer Home Screens."
+      },
+      "notSavedSetup": {
+        "one": "{items} n'a pas été enregistré. Home Screens ne peut pas utiliser ce Mealie.",
+        "other": "{items} n'ont pas été enregistrés. Home Screens ne peut pas utiliser ce Mealie."
       },
       "notSavedNotConnected": {
         "one": "{items} n'a pas été enregistré. Mealie n'est pas connecté.",

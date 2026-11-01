@@ -10,14 +10,13 @@ vi.mock('@/lib/mealie', async (importOriginal) => {
   const real = await importOriginal<typeof import('@/lib/mealie')>();
   return {
     ...real,
-    getMealieConfig: vi.fn(),
-    getMealieUser: vi.fn(),
+    getMealieContext: vi.fn(),
     searchMealieRecipes: vi.fn(),
   };
 });
 
 import { GET } from '../route';
-import { getMealieConfig, getMealieUser, searchMealieRecipes, MealieError } from '@/lib/mealie';
+import { getMealieContext, searchMealieRecipes, MealieError } from '@/lib/mealie';
 
 const req = (q = '') => new NextRequest(`http://localhost/api/mealie/recipes${q}`);
 const RECIPE = { id: '0f1e2d3c-4b5a-4968-8776-655443322110', slug: 'tikka', name: 'Tikka', image: 'abc', prepTime: '15 minutes' };
@@ -25,8 +24,7 @@ const RECIPE = { id: '0f1e2d3c-4b5a-4968-8776-655443322110', slug: 'tikka', name
 describe('GET /api/mealie/recipes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMealieConfig).mockResolvedValue({ url: 'http://mealie.local', apiKey: 'k' });
-    vi.mocked(getMealieUser).mockResolvedValue({ id: 'u', username: 'u', fullName: 'U', group: 'Home', household: 'Family', groupSlug: 'home', householdSlug: 'family' });
+    vi.mocked(getMealieContext).mockResolvedValue({ baseUrl: 'http://mealie.local', groupSlug: 'home' });
     vi.mocked(searchMealieRecipes).mockResolvedValue({ items: [RECIPE], page: 1, totalPages: 1, total: 1 });
   });
 
@@ -64,7 +62,10 @@ describe('GET /api/mealie/recipes', () => {
   });
 
   it('says Mealie is not connected', async () => {
-    vi.mocked(getMealieConfig).mockResolvedValue(null);
+    // The real calls, with no address or key saved in the test sandbox.
+    const real = await vi.importActual<typeof import('@/lib/mealie')>('@/lib/mealie');
+    vi.mocked(searchMealieRecipes).mockImplementationOnce(real.searchMealieRecipes);
+    vi.mocked(getMealieContext).mockImplementationOnce(real.getMealieContext);
     const res = await GET(req());
     expect(res.status).toBe(400);
     expect((await res.json()).failure).toBe('not-set-up');

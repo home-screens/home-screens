@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import {
   has, lacks, matches, notMatches, child, count, redBackground, localDate, localIso,
-  TINY_GIF, WEATHER_WIND, WEATHER_NO_ALERTS, STANDINGS_8, TODOIST_2,
+  TINY_GIF, WEATHER_WIND, WEATHER_NO_ALERTS, STANDINGS_8, TODOIST_2, DINNER_TONIGHT_AND_TOMORROW,
 } from './shared';
 
 /**
@@ -833,13 +833,14 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   // ================= LOCAL-DATA =================
 
   // -- meal-planner --
+  // Planned tonight and tomorrow night: late in the evening Today shows tomorrow.
   {
-    type: 'meal-planner', name: 'hide-emoji', kind: 'local-data', seed: 'meals',
+    type: 'meal-planner', name: 'hide-emoji', kind: 'local-data', seed: 'meals', seedData: DINNER_TONIGHT_AND_TOMORROW,
     config: { view: 'today', showEmoji: false },
     expect: async (mod) => { await has('Spaghetti Night')(mod); await expect(mod).not.toContainText('🍝'); },
   },
   {
-    type: 'meal-planner', name: 'hide-cooking-time', kind: 'local-data', seed: 'meals',
+    type: 'meal-planner', name: 'hide-cooking-time', kind: 'local-data', seed: 'meals', seedData: DINNER_TONIGHT_AND_TOMORROW,
     config: { view: 'today', showPrepTime: false },
     expect: async (mod) => { await has('Spaghetti Night')(mod); await expect(mod).not.toContainText('25 min'); },
   },

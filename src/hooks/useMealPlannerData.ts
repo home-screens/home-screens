@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { isSessionExpired } from '@/lib/editor-fetch';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { MealClientError, MealSession, type MealEdit, type MealieRange, type MealSnapshot } from '@/lib/meal-client';
+import { MealClientError, type MealEdit, type MealSnapshot } from '@/lib/meal-client';
 import type { MealieProblem, MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { displayCache } from '@/lib/display-cache';
+import { useMealSession } from '@/components/meals/useMealSession';
 import type {
   ModuleInstance,
   MealSettings,
-  MealSlotType,
   SavedMeal,
   PlannedMeal,
 } from '@/types/config';
@@ -47,9 +47,6 @@ export interface MealSaveFailure {
 function saveFailure(err: unknown): MealSaveFailure {
   return { problem: err instanceof MealClientError ? err.problem : undefined };
 }
-
-/** How often an open planner window asks the hub for the meals again. */
-const OPEN_REFRESH_MS = 15_000;
 
 const EMPTY_PAYLOAD = (): MealsPayload => ({
   savedMeals: [],
@@ -99,12 +96,15 @@ function view(snapshot: MealSnapshot): MealsPayload {
  * fields (so a fullscreen module re-persisted meals the server migration had
  * just harvested out). Both behaviours are fixed here, once.
  *
- * Loading and saving go through `MealSession` (`lib/meal-client.ts`), which the
- * phone uses too. Until a load has succeeded there is nothing to edit: the
- * empty arrays held here were never received, and an edit computed from them
- * would replace the stored library with its one meal. The session applies an
- * edit to the loaded copy (waiting for a load still in flight), and refuses
- * it, reported through `saveError`, when the load failed.
+ * Loading and saving go through `useMealSession` (`components/meals/`), which
+ * the phone uses too: loaded on mount and whenever the window opens or
+ * closes, and asked again while it is open, so a meal planned on the phone
+ * shows here without a save from this side first. Until a load has succeeded
+ * there is nothing to edit: the empty arrays held here were never received,
+ * and an edit computed from them would replace the stored library with its
+ * one meal. The session applies an edit to the loaded copy (waiting for a
+ * load still in flight), and refuses it, reported through `saveError`, when
+ * the load failed.
  *
  * Write failures are surfaced through `saveError` rather than swallowed. The
  * previous `catch {}` left the optimistic local state applied, so the editor
@@ -123,33 +123,13 @@ export function useMealPlannerData<C>({
 }) {
   const [mealData, setMealData] = useState<MealsPayload>(EMPTY_PAYLOAD);
   const [saveError, setSaveError] = useState<MealSaveFailure | null>(null);
-  const [session] = useState(() => new MealSession(editorFetch));
-
-  const fetchMealData = useCallback(() => {
-    session.load()
-      .then((snapshot) => { if (session.idle) setMealData(view(snapshot)); })
-      .catch(() => {});
-  }, [session]);
-
-  useEffect(() => { fetchMealData(); }, [fetchMealData, showModal]);
-
-  // While the window is open, ask again every so often (as often as the
-  // phone's Meals tab does) and when the tab comes back into view, so a meal
-  // planned on the phone shows here without a save from this side first. A
-  // copy answered while a save is on its way is not adopted, and the meal
-  // being edited in Detail keeps its fields, so nothing typed is replaced.
-  useEffect(() => {
-    if (!showModal) return;
-    const whenVisible = () => {
-      if (document.visibilityState === 'visible') fetchMealData();
-    };
-    document.addEventListener('visibilitychange', whenVisible);
-    const poll = setInterval(whenVisible, OPEN_REFRESH_MS);
-    return () => {
-      document.removeEventListener('visibilitychange', whenVisible);
-      clearInterval(poll);
-    };
-  }, [showModal, fetchMealData]);
+  // Asked again only while the window is open. A copy answered while a save
+  // is on its way is not adopted, and the meal being edited in Detail keeps
+  // its fields, so nothing typed is replaced.
+  const { session, load, save, suggest, showMealieRange, mealieWeeks } = useMealSession({
+    show: (snapshot) => setMealData(snapshot ? view(snapshot) : EMPTY_PAYLOAD()),
+    refused: (err) => setSaveError(saveFailure(err)),
+  }, { poll: showModal });
 
   // Assigned during render, NOT in an effect: `handleModalUpdate` can fire in
   // the same tick as a `setMealData`, and an effect-deferred ref would still
@@ -198,19 +178,10 @@ export function useMealPlannerData<C>({
       plan: changes.plan ?? current.plan,
     });
     setSaveError(null);
-    try {
-      const saved = await session.save(edit);
-      if (session.idle) setMealData(view(saved));
-    } catch (err) {
-      // A 401 already triggered a login redirect; don't flash an error at a
-      // user who is being navigated away.
-      if (isSessionExpired(err)) return;
-      // Roll back so the panel stops showing an edit the server rejected:
-      // to the loaded copy, or to nothing when there is none.
-      setMealData(session.current ? view(session.current) : EMPTY_PAYLOAD());
-      setSaveError(saveFailure(err));
-    }
-  }, [session]);
+    // A refusal rolls the panel back to the loaded copy, or to nothing when
+    // there is none, so it stops showing an edit the server rejected.
+    await save(edit);
+  }, [save]);
 
   /**
    * Tick or untick one item on the list of `week` (that week's key), in the
@@ -234,50 +205,17 @@ export function useMealPlannerData<C>({
     }
   }, [session]);
 
-  /**
-   * In Mealie mode, bring the days of `range` into the copy when the modal
-   * pages past the weeks every answer carries. `mealieWeeks` says whether
-   * that is on its way or failed, so the week can say so instead of looking
-   * empty.
-   */
-  const [mealieWeeks, setMealieWeeks] = useState<'idle' | 'loading' | 'failed'>('idle');
-  const showMealieRange = useCallback(async (range: MealieRange) => {
-    setMealieWeeks('loading');
-    try {
-      const snapshot = await session.showMealieRange(range);
-      if (session.idle) setMealData(view(snapshot));
-      setMealieWeeks('idle');
-    } catch (err) {
-      if (isSessionExpired(err)) return;
-      setMealieWeeks('failed');
-    }
-  }, [session]);
-
-  /**
-   * Mealie's own picks for the empty meals among `cells` (Suggest, while the
-   * plan lives in Mealie). How many it filled and had nothing for, or null
-   * when the hub or Mealie refused.
-   */
-  const suggestFromMealie = useCallback(async (cells: { date: string; slot: MealSlotType }[]) => {
-    try {
-      const { snapshot, created, skipped, entries } = await session.suggestFromMealie(cells);
-      if (session.idle) setMealData(view(snapshot));
-      return { created, skipped, entries };
-    } catch (err) {
-      if (!isSessionExpired(err)) setSaveError(saveFailure(err));
-      return null;
-    }
-  }, [session]);
-
   return {
     mealData,
     handleModalUpdate,
     toggleGroceryItem,
     saveError,
     /** Ask the hub again (after Mealie stopped answering). */
-    reload: fetchMealData,
+    reload: load,
+    /** In Mealie mode, bring the days of a range into the copy when the window pages past the weeks every answer carries. */
     showMealieRange,
     mealieWeeks,
-    suggestFromMealie,
+    /** Mealie's own picks for empty meals (Suggest, while the plan lives in Mealie), or null when refused. */
+    suggestFromMealie: suggest,
   };
 }

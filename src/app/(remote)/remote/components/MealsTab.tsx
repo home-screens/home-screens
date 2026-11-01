@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex } from '@/lib/meal-constants';
+import { pickTargetChosen, type MealPickTarget } from '@/lib/meal-courses';
 import { useMealsTabData } from '../hooks/useMealsTabData';
-import { readMealsPlace, writeMealsPlace, type MealPickTarget, type MealsSubView } from './meals-shared';
+import { readMealsPlace, writeMealsPlace, type MealsSubView } from './meals-shared';
 import MealsTabHeader from './MealsTabHeader';
 import MealsSubNav from './MealsSubNav';
 import MealsWeekNav from './MealsWeekNav';
@@ -166,20 +167,7 @@ export default function MealsTab() {
   const pickerEntry = picker ? getMealForSlot(picker.date, picker.slot).planned : undefined;
   // What the picker marks with a tick: the dish being changed, or, when
   // adding, the dishes of that kind the meal already has.
-  const chosenIds = new Set<string>();
-  let pickerText = '';
-  if (picker && pickerEntry) {
-    if (picker.pick === 'main') {
-      if (pickerEntry.mealId) chosenIds.add(pickerEntry.mealId);
-      pickerText = pickerEntry.customText ?? '';
-    } else if (picker.pick === 'swap') {
-      const course = pickerEntry.courses?.[picker.index];
-      if (course?.mealId) chosenIds.add(course.mealId);
-      pickerText = course?.customText ?? '';
-    } else {
-      for (const c of pickerEntry.courses ?? []) if (c.kind === picker.kind && c.mealId) chosenIds.add(c.mealId);
-    }
-  }
+  const chosen = picker ? pickTargetChosen(pickerEntry, picker) : null;
 
   // Where the notice and a save error sit: above the tab bar (and above the
   // Library's add button), or, while a sheet is up, at the top of the screen
@@ -207,7 +195,7 @@ export default function MealsTab() {
       )}
 
       {(subView === 'week' || subView === 'plan') && unreachable && (
-        <MealieUnreachable problem={status.state === 'unreachable' ? status.problem : 'unreachable'} onRetry={retryWeek} />
+        <MealieUnreachable problem={status.state === 'unreachable' || status.state === 'stale' ? status.problem : 'unreachable'} onRetry={retryWeek} />
       )}
       {(subView === 'week' || subView === 'plan') && !unreachable && !weekReady && <MealsWeekLoading />}
 
@@ -325,8 +313,8 @@ export default function MealsTab() {
           })}
           fromMealie={fromMealie}
           library={savedMeals}
-          chosenIds={chosenIds}
-          initialText={pickerText}
+          chosenIds={new Set(chosen?.mealIds)}
+          initialText={chosen?.text ?? ''}
           onPickMeal={(meal) => pickMeal(picker, meal)}
           onPickText={(text) => pickText(picker, text)}
           onClose={() => setPicker(null)}

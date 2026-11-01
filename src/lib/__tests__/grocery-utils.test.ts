@@ -4,6 +4,7 @@ import {
   groceryListNeedsHeadings,
   plannedMealsWithoutIngredients,
   shortNameList,
+  weekGroceryList,
   GROCERY_CATEGORY_ORDER,
 } from '@/lib/grocery-utils';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
@@ -112,6 +113,15 @@ describe('generateGroceryList', () => {
     const eggs = dairy.items.find((i) => i.name === 'Eggs')!;
     expect(milk.checked).toBe(true);
     expect(eggs.checked).toBe(false);
+  });
+
+  it('keys an ingredient saved with stray spaces the way its tick is stored', () => {
+    // "Milk " from an older build or a restore is the same item as the tick on "milk".
+    const meals = [meal('a', [{ name: 'Milk ', amount: '1 gal', category: 'dairy' }, { name: ' milk', amount: '1 gal', category: 'dairy' }])];
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'breakfast', mealId: 'a' }];
+
+    const items = generateGroceryList(plan, meals, ['milk']).get('dairy')!.items;
+    expect(items).toEqual([{ name: 'Milk', amount: '2 gal', checked: true }]);
   });
 
   it('sorts checked items after unchecked, then alphabetically', () => {
@@ -286,5 +296,23 @@ describe('shortNameList', () => {
   it('names three and counts the rest past four', () => {
     expect(shortNameList(['A', 'B', 'C', 'D', 'E'], 'en-US', more)).toBe('A, B, C, and 2 more');
     expect(shortNameList(['A', 'B', 'C', 'D', 'E'], 'de-DE', (n) => `${n} weitere`)).toBe('A, B, C und 2 weitere');
+  });
+});
+
+describe('weekGroceryList', () => {
+  it("builds the week's list with its counts and the meals that add nothing to it", () => {
+    const meals = [
+      meal('tacos', [{ name: 'Tortillas', amount: '8', category: 'bakery' }, { name: 'Cheese', amount: '1 cup', category: 'dairy' }]),
+      meal('roast', undefined),
+    ];
+    const plan: PlannedMeal[] = [
+      { date: '2026-04-04', slot: 'dinner', mealId: 'tacos' },
+      { date: '2026-04-05', slot: 'dinner', mealId: 'roast' },
+    ];
+
+    const week = weekGroceryList(plan, meals, ['cheese']);
+    expect([...week.list.keys()]).toEqual(['dairy', 'bakery']);
+    expect(week.counts).toEqual({ total: 2, checked: 1 });
+    expect(week.withoutIngredients.map((m) => m.id)).toEqual(['roast']);
   });
 });

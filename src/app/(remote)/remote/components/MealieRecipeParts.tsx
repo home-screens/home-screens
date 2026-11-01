@@ -2,7 +2,7 @@
 
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Heart, History, Search, X } from 'lucide-react';
-import type { MealieRecipeFilter } from '@/lib/meal-client';
+import type { MealieRecipeFilter } from '@/lib/mealie';
 import { useTranslate } from '@/i18n';
 
 /**

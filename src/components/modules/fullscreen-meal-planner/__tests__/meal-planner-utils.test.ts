@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getDifficultyColor, countPlanned } from '../meal-planner-utils';
+import { getDifficultyColor } from '../meal-planner-utils';
 import type { SavedMeal, PlannedMeal, MealSlotType } from '@/types/config';
 import { toISODate, getNextPlannedMeal, minutesOfDay } from '@/lib/meal-constants';
 
@@ -168,41 +168,5 @@ describe('getNextPlannedMeal', () => {
       const result = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, meals, allSlots);
       expect(result).toBeNull();
     });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// countPlanned
-// ---------------------------------------------------------------------------
-describe('countPlanned', () => {
-  it('counts every meal with something planned, typed in or only courses too', () => {
-    const plan: PlannedMeal[] = [
-      makePlan('2026-04-04', 'breakfast', 'm1'),
-      makePlan('2026-04-04', 'lunch', 'm2'),
-      { date: '2026-04-04', slot: 'dinner' }, // nothing in it
-      { date: '2026-04-05', slot: 'dinner', customText: 'Pizza night' },
-      { date: '2026-04-06', slot: 'dinner', courses: [{ kind: 'side', customText: 'Salad' }] },
-    ];
-    const result = countPlanned(plan, 28);
-    expect(result.filled).toBe(4);
-    expect(result.total).toBe(28);
-    expect(result.pct).toBe(Math.round((4 / 28) * 100));
-  });
-
-  it('returns 0% for empty plan', () => {
-    const result = countPlanned([], 28);
-    expect(result.filled).toBe(0);
-    expect(result.pct).toBe(0);
-  });
-
-  it('returns 0% when totalSlots is 0 (avoids division by zero)', () => {
-    const result = countPlanned([], 0);
-    expect(result.pct).toBe(0);
-  });
-
-  it('calculates 100% when all slots are filled', () => {
-    const plan = [makePlan('2026-04-04', 'breakfast', 'm1'), makePlan('2026-04-04', 'lunch', 'm2')];
-    const result = countPlanned(plan, 2);
-    expect(result.pct).toBe(100);
   });
 });

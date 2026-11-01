@@ -1,7 +1,7 @@
 import { E2E_NOTE_TEXTS, E2E_TODO_LIST_ID } from '../api';
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
-import { lacks } from './shared';
+import { lacks, DINNER_TONIGHT_AND_TOMORROW } from './shared';
 
 /** Local YYYY-MM-DD `offsetDays` from today, as the meal planner keys its plan. */
 function localISODay(offsetDays: number): string {
@@ -92,9 +92,14 @@ export const TITLE_VARIANTS: ConfigVariant[] = [
     expect: lacks('Feed the dog', 'Family Chores'),
   },
   {
-    type: 'meal-planner', name: 'hide-title', kind: 'local-data', seed: 'meals',
+    // Planned tonight and tomorrow night: late in the evening the view shows
+    // tomorrow, under "Tomorrow's Meals".
+    type: 'meal-planner', name: 'hide-title', kind: 'local-data', seed: 'meals', seedData: DINNER_TONIGHT_AND_TOMORROW,
     config: { view: 'today', showTitle: false },
-    expect: lacks('Spaghetti Night', "Today's Meals"),
+    expect: async (mod) => {
+      await lacks('Spaghetti Night', "Today's Meals")(mod);
+      await expect(mod).not.toContainText("Tomorrow's Meals");
+    },
   },
   {
     type: 'fullscreen-meal-planner', name: 'hide-title', kind: 'local-data', seed: 'meals',

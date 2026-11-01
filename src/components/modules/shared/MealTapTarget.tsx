@@ -3,9 +3,8 @@
 import { lazy, Suspense, useState, type CSSProperties, type ReactNode } from 'react';
 import type { RecipeTapAction, SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { isMealieMeal } from '@/lib/meal-dish-rules';
 import { mealHasRecipe } from '@/lib/meal-recipe';
-import { useMealieLink } from '@/components/meals/useMealieLink';
+import { useRecipeLink } from '@/components/meals/useMealieLink';
 import type { MealServingRef } from './MealRecipeContext';
 
 // Lazy so qrcode.react is only fetched/parsed after the first tap — most
@@ -74,9 +73,8 @@ export function MealTapTarget({ meal, mode, serving, className, style, children 
   }
 
   if (mode === 'link') {
-    // `opens` means a link mode has its recipeUrl; `?? ''` only narrows the type.
     return (
-      <RecipeLink meal={meal} recipeUrl={recipeUrl ?? ''} className={className} style={style}>
+      <RecipeLink meal={meal} className={className} style={style}>
         {children}
       </RecipeLink>
     );
@@ -130,11 +128,11 @@ export function MealTapTarget({ meal, mode, serving, className, style, children 
  * (drags need 5px of movement, so plain clicks are safe). A Mealie recipe
  * opens through the address this browser can reach Mealie at.
  */
-function RecipeLink({ meal, recipeUrl, className, style, children }: { meal: SavedMeal; recipeUrl: string; className?: string; style?: CSSProperties; children: ReactNode }) {
-  const mealieLink = useMealieLink();
+function RecipeLink({ meal, className, style, children }: { meal: SavedMeal; className?: string; style?: CSSProperties; children: ReactNode }) {
+  const recipeLink = useRecipeLink();
   return (
     <a
-      href={isMealieMeal(meal) ? mealieLink(recipeUrl) : recipeUrl}
+      href={recipeLink(meal)}
       target="_blank"
       rel="noopener noreferrer"
       className={className}

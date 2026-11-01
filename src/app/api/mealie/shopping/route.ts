@@ -2,21 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { readMealData, updateMealData } from '@/lib/meal-data';
-import { isMealieShoppingId, mealieShoppingListExists, readMealieShopping } from '@/lib/mealie-shopping';
-import { mealieErrorResponse, mealieFailureResponse } from '@/lib/mealie-api';
+import { isMealieShoppingId, readMealieShopping, requireMealieShoppingList } from '@/lib/mealie-shopping';
+import { mealieShoppingResponse, withMealieErrors } from '@/lib/mealie-api';
 
 export const dynamic = 'force-dynamic';
-
-/**
- * The read as the Grocery tab takes it. A Mealie problem with no copy at all
- * is a refusal saying which, with the saved address so the tab can still offer
- * Open Mealie.
- */
-async function shoppingResponse(listId: string | undefined): Promise<NextResponse> {
-  const result = await readMealieShopping(listId);
-  if (result.status === 'failed') return mealieFailureResponse(result.failure, result.baseUrl ? { baseUrl: result.baseUrl } : undefined);
-  return NextResponse.json(result);
-}
 
 /**
  * GET /api/mealie/shopping?list=<id>: the household's Mealie shopping lists
@@ -30,28 +19,23 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   if (asked !== null && !isMealieShoppingId(asked)) {
     return NextResponse.json({ error: 'list must be a Mealie shopping list id' }, { status: 400 });
   }
-  return shoppingResponse(asked ?? (await readMealData()).mealieShoppingList);
+  return mealieShoppingResponse(await readMealieShopping(asked ?? (await readMealData()).mealieShoppingList));
 }, 'Failed to read the Mealie shopping list');
 
 /**
  * PUT /api/mealie/shopping `{ list }`: the list the family shops from, for
  * the phone, the editor and the voice answer alike. Answers like GET, with
- * that list.
+ * that list; a list Mealie no longer has is a 404 with `reason: 'gone'`, the
+ * same as adding to it.
  */
-export const PUT = withAuth(async (request: NextRequest) => {
+export const PUT = withAuth(withMealieErrors(async (request: NextRequest) => {
   const body = await parseJsonBody<{ list?: unknown }>(request, { maxBytes: 1024 });
   if (body instanceof NextResponse) return body;
   const { list } = body;
   if (!isMealieShoppingId(list)) {
     return NextResponse.json({ error: 'list must be a Mealie shopping list id' }, { status: 400 });
   }
-  try {
-    if (!(await mealieShoppingListExists(list))) {
-      return NextResponse.json({ error: "Mealie doesn't have that list any more." }, { status: 404 });
-    }
-  } catch (err) {
-    return mealieErrorResponse(err);
-  }
+  await requireMealieShoppingList(list);
   await updateMealData((current) => (current.mealieShoppingList === list ? current : { ...current, mealieShoppingList: list }));
-  return shoppingResponse(list);
-}, 'Failed to choose the Mealie shopping list');
+  return mealieShoppingResponse(await readMealieShopping(list));
+}), 'Failed to choose the Mealie shopping list');

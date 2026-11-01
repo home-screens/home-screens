@@ -1,4 +1,4 @@
-import { createTTLCache } from './api-utils';
+import { createLastGoodCache } from './api-utils';
 import {
   MealieError,
   getMealieRecipe,
@@ -79,8 +79,7 @@ export function isMealieShoppingId(id: unknown): id is string {
   return typeof id === 'string' && /^[0-9a-f-]{1,64}$/i.test(id);
 }
 
-const shoppingCache = createTTLCache<ShoppingRead>(SHOPPING_TTL_MS, SHOPPING_STALE_MS);
-const shoppingInflight = new Map<string, Promise<ShoppingRead>>();
+const shoppingCache = createLastGoodCache<ShoppingRead>(SHOPPING_TTL_MS, SHOPPING_STALE_MS);
 
 /** Mealie's answer for one list, or null when it went between the two calls. */
 async function readList(cfg: MealieConfig, id: string): Promise<MealieShoppingListRaw | null> {
@@ -110,36 +109,13 @@ async function loadShopping(cfg: MealieConfig): Promise<ShoppingRead> {
   return { lists, recipeNames: await nameRecipes(cfg, lists), fetchedAt: Date.now(), baseUrl: cfg.url };
 }
 
-/** Moves on every write, so a read that started before it never refills the cache with what Mealie had then. */
-let generation = 0;
-
-async function readShopping(cfg: MealieConfig, fresh: boolean): Promise<ShoppingRead> {
-  const key = mealieConnectionKey(cfg);
-  if (!fresh) {
-    const cached = shoppingCache.get(key);
-    if (cached) return cached;
-  }
-  const started = generation;
-  let pending = fresh ? undefined : shoppingInflight.get(key);
-  if (!pending) {
-    pending = loadShopping(cfg);
-    if (!fresh) {
-      shoppingInflight.set(key, pending);
-      pending.finally(() => {
-        if (shoppingInflight.get(key) === pending) shoppingInflight.delete(key);
-      }).catch(() => {});
-    }
-  }
-  const read = await pending;
-  if (started === generation) shoppingCache.set(key, read);
-  return read;
+function readShopping(cfg: MealieConfig, fresh: boolean): Promise<ShoppingRead> {
+  return shoppingCache.read(mealieConnectionKey(cfg), () => loadShopping(cfg), { fresh });
 }
 
 /** Forget every cached read, after a write changed Mealie. */
 export function clearMealieShoppingCache(): void {
-  generation++;
   shoppingCache.clear();
-  shoppingInflight.clear();
 }
 
 export interface MealieShoppingAnswer {
@@ -209,17 +185,26 @@ async function findList(cfg: MealieConfig, listId: string): Promise<MealieShoppi
     ?? (await readShopping(cfg, true)).lists.find((l) => l.id === listId);
 }
 
-/** Whether the household has a list with this id. */
-export async function mealieShoppingListExists(listId: string): Promise<boolean> {
-  return !!(await findList(await requireMealieConfig(), listId));
-}
-
 /** Thrown when the item or list a write names is not in Mealie any more. */
 export class MealieShoppingGoneError extends Error {
-  constructor() {
-    super('That is not on the list any more');
+  constructor(readonly what: 'item' | 'list' = 'item') {
+    super(what === 'list' ? "Mealie doesn't have that list any more." : "That isn't on the list any more.");
     this.name = 'MealieShoppingGoneError';
   }
+}
+
+/**
+ * Refuses a list the household no longer has in Mealie
+ * (`MealieShoppingGoneError`). Asked of Mealie itself, not the hub's copy:
+ * a list deleted there a moment ago would be saved as the family's list. The
+ * copy still holds it then, so it is dropped, or the surface reading the
+ * lists again right after would offer the deleted list for another half
+ * minute.
+ */
+export async function requireMealieShoppingList(listId: string): Promise<void> {
+  if (await readList(await requireMealieConfig(), listId)) return;
+  clearMealieShoppingCache();
+  throw new MealieShoppingGoneError('list');
 }
 
 /**
@@ -264,7 +249,7 @@ export async function addMealieShoppingItem(listId: string, text: string): Promi
   // Asked first: Mealie answers an item for a list it no longer has with a
   // bare 500, which reads as Mealie being broken.
   const list = await findList(cfg, listId);
-  if (!list) throw new MealieShoppingGoneError();
+  if (!list) throw new MealieShoppingGoneError('list');
   const position = Math.max(-1, ...(list.listItems ?? []).map((i) => i.position ?? 0)) + 1;
   let answer: { createdItems?: { id?: unknown }[] } | undefined;
   try {
@@ -276,7 +261,7 @@ export async function addMealieShoppingItem(listId: string, text: string): Promi
     // The copy said the list was there; it may be seconds old.
     if (!(await readShopping(cfg, true).then((r) => r.lists.some((l) => l.id === listId), () => true))) {
       clearMealieShoppingCache();
-      throw new MealieShoppingGoneError();
+      throw new MealieShoppingGoneError('list');
     }
     throw err;
   } finally {

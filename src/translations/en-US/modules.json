@@ -368,6 +368,7 @@
     "noMealPlanned": "No meal planned",
     "nothingPlannedThisWeek": "Nothing planned this week",
     "todaysMeals": "Today's Meals",
+    "tomorrowsMeals": "Tomorrow's Meals",
     "now": "Now",
     "servingAt": "serving at {time}",
     "time": {
@@ -415,6 +416,8 @@
     "mealieNotConnectedHint": "Connect it in Settings on the computer to show the meal plan.",
     "mealieTokenRefused": "Mealie isn't letting Home Screens in",
     "mealieTokenRefusedHint": "Save a new Mealie token in Settings on the computer to show the meal plan.",
+    "mealieSetup": "Home Screens can't use this Mealie",
+    "mealieSetupHint": "Check Mealie in Settings on the computer to show the meal plan.",
     "recipe": {
       "prep": "Prep",
       "cook": "Cook",

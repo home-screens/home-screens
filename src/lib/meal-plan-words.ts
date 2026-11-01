@@ -1,5 +1,6 @@
 import { formatDayRange } from '@/i18n/formatters';
 import { dateToDayIndex, fromISODate, getLocalizedDayNames, toISODate } from './meal-constants';
+import { formatDateInTZ, formatTimeInTZ, isoDateInTZ } from './timezone';
 
 /**
  * How the meal planner's questions and notices name the days they act on.
@@ -70,4 +71,20 @@ export function formatPlannedDays(
   const rest = upcoming.length - shown.length;
   if (rest > 0) names.push(more(rest));
   return new Intl.ListFormat(locale, { style: 'long', type: 'conjunction' }).format(names);
+}
+
+/**
+ * When Mealie last answered (`at`, ms since epoch), said in home time:
+ * "3:10 PM", or "Thursday 3:10 PM" for a copy from another day than
+ * `todayISO`. The hub keeps a copy for up to a day, so last night's copy
+ * read as today's without its weekday.
+ */
+export function copyTimeWords(
+  at: number,
+  { todayISO, zone, locale, hour12 }: { todayISO: string; zone: string | undefined; locale: string; hour12: boolean },
+): string {
+  const when = new Date(at);
+  const time = formatTimeInTZ(when, { timezone: zone, locale, hour12 });
+  if (isoDateInTZ(when, zone) === todayISO) return time;
+  return `${formatDateInTZ(when, zone, { weekday: 'long' }, locale)} ${time}`;
 }

@@ -385,6 +385,54 @@ export function createResolverCache<T>(
 }
 
 /**
+ * Reads from a service that may be down: a copy is fresh for `ttlMs`, and the
+ * last good one is kept `staleMs` past that for `getStale` to answer with
+ * while the service is not answering. Simultaneous misses for one key share
+ * one call; `fresh` skips the cache and calls on its own.
+ *
+ * `clear()` is for after a write. A read already in flight then neither
+ * refills the cache with what the service had before the write nor is joined
+ * by a read that starts after it, which would hand the writer its old copy.
+ */
+export function createLastGoodCache<T>(ttlMs: number, staleMs: number) {
+  const cache = createTTLCache<T>(ttlMs, staleMs);
+  const inflight = new Map<string, Promise<T>>();
+  let generation = 0;
+  return {
+    async read(key: string, load: () => Promise<T>, { fresh = false } = {}): Promise<T> {
+      if (!fresh) {
+        const cached = cache.get(key);
+        if (cached) return cached;
+      }
+      const started = generation;
+      let pending = fresh ? undefined : inflight.get(key);
+      if (!pending) {
+        const own = load();
+        pending = own;
+        if (!fresh) {
+          inflight.set(key, own);
+          own.finally(() => {
+            if (inflight.get(key) === own) inflight.delete(key);
+          }).catch(() => {});
+        }
+      }
+      const data = await pending;
+      if (started === generation) cache.set(key, data);
+      return data;
+    },
+    /** The last good copy, fresh or not, while it is kept. */
+    getStale(key: string): T | null {
+      return cache.getStale(key);
+    },
+    clear() {
+      generation++;
+      cache.clear();
+      inflight.clear();
+    },
+  };
+}
+
+/**
  * Validates a Todoist API token by making a lightweight request to the
  * Todoist projects endpoint. Returns `true` if the token is valid, or an
  * object with the HTTP status code if it is not.

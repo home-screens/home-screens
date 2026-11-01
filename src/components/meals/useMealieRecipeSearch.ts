@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
-import { MealClientError, searchMealieRecipes, type MealFetch, type MealieRecipeFilter } from '@/lib/meal-client';
-import type { MealieProblem } from '@/lib/meal-sources';
+import { mealieClientProblem, searchMealieRecipes, type MealFetch, type MealieClientProblem } from '@/lib/meal-client';
+import type { MealieRecipeFilter } from '@/lib/mealie';
 
 /** Long enough that typing "lasagne" asks Mealie once, short enough to feel live. */
 const SEARCH_DEBOUNCE_MS = 250;
@@ -14,8 +14,8 @@ export interface MealieRecipeSearch {
   loading: boolean;
   /** Mealie's plain refusal, or null. */
   error: string | null;
-  /** Why it failed, for the message a surface shows: not connected, token refused, unreachable. */
-  problem: MealieProblem | null;
+  /** Why it failed, for the message a surface shows: not connected, token refused, unreachable, or this device not reaching the hub. */
+  problem: MealieClientProblem | null;
   /** How many recipes match in all, across pages. */
   total: number;
   hasMore: boolean;
@@ -51,7 +51,7 @@ export function useMealieRecipeSearch(
   // read as "no favorites yet".
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
-  const [problem, setProblem] = useState<MealieProblem | null>(null);
+  const [problem, setProblem] = useState<MealieClientProblem | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
@@ -80,7 +80,7 @@ export function useMealieRecipeSearch(
           if (controller.signal.aborted) return;
           setItems([]);
           setError(err instanceof Error ? err.message : String(err));
-          setProblem(err instanceof MealClientError && err.problem ? err.problem : 'unreachable');
+          setProblem(mealieClientProblem(err));
         })
         .finally(() => {
           if (!controller.signal.aborted) setLoading(false);

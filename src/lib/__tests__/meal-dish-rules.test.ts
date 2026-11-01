@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { SavedMeal } from '@/types/config';
-import { dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, mealsForSlot, mealTagLabel, savedMealNamed, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
+import { dinnerCategories, filterLibraryMeals, isMealieMeal, kindToSave, matchCourseCategory, mealKind, mealShownMinutes, mealsForCourse, mealsForSlot, mealTagLabel, pickerEnterChoice, pickerMealGroups, savedMealNamed, searchSavedMeals, splitMinutes } from '../meal-dish-rules';
 
 const meal = (id: string, extra: Partial<SavedMeal> = {}): SavedMeal => ({ id, name: id, ...extra });
 
@@ -132,6 +132,44 @@ describe('savedMealNamed', () => {
     expect(savedMealNamed(library, 'pan')).toBeNull();
     expect(savedMealNamed(library, 'pancake')).toBeNull();
     expect(savedMealNamed(library, ' ')).toBeNull();
+  });
+});
+
+/* The editor's picker listed a main dish's meals in library order and took
+ * whichever row was highlighted on Enter, so it led with Tacos for
+ * breakfast and planned Blueberry Pancakes for "pancakes" where the phone
+ * planned Pancakes. */
+describe('pickerMealGroups', () => {
+  const library = [meal('tacos', { name: 'Tacos' }), meal('pancakes', { name: 'Pancakes', tags: ['breakfast'] })];
+
+  it("leads a main dish with the meals tagged for that meal of the day", () => {
+    const { matching, others } = pickerMealGroups(library, { date: '2026-11-02', slot: 'breakfast', pick: 'main' });
+    expect(matching.map((m) => m.name)).toEqual(['Pancakes']);
+    expect(others.map((m) => m.name)).toEqual(['Tacos']);
+  });
+
+  it('leads a course with the meals saved as its kind', () => {
+    const meals = [meal('rice', { category: 'side' }), ...library];
+    const { matching, others } = pickerMealGroups(meals, { date: '2026-11-02', slot: 'breakfast', pick: 'add', kind: 'side' });
+    expect(matching.map((m) => m.id)).toEqual(['rice']);
+    expect(others.map((m) => m.id)).toEqual(['tacos', 'pancakes']);
+  });
+});
+
+describe('pickerEnterChoice', () => {
+  const library = [meal('blueberry', { name: 'Blueberry Pancakes' }), meal('plain', { name: 'Pancakes' })];
+
+  it('takes the saved meal the words name, not the first one that holds them', () => {
+    expect(pickerEnterChoice(library, 'pancakes')).toEqual({ meal: library[1] });
+  });
+
+  it('takes the words themselves when no saved meal holds them', () => {
+    expect(pickerEnterChoice(library, '  Tacos ')).toEqual({ text: 'Tacos' });
+  });
+
+  it('leaves the choice to the family when the words only match part of some meals, or nothing is typed', () => {
+    expect(pickerEnterChoice(library, 'pan')).toBeNull();
+    expect(pickerEnterChoice(library, ' ')).toBeNull();
   });
 });
 

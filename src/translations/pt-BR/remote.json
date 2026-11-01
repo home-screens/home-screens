@@ -379,6 +379,7 @@
     "loadError": "Não foi possível carregar suas refeições. Veja se o hub está ligado e tente de novo.",
     "retry": "Tentar de novo",
     "saveFailed": "Não deu para salvar. Tente de novo.",
+    "saveFailedConnection": "Não foi possível conectar ao Home Screens, então isso não foi salvo. Confira a conexão e tente de novo.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} h",
@@ -1431,14 +1432,25 @@
       "title": "O Mealie não está deixando o Home Screens entrar",
       "description": "O Mealie não aceita mais o token salvo. Talvez ele tenha sido apagado no Mealie. Crie um novo lá e salve-o no computador em Configurações > Chaves de API."
     },
+    "setup": {
+      "title": "O Home Screens não consegue usar este Mealie",
+      "description": "Confira o endereço do Mealie no computador em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização."
+    },
+    "connection": {
+      "title": "Não foi possível conectar ao Home Screens agora",
+      "description": "Confira se este celular está conectado e tente de novo."
+    },
     "paused": {
       "description": "O planejamento está pausado até o Mealie voltar.",
       "descriptionWithTime": "O planejamento está pausado até o Mealie voltar. Este é o plano de {time}.",
       "tokenDescription": "Crie um novo token no Mealie e salve-o no computador em Configurações > Chaves de API. Até lá, o planejamento fica pausado.",
-      "tokenDescriptionWithTime": "Crie um novo token no Mealie e salve-o no computador em Configurações > Chaves de API. Até lá, o planejamento fica pausado. Este é o plano de {time}."
+      "tokenDescriptionWithTime": "Crie um novo token no Mealie e salve-o no computador em Configurações > Chaves de API. Até lá, o planejamento fica pausado. Este é o plano de {time}.",
+      "setupDescription": "Confira o endereço do Mealie no computador em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização. Até lá, o planejamento fica pausado.",
+      "setupDescriptionWithTime": "Confira o endereço do Mealie no computador em Configurações > Chaves de API. Se estiver certo, talvez o Mealie precise de uma atualização. Até lá, o planejamento fica pausado. Este é o plano de {time}."
     },
     "saveFailed": {
       "token": "O Mealie não está deixando o Home Screens entrar, então isso não foi salvo.",
+      "setup": "O Home Screens não consegue usar este Mealie, então isso não foi salvo.",
       "notConnected": "O Mealie não está conectado, então isso não foi salvo.",
       "unreachable": "O Mealie não está respondendo, então isso não foi salvo. Tente de novo daqui a pouco."
     },
@@ -1518,6 +1530,7 @@
       "inCart": "Marcados ({count})",
       "staleUnreachable": "O Mealie não está respondendo. Esta é a lista de {time}.",
       "staleToken": "O Mealie não está deixando o Home Screens entrar. Esta é a lista de {time}.",
+      "staleSetup": "O Home Screens não consegue usar este Mealie. Esta é a lista de {time}.",
       "staleNotConnected": "O Mealie não está conectado. Esta é a lista de {time}.",
       "staleConnection": "Não foi possível conectar ao Home Screens. Esta é a lista de {time}.",
       "loading": "Buscando sua lista no Mealie…",
@@ -1529,6 +1542,10 @@
       "connectionTitle": "Não foi possível conectar ao Home Screens agora",
       "connectionDescription": "Confira se este celular está conectado e tente de novo.",
       "noConnection": "Não foi possível conectar ao Home Screens, então isso não foi salvo. Confira a conexão e tente de novo.",
+      "notSaved": {
+        "one": "Não deu para salvar {items}. Tente de novo.",
+        "other": "Não deu para salvar {items}. Tente de novo."
+      },
       "notSavedUnreachable": {
         "one": "Não deu para salvar {items}. O Mealie não está respondendo. Tente de novo daqui a pouco.",
         "other": "Não deu para salvar {items}. O Mealie não está respondendo. Tente de novo daqui a pouco."
@@ -1536,6 +1553,10 @@
       "notSavedToken": {
         "one": "Não deu para salvar {items}. O Mealie não está deixando o Home Screens entrar.",
         "other": "Não deu para salvar {items}. O Mealie não está deixando o Home Screens entrar."
+      },
+      "notSavedSetup": {
+        "one": "Não deu para salvar {items}. O Home Screens não consegue usar este Mealie.",
+        "other": "Não deu para salvar {items}. O Home Screens não consegue usar este Mealie."
       },
       "notSavedNotConnected": {
         "one": "Não deu para salvar {items}. O Mealie não está conectado.",

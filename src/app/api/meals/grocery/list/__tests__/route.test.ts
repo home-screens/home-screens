@@ -1,7 +1,7 @@
 /**
  * Route-level tests for `/api/meals/grocery/list` — the server-side resolved
  * grocery list. The meal store is mocked; the aggregation itself is the
- * canonical `generateGroceryList` (unit-tested in grocery-utils.test.ts), so
+ * canonical `weekGroceryList` (unit-tested in grocery-utils.test.ts), so
  * these tests pin the route contract: week windowing by weekStartDay,
  * serialization shape, and the total/checked counts.
  */

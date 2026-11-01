@@ -17,6 +17,11 @@ import {
   placePlanWeek,
   plannedEntriesOfMeal,
   restoreSavedMeal,
+  applyMealPick,
+  pickReplacedEntry,
+  undoClearWeek,
+  mealieSuggestCells,
+  mealieSuggestOutcome,
 } from '../meal-plan-actions';
 
 const WEEK = ['2026-09-13', '2026-09-14', '2026-09-15', '2026-09-16', '2026-09-17', '2026-09-18', '2026-09-19'];
@@ -155,12 +160,109 @@ describe('setPlanSlotTime', () => {
     const plan = [entry('2026-09-15', 'm-1')];
     expect(setPlanSlotTime(plan, '2026-09-16', 'dinner', '18:30')).toBe(plan);
   });
+
+  /* A chip showing the usual time offers to clear it; the meal has no time
+   * of its own to clear, so nothing is saved. */
+  it('is a no-op when the time does not change', () => {
+    const plan = [entry('2026-09-15', 'm-1'), entry('2026-09-16', 'm-2', { time: '18:30' })];
+    expect(setPlanSlotTime(plan, '2026-09-15', 'dinner', undefined)).toBe(plan);
+    expect(setPlanSlotTime(plan, '2026-09-16', 'dinner', '18:30')).toBe(plan);
+  });
 });
 
 describe('clearPlanWeek', () => {
   it('drops the viewed week and keeps every other', () => {
     const plan = [entry('2026-09-15', 'm-1'), entry('2026-09-22', 'm-2')];
     expect(clearPlanWeek(plan, WEEK).map((p) => p.date)).toEqual(['2026-09-22']);
+  });
+});
+
+/* The phone cleared the week again before putting it back, so a meal
+ * planned between Clear Week and Undo was lost; the editor kept it. */
+describe('undoClearWeek', () => {
+  it('puts the cleared week back on top of whatever is planned now', () => {
+    const cleared = [entry('2026-09-14', 'm-1'), entry('2026-09-15', 'm-2')];
+    const plan = [entry('2026-09-22', 'm-9')];
+    const plannedSince = [...plan, entry('2026-09-16', 'm-3'), entry('2026-09-15', 'm-4')];
+    const back = undoClearWeek(plannedSince, cleared);
+    expect(back.map((p) => `${p.date}:${p.mealId}`).sort()).toEqual([
+      '2026-09-14:m-1',
+      '2026-09-15:m-2',
+      '2026-09-16:m-3',
+      '2026-09-22:m-9',
+    ]);
+  });
+});
+
+describe('mealieSuggestCells', () => {
+  it('asks for the dinners nobody has planned', () => {
+    const plan = [entry('2026-09-14', 'm-1'), entry('2026-09-15', 'm-2', { slot: 'lunch' })];
+    const result = mealieSuggestCells(plan, WEEK, ['lunch', 'dinner']);
+    expect(result.kind).toBe('cells');
+    if (result.kind === 'cells') {
+      expect(result.cells.map((c) => c.date)).toEqual(WEEK.filter((d) => d !== '2026-09-14'));
+      expect(result.cells.every((c) => c.slot === 'dinner')).toBe(true);
+    }
+  });
+
+  it('says so when dinner is switched off, or every dinner is planned', () => {
+    expect(mealieSuggestCells([], WEEK, ['breakfast', 'lunch'])).toEqual({ kind: 'no-dinners' });
+    expect(mealieSuggestCells(WEEK.map((d) => entry(d, 'm-1')), WEEK, ['dinner'])).toEqual({ kind: 'all-planned' });
+  });
+});
+
+/* The phone said nothing when Mealie added no dinner and skipped none,
+ * where the editor said Mealie had no recipes to suggest. */
+describe('mealieSuggestOutcome', () => {
+  it('is nothing when Mealie added no dinner, whatever it skipped', () => {
+    // As the hub answers: what it added, and how many it could not fill.
+    const none = { created: 0, skipped: 0, entries: [] };
+    const allSkipped = { created: 0, skipped: 3, entries: [] };
+    expect(mealieSuggestOutcome(none)).toEqual({ kind: 'nothing' });
+    expect(mealieSuggestOutcome(allSkipped)).toEqual({ kind: 'nothing' });
+  });
+
+  it('names the nights it filled, and every night when it filled the week', () => {
+    const two = [{ date: '2026-09-14', slot: 'dinner', sourceId: '1' }, { date: '2026-09-16', slot: 'dinner', sourceId: '2' }];
+    expect(mealieSuggestOutcome({ created: 2, entries: two })).toEqual({ kind: 'added', added: two, count: 2, nights: ['2026-09-14', '2026-09-16'], everyNight: false });
+    const week = WEEK.map((date, i) => ({ date, slot: 'dinner', sourceId: String(i) }));
+    expect(mealieSuggestOutcome({ created: 7, entries: week })).toMatchObject({ kind: 'added', count: 7, everyNight: true });
+  });
+});
+
+describe('applyMealPick', () => {
+  const at = { date: '2026-09-15', slot: 'dinner' as const };
+
+  it('puts a meal or typed words in as the main dish', () => {
+    const plan = [entry('2026-09-15', 'm-1', { time: '18:00' })];
+    expect(find(applyMealPick(plan, { ...at, pick: 'main' }, { mealId: 'm-2' }), '2026-09-15')).toMatchObject({ mealId: 'm-2', time: '18:00' });
+    const typed = find(applyMealPick(plan, { ...at, pick: 'main' }, { customText: 'Tacos' }), '2026-09-15');
+    expect(typed).toMatchObject({ customText: 'Tacos', time: '18:00' });
+    expect(typed?.mealId).toBeUndefined();
+  });
+
+  it('adds a course, or changes the one at its index', () => {
+    const plan = [entry('2026-09-15', 'm-1', { courses: [{ kind: 'side', mealId: 'rice' }] })];
+    expect(find(applyMealPick(plan, { ...at, pick: 'add', kind: 'dessert' }, { customText: 'Flan' }), '2026-09-15')?.courses)
+      .toEqual([{ kind: 'side', mealId: 'rice' }, { kind: 'dessert', customText: 'Flan' }]);
+    expect(find(applyMealPick(plan, { ...at, pick: 'swap', kind: 'side', index: 0 }, { mealId: 'beans' }), '2026-09-15')?.courses)
+      .toEqual([{ kind: 'side', mealId: 'beans' }]);
+  });
+});
+
+describe('pickReplacedEntry', () => {
+  const at = { date: '2026-09-15', slot: 'dinner' as const };
+  const before = entry('2026-09-15', 'm-1', { courses: [{ kind: 'side', mealId: 'rice' }] });
+
+  it('is the meal as it was when a pick changes one dish for another', () => {
+    expect(pickReplacedEntry([before], { ...at, pick: 'main' }, { mealId: 'm-2' })).toBe(before);
+    expect(pickReplacedEntry([before], { ...at, pick: 'swap', kind: 'side', index: 0 }, { customText: 'Beans' })).toBe(before);
+  });
+
+  it('is null for a pick that fills an empty place, picks the same dish, or adds a course', () => {
+    expect(pickReplacedEntry([], { ...at, pick: 'main' }, { mealId: 'm-2' })).toBeNull();
+    expect(pickReplacedEntry([before], { ...at, pick: 'main' }, { mealId: 'm-1' })).toBeNull();
+    expect(pickReplacedEntry([before], { ...at, pick: 'add', kind: 'side' }, { mealId: 'beans' })).toBeNull();
   });
 });
 

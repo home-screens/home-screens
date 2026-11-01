@@ -12,6 +12,7 @@ import {
   deleteMealieShoppingItem,
   MealieShoppingGoneError,
   readMealieShopping,
+  requireMealieShoppingList,
   setMealieShoppingItemChecked,
 } from '../mealie-shopping';
 
@@ -238,6 +239,26 @@ describe('mealie-shopping', () => {
       household({ 'list-g': { name: 'Groceries', items: [] } });
       await expect(addMealieShoppingItem('list-gone', 'Milk')).rejects.toBeInstanceOf(MealieShoppingGoneError);
       expect(json.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false);
+    });
+  });
+
+  describe('requireMealieShoppingList', () => {
+    it('lets a list the household has through, and calls one Mealie does not have gone', async () => {
+      household({ 'list-g': { name: 'Groceries', items: [] } });
+      await expect(requireMealieShoppingList('list-g')).resolves.toBeUndefined();
+      await expect(requireMealieShoppingList('list-gone')).rejects.toMatchObject({ name: 'MealieShoppingGoneError', what: 'list' });
+    });
+
+    /* Picked a moment after somebody deleted it in Mealie, the list was still
+     * in the hub's ten-second copy, and its id was saved as the family's list. */
+    it("asks Mealie itself, not the hub's copy of a moment ago", async () => {
+      household({ 'list-g': { name: 'Groceries', items: [] }, 'list-h': { name: 'Hardware store', items: [] } });
+      await readMealieShopping(undefined);
+      household({ 'list-g': { name: 'Groceries', items: [] } });
+      await expect(requireMealieShoppingList('list-h')).rejects.toMatchObject({ name: 'MealieShoppingGoneError', what: 'list' });
+      // The read right after, which the surface makes to drop it, no longer offers it.
+      const after = await readMealieShopping(undefined);
+      expect(after.status === 'ok' && after.lists.map((l) => l.name)).toEqual(['Groceries']);
     });
   });
 

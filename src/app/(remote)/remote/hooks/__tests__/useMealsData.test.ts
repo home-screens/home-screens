@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, cleanup, renderHook } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 
 const translate = (key: string) => key;
 vi.mock('@/i18n', () => ({ useTranslate: () => translate }));
@@ -28,10 +28,11 @@ function posted(fetchMock: ReturnType<typeof vi.fn>): Record<string, unknown>[] 
     .map(([, opts]) => JSON.parse((opts as RequestInit).body as string));
 }
 
+/** The hook loads on mount, as the tab opens. */
 async function loaded(fetchMock: ReturnType<typeof vi.fn>) {
   vi.stubGlobal('fetch', fetchMock);
   const view = renderHook(() => useMealsData());
-  await act(async () => { await view.result.current.fetchData(); });
+  await waitFor(() => expect(view.result.current.loading).toBe(false));
   return view;
 }
 
@@ -121,6 +122,27 @@ describe('useMealsData grocery ticks', () => {
 
     expect(result.current.groceryChecked).toEqual({ [THIS_WEEK]: ['tortillas'] });
     expect(result.current.saveError).toBe('mealsTab.saveFailed');
+  });
+
+  it('takes a quick double tap on one item as one tap, and still ticks the next item', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(STORED))
+      .mockResolvedValueOnce(ok({ week: NEXT_WEEK, groceryChecked: ['milk'], changed: true }))
+      .mockResolvedValueOnce(ok({ week: NEXT_WEEK, groceryChecked: ['milk', 'eggs'], changed: true }));
+    const { result } = await loaded(fetchMock);
+
+    const now = vi.spyOn(Date, 'now').mockReturnValue(5_000_000);
+    await act(async () => { await result.current.toggleGroceryItem(NEXT_WEEK, 'Milk'); });
+    now.mockReturnValue(5_000_100);
+    await act(async () => { await result.current.toggleGroceryItem(NEXT_WEEK, 'Milk'); });
+    await act(async () => { await result.current.toggleGroceryItem(NEXT_WEEK, 'Eggs'); });
+    now.mockRestore();
+
+    expect(posted(fetchMock)).toEqual([
+      { item: 'Milk', direction: 'check', week: NEXT_WEEK },
+      { item: 'Eggs', direction: 'check', week: NEXT_WEEK },
+    ]);
+    expect(result.current.groceryChecked).toEqual({ [THIS_WEEK]: ['tortillas'], [NEXT_WEEK]: ['milk', 'eggs'] });
   });
 });
 
@@ -228,6 +250,22 @@ describe('useMealsData in Mealie mode', () => {
     expect(result.current.saveError).toBe('mealie.saveFailed.token');
   });
 
+  it('says Home Screens cannot use this Mealie when the address is wrong or Mealie is too old, for a save and for Suggest', async () => {
+    const cantUse = { ok: false, status: 400, json: async () => ({ error: 'Mealie is too old.', failure: 'too-old' }) };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
+      .mockResolvedValueOnce(cantUse)
+      .mockResolvedValue(ok(mealieAnswer(SHARED, SHARED_PLAN, 'stale')));
+    const { result } = await loaded(fetchMock);
+
+    await act(async () => { await result.current.saveData((c) => ({ plan: c.plan.filter(() => false) })); });
+    expect(result.current.saveError).toBe('mealie.saveFailed.setup');
+
+    fetchMock.mockResolvedValueOnce(cantUse);
+    await act(async () => { await result.current.suggestFromMealie([{ date: THIS_WEEK, slot: 'dinner' }]); });
+    expect(result.current.saveError).toBe('mealie.saveFailed.setup');
+  });
+
   it('keeps the "try again in a moment" words when Mealie is only away', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(ok(mealieAnswer(SHARED, SHARED_PLAN)))
@@ -258,5 +296,47 @@ describe('useMealsData in Mealie mode', () => {
     expect(result.current.loading).toBe(false);
     expect(result.current.source).toBe('mealie');
     expect(result.current.plan).toEqual(SHARED_PLAN);
+  });
+});
+
+describe('useMealsData when the hub is out of reach', () => {
+  /* The phone said "Network error. Please try again." in English, whatever
+   * the household's language. */
+  it('says a save that never reached the hub in the phone\'s own words', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(STORED))
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const { result } = await loaded(fetchMock);
+
+    let saved = true;
+    await act(async () => {
+      saved = await result.current.saveData(() => ({ plan: [{ date: THIS_WEEK, slot: 'dinner', customText: 'Soup' }] }));
+    });
+
+    expect(saved).toBe(false);
+    expect(result.current.saveError).toBe('mealsTab.saveFailedConnection');
+    expect(result.current.plan).toEqual([]);
+  });
+
+  it('says a settings save that failed in the phone\'s own words', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(STORED))
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'Failed to update meal data' }) })
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    const { result } = await loaded(fetchMock);
+
+    await act(async () => { await result.current.saveSettingsOnly(result.current.settings); });
+    expect(result.current.saveError).toBe('mealsSettings.save.saveFailed');
+    await act(async () => { await result.current.saveSettingsOnly(result.current.settings); });
+    expect(result.current.saveError).toBe('mealsTab.saveFailedConnection');
+  });
+
+  it('loads again when the phone is back online', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(ok(STORED));
+    await loaded(fetchMock);
+
+    await act(async () => { window.dispatchEvent(new Event('online')); });
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 });

@@ -2,9 +2,11 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
-import { DOUBLE_TAP_MS, useMealieShoppingList } from '../useMealieShoppingList';
-import { HubUnreachableError, loadMealieShopping, tickMealieShoppingItem, type MealieShoppingWire } from '@/lib/meal-client';
+import { useMealieShoppingList } from '../useMealieShoppingList';
+import { HubUnreachableError, loadMealieShopping, tickMealieShoppingItem } from '@/lib/meal-client';
+import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
 import type { ShoppingItem } from '@/lib/shopping-list';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 
 const item = (id: string, text: string, checked = false): ShoppingItem => ({ id, text, name: text, checked, recipes: [] });
 
@@ -17,7 +19,7 @@ function hub(lists: HubList[]) {
   const state = { lists: lists.map((l) => ({ ...l, items: l.items.map((i) => ({ ...i })) })), chosen: lists[0]?.id, down: false };
   const ticks: { id: string; checked: boolean; settle: (res: Response) => void }[] = [];
   const reads: string[] = [];
-  const wire = (listId?: string): MealieShoppingWire => {
+  const wire = (listId?: string): MealieShoppingAnswer => {
     const shown = state.lists.find((l) => l.id === listId) ?? state.lists.find((l) => l.id === state.chosen) ?? state.lists[0];
     return {
       status: 'ok',
@@ -111,7 +113,19 @@ describe('useMealieShoppingList', () => {
     await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
     // Both springs back, one message naming both.
     expect(result.current.view.groups[0].items.map((i) => i.checked)).toEqual([false, false]);
-    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ problem: 'unreachable' }), 'tick', ['Milk', '4 eggs']);
+    expect(onError).toHaveBeenCalledWith({ action: 'tick', items: ['Milk', '4 eggs'], problem: 'unreachable', gone: false });
+  });
+
+  it('reports a refusal that names no reason as no reason, not as Mealie being down', async () => {
+    const onError = vi.fn();
+    const h = hub([GROCERIES([item('milk', 'Milk')])]);
+    const { result } = await open(h, onError);
+
+    act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    await waitFor(() => expect(h.ticks).toHaveLength(1));
+    await act(async () => h.ticks[0].settle(json({ error: 'Failed to update the Mealie shopping list' }, 500)));
+    await waitFor(() => expect(onError).toHaveBeenCalledTimes(1));
+    expect(onError).toHaveBeenCalledWith({ action: 'tick', items: ['Milk'], problem: null, gone: false });
   });
 
   it('sends two taps on one item one after the other, so Mealie ends where the last tap left it', async () => {
@@ -246,10 +260,28 @@ describe('useMealieShoppingList', () => {
 
   it('keeps the saved address for Open Mealie when Mealie never answered', async () => {
     const fetcher = vi.fn(async () => json({ error: "We couldn't reach Mealie.", failure: 'unreachable', baseUrl: 'http://mealie.local' }, 502));
-    const { result } = renderHook(() => useMealieShoppingList(fetcher, { onError: vi.fn() }));
+    const { result } = renderHook(() => useMealieShoppingList(fetcher, { onError: vi.fn(), planBaseUrl: 'http://old.local' }));
     await waitFor(() => expect(result.current.state).toBe('failed'));
     expect(result.current.problem).toBe('unreachable');
-    expect(result.current.baseUrl).toBe('http://mealie.local');
+    expect(result.current.mealieUrl).toBe('http://mealie.local/shopping-lists');
+  });
+
+  it("opens the list on screen in Mealie, and the plan's address before the hub says one", async () => {
+    const h = hub([GROCERIES([item('milk', 'Milk')])]);
+    const { result } = renderHook(() => useMealieShoppingList(h.fetcher, { onError: vi.fn(), planBaseUrl: 'http://plan.local' }));
+    expect(result.current.mealieUrl).toBe('http://plan.local/shopping-lists');
+    await waitFor(() => expect(result.current.state).toBe('ready'));
+    expect(result.current.mealieUrl).toBe('http://mealie.local/shopping-lists/groceries');
+  });
+
+  it('counts what is left to get in each group as drawn', async () => {
+    const h = hub([GROCERIES([item('milk', 'Milk'), item('eggs', 'Eggs'), item('bread', 'Bread', true)])]);
+    const { result } = await open(h);
+    expect(result.current.view.groups[0].left).toBe(2);
+    act(() => result.current.toggle(result.current.view.groups[0].items[0]));
+    // Ticked here and still drawn in place, so no longer left to get.
+    expect(result.current.view.groups[0].items).toHaveLength(2);
+    expect(result.current.view.groups[0].left).toBe(1);
   });
 
   it('gives every request a time limit, and a request that fails or runs out counts as not reaching the hub', async () => {

@@ -11,8 +11,9 @@ import {
   getLocalizedDayNames,
   getMealSlotLabelKey,
 } from '@/lib/meal-constants';
+import type { MealPickTarget } from '@/lib/meal-courses';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import type { MealPickTarget, MealsViewProps } from './meals-shared';
+import type { MealsViewProps } from './meals-shared';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';

@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import {
   foldedOnOpen,
+  groceryShareText,
+  mealieShoppingAddedWords,
+  mealieShoppingErrorWords,
+  mealieShoppingNoticeWords,
+  mealieShoppingStaleKey,
   setShoppingItemChecked,
   shoppingAddPlan,
   shoppingCounts,
@@ -9,7 +14,9 @@ import {
   shoppingListByName,
   shoppingListView,
   shoppingShareText,
+  shoppingTextKey,
   shoppingTicksForName,
+  tidyShoppingText,
   type ShoppingItem,
   type ShoppingList,
 } from '../shopping-list';
@@ -55,6 +62,12 @@ describe('shoppingListView', () => {
   it('leads a group with what was added this visit', () => {
     const view = shoppingListView(LIST, { folded: new Set(), added: new Set(['bread']) });
     expect(view.groups[0].items.map((i) => i.id)).toEqual(['bread', 'milk']);
+  });
+
+  it("counts what is left to get in each group as drawn, not what was ticked in it this visit", () => {
+    const ticked = setShoppingItemChecked(LIST, 'flour', true);
+    const view = shoppingListView(ticked, { folded: foldedOnOpen(LIST), added: new Set() });
+    expect(view.groups.map((g) => [g.label, g.items.length, g.left])).toEqual([[null, 1, 1], ['Baking', 2, 1]]);
   });
 });
 
@@ -109,6 +122,24 @@ describe('voice', () => {
   });
 });
 
+describe('groceryShareText', () => {
+  it('puts each section with something in it under the heading, details in brackets', () => {
+    const text = groceryShareText(
+      [
+        { label: 'Produce', items: [{ text: 'Onions', detail: '3' }, { text: 'Lemons', detail: '' }] },
+        { label: 'Dairy', items: [] },
+        { label: 'Meat', items: [{ text: 'Ground beef', detail: '2 lb' }] },
+      ],
+      { heading: "This week's groceries", complete: 'All done!' },
+    );
+    expect(text).toBe("This week's groceries\n\nProduce\n  Onions (3)\n  Lemons\n\nMeat\n  Ground beef (2 lb)");
+  });
+
+  it('says the list is done when no section has anything in it', () => {
+    expect(groceryShareText([{ label: 'Dairy', items: [] }], { heading: 'H', complete: 'All done!' })).toBe('All done!');
+  });
+});
+
 describe('shoppingShareText', () => {
   const words = { heading: 'Groceries', complete: 'All done!', labelFor: (l: string | null) => l ?? 'No label' };
 
@@ -139,5 +170,55 @@ describe('shoppingAddPlan', () => {
 
   it("never stands in a recipe's line for the plain words", () => {
     expect(shoppingAddPlan(LIST, 'flour')).toEqual({ kind: 'new' });
+  });
+
+  it('matches words typed with extra spaces, the way the hub tidies them before adding', () => {
+    const towels: ShoppingList = { id: 'g', name: 'G', groups: [{ label: null, items: [it_('pt', 'Paper towels')] }] };
+    expect(shoppingAddPlan(towels, 'Paper  towels')).toEqual({ kind: 'already', item: towels.groups[0].items[0] });
+    expect(shoppingAddPlan(LIST, 'Milk ')).toEqual({ kind: 'already', item: LIST.groups[0].items[0] });
+  });
+});
+
+describe('shopping text', () => {
+  it('tidies typed words as a list line keeps them, and keys them ignoring capitals', () => {
+    expect(tidyShoppingText('  Paper  towels ')).toBe('Paper towels');
+    expect(shoppingTextKey('Paper  towels')).toBe('paper towels');
+    expect(shoppingTextKey('Milk ')).toBe('milk');
+  });
+});
+
+describe('the lines around a Mealie list', () => {
+  it('says a write with no reason given did not save, without blaming Mealie', () => {
+    expect(mealieShoppingErrorWords({ action: 'choose', problem: null, gone: false })).toEqual({ key: 'saveFailed' });
+    expect(mealieShoppingErrorWords({ action: 'tick', items: ['Milk'], problem: null, gone: false })).toEqual({ key: 'notSaved' });
+  });
+
+  it('names why when there is a reason', () => {
+    expect(mealieShoppingErrorWords({ action: 'undo', problem: 'token', gone: false })).toEqual({ key: 'saveFailed', reason: 'token' });
+    expect(mealieShoppingErrorWords({ action: 'choose', problem: 'setup', gone: false })).toEqual({ key: 'saveFailed', reason: 'setup' });
+    expect(mealieShoppingErrorWords({ action: 'add', items: ['Milk'], problem: 'setup', gone: false })).toEqual({ key: 'notSavedSetup' });
+    expect(mealieShoppingErrorWords({ action: 'tick', items: ['Milk'], problem: 'unreachable', gone: false })).toEqual({ key: 'notSavedUnreachable' });
+    expect(mealieShoppingErrorWords({ action: 'add', items: ['Milk'], problem: 'connection', gone: false })).toEqual({ key: 'notSavedConnection' });
+    expect(mealieShoppingErrorWords({ action: 'choose', problem: 'connection', gone: false })).toEqual({ key: 'noConnection' });
+  });
+
+  it('says a list gone from Mealie is gone, and stays quiet for a tick, which reads the list again', () => {
+    expect(mealieShoppingErrorWords({ action: 'choose', problem: null, gone: true })).toEqual({ key: 'listGone' });
+    expect(mealieShoppingErrorWords({ action: 'tick', items: ['Milk'], problem: null, gone: true })).toBeNull();
+  });
+
+  it('says why the list on screen is old', () => {
+    expect(mealieShoppingStaleKey('token')).toBe('staleToken');
+    expect(mealieShoppingStaleKey('setup')).toBe('staleSetup');
+    expect(mealieShoppingStaleKey(null)).toBe('staleUnreachable');
+  });
+
+  it('words the line after an add and the line under the list chooser', () => {
+    const added = { text: 'Lemons', list: 'Groceries' };
+    expect(mealieShoppingAddedWords({ ...added, kind: 'added', label: 'Produce' })).toEqual({ key: 'addedUnder', vars: { item: 'Lemons', list: 'Groceries', label: 'Produce' } });
+    expect(mealieShoppingAddedWords({ ...added, kind: 'added', label: null })).toEqual({ key: 'added', vars: { item: 'Lemons', list: 'Groceries' } });
+    expect(mealieShoppingAddedWords({ ...added, kind: 'putBack', label: 'Produce' })).toEqual({ key: 'putBack', vars: { item: 'Lemons', list: 'Groceries' } });
+    expect(mealieShoppingNoticeWords({ kind: 'gone', from: 'Party', list: 'Groceries' })).toEqual({ key: 'gone', vars: { from: 'Party', list: 'Groceries' } });
+    expect(mealieShoppingNoticeWords({ kind: 'picked', list: 'Costco run', undo: () => {} })).toEqual({ key: 'picked', vars: { list: 'Costco run' } });
   });
 });

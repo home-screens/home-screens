@@ -3,7 +3,7 @@ import { withDisplayAuth } from '@/lib/api-utils';
 import { readMealData } from '@/lib/meal-data';
 import { getWeekRange, filterPlanToWeek, fromISODate } from '@/lib/meal-constants';
 import { householdToday } from '@/lib/household-day';
-import { generateGroceryList } from '@/lib/grocery-utils';
+import { weekGroceryList } from '@/lib/grocery-utils';
 import { groceryChecksForWeek } from '@/lib/grocery-checks';
 import { readMealieShopping } from '@/lib/mealie-shopping';
 import { mealieFailureResponse } from '@/lib/mealie-api';
@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
  * only returns the checked state — the list itself (ingredients aggregated
  * from the week's planned meals, grouped by aisle) has always been computed
  * client-side in /remote and the editor. This endpoint runs the same
- * canonical generator (generateGroceryList) server-side so external callers
+ * canonical generator (weekGroceryList) server-side so external callers
  * — the Home Assistant voice package's "what's on the grocery list?" — see
  * exactly what the Grocery tab shows. "Current week" follows the shared
  * weekStartDay meal setting, same as every meal surface, and starts from the
@@ -55,18 +55,12 @@ export const GET = withDisplayAuth(async () => {
     });
   }
   const weekPlan = filterPlanToWeek(data.plan, start, end);
-  const list = generateGroceryList(weekPlan, data.savedMeals, groceryChecksForWeek(data.groceryChecked, start));
-
-  const categories = Array.from(list.entries()).map(([category, { items }]) => ({
-    category,
-    items,
-  }));
-  const all = categories.flatMap((c) => c.items);
+  const { list, counts } = weekGroceryList(weekPlan, data.savedMeals, groceryChecksForWeek(data.groceryChecked, start));
 
   return NextResponse.json({
     week: { start, end },
-    categories,
-    total: all.length,
-    checked: all.filter((i) => i.checked).length,
+    categories: Array.from(list.entries()).map(([category, { items }]) => ({ category, items })),
+    total: counts.total,
+    checked: counts.checked,
   });
 }, 'Failed to build the grocery list');

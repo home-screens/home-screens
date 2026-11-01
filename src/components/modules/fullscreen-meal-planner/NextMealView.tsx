@@ -1,11 +1,11 @@
-import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal, toISODate, minutesOfDay } from '@/lib/meal-constants';
+import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, type NextPlannedMeal } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { getDifficultyColor, px } from './meal-planner-utils';
+import { px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
-import { useMealMinutes } from '../shared/useMealMinutes';
+import { MealMetaPills } from '../shared/MealMetaPills';
 
 /**
  * The one-glance answer to "when's lunch?" from across the room: a badge,
@@ -13,13 +13,14 @@ import { useMealMinutes } from '../shared/useMealMinutes';
  * authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function NextMealView({
-  settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode, photoBackdrop,
-}: MealPlannerViewProps) {
+  next, settings, timeFormat, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode, photoBackdrop,
+}: MealPlannerViewProps & {
+  /** The next meal (`getNextPlannedMeal`), worked out once by the module for its fit and its photo too. */
+  next: NextPlannedMeal | null;
+}) {
   const t = useTranslate('modules');
-  const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
-  const next = getNextPlannedMeal(toISODate(now), minutesOfDay(now), plan, savedMeals, slots, settings.defaultSlotTimes);
 
   if (!next) {
     return (
@@ -34,15 +35,13 @@ export default function NextMealView({
     );
   }
 
-  const { meal, name, slot, context, date, courses, notes } = next;
+  const { meal, name, slot, context, date, courses, notes, planned } = next;
   // Over a photo the text turns light and the pills and badge darken so they
   // hold over any picture; without one the theme's own ink stays.
   const ink = photoBackdrop
     ? { text: '#ffffff', text2: 'rgba(255,255,255,0.9)', text3: 'rgba(255,255,255,0.72)', pillBg: 'rgba(255,255,255,0.16)', pillFg: 'rgba(255,255,255,0.88)' }
     : { text: 'var(--fmp-text)', text2: 'var(--fmp-text-2)', text3: 'var(--fmp-text-3)', pillBg: 'var(--fmp-border-sub)', pillFg: 'var(--fmp-text-3)' };
-  // Find the planned entry for this date+slot to grab its time
-  const plannedEntry = plan.find((p) => p.date === date && p.slot === slot);
-  const time = resolvePlannedMealTime(plannedEntry, slot, settings.defaultSlotTimes);
+  const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
 
   const contextStyles: Record<string, { color: string; bg: string; label: string; icon: string }> = {
     now:       { color: 'var(--fmp-accent)', bg: `color-mix(in srgb, var(--fmp-accent) 12%, transparent)`, label: t('fullscreen-meal-planner.nextMealLabels.now'), icon: 'M13 10V3L4 14h7v7l9-11h-7z' },
@@ -146,32 +145,14 @@ export default function NextMealView({
       ))}
 
       {/* Meta pills and tags share one row, like the today hero. */}
-      {((showPrepTime && mealMinutes(meal)) || (showDifficulty && meal?.difficulty) || (showTags && meal?.tags && meal.tags.length > 0)) && (
-        <div style={{ display: 'flex', flexWrap: 'wrap' as const, justifyContent: 'center', gap: P(16) }}>
-          {showPrepTime && mealMinutes(meal) && (
-            <span style={pillStyle}>
-              &#9201; {mealMinutes(meal)}
-            </span>
-          )}
-          {showDifficulty && meal?.difficulty && (() => {
-            const dc = getDifficultyColor(meal.difficulty);
-            return (
-              <span style={{
-                ...pillStyle,
-                color: dc ?? 'var(--fmp-text-3)',
-                border: dc ? `1px solid ${dc}40` : undefined,
-              }}>
-                {meal.difficulty}
-              </span>
-            );
-          })()}
-          {showTags && meal?.tags?.map((tag) => (
-            <span key={tag} style={pillStyle}>
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+      <MealMetaPills
+        meal={meal}
+        showPrepTime={showPrepTime}
+        showDifficulty={showDifficulty}
+        showTags={showTags}
+        pillStyle={pillStyle}
+        gap={P(16)}
+      />
     </div>
   );
 }

@@ -607,5 +607,72 @@ describe('useMealPlannerData', () => {
       });
       expect(result.current.mealData.plan).toEqual(saved);
     });
+
+    /* The phone loaded again when it was back online; the editor waited for
+     * its poll. */
+    it('loads again when this computer is back online', async () => {
+      const fetchMock = vi.fn().mockResolvedValueOnce(ok(SERVER_PAYLOAD)).mockResolvedValue(ok(phonePlanned));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { result } = renderHook(() =>
+        useMealPlannerData({ mod: makeModule(), set: vi.fn(), showModal: true }),
+      );
+      await settle();
+      await act(async () => { window.dispatchEvent(new Event('online')); });
+      await settle();
+
+      expect(result.current.mealData.plan).toEqual(phonePlanned.plan);
+    });
+  });
+
+  /* ─── Mealie refusing ─────────────────────
+   * After Mealie refused a save the phone asked the hub again at once, so
+   * planning paused; the editor waited up to 15 s for its poll, and every
+   * edit in between failed with a toast.
+   */
+  describe('with the plan in Mealie', () => {
+    const mealieCopy = (status: string) => ({
+      ...SERVER_PAYLOAD,
+      settings: { planSource: 'mealie' },
+      mealie: { status, plan: [{ date: '2026-10-31', slot: 'dinner', customText: 'Tacos', sourceId: 'mealie:1' }], meals: [], range: { start: '2026-10-25', end: '2026-11-28' }, fetchedAt: 1 },
+    });
+    const down = { ok: false, status: 502, json: async () => ({ error: "We couldn't reach Mealie.", failure: 'unreachable' }) };
+
+    it('asks the hub again after Mealie refuses a save, so the window pauses planning', async () => {
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(ok(mealieCopy('ok')))
+        .mockResolvedValueOnce(down)
+        .mockResolvedValueOnce(ok(mealieCopy('stale')));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { result } = renderHook(() =>
+        useMealPlannerData({ mod: makeModule(), set: vi.fn(), showModal: true }),
+      );
+      await waitFor(() => expect(result.current.mealData.mealie?.status).toBe('ok'));
+
+      await act(async () => {
+        await result.current.handleModalUpdate((c) => ({ plan: c.plan.filter(() => false) }));
+      });
+
+      expect(result.current.saveError).toEqual({ problem: 'unreachable' });
+      await waitFor(() => expect(result.current.mealData.mealie?.status).toBe('stale'));
+      expect(fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('does not leave a week loading after the session expired', async () => {
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(ok(mealieCopy('ok')))
+        .mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const { result } = renderHook(() =>
+        useMealPlannerData({ mod: makeModule(), set: vi.fn(), showModal: false }),
+      );
+      await waitFor(() => expect(result.current.mealData.mealie?.status).toBe('ok'));
+
+      await act(async () => { await result.current.showMealieRange({ start: '2026-12-13', end: '2026-12-19' }); });
+
+      expect(result.current.mealieWeeks).toBe('idle');
+    });
   });
 });

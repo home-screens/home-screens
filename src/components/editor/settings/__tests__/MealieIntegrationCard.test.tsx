@@ -183,8 +183,8 @@ describe('the Mealie card', () => {
   it.each([
     ['unreachable', "We couldn't reach Mealie at that address.", 'Not answering'],
     ['key-rejected', "Mealie didn't accept that token.", 'Token not accepted'],
-    ['not-mealie', "Something answered at that address, but it isn't Mealie.", 'Not connected'],
-    ['bad-address', "That doesn't look like a web address.", 'Not connected'],
+    ['not-mealie', "Something answered at that address, but it isn't Mealie.", "Can't use this Mealie"],
+    ['bad-address', "That doesn't look like a web address.", "Can't use this Mealie"],
     ['not-set-up', 'Add the address and the token first.', 'Not connected'],
   ])('says what went wrong for %s', async (failure, sentence, pillText) => {
     answer({ ok: false, failure });

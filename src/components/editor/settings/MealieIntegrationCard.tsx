@@ -11,6 +11,7 @@ import { checkMealie, type MealieCheck } from '@/hooks/useMealieCheck';
 import { settingsPath } from '@/lib/settings-route';
 import { editorFetch } from '@/lib/editor-fetch';
 import { loadMealPlanSource, saveMealPlanSource } from '@/lib/meal-client';
+import { mealieProblem, type MealieProblem } from '@/lib/meal-sources';
 import { useTranslate, type TranslateFn } from '@/i18n';
 
 /**
@@ -183,17 +184,18 @@ export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: 
   );
 }
 
-/** The pill for what a check found, once both boxes are saved. */
+const PROBLEM_PILL: Record<MealieProblem, string> = {
+  'not-connected': 'notConnected',
+  token: 'tokenRefused',
+  setup: 'cantUse',
+  unreachable: 'notAnswering',
+};
+
+/** The pill for what a check found, once both boxes are saved: the problem every meal surface names, or that the check itself got no answer. */
 function checkPill(check: MealieCheck, t: TranslateFn): { label: string; type: 'connected' | 'partial' } {
   if (check.ok) return { label: t('settings.integrationsPage.status.connected'), type: 'connected' };
-  const label = check.failure === 'key-rejected'
-    ? t('settings.integrationsPage.mealie.tokenRefused')
-    : check.failure === 'unreachable'
-      ? t('settings.integrationsPage.mealie.notAnswering')
-      : check.failure === 'network'
-        ? t('settings.integrationsPage.mealie.couldNotCheck')
-        : t('settings.integrationsPage.mealie.notConnected');
-  return { label, type: 'partial' };
+  const words = check.failure === 'network' ? 'couldNotCheck' : PROBLEM_PILL[mealieProblem(check.failure)];
+  return { label: t(`settings.integrationsPage.mealie.${words}`), type: 'partial' };
 }
 
 /** What a check found, in a plain sentence. */

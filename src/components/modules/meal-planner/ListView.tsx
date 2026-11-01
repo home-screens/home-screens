@@ -11,6 +11,7 @@ import { MealCourseNames } from '../shared/MealCourseLines';
 import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 import { useMealMinutes } from '../shared/useMealMinutes';
 import { mealListScrollTop } from '@/lib/meal-list-scroll';
+import { mealTagLabel } from '@/lib/meal-dish-rules';
 
 /** Marks each day heading, the lines the scroll can stop at. */
 const DAY_HEADING_ATTR = 'data-list-day';
@@ -172,7 +173,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
                             className="rounded-full px-1 py-px"
                             style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.tertiary }}
                           >
-                            {tag}
+                            {mealTagLabel(meal, tag)}
                           </span>
                         ))}
                       </div>

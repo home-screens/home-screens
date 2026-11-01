@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig, seedMeals } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
-import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 import {
   connectFakeMealie,
   defaultFakeEntries,

@@ -2,18 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  HubUnreachableError,
   MealClientError,
   MealieShoppingRefusal,
   addToMealieShoppingList,
   chooseMealieShoppingList,
   loadMealieShopping,
+  mealieClientProblem,
   removeMealieShoppingItem,
   tickMealieShoppingItem,
   type MealFetch,
-  type MealieShoppingWire,
+  type MealieClientProblem,
 } from '@/lib/meal-client';
-import { mealieProblem, type MealieProblem } from '@/lib/meal-sources';
+import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
+import { mealieProblem, mealieShoppingListUrl, mealieShoppingListsUrl } from '@/lib/meal-sources';
 import {
   foldedOnOpen,
   setShoppingItemChecked,
@@ -21,11 +22,17 @@ import {
   shoppingCounts,
   shoppingListView,
   shoppingPutBack,
-  type ShoppingGroup,
+  tidyShoppingText,
+  type MealieShoppingAction,
+  type MealieShoppingAdded,
+  type MealieShoppingFailure,
+  type MealieShoppingNotice,
   type ShoppingItem,
   type ShoppingList,
   type ShoppingListSummary,
+  type ShoppingViewGroup,
 } from '@/lib/shopping-list';
+import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
 
 /** How often an open Grocery tab asks again, so a tick made in Mealie's app shows up at the store. */
 export const SHOPPING_REFRESH_MS = 30_000;
@@ -37,42 +44,11 @@ const LINE_MS = 6000;
 const PENDING_AFTER_MS = 2000;
 /** Ticks that fail together are reported together. */
 const FAILURE_BATCH_MS = 400;
-/**
- * A second tap on the same item this soon is the other half of a double tap,
- * not a change of mind: a finger that meant to tick must not untick at once.
- */
-export const DOUBLE_TAP_MS = 300;
-
-export type MealieShoppingAction = 'tick' | 'add' | 'choose' | 'undo';
-
-/** Why the list on screen is not fresh: Mealie's reasons, or this device not reaching the hub. */
-export type MealieShoppingProblem = MealieProblem | 'connection';
-
-/** What just happened to the list on screen, said under the list chooser. */
-export type MealieShoppingNotice =
-  /** This device picked `list` for the whole family; Undo picks the old one again. */
-  | { kind: 'picked'; list: string; undo: () => void }
-  /** Somebody picked `list` on another device. */
-  | { kind: 'moved'; list: string }
-  /** `from` was deleted in Mealie, so the tab shows `list` now. */
-  | { kind: 'gone'; from: string; list: string };
-
-/** What the last add did, said under the box. */
-export interface MealieShoppingAdded {
-  /** `already`: it was on the list to get; `putBack`: it was ticked and is to get again. */
-  kind: 'added' | 'already' | 'putBack';
-  text: string;
-  list: string;
-  /** The label Mealie filed it under. */
-  label: string | null;
-  /** Takes a new item back off the list; absent when nothing new was made. */
-  undo?: () => void;
-}
 
 export interface MealieShoppingTab {
   /** `failed`: no copy at all (`problem` says why). */
   state: 'loading' | 'ready' | 'failed';
-  problem: MealieShoppingProblem | null;
+  problem: MealieClientProblem | null;
   /** The list on screen is the last good copy, from `fetchedAt`. */
   stale: boolean;
   fetchedAt: number | null;
@@ -81,10 +57,13 @@ export interface MealieShoppingTab {
   list: ShoppingList | null;
   /** The list a pick is on its way to. The list on screen is the old one until it lands: take no taps. */
   choosing: string | null;
-  /** Mealie's address, for Open Mealie, also when Mealie never answered. */
-  baseUrl: string | null;
+  /**
+   * Open Mealie: the list on screen, or every list before one has answered;
+   * null while Mealie's address is unknown. As saved, for `useMealieLink`.
+   */
+  mealieUrl: string | null;
   /** What the tab draws: the groups, and what was ticked when it opened, folded away. */
-  view: { groups: ShoppingGroup[]; folded: ShoppingItem[] };
+  view: { groups: ShoppingViewGroup[]; folded: ShoppingItem[] };
   counts: { total: number; got: number };
   /** Ticks on their way to Mealie for a while. */
   pending: ReadonlySet<string>;
@@ -100,9 +79,14 @@ export interface MealieShoppingTab {
 
 const NOTHING: ReadonlySet<string> = new Set();
 
-function problemOf(err: unknown): MealieShoppingProblem {
-  if (err instanceof HubUnreachableError) return 'connection';
-  return err instanceof MealClientError && err.problem ? err.problem : mealieProblem(undefined);
+/** A write that did not go through, as `onError` hears it: the hub's reason, or none when it gave none. */
+function failureOf(err: unknown, action: MealieShoppingAction, items?: string[]): MealieShoppingFailure {
+  return {
+    action,
+    ...(items ? { items } : {}),
+    problem: err instanceof MealClientError && !err.problem ? null : mealieClientProblem(err),
+    gone: err instanceof MealClientError && err.kind === 'conflict',
+  };
 }
 
 function labelOf(list: ShoppingList | null, itemId: string | undefined): string | null {
@@ -123,18 +107,20 @@ function labelOf(list: ShoppingList | null, itemId: string | undefined): string 
  */
 export function useMealieShoppingList(
   fetcher: MealFetch,
-  { onError, onSaved }: {
-    /** `items` names what a failed tick or add was about. */
-    onError: (err: unknown, action: MealieShoppingAction, items?: string[]) => void;
+  { onError, onSaved, planBaseUrl }: {
+    /** A write that did not go through (`mealieShoppingErrorWords` says what to tell the family). */
+    onError: (failure: MealieShoppingFailure) => void;
     /** A tick, an add or a pick Mealie took: an earlier "not saved" is out of date. */
     onSaved?: () => void;
+    /** Mealie's address from the plan, for Open Mealie before the list has answered. */
+    planBaseUrl?: string;
   },
 ): MealieShoppingTab {
-  const [answer, setAnswer] = useState<MealieShoppingWire | null>(null);
-  const [failed, setFailed] = useState<MealieShoppingProblem | null>(null);
+  const [answer, setAnswer] = useState<MealieShoppingAnswer | null>(null);
+  const [failed, setFailed] = useState<MealieClientProblem | null>(null);
   const [failedBaseUrl, setFailedBaseUrl] = useState<string | null>(null);
   /** A read failed after one succeeded: the copy on screen is older than it says. */
-  const [lostTouch, setLostTouch] = useState<MealieShoppingProblem | null>(null);
+  const [lostTouch, setLostTouch] = useState<MealieClientProblem | null>(null);
   const [overrides, setOverrides] = useState<ReadonlyMap<string, boolean>>(new Map());
   const [folds, setFolds] = useState<Readonly<Record<string, ReadonlySet<string>>>>({});
   const [added, setAdded] = useState<ReadonlySet<string>>(NOTHING);
@@ -148,7 +134,7 @@ export function useMealieShoppingList(
   onErrorRef.current = onError;
   const onSavedRef = useRef(onSaved);
   onSavedRef.current = onSaved;
-  const lastTap = useRef<{ id: string; at: number } | null>(null);
+  const lastTap = useRef<LastTap | null>(null);
   const answerRef = useRef(answer);
   answerRef.current = answer;
   /** The list as drawn (ticks on their way included), for the add rules. */
@@ -197,7 +183,7 @@ export function useMealieShoppingList(
    * Take a read: fold what it shows ticked the first time a list is seen this
    * visit, and say so when the list on screen changed without a pick here.
    */
-  const adopt = useCallback((next: MealieShoppingWire, seq: number, origin: 'read' | 'write') => {
+  const adopt = useCallback((next: MealieShoppingAnswer, seq: number, origin: 'read' | 'write') => {
     // A tick Mealie took before this read began is in it now.
     for (const [id, tick] of ticksRef.current) if (tick.settledBefore <= seq) ticksRef.current.delete(id);
     syncOverrides();
@@ -227,7 +213,7 @@ export function useMealieShoppingList(
       adopt(next, seq, 'read');
     } catch (err) {
       if (!mounted.current || seq !== seqRef.current) return;
-      const problem = problemOf(err);
+      const problem = mealieClientProblem(err);
       if (answerRef.current) {
         setLostTouch(problem);
       } else {
@@ -295,15 +281,15 @@ export function useMealieShoppingList(
     later(() => {
       const batch = failuresRef.current;
       failuresRef.current = null;
-      if (batch && mounted.current) onErrorRef.current(batch.err, 'tick', batch.names);
+      if (batch && mounted.current) onErrorRef.current(failureOf(batch.err, 'tick', batch.names));
     }, FAILURE_BATCH_MS);
   }, [later]);
 
   const toggle = useCallback((item: ShoppingItem) => {
     if (choosingRef.current) return;
-    const now = Date.now();
-    if (lastTap.current?.id === item.id && now - lastTap.current.at < DOUBLE_TAP_MS) return;
-    lastTap.current = { id: item.id, at: now };
+    const tap = { id: item.id, at: Date.now() };
+    if (isRepeatTap(lastTap.current, tap.id, tap.at)) return;
+    lastTap.current = tap;
     setNotice((current) => (current?.kind === 'picked' ? current : null));
     const checked = !(ticksRef.current.get(item.id)?.checked ?? item.checked);
     ticksRef.current.set(item.id, { checked, settledBefore: Infinity });
@@ -345,13 +331,13 @@ export function useMealieShoppingList(
     removeMealieShoppingItem(fetcher, itemId).then(
       () => void load(),
       (err: unknown) => {
-        if (mounted.current) onErrorRef.current(err, 'undo');
+        if (mounted.current) onErrorRef.current(failureOf(err, 'undo'));
       },
     );
   }, [fetcher, load, showAdded]);
 
   const add = useCallback(async (text: string): Promise<boolean> => {
-    const words = text.trim();
+    const words = tidyShoppingText(text);
     const shown = shownRef.current;
     if (!words || !shown || choosingRef.current) return false;
     setNotice((current) => (current?.kind === 'picked' ? current : null));
@@ -383,7 +369,7 @@ export function useMealieShoppingList(
       return true;
     } catch (err) {
       if (mounted.current) {
-        onErrorRef.current(err, 'add', [words]);
+        onErrorRef.current(failureOf(err, 'add', [words]));
         if (err instanceof MealClientError && err.kind === 'conflict') void load();
       }
       return false;
@@ -414,7 +400,7 @@ export function useMealieShoppingList(
         choosingRef.current = null;
         if (!mounted.current) return;
         setChoosing(null);
-        onErrorRef.current(err, 'choose');
+        onErrorRef.current(failureOf(err, 'choose'));
         void load();
       },
     );
@@ -430,6 +416,8 @@ export function useMealieShoppingList(
     () => (answer?.lists ?? []).map((l) => (list && l.id === list.id ? { ...l, left: counts.total - counts.got } : l)),
     [answer, list, counts],
   );
+  const baseUrl = answer?.baseUrl ?? failedBaseUrl ?? planBaseUrl;
+  const mealieUrl = baseUrl ? (list ? mealieShoppingListUrl(baseUrl, list.id) : mealieShoppingListsUrl(baseUrl)) : null;
 
   return {
     state: answer ? 'ready' : failed ? 'failed' : 'loading',
@@ -439,7 +427,7 @@ export function useMealieShoppingList(
     lists,
     list,
     choosing,
-    baseUrl: answer?.baseUrl ?? failedBaseUrl,
+    mealieUrl,
     view,
     counts,
     pending,

@@ -1376,6 +1376,7 @@
         "optional": "Optional, not set up",
         "checking": "Checking…",
         "tokenRefused": "Token not accepted",
+        "cantUse": "Can't use this Mealie",
         "notAnswering": "Not answering",
         "couldNotCheck": "Couldn't check",
         "removeConfirm": {
@@ -1662,7 +1663,9 @@
         "mealieConnected": "Connected",
         "mealieNotAnswering": "Not answering right now",
         "mealieTokenRefused": "Token not accepted",
+        "mealieSetup": "Can't use this Mealie",
         "tokenRefused": "Mealie doesn't accept the saved token any more, so the meal plan can't update. Make a new token in Mealie and paste it on the",
+        "setup": "Home Screens can't use this Mealie, so the meal plan can't update. If the address is right, Mealie may need an update. Check the address on the",
         "connectFirst": "Only if your family uses Mealie, a separate recipe app. To plan in it, connect it first on the",
         "apiKeysLink": "API keys page",
         "connectedOffer": "Mealie is connected. Choose it to plan with the recipes and plan you keep there.",
@@ -2932,6 +2935,7 @@
       "mealieSuggestedEveryNightDates": "Planned a dinner for every night of {range}.",
       "mealieNothingFits": "Mealie had no recipes to suggest for those meals. Check the meal plan rules in Mealie.",
       "mealieTokenSaveFailed": "Mealie isn't letting Home Screens in, so that change wasn't saved. Make a new token in Mealie and paste it in Settings > API keys.",
+      "mealieSetupSaveFailed": "Home Screens can't use this Mealie, so that change wasn't saved. Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
       "mealieNotConnectedSaveFailed": "Mealie isn't connected, so that change wasn't saved. Add its address and token in Settings > API keys."
     },
     "library": {
@@ -3072,6 +3076,8 @@
       "notConnectedBody": "The meal plan is set to come from Mealie, but Mealie's address or token isn't saved. Add them in Settings > API keys, or set the meal plan back to Home Screens in Settings > Meals.",
       "tokenRefusedTitle": "Mealie isn't letting Home Screens in",
       "tokenRefusedBody": "Mealie doesn't accept the token saved for it any more. It may have been deleted in Mealie. Make a new one there and save it in Settings > API keys.",
+      "setupTitle": "Home Screens can't use this Mealie",
+      "setupBody": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
       "paused": "Planning is paused until Mealie is back.",
       "pausedSince": "Planning is paused until Mealie is back. This is the plan from {time}.",
       "weekLoading": "Getting {range} from Mealie…",
@@ -3111,6 +3117,7 @@
         "inCart": "Checked off ({count})",
         "staleUnreachable": "Mealie isn't answering. This is the list from {time}.",
         "staleToken": "Mealie isn't letting Home Screens in. This is the list from {time}.",
+        "staleSetup": "Home Screens can't use this Mealie. This is the list from {time}.",
         "staleNotConnected": "Mealie isn't connected. This is the list from {time}.",
         "staleConnection": "Can't reach Home Screens. This is the list from {time}.",
         "loading": "Getting your list from Mealie…",
@@ -3122,6 +3129,10 @@
         "connectionTitle": "Can't reach Home Screens right now",
         "connectionBody": "Check this computer's connection, then try again.",
         "noConnection": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
+        "notSaved": {
+          "one": "{items} wasn't saved. Try again.",
+          "other": "{items} weren't saved. Try again."
+        },
         "notSavedUnreachable": {
           "one": "{items} wasn't saved. Mealie isn't answering, so try again in a moment.",
           "other": "{items} weren't saved. Mealie isn't answering, so try again in a moment."
@@ -3129,6 +3140,10 @@
         "notSavedToken": {
           "one": "{items} wasn't saved. Mealie isn't letting Home Screens in.",
           "other": "{items} weren't saved. Mealie isn't letting Home Screens in."
+        },
+        "notSavedSetup": {
+          "one": "{items} wasn't saved. Home Screens can't use this Mealie.",
+          "other": "{items} weren't saved. Home Screens can't use this Mealie."
         },
         "notSavedNotConnected": {
           "one": "{items} wasn't saved. Mealie isn't connected.",
@@ -3147,7 +3162,10 @@
       "ingredientsFailed": "Mealie didn't send the ingredients. Open the recipe in Mealie to see them.",
       "tokenFix": "Make a new token in Mealie and paste it in Settings > API keys.",
       "tokenPaused": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused.",
-      "tokenPausedSince": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused. This is the plan from {time}."
+      "tokenPausedSince": "Make a new token in Mealie and paste it in Settings > API keys. Until then, planning is paused. This is the plan from {time}.",
+      "setupFix": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update.",
+      "setupPaused": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused.",
+      "setupPausedSince": "Check Mealie's address in Settings > API keys. If it's right, Mealie may need an update. Until then, planning is paused. This is the plan from {time}."
     },
     "popover": {
       "savesToMealie": "Saves to Mealie",

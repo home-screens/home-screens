@@ -96,6 +96,16 @@ export function setMealPlanSource(
 }
 
 /**
+ * Whether Mealie can be picked as the plan's home: once its address and key
+ * are saved. A plan already in Mealie keeps the choice open, so a family
+ * whose Mealie was disconnected since can still see where the plan is and
+ * move it back.
+ */
+export function canChooseMealiePlan(planSource: MealPlanSource | undefined, mealieConnected: boolean): boolean {
+  return mealieConnected || planSource === 'mealie';
+}
+
+/**
  * The settings a household starts with, freshly cloned.
  *
  * Both collections are copied because `DEFAULT_MEAL_SETTINGS` is a module-level

@@ -54,11 +54,13 @@ export function recipeServingAt(
     && currentMealSlot(today, minutesOfDay(ctx.now), ctx.settings.enabledSlots, ctx.plan, ctx.savedMeals, defaults) === at.slot;
   const time = resolvePlannedMealTime(resolved.planned, at.slot, defaults);
   const serving = { slot: at.slot, ...(time ? { time } : {}), now };
-  if (resolved.meal?.id === meal.id) return { serving, courses: resolved.courses, scale: resolved.planned?.scale ?? 1 };
+  if (resolved.meal?.id === meal.id) return { serving, courses: resolved.courses, scale: resolved.scale };
   const course = resolved.courses.find((c) => c.meal?.id === meal.id);
   if (!course) return { serving, courses: [], scale: 1 };
+  // The dish the meal leads with goes back in as what it is (a side, when the
+  // meal has no main) and with its own batch.
   const lead: ResolvedCourse[] = resolved.name
-    ? [{ kind: 'main', meal: resolved.meal, name: resolved.name, ...(resolved.planned?.scale ? { scale: resolved.planned.scale } : {}) }]
+    ? [{ kind: resolved.kind, meal: resolved.meal, name: resolved.name, ...(resolved.scale !== 1 ? { scale: resolved.scale } : {}) }]
     : [];
   return { serving, courses: [...lead, ...resolved.courses.filter((c) => c !== course)], scale: course.scale ?? 1 };
 }

@@ -379,6 +379,7 @@
     "loadError": "Je maaltijden konden niet worden geladen. Kijk of de hub aanstaat en probeer het opnieuw.",
     "retry": "Opnieuw proberen",
     "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
+    "saveFailedConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} u",
@@ -1430,14 +1431,25 @@
       "title": "Mealie laat Home Screens niet meer binnen",
       "description": "Mealie accepteert de opgeslagen token niet meer. Misschien is hij in Mealie verwijderd. Maak daar een nieuwe en sla die op de computer op bij Instellingen > API-sleutels."
     },
+    "setup": {
+      "title": "Home Screens kan deze Mealie niet gebruiken",
+      "description": "Controleer het adres van Mealie op de computer bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig."
+    },
+    "connection": {
+      "title": "Kan Home Screens nu niet bereiken",
+      "description": "Kijk of deze telefoon verbinding heeft en probeer het dan opnieuw."
+    },
     "paused": {
       "description": "Plannen staat stil tot Mealie terug is.",
       "descriptionWithTime": "Plannen staat stil tot Mealie terug is. Dit is het plan van {time}.",
       "tokenDescription": "Maak in Mealie een nieuwe token en sla die op de computer op bij Instellingen > API-sleutels. Tot dan staat plannen stil.",
-      "tokenDescriptionWithTime": "Maak in Mealie een nieuwe token en sla die op de computer op bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is het plan van {time}."
+      "tokenDescriptionWithTime": "Maak in Mealie een nieuwe token en sla die op de computer op bij Instellingen > API-sleutels. Tot dan staat plannen stil. Dit is het plan van {time}.",
+      "setupDescription": "Controleer het adres van Mealie op de computer bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil.",
+      "setupDescriptionWithTime": "Controleer het adres van Mealie op de computer bij Instellingen > API-sleutels. Klopt het, dan heeft Mealie misschien een update nodig. Tot dan staat plannen stil. Dit is het plan van {time}."
     },
     "saveFailed": {
       "token": "Mealie laat Home Screens niet binnen, dus dit is niet opgeslagen.",
+      "setup": "Home Screens kan deze Mealie niet gebruiken, dus dit is niet opgeslagen.",
       "notConnected": "Mealie is niet gekoppeld, dus dit is niet opgeslagen.",
       "unreachable": "Mealie reageert niet, dus dit is niet opgeslagen. Probeer het zo nog eens."
     },
@@ -1517,6 +1529,7 @@
       "inCart": "Afgevinkt ({count})",
       "staleUnreachable": "Mealie reageert niet. Dit is de lijst van {time}.",
       "staleToken": "Mealie laat Home Screens niet meer binnen. Dit is de lijst van {time}.",
+      "staleSetup": "Home Screens kan deze Mealie niet gebruiken. Dit is de lijst van {time}.",
       "staleNotConnected": "Mealie is niet gekoppeld. Dit is de lijst van {time}.",
       "staleConnection": "Kan Home Screens niet bereiken. Dit is de lijst van {time}.",
       "loading": "Je lijst wordt uit Mealie gehaald…",
@@ -1528,6 +1541,10 @@
       "connectionTitle": "Kan Home Screens nu niet bereiken",
       "connectionDescription": "Kijk of deze telefoon verbinding heeft en probeer het dan opnieuw.",
       "noConnection": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
+      "notSaved": {
+        "one": "{items} is niet opgeslagen. Probeer het opnieuw.",
+        "other": "{items} zijn niet opgeslagen. Probeer het opnieuw."
+      },
       "notSavedUnreachable": {
         "one": "{items} is niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens.",
         "other": "{items} zijn niet opgeslagen. Mealie reageert niet. Probeer het zo nog eens."
@@ -1535,6 +1552,10 @@
       "notSavedToken": {
         "one": "{items} is niet opgeslagen. Mealie laat Home Screens niet meer binnen.",
         "other": "{items} zijn niet opgeslagen. Mealie laat Home Screens niet meer binnen."
+      },
+      "notSavedSetup": {
+        "one": "{items} is niet opgeslagen. Home Screens kan deze Mealie niet gebruiken.",
+        "other": "{items} zijn niet opgeslagen. Home Screens kan deze Mealie niet gebruiken."
       },
       "notSavedNotConnected": {
         "one": "{items} is niet opgeslagen. Mealie is niet gekoppeld.",

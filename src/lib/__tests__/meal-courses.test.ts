@@ -2,11 +2,13 @@ import { describe, it, expect } from 'vitest';
 import type { PlannedMeal, SavedMeal } from '@/types/config';
 import {
   addPlanCourse,
+  courseKindsToAdd,
   MAX_COURSES,
   movePlanCourse,
   normalizeMealCourses,
   normalizeStoredMeal,
   normalizeStoredPlanEntry,
+  pickTargetChosen,
   planEntryMealIds,
   removePlanCourse,
   resolveCourses,
@@ -200,5 +202,53 @@ describe('normalizeStoredMeal', () => {
     const plain: SavedMeal = { id: 'tacos', name: 'Tacos' };
     expect(normalizeStoredMeal(side)).toBe(side);
     expect(normalizeStoredMeal(plain)).toBe(plain);
+  });
+});
+
+/* The phone offered "Add a side" on a meal already holding twelve dishes:
+ * the picker opened, `addPlanCourse` refused the pick, and nothing said why. */
+describe('courseKindsToAdd', () => {
+  it('offers the three course kinds, then another main dish when there is a main', () => {
+    expect(courseKindsToAdd(dinner({ mealId: 'tacos' }), true)).toEqual(['side', 'dessert', 'drink', 'main']);
+  });
+
+  it('offers no other main dish without a main dish to be another to', () => {
+    expect(courseKindsToAdd(dinner({ courses: [{ kind: 'side', customText: 'Rice' }] }), false)).toEqual(['side', 'dessert', 'drink']);
+    expect(courseKindsToAdd(undefined, false)).toEqual(['side', 'dessert', 'drink']);
+  });
+
+  it('offers nothing once the meal is full', () => {
+    const courses = Array.from({ length: MAX_COURSES }, (_, i) => ({ kind: 'side' as const, customText: `Side ${i}` }));
+    expect(courseKindsToAdd(dinner({ mealId: 'tacos', courses }), true)).toEqual([]);
+  });
+});
+
+describe('pickTargetChosen', () => {
+  const entry = dinner({
+    customText: 'Tacos',
+    courses: [
+      { kind: 'side', mealId: 'rice' },
+      { kind: 'side', customText: 'Beans' },
+      { kind: 'dessert', mealId: 'flan' },
+      { kind: 'side', mealId: 'salad' },
+    ],
+  });
+
+  it('marks the main dish and starts the box on its typed words', () => {
+    expect(pickTargetChosen(dinner({ mealId: 'tacos' }), { date: DAY, slot: 'dinner', pick: 'main' })).toEqual({ mealIds: ['tacos'], text: '' });
+    expect(pickTargetChosen(entry, { date: DAY, slot: 'dinner', pick: 'main' })).toEqual({ mealIds: [], text: 'Tacos' });
+  });
+
+  it('marks the course being swapped', () => {
+    expect(pickTargetChosen(entry, { date: DAY, slot: 'dinner', pick: 'swap', kind: 'side', index: 0 })).toEqual({ mealIds: ['rice'], text: '' });
+    expect(pickTargetChosen(entry, { date: DAY, slot: 'dinner', pick: 'swap', kind: 'side', index: 1 })).toEqual({ mealIds: [], text: 'Beans' });
+  });
+
+  it('marks every saved dish of the kind being added', () => {
+    expect(pickTargetChosen(entry, { date: DAY, slot: 'dinner', pick: 'add', kind: 'side' })).toEqual({ mealIds: ['rice', 'salad'], text: '' });
+  });
+
+  it('marks nothing on an empty meal', () => {
+    expect(pickTargetChosen(undefined, { date: DAY, slot: 'dinner', pick: 'main' })).toEqual({ mealIds: [], text: '' });
   });
 });

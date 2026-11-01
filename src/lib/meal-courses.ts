@@ -25,6 +25,50 @@ const COURSE_KIND_SET: ReadonlySet<string> = new Set(COURSE_KINDS);
  */
 export const MAX_COURSES = 12;
 
+/** The ways to add a course, in the order a meal offers them: the three course kinds, then another main dish. */
+const ADD_ORDER: readonly MealCourseKind[] = ['side', 'dessert', 'drink', 'main'];
+
+/**
+ * The kinds of course a meal can still take, for its add buttons. "Another
+ * main" needs a main dish (`hasMain`) to be another to, and a meal holding
+ * `MAX_COURSES` takes none: `addPlanCourse` would refuse the pick without a
+ * word.
+ */
+export function courseKindsToAdd(entry: PlannedMeal | undefined, hasMain: boolean): MealCourseKind[] {
+  if ((entry?.courses?.length ?? 0) >= MAX_COURSES) return [];
+  return ADD_ORDER.filter((kind) => kind !== 'main' || hasMain);
+}
+
+/**
+ * What a recipe picker is choosing for one meal: its main dish, a new course
+ * of `kind`, or a replacement for the course at `index`. The phone and the
+ * editor open their pickers for the same three things.
+ */
+export type MealPickTarget =
+  | { date: string; slot: MealSlotType; pick: 'main' }
+  | { date: string; slot: MealSlotType; pick: 'add'; kind: MealCourseKind }
+  | { date: string; slot: MealSlotType; pick: 'swap'; kind: MealCourseKind; index: number };
+
+/** What a picker handed back: a saved meal (by id), or typed words. */
+export type MealPick = { mealId: string } | { customText: string };
+
+/**
+ * What the target already holds, for a picker to mark: the dish being
+ * changed, or, when adding, every saved meal of that kind the meal has; and
+ * the words a typed dish holds, for its search box to start with.
+ */
+export function pickTargetChosen(entry: PlannedMeal | undefined, target: MealPickTarget): { mealIds: string[]; text: string } {
+  if (!entry) return { mealIds: [], text: '' };
+  if (target.pick === 'main') return { mealIds: entry.mealId ? [entry.mealId] : [], text: entry.customText ?? '' };
+  if (target.pick === 'swap') {
+    const course = entry.courses?.[target.index];
+    return { mealIds: course?.mealId ? [course.mealId] : [], text: course?.customText ?? '' };
+  }
+  const mealIds: string[] = [];
+  for (const c of entry.courses ?? []) if (c.kind === target.kind && c.mealId) mealIds.push(c.mealId);
+  return { mealIds, text: '' };
+}
+
 /** Translation key (modules namespace) for a course kind's label: "Main", "Side", "Dessert", "Drink". */
 export function getMealCourseLabelKey(kind: MealCourseKind): string {
   return `meal-planner.courses.${kind}`;

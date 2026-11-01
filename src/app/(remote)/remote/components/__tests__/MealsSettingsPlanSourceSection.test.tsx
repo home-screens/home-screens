@@ -4,7 +4,8 @@
  * The phone's "Your meal plan lives in" asks the hub about Mealie once as the
  * meal settings open, the same check the computer's Settings > Meals makes:
  * it names the household when Mealie takes the token, and says so, in the
- * Plan tab's words, when Mealie refuses it, whichever way the plan is set.
+ * Plan tab's words, when Mealie refuses it or is not a Mealie Home Screens
+ * can use, whichever way the plan is set.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -59,6 +60,18 @@ describe('the phone meal settings: where the plan lives', () => {
       expect(note.textContent).toContain("Mealie isn't letting Home Screens in");
       expect(note.textContent).toContain('Settings > API keys');
       expect(view.queryByText(/Mealie is connected/)).toBeNull();
+    }
+  });
+
+  it('says Home Screens cannot use this Mealie, and where to check, when the address is wrong or Mealie is too old', async () => {
+    for (const failure of ['bad-address', 'not-mealie', 'too-old']) {
+      cleanup();
+      answer({ ok: false, failure, url: 'http://192.168.1.50:9925' });
+      const view = renderSection('mealie');
+      const note = await view.findByTestId('meals-plan-source-setup');
+      expect(note.textContent).toContain("Home Screens can't use this Mealie");
+      expect(note.textContent).toContain('Settings > API keys');
+      expect(view.queryByTestId('meals-plan-source-token')).toBeNull();
     }
   });
 

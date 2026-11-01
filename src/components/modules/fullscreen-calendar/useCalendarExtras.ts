@@ -4,22 +4,13 @@ import { useMemo } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import { useFetchData } from '@/hooks/useFetchData';
 import { choresDataUrl, choresUrl, familyUrl, mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { normalizeMealSettings } from '@/lib/meal-constants';
 import { buildExtrasIndex, EMPTY_EXTRAS, type ExtrasIndex } from '@/lib/calendar-extras';
-import { mergeMealSources, type MealieWireBlock } from '@/lib/meal-sources';
-import type { ChoreCompletion, ChoreDefinition, PlannedMeal, SavedMeal } from '@/types/config';
+import { readMealAnswer } from '@/lib/meal-client';
+import type { ChoreCompletion, ChoreDefinition } from '@/types/config';
 
-interface MealsResponse { savedMeals?: SavedMeal[]; plan?: PlannedMeal[]; settings?: unknown; mealie?: MealieWireBlock }
 interface ChoreDataResponse { chores?: ChoreDefinition[] }
 interface FamilyResponse { members?: FamilyMember[]; groups?: FamilyGroup[] }
 interface CompletionsResponse { completions?: ChoreCompletion[] }
-
-/** The calendar's meals, from wherever the plan lives (see `meal-sources.ts`). */
-function calendarMeals(meals: MealsResponse) {
-  const settings = normalizeMealSettings(meals.settings);
-  const { plan, savedMeals } = mergeMealSources(meals, settings);
-  return { plan, savedMeals, settings };
-}
 
 /**
  * Meals and chores for the week list's household rows. Reads the same
@@ -37,7 +28,7 @@ export function useCalendarExtras(
   // The chore chart's own 5s TTL is tap-feedback cadence; the calendar only
   // shows an aggregate done/total row, so it polls at the clock's pace.
   const choresTtl = 60_000;
-  const [meals] = useFetchData<MealsResponse>(enabled.meals ? mealsDataUrl() : '', mealsTtl);
+  const [meals] = useFetchData<unknown>(enabled.meals ? mealsDataUrl() : '', mealsTtl);
   const [choreData] = useFetchData<ChoreDataResponse>(enabled.chores ? choresDataUrl() : '', 60_000);
   const [family] = useFetchData<FamilyResponse>(enabled.chores ? familyUrl() : '', FETCH_KEY_REGISTRY.family.ttlMs);
   const [completions] = useFetchData<CompletionsResponse>(enabled.chores ? choresUrl() : '', choresTtl);
@@ -54,7 +45,8 @@ export function useCalendarExtras(
     const dateList = datesKey ? datesKey.split(',') : [];
     return buildExtrasIndex({
       dates: dateList,
-      meals: enabled.meals && meals ? calendarMeals(meals) : null,
+      // From wherever the plan lives, read as the meal planner reads it.
+      meals: enabled.meals && meals ? readMealAnswer(meals, '12h') : null,
       chores: enabled.chores && choreData
         ? { members: family?.members ?? [], groups: family?.groups ?? [], chores: choreData.chores ?? [], completions: completions?.completions ?? [] }
         : null,

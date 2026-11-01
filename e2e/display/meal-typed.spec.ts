@@ -54,6 +54,8 @@ test('fullscreen meal planner shows one too', async ({ page, request }) => {
 });
 
 test('a saved meal and a typed one sit side by side', async ({ page, request }) => {
+  // Today turns to tomorrow's meals once dinner is over.
+  await page.clock.setFixedTime(dinnerTimeToday());
   await seedMeals(request, {
     savedMeals: [{ id: 'meal-1', name: 'Spaghetti Night', emoji: '🍝' }],
     plan: [

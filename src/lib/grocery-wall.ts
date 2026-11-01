@@ -1,5 +1,6 @@
 import type { ShoppingList } from './shopping-list';
-import { groceryListNeedsHeadings } from './grocery-utils';
+import { GROCERY_CATEGORY_ICONS, groceryListNeedsHeadings, type GroceryList } from './grocery-utils';
+import { groceryItemKey } from './grocery-checks';
 
 /**
  * The grocery list as the wall draws it, from either list the family keeps:
@@ -9,7 +10,7 @@ import { groceryListNeedsHeadings } from './grocery-utils';
  */
 
 export interface WallGroceryItem {
-  /** What a tick names: a Mealie item's id, or the local list's lowercase item name. */
+  /** What a tick names: a Mealie item's id, or the local list's item as ticks are stored (`groceryItemKey`). */
   id: string;
   /** The line as the phone shows it: Mealie's whole line, or the item's name. */
   text: string;
@@ -29,8 +30,13 @@ export interface WallGroceryGroup {
   items: WallGroceryItem[];
 }
 
+/** A group as the wall draws it, with how many of its items are still to get (its heading's count). */
+export interface WallGroceryShownGroup extends WallGroceryGroup {
+  left: number;
+}
+
 export interface WallGroceryRows {
-  groups: WallGroceryGroup[];
+  groups: WallGroceryShownGroup[];
   /** Items still to get. */
   left: number;
   /** Items ticked. */
@@ -38,16 +44,14 @@ export interface WallGroceryRows {
 }
 
 /** The local list, aisle by aisle; headings only when there is more than one aisle, as on the phone. */
-export function wallGroceryFromLocal(
-  list: Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>,
-): WallGroceryGroup[] {
+export function wallGroceryFromLocal(list: GroceryList): WallGroceryGroup[] {
   const headed = groceryListNeedsHeadings(list);
   return [...list.entries()].map(([aisle, { items }]) => ({
     key: aisle,
     label: null,
     ...(headed ? { aisle } : {}),
     items: items.map((i) => ({
-      id: i.name.toLowerCase(),
+      id: groceryItemKey(i.name),
       text: i.name,
       ...(i.amount ? { amount: i.amount } : {}),
       checked: i.checked,
@@ -74,7 +78,8 @@ export function wallGroceryFromMealie(list: ShoppingList): WallGroceryGroup[] {
  * (`ticks`, by item id) are laid over the list it last read. An item ticked
  * here stays drawn, crossed out, while it is in `keep`, so a wrong tap is
  * undone by tapping it again. Groups left empty are dropped. The counts are
- * of the whole list.
+ * of the whole list; each group's `left` is of that group, so a heading over
+ * a crossed-out item already counts it as got.
  */
 export function wallGroceryRows(
   groups: readonly WallGroceryGroup[],
@@ -83,16 +88,46 @@ export function wallGroceryRows(
 ): WallGroceryRows {
   let left = 0;
   let got = 0;
-  const shown: WallGroceryGroup[] = [];
+  const shown: WallGroceryShownGroup[] = [];
   for (const group of groups) {
     const items: WallGroceryItem[] = [];
+    let groupLeft = 0;
     for (const item of group.items) {
       const checked = ticks.get(item.id) ?? item.checked;
       if (checked) got++;
-      else left++;
+      else groupLeft++;
       if (!checked || keep.has(item.id)) items.push(checked === item.checked ? item : { ...item, checked });
     }
-    if (items.length > 0) shown.push({ ...group, items });
+    left += groupLeft;
+    if (items.length > 0) shown.push({ ...group, items, left: groupLeft });
   }
   return { groups: shown, left, got };
+}
+
+/** One item as the wall's Grocery views lay it out, a row at a time. */
+export interface WallGroceryFlatRow {
+  item: WallGroceryItem;
+  /** The group's heading, carried by its first item, so a heading never ends a page or a column without its items. */
+  heading: string | null;
+  /** The local aisle's icon, on its first item. */
+  icon?: string;
+  /** What is still to get in the item's group. */
+  left: number;
+}
+
+/** The groups as one run of rows, for views that cut the list into pages or columns. */
+export function wallGroceryFlatRows(
+  groups: readonly WallGroceryShownGroup[],
+  heading: (group: WallGroceryGroup) => string | null,
+): WallGroceryFlatRow[] {
+  return groups.flatMap((group) => {
+    const h = heading(group);
+    const icon = group.aisle ? GROCERY_CATEGORY_ICONS[group.aisle] : undefined;
+    return group.items.map((item, i) => ({
+      item,
+      heading: i === 0 ? h : null,
+      ...(i === 0 && icon ? { icon } : {}),
+      left: group.left,
+    }));
+  });
 }

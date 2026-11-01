@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import type { SavedMeal, PlannedMeal } from '@/types/config';
-import { generateGroceryList, plannedMealsWithoutIngredients } from '@/lib/grocery-utils';
+import { weekGroceryList } from '@/lib/grocery-utils';
 import { groceryChecksForWeek, type GroceryChecked } from '@/lib/grocery-checks';
 
 interface MealsGroceryParams {
-  /** Plan entries for the viewed week only — the list never spans weeks */
+  /** Plan entries for the viewed week only: the list never spans weeks */
   weekPlan: PlannedMeal[];
   savedMeals: SavedMeal[];
   /** Every week's ticks; only the viewed week's are read */
@@ -23,24 +23,9 @@ interface MealsGroceryParams {
  */
 export function useMealsGrocery({ weekPlan, savedMeals, groceryChecked, week }: MealsGroceryParams) {
   const weekChecked = groceryChecksForWeek(groceryChecked, week);
-  const groceryList = useMemo(() => generateGroceryList(weekPlan, savedMeals, weekChecked), [weekPlan, savedMeals, weekChecked]);
-
-  const groceryStats = useMemo(() => {
-    let total = 0;
-    let checked = 0;
-    for (const [, cat] of groceryList) {
-      for (const item of cat.items) {
-        total++;
-        if (item.checked) checked++;
-      }
-    }
-    return { total, checked };
-  }, [groceryList]);
-
-  const withoutIngredients = useMemo(
-    () => plannedMealsWithoutIngredients(weekPlan, savedMeals),
-    [weekPlan, savedMeals],
+  const { list, counts, withoutIngredients } = useMemo(
+    () => weekGroceryList(weekPlan, savedMeals, weekChecked),
+    [weekPlan, savedMeals, weekChecked],
   );
-
-  return { groceryList, groceryStats, withoutIngredients };
+  return { groceryList: list, groceryStats: counts, withoutIngredients };
 }

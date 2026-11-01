@@ -1,34 +1,31 @@
 'use client';
 
-import { useCallback, useRef, useState, type CSSProperties, type FormEvent } from 'react';
+import { useCallback, useRef, useState, type CSSProperties } from 'react';
 import { ChevronRight, ExternalLink, Plus, ShoppingCart } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { HubUnreachableError, MealClientError } from '@/lib/meal-client';
-import { mealieShoppingListUrl, mealieShoppingListsUrl } from '@/lib/meal-sources';
-import { shoppingShareText, type ShoppingItem } from '@/lib/shopping-list';
+import { shortNameList } from '@/lib/grocery-utils';
+import {
+  mealieShoppingAddedWords,
+  mealieShoppingErrorWords,
+  mealieShoppingNoticeWords,
+  mealieShoppingStaleKey,
+  shoppingShareText,
+  type MealieShoppingFailure,
+  type ShoppingItem,
+} from '@/lib/shopping-list';
 import { useLocale, useTranslate } from '@/i18n';
 import { useMealieLink } from '@/components/meals/useMealieLink';
-import {
-  useMealieShoppingList,
-  type MealieShoppingAction,
-  type MealieShoppingProblem,
-} from '@/components/meals/useMealieShoppingList';
+import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList';
+import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
 import { CenterMessage } from './MealieRecipeParts';
-import { mealieProblemWords, RetryButton, useCopyTime } from './MealsMealieStatus';
+import { useCopyTime } from '@/components/meals/useCopyTime';
+import { mealieProblemWords, mealieSaveFailedWords, RetryButton, useHomeCopyClock } from './MealsMealieStatus';
 import { openOutside } from './meals-shared';
 import { shareOrCopyText } from './share-text';
 
 /** The warning colour of the theme in use: amber in the dark theme, a darker amber that reads on the light one. */
 const WARN = 'var(--hs-warning)';
 const AMBER = '#f59e0b';
-
-/** The key (under `remote`) for "not saved" and "out of date" lines, by why. */
-const REASON: Record<MealieShoppingProblem, string> = {
-  unreachable: 'Unreachable',
-  token: 'Token',
-  'not-connected': 'NotConnected',
-  connection: 'Connection',
-};
 
 /** A text button inside a status line (Undo). */
 const lineButton: CSSProperties = {
@@ -59,10 +56,6 @@ export default function MealsMealieGroceryView({
   const t = useTranslate('remote');
   const locale = useLocale();
   const mealieLink = useMealieLink();
-  const listFormat = useCallback((names: string[]) => {
-    const shown = names.length > 3 ? [...names.slice(0, 3), t('mealie.grocery.moreItems', { count: names.length - 3 })] : names;
-    return new Intl.ListFormat(locale, { type: 'conjunction' }).format(shown);
-  }, [locale, t]);
   // The last "not saved" this tab raised, so a later save can take it down
   // without touching a message some other part of the Meals tab put up.
   const raised = useRef<string | null>(null);
@@ -70,46 +63,39 @@ export default function MealsMealieGroceryView({
     raised.current = message;
     onError(message);
   }, [onError]);
-  const handleError = useCallback((err: unknown, action: MealieShoppingAction, items?: string[]) => {
-    if (err instanceof MealClientError && err.kind === 'conflict') {
-      if (action !== 'tick') raise(t('mealie.grocery.listGone'));
+  const handleError = useCallback((failure: MealieShoppingFailure) => {
+    const words = mealieShoppingErrorWords(failure);
+    if (!words) return;
+    if (words.key === 'saveFailed') {
+      raise(t(mealieSaveFailedWords(words.reason) ?? 'mealsTab.saveFailed'));
       return;
     }
-    const reason = REASON[err instanceof HubUnreachableError ? 'connection' : (err instanceof MealClientError && err.problem) || 'unreachable'];
-    if (items?.length) raise(t(`mealie.grocery.notSaved${reason}`, { items: listFormat(items), count: items.length }));
-    else raise(t(reason === 'Connection' ? 'mealie.grocery.noConnection' : `mealie.saveFailed.${{ Unreachable: 'unreachable', Token: 'token', NotConnected: 'notConnected' }[reason]}`));
-  }, [raise, t, listFormat]);
+    const items = failure.items ?? [];
+    raise(t(`mealie.grocery.${words.key}`, {
+      items: shortNameList(items, locale, (count) => t('mealie.grocery.moreItems', { count })),
+      count: items.length,
+    }));
+  }, [raise, t, locale]);
   const handleSaved = useCallback(() => {
     if (!raised.current) return;
     onErrorResolved?.(raised.current);
     raised.current = null;
   }, [onErrorResolved]);
-  const shopping = useMealieShoppingList(editorFetch, { onError: handleError, onSaved: handleSaved });
-  const copyTime = useCopyTime(shopping.stale ? shopping.fetchedAt : null, todayISO);
-  const [draft, setDraft] = useState('');
+  const shopping = useMealieShoppingList(editorFetch, { onError: handleError, onSaved: handleSaved, planBaseUrl });
+  const copyTime = useCopyTime(shopping.stale ? shopping.fetchedAt : null, useHomeCopyClock(todayISO));
+  const { draft, setDraft, canAdd, submit } = useShoppingAddBox(shopping);
   const [cartOpen, setCartOpen] = useState(false);
   const [shared, setShared] = useState(false);
 
-  const baseUrl = shopping.baseUrl ?? planBaseUrl;
   const list = shopping.list;
   const busy = shopping.choosing !== null;
   const openMealie = () => {
-    if (baseUrl) openOutside(mealieLink(list ? mealieShoppingListUrl(baseUrl, list.id) : mealieShoppingListsUrl(baseUrl)));
+    if (shopping.mealieUrl) openOutside(mealieLink(shopping.mealieUrl));
   };
   const labelFor = (label: string | null) => label ?? t('mealie.grocery.noLabel');
   const forRecipes = (recipes: string[]) => t('mealie.grocery.forRecipes', {
     recipes: new Intl.ListFormat(locale, { type: 'conjunction' }).format(recipes),
   });
-
-  // The box empties as the words are sent, so whatever is typed next is kept;
-  // words Mealie did not take come back only into an empty box.
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    const words = draft;
-    if (!words.trim() || shopping.adding || busy) return;
-    setDraft('');
-    if (!(await shopping.add(words))) setDraft((current) => (current.trim() ? current : words));
-  };
 
   const share = async () => {
     if (!list) return;
@@ -123,7 +109,7 @@ export default function MealsMealieGroceryView({
     setTimeout(() => setShared(false), 2000);
   };
 
-  const openButton = (primary: boolean) => baseUrl ? (
+  const openButton = (primary: boolean) => shopping.mealieUrl ? (
     <button
       type="button"
       className="press-btn"
@@ -192,7 +178,7 @@ export default function MealsMealieGroceryView({
   const headings = groups.length > 1;
   const added = shopping.justAdded;
   const notice = shopping.notice;
-  const reason = shopping.problem ? REASON[shopping.problem] : 'Unreachable';
+  const lineWords = ({ key, vars }: { key: string; vars: Record<string, string> }) => t(`mealie.grocery.${key}`, vars);
 
   const itemRow = (item: ShoppingItem) => {
     const detail = [item.note, item.recipes.length ? forRecipes(item.recipes) : ''].filter(Boolean).join(' · ');
@@ -292,13 +278,7 @@ export default function MealsMealieGroceryView({
       <div role="status" data-testid="mealie-grocery-notice" style={{ display: 'flex', alignItems: 'center', minHeight: notice ? 44 : 4, fontSize: 13, color: 'var(--hs-text-muted)' }}>
         {notice && (
           <>
-            <span style={{ minWidth: 0 }}>
-              {notice.kind === 'picked'
-                ? t('mealie.grocery.picked', { list: notice.list })
-                : notice.kind === 'moved'
-                  ? t('mealie.grocery.moved', { list: notice.list })
-                  : t('mealie.grocery.gone', { from: notice.from, list: notice.list })}
-            </span>
+            <span style={{ minWidth: 0 }}>{lineWords(mealieShoppingNoticeWords(notice))}</span>
             {notice.kind === 'picked' && (
               <button type="button" onClick={notice.undo} style={lineButton}>{t('mealie.grocery.undo')}</button>
             )}
@@ -326,7 +306,7 @@ export default function MealsMealieGroceryView({
           <button
             type="submit"
             className="press-btn"
-            disabled={!draft.trim() || shopping.adding || busy}
+            disabled={!canAdd}
             aria-label={t('mealie.grocery.addButton')}
             style={{
               width: 44, height: 44, flex: 'none', borderRadius: 10, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -341,13 +321,7 @@ export default function MealsMealieGroceryView({
           {added && (
             <>
               <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {added.kind === 'already'
-                  ? t('mealie.grocery.already', { item: added.text, list: added.list })
-                  : added.kind === 'putBack'
-                    ? t('mealie.grocery.putBack', { item: added.text, list: added.list })
-                    : added.label
-                      ? t('mealie.grocery.addedUnder', { item: added.text, list: added.list, label: added.label })
-                      : t('mealie.grocery.added', { item: added.text, list: added.list })}
+                {lineWords(mealieShoppingAddedWords(added))}
               </span>
               {added.undo && <button type="button" onClick={added.undo} style={lineButton}>{t('mealie.grocery.undo')}</button>}
             </>
@@ -386,7 +360,7 @@ export default function MealsMealieGroceryView({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, fontSize: 11, color: 'var(--hs-text-faint)' }}>
                 <span>{t('mealie.grocery.hint')}</span>
-                {baseUrl && (
+                {shopping.mealieUrl && (
                   <button
                     type="button"
                     onClick={openMealie}
@@ -404,7 +378,7 @@ export default function MealsMealieGroceryView({
               {shopping.stale && (
                 <p role="status" data-testid="mealie-grocery-stale" style={{ margin: '6px 0 0', fontSize: 12, color: WARN }}>
                   {copyTime
-                    ? t(`mealie.grocery.stale${reason}`, { time: copyTime })
+                    ? t(`mealie.grocery.${mealieShoppingStaleKey(shopping.problem)}`, { time: copyTime })
                     : t(shopping.problem === 'connection' ? 'mealie.grocery.connectionTitle' : `${mealieProblemWords(shopping.problem)}.title`)}
                 </p>
               )}
@@ -419,10 +393,10 @@ export default function MealsMealieGroceryView({
                     </span>
                     {/* What is left in this group, like the count above. */}
                     <span
-                      aria-label={t('mealie.grocery.toGet', { count: group.items.filter((i) => !i.checked).length })}
+                      aria-label={t('mealie.grocery.toGet', { count: group.left })}
                       style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px', borderRadius: 8, background: 'var(--hs-bg-panel)', color: 'var(--hs-text-faint)', fontWeight: 500 }}
                     >
-                      {group.items.filter((i) => !i.checked).length}
+                      {group.left}
                     </span>
                   </div>
                 )}

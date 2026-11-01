@@ -3,31 +3,26 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BookOpen, ChevronRight, CloudOff, Pencil, Search } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
-import type { MealieRecipeFilter } from '@/lib/meal-client';
 import { DEFAULT_MEAL_EMOJI, LIBRARY_FILTERS, getMealSlotLabelKey, type LibraryFilter } from '@/lib/meal-constants';
+import type { MealPickTarget } from '@/lib/meal-courses';
 import {
   filterLibraryMeals,
   mealShownMinutes,
-  mealsForCourse,
-  mealsForSlot,
   mealTagLabel,
-  savedMealNamed,
-  searchSavedMeals,
+  pickerEnterChoice,
+  pickerMealGroups,
 } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useTranslate } from '@/i18n';
-import { useMealieRecipeSearch } from '@/components/meals/useMealieRecipeSearch';
-import { useMealieCookbooks } from '@/components/meals/useMealieCookbooks';
-import { useMealieCourseCategory } from '@/components/meals/useMealieCourseCategory';
+import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import Glyph from '@/components/ui/Glyph';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import MealThumb from './MealThumb';
-import { RetryButton } from './MealsMealieStatus';
+import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
-import { formatShownMinutes, type MealPickTarget } from './meals-shared';
-import { mealieProblemWords } from './MealsMealieStatus';
+import { formatShownMinutes } from './meals-shared';
 
 interface MealPickerSheetProps {
   target: MealPickTarget;
@@ -146,61 +141,38 @@ function Tick() {
 /** Mealie's recipes, searched live through the hub. */
 function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerSheetProps) {
   const t = useTranslate('remote');
-  // Starts on the shortcuts, not on a search for the note the slot holds.
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<MealieRecipeFilter>('favorites');
+  // Starts on the shortcuts, not on a search for the note the slot holds;
   // "Add a side" opens on the household's own Side category when it has one.
-  const courseKind = target.pick === 'main' ? null : target.kind;
-  const { category: courseCategory, ready: categoryReady } = useMealieCourseCategory(editorFetch, courseKind);
-  const [category, setCategory] = useState<string | undefined>(undefined);
-  const [categoryApplied, setCategoryApplied] = useState(false);
-  useEffect(() => {
-    if (!categoryReady || categoryApplied) return;
-    setCategoryApplied(true);
-    if (courseCategory) {
-      setFilter('all');
-      setCategory(courseCategory.slug);
-    }
-  }, [categoryReady, categoryApplied, courseCategory]);
-  // The family's own sets of recipes ("Weeknight dinners"), after the shortcuts.
-  const cookbooks = useMealieCookbooks(editorFetch);
-  const [cookbook, setCookbook] = useState<string | undefined>(undefined);
-  const cookbookName = cookbooks.find((c) => c.slug === cookbook)?.name;
-  const typed = query.trim();
-  const search = useMealieRecipeSearch(editorFetch, {
-    search: query,
-    filter,
-    category: typed ? undefined : category,
-    cookbook: typed ? undefined : cookbook,
-    enabled: categoryReady,
+  const { query, setQuery, shortcut, choose, courseCategory, cookbooks, search } = useMealieRecipeBrowser(editorFetch, {
+    courseKind: target.pick === 'main' ? null : target.kind,
   });
+  const typed = query.trim();
   const count = useMealieRecipeCount(true);
   const listRef = useRef<HTMLDivElement>(null);
+  const failed = mealieSearchFailedWords(search.problem);
 
   // A new search starts at the top of its list.
+  const shown = shortcut.kind === 'category' || shortcut.kind === 'cookbook' ? `${shortcut.kind}:${shortcut.slug}` : shortcut.kind;
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0 });
-  }, [typed, filter]);
+  }, [typed, shown]);
 
   const nothingFound = !search.loading && !search.error && search.items.length === 0;
   let heading: string | null = null;
   if (!search.loading && !search.error && search.items.length > 0) {
-    if (typed) heading = t('mealie.search.recipeCount', { count: search.total });
-    else if (cookbookName) heading = t('mealie.search.categoryCount', { count: search.total, category: cookbookName });
-    else if (filter === 'favorites') heading = t('mealie.search.favoritesCount', { count: search.total });
-    else if (category && courseCategory) heading = t('mealie.search.categoryCount', { count: search.total, category: courseCategory.name });
+    if (shortcut.kind === 'search') heading = t('mealie.search.recipeCount', { count: search.total });
+    else if (shortcut.kind === 'cookbook' || shortcut.kind === 'category') heading = t('mealie.search.categoryCount', { count: search.total, category: shortcut.name ?? '' });
+    else if (shortcut.kind === 'favorites') heading = t('mealie.search.favoritesCount', { count: search.total });
     else heading = t('mealie.search.recentHeading');
   }
 
   let empty: ReactNode = null;
   if (nothingFound) {
-    empty = typed ? (
+    empty = shortcut.kind === 'search' ? (
       <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneTitle', { query: typed })} description={t('mealie.search.noneDescription')} />
-    ) : cookbookName ? (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: cookbookName })} description={t('mealie.search.noneInCategoryDescription')} />
-    ) : category && courseCategory ? (
-      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: courseCategory.name })} description={t('mealie.search.noneInCategoryDescription')} />
-    ) : filter === 'favorites' ? (
+    ) : shortcut.kind === 'cookbook' || shortcut.kind === 'category' ? (
+      <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noneInCategoryTitle', { category: shortcut.name ?? '' })} description={t('mealie.search.noneInCategoryDescription')} />
+    ) : shortcut.kind === 'favorites' ? (
       <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noFavoritesTitle')} description={t('mealie.search.noFavoritesDescription')} />
     ) : (
       <CenterMessage icon={<Search size={24} strokeWidth={2} />} title={t('mealie.search.noRecentTitle')} description={t('mealie.search.noRecentDescription')} />
@@ -226,24 +198,14 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '0 16px 16px', flex: 1, minHeight: 0 }}
       >
         <RecipeShortcutChips
-          filter={category || cookbook ? 'all' : filter}
+          filter={shortcut.kind === 'favorites' || shortcut.kind === 'recent' ? shortcut.kind : 'all'}
           searching={!!typed}
-          onFilter={(next) => {
-            setQuery('');
-            setFilter(next);
-            setCategory(undefined);
-            setCookbook(undefined);
-          }}
+          onFilter={choose}
         >
           {courseCategory && (
             <FilterChip
-              active={!typed && category === courseCategory.slug}
-              onClick={() => {
-                setQuery('');
-                setFilter('all');
-                setCategory(courseCategory.slug);
-                setCookbook(undefined);
-              }}
+              active={shortcut.kind === 'category' && shortcut.slug === courseCategory.slug}
+              onClick={() => choose({ category: courseCategory.slug })}
             >
               {courseCategory.name}
             </FilterChip>
@@ -251,13 +213,8 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
           {cookbooks.map((c) => (
             <FilterChip
               key={c.slug}
-              active={!typed && cookbook === c.slug}
-              onClick={() => {
-                setQuery('');
-                setFilter('all');
-                setCategory(undefined);
-                setCookbook(c.slug);
-              }}
+              active={shortcut.kind === 'cookbook' && shortcut.slug === c.slug}
+              onClick={() => choose({ cookbook: c.slug })}
               icon={<BookOpen size={13} strokeWidth={2} aria-hidden />}
             >
               {c.name}
@@ -268,7 +225,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
         {search.loading ? (
           <RecipeSkeletonRows />
         ) : search.error ? (
-          <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={t(`${mealieProblemWords(search.problem)}.title`)} description={search.problem === 'unreachable' || !search.problem ? t('mealie.search.errorDescription') : t(`${mealieProblemWords(search.problem)}.description`)}>
+          <CenterMessage icon={<CloudOff size={24} strokeWidth={2} />} title={t(failed.title)} description={t(failed.description)}>
             <RetryButton onRetry={search.retry} style={{ padding: '0 18px' }} />
           </CenterMessage>
         ) : (
@@ -389,12 +346,14 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
   const [filter, setFilter] = useState<LibraryFilter>('all');
   const typed = query.trim();
   const found = useMemo(() => filterLibraryMeals(library, typed, filter), [library, typed, filter]);
-  // Whether the words match anything saved, whatever chip is on: typing
-  // them in is the way forward only when they do not.
-  const inLibrary = useMemo(() => !!typed && searchSavedMeals(library, typed).length > 0, [library, typed]);
+  // What Enter takes, whatever chip is on: the saved meal the words name,
+  // or the words typed in when they match nothing saved, which is the only
+  // time typing them in is the way forward.
+  const enterChoice = useMemo(() => pickerEnterChoice(library, typed), [library, typed]);
+  const inLibrary = !!typed && !(enterChoice && 'text' in enterChoice);
   // The main dish leads with the meals tagged for this meal of the day, a
   // course with the meals saved as its kind.
-  const groups = target.pick === 'main' ? mealsForSlot(found, target.slot) : mealsForCourse(found, target.kind);
+  const groups = pickerMealGroups(found, target);
   const groupTitle = target.pick === 'main' ? tModules(getMealSlotLabelKey(target.slot)) : t(`mealPicker.savedAs.${target.kind}`);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -403,15 +362,13 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
     listRef.current?.scrollTo({ top: 0 });
   }, [typed, filter]);
 
-  // Enter takes the saved meal the words name, and types them in when they
-  // match nothing saved. With only partial matches it puts the keyboard
-  // away, so the list and the row under it are in view.
+  // With only partial matches Enter puts the keyboard away, so the list and
+  // the row under it are in view.
   const enter = (input: HTMLInputElement) => {
-    if (!typed) return;
-    const named = savedMealNamed(library, typed);
-    if (named) onPickMeal(named);
-    else if (!inLibrary) onPickText(typed);
-    else input.blur();
+    if (!enterChoice) {
+      if (typed) input.blur();
+    } else if ('meal' in enterChoice) onPickMeal(enterChoice.meal);
+    else onPickText(enterChoice.text);
   };
 
   const row = (meal: SavedMeal) => {

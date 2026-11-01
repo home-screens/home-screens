@@ -1376,6 +1376,7 @@
         "optional": "Optional, nicht eingerichtet",
         "checking": "Wird geprüft…",
         "tokenRefused": "Token nicht angenommen",
+        "cantUse": "Nicht nutzbar",
         "notAnswering": "Antwortet nicht",
         "couldNotCheck": "Prüfen nicht möglich",
         "removeConfirm": {
@@ -1662,7 +1663,9 @@
         "mealieConnected": "Verbunden",
         "mealieNotAnswering": "Antwortet gerade nicht",
         "mealieTokenRefused": "Token nicht angenommen",
+        "mealieSetup": "Nicht nutzbar",
         "tokenRefused": "Mealie nimmt das gespeicherte Token nicht mehr an, deshalb wird der Essensplan nicht mehr aktualisiert. Erstell in Mealie ein neues Token und füg es hier ein:",
+        "setup": "Home Screens kann dieses Mealie nicht nutzen, deshalb wird der Essensplan nicht mehr aktualisiert. Wenn die Adresse stimmt, braucht Mealie vielleicht ein Update. Prüfe die Adresse hier:",
         "connectFirst": "Nur wenn deine Familie Mealie nutzt, eine eigene Rezept-App. Um dort zu planen, verbinde es zuerst auf der Seite",
         "apiKeysLink": "API-Schlüssel",
         "connectedOffer": "Mealie ist verbunden. Wähle es, um mit den Rezepten und dem Plan aus Mealie zu planen.",
@@ -2932,6 +2935,7 @@
       "mealieSuggestedEveryNightDates": "Für jeden Abend der Woche vom {range} ein Abendessen geplant.",
       "mealieNothingFits": "Mealie hatte für diese Mahlzeiten keine passenden Rezepte. Schau dir die Essensplan-Regeln in Mealie an.",
       "mealieTokenSaveFailed": "Mealie lässt Home Screens nicht rein, deshalb wurde diese Änderung nicht gespeichert. Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
+      "mealieSetupSaveFailed": "Home Screens kann dieses Mealie nicht nutzen, deshalb wurde diese Änderung nicht gespeichert. Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
       "mealieNotConnectedSaveFailed": "Mealie ist nicht verbunden, deshalb wurde diese Änderung nicht gespeichert. Trag Adresse und Token unter Einstellungen > API-Schlüssel ein."
     },
     "library": {
@@ -3072,6 +3076,8 @@
       "notConnectedBody": "Der Essensplan soll aus Mealie kommen, aber Adresse oder Token von Mealie sind nicht gespeichert. Trag sie unter Einstellungen > API-Schlüssel ein oder stell den Essensplan unter Einstellungen > Mahlzeiten wieder auf Home Screens.",
       "tokenRefusedTitle": "Mealie lässt Home Screens nicht mehr rein",
       "tokenRefusedBody": "Mealie nimmt das gespeicherte Token nicht mehr an. Vielleicht wurde es in Mealie gelöscht. Erstell dort ein neues und speichere es unter Einstellungen > API-Schlüssel.",
+      "setupTitle": "Home Screens kann dieses Mealie nicht nutzen",
+      "setupBody": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
       "paused": "Planen ist pausiert, bis Mealie wieder da ist.",
       "pausedSince": "Planen ist pausiert, bis Mealie wieder da ist. Das ist der Plan von {time}.",
       "weekLoading": "Die Woche vom {range} wird aus Mealie geholt…",
@@ -3111,6 +3117,7 @@
         "inCart": "Abgehakt ({count})",
         "staleUnreachable": "Mealie antwortet nicht. Das ist die Liste von {time}.",
         "staleToken": "Mealie lässt Home Screens nicht mehr rein. Das ist die Liste von {time}.",
+        "staleSetup": "Home Screens kann dieses Mealie nicht nutzen. Das ist die Liste von {time}.",
         "staleNotConnected": "Mealie ist nicht verbunden. Das ist die Liste von {time}.",
         "staleConnection": "Home Screens ist nicht erreichbar. Das ist die Liste von {time}.",
         "loading": "Deine Liste wird aus Mealie geholt…",
@@ -3122,6 +3129,10 @@
         "connectionTitle": "Home Screens ist gerade nicht erreichbar",
         "connectionBody": "Prüf die Verbindung dieses Computers und versuch es dann noch einmal.",
         "noConnection": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal.",
+        "notSaved": {
+          "one": "{items} wurde nicht gespeichert. Versuch es noch einmal.",
+          "other": "{items} wurden nicht gespeichert. Versuch es noch einmal."
+        },
         "notSavedUnreachable": {
           "one": "{items} wurde nicht gespeichert. Mealie antwortet nicht, versuch es gleich noch einmal.",
           "other": "{items} wurden nicht gespeichert. Mealie antwortet nicht, versuch es gleich noch einmal."
@@ -3129,6 +3140,10 @@
         "notSavedToken": {
           "one": "{items} wurde nicht gespeichert. Mealie lässt Home Screens nicht mehr rein.",
           "other": "{items} wurden nicht gespeichert. Mealie lässt Home Screens nicht mehr rein."
+        },
+        "notSavedSetup": {
+          "one": "{items} wurde nicht gespeichert. Home Screens kann dieses Mealie nicht nutzen.",
+          "other": "{items} wurden nicht gespeichert. Home Screens kann dieses Mealie nicht nutzen."
         },
         "notSavedNotConnected": {
           "one": "{items} wurde nicht gespeichert. Mealie ist nicht verbunden.",
@@ -3147,7 +3162,10 @@
       "ingredientsFailed": "Mealie hat die Zutaten nicht geschickt. Öffne das Rezept in Mealie, um sie zu sehen.",
       "tokenFix": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein.",
       "tokenPaused": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert.",
-      "tokenPausedSince": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert. Das ist der Plan von {time}."
+      "tokenPausedSince": "Erstell in Mealie ein neues Token und füg es unter Einstellungen > API-Schlüssel ein. Bis dahin ist Planen pausiert. Das ist der Plan von {time}.",
+      "setupFix": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update.",
+      "setupPaused": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin ist Planen pausiert.",
+      "setupPausedSince": "Prüfe unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin ist Planen pausiert. Das ist der Plan von {time}."
     },
     "popover": {
       "savesToMealie": "Wird in Mealie gespeichert",

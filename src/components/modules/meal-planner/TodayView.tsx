@@ -3,7 +3,8 @@
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
-import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, currentMealSlot, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, mealDayLead, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { mealTagLabel } from '@/lib/meal-dish-rules';
 import { useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -15,6 +16,7 @@ interface TodayViewProps {
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
   timeFormat: TimeFormat;
+  /** The whole plan: late in the evening the view shows tomorrow, which can be in next week. */
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   todayISO: string;
@@ -30,7 +32,7 @@ function SlotCard({
   timeFormat,
   plan,
   savedMeals,
-  todayISO,
+  date,
   isActive,
   recipeTapMode,
 }: {
@@ -41,13 +43,14 @@ function SlotCard({
   timeFormat: TimeFormat;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
-  todayISO: string;
+  /** The day shown: today, or tomorrow once today is over. */
+  date: string;
   isActive: boolean;
   recipeTapMode: RecipeTapMode;
 }) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
-  const { meal, planned, name, courses } = resolveMealWithEntry(todayISO, slot, plan, savedMeals);
+  const { meal, planned, name, courses } = resolveMealWithEntry(date, slot, plan, savedMeals);
   const time = resolvePlannedMealTime(planned, slot, settings.defaultSlotTimes);
   const meta = SLOT_META[slot];
   const showEmoji = config.showEmoji ?? true;
@@ -95,7 +98,7 @@ function SlotCard({
       {/* Meal content */}
       <div className="px-3 pb-2.5 pt-0.5">
         {name ? (
-          <MealTapTarget meal={meal} mode={recipeTapMode} serving={{ date: todayISO, slot }} className="flex items-start gap-2 w-full">
+          <MealTapTarget meal={meal} mode={recipeTapMode} serving={{ date, slot }} className="flex items-start gap-2 w-full">
             {showEmoji && mealHasPicture(meal) && (
               <MealPicture
                 meal={meal}
@@ -123,7 +126,7 @@ function SlotCard({
                       className="rounded-full px-1.5 py-px"
                       style={{ backgroundColor: DIVIDER.default, opacity: TEXT_OPACITY.dim }}
                     >
-                      {tag}
+                      {mealTagLabel(meal, tag)}
                     </span>
                   ))}
                 </div>
@@ -146,7 +149,13 @@ export function TodayView({ config, settings, timeFormat, plan, savedMeals, toda
   // them, not the order the slots were switched on in.
   const slots = SLOT_ORDER.filter((slot) => settings.enabledSlots.includes(slot));
   // The meal being served now, by its serving time, as on every other view.
-  const activeSlot = currentMealSlot(todayISO, nowMinutes, slots, plan, savedMeals, settings.defaultSlotTimes);
+  // Once all of today is over the view turns to tomorrow, as the full-screen
+  // Today does (`mealDayLead`), rather than keep tonight's finished dinner up
+  // until midnight. Only with its title on: without it nothing would say
+  // these are tomorrow's meals.
+  const lead = mealDayLead(todayISO, nowMinutes, slots, plan, savedMeals, settings.defaultSlotTimes);
+  const day = config.showTitle !== false && lead ? lead.date : todayISO;
+  const activeSlot = lead?.now ? lead.slot : null;
 
   return (
     <div className="flex flex-col h-full gap-2">
@@ -161,7 +170,7 @@ export function TodayView({ config, settings, timeFormat, plan, savedMeals, toda
             className="uppercase tracking-[0.2em] font-semibold shrink-0"
             style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.tertiary }}
           >
-            {t('meal-planner.todaysMeals')}
+            {t(day === todayISO ? 'meal-planner.todaysMeals' : 'meal-planner.tomorrowsMeals')}
           </span>
           <div
             className="h-px flex-1 rounded-full"
@@ -181,7 +190,7 @@ export function TodayView({ config, settings, timeFormat, plan, savedMeals, toda
             timeFormat={timeFormat}
             plan={plan}
             savedMeals={savedMeals}
-            todayISO={todayISO}
+            date={day}
             isActive={slot === activeSlot}
             recipeTapMode={recipeTapMode}
           />

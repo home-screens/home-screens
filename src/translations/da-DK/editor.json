@@ -1376,6 +1376,7 @@
         "optional": "Valgfri, ikke sat op",
         "checking": "Tjekker…",
         "tokenRefused": "Token ikke godkendt",
+        "cantUse": "Kan ikke bruges",
         "notAnswering": "Svarer ikke",
         "couldNotCheck": "Kunne ikke tjekke",
         "removeConfirm": {
@@ -1662,7 +1663,9 @@
         "mealieConnected": "Forbundet",
         "mealieNotAnswering": "Svarer ikke lige nu",
         "mealieTokenRefused": "Token ikke godkendt",
+        "mealieSetup": "Kan ikke bruges",
         "tokenRefused": "Mealie tager ikke længere imod det gemte token, så madplanen bliver ikke opdateret. Lav et nyt token i Mealie, og indsæt det på siden",
+        "setup": "Home Screens kan ikke bruge denne Mealie, så madplanen bliver ikke opdateret. Hvis adressen er rigtig, skal Mealie måske opdateres. Tjek adressen på siden",
         "connectFirst": "Kun hvis jeres familie bruger Mealie, en separat opskrifts-app. For at planlægge i den skal den først forbindes på siden",
         "apiKeysLink": "API-nøgler",
         "connectedOffer": "Mealie er forbundet. Vælg det for at planlægge med de opskrifter og den plan, du har der.",
@@ -2932,6 +2935,7 @@
       "mealieSuggestedEveryNightDates": "Aftensmad planlagt til hver aften i ugen {range}.",
       "mealieNothingFits": "Mealie havde ingen opskrifter at foreslå til de måltider. Se reglerne for madplanen i Mealie.",
       "mealieTokenSaveFailed": "Mealie lukker ikke Home Screens ind, så ændringen blev ikke gemt. Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler.",
+      "mealieSetupSaveFailed": "Home Screens kan ikke bruge denne Mealie, så ændringen blev ikke gemt. Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres.",
       "mealieNotConnectedSaveFailed": "Mealie er ikke forbundet, så ændringen blev ikke gemt. Tilføj adressen og tokenet under Indstillinger > API-nøgler."
     },
     "library": {
@@ -3072,6 +3076,8 @@
       "notConnectedBody": "Madplanen skal komme fra Mealie, men Mealies adresse eller token er ikke gemt. Tilføj dem under Indstillinger > API-nøgler, eller sæt madplanen tilbage til Home Screens under Indstillinger > Måltider.",
       "tokenRefusedTitle": "Mealie lukker ikke Home Screens ind længere",
       "tokenRefusedBody": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det under Indstillinger > API-nøgler.",
+      "setupTitle": "Home Screens kan ikke bruge denne Mealie",
+      "setupBody": "Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres.",
       "paused": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
       "pausedSince": "Planlægningen er sat på pause, indtil Mealie er tilbage. Det her er planen fra {time}.",
       "weekLoading": "Henter ugen {range} fra Mealie…",
@@ -3111,6 +3117,7 @@
         "inCart": "Afkrydset ({count})",
         "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
         "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",
+        "staleSetup": "Home Screens kan ikke bruge denne Mealie. Dette er listen fra {time}.",
         "staleNotConnected": "Mealie er ikke forbundet. Dette er listen fra {time}.",
         "staleConnection": "Kan ikke nå Home Screens. Dette er listen fra {time}.",
         "loading": "Henter din liste fra Mealie…",
@@ -3122,6 +3129,10 @@
         "connectionTitle": "Kan ikke nå Home Screens lige nu",
         "connectionBody": "Tjek computerens forbindelse, og prøv igen.",
         "noConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
+        "notSaved": {
+          "one": "{items} blev ikke gemt. Prøv igen.",
+          "other": "{items} blev ikke gemt. Prøv igen."
+        },
         "notSavedUnreachable": {
           "one": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt.",
           "other": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt."
@@ -3129,6 +3140,10 @@
         "notSavedToken": {
           "one": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere.",
           "other": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere."
+        },
+        "notSavedSetup": {
+          "one": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie.",
+          "other": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie."
         },
         "notSavedNotConnected": {
           "one": "{items} blev ikke gemt. Mealie er ikke forbundet.",
@@ -3147,7 +3162,10 @@
       "ingredientsFailed": "Mealie sendte ikke ingredienserne. Åbn opskriften i Mealie for at se dem.",
       "tokenFix": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler.",
       "tokenPaused": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause.",
-      "tokenPausedSince": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Det her er planen fra {time}."
+      "tokenPausedSince": "Lav et nyt token i Mealie, og indsæt det under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Det her er planen fra {time}.",
+      "setupFix": "Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres.",
+      "setupPaused": "Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause.",
+      "setupPausedSince": "Tjek Mealies adresse under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause. Det her er planen fra {time}."
     },
     "popover": {
       "savesToMealie": "Gemmes i Mealie",

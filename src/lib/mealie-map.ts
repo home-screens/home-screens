@@ -85,7 +85,12 @@ export function mealieMealId(recipeId: string): string {
 export function parseMealieMealId(mealId: string | undefined): string | null {
   if (!mealId?.startsWith(SOURCE_PREFIX)) return null;
   const id = mealId.slice(SOURCE_PREFIX.length);
-  return /^[0-9a-f-]{32,36}$/i.test(id) ? id : null;
+  return isMealieRecipeId(id) ? id : null;
+}
+
+/** Mealie's recipe ids are UUIDs; nothing else is put into a path to Mealie or to the hub. */
+export function isMealieRecipeId(id: string): boolean {
+  return /^[0-9a-f-]{32,36}$/i.test(id);
 }
 
 /**
@@ -205,6 +210,11 @@ export function mealiePhotoUrl(recipe: Pick<MealieRecipeSummary, 'id' | 'image' 
   if (!recipe.image) return undefined;
   const version = typeof recipe.image === 'string' ? recipe.image : recipe.dateUpdated ?? recipe.updatedAt ?? '';
   return `/api/mealie/image/${encodeURIComponent(recipe.id)}${version ? `?v=${encodeURIComponent(version)}` : ''}`;
+}
+
+/** Where the hub serves a recipe's ingredients and steps, with the amounts for `scale` batches. */
+export function mealieRecipeUrl(recipeId: string, scale = 1): string {
+  return `/api/mealie/recipe/${encodeURIComponent(recipeId)}${scale !== 1 ? `?scale=${scale}` : ''}`;
 }
 
 /** A Mealie recipe as the saved meal every view already knows how to draw. */

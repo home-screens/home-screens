@@ -2,9 +2,17 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { MealSettings } from '@/types/config';
-import { toISODate, fromISODate, alignToWeekStart, weekStartAfterDayChange, minutesOfDay } from '@/lib/meal-constants';
+import {
+  toISODate,
+  fromISODate,
+  alignToWeekStart,
+  dateToDayIndex,
+  getWeekDatesForRange,
+  weekStartAfterDayChange,
+  minutesOfDay,
+} from '@/lib/meal-constants';
 import { createTZDate } from '@/lib/timezone';
-import { getWeekDates } from '../components/meals-shared';
+import type { MealsWeekDay } from '../components/meals-shared';
 import { useHouseholdNow, useHouseholdTimezone } from '../household-clock';
 
 /**
@@ -32,8 +40,8 @@ export function useMealsWeekNav(settings: MealSettings, keptWeek: string | null 
   const clockNow = useHouseholdNow(60_000);
 
   // The week shown, held as any day in it until a change aligns it
-  // (`getWeekDates` aligns it as it draws): the week kept across a reload,
-  // else today.
+  // (`getWeekDatesForRange` aligns it as it draws): the week kept across a
+  // reload, else today.
   const [viewingWeekStart, setViewingWeekStart] = useState<Date>(() => (keptWeek ? fromISODate(keptWeek) : createTZDate(timezone)));
 
   // Re-align the week origin to today whenever the household's weekStartDay
@@ -59,7 +67,8 @@ export function useMealsWeekNav(settings: MealSettings, keptWeek: string | null 
   }, [loaded]);
 
   const weekDates = useMemo(
-    () => getWeekDates(viewingWeekStart, settings.weekStartDay),
+    (): MealsWeekDay[] => getWeekDatesForRange(toISODate(viewingWeekStart), settings.weekStartDay)
+      .map((date) => ({ date, dayIndex: dateToDayIndex(date) })),
     [viewingWeekStart, settings.weekStartDay],
   );
   // Derive todayISO from the tick so a phone left open past midnight rolls
@@ -95,8 +104,6 @@ export function useMealsWeekNav(settings: MealSettings, keptWeek: string | null 
   }, [settings.weekStartDay, timezone]);
 
   return {
-    /** Exposed for the plan actions that need the previous week's window */
-    viewingWeekStart,
     weekDates,
     todayISO,
     nowMinutes,

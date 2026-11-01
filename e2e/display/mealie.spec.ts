@@ -3,6 +3,7 @@ import type { APIRequestContext } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { putConfig } from '../helpers/api';
 import { buildModuleInstance } from '../helpers/module-fixtures';
+import { dinnerTimeToday } from '../helpers/schedule-windows';
 import {
   connectFakeMealie,
   defaultFakeEntries,
@@ -40,6 +41,8 @@ test.describe('meal plan from Mealie on the wall', () => {
   });
 
   test('Today lists the dinner with its courses and draws the recipe photo', async ({ page, request }) => {
+    // Today turns to tomorrow's meals once dinner is over.
+    await page.clock.setFixedTime(dinnerTimeToday());
     mealie = await startFakeMealie();
     await connectFakeMealie(request, mealie);
     await showModule(request, 'meal-planner', 'today');

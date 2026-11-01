@@ -2,24 +2,15 @@
 
 import { useState, type CSSProperties } from 'react';
 import { CloudOff, CookingPot, RotateCw } from 'lucide-react';
-import { useFormattingLocale, useTranslate } from '@/i18n';
-import { formatDateInTZ, formatTimeInTZ, isoDateInTZ } from '@/lib/timezone';
+import { useTranslate } from '@/i18n';
 import type { MealieProblem, MealieStatus } from '@/lib/meal-sources';
+import { useCopyTime, type CopyClock } from '@/components/meals/useCopyTime';
+import type { MealieClientProblem } from '@/lib/meal-client';
 import { useHouseholdClockFormat, useHouseholdTimezone } from '../household-clock';
 
-/**
- * When Mealie last answered, said in home time: "3:10 PM", or "Thursday
- * 3:10 PM" for a copy from another day (the hub keeps one for a day).
- */
-export function useCopyTime(updatedAt: number | null | undefined, todayISO: string): string | null {
-  const locale = useFormattingLocale();
-  const home = useHouseholdTimezone();
-  const hour12 = useHouseholdClockFormat() === '12h';
-  if (!updatedAt) return null;
-  const at = new Date(updatedAt);
-  const time = formatTimeInTZ(at, { timezone: home, locale, hour12 });
-  if (isoDateInTZ(at, home) === todayISO) return time;
-  return `${formatDateInTZ(at, home, { weekday: 'long' }, locale)} ${time}`;
+/** The household's day, zone and clock, which the phone says a copy's time in (`useCopyTime`). */
+export function useHomeCopyClock(todayISO: string): CopyClock {
+  return { todayISO, zone: useHouseholdTimezone(), timeFormat: useHouseholdClockFormat() };
 }
 
 /**
@@ -32,7 +23,7 @@ export function useCopyTime(updatedAt: number | null | undefined, todayISO: stri
 export function MealsSourcePill({ status, todayISO }: { status: MealieStatus; todayISO: string }) {
   const t = useTranslate('remote');
   const updatedAt = status.state === 'stale' ? status.updatedAt : null;
-  const copyTime = useCopyTime(updatedAt, todayISO);
+  const copyTime = useCopyTime(updatedAt, useHomeCopyClock(todayISO));
   if (status.state !== 'ok' && status.state !== 'stale') return null;
   const stale = status.state === 'stale';
   return (
@@ -126,8 +117,9 @@ export function RetryButton({ onRetry, style }: { onRetry: () => Promise<void> |
 /**
  * Planning paused: Mealie gave no answer, so a change could not be saved.
  * One plain message on the Plan tab and in the meal sheet, saying why (a
- * refused token says how to fix it; waiting will not); the copy on screen
- * stays, and the message goes by itself once Mealie answers again.
+ * refused token or a Mealie Home Screens cannot use says how to fix it;
+ * waiting will not); the copy on screen stays, and the message goes by
+ * itself once Mealie answers again.
  */
 export function MealiePausedNotice({
   updatedAt,
@@ -143,8 +135,8 @@ export function MealiePausedNotice({
   style?: CSSProperties;
 }) {
   const t = useTranslate('remote');
-  const copyTime = useCopyTime(updatedAt, todayISO);
-  const token = problem === 'token';
+  const copyTime = useCopyTime(updatedAt, useHomeCopyClock(todayISO));
+  const fix = problem === 'token' || problem === 'setup' ? problem : null;
   return (
     <div
       role="status"
@@ -164,8 +156,8 @@ export function MealiePausedNotice({
       </div>
       <p style={{ margin: '4px 0 10px 26px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>
         {copyTime
-          ? t(token ? 'mealie.paused.tokenDescriptionWithTime' : 'mealie.paused.descriptionWithTime', { time: copyTime })
-          : t(token ? 'mealie.paused.tokenDescription' : 'mealie.paused.description')}
+          ? t(fix ? `mealie.paused.${fix}DescriptionWithTime` : 'mealie.paused.descriptionWithTime', { time: copyTime })
+          : t(fix ? `mealie.paused.${fix}Description` : 'mealie.paused.description')}
       </p>
       <RetryButton onRetry={onRetry} style={{ marginLeft: 26, padding: '0 16px' }} />
     </div>
@@ -173,8 +165,22 @@ export function MealiePausedNotice({
 }
 
 /** The phone's words for why there is no answer from Mealie (`.title`, `.description` under it). */
-export function mealieProblemWords(problem: MealieProblem | null): string {
-  return { 'not-connected': 'mealie.notConnected', token: 'mealie.tokenRefused', unreachable: 'mealie.unreachable' }[problem ?? 'unreachable'];
+export function mealieProblemWords(problem: MealieClientProblem | null): string {
+  return { 'not-connected': 'mealie.notConnected', token: 'mealie.tokenRefused', setup: 'mealie.setup', unreachable: 'mealie.unreachable', connection: 'mealie.connection' }[problem ?? 'unreachable'];
+}
+
+/**
+ * The phone's words when a recipe search got no answer from Mealie (keys
+ * under `remote`): the reason, and what to do about it. Plain silence asks
+ * to check that Mealie is running and try again; a reason Mealie gave says
+ * how to fix it.
+ */
+export function mealieSearchFailedWords(problem: MealieClientProblem | null): { title: string; description: string } {
+  const words = mealieProblemWords(problem);
+  return {
+    title: `${words}.title`,
+    description: !problem || problem === 'unreachable' ? 'mealie.search.errorDescription' : `${words}.description`,
+  };
 }
 
 /**
@@ -183,7 +189,7 @@ export function mealieProblemWords(problem: MealieProblem | null): string {
  * save" says it then).
  */
 export function mealieSaveFailedWords(problem: MealieProblem | undefined): string | null {
-  return problem ? { 'not-connected': 'mealie.saveFailed.notConnected', token: 'mealie.saveFailed.token', unreachable: 'mealie.saveFailed.unreachable' }[problem] : null;
+  return problem ? { 'not-connected': 'mealie.saveFailed.notConnected', token: 'mealie.saveFailed.token', setup: 'mealie.saveFailed.setup', unreachable: 'mealie.saveFailed.unreachable' }[problem] : null;
 }
 
 /**

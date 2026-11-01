@@ -3,22 +3,22 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { MealSettings, SavedMeal } from '@/types/config';
 import { groceryWeekKey } from '@/lib/grocery-checks';
-import { canEditMergedPlan, mealieStatus, rangeCovers } from '@/lib/meal-sources';
-import { isMealieMeal } from '@/lib/meal-dish-rules';
+import { canEditMergedPlan, mealieRangeWanted, mealieStatus, mealieWeekHeld } from '@/lib/meal-sources';
 import { currentMealSlot } from '@/lib/meal-constants';
+import type { MealPickTarget } from '@/lib/meal-courses';
+import { usePickedMeals } from '@/components/meals/usePickedMeals';
 import { useMealsData } from './useMealsData';
 import { useMealsWeekNav } from './useMealsWeekNav';
 import { useMealsPlanActions } from './useMealsPlanActions';
 import { useMealsLibrary } from './useMealsLibrary';
 import { useMealsGrocery } from './useMealsGrocery';
-import type { MealPickTarget, MealSlotRef, MealsConfirmAction } from '../components/meals-shared';
-
-const MEALS_POLL_MS = 15_000;
+import type { MealSlotRef, MealsConfirmAction } from '../components/meals-shared';
 
 /**
  * Whether the viewed week can be drawn: `ready`, or, in Mealie mode for a
  * week beyond the ones every answer carries, `loading` while the hub asks
- * Mealie for it and `failed` when the hub did not answer.
+ * Mealie for it and `failed` when the hub did not answer or Mealie is not
+ * answering.
  */
 export type MealsWeekState = 'ready' | 'loading' | 'failed';
 
@@ -85,25 +85,10 @@ export function useMealsTabData(keptWeek: string | null = null) {
   // Mealie recipes picked from a search. The plan a save hands back carries
   // every recipe it uses, but until it answers the new dish is only an id;
   // keeping the picked recipe here lets the row show its name and photo at
-  // once instead of an empty slot.
-  const [pickedMeals, setPickedMeals] = useState<ReadonlyMap<string, SavedMeal>>(() => new Map());
-  const meals = useMemo(() => {
-    if (pickedMeals.size === 0) return savedMeals;
-    const known = new Set(savedMeals.map((m) => m.id));
-    const extra = [...pickedMeals.values()].filter((m) => !known.has(m.id));
-    return extra.length > 0 ? [...savedMeals, ...extra] : savedMeals;
-  }, [savedMeals, pickedMeals]);
-  // A Mealie dish a change took off the plan, kept so an Undo draws it at once.
-  const keepMeals = useCallback((list: SavedMeal[]) => {
-    const mealie = list.filter(isMealieMeal);
-    if (mealie.length === 0) return;
-    setPickedMeals((prev) => {
-      if (mealie.every((m) => prev.get(m.id) === m)) return prev;
-      const next = new Map(prev);
-      for (const m of mealie) next.set(m.id, m);
-      return next;
-    });
-  }, []);
+  // once instead of an empty slot. A dish a change took off the plan is kept
+  // too, so an Undo draws it at once.
+  const picked = usePickedMeals(savedMeals);
+  const { meals, keep: keepMeals } = picked;
 
   const weekNav = useMealsWeekNav(settings, keptWeek, !loading && !loadError);
   // Today's meal being served now, by its serving time: the same rule the
@@ -113,45 +98,31 @@ export function useMealsTabData(keptWeek: string | null = null) {
     [weekNav.todayISO, weekNav.nowMinutes, settings.enabledSlots, settings.defaultSlotTimes, plan, meals],
   );
 
-  // Load once, again whenever the phone comes back to this page or back
-  // onto the network, and every so often while it is open. A tab left open
-  // on Sunday's plan would otherwise keep an hours-old copy, a grocery item
-  // ticked on another phone would never show, and a load that failed during
-  // a Wi-Fi blip would leave the tab empty for good.
-  useEffect(() => {
-    fetchData();
-    const whenVisible = () => {
-      if (document.visibilityState === 'visible') fetchData();
-    };
-    document.addEventListener('visibilitychange', whenVisible);
-    window.addEventListener('online', fetchData);
-    const poll = setInterval(whenVisible, MEALS_POLL_MS);
-    return () => {
-      document.removeEventListener('visibilitychange', whenVisible);
-      window.removeEventListener('online', fetchData);
-      clearInterval(poll);
-    };
-  }, [fetchData]);
-
   // Where the plan comes from and whether it can be changed right now: the
   // same two rules the editor and the wall use.
   const merged = useMemo(() => ({ plan, savedMeals, source, mealie }), [plan, savedMeals, source, mealie]);
   const status = useMemo(() => mealieStatus(merged), [merged]);
   const canEdit = canEditMergedPlan(merged);
 
-  // Paging past the weeks every answer carries: ask Mealie for that week.
-  const weekStart = weekNav.weekDates[0].date;
-  const weekEnd = weekNav.weekDates[6].date;
-  const weekOutsideCopy = source === 'mealie' && !!mealie && !rangeCovers(mealie.range, { start: weekStart, end: weekEnd });
+  // Paging past the weeks every answer carries: ask Mealie for the week and
+  // the one before it, by the rule the editor uses too.
+  const shownWeek = { start: weekNav.weekDates[0].date, end: weekNav.weekDates[6].date };
+  const weekHeld = mealieWeekHeld(merged, shownWeek);
+  const wanted = mealieRangeWanted(merged, shownWeek);
+  const wantedStart = wanted?.start;
+  const wantedEnd = wanted?.end;
   useEffect(() => {
-    if (!weekOutsideCopy) return;
-    void showMealieRange({ start: weekStart, end: weekEnd });
-  }, [weekOutsideCopy, weekStart, weekEnd, showMealieRange]);
-  const weekState: MealsWeekState = !weekOutsideCopy ? 'ready' : rangeFailed && !rangeLoading ? 'failed' : 'loading';
+    if (wantedStart && wantedEnd) void showMealieRange({ start: wantedStart, end: wantedEnd });
+  }, [wantedStart, wantedEnd, showMealieRange]);
+  // A week the copy does not hold is on its way, or missing: the hub did not
+  // answer for it, or Mealie is not answering, when nothing is asked.
+  const weekState: MealsWeekState = weekHeld ? 'ready' : !wanted || (rangeFailed && !rangeLoading) ? 'failed' : 'loading';
   const retryWeek = useCallback(() => {
-    if (weekOutsideCopy) void showMealieRange({ start: weekStart, end: weekEnd });
+    // While Mealie is not answering, ask the hub again; the week follows
+    // once Mealie is back.
+    if (!weekHeld && wantedStart && wantedEnd) void showMealieRange({ start: wantedStart, end: wantedEnd });
     else void fetchData();
-  }, [weekOutsideCopy, weekStart, weekEnd, showMealieRange, fetchData]);
+  }, [weekHeld, wantedStart, wantedEnd, showMealieRange, fetchData]);
 
   const planActions = useMealsPlanActions({
     savedMeals: meals,
@@ -160,13 +131,12 @@ export function useMealsTabData(keptWeek: string | null = null) {
     saveData,
     settings,
     weekDates: weekNav.weekDates,
-    viewingWeekStart: weekNav.viewingWeekStart,
     todayISO: weekNav.todayISO,
     setConfirmAction,
     savesToMealie: source === 'mealie',
     suggestFromMealie,
     showNotice,
-    keepMeals,
+    keepEntry: picked.keepEntry,
   });
 
   const library = useMealsLibrary({
@@ -196,28 +166,22 @@ export function useMealsTabData(keptWeek: string | null = null) {
     [toggleGroceryItem, groceryWeek],
   );
 
-  const { assignMealToSlot, setSlotText, addCourse, changeCourse } = planActions;
+  const { applyPick } = planActions;
 
   /** A dish chosen in the picker: the main dish, a new course, or a swap. */
   const pickMeal = useCallback((target: MealPickTarget, meal: SavedMeal) => {
-    if (isMealieMeal(meal)) {
-      setPickedMeals((prev) => (prev.get(meal.id) === meal ? prev : new Map(prev).set(meal.id, meal)));
-    }
+    keepMeals([meal]);
     setPicker(null);
-    if (target.pick === 'main') void assignMealToSlot(target.date, target.slot, meal);
-    else if (target.pick === 'add') void addCourse(target.date, target.slot, { kind: target.kind, mealId: meal.id });
-    else void changeCourse(target.date, target.slot, target.index, { mealId: meal.id }, meal.name);
-  }, [assignMealToSlot, addCourse, changeCourse]);
+    void applyPick(target, { mealId: meal.id }, meal.name);
+  }, [keepMeals, applyPick]);
 
   /** Words typed in the picker instead of a recipe (a note, in Mealie). */
   const pickText = useCallback((target: MealPickTarget, text: string) => {
     const typed = text.trim();
     if (!typed) return;
     setPicker(null);
-    if (target.pick === 'main') void setSlotText(target.date, target.slot, typed);
-    else if (target.pick === 'add') void addCourse(target.date, target.slot, { kind: target.kind, customText: typed });
-    else void changeCourse(target.date, target.slot, target.index, { customText: typed }, typed);
-  }, [setSlotText, addCourse, changeCourse]);
+    void applyPick(target, { customText: typed }, typed);
+  }, [applyPick]);
 
   const saveSettings = useCallback(async (next: MealSettings): Promise<boolean> => {
     const prev = settings;

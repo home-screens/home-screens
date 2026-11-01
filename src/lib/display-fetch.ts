@@ -46,7 +46,7 @@ export function setDisplayToken(t: string | null) {
  * fires, whichever comes first. Built by hand rather than with
  * `AbortSignal.any` so a test's fake timers drive it.
  */
-function timeoutSignal(timeoutMs: number, callerSignal: AbortSignal | null | undefined): AbortSignal {
+export function timeoutSignal(timeoutMs: number, callerSignal: AbortSignal | null | undefined): AbortSignal {
   const controller = new AbortController();
   // The timer runs for the request's whole life, body included: there is no
   // moment the wrapper can know the caller has finished reading. Aborting a

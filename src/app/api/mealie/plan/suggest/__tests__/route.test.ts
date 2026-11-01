@@ -41,6 +41,21 @@ describe('POST /api/mealie/plan/suggest', () => {
     expect(suggestMealieMeals).not.toHaveBeenCalled();
   });
 
+  it('refuses a range longer than sixteen weeks, the same as a save', async () => {
+    // A century of plan would have the hub ask Mealie for all of it and keep it.
+    const res = await POST(post({ cells: [{ date: '2026-11-02', slot: 'dinner' }], range: { start: '2000-01-01', end: '2099-12-31' } }));
+    expect(res.status).toBe(400);
+    expect((await POST(post({ cells: [{ date: '2026-11-02', slot: 'dinner' }], range: { start: '2026-11-01', end: '2027-03-01' } }))).status).toBe(400);
+    expect(suggestMealieMeals).not.toHaveBeenCalled();
+    expect((await POST(post({ cells: [{ date: '2026-11-02', slot: 'dinner' }], range: { start: '2026-11-01', end: '2027-02-20' } }))).status).toBe(200);
+  });
+
+  it('refuses a meal listed twice', async () => {
+    const res = await POST(post({ cells: [{ date: '2026-11-02', slot: 'dinner' }, { date: '2026-11-02', slot: 'dinner' }] }));
+    expect(res.status).toBe(400);
+    expect(suggestMealieMeals).not.toHaveBeenCalled();
+  });
+
   it('passes Mealie being down on', async () => {
     vi.mocked(suggestMealieMeals).mockResolvedValue({ ok: false, failure: 'unreachable' });
     expect((await POST(post({ cells: [{ date: '2026-11-02', slot: 'dinner' }] }))).status).toBe(502);

@@ -1,6 +1,7 @@
 import type { MealCourseKind, MealSlotType, SavedMeal } from '@/types/config';
 import { parseMealieMealId } from './mealie-map';
 import { formatTagLabel, normalizeTag, type LibraryFilter } from './meal-constants';
+import type { MealPickTarget } from './meal-courses';
 
 /**
  * Small rules about how a dish is offered and described wherever the family
@@ -111,6 +112,33 @@ export function savedMealNamed(meals: readonly SavedMeal[], words: string): Save
   const wanted = key(words);
   if (!wanted) return null;
   return meals.find((m) => key(m.name) === wanted) ?? null;
+}
+
+/**
+ * The family's own meals a picker lists (already narrowed by the words and
+ * any chip), split as it groups them: a main dish leads with the meals
+ * tagged for that meal of the day (`mealsForSlot`), a course with the meals
+ * saved as its kind (`mealsForCourse`).
+ */
+export function pickerMealGroups(
+  meals: readonly SavedMeal[],
+  target: MealPickTarget,
+): { matching: SavedMeal[]; others: SavedMeal[] } {
+  return target.pick === 'main' ? mealsForSlot(meals, target.slot) : mealsForCourse(meals, target.kind);
+}
+
+/**
+ * What Enter in a picker takes for the typed words: the saved meal they name
+ * (`savedMealNamed`), or the words themselves when no saved meal holds them.
+ * Null when nothing is typed, or when the words only match part of some
+ * meals and the family still has to choose one.
+ */
+export function pickerEnterChoice(meals: SavedMeal[], query: string): { meal: SavedMeal } | { text: string } | null {
+  const typed = query.trim();
+  if (!typed) return null;
+  const named = savedMealNamed(meals, typed);
+  if (named) return { meal: named };
+  return searchSavedMeals(meals, typed).length === 0 ? { text: typed } : null;
 }
 
 /**

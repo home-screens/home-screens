@@ -3,29 +3,23 @@
 import { useMemo, useRef } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from '@/hooks/useFitScale';
-import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent, resolveFullscreenOnAccent } from '@/lib/fullscreen-themes';
-import { useFetchData } from '@/hooks/useFetchData';
-import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
-import { mergeMealSources, type MealieWireBlock } from '@/lib/meal-sources';
 import type { ResolvedCourse } from '@/lib/meal-courses';
 import { mealPhotoSrc } from '@/components/meals/MealPicture';
 import { useAuthImageState } from '@/components/display/useAuthImage';
 import MealPhotoBackdrop from './MealPhotoBackdrop';
-import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
+import type { FullscreenMealPlannerConfig, SavedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import type { GroceryChecked } from '@/lib/grocery-checks';
-import { DEFAULT_MEAL_SETTINGS, DEFAULT_ACCENT_COLOR, getWeekRange, filterPlanToWeek, toISODate, resolveMealTimeFormat, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead, minutesOfDay } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead } from '@/lib/meal-constants';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { resolveRecipeTapMode } from '../shared/MealTapTarget';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
 import MenuBoardView from './MenuBoardView';
 import NextMealView from './NextMealView';
 import RecipeView from './RecipeView';
 import GroceryView from './GroceryView';
-import { MealRecipeContext, type MealRecipeContextValue } from '../shared/MealRecipeContext';
-import { useWallGrocery } from '../shared/useWallGrocery';
+import { MealRecipeContext } from '../shared/MealRecipeContext';
+import { useWallMeals } from '../shared/useWallMeals';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useTranslate } from '@/i18n';
 import { heldPulseKeyframes } from '@/lib/held-pulse';
@@ -33,17 +27,6 @@ import { mealieWords } from '../shared/mealie-problem';
 
 // The now dot's blink, redrawn 12 times a second rather than on every refresh.
 const NOW_DOT_PULSE_KEYFRAMES = heldPulseKeyframes('fmpPulse', { rest: 1, peak: 0.3, periodMs: 2000 });
-
-interface MealDataResponse {
-  savedMeals: SavedMeal[];
-  plan: PlannedMeal[];
-  groceryChecked: GroceryChecked;
-  settings?: MealSettings;
-  /** Household GlobalSettings.timeFormat, reported alongside the settings */
-  globalTimeFormat?: TimeFormat;
-  /** Mealie's plan, while the plan lives there (see `meal-sources.ts`). */
-  mealie?: MealieWireBlock;
-}
 
 interface FullscreenMealPlannerModuleProps {
   config: FullscreenMealPlannerConfig;
@@ -63,24 +46,12 @@ export default function FullscreenMealPlannerModule({
   moduleId,
 }: FullscreenMealPlannerModuleProps) {
   const t = useTranslate('modules');
-  // ── Data fetching ──
-  const [mealData, mealError] = useFetchData<MealDataResponse>(mealsDataUrl(), FETCH_KEY_REGISTRY['fullscreen-meal-planner']?.ttlMs ?? 60_000);
-  // The plan lives in meals.json or in Mealie; the shared rule decides which
-  // one this wall draws, the same way the phone and the editor do.
-  const merged = useMemo(
-    () => (mealData ? mergeMealSources(mealData, mealData.settings ?? DEFAULT_MEAL_SETTINGS) : null),
-    [mealData],
-  );
-  const savedMeals = useMemo(() => merged?.savedMeals ?? [], [merged]);
-  const mealieUnreachable = merged?.source === 'mealie' && merged.mealie?.status !== 'ok' && merged.mealie?.status !== 'stale';
-  const fullPlan = useMemo(() => merged?.plan ?? [], [merged]);
   const view = config.view ?? 'week';
-  // Settings live in the shared meals.json, edited via /remote.
-  const settings = mealData?.settings ?? DEFAULT_MEAL_SETTINGS;
-  // Effective serving-time format: an explicit meal override wins, else the
-  // household global. Resolved once here so every view renders consistently.
-  const globalTimeFormat = mealData?.globalTimeFormat === '24h' ? '24h' : '12h';
-  const timeFormat = resolveMealTimeFormat(settings, globalTimeFormat);
+  // ── Data fetching ──
+  const {
+    data, error, now, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan, plan,
+    mealie, grocery, interactive, recipeTapMode, recipeContext,
+  } = useWallMeals({ moduleType: 'fullscreen-meal-planner', view, timezone, theme: config.theme ?? fullscreenTheme, config, screenId, moduleId });
 
   // ── Scale system ──
   const { containerRef, dims } = useFullscreenDims();
@@ -94,24 +65,16 @@ export default function FullscreenMealPlannerModule({
   const d = densityMul;
   const landscape = dims.w > dims.h;
 
-  // ── Current time (display timezone, not browser-local) ──
-  const now = useTZClock(timezone, 60_000);
-
-  const nowMinutes = minutesOfDay(now);
   const slots = settings.enabledSlots;
   const defaultTimes = settings.defaultSlotTimes;
 
-  const todayISO = toISODate(now);
-  const { start: weekStart, end: weekEnd } = useMemo(
-    () => getWeekRange(new Date(todayISO + 'T12:00:00'), settings.weekStartDay),
-    [todayISO, settings.weekStartDay],
-  );
-  const plan = useMemo(
-    () => filterPlanToWeek(fullPlan, weekStart, weekEnd),
-    [fullPlan, weekStart, weekEnd],
-  );
   // Today's meal being served now, by its serving time (`currentMealSlot`).
   const activeSlot = currentMealSlot(todayISO, nowMinutes, slots, plan, savedMeals, defaultTimes);
+  // The next meal, worked out once for the Next meal view, its fit and its photo.
+  const next = useMemo(
+    () => (view === 'next-meal' ? getNextPlannedMeal(todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes) : null),
+    [view, todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes],
+  );
 
   // The today, menu-board and next-meal views are authored to fill a 1080
   // canvas at `medium` (see `px` in meal-planner-utils). A larger
@@ -122,17 +85,6 @@ export default function FullscreenMealPlannerModule({
   // they ran past the bottom, with Saturday off the screen and no way to
   // scroll a wall to it.
   //
-  // The grocery list the family uses, read only by the Grocery view: Mealie's
-  // while the plan lives there, otherwise this week's from the planned meals.
-  const grocerySource = view !== 'grocery' || !mealData ? 'off' : merged?.source === 'mealie' ? 'mealie' : 'local';
-  const localGrocery = useMemo(
-    () => (mealData ? { plan: mealData.plan, savedMeals: mealData.savedMeals, groceryChecked: mealData.groceryChecked, settings } : null),
-    [mealData, settings],
-  );
-  const grocery = useWallGrocery(grocerySource, localGrocery, todayISO);
-  // Taps need a real display; the editor preview draws the rows only.
-  const interactive = config.interactive !== false && !!screenId && !!moduleId;
-
   // Deps are content *shape*, not array identities: the number of meals the
   // view draws and how much text they carry. A refetch that returns the same
   // plan must not restart the bisection.
@@ -158,7 +110,6 @@ export default function FullscreenMealPlannerModule({
         tally(name, meal, courses, notes);
       }
     } else if (view === 'next-meal') {
-      const next = getNextPlannedMeal(todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes);
       tally(next?.name ?? null, next?.meal ?? null, next?.courses, next?.notes);
     } else if (view === 'today') {
       // Late in the evening Today shows tomorrow (`mealDayLead`).
@@ -174,16 +125,12 @@ export default function FullscreenMealPlannerModule({
       }
     }
     return { mealCount: count, textLength: length };
-  }, [view, todayISO, nowMinutes, fullPlan, plan, savedMeals, slots, defaultTimes]);
+  }, [view, todayISO, nowMinutes, fullPlan, plan, savedMeals, slots, defaultTimes, next]);
 
   // Next Meal over the dish's photo: the backdrop and the light text only
   // once the photo is in, never light text on the theme's own background.
   const showEmoji = config.showEmoji ?? true;
-  const nextMeal = useMemo(
-    () => (view === 'next-meal' && showEmoji ? getNextPlannedMeal(todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes)?.meal ?? null : null),
-    [view, showEmoji, todayISO, nowMinutes, fullPlan, savedMeals, slots, defaultTimes],
-  );
-  const backdrop = useAuthImageState(mealPhotoSrc(nextMeal, 'full'));
+  const backdrop = useAuthImageState(mealPhotoSrc(showEmoji ? next?.meal ?? null : null, 'full'));
   const backdropUrl = backdrop.status === 'ready' ? backdrop.url : undefined;
 
   const stackRef = useRef<HTMLDivElement>(null);
@@ -213,12 +160,6 @@ export default function FullscreenMealPlannerModule({
     // Text on an accent fill (the recipe's Next step): dark on a light accent.
     '--fmp-on-accent': resolveFullscreenOnAccent(config.accentColor, theme, DEFAULT_ACCENT_COLOR),
   } as React.CSSProperties;
-
-  const recipeTapMode = resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId);
-  const recipeContext = useMemo<MealRecipeContextValue>(
-    () => ({ theme: config.theme ?? fullscreenTheme, plan: fullPlan, savedMeals, settings, timeFormat, now }),
-    [config.theme, fullscreenTheme, fullPlan, savedMeals, settings, timeFormat, now],
-  );
 
   // ── View props ──
   const viewProps: MealPlannerViewProps = {
@@ -271,8 +212,8 @@ export default function FullscreenMealPlannerModule({
         }
       `}</style>
 
-      {backdropUrl && mealData !== null && <MealPhotoBackdrop url={backdropUrl} />}
-      {mealieUnreachable && view !== 'grocery' ? (
+      {backdropUrl && data !== null && <MealPhotoBackdrop url={backdropUrl} />}
+      {mealie.state === 'unreachable' && view !== 'grocery' ? (
         // The plan is in Mealie and Mealie never answered: say so rather than
         // "nothing planned", which would be wrong.
         <div
@@ -280,18 +221,18 @@ export default function FullscreenMealPlannerModule({
           style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: s * 1.5, textAlign: 'center', padding: pad }}
         >
           <span style={{ fontSize: s * 10, lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
-          <span style={{ fontFamily: headerFont, fontSize: s * 4, lineHeight: 1.1, color: 'var(--fmp-text)' }}>{t(`meal-planner.${mealieWords(merged?.mealie?.failure)}`)}</span>
-          <span style={{ fontSize: s * 2, color: 'var(--fmp-text-3)', maxWidth: '80%', lineHeight: 1.3 }}>{t(`meal-planner.${mealieWords(merged?.mealie?.failure)}Hint`)}</span>
+          <span style={{ fontFamily: headerFont, fontSize: s * 4, lineHeight: 1.1, color: 'var(--fmp-text)' }}>{t(`meal-planner.${mealieWords(mealie.problem)}`)}</span>
+          <span style={{ fontSize: s * 2, color: 'var(--fmp-text-3)', maxWidth: '80%', lineHeight: 1.3 }}>{t(`meal-planner.${mealieWords(mealie.problem)}Hint`)}</span>
         </div>
-      ) : mealData === null ? (
+      ) : data === null ? (
         // Until the first answer the plan is unknown, not empty: the views
         // would say "No meals planned" on every load of a slow Pi.
         <div
-          data-testid={mealError ? 'module-not-updating' : 'fmp-loading'}
+          data-testid={error ? 'module-not-updating' : 'fmp-loading'}
           aria-live="polite"
           style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fmp-text-2)', fontSize: s * 2.2, textAlign: 'center', padding: pad }}
         >
-          {t(mealError ? 'common.notUpdating' : 'meal-planner.loading')}
+          {t(error ? 'common.notUpdating' : 'meal-planner.loading')}
         </div>
       ) : (
         <div
@@ -316,7 +257,7 @@ export default function FullscreenMealPlannerModule({
               can be in next week. */}
           {view === 'today' && <TodayView {...viewProps} plan={fullPlan} />}
           {view === 'menu-board' && <MenuBoardView {...viewProps} />}
-          {view === 'next-meal' && <NextMealView {...viewProps} plan={fullPlan} />}
+          {view === 'next-meal' && <NextMealView {...viewProps} next={next} />}
           {/* Like Next meal, the whole plan: late in the evening it is tomorrow's. */}
           {view === 'recipe' && <RecipeView {...viewProps} plan={fullPlan} />}
           {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} />}

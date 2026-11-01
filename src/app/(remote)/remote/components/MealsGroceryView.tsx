@@ -2,13 +2,14 @@
 
 import { useState, useCallback } from 'react';
 import type { SavedMeal } from '@/types/config';
-import { GROCERY_CATEGORY_ICONS, groceryListNeedsHeadings, shortNameList } from '@/lib/grocery-utils';
+import { GROCERY_CATEGORY_ICONS, groceryListNeedsHeadings, shortNameList, type GroceryList } from '@/lib/grocery-utils';
+import { groceryShareText } from '@/lib/shopping-list';
 import { useLocale, useTranslate } from '@/i18n';
 import type { ShownWeek } from '@/lib/meal-plan-words';
 import { shareOrCopyText } from './share-text';
 
 interface MealsGroceryViewProps {
-  groceryList: Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>;
+  groceryList: GroceryList;
   groceryStats: { total: number; checked: number };
   /** Planned meals with no ingredients yet (`plannedMealsWithoutIngredients`) */
   withoutIngredients: SavedMeal[];
@@ -32,21 +33,16 @@ export default function MealsGroceryView({
   // already loaded by the remote layout.
   const tCore = useTranslate('core');
 
-  const buildShareText = useCallback((): string => {
-    const sections: string[] = [];
-    for (const [catKey, { items }] of groceryList) {
-      const unchecked = items.filter((i) => !i.checked);
-      if (unchecked.length === 0) continue;
+  const buildShareText = useCallback((): string => groceryShareText(
+    [...groceryList].map(([catKey, { items }]) => ({
       // `t()` returns the raw key path on miss (and emits a once-per-key dev
       // warning), which is the right developer feedback for any future
       // GroceryCategory enum value added without a matching translation.
-      const label = tCore(`meal.grocery.categoryLabels.${catKey}`);
-      const lines = unchecked.map((i) => `  ${i.name}${i.amount ? ` (${i.amount})` : ''}`);
-      sections.push(`${label}\n${lines.join('\n')}`);
-    }
-    if (sections.length === 0) return t('mealsGrocery.shareCompleteMessage');
-    return `${t('mealsGrocery.shareHeading')}\n\n${sections.join('\n\n')}`;
-  }, [groceryList, t, tCore]);
+      label: tCore(`meal.grocery.categoryLabels.${catKey}`),
+      items: items.filter((i) => !i.checked).map((i) => ({ text: i.name, detail: i.amount })),
+    })),
+    { heading: t('mealsGrocery.shareHeading'), complete: t('mealsGrocery.shareCompleteMessage') },
+  ), [groceryList, t, tCore]);
 
   const [shareLabel, setShareLabel] = useState<'idle' | 'copied'>('idle');
 

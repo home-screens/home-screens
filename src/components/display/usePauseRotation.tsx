@@ -1,9 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 
-/** Max gap between the two taps of a double-tap, in ms. */
-const DOUBLE_TAP_MS = 300;
 /** Fallback auto-resume when `pauseTimeoutSeconds` is unset. */
 const DEFAULT_PAUSE_TIMEOUT_S = 300;
 

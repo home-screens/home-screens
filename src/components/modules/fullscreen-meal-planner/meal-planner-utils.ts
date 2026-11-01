@@ -1,6 +1,5 @@
 import type { FullscreenMealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { DIFFICULTY_COLORS } from '@/lib/meal-constants';
-import { planEntryHasContent } from '@/lib/meal-courses';
 import type { RecipeTapMode } from '../shared/MealTapTarget';
 
 export interface MealPlannerViewProps {
@@ -54,14 +53,4 @@ export function px(s: number, n: number): number {
 export function getDifficultyColor(difficulty: string | undefined): string | undefined {
   if (!difficulty) return undefined;
   return DIFFICULTY_COLORS[difficulty];
-}
-
-export function countPlanned(
-  planArr: PlannedMeal[],
-  totalSlots: number,
-): { filled: number; total: number; pct: number } {
-  // A meal typed straight in ("Pizza night") or planned as only its courses
-  // is planned too, not just one from the library.
-  const filled = planArr.filter(planEntryHasContent).length;
-  return { filled, total: totalSlots, pct: totalSlots > 0 ? Math.round((filled / totalSlots) * 100) : 0 };
 }

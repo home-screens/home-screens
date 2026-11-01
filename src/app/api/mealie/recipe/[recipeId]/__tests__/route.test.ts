@@ -8,11 +8,11 @@ vi.mock('@/lib/auth', () => ({
 }));
 vi.mock('@/lib/mealie', async (importOriginal) => {
   const real = await importOriginal<typeof import('@/lib/mealie')>();
-  return { ...real, getMealieConfig: vi.fn(), getMealieRecipe: vi.fn(), getMealieUser: vi.fn() };
+  return { ...real, getMealieContext: vi.fn(), getMealieRecipe: vi.fn() };
 });
 
 import { GET } from '../route';
-import { getMealieConfig, getMealieRecipe, getMealieUser, MealieError } from '@/lib/mealie';
+import { getMealieContext, getMealieRecipe, MealieError } from '@/lib/mealie';
 
 const ID = '0f1e2d3c-4b5a-4968-8776-655443322110';
 const get = (id: string, query = '') => GET(new NextRequest(`http://localhost/api/mealie/recipe/${id}${query}`), { params: Promise.resolve({ recipeId: id }) });
@@ -20,8 +20,7 @@ const get = (id: string, query = '') => GET(new NextRequest(`http://localhost/ap
 describe('GET /api/mealie/recipe/[recipeId]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMealieConfig).mockResolvedValue({ url: 'http://mealie.local', apiKey: 'k' });
-    vi.mocked(getMealieUser).mockResolvedValue({ id: 'u', username: 'u', fullName: 'U', group: 'Home', household: 'Family', groupSlug: 'home', householdSlug: 'family' });
+    vi.mocked(getMealieContext).mockResolvedValue({ baseUrl: 'http://mealie.local', groupSlug: 'home' });
   });
 
   it('answers the ingredients and steps as plain lines, with section headings', async () => {
@@ -57,5 +56,14 @@ describe('GET /api/mealie/recipe/[recipeId]', () => {
     expect((await get('../../x')).status).toBe(400);
     vi.mocked(getMealieRecipe).mockRejectedValue(new MealieError('unreachable', 'down'));
     expect((await get(ID)).status).toBe(502);
+  });
+
+  it('says Mealie is not connected when nothing is saved', async () => {
+    const real = await vi.importActual<typeof import('@/lib/mealie')>('@/lib/mealie');
+    vi.mocked(getMealieRecipe).mockImplementationOnce(real.getMealieRecipe);
+    vi.mocked(getMealieContext).mockImplementationOnce(real.getMealieContext);
+    const res = await get(ID);
+    expect(res.status).toBe(400);
+    expect((await res.json()).failure).toBe('not-set-up');
   });
 });

@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import type { SavedMeal } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
-import { parseMealieMealId } from '@/lib/mealie-map';
-import { mealieRecipe, savedMealRecipe, type MealieRecipeLines, type RecipeDetail } from '@/lib/meal-recipe';
+import { mealieRecipeUrl, parseMealieMealId, type MealieRecipeDetail } from '@/lib/mealie-map';
+import { mealieRecipe, savedMealRecipe, type RecipeDetail } from '@/lib/meal-recipe';
 
 /** The hub keeps a Mealie recipe ten minutes too; nobody edits tonight's dinner by the minute. */
 const MEALIE_RECIPE_TTL_MS = 10 * 60_000;
@@ -22,10 +22,7 @@ export type MealRecipeState =
  */
 export function useMealRecipe(meal: SavedMeal | null, scale = 1): MealRecipeState {
   const mealieId = parseMealieMealId(meal?.id);
-  const [wire, error] = useFetchData<MealieRecipeLines>(
-    mealieId ? `/api/mealie/recipe/${encodeURIComponent(mealieId)}${scale !== 1 ? `?scale=${scale}` : ''}` : '',
-    MEALIE_RECIPE_TTL_MS,
-  );
+  const [wire, error] = useFetchData<MealieRecipeDetail>(mealieId ? mealieRecipeUrl(mealieId, scale) : '', MEALIE_RECIPE_TTL_MS);
   return useMemo<MealRecipeState>(() => {
     if (!meal) return { status: 'failed' };
     if (!mealieId) return { status: 'ready', recipe: savedMealRecipe(meal) };

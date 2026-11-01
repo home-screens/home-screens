@@ -20,6 +20,7 @@ export default function MenuBoardView({
   settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const mealMinutes = useMealMinutes();
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
@@ -182,7 +183,7 @@ export default function MenuBoardView({
                     )}
                     {showDifficulty && course.meal?.difficulty && (() => {
                       const dc = getDifficultyColor(course.meal.difficulty);
-                      return <span style={{ color: dc ?? undefined }}>{course.meal.difficulty}</span>;
+                      return <span style={{ color: dc ?? undefined }}>{tCore(`meal.difficulty.${course.meal.difficulty}`)}</span>;
                     })()}
                   </div>
                 )}

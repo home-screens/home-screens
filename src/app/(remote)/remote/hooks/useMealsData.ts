@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useTranslate } from '@/i18n';
-import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType, TimeFormat } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealSettings, TimeFormat } from '@/types/config';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
-import { MealClientError, MealSession, type MealEdit, type MealSnapshot, type MealieRange } from '@/lib/meal-client';
+import { HubUnreachableError, MealClientError, saveMealSettings, type MealEdit, type MealSnapshot } from '@/lib/meal-client';
 import type { MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
+import { useMealSession } from '@/components/meals/useMealSession';
 import { mealieSaveFailedWords } from '../components/MealsMealieStatus';
 
 export function useMealsData() {
@@ -20,10 +22,8 @@ export function useMealsData() {
   // (always present in the GET response). Meal surfaces resolve their effective
   // format against this when the shared settings carry no override.
   const [globalTimeFormat, setGlobalTimeFormat] = useState<TimeFormat>('12h');
-  const [loading, setLoading] = useState(true);
-  // The meals have never loaded and the last try failed: said in so many
-  // words, never shown as an empty week (which reads as "nothing planned").
-  const [loadError, setLoadError] = useState(false);
+  // Loading again behind the loading line (see `reloadFresh`).
+  const [reloading, setReloading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   // Where the plan above came from. In Mealie mode `plan` and `savedMeals`
@@ -31,14 +31,6 @@ export function useMealsData() {
   const [source, setSource] = useState<MealSnapshot['source']>('local');
   const [mealie, setMealie] = useState<MealieWireBlock | null>(null);
   const [mealieConnected, setMealieConnected] = useState(false);
-  // A week beyond the ones every answer carries is on its way from Mealie.
-  const [rangeLoading, setRangeLoading] = useState(false);
-  const [rangeFailed, setRangeFailed] = useState(false);
-
-  // Loads and saves share one session (`lib/meal-client.ts`): it keeps the
-  // copy the hub last answered with, quotes its revision on every save, and
-  // re-applies an edit to the hub's newer copy when somebody else saved first.
-  const [session] = useState(() => new MealSession(editorFetch));
 
   const adoptData = useCallback((snapshot: MealSnapshot) => {
     setSavedMeals(snapshot.savedMeals);
@@ -49,22 +41,38 @@ export function useMealsData() {
     setMealieConnected(snapshot.mealieConnected);
   }, []);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const snapshot = await session.load();
-      setLoadError(false);
-      // A load answered while a save or a tick is out is older than its answer.
-      if (!session.idle) return;
+  // Loads and saves share one session with the editor's planner window
+  // (`useMealSession`): it keeps the copy the hub last answered with, quotes
+  // its revision on every save, re-applies an edit to the hub's newer copy
+  // when somebody else saved first, asks the hub again after Mealie refused
+  // something, and loads again every so often while the tab is open.
+  const {
+    session,
+    loadState,
+    load: fetchData,
+    save,
+    suggest: suggestFromMealie,
+    showMealieRange,
+    mealieWeeks,
+  } = useMealSession({
+    show: (snapshot, from) => {
+      // Nothing loaded means nothing to edit: the tab shows its load error.
+      if (!snapshot) return;
       adoptData(snapshot);
-      setSettings(snapshot.settings);
-      setGlobalTimeFormat(snapshot.globalTimeFormat);
-    } catch (err) {
-      // A refresh that fails keeps what is on screen.
-      if (!isSessionExpired(err) && !session.current) setLoadError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [session, adoptData]);
+      if (from === 'load') {
+        setSettings(snapshot.settings);
+        setGlobalTimeFormat(snapshot.globalTimeFormat);
+      }
+    },
+    refused: (err, what) => {
+      // Why Mealie refused, when it was Mealie: a refused token is not fixed
+      // by trying again. Suggest says Mealie having trouble its own way.
+      const problem = err instanceof MealClientError ? err.problem : undefined;
+      if (what === 'suggest') setSaveError(t((problem !== 'unreachable' && mealieSaveFailedWords(problem)) || 'mealie.suggest.failed'));
+      else if (err instanceof HubUnreachableError) setSaveError(t('mealsTab.saveFailedConnection'));
+      else setSaveError(t(mealieSaveFailedWords(problem) ?? 'mealsTab.saveFailed'));
+    },
+  }, { poll: true });
 
   /**
    * Load again behind the loading line: after the plan moved between Home
@@ -72,29 +80,10 @@ export function useMealsData() {
    * showing it for a moment under the new heading would be wrong.
    */
   const reloadFresh = useCallback(async () => {
-    setLoading(true);
+    setReloading(true);
     await fetchData();
+    setReloading(false);
   }, [fetchData]);
-
-  /**
-   * Bring Mealie's plan for `range` in, when the week shown is outside the
-   * weeks every answer carries. The session keeps those days through later
-   * saves and reloads; a copy that already holds them asks nothing.
-   */
-  const showMealieRange = useCallback(async (range: MealieRange) => {
-    setRangeLoading(true);
-    setRangeFailed(false);
-    try {
-      const snapshot = await session.showMealieRange(range);
-      if (session.idle) adoptData(snapshot);
-    } catch (err) {
-      // The hub did not answer for those weeks at all. (Mealie being down is
-      // not this: that arrives as the copy's own status.)
-      if (!isSessionExpired(err)) setRangeFailed(true);
-    } finally {
-      setRangeLoading(false);
-    }
-  }, [session, adoptData]);
 
   /**
    * Save one edit, written as a function of the copy it applies to (see
@@ -108,84 +97,36 @@ export function useMealsData() {
    * answered, the hub's copy replaces it; on failure the last loaded copy
    * does, so the tab never keeps showing an edit that was not saved.
    */
-  const saveData = useCallback(async (edit: MealEdit): Promise<boolean> => {
-    try {
-      const saved = await session.save(edit);
-      if (session.idle) adoptData(saved);
-      return true;
-    } catch (err) {
-      if (isSessionExpired(err)) return false;
-      if (err instanceof MealClientError) {
-        // Why Mealie refused, when it was Mealie: a refused token is not
-        // fixed by trying again.
-        const words = mealieSaveFailedWords(err.problem);
-        setSaveError(words ? t(words) : t('mealsTab.saveFailed'));
-      } else {
-        setSaveError('Network error. Please try again.');
-      }
-      if (session.current && session.idle) adoptData(session.current);
-      // A save Mealie refused is often Mealie going away: ask again, so the
-      // tab shows that and pauses planning instead of failing the next tap.
-      if (session.current?.source === 'mealie') void fetchData();
-      return false;
-    }
-  }, [session, adoptData, fetchData, t]);
+  const saveData: (edit: MealEdit) => Promise<boolean> = save;
 
   /**
-   * Mealie's own picks for the empty meals among `cells` (Suggest, in Mealie
-   * mode). Answers how many it filled and how many it had nothing for, or
-   * null when the hub or Mealie refused.
-   */
-  const suggestFromMealie = useCallback(async (cells: { date: string; slot: MealSlotType }[]) => {
-    try {
-      const { snapshot, created, skipped, entries } = await session.suggestFromMealie(cells);
-      if (session.idle) adoptData(snapshot);
-      return { created, skipped, entries };
-    } catch (err) {
-      if (isSessionExpired(err)) return null;
-      // A refused token or a missing connection says so; Mealie having
-      // trouble keeps the "try again in a moment" line.
-      const problem = err instanceof MealClientError ? err.problem : undefined;
-      setSaveError(t((problem !== 'unreachable' && mealieSaveFailedWords(problem)) || 'mealie.suggest.failed'));
-      void fetchData();
-      return null;
-    }
-  }, [session, adoptData, fetchData, t]);
-
-  /**
-   * Settings-only PUT — does not round-trip savedMeals/plan/groceryChecked.
-   *
-   * The API preserves omitted fields, so this can't accidentally clobber a
-   * concurrent meal write from another surface (the editor modal, Settings →
-   * Meals, etc.). Use this whenever you're only changing the shared `MealSettings`.
+   * Save the shared `MealSettings` and nothing else, so a meal another surface
+   * (the editor's window, Settings > Meals) saved meanwhile is kept.
    */
   const saveSettingsOnly = useCallback(async (next: MealSettings): Promise<boolean> => {
     try {
-      const res = await editorFetch('/api/meals/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: next }),
-      });
-      if (!res.ok) {
-        setSaveError('Failed to save settings. Please try again.');
-        return false;
-      }
+      await saveMealSettings(editorFetch, next);
       return true;
     } catch (err) {
       if (isSessionExpired(err)) return false;
-      setSaveError('Network error. Please try again.');
+      setSaveError(t(err instanceof HubUnreachableError ? 'mealsTab.saveFailedConnection' : 'mealsSettings.save.saveFailed'));
       return false;
     }
-  }, []);
+  }, [t]);
 
   const groceryRef = useRef(groceryChecked);
   groceryRef.current = groceryChecked;
+  const lastTap = useRef<LastTap | null>(null);
   /**
    * Tick or untick one item on the list of `week` (that week's key). Sent
    * through the session's queue like any save, so a reload or an older tick's
-   * answer can never put back what this one changed.
+   * answer can never put back what this one changed. A quick double tap on
+   * one item is one tap.
    */
   const toggleGroceryItem = useCallback(async (week: string, itemName: string) => {
+    const tap = { id: `${week}/${itemName}`, at: Date.now() };
+    if (isRepeatTap(lastTap.current, tap.id, tap.at)) return;
+    lastTap.current = tap;
     // What this tap means, from what this phone shows (see groceryTapDirection).
     const direction = groceryTapDirection(groceryRef.current, week, itemName);
     setGroceryChecked((prev) => setGroceryCheck(prev, week, itemName, direction));
@@ -209,8 +150,10 @@ export function useMealsData() {
     settings,
     setSettings,
     globalTimeFormat,
-    loading,
-    loadError,
+    loading: loadState === 'loading' || reloading,
+    // The meals have never loaded and the last try failed: said in so many
+    // words, never shown as an empty week (which reads as "nothing planned").
+    loadError: loadState === 'failed',
     saving,
     setSaving,
     saveError,
@@ -224,8 +167,10 @@ export function useMealsData() {
     mealie,
     mealieConnected,
     showMealieRange,
-    rangeLoading,
-    rangeFailed,
+    // A week beyond the ones every answer carries is on its way from Mealie,
+    // or the hub did not answer for it.
+    rangeLoading: mealieWeeks === 'loading',
+    rangeFailed: mealieWeeks === 'failed',
     suggestFromMealie,
   };
 }

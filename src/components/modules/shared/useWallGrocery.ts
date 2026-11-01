@@ -6,11 +6,12 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
 import { filterPlanToWeek, fromISODate, getWeekRange } from '@/lib/meal-constants';
-import { generateGroceryList } from '@/lib/grocery-utils';
+import { weekGroceryList } from '@/lib/grocery-utils';
 import { groceryChecksForWeek, type GroceryChecked } from '@/lib/grocery-checks';
-import { tickMealieShoppingItem, type MealieShoppingWire } from '@/lib/meal-client';
+import { saveGroceryCheck, tickMealieShoppingItem } from '@/lib/meal-client';
+import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
 import { wallGroceryFromLocal, wallGroceryFromMealie, wallGroceryRows, type WallGroceryItem, type WallGroceryRows } from '@/lib/grocery-wall';
-import { DOUBLE_TAP_MS } from '@/components/meals/useMealieShoppingList';
+import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
 import { usePressedKey } from './usePressedKey';
 
 /** How often the wall reads the Mealie list again: a tick made at the store shows up within a minute. */
@@ -54,7 +55,7 @@ const EMPTY_ROWS: WallGroceryRows = { groups: [], left: 0, got: 0 };
  * `off` (a view that shows no list) reads nothing.
  */
 export function useWallGrocery(source: 'local' | 'mealie' | 'off', local: LocalGroceryData | null, todayISO: string): WallGrocery {
-  const [wire, wireError] = useFetchData<MealieShoppingWire>(source === 'mealie' ? '/api/mealie/shopping' : '', WALL_SHOPPING_TTL_MS);
+  const [wire, wireError] = useFetchData<MealieShoppingAnswer>(source === 'mealie' ? '/api/mealie/shopping' : '', WALL_SHOPPING_TTL_MS);
 
   const week = useMemo(
     () => (local ? getWeekRange(fromISODate(todayISO), local.settings.weekStartDay) : null),
@@ -66,7 +67,7 @@ export function useWallGrocery(source: 'local' | 'mealie' | 'off', local: LocalG
     if (source === 'off' || !local || !week) return [];
     const weekPlan = filterPlanToWeek(local.plan, week.start, week.end);
     const checked = groceryChecksForWeek(local.groceryChecked ?? {}, week.start);
-    return wallGroceryFromLocal(generateGroceryList(weekPlan, local.savedMeals, checked));
+    return wallGroceryFromLocal(weekGroceryList(weekPlan, local.savedMeals, checked).list);
   }, [source, wire, local, week]);
 
   // This wall's ticks over the list last read; an entry goes once the list
@@ -110,31 +111,23 @@ export function useWallGrocery(source: 'local' | 'mealie' | 'off', local: LocalG
   const [pressed, press] = usePressedKey();
   // A child's double tap is one tap, as on the phone's list: the second half
   // must not take back the tick the first one made.
-  const lastTap = useRef<{ id: string; at: number } | null>(null);
+  const lastTap = useRef<LastTap | null>(null);
   const tick = useCallback((item: WallGroceryItem) => {
-    const now = Date.now();
-    if (lastTap.current?.id === item.id && now - lastTap.current.at < DOUBLE_TAP_MS) return;
-    lastTap.current = { id: item.id, at: now };
+    const tap = { id: item.id, at: Date.now() };
+    if (isRepeatTap(lastTap.current, tap.id, tap.at)) return;
+    lastTap.current = tap;
     const checked = !item.checked;
     const before = item.checked;
     if (checked) keepFor(item.id);
     void press(item.id, () => run(item.id, {
       apply: () => setTicks((prev) => new Map(prev).set(item.id, checked)),
       request: async () => {
-        if (source === 'mealie') {
-          await tickMealieShoppingItem(displayFetch, item.id, checked);
-          return;
-        }
-        const res = await displayFetch('/api/meals/grocery', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ item: item.id, direction: checked ? 'check' : 'uncheck', ...(week ? { week: week.start } : {}) }),
-        });
-        if (!res.ok) throw new Error('Failed to tick the grocery item');
+        if (source === 'mealie') await tickMealieShoppingItem(displayFetch, item.id, checked);
+        else await saveGroceryCheck(displayFetch, week?.start ?? todayISO, item.id, checked ? 'check' : 'uncheck');
       },
       rollback: () => setTicks((prev) => new Map(prev).set(item.id, before)),
     }));
-  }, [press, run, source, week, keepFor]);
+  }, [press, run, source, week, todayISO, keepFor]);
 
   const rows = useMemo(() => wallGroceryRows(groups, ticks, keep), [groups, ticks, keep]);
 

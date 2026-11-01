@@ -1,8 +1,12 @@
+import type { MealieClientProblem } from './meal-client';
+import type { MealieProblem } from './meal-sources';
+
 /**
  * A shopping list as the Grocery tab draws it, and the rules the phone and
  * the editor share for it: what shows where, what a tick does, what Share
- * sends. Nothing here knows where the list came from; `mealie-shopping-map.ts`
- * builds one from Mealie's answer.
+ * sends, and which words the lines around the list say. Nothing here knows
+ * where the list came from; `mealie-shopping-map.ts` builds one from Mealie's
+ * answer.
  */
 
 export interface ShoppingItem {
@@ -24,6 +28,11 @@ export interface ShoppingGroup {
   /** The family's own label (works like an aisle); null for items with none. */
   label: string | null;
   items: ShoppingItem[];
+}
+
+/** A group as the tab draws it, with how many of its items are still to get (its heading's count). */
+export interface ShoppingViewGroup extends ShoppingGroup {
+  left: number;
 }
 
 export interface ShoppingList {
@@ -73,8 +82,8 @@ export function foldedOnOpen(list: ShoppingList): Set<string> {
 export function shoppingListView(
   list: ShoppingList,
   { folded, added }: { folded: ReadonlySet<string>; added: ReadonlySet<string> },
-): { groups: ShoppingGroup[]; folded: ShoppingItem[] } {
-  const groups: ShoppingGroup[] = [];
+): { groups: ShoppingViewGroup[]; folded: ShoppingItem[] } {
+  const groups: ShoppingViewGroup[] = [];
   const away: ShoppingItem[] = [];
   const leads = (i: ShoppingItem) => added.has(i.id) || folded.has(i.id);
   for (const group of list.groups) {
@@ -82,7 +91,8 @@ export function shoppingListView(
     away.push(...group.items.filter((i) => folded.has(i.id) && i.checked));
     if (shown.length === 0) continue;
     const fresh = shown.filter(leads);
-    groups.push({ label: group.label, items: fresh.length ? [...fresh, ...shown.filter((i) => !leads(i))] : shown });
+    const items = fresh.length ? [...fresh, ...shown.filter((i) => !leads(i))] : shown;
+    groups.push({ label: group.label, items, left: items.filter((i) => !i.checked).length });
   }
   return { groups, folded: away };
 }
@@ -92,19 +102,29 @@ export function shoppingPutBack(list: ShoppingList, folded: ReadonlySet<string>)
   return shoppingItems(list).filter((i) => folded.has(i.id) && !i.checked).map((i) => i.id);
 }
 
+/** Typed words as a list line keeps them: no spaces at the ends, one space between words. */
+export function tidyShoppingText(text: string): string {
+  return text.trim().replace(/\s+/g, ' ');
+}
+
+/** What two lines are compared by: their tidied words, ignoring capitals ("Paper  towels" is "paper towels"). */
+export function shoppingTextKey(text: string): string {
+  return tidyShoppingText(text).toLowerCase();
+}
+
 /**
  * What adding `words` means for this list. Something already there to get is
  * not added twice ("Milk" when "milk" is on it); something there and ticked is
  * put back rather than added again. Anything else is new. Matched on the
- * whole line, ignoring capitals, so "milk" never stands in for a recipe's
+ * whole line (`shoppingTextKey`), so "milk" never stands in for a recipe's
  * "200 milliliters milk".
  */
 export function shoppingAddPlan(
   list: ShoppingList,
   words: string,
 ): { kind: 'new' } | { kind: 'already' | 'putBack'; item: ShoppingItem } {
-  const wanted = words.trim().toLowerCase();
-  const same = shoppingItems(list).filter((i) => i.text.trim().toLowerCase() === wanted);
+  const wanted = shoppingTextKey(words);
+  const same = shoppingItems(list).filter((i) => shoppingTextKey(i.text) === wanted);
   const left = same.find((i) => !i.checked);
   if (left) return { kind: 'already', item: left };
   if (same[0]) return { kind: 'putBack', item: same[0] };
@@ -134,22 +154,43 @@ export function shoppingItemsNamed(list: ShoppingList, name: string): ShoppingIt
   return shoppingItems(list).filter((i) => [i.name, i.alsoCalled].some((n) => n?.trim().toLowerCase() === wanted));
 }
 
+/** One heading's worth of a shared list: its name and what is still to get under it. */
+export interface GroceryShareSection {
+  label: string;
+  /** Each line, with what goes in brackets after it (an amount, Mealie's note). */
+  items: readonly { text: string; detail?: string }[];
+}
+
 /**
- * What Share sends: what is still to get, under its label, the same shape as
- * the list Home Screens builds from the week's meals. `labelFor` names the
- * group with no label; `complete` is the line for a list with nothing left.
+ * What Share sends, for either list the family keeps: `heading`, then each
+ * section with something in it, a line per item ("  Ground beef (2 lb)").
+ * `complete` is the whole text when nothing is left to get.
+ */
+export function groceryShareText(
+  sections: readonly GroceryShareSection[],
+  words: { heading: string; complete: string },
+): string {
+  const parts = sections
+    .filter((section) => section.items.length > 0)
+    .map((section) => `${section.label}\n${section.items.map((i) => `  ${i.text}${i.detail ? ` (${i.detail})` : ''}`).join('\n')}`);
+  return parts.length === 0 ? words.complete : `${words.heading}\n\n${parts.join('\n\n')}`;
+}
+
+/**
+ * What Share sends for a Mealie list: what is still to get, under its label.
+ * `labelFor` names the group with no label.
  */
 export function shoppingShareText(
   list: ShoppingList,
   words: { heading: string; complete: string; labelFor: (label: string | null) => string },
 ): string {
-  const sections: string[] = [];
-  for (const group of list.groups) {
-    const left = group.items.filter((i) => !i.checked);
-    if (left.length === 0) continue;
-    sections.push(`${words.labelFor(group.label)}\n${left.map((i) => `  ${i.text}${i.note ? ` (${i.note})` : ''}`).join('\n')}`);
-  }
-  return sections.length === 0 ? words.complete : `${words.heading}\n\n${sections.join('\n\n')}`;
+  return groceryShareText(
+    list.groups.map((group) => ({
+      label: words.labelFor(group.label),
+      items: group.items.filter((i) => !i.checked).map((i) => ({ text: i.text, detail: i.note })),
+    })),
+    words,
+  );
 }
 
 /** One thing as voice reads it: its name, the food's own name when that differs, and whether all of it is ticked. */
@@ -199,4 +240,91 @@ export function shoppingTicksForName(
   const items = shoppingItemsNamed(list, name);
   const checked = direction ? direction === 'check' : items.some((i) => !i.checked);
   return { ids: items.filter((i) => i.checked !== checked).map((i) => i.id), checked, matched: items.length };
+}
+
+// ── The lines around a Mealie list ──
+//
+// The phone and the editor say these in their own dictionaries and styles;
+// which words fit is decided here, as a key under each one's Mealie grocery
+// words, so the two never drift apart.
+
+export type MealieShoppingAction = 'tick' | 'add' | 'choose' | 'undo';
+
+/** A write to the Mealie list that did not go through. */
+export interface MealieShoppingFailure {
+  action: MealieShoppingAction;
+  /** What a failed tick or add was about, as the list says it. */
+  items?: string[];
+  /** Why; null when the hub refused it without naming a reason. */
+  problem: MealieClientProblem | null;
+  /** The list or the item is not in Mealie any more. */
+  gone: boolean;
+}
+
+/** What just happened to the list on screen, said under the list chooser. */
+export type MealieShoppingNotice =
+  /** This device picked `list` for the whole family; Undo picks the old one again. */
+  | { kind: 'picked'; list: string; undo: () => void }
+  /** Somebody picked `list` on another device. */
+  | { kind: 'moved'; list: string }
+  /** `from` was deleted in Mealie, so the tab shows `list` now. */
+  | { kind: 'gone'; from: string; list: string };
+
+/** What the last add did, said under the box. */
+export interface MealieShoppingAdded {
+  /** `already`: it was on the list to get; `putBack`: it was ticked and is to get again. */
+  kind: 'added' | 'already' | 'putBack';
+  text: string;
+  list: string;
+  /** The label Mealie filed it under. */
+  label: string | null;
+  /** Takes a new item back off the list; absent when nothing new was made. */
+  undo?: () => void;
+}
+
+/** The key ending for the "not saved" and "out of date" lines, by why. */
+const REASON: Record<MealieClientProblem, string> = {
+  unreachable: 'Unreachable',
+  token: 'Token',
+  setup: 'Setup',
+  'not-connected': 'NotConnected',
+  connection: 'Connection',
+};
+
+/**
+ * What a surface says about a write that failed: the list gone from Mealie
+ * (`listGone`), this device not reaching the hub (`noConnection`), or the
+ * items named with why they were not saved (`notSaved...`). A failed pick or
+ * Undo names no items: that is `saveFailed`, which each surface says with its
+ * own "that change didn't save" words for `reason`. Null when there is
+ * nothing to say: a tick on something gone from Mealie just reads the list
+ * again.
+ *
+ * A refusal that names no reason is a plain "not saved", never "Mealie isn't
+ * answering", which would send somebody to check on a Mealie that is fine.
+ */
+export function mealieShoppingErrorWords(failure: MealieShoppingFailure): { key: string; reason?: MealieProblem } | null {
+  if (failure.gone) return failure.action === 'tick' ? null : { key: 'listGone' };
+  if (failure.items?.length) return { key: `notSaved${failure.problem ? REASON[failure.problem] : ''}` };
+  if (failure.problem === 'connection') return { key: 'noConnection' };
+  return failure.problem ? { key: 'saveFailed', reason: failure.problem } : { key: 'saveFailed' };
+}
+
+/** The line saying the list on screen is the copy from {time}, by why it is old. */
+export function mealieShoppingStaleKey(problem: MealieClientProblem | null): string {
+  return `stale${REASON[problem ?? 'unreachable']}`;
+}
+
+/** The line under the add box after an add, and what fills it in. */
+export function mealieShoppingAddedWords(added: MealieShoppingAdded): { key: string; vars: Record<string, string> } {
+  const vars = { item: added.text, list: added.list };
+  if (added.kind !== 'added') return { key: added.kind, vars };
+  return added.label ? { key: 'addedUnder', vars: { ...vars, label: added.label } } : { key: 'added', vars };
+}
+
+/** The line under the list chooser, and what fills it in. */
+export function mealieShoppingNoticeWords(notice: MealieShoppingNotice): { key: string; vars: Record<string, string> } {
+  return notice.kind === 'gone'
+    ? { key: 'gone', vars: { from: notice.from, list: notice.list } }
+    : { key: notice.kind, vars: { list: notice.list } };
 }

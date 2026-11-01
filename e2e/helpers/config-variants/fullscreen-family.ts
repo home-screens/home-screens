@@ -217,11 +217,11 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('Tagged Feast')(mod); await expect(mod).not.toContainText('E2E-TAG'); },
   },
   {
-    // showDifficulty (default false) surfaces the raw difficulty label on the
-    // menu-board course meta line.
+    // showDifficulty (default false) surfaces the difficulty on the
+    // menu-board course meta line, worded as the phone words it.
     type: 'fullscreen-meal-planner', name: 'show-difficulty', kind: 'local-data', seed: 'meals', seedData: TAGGED_MEALS,
     config: { view: 'menu-board', showDifficulty: true },
-    expect: async (mod) => { await has('Tagged Feast')(mod); await has('easy')(mod); },
+    expect: async (mod) => { await has('Tagged Feast')(mod); await has('Easy')(mod); },
   },
 
   // ===== meal-planner (seed: meals; default view 'week') =====

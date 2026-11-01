@@ -379,6 +379,7 @@
     "loadError": "Deine Mahlzeiten konnten nicht geladen werden. Prüfe, ob der Hub an ist, und versuch es noch einmal.",
     "retry": "Noch einmal versuchen",
     "saveFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
+    "saveFailedConnection": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal.",
     "duration": {
       "minutes": "{minutes} Min.",
       "hours": "{hours} Std.",
@@ -1430,14 +1431,25 @@
       "title": "Mealie lässt Home Screens nicht mehr rein",
       "description": "Mealie nimmt das gespeicherte Token nicht mehr an. Vielleicht wurde es in Mealie gelöscht. Erstell dort ein neues und speichere es am Computer unter Einstellungen > API-Schlüssel."
     },
+    "setup": {
+      "title": "Home Screens kann dieses Mealie nicht nutzen",
+      "description": "Prüfe am Computer unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update."
+    },
+    "connection": {
+      "title": "Home Screens ist gerade nicht erreichbar",
+      "description": "Prüf, ob dieses Handy verbunden ist, und versuch es dann noch einmal."
+    },
     "paused": {
       "description": "Planen geht erst wieder, wenn Mealie zurück ist.",
       "descriptionWithTime": "Planen geht erst wieder, wenn Mealie zurück ist. Das ist der Plan von {time}.",
       "tokenDescription": "Erstell in Mealie ein neues Token und speichere es am Computer unter Einstellungen > API-Schlüssel. Bis dahin geht Planen nicht.",
-      "tokenDescriptionWithTime": "Erstell in Mealie ein neues Token und speichere es am Computer unter Einstellungen > API-Schlüssel. Bis dahin geht Planen nicht. Das ist der Plan von {time}."
+      "tokenDescriptionWithTime": "Erstell in Mealie ein neues Token und speichere es am Computer unter Einstellungen > API-Schlüssel. Bis dahin geht Planen nicht. Das ist der Plan von {time}.",
+      "setupDescription": "Prüfe am Computer unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin geht Planen nicht.",
+      "setupDescriptionWithTime": "Prüfe am Computer unter Einstellungen > API-Schlüssel die Adresse von Mealie. Wenn sie stimmt, braucht Mealie vielleicht ein Update. Bis dahin geht Planen nicht. Das ist der Plan von {time}."
     },
     "saveFailed": {
       "token": "Mealie lässt Home Screens nicht rein, deshalb wurde das nicht gespeichert.",
+      "setup": "Home Screens kann dieses Mealie nicht nutzen, deshalb wurde das nicht gespeichert.",
       "notConnected": "Mealie ist nicht verbunden, deshalb wurde das nicht gespeichert.",
       "unreachable": "Mealie antwortet nicht, deshalb wurde das nicht gespeichert. Versuch es gleich noch einmal."
     },
@@ -1517,6 +1529,7 @@
       "inCart": "Abgehakt ({count})",
       "staleUnreachable": "Mealie antwortet nicht. Das ist die Liste von {time}.",
       "staleToken": "Mealie lässt Home Screens nicht mehr rein. Das ist die Liste von {time}.",
+      "staleSetup": "Home Screens kann dieses Mealie nicht nutzen. Das ist die Liste von {time}.",
       "staleNotConnected": "Mealie ist nicht verbunden. Das ist die Liste von {time}.",
       "staleConnection": "Home Screens ist nicht erreichbar. Das ist die Liste von {time}.",
       "loading": "Deine Liste wird aus Mealie geholt…",
@@ -1528,6 +1541,10 @@
       "connectionTitle": "Home Screens ist gerade nicht erreichbar",
       "connectionDescription": "Prüf, ob dieses Handy verbunden ist, und versuch es dann noch einmal.",
       "noConnection": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal.",
+      "notSaved": {
+        "one": "{items} wurde nicht gespeichert. Versuch es noch einmal.",
+        "other": "{items} wurden nicht gespeichert. Versuch es noch einmal."
+      },
       "notSavedUnreachable": {
         "one": "{items} wurde nicht gespeichert. Mealie antwortet nicht, versuch es gleich noch einmal.",
         "other": "{items} wurden nicht gespeichert. Mealie antwortet nicht, versuch es gleich noch einmal."
@@ -1535,6 +1552,10 @@
       "notSavedToken": {
         "one": "{items} wurde nicht gespeichert. Mealie lässt Home Screens nicht mehr rein.",
         "other": "{items} wurden nicht gespeichert. Mealie lässt Home Screens nicht mehr rein."
+      },
+      "notSavedSetup": {
+        "one": "{items} wurde nicht gespeichert. Home Screens kann dieses Mealie nicht nutzen.",
+        "other": "{items} wurden nicht gespeichert. Home Screens kann dieses Mealie nicht nutzen."
       },
       "notSavedNotConnected": {
         "one": "{items} wurde nicht gespeichert. Mealie ist nicht verbunden.",

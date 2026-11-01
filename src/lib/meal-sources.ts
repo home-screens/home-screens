@@ -172,14 +172,17 @@ export function mealieLinkFor(url: string, hubHostname: string | null | undefine
 
 /**
  * Why there is no plan from Mealie, in the words a family can act on: its
- * address or token is not saved, Mealie refused the token, or Mealie is not
+ * address or token is not saved, Mealie refused the token, the saved address
+ * does not lead to a Mealie Home Screens can use (`setup`: not a web
+ * address, not Mealie, or a Mealie older than 2.0), or Mealie is not
  * answering. Only the last is fixed by waiting.
  */
-export type MealieProblem = 'not-connected' | 'token' | 'unreachable';
+export type MealieProblem = 'not-connected' | 'token' | 'setup' | 'unreachable';
 
 export function mealieProblem(failure: MealieFailure | undefined): MealieProblem {
   if (failure === 'not-set-up') return 'not-connected';
   if (failure === 'key-rejected') return 'token';
+  if (failure === 'bad-address' || failure === 'not-mealie' || failure === 'too-old') return 'setup';
   return 'unreachable';
 }
 
@@ -188,7 +191,8 @@ export function mealieProblem(failure: MealieFailure | undefined): MealieProblem
  * plan is Home Screens' own). `ok`: fresh from Mealie. `stale`: Mealie gave
  * no answer this time, this is the copy from `updatedAt`; planning waits.
  * `unreachable`: Mealie never answered and there is no copy at all. Both of
- * the last two say why (`problem`): a refused token is not fixed by waiting.
+ * the last two say why (`problem`): a refused token or a Mealie Home Screens
+ * cannot use is not fixed by waiting.
  */
 export type MealieStatus =
   | { state: 'local' }
@@ -212,4 +216,28 @@ export function rangeCovers(outer: { start: string; end: string } | undefined, i
 /** The smallest range holding both. */
 export function unionRange(a: { start: string; end: string }, b: { start: string; end: string }): { start: string; end: string } {
   return { start: a.start < b.start ? a.start : b.start, end: a.end > b.end ? a.end : b.end };
+}
+
+/**
+ * Whether the copy holds every day of `week`, so the week can be drawn. Always
+ * for the plan Home Screens keeps, and with no Mealie copy at all, which a
+ * surface says in place of any week (`mealieStatus`).
+ */
+export function mealieWeekHeld(merged: Pick<MergedMeals, 'source' | 'mealie'>, week: { start: string; end: string }): boolean {
+  return merged.source !== 'mealie' || !merged.mealie || rangeCovers(merged.mealie.range, week);
+}
+
+/**
+ * The days of Mealie's plan a surface showing `week` asks the hub for: the
+ * week and the one before it (what Copy Last Week copies). Null when there is
+ * nothing to ask: the plan is Home Screens' own, the copy already holds those
+ * days, or Mealie is not answering. Asked then, the hub would only wait on
+ * Mealie again, and answer with no plan for days it has no copy of.
+ */
+export function mealieRangeWanted(merged: Pick<MergedMeals, 'source' | 'mealie'>, week: { start: string; end: string }): { start: string; end: string } | null {
+  if (merged.source !== 'mealie' || merged.mealie?.status !== 'ok') return null;
+  const from = fromISODate(week.start);
+  from.setDate(from.getDate() - 7);
+  const wanted = { start: toISODate(from), end: week.end };
+  return rangeCovers(merged.mealie.range, wanted) ? null : wanted;
 }

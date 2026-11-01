@@ -26,7 +26,7 @@ import {
   type MealieEntryExtra,
   type MealieExtras,
 } from './mealie-map';
-import { fromISODate, toISODate } from './meal-constants';
+import { toISODate } from './meal-constants';
 import { dinnerCategories } from './meal-dish-rules';
 import { logger } from './logger';
 
@@ -185,12 +185,6 @@ async function storeExtras(set: Record<string, MealieEntryExtra>, drop: Set<stri
     else delete result.mealieExtras;
     return result;
   });
-}
-
-/** True when `date` is a real `YYYY-MM-DD` day. */
-export function isPlanDate(date: unknown): date is string {
-  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
-  return toISODate(fromISODate(date)) === date;
 }
 
 export type MealieSuggestResult =

@@ -9,9 +9,8 @@ import { useInteractionHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { buildThemeCSSVars, getThemeTokens, resolveFullscreenAccent, resolveFullscreenOnAccent } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
-import { isMealieMeal } from '@/lib/meal-dish-rules';
 import { UI_SANS_STACK } from '@/lib/font-registry';
-import { useMealieLink } from '@/components/meals/useMealieLink';
+import { useRecipeLink } from '@/components/meals/useMealieLink';
 import { RecipeSheet } from './RecipeSheet';
 import { useMealRecipe } from './useMealRecipe';
 import { recipeServingAt, useMealRecipeContext, type MealServingRef } from './MealRecipeContext';
@@ -43,7 +42,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const t = useTranslate('modules');
   const ctx = useMealRecipeContext();
   const [meal, setMeal] = useState(tapped);
-  const mealieLink = useMealieLink();
+  const recipeLink = useRecipeLink();
   const { w, h } = useViewport();
   useInteractionHold();
 
@@ -70,7 +69,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const landscape = w > h;
   const { serving, courses, scale } = useMemo(() => recipeServingAt(ctx, at, meal), [ctx, at, meal]);
   const recipe = useMealRecipe(meal, scale);
-  const recipeUrl = meal.recipeUrl ? (isMealieMeal(meal) ? mealieLink(meal.recipeUrl) : meal.recipeUrl) : '';
+  const recipeUrl = recipeLink(meal);
 
   if (typeof document === 'undefined') return null;
 

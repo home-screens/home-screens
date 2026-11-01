@@ -2,13 +2,14 @@
 
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
-import { currentMealSlot, minutesOfDay, resolvePlannedMealTime, toISODate } from '@/lib/meal-constants';
+import { minutesOfDay, toISODate } from '@/lib/meal-constants';
 import { nextRecipeMeal } from '@/lib/meal-recipe';
 import { useTranslate } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { px } from './meal-planner-utils';
 import { RecipeSheet } from '../shared/RecipeSheet';
 import { useMealRecipe } from '../shared/useMealRecipe';
+import { recipeServingAt, useMealRecipeContext } from '../shared/MealRecipeContext';
 
 // Lazy, like the tap target's: the card brings qrcode.react, which the other
 // meal views never need.
@@ -25,6 +26,7 @@ export default function RecipeView({
   settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, headerFont, bodyFont, landscape, interactive,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
+  const ctx = useMealRecipeContext();
   const P = useCallback((n: number) => px(s, n), [s]);
   const todayISO = toISODate(now);
   const nowMinutes = minutesOfDay(now);
@@ -33,19 +35,15 @@ export default function RecipeView({
     [todayISO, nowMinutes, plan, savedMeals, slots, settings.defaultSlotTimes],
   );
   const next = lead.kind === 'meal' ? lead.next : null;
-  const planned = next ? plan.find((p) => p.date === next.date && p.slot === next.slot) : undefined;
-  // A double batch planned in Mealie doubles the amounts and the servings.
-  const scale = planned?.scale ?? 1;
+  // The badge and the batch as the recipe card has them for the same meal: a
+  // double batch planned in Mealie doubles the amounts and the servings, a
+  // side planned on its own included.
+  const { serving, scale } = useMemo(
+    () => (next ? recipeServingAt(ctx, { date: next.date, slot: next.slot }, next.meal) : { serving: null, scale: 1 }),
+    [ctx, next],
+  );
   const recipe = useMealRecipe(next?.meal ?? null, scale);
   const [course, setCourse] = useState<SavedMeal | null>(null);
-
-  const serving = useMemo(() => {
-    if (!next) return null;
-    const time = resolvePlannedMealTime(planned, next.slot, settings.defaultSlotTimes);
-    const servingNow = next.date === todayISO
-      && currentMealSlot(todayISO, nowMinutes, slots, plan, savedMeals, settings.defaultSlotTimes) === next.slot;
-    return { slot: next.slot, ...(time ? { time } : {}), now: servingNow };
-  }, [next, planned, plan, settings.defaultSlotTimes, todayISO, nowMinutes, slots, savedMeals]);
 
   if (!next) {
     const day = lead.kind === 'none' ? lead.day : 'today';

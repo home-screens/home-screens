@@ -1,39 +1,30 @@
 'use client';
 
-import { useCallback, useState, type FormEvent } from 'react';
+import { useCallback, useState } from 'react';
 import { ChevronRight, ExternalLink, ShoppingCart } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { HubUnreachableError, MealClientError } from '@/lib/meal-client';
-import { mealieShoppingListUrl, mealieShoppingListsUrl, type MealieProblem } from '@/lib/meal-sources';
-import type { ShoppingItem } from '@/lib/shopping-list';
-import { useMealieLink } from '@/components/meals/useMealieLink';
+import { shortNameList } from '@/lib/grocery-utils';
 import {
-  useMealieShoppingList,
-  type MealieShoppingAction,
-  type MealieShoppingProblem,
-} from '@/components/meals/useMealieShoppingList';
+  mealieShoppingAddedWords,
+  mealieShoppingErrorWords,
+  mealieShoppingNoticeWords,
+  mealieShoppingStaleKey,
+  type MealieShoppingFailure,
+  type ShoppingItem,
+} from '@/lib/shopping-list';
+import { useMealieLink } from '@/components/meals/useMealieLink';
+import { useMealieShoppingList } from '@/components/meals/useMealieShoppingList';
+import { useShoppingAddBox } from '@/components/meals/useShoppingAddBox';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useLocale, useTranslate } from '@/i18n';
 import { mealSaveFailedKey } from './save-failed-words';
+import { mealieProblemKey } from './mealie-problem-words';
 
 const linkButton =
   'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md border border-hs-border-strong bg-hs-card text-hs-text-body hover:bg-hs-hover transition-colors whitespace-nowrap';
 const primaryButton =
   'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md bg-amber-500 text-black hover:bg-amber-400 transition-colors whitespace-nowrap';
 const lineButton = 'ml-auto shrink-0 px-2 font-semibold text-hs-warning hover:underline';
-
-/** The editor's words for why Mealie gave no answer (`<words>Title`, `<words>Body` under `mealPlannerModal.mealie`). */
-function problemWords(problem: MealieProblem | null): string {
-  return { 'not-connected': 'notConnected', token: 'tokenRefused', unreachable: 'unreachable' }[problem ?? 'unreachable'];
-}
-
-/** The key suffix for "not saved" and "out of date" lines, by why. */
-const REASON: Record<MealieShoppingProblem, string> = {
-  unreachable: 'Unreachable',
-  token: 'Token',
-  'not-connected': 'NotConnected',
-  connection: 'Connection',
-};
 
 /**
  * The Grocery tab while the plan lives in Mealie: the family's Mealie
@@ -56,44 +47,26 @@ export function MealieGrocery({
   const t = useTranslate('editor');
   const locale = useLocale();
   const mealieLink = useMealieLink();
-  const listFormat = useCallback((names: string[]) => {
-    const shown = names.length > 3
-      ? [...names.slice(0, 3), t('mealPlannerModal.mealie.grocery.moreItems', { count: names.length - 3 })]
-      : names;
-    return new Intl.ListFormat(locale, { type: 'conjunction' }).format(shown);
-  }, [locale, t]);
-  const handleError = useCallback((err: unknown, action: MealieShoppingAction, items?: string[]) => {
-    if (err instanceof MealClientError && err.kind === 'conflict') {
-      if (action !== 'tick') onError(t('mealPlannerModal.mealie.grocery.listGone'));
+  const handleError = useCallback((failure: MealieShoppingFailure) => {
+    const words = mealieShoppingErrorWords(failure);
+    if (!words) return;
+    if (words.key === 'saveFailed') {
+      onError(t(mealSaveFailedKey({ problem: words.reason }, false)));
       return;
     }
-    const connection = err instanceof HubUnreachableError;
-    const problem = err instanceof MealClientError ? err.problem : undefined;
-    if (items?.length) {
-      const reason = REASON[connection ? 'connection' : problem ?? 'unreachable'];
-      onError(t(`mealPlannerModal.mealie.grocery.notSaved${reason}`, { items: listFormat(items), count: items.length }));
-    } else {
-      onError(t(connection ? 'mealPlannerModal.mealie.grocery.noConnection' : mealSaveFailedKey({ problem }, true)));
-    }
-  }, [onError, t, listFormat]);
-  const shopping = useMealieShoppingList(editorFetch, { onError: handleError });
-  const [draft, setDraft] = useState('');
+    const items = failure.items ?? [];
+    onError(t(`mealPlannerModal.mealie.grocery.${words.key}`, {
+      items: shortNameList(items, locale, (count) => t('mealPlannerModal.mealie.grocery.moreItems', { count })),
+      count: items.length,
+    }));
+  }, [onError, t, locale]);
+  const shopping = useMealieShoppingList(editorFetch, { onError: handleError, planBaseUrl });
+  const { draft, setDraft, canAdd, submit } = useShoppingAddBox(shopping);
   const [cartOpen, setCartOpen] = useState(false);
 
-  const baseUrl = shopping.baseUrl ?? planBaseUrl;
   const list = shopping.list;
   const busy = shopping.choosing !== null;
-  const href = baseUrl ? mealieLink(list ? mealieShoppingListUrl(baseUrl, list.id) : mealieShoppingListsUrl(baseUrl)) : null;
-
-  // The box empties as the words are sent, so whatever is typed next is kept;
-  // words Mealie did not take come back only into an empty box.
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
-    const words = draft;
-    if (!words.trim() || shopping.adding || busy) return;
-    setDraft('');
-    if (!(await shopping.add(words))) setDraft((current) => (current.trim() ? current : words));
-  };
+  const href = shopping.mealieUrl ? mealieLink(shopping.mealieUrl) : null;
 
   if (shopping.state === 'loading') {
     return <p data-testid="mealie-grocery" className="flex-1 p-8 text-center text-sm text-hs-text-faint">{t('mealPlannerModal.mealie.grocery.loading')}</p>;
@@ -102,7 +75,7 @@ export function MealieGrocery({
   if (shopping.state === 'failed' || !list) {
     const failed = shopping.state === 'failed';
     const connection = shopping.problem === 'connection';
-    const words = problemWords(shopping.problem === 'connection' ? null : shopping.problem);
+    const words = mealieProblemKey(shopping.problem === 'connection' ? null : shopping.problem);
     return (
       <div data-testid="mealie-grocery" data-state={failed ? 'failed' : 'no-lists'} className="flex-1 flex flex-col items-center justify-center p-8 text-center gap-3">
         <span className="w-11 h-11 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
@@ -111,14 +84,14 @@ export function MealieGrocery({
         <p className="text-sm font-semibold text-hs-text-body">
           {!failed
             ? t('mealPlannerModal.mealie.grocery.noListsTitle')
-            : connection ? t('mealPlannerModal.mealie.grocery.connectionTitle') : t(`mealPlannerModal.mealie.${words}Title`)}
+            : connection ? t('mealPlannerModal.mealie.grocery.connectionTitle') : t(`${words}Title`)}
         </p>
         <p className="text-xs text-hs-text-faint leading-relaxed max-w-[280px]">
           {!failed
             ? t('mealPlannerModal.mealie.grocery.noListsBody')
             : connection
               ? t('mealPlannerModal.mealie.grocery.connectionBody')
-              : t(shopping.problem === 'unreachable' ? 'mealPlannerModal.mealie.grocery.unreachableBody' : `mealPlannerModal.mealie.${words}Body`)}
+              : t(shopping.problem === 'unreachable' ? 'mealPlannerModal.mealie.grocery.unreachableBody' : `${words}Body`)}
         </p>
         <div className="flex gap-2">
           {failed && (
@@ -143,7 +116,7 @@ export function MealieGrocery({
   const listFormatRecipes = new Intl.ListFormat(locale, { type: 'conjunction' });
   const added = shopping.justAdded;
   const notice = shopping.notice;
-  const reason = shopping.problem ? REASON[shopping.problem] : 'Unreachable';
+  const lineWords = ({ key, vars }: { key: string; vars: Record<string, string> }) => t(`mealPlannerModal.mealie.grocery.${key}`, vars);
 
   const itemRow = (item: ShoppingItem) => {
     const detail = [
@@ -211,13 +184,7 @@ export function MealieGrocery({
         <div role="status" data-testid="mealie-grocery-notice" className={`flex items-center text-xs text-hs-text-muted ${notice ? 'min-h-7 mt-1' : 'min-h-2'}`}>
           {notice && (
             <>
-              <span className="min-w-0">
-                {notice.kind === 'picked'
-                  ? t('mealPlannerModal.mealie.grocery.picked', { list: notice.list })
-                  : notice.kind === 'moved'
-                    ? t('mealPlannerModal.mealie.grocery.moved', { list: notice.list })
-                    : t('mealPlannerModal.mealie.grocery.gone', { from: notice.from, list: notice.list })}
-              </span>
+              <span className="min-w-0">{lineWords(mealieShoppingNoticeWords(notice))}</span>
               {notice.kind === 'picked' && (
                 <button type="button" onClick={notice.undo} className={lineButton}>{t('mealPlannerModal.mealie.grocery.undo')}</button>
               )}
@@ -237,22 +204,14 @@ export function MealieGrocery({
               disabled={busy}
               className={`flex-1 ${MODAL_INPUT_CLASS}`}
             />
-            <button type="submit" disabled={!draft.trim() || shopping.adding || busy} className={`${linkButton} disabled:opacity-50 disabled:cursor-default`}>
+            <button type="submit" disabled={!canAdd} className={`${linkButton} disabled:opacity-50 disabled:cursor-default`}>
               {t('mealPlannerModal.mealie.grocery.add')}
             </button>
           </form>
           <div role="status" data-testid="mealie-grocery-added" className="flex items-center min-h-5 mt-1 mb-2 text-[11px] text-emerald-500">
             {added && (
               <>
-                <span className="min-w-0 truncate">
-                  {added.kind === 'already'
-                    ? t('mealPlannerModal.mealie.grocery.already', { item: added.text, list: added.list })
-                    : added.kind === 'putBack'
-                      ? t('mealPlannerModal.mealie.grocery.putBack', { item: added.text, list: added.list })
-                      : added.label
-                        ? t('mealPlannerModal.mealie.grocery.addedUnder', { item: added.text, list: added.list, label: added.label })
-                        : t('mealPlannerModal.mealie.grocery.added', { item: added.text, list: added.list })}
-                </span>
+                <span className="min-w-0 truncate">{lineWords(mealieShoppingAddedWords(added))}</span>
                 {added.undo && <button type="button" onClick={added.undo} className={lineButton}>{t('mealPlannerModal.mealie.grocery.undo')}</button>}
               </>
             )}
@@ -290,8 +249,8 @@ export function MealieGrocery({
                 {shopping.stale && (
                   <p role="status" data-testid="mealie-grocery-stale" className="mt-2 text-xs text-hs-warning">
                     {shopping.fetchedAt
-                      ? t(`mealPlannerModal.mealie.grocery.stale${reason}`, { time: formatTime(shopping.fetchedAt) })
-                      : t(shopping.problem === 'connection' ? 'mealPlannerModal.mealie.grocery.connectionTitle' : `mealPlannerModal.mealie.${problemWords(shopping.problem)}Title`)}
+                      ? t(`mealPlannerModal.mealie.grocery.${mealieShoppingStaleKey(shopping.problem)}`, { time: formatTime(shopping.fetchedAt) })
+                      : t(shopping.problem === 'connection' ? 'mealPlannerModal.mealie.grocery.connectionTitle' : `${mealieProblemKey(shopping.problem)}Title`)}
                   </p>
                 )}
               </div>
@@ -305,10 +264,10 @@ export function MealieGrocery({
                       </span>
                       {/* What is left in this group, like the count above. */}
                       <span
-                        aria-label={t('mealPlannerModal.mealie.grocery.toGet', { count: group.items.filter((i) => !i.checked).length })}
+                        aria-label={t('mealPlannerModal.mealie.grocery.toGet', { count: group.left })}
                         className="ml-auto text-[10px] px-1.5 rounded bg-hs-card text-hs-text-faint"
                       >
-                        {group.items.filter((i) => !i.checked).length}
+                        {group.left}
                       </span>
                     </div>
                   )}

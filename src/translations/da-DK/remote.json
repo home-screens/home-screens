@@ -379,6 +379,7 @@
     "loadError": "Dine måltider kunne ikke hentes. Tjek, at hubben er tændt, og prøv igen.",
     "retry": "Prøv igen",
     "saveFailed": "Kunne ikke gemme. Prøv igen.",
+    "saveFailedConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
     "duration": {
       "minutes": "{minutes} min",
       "hours": "{hours} t",
@@ -1430,14 +1431,25 @@
       "title": "Mealie lukker ikke Home Screens ind længere",
       "description": "Mealie tager ikke længere imod det gemte token. Det er måske slettet i Mealie. Lav et nyt der, og gem det på computeren under Indstillinger > API-nøgler."
     },
+    "setup": {
+      "title": "Home Screens kan ikke bruge denne Mealie",
+      "description": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres."
+    },
+    "connection": {
+      "title": "Kan ikke nå Home Screens lige nu",
+      "description": "Tjek, at telefonen er forbundet, og prøv igen."
+    },
     "paused": {
       "description": "Planlægningen er sat på pause, indtil Mealie er tilbage.",
       "descriptionWithTime": "Planlægningen er sat på pause, indtil Mealie er tilbage. Dette er madplanen fra {time}.",
       "tokenDescription": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause.",
-      "tokenDescriptionWithTime": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}."
+      "tokenDescriptionWithTime": "Lav et nyt token i Mealie, og gem det på computeren under Indstillinger > API-nøgler. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}.",
+      "setupDescription": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause.",
+      "setupDescriptionWithTime": "Tjek Mealies adresse på computeren under Indstillinger > API-nøgler. Hvis den er rigtig, skal Mealie måske opdateres. Indtil da er planlægningen sat på pause. Dette er madplanen fra {time}."
     },
     "saveFailed": {
       "token": "Mealie lukker ikke Home Screens ind, så det blev ikke gemt.",
+      "setup": "Home Screens kan ikke bruge denne Mealie, så det blev ikke gemt.",
       "notConnected": "Mealie er ikke forbundet, så det blev ikke gemt.",
       "unreachable": "Mealie svarer ikke, så det blev ikke gemt. Prøv igen om lidt."
     },
@@ -1517,6 +1529,7 @@
       "inCart": "Afkrydset ({count})",
       "staleUnreachable": "Mealie svarer ikke. Dette er listen fra {time}.",
       "staleToken": "Mealie lukker ikke Home Screens ind længere. Dette er listen fra {time}.",
+      "staleSetup": "Home Screens kan ikke bruge denne Mealie. Dette er listen fra {time}.",
       "staleNotConnected": "Mealie er ikke forbundet. Dette er listen fra {time}.",
       "staleConnection": "Kan ikke nå Home Screens. Dette er listen fra {time}.",
       "loading": "Henter din liste fra Mealie…",
@@ -1528,6 +1541,10 @@
       "connectionTitle": "Kan ikke nå Home Screens lige nu",
       "connectionDescription": "Tjek, at telefonen er forbundet, og prøv igen.",
       "noConnection": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
+      "notSaved": {
+        "one": "{items} blev ikke gemt. Prøv igen.",
+        "other": "{items} blev ikke gemt. Prøv igen."
+      },
       "notSavedUnreachable": {
         "one": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt.",
         "other": "{items} blev ikke gemt. Mealie svarer ikke, så prøv igen om lidt."
@@ -1535,6 +1552,10 @@
       "notSavedToken": {
         "one": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere.",
         "other": "{items} blev ikke gemt. Mealie lukker ikke Home Screens ind længere."
+      },
+      "notSavedSetup": {
+        "one": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie.",
+        "other": "{items} blev ikke gemt. Home Screens kan ikke bruge denne Mealie."
       },
       "notSavedNotConnected": {
         "one": "{items} blev ikke gemt. Mealie er ikke forbundet.",

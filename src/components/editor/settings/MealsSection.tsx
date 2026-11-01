@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { editorFetch } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import Button from '@/components/ui/Button';
 import {
   SLOT_ORDER,
@@ -10,7 +10,6 @@ import {
   formatMealTime,
   getMealSlotLabelKey,
   getSlotTimePresets,
-  normalizeMealSettings,
   resolveMealTimeFormat,
 } from '@/lib/meal-constants';
 import {
@@ -20,11 +19,13 @@ import {
   setMealTimeFormat,
   setMealPlanSource,
   resetMealSettings,
+  canChooseMealiePlan,
 } from '@/lib/meal-settings';
+import { HubUnreachableError, loadMealSettings, saveMealSettings } from '@/lib/meal-client';
+import { mealieProblem } from '@/lib/meal-sources';
 import { settingsPath } from '@/lib/settings-route';
 import { useMealieCheck, type MealieCheck } from '@/hooks/useMealieCheck';
 import { MEALIE_CARD_FIELD_ID } from './MealieIntegrationCard';
-import { displayCache } from '@/lib/display-cache';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';
@@ -100,17 +101,13 @@ export default function MealsSection() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await editorFetch('/api/meals/data');
-        if (!res.ok) {
-          if (!cancelled) setStatus({ message: t('settings.mealsPage.status.loadFailed'), kind: 'error' });
-          return;
-        }
-        const data = await res.json();
+        const loaded = await loadMealSettings(editorFetch);
         if (cancelled) return;
-        setSettings(normalizeMealSettings(data.settings));
-        setMealieConnected(data.mealieConnected === true);
-      } catch {
-        if (!cancelled) setStatus({ message: t('settings.mealsPage.status.networkLoad'), kind: 'error' });
+        setSettings(loaded.settings);
+        setMealieConnected(loaded.mealieConnected);
+      } catch (err) {
+        if (cancelled || isSessionExpired(err)) return;
+        setStatus({ message: t(err instanceof HubUnreachableError ? 'settings.mealsPage.status.networkLoad' : 'settings.mealsPage.status.loadFailed'), kind: 'error' });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -137,49 +134,30 @@ export default function MealsSection() {
     setSaving(true);
     setStatus(null);
     try {
-      // Settings-only PUT — the API now preserves savedMeals/plan/groceryChecked
-      // when those fields are omitted from the body, so we don't have to GET
-      // first or round-trip meal data. This eliminates the cross-surface clobber
-      // race where a /remote meal write between our GET and PUT would be lost.
-      const putRes = await editorFetch('/api/meals/data', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ settings: next }),
-      });
-      // Discard if a newer request superseded us (or if we unmounted) — even
-      // if our PUT succeeded, landing its response in state would clobber
+      // Settings only: the meals and the plan are left as the hub has them,
+      // so a meal saved from the phone meanwhile is not lost. The canvas
+      // preview reads the new settings at once.
+      const saved = await saveMealSettings(editorFetch, next);
+      // Discard if a newer request superseded us (or if we unmounted): even
+      // though our PUT succeeded, landing its response in state would clobber
       // whatever the newer request set, or touch an unmounted component.
-      if (!stillCurrent(myReqId)) return putRes.ok;
-      if (!putRes.ok) {
-        const body = await putRes.json().catch(() => ({}));
-        // Re-check AFTER awaiting the json parse — a newer request could
-        // have completed while we awaited. Previously this branch set the
-        // error unconditionally, which overwrote a newer success's "Saved"
-        // indicator with a phantom failure.
-        if (!stillCurrent(myReqId)) return false;
-        setStatus({
-          message: body.error ?? t('settings.mealsPage.status.saveFailed'),
-          kind: 'error',
-        });
-        setSettings(prev); // rollback optimistic update
-        return false;
-      }
-      const body = await putRes.json();
       if (!stillCurrent(myReqId)) return true;
-      setSettings(normalizeMealSettings(body.settings));
+      setSettings(saved);
       setStatus({ message: t('common.saved'), kind: 'success' });
       if (saveMsgTimerRef.current) clearTimeout(saveMsgTimerRef.current);
       saveMsgTimerRef.current = setTimeout(() => {
         if (isMountedRef.current) setStatus(null);
       }, 2500);
-      // Notify the canvas preview (and any display polling this endpoint)
-      // to refetch so the newly-saved settings propagate without waiting
-      // for the next poll interval.
-      displayCache.invalidate('/api/meals/data');
       return true;
-    } catch {
-      if (!stillCurrent(myReqId)) return false;
-      setStatus({ message: t('settings.mealsPage.status.networkSave'), kind: 'error' });
+    } catch (err) {
+      // A failure superseded by a newer request must not overwrite its
+      // "Saved" or revert its settings; an expired session is on its way to
+      // sign-in.
+      if (!stillCurrent(myReqId) || isSessionExpired(err)) return false;
+      setStatus({
+        message: t(err instanceof HubUnreachableError ? 'settings.mealsPage.status.networkSave' : 'settings.mealsPage.status.saveFailed'),
+        kind: 'error',
+      });
       setSettings(prev); // rollback optimistic update
       return false;
     } finally {
@@ -538,10 +516,12 @@ function PlanSourceChoice({
 }) {
   const t = useTranslate('editor');
   const onMealie = planSource === 'mealie';
+  const canChooseMealie = canChooseMealiePlan(planSource, mealieConnected);
   const mealieCard = settingsPath({ kind: 'defaults', page: 'integrations' }, { highlight: MEALIE_CARD_FIELD_ID });
-  // Mealie refusing the token is not Mealie being away: it is fixed on the
-  // API keys page, not by waiting.
-  const tokenRefused = mealieConnected && mealieCheck?.ok === false && mealieCheck.failure === 'key-rejected';
+  // Mealie refusing the token, or not being a Mealie Home Screens can use,
+  // is not Mealie being away: it is fixed on the API keys page or in Mealie,
+  // not by waiting.
+  const problem = mealieConnected && mealieCheck?.ok === false && mealieCheck.failure !== 'network' ? mealieProblem(mealieCheck.failure) : null;
   const mealieSub = !mealieConnected
     ? t('settings.mealsPage.planSource.mealieNotConnected')
     : !mealieCheck
@@ -550,9 +530,11 @@ function PlanSourceChoice({
         ? mealieCheck.household
           ? t('settings.mealsPage.planSource.mealieHousehold', { household: mealieCheck.household })
           : t('settings.mealsPage.planSource.mealieConnected')
-        : tokenRefused
+        : problem === 'token'
           ? t('settings.mealsPage.planSource.mealieTokenRefused')
-          : t('settings.mealsPage.planSource.mealieNotAnswering');
+          : problem === 'setup'
+            ? t('settings.mealsPage.planSource.mealieSetup')
+            : t('settings.mealsPage.planSource.mealieNotAnswering');
   const choiceClass = (selected: boolean, disabled: boolean) =>
     `flex flex-col items-center gap-0.5 px-3 py-2.5 rounded-md border transition ${
       selected
@@ -583,8 +565,8 @@ function PlanSourceChoice({
         <button
           type="button"
           onClick={() => onChange('mealie')}
-          disabled={saving || (!mealieConnected && !onMealie)}
-          className={choiceClass(onMealie, !mealieConnected && !onMealie)}
+          disabled={saving || !canChooseMealie}
+          className={choiceClass(onMealie, !canChooseMealie)}
           aria-pressed={onMealie}
         >
           <span className="text-sm font-medium">{t('settings.mealsPage.planSource.mealie')}</span>
@@ -597,9 +579,9 @@ function PlanSourceChoice({
             {t('settings.mealsPage.planSource.connectFirst')}{' '}
             <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
           </>
-        ) : tokenRefused ? (
+        ) : problem === 'token' || problem === 'setup' ? (
           <span className="text-hs-warning">
-            {t('settings.mealsPage.planSource.tokenRefused')}{' '}
+            {t(problem === 'token' ? 'settings.mealsPage.planSource.tokenRefused' : 'settings.mealsPage.planSource.setup')}{' '}
             <Link href={mealieCard} className={linkClass}>{t('settings.mealsPage.planSource.apiKeysLink')} &rarr;</Link>
           </span>
         ) : onMealie ? (
