@@ -1413,8 +1413,19 @@
           "network": {
             "title": "We couldn't check right now.",
             "body": "Home Screens didn't answer. Try again in a moment."
-          },
-          "mealsLink": "Use it for your meal plan in Meals settings"
+          }
+        },
+        "planQuestion": {
+          "title": "Use Mealie for your meal plan?",
+          "body": "Every meal view, the phone and the editor will use the plan you keep in Mealie, and planning saves to Mealie. Your Home Screens plan is kept, and comes back if you switch back.",
+          "useButton": "Use Mealie",
+          "switching": "Switching…",
+          "notNow": "Not now",
+          "failed": "The switch didn't save. Try again.",
+          "switched": "Your meal plan now comes from Mealie.",
+          "undo": "Undo",
+          "onMealie": "Your meal plan comes from Mealie.",
+          "mealsSettingsLink": "Meals settings"
         }
       },
       "microsoft": {

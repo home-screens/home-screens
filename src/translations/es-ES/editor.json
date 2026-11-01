@@ -1413,8 +1413,19 @@
           "network": {
             "title": "Ahora mismo no pudimos comprobarlo.",
             "body": "Home Screens no respondió. Vuelve a intentarlo en un momento."
-          },
-          "mealsLink": "Úsalo para tu plan de comidas en los ajustes de Comidas"
+          }
+        },
+        "planQuestion": {
+          "title": "¿Usar Mealie para tu plan de comidas?",
+          "body": "Todas las vistas de comidas, el móvil y el editor usarán el plan que tienes en Mealie, y lo que planifiques se guardará en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
+          "useButton": "Usar Mealie",
+          "switching": "Cambiando…",
+          "notNow": "Ahora no",
+          "failed": "El cambio no se guardó. Inténtalo de nuevo.",
+          "switched": "Tu plan de comidas ahora viene de Mealie.",
+          "undo": "Deshacer",
+          "onMealie": "Tu plan de comidas viene de Mealie.",
+          "mealsSettingsLink": "Ajustes de Comidas"
         }
       },
       "microsoft": {
@@ -1642,7 +1653,7 @@
       },
       "planSource": {
         "heading": "Tu plan de comidas está en",
-        "description": "Planead las comidas aquí o, si vuestra familia guarda sus recetas en la app Mealie, usad el plan de comidas que tenéis allí.",
+        "description": "Planea las comidas aquí o, si tu familia guarda sus recetas en la app Mealie, usa el plan de comidas que tienes allí.",
         "homeScreens": "Home Screens",
         "homeScreensSub": "Se planifica aquí",
         "mealie": "Mealie",
@@ -1652,7 +1663,7 @@
         "mealieNotAnswering": "No responde ahora mismo",
         "mealieTokenRefused": "Token no aceptado",
         "tokenRefused": "Mealie ya no acepta el token guardado, así que el plan de comidas no se actualiza. Crea un token nuevo en Mealie y pégalo en la página de",
-        "connectFirst": "Solo si vuestra familia usa Mealie, una app de recetas aparte. Para planear en ella, conectadla primero en la página de",
+        "connectFirst": "Solo si tu familia usa Mealie, una app de recetas aparte. Para planear en ella, conéctala primero en la página de",
         "apiKeysLink": "Claves de API",
         "connectedOffer": "Mealie está conectado. Elígelo para planificar con las recetas y el plan que tienes allí.",
         "onMealie": "Todas las vistas de comidas, el móvil y este editor usan ahora tu plan de Mealie, y lo que planifiques aquí se guarda en Mealie. Tu plan de Home Screens se conserva y vuelve si cambias de nuevo.",
@@ -1693,7 +1704,7 @@
         "confirmTitle": "¿Restablecer los ajustes de comidas?",
         "confirmButton": "Restablecer"
       },
-      "description": "Qué comidas planificáis y a qué hora suelen ser."
+      "description": "Qué comidas planificas y a qué hora suelen ser."
     },
     "systemPage": {
       "loading": "Cargando información del sistema…",

@@ -494,7 +494,7 @@
     "cancelAriaLabel": "Annuler et fermer",
     "slots": {
       "heading": "Créneaux de repas",
-      "description": "Quels repas planifiez-vous ? Cela change ce qu'affichent l'écran et l'éditeur.",
+      "description": "Quels repas planifies-tu ? Cela change ce qu'affichent l'écran et l'éditeur.",
       "toggleAriaLabelEnabled": "{label}, activé",
       "toggleAriaLabelDisabled": "{label}, désactivé"
     },
@@ -527,10 +527,10 @@
       "heading": "Ton planning des repas est dans",
       "homeScreens": "Home Screens",
       "mealie": "Mealie",
-      "notConnectedNote": "Mealie est une appli de recettes à part, que certaines familles utilisent. Si c'est votre cas, connectez-la dans les Réglages sur l'ordinateur. Sinon, rien à faire ici.",
+      "notConnectedNote": "Mealie est une appli de recettes à part, que certaines familles utilisent. Si c'est ton cas, connecte-la dans les Réglages sur l'ordinateur. Sinon, rien à faire ici.",
       "connectedNote": "Mealie est connecté au foyer « {household} ». Choisis-le pour planifier avec les recettes et le planning que tu y gardes.",
       "connectedNoteNoName": "Mealie est connecté. Choisis-le pour planifier avec les recettes et le planning que tu y gardes.",
-      "onNote": "Avec Mealie, les repas viennent de Mealie, ici et sur le mur, et ce que vous planifiez ici est enregistré dans Mealie. Votre planning Home Screens est conservé et revient si vous changez à nouveau.",
+      "onNote": "Avec Mealie, les repas viennent de Mealie, ici et sur le mur, et ce que tu planifies ici est enregistré dans Mealie. Ton planning Home Screens est conservé et revient si tu changes à nouveau.",
       "switchingToMealieNote": "Après l'enregistrement, les repas viendront de Mealie ici et sur l'écran, et ce que tu planifies ici sera enregistré dans Mealie. Ton planning Home Screens est gardé et revient si tu changes d'avis.",
       "switchingToHomeNote": "Après l'enregistrement, le téléphone et l'écran reviendront au planning Home Screens que tu avais avant. Rien ne change dans Mealie."
     }

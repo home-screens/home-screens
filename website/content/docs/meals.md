@@ -60,7 +60,7 @@ If your family keeps its recipes in [Mealie](https://mealie.io), Home Screens ca
 
 1. In Mealie, open your profile, then **API Tokens**, and make a new token. The meal plan Home Screens shows is the one for the household of the person who made the token.
 2. In the editor, go to **Settings > API keys**, fill in the **Mealie** card with your Mealie address (for example `http://192.168.1.20:9925`) and the token, and press **Test**. It says which household it found.
-3. In **Settings > Meals** (or the gear on the phone's Meals tab), set **Your meal plan lives in** to **Mealie**.
+3. The card then asks **Use Mealie for your meal plan?** Press **Use Mealie**. You can also switch later, or switch back, in **Settings > Meals** (or the gear on the phone's Meals tab), under **Your meal plan lives in**.
 
 From then on:
 

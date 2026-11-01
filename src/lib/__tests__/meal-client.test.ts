@@ -7,6 +7,7 @@ import {
   loadMeals,
   saveMealEdit,
   saveGroceryCheck,
+  saveMealPlanSource,
   MealSession,
   MealClientError,
   MAX_CONFLICT_RETRIES,
@@ -104,6 +105,33 @@ describe('saveGroceryCheck', () => {
     const failure = new Error('expired');
     const fetcher = vi.fn().mockRejectedValue(failure);
     await expect(saveGroceryCheck(fetcher, '2026-10-04', 'milk', 'check')).rejects.toBe(failure);
+  });
+});
+
+describe('saveMealPlanSource', () => {
+  const settings = { enabledSlots: ['dinner'], weekStartDay: 'monday', defaultSlotTimes: { dinner: '18:00' } };
+
+  it('reads the settings fresh and writes them back with only the plan\'s home changed', async () => {
+    const fetcher = vi.fn<MealFetch>()
+      .mockResolvedValueOnce(ok(payload({ settings } as Partial<MealSnapshot>)))
+      .mockResolvedValueOnce(ok(payload()));
+    await saveMealPlanSource(fetcher, 'mealie');
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect((fetcher.mock.calls[1][1] as RequestInit).method).toBe('PUT');
+    expect(bodyOf(fetcher.mock.calls[1])).toEqual({ settings: { ...settings, planSource: 'mealie' } });
+  });
+
+  it('writes nothing when the plan already lives there', async () => {
+    const fetcher = vi.fn<MealFetch>().mockResolvedValue(ok(payload({ settings: { ...settings, planSource: 'mealie' } } as Partial<MealSnapshot>)));
+    await saveMealPlanSource(fetcher, 'mealie');
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a refused write with the route\'s own sentence', async () => {
+    const fetcher = vi.fn<MealFetch>()
+      .mockResolvedValueOnce(ok(payload({ settings } as Partial<MealSnapshot>)))
+      .mockResolvedValueOnce(status(500, { error: 'Failed to update meal data' }));
+    await expect(saveMealPlanSource(fetcher, 'mealie')).rejects.toThrow('Failed to update meal data');
   });
 });
 

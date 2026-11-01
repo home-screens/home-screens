@@ -60,14 +60,21 @@ test('a token Mealie refuses is said plainly', async ({ page }) => {
   await expect(page.locator('[data-field-id="integrations.mealie"] button[aria-expanded]').first()).toContainText('Token not accepted');
 });
 
-test('a passing Test shows the saved address in its box and links to the Meals page', async ({ page }) => {
+test('a passing Test shows the saved address and asks to plan in Mealie, which moves the plan there', async ({ page, request }) => {
   mealie = await startFakeMealie();
   const card = await fillCard(page, mealie.url, FAKE_MEALIE_TOKEN);
-  const result = card.getByTestId('mealie-test-result');
   await expect(card.getByPlaceholder('e.g. http://192.168.1.50:9925')).toHaveValue(mealie.url);
-  await result.getByRole('link', { name: /Meals settings/ }).click();
+  const question = card.getByTestId('mealie-plan-question');
+  await expect(question).toContainText('Use Mealie for your meal plan?');
+  await question.getByRole('button', { name: 'Use Mealie' }).click();
+  await expect(question).toContainText('Your meal plan now comes from Mealie.');
+  const meals = await (await request.get('/api/meals/data')).json();
+  expect(meals.settings.planSource).toBe('mealie');
+
+  await question.getByRole('link', { name: /Meals settings/ }).click();
   await expect(page).toHaveURL(/page=meals/);
-  await expect(page.locator('[data-field-id="meals.planSource"]')).toBeVisible();
+  const choice = page.locator('[data-field-id="meals.planSource"]');
+  await expect(choice.getByRole('button', { name: /^Mealie/ })).toHaveAttribute('aria-pressed', 'true');
 });
 
 test('Suggest in the planner window fills only the empty dinners in Mealie, and Undo takes them back', async ({ page, request }) => {

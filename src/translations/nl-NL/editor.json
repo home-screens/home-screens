@@ -1413,8 +1413,19 @@
           "network": {
             "title": "We konden het nu niet controleren.",
             "body": "Home Screens gaf geen antwoord. Probeer het zo nog eens."
-          },
-          "mealsLink": "Gebruik het voor je maaltijdplanning bij de instellingen voor Maaltijden"
+          }
+        },
+        "planQuestion": {
+          "title": "Mealie gebruiken voor je maaltijdplanning?",
+          "body": "Alle maaltijdweergaven, de telefoon en de editor gebruiken dan de planning die je in Mealie bijhoudt, en wat je plant wordt in Mealie opgeslagen. Je Home Screens-planning blijft bewaard en komt terug als je terugschakelt.",
+          "useButton": "Mealie gebruiken",
+          "switching": "Overschakelen…",
+          "notNow": "Niet nu",
+          "failed": "Overschakelen is niet gelukt. Probeer het opnieuw.",
+          "switched": "Je maaltijdplanning komt nu uit Mealie.",
+          "undo": "Ongedaan maken",
+          "onMealie": "Je maaltijdplanning komt uit Mealie.",
+          "mealsSettingsLink": "Instellingen voor Maaltijden"
         }
       },
       "microsoft": {
@@ -1642,7 +1653,7 @@
       },
       "planSource": {
         "heading": "Je maaltijdplanning staat in",
-        "description": "Plan de maaltijden hier of, als jullie gezin de recepten in de app Mealie bewaart, gebruik het maaltijdplan daar.",
+        "description": "Plan de maaltijden hier of, als je gezin de recepten in de app Mealie bewaart, gebruik het maaltijdplan daar.",
         "homeScreens": "Home Screens",
         "homeScreensSub": "Hier gepland",
         "mealie": "Mealie",
@@ -1652,7 +1663,7 @@
         "mealieNotAnswering": "Antwoordt nu niet",
         "mealieTokenRefused": "Token niet geaccepteerd",
         "tokenRefused": "Mealie accepteert de opgeslagen token niet meer, dus de maaltijdplanning wordt niet bijgewerkt. Maak in Mealie een nieuwe token en plak die op de pagina",
-        "connectFirst": "Alleen als jullie gezin Mealie gebruikt, een aparte recepten-app. Om daarin te plannen, koppel je hem eerst op de pagina",
+        "connectFirst": "Alleen als je gezin Mealie gebruikt, een aparte recepten-app. Om daarin te plannen, koppel je hem eerst op de pagina",
         "apiKeysLink": "API-sleutels",
         "connectedOffer": "Mealie is verbonden. Kies het om te plannen met de recepten en de planning die je daar bijhoudt.",
         "onMealie": "Alle maaltijdweergaven, de telefoon en deze editor gebruiken nu je Mealie-planning, en wat je hier plant wordt in Mealie opgeslagen. Je Home Screens-planning blijft bewaard en komt terug als je terugschakelt.",
@@ -1693,7 +1704,7 @@
         "confirmTitle": "Maaltijdinstellingen terugzetten?",
         "confirmButton": "Terugzetten"
       },
-      "description": "Welke maaltijden jullie plannen en wanneer die meestal zijn."
+      "description": "Welke maaltijden je plant en wanneer die meestal zijn."
     },
     "systemPage": {
       "loading": "Systeeminformatie laden…",

@@ -1413,8 +1413,19 @@
           "network": {
             "title": "Vi kunne ikke tjekke lige nu.",
             "body": "Home Screens svarede ikke. Prøv igen om lidt."
-          },
-          "mealsLink": "Brug den til din madplan under indstillingerne for Måltider"
+          }
+        },
+        "planQuestion": {
+          "title": "Brug Mealie til din madplan?",
+          "body": "Alle madvisninger, telefonen og editoren bruger så den plan, du har i Mealie, og det, du planlægger, gemmes i Mealie. Din Home Screens-plan bliver gemt og kommer tilbage, hvis du skifter tilbage.",
+          "useButton": "Brug Mealie",
+          "switching": "Skifter…",
+          "notNow": "Ikke nu",
+          "failed": "Ændringen blev ikke gemt. Prøv igen.",
+          "switched": "Din madplan kommer nu fra Mealie.",
+          "undo": "Fortryd",
+          "onMealie": "Din madplan kommer fra Mealie.",
+          "mealsSettingsLink": "Indstillinger for Måltider"
         }
       },
       "microsoft": {

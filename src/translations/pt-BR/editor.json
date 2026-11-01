@@ -1413,8 +1413,19 @@
           "network": {
             "title": "Não deu para verificar agora.",
             "body": "O Home Screens não respondeu. Tente de novo daqui a pouco."
-          },
-          "mealsLink": "Use para o seu plano de refeições nos ajustes de Refeições"
+          }
+        },
+        "planQuestion": {
+          "title": "Usar o Mealie para o seu plano de refeições?",
+          "body": "Todas as telas de refeições, o celular e o editor vão usar o plano que você mantém no Mealie, e o que você planejar será salvo lá. Seu plano do Home Screens fica guardado para quando você quiser voltar a ele.",
+          "useButton": "Usar o Mealie",
+          "switching": "Trocando…",
+          "notNow": "Agora não",
+          "failed": "A troca não foi salva. Tente de novo.",
+          "switched": "Seu plano de refeições agora vem do Mealie.",
+          "undo": "Desfazer",
+          "onMealie": "Seu plano de refeições vem do Mealie.",
+          "mealsSettingsLink": "Ajustes de Refeições"
         }
       },
       "microsoft": {
@@ -1655,7 +1666,7 @@
         "connectFirst": "Só se a sua família usa o Mealie, um app de receitas à parte. Para planejar nele, conecte-o primeiro na página",
         "apiKeysLink": "Chaves de API",
         "connectedOffer": "O Mealie está conectado. Escolha-o para planejar com as receitas e o plano que você mantém lá.",
-        "onMealie": "Todas as telas de refeições, o celular e este editor agora usam seu plano do Mealie, e o que você planejar aqui é salvo no Mealie. Seu plano do Home Screens fica guardado e volta se você trocar de novo.",
+        "onMealie": "Todas as telas de refeições, o celular e este editor agora usam seu plano do Mealie, e o que você planejar aqui é salvo no Mealie. Seu plano do Home Screens fica guardado para quando você quiser voltar a ele.",
         "mealieSettingsLink": "Ajustes do Mealie"
       },
       "status": {

@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ChefHat, CircleCheck, RotateCw, TriangleAlert } from 'lucide-react';
+import { ChefHat, CircleCheck, CookingPot, RotateCw, TriangleAlert } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import SecretField, { type SecretStatus } from './shared/SecretField';
 import IntegrationCard from './shared/IntegrationCard';
@@ -10,6 +10,7 @@ import { getStatusInfo } from './shared/integration-status';
 import { checkMealie, type MealieCheck } from '@/hooks/useMealieCheck';
 import { settingsPath } from '@/lib/settings-route';
 import { editorFetch } from '@/lib/editor-fetch';
+import { loadMealPlanSource, saveMealPlanSource } from '@/lib/meal-client';
 import { useTranslate, type TranslateFn } from '@/i18n';
 
 /**
@@ -30,6 +31,16 @@ interface Props {
 type CheckAsked = 'opening' | 'save' | 'test';
 
 /**
+ * Where the meal plan lived when a save or a Test was answered: `null` when
+ * the card was only being shown (it is not asked then) or the hub could not
+ * say.
+ */
+type PlanHome = 'mealie' | 'home' | null;
+
+/** The Meals page, with "Your meal plan lives in" highlighted. */
+const MEALS_PLAN_SOURCE = settingsPath({ kind: 'defaults', page: 'meals' }, { highlight: 'meals.planSource' });
+
+/**
  * Settings > API keys: Mealie's address and API token, built like the Immich
  * card, plus a Test button that asks Mealie who the token belongs to and
  * answers in a plain sentence for each way it can go.
@@ -38,11 +49,13 @@ type CheckAsked = 'opening' | 'save' | 'test';
  * again after each save or removal (never on a timer): its pill then says
  * what Mealie answered, not only which boxes are filled in (two saved boxes
  * whose token Mealie refuses are not "Connected"), and the address box shows
- * the saved address.
+ * the saved address. A connected answer to a save or a Test goes on to ask
+ * whether the meal plan should live in Mealie, while it does not yet.
  */
 export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: Props) {
   const t = useTranslate('editor');
-  const [result, setResult] = useState<{ check: MealieCheck; asked: CheckAsked } | null>(null);
+  // `n` is which check this is: the meal plan question starts over with each.
+  const [result, setResult] = useState<{ check: MealieCheck; asked: CheckAsked; plan: PlanHome; n: number } | null>(null);
   const [asking, setAsking] = useState<CheckAsked | null>(null);
   // The saved address as the last check named it. Kept through a save, so
   // the box does not empty while the next check is on its way.
@@ -54,9 +67,17 @@ export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: 
   const runCheck = useCallback(async (asked: CheckAsked) => {
     const n = ++latest.current;
     setAsking(asked);
-    const check = await checkMealie();
+    // Right after a save or a Test is when to ask about the meal plan, so
+    // where it lives is read alongside. Not as the card is shown to a family
+    // that may have answered long ago.
+    const [check, plan] = await Promise.all([
+      checkMealie(),
+      asked === 'opening'
+        ? null
+        : loadMealPlanSource(editorFetch).then((source): PlanHome => (source === 'mealie' ? 'mealie' : 'home'), () => null),
+    ]);
     if (n !== latest.current) return;
-    setResult({ check, asked });
+    setResult({ check, asked, plan, n });
     // A failed call to the hub says nothing about the address.
     if (check.ok || check.failure !== 'network') setSavedUrl(check.url);
     setAsking(null);
@@ -81,9 +102,8 @@ export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: 
   // While the meal plan lives in Mealie, removing the address or the token
   // takes the plan off the wall and the phone: ask first.
   const removeQuestion = useCallback(async () => {
-    const res = await editorFetch('/api/meals/data');
-    const data = res.ok ? ((await res.json()) as { settings?: { planSource?: string } }) : null;
-    if (data?.settings?.planSource !== 'mealie') return null;
+    const source = await loadMealPlanSource(editorFetch).catch(() => undefined);
+    if (source !== 'mealie') return null;
     return {
       title: t('settings.integrationsPage.mealie.removeConfirm.title'),
       message: t('settings.integrationsPage.mealie.removeConfirm.message'),
@@ -147,7 +167,16 @@ export default function MealieIntegrationCard({ status, onSaved, defaultOpen }: 
             </Button>
             <span className="text-xs text-hs-text-faint">{t('settings.integrationsPage.mealie.testHelp')}</span>
           </div>
-          {shownResult && <MealieTestResult result={shownResult.check} offerMeals={shownResult.asked !== 'opening'} />}
+          {shownResult && <MealieTestResult result={shownResult.check} />}
+          {shownResult?.check.ok && shownResult.plan === 'home' && <MealPlanQuestion key={shownResult.n} />}
+          {shownResult?.check.ok && shownResult.plan === 'mealie' && (
+            <p className="text-xs text-hs-text-muted">
+              {t('settings.integrationsPage.mealie.planQuestion.onMealie')}{' '}
+              <Link href={MEALS_PLAN_SOURCE} className="font-medium text-hs-accent hover:text-hs-accent-hover">
+                {t('settings.integrationsPage.mealie.planQuestion.mealsSettingsLink')} &rarr;
+              </Link>
+            </p>
+          )}
         </div>
       </div>
     </IntegrationCard>
@@ -167,12 +196,8 @@ function checkPill(check: MealieCheck, t: TranslateFn): { label: string; type: '
   return { label, type: 'partial' };
 }
 
-/**
- * What a check found, in a plain sentence. `offerMeals`: link on to the Meals
- * page after a save or a Test (the next step in setting Mealie up), not every
- * time the card is shown to a family already using it.
- */
-function MealieTestResult({ result, offerMeals }: { result: MealieCheck; offerMeals: boolean }) {
+/** What a check found, in a plain sentence. */
+function MealieTestResult({ result }: { result: MealieCheck }) {
   const t = useTranslate('editor');
   if (result.ok) {
     return (
@@ -183,14 +208,6 @@ function MealieTestResult({ result, offerMeals }: { result: MealieCheck; offerMe
             {t('settings.integrationsPage.mealie.result.connected', { household: result.household, version: result.version })}
           </p>
           <p className="text-hs-text-muted">{t('settings.integrationsPage.mealie.result.checkedNow')}</p>
-          {offerMeals && (
-            <Link
-              href={settingsPath({ kind: 'defaults', page: 'meals' }, { highlight: 'meals.planSource' })}
-              className="inline-block mt-1 font-medium text-hs-accent hover:text-hs-accent-hover"
-            >
-              {t('settings.integrationsPage.mealie.result.mealsLink')} &rarr;
-            </Link>
-          )}
         </div>
       </div>
     );
@@ -203,6 +220,89 @@ function MealieTestResult({ result, offerMeals }: { result: MealieCheck; offerMe
         <p className="font-semibold">{t(`${base}.title`, { version: result.version ?? '' })}</p>
         <p className="text-hs-text-muted">{t(`${base}.body`)}</p>
       </div>
+    </div>
+  );
+}
+
+type QuestionStep = 'asking' | 'switching' | 'switched' | 'undoing' | 'closed';
+
+/**
+ * "Use Mealie for your meal plan?", asked under a connected answer while the
+ * plan still lives in Home Screens: the moment Mealie is set up is when the
+ * family is ready to choose. Use Mealie makes the same change as the choice on
+ * the Meals page, which stays where it is for changing it later. Nothing
+ * about the answer is kept: Not now closes it until the next save or Test.
+ */
+function MealPlanQuestion() {
+  const t = useTranslate('editor');
+  const titleId = useId();
+  const [step, setStep] = useState<QuestionStep>('asking');
+  const [failed, setFailed] = useState(false);
+
+  const move = async (source: 'mealie' | undefined, busy: QuestionStep, done: QuestionStep, from: QuestionStep) => {
+    setStep(busy);
+    setFailed(false);
+    try {
+      await saveMealPlanSource(editorFetch, source);
+      setStep(done);
+    } catch {
+      setStep(from);
+      setFailed(true);
+    }
+  };
+
+  if (step === 'closed') return null;
+  const switched = step === 'switched' || step === 'undoing';
+  const failedLine = failed && (
+    <p className="ml-[30px] mt-1.5 flex items-center gap-1.5 text-xs text-hs-danger" role="alert">
+      <TriangleAlert className="w-3 h-3 shrink-0" aria-hidden />
+      {t('settings.integrationsPage.mealie.planQuestion.failed')}
+    </p>
+  );
+
+  return (
+    <div
+      data-testid="mealie-plan-question"
+      role={switched ? 'status' : 'group'}
+      aria-labelledby={titleId}
+      className="rounded-lg border border-hs-border-strong bg-hs-panel p-3"
+    >
+      <div className="flex items-center gap-2">
+        <span className="w-[22px] h-[22px] rounded-full bg-amber-500/15 text-amber-500 flex items-center justify-center shrink-0" aria-hidden>
+          <CookingPot className="w-[13px] h-[13px]" strokeWidth={2.4} />
+        </span>
+        <p id={titleId} className="text-[13px] leading-[18px] font-semibold text-hs-text-primary">
+          {t(switched ? 'settings.integrationsPage.mealie.planQuestion.switched' : 'settings.integrationsPage.mealie.planQuestion.title')}
+        </p>
+      </div>
+      {switched ? (
+        <>
+          {failedLine}
+          <div className="ml-[30px] mt-2 flex items-center gap-3.5">
+            <Button variant="secondary" size="sm" disabled={step === 'undoing'} onClick={() => void move(undefined, 'undoing', 'asking', 'switched')}>
+              {t('settings.integrationsPage.mealie.planQuestion.undo')}
+            </Button>
+            <Link href={MEALS_PLAN_SOURCE} className="text-xs font-medium text-hs-accent hover:text-hs-accent-hover">
+              {t('settings.integrationsPage.mealie.planQuestion.mealsSettingsLink')} &rarr;
+            </Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="ml-[30px] mt-1.5 text-xs leading-[17px] text-hs-text-muted">
+            {t('settings.integrationsPage.mealie.planQuestion.body')}
+          </p>
+          {failedLine}
+          <div className="ml-[30px] mt-2.5 flex items-center gap-2">
+            <Button variant="primary" disabled={step === 'switching'} onClick={() => void move('mealie', 'switching', 'switched', 'asking')}>
+              {t(step === 'switching' ? 'settings.integrationsPage.mealie.planQuestion.switching' : 'settings.integrationsPage.mealie.planQuestion.useButton')}
+            </Button>
+            <Button variant="ghost" disabled={step === 'switching'} onClick={() => setStep('closed')}>
+              {t('settings.integrationsPage.mealie.planQuestion.notNow')}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

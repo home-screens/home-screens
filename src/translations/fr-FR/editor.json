@@ -1413,8 +1413,19 @@
           "network": {
             "title": "Impossible de vérifier pour l'instant.",
             "body": "Home Screens n'a pas répondu. Réessaie dans un moment."
-          },
-          "mealsLink": "L'utiliser pour ton planning dans les réglages Repas"
+          }
+        },
+        "planQuestion": {
+          "title": "Utiliser Mealie pour ton planning des repas ?",
+          "body": "Toutes les vues de repas, le téléphone et l'éditeur utiliseront le planning que tu tiens dans Mealie, et ce que tu planifies sera enregistré dans Mealie. Ton planning Home Screens est conservé et revient si tu changes à nouveau.",
+          "useButton": "Utiliser Mealie",
+          "switching": "Changement…",
+          "notNow": "Pas maintenant",
+          "failed": "Le changement n'a pas été enregistré. Réessaie.",
+          "switched": "Ton planning des repas vient maintenant de Mealie.",
+          "undo": "Annuler",
+          "onMealie": "Ton planning des repas vient de Mealie.",
+          "mealsSettingsLink": "Réglages Repas"
         }
       },
       "microsoft": {
@@ -1642,7 +1653,7 @@
       },
       "planSource": {
         "heading": "Ton planning des repas est dans",
-        "description": "Planifiez les repas ici ou, si votre famille garde ses recettes dans l'appli Mealie, utilisez le planning qui s'y trouve.",
+        "description": "Planifie les repas ici ou, si ta famille garde ses recettes dans l'appli Mealie, utilise le planning qui s'y trouve.",
         "homeScreens": "Home Screens",
         "homeScreensSub": "Planifié ici",
         "mealie": "Mealie",
@@ -1652,7 +1663,7 @@
         "mealieNotAnswering": "Ne répond pas pour le moment",
         "mealieTokenRefused": "Jeton refusé",
         "tokenRefused": "Mealie n'accepte plus le jeton enregistré, donc le planning ne se met plus à jour. Crée un nouveau jeton dans Mealie et colle-le ici :",
-        "connectFirst": "Seulement si votre famille utilise Mealie, une appli de recettes à part. Pour y planifier, connectez-la d'abord sur la",
+        "connectFirst": "Seulement si ta famille utilise Mealie, une appli de recettes à part. Pour y planifier, connecte-la d'abord sur la page",
         "apiKeysLink": "Clés API",
         "connectedOffer": "Mealie est connecté. Choisis-le pour planifier avec les recettes et le planning que tu y tiens.",
         "onMealie": "Toutes les vues de repas, le téléphone et cet éditeur utilisent maintenant ton planning Mealie, et ce que tu planifies ici est enregistré dans Mealie. Ton planning Home Screens est conservé et revient si tu changes à nouveau.",
@@ -1693,7 +1704,7 @@
         "confirmTitle": "Réinitialiser les paramètres des repas ?",
         "confirmButton": "Réinitialiser"
       },
-      "description": "Les repas que vous planifiez et à quelle heure ils ont lieu."
+      "description": "Les repas que tu planifies et à quelle heure ils ont lieu."
     },
     "systemPage": {
       "loading": "Chargement des infos système…",

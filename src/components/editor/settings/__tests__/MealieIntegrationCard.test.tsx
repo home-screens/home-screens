@@ -5,11 +5,13 @@
  * connection can go, and the card asks the same once by itself when it is
  * shown with an address saved: its pill says what Mealie answered rather than
  * only which fields are filled in (an address and a token that Mealie refuses
- * are not "Connected"), and the address box shows the saved address.
+ * are not "Connected"), and the address box shows the saved address. A
+ * connected answer to a save or a Test asks whether the meal plan should live
+ * in Mealie, while it does not yet.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, waitFor, within } from '@testing-library/react';
 import React from 'react';
 
 const mocks = vi.hoisted(() => ({ editorFetch: vi.fn() }));
@@ -45,6 +47,38 @@ function renderCard(status: SecretStatus = { mealie_url: true, mealie_api_key: t
 
 const validateCalls = () => mocks.editorFetch.mock.calls.filter(([url]) => url === '/api/mealie/validate').length;
 
+const CONNECTED = { ok: true, version: '3.29.0', household: 'Family', user: 'Sam', url: 'http://mealie.local' };
+const FAMILY_SETTINGS = { enabledSlots: ['breakfast', 'dinner'], weekStartDay: 'monday', defaultSlotTimes: { dinner: '18:00' } };
+
+/**
+ * A hub that answers the check with `check` and keeps the meal settings: a
+ * GET of the meals reads them, a PUT replaces them (or fails, while
+ * `saves.fail` is set).
+ */
+function hub(check: unknown, settings: Record<string, unknown> = FAMILY_SETTINGS) {
+  const state = { settings, fail: false, puts: [] as Record<string, unknown>[] };
+  mocks.editorFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+    if (url === '/api/mealie/validate') return { ok: true, json: async () => check };
+    if (url === '/api/meals/data' && init?.method === 'PUT') {
+      if (state.fail) return { ok: false, json: async () => ({ error: 'Disk full' }) };
+      state.settings = JSON.parse(String(init.body)).settings;
+      state.puts.push(state.settings);
+      return { ok: true, json: async () => ({ settings: state.settings }) };
+    }
+    if (url === '/api/meals/data') return { ok: true, json: async () => ({ settings: state.settings }) };
+    throw new Error(`unexpected ${url}`);
+  });
+  return state;
+}
+
+const mealsReads = () => mocks.editorFetch.mock.calls.filter(([url, init]) => url === '/api/meals/data' && !init).length;
+
+async function pressTest(view: ReturnType<typeof renderCard>['view']) {
+  await view.findByTestId('mealie-test-result');
+  fireEvent.click(view.getByRole('button', { name: /^Test/ }));
+  await waitFor(() => expect(validateCalls()).toBe(2));
+}
+
 async function runTest() {
   const card = renderCard();
   // The check the card makes as it opens, then the Test button's.
@@ -66,8 +100,10 @@ describe('the Mealie card', () => {
     expect(addressBox().value).toBe('http://192.168.1.50:9925');
     // Not a poll: one check for one opening.
     expect(validateCalls()).toBe(1);
-    // A family already using it is not sent on to the Meals page every visit.
+    // A family that may have answered long ago is not asked again every visit.
+    expect(view.queryByTestId('mealie-plan-question')).toBeNull();
     expect(view.queryByRole('link', { name: /Meals settings/ })).toBeNull();
+    expect(mealsReads()).toBe(0);
   });
 
   it('says the token is refused, with two boxes saved, as soon as the card is shown', async () => {
@@ -80,13 +116,68 @@ describe('the Mealie card', () => {
     expect(addressBox().value).toBe('http://localhost:9925');
   });
 
-  it('names the household and links on to the Meals page after Test', async () => {
-    answer({ ok: true, version: '3.29.0', household: 'Family', user: 'Sam', url: 'http://mealie.local' });
+  it('names the household after Test and asks to plan in Mealie while the plan lives in Home Screens', async () => {
+    hub(CONNECTED);
     const { text, pill, view } = await runTest();
     expect(text).toContain('Connected to the Family household, Mealie 3.29.0');
     expect(pill).toContain('Connected');
+    const question = await view.findByTestId('mealie-plan-question');
+    expect(question.textContent).toContain('Use Mealie for your meal plan?');
+    expect(question.textContent).toContain('Your Home Screens plan is kept');
+  });
+
+  it('moves the plan to Mealie with one press, changing nothing else, and Undo moves it back', async () => {
+    const state = hub(CONNECTED);
+    const { view } = renderCard();
+    await pressTest(view);
+    const question = await view.findByTestId('mealie-plan-question');
+    fireEvent.click(within(question).getByRole('button', { name: 'Use Mealie' }));
+
+    await waitFor(() => expect(question.textContent).toContain('Your meal plan now comes from Mealie.'));
+    expect(state.puts).toEqual([{ ...FAMILY_SETTINGS, planSource: 'mealie' }]);
+    expect(within(question).getByRole('link', { name: /Meals settings/ }).getAttribute('href')).toContain('page=meals');
+
+    fireEvent.click(within(question).getByRole('button', { name: 'Undo' }));
+    await waitFor(() => expect(question.textContent).toContain('Use Mealie for your meal plan?'));
+    expect(state.puts[1]).toEqual(FAMILY_SETTINGS);
+  });
+
+  it('keeps asking, with a plain line, when the switch does not save', async () => {
+    const state = hub(CONNECTED);
+    state.fail = true;
+    const { view } = renderCard();
+    await pressTest(view);
+    const question = await view.findByTestId('mealie-plan-question');
+    fireEvent.click(within(question).getByRole('button', { name: 'Use Mealie' }));
+    expect(await within(question).findByRole('alert')).toHaveProperty('textContent', "The switch didn't save. Try again.");
+    expect(within(question).getByRole('button', { name: 'Use Mealie' })).toHaveProperty('disabled', false);
+    expect(state.settings).toEqual(FAMILY_SETTINGS);
+  });
+
+  it('closes the question on Not now without saving anything', async () => {
+    const state = hub(CONNECTED);
+    const { view } = renderCard();
+    await pressTest(view);
+    fireEvent.click(within(await view.findByTestId('mealie-plan-question')).getByRole('button', { name: 'Not now' }));
+    expect(view.queryByTestId('mealie-plan-question')).toBeNull();
+    expect(state.puts).toEqual([]);
+  });
+
+  it('only says where the plan lives, with a link to the Meals page, when it already lives in Mealie', async () => {
+    hub(CONNECTED, { ...FAMILY_SETTINGS, planSource: 'mealie' });
+    const { view } = renderCard();
+    await pressTest(view);
+    await view.findByText('Your meal plan comes from Mealie.', { exact: false });
+    expect(view.queryByTestId('mealie-plan-question')).toBeNull();
     expect(view.getByRole('link', { name: /Meals settings/ })).toBeTruthy();
-    expect(mocks.editorFetch).toHaveBeenCalledWith('/api/mealie/validate');
+  });
+
+  it('asks nothing about the meal plan when Mealie refuses the token', async () => {
+    hub({ ok: false, failure: 'key-rejected' });
+    const { view } = renderCard();
+    await pressTest(view);
+    await waitFor(() => expect(view.getByTestId('mealie-test-result').textContent).toContain("Mealie didn't accept that token."));
+    expect(view.queryByTestId('mealie-plan-question')).toBeNull();
   });
 
   it.each([

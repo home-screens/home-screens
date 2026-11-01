@@ -1,5 +1,6 @@
-import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType, TimeFormat } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealPlanSource, MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { normalizeMealSettings } from '@/lib/meal-constants';
+import { setMealPlanSource } from '@/lib/meal-settings';
 import { mealWriteBody, type MealDataWrite } from '@/lib/meal-write';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayCache } from '@/lib/display-cache';
@@ -127,6 +128,39 @@ export async function loadMeals(fetcher: MealFetch): Promise<MealSnapshot> {
   const snapshot = res.ok ? asSnapshot(json, '12h') : null;
   if (!snapshot) throw new MealClientError('load', refusalMessage(json, 'The meals could not be loaded.'));
   return snapshot;
+}
+
+/** The stored meal settings, read fresh. */
+async function loadMealSettings(fetcher: MealFetch): Promise<MealSettings> {
+  const res = await fetcher(mealsDataUrl());
+  const json = await readJson(res);
+  if (!res.ok || !json || typeof json !== 'object') throw new MealClientError('load', refusalMessage(json, 'The meals could not be loaded.'));
+  return normalizeMealSettings((json as { settings?: unknown }).settings);
+}
+
+/** Where the meal plan lives as the hub has it now: Mealie, or unset for Home Screens. */
+export async function loadMealPlanSource(fetcher: MealFetch): Promise<MealPlanSource | undefined> {
+  return (await loadMealSettings(fetcher)).planSource;
+}
+
+/**
+ * Move the meal plan to `source` (unset for Home Screens) from outside the
+ * Meals settings pages, which hold a copy of the settings of their own. The
+ * settings are read fresh and changed by the rule those pages use, so the
+ * plan's home is all that changes.
+ */
+export async function saveMealPlanSource(fetcher: MealFetch, source: MealPlanSource | undefined): Promise<void> {
+  const current = await loadMealSettings(fetcher);
+  const next = setMealPlanSource(current, source);
+  if (next === current) return;
+  const res = await fetcher(mealsDataUrl(), {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ settings: next }),
+  });
+  if (!res.ok) throw new MealClientError('save', refusalMessage(await readJson(res), 'The meals could not be saved.'));
+  // Every meal view on the canvas reads the plan from its new home.
+  displayCache.invalidate(mealsDataUrl());
 }
 
 /** One week's grocery ticks as the hub has them after a tick was saved. */

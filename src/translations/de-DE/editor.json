@@ -1413,8 +1413,19 @@
           "network": {
             "title": "Wir konnten gerade nicht prüfen.",
             "body": "Home Screens hat nicht geantwortet. Versuch es gleich noch einmal."
-          },
-          "mealsLink": "In den Mahlzeiten-Einstellungen für deinen Essensplan nutzen"
+          }
+        },
+        "planQuestion": {
+          "title": "Mealie für deinen Essensplan nutzen?",
+          "body": "Alle Essensansichten, das Handy und der Editor nutzen dann den Plan aus Mealie, und was du planst, wird in Mealie gespeichert. Dein Home-Screens-Plan bleibt erhalten und kommt zurück, wenn du zurückwechselst.",
+          "useButton": "Mealie nutzen",
+          "switching": "Wird umgestellt…",
+          "notNow": "Jetzt nicht",
+          "failed": "Die Umstellung wurde nicht gespeichert. Versuch es noch einmal.",
+          "switched": "Dein Essensplan kommt jetzt aus Mealie.",
+          "undo": "Rückgängig",
+          "onMealie": "Dein Essensplan kommt aus Mealie.",
+          "mealsSettingsLink": "Mahlzeiten-Einstellungen"
         }
       },
       "microsoft": {
@@ -1642,7 +1653,7 @@
       },
       "planSource": {
         "heading": "Dein Essensplan liegt in",
-        "description": "Plant Mahlzeiten hier oder, wenn eure Familie ihre Rezepte in der App Mealie hat, nutzt den Essensplan von dort.",
+        "description": "Plane Mahlzeiten hier oder, wenn deine Familie ihre Rezepte in der App Mealie hat, nutze den Essensplan von dort.",
         "homeScreens": "Home Screens",
         "homeScreensSub": "Hier geplant",
         "mealie": "Mealie",
@@ -1652,7 +1663,7 @@
         "mealieNotAnswering": "Antwortet gerade nicht",
         "mealieTokenRefused": "Token nicht angenommen",
         "tokenRefused": "Mealie nimmt das gespeicherte Token nicht mehr an, deshalb wird der Essensplan nicht mehr aktualisiert. Erstell in Mealie ein neues Token und füg es hier ein:",
-        "connectFirst": "Nur wenn eure Familie Mealie nutzt, eine eigene Rezept-App. Um dort zu planen, verbindet es zuerst auf der Seite",
+        "connectFirst": "Nur wenn deine Familie Mealie nutzt, eine eigene Rezept-App. Um dort zu planen, verbinde es zuerst auf der Seite",
         "apiKeysLink": "API-Schlüssel",
         "connectedOffer": "Mealie ist verbunden. Wähle es, um mit den Rezepten und dem Plan aus Mealie zu planen.",
         "onMealie": "Alle Essensansichten, das Handy und dieser Editor nutzen jetzt deinen Mealie-Plan, und was du hier planst, wird in Mealie gespeichert. Dein Home-Screens-Plan bleibt erhalten und kommt zurück, wenn du zurückwechselst.",
@@ -1693,7 +1704,7 @@
         "confirmTitle": "Mahlzeiten-Einstellungen zurücksetzen?",
         "confirmButton": "Zurücksetzen"
       },
-      "description": "Welche Mahlzeiten ihr plant und wann sie üblicherweise stattfinden."
+      "description": "Welche Mahlzeiten du planst und wann sie üblicherweise stattfinden."
     },
     "systemPage": {
       "loading": "System-Informationen werden geladen …",

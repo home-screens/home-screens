@@ -530,8 +530,8 @@
       "notConnectedNote": "O Mealie é um app de receitas à parte que algumas famílias usam. Se a sua usa, conecte-o em Configurações no computador. Se não, não há nada a fazer aqui.",
       "connectedNote": "O Mealie está conectado à casa “{household}”. Escolha-o para planejar com as receitas e o plano que você tem lá.",
       "connectedNoteNoName": "O Mealie está conectado. Escolha-o para planejar com as receitas e o plano que você tem lá.",
-      "onNote": "Com o Mealie, as refeições vêm do Mealie, aqui e na parede, e o que você planejar aqui é salvo no Mealie. Seu plano do Home Screens é mantido e volta se você trocar de novo.",
-      "switchingToMealieNote": "Depois de salvar, as refeições virão do Mealie aqui e na tela, e o que você planejar aqui será salvo no Mealie. Seu plano do Home Screens fica guardado e volta se você mudar de novo.",
+      "onNote": "Com o Mealie, as refeições vêm do Mealie, aqui e na parede, e o que você planejar aqui é salvo no Mealie. Seu plano do Home Screens fica guardado para quando você quiser voltar a ele.",
+      "switchingToMealieNote": "Depois de salvar, as refeições virão do Mealie aqui e na tela, e o que você planejar aqui será salvo no Mealie. Seu plano do Home Screens fica guardado para quando você quiser voltar a ele.",
       "switchingToHomeNote": "Depois de salvar, o celular e a tela voltam ao plano do Home Screens que você tinha antes. Nada muda no Mealie."
     }
   },
