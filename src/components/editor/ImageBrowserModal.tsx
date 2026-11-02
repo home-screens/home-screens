@@ -132,6 +132,8 @@ export default function ImageBrowserModal({
 
     const res = await editorFetch('/api/unsplash', {
       method: 'POST',
+      // The hub downloads the photo under its own time limits.
+      timeoutMs: null,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         imageUrl: original.regular,

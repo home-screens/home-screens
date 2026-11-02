@@ -33,6 +33,7 @@
     "saveError": "Falha ao salvar",
     "networkError": "Erro de rede",
     "serverUnreachable": "Falha ao acessar o servidor",
+    "hubUnreachable": "Não foi possível conectar ao Home Screens, então isso não foi salvo. Confira a conexão e tente de novo.",
     "typographySizes": {
       "small": "Pequeno",
       "medium": "Médio",

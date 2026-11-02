@@ -25,7 +25,8 @@ export function useActiveBackground(screenId: string | undefined, rotationEnable
     async () => {
       const id = screenId!;
       try {
-        const res = await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(id)}`);
+        // A rotation may download the next picture, under the hub's own limits.
+        const res = await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(id)}`, { timeoutMs: null });
         if (res.ok) {
           const data = await res.json();
           record(id, data.path || null);

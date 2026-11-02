@@ -148,7 +148,8 @@ export async function uploadCustomIcon(file: File, name?: string): Promise<{ ico
   const form = new FormData();
   form.append('file', file);
   if (name) form.append('name', name);
-  const res = await editorFetch('/api/custom-icons', { method: 'POST', body: form });
+  // An animated icon is encoded at three sizes on the hub before it answers.
+  const res = await editorFetch('/api/custom-icons', { method: 'POST', body: form, timeoutMs: null });
   if (!res.ok) throw await failure(res);
   const body = (await res.json()) as { icon: CustomIconEntry; existing?: boolean };
   const existing = body.existing === true;

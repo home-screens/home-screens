@@ -282,7 +282,7 @@ export default function MediaLibraryPage() {
       const formData = new FormData();
       for (const file of sending) formData.append('file', file);
       if (uploadDir) formData.append('directory', uploadDir);
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
+      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         setUploadError(
@@ -325,7 +325,7 @@ export default function MediaLibraryPage() {
         setOutcome({ ok: false, text: t('settings.mediaPage.wontPlay', { name: file.name }) });
         return;
       }
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
+      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         setOutcome({ ok: false, text: data.error ?? t('settings.mediaPage.replaceFailed', { file: name }) });

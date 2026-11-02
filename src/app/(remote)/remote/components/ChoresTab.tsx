@@ -33,6 +33,7 @@ import { planChoreToggle } from '@/components/modules/chore-chart/chore-toggle';
 import { atGrabLimit, canPutBack, readChoreSettings, countsSinceReset, resetViewDay, resolveBonusFor, type BonusMarks, type BonusRefusal } from '@/lib/chore-bonus';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoreHistoryBanner from './ChoreHistoryBanner';
@@ -213,6 +214,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   // or a failed auto-save. Rendered as a dismissible banner so the user gets
   // in-UI feedback without DevTools.
   const [lastWarning, setLastWarning] = useState<string | null>(null);
+  /** What the last failed save said, so the next save that lands can take it down. */
+  const saveFailureRef = useRef<string | null>(null);
 
   // Debounced auto-save. `skipInitial` skips the first effect run after mount
   // (initial state comes from props), and `flushOnUnmount` ensures any pending
@@ -239,7 +242,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     flushOnUnmount: true,
     save: async () => {
       if (chores === adoptedRef.current) return;
-      const outcome = await session.save(chores, chores === intentionalEmpty.current);
+      const outcome = await session.save(chores, chores === intentionalEmpty.current, t('choresTab.saveFailed'));
       // Somebody else saved first. Show their list rather than replace it;
       // the change made here has to be made again on top of it.
       if (outcome.kind === 'conflict') {
@@ -249,7 +252,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
       } else if (outcome.kind === 'saved') {
         cleanChoresRef.current = chores;
         setUnsaved(false);
-        const failed = t('choresTab.saveFailed');
+        const failed = saveFailureRef.current;
         setLastWarning((warning) => (warning === failed ? null : warning));
       }
     },
@@ -260,7 +263,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
       if (isSessionExpired(err)) return;
       log.error('Chore auto-save failed:', err);
       setUnsaved(true);
-      setLastWarning(t('choresTab.saveFailed'));
+      saveFailureRef.current = requestFailureText(err, { unreachable: t('hubRequest.saveFailed'), fallback: t('choresTab.saveFailed') });
+      setLastWarning(saveFailureRef.current);
     },
   });
 

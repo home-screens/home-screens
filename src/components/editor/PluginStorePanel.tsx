@@ -110,6 +110,8 @@ export default function PluginStorePanel({ onClose }: PluginStorePanelProps) {
     try {
       const res = await editorFetch('/api/plugins/install', {
         method,
+        // An install downloads the plugin under the hub's own time limits.
+        timeoutMs: null,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });

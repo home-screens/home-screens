@@ -4,6 +4,7 @@ import { displayCache } from '@/lib/display-cache';
 import { todoListsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { TodoList, TodoRepeat } from '@/types/todos';
 import type { TodoListAction } from '@/lib/todo-data';
+import { sendJsonWrite } from '@/lib/hub-request';
 
 /**
  * The client half of the shared to-do store.
@@ -127,35 +128,18 @@ export function primeTodoCache(lists: TodoList[]): void {
  * Send one write and hand back the lists it answers with.
  *
  * A 4xx carries `{ error }` in plain language from the store's validation and
- * becomes that message; anything else becomes `fallbackMessage`, a request
- * that never reached the hub included (the browser's own "Failed to fetch"
- * is nothing to show a family). An expired session propagates untouched so
- * callers can still recognise it. Rejects rather than returning a flag, so an optimistic caller can
- * leave its local change alone until it knows the write was refused.
+ * becomes that message; an answer without lists becomes `fallbackMessage`. A
+ * hub out of reach and an expired session propagate untouched so callers can
+ * still recognise them. Rejects rather than returning a flag, so an optimistic
+ * caller can leave its local change alone until it knows the write was refused.
  */
 export async function sendTodoWrite(
   fetcher: TodoFetch,
   req: TodoWriteRequest,
   fallbackMessage: string,
 ): Promise<TodoWriteResult> {
-  let res: Response;
-  try {
-    res = await fetcher(req.url, {
-      method: req.method,
-      headers: req.body ? { 'Content-Type': 'application/json' } : undefined,
-      body: req.body ? JSON.stringify(req.body) : undefined,
-    });
-  } catch (error) {
-    // `fetch` rejects with a TypeError when the network is down.
-    if (error instanceof TypeError) throw new Error(fallbackMessage);
-    throw error;
-  }
-  const json = (await res.json().catch(() => null)) as
-    | (Partial<TodoWriteResult> & { error?: string })
-    | null;
-  if (!res.ok || !Array.isArray(json?.lists)) {
-    throw new Error(typeof json?.error === 'string' && json.error ? json.error : fallbackMessage);
-  }
+  const json = (await sendJsonWrite(fetcher, req, fallbackMessage)) as Partial<TodoWriteResult> | null;
+  if (!Array.isArray(json?.lists)) throw new Error(fallbackMessage);
   primeTodoCache(json.lists);
   const created = json.created && typeof json.created.id === 'string' ? json.created : undefined;
   return { lists: json.lists, created };

@@ -1,6 +1,7 @@
 'use client';
 
 import { editorFetch, sessionExpired } from '@/lib/editor-fetch';
+import { readJson, refusalMessage } from '@/lib/hub-request';
 import type { MediaUse } from '@/lib/media-usage';
 
 /**
@@ -91,10 +92,10 @@ async function libraryAction<T>(url: string, method: string, body: unknown): Pro
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  const data = (await readJson(res)) as T | null;
   return res.ok
-    ? { ok: true, status: res.status, data }
-    : { ok: false, status: res.status, error: typeof data.error === 'string' ? data.error : undefined };
+    ? { ok: true, status: res.status, data: data ?? undefined }
+    : { ok: false, status: res.status, error: refusalMessage(data, '') || undefined };
 }
 
 export interface MoveLibraryResult {

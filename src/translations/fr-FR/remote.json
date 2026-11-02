@@ -19,6 +19,9 @@
     "restarting": "Home Screens redémarre. Reconnexion dans environ 20 secondes…",
     "rebooting": "L'appareil redémarre. Reconnexion dans environ une minute…"
   },
+  "hubRequest": {
+    "saveFailed": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie."
+  },
   "backupReminder": {
     "daysAgoSingular": "Tu n'as pas fait de sauvegarde depuis {n} jour.",
     "daysAgoPlural": "Tu n'as pas fait de sauvegarde depuis {n} jours.",

@@ -263,7 +263,7 @@ describe('PUT /api/chores/data', () => {
     it('still refuses a removed person on a save built from the current list', async () => {
       const res = await PUT(await makeCurrentPutRequest({ chores: [{ id: 'c1', name: 'Dishes', emoji: 'dish', frequency: 'daily', assigneeIds: ['gone'] }] }));
       expect(res.status).toBe(409);
-      expect((await res.json()).reason).toBeUndefined();
+      expect((await res.json()).reason).toBe('member');
       expect(writeChoreList).not.toHaveBeenCalled();
     });
 

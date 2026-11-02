@@ -120,8 +120,8 @@ describe('POST /api/notes', () => {
 
   it('refuses an author who is not in the family, and writes nothing', async () => {
     const res = await post({ text: 'Who wrote this?', authorId: 'stranger' });
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'That person is not in the family.' });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
     await expect(fs.access(notesPath())).rejects.toThrow();
   });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import type { DateViewProps } from './types';
@@ -13,7 +14,7 @@ export default function DateFullView({ config, now, scaledFontSize, containerRef
   const dayName = formatDateSync(now, 'EEEE', { locale });
   const year = formatDateSync(now, 'yyyy', { locale });
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('date.weekShort')} ${weekNumber}`);
   if (config.showDayOfYear) infoParts.push(`${t('date.dayShort')} ${dayOfYear}`);

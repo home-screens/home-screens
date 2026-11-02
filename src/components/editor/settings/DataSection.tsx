@@ -393,6 +393,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        // A backup with icons is large, and a restore cut off after the hub
+        // had committed it would say it failed.
+        timeoutMs: null,
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

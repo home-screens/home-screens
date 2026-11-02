@@ -1,6 +1,7 @@
 'use client';
 
 import { getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { estimateTextWidth, fitBaseSize, fitFactor } from '../clock/fit-width';
@@ -46,7 +47,7 @@ export default function DateBannerView({ config, now, scaledFontSize, autoFontSi
     ? fitFactor(Math.max(...lines.map((line) => lineWidth(line, base))), boxWidth)
     : oneLine;
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('date.weekAbbrev')} ${weekNumber}`);
   if (config.showDayOfYear) infoParts.push(`${t('date.dayAbbrev')} ${dayOfYear}`);

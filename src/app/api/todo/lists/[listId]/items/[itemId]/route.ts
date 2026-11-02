@@ -28,7 +28,7 @@ export const PATCH = withDisplayAuth(async (request: NextRequest, ctx: RouteCont
   if (Object.keys(fields).some((f) => f !== 'completed')) {
     await requireSession(request);
   }
-  return todoWrite((data) => updateItem(data, listId, itemId, body));
+  return todoWrite((data) => updateItem(data, listId, itemId, body), undefined, { assigneeIds: fields.assigneeIds });
 }, 'Failed to update the item');
 
 /** DELETE /api/todo/lists/[listId]/items/[itemId]: remove one item. */

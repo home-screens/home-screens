@@ -64,6 +64,8 @@ export default function WifiScanSection({
     try {
       const res = await editorFetch(
         `/api/system/network/wifi/scan?iface=${encodeURIComponent(selectedWifiIface)}`,
+        // A rescan, a settle and two reads, which can run just past the usual limit.
+        { timeoutMs: 60_000 },
       );
       if (res.ok) {
         const data: WifiNetwork[] = await res.json();

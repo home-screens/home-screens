@@ -70,12 +70,12 @@ describe('useDisplaySharedState', () => {
     );
     const legacy = renderHook(() => useDisplaySharedState(null));
     await flushPoll();
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/display/shared-state', undefined);
+    expect(fetchMock.mock.lastCall?.[0]).toBe('/api/display/shared-state');
     legacy.unmount();
 
     renderHook(() => useDisplaySharedState('kitchen'));
     await flushPoll();
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/display/shared-state?display=kitchen', undefined);
+    expect(fetchMock.mock.lastCall?.[0]).toBe('/api/display/shared-state?display=kitchen');
   });
 
   it('re-polls on the 5s interval and picks up new values', async () => {
@@ -146,7 +146,7 @@ describe('useDisplaySharedState', () => {
     rerender({ id: 'bedroom' });
     // The previous display's values must never bleed into the new selection.
     expect(result.current.entries).toEqual({});
-    expect(fetchMock).toHaveBeenLastCalledWith('/api/display/shared-state?display=bedroom', undefined);
+    expect(fetchMock.mock.lastCall?.[0]).toBe('/api/display/shared-state?display=bedroom');
   });
 
   it('stops polling after unmount', async () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
@@ -22,7 +23,7 @@ export default function ClockClassicView({ config, now, time, scaledFontSize, au
 
   // Inline localized version of buildInfoParts: date-info.ts still hard-codes
   // English labels, so this view builds its own translated label.
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);
   if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);

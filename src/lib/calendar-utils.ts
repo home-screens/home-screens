@@ -123,19 +123,6 @@ export function weekStartsOnFor(startDay: WeekStartDay | undefined): 0 | 1 {
   return startDay === 'monday' ? 1 : 0;
 }
 
-/** getWeek options matching a grid's startDay: ISO 8601 numbering for
- * Monday-start grids, the US Sunday convention otherwise. Without these,
- * getWeek defaults to the US system and Monday-start rows get labeled with
- * week numbers that disagree with their own cells around year boundaries. */
-export function weekNumberOptions(startDay: WeekStartDay | undefined): {
-  weekStartsOn: 0 | 1;
-  firstWeekContainsDate: 1 | 4;
-} {
-  return startDay === 'monday'
-    ? { weekStartsOn: 1, firstWeekContainsDate: 4 }
-    : { weekStartsOn: 0, firstWeekContainsDate: 1 };
-}
-
 /**
  * Parse an event date string, treating date-only strings ("2026-03-22") as
  * local midnight instead of UTC midnight (the JS default for date-only strings).

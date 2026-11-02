@@ -13,6 +13,7 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorData } from '@/hooks/useEditorData';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import { createListRequest, sendTodoWrite } from '@/lib/todo-client';
 import { useTranslate } from '@/i18n';
@@ -74,7 +75,7 @@ export function TodoConfigSection({ mod, screenId }: { mod: ModuleInstance; scre
       setCreating(false);
     } catch (e) {
       if (isSessionExpired(e)) return;
-      setCreateError(e instanceof Error && e.message ? e.message : t('common.saveError'));
+      setCreateError(requestFailureText(e, { unreachable: t('common.hubUnreachable'), fallback: t('common.saveError') }));
     } finally {
       setBusy(false);
     }

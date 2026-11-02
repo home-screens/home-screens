@@ -50,8 +50,8 @@ describe('authorProblem', () => {
 
   it('refuses someone who is not in the family', async () => {
     const res = await authorProblem('stranger');
-    expect(res?.status).toBe(400);
-    expect(await res!.json()).toEqual({ error: 'That person is not in the family.' });
+    expect(res?.status).toBe(409);
+    expect(await res!.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
   });
 
   it('refuses an author that is not an id', async () => {

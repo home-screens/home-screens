@@ -29,8 +29,8 @@ describe('ChoreSession', () => {
         ok({ chores: JSON.parse(init.body as string).chores, revision: 'r3' }));
     const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
 
-    const first = session.save([chore('a')], false);
-    const second = session.save([chore('a'), chore('b')], false);
+    const first = session.save([chore('a')], false, 'Could not save');
+    const second = session.save([chore('a'), chore('b')], false, 'Could not save');
     await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
 
     release(ok({ chores: [chore('a')], revision: 'r2' }));
@@ -45,8 +45,8 @@ describe('ChoreSession', () => {
     const fetcher = vi.fn().mockResolvedValue(status(409, { reason: 'revision', error: 'Somebody else changed the chores.', ...theirs }));
     const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
 
-    const first = session.save([chore('mine')], false);
-    const second = session.save([chore('mine'), chore('mine-2')], false);
+    const first = session.save([chore('mine')], false, 'Could not save');
+    const second = session.save([chore('mine'), chore('mine-2')], false, 'Could not save');
 
     await expect(first).resolves.toEqual({ kind: 'conflict', snapshot: theirs });
     await expect(second).resolves.toEqual({ kind: 'superseded' });
@@ -54,16 +54,24 @@ describe('ChoreSession', () => {
 
     // A save made after the adoption quotes their revision.
     fetcher.mockResolvedValueOnce(ok({ chores: [chore('theirs'), chore('again')], revision: 'r3' }));
-    await session.save([chore('theirs'), chore('again')], false);
+    await session.save([chore('theirs'), chore('again')], false, 'Could not save');
     expect(bodyOf(fetcher.mock.calls[1]).revision).toBe('r2');
   });
 
   it('rejects on any other failure and keeps going afterwards', async () => {
     const fetcher = vi.fn()
-      .mockResolvedValueOnce(status(500, { error: 'boom' }))
+      .mockResolvedValueOnce(status(500, null))
       .mockResolvedValueOnce(ok({ chores: [chore('a')], revision: 'r2' }));
     const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
-    await expect(session.save([chore('a')], false)).rejects.toThrow('HTTP 500');
-    await expect(session.save([chore('a')], false)).resolves.toMatchObject({ kind: 'saved' });
+    await expect(session.save([chore('a')], false, 'Could not save')).rejects.toThrow('Could not save');
+    await expect(session.save([chore('a')], false, 'Could not save')).resolves.toMatchObject({ kind: 'saved' });
+  });
+
+  // A phone holding an old roster was told only that the save failed, and
+  // kept retrying a save the hub would never take.
+  it("rejects a refusal with the hub's own words", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(status(409, { error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' }));
+    const session = new ChoreSession(fetcher, { chores: [], settings: DEFAULT_CHORE_SETTINGS, revision: 'r1' });
+    await expect(session.save([chore('a')], false, 'Could not save')).rejects.toThrow('Someone in this selection was removed');
   });
 });

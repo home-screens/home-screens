@@ -164,14 +164,20 @@ describe('MultiMonthModule rows', () => {
     expect(dayRows(container).map((r) => r.style.flex)).toEqual(Array(WEEKS_PER_GRID).fill(FULL));
   });
 
-  it('gives a padded trailing row the next month’s ISO week', () => {
-    // December 2026 pads into January 2027: the last week number has to roll
-    // over to 53/1 rather than repeat the previous row.
-    const { container } = renderModule(new Date(2026, 11, 15), { showWeekNumbers: true });
-    const weekNumbers = Array.from(container.querySelectorAll<HTMLElement>('div[style*="font-size: 0.45em"]'))
+  // December 2026 pads into January 2027, where the two numberings part: the
+  // rows roll over into the new year, each the way a calendar with the same
+  // week start numbers it.
+  const weekNumbers = (startDay: WeekStartDay) => {
+    const { container } = renderModule(new Date(2026, 11, 15), { showWeekNumbers: true, startDay });
+    return Array.from(container.querySelectorAll<HTMLElement>('div[style*="font-size: 0.45em"]'))
       .map((el) => Number(el.textContent));
-    expect(weekNumbers).toHaveLength(WEEKS_PER_GRID);
-    expect(new Set(weekNumbers).size).toBe(WEEKS_PER_GRID);
-    expect(weekNumbers[WEEKS_PER_GRID - 1]).toBe(1);
+  };
+
+  it('numbers a Sunday grid the US way, like a Sunday calendar', () => {
+    expect(weekNumbers('sunday')).toEqual([49, 50, 51, 52, 1, 2]);
+  });
+
+  it('numbers a Monday grid the ISO way, like a Monday calendar', () => {
+    expect(weekNumbers('monday')).toEqual([49, 50, 51, 52, 53, 1]);
   });
 });

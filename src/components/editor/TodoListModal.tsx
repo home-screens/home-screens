@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ListTodo } from 'lucide-react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import {
   addItemRequest,
@@ -215,7 +216,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
         return adoptLists(lists);
       } catch (e) {
         if (isSessionExpired(e)) return false;
-        setError(e instanceof Error && e.message ? e.message : saveFailed);
+        setError(requestFailureText(e, { unreachable: t('common.hubUnreachable'), fallback: saveFailed }));
         // Whatever this write changed locally was refused: fetch the truth
         // once the other requests are done with it.
         droppedResponse.current = true;
@@ -228,7 +229,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
         }
       }
     },
-    [adoptLists, reconcile, saveFailed],
+    [adoptLists, reconcile, saveFailed, t],
   );
 
   // ── Name ──

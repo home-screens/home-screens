@@ -21,7 +21,8 @@ import {
   resetMealSettings,
   canChooseMealiePlan,
 } from '@/lib/meal-settings';
-import { HubUnreachableError, loadMealSettings, saveMealSettings } from '@/lib/meal-client';
+import { loadMealSettings, saveMealSettings } from '@/lib/meal-client';
+import { HubUnreachableError } from '@/lib/hub-request';
 import { mealieProblem } from '@/lib/meal-sources';
 import { settingsPath } from '@/lib/settings-route';
 import { useMealieCheck, type MealieCheck } from '@/hooks/useMealieCheck';

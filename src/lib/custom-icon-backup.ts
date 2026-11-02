@@ -8,9 +8,11 @@
  * shows the usual emoji, which should be a choice rather than an accident.
  */
 
+import type { EditorFetchInit } from './editor-fetch';
+
 const KEY = 'hs-backup-include-icons';
 
-type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
+type FetchFn = (url: string, options?: EditorFetchInit) => Promise<Response>;
 
 export function getIncludeCustomIcons(): boolean {
   try {
@@ -31,7 +33,8 @@ export function setIncludeCustomIcons(include: boolean): void {
  *  whether to save the backup without them. */
 export async function attachCustomIcons<T extends object>(bundle: T, fetchFn: FetchFn): Promise<T> {
   if (!getIncludeCustomIcons()) return bundle;
-  const res = await fetchFn('/api/backup/custom-icons');
+  // Every icon as data, which can run to tens of megabytes.
+  const res = await fetchFn('/api/backup/custom-icons', { timeoutMs: null });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const section = (await res.json()) as { icons?: unknown[] };
   if (!section.icons?.length) return bundle;

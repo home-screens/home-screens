@@ -214,6 +214,8 @@ export default function PluginAuthSection({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password }),
+        // Signing in is several calls to Garmin in a row, each under the hub's own limits.
+        timeoutMs: null,
       });
       const data = await res.json();
       if (!res.ok) {

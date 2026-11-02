@@ -175,7 +175,8 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
   const previewUrl = browsing || !folderId || !status?.connected
     ? null
     : `/api/onedrive/photos?folderId=${encodeURIComponent(folderId)}&count=${count}`;
-  const { data: previewData } = useEditorData<MediaItem[]>(previewUrl);
+  // The preview walks the folder page by page before it answers.
+  const { data: previewData } = useEditorData<MediaItem[]>(previewUrl, null);
   const previewThumbs = (previewData ?? [])
     .filter((item) => item.type === 'image')
     .slice(0, PREVIEW_COUNT)

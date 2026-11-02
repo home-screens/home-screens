@@ -8,6 +8,7 @@ import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { weekStartsOnFor } from '@/lib/calendar-utils';
+import { weekNumberFor } from '@/lib/week-number';
 import { pickPillTextColor, DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { colorWithAlpha } from '@/lib/module-style';
 import type { MultiMonthConfig, ModuleStyle, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
@@ -80,13 +81,6 @@ export function getMonthGrid(year: number, month: number, startDay: WeekStartDay
   }
 
   return cells;
-}
-
-function getISOWeek(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
 /** Opacity of a filled today marker, so the grid behind it still reads through. */
@@ -164,22 +158,15 @@ function MonthGrid({
     : undefined;
   const gridCols = showWeekNumbers ? '1.4em repeat(7, 1fr)' : 'repeat(7, 1fr)';
 
-  // Week numbers for each row
+  // Week numbers for each row, numbered the way the grid's week start says,
+  // so a Sunday grid agrees with a Sunday calendar on the same wall. Any day
+  // of a row gives the same number; the row's first is used. The Date
+  // constructor carries day 0 and below into the previous month.
   const weeks: number[] = [];
   if (showWeekNumbers) {
+    const leading = cells.findIndex((cell) => cell.current);
     for (let row = 0; row < WEEKS_PER_GRID; row++) {
-      const thursdayIdx = row * 7 + 3;
-      const cell = cells[thursdayIdx];
-      let cellMonth = month;
-      let cellYear = year;
-      if (!cell.current && thursdayIdx < 7) {
-        cellMonth = month - 1;
-        if (cellMonth < 0) { cellMonth = 11; cellYear = year - 1; }
-      } else if (!cell.current && thursdayIdx >= 7) {
-        cellMonth = month + 1;
-        if (cellMonth > 11) { cellMonth = 0; cellYear = year + 1; }
-      }
-      weeks.push(getISOWeek(new Date(cellYear, cellMonth, cell.day)));
+      weeks.push(weekNumberFor(new Date(year, month, 1 - leading + row * 7), startDay));
     }
   }
 

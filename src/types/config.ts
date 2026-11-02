@@ -1242,7 +1242,12 @@ export interface ClockConfig {
   showDate: boolean;
   /** Date format string (date-fns); empty shows the whole date the way the household's language writes it */
   dateFormat: string;
-  /** Display current week number */
+  /**
+   * Display current week number, counted the way the household's language usually does: Monday weeks
+   * the way most of Europe numbers them, Sunday weeks in the US and Brazil
+   *
+   * The week start comes from the formatting locale's region (`localeWeekStart`), then `weekNumberFor`.
+   */
   showWeekNumber: boolean;
   /** Display day of year (e.g. "Day 67 of 365") */
   showDayOfYear: boolean;
@@ -3457,7 +3462,12 @@ export interface MultiMonthConfig {
   monthCount: number;
   /** First day of week: `sunday` or `monday` */
   startDay: WeekStartDay;
-  /** Show ISO week numbers */
+  /**
+   * Show week numbers, counted the way the first day of the week says: Monday weeks the way most of
+   * Europe numbers them, Sunday weeks the US way, so they match a calendar that starts on the same day
+   *
+   * `weekNumberFor` in `src/lib/week-number.ts`: ISO 8601 for Monday, US for Sunday.
+   */
   showWeekNumbers: boolean;
   /** Dim weekend days */
   highlightWeekends: boolean;
@@ -4166,7 +4176,12 @@ export interface DateConfig {
   showDayName: boolean;
   /** Show year */
   showYear: boolean;
-  /** Show week number (e.g. "Week 12") */
+  /**
+   * Show week number (e.g. "Week 12"), counted the way the household's language usually does: Monday
+   * weeks the way most of Europe numbers them, Sunday weeks in the US and Brazil
+   *
+   * The week start comes from the formatting locale's region (`localeWeekStart`), then `weekNumberFor`.
+   */
   showWeekNumber: boolean;
   /** Show day of year (e.g. "Day 75") */
   showDayOfYear: boolean;

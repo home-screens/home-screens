@@ -41,6 +41,8 @@ export default function InstallFromUrlModal({ onClose, onInstalled }: InstallFro
     try {
       const res = await editorFetch('/api/plugins/install-external', {
         method: 'POST',
+        // An install downloads the plugin under the hub's own time limits.
+        timeoutMs: null,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tarballUrl: url.trim(),

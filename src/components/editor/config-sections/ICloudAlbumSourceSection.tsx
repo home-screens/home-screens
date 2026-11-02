@@ -36,7 +36,8 @@ export function ICloudAlbumSourceSection({ config, set }: Props) {
   const previewUrl = linkKind === 'album'
     ? `/api/icloud/photos?album=${encodeURIComponent(albumUrl)}&count=4`
     : null;
-  const { data: previewData } = useEditorData<string[]>(previewUrl);
+  // A cold preview reads the whole album from Apple, 25 photos per call.
+  const { data: previewData } = useEditorData<string[]>(previewUrl, null);
   const previewImages = useMemo(() => previewData ?? [], [previewData]);
 
   return (

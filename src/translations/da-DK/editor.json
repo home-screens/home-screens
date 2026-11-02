@@ -33,6 +33,7 @@
     "saveError": "Kunne ikke gemme",
     "networkError": "Netværksfejl",
     "serverUnreachable": "Kunne ikke få kontakt til serveren",
+    "hubUnreachable": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
     "typographySizes": {
       "small": "Lille",
       "medium": "Mellem",

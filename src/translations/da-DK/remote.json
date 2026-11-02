@@ -19,6 +19,9 @@
     "restarting": "Home Screens genstarter. Forbinder igen om cirka 20 sekunder…",
     "rebooting": "Enheden genstarter. Forbinder igen om cirka et minut…"
   },
+  "hubRequest": {
+    "saveFailed": "Kunne ikke nå Home Screens, så det blev ikke gemt. Tjek forbindelsen, og prøv igen."
+  },
   "backupReminder": {
     "daysAgoSingular": "Du har ikke foretaget i {n} dag.",
     "daysAgoPlural": "Du har ikke foretaget i {n} dage.",

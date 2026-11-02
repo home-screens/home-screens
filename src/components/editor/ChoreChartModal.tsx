@@ -3,6 +3,7 @@
 import { Fragment, useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { asChoreSnapshot, ChoreSession, type ChoreSnapshot } from '@/lib/chore-client';
 import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { displayCache } from '@/lib/display-cache';
 import FamilyManager from '@/components/family/FamilyManager';
 import { useFamilyData } from '@/hooks/useFamilyData';
@@ -1027,7 +1028,8 @@ export default function ChoreChartModal({
   const [chores, setChores] = useState<ChoreDefinition[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
-  const [saveError, setSaveError] = useState<'failed' | 'conflict' | null>(null);
+  /** `conflict`, or the words of a save that failed. */
+  const [saveError, setSaveError] = useState<string | null>(null);
   // Saves go through one session (`lib/chore-client.ts`): they run in order,
   // each quoting the revision the previous one was answered with, so a list
   // from an older copy cannot overwrite what a phone saved since.
@@ -1097,7 +1099,7 @@ export default function ChoreChartModal({
     enabled: loaded,
     save: async () => {
       if (chores === adoptedRef.current) return;
-      const outcome = await session.save(chores, chores.length === 0);
+      const outcome = await session.save(chores, chores.length === 0, t('common.saveError'));
       // Somebody else saved first. Show their list rather than replace it;
       // the change made here has to be made again on top of it.
       if (outcome.kind === 'conflict') {
@@ -1114,7 +1116,7 @@ export default function ChoreChartModal({
     // on screen and gone on reload.
     onError: (err) => {
       if (isSessionExpired(err)) return;
-      setSaveError('failed');
+      setSaveError(requestFailureText(err, { unreachable: t('common.hubUnreachable'), fallback: t('common.saveError') }));
     },
   });
 
@@ -1168,7 +1170,7 @@ export default function ChoreChartModal({
       )}
       {saveError && (
         <div role="alert" className="mx-4 mt-3 px-3 py-2 rounded-lg bg-hs-danger/10 border border-hs-danger/30 text-hs-danger text-xs">
-          {saveError === 'conflict' ? t('choreChartModal.changedElsewhere') : t('common.saveError')}
+          {saveError === 'conflict' ? t('choreChartModal.changedElsewhere') : saveError}
         </div>
       )}
       {/* Nothing is editable until the store is in hand. The columns start

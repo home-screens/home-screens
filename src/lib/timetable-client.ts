@@ -17,6 +17,8 @@ import { displayCache } from './display-cache';
 import { FETCH_KEY_REGISTRY, timetablesUrl } from './fetch-keys';
 import type { TimetableData } from '@/types/timetables';
 import type { TimetableImportCheckResult } from './timetable-api';
+import { readJson, refusalMessage } from './hub-request';
+import type { EditorFetchInit } from './editor-fetch';
 
 /** How long a loaded document stays fresh for everything else on the page. */
 export const TIMETABLES_TTL_MS = FETCH_KEY_REGISTRY['timetable']?.ttlMs ?? 60_000;
@@ -25,7 +27,7 @@ export const TIMETABLES_TTL_MS = FETCH_KEY_REGISTRY['timetable']?.ttlMs ?? 60_00
  * `editorFetch` in the editor (a 401 goes to the sign-in page). Injected
  * rather than imported so the calls can be exercised without a browser.
  */
-export type TimetableFetch = (url: string, init?: RequestInit) => Promise<Response>;
+export type TimetableFetch = (url: string, init?: EditorFetchInit) => Promise<Response>;
 
 /** The document and the revision the next save has to quote back. */
 export interface TimetableSnapshot {
@@ -59,21 +61,6 @@ function asSnapshot(json: unknown): TimetableSnapshot | null {
   const { schools, subjects, timetables } = data as Record<string, unknown>;
   if (!isList(schools) || !isList(subjects) || !isList(timetables)) return null;
   return { data: data as TimetableData, revision };
-}
-
-async function readJson(res: Response): Promise<unknown> {
-  return res.json().catch(() => null);
-}
-
-/**
- * The refusal in the household's own words when the route wrote one, and the
- * caller's fallback otherwise. The store's messages are already plain
- * language ("periods and breaks have to run in time order"), so showing them
- * is more useful than a status code.
- */
-function refusalMessage(json: unknown, fallback: string): string {
-  const error = (json as { error?: unknown } | null)?.error;
-  return typeof error === 'string' && error ? error : fallback;
 }
 
 /** Hand a document that is already in hand to everything showing this URL. */
@@ -141,6 +128,8 @@ export async function checkSheetNow(
 ): Promise<void> {
   const res = await fetcher(SYNC_URL, {
     method: 'POST',
+    // Reading the sheet is several calls to its host, under the hub's own limits.
+    timeoutMs: null,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ memberId }),
   });
@@ -188,6 +177,8 @@ export async function checkSheetLink(
 ): Promise<TimetableImportCheckResult> {
   const res = await fetcher(IMPORT_CHECK_URL, {
     method: 'POST',
+    // Reading the sheet is several calls to its host, under the hub's own limits.
+    timeoutMs: null,
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url }),
   });

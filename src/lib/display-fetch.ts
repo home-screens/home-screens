@@ -44,18 +44,22 @@ export function setDisplayToken(t: string | null) {
 /**
  * A signal that fires after `timeoutMs`, or when the caller's own signal
  * fires, whichever comes first. Built by hand rather than with
- * `AbortSignal.any` so a test's fake timers drive it.
+ * `AbortSignal.any` so a test's fake timers drive it. `timedOut` makes the
+ * error the deadline aborts with, which a request still waiting for its
+ * answer rejects with (a body cut off mid-read may end in a plain AbortError
+ * instead, as Chromium's does).
  */
-export function timeoutSignal(timeoutMs: number, callerSignal: AbortSignal | null | undefined): AbortSignal {
+export function timeoutSignal(
+  timeoutMs: number,
+  callerSignal: AbortSignal | null | undefined,
+  timedOut: () => unknown = () => new DOMException(`Request timed out after ${timeoutMs} ms`, 'TimeoutError'),
+): AbortSignal {
   const controller = new AbortController();
   // The timer runs for the request's whole life, body included: there is no
   // moment the wrapper can know the caller has finished reading. Aborting a
   // request that already completed does nothing, so the timer is left to
   // fire and is cleared only when the caller's signal fires first.
-  const timer = setTimeout(
-    () => controller.abort(new DOMException(`Request timed out after ${timeoutMs} ms`, 'TimeoutError')),
-    timeoutMs,
-  );
+  const timer = setTimeout(() => controller.abort(timedOut()), timeoutMs);
   if (callerSignal) {
     const forward = () => {
       clearTimeout(timer);

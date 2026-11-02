@@ -33,6 +33,7 @@
     "saveError": "Failed to save",
     "networkError": "Network error",
     "serverUnreachable": "Failed to reach server",
+    "hubUnreachable": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
     "typographySizes": {
       "small": "Small",
       "medium": "Medium",

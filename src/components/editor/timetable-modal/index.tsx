@@ -88,6 +88,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
   const draft = useTimetableDraft({
     loadFailed: t('timetableModal.loadError'),
     saveFailed: t('common.saveError'),
+    unreachable: t('common.hubUnreachable'),
   });
   const data = draft.data ?? EMPTY_TIMETABLE_DATA;
 

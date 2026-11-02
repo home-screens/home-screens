@@ -100,6 +100,8 @@ export function useLibraryImportJob(endpoint: string, onFinished?: (job: Library
     try {
       const res = await editorFetch(endpoint, {
         method: 'POST',
+        // The hub lists every picked item, page by page, before it answers.
+        timeoutMs: null,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });

@@ -19,6 +19,9 @@
     "restarting": "Home Screens is restarting. Reconnecting in about 20 seconds…",
     "rebooting": "The device is rebooting. Reconnecting in about a minute…"
   },
+  "hubRequest": {
+    "saveFailed": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again."
+  },
   "backupReminder": {
     "daysAgoSingular": "You haven't backed up in {n} day.",
     "daysAgoPlural": "You haven't backed up in {n} days.",

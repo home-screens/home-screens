@@ -82,8 +82,8 @@ describe('PATCH /api/notes/[noteId]', () => {
   it('refuses an author who is not in the family, and writes nothing', async () => {
     const raw = await fs.readFile(notesPath(), 'utf-8');
     const res = await patch('a', { authorId: 'stranger', text: 'Changed' });
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'That person is not in the family.' });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
     expect(await fs.readFile(notesPath(), 'utf-8')).toBe(raw);
   });
 

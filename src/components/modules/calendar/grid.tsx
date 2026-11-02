@@ -1,12 +1,13 @@
 'use client';
 
 import { memo, useCallback, useMemo, useRef } from 'react';
-import { isSameDay, isSameMonth, addDays, getWeek, differenceInCalendarDays } from 'date-fns';
+import { isSameDay, isSameMonth, addDays, differenceInCalendarDays } from 'date-fns';
 import {
-  parseEventWallTime, eventsForDay, weekStartsOnFor, weekNumberOptions, clampWeeksToShow, clampRollingWeeks, clampGridMaxEventsPerCell,
+  parseEventWallTime, eventsForDay, weekStartsOnFor, clampWeeksToShow, clampRollingWeeks, clampGridMaxEventsPerCell,
   clampGridDayLabelScale, gridCellEvents,
   formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, isAllDayEvent, isWeekendDay,
 } from '@/lib/calendar-utils';
+import { weekNumberFor } from '@/lib/week-number';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import { pickGridTimeColor, pickPillTextColor, pickTintedTextColor } from '@/lib/calendar-color';
 import { dayDecorFor, mergeCellDecor } from '@/lib/calendar-rules';
@@ -139,7 +140,7 @@ export function WeekNumberCell({ date, config, className = 'pt-0.5', fontSize = 
   return (
     <div className={`flex items-start justify-center px-1 ${className}`}>
       <span style={{ fontSize: scaledEm(fontSize, clampGridDayLabelScale(config.gridDayLabelScale)), opacity: TEXT_OPACITY.tertiary }}>
-        {getWeek(date, weekNumberOptions(config.startDay))}
+        {weekNumberFor(date, config.startDay)}
       </span>
     </div>
   );

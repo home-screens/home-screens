@@ -23,7 +23,11 @@ export interface EditorData<T> {
  * call sites this replaces (which mostly `.catch(() => {})`). Call `refetch()`
  * to re-run the current URL without changing it (e.g. after a modal closes).
  */
-export function useEditorData<T>(url: string | null): EditorData<T> {
+export function useEditorData<T>(
+  url: string | null,
+  /** Passed to `editorFetch`, for a read the hub takes longer over by design. */
+  timeoutMs?: number | null,
+): EditorData<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -43,7 +47,7 @@ export function useEditorData<T>(url: string | null): EditorData<T> {
     setLoading(true);
     setError(false);
 
-    editorFetch(url, { signal: controller.signal })
+    editorFetch(url, { signal: controller.signal, timeoutMs })
       .then(async (res) => {
         if (controller.signal.aborted) return;
         if (res.ok) {
@@ -66,7 +70,7 @@ export function useEditorData<T>(url: string | null): EditorData<T> {
       });
 
     return () => controller.abort();
-  }, [url, reloadTick]);
+  }, [url, reloadTick, timeoutMs]);
 
   return { data, error, loading, refetch };
 }

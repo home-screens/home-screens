@@ -1947,7 +1947,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Display current week number",
+          "description": "Display current week number, counted the way the household's language usually does: Monday weeks the way most of Europe numbers them, Sunday weeks in the US and Brazil",
           "default": false
         },
         {
@@ -2751,7 +2751,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show week number (e.g. \"Week 12\")",
+          "description": "Show week number (e.g. \"Week 12\"), counted the way the household's language usually does: Monday weeks the way most of Europe numbers them, Sunday weeks in the US and Brazil",
           "default": false
         },
         {
@@ -2914,7 +2914,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show ISO week numbers",
+          "description": "Show week numbers, counted the way the first day of the week says: Monday weeks the way most of Europe numbers them, Sunday weeks the US way, so they match a calendar that starts on the same day",
           "default": false
         },
         {

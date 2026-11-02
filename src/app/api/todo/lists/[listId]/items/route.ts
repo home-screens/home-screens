@@ -28,5 +28,6 @@ export const POST = withAuth(async (request: NextRequest, ctx: RouteContext) => 
       return result.data;
     },
     () => ({ created }),
+    { assigneeIds: fields.assigneeIds },
   );
 }, 'Failed to add the item');

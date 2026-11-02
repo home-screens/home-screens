@@ -33,6 +33,7 @@
     "saveError": "Opslaan mislukt",
     "networkError": "Netwerkfout",
     "serverUnreachable": "Server niet bereikbaar",
+    "hubUnreachable": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
     "typographySizes": {
       "small": "Klein",
       "medium": "Middel",

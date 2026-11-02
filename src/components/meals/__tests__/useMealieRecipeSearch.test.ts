@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { MealFetch } from '@/lib/meal-client';
 import { useMealieRecipeSearch } from '../useMealieRecipeSearch';
+import { HubUnreachableError } from '@/lib/hub-request';
 
 afterEach(cleanup);
 
@@ -13,7 +14,7 @@ const search = (fetcher: MealFetch) =>
 describe('useMealieRecipeSearch', () => {
   /* A phone that lost the hub mid-search was told Mealie is down. */
   it('says a lost hub is a connection problem, not Mealie being down', async () => {
-    const { result } = search(vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    const { result } = search(vi.fn().mockRejectedValue(new HubUnreachableError()));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.problem).toBe('connection');
   });

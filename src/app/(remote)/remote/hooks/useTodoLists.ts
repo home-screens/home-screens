@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
 import type { TodoList, TodoListItem } from '@/types/todos';
@@ -161,7 +162,7 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
           pendingRef.current = pendingRef.current.filter((p) => p !== entry);
           if (isSessionExpired(e)) return null;
           render();
-          showToast(e instanceof Error ? e.message : t('lists.errors.generic'), 'error');
+          showToast(requestFailureText(e, { unreachable: t('hubRequest.saveFailed'), fallback: t('lists.errors.generic') }), 'error');
           void refresh(true);
           return null;
         } finally {

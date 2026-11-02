@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import clsx from 'clsx';
 import { ChevronDown, ChevronRight, MessageSquareText, Pin, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { displayCache } from '@/lib/display-cache';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
 import {
@@ -379,7 +380,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
         return true;
       } catch (e) {
         if (isSessionExpired(e)) return false;
-        setError(e instanceof Error && e.message ? e.message : saveFailed);
+        setError(requestFailureText(e, { unreachable: t('common.hubUnreachable'), fallback: saveFailed }));
         // Whatever this write changed locally was refused: fetch the truth
         // once the other requests are done with it.
         droppedResponse.current = true;
@@ -392,7 +393,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
         }
       }
     },
-    [adopt, reconcile, saveFailed],
+    [adopt, reconcile, saveFailed, t],
   );
 
   // Writes go out one at a time, in the order they were asked for, the way

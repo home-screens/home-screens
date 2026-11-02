@@ -3,7 +3,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { useMealieShoppingList } from '../useMealieShoppingList';
-import { HubUnreachableError, loadMealieShopping, tickMealieShoppingItem } from '@/lib/meal-client';
+import { loadMealieShopping, tickMealieShoppingItem } from '@/lib/meal-client';
+import { HubUnreachableError } from '@/lib/hub-request';
 import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
 import type { ShoppingItem } from '@/lib/shopping-list';
 import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
@@ -30,7 +31,8 @@ function hub(lists: HubList[]) {
     };
   };
   const fetcher = vi.fn(async (url: string, init?: RequestInit) => {
-    if (state.down) throw new TypeError('Failed to fetch');
+    // What `editorFetch` throws for a hub it cannot reach.
+    if (state.down) throw new HubUnreachableError();
     const method = init?.method ?? 'GET';
     const body = init?.body ? JSON.parse(init.body as string) : null;
     if (method === 'PATCH') {
@@ -284,14 +286,9 @@ describe('useMealieShoppingList', () => {
     expect(result.current.view.groups[0].left).toBe(1);
   });
 
-  it('gives every request a time limit, and a request that fails or runs out counts as not reaching the hub', async () => {
-    const seen: (AbortSignal | null | undefined)[] = [];
-    const fetcher = vi.fn(async (_url: string, init?: RequestInit) => {
-      seen.push(init?.signal);
-      throw new DOMException('The operation timed out.', 'TimeoutError');
-    });
+  it('passes a hub out of reach on as it is', async () => {
+    const fetcher = vi.fn(async () => { throw new HubUnreachableError(); });
     await expect(loadMealieShopping(fetcher)).rejects.toBeInstanceOf(HubUnreachableError);
     await expect(tickMealieShoppingItem(fetcher, 'milk', true)).rejects.toBeInstanceOf(HubUnreachableError);
-    expect(seen.every((signal) => signal instanceof AbortSignal)).toBe(true);
   });
 });

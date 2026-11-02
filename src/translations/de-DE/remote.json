@@ -19,6 +19,9 @@
     "restarting": "Home Screens startet neu. Verbindung in etwa 20 Sekunden wieder da…",
     "rebooting": "Das Gerät startet neu. Verbindung in etwa einer Minute wieder da…"
   },
+  "hubRequest": {
+    "saveFailed": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal."
+  },
   "backupReminder": {
     "daysAgoSingular": "Du hast seit {n} Tag kein Backup gemacht.",
     "daysAgoPlural": "Du hast seit {n} Tagen kein Backup gemacht.",

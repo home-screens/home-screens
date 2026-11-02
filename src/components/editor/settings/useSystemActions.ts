@@ -111,7 +111,8 @@ export function useSystemActions({ onUpgrade, onRollback }: Options): SystemActi
       if (forceCheck) params.set('check', 'true');
       params.set('channel', channel);
       const query = params.toString();
-      const vRes = await editorFetch(`/api/system/version${query ? `?${query}` : ''}`);
+      // Checking asks GitHub, and fetches tags on a git install, under the hub's own limits.
+      const vRes = await editorFetch(`/api/system/version${query ? `?${query}` : ''}`, forceCheck ? { timeoutMs: null } : undefined);
 
       if (vRes.ok) {
         const data = await vRes.json();

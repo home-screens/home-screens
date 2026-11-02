@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { PlannedMeal, SavedMeal } from '@/types/config';
 import { displayCache } from '@/lib/display-cache';
 import {
@@ -14,9 +14,7 @@ import {
   saveMealPlanSource,
   MealSession,
   MealClientError,
-  HubUnreachableError,
   MAX_CONFLICT_RETRIES,
-  MEAL_REQUEST_TIMEOUT_MS,
   mealieClientProblem,
   searchMealieRecipes,
   fetchMealieRecipeDetail,
@@ -24,6 +22,7 @@ import {
   type MealFetch,
   type MealSnapshot,
 } from '../meal-client';
+import { HubUnreachableError } from '../hub-request';
 
 const meal = (id: string) => ({ id, name: id }) as SavedMeal;
 const entry = (id: string) => ({ date: '2026-09-15', slot: 'dinner', mealId: id }) as PlannedMeal;
@@ -138,8 +137,8 @@ describe('saveGroceryCheck', () => {
     await expect(saveGroceryCheck(fetcher, 'soon', 'milk', 'check')).rejects.toThrow(/week must be a date/);
   });
 
-  it('says a dropped connection is not reaching the hub, and lets an expired session through as it is', async () => {
-    const dropped = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+  it('lets a hub out of reach and an expired session through as they are', async () => {
+    const dropped = vi.fn().mockRejectedValue(new HubUnreachableError());
     await expect(saveGroceryCheck(dropped, '2026-10-04', 'milk', 'check')).rejects.toBeInstanceOf(HubUnreachableError);
     const expired = new Error('Session expired');
     await expect(saveGroceryCheck(vi.fn().mockRejectedValue(expired), '2026-10-04', 'milk', 'check')).rejects.toBe(expired);
@@ -634,7 +633,7 @@ describe('asking the hub again after Mealie refused', () => {
     const onRecheck = vi.fn();
     const mealie = vi.fn()
       .mockResolvedValueOnce(ok(mealieCopy('ok')))
-      .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+      .mockRejectedValueOnce(new HubUnreachableError());
     const away = new MealSession(mealie, onRecheck);
     await away.load();
     await expect(away.save((c) => ({ plan: c.plan.filter(() => false) }))).rejects.toBeInstanceOf(HubUnreachableError);
@@ -654,21 +653,6 @@ describe('asking the hub again after Mealie refused', () => {
 });
 
 describe('reaching the hub', () => {
-  afterEach(() => { vi.useRealTimers(); });
-
-  /* Only the shopping list calls gave up on a hub that never answered; a
-   * plan load on a weak signal stayed open for minutes. */
-  it('gives up on a request the hub never answers', async () => {
-    vi.useFakeTimers();
-    const fetcher = vi.fn((_url: string, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
-      init?.signal?.addEventListener('abort', () => reject(new DOMException('Timed out', 'TimeoutError')));
-    }));
-    const loading = loadMeals(fetcher);
-    const settled = expect(loading).rejects.toBeInstanceOf(HubUnreachableError);
-    await vi.advanceTimersByTimeAsync(MEAL_REQUEST_TIMEOUT_MS);
-    await settled;
-  });
-
   it('lets the caller\'s own cancel through as it is', async () => {
     const controller = new AbortController();
     const cancelled = new DOMException('Aborted', 'AbortError');
@@ -681,7 +665,7 @@ describe('reaching the hub', () => {
 
   /* A phone that lost the hub mid-search was told Mealie is down. */
   it('names a lost hub a connection problem, not Mealie being down', async () => {
-    const search = searchMealieRecipes(vi.fn().mockRejectedValue(new TypeError('Failed to fetch')), { search: 'pie' });
+    const search = searchMealieRecipes(vi.fn().mockRejectedValue(new HubUnreachableError()), { search: 'pie' });
     expect(await search.catch(mealieClientProblem)).toBe('connection');
     expect(mealieClientProblem(new MealClientError('load', 'No.', 'token'))).toBe('token');
     expect(mealieClientProblem(new Error('anything else'))).toBe('unreachable');

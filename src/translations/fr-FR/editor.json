@@ -33,6 +33,7 @@
     "saveError": "Échec de l’enregistrement",
     "networkError": "Erreur réseau",
     "serverUnreachable": "Impossible de joindre le serveur",
+    "hubUnreachable": "Home Screens était injoignable, donc ça n'a pas été enregistré. Vérifie la connexion et réessaie.",
     "typographySizes": {
       "small": "Petit",
       "medium": "Moyen",

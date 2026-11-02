@@ -4,8 +4,7 @@ import { setMealPlanSource } from '@/lib/meal-settings';
 import { mealWriteBody, type MealDataWrite } from '@/lib/meal-write';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { displayCache } from '@/lib/display-cache';
-import { timeoutSignal } from '@/lib/display-fetch';
-import { isSessionExpired } from '@/lib/editor-fetch';
+import { HubUnreachableError, readJson, refusalMessage } from '@/lib/hub-request';
 import { mealieProblem, mergeMealSources, planCellChanges, rangeCovers, unionRange, type MealieProblem, type MealieWireBlock } from '@/lib/meal-sources';
 import type { MealieCategory, MealieCookbook, MealieFailure, MealieRecipeFilter } from '@/lib/mealie';
 import { mealieRecipeUrl, type MealieRecipeDetail } from '@/lib/mealie-map';
@@ -23,7 +22,11 @@ import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type Gro
  * says somebody else saved first.
  */
 
-/** `editorFetch` on the editor and phone; the wall never writes meals. */
+/**
+ * `editorFetch` on the editor and phone; the wall never writes meals. It bounds
+ * every request and rejects with `HubUnreachableError` when the hub cannot be
+ * reached, which the calls here pass on untouched.
+ */
 export type MealFetch = (url: string, init?: RequestInit) => Promise<Response>;
 
 /** What one GET (or one accepted save) answered with. */
@@ -116,16 +119,6 @@ function asSnapshot(json: unknown, fallbackTimeFormat: TimeFormat): MealSnapshot
   return { ...answer, revision };
 }
 
-async function readJson(res: Response): Promise<unknown> {
-  return res.json().catch(() => null);
-}
-
-/** The route's own plain sentence when it wrote one, the caller's fallback otherwise. */
-function refusalMessage(json: unknown, fallback: string): string {
-  const error = (json as { error?: unknown } | null)?.error;
-  return typeof error === 'string' && error ? error : fallback;
-}
-
 /**
  * A refusal from one of the routes that talk to Mealie. When Mealie was the
  * problem the route says how (`failure`), and the error carries it in the
@@ -134,17 +127,6 @@ function refusalMessage(json: unknown, fallback: string): string {
 function mealieRefusal(kind: MealClientFailure, json: unknown, fallback: string): MealClientError {
   const failure = (json as { failure?: MealieFailure } | null)?.failure;
   return new MealClientError(kind, refusalMessage(json, fallback), failure ? mealieProblem(failure) : undefined);
-}
-
-/**
- * The phone or laptop could not reach the hub at all (no connection, or no
- * answer in time). Not Mealie's doing, so a surface says so differently.
- */
-export class HubUnreachableError extends Error {
-  constructor() {
-    super("Couldn't reach Home Screens.");
-    this.name = 'HubUnreachableError';
-  }
 }
 
 /** Why a call about Mealie failed, as a surface says it: Mealie's reasons, or this device not reaching the hub. */
@@ -156,36 +138,12 @@ export function mealieClientProblem(err: unknown): MealieClientProblem {
 }
 
 /**
- * How long a call about meals may take. Longer than the hub itself waits on
- * Mealie (three tries of ten seconds), so a Mealie that hangs comes back as
- * Mealie not answering, not as this device losing the hub.
- */
-export const MEAL_REQUEST_TIMEOUT_MS = 45_000;
-
-/**
- * One request to the hub. Past `MEAL_REQUEST_TIMEOUT_MS`, or when the
- * connection drops, it fails with `HubUnreachableError`, so a phone on a weak
- * signal does not keep a request open for minutes with its change looking
- * saved. The caller's own cancel and an expired session (sign-in is on its
- * way) come through as they are. Every call here goes through it and keeps
- * its own answer handling.
- */
-async function hubFetch(fetcher: MealFetch, url: string, init?: RequestInit): Promise<Response> {
-  try {
-    return await fetcher(url, { ...init, signal: timeoutSignal(MEAL_REQUEST_TIMEOUT_MS, init?.signal) });
-  } catch (err) {
-    if (init?.signal?.aborted || isSessionExpired(err)) throw err;
-    throw new HubUnreachableError();
-  }
-}
-
-/**
  * Load the stored meals. Rejects on any non-success status or an unusable
  * body: a surface that treated an error body as an empty library went on to
  * replace the real one with the first meal it added.
  */
 export async function loadMeals(fetcher: MealFetch): Promise<MealSnapshot> {
-  const res = await hubFetch(fetcher, mealsDataUrl());
+  const res = await fetcher(mealsDataUrl());
   const json = await readJson(res);
   const snapshot = res.ok ? asSnapshot(json, '12h') : null;
   if (!snapshot) throw new MealClientError('load', refusalMessage(json, 'The meals could not be loaded.'));
@@ -194,7 +152,7 @@ export async function loadMeals(fetcher: MealFetch): Promise<MealSnapshot> {
 
 /** The stored meal settings, read fresh, and whether Mealie's address and key are saved. */
 export async function loadMealSettings(fetcher: MealFetch): Promise<{ settings: MealSettings; mealieConnected: boolean }> {
-  const res = await hubFetch(fetcher, mealsDataUrl());
+  const res = await fetcher(mealsDataUrl());
   const json = await readJson(res);
   if (!res.ok || !json || typeof json !== 'object') throw new MealClientError('load', refusalMessage(json, 'The meals could not be loaded.'));
   const d = json as { settings?: unknown; mealieConnected?: unknown };
@@ -207,7 +165,7 @@ export async function loadMealSettings(fetcher: MealFetch): Promise<{ settings: 
  * Answers with the settings as the hub now keeps them.
  */
 export async function saveMealSettings(fetcher: MealFetch, settings: MealSettings): Promise<MealSettings> {
-  const res = await hubFetch(fetcher, mealsDataUrl(), {
+  const res = await fetcher(mealsDataUrl(), {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ settings }),
@@ -257,7 +215,7 @@ export async function saveGroceryCheck(
   item: string,
   direction: GroceryCheckDirection,
 ): Promise<GroceryWeekChecks> {
-  const res = await hubFetch(fetcher, '/api/meals/grocery', {
+  const res = await fetcher('/api/meals/grocery', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ item, direction, week }),
@@ -294,7 +252,7 @@ export async function saveMealEdit(fetcher: MealFetch, base: MealSnapshot, edit:
   for (let attempt = 0; ; attempt++) {
     const changes = changedHalves(edit(current), current);
     if (!changes) return current;
-    const res = await hubFetch(fetcher, mealsDataUrl(), {
+    const res = await fetcher(mealsDataUrl(), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...mealWriteBody(changes), revision: current.revision }),
@@ -346,7 +304,7 @@ export interface MealieRange {
  * older copy, and either would replace every week the surface already shows.
  */
 export async function loadMealieRange(fetcher: MealFetch, base: MealSnapshot, range: MealieRange): Promise<MealSnapshot> {
-  const res = await hubFetch(fetcher, `${MEALIE_PLAN_URL}?start=${range.start}&end=${range.end}`);
+  const res = await fetcher(`${MEALIE_PLAN_URL}?start=${range.start}&end=${range.end}`);
   const json = await readJson(res);
   const block = (json as { mealie?: MealieWireBlock } | null)?.mealie;
   if (!res.ok || !block || !Array.isArray(block.plan)) {
@@ -373,7 +331,7 @@ async function saveMealieEdit(fetcher: MealFetch, base: MealSnapshot, edit: Meal
     if (changes.savedMeals) throw new MealClientError('save', 'Recipes live in Mealie. Change them there.');
     const cells = planCellChanges(current.plan, changes.plan!);
     if (cells.length === 0) return current;
-    const res = await hubFetch(fetcher, MEALIE_PLAN_URL, {
+    const res = await fetcher(MEALIE_PLAN_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(range ? { cells, range } : { cells }),
@@ -480,7 +438,7 @@ export class MealSession {
   suggestFromMealie(cells: { date: string; slot: MealSlotType }[]): Promise<{ snapshot: MealSnapshot; created: number; skipped: number; entries: MealieSuggestedEntry[] }> {
     let counts: { created: number; skipped: number; entries: MealieSuggestedEntry[] } = { created: 0, skipped: 0, entries: [] };
     return this.enqueue(async (base) => {
-      const res = await hubFetch(this.fetcher, `${MEALIE_PLAN_URL}/suggest`, {
+      const res = await this.fetcher(`${MEALIE_PLAN_URL}/suggest`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(this.mealieRange ? { cells, range: this.mealieRange } : { cells }),
@@ -583,7 +541,7 @@ export async function searchMealieRecipes(
   if (opts.category) params.set('category', opts.category);
   if (opts.cookbook) params.set('cookbook', opts.cookbook);
   if (opts.page && opts.page > 1) params.set('page', String(opts.page));
-  const res = await hubFetch(fetcher, `/api/mealie/recipes${params.size ? `?${params}` : ''}`, { signal });
+  const res = await fetcher(`/api/mealie/recipes${params.size ? `?${params}` : ''}`, { signal });
   const json = await readJson(res);
   const d = json as Partial<MealieRecipePage> | null;
   if (!res.ok || !d || !Array.isArray(d.items)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
@@ -592,7 +550,7 @@ export async function searchMealieRecipes(
 
 /** The household's Mealie categories, for the Library's filters. */
 export async function fetchMealieCategories(fetcher: MealFetch, signal?: AbortSignal): Promise<MealieCategory[]> {
-  const res = await hubFetch(fetcher, '/api/mealie/categories', { signal });
+  const res = await fetcher('/api/mealie/categories', { signal });
   const json = await readJson(res);
   const list = (json as { categories?: unknown } | null)?.categories;
   if (!res.ok || !Array.isArray(list)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
@@ -601,7 +559,7 @@ export async function fetchMealieCategories(fetcher: MealFetch, signal?: AbortSi
 
 /** The household's Mealie cookbooks, in the household's order, for the Library's and the pickers' filters. */
 export async function fetchMealieCookbooks(fetcher: MealFetch, signal?: AbortSignal): Promise<MealieCookbook[]> {
-  const res = await hubFetch(fetcher, '/api/mealie/cookbooks', { signal });
+  const res = await fetcher('/api/mealie/cookbooks', { signal });
   const json = await readJson(res);
   const list = (json as { cookbooks?: unknown } | null)?.cookbooks;
   if (!res.ok || !Array.isArray(list)) throw mealieRefusal('load', json, "We couldn't reach Mealie.");
@@ -610,7 +568,7 @@ export async function fetchMealieCookbooks(fetcher: MealFetch, signal?: AbortSig
 
 /** One Mealie recipe in full, by the id its saved meal carries (`mealie:<id>`). */
 export async function fetchMealieRecipeDetail(fetcher: MealFetch, recipeId: string, signal?: AbortSignal): Promise<MealieRecipeDetail> {
-  const res = await hubFetch(fetcher, mealieRecipeUrl(recipeId), { signal });
+  const res = await fetcher(mealieRecipeUrl(recipeId), { signal });
   const json = await readJson(res);
   const d = json as Partial<MealieRecipeDetail> | null;
   if (!res.ok || !d || !Array.isArray(d.ingredients) || !Array.isArray(d.steps) || !d.meal) {
@@ -663,12 +621,12 @@ async function shoppingAnswer(res: Response, kind: MealClientFailure): Promise<M
 
 /** The household's Mealie lists and one in full: `listId`, else the one the family shops from. */
 export async function loadMealieShopping(fetcher: MealFetch, listId?: string): Promise<MealieShoppingAnswer> {
-  return shoppingAnswer(await hubFetch(fetcher, listId ? `${SHOPPING_URL}?list=${encodeURIComponent(listId)}` : SHOPPING_URL), 'load');
+  return shoppingAnswer(await fetcher(listId ? `${SHOPPING_URL}?list=${encodeURIComponent(listId)}` : SHOPPING_URL), 'load');
 }
 
 /** Make `listId` the list the family shops from, on every surface and for voice. */
 export async function chooseMealieShoppingList(fetcher: MealFetch, listId: string): Promise<MealieShoppingAnswer> {
-  return shoppingAnswer(await hubFetch(fetcher, SHOPPING_URL, {
+  return shoppingAnswer(await fetcher(SHOPPING_URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ list: listId }),
@@ -681,7 +639,7 @@ export async function chooseMealieShoppingList(fetcher: MealFetch, listId: strin
  * already on the list), for Undo.
  */
 export async function addToMealieShoppingList(fetcher: MealFetch, listId: string, text: string): Promise<{ wire: MealieShoppingAnswer; added: string | null }> {
-  const res = await hubFetch(fetcher, `${SHOPPING_URL}/items`, {
+  const res = await fetcher(`${SHOPPING_URL}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ list: listId, text }),
@@ -695,7 +653,7 @@ export async function addToMealieShoppingList(fetcher: MealFetch, listId: string
 
 /** Tick an item on a Mealie list, or put it back. */
 export async function tickMealieShoppingItem(fetcher: MealFetch, itemId: string, checked: boolean): Promise<void> {
-  const res = await hubFetch(fetcher, `${SHOPPING_URL}/items/${encodeURIComponent(itemId)}`, {
+  const res = await fetcher(`${SHOPPING_URL}/items/${encodeURIComponent(itemId)}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ checked }),
@@ -705,6 +663,6 @@ export async function tickMealieShoppingItem(fetcher: MealFetch, itemId: string,
 
 /** Take an item just added back off its list. */
 export async function removeMealieShoppingItem(fetcher: MealFetch, itemId: string): Promise<void> {
-  const res = await hubFetch(fetcher, `${SHOPPING_URL}/items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
+  const res = await fetcher(`${SHOPPING_URL}/items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
   if (!res.ok) throw shoppingRefusal(await readJson(res), 'save');
 }

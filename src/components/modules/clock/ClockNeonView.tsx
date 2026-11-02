@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, INK } from '@/lib/constants';
 import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
@@ -25,7 +26,7 @@ export default function ClockNeonView({ config, now, time, scaledFontSize, autoF
     ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);
   if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);

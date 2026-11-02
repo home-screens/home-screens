@@ -93,31 +93,31 @@ describe('buildInfoParts', () => {
   const date = new Date(2024, 2, 15); // March 15, 2024
 
   it('returns empty array when both flags are false', () => {
-    const result = buildInfoParts({ showWeekNumber: false, showDayOfYear: false }, date);
+    const result = buildInfoParts({ showWeekNumber: false, showDayOfYear: false }, date, 'sunday');
     expect(result).toEqual([]);
   });
 
   it('returns ["Week N"] when only showWeekNumber is true', () => {
-    const result = buildInfoParts({ showWeekNumber: true, showDayOfYear: false }, date);
+    const result = buildInfoParts({ showWeekNumber: true, showDayOfYear: false }, date, 'sunday');
     expect(result).toHaveLength(1);
     expect(result[0]).toMatch(/^Week \d+$/);
   });
 
   it('returns ["Day N"] when only showDayOfYear is true', () => {
-    const result = buildInfoParts({ showWeekNumber: false, showDayOfYear: true }, date);
+    const result = buildInfoParts({ showWeekNumber: false, showDayOfYear: true }, date, 'sunday');
     expect(result).toHaveLength(1);
     expect(result[0]).toMatch(/^Day \d+$/);
   });
 
   it('returns both when both flags are true', () => {
-    const result = buildInfoParts({ showWeekNumber: true, showDayOfYear: true }, date);
+    const result = buildInfoParts({ showWeekNumber: true, showDayOfYear: true }, date, 'sunday');
     expect(result).toHaveLength(2);
     expect(result[0]).toMatch(/^Week \d+$/);
     expect(result[1]).toMatch(/^Day \d+$/);
   });
 
   it('returns empty array when config has no flags set', () => {
-    const result = buildInfoParts({}, date);
+    const result = buildInfoParts({}, date, 'sunday');
     expect(result).toEqual([]);
   });
 });
@@ -130,16 +130,22 @@ describe('getDateInfoValues', () => {
   it('returns correct weekNumber and dayOfYear for a known date', () => {
     // March 15, 2024 is the 75th day of 2024 (leap year), week 11
     const date = new Date(2024, 2, 15);
-    const result = getDateInfoValues(date);
+    const result = getDateInfoValues(date, 'sunday');
     expect(result.weekNumber).toBe(11);
     expect(result.dayOfYear).toBe(75);
   });
 
   it('returns day 1 and week 1 for Jan 1', () => {
     const date = new Date(2024, 0, 1);
-    const result = getDateInfoValues(date);
+    const result = getDateInfoValues(date, 'sunday');
     expect(result.dayOfYear).toBe(1);
     expect(result.weekNumber).toBe(1);
+  });
+  // A clock in a Monday household has to agree with a Monday calendar.
+  it('numbers the week the way the week start says', () => {
+    const date = new Date(2027, 2, 10);
+    expect(getDateInfoValues(date, 'sunday').weekNumber).toBe(11);
+    expect(getDateInfoValues(date, 'monday').weekNumber).toBe(10);
   });
 });
 

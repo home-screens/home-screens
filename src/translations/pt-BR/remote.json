@@ -19,6 +19,9 @@
     "restarting": "O Home Screens está reiniciando. Reconectando em cerca de 20 segundos…",
     "rebooting": "O aparelho está reiniciando. Reconectando em cerca de um minuto…"
   },
+  "hubRequest": {
+    "saveFailed": "Não foi possível conectar ao Home Screens, então isso não foi salvo. Confira a conexão e tente de novo."
+  },
   "backupReminder": {
     "daysAgoSingular": "Você não faz backup há {n} dia.",
     "daysAgoPlural": "Você não faz backup há {n} dias.",

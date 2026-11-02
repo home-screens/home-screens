@@ -154,6 +154,8 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         const res = await editorFetch('/api/backgrounds', {
           method: 'POST',
           body: formData,
+          // A video can take longer than the usual limit to send.
+          timeoutMs: null,
         });
         if (!res.ok) {
           const data = await res.json();

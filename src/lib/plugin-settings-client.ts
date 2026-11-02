@@ -10,6 +10,7 @@
 // nothing changed".
 
 import { editorFetch } from '@/lib/editor-fetch';
+import { readJson, refusalMessage } from '@/lib/hub-request';
 import { usePluginStore } from '@/stores/plugin-store';
 
 export type SavePluginSettingsResult =
@@ -32,11 +33,9 @@ export async function savePluginSettings(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ settings }),
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      return { ok: false, error: typeof data.error === 'string' ? data.error : `HTTP ${res.status}` };
-    }
-    const stored: Record<string, unknown> = data.settings ?? {};
+    const data = (await readJson(res)) as { settings?: Record<string, unknown> } | null;
+    if (!res.ok) return { ok: false, error: refusalMessage(data, `HTTP ${res.status}`) };
+    const stored: Record<string, unknown> = data?.settings ?? {};
     const store = usePluginStore.getState();
     const next = new Map(store.pluginSettings);
     next.set(pluginId.toLowerCase(), stored);

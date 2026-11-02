@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { TodoError, updateTodoData } from './todo-data';
+import { validateMemberReferences } from './family-api';
+import { withDataTransaction } from './data-transaction';
 import type { TodoData } from '@/types/todos';
 
 /**
@@ -29,10 +31,24 @@ export async function todoWrite(
    * which picks up whatever another phone added meanwhile.
    */
   extra?: () => Record<string, unknown>,
+  /**
+   * Assignees the body names. Checked against the family inside the same
+   * transaction as the write (the coordinator is reentrant), so a phone
+   * holding an old roster cannot assign someone who was removed. A value
+   * that is not a list of ids is left for the action's own 400.
+   */
+  opts: { assigneeIds?: unknown } = {},
 ): Promise<NextResponse> {
   try {
-    const data = await updateTodoData(mutate);
-    return NextResponse.json({ lists: data.lists, ...(extra ? extra() : {}) });
+    return await withDataTransaction(async () => {
+      const ids = opts.assigneeIds;
+      if (Array.isArray(ids) && ids.every((id) => typeof id === 'string')) {
+        const missing = await validateMemberReferences(ids);
+        if (missing) return missing;
+      }
+      const data = await updateTodoData(mutate);
+      return NextResponse.json({ lists: data.lists, ...(extra ? extra() : {}) });
+    });
   } catch (err) {
     if (err instanceof TodoError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

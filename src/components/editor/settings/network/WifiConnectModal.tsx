@@ -91,7 +91,7 @@ export default function WifiConnectModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
           // The server itself gives the join 45 s; past that the reply is not coming
-          signal: AbortSignal.timeout(90_000),
+          timeoutMs: 90_000,
         });
 
         const data = await res.json();

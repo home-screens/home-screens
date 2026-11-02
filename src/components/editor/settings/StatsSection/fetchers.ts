@@ -49,7 +49,8 @@ export function diagnosticsFileName(timezone: string | undefined, now: Date = ne
 }
 
 export async function generateBundle(timezone: string | undefined): Promise<void> {
-  const res = await editorFetch('/api/system/diagnostics');
+  // The hub gathers logs before it answers, with no limit of its own.
+  const res = await editorFetch('/api/system/diagnostics', { timeoutMs: null });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const blob = await res.blob();
   downloadBlob(blob, diagnosticsFileName(timezone));

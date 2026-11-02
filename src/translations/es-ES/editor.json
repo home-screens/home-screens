@@ -33,6 +33,7 @@
     "saveError": "Error al guardar",
     "networkError": "Error de red",
     "serverUnreachable": "No se pudo contactar con el servidor",
+    "hubUnreachable": "No se pudo conectar con Home Screens, así que no se ha guardado. Comprueba la conexión y vuelve a intentarlo.",
     "typographySizes": {
       "small": "Pequeño",
       "medium": "Mediano",

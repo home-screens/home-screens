@@ -3,9 +3,10 @@
 import { useMemo } from 'react';
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  addDays, isSameDay, isSameMonth, getWeek,
+  addDays, isSameDay, isSameMonth,
 } from 'date-fns';
-import { isEventOnDay, weekStartsOnFor, weekNumberOptions } from '@/lib/calendar-utils';
+import { isEventOnDay, weekStartsOnFor } from '@/lib/calendar-utils';
+import { weekNumberFor } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import { dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
 import { eventBg } from '@/lib/calendar-event-surface';
@@ -124,7 +125,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
                   borderBottom: '1px solid var(--cal-border-subtle)',
                   gridRow: `span 1`,
                 }}>
-                  {getWeek(day, weekNumberOptions(config.startDay))}
+                  {weekNumberFor(day, config.startDay)}
                 </div>
               )}
               <div

@@ -212,6 +212,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: restoreDataRef.current,
+        // A backup with icons is large, and a restore cut off after the hub
+        // had committed it would say it failed.
+        timeoutMs: null,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const result = (await res.json().catch(() => ({}))) as { missingIcons?: number };

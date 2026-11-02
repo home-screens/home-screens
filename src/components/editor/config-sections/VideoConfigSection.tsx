@@ -72,7 +72,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
     const formData = new FormData();
     formData.append('file', picked);
     try {
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
+      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = await res.json();
       if (res.ok && data.path) {
         // The module preview's point lookup for this file may be cached as

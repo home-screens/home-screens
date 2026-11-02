@@ -110,6 +110,8 @@ export default function NasaBrowser({ selectedScreenId, hasNasaKey }: Props) {
 
     const res = await editorFetch('/api/nasa', {
       method: 'POST',
+      // The hub downloads the photo under its own time limits.
+      timeoutMs: null,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         imageUrl,

@@ -1,6 +1,7 @@
 import { FETCH_KEY_REGISTRY, notesUrl } from './fetch-keys';
 import type { CreateNoteInput, NoteAction, NotePatch } from './notes-actions';
 import type { Note } from '@/types/notes';
+import { sendJsonWrite } from './hub-request';
 
 /**
  * Requests against the notes board, shared by the phone tab and anything
@@ -14,7 +15,7 @@ export interface NotesPayload {
 }
 
 export interface NotesWriteRequest {
-  path: string;
+  url: string;
   method: 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
 }
@@ -25,19 +26,19 @@ export function allNotesUrl(): string {
 }
 
 export function createNoteRequest(input: CreateNoteInput): NotesWriteRequest {
-  return { path: '/api/notes', method: 'POST', body: input };
+  return { url: '/api/notes', method: 'POST', body: input };
 }
 
 export function updateNoteRequest(id: string, patch: NotePatch): NotesWriteRequest {
-  return { path: `/api/notes/${encodeURIComponent(id)}`, method: 'PATCH', body: patch };
+  return { url: `/api/notes/${encodeURIComponent(id)}`, method: 'PATCH', body: patch };
 }
 
 export function noteActionRequest(id: string, action: NoteAction): NotesWriteRequest {
-  return { path: `/api/notes/${encodeURIComponent(id)}`, method: 'PATCH', body: { action } };
+  return { url: `/api/notes/${encodeURIComponent(id)}`, method: 'PATCH', body: { action } };
 }
 
 export function deleteNoteRequest(id: string): NotesWriteRequest {
-  return { path: `/api/notes/${encodeURIComponent(id)}`, method: 'DELETE' };
+  return { url: `/api/notes/${encodeURIComponent(id)}`, method: 'DELETE' };
 }
 
 export type NotesFetch = (url: string, init?: RequestInit) => Promise<Response>;
@@ -47,25 +48,14 @@ export interface NotesWriteResult extends NotesPayload {
 }
 
 /**
- * Send one write and hand back the server's notes. A non-OK answer throws
- * the server's own message when it gave one (the actions speak plainly:
- * "The board is full"), else `fallback`.
+ * Send one write and hand back the server's notes. A refusal throws the
+ * server's own message when it gave one (the actions speak plainly: "The
+ * board is full"), else `fallback`, and so does an answer without notes, so
+ * it is never taken for an empty board; a hub out of reach and an expired
+ * session come through as themselves.
  */
 export async function sendNotesWrite(fetchFn: NotesFetch, request: NotesWriteRequest, fallback: string): Promise<NotesWriteResult> {
-  const res = await fetchFn(request.path, {
-    method: request.method,
-    ...(request.body !== undefined ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request.body) } : {}),
-  });
-  let json: unknown = null;
-  try {
-    json = await res.json();
-  } catch {
-    json = null;
-  }
-  if (!res.ok) {
-    const message = json && typeof json === 'object' && typeof (json as { error?: unknown }).error === 'string' ? (json as { error: string }).error : fallback;
-    throw new Error(message);
-  }
-  const payload = (json ?? {}) as Partial<NotesWriteResult>;
-  return { notes: Array.isArray(payload.notes) ? payload.notes : [], created: payload.created };
+  const payload = (await sendJsonWrite(fetchFn, request, fallback)) as Partial<NotesWriteResult> | null;
+  if (!Array.isArray(payload?.notes)) throw new Error(fallback);
+  return { notes: payload.notes, created: payload.created };
 }

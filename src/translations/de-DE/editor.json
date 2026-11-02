@@ -33,6 +33,7 @@
     "saveError": "Speichern fehlgeschlagen",
     "networkError": "Netzwerkfehler",
     "serverUnreachable": "Server nicht erreichbar",
+    "hubUnreachable": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüf die Verbindung und versuch es noch einmal.",
     "typographySizes": {
       "small": "Klein",
       "medium": "Mittel",

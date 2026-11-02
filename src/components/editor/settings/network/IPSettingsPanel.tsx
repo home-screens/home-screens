@@ -96,6 +96,9 @@ export default function IPSettingsPanel({
 
       const res = await editorFetch('/api/system/network/ip', {
         method: 'PUT',
+        // Taking the connection down and up again runs several steps the hub
+        // gives 15 s each; on the connection this page uses, no reply comes.
+        timeoutMs: 90_000,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });

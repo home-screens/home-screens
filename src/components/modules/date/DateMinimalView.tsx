@@ -1,6 +1,7 @@
 'use client';
 
 import { getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { dateModulePattern } from '@/lib/date-module-format';
@@ -17,7 +18,7 @@ export default function DateMinimalView({ config, now, scaledFontSize, container
     dateStr = formatDateSync(now, dateModulePattern('MMMM d', locale), { locale });
   }
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('date.weekShort')} ${weekNumber}`);
   if (config.showDayOfYear) infoParts.push(`${t('date.dayShort')} ${dayOfYear}`);

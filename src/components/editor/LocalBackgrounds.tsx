@@ -93,7 +93,7 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
+      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = await res.json();
       if (!res.ok) {
         setUploadError(

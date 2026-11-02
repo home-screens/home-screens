@@ -1,13 +1,41 @@
+import { timeoutSignal } from './display-fetch';
+import { HUB_REQUEST_TIMEOUT_MS, HubUnreachableError } from './hub-request';
+
 const SESSION_EXPIRED_MESSAGE = 'Session expired';
+
+export interface EditorFetchInit extends RequestInit {
+  /**
+   * Milliseconds before the request counts as the hub not answering. Defaults
+   * to `HUB_REQUEST_TIMEOUT_MS`; a request the hub takes longer over by design
+   * (joining a WiFi network, installing a plugin) passes its own, and `null`
+   * leaves one unbounded that must stay open.
+   */
+  timeoutMs?: number | null;
+}
 
 /**
  * Centralized fetch wrapper for any authenticated client call.
  * Intercepts 401 responses and redirects to the login page.
  * Must be used instead of raw fetch() in editor and /remote components so an
  * expired session surfaces as a login redirect instead of silent UI breakage.
+ *
+ * Every request has a deadline, so a phone on a weak signal does not hold a
+ * write open for minutes with its change looking saved. A dropped connection
+ * or a missed deadline rejects with `HubUnreachableError`; the caller's own
+ * cancel rejects as it always did. The deadline also covers the answer's
+ * body, and `readJson` turns a body it cut off into `HubUnreachableError`.
  */
-export async function editorFetch(url: string, options?: RequestInit): Promise<Response> {
-  const res = await fetch(url, options);
+export async function editorFetch(url: string, options?: EditorFetchInit): Promise<Response> {
+  const { timeoutMs = HUB_REQUEST_TIMEOUT_MS, ...init } = options ?? {};
+  let res: Response;
+  try {
+    res = await fetch(url, timeoutMs === null
+      ? init
+      : { ...init, signal: timeoutSignal(timeoutMs, init.signal, () => new HubUnreachableError()) });
+  } catch (err) {
+    if (init.signal?.aborted) throw err;
+    throw new HubUnreachableError();
+  }
   if (res.status === 401) throw sessionExpired();
   return res;
 }

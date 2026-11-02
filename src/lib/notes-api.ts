@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { NotesError, updateNotesData } from './notes-data';
-import { readFamilyData } from './family-data';
+import { validateMemberReferences } from './family-api';
 import { withDataTransaction } from './data-transaction';
 import type { NotesData } from '@/types/notes';
 
@@ -46,9 +46,5 @@ export async function notesWrite(
 export async function authorProblem(authorId: unknown): Promise<NextResponse | null> {
   if (authorId === undefined || authorId === null || authorId === '') return null;
   if (typeof authorId !== 'string') return NextResponse.json({ error: 'The author must be a family member.' }, { status: 400 });
-  const family = await readFamilyData();
-  if (!family.members.some((m) => m.id === authorId)) {
-    return NextResponse.json({ error: 'That person is not in the family.' }, { status: 400 });
-  }
-  return null;
+  return validateMemberReferences([authorId]);
 }

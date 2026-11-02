@@ -16,7 +16,6 @@ import {
   isGridView,
   isThemedGridView,
   isWeekendDay,
-  weekNumberOptions,
   eventsForDay,
   formatEventTime,
   isAllDayEvent,
@@ -58,17 +57,6 @@ describe('clampWeeksToShow', () => {
     expect(clampWeeksToShow('six' as unknown as number)).toBe(6);
     expect(clampWeeksToShow(NaN)).toBe(6);
     expect(clampWeeksToShow(null as unknown as number)).toBe(6);
-  });
-});
-
-describe('weekNumberOptions', () => {
-  it('uses the ISO convention for Monday-start grids', () => {
-    expect(weekNumberOptions('monday')).toEqual({ weekStartsOn: 1, firstWeekContainsDate: 4 });
-  });
-
-  it('uses the US convention for Sunday-start grids', () => {
-    expect(weekNumberOptions('sunday')).toEqual({ weekStartsOn: 0, firstWeekContainsDate: 1 });
-    expect(weekNumberOptions(undefined)).toEqual({ weekStartsOn: 0, firstWeekContainsDate: 1 });
   });
 });
 

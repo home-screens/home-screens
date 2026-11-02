@@ -27,7 +27,7 @@ function reply(status: number, body: unknown): Response {
 }
 
 function Harness() {
-  const draft = useTimetableDraft({ loadFailed: 'load failed', saveFailed: 'save failed' });
+  const draft = useTimetableDraft({ loadFailed: 'load failed', saveFailed: 'save failed', unreachable: 'unreachable' });
   return (
     <div>
       <span data-testid="schools">{draft.data ? draft.data.schools.map((school) => school.name).join(',') : ''}</span>

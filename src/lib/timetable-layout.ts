@@ -34,6 +34,7 @@
  *   "s 16:0" for a pick-up at 16:00 are not small text, they are wrong text.
  */
 
+import { weekNumberFor } from './week-number';
 import type { TimeFormat, TimetableDetail } from '@/types/config';
 import type { FamilyMember } from '@/types/family';
 import type {
@@ -536,10 +537,8 @@ export function mondayOf(isoDate: string): string {
  * "KW 37", and the A/B cycle is read straight off its parity.
  */
 export function isoWeekNumber(isoDate: string): number {
-  const thursday = new Date(utcOf(isoDate));
-  thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7));
-  const yearStart = Date.UTC(thursday.getUTCFullYear(), 0, 1);
-  return Math.ceil(((thursday.getTime() - yearStart) / DAY_MS + 1) / 7);
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return weekNumberFor(new Date(y, m - 1, d), 'monday');
 }
 
 /** The display's calendar date for an instant, as 'YYYY-MM-DD'. */

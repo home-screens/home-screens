@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { requestFailureText } from '@/lib/hub-request';
 import { useTranslate } from '@/i18n';
 import {
   createNote,
@@ -168,7 +169,7 @@ export function useNotes() {
           pendingRef.current = pendingRef.current.filter((p) => p !== entry);
           if (isSessionExpired(e)) return null;
           render();
-          showToast(e instanceof Error ? e.message : t('notes.saveError'), 'error');
+          showToast(requestFailureText(e, { unreachable: t('hubRequest.saveFailed'), fallback: t('notes.saveError') }), 'error');
           void refresh(true);
           return null;
         } finally {

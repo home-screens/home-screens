@@ -19,6 +19,9 @@
     "restarting": "Home Screens start opnieuw op. Over ongeveer 20 seconden weer verbonden…",
     "rebooting": "Het apparaat start opnieuw op. Over ongeveer een minuut weer verbonden…"
   },
+  "hubRequest": {
+    "saveFailed": "Kon Home Screens niet bereiken, dus dit is niet opgeslagen. Controleer de verbinding en probeer het opnieuw."
+  },
   "backupReminder": {
     "daysAgoSingular": "Je hebt al {n} dag geen back-up gemaakt.",
     "daysAgoPlural": "Je hebt al {n} dagen geen back-up gemaakt.",

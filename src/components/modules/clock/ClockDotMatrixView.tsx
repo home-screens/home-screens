@@ -3,6 +3,7 @@
 import { memo } from 'react';
 import { isDotActive, DOT_COLS, DOT_ROWS } from './dot-matrix-font';
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
@@ -75,7 +76,7 @@ export default function ClockDotMatrixView({ config, now, time, scaledFontSize, 
     ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
   const infoParts: string[] = [];
   if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);
   if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);

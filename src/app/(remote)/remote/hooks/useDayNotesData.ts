@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
-import { dayNotesUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { requestFailureText, type JsonWriteRequest } from '@/lib/hub-request';
+import {
+  addDayNoteRequest, loadDayNotes, removeDayNoteRequest, sendDayNotesWrite, updateDayNoteRequest,
+} from '@/lib/day-notes-client';
 import { DayNotesError, addDayNote, removeDayNote, updateDayNote } from '@/lib/day-notes';
 import type { DayNote, DayNotesData } from '@/types/day-notes';
 import { showToast } from '../remote-toast';
@@ -14,7 +18,6 @@ const TEMP_PREFIX = 'tmp-';
 type ResolveId = (id: string) => string;
 /** A local change replayed over server truth until its request lands; the store's own rule. */
 type Change = (data: DayNotesData, resolveId: ResolveId) => DayNotesData;
-interface WriteRequest { method: 'POST' | 'PATCH' | 'DELETE'; path: string; body?: unknown }
 
 function replay(pending: ReadonlyArray<{ apply: Change }>, server: DayNotesData, resolveId: ResolveId): DayNotesData {
   return pending.reduce((data, p) => {
@@ -62,14 +65,13 @@ export function useDayNotesData() {
 
   const refresh = useCallback(async (force = false) => {
     try {
-      const res = await editorFetch(dayNotesUrl());
-      if (!res.ok) {
+      const loaded = await loadDayNotes(editorFetch);
+      if (!loaded) {
         setLoadError(true);
         return;
       }
-      const json = (await res.json()) as { notes?: DayNote[] };
       if (!force && (Date.now() < holdUntilRef.current || inFlightRef.current > 0)) return;
-      serverRef.current = { notes: Array.isArray(json.notes) ? json.notes : [] };
+      serverRef.current = { notes: loaded };
       render();
       setLoaded(true);
       setLoadError(false);
@@ -91,7 +93,7 @@ export function useDayNotesData() {
    * words go to the toast at once.
    */
   const write = useCallback(
-    (apply: Change, request: (resolveId: ResolveId) => WriteRequest, onCreated?: (created: DayNote) => void): Promise<boolean> => {
+    (apply: Change, request: (resolveId: ResolveId) => JsonWriteRequest, onCreated?: (created: DayNote) => void): Promise<boolean> => {
       try {
         apply(replay(pendingRef.current, serverRef.current, resolveId), resolveId);
       } catch (e) {
@@ -106,29 +108,18 @@ export function useDayNotesData() {
 
       const run = async (): Promise<boolean> => {
         try {
-          const { method, path, body } = request(resolveId);
-          const res = await editorFetch(path, {
-            method,
-            ...(body !== undefined ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
-          });
-          let json: { notes?: DayNote[]; created?: DayNote; error?: string } | null = null;
-          try {
-            json = await res.json();
-          } catch {
-            json = null;
-          }
-          if (!res.ok) throw new Error(typeof json?.error === 'string' ? json.error : t('notes.dayNotes.saveError'));
+          const { notes: next, created } = await sendDayNotesWrite(editorFetch, request(resolveId), t('notes.dayNotes.saveError'));
           holdUntilRef.current = Date.now() + POLL_MS;
-          serverRef.current = { notes: Array.isArray(json?.notes) ? json.notes : [] };
+          serverRef.current = { notes: next };
           pendingRef.current = pendingRef.current.filter((p) => p !== entry);
-          if (json?.created) onCreated?.(json.created);
+          if (created) onCreated?.(created);
           render();
           return true;
         } catch (e) {
           pendingRef.current = pendingRef.current.filter((p) => p !== entry);
           if (isSessionExpired(e)) return false;
           render();
-          showToast(e instanceof Error ? e.message : t('notes.dayNotes.saveError'), 'error');
+          showToast(requestFailureText(e, { unreachable: t('hubRequest.saveFailed'), fallback: t('notes.dayNotes.saveError') }), 'error');
           void refresh(true);
           return false;
         } finally {
@@ -147,7 +138,7 @@ export function useDayNotesData() {
     const temp = tempId();
     return write(
       (data) => addDayNote(data, { id: temp, date, text }, today),
-      () => ({ method: 'POST', path: dayNotesUrl(), body: { date, text } }),
+      () => addDayNoteRequest(date, text),
       (created) => idMapRef.current.set(temp, created.id),
     );
   }, [write]);
@@ -155,12 +146,12 @@ export function useDayNotesData() {
   /** Change a note's words; empty words remove it, as on the hub. */
   const update = useCallback((id: string, text: string, today: string): Promise<boolean> => write(
     (data, r) => updateDayNote(data, r(id), text, today),
-    (r) => ({ method: 'PATCH', path: `${dayNotesUrl()}/${encodeURIComponent(r(id))}`, body: { text } }),
+    (r) => updateDayNoteRequest(r(id), text),
   ), [write]);
 
   const remove = useCallback((id: string): Promise<boolean> => write(
     (data, r) => removeDayNote(data, r(id)),
-    (r) => ({ method: 'DELETE', path: `${dayNotesUrl()}/${encodeURIComponent(r(id))}` }),
+    (r) => removeDayNoteRequest(r(id)),
   ), [write]);
 
   // resolveId answers the hub's id for a note added from here once the hub

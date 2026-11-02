@@ -1,6 +1,7 @@
 'use client';
 
 import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
+import { localeWeekStart } from '@/lib/week-number';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { fitBaseSize, fitFactor, splitRowWidth } from './fit-width';
@@ -27,7 +28,7 @@ export default function ClockSplitView({ config, now, time, scaledFontSize, auto
     ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
     : null;
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
 
   const infoParts: { label: string; value: string }[] = [];
   if (config.showWeekNumber) infoParts.push({ label: t('clock.weekShort'), value: String(weekNumber) });

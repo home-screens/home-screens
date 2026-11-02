@@ -1,4 +1,6 @@
-import { getWeek, getDayOfYear } from 'date-fns';
+import { getDayOfYear } from 'date-fns';
+import { weekNumberFor } from './week-number';
+import type { WeekStartDay } from '@/types/config';
 
 /**
  * Shared time-parsing and date-info utilities used by clock and date view components.
@@ -87,11 +89,13 @@ interface DateInfoValues {
 }
 
 /**
- * Get raw week number and day-of-year values for a given date.
+ * Get raw week number and day-of-year values for a given date. The week start
+ * picks the numbering (see `weekNumberFor`), so a clock agrees with a calendar
+ * that starts its weeks on the same day.
  */
-export function getDateInfoValues(now: Date): DateInfoValues {
+export function getDateInfoValues(now: Date, weekStart: WeekStartDay): DateInfoValues {
   return {
-    weekNumber: getWeek(now),
+    weekNumber: weekNumberFor(now, weekStart),
     dayOfYear: getDayOfYear(now),
   };
 }
@@ -104,8 +108,9 @@ export function getDateInfoValues(now: Date): DateInfoValues {
 export function buildInfoParts(
   config: { showWeekNumber?: boolean; showDayOfYear?: boolean },
   now: Date,
+  weekStart: WeekStartDay,
 ): string[] {
-  const { weekNumber, dayOfYear } = getDateInfoValues(now);
+  const { weekNumber, dayOfYear } = getDateInfoValues(now, weekStart);
   const parts: string[] = [];
   if (config.showWeekNumber) parts.push(`Week ${weekNumber}`);
   if (config.showDayOfYear) parts.push(`Day ${dayOfYear}`);

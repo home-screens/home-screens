@@ -62,7 +62,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
 
       const formData = new FormData();
       formData.append('file', new File([blob], `immich-${assetId}${ext}`, { type: blob.type }));
-      const uploadRes = await editorFetch('/api/backgrounds', { method: 'POST', body: formData });
+      const uploadRes = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
       const data = await uploadRes.json();
       if (data.path) {
         pickScreenBackground(selectedScreenId, data.path);

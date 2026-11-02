@@ -317,8 +317,8 @@ function cleanDueDate(raw: unknown): string | undefined {
 }
 
 /**
- * Family member ids for an item. Unknown ids are kept: the roster is another
- * store, and a person removed later is stripped by the family cascade.
+ * Family member ids for an item. Whether each id is someone in the family is
+ * `todoWrite`'s check, made against the roster inside the write's transaction.
  */
 function cleanAssignees(raw: unknown): string[] | undefined {
   if (raw === undefined || raw === null) return undefined;

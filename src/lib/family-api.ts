@@ -10,10 +10,16 @@ export function withFamilyData<T>(operation: () => Promise<T>): Promise<T> {
   });
 }
 
+/**
+ * The one answer for "this names someone who is not in the family": 409 with
+ * `reason: 'member'`, so every client can treat a removed person the same
+ * way whichever store refused. Run it inside the write's transaction; an
+ * unknown id that reaches a file makes every later backup unrestorable.
+ */
 export async function validateMemberReferences(ids: readonly string[]): Promise<NextResponse | null> {
   const members = new Set((await readFamilyData()).members.map((member) => member.id));
   return ids.some((id) => !members.has(id))
-    ? NextResponse.json({ error: 'Someone in this selection was removed. Refresh and choose again.' }, { status: 409 })
+    ? NextResponse.json({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' }, { status: 409 })
     : null;
 }
 

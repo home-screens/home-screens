@@ -1,5 +1,6 @@
 import type { ChoreDefinition, ChoreSettings } from '@/types/config';
 import { readChoreSettings } from './chore-bonus';
+import { readJson, refusalMessage } from './hub-request';
 
 /**
  * What `GET /api/chores/data` (and the server-rendered phone pages) hand out:
@@ -68,7 +69,12 @@ export class ChoreSession {
     this.revision = snapshot.revision;
   }
 
-  save(chores: ChoreDefinition[], force: boolean): Promise<ChoreSaveOutcome> {
+  /**
+   * Save the list. A refusal rejects with the hub's own sentence (someone in
+   * the list was removed, say), else `fallback`; a hub out of reach and an
+   * expired session reject as themselves.
+   */
+  save(chores: ChoreDefinition[], force: boolean, fallback: string): Promise<ChoreSaveOutcome> {
     const conflictsBefore = this.conflicts;
     const run = this.tail.then(async (): Promise<ChoreSaveOutcome> => {
       if (this.conflicts !== conflictsBefore) return { kind: 'superseded' };
@@ -77,7 +83,7 @@ export class ChoreSession {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chores, force, revision: this.revision }),
       });
-      const json: unknown = await res.json().catch(() => null);
+      const json = await readJson(res);
       const theirs = res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision'
         ? asChoreSnapshot(json)
         : null;
@@ -86,9 +92,8 @@ export class ChoreSession {
         this.adopt(theirs);
         return { kind: 'conflict', snapshot: theirs };
       }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const saved = asChoreSnapshot(json);
-      if (!saved) throw new Error('Malformed chore data');
+      const saved = res.ok ? asChoreSnapshot(json) : null;
+      if (!saved) throw new Error(refusalMessage(json, fallback));
       this.revision = saved.revision;
       return { kind: 'saved', snapshot: saved };
     });

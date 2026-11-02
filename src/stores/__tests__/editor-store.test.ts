@@ -2159,9 +2159,9 @@ describe('editor store', () => {
 
     it('save error from network failure keeps isDirty true', async () => {
       const store = setupStoreWithConfig();
-      fetchMock.mockRejectedValue(new Error('Network error'));
+      fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
 
-      await expect(store.getState().saveConfig()).rejects.toThrow('Network error');
+      await expect(store.getState().saveConfig()).rejects.toMatchObject({ saveKind: 'network' });
 
       const state = store.getState();
       expect(state.isDirty).toBe(true);
