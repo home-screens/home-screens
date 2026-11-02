@@ -54,7 +54,6 @@ export const CONNECTABLE_SERVICES: ConnectableService[] = [
   { id: 'mealie', label: 'Mealie', initials: 'ME', page: 'integrations', keys: ['mealie_url', 'mealie_api_key'] },
   { id: 'microsoft', label: 'Microsoft', initials: 'MS', page: 'integrations', keys: ['microsoft_client_id'] },
   { id: 'unsplash', label: 'Unsplash', initials: 'UN', page: 'integrations', keys: ['unsplash_access_key'] },
-  { id: 'nasa', label: 'NASA', initials: 'NA', page: 'integrations', keys: ['nasa_api_key'] },
   { id: 'todoist', label: 'Todoist', initials: 'TD', page: 'integrations', keys: ['todoist_token'] },
   { id: 'tomtom', label: 'TomTom', initials: 'TT', page: 'integrations', keys: ['tomtom_key'] },
   { id: 'openweathermap', label: weatherProviderName('openweathermap'), initials: 'OW', page: 'weather', keys: ['openweathermap_key'] },

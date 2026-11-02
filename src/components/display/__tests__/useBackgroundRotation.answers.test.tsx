@@ -16,7 +16,7 @@ function screen(rotating: boolean): Screen {
     name: 'S',
     backgroundImage: '/starter-backgrounds/ocean.svg',
     modules: [],
-    backgroundRotation: { enabled: rotating, source: 'unsplash', query: 'nature landscape', intervalMinutes: 60 },
+    backgroundRotation: { enabled: rotating, photoSource: { kind: 'unsplash' as const, query: 'nature landscape' }, intervalMinutes: 60 },
   };
 }
 

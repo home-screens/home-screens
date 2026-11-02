@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { editorFetch } from '@/lib/editor-fetch';
+import { uploadLibraryFiles } from '@/lib/library-client';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Button from '@/components/ui/Button';
-import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import { tileThumbnailUrl } from '@/lib/media-paths';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
@@ -30,24 +30,15 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
 
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // The library grid's own upload path, into the library's top level.
   const handleQuickUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     setUploadError(null);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
-      const data = await res.json();
-      if (res.ok && data.path) {
-        set({ src: data.path });
-      } else {
-        setUploadError(data.error || t('configSections.image.uploadFailed'));
-      }
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : t('configSections.image.uploadFailed'));
-    }
+    const { uploaded, error } = await uploadLibraryFiles([file], '');
+    if (uploaded[0]) set({ src: uploaded[0] });
+    else if (error) setUploadError(error.message ?? t('configSections.image.uploadFailed'));
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -130,8 +121,9 @@ export function ImageConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       </div>
 
       {showBrowser && (
-        <ImageBrowserModal
+        <PicturePicker
           mode="pick-image"
+          currentValue={(c.src as string) || undefined}
           onSelectImage={(url) => set({ src: url })}
           onClose={() => setShowBrowser(false)}
         />

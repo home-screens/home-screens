@@ -3,9 +3,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { displayCache } from '@/lib/display-cache';
 import { logger } from '@/lib/logger';
-import { deleteLibraryImage, usageNames, type DirectoryInfo } from '@/lib/library-client';
+import { deleteLibraryImage, usageNames, type DirectoryInfo, invalidateLibraryReads, uploadLibraryFiles } from '@/lib/library-client';
 import type { MediaListItem } from '@/types/config';
 
 const log = logger('useImageLibrary');
@@ -139,39 +138,12 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
 
     setUploading(true);
     setError(null);
-    const total = fileList.length;
-    let hadError = false;
-    let hadSuccess = false;
-    const uploaded: string[] = [];
-
-    for (let i = 0; i < total; i++) {
+    const { uploaded, error } = await uploadLibraryFiles(fileList, selectedDir, (i, total) => {
       setUploadProgress(`Uploading ${i + 1} of ${total}...`);
-      const formData = new FormData();
-      formData.append('file', fileList[i]);
-      if (selectedDir) formData.append('directory', selectedDir);
-
-      try {
-        const res = await editorFetch('/api/backgrounds', {
-          method: 'POST',
-          body: formData,
-          // A video can take longer than the usual limit to send.
-          timeoutMs: null,
-        });
-        if (!res.ok) {
-          const data = await res.json();
-          setError(data.error || `Upload failed for ${fileList[i].name}`);
-          hadError = true;
-        } else {
-          hadSuccess = true;
-          const data = (await res.json().catch(() => null)) as { path?: string; paths?: string[] } | null;
-          if (data?.path) uploaded.push(data.path);
-          else if (data?.paths) uploaded.push(...data.paths);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t('errors.uploadFailed'));
-        hadError = true;
-      }
-    }
+    });
+    const hadError = error !== null;
+    const hadSuccess = uploaded.length > 0;
+    if (error) setError(error.message ?? t('errors.uploadFailed'));
 
     setUploading(false);
     setUploadProgress('');
@@ -181,9 +153,6 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     if (hadSuccess) {
       fetchImages(selectedDir, hadError);  // preserve error if some uploads failed
       fetchDirectories();
-      // Canvas module previews cache their backgrounds lists — without this
-      // they'd show the pre-upload library for up to a full TTL.
-      displayCache.invalidateByPrefix('/api/backgrounds');
     }
     return uploaded;
   }, [selectedDir, fetchImages, fetchDirectories, t]);
@@ -196,7 +165,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
         setItems((prev) => prev.filter((item) => item.url !== imageUrl));
         setSelectedImage((prev) => prev === imageUrl ? null : prev);
         fetchDirectories();
-        displayCache.invalidateByPrefix('/api/backgrounds');
+        invalidateLibraryReads();
       } else if (res?.status === 409) {
         // Something still shows it; say where instead of "failed".
         const names = usageNames(res.usage);
@@ -256,7 +225,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
       if (res.ok) {
         setSelectedDir('');
         fetchDirectories();
-        displayCache.invalidateByPrefix('/api/backgrounds');
+        invalidateLibraryReads();
       } else {
         const data = await res.json();
         setError(data.error || t('errors.deleteFolderFailed'));

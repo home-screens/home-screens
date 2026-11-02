@@ -225,24 +225,17 @@ The transition effect and duration are configurable in **Settings > Screen**. Th
 
 Click an empty area of the canvas to deselect any module; the **Background** section appears in the right sidebar only when no module is selected.
 
-### Upload a Background
+### Choose a background
 
-1. Switch to the **Backgrounds** tab and click **Upload Background**
-2. Pick an image file from your computer
-3. It is saved into the hub's picture library, the same one **Settings > Pictures & videos** shows
-4. Maximum file size: 10 MB per image
-5. Supported image formats: JPEG, PNG, WebP, GIF, AVIF, SVG
+1. Under **Picture**, click **Choose a picture**. The **Image Library** opens
+2. Pick a tab: **Built-in** (the backgrounds that ship with Home Screens), **Local** (your own library, with **Upload Photos**), **Immich**, **Unsplash** or **NASA**
+3. Click a picture, then **Select Image**. **None** removes the background
 
-Backgrounds are still images only. Videos live in the same library but are picked from a photo or video module's settings, not from here.
+A picture from Immich, Unsplash or NASA is copied into your library first, so the wall doesn't need that service to show it. Backgrounds are still images only; videos live in the same library but are used by the Video module and slideshows. The **Local** tab can also add everything from an iCloud link or pick photos from Google Photos, into the folder you have selected. See [Choosing a picture](/docs/backgrounds#image-library) for every tab.
 
-You can also fill your library from Apple Photos, using **Import from an iCloud link** to download everything a shared album link (or a "Copy iCloud Link" photo link) contains. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo Slideshow, or Full-Screen Photo Viewer module. Anything you import there lands in the same library the background picker's Backgrounds tab reads from. See the [Backgrounds guide](/docs/backgrounds#i-cloud-shared-albums) for details.
+### Rotating backgrounds
 
-### Unsplash Integration
-
-If you've set an Unsplash access key in Settings, you can:
-
-- Browse and select from Unsplash photos
-- Enable background rotation to automatically cycle through Unsplash images
+Turn on **Auto-rotate** and choose a **Photo Source**: a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA. These are the same sources and settings the photo modules use. See [Background rotation](/docs/backgrounds#background-rotation).
 
 ### Per-Screen Backgrounds
 

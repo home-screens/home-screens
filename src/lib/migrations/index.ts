@@ -11,6 +11,7 @@ import { v12ToV13 } from './v12-to-v13';
 import { v13ToV14 } from './v13-to-v14';
 import { v14ToV15 } from './v14-to-v15';
 import { v15ToV16 } from './v15-to-v16';
+import { v16ToV17 } from './v16-to-v17';
 
 interface Migration {
   version: number;
@@ -102,6 +103,9 @@ const migrations: Migration[] = [
   v14ToV15,
   // Migration 016: the full-screen weather card toggles become one ordered list.
   v15ToV16,
+  // Migration 017: slideshow, full-screen photo and background rotation name
+  // their pictures' source with one `photoSource`.
+  v16ToV17,
 ];
 
 /** @internal Get all migrations sorted by version */

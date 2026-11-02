@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   blockedRemovals,
   classifyMediaRef,
+  isRotatingBackgroundUse,
   normalizeMediaRef,
   removalBlocksByFile,
   rewriteMediaRefs,
@@ -106,10 +107,10 @@ describe('scanMediaUsage', () => {
     const library = new Set(['nature/a.jpg', 'nature/b.jpg', 'nature/deeper/c.jpg', 'root.jpg']);
     it('marks every file directly inside a slideshow folder as used by it', () => {
       const config = { screens: [{ name: 'Hall', modules: [
-        { type: 'photo-slideshow', config: { source: 'local', directory: 'nature' } },
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
       ] }] };
       const usage = scanMediaUsage(config, library);
-      const use = { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.directory' };
+      const use = { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.photoSource.folder' };
       expect(usage.get('nature/a.jpg')).toEqual([use]);
       expect(usage.get('nature/b.jpg')).toEqual([use]);
       // The listing is not recursive, so neither is the lock.
@@ -118,7 +119,7 @@ describe('scanMediaUsage', () => {
     });
     it('treats an empty directory as the library top level, whatever the slash spelling', () => {
       for (const directory of ['', '/']) {
-        const config = { screens: [{ modules: [{ type: 'fullscreen-photo', config: { directory } }] }] };
+        const config = { screens: [{ modules: [{ type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: directory } } }] }] };
         const usage = scanMediaUsage(config, library);
         expect(usage.get('root.jpg')![0].kind).toBe('slideshow');
         expect(usage.has('nature/a.jpg')).toBe(false);
@@ -126,15 +127,15 @@ describe('scanMediaUsage', () => {
     });
     it('does not lock the folder when the module shows one pinned file or another source', () => {
       const config = { screens: [{ modules: [
-        { type: 'fullscreen-photo', config: { directory: 'nature', file: 'root.jpg' } },
-        { type: 'photo-slideshow', config: { source: 'immich', directory: 'nature' } },
+        { type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'nature' }, file: 'root.jpg' } },
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'immich' } } },
       ] }] };
       const usage = scanMediaUsage(config, library);
       expect(usage.has('nature/a.jpg')).toBe(false);
       expect(usage.get('root.jpg')![0].kind).toBe('module');
     });
     it('treats an empty file as single-photo mode with nothing picked, like the renderer', () => {
-      const config = { screens: [{ modules: [{ type: 'fullscreen-photo', config: { directory: 'nature', file: '' } }] }] };
+      const config = { screens: [{ modules: [{ type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'nature' }, file: '' } }] }] };
       expect(scanMediaUsage(config, library).size).toBe(0);
     });
     it('ignores a directory field on any other module type', () => {
@@ -144,7 +145,7 @@ describe('scanMediaUsage', () => {
     it('marks only the files the slideshow plays: photos unless it asks for videos or both', () => {
       const mixed = new Set(['trip/a.jpg', 'trip/clip.mp4', 'trip/notes.txt']);
       const slideshow = (mediaTypes?: string) => ({ screens: [{ name: 'Hall', modules: [
-        { type: 'photo-slideshow', config: { directory: 'trip', ...(mediaTypes ? { mediaTypes } : {}) } },
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trip' }, ...(mediaTypes ? { mediaTypes } : {}) } },
       ] }] });
       expect([...scanMediaUsage(slideshow(), mixed).keys()]).toEqual(['trip/a.jpg']);
       expect([...scanMediaUsage(slideshow('photos'), mixed).keys()]).toEqual(['trip/a.jpg']);
@@ -198,9 +199,9 @@ describe('scanMissingMedia', () => {
   });
   it('reports a slideshow folder that is not on disk, and never the top level', () => {
     const config = { screens: [{ id: 's1', name: 'Hall', modules: [
-      { id: 'm1', type: 'photo-slideshow', config: { directory: 'old-trips' } },
-      { id: 'm2', type: 'photo-slideshow', config: { directory: '' } },
-      { id: 'm3', type: 'photo-slideshow', config: { directory: 'nature' } },
+      { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'old-trips' } } },
+      { id: 'm2', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: '' } } },
+      { id: 'm3', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
     ] }] };
     const missing = scanMissingMedia(config, existing, folders);
     expect(missing).toEqual([{ path: 'old-trips', kind: 'folder', uses: [expect.objectContaining({ kind: 'slideshow', moduleId: 'm1' })] }]);
@@ -238,8 +239,8 @@ describe('rewriteMediaRefs', () => {
 
   it('maps slideshow folders through the folder mapper, not the file mapper', () => {
     const config = { screens: [{ modules: [
-      { type: 'photo-slideshow', config: { source: 'local', directory: 'trips' } },
-      { type: 'fullscreen-photo', config: { directory: 'trips', file: 'trips/a.jpg' } },
+      { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trips' } } },
+      { type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'trips' }, file: 'trips/a.jpg' } },
     ] }] };
     const { config: out, changed } = rewriteMediaRefs(
       config,
@@ -247,9 +248,9 @@ describe('rewriteMediaRefs', () => {
       (f) => (f === 'trips' ? 'summer' : null),
     );
     expect(changed).toBe(2);
-    expect(out.screens[0]!.modules[0]!.config.directory).toBe('summer');
-    // Single-photo mode: its directory is not a shown folder, only its file moves.
-    expect(out.screens[0]!.modules[1]!.config.directory).toBe('trips');
+    expect(out.screens[0]!.modules[0]!.config.photoSource.folder).toBe('summer');
+    // Single-photo mode: its folder is not a shown folder, only its file moves.
+    expect(out.screens[0]!.modules[1]!.config.photoSource.folder).toBe('trips');
     expect(out.screens[0]!.modules[1]!.config.file).toBe('summer/a.jpg');
   });
 });
@@ -268,15 +269,15 @@ describe('slideshowCanShow', () => {
 describe('slideshowFolders', () => {
   it('lists every local slideshow in config order, empty folders included, with where it sits', () => {
     const config = {
-      screens: [{ id: 'frozen', name: 'Frozen', modules: [{ type: 'photo-slideshow', config: { directory: 'old' } }] }],
+      screens: [{ id: 'frozen', name: 'Frozen', modules: [{ type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'old' } } }] }],
       displays: [
         { id: 'kitchen', name: 'Kitchen', screens: [{ id: 's1', name: 'Family photos', modules: [
-          { id: 'm1', type: 'photo-slideshow', config: { source: 'local', directory: 'Favorites/', mediaTypes: 'both' } },
+          { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'Favorites/' }, mediaTypes: 'both' } },
         ] }] },
         { id: 'hallway', name: 'Hallway', screens: [{ id: 's2', name: 'Welcome', modules: [
-          { id: 'm2', type: 'fullscreen-photo', config: { directory: 'Empty-for-now' } },
-          { id: 'm3', type: 'fullscreen-photo', config: { directory: 'Pinned', file: 'x.jpg' } },
-          { id: 'm4', type: 'photo-slideshow', config: { source: 'icloud', directory: 'stale' } },
+          { id: 'm2', type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'Empty-for-now' } } },
+          { id: 'm3', type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'Pinned' }, file: 'x.jpg' } },
+          { id: 'm4', type: 'photo-slideshow', config: { photoSource: { kind: 'icloud', albumUrl: '' } } },
         ] }] },
       ],
     };
@@ -288,21 +289,21 @@ describe('slideshowFolders', () => {
     expect(found[0].use).toEqual({
       kind: 'slideshow',
       name: 'Family photos',
-      configPath: 'displays[0].screens[0].modules[0].config.directory',
+      configPath: 'displays[0].screens[0].modules[0].config.photoSource.folder',
       displayId: 'kitchen',
       screenId: 's1',
       moduleId: 'm1',
     });
   });
   it('reads the top-level screens when there is no displays registry', () => {
-    const config = { screens: [{ id: 's1', name: 'Hall', modules: [{ type: 'photo-slideshow', config: { directory: '' } }] }] };
+    const config = { screens: [{ id: 's1', name: 'Hall', modules: [{ type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: '' } } }] }] };
     expect(slideshowFolders(config).map((f) => [f.folder, f.use.name, f.displayName])).toEqual([['', 'Hall', undefined]]);
   });
 });
 
 describe('blockedRemovals and removalBlocksByFile', () => {
-  const hall: MediaUse = { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.directory' };
-  const den: MediaUse = { kind: 'slideshow', name: 'Den', configPath: 'screens[1].modules[0].config.directory' };
+  const hall: MediaUse = { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.photoSource.folder' };
+  const den: MediaUse = { kind: 'slideshow', name: 'Den', configPath: 'screens[1].modules[0].config.photoSource.folder' };
   const background: MediaUse = { kind: 'screen', name: 'Morning', configPath: 'screens[2].backgroundImage' };
 
   it('lets a slideshow picture go while another stays, and keeps the last one', () => {
@@ -351,5 +352,77 @@ describe('blockedRemovals and removalBlocksByFile', () => {
     const usage = { 'f/a.jpg': [hall] };
     expect(blockedRemovals(usage, ['free.jpg', 'free.jpg'], 'delete').size).toBe(0);
     expect(blockedRemovals(usage, ['f/a.jpg', 'f/a.jpg'], 'delete').get('f/a.jpg')).toEqual([hall]);
+  });
+});
+
+describe('a rotating background on a library folder', () => {
+  const library = new Set(['walls/a.jpg', 'walls/b.jpg', 'walls/clip.mp4', 'other.jpg']);
+  const rotating = (enabled: boolean, photoSource: unknown = { kind: 'library', folder: 'walls' }) => ({
+    displays: [{ id: 'main', screens: [
+      { id: 's1', name: 'Hall', backgroundImage: '', modules: [], backgroundRotation: { enabled, intervalMinutes: 60, photoSource } },
+    ] }],
+  });
+
+  it('marks the folder\'s pictures as used by the screen, like a slideshow that plays photos', () => {
+    const usage = scanMediaUsage(rotating(true), library);
+    const use = usage.get('walls/a.jpg')![0];
+    expect(use).toEqual({
+      kind: 'slideshow',
+      name: 'Hall',
+      configPath: 'displays[0].screens[0].backgroundRotation.photoSource.folder',
+      displayId: 'main',
+      screenId: 's1',
+    });
+    expect(isRotatingBackgroundUse(use)).toBe(true);
+    expect(usage.get('walls/b.jpg')).toEqual([use]);
+    // A background is a still picture, so the folder's videos are not held.
+    expect(usage.has('walls/clip.mp4')).toBe(false);
+    expect(usage.has('other.jpg')).toBe(false);
+  });
+
+  it('holds nothing while rotation is off or reads another source', () => {
+    expect(scanMediaUsage(rotating(false), library).size).toBe(0);
+    expect(scanMediaUsage(rotating(true, { kind: 'immich' }), library).size).toBe(0);
+  });
+
+  it('is told apart from a slideshow module\'s use', () => {
+    const slideshow = { screens: [{ name: 'Hall', modules: [
+      { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'walls' } } },
+    ] }] };
+    const use = scanMediaUsage(slideshow, library).get('walls/a.jpg')![0];
+    expect(isRotatingBackgroundUse(use)).toBe(false);
+  });
+
+  it('keeps the folder\'s last picture from being deleted, and lets the others go', () => {
+    const usage = scanMediaUsage(rotating(true), library);
+    expect(blockedRemovals(usage, ['walls/a.jpg'], 'delete').size).toBe(0);
+    const both = blockedRemovals(usage, ['walls/a.jpg', 'walls/b.jpg'], 'delete');
+    expect([...both.keys()]).toEqual(['walls/b.jpg']);
+    expect(isRotatingBackgroundUse(both.get('walls/b.jpg')![0])).toBe(true);
+  });
+
+  it('follows a folder rename, for a module and a rotation alike, keeping the rest of the source', () => {
+    const config = {
+      screens: [{
+        id: 's1',
+        backgroundRotation: { enabled: true, intervalMinutes: 30, photoSource: { kind: 'library', folder: 'trips' } },
+        modules: [{ type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trips' }, intervalMs: 5000 } }],
+      }],
+    };
+    const { config: out, changed } = rewriteMediaRefs(config, () => null, (f) => (f === 'trips' ? 'summer' : null));
+    expect(changed).toBe(2);
+    expect(out.screens[0].backgroundRotation).toEqual({ enabled: true, intervalMinutes: 30, photoSource: { kind: 'library', folder: 'summer' } });
+    expect(out.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'summer' }, intervalMs: 5000 });
+    // The input is not changed in place.
+    expect(config.screens[0].backgroundRotation.photoSource.folder).toBe('trips');
+  });
+
+  it('follows a folder rename for a rotation that is switched off, so turning it on finds the folder', () => {
+    const config = {
+      screens: [{ id: 's1', backgroundRotation: { enabled: false, intervalMinutes: 30, photoSource: { kind: 'library', folder: 'trips' } }, modules: [] }],
+    };
+    const { config: out, changed } = rewriteMediaRefs(config, () => null, (f) => (f === 'trips' ? 'summer' : null));
+    expect(changed).toBe(1);
+    expect(out.screens[0].backgroundRotation.photoSource).toEqual({ kind: 'library', folder: 'summer' });
   });
 });

@@ -12,7 +12,7 @@ beforeAll(() => {
   HTMLMediaElement.prototype.pause = vi.fn();
 });
 
-let mockData: string[] | MediaListItem[] | null = null;
+let mockData: MediaListItem[] | null = null;
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: () => [mockData, null],
 }));
@@ -33,7 +33,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 function makeConfig(overrides: Partial<FullscreenPhotoConfig> = {}): FullscreenPhotoConfig {
   return {
-    directory: '', intervalMs: 10_000, transition: 'fade', objectFit: 'cover',
+    photoSource: { kind: 'library', folder: '' }, intervalMs: 10_000, transition: 'fade', objectFit: 'cover',
     shuffle: false, showClock: false, kenBurns: false, ...overrides,
   };
 }
@@ -121,7 +121,7 @@ describe('FullscreenPhotoModule mixed media', () => {
   });
 
   it('keeps the transition and Ken Burns on all-photo lists', () => {
-    mockData = ['/api/backgrounds/serve?file=a.jpg', '/api/backgrounds/serve?file=b.jpg'];
+    mockData = [{ url: '/api/backgrounds/serve?file=a.jpg', type: 'image' }, { url: '/api/backgrounds/serve?file=b.jpg', type: 'image' }];
     const { container } = renderFullscreen(makeConfig({ kenBurns: true }));
 
     const img = activeElement(container) as HTMLElement;
@@ -144,7 +144,7 @@ describe('FullscreenPhotoModule clock overlay', () => {
   }
 
   it('shows the clock on a slideshow whose config has no showClock', () => {
-    mockData = ['/api/backgrounds/serve?file=a.jpg'];
+    mockData = [{ url: '/api/backgrounds/serve?file=a.jpg', type: 'image' }];
     const { container } = renderFullscreen(withoutShowClock());
     expect(clock(container)).not.toBeNull();
   });
@@ -155,7 +155,7 @@ describe('FullscreenPhotoModule clock overlay', () => {
   });
 
   it('hides the clock only when it is switched off', () => {
-    mockData = ['/api/backgrounds/serve?file=a.jpg'];
+    mockData = [{ url: '/api/backgrounds/serve?file=a.jpg', type: 'image' }];
     expect(clock(renderFullscreen(makeConfig({ showClock: false })).container)).toBeNull();
     expect(clock(renderFullscreen(makeConfig({ showClock: true })).container)).not.toBeNull();
   });

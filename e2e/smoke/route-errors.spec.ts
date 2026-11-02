@@ -303,10 +303,17 @@ test.describe('provider routes: missing-key branches (no upstream fetch)', () =>
     expect((await res.json()).error).toContain('Todoist API key');
   });
 
-  test('GET /api/unsplash returns a 400 when no access key is configured', async ({ request }) => {
-    const res = await request.get('/api/unsplash?query=nature');
+  test('browsing Unsplash without an access key answers a 400 setup card', async ({ request }) => {
+    const res = await request.get('/api/photo-source/browse?kind=unsplash&collection=search&query=nature');
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toContain('Unsplash API key');
+    const body = await res.json();
+    expect(body.code).toBe('setup');
+    expect(body.error).toContain('Unsplash key');
+  });
+
+  test('a slideshow list from an unknown source answers a 400', async ({ request }) => {
+    const res = await request.get('/api/photo-source/media?kind=dropbox');
+    expect(res.status()).toBe(400);
   });
 
   test('GET /api/traffic rejects missing/invalid routes before any fetch with 400', async ({ request }) => {

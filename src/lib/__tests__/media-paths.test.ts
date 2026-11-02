@@ -5,6 +5,7 @@ import {
   displaySizeBox,
   displaySizedUrl,
   tileThumbnailUrl,
+  pictureDisplayName,
 } from '@/lib/media-paths';
 
 const SERVE = '/api/backgrounds/serve?file=';
@@ -70,3 +71,16 @@ describe('displaySizeBox', () => {
     expect(DISPLAY_SIZE_STEPS).toContain(3840);
   });
 });
+
+describe('pictureDisplayName', () => {
+  it.each([
+    ['nasa/colors-of-the-moon--nasa-2026-11-01.jpg', 'colors-of-the-moon.jpg'],
+    ['immich/img_2041--immich-8d1d93ea-60f5-497d-96f4-5f3cb72e1474.jpg', 'img_2041.jpg'],
+    ['immich/immich-8d1d93ea.jpg', 'immich-8d1d93ea.jpg'],
+    ['kids/party--time.png', 'party--time.png'],
+    ['beach.jpg', 'beach.jpg'],
+  ])('%s', (file, name) => {
+    expect(pictureDisplayName(file)).toBe(name);
+  });
+});
+

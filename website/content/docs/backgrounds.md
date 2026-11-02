@@ -3,12 +3,12 @@ title: Photos and backgrounds
 nextjs:
   metadata:
     title: Photos and backgrounds
-    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, browse Unsplash and NASA, and rotate backgrounds on a schedule.
+    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, pick from Immich, Unsplash and NASA, and rotate backgrounds on a schedule.
     alternates:
       canonical: /docs/backgrounds
 ---
 
-Each screen can have its own background, and your photos can fill a whole screen as a slideshow. Upload your own pictures, import them from Google Photos or an iCloud shared album, browse Unsplash and NASA from the editor, or let the background change on its own every few hours. {% .lead %}
+Each screen can have its own background, and your photos can fill a whole screen as a slideshow. Upload your own pictures, import them from Google Photos or an iCloud shared album, pick from Immich, Unsplash and NASA in the editor, or let the background change on its own every few hours. {% .lead %}
 
 Photos and backgrounds share one library on the Pi. Anything you upload or import from a photo module is available as a background, and anything you set as a background can be shown by the **Photo Slideshow** and **Full-Screen Photo Viewer** modules. From a phone, the family remote's **Photos** tab uploads into the same library.
 
@@ -18,15 +18,29 @@ The **Background** section appears in the editor's right sidebar only when no mo
 
 ---
 
+## Choosing a picture: the Image Library {% #image-library %}
+
+Every place that takes one picture opens the same window, the **Image Library**: a screen's background, the Image module, a Countdown event's picture, the Full-Screen Photo Viewer's single photo, and a calendar day rule's picture. Its tabs are the places a picture can come from:
+
+- **Built-in**: the pictures that ship with Home Screens. Only a screen background and a day rule have this tab, and it comes first.
+- **Local**: your own library on the Pi, folder by folder, with **Upload Photos**, **Add from an iCloud link** and **Add from Google Photos**.
+- **Immich**, **Unsplash** and **NASA**: browse them right here.
+
+Each tab works the same way: collections down the side (folders, albums, ideas), pictures in the middle, and you click one to choose it, then **Select Image**. A tab whose service isn't set up yet still shows, with a small lock and a line pointing to **Settings > API keys**.
+
+A picture from Immich, Unsplash or NASA is copied into your library, into a folder named after where it came from (`immich`, `unsplash`, `nasa`), so the wall never needs that service to be up to show it. Picking the same picture again uses the copy you already have.
+
+---
+
 ## Backgrounds that come with Home Screens
 
-The **Backgrounds** tab starts with a set of walls that need no key and no upload. They are tiny drawings rather than photos, so they look sharp on any display, portrait or landscape. They come in three groups, and each group folds away if you don't need it:
+The **Built-in** tab, when you choose a screen's background, holds a set of walls that need no key and no upload. They are tiny drawings rather than photos, so they look sharp on any display, portrait or landscape. They come in three groups down the side:
 
-- **Match a full-screen theme**: one wall for each of the twelve full-screen themes, painted from the same colors the theme uses. Give a regular screen this wall and it sits next to a full-screen calendar or weather screen without a visible change of color. The theme your display uses (from **Settings > Screen**, or the display's own override) is listed first and marked "in use".
+- **Theme walls**: one wall for each of the twelve full-screen themes, painted from the same colors the theme uses. Give a regular screen this wall and it sits next to a full-screen calendar or weather screen without a visible change of color. The theme your display uses (from **Settings > Screen**, or the display's own override) is listed first and marked "in use".
 - **Colors**: eighteen gradients, from deep and moody (Midnight, Ember, Ink) to soft and light (Cloud, Sand, Sage, Blush).
 - **Patterns**: four quiet textures (Dots, Grid, Diagonal, and a light Paper) for a wall with a little texture behind your modules.
 
-Click any of them to use it. If auto-rotation was on for the screen, it is switched off so your choice stays.
+Pick one and click **Select Image** to use it. If auto-rotation was on for the screen, it is switched off so your choice stays.
 
 ---
 
@@ -36,9 +50,9 @@ To set a background in the editor:
 
 1. Select the screen you want to customize using the **Screen Tabs** at the top
 2. Click an empty part of the canvas to deselect any module
-3. Open the **Background** section in the right sidebar
-4. Switch to the **Backgrounds** tab to see your uploaded images
-5. Click a thumbnail to apply it, or click **None** to remove the background
+3. Open the **Background** section in the right sidebar. **Picture** shows the screen's background now and where it lives
+4. Click **Choose a picture**, find one on any tab, and click **Select Image**
+5. Click **None** to remove the background
 
 The picture fills the whole screen without being stretched; a landscape photo on a portrait wall is cropped at the sides.
 
@@ -46,7 +60,7 @@ The picture fills the whole screen without being stretched; a landscape photo on
 
 ## Shading a background
 
-A bright photo can make light text hard to read. Under the background picker, switch on **Shade background** to lay a soft shade over the picture:
+A bright photo can make light text hard to read. In the **Background** section, switch on **Shade background** to lay a soft shade over the picture:
 
 - **Style**: **Even** puts the same shade over the whole picture. **Top and bottom** shades a band along the top and the bottom and leaves the middle clear. **Edges** fades in toward every edge, like an old photo. **Both** combines the top and bottom bands with the edges.
 - **Strength**: how strong the shade is, 40% to start with
@@ -58,15 +72,12 @@ Each screen has its own shade, and the editor shows it exactly as the wall will.
 
 ## Uploading custom images
 
-1. Click an empty part of the canvas to deselect any module
-2. Open the **Background** section in the right sidebar
-3. Switch to the **Backgrounds** tab
-4. Click **Upload Background**
-5. Select an image file from your computer
+1. Click **Choose a picture** in the **Background** section (or open the Image Library from any module that takes a picture)
+2. Switch to the **Local** tab and pick the folder to upload into
+3. Click **Upload Photos** and select one or more files from your computer
+4. Click the new picture, then **Select Image**
 
-The image is saved into your library on the Pi and set as the current screen's background straight away.
-
-The Upload Background button opens a file chooser; there is no drop zone to drag files onto. It offers image files only. Videos can be added to the same library from a photo or video module's media library browser, but they can't be used as a screen background.
+To upload many pictures at once, or drag files in, use **Settings > Pictures & videos** (see [Managing your library](#managing-your-library)). Videos go into the same library and are used by the Video module and slideshows; a screen background is always a still picture.
 
 ### Constraints
 
@@ -78,7 +89,7 @@ The Upload Background button opens a file chooser; there is no drop zone to drag
 
 ## Folders
 
-The background picker's Backgrounds tab shows the top level of your library only. Photos filed into a folder (an iCloud or Google Photos import, or a folder you made from the phone) are for the photo modules, which can point at any folder and everything inside it.
+The Image Library's **Local** tab lists every folder in your library, and its imports (an iCloud link, Google Photos) and uploads go into the folder you have selected. Pictures copied from Immich, Unsplash and NASA land in their own `immich`, `unsplash` and `nasa` folders, next to `google-photos` and `icloud-imports`.
 
 ---
 
@@ -86,9 +97,9 @@ The background picker's Backgrounds tab shows the top level of your library only
 
 Every picture and video you upload lands in one shared library, and **Settings > Pictures & videos** shows all of it: thumbnails with each picture's resolution and every file's size, a type tag (JPG, SVG, MP4), folder filters, and a switch between images and videos. Videos show their first frame. The grid loads small copies of each picture (kept under `data/thumbnails`, rebuilt on demand, never backed up), so a big library opens quickly; opening a picture shows the original. Click any tile to see it full size, or to play a video, and use the arrow keys to step through the rest.
 
-Files a screen depends on can't be deleted. If a screen background, a calendar day picture or a single-photo module points at a file, it wears an **In use** badge (hover the badge, or open the file, to see where it's used), and delete leaves it alone. Pictures a slideshow plays wear a green **Slideshow** badge instead: they can be deleted or moved like any other file, and the slideshow carries on with the rest. Only its last picture is kept, so cleaning up can never leave a screen blank.
+Files a screen depends on can't be deleted. If a screen background, a calendar day picture or a single-photo module points at a file, it wears an **In use** badge (hover the badge, or open the file, to see where it's used), and delete leaves it alone. Pictures a slideshow plays, or a rotating background picks from, wear a green **Slideshow** badge instead: they can be deleted or moved like any other file, and the slideshow carries on with the rest. Only its last picture is kept, so cleaning up can never leave a screen blank.
 
-To add files, open the upload panel and drop in as many pictures or videos as you like, choosing which folder they land in. The built-in starter pictures for calendar day looks are not part of this library: they ship with Home Screens and refresh on upgrades. Backgrounds that rotate on their own (Unsplash, NASA, Immich, iCloud) are managed by the rotation and are not listed here; their file names start with `rotation-`, and an upload with such a name is turned away so it cannot be mistaken for one.
+To add files, open the upload panel and drop in as many pictures or videos as you like, choosing which folder they land in. **Add from an iCloud link** and **Add from Google Photos** sit next to it and work the same way: each opens a panel with a **Save into** folder, which starts at the folder you are looking at. The built-in starter pictures for backgrounds and calendar day looks are not part of this library: they ship with Home Screens and refresh on upgrades. Backgrounds that rotate on their own and are downloaded for it (from Immich, iCloud, OneDrive, Unsplash or NASA) are managed by the rotation and are not listed here; their file names start with `rotation-`, and an upload with such a name is turned away so it cannot be mistaken for one.
 
 If something on a screen points at a file that is no longer in the library, the page says so at the top, with a link that opens the editor on that screen. The where-used lines under an **In use** badge open the editor the same way. The **Unused only** chip shows just the files nothing uses, and the line under the folder chips shows how much space the library takes and how much is free on the hub.
 
@@ -96,7 +107,7 @@ A file that is in use cannot be deleted, but it can be **replaced**: the swap bu
 
 Folders are managed here too: **New folder** makes one (inside the folder you are looking at, or at the top level), and a folder you have opened offers **Rename** and **Delete folder**. Only an empty folder can be deleted. Tick files and pick **Move to** to move them into another folder. Renaming a folder or moving files updates every screen, day rule, module and slideshow that pointed at them, so nothing on the wall goes blank. Use the search box to find a file by name, the sort menu to order by name, newest or largest, **Select all** to tick everything in view, and shift-click to tick a range.
 
-Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The background picker's own delete button is gone: pickers pick and upload, the library page manages. A module's media browser and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
+Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The Image Library's Local tab and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
 
 ---
 
@@ -110,49 +121,43 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 2. Create a new application to get an **Access Key**
 3. In the editor, go to **Settings > API keys** and paste the key into **Access Key** on the Unsplash card
 
-### Browsing and selecting
+### Choosing a photo
 
-1. Click an empty part of the canvas to deselect any module, then open the **Background** section in the right sidebar
-2. Switch to the **Unsplash** tab
-3. Use the search bar or click a preset category (Nature, Mountains, Ocean, Forest, Sky, Space, City, Abstract, Flowers, Seasons)
-4. Click a photo to download it and set it as the screen background
+1. Open the Image Library (for a background: **Choose a picture** in the **Background** section) and switch to the **Unsplash** tab
+2. Click an idea on the left (Nature, Mountains, Ocean, Forest, Sky, Space, City, Flowers, Seasons, Holidays, Birthday, Abstract), or type your own words in the search box
+3. Click a photo, check the photographer's name at the bottom, and click **Select Image**. **Show more** loads the next 30
 
-When you select a photo it is downloaded once, at 1080 pixels wide, and saved into your library. The wall shows the local copy, so Unsplash is never contacted again for it.
+The photo is saved into your library's `unsplash` folder, up to 2560 pixels wide, and the wall shows that copy, so Unsplash is never contacted again for it. When you are choosing a screen's background, searches ask for photos shaped like your display.
 
-Unsplash searches default to **portrait orientation** to match the typical display layout.
+Unsplash can also feed a Photo Slideshow or Full-Screen Photo Viewer directly, and a rotating background: choose **Unsplash** as the **Photo Source** and type the search words. A slideshow shows Unsplash's own photos with each photographer's name in a corner, as Unsplash asks, and takes up to 30 fresh photos an hour.
 
 ---
 
-## NASA Astronomy Picture of the Day
+## NASA pictures
 
-NASA offers two image sources, both accessible from the **NASA** tab in the background picker.
+NASA offers two image sources, both on the **NASA** tab of the Image Library. Neither needs a key or any setup.
 
-### Setup
+### Picture of the day
 
-1. Get a free API key at [api.nasa.gov](https://api.nasa.gov)
-2. In the editor, go to **Settings > API keys** and paste it into **API Key** on the NASA card
+**Picture of the day**, at the top of the NASA tab, shows the Astronomy Picture of the Day from [science.nasa.gov](https://science.nasa.gov/apod/), 30 days at a time, newest first; **Show more** goes back another 30. On a day that is a video, its still picture is used. If NASA isn't sending pictures right now, the tab says so; the library search keeps working.
 
-The NASA Image Library (search) works without an API key. The Astronomy Picture of the Day (APOD) feature requires one.
+### NASA's library
 
-### Picture of the Day
+Under **Search NASA's library**, pick an idea (Nebula, Galaxy, Earth, Mars, Moon, Saturn, Jupiter, Sun, Aurora, Space station) or type your own words.
 
-The **Picture of the Day** sub-tab shows a random selection of past APOD images (12 at a time). Click **Refresh** to load a new batch. Click any image to download the HD version and set it as your background.
-
-### Image Library
-
-The **Image Library** sub-tab lets you search NASA's full public image archive by keyword. Preset categories include Nebula, Galaxy, Earth, Mars, Moon, Saturn, Jupiter, Sun, Aurora, and ISS.
-
-When you select a NASA image, it is downloaded and saved locally. Non-web image formats (such as TIFF files sometimes used by NASA) are automatically converted to JPEG.
+The picture you select is saved into your library's `nasa` folder. Some archive pictures only come as TIFF files, which a display can't show; those are turned away with a message so you can pick another.
 
 {% callout type="note" title="Image quality" %}
 Some NASA images include embedded timestamps, watermarks, or overlay text that cannot be removed. Preview the thumbnail before selecting.
 {% /callout %}
 
+As a **Photo Source**, NASA shows the newest pictures of the day in a slideshow, or the newest one as a rotating background.
+
 ---
 
 ## Immich integration
 
-[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can browse your Immich library directly from the background picker and use Immich as a source for background rotation.
+[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can pick photos from your Immich library in the Image Library, and use Immich as the photo source for slideshows and rotating backgrounds.
 
 ### Setup
 
@@ -174,17 +179,14 @@ A key with every permission works. If you would rather give Home Screens only wh
 
 A key with only `asset.read` and `asset.view` still puts photos on the wall. Where the album or person list would be, the editor says which box is missing.
 
-### Browsing and selecting
+### Choosing a photo
 
-1. Click an empty part of the canvas to deselect any module, then open the **Background** section in the right sidebar
-2. Switch to the **Immich** tab (only visible when both Immich keys are configured)
-3. Optionally filter by album using the dropdown
-4. Click **Refresh** to load a new batch of photos
-5. Click a photo to download it and set it as the screen background
+1. Open the Image Library (for a background: **Choose a picture** in the **Background** section) and switch to the **Immich** tab
+2. Pick **All photos**, **Favorites**, an album, or a person on the left. Only people you have named in Immich are listed
+3. Photos show newest first, 60 at a time; **Show more** loads the next 60. Only still pictures are shown
+4. Click a photo and then **Select Image**
 
-When you select an Immich photo, a display-sized copy is saved into your library and set as the background. If auto-rotation was on, it is switched off so your choice stays.
-
-The Immich browser shows a grid of 20 random photos from your library at a time.
+The photo is copied into your library's `immich` folder, so it keeps showing even if Immich is off. If your key can't see albums or people, a note sits where that list would be and says which box to tick. If Immich can't be reached, the tab says so and offers **Try again**.
 
 ---
 
@@ -200,8 +202,8 @@ iCloud shared albums work without an Apple account or API key, all you need is t
 
 ### Using it
 
-- **As a rotation source**: deselect any module, open the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers. Only still photos are used; any videos in the album are skipped.
-- **Importing into your library**: use **Import from an iCloud link** to download everything a link contains into the selected folder. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo Slideshow, or Full-Screen Photo Viewer module, not from the Background section. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
+- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo Source** and paste the link. The display loads photos straight from Apple's servers. A rotating background only uses still photos; any videos in the album are skipped.
+- **Importing into your library**: **Add from an iCloud link** downloads everything a link contains into a folder. It is on the Image Library's **Local** tab (into the selected folder) and on **Settings > Pictures & videos**. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---
 
@@ -213,7 +215,7 @@ Google no longer lets apps read your photo library directly, but it does let you
 
 Nothing to set up first: Home Screens brings its own Google app.
 
-1. Select a Photo Slideshow, or a Full-Screen Photo Viewer in slideshow mode, with its source set to **Local Photos**. Under the folder picker, click **Sign in with Google**
+1. Select a Photo Slideshow, or a Full-Screen Photo Viewer in slideshow mode, with its **Photo Source** set to **Library folder**. Under the folder, click **Sign in with Google**
 2. A Google tab opens. Pick your account and approve; the tab comes straight back to your hub, says Google Photos is connected, and the editor moves on by itself. If your hub lives on a public web address, you land on a Home Screens page with a code instead: click **Didn't come back? Paste a code** in the editor, paste it, and click **Finish sign-in**
 3. Click **Choose photos**: Google Photos opens with its own photo picker
 4. Pick the photos you want and confirm; the import starts on its own and shows progress as it saves
@@ -221,6 +223,8 @@ Nothing to set up first: Home Screens brings its own Google app.
 Home Screens only ever sees the photos you pick; the permission it asks for cannot read the rest of your library. The sign-in passes through Home Screens' helper at auth.homescreens.dev, which adds the app's password on the way and keeps nothing; the photos themselves download straight from Google to your hub. The [privacy policy](/privacy) has the details.
 
 When it finishes, the module automatically points at the `google-photos` folder. To add more photos later, run the import again and pick more, existing photos are skipped, new ones are added.
+
+**Add from Google Photos** does the same from the Image Library's **Local** tab and from **Settings > Pictures & videos**, into the folder you choose there. If you haven't signed in yet, both offer **Sign in to add from Google Photos** right where the button would be.
 
 Photos are saved as high-quality display-sized copies (up to 4096 pixels on the long edge), which keeps imports fast and light on the SD card. Imports are capped at 2000 photos at a time.
 
@@ -234,7 +238,7 @@ If you would rather run your own Google Cloud project, open **Settings > API key
 4. If you have not done so for the calendar, open **Google Auth Platform > Audience** and click **Publish app**. Until you do, only accounts you list there as test users can sign in, and Google ends every sign-in after 7 days. When you sign in afterwards, Google may say it hasn't verified the app. It is your own app, so choose **Advanced** and carry on.
 5. Paste the new client ID and secret into those fields
 
-With your own app the steps are the same, except that you click **Import from Google Photos** first and then **Sign in with Google**. After you approve, Google sends you to a page at homescreens.dev, which passes you straight back to your hub, or shows a code to paste if your hub lives on a public web address. That page is just a message board: it never sees your password, your secret, or your photos.
+With your own app the steps are the same, except that in a slideshow's settings you click **Import from Google Photos** first and then **Sign in with Google**. After you approve, Google sends you to a page at homescreens.dev, which passes you straight back to your hub, or shows a code to paste if your hub lives on a public web address. That page is just a message board: it never sees your password, your secret, or your photos.
 
 To go back to Home Screens' app later, flip the switch next to **Use your own Google app** off on the API keys page. Your details stay saved, and the next import signs in with Google again. The switch covers Google Calendar too, so sign in again on **Settings > Calendar** if your calendar used your own app.
 
@@ -242,20 +246,18 @@ To go back to Home Screens' app later, flip the switch next to **Use your own Go
 
 ## Background rotation
 
-Auto-rotation periodically replaces the screen background with a new image from Unsplash, NASA APOD, Immich, or an iCloud shared album.
+Auto-rotation replaces the screen background with a new picture every so often, from any photo source: a folder in your library, Immich, an iCloud shared album, a OneDrive folder, Unsplash, or NASA's picture of the day.
 
 ### Enabling rotation
 
 1. Click an empty part of the canvas to deselect any module
 2. Open the **Background** section in the right sidebar
 3. Toggle **Auto-rotate** on
-4. Choose a **Source**: Unsplash, NASA Picture of the Day, Immich, or iCloud Shared Album
-5. For Unsplash, enter a **Search query** (default: "nature landscape")
-6. For Immich, optionally filter by **Album**, **Person**, or **Favorites only**
-7. For iCloud, paste the shared album link
-8. Set the **Rotate every** interval
+4. Choose a **Photo Source**. Every source is in the list; one that still needs a key says so in brackets and under the list
+5. Fill in what that source needs: a **Folder** (Browse), Immich's **Album**, **Person** or **Favorites only**, an iCloud album link, a OneDrive folder, or Unsplash **Search words**
+6. Set the **Rotate every** interval
 
-Unsplash, NASA, and Immich appear in the Source list only once their key is saved on the **Settings > API keys** page. iCloud shared albums need no key, so that option is always there. If the list looks short, a missing key is why.
+These are the same source settings the Photo Slideshow and Full-Screen Photo Viewer use, so whatever you can show in a slideshow you can rotate behind a screen. A background is always a still picture, so videos are skipped.
 
 ### Interval options
 
@@ -263,29 +265,31 @@ Unsplash, NASA, and Immich appear in the Source list only once their key is save
 |---|---|
 | 15 minutes | Frequent variety |
 | 30 minutes | Moderate rotation |
-| 1 hour | Default for Unsplash |
+| 1 hour | Default |
 | 2 hours | Balanced |
-| 4 hours | Default for NASA APOD |
+| 4 hours | Set for you when you choose NASA |
 | 8 hours | Minimal changes |
 
 ### How it works
 
 Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi fetches one from the source you picked, saves it into the library, and the wall switches to it.
 
-- **Unsplash rotation** fetches a random portrait photo matching the configured query. Download tracking is triggered per the Unsplash API terms.
-- **NASA APOD rotation** fetches the current Astronomy Picture of the Day. Since NASA publishes one new image per day, the display checks for updates at the chosen interval but the image only changes once daily.
-- **Immich rotation** fetches a random photo from your Immich library, optionally filtered by album, person, or favorites. The server caches Immich filter parameters so changing your album or person selection immediately busts the cache and fetches a fresh photo.
-- **iCloud rotation** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
+- **Library folder** picks a different picture from the folder each time. It is shown straight from the library, with no copy, and the folder's last picture can't be deleted while the rotation uses it.
+- **Unsplash** fetches a random photo matching the search words, shaped like your display. Download tracking is triggered per the Unsplash API terms.
+- **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
+- **Immich** fetches a random photo, optionally from one album, of one person, or from your favorites. Changing the album or person fetches a fresh photo straight away.
+- **iCloud** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
+- **OneDrive** fetches a random photo from the folder and everything inside it.
 
 If a fetch fails (network error, API limit), the previous background is kept until the next successful rotation.
 
 ### Housekeeping
 
-Rotated images are tidied up on their own: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and imports are never touched. If a rotated photo is one you want to keep, pick it as a fixed background and it stays.
+Downloaded rotation pictures are tidied up on their own: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and imports are never touched.
 
 ### Rotation and manual backgrounds
 
-While rotation is on it replaces whatever fixed background the screen had. Picking a new background by hand (from Backgrounds, Unsplash, NASA or Immich) switches rotation off for that screen so your choice stays.
+While rotation is on it replaces whatever fixed background the screen had; that picture shows until the first rotating one arrives. Picking a background with **Choose a picture** switches rotation off for that screen so your choice stays.
 
 ---
 
@@ -313,7 +317,7 @@ The display defaults to **1080 x 1920** pixels (portrait). For best results, use
 | Portrait 4K | 2160 x 3840 or larger |
 | Landscape 1080p | 1920 x 1080 or larger |
 
-Portrait-oriented images work best for the default portrait display layout. Unsplash searches are pre-filtered to portrait orientation for this reason.
+Portrait-oriented images work best for the default portrait display layout. When you choose a screen's background, Unsplash searches ask for photos shaped like your display for this reason.
 
 ---
 

@@ -39,17 +39,11 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|accentColorPicker.presets.cyan',
   'editor|accentColorPicker.presets.orange',
   'editor|accentColorPicker.presets.pink',
-  'editor|backgroundPicker.immich.albumLabel',
-  'editor|backgroundPicker.immich.albumOption',
-  'editor|backgroundPicker.immich.personLabel',
   'editor|backgroundPicker.statusGroup',
-  'editor|backgroundPicker.tabs.nasa',
   // "Beta" is the same software term in every shipped language; the update
   // choice's other labels are translated words.
   'editor|settings.systemPage.channel.beta.label',
   // Brand names of the rotation sources, spelled the same everywhere.
-  'editor|backgroundPicker.sources.unsplash',
-  'editor|backgroundPicker.sources.immich',
   // Brand names of the sidebar footer's community links, spelled the same everywhere.
   'editor|settings.sidebar.github',
   'editor|settings.sidebar.discord',
@@ -88,8 +82,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.fullscreen-calendar.googleCalendar',
   'editor|configSections.fullscreen-calendar.googleCalendarNumbered',
   'editor|configSections.fullscreen-calendar.viewAgenda',
-  'editor|configSections.fullscreen-photo.sourceImmich',
-  'editor|configSections.fullscreen-photo.sourceOneDrive',
   'editor|configSections.fullscreen-photo.transitionZoom',
   'editor|configSections.fullscreen-weather.mapStyleStandard',
   // The card is named by the one word for wind, which German and Dutch spell as English does.
@@ -98,16 +90,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.icon.animation',
   'editor|configSections.iframe.url',
   'editor|configSections.image.tabUrl',
-  'editor|configSections.immichSource.album',
-  'editor|configSections.immichSource.person',
   'editor|configSections.multi-month.layout',
   'editor|configSections.news.addCustomPlaceholder',
   'editor|configSections.news.addKind.reddit',
   'editor|configSections.news.addRedditPlaceholder',
   'editor|configSections.news.addYoutubePlaceholder',
   'editor|configSections.news.sourceReddit',
-  'editor|configSections.photo-slideshow.sourceImmich',
-  'editor|configSections.photo-slideshow.sourceOneDrive',
   'editor|configSections.qr-code.authWEP',
   'editor|configSections.qr-code.authWPA',
   'editor|configSections.qr-code.dataUrlOrTextPlaceholder',
@@ -135,13 +123,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|iconPicker.tabEmoji',
   'editor|iconPicker.tabFontAwesome',
   'editor|imageBrowserModal.newFolderConfirm',
-  'editor|imageBrowserModal.tabs.unsplash',
   'editor|imageBrowserModal.uploadMediaButton',
   'editor|imageBrowserModal.videoCountSingular',
-  'editor|imageBrowsers.nasa.categories.iss',
-  'editor|imageBrowsers.nasa.categories.jupiter',
-  'editor|imageBrowsers.nasa.categories.mars',
-  'editor|imageBrowsers.nasa.categories.saturn',
   'editor|installFromUrlModal.pluginFallbackName',
   'editor|layoutImportModal.countsLine',
   'editor|mealPlannerModal.detail.minPlaceholder',
@@ -183,7 +166,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.integrationsPage.google.name',
   'editor|settings.integrationsPage.immich.name',
   'editor|settings.integrationsPage.microsoft.name',
-  'editor|settings.integrationsPage.nasa.name',
   'editor|settings.integrationsPage.todoist.name',
   'editor|settings.integrationsPage.tomtom.name',
   'editor|settings.integrationsPage.unsplash.name',
@@ -304,6 +286,13 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|timers.pause',
   'remote|timers.start',
   'remote|timers.stop',
+  // Photo sources: product and planet names, the same in every language.
+  'editor|photoSources.kinds.immich',
+  'editor|photoSources.kinds.onedrive',
+  'editor|photoSources.kinds.unsplash',
+  'editor|photoSources.picker.tabs.immich',
+  'editor|photoSources.picker.tabs.unsplash',
+  'editor|photoSources.picker.tabs.nasa',
 ]);
 
 /**
@@ -355,6 +344,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Whiteboard" and "Layouts" are the everyday Danish words too (the notes views and their picker heading).
     'editor|configSections.notes.viewWhiteboard',
     'editor|configSections.notes.groupLayouts',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.immich.person',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.saturn',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
     // "Bonus" is the same word in this language (the ticket history's bonus line).
@@ -452,6 +447,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewWhiteboard',
     'editor|configSections.notes.viewLetterboard',
     'editor|configSections.notes.groupLayouts',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.immich.person',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.saturn',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'es-ES': new Set([
     // Triple is the Spanish word too (a triple batch).
@@ -472,7 +473,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|stock-ticker.chartLabels.week',
     'core|actions.color',
     'core|timer.minutesShort',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
@@ -489,8 +489,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.weather.iconSets.color',
     'editor|fields.color',
     'editor|backgroundPicker.shadeColorLabel',
-    'editor|imageBrowserModal.tabs.local',
-    'editor|imageBrowsers.nasa.categories.aurora',
     'editor|mealPlannerModal.library.filters.favorites',
     'editor|registry.categories.personal',
     'editor|settings.dataPage.configBackups.restoreStatus.error',
@@ -530,6 +528,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.minutesShort',
     // "Total" is what a Spanish till receipt prints (the notes Receipt view).
     'modules|notes.receiptTotal',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.nasa.ideas.aurora',
+    'editor|photoSources.picker.tabs.library',
+    'editor|photoSources.picker.ideas',
   ]),
   'fr-FR': new Set([
     // Double and Triple are the French words too (a double batch).
@@ -563,8 +565,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.todo.viewCompact',
     'core|timer.minutesShort',
     'editor|backgroundPicker.intervals.minutes',
-    'editor|backgroundPicker.sourceLabel',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.dateLabel',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
@@ -579,16 +579,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.fullscreen-calendar.sources',
     'editor|configSections.fullscreen-photo.mode',
     'editor|configSections.fullscreen-photo.photo',
-    'editor|configSections.fullscreen-photo.photoCountPlural',
-    'editor|configSections.fullscreen-photo.photoCountSingular',
     'editor|configSections.fullscreen-photo.transition',
     'editor|configSections.icon.flipHorizontal',
     'editor|configSections.icon.flipVertical',
     'editor|configSections.icon.style',
     'editor|backgroundPicker.shadeStyleLabel',
     'editor|configSections.news.viewCompact',
-    'editor|configSections.photo-slideshow.photoCountOne',
-    'editor|configSections.photo-slideshow.photoCountOther',
     'editor|configSections.photo-slideshow.transition',
     'editor|configSections.qr-code.mode',
     'editor|configSections.rain-map.latitude',
@@ -608,9 +604,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.weather.views.compact',
     'editor|imageBrowserModal.photoCountPlural',
     'editor|imageBrowserModal.photoCountSingular',
-    'editor|imageBrowserModal.tabs.local',
-    'editor|imageBrowserModal.unsplashCategories.nature',
-    'editor|imageBrowsers.unsplash.categories.nature',
     'editor|layoutExportModal.moduleCountPlural',
     'editor|layoutExportModal.moduleCountSingular',
     'editor|layoutImportModal.moduleCountPlural',
@@ -713,6 +706,13 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewCompact',
     // "Total" is what a French till receipt prints (the notes Receipt view).
     'modules|notes.receiptTotal',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.immich.albums',
+    'editor|photoSources.library.photoCount',
+    'editor|photoSources.unsplash.ideas.nature',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
     // Half is the Dutch word too (a half batch).
@@ -772,8 +772,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.traffic.labelPlaceholder',
     'editor|configSections.traffic.routes',
     'editor|configSections.weather.views.compact',
-    'editor|imageBrowserModal.unsplashCategories.abstract',
-    'editor|imageBrowsers.unsplash.categories.abstract',
     'editor|layoutExportModal.moduleCountPlural',
     'editor|layoutExportModal.moduleCountSingular',
     'editor|layoutImportModal.moduleCountPlural',
@@ -874,6 +872,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewCompact',
     // "Whiteboard" is the everyday Dutch word too (the notes Whiteboard view).
     'editor|configSections.notes.viewWhiteboard',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.immich.albums',
+    'editor|photoSources.unsplash.ideas.abstract',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'pt-BR': new Set([
     // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
@@ -888,7 +892,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',
     'core|timer.minutesShort',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
@@ -910,8 +913,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.text.orientationOptions.vertical',
     'editor|configSections.text.revealOptions.fade',
     'editor|configSections.text.sections.marquee',
-    'editor|imageBrowserModal.tabs.local',
-    'editor|imageBrowsers.nasa.categories.aurora',
     'editor|mealPlannerModal.library.filters.favorites',
     'editor|propertyPanel.sections.config',
     'editor|registry.types.qr-code',
@@ -961,6 +962,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
     // "Total" is what a Brazilian till receipt prints (the notes Receipt view).
     'modules|notes.receiptTotal',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.picker.tabs.library',
   ]),
 };
 

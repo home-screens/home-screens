@@ -3,7 +3,7 @@ import { pickedBackground, resolveScreenBackground } from '@/lib/screen-backgrou
 
 const OWN = '/starter-backgrounds/ocean.svg';
 const PHOTO = '/api/backgrounds/serve?file=rotation-unsplash-a.jpg';
-const ROTATION = { enabled: true, source: 'unsplash' as const, query: 'nature landscape', intervalMinutes: 60 };
+const ROTATION = { enabled: true, photoSource: { kind: 'unsplash' as const, query: 'nature landscape' }, intervalMinutes: 60 };
 const rotating = { backgroundImage: OWN, backgroundRotation: ROTATION };
 
 describe('resolveScreenBackground', () => {

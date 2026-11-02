@@ -100,10 +100,8 @@ test.describe('PropertyPanel empty-state pickers', () => {
   });
 
   test('enabling background auto-rotate persists per-screen', async ({ page, request }) => {
-    // The picker's rotation controls only render when at least one image source
-    // key exists; seed an Unsplash key so the "Auto-rotate" toggle appears.
-    // (The plan's `settings.background` / "solid color|gradient" shape does not
-    // exist — the real picker writes `screen.backgroundRotation`.)
+    // With an Unsplash key saved, turning rotation on starts from an Unsplash
+    // search; without one it starts from the library's top folder.
     const seeded = await request.put('/api/secrets', {
       data: { key: 'unsplash_access_key', value: 'e2e-test-key' },
     });
@@ -112,9 +110,13 @@ test.describe('PropertyPanel empty-state pickers', () => {
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Screen 1', [textModule('S1')])],
     }));
+    // The first source depends on which keys are saved, so let the editor
+    // learn them before the switch is flipped.
+    const keysRead = page.waitForResponse((res) => new URL(res.url()).pathname === '/api/secrets' && res.request().method() === 'GET');
     await page.goto('/editor');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await expect(page.getByText('Select a module to edit')).toBeVisible();
+    await keysRead;
 
     await autosaved(page, async () => {
       await page.getByRole('switch', { name: 'Auto-rotate' }).click();
@@ -123,6 +125,9 @@ test.describe('PropertyPanel empty-state pickers', () => {
     await expect
       .poll(async () => (await getConfig(request)).screens[0].backgroundRotation?.enabled)
       .toBe(true);
+    expect((await getConfig(request)).screens[0].backgroundRotation?.photoSource).toEqual({ kind: 'unsplash', query: 'nature landscape' });
+    // The rotation's pictures come from the shared source block.
+    await expect(page.getByRole('combobox', { name: 'Photo Source' })).toHaveValue('unsplash');
   });
 });
 

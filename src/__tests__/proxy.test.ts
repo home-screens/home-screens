@@ -202,8 +202,8 @@ describe('proxy — auth disabled (no auth.json file)', () => {
     expect(isPassThrough(proxy(makeRequest('/api/backgrounds', { method: 'DELETE' })))).toBe(true);
   });
 
-  it('allows GET /api/unsplash/search without a cookie', () => {
-    expect(isPassThrough(proxy(makeRequest('/api/unsplash/search')))).toBe(true);
+  it('allows GET /api/photo-source/browse without a cookie', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/photo-source/browse')))).toBe(true);
   });
 });
 
@@ -218,7 +218,7 @@ describe('proxy — auth disabled (passwordHash is null)', () => {
     expect(isPassThrough(proxy(makeRequest('/editor')))).toBe(true);
     expect(isPassThrough(proxy(makeRequest('/api/secrets')))).toBe(true);
     expect(isPassThrough(proxy(makeRequest('/api/config', { method: 'PUT' })))).toBe(true);
-    expect(isPassThrough(proxy(makeRequest('/api/unsplash')))).toBe(true);
+    expect(isPassThrough(proxy(makeRequest('/api/photo-source/browse')))).toBe(true);
   });
 });
 
@@ -508,29 +508,26 @@ describe('proxy — auth enabled: protected GET routes require authentication', 
   }
 });
 
-describe('proxy — auth enabled: unsplash routes are protected', () => {
+describe('proxy — auth enabled: picture browsing is editor-only, the wall\'s list is not', () => {
   let proxy: ProxyFn;
 
   beforeEach(async () => {
     proxy = await loadProxyWithAuth('enabled');
   });
 
-  it('GET /api/unsplash returns 401 without a cookie', async () => {
-    expect(await is401(proxy(makeRequest('/api/unsplash')))).toBe(true);
+  it('GET /api/photo-source/browse returns 401 without a cookie', async () => {
+    expect(await is401(proxy(makeRequest('/api/photo-source/browse')))).toBe(true);
   });
 
-  it('GET /api/unsplash/search returns 401 without a cookie', async () => {
-    expect(await is401(proxy(makeRequest('/api/unsplash/search')))).toBe(true);
+  it('GET /api/photo-source/browse passes through with a cookie', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/photo-source/browse', { cookie: 'hs-session=tok' })))).toBe(true);
   });
 
-  it('GET /api/unsplash/photos returns 401 without a cookie', async () => {
-    expect(await is401(proxy(makeRequest('/api/unsplash/photos')))).toBe(true);
-  });
-
-  it('GET /api/unsplash passes through with a cookie', () => {
-    expect(isPassThrough(proxy(makeRequest('/api/unsplash', { cookie: 'hs-session=tok' })))).toBe(true);
+  it('GET /api/photo-source/media passes through for a wall, which the route checks itself', () => {
+    expect(isPassThrough(proxy(makeRequest('/api/photo-source/media')))).toBe(true);
   });
 });
+
 
 describe('proxy — auth enabled: protected GET route sub-paths are protected', () => {
   let proxy: ProxyFn;

@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures';
+import type { Page } from '@playwright/test';
 import { clearSecrets, getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
@@ -245,21 +246,33 @@ test.describe('schedule editor', () => {
 });
 
 test.describe('background picker', () => {
-  test('opens on backgrounds that need no key, and locks the ones that do', async ({ page, request }) => {
-    // Secrets survive the per-test config reset, so clear the image keys this
-    // worker may have seeded earlier.
-    await clearSecrets(request, ['unsplash_access_key', 'nasa_api_key', 'immich_api_key', 'immich_url']);
-    await putConfig(request, baseConfig());
+  /** Open the editor on the screen (no module selected) and open the Image Library from its picture field. */
+  async function openPicker(page: Page) {
     await page.goto('/editor');
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
-    // Empty state = screen selected, no module: the picker lives there.
+    // Empty state = screen selected, no module: the background panel lives there.
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await page.getByTestId('background-choose').click();
+    await expect(page.getByRole('dialog', { name: 'Image Library' })).toBeVisible();
+  }
 
-    await expect(page.getByTestId('background-tab-local')).toBeVisible();
-    await expect(page.getByTestId('starter-background-midnight')).toBeVisible();
-    // No API key seeded, so both keyed tabs advertise that before being clicked.
-    await expect(page.getByTestId('background-tab-unsplash')).toHaveAttribute('title', 'Needs a free key');
-    await expect(page.getByTestId('background-tab-nasa')).toHaveAttribute('title', 'Needs a free key');
+  test('opens on the backgrounds that need no key, and locks the sources that do', async ({ page, request }) => {
+    // Secrets survive the per-test config reset, so clear the image keys this
+    // worker may have seeded earlier.
+    await clearSecrets(request, ['unsplash_access_key', 'immich_api_key', 'immich_url']);
+    await putConfig(request, baseConfig());
+    await openPicker(page);
+
+    await expect(page.getByTestId('picker-tab-builtin')).toHaveAttribute('aria-selected', 'true');
+    await page.getByTestId('builtin-group-color').click();
+    await expect(page.getByTestId('starter-picture-midnight')).toBeVisible();
+    // No key seeded, so the keyed tabs say so before being clicked. NASA
+    // needs no key, so its tab never locks.
+    await expect(page.getByTestId('picker-tab-unsplash')).toHaveAttribute('title', 'Not set up yet');
+    await expect(page.getByTestId('picker-tab-immich')).toHaveAttribute('title', 'Not set up yet');
+    await expect(page.getByTestId('picker-tab-nasa')).not.toHaveAttribute('title', /./);
+    await page.getByTestId('picker-tab-unsplash').click();
+    await expect(page.getByTestId('picker-setup-hint')).toContainText('Unsplash needs a free key');
   });
 
   test('a rotating screen paints its photo without showing its own picture first', async ({ page, request }) => {
@@ -273,7 +286,7 @@ test.describe('background picker', () => {
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Screen 1', [textModule('ROTATING')], {
         backgroundImage: '/starter-backgrounds/ocean.svg',
-        backgroundRotation: { enabled: true, source: 'unsplash', query: 'nature landscape', intervalMinutes: 60 },
+        backgroundRotation: { enabled: true, photoSource: { kind: 'unsplash' as const, query: 'nature landscape' }, intervalMinutes: 60 },
       })],
     }));
     await page.goto('/editor');
@@ -288,56 +301,53 @@ test.describe('background picker', () => {
 
   test('picking a shipped background persists it to the screen', async ({ page, request }) => {
     await putConfig(request, baseConfig());
-    await page.goto('/editor');
-    await expect(page.getByTestId('editor-canvas')).toBeVisible();
-    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await openPicker(page);
+    await page.getByTestId('builtin-group-color').click();
+    await page.getByTestId('starter-picture-dusk').click();
+    await expect(page.getByTestId('picker-hint')).toHaveText('Comes with Home Screens, so it is always there.');
 
     await autosaved(page, async () => {
-      await page.getByTestId('starter-background-dusk').click();
+      await page.getByTestId('picker-confirm').click();
     });
     expect((await getConfig(request)).screens[0].backgroundImage).toBe('/starter-backgrounds/dusk.svg');
+    await expect(page.getByTestId('background-picture-name')).toHaveText('Dusk');
   });
 
   test('offers a wall for every full-screen theme, the one in use first', async ({ page, request }) => {
     const config = baseConfig();
     config.settings.fullscreenTheme = 'aurora';
     await putConfig(request, config);
-    await page.goto('/editor');
-    await expect(page.getByTestId('editor-canvas')).toBeVisible();
-    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await openPicker(page);
 
-    const themeGroup = page.getByTestId('starter-group-theme');
-    await expect(themeGroup).toContainText('12');
-    const themeWalls = page.locator('[data-testid^="starter-background-theme-"]');
+    await expect(page.getByTestId('builtin-group-theme')).toContainText('12');
+    const themeWalls = page.locator('[data-testid^="starter-picture-theme-"]');
     await expect(themeWalls).toHaveCount(12);
-    // The display's theme leads the group and says so.
-    await expect(themeWalls.first()).toHaveAttribute('data-testid', 'starter-background-theme-aurora');
-    await expect(themeWalls.first()).toContainText('in use');
-    await expect(page.getByTestId('starter-background-theme-linen')).not.toContainText('in use');
+    // The display's theme leads the group and says so under its tile.
+    await expect(themeWalls.first()).toHaveAttribute('data-testid', 'starter-picture-theme-aurora');
+    const tiles = page.getByTestId('picker-grid').locator(':scope > div');
+    await expect(tiles.first()).toContainText('in use');
+    await expect(tiles.filter({ has: page.getByTestId('starter-picture-theme-linen') })).not.toContainText('in use');
 
+    await page.getByTestId('starter-picture-theme-horizon').click();
     await autosaved(page, async () => {
-      await page.getByTestId('starter-background-theme-horizon').click();
+      await page.getByTestId('picker-confirm').click();
     });
     expect((await getConfig(request)).screens[0].backgroundImage).toBe('/starter-backgrounds/theme-horizon.svg');
-    await expect(page.getByTestId('starter-background-theme-horizon')).toHaveAttribute('aria-pressed', 'true');
+    await page.getByTestId('background-choose').click();
+    await expect(page.getByTestId('starter-picture-theme-horizon')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('groups the shipped walls and remembers a collapsed group', async ({ page, request }) => {
-    await putConfig(request, baseConfig());
-    await page.goto('/editor');
-    await expect(page.getByTestId('editor-canvas')).toBeVisible();
-    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+  test('groups the shipped walls, and opens on the group holding the screen\'s picture', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Screen 1', [textModule('X')], { backgroundImage: '/starter-backgrounds/pattern-dots.svg' })],
+    }));
+    await openPicker(page);
 
-    await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
-    await expect(page.getByTestId('starter-background-pattern-dots')).toBeVisible();
-
-    await page.getByTestId('starter-group-pattern').click();
-    await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();
-    await page.reload();
-    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
-    await expect(page.getByTestId('starter-group-pattern')).toBeVisible();
-    await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();
-    await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
+    await expect(page.getByTestId('builtin-group-pattern')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('starter-picture-pattern-dots')).toHaveAttribute('aria-pressed', 'true');
+    await page.getByTestId('builtin-group-color').click();
+    await expect(page.getByTestId('starter-picture-ocean')).toBeVisible();
+    await expect(page.getByTestId('starter-picture-pattern-dots')).toBeHidden();
   });
 });
 

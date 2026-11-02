@@ -771,14 +771,14 @@
     "settings": {
       "grabLimitLabel": "How many can one person grab at once?",
       "grabLimit": {
+        "0": "No limit",
         "1": "One at a time",
         "2": "Two at a time",
-        "3": "Three at a time",
-        "0": "No limit"
+        "3": "Three at a time"
       },
       "grabLimitHint": {
-        "1": "Finish or let go of it before grabbing another.",
-        "0": "Anyone can grab as many as they like."
+        "0": "Anyone can grab as many as they like.",
+        "1": "Finish or let go of it before grabbing another."
       },
       "grabHoldLabel": "When does a grab end?",
       "grabHold": {
@@ -791,10 +791,10 @@
       },
       "summary": {
         "limit": {
+          "0": "No limit on grabs",
           "1": "One grab at a time",
           "2": "Two grabs at a time",
-          "3": "Three grabs at a time",
-          "0": "No limit on grabs"
+          "3": "Three grabs at a time"
         },
         "hold": {
           "day": "a grab ends at bedtime",
@@ -1045,7 +1045,10 @@
     "noPhotosYet": "No photos yet",
     "noPhotosYetHint": "Add photos from your phone at",
     "noPhotosYetHintICloud": "Check the album link in the editor and make sure the album's Public Website is turned on.",
-    "noPhotosYetHintOneDrive": "Check the OneDrive folder in the editor."
+    "noPhotosYetHintOneDrive": "Check the OneDrive folder in the editor.",
+    "noPhotosYetHintImmich": "Check the Immich album, person and favorites choice in the editor.",
+    "noPhotosYetHintUnsplash": "Try different search words in the editor.",
+    "noPhotosYetHintNasa": "NASA isn't sending pictures right now. They come back on their own."
   },
   "dad-joke": {
     "loading": "Loading joke…"
@@ -1192,7 +1195,11 @@
     "loading": "Loading photos…",
     "empty": "No photos found",
     "emptyICloud": "No photos yet. Check the album link and make sure Public Website is turned on.",
-    "emptyOneDrive": "No photos yet. Check the OneDrive folder in the editor."
+    "emptyOneDrive": "No photos yet. Check the OneDrive folder in the editor.",
+    "emptyImmich": "No photos yet. Check the Immich album, person and favorites choice in the editor.",
+    "emptyUnsplash": "No photos yet. Try different search words in the editor.",
+    "emptyNasa": "No pictures from NASA right now. They come back on their own.",
+    "photoCredit": "Photo by {name} on {source}"
   },
   "video": {
     "name": "Video",

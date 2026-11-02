@@ -28,7 +28,7 @@
           "size": { "w": 1080, "h": 1920 },
           "zIndex": 1,
           "config": {
-            "directory": "/photos",
+            "photoSource": { "kind": "library", "folder": "photos" },
             "intervalMs": 10000,
             "transition": "fade",
             "objectFit": "cover",

@@ -771,14 +771,14 @@
     "settings": {
       "grabLimitLabel": "Hoeveel mag één persoon tegelijk pakken?",
       "grabLimit": {
+        "0": "Onbeperkt",
         "1": "Eén tegelijk",
         "2": "Twee tegelijk",
-        "3": "Drie tegelijk",
-        "0": "Onbeperkt"
+        "3": "Drie tegelijk"
       },
       "grabLimitHint": {
-        "1": "Maak het eerst af of geef het terug voordat je een ander pakt.",
-        "0": "Iedereen mag er zoveel pakken als ze willen."
+        "0": "Iedereen mag er zoveel pakken als ze willen.",
+        "1": "Maak het eerst af of geef het terug voordat je een ander pakt."
       },
       "grabHoldLabel": "Hoe lang blijft een gepakt klusje van iemand?",
       "grabHold": {
@@ -791,10 +791,10 @@
       },
       "summary": {
         "limit": {
+          "0": "Onbeperkt pakken",
           "1": "Eén klusje tegelijk pakken",
           "2": "Twee klusjes tegelijk pakken",
-          "3": "Drie klusjes tegelijk pakken",
-          "0": "Onbeperkt pakken"
+          "3": "Drie klusjes tegelijk pakken"
         },
         "hold": {
           "day": "een gepakt klusje blijft van iemand tot bedtijd",
@@ -1045,7 +1045,10 @@
     "noPhotosYet": "Nog geen foto's",
     "noPhotosYetHint": "Voeg foto's toe vanaf je telefoon op",
     "noPhotosYetHintICloud": "Controleer de albumlink in de editor en zorg dat 'Openbare website' aanstaat voor het album.",
-    "noPhotosYetHintOneDrive": "Controleer de OneDrive-map in de editor."
+    "noPhotosYetHintOneDrive": "Controleer de OneDrive-map in de editor.",
+    "noPhotosYetHintImmich": "Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
+    "noPhotosYetHintUnsplash": "Probeer in de editor andere zoekwoorden.",
+    "noPhotosYetHintNasa": "NASA stuurt op dit moment geen afbeeldingen. Ze komen vanzelf terug."
   },
   "dad-joke": {
     "loading": "Mop laden…"
@@ -1192,7 +1195,11 @@
     "loading": "Foto's worden geladen…",
     "empty": "Geen foto's gevonden",
     "emptyICloud": "Nog geen foto's. Controleer de albumlink en zorg dat 'Openbare website' aanstaat.",
-    "emptyOneDrive": "Nog geen foto's. Controleer de OneDrive-map in de editor."
+    "emptyOneDrive": "Nog geen foto's. Controleer de OneDrive-map in de editor.",
+    "emptyImmich": "Nog geen foto's. Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
+    "emptyUnsplash": "Nog geen foto's. Probeer in de editor andere zoekwoorden.",
+    "emptyNasa": "Op dit moment geen afbeeldingen van NASA. Ze komen vanzelf terug.",
+    "photoCredit": "Foto door {name} op {source}"
   },
   "video": {
     "name": "Video",

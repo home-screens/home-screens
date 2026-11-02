@@ -33,7 +33,7 @@ vi.mock('@/lib/display-fetch', () => ({
 import { useFetchData } from '../useFetchData';
 import { useLibraryRefresh } from '../useRevisionRefresh';
 
-const LIST = '/api/backgrounds?directory=Favorites';
+const LIST = '/api/photo-source/media?kind=library&folder=Favorites';
 
 function beats(count: number) {
   act(() => {

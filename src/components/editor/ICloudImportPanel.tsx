@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Button from '@/components/ui/Button';
 import { useICloudImport } from '@/hooks/useICloudImport';
 import { detectICloudSource } from '@/lib/icloud-parse';
@@ -11,15 +11,19 @@ interface Props {
   selectedDir: string;
   /** Called when a job finishes so the caller can refresh its listings. */
   onImported: () => void;
+  /** Another way in, on the right of the same row (Add from Google Photos). */
+  trailing?: ReactNode;
+  /** That other way's progress lines, under the row. */
+  below?: ReactNode;
 }
 
 /**
- * "Import from an iCloud link" strip for the media library: paste a Shared
+ * "Add from an iCloud link" strip for the media library: paste a Shared
  * Album link or a "Copy iCloud Link" photo link, and everything it contains
  * is downloaded into the currently selected folder. iCloud Links expire after
  * ~30 days, which is exactly why this imports instead of linking live.
  */
-export default function ICloudImportPanel({ selectedDir, onImported }: Props) {
+export default function ICloudImportPanel({ selectedDir, onImported, trailing, below }: Props) {
   const t = useTranslate('editor');
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState('');
@@ -34,13 +38,17 @@ export default function ICloudImportPanel({ selectedDir, onImported }: Props) {
 
   return (
     <div className="border-b border-hs-border">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full text-left text-xs px-3 py-1.5 text-hs-text-muted hover:text-hs-text-body flex items-center gap-1.5"
-      >
-        <span className="text-hs-text-faint">{open ? '▾' : '▸'}</span>
-        {t('icloudImport.toggle')}
-      </button>
+      <div className="flex items-center gap-2 pr-3">
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex-1 text-left text-xs px-3 py-1.5 text-hs-text-muted hover:text-hs-text-body flex items-center gap-1.5"
+        >
+          <span className="text-hs-text-faint">{open ? '▾' : '▸'}</span>
+          {t('icloudImport.toggle')}
+        </button>
+        {trailing}
+      </div>
+      {below && <div className="px-3 pb-2">{below}</div>}
 
       {open && (
         <div className="px-3 pb-2.5 space-y-1.5">

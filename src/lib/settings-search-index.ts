@@ -222,7 +222,6 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'integrations', fieldId: 'integrations.mealie', labelKey: 'settings.integrationsPage.mealie.name', keywordKeys: ['settings.integrationsPage.mealie.description'], keywords: ['recipes', 'meal plan', 'api token'] },
   { pageId: 'integrations', fieldId: 'integrations.microsoft', labelKey: 'settings.integrationsPage.microsoft.name' },
   { pageId: 'integrations', fieldId: 'integrations.unsplash', labelKey: 'settings.integrationsPage.unsplash.name' },
-  { pageId: 'integrations', fieldId: 'integrations.nasa', labelKey: 'settings.integrationsPage.nasa.name' },
   { pageId: 'integrations', fieldId: 'integrations.todoist', labelKey: 'settings.integrationsPage.todoist.name' },
   { pageId: 'integrations', fieldId: 'integrations.tomtom', labelKey: 'settings.integrationsPage.tomtom.name' },
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
 import { displayFetch } from '@/lib/display-fetch';
+import { normalizePhotoSource, sourceCacheKey } from '@/lib/photo-source';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
@@ -10,12 +11,9 @@ const BG_POLL_MS = 60_000;
 /**
  * Build the stable rotation key for a list of screens. Exported so unit
  * tests can verify that every field affecting background selection
- * (including Immich filters) participates in the key — otherwise the
- * useEffect below will not re-run when the user changes those filters.
- *
- * Uses JSON.stringify rather than a delimiter-joined string so that future
- * fields containing `:` or `|` (e.g. URLs, free-text queries) cannot collide
- * across configs.
+ * participates in the key; otherwise the useEffect below would not re-run
+ * when the user changes (say) an Immich album filter. The source's part is
+ * `sourceCacheKey`, the same key the hub's rotation cache starts over on.
  */
 export function buildRotationKey(screens: Screen[]): string {
   return JSON.stringify(
@@ -23,15 +21,11 @@ export function buildRotationKey(screens: Screen[]): string {
       .filter((s) => s.backgroundRotation?.enabled)
       .map((s) => {
         const r = s.backgroundRotation!;
+        const source = normalizePhotoSource(r.photoSource);
         return {
           id: s.id,
-          source: r.source || 'unsplash',
-          query: r.query,
+          source: source ? sourceCacheKey(source) : null,
           intervalMinutes: r.intervalMinutes,
-          immichAlbumId: r.immichAlbumId ?? null,
-          immichPersonId: r.immichPersonId ?? null,
-          immichFavoritesOnly: r.immichFavoritesOnly ?? false,
-          icloudAlbumUrl: r.icloudAlbumUrl ?? null,
         };
       }),
   );

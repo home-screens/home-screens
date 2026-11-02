@@ -46,7 +46,7 @@ export function ICloudLinkImportBridge({ url, introKey, noItemsKey, savedSomethi
         </p>
       ) : (
         <Button size="sm" variant="primary" onClick={() => start(url, ICLOUD_IMPORT_FOLDER)} disabled={running}>
-          {t('configSections.icloudSource.photoLinkAction')}
+          {t('photoSources.icloud.photoLinkAction')}
         </Button>
       )}
       {finished && job && !savedSomething(job) && (

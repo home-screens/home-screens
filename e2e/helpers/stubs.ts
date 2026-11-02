@@ -51,16 +51,6 @@ const STUBS: Record<string, { glob: string; file: string }> = {
   // this more specific glob wins for the media=videos query (page.route
   // matches most-recently-added handlers first).
   'backgrounds-videos': { glob: '**/api/backgrounds?media=videos*', file: 'backgrounds-videos' },
-  // Immich photo listing (photo modules with source 'immich'); serves the same
-  // bare-array-of-URLs shape as the local backgrounds route.
-  immich:       { glob: '**/api/immich/photos*', file: 'backgrounds' },
-  // iCloud Shared Album listing (photo modules with source 'icloud'); same
-  // legacy bare-array shape — real responses carry absolute Apple CDN URLs,
-  // but data: URLs keep the render fully offline under blockExternal.
-  icloud:       { glob: '**/api/icloud/photos*', file: 'backgrounds' },
-  // OneDrive photo listing (photo modules with source 'onedrive'); this
-  // source always answers the typed MediaListItem[] shape.
-  onedrive:     { glob: '**/api/onedrive/photos*', file: 'onedrive' },
   // School and public holidays for the timetable module, one German region's
   // school year, keyed by region the way the route answers. The glob is narrow
   // on purpose: `**/api/timetables*` would
@@ -71,6 +61,24 @@ const STUBS: Record<string, { glob: string; file: string }> = {
   // without this stub would make a real upstream call from Node, invisible to
   // `externalHits`, which only sees what the browser asked for.
   'timetable-holidays': { glob: '**/api/timetables/holidays*', file: 'school-holidays-de-nw' },
+};
+
+/**
+ * The photo modules' one list route, `/api/photo-source/media`, answers by
+ * the source's `kind`, so each kind keeps its own stub key (and override).
+ * Every kind answers the typed MediaListItem[] shape. A library folder shares
+ * the `backgrounds` key with the library's own listing above.
+ */
+const PHOTO_MEDIA_STUBS: Record<string, { key: string; file: string }> = {
+  library: { key: 'backgrounds', file: 'backgrounds' },
+  // Real Immich and iCloud lists carry hub serve URLs and Apple CDN URLs;
+  // data: URLs keep the render fully offline under blockExternal.
+  immich: { key: 'immich', file: 'backgrounds' },
+  icloud: { key: 'icloud', file: 'backgrounds' },
+  onedrive: { key: 'onedrive', file: 'onedrive' },
+  // Unsplash items carry the photographer, which the slideshow credits.
+  unsplash: { key: 'unsplash', file: 'unsplash' },
+  nasa: { key: 'nasa', file: 'nasa' },
 };
 
 type Override =
@@ -148,6 +156,17 @@ export async function stubModuleData(page: Page, opts: StubOptions = {}): Promis
       });
     });
   }
+
+  await page.route('**/api/photo-source/media*', (route: Route) => {
+    const kind = new URL(route.request().url()).searchParams.get('kind') ?? 'library';
+    const stub = PHOTO_MEDIA_STUBS[kind];
+    if (!stub) return route.fulfill({ status: 400, contentType: 'application/json', body: '{"error":"Unknown photo source"}' });
+    const override = overrides[stub.key];
+    if (override !== undefined && isStatusOverride(override)) {
+      return route.fulfill({ status: override.status, contentType: 'application/json', body: JSON.stringify(override.body ?? {}) });
+    }
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(override !== undefined ? override : fixture(stub.file)) });
+  });
 
   // Radar tiles: the rain-map module fetches these cross-origin (through its
   // rate-bounded tile store) and renders them as blob URLs, so a spec can only

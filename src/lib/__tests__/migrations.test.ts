@@ -62,8 +62,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 16', () => {
-    expect(getLatestSchemaVersion()).toBe(16);
+  it('getLatestSchemaVersion returns 17', () => {
+    expect(getLatestSchemaVersion()).toBe(17);
   });
 });
 
@@ -298,9 +298,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(16);
-    // v2 through v16 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(15);
+    expect(result.version).toBe(17);
+    // v2 through v17 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(16);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -328,9 +328,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(16);
-    // Only v4 through v16 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(13);
+    expect(result.version).toBe(17);
+    // Only v4 through v17 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(14);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -800,7 +800,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(16);
+    expect(result.version).toBe(17);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -841,9 +841,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(16);
+    expect(result.version).toBe(17);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v16: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v17: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -857,7 +857,7 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(16);
+    expect(migrated.version).toBe(17);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
     expect(config).toEqual(before);
@@ -1009,5 +1009,151 @@ describe('migration v16: the full-screen weather card toggles become one ordered
     config.displays = [{ id: 'main', name: 'Main', screens: structuredClone(config.screens) } as unknown as NonNullable<ScreenConfiguration['displays']>[number]];
     const { config: result } = migrateUp(config, 16);
     expect(result.displays?.[0].screens[0].modules[0].config.cards).not.toContain('sun');
+  });
+});
+
+describe('migration v17: photo modules and background rotation name their source with photoSource', () => {
+  type Module = ScreenConfiguration['screens'][number]['modules'][number];
+  function withModule(config: ScreenConfiguration, type: string, cfg: unknown): ScreenConfiguration {
+    config.screens[0].modules = [{
+      id: 'photo-1', type, x: 0, y: 0, width: 1080, height: 1920, config: cfg, style: {},
+    } as unknown as Module];
+    return config;
+  }
+  const migratedModule = (cfg: Record<string, unknown>, type = 'photo-slideshow') =>
+    migrateUp(withModule(makeConfig(16), type, cfg), 17).config.screens[0].modules[0].config as Record<string, unknown>;
+  const migratedRotation = (rotation: unknown) => {
+    const config = makeConfig(16);
+    (config.screens[0] as unknown as Record<string, unknown>).backgroundRotation = rotation;
+    return migrateUp(config, 17).config.screens[0].backgroundRotation as unknown as Record<string, unknown>;
+  };
+  const OLD_FIELDS = [
+    'source', 'directory', 'immichAlbumId', 'immichPersonId', 'immichFavoritesOnly', 'immichCount',
+    'icloudAlbumUrl', 'onedriveFolderId', 'onedriveFolderName', 'onedriveCount',
+  ];
+
+  describe.each(['photo-slideshow', 'fullscreen-photo'])('%s', (type) => {
+    it('reads a missing or local source as its library folder', () => {
+      expect(migratedModule({ directory: 'trips', intervalMs: 5000 }, type))
+        .toEqual({ photoSource: { kind: 'library', folder: 'trips' }, intervalMs: 5000 });
+      expect(migratedModule({ source: 'local', directory: 'trips' }, type).photoSource).toEqual({ kind: 'library', folder: 'trips' });
+      expect(migratedModule({ source: 'local' }, type).photoSource).toEqual({ kind: 'library', folder: '' });
+    });
+
+    it('plays the library folder for an unknown source, as the module did', () => {
+      expect(migratedModule({ source: 'dropbox', directory: 'x' }, type).photoSource).toEqual({ kind: 'library', folder: 'x' });
+    });
+
+    it('drops the slashes the library never accepted around a folder', () => {
+      expect(migratedModule({ directory: '/photos/' }, type).photoSource).toEqual({ kind: 'library', folder: 'photos' });
+    });
+
+    it('moves the Immich filters and count, leaving out the ones not set', () => {
+      expect(migratedModule({
+        source: 'immich', directory: 'ignored', immichAlbumId: 'abc', immichPersonId: 'def', immichFavoritesOnly: true, immichCount: 120,
+      }, type)).toEqual({ photoSource: { kind: 'immich', albumId: 'abc', personId: 'def', favoritesOnly: true }, count: 120 });
+      expect(migratedModule({ source: 'immich', immichFavoritesOnly: false }, type)).toEqual({ photoSource: { kind: 'immich' } });
+    });
+
+    it('moves the iCloud link', () => {
+      expect(migratedModule({ source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B0aG' }, type))
+        .toEqual({ photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aG' } });
+      expect(migratedModule({ source: 'icloud' }, type).photoSource).toEqual({ kind: 'icloud', albumUrl: '' });
+    });
+
+    it('moves the OneDrive folder, its name and its count', () => {
+      expect(migratedModule({ source: 'onedrive', onedriveFolderId: 'ABC!12', onedriveFolderName: 'Family', onedriveCount: 80 }, type))
+        .toEqual({ photoSource: { kind: 'onedrive', folderId: 'ABC!12', folderName: 'Family' }, count: 80 });
+    });
+
+    it('keeps only the count of the source in use', () => {
+      expect(migratedModule({ source: 'local', immichCount: 120, onedriveCount: 80 }, type)).toEqual({ photoSource: { kind: 'library', folder: '' } });
+    });
+
+    it('removes every old field and keeps the rest of the config', () => {
+      const result = migratedModule({
+        source: 'onedrive', directory: 'a', immichAlbumId: 'abc', immichPersonId: 'def', immichFavoritesOnly: true, immichCount: 1,
+        icloudAlbumUrl: 'x', onedriveFolderId: 'F!1', onedriveFolderName: 'n', onedriveCount: 2, mediaTypes: 'both', objectFit: 'contain',
+      }, type);
+      for (const field of OLD_FIELDS) expect(field in result).toBe(false);
+      expect(result.mediaTypes).toBe('both');
+      expect(result.objectFit).toBe('contain');
+    });
+
+    it('does not touch a module already on the new shape', () => {
+      const cfg = { photoSource: { kind: 'nasa' }, directory: 'left-alone' };
+      expect(migratedModule(cfg, type)).toEqual(cfg);
+    });
+  });
+
+  it("keeps Full-screen Photo's single picture", () => {
+    expect(migratedModule({ directory: 'trips', file: '/api/backgrounds/serve?file=trips%2Fa.jpg' }, 'fullscreen-photo'))
+      .toEqual({ photoSource: { kind: 'library', folder: 'trips' }, file: '/api/backgrounds/serve?file=trips%2Fa.jpg' });
+  });
+
+  it('leaves other module types and malformed configs alone', () => {
+    expect(migratedModule({ directory: 'x', source: 'immich' }, 'iframe')).toEqual({ directory: 'x', source: 'immich' });
+    const config = withModule(makeConfig(16), 'photo-slideshow', 'not an object');
+    expect(migrateUp(config, 17).config.screens[0].modules[0].config).toBe('not an object');
+  });
+
+  describe('background rotation', () => {
+    it('reads a missing source as an Unsplash search, keeping its words', () => {
+      expect(migratedRotation({ enabled: true, query: 'mountains', intervalMinutes: 30 }))
+        .toEqual({ enabled: true, intervalMinutes: 30, photoSource: { kind: 'unsplash', query: 'mountains' } });
+      expect(migratedRotation({ enabled: false, source: 'unsplash', intervalMinutes: 60 }).photoSource)
+        .toEqual({ kind: 'unsplash', query: '' });
+    });
+
+    it('turns NASA APOD into the nasa source and drops its unused words', () => {
+      expect(migratedRotation({ enabled: true, source: 'nasa-apod', query: '', intervalMinutes: 240 }))
+        .toEqual({ enabled: true, intervalMinutes: 240, photoSource: { kind: 'nasa' } });
+    });
+
+    it('moves the Immich filters', () => {
+      expect(migratedRotation({
+        enabled: true, source: 'immich', query: '', intervalMinutes: 60, immichAlbumId: 'abc', immichPersonId: 'def', immichFavoritesOnly: true,
+      })).toEqual({ enabled: true, intervalMinutes: 60, photoSource: { kind: 'immich', albumId: 'abc', personId: 'def', favoritesOnly: true } });
+    });
+
+    it('moves the iCloud link', () => {
+      expect(migratedRotation({ enabled: true, source: 'icloud', query: '', intervalMinutes: 60, icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B0' }))
+        .toEqual({ enabled: true, intervalMinutes: 60, photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0' } });
+    });
+
+    it('does not touch a rotation already on the new shape, or one that is not an object', () => {
+      const current = { enabled: true, intervalMinutes: 60, photoSource: { kind: 'library', folder: 'walls' }, query: 'left' };
+      expect(migratedRotation(current)).toEqual(current);
+      expect(migratedRotation('broken')).toBe('broken');
+    });
+
+    it('leaves a screen with no rotation as it was', () => {
+      const config = makeConfig(16);
+      const { config: result } = migrateUp(config, 17);
+      expect(result.screens).toEqual(config.screens);
+    });
+  });
+
+  it("reaches modules and rotations on a display's own screens, and passes a display without screens", () => {
+    const config = withModule(makeConfig(16), 'photo-slideshow', { source: 'immich', immichAlbumId: 'abc' });
+    (config.screens[0] as unknown as Record<string, unknown>).backgroundRotation = { enabled: true, source: 'nasa-apod', query: '', intervalMinutes: 60 };
+    config.displays = [
+      { id: 'main', name: 'Main', screens: structuredClone(config.screens) },
+      { id: 'odd', name: 'Odd' },
+    ] as unknown as NonNullable<ScreenConfiguration['displays']>;
+    const { config: result } = migrateUp(config, 17);
+    const shown = result.displays![0].screens[0];
+    expect(shown.modules[0].config).toEqual({ photoSource: { kind: 'immich', albumId: 'abc' } });
+    expect(shown.backgroundRotation).toEqual({ enabled: true, intervalMinutes: 60, photoSource: { kind: 'nasa' } });
+    expect(result.displays![1]).toEqual({ id: 'odd', name: 'Odd' });
+    // The frozen top-level copy follows too.
+    expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'immich', albumId: 'abc' } });
+  });
+
+  it('is part of the full chain from v1', () => {
+    const config = withModule(makeConfig(1), 'photo-slideshow', { source: 'local', directory: 'trips' });
+    const { config: result, migrationsRun } = migrateUp(config);
+    expect(migrationsRun.at(-1)).toMatch(/^v17: /);
+    expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'trips' } });
   });
 });

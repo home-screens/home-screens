@@ -774,14 +774,14 @@
     "settings": {
       "grabLimitLabel": "¿Cuántas puede pedirse una persona a la vez?",
       "grabLimit": {
+        "0": "Sin límite",
         "1": "Una a la vez",
         "2": "Dos a la vez",
-        "3": "Tres a la vez",
-        "0": "Sin límite"
+        "3": "Tres a la vez"
       },
       "grabLimitHint": {
-        "1": "Hay que terminarla o dejarla antes de pedirse otra.",
-        "0": "Cada uno puede pedirse todas las que quiera."
+        "0": "Cada uno puede pedirse todas las que quiera.",
+        "1": "Hay que terminarla o dejarla antes de pedirse otra."
       },
       "grabHoldLabel": "¿Cuánto dura una tarea pedida?",
       "grabHold": {
@@ -794,10 +794,10 @@
       },
       "summary": {
         "limit": {
+          "0": "Sin límite de tareas pedidas",
           "1": "Una tarea pedida a la vez",
           "2": "Dos tareas pedidas a la vez",
-          "3": "Tres tareas pedidas a la vez",
-          "0": "Sin límite de tareas pedidas"
+          "3": "Tres tareas pedidas a la vez"
         },
         "hold": {
           "day": "una tarea pedida es suya hasta la hora de dormir",
@@ -1048,7 +1048,10 @@
     "noPhotosYet": "Aún no hay fotos",
     "noPhotosYetHint": "Añade fotos desde tu teléfono en",
     "noPhotosYetHintICloud": "Revisa el enlace del álbum en el editor y asegúrate de que el \"Sitio web público\" del álbum esté activado.",
-    "noPhotosYetHintOneDrive": "Revisa la carpeta de OneDrive en el editor."
+    "noPhotosYetHintOneDrive": "Revisa la carpeta de OneDrive en el editor.",
+    "noPhotosYetHintImmich": "Revisa en el editor el álbum, la persona y la opción de favoritos de Immich.",
+    "noPhotosYetHintUnsplash": "Prueba otras palabras de búsqueda en el editor.",
+    "noPhotosYetHintNasa": "Ahora mismo la NASA no está enviando imágenes. Volverán solas."
   },
   "dad-joke": {
     "loading": "Cargando chiste…"
@@ -1200,7 +1203,11 @@
     "loading": "Cargando fotos…",
     "empty": "No se encontraron fotos",
     "emptyICloud": "Aún no hay fotos. Revisa el enlace del álbum y asegúrate de que el \"Sitio web público\" esté activado.",
-    "emptyOneDrive": "Aún no hay fotos. Revisa la carpeta de OneDrive en el editor."
+    "emptyOneDrive": "Aún no hay fotos. Revisa la carpeta de OneDrive en el editor.",
+    "emptyImmich": "Aún no hay fotos. Revisa en el editor el álbum, la persona y la opción de favoritos de Immich.",
+    "emptyUnsplash": "Aún no hay fotos. Prueba otras palabras de búsqueda en el editor.",
+    "emptyNasa": "Ahora mismo no hay imágenes de la NASA. Volverán solas.",
+    "photoCredit": "Foto de {name} en {source}"
   },
   "video": {
     "name": "Vídeo",

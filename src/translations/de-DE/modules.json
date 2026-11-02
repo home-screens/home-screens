@@ -771,14 +771,14 @@
     "settings": {
       "grabLimitLabel": "Wie viele darf sich eine Person auf einmal schnappen?",
       "grabLimit": {
+        "0": "So viele man will",
         "1": "Eine auf einmal",
         "2": "Zwei auf einmal",
-        "3": "Drei auf einmal",
-        "0": "So viele man will"
+        "3": "Drei auf einmal"
       },
       "grabLimitHint": {
-        "1": "Erst fertig machen oder abgeben, dann die nächste schnappen.",
-        "0": "Alle dürfen sich so viele schnappen, wie sie wollen."
+        "0": "Alle dürfen sich so viele schnappen, wie sie wollen.",
+        "1": "Erst fertig machen oder abgeben, dann die nächste schnappen."
       },
       "grabHoldLabel": "Wie lange gilt eine geschnappte Aufgabe?",
       "grabHold": {
@@ -791,10 +791,10 @@
       },
       "summary": {
         "limit": {
+          "0": "Beliebig viele schnappen",
           "1": "Eine Aufgabe auf einmal schnappen",
           "2": "Zwei Aufgaben auf einmal schnappen",
-          "3": "Drei Aufgaben auf einmal schnappen",
-          "0": "Beliebig viele schnappen"
+          "3": "Drei Aufgaben auf einmal schnappen"
         },
         "hold": {
           "day": "eine geschnappte Aufgabe gilt bis zum Schlafengehen",
@@ -1045,7 +1045,10 @@
     "noPhotosYet": "Noch keine Fotos",
     "noPhotosYetHint": "Füge Fotos von deinem Telefon hinzu unter",
     "noPhotosYetHintICloud": "Prüfe den Album-Link im Editor und stelle sicher, dass „Öffentliche Website“ für das Album aktiviert ist.",
-    "noPhotosYetHintOneDrive": "Prüfe den OneDrive-Ordner im Editor."
+    "noPhotosYetHintOneDrive": "Prüfe den OneDrive-Ordner im Editor.",
+    "noPhotosYetHintImmich": "Prüfe im Editor das Immich-Album, die Person und die Favoriten-Auswahl.",
+    "noPhotosYetHintUnsplash": "Probiere im Editor andere Suchwörter.",
+    "noPhotosYetHintNasa": "Die NASA schickt gerade keine Bilder. Sie kommen von selbst wieder."
   },
   "dad-joke": {
     "loading": "Witz wird geladen…"
@@ -1192,7 +1195,11 @@
     "loading": "Fotos werden geladen…",
     "empty": "Keine Fotos gefunden",
     "emptyICloud": "Noch keine Fotos. Prüfe den Album-Link und stelle sicher, dass „Öffentliche Website“ aktiviert ist.",
-    "emptyOneDrive": "Noch keine Fotos. Prüfe den OneDrive-Ordner im Editor."
+    "emptyOneDrive": "Noch keine Fotos. Prüfe den OneDrive-Ordner im Editor.",
+    "emptyImmich": "Noch keine Fotos. Prüfe im Editor das Immich-Album, die Person und die Favoriten-Auswahl.",
+    "emptyUnsplash": "Noch keine Fotos. Probiere im Editor andere Suchwörter.",
+    "emptyNasa": "Gerade keine Bilder von der NASA. Sie kommen von selbst wieder.",
+    "photoCredit": "Foto von {name} auf {source}"
   },
   "video": {
     "name": "Video",

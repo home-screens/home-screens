@@ -1,67 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useImageLibrary } from '@/hooks/useImageLibrary';
+import { useState } from 'react';
+import Button from '@/components/ui/Button';
 import { libraryFileFromServeUrl } from '@/lib/library-client';
-import { TILE_THUMBNAIL_WIDTH, serveUrlFor } from '@/lib/media-paths';
-import { STARTER_DAY_ART, STARTER_DAY_ART_URL } from '@/lib/starter-day-art';
+import { TILE_THUMBNAIL_WIDTH, pictureDisplayName, serveUrlFor } from '@/lib/media-paths';
+import { STARTER_DAY_ART } from '@/lib/starter-day-art';
 import { useTranslate } from '@/i18n';
+import PicturePicker from './picture-picker/PicturePicker';
 
 /**
- * Picture picker for day-look rules: the art that ships with Home Screens,
- * plus this household's own uploads in the media library's calendar-art
- * folder. Stores a URL in `CalendarDayRule.backgroundImage`.
+ * A day-look rule's picture: what it is now, with Choose a picture and
+ * Remove. Choosing opens the Image Library on the day art that ships with
+ * Home Screens, or on the library's `calendar-art` folder when the rule holds
+ * one of the household's own pictures; any tab works, so a picture from
+ * Immich, Unsplash or NASA can be day art too. Stores a URL in
+ * `CalendarDayRule.backgroundImage`.
  */
 
 const KEY = 'configSections.calendarRules';
 const CALENDAR_ART_DIR = 'calendar-art';
 
-type Tab = 'builtin' | 'yours';
-
-/** The tab a value lives on: built-in paths on Built-in, everything else
- *  (a media-library serve URL) on Your pictures. */
-function tabFor(value: string | undefined): Tab {
-  return value && !value.startsWith(`${STARTER_DAY_ART_URL}/`) ? 'yours' : 'builtin';
-}
-
-/** A library path without the calendar-art folder prefix (the tab already
- *  says whose pictures they are). */
-function displayName(url: string): string {
-  const file = libraryFileFromServeUrl(url) ?? '';
-  return file.startsWith(`${CALENDAR_ART_DIR}/`) ? file.slice(CALENDAR_ART_DIR.length + 1) : file;
-}
-
-/** The small copy the serve route keeps for grids, so a tile never downloads
- *  and decodes a full-size photo; a URL outside the library is used as is. */
+/** The small copy the serve route keeps for grids; a URL outside the library is used as is. */
 function tileImage(url: string): string {
   const file = libraryFileFromServeUrl(url);
   return file ? serveUrlFor(file, { width: TILE_THUMBNAIL_WIDTH }) : url;
-}
-
-/** One picture tile. Both tabs render through it so the selected look
- *  (accent border, ring and name) cannot drift between them. */
-function ArtTile({ selected, image, label, imageHeight, onClick, dataAttrs }: {
-  selected: boolean;
-  image: string;
-  label: string;
-  imageHeight: 'h-10' | 'h-14';
-  onClick: () => void;
-  dataAttrs: Record<`data-${string}`, string>;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      aria-pressed={selected}
-      onClick={onClick}
-      className={`overflow-hidden rounded border ${selected ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong hover:border-hs-text-faint'}`}
-      {...dataAttrs}
-    >
-      <span className={`block ${imageHeight} bg-cover bg-center`} style={{ backgroundImage: `url(${image})` }} />
-      <span className={`block truncate px-0.5 py-0.5 text-[10px] ${selected ? 'text-hs-accent-hover' : 'text-hs-text-muted'}`}>{label}</span>
-    </button>
-  );
 }
 
 export default function DayArtPicker({ value, onChange }: {
@@ -69,129 +31,41 @@ export default function DayArtPicker({ value, onChange }: {
   onChange: (url: string | undefined) => void;
 }) {
   const t = useTranslate('editor');
-  // The tab follows the value (so undo, redo and a layout import land on
-  // the tab holding the selection); a click overrides it only until the
-  // next pick.
-  const [tabOverride, setTabOverride] = useState<Tab | null>(null);
-  const tab = tabOverride ?? tabFor(value);
-  const pick = (url: string) => {
-    setTabOverride(null);
-    onChange(url);
-  };
-
-  const tabClass = (on: boolean) =>
-    `flex-1 rounded-full px-2 py-0.5 text-[11px] font-semibold border ${on ? 'border-hs-accent bg-hs-accent/20 text-hs-text-body' : 'border-hs-border-strong text-hs-text-muted hover:text-hs-text-body'}`;
+  const [picking, setPicking] = useState(false);
+  const starter = STARTER_DAY_ART.find((art) => art.path === value);
+  const file = value ? libraryFileFromServeUrl(value) : null;
+  const name = starter ? t(`${KEY}.artNames.${starter.id}`)
+    : file ? pictureDisplayName(file)
+      : value ?? '';
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-hs-border-strong/60 p-2" data-day-art-picker="">
-      <div className="flex gap-1">
-        <button type="button" aria-pressed={tab === 'builtin'} onClick={() => setTabOverride('builtin')} className={tabClass(tab === 'builtin')}>
-          {t(`${KEY}.artTabBuiltin`)}
-        </button>
-        <button type="button" aria-pressed={tab === 'yours'} onClick={() => setTabOverride('yours')} className={tabClass(tab === 'yours')}>
-          {t(`${KEY}.artTabYours`)}
-        </button>
+    <div className="flex flex-col gap-1.5" data-day-art-picker="">
+      <span className="text-xs text-hs-text-muted">{t(`${KEY}.artPicture`)}</span>
+      <div className="flex items-center gap-2">
+        <span
+          className="block h-10 w-14 shrink-0 rounded border border-hs-border-strong bg-hs-card bg-cover bg-center"
+          style={value ? { backgroundImage: `url(${tileImage(value)})` } : undefined}
+          data-current-art={value ? '' : undefined}
+        />
+        <span className="min-w-0 flex-1 truncate text-xs text-hs-text-body" data-testid="day-art-name">
+          {value ? name : t(`${KEY}.artNone`)}
+        </span>
       </div>
-
-      {tab === 'builtin' && (
-        <div className="grid grid-cols-3 gap-1.5">
-          {STARTER_DAY_ART.map((art) => (
-            <ArtTile
-              key={art.id}
-              selected={value === art.path}
-              image={art.path}
-              label={t(`${KEY}.artNames.${art.id}`)}
-              imageHeight="h-10"
-              onClick={() => pick(art.path)}
-              dataAttrs={{ 'data-art-option': art.id }}
-            />
-          ))}
-        </div>
+      <div className="flex gap-1.5">
+        <Button size="sm" onClick={() => setPicking(true)} data-testid="day-art-choose">{t('photoSources.background.choose')}</Button>
+        {value && <Button size="sm" onClick={() => onChange(undefined)} data-testid="day-art-remove">{t(`${KEY}.artRemove`)}</Button>}
+      </div>
+      {picking && (
+        <PicturePicker
+          mode="pick-image"
+          builtIn="day-art"
+          currentValue={value}
+          initialDirectory={starter || !value ? CALENDAR_ART_DIR : undefined}
+          localHint={t(`${KEY}.artUploadHint`)}
+          onSelectImage={(url) => onChange(url)}
+          onClose={() => setPicking(false)}
+        />
       )}
-
-      {tab === 'yours' && <YourPictures value={value} onPick={pick} />}
-    </div>
-  );
-}
-
-/**
- * The calendar-art folder through the same library hook the image browsers
- * use (listing, upload, cache invalidation for canvas previews). Mounted
- * only while its tab shows, so a rule card never lists the folder it is
- * not looking at, and switching tabs drops any stale upload error.
- */
-function YourPictures({ value, onPick }: {
-  value: string | undefined;
-  onPick: (url: string) => void;
-}) {
-  const t = useTranslate('editor');
-  const lib = useImageLibrary({ initialDirectory: CALENDAR_ART_DIR });
-  const pictures = lib.items.filter((item) => item.type === 'image');
-
-  // The listing has settled once its first fetch has come back; before that
-  // a held picture is not known to be missing from the folder.
-  const [listed, setListed] = useState(false);
-  useEffect(() => { if (lib.loadingImages) setListed(true); }, [lib.loadingImages]);
-
-  // A rule can hold a picture this folder does not list: Pictures & videos
-  // moved or renamed it (the rule was rewritten to follow), a layout import
-  // brought a file from another folder, or it is a video. The wall still
-  // paints it, so it shows as the current pick instead of nothing.
-  const held = value && tabFor(value) === 'yours' && listed && !lib.loadingImages && !pictures.some((p) => p.url === value)
-    ? value
-    : null;
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      {/* Same tile as the Built-in grid, two per row instead of three; the
-       * selected tile wears the accent border and ring so opening an
-       * existing rule shows which picture it holds. */}
-      {(held || pictures.length > 0) && (
-        <div className="grid grid-cols-2 gap-1.5">
-          {held && (
-            <ArtTile
-              selected
-              image={tileImage(held)}
-              label={libraryFileFromServeUrl(held) ?? held}
-              imageHeight="h-14"
-              onClick={() => onPick(held)}
-              dataAttrs={{ 'data-current-art': '' }}
-            />
-          )}
-          {pictures.map(({ url }) => (
-            <ArtTile
-              key={url}
-              selected={value === url}
-              image={tileImage(url)}
-              label={displayName(url)}
-              imageHeight="h-14"
-              onClick={() => { lib.setError(null); onPick(url); }}
-              dataAttrs={{ 'data-my-art': '' }}
-            />
-          ))}
-        </div>
-      )}
-      <button
-        type="button"
-        disabled={lib.uploading}
-        onClick={() => lib.fileInputRef.current?.click()}
-        className="rounded border border-dashed border-hs-border-strong py-1.5 text-[11px] text-hs-text-muted hover:text-hs-text-body disabled:opacity-50"
-        data-upload-art=""
-      >
-        {lib.uploading ? t(`${KEY}.artUploading`) : t(`${KEY}.artUpload`)}
-      </button>
-      <span className="text-[10px] text-hs-text-faint">{t(`${KEY}.artUploadHint`)}</span>
-      {lib.error && <span className="text-[11px] text-hs-danger">{lib.error}</span>}
-      <input
-        ref={lib.fileInputRef}
-        type="file"
-        accept="image/*,.svg"
-        className="hidden"
-        onChange={async (e) => {
-          const [first] = await lib.handleUpload(e);
-          if (first) onPick(first);
-        }}
-      />
     </div>
   );
 }

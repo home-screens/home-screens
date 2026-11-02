@@ -1190,7 +1190,9 @@
         "other": "Ergens in de instellingen",
         "slideshow": "Diavoorstelling op '{name}'",
         "slideshowLast": "Diavoorstelling op '{name}' (de laatste afbeelding)",
-        "rotation": "Wisselende achtergrond die nu op een scherm staat"
+        "rotation": "Wisselende achtergrond die nu op een scherm staat",
+        "rotatingFolder": "Wisselende achtergrond op '{name}'",
+        "rotatingFolderLast": "Wisselende achtergrond op '{name}' (de laatste afbeelding)"
       },
       "selected": "{count} geselecteerd",
       "empty": "Nog niets hier. Upload een paar afbeeldingen of video's",
@@ -1443,12 +1445,6 @@
         "accessKeyLabel": "Toegangssleutel",
         "accessKeyPlaceholder": "Plak je Unsplash access key",
         "accessKeyHelp": "Gratis op unsplash.com/developers; 50 verzoeken/uur op het gratis tier."
-      },
-      "nasa": {
-        "name": "NASA",
-        "description": "Astronomische foto van de dag",
-        "apiKeyPlaceholder": "Plak je NASA API-sleutel",
-        "apiKeyHelp": "Gratis op api.nasa.gov; 1.000 verzoeken/uur. De Image Library-zoekfunctie werkt zonder sleutel."
       },
       "todoist": {
         "name": "Todoist",
@@ -2167,13 +2163,6 @@
       "savesAutomatically": "Wijzigingen worden automatisch opgeslagen.",
       "learnMore": "Meer informatie"
     },
-    "localBackgrounds": {
-      "none": "Geen",
-      "uploadButton": "Achtergrond uploaden",
-      "uploadingButton": "Uploaden…",
-      "uploadFailed": "Uploaden mislukt",
-      "uploadFailedWithStatus": "Uploaden mislukt ({status})"
-    },
     "pluginInstallPreview": {
       "verifiedTitle": "Geverifieerd",
       "versionPrefix": "v",
@@ -2595,44 +2584,11 @@
     "title": "Achtergrond",
     "statusGroup": "Status",
     "autoRotate": "Automatisch wisselen",
-    "sourceLabel": "Bron",
-    "searchQueryLabel": "Zoekopdracht",
-    "searchQueryPlaceholder": "natuurlandschap",
     "rotateEveryLabel": "Wisselen elke",
-    "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
-    "sources": {
-      "nasaApod": "NASA-foto van de dag",
-      "icloud": "Gedeeld iCloud-album",
-      "unsplash": "Unsplash",
-      "immich": "Immich"
-    },
-    "tabs": {
-      "nasa": "NASA",
-      "local": "Achtergronden"
-    },
     "intervals": {
       "minutes": "{count} minuten",
       "hourSingular": "1 uur",
       "hours": "{count} uur"
-    },
-    "immich": {
-      "albumLabel": "Album",
-      "anyAlbum": "Elk album",
-      "albumOption": "{name} ({count})",
-      "personLabel": "Persoon",
-      "anyone": "Iedereen",
-      "favoritesOnly": "Alleen favorieten"
-    },
-    "icloud": {
-      "albumLabel": "Albumlink",
-      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier."
-    },
-    "needsKey": "Heeft een gratis sleutel nodig",
-    "starterHeading": "Achtergronden die bij Home Screens zitten",
-    "groups": {
-      "theme": "Passend bij een volledig-scherm thema",
-      "color": "Kleuren",
-      "pattern": "Patronen"
     },
     "inUse": "in gebruik",
     "starters": {
@@ -2659,8 +2615,6 @@
       "pattern-diagonal": "Diagonaal",
       "pattern-paper": "Papier"
     },
-    "yourPicturesHeading": "Je eigen foto's",
-    "sourceKeyMissing": "Deze bron heeft een sleutel nodig die nog niet is ingesteld, dus het scherm houdt de laatste foto. Voeg de sleutel toe bij Instellingen, of kies een andere bron.",
     "shadeGroup": "Verduistering",
     "shadeEnable": "Achtergrond donkerder maken",
     "shadeStyleLabel": "Stijl",
@@ -2675,10 +2629,6 @@
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",
-    "tabs": {
-      "local": "Lokaal",
-      "unsplash": "Unsplash"
-    },
     "allPhotos": "Alle foto's",
     "newFolderPlaceholder": "Mapnaam",
     "newFolderConfirm": "OK",
@@ -2692,21 +2642,7 @@
     "photoCountPlural": "{count} foto's",
     "confirmSelectImage": "Afbeelding selecteren",
     "confirmUseFolder": "Deze map gebruiken",
-    "unsplashAttribution": "Foto's van Unsplash, opgeslagen in je lokale bibliotheek",
-    "unsplashSearchPlaceholder": "Unsplash doorzoeken…",
-    "unsplashCategories": {
-      "nature": "Natuur",
-      "mountains": "Bergen",
-      "ocean": "Oceaan",
-      "holidays": "Feestdagen",
-      "birthday": "Verjaardag",
-      "flowers": "Bloemen",
-      "seasons": "Seizoenen",
-      "abstract": "Abstract"
-    },
-    "errors": {
-      "searchUnsplash": "Zoeken op Unsplash mislukt"
-    },
+    "errors": {},
     "confirmSelectVideo": "Video selecteren",
     "videoCountSingular": "{count} video",
     "videoCountPlural": "{count} video's",
@@ -2718,7 +2654,7 @@
     "uploadMediaButton": "Uploaden"
   },
   "icloudImport": {
-    "toggle": "Importeren via een iCloud-link",
+    "toggle": "Toevoegen via een iCloud-link",
     "placeholder": "Plak een iCloud-album- of fotolink",
     "start": "Importeren",
     "importing": "Bezig met importeren…",
@@ -4263,22 +4199,12 @@
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standaard (Midnight)",
       "themeDefault": "Standaard (uit Instellingen)",
-      "photoSource": "Fotobron",
-      "sourceLocal": "Lokale foto's",
-      "sourceImmich": "Immich",
-      "sourceICloud": "Gedeeld iCloud-album",
       "mode": "Modus",
       "modeSlideshow": "Diavoorstelling",
       "modeSingle": "Enkele foto",
       "photo": "Foto",
       "noneSelected": "Geen geselecteerd",
       "choose": "Kiezen...",
-      "photoFolder": "Fotomap",
-      "allPhotosRoot": "Alle foto's (root)",
-      "browse": "Bladeren...",
-      "photoCountSingular": "{count} foto",
-      "photoCountPlural": "{count} foto's",
-      "noPhotosInFolder": "Geen foto's in deze map",
       "slideIntervalSeconds": "Slide-interval (seconden)",
       "transition": "Overgang",
       "transitionFade": "Vervagen",
@@ -4288,8 +4214,7 @@
       "shuffleOrder": "Willekeurige volgorde",
       "kenBurnsEffect": "Ken Burns-effect",
       "showClockOverlay": "Klok-overlay tonen",
-      "clockBackground": "Klokachtergrond",
-      "sourceOneDrive": "OneDrive"
+      "clockBackground": "Klokachtergrond"
     },
     "garbage-day": {
       "frequencyWeekly": "Elke week",
@@ -4400,30 +4325,6 @@
       "urlHint": "Je kunt een YouTube-link of een directe videolink (MP4/WebM) plakken.",
       "icloudLinkDetected": "Dit is een iCloud-fotolink en kan niet direct worden afgespeeld. Bewaar de video's in je bibliotheek en gebruik ze van daaruit.",
       "icloudNoVideos": "Deze link bevat geen video's."
-    },
-    "immichSource": {
-      "connecting": "Verbinden...",
-      "connected": "Verbonden",
-      "connectedWithVersion": "Verbonden (v{version})",
-      "apiKeyInvalid": "API-sleutel ongeldig",
-      "cannotReachServer": "Server niet bereikbaar",
-      "retry": "Opnieuw proberen",
-      "album": "Album",
-      "anyAlbum": "Elk album",
-      "person": "Persoon",
-      "anyone": "Iedereen",
-      "favoritesOnly": "Alleen favorieten",
-      "photosPerRefresh": "Foto's per vernieuwing",
-      "photoInAlbumSingular": "{count} foto in album",
-      "photoInAlbumPlural": "{count} foto's in album"
-    },
-    "icloudSource": {
-      "albumLink": "Albumlink",
-      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier.",
-      "noItemsFound": "Nog niets gevonden. Controleer de link en zorg dat 'Openbare website' aanstaat voor het album.",
-      "photoLinkDetected": "Dit is een fotolink, geen link van een gedeeld album. Fotolinks stoppen na ongeveer een maand, dus we bewaren kopieën in je bibliotheek en tonen die.",
-      "photoLinkAction": "Opslaan in bibliotheek",
-      "videoHint": "Sommige iPhone-video's spelen mogelijk niet af op oudere schermen. Video's die niet afspelen worden automatisch overgeslagen."
     },
     "googlePhotosImport": {
       "importButton": "Importeren uit Google Foto's",
@@ -4646,21 +4547,10 @@
       "tapDetails": "De samenvatting tonen"
     },
     "photo-slideshow": {
-      "sourceLocal": "Lokale foto's",
-      "sourceImmich": "Immich",
-      "sourceICloud": "Gedeeld iCloud-album",
       "transitionFade": "Vervagen",
       "transitionNone": "Geen",
-      "photoSource": "Fotobron",
-      "folder": "Map",
-      "allPhotosRoot": "Alle foto's (root)",
-      "browse": "Bladeren...",
-      "photoCountOne": "{count} foto",
-      "photoCountOther": "{count} foto's",
-      "noPhotosInFolder": "Geen foto's in deze map",
       "slideInterval": "Slide-interval (seconden)",
-      "transition": "Overgang",
-      "sourceOneDrive": "OneDrive"
+      "transition": "Overgang"
     },
     "qr-code": {
       "modeCustom": "Aangepast (URL / tekst)",
@@ -5239,12 +5129,7 @@
       "artScale": "Grootte van het plaatje",
       "artPositionX": "Horizontale positie",
       "artPositionY": "Verticale positie",
-      "artTabBuiltin": "Inbegrepen",
-      "artTabYours": "Jouw plaatjes",
-      "artUpload": "Plaatje toevoegen",
-      "artUploading": "Toevoegen…",
       "artUploadHint": "Afbeelding of SVG, tot 10 MB",
-      "artUploadFailed": "Dit plaatje kon niet worden toegevoegd.",
       "artNames": {
         "birthday": "Verjaardag",
         "christmas": "Kerst",
@@ -5264,7 +5149,10 @@
       "badgeTextPlaceholder": "Geen school",
       "badgeFilled": "Gekleurde badge",
       "matchesEveryEvent": "Deze regel geldt nu voor elke afspraak. Voeg hierboven een woord, agenda of ander detail toe om hem te beperken.",
-      "matchesEveryDay": "Deze regel geldt nu voor elke dag. Voeg hierboven een detail toe om hem te beperken."
+      "matchesEveryDay": "Deze regel geldt nu voor elke dag. Voeg hierboven een detail toe om hem te beperken.",
+      "artPicture": "Plaatje",
+      "artNone": "Nog geen plaatje",
+      "artRemove": "Verwijderen"
     },
     "calendarGroups": {
       "whatShows": "Wat er te zien is",
@@ -5344,34 +5232,6 @@
       "typographySize": "Tekstgrootte",
       "accentTheme": "Accentkleur volgt het thema",
       "accentColor": "Accentkleur"
-    },
-    "onedriveSource": {
-      "checking": "OneDrive-verbinding controleren…",
-      "credentialsNeeded": "Voeg eerst je Microsoft Application ID toe bij Instellingen, API-sleutels.",
-      "signIn": "Inloggen met Microsoft",
-      "waiting": "Wachten tot je klaar bent met inloggen",
-      "enterCode": "Voer deze code in op",
-      "cancel": "Annuleren",
-      "signedIn": "Ingelogd",
-      "connectedAs": "Ingelogd als {account}",
-      "disconnect": "OneDrive loskoppelen",
-      "retry": "Opnieuw proberen",
-      "folder": "Map",
-      "noFolderChosen": "Nog geen map gekozen",
-      "chooseFolder": "Map kiezen",
-      "changeFolder": "Map wijzigen",
-      "loadingFolders": "Mappen laden…",
-      "upOneFolder": "Één map omhoog",
-      "emptyFolder": "Geen submappen in deze map",
-      "useThisFolder": "Deze map gebruiken",
-      "capNote": "Als de mappenboom meer dan {cap} foto's bevat, gebruikt de diavoorstelling een willekeurige selectie van {cap}.",
-      "loadFailed": "Kon je OneDrive-mappen niet laden.",
-      "folderNotFound": "Map niet gevonden. Kies een andere map.",
-      "photosPerRefresh": "Foto's per verversing",
-      "noPhotos": "Nog geen foto's in deze map",
-      "signInDeclined": "Inloggen is geannuleerd",
-      "signInExpired": "Die code is verlopen. Start opnieuw met inloggen.",
-      "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw."
     },
     "locationRow": {
       "set": "Locatie: {name}",
@@ -5482,85 +5342,6 @@
       "groupLayouts": "Indelingen",
       "groupMaterials": "Materialen",
       "materialHelp": "Deze weergave heeft eigen kleuren en letters, dus de instellingen voor achtergrond, tekstkleur, rand en lettertype gelden hier niet."
-    }
-  },
-  "imageBrowsers": {
-    "errors": {
-      "saveImage": "Afbeelding opslaan mislukt"
-    },
-    "immich": {
-      "allPhotos": "Alle foto's",
-      "noPhotos": "Geen foto's gevonden",
-      "attribution": "Foto's uit je Immich-bibliotheek",
-      "notConfiguredPrefix": "Voeg je Immich-server-URL en API-sleutel toe bij",
-      "settingsWord": "Instellingen",
-      "notConfiguredSuffix": "om door je fotobibliotheek te bladeren.",
-      "apiKeyHint": "Maak een API-sleutel aan in Immich → Account Settings → API Keys",
-      "errors": {
-        "loadPhotos": "Foto's laden mislukt",
-        "fetchImage": "Deze afbeelding kan niet worden geladen"
-      }
-    },
-    "unsplash": {
-      "attribution": "Foto's via Unsplash",
-      "searchPlaceholder": "Zoek wat dan ook...",
-      "notConfiguredPrefix": "Voeg een gratis Unsplash API-sleutel toe bij",
-      "settingsWord": "Instellingen",
-      "notConfiguredSuffix": "om door duizenden HD-achtergronden te bladeren.",
-      "apiKeyHint": "Haal er een op via unsplash.com/developers",
-      "errors": {
-        "search": "Zoeken in Unsplash mislukt"
-      },
-      "categories": {
-        "nature": "Natuur",
-        "mountains": "Bergen",
-        "ocean": "Oceaan",
-        "forest": "Bos",
-        "sky": "Lucht",
-        "space": "Ruimte",
-        "city": "Stad",
-        "abstract": "Abstract",
-        "flowers": "Bloemen",
-        "seasons": "Seizoenen"
-      }
-    },
-    "nasa": {
-      "attribution": "Afbeeldingen met dank aan NASA",
-      "searchPlaceholder": "Zoek NASA-afbeeldingen...",
-      "watermarkNote": "Let op: sommige NASA-afbeeldingen bevatten ingebedde tijdstempels of watermerken die niet kunnen worden verwijderd.",
-      "notConfiguredPrefix": "Voeg een gratis NASA API-sleutel toe bij",
-      "settingsWord": "Instellingen",
-      "notConfiguredSuffix": "om door Astronomy Picture of the Day te bladeren.",
-      "apiKeyHint": "Haal er een op via api.nasa.gov",
-      "modes": {
-        "apod": "Foto van de dag",
-        "library": "Afbeeldingenbibliotheek"
-      },
-      "errors": {
-        "fetch": "NASA-afbeeldingen kunnen niet worden geladen"
-      },
-      "categories": {
-        "nebula": "Nevel",
-        "galaxy": "Sterrenstelsel",
-        "earth": "Aarde",
-        "mars": "Mars",
-        "moon": "Maan",
-        "saturn": "Saturnus",
-        "jupiter": "Jupiter",
-        "sun": "Zon",
-        "aurora": "Poollicht",
-        "iss": "ISS"
-      }
-    },
-    "search": {
-      "placeholder": "Zoek wat dan ook...",
-      "searchButton": "Zoeken",
-      "prev": "Vorige",
-      "next": "Volgende",
-      "pageOf": "Pagina {page} van {total}",
-      "errors": {
-        "load": "Afbeeldingen laden mislukt"
-      }
     }
   },
   "modals": {
@@ -5903,7 +5684,218 @@
         "peopleHidden": "Personen zijn verborgen.",
         "photosHidden": "Foto's zijn verborgen.",
         "howToFix": "Je Immich-sleutel kan ze niet zien. Open in Immich Accountinstellingen > API-sleutels, bewerk deze sleutel en vink {permission} aan."
+      },
+      "connected": "Verbonden",
+      "connectedWithVersion": "Verbonden (v{version})",
+      "apiKeyInvalid": "API-sleutel ongeldig",
+      "cannotReachServer": "Server niet bereikbaar",
+      "retry": "Opnieuw proberen",
+      "album": "Album",
+      "anyAlbum": "Elk album",
+      "person": "Persoon",
+      "anyone": "Iedereen",
+      "favoritesOnly": "Alleen favorieten",
+      "photoInAlbum": {
+        "one": "{count} foto in album",
+        "other": "{count} foto's in album"
+      },
+      "connecting": "Verbinden…",
+      "allPhotos": "Alle foto's",
+      "favorites": "Favorieten",
+      "albums": "Albums",
+      "people": "Personen",
+      "namedPeopleOnly": "Alleen personen met een naam staan in de lijst",
+      "newestFirst": "nieuwste eerst",
+      "onlyVideos": "Geen foto's in dit album, alleen video's. Hier kun je alleen foto's kiezen.",
+      "empty": "Hier staan nog geen foto's.",
+      "loadFailed": "Kon de foto's uit Immich niet laden.",
+      "unreachable": "Je Immich-server is niet bereikbaar.",
+      "unreachableHelp": "Controleer of hij aanstaat en of het adres bij Instellingen > API-sleutels klopt.",
+      "keyRejected": "Immich accepteert je sleutel niet. Controleer hem bij Instellingen > API-sleutels.",
+      "needsSetup": "Immich heeft eerst een adres en een sleutel nodig voordat je hier kunt bladeren.",
+      "copyHint": "Er komt een kopie in de Immich-map van je bibliotheek, zodat de foto te zien blijft als Immich uitstaat.",
+      "favoritesEmpty": "Nog geen favorieten. Tik in Immich op het hartje bij een foto en hij verschijnt hier."
+    },
+    "icloud": {
+      "albumLink": "Albumlink",
+      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier.",
+      "noItemsFound": "Nog niets gevonden. Controleer de link en zorg dat 'Openbare website' aanstaat voor het album.",
+      "photoLinkDetected": "Dit is een fotolink, geen link van een gedeeld album. Fotolinks stoppen na ongeveer een maand, dus we bewaren kopieën in je bibliotheek en tonen die.",
+      "photoLinkAction": "Opslaan in bibliotheek",
+      "videoHint": "Sommige iPhone-video's spelen mogelijk niet af op oudere schermen. Video's die niet afspelen worden automatisch overgeslagen.",
+      "checking": "Album wordt gecontroleerd…"
+    },
+    "onedrive": {
+      "checking": "OneDrive-verbinding controleren…",
+      "credentialsNeeded": "Voeg eerst je Microsoft Application ID toe bij Instellingen, API-sleutels.",
+      "signIn": "Inloggen met Microsoft",
+      "waiting": "Wachten tot je klaar bent met inloggen",
+      "enterCode": "Voer deze code in op",
+      "cancel": "Annuleren",
+      "signedIn": "Ingelogd",
+      "connectedAs": "Ingelogd als {account}",
+      "disconnect": "OneDrive loskoppelen",
+      "retry": "Opnieuw proberen",
+      "folder": "Map",
+      "noFolderChosen": "Nog geen map gekozen",
+      "chooseFolder": "Map kiezen",
+      "changeFolder": "Map wijzigen",
+      "loadingFolders": "Mappen laden…",
+      "upOneFolder": "Één map omhoog",
+      "emptyFolder": "Geen submappen in deze map",
+      "useThisFolder": "Deze map gebruiken",
+      "capNote": "Als de mappenboom meer dan {cap} foto's bevat, gebruikt de diavoorstelling een willekeurige selectie van {cap}.",
+      "loadFailed": "Kon je OneDrive-mappen niet laden.",
+      "folderNotFound": "Map niet gevonden. Kies een andere map.",
+      "noPhotos": "Nog geen foto's in deze map",
+      "signInDeclined": "Inloggen is geannuleerd",
+      "signInExpired": "Die code is verlopen. Start opnieuw met inloggen.",
+      "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw."
+    },
+    "sourceLabel": "Fotobron",
+    "needsFreeKey": "gratis sleutel nodig",
+    "needsSettingUp": "nog niet ingesteld",
+    "keyMissing": "Deze bron is nog niet ingesteld, dus er komen geen nieuwe afbeeldingen binnen. Stel hem in bij Instellingen > API-sleutels, of kies een andere bron.",
+    "keyMissingBackground": "Deze bron is nog niet ingesteld, dus het scherm blijft de laatste afbeelding tonen. Stel hem in bij Instellingen > API-sleutels, of kies een andere bron.",
+    "photosPerRefresh": "Foto's per vernieuwing",
+    "kinds": {
+      "library": "Bibliotheekmap",
+      "immich": "Immich",
+      "icloud": "Gedeeld iCloud-album",
+      "onedrive": "OneDrive",
+      "unsplash": "Unsplash",
+      "nasa": "NASA-foto van de dag"
+    },
+    "library": {
+      "folder": "Map",
+      "topLevel": "Alle foto's (bovenste niveau)",
+      "browse": "Bladeren…",
+      "photoCount": {
+        "one": "{count} foto",
+        "other": "{count} foto's"
+      },
+      "empty": "Nog geen foto's in deze map"
+    },
+    "unsplash": {
+      "searchWords": "Zoekwoorden",
+      "searchWordsPlaceholder": "bergen meer",
+      "searchHelp": "Bij elke vernieuwing nieuwe foto's voor deze woorden. Op elke foto staat in een hoek de naam van de fotograaf, zoals Unsplash vraagt.",
+      "searchHelpBackground": "Een nieuwe foto voor deze woorden, elke keer dat de achtergrond wisselt.",
+      "searchPlaceholder": "Zoek foto's op Unsplash",
+      "needsKey": "Unsplash heeft een gratis sleutel nodig voordat je hier kunt bladeren.",
+      "orSearch": "Of zoek hierboven naar wat je maar wilt",
+      "ideas": {
+        "nature": "Natuur",
+        "mountains": "Bergen",
+        "ocean": "Oceaan",
+        "forest": "Bos",
+        "sky": "Lucht",
+        "space": "Heelal",
+        "city": "Stad",
+        "flowers": "Bloemen",
+        "seasons": "Seizoenen",
+        "holidays": "Feestdagen",
+        "birthday": "Verjaardag",
+        "abstract": "Abstract"
+      },
+      "creditHint": "Foto door {name} op Unsplash. Er komt een kopie in de Unsplash-map van je bibliotheek.",
+      "copyHint": "Foto's van Unsplash. Er komt een kopie in de Unsplash-map van je bibliotheek.",
+      "empty": "Niets gevonden voor deze woorden. Probeer andere.",
+      "loadFailed": "Kon de foto's van Unsplash niet laden.",
+      "rateLimited": "Met het gratis Unsplash-abonnement kun je 50 keer per uur zoeken, en die zijn op. Probeer het straks opnieuw."
+    },
+    "nasa": {
+      "pictureOfTheDay": "Foto van de dag",
+      "newestFirst": "nieuwste eerst",
+      "searchGroup": "Zoeken in de NASA-bibliotheek",
+      "searchPlaceholder": "Zoek NASA-afbeeldingen",
+      "ideas": {
+        "nebula": "Nevel",
+        "galaxy": "Sterrenstelsel",
+        "earth": "Aarde",
+        "mars": "Mars",
+        "moon": "Maan",
+        "saturn": "Saturnus",
+        "jupiter": "Jupiter",
+        "sun": "Zon",
+        "aurora": "Poollicht",
+        "iss": "Ruimtestation"
+      },
+      "copyHint": "Afbeeldingen met dank aan NASA. Er komt een kopie in de NASA-map van je bibliotheek.",
+      "empty": "Niets gevonden. Probeer andere woorden.",
+      "loadFailed": "Kon de afbeeldingen van NASA niet laden.",
+      "streamInfo": "De nieuwste astronomische foto's van de dag.",
+      "backgroundInfo": "NASA publiceert elke dag één nieuwe astronomische foto. Het scherm toont de nieuwste.",
+      "apodUnavailable": "NASA stuurt op dit moment geen foto van de dag. Zoeken in de NASA-bibliotheek werkt nog wel."
+    },
+    "picker": {
+      "tabs": {
+        "builtin": "Ingebouwd",
+        "library": "Lokaal",
+        "immich": "Immich",
+        "unsplash": "Unsplash",
+        "nasa": "NASA"
+      },
+      "ideas": "Ideeën",
+      "search": "Zoeken",
+      "showMore": "Meer tonen",
+      "copying": "Kopiëren…",
+      "copyFailed": "Kon deze afbeelding niet kopiëren. Probeer het opnieuw.",
+      "loadFailed": "Kon niet meer laden. Probeer het opnieuw.",
+      "tryAgain": "Opnieuw proberen",
+      "notSetUp": "Nog niet ingesteld",
+      "openApiKeys": "Instellingen > API-sleutels openen",
+      "favorite": "Favoriet",
+      "unsupportedFormat": "Deze afbeelding heeft een formaat dat het scherm niet kan tonen. Kies een andere."
+    },
+    "builtIn": {
+      "themeWalls": "Thema-achtergronden",
+      "colors": "Kleuren",
+      "patterns": "Patronen",
+      "dayPictures": "Dagplaatjes",
+      "sidebarNote": "Deze zitten standaard in Home Screens",
+      "copyHint": "Zit standaard in Home Screens, dus is altijd beschikbaar."
+    },
+    "background": {
+      "pictureGroup": "Afbeelding",
+      "choose": "Kies een afbeelding",
+      "none": "Geen",
+      "noPicture": "Geen afbeelding",
+      "plainColor": "Het scherm toont de effen kleur.",
+      "comesWithHomeScreens": "Zit standaard in Home Screens",
+      "inLibrary": "In je bibliotheek",
+      "inLibraryFolder": "In je bibliotheek, map {folder}",
+      "rotatingNote": "Te zien tot de eerste wisselende afbeelding binnenkomt. Als je een afbeelding kiest, gaat Automatisch wisselen uit."
+    },
+    "google": {
+      "add": "Toevoegen uit Google Foto's",
+      "signInToAdd": "Log in om foto's uit Google Foto's toe te voegen",
+      "needsSetup": "Google Foto's moet nog worden ingesteld bij Instellingen > API-sleutels",
+      "waiting": "Wachten op je keuze…",
+      "openAgain": "Google Foto's opnieuw openen",
+      "cancel": "Annuleren",
+      "adding": "Toevoegen aan {folder}: {done} van {total}",
+      "added": {
+        "one": "1 toegevoegd.",
+        "other": "{count} toegevoegd."
+      },
+      "alreadyHere": {
+        "one": "1 stond er al.",
+        "other": "{count} stonden er al."
+      },
+      "notSaved": {
+        "one": "1 kon niet worden opgeslagen.",
+        "other": "{count} konden niet worden opgeslagen."
       }
+    },
+    "import": {
+      "icloudTitle": "Toevoegen via een iCloud-link",
+      "icloudIntro": "Plak de link van een gedeeld album, of een link die je in de Foto's-app maakt met 'Kopieer iCloud-link'. Alles wat erin staat, wordt toegevoegd aan de map hieronder.",
+      "add": "Toevoegen",
+      "progress": "Toevoegen: {done} van {total}",
+      "googleIntro": "Kies foto's in Google Foto's en kom dan hier terug. Ze worden toegevoegd aan de map hieronder.",
+      "googleSignInIntro": "Log één keer in bij Google Foto's en kies dan foto's om hier toe te voegen.",
+      "openGoogle": "Google Foto's openen"
     }
   }
 }

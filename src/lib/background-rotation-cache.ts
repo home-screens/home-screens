@@ -8,13 +8,12 @@ import { createJsonStore } from '@/lib/json-store';
  */
 
 export interface RotationCacheEntry {
+  /** Serve URL of the picture the screen shows. */
   path: string;
-  source: string;
-  query: string;
+  /** `sourceCacheKey` of the photo source it came from; a different key means start over. */
+  sourceKey: string;
   fetchedAt: number;
   intervalMinutes: number;
-  immichFilters?: string;
-  icloudAlbum?: string;
 }
 
 export type BackgroundCache = Record<string, RotationCacheEntry>;

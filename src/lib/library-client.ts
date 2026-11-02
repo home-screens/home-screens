@@ -1,8 +1,10 @@
 'use client';
 
-import { editorFetch, sessionExpired } from '@/lib/editor-fetch';
+import { editorFetch, isSessionExpired as isSessionExpiredError, sessionExpired } from '@/lib/editor-fetch';
 import { readJson, refusalMessage } from '@/lib/hub-request';
 import type { MediaUse } from '@/lib/media-usage';
+import { displayCache } from '@/lib/display-cache';
+import { PHOTO_SOURCE_MEDIA_PATH } from '@/lib/photo-source';
 
 /**
  * Client-side counterpart to `library-files.ts` (the server's filesystem
@@ -190,3 +192,58 @@ export function uploadLibraryFile(
     xhr.send(form);
   });
 }
+
+/**
+ * Forget every cached read of the library in this editor tab, after an
+ * upload, delete, move or import: the library's own listings and every
+ * stream that plays a library folder (the canvas preview of a slideshow).
+ * Walls re-read through the library revision on their heartbeat instead.
+ */
+export function invalidateLibraryReads(): void {
+  displayCache.invalidateByPrefix('/api/backgrounds');
+  displayCache.invalidateByPrefix(PHOTO_SOURCE_MEDIA_PATH);
+}
+
+export interface UploadOutcome {
+  /** Serve URLs of the files the hub took, in order. */
+  uploaded: string[];
+  /** The last failure: the hub's own sentence, or null when the request never got an answer. */
+  error: { message: string | null; file: string } | null;
+}
+
+/**
+ * Upload files into one library folder, one request per file so a big video
+ * never holds up the rest and each failure names its file. The one upload
+ * path the editor's library grid and the Image module's Upload button share.
+ */
+export async function uploadLibraryFiles(
+  files: ArrayLike<File>,
+  folder: string,
+  onProgress?: (index: number, total: number) => void,
+): Promise<UploadOutcome> {
+  const outcome: UploadOutcome = { uploaded: [], error: null };
+  for (let i = 0; i < files.length; i++) {
+    onProgress?.(i, files.length);
+    const formData = new FormData();
+    formData.append('file', files[i]);
+    if (folder) formData.append('directory', folder);
+    try {
+      // A video can take longer than the usual limit to send.
+      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
+      const data = (await res.json().catch(() => null)) as { path?: string; paths?: string[]; error?: string } | null;
+      if (!res.ok) {
+        outcome.error = { message: data?.error ?? null, file: files[i].name };
+      } else if (data?.path) {
+        outcome.uploaded.push(data.path);
+      } else if (data?.paths) {
+        outcome.uploaded.push(...data.paths);
+      }
+    } catch (err) {
+      if (isSessionExpiredError(err)) throw err;
+      outcome.error = { message: null, file: files[i].name };
+    }
+  }
+  if (outcome.uploaded.length > 0) invalidateLibraryReads();
+  return outcome;
+}
+

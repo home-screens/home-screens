@@ -194,14 +194,16 @@ Whichever provider you pick, set your location first at **Settings > Location & 
 
 ### What photo sources are supported?
 
-Home Screens supports four photo sources for the **Photo Slideshow** and **Full-Screen Photo Viewer** modules:
+The **Photo Slideshow**, the **Full-Screen Photo Viewer** and a screen's rotating background all offer the same six photo sources:
 
-- **Local Photos** (your library): photos and videos you upload from the editor or the phone, or import from Google Photos or an iCloud link; manage them under **Settings > Pictures & videos**
-- **[Immich](https://immich.app)**: a self-hosted Google Photos alternative; browse and display photos from your Immich library with album, person (face recognition), and favorites filtering
-- **iCloud Shared Album**: paste a public shared album link from Apple Photos; no account or API key needed
+- **Library folder** (your library): photos and videos you upload from the editor or the phone, or import from Google Photos or an iCloud link; manage them under **Settings > Pictures & videos**
+- **[Immich](https://immich.app)**: a self-hosted Google Photos alternative; show photos from your Immich library with album, person (face recognition), and favorites filtering
+- **iCloud shared album**: paste a public shared album link from Apple Photos; no account or API key needed
 - **OneDrive**: photos straight from a folder and its subfolders in your personal OneDrive, after a one-time Microsoft sign-in (see [OneDrive photos](/docs/modules#one-drive-photos))
+- **Unsplash**: free stock photos for the search words you type, credited to each photographer
+- **NASA picture of the day**: the newest Astronomy Pictures of the Day
 
-For **background rotation**, four sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), **Immich**, and **iCloud shared albums**.
+To put one picture somewhere (a background, the Image module, a countdown), the **Image Library** has tabs for your library, Immich, Unsplash and NASA, and copies the picture you pick into your library. See [Choosing a picture](/docs/backgrounds#image-library).
 
 To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings > API Keys page; [these are the boxes to tick](/docs/backgrounds#immich-key). To use OneDrive, save the **Application (client) ID** from a free Microsoft app registration and sign in once from the module, the steps are in [OneDrive photos](/docs/modules#one-drive-photos). iCloud shared albums need no setup, just a shared album link with the public website option enabled.
 
@@ -221,7 +223,7 @@ Several built-in features help prevent burn-in:
 - **Sleep schedule**: configure hours when the display is fully blanked (e.g., overnight) at **Settings > Screen > Sleep & dimming**
 - **Dim schedule**: reduce brightness during certain hours without fully blanking the screen
 - **Screensaver**: while the display is dimmed, before it fully sleeps, a minimal clock can drift slowly around the screen so nothing sits in one place. Once the display is fully asleep the screen is blank, which protects it even better
-- **Background rotation**: automatically cycle background images from Unsplash, NASA, Immich, or an iCloud shared album to vary what's on screen
+- **Background rotation**: automatically cycle background images from a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA to vary what's on screen
 
 ### Can I control the display remotely?
 

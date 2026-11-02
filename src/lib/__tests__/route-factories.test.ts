@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { createImageDownloadHandler, createTagActionRoute } from '@/lib/route-factories';
+import { createTagActionRoute } from '@/lib/route-factories';
 import { silenceConsole } from '@/test-utils';
 
 vi.mock('@/lib/auth', () => ({
@@ -8,126 +8,10 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock('@/lib/background-download', () => ({
-  downloadAndSaveBackground: vi.fn(),
-  UnsupportedImageFormatError: class UnsupportedImageFormatError extends Error {},
-}));
-
-vi.mock('@/lib/url-safety', () => ({
-  isSafeExternalUrl: vi.fn(),
-}));
-
-import { downloadAndSaveBackground, UnsupportedImageFormatError } from '@/lib/background-download';
-import { isSafeExternalUrl } from '@/lib/url-safety';
-
-const mockDownload = vi.mocked(downloadAndSaveBackground);
-const mockIsSafe = vi.mocked(isSafeExternalUrl);
-
 silenceConsole();
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  mockIsSafe.mockResolvedValue(true);
-  mockDownload.mockResolvedValue({ path: '/backgrounds/test.jpg' });
-});
-
-// ── createImageDownloadHandler ──────────────────────────────────────────
-
-describe('createImageDownloadHandler', () => {
-  function makeHandler(overrides: Partial<Parameters<typeof createImageDownloadHandler>[0]> = {}) {
-    return createImageDownloadHandler({
-      defaultPrefix: 'test',
-      errorMsg: 'Download failed',
-      ...overrides,
-    });
-  }
-
-  function postRequest(body: Record<string, unknown>) {
-    return new NextRequest('http://localhost/api/test', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-  }
-
-  it('returns 400 when imageUrl is missing', async () => {
-    const handler = makeHandler();
-    const res = await handler(postRequest({}));
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toBe('Missing imageUrl');
-  });
-
-  it('returns 400 when imageUrl is not a safe external URL', async () => {
-    mockIsSafe.mockResolvedValue(false);
-    const handler = makeHandler();
-    const res = await handler(postRequest({ imageUrl: 'http://169.254.169.254/secret' }));
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toBe('Invalid image URL');
-  });
-
-  it('downloads and returns 201 on success', async () => {
-    const handler = makeHandler();
-    const res = await handler(postRequest({ imageUrl: 'https://example.com/photo.jpg' }));
-    expect(res.status).toBe(201);
-    expect(mockDownload).toHaveBeenCalledWith(
-      'https://example.com/photo.jpg',
-      expect.stringContaining('test-'),
-      undefined,
-    );
-  });
-
-  it('uses provided filename instead of default prefix', async () => {
-    const handler = makeHandler();
-    const res = await handler(postRequest({ imageUrl: 'https://example.com/img.jpg', filename: 'custom-name' }));
-    expect(res.status).toBe(201);
-    expect(mockDownload).toHaveBeenCalledWith(
-      'https://example.com/img.jpg',
-      'custom-name',
-      undefined,
-    );
-  });
-
-  it('passes downloadOptions to downloadAndSaveBackground', async () => {
-    const handler = makeHandler({ downloadOptions: { rejectNonWeb: true, validateImage: true } });
-    await handler(postRequest({ imageUrl: 'https://example.com/img.tiff' }));
-    expect(mockDownload).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.any(String),
-      { rejectNonWeb: true, validateImage: true },
-    );
-  });
-
-  it('reports an unrenderable format as 415 with the message intact', async () => {
-    mockDownload.mockRejectedValue(
-      new UnsupportedImageFormatError("This picture is in a format the display can't show. Try a different one."),
-    );
-    const handler = makeHandler({ downloadOptions: { rejectNonWeb: true } });
-
-    const res = await handler(postRequest({ imageUrl: 'https://example.com/img.tiff' }));
-
-    expect(res.status).toBe(415);
-    expect((await res.json()).error).toMatch(/format the display can't show/);
-  });
-
-  it('still surfaces other download failures through the error wrapper', async () => {
-    mockDownload.mockRejectedValue(new Error('Failed to fetch image: 502'));
-    const handler = makeHandler();
-
-    expect((await handler(postRequest({ imageUrl: 'https://example.com/img.jpg' }))).status).toBe(500);
-  });
-
-  it('calls beforeDownload hook with full body', async () => {
-    const beforeDownload = vi.fn();
-    const handler = makeHandler({ beforeDownload });
-    const body = { imageUrl: 'https://example.com/img.jpg', downloadUrl: 'https://api.unsplash.com/track', extra: 'data' };
-    await handler(postRequest(body));
-    expect(beforeDownload).toHaveBeenCalledWith(expect.objectContaining({
-      imageUrl: 'https://example.com/img.jpg',
-      downloadUrl: 'https://api.unsplash.com/track',
-      extra: 'data',
-    }));
-  });
 });
 
 // ── createTagActionRoute ────────────────────────────────────────────────

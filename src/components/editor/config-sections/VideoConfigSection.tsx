@@ -2,13 +2,13 @@
 
 import { useRef, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { displayCache } from '@/lib/display-cache';
+import { invalidateLibraryReads } from '@/lib/library-client';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Toggle from '@/components/ui/Toggle';
 import Button from '@/components/ui/Button';
-import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import { ICloudLinkImportBridge, ICLOUD_IMPORT_FOLDER } from './ICloudLinkImportBridge';
 import { parseYouTubeVideoId } from '@/lib/youtube';
 import { detectICloudSource } from '@/lib/icloud-parse';
@@ -77,7 +77,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       if (res.ok && data.path) {
         // The module preview's point lookup for this file may be cached as
         // missing from before the upload — clear it so the poster shows now.
-        displayCache.invalidateByPrefix('/api/backgrounds');
+        invalidateLibraryReads();
         const uploaded = fileParamOf(data.path);
         if (uploaded) set({ file: uploaded });
       } else {
@@ -208,7 +208,7 @@ export function VideoConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
       )}
 
       {showBrowser && (
-        <ImageBrowserModal
+        <PicturePicker
           mode="pick-video"
           initialDirectory={browserDir}
           onSelectVideo={(filePath) => set({ file: filePath })}

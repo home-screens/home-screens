@@ -116,7 +116,6 @@ Most of Home Screens needs no key at all. Keys that are needed live on **Setting
 | Mealie | Your Mealie recipes and meal plan on every meal planner (see [Plan with Mealie](/docs/meals#mealie)) |
 | Microsoft OneDrive | Photos from a OneDrive folder, after a one-time sign-in from the photo module (see [OneDrive photos](/docs/modules#one-drive-photos)) |
 | Unsplash | Free stock photo backgrounds (50 requests an hour on the free plan) |
-| NASA | The Astronomy Picture of the Day as a background. The image library search works without a key. |
 | Todoist | The Todoist module |
 
 ## Next steps
