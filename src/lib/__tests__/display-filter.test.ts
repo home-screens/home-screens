@@ -15,6 +15,7 @@ import {
   findMainDisplay,
   isMainDisplay,
   pruneDanglingScreenRefs,
+  withoutDanglingScreenRefs,
   isValidDisplayId,
   RESERVED_DISPLAY_IDS,
   SLUG_RE,
@@ -22,6 +23,7 @@ import {
 } from '@/lib/display-filter';
 import type {
   AlertSettings,
+  DisplayRule,
   GlobalSettings,
   ModuleInstance,
   Profile,
@@ -1593,5 +1595,65 @@ describe('validateTextLooks', () => {
     expect(validateAllSchedules(makeConfig({ screens: [screen] }))).toMatch(/module "mod1" look 1: when/);
     screen.modules[0].type = 'icon';
     expect(validateAllSchedules(makeConfig({ screens: [screen] }))).toBeNull();
+  });
+});
+
+/* ─── withoutDanglingScreenRefs ─────────────────────── */
+
+describe('withoutDanglingScreenRefs', () => {
+  const rule = (id: string, screenId: string): DisplayRule => ({
+    id, name: id, when: [], action: { kind: 'showScreen', screenId, mode: 'while' },
+  });
+
+  it('returns the very same config when every reference resolves', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1')],
+      profiles: [makeProfile('day', ['s1'])],
+      rules: [rule('r1', 's1'), rule('r2', '')],
+    });
+    expect(withoutDanglingScreenRefs(config)).toBe(config);
+  });
+
+  it('drops a missing screen from a single-display profile and blanks a rule that showed one', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1')],
+      profiles: [makeProfile('day', ['s1', 'gone']), makeProfile('night', ['s1'])],
+      rules: [rule('doorbell', 'gone'), rule('ok', 's1')],
+    });
+    const tidy = withoutDanglingScreenRefs(config);
+    expect(tidy.profiles!.map((p) => p.screenIds)).toEqual([['s1'], ['s1']]);
+    expect(tidy.profiles![1]).toBe(config.profiles![1]);
+    expect(tidy.rules!.map((r) => r.action.kind === 'showScreen' && r.action.screenId)).toEqual(['', 's1']);
+    // Not changed in place: the input is the store's previous snapshot.
+    expect(config.profiles![0].screenIds).toEqual(['s1', 'gone']);
+  });
+
+  it("tidies each display's own profiles and rules against that display's screens", () => {
+    const config = makeConfig({
+      screens: [makeScreen('legacy')],
+      // The legacy pool is not live once displays exist, and is left alone.
+      profiles: [makeProfile('old', ['nowhere'])],
+      displays: [
+        { id: 'main', name: 'Main', screens: [makeScreen('m1')], profiles: [makeProfile('p', ['m1', 'k1'])], rules: [rule('r', 'k1')] },
+        { id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k1')], profiles: [makeProfile('q', ['k1'])] },
+      ],
+    });
+    const tidy = withoutDanglingScreenRefs(config);
+    expect(tidy.profiles).toBe(config.profiles);
+    expect(tidy.displays![0].profiles![0].screenIds).toEqual(['m1']);
+    expect(tidy.displays![0].rules![0].action).toMatchObject({ screenId: '' });
+    expect(tidy.displays![1]).toBe(config.displays![1]);
+    expect(Object.keys(tidy.displays![1])).not.toContain('rules');
+  });
+
+  it('leaves a config the save gate accepts', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{ id: 'main', name: 'Main', screens: [makeScreen('m1')], profiles: [makeProfile('p', ['gone'])], rules: [rule('r', 'gone')] }],
+    });
+    expect(validateDisplays(config)).toMatch(/unknown screen "gone"/);
+    const tidy = withoutDanglingScreenRefs(config);
+    expect(validateDisplays(tidy)).toBeNull();
+    expect(validateAllSchedules(tidy)).toBeNull();
   });
 });

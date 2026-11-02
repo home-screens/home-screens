@@ -2540,6 +2540,30 @@ describe('editor store', () => {
       window.location.search = '';
     });
 
+    it('loadConfig takes out a profile or rule reference to a screen that is gone, so the next edit saves', async () => {
+      const store = useEditorStore;
+      const onDisk = makeConfig({
+        profiles: [{ id: 'day', name: 'Day', screenIds: ['screen-1', 'deleted'] }],
+        rules: [{ id: 'doorbell', name: 'Doorbell', when: [], action: { kind: 'showScreen', screenId: 'deleted', mode: 'while' } }],
+      });
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(onDisk) }));
+
+      await store.getState().loadConfig();
+
+      const config = store.getState().config!;
+      expect(config.profiles![0].screenIds).toEqual(['screen-1']);
+      expect(config.rules![0].action).toMatchObject({ kind: 'showScreen', screenId: '' });
+      expect(store.getState().isDirty).toBe(false);
+
+      // The edit that used to sit at "Unsaved changes" now goes to the hub.
+      const put = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}), headers: new Headers() });
+      vi.stubGlobal('fetch', put);
+      store.getState().addModule('screen-1', 'clock');
+      await store.getState().saveConfig();
+      expect(put).toHaveBeenCalledWith('/api/config', expect.objectContaining({ method: 'PUT' }));
+      expect(store.getState().saveError).toBeNull();
+    });
+
     it('importConfig records history before replacement', () => {
       const store = useEditorStore;
       const originalConfig = makeConfig();

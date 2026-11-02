@@ -6,7 +6,8 @@ import { COURSE_KINDS } from '@/lib/meal-courses';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
 import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
-import { GROCERY_CATEGORY_ORDER } from '@/lib/grocery-utils';
+import { GROCERY_CATEGORY_ORDER, groceryAisle } from '@/lib/grocery-utils';
+import { emojiGridWithChosen } from '@/lib/icon-value';
 import { useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
@@ -36,6 +37,9 @@ export default function MealFormOverlay({
   // already loaded by the remote layout.
   const tCore = useTranslate('core');
   const [managingIcons, setManagingIcons] = useState(false);
+  // The row "Add ingredient" just made, which takes the cursor as it appears
+  // so the next tap types its name rather than hunting for the box.
+  const [addedRow, setAddedRow] = useState<number | null>(null);
   const {
     editingMeal,
     setEditingMeal,
@@ -169,7 +173,7 @@ export default function MealFormOverlay({
         <PhoneCustomIconSection value={formEmoji} onPick={setFormEmoji} suggestedName={formName} />
         <div style={{ ...PHONE_SUBHEAD_STYLE, marginTop: 12 }}>{tCore('customIcons.everydayEmoji')}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
-          {FOOD_EMOJIS.map((emoji) => (
+          {emojiGridWithChosen(FOOD_EMOJIS, formEmoji).map((emoji) => (
             <button
               key={emoji}
               onClick={() => setFormEmoji(emoji)}
@@ -333,6 +337,7 @@ export default function MealFormOverlay({
             <input
               type="text"
               placeholder={t('mealForm.ingredientNamePlaceholder')}
+              autoFocus={idx === addedRow}
               value={ing.name}
               onChange={(e) => {
                 const next = [...formIngredients];
@@ -352,8 +357,11 @@ export default function MealFormOverlay({
               }}
               style={{ ...INPUT_STYLE, flex: 1 }}
             />
+            {/* The aisle the grocery list files it under: the one picked, else
+                the one its name suggests. "Other" on every row read as if the
+                list would lump them together, while it files each by its name. */}
             <select
-              value={ing.category ?? 'other'}
+              value={groceryAisle(ing)}
               onChange={(e) => {
                 const next = [...formIngredients];
                 next[idx] = { ...next[idx], category: e.target.value as GroceryCategory };
@@ -397,7 +405,10 @@ export default function MealFormOverlay({
           </div>
         ))}
         <button
-          onClick={() => setFormIngredients((prev) => [...prev, { name: '', amount: '' }])}
+          onClick={() => {
+            setAddedRow(formIngredients.length);
+            setFormIngredients((prev) => [...prev, { name: '', amount: '' }]);
+          }}
           style={{
             width: '100%',
             padding: '12px',

@@ -16,6 +16,7 @@ vi.mock('@/lib/mealie', async (importOriginal) => {
 });
 
 import { GET } from '../route';
+import { requireDisplayAuth, requireSession } from '@/lib/auth';
 import { getMealieContext, searchMealieRecipes, MealieError } from '@/lib/mealie';
 
 const req = (q = '') => new NextRequest(`http://localhost/api/mealie/recipes${q}`);
@@ -76,5 +77,13 @@ describe('GET /api/mealie/recipes', () => {
     const res = await GET(req());
     expect(res.status).toBe(502);
     expect((await res.json()).failure).toBe('unreachable');
+  });
+});
+
+describe('who may read it', () => {
+  it("lets a wall read it with its display key, for the recipe book", async () => {
+    await GET(req());
+    expect(requireDisplayAuth).toHaveBeenCalled();
+    expect(requireSession).not.toHaveBeenCalled();
   });
 });

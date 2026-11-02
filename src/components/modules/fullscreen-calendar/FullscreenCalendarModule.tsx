@@ -44,6 +44,9 @@ import { CalendarLegend } from '../shared/CalendarLegend';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from '../shared/useFailingSources';
 import { CalendarSetupCard } from '../shared/CalendarSetupCard';
 import { useEventTapDetail } from '../shared/useEventTapDetail';
+import { DaySheetContext, useDaySheet } from '../shared/useDaySheet';
+import { DaySheetOverlay } from '../shared/DaySheetOverlay';
+import { wallScrollOn } from '@/lib/wall-scroll-views';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
 // (potentially hundreds of) event blocks from reconciling on those frames —
@@ -189,6 +192,9 @@ interface FullscreenCalendarModuleProps {
   peopleState?: 'loading' | 'failed';
   /** Family groups, for the color key and the people filter (see buildModuleProps). */
   groups?: FamilyGroup[];
+  /** Only on a real display (see the registry's `needsInstanceAddress`); the editor preview has none. */
+  screenId?: string;
+  moduleId?: string;
 }
 
 export default function FullscreenCalendarModule({
@@ -209,6 +215,8 @@ export default function FullscreenCalendarModule({
   people,
   peopleState,
   groups,
+  screenId,
+  moduleId,
 }: FullscreenCalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -259,6 +267,10 @@ export default function FullscreenCalendarModule({
   // highlight follows accentColor (the fill was previously hardcoded orange).
   const highlightStyle = config.todayHighlightStyle ?? 'full';
   const resolvedAccent = resolveCalendarAccent(config.accentColor, theme);
+  // The accent as drawn (--cal-accent): a user color still gets the dark-theme
+  // lift; a theme's own accent is already tuned for its background and is used
+  // verbatim. The day sheet portals out of the root, so it takes the value.
+  const drawnAccent = config.accentColor && theme.isDark ? brightenForDark(config.accentColor) : resolvedAccent;
   // Themes with an atmosphere layer dial the today wash down so the
   // background survives; 'subtle' stays proportionally fainter than 'full'.
   const fullAlpha = theme.todayFill ?? (theme.isDark ? 0.16 : 0.10);
@@ -337,9 +349,13 @@ export default function FullscreenCalendarModule({
   // is their day heading; the header has room for one line, so they share it.
   const titleNote = config.view === 'day-timeline' || config.view === 'free-time' ? dayNotesFor(dayNotes, today).join(' · ') : '';
 
+  // The list views scroll with a finger where an event can be tapped: a real
+  // display with taps on. The editor preview and a wall without taps clip as
+  // they always have.
+  const scroll = wallScrollOn(config.eventTapDetails === true, screenId, moduleId);
   const viewProps = useMemo<CalendarViewProps>(
-    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes }),
-    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes],
+    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes, scroll }),
+    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes, scroll],
   );
   const hasEvents = events.length > 0;
   // Views with something to say on an empty feed: a day note in view, the
@@ -371,7 +387,9 @@ export default function FullscreenCalendarModule({
 
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   const tapDetails = config.eventTapDetails === true;
-  const { detailEvent, onRootClick, close: closeDetail } = useEventTapDetail(events, tapDetails);
+  const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(events, tapDetails);
+  // "+N more" and the grid day numbers open the whole day (see useDaySheet).
+  const daySheet = useDaySheet(events, tapDetails);
 
   return (
     <div
@@ -402,11 +420,7 @@ export default function FullscreenCalendarModule({
         // the family grid's name column and the rolling window's status line.
         '--cal-surface-alt': theme.surfaceAlt,
         '--cal-weekend-shade': theme.surfaceAlt,
-        // A user color still gets the dark-theme lift; a theme's own accent is
-        // already tuned for its background and is used verbatim.
-        '--cal-accent': config.accentColor
-          ? (theme.isDark ? brightenForDark(config.accentColor) : resolvedAccent)
-          : resolvedAccent,
+        '--cal-accent': drawnAccent,
         '--cal-accent-bg': eventBg(resolvedAccent, theme.isDark ? 0.20 : 0.12, theme.isDark),
         // Day notes: a strong yellow wash reads as olive over a near-black
         // theme, so dark themes take a lighter wash with brighter words.
@@ -528,27 +542,29 @@ export default function FullscreenCalendarModule({
           // every person with zero events would read as a free week.
           <EmptyState scale={scale} emptyKey={traits.emptyKey} t={t} fetchFailed={neverLoaded || peopleUnavailable} />
         ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={config.view}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              style={{ height: '100%' }}
-              className="fsc-view-motion"
-            >
-              {config.view === 'schedule' && <MemoScheduleView {...viewProps} />}
-              {config.view === 'week-list' && <MemoWeekListView {...viewProps} />}
-              {config.view === 'month-grid' && <MemoMonthGridView {...viewProps} />}
-              {config.view === 'day-timeline' && <MemoDayTimelineView {...viewProps} />}
-              {config.view === 'agenda' && <MemoAgendaView {...viewProps} />}
-              {config.view === 'family-grid' && <MemoFamilyGridView {...viewProps} />}
-              {config.view === 'up-next' && <MemoUpNextView {...viewProps} />}
-              {config.view === 'free-time' && <MemoFreeTimeView {...viewProps} />}
-              {config.view === 'rolling' && <MemoRollingWeeksView {...viewProps} />}
-            </motion.div>
-          </AnimatePresence>
+          <DaySheetContext.Provider value={daySheet.opener}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={config.view}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                style={{ height: '100%' }}
+                className="fsc-view-motion"
+              >
+                {config.view === 'schedule' && <MemoScheduleView {...viewProps} />}
+                {config.view === 'week-list' && <MemoWeekListView {...viewProps} />}
+                {config.view === 'month-grid' && <MemoMonthGridView {...viewProps} />}
+                {config.view === 'day-timeline' && <MemoDayTimelineView {...viewProps} />}
+                {config.view === 'agenda' && <MemoAgendaView {...viewProps} />}
+                {config.view === 'family-grid' && <MemoFamilyGridView {...viewProps} />}
+                {config.view === 'up-next' && <MemoUpNextView {...viewProps} />}
+                {config.view === 'free-time' && <MemoFreeTimeView {...viewProps} />}
+                {config.view === 'rolling' && <MemoRollingWeeksView {...viewProps} />}
+              </motion.div>
+            </AnimatePresence>
+          </DaySheetContext.Provider>
         )}
       </div>
 
@@ -561,6 +577,23 @@ export default function FullscreenCalendarModule({
         />
       )}
 
+      {/* Before the event detail, so a detail opened from one of its rows
+          portals in after it and draws on top. */}
+      {daySheet.day && (
+        <DaySheetOverlay
+          date={daySheet.day.date}
+          events={daySheet.day.events}
+          variant={config.eventTapStyle ?? 'sheet'}
+          theme={theme}
+          accentColor={drawnAccent}
+          colorFor={(ev) => eventBorder(ev.calendarColor ?? DEFAULT_EVENT_COLOR, theme.isDark)}
+          timeFormat={timeFormat}
+          timezone={timezone}
+          paused={detailEvent != null}
+          onOpenEvent={openDetail}
+          onClose={daySheet.close}
+        />
+      )}
       {tapDetails && detailEvent && (
         <EventDetailOverlay
           event={detailEvent}

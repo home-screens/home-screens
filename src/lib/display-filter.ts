@@ -406,6 +406,78 @@ export function pruneDanglingScreenRefs(
   return next;
 }
 
+/** `profiles` with every screen that is not in `screens` dropped; the same array when none is missing. */
+function profilesWithoutMissingScreens(profiles: Profile[] | undefined, screens: Screen[] | undefined): Profile[] | undefined {
+  if (!Array.isArray(profiles)) return profiles;
+  const ids = new Set((screens ?? []).map((s) => s.id));
+  let changed = false;
+  const next = profiles.map((p) => {
+    if (!Array.isArray(p?.screenIds) || p.screenIds.every((sid) => ids.has(sid))) return p;
+    changed = true;
+    return { ...p, screenIds: p.screenIds.filter((sid) => ids.has(sid)) };
+  });
+  return changed ? next : profiles;
+}
+
+/** `rules` with every "show a screen" target that is not in `screens` blanked; the same array when none is missing. */
+function rulesWithoutMissingScreens(rules: DisplayRule[] | undefined, screens: Screen[] | undefined): DisplayRule[] | undefined {
+  if (!Array.isArray(rules)) return rules;
+  const ids = new Set((screens ?? []).map((s) => s.id));
+  let changed = false;
+  const next = rules.map((r) => {
+    if (r?.action?.kind !== 'showScreen' || r.action.screenId === '' || ids.has(r.action.screenId)) return r;
+    changed = true;
+    return { ...r, action: { ...r.action, screenId: '' } };
+  });
+  return changed ? next : rules;
+}
+
+/**
+ * The config with every reference to a screen that is not there taken out,
+ * the way deleting a screen in the editor takes out its own
+ * (`pruneDanglingScreenRefs`): a profile drops the missing screen, and a rule
+ * that showed it is left asking which screen to show (its target blanked, the
+ * saveable "pick a screen" state the Rules page already explains).
+ *
+ * A dangling reference reaches the editor only from outside it: an older
+ * file, a restored backup, a hand edit. The save gate refuses one
+ * (`validateDisplays`, `validateAllSchedules`) and auto-save holds back a
+ * config the gate would refuse, so every later edit sat at "Unsaved changes"
+ * with nothing on screen to say why. The editor runs every config it takes
+ * in through this, so what it holds is always one it can save.
+ *
+ * Covers what the save gate checks (each display's own profiles and rules,
+ * and the top-level rules) plus the profiles of a home with one display,
+ * which a first added display copies as its own. Returns `config` itself
+ * when nothing points at a missing screen.
+ */
+export function withoutDanglingScreenRefs(config: ScreenConfiguration): ScreenConfiguration {
+  let next = config;
+  const multiDisplay = Array.isArray(config.displays) && config.displays.length > 0;
+  if (!multiDisplay) {
+    const profiles = profilesWithoutMissingScreens(next.profiles, next.screens);
+    if (profiles !== next.profiles) next = { ...next, profiles };
+  }
+  const rules = rulesWithoutMissingScreens(next.rules, next.screens);
+  if (rules !== next.rules) next = { ...next, rules };
+  if (multiDisplay) {
+    let changed = false;
+    const displays = config.displays!.map((d) => {
+      const profiles = profilesWithoutMissingScreens(d.profiles, d.screens);
+      const displayRules = rulesWithoutMissingScreens(d.rules, d.screens);
+      if (profiles === d.profiles && displayRules === d.rules) return d;
+      changed = true;
+      return {
+        ...d,
+        ...(profiles !== d.profiles ? { profiles } : {}),
+        ...(displayRules !== d.rules ? { rules: displayRules } : {}),
+      };
+    });
+    if (changed) next = { ...next, displays };
+  }
+  return next;
+}
+
 /**
  * URL-safe slug rule for display IDs. Exported so in-memory maps
  * (`display-commands.ts`), API routes, and client-side form validators can

@@ -11,6 +11,7 @@ import type {
 } from '@/types/config';
 import { applyTitleFilter, eventKindGlyph, isEventUpcoming } from './calendar-utils';
 import { parseHexToRgb } from './hex-color';
+import { dropDuplicateHolidays } from './holiday-duplicates';
 
 /**
  * Calendar rules engines: "event looks" and "day looks" (roadmap items
@@ -280,8 +281,9 @@ export function resolveDayDecor(
 
 /**
  * The one event-selection pipeline both calendar modules run before
- * rendering: source filter → title filter → event rules → optional
- * upcoming-only narrowing. `now` is only read by rules that match `past`
+ * rendering: source filter → title filter → event rules → one copy of each
+ * public holiday (`dropDuplicateHolidays`) → optional upcoming-only
+ * narrowing. `now` is only read by rules that match `past`
  * and by the cutoff compare — when neither applies, callers pass a stable
  * stand-in so their memo keys don't churn on the 60s clock tick (the rules
  * pass mints new event objects, which would thrash memoized renderers).
@@ -306,11 +308,11 @@ export function selectCalendarEvents(
     : events.filter((ev) => !ev.sourceId || opts.sourceFilter!.includes(ev.sourceId));
   const people = opts.peopleSelection;
   const peopled = people ? sourced.filter((ev) => eventPassesPeople(ev, people)) : sourced;
-  const filtered = applyEventRules(
+  const filtered = dropDuplicateHolidays(applyEventRules(
     applyTitleFilter(peopled, opts.titleFilter),
     opts.eventRules,
     { now: opts.now, timezone: opts.timezone },
-  );
+  ));
   if (!opts.upcomingCutoff) return filtered;
   const cutoff = opts.upcomingCutoff;
   return filtered.filter((ev) => isEventUpcoming(ev, cutoff, opts.timezone));

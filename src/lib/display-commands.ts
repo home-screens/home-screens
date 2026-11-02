@@ -48,7 +48,11 @@ export type DisplayCommandType =
   /** Poke one module type on the display, e.g. `{ module: 'news', action: 'next' }`. */
   | 'module-command'
   /** Put one library picture or video over the screen for a while. */
-  | 'show-photo';
+  | 'show-photo'
+  /** Open one recipe (a Mealie recipe or a saved meal) on a card over the screen. */
+  | 'show-recipe'
+  /** Close the recipe a phone put up with `show-recipe` (only that recipe, when `mealId` names it). */
+  | 'hide-recipe';
 
 export interface DisplayCommand {
   type: DisplayCommandType;

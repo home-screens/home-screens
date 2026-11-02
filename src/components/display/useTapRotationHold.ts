@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { holdRotationFor } from '@/lib/interaction-hold';
+import { WALL_SCROLL_IDLE_MS } from '@/lib/wall-scroll';
 
 /**
  * How long a tap on a control keeps the screen where it is.
@@ -13,6 +14,19 @@ import { holdRotationFor } from '@/lib/interaction-hold';
  * inside one screen's dwell.
  */
 export const TAP_ROTATION_HOLD_MS = 8_000;
+
+/**
+ * How long a touch on a browsing surface keeps the screen where it is: the
+ * recipe book, a list scrolled away from home, the grocery list. Someone
+ * reading recipes pauses longer than eight seconds between touches, and the
+ * screen rotating away took their chip, their search and their place with it.
+ * The same minute after which a scrolled list slides home.
+ */
+export const BROWSE_ROTATION_HOLD_MS = WALL_SCROLL_IDLE_MS;
+
+/** A surface whose every touch earns the browsing minute (`BROWSE_ROTATION_HOLD_MS`). */
+export const BROWSE_HOLD_ATTR = { 'data-rotation-hold': 'browse' } as const;
+const BROWSE_SELECTOR = '[data-rotation-hold="browse"]';
 
 /**
  * Controls the hold answers to. A tap on the page background is someone
@@ -48,6 +62,7 @@ export function useTapRotationHold(enabled: boolean): void {
       const target = event.target;
       if (!(target instanceof Element)) return;
       if (target.closest(EXCLUDED_SELECTOR)) return;
+      if (target.closest(BROWSE_SELECTOR)) { holdRotationFor(BROWSE_ROTATION_HOLD_MS); return; }
       if (!target.closest(CONTROL_SELECTOR)) return;
       holdRotationFor(TAP_ROTATION_HOLD_MS);
     };

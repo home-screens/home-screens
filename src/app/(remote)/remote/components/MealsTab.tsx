@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { getLocalizedDayNames, getMealSlotLabelKey, dateToDayIndex } from '@/lib/meal-constants';
 import { pickTargetChosen, type MealPickTarget } from '@/lib/meal-courses';
 import { useMealsTabData } from '../hooks/useMealsTabData';
+import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import { readMealsPlace, writeMealsPlace, type MealsSubView } from './meals-shared';
 import MealsTabHeader from './MealsTabHeader';
 import MealsSubNav from './MealsSubNav';
@@ -45,6 +46,7 @@ export default function MealsTab() {
     saveError,
     setSaveError,
     notice,
+    showNotice,
     dismissNotice,
     form,
     weekDates,
@@ -103,6 +105,23 @@ export default function MealsTab() {
   const [showSettings, setShowSettings] = useState(false);
   const dayNamesFull = useMemo(() => getLocalizedDayNames(locale, 'full'), [locale]);
   const closeSheet = useCallback(() => setSheet(null), [setSheet]);
+
+  // "Show on the wall" speaks through the tab's own notice and error line,
+  // which sit over an open meal sheet (the remote's toast would be under it).
+  // A send that works takes back the error an earlier one left, and only that.
+  const wallError = useRef<string | null>(null);
+  const wallNotices = useMemo<WallNotices>(() => ({
+    sent: (message, takeDown) => {
+      const stale = wallError.current;
+      wallError.current = null;
+      if (stale) setSaveError((current) => (current === stale ? null : current));
+      showNotice(message, takeDown, takeDown ? t('mealsTab.showOnWall.takeDown') : undefined);
+    },
+    failed: (message) => {
+      wallError.current = message;
+      setSaveError(message);
+    },
+  }), [showNotice, setSaveError, t]);
 
   // Mirror the tab and the week shown into the address, once the household's
   // week start has settled which week that is.
@@ -244,7 +263,7 @@ export default function MealsTab() {
         status.state === 'unreachable' ? (
           <MealieUnreachable problem={status.problem} onRetry={retryWeek} />
         ) : (
-          <MealsMealieLibraryView baseUrl={baseUrl} />
+          <MealsMealieLibraryView baseUrl={baseUrl} wallNotices={wallNotices} />
         )
       ) : (
         <MealsLibraryView
@@ -262,6 +281,7 @@ export default function MealsTab() {
           toggleFavorite={toggleFavorite}
           saving={saving}
           saveError={saveError}
+          wallNotices={wallNotices}
         />
       ))}
 
@@ -300,6 +320,7 @@ export default function MealsTab() {
           onRemoveCourse={(index) => void removeCourse(sheet.date, sheet.slot, index)}
           onSetTime={(time) => void setSlotTime(sheet.date, sheet.slot, time)}
           onClear={() => clearMeal(sheet.date, sheet.slot, closeSheet)}
+          wallNotices={wallNotices}
         />
       )}
 
@@ -375,9 +396,9 @@ export default function MealsTab() {
             <button
               type="button"
               onClick={() => { notice.undo?.(); dismissNotice(); }}
-              style={{ minHeight: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--hs-border)', background: 'transparent', color: '#f59e0b', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ flex: 'none', whiteSpace: 'nowrap', minHeight: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--hs-border)', background: 'transparent', color: '#f59e0b', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
             >
-              {t('mealsTab.notice.undo')}
+              {notice.undoLabel ?? t('mealsTab.notice.undo')}
             </button>
           )}
         </div>

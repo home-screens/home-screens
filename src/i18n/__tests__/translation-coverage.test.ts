@@ -540,6 +540,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|mealPicker.savedAs.dessert',
     'editor|mealPlannerModal.library.filters.dessert',
     'remote|mealsTab.library.filters.dessert',
+    'modules|meal-planner.recipeBook.filters.dessert',
     // "Dessert" is the French word for a meal's dessert course and kind of dish.
     'modules|meal-planner.courses.dessert',
     'core|meal.kind.dessert',
@@ -851,6 +852,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Details" is the standard word in Dutch.
     'editor|settings.shared.secretField.detailsToggle',
     'remote|mealsTab.library.filters.comfort',
+    'modules|meal-planner.recipeBook.filters.comfort',
     'remote|mealsTab.subNav.plan',
     // "Week" is the Dutch word too (the Meals tab's week view).
     'remote|mealsTab.subNav.week',

@@ -147,7 +147,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
     courseKind: target.pick === 'main' ? null : target.kind,
   });
   const typed = query.trim();
-  const count = useMealieRecipeCount(true);
+  const count = useMealieRecipeCount(true, search.recovered);
   const listRef = useRef<HTMLDivElement>(null);
   const failed = mealieSearchFailedWords(search.problem);
 

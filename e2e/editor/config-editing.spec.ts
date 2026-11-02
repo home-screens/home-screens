@@ -216,6 +216,23 @@ test('calendar: toggling event backgrounds persists', async ({ page, request }) 
   expect((await moduleConfig(request, 'calendar')).showEventBackground).toBe(false);
 });
 
+test('calendar: the week grid offers Show Time for its classic pills, and it persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'week' }));
+
+  const showTime = page.getByRole('switch', { name: 'Show Time' });
+  await expect(showTime).toBeChecked();
+  await autosaved(page, async () => {
+    await showTime.click();
+  });
+  expect((await moduleConfig(request, 'calendar')).showTime).toBe(false);
+
+  // The colored look always leads with the time, so the switch goes away there.
+  await autosaved(page, async () => {
+    await page.getByLabel('Event style').selectOption('colored');
+  });
+  await expect(page.getByRole('switch', { name: 'Show Time' })).toHaveCount(0);
+});
+
 test('calendar: switching Event Style persists', async ({ page, request }) => {
   // The Event style select only renders in the grid views, and the month /
   // multi-week grids show it only under the banner theme (the modern themes
@@ -1223,6 +1240,26 @@ test('fullscreen-meal-planner: toggling Show Pictures persists', async ({ page, 
   expect((await moduleConfig(request, 'fullscreen-meal-planner')).showEmoji).toBe(false);
 });
 
+test('fullscreen-meal-planner: the Recipe book hides Show Tags and the tap action, which it does not use', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-meal-planner'));
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+
+  await autosaved(page, async () => {
+    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption('recipes');
+  });
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
+  // The settings it does use are still there.
+  await expect(page.getByRole('switch', { name: 'Show Pictures' })).toBeVisible();
+
+  await autosaved(page, async () => {
+    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption('week');
+  });
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+});
+
 test('fullscreen-weather: switching Sky persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('fullscreen-weather'));
 
@@ -1695,12 +1732,31 @@ test('meal-planner: toggling Show Tags off persists', async ({ page, request }) 
 test('meal-planner: switching the tap-to-open recipe action persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('meal-planner'));
 
-  // tapRecipeAction defaults 'off'; switch to 'qr'.
+  // A new module opens the recipe card; switch to 'qr'.
   await autosaved(page, async () => {
     await page.getByLabel('Tap Meal to Open Recipe').selectOption('qr');
   });
 
   expect((await moduleConfig(request, 'meal-planner')).tapRecipeAction).toBe('qr');
+});
+
+test('meal-planner: the Recipes view hides Show Tags and the tap action, which it does not use', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
+
+  await autosaved(page, async () => {
+    await viewSelect(page).selectOption('recipes');
+  });
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toHaveCount(0);
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toHaveCount(0);
+  await expect(page.getByRole('switch', { name: 'Show Cooking Time' })).toBeVisible();
+
+  await autosaved(page, async () => {
+    await viewSelect(page).selectOption('list');
+  });
+  await expect(page.getByRole('switch', { name: 'Show Tags' })).toBeVisible();
+  await expect(page.getByLabel('Tap Meal to Open Recipe')).toBeVisible();
 });
 
 // ---- standings ----

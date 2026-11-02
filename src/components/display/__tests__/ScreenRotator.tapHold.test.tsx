@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen as dom, cleanup, act } from '@testing-library/react';
 import type { DisplayRule, GlobalSettings, Screen } from '@/types/config';
-import { TAP_ROTATION_HOLD_MS } from '../useTapRotationHold';
+import { BROWSE_ROTATION_HOLD_MS, TAP_ROTATION_HOLD_MS } from '../useTapRotationHold';
 
 /**
  * A tap on a control holds the rotation timer for a moment, so a screen
@@ -18,6 +18,7 @@ vi.mock('../ScreenRenderer', () => ({
     <div>
       <div data-testid="screen">{screen.id}</div>
       <button type="button">tick</button>
+      <div data-rotation-hold="browse"><span>recipe tile</span></div>
     </div>
   ),
 }));
@@ -114,6 +115,23 @@ describe('ScreenRotator tap hold', () => {
     act(() => { vi.advanceTimersByTime(500); });
     tapControl();
     act(() => { vi.advanceTimersByTime(TAP_ROTATION_HOLD_MS - 1); });
+    expect(rendered()).toBe('home');
+    // Released, then a fresh dwell.
+    act(() => { vi.advanceTimersByTime(1); });
+    act(() => { vi.advanceTimersByTime(1000); });
+    expect(rendered()).toBe('weather');
+  });
+
+  // Someone reading recipes pauses longer than a chore tap's moment between touches.
+  it('holds a browsing surface for a minute after any touch on it', () => {
+    render(<ScreenRotator hubTimezone="UTC" screens={SCREENS} settings={SETTINGS} />);
+    act(() => { vi.advanceTimersByTime(500); });
+    const tile = dom.getByText('recipe tile');
+    act(() => { pointer('pointerdown', tile, 200); pointer('pointerup', tile, 200); });
+    act(() => { vi.advanceTimersByTime(10_000); });
+    // A control tapped inside the minute does not cut it to eight seconds.
+    tapControl();
+    act(() => { vi.advanceTimersByTime(BROWSE_ROTATION_HOLD_MS - 10_000 - 1); });
     expect(rendered()).toBe('home');
     // Released, then a fresh dwell.
     act(() => { vi.advanceTimersByTime(1); });

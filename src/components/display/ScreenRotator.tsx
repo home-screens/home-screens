@@ -14,8 +14,11 @@ import AlertOverlay from './AlertOverlay';
 import OverlayBoundary from './OverlayBoundary';
 import { useAlertStore } from '@/stores/alert-store';
 import { usePhotoShowStore } from '@/stores/photo-show-store';
+import { useRecipeShowStore } from '@/stores/recipe-show-store';
 import TimerOverlay from './TimerOverlay';
 import PhotoShowOverlay from './PhotoShowOverlay';
+import RecipeShowOverlay from './RecipeShowOverlay';
+import { settingsTimeFormat } from '@/lib/clock-time';
 import NetworkIndicator from './NetworkIndicator';
 import PaginationDots from './PaginationDots';
 import { useDisplayControl } from './useDisplayControl';
@@ -100,6 +103,7 @@ interface ScreenRotatorProps {
 
 const clearAlerts = () => useAlertStore.getState().clearAlerts();
 const hideShownPhoto = () => usePhotoShowStore.getState().hide();
+const hideShownRecipe = () => useRecipeShowStore.getState().hide();
 
 /**
  * Where the display lands when the rotation set changes (see the effect that
@@ -909,6 +913,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {!preview && (
         <OverlayBoundary name="photo" onFail={hideShownPhoto}>
           <PhotoShowOverlay viewport={viewportSize} />
+        </OverlayBoundary>
+      )}
+      {!preview && (
+        <OverlayBoundary name="recipe" onFail={hideShownRecipe}>
+          <RecipeShowOverlay theme={settings.fullscreenTheme} timeFormat={settingsTimeFormat(settings)} />
         </OverlayBoundary>
       )}
 

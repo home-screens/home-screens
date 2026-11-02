@@ -13,9 +13,12 @@
  * would otherwise have to thread through.
  *
  * Matching rules, which the keyword lengths below assume:
- *  - a keyword of four characters or fewer matches only as a whole word, so
- *    "corn" does not claim "cornflour" and French "ail" does not claim
- *    "cocktail";
+ *  - a keyword of four characters or fewer matches only as a whole word, or
+ *    as that word with an "s" on the end, so "corn" does not claim
+ *    "cornflour" and French "ail" does not claim "cocktail", while "egg"
+ *    still finds "eggs" and "lime" finds "limes". A short word whose plural
+ *    is not a plain "s" ("chou", "choux") carries its plural as a keyword of
+ *    its own;
  *  - a longer keyword also matches inside a word, which is what German, Dutch
  *    and Danish compounds need ("Hähnchenbrust", "kikkererwten");
  *  - the longest matching keyword wins, so "orange juice" is a drink while
@@ -42,11 +45,11 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
     'apfel', 'äpfel', 'banane', 'beeren', 'erdbeer', 'blaubeer', 'kartoffel',
     'zwiebel', 'knoblauch', 'karotte', 'möhre', 'sellerie', 'paprika', 'gurke',
     'pilz', 'champignon', 'zitrone', 'trauben', 'petersilie', 'basilikum',
-    'kürbis', 'mais', 'erbsen', 'kohl', 'blumenkohl', 'ingwer', 'spinat',
+    'kürbis', 'mais', 'erbsen', 'kohl', 'blumenkohl', 'ingwer', 'spinat', 'pilze',
     // fr
     'pomme', 'fraise', 'myrtille', 'épinard', 'oignon', 'carotte', 'céleri',
     'poivron', 'concombre', 'avocat',
-    'persil', 'courgette', 'courge', 'maïs', 'petits pois', 'chou', 'gingembre',
+    'persil', 'courgette', 'courge', 'maïs', 'petits pois', 'chou', 'choux', 'gingembre',
     'salade', 'tomate', 'patate',
     // es
     'manzana', 'plátano', 'fresa', 'arándano', 'lechuga', 'espinaca', 'cebolla',
@@ -57,15 +60,15 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
     'appel', 'banaan', 'aardbei', 'bosbes', 'sla', 'spinazie', 'tomaat',
     'aardappel', 'uien', 'knoflook', 'wortel', 'selderij', 'komkommer',
     'citroen', 'sinaasappel', 'druif', 'peterselie', 'pompoen', 'erwt',
-    'bloemkool', 'gember',
+    'bloemkool', 'gember', 'erwten',
     // pt
     'maçã', 'morango', 'alface', 'espinafre', 'batata', 'alho', 'cenoura',
     'aipo', 'pimentão', 'brócolis', 'cogumelo', 'abacate', 'limão', 'laranja',
     'salsinha', 'manjericão', 'abobrinha', 'abóbora', 'milho', 'ervilha',
     'repolho', 'couve', 'gengibre',
     // da
-    'æble', 'jordbær', 'blåbær', 'løg', 'hvidløg', 'gulerod',
-    'peberfrugt', 'agurk', 'appelsin', 'drue', 'persille', 'græskar',
+    'æble', 'æbler', 'jordbær', 'blåbær', 'løg', 'hvidløg', 'gulerod',
+    'peberfrugt', 'agurk', 'appelsin', 'drue', 'druer', 'persille', 'græskar',
     'majs', 'ærter', 'kål', 'ingefær',
   ],
   meat: [
@@ -74,7 +77,7 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
     'mince', 'lamb', 'salmon', 'shrimp', 'prawn', 'tuna', 'cod', 'fish',
     'meatball', 'chorizo', 'ribs', 'brisket',
     // de
-    'rindfleisch', 'hähnchen', 'hühn', 'schwein', 'speck', 'wurst', 'pute',
+    'rindfleisch', 'hähnchen', 'hühnchen', 'hühner', 'schwein', 'speck', 'wurst', 'pute',
     'schinken', 'hackfleisch', 'lamm', 'lachs', 'garnele', 'thunfisch', 'fisch',
     'frikadelle',
     // fr
@@ -123,7 +126,7 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
     // nl
     'brood', 'broodje', 'stokbrood', 'beschuit',
     // pt
-    'pão', 'baguete', 'torrada',
+    'pão', 'pães', 'baguete', 'torrada',
     // da
     'rundstykke', 'knækbrød', 'flutes',
   ],
@@ -135,20 +138,29 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
     'honey', 'peanut butter', 'jam', 'coconut milk', 'soy sauce',
     'tomato paste', 'breadcrumb', 'baking powder', 'yeast', 'chocolate',
     'almond', 'walnut', 'stock cube',
+    // Broth made from meat is a carton or a cube on the shelf. These are longer
+    // than the meat word they hold, so they win over it ("chicken" is longer
+    // than "broth"; see the matching rules above).
+    'chicken broth', 'chicken stock', 'beef broth', 'beef stock',
     // de
     'reis', 'nudel', 'mehl', 'zucker', 'salz', 'essig', 'soße', 'senf',
     'bohnen', 'linsen', 'kichererbsen', 'brühe', 'gewürz', 'zimt',
     'haferflocken', 'müsli', 'honig', 'marmelade', 'schokolade', 'mandeln',
-    'rosinen', 'hefe', 'backpulver', 'paniermehl',
+    'rosinen', 'hefe', 'backpulver', 'paniermehl', 'hühnerbrühe', 'hühnchenbrühe',
+    'hähnchenbrühe', 'rinderbrühe',
     // fr
     'riz', 'pâtes', 'farine', 'sucre', 'sel', 'huile', 'vinaigre', 'moutarde',
     'haricot', 'lentille', 'pois chiche', 'épice', 'cannelle',
     'flocons', 'céréale', 'miel', 'confiture', 'chocolat', 'amande',
     'levure', 'chapelure',
+    // fr, nl, da: "bouillon de poulet", "kippenbouillon", "hønsebouillon"
+    'bouillon',
     // es
     'arroz', 'harina', 'azúcar', 'aceite', 'vinagre', 'salsa', 'mostaza',
     'alubia', 'judía', 'lenteja', 'garbanzo', 'caldo', 'especia', 'canela',
     'avena', 'mermelada', 'almendra', 'levadura', 'pan rallado',
+    // es, pt: as long as "pollo" or longer than "frango", so name the broth whole
+    'caldo de pollo', 'caldo de carne', 'caldo de frango', 'caldo de galinha',
     // nl
     'rijst', 'bloem', 'suiker', 'zout', 'olie', 'azijn', 'saus', 'mosterd',
     'bonen', 'linzen', 'kikkererwt', 'kruiden', 'kaneel',
@@ -175,7 +187,7 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
     // de
     'saft', 'kaffee', 'limonade', 'wasser', 'wein', 'bier',
     // fr
-    'jus', 'café', 'thé', 'eau', 'vin', 'bière',
+    'jus', 'café', 'thé', 'eau', 'eaux', 'vin', 'bière',
     // es
     'zumo', 'jugo', 'refresco', 'agua', 'vino', 'cerveza',
     // nl
@@ -187,7 +199,7 @@ export const GROCERY_KEYWORDS: Record<GroceryCategory, readonly string[]> = {
   ],
 };
 
-/** Below this length a keyword only matches as a whole word. */
+/** Below this length a keyword only matches as a whole word, or that word plus "s". */
 const SUBSTRING_MIN_LENGTH = 5;
 
 interface Candidate { keyword: string; category: GroceryCategory }
@@ -212,7 +224,7 @@ export function guessGroceryCategory(name: string): GroceryCategory | null {
   for (const { keyword, category } of CANDIDATES) {
     if (keyword.length >= SUBSTRING_MIN_LENGTH) {
       if (haystack.includes(keyword)) return category;
-    } else if (haystack.includes(` ${keyword} `)) {
+    } else if (haystack.includes(` ${keyword} `) || haystack.includes(` ${keyword}s `)) {
       return category;
     }
   }

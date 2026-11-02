@@ -22,6 +22,7 @@ import { withAlpha, type EventDisplayStyle } from './support';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { EventCard } from './EventCard';
+import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 
 /** Gutter for the month and multi-week grids: 2px, double the week grid's
  *  1px, because their cells are short and need more air to separate. The
@@ -180,10 +181,57 @@ function DayOfWeekHeaderRow({ dates, config, locale, today, accentColor }: {
   );
 }
 
-export function DayCellEvents({ events, maxPerCell, textColor, accentColor, eventStyle, t, locale, gapClass = 'gap-px' }: {
+/**
+ * "+N more" under a cell's pills. With taps on it is a pill-shaped button in
+ * the accent's tint that opens the whole day; otherwise the quiet line it
+ * always was (`plain`). Same type size and line height either way, so the
+ * cell's room maths never changes with the setting.
+ */
+function MoreCount({ date, events, count, fontSize, accentColor, textColor, moduleBackground, plain, t, locale }: {
+  date: Date;
+  events: readonly CalendarEvent[];
+  count: number;
+  fontSize: string;
+  accentColor: string;
+  textColor: string;
+  moduleBackground: string | undefined;
+  plain: { className: string; style: React.CSSProperties };
+  t: TranslateFn;
+  locale: string;
+}) {
+  const tap = openDayProps(useDaySheetOpener(), date, events, t, locale);
+  const label = t('calendar.moreCount', { count });
+  if (!tap) return <span className={plain.className} style={{ fontSize, ...plain.style }}>{label}</span>;
+  return (
+    <button
+      type="button"
+      {...tap}
+      className="self-start shrink-0 rounded-full font-bold whitespace-nowrap cursor-pointer"
+      style={{
+        fontSize,
+        lineHeight: 1.5,
+        padding: '0 0.6em',
+        backgroundColor: withAlpha(accentColor, '40'),
+        color: pickTintedTextColor(textColor, accentColor, moduleBackground),
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+export function DayCellEvents({ date, events, maxPerCell, textColor, moduleBackground, accentColor, eventStyle, t, locale, gapClass = 'gap-px', showTime = false }: {
+  date: Date;
   events: CalendarEvent[];
   maxPerCell: number;
+  /**
+   * Start times on the classic pills: the week grid follows the module's
+   * "Show event times". The month, multi-week and rolling cells are too short
+   * for them; the colored look carries its times either way.
+   */
+  showTime?: boolean;
   textColor: string;
+  moduleBackground: string | undefined;
   accentColor: string;
   eventStyle: EventDisplayStyle;
   t: TranslateFn;
@@ -193,12 +241,14 @@ export function DayCellEvents({ events, maxPerCell, textColor, accentColor, even
   return (
     <div className={`flex flex-col ${gapClass} overflow-hidden`}>
       {events.slice(0, maxPerCell).map((ev) => (
-        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={false} showLocation={false} compact accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
+        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={showTime} showLocation={false} compact accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
       ))}
       {events.length > maxPerCell && (
-        <span className="text-center" style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.tertiary }}>
-          {t('calendar.moreCount', { count: events.length - maxPerCell })}
-        </span>
+        <MoreCount
+          date={date} events={events} count={events.length - maxPerCell} fontSize="0.55em"
+          accentColor={accentColor} textColor={textColor} moduleBackground={moduleBackground}
+          plain={{ className: 'text-center', style: { opacity: TEXT_OPACITY.tertiary } }} t={t} locale={locale}
+        />
       )}
     </div>
   );
@@ -313,6 +363,7 @@ export function GridView(props: GridViewProps) {
 }
 
 function GridBannerView({ events, config, style, today, now, accentColor, t, locale, eventStyle, grid, dayNotes }: GridSkeletonProps) {
+  const openDay = useDaySheetOpener();
   const showWeekNumbers = (config.showWeekNumbers ?? false) && grid.kind !== 'rolling';
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
@@ -360,6 +411,8 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
               const listed = listIn(dayEvents, notes.length);
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
               const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
+              const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
+              const cellTap = openDayCellProps(openDay, date, dayEvents);
               const cellFill = isToday
                 ? withAlpha(accentColor, '1f')
                 : grid.kind === 'rolling' && isWeekendDay(date) ? ink(0.05) : ink(0.02);
@@ -367,7 +420,8 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
               return (
                 <div
                   key={date.toISOString()}
-                  className="flex flex-col p-0.5 overflow-hidden rounded"
+                  {...cellTap}
+                  className={`flex flex-col p-0.5 overflow-hidden rounded${cellTap ? ' cursor-pointer' : ''}`}
                   style={mergeCellDecor({
                     // Shorthand on purpose: mergeCellDecor writes the
                     // `background` shorthand for a rule color, and a style
@@ -387,7 +441,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                       Flex splits month + day into separate items, so the
                       spacing between them must come from `gap` — a literal
                       space would be collapsed away. */}
-                  <span className="flex items-center justify-center rounded leading-none mb-0.5" style={{
+                  <span {...dayTap} role={dayTap ? 'button' : undefined} className={`flex items-center justify-center rounded leading-none mb-0.5${dayTap ? ' cursor-pointer' : ''}`} style={{
                     height: '1.35em', fontSize: scaledEm(0.65, dayLabelScale), gap: '0.25em',
                     fontWeight: isToday ? 700 : 400,
                     backgroundColor: isToday ? todayBadgeBg : dayBadgeBg,
@@ -405,7 +459,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                   <DayNoteLines notes={notes} tone="module" style={GRID_NOTE_STYLE} />
                   {listed.kind === 'dots'
                     ? <DayDots events={dayEvents} accentColor={accentColor} />
-                    : <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={listed.shown} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} />}
+                    : <DayCellEvents date={date} events={dayEvents} eventStyle={eventStyle} maxPerCell={listed.shown} textColor={style.textColor} moduleBackground={style.backgroundColor} accentColor={accentColor} t={t} locale={locale} />}
                 </div>
               );
             })}
@@ -513,6 +567,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
  * gridEventPillBackground do not apply here. data-grid-theme carries the
  * active theme for tests. */
 function GridModernView({ events, config, style, today, now, accentColor, t, locale, eventStyle, theme, grid, dayNotes }: GridSkeletonProps & { theme: Exclude<CalendarGridTheme, 'banner'> }) {
+  const openDay = useDaySheetOpener();
   const showWeekNumbers = (config.showWeekNumbers ?? false) && grid.kind !== 'rolling';
   const maxPerCell = clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, config.viewMode);
   const dayLabelScale = clampGridDayLabelScale(config.gridDayLabelScale);
@@ -564,11 +619,14 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                 .filter(Boolean).join(', ');
 
               const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
+              const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
+              const cellTap = openDayCellProps(openDay, date, dayEvents);
 
               return (
                 <div
                   key={date.toISOString()}
-                  className="flex flex-col p-0.5 overflow-hidden rounded"
+                  {...cellTap}
+                  className={`flex flex-col p-0.5 overflow-hidden rounded${cellTap ? ' cursor-pointer' : ''}`}
                   style={mergeCellDecor({
                     background: isToday ? todayCellTint : `rgba(255, 255, 255, ${isWeekend ? 0.065 : 0.045})`,
                     ...(cellShadow ? { boxShadow: cellShadow } : {}),
@@ -581,7 +639,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                       below sizes its circle in its OWN em, which the scaled
                       font-size already grew — scaling that too would balloon
                       the circle out of the cell. */}
-                  <div className="flex items-center shrink-0" style={{ height: scaledEm(1.4, dayLabelScale), padding: '0 0.15em', marginBottom: '0.1em' }}>
+                  <div {...dayTap} role={dayTap ? 'button' : undefined} className={`flex items-center shrink-0${dayTap ? ' cursor-pointer' : ''}`} style={{ height: scaledEm(1.4, dayLabelScale), padding: '0 0.15em', marginBottom: '0.1em' }}>
                     {isToday ? (
                       <span
                         className="inline-flex items-center justify-center rounded-full font-bold tabular-nums leading-none"
@@ -613,9 +671,11 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                       return ev.opacity == null ? pill : <div key={ev.id} style={{ opacity: ev.opacity }}>{pill}</div>;
                     })}
                     {overflow > 0 && (
-                      <span className="text-center rounded" style={{ fontSize: '0.6em', opacity: TEXT_OPACITY.secondary, backgroundColor: ink(0.08) }}>
-                        {t('calendar.moreCount', { count: overflow })}
-                      </span>
+                      <MoreCount
+                        date={date} events={dayEvents} count={overflow} fontSize="0.6em"
+                        accentColor={accentColor} textColor={textColor} moduleBackground={moduleBackground}
+                        plain={{ className: 'text-center rounded', style: { opacity: TEXT_OPACITY.secondary, backgroundColor: ink(0.08) } }} t={t} locale={locale}
+                      />
                     )}
                     {listed.kind === 'dots' && <DayDots events={dayEvents} accentColor={accentColor} />}
                   </div>

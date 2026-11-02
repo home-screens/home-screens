@@ -121,3 +121,38 @@ test('toggling a meal slot on persists to meals.json', async ({ page, request })
     })
     .toContain('snack');
 });
+
+// ── The meal form (the Library's add and edit) ──
+
+test("the meal form marks an emoji from outside its grid, shows each row's aisle as the list files it, and puts the cursor in a new row", async ({ page, request }) => {
+  await seedMeals(request, {
+    savedMeals: [{
+      id: 'meal-pie',
+      name: 'Pot Pie',
+      // Picked in the editor's emoji search: not one of the phone's grid.
+      emoji: '🥟',
+      ingredients: [{ name: 'Eggs', amount: '2' }, { name: 'Chicken', amount: '1 lb', category: 'other' }, { name: 'Candles' }],
+    }],
+    plan: [],
+  });
+  await page.goto('/remote');
+  await page.getByRole('button', { name: 'Meals', exact: true }).click();
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByTestId('library-card').filter({ hasText: 'Pot Pie' }).getByText('Pot Pie').click();
+  await expect(page.getByText('Edit Meal')).toBeVisible();
+
+  await expect(page.getByRole('button', { name: 'Select 🥟' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[aria-pressed="true"][aria-label^="Select "]')).toHaveCount(1);
+
+  // The aisle each row lands in on the grocery list, not "Other" for every row.
+  const aisles = page.locator('select').filter({ has: page.getByRole('option', { name: 'Produce', exact: true }) });
+  await expect(aisles).toHaveCount(3);
+  await expect(aisles.nth(0)).toHaveValue('dairy');
+  await expect(aisles.nth(1)).toHaveValue('meat');
+  await expect(aisles.nth(2)).toHaveValue('other');
+
+  await page.getByRole('button', { name: '+ Add ingredient' }).click();
+  await expect(page.getByPlaceholder('Name', { exact: true }).nth(3)).toBeFocused();
+  await page.keyboard.type('Limes');
+  await expect(aisles.nth(3)).toHaveValue('produce');
+});

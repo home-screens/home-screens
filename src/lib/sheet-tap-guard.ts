@@ -83,6 +83,17 @@ export function guardAfterRowRemoved(): void {
 /** Two taps this close together are one double tap. */
 export const DOUBLE_TAP_MS = 300;
 
+/**
+ * Whether a tap at `now` comes too soon after a sheet opened at `openedAt` to
+ * be meant for it. A double tap on what opens a sheet opens it with the first
+ * tap; the second lands on the sheet's backdrop, where the tapped thing was,
+ * and would close it again at once. `windowMs` is a double tap unless a sheet
+ * asks for longer (a confirm opened from a button with the same words).
+ */
+export function isTooSoonAfterOpen(openedAt: number, now: number, windowMs = DOUBLE_TAP_MS): boolean {
+  return now - openedAt < windowMs;
+}
+
 /** The last tap on a list of tick boxes: which item, and when. */
 export interface LastTap {
   id: string;

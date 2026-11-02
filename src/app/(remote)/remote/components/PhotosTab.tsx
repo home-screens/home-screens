@@ -17,7 +17,7 @@ import { photoFolders, wallName, wallsShowing, type PhotoFolder } from '@/lib/me
 import { folderOf } from '@/lib/media-paths';
 import { mediaKindOf } from '@/lib/media-formats';
 import { formatBytes } from '@/lib/format-bytes';
-import { useDisplayTarget } from '../display-target';
+import { targetWallName, useDisplayTarget } from '../display-target';
 import { showToast } from '../remote-toast';
 import { usePhotoLibrary } from '../hooks/usePhotoLibrary';
 import { usePhotoUploads, type UploadRun } from '../hooks/usePhotoUploads';
@@ -274,9 +274,7 @@ export default function PhotosTab({ directory }: { directory: string }) {
         return;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const where = target === 'all'
-        ? t('photosTab.show.everyWall')
-        : displays.find((d) => d.id === target)?.name ?? t('photosTab.show.theWall');
+      const where = targetWallName(target, displays, { everyWall: t('photosTab.show.everyWall'), theWall: t('photosTab.show.theWall') });
       showToast(t('photosTab.show.sent', { where }));
     } catch (err) {
       if (!isSessionExpired(err)) showToast(t('photosTab.show.failed'), 'error');

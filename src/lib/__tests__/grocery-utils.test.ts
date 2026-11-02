@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   generateGroceryList,
+  groceryAisle,
   groceryListNeedsHeadings,
   plannedMealsWithoutIngredients,
   shortNameList,
@@ -236,6 +237,34 @@ describe('uncategorised ingredients', () => {
   it('still falls back to other for a name it cannot place', () => {
     const meals = [meal('a', [{ name: 'Birthday candles', amount: '1 box' }])];
     expect([...generateGroceryList(plan, meals, []).keys()]).toEqual(['other']);
+  });
+});
+
+/* The phone's aisle picker shows this, so it has to be the list's own answer. */
+describe('groceryAisle', () => {
+  it('is the aisle the list files the ingredient under', () => {
+    const plan: PlannedMeal[] = [{ date: '2026-04-04', slot: 'dinner', mealId: 'a' }];
+    const rows: NonNullable<SavedMeal['ingredients']> = [
+      { name: 'Eggs' },
+      { name: 'Salmon', category: 'seafood' },
+      { name: 'Milk', category: 'other' },
+      { name: 'Ground beef', category: 'pantry' },
+      { name: 'Birthday candles' },
+    ];
+    const list = generateGroceryList(plan, [meal('a', rows)], []);
+    for (const row of rows) {
+      const aisle = groceryAisle(row);
+      expect(list.get(aisle)!.items.map((item) => item.name)).toContain(row.name);
+    }
+  });
+
+  it('reads Other and no pick alike, guesses from the name, and keeps an aisle the household picked', () => {
+    expect(groceryAisle({ name: 'Eggs' })).toBe('dairy');
+    expect(groceryAisle({ name: 'Eggs', category: 'other' })).toBe('dairy');
+    expect(groceryAisle({ name: 'Eggs', category: 'pantry' })).toBe('pantry');
+    expect(groceryAisle({ name: 'Shrimp', category: 'seafood' })).toBe('meat');
+    expect(groceryAisle({ name: '' })).toBe('other');
+    expect(GROCERY_CATEGORY_ORDER).toContain(groceryAisle({ name: 'Tuna', category: 'seafood' }));
   });
 });
 

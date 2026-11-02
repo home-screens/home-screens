@@ -12,7 +12,7 @@ Plan the week's dinners on your phone, see them on the wall, and take the grocer
 
 ## 1. Put a meal planner on a screen
 
-In the editor, drag **Meal Planner** from the **Personal** group onto a screen. Its views are in the module's settings: the whole **week**, **today**, the **next meal**, a **compact** strip, and a **list**. The **Full-Screen Meal Planner** fills the screen with a week, a day, a **menu board**, or the next meal.
+In the editor, drag **Meal Planner** from the **Personal** group onto a screen. Its views are in the module's settings: the whole **week**, **today**, the **next meal**, a **compact** strip, a **list**, the **grocery list**, and your **recipes**. The **Full-Screen Meal Planner** fills the screen with a week, a day, a **menu board**, the next meal, the next meal's **recipe**, the grocery list, or a **recipe book**.
 
 The planner is empty until you add meals, which you do on a phone or in the editor with **Edit Meal Plan** in the module's settings (**Edit Meal Planner** on the Full-Screen Meal Planner).
 
@@ -86,7 +86,19 @@ Mealie 2.0 or newer is needed. Only want the meals on your calendar? Mealie 3.29
 
 The **Recipe** view of the Full-Screen Meal Planner shows the next meal's recipe big enough to cook from: the ingredients and the numbered steps, from Mealie or from the ingredients and notes saved with a meal. A long recipe turns its pages by itself; on a touchscreen, **Next step** moves through the steps and keeps the screen from moving on while you cook.
 
-On a touchscreen, tapping a meal can do more too (*Tap Meal to Open Recipe* in the module's settings): **Show recipe card** opens the same recipe on a card over the wall, with a QR code to take it along on your phone. **Show QR code** shows just the code, and **Open recipe on display** opens a meal's recipe link right there.
+On a touchscreen, tapping a meal can do more too (*Tap Meal to Open Recipe* in the module's settings): **Show recipe card** opens the same recipe on a card over the wall, with a QR code to take it along on your phone when the meal has a recipe link. **Show QR code** shows just the code, and **Open recipe on display** opens a meal's recipe link right there; a meal with no link but with ingredients or notes opens the recipe card instead. A new meal planner opens the recipe card.
+
+The recipe card is made for cooking along: tap an ingredient to tick it off as it goes in, and step through with **Next step** or tap a page's dot. Once you tick an ingredient or tap a step, the screen stays awake and the card stays open until an hour goes by with nobody touching it. A card nobody uses closes after 10 minutes.
+
+### A recipe book on the wall
+
+For a kitchen that cooks from the wall instead of a cookbook, the **Recipe book** view of the Full-Screen Meal Planner shows every recipe as a tile with its photo and cooking time. Chips across the top pick Favorites, Recently made, All, or one of your cookbooks or categories. Tap the search box and a keyboard comes up on the wall, in your household's language; tap a recipe and it opens on the recipe card. The tiles scroll with a finger and go back to the top on their own a minute later.
+
+With Mealie connected the book is Mealie's recipes, even if you plan meals in Home Screens. Without Mealie it is the meals in your library that have ingredients or notes. The small Meal Planner's **Recipes** view lists the same recipes in a narrow column, and opens the whole book over the screen to search.
+
+### Send a recipe to the wall from your phone
+
+Searching is quickest on a phone. In Meals on the phone, every recipe in the **Library** has a wall button, and a planned meal's sheet has **Show on the wall**: the recipe opens on the wall picked at the top of the remote, on the same card you would get by tapping it there. With **All displays** picked in a home with more than one wall, the phone asks which wall the first time and remembers your answer for recipes. Sent it to the wrong place? Tap **Take it down** in the message that follows.
 
 ## Next steps
 

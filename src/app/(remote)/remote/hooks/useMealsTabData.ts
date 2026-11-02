@@ -67,11 +67,13 @@ export function useMealsTabData(keptWeek: string | null = null) {
   const [sheet, setSheet] = useState<MealSlotRef | null>(null);
   const [confirmAction, setConfirmAction] = useState<MealsConfirmAction | null>(null);
   // A plain message over the tab that is not an error ("every meal this
-  // week is already planned"); it goes away on its own.
-  const [notice, setNotice] = useState<{ message: string; undo?: () => void } | null>(null);
+  // week is already planned"); it goes away on its own. `undo` puts back
+  // what was just done, under the button's own words when `undoLabel` gives
+  // them ("Take it down" for a recipe sent to the wall), else "Undo".
+  const [notice, setNotice] = useState<{ message: string; undo?: () => void; undoLabel?: string } | null>(null);
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showNotice = useCallback((message: string, undo?: () => void) => {
-    setNotice({ message, undo });
+  const showNotice = useCallback((message: string, undo?: () => void, undoLabel?: string) => {
+    setNotice({ message, undo, undoLabel });
     if (noticeTimer.current) clearTimeout(noticeTimer.current);
     // Long enough to reach Undo.
     noticeTimer.current = setTimeout(() => setNotice(null), undo ? 12_000 : 4_000);
@@ -223,6 +225,7 @@ export function useMealsTabData(keptWeek: string | null = null) {
     saveError,
     setSaveError,
     notice,
+    showNotice,
     dismissNotice,
     form: library.form,
     weekDates: weekNav.weekDates,

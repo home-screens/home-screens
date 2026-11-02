@@ -8,8 +8,8 @@ import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
  * Forecast page at 4x-large with a seven-day list still fits a portrait wall
  * (the type lands a little above medium there).
  */
-const MIN_FACTOR = 0.3;
-/** Bisection steps. 7 gives ~0.5% precision over the [MIN_FACTOR, 1] range. */
+export const FIT_MIN_FACTOR = 0.3;
+/** Bisection steps. 7 gives ~0.5% precision over the [FIT_MIN_FACTOR, 1] range. */
 const STEPS = 7;
 
 /**
@@ -78,6 +78,8 @@ export interface FitScale {
  * so bigger settings reliably render bigger.
  *
  * Returns 1 whenever the content already fits, so the common sizes pay nothing.
+ * With `enabled` false (a view that scrolls instead of shrinking) it returns 1,
+ * settled, without measuring.
  *
  * "Fits" is judged on the measured element and on every descendant stamped
  * with `FIT_MEASURE_ATTR` — see that attribute for why the root alone is not
@@ -105,17 +107,22 @@ export interface FitScale {
  * the same commit, so an attribute that matches the probe proves the layout
  * does too. If it does not match yet, the frame is skipped, not counted.
  */
-export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[]): FitScale {
-  const [fit, setFit] = useState<FitScale>({ factor: 1, settled: false });
-  const stateRef = useRef({ lo: MIN_FACTOR, hi: 1, step: 0, probe: 1, proven: false });
+export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[], enabled = true): FitScale {
+  const [fit, setFit] = useState<FitScale>({ factor: 1, settled: !enabled });
+  const stateRef = useRef({ lo: FIT_MIN_FACTOR, hi: 1, step: 0, probe: 1, proven: false });
 
   useLayoutEffect(() => {
+    if (!enabled) {
+      // The view scrolls or pages itself, so it is drawn at full size and never measured.
+      setFit({ factor: 1, settled: true });
+      return;
+    }
     const el = ref.current;
     if (!el) return;
 
     // `proven` is whether any probe has been measured to fit; until it is,
-    // `lo` is the unmeasured MIN_FACTOR floor and must not be settled on.
-    stateRef.current = { lo: MIN_FACTOR, hi: 1, step: 0, probe: 1, proven: false };
+    // `lo` is the unmeasured FIT_MIN_FACTOR floor and must not be settled on.
+    stateRef.current = { lo: FIT_MIN_FACTOR, hi: 1, step: 0, probe: 1, proven: false };
     setFit({ factor: 1, settled: false });
 
     let cancelled = false;
@@ -174,7 +181,7 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
         // is exactly the corruption the stamp exists to prevent — so this
         // probe is not judged. Settle on the largest factor measured to fit
         // if there is one; otherwise on the layout actually on screen, which
-        // is the only factor known to have committed (the MIN_FACTOR floor
+        // is the only factor known to have committed (the FIT_MIN_FACTOR floor
         // has been measured by nobody, and is the tiny type this loop exists
         // to avoid). Loud, so the next field occurrence can be diagnosed.
         const onScreen = Number(node.getAttribute(FIT_FACTOR_ATTR));
@@ -226,7 +233,7 @@ export function useFitScale(ref: RefObject<HTMLElement | null>, deps: unknown[])
     raf = requestAnimationFrame(measure);
     return () => { cancelled = true; cancelAnimationFrame(raf); };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- caller passes the layout inputs
-  }, deps);
+  }, [enabled, ...deps]);
 
   return fit;
 }

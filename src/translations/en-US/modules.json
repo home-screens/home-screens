@@ -145,7 +145,15 @@
     "savedShort": "saved",
     "holiday": "Holiday",
     "birthday": "Birthday",
-    "birthdayWithAge": "Birthday · turns {age}"
+    "birthdayWithAge": "Birthday · turns {age}",
+    "daySheet": {
+      "eventCount": {
+        "one": "{count} event",
+        "other": "{count} events"
+      },
+      "toTime": "to {time}",
+      "openDay": "See everything on {date}"
+    }
   },
   "fullscreen-calendar": {
     "allDay": "All Day",
@@ -183,6 +191,8 @@
       "eventAllDay": "{title}, all day",
       "eventTimed": "{title}, {start} to {end}",
       "eventTimedAtLocation": "{title}, {start} to {end}, at {location}",
+      "eventAtTime": "{title}, {time}",
+      "eventAtTimeAtLocation": "{title}, {time}, at {location}",
       "monthCell": "{date}, {count} events",
       "legend": "Calendar sources",
       "familyGrid": "Family week grid"
@@ -362,6 +372,85 @@
     "now": "Now"
   },
   "meal-planner": {
+    "recipeBook": {
+      "title": "Recipes",
+      "count": {
+        "one": "1 recipe",
+        "other": "{count} recipes"
+      },
+      "searchPlaceholder": "Search recipes",
+      "searchCount": {
+        "one": "Search 1 recipe",
+        "other": "Search {count} recipes"
+      },
+      "searchAria": "Search the recipes",
+      "clearSearch": "Clear the search",
+      "spaceKey": "space",
+      "doneKey": "Done",
+      "deleteKey": "Delete a letter",
+      "moreChips": {
+        "one": "+ {count} more",
+        "other": "+ {count} more"
+      },
+      "allChips": "Pick what to show",
+      "shortcuts": {
+        "favorites": "Favorites",
+        "recent": "Recently made",
+        "all": "All"
+      },
+      "filters": {
+        "all": "All",
+        "favorites": "Favorites",
+        "side": "Sides",
+        "dessert": "Desserts",
+        "drink": "Drinks",
+        "quick": "Quick",
+        "healthy": "Healthy",
+        "comfort": "Comfort",
+        "kid-friendly": "Kid-Friendly"
+      },
+      "heading": {
+        "search": "Recipes with “{query}”",
+        "widened": "Nothing called “{query}”. Here are recipes with “{part}”.",
+        "favorites": {
+          "one": "1 favorite",
+          "other": "{count} favorites, A to Z"
+        },
+        "recent": "Recently made",
+        "all": {
+          "one": "1 recipe",
+          "other": "{count} recipes, A to Z"
+        },
+        "inGroup": {
+          "one": "{group} · 1 recipe",
+          "other": "{group} · {count} recipes"
+        },
+        "bestFirst": "Best matches first",
+        "newestFirst": "Newest first"
+      },
+      "tryAgain": "Try again",
+      "loading": "Getting the recipes",
+      "noneTitle": "No recipes called “{query}”",
+      "noneHint": "Check the spelling, or try a shorter word.",
+      "noRecipeTitle": "“{name}” has no recipe yet",
+      "noRecipeHint": "Add ingredients or notes to it in Meals on your phone, and it shows up here.",
+      "noFavoritesTitle": "No favorites yet",
+      "noFavoritesHint": "Tap the heart on a recipe in Mealie and it shows up here.",
+      "noRecentTitle": "Nothing made yet",
+      "noRecentHint": "Recipes you mark as made in Mealie show up here, newest first.",
+      "mealieEmptyTitle": "No recipes in Mealie yet",
+      "mealieEmptyHint": "Recipes you add in Mealie show up here.",
+      "noneInGroupTitle": "Nothing in “{group}” yet",
+      "noneInGroupHint": "Pick another one, or search by name.",
+      "emptyTitle": "No recipes yet",
+      "emptyHint": "Meals saved with ingredients or notes show up here. Add them in Meals on your phone.",
+      "problemHint": {
+        "mealieUnreachable": "The recipes come back by themselves as soon as Mealie answers.",
+        "mealieNotConnected": "Connect it in Settings on the computer to show its recipes.",
+        "mealieTokenRefused": "Save a new Mealie token in Settings on the computer to show its recipes.",
+        "mealieSetup": "Check Mealie in Settings on the computer to show its recipes."
+      }
+    },
     "loading": "Loading meals…",
     "noMealsPlannedYet": "No meals planned yet",
     "noMealsPlanned": "No meals planned",
@@ -428,6 +517,7 @@
       "batchHalf": "Half",
       "batchTimes": "×{scale}",
       "ingredients": "Ingredients",
+      "ingredientsReady": "{done} of {total} ready",
       "steps": "Steps",
       "notes": "Notes",
       "stepOf": "Step {step} of {total}",
@@ -437,9 +527,11 @@
       "loading": "Getting the recipe",
       "failed": "Couldn't get the recipe right now",
       "stepAria": "Step {step}",
+      "pageAria": "Page {page} of {pages}",
       "openCourseAria": "Open the recipe for {name}",
       "scanForPhone": "Scan to open it on your phone",
-      "closesItself": "Closes by itself after 10 minutes"
+      "keepOpen": "Tap an ingredient or a step to keep it open while you cook. Closes after 10 minutes with no taps.",
+      "staysOpen": "Stays open while you cook. Closes after an hour with no taps."
     },
     "grocery": {
       "thisWeek": "This Week's Groceries",
@@ -457,6 +549,11 @@
       "localEmpty": "Nothing to buy yet",
       "localEmptyHint": "Plan meals that have ingredients and they land here."
     }
+  },
+  "wallScroll": {
+    "backToToday": "Back to today",
+    "backToNow": "Back to now",
+    "backToTop": "Back to the top"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "This Week's Meals",

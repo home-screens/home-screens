@@ -9,6 +9,7 @@ import enUSModules from '@/translations/en-US/modules.json';
 import enUSCore from '@/translations/en-US/core.json';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { useInteractionHeld } from '@/lib/interaction-hold';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 import {
   EventDetailOverlay,
   describeEventTime,
@@ -64,6 +65,15 @@ describe('describeEventTime', () => {
     );
     expect(out.main).toBe('9:00 AM – 10:00 AM');
     expect(out.sub).toBe('');
+  });
+
+  it('an event with no length reads as its start alone', () => {
+    const out = describeEventTime(
+      timedEvent({ start: '2026-08-05T21:00:00', end: '2026-08-05T21:00:00' }),
+      NOW, 'en-US', LABELS,
+    );
+    expect(out.main).toBe('9:00 PM');
+    expect(out.sub).toBe('in 7 hours');
   });
 
   it("all-day today: 'Today', not happening-now", () => {
@@ -167,8 +177,12 @@ describe('EventDetailOverlay', () => {
   });
 
   it('scrim tap closes; taps inside the panel do not', () => {
+    vi.useFakeTimers();
     const onClose = vi.fn();
     render(overlayElement(onClose), { wrapper: Wrapper });
+    act(() => {
+      vi.advanceTimersByTime(DOUBLE_TAP_MS);
+    });
 
     // The panel body stops propagation — load-bearing against the scrim's
     // dismiss-on-click since the dialog root IS the scrim.
@@ -180,7 +194,25 @@ describe('EventDetailOverlay', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('Close button closes', () => {
+  it('a scrim tap within a double tap of opening is the second half of the tap that opened it', () => {
+    vi.useFakeTimers();
+    const onClose = vi.fn();
+    render(overlayElement(onClose), { wrapper: Wrapper });
+
+    act(() => {
+      vi.advanceTimersByTime(DOUBLE_TAP_MS - 50);
+    });
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(onClose).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('the Close button works at once', () => {
     const onClose = vi.fn();
     render(overlayElement(onClose), { wrapper: Wrapper });
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));

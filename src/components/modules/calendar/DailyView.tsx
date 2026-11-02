@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { isSameDay, addDays } from 'date-fns';
 import {
   parseEventWallTime, isAllDayEvent, classifyTimedSpan, isPastInDailyColumn, eventProgress, eventStatusSlot,
@@ -17,6 +18,8 @@ import { EventCard } from './EventCard';
 import type { EventDisplayStyle } from './support';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
+import { WallScroller } from '../shared/WallScroller';
+import { smallWallScrollLook } from '../shared/wallScrollLook';
 
 /** Thin accent rule marking "now" in today's column, between already-ended
  *  and upcoming/running events. Purely a visual echo of what each row's own
@@ -105,7 +108,7 @@ export function buildDailyRows(
   return rows;
 }
 
-export function DailyView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
+export function DailyView({ events, config, style, today, now, accentColor, eventStyle, dayNotes, scroll = false }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -115,10 +118,13 @@ export function DailyView({ events, config, style, today, now, accentColor, even
   now: Date;
   /** The family's day notes; absent or empty when the Day notes switch is off. */
   dayNotes?: DayNotes;
+  /** A finger scrolls the days' events past what fits, and they go back to the top by themselves. */
+  scroll?: boolean;
 }) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
+  const look = useMemo(() => smallWallScrollLook(accentColor), [accentColor]);
   const daysToShow = config.daysToShow ?? 3;
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
@@ -133,8 +139,17 @@ export function DailyView({ events, config, style, today, now, accentColor, even
     return { date, events: dayEvents };
   });
 
+  // The day columns scroll together, headings and all, so a day's events
+  // stay under its date. At rest the box clips the columns where it always has.
   return (
-    <div className="flex h-full gap-3">
+    <WallScroller
+      enabled={scroll}
+      backLabel={t('wallScroll.backToTop')}
+      {...look}
+      frameStyle={{ height: '100%' }}
+      testId="calendar-daily-scroll"
+    >
+    <div className="flex gap-3" style={{ minHeight: '100%' }}>
       {days.map(({ date, events: dayEvents }) => {
         const isToday = isSameDay(date, today);
         const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
@@ -158,7 +173,7 @@ export function DailyView({ events, config, style, today, now, accentColor, even
               </p>
             </div>
             <DayNoteLines notes={notes} tone="module" lines={3} style={{ fontSize: '0.82em', padding: '0.35em 0.5em', marginBottom: '0.5em', borderRadius: 5 }} />
-            <div className="flex flex-col gap-1.5 overflow-hidden flex-1">
+            <div className="flex flex-col gap-1.5 flex-1">
               {dayEvents.length === 0 ? (
                 // A day with a note already says something; "No events" under it is noise.
                 notes.length === 0 && (
@@ -186,5 +201,6 @@ export function DailyView({ events, config, style, today, now, accentColor, even
         );
       })}
     </div>
+    </WallScroller>
   );
 }

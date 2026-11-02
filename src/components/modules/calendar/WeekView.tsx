@@ -12,6 +12,7 @@ import { withAlpha, type EventDisplayStyle } from './support';
 import { DayCellEvents, WeekNumberCell, gridTemplateFor, scaledEm } from './grid';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
+import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 
 export function WeekView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
   events: CalendarEvent[];
@@ -26,6 +27,7 @@ export function WeekView({ events, config, style, today, now, accentColor, event
 }) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
+  const openDay = useDaySheetOpener();
   const showWeekNumbers = config.showWeekNumbers ?? false;
   const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
   const daysInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -46,11 +48,13 @@ export function WeekView({ events, config, style, today, now, accentColor, event
             <span style={{ fontSize: scaledEm(0.6, dayLabelScale), opacity: TEXT_OPACITY.tertiary }}>{t('calendar.weekShort')}</span>
           </div>
         )}
-        {dayRows.map(({ date, decor }) => {
+        {dayRows.map(({ date, dayEvents, decor }) => {
           const isToday = isSameDay(date, today);
           const notes = dayNotesFor(dayNotes, date);
+          // With taps on, the whole day heading (name, number, badges) opens the day.
+          const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
           return (
-            <div key={date.toISOString()} className="text-center py-1 min-w-0">
+            <div key={date.toISOString()} {...dayTap} role={dayTap ? 'button' : undefined} className={`text-center py-1 min-w-0${dayTap ? ' cursor-pointer' : ''}`}>
               <p className="uppercase tracking-wider" style={{ fontSize: scaledEm(0.6, dayLabelScale), opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>
                 {formatDateSync(date, 'EEE', { locale })}
               </p>
@@ -82,14 +86,17 @@ export function WeekView({ events, config, style, today, now, accentColor, event
           <WeekNumberCell date={weekStart} config={config} className="pt-1" fontSize={0.6} />
         )}
         {dayRows.map(({ date, dayEvents, decor }) => {
+          // The rest of the column under the heading opens the day too.
+          const cellTap = openDayCellProps(openDay, date, dayEvents);
           return (
             <div
               key={date.toISOString()}
-              className="flex flex-col p-0.5 overflow-hidden rounded"
+              {...cellTap}
+              className={`flex flex-col p-0.5 overflow-hidden rounded${cellTap ? ' cursor-pointer' : ''}`}
               style={mergeCellDecor({ background: ink(0.03) }, decor)}
             >
               {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
-              <DayCellEvents events={dayEvents} eventStyle={eventStyle} maxPerCell={clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, 'week')} textColor={style.textColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" />
+              <DayCellEvents date={date} events={dayEvents} eventStyle={eventStyle} maxPerCell={clampGridMaxEventsPerCell(config.gridMaxEventsPerCell, 'week')} textColor={style.textColor} moduleBackground={style.backgroundColor} accentColor={accentColor} t={t} locale={locale} gapClass="gap-0.5" showTime={config.showTime !== false} />
             </div>
           );
         })}

@@ -16,17 +16,19 @@ import type { CalendarViewProps } from './view-support';
 import { useContainerHeight } from './shared-time-grid';
 import { GridCellBody, gridNotesHeight } from './grid-view-bits';
 import { dayNotesFor } from '@/lib/day-notes';
+import { dayGridFontSize } from '@/lib/day-grid-type';
+import { openDayCellProps, useDaySheetOpener } from '../shared/useDaySheet';
 
 export function MonthGridView({ events, timezone, config, scale, today, now, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const showWeekNumbers = config.monthShowWeekNumbers;
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const wrapTitles = config.wrapEventTitles === true;
 
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const { scrollRef, containerH } = useContainerHeight();
+  const openDay = useDaySheetOpener();
 
   const { cells, weekCount } = useMemo(() => {
     const monthStart = startOfMonth(today);
@@ -43,6 +45,16 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
     return { cells: result, weekCount: Math.ceil(result.length / 7) };
     // `today` is identity-stable until midnight, so this holds across ticks.
   }, [today, weekStartsOn]);
+
+  // The grid's type follows its cells (dayGridFontSize). The cell is read off
+  // the module's size, not the measured grid, so the weekday row this sizes
+  // never feeds back into it.
+  const fontSize = dayGridFontSize({
+    width: (scale.width - (showWeekNumbers ? scale.bu * 3 : 0)) / 7,
+    height: (scale.height - scale.bu * 7) / weekCount,
+    textScale: scale.typoMul * scale.densityMul,
+    settingFont: scale.bu * scale.typoMul * scale.densityMul,
+  });
 
   // Localized day-of-week labels derived from the active formatting locale
   const dowDates = useMemo(
@@ -98,6 +110,8 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
           const hasBirthday = dayEvents.some(ev => ev.kind === 'birthday');
           const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
           const notes = dayNotesFor(dayNotes, day);
+          // With taps on, the whole cell opens the day, outside its events.
+          const cellTap = openDayCellProps(openDay, day, dayEvents);
 
           // Auto-calculate max visible events from the measured grid height
           // (header, legend, and weekday row already excluded); the estimate
@@ -131,7 +145,9 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
               <div
                 role="gridcell"
                 aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, dayMonthPattern(locale), { locale }), count: dayEvents.length })}
+                {...cellTap}
                 style={mergeCellDecor({
+                  cursor: cellTap ? 'pointer' : undefined,
                   borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                   borderBottom: '1px solid var(--cal-border-subtle)',
                   borderLeft: isToday && showTodayMarker ? '2px solid var(--cal-accent)' : undefined,

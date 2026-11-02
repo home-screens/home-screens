@@ -357,6 +357,7 @@
     },
     "library": {
       "searchPlaceholder": "Maaltijden zoeken…",
+      "hint": "Tik op een maaltijd om hem te wijzigen, of op de schermknop om hem op de muur te tonen.",
       "filterByAriaLabel": "Filteren op {label}",
       "empty": {
         "titleNoMeals": "Nog geen maaltijden",
@@ -403,6 +404,20 @@
       },
       "deleted": "{name} verwijderd.",
       "undo": "Ongedaan maken"
+    },
+    "showOnWall": {
+      "button": "Op de muur tonen",
+      "ariaLabel": "{meal} op de muur tonen",
+      "sent": "{meal} is nu te zien op {where}.",
+      "takeDown": "Van de muur halen",
+      "takenDown": "{meal} is van {where} gehaald.",
+      "pickTitle": "Op welke muur?",
+      "pickHint": "Deze telefoon onthoudt je keuze voor recepten. Wil je er een ergens anders tonen, kies die muur dan bij Bediening.",
+      "everyWall": "elke muur",
+      "theWall": "de muur",
+      "failed": "De muur is niet bereikbaar. Probeer het opnieuw.",
+      "mealieFailed": "Kan dat recept niet uit Mealie ophalen. Probeer het opnieuw.",
+      "gone": "Dat recept is er niet meer."
     }
   },
   "mealForm": {
@@ -1493,7 +1508,7 @@
       "noneInCategoryDescription": "Zoek een recept op naam, of kies Favorieten."
     },
     "library": {
-      "info": "De recepten staan in Mealie. Tik er een aan om het daar te openen.",
+      "info": "De recepten staan in Mealie. Tik er een aan om het daar te openen, of tik op de schermknop om het op de muur te tonen.",
       "placeholder": "Recepten zoeken…",
       "placeholderCount": {
         "one": "Zoek in 1 recept…",

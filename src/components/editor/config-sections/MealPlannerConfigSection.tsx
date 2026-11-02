@@ -36,6 +36,9 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const view = c.view ?? 'week';
+  // The Recipes view lists recipes to open on the card: it shows no tags, and
+  // a tap there always opens the card, so neither setting does anything.
+  const plannedMeals = view !== 'recipes';
   const VIEWS: { value: MealPlannerView; label: string }[] = [
     { value: 'week', label: t('configSections.meal-planner.viewWeek') },
     { value: 'today', label: t('configSections.meal-planner.viewToday') },
@@ -43,6 +46,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
     { value: 'compact', label: t('configSections.meal-planner.viewCompact') },
     { value: 'list', label: t('configSections.meal-planner.viewList') },
     { value: 'grocery', label: t('configSections.meal-planner.viewGrocery') },
+    { value: 'recipes', label: t('configSections.meal-planner.viewRecipes') },
   ];
   const [showModal, setShowModal] = useState(false);
   const { mealData, handleModalUpdate, toggleGroceryItem, saveError, reload, showMealieRange, mealieWeeks, suggestFromMealie } = useMealPlannerData<Config>({
@@ -71,37 +75,48 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
         checked={c.showPrepTime ?? true}
         onChange={(v) => set({ showPrepTime: v })}
       />
-      <Toggle
-        label={t('configSections.meal-planner.showTags')}
-        checked={c.showTags ?? true}
-        onChange={(v) => set({ showTags: v })}
-      />
+      {plannedMeals && (
+        <Toggle
+          label={t('configSections.meal-planner.showTags')}
+          checked={c.showTags ?? true}
+          onChange={(v) => set({ showTags: v })}
+        />
+      )}
 
       {/* Tap-to-open recipe */}
-      <LabeledSelect
-        label={t('configSections.meal-planner.tapRecipeAction')}
-        value={c.tapRecipeAction ?? 'off'}
-        onChange={(v) => set({ tapRecipeAction: v })}
-        options={[
-          { value: 'off', label: t('configSections.meal-planner.tapRecipeActionOff') },
-          { value: 'qr', label: t('configSections.meal-planner.tapRecipeActionQr') },
-          { value: 'card', label: t('configSections.meal-planner.tapRecipeActionCard') },
-          { value: 'iframe', label: t('configSections.meal-planner.tapRecipeActionIframe') },
-        ]}
-      />
-      {c.tapRecipeAction === 'card' && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">
-          {t('configSections.meal-planner.tapRecipeActionCardHint')}
-        </p>
-      )}
-      {c.tapRecipeAction === 'iframe' && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">
-          {t('configSections.meal-planner.tapRecipeActionIframeHint')}
-        </p>
+      {plannedMeals && (
+        <>
+          <LabeledSelect
+            label={t('configSections.meal-planner.tapRecipeAction')}
+            value={c.tapRecipeAction ?? 'off'}
+            onChange={(v) => set({ tapRecipeAction: v })}
+            options={[
+              { value: 'off', label: t('configSections.meal-planner.tapRecipeActionOff') },
+              { value: 'qr', label: t('configSections.meal-planner.tapRecipeActionQr') },
+              { value: 'card', label: t('configSections.meal-planner.tapRecipeActionCard') },
+              { value: 'iframe', label: t('configSections.meal-planner.tapRecipeActionIframe') },
+            ]}
+          />
+          {c.tapRecipeAction === 'card' && (
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('configSections.meal-planner.tapRecipeActionCardHint')}
+            </p>
+          )}
+          {c.tapRecipeAction === 'iframe' && (
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('configSections.meal-planner.tapRecipeActionIframeHint')}
+            </p>
+          )}
+          {(c.tapRecipeAction === 'qr' || c.tapRecipeAction === 'iframe') && (
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('configSections.meal-planner.tapRecipeActionNoLinkHint')}
+            </p>
+          )}
+        </>
       )}
 
-      {/* Ticking the grocery list on the wall */}
-      {view === 'grocery' && (
+      {/* Ticking the grocery list, opening recipes and scrolling long lists on the wall */}
+      {(view === 'grocery' || view === 'recipes' || view === 'list' || view === 'week') && (
         <>
           <Toggle
             label={t('configSections.meal-planner.interactive')}

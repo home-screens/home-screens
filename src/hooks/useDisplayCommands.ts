@@ -15,7 +15,7 @@ import { getShowingTimerSession, subscribeTimerPresence } from '@/lib/timer-pres
 import { dispatchModuleCommand } from '@/hooks/useModuleCommand';
 import { publishRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
 import type { ShownPhoto } from '@/stores/photo-show-store';
-import type { AlertType } from '@/types/config';
+import type { AlertType, SavedMeal } from '@/types/config';
 import type { ResolvedProfile } from '@/lib/schedule';
 
 export interface CommandHandlers {
@@ -38,6 +38,25 @@ export interface CommandHandlers {
   showAlert: (alert: Omit<DisplayAlert, 'id'>) => void;
   /** Put a library picture or video over the screen ("Show on the wall" from a phone). */
   showPhoto: (photo: ShownPhoto) => void;
+  /** Open a recipe on a card over the screen ("Show on the wall" from the phone's Meals). */
+  showRecipe: (meal: SavedMeal) => void;
+  /** Close the recipe a phone put up ("Take it down"); with a meal id, only that recipe. */
+  hideRecipe: (mealId: string | undefined) => void;
+}
+
+/**
+ * The meal of a `show-recipe` command, or null for one that is not a meal.
+ * The hub built it from the family's own meals, so this only checks the shape
+ * the card draws from: an id, a name, and lists that are lists.
+ */
+function shownRecipeMeal(raw: unknown): SavedMeal | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const meal = raw as Record<string, unknown>;
+  if (typeof meal.id !== 'string' || !meal.id || typeof meal.name !== 'string' || !meal.name.trim()) return null;
+  for (const list of ['ingredients', 'tags'] as const) {
+    if (meal[list] !== undefined && !Array.isArray(meal[list])) return null;
+  }
+  return meal as unknown as SavedMeal;
 }
 
 /** Extract the Chromium version from a UA string, or null if not Chromium. */
@@ -253,6 +272,20 @@ export function useDisplayCommands(handlers: CommandHandlers, displayId?: string
                 ...(sized ? { width: p.width as number, height: p.height as number } : {}),
               });
             }
+            break;
+          }
+          case 'show-recipe': {
+            const p = cmd.payload;
+            // A recipe sent while the wall was off is not opened once its
+            // moment has passed (by the hub's clock, give or take a minute).
+            const current = typeof p?.expiresAt !== 'number' || p.expiresAt + 60_000 > Date.now();
+            const meal = current ? shownRecipeMeal(p?.meal) : null;
+            if (meal) handlersRef.current.showRecipe(meal);
+            break;
+          }
+          case 'hide-recipe': {
+            const mealId = cmd.payload?.mealId;
+            handlersRef.current.hideRecipe(typeof mealId === 'string' && mealId ? mealId : undefined);
             break;
           }
           case 'module-command': {

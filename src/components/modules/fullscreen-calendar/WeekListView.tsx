@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import {
-  parseEventWallTime, weekStartsOnFor, formatEventTime,
+  parseEventWallTime, weekStartsOnFor, formatEventTime, eventEndLabel,
   bucketEventsForDay, eventStatusSlot, eventKindLabel, isWeekendDay,
   eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
@@ -13,13 +13,13 @@ import { useTranslate, useFormattingLocale, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarEvent, CalendarScale, CalendarWeather, CalendarViewProps, RowCtx } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
-import { dayCellFill, dayDecorFor, resolveTodayHighlight, useWeekDays } from './view-support';
+import { dayCellFill, dayDecorFor, resolveTodayHighlight, useWeekDays, wallScrollLook } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
 import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
-import { CountdownPill, EventProgressBar, eventAriaLabel } from './list-view-bits';
+import { CountdownPill, EventProgressBar, EVENT_TIME_TEXT, eventAriaLabel } from './list-view-bits';
 import { formatMealTime, getMealSlotLabelKey, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
 import { EVERYONE_COLOR, eventOwner, initialsOf } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
@@ -30,11 +30,14 @@ import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
+import { openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
+import { WallScroller } from '../shared/WallScroller';
 
-export function WeekListView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, extras, dayNotes }: CalendarViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, extras, dayNotes, scroll = false }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
+  const openDay = useDaySheetOpener();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.weekShowDescription === true;
@@ -68,6 +71,9 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
     const notes = dayNotesFor(dayNotes, day);
     const decor = dayDecorFor(config, day, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
     const dayFill = dayCellFill(isToday, showTodayBg, isWeekendDay(day), config);
+    // With taps on, the day's heading opens the whole day: the rows that do
+    // not fit the column are still in it.
+    const dayTap = openDayProps(openDay, day, dayEvents.map(({ ev }) => ev), t, locale);
 
     return (
       <div
@@ -89,7 +95,8 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
       >
         {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
         {/* Day header */}
-        <div style={{
+        <div {...dayTap} role={dayTap ? 'button' : undefined} style={{
+          cursor: dayTap ? 'pointer' : undefined,
           fontFamily: "var(--font-dm-serif), 'DM Serif Display', Georgia, serif",
           fontSize: fontSize * 1.6,
           color: 'var(--cal-text-primary)',
@@ -162,41 +169,50 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
     );
   }
 
+  // The whole week is drawn from its first day, as it always has been; on a
+  // touch wall a finger reads past the bottom of the box.
+  const scroller = {
+    enabled: scroll,
+    backLabel: t('wallScroll.backToTop'),
+    ...wallScrollLook(scale, fontSize),
+    frameStyle: { height: '100%' },
+    testId: 'fsc-week-list-scroll',
+  };
+
   if (isLandscape) {
+    // Both halves of the week scroll as one.
     return (
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1px 1fr',
-        height: '100%',
-        gap: 0,
-      }}>
+      <WallScroller {...scroller}>
         <div style={{
-          overflow: 'hidden',
-          padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1px 1fr',
+          minHeight: '100%',
+          gap: 0,
         }}>
-          {leftDays.map(renderDay)}
+          <div style={{
+            minWidth: 0,
+            overflowX: 'clip',
+            padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
+          }}>
+            {leftDays.map(renderDay)}
+          </div>
+          <div style={{ background: 'var(--cal-border)' }} />
+          <div style={{
+            minWidth: 0,
+            overflowX: 'clip',
+            padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
+          }}>
+            {rightDays.map(renderDay)}
+          </div>
         </div>
-        <div style={{ background: 'var(--cal-border)' }} />
-        <div style={{
-          overflow: 'hidden',
-          padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
-        }}>
-          {rightDays.map(renderDay)}
-        </div>
-      </div>
+      </WallScroller>
     );
   }
 
   return (
-    <div
-      style={{
-        height: '100%',
-        overflow: 'hidden',
-        padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px`,
-      }}
-    >
+    <WallScroller {...scroller} style={{ padding: `0 ${scale.bu * 1.5}px ${scale.bu * 2}px` }}>
       {days.map(renderDay)}
-    </div>
+    </WallScroller>
   );
 }
 
@@ -359,7 +375,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
   const end = parseEventWallTime(event.end, timezone);
   const description = showDescription ? sanitizeEventDescription(event.description) : '';
   const startLabel = formatEventTime(start, timeFormat, locale);
-  const endLabel = formatEventTime(end, timeFormat, locale);
+  const endLabel = eventEndLabel(start, end, timeFormat, locale);
   const status = eventStatusSlot({
     start, end, isAllDayRow: isAllDay === true, rowDate, now, locale, segment,
     showCountdown: config.showCountdown === true,
@@ -406,9 +422,8 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
+          ...EVENT_TIME_TEXT,
           fontSize: fontSize * 0.8,
-          fontWeight: 500,
-          color: 'var(--cal-text-tertiary)',
           display: 'flex',
           alignItems: 'center',
           gap: scale.bu * 0.6,

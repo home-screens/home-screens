@@ -357,6 +357,7 @@
     },
     "library": {
       "searchPlaceholder": "Søg efter måltider...",
+      "hint": "Tryk på et måltid for at ændre det, eller på skærmknappen for at vise det på væggen.",
       "filterByAriaLabel": "Filtrér på {label}",
       "empty": {
         "titleNoMeals": "Ingen måltider endnu",
@@ -403,6 +404,20 @@
       },
       "deleted": "{name} er slettet.",
       "undo": "Fortryd"
+    },
+    "showOnWall": {
+      "button": "Vis på væggen",
+      "ariaLabel": "Vis {meal} på væggen",
+      "sent": "{meal} vises nu på {where}.",
+      "takeDown": "Tag den ned",
+      "takenDown": "{meal} vises ikke længere på {where}.",
+      "pickTitle": "Hvilken væg?",
+      "pickHint": "Denne telefon husker dit valg til opskrifter. Vil du sende en opskrift et andet sted hen, så vælg den væg på fanen Kontrol.",
+      "everyWall": "alle væggene",
+      "theWall": "væggen",
+      "failed": "Kunne ikke nå væggen. Prøv igen.",
+      "mealieFailed": "Kunne ikke hente opskriften fra Mealie. Prøv igen.",
+      "gone": "Den opskrift er her ikke længere."
     }
   },
   "mealForm": {
@@ -1493,7 +1508,7 @@
       "noneInCategoryDescription": "Søg efter en opskrift ved navn, eller vælg Favoritter."
     },
     "library": {
-      "info": "Opskrifterne ligger i Mealie. Tryk på en for at åbne den der.",
+      "info": "Opskrifterne ligger i Mealie. Tryk på en for at åbne den der, eller på skærmknappen for at vise den på væggen.",
       "placeholder": "Søg i opskrifter…",
       "placeholderCount": {
         "one": "Søg i 1 opskrift…",

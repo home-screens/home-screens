@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, formatEventTime, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -255,8 +255,9 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
                     const owner = eventOwner(ev, owners);
                     const isPastEvent = isToday && evEnd <= nowHour;
 
-                    const evStartLabel = formatEventTime(parseEventWallTime(ev.start, timezone), timeFormat, locale);
-                    const evEndLabel = formatEventTime(parseEventWallTime(ev.end, timezone), timeFormat, locale);
+                    const evStartAt = parseEventWallTime(ev.start, timezone);
+                    const evStartLabel = formatEventTime(evStartAt, timeFormat, locale);
+                    const evEndLabel = eventEndLabel(evStartAt, parseEventWallTime(ev.end, timezone), timeFormat, locale);
                     const evAriaLabel = eventAriaLabel(t, ev, { startLabel: evStartLabel, endLabel: evEndLabel });
 
                     return (

@@ -60,7 +60,7 @@ If you call the API from a page served somewhere else on purpose (a dashboard on
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
-If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [module-enabled](#post-api-display-module-enabled) (show or hide one module), [alert](#post-api-display-alert), [module-command](#post-api-display-module-command) (next story on a news module), and [show-photo](#post-api-display-show-photo) (put a picture or video from the library on the screen). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [module-enabled](#post-api-display-module-enabled) (show or hide one module), [alert](#post-api-display-alert), [module-command](#post-api-display-module-command) (next story on a news module), [show-photo](#post-api-display-show-photo) (put a picture or video from the library on the screen), [show-recipe](#post-api-display-show-recipe) (open a recipe on the screen), and [hide-recipe](#post-api-display-hide-recipe) (take that recipe down again). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
 
 ### Targeting a display (multi-display)
 
@@ -69,7 +69,7 @@ When the hub has more than one display registered, every display-control endpoin
 - **Query string**: append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
 - **JSON body field**: `{ "displayId": "<id>", … }` (POST only).
 
-Use the reserved word `all` as the display target to broadcast to every display that has checked in since the hub started, plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command, show-photo) and rejected for read-only or mutate-config actions (status, profile, module-enabled). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
+Use the reserved word `all` as the display target to broadcast to every display that has checked in since the hub started, plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command, show-photo, show-recipe, hide-recipe) and rejected for read-only or mutate-config actions (status, profile, module-enabled). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
 
 A command or a status read with no display target goes to the main display (the display with ID `main`, or the first one listed if none has that ID). On a single-display install, with no displays registered, it goes to that one display, so bookmarks and scripts written before you added a second display keep reaching the first one. The display's own calls (its command poll and its status report) are the exception: a display always names itself. See the [Multi-display guide](/docs/multi-display) for the full multi-display setup.
 
@@ -265,6 +265,26 @@ Puts one picture or video from the library over the screen until its time is up 
 `file` is the path inside the library, for example `family/beach.jpg`: the `file=` value in each link `GET /api/backgrounds` returns, not the link itself. Anything that is not a picture or video in the library returns `400`, and a file that is not there returns `404`. The hub works out the link itself, so a request can only ever show a file that is already in the library.
 
 **Response:** `{ "ok": true, "command": "show-photo", "durationMs": 60000 }`
+
+### POST /api/display/show-recipe
+
+Opens one recipe on the screen, on the same recipe card a tapped meal opens, the same as **Show on the wall** in the phone's **Meals**. The card stays until someone closes it or nobody touches it for a while. A second recipe replaces the first. Broadcast with `?display=all` is allowed.
+
+**Body:** `{ "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110", "displayId": "kitchen" }` (`displayId` optional)
+
+`mealId` is a Mealie recipe, written `mealie:` and then the recipe's id, or the `id` of one of your saved meals from `GET /api/meals/data`. The hub looks the meal up itself, so a request can only show a recipe you have. A saved meal needs ingredients or notes to show. An id that is neither returns `400`, and a recipe or meal that is not there anymore returns `404`. When Mealie is the problem (not connected, not answering), the answer says so the way the Mealie endpoints do, with a `failure` field. A display that was off when the recipe was sent skips it if it comes back more than ten minutes later.
+
+**Response:** `{ "ok": true, "command": "show-recipe", "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110" }`
+
+### POST /api/display/hide-recipe
+
+Takes down a recipe that [show-recipe](#post-api-display-show-recipe) put on the screen, the same as **Take it down** on the phone after **Show on the wall**. Send it to the same display the recipe went to. Broadcast with `?display=all` is allowed.
+
+**Body:** `{ "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110", "displayId": "kitchen" }` (both optional)
+
+With `mealId`, only that recipe closes, so a recipe someone else sent since stays up. Without it, whatever recipe a phone put up closes. A display that is showing no recipe ignores it. A `mealId` that is empty or too long returns `400`.
+
+**Response:** `{ "ok": true, "command": "hide-recipe" }`
 
 ### POST /api/display/sleep-override
 

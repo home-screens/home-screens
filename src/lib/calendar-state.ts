@@ -43,6 +43,7 @@ import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import type { TranslateFn } from '@/i18n';
 import { formatEventTime, isAllDayEvent, isEventOnDay, parseEventInstant, parseEventWallTime } from '@/lib/calendar-utils';
 import { toTZWallTime } from '@/lib/timezone';
+import { dropDuplicateHolidays } from '@/lib/holiday-duplicates';
 
 /** Bus keys, in the order the editor's picker lists them. */
 export const CALENDAR_STATE_KEYS = {
@@ -100,7 +101,8 @@ export function deriveCalendarState(
   // today's, since its all-day test is `start < date + 1 day`.
   const today = startOfDay(wallNow);
 
-  for (const ev of events) {
+  // A holiday both a calendar and Public Holidays list is one thing today.
+  for (const ev of dropDuplicateHolidays(events)) {
     const allDay = isAllDayEvent(ev);
 
     if (isEventOnDay(ev, today, timezone)) {

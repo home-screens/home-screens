@@ -13,12 +13,15 @@ import {
 } from '@/lib/meal-constants';
 import { courseKindsToAdd, getMealCourseLabelKey, type MealPickTarget } from '@/lib/meal-courses';
 import { mealShownMinutes, mealTagLabel } from '@/lib/meal-dish-rules';
+import { mealHasRecipe } from '@/lib/meal-recipe';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { guardAfterRowRemoved } from '@/lib/sheet-tap-guard';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
+import RecipeWallButton from './RecipeWallButton';
+import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import { MealiePausedNotice } from './MealsMealieStatus';
 import { formatShownMinutes } from './meals-shared';
 
@@ -43,6 +46,8 @@ interface MealSheetProps {
   onRemoveCourse: (index: number) => void;
   onSetTime: (time: string | undefined) => void;
   onClear: () => void;
+  /** Where "Show on the wall" says how it went. */
+  wallNotices: WallNotices;
 }
 
 const SECTION: CSSProperties = {
@@ -132,6 +137,7 @@ export default function MealSheet({
   onRemoveCourse,
   onSetTime,
   onClear,
+  wallNotices,
 }: MealSheetProps) {
   const t = useTranslate('remote');
   const tModules = useTranslate('modules');
@@ -282,6 +288,8 @@ export default function MealSheet({
                 {t('mealSheet.chooseMain')}
               </button>
             )}
+            {/* The main dish's recipe on the wall picked at the top of the remote, as in the Library. */}
+            {mealHasRecipe(main) && <RecipeWallButton meal={main} notices={wallNotices} variant="wide" style={{ marginTop: 8 }} />}
 
             <div style={{ height: 16 }} />
             <div style={SECTION}>

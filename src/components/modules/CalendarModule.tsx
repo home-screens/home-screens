@@ -15,6 +15,8 @@ import type { FamilyGroup } from '@/types/family';
 import { calendarStatusView, useFailingSources, type CalendarSetupNeed } from './shared/useFailingSources';
 import { CalendarSetupCard } from './shared/CalendarSetupCard';
 import { useEventTapDetail } from './shared/useEventTapDetail';
+import { DaySheetContext, useDaySheet } from './shared/useDaySheet';
+import { DaySheetOverlay } from './shared/DaySheetOverlay';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import type { CalendarFetchStatus, CalendarSourceStatus, CalendarConfig, CalendarEvent, CalendarPerson, CalendarViewMode, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -27,6 +29,7 @@ import { GridView } from './calendar/grid';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { useDayNotes } from '@/hooks/useDayNotes';
 import { hasDayNoteIn, type DayNotes } from '@/lib/day-notes';
+import { wallScrollOn } from '@/lib/wall-scroll-views';
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -47,6 +50,9 @@ interface CalendarModuleProps {
   groups?: FamilyGroup[];
   /** Roster fetch state while calendar owners exist; a filtered module holds its events until it settles. */
   peopleState?: 'loading' | 'failed';
+  /** Only on a real display (see the registry's `needsInstanceAddress`); the editor preview has none. */
+  screenId?: string;
+  moduleId?: string;
 }
 
 // Stable fallback so the memoized pipeline below doesn't see a fresh array
@@ -62,6 +68,8 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   accentColor: string;
   eventStyle: EventDisplayStyle;
   dayNotes: DayNotes;
+  /** A finger scrolls the list views (Agenda, Daily); the grids ignore it. */
+  scroll: boolean;
 }>> = {
   daily: DailyView,
   agenda: AgendaView,
@@ -71,7 +79,7 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   rolling: GridView,
 };
 
-export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState }: CalendarModuleProps) {
+export default function CalendarModule({ config, style, events, timezone, timeFormat, calendarStatus, calendarLoading, sourceStatus, calendarSetup, people, groups, peopleState, screenId, moduleId }: CalendarModuleProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const rawEvents = events ?? EMPTY_EVENTS;
@@ -164,6 +172,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // The module renders light-on-dark over a photo background with no theme
   // system, so the overlay uses the Charcoal tokens.
   const tapDetails = config.eventTapDetails === true;
+  // The list views scroll with a finger where an event can be tapped: a real
+  // display with taps on. The editor preview and a wall without taps clip as
+  // they always have.
+  const scroll = wallScrollOn(tapDetails, screenId, moduleId);
   const eventStyle = useMemo<EventDisplayStyle>(() => {
     const gridStyle = gridEventStyle === 'colored' ? 'colored' : 'classic';
     return {
@@ -177,7 +189,10 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
       owners,
     };
   }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, showEventBackground, timezone, failingSourceIds, tapDetails, owners]);
-  const { detailEvent, onRootClick, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
+  const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
+  // "+N more" and the grid day numbers open the whole day (the grid views only).
+  const daySheet = useDaySheet(allEvents, tapDetails);
+  const detailTheme = getThemeTokens('charcoal');
 
   // Failure ≠ empty: while the shared calendar fetch is failing, kept
   // events get a "not updating since" badge (loud after a day); per-source
@@ -263,7 +278,9 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           />
         )}
         <div className="flex-1 min-h-0">
-          <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} />
+          <DaySheetContext.Provider value={daySheet.opener}>
+            <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
+          </DaySheetContext.Provider>
         </div>
         {legendPlacement === 'footer' && (
           <CalendarLegend
@@ -276,11 +293,28 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
           />
         )}
       </div>
+      {/* Before the event detail, so a detail opened from one of its rows
+          portals in after it and draws on top. */}
+      {daySheet.day && (
+        <DaySheetOverlay
+          date={daySheet.day.date}
+          events={daySheet.day.events}
+          variant={config.eventTapStyle ?? 'sheet'}
+          theme={detailTheme}
+          accentColor={accentColor}
+          colorFor={(ev) => ev.calendarColor ?? accentColor}
+          timeFormat={resolvedTimeFormat}
+          timezone={timezone}
+          paused={detailEvent != null}
+          onOpenEvent={openDetail}
+          onClose={daySheet.close}
+        />
+      )}
       {tapDetails && detailEvent && (
         <EventDetailOverlay
           event={detailEvent}
           variant={config.eventTapStyle ?? 'sheet'}
-          theme={getThemeTokens('charcoal')}
+          theme={detailTheme}
           accentColor={detailEvent.calendarColor ?? accentColor}
           timeFormat={resolvedTimeFormat}
           timezone={timezone}

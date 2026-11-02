@@ -357,6 +357,7 @@
     },
     "library": {
       "searchPlaceholder": "Search meals...",
+      "hint": "Tap a meal to change it, or the screen button to show it on the wall.",
       "filterByAriaLabel": "Filter by {label}",
       "empty": {
         "titleNoMeals": "No meals yet",
@@ -403,6 +404,20 @@
       },
       "deleted": "Deleted {name}.",
       "undo": "Undo"
+    },
+    "showOnWall": {
+      "button": "Show on the wall",
+      "ariaLabel": "Show {meal} on the wall",
+      "sent": "Showing {meal} on {where}.",
+      "takeDown": "Take it down",
+      "takenDown": "Took {meal} off {where}.",
+      "pickTitle": "Which wall?",
+      "pickHint": "This phone will remember your pick for recipes. To send one somewhere else, pick that wall on the Control tab.",
+      "everyWall": "every wall",
+      "theWall": "the wall",
+      "failed": "Couldn't reach the wall. Try again.",
+      "mealieFailed": "Couldn't get that recipe from Mealie. Try again.",
+      "gone": "That recipe isn't here anymore."
     }
   },
   "mealForm": {
@@ -1493,7 +1508,7 @@
       "noneInCategoryDescription": "Search for a recipe by name, or pick Favorites."
     },
     "library": {
-      "info": "Recipes live in Mealie. Tap one to open it there.",
+      "info": "Recipes live in Mealie. Tap one to open it there, or the screen button to show it on the wall.",
       "placeholder": "Search recipes…",
       "placeholderCount": {
         "one": "Search 1 recipe…",

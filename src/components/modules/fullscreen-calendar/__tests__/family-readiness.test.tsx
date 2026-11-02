@@ -5,13 +5,14 @@ import { cleanup, render, screen } from '@testing-library/react';
 import type { CalendarEvent, CalendarPerson, FullscreenCalendarConfig, ModuleStyle } from '@/types/config';
 import { EMPTY_EXTRAS } from '@/lib/calendar-extras';
 import { getModuleDefinition } from '@/lib/module-registry';
-import { I18nWrapper } from '../../__tests__/helpers/harness';
+import { I18nWrapper, installResizeObserverStub } from '../../__tests__/helpers/harness';
 import FullscreenCalendarModule from '../FullscreenCalendarModule';
 
 vi.mock('@/hooks/useFullscreenDims', () => ({ useFullscreenDims: () => ({ containerRef: () => {}, dims: { w: 1080, h: 1920 } }) }));
 vi.mock('@/hooks/useTZClock', () => ({ useTZClock: () => new Date(2026, 7, 24, 15, 40) }));
 vi.mock('../useCalendarExtras', () => ({ useCalendarExtras: () => EMPTY_EXTRAS }));
 
+installResizeObserverStub();
 afterEach(cleanup);
 const config = getModuleDefinition('fullscreen-calendar')!.defaultConfig as unknown as FullscreenCalendarConfig;
 const event: CalendarEvent = { id: 'class', title: 'Piano lesson', start: '2026-08-24T16:00:00', end: '2026-08-24T17:00:00', allDay: false, sourceId: 'school', sourceName: 'School calendar' };

@@ -1,7 +1,8 @@
 /**
- * Where the small Meal Planner's List view scrolls to. Nobody scrolls a wall,
- * so a week longer than the module starts at today; and nobody can scroll
- * back up to see whose rows those are, so the top line has to name its day.
+ * Where the small Meal Planner's List view rests (its home on a touch wall,
+ * where a finger can move it for a minute). A week longer than the module
+ * starts at today; and a wall nobody touches never scrolls back up to see
+ * whose rows those are, so the top line has to name its day.
  */
 
 export interface MealListScroll {
@@ -44,4 +45,35 @@ export function mealListScrollTop(
     return { top, spacer: top - maxScroll };
   }
   return { top: lastReachable ?? 0, spacer: 0 };
+}
+
+/** The List view's slot label, in em of the module's type, and never under this many px. */
+export const MEAL_LIST_LABEL_EM = 0.7;
+export const MEAL_LIST_LABEL_MIN_PX = 11;
+/**
+ * A character of a mixed-case slot name at the label's size, in em of that
+ * size: a little wider than a semibold Inter letter runs, so the longest name
+ * ("Petit-déjeuner", "Tussendoortje") never wraps or cuts.
+ */
+const LABEL_CHAR_EM = 0.62;
+/** What a row needs beside the label: a picture, a dish name worth reading and its serving time, in em of the module's type. */
+const ROW_ROOM_EM = 18;
+
+/**
+ * How the List view marks which meal a row is, and the width of that column
+ * so every name starts on one line: the slot's whole name ("Breakfast") when
+ * the list has room for it beside a readable row, its short name ("B")
+ * otherwise. A single letter alone is a poor mark for a child, so the whole
+ * name is the first choice. `labels` are the names the week shows.
+ */
+export function mealListSlotColumn(
+  listWidth: number,
+  fontSize: number,
+  labels: { full: readonly string[]; short: readonly string[] },
+): { full: boolean; widthPx: number } {
+  const labelPx = Math.max(MEAL_LIST_LABEL_EM * fontSize, MEAL_LIST_LABEL_MIN_PX);
+  const widthOf = (names: readonly string[]) => Math.ceil(Math.max(1, ...names.map((n) => n.length)) * LABEL_CHAR_EM * labelPx);
+  const fullPx = widthOf(labels.full);
+  const full = listWidth > 0 && listWidth - fullPx >= ROW_ROOM_EM * fontSize;
+  return { full, widthPx: full ? fullPx : Math.max(widthOf(labels.short), Math.ceil(1.4 * labelPx)) };
 }

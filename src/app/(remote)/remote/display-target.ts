@@ -65,6 +65,61 @@ export function useDisplayTarget(): DisplayTargetContextType {
 }
 
 /**
+ * Which wall something sent to `target` lands on, as a toast names it: the
+ * display's name, every wall for a broadcast, and plain "the wall" for a
+ * single-display install or a display the picker no longer lists. The two
+ * phrases come from the caller's dictionary, so each tab keeps its own words.
+ */
+export function targetWallName(
+  target: DisplayTargetValue,
+  displays: ReadonlyArray<{ id: string; name: string }>,
+  words: { everyWall: string; theWall: string },
+): string {
+  if (target === 'all') return words.everyWall;
+  return displays.find((d) => d.id === target)?.name ?? words.theWall;
+}
+
+/**
+ * Where "Show on the wall" in Meals sends a recipe. A wall picked at the top
+ * of the remote is used as it is, and so is "All" in a home with one wall.
+ * With "All" picked in a home with two or more, a recipe went to every wall
+ * and held each one awake for the cooking, so it goes to the wall this phone
+ * last chose for recipes (`remembered`) instead, or `null` when there is none
+ * yet, or that wall is gone: ask which.
+ */
+export function recipeWallTarget(
+  target: DisplayTargetValue,
+  displays: ReadonlyArray<{ id: string }>,
+  remembered: string | null,
+): DisplayTargetValue | null {
+  if (target !== 'all' || displays.length < 2) return target;
+  return remembered && displays.some((d) => d.id === remembered) ? remembered : null;
+}
+
+/**
+ * The wall this phone last chose for recipes. Kept per phone in
+ * `localStorage`; private mode or blocked storage just means it asks again.
+ */
+const RECIPE_WALL_KEY = 'hs-remote-recipe-wall';
+
+export function readRecipeWall(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(RECIPE_WALL_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function rememberRecipeWall(displayId: string): void {
+  try {
+    window.localStorage.setItem(RECIPE_WALL_KEY, displayId);
+  } catch {
+    /* private mode: the pick just does not stick */
+  }
+}
+
+/**
  * Append `?display=<id>` (or `&display=<id>`) to a URL when targeting a
  * specific display or broadcasting. Single-display mode passes the URL
  * through unchanged so existing fetches work without modification.

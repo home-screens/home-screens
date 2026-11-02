@@ -62,6 +62,7 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
   const inset = DEFAULT_MODULE_STYLE.padding;
   return (
     <div
+      data-module-card
       className={`w-full h-full overflow-hidden${title ? ' flex flex-col' : weightClass}`}
       style={wrapperStyle}
     >

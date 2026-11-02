@@ -200,7 +200,7 @@
         "other": "{done} tâches sur {count}"
       },
       "summaryTickets": {
-        "one": "1 ticket gagné aujourd'hui",
+        "one": "{count} ticket gagné aujourd'hui",
         "other": "{count} tickets gagnés aujourd'hui"
       }
     }
@@ -357,6 +357,7 @@
     },
     "library": {
       "searchPlaceholder": "Rechercher des repas…",
+      "hint": "Touche un repas pour le modifier, ou le bouton en forme d'écran pour l'afficher sur le mur.",
       "filterByAriaLabel": "Filtrer par {label}",
       "empty": {
         "titleNoMeals": "Aucun repas pour l'instant",
@@ -403,6 +404,20 @@
       },
       "deleted": "{name} supprimé.",
       "undo": "Annuler"
+    },
+    "showOnWall": {
+      "button": "Afficher sur le mur",
+      "ariaLabel": "Afficher {meal} sur le mur",
+      "sent": "« {meal} » s'affiche sur {where}.",
+      "takeDown": "Retirer",
+      "takenDown": "La recette « {meal} » est fermée sur {where}.",
+      "pickTitle": "Sur quel mur ?",
+      "pickHint": "Ce téléphone retiendra ton choix pour les recettes. Pour en envoyer une ailleurs, choisis le mur que tu veux dans l'onglet Contrôle.",
+      "everyWall": "tous les murs",
+      "theWall": "le mur",
+      "failed": "Impossible de joindre le mur. Réessaie.",
+      "mealieFailed": "Impossible de récupérer cette recette dans Mealie. Réessaie.",
+      "gone": "Cette recette n'est plus là."
     }
   },
   "mealForm": {
@@ -458,7 +473,7 @@
       "mealFallback": "repas",
       "changeMealAriaLabel": "Changer {meal} pour {slot}",
       "moreCoursesAriaLabel": {
-        "one": "et 1 autre plat",
+        "one": "et {count} autre plat",
         "other": "et {count} autres plats"
       }
     },
@@ -816,15 +831,15 @@
     "empty": "Vide",
     "what": {
       "photos": {
-        "one": "1 photo",
+        "one": "{count} photo",
         "other": "{count} photos"
       },
       "videos": {
-        "one": "1 vidéo",
+        "one": "{count} vidéo",
         "other": "{count} vidéos"
       },
       "mixed": {
-        "one": "1 photo ou vidéo",
+        "one": "{count} photo ou vidéo",
         "other": "{count} photos et vidéos"
       }
     },
@@ -853,11 +868,11 @@
       "left": "Encore {size}",
       "shrinking": "Les grosses photos sont d'abord réduites pour être envoyées plus vite.",
       "added": {
-        "one": "1 ajoutée.",
+        "one": "{count} ajoutée.",
         "other": "{count} ajoutées."
       },
       "failedHeading": {
-        "one": "1 n'a pas pu être ajoutée",
+        "one": "{count} n'a pas pu être ajoutée",
         "other": "{count} n'ont pas pu être ajoutées"
       },
       "tooBig": "{name} fait plus de {size}.",
@@ -925,35 +940,35 @@
     "deleteFailed": "Impossible de la supprimer. Réessaie.",
     "deleteRefused": "Le mur en a encore besoin, alors elle est restée.",
     "deleted": {
-      "one": "1 supprimée.",
+      "one": "{count} supprimée.",
       "other": "{count} supprimées."
     },
     "keptLast": {
-      "one": "1 est restée pour que le diaporama sur {walls} ne soit pas vide.",
+      "one": "{count} est restée pour que le diaporama sur {walls} ne soit pas vide.",
       "other": "{count} sont restées pour qu'aucun diaporama ne soit vide."
     },
     "keptLastAnywhere": {
-      "one": "1 est restée pour qu'un diaporama ne soit pas vide.",
+      "one": "{count} est restée pour qu'un diaporama ne soit pas vide.",
       "other": "{count} sont restées pour qu'aucun diaporama ne soit vide."
     },
     "keptAlone": {
-      "one": "1 est restée car elle est utilisée sur un écran.",
+      "one": "{count} est restée car elle est utilisée sur un écran.",
       "other": "{count} sont restées car elles sont utilisées sur un écran."
     },
     "staysLast": {
-      "one": "1 restera pour que le diaporama sur {walls} ne soit pas vide.",
+      "one": "{count} restera pour que le diaporama sur {walls} ne soit pas vide.",
       "other": "{count} resteront pour qu'aucun diaporama ne soit vide."
     },
     "staysLastAnywhere": {
-      "one": "1 restera pour qu'un diaporama ne soit pas vide.",
+      "one": "{count} restera pour qu'un diaporama ne soit pas vide.",
       "other": "{count} resteront pour qu'aucun diaporama ne soit vide."
     },
     "staysAlone": {
-      "one": "1 restera car elle est utilisée sur un écran.",
+      "one": "{count} restera car elle est utilisée sur un écran.",
       "other": "{count} resteront car elles sont utilisées sur un écran."
     },
     "deleteFailedCount": {
-      "one": "1 n'a pas pu être supprimée. Réessaie.",
+      "one": "{count} n'a pas pu être supprimée. Réessaie.",
       "other": "{count} n'ont pas pu être supprimées. Réessaie."
     },
     "folderMenu": {
@@ -1013,11 +1028,11 @@
       "lost": "Le hub a redémarré pendant l'ajout. Réessaie.",
       "tryAgain": "Réessayer",
       "alreadyHere": {
-        "one": "1 était déjà là.",
+        "one": "{count} était déjà là.",
         "other": "{count} étaient déjà là."
       },
       "couldNotAdd": {
-        "one": "1 n'a pas pu être ajoutée.",
+        "one": "{count} n'a pas pu être ajoutée.",
         "other": "{count} n'ont pas pu être ajoutées."
       },
       "nothingFound": "Cet album ne contient rien à ajouter."
@@ -1459,7 +1474,7 @@
     "search": {
       "placeholder": "Rechercher des recettes dans Mealie",
       "placeholderCount": {
-        "one": "Rechercher parmi 1 recette dans Mealie",
+        "one": "Rechercher parmi {count} recette dans Mealie",
         "other": "Rechercher parmi {count} recettes dans Mealie"
       },
       "ariaLabel": "Rechercher des recettes dans Mealie",
@@ -1468,11 +1483,11 @@
       "recent": "Cuisinés récemment",
       "looking": "Recherche dans Mealie…",
       "recipeCount": {
-        "one": "1 recette",
+        "one": "{count} recette",
         "other": "{count} recettes"
       },
       "favoritesCount": {
-        "one": "1 favori",
+        "one": "{count} favori",
         "other": "{count} favoris, de A à Z"
       },
       "recentHeading": "Les plus récents d'abord",
@@ -1486,17 +1501,17 @@
       "typeInstead": "Taper « {query} » tel quel",
       "typeInsteadNote": "Sans recette. Mealie le garde comme une note.",
       "categoryCount": {
-        "one": "1 recette dans {category}",
+        "one": "{count} recette dans {category}",
         "other": "{count} recettes dans {category}"
       },
       "noneInCategoryTitle": "Aucune recette dans {category} pour le moment",
       "noneInCategoryDescription": "Cherche une recette par son nom, ou choisis Favoris."
     },
     "library": {
-      "info": "Les recettes sont dans Mealie. Touche-en une pour l'ouvrir là-bas.",
+      "info": "Les recettes sont dans Mealie. Touche-en une pour l'ouvrir là-bas, ou touche le bouton en forme d'écran pour l'afficher sur le mur.",
       "placeholder": "Rechercher des recettes…",
       "placeholderCount": {
-        "one": "Rechercher parmi 1 recette…",
+        "one": "Rechercher parmi {count} recette…",
         "other": "Rechercher parmi {count} recettes…"
       },
       "noneDescription": "Vérifie l'orthographe, ou essaie un mot plus court.",
@@ -1569,7 +1584,7 @@
         "other": "{items} n'ont pas été enregistrés. Home Screens est injoignable, vérifie la connexion et réessaie."
       },
       "moreItems": {
-        "one": "1 autre",
+        "one": "{count} autre",
         "other": "{count} autres"
       },
       "listGone": "Cette liste n'existe plus dans Mealie."

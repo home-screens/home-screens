@@ -227,8 +227,8 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description",
-          "default": false
+          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
+          "default": true
         },
         {
           "name": "eventTapStyle",
@@ -963,10 +963,11 @@
               "menu-board",
               "next-meal",
               "recipe",
-              "grocery"
+              "grocery",
+              "recipes"
             ]
           },
-          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), or `grocery` (the grocery list)",
+          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), `grocery` (the grocery list), or `recipes` (the recipe book: every recipe to browse and search, each opening on a recipe card to cook from)",
           "default": "week"
         },
         {
@@ -1075,7 +1076,7 @@
             ]
           },
           "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
-          "default": "off"
+          "default": "card"
         },
         {
           "name": "showTitle",
@@ -1094,7 +1095,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Let people use the wall on a touch screen: tick things off the grocery list and step through a recipe. A tick writes to the family's list, never to the layout",
+          "description": "Let people use the wall on a touch screen: tick things off the grocery list, step through a recipe, search and open recipes in the recipe book, and scroll a view that runs past the screen. A tick writes to the family's list, never to the layout",
           "default": true
         }
       ],
@@ -1104,7 +1105,8 @@
         "menu-board",
         "next-meal",
         "recipe",
-        "grocery"
+        "grocery",
+        "recipes"
       ]
     },
     {
@@ -2381,8 +2383,8 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description",
-          "default": false
+          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
+          "default": true
         },
         {
           "name": "eventTapStyle",
@@ -5351,10 +5353,11 @@
               "next-meal",
               "compact",
               "list",
-              "grocery"
+              "grocery",
+              "recipes"
             ]
           },
-          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, or `grocery` (the grocery list)",
+          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, `grocery` (the grocery list), or `recipes` (the family's recipes to browse and search, each opening on a recipe card)",
           "default": "week"
         },
         {
@@ -5411,7 +5414,7 @@
             ]
           },
           "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
-          "default": "off"
+          "default": "card"
         },
         {
           "name": "showTitle",
@@ -5430,7 +5433,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Let people tick things off the grocery list on a touch screen. A tick writes to the family's list, never to the layout",
+          "description": "Let people use the wall on a touch screen: tick things off the grocery list, search and open recipes in the recipe view, and scroll a list or week that runs past the box (it goes back to today a minute later). A tick writes to the family's list, never to the layout",
           "default": true
         }
       ],
@@ -5440,7 +5443,8 @@
         "next-meal",
         "compact",
         "list",
-        "grocery"
+        "grocery",
+        "recipes"
       ]
     },
     {
@@ -11325,7 +11329,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11334,7 +11338,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11383,7 +11387,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "session"
+          "access": "display"
         }
       ]
     },

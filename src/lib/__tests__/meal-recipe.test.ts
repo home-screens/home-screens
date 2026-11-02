@@ -6,8 +6,12 @@ import {
   mealieRecipe,
   nextRecipeMeal,
   pageByHeight,
+  RECIPE_CARD_COOKING_CLOSE_MS,
+  RECIPE_CARD_IDLE_CLOSE_MS,
+  recipeCardCloseAfter,
   recipePageOfStep,
   recipeStats,
+  recipeTapOpens,
   savedMealRecipe,
   splitStepLead,
 } from '../meal-recipe';
@@ -137,6 +141,18 @@ describe('pageByHeight', () => {
     expect(pageByHeight([100, 1200, 100], 300, 800, 10)).toEqual([[0], [1], [2]]);
   });
 
+  it('puts a first step taller than any page on page one when page one is as tall as the rest, never leaving it empty', () => {
+    // Landscape: the steps column is the same on every page.
+    expect(pageByHeight([1500], 600, 600, 10)).toEqual([[0]]);
+    expect(pageByHeight([1500, 100, 100], 600, 600, 10)).toEqual([[0], [1, 2]]);
+  });
+
+  it('moves a step too tall for page one to a roomier later page', () => {
+    // Portrait: the ingredients leave page one little room; a later page has more.
+    expect(pageByHeight([1500], 300, 1400, 10)).toEqual([[], [0]]);
+    expect(pageByHeight([900, 100], 300, 1400, 10)).toEqual([[], [0, 1]]);
+  });
+
   it('answers one empty page for a recipe with no steps', () => {
     expect(pageByHeight([], 300, 800, 10)).toEqual([[]]);
   });
@@ -164,5 +180,44 @@ describe('batches', () => {
     expect(batchWord(3)).toEqual({ key: 'batchTriple' });
     expect(batchWord(0.5)).toEqual({ key: 'batchHalf' });
     expect(batchWord(1.5)).toEqual({ key: 'batchTimes', scale: '1.5' });
+  });
+});
+
+describe('the recipe card closing itself', () => {
+  it('closes an untouched card after ten minutes and one being cooked from after an hour', () => {
+    expect(RECIPE_CARD_IDLE_CLOSE_MS).toBe(10 * 60_000);
+    expect(RECIPE_CARD_COOKING_CLOSE_MS).toBe(60 * 60_000);
+    expect(recipeCardCloseAfter(false)).toBe(RECIPE_CARD_IDLE_CLOSE_MS);
+    expect(recipeCardCloseAfter(true)).toBe(RECIPE_CARD_COOKING_CLOSE_MS);
+  });
+});
+
+describe('recipeTapOpens', () => {
+  const linked: SavedMeal = { id: 'l', name: 'Carbonara', recipeUrl: 'https://recipes.example.com/carbonara' };
+  const linkedWithRecipe: SavedMeal = { ...linked, ingredients: [{ name: 'Eggs' }] };
+
+  it('shows the code or the page for a meal with a recipe link', () => {
+    expect(recipeTapOpens('qr', linked)).toBe('qr');
+    expect(recipeTapOpens('iframe', linked)).toBe('iframe');
+    expect(recipeTapOpens('qr', linkedWithRecipe)).toBe('qr');
+  });
+
+  it('opens the card for a meal with ingredients or notes and no link', () => {
+    expect(recipeTapOpens('qr', waffles)).toBe('card');
+    expect(recipeTapOpens('iframe', { id: 'n', name: 'Soup', notes: 'Use the big pot.' })).toBe('card');
+    expect(recipeTapOpens('card', waffles)).toBe('card');
+    expect(recipeTapOpens('qr', { ...tandoori, recipeUrl: undefined })).toBe('card');
+  });
+
+  it('opens nothing for a meal with no link and nothing to cook from, as the card does', () => {
+    expect(recipeTapOpens('qr', toast)).toBeNull();
+    expect(recipeTapOpens('iframe', toast)).toBeNull();
+    expect(recipeTapOpens('card', toast)).toBeNull();
+    expect(recipeTapOpens('qr', null)).toBeNull();
+  });
+
+  it('keeps the card for a card action, so a link alone opens nothing there', () => {
+    expect(recipeTapOpens('card', linked)).toBeNull();
+    expect(recipeTapOpens('card', linkedWithRecipe)).toBe('card');
   });
 });

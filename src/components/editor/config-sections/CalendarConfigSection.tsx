@@ -288,6 +288,11 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
             <Toggle label={t('configSections.calendar.showNowRule')} checked={c.showNowRule === true} onChange={(v) => set({ showNowRule: v })} />
           </>
         )}
+        {/* The week grid's classic pills show start times when there is a
+            column to read them in; the colored look always has them. */}
+        {viewMode === 'week' && (c.gridEventStyle ?? 'classic') === 'classic' && (
+          <Toggle label={t('configSections.calendar.showTime')} checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
+        )}
         {showsGridEventStyle && (
           <LabeledSelect
             label={t('configSections.calendar.gridEventStyle')}

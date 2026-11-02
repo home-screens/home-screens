@@ -10,6 +10,9 @@ import { TapCheckbox, TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
 import { useGroceryPaging } from '../shared/useGroceryPaging';
 import { usePagedFit } from '../shared/usePagedFit';
 import type { WallGrocery } from '../shared/useWallGrocery';
+import { WallScroller } from '../shared/WallScroller';
+import { smallWallScrollLook } from '../shared/wallScrollLook';
+import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 
 interface GroceryViewProps {
   config: MealPlannerConfig;
@@ -27,7 +30,8 @@ export function useGroceryHeading(): (group: WallGroceryGroup) => string | null 
 /**
  * The family's grocery list on a card: only what is still to get, in the
  * list's own order, pages turning on their own when it does not fit. On a
- * touch screen each row ticks the item off where the phone would.
+ * touch screen each row ticks the item off where the phone would, and a list
+ * too long for the card scrolls with a finger instead of turning pages.
  */
 export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   const t = useTranslate('modules');
@@ -36,6 +40,10 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
   const { rows, listName } = grocery;
 
   const flat = wallGroceryFlatRows(rows.groups, heading);
+  // A touch wall scrolls the whole list; the pages below are measured only
+  // for a wall nobody can touch (the scroller leaves their box unmounted, so
+  // there is one page and nothing turns).
+  const scroll = tappable;
   const measureKey = flat.map(({ item, heading: h }) => `${item.id}|${item.text}|${item.note ?? ''}|${item.amount ?? ''}|${h ?? ''}`).join('\u0001') + `|${tappable}`;
   const { ref, pages } = usePagedFit('[data-grocery-row]', measureKey);
   const pageCount = pages?.length ?? 1;
@@ -46,9 +54,26 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
     return <GroceryEmpty grocery={grocery} />;
   }
 
+  const rowViews = flat.map(({ item, heading: h }, i) => (
+    <div key={item.id} data-grocery-row style={{ display: visible !== null && !visible.has(i) ? 'none' : undefined }}>
+      {h && (
+        <div style={{ fontSize: '0.56em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: ink(TEXT_OPACITY.dim), margin: '0.75em 0 0.15em' }}>
+          {h}
+        </div>
+      )}
+      <GroceryRow
+        item={item}
+        accent={accent}
+        tappable={tappable}
+        pressed={grocery.pressed === item.id}
+        onTick={() => { noteTick(); grocery.tick(item); }}
+      />
+    </div>
+  ));
+
   const title = listName ?? t('meal-planner.grocery.thisWeek');
   return (
-    <div data-testid="meal-grocery" className="flex flex-col h-full min-h-0">
+    <div data-testid="meal-grocery" {...(tappable ? BROWSE_HOLD_ATTR : {})} className="flex flex-col h-full min-h-0">
       <div className="flex items-baseline justify-between gap-2 shrink-0">
         <span className="font-semibold truncate" style={{ fontSize: '0.98em' }}>{title}</span>
         <span
@@ -59,24 +84,22 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
           {t('meal-planner.grocery.toGet', { count: rows.left })}
         </span>
       </div>
-      <div ref={ref} data-grocery-pages={pages?.length ?? 0} className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ marginTop: '0.2em' }}>
-        {flat.map(({ item, heading: h }, i) => (
-          <div key={item.id} data-grocery-row style={{ display: visible !== null && !visible.has(i) ? 'none' : undefined }}>
-            {h && (
-              <div style={{ fontSize: '0.56em', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: ink(TEXT_OPACITY.dim), margin: '0.75em 0 0.15em' }}>
-                {h}
-              </div>
-            )}
-            <GroceryRow
-              item={item}
-              accent={accent}
-              tappable={tappable}
-              pressed={grocery.pressed === item.id}
-              onTick={() => { noteTick(); grocery.tick(item); }}
-            />
-          </div>
-        ))}
-      </div>
+      {scroll ? (
+        <WallScroller
+          enabled
+          backLabel={t('wallScroll.backToTop')}
+          {...smallWallScrollLook(accent)}
+          className="flex flex-col"
+          frameStyle={{ marginTop: '0.2em' }}
+          testId="meal-grocery-scroll"
+        >
+          {rowViews}
+        </WallScroller>
+      ) : (
+        <div ref={ref} data-grocery-pages={pages?.length ?? 0} className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ marginTop: '0.2em' }}>
+          {rowViews}
+        </div>
+      )}
       <div className="flex justify-between shrink-0 tabular-nums" style={{ fontSize: '0.6em', color: ink(TEXT_OPACITY.dim), paddingTop: '0.5em' }}>
         <span>{rows.got > 0 ? t('meal-planner.grocery.got', { count: rows.got }) : ''}</span>
         {pageCount > 1 && <span data-testid="meal-grocery-page">{t('meal-planner.grocery.page', { page: index + 1, pages: pageCount })}</span>}

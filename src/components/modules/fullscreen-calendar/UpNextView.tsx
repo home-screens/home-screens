@@ -4,21 +4,22 @@ import { eventOwner } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  parseEventWallTime, formatEventTime, formatCountdown, eventProgress, eventKindLabel,
+  parseEventWallTime, formatEventTime, eventEndLabel, formatCountdown, eventProgress, eventKindLabel,
 } from '@/lib/calendar-utils';
 import { buildUpNextModel, UP_NEXT_LATER_MAX, type UpNextTimedEvent } from '@/lib/calendar-up-next';
 import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import { MapPin } from 'lucide-react';
-import type { CalendarViewProps, CalendarWeather, RowCtx } from './view-support';
+import { wallScrollLook, type CalendarViewProps, type CalendarWeather, type RowCtx } from './view-support';
 import { eventSurface, eventBorder } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
 import { EventWeatherLine } from './WeatherInline';
-import { EventProgressBar, eventAriaLabel } from './list-view-bits';
+import { EventProgressBar, EVENT_TIME_TEXT, eventAriaLabel } from './list-view-bits';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
+import { WallScroller } from '../shared/WallScroller';
 
 /**
  * The hallway view: one event rendered huge (what is next, or what is
@@ -26,7 +27,7 @@ import { dayNotesFor } from '@/lib/day-notes';
  * that day, what already happened today, and tomorrow. The type size is
  * driven by the hero, not a grid, so it reads from across a room.
  */
-export function UpNextView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners , dayNotes }: CalendarViewProps) {
+export function UpNextView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, dayNotes, scroll = false }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -81,12 +82,22 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
   const heroDescription = wantDescriptions && descriptionLevel >= 1;
   const rowDescription = wantDescriptions && descriptionLevel >= 2;
 
+  // The board is a fixed box, measured above while descriptions degrade; it
+  // overflows visibly into the scroller, which clips it as the board always
+  // has, and on a touch wall lets a finger read on past the bottom.
   return (
+    <WallScroller
+      enabled={scroll}
+      backLabel={t('wallScroll.backToNow')}
+      {...wallScrollLook(scale, fontSize)}
+      frameStyle={{ height: '100%' }}
+      testId="fsc-up-next-scroll"
+    >
     <div
       ref={rootRef}
       aria-label={t('fullscreen-calendar.viewLabels.upNext')}
       style={{
-        height: '100%', overflow: 'hidden', padding: `${scale.bu * 2.5}px ${pad}px 0`,
+        height: '100%', padding: `${scale.bu * 2.5}px ${pad}px 0`,
         // Landscape has barely half the vertical room of portrait at the same
         // base unit, so one column pushed Tomorrow off the bottom edge with
         // nothing to say it had been dropped. Two columns fit the whole board.
@@ -140,7 +151,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
               >
                 {glyph && <span aria-hidden="true"><Glyph value={glyph} /></span>}
                 <span>{ev.title}</span>
-                <span style={{ fontSize: fontSize * 0.9, color: 'var(--cal-text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                <span style={{ ...EVENT_TIME_TEXT, fontSize: fontSize * 0.9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   {kind ?? t('fullscreen-calendar.allDay')}
                 </span>
               </div>
@@ -222,6 +233,7 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       )}
       </div>
     </div>
+    </WallScroller>
   );
 }
 
@@ -256,7 +268,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, showDescription
   const progress = running ? eventProgress(start, end, now) : null;
   const countdown = running ? '' : formatCountdown(start, now, locale);
   const startLabel = formatEventTime(start, timeFormat, locale);
-  const endLabel = formatEventTime(end, timeFormat, locale);
+  const endLabel = eventEndLabel(start, end, timeFormat, locale);
   const glyph = eventGlyph(ev);
   const saved = ev.sourceId != null && failingSourceIds?.has(ev.sourceId);
   const description = showDescription ? sanitizeEventDescription(ev.description) : '';
@@ -299,7 +311,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, showDescription
         <GlyphPrefix value={glyph} />{ev.title}
       </div>
       <div style={{ marginTop: scale.bu * 2.2, fontSize: fontSize * 2.6, lineHeight: 1.35, color: 'var(--cal-text-secondary)' }}>
-        <span style={{ color: 'var(--cal-text-primary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{startLabel} {'–'} {endLabel}</span>
+        <span style={{ color: 'var(--cal-text-primary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{endLabel === null ? startLabel : <>{startLabel} {'–'} {endLabel}</>}</span>
         {ev.location && (
           <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 0.6 }}>
             <MapPin size={fontSize * 2} aria-hidden="true" style={{ flexShrink: 0 }} />
@@ -346,7 +358,7 @@ function ListRow({ item, allDay, ctx, showDescription, trailing, dim, progress }
   const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
   const glyph = eventGlyph(ev);
   const startLabel = formatEventTime(start, timeFormat, locale);
-  const endLabel = formatEventTime(end, timeFormat, locale);
+  const endLabel = eventEndLabel(start, end, timeFormat, locale);
   const ariaLabel = eventAriaLabel(t, ev, { startLabel, endLabel, allDay });
   // Two clamped lines cannot spare one for a paragraph gap, so blank lines
   // fold into single breaks here (the hero keeps them: it has three lines).
@@ -369,7 +381,7 @@ function ListRow({ item, allDay, ctx, showDescription, trailing, dim, progress }
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 2, minWidth: 0 }}>
-        <span style={{ fontSize: fontSize * 2, color: 'var(--cal-text-secondary)', fontVariantNumeric: 'tabular-nums', width: fontSize * 9, flexShrink: 0, whiteSpace: 'nowrap' }}>
+        <span style={{ ...EVENT_TIME_TEXT, fontSize: fontSize * 2, width: fontSize * 9, flexShrink: 0, whiteSpace: 'nowrap' }}>
           {allDay ? t('fullscreen-calendar.allDay') : startLabel}
         </span>
         <span style={{ fontSize: fontSize * 2.5, fontWeight: 600, color: 'var(--cal-text-primary)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

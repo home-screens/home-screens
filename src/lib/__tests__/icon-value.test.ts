@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { faIconValue, iconValueFaClass, isFaIconValue, parseIconValue } from '@/lib/icon-value';
+import { emojiGridWithChosen, faIconValue, iconValueFaClass, isFaIconValue, parseIconValue } from '@/lib/icon-value';
 
 describe('parseIconValue', () => {
   it('treats an empty or whitespace value as no icon', () => {
@@ -58,5 +58,24 @@ describe('iconValueFaClass', () => {
   it('is null for text, which renders as itself', () => {
     expect(iconValueFaClass('⚽')).toBeNull();
     expect(iconValueFaClass('')).toBeNull();
+  });
+});
+
+describe('emojiGridWithChosen', () => {
+  const GRID = ['🍕', '🍔', '🌮'] as const;
+
+  it('puts an emoji the grid does not carry in front, so it shows as chosen', () => {
+    expect(emojiGridWithChosen(GRID, '🍽️')).toEqual(['🍽️', '🍕', '🍔', '🌮']);
+  });
+
+  it('leaves the grid alone when it already carries the emoji', () => {
+    expect(emojiGridWithChosen(GRID, '🍔')).toBe(GRID);
+  });
+
+  it('adds nothing for no icon, a picture of the family\'s own, or a Font Awesome token', () => {
+    expect(emojiGridWithChosen(GRID, '')).toBe(GRID);
+    expect(emojiGridWithChosen(GRID, undefined)).toBe(GRID);
+    expect(emojiGridWithChosen(GRID, 'custom:abcdefgh2345')).toBe(GRID);
+    expect(emojiGridWithChosen(GRID, faIconValue('pizza-slice', 'solid'))).toBe(GRID);
   });
 });

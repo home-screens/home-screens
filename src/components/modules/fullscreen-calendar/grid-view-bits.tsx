@@ -13,6 +13,7 @@ import { DayBadges } from '../shared/DayBadges';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import Glyph, { GlyphPrefix } from '@/components/ui/Glyph';
 import { clampStyle, resolveTodayHighlight } from './view-support';
+import { openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import type { CalendarScale, CalendarViewProps } from './view-support';
 import type { FullscreenCalendarConfig } from '@/types/config';
 
@@ -35,6 +36,32 @@ const GRID_NOTE_FONT = 0.9;
 /** The height a day's notes take from a cell's pill budget, px (one line each). */
 export function gridNotesHeight(count: number, fontSize: number, scale: CalendarScale): number {
   return count * (fontSize * GRID_NOTE_FONT * 1.3 + fontSize * 0.3 + scale.bu * 0.28);
+}
+
+/**
+ * "+N more" as the button that opens the day: a pill in the accent's tint,
+ * shared by the day grids and the family grid. A block as wide as its words,
+ * not an inline box, so it adds no line box of its own above the pill.
+ */
+export function moreButtonStyle(fontSize: number, scale: CalendarScale): React.CSSProperties {
+  return {
+    display: 'flex',
+    width: 'fit-content',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: 1,
+    padding: `0 ${scale.bu * 0.45}px`,
+    border: 'none',
+    borderRadius: 999,
+    background: 'var(--cal-accent-bg)',
+    color: 'var(--cal-accent)',
+    fontFamily: 'inherit',
+    fontSize,
+    fontWeight: 700,
+    lineHeight: 1.5,
+    whiteSpace: 'nowrap',
+    cursor: 'pointer',
+  };
 }
 
 export interface GridCellBodyProps {
@@ -70,11 +97,20 @@ export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName =
   const hasBirthday = birthdayEvs.length > 0;
   const maxShow = Math.max(1, maxEvents - allDayEvs.length - birthdayEvs.length);
   const overflow = timedEvs.length > maxShow ? timedEvs.length - maxShow : 0;
+  // With taps on, the day number row and "+N more" open the whole day: the
+  // cell's buttons. The views make the rest of the cell open it for a finger
+  // (openDayCellProps).
+  const dayTap = openDayProps(useDaySheetOpener(), day, dayEvents, t, locale);
 
   return (
     <>
       {/* Day number */}
-      <div className="flex items-center" style={{ gap: scale.bu * 0.15, marginBottom: scale.bu * 0.15 }}>
+      <div
+        {...dayTap}
+        role={dayTap ? 'button' : undefined}
+        className="flex items-center"
+        style={{ gap: scale.bu * 0.15, marginBottom: scale.bu * 0.15, cursor: dayTap ? 'pointer' : undefined }}
+      >
         {isToday && showTodayMarker ? (
           <span className="fsc-today-pulse" style={{
             display: 'inline-flex',
@@ -200,8 +236,14 @@ export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName =
         );
       })}
 
-      {/* Overflow */}
-      {overflow > 0 && (
+      {/* Overflow: a pill in the accent when it opens the day */}
+      {overflow > 0 && (dayTap ? (
+        // At the event titles' size, as the mockup draws it: the line it
+        // replaces was a quiet footnote, the pill is something to tap.
+        <button type="button" {...dayTap} style={moreButtonStyle(fontSize * 0.55, scale)}>
+          {t('fullscreen-calendar.moreCount', { count: overflow })}
+        </button>
+      ) : (
         <div style={{
           fontSize: fontSize * 0.5,
           fontWeight: 600,
@@ -210,7 +252,7 @@ export function GridCellBody({ day, notes, dayEvents, maxEvents, showMonthName =
         }}>
           {t('fullscreen-calendar.moreCount', { count: overflow })}
         </div>
-      )}
+      ))}
     </>
   );
 }

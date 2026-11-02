@@ -209,10 +209,11 @@ test('the seconds field reverts invalid input on blur instead of saving it', asy
 
 test('a rule made invalid outside the editor shows the inline invalid banner', async ({ page, sandboxDir }) => {
   // The write gate rejects invalid rules, so the only way a saved config can
-  // carry one is a hand edit of data/config.json — write it directly, as a
-  // user poking the file would.
+  // carry one is a hand edit of data/config.json: write it directly, as a
+  // user poking the file would. (A screen that is gone is not one of these:
+  // the editor takes that reference out as it loads, see below.)
   const config = twoScreenConfig([
-    seededRule({ action: { kind: 'showScreen', screenId: 'ghost', mode: 'for', seconds: 60 } }),
+    seededRule({ action: { kind: 'showScreen', screenId: 'cameras', mode: 'for', seconds: -5 } }),
   ]);
   writeFileSync(path.join(sandboxDir, 'data', 'config.json'), JSON.stringify(config, null, 2));
 
@@ -221,7 +222,46 @@ test('a rule made invalid outside the editor shows the inline invalid banner', a
 
   // The banner mirrors what the write gate will reject, with the reason.
   await expect(page.getByText("This rule can't be saved yet:")).toBeVisible();
-  await expect(page.getByText(/references unknown screen/)).toBeVisible();
+  await expect(page.getByText(/seconds must be a positive number/)).toBeVisible();
+});
+
+/*
+ * A profile or rule naming a screen that is gone (an older file, a restored
+ * backup, a hand edit) used to hold back every save: the toolbar sat at
+ * "Unsaved changes…" with nothing to say why. The editor now takes the
+ * reference out as it loads, the way deleting that screen in the editor does.
+ */
+test('a profile or rule pointing at a screen that is gone no longer holds back the save', async ({ page, request, sandboxDir }) => {
+  const config = baseConfig({
+    displays: [{
+      id: 'main',
+      name: 'Main Display',
+      screens: [makeScreen('home', 'Home', [textModule('HOME', { id: 'home-text' })])],
+      profiles: [{ id: 'evening', name: 'Evening', screenIds: ['home', 'gone'] }],
+      rules: [seededRule({ action: { kind: 'showScreen', screenId: 'gone', mode: 'for', seconds: 60 } })],
+    }],
+  });
+  writeFileSync(path.join(sandboxDir, 'data', 'config.json'), JSON.stringify(config, null, 2));
+
+  await page.goto('/editor');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await autosaved(page, async () => {
+    await page.locator('[data-module-id="home-text"]').click();
+    await page.getByLabel('Content').fill('EDITED');
+  });
+  await expect(page.getByTestId('save-status')).toHaveText(/Saved/);
+
+  const saved = await getConfig(request);
+  const main = saved.displays![0];
+  expect(main.screens[0].modules[0].config.content).toBe('EDITED');
+  expect(main.profiles![0].screenIds).toEqual(['home']);
+  expect(main.rules![0].action).toEqual({ kind: 'showScreen', screenId: '', mode: 'for', seconds: 60 });
+
+  // The rule asks for a screen in plain words instead of pointing at nothing.
+  await page.goto('/editor/settings?section=defaults&page=automation&panel=rules');
+  await ruleCard(page, 'Doorbell').getByText('Doorbell', { exact: true }).click();
+  await expect(page.getByText('Pick a screen for this rule to show.')).toBeVisible();
+  await expect(page.getByText("This rule can't be saved yet:")).toHaveCount(0);
 });
 
 test('the sleep action option persists and shows its hint', async ({ page, request }) => {

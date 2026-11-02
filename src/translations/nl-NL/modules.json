@@ -145,7 +145,15 @@
     "savedShort": "opgeslagen",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
-    "birthdayWithAge": "Verjaardag · wordt {age}"
+    "birthdayWithAge": "Verjaardag · wordt {age}",
+    "daySheet": {
+      "eventCount": {
+        "one": "{count} afspraak",
+        "other": "{count} afspraken"
+      },
+      "toTime": "tot {time}",
+      "openDay": "Alles van {date} bekijken"
+    }
   },
   "fullscreen-calendar": {
     "allDay": "Hele dag",
@@ -183,6 +191,8 @@
       "eventAllDay": "{title}, hele dag",
       "eventTimed": "{title}, {start} tot {end}",
       "eventTimedAtLocation": "{title}, {start} tot {end}, bij {location}",
+      "eventAtTime": "{title}, om {time}",
+      "eventAtTimeAtLocation": "{title}, om {time}, bij {location}",
       "monthCell": "{date}, {count} afspraken",
       "legend": "Kalenderbronnen",
       "familyGrid": "Gezinsweekrooster"
@@ -362,6 +372,85 @@
     "now": "Nu"
   },
   "meal-planner": {
+    "recipeBook": {
+      "title": "Recepten",
+      "count": {
+        "one": "1 recept",
+        "other": "{count} recepten"
+      },
+      "searchPlaceholder": "Recepten zoeken",
+      "searchCount": {
+        "one": "Zoek in 1 recept",
+        "other": "Zoek in {count} recepten"
+      },
+      "searchAria": "In de recepten zoeken",
+      "clearSearch": "Zoekopdracht wissen",
+      "spaceKey": "spatie",
+      "doneKey": "Klaar",
+      "deleteKey": "Letter wissen",
+      "moreChips": {
+        "one": "+ nog {count}",
+        "other": "+ nog {count}"
+      },
+      "allChips": "Kies wat je wilt zien",
+      "shortcuts": {
+        "favorites": "Favorieten",
+        "recent": "Laatst gemaakt",
+        "all": "Alle"
+      },
+      "filters": {
+        "all": "Alle",
+        "favorites": "Favorieten",
+        "side": "Bijgerechten",
+        "dessert": "Toetjes",
+        "drink": "Drankjes",
+        "quick": "Snel",
+        "healthy": "Gezond",
+        "comfort": "Comfort",
+        "kid-friendly": "Kindvriendelijk"
+      },
+      "heading": {
+        "search": "Recepten met ‘{query}’",
+        "widened": "Niets met de naam ‘{query}’. Wel recepten met ‘{part}’.",
+        "favorites": {
+          "one": "1 favoriet",
+          "other": "{count} favorieten, A tot Z"
+        },
+        "recent": "Laatst gemaakt",
+        "all": {
+          "one": "1 recept",
+          "other": "{count} recepten, A tot Z"
+        },
+        "inGroup": {
+          "one": "{group} · 1 recept",
+          "other": "{group} · {count} recepten"
+        },
+        "bestFirst": "Beste resultaten eerst",
+        "newestFirst": "Nieuwste eerst"
+      },
+      "tryAgain": "Opnieuw proberen",
+      "loading": "De recepten worden opgehaald",
+      "noneTitle": "Geen recepten met de naam ‘{query}’",
+      "noneHint": "Controleer de spelling of probeer een korter woord.",
+      "noRecipeTitle": "‘{name}’ heeft nog geen recept",
+      "noRecipeHint": "Voeg ingrediënten of notities toe bij Maaltijden op je telefoon, dan staat het hier.",
+      "noFavoritesTitle": "Nog geen favorieten",
+      "noFavoritesHint": "Tik in Mealie op het hartje bij een recept, dan staat het hier.",
+      "noRecentTitle": "Nog niets gemaakt",
+      "noRecentHint": "Recepten die je in Mealie als gemaakt markeert, staan hier, nieuwste eerst.",
+      "mealieEmptyTitle": "Nog geen recepten in Mealie",
+      "mealieEmptyHint": "Recepten die je in Mealie toevoegt, staan hier.",
+      "noneInGroupTitle": "Nog geen recepten in {group}",
+      "noneInGroupHint": "Kies iets anders of zoek op naam.",
+      "emptyTitle": "Nog geen recepten",
+      "emptyHint": "Maaltijden die je met ingrediënten of notities bewaart, staan hier. Voeg ze toe bij Maaltijden op je telefoon.",
+      "problemHint": {
+        "mealieUnreachable": "De recepten komen vanzelf terug zodra Mealie weer antwoordt.",
+        "mealieNotConnected": "Koppel het in Instellingen op de computer om de recepten te zien.",
+        "mealieTokenRefused": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de recepten te zien.",
+        "mealieSetup": "Controleer Mealie in Instellingen op de computer om de recepten te zien."
+      }
+    },
     "loading": "Maaltijden laden…",
     "noMealsPlannedYet": "Nog geen maaltijden gepland",
     "noMealsPlanned": "Geen maaltijden gepland",
@@ -428,6 +517,7 @@
       "batchHalf": "Half",
       "batchTimes": "×{scale}",
       "ingredients": "Ingrediënten",
+      "ingredientsReady": "{done} van {total} klaar",
       "steps": "Stappen",
       "notes": "Notities",
       "stepOf": "Stap {step} van {total}",
@@ -437,9 +527,11 @@
       "loading": "Het recept wordt opgehaald",
       "failed": "Kan het recept nu niet ophalen",
       "stepAria": "Stap {step}",
+      "pageAria": "Pagina {page} van {pages}",
       "openCourseAria": "Recept voor {name} openen",
       "scanForPhone": "Scan om het recept op je telefoon te openen",
-      "closesItself": "Sluit vanzelf na 10 minuten"
+      "keepOpen": "Tik op een ingrediënt of een stap, dan blijft het recept open zolang je kookt. Sluit vanzelf na 10 minuten zonder tikken.",
+      "staysOpen": "Blijft open zolang je kookt. Sluit vanzelf na een uur zonder tikken."
     },
     "grocery": {
       "thisWeek": "Boodschappen van deze week",
@@ -457,6 +549,11 @@
       "localEmpty": "Nog niets te halen",
       "localEmptyHint": "Plan maaltijden met ingrediënten om hier de boodschappen te zien."
     }
+  },
+  "wallScroll": {
+    "backToToday": "Terug naar vandaag",
+    "backToNow": "Terug naar nu",
+    "backToTop": "Terug naar boven"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Maaltijden deze week",

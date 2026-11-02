@@ -88,6 +88,11 @@ export function parseMealieMealId(mealId: string | undefined): string | null {
   return isMealieRecipeId(id) ? id : null;
 }
 
+/** An id that says it is Mealie's, well formed or not: never one of the family's own saved meals. */
+export function claimsMealieId(id: string): boolean {
+  return id.startsWith(SOURCE_PREFIX);
+}
+
 /** Mealie's recipe ids are UUIDs; nothing else is put into a path to Mealie or to the hub. */
 export function isMealieRecipeId(id: string): boolean {
   return /^[0-9a-f-]{32,36}$/i.test(id);

@@ -433,7 +433,7 @@ export function nowcastVerdict(
 
 /**
  * How much of a fixed floor to keep as the fit loop nears its lowest factor
- * (`MIN_FACTOR` in useFitScale, 0.3). Floors sized off the type unit protect
+ * (`FIT_MIN_FACTOR` in useFitScale, 0.3). Floors sized off the type unit protect
  * a map or a compass from collapsing beside large type, but at 4x-large with
  * a seven-day list and an alert band their sum alone can exceed a portrait
  * wall. Above a factor of .6 the floor is whole; at the loop's floor it is

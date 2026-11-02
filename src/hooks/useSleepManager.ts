@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { SleepSettings } from '@/types/config';
 import { DEFAULT_WAKE_HOLD_MINUTES, isInstantInScheduleWindow } from '@/lib/sleep-timeline';
+import { stayAwakeIsHeld } from '@/lib/interaction-hold';
 
 export type DisplayState = 'active' | 'dimmed' | 'asleep';
 
@@ -533,6 +534,12 @@ export function useSleepManager(
       // schedule window is active the early returns above win, so schedules
       // still take priority over idle transitions.
       if (idleDimEnabled) {
+        // Cooking mode: an open recipe counts as someone at the wall, so the
+        // idle clock starts over from the moment it closes.
+        if (stayAwakeIsHeld()) {
+          lastActivityRef.current = Date.now();
+          return;
+        }
         const idle = Date.now() - lastActivityRef.current;
 
         if (sleepMs > 0 && idle >= dimMs + sleepMs) {

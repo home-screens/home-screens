@@ -145,7 +145,15 @@
     "savedShort": "gespeichert",
     "holiday": "Feiertag",
     "birthday": "Geburtstag",
-    "birthdayWithAge": "Geburtstag · wird {age}"
+    "birthdayWithAge": "Geburtstag · wird {age}",
+    "daySheet": {
+      "eventCount": {
+        "one": "{count} Termin",
+        "other": "{count} Termine"
+      },
+      "toTime": "bis {time}",
+      "openDay": "Alles am {date} ansehen"
+    }
   },
   "fullscreen-calendar": {
     "allDay": "Ganztägig",
@@ -183,6 +191,8 @@
       "eventAllDay": "{title}, ganztägig",
       "eventTimed": "{title}, {start} bis {end}",
       "eventTimedAtLocation": "{title}, {start} bis {end}, bei {location}",
+      "eventAtTime": "{title}, um {time}",
+      "eventAtTimeAtLocation": "{title}, um {time}, bei {location}",
       "monthCell": "{date}, {count} Termine",
       "legend": "Kalenderquellen",
       "familyGrid": "Familien-Wochenraster"
@@ -362,6 +372,85 @@
     "now": "Jetzt"
   },
   "meal-planner": {
+    "recipeBook": {
+      "title": "Rezepte",
+      "count": {
+        "one": "1 Rezept",
+        "other": "{count} Rezepte"
+      },
+      "searchPlaceholder": "Rezepte suchen",
+      "searchCount": {
+        "one": "1 Rezept durchsuchen",
+        "other": "{count} Rezepte durchsuchen"
+      },
+      "searchAria": "Rezepte durchsuchen",
+      "clearSearch": "Suche löschen",
+      "spaceKey": "Leerzeichen",
+      "doneKey": "Fertig",
+      "deleteKey": "Buchstaben löschen",
+      "moreChips": {
+        "one": "+ {count} weitere",
+        "other": "+ {count} weitere"
+      },
+      "allChips": "Wähle, was du sehen willst",
+      "shortcuts": {
+        "favorites": "Favoriten",
+        "recent": "Zuletzt gekocht",
+        "all": "Alle"
+      },
+      "filters": {
+        "all": "Alle",
+        "favorites": "Favoriten",
+        "side": "Beilagen",
+        "dessert": "Nachtische",
+        "drink": "Getränke",
+        "quick": "Schnell",
+        "healthy": "Gesund",
+        "comfort": "Wohlfühlessen",
+        "kid-friendly": "Kinderfreundlich"
+      },
+      "heading": {
+        "search": "Rezepte mit „{query}“",
+        "widened": "Keine Treffer für „{query}“. Hier sind Rezepte mit „{part}“.",
+        "favorites": {
+          "one": "1 Favorit",
+          "other": "{count} Favoriten, A bis Z"
+        },
+        "recent": "Zuletzt gekocht",
+        "all": {
+          "one": "1 Rezept",
+          "other": "{count} Rezepte, A bis Z"
+        },
+        "inGroup": {
+          "one": "{group} · 1 Rezept",
+          "other": "{group} · {count} Rezepte"
+        },
+        "bestFirst": "Beste Treffer zuerst",
+        "newestFirst": "Neueste zuerst"
+      },
+      "tryAgain": "Noch einmal versuchen",
+      "loading": "Rezepte werden geladen",
+      "noneTitle": "Keine Rezepte namens „{query}“",
+      "noneHint": "Prüfe die Schreibweise oder versuch ein kürzeres Wort.",
+      "noRecipeTitle": "„{name}“ hat noch kein Rezept",
+      "noRecipeHint": "Trag am Handy unter Mahlzeiten Zutaten oder Notizen dafür ein, dann erscheint das Rezept hier.",
+      "noFavoritesTitle": "Noch keine Favoriten",
+      "noFavoritesHint": "Tippe in Mealie bei einem Rezept auf das Herz, dann erscheint es hier.",
+      "noRecentTitle": "Noch nichts gekocht",
+      "noRecentHint": "Rezepte, die du in Mealie als gekocht markierst, erscheinen hier, die neuesten zuerst.",
+      "mealieEmptyTitle": "Noch keine Rezepte in Mealie",
+      "mealieEmptyHint": "Rezepte, die du in Mealie anlegst, erscheinen hier.",
+      "noneInGroupTitle": "Noch keine Rezepte unter „{group}“",
+      "noneInGroupHint": "Wähle oben etwas anderes oder such ein Rezept nach Namen.",
+      "emptyTitle": "Noch keine Rezepte",
+      "emptyHint": "Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind, erscheinen hier. Füge sie am Handy unter Mahlzeiten hinzu.",
+      "problemHint": {
+        "mealieUnreachable": "Die Rezepte erscheinen von selbst wieder, sobald Mealie antwortet.",
+        "mealieNotConnected": "Verbinde es in den Einstellungen am Computer, dann erscheinen seine Rezepte.",
+        "mealieTokenRefused": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheinen seine Rezepte.",
+        "mealieSetup": "Prüfe Mealie in den Einstellungen am Computer, dann erscheinen seine Rezepte."
+      }
+    },
     "loading": "Mahlzeiten werden geladen…",
     "noMealsPlannedYet": "Noch keine Mahlzeiten geplant",
     "noMealsPlanned": "Keine Mahlzeiten geplant",
@@ -428,6 +517,7 @@
       "batchHalf": "Halb",
       "batchTimes": "×{scale}",
       "ingredients": "Zutaten",
+      "ingredientsReady": "{done} von {total} bereit",
       "steps": "Schritte",
       "notes": "Notizen",
       "stepOf": "Schritt {step} von {total}",
@@ -437,9 +527,11 @@
       "loading": "Rezept wird geladen",
       "failed": "Das Rezept lässt sich gerade nicht laden",
       "stepAria": "Schritt {step}",
+      "pageAria": "Seite {page} von {pages}",
       "openCourseAria": "Rezept für {name} öffnen",
       "scanForPhone": "Scannen, um das Rezept am Handy zu öffnen",
-      "closesItself": "Schließt sich nach 10 Minuten von selbst"
+      "keepOpen": "Tippe eine Zutat oder einen Schritt an, dann bleibt das Rezept offen, solange du kochst. Schließt sich nach 10 Minuten ohne Antippen.",
+      "staysOpen": "Bleibt offen, solange du kochst. Schließt sich nach einer Stunde ohne Antippen."
     },
     "grocery": {
       "thisWeek": "Einkaufsliste für diese Woche",
@@ -457,6 +549,11 @@
       "localEmpty": "Noch nichts zu kaufen",
       "localEmptyHint": "Plane Mahlzeiten mit Zutaten, dann füllt sich die Liste hier."
     }
+  },
+  "wallScroll": {
+    "backToToday": "Zurück zu heute",
+    "backToNow": "Zurück zum Jetzt",
+    "backToTop": "Zurück nach oben"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Mahlzeiten diese Woche",

@@ -26,15 +26,16 @@ function fetchCount(): Promise<number> {
 /**
  * How many recipes the family keeps in Mealie, for "Search 848 recipes in
  * Mealie". Null until Mealie has said (or when it cannot), and the search box
- * then reads without a number.
+ * then reads without a number. `refresh` changing asks again (the search's
+ * `recovered`, once Mealie answers after an outage).
  */
-export function useMealieRecipeCount(enabled: boolean): number | null {
+export function useMealieRecipeCount(enabled: boolean, refresh = 0): number | null {
   const [total, setTotal] = useState<number | null>(() => cached?.total ?? null);
   useEffect(() => {
     if (!enabled) return;
     let live = true;
     fetchCount().then((n) => { if (live) setTotal(n); }, () => { /* the box reads without a number */ });
     return () => { live = false; };
-  }, [enabled]);
+  }, [enabled, refresh]);
   return enabled ? total : null;
 }

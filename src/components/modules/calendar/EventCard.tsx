@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import {
-  parseEventWallTime, formatEventTime, isAllDayEvent, eventKindLabel, eventRowTimeLabel, withSavedSuffix,
+  parseEventWallTime, formatEventTime, formatEventTimeCompact, eventEndLabel, isAllDayEvent, eventKindLabel, eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -45,9 +45,10 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
   const { timeFormat, gridStyle, pillBackground, showBackground, timezone, tapDetails } = eventStyle;
   const owner = eventOwner(event, eventStyle.owners);
   const isAllDay = isAllDayEvent(event);
-  // Classic compact pills render only the dot and title — return before
-  // parsing dates, since grid views mount hundreds of these per render.
-  // (Colored timed pills parse the start below for their time prefix.)
+  // Classic compact pills render the dot and title, and the start time only
+  // where the view asks for it (`showTime`, the week grid): dates are parsed
+  // only then, since grid views mount hundreds of these per render. The
+  // colored look always leads with the time; it is what that look is.
   if (compact) {
     const eventColor = event.calendarColor ?? accentColor;
     const glyph = eventGlyph(event);
@@ -81,6 +82,11 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
         ) : (
           <EventMarker owner={owner} color={eventColor} size={6} tagSize="1.05em" />
         )}
+        {showTime && !isAllDay && (
+          <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
+            {formatEventTimeCompact(parseEventWallTime(event.start, timezone), timeFormat, locale)}
+          </span>
+        )}
         <span className="truncate" style={{ fontSize: '0.7em' }}>{event.title}</span>
       </div>
     );
@@ -97,7 +103,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       : eventRowTimeLabel({
           segment,
           startLabel: formatEventTime(start, timeFormat, locale),
-          endLabel: formatEventTime(end, timeFormat, locale),
+          endLabel: eventEndLabel(start, end, timeFormat, locale),
           t, ns: 'calendar', single: 'duration', start, end, locale,
         })),
     event, eventStyle.failingSourceIds, t,
@@ -127,7 +133,9 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       <div className="min-w-0 flex-1">
         {showTime && (
           <div className="flex items-center gap-1.5">
-            <MetadataText size="sm">{timeContent}</MetadataText>
+            {/* A step under the title, never as faint as the location: the
+                time is what people read the list for. */}
+            <span className="font-medium tabular-nums" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.secondary }}>{timeContent}</span>
             {countdown && (
               <span
                 className="shrink-0 rounded-full font-semibold whitespace-nowrap"

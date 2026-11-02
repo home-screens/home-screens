@@ -145,7 +145,15 @@
     "savedShort": "salvo",
     "holiday": "Feriado",
     "birthday": "Aniversário",
-    "birthdayWithAge": "Aniversário · faz {age} anos"
+    "birthdayWithAge": "Aniversário · faz {age} anos",
+    "daySheet": {
+      "eventCount": {
+        "one": "{count} evento",
+        "other": "{count} eventos"
+      },
+      "toTime": "até {time}",
+      "openDay": "Ver o dia todo: {date}"
+    }
   },
   "fullscreen-calendar": {
     "allDay": "Dia inteiro",
@@ -183,6 +191,8 @@
       "eventAllDay": "{title}, dia inteiro",
       "eventTimed": "{title}, das {start} às {end}",
       "eventTimedAtLocation": "{title}, das {start} às {end}, em {location}",
+      "eventAtTime": "{title}, às {time}",
+      "eventAtTimeAtLocation": "{title}, às {time}, em {location}",
       "monthCell": "{date}, {count} eventos",
       "legend": "Fontes do calendário",
       "familyGrid": "Grade semanal da família"
@@ -362,6 +372,85 @@
     "now": "Agora"
   },
   "meal-planner": {
+    "recipeBook": {
+      "title": "Receitas",
+      "count": {
+        "one": "{count} receita",
+        "other": "{count} receitas"
+      },
+      "searchPlaceholder": "Pesquisar receitas",
+      "searchCount": {
+        "one": "Pesquisar em {count} receita",
+        "other": "Pesquisar em {count} receitas"
+      },
+      "searchAria": "Pesquisar nas receitas",
+      "clearSearch": "Limpar a pesquisa",
+      "spaceKey": "espaço",
+      "doneKey": "Pronto",
+      "deleteKey": "Apagar uma letra",
+      "moreChips": {
+        "one": "+ {count} mais",
+        "other": "+ {count} mais"
+      },
+      "allChips": "Escolha o que mostrar",
+      "shortcuts": {
+        "favorites": "Favoritas",
+        "recent": "Feitas recentemente",
+        "all": "Todas"
+      },
+      "filters": {
+        "all": "Todas",
+        "favorites": "Favoritas",
+        "side": "Acompanhamentos",
+        "dessert": "Sobremesas",
+        "drink": "Bebidas",
+        "quick": "Rápida",
+        "healthy": "Saudável",
+        "comfort": "Reconfortante",
+        "kid-friendly": "Para crianças"
+      },
+      "heading": {
+        "search": "Receitas com “{query}”",
+        "widened": "Nenhuma receita chamada “{query}”. Veja receitas com “{part}”.",
+        "favorites": {
+          "one": "{count} favorita",
+          "other": "{count} favoritas, de A a Z"
+        },
+        "recent": "Feitas recentemente",
+        "all": {
+          "one": "{count} receita",
+          "other": "{count} receitas, de A a Z"
+        },
+        "inGroup": {
+          "one": "{group} · {count} receita",
+          "other": "{group} · {count} receitas"
+        },
+        "bestFirst": "Melhores resultados primeiro",
+        "newestFirst": "As mais recentes primeiro"
+      },
+      "tryAgain": "Tentar de novo",
+      "loading": "Buscando as receitas",
+      "noneTitle": "Nenhuma receita chamada “{query}”",
+      "noneHint": "Confira a ortografia ou tente uma palavra mais curta.",
+      "noRecipeTitle": "“{name}” ainda não tem receita",
+      "noRecipeHint": "Adicione ingredientes ou notas em Refeições no celular e ela aparece aqui.",
+      "noFavoritesTitle": "Nenhuma favorita ainda",
+      "noFavoritesHint": "Toque no coração de uma receita no Mealie e ela aparece aqui.",
+      "noRecentTitle": "Nada feito ainda",
+      "noRecentHint": "As receitas que você marcar como feitas no Mealie aparecem aqui, as mais recentes primeiro.",
+      "mealieEmptyTitle": "Nenhuma receita no Mealie ainda",
+      "mealieEmptyHint": "As receitas que você adicionar no Mealie aparecem aqui.",
+      "noneInGroupTitle": "Ainda não há receitas em {group}",
+      "noneInGroupHint": "Escolha outra opção ou pesquise pelo nome.",
+      "emptyTitle": "Nenhuma receita ainda",
+      "emptyHint": "As refeições salvas com ingredientes ou notas aparecem aqui. Adicione em Refeições no celular.",
+      "problemHint": {
+        "mealieUnreachable": "As receitas voltam sozinhas assim que o Mealie responder.",
+        "mealieNotConnected": "Conecte-o em Configurações no computador para mostrar as receitas.",
+        "mealieTokenRefused": "Salve um novo token do Mealie em Configurações no computador para mostrar as receitas.",
+        "mealieSetup": "Confira o Mealie em Configurações no computador para mostrar as receitas."
+      }
+    },
     "loading": "Carregando refeições…",
     "noMealsPlannedYet": "Nenhuma refeição planejada ainda",
     "noMealsPlanned": "Nenhuma refeição planejada",
@@ -428,6 +517,7 @@
       "batchHalf": "Pela metade",
       "batchTimes": "×{scale}",
       "ingredients": "Ingredientes",
+      "ingredientsReady": "{done} de {total} prontos",
       "steps": "Passo a passo",
       "notes": "Notas",
       "stepOf": "Passo {step} de {total}",
@@ -437,9 +527,11 @@
       "loading": "Buscando a receita",
       "failed": "Não deu para buscar a receita agora",
       "stepAria": "Passo {step}",
+      "pageAria": "Página {page} de {pages}",
       "openCourseAria": "Abrir a receita de {name}",
       "scanForPhone": "Escaneie para abrir a receita no celular",
-      "closesItself": "Fecha sozinho depois de 10 minutos"
+      "keepOpen": "Toque num ingrediente ou num passo e a receita fica aberta enquanto você cozinha. Fecha sozinha se ninguém tocar nela por 10 minutos.",
+      "staysOpen": "Fica aberta enquanto você cozinha. Fecha sozinha se ninguém tocar nela por uma hora."
     },
     "grocery": {
       "thisWeek": "Compras da semana",
@@ -460,6 +552,11 @@
       "localEmpty": "Nada para comprar ainda",
       "localEmptyHint": "Planeje refeições com ingredientes e eles aparecem aqui."
     }
+  },
+  "wallScroll": {
+    "backToToday": "Voltar para hoje",
+    "backToNow": "Voltar ao presente",
+    "backToTop": "Voltar ao topo"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Refeições da semana",
@@ -516,7 +613,7 @@
     "rewardBalances": "Saldo de recompensas",
     "holdToUncheckHint": "Segure para desmarcar",
     "overspent": {
-      "one": "{name} já gastou esses tickets, então o saldo agora é {balance}. Falta ganhar 1 ticket.",
+      "one": "{name} já gastou esses tickets, então o saldo agora é {balance}. Falta ganhar {count} ticket.",
       "other": "{name} já gastou esses tickets, então o saldo agora é {balance}. Faltam ganhar {count} tickets."
     },
     "overspentSomeone": "Alguém",
@@ -885,7 +982,7 @@
       "redeem": "Resgatar",
       "confirmTitle": "Gastar seus tickets?",
       "confirmBody": {
-        "one": "{member} vai gastar 1 ticket em {reward}.",
+        "one": "{member} vai gastar {count} ticket em {reward}.",
         "other": "{member} vai gastar {count} tickets em {reward}."
       },
       "confirmCancel": "Cancelar",
@@ -894,7 +991,7 @@
       "errorOffline": "Não foi possível conectar",
       "addFromPhoneHint": "Adicione recompensas pelo celular: abra {url} e toque em Tarefas",
       "moreTickets": {
-        "one": "Falta 1 ticket",
+        "one": "Falta {count} ticket",
         "other": "Faltam {count} tickets"
       },
       "enoughTickets": "Você já tem o suficiente!",
@@ -904,7 +1001,7 @@
       },
       "redeemedTitle": "É seu!",
       "redeemedBody": {
-        "one": "{member} gastou 1 ticket em {reward}",
+        "one": "{member} gastou {count} ticket em {reward}",
         "other": "{member} gastou {count} tickets em {reward}"
       },
       "history": "Histórico",
@@ -945,13 +1042,13 @@
     "saveFailed": "Não deu para salvar. Tente de novo.",
     "goal": {
       "toGo": {
-        "one": "falta 1 ticket",
+        "one": "falta {count} ticket",
         "other": "faltam {count} tickets"
       },
       "ready": "Já tem o suficiente!",
       "savingForThis": "Juntando para isto",
       "toGoShort": {
-        "one": "falta 1",
+        "one": "falta {count}",
         "other": "faltam {count}"
       }
     },

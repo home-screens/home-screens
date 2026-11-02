@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
-import { useSheetTapGuard } from '@/hooks/useSheetTapGuard';
+import { useSettledTap, useSheetTapGuard } from '@/hooks/useSheetTapGuard';
 import { useTranslate } from '@/i18n';
 
 export default function ConfirmSheet({
@@ -43,15 +43,11 @@ export default function ConfirmSheet({
   const tCore = useTranslate('core');
   const resolvedConfirmLabel = confirmLabel ?? tCore('actions.confirm');
   const resolvedCancelLabel = cancelLabel ?? tCore('actions.cancel');
-  const [openedAt] = useState(() => Date.now());
   useSheetTapGuard(guardTaps);
   // A sheet says it is a modal dialog, so the keyboard has to treat it as
   // one: focus moves into it, Tab stays inside it, Escape closes it.
   const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
-  const settled = (action: () => void) => () => {
-    if (Date.now() - openedAt < settleMs) return;
-    action();
-  };
+  const settled = useSettledTap(settleMs);
 
   return (
     <div

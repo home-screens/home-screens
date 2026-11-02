@@ -17,6 +17,8 @@ import type { CalendarEvent } from '@/types/config';
 export function useEventTapDetail(events: CalendarEvent[], enabled: boolean): {
   detailEvent: CalendarEvent | null;
   onRootClick: ((e: React.MouseEvent) => void) | undefined;
+  /** Opens an event's detail by id; the day sheet's rows use it. */
+  open: (id: string) => void;
   close: () => void;
 } {
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -30,5 +32,5 @@ export function useEventTapDetail(events: CalendarEvent[], enabled: boolean): {
         if (id) setDetailId(id);
       }
     : undefined;
-  return { detailEvent, onRootClick, close: () => setDetailId(null) };
+  return { detailEvent, onRootClick, open: setDetailId, close: () => setDetailId(null) };
 }

@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
-import type { SleepSettings } from '@/types/config';
+import type { SavedMeal, SleepSettings } from '@/types/config';
 import type { ResolvedProfile } from '@/lib/schedule';
 import { useSleepManager } from '@/hooks/useSleepManager';
 import { useDisplayCommands, useStatusReporter } from '@/hooks/useDisplayCommands';
 import { useAlertStore, type DisplayAlert } from '@/stores/alert-store';
 import { usePhotoShowStore, type ShownPhoto } from '@/stores/photo-show-store';
+import { useRecipeShowStore } from '@/stores/recipe-show-store';
 
 interface UseDisplayControlParams {
   sleep: SleepSettings | undefined;
@@ -119,6 +120,20 @@ export function useDisplayControl({
     usePhotoShowStore.getState().show(photo);
   }, [wakeIfHidden]);
 
+  // A recipe sent from a phone wakes the wall the same way. It is the newest
+  // thing asked for, so a photo still up from earlier makes way for it.
+  const showRecipe = useCallback((meal: SavedMeal) => {
+    wakeIfHidden();
+    usePhotoShowStore.getState().hide();
+    useRecipeShowStore.getState().show(meal);
+  }, [wakeIfHidden]);
+
+  // The phone's "Take it down" closes the recipe it sent. It wakes nothing:
+  // taking a recipe down asks nobody to look.
+  const hideRecipe = useCallback((mealId: string | undefined) => {
+    useRecipeShowStore.getState().takeDown(mealId);
+  }, []);
+
   // The alert wake ends with the last urgent alert — dismissed, expired, or
   // cleared by clear-alerts — however it went. Subscribing to the store is
   // the one place that sees all three.
@@ -142,6 +157,8 @@ export function useDisplayControl({
       reload,
       showAlert,
       showPhoto,
+      showRecipe,
+      hideRecipe,
     },
     displayId,
     hubTransport,

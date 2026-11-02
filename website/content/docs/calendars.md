@@ -102,6 +102,10 @@ Each calendar module has a **Day notes** switch under **What shows**, on unless 
 
 **Days Ahead** at the top of the page is the furthest any calendar module looks. A module can narrow it further in its own settings, but not widen it.
 
+## On a touchscreen {% #touch %}
+
+With **Tap an event to see details** on (it is on for new calendar modules), tapping an event opens its time, place and notes. On a busy day the grid views show **+N more**: tap it, or the day itself, and every event that day opens in a list, each one tappable for its details. Lists that hold more than fits, like the agenda, scroll with a finger and slide back to today on their own a minute after the last touch. With the setting off, the calendar is just a picture, the way a wall without a touchscreen shows it.
+
 ## API keys {% #api-keys %}
 
 Most of Home Screens needs no key at all. Keys that are needed live on **Settings > API keys**, one card per service, each showing whether it is set up. The two exceptions: weather keys go on the service's card under [Settings > Weather](/docs/weather), and the iCloud sign-in lives here on the Calendar page.

@@ -4,10 +4,11 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
-import { parseEventWallTime, isEventOnDay, formatEventTime, eventKindGlyph, eventKindLabel } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, eventKindGlyph, eventKindLabel } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDayRange, formatRelativeTime, fullDateHeading } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
+import { useSettledTap } from '@/hooks/useSheetTapGuard';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
@@ -17,7 +18,7 @@ import { householdTimeFormat } from '@/lib/clock-time';
 export const EVENT_DETAIL_AUTO_DISMISS_MS = 45_000;
 
 export interface EventTimeText {
-  /** "5:30 – 7:00 PM", "All Day", or "All Day · Aug 7 – 9". */
+  /** "5:30 PM – 7:00 PM", "9:00 PM" for an event with no length, "All Day", or "All Day · Aug 7 – 9". */
   main: string;
   /** Relative context: "in 2 hours", "Happening now", "Today" — or ''. */
   sub: string;
@@ -60,7 +61,9 @@ export function describeEventTime(
     return { main, sub: '' };
   }
 
-  const main = `${formatEventTime(start, timeFormat, locale)} – ${formatEventTime(end, timeFormat, locale)}`;
+  const startLabel = formatEventTime(start, timeFormat, locale);
+  const endLabel = eventEndLabel(start, end, timeFormat, locale);
+  const main = endLabel === null ? startLabel : `${startLabel} – ${endLabel}`;
   if (now >= start && now < end) return { main, sub: labels.happeningNow };
   if (start > now) return { main, sub: formatRelativeTime(now, start, { locale }) };
   return { main, sub: '' };
@@ -111,6 +114,9 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
     const timer = setTimeout(() => onCloseRef.current(), EVENT_DETAIL_AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, []);
+  // The second tap of a double tap on the event lands on the scrim, which
+  // must not close the detail it just opened.
+  const settled = useSettledTap();
 
   if (typeof document === 'undefined') return null;
 
@@ -281,7 +287,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
       role="dialog"
       aria-label={event.title}
       className="fscd-overlay"
-      onClick={onClose}
+      onClick={settled(onClose)}
       style={{
         position: 'fixed',
         inset: 0,

@@ -1195,7 +1195,7 @@
       "selected": "{count} selecionados",
       "empty": "Nada aqui ainda. Envie algumas fotos ou vídeos",
       "deleteTitle": {
-        "one": "Excluir 1 arquivo?",
+        "one": "Excluir {count} arquivo?",
         "other": "Excluir {count} arquivos?"
       },
       "deleteMessage": {
@@ -1208,7 +1208,7 @@
       "loading": "Carregando suas fotos e vídeos",
       "emptyFiltered": "Nada corresponde a este filtro",
       "deleteFailed": {
-        "one": "1 arquivo não pôde ser excluído. Tente de novo.",
+        "one": "{count} arquivo não pôde ser excluído. Tente de novo.",
         "other": "{count} arquivos não puderam ser excluídos. Tente de novo."
       },
       "deleteOne": "Excluir {file}",
@@ -1249,7 +1249,7 @@
       "clearSelection": "Limpar seleção",
       "moveTo": "Mover para",
       "moveTitle": {
-        "one": "Mover 1 arquivo?",
+        "one": "Mover {count} arquivo?",
         "other": "Mover {count} arquivos?"
       },
       "moveMessage": {
@@ -1258,12 +1258,12 @@
       },
       "moveConfirm": "Mover",
       "moved": {
-        "one": "1 arquivo movido",
+        "one": "{count} arquivo movido",
         "other": "{count} arquivos movidos"
       },
       "moveFailed": "Não foi possível mover os arquivos",
       "placesUpdated": {
-        "one": "1 lugar que os usava foi atualizado",
+        "one": "{count} lugar que os usava foi atualizado",
         "other": "{count} lugares que os usavam foram atualizados"
       },
       "newFolder": "Nova pasta",
@@ -2724,15 +2724,15 @@
     "importing": "Importando…",
     "progress": "Baixando {done} de {total}…",
     "summaryAdded": {
-      "one": "1 item novo adicionado.",
+      "one": "{count} item novo adicionado.",
       "other": "{count} itens novos adicionados."
     },
     "summarySkipped": {
-      "one": "1 já estava aqui.",
+      "one": "{count} já estava aqui.",
       "other": "{count} já estavam aqui."
     },
     "summaryFailed": {
-      "one": "1 não pôde ser baixado.",
+      "one": "{count} não pôde ser baixado.",
       "other": "{count} não puderam ser baixados."
     },
     "empty": "Não há nada nesse álbum para adicionar.",
@@ -3056,7 +3056,7 @@
       },
       "everythingElse": "Todo o resto",
       "categoryCount": {
-        "one": "1 receita em {category}",
+        "one": "{count} receita em {category}",
         "other": "{count} receitas em {category}"
       },
       "noneInCategory": "Ainda não há receitas em {category}. Pesquise acima."
@@ -3155,7 +3155,7 @@
           "other": "Não deu para salvar {items}. Não foi possível conectar ao Home Screens. Confira a conexão e tente de novo."
         },
         "moreItems": {
-          "one": "mais 1",
+          "one": "mais {count}",
           "other": "mais {count}"
         },
         "listGone": "Essa lista não existe mais no Mealie."
@@ -4236,6 +4236,7 @@
       "viewNextMeal": "Próxima refeição",
       "viewRecipe": "Receita",
       "viewGrocery": "Lista de compras",
+      "viewRecipeBook": "Livro de receitas",
       "densityCozy": "Espaçado",
       "densitySnug": "Compacto",
       "typographySize": "Tamanho do texto",
@@ -4255,9 +4256,10 @@
       "tapRecipeActionCard": "Mostrar cartão da receita",
       "tapRecipeActionIframe": "Abrir a receita no display",
       "tapRecipeActionIframeHint": "Alguns sites de receitas não permitem abrir dentro do Home Screens e ficam em branco. Se isso acontecer, toque em “Mostrar código QR” na tela da receita.",
-      "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display, com um código para abrir a receita no celular. Também funciona para refeições salvas com ingredientes ou notas.",
+      "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display. Também funciona para refeições salvas com ingredientes ou notas. Se a refeição tiver um link de receita, aparece também um código para abrir a receita no celular.",
+      "tapRecipeActionNoLinkHint": "Se a refeição não tiver link de receita, aparece o cartão da receita no lugar, com os ingredientes e as notas.",
       "interactive": "Tocar na parede",
-      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras e seguir uma receita passo a passo. Desligue se o display não for sensível ao toque.",
+      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, seguir uma receita passo a passo, pesquisar no livro de receitas e rolar telas longas. Desligue se o display não for sensível ao toque.",
       "mobileHintTail": "para que todos os módulos de refeições fiquem sincronizados."
     },
     "fullscreen-photo": {
@@ -4439,11 +4441,11 @@
       "cancel": "Cancelar",
       "importing": "Salvando fotos… {done} de {total}",
       "importDone": {
-        "one": "1 foto nova salva na sua biblioteca.",
+        "one": "{count} foto nova salva na sua biblioteca.",
         "other": "{count} fotos novas salvas na sua biblioteca."
       },
       "alreadyInLibrary": {
-        "one": "1 já estava na sua biblioteca.",
+        "one": "{count} já estava na sua biblioteca.",
         "other": "{count} já estavam na sua biblioteca."
       },
       "nothingPicked": "Nada foi escolhido. Tente escolher fotos de novo.",
@@ -4472,6 +4474,7 @@
       "viewCompact": "Compacto (hoje + amanhã)",
       "viewList": "Lista da semana inteira",
       "viewGrocery": "Lista de compras",
+      "viewRecipes": "Receitas",
       "showEmoji": "Mostrar imagens",
       "showPrepTime": "Mostrar tempo total",
       "showTags": "Mostrar tags",
@@ -4488,9 +4491,10 @@
       "tapRecipeActionCard": "Mostrar cartão da receita",
       "tapRecipeActionIframe": "Abrir a receita no display",
       "tapRecipeActionIframeHint": "Alguns sites de receitas não permitem abrir dentro do Home Screens e ficam em branco. Se isso acontecer, toque em “Mostrar código QR” na tela da receita.",
-      "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display, com um código para abrir a receita no celular. Também funciona para refeições salvas com ingredientes ou notas.",
+      "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display. Também funciona para refeições salvas com ingredientes ou notas. Se a refeição tiver um link de receita, aparece também um código para abrir a receita no celular.",
+      "tapRecipeActionNoLinkHint": "Se a refeição não tiver link de receita, aparece o cartão da receita no lugar, com os ingredientes e as notas.",
       "interactive": "Tocar na parede",
-      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras. Desligue se o display não for sensível ao toque."
+      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas e rolar listas longas. Desligue se o display não for sensível ao toque."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminação",
@@ -5678,7 +5682,7 @@
   },
   "backupReminder": {
     "message": {
-      "one": "Você não faz um backup há 1 dia.",
+      "one": "Você não faz um backup há {count} dia.",
       "other": "Você não faz um backup há {count} dias."
     },
     "downloading": "Baixando…",

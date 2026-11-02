@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { weekCellLayout, weekCellPieces, weekCellWords, type WeekCellRoom } from '../meal-week-cell';
+import { weekCellLayout, weekCellPieces, weekCellWords, weekRowFloorPx, type WeekCellRoom } from '../meal-week-cell';
 
 /**
  * A 400x660 module with four meals a day at 16px: 80.5px cells, 66.5px inside
@@ -134,5 +134,17 @@ describe('weekCellPieces', () => {
       { text: ' ', box: false },
       { text: 'Rømmegrøt\u00a0–', box: true },
     ]);
+  });
+});
+
+describe('weekRowFloorPx', () => {
+  it('holds one line of the name inside the padding, in whole pixels', () => {
+    // 13px names on a 1.2 line (15.6px), 4px of padding: 19.6, and a row of
+    // 19.6 or a hair under it still shows the whole name.
+    expect(weekRowFloorPx(13, 4)).toBe(19);
+  });
+
+  it('follows the name size', () => {
+    expect(weekRowFloorPx(20, 4)).toBe(28);
   });
 });

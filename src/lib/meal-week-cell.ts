@@ -178,3 +178,15 @@ export function weekCellLayout(room: WeekCellRoom): WeekCellLayout {
     countAt: !hasCount ? null : pictureAbove ? 'picture' : countOnLine ? 'line' : 'name',
   };
 }
+
+/**
+ * The shortest a week row may get on a touch wall, where the week scrolls
+ * rather than squeeze its rows past it: one line of a dish name inside the
+ * cell's padding, in whole pixels rounded down (a fraction of a pixel short
+ * of a line cuts nothing anyone can see). Any shorter and the row cuts the
+ * name itself, so a wall nobody touches keeps the squeeze while a finger can
+ * read every day whole.
+ */
+export function weekRowFloorPx(namePx: number, insetPx: number): number {
+  return Math.floor(NAME_LINE_HEIGHT * namePx + insetPx);
+}

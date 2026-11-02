@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import { withDisplayAuth } from '@/lib/api-utils';
 import { getMealieContext, isMealieRecipeFilter, searchMealieRecipes } from '@/lib/mealie';
 import { mealieRecipeToMeal } from '@/lib/mealie-map';
 import { withMealieErrors } from '@/lib/mealie-api';
@@ -9,11 +9,12 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/mealie/recipes?search=&filter=all|favorites|recent&category=&cookbook=&page=: one page
- * of the family's Mealie recipes for the phone's and the editor's pickers,
- * searched in Mealie each time and handed back as saved meals. Nothing is
- * copied into Home Screens.
+ * of the family's Mealie recipes for the phone's and the editor's pickers and
+ * the wall's recipe book, searched in Mealie and handed back as saved meals.
+ * Nothing is copied into Home Screens. Display access, since the wall reads
+ * it; it only ever reads.
  */
-export const GET = withAuth(withMealieErrors(async (request: NextRequest) => {
+export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest) => {
   const params = request.nextUrl.searchParams;
   const filter = params.get('filter') ?? 'all';
   if (!isMealieRecipeFilter(filter)) return NextResponse.json({ error: 'filter must be all, favorites or recent' }, { status: 400 });

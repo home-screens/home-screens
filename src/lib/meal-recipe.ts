@@ -1,4 +1,4 @@
-import type { MealSlotType, PlannedMeal, SavedMeal } from '@/types/config';
+import type { MealSlotType, PlannedMeal, RecipeTapAction, SavedMeal } from '@/types/config';
 import { getNextPlannedMeal, type NextPlannedMeal } from './meal-constants';
 import { isMealieMeal } from './meal-dish-rules';
 import type { MealieRecipeDetail } from './mealie-map';
@@ -148,9 +148,13 @@ export function nextRecipeMeal(
  * Rows of measured `heights` cut into pages of whole rows: the first page has
  * `first` pixels (a recipe's header and ingredients take the rest of its
  * page), every later page `rest`. A row taller than a page gets a page of its
- * own. The first page may hold no row at all when `first` is too small for
- * one. One empty page for no rows. A recipe's steps page this way, and so do
- * the wall's grocery columns.
+ * own, where the wall scrolls it or steps its type down. It goes on the first
+ * page when that page is still empty and has at least as much room as a later
+ * one (a landscape card's steps column is the same on every page), so page
+ * one never shows an empty Steps box; otherwise it starts the next page. The
+ * first page may hold no row at all when `first` is too small for one. One
+ * empty page for no rows. A recipe's steps page this way, and so do the
+ * wall's grocery columns.
  */
 export function pageByHeight(heights: readonly number[], first: number, rest: number, gap: number): number[][] {
   if (heights.length === 0) return [[]];
@@ -159,7 +163,8 @@ export function pageByHeight(heights: readonly number[], first: number, rest: nu
   for (let i = 0; i < heights.length; i++) {
     const page = pages[pages.length - 1];
     const need = heights[i] + (page.length > 0 ? gap : 0);
-    if (need <= room || (page.length === 0 && pages.length > 1)) {
+    const emptyTakesIt = page.length === 0 && (pages.length > 1 || (heights[i] > rest && first >= rest));
+    if (need <= room || emptyTakesIt) {
       page.push(i);
       room -= need;
       continue;
@@ -170,8 +175,44 @@ export function pageByHeight(heights: readonly number[], first: number, rest: nu
   return pages;
 }
 
+/** With nobody touching, a long recipe's pages turn this often; any touch stops it. */
+export const RECIPE_PAGE_TURN_MS = 30_000;
+
 /** The page a step is on. */
 export function recipePageOfStep(pages: readonly number[][], step: number): number {
   const found = pages.findIndex((p) => p.includes(step));
   return found < 0 ? 0 : found;
+}
+
+/**
+ * A recipe card nobody has cooked from closes this long after the last touch,
+ * so a card opened by accident does not hold the wall.
+ */
+export const RECIPE_CARD_IDLE_CLOSE_MS = 10 * 60_000;
+/**
+ * Once someone ticks an ingredient or taps a step, the card stays this long
+ * after the last touch: a stew simmers with nobody tapping, and the cook
+ * comes back to the same step.
+ */
+export const RECIPE_CARD_COOKING_CLOSE_MS = 60 * 60_000;
+
+/** How long an open recipe card waits after the last touch before it closes itself. */
+export function recipeCardCloseAfter(cooking: boolean): number {
+  return cooking ? RECIPE_CARD_COOKING_CLOSE_MS : RECIPE_CARD_IDLE_CLOSE_MS;
+}
+
+/**
+ * What tapping a meal on the wall opens for a module's tap action. The QR
+ * code and the recipe page need the meal's recipe link; a meal without one
+ * opens the recipe card instead when it has something to cook from, rather
+ * than a tap that does nothing. A meal with no recipe at all opens nothing,
+ * whatever the action, as the card has always done.
+ */
+export function recipeTapOpens(
+  action: Exclude<RecipeTapAction, 'off'>,
+  meal: SavedMeal | null | undefined,
+): Exclude<RecipeTapAction, 'off'> | null {
+  if (!meal) return null;
+  if (action !== 'card' && meal.recipeUrl) return action;
+  return mealHasRecipe(meal) ? 'card' : null;
 }

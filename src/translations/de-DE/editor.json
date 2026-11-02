@@ -4236,6 +4236,7 @@
       "viewNextMeal": "Nächste Mahlzeit",
       "viewRecipe": "Rezept",
       "viewGrocery": "Einkaufsliste",
+      "viewRecipeBook": "Rezeptbuch",
       "densityCozy": "Locker",
       "densitySnug": "Kompakt",
       "typographySize": "Textgröße",
@@ -4255,9 +4256,10 @@
       "tapRecipeActionCard": "Rezeptkarte anzeigen",
       "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
       "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
-      "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display, mit einem QR-Code, um das Rezept am Handy zu öffnen. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind.",
+      "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
+      "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken und ein Rezept Schritt für Schritt durchgehen. Schalte das bei einem Display ohne Touchscreen aus.",
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, ein Rezept Schritt für Schritt durchgehen, im Rezeptbuch suchen und lange Ansichten scrollen. Schalte das bei einem Display ohne Touchscreen aus.",
       "mobileHintTail": "damit alle Mahlzeiten-Module gleich bleiben."
     },
     "fullscreen-photo": {
@@ -4472,6 +4474,7 @@
       "viewCompact": "Kompakt (heute + morgen)",
       "viewList": "Vollständige Wochenliste",
       "viewGrocery": "Einkaufsliste",
+      "viewRecipes": "Rezepte",
       "showEmoji": "Bilder anzeigen",
       "showPrepTime": "Gesamtzeit anzeigen",
       "showTags": "Tags anzeigen",
@@ -4488,9 +4491,10 @@
       "tapRecipeActionCard": "Rezeptkarte anzeigen",
       "tapRecipeActionIframe": "Rezept auf dem Display öffnen",
       "tapRecipeActionIframeHint": "Manche Rezeptseiten lassen sich nicht in Home Screens öffnen und bleiben leer. Tippe in dem Fall in der Rezeptansicht auf „QR-Code anzeigen“.",
-      "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display, mit einem QR-Code, um das Rezept am Handy zu öffnen. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind.",
+      "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
+      "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken. Schalte das bei einem Display ohne Touchscreen aus."
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen und lange Listen scrollen. Schalte das bei einem Display ohne Touchscreen aus."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",

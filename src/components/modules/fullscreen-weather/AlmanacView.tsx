@@ -292,7 +292,7 @@ function PressureCard({ p, place }: CardProps) {
           width — here `width: 100%` of the card — so this sparkline claimed
           cardWidth * 80/300 of vertical space that no amount of `s`/`u`
           shrinking could reclaim. On a wide, short module (1880x560) that was
-          ~99px of a ~130px card: the fit loop bottomed out at MIN_FACTOR and
+          ~99px of a ~130px card: the fit loop bottomed out at FIT_MIN_FACTOR and
           the readout row was still clipped at the module edge. Every other
           chart here already states its height and stretches to it; this was
           the outlier.

@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, count, lacks, matches, notMatches, dayAt, localIso, localDate } from './shared';
+import { dayGridFontSize } from '@/lib/day-grid-type';
 
 /**
  * Phase-1 batch rows for the fullscreen-calendar module — see
@@ -278,19 +279,28 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // Month day-of-week header = bu * typoMul(1.0) * densityMul * 0.7; snug's
-    // densityMul is 1.0 (0.70·bu) vs cozy's 1.2 (0.84·bu).
+    // The month grid's type follows its cells (dayGridFontSize) and the
+    // density moves it: the day-of-week header is 0.7 of the size snug's
+    // densityMul 1.0 gives, about 9% under cozy's 1.2.
     type: 'fullscreen-calendar', name: 'density-snug', kind: 'networked', stubKey: 'calendar',
     config: { view: 'month-grid', density: 'snug' },
     expect: async (mod) => {
       await expect(mod.locator('[role="columnheader"]').first()).toBeVisible();
-      const ratio = await mod.locator('.fsc-root').evaluate((root) => {
-        const bu = Math.min(root.clientWidth, root.clientHeight) / 100;
+      const m = await mod.locator('.fsc-root').evaluate((root) => {
         const ch = root.querySelector('[role="columnheader"]') as HTMLElement;
-        return parseFloat(getComputedStyle(ch).fontSize) / bu;
+        return {
+          w: root.clientWidth,
+          h: root.clientHeight,
+          weeks: root.querySelectorAll('[role="gridcell"]').length / 7,
+          header: parseFloat(getComputedStyle(ch).fontSize),
+        };
       });
-      expect(ratio).toBeGreaterThan(0.6);
-      expect(ratio).toBeLessThan(0.77);
+      const bu = Math.min(m.w, m.h) / 100;
+      const header = (densityMul: number) => 0.7 * dayGridFontSize({
+        width: m.w / 7, height: (m.h - bu * 7) / m.weeks, textScale: densityMul, settingFont: bu * densityMul,
+      });
+      expect(m.header).toBeCloseTo(header(1.0), 0);
+      expect(Math.abs(m.header - header(1.2))).toBeGreaterThan(0.5);
     },
   },
   {

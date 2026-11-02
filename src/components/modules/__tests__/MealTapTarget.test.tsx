@@ -84,10 +84,22 @@ describe('MealTapTarget', () => {
     expect(container.querySelector('div.cluster')).not.toBeNull();
   });
 
-  it('renders a plain div when the meal has no recipeUrl', () => {
-    const { container } = renderTarget('qr', { id: 'm2', name: 'Soup' });
-    expect(container.querySelector('button')).toBeNull();
-    expect(container.querySelector('a')).toBeNull();
+  it('renders a plain div when the meal has no recipeUrl and nothing to cook from', () => {
+    for (const mode of ['qr', 'iframe', 'card'] as const) {
+      const { container } = renderTarget(mode, { id: 'm2', name: 'Soup' });
+      expect(container.querySelector('button')).toBeNull();
+      expect(container.querySelector('a')).toBeNull();
+      cleanup();
+    }
+  });
+
+  it('stays tappable in qr and iframe mode for a meal with ingredients and no recipeUrl (it opens the card)', () => {
+    const soup: SavedMeal = { id: 'm3', name: 'Soup', ingredients: [{ name: 'Tomatoes' }] };
+    for (const mode of ['qr', 'iframe'] as const) {
+      const { container } = renderTarget(mode, soup);
+      expect(container.querySelector('button')).not.toBeNull();
+      cleanup();
+    }
   });
 
   it('renders a plain div when there is no meal', () => {

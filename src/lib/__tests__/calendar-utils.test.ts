@@ -33,6 +33,9 @@ import {
   allDaySpanSegment,
   formatMonthRangeLabel,
   formatEventDuration,
+  isZeroLengthEvent,
+  eventEndLabel,
+  eventRowTimeLabel,
 } from '@/lib/calendar-utils';
 import { legendSources, eventsInWindow } from '@/lib/calendar-legend';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -1111,6 +1114,40 @@ describe('clampRollingWeeks', () => {
     expect(clampRollingWeeks(8)).toBe(8);
     expect(clampRollingWeeks(12)).toBe(8);
     expect(clampRollingWeeks(99)).toBe(8);
+  });
+});
+
+describe('events with no length', () => {
+  const at = (h: number, m = 0) => new Date(2026, 9, 30, h, m);
+  const t = ((key: string, vars?: Record<string, unknown>) => `${key}:${String(vars?.time ?? '')}`) as unknown as TranslateFn;
+  const row = (end: Date, single: 'range' | 'start' | 'duration') => eventRowTimeLabel({
+    segment: 'single',
+    startLabel: formatEventTime(at(21), '12h', 'en-US'),
+    endLabel: eventEndLabel(at(21), end, '12h', 'en-US'),
+    t, ns: 'calendar', single, start: at(21), end, locale: 'en-US',
+  });
+
+  it('knows a reminder that ends when it starts, or a broken row that ends before it, has no length', () => {
+    expect(isZeroLengthEvent(at(21), at(21))).toBe(true);
+    expect(isZeroLengthEvent(at(21), at(20, 30))).toBe(true);
+    expect(isZeroLengthEvent(at(21), at(21, 1))).toBe(false);
+  });
+
+  it('gives no end time to an event with no length', () => {
+    expect(eventEndLabel(at(21), at(21), '12h', 'en-US')).toBeNull();
+    expect(eventEndLabel(at(21), at(22), '12h', 'en-US')).toBe('10:00 PM');
+    expect(eventEndLabel(at(21), at(22), '24h', 'en-US')).toBe('22:00');
+  });
+
+  it('reads as its start alone, never "9:00 PM – 9:00 PM" or "9:00 PM · 0m"', () => {
+    expect(row(at(21), 'range')).toBe('9:00 PM');
+    expect(row(at(21), 'duration')).toBe('9:00 PM');
+    expect(row(at(21), 'start')).toBe('9:00 PM');
+  });
+
+  it('keeps the range and the length for an event that has one', () => {
+    expect(row(at(22), 'range')).toBe('9:00 PM – 10:00 PM');
+    expect(row(at(21, 45), 'duration')).toBe('9:00 PM · 45m');
   });
 });
 

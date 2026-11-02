@@ -4,6 +4,7 @@ import {
   findMainDisplay,
   validateAllSchedules,
   validateDisplays,
+  withoutDanglingScreenRefs,
 } from '@/lib/display-filter';
 import { getActiveScreens } from '@/lib/editor-multi-display';
 import { appendHistoryEntry, createPendingResave } from '@/stores/editor-save';
@@ -67,8 +68,11 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
           const body = await res.json().catch(() => null) as { error?: unknown } | null;
           throw new LoadFailure(`Load failed: ${res.status}`, typeof body?.error === 'string' ? body.error : null);
         }
-        const config: ScreenConfiguration = await res.json();
-        if (!config.screens) throw new Error('Invalid config');
+        const loaded: ScreenConfiguration = await res.json();
+        if (!loaded.screens) throw new Error('Invalid config');
+        // A profile or rule naming a screen that is gone would hold back
+        // every save with no word why; take the reference out on the way in.
+        const config = withoutDanglingScreenRefs(loaded);
         const configRevision = readRevision(res);
         const hubTimezone = res.headers?.get?.(HUB_TIMEZONE_HEADER) || null;
 
@@ -283,7 +287,7 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
       // Take theirs. The local version goes on the undo stack so one Undo
       // brings it back (and re-saves it over theirs, which is then the
       // user's explicit choice).
-      const theirs = conflict.theirs;
+      const theirs = withoutDanglingScreenRefs(conflict.theirs);
       const newPast = appendHistoryEntry(state._past, { ...state, config: state.config });
       const displays = theirs.displays ?? [];
       const selectedDisplayId = displays.length === 0
@@ -317,10 +321,11 @@ export function createConfigSlice(set: EditorSet, get: EditorGet): ConfigActions
     },
 
     importConfig: (json, revision) => {
-      const parsed = JSON.parse(json) as ScreenConfiguration;
-      if (!parsed.screens || !Array.isArray(parsed.screens) || !parsed.settings) {
+      const raw = JSON.parse(json) as ScreenConfiguration;
+      if (!raw.screens || !Array.isArray(raw.screens) || !raw.settings) {
         throw new Error('Invalid config file: missing screens or settings');
       }
+      const parsed = withoutDanglingScreenRefs(raw);
       const state = get();
       let newPast = state._past;
       if (state.config) {

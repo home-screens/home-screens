@@ -1,16 +1,19 @@
 'use client';
 
-import { Fragment, useMemo, type CSSProperties } from 'react';
+import { Fragment, useCallback, useMemo, useRef, type CSSProperties } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
-import { weekCellLayout, weekCellPieces, weekCellWords, WEEK_GAP_PX, WEEK_LINE_GAP_PX } from '@/lib/meal-week-cell';
+import { weekCellLayout, weekCellPieces, weekCellWords, weekRowFloorPx, WEEK_GAP_PX, WEEK_LINE_GAP_PX } from '@/lib/meal-week-cell';
+import { homeShowingRow } from '@/lib/wall-scroll-views';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseCount } from '../shared/MealCourseLines';
 import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
+import { WallScroller } from '../shared/WallScroller';
+import { smallWallScrollLook } from '../shared/wallScrollLook';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -23,6 +26,8 @@ interface WeekViewProps {
   recipeTapMode: RecipeTapMode;
   /** Module font size in px; the label decision needs the number, not `1em`. */
   fontSize: number;
+  /** A real display with taps on: a week too tall for the module scrolls with a finger. */
+  interactive: boolean;
 }
 
 /** Width of the day-name column, in em. */
@@ -53,7 +58,7 @@ const LONG_WORD_STYLE: CSSProperties = {
   verticalAlign: 'top',
 };
 
-export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode, fontSize }: WeekViewProps) {
+export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode, fontSize, interactive }: WeekViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
@@ -84,7 +89,21 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
   const cellPx = columnWidth > 0 ? columnWidth - GRID_GAP_PX - CELL_INSET_X_PX : 0;
   // The slot labels' row (a 1.5 line, pb-1 and mb-1) comes off the top first.
   const headerPx = smallPx * 1.5 + 8;
-  const rowPx = (frame.height - headerPx - GRID_GAP_PX * (weekDates.length - 1)) / weekDates.length - CELL_INSET_Y_PX;
+  // The seven days share the height. On a touch wall a row never gets shorter
+  // than one line of its dish: past that the week scrolls instead, resting
+  // where today shows (see weekRowFloorPx).
+  const rowFloorPx = interactive ? weekRowFloorPx(namePx, CELL_INSET_Y_PX) : 0;
+  const rowPx = Math.max(
+    (frame.height - headerPx - GRID_GAP_PX * (weekDates.length - 1)) / weekDates.length - CELL_INSET_Y_PX,
+    rowFloorPx - CELL_INSET_Y_PX,
+  );
+  const todayRowRef = useRef<HTMLDivElement>(null);
+  const home = useCallback((box: HTMLDivElement) => {
+    const row = todayRowRef.current;
+    if (!row) return 0;
+    return homeShowingRow(row.offsetTop, row.offsetTop + row.offsetHeight, box.clientHeight, box.scrollHeight - box.clientHeight);
+  }, []);
+  const look = useMemo(() => smallWallScrollLook(config.accentColor), [config.accentColor]);
 
   const columns = `${DAY_COLUMN_EM}em repeat(${slots.length}, minmax(0, 1fr))`;
 
@@ -108,17 +127,27 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
       </div>
 
       {/* Day rows */}
-      <div className="flex-1 flex flex-col gap-px min-h-0">
+      <WallScroller
+        enabled={interactive}
+        home={home}
+        homeKey={todayISO}
+        backLabel={t('wallScroll.backToToday')}
+        {...look}
+        className="flex flex-col gap-px"
+        testId="meal-week-scroll"
+      >
         {weekDates.map((date) => {
           const isToday = date === todayISO;
           const dayIdx = dateToDayIndex(date);
           return (
             <div
               key={date}
-              className="grid gap-px flex-1 min-h-0 items-center rounded-md transition-colors"
+              ref={isToday ? todayRowRef : undefined}
+              className="grid gap-px flex-1 items-center rounded-md transition-colors"
               style={{
                 gridTemplateColumns: columns,
                 backgroundColor: isToday ? ink(0.06) : 'transparent',
+                minHeight: rowFloorPx,
               }}
             >
               {/* Day label */}
@@ -244,7 +273,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
             </div>
           );
         })}
-      </div>
+      </WallScroller>
     </div>
   );
 }

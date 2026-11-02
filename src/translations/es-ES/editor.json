@@ -4236,6 +4236,7 @@
       "viewNextMeal": "Próxima comida",
       "viewRecipe": "Receta",
       "viewGrocery": "Lista de la compra",
+      "viewRecipeBook": "Recetario",
       "densityCozy": "Amplio",
       "densitySnug": "Compacto",
       "typographySize": "Tamaño del texto",
@@ -4255,9 +4256,10 @@
       "tapRecipeActionCard": "Mostrar ficha de la receta",
       "tapRecipeActionIframe": "Abrir la receta en el display",
       "tapRecipeActionIframeHint": "Algunos sitios de recetas no permiten abrirse dentro de Home Screens y se ven en blanco. Si ocurre, toca «Mostrar código QR» en la vista de la receta.",
-      "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display, con un código para abrir la receta en un móvil. También sirve para comidas guardadas con ingredientes o notas.",
+      "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
+      "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra y seguir una receta paso a paso en un display táctil. Desactívalo si el display no es táctil.",
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, seguir una receta paso a paso, buscar en el recetario y desplazar las vistas largas en un display táctil. Desactívalo si el display no es táctil.",
       "mobileHintTail": "para que todos los módulos de comidas sigan sincronizados."
     },
     "fullscreen-photo": {
@@ -4472,6 +4474,7 @@
       "viewCompact": "Compacto (hoy + mañana)",
       "viewList": "Lista semanal completa",
       "viewGrocery": "Lista de la compra",
+      "viewRecipes": "Recetas",
       "showEmoji": "Mostrar imágenes",
       "showPrepTime": "Mostrar tiempo total",
       "showTags": "Mostrar etiquetas",
@@ -4488,9 +4491,10 @@
       "tapRecipeActionCard": "Mostrar ficha de la receta",
       "tapRecipeActionIframe": "Abrir la receta en el display",
       "tapRecipeActionIframeHint": "Algunos sitios de recetas no permiten abrirse dentro de Home Screens y se ven en blanco. Si ocurre, toca «Mostrar código QR» en la vista de la receta.",
-      "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display, con un código para abrir la receta en un móvil. También sirve para comidas guardadas con ingredientes o notas.",
+      "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
+      "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra en un display táctil. Desactívalo si el display no es táctil."
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas y desplazar las listas largas en un display táctil. Desactívalo si el display no es táctil."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminación",

@@ -10,7 +10,9 @@ import { useTranslate } from '@/i18n';
 import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
+import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import MealThumb from './MealThumb';
+import RecipeWallButton from './RecipeWallButton';
 import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
 import { CARD_STYLE, formatShownMinutes, openOutside } from './meals-shared';
@@ -21,23 +23,25 @@ import { CARD_STYLE, formatShownMinutes, openOutside } from './meals-shared';
  * scroll). Each card opens the recipe in Mealie; there is nothing to add,
  * edit or heart here, because the recipes live there.
  */
-export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | undefined }) {
+export default function MealsMealieLibraryView({ baseUrl, wallNotices }: { baseUrl: string | undefined; wallNotices: WallNotices }) {
   const t = useTranslate('remote');
   // Favorites, Recently made, All, or one of Mealie's own categories or
   // cookbooks, chosen from the chips after All.
   const { query, setQuery, shortcut, choose, cookbooks, search } = useMealieRecipeBrowser(editorFetch);
   const typed = query.trim();
-  const count = useMealieRecipeCount(true);
+  const count = useMealieRecipeCount(true, search.recovered);
   const mealieLink = useMealieLink();
 
   // The household's categories for the chips; without them the Library still
-  // works from Favorites, Recently made and All.
+  // works from Favorites, Recently made and All. Asked again once Mealie
+  // answers after failing, or the chips stay missing after "Try again".
   const [categories, setCategories] = useState<MealieCategory[]>([]);
+  const { recovered } = search;
   useEffect(() => {
     const controller = new AbortController();
     fetchMealieCategories(editorFetch, controller.signal).then(setCategories, () => {});
     return () => controller.abort();
-  }, []);
+  }, [recovered]);
 
   // More cards as the list nears its end; the page itself scrolls here.
   const endRef = useRef<HTMLDivElement>(null);
@@ -76,23 +80,16 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
       const shown = mealShownMinutes(meal);
       const [first, ...rest] = meal.tags ?? [];
       return (
-        <button
+        <div
           key={meal.id}
-          type="button"
           data-testid="mealie-library-card"
-          onClick={() => openOutside(meal.recipeUrl && mealieLink(meal.recipeUrl))}
-          aria-label={t('mealie.library.openRecipeAriaLabel', { meal: meal.name })}
           style={{
             ...CARD_STYLE,
-            width: '100%',
+            position: 'relative',
             display: 'flex',
             alignItems: 'center',
             gap: 12,
             marginBottom: 8,
-            cursor: 'pointer',
-            textAlign: 'left',
-            color: 'inherit',
-            fontFamily: 'inherit',
           }}
         >
           <MealThumb meal={meal} size={64} radius={10} emojiSize={34} />
@@ -116,10 +113,20 @@ export default function MealsMealieLibraryView({ baseUrl }: { baseUrl: string | 
               </span>
             )}
           </span>
-          <span aria-hidden style={{ width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--hs-text-faint)', flex: 'none' }}>
+          {/* The whole card opens the recipe in Mealie, the link mark too. A
+              button laid over it rather than around it, so the wall button
+              beside the mark is a button of its own, not one inside another. */}
+          <button
+            type="button"
+            onClick={() => openOutside(meal.recipeUrl && mealieLink(meal.recipeUrl))}
+            aria-label={t('mealie.library.openRecipeAriaLabel', { meal: meal.name })}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, margin: 0, border: 'none', borderRadius: 'inherit', background: 'transparent', cursor: 'pointer' }}
+          />
+          <RecipeWallButton meal={meal} notices={wallNotices} style={{ position: 'relative' }} />
+          <span aria-hidden style={{ width: 34, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--hs-text-faint)', flex: 'none' }}>
             <ExternalLink size={18} strokeWidth={2} />
           </span>
-        </button>
+        </div>
       );
     });
   }

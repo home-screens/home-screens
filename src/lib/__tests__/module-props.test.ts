@@ -199,6 +199,16 @@ describe('buildModuleProps', () => {
     expect(props.availableDisplays).toEqual(displays);
   });
 
+  it('gives both calendars their screen and id on a display only, so their lists scroll there and never in the preview', () => {
+    for (const type of ['calendar', 'fullscreen-calendar'] as const) {
+      const mod = { id: 'cal-1', type, config: {} };
+      const onWall = buildModuleProps(mod, toDisplaySource(displaySettings, LOCATION, emptyShared(), [], { renderDisplayId: 'main', screenId: 's1' }));
+      expect(onWall).toMatchObject({ screenId: 's1', moduleId: 'cal-1' });
+      const inEditor = buildModuleProps(mod, editorSource());
+      expect(inEditor.screenId).toBeUndefined();
+    }
+  });
+
   it('does not give availableDisplays to other module types', () => {
     const props = buildModuleProps(instance('clock'), toDisplaySource(displaySettings, LOCATION, emptyShared(), [
       { id: 'kitchen', name: 'Kitchen' },

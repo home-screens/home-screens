@@ -16,8 +16,10 @@ import { EventCard } from './EventCard';
 import { formatRelativeDay, type EventDisplayStyle } from './support';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { NO_DAY_NOTES, dayNotesFor, type DayNotes } from '@/lib/day-notes';
+import { WallScroller } from '../shared/WallScroller';
+import { smallWallScrollLook } from '../shared/wallScrollLook';
 
-export function AgendaView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
+export function AgendaView({ events, config, style, today, now, accentColor, eventStyle, dayNotes, scroll = false }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -27,10 +29,13 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   now: Date;
   /** The family's day notes; absent or empty when the Day notes switch is off. */
   dayNotes?: DayNotes;
+  /** A finger scrolls the list past what fits, and it goes back to today by itself. */
+  scroll?: boolean;
 }) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
+  const look = useMemo(() => smallWallScrollLook(accentColor), [accentColor]);
   const showTime = config.showTime !== false;
   const showLocation = config.showLocation !== false;
   const showDescription = config.agendaShowDescription === true;
@@ -95,8 +100,17 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
     );
   }
 
+  // Every event up to maxEvents is drawn; the box shows what fits from today
+  // down, and on a touch wall a finger reads on.
   return (
-    <div className="flex flex-col gap-3 overflow-hidden h-full">
+    <WallScroller
+      enabled={scroll}
+      backLabel={t('wallScroll.backToToday')}
+      {...look}
+      className="flex flex-col gap-3"
+      frameStyle={{ height: '100%' }}
+      testId="calendar-agenda-scroll"
+    >
       {groups.map(({ date, events: dayEvents }, gi) => {
         const boundary = gi > 0
           ? boundaryBetween(groups[gi - 1].date, date, config.agendaSeparators, weekStartsOn)
@@ -161,6 +175,6 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
         </div>
         );
       })}
-    </div>
+    </WallScroller>
   );
 }

@@ -1,60 +1,56 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { useInteractionHold } from '@/lib/interaction-hold';
+import { useInteractionHold, useStayAwakeHold } from '@/lib/interaction-hold';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { buildThemeCSSVars, getThemeTokens, resolveFullscreenAccent, resolveFullscreenOnAccent } from '@/lib/fullscreen-themes';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { recipeCardCloseAfter } from '@/lib/meal-recipe';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useRecipeLink } from '@/components/meals/useMealieLink';
 import { RecipeSheet } from './RecipeSheet';
 import { useMealRecipe } from './useMealRecipe';
 import { recipeServingAt, useMealRecipeContext, type MealServingRef } from './MealRecipeContext';
-
-/** A card nobody is standing at closes itself, the same as the embedded recipe page. */
-export const RECIPE_CARD_AUTO_CLOSE_MS = 10 * 60_000;
+import { useViewportSize } from './useViewportSize';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
-
-function useViewport(): { w: number; h: number } {
-  const [vp, setVp] = useState(() => (typeof window === 'undefined' ? { w: 1080, h: 1920 } : { w: window.innerWidth, h: window.innerHeight }));
-  useEffect(() => {
-    const onResize = () => setVp({ w: window.innerWidth, h: window.innerHeight });
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  return vp;
-}
 
 /**
  * The recipe of a tapped meal, drawn on a card over the wall in the display's
  * full-screen theme: the same layout as the Recipe view, with a close button,
  * a QR code for a phone, and the courses as buttons that open their own
  * recipes on the same card. Portals to the body so it escapes the screen's
- * zoom, holds rotation while open, and closes itself after ten minutes with
- * no touch.
+ * zoom and holds rotation while open. A card nobody cooks from closes itself
+ * ten minutes after the last touch; the first tick, step or course starts
+ * cooking mode, which keeps the screen awake and the card open until an hour
+ * passes with no touch (`recipeCardCloseAfter`).
  */
 export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?: MealServingRef; onClose: () => void }) {
   const t = useTranslate('modules');
   const ctx = useMealRecipeContext();
   const [meal, setMeal] = useState(tapped);
   const recipeLink = useRecipeLink();
-  const { w, h } = useViewport();
+  const { w, h } = useViewportSize();
   useInteractionHold();
+  // Cooking mode, from the first tick, step or course: the idle dim and sleep
+  // wait, and the card stays an hour. A card opened by accident does neither.
+  const [cooking, setCooking] = useState(false);
+  const startCooking = useCallback(() => setCooking(true), []);
+  useStayAwakeHold(cooking);
 
-  // Every touch on the card starts the ten minutes over; onClose in a ref so
-  // a parent re-render (the minute clock) never restarts it.
+  // Every touch on the card starts the wait over; onClose in a ref so a
+  // parent re-render (the minute clock) never restarts it.
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const [touchedAt, setTouchedAt] = useState(0);
   useEffect(() => {
-    const timer = setTimeout(() => onCloseRef.current(), RECIPE_CARD_AUTO_CLOSE_MS);
+    const timer = setTimeout(() => onCloseRef.current(), recipeCardCloseAfter(cooking));
     return () => clearTimeout(timer);
-  }, [touchedAt, meal]);
+  }, [touchedAt, meal, cooking]);
 
   const theme = getThemeTokens(ctx?.theme);
   const cssVars = {
@@ -85,7 +81,16 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
       )}
       <div style={{ fontSize: P(28), lineHeight: 1.35, color: 'var(--fmp-text-2)' }}>
         {recipeUrl && t('meal-planner.recipe.scanForPhone')}
-        <div style={{ fontSize: P(23), color: 'var(--fmp-text-3)' }}>{t('meal-planner.recipe.closesItself')}</div>
+        {/* How long it stays, before and after cooking starts. Both lines sit in one cell and take the
+            taller one's room, so the first tick never moves a step to another page. */}
+        <div style={{ display: 'grid', fontSize: P(23), color: 'var(--fmp-text-3)' }}>
+          <span data-testid={!measuring && !cooking ? 'recipe-card-stays' : undefined} style={{ gridArea: '1 / 1', visibility: cooking ? 'hidden' : undefined }}>
+            {t('meal-planner.recipe.keepOpen')}
+          </span>
+          <span data-testid={!measuring && cooking ? 'recipe-card-stays' : undefined} style={{ gridArea: '1 / 1', visibility: cooking ? undefined : 'hidden' }}>
+            {t('meal-planner.recipe.staysOpen')}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -129,6 +134,8 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
           resetKey={meal.id}
           footer={footer}
           headerEndGap={P(110)}
+          held={cooking}
+          onCook={startCooking}
         />
         <button
           type="button"

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
 import { mealieClientProblem, searchMealieRecipes, type MealFetch, type MealieClientProblem } from '@/lib/meal-client';
 import type { MealieRecipeFilter } from '@/lib/mealie';
+import { spellingFallbacks } from '@/lib/meal-recipe-book';
 
 /** Long enough that typing "lasagne" asks Mealie once, short enough to feel live. */
 const SEARCH_DEBOUNCE_MS = 250;
@@ -23,6 +24,14 @@ export interface MealieRecipeSearch {
   loadMore: () => void;
   /** Ask again (after Mealie failed). */
   retry: () => void;
+  /** The shorter words searched instead, when `widen` is on and the typed ones found nothing. */
+  widenedTo: string | null;
+  /**
+   * Goes up each time Mealie answers after failing. What a surface asked
+   * Mealie for beside the recipes (cookbooks, categories, the count) failed
+   * along with them, and asks again when this changes.
+   */
+  recovered: number;
 }
 
 /**
@@ -36,7 +45,7 @@ export interface MealieRecipeSearch {
  */
 export function useMealieRecipeSearch(
   fetcher: MealFetch,
-  { search, filter, category, cookbook, enabled }: {
+  { search, filter, category, cookbook, enabled, widen = false }: {
     search: string;
     filter: MealieRecipeFilter;
     /** Only this Mealie category (by slug), with the filter `all`. */
@@ -44,6 +53,12 @@ export function useMealieRecipeSearch(
     /** Only this Mealie cookbook (by slug), with the filter `all`. */
     cookbook?: string;
     enabled: boolean;
+    /**
+     * Words that find nothing are tried again shorter (`spellingFallbacks`),
+     * for the wall's recipe book, where a child spells "choclate". Off for
+     * pickers, where a shorter search under the typed words would mislead.
+     */
+    widen?: boolean;
   },
 ): MealieRecipeSearch {
   const [items, setItems] = useState<SavedMeal[]>([]);
@@ -56,28 +71,50 @@ export function useMealieRecipeSearch(
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
   const [attempt, setAttempt] = useState(0);
+  const [widenedTo, setWidenedTo] = useState<string | null>(null);
+  const [recovered, setRecovered] = useState(0);
+  const failedRef = useRef(false);
   const query = search.trim();
   const key = `${filter}|${category ?? ''}|${cookbook ?? ''}|${query}|${attempt}`;
   const keyRef = useRef(key);
   keyRef.current = key;
+  // The furthest page asked for under these words. A list near its end fires
+  // a scroll event every frame, and `page` only moves once the answer has
+  // re-rendered, so without this each event asked for the same page again.
+  const askedRef = useRef({ key, page: 1 });
 
   // First page for these words, after a short pause in the typing.
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
+    const startedFor = keyRef.current;
     setLoading(true);
     setError(null);
     setProblem(null);
     const timer = setTimeout(() => {
-      searchMealieRecipes(fetcher, { search: query, filter: query ? 'all' : filter, category, cookbook, page: 1 }, controller.signal)
-        .then((result) => {
-          setItems(result.items);
+      const ask = (words: string) => searchMealieRecipes(fetcher, { search: words, filter: words ? 'all' : filter, category, cookbook, page: 1 }, controller.signal);
+      ask(query)
+        .then(async (result) => {
+          let shown = result;
+          let widened: string | null = null;
+          for (const part of widen && query && result.total === 0 ? spellingFallbacks(query) : []) {
+            const wider = await ask(part);
+            if (wider.total > 0) { shown = wider; widened = part; break; }
+          }
+          if (failedRef.current) {
+            failedRef.current = false;
+            setRecovered((n) => n + 1);
+          }
+          setWidenedTo(widened);
+          setItems(shown.items);
           setPage(1);
-          setTotalPages(result.totalPages);
-          setTotal(result.total);
+          askedRef.current = { key: startedFor, page: 1 };
+          setTotalPages(shown.totalPages);
+          setTotal(shown.total);
         })
         .catch((err: unknown) => {
           if (controller.signal.aborted) return;
+          failedRef.current = true;
           setItems([]);
           setError(err instanceof Error ? err.message : String(err));
           setProblem(mealieClientProblem(err));
@@ -90,13 +127,17 @@ export function useMealieRecipeSearch(
       clearTimeout(timer);
       controller.abort();
     };
-  }, [fetcher, query, filter, category, cookbook, enabled, attempt]);
+  }, [fetcher, query, filter, category, cookbook, enabled, attempt, widen]);
 
   const loadMore = useCallback(() => {
     if (!enabled || loading || page >= totalPages) return;
     const startedFor = keyRef.current;
     const next = page + 1;
-    searchMealieRecipes(fetcher, { search: query, filter: query ? 'all' : filter, category, cookbook, page: next })
+    const asked = askedRef.current;
+    if (asked.key === startedFor && asked.page >= next) return;
+    askedRef.current = { key: startedFor, page: next };
+    const words = widenedTo ?? query;
+    searchMealieRecipes(fetcher, { search: words, filter: words ? 'all' : filter, category, cookbook, page: next })
       .then((result) => {
         // The words changed while this page was out: it belongs to old results.
         if (keyRef.current !== startedFor) return;
@@ -106,10 +147,14 @@ export function useMealieRecipeSearch(
         });
         setPage(next);
       })
-      .catch(() => { /* the list keeps what it has; scrolling again retries */ });
-  }, [enabled, loading, page, totalPages, fetcher, query, filter, category, cookbook]);
+      .catch(() => {
+        // The list keeps what it has; scrolling again asks for this page again.
+        const now = askedRef.current;
+        if (now.key === startedFor && now.page === next) askedRef.current = { key: startedFor, page: next - 1 };
+      });
+  }, [enabled, loading, page, totalPages, fetcher, query, widenedTo, filter, category, cookbook]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
-  return { items, loading, error, problem, total, hasMore: page < totalPages, loadMore, retry };
+  return { items, loading, error, problem, total, hasMore: page < totalPages, loadMore, retry, widenedTo, recovered };
 }

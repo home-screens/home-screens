@@ -76,9 +76,9 @@ function runToSettle(lagFrames: number, maxFrames = 400) {
  */
 type Column = 'none' | 'stamped' | 'unstamped';
 
-function Harness({ onFit, column = 'none' }: { onFit: (f: number, settled: boolean) => void; column?: Column }) {
+function Harness({ onFit, column = 'none', enabled = true }: { onFit: (f: number, settled: boolean) => void; column?: Column; enabled?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
-  const { factor, settled } = useFitScale(ref, ['fixed-deps']);
+  const { factor, settled } = useFitScale(ref, ['fixed-deps'], enabled);
   onFit(factor, settled);
   return (
     <div ref={ref} {...{ [FIT_FACTOR_ATTR]: String(factor) }}>
@@ -172,6 +172,22 @@ describe('useFitScale', () => {
     vi.unstubAllGlobals();
   });
 
+  // A view that scrolls (the recipe book) opts out: overflow is its normal state, not a reason to shrink.
+  it('stays at full size, settled, without measuring when disabled', () => {
+    resetBrowser();
+    const restore = installFakeLayout();
+    try {
+      act(() => {
+        render(<Harness enabled={false} onFit={(f, settled) => { dispatchedFactor = f; dispatchedSettled = settled; }} />);
+      });
+      expect(frameCallbacks).toHaveLength(0);
+      expect(dispatchedFactor).toBe(1);
+      expect(dispatchedSettled).toBe(true);
+    } finally {
+      restore();
+    }
+  });
+
   it('converges on the largest factor that fits when every commit lands on time', () => {
     const converged = measureConverged(0);
     // 7 bisection steps over [0.3, 1] resolve to about half a percent.
@@ -252,7 +268,7 @@ describe('useFitScale', () => {
 
   /**
    * The expiry path. When a commit never arrives the loop must not judge the
-   * stale layout, and it must not fall to the unmeasured MIN_FACTOR floor
+   * stale layout, and it must not fall to the unmeasured FIT_MIN_FACTOR floor
    * either — that is the tiny type the loop exists to avoid. It settles on
    * the largest factor it has *measured* to fit, says so on the console, and
    * reports itself settled so nothing waits on it forever.

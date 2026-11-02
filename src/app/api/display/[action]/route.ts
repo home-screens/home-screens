@@ -26,7 +26,12 @@ import { cleanLibraryPath } from '@/lib/library-moves';
 import { mediaKindOf } from '@/lib/media-formats';
 import { mintMediaToken } from '@/lib/media-token';
 import { readImageDimensions } from '@/lib/image-dimensions';
-import type { ModuleInstance, Screen, ScreenConfiguration } from '@/types/config';
+import { readMealData } from '@/lib/meal-data';
+import { mealHasRecipe } from '@/lib/meal-recipe';
+import { getMealieContext, getMealieRecipe, MealieError } from '@/lib/mealie';
+import { claimsMealieId, mealieRecipeToMeal, parseMealieMealId } from '@/lib/mealie-map';
+import { mealieErrorResponse } from '@/lib/mealie-api';
+import type { ModuleInstance, SavedMeal, Screen, ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -236,6 +241,10 @@ export const POST = withDisplayAuth<RouteContext>(async (request, { params }) =>
       return handleModuleCommand(request, queryDisplayId);
     case 'show-photo':
       return handleShowPhoto(request, queryDisplayId);
+    case 'show-recipe':
+      return handleShowRecipe(request, queryDisplayId);
+    case 'hide-recipe':
+      return handleHideRecipe(request, queryDisplayId);
     case 'status':
       return handleStatus(request, queryDisplayId);
     default:
@@ -375,6 +384,87 @@ async function handleShowPhoto(
   const durationMs = seconds * 1000;
   await enqueueForTarget(displayId, 'show-photo', { url, kind, durationMs, expiresAt: Date.now() + durationMs, ...(size ?? {}) });
   return NextResponse.json({ ok: true, command: 'show-photo', durationMs });
+}
+
+/**
+ * How long a recipe sent from a phone waits for a wall that was off. Longer
+ * than a photo's minute: someone may still be at the stove ten minutes on.
+ */
+const SHOW_RECIPE_MS = 10 * 60_000;
+const MAX_MEAL_ID_LENGTH = 200;
+
+/**
+ * POST /api/display/show-recipe  { mealId }
+ *
+ * Opens one recipe on a card over the wall's screen, the same card a tapped
+ * meal opens: "Show on the wall" from the phone's Meals. `mealId` is a Mealie
+ * recipe (`mealie:<recipe id>`) or one of the family's saved meals with
+ * ingredients or notes. The hub looks the meal up itself, so the wall draws
+ * the meal every other view draws (name, photo, times, servings, link) and a
+ * request can only show a recipe the family has. The card reads the steps
+ * itself. `expiresAt` lets a wall that was off skip a recipe whose moment has
+ * passed.
+ */
+async function handleShowRecipe(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const mealId = typeof body?.mealId === 'string' ? body.mealId.trim() : '';
+  const mealieId = parseMealieMealId(mealId);
+  if (!mealId || mealId.length > MAX_MEAL_ID_LENGTH || (claimsMealieId(mealId) && !mealieId)) {
+    return NextResponse.json({ error: 'mealId must be a Mealie recipe (mealie:<recipe id>) or a saved meal id' }, { status: 400 });
+  }
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
+  if (displayId instanceof NextResponse) return displayId;
+
+  let meal: SavedMeal | undefined;
+  if (mealieId) {
+    try {
+      const [recipe, mealie] = await Promise.all([getMealieRecipe(mealieId), getMealieContext()]);
+      meal = mealieRecipeToMeal(recipe, mealie);
+    } catch (err) {
+      // Deleted in Mealie since the phone listed it: gone, not Mealie down.
+      if (err instanceof MealieError && err.status === 404) {
+        return NextResponse.json({ error: 'That recipe is not in Mealie anymore', reason: 'gone' }, { status: 404 });
+      }
+      return mealieErrorResponse(err);
+    }
+  } else {
+    meal = (await readMealData()).savedMeals.find((m) => m.id === mealId);
+    if (!meal) return NextResponse.json({ error: 'That meal is not saved anymore', reason: 'gone' }, { status: 404 });
+    if (!mealHasRecipe(meal)) {
+      return NextResponse.json({ error: 'That meal has no ingredients or notes to show' }, { status: 400 });
+    }
+  }
+  await enqueueForTarget(displayId, 'show-recipe', { meal, expiresAt: Date.now() + SHOW_RECIPE_MS });
+  return NextResponse.json({ ok: true, command: 'show-recipe', mealId: meal.id });
+}
+
+/**
+ * POST /api/display/hide-recipe  { mealId? }
+ *
+ * Takes down a recipe a phone put on the wall with show-recipe: "Take it
+ * down" on the phone, which otherwise had no way to close a recipe sent to
+ * the wrong wall, or to every wall. With `mealId` only that recipe closes,
+ * so taking yours down never closes one someone sent since; without it,
+ * whatever recipe a phone put up closes. Queued like show-recipe, so on a
+ * wall that was off it follows the recipe it takes down.
+ */
+async function handleHideRecipe(
+  request: NextRequest,
+  queryDisplayId: string | undefined,
+): Promise<NextResponse> {
+  const body = await safeJson(request);
+  const given = body?.mealId;
+  const mealId = typeof given === 'string' ? given.trim() : '';
+  if (given != null && (!mealId || mealId.length > MAX_MEAL_ID_LENGTH)) {
+    return NextResponse.json({ error: 'mealId must be the id the recipe was shown with' }, { status: 400 });
+  }
+  const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: true });
+  if (displayId instanceof NextResponse) return displayId;
+  await enqueueForTarget(displayId, 'hide-recipe', mealId ? { mealId } : undefined);
+  return NextResponse.json({ ok: true, command: 'hide-recipe' });
 }
 
 /**

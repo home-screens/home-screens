@@ -336,6 +336,29 @@ test("the Library's cookbook chips show only that cookbook's recipes", async ({ 
   await expect(cards).toHaveCount(FAKE_RECIPES.length);
 });
 
+test('the Library gets its cookbook and category chips and its count back once Mealie answers again', async ({ page, request }) => {
+  const down = await startFakeMealie();
+  await connectFakeMealie(request, down);
+  await down.close();
+  await page.goto('/remote');
+  await openMeals(page);
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  const library = page.getByTestId('mealie-library');
+  const retry = library.getByRole('button', { name: 'Try again' });
+  const box = library.getByRole('searchbox', { name: "Search Mealie's recipes" });
+  await expect(retry).toBeVisible();
+  await expect(library.getByRole('button', { name: 'Weeknight dinners' })).toHaveCount(0);
+  await expect(box).toHaveAttribute('placeholder', 'Search recipes…');
+
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await retry.click();
+  await expect(library.getByTestId('mealie-library-card')).toHaveCount(2);
+  await expect(library.getByRole('button', { name: 'Weeknight dinners' })).toBeVisible();
+  await expect(library.getByRole('button', { name: 'Dinner', exact: true })).toBeVisible();
+  await expect(box).toHaveAttribute('placeholder', 'Search 6 recipes…');
+});
+
 test("the picker's cookbook chips narrow the recipes to pick from", async ({ page, request }) => {
   mealie = await startFakeMealie();
   await connectFakeMealie(request, mealie);

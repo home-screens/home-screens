@@ -70,6 +70,11 @@ export interface CalendarViewProps {
   extras?: ExtrasIndex;
   /** The family's day notes (absent or empty when the module's Day notes switch is off). */
   dayNotes?: DayNotes;
+  /**
+   * A finger scrolls the list views (Agenda, Week list, Up next) past what
+   * fits: a real display with "Tap an event to see details" on.
+   */
+  scroll?: boolean;
 }
 
 /**
@@ -111,6 +116,32 @@ export { dayDecorFor } from '@/lib/calendar-rules';
 export function clippedListFade(px: number): CSSProperties {
   const mask = `linear-gradient(to bottom, #000 calc(100% - ${px}px), transparent 100%)`;
   return { maskImage: mask, WebkitMaskImage: mask };
+}
+
+/**
+ * The "Back to today" button and the scroll bar of a list a finger scrolls
+ * (`WallScroller`), in the theme: the accent with its own ink, sized a little
+ * under an event title, and a bar in the theme's text colour.
+ */
+export function wallScrollLook(scale: CalendarScale, fontSize: number): {
+  backStyle: CSSProperties;
+  thumbColor: string;
+  thumbWidth: number;
+} {
+  return {
+    backStyle: {
+      top: scale.bu * 2,
+      fontSize: fontSize * 1.4,
+      padding: '0.55em 1.2em',
+      gap: '0.45em',
+      background: 'var(--cal-accent)',
+      color: 'var(--cal-on-accent, #fff)',
+      boxShadow: '0 0.3em 0.9em color-mix(in srgb, var(--cal-accent) 35%, transparent)',
+      fontFamily: "var(--font-inter), 'Inter', system-ui, sans-serif",
+    },
+    thumbColor: 'color-mix(in srgb, var(--cal-text-primary) 28%, transparent)',
+    thumbWidth: Math.max(4, Math.round(scale.bu * 0.75)),
+  };
 }
 
 /** Title text truncation: two-line clamp when wrapping, single-line ellipsis otherwise. */

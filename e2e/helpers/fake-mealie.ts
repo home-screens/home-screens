@@ -23,6 +23,10 @@ export interface FakeRecipe {
   favorite?: boolean;
   /** Category slugs (`dinner`, `dessert`), as Mealie's category filter matches them. */
   categories?: string[];
+  /** The recipe's ingredient lines; unset, every recipe has the chili's three. */
+  ingredients?: string[];
+  /** The recipe's steps; unset, every recipe has the chili's two. */
+  steps?: string[];
 }
 
 export interface FakeEntry {
@@ -78,6 +82,37 @@ export const FAKE_RECIPES: FakeRecipe[] = [
   { id: '4d5e6f7a-8b9c-4d0e-9f1a-3b4c5d6e7f80', slug: 'mac-and-cheese', name: 'Mac and Cheese', photo: true, prepMinutes: 25, categories: ['dinner'] },
   { id: '5e6f7a8b-9c0d-4e1f-8a2b-4c5d6e7f8091', slug: 'cheese-board', name: 'Cheese Board', photo: true, prepMinutes: 5 },
 ];
+
+/**
+ * Recipes too long for one page of the recipe card, for specs that add them
+ * (`mealie.recipes = [...mealie.recipes, LONG_STEP_RECIPE]`): twenty
+ * ingredients and one 1,500-character step, and ten steps of a few lines each.
+ */
+export const LONG_STEP_RECIPE: FakeRecipe = {
+  id: '6f7a8b9c-0d1e-4f2a-9b3c-5d6e7f8091a2', slug: 'chicken-alfredo-primavera', name: 'Chicken Alfredo Primavera', photo: true, prepMinutes: 10,
+  ingredients: [
+    '2 tablespoons butter', '3 tablespoons olive oil', '5 boneless chicken thighs, cut into strips', '1 teaspoon salt',
+    '1 butternut squash, cut into 1/2 inch cubes', '1 head broccoli, chopped', '8 ounces mushrooms, sliced', '1 red pepper, sliced',
+    '1 onion, chopped', '3 cloves garlic, minced', '1/2 teaspoon red pepper flakes', '1/2 cup white wine', '1/2 cup milk',
+    '1/2 cup heavy cream', '1 cup grated parmesan', '1 pound fettuccine', '1 cup frozen peas', '2 tablespoons chopped parsley',
+    '1/2 teaspoon black pepper', '1 lemon, zested',
+  ],
+  steps: [[
+    'Bring a large pot of well salted water to a boil for the fettuccine while you get everything else ready, because the sauce comes together quickly once the chicken is browned.',
+    'Melt the butter with the olive oil in a wide, deep skillet over medium high heat. Season the chicken strips with the salt and lay them in the pan in a single layer, then leave them alone for three or four minutes so they brown properly before you turn them.',
+    'Turn the chicken, cook it for another three minutes until it is cooked through, and move it to a plate. Add the squash to the same pan and cook it for five minutes, stirring now and then, until the edges start to color.',
+    'Add the broccoli, mushrooms, red pepper and onion with a splash of water, cover the pan and let the vegetables steam for four minutes. Uncover, stir in the garlic and the red pepper flakes, and cook for one more minute until the garlic smells sweet.',
+    'Pour in the white wine and scrape up the browned bits from the bottom of the pan, then let it bubble until it has nearly cooked away. Lower the heat, add the milk and the cream, and bring it back to a gentle simmer.',
+    'Meanwhile cook the fettuccine for two minutes less than the packet says, adding the frozen peas for the last minute. Save a mug of the pasta water before you drain it.',
+    'Tip the pasta, the peas and the chicken into the sauce with the parmesan, the black pepper and a little of the pasta water, and toss everything together until the sauce coats the noodles. Finish with the parsley and the lemon zest, and serve hot.',
+  ].join(' ')],
+};
+
+export const MANY_STEPS_RECIPE: FakeRecipe = {
+  id: '7a8b9c0d-1e2f-4a3b-8c4d-6e7f8091a2b3', slug: 'sunday-roast', name: 'Sunday Roast', photo: true, prepMinutes: 30,
+  ingredients: ['1 beef roast', '2 pounds potatoes', '4 carrots', '1 onion', '2 tablespoons flour', '2 cups stock'],
+  steps: Array.from({ length: 10 }, (_, i) => `Step ${i + 1} of the roast. Keep the oven at the same heat, check the pan, turn the potatoes so they brown on every side, and baste the meat with the juices before you close the door again. Set a timer for ten minutes.`),
+};
 
 /** The household's cookbooks, by the recipes (slugs) in each. */
 export const FAKE_COOKBOOKS: { name: string; slug: string; recipes: string[] }[] = [
@@ -302,12 +337,12 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
         if (!recipe) return send(404, { detail: 'Not found' });
         return send(200, {
           ...recipeSummary(recipe),
-          recipeIngredient: [
+          recipeIngredient: recipe.ingredients?.map((display) => ({ display })) ?? [
             { display: '1 lb ground beef' },
             { display: '2 cans kidney beans' },
             { quantity: 1, unit: { name: 'cup', pluralName: 'cups', fraction: true }, food: { name: 'rice' }, display: '1 cup rice' },
           ],
-          recipeInstructions: [{ text: 'Brown the beef.' }, { text: 'Simmer with the beans.' }],
+          recipeInstructions: (recipe.steps ?? ['Brown the beef.', 'Simmer with the beans.']).map((text) => ({ text })),
         });
       }
       if (path === '/api/households/cookbooks') {

@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { dayMonthPattern, formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarScale } from './view-support';
@@ -11,21 +12,40 @@ import type { CalendarScale } from './view-support';
  */
 
 /**
+ * An event's time on the list views (Agenda, Week list, Up next), and the
+ * "All day" or "Holiday" that stands in its place: the theme's second text
+ * colour at a medium weight. A step under the title, which takes the first,
+ * and never the faint third that locations and calendar names use: the time
+ * is what people read a list for.
+ */
+export const EVENT_TIME_TEXT: CSSProperties = {
+  color: 'var(--cal-text-secondary)',
+  fontWeight: 500,
+  fontVariantNumeric: 'tabular-nums',
+};
+
+/**
  * Accessible name for an event row/chip/block, built the same way in every
  * view so a screen-reader user hears the location wherever one exists.
  * `startLabel`/`endLabel` are the already-formatted times; all-day rows
- * skip them.
+ * skip them, and an event with no length (`endLabel` null, from
+ * `eventEndLabel`) is named by its start alone.
  */
 export function eventAriaLabel(
   t: TranslateFn,
   ev: { title: string; location?: string },
-  opts: { startLabel?: string; endLabel?: string; allDay?: boolean } = {},
+  opts: { startLabel?: string; endLabel?: string | null; allDay?: boolean } = {},
 ): string {
   if (opts.allDay) {
     const base = t('fullscreen-calendar.ariaLabels.eventAllDay', { title: ev.title });
     return ev.location ? `${base}, ${ev.location}` : base;
   }
   const start = opts.startLabel ?? '';
+  if (opts.endLabel === null) {
+    return ev.location
+      ? t('fullscreen-calendar.ariaLabels.eventAtTimeAtLocation', { title: ev.title, time: start, location: ev.location })
+      : t('fullscreen-calendar.ariaLabels.eventAtTime', { title: ev.title, time: start });
+  }
   const end = opts.endLabel ?? '';
   return ev.location
     ? t('fullscreen-calendar.ariaLabels.eventTimedAtLocation', { title: ev.title, start, end, location: ev.location })

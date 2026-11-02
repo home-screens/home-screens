@@ -54,7 +54,13 @@ export interface MealieRecipeBrowser {
  */
 export function useMealieRecipeBrowser(
   fetcher: MealFetch,
-  { courseKind = null, enabled = true, withCookbooks = true }: { courseKind?: MealCourseKind | null; enabled?: boolean; withCookbooks?: boolean } = {},
+  { courseKind = null, enabled = true, withCookbooks = true, widen = false }: {
+    courseKind?: MealCourseKind | null;
+    enabled?: boolean;
+    withCookbooks?: boolean;
+    /** Try words that find nothing again shorter (the wall's recipe book; see `useMealieRecipeSearch`). */
+    widen?: boolean;
+  } = {},
 ): MealieRecipeBrowser {
   const [query, setQuery] = useState('');
   const [chosen, setChosen] = useState<{ filter: MealieRecipeFilter; category?: string; cookbook?: string }>({ filter: 'favorites' });
@@ -65,7 +71,6 @@ export function useMealieRecipeBrowser(
     setCategoryApplied(true);
     if (courseCategory) setChosen({ filter: 'all', category: courseCategory.slug });
   }, [ready, categoryApplied, courseCategory]);
-  const cookbooks = useMealieCookbooks(fetcher, enabled && withCookbooks);
 
   const typed = query.trim();
   const search = useMealieRecipeSearch(fetcher, {
@@ -74,7 +79,10 @@ export function useMealieRecipeBrowser(
     category: typed ? undefined : chosen.category,
     cookbook: typed ? undefined : chosen.cookbook,
     enabled: enabled && ready,
+    widen,
   });
+  // Asked again when Mealie answers after an outage, or the chips stay missing.
+  const cookbooks = useMealieCookbooks(fetcher, enabled && withCookbooks, search.recovered);
 
   const choose = useCallback((choice: RecipeShortcutChoice) => {
     setQuery('');

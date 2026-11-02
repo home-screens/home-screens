@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, formatEventTime, birthdayAge } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, birthdayAge } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { MapPin } from 'lucide-react';
@@ -289,8 +289,9 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
               const owner = eventOwner(ev, owners);
               const isPast = isToday && evEnd <= nowHour;
 
-              const evStartLabel = formatEventTime(parseEventWallTime(ev.start, timezone), timeFormat, locale);
-              const evEndLabel = formatEventTime(parseEventWallTime(ev.end, timezone), timeFormat, locale);
+              const evStartAt = parseEventWallTime(ev.start, timezone);
+              const evStartLabel = formatEventTime(evStartAt, timeFormat, locale);
+              const evEndLabel = eventEndLabel(evStartAt, parseEventWallTime(ev.end, timezone), timeFormat, locale);
               const evAriaLabel = eventAriaLabel(t, ev, { startLabel: evStartLabel, endLabel: evEndLabel });
 
               return (
@@ -334,7 +335,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
                     color: 'var(--cal-text-secondary)',
                     marginTop: 1,
                   }}>
-                    {evStartLabel} &ndash; {evEndLabel}
+                    {evEndLabel === null ? evStartLabel : <>{evStartLabel} &ndash; {evEndLabel}</>}
                   </div>
                   {config.dayShowLocation && ev.location && (
                     <div style={{

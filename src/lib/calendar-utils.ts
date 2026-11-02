@@ -260,6 +260,24 @@ export function formatEventTime(date: Date, timeFormat: TimeFormat, locale: stri
 }
 
 /**
+ * An event that ends when it starts (a reminder, a deadline, "trash out at
+ * 9"): it has a moment, not a length. An end before the start is a broken
+ * feed row and reads the same way.
+ */
+export function isZeroLengthEvent(start: Date, end: Date): boolean {
+  return end.getTime() <= start.getTime();
+}
+
+/**
+ * The end time to show after an event's start, or null when the event has no
+ * length: such an event reads as its start alone, never "9:00 PM – 9:00 PM" or
+ * "9:00 PM · 0m". Every surface that writes an end time takes it from here.
+ */
+export function eventEndLabel(start: Date, end: Date, timeFormat: TimeFormat, locale: string): string | null {
+  return isZeroLengthEvent(start, end) ? null : formatEventTime(end, timeFormat, locale);
+}
+
+/**
  * Compact grid-pill time: "8a", "5:30p" (12h) or "17:30" (24h). The modern
  * multi-week themes use this so the title, not the timestamp, owns the pill
  * width. 'aaaaa' is date-fns' narrow day period ("a"/"p" in en-US); locales
@@ -650,11 +668,14 @@ export function formatEventDuration(start: Date, end: Date, locale: string): str
  * first and last days ("From 10:00 AM" / "Until 3:00 PM"); plain rows show
  * the view's single-day presentation. `ns` picks the translation namespace,
  * same as `eventKindLabel` — each surface owns its own copy of these keys.
+ * An event with no length (`endLabel` null, see `eventEndLabel`) reads as its
+ * start alone, whatever the view's presentation.
  */
 export function eventRowTimeLabel(opts: {
   segment: EventDaySegment | undefined;
   startLabel: string;
-  endLabel: string;
+  /** Null for an event with no length (`eventEndLabel`). */
+  endLabel: string | null;
   t: TranslateFn;
   ns: 'calendar' | 'fullscreen-calendar';
   /** Plain single-day rows: a full range (default), the start alone (compact chips), or "start · 1h 30m". */
@@ -665,6 +686,7 @@ export function eventRowTimeLabel(opts: {
   /** The formatting language, for the duration's units (`single: 'duration'`). */
   locale?: string;
 }): string {
+  if (opts.endLabel === null) return opts.startLabel;
   if (opts.segment === 'first') return opts.t(`${opts.ns}.fromTime`, { time: opts.startLabel });
   if (opts.segment === 'last') return opts.t(`${opts.ns}.untilTime`, { time: opts.endLabel });
   if (opts.single === 'start') return opts.startLabel;

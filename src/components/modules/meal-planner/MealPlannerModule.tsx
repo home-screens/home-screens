@@ -12,9 +12,12 @@ import { NextMealView } from './NextMealView';
 import { CompactView } from './CompactView';
 import { ListView } from './ListView';
 import { GroceryView } from './GroceryView';
+import { RecipesView } from './RecipesView';
 import { mealieWords } from '../shared/mealie-problem';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
 import { useWallMeals } from '../shared/useWallMeals';
+import { useWallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
+import { recipeBookSource } from '@/lib/meal-recipe-book';
 
 interface MealPlannerModuleProps {
   config: MealPlannerConfig;
@@ -33,6 +36,11 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
     data, error, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan, weekDates, plan,
     mealie, grocery, interactive, recipeTapMode, recipeContext,
   } = useWallMeals({ moduleType: 'meal-planner', view, timezone, theme: fullscreenTheme, config, screenId, moduleId });
+  const book = useWallRecipeBook({
+    source: recipeBookSource(data?.mealieConnected ?? false),
+    savedMeals,
+    enabled: view === 'recipes' && data !== null,
+  });
 
   // A plan counts by what it draws (`weekPlannedSlots`), as the full-screen
   // Week counts it: an entry for a meal that is switched off (Mealie plans
@@ -52,7 +60,19 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   if (view === 'grocery') {
     return (
       <ModuleWrapper style={style}>
-        <GroceryView config={config} grocery={grocery} tappable={interactive} />
+        {/* Keyed: a touch wall scrolls the list and one without pages it, each measured from its own mount. */}
+        <GroceryView key={String(interactive)} config={config} grocery={grocery} tappable={interactive} />
+      </ModuleWrapper>
+    );
+  }
+
+  // The recipe book is not the plan either: it answers for itself.
+  if (view === 'recipes') {
+    return (
+      <ModuleWrapper style={style}>
+        <MealRecipeContext.Provider value={recipeContext}>
+          <RecipesView config={config} book={book} fontSize={style.fontSize} interactive={interactive} />
+        </MealRecipeContext.Provider>
       </ModuleWrapper>
     );
   }
@@ -86,12 +106,12 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   return (
     <ModuleWrapper style={style}>
       <MealRecipeContext.Provider value={recipeContext}>
-      {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} />}
+      {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} interactive={interactive} />}
       {/* The whole plan: late in the evening Today shows tomorrow, which can be in next week. */}
       {view === 'today' && <TodayView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'next-meal' && <NextMealView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
-      {view === 'list' && <ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
+      {view === 'list' && <ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} interactive={interactive} fontSize={style.fontSize} />}
       </MealRecipeContext.Provider>
     </ModuleWrapper>
   );

@@ -357,6 +357,7 @@
     },
     "library": {
       "searchPlaceholder": "Mahlzeiten suchen…",
+      "hint": "Tippe auf eine Mahlzeit, um sie zu ändern, oder auf den Bildschirm-Knopf, um sie an der Wand zu zeigen.",
       "filterByAriaLabel": "Nach {label} filtern",
       "empty": {
         "titleNoMeals": "Noch keine Mahlzeiten",
@@ -375,8 +376,8 @@
         "drink": "Getränke",
         "quick": "Schnell",
         "healthy": "Gesund",
-        "comfort": "Wohlfühl",
-        "kid-friendly": "Kindgerecht"
+        "comfort": "Wohlfühlessen",
+        "kid-friendly": "Kinderfreundlich"
       }
     },
     "loadError": "Deine Mahlzeiten konnten nicht geladen werden. Prüfe, ob der Hub an ist, und versuch es noch einmal.",
@@ -403,6 +404,20 @@
       },
       "deleted": "{name} gelöscht.",
       "undo": "Rückgängig"
+    },
+    "showOnWall": {
+      "button": "An der Wand zeigen",
+      "ariaLabel": "{meal} an der Wand zeigen",
+      "sent": "{meal} ist jetzt auf {where} zu sehen.",
+      "takeDown": "Wieder ausblenden",
+      "takenDown": "{meal} ist nicht mehr auf {where} zu sehen.",
+      "pickTitle": "Auf welchem Display?",
+      "pickHint": "Dieses Handy merkt sich deine Wahl für Rezepte. Willst du eins woanders zeigen, wähle das Display im Tab „Steuerung“.",
+      "everyWall": "allen Displays",
+      "theWall": "dem Display",
+      "failed": "Das Display ist nicht erreichbar. Versuch es noch einmal.",
+      "mealieFailed": "Das Rezept ließ sich nicht aus Mealie laden. Versuch es noch einmal.",
+      "gone": "Das Rezept ist nicht mehr da."
     }
   },
   "mealForm": {
@@ -1493,7 +1508,7 @@
       "noneInCategoryDescription": "Such ein Rezept nach Namen oder wähl Favoriten."
     },
     "library": {
-      "info": "Die Rezepte sind in Mealie. Tippe eins an, um es dort zu öffnen.",
+      "info": "Die Rezepte sind in Mealie. Tippe auf ein Rezept, um es dort zu öffnen, oder auf den Bildschirm-Knopf, um es an der Wand zu zeigen.",
       "placeholder": "Rezepte suchen…",
       "placeholderCount": {
         "one": "1 Rezept durchsuchen…",

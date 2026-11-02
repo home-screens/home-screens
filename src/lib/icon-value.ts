@@ -65,3 +65,18 @@ export function iconValueFaClass(value: string | null | undefined): string | nul
   const parsed = parseIconValue(value);
   return parsed?.type === 'fa' ? buildIconClass(parsed.name, parsed.kind) : null;
 }
+
+/**
+ * A picker's emoji grid with the field's own value in front when the grid
+ * does not carry it. An emoji chosen anywhere else (the editor's emoji search,
+ * the default plate a new meal starts with, a meal saved long ago) then still
+ * shows as the one chosen, instead of a grid with nothing marked that reads
+ * as "no icon yet". A picture of the family's own is marked in its own
+ * section, and an empty value or a Font Awesome token is not an emoji to
+ * draw, so none of those is added.
+ */
+export function emojiGridWithChosen(grid: readonly string[], chosen: string | null | undefined): readonly string[] {
+  const parsed = parseIconValue(chosen);
+  if (parsed?.type !== 'text' || grid.includes(parsed.text)) return grid;
+  return [parsed.text, ...grid];
+}

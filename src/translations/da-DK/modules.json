@@ -145,7 +145,15 @@
     "savedShort": "gemt",
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
-    "birthdayWithAge": "Fødselsdag · fylder {age}"
+    "birthdayWithAge": "Fødselsdag · fylder {age}",
+    "daySheet": {
+      "eventCount": {
+        "one": "{count} begivenhed",
+        "other": "{count} begivenheder"
+      },
+      "toTime": "til {time}",
+      "openDay": "Se alt, der sker {date}"
+    }
   },
   "fullscreen-calendar": {
     "allDay": "Hele dagen",
@@ -183,6 +191,8 @@
       "eventAllDay": "{title}, hele dagen",
       "eventTimed": "{title}, {start} til {end}",
       "eventTimedAtLocation": "{title}, {start} til {end}, ved {location}",
+      "eventAtTime": "{title}, kl. {time}",
+      "eventAtTimeAtLocation": "{title}, kl. {time}, ved {location}",
       "monthCell": "{date}, {count} begivenheder",
       "legend": "Kalenderkilder",
       "familyGrid": "Familiens ugeoversigt"
@@ -362,6 +372,85 @@
     "now": "Nu"
   },
   "meal-planner": {
+    "recipeBook": {
+      "title": "Opskrifter",
+      "count": {
+        "one": "1 opskrift",
+        "other": "{count} opskrifter"
+      },
+      "searchPlaceholder": "Søg i opskrifter",
+      "searchCount": {
+        "one": "Søg i 1 opskrift",
+        "other": "Søg i {count} opskrifter"
+      },
+      "searchAria": "Søg i opskrifterne",
+      "clearSearch": "Ryd søgningen",
+      "spaceKey": "mellemrum",
+      "doneKey": "Færdig",
+      "deleteKey": "Slet et bogstav",
+      "moreChips": {
+        "one": "+ {count} mere",
+        "other": "+ {count} mere"
+      },
+      "allChips": "Vælg, hvad der skal vises",
+      "shortcuts": {
+        "favorites": "Favoritter",
+        "recent": "Lavet for nylig",
+        "all": "Alle"
+      },
+      "filters": {
+        "all": "Alle",
+        "favorites": "Favoritter",
+        "side": "Tilbehør",
+        "dessert": "Desserter",
+        "drink": "Drikke",
+        "quick": "Hurtig",
+        "healthy": "Sund",
+        "comfort": "Trøstemad",
+        "kid-friendly": "Børnevenlig"
+      },
+      "heading": {
+        "search": "Opskrifter med “{query}”",
+        "widened": "Intet, der hedder “{query}”. Her er opskrifter med “{part}”.",
+        "favorites": {
+          "one": "1 favorit",
+          "other": "{count} favoritter, A til Å"
+        },
+        "recent": "Lavet for nylig",
+        "all": {
+          "one": "1 opskrift",
+          "other": "{count} opskrifter, A til Å"
+        },
+        "inGroup": {
+          "one": "{group} · 1 opskrift",
+          "other": "{group} · {count} opskrifter"
+        },
+        "bestFirst": "Bedste match først",
+        "newestFirst": "Nyeste først"
+      },
+      "tryAgain": "Prøv igen",
+      "loading": "Henter opskrifterne",
+      "noneTitle": "Ingen opskrifter, der hedder “{query}”",
+      "noneHint": "Tjek stavningen, eller prøv et kortere ord.",
+      "noRecipeTitle": "“{name}” har ingen opskrift endnu",
+      "noRecipeHint": "Tilføj ingredienser eller noter til måltidet under Måltider på telefonen, så vises det her.",
+      "noFavoritesTitle": "Ingen favoritter endnu",
+      "noFavoritesHint": "Tryk på hjertet ved en opskrift i Mealie, så dukker den op her.",
+      "noRecentTitle": "Intet lavet endnu",
+      "noRecentHint": "Opskrifter, I markerer som lavet i Mealie, vises her, nyeste først.",
+      "mealieEmptyTitle": "Ingen opskrifter i Mealie endnu",
+      "mealieEmptyHint": "Opskrifter, I tilføjer i Mealie, vises her.",
+      "noneInGroupTitle": "Ingen opskrifter i {group} endnu",
+      "noneInGroupHint": "Vælg noget andet, eller søg på navn.",
+      "emptyTitle": "Ingen opskrifter endnu",
+      "emptyHint": "Gemte måltider med ingredienser eller noter vises her. Tilføj dem under Måltider på telefonen.",
+      "problemHint": {
+        "mealieUnreachable": "Opskrifterne kommer tilbage af sig selv, så snart Mealie svarer igen.",
+        "mealieNotConnected": "Forbind den under Indstillinger på computeren for at vise opskrifterne.",
+        "mealieTokenRefused": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise opskrifterne.",
+        "mealieSetup": "Tjek Mealie under Indstillinger på computeren for at vise opskrifterne."
+      }
+    },
     "loading": "Indlæser måltider…",
     "noMealsPlannedYet": "Ingen måltider planlagt endnu",
     "noMealsPlanned": "Ingen måltider planlagt",
@@ -428,6 +517,7 @@
       "batchHalf": "Halv",
       "batchTimes": "×{scale}",
       "ingredients": "Ingredienser",
+      "ingredientsReady": "{done} af {total} klar",
       "steps": "Sådan gør du",
       "notes": "Noter",
       "stepOf": "Trin {step} af {total}",
@@ -437,9 +527,11 @@
       "loading": "Henter opskriften",
       "failed": "Kan ikke hente opskriften lige nu",
       "stepAria": "Trin {step}",
+      "pageAria": "Side {page} af {pages}",
       "openCourseAria": "Åbn opskriften på {name}",
       "scanForPhone": "Scan for at åbne opskriften på din telefon",
-      "closesItself": "Lukker af sig selv efter 10 minutter"
+      "keepOpen": "Tryk på en ingrediens eller et trin, så bliver opskriften åben, mens du laver mad. Lukker efter 10 minutter, hvis ingen trykker.",
+      "staysOpen": "Bliver åben, mens du laver mad. Lukker efter en time, hvis ingen trykker."
     },
     "grocery": {
       "thisWeek": "Ugens indkøb",
@@ -457,6 +549,11 @@
       "localEmpty": "Intet at købe endnu",
       "localEmptyHint": "Planlæg måltider med ingredienser, så dukker de op her."
     }
+  },
+  "wallScroll": {
+    "backToToday": "Tilbage til i dag",
+    "backToNow": "Tilbage til nu",
+    "backToTop": "Tilbage til toppen"
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Ugens måltider",

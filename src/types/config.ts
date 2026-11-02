@@ -1583,9 +1583,12 @@ export interface FullscreenCalendarConfig {
    */
   wrapEventTitles?: boolean;
   /**
-   * On touch displays, tap an event to open a detail panel with its time, location, and description
+   * On touch displays, tap an event to open a detail panel with its time, location, and description.
+   * In the grid views a busy day's "+N more" (and the day itself) opens every event that day. Lists
+   * that run past the box scroll with a finger and go back to today a minute later
    *
-   * default false; touch displays: tap an event to open a detail overlay
+   * New modules have it on; omitted (a module saved before it existed) = off. Touch displays: tap an
+   * event to open a detail overlay, "+N more" or a day to open the day sheet
    */
   eventTapDetails?: boolean;
   /**
@@ -1978,9 +1981,12 @@ export interface CalendarConfig {
   /** Show the event description under the title (agenda view) */
   agendaShowDescription?: boolean;
   /**
-   * On touch displays, tap an event to open a detail panel with its time, location, and description
+   * On touch displays, tap an event to open a detail panel with its time, location, and description.
+   * In the grid views a busy day's "+N more" (and the day itself) opens every event that day. Lists
+   * that run past the box scroll with a finger and go back to today a minute later
    *
-   * default false; touch displays: tap an event to open a detail overlay
+   * New modules have it on; omitted (a module saved before it existed) = off. Touch displays: tap an
+   * event to open a detail overlay, "+N more" or a day to open the day sheet
    */
   eventTapDetails?: boolean;
   /**
@@ -3654,7 +3660,7 @@ export interface AffirmationsConfig {
 }
 
 // Meal planner module config
-export type MealPlannerView = 'week' | 'today' | 'next-meal' | 'compact' | 'list' | 'grocery';
+export type MealPlannerView = 'week' | 'today' | 'next-meal' | 'compact' | 'list' | 'grocery' | 'recipes';
 export type MealSlotType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 export type GroceryCategory = 'produce' | 'dairy' | 'meat' | 'seafood' | 'bakery' | 'pantry' | 'frozen' | 'beverages' | 'other';
@@ -3868,7 +3874,10 @@ export interface MealSettings {
 export type RecipeTapAction = 'off' | 'qr' | 'card' | 'iframe';
 
 export interface MealPlannerConfig {
-  /** Display style: `week`, `today`, `next-meal`, `compact`, `list`, or `grocery` (the grocery list) */
+  /**
+   * Display style: `week`, `today`, `next-meal`, `compact`, `list`, `grocery` (the grocery list), or
+   * `recipes` (the family's recipes to browse and search, each opening on a recipe card)
+   */
   view: MealPlannerView;
   /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
@@ -3894,8 +3903,9 @@ export interface MealPlannerConfig {
    */
   showTitle?: boolean;
   /**
-   * Let people tick things off the grocery list on a touch screen. A tick writes to the family's
-   * list, never to the layout
+   * Let people use the wall on a touch screen: tick things off the grocery list, search and open
+   * recipes in the recipe view, and scroll a list or week that runs past the box (it goes back to
+   * today a minute later). A tick writes to the family's list, never to the layout
    *
    * Omitted = on, the same as the registry default, so a module made before
    * the grocery view existed takes taps too.
@@ -4575,12 +4585,13 @@ export interface FullscreenChoreChartConfig {
 }
 
 // Fullscreen meal planner module config
-export type FullscreenMealPlannerView = 'week' | 'today' | 'menu-board' | 'next-meal' | 'recipe' | 'grocery';
+export type FullscreenMealPlannerView = 'week' | 'today' | 'menu-board' | 'next-meal' | 'recipe' | 'grocery' | 'recipes';
 
 export interface FullscreenMealPlannerConfig {
   /**
-   * Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), or
-   * `grocery` (the grocery list)
+   * Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe),
+   * `grocery` (the grocery list), or `recipes` (the recipe book: every recipe to browse and search,
+   * each opening on a recipe card to cook from)
    */
   view: FullscreenMealPlannerView;
   /** Layout density: `cozy` or `snug` */
@@ -4621,8 +4632,9 @@ export interface FullscreenMealPlannerConfig {
    */
   showTitle?: boolean;
   /**
-   * Let people use the wall on a touch screen: tick things off the grocery list and step through a
-   * recipe. A tick writes to the family's list, never to the layout
+   * Let people use the wall on a touch screen: tick things off the grocery list, step through a
+   * recipe, search and open recipes in the recipe book, and scroll a view that runs past the
+   * screen. A tick writes to the family's list, never to the layout
    *
    * Omitted = on, the same as the registry default.
    */

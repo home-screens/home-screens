@@ -8,11 +8,13 @@ import { fromISODate } from '@/lib/meal-constants';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useFontsReady } from '@/hooks/useFontsReady';
 import type { MealPlannerViewProps } from './meal-planner-utils';
-import { px } from './meal-planner-utils';
+import { px, wallScrollLook } from './meal-planner-utils';
 import { TapCheckbox } from '../shared/TapCheckbox';
 import { useGroceryPaging } from '../shared/useGroceryPaging';
 import type { WallGrocery } from '../shared/useWallGrocery';
 import { GroceryEmpty, useGroceryHeading } from '../meal-planner/GroceryView';
+import { WallScroller } from '../shared/WallScroller';
+import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
 
 interface FullscreenGroceryViewProps extends MealPlannerViewProps {
   grocery: WallGrocery;
@@ -34,9 +36,11 @@ const SECTION_LABEL: CSSProperties = {
  * by group: the family's Mealie labels, or this week's aisles with their
  * icons. A list too long for the screen first steps its type down (to
  * `GROCERY_MIN_SCALE`), then turns pages of whole columns, so it never runs
- * off the bottom and never gets too small to read. Rows are measured from a
- * hidden column laid out like a visible one; the module's own fit loop is
- * left out of it (this view never overflows the stack).
+ * off the bottom and never gets too small to read. On a touch wall the pages
+ * stand one under the other instead and a finger scrolls down through them.
+ * Rows are measured from a hidden column laid out like a visible one; the
+ * module's own fit loop is left out of it (this view never overflows the
+ * stack).
  */
 export default function GroceryView({ grocery, tappable, accent, s, headerFont, bodyFont, showTitle, landscape, pad }: FullscreenGroceryViewProps) {
   const t = useTranslate('modules');
@@ -83,7 +87,9 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
   }, [fit, fitKey, box, rows.length, cols]);
 
   const pageCount = pages?.length ?? 1;
-  const { index, noteTick } = useGroceryPaging(pageCount);
+  // A touch wall scrolls through the pages rather than turning them.
+  const scroll = tappable;
+  const { index, noteTick } = useGroceryPaging(scroll ? 1 : pageCount);
 
   const P = (n: number) => px(s, n);
   const R = (n: number) => px(s, n) * scale;
@@ -161,6 +167,7 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
     <div
       data-testid="fmp-grocery"
       data-grocery-pages={pageCount}
+      {...(tappable ? BROWSE_HOLD_ATTR : {})}
       style={{
         display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden',
         padding: `${P(56)}px ${P(56)}px ${P(52)}px`, fontFamily: bodyFont,
@@ -173,20 +180,43 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
           {showTitle && <div style={{ fontFamily: headerFont, fontSize: P(64), lineHeight: 1, color: 'var(--fmp-text)' }}>{title}</div>}
           <div data-testid="fmp-grocery-counts" style={{ fontSize: P(27), color: 'var(--fmp-text-3)', marginTop: showTitle ? P(12) : 0 }}>{sub}</div>
         </div>
-        {pageCount > 1 && (
+        {pageCount > 1 && !scroll && (
           <span data-testid="fmp-grocery-page" style={{ fontSize: P(27), color: 'var(--fmp-text-3)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
             {t('meal-planner.grocery.page', { page: index + 1, pages: pageCount })}
           </span>
         )}
       </div>
       <div ref={areaRef} style={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', gap: P(44), height: '100%', visibility: page ? undefined : 'hidden' }}>
-          {Array.from({ length: cols }, (_, c) => (
-            <div key={c} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-              {(page?.[c] ?? []).map((i) => rowView(rows[i], false))}
+        {scroll ? (
+          <WallScroller
+            enabled
+            backLabel={t('wallScroll.backToTop')}
+            {...wallScrollLook(s)}
+            frameStyle={{ height: '100%' }}
+            testId="fmp-grocery-scroll"
+          >
+            {/* Every page, one under the other: at rest the first is where it always was. */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: R(24), visibility: pages ? undefined : 'hidden' }}>
+              {(pages ?? []).map((pg, p) => (
+                <div key={p} style={{ display: 'flex', gap: P(44) }}>
+                  {Array.from({ length: cols }, (_, c) => (
+                    <div key={c} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                      {(pg[c] ?? []).map((i) => rowView(rows[i], false))}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </WallScroller>
+        ) : (
+          <div style={{ display: 'flex', gap: P(44), height: '100%', visibility: page ? undefined : 'hidden' }}>
+            {Array.from({ length: cols }, (_, c) => (
+              <div key={c} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                {(page?.[c] ?? []).map((i) => rowView(rows[i], false))}
+              </div>
+            ))}
+          </div>
+        )}
         {/* One column of every row, for the heights the pages are cut from. */}
         <div
           ref={measureRef}

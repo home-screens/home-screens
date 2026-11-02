@@ -357,6 +357,7 @@
     },
     "library": {
       "searchPlaceholder": "Buscar comidas...",
+      "hint": "Toca una comida para editarla, o el botón de pantalla para mostrarla en la pared.",
       "filterByAriaLabel": "Filtrar por {label}",
       "empty": {
         "titleNoMeals": "Aún no hay comidas",
@@ -403,6 +404,20 @@
       },
       "deleted": "Se ha eliminado {name}.",
       "undo": "Deshacer"
+    },
+    "showOnWall": {
+      "button": "Mostrar en la pared",
+      "ariaLabel": "Mostrar {meal} en la pared",
+      "sent": "Mostrando {meal} en {where}.",
+      "takeDown": "Quitar",
+      "takenDown": "Se ha quitado {meal} de {where}.",
+      "pickTitle": "¿En qué pared?",
+      "pickHint": "Este móvil recordará tu elección para las recetas. Para mandar una a otro sitio, elige esa pared en la pestaña Control.",
+      "everyWall": "todas las paredes",
+      "theWall": "la pared",
+      "failed": "No se pudo mostrar en la pared. Inténtalo de nuevo.",
+      "mealieFailed": "No se pudo cargar esa receta de Mealie. Inténtalo de nuevo.",
+      "gone": "Esa receta ya no está."
     }
   },
   "mealForm": {
@@ -1493,7 +1508,7 @@
       "noneInCategoryDescription": "Busca una receta por su nombre o elige Favoritas."
     },
     "library": {
-      "info": "Las recetas están en Mealie. Toca una para abrirla allí.",
+      "info": "Las recetas están en Mealie. Toca una para abrirla allí, o el botón de pantalla para mostrarla en la pared.",
       "placeholder": "Buscar recetas…",
       "placeholderCount": {
         "one": "Buscar entre 1 receta…",

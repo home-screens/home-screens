@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveTimerTargets, withDisplayTarget } from '../display-target';
+import { recipeWallTarget, resolveTimerTargets, withDisplayTarget } from '../display-target';
 
 /**
  * `withDisplayTarget` is the helper every /remote fetch goes through to
@@ -125,5 +125,27 @@ describe('resolveTimerTargets', () => {
 
   it('broadcasts in single-display mode regardless of selection', () => {
     expect(resolveTimerTargets(['anything'], [])).toBe('all');
+  });
+});
+
+describe('recipeWallTarget', () => {
+  const two = [{ id: 'main' }, { id: 'kitchen' }];
+
+  it('sends to the wall picked at the top of the remote', () => {
+    expect(recipeWallTarget('kitchen', two, 'main')).toBe('kitchen');
+  });
+
+  it('keeps a single-display home and a home with one wall as they were', () => {
+    expect(recipeWallTarget(undefined, [], null)).toBeUndefined();
+    expect(recipeWallTarget('all', [{ id: 'main' }], null)).toBe('all');
+  });
+
+  it('with All and two walls, sends to the wall this phone chose for recipes', () => {
+    expect(recipeWallTarget('all', two, 'kitchen')).toBe('kitchen');
+  });
+
+  it('with All and two walls, asks when nothing is remembered or the wall is gone', () => {
+    expect(recipeWallTarget('all', two, null)).toBeNull();
+    expect(recipeWallTarget('all', two, 'garage')).toBeNull();
   });
 });

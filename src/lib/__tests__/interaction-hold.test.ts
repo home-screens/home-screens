@@ -40,6 +40,18 @@ describe('holdRotationFor', () => {
     expect(rotationIsHeld()).toBe(false);
   });
 
+  /* Browsing recipes earns a minute; a chip tapped inside that minute is an
+   * eight-second tap hold, and used to replace the minute with eight seconds. */
+  it('keeps the later end when a shorter hold lands inside a longer one', () => {
+    holdRotationFor(60_000);
+    vi.advanceTimersByTime(10_000);
+    holdRotationFor(8_000);
+    vi.advanceTimersByTime(20_000);
+    expect(rotationIsHeld()).toBe(true);
+    vi.advanceTimersByTime(30_000);
+    expect(rotationIsHeld()).toBe(false);
+  });
+
   it('ends early when released', () => {
     const release = holdRotationFor(1000);
     holdRotationFor(500);

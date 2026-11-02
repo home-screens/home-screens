@@ -10,9 +10,11 @@ import { mergeCellDecor } from '@/lib/calendar-rules';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { GridCellBody, gridNotesHeight } from './grid-view-bits';
 import { dayNotesFor } from '@/lib/day-notes';
+import { dayGridFontSize } from '@/lib/day-grid-type';
 import { rollingRangeTitle } from './view-traits';
 import { useContainerHeight } from './shared-time-grid';
 import type { CalendarViewProps } from './view-support';
+import { openDayCellProps, useDaySheetOpener } from '../shared/useDaySheet';
 
 /**
  * Rolling weeks: the next n weeks (1-8) as a 7-column grid whose top-left
@@ -24,11 +26,18 @@ import type { CalendarViewProps } from './view-support';
 export function RollingWeeksView({ events, timezone, config, scale, today, now, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const wrapTitles = config.wrapEventTitles === true;
   const weeks = clampRollingWeeks(config.rollingWeeksToShow);
+  // The grid's type follows its cells, as the month grid's does.
+  const fontSize = dayGridFontSize({
+    width: scale.width / 7,
+    height: (scale.height - scale.bu * 7) / weeks,
+    textScale: scale.typoMul * scale.densityMul,
+    settingFont: scale.bu * scale.typoMul * scale.densityMul,
+  });
   const { scrollRef, containerH } = useContainerHeight();
+  const openDay = useDaySheetOpener();
 
   const cells = useMemo(
     () => Array.from({ length: weeks * 7 }, (_, i) => addDays(startOfDay(today), i)),
@@ -83,13 +92,17 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
           const hasBirthday = dayEvents.some(ev => ev.kind === 'birthday');
           const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
           const notes = dayNotesFor(dayNotes, day);
+          // With taps on, the whole cell opens the day, outside its events.
+          const cellTap = openDayCellProps(openDay, day, dayEvents);
 
           return (
             <div
               key={day.toISOString()}
               role="gridcell"
               aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, dayMonthPattern(locale), { locale }), count: dayEvents.length })}
+              {...cellTap}
               style={mergeCellDecor({
+                cursor: cellTap ? 'pointer' : undefined,
                 borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
                 borderBottom: '1px solid var(--cal-border-subtle)',
                 borderLeft: isToday && showTodayMarker ? '2px solid var(--cal-accent)' : undefined,

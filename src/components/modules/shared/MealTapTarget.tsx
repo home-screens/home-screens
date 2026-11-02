@@ -3,7 +3,7 @@
 import { lazy, Suspense, useState, type CSSProperties, type ReactNode } from 'react';
 import type { RecipeTapAction, SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { mealHasRecipe } from '@/lib/meal-recipe';
+import { recipeTapOpens } from '@/lib/meal-recipe';
 import { useRecipeLink } from '@/components/meals/useMealieLink';
 import type { MealServingRef } from './MealRecipeContext';
 
@@ -59,10 +59,11 @@ interface MealTapTargetProps {
 export function MealTapTarget({ meal, mode, serving, className, style, children }: MealTapTargetProps) {
   const t = useTranslate('modules');
   const [overlay, setOverlay] = useState<'qr' | 'iframe' | 'card' | null>(null);
-  const recipeUrl = meal?.recipeUrl;
   // The card draws the recipe itself, so a saved meal with ingredients opens
-  // one without a link; the other actions need a link to show or embed.
-  const opens = mode === 'card' ? mealHasRecipe(meal) : !!recipeUrl;
+  // one without a link; the code and the page need a link, and a meal without
+  // one opens the card instead (`recipeTapOpens`).
+  const opensAs = mode === 'off' || mode === 'link' ? null : recipeTapOpens(mode, meal);
+  const opens = mode === 'link' ? !!meal?.recipeUrl : opensAs !== null;
 
   if (mode === 'off' || !meal || !opens) {
     return (
@@ -85,7 +86,7 @@ export function MealTapTarget({ meal, mode, serving, className, style, children 
       <button
         type="button"
         aria-label={t('meal-planner.openRecipeAria', { name: meal.name })}
-        onClick={() => setOverlay(mode)}
+        onClick={() => setOverlay(opensAs)}
         className={className}
         style={{
           background: 'none',

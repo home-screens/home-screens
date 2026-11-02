@@ -148,9 +148,10 @@ export interface ModuleDefinition {
    *
    * The todo module needs the address to locate itself when POSTing a toggle;
    * the meal planners use its presence as the "on a real display" signal for
-   * tap-to-open-recipe; the video module and the slideshows use it the same way
-   * to autoplay only on a real display. The editor supplies none of it, which
-   * is what makes the preview fall back to safe behaviour.
+   * tap-to-open-recipe, and both meal planners and both calendars for letting
+   * a finger scroll their list views; the video module and the slideshows use
+   * it the same way to autoplay only on a real display. The editor supplies
+   * none of it, which is what makes the preview fall back to safe behaviour.
    */
   needsInstanceAddress?: boolean;
   /**
@@ -409,6 +410,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Full Screen --
   {
     type: 'fullscreen-calendar',
+    needsInstanceAddress: true,
     label: 'Full-Screen Calendar',
     icon: Columns3,
     category: 'Full Screen',
@@ -427,7 +429,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       todayHighlightStyle: 'full',
       eventOverlap: 'columns',
       wrapEventTitles: false,
-      eventTapDetails: false,
+      // On for new modules: a touch wall answers a tap. A wall without a touchscreen never gets one.
+      eventTapDetails: true,
       eventTapStyle: 'sheet',
       startDay: 'sunday',
       darkMode: false,
@@ -519,7 +522,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTags: true,
       showEmoji: true,
       showDifficulty: false,
-      tapRecipeAction: 'off',
+      // The recipe card for new modules; an older module that never set this stays off (MealTapTarget).
+      tapRecipeAction: 'card',
       showTitle: true,
       interactive: true,
     },
@@ -649,6 +653,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'calendar',
+    needsInstanceAddress: true,
     label: 'Calendar',
     icon: CalendarDays,
     category: 'Time & Date',
@@ -668,7 +673,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       dailyShowDescription: false,
       agendaShowDescription: false,
       agendaShowFinishedToday: false,
-      eventTapDetails: false,
+      // On for new modules: a touch wall answers a tap. A wall without a touchscreen never gets one.
+      eventTapDetails: true,
       eventTapStyle: 'sheet',
       showCountdown: false,
       showProgressBar: false,
@@ -1158,7 +1164,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showPrepTime: true,
       showTags: true,
       accentColor: DEFAULT_ACCENT_COLOR,
-      tapRecipeAction: 'off',
+      // The recipe card for new modules; an older module that never set this stays off (MealTapTarget).
+      tapRecipeAction: 'card',
       showTitle: true,
       interactive: true,
     },

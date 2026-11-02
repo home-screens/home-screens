@@ -23,6 +23,22 @@ describe('guessGroceryCategory', () => {
     expect(guessGroceryCategory('Hakket oksekød')).toBe('meat');
   });
 
+  /* Broth is a carton on the shelf, not meat, though the meat word is the longer one. */
+  it.each([
+    ['Chicken broth', 'pantry'],
+    ['Beef stock', 'pantry'],
+    ['Hühnerbrühe', 'pantry'],
+    ['Bouillon de poulet', 'pantry'],
+    ['Kippenbouillon', 'pantry'],
+    ['Caldo de pollo', 'pantry'],
+    ['Caldo de frango', 'pantry'],
+    ['Chicken breasts', 'meat'],
+    ['Hühnerbrust', 'meat'],
+    ['Hühnchen', 'meat'],
+  ])('files %s under %s', (name, category) => {
+    expect(guessGroceryCategory(name)).toBe(category);
+  });
+
   /* Longest match wins, or the fruit and the drink swap aisles. */
   it.each([
     ['Watermelon', 'produce'],
@@ -38,6 +54,39 @@ describe('guessGroceryCategory', () => {
     expect(guessGroceryCategory('Cornflour')).not.toBe('produce');
     expect(guessGroceryCategory('Cocktail sticks')).not.toBe('produce');
     expect(guessGroceryCategory('Corn')).toBe('produce');
+  });
+
+  /* "Eggs" landed under Other: "egg" is short, so only the whole word matched. */
+  it.each([
+    ['Eggs', 'dairy'],
+    ['12 eggs', 'dairy'],
+    ['Limes', 'produce'],
+    ['Plums', 'produce'],
+    ['Buns', 'bakery'],
+    ['Hams', 'meat'],
+    ['Teas', 'beverages'],
+    ['Ajos', 'produce'],
+    ['Uvas', 'produce'],
+  ])('reads the plural %s as %s', (name, category) => {
+    expect(guessGroceryCategory(name)).toBe(category);
+  });
+
+  it('knows the short words whose plural is not a plain "s"', () => {
+    expect(guessGroceryCategory('Pilze')).toBe('produce');
+    expect(guessGroceryCategory('Choux de Bruxelles')).toBe('produce');
+    expect(guessGroceryCategory('Doperwten')).toBe('produce');
+    expect(guessGroceryCategory('Æbler')).toBe('produce');
+    expect(guessGroceryCategory('Vindruer')).toBe('produce');
+    expect(guessGroceryCategory('Pães de forma')).toBe('bakery');
+    expect(guessGroceryCategory('Eaux gazeuses')).toBe('beverages');
+  });
+
+  /* The plural is a whole word too: an "s" does not let a short keyword reach inside another word. */
+  it('keeps a short keyword and its plural to whole words', () => {
+    expect(guessGroceryCategory('Eggplant')).not.toBe('dairy');
+    expect(guessGroceryCategory('Nutmegs')).not.toBe('dairy');
+    expect(guessGroceryCategory('Sublimes')).toBeNull();
+    expect(guessGroceryCategory('Cornsyrup')).not.toBe('produce');
   });
 
   it('ignores quantities and punctuation around the word', () => {

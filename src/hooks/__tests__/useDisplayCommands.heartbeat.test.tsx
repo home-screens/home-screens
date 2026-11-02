@@ -57,6 +57,8 @@ function handlers(): CommandHandlers {
     reload: vi.fn(),
     showAlert: vi.fn(),
     showPhoto: vi.fn(),
+    showRecipe: vi.fn(),
+    hideRecipe: vi.fn(),
   };
 }
 
@@ -289,5 +291,75 @@ describe('the show-photo command', () => {
     const showPhoto = await run(photo('lake.jpg'));
 
     expect(showPhoto).toHaveBeenCalledWith({ url: '/api/backgrounds/serve?file=lake.jpg', kind: 'image', durationMs: 60_000 });
+  });
+});
+
+describe('the show-recipe command', () => {
+  const chili = {
+    id: 'mealie:0f1e2d3c-4b5a-4968-8776-655443322110',
+    name: 'Harvest Chili',
+    prepTime: 20,
+    photoUrl: '/api/mealie/image/0f1e2d3c-4b5a-4968-8776-655443322110',
+  };
+
+  /** Drain one beat of show-recipe commands and hand back the handler they reach. */
+  async function run(...payloads: Array<Record<string, unknown> | undefined>) {
+    commands = payloads.map((payload) => ({ type: 'show-recipe', payload, timestamp: 1 }));
+    const h = handlers();
+    renderHook(() => useDisplayCommands(h, 'kitchen'));
+    await flush();
+    return vi.mocked(h.showRecipe);
+  }
+
+  it('opens the meal the hub sent, as it sent it', async () => {
+    const soup = { id: 'meal-1', name: 'Tomato Soup', ingredients: [{ name: 'Tomatoes' }], notes: 'Simmer.' };
+    const showRecipe = await run({ meal: chili, expiresAt: Date.now() + 600_000 }, { meal: soup });
+
+    expect(showRecipe.mock.calls).toEqual([[chili], [soup]]);
+  });
+
+  it('skips a recipe whose time ran out more than a minute ago', async () => {
+    const now = Date.now();
+    const showRecipe = await run(
+      { meal: { ...chili, name: 'Old' }, expiresAt: now - 60_001 },
+      // Within a minute of the hub's clock still counts as on time.
+      { meal: chili, expiresAt: now - 30_000 },
+    );
+
+    expect(showRecipe.mock.calls).toEqual([[chili]]);
+  });
+
+  it('skips a payload that is not a meal', async () => {
+    const showRecipe = await run(
+      undefined,
+      {},
+      { meal: 'mealie:0f1e2d3c' },
+      { meal: [chili] },
+      { meal: { name: 'No id' } },
+      { meal: { id: 'meal-1', name: '   ' } },
+      { meal: { id: 'meal-1', name: 'Soup', ingredients: 'tomatoes' } },
+      { meal: { id: 'meal-1', name: 'Soup', tags: 'dinner' } },
+      { meal: chili },
+    );
+
+    // The last one proves the loop carried on past the ones it skipped.
+    expect(showRecipe.mock.calls).toEqual([[chili]]);
+  });
+
+  it('takes a recipe down in the order the phone asked, naming it when the phone did', async () => {
+    commands = [
+      { type: 'show-recipe', payload: { meal: chili }, timestamp: 1 },
+      { type: 'hide-recipe', payload: { mealId: chili.id }, timestamp: 2 },
+      { type: 'hide-recipe', timestamp: 3 },
+      { type: 'hide-recipe', payload: { mealId: 42 }, timestamp: 4 },
+    ];
+    const seen: string[] = [];
+    const h = handlers();
+    h.showRecipe = (meal) => { seen.push(`show ${meal.id}`); };
+    h.hideRecipe = (mealId) => { seen.push(`hide ${mealId ?? 'any'}`); };
+    renderHook(() => useDisplayCommands(h, 'kitchen'));
+    await flush();
+
+    expect(seen).toEqual([`show ${chili.id}`, `hide ${chili.id}`, 'hide any', 'hide any']);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mealListScrollTop } from '../meal-list-scroll';
+import { mealListScrollTop, mealListSlotColumn } from '../meal-list-scroll';
 
 /**
  * A week of days, each a 20px heading and 24px meal rows, with an 8px gap
@@ -74,5 +74,34 @@ describe('mealListScrollTop', () => {
     const { top, spacer } = mealListScrollTop(headings, days[5], view, height);
     expect(top).toBe(days[5].top);
     expect(spacer).toBeLessThan(days[5].bottom - days[5].top);
+  });
+});
+
+describe('mealListSlotColumn', () => {
+  const en = { full: ['Breakfast', 'Lunch', 'Dinner'], short: ['B', 'L', 'D'] };
+
+  it('names the meal in full at the registry default size (500 px wide, 16 px type)', () => {
+    const column = mealListSlotColumn(468, 16, en);
+    expect(column.full).toBe(true);
+    // "Breakfast" at 11.2 px fits its column.
+    expect(column.widthPx).toBeGreaterThanOrEqual(Math.ceil(9 * 0.6 * 11.2));
+  });
+
+  it('makes room for the longest name the wall\'s language has', () => {
+    const fr = mealListSlotColumn(600, 16, { full: ['Petit-déjeuner', 'Déjeuner', 'Dîner'], short: ['P', 'D', 'S'] });
+    expect(fr.widthPx).toBeGreaterThan(mealListSlotColumn(600, 16, en).widthPx);
+  });
+
+  it('falls back to the short name in a narrow list, or before the list is measured', () => {
+    expect(mealListSlotColumn(260, 16, en).full).toBe(false);
+    expect(mealListSlotColumn(0, 16, en).full).toBe(false);
+    // Still a column a letter reads in, at least 11 px.
+    expect(mealListSlotColumn(260, 12, en).widthPx).toBeGreaterThanOrEqual(15);
+  });
+
+  it('follows the module\'s text size', () => {
+    expect(mealListSlotColumn(900, 24, en).widthPx).toBeGreaterThan(mealListSlotColumn(900, 16, en).widthPx);
+    // Bigger type needs a wider list before the names spell out.
+    expect(mealListSlotColumn(468, 30, en).full).toBe(false);
   });
 });

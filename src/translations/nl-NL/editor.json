@@ -4236,6 +4236,7 @@
       "viewNextMeal": "Volgende maaltijd",
       "viewRecipe": "Recept",
       "viewGrocery": "Boodschappenlijst",
+      "viewRecipeBook": "Receptenboek",
       "densityCozy": "Ruim",
       "densitySnug": "Krap",
       "typographySize": "Tekstgrootte",
@@ -4255,9 +4256,10 @@
       "tapRecipeActionCard": "Receptkaart tonen",
       "tapRecipeActionIframe": "Recept op het display openen",
       "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
-      "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display, met een code om het recept op een telefoon te openen. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen.",
+      "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
+      "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken en stap voor stap door een recept gaan. Zet dit uit op een display zonder touchscreen.",
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, stap voor stap door een recept gaan, in het receptenboek zoeken en door lange weergaven scrollen. Zet dit uit op een display zonder touchscreen.",
       "mobileHintTail": "zodat alle maaltijdmodules gelijk blijven."
     },
     "fullscreen-photo": {
@@ -4472,6 +4474,7 @@
       "viewCompact": "Compact (vandaag + morgen)",
       "viewList": "Volledige weeklijst",
       "viewGrocery": "Boodschappenlijst",
+      "viewRecipes": "Recepten",
       "showEmoji": "Afbeeldingen tonen",
       "showPrepTime": "Totale tijd tonen",
       "showTags": "Tags tonen",
@@ -4488,9 +4491,10 @@
       "tapRecipeActionCard": "Receptkaart tonen",
       "tapRecipeActionIframe": "Recept op het display openen",
       "tapRecipeActionIframeHint": "Sommige receptsites kunnen niet in Home Screens worden geopend en blijven leeg. Tik in dat geval op ‘QR-code tonen’ in de receptweergave.",
-      "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display, met een code om het recept op een telefoon te openen. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen.",
+      "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
+      "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken. Zet dit uit op een display zonder touchscreen."
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen en door lange lijsten scrollen. Zet dit uit op een display zonder touchscreen."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",

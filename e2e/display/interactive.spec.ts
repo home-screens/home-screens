@@ -6,6 +6,7 @@ import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures'
 import { seedHouseholdChores, seedMeals, seedTodos, E2E_TODO_LIST_ID, seedRewards } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import type { CalendarViewMode, FullscreenCalendarView, ModuleInstance } from '@/types/config';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 
 /** Local YYYY-MM-DD for today, matching how the meal planner keys plan entries. */
 function isoToday(offsetDays = 0): string {
@@ -313,6 +314,39 @@ test.describe('meal-planner recipe tap', () => {
     await expect(card).toBeHidden();
   });
 
+  for (const action of ['qr', 'iframe'] as const) {
+    test(`'${action}' opens the recipe card for a meal with ingredients and no link, and leaves a bare meal untappable`, async ({ page, request }) => {
+      await stubModuleData(page);
+      await seedMeals(request, {
+        savedMeals: [
+          { id: 'meal-w', name: 'Waffles', emoji: '🧇', ingredients: [{ name: 'Flour', amount: '2 cups' }], notes: 'Heat the iron on 4.' },
+          { id: 'meal-p', name: 'Pizza Night', emoji: '🍕' },
+        ],
+        plan: [0, 1].flatMap((day) => [
+          { slot: 'lunch', mealId: 'meal-p', date: isoToday(day) },
+          { slot: 'dinner', mealId: 'meal-w', date: isoToday(day) },
+        ]),
+      });
+      const meal = buildModuleInstance('meal-planner', { view: 'today', tapRecipeAction: action });
+      const display = await renderOnDisplay(page, request, baseConfig({
+        screens: [makeScreen('s1', 'S1', [meal])],
+      }));
+
+      // Nothing to show a code or a page for, and nothing to cook from: not a button, as with the card.
+      await expect(display.module('meal-planner').getByText('Pizza Night')).toBeVisible();
+      await expect(display.module('meal-planner').getByRole('button', { name: /Pizza Night/ })).toHaveCount(0);
+
+      // No link, but ingredients and notes: the card, with no code for a phone.
+      await display.module('meal-planner').getByText('Waffles').click();
+      const card = page.getByTestId('recipe-card');
+      await expect(card.getByTestId('recipe-ingredients')).toContainText('Flour');
+      await expect(card.getByTestId('recipe-notes')).toContainText('Heat the iron on 4.');
+      await expect(card.getByTestId('recipe-card-qr')).toHaveCount(0);
+      await card.getByTestId('recipe-card-close').click();
+      await expect(card).toBeHidden();
+    });
+  }
+
   test("'card' leaves a meal with no recipe untappable", async ({ page, request }) => {
     await stubModuleData(page);
     await seedMeals(request, {
@@ -369,8 +403,8 @@ test.describe('meal-planner recipe tap', () => {
  * Fullscreen-calendar `eventTapDetails`: tapping any event block opens a detail
  * overlay (bottom sheet by default, centered card via `eventTapStyle`), portaled
  * to <body> as role="dialog" with the event title as its accessible name. The
- * scrim or Close button dismisses it; with the toggle off (the default) taps
- * are inert. Rotation holding while open is covered by the meal-planner recipe
+ * scrim or Close button dismisses it; with the toggle off taps are inert. New
+ * modules have it on; a module saved before the setting existed keeps it off. Rotation holding while open is covered by the meal-planner recipe
  * suite — both overlays share `useInteractionHold`.
  */
 test.describe('fullscreen-calendar event tap', () => {
@@ -430,6 +464,8 @@ test.describe('fullscreen-calendar event tap', () => {
     // screen uncovered, so a top-left tap lands on the scrim).
     await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
     await expect(dialog).toBeVisible();
+    // Past a double tap: the scrim ignores the second half of the tap that opened it.
+    await page.waitForTimeout(DOUBLE_TAP_MS);
     await dialog.click({ position: { x: 10, y: 10 } });
     await expect(dialog).toBeHidden();
   });
@@ -448,17 +484,32 @@ test.describe('fullscreen-calendar event tap', () => {
     await expect(dialog.locator('[data-detail-style="card"]')).toBeVisible();
 
     // The card is centered, so the top-left corner is scrim.
+    await page.waitForTimeout(DOUBLE_TAP_MS);
     await dialog.click({ position: { x: 10, y: 10 } });
     await expect(dialog).toBeHidden();
   });
 
-  test('with the toggle off (default), tapping an event is inert', async ({ page, request }) => {
+  test('with the toggle off, tapping an event is inert', async ({ page, request }) => {
     await stubModuleData(page, { overrides: { calendar: TAP_EVENTS } });
-    const display = await renderOnDisplay(page, request, calendarScreen({}));
+    const display = await renderOnDisplay(page, request, calendarScreen({ eventTapDetails: false }));
 
     await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
 
     // Give a would-be overlay time to mount before asserting it never did.
+    await page.waitForTimeout(500);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+
+  test('a new module taps by default, and one saved before taps existed stays as it was', async ({ page, request }) => {
+    await stubModuleData(page, { overrides: { calendar: TAP_EVENTS } });
+    const display = await renderOnDisplay(page, request, calendarScreen({}));
+    await display.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
+    await expect(page.getByRole('dialog', { name: 'SOCCER PRACTICE' })).toBeVisible();
+
+    const older = calendarScreen({});
+    delete (older.screens[0].modules[0].config as Record<string, unknown>).eventTapDetails;
+    const wall = await renderOnDisplay(page, request, older);
+    await wall.module('fullscreen-calendar').getByText('SOCCER PRACTICE').click();
     await page.waitForTimeout(500);
     await expect(page.getByRole('dialog')).toHaveCount(0);
   });
@@ -622,13 +673,14 @@ test.describe('calendar module event tap', () => {
     await expect(dialog).toBeVisible();
     await expect(dialog.locator('[data-detail-style="card"]')).toBeVisible();
 
+    await page.waitForTimeout(DOUBLE_TAP_MS);
     await dialog.click({ position: { x: 10, y: 10 } });
     await expect(dialog).toBeHidden();
   });
 
-  test('with the toggle off (default), tapping an event is inert', async ({ page, request }) => {
+  test('with the toggle off, tapping an event is inert', async ({ page, request }) => {
     await stubModuleData(page, { overrides: { calendar: CAL_TAP_EVENTS } });
-    const display = await renderOnDisplay(page, request, calendarModuleScreen({}));
+    const display = await renderOnDisplay(page, request, calendarModuleScreen({ eventTapDetails: false }));
 
     await display.module('calendar').getByText('CALTAP TIMED').first().click();
 

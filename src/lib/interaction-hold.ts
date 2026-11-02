@@ -21,6 +21,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 
 let overlayCount = 0;
 let tapHeld = false;
+let awakeCount = 0;
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -66,6 +67,8 @@ export function rotationIsHeld(): boolean {
 
 /** The single timed hold, so repeated taps extend one window instead of stacking. */
 let tapTimer: ReturnType<typeof setTimeout> | null = null;
+/** When the timed hold ends (`Date.now()` time), so a short hold never cuts a longer one short. */
+let tapUntil = 0;
 
 /**
  * Hold the rotation timer for `ms` after a deliberate touch.
@@ -78,17 +81,23 @@ let tapTimer: ReturnType<typeof setTimeout> | null = null;
  *
  * Unlike `useInteractionHold` this is not tied to a component's lifetime, so a
  * second tap extends the same window rather than opening another, and it
- * leaves flick navigation alone. Returns a release for a caller that wants to
- * end it early.
+ * leaves flick navigation alone. A shorter hold inside a longer one leaves the
+ * longer end in place: a chip tapped while browsing recipes (eight seconds)
+ * must not cut the minute the browsing earned. Returns a release for a caller
+ * that wants to end it early.
  */
 export function holdRotationFor(ms: number): () => void {
   if (ms <= 0) return () => {};
-  if (tapTimer) clearTimeout(tapTimer);
-  setTapHeld(true);
   const end = () => {
     if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
+    tapUntil = 0;
     setTapHeld(false);
   };
+  const until = Date.now() + ms;
+  if (tapTimer && until <= tapUntil) return end;
+  if (tapTimer) clearTimeout(tapTimer);
+  tapUntil = until;
+  setTapHeld(true);
   tapTimer = setTimeout(end, ms);
   return end;
 }
@@ -112,4 +121,32 @@ export function useRotationHeld(): boolean {
 /** Hold rotation and flick navigation for the lifetime of the calling component. */
 export function useInteractionHold(): void {
   useEffect(() => acquireInteractionHold(), []);
+}
+
+/**
+ * Cooking mode: a recipe someone is cooking from keeps the screen from
+ * dimming or sleeping for nobody touching it. Hands in dough do not tap the
+ * wall, and a dark screen in the middle of a recipe is the moment someone
+ * reaches for a phone instead. Held only while `active` (the recipe card
+ * turns it on with the first tick or step, so a card opened by accident never
+ * keeps the wall awake). Read by the sleep manager's idle clock only: a sleep
+ * schedule still wins, and the component taking it bounds how long it lasts
+ * (the recipe card closes itself after an hour).
+ */
+export function useStayAwakeHold(active = true): void {
+  useEffect(() => {
+    if (!active) return;
+    awakeCount += 1;
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      awakeCount -= 1;
+    };
+  }, [active]);
+}
+
+/** True while something open asks the screen to stay awake (`useStayAwakeHold`). */
+export function stayAwakeIsHeld(): boolean {
+  return awakeCount > 0;
 }

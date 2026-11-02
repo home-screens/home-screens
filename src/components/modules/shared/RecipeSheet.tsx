@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import type { MealSlotType, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey } from '@/lib/meal-constants';
-import { batchWord, mealHasRecipe, pageByHeight, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
+import { batchWord, mealHasRecipe, pageByHeight, RECIPE_PAGE_TURN_MS, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
 import { holdRotationFor } from '@/lib/interaction-hold';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useFontsReady } from '@/hooks/useFontsReady';
@@ -12,15 +12,20 @@ import { useTranslate } from '@/i18n';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { useMinutesText } from './useMealMinutes';
 import type { MealRecipeState } from './useMealRecipe';
+import { WallScroller } from './WallScroller';
 
-/** With nobody tapping, a long recipe's pages turn this often. */
-export const RECIPE_PAGE_TURN_MS = 30_000;
 /**
  * A tap on a step keeps the screen where it is this long. Someone cooking
  * taps Next a few minutes apart, and the usual tap hold (seconds) would
  * rotate the recipe away between two steps.
  */
 export const RECIPE_TAP_HOLD_MS = 5 * 60_000;
+/** The smallest the ingredients step their type, rows and boxes down to (of the authored size) before they scroll or clip. */
+const INGREDIENTS_MIN_SCALE = 0.55;
+/** The smallest a step too long for any page steps its type down to on a wall nobody can touch. */
+const LONG_STEP_MIN_SCALE = 0.5;
+/** A page dot's touch room around the dot, in authored pixels. */
+const DOT_HIT = 14;
 
 const BOLT = 'M13 10V3L4 14h7v7l9-11h-7z';
 
@@ -63,7 +68,17 @@ interface RecipeSheetProps {
   footer?: (measuring: boolean) => ReactNode;
   /** Room kept free at the top right of the header (the card's close button). */
   headerEndGap?: number;
+  /** Someone is cooking from it (the card, after a tick or a step): the pages hold still, whatever recipe is on it. */
+  held?: boolean;
+  /** A tick, a step, a course, Back or Next, a page dot: someone is cooking from it. */
+  onCook?: () => void;
 }
+
+/**
+ * Which copy a layout draws: the one on screen, or one of the hidden
+ * measuring copies (page one with every step, a later page with none).
+ */
+type Copy = 'shown' | 'all' | 'empty';
 
 const SECTION_LABEL: CSSProperties = {
   fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--fmp-text-3)',
@@ -77,13 +92,18 @@ const SECTION_LABEL: CSSProperties = {
  *
  * A recipe too long for the box is cut into pages of whole steps: page one
  * keeps the header and the ingredients, later pages a slim header and steps
- * only. The pages are measured from a hidden copy laid out exactly like the
- * visible one, so a page is cut where the wall would actually clip it. With
- * nobody tapping, pages turn every 30 seconds; on a touch screen Back and
- * Next step move a marker through the steps and the page follows it.
+ * only (on a touch screen with a line back to the ingredients). The pages are
+ * measured from a hidden copy laid out exactly like the visible one, so a
+ * page is cut where the wall would actually clip it. A step taller than any
+ * page gets one of its own, which a finger scrolls on a touch screen and
+ * which steps its type down on a wall nobody can touch. Ingredients that do
+ * not fit step their type down too, then scroll on a touch screen. With
+ * nobody touching, pages turn every 30 seconds; any touch stops that. On a
+ * touch screen Back and Next step move a marker through the steps and the
+ * page follows it, and the page dots go to their page.
  */
 export function RecipeSheet(props: RecipeSheetProps) {
-  const { meal, recipe, scale = 1, serving, courses, timeFormat, P, padding, headerFont, layout, showPicture, interactive, stepButtons = 'always', onCourse, resetKey, footer, headerEndGap } = props;
+  const { meal, recipe, scale = 1, serving, courses, timeFormat, P, padding, headerFont, layout, showPicture, interactive, stepButtons = 'always', onCourse, resetKey, footer, headerEndGap, held = false, onCook } = props;
   const t = useTranslate('modules');
   const minutesText = useMinutesText();
   const fontsReady = useFontsReady();
@@ -95,6 +115,9 @@ export function RecipeSheet(props: RecipeSheetProps) {
   const [rootRef, box] = useElementBox('padding');
   const firstListRef = useRef<HTMLDivElement>(null);
   const restListRef = useRef<HTMLDivElement>(null);
+  const shownListRef = useRef<HTMLDivElement>(null);
+  const ingShownRef = useRef<HTMLDivElement>(null);
+  const ingAllRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<{ key: string; pages: number[][] } | null>(null);
   const gap = 0;
   // Everything that moves a step or the room for them: the recipe's text, the
@@ -105,72 +128,134 @@ export function RecipeSheet(props: RecipeSheetProps) {
   );
   const measureKey = `${resetKey}|${layout}|${box.width}x${box.height}|${fontsReady}|${contentKey}|${courses.length}|${P(100)}|${interactive}|${recipe.status}`;
 
-  const measuredKey = measured?.key;
-  useLayoutEffect(() => {
-    if (!paged || !box.height || measuredKey === measureKey) return;
-    const first = firstListRef.current;
-    const rest = restListRef.current;
-    if (!first || !rest) return;
-    const heights = Array.from(first.children).map((c) => (c as HTMLElement).offsetHeight);
-    setMeasured({ key: measureKey, pages: pageByHeight(heights, first.clientHeight, rest.clientHeight, gap) });
-  }, [paged, box, measuredKey, measureKey]);
-
-  const pages = useMemo(
-    () => (paged && measured?.key === measureKey ? measured.pages : [steps.map((_, i) => i)]),
-    [paged, measured, measureKey, steps],
-  );
-
-  // ── Landscape ingredients: the left column is a fixed box with no pages, so
-  // a long list steps its type down until it fits rather than clipping. ──
-  const ingBoxRef = useRef<HTMLDivElement>(null);
+  // ── Ingredients that do not fit their box step their type, rows and boxes
+  // down until they do (page one's in portrait, the left column's in
+  // landscape); below the floor they scroll on a touch screen. Read from
+  // the measuring copy of page one when there is one, so it holds on any page. ──
   const [ingFit, setIngFit] = useState<{ key: string; scale: number }>({ key: '', scale: 1 });
   const ingScale = ingFit.key === measureKey ? ingFit.scale : 1;
   useLayoutEffect(() => {
-    if (layout !== 'landscape') return;
-    const el = ingBoxRef.current;
-    if (!el) return;
+    const grid = ingAllRef.current ?? ingShownRef.current;
+    const frame = grid?.parentElement;
+    if (!grid || !frame) return;
     if (ingFit.key !== measureKey) {
       setIngFit({ key: measureKey, scale: 1 });
       return;
     }
-    if (el.scrollHeight > el.clientHeight + 1 && ingFit.scale > 0.55) {
-      setIngFit({ key: measureKey, scale: Math.round((ingFit.scale - 0.05) * 100) / 100 });
+    if (grid.offsetHeight > frame.clientHeight + 1 && ingFit.scale > INGREDIENTS_MIN_SCALE) {
+      setIngFit({ key: measureKey, scale: Math.max(INGREDIENTS_MIN_SCALE, Math.round((ingFit.scale - 0.05) * 100) / 100) });
     }
-  }, [layout, measureKey, ingFit]);
+  }, [measureKey, ingFit]);
 
-  // ── Page and step marker ──
+  // In portrait the ingredients share page one with the steps, so their size is part of the pages' key.
+  const pagesKey = `${measureKey}|${ingScale}`;
+  const measuredKey = measured?.key;
+  useLayoutEffect(() => {
+    if (!paged || !box.height || measuredKey === pagesKey) return;
+    const first = firstListRef.current;
+    const rest = restListRef.current;
+    if (!first || !rest) return;
+    const heights = Array.from(first.children).map((c) => (c as HTMLElement).offsetHeight);
+    setMeasured({ key: pagesKey, pages: pageByHeight(heights, first.clientHeight, rest.clientHeight, gap) });
+  }, [paged, box, measuredKey, pagesKey]);
+
+  const pagesReady = paged && measured?.key === pagesKey;
+  const pages = useMemo(
+    () => (pagesReady && measured ? measured.pages : [steps.map((_, i) => i)]),
+    [pagesReady, measured, steps],
+  );
+
+  // ── Page and step marker, and the ingredients ticked off ──
   const [page, setPage] = useState(0);
   const [marker, setMarker] = useState<number | null>(null);
+  // A page looked at by hand while a step is marked (the ingredients, a dot):
+  // shown over the marker's page until the next step button.
+  const [peek, setPeek] = useState<number | null>(null);
+  // Any touch on the recipe: its pages stop turning by themselves.
+  const [touched, setTouched] = useState(false);
+  // Kept only while this recipe is up: nothing is saved, nothing reaches the grocery list.
+  const [ticked, setTicked] = useState<ReadonlySet<number>>(() => new Set());
   useEffect(() => {
     setPage(0);
     setMarker(null);
+    setPeek(null);
+    setTouched(false);
+    setTicked(new Set());
   }, [resetKey]);
-  const shownPage = Math.min(marker !== null ? recipePageOfStep(pages, marker) : page, pages.length - 1);
+  const markerPage = marker !== null ? recipePageOfStep(pages, marker) : null;
+  const shownPage = Math.min(peek ?? markerPage ?? page, pages.length - 1);
+  // Following the marked step: the Steps box says which, and the dots step aside.
+  const following = interactive && marker !== null && peek === null;
 
+  const turns = pages.length > 1 && marker === null && !touched && !held;
   useEffect(() => {
-    if (marker !== null || pages.length <= 1) return;
+    if (!turns) return;
     const id = setInterval(() => setPage((p) => (p + 1) % pages.length), RECIPE_PAGE_TURN_MS);
     return () => clearInterval(id);
-  }, [marker, pages.length, page]);
+  }, [turns, pages.length, page]);
 
-  const hold = useCallback(() => { holdRotationFor(RECIPE_TAP_HOLD_MS); }, []);
+  // ── A step too long for any page, on a wall nobody can touch: its type steps
+  // down until it fits (a touch screen scrolls it instead). ──
+  const [stepFit, setStepFit] = useState<{ key: string; scale: number }>({ key: '', scale: 1 });
+  const stepFitKey = `${pagesKey}|${shownPage}`;
+  const stepScale = !interactive && stepFit.key === stepFitKey ? stepFit.scale : 1;
+  useLayoutEffect(() => {
+    if (interactive || !pagesReady) return;
+    const list = shownListRef.current;
+    if (!list) return;
+    if (stepFit.key !== stepFitKey) {
+      setStepFit({ key: stepFitKey, scale: 1 });
+      return;
+    }
+    if (list.scrollHeight > list.clientHeight + 1 && stepFit.scale > LONG_STEP_MIN_SCALE) {
+      setStepFit({ key: stepFitKey, scale: Math.max(LONG_STEP_MIN_SCALE, Math.round((stepFit.scale - 0.05) * 100) / 100) });
+    }
+  }, [interactive, pagesReady, stepFitKey, stepFit]);
+
+  const onCookRef = useRef(onCook);
+  onCookRef.current = onCook;
+  const cook = useCallback(() => {
+    holdRotationFor(RECIPE_TAP_HOLD_MS);
+    setTouched(true);
+    onCookRef.current?.();
+  }, []);
   const nextStep = useCallback(() => {
-    hold();
+    cook();
+    setPeek(null);
     if (steps.length === 0) return;
     setMarker((m) => {
       if (m === null) return pages[shownPage]?.[0] ?? pages.find((p) => p.length > 0)?.[0] ?? 0;
       return Math.min(m + 1, steps.length - 1);
     });
-  }, [hold, steps.length, pages, shownPage]);
+  }, [cook, steps.length, pages, shownPage]);
   const backStep = useCallback(() => {
-    hold();
+    cook();
+    setPeek(null);
     if (marker === null) {
       setPage(Math.max(0, shownPage - 1));
       return;
     }
     setMarker(Math.max(0, marker - 1));
-  }, [hold, marker, shownPage]);
-  const jumpTo = useCallback((i: number) => { hold(); setMarker(i); }, [hold]);
+  }, [cook, marker, shownPage]);
+  const jumpTo = useCallback((i: number) => { cook(); setPeek(null); setMarker(i); }, [cook]);
+  const goToPage = useCallback((i: number) => {
+    cook();
+    if (markerPage === null) {
+      setPeek(null);
+      setPage(i);
+      return;
+    }
+    setPeek(i === markerPage ? null : i);
+  }, [cook, markerPage]);
+  const tick = useCallback((i: number) => {
+    cook();
+    setTicked((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+  }, [cook]);
 
   // ── Pieces ── (`m`: drawing the hidden measuring copy, which carries no test ids)
   const tid = (name: string, m: boolean) => (m ? undefined : name);
@@ -262,7 +347,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
               key={i}
               type="button"
               aria-label={t('meal-planner.recipe.openCourseAria', { name: c.name })}
-              onClick={() => { hold(); onCourse!(c.meal!); }}
+              onClick={() => { cook(); onCourse!(c.meal!); }}
               style={{
                 ...base, font: 'inherit', cursor: 'pointer', border: '1.5px solid var(--fmp-border)', borderRadius: P(16),
                 padding: `${P(10)}px ${P(18)}px`, background: 'var(--fmp-surface)', color: 'inherit',
@@ -292,34 +377,160 @@ export function RecipeSheet(props: RecipeSheetProps) {
     </div>
   );
 
-  const ingredients = (columns: number, size: number, rowGap: number, m: boolean) => {
-    if (!detail || detail.ingredients.length === 0) return null;
-    return card(
-      <>
-        {sectionHead(t('meal-planner.recipe.ingredients'), String(detail.ingredients.length))}
-        <div data-testid={tid('recipe-ingredients', m)} style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, columnGap: P(44), rowGap: P(rowGap) }}>
-          {detail.ingredients.map((ing, i) => (
-            <div key={i} style={{ display: 'contents' }}>
-              {ing.heading && (
-                <div style={{ gridColumn: '1 / -1', ...SECTION_LABEL, fontSize: P(20), color: 'var(--fmp-text-2)', marginTop: i > 0 ? P(8) : 0 }}>
-                  {ing.heading}
-                </div>
-              )}
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: P(16), fontSize: P(size), lineHeight: 1.25 }}>
-                <span style={{ width: P(10), height: P(10), borderRadius: '50%', background: 'var(--fmp-accent)', flexShrink: 0, transform: `translateY(-${P(4)}px)` }} />
-                <span style={{ color: 'var(--fmp-text)', minWidth: 0 }}>
-                  {ing.text}
-                  {ing.amount && <span style={{ color: 'var(--fmp-text-3)', marginLeft: P(12), whiteSpace: 'nowrap' }}>{ing.amount}</span>}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </>,
+  /**
+   * A list that scrolls with a finger on a touch screen and clips otherwise.
+   * The measuring copies draw the plain one, which takes exactly the same room.
+   */
+  const scrollBox = (copy: Copy, frame: CSSProperties, inner: CSSProperties, children: ReactNode, opts: { listRef?: Ref<HTMLDivElement>; testId?: string; homeKey: string }) => {
+    if (interactive && copy === 'shown') {
+      return (
+        <WallScroller
+          enabled
+          stays
+          holdMs={RECIPE_TAP_HOLD_MS}
+          homeKey={opts.homeKey}
+          testId={opts.testId}
+          frameStyle={frame}
+          style={inner}
+          thumbColor="var(--fmp-text-3)"
+          thumbWidth={P(6)}
+        >
+          {children}
+        </WallScroller>
+      );
+    }
+    return (
+      <div ref={opts.listRef} data-testid={copy === 'shown' ? opts.testId : undefined} style={{ minHeight: 0, overflow: 'hidden', ...frame, ...inner }}>
+        {children}
+      </div>
     );
   };
 
-  const stepRow = (step: RecipeStep, i: number, size: number, m: boolean) => {
+  /** `k`: the step-down of a list too long for its box, applied to the rows, the boxes and the gaps as well as the type. */
+  const ingredients = (copy: Copy, columns: number, size: number, rowGap: number, k: number) => {
+    if (!detail || detail.ingredients.length === 0) return null;
+    const m = copy !== 'shown';
+    const total = detail.ingredients.length;
+    // The measuring copy counts as nothing ticked; the header's words never change a row's height.
+    const done = m ? 0 : detail.ingredients.filter((_, i) => ticked.has(i)).length;
+    const right = interactive && done > 0 ? t('meal-planner.recipe.ingredientsReady', { done, total }) : String(total);
+    const grid = (
+      <div
+        ref={copy === 'shown' ? ingShownRef : copy === 'all' ? ingAllRef : undefined}
+        data-testid={tid('recipe-ingredients', m)}
+        style={{
+          display: 'grid', gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, columnGap: P(44 * k),
+          rowGap: P(interactive ? Math.max(4 * k, rowGap - 10 * k) : rowGap),
+        }}
+      >
+        {detail.ingredients.map((ing, i) => {
+          const isTicked = !m && ticked.has(i);
+          const text = (
+            <span style={{
+              color: isTicked ? 'var(--fmp-text-3)' : 'var(--fmp-text)', minWidth: 0, textAlign: 'left',
+              textDecoration: isTicked ? 'line-through' : undefined, textDecorationThickness: P(2),
+            }}>
+              {ing.text}
+              {ing.amount && <span style={{ color: 'var(--fmp-text-3)', marginLeft: P(12), whiteSpace: 'nowrap' }}>{ing.amount}</span>}
+            </span>
+          );
+          // On a touch wall each line is a box to tick off while cooking.
+          const row = interactive ? (
+            <>
+              <span aria-hidden="true" style={{
+                width: P(42 * k), height: P(42 * k), borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxSizing: 'border-box', border: isTicked ? 0 : `${P(3 * k)}px solid var(--fmp-border)`,
+                background: isTicked ? 'var(--fmp-accent)' : 'transparent', color: 'var(--fmp-on-accent, #fff)',
+              }}>
+                {isTicked && (
+                  <svg viewBox="0 0 24 24" fill="none" style={{ width: '62%', height: '62%' }}>
+                    <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </span>
+              {text}
+            </>
+          ) : (
+            <>
+              <span style={{ width: P(10 * k), height: P(10 * k), borderRadius: '50%', background: 'var(--fmp-accent)', flexShrink: 0, transform: `translateY(-${P(4 * k)}px)` }} />
+              {text}
+            </>
+          );
+          const rowStyle: CSSProperties = interactive
+            ? { display: 'flex', alignItems: 'center', gap: P(18 * k), fontSize: P(size), lineHeight: 1.25, minHeight: P(56 * k) }
+            : { display: 'flex', alignItems: 'baseline', gap: P(16 * k), fontSize: P(size), lineHeight: 1.25 };
+          return (
+            <div key={i} style={{ display: 'contents' }}>
+              {ing.heading && (
+                <div style={{ gridColumn: '1 / -1', ...SECTION_LABEL, fontSize: P(20 * k), color: 'var(--fmp-text-2)', marginTop: i > 0 ? P(8 * k) : 0 }}>
+                  {ing.heading}
+                </div>
+              )}
+              {interactive && !m ? (
+                <button
+                  type="button"
+                  data-testid="recipe-ingredient"
+                  data-ticked={isTicked ? '' : undefined}
+                  aria-pressed={isTicked}
+                  onClick={() => tick(i)}
+                  // fontFamily, not the font shorthand: `rowStyle` already sets the size, and a later `font` would reset it.
+                  style={{ ...rowStyle, border: 0, background: 'none', padding: 0, fontFamily: 'inherit', color: 'inherit', cursor: 'pointer', width: '100%' }}
+                >
+                  {row}
+                </button>
+              ) : (
+                <div style={rowStyle}>{row}</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+    // The card is as tall as its list, or as the room left when that is less: the list then scrolls or clips inside it.
+    const fill: CSSProperties = { flex: '0 1 auto', minHeight: 0 };
+    return card(
+      <>
+        {sectionHead(t('meal-planner.recipe.ingredients'), right)}
+        {scrollBox(copy, fill, fill, grid, { homeKey: resetKey })}
+      </>,
+      { ...fill, display: 'flex', flexDirection: 'column' },
+    );
+  };
+
+  /**
+   * On a later page of a touch screen, the ingredients in one line ("Ingredients · 3 of 6 ready")
+   * that goes back to page one. The ticks stay in reach while cooking.
+   */
+  const ingredientsLine = (copy: Copy) => {
+    if (!interactive || !detail || detail.ingredients.length === 0) return null;
+    const m = copy !== 'shown';
+    const total = detail.ingredients.length;
+    const done = m ? 0 : detail.ingredients.filter((_, i) => ticked.has(i)).length;
+    const style: CSSProperties = {
+      display: 'inline-flex', alignItems: 'baseline', gap: P(12), maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden',
+      marginTop: P(6), padding: `${P(10)}px ${P(20)}px`, borderRadius: P(16), border: '1.5px solid var(--fmp-border)',
+      background: 'var(--fmp-surface)', color: 'var(--fmp-text-2)', fontSize: P(26), lineHeight: 1.3,
+    };
+    const inner = (
+      <>
+        <span style={{ ...SECTION_LABEL, fontSize: P(19) }}>{t('meal-planner.recipe.ingredients')}</span>
+        <span aria-hidden="true" style={{ color: 'var(--fmp-text-3)' }}>&middot;</span>
+        <span style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {done > 0 ? t('meal-planner.recipe.ingredientsReady', { done, total }) : total}
+        </span>
+        <span aria-hidden="true" style={{ color: 'var(--fmp-text-3)' }}>&#8250;</span>
+      </>
+    );
+    if (m) return <div style={style}>{inner}</div>;
+    return (
+      <button type="button" data-testid="recipe-ingredients-line" onClick={() => goToPage(0)} style={{ ...style, fontFamily: 'inherit', cursor: 'pointer' }}>
+        {inner}
+      </button>
+    );
+  };
+
+  /** `k`: a long step's step-down on a wall nobody can touch. */
+  const stepRow = (step: RecipeStep, i: number, size: number, m: boolean, k: number) => {
     const state = marker === null ? 'plain' : i === marker ? 'current' : i < marker ? 'done' : 'plain';
     const current = state === 'current';
     const number = state === 'done'
@@ -335,8 +546,8 @@ export function RecipeSheet(props: RecipeSheetProps) {
         }}>
           {number}
         </span>
-        <span style={{ fontSize: P(size), lineHeight: 1.4, color: 'var(--fmp-text)', paddingTop: P(8), whiteSpace: 'pre-line', minWidth: 0, textAlign: 'left' }}>
-          {step.heading && <span style={{ display: 'block', ...SECTION_LABEL, fontSize: P(20), color: 'var(--fmp-text-2)', marginBottom: P(6) }}>{step.heading}</span>}
+        <span style={{ fontSize: P(size * k), lineHeight: 1.4, color: 'var(--fmp-text)', paddingTop: P(8), whiteSpace: 'pre-line', minWidth: 0, textAlign: 'left' }}>
+          {step.heading && <span style={{ display: 'block', ...SECTION_LABEL, fontSize: P(20 * k), color: 'var(--fmp-text-2)', marginBottom: P(6) }}>{step.heading}</span>}
           {step.lead && <span style={{ display: 'block', fontWeight: 700 }}>{step.lead}</span>}
           {step.text}
         </span>
@@ -368,34 +579,70 @@ export function RecipeSheet(props: RecipeSheetProps) {
     );
   };
 
-  const stepsCard = (shown: number[] | 'all', listRef: React.Ref<HTMLDivElement> | undefined, size: number, measuring: boolean) => {
+  /** The page dots; on a touch screen each one goes to its page. */
+  const dots = (copy: Copy) => {
+    const m = copy !== 'shown';
+    return (
+      <div
+        data-testid={m ? undefined : 'recipe-dots'}
+        aria-hidden={interactive && !m ? undefined : 'true'}
+        style={{ display: 'flex', justifyContent: 'center', gap: interactive ? 0 : P(14), flexShrink: 0, visibility: m ? 'hidden' : undefined }}
+      >
+        {pages.map((_, i) => {
+          const dot = <span style={{ display: 'block', width: P(14), height: P(14), borderRadius: '50%', background: i === shownPage ? 'var(--fmp-accent)' : 'var(--fmp-border)' }} />;
+          if (!interactive) return <span key={i}>{dot}</span>;
+          // A finger-sized target around a dot that stays small.
+          const hit: CSSProperties = { display: 'flex', padding: P(DOT_HIT) };
+          if (m) return <span key={i} style={hit}>{dot}</span>;
+          return (
+            <button
+              key={i}
+              type="button"
+              data-testid="recipe-dot"
+              aria-label={t('meal-planner.recipe.pageAria', { page: i + 1, pages: pages.length })}
+              aria-current={i === shownPage ? 'page' : undefined}
+              onClick={() => goToPage(i)}
+              style={{ ...hit, border: 0, margin: 0, background: 'none', cursor: 'pointer' }}
+            >
+              {dot}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const stepsCard = (copy: Copy, shown: number[] | 'all', size: number) => {
+    const measuring = copy !== 'shown';
     const first = shown === 'all' ? 0 : shown[0];
     const last = shown === 'all' ? steps.length - 1 : shown[shown.length - 1];
-    const right = marker !== null && interactive
+    const right = following && marker !== null
       ? t('meal-planner.recipe.stepOf', { step: marker + 1, total: steps.length })
       : pages.length > 1 && first !== undefined
         ? first === last
           ? t('meal-planner.recipe.stepOf', { step: first + 1, total: steps.length })
           : t('meal-planner.recipe.stepsRange', { from: first + 1, to: last + 1, total: steps.length })
         : undefined;
-    const showDots = measuring || (pages.length > 1 && !(interactive && marker !== null));
+    const showDots = measuring || (pages.length > 1 && !following);
+    const k = copy === 'shown' ? stepScale : 1;
+    const rows = (shown === 'all' ? steps.map((_, i) => i) : shown).map((i) => stepRow(steps[i], i, size, measuring, k));
     return card(
       <>
         {sectionHead(t('meal-planner.recipe.steps'), measuring ? undefined : right)}
-        {/* Widened by the step frame's overhang, so clipping a page never cuts the current step's frame. */}
-        <div ref={listRef} data-testid={measuring ? undefined : 'recipe-steps'} style={{
-          flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap, overflow: 'hidden',
-          margin: `0 -${P(26)}px`, padding: `0 ${P(26)}px`,
-        }}>
-          {(shown === 'all' ? steps.map((_, i) => i) : shown).map((i) => stepRow(steps[i], i, size, measuring))}
-        </div>
-        {showDots && (
-          <div aria-hidden="true" style={{ display: 'flex', justifyContent: 'center', gap: P(14), paddingTop: P(20), flexShrink: 0, visibility: measuring ? 'hidden' : undefined }}>
-            {pages.map((_, i) => (
-              <span key={i} style={{ width: P(14), height: P(14), borderRadius: '50%', background: i === shownPage ? 'var(--fmp-accent)' : 'var(--fmp-border)' }} />
-            ))}
-          </div>
+        {/* Widened by the step frame's overhang, so clipping a page never cuts the current step's frame. A step
+            taller than any page scrolls here on a touch screen. */}
+        {scrollBox(
+          copy,
+          { flex: 1, minHeight: 0, margin: `0 -${P(26)}px` },
+          { display: 'flex', flexDirection: 'column', gap, padding: `0 ${P(26)}px` },
+          rows,
+          {
+            listRef: copy === 'all' ? firstListRef : copy === 'empty' ? restListRef : shownListRef,
+            testId: 'recipe-steps',
+            homeKey: `${resetKey}|${shownPage}`,
+          },
         )}
+        {showDots && <div style={{ paddingTop: P(interactive ? 20 - DOT_HIT : 20), flexShrink: 0 }}>{dots(copy)}</div>}
       </>,
       { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
     );
@@ -460,97 +707,127 @@ export function RecipeSheet(props: RecipeSheetProps) {
   });
 
   // ── Layouts ──
-  const portrait = (variant: 'first' | 'rest', shown: number[] | 'all', listRef?: React.Ref<HTMLDivElement>, measuring = false) => (
-    <>
-      {variant === 'first' ? (
-        <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: P(40), flexShrink: 0 }}>
-            {picture(300)}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(18), minWidth: 0 }}>
-              {pill(24, measuring)}
-              <div data-testid={measuring ? undefined : 'recipe-name'} style={nameStyle(78, 2)}>{meal.name}</div>
-              {stats(34, 19, 44, measuring)}
+  const hasIngredients = (detail?.ingredients.length ?? 0) > 0;
+  const dotsTall = P(interactive ? 14 + 2 * DOT_HIT : 14);
+
+  const portrait = (copy: Copy, variant: 'first' | 'rest', shown: number[] | 'all') => {
+    const measuring = copy !== 'shown';
+    return (
+      <>
+        {variant === 'first' ? (
+          <>
+            {/* Room for the close button on page one too, or a long name runs under it. */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: P(40), flexShrink: 0, paddingRight: headerEndGap }}>
+              {picture(300)}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(18), minWidth: 0 }}>
+                {pill(24, measuring)}
+                {/* Three lines, as the room kept for the close button narrows the column. */}
+                <div data-testid={tid('recipe-name', measuring)} style={nameStyle(78, 3)}>{meal.name}</div>
+                {stats(34, 19, 44, measuring)}
+              </div>
+            </div>
+            {courseLine(30, measuring)}
+            {/* Shrinks to the room left when the list is longer than the page: the list steps down, then scrolls. */}
+            {hasIngredients && (
+              <div style={{ marginTop: P(40), flex: '0 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                {ingredients(copy, 2, 30 * ingScale, 16 * ingScale, ingScale)}
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: P(28), paddingRight: headerEndGap, flexShrink: 0 }}>
+            {picture(120)}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(10), minWidth: 0 }}>
+              {pill(20, measuring)}
+              <div data-testid={tid('recipe-name', measuring)} style={nameStyle(52, 1)}>{meal.name}</div>
+              {ingredientsLine(copy)}
             </div>
           </div>
-          {courseLine(30, measuring)}
-          {(detail?.ingredients.length ?? 0) > 0 && <div style={{ marginTop: P(40), flexShrink: 0 }}>{ingredients(2, 30, 16, measuring)}</div>}
-        </>
-      ) : (
-        <div style={{ display: 'flex', alignItems: 'center', gap: P(28), paddingRight: headerEndGap, flexShrink: 0 }}>
-          {picture(120)}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(10), minWidth: 0 }}>
-            {pill(20, measuring)}
-            <div data-testid={measuring ? undefined : 'recipe-name'} style={nameStyle(52, 1)}>{meal.name}</div>
-          </div>
-        </div>
-      )}
-      {recipe.status !== 'ready' && <div style={{ marginTop: P(28) }}>{status(measuring)}</div>}
-      {paged && (shown === 'all' || shown.length > 0 || variant === 'rest') && (
-        <div style={{ marginTop: P(variant === 'first' ? 28 : 32), flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          {stepsCard(shown, listRef, 33, measuring)}
-        </div>
-      )}
-      {/* The ingredients filled page one: no empty Steps card, just where the pages are. */}
-      {paged && shown !== 'all' && shown.length === 0 && variant === 'first' && (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', gap: P(14) }}>
-          {pages.map((_, i) => (
-            <span key={i} style={{ width: P(14), height: P(14), borderRadius: '50%', background: i === shownPage ? 'var(--fmp-accent)' : 'var(--fmp-border)' }} />
-          ))}
-        </div>
-      )}
-      {!paged && detail && <div style={{ marginTop: P(28), flexShrink: 0 }}>{notesCard(measuring)}</div>}
-      {touchBar(measuring)}
-      {footer?.(measuring)}
-    </>
-  );
-
-  const landscapeLayout = (shown: number[] | 'all', listRef?: React.Ref<HTMLDivElement>, measuring = false) => (
-    <div style={{ display: 'flex', gap: P(36), flex: 1, minHeight: 0 }}>
-      <div style={{ width: P(700), flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: P(28) }}>
-          {picture(200)}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(14), minWidth: 0 }}>
-            {pill(21, measuring)}
-            <div data-testid={measuring ? undefined : 'recipe-name'} style={nameStyle(60, 2)}>{meal.name}</div>
-          </div>
-        </div>
-        <div style={{ marginTop: P(26) }}>{stats(30, 18, 40, measuring)}</div>
-        {courseLine(22, measuring)}
-        {recipe.status !== 'ready' && <div style={{ marginTop: P(26) }}>{status(measuring)}</div>}
-        {(detail?.ingredients.length ?? 0) > 0 && (
-          <div ref={measuring ? undefined : ingBoxRef} style={{ marginTop: P(26), flex: 1, minHeight: 0, overflow: 'hidden' }}>
-            {ingredients((detail?.ingredients.length ?? 0) > 8 ? 2 : 1, 27 * ingScale, 11 * ingScale, measuring)}
+        )}
+        {recipe.status !== 'ready' && <div style={{ marginTop: P(28) }}>{status(measuring)}</div>}
+        {/* On page one the Steps box keeps at least the dots' room, so the ingredients measured beside every
+            step get exactly the room they have when they fill the page and only the dots are left. */}
+        {paged && (shown === 'all' || shown.length > 0 || variant === 'rest') && (
+          <div style={{
+            marginTop: P(variant === 'first' ? 28 : 32), flex: 1, minHeight: variant === 'first' ? dotsTall : 0,
+            display: 'flex', flexDirection: 'column',
+          }}>
+            {stepsCard(copy, shown, 33)}
           </div>
         )}
-        {!paged && detail && <div style={{ marginTop: P(26) }}>{notesCard(measuring)}</div>}
-      </div>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', paddingRight: headerEndGap }}>
-        {paged && stepsCard(shown, listRef, 32, measuring)}
+        {/* The ingredients filled page one: no empty Steps card, just where the pages are. */}
+        {paged && shown !== 'all' && shown.length === 0 && variant === 'first' && (
+          <div style={{ flex: 1, minHeight: dotsTall, marginTop: P(28), display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+            {dots(copy)}
+          </div>
+        )}
+        {!paged && detail && <div style={{ marginTop: P(28), flexShrink: 0 }}>{notesCard(measuring)}</div>}
         {touchBar(measuring)}
         {footer?.(measuring)}
+      </>
+    );
+  };
+
+  const landscapeLayout = (copy: Copy, shown: number[] | 'all') => {
+    const measuring = copy !== 'shown';
+    return (
+      <div style={{ display: 'flex', gap: P(36), flex: 1, minHeight: 0 }}>
+        <div style={{ width: P(700), flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: P(28) }}>
+            {picture(200)}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: P(14), minWidth: 0 }}>
+              {pill(21, measuring)}
+              <div data-testid={tid('recipe-name', measuring)} style={nameStyle(60, 2)}>{meal.name}</div>
+            </div>
+          </div>
+          <div style={{ marginTop: P(26) }}>{stats(30, 18, 40, measuring)}</div>
+          {courseLine(22, measuring)}
+          {recipe.status !== 'ready' && <div style={{ marginTop: P(26) }}>{status(measuring)}</div>}
+          {/* A fixed box with no pages: a long list steps down until it fits, then scrolls on a touch screen. */}
+          {hasIngredients && (
+            <div style={{ marginTop: P(26), flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              {ingredients(copy, (detail?.ingredients.length ?? 0) > 8 ? 2 : 1, 27 * ingScale, 11 * ingScale, ingScale)}
+            </div>
+          )}
+        </div>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', paddingRight: headerEndGap }}>
+          {paged && stepsCard(copy, shown, 32)}
+          {/* A saved meal's notes take the steps' place, beside the ingredients rather than under them. */}
+          {!paged && detail && <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>{notesCard(measuring)}</div>}
+          {touchBar(measuring)}
+          {footer?.(measuring)}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const shownSteps = pages[shownPage] ?? [];
   const layoutBox: CSSProperties = { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', padding, boxSizing: 'border-box' };
 
   return (
-    <div ref={rootRef} data-testid="recipe-sheet" data-page={shownPage} data-pages={pages.length} style={{ position: 'relative', flex: 1, minHeight: 0, height: '100%' }}>
+    <div
+      ref={rootRef}
+      data-testid="recipe-sheet"
+      data-page={shownPage}
+      data-pages={pages.length}
+      data-turning={turns ? '' : undefined}
+      onPointerDown={interactive ? () => setTouched(true) : undefined}
+      style={{ position: 'relative', flex: 1, minHeight: 0, height: '100%' }}
+    >
       <div style={layoutBox}>
         {layout === 'landscape'
-          ? landscapeLayout(shownSteps)
-          : portrait(shownPage === 0 ? 'first' : 'rest', shownSteps)}
+          ? landscapeLayout('shown', shownSteps)
+          : portrait('shown', shownPage === 0 ? 'first' : 'rest', shownSteps)}
       </div>
       {paged && (
         // The measuring copies: every step under page one's header and
         // ingredients, and an empty list under a later page's slim header.
         <div aria-hidden="true" inert style={{ position: 'absolute', inset: 0, visibility: 'hidden', pointerEvents: 'none', overflow: 'hidden' }}>
           <div style={layoutBox}>
-            {layout === 'landscape' ? landscapeLayout('all', firstListRef, true) : portrait('first', 'all', firstListRef, true)}
+            {layout === 'landscape' ? landscapeLayout('all', 'all') : portrait('all', 'first', 'all')}
           </div>
           <div style={layoutBox}>
-            {layout === 'landscape' ? landscapeLayout([], restListRef, true) : portrait('rest', [], restListRef, true)}
+            {layout === 'landscape' ? landscapeLayout('empty', []) : portrait('empty', 'rest', [])}
           </div>
         </div>
       )}

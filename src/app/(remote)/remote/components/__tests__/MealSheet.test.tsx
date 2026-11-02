@@ -39,6 +39,7 @@ function renderSheet(planned: PlannedMeal) {
         onRemoveCourse={() => {}}
         onSetTime={() => {}}
         onClear={() => {}}
+        wallNotices={{ sent: () => {}, failed: () => {} }}
       />
     </I18nProvider>,
   );

@@ -5,7 +5,7 @@ import { EventMarker } from '../shared/EventMarker';
 import { useMemo } from 'react';
 import { addDays, isSameDay, startOfWeek } from 'date-fns';
 import {
-  parseEventWallTime, formatEventTime,
+  parseEventWallTime, formatEventTime, eventEndLabel,
   bucketEventsForDay, eventStatusSlot, boundaryBetween, weekStartsOnFor, eventKindLabel, isWeekendDay,
   eventRowTimeLabel, isPastInAgendaGroup, withSavedSuffix, clampAgendaDays,
   type EventDaySegment,
@@ -13,7 +13,7 @@ import {
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, fullDateHeading } from '@/i18n';
 import { MapPin } from 'lucide-react';
-import { clippedListFade, dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
+import { clippedListFade, dayCellFill, dayDecorFor, resolveTodayHighlight, wallScrollLook } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity, mergeCellDecor } from '@/lib/calendar-rules';
@@ -21,10 +21,11 @@ import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import type { CalendarEvent, CalendarViewProps } from './view-support';
 import { DayWeatherBadge, EventWeatherLine } from './WeatherInline';
-import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, eventAriaLabel } from './list-view-bits';
+import { CountdownPill, EventProgressBar, WeekSeparator, MonthSeparator, EVENT_TIME_TEXT, eventAriaLabel } from './list-view-bits';
 import Glyph from '@/components/ui/Glyph';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
+import { WallScroller } from '../shared/WallScroller';
 
 interface DayGroupEvent {
   ev: CalendarEvent;
@@ -32,11 +33,12 @@ interface DayGroupEvent {
 }
 
 // With agendaShowFinishedToday, finished rows sort first under Today and the
-// view has no row cap or scrolling, so a busy day could push every upcoming
-// row below the fold. Keep only the most recent few finished rows.
+// view has no row cap (and scrolls only on a touch wall), so a busy day could
+// push every upcoming row below the fold. Keep only the most recent few
+// finished rows.
 const FINISHED_TODAY_MAX = 3;
 
-export function AgendaView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, dayNotes }: CalendarViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, dayNotes, scroll = false }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -186,11 +188,11 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
                 }}
               >
                 <div style={{
+                  ...EVENT_TIME_TEXT,
                   fontSize: fontSize * 0.65,
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
-                  color: 'var(--cal-text-tertiary)',
                 }}>
                   {kindLabel ?? t('fullscreen-calendar.allDay')}
                 </div>
@@ -223,7 +225,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           }
 
           const startLabel = formatEventTime(start, timeFormat, locale);
-          const endLabel = formatEventTime(end, timeFormat, locale);
+          const endLabel = eventEndLabel(start, end, timeFormat, locale);
           const timeLabel = withSavedSuffix(
             eventRowTimeLabel({ segment, startLabel, endLabel, t, ns: 'fullscreen-calendar' }),
             ev, failingSourceIds, t,
@@ -246,9 +248,8 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
               }}
             >
               <div style={{
+                ...EVENT_TIME_TEXT,
                 fontSize: fontSize * 0.8,
-                fontWeight: 500,
-                color: 'var(--cal-text-tertiary)',
                 marginBottom: scale.bu * 0.1,
               }}>
                 {timeLabel}
@@ -327,6 +328,16 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
     return groups.map(renderDayGroup);
   }
 
+  // Every day in the window is drawn; the box shows what fits from today
+  // down (the fade says there is more), and on a touch wall a finger reads on.
+  const scroller = {
+    enabled: scroll,
+    backLabel: t('wallScroll.backToToday'),
+    ...wallScrollLook(scale, fontSize),
+    frameStyle: { height: '100%' },
+    testId: 'fsc-agenda-scroll',
+  };
+
   if (isLandscape) {
     // 2-column layout: distribute day groups left-to-right
     const leftGroups: typeof dayGroups = [];
@@ -344,39 +355,35 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
       }
     }
 
+    // Both columns scroll as one, so the days stay side by side.
     return (
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        height: '100%',
-        gap: scale.bu * 0.5,
-      }}>
+      <WallScroller {...scroller} style={clippedListFade(scale.bu * 2.5)}>
         <div style={{
-          overflow: 'hidden',
-          padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
-          ...clippedListFade(scale.bu * 2.5),
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          minHeight: '100%',
+          gap: scale.bu * 0.5,
         }}>
-          {renderColumn(leftGroups)}
+          <div style={{ minWidth: 0, overflowX: 'clip', padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px` }}>
+            {renderColumn(leftGroups)}
+          </div>
+          <div style={{ minWidth: 0, overflowX: 'clip', padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px` }}>
+            {renderColumn(rightGroups)}
+          </div>
         </div>
-        <div style={{
-          overflow: 'hidden',
-          padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
-          ...clippedListFade(scale.bu * 2.5),
-        }}>
-          {renderColumn(rightGroups)}
-        </div>
-      </div>
+      </WallScroller>
     );
   }
 
   return (
-    <div style={{
-      height: '100%',
-      overflow: 'hidden',
-      padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
-      ...clippedListFade(scale.bu * 2.5),
-    }}>
+    <WallScroller
+      {...scroller}
+      style={{
+        padding: `0 ${scale.bu * 1.4}px ${scale.bu * 2}px`,
+        ...clippedListFade(scale.bu * 2.5),
+      }}
+    >
       {renderColumn(dayGroups)}
-    </div>
+    </WallScroller>
   );
 }

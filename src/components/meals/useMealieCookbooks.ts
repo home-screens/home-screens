@@ -9,14 +9,17 @@ import type { MealieCookbook } from '@/lib/mealie';
  * they load or when Mealie does not answer: the chips are a shortcut, and
  * the search and the other chips work without them. Shared by the phone's
  * Library and pickers and the editor's picker.
+ *
+ * `refresh` changing asks again (Mealie answering after an outage, the
+ * search's `recovered`); a failed ask keeps the cookbooks already shown.
  */
-export function useMealieCookbooks(fetcher: MealFetch, enabled = true): MealieCookbook[] {
+export function useMealieCookbooks(fetcher: MealFetch, enabled = true, refresh = 0): MealieCookbook[] {
   const [cookbooks, setCookbooks] = useState<MealieCookbook[]>([]);
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
     fetchMealieCookbooks(fetcher, controller.signal).then(setCookbooks, () => {});
     return () => controller.abort();
-  }, [fetcher, enabled]);
+  }, [fetcher, enabled, refresh]);
   return cookbooks;
 }

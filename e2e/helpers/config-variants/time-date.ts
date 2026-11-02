@@ -666,6 +666,20 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: has('Wk'),
   },
   {
+    // "Show event times" reaches the week grid: a classic pill leads with its
+    // compact start ("12p" for noon).
+    type: 'calendar', name: 'week-show-time', kind: 'networked', stubKey: 'calendar',
+    stubBody: [dayEvent('cwt-1', 'CAL WEEK TIME', 0)],
+    config: { viewMode: 'week', showTime: true },
+    expect: async (mod) => { await has('CAL WEEK TIME')(mod); await has('12p')(mod); },
+  },
+  {
+    type: 'calendar', name: 'week-hide-time', kind: 'networked', stubKey: 'calendar',
+    stubBody: [dayEvent('cwt-2', 'CAL WEEK NO TIME', 0)],
+    config: { viewMode: 'week', showTime: false },
+    expect: lacks('CAL WEEK NO TIME', '12p'),
+  },
+  {
     // accentColor tints the event indicator bar when the event has no color of
     // its own (default accent is #3b82f6).
     type: 'calendar', name: 'accent-color', kind: 'networked', stubKey: 'calendar',

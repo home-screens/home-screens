@@ -34,6 +34,12 @@ describe('deriveCalendarState', () => {
     });
   });
 
+  it('counts a holiday the calendar and Public Holidays both list once', () => {
+    const fromCalendar = allDay({ id: 'g-1', title: 'Veterans Day', sourceId: 'us-holidays' });
+    const fromFeature = allDay({ id: 'holiday-1', title: 'Veterans Day', sourceId: 'holidays', kind: 'holiday' });
+    expect(deriveCalendarState([fromCalendar, fromFeature], now, opts)[K.eventsToday]).toBe('1');
+  });
+
   it('covers every advertised key on a populated feed too', () => {
     const values = deriveCalendarState([ev()], now, opts);
     expect(Object.keys(values).sort()).toEqual([...CALENDAR_STATE_KEY_LIST].sort());

@@ -1195,7 +1195,7 @@
       "selected": "{count} sélectionnés",
       "empty": "Rien ici pour l'instant. Envoyez des photos ou des vidéos",
       "deleteTitle": {
-        "one": "Supprimer 1 fichier ?",
+        "one": "Supprimer {count} fichier ?",
         "other": "Supprimer {count} fichiers ?"
       },
       "deleteMessage": {
@@ -1208,7 +1208,7 @@
       "loading": "Chargement de vos photos et vidéos",
       "emptyFiltered": "Rien ne correspond à ce filtre",
       "deleteFailed": {
-        "one": "1 fichier n'a pas pu être supprimé. Réessayez.",
+        "one": "{count} fichier n'a pas pu être supprimé. Réessayez.",
         "other": "{count} fichiers n'ont pas pu être supprimés. Réessayez."
       },
       "deleteOne": "Supprimer {file}",
@@ -1249,7 +1249,7 @@
       "clearSelection": "Effacer la sélection",
       "moveTo": "Déplacer vers",
       "moveTitle": {
-        "one": "Déplacer 1 fichier ?",
+        "one": "Déplacer {count} fichier ?",
         "other": "Déplacer {count} fichiers ?"
       },
       "moveMessage": {
@@ -1258,12 +1258,12 @@
       },
       "moveConfirm": "Déplacer",
       "moved": {
-        "one": "1 fichier déplacé",
+        "one": "{count} fichier déplacé",
         "other": "{count} fichiers déplacés"
       },
       "moveFailed": "Impossible de déplacer les fichiers",
       "placesUpdated": {
-        "one": "1 endroit qui les utilisait a été mis à jour",
+        "one": "{count} endroit qui les utilisait a été mis à jour",
         "other": "{count} endroits qui les utilisaient ont été mis à jour"
       },
       "newFolder": "Nouveau dossier",
@@ -2724,15 +2724,15 @@
     "importing": "Importation…",
     "progress": "Téléchargement de {done} sur {total}…",
     "summaryAdded": {
-      "one": "1 nouvel élément ajouté.",
+      "one": "{count} nouvel élément ajouté.",
       "other": "{count} nouveaux éléments ajoutés."
     },
     "summarySkipped": {
-      "one": "1 était déjà là.",
+      "one": "{count} était déjà là.",
       "other": "{count} étaient déjà là."
     },
     "summaryFailed": {
-      "one": "1 n'a pas pu être téléchargé.",
+      "one": "{count} n'a pas pu être téléchargé.",
       "other": "{count} n'ont pas pu être téléchargés."
     },
     "empty": "Cet album ne contient rien à ajouter.",
@@ -3056,7 +3056,7 @@
       },
       "everythingElse": "Tout le reste",
       "categoryCount": {
-        "one": "1 recette dans {category}",
+        "one": "{count} recette dans {category}",
         "other": "{count} recettes dans {category}"
       },
       "noneInCategory": "Aucune recette dans {category} pour le moment. Cherche plutôt en haut."
@@ -3155,7 +3155,7 @@
           "other": "{items} n'ont pas été enregistrés. Home Screens est injoignable, vérifie la connexion et réessaie."
         },
         "moreItems": {
-          "one": "1 autre",
+          "one": "{count} autre",
           "other": "{count} autres"
         },
         "listGone": "Cette liste n'existe plus dans Mealie."
@@ -4236,6 +4236,7 @@
       "viewNextMeal": "Prochain repas",
       "viewRecipe": "Recette",
       "viewGrocery": "Liste de courses",
+      "viewRecipeBook": "Livre de recettes",
       "densityCozy": "Aéré",
       "densitySnug": "Serré",
       "typographySize": "Taille du texte",
@@ -4255,9 +4256,10 @@
       "tapRecipeActionCard": "Afficher la fiche recette",
       "tapRecipeActionIframe": "Ouvrir la recette sur l'affichage",
       "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette.",
-      "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage, avec un code QR pour ouvrir la recette sur un téléphone. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes.",
+      "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
+      "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses et de suivre une recette étape par étape sur un écran tactile. Désactive-le si l'affichage n'est pas tactile.",
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, de suivre une recette étape par étape, de chercher dans le livre de recettes et de faire défiler les longues vues sur un écran tactile. Désactive-le si l'affichage n'est pas tactile.",
       "mobileHintTail": "pour que tous les modules de repas restent synchronisés."
     },
     "fullscreen-photo": {
@@ -4439,11 +4441,11 @@
       "cancel": "Annuler",
       "importing": "Enregistrement des photos… {done} sur {total}",
       "importDone": {
-        "one": "1 nouvelle photo enregistrée dans votre bibliothèque.",
+        "one": "{count} nouvelle photo enregistrée dans votre bibliothèque.",
         "other": "{count} nouvelles photos enregistrées dans votre bibliothèque."
       },
       "alreadyInLibrary": {
-        "one": "1 était déjà dans votre bibliothèque.",
+        "one": "{count} était déjà dans votre bibliothèque.",
         "other": "{count} étaient déjà dans votre bibliothèque."
       },
       "nothingPicked": "Rien n'a été sélectionné. Réessayez de choisir des photos.",
@@ -4472,6 +4474,7 @@
       "viewCompact": "Compact (aujourd'hui + demain)",
       "viewList": "Liste complète de la semaine",
       "viewGrocery": "Liste de courses",
+      "viewRecipes": "Recettes",
       "showEmoji": "Afficher les images",
       "showPrepTime": "Afficher le temps total",
       "showTags": "Afficher les étiquettes",
@@ -4488,9 +4491,10 @@
       "tapRecipeActionCard": "Afficher la fiche recette",
       "tapRecipeActionIframe": "Ouvrir la recette sur l'affichage",
       "tapRecipeActionIframeHint": "Certains sites de recettes ne peuvent pas s’ouvrir dans Home Screens et restent vides. Dans ce cas, touche « Afficher le code QR » dans la vue recette.",
-      "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage, avec un code QR pour ouvrir la recette sur un téléphone. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes.",
+      "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
+      "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses sur un écran tactile. Désactive-le si l'affichage n'est pas tactile."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes et de faire défiler les longues listes sur un écran tactile. Désactive-le si l'affichage n'est pas tactile."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",
@@ -5678,7 +5682,7 @@
   },
   "backupReminder": {
     "message": {
-      "one": "Vous n’avez pas effectué de sauvegarde depuis 1 jour.",
+      "one": "Vous n’avez pas effectué de sauvegarde depuis {count} jour.",
       "other": "Vous n’avez pas effectué de sauvegarde depuis {count} jours."
     },
     "downloading": "Téléchargement…",

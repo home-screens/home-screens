@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
-import { useFitScale, FIT_FACTOR_ATTR, FIT_SETTLED_ATTR } from '@/hooks/useFitScale';
+import { useFitScale, FIT_FACTOR_ATTR, FIT_MIN_FACTOR, FIT_SETTLED_ATTR } from '@/hooks/useFitScale';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent, resolveFullscreenOnAccent } from '@/lib/fullscreen-themes';
 import type { ResolvedCourse } from '@/lib/meal-courses';
 import { mealPhotoSrc } from '@/components/meals/MealPicture';
@@ -18,8 +18,11 @@ import MenuBoardView from './MenuBoardView';
 import NextMealView from './NextMealView';
 import RecipeView from './RecipeView';
 import GroceryView from './GroceryView';
+import RecipeBookView from './RecipeBookView';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
 import { useWallMeals } from '../shared/useWallMeals';
+import { useWallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
+import { recipeBookSource } from '@/lib/meal-recipe-book';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useTranslate } from '@/i18n';
 import { heldPulseKeyframes } from '@/lib/held-pulse';
@@ -52,6 +55,12 @@ export default function FullscreenMealPlannerModule({
     data, error, now, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan, plan,
     mealie, grocery, interactive, recipeTapMode, recipeContext,
   } = useWallMeals({ moduleType: 'fullscreen-meal-planner', view, timezone, theme: config.theme ?? fullscreenTheme, config, screenId, moduleId });
+  // The recipe book is Mealie's recipes whenever Mealie is connected, else the saved meals with a recipe.
+  const book = useWallRecipeBook({
+    source: recipeBookSource(data?.mealieConnected ?? false),
+    savedMeals,
+    enabled: view === 'recipes' && data !== null,
+  });
 
   // ── Scale system ──
   const { containerRef, dims } = useFullscreenDims();
@@ -102,8 +111,8 @@ export default function FullscreenMealPlannerModule({
       length += name.length + notes.join('').length + (meal?.tags?.join('').length ?? 0)
         + courses.reduce((n, c) => n + c.name.length, 0);
     };
-    if (view === 'recipe' || view === 'grocery') {
-      // These two fit and page themselves inside the box; they never overflow the stack.
+    if (view === 'recipe' || view === 'grocery' || view === 'recipes') {
+      // These fit, page or scroll themselves inside the box; they never overflow the stack.
     } else if (view === 'week') {
       for (const entry of plan) {
         const { meal, name, courses, notes } = resolveMealWithEntry(entry.date, entry.slot, plan, savedMeals);
@@ -140,7 +149,7 @@ export default function FullscreenMealPlannerModule({
     slots.length, mealCount, textLength,
     // The backdrop takes the big picture out of the stack, which frees room.
     !!backdropUrl,
-  ]);
+  ], view !== 'recipes'); // The recipe book scrolls; shrinking it to fit would only make it unreadable.
   const s = bu * typoMul * fit;
 
   const pad = s * 2 * d;
@@ -175,6 +184,7 @@ export default function FullscreenMealPlannerModule({
     landscape,
     photoBackdrop: !!backdropUrl,
     interactive,
+    fitFloored: fitSettled && fit <= FIT_MIN_FACTOR,
   };
 
   return (
@@ -203,17 +213,10 @@ export default function FullscreenMealPlannerModule({
         .fmp-now-dot {
           animation: fmpPulse 2s linear infinite;
         }
-        .fmp-scroll {
-          overflow-y: auto;
-          scrollbar-width: none;
-        }
-        .fmp-scroll::-webkit-scrollbar {
-          display: none;
-        }
       `}</style>
 
       {backdropUrl && data !== null && <MealPhotoBackdrop url={backdropUrl} />}
-      {mealie.state === 'unreachable' && view !== 'grocery' ? (
+      {mealie.state === 'unreachable' && view !== 'grocery' && view !== 'recipes' ? (
         // The plan is in Mealie and Mealie never answered: say so rather than
         // "nothing planned", which would be wrong.
         <div
@@ -261,6 +264,7 @@ export default function FullscreenMealPlannerModule({
           {/* Like Next meal, the whole plan: late in the evening it is tomorrow's. */}
           {view === 'recipe' && <RecipeView {...viewProps} plan={fullPlan} />}
           {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} />}
+          {view === 'recipes' && <RecipeBookView {...viewProps} book={book} />}
           </MealRecipeContext.Provider>
         </div>
       )}

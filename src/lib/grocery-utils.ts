@@ -1,4 +1,4 @@
-import type { SavedMeal, PlannedMeal } from '@/types/config';
+import type { SavedMeal, PlannedMeal, MealIngredient } from '@/types/config';
 import { guessGroceryCategory } from '@/lib/grocery-categories';
 import { planEntryMealIds } from '@/lib/meal-courses';
 import { sumGroceryAmounts } from '@/lib/grocery-amounts';
@@ -76,6 +76,25 @@ export function shortNameList(names: readonly string[], locale: string, more: (c
   }
 }
 
+/**
+ * The aisle an ingredient is listed under on the grocery list, one of
+ * `GROCERY_CATEGORY_ORDER`. The per-row category select is a fourth control on
+ * a three-tap row, so most ingredients arrive without one and every item ended
+ * up under a single OTHER heading: the name's guess stands in when the
+ * household did not say, and a category that names an aisle always wins.
+ * "Other" names none: the phone used to save it on every row nobody touched,
+ * so it is read as "did not say", and the same ingredient from two meals lands
+ * in one aisle, once. Seafood shares the meat aisle.
+ *
+ * The phone's meal form shows this on each row's aisle picker, so the picker
+ * says where the list will put the item rather than "Other".
+ */
+export function groceryAisle(ing: Pick<MealIngredient, 'name' | 'category'>): string {
+  const said = ing.category && ing.category !== 'other' ? ing.category : undefined;
+  const cat = said || guessGroceryCategory(typeof ing.name === 'string' ? ing.name : '') || 'other';
+  return cat === 'seafood' ? 'meat' : cat;
+}
+
 export type GroceryList = Map<string, { items: Array<{ name: string; amount: string; checked: boolean }> }>;
 
 /**
@@ -102,17 +121,7 @@ export function generateGroceryList(
     for (const ing of meal.ingredients) {
       // A row saved with no name (older meals from the phone) is not an item.
       if (typeof ing.name !== 'string' || !ing.name.trim()) continue;
-      // The per-row category select is a fourth control on a three-tap row, so
-      // most ingredients arrive without one and every item ended up under a
-      // single OTHER heading. Guess from the name when the household did not
-      // say; a category that names an aisle always wins. "Other" names none:
-      // the phone used to save it on every row nobody touched, so it is read
-      // as "did not say", and the same ingredient from two meals lands in one
-      // aisle, once.
-      const said = ing.category && ing.category !== 'other' ? ing.category : undefined;
-      const cat = said || guessGroceryCategory(ing.name) || 'other';
-      // Merge 'seafood' into 'meat' bucket for display
-      const displayCat = cat === 'seafood' ? 'meat' : cat;
+      const displayCat = groceryAisle(ing);
       if (!grouped.has(displayCat)) grouped.set(displayCat, new Map());
       const catMap = grouped.get(displayCat)!;
       const key = groceryItemKey(ing.name);

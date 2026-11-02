@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
 import {
-  parseEventWallTime, isEventOnDay, bucketEventsForDay, weekStartsOnFor, formatEventTime, isWeekendDay,
+  parseEventWallTime, isEventOnDay, bucketEventsForDay, weekStartsOnFor, formatEventTime, eventEndLabel, isWeekendDay,
   eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
@@ -27,6 +27,8 @@ import { fitChips } from './chip-budget';
 import type { FullscreenCalendarConfig } from '@/types/config';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor } from '@/lib/day-notes';
+import { openDayCellProps, openDayProps, useDaySheetOpener, type OpenDaySheet } from '../shared/useDaySheet';
+import { moreButtonStyle } from './grid-view-bits';
 
 // Chip metrics, shared by EventChip and the cell budget so a cell charges a
 // chip exactly what it draws: vertical padding (base units), the 1px gap
@@ -85,6 +87,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
   const isLandscape = scale.orientation === 'landscape';
   const { scrollRef, containerH } = useContainerHeight();
+  const openDay = useDaySheetOpener();
 
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const rowCtx = useMemo<RowCtx>(
@@ -163,16 +166,20 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
           const isToday = isSameDay(day, today);
           const isWeekend = isWeekendDay(day);
           const notes = dayNotesFor(dayNotes, day);
+          // With taps on, a day's heading opens everything on it, every row's.
+          const dayTap = openDayProps(openDay, day, grid.flatMap(({ cells }) => cells[dayIdx].map(({ ev }) => ev)), t, locale);
           return (
             <div
               key={day.toISOString()}
               role="columnheader"
+              {...dayTap}
               style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 gap: scale.bu * 0.15,
                 borderBottom: '1px solid var(--cal-border)',
                 borderLeft: '1px solid var(--cal-border-subtle)',
                 background: isToday && showTodayBg ? 'var(--cal-today-fill)' : undefined,
+                cursor: dayTap ? 'pointer' : undefined,
               }}
             >
               <div style={{
@@ -221,6 +228,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
             showTodayBg={showTodayBg}
             decorByDay={decorByDay}
             failingSourceIds={failingSourceIds}
+            openDay={openDay}
           />
         ))}
       </div>
@@ -229,7 +237,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   );
 }
 
-function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds }: {
+function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds, openDay }: {
   row: PersonRow;
   cells: CellEvent[][];
   count: number;
@@ -244,8 +252,10 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
   showTodayBg: boolean;
   decorByDay: DayDecor[];
   failingSourceIds?: ReadonlySet<string>;
+  /** Opens a day sheet (taps on); a cell and its "+N" open this person's day. */
+  openDay: OpenDaySheet | null;
 }) {
-  const { t, scale, fontSize, config } = ctx;
+  const { t, locale, scale, fontSize, config } = ctx;
   const isEveryone = row.sourceIds === null;
   const avatarSize = fontSize * 2.6;
   return (
@@ -292,11 +302,16 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
         const budget = fitChips({ chipHeights, budgetH: cellBudgetH, gap: chipGap, moreH: fontSize * CHIP_MORE_FONT * CHIP_MORE_LINE_HEIGHT });
         const visible = cell.slice(0, budget.visible);
         const { hidden, cornerBadge } = budget;
+        const dayTap = hidden > 0 ? openDayProps(openDay, day, cell.map(({ ev }) => ev), t, locale) : undefined;
+        // The rest of the cell, outside its chips, opens this person's day as its "+N" does.
+        const cellTap = openDayCellProps(openDay, day, cell.map(({ ev }) => ev));
         return (
           <div
             key={day.toISOString()}
             role="gridcell"
+            {...cellTap}
             style={mergeCellDecor({
+              cursor: cellTap ? 'pointer' : undefined,
               display: 'flex', flexDirection: 'column', gap: chipGap,
               position: 'relative',
               padding: cellPad,
@@ -313,14 +328,24 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
               <EventChip key={ev.id} event={ev} segment={segment} now={now} ctx={ctx} wrapTitles={wrapTitles} failingSourceIds={failingSourceIds} />
             ))}
             {hidden > 0 && (cornerBadge ? (
-              <div style={{
-                position: 'absolute', top: cellPad, right: cellPad, zIndex: 1,
-                fontSize: fontSize * 0.7, fontWeight: 700, color: 'var(--cal-text-secondary)',
-                background: 'var(--cal-surface)', border: '1px solid var(--cal-border-subtle)',
-                borderRadius: 999, padding: `0 ${scale.bu * 0.5}px`, whiteSpace: 'nowrap',
-              }}>
+              // Already a pill; with taps on it is a button in the accent.
+              <div
+                {...dayTap}
+                role={dayTap ? 'button' : undefined}
+                style={{
+                  position: 'absolute', top: cellPad, right: cellPad, zIndex: 1,
+                  fontSize: fontSize * 0.7, fontWeight: 700, color: dayTap ? 'var(--cal-accent)' : 'var(--cal-text-secondary)',
+                  background: 'var(--cal-surface)', border: `1px solid ${dayTap ? 'var(--cal-accent)' : 'var(--cal-border-subtle)'}`,
+                  borderRadius: 999, padding: `0 ${scale.bu * 0.5}px`, whiteSpace: 'nowrap',
+                  cursor: dayTap ? 'pointer' : undefined,
+                }}
+              >
                 {t('fullscreen-calendar.moreCount', { count: hidden })}
               </div>
+            ) : dayTap ? (
+              <button type="button" {...dayTap} style={{ ...moreButtonStyle(fontSize * CHIP_MORE_FONT, scale), lineHeight: CHIP_MORE_LINE_HEIGHT, flexShrink: 0 }}>
+                {t('fullscreen-calendar.moreCount', { count: hidden })}
+              </button>
             ) : (
               <div style={{ fontSize: fontSize * CHIP_MORE_FONT, lineHeight: CHIP_MORE_LINE_HEIGHT, fontWeight: 600, color: 'var(--cal-text-tertiary)', paddingLeft: scale.bu * 0.3 }}>
                 {t('fullscreen-calendar.moreCount', { count: hidden })}
@@ -352,7 +377,7 @@ function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
         eventRowTimeLabel({
           segment,
           startLabel: formatEventTime(start, timeFormat, locale),
-          endLabel: formatEventTime(end, timeFormat, locale),
+          endLabel: eventEndLabel(start, end, timeFormat, locale),
           t, ns: 'fullscreen-calendar', single: 'start',
         }),
         event, failingSourceIds, t,
@@ -362,7 +387,7 @@ function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
   const description = chipDescription(event, ctx.config);
   const ariaLabel = eventAriaLabel(t, event, {
     startLabel: formatEventTime(start, timeFormat, locale),
-    endLabel: formatEventTime(end, timeFormat, locale),
+    endLabel: eventEndLabel(start, end, timeFormat, locale),
     allDay: isAllDay,
   });
   return (

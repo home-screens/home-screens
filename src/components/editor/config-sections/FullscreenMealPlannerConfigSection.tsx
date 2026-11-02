@@ -29,6 +29,9 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const view = c.view ?? 'week';
+  // The Recipe book lists recipes to open on the card: it shows no tags, and
+  // a tap there always opens the card, so neither setting does anything.
+  const plannedMeals = view !== 'recipes';
   // The accent the module paints while accentColor is empty (see the module).
   const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens(c.theme), DEFAULT_ACCENT_COLOR);
   const accentColor = c.accentColor || themeAccent;
@@ -40,6 +43,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
     { value: 'next-meal', label: t('configSections.fullscreen-meal-planner.viewNextMeal') },
     { value: 'recipe', label: t('configSections.fullscreen-meal-planner.viewRecipe') },
     { value: 'grocery', label: t('configSections.fullscreen-meal-planner.viewGrocery') },
+    { value: 'recipes', label: t('configSections.fullscreen-meal-planner.viewRecipeBook') },
   ] as const;
 
   const DENSITY_OPTIONS = [
@@ -92,37 +96,48 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {/* Display Toggles */}
       <Toggle label={t('configSections.fullscreen-meal-planner.showEmoji')} checked={c.showEmoji !== false} onChange={(v) => set({ showEmoji: v })} />
       <Toggle label={t('configSections.fullscreen-meal-planner.showPrepTime')} checked={c.showPrepTime !== false} onChange={(v) => set({ showPrepTime: v })} />
-      <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
+      {plannedMeals && (
+        <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
+      )}
       <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
       {view !== 'next-meal' && (
         <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
       )}
 
       {/* Tap-to-open recipe */}
-      <LabeledSelect
-        label={t('configSections.fullscreen-meal-planner.tapRecipeAction')}
-        value={c.tapRecipeAction ?? 'off'}
-        onChange={(v) => set({ tapRecipeAction: v })}
-        options={[
-          { value: 'off', label: t('configSections.fullscreen-meal-planner.tapRecipeActionOff') },
-          { value: 'qr', label: t('configSections.fullscreen-meal-planner.tapRecipeActionQr') },
-          { value: 'card', label: t('configSections.fullscreen-meal-planner.tapRecipeActionCard') },
-          { value: 'iframe', label: t('configSections.fullscreen-meal-planner.tapRecipeActionIframe') },
-        ]}
-      />
-      {c.tapRecipeAction === 'card' && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">
-          {t('configSections.fullscreen-meal-planner.tapRecipeActionCardHint')}
-        </p>
-      )}
-      {c.tapRecipeAction === 'iframe' && (
-        <p className="text-[11px] text-hs-text-faint leading-relaxed">
-          {t('configSections.fullscreen-meal-planner.tapRecipeActionIframeHint')}
-        </p>
+      {plannedMeals && (
+        <>
+          <LabeledSelect
+            label={t('configSections.fullscreen-meal-planner.tapRecipeAction')}
+            value={c.tapRecipeAction ?? 'off'}
+            onChange={(v) => set({ tapRecipeAction: v })}
+            options={[
+              { value: 'off', label: t('configSections.fullscreen-meal-planner.tapRecipeActionOff') },
+              { value: 'qr', label: t('configSections.fullscreen-meal-planner.tapRecipeActionQr') },
+              { value: 'card', label: t('configSections.fullscreen-meal-planner.tapRecipeActionCard') },
+              { value: 'iframe', label: t('configSections.fullscreen-meal-planner.tapRecipeActionIframe') },
+            ]}
+          />
+          {c.tapRecipeAction === 'card' && (
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('configSections.fullscreen-meal-planner.tapRecipeActionCardHint')}
+            </p>
+          )}
+          {c.tapRecipeAction === 'iframe' && (
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('configSections.fullscreen-meal-planner.tapRecipeActionIframeHint')}
+            </p>
+          )}
+          {(c.tapRecipeAction === 'qr' || c.tapRecipeAction === 'iframe') && (
+            <p className="text-[11px] text-hs-text-faint leading-relaxed">
+              {t('configSections.fullscreen-meal-planner.tapRecipeActionNoLinkHint')}
+            </p>
+          )}
+        </>
       )}
 
-      {/* Ticking the grocery list and stepping through a recipe on the wall */}
-      {(view === 'recipe' || view === 'grocery') && (
+      {/* Ticking the grocery list, stepping through a recipe, searching the recipe book and scrolling on the wall */}
+      {(view === 'recipe' || view === 'grocery' || view === 'recipes' || view === 'week' || view === 'today') && (
         <>
           <Toggle
             label={t('configSections.fullscreen-meal-planner.interactive')}
