@@ -85,6 +85,17 @@ describe('GET /api/immich/people', () => {
     expect(json.map((p: { id: string }) => p.id)).toEqual(['p1']);
   });
 
+  it('answers 403 naming person.read when the key is missing it', async () => {
+    mockImmichFetch.mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Missing required permission: person.read' }), { status: 403 }),
+    );
+
+    const res = await GET(req);
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'missing-permission', permission: 'person.read' });
+  });
+
   it('returns 502 when Immich responds non-ok', async () => {
     mockImmichFetch.mockResolvedValue(new Response('', { status: 503 }));
 

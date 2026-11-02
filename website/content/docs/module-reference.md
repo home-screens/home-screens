@@ -122,7 +122,7 @@ The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Singl
 {% fields /%}
 
 {% callout type="note" title="Immich source" %}
-The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive, selecting one clears the other.
+The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive, selecting one clears the other. The key needs `asset.read` and `asset.view` to show photos, plus `album.read` and `person.read` for the album and person lists; see [which boxes to tick](/docs/backgrounds#immich-key).
 {% /callout %}
 
 {% callout type="note" title="OneDrive source" %}
@@ -543,7 +543,7 @@ Rotates through images from a local directory, an Immich photo library, a OneDri
 
 {% fields /%}
 
-When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
+When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive. If the album or person list is empty with a note above it, your Immich key is missing `album.read` or `person.read`; see [which boxes to tick](/docs/backgrounds#immich-key).
 
 When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed, the display loads photos straight from Apple's servers. The album must have a public website link enabled.
 

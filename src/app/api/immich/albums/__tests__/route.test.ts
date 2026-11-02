@@ -54,6 +54,17 @@ describe('GET /api/immich/albums', () => {
     expect(mockImmichFetch).toHaveBeenCalledWith('/api/albums');
   });
 
+  it('answers 403 naming album.read when the key is missing it', async () => {
+    mockImmichFetch.mockResolvedValue(
+      new Response(JSON.stringify({ message: 'Missing required permission: album.read' }), { status: 403 }),
+    );
+
+    const res = await GET(req);
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'missing-permission', permission: 'album.read' });
+  });
+
   it('returns 502 when Immich responds non-ok', async () => {
     mockImmichFetch.mockResolvedValue(new Response('', { status: 500 }));
 

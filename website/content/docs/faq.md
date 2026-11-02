@@ -203,7 +203,7 @@ Home Screens supports four photo sources for the **Photo Slideshow** and **Full-
 
 For **background rotation**, four sources are available: **Unsplash** (HD stock photos), **NASA APOD** (Astronomy Picture of the Day), **Immich**, and **iCloud shared albums**.
 
-To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings → API Keys page. To use OneDrive, save the **Application (client) ID** from a free Microsoft app registration and sign in once from the module, the steps are in [OneDrive photos](/docs/modules#one-drive-photos). iCloud shared albums need no setup, just a shared album link with the public website option enabled.
+To use Immich, enter your server URL and API key in **Settings > API keys**. The API key is generated from Immich's Account Settings > API Keys page; [these are the boxes to tick](/docs/backgrounds#immich-key). To use OneDrive, save the **Application (client) ID** from a free Microsoft app registration and sign in once from the module, the steps are in [OneDrive photos](/docs/modules#one-drive-photos). iCloud shared albums need no setup, just a shared album link with the public website option enabled.
 
 ---
 

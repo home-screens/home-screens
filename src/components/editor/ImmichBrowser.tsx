@@ -7,6 +7,8 @@ import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';
 import type { ImmichAlbumSummary } from '@/lib/immich';
+import { missingImmichPermission } from '@/lib/immich-permissions';
+import ImmichPermissionNote from './photo-source/ImmichPermissionNote';
 
 interface Props {
   selectedScreenId: string;
@@ -17,8 +19,9 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
   const { pickScreenBackground } = useEditorStore();
-  const { data: albumsData } = useEditorData<ImmichAlbumSummary[]>(hasImmichKey ? '/api/immich/albums' : null);
+  const { data: albumsData, failure: albumsFailure } = useEditorData<ImmichAlbumSummary[]>(hasImmichKey ? '/api/immich/albums' : null);
   const albums = albumsData ?? [];
+  const albumsHidden = missingImmichPermission(albumsFailure);
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +89,7 @@ export default function ImmichBrowser({ selectedScreenId, hasImmichKey }: Props)
 
   return (
     <div className="space-y-3">
+      {albumsHidden && <ImmichPermissionNote permission={albumsHidden} />}
       {/* Album filter + refresh */}
       <div className="flex gap-1.5">
         <select

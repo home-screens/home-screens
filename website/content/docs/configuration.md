@@ -77,7 +77,7 @@ Supported secret keys:
 | `microsoft_client_id` | OneDrive photos in the Photo Slideshow and Full-Screen Photo Viewer (the Application ID of your own Microsoft app) |
 | `nasa_api_key` | Background rotation (NASA APOD) |
 | `immich_url` | Immich server URL (e.g. `http://192.168.1.50:2283`) |
-| `immich_api_key` | Immich API key (Account Settings → API Keys) |
+| `immich_api_key` | Immich API key (Account Settings > API Keys; [which boxes to tick](/docs/backgrounds#immich-key)) |
 
 ## Environment variables
 

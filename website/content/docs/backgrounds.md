@@ -157,8 +157,22 @@ Some NASA images include embedded timestamps, watermarks, or overlay text that c
 ### Setup
 
 1. Install and configure an Immich server on your network
-2. In Immich, go to **Account Settings → API Keys** and generate a new key
+2. In Immich, go to **Account Settings > API Keys** and create a new key (see [which boxes to tick](#immich-key) below)
 3. In the editor, go to **Settings > API keys** and fill in **Server URL** (e.g. `http://192.168.1.50:2283`) and **API Key** on the Immich card
+
+### Which boxes to tick on the key {% #immich-key %}
+
+A key with every permission works. If you would rather give Home Screens only what it uses, tick these:
+
+| Permission | What it is for |
+|---|---|
+| `asset.read` | Finding your photos |
+| `asset.view` | Showing pictures and playing videos |
+| `album.read` | Choosing an album |
+| `person.read` | Choosing a person |
+| `server.about` | Optional. Shows your Immich version in the editor |
+
+A key with only `asset.read` and `asset.view` still puts photos on the wall. Where the album or person list would be, the editor says which box is missing.
 
 ### Browsing and selecting
 

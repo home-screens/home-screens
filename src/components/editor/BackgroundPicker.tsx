@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
 import type { BackgroundRotation, BackgroundShade } from '@/types/config';
@@ -16,6 +16,9 @@ import PropertyGroup from './PropertyGroup';
 import Toggle from '@/components/ui/Toggle';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
+import { useEditorData } from '@/hooks/useEditorData';
+import { missingImmichPermission } from '@/lib/immich-permissions';
+import ImmichPermissionNote from './photo-source/ImmichPermissionNote';
 
 interface ImmichAlbumOption { id: string; name: string; assetCount: number }
 interface ImmichPersonOption { id: string; name: string }
@@ -25,19 +28,12 @@ function ImmichRotationFields({ rotation, onChange }: {
   onChange: (updates: Partial<BackgroundRotation>) => void;
 }) {
   const t = useTranslate('editor');
-  const [albums, setAlbums] = useState<ImmichAlbumOption[]>([]);
-  const [people, setPeople] = useState<ImmichPersonOption[]>([]);
-
-  const fetchOptions = useCallback(async () => {
-    const [albumRes, peopleRes] = await Promise.all([
-      editorFetch('/api/immich/albums').catch(() => null),
-      editorFetch('/api/immich/people').catch(() => null),
-    ]);
-    if (albumRes?.ok) setAlbums(await albumRes.json());
-    if (peopleRes?.ok) setPeople(await peopleRes.json());
-  }, []);
-
-  useEffect(() => { fetchOptions(); }, [fetchOptions]);
+  const { data: albumsData, failure: albumsFailure } = useEditorData<ImmichAlbumOption[]>('/api/immich/albums');
+  const { data: peopleData, failure: peopleFailure } = useEditorData<ImmichPersonOption[]>('/api/immich/people');
+  const albums = albumsData ?? [];
+  const people = peopleData ?? [];
+  const albumsHidden = missingImmichPermission(albumsFailure);
+  const peopleHidden = missingImmichPermission(peopleFailure);
 
   const selectClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
@@ -45,6 +41,7 @@ function ImmichRotationFields({ rotation, onChange }: {
     <>
       <label className="block">
         <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.albumLabel')}</span>
+        {albumsHidden && <ImmichPermissionNote permission={albumsHidden} className="mt-0.5" />}
         <select
           value={rotation.immichAlbumId || ''}
           onChange={(e) => onChange({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
@@ -60,6 +57,7 @@ function ImmichRotationFields({ rotation, onChange }: {
       </label>
       <label className="block">
         <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.personLabel')}</span>
+        {peopleHidden && <ImmichPermissionNote permission={peopleHidden} className="mt-0.5" />}
         <select
           value={rotation.immichPersonId || ''}
           onChange={(e) => onChange({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}

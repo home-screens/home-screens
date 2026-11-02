@@ -5895,5 +5895,15 @@
     "allOf": "alle af {n}",
     "anyOf": "enhver af {n}",
     "noneOf": "ingen af {n}"
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Albummer er skjult.",
+        "peopleHidden": "Personer er skjult.",
+        "photosHidden": "Billeder er skjult.",
+        "howToFix": "Din Immich-nøgle kan ikke se dem. Åbn Kontoindstillinger > API-nøgler i Immich, rediger denne nøgle, og sæt flueben ved {permission}."
+      }
+    }
   }
 }

@@ -5895,5 +5895,15 @@
     "allOf": "alle von {n}",
     "anyOf": "beliebige von {n}",
     "noneOf": "keine von {n}"
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Alben sind ausgeblendet.",
+        "peopleHidden": "Personen sind ausgeblendet.",
+        "photosHidden": "Fotos sind ausgeblendet.",
+        "howToFix": "Dein Immich-Schlüssel kann sie nicht sehen. Öffne in Immich Kontoeinstellungen > API-Schlüssel, bearbeite diesen Schlüssel und setze den Haken bei {permission}."
+      }
+    }
   }
 }

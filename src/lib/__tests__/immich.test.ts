@@ -163,6 +163,18 @@ describe('validateImmichConnection', () => {
     expect(result).toEqual({ reachable: true, authenticated: false });
   });
 
+  it('counts a key without the server.about permission as connected, with no version', async () => {
+    // What Immich v3.0.1 answers a key scoped to asset.read + asset.view.
+    setupSecrets();
+    mockFetch
+      .mockResolvedValueOnce(new Response('pong', { status: 200 })) // ping
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ message: 'Missing required permission: server.about' }), { status: 403 }),
+      ); // about
+    const result = await validateImmichConnection();
+    expect(result).toEqual({ reachable: true, authenticated: true });
+  });
+
   it('returns reachable but not authenticated when about throws', async () => {
     setupSecrets();
     mockFetch

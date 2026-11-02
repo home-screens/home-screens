@@ -5895,5 +5895,15 @@
     "allOf": "todas de {n}",
     "anyOf": "qualquer de {n}",
     "noneOf": "nenhuma de {n}"
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Os álbuns estão ocultos.",
+        "peopleHidden": "As pessoas estão ocultas.",
+        "photosHidden": "As fotos estão ocultas.",
+        "howToFix": "Sua chave do Immich não consegue vê-los. No Immich, abra Configurações da conta > Chaves de API, edite esta chave e marque {permission}."
+      }
+    }
   }
 }

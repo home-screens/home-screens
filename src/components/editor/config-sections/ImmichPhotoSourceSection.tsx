@@ -9,6 +9,8 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useTranslate } from '@/i18n';
 import type { ImmichAlbumSummary, ImmichPersonSummary } from '@/lib/immich';
+import { missingImmichPermission } from '@/lib/immich-permissions';
+import ImmichPermissionNote from '@/components/editor/photo-source/ImmichPermissionNote';
 
 interface ConnectionStatus {
   reachable: boolean;
@@ -34,10 +36,14 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
   // Albums + people load once the connection authenticates; disabling the URL
   // (null) until then mirrors the old `if (!status?.authenticated) return`.
   const authed = !!status?.authenticated;
-  const { data: albumsData } = useEditorData<ImmichAlbumSummary[]>(authed ? '/api/immich/albums' : null);
+  const { data: albumsData, failure: albumsFailure } = useEditorData<ImmichAlbumSummary[]>(authed ? '/api/immich/albums' : null);
   const albums = albumsData ?? [];
-  const { data: peopleData } = useEditorData<ImmichPersonSummary[]>(authed ? '/api/immich/people' : null);
+  const { data: peopleData, failure: peopleFailure } = useEditorData<ImmichPersonSummary[]>(authed ? '/api/immich/people' : null);
   const people = peopleData ?? [];
+  // A key that can show photos but not list albums or people: say which box
+  // to tick instead of leaving the list at "Any album" with no reason.
+  const albumsHidden = missingImmichPermission(albumsFailure);
+  const peopleHidden = missingImmichPermission(peopleFailure);
 
   // Preview strip re-fetches whenever the filter-derived URL changes; the
   // hook's AbortController supersedes the old manual `cancelled` guard.
@@ -99,6 +105,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
         <>
           {/* Album picker */}
           <LabeledField label={t('configSections.immichSource.album')}>
+            {albumsHidden && <ImmichPermissionNote permission={albumsHidden} className="mb-1" />}
             <select
               value={albumId}
               onChange={(e) => set({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
@@ -115,6 +122,7 @@ export function ImmichPhotoSourceSection({ config, set }: Props) {
 
           {/* Person filter */}
           <LabeledField label={t('configSections.immichSource.person')}>
+            {peopleHidden && <ImmichPermissionNote permission={peopleHidden} className="mb-1" />}
             <div className="flex gap-1.5 items-center">
               <select
                 value={personId}

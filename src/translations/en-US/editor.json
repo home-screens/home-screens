@@ -5895,5 +5895,15 @@
     "allOf": "all of {n}",
     "anyOf": "any of {n}",
     "noneOf": "none of {n}"
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Albums are hidden.",
+        "peopleHidden": "People are hidden.",
+        "photosHidden": "Photos are hidden.",
+        "howToFix": "Your Immich key can't see them. In Immich, open Account Settings > API Keys, edit this key and tick {permission}."
+      }
+    }
   }
 }

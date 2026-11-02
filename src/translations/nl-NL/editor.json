@@ -5895,5 +5895,15 @@
     "allOf": "alle van {n}",
     "anyOf": "een van {n}",
     "noneOf": "geen van {n}"
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Albums zijn verborgen.",
+        "peopleHidden": "Personen zijn verborgen.",
+        "photosHidden": "Foto's zijn verborgen.",
+        "howToFix": "Je Immich-sleutel kan ze niet zien. Open in Immich Accountinstellingen > API-sleutels, bewerk deze sleutel en vink {permission} aan."
+      }
+    }
   }
 }

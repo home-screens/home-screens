@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createTTLCache, withAuth } from '@/lib/api-utils';
 import { immichFetch, type ImmichAlbum, type ImmichAlbumSummary } from '@/lib/immich';
+import { missingPermissionBody } from '@/lib/immich-permissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,8 @@ export const GET = withAuth(async () => {
   if (cached) return NextResponse.json(cached);
 
   const res = await immichFetch('/api/albums');
+  // A key without album.read still shows photos; the editor says what to tick.
+  if (res.status === 403) return NextResponse.json(missingPermissionBody('album.read'), { status: 403 });
   if (!res.ok) return NextResponse.json({ error: 'Failed to fetch albums from Immich' }, { status: 502 });
 
   const albums: ImmichAlbum[] = await res.json();

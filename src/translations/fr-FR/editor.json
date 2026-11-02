@@ -5895,5 +5895,15 @@
     "allOf": "toutes parmi {n}",
     "anyOf": "n'importe laquelle parmi {n}",
     "noneOf": "aucune parmi {n}"
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Les albums sont masqués.",
+        "peopleHidden": "Les personnes sont masquées.",
+        "photosHidden": "Les photos sont masquées.",
+        "howToFix": "Votre clé Immich ne peut pas les voir. Dans Immich, ouvrez Paramètres du compte > Clés API, modifiez cette clé et cochez {permission}."
+      }
+    }
   }
 }
