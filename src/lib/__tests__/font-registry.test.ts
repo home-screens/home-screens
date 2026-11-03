@@ -6,6 +6,7 @@ import {
   FONT_CATEGORY_LABELS,
   EDITORIAL_SERIF_STACK,
   resolveFontStack,
+  fontDefinitionFor,
   getFontDefinition,
   fontsByCategory,
 } from '../font-registry';
@@ -108,23 +109,14 @@ describe('resolveFontStack', () => {
     expect(resolveFontStack('playfair')).toContain('Georgia, serif');
   });
 
-  it('upgrades known legacy raw stacks to the registry CSS stack', () => {
-    // The original DEFAULT_MODULE_STYLE.fontFamily literal must now resolve to var(--font-inter)
-    expect(resolveFontStack('Inter, system-ui, sans-serif')).toBe('var(--font-inter), system-ui, sans-serif');
-    expect(resolveFontStack('Georgia, serif')).toBe('Georgia, var(--font-gelasio), serif');
-    expect(resolveFontStack('monospace')).toBe('ui-monospace, "SF Mono", Menlo, var(--font-jetbrains), monospace');
-    expect(resolveFontStack('system-ui, sans-serif')).toBe('system-ui, -apple-system, "Segoe UI", var(--font-inter), sans-serif');
-    // The stacks these two entries carried before they gained a bundled
-    // fallback, in case a config stored the literal rather than the id.
-    expect(resolveFontStack('ui-monospace, "SF Mono", Menlo, monospace'))
-      .toBe('ui-monospace, "SF Mono", Menlo, var(--font-jetbrains), monospace');
-    expect(resolveFontStack('system-ui, -apple-system, "Segoe UI", sans-serif'))
-      .toBe('system-ui, -apple-system, "Segoe UI", var(--font-inter), sans-serif');
-  });
-
   it('returns unknown raw CSS stacks unchanged', () => {
     expect(resolveFontStack('Comic Sans MS, cursive')).toBe('Comic Sans MS, cursive');
     expect(resolveFontStack('Helvetica Neue')).toBe('Helvetica Neue');
+  });
+
+  it('the legacy raw stacks migration 17 rewrote are plain raw stacks now', () => {
+    expect(resolveFontStack('monospace')).toBe('monospace');
+    expect(resolveFontStack('Inter, system-ui, sans-serif')).toBe('Inter, system-ui, sans-serif');
   });
 
   it('returns undefined for falsy input', () => {
@@ -155,5 +147,28 @@ describe('fontsByCategory', () => {
     const grouped = fontsByCategory();
     const total = Object.values(grouped).reduce((sum, arr) => sum + arr.length, 0);
     expect(total).toBe(FONT_REGISTRY.length);
+  });
+});
+
+describe('fontDefinitionFor', () => {
+  it('names the entry for an id, its own stack, or a raw stack led by its label', () => {
+    expect(fontDefinitionFor('playfair')?.id).toBe('playfair');
+    expect(fontDefinitionFor('var(--font-lora), Georgia, serif')?.id).toBe('lora');
+    expect(fontDefinitionFor('"Playfair Display", serif')?.id).toBe('playfair');
+    expect(fontDefinitionFor('JetBrains Mono, monospace')?.id).toBe('jetbrains');
+  });
+
+  it('agrees with resolveFontStack on what the wall draws', () => {
+    for (const value of ['inter', 'mono', 'Georgia, var(--font-gelasio), serif', 'Caveat, cursive']) {
+      const def = fontDefinitionFor(value);
+      expect(def, value).toBeDefined();
+      expect(resolveFontStack(def!.id)).toBe(def!.cssStack);
+    }
+  });
+
+  it('is undefined for an unknown raw stack or nothing', () => {
+    expect(fontDefinitionFor('Comic Sans MS, cursive')).toBeUndefined();
+    expect(fontDefinitionFor('')).toBeUndefined();
+    expect(fontDefinitionFor(undefined)).toBeUndefined();
   });
 });

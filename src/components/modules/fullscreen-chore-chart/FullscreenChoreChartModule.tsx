@@ -6,7 +6,8 @@ import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react'
 import { useElementBox } from '@/hooks/useElementBox';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import type { FullscreenChoreChartConfig, ModuleStyle, ChoreTimeOfDay} from '@/types/config';
-import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
+import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, buildThemeCSSVars, resolveFullscreenAccent } from '@/lib/fullscreen-themes';
+import { resolveFullscreenTheme } from '@/lib/module-registry';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { useChoreData } from '@/components/modules/chore-chart/useChoreData';
 import { useOverspentMessage } from '@/components/modules/chore-chart/ChoreOverspentNotice';
@@ -146,7 +147,7 @@ export default function FullscreenChoreChartModule({
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
 
-  const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
+  const themeId = resolveFullscreenTheme('fullscreen-chore-chart', config.theme, fullscreenTheme);
   const theme = getThemeTokens(themeId);
 
   const isLandscape = getOrientation(dims.w, dims.h) === 'landscape';

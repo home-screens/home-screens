@@ -39,14 +39,6 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   // ("9:32 PMFriday, ..."), so a trailing boundary never matched, and the
   // 24-hour rows' negation was passing without proving anything.
   {
-    // A clock placed before `hourFormat` existed: no such key, so its own
-    // toggle is what it reads. `undefined` drops the registry default on the
-    // way to JSON, which is exactly the on-disk shape of such a clock.
-    type: 'clock', name: 'format-24h-legacy', kind: 'network-free',
-    config: { view: 'classic', format24h: true, hourFormat: undefined, showSeconds: false },
-    expect: async (mod) => { await matches(/\d{1,2}:\d{2}/)(mod); await notMatches(/\b(AM|PM)/)(mod); },
-  },
-  {
     type: 'clock', name: 'hour-format-24h', kind: 'network-free',
     config: { view: 'classic', hourFormat: '24h', showSeconds: false },
     expect: async (mod) => { await matches(/\d{1,2}:\d{2}/)(mod); await notMatches(/\b(AM|PM)/)(mod); },
@@ -557,7 +549,7 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   // -- weather --
   {
     type: 'weather', name: 'metric-units', kind: 'networked', stubKey: 'weather', stubBody: WEATHER_WIND,
-    settings: { weather: { provider: 'weatherapi', latitude: 44.7133, longitude: -93.4227, units: 'metric' } },
+    settings: { weather: { provider: 'weatherapi', units: 'metric' } },
     config: { view: 'daily', showWind: true, daysToShow: 2 },
     expect: has('km/h'),
   },
@@ -711,11 +703,6 @@ export const CORE_VARIANTS: ConfigVariant[] = [
   },
 
   // -- fullscreen-calendar --
-  {
-    type: 'fullscreen-calendar', name: 'dark-mode', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'schedule', darkMode: true },
-    expect: async (mod) => { await expect(mod.locator('.fsc-root')).toHaveAttribute('style', /1c1917/i); },
-  },
   {
     type: 'fullscreen-calendar', name: 'today-highlight-off', kind: 'networked', stubKey: 'calendar',
     config: { view: 'month-grid', todayHighlightStyle: 'off' },

@@ -16,10 +16,10 @@ import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
  *
  * Literary and cozy, distinct from the formal "word" view.
  */
-export default function ClockFuzzyView({ config, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockFuzzyView({ config, format24h, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hours, minutes } = parseClockTime(config.format24h, time);
+  const { hours, minutes } = parseClockTime(format24h, time);
 
   const fuzzyText = timeToFuzzy(t, hours, minutes);
   const dateStr = config.showDate

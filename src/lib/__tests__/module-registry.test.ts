@@ -127,9 +127,9 @@ describe('getModuleDefinition', () => {
   });
 
   describe('defaultConfig has expected keys', () => {
-    it('clock has format24h, showSeconds, showDate, dateFormat, showWeekNumber, showDayOfYear', () => {
+    it('clock has hourFormat, showSeconds, showDate, dateFormat, showWeekNumber, showDayOfYear', () => {
       const config = getModuleDefinition('clock')!.defaultConfig;
-      expect(config).toHaveProperty('format24h');
+      expect(config).toHaveProperty('hourFormat');
       expect(config).toHaveProperty('showSeconds');
       expect(config).toHaveProperty('showDate');
       expect(config).toHaveProperty('dateFormat');
@@ -315,9 +315,9 @@ describe('getModulesByCategory', () => {
 });
 
 describe('Data correctness spot checks', () => {
-  it('clock defaultConfig: format24h false, showSeconds true', () => {
+  it('clock defaultConfig: hourFormat inherit, showSeconds true', () => {
     const config = getModuleDefinition('clock')!.defaultConfig;
-    expect(config.format24h).toBe(false);
+    expect(config.hourFormat).toBe('inherit');
     expect(config.showSeconds).toBe(true);
     expect(config.showDate).toBe(true);
     // Empty: the date line follows the household language's own order.

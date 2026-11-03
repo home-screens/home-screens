@@ -11,7 +11,7 @@ import { dayGridFontSize } from '@/lib/day-grid-type';
  * agenda) each expose their own config cluster plus a shared cross-view set
  * (theme, accent, typography, density, weather pill, now-line, weekend shading,
  * overlap mode, title wrapping, source filter). The `view` discriminator and
- * `darkMode` / `todayHighlightStyle` are already covered by CORE_VARIANTS, so
+ * `todayHighlightStyle` is already covered by CORE_VARIANTS, so
  * these rows flip everything else.
  *
  * Every row renders on /display via `stubKey: 'calendar'`. With no `stubBody`
@@ -164,7 +164,7 @@ const PEOPLE_GROUPS = [{ id: 'g-kids', name: 'Kids', memberIds: ['p1'] }];
 /** A configured feed for each id below: only calendars that still exist give their owner a row. */
 const icalStub = (id: string) => ({ id, type: 'ical', name: id, url: `https://example.com/${id}.ics`, color: BLUE, enabled: true });
 const PEOPLE_SETTINGS = { calendar: {
-  googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [icalStub('src-a'), icalStub('src-b')], daysAhead: 7,
+  googleCalendarIds: ['primary'], icalSources: [icalStub('src-a'), icalStub('src-b')], daysAhead: 7,
   personSources: { p1: ['src-a'], p2: ['src-b'] },
 } };
 
@@ -211,7 +211,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await expect(mod.locator('.fsc-root')).toHaveAttribute('style', /#ff0000/i); },
   },
   {
-    // Named theme overrides darkMode: slate's background token is #0f172a
+    // A named theme on the module: slate's background token is #0f172a
     // (default linen is #f5f1ea).
     type: 'fullscreen-calendar', name: 'theme-slate', kind: 'networked', stubKey: 'calendar',
     config: { view: 'schedule', theme: 'slate' },
@@ -301,20 +301,6 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
       });
       expect(m.header).toBeCloseTo(header(1.0), 0);
       expect(Math.abs(m.header - header(1.2))).toBeGreaterThan(0.5);
-    },
-  },
-  {
-    // Legacy pre-placement boolean: showWeather false must still resolve to
-    // 'off' and remove the header pill. weatherPlacement is explicitly
-    // undefined because a legacy config predates the key entirely, while the
-    // registry defaultConfig this row merges over now carries 'header'
-    // (JSON.stringify drops the undefined on PUT, so the saved module config
-    // genuinely lacks the key, exactly like a real pre-placement config).
-    type: 'fullscreen-calendar', name: 'show-weather-off', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'schedule', showWeather: false, weatherPlacement: undefined },
-    expect: async (mod) => {
-      await expect(mod.locator('.fsc-header-title')).toBeVisible();
-      await expect(mod.locator('.fsc-weather-pill')).toHaveCount(0);
     },
   },
   {
@@ -1015,7 +1001,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
   {
     // No calendar picked yet: the notes still draw, in place of the setup card.
     type: 'calendar', name: 'day-notes-no-sources', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
-    settings: { calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 } },
+    settings: { calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 } },
     config: { viewMode: 'daily', showDayNotes: true },
     expect: async (mod) => {
       await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
@@ -1024,7 +1010,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
   },
   {
     type: 'fullscreen-calendar', name: 'day-notes-no-sources-fullscreen', kind: 'networked', stubKey: 'calendar', seed: 'dayNotes',
-    settings: { calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 } },
+    settings: { calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 } },
     config: { view: 'week-list', showDayNotes: true },
     expect: async (mod) => {
       await expect(mod.locator('[data-day-note]').first()).toContainText('E2E DAY NOTE TODAY');
@@ -1127,7 +1113,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
       { id: 'p2', name: 'Quiet Person', color: '#059669' },
     ],
     settings: { calendar: {
-      googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [icalStub('src-a'), icalStub('src-none')], daysAhead: 7,
+      googleCalendarIds: ['primary'], icalSources: [icalStub('src-a'), icalStub('src-none')], daysAhead: 7,
       personSources: { p1: ['src-a'], p2: ['src-none'] },
     } },
     config: { view: 'family-grid' },

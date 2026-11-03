@@ -11,11 +11,11 @@ import { clockDatePattern } from './date-pattern';
 import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
 import type { ClockViewProps } from './types';
 
-export default function ClockClassicView({ config, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockClassicView({ config, format24h, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, time);
-  const ampm = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
+  const { hStr, mStr, sStr, hours } = parseClockTime(format24h, time);
+  const ampm = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const dateStr = config.showDate
     ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })

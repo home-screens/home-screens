@@ -188,15 +188,14 @@ export function viewTraits(view: string | undefined): ViewTraits {
 }
 
 /**
- * Resolve the configured weather placement, honoring the legacy
- * `showWeather` boolean from configs saved before the placement enum existed
- * (true → 'header'). Shared by the module and the editor config section.
+ * The configured weather placement. Every calendar carries one since schema
+ * 17; a hand-edited calendar without it reads the registry default, the
+ * header pill. Shared by the module and the editor config section.
  */
 export function resolveWeatherPlacement(
-  config: Pick<FullscreenCalendarConfig, 'weatherPlacement' | 'showWeather'>,
+  config: Pick<FullscreenCalendarConfig, 'weatherPlacement'>,
 ): WeatherPlacement {
-  if (config.weatherPlacement) return config.weatherPlacement;
-  return config.showWeather === false ? 'off' : 'header';
+  return config.weatherPlacement ?? 'header';
 }
 
 /**
@@ -209,7 +208,7 @@ export function resolveWeatherPlacement(
  */
 export function effectiveWeatherPlacement(
   view: FullscreenCalendarView,
-  config: Pick<FullscreenCalendarConfig, 'weatherPlacement' | 'showWeather'>,
+  config: Pick<FullscreenCalendarConfig, 'weatherPlacement'>,
 ): WeatherPlacement {
   const resolved = resolveWeatherPlacement(config);
   if (resolved === 'off' || resolved === 'header') return resolved;

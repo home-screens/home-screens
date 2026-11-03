@@ -19,12 +19,13 @@ import type { ClockViewProps } from '../types';
 const NOON_ISH = new Date(2026, 8, 6, 14, 5, 9);
 
 function config(over: Partial<ClockConfig> = {}): ClockConfig {
-  return { ...(getModuleDefinition('clock')!.defaultConfig as unknown as ClockConfig), format24h: false, ...over };
+  return { ...(getModuleDefinition('clock')!.defaultConfig as unknown as ClockConfig), ...over };
 }
 
 function viewProps(over: Partial<ClockConfig>, props: Partial<ClockViewProps> = {}): ClockViewProps {
   return {
     config: config(over),
+    format24h: false,
     instant: NOON_ISH,
     now: NOON_ISH,
     time: { hours: 14, minutes: 5, seconds: 9 },
@@ -118,7 +119,7 @@ describe('Minimal AM/PM', () => {
   });
 
   it('has nothing to append in 24-hour mode', () => {
-    const { container } = render(ui(<ClockMinimalView {...viewProps({ showAmPm: true, format24h: true })} />));
+    const { container } = render(ui(<ClockMinimalView {...viewProps({ showAmPm: true }, { format24h: true })} />));
     expect(container.textContent).toBe('14:05');
   });
 });

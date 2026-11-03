@@ -44,7 +44,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   // What the picker shows while accentColor is empty: the accent the module
   // paints with, resolved through the same chain as the display (inherited
   // theme included) so the swatch and the kiosk can never disagree.
-  const themeAccent = resolveCalendarAccent('', useFullscreenThemeTokens(c.theme, c.darkMode));
+  const themeAccent = resolveCalendarAccent('', useFullscreenThemeTokens('fullscreen-calendar', c.theme));
 
   const VIEW_OPTIONS: { value: FullscreenCalendarView; label: string }[] = [
     { value: 'schedule', label: t('configSections.fullscreen-calendar.viewSchedule') },

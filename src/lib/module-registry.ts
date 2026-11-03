@@ -121,6 +121,12 @@ export interface ModuleDefinition {
    */
   textFitEnabled?: (config: Record<string, unknown>) => boolean;
   /**
+   * The full-screen theme this module paints with where neither its own
+   * `theme` nor the display's `fullscreenTheme` picks one. Only full-screen
+   * modules set it; the rest resolve to Linen (see `resolveFullscreenTheme`).
+   */
+  defaultTheme?: string;
+  /**
    * Style fields this module paints from its own settings instead of from
    * `style`, so the matching Style controls are hidden in the editor and the
    * style E2E matrix does not probe them. The sticky note is the case: its
@@ -299,6 +305,20 @@ export function getModuleDefinition(type: ModuleType): ModuleDefinition | undefi
 }
 
 /**
+ * The theme id a full-screen module paints with: its own `theme`, else the
+ * display's `fullscreenTheme`, else the type's `defaultTheme`, else Linen.
+ * The wall modules, the editor's swatches and the canvas preview all resolve
+ * through this one function so no surface can disagree about the palette.
+ */
+export function resolveFullscreenTheme(
+  type: ModuleType,
+  theme: string | undefined,
+  fullscreenTheme: string | undefined,
+): string {
+  return theme ?? fullscreenTheme ?? registry.get(type)?.defaultTheme ?? 'linen';
+}
+
+/**
  * The user-facing name of a module type, the same everywhere it is shown
  * (palette, canvas, property panel, templates, search). Built-ins resolve
  * through the `editor.registry.types.*` dictionary; plugin modules keep their
@@ -410,6 +430,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Full Screen --
   {
     type: 'fullscreen-calendar',
+    defaultTheme: 'linen',
     needsInstanceAddress: true,
     label: 'Full-Screen Calendar',
     icon: Columns3,
@@ -433,7 +454,6 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       eventTapDetails: true,
       eventTapStyle: 'sheet',
       startDay: 'sunday',
-      darkMode: false,
       showCountdown: false,
       showProgressBar: false,
       countdownAllDay: false,
@@ -479,6 +499,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'fullscreen-chore-chart',
+    defaultTheme: 'charcoal',
     label: 'Full-Screen Chore Chart',
     icon: ClipboardList,
     category: 'Full Screen',
@@ -492,7 +513,6 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showStreaks: true,
       showTimeOfDay: true,
       allowDisplayComplete: true,
-      darkMode: true,
       density: 'cozy',
       // Chore names are 30px on a 1080-wide panel at medium; the rows and
       // everything else on the board size themselves to the panel.
@@ -625,9 +645,6 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     category: 'Time & Date',
     defaultConfig: {
       view: 'classic',
-      format24h: false,
-      // New clocks follow the household setting; the boolean above is what
-      // a clock without this key (placed before it existed) still reads.
       hourFormat: 'inherit',
       showSeconds: true,
       showDate: true,

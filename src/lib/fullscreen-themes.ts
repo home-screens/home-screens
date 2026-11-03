@@ -427,11 +427,6 @@ export function getThemeTokens(themeId: string | undefined): FullscreenThemeToke
   return (THEME_MAP.get(themeId ?? 'linen') ?? LINEN).tokens;
 }
 
-/** Map legacy darkMode boolean to a theme ID. */
-export function migrateFromDarkMode(darkMode: boolean | undefined): string {
-  return darkMode ? 'charcoal' : 'linen';
-}
-
 /**
  * The accent a fullscreen module paints with: a user-set `accentColor` wins,
  * then the theme's own accent, then the module's historical default. Every

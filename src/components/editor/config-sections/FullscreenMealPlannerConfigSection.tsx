@@ -33,7 +33,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
   // a tap there always opens the card, so neither setting does anything.
   const plannedMeals = view !== 'recipes';
   // The accent the module paints while accentColor is empty (see the module).
-  const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens(c.theme), DEFAULT_ACCENT_COLOR);
+  const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens('fullscreen-meal-planner', c.theme), DEFAULT_ACCENT_COLOR);
   const accentColor = c.accentColor || themeAccent;
 
   const VIEWS = [

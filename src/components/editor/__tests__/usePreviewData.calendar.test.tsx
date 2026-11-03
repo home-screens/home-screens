@@ -16,7 +16,7 @@ vi.mock('../useCalendarFetchQuery', () => ({ useCalendarFetchQuery: () => '' }))
 
 function makeConfig(calendar: Partial<CalendarSettings>): ScreenConfiguration {
   return {
-    settings: { weather: { provider: 'open-meteo', latitude: 51.865, longitude: -2.246, units: 'metric' }, calendar },
+    settings: { weather: { provider: 'open-meteo', units: 'metric' }, calendar },
     screens: [{ id: 'home', name: 'Home', modules: [{ type: 'calendar', config: {} }] }],
   } as unknown as ScreenConfiguration;
 }

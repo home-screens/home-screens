@@ -1,16 +1,14 @@
 /**
- * Font registry — central catalog of fonts available to modules.
+ * Font registry: the catalog of fonts available to modules.
  *
- * Each entry pairs an ID (stored in config) with the CSS stack used at render
+ * Each entry pairs an id (stored in config) with the CSS stack used at render
  * time. Stacks reference CSS variables registered in src/app/layout.tsx via
- * next/font/local, pointing at the woff2 files vendored in src/app/fonts —
- * no runtime fetch, and no build-time fetch either.
+ * next/font/local, pointing at the woff2 files vendored in src/app/fonts, so
+ * nothing is fetched at build time or at run time.
  *
- * Backward compatible: legacy configs that stored raw CSS stacks still work —
- * resolveFontStack() recognizes well-known legacy stacks (e.g. the original
- * "Inter, system-ui, sans-serif" default) and upgrades them to the registry's
- * var(--font-*) stack so existing data/config.json values benefit from
- * self-hosted fonts without a schema migration.
+ * A stored font is an id. The raw CSS stacks the picker wrote before fonts
+ * had ids were rewritten to ids by schema migration 17; any other raw stack
+ * is a hand-edited choice and `resolveFontStack` passes it through as is.
  */
 
 export type FontCategory = 'sans' | 'serif' | 'mono' | 'display' | 'handwriting';
@@ -66,25 +64,10 @@ export const FONT_CATEGORY_LABELS: Record<FontCategory, string> = {
   handwriting: 'Handwriting',
 };
 
-/**
- * Map of legacy raw-CSS values previously stored in ModuleStyle.fontFamily,
- * to the registry id that supersedes them. Lets old configs transparently pick
- * up the var(--font-*) stack without a schema bump.
- */
-const LEGACY_STACK_TO_ID: Record<string, string> = {
-  'Inter, system-ui, sans-serif': 'inter',
-  'Georgia, serif': 'georgia',
-  'monospace': 'mono',
-  'system-ui, sans-serif': 'system-ui',
-  // The pre-bundled-fallback stacks, kept so a config that stored the literal
-  // still resolves to the entry rather than falling through unrecognised.
-  'ui-monospace, "SF Mono", Menlo, monospace': 'mono',
-  'system-ui, -apple-system, "Segoe UI", sans-serif': 'system-ui',
-};
-
 // Precomputed lookup tables (built once at module load).
 const REGISTRY_BY_ID = new Map<string, FontDefinition>(FONT_REGISTRY.map((f) => [f.id, f]));
 const REGISTRY_BY_CSS_STACK = new Map<string, FontDefinition>(FONT_REGISTRY.map((f) => [f.cssStack, f]));
+const REGISTRY_BY_LABEL = new Map<string, FontDefinition>(FONT_REGISTRY.map((f) => [f.label.toLowerCase(), f]));
 const FONTS_BY_CATEGORY: Record<FontCategory, FontDefinition[]> = (() => {
   const out: Record<FontCategory, FontDefinition[]> = {
     sans: [], serif: [], mono: [], display: [], handwriting: [],
@@ -94,26 +77,32 @@ const FONTS_BY_CATEGORY: Record<FontCategory, FontDefinition[]> = (() => {
 })();
 
 /**
- * Resolve a stored font value to a CSS font-family stack.
- *
- * Accepts:
- *   - A registry ID (e.g. "playfair")            → returns the registry's CSS stack
- *   - A known legacy CSS stack                   → upgraded to the registry's stack
- *   - Any other raw CSS stack                    → returned unchanged
- *   - undefined / null / empty                   → returns undefined (caller decides default)
+ * Resolve a stored font value to a CSS font-family stack: a registry id gives
+ * the entry's stack, any other raw CSS stack is returned unchanged, and an
+ * empty value gives undefined (the caller decides the default).
  */
 export function resolveFontStack(value: string | undefined | null): string | undefined {
   if (!value) return undefined;
   const trimmed = value.trim();
   if (!trimmed) return undefined;
-  const direct = REGISTRY_BY_ID.get(trimmed);
-  if (direct) return direct.cssStack;
-  const legacyId = LEGACY_STACK_TO_ID[trimmed];
-  if (legacyId) {
-    const upgraded = REGISTRY_BY_ID.get(legacyId);
-    if (upgraded) return upgraded.cssStack;
-  }
-  return trimmed;
+  return REGISTRY_BY_ID.get(trimmed)?.cssStack ?? trimmed;
+}
+
+/**
+ * The registry entry a stored font value names, for the picker: an id, an
+ * entry's own CSS stack, or a raw stack whose first family is an entry's
+ * label or id ("Playfair Display, serif"). Undefined for anything else. The
+ * one mapper for both the wall (`resolveFontStack`) and the Style panel, so
+ * they can never show two different fonts for one stored value.
+ */
+export function fontDefinitionFor(value: string | undefined | null): FontDefinition | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  const direct = REGISTRY_BY_ID.get(trimmed) ?? REGISTRY_BY_CSS_STACK.get(trimmed);
+  if (direct) return direct;
+  const firstFamily = trimmed.split(',')[0].trim().replace(/['"]/g, '').toLowerCase();
+  return REGISTRY_BY_LABEL.get(firstFamily) ?? REGISTRY_BY_ID.get(firstFamily);
 }
 
 export function getFontDefinition(id: string): FontDefinition | undefined {

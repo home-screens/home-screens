@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 16,
+  "schemaVersion": 17,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -108,15 +108,6 @@
           "default": true
         },
         {
-          "name": "showWeather",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to `off`, `true` to `header`"
-        },
-        {
           "name": "weatherPlacement",
           "optional": true,
           "type": {
@@ -162,23 +153,13 @@
           "description": "Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter"
         },
         {
-          "name": "darkMode",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Superseded by `theme` (see above). Kept so older configurations still render",
-          "default": false
-        },
-        {
           "name": "theme",
           "optional": true,
           "type": {
             "kind": "string",
             "text": "string"
           },
-          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
+          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, or Linen when that is unset too"
         },
         {
           "name": "todayHighlightStyle",
@@ -844,16 +825,6 @@
           "default": true
         },
         {
-          "name": "darkMode",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Superseded by `theme` (see above). Kept so older configurations still render",
-          "default": true
-        },
-        {
           "name": "density",
           "optional": false,
           "type": {
@@ -903,7 +874,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
+          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, or Charcoal when that is unset too"
         },
         {
           "name": "celebration",
@@ -1888,18 +1859,8 @@
           "default": "classic"
         },
         {
-          "name": "format24h",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "The older per-clock 24-hour toggle. Only read when `hourFormat` is absent",
-          "default": false
-        },
-        {
           "name": "hourFormat",
-          "optional": true,
+          "optional": false,
           "type": {
             "kind": "string",
             "text": "ClockHourFormat",
@@ -1909,7 +1870,7 @@
               "24h"
             ]
           },
-          "description": "Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock. Clocks from before this option existed have no `hourFormat` and keep using `format24h`",
+          "description": "Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock",
           "default": "inherit"
         },
         {
@@ -7451,7 +7412,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 16
+          "default": 17
         },
         {
           "name": "settings",
@@ -7470,12 +7431,9 @@
             "longitude": 0,
             "weather": {
               "provider": "open-meteo",
-              "latitude": 0,
-              "longitude": 0,
               "units": "imperial"
             },
             "calendar": {
-              "googleCalendarId": "",
               "googleCalendarIds": [],
               "icalSources": [],
               "daysAhead": 7
@@ -7650,8 +7608,6 @@
           "description": "Weather source, location, and units (see WeatherSettings)",
           "default": {
             "provider": "open-meteo",
-            "latitude": 0,
-            "longitude": 0,
             "units": "imperial"
           }
         },
@@ -7664,7 +7620,6 @@
           },
           "description": "Calendar sources and options (see CalendarSettings)",
           "default": {
-            "googleCalendarId": "",
             "googleCalendarIds": [],
             "icalSources": [],
             "daysAhead": 7
@@ -8150,26 +8105,6 @@
           "default": "open-meteo"
         },
         {
-          "name": "latitude",
-          "optional": false,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Latitude the forecast is fetched for",
-          "default": 0
-        },
-        {
-          "name": "longitude",
-          "optional": false,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Longitude the forecast is fetched for",
-          "default": 0
-        },
-        {
           "name": "units",
           "optional": false,
           "type": {
@@ -8199,16 +8134,6 @@
       "kind": "interface",
       "description": "",
       "fields": [
-        {
-          "name": "googleCalendarId",
-          "optional": false,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "A single Google calendar ID, from before several could be picked; `googleCalendarIds` replaced it",
-          "default": ""
-        },
         {
           "name": "googleCalendarIds",
           "optional": false,

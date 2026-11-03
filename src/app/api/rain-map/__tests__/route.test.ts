@@ -11,7 +11,7 @@ vi.mock('@/lib/auth', () => ({
 let radarServerUrl: string | undefined;
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(async () => ({
-    settings: { weather: { provider: 'open-meteo', latitude: 0, longitude: 0, units: 'imperial', radarServerUrl } },
+    settings: { weather: { provider: 'open-meteo', units: 'imperial', radarServerUrl } },
   })),
 }));
 

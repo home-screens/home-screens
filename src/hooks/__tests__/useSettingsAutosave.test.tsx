@@ -16,8 +16,8 @@ function makeConfig(rotationIntervalMs = 30_000): ScreenConfiguration {
       displayTransform: '90',
       latitude: 0,
       longitude: 0,
-      weather: { provider: 'open-meteo', latitude: 0, longitude: 0, units: 'imperial' },
-      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
+      weather: { provider: 'open-meteo', units: 'imperial' },
+      calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 },
     },
     screens: [{ id: 's', name: 'S', backgroundImage: '', modules: [] }],
   } as unknown as ScreenConfiguration;

@@ -54,12 +54,9 @@ function makeConfig(
       timezone: 'America/Chicago',
       weather: {
         provider: 'weatherapi',
-        latitude: 44.7,
-        longitude: -93.4,
         units: 'imperial',
       },
       calendar: {
-        googleCalendarId: 'cal-id-1',
         googleCalendarIds: ['cal-id-1'],
         icalSources: [],
         daysAhead: 7,
@@ -102,7 +99,7 @@ describe('createLayoutExport', () => {
     expect(json).not.toContain('"latitude"');
     expect(json).not.toContain('"longitude"');
     expect(json).not.toContain('"locationName"');
-    expect(json).not.toContain('"googleCalendarId"');
+    expect(json).not.toContain('"googleCalendarIds"');
     expect(json).not.toContain('"sleep"');
     expect(json).not.toContain('"screensaver"');
   });
@@ -313,7 +310,7 @@ describe('importLayout', () => {
     expect(result.settings.latitude).toBe(44.7);
     expect(result.settings.longitude).toBe(-93.4);
     expect(result.settings.locationName).toBe('Prior Lake, MN');
-    expect(result.settings.calendar.googleCalendarId).toBe('cal-id-1');
+    expect(result.settings.calendar.googleCalendarIds).toEqual(['cal-id-1']);
     expect(result.settings.sleep?.enabled).toBe(false);
   });
 

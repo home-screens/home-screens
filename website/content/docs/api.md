@@ -31,7 +31,7 @@ A few endpoints are open at every level on purpose, and each one says so where i
 `GET /api/health` answers from any device on your network, with or without a password, and the [IP allowlist](/docs/networking#restrict-access-by-ip) never blocks it (the only other endpoint it always lets through is `GET /api/auth/status`, which the login page needs). It says which version is running and nothing else:
 
 ```json
-{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":16,"uptime":864}
+{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":17,"uptime":864}
 ```
 
 `uptime` is seconds since the hub started, and `schema` is the newest settings format this release can read. Home Screens uses this route itself: an update is only kept once the new version answers here, and a display-only Pi checks it before showing the connecting screen. It is also the first thing to try when a display is blank, see [Troubleshooting](/docs/troubleshooting#is-the-hub-running).

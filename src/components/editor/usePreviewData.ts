@@ -50,8 +50,8 @@ export function usePreviewData(): PreviewData {
   // unsaved editor state instead of staying frozen at mount.
   const weatherSettings = useEditorStore((s) => s.config?.settings?.weather);
   const provider = weatherSettings?.provider;
-  const latitude = weatherSettings?.latitude;
-  const longitude = weatherSettings?.longitude;
+  const latitude = useEditorStore((s) => s.config?.settings?.latitude);
+  const longitude = useEditorStore((s) => s.config?.settings?.longitude);
   const units = weatherSettings?.units;
   const requestedProviderKey = useEditorStore((s) => previewWeatherProviders(s.config).join('|'));
   const requestedProviders = useMemo(

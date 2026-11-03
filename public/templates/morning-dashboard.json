@@ -5,7 +5,7 @@
     "name": "Morning Dashboard",
     "description": "Start your day with a personalized greeting, weather forecast, agenda, and commute info",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 10,
+    "configVersion": 17,
     "sourceDisplay": { "width": 1080, "height": 1920 },
     "screenCount": 1,
     "moduleCount": 4
@@ -36,7 +36,7 @@
             "padding": 16,
             "backgroundColor": "rgba(0, 0, 0, 0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 12
           }
@@ -70,7 +70,7 @@
             "padding": 16,
             "backgroundColor": "rgba(0, 0, 0, 0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 12
           }
@@ -95,7 +95,7 @@
             "padding": 16,
             "backgroundColor": "rgba(0, 0, 0, 0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 12
           }
@@ -116,7 +116,7 @@
             "padding": 16,
             "backgroundColor": "rgba(0, 0, 0, 0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 12
           }

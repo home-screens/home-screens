@@ -55,12 +55,12 @@ const DotCharacter = memo(function DotCharacter({
   );
 });
 
-export default function ClockDotMatrixView({ config, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockDotMatrixView({ config, format24h, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { h, mStr, sStr } = parseClockTime(config.format24h, time);
+  const { h, mStr, sStr } = parseClockTime(format24h, time);
   // Dot-matrix needs space-padded hours in 12h mode for consistent grid layout
-  const hStr = config.format24h ? String(h).padStart(2, '0') : String(h).padStart(2, ' ');
+  const hStr = format24h ? String(h).padStart(2, '0') : String(h).padStart(2, ' ');
 
   const timeChars = config.showSeconds
     ? [...hStr, ':', ...mStr, ':', ...sStr]

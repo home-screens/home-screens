@@ -172,9 +172,9 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // darkMode:false migrates to the light 'linen' theme (colorScheme light vs the dark default).
-    type: 'fullscreen-chore-chart', name: 'light-mode', kind: 'local-data', seed: 'chores',
-    config: { view: 'chores', darkMode: false },
+    // A light theme on the module (colorScheme light vs the chore chart's Charcoal default).
+    type: 'fullscreen-chore-chart', name: 'theme-linen', kind: 'local-data', seed: 'chores',
+    config: { view: 'chores', theme: 'linen' },
     expect: async (mod) => { await expect(mod.locator('.fcc-root')).toHaveCSS('color-scheme', 'light'); },
   },
   {

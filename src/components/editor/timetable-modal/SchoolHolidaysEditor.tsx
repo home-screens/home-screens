@@ -25,6 +25,7 @@ import type {
 } from '@/lib/school-holidays';
 import type { TimetableSchool } from '@/types/timetables';
 import { PROSE_CLASS } from './prose';
+import { hasValidLocation } from '@/lib/location';
 
 /** The two messages the holiday lookup can attach to an answer. */
 const HOLIDAY_MESSAGE_KEYS = ['schoolHolidaysStale', 'schoolHolidaysUnavailable'] as const;
@@ -165,9 +166,9 @@ export default function SchoolHolidaysEditor({ school, onChange }: SchoolHoliday
   // one the saved location resolves to, and only then the locale's own region as
   // a last guess.
   const holidayCountry = useEditorStore((state) => state.config?.settings?.calendar?.holidayCountry);
-  const lat = useEditorStore((state) => state.config?.settings?.latitude ?? state.config?.settings?.weather?.latitude);
-  const lon = useEditorStore((state) => state.config?.settings?.longitude ?? state.config?.settings?.weather?.longitude);
-  const placeKey = !holidayCountry && lat !== undefined && lon !== undefined ? `${lat},${lon}` : null;
+  const lat = useEditorStore((state) => state.config?.settings?.latitude);
+  const lon = useEditorStore((state) => state.config?.settings?.longitude);
+  const placeKey = !holidayCountry && hasValidLocation(lat, lon) ? `${lat},${lon}` : null;
   const cachedPlace = placeKey ? placeCache.get(placeKey) : undefined;
   const { data: fetchedPlace, error: placeError } = useEditorData<ResolvedPlace>(
     placeKey && !cachedPlace ? `/api/geocode?q=${encodeURIComponent(placeKey)}` : null,

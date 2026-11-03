@@ -68,9 +68,8 @@ function makeConfig(overrides: Partial<ScreenConfiguration['settings']['calendar
       displayHeight: 1920,
       latitude: 0,
       longitude: 0,
-      weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'metric' },
+      weather: { provider: 'openweathermap', units: 'metric' },
       calendar: {
-        googleCalendarId: '',
         googleCalendarIds: [],
         icalSources: [],
         daysAhead: 7,
@@ -186,23 +185,6 @@ describe('calendar ID resolution', () => {
 
     expect(mockFetchGoogle).toHaveBeenCalledWith(
       ['primary', 'work'],
-      expect.any(String),
-      expect.any(String),
-      false,
-    );
-  });
-
-  it('falls back to googleCalendarId (singular) from config', async () => {
-    mockReadConfig.mockResolvedValue(
-      makeConfig({ googleCalendarId: 'my-single-cal', googleCalendarIds: [] }),
-    );
-    mockFetchGoogle.mockResolvedValue({ events: [], results: [{ id: 'mock-ok', ok: true }] });
-
-    const req = makeRequest();
-    await GET(req);
-
-    expect(mockFetchGoogle).toHaveBeenCalledWith(
-      ['my-single-cal'],
       expect.any(String),
       expect.any(String),
       false,

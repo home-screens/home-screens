@@ -1,8 +1,10 @@
 'use client';
 
 import { useEditorStore, getActiveFullscreenTheme } from '@/stores/editor-store';
-import { getThemeTokens, migrateFromDarkMode } from '@/lib/fullscreen-themes';
+import { getThemeTokens } from '@/lib/fullscreen-themes';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
+import { resolveFullscreenTheme } from '@/lib/module-registry';
+import type { ModuleType } from '@/types/config';
 
 /**
  * The full-screen theme the selected display paints with where a module sets
@@ -16,15 +18,12 @@ export function useActiveFullscreenTheme(): string | undefined {
 /**
  * The theme tokens a fullscreen module is actually rendering with, resolved
  * in the editor exactly as the canvas preview resolves them: the module's own
- * `theme`, else the selected display's full-screen theme, else the legacy
- * `darkMode` mapping. Config sections use this so a swatch that depends on
- * the theme (the accent picker) shows the color the preview is painting
- * rather than the Linen fallback for an inherited theme.
+ * `theme`, else the selected display's full-screen theme, else the type's own
+ * default (`resolveFullscreenTheme`). Config sections use this so a swatch
+ * that depends on the theme (the accent picker) shows the color the preview
+ * is painting rather than the Linen fallback for an inherited theme.
  */
-export function useFullscreenThemeTokens(
-  theme: string | undefined,
-  darkMode?: boolean,
-): FullscreenThemeTokens {
+export function useFullscreenThemeTokens(type: ModuleType, theme: string | undefined): FullscreenThemeTokens {
   const fullscreenTheme = useActiveFullscreenTheme();
-  return getThemeTokens(theme ?? fullscreenTheme ?? migrateFromDarkMode(darkMode));
+  return getThemeTokens(resolveFullscreenTheme(type, theme, fullscreenTheme));
 }

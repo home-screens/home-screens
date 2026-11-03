@@ -5,7 +5,7 @@
     "name": "Sports Hub",
     "description": "Live sports scoreboards and league standings for the ultimate sports fan display",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 10,
+    "configVersion": 17,
     "sourceDisplay": { "width": 1920, "height": 1080 },
     "screenCount": 1,
     "moduleCount": 2
@@ -38,7 +38,7 @@
             "padding": 16,
             "backgroundColor": "rgba(0, 0, 0, 0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 12
           }
@@ -64,7 +64,7 @@
             "padding": 16,
             "backgroundColor": "rgba(0, 0, 0, 0.4)",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 12
           }

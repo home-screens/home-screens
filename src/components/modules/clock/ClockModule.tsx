@@ -88,16 +88,11 @@ interface ClockModuleProps {
   timeFormat?: TimeFormat;
 }
 
-export default function ClockModule({ config: rawConfig, style, timezone, timeFormat }: ClockModuleProps) {
-  // Every view reads `config.format24h`, so the resolved choice is folded
-  // back into the config they receive rather than threaded through eighteen
-  // of them. Same object when nothing changes, so memoised views keep theirs.
+export default function ClockModule({ config, style, timezone, timeFormat }: ClockModuleProps) {
+  // Resolved once here (household setting, language, or the clock's own pin)
+  // and handed to the view, which never reads the choice from the config.
   const locale = useFormattingLocale();
-  const format24h = resolveClockFormat24h(rawConfig, timeFormat, locale);
-  const config = useMemo(
-    () => (rawConfig.format24h === format24h ? rawConfig : { ...rawConfig, format24h }),
-    [rawConfig, format24h],
-  );
+  const format24h = resolveClockFormat24h(config, timeFormat, locale);
   const view = config.view ?? 'classic';
   // The elapsed view ticks its own real clock (useRealClock in the view), so
   // the module-level clock only needs a coarse keepalive there.
@@ -125,6 +120,7 @@ export default function ClockModule({ config: rawConfig, style, timezone, timeFo
     <ModuleWrapper style={style}>
       <ViewComponent
         config={config}
+        format24h={format24h}
         instant={instant}
         now={now}
         time={time}

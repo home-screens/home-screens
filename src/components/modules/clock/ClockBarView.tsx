@@ -69,13 +69,13 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
   );
 }
 
-export default function ClockBarView({ config, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockBarView({ config, format24h, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hours, minutes, seconds, h, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
-  const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
+  const { hours, minutes, seconds, h, hStr, mStr, sStr } = parseClockTime(format24h, time);
+  const period = format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
   // The hour bar shows the hour the clock reads, out of 12 or 24: 12 o'clock
   // is "12" and a full bar in 12-hour mode, never "00" with an empty one.
-  const hoursMax = config.format24h ? 24 : 12;
+  const hoursMax = format24h ? 24 : 12;
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}${period}`

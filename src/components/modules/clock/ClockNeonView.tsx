@@ -10,11 +10,11 @@ import { noWrap } from './fixed-size';
 import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 
-export default function ClockNeonView({ config, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockNeonView({ config, format24h, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, time);
-  const ampm = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
+  const { hStr, mStr, sStr, hours } = parseClockTime(format24h, time);
+  const ampm = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`

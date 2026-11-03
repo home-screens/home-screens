@@ -17,10 +17,10 @@ function daysBetween(from: string, to: string): number {
   return Math.round((utc(to) - utc(from)) / 86_400_000);
 }
 
-export default function ClockWorldView({ config, instant, time, timezone, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockWorldView({ config, format24h, instant, time, timezone, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, time);
-  const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
+  const { hStr, mStr, sStr, hours } = parseClockTime(format24h, time);
+  const period = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const primaryTime = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`
@@ -32,10 +32,10 @@ export default function ClockWorldView({ config, instant, time, timezone, scaled
   const zones = (config.worldZones || []).slice(0, 3).map((zone) => {
     const { hours: zoneHours, minutes: zoneMinutes } = clockTimeInTZ(instant, zone.timezone);
 
-    const zh = config.format24h ? zoneHours : zoneHours % 12 || 12;
-    const zhStr = config.format24h ? String(zh).padStart(2, '0') : String(zh);
+    const zh = format24h ? zoneHours : zoneHours % 12 || 12;
+    const zhStr = format24h ? String(zh).padStart(2, '0') : String(zh);
     const zmStr = String(zoneMinutes).padStart(2, '0');
-    const zoneAmpm = config.format24h ? '' : zoneHours >= 12 ? t('clock.pm') : t('clock.am');
+    const zoneAmpm = format24h ? '' : zoneHours >= 12 ? t('clock.pm') : t('clock.am');
 
     const zoneTimeStr = `${zhStr}:${zmStr}`;
 

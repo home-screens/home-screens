@@ -14,7 +14,7 @@ const feed = (id: string, enabled = true): ICalSource => ({ id, type: 'ical', na
 const icloud = (id: string): ICloudSource => ({ id, accountId: 'acct', kind: 'calendar', url: `https://caldav.example.com/${id}`, name: id, color: '#000000', enabled: true });
 
 function calendar(overrides: Partial<CalendarSettings> = {}): CalendarSettings {
-  return { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7, ...overrides };
+  return { googleCalendarIds: [], icalSources: [], daysAhead: 7, ...overrides };
 }
 
 function mod(id: string, type: string, config: Record<string, unknown> = {}): ModuleInstance {
@@ -30,10 +30,6 @@ describe('configuredCalendarSourceIds', () => {
       holidayCountry: 'US',
     }));
     expect([...ids].sort()).toEqual(['family@example.com', 'holidays', 'paused', 'school', 'work']);
-  });
-
-  it('falls back to the single Google calendar from before several could be picked', () => {
-    expect([...configuredCalendarSourceIds(calendar({ googleCalendarId: 'old@example.com' }))]).toEqual(['old@example.com']);
   });
 });
 

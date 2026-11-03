@@ -490,8 +490,8 @@ describe('getLocationFromConfig', () => {
         rotationIntervalMs: 30000,
         displayWidth: 1080,
         displayHeight: 1920,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'metric' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'metric' },
+        calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 },
       },
       screens: [],
     });
@@ -500,7 +500,7 @@ describe('getLocationFromConfig', () => {
     expect(result).toEqual({ lat: '51.5', lon: '-0.12' });
   });
 
-  it('falls back to settings.weather.latitude/longitude when top-level missing', async () => {
+  it('answers null for the (0, 0) seed location, so a route shows its location-required answer', async () => {
     mockReadConfig.mockResolvedValue({
       version: 1,
       settings: {
@@ -509,18 +509,13 @@ describe('getLocationFromConfig', () => {
         rotationIntervalMs: 30000,
         displayWidth: 1080,
         displayHeight: 1920,
-        weather: { provider: 'openweathermap', latitude: 35.68, longitude: 139.69, units: 'metric' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'metric' },
+        calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 },
       },
       screens: [],
     });
 
-    // top-level lat/lon are 0 which is falsy for toString() but truthy for ??
-    // Actually 0.toString() = "0", which is truthy, so top-level wins
-    // Let's test with an actual weather fallback by checking the priority chain works
-    const result = await getLocationFromConfig();
-    // 0.toString() = '0' which is truthy, so settings.latitude (0) wins
-    expect(result).toEqual({ lat: '0', lon: '0' });
+    expect(await getLocationFromConfig()).toBeNull();
   });
 
   it('searchParams take priority over config values', async () => {
@@ -532,8 +527,8 @@ describe('getLocationFromConfig', () => {
         rotationIntervalMs: 30000,
         displayWidth: 1080,
         displayHeight: 1920,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'metric' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'metric' },
+        calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 },
       },
       screens: [],
     });
@@ -584,8 +579,8 @@ describe('getLocationFromConfig', () => {
         rotationIntervalMs: 30000,
         displayWidth: 1080,
         displayHeight: 1920,
-        weather: { provider: 'openweathermap' as const, latitude: 0, longitude: 0, units: 'metric' as const },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
+        weather: { provider: 'openweathermap' as const, units: 'metric' as const },
+        calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 },
       },
       screens: [],
     };

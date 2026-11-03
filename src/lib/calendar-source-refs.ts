@@ -14,7 +14,7 @@ import { googleCalendarIdList } from '@/lib/calendar-sources';
 
 type SourceSettings = Partial<Pick<
   CalendarSettings,
-  'googleCalendarIds' | 'googleCalendarId' | 'icalSources' | 'icloudSources' | 'holidayCountry' | 'personSources'
+  'googleCalendarIds' | 'icalSources' | 'icloudSources' | 'holidayCountry' | 'personSources'
 >>;
 
 /** Modules whose `sourceFilter` lists the calendar sources they show. */

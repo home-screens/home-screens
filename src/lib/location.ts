@@ -22,21 +22,15 @@ export function hasValidLocation(
 }
 
 /**
- * Resolve the configured location, preferring the top-level
- * `settings.latitude/longitude` fields and falling back to the legacy
- * `settings.weather.latitude/longitude`. Returns null when neither pair is
- * set or when both coordinates are 0.
- *
- * For server-side route handlers that accept a `?lat=&lon=` override and
- * return string-typed values, see `getLocationFromConfig` in
- * `src/lib/api-utils.ts` — that helper keeps the URL-override semantic and
- * does not apply the (0, 0) zero-guard since some weather providers want raw
- * coordinates to fail loudly.
+ * The household location, `settings.latitude/longitude`. Null when the pair
+ * is unset or both coordinates are 0 (the seed value). Every reader of the
+ * location goes through this or `hasValidLocation`; the server routes that
+ * take a `?lat=&lon=` override wrap it in `getLocationFromConfig`
+ * (`src/lib/api-utils.ts`).
  */
 export function getLocation(settings: GlobalSettings | null | undefined): Location | null {
   if (!settings) return null;
-  const lat = settings.latitude ?? settings.weather?.latitude;
-  const lon = settings.longitude ?? settings.weather?.longitude;
+  const { latitude: lat, longitude: lon } = settings;
   if (!hasValidLocation(lat, lon)) return null;
-  return { lat: lat as number, lon: lon as number };
+  return { lat, lon };
 }

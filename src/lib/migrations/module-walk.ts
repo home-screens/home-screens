@@ -10,7 +10,7 @@
  * config.json by hand.
  */
 
-import type { ScreenConfiguration, Screen } from '@/types/config';
+import type { ScreenConfiguration, Screen, DisplayNode } from '@/types/config';
 
 type Module = Screen['modules'][number];
 
@@ -25,6 +25,8 @@ export interface ModuleSite {
   owner: 'legacy' | 'display';
   /** True when this module renders somewhere: always in legacy single-display mode. */
   live: boolean;
+  /** The display whose screens hold the module; absent on the legacy array. */
+  display?: DisplayNode;
 }
 
 /**
@@ -38,11 +40,11 @@ export function mapConfigModules(
   visit: (mod: Module, site: ModuleSite) => Module,
 ): Pick<ScreenConfiguration, 'screens' | 'displays'> {
   const hasDisplays = Array.isArray(config.displays) && config.displays.length > 0;
-  return mapConfigScreens(config, (screen, site) => {
+  return mapConfigScreens(config, (screen, site, display) => {
     if (!Array.isArray(screen.modules)) return screen;
     let changed = false;
     const modules = screen.modules.map((mod) => {
-      const next = visit(mod, { owner: site, live: site === 'display' || !hasDisplays });
+      const next = visit(mod, { owner: site, live: site === 'display' || !hasDisplays, display });
       if (next !== mod) changed = true;
       return next;
     });
@@ -57,7 +59,7 @@ export function mapConfigModules(
  */
 export function mapConfigScreens(
   config: ScreenConfiguration,
-  migrateScreen: (screen: Screen, site: 'legacy' | 'display') => Screen,
+  migrateScreen: (screen: Screen, site: 'legacy' | 'display', display?: DisplayNode) => Screen,
 ): Pick<ScreenConfiguration, 'screens' | 'displays'> {
   return {
     screens: Array.isArray(config.screens) ? config.screens.map((s) => migrateScreen(s, 'legacy')) : config.screens,
@@ -66,7 +68,7 @@ export function mapConfigScreens(
     ...(Array.isArray(config.displays)
       ? {
           displays: config.displays.map((d) =>
-            Array.isArray(d.screens) ? { ...d, screens: d.screens.map((s) => migrateScreen(s, 'display')) } : d,
+            Array.isArray(d.screens) ? { ...d, screens: d.screens.map((s) => migrateScreen(s, 'display', d)) } : d,
           ),
         }
       : {}),

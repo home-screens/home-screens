@@ -34,7 +34,7 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   // The accent the module paints while accentColor is empty (see the module).
-  const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens(c.theme, c.darkMode), DEFAULT_ACCENT_COLOR);
+  const themeAccent = resolveFullscreenAccent('', useFullscreenThemeTokens('fullscreen-chore-chart', c.theme), DEFAULT_ACCENT_COLOR);
   const accentColor = c.accentColor || themeAccent;
 
   const typographySizeOptions = useTypographySizeOptions();

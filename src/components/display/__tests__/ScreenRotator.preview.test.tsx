@@ -75,7 +75,7 @@ function makeSettings(): GlobalSettings {
     displayHeight: 1920,
     latitude: 0,
     longitude: 0,
-    weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+    weather: { provider: 'weatherapi', units: 'imperial' },
     activeProfile: 'day',
   } as unknown as GlobalSettings;
 }

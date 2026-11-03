@@ -12,7 +12,8 @@ import type { ClockViewProps } from '../types';
 function hourBar(hours: number, format24h: boolean): { label: string; fill: string } {
   const at = new Date(2026, 9, 3, hours, 30, 0);
   const props: ClockViewProps = {
-    config: { ...(getModuleDefinition('clock')!.defaultConfig as unknown as ClockConfig), format24h, showSeconds: false },
+    config: { ...(getModuleDefinition('clock')!.defaultConfig as unknown as ClockConfig), showSeconds: false },
+    format24h,
     instant: at,
     now: at,
     time: { hours, minutes: 30, seconds: 0 },

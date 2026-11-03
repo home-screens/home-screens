@@ -43,8 +43,8 @@ function makeConfig(overrides: Partial<ScreenConfiguration> = {}): ScreenConfigu
       displayHeight: 1920,
       latitude: 0,
       longitude: 0,
-      weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      weather: { provider: 'openweathermap', units: 'imperial' },
+      calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
       ...overrides.settings,
     },
     screens: overrides.screens ?? [
@@ -234,8 +234,8 @@ describe('buildBeaconPayload', () => {
         longitude: -74.006,
         locationName: 'New York',
         timezone: 'America/New_York',
-        weather: { provider: 'openweathermap', latitude: 40.7128, longitude: -74.006, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: ['cal-id-1'], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: ['cal-id-1'], icalSources: [], maxEvents: 10, daysAhead: 7 },
       },
     } as unknown as Partial<ScreenConfiguration>);
     const telemetryData = { installId: 'pii-test', firstSeenAt: '', lastBeaconAt: null };
@@ -265,11 +265,10 @@ describe('buildBeaconPayload', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
+        weather: { provider: 'openweathermap', units: 'imperial' },
         calendar: {
           googleCalendarIds: [],
           icalSources: [{ url: 'https://example.com/cal.ics', name: 'Work', color: '#fff', enabled: true }],
-          googleCalendarId: '',
           maxEvents: 10,
           daysAhead: 7,
         },
@@ -399,8 +398,8 @@ describe('buildBeaconPayload', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
         sleep: { enabled: false, schedule: [] },
       },
       displays: [
@@ -506,8 +505,8 @@ describe('buildBeaconPayload', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
         sleep: { enabled: true, schedule: [] },
       },
       displays: [
@@ -540,8 +539,8 @@ describe('buildBeaconPayload', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
         alerts: { enabled: false, position: 'top', maxVisible: 3, defaultDuration: 0 },
       },
       displays: [
@@ -570,8 +569,8 @@ describe('buildBeaconPayload', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
         alerts: { enabled: true, position: 'top', maxVisible: 3, defaultDuration: 0 },
       },
       displays: [
@@ -704,8 +703,8 @@ describe('buildBeaconPayload', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
       },
       displays: [
         {
@@ -848,8 +847,8 @@ describe('maybeSendBeacon', () => {
         displayHeight: 1920,
         latitude: 0,
         longitude: 0,
-        weather: { provider: 'openweathermap', latitude: 0, longitude: 0, units: 'imperial' },
-        calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+        weather: { provider: 'openweathermap', units: 'imperial' },
+        calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
         telemetryEnabled: false,
       },
     } as unknown as Partial<ScreenConfiguration>);

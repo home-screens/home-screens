@@ -17,9 +17,8 @@ function makeSettings(overrides: Partial<GlobalSettings> = {}): GlobalSettings {
     displayHeight: 1920,
     latitude: 0,
     longitude: 0,
-    weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+    weather: { provider: 'weatherapi', units: 'imperial' },
     calendar: {
-      googleCalendarId: '',
       googleCalendarIds: [],
       icalSources: [],
       daysAhead: 7,

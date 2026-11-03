@@ -57,7 +57,7 @@ const { default: FullscreenChoreChartModule } = await import('../FullscreenChore
 const config = {
   view: 'chores', showRewardsButton: false, weekStartDay: 'monday', weekProgress: 'chips',
   layout: 'by-time', showPoints: true, showStreaks: true, showTimeOfDay: true,
-  allowDisplayComplete: true, darkMode: true, density: 'cozy', typographySize: 'medium',
+  allowDisplayComplete: true, density: 'cozy', typographySize: 'medium',
 } as FullscreenChoreChartConfig;
 
 beforeEach(() => { postResponse = { completions: [], changed: true }; });

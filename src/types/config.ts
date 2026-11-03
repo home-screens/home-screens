@@ -442,10 +442,6 @@ export interface Screen {
 export interface WeatherSettings {
   /** Weather data source */
   provider: 'openweathermap' | 'weatherapi' | 'pirateweather' | 'noaa' | 'open-meteo' | 'yr' | 'smhi' | 'metoffice' | 'envcanada';
-  /** Latitude the forecast is fetched for */
-  latitude: number;
-  /** Longitude the forecast is fetched for */
-  longitude: number;
   /** `metric` or `imperial` */
   units: 'metric' | 'imperial';
   /**
@@ -549,11 +545,6 @@ export interface CalendarPerson {
 }
 
 export interface CalendarSettings {
-  /**
-   * A single Google calendar ID, from before several could be picked; `googleCalendarIds` replaced
-   * it
-   */
-  googleCalendarId: string;
   /** Google calendars to show */
   googleCalendarIds: string[];
   /** iCal (ICS) feeds (see ICalSource) */
@@ -1220,22 +1211,13 @@ export interface ClockConfig {
    */
   view: ClockView;
   /**
-   * The older per-clock 24-hour toggle. Only read when `hourFormat` is absent
-   *
-   * Legacy per-clock toggle. Every clock placed before `hourFormat` existed
-   * carries an explicit value here and keeps it: it is only read when
-   * `hourFormat` is absent, so nothing on a wall changed when the household
-   * setting started reaching new clocks (plan 50, item 6b).
-   */
-  format24h: boolean;
-  /**
    * Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format**
-   * setting, `12h` or `24h` pins it for this clock. Clocks from before this option existed have no
-   * `hourFormat` and keep using `format24h`
+   * setting, `12h` or `24h` pins it for this clock
    *
-   * Absent = read `format24h`. New clocks are placed with `inherit`.
+   * Every clock carries it since schema 17 (the per-clock `format24h` toggle
+   * was folded into it); a hand-edited clock without it reads `inherit`.
    */
-  hourFormat?: ClockHourFormat;
+  hourFormat: ClockHourFormat;
   /** Display seconds */
   showSeconds: boolean;
   /** Show date below time */
@@ -1529,20 +1511,14 @@ export interface FullscreenCalendarConfig {
   /** Subtle background tint on weekend columns, rows, or (rolling view) cells */
   shadeWeekends: boolean;
   /**
-   * Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to
-   * `off`, `true` to `header`
-   *
-   * Deprecated: pre-weatherPlacement boolean; true resolves to 'header'.
-   */
-  showWeather?: boolean;
-  /**
    * Where weather appears: `off`, `header` (temperature pill at the top), `days` (daily forecast on
    * day headers), `events` (forecast for each event's start time), or `days-and-events`. Day
    * placement renders in the schedule, week list, and agenda views; event placement in week list
    * and agenda. Views without that surface fall back to the header pill, so weather never
    * disappears when switching views
    *
-   * default 'header' (new), legacy showWeather honored when unset
+   * Every calendar carries it since schema 17 (the older `showWeather` toggle
+   * was folded into it); a hand-edited calendar without it reads `header`.
    */
   weatherPlacement?: WeatherPlacement;
   /** Show a line indicating the current time */
@@ -1555,11 +1531,9 @@ export interface FullscreenCalendarConfig {
    * means no filter
    */
   titleFilter?: CalendarTitleFilter;
-  /** Superseded by `theme` (see above). Kept so older configurations still render */
-  darkMode: boolean;
   /**
    * One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset =
-   * inherit the display default from Settings > Screen
+   * inherit the display default from Settings > Screen, or Linen when that is unset too
    */
   theme?: string;
   /**
@@ -4553,8 +4527,6 @@ export interface FullscreenChoreChartConfig {
   showTimeOfDay: boolean;
   /** Let anyone tap a chore on the display itself to mark it done */
   allowDisplayComplete: boolean;
-  /** Superseded by `theme` (see above). Kept so older configurations still render */
-  darkMode: boolean;
   /** Layout density: `cozy` or `snug` */
   density: 'cozy' | 'snug';
   /** Text size: `small`, `medium`, `large`, `extra-large`, `2x-large`, `3x-large`, or `4x-large` */
@@ -4566,7 +4538,7 @@ export interface FullscreenChoreChartConfig {
   accentColor: string;
   /**
    * One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset =
-   * inherit the display default from Settings > Screen
+   * inherit the display default from Settings > Screen, or Charcoal when that is unset too
    */
   theme?: string;
   /**

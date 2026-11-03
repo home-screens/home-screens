@@ -39,7 +39,7 @@ const settings = {
   timezone: 'UTC',
   latitude: 0,
   longitude: 0,
-  weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+  weather: { provider: 'weatherapi', units: 'imperial' },
 } as unknown as DisplaySettings;
 
 const sharedData: SharedDisplayData = {

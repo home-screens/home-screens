@@ -12,8 +12,8 @@ import type { ModuleInstance } from '@/types/config';
 export function GreetingConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
   const { config: c, set } = useModuleConfig<{ name?: string; accentColor?: string; weatherAware?: boolean }>(mod, screenId);
-  const lat = useEditorStore((s) => s.config?.settings?.latitude ?? s.config?.settings?.weather?.latitude);
-  const lon = useEditorStore((s) => s.config?.settings?.longitude ?? s.config?.settings?.weather?.longitude);
+  const lat = useEditorStore((s) => s.config?.settings?.latitude);
+  const lon = useEditorStore((s) => s.config?.settings?.longitude);
   const hasLocation = hasValidLocation(lat, lon);
   const weatherAware = c.weatherAware ?? true;
 

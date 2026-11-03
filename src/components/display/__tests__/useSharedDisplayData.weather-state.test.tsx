@@ -43,7 +43,7 @@ function makeSettings(over: Partial<DisplaySettings> = {}): DisplaySettings {
     timezone: 'UTC',
     latitude: 44.7,
     longitude: -93.4,
-    weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
+    weather: { provider: 'weatherapi', units: 'imperial' },
     calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 30 },
     ...over,
   } as unknown as DisplaySettings;

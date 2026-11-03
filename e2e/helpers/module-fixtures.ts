@@ -41,8 +41,8 @@ export const MATRIX_LOCATION = { latitude: 44.7133, longitude: -93.4227 };
 export function matrixSettings(): Record<string, unknown> {
   return {
     ...MATRIX_LOCATION,
-    weather: { provider: 'weatherapi', latitude: MATRIX_LOCATION.latitude, longitude: MATRIX_LOCATION.longitude, units: 'imperial' },
-    calendar: { googleCalendarId: 'primary', googleCalendarIds: ['primary'], icalSources: [], daysAhead: 7 },
+    weather: { provider: 'weatherapi', units: 'imperial' },
+    calendar: { googleCalendarIds: ['primary'], icalSources: [], daysAhead: 7 },
   };
 }
 

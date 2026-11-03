@@ -45,7 +45,7 @@ const wallModule = {
   style: { ...choreChartModule().style },
   config: {
     view: 'chores', showRewardsButton: false, weekStartDay: 'monday', weekProgress: 'chips', layout: 'by-time',
-    showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true, darkMode: true,
+    showPoints: true, showStreaks: true, showTimeOfDay: true, allowDisplayComplete: true,
     density: 'cozy', typographySize: 'medium', accentColor: '',
   },
 };

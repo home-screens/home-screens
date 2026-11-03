@@ -26,7 +26,8 @@ import { useDayNotes } from '@/hooks/useDayNotes';
 import { dayNotesFor, hasDayNoteIn } from '@/lib/day-notes';
 import { DayNoteLine, dayNoteColors } from '../shared/DayNoteLine';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
-import { getThemeTokens, migrateFromDarkMode, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop, barBackdrop } from '@/lib/fullscreen-themes';
+import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop, barBackdrop } from '@/lib/fullscreen-themes';
+import { resolveFullscreenTheme } from '@/lib/module-registry';
 import { brightenForDark, eventBg, eventBorder, resolveCalendarAccent } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { heldPulseKeyframes } from '@/lib/held-pulse';
@@ -257,7 +258,7 @@ export default function FullscreenCalendarModule({
   // everyone's events; while the roster is loading that reads as loading.
   const rosterPending = selection?.pending === true;
 
-  const themeId = config.theme ?? fullscreenTheme ?? migrateFromDarkMode(config.darkMode);
+  const themeId = resolveFullscreenTheme('fullscreen-calendar', config.theme, fullscreenTheme);
   const theme = getThemeTokens(themeId);
 
   // Today-highlight fill derived from the resolved accent color so the

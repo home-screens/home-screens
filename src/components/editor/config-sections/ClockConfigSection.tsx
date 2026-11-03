@@ -18,6 +18,7 @@ import { COMMON_TIMEZONES } from '@/lib/timezone';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import { formatElapsed } from '@/components/modules/clock/elapsed-format';
 import { clockDatePattern } from '@/components/modules/clock/date-pattern';
+import { clockHourFormat } from '@/components/modules/clock/hour-format';
 import type { ModuleInstance, ClockView, ClockHourFormat, WorldClockZone, ElapsedFormat, ElapsedPrecision } from '@/types/config';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 
@@ -68,7 +69,6 @@ const VIEW_FIELDS: Record<ClockView, Set<string>> = {
 type ClockConfigType = {
   view?: ClockView;
   timezone?: string;
-  format24h?: boolean;
   hourFormat?: ClockHourFormat;
   showSeconds?: boolean;
   showDate?: boolean;
@@ -99,10 +99,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
   // household's, never the laptop's.
   const previewNow = useTZClock(c.timezone || globalTimezone);
   const householdTimeFormat = useHouseholdTimeFormat(useEditorStore((s) => s.config?.settings?.timeFormat));
-  // A clock placed before `hourFormat` existed shows its own toggle's value,
-  // which is what it renders; picking anything writes `hourFormat` and the
-  // toggle is never read again (see resolveClockFormat24h).
-  const hourFormat: ClockHourFormat = c.hourFormat ?? (c.format24h ? '24h' : '12h');
+  const hourFormat = clockHourFormat(c);
   const householdLabel = t(householdTimeFormat === '24h' ? 'configSections.clock.hourFormat24h' : 'configSections.clock.hourFormat12h');
 
   const VIEWS: { value: ClockView; label: string }[] = [

@@ -18,12 +18,9 @@ function validConfig(overrides?: Partial<ScreenConfiguration>): ScreenConfigurat
       longitude: -74.0,
       weather: {
         provider: 'open-meteo',
-        latitude: 40.7,
-        longitude: -74.0,
         units: 'imperial',
       },
       calendar: {
-        googleCalendarId: '',
         googleCalendarIds: [],
         icalSources: [],
         daysAhead: 14,

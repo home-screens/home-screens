@@ -9,6 +9,7 @@ import type { CalendarEvent, CalendarSourceStatus, ICalSource, ICloudSource } fr
 import { logger } from '@/lib/logger';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { CALENDAR_REVISION_HEADER, calendarRevision } from '@/lib/calendar-revision';
+import { googleCalendarIdList } from '@/lib/calendar-sources';
 
 const log = logger('calendar');
 
@@ -66,11 +67,7 @@ const { GET: cachedGET, cache } = cachedProxyRoute<CalendarPayload, CalendarPara
     const calendarIdsParam = searchParams.get('calendarIds');
     const calendarIds = calendarIdsParam
       ? calendarIdsParam.split(',').filter(Boolean)
-      : config.settings.calendar.googleCalendarIds?.length
-        ? config.settings.calendar.googleCalendarIds
-        : config.settings.calendar.googleCalendarId
-          ? [config.settings.calendar.googleCalendarId]
-          : [];
+      : googleCalendarIdList(config.settings.calendar);
 
     const icalSources = (config.settings.calendar.icalSources ?? []).filter(s => s.enabled);
     const icloudSources = (config.settings.calendar.icloudSources ?? []).filter(s => s.enabled);

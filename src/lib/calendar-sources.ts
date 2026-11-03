@@ -25,16 +25,13 @@ export function hasCalendarFeedSources(
 }
 
 /**
- * The Google calendar ids the shared fetch asks for: the multi-calendar list
- * when it has entries, else the single legacy field. One reader so the fetch
- * hook and `hasAnyCalendarSource` can never disagree about whether a Google
- * calendar is configured.
+ * The Google calendar ids the shared fetch asks for. One reader, tolerant of
+ * a hand-edited settings object without the list, so the fetch hook, the
+ * calendar route and `hasAnyCalendarSource` can never disagree about whether
+ * a Google calendar is configured.
  */
-export function googleCalendarIdList(
-  calendar: Partial<Pick<CalendarSettings, 'googleCalendarIds' | 'googleCalendarId'>>,
-): string[] {
-  if (calendar.googleCalendarIds?.length) return calendar.googleCalendarIds;
-  return calendar.googleCalendarId ? [calendar.googleCalendarId] : [];
+export function googleCalendarIdList(calendar: Partial<Pick<CalendarSettings, 'googleCalendarIds'>>): string[] {
+  return calendar.googleCalendarIds ?? [];
 }
 
 /**

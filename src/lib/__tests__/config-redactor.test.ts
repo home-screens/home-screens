@@ -9,8 +9,8 @@ function baseConfig(): ScreenConfiguration {
       rotationIntervalMs: 30000,
       displayWidth: 1080, displayHeight: 1920, displayTransform: '90',
       latitude: 44.71, longitude: -93.42,
-      weather: { provider: 'weatherapi', latitude: 44.71, longitude: -93.42, units: 'imperial' },
-      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], daysAhead: 7 },
+      weather: { provider: 'weatherapi', units: 'imperial' },
+      calendar: { googleCalendarIds: [], icalSources: [], daysAhead: 7 },
     },
     screens: [],
   };
@@ -28,7 +28,7 @@ describe('redactConfig', () => {
           style: {} as never,
           config: {
             icalSources: [{ id: 'x', type: 'ical', name: 'work', url: 'https://cal.example/secret?token=ABC' }],
-            googleCalendarId: '', googleCalendarIds: [],
+            googleCalendarIds: [],
           } as never,
         } as never,
       ],
@@ -47,7 +47,7 @@ describe('redactConfig', () => {
           style: {} as never,
           config: {
             icalSources: [{ id: 'x', type: 'ical', name: 'work', url: 'https://cal.example/private?token=ABC' }],
-            googleCalendarId: '', googleCalendarIds: [],
+            googleCalendarIds: [],
           } as never,
         } as never,
       ],

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   FULLSCREEN_THEMES,
   getThemeTokens,
-  migrateFromDarkMode,
   buildThemeCSSVars,
   getTypoMultiplier,
   getDensityMultiplier,
@@ -103,23 +102,6 @@ describe('getThemeTokens', () => {
     for (const field of expectedFields) {
       expect(tokens).toHaveProperty(field);
     }
-  });
-});
-
-// ---------------------------------------------------------------------------
-// migrateFromDarkMode
-// ---------------------------------------------------------------------------
-describe('migrateFromDarkMode', () => {
-  it('maps true to charcoal', () => {
-    expect(migrateFromDarkMode(true)).toBe('charcoal');
-  });
-
-  it('maps false to linen', () => {
-    expect(migrateFromDarkMode(false)).toBe('linen');
-  });
-
-  it('maps undefined to linen', () => {
-    expect(migrateFromDarkMode(undefined)).toBe('linen');
   });
 });
 

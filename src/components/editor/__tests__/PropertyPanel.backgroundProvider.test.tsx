@@ -88,8 +88,8 @@ function seedStores(manifest: PluginManifest, moduleOverrides: Partial<ModuleIns
       displayHeight: 1920,
       latitude: 0,
       longitude: 0,
-      weather: { provider: 'weatherapi', latitude: 0, longitude: 0, units: 'imperial' },
-      calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+      weather: { provider: 'weatherapi', units: 'imperial' },
+      calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
     },
     screens: [{ id: 'screen-1', name: 'Screen 1', backgroundImage: '', modules: [moduleInstance] }],
   } as unknown as ScreenConfiguration;

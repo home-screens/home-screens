@@ -14,11 +14,11 @@ import type { ClockViewProps } from './types';
  * Split clock — time on the left, date and info on the right,
  * separated by a hairline vertical divider.
  */
-export default function ClockSplitView({ config, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+export default function ClockSplitView({ config, format24h, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hStr, mStr, sStr, hours } = parseClockTime(config.format24h, time);
-  const ampm = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
+  const { hStr, mStr, sStr, hours } = parseClockTime(format24h, time);
+  const ampm = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`

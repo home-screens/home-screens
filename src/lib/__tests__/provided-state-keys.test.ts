@@ -151,7 +151,6 @@ describe('collectProvidedStateKeys host keys', () => {
 
   const t = (key: string) => `t:${key}`;
   const calendar = (over: Partial<CalendarSettings> = {}): CalendarSettings => ({
-    googleCalendarId: '',
     googleCalendarIds: [],
     icalSources: [],
     daysAhead: 30,
@@ -179,7 +178,7 @@ describe('collectProvidedStateKeys host keys', () => {
 
   it('recognizes every source type, not just Google', () => {
     const feeds: Partial<CalendarSettings>[] = [
-      { googleCalendarId: 'legacy@example.com' },
+      { googleCalendarIds: ['family@example.com'] },
       { icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://x/y.ics', color: '#fff', enabled: true }] },
       { icloudSources: [{ id: 'c1', accountId: 'a1', kind: 'birthdays', url: '', name: 'Birthdays', color: '#fff', enabled: true }] },
       { holidayCountry: 'US' },
@@ -238,17 +237,6 @@ describe('collectProvidedStateKeys host keys', () => {
 
   it('withholds the warning keys without a location even on a warning provider', () => {
     expect(hostKeys([], { t, settings: settings({ weather: weather('noaa') }) })).toEqual(NOTES_KEYS);
-  });
-
-  it('reads the legacy weather location when the top-level fields are absent', () => {
-    const keys = collectProvidedStateKeys([], {
-      t,
-      settings: {
-        calendar: calendar(),
-        weather: { provider: 'open-meteo', latitude: 44.7, longitude: -93.4, units: 'metric' },
-      } as GlobalSettings,
-    });
-    expect(keys.map((k) => k.key)).toEqual([...CHANCE_KEYS, ...NOTES_KEYS]);
   });
 
   it('lists calendar keys, then weather keys, then the notes board, when both are configured', () => {

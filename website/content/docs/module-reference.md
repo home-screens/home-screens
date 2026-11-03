@@ -25,7 +25,7 @@ These modules are designed to fill the entire display as ambient, always-on scre
 
 The six newer themes (`sandstone`, `vellum`, `bloom`, `aurora`, `obsidian`, `horizon`) additionally carry their own accent color and, on the Full-Screen Calendar only, an event style deciding how event blocks are painted: a faint tint (`linen` and the other original themes), a translucent card, a solid color fill, or a plain surface with a colored edge. All but `vellum` also paint a static gradient behind the module. On the calendar, chore chart, meal planner, and news, setting `accentColor` overrides the theme's own accent and leaving it empty follows the theme. On Full-Screen Weather an empty `accentColor` follows the weather (amber for clear, blue for rain, violet for storms), the Forecast and Conditions views draw no accent, and the theme only shows when `skyLayer` is `still` or `off`, since the living sky paints its own colors. The photo viewer has no accent.
 
-The older `darkMode` boolean on Full-Screen Calendar and Full-Screen Chore Chart has been superseded by `theme` and is no longer shown in the editor. It still works as a fallback so older configurations keep rendering: `darkMode: true` maps to `charcoal` and `false` maps to `linen`. It is ignored entirely whenever `theme` is set.
+With neither `theme` nor the display default set, the Full-Screen Chore Chart paints Charcoal and the Full-Screen Calendar Linen. The older `darkMode` boolean those two carried was retired in schema 17: a module whose boolean picked the other palette, and that was not already following a display default, had that palette written into `theme`.
 {% /category %}
 
 {% module type="fullscreen-calendar" %}

@@ -203,8 +203,8 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       showPaginationDots: s.showPaginationDots ?? FORM_DEFAULTS.display.showPaginationDots,
     },
     location: {
-      lat: (s.latitude ?? s.weather.latitude)?.toString() ?? '',
-      lon: (s.longitude ?? s.weather.longitude)?.toString() ?? '',
+      lat: s.latitude?.toString() ?? '',
+      lon: s.longitude?.toString() ?? '',
       locationName: s.locationName ?? null,
       timezone: s.timezone ?? '',
     },
@@ -214,7 +214,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       radarServerUrl: s.weather.radarServerUrl ?? '',
     },
     calendar: {
-      selectedCalendarIds: s.calendar.googleCalendarIds ?? (s.calendar.googleCalendarId ? [s.calendar.googleCalendarId] : []),
+      selectedCalendarIds: s.calendar.googleCalendarIds ?? [],
       icalSources: s.calendar.icalSources ?? [],
       icloudSources: s.calendar.icloudSources ?? [],
       personSources: s.calendar.personSources ?? {},
@@ -260,15 +260,12 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
     timezone: location.timezone || undefined,
     weather: {
       provider: weather.provider as GlobalSettings['weather']['provider'],
-      latitude: parsedLat,
-      longitude: parsedLon,
       units: weather.units as 'metric' | 'imperial',
       // Omitted while blank so a household on the public server keeps the
       // exact settings shape it had before the field existed.
       ...(weather.radarServerUrl.trim() ? { radarServerUrl: weather.radarServerUrl.trim() } : {}),
     },
     calendar: {
-      googleCalendarId: calendar.selectedCalendarIds[0] ?? '',
       googleCalendarIds: calendar.selectedCalendarIds,
       icalSources: calendar.icalSources,
       icloudSources: calendar.icloudSources,

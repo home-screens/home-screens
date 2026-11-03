@@ -189,7 +189,7 @@ The `WeatherProvider` interface defines four methods: `getHourly`, `getForecast`
 
 The factory function `createWeatherProvider(provider, apiKey)` instantiates the correct one. The key-less providers cover most use cases: Open-Meteo is the global default; NOAA, Yr.no, SMHI, and Environment Canada provide higher-accuracy regional forecasts within their coverage areas. The key-required providers (Met Office, OpenWeatherMap, WeatherAPI, and Pirate Weather) round out the options when a user wants a specific data source. Pirate Weather is the only one that provides minutely precipitation data.
 
-A fresh install does not ship coordinates: `settings.weather.latitude` and `longitude` seed to `0`, so the weather module returns nothing useful until a location is set in the editor's weather settings. The default provider needs no key, but it does need a location.
+A fresh install does not ship coordinates: `settings.latitude` and `longitude` seed to `0`, so the weather module returns nothing useful until a location is set in the editor's location settings. The default provider needs no key, but it does need a location.
 
 ### API Routes
 

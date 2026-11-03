@@ -394,17 +394,15 @@ describe('hasCalendarFeedSources', () => {
 });
 
 describe('googleCalendarIdList', () => {
-  it('prefers the multi-calendar list and falls back to the legacy single field', () => {
-    expect(googleCalendarIdList({ googleCalendarIds: ['a', 'b'], googleCalendarId: 'legacy' })).toEqual(['a', 'b']);
-    expect(googleCalendarIdList({ googleCalendarIds: [], googleCalendarId: 'legacy' })).toEqual(['legacy']);
-    expect(googleCalendarIdList({ googleCalendarIds: [], googleCalendarId: '' })).toEqual([]);
+  it('reads the list, and nothing for a hand-edited settings object without one', () => {
+    expect(googleCalendarIdList({ googleCalendarIds: ['a', 'b'] })).toEqual(['a', 'b']);
+    expect(googleCalendarIdList({ googleCalendarIds: [] })).toEqual([]);
     expect(googleCalendarIdList({})).toEqual([]);
   });
 });
 
 describe('hasAnyCalendarSource', () => {
   const base: CalendarSettings = {
-    googleCalendarId: '',
     googleCalendarIds: [],
     icalSources: [],
     daysAhead: 30,
@@ -414,7 +412,6 @@ describe('hasAnyCalendarSource', () => {
     const cases: Partial<CalendarSettings>[] = [
       {},
       { googleCalendarIds: ['family@example.com'] },
-      { googleCalendarId: 'legacy@example.com' },
       { holidayCountry: 'US' },
       { icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://example.com/a.ics', color: '#000', enabled: true }] },
       { icalSources: [{ id: 'i1', type: 'ical', name: 'School', url: 'https://example.com/a.ics', color: '#000', enabled: false }] },

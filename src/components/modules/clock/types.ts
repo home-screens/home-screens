@@ -4,6 +4,8 @@ import type { RefCallback } from 'react';
 
 export interface ClockViewProps {
   config: ClockConfig;
+  /** Whether to draw 24-hour time, resolved by the module (`resolveClockFormat24h`). */
+  format24h: boolean;
   /** The real instant the clock is showing. */
   instant: Date;
   /**

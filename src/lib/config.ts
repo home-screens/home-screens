@@ -35,12 +35,9 @@ export const DEFAULT_CONFIG: ScreenConfiguration = {
       // soon as the user sets their location. Every keyed provider would
       // show an error until a key is entered.
       provider: 'open-meteo',
-      latitude: 0,
-      longitude: 0,
       units: 'imperial',
     },
     calendar: {
-      googleCalendarId: '',
       googleCalendarIds: [],
       icalSources: [],
       daysAhead: 7,

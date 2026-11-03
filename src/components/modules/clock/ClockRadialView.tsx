@@ -76,10 +76,10 @@ function Arc({ radius, strokeWidth, progress, color, trackColor, size }: ArcProp
   );
 }
 
-export default function ClockRadialView({ config, time, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockRadialView({ config, format24h, time, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
-  const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(format24h, time);
+  const period = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const hoursProgress = (hours % 12) / 12;
   const minutesProgress = minutes / 60;

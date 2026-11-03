@@ -112,8 +112,8 @@ function Colon({ size, color }: { size: number; color: string }) {
   );
 }
 
-export default function ClockDigitalView({ config, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
-  const { h, mStr, sStr } = parseClockTime(config.format24h, time);
+export default function ClockDigitalView({ config, format24h, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
+  const { h, mStr, sStr } = parseClockTime(format24h, time);
   // Seven-segment display always needs 2-digit hours
   const hStr = String(h).padStart(2, '0');
 

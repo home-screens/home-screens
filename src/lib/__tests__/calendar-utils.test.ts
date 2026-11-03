@@ -828,14 +828,12 @@ describe('boundaryBetween', () => {
 });
 
 describe('resolveWeatherPlacement', () => {
-  it('prefers the explicit placement over the legacy boolean', () => {
-    expect(resolveWeatherPlacement({ weatherPlacement: 'days', showWeather: false })).toBe('days');
-    expect(resolveWeatherPlacement({ weatherPlacement: 'off', showWeather: true })).toBe('off');
+  it('reads the stored placement', () => {
+    expect(resolveWeatherPlacement({ weatherPlacement: 'days' })).toBe('days');
+    expect(resolveWeatherPlacement({ weatherPlacement: 'off' })).toBe('off');
   });
 
-  it('maps the legacy boolean when no placement is saved', () => {
-    expect(resolveWeatherPlacement({ showWeather: false })).toBe('off');
-    expect(resolveWeatherPlacement({ showWeather: true })).toBe('header');
+  it('reads the header pill, the registry default, for a hand-edited calendar without one', () => {
     expect(resolveWeatherPlacement({})).toBe('header');
   });
 });
@@ -875,11 +873,6 @@ describe('effectiveWeatherPlacement', () => {
 
   it('narrows days-and-events to the part the view supports', () => {
     expect(effectiveWeatherPlacement('schedule', { weatherPlacement: 'days-and-events' })).toBe('days');
-  });
-
-  it('applies the legacy showWeather fallback before degrading', () => {
-    expect(effectiveWeatherPlacement('month-grid', { showWeather: false })).toBe('off');
-    expect(effectiveWeatherPlacement('month-grid', { showWeather: true })).toBe('header');
   });
 });
 

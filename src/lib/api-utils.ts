@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { SetupNeed, SetupErrorBody, SetupPage } from '@/lib/fetch-error';
 import { readConfig } from '@/lib/config';
+import { getLocation } from '@/lib/location';
 import { requireSession, requireDisplayAuth, getMediaTokenSecret } from '@/lib/auth';
 import { verifyMediaToken } from '@/lib/media-token';
 import { getSecret, type SecretKey } from '@/lib/secrets';
@@ -257,13 +258,18 @@ function delay(ms: number, signal?: AbortSignal | null): Promise<void> {
 }
 
 /**
- * Reads lat/lon from config (with weather settings fallback),
- * allowing override from searchParams. Returns null if missing.
+ * The location a route fetches for, as the strings its upstream URL takes:
+ * a `?lat=&lon=` override when the request carries both, else the household
+ * location (`getLocation`). Null when neither is set, which the routes answer
+ * with their location-required error rather than fetching for (0, 0).
  */
 export async function getLocationFromConfig(
   searchParams?: URLSearchParams,
   existingConfig?: Awaited<ReturnType<typeof readConfig>>,
 ): Promise<{ lat: string; lon: string } | null> {
+  const lat = searchParams?.get('lat');
+  const lon = searchParams?.get('lon');
+  if (lat && lon) return { lat, lon };
   let config = existingConfig;
   if (!config) {
     try {
@@ -272,14 +278,8 @@ export async function getLocationFromConfig(
       // config not available
     }
   }
-  const s = config?.settings;
-  const ws = s?.weather;
-  const lat =
-    searchParams?.get('lat') ?? s?.latitude?.toString() ?? ws?.latitude?.toString();
-  const lon =
-    searchParams?.get('lon') ?? s?.longitude?.toString() ?? ws?.longitude?.toString();
-  if (!lat || !lon) return null;
-  return { lat, lon };
+  const location = getLocation(config?.settings);
+  return location ? { lat: String(location.lat), lon: String(location.lon) } : null;
 }
 
 /**

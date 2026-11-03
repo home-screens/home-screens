@@ -141,8 +141,8 @@ const MOCK_CONFIG = {
   version: 1,
   settings: {
     rotationIntervalMs: 30000,
-    weather: { provider: 'weatherapi' as const, apiKey: '', latitude: 0, longitude: 0, units: 'imperial' as const },
-    calendar: { googleCalendarId: '', googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
+    weather: { provider: 'weatherapi' as const, apiKey: '', units: 'imperial' as const },
+    calendar: { googleCalendarIds: [], icalSources: [], maxEvents: 10, daysAhead: 7 },
   },
   screens: [{ id: 'default', name: 'Home', backgroundImage: '', modules: [] }],
 };

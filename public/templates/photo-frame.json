@@ -5,7 +5,7 @@
     "name": "Photo Frame",
     "description": "A full-screen digital photo frame with slideshow transitions",
     "exportedAt": "2026-01-01T00:00:00.000Z",
-    "configVersion": 10,
+    "configVersion": 17,
     "sourceDisplay": { "width": 1080, "height": 1920 },
     "screenCount": 1,
     "moduleCount": 1
@@ -40,7 +40,7 @@
             "padding": 0,
             "backgroundColor": "transparent",
             "textColor": "#ffffff",
-            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontFamily": "inter",
             "fontSize": 16,
             "backdropBlur": 0
           }

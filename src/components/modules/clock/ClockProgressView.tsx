@@ -11,11 +11,11 @@ import type { ClockViewProps } from './types';
  * Progress clock — SVG ring showing how far through the day we are,
  * with time and percentage centered inside the ring.
  */
-export default function ClockProgressView({ config, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
+export default function ClockProgressView({ config, format24h, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
-  const period = config.format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
+  const { hours, minutes, seconds, hStr, mStr, sStr } = parseClockTime(format24h, time);
+  const period = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`

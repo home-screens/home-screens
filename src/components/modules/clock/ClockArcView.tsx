@@ -9,7 +9,7 @@ import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
-export default function ClockArcView({ config, now, time, scaledFontSize, containerRef }: ClockViewProps) {
+export default function ClockArcView({ config, format24h, now, time, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const id = useId();
@@ -17,8 +17,8 @@ export default function ClockArcView({ config, now, time, scaledFontSize, contai
   const sunGlowId = `sun-glow-${id}`;
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const { hours, minutes, hStr, mStr, sStr } = parseClockTime(config.format24h, time);
-  const period = config.format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
+  const { hours, minutes, hStr, mStr, sStr } = parseClockTime(format24h, time);
+  const period = format24h ? '' : hours >= 12 ? ` ${t('clock.pm')}` : ` ${t('clock.am')}`;
 
   const totalMinutes = hours * 60 + minutes;
   const dayStart = 6 * 60;  // 6:00 AM

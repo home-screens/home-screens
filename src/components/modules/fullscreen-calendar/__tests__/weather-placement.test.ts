@@ -43,9 +43,4 @@ describe('effectiveWeatherPlacement', () => {
       expect(effectiveWeatherPlacement(view, { weatherPlacement: 'days-and-events' })).toBe('header');
     }
   });
-
-  it('honors the legacy showWeather boolean when no placement is stored', () => {
-    expect(effectiveWeatherPlacement('week-list', { showWeather: false })).toBe('off');
-    expect(effectiveWeatherPlacement('week-list', { showWeather: true })).toBe('header');
-  });
 });

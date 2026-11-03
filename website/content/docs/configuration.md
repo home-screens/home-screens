@@ -418,7 +418,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
 
 ```json
 {
-  "version": 16,
+  "version": 17,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,
@@ -428,12 +428,9 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
     "timezone": "America/Denver",
     "weather": {
       "provider": "pirateweather",
-      "latitude": 40.0150,
-      "longitude": -105.2705,
       "units": "imperial"
     },
     "calendar": {
-      "googleCalendarId": "",
       "googleCalendarIds": ["primary"],
       "icalSources": [],
       "daysAhead": 7
@@ -453,7 +450,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
           "zIndex": 1,
           "config": {
             "view": "classic",
-            "format24h": false,
+            "hourFormat": "inherit",
             "showSeconds": true,
             "showDate": true
           },
