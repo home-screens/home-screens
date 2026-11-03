@@ -99,3 +99,25 @@ describe('chore-completion-data', () => {
     expect(result.completions.map((c) => c.choreId)).toEqual(['restored', 'dishes']);
   });
 });
+
+describe('validateCompletionsData', () => {
+  it('accepts the lists the toggle route writes', async () => {
+    const { validateCompletionsData } = await import('../chore-completion-data');
+    expect(validateCompletionsData({ completions: [completion('dishes')] })).toBeNull();
+    expect(validateCompletionsData({
+      completions: [{ ...completion('dishes'), status: 'skipped', at: '2026-07-06T08:00:00.000Z' }],
+      grabs: [completion('bins')],
+      bonusResets: { bins: '2026-07-01T08:00:00.000Z' },
+    })).toBeNull();
+  });
+
+  it.each([
+    ['no completions list', { grabs: [] }, 'Chore history needs a list of what was done.'],
+    ['a completion without a day', { completions: [{ choreId: 'dishes', memberId: 'kid-1' }] }, 'Each chore in the history needs the chore, the person and the day.'],
+    ['a grab without a person', { completions: [], grabs: [{ choreId: 'bins', date: '2026-07-06' }] }, 'Each grabbed chore needs the chore, the person and the day.'],
+    ['a put-back without a time', { completions: [], bonusResets: { bins: 4 } }, 'Each put-back needs the chore and the time it was put back.'],
+  ])('refuses %s', async (_name, raw, message) => {
+    const { validateCompletionsData } = await import('../chore-completion-data');
+    expect(validateCompletionsData(raw)).toBe(message);
+  });
+});

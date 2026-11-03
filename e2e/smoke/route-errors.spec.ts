@@ -77,9 +77,9 @@ test.describe('data routes reject malformed bodies', () => {
       data: { chores: {} },
     });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toBe('chores must be an array');
+    expect((await res.json()).error).toBe('Chore data needs a list of chores.');
 
-    // Store is not corrupted — a follow-up read still works.
+    // Store is not corrupted: a follow-up read still works.
     const after = await request.get('/api/chores/data');
     expect(after.ok()).toBe(true);
   });
@@ -87,13 +87,13 @@ test.describe('data routes reject malformed bodies', () => {
   test('PUT /api/chores/data rejects a top-level array body with 400', async ({ request }) => {
     const res = await request.put('/api/chores/data', { data: [] });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toBe('chores must be an array');
+    expect((await res.json()).error).toBe('Chore data needs a list of chores.');
   });
 
   test('PUT /api/rewards/data rejects a non-array rewards field with 400', async ({ request }) => {
     const res = await request.put('/api/rewards/data', { data: { rewards: 'nope' } });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toBe('rewards must be an array');
+    expect((await res.json()).error).toBe('Rewards need a list of choices.');
 
     // A well-formed follow-up write still succeeds (route stays functional).
     const { revision } = await (await request.get('/api/rewards')).json() as { revision: string };
@@ -104,7 +104,7 @@ test.describe('data routes reject malformed bodies', () => {
   test('PUT /api/meals/data rejects a non-array savedMeals with 400', async ({ request }) => {
     const res = await request.put('/api/meals/data', { data: { savedMeals: 'nope' } });
     expect(res.status()).toBe(400);
-    expect((await res.json()).error).toBe('savedMeals must be an array');
+    expect((await res.json()).error).toBe('Meals need a list of saved meals.');
 
     const after = await request.get('/api/meals/data');
     expect(after.ok()).toBe(true);

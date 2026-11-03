@@ -1,5 +1,6 @@
 import { createJsonStore } from './json-store';
 import type { TransactionChange } from './data-transaction';
+import { isRecord } from './member-references/contract';
 import { canAffordReward, goalsWithout, type SavingsGoals } from '@/lib/reward-rules';
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -95,6 +96,44 @@ function purgeOldRedemptions(data: RewardData): RewardData {
  */
 function updateRewards(mutator: (current: RewardData) => RewardData): Promise<RewardData> {
   return store.updateAtomic((data) => mutator(purgeOldRedemptions(data)));
+}
+
+// ── Validation ───────────────────────────────────────────────────────
+
+/**
+ * Why a reward list cannot be written, or null when every reward is well
+ * formed. The reward save and a backup restore both ask this, so a restored
+ * list is one every later save would accept too.
+ */
+export function validateRewardList(rewards: unknown): string | null {
+  if (!Array.isArray(rewards)) return 'Rewards need a list of choices.';
+  for (const reward of rewards) {
+    if (!isRecord(reward) || typeof reward.id !== 'string' || !reward.id || typeof reward.name !== 'string') return 'Each reward needs an id and a name.';
+    if (!Array.isArray(reward.memberIds) || reward.memberIds.some((id) => typeof id !== 'string')) return 'Each reward needs a member list.';
+    if (typeof reward.cost !== 'number' || !Number.isFinite(reward.cost) || reward.cost < 0) return 'A reward must cost 0 or more tickets.';
+  }
+  return null;
+}
+
+/** Why a whole rewards file cannot be written, or null. Only a backup restore writes the file whole. */
+export function validateRewardData(raw: unknown): string | null {
+  if (!isRecord(raw)) return 'Rewards need choices, balances and history.';
+  const list = validateRewardList(raw.rewards);
+  if (list) return list;
+  if (!isRecord(raw.balances) || Object.values(raw.balances).some((balance) => typeof balance !== 'number' || !Number.isFinite(balance))) {
+    return 'Each ticket balance must be a number.';
+  }
+  if (!Array.isArray(raw.redemptions) || raw.redemptions.some((redemption) => !isRecord(redemption) || typeof redemption.redeemedAt !== 'string')) {
+    return 'Each reward in the history needs the time it was redeemed.';
+  }
+  if (raw.goals !== undefined && (!isRecord(raw.goals) || Object.values(raw.goals).some((rewardId) => typeof rewardId !== 'string'))) {
+    return 'Each savings goal must name a reward.';
+  }
+  if (raw.adjustments !== undefined && (!Array.isArray(raw.adjustments) || raw.adjustments.some((adjustment) => !isRecord(adjustment)
+    || typeof adjustment.memberId !== 'string' || typeof adjustment.delta !== 'number' || !Number.isFinite(adjustment.delta) || typeof adjustment.at !== 'string'))) {
+    return 'Each hand-given ticket change needs the person, the amount and the time.';
+  }
+  return null;
 }
 
 // ── Public API ───────────────────────────────────────────────────────

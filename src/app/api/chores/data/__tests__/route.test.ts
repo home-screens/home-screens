@@ -7,10 +7,13 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock('@/lib/chore-data', async () => {
+vi.mock('@/lib/chore-data', async (importActual) => {
   const { contentRevision } = await import('@/lib/content-revision');
+  // The shape rule runs for real: it is what the route is being tested on.
+  const { validateChoreList } = await importActual<typeof import('@/lib/chore-data')>();
   const readChoreData = vi.fn();
   return {
+    validateChoreList,
     readChoreData,
     writeChoreList: vi.fn(),
     readChoreSnapshot: vi.fn(async () => {
@@ -206,6 +209,7 @@ describe('PUT /api/chores/data', () => {
   it('refuses a chore worth fewer than 0 tickets', async () => {
     const res = await PUT(await makeCurrentPutRequest({ chores: [{ ...populatedData.chores[0], points: -5 }] }));
     expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('Tickets for a chore must be 0 or more.');
     expect(writeChoreList).not.toHaveBeenCalled();
   });
 

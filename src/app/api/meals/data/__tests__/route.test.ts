@@ -244,7 +244,7 @@ describe('PUT /api/meals/data', () => {
 
     expect(res.status).toBe(400);
     const json = await res.json();
-    expect(json.error).toContain('savedMeals');
+    expect(json.error).toBe('Meals need a list of saved meals.');
   });
 
   it('returns 400 when plan is present but not an array', async () => {
@@ -252,7 +252,7 @@ describe('PUT /api/meals/data', () => {
 
     expect(res.status).toBe(400);
     const json = await res.json();
-    expect(json.error).toContain('plan');
+    expect(json.error).toBe('Meals need a plan.');
   });
 
   it('returns 400 when groceryChecked is present but not a map of weeks', async () => {
@@ -372,7 +372,7 @@ describe('PUT /api/meals/data', () => {
     it('preserves existing groceryChecked when not provided', async () => {
       vi.mocked(readMealData).mockResolvedValue(populatedData as never);
 
-      const res = await PUT(await makePutRequest({ savedMeals: [{ id: 'm2' }], plan: populatedData.plan }));
+      const res = await PUT(await makePutRequest({ savedMeals: [{ id: 'm2', name: 'Pasta' }], plan: populatedData.plan }));
       const json = await res.json();
 
       expect(res.status).toBe(200);
@@ -391,7 +391,7 @@ describe('PUT /api/meals/data', () => {
     it('uses provided groceryChecked when given', async () => {
       const newChecked = { '2026-04-05': ['flour', 'sugar'] };
       const res = await PUT(await makePutRequest({
-        savedMeals: [{ id: 'm2' }],
+        savedMeals: [{ id: 'm2', name: 'Pasta' }],
         plan: [{ date: '2026-04-07', slot: 'dinner', mealId: 'm2' }],
         groceryChecked: newChecked,
       }));
@@ -426,7 +426,7 @@ describe('PUT /api/meals/data', () => {
     it('falls back gracefully when readMealData fails during field preservation', async () => {
       vi.mocked(readMealData).mockRejectedValue(new Error('disk error'));
 
-      const res = await PUT(await makePutRequest({ savedMeals: [{ id: 'm2' }], plan: [] }));
+      const res = await PUT(await makePutRequest({ savedMeals: [{ id: 'm2', name: 'Pasta' }], plan: [] }));
       const json = await res.json();
 
       expect(res.status).toBe(200);

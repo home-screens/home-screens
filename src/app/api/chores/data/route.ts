@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { readChoreData, readChoreSnapshot, writeChoreList } from '@/lib/chore-data';
+import { readChoreData, readChoreSnapshot, validateChoreList, writeChoreList } from '@/lib/chore-data';
 import { contentRevision } from '@/lib/content-revision';
-import { DEFAULT_CHORE_SETTINGS, isValidBonus, readChoreSettings, stampBonusSince } from '@/lib/chore-bonus';
+import { DEFAULT_CHORE_SETTINGS, readChoreSettings, stampBonusSince } from '@/lib/chore-bonus';
 import { householdTimestamp } from '@/lib/household-day';
 import type { ChoreDefinition } from '@/types/config';
-import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertRequiredArrays, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite, parseJsonBody } from '@/lib/api-utils';
 import { withFamilyData, validateGroupReferences, validateMemberReferences } from '@/lib/family-api';
 
 export const dynamic = 'force-dynamic';
@@ -26,35 +26,15 @@ export const PUT = withAuth(async (request: NextRequest) => {
   if (body && Object.hasOwn(body, 'members')) {
     return NextResponse.json({ error: 'Family has moved. Refresh this page before saving.', code: 'refresh_required' }, { status: 409 });
   }
-  const invalid = assertRequiredArrays(body, ['chores']);
-  if (invalid) return invalid;
+  // The same rule a backup restore holds chores.json to, so a list the save
+  // accepts is one a restore accepts and the other way round.
+  const invalid = validateChoreList(body?.chores);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
   const { chores, force, revision } = body;
   if (typeof revision !== 'string' || !revision) {
     return NextResponse.json({ error: 'Reload the page and try again.' }, { status: 400 });
   }
   return withFamilyData(async () => {
-    const stringList = (value: unknown) => Array.isArray(value) && value.every((id) => typeof id === 'string');
-    if (chores.some((chore) => !chore || !stringList(chore.assigneeIds)
-      || (chore.assigneeGroupIds !== undefined && !stringList(chore.assigneeGroupIds)))) {
-      return NextResponse.json({ error: 'Each chore needs a list of who it goes to.' }, { status: 400 });
-    }
-    // A group's row only counts through `assigneeGroupIds`: that list is what
-    // removing a group, the chore counts and the chore lists all read.
-    const dayRows = (value: unknown) => value === undefined || (typeof value === 'object' && value !== null && !Array.isArray(value)
-      && Object.values(value).every((days) => Array.isArray(days) && days.every((day) => Number.isInteger(day) && day >= 0 && day <= 6)));
-    // A bonus chore keeps its regular schedule untouched while it is a bonus
-    // chore (who can do it is picked apart from it), so the rows only have to
-    // match the named groups on a regular chore.
-    if (chores.some((chore) => !dayRows(chore.schedule) || !dayRows(chore.groupSchedule)
-      || (!chore.bonus && Object.keys(chore.groupSchedule ?? {}).some((id) => !chore.assigneeGroupIds?.includes(id))))) {
-      return NextResponse.json({ error: 'A chore schedule needs days for each person or group on it.' }, { status: 400 });
-    }
-    if (chores.some((chore) => chore.points !== undefined && (typeof chore.points !== 'number' || !Number.isFinite(chore.points) || chore.points < 0))) {
-      return NextResponse.json({ error: 'Tickets for a chore must be 0 or more.' }, { status: 400 });
-    }
-    if (chores.some((chore) => !isValidBonus(chore.bonus))) {
-      return NextResponse.json({ error: 'A bonus chore needs a kind and a time it comes back.' }, { status: 400 });
-    }
     // A list that cannot be read has nothing to compare against; the write is
     // what repairs it, and the empty guard below keeps its own reading.
     let current: ChoreDefinition[] | null = null;

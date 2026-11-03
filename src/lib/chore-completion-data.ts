@@ -1,5 +1,6 @@
 import type { ChoreCompletion, ChoreGrab } from '@/types/config';
 import { createJsonStore } from './json-store';
+import { isRecord } from './member-references/contract';
 
 export interface CompletionsData {
   /**
@@ -39,6 +40,26 @@ export const updateCompletionsAtomic = store.updateAtomic;
  * transaction as the reward points it moves. See `planUpdate` in json-store.
  */
 export const planCompletionsUpdate = store.planUpdate;
+
+/** A completion or a grab: the chore, the person and the day. */
+const isMark = (entry: unknown): boolean => isRecord(entry)
+  && typeof entry.choreId === 'string' && typeof entry.memberId === 'string' && typeof entry.date === 'string';
+
+/**
+ * Why a whole completions file cannot be written, or null. Only a backup
+ * restore writes the file whole; the toggle route edits one entry at a time.
+ */
+export function validateCompletionsData(raw: unknown): string | null {
+  if (!isRecord(raw) || !Array.isArray(raw.completions)) return 'Chore history needs a list of what was done.';
+  if (raw.completions.some((entry) => !isMark(entry))) return 'Each chore in the history needs the chore, the person and the day.';
+  if (raw.grabs !== undefined && (!Array.isArray(raw.grabs) || raw.grabs.some((entry) => !isMark(entry)))) {
+    return 'Each grabbed chore needs the chore, the person and the day.';
+  }
+  if (raw.bonusResets !== undefined && (!isRecord(raw.bonusResets) || Object.values(raw.bonusResets).some((at) => typeof at !== 'string'))) {
+    return 'Each put-back needs the chore and the time it was put back.';
+  }
+  return null;
+}
 
 /** The lists every chore surface reads, as every chore route answers them. */
 export function choreMarks(data: CompletionsData): Required<CompletionsData> {

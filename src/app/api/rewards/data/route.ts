@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, guardEmptyOverwrite, assertRequiredArrays, SMALL_BODY_BYTES } from '@/lib/api-utils';
+import { withAuth, guardEmptyOverwrite, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import {
   readRewardData,
   updateRewardDefinitions,
   adjustPoints,
+  validateRewardList,
 } from '@/lib/reward-data';
 import { withFamilyWrite, validateMemberReferences } from '@/lib/family-api';
 import { contentRevision } from '@/lib/content-revision';
@@ -24,15 +25,14 @@ const REWARD_LIST_BYTES = 256 * 1024;
 export const PUT = withAuth(async (request: NextRequest) => withFamilyWrite<{ rewards: RewardDefinition[]; force?: boolean; revision?: unknown }, Response>(request, { maxBytes: REWARD_LIST_BYTES }, async (body) => {
   const { rewards, force, revision } = body;
 
-  const invalid = assertRequiredArrays(body, ['rewards']);
-  if (invalid) return invalid;
+  // The same rule a backup restore holds rewards.json to, so a list the save
+  // accepts is one a restore accepts and the other way round.
+  const invalid = validateRewardList(rewards);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
   if (typeof revision !== 'string' || !revision) {
     return NextResponse.json({ error: 'Reload the page and try again.' }, { status: 400 });
   }
 
-  if (rewards.some((reward) => !reward || !Array.isArray(reward.memberIds))) {
-    return NextResponse.json({ error: 'Each reward needs a member list.' }, { status: 400 });
-  }
   // A list that cannot be read has nothing to compare against; the write is
   // what repairs it, and the empty guard below keeps its own reading.
   let current: RewardDefinition[] | null = null;

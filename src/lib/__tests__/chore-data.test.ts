@@ -123,3 +123,39 @@ describe('writeChoreData', () => {
     expect(written.chores[0].name).toBe('Second');
   });
 });
+
+describe('validateChoreList', () => {
+  // Pure: the rule the chore save and a backup restore share, so a static
+  // import is fine beside the per-test module reset above.
+  const validate = async (chores: unknown) => (await import('../chore-data')).validateChoreList(chores);
+  const base = { ...chore('c1', 'Dishes'), assigneeIds: ['a'] };
+
+  it('accepts a well formed list, a bonus chore and a schedule naming its groups', async () => {
+    expect(await validate([
+      base,
+      { ...base, id: 'c2', bonus: { claim: 'first', comesBack: 'daily' }, groupSchedule: { kids: [1] } },
+      { ...base, id: 'c3', assigneeGroupIds: ['kids'], rotation: 'schedule', schedule: { a: [0, 6] }, groupSchedule: { kids: [1, 3] } },
+    ])).toBeNull();
+  });
+
+  it.each([
+    ['not a list', 'nope', 'Chore data needs a list of chores.'],
+    ['an entry without an id', { ...base, id: '' }, 'Each chore needs an id.'],
+    ['assignees that are not ids', { ...base, assigneeIds: 'a' }, 'Each chore needs a list of who it goes to.'],
+    ['groups that are not ids', { ...base, assigneeGroupIds: 'kids' }, 'Each chore needs a list of who it goes to.'],
+    ['a schedule day outside the week', { ...base, schedule: { a: [7] } }, 'A chore schedule needs days for each person or group on it.'],
+    ['a regular chore scheduling a group it does not go to', { ...base, groupSchedule: { kids: [1] } }, 'A chore schedule needs days for each person or group on it.'],
+    ['negative tickets', { ...base, points: -1 }, 'Tickets for a chore must be 0 or more.'],
+    ['tickets that are not a number', { ...base, points: '3' }, 'Tickets for a chore must be 0 or more.'],
+    ['a bonus without a kind', { ...base, bonus: { comesBack: 'daily' } }, 'A bonus chore needs a kind and a time it comes back.'],
+  ])('refuses %s', async (_name, entry, message) => {
+    expect(await validate(typeof entry === 'string' ? entry : [entry])).toBe(message);
+  });
+
+  it('checks the whole file through validateChoreData', async () => {
+    const { validateChoreData } = await import('../chore-data');
+    expect(validateChoreData({ chores: [base], settings: { grabLimit: 2 } })).toBeNull();
+    expect(validateChoreData([base])).toBe('Chore data needs a list of chores.');
+    expect(validateChoreData({ chores: [{ ...base, points: -2 }] })).toBe('Tickets for a chore must be 0 or more.');
+  });
+});

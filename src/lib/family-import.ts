@@ -1,40 +1,38 @@
 import { randomUUID } from 'node:crypto';
-import type { ScreenConfiguration, ChoreDefinition } from '@/types/config';
+import type { ScreenConfiguration } from '@/types/config';
 import type { FamilyData } from '@/types/family';
 import type { TodoData } from '@/types/todos';
-import type { NotesData } from '@/types/notes';
-import type { DayNotesData } from '@/types/day-notes';
-import type { TimetableData } from '@/types/timetables';
-import { planFamilyMerge, type LegacyFamilyMember } from './family-merge';
+import { planFamilyMerge, type FamilyMergeResult } from './family-merge';
 import { readConfig } from './config';
+import { CONFIG_FILE_PATH, FAMILY_FILE_PATH } from './constants';
+import { CHORES_FILE } from './chore-data';
 import { foldConfigTodos, validateTodoData } from './todo-data';
 import { migrateUp } from './migrations';
 import { planConfigMigrationBackup } from './config-migration-backup';
 import { FamilyError } from './family-errors';
 import { commitDataTransaction, readTransactionFile, type TransactionChange } from './data-transaction';
 import { MEMBER_REFERENCE_DOMAINS } from './member-references';
+import { BACKUP_SECTIONS, type BackupContent } from './backup-sections';
 
-export interface FamilyRestoreContent {
-  config?: ScreenConfiguration;
-  family?: FamilyData;
-  chores?: { chores: ChoreDefinition[]; members?: LegacyFamilyMember[] };
-  choreCompletions?: unknown;
-  meals?: unknown;
-  rewards?: unknown;
-  routines?: unknown;
-  todos?: TodoData;
-  notes?: NotesData;
-  dayNotes?: DayNotesData;
-  timetables?: TimetableData;
-}
+type RestoredChores = NonNullable<BackupContent['chores']>;
+
+/**
+ * The sections the planner folds rather than writes as sent: the family is
+ * merged with a legacy roster and legacy calendar people, the config is
+ * migrated and given the merged calendar mappings, and the chores lose the
+ * roster they carried before family.json existed.
+ */
+const FOLDED_SECTIONS = new Set<string>(['config', 'family', 'chores']);
+const WHOLE_FILE_SECTIONS = BACKUP_SECTIONS.filter((section) => !FOLDED_SECTIONS.has(section.key));
+
 const json = (value: unknown) => JSON.stringify(value, null, 2);
 const hasLegacy = (config: ScreenConfiguration) => config.screens?.some((screen) => screen.modules?.some((mod) => mod.type === 'todo' && Array.isArray((mod.config as { items?: unknown }).items)))
   || config.displays?.some((display) => display.screens?.some((screen) => screen.modules?.some((mod) => mod.type === 'todo' && Array.isArray((mod.config as { items?: unknown }).items))));
 
 /** Build every content image before touching disk. Caller holds the coordinator. */
-export async function planFamilyRestore(body: FamilyRestoreContent): Promise<{ changes: TransactionChange[]; config: ScreenConfiguration; evidence?: { path: string; contents: string } }> {
+export async function planFamilyRestore(body: BackupContent): Promise<{ changes: TransactionChange[]; config: ScreenConfiguration; evidence?: { path: string; contents: string } }> {
   const [familyBefore, configBefore, choresBefore] = await Promise.all([
-    readTransactionFile('data/family.json'), readTransactionFile('data/config.json'), readTransactionFile('data/chores.json'),
+    readTransactionFile(FAMILY_FILE_PATH), readTransactionFile(CONFIG_FILE_PATH), readTransactionFile(CHORES_FILE),
   ]);
   // A supplied modern section replaces its file even if that old file is
   // corrupt. Never read/migrate a replaced input before planning the restore.
@@ -45,40 +43,9 @@ export async function planFamilyRestore(body: FamilyRestoreContent): Promise<{ c
   const sourceConfigRaw = body.config ? sourceConfig : configBefore;
   if (!isRecord(config.settings) || !Array.isArray(config.screens)) throw new Error('The restored configuration needs settings and screens.');
   if (config.settings.calendar !== undefined && !isRecord(config.settings.calendar)) throw new Error('The restored calendar settings are invalid.');
-  const chores = body.chores ?? parseSavedObject(choresBefore, { chores: [] }, 'chores.json') as unknown as NonNullable<FamilyRestoreContent['chores']>;
+  const chores = body.chores ?? parseSavedObject(choresBefore, { chores: [] }, 'chores.json') as unknown as RestoredChores;
   if (!Array.isArray(chores.chores)) throw new Error('The restored chore data needs a chores array.');
-  let personSources = config.settings.calendar?.personSources;
-  let replacedConfigWarning: string | undefined;
-  // A legacy config has only people[].sourceIds. Fold that old ownership
-  // into the live mappings rather than erasing calendars assigned since it
-  // was backed up. A modern full-family backup retains replacement semantics.
-  if (body.config && body.family === undefined && config.settings.calendar?.people !== undefined && configBefore !== null) {
-    let oldSources: Record<string, string[]> | undefined;
-    try {
-      const previous = parseSavedObject(configBefore, {}, 'config.json');
-      if (!isRecord(previous.settings)) throw new Error('The saved configuration needs settings.');
-      const oldCalendar = previous.settings.calendar;
-      if (oldCalendar !== undefined && !isRecord(oldCalendar)) throw new Error('The saved calendar settings are invalid.');
-      const savedSources = isRecord(oldCalendar) ? oldCalendar.personSources : undefined;
-      if (savedSources !== undefined) {
-        // Validate the old mapping separately: a valid incoming configuration
-        // can repair a broken file without adopting its unrecoverable ownership.
-        planFamilyMerge({ existingFamily: family, choreMembers: chores.members, calendarPeople: config.settings.calendar?.people, personSources: savedSources as Record<string, string[]>, now: new Date() });
-        oldSources = savedSources as Record<string, string[]>;
-      }
-    } catch (error) {
-      replacedConfigWarning = error instanceof Error ? error.message : 'The old calendar ownership could not be recovered.';
-    }
-    if (oldSources) {
-      if (personSources !== undefined && !isRecord(personSources)) throw new Error('The restored calendar source mapping is invalid.');
-      const combined: Record<string, string[]> = {};
-      for (const mapping of [oldSources, personSources ?? {}]) for (const [id, sources] of Object.entries(mapping)) {
-        if (!Array.isArray(sources) || sources.some((source) => typeof source !== 'string')) throw new Error('The calendar source mapping is invalid.');
-        combined[id] = [...new Set([...(combined[id] ?? []), ...sources])];
-      }
-      personSources = combined;
-    }
-  }
+  const { personSources, replacedConfigWarning } = foldLegacyCalendarOwnership(body, config, configBefore, family, chores);
   const merged = planFamilyMerge({
     existingFamily: family,
     choreMembers: chores.members,
@@ -86,38 +53,9 @@ export async function planFamilyRestore(body: FamilyRestoreContent): Promise<{ c
     personSources,
     now: new Date(),
   });
-  let nextConfig = migrateUp(config).config;
-  if (nextConfig.settings.calendar) {
-    const { people: _people, ...calendar } = nextConfig.settings.calendar;
-    const needsMappings = calendar.personSources !== undefined || Object.keys(merged.personSources).length > 0;
-    nextConfig = { ...nextConfig, settings: { ...nextConfig.settings, calendar: {
-      ...calendar, ...(needsMappings ? { personSources: merged.personSources } : {}),
-    } } };
-  }
-  const files = new Map<string, unknown>();
-  files.set('data/family.json', merged.family);
-  if (body.config || config.settings.calendar?.people !== undefined || JSON.stringify(config.settings.calendar?.personSources ?? {}) !== JSON.stringify(merged.personSources)) files.set('data/config.json', nextConfig);
-  if (body.chores || Object.hasOwn(chores, 'members')) {
-    const { members: _members, ...definitions } = chores;
-    files.set('data/chores.json', definitions);
-  }
-  for (const [key, path] of [
-    ['choreCompletions', 'data/chore-completions.json'], ['meals', 'data/meals.json'],
-    ['rewards', 'data/rewards.json'], ['routines', 'data/routines.json'], ['todos', 'data/todos.json'],
-    ['timetables', 'data/timetables.json'], ['notes', 'data/notes.json'], ['dayNotes', 'data/day-notes.json'],
-  ] as const) if (body[key] !== undefined) files.set(path, body[key]);
-  if (body.config && hasLegacy(body.config)) {
-    const beforeTodos = await readTransactionFile('data/todos.json');
-    const todos: TodoData = body.todos ?? (beforeTodos === null ? { lists: [] } : JSON.parse(beforeTodos));
-    const invalid = validateTodoData(todos);
-    if (invalid) throw new Error(invalid);
-    const folded = foldConfigTodos(nextConfig, todos.lists);
-    nextConfig = folded.config;
-    files.set('data/config.json', nextConfig);
-    files.set('data/todos.json', { ...todos, lists: [...todos.lists, ...folded.created], migratedFromConfig: true });
-  }
+  const { files, config: nextConfig } = await planRestoredFiles(body, config, chores, merged);
   const configTransformed = sourceConfig !== json(nextConfig);
-  if (configTransformed) files.set('data/config.json', nextConfig);
+  if (configTransformed) files.set(CONFIG_FILE_PATH, nextConfig);
   const referenceEvidence = await validateRestoredReferences(files, new Set(merged.family.members.map((member) => member.id)), new Set((merged.family.groups ?? []).map((group) => group.id)));
   const changes: TransactionChange[] = configTransformed && sourceConfigRaw !== null ? [planConfigMigrationBackup(sourceConfigRaw)] : [];
   for (const [path, value] of files) {
@@ -135,6 +73,94 @@ export async function planFamilyRestore(body: FamilyRestoreContent): Promise<{ c
     }),
   } : undefined;
   return { changes, config: nextConfig, evidence };
+}
+
+/**
+ * The calendar ownership the merge starts from. A legacy config has only
+ * people[].sourceIds, so when one replaces the config on its own, the old
+ * file's mappings are folded into the live ones rather than erasing calendars
+ * assigned since it was backed up. A modern full-family backup retains
+ * replacement semantics. An old file that cannot be read keeps nothing and
+ * says why, so the restore can still repair it.
+ */
+function foldLegacyCalendarOwnership(
+  body: BackupContent,
+  config: ScreenConfiguration,
+  configBefore: string | null,
+  family: FamilyData,
+  chores: RestoredChores,
+): { personSources: Record<string, string[]> | undefined; replacedConfigWarning?: string } {
+  let personSources = config.settings.calendar?.personSources;
+  if (!body.config || body.family !== undefined || config.settings.calendar?.people === undefined || configBefore === null) return { personSources };
+  let replacedConfigWarning: string | undefined;
+  let oldSources: Record<string, string[]> | undefined;
+  try {
+    const previous = parseSavedObject(configBefore, {}, 'config.json');
+    if (!isRecord(previous.settings)) throw new Error('The saved configuration needs settings.');
+    const oldCalendar = previous.settings.calendar;
+    if (oldCalendar !== undefined && !isRecord(oldCalendar)) throw new Error('The saved calendar settings are invalid.');
+    const savedSources = isRecord(oldCalendar) ? oldCalendar.personSources : undefined;
+    if (savedSources !== undefined) {
+      // Validate the old mapping separately: a valid incoming configuration
+      // can repair a broken file without adopting its unrecoverable ownership.
+      planFamilyMerge({ existingFamily: family, choreMembers: chores.members, calendarPeople: config.settings.calendar?.people, personSources: savedSources as Record<string, string[]>, now: new Date() });
+      oldSources = savedSources as Record<string, string[]>;
+    }
+  } catch (error) {
+    replacedConfigWarning = error instanceof Error ? error.message : 'The old calendar ownership could not be recovered.';
+  }
+  if (oldSources) {
+    if (personSources !== undefined && !isRecord(personSources)) throw new Error('The restored calendar source mapping is invalid.');
+    const combined: Record<string, string[]> = {};
+    for (const mapping of [oldSources, personSources ?? {}]) for (const [id, sources] of Object.entries(mapping)) {
+      if (!Array.isArray(sources) || sources.some((source) => typeof source !== 'string')) throw new Error('The calendar source mapping is invalid.');
+      combined[id] = [...new Set([...(combined[id] ?? []), ...sources])];
+    }
+    personSources = combined;
+  }
+  return { personSources, replacedConfigWarning };
+}
+
+/**
+ * The after-image of every file the restore writes, keyed by path: the merged
+ * family, the migrated config carrying the merged calendar mappings, the
+ * chores without their legacy roster, each whole-file section the bundle
+ * carries, and the to-do lists a legacy config's inline items fold into.
+ * Nothing is read back or written here.
+ */
+async function planRestoredFiles(
+  body: BackupContent,
+  config: ScreenConfiguration,
+  chores: RestoredChores,
+  merged: FamilyMergeResult,
+): Promise<{ files: Map<string, unknown>; config: ScreenConfiguration }> {
+  let nextConfig = migrateUp(config).config;
+  if (nextConfig.settings.calendar) {
+    const { people: _people, ...calendar } = nextConfig.settings.calendar;
+    const needsMappings = calendar.personSources !== undefined || Object.keys(merged.personSources).length > 0;
+    nextConfig = { ...nextConfig, settings: { ...nextConfig.settings, calendar: {
+      ...calendar, ...(needsMappings ? { personSources: merged.personSources } : {}),
+    } } };
+  }
+  const files = new Map<string, unknown>();
+  files.set(FAMILY_FILE_PATH, merged.family);
+  if (body.config || config.settings.calendar?.people !== undefined || JSON.stringify(config.settings.calendar?.personSources ?? {}) !== JSON.stringify(merged.personSources)) files.set(CONFIG_FILE_PATH, nextConfig);
+  if (body.chores || Object.hasOwn(chores, 'members')) {
+    const { members: _members, ...definitions } = chores;
+    files.set(CHORES_FILE, definitions);
+  }
+  for (const section of WHOLE_FILE_SECTIONS) if (body[section.key] !== undefined) files.set(section.path, body[section.key]);
+  if (body.config && hasLegacy(body.config)) {
+    const beforeTodos = await readTransactionFile('data/todos.json');
+    const todos: TodoData = body.todos ?? (beforeTodos === null ? { lists: [] } : JSON.parse(beforeTodos));
+    const invalid = validateTodoData(todos);
+    if (invalid) throw new Error(invalid);
+    const folded = foldConfigTodos(nextConfig, todos.lists);
+    nextConfig = folded.config;
+    files.set(CONFIG_FILE_PATH, nextConfig);
+    files.set('data/todos.json', { ...todos, lists: [...todos.lists, ...folded.created], migratedFromConfig: true });
+  }
+  return { files, config: nextConfig };
 }
 
 /** Imported calendar people and inline lists publish with their destination data. */

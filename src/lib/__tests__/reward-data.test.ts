@@ -442,3 +442,33 @@ describe('redemption purge persistence', () => {
     expect(onDisk.redemptions.map((r) => r.id)).toEqual(['from-backup']);
   });
 });
+
+describe('validateRewardData', () => {
+  const file: RewardData = { rewards: [MOVIE_NIGHT, ICE_CREAM], balances: { a: 4 }, redemptions: [] };
+
+  it('accepts what the store writes, goals and hand adjustments included', async () => {
+    const { validateRewardData, validateRewardList } = await import('../reward-data');
+    expect(validateRewardData(file)).toBeNull();
+    expect(validateRewardData({
+      ...file,
+      goals: { a: MOVIE_NIGHT.id },
+      adjustments: [{ id: 'adj', memberId: 'a', delta: 2, at: '2026-01-01T00:00:00.000Z' }],
+      redemptions: [{ id: 'red', rewardId: ICE_CREAM.id, rewardName: 'Ice cream', memberId: 'a', memberName: 'Alex', cost: 5, redeemedAt: '2026-01-01T00:00:00.000Z' }],
+    })).toBeNull();
+    expect(validateRewardList([{ ...MOVIE_NIGHT, cost: 0 }])).toBeNull();
+  });
+
+  it.each([
+    ['a list instead of the file', [], 'Rewards need choices, balances and history.'],
+    ['a reward without a name', { ...file, rewards: [{ ...MOVIE_NIGHT, name: 3 }] }, 'Each reward needs an id and a name.'],
+    ['a reward whose members are not ids', { ...file, rewards: [{ ...MOVIE_NIGHT, memberIds: 'a' }] }, 'Each reward needs a member list.'],
+    ['a reward that costs less than nothing', { ...file, rewards: [{ ...MOVIE_NIGHT, cost: -1 }] }, 'A reward must cost 0 or more tickets.'],
+    ['a balance that is not a number', { ...file, balances: { a: '4' } }, 'Each ticket balance must be a number.'],
+    ['a redemption without a time', { ...file, redemptions: [{ id: 'red' }] }, 'Each reward in the history needs the time it was redeemed.'],
+    ['a goal that names nothing', { ...file, goals: { a: 1 } }, 'Each savings goal must name a reward.'],
+    ['an adjustment without an amount', { ...file, adjustments: [{ id: 'adj', memberId: 'a', at: 'now' }] }, 'Each hand-given ticket change needs the person, the amount and the time.'],
+  ])('refuses %s', async (_name, raw, message) => {
+    const { validateRewardData } = await import('../reward-data');
+    expect(validateRewardData(raw)).toBe(message);
+  });
+});

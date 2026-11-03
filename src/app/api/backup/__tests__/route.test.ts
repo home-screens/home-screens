@@ -90,6 +90,32 @@ describe('POST /api/backup with malformed timetables', () => {
   });
 });
 
+describe('POST /api/backup with chores the chore save would refuse', () => {
+  const chore = { id: 'c1', name: 'Dishes', emoji: '', frequency: 'daily', daysOfWeek: [1], timeOfDay: 'anytime', rotation: 'fixed', assigneeIds: [] };
+
+  it('refuses a chore worth fewer than 0 tickets with the sentence the save gives', async () => {
+    await writeChoreData({ chores: [{ ...chore, points: 2 }] } as unknown as ChoreData);
+    const res = await POST(postReq({ _type: 'home-screens-backup', chores: { chores: [{ ...chore, points: -5 }] } }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('Tickets for a chore must be 0 or more.');
+    const { readChoreData } = await import('@/lib/chore-data');
+    expect((await readChoreData()).chores[0].points).toBe(2);
+  });
+
+  it('refuses a regular chore whose schedule names a group it does not go to', async () => {
+    const res = await POST(postReq({ _type: 'home-screens-backup', chores: { chores: [{ ...chore, rotation: 'schedule', groupSchedule: { kids: [1] } }] } }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('A chore schedule needs days for each person or group on it.');
+  });
+
+  it('refuses a reward that would hand out tickets, and writes nothing', async () => {
+    const res = await POST(postReq({ _type: 'home-screens-backup', rewards: { rewards: [{ id: 'r1', name: 'Movie', memberIds: [], cost: -3 }], balances: {}, redemptions: [] } }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('A reward must cost 0 or more tickets.');
+    expect(await fs.readdir(path.join(process.cwd(), 'data'))).not.toContain('rewards.json');
+  });
+});
+
 describe('GET /api/backup', () => {
   it('exports a bundle with the envelope and every data section', async () => {
     const res = await GET(getReq());

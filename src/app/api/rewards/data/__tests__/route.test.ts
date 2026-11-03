@@ -11,7 +11,11 @@ vi.mock('@/lib/data-transaction', () => ({
   withDataTransaction: (operation: () => Promise<unknown>) => operation(),
   onDataTransactionCommit: vi.fn(),
 }));
-vi.mock('@/lib/reward-data', () => ({ readRewardData: vi.fn(), updateRewardDefinitions: vi.fn(), adjustPoints: vi.fn() }));
+// The shape rule runs for real: it is what the route is being tested on.
+vi.mock('@/lib/reward-data', async (importActual) => ({
+  validateRewardList: (await importActual<typeof import('@/lib/reward-data')>()).validateRewardList,
+  readRewardData: vi.fn(), updateRewardDefinitions: vi.fn(), adjustPoints: vi.fn(),
+}));
 
 import { POST, PUT } from '../route';
 import { readFamilyData } from '@/lib/family-data';

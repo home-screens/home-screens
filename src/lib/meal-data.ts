@@ -73,8 +73,11 @@ const EMPTY: MealData = {
 /** Prune plan entries older than this many weeks */
 const PRUNE_WEEKS = 12;
 
+/** Where the meal library, the plan and the household meal settings live, relative to the data root. */
+export const MEALS_FILE = 'data/meals.json';
+
 const mealStore = createJsonStore<MealData>({
-  path: 'data/meals.json',
+  path: MEALS_FILE,
   defaultValue: EMPTY,
   backup: true,
   errorHandling: 'throw-corrupt',

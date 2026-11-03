@@ -3,7 +3,8 @@ import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { ScreenConfiguration, ChoreDefinition } from '@/types/config';
-import { planFamilyRestore, type FamilyRestoreContent } from '../family-import';
+import { planFamilyRestore } from '../family-import';
+import type { BackupContent } from '../backup-sections';
 import { commitDataTransaction, withDataTransaction } from '../data-transaction';
 import { getLatestSchemaVersion } from '../migrations';
 
@@ -17,7 +18,7 @@ let root: string;
 const put = (file: string, data: unknown) => fs.writeFile(path.join(root, 'data', file), JSON.stringify(data, null, 2));
 const read = async (file: string) => JSON.parse(await fs.readFile(path.join(root, 'data', file), 'utf8'));
 const config = () => ({ version: currentSchemaVersion, screens: [], settings: { calendar: {} } }) as unknown as ScreenConfiguration;
-const restore = (body: FamilyRestoreContent) => withDataTransaction(async () => {
+const restore = (body: BackupContent) => withDataTransaction(async () => {
   const plan = await planFamilyRestore(body);
   await commitDataTransaction({ kind: 'test-restore', changes: plan.changes, evidence: plan.evidence, rollbackOnError: true });
   return plan;

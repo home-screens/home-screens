@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readMealData, updateMealData, prunePlan, type MealData } from '@/lib/meal-data';
-import { withAuth, withDisplayAuth, guardEmptyOverwrite, assertOptionalArrays, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, guardEmptyOverwrite, parseJsonBody } from '@/lib/api-utils';
 import { normalizeMealSettings } from '@/lib/meal-constants';
+import { validateMealPlan, validateSavedMeals } from '@/lib/meal-validation';
 import { isGroceryChecked, normalizeGroceryChecked, pruneGroceryChecked, rekeyGroceryChecked } from '@/lib/grocery-checks';
 import { mealRevision } from '@/lib/meal-revision';
 import { normalizeStoredPlanEntry } from '@/lib/meal-courses';
@@ -76,8 +77,10 @@ export const PUT = withAuth(async (req: NextRequest) => {
   if (body instanceof NextResponse) return body;
   const { savedMeals, plan, groceryChecked, settings, force, revision } = body;
 
-  const arrayCheck = assertOptionalArrays(body, ['savedMeals', 'plan']);
-  if (arrayCheck) return arrayCheck;
+  // The same rules a backup restore holds meals.json to, so a list the save
+  // accepts is one a restore accepts and the other way round.
+  const invalid = (savedMeals !== undefined ? validateSavedMeals(savedMeals) : null) ?? (plan !== undefined ? validateMealPlan(plan) : null);
+  if (invalid) return NextResponse.json({ error: invalid }, { status: 400 });
   if (groceryChecked !== undefined && !isGroceryChecked(groceryChecked)) {
     return NextResponse.json(
       { error: 'groceryChecked must map the date each week starts on (YYYY-MM-DD) to a list of item names' },
