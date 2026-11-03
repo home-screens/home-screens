@@ -1071,7 +1071,11 @@
         "other": "{member} brugte {count} billetter på {reward}"
       },
       "history": "Historik",
-      "errorChanged": "Billetterne har lige ændret sig. Kig igen."
+      "errorChanged": "Billetterne har lige ændret sig. Kig igen.",
+      "errorAlreadyGot": "Du fik allerede {reward} for et øjeblik siden!",
+      "errorNotEnough": "Der er ikke længere billetter nok til det.",
+      "errorNotOffered": "Den belønning findes ikke længere.",
+      "errorRemoved": "Den person er ikke længere med i familien."
     },
     "rewardHistory": {
       "subtitle": "Det har familien brugt billetter på",

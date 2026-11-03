@@ -648,7 +648,9 @@
       "noTicketsHint": "Erledige deine Aufgaben unter Heute, um Tickets zu verdienen.",
       "alreadyGot": "{name} hat {reward} gerade eben schon bekommen.",
       "alreadyGotKid": "Du hast {reward} gerade eben schon bekommen!",
-      "changed": "{name}s Tickets haben sich gerade geändert. Schau noch mal."
+      "changed": "{name}s Tickets haben sich gerade geändert. Schau noch mal.",
+      "notOffered": "Diese Belohnung gibt es nicht mehr.",
+      "removed": "Diese Person ist nicht mehr in der Familie."
     },
     "manage": {
       "heading": "Belohnungen",

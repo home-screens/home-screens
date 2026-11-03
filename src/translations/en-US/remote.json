@@ -648,7 +648,9 @@
       "noTicketsHint": "Do your chores on the Today tab to earn tickets.",
       "alreadyGot": "{name} already got {reward} a moment ago.",
       "alreadyGotKid": "You already got {reward} a moment ago!",
-      "changed": "{name}'s tickets changed just now. Have another look."
+      "changed": "{name}'s tickets changed just now. Have another look.",
+      "notOffered": "That reward isn't on offer any more.",
+      "removed": "That person isn't in the family any more."
     },
     "manage": {
       "heading": "Rewards",

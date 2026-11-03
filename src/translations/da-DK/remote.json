@@ -648,7 +648,9 @@
       "noTicketsHint": "Klar dine pligter under I dag for at tjene billetter.",
       "alreadyGot": "{name} fik allerede {reward} for et øjeblik siden.",
       "alreadyGotKid": "Du fik allerede {reward} for et øjeblik siden!",
-      "changed": "{name}s billetter har lige ændret sig. Kig igen."
+      "changed": "{name}s billetter har lige ændret sig. Kig igen.",
+      "notOffered": "Den belønning findes ikke længere.",
+      "removed": "Den person er ikke længere med i familien."
     },
     "manage": {
       "heading": "Belønninger",

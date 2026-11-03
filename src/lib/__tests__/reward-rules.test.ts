@@ -10,6 +10,9 @@ import {
   resolveSavingsGoal,
   goalProgress,
   goalsWithout,
+  classifyRedeemAnswer,
+  requestRedemption,
+  ALREADY_GOT_WINDOW_MS,
 } from '../reward-rules';
 
 const reward = (overrides: Partial<RewardDefinition> = {}): RewardDefinition =>
@@ -126,5 +129,121 @@ describe('savings goal', () => {
     expect(goalsWithout(goals, (_m, rewardId) => rewardId === 'mine')).toEqual({ kid: 'movie' });
     expect(goalsWithout(goals, () => false)).toBe(goals);
     expect(goalsWithout(undefined, () => true)).toBeUndefined();
+  });
+});
+
+describe('classifyRedeemAnswer', () => {
+  const NOW = Date.parse('2026-11-03T18:00:00Z');
+  const redemption = (overrides: Partial<RewardRedemption> = {}): RewardRedemption =>
+    ({ id: 'x-1', rewardId: 'r-1', rewardName: 'Movie night', memberId: 'kid-1', memberName: 'Ada', cost: 10, redeemedAt: new Date(NOW - 60_000).toISOString(), ...overrides }) as RewardRedemption;
+  const classify = (status: number, body: Parameters<typeof classifyRedeemAnswer>[0]['body'] = null, recentRedemptions?: RewardRedemption[]) =>
+    classifyRedeemAnswer({ status, body, recentRedemptions, rewardId: 'r-1', memberId: 'kid-1', now: NOW });
+
+  it('reads a 2xx as redeemed', () => {
+    expect(classify(200, { balances: {} })).toBe('redeemed');
+  });
+
+  it('reads a moved balance as "moved", and as "already got it" when this reward was just redeemed for this person', () => {
+    expect(classify(409, { reason: 'balance', redemptions: [] })).toBe('moved');
+    expect(classify(409, { reason: 'balance', redemptions: [redemption()] })).toBe('alreadyGot');
+  });
+
+  it('reads a 400 as "not enough", and as "already got it" with a fresh redemption of this reward', () => {
+    expect(classify(400)).toBe('notEnough');
+    expect(classify(400, null, [redemption()])).toBe('alreadyGot');
+  });
+
+  it('counts only this person, this reward, and the last ten minutes as "already got it"', () => {
+    expect(classify(400, null, [redemption({ memberId: 'kid-2' })])).toBe('notEnough');
+    expect(classify(400, null, [redemption({ rewardId: 'r-2' })])).toBe('notEnough');
+    expect(classify(400, null, [redemption({ redeemedAt: new Date(NOW - ALREADY_GOT_WINDOW_MS - 1).toISOString() })])).toBe('notEnough');
+    expect(classify(400, null, [redemption({ redeemedAt: new Date(NOW - ALREADY_GOT_WINDOW_MS + 1).toISOString() })])).toBe('alreadyGot');
+  });
+
+  it('reads a missing, switched-off or not-for-you reward as "not offered"', () => {
+    expect(classify(404)).toBe('notOffered');
+    expect(classify(403)).toBe('notOffered');
+  });
+
+  it('reads a 409 without the balance reason as the person being removed', () => {
+    expect(classify(409, { reason: 'member' })).toBe('removed');
+    expect(classify(409)).toBe('removed');
+  });
+
+  it('reads anything else as a plain failure', () => {
+    expect(classify(500, { balances: {} })).toBe('failed');
+    expect(classify(502)).toBe('failed');
+  });
+});
+
+describe('requestRedemption', () => {
+  const NOW = Date.parse('2026-11-03T18:00:00Z');
+  const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+  const fetchWith = (answers: Record<string, Response>) => {
+    const calls: { url: string; method: string; body?: string }[] = [];
+    const fetchFn = async (url: string, init?: RequestInit) => {
+      calls.push({ url, method: init?.method ?? 'GET', body: init?.body as string | undefined });
+      const key = `${init?.method ?? 'GET'} ${url}`;
+      const res = answers[key];
+      if (!res) throw new Error(`unexpected ${key}`);
+      return res;
+    };
+    return { fetchFn, calls };
+  };
+
+  it('posts the reward, the person and the quoted balance, and hands back the hub numbers on a yes', async () => {
+    const numbers = { balances: { 'kid-1': 2 }, redemptions: [], goals: {} };
+    const { fetchFn, calls } = fetchWith({ 'POST /api/rewards': json(200, numbers) });
+    const result = await requestRedemption(fetchFn, { rewardId: 'r-1', memberId: 'kid-1', expectedBalance: 12, now: NOW });
+    expect(result).toEqual({ outcome: 'redeemed', numbers });
+    expect(calls).toHaveLength(1);
+    expect(JSON.parse(calls[0].body!)).toEqual({ rewardId: 'r-1', memberId: 'kid-1', expectedBalance: 12 });
+  });
+
+  it('leaves the quoted balance out when the sheet had none', async () => {
+    const { fetchFn, calls } = fetchWith({ 'POST /api/rewards': json(200, { balances: {} }) });
+    await requestRedemption(fetchFn, { rewardId: 'r-1', memberId: 'kid-1', now: NOW });
+    expect(JSON.parse(calls[0].body!)).toEqual({ rewardId: 'r-1', memberId: 'kid-1' });
+  });
+
+  it('takes the hub numbers with a moved refusal and never reads again', async () => {
+    const refused = { error: 'The tickets changed', reason: 'balance', balances: { 'kid-1': 1 }, redemptions: [], goals: {} };
+    const { fetchFn, calls } = fetchWith({ 'POST /api/rewards': json(409, refused) });
+    const result = await requestRedemption(fetchFn, { rewardId: 'r-1', memberId: 'kid-1', expectedBalance: 12, now: NOW });
+    expect(result.outcome).toBe('moved');
+    expect(result.numbers).toEqual({ balances: { 'kid-1': 1 }, redemptions: [], goals: {} });
+    expect(calls).toHaveLength(1);
+  });
+
+  it('reads the recent redemptions after a 400 and tells "already got it" from "not enough"', async () => {
+    const recent = { id: 'x', rewardId: 'r-1', rewardName: 'Movie night', memberId: 'kid-1', memberName: 'Ada', cost: 10, redeemedAt: new Date(NOW - 5_000).toISOString() };
+    const { fetchFn, calls } = fetchWith({
+      'POST /api/rewards': json(400, { error: 'Insufficient point balance' }),
+      'GET /api/rewards': json(200, { rewards: [], balances: {}, redemptions: [recent] }),
+    });
+    const result = await requestRedemption(fetchFn, { rewardId: 'r-1', memberId: 'kid-1', expectedBalance: 12, now: NOW });
+    expect(result).toEqual({ outcome: 'alreadyGot', numbers: null });
+    expect(calls.map((c) => c.method)).toEqual(['POST', 'GET']);
+
+    const plain = fetchWith({
+      'POST /api/rewards': json(400, { error: 'Insufficient point balance' }),
+      'GET /api/rewards': json(200, { rewards: [], balances: {}, redemptions: [] }),
+    });
+    expect((await requestRedemption(plain.fetchFn, { rewardId: 'r-1', memberId: 'kid-1', now: NOW })).outcome).toBe('notEnough');
+  });
+
+  it('still says "not enough" when the follow-up read fails', async () => {
+    const { fetchFn } = fetchWith({ 'POST /api/rewards': json(400, {}), 'GET /api/rewards': json(500, { error: 'nope' }) });
+    expect((await requestRedemption(fetchFn, { rewardId: 'r-1', memberId: 'kid-1', now: NOW })).outcome).toBe('notEnough');
+  });
+
+  it('names the other refusals without carrying numbers, and lets a dropped connection reject', async () => {
+    for (const [status, outcome] of [[404, 'notOffered'], [403, 'notOffered'], [409, 'removed'], [500, 'failed']] as const) {
+      const { fetchFn, calls } = fetchWith({ 'POST /api/rewards': json(status, { error: 'developer words' }) });
+      expect(await requestRedemption(fetchFn, { rewardId: 'r-1', memberId: 'kid-1', now: NOW })).toEqual({ outcome, numbers: null });
+      expect(calls).toHaveLength(1);
+    }
+    const dropped = async () => { throw new TypeError('Load failed'); };
+    await expect(requestRedemption(dropped, { rewardId: 'r-1', memberId: 'kid-1', now: NOW })).rejects.toThrow('Load failed');
   });
 });

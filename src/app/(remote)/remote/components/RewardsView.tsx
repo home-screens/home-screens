@@ -16,7 +16,7 @@ import AdjustTicketsSheet from './AdjustTicketsSheet';
 import TicketsFeed from './TicketsFeed';
 import { useHouseholdTimezone } from '../household-clock';
 import { showToast } from '../remote-toast';
-import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, resolveSavingsGoal, type SavingsGoals } from '@/lib/reward-rules';
+import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -71,7 +71,7 @@ export default function RewardsView({
   const [editingReward, setEditingReward] = useState<RewardDefinition | 'new' | null>(null);
   const [redeemTarget, setRedeemTarget] = useState<{ reward: RewardDefinition; memberId: string } | null>(null);
   const [adjusting, setAdjusting] = useState<Set<string>>(new Set());
-  const [saveError, setSaveError] = useState<'failed' | 'conflict' | 'redeemRefused' | 'redeemFailed' | 'goalFailed' | 'adjustFailed' | null>(null);
+  const [saveError, setSaveError] = useState<keyof typeof REWARD_ERROR_KEYS | null>(null);
   const [goalSheetOpen, setGoalSheetOpen] = useState(false);
   const [adjustSheetOpen, setAdjustSheetOpen] = useState(false);
   const timeZone = useHouseholdTimezone();
@@ -92,44 +92,28 @@ export default function RewardsView({
   // ── Handlers ──
   const handleRedeem = async () => {
     if (!redeemTarget) return;
+    const who = members.find((m) => m.id === redeemTarget.memberId)?.name ?? '';
+    const said = { name: who, reward: redeemTarget.reward.name };
     try {
-      const res = await editorFetch('/api/rewards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // The balance this sheet was built from: the hub refuses if it has moved.
-        body: JSON.stringify({ rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId, expectedBalance: data?.balances[redeemTarget.memberId] ?? 0 }),
-      });
-      if (res.ok) {
-        const result = await res.json() as { balances: Record<string, number>; redemptions: RewardRedemption[]; goals?: SavingsGoals };
+      // The balance this sheet was built from: the hub refuses if it has moved.
+      const { outcome, numbers } = await requestRedemption(editorFetch, { rewardId: redeemTarget.reward.id, memberId: redeemTarget.memberId, expectedBalance: data?.balances[redeemTarget.memberId] ?? 0 });
+      // The hub's numbers, with a yes or with "the tickets moved": goals too,
+      // since the one for this reward is gone and the card must say so now,
+      // not at the next poll, or a kid is told to spend again.
+      if (numbers) setData((prev) => (prev ? { ...prev, balances: numbers.balances ?? prev.balances, redemptions: numbers.redemptions ?? prev.redemptions, goals: numbers.goals ?? {} } : prev));
+      // Said out loud either way: a sheet that just closes reads as "you got it".
+      if (outcome === 'redeemed') {
         setSaveError(null);
-        // Goals too: the one for this reward is gone, and the card must say so
-        // now, not at the next poll, or a kid is told to spend again.
-        setData((prev) => prev ? { ...prev, balances: result.balances, redemptions: result.redemptions, goals: result.goals ?? {} } : prev);
-        // Said out loud: a sheet that just closes does not feel like getting it.
-        const who = members.find((m) => m.id === redeemTarget.memberId)?.name ?? '';
-        showToast(t(isAdmin ? 'rewardsView.redeem.gotIt' : 'rewardsView.redeem.gotItKid', { name: who, reward: redeemTarget.reward.name }));
+        showToast(t(isAdmin ? 'rewardsView.redeem.gotIt' : 'rewardsView.redeem.gotItKid', said));
       } else {
-        // Said out loud: a sheet that just closes reads as "you got it".
-        // A 400 is the hub finding too few tickets. When that is because this
-        // very reward was redeemed from another device a moment ago, the kid
-        // already has it, and "not enough tickets" would send them asking for
-        // it again. The refresh then shows what is really left.
-        const refused = await res.json().catch(() => null) as { reason?: string; balances?: Record<string, number>; redemptions?: RewardRedemption[]; goals?: SavingsGoals } | null;
-        const moved = res.status === 409 && refused?.reason === 'balance';
-        const fresh = moved ? refused : await editorFetch('/api/rewards').then((r) => (r.ok ? r.json() : null)).catch(() => null) as { redemptions?: RewardRedemption[] } | null;
-        const justGot = (moved || res.status === 400) && !!fresh?.redemptions?.some((r) => r.memberId === redeemTarget.memberId && r.rewardId === redeemTarget.reward.id && Date.now() - new Date(r.redeemedAt).getTime() < 10 * 60_000);
-        const who = members.find((m) => m.id === redeemTarget.memberId)?.name ?? '';
-        if (justGot) {
+        if (outcome === 'alreadyGot') {
           setSaveError(null);
-          showToast(t(isAdmin ? 'rewardsView.redeem.alreadyGot' : 'rewardsView.redeem.alreadyGotKid', { name: who, reward: redeemTarget.reward.name }));
-        } else if (moved) {
+          showToast(t(isAdmin ? 'rewardsView.redeem.alreadyGot' : 'rewardsView.redeem.alreadyGotKid', said));
+        } else if (outcome === 'moved') {
           setSaveError(null);
-          showToast(t('rewardsView.redeem.changed', { name: who }));
+          showToast(t('rewardsView.redeem.changed', said));
         } else {
-          setSaveError(res.status === 400 ? 'redeemRefused' : 'redeemFailed');
-        }
-        if (moved && refused?.balances) {
-          setData((prev) => (prev ? { ...prev, balances: refused.balances!, redemptions: refused.redemptions ?? prev.redemptions, goals: refused.goals ?? {} } : prev));
+          setSaveError(REDEEM_REFUSALS[outcome]);
         }
         await refreshData();
       }
@@ -490,10 +474,20 @@ const REWARD_ERROR_KEYS = {
   failed: 'rewardsView.saveFailed',
   conflict: 'rewardsView.changedElsewhere',
   redeemRefused: 'rewardsView.redeem.refused',
+  redeemNotOffered: 'rewardsView.redeem.notOffered',
+  redeemRemoved: 'rewardsView.redeem.removed',
   redeemFailed: 'rewardsView.redeem.failed',
   goalFailed: 'rewardsView.goal.failed',
   adjustFailed: 'rewardsView.adjust.failed',
 } as const;
+
+/** The phone's line for each refusal the shared rule can name; the hub's own words are never shown. */
+const REDEEM_REFUSALS: Record<Exclude<RedeemOutcome, 'redeemed' | 'alreadyGot' | 'moved'>, keyof typeof REWARD_ERROR_KEYS> = {
+  notEnough: 'redeemRefused',
+  notOffered: 'redeemNotOffered',
+  removed: 'redeemRemoved',
+  failed: 'redeemFailed',
+};
 
 // ── Redeem Section ───────────────────────────────────────────────────
 

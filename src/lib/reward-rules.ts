@@ -113,3 +113,100 @@ export function sortRedemptionsNewestFirst(redemptions: readonly RewardRedemptio
     return am === bm ? 0 : bm > am ? 1 : -1;
   });
 }
+
+// ── Redeeming ────────────────────────────────────────────────────────
+
+/**
+ * What a redeem answer from the hub means to the person who tapped.
+ *
+ * - `redeemed`: they got it.
+ * - `alreadyGot`: the hub said no, but this very reward was redeemed for this
+ *   person a moment ago from another screen, so they already have it and
+ *   "not enough tickets" would send them asking for it again.
+ * - `moved`: the tickets changed under the sheet (another screen spent them);
+ *   the hub's numbers came back with the refusal.
+ * - `notEnough`: too few tickets.
+ * - `notOffered`: the reward is gone, switched off or not for this person.
+ * - `removed`: this person is no longer in the family.
+ * - `failed`: anything else; the hub's words are never shown.
+ */
+export type RedeemOutcome = 'redeemed' | 'alreadyGot' | 'moved' | 'notEnough' | 'notOffered' | 'removed' | 'failed';
+
+/** The hub's whole word on tickets after a redeem, sent with a yes and with a "moved" refusal. */
+export interface RedeemNumbers {
+  balances?: Record<string, number>;
+  redemptions?: RewardRedemption[];
+  goals?: SavingsGoals;
+}
+
+/** A redemption this recent counts as "you already got it" rather than "not enough tickets". */
+export const ALREADY_GOT_WINDOW_MS = 10 * 60_000;
+
+/**
+ * The refusal reason the hub attaches when the quoted balance has moved. The
+ * route's other refusals carry English text only, so everything else is told
+ * apart by status.
+ */
+const MOVED_REASON = 'balance';
+
+/**
+ * The one reading of a redeem answer, so the wall and the phone agree on what
+ * a kid is told. `recentRedemptions` is a fresher list than the answer
+ * carries, read after a 400 (see `requestRedemption`); a moved refusal
+ * brings the hub's own list with it.
+ */
+export function classifyRedeemAnswer({ status, body, recentRedemptions, rewardId, memberId, now }: {
+  status: number;
+  body: (RedeemNumbers & { reason?: string }) | null;
+  recentRedemptions?: readonly RewardRedemption[];
+  rewardId: string;
+  memberId: string;
+  now: number;
+}): RedeemOutcome {
+  if (status >= 200 && status < 300) return 'redeemed';
+  const moved = status === 409 && body?.reason === MOVED_REASON;
+  if (moved || status === 400) {
+    const justGot = (recentRedemptions ?? body?.redemptions ?? []).some((r) => r.memberId === memberId && r.rewardId === rewardId && now - new Date(r.redeemedAt).getTime() < ALREADY_GOT_WINDOW_MS);
+    if (justGot) return 'alreadyGot';
+    return moved ? 'moved' : 'notEnough';
+  }
+  if (status === 404 || status === 403) return 'notOffered';
+  if (status === 409) return 'removed';
+  return 'failed';
+}
+
+export interface RedeemResult {
+  outcome: RedeemOutcome;
+  /**
+   * The hub's numbers when it sent them: with a yes, and with a "moved" or
+   * "already got it" refusal. A surface adopts them at once rather than
+   * charging twice or waiting for the next poll.
+   */
+  numbers: RedeemNumbers | null;
+}
+
+/**
+ * Ask the hub to redeem and read its answer. `fetchFn` is the surface's own
+ * transport (the wall's `displayFetch`, the phone's `editorFetch`); a
+ * connection failure rejects as it would from that transport. The follow-up
+ * read of recent redemptions happens only when the rule needs it, on a 400.
+ */
+export async function requestRedemption(
+  fetchFn: (url: string, init?: RequestInit) => Promise<Response>,
+  { rewardId, memberId, expectedBalance, now = Date.now() }: { rewardId: string; memberId: string; expectedBalance?: number; now?: number },
+): Promise<RedeemResult> {
+  const res = await fetchFn('/api/rewards', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rewardId, memberId, ...(expectedBalance !== undefined ? { expectedBalance } : {}) }),
+  });
+  const body = await res.json().catch(() => null) as (RedeemNumbers & { reason?: string }) | null;
+  let recentRedemptions: RewardRedemption[] | undefined;
+  if (res.status === 400) {
+    const fresh = await fetchFn('/api/rewards').then((r) => (r.ok ? r.json() : null)).catch(() => null) as { redemptions?: RewardRedemption[] } | null;
+    recentRedemptions = fresh?.redemptions;
+  }
+  const outcome = classifyRedeemAnswer({ status: res.status, body, recentRedemptions, rewardId, memberId, now });
+  const carriesNumbers = outcome === 'redeemed' || (res.status === 409 && body?.reason === MOVED_REASON);
+  return { outcome, numbers: carriesNumbers && body ? { balances: body.balances, redemptions: body.redemptions, goals: body.goals } : null };
+}

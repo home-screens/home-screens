@@ -1074,7 +1074,11 @@
         "other": "{member} gastou {count} tickets em {reward}"
       },
       "history": "Histórico",
-      "errorChanged": "Os tickets acabaram de mudar. Dê outra olhada."
+      "errorChanged": "Os tickets acabaram de mudar. Dê outra olhada.",
+      "errorAlreadyGot": "Você já ganhou {reward} agora há pouco!",
+      "errorNotEnough": "Não há mais tickets suficientes para isso.",
+      "errorNotOffered": "Essa recompensa não está mais disponível.",
+      "errorRemoved": "Essa pessoa não está mais na família."
     },
     "rewardHistory": {
       "subtitle": "Em que a família gastou os tickets",

@@ -648,7 +648,9 @@
       "noTicketsHint": "Fais tes tâches dans l'onglet Aujourd'hui pour gagner des tickets.",
       "alreadyGot": "{name} a déjà obtenu {reward} à l'instant.",
       "alreadyGotKid": "Tu as déjà obtenu {reward} à l'instant !",
-      "changed": "Les tickets de {name} viennent de changer. Regarde à nouveau."
+      "changed": "Les tickets de {name} viennent de changer. Regarde à nouveau.",
+      "notOffered": "Cette récompense n'est plus proposée.",
+      "removed": "Cette personne ne fait plus partie de la famille."
     },
     "manage": {
       "heading": "Récompenses",

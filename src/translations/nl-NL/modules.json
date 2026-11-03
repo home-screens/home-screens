@@ -1071,7 +1071,11 @@
         "other": "{member} heeft {count} tickets besteed aan {reward}"
       },
       "history": "Geschiedenis",
-      "errorChanged": "De tickets zijn net veranderd. Kijk nog eens."
+      "errorChanged": "De tickets zijn net veranderd. Kijk nog eens.",
+      "errorAlreadyGot": "Je hebt {reward} net al gekregen!",
+      "errorNotEnough": "Er zijn niet meer genoeg tickets voor.",
+      "errorNotOffered": "Die beloning is er niet meer.",
+      "errorRemoved": "Die persoon zit niet meer in het gezin."
     },
     "rewardHistory": {
       "subtitle": "Waar het gezin tickets aan heeft uitgegeven",

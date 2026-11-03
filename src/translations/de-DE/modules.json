@@ -1071,7 +1071,11 @@
         "other": "{member} hat {count} Tickets für {reward} ausgegeben"
       },
       "history": "Verlauf",
-      "errorChanged": "Die Tickets haben sich gerade geändert. Schau noch mal."
+      "errorChanged": "Die Tickets haben sich gerade geändert. Schau noch mal.",
+      "errorAlreadyGot": "Du hast {reward} gerade eben schon bekommen!",
+      "errorNotEnough": "Dafür sind nicht mehr genug Tickets da.",
+      "errorNotOffered": "Diese Belohnung gibt es nicht mehr.",
+      "errorRemoved": "Diese Person ist nicht mehr in der Familie."
     },
     "rewardHistory": {
       "subtitle": "Wofür die Familie Tickets ausgegeben hat",

@@ -648,7 +648,9 @@
       "noTicketsHint": "Doe je klusjes op het tabblad Vandaag om tickets te verdienen.",
       "alreadyGot": "{name} heeft {reward} net al gekregen.",
       "alreadyGotKid": "Je hebt {reward} net al gekregen!",
-      "changed": "De tickets van {name} zijn net veranderd. Kijk nog eens."
+      "changed": "De tickets van {name} zijn net veranderd. Kijk nog eens.",
+      "notOffered": "Die beloning is er niet meer.",
+      "removed": "Die persoon zit niet meer in het gezin."
     },
     "manage": {
       "heading": "Beloningen",
