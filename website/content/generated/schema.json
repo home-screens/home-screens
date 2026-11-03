@@ -10820,7 +10820,7 @@
         },
         {
           "method": "POST",
-          "access": "display"
+          "access": "session"
         }
       ]
     },
@@ -12078,7 +12078,7 @@
         },
         {
           "method": "POST",
-          "access": "display"
+          "access": "session"
         }
       ]
     },

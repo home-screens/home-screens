@@ -11,6 +11,7 @@ vi.mock('@/lib/auth', () => ({
 
 import { GET, POST } from '@/app/api/backup/reminder/route';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
+import { requireDisplayAuth, requireSession } from '@/lib/auth';
 
 function getReq(): NextRequest {
   return new NextRequest('http://localhost/api/backup/reminder');
@@ -55,6 +56,12 @@ describe('GET /api/backup/reminder', () => {
 });
 
 describe('POST /api/backup/reminder', () => {
+  it('needs a signed-in session, never a wall\'s display token', async () => {
+    await POST(postReq({ action: 'dismiss' }));
+    expect(requireSession).toHaveBeenCalledTimes(1);
+    expect(requireDisplayAuth).not.toHaveBeenCalled();
+  });
+
   it('advances lastDismissedDate on a dismiss, preserving lastBackupDate', async () => {
     await writeBackupState({
       lastBackupDate: '2026-01-01T00:00:00.000Z',

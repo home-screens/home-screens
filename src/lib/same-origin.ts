@@ -24,8 +24,12 @@
  * protection while risking legitimate embedding.
  */
 
-/** Methods that can change state. HEAD/GET/OPTIONS are excluded on purpose. */
-const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+/**
+ * Methods that can change state. HEAD/GET/OPTIONS are excluded on purpose.
+ * The proxy's cookie-presence gate uses the same set, so a method this gate
+ * treats as a write is never one that gate lets through without a session.
+ */
+export const MUTATING_METHODS: ReadonlySet<string> = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 /**
  * Extra origins to accept, comma-separated, from `HS_ALLOWED_ORIGINS`.

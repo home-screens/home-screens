@@ -4,7 +4,8 @@ import { readFileSync, statSync } from 'fs';
 import path from 'path';
 import { CLIENT_IP_HEADER } from '@/lib/client-ip';
 import { getDataRoot } from '@/lib/data-root';
-import { isDisallowedCrossOriginWrite, parseAllowedOrigins } from '@/lib/same-origin';
+import { isIpAllowed } from '@/lib/ip-allowlist';
+import { isDisallowedCrossOriginWrite, MUTATING_METHODS, parseAllowedOrigins } from '@/lib/same-origin';
 
 /* ─── Cached auth config ─────────────────────── */
 
@@ -39,7 +40,8 @@ function authFileSignature(filePath: string): string {
  * cache of the same file; a timed cache on each meant the two could disagree
  * for up to 5s after a write, and this gate kept answering 401 to cookie-less
  * writes after the password had already been turned off.
- * Uses synchronous calls since Next.js proxy must return synchronously.
+ * Reads synchronously: the gate runs on every request, and after the first
+ * read the common case is one stat call against the cached signature.
  * Returns auth-enabled flag plus IP allowlist state for access restriction.
  */
 function getAuthConfig(): AuthConfig {
@@ -89,55 +91,6 @@ function extractIp(request: NextRequest): string {
   return request.headers.get(CLIENT_IP_HEADER) || 'unknown';
 }
 
-/**
- * Inline IPv4 CIDR match. Mirrors isIpAllowed in ip-allowlist.ts.
- * Duplicated rather than imported to keep the proxy runtime lightweight
- * (avoids pulling in the `net` module which may not be available in Edge).
- *
- * Fails safe: garbage entries are skipped, never treated as match-all.
- * IPv6 addresses (including ::1 and fe80::...) always return false — see
- * the IPv6 warning in SecuritySection.tsx.
- */
-function ipMatchesAllowlist(ip: string, allowlist: string[]): boolean {
-  // Normalize IPv4-mapped IPv6
-  const normalized = ip.replace(/^::ffff:/i, '');
-  if (!isValidIPv4(normalized)) return false;
-
-  const parts = normalized.split('.');
-  const ipNum = ((+parts[0]) << 24 | (+parts[1]) << 16 | (+parts[2]) << 8 | (+parts[3])) >>> 0;
-
-  for (const entry of allowlist) {
-    const [cidrIp, prefixStr] = entry.split('/');
-    if (!isValidIPv4(cidrIp)) continue; // fail-safe: skip garbage
-
-    const prefix = prefixStr != null ? +prefixStr : 32;
-    if (!Number.isInteger(prefix) || prefix < 0 || prefix > 32) continue;
-
-    const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
-    const cidrParts = cidrIp.split('.');
-    const cidrNum = ((+cidrParts[0]) << 24 | (+cidrParts[1]) << 16 | (+cidrParts[2]) << 8 | (+cidrParts[3])) >>> 0;
-
-    if ((ipNum & mask) === (cidrNum & mask)) return true;
-  }
-
-  return false;
-}
-
-/**
- * IPv4 validator that actually checks octet ranges (regex isn't enough).
- * Matches the behavior of Node's `net.isIPv4()` used by the library version,
- * including rejection of leading zeros ("01.168.1.0" is invalid per RFC).
- */
-function isValidIPv4(s: string): boolean {
-  if (!/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(s)) return false;
-  const parts = s.split('.');
-  return parts.every((p) => {
-    if (p.length > 1 && p[0] === '0') return false; // no leading zeros
-    const n = +p;
-    return n >= 0 && n <= 255;
-  });
-}
-
 /* ─── Route classification ───────────────────── */
 
 /**
@@ -147,7 +100,6 @@ const PUBLIC_AUTH_ROUTES = [
   '/api/auth/login',
   '/api/auth/logout',
   '/api/auth/status',
-  '/api/auth/google/callback',
   // Shared OAuth2 redirect target for plugins. The provider redirects the
   // user's browser here with no session cookie; the route only acts on a
   // validly HMAC-signed `state` (see the route file for the full rationale).
@@ -195,8 +147,9 @@ function isPublicAuthRoute(pathname: string): boolean {
 
 /**
  * Protected GET routes — editor-only or expose sensitive info.
- * All write operations (PUT/POST/DELETE) on /api/* are protected by default
- * (except public auth routes), so only GET routes need explicit listing here.
+ * Every write method (`MUTATING_METHODS`: POST, PUT, PATCH, DELETE) on /api/*
+ * is protected by default (except public auth routes and the display and
+ * kid-view POSTs above), so only GET routes need explicit listing here.
  */
 const PROTECTED_GET_ROUTES = [
   '/api/secrets',
@@ -207,7 +160,6 @@ const PROTECTED_GET_ROUTES = [
   '/api/system/version',
   '/api/system/status',
   '/api/auth/password',
-  '/api/auth/sessions',
   '/api/auth/google',
   '/api/auth/google/device',
   '/api/auth/google/status',
@@ -218,8 +170,10 @@ function isProtectedRoute(pathname: string, method: string): boolean {
   if (pathname.startsWith('/editor') || pathname.startsWith('/remote')) return true;
 
   // API write operations — protected (except public auth routes, display-accessible
-  // POSTs, and the LAN-public kid-view POSTs the /chores route depends on)
-  if (pathname.startsWith('/api/') && ['PUT', 'POST', 'DELETE'].includes(method)) {
+  // POSTs, and the LAN-public kid-view POSTs the /chores route depends on).
+  // The method set is the cross-origin gate's, so the two never disagree on
+  // what counts as a write.
+  if (pathname.startsWith('/api/') && MUTATING_METHODS.has(method)) {
     if (isPublicAuthRoute(pathname)) return false;
     if (method === 'POST' && isDisplayAccessiblePost(pathname)) return false;
     if (method === 'POST' && isKidViewPost(pathname)) return false;
@@ -249,7 +203,8 @@ const allowedOrigins = parseAllowedOrigins(process.env.HS_ALLOWED_ORIGINS);
  *
  * Three responsibilities:
  * 1. IP access restriction — blocks non-allowlisted IPs from all routes
- *    except /login and /api/auth/status (when enabled via settings).
+ *    except /login, /api/auth/status and /api/health (when enabled via
+ *    settings).
  * 2. Cross-origin write rejection on /api/* — the one gate that runs even
  *    with auth disabled, because it defends against attackers who are not on
  *    the LAN at all and so are not covered by the trusted-network assumption.
@@ -273,7 +228,7 @@ export function proxy(request: NextRequest) {
   if (config.ipRestrictAccess && config.ipAllowlist.length > 0) {
     if (pathname !== '/login' && pathname !== '/api/auth/status' && pathname !== '/api/health') {
       const clientIp = extractIp(request);
-      if (!ipMatchesAllowlist(clientIp, config.ipAllowlist)) {
+      if (!isIpAllowed(clientIp, config.ipAllowlist)) {
         if (pathname.startsWith('/api/')) {
           return Response.json(
             { error: 'Access denied', reason: 'ip_restricted' },

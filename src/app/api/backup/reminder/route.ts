@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
-import { withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, withDisplayAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +10,10 @@ export const GET = withDisplayAuth(async () => {
   return NextResponse.json(state);
 }, 'Failed to read backup state');
 
-export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ action?: unknown }>(request);
+// Only the editor and the phone dismiss the reminder or record a backup, so a
+// wall's display token must not be able to silence it.
+export const POST = withAuth(async (request: NextRequest) => {
+  const body = await parseJsonBody<{ action?: unknown }>(request, { maxBytes: SMALL_BODY_BYTES });
   if (body instanceof NextResponse) return body;
   const { action } = body;
   const state = await readBackupState();

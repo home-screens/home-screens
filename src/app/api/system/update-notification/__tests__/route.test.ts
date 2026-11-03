@@ -4,7 +4,7 @@ import path from 'path';
 import os from 'os';
 import { NextRequest } from 'next/server';
 
-// Bypass withDisplayAuth by making requireDisplayAuth a no-op.
+// Bypass withDisplayAuth (GET) and withAuth (POST) by making both guards no-ops.
 // This mirrors the pattern used in src/app/api/config/__tests__/route.test.ts
 // and src/app/api/chores/data/__tests__/route.test.ts.
 vi.mock('@/lib/auth', () => ({

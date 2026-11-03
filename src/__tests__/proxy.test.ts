@@ -267,23 +267,6 @@ describe('proxy — auth enabled: public auth routes always accessible', () => {
     });
   }
 
-  // /api/auth/google/callback: write methods are public (isPublicAuthRoute exemption),
-  // but GET is protected because /api/auth/google is in PROTECTED_GET_ROUTES and
-  // the sub-path check matches /api/auth/google/callback.
-  it('POST /api/auth/google/callback passes through without a cookie', () => {
-    expect(isPassThrough(proxy(makeRequest('/api/auth/google/callback', { method: 'POST' })))).toBe(true);
-  });
-
-  it('DELETE /api/auth/google/callback passes through without a cookie', () => {
-    expect(isPassThrough(proxy(makeRequest('/api/auth/google/callback', { method: 'DELETE' })))).toBe(true);
-  });
-
-  it('GET /api/auth/google/callback is caught by PROTECTED_GET_ROUTES sub-path match', async () => {
-    // /api/auth/google is in PROTECTED_GET_ROUTES, and the sub-path check
-    // (pathname.startsWith(r + '/')) matches /api/auth/google/callback.
-    // The isPublicAuthRoute exemption only applies to write methods.
-    expect(await is401(proxy(makeRequest('/api/auth/google/callback')))).toBe(true);
-  });
 });
 
 describe('proxy — auth enabled: unprotected display-facing GET routes', () => {
@@ -389,8 +372,10 @@ describe('proxy — auth enabled: API write operations require authentication', 
     proxy = await loadProxyWithAuth('enabled');
   });
 
-  const writeMethods = ['PUT', 'POST', 'DELETE'] as const;
-  const writeRoutes = ['/api/config', '/api/secrets', '/api/backgrounds', '/api/weather'];
+  // Every method the cross-origin gate counts as a write, PATCH included:
+  // eight routes export PATCH, and the cookie gate once skipped it.
+  const writeMethods = ['PUT', 'POST', 'PATCH', 'DELETE'] as const;
+  const writeRoutes = ['/api/config', '/api/secrets', '/api/backgrounds', '/api/weather', '/api/notes/abc'];
 
   for (const method of writeMethods) {
     for (const route of writeRoutes) {
@@ -491,7 +476,6 @@ describe('proxy — auth enabled: protected GET routes require authentication', 
     '/api/system/version',
     '/api/system/status',
     '/api/auth/password',
-    '/api/auth/sessions',
     '/api/auth/google',
     '/api/auth/google/device',
     '/api/auth/google/status',
@@ -834,10 +818,6 @@ describe('proxy — security boundaries', () => {
     expect(await is401(proxy(makeRequest('/api/calendars')))).toBe(true);
   });
 
-  it('attacker cannot reach /api/auth/sessions without authentication', async () => {
-    expect(await is401(proxy(makeRequest('/api/auth/sessions')))).toBe(true);
-  });
-
   it('attacker cannot reach /api/system/backups without authentication', async () => {
     expect(await is401(proxy(makeRequest('/api/system/backups')))).toBe(true);
   });
@@ -845,7 +825,7 @@ describe('proxy — security boundaries', () => {
   it('attacker cannot write to any API route without authentication', async () => {
     const routes = ['/api/config', '/api/secrets', '/api/backgrounds', '/api/display/wake'];
     for (const route of routes) {
-      for (const method of ['PUT', 'POST', 'DELETE']) {
+      for (const method of ['PUT', 'POST', 'PATCH', 'DELETE']) {
         expect(await is401(proxy(makeRequest(route, { method })))).toBe(true);
       }
     }
@@ -864,15 +844,14 @@ describe('proxy — security boundaries', () => {
   it('/api/auth/google is protected, and its sub-paths are also protected via sub-path match', async () => {
     // /api/auth/google is in PROTECTED_GET_ROUTES
     expect(await is401(proxy(makeRequest('/api/auth/google')))).toBe(true);
-    // /api/auth/google/callback is in PUBLIC_AUTH_ROUTES BUT the isPublicAuthRoute
-    // exemption only applies to write methods. For GET, the PROTECTED_GET_ROUTES
-    // sub-path check catches /api/auth/google/callback via /api/auth/google.
-    expect(await is401(proxy(makeRequest('/api/auth/google/callback')))).toBe(true);
+    expect(await is401(proxy(makeRequest('/api/auth/google/status')))).toBe(true);
   });
 
-  it('POST /api/auth/google/callback is public (write-method exemption)', () => {
-    // Write methods check isPublicAuthRoute before marking as protected
-    expect(isPassThrough(proxy(makeRequest('/api/auth/google/callback', { method: 'POST' })))).toBe(true);
+  it('an unknown path under /api/auth is not a public write: /api/auth/google/callback needs a cookie', async () => {
+    // The route behind this path was deleted; a public-write exemption that
+    // outlives its route is a standing hole for whatever takes the path next.
+    expect(await is401(proxy(makeRequest('/api/auth/google/callback', { method: 'POST' })))).toBe(true);
+    expect(await is401(proxy(makeRequest('/api/auth/google/callback')))).toBe(true);
   });
 
   it('GET on non-listed API route is public (display route)', () => {
@@ -1106,9 +1085,8 @@ describe('proxy — IP access restriction (fail-safe CIDR parsing)', () => {
 
   it('leading-zero octets are rejected (matches net.isIPv4 behavior)', async () => {
     // RFC says 01.168.1.0 is not a valid IPv4 literal. Node's net.isIPv4
-    // rejects it, so the library's isIpAllowed rejects it. The proxy's
-    // inline matcher must match that behavior to avoid divergence between
-    // the proxy gate and the auth-layer bypass.
+    // rejects it, so isIpAllowed rejects it; the proxy gate and the
+    // auth-layer bypass share that one matcher, so they cannot diverge.
     const proxy = await loadProxyWithConfig({
       passwordHash: null,
       ipAllowlist: ['01.168.1.0/24'],

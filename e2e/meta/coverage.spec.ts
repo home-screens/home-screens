@@ -1201,11 +1201,13 @@ const PUBLIC_ROUTES: Record<string, string> = {
   '/api/auth/login': 'the door: it is how a session is obtained.',
   '/api/auth/logout': 'clearing your own cookie needs no proof of who you are.',
   '/api/auth/status': 'answers only whether auth is switched on, which the login page needs before anyone can log in.',
+  '/api/chores': 'the /chores kid view and the wall read the chore list and tick chores with no session; KID_VIEW_POST_ROUTES in src/proxy.ts is what lets the tick through, and the handlers check the member and the date themselves.',
   '/api/chores/grab': 'the /chores kid view and the wall grab bonus chores with no session, exactly as they tick chores through /api/chores. It moves no tickets.',
   '/api/health': 'the liveness probe: the upgrade pipeline and the display-only launcher ask it whether the hub booted, and a support thread asks for it first. Version, build, schema and uptime only, nothing about the household.',
   '/api/i18n/[locale]': 'ships the UI dictionaries. Every surface needs them before login, and they are the same strings for every household.',
   '/api/plugins/auth/callback': 'the OAuth redirect target. The provider sends the browser here with no session; the HMAC-signed state is what proves the exchange is ours.',
   '/api/plugins/registry': 'a read-only index of publicly available plugins, identical for every household.',
+  '/api/rewards': 'the /chores kid view and the wall read balances and redeem with no session; KID_VIEW_POST_ROUTES in src/proxy.ts is what lets the redeem through, and the handler checks the member, the reward and the balance itself. Editing rewards and adjusting balances live at /api/rewards/data behind withAuth.',
   '/api/rewards/goal': 'the /chores kid view picks what a child is saving for with no session, exactly as it redeems through /api/rewards. It moves no tickets.',
   '/api/rewards/ledger': 'the /chores kid view reads a child\'s own ticket history with no session, the same chores, rewards and reasons GET /api/rewards and the chore list already hand it.',
   '/api/system/build-id': 'the running build string, which the client polls to notice a deploy. It carries nothing about the household.',
@@ -1214,14 +1216,44 @@ const PUBLIC_ROUTES: Record<string, string> = {
 /** Wrapper and guard identifiers that authenticate a handler. */
 const AUTH_GUARDS = ['withAuth', 'withDisplayAuth', 'withMediaTokenAuth', 'requireAdoptedDisplay', 'requireSession', 'requireDisplayAuth'];
 
+const HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
+
+interface TopLevelDecl {
+  name: string;
+  exported: boolean;
+  /** Source from this declaration to the next top-level declaration. */
+  body: string;
+}
+
+/**
+ * Every top-level `function` or `const` in a module with the source that
+ * belongs to it, so a guard is credited to the handler it actually wraps and
+ * not to anything else in the file.
+ */
+function topLevelDecls(src: string): TopLevelDecl[] {
+  const re = /^(export )?(?:async )?(?:function|const|let) (\w+|\{[^}]*\})/gm;
+  const hits = [...src.matchAll(re)];
+  return hits.flatMap((m, i) => {
+    const body = src.slice(m.index!, hits[i + 1]?.index ?? src.length);
+    // `const { GET: cachedGET, cache } = cachedProxyRoute({ ... })` binds
+    // every local name in the pattern to the one initializer.
+    const names = m[2].startsWith('{')
+      ? m[2].slice(1, -1).split(',').map((part) => part.split(':').pop()!.trim()).filter(Boolean)
+      : [m[2]];
+    return names.map((name) => ({ name, exported: Boolean(m[1]), body }));
+  });
+}
+
+function mentions(body: string, name: string): boolean {
+  return new RegExp(`\\b${name}\\b`).test(body);
+}
+
 /** Route-factory exports that apply a guard on the caller's behalf. */
 function guardingFactories(): string[] {
-  const src = readFileSync(path.resolve(REPO_ROOT, 'src/lib/route-factories.ts'), 'utf8');
-  const names: string[] = [];
-  for (const m of src.matchAll(/export function (\w+)[\s\S]*?(?=\nexport function |$)/g)) {
-    if (AUTH_GUARDS.some((g) => m[0].includes(`${g}(`))) names.push(m[1]);
-  }
-  return names;
+  const src = stripComments(readFileSync(path.resolve(REPO_ROOT, 'src/lib/route-factories.ts'), 'utf8'));
+  return topLevelDecls(src)
+    .filter((d) => d.exported && AUTH_GUARDS.some((g) => d.body.includes(`${g}(`)))
+    .map((d) => d.name);
 }
 
 function protectedGetRoutes(): string[] {
@@ -1229,6 +1261,35 @@ function protectedGetRoutes(): string[] {
   const block = /const PROTECTED_GET_ROUTES = \[([\s\S]*?)\]/.exec(src);
   expect(block, 'could not parse PROTECTED_GET_ROUTES; src/proxy.ts changed shape').toBeTruthy();
   return [...block![1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+}
+
+/**
+ * The HTTP methods a route file exports without a guard of their own. A
+ * guard counts when the handler's own source names one, a guarding factory,
+ * a `cachedProxyRoute` auth tier, or a local helper that does (so a file
+ * whose methods share one `guard(request)` function still passes). A guard
+ * on a sibling method never counts: the proxy's cookie gate is only a
+ * presence check, so every exported method needs real validation of its own.
+ */
+function unguardedMethods(source: string, factories: string[]): string[] {
+  const decls = topLevelDecls(stripComments(source));
+  const guarded = new Set<string>();
+  const guardedBy = (body: string) =>
+    AUTH_GUARDS.some((g) => mentions(body, g))
+    || factories.some((f) => mentions(body, f))
+    || /auth:\s*'(display|session)'/.test(body)
+    || [...guarded].some((name) => mentions(body, name));
+  // Local helpers can chain (a wrapper that calls a wrapper that guards), so
+  // keep marking until nothing new is credited.
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const d of decls) {
+      if (!guarded.has(d.name) && guardedBy(d.body)) { guarded.add(d.name); grew = true; }
+    }
+  }
+  return decls
+    .filter((d) => d.exported && (HTTP_METHODS as readonly string[]).includes(d.name) && !guarded.has(d.name))
+    .map((d) => d.name);
 }
 
 test('every API route declares an auth posture', () => {
@@ -1242,18 +1303,21 @@ test('every API route declares an auth posture', () => {
   const undeclared: string[] = [];
   for (const file of routeFiles) {
     const apiPath = `/api/${path.relative(apiRoot, file).replace(/\/route\.ts$/, '')}`;
+    if (apiPath in PUBLIC_ROUTES) continue;
     const source = readFileSync(file, 'utf8');
-    const guarded = AUTH_GUARDS.some((g) => new RegExp(`\\b${g}\\b`).test(source))
-      || factories.some((f) => new RegExp(`\\b${f}\\b`).test(source))
-      || /auth:\s*'(display|session)'/.test(source)
-      || protectedGets.some((p) => apiPath === p || apiPath.startsWith(`${p}/`));
-    if (!guarded && !(apiPath in PUBLIC_ROUTES)) undeclared.push(apiPath);
+    // The proxy's GET allowlist is a posture for reads only; a write on the
+    // same path is protected there by the cookie gate alone.
+    const proxyProtectsReads = protectedGets.some((p) => apiPath === p || apiPath.startsWith(`${p}/`));
+    for (const method of unguardedMethods(source, factories)) {
+      if (proxyProtectsReads && (method === 'GET' || method === 'HEAD')) continue;
+      undeclared.push(`${method} ${apiPath}`);
+    }
   }
 
   expect(
     undeclared.sort(),
-    'API routes that neither authenticate nor say why they are public. Add a guard, a '
-    + `cachedProxyRoute auth tier, or a PUBLIC_ROUTES entry with a reason:\n${undeclared.map((r) => `  ${r}`).join('\n')}`,
+    'API route methods that neither authenticate nor say why they are public. Add a guard to that '
+    + `handler, a cachedProxyRoute auth tier, or a PUBLIC_ROUTES entry with a reason:\n${undeclared.map((r) => `  ${r}`).join('\n')}`,
   ).toEqual([]);
 
   const stale = Object.keys(PUBLIC_ROUTES).filter(
