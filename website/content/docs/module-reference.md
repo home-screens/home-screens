@@ -49,6 +49,8 @@ The up next view is a fixed box, so when descriptions would push its last row of
 - **free-time**: One track per person for today, busy blocks and free gaps side by side, with a card naming when everyone is free. Events on shared calendars count as busy for the whole household.
 - **rolling**: The next few weeks as a grid whose top-left cell is always today. Weekday columns shift one left each midnight, weekends are shaded, and each new month is marked on its first day. `rollingWeeksToShow` sets the week count (1–8, default 6).
 
+**Looking ahead:** with `eventTapDetails` on, every view but **up-next** and **free-time** has arrows on the right of its header that step it a week (a month on **month-grid**, a day on **day-timeline**, its columns on **schedule**) forward or back, up to eight weeks either way (two months back and six ahead on a month); a sideways swipe on it does the same instead of changing screens. While away the title names the period, a tag says which (Next week, In 3 weeks), past days are not faded or collapsed, and **Back to this week** goes straight back; a minute after the last touch on the screen it slides back by itself.
+
 **People:** the family grid and free time views read the household list under **Settings > Family**. Choose each person’s calendars under **Settings > Calendar > Whose calendars?** A calendar picked for nobody is shared.
 {% /module %}
 
@@ -96,6 +98,8 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 **Tapping a meal:** `tapRecipeAction` works as on the [Meal Planner](#meal-planner), with the recipe card drawn in this module's theme.
 
 **Scrolling:** with `interactive` on, the grocery list scrolls with a finger instead of turning its pages, and a week or today too long to fit even at the smallest text scrolls too. Each slides back home a minute after the last touch.
+
+**Looking ahead:** with `interactive` on, the **week** view has arrows (or a sideways swipe) to step to next week's plan and back, eight weeks either way (three ahead and one back while the plan lives in Mealie), with **Back to this week**; a minute after the last touch it slides back by itself.
 {% /module %}
 
 {% module type="fullscreen-weather" %}
@@ -418,6 +422,8 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 - **recipes**: The family's recipes, one per row with a photo and cooking time, under a search button and the first chips (Favorites, Recently made, All, cookbooks, categories). The same recipes as the Full-Screen Meal Planner's recipe book: Mealie's whenever [Mealie](/docs/meals#mealie) is connected, otherwise the meals saved with ingredients or notes. With `interactive` on, the rows scroll with a finger, tapping one opens its recipe card, and the search button (or the **+ N** chip) opens the whole recipe book over the screen with a keyboard to search.
 
 **Scrolling:** with `interactive` on, a **list** or **week** that runs past the module's box scrolls with a finger, shows **Back to today** while it is away, and slides back to today a minute after the last touch. The grocery list scrolls instead of turning its pages.
+
+**Looking ahead:** with `interactive` on, the **week** and **list** views get a heading row with arrows (or a sideways swipe) that step to next week's plan and back, eight weeks either way (three ahead and one back while the plan lives in Mealie), and **Back to this week** while away; a minute after the last touch they slide back by themselves.
 {% /module %}
 
 {% module type="chore-chart" %}

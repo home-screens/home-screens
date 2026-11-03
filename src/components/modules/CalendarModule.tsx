@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { addDays, startOfDay } from 'date-fns';
+import { useCallback, useMemo } from 'react';
+import { addDays, startOfDay, startOfWeek } from 'date-fns';
 import { useTZClock } from '@/hooks/useTZClock';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
@@ -30,6 +30,10 @@ import { householdTimeFormat } from '@/lib/clock-time';
 import { useDayNotes } from '@/hooks/useDayNotes';
 import { hasDayNoteIn, type DayNotes } from '@/lib/day-notes';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
+import { calendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
+import { formatDayRange } from '@/i18n/formatters';
+import { useLookAhead } from './shared/useLookAhead';
+import { LookAheadBar, LookAheadContext } from './shared/LookAhead';
 
 interface CalendarModuleProps {
   config: CalendarConfig;
@@ -65,6 +69,10 @@ const VIEW_COMPONENTS: Record<CalendarViewMode, React.ComponentType<{
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The day the view draws from: `today` at rest, another week (or month, or days) with the look-ahead arrows. */
+  anchor: Date;
+  /** Stepped to another period: someone chose to look, so nothing in it is dimmed as past. */
+  stepped: boolean;
   accentColor: string;
   eventStyle: EventDisplayStyle;
   dayNotes: DayNotes;
@@ -111,6 +119,28 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // Name tags: the owner drawn in place of each event's calendar dot.
   const owners = useMemo(() => (config.showNameTags === true ? ownerBySource(people) : undefined), [config.showNameTags, people]);
   const viewMode = config.viewMode ?? 'daily';
+  const tapDetails = config.eventTapDetails === true;
+  // The list views scroll with a finger where an event can be tapped: a real
+  // display with taps on. The editor preview and a wall without taps clip as
+  // they always have. The look-ahead arrows show there too.
+  const scroll = wallScrollOn(tapDetails, screenId, moduleId);
+  const weekStartsOn = weekStartsOnFor(config.startDay);
+  // The days a view draws from an anchor day; the agenda, which lists events
+  // rather than days, counts its anchor's week (for the heading and the fetch).
+  const windowAt = useCallback((anchor: Date) => {
+    if (viewMode === 'daily') return viewDayWindow({ kind: 'days', today: anchor, weekStartsOn, count: config.daysToShow ?? 3 });
+    if (viewMode === 'week') return viewDayWindow({ kind: 'week', today: anchor, weekStartsOn });
+    if (viewMode === 'month') return viewDayWindow({ kind: 'month-grid', today: anchor, weekStartsOn });
+    if (viewMode === 'multi-week') return viewDayWindow({ kind: 'weeks', today: anchor, weekStartsOn, count: clampWeeksToShow(config.weeksToShow) });
+    if (viewMode === 'rolling') return viewDayWindow({ kind: 'days', today: anchor, weekStartsOn, count: clampRollingWeeks(config.weeksToShow) * 7 });
+    return viewDayWindow({ kind: 'week', today: anchor, weekStartsOn });
+  }, [viewMode, weekStartsOn, config.daysToShow, config.weeksToShow]);
+  const lookStep = useMemo(() => calendarLookAhead({ viewMode, daysToShow: config.daysToShow }), [viewMode, config.daysToShow]);
+  const look = useLookAhead({ step: lookStep, enabled: scroll, today, moduleId, reach: (step) => lookAheadReach(today, step, windowAt) });
+  const anchor = look.anchor;
+  // A stepped list starts at its first day (the agenda: the first day of that
+  // week), past or future, instead of at what is still upcoming now.
+  const listFrom = look.offset === 0 ? null : viewMode === 'agenda' ? startOfWeek(anchor, { weekStartsOn }) : anchor;
   // Grid views (week/month/multi-week) show their full visible range, past days
   // included; list views stay upcoming-only even when the shared fetch
   // window was widened for a grid view elsewhere on the display, unless the
@@ -124,9 +154,9 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
     (viewMode === 'agenda' && config.agendaShowFinishedToday === true);
   const allEvents = useMemo(() => {
     if (isGridView(viewMode)) return sourcedEvents;
-    const cutoff = listViewCutoff(now, keepFinishedToday);
+    const cutoff = listFrom ?? listViewCutoff(now, keepFinishedToday);
     return sourcedEvents.filter((ev) => isEventUpcoming(ev, cutoff, timezone));
-  }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone]);
+  }, [sourcedEvents, viewMode, now, keepFinishedToday, timezone, listFrom]);
   const resolvedTimeFormat = householdTimeFormat(timeFormat, locale);
   // The family's day notes, shared by every calendar; the switch is on unless set off.
   const dayNotes = useDayNotes(config.showDayNotes !== false);
@@ -140,15 +170,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // holidays-label remap are shared (calendar-legend).
   const legendPlacement = config.showLegend ?? 'off';
   // The days the view draws; the agenda has no day bound beyond the upcoming filter.
-  const viewWindow = useMemo(() => {
-    const weekStartsOn = weekStartsOnFor(config.startDay);
-    return viewMode === 'daily' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: config.daysToShow ?? 3 })
-      : viewMode === 'week' ? viewDayWindow({ kind: 'week', today, weekStartsOn })
-      : viewMode === 'month' ? viewDayWindow({ kind: 'month-grid', today, weekStartsOn })
-      : viewMode === 'multi-week' ? viewDayWindow({ kind: 'weeks', today, weekStartsOn, count: clampWeeksToShow(config.weeksToShow) })
-      : viewMode === 'rolling' ? viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampRollingWeeks(config.weeksToShow) * 7 })
-      : null; // agenda
-  }, [viewMode, config.startDay, config.daysToShow, config.weeksToShow, today]);
+  const viewWindow = useMemo(() => (viewMode === 'agenda' ? null : windowAt(anchor)), [viewMode, windowAt, anchor]);
   const legend = useMemo<LegendRow[]>(() => {
     if (legendPlacement === 'off') return [];
     return buildLegendRows(allEvents, viewWindow, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
@@ -156,11 +178,12 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // Whether a day the view draws has a note. The agenda lists note days from
   // today for at least a week (AgendaView), so that week is its range here.
   const notesInView = useMemo(() => {
-    const { start, end } = viewWindow ?? { start: today, end: addDays(today, 7) };
+    const from = listFrom ?? today;
+    const { start, end } = viewWindow ?? { start: from, end: addDays(from, 7) };
     const days: Date[] = [];
     for (let day = start; day < end; day = addDays(day, 1)) days.push(day);
     return hasDayNoteIn(dayNotes, days);
-  }, [viewWindow, today, dayNotes]);
+  }, [viewWindow, today, listFrom, dayNotes]);
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
   const gridEventStyle = config.gridEventStyle;
@@ -171,11 +194,6 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   // The module renders light-on-dark over a photo background with no theme
   // system, so the overlay uses the Charcoal tokens.
-  const tapDetails = config.eventTapDetails === true;
-  // The list views scroll with a finger where an event can be tapped: a real
-  // display with taps on. The editor preview and a wall without taps clip as
-  // they always have.
-  const scroll = wallScrollOn(tapDetails, screenId, moduleId);
   const eventStyle = useMemo<EventDisplayStyle>(() => {
     const gridStyle = gridEventStyle === 'colored' ? 'colored' : 'classic';
     return {
@@ -193,6 +211,16 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   // "+N more" and the grid day numbers open the whole day (the grid views only).
   const daySheet = useDaySheet(allEvents, tapDetails);
   const detailTheme = getThemeTokens('charcoal');
+  // A grid that draws its own title (every Month, and every grid in the
+  // modern looks) puts the arrows in it; the other views get a heading row.
+  const titledGrid = viewMode === 'month' || ((viewMode === 'multi-week' || viewMode === 'rolling') && (config.gridTheme ?? 'banner') !== 'banner');
+  // Several weeks at a time step a week: the heading names them by their dates.
+  const spansWeeks = (viewMode === 'multi-week' && clampWeeksToShow(config.weeksToShow) > 1)
+    || (viewMode === 'rolling' && clampRollingWeeks(config.weeksToShow) > 1);
+  const lookContext = useMemo(() => ({ look, accent: config.accentColor ?? DEFAULT_CALENDAR_ACCENT }), [look, config.accentColor]);
+  const barWindow = viewWindow ?? windowAt(anchor);
+  const lookDates = look.on ? formatDayRange(barWindow.start, addDays(barWindow.end, -1), locale, { year: false }) : '';
+  const lookShortDates = look.on ? formatDayRange(barWindow.start, addDays(barWindow.end, -1), locale, { month: 'short', year: false }) : '';
 
   // Failure ≠ empty: while the shared calendar fetch is failing, kept
   // events get a "not updating since" badge (loud after a day); per-source
@@ -242,6 +270,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
         className="h-full flex flex-col relative"
         data-tap-events={tapDetails ? '' : undefined}
         onClick={onRootClick}
+        {...look.rootProps}
       >
         {tapDetails && <style>{`[data-tap-events] [data-event-id] { cursor: pointer; }`}</style>}
         {status.kind === 'badge' && status.loud && (
@@ -277,9 +306,12 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
             style={{ flexShrink: 0, fontSize: '0.6em', opacity: 0.85, marginBottom: 6, maxHeight: '3.4em', overflow: 'hidden' }}
           />
         )}
+        {!titledGrid && <LookAheadBar look={look} dates={lookDates} shortDates={lookShortDates} accent={accentColor} datesOnly={spansWeeks} />}
         <div className="flex-1 min-h-0">
           <DaySheetContext.Provider value={daySheet.opener}>
-            <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
+            <LookAheadContext.Provider value={lookContext}>
+              <ViewComponent events={allEvents} config={config} style={style} today={today} now={now} anchor={listFrom ?? anchor} stepped={look.away} accentColor={accentColor} eventStyle={eventStyle} dayNotes={dayNotes} scroll={scroll} />
+            </LookAheadContext.Provider>
           </DaySheetContext.Provider>
         </div>
         {legendPlacement === 'footer' && (

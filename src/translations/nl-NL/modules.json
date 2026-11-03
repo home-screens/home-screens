@@ -456,6 +456,7 @@
     "noMealsPlanned": "Geen maaltijden gepland",
     "noMealPlanned": "Geen maaltijd gepland",
     "nothingPlannedThisWeek": "Niets gepland deze week",
+    "nothingPlannedThatWeek": "Voor die week is nog niets gepland",
     "todaysMeals": "Maaltijden vandaag",
     "tomorrowsMeals": "Maaltijden morgen",
     "now": "Nu",
@@ -554,6 +555,74 @@
     "backToToday": "Terug naar vandaag",
     "backToNow": "Terug naar nu",
     "backToTop": "Terug naar boven"
+  },
+  "lookAhead": {
+    "thisWeek": "Deze week",
+    "nextWeek": "Volgende week",
+    "inWeeks": {
+      "one": "Over {count} week",
+      "other": "Over {count} weken"
+    },
+    "lastWeek": "Vorige week",
+    "weeksAgo": {
+      "one": "{count} week geleden",
+      "other": "{count} weken geleden"
+    },
+    "today": "Vandaag",
+    "tomorrow": "Morgen",
+    "yesterday": "Gisteren",
+    "inDays": {
+      "one": "Over {count} dag",
+      "other": "Over {count} dagen"
+    },
+    "daysAgo": {
+      "one": "{count} dag geleden",
+      "other": "{count} dagen geleden"
+    },
+    "thisMonth": "Deze maand",
+    "nextMonth": "Volgende maand",
+    "lastMonth": "Vorige maand",
+    "inMonths": {
+      "one": "Over {count} maand",
+      "other": "Over {count} maanden"
+    },
+    "monthsAgo": {
+      "one": "{count} maand geleden",
+      "other": "{count} maanden geleden"
+    },
+    "homeWeek": "Terug naar deze week",
+    "homeMonth": "Terug naar deze maand",
+    "homeToday": "Terug naar vandaag",
+    "earlier": "Eerder",
+    "later": "Later",
+    "limitAhead": {
+      "week": {
+        "one": "Tot {count} week vooruit",
+        "other": "Tot {count} weken vooruit"
+      },
+      "month": {
+        "one": "Tot {count} maand vooruit",
+        "other": "Tot {count} maanden vooruit"
+      },
+      "day": {
+        "one": "Tot {count} dag vooruit",
+        "other": "Tot {count} dagen vooruit"
+      }
+    },
+    "limitBack": {
+      "week": {
+        "one": "Tot {count} week terug",
+        "other": "Tot {count} weken terug"
+      },
+      "month": {
+        "one": "Tot {count} maand terug",
+        "other": "Tot {count} maanden terug"
+      },
+      "day": {
+        "one": "Tot {count} dag terug",
+        "other": "Tot {count} dagen terug"
+      }
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Maaltijden deze week",

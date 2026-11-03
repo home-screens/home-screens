@@ -342,6 +342,9 @@ export default function MealsSection() {
             );
           })}
         </div>
+        {/* The calendars keep their own first day, and on one wall the two
+            weeks sit side by side: say whose week this is. */}
+        <p className="text-xs text-hs-text-faint mt-2">{t('settings.mealsPage.weekStart.hint')}</p>
       </section>
 
       {/* ── Time Format ── */}

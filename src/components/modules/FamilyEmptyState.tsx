@@ -16,9 +16,10 @@ interface FamilyEmptyStateProps {
    * this display's own origin plus `/remote`, which is the one fact the
    * person looking at the wall cannot otherwise know. A hint with no `{url}`
    * (a fix made on the computer, or nothing to do but wait) shows as
-   * written, with no address.
+   * written, with no address. None at all where there is nothing to do
+   * (another week with nothing planned).
    */
-  hint: string;
+  hint?: string;
   /**
    * Base size the block scales from. Small modules leave this unset and
    * inherit the module font size (everything is in em); the fullscreen
@@ -38,7 +39,7 @@ export default function FamilyEmptyState({ icon, title, hint, fontSize, style }:
   const origin = useOrigin();
   // Scheme stripped for reading across a room; the bare path until the origin is known.
   const url = origin ? phoneSurfaceLabel('remote', origin) : phoneSurfaceUrl('remote', '');
-  const [before, after] = hint.split('{url}');
+  const [before, after] = (hint ?? '').split('{url}');
   const asksForUrl = after !== undefined;
 
   return (
@@ -50,11 +51,13 @@ export default function FamilyEmptyState({ icon, title, hint, fontSize, style }:
         {icon}
       </span>
       <p style={{ fontSize: '0.8em', fontWeight: 600, opacity: TEXT_OPACITY.heading, lineHeight: 1.3 }}>{title}</p>
-      <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.secondary, lineHeight: 1.45, maxWidth: '26em' }}>
-        {before}
-        {asksForUrl && <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{url}</span>}
-        {after}
-      </p>
+      {hint && (
+        <p style={{ fontSize: '0.55em', opacity: TEXT_OPACITY.secondary, lineHeight: 1.45, maxWidth: '26em' }}>
+          {before}
+          {asksForUrl && <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{url}</span>}
+          {after}
+        </p>
+      )}
     </div>
   );
 }

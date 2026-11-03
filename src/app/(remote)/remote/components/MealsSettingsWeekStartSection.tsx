@@ -46,6 +46,11 @@ export default function MealsSettingsWeekStartSection({ weekStartDay, onChange }
           );
         })}
       </div>
+      {/* The calendars keep their own first day, and on one wall the two
+          weeks sit side by side: say whose week this is. */}
+      <p style={{ margin: '8px 2px 0', fontSize: 13, lineHeight: 1.4, color: 'var(--hs-text-muted)' }}>
+        {t('mealsSettings.weekStart.hint')}
+      </p>
     </section>
   );
 }

@@ -3,7 +3,7 @@
 import { Fragment, useCallback, useMemo, useRef, type CSSProperties } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, dateToDayIndex, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useElementBox } from '@/hooks/useElementBox';
 import { weekCellLayout, weekCellPieces, weekCellWords, weekRowFloorPx, WEEK_GAP_PX, WEEK_LINE_GAP_PX } from '@/lib/meal-week-cell';
@@ -20,8 +20,12 @@ interface WeekViewProps {
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
   timeFormat: TimeFormat;
+  /** The plan for `weekDates`. */
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
+  /** The seven days drawn: this week, or the week the look-ahead arrows stepped to. */
+  weekDates: string[];
+  /** The real day, marked wherever it is drawn. */
   todayISO: string;
   recipeTapMode: RecipeTapMode;
   /** Module font size in px; the label decision needs the number, not `1em`. */
@@ -58,13 +62,12 @@ const LONG_WORD_STYLE: CSSProperties = {
   verticalAlign: 'top',
 };
 
-export function WeekView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode, fontSize, interactive }: WeekViewProps) {
+export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekDates, todayISO, recipeTapMode, fontSize, interactive }: WeekViewProps) {
   const t = useTranslate('modules');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
-  const weekStartDay = settings.weekStartDay;
-  const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
-  const weekDates = getWeekDatesForRange(start, weekStartDay);
+  // Another week has no today to rest at: it starts at its top.
+  const showsToday = weekDates.includes(todayISO);
   const showEmoji = config.showEmoji ?? true;
   // Only slots the week uses get a column; four columns for one apple squeezed
   // every dish name to a stub. A week with nothing in any slot keeps them all,
@@ -130,8 +133,8 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, today
       <WallScroller
         enabled={interactive}
         home={home}
-        homeKey={todayISO}
-        backLabel={t('wallScroll.backToToday')}
+        homeKey={`${todayISO}|${weekDates[0]}`}
+        backLabel={t(showsToday ? 'wallScroll.backToToday' : 'wallScroll.backToTop')}
         {...look}
         className="flex flex-col gap-px"
         testId="meal-week-scroll"

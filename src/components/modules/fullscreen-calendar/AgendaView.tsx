@@ -38,7 +38,7 @@ interface DayGroupEvent {
 // finished rows.
 const FINISHED_TODAY_MAX = 3;
 
-export function AgendaView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, dayNotes, scroll = false }: CalendarViewProps) {
+export function AgendaView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, weather, failingSourceIds, owners, dayNotes, scroll = false }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -50,14 +50,16 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const emptyDayText = config.emptyDayText?.trim();
 
+  // The run of days from today at rest, or from where the look-ahead arrows
+  // stepped (the module has already dropped what ends before that day).
   const dayGroups = useMemo(() => {
     const groups: { date: Date; events: DayGroupEvent[]; boundary: ReturnType<typeof boundaryBetween> }[] = [];
     for (let i = 0; i < daysAhead; i++) {
-      const date = addDays(today, i);
+      const date = addDays(anchor, i);
       // All-day rows first — including middle days of split multi-day
       // events, which promote to all-day rendering.
       let dayEvents: DayGroupEvent[] = bucketEventsForDay(events, date, timezone);
-      if (i === 0 && config.agendaShowFinishedToday === true) {
+      if (isSameDay(date, today) && config.agendaShowFinishedToday === true) {
         const finished = dayEvents.filter(({ ev, segment }) =>
           ev.allDay !== true && segment !== 'middle' && parseEventWallTime(ev.end, timezone) <= now);
         const dropped = new Set(finished.slice(0, Math.max(0, finished.length - FINISHED_TODAY_MAX)).map(d => d.ev.id));
@@ -75,16 +77,20 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
       groups.push({ date, events: dayEvents, boundary });
     }
     return groups;
-  }, [events, today, now, daysAhead, config.agendaHideEmptyDays, config.agendaShowFinishedToday, config.agendaSeparators, weekStartsOn, timezone, dayNotes]);
+  }, [events, anchor, today, now, daysAhead, config.agendaHideEmptyDays, config.agendaShowFinishedToday, config.agendaSeparators, weekStartsOn, timezone, dayNotes]);
 
   function renderDayGroup({ date, events: dayEvents, boundary }: (typeof dayGroups)[number]) {
     const isGroupToday = isSameDay(date, today);
+    // Only days stepped back to are before today; they dim as past days do elsewhere.
+    // Days someone stepped back to are read, not faded.
+    const isPastDay = !stepped && date < today && !isGroupToday;
     const decor = dayDecorFor(config, date, dayEvents.map(({ ev }) => ev), { today, now, timezone, isDark: scale.isDark });
     const dayFill = dayCellFill(isGroupToday, showTodayBg, isWeekendDay(date), config);
     const notes = dayNotesFor(dayNotes, date);
 
     return (
       <div key={date.toISOString()} style={mergeCellDecor({
+        opacity: isPastDay && config.dimPastEvents ? 'var(--cal-past-opacity)' : undefined,
         background: dayFill,
         paddingLeft: dayFill ? scale.bu * 0.8 : undefined,
         paddingRight: dayFill ? scale.bu * 0.8 : undefined,
@@ -160,7 +166,7 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
           const end = parseEventWallTime(ev.end, timezone);
           const description = showDescription ? sanitizeEventDescription(ev.description) : '';
           const isAllDayRow = ev.allDay === true || segment === 'middle';
-          const isPast = isPastInAgendaGroup(end, date, now, isGroupToday, isAllDayRow);
+          const isPast = !stepped && isPastInAgendaGroup(end, date, now, isGroupToday, isAllDayRow);
           const status = eventStatusSlot({
             start, end, isAllDayRow, rowDate: date, now, locale, segment,
             showCountdown: config.showCountdown === true,
@@ -329,12 +335,14 @@ export function AgendaView({ events, timezone, config, scale, today, now, timeFo
   }
 
   // Every day in the window is drawn; the box shows what fits from today
-  // down (the fade says there is more), and on a touch wall a finger reads on.
+  // down (the fade says there is more), and on a touch wall a finger reads
+  // on. Other days stepped to open at their top.
   const scroller = {
     enabled: scroll,
-    backLabel: t('wallScroll.backToToday'),
+    backLabel: t(anchor.getTime() === today.getTime() ? 'wallScroll.backToToday' : 'wallScroll.backToTop'),
     ...wallScrollLook(scale, fontSize),
     frameStyle: { height: '100%' },
+    homeKey: anchor.getTime(),
     testId: 'fsc-agenda-scroll',
   };
 

@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "Week Starts On",
       "sunday": "Sunday",
-      "monday": "Monday"
+      "monday": "Monday",
+      "hint": "Only for the meal plan. Calendars on the wall have their own setting for the first day."
     },
     "timeFormat": {
       "heading": "Time Format",

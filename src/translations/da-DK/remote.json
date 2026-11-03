@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "Ugen starter",
       "sunday": "søndag",
-      "monday": "mandag"
+      "monday": "mandag",
+      "hint": "Gælder kun madplanen. Kalendere på væggen har deres egen indstilling for første dag."
     },
     "timeFormat": {
       "heading": "Tidsformat",

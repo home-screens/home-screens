@@ -1,19 +1,19 @@
 'use client';
 
-import { memo, useMemo } from 'react';
+import { memo, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { startOfWeek, addDays, startOfDay } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
-import { listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampRollingWeeks, listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { buildLegendRows } from '@/lib/calendar-legend';
 import { ownerBySource, peopleForSelection, peopleSelection, type PeopleSelection } from '@/lib/calendar-people';
 import type { FamilyGroup } from '@/types/family';
 import { effectiveWeatherPlacement, viewTraits } from './view-traits';
-import type { CalendarScale, CalendarViewProps, CalendarWeather } from './view-support';
+import { scheduleColumnCount, type CalendarScale, type CalendarViewProps, type CalendarWeather } from './view-support';
 import { buildHourlyIndex } from './event-weather';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { useTranslate, useFormattingLocale } from '@/i18n';
@@ -47,6 +47,9 @@ import { useEventTapDetail } from '../shared/useEventTapDetail';
 import { DaySheetContext, useDaySheet } from '../shared/useDaySheet';
 import { DaySheetOverlay } from '../shared/DaySheetOverlay';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
+import { fullscreenCalendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
+import { useLookAhead, type LookAhead } from '../shared/useLookAhead';
+import { LookAheadButtons, useLookAheadLimitWords, useLookAheadWords } from '../shared/LookAhead';
 
 // Opening/closing the detail overlay re-renders this module; memo keeps the
 // (potentially hundreds of) event blocks from reconciling on those frames —
@@ -94,15 +97,21 @@ function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
  * view takes the shared feed as-is: the fixed-range views (schedule,
  * week-list, month-grid, day-timeline, family-grid) intentionally show
  * past events, and up-next / free-time narrow to their own upcoming /
- * today-and-tomorrow shapes inside the view. Exported for unit testing
- * this branch without rendering the component.
+ * today-and-tomorrow shapes inside the view. An agenda stepped to other days
+ * with the look-ahead arrows (`from`) starts at its first day instead, past
+ * or future. Exported for unit testing this branch without rendering the
+ * component.
  */
 export function selectVisibleEvents(
   events: CalendarEvent[],
   view: FullscreenCalendarConfig['view'],
   sourceFilter: string[] | undefined,
   now: Date,
-  opts: { timezone?: string; titleFilter?: CalendarTitleFilter; showFinishedToday?: boolean; eventRules?: CalendarEventRule[]; peopleSelection?: PeopleSelection | null } = {},
+  opts: {
+    timezone?: string; titleFilter?: CalendarTitleFilter; showFinishedToday?: boolean; eventRules?: CalendarEventRule[]; peopleSelection?: PeopleSelection | null;
+    /** The first day of a stepped agenda; absent or null at rest. */
+    from?: Date | null;
+  } = {},
 ): CalendarEvent[] {
   return selectCalendarEvents(events, {
     sourceFilter,
@@ -111,7 +120,7 @@ export function selectVisibleEvents(
     eventRules: opts.eventRules,
     timezone: opts.timezone,
     now,
-    upcomingCutoff: view === 'agenda' ? listViewCutoff(now, opts.showFinishedToday === true) : undefined,
+    upcomingCutoff: view === 'agenda' ? opts.from ?? listViewCutoff(now, opts.showFinishedToday === true) : undefined,
   });
 }
 
@@ -237,23 +246,11 @@ export default function FullscreenCalendarModule({
     sourceStatus, sourceFilter: config.sourceFilter,
   });
 
-  // The 60s tick only changes the selection when the agenda cutoff applies
-  // or a rule actually reads the clock; otherwise keep the memo stable
-  // across ticks — the rules pass mints new event objects, which would
-  // thrash every event-keyed memo in the views for nothing on a Pi.
-  const selectionNow = config.view === 'agenda' || rulesNeedNow(config.eventRules) ? now : null;
   // "Show only these people", resolved once per roster change: groups expand
   // to members here, so a screen pointed at "Kids" follows the family list.
   const selection = useMemo(() => peopleSelection(config.peopleFilter, people, groups, peopleState), [config.peopleFilter, people, groups, peopleState]);
-  // The per-person views draw only the chosen people, like the events above.
+  // The per-person views draw only the chosen people, like the events.
   const visiblePeople = useMemo(() => peopleForSelection(people, selection), [people, selection]);
-  const events = useMemo(
-    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, selectionNow ?? today, {
-      timezone, titleFilter: config.titleFilter, showFinishedToday: config.agendaShowFinishedToday === true,
-      eventRules: config.eventRules, peopleSelection: selection,
-    }),
-    [rawEvents, config.view, config.sourceFilter, selectionNow, today, timezone, config.titleFilter, config.agendaShowFinishedToday, config.eventRules, selection],
-  );
   // Name tags: the owner drawn in place of each event's calendar dot.
   const owners = useMemo(() => (config.showNameTags === true ? ownerBySource(people) : undefined), [config.showNameTags, people]);
   // A filtered screen whose roster has not arrived shows nothing rather than
@@ -294,7 +291,42 @@ export default function FullscreenCalendarModule({
   // Everything view-shaped (title, icon, empty wording, legend window,
   // weather surfaces) comes from the shared registry.
   const traits = viewTraits(config.view);
-  const headerTitle = traits.headerTitle({ today, t, locale, config, scaleWidth: scale.width });
+  const weekStartsOn = weekStartsOnFor(config.startDay);
+
+  // The list views scroll with a finger where an event can be tapped: a real
+  // display with taps on. The editor preview and a wall without taps clip as
+  // they always have. The look-ahead arrows show there too.
+  const scroll = wallScrollOn(config.eventTapDetails === true, screenId, moduleId);
+  // A step is the view's span; the schedule's depends on the columns it fits.
+  const scheduleColumns = scheduleColumnCount(config, scale.width);
+  const lookStep = useMemo(
+    () => fullscreenCalendarLookAhead({ view: config.view }, scheduleColumns),
+    [config.view, scheduleColumns],
+  );
+  const look = useLookAhead({
+    step: lookStep, enabled: scroll, today, moduleId,
+    reach: (step) => lookAheadReach(today, step, (at) => traits.legendWindow({ today, anchor: at, weekStartsOn, config, scaleWidth: scale.width })),
+  });
+  // The first day the view draws: `today` at rest, so taps off and the
+  // editor preview draw exactly what they always have.
+  const anchor = look.anchor;
+
+  // The 60s tick only changes the selection when the agenda cutoff applies
+  // or a rule actually reads the clock; otherwise keep the memo stable
+  // across ticks: the rules pass mints new event objects, which would
+  // thrash every event-keyed memo in the views for nothing on a Pi.
+  const selectionNow = config.view === 'agenda' || rulesNeedNow(config.eventRules) ? now : null;
+  // An agenda stepped to other days lists them from their first day.
+  const listFrom = look.away ? anchor : null;
+  const events = useMemo(
+    () => selectVisibleEvents(rawEvents, config.view, config.sourceFilter, selectionNow ?? today, {
+      timezone, titleFilter: config.titleFilter, showFinishedToday: config.agendaShowFinishedToday === true,
+      eventRules: config.eventRules, peopleSelection: selection, from: listFrom,
+    }),
+    [rawEvents, config.view, config.sourceFilter, selectionNow, today, timezone, config.titleFilter, config.agendaShowFinishedToday, config.eventRules, selection, listFrom],
+  );
+
+  const headerTitle = traits.headerTitle({ today, anchor, t, locale, config, scaleWidth: scale.width });
 
   // Legend rows come from the events the current view actually draws — the
   // shared fetch window is wider than any single view, so scope to the
@@ -302,9 +334,9 @@ export default function FullscreenCalendarModule({
   const legendPlacement = config.showLegend ?? 'off';
   const legend = useMemo(() => {
     if (legendPlacement === 'off') return [];
-    const window = traits.legendWindow({ today, weekStartsOn: weekStartsOnFor(config.startDay), config, scaleWidth: scale.width });
+    const window = traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width });
     return buildLegendRows(events, window, timezone, { holidays: t('calendar.publicHolidays'), everyone: t('fullscreen-calendar.everyone') }, config.legendMode, people, groups);
-  }, [legendPlacement, events, timezone, today, t, traits, config, scale.width, people, groups]);
+  }, [legendPlacement, events, timezone, today, anchor, weekStartsOn, t, traits, config, scale.width, people, groups]);
 
   const currentTemp = hourly?.[0]?.temp;
   const weatherIconId = hourly?.[0]?.icon;
@@ -321,12 +353,13 @@ export default function FullscreenCalendarModule({
     [hourly, forecast, weatherPlacement],
   );
 
-  // Household rows for the week list. Only fetched while a toggle is on and
-  // the week list is the active view; the hook is a no-op otherwise.
+  // Household rows for the week list, for the week it draws. Only fetched
+  // while a toggle is on and the week list is the active view; the hook is a
+  // no-op otherwise.
   const weekDates = useMemo(() => {
-    const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
+    const weekStart = startOfWeek(anchor, { weekStartsOn });
     return Array.from({ length: 7 }, (_, i) => toISODate(addDays(weekStart, i)));
-  }, [today, config.startDay]);
+  }, [anchor, weekStartsOn]);
   const wantsExtras = config.view === 'week-list';
   const extras = useCalendarExtras(
     { meals: wantsExtras && config.showMeals === true, chores: wantsExtras && config.showChores === true },
@@ -338,24 +371,21 @@ export default function FullscreenCalendarModule({
   // Whether a day this view draws has a note: such a view is drawn even with
   // no events in the feed. Up Next only ever shows today's and tomorrow's.
   const notesInView = useMemo(() => {
-    const window = traits.legendWindow({ today, weekStartsOn: weekStartsOnFor(config.startDay), config, scaleWidth: scale.width });
+    const window = traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width });
     const end = config.view === 'up-next' ? addDays(today, 2) : window.end;
     const days: Date[] = [];
     for (let day = window.start; day < end; day = addDays(day, 1)) days.push(day);
     return hasDayNoteIn(dayNotes, days);
-  }, [dayNotes, traits, today, config, scale.width]);
+  }, [dayNotes, traits, today, anchor, weekStartsOn, config, scale.width]);
 
-  // The one-day views carry today's notes beside the title, since the title
-  // is their day heading; the header has room for one line, so they share it.
-  const titleNote = config.view === 'day-timeline' || config.view === 'free-time' ? dayNotesFor(dayNotes, today).join(' · ') : '';
+  // The one-day views carry their day's notes beside the title, since the
+  // title is their day heading; the header has room for one line, so they
+  // share it. A stepped Day timeline names another day, and takes its notes.
+  const titleNote = config.view === 'day-timeline' || config.view === 'free-time' ? dayNotesFor(dayNotes, anchor).join(' · ') : '';
 
-  // The list views scroll with a finger where an event can be tapped: a real
-  // display with taps on. The editor preview and a wall without taps clip as
-  // they always have.
-  const scroll = wallScrollOn(config.eventTapDetails === true, screenId, moduleId);
   const viewProps = useMemo<CalendarViewProps>(
-    () => ({ events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes, scroll }),
-    [events, config, scale, today, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes, scroll],
+    () => ({ events, config, scale, today, anchor, stepped: look.away, now, timeFormat, weather, timezone, failingSourceIds, people: visiblePeople, owners, extras, dayNotes, scroll }),
+    [events, config, scale, today, anchor, look.away, now, timeFormat, weather, timezone, failingSourceIds, visiblePeople, owners, extras, dayNotes, scroll],
   );
   const hasEvents = events.length > 0;
   // Views with something to say on an empty feed: a day note in view, the
@@ -385,6 +415,31 @@ export default function FullscreenCalendarModule({
   });
   const neverLoaded = status.kind === 'cantLoad';
 
+  // Stepped away, the tag and the way back join the header, and a long title
+  // ("December 27, 2026 – January 2, 2027", or a long month name in another
+  // language) beside them can be wider than a portrait wall. The title then
+  // steps down in size just enough to keep the weather and the view's name
+  // inside the header, measured before the frame paints. Text width follows
+  // its size, so one measurement at full size gives the scale. At rest the
+  // title keeps the size the family chose.
+  const titleSize = scale.bu * 3.5 * scale.typoMul;
+  const headerRef = useRef<HTMLElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const fitKey = look.away ? `${headerTitle}|${titleNote}|${look.offset}|${titleSize}|${scale.width}|${status.kind}|${currentTemp != null}` : '';
+  const [titleFit, setTitleFit] = useState({ key: '', scale: 1 });
+  const titleScale = titleFit.key === fitKey ? titleFit.scale : 1;
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    const title = titleRef.current;
+    const last = header?.lastElementChild;
+    if (!fitKey || !header || !title || !last) return;
+    const limit = header.getBoundingClientRect().right - parseFloat(getComputedStyle(header).paddingRight);
+    const over = last.getBoundingClientRect().right - limit;
+    const width = title.getBoundingClientRect().width;
+    const fit = over > 0 && width > 0 ? Math.max(0.6, (width - over - 2) / width) : 1;
+    setTitleFit((prev) => (prev.key === fitKey && prev.scale === fit ? prev : { key: fitKey, scale: fit }));
+  }, [fitKey]);
+
   // Tap-to-open detail: shared delegated-handler hook (see useEventTapDetail).
   const tapDetails = config.eventTapDetails === true;
   const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(events, tapDetails);
@@ -397,6 +452,7 @@ export default function FullscreenCalendarModule({
       className="fsc-root"
       data-tap-events={tapDetails ? '' : undefined}
       onClick={onRootClick}
+      {...look.rootProps}
       style={{
         width: '100%',
         height: '100%',
@@ -447,15 +503,19 @@ export default function FullscreenCalendarModule({
       {/* The bar grows with the typography setting so a scaled-up serif
           title never spills over the view below; `small` keeps the full
           5bu bar (the pills and badges in it don't shrink as far). */}
-      <header className="fsc-header" style={{ height: `${scale.bu * 5 * Math.max(1, scale.typoMul)}px`, flexShrink: 0 }} role="banner">
+      {/* With the look-ahead arrows the bar is never shorter than a finger's
+          button and its breathing room. */}
+      <header ref={headerRef} className="fsc-header" style={{ height: `${Math.max(scale.bu * 5 * Math.max(1, scale.typoMul), look.on ? LOOK_AHEAD_BAR_MIN : 0)}px`, flexShrink: 0 }} role="banner">
         <h1
+          ref={titleRef}
           className="fsc-header-title"
           // Explicit line height: the serif's default line box is ~1.45em,
           // which overshoots the bar and paints descenders over the view.
-          style={{ fontSize: `${scale.bu * 3.5 * scale.typoMul}px`, lineHeight: 1.15, margin: 0 }}
+          style={{ fontSize: `${titleSize * titleScale}px`, lineHeight: 1.15, margin: 0 }}
         >
           {headerTitle}
         </h1>
+        {look.on && <HeaderLookAheadTag look={look} scale={scale} tagged={!(config.view === 'rolling' && clampRollingWeeks(config.rollingWeeksToShow) > 1)} />}
         {titleNote && (
           <DayNoteLine
             text={titleNote}
@@ -471,6 +531,9 @@ export default function FullscreenCalendarModule({
           />
         )}
         <div style={{ flex: 1 }} />
+        {/* On the right, before the weather and the view's name: the arrows
+            stay put whatever the title says, so a second tap steps again. */}
+        {look.on && <HeaderLookAheadArrows look={look} scale={scale} />}
         {status.kind === 'badge' ? (
           // The not-updating pill takes the weather pill's slot so the
           // header element count never changes; calm amber, no "error"
@@ -606,6 +669,64 @@ export default function FullscreenCalendarModule({
           onClose={closeDetail}
         />
       )}
+    </div>
+  );
+}
+
+// ─── Look-ahead in the header ───
+
+/** The header's least height with the arrows in it: a 44 px button and a little room. */
+const LOOK_AHEAD_BAR_MIN = 52;
+
+/**
+ * Beside the header title while stepped away: a tag naming the period
+ * ("Next week") in the look of the views' Today badge, or, a moment after a
+ * tap past the end, how far the wall goes. The title itself names the dates.
+ * A view of several weeks at once has no tag (`tagged` false): "Next week"
+ * would name only the first of them.
+ */
+function HeaderLookAheadTag({ look, scale, tagged }: { look: LookAhead; scale: CalendarScale; tagged: boolean }) {
+  const words = useLookAheadWords(look);
+  const limitWords = useLookAheadLimitWords(look);
+  const text = limitWords ?? (look.away && tagged ? words : null);
+  if (!text) return null;
+  return (
+    <span
+      data-testid={limitWords ? 'look-ahead-limit' : 'look-ahead-words'}
+      role={limitWords ? 'status' : undefined}
+      style={{
+        flexShrink: 0,
+        marginLeft: scale.bu * 1.2,
+        fontSize: `${scale.bu * 1.3 * scale.typoMul}px`,
+        fontWeight: 700,
+        textTransform: limitWords ? undefined : 'uppercase',
+        letterSpacing: limitWords ? undefined : '0.08em',
+        color: 'var(--cal-accent)',
+        background: 'var(--cal-accent-bg)',
+        padding: `${scale.bu * 0.1}px ${scale.bu * 0.5}px`,
+        borderRadius: 4,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {text}
+    </span>
+  );
+}
+
+/** The way back while away, then ‹ and ›, on the header's right. */
+function HeaderLookAheadArrows({ look, scale }: { look: LookAhead; scale: CalendarScale }) {
+  return (
+    <div
+      data-testid="look-ahead-bar"
+      data-offset={look.offset}
+      style={{
+        display: 'flex', alignItems: 'center', gap: scale.bu * 0.9, flexShrink: 0,
+        marginLeft: scale.bu * 1.2, marginRight: scale.bu * 1.2,
+        // The buttons size themselves from this: 2.75em, never under 44 px.
+        fontSize: Math.max(14, scale.bu * 1.5 * scale.typoMul),
+      }}
+    >
+      <LookAheadButtons look={look} tone="theme" accent="var(--cal-accent)" onAccent="var(--cal-on-accent, #fff)" />
     </div>
   );
 }

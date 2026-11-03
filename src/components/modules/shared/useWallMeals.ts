@@ -8,7 +8,7 @@ import { useFetchData } from '@/hooks/useFetchData';
 import { mealsDataUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { readMealAnswer, type MealAnswer } from '@/lib/meal-client';
 import { mealieStatus, type MealieStatus } from '@/lib/meal-sources';
-import { DEFAULT_MEAL_SETTINGS, filterPlanToWeek, fromISODate, getWeekDatesForRange, getWeekRange, minutesOfDay, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
+import { DEFAULT_MEAL_SETTINGS, filterPlanToWeek, getWeekDatesForRange, minutesOfDay, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
 import { resolveRecipeTapMode, type RecipeTapMode } from './MealTapTarget';
 import type { MealRecipeContextValue } from './MealRecipeContext';
 import { useWallGrocery, type WallGrocery } from './useWallGrocery';
@@ -57,6 +57,25 @@ export interface WallMeals {
   recipeContext: MealRecipeContextValue;
 }
 
+export interface MealWeek {
+  /** The week's seven days, in the household's week. */
+  weekDates: string[];
+  /** The plan for those days. */
+  plan: PlannedMeal[];
+}
+
+/**
+ * The week holding `dayISO` and its plan. `useWallMeals` reads this week's
+ * through it; a Week or List view stepped to another week with the
+ * look-ahead arrows reads that week's the same way, from the whole plan the
+ * hub already sent.
+ */
+export function useMealWeek(fullPlan: PlannedMeal[], dayISO: string, weekStartDay: MealSettings['weekStartDay']): MealWeek {
+  const weekDates = useMemo(() => getWeekDatesForRange(dayISO, weekStartDay), [dayISO, weekStartDay]);
+  const plan = useMemo(() => filterPlanToWeek(fullPlan, weekDates[0], weekDates[6]), [fullPlan, weekDates]);
+  return useMemo(() => ({ weekDates, plan }), [weekDates, plan]);
+}
+
 /**
  * The meals a wall module draws, read and resolved once for both Meal
  * Planner modules: the answer read through `readMealAnswer`, this week's
@@ -78,11 +97,7 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
   const settings = data?.settings ?? DEFAULT_MEAL_SETTINGS;
   const timeFormat = resolveMealTimeFormat(settings, data?.globalTimeFormat ?? '12h');
 
-  const weekDates = useMemo(() => {
-    const { start } = getWeekRange(fromISODate(todayISO), settings.weekStartDay);
-    return getWeekDatesForRange(start, settings.weekStartDay);
-  }, [todayISO, settings.weekStartDay]);
-  const plan = useMemo(() => filterPlanToWeek(fullPlan, weekDates[0], weekDates[6]), [fullPlan, weekDates]);
+  const { weekDates, plan } = useMealWeek(fullPlan, todayISO, settings.weekStartDay);
   const mealie = useMemo<MealieStatus>(() => (data ? mealieStatus(data) : { state: 'local' }), [data]);
 
   // The grocery list the family uses: Mealie's while the plan lives there,

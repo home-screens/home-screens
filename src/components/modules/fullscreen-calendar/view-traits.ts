@@ -2,10 +2,10 @@ import { addDays, endOfWeek, startOfDay, startOfWeek } from 'date-fns';
 import { CalendarClock, CalendarRange, Columns3, Grid3X3, Hourglass, List, ScrollText, Users, Zap, type LucideIcon } from 'lucide-react';
 import { formatDateSync, formatDayRange, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { clampAgendaDays, clampRollingWeeks, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
+import { clampAgendaDays, clampRollingWeeks, weekStartsOnFor } from '@/lib/calendar-utils';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import type { FullscreenCalendarConfig, FullscreenCalendarView, WeatherPlacement } from '@/types/config';
-import { autoScheduleDays } from './view-support';
+import { scheduleColumnCount, scheduleFirstDay } from './view-support';
 
 /**
  * Everything that varies per fullscreen-calendar view, in one exhaustive
@@ -17,6 +17,8 @@ import { autoScheduleDays } from './view-support';
 
 export interface ViewTitleCtx {
   today: Date;
+  /** The day the view draws from after the look-ahead arrows (see CalendarViewProps); `today` when absent. */
+  anchor?: Date;
   t: TranslateFn;
   locale: string;
   config: FullscreenCalendarConfig;
@@ -26,6 +28,8 @@ export interface ViewTitleCtx {
 
 export interface ViewWindowCtx {
   today: Date;
+  /** The day the view draws from after the look-ahead arrows (see CalendarViewProps); `today` when absent. */
+  anchor?: Date;
   weekStartsOn: 0 | 1;
   config: FullscreenCalendarConfig;
   scaleWidth: number;
@@ -47,21 +51,21 @@ export interface ViewTraits {
   isSingleDay: boolean;
   /** Which weather surfaces the view can draw (day headers / event rows). */
   weather: { days: boolean; events: boolean };
-  /** The module header title. */
+  /** The module header title: the period the view draws, stepped or not. */
   headerTitle(ctx: ViewTitleCtx): string;
-  /** Half-open day range the view draws, scoping the legend. */
+  /** Half-open day range the view draws, scoping the legend and the look-ahead fetch. */
   legendWindow(ctx: ViewWindowCtx): { start: Date; end: Date };
 }
 
-/** "March 2 – 8, 2026" for the week containing today, in the language's own
+/** "March 2 – 8, 2026" for the week containing `today`, in the language's own
  *  order ("2.–8. März 2026"); both month names when the week crosses a month,
  *  both full dates when it crosses a year. */
 function weekRangeTitle(today: Date, weekStartsOn: 0 | 1, locale: string): string {
   return formatDayRange(startOfWeek(today, { weekStartsOn }), endOfWeek(today, { weekStartsOn }), locale);
 }
 
-/** "September 11 – October 22, 2026" for the rolling window starting today
- *  (`weeks` rows of 7), with the same rules as the week title. Exported so
+/** "September 11 – October 22, 2026" for the rolling window starting at
+ *  `today` (`weeks` rows of 7), with the same rules as the week title. Exported so
  *  the view's aria label and the trait share one string. */
 export function rollingRangeTitle(today: Date, weeks: number, locale: string): string {
   const start = startOfDay(today);
@@ -70,11 +74,10 @@ export function rollingRangeTitle(today: Date, weeks: number, locale: string): s
 
 /** The schedule view's resolved first column and column count — the same
  *  numbers the view itself derives, shared by its title and legend window. */
-function scheduleGeometry(today: Date, config: FullscreenCalendarConfig, scaleWidth: number): { start: Date; count: number } {
-  const weekStartsOn = weekStartsOnFor(config.startDay);
+function scheduleGeometry(today: Date, anchor: Date, config: FullscreenCalendarConfig, scaleWidth: number): { start: Date; count: number } {
   return {
-    start: resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOn),
-    count: config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(scaleWidth, config.density),
+    start: scheduleFirstDay(today, anchor, config),
+    count: scheduleColumnCount(config, scaleWidth),
   };
 }
 
@@ -85,14 +88,14 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisWeek',
     isTimeGrid: true, isListView: false, isPersonView: false, isSingleDay: false,
     weather: { days: true, events: false },
-    headerTitle({ today, locale, config, scaleWidth }) {
+    headerTitle({ today, anchor = today, locale, config, scaleWidth }) {
       // The range starts at the anchor-resolved first column, which is only
       // `today` for the default anchor.
-      const { start, count } = scheduleGeometry(today, config, scaleWidth);
+      const { start, count } = scheduleGeometry(today, anchor, config, scaleWidth);
       return formatDayRange(start, addDays(start, count - 1), locale);
     },
-    legendWindow({ today, weekStartsOn, config, scaleWidth }) {
-      const { start, count } = scheduleGeometry(today, config, scaleWidth);
+    legendWindow({ today, anchor = today, weekStartsOn, config, scaleWidth }) {
+      const { start, count } = scheduleGeometry(today, anchor, config, scaleWidth);
       return viewDayWindow({ kind: 'days', today, weekStartsOn, start, count });
     },
   },
@@ -102,8 +105,8 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisWeek',
     isTimeGrid: false, isListView: true, isPersonView: false, isSingleDay: false,
     weather: { days: true, events: true },
-    headerTitle: ({ today, locale, config }) => weekRangeTitle(today, weekStartsOnFor(config.startDay), locale),
-    legendWindow: ({ today, weekStartsOn }) => viewDayWindow({ kind: 'week', today, weekStartsOn }),
+    headerTitle: ({ today, anchor = today, locale, config }) => weekRangeTitle(anchor, weekStartsOnFor(config.startDay), locale),
+    legendWindow: ({ today, anchor = today, weekStartsOn }) => viewDayWindow({ kind: 'week', today: anchor, weekStartsOn }),
   },
   'month-grid': {
     icon: Grid3X3,
@@ -111,8 +114,8 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisMonth',
     isTimeGrid: false, isListView: false, isPersonView: false, isSingleDay: false,
     weather: { days: false, events: false },
-    headerTitle: ({ today, locale }) => formatDateSync(today, 'MMMM yyyy', { locale }),
-    legendWindow: ({ today, weekStartsOn }) => viewDayWindow({ kind: 'month-grid', today, weekStartsOn }),
+    headerTitle: ({ today, anchor = today, locale }) => formatDateSync(anchor, 'MMMM yyyy', { locale }),
+    legendWindow: ({ today, anchor = today, weekStartsOn }) => viewDayWindow({ kind: 'month-grid', today: anchor, weekStartsOn }),
   },
   'day-timeline': {
     icon: CalendarClock,
@@ -120,8 +123,8 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsToday',
     isTimeGrid: true, isListView: false, isPersonView: false, isSingleDay: true,
     weather: { days: false, events: false },
-    headerTitle: ({ today, locale }) => fullDateHeading(today, locale),
-    legendWindow: ({ today, weekStartsOn }) => viewDayWindow({ kind: 'days', today, weekStartsOn, count: 1 }),
+    headerTitle: ({ today, anchor = today, locale }) => fullDateHeading(anchor, locale),
+    legendWindow: ({ today, anchor = today, weekStartsOn }) => viewDayWindow({ kind: 'days', today: anchor, weekStartsOn, count: 1 }),
   },
   agenda: {
     icon: ScrollText,
@@ -129,9 +132,12 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noUpcomingEvents',
     isTimeGrid: false, isListView: true, isPersonView: false, isSingleDay: false,
     weather: { days: true, events: true },
-    headerTitle: ({ t }) => t('fullscreen-calendar.headerUpcoming'),
-    legendWindow: ({ today, weekStartsOn, config }) =>
-      viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampAgendaDays(config.agendaDaysAhead) }),
+    // "Upcoming" from today; stepped to other days, the days it lists.
+    headerTitle: ({ today, anchor = today, t, locale, config }) => (anchor.getTime() === today.getTime()
+      ? t('fullscreen-calendar.headerUpcoming')
+      : formatDayRange(anchor, addDays(anchor, clampAgendaDays(config.agendaDaysAhead) - 1), locale)),
+    legendWindow: ({ today, anchor = today, weekStartsOn, config }) =>
+      viewDayWindow({ kind: 'days', today: anchor, weekStartsOn, count: clampAgendaDays(config.agendaDaysAhead) }),
   },
   'family-grid': {
     icon: Users,
@@ -139,8 +145,8 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisWeek',
     isTimeGrid: false, isListView: false, isPersonView: true, isSingleDay: false,
     weather: { days: true, events: false },
-    headerTitle: ({ today, locale, config }) => weekRangeTitle(today, weekStartsOnFor(config.startDay), locale),
-    legendWindow: ({ today, weekStartsOn }) => viewDayWindow({ kind: 'week', today, weekStartsOn }),
+    headerTitle: ({ today, anchor = today, locale, config }) => weekRangeTitle(anchor, weekStartsOnFor(config.startDay), locale),
+    legendWindow: ({ today, anchor = today, weekStartsOn }) => viewDayWindow({ kind: 'week', today: anchor, weekStartsOn }),
   },
   'up-next': {
     icon: Zap,
@@ -169,10 +175,10 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noUpcomingEvents',
     isTimeGrid: false, isListView: false, isPersonView: false, isSingleDay: false,
     weather: { days: false, events: false },
-    headerTitle: ({ today, locale, config }) =>
-      rollingRangeTitle(today, clampRollingWeeks(config.rollingWeeksToShow), locale),
-    legendWindow: ({ today, weekStartsOn, config }) =>
-      viewDayWindow({ kind: 'days', today, weekStartsOn, count: clampRollingWeeks(config.rollingWeeksToShow) * 7 }),
+    headerTitle: ({ today, anchor = today, locale, config }) =>
+      rollingRangeTitle(anchor, clampRollingWeeks(config.rollingWeeksToShow), locale),
+    legendWindow: ({ today, anchor = today, weekStartsOn, config }) =>
+      viewDayWindow({ kind: 'days', today: anchor, weekStartsOn, count: clampRollingWeeks(config.rollingWeeksToShow) * 7 }),
   },
 };
 

@@ -1685,7 +1685,8 @@
         "description": "Hvilke måltider planlægger I derhjemme? Det gælder alle madplan-moduler på alle skærme."
       },
       "weekStart": {
-        "heading": "Ugen starter"
+        "heading": "Ugen starter",
+        "hint": "Gælder kun madplanen. Hvert kalendermodul har sin egen indstilling „Ugen starter“."
       },
       "timeFormat": {
         "heading": "Tidsformat",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet. Virker også for måltider, der er gemt med ingredienser eller noter. Har et måltid et opskriftslink, får det også en kode til at åbne opskriften på en telefon.",
       "tapRecipeActionNoLinkHint": "Et måltid uden opskriftslink viser i stedet sine ingredienser og noter på opskriftskortet.",
       "interactive": "Tryk på displayet",
-      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, gå trin for trin gennem en opskrift, søge i opskriftsbogen og rulle i lange visninger. Slå det fra, hvis displayet ikke er en touchskærm.",
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, gå trin for trin gennem en opskrift, søge i opskriftsbogen, rulle i lange visninger og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm.",
       "mobileHintTail": "så alle måltidsmoduler holdes ens."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet. Virker også for måltider, der er gemt med ingredienser eller noter. Har et måltid et opskriftslink, får det også en kode til at åbne opskriften på en telefon.",
       "tapRecipeActionNoLinkHint": "Et måltid uden opskriftslink viser i stedet sine ingredienser og noter på opskriftskortet.",
       "interactive": "Tryk på displayet",
-      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, åbne opskrifter og rulle i lange lister. Slå det fra, hvis displayet ikke er en touchskærm."
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, åbne opskrifter, rulle i lange lister og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm."
     },
     "moon-phase": {
       "showIllumination": "Vis oplyst i %",

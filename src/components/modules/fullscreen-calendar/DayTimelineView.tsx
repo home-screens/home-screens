@@ -89,16 +89,21 @@ function ZoneBand({
   );
 }
 
-export function DayTimelineView({ events, timezone, config, scale, today, now, timeFormat, owners }: CalendarViewProps) {
+export function DayTimelineView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, owners }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
   const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
-  const isToday = isSameDay(now, today);
+  // The day drawn: today at rest, another day after the look-ahead arrows.
+  const day = anchor;
+  const isToday = isSameDay(now, day);
+  // A day stepped back to is over: all of it dims as a past day does elsewhere.
+  // A day someone stepped back to is read, not faded.
+  const dayIsPast = !stepped && day < today;
   const nowHour = now.getHours() + now.getMinutes() / 60;
   // Fixed configured hours, or a window that follows the clock (see
-  // resolveHourWindow); the view always shows today, so the window has a
+  // resolveHourWindow); at rest the view shows today, so the window has a
   // "now" to follow whenever the clock and the day agree.
   const { hourStart, hourEnd, rolling } = resolveHourWindow({
     mode: config.hourWindow, rollingHours: config.rollingHours,
@@ -122,21 +127,21 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
   // outside the hour range are excluded up front — clamping alone would leave
   // them as degenerate inputs that still occupy an overlap column.
   const { dayEvents, allDayEvs, birthdayEvs, timedEvs, overlapLayout, hiddenStarts, hourSpans } = useMemo(() => {
-    const dayEvents = events.filter(ev => isEventOnDay(ev, today, timezone));
+    const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));
     const allDay = dayEvents.filter(ev => ev.allDay && ev.kind !== 'birthday');
     const birthdays = dayEvents.filter(ev => ev.kind === 'birthday');
     const timed = dayEvents.filter(ev => !ev.allDay);
-    const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(timed, today, hourStart, hourEnd, overlapMode, timezone);
+    const { overlapLayout, hiddenStarts, hourSpans } = computeTimedEventLayout(timed, day, hourStart, hourEnd, overlapMode, timezone);
     return { dayEvents, allDayEvs: allDay, birthdayEvs: birthdays, timedEvs: timed, overlapLayout, hiddenStarts, hourSpans };
-    // `today` is identity-stable until midnight, so this holds across ticks.
-  }, [events, today, hourStart, hourEnd, overlapMode, timezone]);
+    // `day` is identity-stable until midnight, so this holds across ticks.
+  }, [events, day, hourStart, hourEnd, overlapMode, timezone]);
 
   // The view has no day header of its own (the module header names the
   // day), so day-rule badges get a strip above the all-day row and the
   // look applies to the whole view.
-  const decor = dayDecorFor(config, today, dayEvents, { today, now, timezone, isDark: scale.isDark });
+  const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
   const hiddenEarlier = rolling
-    ? timedEvs.filter(ev => eventHoursOnDay(ev, today, timezone).endHour <= hourStart).length
+    ? timedEvs.filter(ev => eventHoursOnDay(ev, day, timezone).endHour <= hourStart).length
     : 0;
 
   return (
@@ -198,7 +203,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
             );
           })}
           {birthdayEvs.map(ev => {
-            const age = birthdayAge(ev.birthYear, today.getFullYear());
+            const age = birthdayAge(ev.birthYear, day.getFullYear());
             const label = age != null ? t('fullscreen-calendar.birthdayWithAge', { age }) : t('fullscreen-calendar.birthday');
             return (
               <div key={ev.id} className="fsc-event-block flex items-center" data-event-id={ev.id} aria-label={eventAriaLabel(t, ev, { allDay: true })} style={{
@@ -287,7 +292,7 @@ export function DayTimelineView({ events, timezone, config, scale, today, now, t
               const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
               const glyph = eventGlyph(ev);
               const owner = eventOwner(ev, owners);
-              const isPast = isToday && evEnd <= nowHour;
+              const isPast = dayIsPast || (isToday && evEnd <= nowHour);
 
               const evStartAt = parseEventWallTime(ev.start, timezone);
               const evStartLabel = formatEventTime(evStartAt, timeFormat, locale);

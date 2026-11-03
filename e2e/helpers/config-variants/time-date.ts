@@ -906,6 +906,9 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     type: 'calendar', name: 'grid-event-pill-background', kind: 'networked', stubKey: 'calendar',
     stubBody: [todayEvent('cgp-a', 'CAL PILLED', { calendarColor: '#3b82f6' })],
     config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored', gridEventPillBackground: true },
+    // Taps are on for a new calendar, so the look-ahead row takes a row's worth of a
+    // six-week grid; at the default size the cells are then too short for a pill.
+    size: ROOMY_GRID_SIZE,
     expect: async (mod) => {
       // The pill is the card's ink at 10% (`ink(0.10)`), which Chromium
       // reports in its color() form; at the default white ink that is the
@@ -921,6 +924,8 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     type: 'calendar', name: 'multi-week-theme-banner', kind: 'networked', stubKey: 'calendar',
     stubBody: [{ id: 'cmt-b', title: 'CAL THEME BANNER', start: localIso(1, 8, 5), end: localIso(1, 9), allDay: false }],
     config: { viewMode: 'multi-week', gridTheme: 'banner', gridEventStyle: 'colored' },
+    // As above: room for the look-ahead row and still a pill per event.
+    size: ROOMY_GRID_SIZE,
     expect: async (mod) => {
       await expect(mod).toContainText('CAL THEME BANNER');
       await expect(mod).toContainText('08:05 AM');
@@ -951,7 +956,8 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     size: ROOMY_GRID_SIZE,
     expect: async (mod) => {
       await expect(mod.locator('[data-grid-theme="clean"]')).toBeVisible();
-      await expect(mod.locator('[data-grid-theme="clean"] > p')).toHaveText(/^[^–]+ 20\d\d$/);
+      // The title sits between the look-ahead arrows on a touch wall.
+      await expect(mod.locator('[data-grid-theme="clean"] p.text-center').first()).toHaveText(/^[^–]+ 20\d\d$/);
       await expect(mod).toContainText('8:05a');
     },
   },

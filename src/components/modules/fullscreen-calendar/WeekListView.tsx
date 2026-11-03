@@ -33,7 +33,7 @@ import { dayNotesFor } from '@/lib/day-notes';
 import { openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import { WallScroller } from '../shared/WallScroller';
 
-export function WeekListView({ events, timezone, config, scale, today, now, timeFormat, weather, failingSourceIds, owners, extras, dayNotes, scroll = false }: CalendarViewProps) {
+export function WeekListView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, weather, failingSourceIds, owners, extras, dayNotes, scroll = false }: CalendarViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
@@ -48,7 +48,9 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
     [t, locale, timeFormat, timezone, scale, fontSize, config, owners],
   );
 
-  const days = useWeekDays(today, weekStartsOnFor(config.startDay));
+  // The week the arrows stepped to (this week at rest); today and the past
+  // are still today's, so a week stepped back dims and collapses as before.
+  const days = useWeekDays(anchor, weekStartsOnFor(config.startDay));
   // Meal rows: the labels and times the week's rows share a column for, and
   // the serving times in the meal settings' own format when they have one.
   const mealLabels = useMemo(() => (extras ? weekMealLabels(extras, days.map(toISODate)) : null), [extras, days]);
@@ -60,7 +62,8 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
 
   function renderDay(day: Date) {
     const isToday = isSameDay(day, today);
-    const isPast = day < today && !isToday;
+    // A week someone stepped back to is read whole, not collapsed or faded.
+    const isPast = !stepped && day < today && !isToday;
     // Middle days of split multi-day events promote to the all-day group.
     const dayEvents = bucketEventsForDay(events, day, timezone);
     const allDayEvs = dayEvents.filter((e) => e.isAllDayRow);
@@ -170,12 +173,14 @@ export function WeekListView({ events, timezone, config, scale, today, now, time
   }
 
   // The whole week is drawn from its first day, as it always has been; on a
-  // touch wall a finger reads past the bottom of the box.
+  // touch wall a finger reads past the bottom of the box, and another week
+  // opens at its top.
   const scroller = {
     enabled: scroll,
     backLabel: t('wallScroll.backToTop'),
     ...wallScrollLook(scale, fontSize),
     frameStyle: { height: '100%' },
+    homeKey: days[0].getTime(),
     testId: 'fsc-week-list-scroll',
   };
 

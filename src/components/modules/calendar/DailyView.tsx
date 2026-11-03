@@ -108,7 +108,7 @@ export function buildDailyRows(
   return rows;
 }
 
-export function DailyView({ events, config, style, today, now, accentColor, eventStyle, dayNotes, scroll = false }: {
+export function DailyView({ events, config, style, today, now, anchor, stepped = false, accentColor, eventStyle, dayNotes, scroll = false }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -116,6 +116,10 @@ export function DailyView({ events, config, style, today, now, accentColor, even
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The day the view draws from (look-ahead); `today` when absent. `today` still marks the real day. */
+  anchor?: Date;
+  /** Stepped to another period (look-ahead): nothing in it is dimmed as past. */
+  stepped?: boolean;
   /** The family's day notes; absent or empty when the Day notes switch is off. */
   dayNotes?: DayNotes;
   /** A finger scrolls the days' events past what fits, and they go back to the top by themselves. */
@@ -130,11 +134,12 @@ export function DailyView({ events, config, style, today, now, accentColor, even
   const showLocation = config.showLocation !== false;
   const showDescription = config.dailyShowDescription === true;
   const emptyDayText = config.emptyDayText?.trim();
-  const dimPastEvents = config.dimPastEvents === true;
+  // Days someone stepped back to on purpose are read, not faded.
+  const dimPastEvents = config.dimPastEvents === true && !stepped;
   const showNowRule = config.showNowRule === true;
 
   const days = Array.from({ length: daysToShow }, (_, i) => {
-    const date = addDays(today, i);
+    const date = addDays(anchor ?? today, i);
     const dayEvents = eventsForDay(events, date, eventStyle.timezone);
     return { date, events: dayEvents };
   });
@@ -147,6 +152,7 @@ export function DailyView({ events, config, style, today, now, accentColor, even
       backLabel={t('wallScroll.backToTop')}
       {...look}
       frameStyle={{ height: '100%' }}
+      homeKey={(anchor ?? today).getTime()}
       testId="calendar-daily-scroll"
     >
     <div className="flex gap-3" style={{ minHeight: '100%' }}>

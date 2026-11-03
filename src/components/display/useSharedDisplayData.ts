@@ -14,6 +14,7 @@ import { deriveWeatherConditions, deriveWeatherAlerts } from '@/lib/weather/deri
 import { getLocation } from '@/lib/location';
 import { isModuleEnabled } from '@/lib/schedule';
 import { getCalendarFetchWindow } from '@/lib/calendar-window';
+import { useLookAheadStore } from '@/stores/look-ahead-store';
 import { buildCalendarUrl, googleCalendarIdList, hasCalendarFeedSources } from '@/lib/calendar-sources';
 import { CALENDAR_STATE_KEY_LIST, deriveCalendarState } from '@/lib/calendar-state';
 import { WEATHER_STATE_KEY_LIST, deriveWeatherState, type WeatherStatePayload } from '@/lib/weather-state';
@@ -197,10 +198,14 @@ export function useSharedDisplayData(
   const hasFeedSources = hasCalendarFeedSources(settings.calendar);
   // Widen the fetch window when a month/week grid view is on some screen;
   // day-boundary based, so the URL stays stable across renders.
+  // A calendar stepped away from now (look-ahead arrows) widens it to all it may show.
+  const lookStart = useLookAheadStore((s) => s.span?.start ?? null);
+  const lookEnd = useLookAheadStore((s) => s.span?.end ?? null);
   const fetchWindow = getCalendarFetchWindow(
     screens,
     createTZDate(settings.timezone),
     settings.calendar.daysAhead ?? DEFAULT_CALENDAR_DAYS_AHEAD,
+    lookStart !== null && lookEnd !== null ? { start: new Date(lookStart), end: new Date(lookEnd) } : null,
   );
   const calendarUrl = buildCalendarUrl(calendarIdList, hasFeedSources, fetchWindow, refreshEpoch);
   // The same sources without the window or the refresh bump: every URL this

@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "La semana empieza en",
       "sunday": "Domingo",
-      "monday": "Lunes"
+      "monday": "Lunes",
+      "hint": "Solo para el menú. Los calendarios de la pared tienen su propio ajuste para el primer día."
     },
     "timeFormat": {
       "heading": "Formato de hora",

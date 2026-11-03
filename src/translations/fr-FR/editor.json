@@ -1685,7 +1685,8 @@
         "description": "Quels repas ton foyer planifie-t-il ? Affecte tous les modules planificateur de repas sur tous les écrans."
       },
       "weekStart": {
-        "heading": "La semaine commence le"
+        "heading": "La semaine commence le",
+        "hint": "Uniquement pour le menu. Chaque module de calendrier a son propre réglage « La semaine commence le »."
       },
       "timeFormat": {
         "heading": "Format de l'heure",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, de suivre une recette étape par étape, de chercher dans le livre de recettes et de faire défiler les longues vues sur un écran tactile. Désactive-le si l'affichage n'est pas tactile.",
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, de suivre une recette étape par étape, de chercher dans le livre de recettes, de faire défiler les longues vues et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile.",
       "mobileHintTail": "pour que tous les modules de repas restent synchronisés."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes et de faire défiler les longues listes sur un écran tactile. Désactive-le si l'affichage n'est pas tactile."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",

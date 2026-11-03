@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, resolveScheduleStart, weekStartsOnFor, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
+import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import { autoScheduleDays, clampStyle, dayCellFill, resolveTodayHighlight, useDayDecors, useDayList } from './view-support';
+import { clampStyle, dayCellFill, resolveTodayHighlight, scheduleColumnCount, scheduleFirstDay, useDayDecors, useDayList } from './view-support';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { EVENT_BLOCK_BASE_ZINDEX } from '@/lib/fullscreen-overlap';
@@ -34,7 +34,7 @@ import { dayNotesFor } from '@/lib/day-notes';
  */
 const dayColumns = (count: number) => `repeat(${count}, minmax(0, 1fr))`;
 
-export function ScheduleView({ events, timezone, config, scale, today, now, timeFormat, weather, owners, dayNotes }: CalendarViewProps) {
+export function ScheduleView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, weather, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const am = t('fullscreen-calendar.am');
@@ -48,19 +48,18 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
   const businessStart = 8;
   const businessEnd = 18;
 
-  const daysToShow = config.scheduleDaysToShow > 0
-    ? config.scheduleDaysToShow
-    : autoScheduleDays(scale.width, config.density);
+  const daysToShow = scheduleColumnCount(config, scale.width);
 
   // First column follows the start anchor: sliding today (default), the
-  // calendar-stable week start, or the upcoming weekend. Anchored modes can
-  // put whole days in the past; they dim via dimPastEvents below so elapsed
-  // days read as intentionally finished rather than broken. `today` is
-  // identity-stable until midnight, so these memos hold across clock ticks.
-  const weekStartsOn = weekStartsOnFor(config.startDay);
+  // calendar-stable week start, or the upcoming weekend, moved by the
+  // look-ahead arrows' days. Anchored modes can put whole days in the past;
+  // they dim via dimPastEvents below so elapsed days read as intentionally
+  // finished rather than broken. `today` and `anchor` are identity-stable
+  // until midnight, so these memos hold across clock ticks.
+  const { scheduleStartAnchor, startDay } = config;
   const scheduleStart = useMemo(
-    () => resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOn),
-    [today, config.scheduleStartAnchor, weekStartsOn],
+    () => scheduleFirstDay(today, anchor, { scheduleStartAnchor, startDay }),
+    [today, anchor, scheduleStartAnchor, startDay],
   );
   const days = useDayList(scheduleStart, daysToShow);
 
@@ -171,7 +170,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
       </div>
 
       {/* All-day events row */}
-      <AllDayRow events={events} timezone={timezone} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} t={t} owners={owners} />
+      <AllDayRow events={events} timezone={timezone} days={days} config={config} scale={scale} gutterWidth={gutterWidth} fontSize={fontSize} today={today} stepped={stepped} t={t} owners={owners} />
 
       {/* Time grid */}
       <div ref={scrollRef} role="grid" aria-label={t('fullscreen-calendar.ariaLabels.scheduleTimeGrid')} style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -217,7 +216,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
             {days.map((day, dayIdx) => {
               const isToday = isSameDay(day, today);
               const isWeekend = isWeekendDay(day);
-              const isPast = day < today && !isToday;
+              const isPast = !stepped && day < today && !isToday;
               const { dayEvents, overlapLayout, hiddenStarts, hourSpans } = dayLayouts[dayIdx];
               const decor = decorByDay[dayIdx];
 
@@ -377,7 +376,7 @@ export function ScheduleView({ events, timezone, config, scale, today, now, time
 
 // ─── All-Day Events Row ───
 
-function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSize, today, t, owners }: {
+function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSize, today, stepped, t, owners }: {
   events: CalendarEvent[];
   owners?: CalendarViewProps['owners'];
   timezone?: string;
@@ -387,6 +386,8 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
   gutterWidth: number;
   fontSize: number;
   today: Date;
+  /** Stepped to other days: nothing is faded as past. */
+  stepped: boolean;
   t: TranslateFn;
 }) {
   const hasAllDay = days.some(day => events.some(ev => ev.allDay && isEventOnDay(ev, day, timezone)));
@@ -425,7 +426,7 @@ function AllDayRow({ events, timezone, days, config, scale, gutterWidth, fontSiz
         {days.map((day) => {
           const dayAllDay = events.filter(ev => ev.allDay && ev.kind !== 'birthday' && isEventOnDay(ev, day, timezone));
           const dayBirthdays = events.filter(ev => ev.kind === 'birthday' && isEventOnDay(ev, day, timezone));
-          const isPast = day < today && !isSameDay(day, today);
+          const isPast = !stepped && day < today && !isSameDay(day, today);
           return (
             <div
               key={day.toISOString()}

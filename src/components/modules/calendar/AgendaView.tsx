@@ -19,7 +19,7 @@ import { NO_DAY_NOTES, dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 
-export function AgendaView({ events, config, style, today, now, accentColor, eventStyle, dayNotes, scroll = false }: {
+export function AgendaView({ events, config, style, today, now, anchor, stepped = false, accentColor, eventStyle, dayNotes, scroll = false }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -27,6 +27,16 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /**
+   * Where a stepped list starts (look-ahead: the first day of another week);
+   * `today` when absent. The module has already dropped what ends before it.
+   */
+  anchor?: Date;
+  /**
+   * Stepped to another week (look-ahead): the list is that week alone, every
+   * day of it ("No events" on an empty one), and nothing is faded as past.
+   */
+  stepped?: boolean;
   /** The family's day notes; absent or empty when the Day notes switch is off. */
   dayNotes?: DayNotes;
   /** A finger scrolls the list past what fits, and it goes back to today by itself. */
@@ -44,7 +54,8 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const timezone = eventStyle.timezone;
 
-  const isFinished = (ev: CalendarEvent) => parseEventWallTime(ev.end, timezone) <= now;
+  // A week someone stepped back to is read, not faded.
+  const isFinished = (ev: CalendarEvent) => !stepped && parseEventWallTime(ev.end, timezone) <= now;
 
   // maxEvents is an upcoming-first budget. A plain ascending slice would let
   // events that already ended today (the earliest starts, present only with
@@ -55,22 +66,32 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   // deliberate policy split, noted on both config types.) Memoized so the
   // budget-and-group pass doesn't rebuild on unrelated re-renders (opening
   // the tap-detail overlay); `now` legitimately re-keys it each tick.
+  const fromMs = (anchor ?? today).getTime();
   const groups = useMemo(() => {
+    const from = new Date(fromMs);
+    // Stepped to another week, the list is that week, in order from its first
+    // day (the module has dropped what ends before it), past weeks included.
+    // Without the bound it ran on under a "Next week" heading into the weeks
+    // after, and a family read a later Saturday as next Saturday.
+    const weekEnd = addDays(from, 7);
     const finishedAt = (ev: CalendarEvent) => parseEventWallTime(ev.end, timezone) <= now;
-    const chronological = [...events].sort((a, b) => compareEventStarts(a.start, b.start, timezone));
+    const inView = stepped ? events.filter((ev) => parseEventWallTime(ev.start, timezone) < weekEnd) : events;
+    const chronological = [...inView].sort((a, b) => compareEventStarts(a.start, b.start, timezone));
     const upcoming = chronological.filter((ev) => !finishedAt(ev)).slice(0, maxEvents);
     const finished = chronological.filter(finishedAt);
-    const sorted = [...finished.slice(Math.max(0, finished.length - (maxEvents - upcoming.length))), ...upcoming]
-      .sort((a, b) => compareEventStarts(a.start, b.start, timezone));
+    const sorted = stepped
+      ? chronological.slice(0, maxEvents)
+      : [...finished.slice(Math.max(0, finished.length - (maxEvents - upcoming.length))), ...upcoming]
+        .sort((a, b) => compareEventStarts(a.start, b.start, timezone));
 
     // Group by day
     const out: { date: Date; events: CalendarEvent[] }[] = [];
     for (const ev of sorted) {
       const evDate = startOfDay(parseEventWallTime(ev.start, timezone));
-      // With showFinishedToday the list starts at today, so an ongoing
-      // multi-day event that started earlier re-homes under Today instead of
-      // anchoring a past-day group above everything else.
-      const groupDate = showFinishedToday && evDate < today ? today : evDate;
+      // With showFinishedToday the list starts at today (a stepped list at its
+      // first day), so an ongoing multi-day event that started earlier
+      // re-homes there instead of anchoring an earlier group above everything else.
+      const groupDate = (showFinishedToday || stepped) && evDate < from ? from : evDate;
       const existing = out.find((g) => isSameDay(g.date, groupDate));
       if (existing) {
         existing.events.push(ev);
@@ -78,19 +99,27 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
         out.push({ date: groupDate, events: [ev] });
       }
     }
-    // A day with a note and no events still gets its heading, from today to
-    // the last day the list reaches (at least a week out, so a quiet calendar
-    // still shows what is coming).
+    // A stepped week names every one of its days, so an empty Saturday says
+    // so instead of the list skipping to the next one.
+    if (stepped) {
+      for (let day = from; day < weekEnd; day = addDays(day, 1)) {
+        if (!out.some((g) => isSameDay(g.date, day))) out.push({ date: day, events: [] });
+      }
+      out.sort((a, b) => a.date.getTime() - b.date.getTime());
+    }
+    // A day with a note and no events still gets its heading, from the list's
+    // first day to the last day it reaches (at least a week out, so a quiet
+    // calendar still shows what is coming).
     if (dayNotes && dayNotes !== NO_DAY_NOTES) {
-      const lastListed = out.length > 0 ? out[out.length - 1].date : today;
-      const end = lastListed > addDays(today, 6) ? lastListed : addDays(today, 6);
-      for (let day = today; day <= end; day = addDays(day, 1)) {
+      const lastListed = out.length > 0 ? out[out.length - 1].date : from;
+      const end = lastListed > addDays(from, 6) ? lastListed : addDays(from, 6);
+      for (let day = from; day <= end; day = addDays(day, 1)) {
         if (dayNotesFor(dayNotes, day).length > 0 && !out.some((g) => isSameDay(g.date, day))) out.push({ date: day, events: [] });
       }
       out.sort((a, b) => a.date.getTime() - b.date.getTime());
     }
     return out;
-  }, [events, now, maxEvents, showFinishedToday, timezone, today, dayNotes]);
+  }, [events, now, maxEvents, showFinishedToday, timezone, fromMs, stepped, dayNotes]);
 
   if (groups.length === 0) {
     return (
@@ -105,10 +134,12 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
   return (
     <WallScroller
       enabled={scroll}
-      backLabel={t('wallScroll.backToToday')}
+      // A stepped list's top is that week's first day, not today.
+      backLabel={t(stepped ? 'wallScroll.backToTop' : 'wallScroll.backToToday')}
       {...look}
       className="flex flex-col gap-3"
       frameStyle={{ height: '100%' }}
+      homeKey={fromMs}
       testId="calendar-agenda-scroll"
     >
       {groups.map(({ date, events: dayEvents }, gi) => {
@@ -145,6 +176,9 @@ export function AgendaView({ events, config, style, today, now, accentColor, eve
             <div className="flex-1 h-px" style={{ backgroundColor: ink(0.1) }} />
           </div>
           <DayNoteLines notes={notes} tone="module" lines={3} style={{ fontSize: '0.82em', padding: '0.35em 0.55em', marginBottom: '0.4em', borderRadius: 5 }} />
+          {stepped && dayEvents.length === 0 && notes.length === 0 && (
+            <p data-testid="calendar-agenda-no-events" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary, fontStyle: 'italic' }}>{t('calendar.noEvents')}</p>
+          )}
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => {
               const start = parseEventWallTime(ev.start, timezone);

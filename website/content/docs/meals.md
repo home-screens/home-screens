@@ -16,6 +16,8 @@ In the editor, drag **Meal Planner** from the **Personal** group onto a screen. 
 
 The planner is empty until you add meals, which you do on a phone or in the editor with **Edit Meal Plan** in the module's settings (**Edit Meal Planner** on the Full-Screen Meal Planner).
 
+On a touchscreen, the week and the list have arrows at the top (or a sideways swipe) to see next week's plan, and back: eight weeks either way, or, while the plan lives in Mealie, three weeks ahead and one back. **Back to this week** comes straight back, and a minute after the last touch the planner slides back to this week on its own. The week your meal plan starts on is its own setting, apart from the calendars'.
+
 {% screenshot name="display-meals" caption="The Full-Screen Meal Planner on the wall." /%}
 
 ## 2. Build a meal library

@@ -1685,7 +1685,8 @@
         "description": "Which meals does your household plan? Affects every meal-planner module across all screens."
       },
       "weekStart": {
-        "heading": "Week Starts On"
+        "heading": "Week Starts On",
+        "hint": "Only for the meal plan. Each calendar module has its own “Week Starts On” setting."
       },
       "timeFormat": {
         "heading": "Time Format",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
       "interactive": "Tap on the Wall",
-      "interactiveHint": "Lets people tick things off the grocery list, step through a recipe, search the recipe book and scroll long views on a touch screen. Turn it off on a display without one.",
+      "interactiveHint": "Lets people tick things off the grocery list, step through a recipe, search the recipe book, scroll long views and look at next week's plan on a touch screen. Turn it off on a display without one.",
       "mobileHintTail": "so every meal module stays in sync."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
       "interactive": "Tap on the Wall",
-      "interactiveHint": "Lets people tick things off the grocery list, open recipes and scroll long lists on a touch screen. Turn it off on a display without one."
+      "interactiveHint": "Lets people tick things off the grocery list, open recipes, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",

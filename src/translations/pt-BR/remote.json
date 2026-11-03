@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "Semana começa em",
       "sunday": "Domingo",
-      "monday": "Segunda-feira"
+      "monday": "Segunda-feira",
+      "hint": "Só para o cardápio. Os calendários da parede têm uma configuração própria para o primeiro dia."
     },
     "timeFormat": {
       "heading": "Formato de hora",

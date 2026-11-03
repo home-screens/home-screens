@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "Week begint op",
       "sunday": "Zondag",
-      "monday": "Maandag"
+      "monday": "Maandag",
+      "hint": "Alleen voor het weekmenu. Kalenders aan de muur hebben hier een eigen instelling voor."
     },
     "timeFormat": {
       "heading": "Tijdformaat",

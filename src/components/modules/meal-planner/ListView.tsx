@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
-import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, getWeekDatesForRange, getWeekRange, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, dateToDayIndex, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
@@ -24,8 +24,12 @@ interface ListViewProps {
   settings: MealSettings;
   /** Effective (already-resolved) serving-time format */
   timeFormat: TimeFormat;
+  /** The plan for `weekDates`. */
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
+  /** The seven days listed: this week, or the week the look-ahead arrows stepped to. */
+  weekDates: string[];
+  /** The real day, marked wherever it is listed. */
   todayISO: string;
   recipeTapMode: RecipeTapMode;
   /** A real display with taps on: a finger scrolls the week, and it goes back to today by itself. */
@@ -43,15 +47,14 @@ const NAME_SIZE = 'max(0.95em, 14px)';
 const SMALL_SIZE = 'max(0.7em, 11px)';
 const DAY_SIZE = 'max(0.85em, 13px)';
 
-export function ListView({ config, settings, timeFormat, plan, savedMeals, todayISO, recipeTapMode, interactive, fontSize }: ListViewProps) {
+export function ListView({ config, settings, timeFormat, plan, savedMeals, weekDates, todayISO, recipeTapMode, interactive, fontSize }: ListViewProps) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
   const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'full'), [formattingLocale]);
-  const weekStartDay = settings.weekStartDay;
-  const { start } = getWeekRange(new Date(todayISO + 'T12:00:00'), weekStartDay);
-  const weekDates = getWeekDatesForRange(start, weekStartDay);
+  // Another week has no today to rest at: it starts at its first day.
+  const showsToday = weekDates.includes(todayISO);
   const slots = settings.enabledSlots;
   const showEmoji = config.showEmoji ?? true;
   // Each row names its meal ("Breakfast") in a column as wide as the longest
@@ -91,8 +94,8 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, today
     <WallScroller
       enabled={interactive}
       home={home}
-      homeKey={todayISO}
-      backLabel={t('wallScroll.backToToday')}
+      homeKey={`${todayISO}|${weekDates[0]}`}
+      backLabel={t(showsToday ? 'wallScroll.backToToday' : 'wallScroll.backToTop')}
       {...look}
       className="pr-1"
       frameStyle={{ height: '100%' }}

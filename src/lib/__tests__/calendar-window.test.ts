@@ -26,6 +26,22 @@ const NOW = new Date(2026, 6, 15, 10, 30, 0);
 const DAYS_AHEAD = 7;
 
 describe('getCalendarFetchWindow', () => {
+  /* A calendar stepped away from now (look-ahead arrows) needs the days it may still show. */
+  it('reaches as far as a stepped calendar may show, in both directions', () => {
+    const week = [makeScreen([makeModule('calendar', { viewMode: 'week' })])];
+    const reach = { start: new Date(2026, 4, 17), end: new Date(2026, 8, 13) };
+    const win = getCalendarFetchWindow(week, NOW, DAYS_AHEAD, reach)!;
+    expect(win.timeMin).toBe(addDays(reach.start, -1).toISOString());
+    expect(win.timeMax).toBe(addDays(reach.end, 1).toISOString());
+    // On its own, an upcoming-only list still gets a window when it is the one stepping.
+    const daily = [makeScreen([makeModule('calendar', { viewMode: 'daily' })])];
+    expect(getCalendarFetchWindow(daily, NOW, DAYS_AHEAD)).toBeNull();
+    expect(getCalendarFetchWindow(daily, NOW, DAYS_AHEAD, reach)).not.toBeNull();
+    // A reach inside the usual window changes nothing.
+    const inside = { start: startOfWeek(NOW), end: addDays(startOfWeek(NOW), 7) };
+    expect(getCalendarFetchWindow(week, NOW, DAYS_AHEAD, inside)).toEqual(getCalendarFetchWindow(week, NOW, DAYS_AHEAD));
+  });
+
   it('returns null when no calendar modules are present', () => {
     const screens = [makeScreen([makeModule('clock', {}), makeModule('weather', {})])];
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();

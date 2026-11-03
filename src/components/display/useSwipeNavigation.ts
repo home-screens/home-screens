@@ -61,7 +61,11 @@ interface UseSwipeNavigationOptions {
  * - `[data-swipe-ignore]` containers: the opt-out for horizontal scroll
  *   surfaces (chore-board member columns, target-picker chips), where a drag
  *   that Chromium doesn't convert into a scroll (content happens to fit)
- *   would otherwise navigate away mid-use.
+ *   would otherwise navigate away mid-use;
+ * - `[data-swipe-owner]` modules: a calendar or meal planner with look-ahead
+ *   arrows, whose own sideways swipe steps its week (`useLookAhead`). Unlike
+ *   `data-swipe-ignore` it keeps `touch-action: pan-y`, so the swipe still
+ *   arrives as pointer events and its lists still scroll.
  * Everything else stays unexcluded — vertical scrolls abort via
  * pointercancel, and taps stay taps.
  */
@@ -96,7 +100,7 @@ export function useSwipeNavigation({ enabled, onSwipeLeft, onSwipeRight }: UseSw
       // Surfaces that own horizontal drags (sliders, sideways-scroll
       // containers) opt out of gesture tracking entirely — see docblock.
       if (e.target instanceof Element
-        && e.target.closest('input[type="range"], [data-swipe-ignore]')) {
+        && e.target.closest('input[type="range"], [data-swipe-ignore], [data-swipe-owner]')) {
         startRef.current = null;
         return;
       }

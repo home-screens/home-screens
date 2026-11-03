@@ -456,6 +456,7 @@
     "noMealsPlanned": "Nenhuma refeição planejada",
     "noMealPlanned": "Nenhuma refeição planejada",
     "nothingPlannedThisWeek": "Nada planejado esta semana",
+    "nothingPlannedThatWeek": "Nada planejado para essa semana ainda",
     "todaysMeals": "Refeições de hoje",
     "tomorrowsMeals": "Refeições de amanhã",
     "now": "Agora",
@@ -557,6 +558,74 @@
     "backToToday": "Voltar para hoje",
     "backToNow": "Voltar ao presente",
     "backToTop": "Voltar ao topo"
+  },
+  "lookAhead": {
+    "thisWeek": "Esta semana",
+    "nextWeek": "Semana que vem",
+    "inWeeks": {
+      "one": "Daqui a {count} semana",
+      "other": "Daqui a {count} semanas"
+    },
+    "lastWeek": "Semana passada",
+    "weeksAgo": {
+      "one": "Há {count} semana",
+      "other": "Há {count} semanas"
+    },
+    "today": "Hoje",
+    "tomorrow": "Amanhã",
+    "yesterday": "Ontem",
+    "inDays": {
+      "one": "Daqui a {count} dia",
+      "other": "Daqui a {count} dias"
+    },
+    "daysAgo": {
+      "one": "Há {count} dia",
+      "other": "Há {count} dias"
+    },
+    "thisMonth": "Este mês",
+    "nextMonth": "Mês que vem",
+    "lastMonth": "Mês passado",
+    "inMonths": {
+      "one": "Daqui a {count} mês",
+      "other": "Daqui a {count} meses"
+    },
+    "monthsAgo": {
+      "one": "Há {count} mês",
+      "other": "Há {count} meses"
+    },
+    "homeWeek": "Voltar para esta semana",
+    "homeMonth": "Voltar para este mês",
+    "homeToday": "Voltar para hoje",
+    "earlier": "Anterior",
+    "later": "Próximo",
+    "limitAhead": {
+      "week": {
+        "one": "Até {count} semana à frente",
+        "other": "Até {count} semanas à frente"
+      },
+      "month": {
+        "one": "Até {count} mês à frente",
+        "other": "Até {count} meses à frente"
+      },
+      "day": {
+        "one": "Até {count} dia à frente",
+        "other": "Até {count} dias à frente"
+      }
+    },
+    "limitBack": {
+      "week": {
+        "one": "Até {count} semana atrás",
+        "other": "Até {count} semanas atrás"
+      },
+      "month": {
+        "one": "Até {count} mês atrás",
+        "other": "Até {count} meses atrás"
+      },
+      "day": {
+        "one": "Até {count} dia atrás",
+        "other": "Até {count} dias atrás"
+      }
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Refeições da semana",

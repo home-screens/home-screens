@@ -19,7 +19,7 @@ import { dayNotesFor } from '@/lib/day-notes';
 import { dayGridFontSize } from '@/lib/day-grid-type';
 import { openDayCellProps, useDaySheetOpener } from '../shared/useDaySheet';
 
-export function MonthGridView({ events, timezone, config, scale, today, now, owners, dayNotes }: CalendarViewProps) {
+export function MonthGridView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const showWeekNumbers = config.monthShowWeekNumbers;
@@ -30,9 +30,10 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
   const { scrollRef, containerH } = useContainerHeight();
   const openDay = useDaySheetOpener();
 
+  // The month the arrows stepped to (this month at rest).
   const { cells, weekCount } = useMemo(() => {
-    const monthStart = startOfMonth(today);
-    const monthEnd = endOfMonth(today);
+    const monthStart = startOfMonth(anchor);
+    const monthEnd = endOfMonth(anchor);
     const gridStart = startOfWeek(monthStart, { weekStartsOn });
     const gridEnd = endOfWeek(monthEnd, { weekStartsOn });
 
@@ -43,8 +44,8 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
       cursor = addDays(cursor, 1);
     }
     return { cells: result, weekCount: Math.ceil(result.length / 7) };
-    // `today` is identity-stable until midnight, so this holds across ticks.
-  }, [today, weekStartsOn]);
+    // `anchor` is identity-stable until midnight, so this holds across ticks.
+  }, [anchor, weekStartsOn]);
 
   // The grid's type follows its cells (dayGridFontSize). The cell is read off
   // the module's size, not the measured grid, so the weekday row this sizes
@@ -63,7 +64,7 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
   );
 
   return (
-    <div role="grid" aria-label={formatDateSync(today, 'MMMM yyyy', { locale })} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div role="grid" aria-label={formatDateSync(anchor, 'MMMM yyyy', { locale })} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Day-of-week header */}
       <div role="row" style={{
         display: 'grid',
@@ -98,8 +99,10 @@ export function MonthGridView({ events, timezone, config, scale, today, now, own
         {cells.map((day, i) => {
           const dow = i % 7;
           const isToday = isSameDay(day, today);
-          const isCurrentMonth = isSameMonth(day, today);
-          const isPastDay = isCurrentMonth && day < today;
+          // The month drawn; the past is still before the real today.
+          const isCurrentMonth = isSameMonth(day, anchor);
+          // A month someone stepped back to is read, not faded.
+          const isPastDay = !stepped && isCurrentMonth && day < today;
           // Sat/Sun columns: the last two when the week starts Monday,
           // the outer two when it starts Sunday
           const isWeekend = weekStartsOn === 1 ? dow >= 5 : (dow === 0 || dow === 6);

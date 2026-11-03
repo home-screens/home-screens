@@ -161,6 +161,8 @@ export function getCalendarFetchWindow(
   screens: Screen[],
   now: Date,
   daysAhead: number,
+  /** The days a calendar stepped away from now may show (`useLookAheadStore`), or null. */
+  lookAhead: { start: Date; end: Date } | null = null,
 ): CalendarFetchWindow | null {
   let earliest: Date | null = null;
   let latest: Date | null = null;
@@ -173,6 +175,10 @@ export function getCalendarFetchWindow(
       if (!earliest || win.start < earliest) earliest = win.start;
       if (win.end && (!latest || win.end > latest)) latest = win.end;
     }
+  }
+  if (lookAhead) {
+    if (!earliest || lookAhead.start < earliest) earliest = lookAhead.start;
+    if (!latest || lookAhead.end > latest) latest = lookAhead.end;
   }
 
   if (!earliest) return null;

@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "La semaine commence le",
       "sunday": "Dimanche",
-      "monday": "Lundi"
+      "monday": "Lundi",
+      "hint": "Uniquement pour le menu. Les calendriers du mur ont leur propre réglage pour le premier jour de la semaine."
     },
     "timeFormat": {
       "heading": "Format de l'heure",

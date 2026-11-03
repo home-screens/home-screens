@@ -2,9 +2,9 @@
 
 import type { EventOwner } from '@/lib/calendar-people';
 import { useMemo, type CSSProperties } from 'react';
-import { addDays, startOfWeek } from 'date-fns';
+import { addDays, differenceInCalendarDays, startOfWeek } from 'date-fns';
 import { NO_DECOR, dayDecorFor, rulesNeedNow, type DayDecor } from '@/lib/calendar-rules';
-import { isEventOnDay } from '@/lib/calendar-utils';
+import { isEventOnDay, resolveScheduleStart, weekStartsOnFor } from '@/lib/calendar-utils';
 import type { TranslateFn } from '@/i18n';
 import type { HourlyIndex } from './event-weather';
 import type { ForecastDay } from '@/lib/weather/types';
@@ -56,6 +56,17 @@ export interface CalendarViewProps {
   config: FullscreenCalendarConfig;
   scale: CalendarScale;
   today: Date;
+  /**
+   * The day the view draws from: `today` at rest (or absent), another week,
+   * month or run of days after a tap on the look-ahead arrows. `today` still
+   * marks the real day: the today highlight, past dimming and collapsing.
+   */
+  anchor?: Date;
+  /**
+   * Stepped to another period with the look-ahead arrows: someone chose to
+   * look, so nothing in it is dimmed or collapsed as past.
+   */
+  stepped?: boolean;
   now: Date;
   /** The household's 12/24-hour clock, resolved by the module. */
   timeFormat: TimeFormat;
@@ -101,6 +112,29 @@ export function autoScheduleDays(width: number, density: string): number {
   const scaledMin = minColWidth * (Math.min(width, 1080) / 1080);
   const gutterWidth = 50;
   return Math.min(7, Math.max(1, Math.floor((width - gutterWidth) / scaledMin)));
+}
+
+/** The schedule's column count: the configured days, or as many as fit the module's width. */
+export function scheduleColumnCount(config: Pick<FullscreenCalendarConfig, 'scheduleDaysToShow' | 'density'>, width: number): number {
+  return config.scheduleDaysToShow > 0 ? config.scheduleDaysToShow : autoScheduleDays(width, config.density);
+}
+
+/**
+ * The schedule's first column: where its start setting puts it for `today`
+ * (today, the week's first day, or the coming weekend), moved by the days
+ * the look-ahead arrows moved `anchor` from `today`. Moving the resolved
+ * start keeps a three-column board paging three days at a time, where
+ * resolving the setting again at the moved day would snap back to the
+ * week's first day.
+ */
+export function scheduleFirstDay(
+  today: Date,
+  anchor: Date,
+  config: Pick<FullscreenCalendarConfig, 'scheduleStartAnchor' | 'startDay'>,
+): Date {
+  const start = resolveScheduleStart(today, config.scheduleStartAnchor, weekStartsOnFor(config.startDay));
+  const moved = differenceInCalendarDays(anchor, today);
+  return moved === 0 ? start : addDays(start, moved);
 }
 
 // Day-rule decor now lives with the rules engine so both calendar modules

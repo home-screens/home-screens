@@ -854,6 +854,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|mealsTab.library.filters.comfort',
     'modules|meal-planner.recipeBook.filters.comfort',
     'remote|mealsTab.subNav.plan',
+    // "Later" is the Dutch word too (the look-ahead arrow's name).
+    'modules|lookAhead.later',
     // "Week" is the Dutch word too (the Meals tab's week view).
     'remote|mealsTab.subNav.week',
     'remote|rewardsView.ticketCountPlural',

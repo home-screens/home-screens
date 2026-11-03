@@ -106,6 +106,8 @@ Each calendar module has a **Day notes** switch under **What shows**, on unless 
 
 With **Tap an event to see details** on (it is on for new calendar modules), tapping an event opens its time, place and notes. On a busy day the grid views show **+N more**: tap it, or the day itself, and every event that day opens in a list, each one tappable for its details. Lists that hold more than fits, like the agenda, scroll with a finger and slide back to today on their own a minute after the last touch. With the setting off, the calendar is just a picture, the way a wall without a touchscreen shows it.
 
+The same setting puts two arrows at the top of the calendar to look ahead: **›** shows next week (next month on a month, the next few days on a view that shows a few days), and **‹** goes back. A sideways swipe on the calendar does the same, instead of changing screens. While you look, the top says which week it is ("Next week, November 8 – 14") and **Back to this week** comes straight back. A minute after the last touch anywhere on the screen, the calendar slides back to this week on its own, and the screen does not move on while someone is looking. A week you step back to is shown whole, not faded. The arrows reach eight weeks either way, or two months back and six ahead on a month; tap past the end and the calendar says how far it goes. The views about right now, Up next and Free time, have no arrows.
+
 ## API keys {% #api-keys %}
 
 Most of Home Screens needs no key at all. Keys that are needed live on **Settings > API keys**, one card per service, each showing whether it is set up. The two exceptions: weather keys go on the service's card under [Settings > Weather](/docs/weather), and the iCloud sign-in lives here on the Calendar page.

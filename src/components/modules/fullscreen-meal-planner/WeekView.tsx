@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
-import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, getWeekDatesForRange, getWeekRange, formatMealTime, resolvePlannedMealTime, formatShortDayMonth, fromISODate, weekPlannedSlots } from '@/lib/meal-constants';
+import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime, formatShortDayMonth, fromISODate, weekPlannedSlots } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, formatDayRange } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { px, wallScrollLook } from './meal-planner-utils';
@@ -11,6 +11,15 @@ import FamilyEmptyState from '../FamilyEmptyState';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseNames } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
+import type { LookAhead } from '../shared/useLookAhead';
+import { LookAheadButtons, useLookAheadLimitWords, useLookAheadWords } from '../shared/LookAhead';
+
+interface WeekViewProps extends MealPlannerViewProps {
+  /** The seven days drawn: this week, or the week the look-ahead arrows stepped to. `plan` is theirs. */
+  weekDates: string[];
+  /** The look-ahead arrows, drawn in the heading on a touch wall. */
+  look: LookAhead;
+}
 
 /**
  * The week as one row per day and a card per meal, sized for reading across
@@ -25,17 +34,22 @@ import { useMealMinutes } from '../shared/useMealMinutes';
  */
 export default function WeekView({
   settings, timeFormat, savedMeals, plan, now, slots, activeSlot, s, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
-}: MealPlannerViewProps) {
+  weekDates, look,
+}: WeekViewProps) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
+  const lookWords = useLookAheadWords(look);
+  const limitWords = useLookAheadLimitWords(look);
+  // Beside the title: the stepped week in words, or a moment after a tap past
+  // the end, how far the wall goes.
+  const tagText = limitWords ?? (look.away ? lookWords : null);
   const P = (n: number) => px(s, n);
   const dayNamesShort = useMemo(() => getLocalizedDayNames(locale, 'short'), [locale]);
-  const weekStartDay = settings.weekStartDay;
-  const { start } = getWeekRange(now, weekStartDay);
-  const weekDates = getWeekDatesForRange(start, weekStartDay);
   const todayISO = toISODate(now);
+  // Another week has no today to rest at: it starts at its top.
+  const showsToday = weekDates.includes(todayISO);
 
   // In the language's own order, as the calendar heads its week:
   // "October 26 – November 1, 2026", "26. Oktober – 1. November 2026".
@@ -53,6 +67,26 @@ export default function WeekView({
   const weekEmpty = usedSlots.length === 0;
   const total = weekDates.length * usedSlots.length;
   const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+
+  const titleStyle: React.CSSProperties = { fontFamily: headerFont, fontSize: P(56), fontWeight: 400, lineHeight: 1, color: 'var(--fmp-text)', letterSpacing: '-0.01em' };
+  const datesStyle: React.CSSProperties = { fontSize: P(24), color: 'var(--fmp-text-3)', marginTop: showTitle ? P(10) : 0 };
+  // The stepped-to week's dates as a title: no year, which a few weeks either way never needs.
+  const shortRange = look.away ? formatDayRange(fromISODate(weekDates[0]), fromISODate(weekDates[6]), locale, { year: false }) : '';
+  // "Next week", "In 2 weeks", "Last week": tagged as this view tags today.
+  const weekTag = (
+    <span
+      data-testid={limitWords ? 'look-ahead-limit' : 'look-ahead-words'}
+      role={limitWords ? 'status' : undefined}
+      style={{
+        fontSize: P(20), fontWeight: 700, lineHeight: 1.2, color: 'var(--fmp-accent)',
+        background: 'color-mix(in srgb, var(--fmp-accent) 12%, transparent)',
+        padding: `${P(4)}px ${P(12)}px`, borderRadius: P(6),
+        textTransform: limitWords ? undefined : 'uppercase', letterSpacing: limitWords ? undefined : '0.08em', whiteSpace: 'nowrap', flexShrink: 0,
+      }}
+    >
+      {tagText}
+    </span>
+  );
 
   const isPast = (date: string) => date < todayISO;
   const pictureSize = P(landscape ? 76 : 84);
@@ -273,23 +307,57 @@ export default function WeekView({
       padding: `${P(44)}px ${P(36)}px ${P(32)}px`,
     }}>
       {/* Header */}
-      <div style={{ flexShrink: 0, marginBottom: P(18) }}>
-        {showTitle && (
-          <div style={{ fontFamily: headerFont, fontSize: P(56), fontWeight: 400, lineHeight: 1, color: 'var(--fmp-text)', letterSpacing: '-0.01em' }}>
-            {t('fullscreen-meal-planner.thisWeeksMeals')}
+      {look.on ? (
+        // On a touch wall the arrows stand at the heading's end. Stepped to
+        // another week, "This Week's Meals" would be wrong, so the title
+        // says that week's dates instead, with the week in words as a tag.
+        <div
+          data-testid="look-ahead-bar"
+          data-offset={look.offset}
+          style={{ flexShrink: 0, marginBottom: P(18), display: 'flex', alignItems: 'center', gap: P(16) }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {showTitle && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: P(14), rowGap: P(8) }}>
+                <div data-testid="fmp-week-title" style={{ ...titleStyle, textWrap: 'balance' }}>
+                  {look.away ? shortRange : t('fullscreen-meal-planner.thisWeeksMeals')}
+                </div>
+                {tagText && weekTag}
+              </div>
+            )}
+            {!(showTitle && look.away) && (
+              <div style={{ ...datesStyle, display: 'flex', flexWrap: 'wrap', alignItems: 'center', columnGap: P(14), rowGap: P(8) }}>
+                <span data-testid="fmp-week-dates">{dateRange}</span>
+                {tagText && !showTitle && weekTag}
+              </div>
+            )}
           </div>
-        )}
-        <div style={{ fontSize: P(24), color: 'var(--fmp-text-3)', marginTop: showTitle ? P(10) : 0 }}>
-          {dateRange}
+          {/* The way back is about a dish name's size, the arrows finger-sized at any scale. */}
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: P(12), fontSize: P(24) }}>
+            <LookAheadButtons look={look} tone="meal" accent="var(--fmp-accent)" onAccent="var(--fmp-on-accent)" size={`max(44px, ${P(60)}px)`} />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ flexShrink: 0, marginBottom: P(18) }}>
+          {showTitle && (
+            <div style={titleStyle}>
+              {t('fullscreen-meal-planner.thisWeeksMeals')}
+            </div>
+          )}
+          <div style={datesStyle}>
+            {dateRange}
+          </div>
+        </div>
+      )}
 
       {weekEmpty && (
         <div data-testid="fmp-week-empty" style={{ flex: 1, display: 'flex', color: 'var(--fmp-text-2)' }}>
           <FamilyEmptyState
             icon={<>&#127869;</>}
-            title={t('meal-planner.nothingPlannedThisWeek')}
-            hint={t('meal-planner.planFromPhoneHint')}
+            // Another week with nothing planned is just that, not a wall
+            // waiting to be set up: no "plan from a phone" hint.
+            title={t(showsToday ? 'meal-planner.nothingPlannedThisWeek' : 'meal-planner.nothingPlannedThatWeek')}
+            hint={showsToday ? t('meal-planner.planFromPhoneHint') : undefined}
             fontSize={P(44)}
           />
         </div>
@@ -300,8 +368,8 @@ export default function WeekView({
         <WallScroller
           enabled
           home={home}
-          homeKey={todayISO}
-          backLabel={t('wallScroll.backToToday')}
+          homeKey={`${todayISO}|${weekDates[0]}`}
+          backLabel={t(showsToday ? 'wallScroll.backToToday' : 'wallScroll.backToTop')}
           {...wallScrollLook(s)}
           testId="fmp-week-scroll"
         >

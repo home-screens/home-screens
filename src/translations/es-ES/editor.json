@@ -1685,7 +1685,8 @@
         "description": "¿Qué comidas planifica tu hogar? Afecta a todos los módulos de planificador de comidas en cualquier pantalla."
       },
       "weekStart": {
-        "heading": "La semana empieza en"
+        "heading": "La semana empieza en",
+        "hint": "Solo para el menú. Cada módulo de calendario tiene su propio ajuste «La semana empieza el»."
       },
       "timeFormat": {
         "heading": "Formato de hora",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, seguir una receta paso a paso, buscar en el recetario y desplazar las vistas largas en un display táctil. Desactívalo si el display no es táctil.",
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, seguir una receta paso a paso, buscar en el recetario, desplazar las vistas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil.",
       "mobileHintTail": "para que todos los módulos de comidas sigan sincronizados."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas y desplazar las listas largas en un display táctil. Desactívalo si el display no es táctil."
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminación",

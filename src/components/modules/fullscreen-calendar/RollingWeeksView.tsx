@@ -18,12 +18,14 @@ import { openDayCellProps, useDaySheetOpener } from '../shared/useDaySheet';
 
 /**
  * Rolling weeks: the next n weeks (1-8) as a 7-column grid whose top-left
- * cell is always today. Rows are today-anchored, not week-anchored, so the
+ * cell is today at rest. Rows are today-anchored, not week-anchored, so the
  * weekday columns rotate one step left at each midnight; weekend shading is
- * derived from each date (not the column), no past or out-of-month days
- * exist, and the 1st of each month crossed renders "MMM d".
+ * derived from each date (not the column), no out-of-month days exist, and
+ * the 1st of each month crossed renders "MMM d". The look-ahead arrows move
+ * the whole window a week; stepped back, the days before today dim as the
+ * month grid's do.
  */
-export function RollingWeeksView({ events, timezone, config, scale, today, now, owners, dayNotes }: CalendarViewProps) {
+export function RollingWeeksView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, owners, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
@@ -40,9 +42,9 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
   const openDay = useDaySheetOpener();
 
   const cells = useMemo(
-    () => Array.from({ length: weeks * 7 }, (_, i) => addDays(startOfDay(today), i)),
-    // `today` is identity-stable until midnight, so this holds across ticks.
-    [today, weeks],
+    () => Array.from({ length: weeks * 7 }, (_, i) => addDays(startOfDay(anchor), i)),
+    // `anchor` is identity-stable until midnight, so this holds across ticks.
+    [anchor, weeks],
   );
   // Header labels come from row 1: columns are stable within a day and the
   // grid re-anchors at midnight.
@@ -55,7 +57,7 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
   const autoMax = (noteHeight: number) => Math.max(2, Math.floor((approxCellHeight - fontSize * 2 - noteHeight) / pillHeight));
 
   return (
-    <div role="grid" aria-label={rollingRangeTitle(today, weeks, locale)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div role="grid" aria-label={rollingRangeTitle(anchor, weeks, locale)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div role="row" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(7, 1fr)',
@@ -109,6 +111,7 @@ export function RollingWeeksView({ events, timezone, config, scale, today, now, 
                 padding: scale.bu * 0.3,
                 position: 'relative',
                 overflow: 'hidden',
+                opacity: !stepped && day < today && config.dimPastEvents ? 'var(--cal-past-opacity)' : undefined,
                 background: dayCellFill(isToday, showTodayBg, isWeekend, config)
                   ?? (hasBirthday
                     // Cell-level "a birthday is here" signal, not any one

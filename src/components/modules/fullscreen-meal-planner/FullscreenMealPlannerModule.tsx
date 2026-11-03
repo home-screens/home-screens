@@ -10,7 +10,8 @@ import { useAuthImageState } from '@/components/display/useAuthImage';
 import MealPhotoBackdrop from './MealPhotoBackdrop';
 import type { FullscreenMealPlannerConfig, SavedMeal } from '@/types/config';
 import type { ModuleStyle } from '@/types/config';
-import { DEFAULT_ACCENT_COLOR, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, resolveMealWithEntry, getNextPlannedMeal, currentMealSlot, mealDayLead, fromISODate, toISODate } from '@/lib/meal-constants';
+import { mealLookAhead } from '@/lib/look-ahead';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import WeekView from './WeekView';
 import TodayView from './TodayView';
@@ -20,7 +21,8 @@ import RecipeView from './RecipeView';
 import GroceryView from './GroceryView';
 import RecipeBookView from './RecipeBookView';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
-import { useWallMeals } from '../shared/useWallMeals';
+import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
+import { useLookAhead } from '../shared/useLookAhead';
 import { useWallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
 import { recipeBookSource } from '@/lib/meal-recipe-book';
 import { UI_SANS_STACK } from '@/lib/font-registry';
@@ -55,6 +57,10 @@ export default function FullscreenMealPlannerModule({
     data, error, now, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan, plan,
     mealie, grocery, interactive, recipeTapMode, recipeContext,
   } = useWallMeals({ moduleType: 'fullscreen-meal-planner', view, timezone, theme: config.theme ?? fullscreenTheme, config, screenId, moduleId });
+  // The Week view steps a week at a time on a touch wall and draws the week
+  // stepped to; today's meal and every other view stay on this week.
+  const look = useLookAhead({ step: mealLookAhead(view, mealie.state !== 'local'), enabled: interactive, today: fromISODate(todayISO) });
+  const shownWeek = useMealWeek(fullPlan, toISODate(look.anchor), settings.weekStartDay);
   // The recipe book is Mealie's recipes whenever Mealie is connected, else the saved meals with a recipe.
   const book = useWallRecipeBook({
     source: recipeBookSource(data?.mealieConnected ?? false),
@@ -114,8 +120,8 @@ export default function FullscreenMealPlannerModule({
     if (view === 'recipe' || view === 'grocery' || view === 'recipes') {
       // These fit, page or scroll themselves inside the box; they never overflow the stack.
     } else if (view === 'week') {
-      for (const entry of plan) {
-        const { meal, name, courses, notes } = resolveMealWithEntry(entry.date, entry.slot, plan, savedMeals);
+      for (const entry of shownWeek.plan) {
+        const { meal, name, courses, notes } = resolveMealWithEntry(entry.date, entry.slot, shownWeek.plan, savedMeals);
         tally(name, meal, courses, notes);
       }
     } else if (view === 'next-meal') {
@@ -134,7 +140,7 @@ export default function FullscreenMealPlannerModule({
       }
     }
     return { mealCount: count, textLength: length };
-  }, [view, todayISO, nowMinutes, fullPlan, plan, savedMeals, slots, defaultTimes, next]);
+  }, [view, todayISO, nowMinutes, fullPlan, plan, shownWeek, savedMeals, slots, defaultTimes, next]);
 
   // Next Meal over the dish's photo: the backdrop and the light text only
   // once the photo is in, never light text on the theme's own background.
@@ -147,6 +153,8 @@ export default function FullscreenMealPlannerModule({
     view, config.typographySize, config.density, dims.w, dims.h,
     config.showEmoji, config.showPrepTime, config.showTags, config.showDifficulty, config.showTitle,
     slots.length, mealCount, textLength,
+    // Another week has its own meals, and the heading changes with it.
+    shownWeek.weekDates[0],
     // The backdrop takes the big picture out of the stack, which frees room.
     !!backdropUrl,
   ], view !== 'recipes'); // The recipe book scrolls; shrinking it to fit would only make it unreadable.
@@ -202,6 +210,8 @@ export default function FullscreenMealPlannerModule({
         colorScheme: theme.isDark ? 'dark' : 'light',
         ...cssVars,
       } as React.CSSProperties}
+      // While stepped to another week, a touch means someone is reading it: the minute starts again.
+      {...look.rootProps}
     >
       <style>{`
         .fmp-root {
@@ -255,7 +265,7 @@ export default function FullscreenMealPlannerModule({
           }}
         >
           <MealRecipeContext.Provider value={recipeContext}>
-          {view === 'week' && <WeekView {...viewProps} />}
+          {view === 'week' && <WeekView {...viewProps} plan={shownWeek.plan} weekDates={shownWeek.weekDates} look={look} />}
           {/* The whole plan: late in the evening Today shows tomorrow, which
               can be in next week. */}
           {view === 'today' && <TodayView {...viewProps} plan={fullPlan} />}

@@ -520,7 +520,8 @@
     "weekStart": {
       "heading": "Woche beginnt am",
       "sunday": "Sonntag",
-      "monday": "Montag"
+      "monday": "Montag",
+      "hint": "Gilt nur für den Essensplan. Kalender an der Wand haben dafür eine eigene Einstellung."
     },
     "timeFormat": {
       "heading": "Zeitformat",

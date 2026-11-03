@@ -1,8 +1,10 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import type { MealPlannerConfig, ModuleStyle } from '@/types/config';
-import { planHasDrawnMeal, weekPlannedSlots } from '@/lib/meal-constants';
-import { useTranslate } from '@/i18n';
+import { DEFAULT_ACCENT_COLOR, fromISODate, planHasDrawnMeal, toISODate, weekPlannedSlots } from '@/lib/meal-constants';
+import { mealLookAhead } from '@/lib/look-ahead';
+import { formatDayRange, useFormattingLocale, useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
 import FamilyEmptyState from '../FamilyEmptyState';
 import { ModuleLoadingState } from '../ModuleStates';
@@ -15,7 +17,9 @@ import { GroceryView } from './GroceryView';
 import { RecipesView } from './RecipesView';
 import { mealieWords } from '../shared/mealie-problem';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
-import { useWallMeals } from '../shared/useWallMeals';
+import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
+import { useLookAhead } from '../shared/useLookAhead';
+import { LookAheadBar } from '../shared/LookAhead';
 import { useWallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
 import { recipeBookSource } from '@/lib/meal-recipe-book';
 
@@ -31,11 +35,17 @@ interface MealPlannerModuleProps {
 
 export default function MealPlannerModule({ config, style, timezone, fullscreenTheme, screenId, moduleId }: MealPlannerModuleProps) {
   const t = useTranslate('modules');
+  const locale = useFormattingLocale();
   const view = config.view ?? 'week';
   const {
-    data, error, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan, weekDates, plan,
+    data, error, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan,
     mealie, grocery, interactive, recipeTapMode, recipeContext,
   } = useWallMeals({ moduleType: 'meal-planner', view, timezone, theme: fullscreenTheme, config, screenId, moduleId });
+  // The Week and List views step a week at a time on a touch wall (the
+  // arrows show where taps are on, as the finger scrolling does). They draw
+  // the week stepped to; `todayISO` still marks the real day.
+  const look = useLookAhead({ step: mealLookAhead(view, mealie.state !== 'local'), enabled: interactive, today: fromISODate(todayISO) });
+  const { weekDates, plan } = useMealWeek(fullPlan, toISODate(look.anchor), settings.weekStartDay);
   const book = useWallRecipeBook({
     source: recipeBookSource(data?.mealieConnected ?? false),
     savedMeals,
@@ -91,14 +101,33 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
     );
   }
 
+  // With the arrows on, the Week and List views get a heading row naming the
+  // week shown, its dates and the arrows. It heads the empty state too, so a
+  // week with nothing planned can still step to one that has meals.
+  const withArrows = (body: ReactNode) => {
+    if (!look.on) return body;
+    const dates = formatDayRange(fromISODate(weekDates[0]), fromISODate(weekDates[6]), locale, { year: false });
+    const shortDates = formatDayRange(fromISODate(weekDates[0]), fromISODate(weekDates[6]), locale, { month: 'short', year: false });
+    return (
+      <div className="h-full flex flex-col" {...look.rootProps}>
+        <LookAheadBar look={look} dates={dates} shortDates={shortDates} accent={config.accentColor || DEFAULT_ACCENT_COLOR} />
+        <div className="flex-1 min-h-0">{body}</div>
+      </div>
+    );
+  };
+
   if (!hasMeals) {
     return (
       <ModuleWrapper style={style}>
-        <FamilyEmptyState
-          icon={<>&#127869;</>}
-          title={t('meal-planner.noMealsPlannedYet')}
-          hint={t('meal-planner.planFromPhoneHint')}
-        />
+        {withArrows(
+          // Another week with nothing planned is just that, not a wall waiting
+          // to be set up: no "plan from a phone" hint with the hub's address.
+          <FamilyEmptyState
+            icon={<>&#127869;</>}
+            title={t(look.away ? 'meal-planner.nothingPlannedThatWeek' : 'meal-planner.noMealsPlannedYet')}
+            hint={look.away ? undefined : t('meal-planner.planFromPhoneHint')}
+          />,
+        )}
       </ModuleWrapper>
     );
   }
@@ -106,12 +135,12 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   return (
     <ModuleWrapper style={style}>
       <MealRecipeContext.Provider value={recipeContext}>
-      {view === 'week' && <WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} interactive={interactive} />}
+      {view === 'week' && withArrows(<WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} interactive={interactive} />)}
       {/* The whole plan: late in the evening Today shows tomorrow, which can be in next week. */}
       {view === 'today' && <TodayView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'next-meal' && <NextMealView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
-      {view === 'list' && <ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} interactive={interactive} fontSize={style.fontSize} />}
+      {view === 'list' && withArrows(<ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} interactive={interactive} fontSize={style.fontSize} />)}
       </MealRecipeContext.Provider>
     </ModuleWrapper>
   );

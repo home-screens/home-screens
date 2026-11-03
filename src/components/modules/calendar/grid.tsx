@@ -23,6 +23,7 @@ import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { EventCard } from './EventCard';
 import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
+import { LookAheadTitle, useLookAheadContext } from '../shared/LookAhead';
 
 /** Gutter for the month and multi-week grids: 2px, double the week grid's
  *  1px, because their cells are short and need more air to separate. The
@@ -262,6 +263,10 @@ interface GridViewProps {
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The day the grid draws from (look-ahead); `today` when absent. `today` still marks the real day. */
+  anchor?: Date;
+  /** Stepped to another period (look-ahead): nothing in it is dimmed as past. */
+  stepped?: boolean;
   /** The family's day notes; absent or empty when the Day notes switch is off. */
   dayNotes?: DayNotes;
 }
@@ -289,14 +294,16 @@ interface ResolvedGrid {
 
 /** Keyed on the day (not the `today` object) so the parent's minute tick
  *  doesn't rebuild up to 84 cells' worth of dates. */
-function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): ResolvedGrid {
+function useResolvedGrid(config: CalendarConfig, from: Date, today: Date, locale: string, stepped: boolean): ResolvedGrid {
+  const fromMs = from.getTime();
   const todayMs = today.getTime();
   const kind = config.viewMode === 'month' ? 'month' : config.viewMode === 'rolling' ? 'rolling' : 'weeks';
   const weekCount = clampWeeksToShow(config.weeksToShow);
   const rollingDays = clampRollingWeeks(config.weeksToShow) * 7;
   const { startDay } = config;
   return useMemo(() => {
-    const anchor = new Date(todayMs);
+    const anchor = new Date(fromMs);
+    const realToday = new Date(todayMs);
     const weekStartsOn = weekStartsOnFor(startDay);
     const { start, end } = kind === 'month'
       ? viewDayWindow({ kind: 'month-grid', today: anchor, weekStartsOn })
@@ -319,7 +326,7 @@ function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): R
         kind,
         weeks,
         title: formatMonthRangeLabel(start, addDays(end, -1), locale),
-        // The view starts today, so no past days exist to dim.
+        // At rest the view starts today, so nothing is past; a period someone stepped to is read, not faded.
         isMuted: () => false,
         marksMonthStart: (date) => date.getDate() === 1,
       };
@@ -328,14 +335,19 @@ function useResolvedGrid(config: CalendarConfig, today: Date, locale: string): R
       kind,
       weeks,
       title: formatMonthRangeLabel(start, addDays(end, -1), locale),
-      isMuted: (date, isToday) => date < anchor && !isToday,
+      // Past days dim at rest; a period someone stepped to is read, not faded.
+      isMuted: (date, isToday) => !stepped && date < realToday && !isToday,
       marksMonthStart: (date) => date.getDate() === 1,
     };
-  }, [todayMs, startDay, kind, weekCount, rollingDays, locale]);
+  }, [fromMs, todayMs, startDay, kind, weekCount, rollingDays, locale, stepped]);
 }
 
 function GridTitle({ children }: { children: string }) {
-  return <p className="text-center font-semibold" style={{ fontSize: '0.85em' }}>{children}</p>;
+  const lookAhead = useLookAheadContext();
+  const title = <p className="text-center font-semibold" style={{ fontSize: '0.85em' }}>{children}</p>;
+  // On a touch wall the look-ahead arrows sit at the title's ends.
+  if (!lookAhead?.look.on) return title;
+  return <LookAheadTitle look={lookAhead.look} accent={lookAhead.accent}>{title}</LookAheadTitle>;
 }
 
 function useGridEventsByDay(weeks: Date[][], events: CalendarEvent[], timezone: string | undefined): Map<number, CalendarEvent[]> {
@@ -357,7 +369,7 @@ export function GridView(props: GridViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const theme = props.config.gridTheme ?? 'banner';
-  const grid = useResolvedGrid(props.config, props.today, locale);
+  const grid = useResolvedGrid(props.config, props.anchor ?? props.today, props.today, locale, props.stepped === true);
   if (theme === 'banner') return <GridBannerView {...props} grid={grid} t={t} locale={locale} />;
   return <GridModernView {...props} grid={grid} theme={theme} t={t} locale={locale} />;
 }

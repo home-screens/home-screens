@@ -1685,7 +1685,8 @@
         "description": "Welke maaltijden plant je gezin? Werkt door in elke maaltijdplanner-module op alle schermen."
       },
       "weekStart": {
-        "heading": "Week begint op"
+        "heading": "Week begint op",
+        "hint": "Alleen voor het weekmenu. Elke kalendermodule heeft een eigen instelling ‘Week begint op’."
       },
       "timeFormat": {
         "heading": "Tijdformaat",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, stap voor stap door een recept gaan, in het receptenboek zoeken en door lange weergaven scrollen. Zet dit uit op een display zonder touchscreen.",
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, stap voor stap door een recept gaan, in het receptenboek zoeken, door lange weergaven scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen.",
       "mobileHintTail": "zodat alle maaltijdmodules gelijk blijven."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen en door lange lijsten scrollen. Zet dit uit op een display zonder touchscreen."
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",

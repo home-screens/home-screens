@@ -81,7 +81,7 @@ interface CellEvent {
  * sit once on the Everyone row, and a cell that overflows shows "+N" rather
  * than shrinking its text — the board must stay legible at seven people.
  */
-export function FamilyGridView({ events, timezone, config, scale, today, now, timeFormat, weather, people, failingSourceIds, dayNotes }: CalendarViewProps) {
+export function FamilyGridView({ events, timezone, config, scale, today, anchor = today, now, timeFormat, weather, people, failingSourceIds, dayNotes }: CalendarViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const fontSize = scale.bu * scale.typoMul * scale.densityMul;
@@ -95,7 +95,10 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
     [t, locale, timeFormat, timezone, scale, fontSize, config],
   );
 
-  const days = useWeekDays(today, weekStartsOnFor(config.startDay));
+  // The week the arrows stepped to (this week at rest); today still marks the real day.
+  const days = useWeekDays(anchor, weekStartsOnFor(config.startDay));
+  // Each row counts its week's events, "this week" only while it is this week.
+  const thisWeek = days.some((day) => isSameDay(day, today));
 
   const weekEvents = useMemo(
     () => events.filter((ev) => days.some((day) => isEventOnDay(ev, day, timezone))),
@@ -219,6 +222,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
             count={count}
             days={days}
             today={today}
+            thisWeek={thisWeek}
             now={now}
             ctx={rowCtx}
             cellPad={cellPad}
@@ -237,12 +241,14 @@ export function FamilyGridView({ events, timezone, config, scale, today, now, ti
   );
 }
 
-function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds, openDay }: {
+function PersonRowCells({ row, cells, count, days, today, thisWeek, now, ctx, cellPad, chipGap, cellBudgetH, wrapTitles, showTodayBg, decorByDay, failingSourceIds, openDay }: {
   row: PersonRow;
   cells: CellEvent[][];
   count: number;
   days: Date[];
   today: Date;
+  /** The days drawn are this week's; another week's count is just "3 events". */
+  thisWeek: boolean;
   now: Date;
   ctx: RowCtx;
   cellPad: number;
@@ -276,14 +282,15 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
             {row.name}
           </div>
           <div style={{ fontSize: fontSize * 0.75, color: 'var(--cal-text-tertiary)', marginTop: 2, whiteSpace: 'nowrap' }}>
-            {t('fullscreen-calendar.thisWeekCount', { count })}
+            {t(thisWeek ? 'fullscreen-calendar.thisWeekCount' : 'calendar.daySheet.eventCount', { count })}
           </div>
         </div>
       </div>
       {cells.map((cell, dayIdx) => {
         const day = days[dayIdx];
         const isToday = isSameDay(day, today);
-        const isPast = day < today && !isToday;
+        // Only this week has a past to fade; a week someone stepped to is read whole.
+        const isPast = thisWeek && day < today && !isToday;
         const decor = decorByDay[dayIdx];
         // Fit chips by height (fitChips): an overflowing cell gives the "+N"
         // line room by dropping chips from the bottom, except that the first
@@ -325,7 +332,7 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
           >
             {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
             {visible.map(({ ev, segment }) => (
-              <EventChip key={ev.id} event={ev} segment={segment} now={now} ctx={ctx} wrapTitles={wrapTitles} failingSourceIds={failingSourceIds} />
+              <EventChip key={ev.id} event={ev} segment={segment} now={now} fadeFinished={thisWeek} ctx={ctx} wrapTitles={wrapTitles} failingSourceIds={failingSourceIds} />
             ))}
             {hidden > 0 && (cornerBadge ? (
               // Already a pill; with taps on it is a button in the accent.
@@ -358,10 +365,12 @@ function PersonRowCells({ row, cells, count, days, today, now, ctx, cellPad, chi
   );
 }
 
-function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
+function EventChip({ event, segment, now, fadeFinished, ctx, wrapTitles, failingSourceIds }: {
   event: CalendarEvent;
   segment: EventDaySegment;
   now: Date;
+  /** This week's finished events fade; another week's are read whole. */
+  fadeFinished: boolean;
   ctx: RowCtx;
   wrapTitles: boolean;
   failingSourceIds?: ReadonlySet<string>;
@@ -382,7 +391,7 @@ function EventChip({ event, segment, now, ctx, wrapTitles, failingSourceIds }: {
         }),
         event, failingSourceIds, t,
       );
-  const finished = !isAllDay && end <= now;
+  const finished = fadeFinished && !isAllDay && end <= now;
   const glyph = eventGlyph(event);
   const description = chipDescription(event, ctx.config);
   const ariaLabel = eventAriaLabel(t, event, {

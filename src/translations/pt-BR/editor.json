@@ -1685,7 +1685,8 @@
         "description": "Quais refeições sua família planeja? Afeta todos os módulos do planejador em todas as telas."
       },
       "weekStart": {
-        "heading": "Semana começa em"
+        "heading": "Semana começa em",
+        "hint": "Só para o cardápio. Cada módulo de calendário tem sua própria configuração “Semana começa em”."
       },
       "timeFormat": {
         "heading": "Formato de hora",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display. Também funciona para refeições salvas com ingredientes ou notas. Se a refeição tiver um link de receita, aparece também um código para abrir a receita no celular.",
       "tapRecipeActionNoLinkHint": "Se a refeição não tiver link de receita, aparece o cartão da receita no lugar, com os ingredientes e as notas.",
       "interactive": "Tocar na parede",
-      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, seguir uma receita passo a passo, pesquisar no livro de receitas e rolar telas longas. Desligue se o display não for sensível ao toque.",
+      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, seguir uma receita passo a passo, pesquisar no livro de receitas, rolar telas longas e ver o cardápio da semana que vem. Desligue se o display não for sensível ao toque.",
       "mobileHintTail": "para que todos os módulos de refeições fiquem sincronizados."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Mostra os ingredientes e o passo a passo num cartão direto no display. Também funciona para refeições salvas com ingredientes ou notas. Se a refeição tiver um link de receita, aparece também um código para abrir a receita no celular.",
       "tapRecipeActionNoLinkHint": "Se a refeição não tiver link de receita, aparece o cartão da receita no lugar, com os ingredientes e as notas.",
       "interactive": "Tocar na parede",
-      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas e rolar listas longas. Desligue se o display não for sensível ao toque."
+      "interactiveHint": "Numa tela sensível ao toque, todo mundo pode marcar itens da lista de compras, abrir receitas, rolar listas longas e ver o cardápio da semana que vem. Desligue se o display não for sensível ao toque."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminação",

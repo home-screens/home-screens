@@ -14,7 +14,7 @@ import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 
-export function WeekView({ events, config, style, today, now, accentColor, eventStyle, dayNotes }: {
+export function WeekView({ events, config, style, today, now, anchor, accentColor, eventStyle, dayNotes }: {
   events: CalendarEvent[];
   accentColor: string;
   eventStyle: EventDisplayStyle;
@@ -22,6 +22,8 @@ export function WeekView({ events, config, style, today, now, accentColor, event
   style: ModuleStyle;
   today: Date;
   now: Date;
+  /** The day the view draws from (look-ahead); `today` when absent. `today` still marks the real day. */
+  anchor?: Date;
   /** The family's day notes; absent or empty when the Day notes switch is off. */
   dayNotes?: DayNotes;
 }) {
@@ -29,7 +31,7 @@ export function WeekView({ events, config, style, today, now, accentColor, event
   const locale = useFormattingLocale();
   const openDay = useDaySheetOpener();
   const showWeekNumbers = config.showWeekNumbers ?? false;
-  const weekStart = startOfWeek(today, { weekStartsOn: weekStartsOnFor(config.startDay) });
+  const weekStart = startOfWeek(anchor ?? today, { weekStartsOn: weekStartsOnFor(config.startDay) });
   const daysInWeek = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   // Scales the header's date furniture only — the day names, the day circles
   // and the badges under them. The event cells below keep their own sizes.

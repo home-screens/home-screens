@@ -1685,7 +1685,8 @@
         "description": "Welche Mahlzeiten plant dein Haushalt? Wirkt sich auf jedes Essensplaner-Modul auf allen Bildschirmen aus."
       },
       "weekStart": {
-        "heading": "Woche beginnt am"
+        "heading": "Woche beginnt am",
+        "hint": "Gilt nur für den Essensplan. Jedes Kalendermodul hat seine eigene Einstellung „Woche beginnt am“."
       },
       "timeFormat": {
         "heading": "Zeitformat",
@@ -4259,7 +4260,7 @@
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, ein Rezept Schritt für Schritt durchgehen, im Rezeptbuch suchen und lange Ansichten scrollen. Schalte das bei einem Display ohne Touchscreen aus.",
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, ein Rezept Schritt für Schritt durchgehen, im Rezeptbuch suchen, lange Ansichten scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus.",
       "mobileHintTail": "damit alle Mahlzeiten-Module gleich bleiben."
     },
     "fullscreen-photo": {
@@ -4494,7 +4495,7 @@
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen und lange Listen scrollen. Schalte das bei einem Display ohne Touchscreen aus."
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",

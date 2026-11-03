@@ -456,6 +456,7 @@
     "noMealsPlanned": "No meals planned",
     "noMealPlanned": "No meal planned",
     "nothingPlannedThisWeek": "Nothing planned this week",
+    "nothingPlannedThatWeek": "Nothing planned for that week yet",
     "todaysMeals": "Today's Meals",
     "tomorrowsMeals": "Tomorrow's Meals",
     "now": "Now",
@@ -554,6 +555,74 @@
     "backToToday": "Back to today",
     "backToNow": "Back to now",
     "backToTop": "Back to the top"
+  },
+  "lookAhead": {
+    "thisWeek": "This week",
+    "nextWeek": "Next week",
+    "inWeeks": {
+      "one": "In {count} week",
+      "other": "In {count} weeks"
+    },
+    "lastWeek": "Last week",
+    "weeksAgo": {
+      "one": "{count} week ago",
+      "other": "{count} weeks ago"
+    },
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday",
+    "inDays": {
+      "one": "In {count} day",
+      "other": "In {count} days"
+    },
+    "daysAgo": {
+      "one": "{count} day ago",
+      "other": "{count} days ago"
+    },
+    "thisMonth": "This month",
+    "nextMonth": "Next month",
+    "lastMonth": "Last month",
+    "inMonths": {
+      "one": "In {count} month",
+      "other": "In {count} months"
+    },
+    "monthsAgo": {
+      "one": "{count} month ago",
+      "other": "{count} months ago"
+    },
+    "homeWeek": "Back to this week",
+    "homeMonth": "Back to this month",
+    "homeToday": "Back to today",
+    "earlier": "Earlier",
+    "later": "Later",
+    "limitAhead": {
+      "week": {
+        "one": "Up to {count} week ahead",
+        "other": "Up to {count} weeks ahead"
+      },
+      "month": {
+        "one": "Up to {count} month ahead",
+        "other": "Up to {count} months ahead"
+      },
+      "day": {
+        "one": "Up to {count} day ahead",
+        "other": "Up to {count} days ahead"
+      }
+    },
+    "limitBack": {
+      "week": {
+        "one": "Up to {count} week back",
+        "other": "Up to {count} weeks back"
+      },
+      "month": {
+        "one": "Up to {count} month back",
+        "other": "Up to {count} months back"
+      },
+      "day": {
+        "one": "Up to {count} day back",
+        "other": "Up to {count} days back"
+      }
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "This Week's Meals",

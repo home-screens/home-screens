@@ -456,6 +456,7 @@
     "noMealsPlanned": "Ingen måltider planlagt",
     "noMealPlanned": "Intet måltid planlagt",
     "nothingPlannedThisWeek": "Intet planlagt i denne uge",
+    "nothingPlannedThatWeek": "Intet planlagt for den uge endnu",
     "todaysMeals": "Dagens måltider",
     "tomorrowsMeals": "Morgendagens måltider",
     "now": "Nu",
@@ -554,6 +555,74 @@
     "backToToday": "Tilbage til i dag",
     "backToNow": "Tilbage til nu",
     "backToTop": "Tilbage til toppen"
+  },
+  "lookAhead": {
+    "thisWeek": "Denne uge",
+    "nextWeek": "Næste uge",
+    "inWeeks": {
+      "one": "Om {count} uge",
+      "other": "Om {count} uger"
+    },
+    "lastWeek": "Sidste uge",
+    "weeksAgo": {
+      "one": "For {count} uge siden",
+      "other": "For {count} uger siden"
+    },
+    "today": "I dag",
+    "tomorrow": "I morgen",
+    "yesterday": "I går",
+    "inDays": {
+      "one": "Om {count} dag",
+      "other": "Om {count} dage"
+    },
+    "daysAgo": {
+      "one": "For {count} dag siden",
+      "other": "For {count} dage siden"
+    },
+    "thisMonth": "Denne måned",
+    "nextMonth": "Næste måned",
+    "lastMonth": "Sidste måned",
+    "inMonths": {
+      "one": "Om {count} måned",
+      "other": "Om {count} måneder"
+    },
+    "monthsAgo": {
+      "one": "For {count} måned siden",
+      "other": "For {count} måneder siden"
+    },
+    "homeWeek": "Tilbage til denne uge",
+    "homeMonth": "Tilbage til denne måned",
+    "homeToday": "Tilbage til i dag",
+    "earlier": "Tidligere",
+    "later": "Senere",
+    "limitAhead": {
+      "week": {
+        "one": "Op til {count} uge frem",
+        "other": "Op til {count} uger frem"
+      },
+      "month": {
+        "one": "Op til {count} måned frem",
+        "other": "Op til {count} måneder frem"
+      },
+      "day": {
+        "one": "Op til {count} dag frem",
+        "other": "Op til {count} dage frem"
+      }
+    },
+    "limitBack": {
+      "week": {
+        "one": "Op til {count} uge tilbage",
+        "other": "Op til {count} uger tilbage"
+      },
+      "month": {
+        "one": "Op til {count} måned tilbage",
+        "other": "Op til {count} måneder tilbage"
+      },
+      "day": {
+        "one": "Op til {count} dag tilbage",
+        "other": "Op til {count} dage tilbage"
+      }
+    }
   },
   "fullscreen-meal-planner": {
     "thisWeeksMeals": "Ugens måltider",
