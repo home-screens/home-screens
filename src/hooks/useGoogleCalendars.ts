@@ -39,7 +39,7 @@ interface UseGoogleCalendarsReturn {
   setGoogleConnected: (connected: boolean) => void;
   fetchCalendars: (autoSelectPrimary?: boolean) => Promise<void>;
   toggleCalendar: (id: string) => void;
-  disconnectGoogle: () => Promise<void>;
+  disconnectGoogle: () => Promise<boolean>;
 }
 
 export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleCalendarsOptions): UseGoogleCalendarsReturn {
@@ -86,19 +86,23 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
     async function checkAuth() {
       try {
         const res = await editorFetch('/api/auth/google/status');
+        // A hub that could not answer has not said the grant is gone: read as
+        // "disconnected", a 500 showed "Connect Google" for a grant still on disk.
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         setCredentialsConfigured(!!data.credentialsConfigured);
         setMode(data.mode === 'own' || data.mode === 'hosted' ? data.mode : null);
-        setGoogleConnected(data.connected);
+        setGoogleConnected(!!data.connected);
         if (data.connected) await fetchCalendars();
       } catch (err) {
         log.debug('checkAuth failed:', err);
+        onAuthError(t('errors.googleStatusFailed'));
       } finally {
         setGoogleLoading(false);
       }
     }
     checkAuth();
-  }, [fetchCalendars]);
+  }, [fetchCalendars, onAuthError, t]);
 
   const toggleCalendar = useCallback((id: string) => {
     const current = valuesRef.current.selectedCalendarIds;
@@ -108,12 +112,26 @@ export function useGoogleCalendars({ values, onChange, onAuthError }: UseGoogleC
     onChange({ selectedCalendarIds: next });
   }, [onChange]);
 
-  const disconnectGoogle = useCallback(async () => {
-    await editorFetch('/api/auth/google/status', { method: 'DELETE' });
+  /**
+   * Forget the grant. The chosen calendars are dropped only once the hub
+   * confirms the grant is gone; otherwise a failed request would clear them
+   * from the config while the grant stays on disk. Resolves false when the
+   * hub refused, with the reason already passed to `onAuthError`.
+   */
+  const disconnectGoogle = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await editorFetch('/api/auth/google/status', { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      log.debug('disconnectGoogle failed:', err);
+      onAuthError(t('errors.googleDisconnectFailed'));
+      return false;
+    }
     setGoogleConnected(false);
     setGoogleCalendars([]);
     onChange({ selectedCalendarIds: [] });
-  }, [onChange]);
+    return true;
+  }, [onChange, onAuthError, t]);
 
   return {
     credentialsConfigured,

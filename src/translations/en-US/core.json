@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Failed to delete folder",
     "deleteImageFailed": "Failed to delete photo",
     "googleExpired": "Your Google connection has expired. Please sign in again.",
+    "googleDisconnectFailed": "Couldn't disconnect Google. Check your internet connection and try again.",
+    "googleStatusFailed": "Couldn't check your Google connection. Refresh the page and try again.",
     "deviceFlowFailed": "Failed to start device flow",
     "codeExpired": "Code expired. Please try again.",
     "authorizationFailed": "Authorization failed",

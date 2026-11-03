@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Error al eliminar la carpeta",
     "deleteImageFailed": "Error al eliminar la foto",
     "googleExpired": "Tu conexión con Google ha expirado. Vuelve a iniciar sesión.",
+    "googleDisconnectFailed": "No se pudo desconectar Google. Comprueba tu conexión a Internet e inténtalo de nuevo.",
+    "googleStatusFailed": "No se pudo comprobar tu conexión con Google. Recarga la página e inténtalo de nuevo.",
     "deviceFlowFailed": "Error al iniciar el flujo del dispositivo",
     "codeExpired": "Código caducado. Inténtalo de nuevo.",
     "authorizationFailed": "Error de autorización",

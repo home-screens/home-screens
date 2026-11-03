@@ -5376,7 +5376,8 @@
       "noPhotos": "Endnu ingen billeder i denne mappe",
       "signInDeclined": "Login blev annulleret",
       "signInExpired": "Koden udløb. Start login igen.",
-      "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen."
+      "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen.",
+      "disconnectFailed": "OneDrive kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen."
     },
     "locationRow": {
       "set": "Placering: {name}",

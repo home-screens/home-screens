@@ -5376,7 +5376,8 @@
       "noPhotos": "Noch keine Fotos in diesem Ordner",
       "signInDeclined": "Anmeldung wurde abgebrochen",
       "signInExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut.",
-      "signInFailed": "Anmeldung hat nicht funktioniert. Prüfe die Application ID und versuche es erneut."
+      "signInFailed": "Anmeldung hat nicht funktioniert. Prüfe die Application ID und versuche es erneut.",
+      "disconnectFailed": "OneDrive konnte nicht getrennt werden. Prüfe deine Internetverbindung und versuche es erneut."
     },
     "locationRow": {
       "set": "Standort: {name}",

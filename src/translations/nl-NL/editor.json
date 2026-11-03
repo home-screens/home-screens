@@ -5376,7 +5376,8 @@
       "noPhotos": "Nog geen foto's in deze map",
       "signInDeclined": "Inloggen is geannuleerd",
       "signInExpired": "Die code is verlopen. Start opnieuw met inloggen.",
-      "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw."
+      "signInFailed": "Inloggen lukte niet. Controleer de Application ID en probeer het opnieuw.",
+      "disconnectFailed": "Kon OneDrive niet loskoppelen. Controleer je internetverbinding en probeer het opnieuw."
     },
     "locationRow": {
       "set": "Locatie: {name}",

@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Échec de la suppression du dossier",
     "deleteImageFailed": "Échec de la suppression de la photo",
     "googleExpired": "Ta connexion Google a expiré. Reconnecte-toi.",
+    "googleDisconnectFailed": "Impossible de déconnecter Google. Vérifie ta connexion Internet et réessaie.",
+    "googleStatusFailed": "Impossible de vérifier ta connexion Google. Recharge la page et réessaie.",
     "deviceFlowFailed": "Échec du démarrage de l'authentification par appareil",
     "codeExpired": "Code expiré. Réessaie.",
     "authorizationFailed": "Échec de l'autorisation",

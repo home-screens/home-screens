@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Falha ao excluir pasta",
     "deleteImageFailed": "Falha ao excluir foto",
     "googleExpired": "Sua conexão com o Google expirou. Entre novamente.",
+    "googleDisconnectFailed": "Não foi possível desconectar o Google. Verifique sua conexão com a internet e tente de novo.",
+    "googleStatusFailed": "Não foi possível verificar sua conexão com o Google. Recarregue a página e tente de novo.",
     "deviceFlowFailed": "Falha ao iniciar fluxo do dispositivo",
     "codeExpired": "Código expirado. Tente novamente.",
     "authorizationFailed": "Falha na autorização",

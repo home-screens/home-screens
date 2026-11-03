@@ -5376,7 +5376,8 @@
       "noPhotos": "Aún no hay fotos en esta carpeta",
       "signInDeclined": "Se canceló el inicio de sesión",
       "signInExpired": "Ese código caducó. Vuelve a iniciar sesión.",
-      "signInFailed": "El inicio de sesión no funcionó. Comprueba el ID de aplicación e inténtalo de nuevo."
+      "signInFailed": "El inicio de sesión no funcionó. Comprueba el ID de aplicación e inténtalo de nuevo.",
+      "disconnectFailed": "No se pudo desconectar OneDrive. Comprueba tu conexión a Internet e inténtalo de nuevo."
     },
     "locationRow": {
       "set": "Ubicación: {name}",

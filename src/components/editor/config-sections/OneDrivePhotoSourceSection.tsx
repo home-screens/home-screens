@@ -205,7 +205,17 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
   };
 
   const disconnect = async () => {
-    await editorFetch('/api/onedrive/auth', { method: 'DELETE' });
+    setError(null);
+    // The folder is forgotten only once the hub confirms the sign-in is gone;
+    // otherwise a failed request would clear it from the config while the
+    // sign-in stays on disk and the slideshow lost its pictures.
+    try {
+      const res = await editorFetch('/api/onedrive/auth', { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch {
+      setError(t('configSections.onedriveSource.disconnectFailed'));
+      return;
+    }
     set({ onedriveFolderId: undefined, onedriveFolderName: undefined });
     await refreshStatus();
   };

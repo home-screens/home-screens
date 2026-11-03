@@ -97,7 +97,8 @@ export default function CalendarSection({ values, onChange: stageChange }: Props
   });
 
   const disconnectGoogle = useCallback(async () => {
-    await disconnectGoogleCalendars();
+    // A refusal is already on screen through `onAuthError`; it must stay there.
+    if (!(await disconnectGoogleCalendars())) return;
     deviceFlow.clearError();
     setAuthError(null);
   }, [disconnectGoogleCalendars, deviceFlow]);

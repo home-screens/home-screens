@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Map kon niet worden verwijderd",
     "deleteImageFailed": "Foto kon niet worden verwijderd",
     "googleExpired": "Je Google-verbinding is verlopen. Log opnieuw in.",
+    "googleDisconnectFailed": "Kon Google niet loskoppelen. Controleer je internetverbinding en probeer het opnieuw.",
+    "googleStatusFailed": "Kon je Google-verbinding niet controleren. Vernieuw de pagina en probeer het opnieuw.",
     "deviceFlowFailed": "Apparaataanmelding kon niet worden gestart",
     "codeExpired": "Code verlopen. Probeer het opnieuw.",
     "authorizationFailed": "Autorisatie mislukt",

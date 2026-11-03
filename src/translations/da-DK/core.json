@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Sletning af mappen fejlede",
     "deleteImageFailed": "Sletning af billedet fejlede",
     "googleExpired": "Din Google-forbindelse er udløbet. Log ind igen.",
+    "googleDisconnectFailed": "Google kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen.",
+    "googleStatusFailed": "Din Google-forbindelse kunne ikke tjekkes. Genindlæs siden, og prøv igen.",
     "deviceFlowFailed": "Kunne ikke starte enhedslogin",
     "codeExpired": "Koden er udløbet. Prøv igen.",
     "authorizationFailed": "Godkendelse fejlede",

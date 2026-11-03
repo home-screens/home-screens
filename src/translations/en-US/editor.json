@@ -5376,7 +5376,8 @@
       "noPhotos": "No photos in this folder yet",
       "signInDeclined": "Sign-in was cancelled",
       "signInExpired": "That code expired. Start sign-in again.",
-      "signInFailed": "Sign-in did not work. Check the Application ID and try again."
+      "signInFailed": "Sign-in did not work. Check the Application ID and try again.",
+      "disconnectFailed": "Couldn't disconnect OneDrive. Check your internet connection and try again."
     },
     "locationRow": {
       "set": "Location: {name}",

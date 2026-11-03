@@ -5376,7 +5376,8 @@
       "noPhotos": "Ainda não há fotos nesta pasta",
       "signInDeclined": "O login foi cancelado",
       "signInExpired": "Esse código expirou. Comece o login novamente.",
-      "signInFailed": "O login não funcionou. Confira o ID do aplicativo e tente de novo."
+      "signInFailed": "O login não funcionou. Confira o ID do aplicativo e tente de novo.",
+      "disconnectFailed": "Não foi possível desconectar o OneDrive. Verifique sua conexão com a internet e tente de novo."
     },
     "locationRow": {
       "set": "Localização: {name}",

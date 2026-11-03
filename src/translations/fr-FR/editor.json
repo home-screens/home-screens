@@ -5376,7 +5376,8 @@
       "noPhotos": "Pas encore de photos dans ce dossier",
       "signInDeclined": "La connexion a été annulée",
       "signInExpired": "Ce code a expiré. Relancez la connexion.",
-      "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez."
+      "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez.",
+      "disconnectFailed": "Impossible de déconnecter OneDrive. Vérifiez votre connexion Internet et réessayez."
     },
     "locationRow": {
       "set": "Lieu : {name}",

@@ -100,6 +100,8 @@
     "deleteFolderFailed": "Ordner konnte nicht gelöscht werden",
     "deleteImageFailed": "Foto konnte nicht gelöscht werden",
     "googleExpired": "Deine Google-Verbindung ist abgelaufen. Bitte melde dich erneut an.",
+    "googleDisconnectFailed": "Google konnte nicht getrennt werden. Prüfe deine Internetverbindung und versuche es erneut.",
+    "googleStatusFailed": "Die Google-Verbindung konnte nicht geprüft werden. Lade die Seite neu und versuche es erneut.",
     "deviceFlowFailed": "Geräte-Anmeldung konnte nicht gestartet werden",
     "codeExpired": "Code abgelaufen. Bitte erneut versuchen.",
     "authorizationFailed": "Autorisierung fehlgeschlagen",
