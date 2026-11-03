@@ -12,7 +12,7 @@
  * rules, display dimensions) conservatively does.
  */
 
-import type { Screen, ScreenConfiguration } from '@/types/config';
+import type { Screen } from '@/types/config';
 import { stableStringify } from '@/lib/stable-stringify';
 
 function stripScreens(screens: Screen[]): unknown[] {
@@ -27,20 +27,10 @@ function stripScreens(screens: Screen[]): unknown[] {
 }
 
 /**
- * Stable string identity for the data-affecting parts of a config. Two
- * configs with equal fingerprints must produce identical fetch behavior, so
+ * Stable string identity for the data-affecting parts of what a wall holds.
+ * Two inputs with equal fingerprints must produce identical fetch behavior, so
  * the display cache can survive the transition between them.
- */
-export function dataFingerprint(cfg: ScreenConfiguration): string {
-  return stableStringify({
-    ...cfg,
-    screens: stripScreens(cfg.screens),
-    displays: cfg.displays?.map((d) => ({ ...d, screens: stripScreens(d.screens) })),
-  });
-}
-
-/**
- * The same identity, from the pieces a wall holds rather than a whole config.
+ *
  * A wall starts from the props its page was rendered with and never sees the
  * config document they came from, so this is what lets it tell a later edit
  * that only moves modules apart from one that changes fetched data.

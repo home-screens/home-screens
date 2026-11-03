@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ModuleInstance, Screen, ScreenConfiguration } from '@/types/config';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
-import { dataFingerprint } from '../config-data-fingerprint';
+import { dataFingerprintOfParts } from '../config-data-fingerprint';
 
 function makeModule(overrides: Partial<ModuleInstance> = {}): ModuleInstance {
   return {
@@ -16,16 +16,26 @@ function makeModule(overrides: Partial<ModuleInstance> = {}): ModuleInstance {
   };
 }
 
-function makeConfig(modules: ModuleInstance[], overrides: Partial<ScreenConfiguration> = {}): ScreenConfiguration {
-  const screen: Screen = { id: 's1', name: 'S1', backgroundImage: '', modules };
-  return {
-    screens: [screen],
-    settings: { rotationIntervalMs: 5_000 } as ScreenConfiguration['settings'],
-    ...overrides,
-  } as ScreenConfiguration;
+function makeScreens(modules: ModuleInstance[]): Screen[] {
+  return [{ id: 's1', name: 'S1', backgroundImage: '', modules }];
 }
 
-describe('dataFingerprint', () => {
+const settings = { rotationIntervalMs: 5_000 } as ScreenConfiguration['settings'];
+
+/** The wall's call: its screens plus the settings, profiles and rules it was rendered with. */
+function fingerprint(
+  modules: ModuleInstance[],
+  parts: { settings?: unknown; profiles?: unknown; rules?: unknown } = {},
+): string {
+  return dataFingerprintOfParts(
+    makeScreens(modules),
+    parts.settings ?? settings,
+    parts.profiles ?? [],
+    parts.rules ?? [],
+  );
+}
+
+describe('dataFingerprintOfParts', () => {
   it.each([
     ['position', { position: { x: 500, y: 500 } }],
     ['size', { size: { w: 400, h: 300 } }],
@@ -37,77 +47,40 @@ describe('dataFingerprint', () => {
   ] satisfies [string, Partial<ModuleInstance>][])(
     'is unchanged when only a module\'s %s changes',
     (_field, change) => {
-      const before = makeConfig([makeModule()]);
-      const after = makeConfig([makeModule(change)]);
-      expect(dataFingerprint(after)).toBe(dataFingerprint(before));
+      expect(fingerprint([makeModule(change)])).toBe(fingerprint([makeModule()]));
     },
   );
 
   it('changes when a module\'s config changes', () => {
-    const before = makeConfig([makeModule()]);
-    const after = makeConfig([makeModule({ config: { view: 'forecast' } })]);
-    expect(dataFingerprint(after)).not.toBe(dataFingerprint(before));
+    expect(fingerprint([makeModule({ config: { view: 'forecast' } })])).not.toBe(fingerprint([makeModule()]));
   });
 
   it('changes when global settings change', () => {
-    const before = makeConfig([makeModule()]);
-    const after = {
-      ...before,
-      settings: { ...before.settings, timezone: 'America/Chicago' },
-    } as ScreenConfiguration;
-    expect(dataFingerprint(after)).not.toBe(dataFingerprint(before));
+    const changed = { ...settings, timezone: 'America/Chicago' } as ScreenConfiguration['settings'];
+    expect(fingerprint([makeModule()], { settings: changed })).not.toBe(fingerprint([makeModule()]));
+  });
+
+  it('changes when profiles or rules change', () => {
+    const base = fingerprint([makeModule()]);
+    expect(fingerprint([makeModule()], { profiles: [{ id: 'p1', name: 'Evening', screenIds: ['s1'] }] })).not.toBe(base);
+    expect(fingerprint([makeModule()], { rules: [{ id: 'r1' }] })).not.toBe(base);
   });
 
   it('changes when a module is added or removed', () => {
-    const one = makeConfig([makeModule()]);
-    const two = makeConfig([makeModule(), makeModule({ id: 'mod-2' })]);
-    expect(dataFingerprint(two)).not.toBe(dataFingerprint(one));
+    expect(fingerprint([makeModule(), makeModule({ id: 'mod-2' })])).not.toBe(fingerprint([makeModule()]));
   });
 
-  it('strips presentational fields inside multi-display screen lists too', () => {
-    const displayScreens: Screen[] = [
-      { id: 'd1s1', name: 'D1', backgroundImage: '', modules: [makeModule()] },
-    ];
-    const base = makeConfig([]);
-    const before = {
-      ...base,
-      displays: [{ id: 'kitchen', name: 'Kitchen', screens: displayScreens }],
-    } as ScreenConfiguration;
-    const after = {
-      ...base,
-      displays: [{
-        id: 'kitchen',
-        name: 'Kitchen',
-        screens: [{ ...displayScreens[0], modules: [makeModule({ position: { x: 42, y: 42 } })] }],
-      }],
-    } as ScreenConfiguration;
-    expect(dataFingerprint(after)).toBe(dataFingerprint(before));
-
-    const configChanged = {
-      ...base,
-      displays: [{
-        id: 'kitchen',
-        name: 'Kitchen',
-        screens: [{ ...displayScreens[0], modules: [makeModule({ config: { view: 'forecast' } })] }],
-      }],
-    } as ScreenConfiguration;
-    expect(dataFingerprint(configChanged)).not.toBe(dataFingerprint(before));
-  });
-
-  it('changes when a non-stripped display field changes', () => {
+  it('changes when a non-stripped screen field changes', () => {
     // Guards the "strips too much" failure mode: everything outside the
     // seven per-module presentational fields must still move the fingerprint.
-    const base = makeConfig([]);
-    const withDisplay = (displayWidth: number) => ({
-      ...base,
-      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [], displayWidth }],
-    } as ScreenConfiguration);
-    expect(dataFingerprint(withDisplay(1080))).not.toBe(dataFingerprint(withDisplay(1920)));
+    const withBackground = (backgroundImage: string) =>
+      dataFingerprintOfParts([{ id: 's1', name: 'S1', backgroundImage, modules: [makeModule()] }], settings, [], []);
+    expect(withBackground('/a.jpg')).not.toBe(withBackground('/b.jpg'));
   });
 
   it('is key-order independent (stableStringify underneath)', () => {
-    const a = makeConfig([makeModule({ config: { view: 'current', units: 'imperial' } })]);
-    const b = makeConfig([makeModule({ config: { units: 'imperial', view: 'current' } })]);
-    expect(dataFingerprint(a)).toBe(dataFingerprint(b));
+    const a = fingerprint([makeModule({ config: { view: 'current', units: 'imperial' } })]);
+    const b = fingerprint([makeModule({ config: { units: 'imperial', view: 'current' } })]);
+    expect(a).toBe(b);
   });
 });

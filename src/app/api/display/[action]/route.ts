@@ -14,6 +14,7 @@ import {
   markSharedStateInterest,
   hasSharedStateInterest,
   type DisplayCommandType,
+  type DisplayStatus,
 } from '@/lib/display-commands';
 import { updateConfigAtomic } from '@/lib/config';
 import { readConfigCached } from '@/lib/config-cache';
@@ -730,14 +731,32 @@ async function handleAlert(
   return NextResponse.json({ ok: true, command: 'alert' });
 }
 
+/**
+ * What a browser heartbeat may put into the status store.
+ *
+ * `hwStats` is deliberately not part of it. Hardware stats come from the Pi's
+ * reporter through `/api/display/hw-stats`, behind the adoption gate, and
+ * `setDisplayStatus` keeps the stored `hwStats` whenever the incoming status
+ * has none. Accepting the field here would let any holder of a display token
+ * overwrite them with a heartbeat, so `parseStatusReport` drops it.
+ */
+type StatusReportBody = Omit<DisplayStatus, 'hwStats' | 'lastSeen' | 'browserSeen'>;
+
 /** Validated + destructured status heartbeat, ready to apply. */
 interface ParsedStatusReport {
   /** Body with the transport-only fields stripped; the persisted status shape. */
-  statusPayload: Record<string, unknown>;
+  statusPayload: StatusReportBody;
   bodyClientId: unknown;
   bodySharedState: unknown;
   bodyProviderHealth: unknown;
   browserStats: ReturnType<typeof validateBrowserStats> | undefined;
+  /**
+   * The viewport when it is sent as its own field. An adopted wall carries
+   * its viewport inside `browserStats`; the not-yet-adopted page
+   * (`DisplayNotFound`) sends only this field, and it is how a new Pi's screen
+   * size reaches `/api/displays` and the adoption form.
+   */
+  reportedViewport: { width: number; height: number } | undefined;
   validatedDisplayId: string | undefined;
 }
 
@@ -780,10 +799,9 @@ function parseStatusReport(
   // body shape stays the same as before (the in-memory keying is
   // handled by setDisplayStatus / recordViewportReport).
   //
-  // hwStats is no longer accepted on this endpoint — reporters post to
-  // `/api/display/hw-stats` (adoption-gated, no display auth). Any `hwStats`
-  // field in a browser-heartbeat body is silently dropped here to keep old
-  // client builds safe if they straggle an upgrade.
+  // `hwStats` is dropped: see `StatusReportBody`. Without this, a heartbeat
+  // sent with a display token would overwrite the hardware stats the
+  // adoption-gated reporter posted.
   // `sharedState` is likewise stripped — it goes into its own in-memory
   // store (recordSharedStateReport) so the status body shape is unchanged.
   // `providerHealth` rides the same way into recordProviderHealthReport.
@@ -798,14 +816,16 @@ function parseStatusReport(
     timerSessionId: bodyTimerSessionId,
     activeAlerts: bodyActiveAlerts,
     profileScheduled: bodyProfileScheduled,
+    reportedViewport: bodyReportedViewport,
     ...statusRest
   } = body as Record<string, unknown>;
   void _droppedHwStats;
+  const reportedViewport = parseReportedViewport(bodyReportedViewport);
   // The remote seeds controls from these, so a malformed value must read as
   // "unknown" (field absent), never as a bogus number the slider would jump
   // to or a schedule note the phone would show.
-  const statusPayload: Record<string, unknown> = {
-    ...statusRest,
+  const statusPayload: StatusReportBody = {
+    ...(statusRest as StatusReportBody),
     ...(typeof bodyBrightness === 'number' && Number.isFinite(bodyBrightness)
       ? { brightness: Math.max(0, Math.min(100, Math.round(bodyBrightness))) }
       : {}),
@@ -833,32 +853,52 @@ function parseStatusReport(
     browserStats = parsed;
   }
 
-  return { statusPayload, bodyClientId, bodySharedState, bodyProviderHealth, browserStats, validatedDisplayId };
+  return {
+    statusPayload,
+    bodyClientId,
+    bodySharedState,
+    bodyProviderHealth,
+    browserStats,
+    reportedViewport,
+    validatedDisplayId,
+  };
+}
+
+function parseReportedViewport(raw: unknown): { width: number; height: number } | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const v = raw as { width?: unknown; height?: unknown };
+  if (typeof v.width !== 'number' || typeof v.height !== 'number') return undefined;
+  return { width: v.width, height: v.height };
 }
 
 /**
- * Push the heartbeat into the in-memory statusMap. Synthesizes a top-level
- * `reportedViewport` from browserStats so downstream consumers
- * (/api/displays, editor panels, tests) keep reading from a single field
- * even though the client now sends the data only inside browserStats.
+ * The viewport a heartbeat carries. An adopted wall sends it inside
+ * `browserStats`; the not-yet-adopted page sends it as its own
+ * `reportedViewport` field. Both end up in the one `reportedViewport` field
+ * that `/api/displays`, the editor panels and the adoption form read.
  */
-function applyStatusHeartbeat(parsed: ParsedStatusReport): void {
-  const { statusPayload, browserStats, validatedDisplayId } = parsed;
-  const synthesizedViewport =
+function heartbeatViewport(parsed: ParsedStatusReport): { width: number; height: number } | undefined {
+  const { browserStats, reportedViewport } = parsed;
+  if (
     browserStats &&
     typeof browserStats.viewportWidth === 'number' &&
     typeof browserStats.viewportHeight === 'number'
-      ? { width: browserStats.viewportWidth, height: browserStats.viewportHeight }
-      : undefined;
+  ) {
+    return { width: browserStats.viewportWidth, height: browserStats.viewportHeight };
+  }
+  return reportedViewport;
+}
 
-  setDisplayStatus(
-    {
-      ...statusPayload,
-      ...(browserStats ? { browserStats } : {}),
-      ...(synthesizedViewport ? { reportedViewport: synthesizedViewport } : {}),
-    } as unknown as Parameters<typeof setDisplayStatus>[0],
-    validatedDisplayId,
-  );
+/** Push the heartbeat into the in-memory statusMap. */
+function applyStatusHeartbeat(parsed: ParsedStatusReport): void {
+  const { statusPayload, browserStats, validatedDisplayId } = parsed;
+  const viewport = heartbeatViewport(parsed);
+  const status: DisplayStatus = {
+    ...statusPayload,
+    ...(browserStats ? { browserStats } : {}),
+    ...(viewport ? { reportedViewport: viewport } : {}),
+  };
+  setDisplayStatus(status, validatedDisplayId);
 }
 
 /**
@@ -867,45 +907,16 @@ function applyStatusHeartbeat(parsed: ParsedStatusReport): void {
  * whichever client POSTed most recently. Also stashes the source IP so the
  * user can trace a phantom reporter back to its device on the LAN (critical
  * when the Pi they *think* is posting is actually off).
- *
- * The viewport is carried inside `browserStats` on the wire (the client
- * stopped sending a separate `reportedViewport` field to avoid on-wire
- * duplication). We still accept a top-level `reportedViewport` as a legacy
- * fallback so older display clients keep working through an upgrade window.
  */
-function recordStatusViewport(
-  request: NextRequest,
-  body: Record<string, unknown> | null,
-  parsed: ParsedStatusReport,
-): void {
-  const { browserStats, bodyClientId, validatedDisplayId } = parsed;
-  let viewportWidth: number | undefined;
-  let viewportHeight: number | undefined;
-  if (browserStats) {
-    viewportWidth = browserStats.viewportWidth;
-    viewportHeight = browserStats.viewportHeight;
-  } else {
-    const legacy = (body as { reportedViewport?: unknown } | null)?.reportedViewport;
-    if (legacy && typeof legacy === 'object') {
-      const v = legacy as { width?: unknown; height?: unknown };
-      if (typeof v.width === 'number' && typeof v.height === 'number') {
-        viewportWidth = v.width;
-        viewportHeight = v.height;
-      }
-    }
-  }
-  if (
-    validatedDisplayId
-    && typeof bodyClientId === 'string'
-    && bodyClientId.length > 0
-    && typeof viewportWidth === 'number'
-    && typeof viewportHeight === 'number'
-  ) {
+function recordStatusViewport(request: NextRequest, parsed: ParsedStatusReport): void {
+  const { bodyClientId, validatedDisplayId } = parsed;
+  const viewport = heartbeatViewport(parsed);
+  if (validatedDisplayId && typeof bodyClientId === 'string' && bodyClientId.length > 0 && viewport) {
     recordViewportReport(
       validatedDisplayId,
       bodyClientId,
-      viewportWidth,
-      viewportHeight,
+      viewport.width,
+      viewport.height,
       getClientIP(request),
     );
   }
@@ -932,7 +943,7 @@ async function handleStatus(
     recordProviderHealthReport(parsed.validatedDisplayId, parsed.bodyProviderHealth);
   }
 
-  recordStatusViewport(request, body, parsed);
+  recordStatusViewport(request, parsed);
 
   return NextResponse.json({ ok: true });
 }

@@ -82,6 +82,7 @@ import {
   drainCommands,
   getDisplayStatus,
   setDisplayStatus,
+  recordViewportReport,
   getSharedStateReport,
   getProviderHealthReport,
   markSharedStateInterest,
@@ -1357,10 +1358,11 @@ describe('POST /api/display/status', () => {
     expect(res.status).toBe(400);
   });
 
-  it('silently drops hwStats on the status endpoint (moved to /api/display/hw-stats)', async () => {
-    // Old reporter builds may still POST hwStats to /status. The new handler
-    // strips that field and persists only the browser-heartbeat portion —
-    // no 400/403, no attempt to record hardware data from this path.
+  it('drops hwStats from a heartbeat so a display token cannot overwrite the reporter\'s stats', async () => {
+    // Hardware stats come only from the adoption-gated reporter through
+    // /api/display/hw-stats, and setDisplayStatus keeps the stored hwStats
+    // when the incoming status has none. A heartbeat that carried the field
+    // would clobber them, so the handler strips it and answers 200.
     vi.mocked(readConfig).mockResolvedValue({
       displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
     } as never);
@@ -1389,6 +1391,35 @@ describe('POST /api/display/status', () => {
     expect(setDisplayStatus).toHaveBeenCalled();
     const [statusArg] = vi.mocked(setDisplayStatus).mock.calls[0];
     expect((statusArg as { hwStats?: unknown }).hwStats).toBeUndefined();
+  });
+
+  it('takes the viewport from a top-level reportedViewport, the shape the not-yet-adopted page sends', async () => {
+    // DisplayNotFound posts no browserStats; its reportedViewport is how a
+    // new Pi's screen size reaches /api/displays and the adoption form.
+    vi.mocked(readConfig).mockResolvedValue({
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [] }],
+    } as never);
+    const req = new NextRequest('http://localhost/api/display/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        displayId: 'hallway',
+        clientId: 'client-1',
+        currentScreen: { index: 0, id: '', name: '' },
+        screenCount: 0,
+        activeProfile: null,
+        displayState: 'active',
+        timestamp: Date.now(),
+        reportedViewport: { width: 1080, height: 1920 },
+      }),
+    });
+    const res = await POST(req, makeParams('status'));
+    expect(res.status).toBe(200);
+
+    const [statusArg, displayId] = vi.mocked(setDisplayStatus).mock.calls[0];
+    expect(displayId).toBe('hallway');
+    expect((statusArg as { reportedViewport?: unknown }).reportedViewport).toEqual({ width: 1080, height: 1920 });
+    expect(recordViewportReport).toHaveBeenCalledWith('hallway', 'client-1', 1080, 1920, expect.anything());
   });
 });
 

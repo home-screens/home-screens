@@ -145,8 +145,9 @@ export function getDisplayScreens(display: DisplayNode): Screen[] {
  * every later edit lands on `config.displays[*].screens`.
  *
  * In multi-display mode this counts ONLY the per-display screens, never
- * `config.screens`, because `addDisplay` seeds the `main` display from the
- * globals at migration time — including both would double-count. This mirrors
+ * `config.screens`, because the editor's `addDisplay` seeds the `main` display
+ * from the globals when the first display is added, so including both would
+ * double-count. This mirrors
  * `buildMultiDisplayBreakdown` in `telemetry.ts`, which made the same call for
  * the same reason.
  */

@@ -485,7 +485,7 @@ npx playwright test --project=meta    # coverage ratchets only, run this first
 npx playwright test --project=editor  # one surface
 ```
 
-Vitest runs in a `node` environment with the `@` → `src` alias mirrored from `tsconfig.json`. Every test file's working directory is sandboxed by `vitest.setup.ts`, so unit tests cannot write to the real `data/` or `public/` directories.
+Vitest runs in a `node` environment by default (component and hook tests opt into jsdom with a `// @vitest-environment jsdom` docblock) with the `@` → `src` alias mirrored from `tsconfig.json`. Every test file's working directory is sandboxed by `vitest.setup.ts`, so unit tests cannot write to the real `data/` or `public/` directories.
 
 The E2E suite (`e2e/`, Playwright) boots each test worker against its own production server with a private `data/` sandbox, so it never touches your real config either. It is split into seven projects (`meta`, `smoke`, `editor`, `display`, `remote`, `chores`, and `auth`), each runnable on its own with `--project=<name>`. It covers every module type, config field, empty state, and locale via data-driven fixture registries; the `meta` coverage ratchets fail the suite if a new module, field, discriminator, empty state, or API route lacks a fixture or an explicit opt-out entry. Step 7 of [Adding a New Module](#adding-a-new-module) lists the registries.
 
