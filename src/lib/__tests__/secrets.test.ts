@@ -239,3 +239,32 @@ describe('getSecretStatus', () => {
     expect(status.weatherapi_key).toBe(true);
   });
 });
+
+describe('onSecretChange', () => {
+  it('tells a listener when its key lands a different value, and not otherwise', async () => {
+    const { onSecretChange, setSecret, deleteSecret } = await loadSecrets();
+    const seen: (string | null)[] = [];
+    const stop = onSecretChange('todoist_token', (value) => seen.push(value));
+
+    await setSecret('todoist_token', 'first');
+    expect(seen).toEqual(['first']);
+
+    // The same value again, and another key, are not changes to this key.
+    await setSecret('todoist_token', 'first');
+    await setSecret('openweathermap_key', 'weather');
+    expect(seen).toEqual(['first']);
+
+    await setSecret('todoist_token', 'second');
+    expect(seen).toEqual(['first', 'second']);
+
+    await deleteSecret('todoist_token');
+    expect(seen).toEqual(['first', 'second', null]);
+    // Deleting a key that is already gone is not a change.
+    await deleteSecret('todoist_token');
+    expect(seen).toEqual(['first', 'second', null]);
+
+    stop();
+    await setSecret('todoist_token', 'third');
+    expect(seen).toEqual(['first', 'second', null]);
+  });
+});

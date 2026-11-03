@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
   setSecret: vi.fn(),
+  onSecretChange: vi.fn(() => () => {}),
 }));
 
 vi.mock('@/lib/auth', () => ({

@@ -12242,10 +12242,6 @@
         {
           "method": "GET",
           "access": "display"
-        },
-        {
-          "method": "PUT",
-          "access": "session"
         }
       ]
     },

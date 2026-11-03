@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
-import { setSecret } from '@/lib/secrets';
+import { cachedProxyRoute, fetchWithTimeout, requireSecret } from '@/lib/api-utils';
+import { onSecretChange } from '@/lib/secrets';
 import { upstreamError } from '@/lib/upstream-error';
 import { logger } from '@/lib/logger';
 
@@ -176,29 +175,6 @@ async function fetchTodoistList(
   return { items: results, truncated: cursor !== null };
 }
 
-// ─── PUT: Save token server-side ───
-
-export const PUT = withAuth(async (request: NextRequest) => {
-  const body = await parseJsonBody<{ token?: unknown }>(request);
-  if (body instanceof NextResponse) return body;
-  const token = typeof body.token === 'string' ? body.token.trim() : '';
-
-  if (!token) {
-    return NextResponse.json({ error: 'No token provided' }, { status: 400 });
-  }
-
-  // Validate the token by making a quick API call
-  const result = await validateTodoistToken(token);
-  if (!result.valid) {
-    return NextResponse.json({ error: 'Invalid token — Todoist returned ' + result.status }, { status: 401 });
-  }
-
-  await setSecret('todoist_token', token);
-  cache.clear(); // invalidate cached tasks from previous token
-
-  return NextResponse.json({ ok: true });
-}, 'Failed to save Todoist token');
-
 // ─── GET: Fetch tasks ───
 
 const { GET, cache } = cachedProxyRoute<unknown>({
@@ -304,6 +280,11 @@ const { GET, cache } = cachedProxyRoute<unknown>({
   },
   errorMessage: 'Failed to fetch Todoist data',
 });
+
+// The editor saves the token through /api/secrets. Tasks cached under the
+// previous token would otherwise show until they expire, so a change to the
+// token (a new one, or none) empties the cache at the source.
+onSecretChange('todoist_token', () => cache.clear());
 
 /** @internal exported for test cleanup */
 export { GET, cache };

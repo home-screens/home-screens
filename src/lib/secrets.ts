@@ -62,16 +62,44 @@ export async function getSecret(key: SecretKey): Promise<string | null> {
   return secrets[key] || null;
 }
 
+type SecretChangeListener = (value: string | null) => void;
+const changeListeners = new Map<SecretKey, Set<SecretChangeListener>>();
+
+/**
+ * Runs after `setSecret` or `deleteSecret` lands a different value for
+ * `key`, with the new value (`null` once deleted). A route that caches what
+ * a key fetched (the Todoist task list) empties its cache here, so a new
+ * account's data shows at once instead of after the old entry expires.
+ * Returns the unsubscribe.
+ */
+export function onSecretChange(key: SecretKey, listener: SecretChangeListener): () => void {
+  let listeners = changeListeners.get(key);
+  if (!listeners) {
+    listeners = new Set();
+    changeListeners.set(key, listeners);
+  }
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
+function notifyChange(key: SecretKey, value: string | null): void {
+  for (const listener of changeListeners.get(key) ?? []) listener(value);
+}
+
 export async function setSecret(key: SecretKey, value: string): Promise<void> {
   const secrets = await readSecrets();
+  const changed = secrets[key] !== value;
   secrets[key] = value;
   await writeSecrets(secrets);
+  if (changed) notifyChange(key, value);
 }
 
 export async function deleteSecret(key: SecretKey): Promise<void> {
   const secrets = await readSecrets();
+  const changed = key in secrets;
   delete secrets[key];
   await writeSecrets(secrets);
+  if (changed) notifyChange(key, null);
 }
 
 export async function getSecretStatus(): Promise<Record<SecretKey, boolean>> {

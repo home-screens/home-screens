@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// The route subscribes to token changes at module load; the listener is
+// kept so a test can play a token change without the real store.
+const secretListeners = vi.hoisted(() => new Map<string, Array<(value: string | null) => void>>());
 vi.mock('@/lib/secrets', () => ({
   getSecret: vi.fn(),
-  setSecret: vi.fn(),
+  onSecretChange: vi.fn((key: string, listener: (value: string | null) => void) => {
+    secretListeners.set(key, [...(secretListeners.get(key) ?? []), listener]);
+    return () => {};
+  }),
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -20,10 +26,9 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   };
 });
 
-import { getSecret, setSecret } from '@/lib/secrets';
-import { requireSession } from '@/lib/auth';
+import { getSecret } from '@/lib/secrets';
 
-const { GET, PUT, cache } = await import('@/app/api/todoist/route');
+const { GET, cache } = await import('@/app/api/todoist/route');
 
 // ─── Helpers ───
 
@@ -634,141 +639,27 @@ describe('GET /api/todoist', () => {
   });
 });
 
-// ─── PUT ───
+// ─── Token changes ───
 
-describe('PUT /api/todoist', () => {
-  it('returns auth error when session is invalid', async () => {
-    vi.mocked(requireSession).mockRejectedValue(
-      Response.json({ error: 'Unauthorized' }, { status: 401 }),
-    );
+describe('a changed Todoist token', () => {
+  it('empties the task cache, so the new account shows at once', async () => {
+    vi.mocked(getSecret).mockResolvedValue('old-token');
+    mockTodoistAPI({ tasks: [makeTodoistTask({ content: 'Old account task' })] });
+    const first = await (await GET(new NextRequest('http://localhost/api/todoist'))).json();
+    expect(first.tasks[0].content).toBe('Old account task');
 
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({ token: 'abc' }),
-    });
+    // Within the TTL the answer comes from the cache, not Todoist.
+    mockTodoistAPI({ tasks: [makeTodoistTask({ content: 'New account task' })] });
+    const cached = await (await GET(new NextRequest('http://localhost/api/todoist'))).json();
+    expect(cached.tasks[0].content).toBe('Old account task');
 
-    const res = await PUT(req);
-    const json = await res.json();
+    // The household saves a different token through /api/secrets.
+    const listeners = secretListeners.get('todoist_token') ?? [];
+    expect(listeners.length).toBeGreaterThan(0);
+    vi.mocked(getSecret).mockResolvedValue('new-token');
+    for (const listener of listeners) listener('new-token');
 
-    expect(res.status).toBe(401);
-    expect(json.error).toBe('Unauthorized');
-  });
-
-  it('returns 400 on a malformed JSON body', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: 'not json{',
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(json.error).toMatch(/Invalid JSON body/);
-  });
-
-  it('returns 400 when no token in body', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({}),
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(json.error).toMatch(/No token provided/);
-  });
-
-  it('returns 400 when token is empty string', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({ token: '' }),
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(json.error).toMatch(/No token provided/);
-  });
-
-  it('returns 400 when token is whitespace only', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({ token: '   ' }),
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(json.error).toMatch(/No token provided/);
-  });
-
-  it('returns 401 when Todoist API rejects the token', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-    global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 403 });
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({ token: 'bad-token' }),
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(401);
-    expect(json.error).toMatch(/Invalid token/);
-  });
-
-  it('saves token and returns success when valid', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({ token: 'valid-token-123' }),
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(200);
-    expect(json.ok).toBe(true);
-    expect(setSecret).toHaveBeenCalledWith('todoist_token', 'valid-token-123');
-  });
-
-  it('trims whitespace from token before validation and saving', async () => {
-    vi.mocked(requireSession).mockResolvedValue(undefined);
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
-
-    const req = new NextRequest('http://localhost/api/todoist', {
-      method: 'PUT',
-      body: JSON.stringify({ token: '  valid-token  ' }),
-    });
-
-    const res = await PUT(req);
-    const json = await res.json();
-
-    expect(res.status).toBe(200);
-    expect(json.ok).toBe(true);
-    expect(setSecret).toHaveBeenCalledWith('todoist_token', 'valid-token');
-
-    // Verify the trimmed token was used for validation
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/projects'),
-      expect.objectContaining({
-        headers: expect.objectContaining({ Authorization: 'Bearer valid-token' }),
-      }),
-    );
+    const fresh = await (await GET(new NextRequest('http://localhost/api/todoist'))).json();
+    expect(fresh.tasks[0].content).toBe('New account task');
   });
 });
