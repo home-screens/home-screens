@@ -212,18 +212,36 @@ body {
   cursor: none !important;
 }
 
+/* A button on the wall answers the finger at once (`wallPressProps` sets
+   `data-pressed` as the finger lands): on a Pi the new week or recipe page
+   takes a quarter of a second to draw, and a tap with no answer gets tapped
+   again. `scale`, not `transform`, so a button placed with a transform of
+   its own stays where it is. */
+.wall-btn[data-pressed],
+.wall-btn:active {
+  filter: brightness(0.85);
+  scale: 0.94;
+}
+/* A row a finger ticks tints in the card's ink instead; a full-width row
+   that shrinks reads as the list jumping. */
+.wall-row[data-pressed],
+.wall-row:active {
+  background-color: color-mix(in srgb, var(--module-ink, currentcolor) 6%, transparent);
+}
+
+/* Sheets and cards over the wall (`WallOverlay`): the scrim fades in, a
+   sheet rises from the bottom, a card grows into place. */
+@keyframes wall-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wall-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes wall-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+.wall-sheet-panel::-webkit-scrollbar { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .wall-overlay, .wall-overlay * { animation: none !important; }
+}
+
 /* A list moving under a finger inside a frosted card: the card's glass rests
    until the list stops (`WALL_SCROLL_GLASS_REST_MS`). Re-blurring the card
    behind every scrolled frame is most of a Pi 4's frame. */
-/* The look-ahead arrows and their way back answer the finger at once: on a
-   Pi the new week takes a quarter of a second to draw, and a tap with no
-   answer gets tapped again. */
-.look-ahead-btn[data-pressed],
-.look-ahead-btn:active {
-  filter: brightness(0.85);
-  transform: scale(0.94);
-}
-
 [data-module-card][data-wall-scrolling] {
   /* Unprefixed only: given both, the build keeps just the -webkit- one, which Chromium ignores here. */
   backdrop-filter: none !important;

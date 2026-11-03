@@ -1,10 +1,11 @@
 'use client';
 
-import { createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
+import { createContext, useContext, useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { useTranslate } from '@/i18n';
 import { ink } from '@/lib/constants';
 import { lookAheadHeading, lookAheadHomeKey, lookAheadLimit } from '@/lib/look-ahead';
 import type { LookAhead } from './useLookAhead';
+import { wallPressProps } from './wallPress';
 
 /**
  * How the arrows are drawn: `ink` on a small module, in the module's own
@@ -30,26 +31,6 @@ const TONES: Record<LookAheadTone, { bg: string; border: string; color: string }
 
 /** Finger-sized whatever the text size: never under 44 px. */
 export const LOOK_AHEAD_BUTTON = 'max(44px, 2.75em)';
-
-/**
- * Every look-ahead button: pressed at once under the finger (globals.css),
- * since on a Pi the new week takes a quarter of a second to draw and a tap
- * with no answer gets tapped again.
- */
-const BUTTON_CLASS = 'look-ahead-btn';
-
-/**
- * The pressed look, set on the button itself the moment a finger lands.
- * Chromium only applies `:active` to a touch once it knows the touch is not
- * a scroll, which is exactly the moment that showed nothing; the attribute
- * needs no render.
- */
-const PRESS = {
-  onPointerDown: (e: PointerEvent<HTMLButtonElement>) => e.currentTarget.setAttribute('data-pressed', ''),
-  onPointerUp: (e: PointerEvent<HTMLButtonElement>) => e.currentTarget.removeAttribute('data-pressed'),
-  onPointerCancel: (e: PointerEvent<HTMLButtonElement>) => e.currentTarget.removeAttribute('data-pressed'),
-  onPointerLeave: (e: PointerEvent<HTMLButtonElement>) => e.currentTarget.removeAttribute('data-pressed'),
-};
 
 function Chevron({ back }: { back: boolean }) {
   return (
@@ -95,8 +76,7 @@ export function LookAheadArrow({ look, back, tone = 'ink', size = LOOK_AHEAD_BUT
   return (
     <button
       type="button"
-      className={BUTTON_CLASS}
-      {...PRESS}
+      {...wallPressProps}
       data-testid={back ? 'look-ahead-back' : 'look-ahead-forward'}
       aria-label={t(back ? 'lookAhead.earlier' : 'lookAhead.later')}
       aria-disabled={!enabled}
@@ -120,8 +100,7 @@ export function LookAheadHomeButton({ look, accent, onAccent = '#fff', size = LO
   return (
     <button
       type="button"
-      className={BUTTON_CLASS}
-      {...PRESS}
+      {...wallPressProps}
       data-testid="look-ahead-home"
       onClick={only(look.home)}
       style={{

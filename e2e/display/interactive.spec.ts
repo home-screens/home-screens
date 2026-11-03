@@ -47,6 +47,27 @@ test('interactive todo: tapping an item checks it off and persists it', async ({
   await expect(row).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('interactive todo: a row tints the moment a finger lands on it', async ({ page, request, sandboxDir }) => {
+  seedTodos(sandboxDir);
+  const todo = buildModuleInstance('todo', { listId: E2E_TODO_LIST_ID, interactive: true });
+  const display = await renderOnDisplay(page, request, baseConfig({
+    screens: [makeScreen('s1', 'S1', [todo])],
+  }));
+
+  const row = display.module('todo').getByRole('button', { name: /ACTIVE ITEM/ });
+  const box = (await row.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  // Before the tap is even a tap (`wallRowPress`), the row carries the pressed mark and the tint.
+  await expect(row).toHaveAttribute('data-pressed', '');
+  await expect(row).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  const patched = itemPatched(page);
+  await page.mouse.up();
+  await patched;
+  // Once the hub has answered, the mark is gone again.
+  await expect(row).not.toHaveAttribute('data-pressed', '');
+});
+
 /**
  * The same tap, dispatched as a raw CDP touch sequence so it runs through
  * Chromium's gesture recognizer — the path a physical touchscreen takes and

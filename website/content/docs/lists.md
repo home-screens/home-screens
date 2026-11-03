@@ -54,6 +54,8 @@ The gear next to the count opens the list: rename it, give it a colour, or tidy 
 
 **Tap to complete (touchscreen)** is on for new To-Do modules. On a touchscreen a tap ticks the item in the **List** and **Board** views; the other views and any display without touch just show the list. Turn it off in the module's settings if you would rather the wall be read-only.
 
+With it on, a **List** or **Compact** view that holds more than fits scrolls with a finger too. A **Back to the top** button shows while the list is away, and a minute after the last touch it slides back to the top on its own. With it off, the list shows what fits and says how many more there are.
+
 ## Where the data lives
 
 Lists are kept on the hub, next to chores and meals, and are included in backups. They are not part of the layout, so editing a screen in the editor never touches a list, and the same list can sit on as many screens as you like.

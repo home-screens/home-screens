@@ -315,6 +315,8 @@ Shows one of the family's shared lists (see [Lists](/docs/lists)). Items live in
 {% fields /%}
 
 When every item is done the heading shows a green tick and "All done" in every view. A list with a repeat schedule says when it starts fresh.
+
+**Scrolling:** with `interactive` on, a **list** or **compact** view longer than the module's box scrolls with a finger, shows **Back to the top** while it is away, and slides back to the top a minute after the last touch. With it off, the rows that do not fit are left out and the list says "and N more".
 {% /module %}
 
 {% module type="notes" %}

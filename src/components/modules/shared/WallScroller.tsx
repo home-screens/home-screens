@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { holdRotationFor } from '@/lib/interaction-hold';
 import { BROWSE_ROTATION_HOLD_MS } from '@/components/display/useTapRotationHold';
 import { WALL_SCROLL_GLASS_REST_MS, WALL_SCROLL_IDLE_MS, WALL_SCROLL_THUMB_FADE_MS, isAwayFromHome, isNearEnd, wallScrollThumb } from '@/lib/wall-scroll';
+import { wallPressProps } from './wallPress';
 
 /** A scroll inside this long of an earlier one is the same gesture: one rotation hold, not one per frame. */
 const HOLD_THROTTLE_MS = 1_000;
@@ -246,6 +247,7 @@ export function WallScroller({
       {enabled && away && backLabel && (
         <button
           type="button"
+          {...wallPressProps}
           data-testid={testId ? `${testId}-home` : undefined}
           onClick={() => goHome(true)}
           style={{

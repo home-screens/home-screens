@@ -1,21 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { useInteractionHold, useStayAwakeHold } from '@/lib/interaction-hold';
-import { DISPLAY_LAYERS } from '@/lib/display-layers';
-import { buildThemeCSSVars, getThemeTokens, resolveFullscreenAccent, resolveFullscreenOnAccent } from '@/lib/fullscreen-themes';
-import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
+import { useStayAwakeHold } from '@/lib/interaction-hold';
 import { recipeCardCloseAfter } from '@/lib/meal-recipe';
-import { UI_SANS_STACK } from '@/lib/font-registry';
 import { useRecipeLink } from '@/components/meals/useMealieLink';
 import { RecipeSheet } from './RecipeSheet';
 import { useMealRecipe } from './useMealRecipe';
-import { recipeServingAt, useMealRecipeContext, type MealServingRef } from './MealRecipeContext';
-import { useViewportSize } from './useViewportSize';
+import { recipeServingAt, useMealOverlayTheme, useMealRecipeContext, type MealServingRef } from './MealRecipeContext';
+import { useWallOverlayScale } from './useWallOverlayScale';
+import { WallOverlay } from './WallOverlay';
+import { wallPressProps } from './wallPress';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
 
@@ -23,9 +20,8 @@ const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
  * The recipe of a tapped meal, drawn on a card over the wall in the display's
  * full-screen theme: the same layout as the Recipe view, with a close button,
  * a QR code for a phone, and the courses as buttons that open their own
- * recipes on the same card. Portals to the body so it escapes the screen's
- * zoom and holds rotation while open. A card nobody cooks from closes itself
- * ten minutes after the last touch; the first tick, step or course starts
+ * recipes on the same card. A card nobody cooks from closes itself ten
+ * minutes after the last touch; the first tick, step or course starts
  * cooking mode, which keeps the screen awake and the card open until an hour
  * passes with no touch (`recipeCardCloseAfter`).
  */
@@ -34,40 +30,17 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const ctx = useMealRecipeContext();
   const [meal, setMeal] = useState(tapped);
   const recipeLink = useRecipeLink();
-  const { w, h } = useViewportSize();
-  useInteractionHold();
+  const { P, landscape } = useWallOverlayScale();
   // Cooking mode, from the first tick, step or course: the idle dim and sleep
   // wait, and the card stays an hour. A card opened by accident does neither.
   const [cooking, setCooking] = useState(false);
   const startCooking = useCallback(() => setCooking(true), []);
   useStayAwakeHold(cooking);
 
-  // Every touch on the card starts the wait over; onClose in a ref so a
-  // parent re-render (the minute clock) never restarts it.
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  const [touchedAt, setTouchedAt] = useState(0);
-  useEffect(() => {
-    const timer = setTimeout(() => onCloseRef.current(), recipeCardCloseAfter(cooking));
-    return () => clearTimeout(timer);
-  }, [touchedAt, meal, cooking]);
-
-  const theme = getThemeTokens(ctx?.theme);
-  const cssVars = {
-    ...buildThemeCSSVars('fmp', theme),
-    '--fmp-accent': resolveFullscreenAccent('', theme, DEFAULT_ACCENT_COLOR),
-    '--fmp-on-accent': resolveFullscreenOnAccent('', theme, DEFAULT_ACCENT_COLOR),
-  } as CSSProperties;
-
-  // Authored at 1080 across the short side, like the full-screen views.
-  const unit = Math.min(w, h) / 1080;
-  const P = (n: number) => n * unit;
-  const landscape = w > h;
+  const { panelStyle } = useMealOverlayTheme();
   const { serving, courses, scale } = useMemo(() => recipeServingAt(ctx, at, meal), [ctx, at, meal]);
   const recipe = useMealRecipe(meal, scale);
   const recipeUrl = recipeLink(meal);
-
-  if (typeof document === 'undefined') return null;
 
   const footer = (measuring: boolean) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: P(26), marginTop: P(24), flexShrink: 0 }}>
@@ -95,25 +68,15 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
     </div>
   );
 
-  return createPortal(
-    <div
-      role="dialog"
-      aria-label={meal.name}
-      data-testid="recipe-card"
-      onClick={onClose}
-      style={{ position: 'fixed', inset: 0, zIndex: DISPLAY_LAYERS.moduleOverlay, backgroundColor: 'rgba(0,0,0,0.62)' }}
-    >
+  return (
+    <WallOverlay label={meal.name} testId="recipe-card" onClose={onClose} autoCloseMs={recipeCardCloseAfter(cooking)} restartKey={meal.id}>
       <div
         className="fmp-root"
         onClick={(e) => e.stopPropagation()}
-        onPointerDown={() => setTouchedAt(Date.now())}
         style={{
-          ...cssVars,
+          ...panelStyle,
           position: 'absolute', left: P(40), right: P(40), top: P(70), bottom: P(70),
-          borderRadius: P(44), boxShadow: '0 30px 80px rgba(0,0,0,0.5)', overflow: 'hidden',
-          display: 'flex', flexDirection: 'column', fontFamily: UI_SANS_STACK, lineHeight: 1.5,
-          backgroundColor: 'var(--fmp-bg)', backgroundImage: 'var(--fmp-bg-image)', color: 'var(--fmp-text)',
-          colorScheme: theme.isDark ? 'dark' : 'light',
+          borderRadius: P(44), boxShadow: '0 30px 80px rgba(0,0,0,0.5)',
         }}
       >
         <RecipeSheet
@@ -139,6 +102,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
         />
         <button
           type="button"
+          {...wallPressProps}
           data-testid="recipe-card-close"
           aria-label={t('meal-planner.closeRecipe')}
           onClick={onClose}
@@ -151,7 +115,6 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
           &times;
         </button>
       </div>
-    </div>,
-    document.body,
+    </WallOverlay>
   );
 }

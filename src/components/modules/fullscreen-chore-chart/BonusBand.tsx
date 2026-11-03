@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPressProps } from '@/components/modules/shared/wallPress';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Check, Hand, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
@@ -81,7 +82,7 @@ function BonusTile({ item, memberMap, initialsMap, s, cols, allowTouch, today, l
       tabIndex={tappable ? 0 : undefined}
       onClick={open}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') open(); }}
-      className={tappable ? 'press-scale' : undefined}
+      {...(tappable ? wallPressProps : {})}
       style={{
         display: 'flex', flexDirection: 'column', gap: 10 * s, padding: `${16 * s}px ${18 * s}px`, minWidth: 0,
         borderRadius: 20 * s, cursor: tappable ? 'pointer' : 'default',
@@ -227,7 +228,7 @@ export default function BonusBand({
             type="button"
             data-testid="fcc-bonus-more"
             onClick={() => onOpenMore(hidden)}
-            className="press-scale"
+            {...wallPressProps}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 20 * s, border: 'none', cursor: 'pointer',
               background: 'var(--fcc-surface)', fontSize: 24 * s, fontWeight: 700, color: 'var(--fcc-text-2)', minHeight: 120 * s,

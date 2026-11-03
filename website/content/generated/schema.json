@@ -4570,7 +4570,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Render items as tap targets so anyone at the kiosk can tick them. A tap writes to the shared list, never to the layout",
+          "description": "Render items as tap targets so anyone at the kiosk can tick them, and let a finger scroll the List and Compact views past the rows that fit. A tap writes to the shared list, never to the layout",
           "default": true
         },
         {

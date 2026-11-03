@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPress } from '@/components/modules/shared/wallPress';
 import { useState, type CSSProperties } from 'react';
 import { useTranslate } from '@/i18n';
 import type { ControlMetrics } from './metrics';
@@ -64,7 +65,7 @@ export function ControlIcon({ name, m }: { name: ControlIconName; m: ControlMetr
 }
 
 export const BUTTON_CLASS =
-  'bg-hs-card border border-hs-border-strong text-hs-text-primary transition-transform active:scale-95 min-h-0 min-w-0 overflow-hidden';
+  'bg-hs-card border border-hs-border-strong text-hs-text-primary min-h-0 min-w-0 overflow-hidden';
 
 /** Box styling one button takes from the sizing model. The icon-to-words
  *  spacing is a margin on the words themselves, not a flex gap, so an
@@ -102,10 +103,10 @@ export function ControlButton({
   return (
     <button
       type="button"
+      {...wallPress(`${BUTTON_CLASS} ${row ? 'flex flex-row items-center justify-center' : 'flex flex-col items-center justify-center'} ${className}`)}
       aria-label={ariaLabel ?? label}
       onClick={onClick}
       style={{ ...buttonStyle(m), ...style }}
-      className={`${BUTTON_CLASS} ${row ? 'flex flex-row items-center justify-center' : 'flex flex-col items-center justify-center'} ${className}`}
     >
       <ControlIcon name={icon} m={m} />
       <ButtonWords label={label} sub={sub} m={m} row={row} />

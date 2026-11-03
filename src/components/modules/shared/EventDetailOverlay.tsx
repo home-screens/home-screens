@@ -1,18 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { addDays, isSameDay, startOfDay } from 'date-fns';
 import { Clock, MapPin, CalendarDays } from 'lucide-react';
 import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, eventKindGlyph, eventKindLabel } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDayRange, formatRelativeTime, fullDateHeading } from '@/i18n';
-import { useInteractionHold } from '@/lib/interaction-hold';
-import { useSettledTap } from '@/hooks/useSheetTapGuard';
-import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
 import { householdTimeFormat } from '@/lib/clock-time';
+import { WallOverlay, WallSheetPanel } from './WallOverlay';
+import { wallPressProps } from './wallPress';
 
 // A kiosk nobody is standing at must not show an event detail forever.
 export const EVENT_DETAIL_AUTO_DISMISS_MS = 45_000;
@@ -84,41 +81,17 @@ interface EventDetailOverlayProps {
 }
 
 /**
- * Tap-to-open event detail for calendar modules. Portals to document.body so
- * it escapes the zoom-scaled ScreenRenderer — which is exactly why every size
- * is viewport-relative (clamp/vmin) rather than raw px: the calendar behind
- * it scales with the configured display, the overlay scales with the actual
- * viewport. The scrim keeps the tapped view visible underneath for context.
- * Sits below the sleep and alert overlays so those still take over the
- * screen.
- *
- * No `data-swipe-ignore` here: swipe navigation is already disabled while the
- * overlay is open (useInteractionHold → ScreenRotator's `enabled` gate), and
- * the attribute's stylesheet side effect would re-enable pinch/double-tap
- * zoom over the overlay on a real touchscreen.
+ * Tap-to-open event detail for calendar modules, in a `WallOverlay`. The
+ * overlay escapes the zoom-scaled ScreenRenderer, which is exactly why every
+ * size here is viewport-relative (clamp/vmin) rather than raw px: the
+ * calendar behind it scales with the configured display, the overlay scales
+ * with the actual viewport. The scrim keeps the tapped view visible
+ * underneath for context.
  */
 export function EventDetailOverlay({ event, variant, theme, accentColor, timeFormat, timezone, now, onClose }: EventDetailOverlayProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
   const locale = useFormattingLocale();
-
-  // Pause rotation and swipe navigation while open; the auto-dismiss timer
-  // bounds the hold.
-  useInteractionHold();
-
-  // onClose lives in a ref so parent re-renders (the 60s clock tick) can
-  // never reset the countdown.
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  useEffect(() => {
-    const timer = setTimeout(() => onCloseRef.current(), EVENT_DETAIL_AUTO_DISMISS_MS);
-    return () => clearTimeout(timer);
-  }, []);
-  // The second tap of a double tap on the event lands on the scrim, which
-  // must not close the detail it just opened.
-  const settled = useSettledTap();
-
-  if (typeof document === 'undefined') return null;
 
   const description = sanitizeEventDescription(event.description);
   const start = parseEventWallTime(event.start, timezone);
@@ -227,6 +200,7 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
 
       <button
         type="button"
+        {...wallPressProps}
         onClick={onClose}
         style={{
           display: 'block',
@@ -250,86 +224,17 @@ export function EventDetailOverlay({ event, variant, theme, accentColor, timeFor
     </div>
   );
 
-  const panelStyle: React.CSSProperties = variant === 'sheet'
-    ? {
-        position: 'absolute',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        bottom: 0,
-        width: 'min(100%, 900px)',
-        maxHeight: '88vh',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        scrollbarWidth: 'none',
-        background: theme.surface,
-        borderRadius: 'min(36px, 5vmin) min(36px, 5vmin) 0 0',
-        boxShadow: '0 -16px 60px rgba(0,0,0,0.35)',
-        animation: 'fscd-sheet-in 250ms ease-out',
-      }
-    : {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 'min(calc(100% - 10vmin), 900px)',
-        maxHeight: '88vh',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        scrollbarWidth: 'none',
-        background: theme.surface,
-        borderRadius: 'min(28px, 4vmin)',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
-        animation: 'fscd-card-in 250ms ease-out',
-      };
-
-  const overlay = (
-    <div
-      role="dialog"
-      aria-label={event.title}
-      className="fscd-overlay"
-      onClick={settled(onClose)}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: DISPLAY_LAYERS.moduleOverlay,
-        // No backdrop-filter: a full-viewport blur over content that repaints
-        // continuously (the today-pulse animation) forces Chromium to re-blur
-        // the whole surface every frame for the overlay's entire lifetime.
-        // A slightly stronger plain scrim reads almost identically.
-        background: theme.isDark ? 'rgba(0,0,0,0.62)' : 'rgba(0,0,0,0.52)',
-        cursor: 'pointer',
-        fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
-        animation: 'fscd-scrim-in 200ms ease-out',
-      }}
+  return (
+    <WallOverlay
+      label={event.title}
+      onClose={onClose}
+      autoCloseMs={EVENT_DETAIL_AUTO_DISMISS_MS}
+      scrim={theme.isDark ? 'rgba(0,0,0,0.62)' : 'rgba(0,0,0,0.52)'}
+      style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}
     >
-      <style>{`
-        @keyframes fscd-scrim-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fscd-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
-        @keyframes fscd-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-        .fscd-panel::-webkit-scrollbar { display: none; }
-        @media (prefers-reduced-motion: reduce) {
-          .fscd-overlay, .fscd-overlay * { animation: none !important; }
-        }
-      `}</style>
-      <div className="fscd-panel" style={panelStyle} data-detail-style={variant}>
-        {variant === 'sheet' && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ padding: 'clamp(12px, 2vmin, 22px) 0 6px', cursor: 'default' }}
-          >
-            <div style={{
-              width: 'min(96px, 12vmin)',
-              height: 10,
-              borderRadius: 5,
-              background: theme.border,
-              margin: '0 auto',
-            }} />
-          </div>
-        )}
+      <WallSheetPanel variant={variant} theme={theme} data-detail-style={variant}>
         {body}
-      </div>
-    </div>
+      </WallSheetPanel>
+    </WallOverlay>
   );
-
-  return createPortal(overlay, document.body);
 }

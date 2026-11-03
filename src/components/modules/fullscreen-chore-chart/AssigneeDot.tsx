@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPressProps } from '@/components/modules/shared/wallPress';
 import { useTranslate } from '@/i18n';
 import MemberDot from '../shared/MemberDot';
 import type { ToggleParams } from './helpers';
@@ -78,7 +79,7 @@ export default function AssigneeDot({
   return (
     <MemberDot
       data-testid="fcc-dot"
-      className={allowTouch ? 'press-dot' : undefined}
+      {...(allowTouch ? wallPressProps : {})}
       role={allowTouch ? 'button' : undefined}
       tabIndex={allowTouch ? 0 : undefined}
       onClick={

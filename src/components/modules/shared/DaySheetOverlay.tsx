@@ -1,19 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
 import { formatEventTime, isZeroLengthEvent } from '@/lib/calendar-utils';
 import { daySheetHeading, daySheetRows, type DaySheetRow } from '@/lib/calendar-day-sheet';
 import { eventGlyph } from '@/lib/calendar-rules';
-import { useInteractionHold } from '@/lib/interaction-hold';
-import { useSettledTap } from '@/hooks/useSheetTapGuard';
-import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import { GlyphPrefix } from '@/components/ui/Glyph';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
 import { EVENT_DETAIL_AUTO_DISMISS_MS } from './EventDetailOverlay';
+import { WallOverlay, WallSheetPanel } from './WallOverlay';
+import { wallPressProps } from './wallPress';
 
 /**
  * A length drawn at `px` on a portrait 1080-wide wall and scaled with the
@@ -47,33 +45,14 @@ interface DaySheetOverlayProps {
 /**
  * Every event on one day, opened from a calendar grid's "+N more" or day
  * number. It copies the event detail's look (grabber, accent stripe, small
- * capitals over a serif heading, a full-width Close) and its behaviour: it
- * portals to the body with viewport-relative sizes, holds the screen while
- * open, and closes itself after the same 45 seconds, counted from the last
- * touch and not while an event's detail is open over it. A row opens that
- * event's detail on top; closing the detail comes back here.
+ * capitals over a serif heading, a full-width Close) and its behaviour
+ * (`WallOverlay`): viewport-relative sizes, and the same 45 seconds, counted
+ * from the last touch and not while an event's detail is open over it. A
+ * row opens that event's detail on top; closing the detail comes back here.
  */
 export function DaySheetOverlay({ date, events, variant, theme, accentColor, colorFor, timeFormat, timezone, paused, onOpenEvent, onClose }: DaySheetOverlayProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
-
-  useInteractionHold();
-
-  // onClose lives in a ref so parent re-renders (the clock tick) never reset
-  // the countdown; a touch on the sheet, or coming back from a detail, does.
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  const [touches, setTouches] = useState(0);
-  useEffect(() => {
-    if (paused) return;
-    const timer = setTimeout(() => onCloseRef.current(), EVENT_DETAIL_AUTO_DISMISS_MS);
-    return () => clearTimeout(timer);
-  }, [paused, touches]);
-  // The second tap of a double tap on the day lands on the scrim, which must
-  // not close the sheet it just opened.
-  const settled = useSettledTap();
-
-  if (typeof document === 'undefined') return null;
 
   const rows = daySheetRows(events, date, timezone);
   const heading = daySheetHeading(date, locale);
@@ -96,6 +75,7 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
       <button
         key={event.id}
         type="button"
+        {...wallPressProps}
         data-day-sheet-row={event.id}
         onClick={() => onOpenEvent(event.id)}
         style={{
@@ -160,6 +140,7 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
       </div>
       <button
         type="button"
+        {...wallPressProps}
         onClick={onClose}
         style={{
           display: 'block',
@@ -183,79 +164,18 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
     </div>
   );
 
-  const panelStyle: React.CSSProperties = variant === 'sheet'
-    ? {
-        position: 'absolute',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        bottom: 0,
-        width: 'min(100%, 900px)',
-        maxHeight: '88vh',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        scrollbarWidth: 'none',
-        background: theme.surface,
-        borderRadius: 'min(36px, 5vmin) min(36px, 5vmin) 0 0',
-        boxShadow: '0 -16px 60px rgba(0,0,0,0.35)',
-        cursor: 'default',
-        animation: 'ds-sheet-in 250ms ease-out',
-      }
-    : {
-        position: 'absolute',
-        left: '50%',
-        top: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 'min(calc(100% - 10vmin), 900px)',
-        maxHeight: '88vh',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        scrollbarWidth: 'none',
-        background: theme.surface,
-        borderRadius: 'min(28px, 4vmin)',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.35)',
-        cursor: 'default',
-        animation: 'ds-card-in 250ms ease-out',
-      };
-
-  const overlay = (
-    <div
-      role="dialog"
-      aria-label={heading.full}
-      className="ds-overlay"
-      onClick={settled(onClose)}
-      onPointerDown={() => setTouches((n) => n + 1)}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: DISPLAY_LAYERS.moduleOverlay,
-        // Plain scrim, no backdrop blur: see EventDetailOverlay.
-        background: theme.isDark ? 'rgba(0,0,0,0.62)' : 'rgba(0,0,0,0.52)',
-        cursor: 'pointer',
-        fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif',
-        lineHeight: 1.5,
-        animation: 'ds-scrim-in 200ms ease-out',
-        '--ds-u': 'min(1vw, 0.7vh)',
-      } as React.CSSProperties}
+  return (
+    <WallOverlay
+      label={heading.full}
+      onClose={onClose}
+      autoCloseMs={EVENT_DETAIL_AUTO_DISMISS_MS}
+      paused={paused}
+      scrim={theme.isDark ? 'rgba(0,0,0,0.62)' : 'rgba(0,0,0,0.52)'}
+      style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif', lineHeight: 1.5, '--ds-u': 'min(1vw, 0.7vh)' } as CSSProperties}
     >
-      <style>{`
-        @keyframes ds-scrim-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes ds-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
-        @keyframes ds-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-        .ds-panel::-webkit-scrollbar { display: none; }
-        @media (prefers-reduced-motion: reduce) {
-          .ds-overlay, .ds-overlay * { animation: none !important; }
-        }
-      `}</style>
-      <div className="ds-panel" style={panelStyle} data-day-sheet-style={variant} onClick={(e) => e.stopPropagation()}>
-        {variant === 'sheet' && (
-          <div style={{ padding: 'clamp(12px, 2vmin, 22px) 0 6px' }}>
-            <div style={{ width: 'min(96px, 12vmin)', height: 10, borderRadius: 5, background: theme.border, margin: '0 auto' }} />
-          </div>
-        )}
+      <WallSheetPanel variant={variant} theme={theme} data-day-sheet-style={variant}>
         {body}
-      </div>
-    </div>
+      </WallSheetPanel>
+    </WallOverlay>
   );
-
-  return createPortal(overlay, document.body);
 }

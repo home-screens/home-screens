@@ -6,6 +6,7 @@ import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey } from '@/lib/meal-constants';
 import { batchWord, mealHasRecipe, pageByHeight, RECIPE_PAGE_TURN_MS, recipePageOfStep, recipeStats, type RecipeDetail, type RecipeStep } from '@/lib/meal-recipe';
 import { holdRotationFor } from '@/lib/interaction-hold';
+import { wallPressProps } from './wallPress';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useFontsReady } from '@/hooks/useFontsReady';
 import { useTranslate } from '@/i18n';
@@ -346,6 +347,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             <button
               key={i}
               type="button"
+              {...wallPressProps}
               aria-label={t('meal-planner.recipe.openCourseAria', { name: c.name })}
               onClick={() => { cook(); onCourse!(c.meal!); }}
               style={{
@@ -469,6 +471,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
               {interactive && !m ? (
                 <button
                   type="button"
+                  {...wallPressProps}
                   data-testid="recipe-ingredient"
                   data-ticked={isTicked ? '' : undefined}
                   aria-pressed={isTicked}
@@ -523,7 +526,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
     );
     if (m) return <div style={style}>{inner}</div>;
     return (
-      <button type="button" data-testid="recipe-ingredients-line" onClick={() => goToPage(0)} style={{ ...style, fontFamily: 'inherit', cursor: 'pointer' }}>
+      <button type="button" {...wallPressProps} data-testid="recipe-ingredients-line" onClick={() => goToPage(0)} style={{ ...style, fontFamily: 'inherit', cursor: 'pointer' }}>
         {inner}
       </button>
     );
@@ -568,6 +571,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
       <button
         key={i}
         type="button"
+        {...wallPressProps}
         data-testid="recipe-step"
         data-current={current ? '' : undefined}
         aria-label={t('meal-planner.recipe.stepAria', { step: i + 1 })}
@@ -598,6 +602,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             <button
               key={i}
               type="button"
+              {...wallPressProps}
               data-testid="recipe-dot"
               aria-label={t('meal-planner.recipe.pageAria', { page: i + 1, pages: pages.length })}
               aria-current={i === shownPage ? 'page' : undefined}
@@ -681,14 +686,14 @@ export function RecipeSheet(props: RecipeSheetProps) {
     };
     return (
       <div style={{ display: 'flex', gap: P(24), marginTop: P(26), flexShrink: 0 }}>
-        <button type="button" data-testid={tid('recipe-back', m)} onClick={backStep} disabled={atStart} style={{
+        <button type="button" {...wallPressProps} data-testid={tid('recipe-back', m)} onClick={backStep} disabled={atStart} style={{
           ...buttonBase, width: '30%', border: '2px solid var(--fmp-border)', background: 'var(--fmp-surface)',
           fontSize: P(36), fontWeight: 600, color: 'var(--fmp-text-2)', opacity: atStart ? 0.45 : 1,
         }}>
           <span aria-hidden="true" style={{ fontSize: P(52), lineHeight: 1, marginTop: -P(6) }}>&#8249;</span>
           {t('meal-planner.recipe.back')}
         </button>
-        <button type="button" data-testid={tid('recipe-next', m)} onClick={nextStep} disabled={atEnd} style={{
+        <button type="button" {...wallPressProps} data-testid={tid('recipe-next', m)} onClick={nextStep} disabled={atEnd} style={{
           ...buttonBase, flex: 1, border: 0, background: 'var(--fmp-accent)', fontSize: P(38), fontWeight: 700, color: 'var(--fmp-on-accent, #fff)',
           opacity: atEnd ? 0.45 : 1,
         }}>

@@ -247,7 +247,8 @@ test.describe('Look-ahead on the small Calendar', () => {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
     await expect(forward).toHaveAttribute('data-pressed', '');
-    await expect(forward).toHaveCSS('transform', /matrix\(0\.94/);
+    // `scale`, not `transform`: a wall button placed with a transform of its own keeps it while pressed.
+    await expect(forward).toHaveCSS('scale', '0.94');
     await page.mouse.up();
     await expect(forward).not.toHaveAttribute('data-pressed', '');
     await expect(mod.getByTestId('look-ahead-words')).toHaveText('Next week');

@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPressProps } from '../wallPress';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { SavedMeal } from '@/types/config';
@@ -85,6 +86,7 @@ export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25 }: {
   return (
     <button
       type="button"
+      {...wallPressProps}
       data-testid="recipe-book-tile"
       onClick={() => onOpen(meal)}
       style={{ ...style, border: 0, background: 'none', padding: 0, font: 'inherit', color: 'inherit', cursor: 'pointer' }}
@@ -137,6 +139,7 @@ export function RecipeSearchField({ P, words, placeholder, typing, onOpen, onCle
     <div style={{ position: 'relative' }}>
       <button
         type="button"
+        {...wallPressProps}
         data-testid="recipe-book-search"
         aria-label={t('meal-planner.recipeBook.searchAria')}
         onClick={disabled ? undefined : onOpen}
@@ -159,6 +162,7 @@ export function RecipeSearchField({ P, words, placeholder, typing, onOpen, onCle
       {words && !disabled && (
         <button
           type="button"
+          {...wallPressProps}
           data-testid="recipe-book-clear"
           aria-label={t('meal-planner.recipeBook.clearSearch')}
           onClick={onClear}
@@ -219,6 +223,7 @@ function Chip({ label, icon, on, size, P, onClick, testId, minHeight = 0 }: {
   return (
     <button
       type="button"
+      {...(onClick ? wallPressProps : {})}
       data-testid={testId}
       data-on={on ? '' : undefined}
       aria-pressed={onClick ? on : undefined}

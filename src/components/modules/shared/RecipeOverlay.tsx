@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { useInteractionHold } from '@/lib/interaction-hold';
-import { DISPLAY_LAYERS } from '@/lib/display-layers';
 import Glyph from '@/components/ui/Glyph';
 import { DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { useRecipeLink } from '@/components/meals/useMealieLink';
+import { WallOverlay } from './WallOverlay';
+import { wallPressProps } from './wallPress';
 
 const QR_AUTO_DISMISS_MS = 30_000;
 const IFRAME_AUTO_CLOSE_MS = 10 * 60_000;
@@ -21,11 +20,11 @@ interface RecipeOverlayProps {
 }
 
 /**
- * Fullscreen recipe overlay for kiosk displays. Portals to document.body so it
- * escapes the zoom-scaled ScreenRenderer and the module's bounding box.
+ * Fullscreen recipe overlay for kiosk displays, in a `WallOverlay`: the QR
+ * code goes after half a minute, the page after ten.
  *
  * The iframe variant keeps a "Show QR code" escape hatch because sites that
- * block embedding (X-Frame-Options/CSP) just render a blank frame — the block
+ * block embedding (X-Frame-Options/CSP) just render a blank frame: the block
  * is invisible cross-origin, so the fallback must always be offered.
  */
 export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
@@ -37,83 +36,53 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
   const recipeLink = useRecipeLink();
   const recipeUrl = recipeLink(meal);
 
-  // Hold screen rotation while open so the next screen doesn't unmount the
-  // overlay out from under the reader; the timers below bound the hold.
-  useInteractionHold();
-
-  // Safety timers: a kiosk nobody is standing at must not show a recipe forever.
-  // onClose lives in a ref so parent re-renders (e.g. the 60s clock tick) can
-  // never reset the countdown — only switching views restarts it.
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  useEffect(() => {
-    const ms = view === 'qr' ? QR_AUTO_DISMISS_MS : IFRAME_AUTO_CLOSE_MS;
-    const timer = setTimeout(() => onCloseRef.current(), ms);
-    return () => clearTimeout(timer);
-  }, [view]);
-
-  if (typeof document === 'undefined') return null;
-
   // Everything below is painted on the overlay's own near-black scrim, so its
-  // white ink and white QR are for that scrim, not the card (plan 50, item 19).
-  const overlay = view === 'qr' ? (
-    <div
-      role="dialog"
-      aria-label={meal.name}
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        // Below sleep/alert: a sleeping display must black out over a recipe.
-        zIndex: DISPLAY_LAYERS.moduleOverlay,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1.5rem',
-        backgroundColor: 'rgba(0,0,0,0.92)',
-        color: '#fff',
-        cursor: 'pointer',
-      }}
-    >
-      {meal.emoji && <span style={{ fontSize: '4rem', lineHeight: 1 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
-      <span style={{ fontSize: '2rem', fontWeight: 600, textAlign: 'center', maxWidth: '80%' }}>
-        {meal.name}
-      </span>
-      {/* QR must be black-on-white to scan reliably on a dark backdrop. */}
-      <div
-        style={{
-          backgroundColor: '#fff',
-          borderRadius: '1rem',
-          padding: '1.5rem',
-          display: 'flex',
-        }}
+  // white ink and white QR are for that scrim, not the card.
+  if (view === 'qr') {
+    return (
+      <WallOverlay
+        label={meal.name}
+        onClose={onClose}
+        autoCloseMs={QR_AUTO_DISMISS_MS}
+        scrim="rgba(0,0,0,0.92)"
+        style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', color: '#fff' }}
       >
-        <QRCodeSVG
-          value={recipeUrl}
-          fgColor="#000000"
-          bgColor="#ffffff"
-          style={{ width: 'min(60vw, 60vh)', height: 'min(60vw, 60vh)' }}
-        />
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem' }}>
-        <span style={{ fontSize: '1.1rem', opacity: 0.9 }}>{t('meal-planner.scanToOpenRecipe')}</span>
-        <span style={{ fontSize: '0.85rem', opacity: 0.5 }}>{t('meal-planner.tapToDismiss')}</span>
-      </div>
-    </div>
-  ) : (
-    <div
-      role="dialog"
-      aria-label={meal.name}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        // Below sleep/alert: a sleeping display must black out over a recipe.
-        zIndex: DISPLAY_LAYERS.moduleOverlay,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: '#000',
-      }}
+        {meal.emoji && <span style={{ fontSize: '4rem', lineHeight: 1 }}><Glyph value={meal.emoji} fallback={DEFAULT_MEAL_EMOJI} /></span>}
+        <span style={{ fontSize: '2rem', fontWeight: 600, textAlign: 'center', maxWidth: '80%' }}>
+          {meal.name}
+        </span>
+        {/* QR must be black-on-white to scan reliably on a dark backdrop. */}
+        <div
+          style={{
+            backgroundColor: '#fff',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            display: 'flex',
+          }}
+        >
+          <QRCodeSVG
+            value={recipeUrl}
+            fgColor="#000000"
+            bgColor="#ffffff"
+            style={{ width: 'min(60vw, 60vh)', height: 'min(60vw, 60vh)' }}
+          />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem' }}>
+          <span style={{ fontSize: '1.1rem', opacity: 0.9 }}>{t('meal-planner.scanToOpenRecipe')}</span>
+          <span style={{ fontSize: '0.85rem', opacity: 0.5 }}>{t('meal-planner.tapToDismiss')}</span>
+        </div>
+      </WallOverlay>
+    );
+  }
+
+  return (
+    <WallOverlay
+      label={meal.name}
+      onClose={onClose}
+      autoCloseMs={IFRAME_AUTO_CLOSE_MS}
+      closeOnScrim={false}
+      scrim="#000"
+      style={{ display: 'flex', flexDirection: 'column' }}
     >
       {/* Header bar: title, QR fallback, close */}
       <div
@@ -143,6 +112,7 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
         </span>
         <button
           type="button"
+          {...wallPressProps}
           onClick={() => setView('qr')}
           style={{
             fontSize: '0.9rem',
@@ -160,6 +130,7 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
         </button>
         <button
           type="button"
+          {...wallPressProps}
           onClick={onClose}
           aria-label={t('meal-planner.closeRecipe')}
           style={{
@@ -186,8 +157,6 @@ export function RecipeOverlay({ meal, variant, onClose }: RecipeOverlayProps) {
         referrerPolicy="no-referrer"
         style={{ flex: 1, width: '100%', border: 'none', backgroundColor: '#fff' }}
       />
-    </div>
+    </WallOverlay>
   );
-
-  return createPortal(overlay, document.body);
 }

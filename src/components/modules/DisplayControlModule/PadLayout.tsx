@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPress } from '@/components/modules/shared/wallPress';
 import { useState } from 'react';
 import { useTranslate } from '@/i18n';
 import type { LayoutProps } from './types';
@@ -54,7 +55,7 @@ export function PadLayout(props: LayoutProps) {
               type="button"
               aria-label={t('display-control.closeBrightness')}
               onClick={() => setBrightnessOpen(false)}
-              className="flex shrink-0 items-center justify-center rounded-full text-hs-text-muted transition-transform active:scale-95"
+              {...wallPress('flex shrink-0 items-center justify-center rounded-full text-hs-text-muted')}
               style={{ height: m.icon + m.gap, width: m.icon + m.gap }}
             >
               <svg style={{ height: m.icon * 0.7, width: m.icon * 0.7 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

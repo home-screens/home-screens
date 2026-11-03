@@ -1,16 +1,15 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
-import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import {
   readRecipeWall,
   recipeWallTarget,
-  targetWallName,
   useDisplayTarget,
   type DisplayTargetValue,
 } from '../display-target';
+import { useSendToWall } from './useSendToWall';
 
 /**
  * Where a send's outcome is said. The Meals tab passes its own notice and
@@ -48,49 +47,29 @@ export interface ShowRecipeOnWall {
 export function useShowRecipeOnWall(notices: WallNotices): ShowRecipeOnWall {
   const t = useTranslate('remote');
   const { target, displays } = useDisplayTarget();
-  const whereIs = useCallback(
-    (wall: DisplayTargetValue) => targetWallName(wall, displays, { everyWall: t('mealsTab.showOnWall.everyWall'), theWall: t('mealsTab.showOnWall.theWall') }),
-    [displays, t],
+  const { send: sendToWall } = useSendToWall();
+  const words = useMemo(
+    () => ({ everyWall: t('mealsTab.showOnWall.everyWall'), theWall: t('mealsTab.showOnWall.theWall') }),
+    [t],
   );
 
   const takeDown = useCallback(async (meal: SavedMeal, wall: DisplayTargetValue) => {
-    try {
-      const res = await editorFetch('/api/display/hide-recipe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mealId: meal.id, ...(wall ? { displayId: wall } : {}) }),
-      });
-      if (!res.ok) throw new Error(`hide-recipe answered ${res.status}`);
-      notices.sent(t('mealsTab.showOnWall.takenDown', { meal: meal.name, where: whereIs(wall) }));
-    } catch (err) {
-      if (!isSessionExpired(err)) notices.failed(t('mealsTab.showOnWall.failed'));
-    }
-  }, [notices, t, whereIs]);
+    const result = await sendToWall('/api/display/hide-recipe', { mealId: meal.id }, wall, words);
+    if (result.ok) notices.sent(t('mealsTab.showOnWall.takenDown', { meal: meal.name, where: result.where }));
+    else if (!result.expired) notices.failed(t('mealsTab.showOnWall.failed'));
+  }, [notices, t, sendToWall, words]);
 
   const send = useCallback(async (meal: SavedMeal, wall: DisplayTargetValue) => {
-    try {
-      const res = await editorFetch('/api/display/show-recipe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mealId: meal.id, ...(wall ? { displayId: wall } : {}) }),
-      });
-      if (res.status === 404) {
-        notices.failed(t('mealsTab.showOnWall.gone'));
-        return false;
-      }
-      if (!res.ok) {
-        // The Mealie routes' refusals say `failure`: Mealie, not the wall, is the problem.
-        const body = await res.json().catch(() => null) as { failure?: unknown } | null;
-        notices.failed(t(body?.failure ? 'mealsTab.showOnWall.mealieFailed' : 'mealsTab.showOnWall.failed'));
-        return false;
-      }
-      notices.sent(t('mealsTab.showOnWall.sent', { meal: meal.name, where: whereIs(wall) }), () => { void takeDown(meal, wall); });
+    const result = await sendToWall('/api/display/show-recipe', { mealId: meal.id }, wall, words);
+    if (result.ok) {
+      notices.sent(t('mealsTab.showOnWall.sent', { meal: meal.name, where: result.where }), () => { void takeDown(meal, wall); });
       return true;
-    } catch (err) {
-      if (!isSessionExpired(err)) notices.failed(t('mealsTab.showOnWall.failed'));
-      return false;
     }
-  }, [t, notices, whereIs, takeDown]);
+    if (result.status === 404) notices.failed(t('mealsTab.showOnWall.gone'));
+    // The Mealie routes' refusals say `failure`: Mealie, not the wall, is the problem.
+    else if (!result.expired) notices.failed(t(result.refusal?.failure ? 'mealsTab.showOnWall.mealieFailed' : 'mealsTab.showOnWall.failed'));
+    return false;
+  }, [t, notices, sendToWall, takeDown, words]);
 
   const wallForNow = useCallback(() => recipeWallTarget(target, displays, readRecipeWall()), [target, displays]);
 

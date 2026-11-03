@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPress } from '@/components/modules/shared/wallPress';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import { useTranslate } from '@/i18n';
@@ -136,9 +137,9 @@ export function DockLayout(props: DockLayoutProps) {
                 </HoldConfirmButton>
                 <button
                   type="button"
+                  {...wallPress(`${ITEM_CLASS} ${m.vertical ? 'flex-row' : 'flex-col'}`)}
                   aria-label={t('display-control.brightness')}
                   onClick={() => setBrightnessOpen((v) => !v)}
-                  className={`${ITEM_CLASS} ${m.vertical ? 'flex-row' : 'flex-col'}`}
                   style={itemStyle(m)}
                 >
                   <ExtraTile m={m}><BrightnessIcon size={m.icon} /></ExtraTile>
@@ -173,7 +174,7 @@ export function DockLayout(props: DockLayoutProps) {
 }
 
 const ITEM_CLASS =
-  'relative flex shrink-0 items-center justify-center min-w-0 min-h-0 text-hs-text-primary transition-transform active:scale-95';
+  'relative flex shrink-0 items-center justify-center min-w-0 min-h-0 text-hs-text-primary';
 
 /** Every button takes the same slot, so the tiles sit evenly whatever their names say. */
 function itemStyle(m: DockMetrics): CSSProperties {
@@ -195,10 +196,10 @@ function DockTile({
   return (
     <button
       type="button"
+      {...wallPress(`${ITEM_CLASS} ${m.vertical ? 'flex-row justify-start' : 'flex-col'}`)}
       aria-label={ariaLabel}
       aria-current={active ? 'true' : undefined}
       onClick={onClick}
-      className={`${ITEM_CLASS} ${m.vertical ? 'flex-row justify-start' : 'flex-col'}`}
       style={itemStyle(m)}
     >
       <span

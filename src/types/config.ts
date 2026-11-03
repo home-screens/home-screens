@@ -2658,8 +2658,8 @@ export interface TodoConfig {
   /** Accent for checkboxes, strikethrough and the progress ring */
   accentColor?: string;
   /**
-   * Render items as tap targets so anyone at the kiosk can tick them. A tap writes to the shared
-   * list, never to the layout
+   * Render items as tap targets so anyone at the kiosk can tick them, and let a finger scroll the
+   * List and Compact views past the rows that fit. A tap writes to the shared list, never to the layout
    *
    * Render each item as a tap target so a kiosk user can check it off on the
    * wall. A tap writes to the shared store, not to `config.json`. Defaults

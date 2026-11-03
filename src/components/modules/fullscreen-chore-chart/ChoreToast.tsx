@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPressProps } from '@/components/modules/shared/wallPress';
 import { useEffect, useRef } from 'react';
 import { Undo2 } from 'lucide-react';
 import { useTranslate } from '@/i18n';
@@ -96,7 +97,7 @@ function ToastEntry({
       {toast.choreId && <button
         type="button"
         onClick={() => onUndo(toast.id)}
-        className="press-dot"
+        {...wallPressProps}
         style={{
           display: 'flex',
           alignItems: 'center',

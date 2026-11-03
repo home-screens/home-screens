@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Locator, Page } from '@playwright/test';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
-import { putConfig, seedMeals } from '../helpers/api';
+import { putConfig, seedMeals, seedTodos, E2E_TODO_LIST_ID } from '../helpers/api';
 import { stubModuleData } from '../helpers/stubs';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { WALL_SCROLL_IDLE_MS } from '@/lib/wall-scroll';
@@ -265,6 +265,50 @@ test.describe('Meal Planner Grocery List', () => {
     await expect(page.getByTestId('fmp-grocery-page')).toHaveCount(0);
     await expect.poll(() => box.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(200);
     await roundTrip(page, box, 'fmp-grocery-scroll', 'Back to the top', 1200, 0);
+  });
+});
+
+test.describe('To-Do List', () => {
+  const ITEMS = 40;
+  /** One list far longer than a small module: forty open items. */
+  const longList = () => ({
+    lists: [{
+      id: E2E_TODO_LIST_ID, name: 'Before the trip',
+      items: Array.from({ length: ITEMS }, (_, i) => ({ id: `t${i}`, text: `Thing number ${i + 1}` })),
+    }],
+  });
+
+  test('draws every item and scrolls with taps on, then goes back to the top', async ({ page, request, sandboxDir }) => {
+    await page.clock.install({ time: NOW });
+    seedTodos(sandboxDir, longList());
+    await show(page, request, 'todo', { listId: E2E_TODO_LIST_ID, interactive: true }, { w: 520, h: 640 });
+
+    const box = page.getByTestId('todo-list-scroll');
+    await expect(box).toHaveAttribute('data-wall-scroll', 'on');
+    // Every row is there, and no "and N more".
+    await expect(box.getByTestId('todo-item')).toHaveCount(ITEMS);
+    await expect(page.getByTestId('todo-more')).toHaveCount(0);
+    const { scrollHeight, clientHeight } = await box.evaluate((el) => ({ scrollHeight: el.scrollHeight, clientHeight: el.clientHeight }));
+    expect(scrollHeight).toBeGreaterThan(clientHeight * 1.5);
+    await roundTrip(page, box, 'todo-list-scroll', 'Back to the top', 900, 0);
+
+    // A row inside the scrolling box still ticks on a tap.
+    const row = box.getByRole('button', { name: 'Thing number 1', exact: true });
+    await expect(row).toHaveAttribute('aria-pressed', 'false');
+    await row.click();
+    await expect(row).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  test('fits what it can and counts the rest with taps off', async ({ page, request, sandboxDir }) => {
+    seedTodos(sandboxDir, longList());
+    await show(page, request, 'todo', { listId: E2E_TODO_LIST_ID, interactive: false }, { w: 520, h: 640 });
+
+    const mod = page.locator('[data-module-id="listy"]');
+    await expect(mod.getByTestId('todo-more')).toHaveText(/^and \d+ more$/);
+    await expect(page.getByTestId('todo-list-scroll')).toHaveCount(0);
+    const shown = await mod.getByTestId('todo-item').count();
+    expect(shown).toBeGreaterThan(0);
+    expect(shown).toBeLessThan(ITEMS);
   });
 });
 

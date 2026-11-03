@@ -8,6 +8,7 @@ import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 import { MealTapTarget, resolveRecipeTapMode, type RecipeTapMode } from '../shared/MealTapTarget';
 import { useInteractionHeld } from '@/lib/interaction-hold';
+import { DOUBLE_TAP_MS } from '@/lib/sheet-tap-guard';
 
 function Wrapper({ children }: { children: ReactNode }) {
   return <I18nProvider locale="en-US" blob={{ modules: enUSModules }}>{children}</I18nProvider>;
@@ -118,6 +119,7 @@ describe('MealTapTarget', () => {
 
   describe('qr mode', () => {
     it('opens the QR overlay on click and dismisses on overlay tap', async () => {
+      vi.useFakeTimers();
       const { container } = renderTarget('qr');
       const button = container.querySelector('button');
       expect(button).not.toBeNull();
@@ -130,6 +132,8 @@ describe('MealTapTarget', () => {
       expect(dialog.textContent).toContain('Tacos');
       expect(dialog.textContent).toContain('Scan to open recipe');
 
+      // A tap within a double tap of opening is the tap that opened it (WallOverlay).
+      act(() => { vi.advanceTimersByTime(DOUBLE_TAP_MS); });
       fireEvent.click(dialog);
       expect(screen.queryByRole('dialog')).toBeNull();
     });

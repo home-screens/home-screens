@@ -17,10 +17,11 @@ import { photoFolders, wallName, wallsShowing, type PhotoFolder } from '@/lib/me
 import { folderOf } from '@/lib/media-paths';
 import { mediaKindOf } from '@/lib/media-formats';
 import { formatBytes } from '@/lib/format-bytes';
-import { targetWallName, useDisplayTarget } from '../display-target';
+import { useDisplayTarget } from '../display-target';
 import { showToast } from '../remote-toast';
 import { usePhotoLibrary } from '../hooks/usePhotoLibrary';
 import { usePhotoUploads, type UploadRun } from '../hooks/usePhotoUploads';
+import { useSendToWall } from '../hooks/useSendToWall';
 import ConfirmSheet from './ConfirmSheet';
 import PhotoGrid from './PhotoGrid';
 import PhotoViewer, { type PhotoFacts } from './PhotoViewer';
@@ -115,6 +116,7 @@ export default function PhotosTab({ directory }: { directory: string }) {
   const locale = useFormattingLocale();
   const words = usePhotoWords();
   const { displays, target } = useDisplayTarget();
+  const { send: sendToWall } = useSendToWall();
   const multiDisplay = displays.length > 0;
   const { inventory, loadFailed, refresh } = usePhotoLibrary();
   const { run, start: startUploads, dismiss: dismissUploads, busy: uploading } = usePhotoUploads(refresh);
@@ -261,25 +263,18 @@ export default function PhotosTab({ directory }: { directory: string }) {
   // ── Showing on the wall ────────────────────────────────
 
   const showOnWall = useCallback(async (path: string) => {
-    try {
-      const res = await editorFetch('/api/display/show-photo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ file: path, duration: SHOW_SECONDS, ...(target ? { displayId: target } : {}) }),
-      });
-      if (res.status === 404) {
-        // Moved or deleted since this phone last looked; the wall is fine.
-        showToast(t(mediaKindOf(path) === 'video' ? 'photosTab.show.goneVideo' : 'photosTab.show.gonePhoto'), 'error');
-        void refresh();
-        return;
-      }
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const where = targetWallName(target, displays, { everyWall: t('photosTab.show.everyWall'), theWall: t('photosTab.show.theWall') });
-      showToast(t('photosTab.show.sent', { where }));
-    } catch (err) {
-      if (!isSessionExpired(err)) showToast(t('photosTab.show.failed'), 'error');
+    const words = { everyWall: t('photosTab.show.everyWall'), theWall: t('photosTab.show.theWall') };
+    const result = await sendToWall('/api/display/show-photo', { file: path, duration: SHOW_SECONDS }, target, words);
+    if (result.ok) {
+      showToast(t('photosTab.show.sent', { where: result.where }));
+    } else if (result.status === 404) {
+      // Moved or deleted since this phone last looked; the wall is fine.
+      showToast(t(mediaKindOf(path) === 'video' ? 'photosTab.show.goneVideo' : 'photosTab.show.gonePhoto'), 'error');
+      void refresh();
+    } else if (!result.expired) {
+      showToast(t('photosTab.show.failed'), 'error');
     }
-  }, [target, displays, t, refresh]);
+  }, [target, sendToWall, t, refresh]);
 
   // ── Viewer ─────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPressProps } from '../wallPress';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useElementBox } from '@/hooks/useElementBox';
 import type { SavedMeal } from '@/types/config';
@@ -172,6 +173,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
         action={interactive && (
           <button
             type="button"
+            {...wallPressProps}
             onClick={retry}
             style={{
               marginTop: P(10), border: 0, borderRadius: 999, padding: `${P(20)}px ${P(44)}px`, background: 'var(--fmp-accent)',

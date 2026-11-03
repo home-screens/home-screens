@@ -1,5 +1,6 @@
 'use client';
 
+import { wallPress } from '@/components/modules/shared/wallPress';
 import { useState, useRef, useEffect } from 'react';
 import { useTranslate } from '@/i18n';
 import type { ControlMetrics } from './metrics';
@@ -78,7 +79,7 @@ export function TargetPicker({ value, onChange, options, selfId, onOpenChange, m
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-full min-w-0 items-center border border-hs-border-strong bg-hs-card font-medium text-hs-text-primary transition-transform active:scale-[0.98]"
+        {...wallPress('flex h-full min-w-0 items-center border border-hs-border-strong bg-hs-card font-medium text-hs-text-primary')}
         style={{ gap: m.gap * 0.5, borderRadius: m.radius * 0.7, paddingInline: m.pad * 0.6, fontSize: m.picker * 1.05 }}
       >
         <span className="truncate">{selectedLabel}</span>
@@ -100,9 +101,9 @@ export function TargetPicker({ value, onChange, options, selfId, onOpenChange, m
                 type="button"
                 role="menuitem"
                 onClick={() => choose(opt.id)}
-                className={`flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left ${
+                {...wallPress(`flex w-full items-center justify-between gap-4 rounded-xl px-3 py-2.5 text-left ${
                   active ? 'bg-hs-accent-soft text-hs-accent-hover' : 'text-hs-text-primary hover:bg-hs-hover'
-                }`}
+                }`)}
               >
                 <span>{displayLabel(opt)}</span>
                 {opt.id === selfId && (
@@ -115,9 +116,9 @@ export function TargetPicker({ value, onChange, options, selfId, onOpenChange, m
             type="button"
             role="menuitem"
             onClick={() => choose(ALL_TARGET)}
-            className={`flex w-full items-center rounded-xl px-3 py-2.5 text-left ${
+            {...wallPress(`flex w-full items-center rounded-xl px-3 py-2.5 text-left ${
               value === ALL_TARGET ? 'bg-hs-accent-soft text-hs-accent-hover' : 'text-hs-text-primary hover:bg-hs-hover'
-            }`}
+            }`)}
           >
             {t('display-control.allDisplays')}
           </button>

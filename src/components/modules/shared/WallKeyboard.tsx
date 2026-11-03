@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { useLocale, useTranslate } from '@/i18n';
 import { useInteractionHold } from '@/lib/interaction-hold';
 import { wallKeyboardColumns, wallKeyboardLayout } from '@/lib/wall-keyboard';
+import { useAutoClose } from './useAutoClose';
+import { wallPressProps } from './wallPress';
 
 /** A keyboard nobody has pressed for this long closes, so the screen can move on. */
 export const WALL_KEYBOARD_IDLE_MS = 60_000;
@@ -41,19 +43,7 @@ export function WallKeyboard({ onKey, onDelete, onDone, onIdle, paused = false, 
   const layout = useMemo(() => wallKeyboardLayout(locale), [locale]);
   const columns = wallKeyboardColumns(layout);
   useInteractionHold();
-
-  const idleRef = useRef(onIdle);
-  idleRef.current = onIdle;
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const restart = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => idleRef.current(), WALL_KEYBOARD_IDLE_MS);
-  }, []);
-  useEffect(() => {
-    if (paused) return;
-    restart();
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [restart, paused]);
+  const pressed = useAutoClose(onIdle, WALL_KEYBOARD_IDLE_MS, { paused });
 
   const gap = P(12);
   // One key's width; percentages resolve against each row, which spans the keyboard.
@@ -66,7 +56,8 @@ export function WallKeyboard({ onKey, onDelete, onDone, onIdle, paused = false, 
     font: 'inherit', fontSize: P(40), fontWeight: 500, cursor: 'pointer', padding: 0, touchAction: 'manipulation',
     ...extra,
   });
-  const press = (fn: () => void) => () => { restart(); fn(); };
+  const press = (fn: () => void) => () => { pressed(); fn(); };
+  const key = wallPressProps;
   const row: CSSProperties = { display: 'flex', justifyContent: 'center', gap };
 
   return (
@@ -77,19 +68,18 @@ export function WallKeyboard({ onKey, onDelete, onDone, onIdle, paused = false, 
         boxShadow: '0 -18px 40px rgba(0,0,0,0.08)', padding: `${P(22)}px ${P(22)}px ${P(28)}px`,
       }}
     >
-      <style>{'.wallkb-key:active { filter: brightness(0.9); transform: translateY(1px); }'}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: P(14), maxWidth, margin: '0 auto' }}>
         {layout.rows.map((letters, i) => (
           <div key={letters} style={row}>
-            {[...letters].map((key) => (
-              <button key={key} type="button" className="wallkb-key" data-key={key} onClick={press(() => onKey(key))} style={keyStyle(1)}>
-                {key}
+            {[...letters].map((letter) => (
+              <button key={letter} type="button" {...key} data-key={letter} onClick={press(() => onKey(letter))} style={keyStyle(1)}>
+                {letter}
               </button>
             ))}
             {i === layout.rows.length - 1 && (
               <button
                 type="button"
-                className="wallkb-key"
+                {...key}
                 data-key="delete"
                 aria-label={t('meal-planner.recipeBook.deleteKey')}
                 onClick={press(onDelete)}
@@ -105,12 +95,12 @@ export function WallKeyboard({ onKey, onDelete, onDone, onIdle, paused = false, 
           </div>
         ))}
         <div style={row}>
-          <button type="button" className="wallkb-key" data-key="space" onClick={press(() => onKey(' '))} style={keyStyle(6, { fontSize: P(28), color: 'var(--fmp-text-3)' })}>
+          <button type="button" {...key} data-key="space" onClick={press(() => onKey(' '))} style={keyStyle(6, { fontSize: P(28), color: 'var(--fmp-text-3)' })}>
             {t('meal-planner.recipeBook.spaceKey')}
           </button>
           <button
             type="button"
-            className="wallkb-key"
+            {...key}
             data-key="done"
             onClick={press(onDone)}
             style={keyStyle(2.4, {

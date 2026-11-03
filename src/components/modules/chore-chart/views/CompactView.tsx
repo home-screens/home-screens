@@ -11,6 +11,7 @@ import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
+import { wallRowPress } from '../../shared/wallPress';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
@@ -94,11 +95,10 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
       <button
         key={member.id}
         type="button"
-        {...handlers}
+        {...(allowTouch ? wallRowPress('flex items-center justify-center shrink-0', handlers) : {})}
         disabled={!allowTouch}
         aria-label={`${chore.name}: ${member.name}`}
         aria-pressed={allowTouch ? done : undefined}
-        className={allowTouch ? 'flex items-center justify-center shrink-0' : undefined}
         style={{ position: 'relative', width: columnWidth, textAlign: 'center', cursor: allowTouch ? 'pointer' : 'default', background: 'none', border: 'none', color: 'inherit', padding: 0, fontSize: allowTouch ? undefined : '1.2em', minHeight: allowTouch ? touchColumnPx(fontSize) : undefined, userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'pan-y' }}
       >
         {hold.holdingKey === key && <HoldProgress progress={hold.progress} color={member.color} />}

@@ -7,6 +7,7 @@ import { wallGroceryFlatRows, type WallGroceryGroup, type WallGroceryItem } from
 import { useTranslate } from '@/i18n';
 import FamilyEmptyState from '../FamilyEmptyState';
 import { TapCheckbox, TAP_CHECKBOX_ACCENT } from '../shared/TapCheckbox';
+import { wallRowPress } from '../shared/wallPress';
 import { useGroceryPaging } from '../shared/useGroceryPaging';
 import { usePagedFit } from '../shared/usePagedFit';
 import type { WallGrocery } from '../shared/useWallGrocery';
@@ -141,7 +142,7 @@ function GroceryRow({ item, accent, tappable, pressed, onTick }: {
       aria-checked={item.checked}
       aria-label={t('meal-planner.grocery.tickAria', { item: item.text })}
       onClick={onTick}
-      className="text-left cursor-pointer select-none"
+      {...wallRowPress('text-left cursor-pointer select-none')}
       // `font` first: a shorthand after the row's size would reset it.
       style={{ font: 'inherit', background: 'none', border: 0, padding: 0, color: 'inherit', touchAction: 'pan-y', ...style }}
     >

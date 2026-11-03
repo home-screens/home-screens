@@ -10,6 +10,7 @@ import { useFontsReady } from '@/hooks/useFontsReady';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { px, wallScrollLook } from './meal-planner-utils';
 import { TapCheckbox } from '../shared/TapCheckbox';
+import { wallRowPressProps } from '../shared/wallPress';
 import { useGroceryPaging } from '../shared/useGroceryPaging';
 import type { WallGrocery } from '../shared/useWallGrocery';
 import { GroceryEmpty, useGroceryHeading } from '../meal-planner/GroceryView';
@@ -146,6 +147,7 @@ export default function GroceryView({ grocery, tappable, accent, s, headerFont, 
       : (
         <button
           type="button"
+          {...wallRowPressProps}
           data-testid="fmp-grocery-item"
           role="checkbox"
           aria-checked={item.checked}

@@ -1,9 +1,11 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, type CSSProperties } from 'react';
 import type { MealSettings, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
 import type { ResolvedCourse } from '@/lib/meal-courses';
-import { currentMealSlot, minutesOfDay, resolveMealWithEntry, resolvePlannedMealTime, toISODate } from '@/lib/meal-constants';
+import { currentMealSlot, DEFAULT_ACCENT_COLOR, minutesOfDay, resolveMealWithEntry, resolvePlannedMealTime, toISODate } from '@/lib/meal-constants';
+import { buildThemeCSSVars, getThemeTokens, resolveFullscreenAccent, resolveFullscreenOnAccent, type FullscreenThemeTokens } from '@/lib/fullscreen-themes';
+import { UI_SANS_STACK } from '@/lib/font-registry';
 import type { RecipeServing } from './RecipeSheet';
 
 /**
@@ -27,6 +29,26 @@ export const MealRecipeContext = createContext<MealRecipeContextValue | null>(nu
 
 export function useMealRecipeContext(): MealRecipeContextValue | null {
   return useContext(MealRecipeContext);
+}
+
+/**
+ * The display's full-screen theme as a surface drawn over the wall (the
+ * recipe card, the recipe book sheet) wears it: the theme's tokens as
+ * `--fmp-*` variables with the default meal accent, and the panel's own
+ * face (its font, colours and colour scheme) ready to spread on the panel
+ * beside its position and shape. The panel also takes `className="fmp-root"`.
+ */
+export function useMealOverlayTheme(): { theme: FullscreenThemeTokens; panelStyle: CSSProperties } {
+  const theme = getThemeTokens(useMealRecipeContext()?.theme);
+  const panelStyle = {
+    ...buildThemeCSSVars('fmp', theme),
+    '--fmp-accent': resolveFullscreenAccent('', theme, DEFAULT_ACCENT_COLOR),
+    '--fmp-on-accent': resolveFullscreenOnAccent('', theme, DEFAULT_ACCENT_COLOR),
+    display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: UI_SANS_STACK, lineHeight: 1.5,
+    backgroundColor: 'var(--fmp-bg)', backgroundImage: 'var(--fmp-bg-image)', color: 'var(--fmp-text)',
+    colorScheme: theme.isDark ? 'dark' : 'light',
+  } as CSSProperties;
+  return { theme, panelStyle };
 }
 
 /** The day and meal a tapped dish was planned for. */

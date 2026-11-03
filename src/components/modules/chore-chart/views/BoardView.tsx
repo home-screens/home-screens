@@ -10,6 +10,7 @@ import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
 import { TapCheckbox } from '../../shared/TapCheckbox';
+import { wallRowPress } from '../../shared/wallPress';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress } from '../ChoreRowExtras';
@@ -137,10 +138,11 @@ export function BoardView({ config, data, fontSize, perRow }: BoardViewProps) {
                         <button
                           key={chore.id}
                           type="button"
-                          {...handlers}
+                          {...(allowTouch
+                            ? wallRowPress(`w-full text-left rounded-md transition-all flex gap-1.5 items-center`, handlers)
+                            : { className: 'w-full text-left rounded-md transition-all flex gap-1.5 items-start' })}
                           disabled={!allowTouch}
                           aria-pressed={allowTouch ? isCompleted : undefined}
-                          className={`w-full text-left rounded-md transition-all flex gap-1.5 ${allowTouch ? 'items-center' : 'items-start'}`}
                           style={{
                             position: 'relative',
                             padding: '0.3em 0.4em',
