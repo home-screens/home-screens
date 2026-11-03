@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { parseJsonBody, publicErrorResponse } from '@/lib/api-utils';
+import { publicErrorResponse, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { readFamilyData } from '@/lib/family-data';
-import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
+import { withFamilyWrite, validateMemberReferences } from '@/lib/family-api';
 import { choreMarks, updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { checkGrab, grabHolds, isBonusChore, type BonusCheck } from '@/lib/chore-bonus';
 import { householdToday } from '@/lib/household-day';
@@ -27,9 +27,7 @@ interface GrabRequest {
  */
 export const POST = async (request: NextRequest) => {
   try {
-    return await withFamilyData(async () => {
-      const body = await parseJsonBody<GrabRequest>(request);
-      if (body instanceof NextResponse) return body;
+    return await withFamilyWrite<GrabRequest, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
       const { choreId, memberId, action } = body;
       if (typeof choreId !== 'string' || !choreId || typeof memberId !== 'string' || !memberId
         || (action !== 'grab' && action !== 'let-go')) {

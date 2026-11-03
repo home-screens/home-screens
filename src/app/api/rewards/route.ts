@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { publicErrorResponse, parseJsonBody } from '@/lib/api-utils';
+import { publicErrorResponse, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readRewardData, redeemReward } from '@/lib/reward-data';
 import { contentRevision } from '@/lib/content-revision';
 import { readFamilyData } from '@/lib/family-data';
-import { withFamilyData } from '@/lib/family-api';
+import { withFamilyWrite } from '@/lib/family-api';
 import { isRewardEligibleFor, canAffordReward } from '@/lib/reward-rules';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { householdToday } from '@/lib/household-day';
@@ -39,9 +39,7 @@ export const GET = async (request: NextRequest) => {
 /** POST — redeem a reward for a member. */
 export const POST = async (request: NextRequest) => {
   try {
-    return await withFamilyData(async () => {
-    const body = await parseJsonBody<{ rewardId?: string; memberId?: string; expectedBalance?: unknown }>(request);
-    if (body instanceof NextResponse) return body;
+    return await withFamilyWrite<{ rewardId?: string; memberId?: string; expectedBalance?: unknown }, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
     const { rewardId, memberId, expectedBalance } = body;
 
     if (!rewardId || !memberId) {

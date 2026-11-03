@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { parseJsonBody, withAuth } from '@/lib/api-utils';
+import { withAuth, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
-import { withFamilyData } from '@/lib/family-api';
+import { withFamilyWrite } from '@/lib/family-api';
 import { choreMarks, updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { householdTimestamp } from '@/lib/household-day';
 
@@ -16,9 +16,7 @@ export const dynamic = 'force-dynamic';
  * revision and turn every open phone's next chore save into a conflict.
  * Completions made before it stop counting; their tickets stay earned.
  */
-export const POST = withAuth(async (request: NextRequest) => withFamilyData(async () => {
-  const body = await parseJsonBody<{ choreId?: unknown }>(request);
-  if (body instanceof NextResponse) return body;
+export const POST = withAuth(async (request: NextRequest) => withFamilyWrite<{ choreId?: unknown }, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
   const { choreId } = body;
   if (typeof choreId !== 'string' || !choreId) {
     return NextResponse.json({ error: 'Send a choreId.' }, { status: 400 });

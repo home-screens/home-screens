@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { parseJsonBody } from './api-utils';
 import { withDataTransaction } from './data-transaction';
 import { readFamilyData, settleFamilyMigration } from './family-data';
 
@@ -8,6 +10,26 @@ export function withFamilyData<T>(operation: () => Promise<T>): Promise<T> {
     await settleFamilyMigration();
     return operation();
   });
+}
+
+/**
+ * A family write: read and parse the body, then run the operation inside the
+ * family transaction with the parsed body. The body is the client's input,
+ * not persisted state, so it is parsed before the hub-wide lock is taken:
+ * every wall poll, editor save and phone write queues behind that lock, and
+ * the kid-view routes take bodies from anyone on the LAN with no sign-in.
+ * `maxBytes` answers 413 to an oversized body (by Content-Length before any
+ * read, by a streaming cap otherwise) and malformed JSON is a 400, both
+ * without entering the transaction.
+ */
+export async function withFamilyWrite<B, T>(
+  request: NextRequest,
+  options: { maxBytes: number },
+  operation: (body: B) => Promise<T>,
+): Promise<T | NextResponse> {
+  const body = await parseJsonBody<B>(request, options);
+  if (body instanceof NextResponse) return body;
+  return withFamilyData(() => operation(body));
 }
 
 /**

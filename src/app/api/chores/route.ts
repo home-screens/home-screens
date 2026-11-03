@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
-import { publicErrorResponse, parseJsonBody, isValidISODate } from '@/lib/api-utils';
+import { publicErrorResponse, isValidISODate, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { familyResponse, readFamilyData } from '@/lib/family-data';
 import { atGrabLimit, checkBonusComplete, grabHolds, resetViewDay, countsSinceReset, readChoreSettings, isBonusChore, pruneChoreMarks, tickEndsGrabs, type BonusCheck } from '@/lib/chore-bonus';
-import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
+import { withFamilyWrite, validateMemberReferences } from '@/lib/family-api';
 import { commitDataTransaction, withDataTransaction, type TransactionChange } from '@/lib/data-transaction';
 import { choresEtag, choresPageEtag, holdsEtag, revalidatedHeaders } from '@/lib/chore-revisions';
 import { planPointsMove } from '@/lib/reward-data';
@@ -105,9 +105,7 @@ export const GET = async (request: NextRequest) => {
 
 export const POST = async (request: NextRequest) => {
   try {
-  return await withFamilyData(async () => {
-  const body = await parseJsonBody<ChoreToggleRequest>(request);
-  if (body instanceof NextResponse) return body;
+  return await withFamilyWrite<ChoreToggleRequest, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
   const { choreId, memberId, date, direction } = body;
 
   if (!choreId || !memberId || !date) {

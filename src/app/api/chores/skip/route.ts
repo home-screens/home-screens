@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { isValidISODate, parseJsonBody, withAuth } from '@/lib/api-utils';
+import { isValidISODate, withAuth, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { readFamilyData } from '@/lib/family-data';
-import { withFamilyData } from '@/lib/family-api';
+import { withFamilyWrite } from '@/lib/family-api';
 import { choreMarks, updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { isAssignedOn } from '@/lib/chore-assignments';
 import { CHORE_HISTORY_DAYS, addDaysISO } from '@/components/modules/chore-chart/types';
@@ -27,9 +27,7 @@ interface SkipRequest {
  * breaks over a chore that could not be done. Someone who already did the
  * chore that day keeps it done; marking "everyone" passes over them.
  */
-export const POST = withAuth(async (request: NextRequest) => withFamilyData(async () => {
-  const body = await parseJsonBody<SkipRequest>(request);
-  if (body instanceof NextResponse) return body;
+export const POST = withAuth(async (request: NextRequest) => withFamilyWrite<SkipRequest, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
   const { choreId, memberIds, date, skipped } = body;
   if (typeof choreId !== 'string' || !choreId || typeof date !== 'string' || typeof skipped !== 'boolean'
     || !Array.isArray(memberIds) || memberIds.length === 0 || !memberIds.every((id) => typeof id === 'string')) {

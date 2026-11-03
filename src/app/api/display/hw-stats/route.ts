@@ -21,6 +21,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { parseJsonBody } from '@/lib/api-utils';
 import { setDisplayStatus } from '@/lib/display-commands';
 import { isValidDisplayId } from '@/lib/display-filter';
 import { requireAdoptedDisplay } from '@/lib/adopted-display-gate';
@@ -28,11 +29,14 @@ import { validateHardwareStats } from '@/lib/hardware-stats';
 
 export const dynamic = 'force-dynamic';
 
+/** A report with the whole kiosk package list is a few KB; this leaves room for a long one. */
+const HW_STATS_BODY_BYTES = 64 * 1024;
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const body = await request.json().catch(() => null) as {
-    displayId?: unknown;
-    hwStats?: unknown;
-  } | null;
+  // A report is a few dozen numbers and the kiosk package list; anything
+  // larger is not the reporter, and it is refused before it is parsed.
+  const body = await parseJsonBody<{ displayId?: unknown; hwStats?: unknown } | null>(request, { maxBytes: HW_STATS_BODY_BYTES });
+  if (body instanceof NextResponse) return body;
   if (!body) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }

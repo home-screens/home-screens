@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, guardEmptyOverwrite, assertRequiredArrays, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, guardEmptyOverwrite, assertRequiredArrays, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import {
   readRewardData,
   updateRewardDefinitions,
   adjustPoints,
 } from '@/lib/reward-data';
-import { withFamilyData, validateMemberReferences } from '@/lib/family-api';
+import { withFamilyWrite, validateMemberReferences } from '@/lib/family-api';
 import { contentRevision } from '@/lib/content-revision';
 import type { RewardDefinition } from '@/lib/reward-data';
 
 export const dynamic = 'force-dynamic';
+
+/** Room for a long rewards list with a name, a note and an icon on every row. */
+const REWARD_LIST_BYTES = 256 * 1024;
 
 /**
  * PUT — replace the reward definitions (parents only). The body quotes the
@@ -18,9 +21,7 @@ export const dynamic = 'force-dynamic';
  * save); one built from an older copy comes back as a 409 with
  * `reason: 'revision'` and the current list rather than overwriting it.
  */
-export const PUT = withAuth(async (request: NextRequest) => withFamilyData(async () => {
-  const body = await parseJsonBody<{ rewards: RewardDefinition[]; force?: boolean; revision?: unknown }>(request);
-  if (body instanceof NextResponse) return body;
+export const PUT = withAuth(async (request: NextRequest) => withFamilyWrite<{ rewards: RewardDefinition[]; force?: boolean; revision?: unknown }, Response>(request, { maxBytes: REWARD_LIST_BYTES }, async (body) => {
   const { rewards, force, revision } = body;
 
   const invalid = assertRequiredArrays(body, ['rewards']);
@@ -69,9 +70,7 @@ const REASON_MAX_CHARS = 80;
  * is checked before anyone is written, so a list naming someone who was
  * removed changes nothing.
  */
-export const POST = withAuth(async (request: NextRequest) => withFamilyData(async () => {
-  const body = await parseJsonBody<{ memberId?: unknown; memberIds?: unknown; amount?: unknown; reason?: unknown }>(request);
-  if (body instanceof NextResponse) return body;
+export const POST = withAuth(async (request: NextRequest) => withFamilyWrite<{ memberId?: unknown; memberIds?: unknown; amount?: unknown; reason?: unknown }, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
   const { amount } = body;
 
   const memberIds = Array.isArray(body.memberIds)

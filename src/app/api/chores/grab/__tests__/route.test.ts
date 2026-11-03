@@ -54,6 +54,12 @@ afterEach(async () => {
 });
 
 describe('POST /api/chores/grab', () => {
+  it('refuses an oversized body before reading any family data', async () => {
+    const res = await grab(post('/api/chores/grab', { choreId: 'car', memberId: 'ada', action: 'grab', pad: 'x'.repeat(16 * 1024) }));
+    expect(res.status).toBe(413);
+    expect((await read('chore-completions.json')).grabs ?? []).toEqual([]);
+  });
+
   it('holds a chore for one person and keeps everyone else off it', async () => {
     const res = await grabIt('car', 'ada');
     expect(res.status).toBe(200);

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { publicErrorResponse, parseJsonBody } from '@/lib/api-utils';
+import { publicErrorResponse, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readRewardData, setSavingsGoal } from '@/lib/reward-data';
 import { readFamilyData } from '@/lib/family-data';
-import { withFamilyData } from '@/lib/family-api';
+import { withFamilyWrite } from '@/lib/family-api';
 import { isRewardEligibleFor } from '@/lib/reward-rules';
 
 export const dynamic = 'force-dynamic';
@@ -15,9 +15,7 @@ export const dynamic = 'force-dynamic';
 /** POST — pick (or with `rewardId: null` clear) the reward a member is saving toward. */
 export const POST = async (request: NextRequest) => {
   try {
-    return await withFamilyData(async () => {
-      const body = await parseJsonBody<{ memberId?: unknown; rewardId?: unknown }>(request);
-      if (body instanceof NextResponse) return body;
+    return await withFamilyWrite<{ memberId?: unknown; rewardId?: unknown }, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
       const { memberId, rewardId } = body;
 
       if (typeof memberId !== 'string' || !memberId || (rewardId !== null && (typeof rewardId !== 'string' || !rewardId))) {
