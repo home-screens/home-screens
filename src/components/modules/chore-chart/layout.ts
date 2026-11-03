@@ -354,11 +354,10 @@ export function fitChoreFontSize({ width, height, requested, rows, sections, vie
   return search(tall, budget, Math.min(requested, width / (LIST_WIDTH_EM_BY_VIEW[view] ?? LIST_WIDTH_EM)));
 }
 
-/**
- * Board geometry, from what `BoardView` draws. The px parts are Tailwind
- * spacing, which does not follow the type; the em parts are line boxes at the
- * 1.5 line height the card inherits.
- */
+// Board geometry, from what `BoardView` draws. The px parts are Tailwind
+// spacing, which does not follow the type; the em parts are line boxes at the
+// 1.5 line height the card inherits.
+
 /** The title: a 0.85em line and its 8px margin. */
 const BOARD_TITLE_EM = 1.275;
 const BOARD_TITLE_PX = 8;
@@ -534,15 +533,6 @@ export function choreDotSize(fontSize: number): number {
 /** The gap between dots in a run, in px. */
 export function choreDotGap(dotSize: number): number {
   return Math.max(3, Math.round(dotSize * 0.16));
-}
-
-/**
- * Width a run of `count` dots needs, gaps included. The `today` row uses it to
- * decide how much of the line is left for the chore name.
- */
-export function choreDotRunWidth(dotSize: number, count: number): number {
-  if (count <= 0) return 0;
-  return count * dotSize + (count - 1) * choreDotGap(dotSize);
 }
 
 /**

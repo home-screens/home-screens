@@ -173,5 +173,3 @@ export function useNotes() {
     remove,
   };
 }
-
-export type NotesApi = ReturnType<typeof useNotes>;

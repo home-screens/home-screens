@@ -1,6 +1,7 @@
 'use client';
 
-import { useEditorStore, getActiveFullscreenTheme } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveFullscreenTheme } from '@/lib/editor-multi-display';
 import { getThemeTokens } from '@/lib/fullscreen-themes';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import { resolveFullscreenTheme } from '@/lib/module-registry';

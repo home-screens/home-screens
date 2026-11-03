@@ -613,15 +613,6 @@ function makeEmptyStatus(): DisplayStatus {
 }
 
 /**
- * Store a status report from a display. When `displayId` is provided the
- * report is keyed by that display; when omitted the report goes into the
- * legacy `__default__` slot for backward compatibility.
- *
- * Invalid slugs are silently dropped — same defense-in-depth posture as
- * `drainCommands`. The literal `'all'` is rejected because it has no
- * meaning here (broadcast is an enqueue-only concept).
- */
-/**
  * A "stub heartbeat" is a status POST whose only real payload is the
  * heartbeat itself — sent by `DisplayNotFound` on unadopted Pis so the hub
  * registers the display ID without pretending to know what screen is
@@ -649,6 +640,15 @@ function sanitizeViewport(
   return v;
 }
 
+/**
+ * Store a status report from a display. When `displayId` is provided the
+ * report is keyed by that display; when omitted the report goes into the
+ * legacy `__default__` slot for backward compatibility.
+ *
+ * Invalid slugs are silently dropped, the same defense-in-depth posture as
+ * `drainCommands`. The literal `'all'` is rejected because it has no
+ * meaning here (broadcast is an enqueue-only concept).
+ */
 export function setDisplayStatus(status: DisplayStatus, displayId?: string): void {
   if (displayId !== undefined && !isValidDisplayId(displayId)) return;
 

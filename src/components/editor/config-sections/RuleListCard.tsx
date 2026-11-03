@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { ChevronRight, Pencil } from 'lucide-react';
 import { useTranslate } from '@/i18n';
+import { uuid } from '@/lib/uuid';
 
 /**
  * The card chrome every rules list shares (calendar Event looks and Day
@@ -15,9 +16,7 @@ import { useTranslate } from '@/i18n';
 const KEY = 'configSections.ruleList';
 
 export function newRuleId(): string {
-  return typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `rule-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return uuid();
 }
 
 export function moveRule<T>(list: T[], from: number, to: number): T[] {

@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens, getActiveDimensions } from '@/lib/editor-multi-display';
 import { modulesCutOffByResize, totalModuleCount } from '@/lib/module-utils';
 import type { DisplayState } from '@/lib/settings-form';
 import type { UpdateSettingsGroup } from '@/hooks/useSettingsAutosave';

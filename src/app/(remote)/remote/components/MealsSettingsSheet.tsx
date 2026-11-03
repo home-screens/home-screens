@@ -18,6 +18,7 @@ import MealsSettingsWeekStartSection from './MealsSettingsWeekStartSection';
 import MealsSettingsTimeFormatSection from './MealsSettingsTimeFormatSection';
 import MealsSettingsDefaultTimesSection from './MealsSettingsDefaultTimesSection';
 import MealsSettingsPlanSourceSection from './MealsSettingsPlanSourceSection';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 interface MealsSettingsSheetProps {
   settings: MealSettings;
@@ -180,7 +181,7 @@ export default function MealsSettingsSheet({ settings, globalTimeFormat, mealieC
               minHeight: 48,
               borderRadius: 10,
               border: 'none',
-              background: saving ? 'var(--hs-text-faint)' : '#f59e0b',
+              background: saving ? 'var(--hs-text-faint)' : REMOTE_ACCENT,
               color: '#000',
               fontSize: 15,
               fontWeight: 700,

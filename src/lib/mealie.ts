@@ -24,8 +24,6 @@ export const MEALIE_MIN_MAJOR_VERSION = 2;
 /** Mealie's meal types. `side`, `dessert` and `drink` become courses here. */
 export type MealieEntryType = 'breakfast' | 'lunch' | 'dinner' | 'side' | 'snack' | 'drink' | 'dessert';
 
-export const MEALIE_ENTRY_TYPES: readonly MealieEntryType[] = ['breakfast', 'lunch', 'dinner', 'side', 'snack', 'drink', 'dessert'];
-
 export interface MealieOrganizer {
   id?: string;
   name: string;

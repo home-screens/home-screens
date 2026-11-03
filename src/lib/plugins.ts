@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { InstalledPluginsFile, InstalledPlugin, PluginManifest, RegistryPlugin, PluginRegistry } from '@/types/plugins';
-import { deleteAllPluginSecrets, migrateLegacyPluginSecrets } from '@/lib/plugin-secrets';
+import { deleteAllPluginSecrets } from '@/lib/plugin-secrets';
 import { deletePluginTokens, deletePendingAuth } from '@/lib/plugin-auth';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { sanitizePluginId, pluginsDir, pluginDir, getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
@@ -135,9 +135,6 @@ async function validateExtractedPlugin(tmpDir: string): Promise<PluginManifest> 
 /** Atomically move an extracted+validated plugin into its final location. */
 async function promotePluginDir(tmpDir: string, pluginId: string): Promise<void> {
   const dir = pluginDir(pluginId);
-  // Rescue any pre-fix secrets.json sitting inside the plugin dir before the
-  // recursive rm takes it out. Safe no-op once every install has migrated.
-  await migrateLegacyPluginSecrets(pluginId);
   await fs.rm(dir, { recursive: true, force: true });
   await fs.rename(tmpDir, dir);
 }
@@ -357,7 +354,6 @@ export async function uninstallPlugin(pluginId: string): Promise<UninstallResult
   // Secrets and auth tokens live outside the plugin directory (upgrades wipe
   // that dir wholesale), but we still clear them explicitly so an uninstall
   // doesn't leave per-plugin credentials behind.
-  // (Also removes any leftover legacy in-plugin-dir secrets.json.)
   await deleteAllPluginSecrets(pluginId);
   await deletePluginTokens(pluginId);
   await deletePendingAuth(pluginId);
@@ -411,12 +407,6 @@ export async function getPluginSettings(pluginId: string): Promise<Record<string
 }
 
 /**
- * Validate + persist plugin-level settings. Unknown keys (not declared in the
- * manifest's `settingsSchema`) are dropped; declared keys are type-checked
- * against the schema property type. Returns the sanitized object that was
- * stored. Throws when the plugin isn't installed or declares no settings.
- */
-/**
  * Does a value satisfy a `settingsSchema` property type?
  *
  * Shared by the supplied-value check and the manifest-default seeding so the
@@ -434,6 +424,12 @@ function matchesSchemaType(type: string, value: unknown): boolean {
   }
 }
 
+/**
+ * Validate + persist plugin-level settings. Unknown keys (not declared in the
+ * manifest's `settingsSchema`) are dropped; declared keys are type-checked
+ * against the schema property type. Returns the sanitized object that was
+ * stored. Throws when the plugin isn't installed or declares no settings.
+ */
 export async function setPluginSettings(
   pluginId: string,
   settings: Record<string, unknown>,

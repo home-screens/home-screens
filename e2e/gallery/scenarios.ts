@@ -5,7 +5,7 @@ import { matrixSettings } from '../helpers/module-fixtures';
  * A settings + style profile the whole module matrix is rendered under.
  *
  * The gallery exists to prove that a change did not repaint a wall someone
- * already built (see `.claude/plans/50` and `51`). Each scenario is a
+ * already built. Each scenario is a
  * population of users: `default` is everyone who never touched a control and
  * must never move, and the rest are the people who did touch one, where an
  * intended change is allowed to show and has to be explained shot by shot.
@@ -49,7 +49,7 @@ export const SCENARIOS: GalleryScenario[] = [
     sizeScale: 3,
   },
   {
-    // The regression guard for audit item 6. A German household that never
+    // The regression guard for the locale's hour cycle. A German household that never
     // opened the time-format setting gets 24-hour times today, from the
     // locale's hour cycle, in todoist and the fullscreen photo clock. It must
     // still get them afterwards. This is the single most important scenario
@@ -106,8 +106,8 @@ export function applyScenario(
  *
  * The matrix renders each module in its registry-default view, which leaves
  * every other view outside the gate. That is fine until a change touches one:
- * wave 2 rewrote the sun arc, the sun circle and the analog clock face, and all
- * three came back "unchanged" simply because none of them was ever rendered.
+ * the ink fixes rewrote the sun arc, the sun circle and the analog clock face,
+ * and all three came back "unchanged" simply because none of them was ever rendered.
  *
  * So this list is not a general view matrix (`module-views.spec.ts` is that).
  * It is the set of non-default views some fix has actually touched, and it
@@ -129,28 +129,28 @@ const TODAY_ISO = (() => {
 })();
 
 export const VIEW_VARIANTS: GalleryViewVariant[] = [
-  // Wave 2, item 16: user-unit SVG text, biased by Style > Font size.
+  // User-unit SVG text, biased by Style > Font size.
   { type: 'sunrise-sunset', name: 'arc', config: { view: 'arc' } },
   { type: 'sunrise-sunset', name: 'circle', config: { view: 'circle' } },
-  // Wave 2, item 3b: a clock face drawn entirely in hardcoded white. The
+  // A clock face that was drawn entirely in hardcoded white. The
   // numerals are behind `showNumerals`, so the plain analog shot renders the
   // ring, ticks and hands but not them — hence the second variant.
   { type: 'clock', name: 'analog', config: { view: 'analog' } },
   { type: 'clock', name: 'analog-numerals', config: { view: 'analog', showNumerals: true } },
-  // Wave 3b: todoist renders a due *time* only for a task due TODAY that also
+  // Todoist renders a due *time* only for a task due TODAY that also
   // carries a datetime (see formatDueDate). The shared fixture's task is
   // date-only and dated 2099, so it renders "Jan 15" and the 12/24 decision was
   // never on screen. Built from today so it lands in the same-day branch under
   // the gallery's fixed clock.
-  // Wave 4: the views that measure their own box with `useContainerHeight`.
+  // The views that measure their own box with `useContainerHeight`.
   // Only `schedule` is the registry default, so the other three were outside
   // the gate while the hook under them was being rebuilt.
   { type: 'fullscreen-calendar', name: 'month-grid', config: { view: 'month-grid' } },
   { type: 'fullscreen-calendar', name: 'day-timeline', config: { view: 'day-timeline' } },
-  // Wave 4: `useHiddenRowCount` via FitRows. The chore chart's default view is
+  // `useHiddenRowCount` via FitRows. The chore chart's default view is
   // `board`, which does not use it.
   { type: 'chore-chart', name: 'today', config: { view: 'today' } },
-  // Item 19: views whose fills, rules and rings were literal white and are
+  // Views whose fills, rules and rings were literal white and are
   // now the module's ink. The default views are in the matrix; these are the
   // touched non-default ones, so the `styled` scenario can show the change
   // and `default` can prove there is none.

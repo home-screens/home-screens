@@ -3,6 +3,7 @@
 import type { MealSettings } from '@/types/config';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
+import { selectedPillStyle } from './chore-form-styles';
 
 interface MealsSettingsWeekStartSectionProps {
   weekStartDay: MealSettings['weekStartDay'];
@@ -29,9 +30,7 @@ export default function MealsSettingsWeekStartSection({ weekStartDay, onChange }
                 padding: '12px',
                 minHeight: 48,
                 borderRadius: 10,
-                border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-                background: isSelected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
-                color: isSelected ? '#f59e0b' : 'var(--hs-text-muted)',
+                ...selectedPillStyle(isSelected, 'var(--hs-text-muted)'),
                 fontSize: 14,
                 fontWeight: 600,
                 cursor: 'pointer',

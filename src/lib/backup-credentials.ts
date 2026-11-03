@@ -59,9 +59,6 @@ const OAUTH_STORES: Record<
 
 const OAUTH_GRANT_NAMES = Object.keys(OAUTH_STORES) as OAuthGrantName[];
 
-/** Where the pre-migration per-plugin secrets file lived. */
-const LEGACY_PLUGINS_DIR = path.join('data', 'plugins');
-
 /* ─── Plugin file enumeration ─────────────────── */
 
 /**
@@ -94,41 +91,6 @@ export async function listPluginCredentialIds(dir: string): Promise<string[]> {
     ids.push(id);
   }
   return ids.sort();
-}
-
-/**
- * Plugin ids whose secrets still live ONLY at the pre-migration path,
- * `data/plugins/<id>/secrets.json`. `readAllPluginSecrets` falls back to that
- * file, but nothing would ever ask it to: the directory listing above covers
- * `data/plugin-secrets/` only, so a server that hasn't upgraded its plugins
- * since the move would silently back up none of their keys.
- */
-export async function listLegacyPluginSecretIds(): Promise<string[]> {
-  let entries;
-  try {
-    entries = await fs.readdir(path.join(process.cwd(), LEGACY_PLUGINS_DIR), {
-      withFileTypes: true,
-    });
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code === 'ENOENT') return [];
-    throw err;
-  }
-  const ids: string[] = [];
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    try {
-      sanitizePluginId(entry.name);
-    } catch {
-      continue;
-    }
-    try {
-      await fs.access(path.join(process.cwd(), LEGACY_PLUGINS_DIR, entry.name, 'secrets.json'));
-      ids.push(entry.name);
-    } catch {
-      // no legacy secrets file for this plugin
-    }
-  }
-  return ids;
 }
 
 /* ─── Collect ─────────────────────────────────── */
@@ -172,11 +134,7 @@ export async function collectCredentials(
   if (includeEmpty || isNonEmpty(oauthTokens)) payload.oauthTokens = oauthTokens;
 
   const pluginSecrets: Record<string, Record<string, string>> = {};
-  const secretIds = new Set([
-    ...(await listPluginCredentialIds(SECRETS_DIR)),
-    ...(await listLegacyPluginSecretIds()),
-  ]);
-  for (const id of [...secretIds].sort()) {
+  for (const id of await listPluginCredentialIds(SECRETS_DIR)) {
     const secretsForPlugin = await readAllPluginSecrets(id);
     if (isNonEmpty(secretsForPlugin)) pluginSecrets[id] = secretsForPlugin;
   }
@@ -394,10 +352,6 @@ export async function applyCredentials(
     const map = sanitizePluginMap<Record<string, string>>(payload.pluginSecrets);
     for (const [id, secrets] of Object.entries(map)) {
       await save(path.join(SECRETS_DIR, `${id}.json`), secrets, () => writeAllPluginSecrets(id, secrets), 0o700);
-      const legacy = path.join(LEGACY_PLUGINS_DIR, id, 'secrets.json');
-      if (opts.plannedChanges && await readTransactionFile(legacy) !== null) {
-        await save(legacy, undefined, async () => {});
-      }
     }
     if (prunePlugins) {
       for (const id of await listPluginCredentialIds(SECRETS_DIR)) {

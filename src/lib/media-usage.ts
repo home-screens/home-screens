@@ -76,11 +76,6 @@ export function classifyMediaRef(value: string): MediaRef | null {
   return { path: bare, explicit: legacy };
 }
 
-/** Normalize one candidate string to a library-relative path, or null. */
-export function normalizeMediaRef(value: string): string | null {
-  return classifyMediaRef(value)?.path ?? null;
-}
-
 function kindFor(configPath: string): MediaUseKind {
   if (configPath.includes('dayRules')) return 'dayRule';
   if (configPath.includes('.modules[')) return 'module';

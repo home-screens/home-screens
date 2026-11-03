@@ -21,7 +21,7 @@ export type CalendarStatusView =
   | { kind: 'loading' }
   /** A failure with no successful fetch ever: an outage, not a free day. */
   | { kind: 'cantLoad' }
-  /** Setup problems replace the events entirely (see the mockup for audit item 73). */
+  /** Setup problems replace the events entirely. */
   | { kind: 'setup'; setup: CalendarSetupNeed; title: string; hint: string }
   /** Events on screen are the kept last-good copy; the badge says since when. */
   | { kind: 'badge'; text: string; loud: boolean };

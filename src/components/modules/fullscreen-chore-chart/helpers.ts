@@ -23,10 +23,6 @@ export const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 
 export const TOD_ORDER: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 
-export function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
-  return h > w ? 'portrait' : 'landscape';
-}
-
 export function getCurrentTimeOfDay(hour: number): ChoreTimeOfDay | null {
   if (hour < 12) return 'morning';
   if (hour < 17) return 'afternoon';

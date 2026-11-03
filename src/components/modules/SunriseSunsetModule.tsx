@@ -98,7 +98,6 @@ function SunArcView({
   dark: AstroDarkWindow | null;
   polar: PolarKind;
   locale: string;
-  /** Module `Style > Font size`, biasing the SVG's user-unit text. */
   /** The module style; SVG labels scale with its Text size (svgFontSize). */
   textScale: Pick<ModuleStyle, 'textScale'>;
   /** Zone, locale and 12/24 for every clock time this view prints. */
@@ -450,7 +449,6 @@ function CircleView({
   polar: PolarKind;
   locale: string;
   theme?: SunriseSunsetTheme;
-  /** Module `Style > Font size`, biasing the SVG's user-unit text. */
   /** The module style; SVG labels scale with its Text size (svgFontSize). */
   textScale: Pick<ModuleStyle, 'textScale'>;
   /** Zone, locale and 12/24 for every clock time this view prints. */
@@ -517,7 +515,7 @@ function CircleView({
   }, [skyTheme, midnightSun, polarNight, sr, ss, noonH, goldenH, db, de]);
 
   // Stars are white on purpose: they sit on the sky the module paints itself,
-  // not on the card, so they are not card ink (plan 50, item 19).
+  // not on the card, so they are not card ink.
   const skyStars = useMemo(() => {
     if (!skyTheme) return null;
     // Polar night: the night lasts all day — stars around the whole dial.

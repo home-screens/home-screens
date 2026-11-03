@@ -10,8 +10,7 @@ import { type ModuleStyle, type ModuleType } from '@/types/config';
  * and auto-sizing, and none covered the fields of `ModuleStyle`. That is the
  * hole a font-size control that did nothing lived in for a release, and the
  * hole a Style section that was inert for display-control, and text that
- * stayed white on a light card in sports and standings, were sitting in
- * (plan 50, items 1, 3, 4, 14).
+ * stayed white on a light card in sports and standings, were sitting in.
  */
 
 /** One control, and the value that has to produce a visibly different card. */

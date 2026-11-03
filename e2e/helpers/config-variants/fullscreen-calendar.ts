@@ -4,8 +4,7 @@ import { has, count, lacks, matches, notMatches, dayAt, localIso, localDate } fr
 import { dayGridFontSize } from '@/lib/day-grid-type';
 
 /**
- * Phase-1 batch rows for the fullscreen-calendar module — see
- * .claude/plans/2026-07-09-e2e-100-percent-coverage.md.
+ * Config-variant rows for the fullscreen-calendar module.
  *
  * The module's five views (schedule / week-list / month-grid / day-timeline /
  * agenda) each expose their own config cluster plus a shared cross-view set
@@ -376,7 +375,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // Week list shades its weekend day groups (audit 26 item 2). A 7-day week
+    // Week list shades its weekend day groups. A 7-day week
     // always spans Sat and Sun; today's group takes the today fill instead, so
     // at least one weekend group carries linen's shade (#ede8e0).
     type: 'fullscreen-calendar', name: 'shade-weekends-week-list', kind: 'networked', stubKey: 'calendar',
@@ -402,7 +401,7 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     },
   },
   {
-    // Audit 26 item 3: the list views used to read todayHighlightStyle as
+    // The list views used to read todayHighlightStyle as
     // on/off only, so 'full' and 'minimal' were identical. 'full' now tints
     // today's group with --cal-today-fill, which on linen with the default
     // accent is rgba(234,88,12,0.1).

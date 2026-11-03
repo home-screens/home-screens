@@ -671,7 +671,7 @@ For example, if a plugin declares a secret with key `api_key` and the user has c
 
 ## Plugin Secrets
 
-Plugins that need API keys or credentials declare them in the manifest's `secrets` array. Users configure the actual values through the editor UI. Secrets are stored on disk at `data/plugin-secrets/<pluginId>.json` (file mode `0600`, directory mode `0700`), outside the plugin's installation directory so plugin upgrades don't wipe them. Legacy installs that still have a `data/plugins/<pluginId>/secrets.json` file are migrated automatically the next time the plugin is updated.
+Plugins that need API keys or credentials declare them in the manifest's `secrets` array. Users configure the actual values through the editor UI. Secrets are stored on disk at `data/plugin-secrets/<pluginId>.json` (file mode `0600`, directory mode `0700`), outside the plugin's installation directory so plugin upgrades don't wipe them.
 
 ### Declaring Secrets
 
@@ -935,7 +935,7 @@ PATCH /api/plugins/install
 ### Uninstall
 
 1. Every module instance of the plugin's type is removed from `config.json`, on every screen of every display, in one atomic write. If that write fails, the uninstall stops there and nothing else is touched
-2. All plugin secrets are deleted from `data/plugin-secrets/<pluginId>.json` (and any legacy `data/plugins/<pluginId>/secrets.json`)
+2. All plugin secrets are deleted from `data/plugin-secrets/<pluginId>.json`
 3. Stored auth tokens at `data/plugin-tokens/<pluginId>.json` are deleted, along with any half-finished sign-in flow
 4. The plugin directory `data/plugins/<pluginId>/` is removed
 5. The entry is removed from `data/plugins/installed.json`
@@ -1108,8 +1108,6 @@ data/plugin-secrets/             # Mode 0700, separate from the bundles
   my-plugin.json                 # Per-plugin secret store (never committed)
   another-plugin.json
 ```
-
-Legacy installs that still have a `data/plugins/<pluginId>/secrets.json` file are migrated to `data/plugin-secrets/<pluginId>.json` automatically the next time the plugin is updated.
 
 The `installed.json` file tracks installation state:
 

@@ -34,6 +34,7 @@ import { useChoreMarks } from '../hooks/useChoreMarks';
 import { useRewardsPoll } from '../hooks/useRewardsPoll';
 import { useHouseholdDayRollover } from '../hooks/useHouseholdDayRollover';
 import AtHomePill from './AtHomePill';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 const log = logger('chores');
 
@@ -131,7 +132,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     words: { refused: t('choresTab.saveFailed'), unreachable: t('hubRequest.saveFailed') },
   });
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
-  const accentColor = config.accentColor ?? '#f59e0b';
+  const accentColor = config.accentColor ?? REMOTE_ACCENT;
 
   // The hub's day as the page was drawn is the first paint, so it matches on any clock.
   const householdNow = useHouseholdNow();

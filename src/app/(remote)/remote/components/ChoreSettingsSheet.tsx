@@ -6,7 +6,7 @@ import { GRAB_HOLD_CHOICES, GRAB_LIMIT_CHOICES } from '@/lib/chore-bonus';
 import { useTranslate } from '@/i18n';
 import BottomSheet from './BottomSheet';
 import { ChoiceList } from './chore-choice-controls';
-import { LABEL_STYLE } from './chore-form-styles';
+import { REMOTE_ACCENT, LABEL_STYLE } from './chore-form-styles';
 
 /**
  * The household's chore settings, from the Manage tab. Works on a draft and
@@ -49,7 +49,7 @@ export default function ChoreSettingsSheet({ settings, onSave, onClose }: {
 
   return (
     <BottomSheet title={t('choreSettings.title')} onClose={onClose} testId="chore-settings-sheet">
-      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f59e0b', margin: '0 0 12px' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: REMOTE_ACCENT, margin: '0 0 12px' }}>
         {t('choreSettings.grabbingHeading')}
       </div>
 
@@ -92,7 +92,7 @@ export default function ChoreSettingsSheet({ settings, onSave, onClose }: {
         disabled={saving}
         style={{
           width: '100%', minHeight: 48, padding: 14, borderRadius: 12, border: 'none',
-          fontSize: 15, fontWeight: 700, color: '#fff', background: '#f59e0b',
+          fontSize: 15, fontWeight: 700, color: '#fff', background: REMOTE_ACCENT,
           cursor: saving ? 'default' : 'pointer', opacity: saving ? 0.6 : 1,
         }}
       >

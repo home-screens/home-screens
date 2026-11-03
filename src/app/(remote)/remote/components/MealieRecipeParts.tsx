@@ -4,6 +4,7 @@ import { useState, type CSSProperties, type ReactNode } from 'react';
 import { Heart, History, Search, X } from 'lucide-react';
 import type { MealieRecipeFilter } from '@/lib/mealie';
 import { useTranslate } from '@/i18n';
+import { selectedPillStyle } from './chore-form-styles';
 
 /**
  * The pieces the recipe picker and the Library share while the plan lives in
@@ -125,9 +126,7 @@ export function FilterChip({ active, onClick, icon, children }: { active: boolea
       onClick={onClick}
       style={{
         ...CHIP,
-        border: active ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-        background: active ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
-        color: active ? '#f59e0b' : 'var(--hs-text-faint)',
+        ...selectedPillStyle(active),
       }}
     >
       {icon}

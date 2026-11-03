@@ -7,7 +7,7 @@ import {
 } from './shared';
 
 /**
- * The original config-variant rows (pre Phase-1 split). New rows land in the
+ * The original config-variant rows, from before the per-batch split. New rows land in the
  * per-batch files alongside this one; index.ts concatenates them all.
  */
 

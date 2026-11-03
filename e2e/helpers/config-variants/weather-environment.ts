@@ -4,8 +4,7 @@ import { has, lacks, child, count, localDate } from './shared';
 import { getRadarTileUrls } from '../stubs';
 
 /**
- * Phase-1 batch rows for the WEATHER, AIR-QUALITY, and RAIN-MAP modules —
- * see .claude/plans/2026-07-09-e2e-100-percent-coverage.md.
+ * Config-variant rows for the WEATHER, AIR-QUALITY, and RAIN-MAP modules.
  *
  * The default matrix serves matrixSettings() with imperial units, so weather
  * distance/pressure stats surface as ` mi`/` inHg` unless a row overrides units.

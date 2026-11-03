@@ -6,8 +6,7 @@ import Glyph from '@/components/ui/Glyph';
 /**
  * "Focus Ring" — calm glassy dark view matching the display's overlay
  * language. Ring drains clockwise; routine steps sit as chips along the
- * bottom. The approved mockup is variant A of
- * `.claude/mockups/visual-timer-takeover.html`.
+ * bottom. Variant A of the approved mockup.
  */
 export default function RingTimerView({
   session, step, remainingMs, fraction, nudge, paused, title, s, t,

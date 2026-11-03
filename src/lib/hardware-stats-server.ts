@@ -112,15 +112,6 @@ async function readDiskRoot(): Promise<{ total: number; free: number }> {
 }
 
 /**
- * Collect current hardware stats. Results are cached for 5 s so repeated
- * hits (editor stats page refresh + diagnostics bundle request in the same
- * tick) don't each re-spawn vcgencmd and re-read /proc.
- *
- * Concurrent callers that arrive before the cache is warm all await the
- * same in-flight promise — not N parallel collectors racing to write the
- * same cache entry.
- */
-/**
  * Installed versions from dpkg, or null where there is no dpkg-query (the
  * spawn error path). Deliberately not gated on process.platform: the
  * production build inlines that constant from the machine that built it, so
@@ -165,6 +156,15 @@ async function readPackagesCheckedAt(): Promise<string | null> {
   }
 }
 
+/**
+ * Collect current hardware stats. Results are cached for 5 s so repeated
+ * hits (editor stats page refresh + diagnostics bundle request in the same
+ * tick) don't each re-spawn vcgencmd and re-read /proc.
+ *
+ * Concurrent callers that arrive before the cache is warm all await the
+ * same in-flight promise, not N parallel collectors racing to write the
+ * same cache entry.
+ */
 export async function getLocalHardwareStats(): Promise<HardwareStats> {
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return cached.stats;

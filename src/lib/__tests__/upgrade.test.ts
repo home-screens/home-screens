@@ -618,7 +618,7 @@ describe('runUpgrade — tarball path', () => {
     expect(steps).toContain('complete');
 
     // Cleanup is intentionally NOT a separate pipeline step on the tarball
-    // path. See code-review-remediation.md item 2: cleanup-rollback used to
+    // path. Cleanup-rollback used to
     // run before the new release proved it could boot, leaving nothing to
     // recover from on startup failure. The `restart` action now spawns a
     // detached background job that health-checks the new server and only

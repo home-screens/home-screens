@@ -2,7 +2,7 @@
 // ESPN Standings — types, data tables, parsing, and grouping helpers
 // ---------------------------------------------------------------------------
 
-import { leagueWallCode } from './espn';
+import { isSoccerLeague, leagueWallCode } from './espn';
 
 // ---- Types ----------------------------------------------------------------
 
@@ -97,8 +97,6 @@ const DIVISION_MAP: Record<string, Record<string, string[]>> = {
     'Pacific': ['ANA', 'CGY', 'EDM', 'LA', 'SEA', 'SJ', 'VAN', 'VGK'],
   },
 };
-
-const SOCCER_LEAGUES = new Set(['mls', 'epl', 'laliga', 'bundesliga', 'seriea', 'ligue1', 'liga_mx']);
 
 const LEAGUE_STAT_MAP: Record<string, StatMapping> = {
   nfl: {
@@ -263,7 +261,7 @@ function parseEntry(
   if (Number.isFinite(apRank) && apRank >= 1 && apRank <= 25) result.apRank = apRank;
 
   // Apply sport-specific stats via table-driven mapping
-  const mappingKey = SOCCER_LEAGUES.has(leagueKey) ? 'soccer' : leagueKey;
+  const mappingKey = isSoccerLeague(leagueKey) ? 'soccer' : leagueKey;
   const mapping = LEAGUE_STAT_MAP[mappingKey] ?? LEAGUE_STAT_MAP._default;
 
   if (mapping.num) {

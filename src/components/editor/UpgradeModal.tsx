@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { ArrowUp, RotateCcw, Check, X, Info } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { formatShortDuration } from '@/lib/duration-format';
 import Button from '@/components/ui/Button';
 import ModalFrame from '@/components/ui/ModalFrame';
 import SudoPasswordPrompt from './SudoPasswordPrompt';
@@ -114,14 +115,6 @@ function StepDot({ state }: { state: StepState }) {
   }
 }
 
-/** "2s" / "1m 12s" annotation for completed steps; sub-second steps show nothing */
-function formatDuration(ms: number): string | null {
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 1) return null;
-  if (seconds < 60) return `${seconds}s`;
-  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-}
-
 interface Props {
   targetTag: string;
   isRollback: boolean;
@@ -224,10 +217,10 @@ function UpgradeAttempt({
   const quietMs = now - lastEventAt;
   const quietLine =
     isLive && quietMs >= QUIET_AFTER_MS
-      ? t('upgradeModal.console.stillWorking', { duration: formatDuration(quietMs) ?? '' })
+      ? t('upgradeModal.console.stillWorking', { duration: formatShortDuration(quietMs) ?? '' })
       : null;
   const activeElapsed =
-    running && activeStepStartedAt != null ? formatDuration(now - activeStepStartedAt) : null;
+    running && activeStepStartedAt != null ? formatShortDuration(now - activeStepStartedAt) : null;
 
   // Auto-scroll the console while it follows the live step
   useEffect(() => {
@@ -345,7 +338,7 @@ function UpgradeAttempt({
               const styles = RAIL_STYLES[state] ?? RAIL_STYLES.pending;
               const hasLog = (stepLogs[step] || '').length > 0;
               const clickable = hasLog && state !== 'pending';
-              const duration = stepDurations[step] != null ? formatDuration(stepDurations[step]) : null;
+              const duration = stepDurations[step] != null ? formatShortDuration(stepDurations[step]) : null;
               const isConsoleTarget = consoleStep === step;
 
               return (

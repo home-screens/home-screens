@@ -100,19 +100,40 @@ export function getDateInfoValues(now: Date, weekStart: WeekStartDay): DateInfoV
   };
 }
 
+/** One item of the clock and date modules' info line: a label and its number, such as "Week" and "12". */
+export interface DateInfoPart {
+  label: string;
+  value: string;
+}
+
+/** The words the info line prints before the week number and the day of the year, already translated. */
+export interface DateInfoLabels {
+  week: string;
+  day: string;
+}
+
 /**
- * Build the info-parts array (week number, day of year) used by clock and date views.
- *
- * @returns Array of info strings like "Week 12", "Day 85"
+ * The info line's parts (week number, then day of the year) for the clock
+ * and date views, each only when its switch is on. The labels come from the
+ * caller, since every language and the Banner view word them differently.
  */
-export function buildInfoParts(
+export function dateInfoParts(
   config: { showWeekNumber?: boolean; showDayOfYear?: boolean },
   now: Date,
   weekStart: WeekStartDay,
-): string[] {
+  labels: DateInfoLabels,
+): DateInfoPart[] {
   const { weekNumber, dayOfYear } = getDateInfoValues(now, weekStart);
-  const parts: string[] = [];
-  if (config.showWeekNumber) parts.push(`Week ${weekNumber}`);
-  if (config.showDayOfYear) parts.push(`Day ${dayOfYear}`);
+  const parts: DateInfoPart[] = [];
+  if (config.showWeekNumber) parts.push({ label: labels.week, value: String(weekNumber) });
+  if (config.showDayOfYear) parts.push({ label: labels.day, value: String(dayOfYear) });
   return parts;
+}
+
+/**
+ * The info line as one string, "Week 12 · Day 85", or null when nothing is
+ * switched on so a view can leave the line out.
+ */
+export function dateInfoText(parts: DateInfoPart[], separator = ' · '): string | null {
+  return parts.length > 0 ? parts.map((part) => `${part.label} ${part.value}`).join(separator) : null;
 }

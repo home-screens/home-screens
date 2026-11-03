@@ -9,12 +9,6 @@ export function splitBytes(bytes: number): { value: string; unit: string } {
   return { value: v < 10 ? v.toFixed(1) : String(Math.round(v)), unit: units[i] };
 }
 
-export function formatDuration(ms: number): string {
-  const s = ms / 1000;
-  if (s < 60) return `${s}s`;
-  return `${Math.round(s / 60)}m`;
-}
-
 export function shortenUrl(url: string): string {
   const qIndex = url.indexOf('?');
   return qIndex >= 0 ? url.slice(0, qIndex) : url;

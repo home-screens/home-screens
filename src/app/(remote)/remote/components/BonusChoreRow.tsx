@@ -9,8 +9,9 @@ import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { useLongPress } from '@/hooks/useLongPress';
 import { useMovedTapGuard } from '@/hooks/useMovedTapGuard';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
-const AMBER = '#f59e0b';
 /** How long after Let it go a tap on the same row does not tick it. */
 const LET_GO_TICK_GUARD_MS = 5000;
 
@@ -146,7 +147,7 @@ export default function BonusChoreRow({
     line = didOn(myDoneOn);
   } else if (mineDone) {
     line = t('choresTab.bonus.youGotIt', { n: chore.points });
-    lineColor = AMBER;
+    lineColor = REMOTE_ACCENT;
   } else if (mineHeld) {
     // "Tick it when you're done" only where it can be ticked.
     line = locked ? t('choresTab.bonus.youreOnIt') : t('choresTab.bonus.youGrabbedIt');
@@ -157,21 +158,21 @@ export default function BonusChoreRow({
     // The same line at the limit: a row that changes size moves the rows
     // under it, and a second tap then lands on the wrong chore.
     line = tickets;
-    lineColor = AMBER;
+    lineColor = REMOTE_ACCENT;
   }
 
   const background = locked
     ? 'var(--hs-bg-card)'
     : mineHeld
       ? `color-mix(in srgb, ${checkedColor} 10%, var(--hs-bg-card))`
-      : 'color-mix(in srgb, #f59e0b 8%, var(--hs-bg-card))';
+      : `color-mix(in srgb, ${REMOTE_ACCENT} 8%, var(--hs-bg-card))`;
   const border = locked
     ? '1px solid var(--hs-border)'
     : mineHeld
       ? `1.5px solid ${checkedColor}`
       : mineDone
         ? '1px solid transparent'
-        : '1px dashed color-mix(in srgb, #f59e0b 55%, transparent)';
+        : `1px dashed ${withAlpha(REMOTE_ACCENT, 0.55)}`;
 
   const checkbox = locked ? (
     <div aria-hidden style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--hs-bg-hover)' }}>
@@ -184,7 +185,7 @@ export default function BonusChoreRow({
         position: 'relative', width: 28, height: 28, borderRadius: 8, flexShrink: 0, overflow: 'hidden',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: mineDone ? checkedColor : 'transparent',
-        border: mineDone ? 'none' : `2px ${mineHeld ? 'solid' : 'dashed'} ${mineHeld ? checkedColor : AMBER}`,
+        border: mineDone ? 'none' : `2px ${mineHeld ? 'solid' : 'dashed'} ${mineHeld ? checkedColor : REMOTE_ACCENT}`,
       }}
     >
       {holding && (
@@ -253,7 +254,7 @@ export default function BonusChoreRow({
             )}
           </span>
           {!locked && !mineHeld && !mineDone && !showGrabButton && (
-            <span style={{ fontSize: 11, flexShrink: 0, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: AMBER, background: 'color-mix(in srgb, #f59e0b 18%, transparent)' }}>
+            <span style={{ fontSize: 11, flexShrink: 0, padding: '2px 8px', borderRadius: 999, fontWeight: 700, color: REMOTE_ACCENT, background: withAlpha(REMOTE_ACCENT, 0.18) }}>
               {tickets}
             </span>
           )}
@@ -274,7 +275,7 @@ export default function BonusChoreRow({
               : t('choresTab.bonus.grabAriaLabel', { chore: chore.name, tickets })}
             style={{
               ...sideButton, border: 'none',
-              background: atLimit ? 'var(--hs-bg-hover)' : AMBER, color: atLimit ? 'var(--hs-text-faint)' : '#111',
+              background: atLimit ? 'var(--hs-bg-hover)' : REMOTE_ACCENT, color: atLimit ? 'var(--hs-text-faint)' : '#111',
             }}
           >
             <Hand size={15} aria-hidden />

@@ -70,11 +70,3 @@ export function resolvePeopleFilterMembers(filter: PeopleFilter, groups: readonl
   }
   return ids;
 }
-
-/** The calendar source ids the given people own. */
-export function sourceIdsForMembers(memberIds: ReadonlySet<string>, personSources: Record<string, string[]> | undefined): Set<string> {
-  const ids = new Set<string>();
-  if (!personSources) return ids;
-  for (const memberId of memberIds) for (const sourceId of personSources[memberId] ?? []) ids.add(sourceId);
-  return ids;
-}

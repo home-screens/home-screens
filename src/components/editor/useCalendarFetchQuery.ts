@@ -1,6 +1,7 @@
 'use client';
 
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { selectHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { getCalendarFetchWindow } from '@/lib/calendar-window';
 import { DEFAULT_CALENDAR_DAYS_AHEAD } from '@/lib/constants';

@@ -16,7 +16,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { TIMETABLE_LIMITS } from '@/types/timetables';
-import { getDefaultSubjects, TIMETABLE_SUBJECT_ICONS } from '../timetable-subjects';
+import { getDefaultSubjects } from '../timetable-subjects';
+import { TIMETABLE_SUBJECT_ICONS } from '../timetable-subjects/types';
 import { EN_US_SUBJECTS } from '../timetable-subjects/en-US';
 import { DE_DE_SUBJECTS } from '../timetable-subjects/de-DE';
 import { FR_FR_SUBJECTS } from '../timetable-subjects/fr-FR';

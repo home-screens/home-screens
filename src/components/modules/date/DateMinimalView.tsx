@@ -1,14 +1,12 @@
 'use client';
 
-import { getDateInfoValues } from '@/lib/date-info';
-import { localeWeekStart } from '@/lib/week-number';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useFormattingLocale, formatDateSync } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { dateModulePattern } from '@/lib/date-module-format';
+import { DATE_INFO_LABELS, useDateInfoLine } from '../clock/use-date-info';
 import type { DateViewProps } from './types';
 
 export default function DateMinimalView({ config, now, scaledFontSize, containerRef }: DateViewProps) {
-  const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const dateFormat = config.dateFormat || 'MMMM d';
   let dateStr: string;
@@ -18,10 +16,7 @@ export default function DateMinimalView({ config, now, scaledFontSize, container
     dateStr = formatDateSync(now, dateModulePattern('MMMM d', locale), { locale });
   }
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
-  const infoParts: string[] = [];
-  if (config.showWeekNumber) infoParts.push(`${t('date.weekShort')} ${weekNumber}`);
-  if (config.showDayOfYear) infoParts.push(`${t('date.dayShort')} ${dayOfYear}`);
+  const { text: infoStr } = useDateInfoLine(config, now, DATE_INFO_LABELS);
 
   return (
     <div
@@ -36,13 +31,13 @@ export default function DateMinimalView({ config, now, scaledFontSize, container
         {dateStr}
       </div>
 
-      {infoParts.length > 0 && (
+      {infoStr && (
         <div
           className="mt-2 tracking-wider uppercase"
           style={{ fontSize: scaledFontSize * 0.8, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
-          {infoParts.join(' · ')}
+          {infoStr}
         </div>
       )}
     </div>

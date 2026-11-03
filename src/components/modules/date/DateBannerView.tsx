@@ -1,10 +1,9 @@
 'use client';
 
-import { getDateInfoValues } from '@/lib/date-info';
-import { localeWeekStart } from '@/lib/week-number';
-import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
+import { useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { estimateTextWidth, fitBaseSize, fitFactor } from '../clock/fit-width';
+import { useDateInfoLine } from '../clock/use-date-info';
 import type { DateViewProps } from './types';
 
 /** Letter spacing of the banner line, in em (Tailwind `tracking-[0.15em]`). */
@@ -13,6 +12,9 @@ const TRACKING_EM = 0.15;
 const SEPARATOR_MARGIN_PX = 16;
 /** Under this size one line is too small to read from across a room, so the day takes a line of its own. */
 const MIN_ONE_LINE_PX = 16;
+/** The banner's info line is all capitals, so its labels are the short "WK" and "DAY" pair, spaced wider. */
+const BANNER_INFO_LABELS = { week: 'date.weekAbbrev', day: 'date.dayAbbrev' };
+const BANNER_INFO_SEPARATOR = '  ·  ';
 
 /** Estimated width of the parts on one line, bullets between them. */
 function lineWidth(parts: string[], fontSize: number): number {
@@ -22,7 +24,6 @@ function lineWidth(parts: string[], fontSize: number): number {
 }
 
 export default function DateBannerView({ config, now, scaledFontSize, autoFontSize, boxWidth = 0, containerRef }: DateViewProps) {
-  const t = useTranslate('modules');
   const locale = useFormattingLocale();
   // Day and month in the order this language writes them ("29. SEPTEMBER").
   const dayAndMonth = formatDateSync(now, dayMonthPattern(locale, 'long'), { locale });
@@ -47,10 +48,7 @@ export default function DateBannerView({ config, now, scaledFontSize, autoFontSi
     ? fitFactor(Math.max(...lines.map((line) => lineWidth(line, base))), boxWidth)
     : oneLine;
 
-  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
-  const infoParts: string[] = [];
-  if (config.showWeekNumber) infoParts.push(`${t('date.weekAbbrev')} ${weekNumber}`);
-  if (config.showDayOfYear) infoParts.push(`${t('date.dayAbbrev')} ${dayOfYear}`);
+  const { text: infoStr } = useDateInfoLine(config, now, BANNER_INFO_LABELS, BANNER_INFO_SEPARATOR);
 
   return (
     <div
@@ -77,13 +75,13 @@ export default function DateBannerView({ config, now, scaledFontSize, autoFontSi
         ))}
       </div>
 
-      {infoParts.length > 0 && (
+      {infoStr && (
         <div
           className="mt-1.5 tracking-[0.2em] uppercase"
           style={{ fontSize: scaledFontSize * 0.7, opacity: TEXT_OPACITY.tertiary }}
           suppressHydrationWarning
         >
-          {infoParts.join('  ·  ')}
+          {infoStr}
         </div>
       )}
     </div>

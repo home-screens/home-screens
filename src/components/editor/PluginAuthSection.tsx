@@ -391,13 +391,7 @@ export default function PluginAuthSection({
           <Button
             variant="primary"
             size="sm"
-            onClick={
-              auth.type === 'oauth2' && auth.flow === 'authorization_code'
-                ? connectAuthCode
-                : auth.type === 'oauth2' && auth.flow === 'device_code'
-                ? connectDevice
-                : connectClientCredentials
-            }
+            onClick={startConnect}
             disabled={busy || deviceSignIn.busy}
           >
             {busy || deviceSignIn.busy ? t('settings.pluginAuth.connecting') : t('settings.pluginAuth.connectButton')}

@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import { promises as fs } from 'fs';
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import { isAuthEnabled } from '@/lib/auth';
 import { getInstalledPlugins } from '@/lib/plugins';
 import { createJsonStore } from '@/lib/json-store';
@@ -123,7 +123,7 @@ export async function getOrCreateInstallId(): Promise<TelemetryData> {
   if (existing?.installId) return existing;
 
   const data: TelemetryData = {
-    installId: uuidv4(),
+    installId: uuid(),
     firstSeenAt: new Date().toISOString(),
     lastBeaconAt: null,
   };

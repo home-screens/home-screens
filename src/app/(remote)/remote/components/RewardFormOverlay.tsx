@@ -7,11 +7,12 @@ import { useState } from 'react';
 import type { RewardDefinition } from '@/lib/reward-data';
 import { uuid } from '@/lib/uuid';
 import { useFormattingLocale, useTranslate } from '@/i18n';
-import { INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
+import { REMOTE_ACCENT, INPUT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { REWARD_ICONS } from '@/lib/chore-constants';
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { DEFAULT_REWARD_ICON } from '@/lib/chore-constants';
 import FormOverlay from './FormOverlay';
+import SaveDeleteFooter from './SaveDeleteFooter';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 import { withAlpha } from '@/lib/hex-color';
@@ -79,48 +80,13 @@ export default function RewardFormOverlay({
         dirty={dirty}
         onBack={onBack}
         footer={
-          <div style={{ padding: '12px 16px' }}>
-            <button
-              type="button"
-              className="press-btn"
-              onPointerDown={(e) => { e.preventDefault(); handleSave(); }}
-              style={{
-                width: '100%',
-                minHeight: 48,
-                borderRadius: 12,
-                border: 'none',
-                fontSize: 16,
-                fontWeight: 600,
-                cursor: name.trim() ? 'pointer' : 'default',
-                background: name.trim() ? '#f59e0b' : 'var(--hs-border-strong)',
-                color: name.trim() ? '#000' : 'var(--hs-text-faint)',
-                transition: 'all 0.15s',
-              }}
-            >
-              {t('rewardForm.saveButton')}
-            </button>
-            {isEdit && onDelete && (
-              <button
-                type="button"
-                className="press-scale"
-                onClick={() => setConfirmDelete(true)}
-                style={{
-                  width: '100%',
-                  minHeight: 44,
-                  borderRadius: 12,
-                  border: 'none',
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  background: 'transparent',
-                  color: 'var(--hs-danger)',
-                  marginTop: 8,
-                }}
-              >
-                {t('rewardForm.deleteButton')}
-              </button>
-            )}
-          </div>
+          <SaveDeleteFooter
+            saveLabel={t('rewardForm.saveButton')}
+            canSave={Boolean(name.trim())}
+            onSave={handleSave}
+            deleteLabel={isEdit && onDelete ? t('rewardForm.deleteButton') : undefined}
+            onDelete={() => setConfirmDelete(true)}
+          />
         }
       >
         <IconPicker
@@ -179,7 +145,7 @@ export default function RewardFormOverlay({
                   width: 44,
                   height: 26,
                   borderRadius: 13,
-                  background: enabled ? '#f59e0b' : 'var(--hs-border-strong)',
+                  background: enabled ? REMOTE_ACCENT : 'var(--hs-border-strong)',
                   position: 'relative',
                   transition: 'background 0.15s',
                   flexShrink: 0,
@@ -233,9 +199,9 @@ export default function RewardFormOverlay({
                 fontSize: 13,
                 fontWeight: 500,
                 cursor: 'pointer',
-                border: isEveryone ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
-                background: isEveryone ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-card)',
-                color: isEveryone ? '#f59e0b' : 'var(--hs-text-faint)',
+                border: isEveryone ? `1px solid ${withAlpha(REMOTE_ACCENT, 0.3)}` : '1px solid transparent',
+                background: isEveryone ? withAlpha(REMOTE_ACCENT, 0.15) : 'var(--hs-bg-card)',
+                color: isEveryone ? REMOTE_ACCENT : 'var(--hs-text-faint)',
                 transition: 'all 0.15s',
               }}
             >

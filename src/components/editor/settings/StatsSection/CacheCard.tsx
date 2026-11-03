@@ -10,7 +10,8 @@ import type { DisplayStatus } from '@/lib/display-commands';
 import { SectionHeading } from './shared/SectionHeading';
 import { CacheStatTile } from './shared/CacheStatTile';
 import { ThinBar } from './shared/ThinBar';
-import { formatDuration, percentColor, shortenUrl } from './shared/formatters';
+import { percentColor, shortenUrl } from './shared/formatters';
+import { formatShortDuration } from '@/lib/duration-format';
 import type { SemanticColor } from './shared/types';
 
 export function CacheCard({
@@ -119,7 +120,7 @@ export function CacheCard({
                         {formatAge(d.ageMs)}
                       </td>
                       <td className="px-2 py-1.5 text-hs-text-muted text-right whitespace-nowrap">
-                        {formatDuration(d.ttlMs)}
+                        {formatShortDuration(d.ttlMs) ?? '0s'}
                       </td>
                       <td className="px-2 py-1.5 text-right">
                         <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${

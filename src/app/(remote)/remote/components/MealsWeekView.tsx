@@ -19,6 +19,8 @@ import { shownWeek } from '@/lib/meal-plan-words';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { formatShownMinutes, type MealsViewProps } from './meals-shared';
 import MealThumb from './MealThumb';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsWeekViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -92,8 +94,8 @@ export default function MealsWeekView({
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: 4,
-                    background: 'rgba(245,158,11,0.12)',
-                    color: '#f59e0b',
+                    background: withAlpha(REMOTE_ACCENT, 0.12),
+                    color: REMOTE_ACCENT,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
                     marginLeft: 'auto',
@@ -157,8 +159,8 @@ export default function MealsWeekView({
                     // Only earlier days fade: today's meals stay at full
                     // strength all day, so tonight still reads as today after dinner.
                     opacity: isPast ? 0.4 : 1,
-                    border: isCurrentSlot ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-                    boxShadow: isCurrentSlot ? '0 0 12px rgba(245,158,11,0.08)' : 'none',
+                    border: isCurrentSlot ? `1px solid ${REMOTE_ACCENT}` : '1px solid var(--hs-border)',
+                    boxShadow: isCurrentSlot ? `0 0 12px ${withAlpha(REMOTE_ACCENT, 0.08)}` : 'none',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: GAP }}>
@@ -242,7 +244,7 @@ export default function MealsWeekView({
               borderRadius: 10,
               border: 'none',
               cursor: 'pointer',
-              background: '#f59e0b',
+              background: REMOTE_ACCENT,
               color: '#000',
               fontSize: 14,
               fontWeight: 600,

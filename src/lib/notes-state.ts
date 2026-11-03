@@ -17,8 +17,6 @@ export const NOTES_STATE_KEYS = {
   pinned: 'notes.pinned',
 } as const;
 
-export const NOTES_STATE_KEY_LIST: readonly string[] = Object.values(NOTES_STATE_KEYS);
-
 /** The values for `now`. An empty board publishes zeros, never clears: zero is a fact. */
 export function deriveNotesState(notes: readonly Note[], now: Date): Record<string, number> {
   const live = notes.filter((n) => isLive(n, now));

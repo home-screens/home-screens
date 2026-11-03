@@ -1456,12 +1456,6 @@ export interface CalendarDayRule {
 }
 
 /**
- * Health of the shared calendar fetch, passed to calendar modules only while
- * the latest attempt failed (the events alongside it are kept last-good
- * data). `updatedAt` is when that data was last successfully fetched; null
- * means no fetch has ever succeeded this session.
- */
-/**
  * Health of one calendar source in the shared `/api/calendar` payload. `id`
  * matches the event `sourceId` (Google calendar id, iCal/iCloud source id, or
  * 'holidays'). `name` is best-effort — a source that has never succeeded may
@@ -1479,6 +1473,12 @@ export interface CalendarSourceStatus {
   fetchedAt: number | null;
 }
 
+/**
+ * Health of the shared calendar fetch, passed to calendar modules only while
+ * the latest attempt failed (the events alongside it are kept last-good
+ * data). `updatedAt` is when that data was last successfully fetched; null
+ * means no fetch has ever succeeded this session.
+ */
 export interface CalendarFetchStatus {
   error: string | null;
   updatedAt: number | null;

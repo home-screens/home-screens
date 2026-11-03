@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emojiGridWithChosen, faIconValue, iconValueFaClass, isFaIconValue, parseIconValue } from '@/lib/icon-value';
+import { emojiGridWithChosen, faIconValue, parseIconValue } from '@/lib/icon-value';
 
 describe('parseIconValue', () => {
   it('treats an empty or whitespace value as no icon', () => {
@@ -38,26 +38,6 @@ describe('parseIconValue', () => {
       name: 'cake-candles',
       kind: 'solid',
     });
-  });
-});
-
-describe('isFaIconValue', () => {
-  it('separates tokens from glyphs', () => {
-    expect(isFaIconValue('fa:solid:star')).toBe(true);
-    expect(isFaIconValue('⭐')).toBe(false);
-    expect(isFaIconValue(undefined)).toBe(false);
-  });
-});
-
-describe('iconValueFaClass', () => {
-  it('builds the render class for a token', () => {
-    expect(iconValueFaClass('fa:solid:futbol')).toBe('fa fa-solid fa-futbol');
-    expect(iconValueFaClass('fa:brands:youtube')).toBe('fa fa-brands fa-youtube');
-  });
-
-  it('is null for text, which renders as itself', () => {
-    expect(iconValueFaClass('⚽')).toBeNull();
-    expect(iconValueFaClass('')).toBeNull();
   });
 });
 

@@ -5,7 +5,7 @@ import type { APIRequestContext } from '@playwright/test';
 /**
  * A small Mealie for E2E: the hub calls Mealie from the server, so the
  * browser-boundary stubs in stubs.ts cannot stand in for it. Answers in the
- * shapes a real Mealie 3.29 gives (recorded from the plan 233 rig), from an
+ * shapes a real Mealie 3.29 gives (recorded from a live instance), from an
  * in-memory household: a handful of made-up recipes and a plan built around
  * today, so a spec can read the plan, write it back and look at what landed.
  */

@@ -28,8 +28,6 @@ import { DA_DK_SUBJECTS } from './da-DK';
 import type { DefaultSubject } from './types';
 
 export { hyphenateSubjectName, SUBJECT_BREAK_MARKS } from './hyphenation';
-export type { DefaultSubject, TimetableSubjectIcon } from './types';
-export { TIMETABLE_SUBJECT_ICONS } from './types';
 
 const SUBJECTS_BY_LOCALE: Record<string, DefaultSubject[]> = {
   'en-US': EN_US_SUBJECTS,

@@ -19,10 +19,11 @@ import ChoreIcon, { CHORE_ICONS } from '@/components/modules/chore-chart/ChoreIc
 import IconPicker from '@/components/modules/chore-chart/IconPicker';
 import { useChoreForm, useChoreLabelMaps } from '@/components/modules/chore-chart/form-hooks';
 import { CHORE_STEPS_MAX_CHARS, comesBackHintKey, describeStepsCount } from '@/components/modules/chore-chart/chore-form-presentation';
-import { INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
+import { REMOTE_ACCENT, INPUT_STYLE, SELECT_STYLE, LABEL_STYLE } from './chore-form-styles';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
+import SaveDeleteFooter from './SaveDeleteFooter';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 import { ChoiceList, Segmented } from './chore-choice-controls';
@@ -211,59 +212,14 @@ export default function ChoreFormOverlay({
         dirty={dirty}
         onBack={onBack}
         footer={
-          <div style={{ padding: '12px 16px' }}>
-            {touched && validationHintKind && (
-              <p style={{ fontSize: 13, color: 'var(--hs-warning)', textAlign: 'center', margin: '0 0 8px' }}>
-                {tModules(`chore-chart.choreForm.validation.${validationHintKind}`)}
-              </p>
-            )}
-            <button
-              className="press-btn"
-              onClick={handleSubmit}
-              disabled={!canSave}
-              style={{
-                width: '100%',
-                minHeight: 48,
-                padding: 14,
-                borderRadius: 12,
-                fontSize: 15,
-                fontWeight: 700,
-                color: '#fff',
-                border: 'none',
-                cursor: canSave ? 'pointer' : 'default',
-                background: canSave ? '#f59e0b' : 'var(--hs-text-faint)',
-                opacity: canSave ? 1 : 0.5,
-                transition: 'all 0.15s',
-              }}
-            >
-              {isEdit
-                ? t('choresManage.choreForm.saveSubmit')
-                : t('choresManage.choreForm.addSubmit')}
-            </button>
-
-            {isEdit && onDelete && (
-              <button
-                className="press-scale"
-                onClick={() => setShowConfirm(true)}
-                style={{
-                  width: '100%',
-                  minHeight: 44,
-                  padding: 12,
-                  borderRadius: 12,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  background: 'transparent',
-                  color: 'var(--hs-danger)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  marginTop: 8,
-                  transition: 'all 0.15s',
-                }}
-              >
-                {t('choresManage.choreForm.deleteButton')}
-              </button>
-            )}
-          </div>
+          <SaveDeleteFooter
+            saveLabel={isEdit ? t('choresManage.choreForm.saveSubmit') : t('choresManage.choreForm.addSubmit')}
+            canSave={canSave}
+            onSave={handleSubmit}
+            notice={touched && validationHintKind ? tModules(`chore-chart.choreForm.validation.${validationHintKind}`) : null}
+            deleteLabel={isEdit && onDelete ? t('choresManage.choreForm.deleteButton') : undefined}
+            onDelete={() => setShowConfirm(true)}
+          />
         }
       >
         <div style={{ marginBottom: 24 }}>
@@ -452,7 +408,7 @@ export default function ChoreFormOverlay({
                             justifyContent: 'center',
                             flexShrink: 0,
                             border: isPicked ? 'none' : '2px solid var(--hs-border-strong)',
-                            background: isPicked ? '#f59e0b' : 'transparent',
+                            background: isPicked ? REMOTE_ACCENT : 'transparent',
                           }}
                         >
                           {isPicked && <Check size={14} color="white" strokeWidth={3} />}
@@ -554,7 +510,7 @@ export default function ChoreFormOverlay({
                   key={group.id}
                   testId={`schedule-group-${group.id}`}
                   name={group.name}
-                  color="#f59e0b"
+                  color={REMOTE_ACCENT}
                   days={groupSchedule[group.id] ?? []}
                   dayNames={dayNamesShort}
                   removeLabel={tModules('chore-chart.choreForm.removeFromSchedule', { name: group.name })}

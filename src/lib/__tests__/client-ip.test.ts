@@ -1,7 +1,15 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { CLIENT_IP_HEADER, VIA_TRUSTED_PROXY_HEADER, isTrustedProxyPeer, parseTrustedProxies, resolveClientIp } from '../client-ip';
+import {
+  CLIENT_IP_HEADER,
+  VIA_TRUSTED_PROXY_HEADER,
+  isTrustedProxyPeer,
+  parseTrustedProxies,
+  requestOrigin,
+  resolveClientIp,
+  trustedForwardedHost,
+} from '../client-ip';
 import { installClientIpStamping } from '../server-ip-patch';
 
 describe('parseTrustedProxies', () => {
@@ -60,6 +68,59 @@ describe('isTrustedProxyPeer', () => {
     expect(isTrustedProxyPeer('10.0.0.66', ['127.0.0.1'])).toBe(false);
     expect(isTrustedProxyPeer('127.0.0.1', [])).toBe(false);
     expect(isTrustedProxyPeer(undefined, ['127.0.0.1'])).toBe(false);
+  });
+});
+
+describe('trustedForwardedHost', () => {
+  it('answers the outermost forwarded host only behind a trusted proxy', () => {
+    expect(trustedForwardedHost({ forwardedHost: 'hub.lan, 127.0.0.1:3000', viaTrustedProxy: true })).toBe('hub.lan');
+    expect(trustedForwardedHost({ forwardedHost: 'hub.lan', viaTrustedProxy: false })).toBeNull();
+    expect(trustedForwardedHost({ forwardedHost: null, viaTrustedProxy: true })).toBeNull();
+    expect(trustedForwardedHost({ forwardedHost: ' , ', viaTrustedProxy: true })).toBeNull();
+  });
+});
+
+describe('requestOrigin', () => {
+  const request = (headers: Record<string, string>, url = 'http://0.0.0.0:3000/api/plugins/auth/start') =>
+    new Request(url, { headers });
+
+  it('reads the Host header over the bind address in request.url', () => {
+    expect(requestOrigin(request({ host: '192.168.86.175:3000' }))).toBe('http://192.168.86.175:3000');
+  });
+
+  it('falls back to the request URL when there is no Host header', () => {
+    const req = request({}, 'http://localhost:3000/x');
+    req.headers.delete('host');
+    expect(requestOrigin(req)).toBe('http://localhost:3000');
+  });
+
+  it('honours x-forwarded-host and x-forwarded-proto from a trusted proxy', () => {
+    expect(
+      requestOrigin(
+        request({
+          host: '127.0.0.1:3000',
+          'x-forwarded-host': 'screens.example.com, 127.0.0.1:3000',
+          'x-forwarded-proto': 'https',
+          [VIA_TRUSTED_PROXY_HEADER]: '1',
+        }),
+      ),
+    ).toBe('https://screens.example.com');
+  });
+
+  it('ignores forwarded headers from anyone who is not a trusted proxy', () => {
+    const headers = {
+      host: '192.168.86.175:3000',
+      'x-forwarded-host': 'attacker.example',
+      'x-forwarded-proto': 'https',
+    };
+    expect(requestOrigin(request(headers))).toBe('http://192.168.86.175:3000');
+    expect(requestOrigin(request({ ...headers, [VIA_TRUSTED_PROXY_HEADER]: '0' }))).toBe('http://192.168.86.175:3000');
+  });
+
+  it('keeps the real scheme when a trusted proxy forwards one that is not http or https', () => {
+    expect(
+      requestOrigin(request({ host: 'hub.lan', 'x-forwarded-proto': 'javascript', [VIA_TRUSTED_PROXY_HEADER]: '1' })),
+    ).toBe('http://hub.lan');
   });
 });
 

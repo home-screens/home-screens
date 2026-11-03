@@ -6,7 +6,8 @@ import { TEMPLATE_CATALOG, TEMPLATE_CATEGORIES, loadTemplate, getDisplayOrientat
 import type { TemplateMeta } from '@/lib/templates';
 import type { LayoutExport } from '@/types/layout-export';
 import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
-import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveDimensions } from '@/lib/editor-multi-display';
 import { useTranslate } from '@/i18n';
 import Button from '@/components/ui/Button';
 import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';

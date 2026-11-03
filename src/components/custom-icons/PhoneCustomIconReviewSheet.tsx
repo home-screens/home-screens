@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import ModalPortal from '@/components/ui/ModalPortal';
 import { iconShapeWarning } from '@/lib/custom-icons';
 import type { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
+import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/chore-form-styles';
 
 type Upload = ReturnType<typeof useCustomIconUpload>;
 
@@ -89,7 +90,7 @@ export default function PhoneCustomIconReviewSheet({ upload, zIndex = 130 }: { u
               >
                 {t(`customIcons.errors.${state.code}`)}
               </div>
-              <button type="button" onClick={upload.pickAnother} style={{ ...BUTTON, background: '#f59e0b', color: '#000' }}>
+              <button type="button" onClick={upload.pickAnother} style={{ ...BUTTON, background: REMOTE_ACCENT, color: '#000' }}>
                 {t('customIcons.review.pickAnother')}
               </button>
             </>
@@ -168,7 +169,7 @@ export default function PhoneCustomIconReviewSheet({ upload, zIndex = 130 }: { u
                 type="button"
                 onClick={() => void upload.confirm()}
                 disabled={busy}
-                style={{ ...BUTTON, background: '#f59e0b', color: '#000', opacity: busy ? 0.6 : 1 }}
+                style={{ ...BUTTON, background: REMOTE_ACCENT, color: '#000', opacity: busy ? 0.6 : 1 }}
               >
                 {t('customIcons.review.use')}
               </button>

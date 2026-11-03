@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { useEditorStore, getActiveScreens, getActiveDimensions, getActiveFullscreenTheme } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens, getActiveDimensions, getActiveFullscreenTheme } from '@/lib/editor-multi-display';
 import Button from '@/components/ui/Button';
 import FullscreenThemePreview from '@/components/ui/FullscreenThemePreview';
 import { themeTileClass } from '@/components/editor/settings/shared/FullscreenThemeTile';

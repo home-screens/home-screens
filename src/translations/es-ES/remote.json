@@ -162,7 +162,6 @@
       "didIt": "{name} la ha hecho",
       "youGrabbedIt": "¡Te la has pedido! Márcala cuando termines.",
       "youGotIt": "¡Conseguido! +{n}",
-      "finishYoursFirst": "Termina primero la tuya",
       "refused": {
         "grabbed": "{name} ya está con esa.",
         "taken": "{name} ya ha hecho esa.",
@@ -241,38 +240,9 @@
       "chores": "Tareas",
       "members": "Miembros"
     },
-    "members": {
-      "empty": "Aún no hay miembros",
-      "emptyHint": "Añade miembros de la familia para empezar",
-      "editAriaLabel": "Editar {name}",
-      "choreCountSingular": "{n} tarea asignada",
-      "choreCountPlural": "{n} tareas asignadas",
-      "addButton": "Añadir miembro"
-    },
     "chores": {
-      "empty": "Aún no hay tareas",
-      "emptyHintNoMembers": "Añade primero miembros de la familia",
-      "emptyHintAddChores": "Añade tareas y asígnalas a los miembros",
       "editAriaLabel": "Editar {name}",
       "addButton": "Añadir tarea"
-    },
-    "memberForm": {
-      "titleNew": "Nuevo miembro",
-      "titleEdit": "Editar miembro",
-      "nameLabel": "Nombre",
-      "namePlaceholder": "Escribe el nombre...",
-      "avatarLabel": "Avatar",
-      "addSubmit": "Añadir miembro",
-      "saveSubmit": "Guardar miembro",
-      "deleteButton": "Eliminar miembro"
-    },
-    "memberDelete": {
-      "title": "¿Eliminar a «{name}»?",
-      "fallbackName": "esta persona",
-      "descriptionNoChores": "Se quitará a {name} de las tareas asignadas. Las tareas que se queden sin nadie también se eliminarán.",
-      "descriptionWithChoresSingular": "Se quitará a {name} de {count} tarea asignada. Las tareas que se queden sin nadie también se eliminarán.",
-      "descriptionWithChoresPlural": "Se quitará a {name} de las {count} tareas asignadas. Las tareas que se queden sin nadie también se eliminarán.",
-      "confirmLabel": "Eliminar miembro"
     },
     "choreForm": {
       "titleNew": "Nueva tarea",
@@ -687,15 +657,6 @@
       "heading": "Saldos de tickets",
       "adjustDownAriaLabel": "Quitar un ticket a {name}",
       "adjustUpAriaLabel": "Añadir un ticket a {name}"
-    },
-    "history": {
-      "heading": "Canjes recientes",
-      "empty": "Aún no hay canjes",
-      "entry": {
-        "beforeReward": " ha canjeado ",
-        "afterRewardSingular": " por {n} ticket",
-        "afterRewardPlural": " por {n} tickets"
-      }
     },
     "saveFailed": "No se pudo guardar. Inténtalo de nuevo.",
     "goal": {

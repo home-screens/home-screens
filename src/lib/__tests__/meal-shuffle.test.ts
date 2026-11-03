@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateRandomPlan } from '@/lib/meal-shuffle';
-import { mulberry32 } from '@/lib/sun-astro';
+import { mulberry32 } from '@/lib/prng';
 import type { SavedMeal, MealSlotType, PlannedMeal } from '@/types/config';
 
 const SLOTS: MealSlotType[] = ['breakfast', 'lunch', 'snack', 'dinner'];

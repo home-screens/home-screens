@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Check, Circle, X } from 'lucide-react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { getLocation } from '@/lib/location';
 import { resolveFirstRunChecklist } from '@/lib/first-run-checklist';
 import { settingsPath } from '@/lib/settings-route';

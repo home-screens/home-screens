@@ -19,6 +19,8 @@
 
 import { getDayOfYear } from 'date-fns';
 import { resolveLocaleChain } from '@/i18n/fallback';
+import { mulberry32 } from '@/lib/prng';
+import { shuffleArray } from '@/lib/shuffle';
 import { EN_US_WORDS } from './word-of-day-words/en-US';
 import { DE_DE_WORDS } from './word-of-day-words/de-DE';
 import { FR_FR_WORDS } from './word-of-day-words/fr-FR';
@@ -57,28 +59,11 @@ export function getWordsForLocale(locale: string): WordEntry[] {
 }
 
 /**
- * mulberry32 — tiny deterministic PRNG. Seeded with the cycle number so
+ * The order of `[0..length)` for one cycle. Seeded with the cycle number so
  * every client derives the identical permutation with no coordination.
  */
-function mulberry32(seed: number): () => number {
-  let state = seed | 0;
-  return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Fisher–Yates shuffle of `[0..length)` driven by a seeded PRNG. */
 function seededPermutation(length: number, seed: number): number[] {
-  const rand = mulberry32(seed);
-  const order = Array.from({ length }, (_, i) => i);
-  for (let i = length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
-  return order;
+  return shuffleArray(Array.from({ length }, (_, i) => i), mulberry32(seed));
 }
 
 /**

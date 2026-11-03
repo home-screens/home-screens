@@ -594,7 +594,6 @@
         "checkingConnection": "Checking connection…",
         "connected": "Connected to Google",
         "disconnect": "Disconnect",
-        "selectCalendars": "Select calendars to display",
         "noCalendars": "No calendars found.",
         "primaryBadge": "(primary)",
         "hideDeclinedLabel": "Hide events you declined",
@@ -653,7 +652,6 @@
       },
       "health": {
         "heading": "Source status",
-        "holidays": "Public Holidays",
         "updated": "Updated {time}",
         "updatedNow": "Updated just now",
         "notUpdating": "Not updating",
@@ -2775,25 +2773,6 @@
     "title": "Chore Chart",
     "subtitleMembersChores": "{members} members · {chores} chores",
     "loadError": "Couldn't load the chore data. Changes won't be saved.",
-    "members": {
-      "columnTitle": "Family Members",
-      "empty": "No members yet",
-      "addButton": "Add Member",
-      "addSubmit": "Add Member",
-      "saveSubmit": "Save",
-      "editAriaLabel": "Edit {name}",
-      "deleteAriaLabel": "Delete {name}",
-      "deleteConfirm": {
-        "title": "Remove member",
-        "message": "Remove \"{name}\"? This also removes them from every chore.",
-        "confirmLabel": "Remove"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Name...",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Pick custom color"
-    },
     "chores": {
       "columnTitle": "Chores",
       "addButton": "Add Chore",
@@ -5270,7 +5249,6 @@
       "artUpload": "Add a picture",
       "artUploading": "Adding…",
       "artUploadHint": "Image or SVG, up to 10 MB",
-      "artUploadFailed": "Could not add that picture.",
       "artNames": {
         "birthday": "Birthday",
         "christmas": "Christmas",

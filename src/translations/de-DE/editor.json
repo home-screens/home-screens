@@ -594,7 +594,6 @@
         "checkingConnection": "Verbindung wird geprüft …",
         "connected": "Mit Google verbunden",
         "disconnect": "Verbindung trennen",
-        "selectCalendars": "Kalender zur Anzeige auswählen",
         "noCalendars": "Keine Kalender gefunden.",
         "primaryBadge": "(primär)",
         "hideDeclinedLabel": "Abgesagte Termine ausblenden",
@@ -653,7 +652,6 @@
       },
       "health": {
         "heading": "Quellenstatus",
-        "holidays": "Feiertage",
         "updated": "Aktualisiert {time}",
         "updatedNow": "Gerade aktualisiert",
         "notUpdating": "Wird nicht aktualisiert",
@@ -2775,25 +2773,6 @@
     "title": "Aufgabentafel",
     "subtitleMembersChores": "{members} Mitglieder · {chores} Aufgaben",
     "loadError": "Aufgaben konnten nicht geladen werden. Änderungen werden nicht gespeichert.",
-    "members": {
-      "columnTitle": "Familienmitglieder",
-      "empty": "Noch keine Mitglieder",
-      "addButton": "Mitglied hinzufügen",
-      "addSubmit": "Mitglied hinzufügen",
-      "saveSubmit": "Speichern",
-      "editAriaLabel": "{name} bearbeiten",
-      "deleteAriaLabel": "{name} löschen",
-      "deleteConfirm": {
-        "title": "Mitglied entfernen",
-        "message": "„{name}“ entfernen? Damit verschwindet das Mitglied auch aus allen Aufgaben.",
-        "confirmLabel": "Entfernen"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Name…",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Eigene Farbe wählen"
-    },
     "chores": {
       "columnTitle": "Aufgaben",
       "addButton": "Aufgabe hinzufügen",
@@ -5270,7 +5249,6 @@
       "artUpload": "Bild hinzufügen",
       "artUploading": "Wird hinzugefügt…",
       "artUploadHint": "Bild oder SVG, bis 10 MB",
-      "artUploadFailed": "Dieses Bild konnte nicht hinzugefügt werden.",
       "artNames": {
         "birthday": "Geburtstag",
         "christmas": "Weihnachten",

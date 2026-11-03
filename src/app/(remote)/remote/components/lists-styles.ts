@@ -1,6 +1,6 @@
 import type React from 'react';
 
-/** Inline styles shared by the Lists tab and its sheets (mockup: todo-lists-v2). */
+/** Inline styles shared by the Lists tab and its sheets. */
 
 export const SHEET_LABEL: React.CSSProperties = {
   display: 'block',

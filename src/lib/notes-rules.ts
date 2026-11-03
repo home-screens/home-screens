@@ -139,12 +139,6 @@ const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;
 
 /**
- * How old a note reads on the wall, in the household's language: "25m ago",
- * "2h ago" in English and the short relative form elsewhere, then the short
- * weekday inside the last week, then a short date. Built on the Intl formatters so no dictionary string is
- * needed per locale; `now` is the wall's clock and `timezone` the household's.
- */
-/**
  * English's narrow relative form is the compact "5m ago" the wall wants. In
  * the other shipped languages narrow is either a bare negative number
  * ("-5 min" in French) or a bare letter ("vor 5 m" in German, which reads
@@ -154,6 +148,12 @@ function relativeStyle(locale: string): 'narrow' | 'short' {
   return locale.toLowerCase().startsWith('en') ? 'narrow' : 'short';
 }
 
+/**
+ * How old a note reads on the wall, in the household's language: "25m ago",
+ * "2h ago" in English and the short relative form elsewhere, then the short
+ * weekday inside the last week, then a short date. Built on the Intl formatters so no dictionary string is
+ * needed per locale; `now` is the wall's clock and `timezone` the household's.
+ */
 export function formatNoteAge(createdAt: string, now: Date, locale: string, timezone?: string): string {
   const at = Date.parse(createdAt);
   if (Number.isNaN(at)) return '';

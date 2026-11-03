@@ -315,11 +315,6 @@ export function fetchGitHubReleases(options?: { force?: boolean }): Promise<GitH
   return releasePage.get(options?.force ?? false);
 }
 
-/** The release GitHub calls latest, or null when no stable has shipped. */
-export function fetchLatestStableRelease(options?: { force?: boolean }): Promise<GitHubRelease | null> {
-  return latestStable.get(options?.force ?? false);
-}
-
 export interface ChannelReleaseOptions {
   force?: boolean;
   /**

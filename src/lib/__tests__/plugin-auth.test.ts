@@ -126,17 +126,33 @@ describe('plugin-auth redirect URI derivation', () => {
     );
   });
 
-  it('prefers x-forwarded-host and x-forwarded-proto behind a reverse proxy', async () => {
+  it('prefers x-forwarded-host and x-forwarded-proto behind a trusted reverse proxy', async () => {
     const { getPluginAuthRedirectUri } = await import('../plugin-auth');
+    const { VIA_TRUSTED_PROXY_HEADER } = await import('../client-ip');
     const request = new Request('http://0.0.0.0:3000/api/plugins/auth/strava/start', {
       headers: {
         host: '192.168.86.175:3000',
         'x-forwarded-host': 'screens.example.com',
         'x-forwarded-proto': 'https',
+        [VIA_TRUSTED_PROXY_HEADER]: '1',
       },
     });
     expect(getPluginAuthRedirectUri(request)).toBe(
       'https://screens.example.com/api/plugins/auth/callback',
+    );
+  });
+
+  it('ignores forwarded headers that did not come through a trusted proxy', async () => {
+    const { getPluginAuthRedirectUri } = await import('../plugin-auth');
+    const request = new Request('http://0.0.0.0:3000/api/plugins/auth/strava/start', {
+      headers: {
+        host: '192.168.86.175:3000',
+        'x-forwarded-host': 'attacker.example',
+        'x-forwarded-proto': 'https',
+      },
+    });
+    expect(getPluginAuthRedirectUri(request)).toBe(
+      'http://192.168.86.175:3000/api/plugins/auth/callback',
     );
   });
 

@@ -2,9 +2,9 @@
  * Shared test utilities for common mocking patterns.
  *
  * Usage:
- *   import { mockFetch, mockFetchError, silenceConsole, useFakeTimers } from '@/test-utils';
+ *   import { mockFetch, mockFetchError, silenceConsole } from '@/test-utils';
  */
-import { vi, beforeEach, afterEach } from 'vitest';
+import { vi, beforeEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Fetch helpers
@@ -63,18 +63,4 @@ export function silenceConsole(
   });
 
   return spies;
-}
-
-// ---------------------------------------------------------------------------
-// Fake timers
-// ---------------------------------------------------------------------------
-
-/** Enable fake timers for the enclosing describe block and restore after. */
-export function useFakeTimers() {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
 }

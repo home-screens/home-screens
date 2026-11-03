@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import LabeledTextarea from '@/components/ui/LabeledTextarea';
 import { useTranslate, useFormattingLocale } from '@/i18n';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';
 import { pluginPublishesOnDemand } from '@/lib/state-key-search';
 import { usePluginStore } from '@/stores/plugin-store';

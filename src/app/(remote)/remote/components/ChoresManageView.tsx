@@ -19,6 +19,8 @@ import { STARTER_CHORE_COUNT } from '@/lib/starter-chores';
 import FamilyManager from '@/components/family/FamilyManager';
 import ChoreFormOverlay from './ChoreFormOverlay';
 import StarterChoresOverlay from './StarterChoresOverlay';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 // ── Main Exported Component ───────────────────────────────────────
 
@@ -167,11 +169,11 @@ export default function ChoresManageView({
                 aria-hidden
                 style={{
                   width: 48, height: 48, borderRadius: 14, margin: '0 auto 12px',
-                  background: 'color-mix(in srgb, #f59e0b 16%, transparent)',
+                  background: withAlpha(REMOTE_ACCENT, 0.16),
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                <ListChecks size={24} color="#f59e0b" />
+                <ListChecks size={24} color={REMOTE_ACCENT} />
               </div>
               <h4 style={{ margin: '0 0 4px', fontSize: 16, fontWeight: 700, color: 'var(--hs-text-primary)' }}>
                 {t('choresManage.starter.cardTitle')}
@@ -198,7 +200,7 @@ export default function ChoresManageView({
                   color: '#fff',
                   border: 'none',
                   cursor: 'pointer',
-                  background: '#f59e0b',
+                  background: REMOTE_ACCENT,
                 }}
               >
                 {members.length === 0
@@ -216,7 +218,7 @@ export default function ChoresManageView({
               <Fragment key={chore.id}>
               {chore.bonus && !listed[i - 1]?.bonus && (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#f59e0b', margin: '16px 0 8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: REMOTE_ACCENT, margin: '16px 0 8px' }}>
                     <span aria-hidden>✋</span>{tModules('chore-chart.bonus.heading')}
                   </div>
                   {/* The household's grab rules, where the chores they govern are,
@@ -276,8 +278,8 @@ export default function ChoresManageView({
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
-                    background: chore.bonus ? 'color-mix(in srgb, #f59e0b 14%, transparent)' : 'var(--hs-bg-hover)',
-                    border: chore.bonus ? '1px dashed color-mix(in srgb, #f59e0b 60%, transparent)' : 'none',
+                    background: chore.bonus ? withAlpha(REMOTE_ACCENT, 0.14) : 'var(--hs-bg-hover)',
+                    border: chore.bonus ? `1px dashed ${withAlpha(REMOTE_ACCENT, 0.6)}` : 'none',
                   }}
                 >
                   <ChoreIcon
@@ -349,7 +351,7 @@ export default function ChoresManageView({
                 onClick={() => setOverlay({ type: 'starter' })}
                 style={{
                   background: 'none', border: 'none', padding: '8px 12px', minHeight: 44,
-                  color: '#f59e0b', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                  color: REMOTE_ACCENT, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
                 }}
               >
                 {t('choresManage.starter.link')}

@@ -434,7 +434,8 @@ test('reloading with the plugin still installed preserves its shared-state keys 
 /**
  * BackgroundProviderLayer mount accounting. Two provider instances with the
  * same type + config (across two screens) dedupe to a SINGLE hidden mount via
- * `stableConfigKey`; a provider with a DIFFERENT config gets its own mount; and
+ * a key of type plus `stableStringify(config)`; a provider with a DIFFERENT
+ * config gets its own mount; and
  * an `enabled: false` provider mounts zero times
  * (src/components/display/BackgroundProviderLayer.tsx).
  *

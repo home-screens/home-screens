@@ -13,6 +13,7 @@ import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate, useLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { withAlpha } from '@/lib/hex-color';
+import { shuffleArray } from '@/lib/shuffle';
 
 interface AffirmationsModuleProps {
   config: AffirmationsConfig;
@@ -47,17 +48,6 @@ function getSeason(month: number, latitude: number): 'spring' | 'summer' | 'fall
   if (month >= 8 && month <= 10) return southern ? 'spring' : 'fall';
   return southern ? 'summer' : 'winter';
 }
-
-/** Fisher-Yates shuffle (returns new array) */
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 
 function useAffirmationRotation(
   entries: Entry[],
@@ -113,7 +103,7 @@ function useAffirmationRotation(
     const sortedTiers = [...tiers.entries()].sort((a, b) => b[0] - a[0]);
     const result: number[] = [];
     for (const [, indices] of sortedTiers) {
-      result.push(...shuffle(indices));
+      result.push(...shuffleArray(indices));
     }
     setOrder(result);
     setIndex(0);

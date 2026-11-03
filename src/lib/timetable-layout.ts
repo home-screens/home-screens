@@ -585,7 +585,6 @@ export function weekLetter(school: TimetableSchool, now: Date, timeZone?: string
 export type TimetableRow =
   | { kind: 'period'; n: number; start: string; end: string }
   | { kind: 'break'; label: string }
-  /** Every period past the fold, drawn as one short row. */
   /** A folded afternoon. The start time goes where its short row cannot hold it. */
   | { kind: 'fold'; periods: number[]; start?: string }
   /** After-school care, always the bottom row. */
@@ -1951,20 +1950,6 @@ function tasteFontSize(input: Pick<CardMetricsInput, 'cardWidth' | 'cardHeight' 
  */
 function holdsAt(input: CardMetricsInput, shape: RowShape, base: number): boolean {
   return fitsAt(input, shape, base, 1) || fitsAt(input, shape, base, 2);
-}
-
-/**
- * How much a card has to give up to be drawn at the size it was asked for.
- *
- * Text size and the pixel floor both override the size the card worked out for
- * itself, and neither of them knows what is in the cells. Asked for more than
- * the cells can hold the card used to draw it and let every cell clip its own
- * contents, which is invisible to the card and to anybody reading it: the room
- * under a name was simply not there. So it comes down the ladder instead, one
- * rung at a time, and stops at the first rung that holds.
- */
-export function shedFor(input: CardMetricsInput, wanted: number): TimetableShed {
-  return resolveCardFontSize(input, wanted).shed;
 }
 
 /**

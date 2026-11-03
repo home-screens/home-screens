@@ -9,12 +9,14 @@ import { rememberRecipeWall, type DisplayTargetValue } from '../display-target';
 import { useShowRecipeOnWall, type WallNotices } from '../hooks/useShowRecipeOnWall';
 import BottomSheet from './BottomSheet';
 import { SheetRow } from './PhotoFolderSheets';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 /** How long the button keeps its tick after the hub took the recipe. */
 const SENT_MS = 2_000;
 
 const IDLE: CSSProperties = { border: '1px solid var(--hs-border-strong)', background: 'var(--hs-bg-hover)', color: 'var(--hs-text-secondary)' };
-const SENT: CSSProperties = { border: '1px solid rgba(245,158,11,0.6)', background: 'rgba(245,158,11,0.14)', color: '#f59e0b' };
+const SENT: CSSProperties = { border: `1px solid ${withAlpha(REMOTE_ACCENT, 0.6)}`, background: withAlpha(REMOTE_ACCENT, 0.14), color: REMOTE_ACCENT };
 
 interface RecipeWallButtonProps {
   meal: SavedMeal;

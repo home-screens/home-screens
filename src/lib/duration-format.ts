@@ -158,6 +158,18 @@ function renderWords(units: UnitValue[], locale: string, titleCase: boolean): st
   }
 }
 
+/**
+ * A span in the editor's own shorthand: "2s", "1m 12s". Whole seconds, so a
+ * cache TTL of 90 seconds reads "1m 30s" rather than rounding to "2m"; null
+ * under a second, where an annotation would only say "0s".
+ */
+export function formatShortDuration(ms: number): string | null {
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 1) return null;
+  if (seconds < 60) return `${seconds}s`;
+  return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
+
 export function formatDuration(units: UnitValue[], format: DurationFormat, locale: string): string {
   switch (format) {
     case 'unitsUpper':

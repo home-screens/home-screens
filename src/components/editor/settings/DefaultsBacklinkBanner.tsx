@@ -35,8 +35,8 @@ function describeFields(fields: readonly string[], t: TranslateFn): string {
  * that hasn't customized anything yet.
  *
  * The banner builds the per-display URL itself rather than taking a
- * `hrefForDisplay` callback, because the routing convention is locked in
- * by the plan and a per-page override would invite drift.
+ * `hrefForDisplay` callback, because the routing convention is fixed in
+ * `settingsHref` and a per-page override would invite drift.
  */
 interface DefaultsBacklinkBannerProps {
   overrides: DisplayOverrideSummary[];

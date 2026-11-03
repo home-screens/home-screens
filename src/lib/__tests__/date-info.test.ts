@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseClockTime, buildInfoParts, getDateInfoValues, clockTimeInTZ } from '../date-info';
+import { parseClockTime, dateInfoParts, dateInfoText, getDateInfoValues, clockTimeInTZ } from '../date-info';
 
 // ---------------------------------------------------------------------------
 // parseClockTime
@@ -86,39 +86,49 @@ describe('parseClockTime', () => {
 });
 
 // ---------------------------------------------------------------------------
-// buildInfoParts
+// dateInfoParts / dateInfoText
 // ---------------------------------------------------------------------------
 
-describe('buildInfoParts', () => {
-  const date = new Date(2024, 2, 15); // March 15, 2024
+describe('dateInfoParts', () => {
+  const date = new Date(2024, 2, 15); // March 15, 2024: week 11, day 75
+  const labels = { week: 'Woche', day: 'Tag' };
 
-  it('returns empty array when both flags are false', () => {
-    const result = buildInfoParts({ showWeekNumber: false, showDayOfYear: false }, date, 'sunday');
-    expect(result).toEqual([]);
+  it('returns nothing when both switches are off or absent', () => {
+    expect(dateInfoParts({ showWeekNumber: false, showDayOfYear: false }, date, 'sunday', labels)).toEqual([]);
+    expect(dateInfoParts({}, date, 'sunday', labels)).toEqual([]);
   });
 
-  it('returns ["Week N"] when only showWeekNumber is true', () => {
-    const result = buildInfoParts({ showWeekNumber: true, showDayOfYear: false }, date, 'sunday');
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatch(/^Week \d+$/);
+  it('labels each number with the words it was given', () => {
+    expect(dateInfoParts({ showWeekNumber: true }, date, 'sunday', labels)).toEqual([{ label: 'Woche', value: '11' }]);
+    expect(dateInfoParts({ showDayOfYear: true }, date, 'sunday', labels)).toEqual([{ label: 'Tag', value: '75' }]);
   });
 
-  it('returns ["Day N"] when only showDayOfYear is true', () => {
-    const result = buildInfoParts({ showWeekNumber: false, showDayOfYear: true }, date, 'sunday');
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatch(/^Day \d+$/);
+  it('puts the week before the day', () => {
+    const parts = dateInfoParts({ showWeekNumber: true, showDayOfYear: true }, date, 'sunday', labels);
+    expect(parts).toEqual([{ label: 'Woche', value: '11' }, { label: 'Tag', value: '75' }]);
   });
 
-  it('returns both when both flags are true', () => {
-    const result = buildInfoParts({ showWeekNumber: true, showDayOfYear: true }, date, 'sunday');
-    expect(result).toHaveLength(2);
-    expect(result[0]).toMatch(/^Week \d+$/);
-    expect(result[1]).toMatch(/^Day \d+$/);
+  it('numbers the week by the week start it is given', () => {
+    const march2027 = new Date(2027, 2, 10);
+    expect(dateInfoParts({ showWeekNumber: true }, march2027, 'monday', labels)[0].value).toBe('10');
+    expect(dateInfoParts({ showWeekNumber: true }, march2027, 'sunday', labels)[0].value).toBe('11');
+  });
+});
+
+describe('dateInfoText', () => {
+  const parts = [{ label: 'Week', value: '11' }, { label: 'Day', value: '75' }];
+
+  it('joins label and number with a middle dot between parts', () => {
+    expect(dateInfoText(parts)).toBe('Week 11 · Day 75');
+    expect(dateInfoText(parts.slice(0, 1))).toBe('Week 11');
   });
 
-  it('returns empty array when config has no flags set', () => {
-    const result = buildInfoParts({}, date, 'sunday');
-    expect(result).toEqual([]);
+  it('takes the Banner view\'s wider separator', () => {
+    expect(dateInfoText(parts, '  ·  ')).toBe('Week 11  ·  Day 75');
+  });
+
+  it('is null with nothing to print, so a view can leave the line out', () => {
+    expect(dateInfoText([])).toBeNull();
   });
 });
 

@@ -14,7 +14,7 @@ import { SCENARIOS, VIEW_VARIANTS, applyScenario, scenarioSettings } from './sce
  *
  * It exists to answer one question before any settings-pipeline fix lands -
  * "did this repaint a wall someone already built?" - as a checked fact rather
- * than an argument. See `.claude/plans/51-module-settings-fixes-execution.md`.
+ * than an argument.
  *
  * Not part of CI. Pixel snapshots are exactly what 66e4d7cf removed from CI,
  * for good reasons that have not changed; this runs locally, on one machine,

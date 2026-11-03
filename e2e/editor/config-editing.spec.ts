@@ -2718,7 +2718,7 @@ test.describe('PropertyPanel Style section', () => {
   // A module that paints a field from its own settings (registry
   // `ownsStyleFields`) loses that control rather than being offered it inert:
   // the sticky note's paper is its Note colour setting and its ink is fixed
-  // dark for that paper (plan 50, item 20).
+  // dark for that paper.
   test('a module that owns a colour is not offered the Style control for it', async ({ page, request }) => {
     await selectModule(page, request, buildModuleInstance('sticky-note'));
     await styleSection(page).click();

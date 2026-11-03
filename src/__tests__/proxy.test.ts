@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 /*
  * Testing strategy:
  *
- * The proxy module has a module-level cache (`authEnabledCache`) that cannot be
+ * The proxy module has a module-level cache (`authConfigCache`) that cannot be
  * cleared from outside. To get a fresh cache for each test group, we use
  * `vi.resetModules()` + dynamic `import()` in beforeEach.
  *

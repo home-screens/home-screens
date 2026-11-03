@@ -99,8 +99,3 @@ export const STARTER_BACKGROUNDS: StarterBackground[] = [...THEME_WALLS, ...COLO
 export function starterBackgroundsIn(group: StarterBackgroundGroup): StarterBackground[] {
   return STARTER_BACKGROUNDS.filter((bg) => bg.group === group);
 }
-
-/** The wall painted from `themeId`, or undefined for an unknown theme. */
-export function starterBackgroundForTheme(themeId: string | undefined): StarterBackground | undefined {
-  return themeId ? THEME_WALLS.find((bg) => bg.themeId === themeId) : undefined;
-}

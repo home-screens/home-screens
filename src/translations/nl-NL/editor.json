@@ -594,7 +594,6 @@
         "checkingConnection": "Verbinding controleren…",
         "connected": "Verbonden met Google",
         "disconnect": "Verbinding verbreken",
-        "selectCalendars": "Selecteer kalenders om weer te geven",
         "noCalendars": "Geen kalenders gevonden.",
         "primaryBadge": "(primair)",
         "hideDeclinedLabel": "Afspraken die je hebt afgewezen verbergen",
@@ -653,7 +652,6 @@
       },
       "health": {
         "heading": "Bronstatus",
-        "holidays": "Officiële feestdagen",
         "updated": "Bijgewerkt {time}",
         "updatedNow": "Zojuist bijgewerkt",
         "notUpdating": "Wordt niet bijgewerkt",
@@ -2775,25 +2773,6 @@
     "title": "Klusjeskaart",
     "subtitleMembersChores": "{members} gezinsleden · {chores} klusjes",
     "loadError": "Klusjesgegevens laden mislukt. Wijzigingen worden niet opgeslagen.",
-    "members": {
-      "columnTitle": "Gezinsleden",
-      "empty": "Nog geen gezinsleden",
-      "addButton": "Gezinslid toevoegen",
-      "addSubmit": "Gezinslid toevoegen",
-      "saveSubmit": "Opslaan",
-      "editAriaLabel": "{name} bewerken",
-      "deleteAriaLabel": "{name} verwijderen",
-      "deleteConfirm": {
-        "title": "Gezinslid verwijderen",
-        "message": "\"{name}\" verwijderen? Hiermee wordt deze persoon ook uit elk klusje verwijderd.",
-        "confirmLabel": "Verwijderen"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Naam…",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Eigen kleur kiezen"
-    },
     "chores": {
       "columnTitle": "Klusjes",
       "addButton": "Klusje toevoegen",
@@ -5270,7 +5249,6 @@
       "artUpload": "Plaatje toevoegen",
       "artUploading": "Toevoegen…",
       "artUploadHint": "Afbeelding of SVG, tot 10 MB",
-      "artUploadFailed": "Dit plaatje kon niet worden toegevoegd.",
       "artNames": {
         "birthday": "Verjaardag",
         "christmas": "Kerst",

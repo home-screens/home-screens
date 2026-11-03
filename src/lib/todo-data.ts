@@ -714,38 +714,25 @@ let foldInFlight: Promise<void> | null = null;
  *   4. remove todo-state.json;
  *   5. set `migratedFromConfig`.
  * A failure leaves the flag unset and the sources in place, and the next
- * read retries after a minute. `force` scans config even after the flag is
- * set (a restored pre-lists backup).
+ * read retries after a minute.
  */
-async function foldLegacyItemsOnce(force = false): Promise<void> {
-  if (!force) {
-    if (Date.now() < foldRetryAfter) return;
-    if (!foldInFlight) {
-      foldInFlight = runFold(false).finally(() => { foldInFlight = null; });
-    }
-    // Ordinary reads carry on with whatever is on disk and let the retry
-    // handle it.
-    await foldInFlight.catch(() => {});
-    return;
+async function foldLegacyItemsOnce(): Promise<void> {
+  if (Date.now() < foldRetryAfter) return;
+  if (!foldInFlight) {
+    foldInFlight = runFold().finally(() => { foldInFlight = null; });
   }
-  // A forced caller (a backup restore) wants the config as it is NOW
-  // scanned, so a run that started earlier does not count: wait for it,
-  // then run again, and let the failure through so the restore can roll
-  // back and say so.
-  if (foldInFlight) await foldInFlight.catch(() => {});
-  const run = runFold(true).finally(() => { if (foldInFlight === run) foldInFlight = null; });
-  foldInFlight = run;
-  await run;
+  // Ordinary reads carry on with whatever is on disk and let the retry
+  // handle it.
+  await foldInFlight.catch(() => {});
 }
 
-async function runFold(force: boolean): Promise<void> {
+async function runFold(): Promise<void> {
   try {
     const before = await store.read();
-    if (before.migratedFromConfig && !force) { foldDone = true; return; }
+    if (before.migratedFromConfig) { foldDone = true; return; }
     const config = await readConfig();
     const taps = await readLegacyTapState();
     const planned = foldConfigTodos(config, before.lists, taps);
-    if (!planned.touched && before.migratedFromConfig) return;
 
     // 2. The lists land first, so a failure anywhere after this can only
     //    leave inline items that fold onto them again.
@@ -790,17 +777,6 @@ async function settleTodoMigrationUnlocked(): Promise<void> {
   await foldLegacyItemsOnce();
 }
 
-/**
- * Re-run the fold-in for modules that arrived with inline items after the
- * one-time upgrade pass (a restored pre-lists backup, say). Cheap when
- * nothing needs moving.
- */
-async function foldInLegacyTodoItemsNowUnlocked(): Promise<TodoData> {
-  foldRetryAfter = 0;
-  await foldLegacyItemsOnce(true);
-  return store.read();
-}
-
 // A fold spans config and lists; acquire before either file's queue.
 export function readTodoData(): Promise<TodoData> {
   return withDataTransaction(readTodoDataUnlocked);
@@ -810,7 +786,4 @@ export function updateTodoData(mutator: (current: TodoData) => TodoData | Promis
 }
 export function settleTodoMigration(): Promise<void> {
   return withDataTransaction(settleTodoMigrationUnlocked);
-}
-export function foldInLegacyTodoItemsNow(): Promise<TodoData> {
-  return withDataTransaction(foldInLegacyTodoItemsNowUnlocked);
 }

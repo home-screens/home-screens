@@ -62,10 +62,6 @@ export function isFavoriteTeam(league: string, abbr: string, favorites: readonly
   return favorites.some((f) => { const p = parseTeamKey(f); return !!p && teamKey(p.league, p.abbr) === key; });
 }
 
-export function isFavoriteGame(game: Game, favorites: readonly string[]): boolean {
-  return favoriteRank(game, favorites) >= 0;
-}
-
 /**
  * Which side of a favorite game is ours, for the marker color. When both
  * sides are favorites the away team wins, matching the top row.

@@ -75,11 +75,3 @@ export function useElementBox<T extends HTMLElement = HTMLDivElement>(
 
   return [attach, box];
 }
-
-/** One-dimensional `useElementBox`, for layouts that only fit across the box. */
-export function useElementWidth<T extends HTMLElement = HTMLDivElement>(
-  mode: ElementBoxMode = 'content',
-): [(el: T | null) => void, number] {
-  const [attach, box] = useElementBox<T>(mode);
-  return [attach, box.width];
-}

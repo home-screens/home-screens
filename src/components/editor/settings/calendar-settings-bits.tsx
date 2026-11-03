@@ -9,17 +9,17 @@ import { useTranslate, useFormattingLocale, formatRelativeTime } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarSourceStatus } from '@/types/config';
 
+/**
+ * Shared pieces of the Defaults > Calendar page: the three area cards, the
+ * sub-blocks inside "Where events come from", and per-source health.
+ */
+
 /** Localized failure wording: the server's message key when it sent one,
  *  else its plain-English prose (older payloads, plugin sources). */
 function sourceHealthMessage(status: CalendarSourceStatus, t: TranslateFn): string | undefined {
   if (status.messageKey) return t(`settings.calendarPage.health.errors.${status.messageKey}`, status.messageParams);
   return status.error;
 }
-
-/**
- * Shared pieces of the Defaults > Calendar page: the three area cards, the
- * sub-blocks inside "Where events come from", and per-source health.
- */
 
 /**
  * One of the page's three areas, in the idiom the other Defaults pages use:

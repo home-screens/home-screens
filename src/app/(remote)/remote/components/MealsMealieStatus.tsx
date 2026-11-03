@@ -7,6 +7,8 @@ import type { MealieProblem, MealieStatus } from '@/lib/meal-sources';
 import { useCopyTime, type CopyClock } from '@/components/meals/useCopyTime';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import { useHouseholdClockFormat, useHouseholdTimezone } from '../household-clock';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 /** The household's day, zone and clock, which the phone says a copy's time in (`useCopyTime`). */
 export function useHomeCopyClock(todayISO: string): CopyClock {
@@ -53,8 +55,8 @@ export function MealsSourcePill({ status, todayISO }: { status: MealieStatus; to
           width: 20,
           height: 20,
           borderRadius: 99,
-          background: 'rgba(245,158,11,0.14)',
-          color: '#f59e0b',
+          background: withAlpha(REMOTE_ACCENT, 0.14),
+          color: REMOTE_ACCENT,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -142,8 +144,8 @@ export function MealiePausedNotice({
       role="status"
       data-testid="mealie-paused"
       style={{
-        background: 'rgba(245,158,11,0.08)',
-        border: '1px solid rgba(245,158,11,0.28)',
+        background: withAlpha(REMOTE_ACCENT, 0.08),
+        border: `1px solid ${withAlpha(REMOTE_ACCENT, 0.28)}`,
         borderRadius: 12,
         padding: '12px 14px',
         marginBottom: 16,
@@ -151,7 +153,7 @@ export function MealiePausedNotice({
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '20px' }}>
-        <CloudOff size={18} strokeWidth={2} aria-hidden style={{ color: '#f59e0b', flex: 'none' }} />
+        <CloudOff size={18} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT, flex: 'none' }} />
         {t(`${mealieProblemWords(problem)}.title`)}
       </div>
       <p style={{ margin: '4px 0 10px 26px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>

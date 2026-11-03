@@ -4,6 +4,7 @@ import type { MealSettings, TimeFormat } from '@/types/config';
 import { formatMealTime } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
+import { selectedPillStyle } from './chore-form-styles';
 
 interface MealsSettingsTimeFormatSectionProps {
   timeFormat: MealSettings['timeFormat'];
@@ -18,9 +19,7 @@ function formatBtnStyle(selected: boolean): React.CSSProperties {
     padding: '12px',
     minHeight: 56,
     borderRadius: 10,
-    border: selected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-    background: selected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
-    color: selected ? '#f59e0b' : 'var(--hs-text-muted)',
+    ...selectedPillStyle(selected, 'var(--hs-text-muted)'),
     cursor: 'pointer',
     fontFamily: 'inherit',
     display: 'flex',

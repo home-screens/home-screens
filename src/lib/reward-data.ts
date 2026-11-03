@@ -239,7 +239,10 @@ export interface PlannedPointsMove {
   /** Null when nothing changed; otherwise hand it to `commitDataTransaction`. */
   change: TransactionChange | null;
   data: RewardData;
-  /** Balance after the move. Negative is real accounting, as in `debitPointsExact`. */
+  /**
+   * Balance after the move. Negative is real accounting: a chore undo may take
+   * the balance below zero, while a hand adjustment (`adjustPoints`) floors at zero.
+   */
   balance: number;
   wentNegative: boolean;
 }
@@ -249,7 +252,8 @@ export interface PlannedPointsMove {
  * chore completion that caused it can be committed in the same transaction.
  * A chore toggle used to write completions and rewards as two independent
  * durable writes, so losing power between them recorded the chore and credited
- * nothing. Same accounting as `debitPointsExact`: the balance may go negative.
+ * nothing. A chore undo may take the balance below zero; only a hand
+ * adjustment (`adjustPoints`) floors at zero.
  */
 export function planPointsMove(memberId: string, delta: number): Promise<PlannedPointsMove> {
   let balance = 0;

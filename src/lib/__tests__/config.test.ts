@@ -61,7 +61,7 @@ describe('readConfig', () => {
     expect(config.screens[0].id).toBe('custom');
   });
 
-  // Fail-closed regression: see code-review-remediation.md item 1.
+  // Fail-closed regression.
   // The previous bare catch returned DEFAULT_CONFIG on any error, which
   // caused read-mutate-write callers (e.g. profile change) to overwrite
   // real config with defaults. readConfig must now THROW on corruption.

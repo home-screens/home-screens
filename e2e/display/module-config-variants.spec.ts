@@ -7,10 +7,11 @@ import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures'
 import { CONFIG_VARIANTS, type ConfigVariant } from '../helpers/config-variants';
 
 /**
- * Config-variant coverage. The render matrices (modules-static/data.spec.ts)
+ * Config-variant coverage. The render matrices (modules-static.spec.ts and
+ * modules-data.spec.ts)
  * exercise each module's defaultConfig; the view matrix (module-views.spec.ts)
  * mutates only the view key. This matrix flips every OTHER rendering-affecting
- * config field (data in ../helpers/config-variants.ts) and asserts a
+ * config field (data in ../helpers/config-variants/) and asserts a
  * content-level marker proving the flip changed what renders — plus that no
  * uncaught error fired and (unless the row loads tiles) no external host was hit.
  *

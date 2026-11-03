@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { usePluginStore } from '@/stores/plugin-store';
 import Toggle from '@/components/ui/Toggle';

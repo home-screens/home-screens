@@ -12,7 +12,8 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import ConfigLoadError from '@/components/editor/ConfigLoadError';
-import { useEditorStore, getActiveScreens, getActiveDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens, getActiveDimensions } from '@/lib/editor-multi-display';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
 import { useCanvasKeyboardShortcuts } from '@/hooks/useCanvasKeyboardShortcuts';

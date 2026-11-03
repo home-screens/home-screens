@@ -133,8 +133,7 @@ export interface ModuleDefinition {
    * paper colour is its own Note colour setting and its ink is fixed dark for
    * that paper, so Style > Background and Style > Text color could never reach
    * it. Hiding them is the honest answer; honouring them would repaint every
-   * existing note, which carries the never-painted white default (plan 50,
-   * item 20).
+   * existing note, which carries the never-painted white default.
    */
   ownsStyleFields?:
     | ReadonlyArray<keyof import('@/types/config').ModuleStyle>
@@ -319,14 +318,6 @@ export function resolveFullscreenTheme(
 }
 
 /**
- * The user-facing name of a module type, the same everywhere it is shown
- * (palette, canvas, property panel, templates, search). Built-ins resolve
- * through the `editor.registry.types.*` dictionary; plugin modules keep their
- * manifest label verbatim (translated by the plugin author or intentionally
- * English). Anything unregistered (a plugin that failed to load) falls back
- * to the raw type so it is still identifiable.
- */
-/**
  * Whether `Style` can reach a module at all: through ModuleWrapper's card, or
  * through the module applying `style` itself (plugins do). A `fillsCanvas`
  * module paints the whole canvas from its own theme and a `cardless` one
@@ -338,6 +329,14 @@ export function styleReachesModule(def: Pick<ModuleDefinition, 'fillsCanvas' | '
   return !def?.fillsCanvas && !def?.cardless;
 }
 
+/**
+ * The user-facing name of a module type, the same everywhere it is shown
+ * (palette, canvas, property panel, templates, search). Built-ins resolve
+ * through the `editor.registry.types.*` dictionary; plugin modules keep their
+ * manifest label verbatim (translated by the plugin author or intentionally
+ * English). Anything unregistered (a plugin that failed to load) falls back
+ * to the raw type so it is still identifiable.
+ */
 export function resolveModuleLabel(type: ModuleType, t: TranslateFn): string {
   const def = registry.get(type);
   if (type.startsWith('plugin:')) return def?.label || type;

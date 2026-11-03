@@ -9,9 +9,6 @@ import { mealieProblem, mergeMealSources, planCellChanges, rangeCovers, unionRan
 import type { MealieCategory, MealieCookbook, MealieFailure, MealieRecipeFilter } from '@/lib/mealie';
 import { mealieRecipeUrl, type MealieRecipeDetail } from '@/lib/mealie-map';
 import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
-
-/** Where a save goes while the plan lives in Mealie. */
-const MEALIE_PLAN_URL = '/api/mealie/plan';
 import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type GroceryCheckDirection } from '@/lib/grocery-checks';
 
 /**
@@ -21,6 +18,9 @@ import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type Gro
  * save quotes the revision it was built from, and what happens when the hub
  * says somebody else saved first.
  */
+
+/** Where a save goes while the plan lives in Mealie. */
+const MEALIE_PLAN_URL = '/api/mealie/plan';
 
 /**
  * `editorFetch` on the editor and phone; the wall never writes meals. It bounds

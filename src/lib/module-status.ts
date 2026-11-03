@@ -99,12 +99,6 @@ function firstSourceKey(node: unknown): string | undefined {
   return undefined;
 }
 
-/**
- * Everything the editor says about why a module is or isn't on the wall right
- * now — the corner badges on the canvas, the chip on the selected module and
- * the chip in the property panel all read from this one list, so they can
- * never describe the same module differently.
- */
 /** "Mild and Warm" in the household's language; a plain comma list where the runtime has no list rules. */
 function formatList(items: string[], locale: string): string {
   try {
@@ -114,6 +108,12 @@ function formatList(items: string[], locale: string): string {
   }
 }
 
+/**
+ * Everything the editor says about why a module is or isn't on the wall right
+ * now: the corner badges on the canvas, the chip on the selected module and
+ * the chip in the property panel all read from this one list, so they can
+ * never describe the same module differently.
+ */
 export function describeModuleStatus(mod: ModuleInstance, ctx: ModuleStatusContext): ModuleStatus[] {
   const { t, now, verdictStates } = ctx;
   const out: ModuleStatus[] = [];

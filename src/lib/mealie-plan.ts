@@ -30,14 +30,14 @@ import { toISODate } from './meal-constants';
 import { dinnerCategories } from './meal-dish-rules';
 import { logger } from './logger';
 
-const log = logger('mealie-plan');
-
 /**
  * Mealie's plan on the hub: read for every surface, and written back when the
  * phone or the editor changes a meal. The mapping rules live in
  * `mealie-map.ts`; this file is the part that talks to Mealie and to
  * `meals.json`.
  */
+
+const log = logger('mealie-plan');
 
 /** Weeks of hub notes on past Mealie entries worth keeping, matching how long the local plan keeps its past. */
 const EXTRAS_KEEP_WEEKS = 12;

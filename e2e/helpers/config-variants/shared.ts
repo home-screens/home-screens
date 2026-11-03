@@ -110,7 +110,6 @@ export const STANDINGS_8 = {
   }],
 };
 
-/** Two due-dated Todoist tasks; the first carries a label. */
 /** Two FBS conferences, two teams each, for the college standings rows. */
 export const STANDINGS_NCAAF = {
   groups: [
@@ -125,6 +124,7 @@ export const STANDINGS_NCAAF = {
   ],
 };
 
+/** Two due-dated Todoist tasks; the first carries a label. */
 export const TODOIST_2 = {
   tasks: [
     { id: '1', content: 'FIRST TASK', description: '', priority: 1, due: { date: '2099-01-15', datetime: null, isRecurring: false }, labels: ['errands'], labelColors: {}, projectId: 'p1', projectName: 'Inbox', projectColor: '#808080', sectionId: '', sectionName: '', parentId: null, order: 1, commentCount: 0 },

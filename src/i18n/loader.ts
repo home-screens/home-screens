@@ -9,7 +9,7 @@
  * the display route avoids a roundtrip on first paint.
  */
 
-import type { Dictionary, Namespace } from './types';
+import type { Dictionary } from './types';
 import { FALLBACK_LOCALE } from './manifest';
 import { logger } from '@/lib/logger';
 
@@ -198,7 +198,3 @@ export function __resetLoaderForTests(): void {
   CACHE.clear();
   PENDING.clear();
 }
-
-// Re-exporting `Namespace` keeps the loader entry point self-contained for
-// any downstream code that wants to refer to the typed namespace set.
-export type { Namespace };

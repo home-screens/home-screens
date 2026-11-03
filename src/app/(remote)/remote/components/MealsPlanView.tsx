@@ -18,6 +18,7 @@ import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';
 import { withAlpha } from '@/lib/hex-color';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 interface MealsPlanViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -149,7 +150,7 @@ export default function MealsPlanView({
               borderRadius: 10,
               border: 'none',
               cursor: 'pointer',
-              background: '#f59e0b',
+              background: REMOTE_ACCENT,
               color: '#000',
               fontSize: 14,
               fontWeight: 600,
@@ -176,7 +177,7 @@ export default function MealsPlanView({
                   {dayLabel}
                 </span>
                 {isToday && (
-                  <div style={{ width: 6, height: 6, borderRadius: 3, background: '#f59e0b' }} />
+                  <div style={{ width: 6, height: 6, borderRadius: 3, background: REMOTE_ACCENT }} />
                 )}
               </div>
 

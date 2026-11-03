@@ -162,7 +162,6 @@
       "didIt": "{name} l'a faite",
       "youGrabbedIt": "Tu l'as prise. Coche-la quand tu as fini.",
       "youGotIt": "Bien joué ! +{n}",
-      "finishYoursFirst": "Finis d'abord la tienne",
       "refused": {
         "grabbed": "{name} s'occupe déjà de celle-là.",
         "taken": "{name} a déjà fait celle-là.",
@@ -241,38 +240,9 @@
       "chores": "Tâches",
       "members": "Membres"
     },
-    "members": {
-      "empty": "Aucun membre pour l'instant",
-      "emptyHint": "Ajoute des membres de la famille pour commencer",
-      "editAriaLabel": "Modifier {name}",
-      "choreCountSingular": "{n} tâche assignée",
-      "choreCountPlural": "{n} tâches assignées",
-      "addButton": "Ajouter un membre"
-    },
     "chores": {
-      "empty": "Aucune tâche pour l'instant",
-      "emptyHintNoMembers": "Ajoute d'abord des membres de la famille",
-      "emptyHintAddChores": "Ajoute des tâches et assigne-les aux membres",
       "editAriaLabel": "Modifier {name}",
       "addButton": "Ajouter une tâche"
-    },
-    "memberForm": {
-      "titleNew": "Nouveau membre",
-      "titleEdit": "Modifier le membre",
-      "nameLabel": "Nom",
-      "namePlaceholder": "Saisis un nom…",
-      "avatarLabel": "Avatar",
-      "addSubmit": "Ajouter le membre",
-      "saveSubmit": "Enregistrer le membre",
-      "deleteButton": "Supprimer le membre"
-    },
-    "memberDelete": {
-      "title": "Supprimer « {name} » ?",
-      "fallbackName": "cette personne",
-      "descriptionNoChores": "{name} sera retiré(e) de toutes les tâches assignées. Les tâches sans personne restante seront aussi supprimées.",
-      "descriptionWithChoresSingular": "{name} sera retiré(e) de {count} tâche assignée. Les tâches sans personne restante seront aussi supprimées.",
-      "descriptionWithChoresPlural": "{name} sera retiré(e) des {count} tâches assignées. Les tâches sans personne restante seront aussi supprimées.",
-      "confirmLabel": "Supprimer le membre"
     },
     "choreForm": {
       "titleNew": "Nouvelle tâche",
@@ -687,15 +657,6 @@
       "heading": "Soldes de tickets",
       "adjustDownAriaLabel": "Retirer un ticket à {name}",
       "adjustUpAriaLabel": "Ajouter un ticket à {name}"
-    },
-    "history": {
-      "heading": "Échanges récents",
-      "empty": "Aucun échange pour l'instant",
-      "entry": {
-        "beforeReward": " a échangé ",
-        "afterRewardSingular": " pour {n} ticket",
-        "afterRewardPlural": " pour {n} tickets"
-      }
     },
     "saveFailed": "Échec de l'enregistrement. Réessaie.",
     "goal": {

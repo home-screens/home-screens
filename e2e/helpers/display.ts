@@ -7,7 +7,7 @@ import { putConfig } from './api';
  * wrapper to appear. Collapses the three-line setup every module spec repeats.
  *
  * The display module wrapper carries `data-module-id` / `data-module-type`
- * (ScreenRenderer.tsx), so `moduleLocator` can address a rendered module even
+ * (ScreenRenderer.tsx), so the handle's `module()` can address a rendered module even
  * when it has no distinctive text (shape, divider, icon, image, qr-code).
  *
  * `path` defaults to the legacy `/display` route; pass `/display/<id>` to

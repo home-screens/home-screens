@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import type { ModuleInstance } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
 import { getModuleDefinition } from '@/lib/module-registry';
@@ -84,7 +84,7 @@ export function createModuleSlice(
       // zIndex is assigned by appendOnTop against the target screen's modules
       // inside the mutation, so it is computed from the same list it lands in.
       const newModule: Omit<ModuleInstance, 'zIndex'> = {
-        id: uuidv4(),
+        id: uuid(),
         type,
         position: resolvedPosition,
         size,
@@ -120,7 +120,7 @@ export function createModuleSlice(
       const fillsCanvas = getModuleDefinition(src.type)?.fillsCanvas;
       const copy: Omit<ModuleInstance, 'zIndex'> = {
         ...structuredClone(src),
-        id: uuidv4(),
+        id: uuid(),
         // A module shown on every screen is drawn once for the whole
         // display; its copy starts as an ordinary module of this screen.
         showOnEveryScreen: undefined,

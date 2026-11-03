@@ -1,6 +1,6 @@
 'use client';
 
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import type { NewsFeedSource, NewsSourceOptions } from '@/types/config';
 import { NewsFeedsEditor } from './NewsFeedsEditor';
 import { NewsAddFeedMenu } from './NewsAddFeedMenu';
@@ -17,7 +17,7 @@ export function NewsSourcesFields({ config, set }: NewsSourcesFieldsProps) {
   const feeds = config.feeds ?? [];
   const addFeed = (feed: Omit<NewsFeedSource, 'id'>) => {
     if (feeds.length >= NEWS_MAX_FEEDS) return;
-    set({ feeds: [...feeds, { id: uuidv4(), ...feed }] });
+    set({ feeds: [...feeds, { id: uuid(), ...feed }] });
   };
   return (
     <>

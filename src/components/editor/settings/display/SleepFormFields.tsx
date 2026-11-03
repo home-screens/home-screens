@@ -48,8 +48,7 @@ const TIME_INPUT_CLASS =
  * The layout groups the three independent behaviors into labeled sections —
  * idle dimming ("when nobody's using it"), the two schedules ("every day at
  * set times"), and the shared dimmed appearance ("while dimmed") — with a
- * 24-hour preview bar up top so the resulting day is visible at a glance
- * (mockup: .claude/mockups/sleep-settings-redesign.html, Variant B). The
+ * 24-hour preview bar up top so the resulting day is visible at a glance. The
  * "while dimmed" fields apply to any dimming source, which is why they live
  * in their own section instead of under the idle toggle; when nothing can dim
  * the display the section collapses to an explanatory note.

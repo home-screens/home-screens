@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { recordReading, readDayRange, readingKey } from '../today-record';
+import { recordReading, readingKey, type DayRange } from '../today-record';
 
 let tmpDir: string;
 let origCwd: typeof process.cwd;
@@ -19,6 +19,13 @@ afterEach(async () => {
 });
 
 const KEY = readingKey('noaa', '40.2', '-74.9', 'imperial');
+
+/** What the hub has on disk for a key and day, read back the way a restart would. */
+async function readDayRange(key: string, date: string): Promise<DayRange | undefined> {
+  const raw = JSON.parse(await fs.readFile(path.join(tmpDir, 'data/weather-today.json'), 'utf-8'));
+  const r = raw.readings[key] as DayRange | undefined;
+  return r && r.date === date ? r : undefined;
+}
 
 describe('recordReading', () => {
   it('widens the day to the warmest and coldest readings seen', async () => {

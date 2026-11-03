@@ -2,7 +2,7 @@ import { expect, type Locator } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, lacks, matches, count, child, redBackground, redStyle, STANDINGS_8, STANDINGS_NCAAF, TINY_GIF } from './shared';
 
-/** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
+/** Config-variant rows for the news and finance modules. */
 
 // --- Shared assertion + fixture helpers for this batch ---------------------
 

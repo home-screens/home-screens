@@ -26,6 +26,7 @@ import {
 import { customIconUseCount, customIconUseRows } from '@/lib/custom-icon-usage';
 import { formatDateInTZ } from '@/lib/timezone';
 import { useHouseholdTimezone } from '../household-clock';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 /**
  * The phone's "Your icons" page: every picture the family added, how much
@@ -55,7 +56,7 @@ export default function CustomIconsOverlay({ onBack }: { onBack: () => void }) {
       <FormOverlay title={t('customIcons.page.title')} onBack={onBack} zIndex={120}>
         <div style={{ margin: '4px 0 18px' }}>
           <div style={{ height: 8, borderRadius: 4, background: 'var(--hs-bg-card)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${Math.max(share * 100, bytes ? 1.5 : 0)}%`, borderRadius: 4, background: share > 0.8 ? 'var(--hs-warning)' : '#f59e0b' }} />
+            <div style={{ height: '100%', width: `${Math.max(share * 100, bytes ? 1.5 : 0)}%`, borderRadius: 4, background: share > 0.8 ? 'var(--hs-warning)' : REMOTE_ACCENT }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--hs-text-muted)', marginTop: 6 }}>
             <span>{t('customIcons.page.count', { count: icons.length })}</span>
@@ -256,7 +257,7 @@ function IconSheet({ icon, usage, onClose, onChanged }: {
             </>
           )}
 
-          <button type="button" disabled={busy} onClick={() => void save()} style={{ ...SHEET_BUTTON, background: '#f59e0b', color: '#000' }}>
+          <button type="button" disabled={busy} onClick={() => void save()} style={{ ...SHEET_BUTTON, background: REMOTE_ACCENT, color: '#000' }}>
             {t('customIcons.detail.save')}
           </button>
           <button

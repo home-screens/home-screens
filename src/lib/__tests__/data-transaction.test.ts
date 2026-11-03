@@ -125,8 +125,7 @@ describe('coordinator barriers', () => {
 });
 
 /**
- * Plan 64 requires every participating read and write path to join the
- * coordinator: API handlers, server rendering, the config read cache,
+ * Every participating read and write path has to join the coordinator: API handlers, server rendering, the config read cache,
  * background work, migration and the backup export. That audit was manual, so
  * assert it: a future refactor that reads a participating store directly, or a
  * new hot path that skips the lock to go faster, fails here rather than
@@ -193,7 +192,7 @@ describe('participating entry points join the coordinator', () => {
   // never part of a journal or a restore. If one is ever added to a bundle it
   // has to lose `transient` and move into the list above.
   it.each([
-    ['timer session', 'data/timer-session.json', async () => { const { readSessionFile } = await import('../timer-data'); return readSessionFile(); }],
+    ['timer session', 'data/timer-session.json', async () => { const { readSessionCached } = await import('../timer-data'); return readSessionCached(); }],
     ['backup state', 'data/backup-state.json', async () => { const { readBackupState } = await import('../backup-state'); return readBackupState(); }],
   ])('%s stays outside the coordinator on purpose', async (_label, _file, entryPoint) => {
     let release!: () => void;

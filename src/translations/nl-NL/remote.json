@@ -162,7 +162,6 @@
       "didIt": "{name} heeft het gedaan",
       "youGrabbedIt": "Je hebt het gepakt. Vink het af als je klaar bent.",
       "youGotIt": "Gelukt! +{n}",
-      "finishYoursFirst": "Maak eerst die van jou af",
       "refused": {
         "grabbed": "{name} is daar al mee bezig.",
         "taken": "{name} heeft die al gedaan.",
@@ -241,38 +240,9 @@
       "chores": "Klusjes",
       "members": "Gezinsleden"
     },
-    "members": {
-      "empty": "Nog geen gezinsleden",
-      "emptyHint": "Voeg gezinsleden toe om te beginnen",
-      "editAriaLabel": "{name} bewerken",
-      "choreCountSingular": "{n} klusje toegewezen",
-      "choreCountPlural": "{n} klusjes toegewezen",
-      "addButton": "Gezinslid toevoegen"
-    },
     "chores": {
-      "empty": "Nog geen klusjes",
-      "emptyHintNoMembers": "Voeg eerst gezinsleden toe",
-      "emptyHintAddChores": "Voeg klusjes toe en wijs ze aan gezinsleden toe",
       "editAriaLabel": "{name} bewerken",
       "addButton": "Klusje toevoegen"
-    },
-    "memberForm": {
-      "titleNew": "Nieuw gezinslid",
-      "titleEdit": "Gezinslid bewerken",
-      "nameLabel": "Naam",
-      "namePlaceholder": "Naam invoeren…",
-      "avatarLabel": "Avatar",
-      "addSubmit": "Gezinslid toevoegen",
-      "saveSubmit": "Gezinslid opslaan",
-      "deleteButton": "Gezinslid verwijderen"
-    },
-    "memberDelete": {
-      "title": "\"{name}\" verwijderen?",
-      "fallbackName": "deze persoon",
-      "descriptionNoChores": "Hiermee wordt {name} uit alle toegewezen klusjes verwijderd. Klusjes zonder overgebleven personen worden ook verwijderd.",
-      "descriptionWithChoresSingular": "Hiermee wordt {name} uit {count} toegewezen klusje verwijderd. Klusjes zonder overgebleven personen worden ook verwijderd.",
-      "descriptionWithChoresPlural": "Hiermee wordt {name} uit alle {count} toegewezen klusjes verwijderd. Klusjes zonder overgebleven personen worden ook verwijderd.",
-      "confirmLabel": "Gezinslid verwijderen"
     },
     "choreForm": {
       "titleNew": "Nieuw klusje",
@@ -687,15 +657,6 @@
       "heading": "Ticketsaldo's",
       "adjustDownAriaLabel": "Een ticket van {name} aftrekken",
       "adjustUpAriaLabel": "Een ticket aan {name} toevoegen"
-    },
-    "history": {
-      "heading": "Onlangs ingewisseld",
-      "empty": "Nog niets ingewisseld",
-      "entry": {
-        "beforeReward": " heeft ",
-        "afterRewardSingular": " ingewisseld voor {n} ticket",
-        "afterRewardPlural": " ingewisseld voor {n} tickets"
-      }
     },
     "saveFailed": "Opslaan mislukt. Probeer het opnieuw.",
     "goal": {

@@ -12,6 +12,8 @@ import { useHouseholdToday } from '../household-clock';
 import { showToast } from '../remote-toast';
 import DayNoteSheet, { dateOfIso, dayInWords } from './DayNoteSheet';
 import MealsWeekNav from './MealsWeekNav';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 /** Yellow is the day note colour everywhere: the wall's line and these rows. */
 const NOTE_YELLOW = '#facc15';
@@ -57,8 +59,8 @@ const TODAY_BADGE: CSSProperties = {
   fontWeight: 700,
   padding: '2px 8px',
   borderRadius: 4,
-  background: 'rgba(245,158,11,0.12)',
-  color: '#f59e0b',
+  background: withAlpha(REMOTE_ACCENT, 0.12),
+  color: REMOTE_ACCENT,
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   marginLeft: 'auto',

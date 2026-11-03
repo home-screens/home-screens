@@ -2,7 +2,8 @@
 
 import { Fragment, useMemo, useState } from 'react';
 import { Info, ChevronDown, TriangleAlert } from 'lucide-react';
-import { useEditorStore, getActiveScreens, getActiveRules } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens, getActiveRules } from '@/lib/editor-multi-display';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import { useStateKeySearch } from '@/hooks/useStateKeySearch';

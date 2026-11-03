@@ -186,8 +186,7 @@ export interface ScreenActions {
   /** `name` is the new screen's name in the household's language ("Screen 4"). */
   addScreen: (name?: string) => void;
   removeScreen: (id: string) => void;
-  /** Clone a screen (fresh screen + module ids, "<name> copy") right after the original, selected. */
-  /** `copyName` is the copy's name in the household's language ("Home copy"). */
+  /** Clone a screen (fresh screen and module ids) right after the original, selected; `copyName` is the copy's name in the household's language ("Home copy"). */
   duplicateScreen: (id: string, copyName?: string) => void;
   /** Clone every screen of another display onto the active one, with new ids. */
   copyScreensFromDisplay: (sourceDisplayId: string) => void;

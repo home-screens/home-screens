@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { trustedForwardedHost } from './client-ip';
 
 /**
  * Sending people straight back to the hub after a Google Photos sign-in.
@@ -130,7 +131,6 @@ export function confirmHubAddress(origin: string | null, request: HubRequestHost
       return null;
     }
   };
-  const candidates = [hostOf(request.host)];
-  if (request.viaTrustedProxy) candidates.push(hostOf(request.forwardedHost));
+  const candidates = [hostOf(request.host), hostOf(trustedForwardedHost(request))];
   return candidates.includes(url.host) ? url.origin : null;
 }

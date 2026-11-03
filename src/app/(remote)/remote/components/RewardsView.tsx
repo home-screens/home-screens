@@ -18,6 +18,7 @@ import { useHouseholdTimezone } from '../household-clock';
 import { showToast } from '../remote-toast';
 import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -285,7 +286,7 @@ export default function RewardsView({
   // ── Inner nav colors ──
   const viewColors: Record<InnerView, string> = {
     redeem: selectedColor,
-    rewards: '#f59e0b',
+    rewards: REMOTE_ACCENT,
     balances: '#4ade80',
     history: '#a78bfa',
   };

@@ -594,7 +594,6 @@
         "checkingConnection": "Vérification de la connexion…",
         "connected": "Connecté à Google",
         "disconnect": "Déconnecter",
-        "selectCalendars": "Sélectionne les calendriers à afficher",
         "noCalendars": "Aucun calendrier trouvé.",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Masquer les événements refusés",
@@ -653,7 +652,6 @@
       },
       "health": {
         "heading": "État des sources",
-        "holidays": "Jours fériés",
         "updated": "Mis à jour {time}",
         "updatedNow": "Mis à jour à l'instant",
         "notUpdating": "Ne se met plus à jour",
@@ -2775,25 +2773,6 @@
     "title": "Tableau de tâches",
     "subtitleMembersChores": "{members} membres · {chores} tâches",
     "loadError": "Échec du chargement des données de tâches. Les modifications ne seront pas enregistrées.",
-    "members": {
-      "columnTitle": "Membres de la famille",
-      "empty": "Aucun membre pour l'instant",
-      "addButton": "Ajouter un membre",
-      "addSubmit": "Ajouter le membre",
-      "saveSubmit": "Enregistrer",
-      "editAriaLabel": "Modifier {name}",
-      "deleteAriaLabel": "Supprimer {name}",
-      "deleteConfirm": {
-        "title": "Retirer le membre",
-        "message": "Retirer « {name} » ? Cela le retire aussi de toutes les tâches.",
-        "confirmLabel": "Retirer"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Nom…",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Choisir une couleur personnalisée"
-    },
     "chores": {
       "columnTitle": "Tâches",
       "addButton": "Ajouter une tâche",
@@ -5270,7 +5249,6 @@
       "artUpload": "Ajouter une image",
       "artUploading": "Ajout en cours…",
       "artUploadHint": "Image ou SVG, jusqu'à 10 Mo",
-      "artUploadFailed": "Impossible d'ajouter cette image.",
       "artNames": {
         "birthday": "Anniversaire",
         "christmas": "Noël",

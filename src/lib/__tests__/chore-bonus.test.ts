@@ -233,8 +233,8 @@ describe('everyone can', () => {
   });
 });
 
-describe('scenario bugs from plan 108', () => {
-  it('1: a chore that just became a bonus chore does not count ticks from before', () => {
+describe('which ticks and grabs count toward a bonus chore', () => {
+  it('a chore that just became a bonus chore does not count ticks from before', () => {
     const car = bonus('car', {}, { claim: 'first', comesBack: 'manual', since: `${SAT}T12:00:00.000Z` });
     expect(countsSinceReset(car, { date: SAT, at: `${SAT}T08:00:00.000Z` }, {})).toBe(false);
     expect(countsSinceReset(car, { date: WED }, {})).toBe(false);
@@ -244,7 +244,7 @@ describe('scenario bugs from plan 108', () => {
       .toEqual({ status: 'open' });
   });
 
-  it('1: the hub stamps a chore that became a bonus chore, and keeps the stamp through any later change', () => {
+  it('the hub stamps a chore that became a bonus chore, and keeps the stamp through any later change', () => {
     const regular = { ...bonus('car'), bonus: undefined } as ChoreDefinition;
     const NOW = '2026-09-23T07:00:00.000Z';
     const [made] = stampBonusSince([bonus('car')], [regular], NOW);
@@ -258,7 +258,7 @@ describe('scenario bugs from plan 108', () => {
     expect(stampBonusSince([regular], [kept], NOW)[0].bonus).toBeUndefined();
   });
 
-  it('2: a grab on a chore that is not on today does not count toward the limit', () => {
+  it('a grab on a chore that is not on today does not count toward the limit', () => {
     // Monday and Saturday, once a week; Ada grabs it Monday and the grab lasts until the chore comes back.
     const car = bonus('car', { daysOfWeek: [1, 6] }, { claim: 'first', comesBack: 'weekly' });
     const porch = bonus('porch');
@@ -268,7 +268,7 @@ describe('scenario bugs from plan 108', () => {
     expect(atGrabLimit('ada', [car, porch], SAT, held, untilBack, groups)).toBe(true);
   });
 
-  it('5: a grab by someone the chore is no longer open to does not count', () => {
+  it('a grab by someone the chore is no longer open to does not count', () => {
     const porch = bonus('porch');
     const stale = marks([], [{ choreId: 'porch', memberId: 'gone', date: SAT }]);
     expect(grabState(porch, SAT, stale, 'day', kids.map((k) => k.id), SAT)).toEqual({ status: 'open' });
@@ -276,7 +276,7 @@ describe('scenario bugs from plan 108', () => {
     expect(resolveBonusFor([porch], kids, SAT, stale, groups, settings(), SAT)[0].grab).toEqual({ status: 'open' });
   });
 
-  it('7: grabs only matter today; a past day is never locked by an old grab', () => {
+  it('grabs only matter today; a past day is never locked by an old grab', () => {
     const porch = bonus('porch');
     const oldGrab = marks([], [{ choreId: 'porch', memberId: 'cleo', date: SAT }]);
     expect(checkBonusComplete(porch, 'bram', SAT, oldGrab, groups, 'day', MON)).toBeNull();
@@ -286,8 +286,8 @@ describe('scenario bugs from plan 108', () => {
   });
 });
 
-describe('plan 109 rules', () => {
-  it('9: a put-back only changes the day it was made and later ones', () => {
+describe('put-backs, earlier days and the household clock', () => {
+  it('a put-back only changes the day it was made and later ones', () => {
     const garage = bonus('garage', {}, { claim: 'first', comesBack: 'manual' });
     const doneMon = marks([{ choreId: 'garage', memberId: 'ada', date: '2026-09-14', at: '2026-09-14T10:00:00' }], [], { garage: '2026-09-16T12:00:00' });
     expect(grabState(garage, '2026-09-14', doneMon, 'day', KIDS, SAT).status).toBe('done');
@@ -295,14 +295,14 @@ describe('plan 109 rules', () => {
     expect(grabState(garage, '2026-09-16', doneMon, 'day', KIDS, SAT).status).toBe('open');
   });
 
-  it('4: a bonus chore shows on its days whatever regular frequency it kept', () => {
+  it('a bonus chore shows on its days whatever regular frequency it kept', () => {
     const once = bonus('car', { frequency: 'once', specificDate: '2026-01-01', daysOfWeek: [6] });
     expect(bonusShowsOn(once, SAT)).toBe(true);
     expect(bonusShowsOn(once, SUN)).toBe(false);
     expect(resolveBonusFor([once], kids, SAT, marks(), groups, settings(), SAT)).toHaveLength(1);
   });
 
-  it('37: under "until it comes back" a put-back chore\'s grab lasts a week', () => {
+  it('under "until it comes back" a put-back chore\'s grab lasts a week', () => {
     const garage = bonus('garage', {}, { claim: 'first', comesBack: 'manual' });
     const grabbed = (date: string) => marks([], [{ choreId: 'garage', memberId: 'ada', date }]);
     expect(MANUAL_GRAB_DAYS).toBe(7);
@@ -384,13 +384,13 @@ describe('plan 109 rules', () => {
     expect(grabState(garage, WED, reopened, 'day', KIDS, WED)).toEqual({ status: 'open' });
   });
 
-  it('2: the newest grab wins over an older one still in the file', () => {
+  it('the newest grab wins over an older one still in the file', () => {
     const porch = bonus('porch', {}, { claim: 'first', comesBack: 'weekly' });
     const two = marks([], [{ choreId: 'porch', memberId: 'ada', date: WED }, { choreId: 'porch', memberId: 'bram', date: SAT }]);
     expect(grabState(porch, SAT, two, 'until-back', KIDS, SAT)).toEqual({ status: 'grabbed', memberId: 'bram' });
   });
 
-  it('5: a wall with limited room shows grabbed chores first and finished ones last', () => {
+  it('a wall with limited room shows grabbed chores first and finished ones last', () => {
     const items = resolveBonusFor(
       [bonus('done'), bonus('open'), bonus('each', {}, { claim: 'each', comesBack: 'daily' }), bonus('held')],
       kids, SAT,
@@ -400,7 +400,7 @@ describe('plan 109 rules', () => {
     expect(bonusDisplayOrder(items).map((i) => i.chore.id)).toEqual(['held', 'open', 'each', 'done']);
   });
 
-  it('8: an everyone-can chore knows the day each person did it', () => {
+  it('an everyone-can chore knows the day each person did it', () => {
     const windows = bonus('windows', {}, { claim: 'each', comesBack: 'weekly' });
     const [item] = resolveBonusFor([windows], kids, SAT, marks([{ choreId: 'windows', memberId: 'cleo', date: WED }]), groups, settings(), SAT);
     expect(item.doneOn).toEqual({ cleo: WED });

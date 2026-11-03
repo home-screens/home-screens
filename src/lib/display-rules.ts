@@ -220,16 +220,6 @@ export function takeoverDeadline(
 }
 
 /**
- * Advance the engine one step against the current shared-state snapshot.
- * Call on every state change, rules change, and timer deadline. Pure: the
- * input state is never mutated.
- *
- * `renderableScreenIds` is the set of screens a takeover may legally show —
- * the display's OWN full list minus disabled screens, ignoring the active
- * profile filter (an alert screen may be deliberately excluded from normal
- * rotation).
- */
-/**
  * Decide which rules are armed after this advance.
  *
  * "Armed" means the rule's condition has just made a *fresh edge* into definite
@@ -416,6 +406,16 @@ export function fireArmed(
   return { armed, takeover, lastFiredAt, wake, sleep };
 }
 
+/**
+ * Advance the engine one step against the current shared-state snapshot.
+ * Call on every state change, rules change, and timer deadline. Pure: the
+ * input state is never mutated.
+ *
+ * `renderableScreenIds` is the set of screens a takeover may legally show:
+ * the display's OWN full list minus disabled screens, ignoring the active
+ * profile filter (an alert screen may be deliberately excluded from normal
+ * rotation).
+ */
 export function advanceRuleEngine(
   state: RuleEngineState,
   rules: readonly DisplayRule[],

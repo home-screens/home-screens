@@ -53,15 +53,11 @@ export interface CardCtx {
 }
 
 /**
- * The compass, the gauge and the moon: half the card's width, or .62 of its
- * height when that is less, which leaves the label above and the line below
- * their room. `fallback` is the type-based size for a card of unknown shape.
- */
-/**
  * How big a compass, gauge or moon may draw in a card of a known size: half
  * the width, and no taller than what is left of the height once the card's
  * padding, its label and the line under the instrument have had theirs
  * (about 12.5 type units together, from `Card`, `CardLabel` and `Sentence`).
+ * `fallback` is the type-based size for a card of unknown shape.
  */
 function instrumentSize(ctx: CardCtx, s: number, fallback: number, reserve = 0): number {
   if (ctx.width == null || ctx.height == null) return fallback;

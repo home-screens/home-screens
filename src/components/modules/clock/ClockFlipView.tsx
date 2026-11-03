@@ -51,7 +51,7 @@ function FlipCard({
   // Shared text style — full card height, centered, so clipping top/bottom half works
   // The digits are white on purpose: they sit on the flap's own dark fill
   // (#1a1a1a below), not on the card, so they are chip ink and do not follow
-  // the text colour (plan 50, item 19).
+  // the text colour.
   const textBase: React.CSSProperties = {
     position: 'absolute',
     width: '100%',

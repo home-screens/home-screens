@@ -272,5 +272,3 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
     listAction,
   };
 }
-
-export type TodoListsApi = ReturnType<typeof useTodoLists>;

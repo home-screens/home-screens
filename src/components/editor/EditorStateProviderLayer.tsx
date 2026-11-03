@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useEditorStore, getActiveScreens, getActiveRules } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens, getActiveRules } from '@/lib/editor-multi-display';
 import { usePluginStore } from '@/stores/plugin-store';
 import PluginServiceLayer from '@/components/display/PluginServiceLayer';
 

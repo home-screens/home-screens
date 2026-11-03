@@ -19,8 +19,9 @@ import { useLoadingStalled } from '@/hooks/useLoadingStalled';
 import type { FetchError } from '@/lib/fetch-error';
 import { resolveWeatherLocationLabel } from '../weather/location-label';
 import { resolveSkyCondition, skyBackground, SKY_ACCENT, skyScene, sunPhase } from './sky-layer';
+import { getOrientation } from '@/lib/orientation';
 import {
-  getOrientation, timelineHours, hoursWithin, baseUnit,
+  timelineHours, hoursWithin, baseUnit,
   CANVAS_PAD_X_U, CANVAS_PAD_Y_U,
   type WeatherScale, type WeatherViewProps, type SunTimes,
 } from './weather-view-utils';

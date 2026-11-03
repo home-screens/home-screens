@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import Button from '@/components/ui/Button';
 import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';
 import { useTranslate } from '@/i18n';

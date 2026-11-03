@@ -162,7 +162,6 @@
       "didIt": "{name} did it",
       "youGrabbedIt": "You grabbed it. Tick it when you're done.",
       "youGotIt": "You got it! +{n}",
-      "finishYoursFirst": "Finish yours first",
       "refused": {
         "grabbed": "{name} is already on that one.",
         "taken": "{name} already did that one.",
@@ -241,38 +240,9 @@
       "chores": "Chores",
       "members": "Members"
     },
-    "members": {
-      "empty": "No members yet",
-      "emptyHint": "Add family members to get started",
-      "editAriaLabel": "Edit {name}",
-      "choreCountSingular": "{n} chore assigned",
-      "choreCountPlural": "{n} chores assigned",
-      "addButton": "Add Member"
-    },
     "chores": {
-      "empty": "No chores yet",
-      "emptyHintNoMembers": "Add family members first",
-      "emptyHintAddChores": "Add chores and assign them to members",
       "editAriaLabel": "Edit {name}",
       "addButton": "Add Chore"
-    },
-    "memberForm": {
-      "titleNew": "New Member",
-      "titleEdit": "Edit Member",
-      "nameLabel": "Name",
-      "namePlaceholder": "Enter name...",
-      "avatarLabel": "Avatar",
-      "addSubmit": "Add Member",
-      "saveSubmit": "Save Member",
-      "deleteButton": "Delete Member"
-    },
-    "memberDelete": {
-      "title": "Delete \"{name}\"?",
-      "fallbackName": "them",
-      "descriptionNoChores": "This will remove {name} from any assigned chores. Chores with no remaining assignees will also be deleted.",
-      "descriptionWithChoresSingular": "This will remove {name} from {count} assigned chore. Chores with no remaining assignees will also be deleted.",
-      "descriptionWithChoresPlural": "This will remove {name} from all {count} assigned chores. Chores with no remaining assignees will also be deleted.",
-      "confirmLabel": "Delete Member"
     },
     "choreForm": {
       "titleNew": "New Chore",
@@ -687,15 +657,6 @@
       "heading": "Ticket Balances",
       "adjustDownAriaLabel": "Subtract a ticket from {name}",
       "adjustUpAriaLabel": "Add a ticket to {name}"
-    },
-    "history": {
-      "heading": "Recent Redemptions",
-      "empty": "No redemptions yet",
-      "entry": {
-        "beforeReward": " redeemed ",
-        "afterRewardSingular": " for {n} ticket",
-        "afterRewardPlural": " for {n} tickets"
-      }
     },
     "saveFailed": "Failed to save. Please try again.",
     "goal": {

@@ -29,6 +29,7 @@ import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { loadTimetables, saveTimetables } from '@/lib/timetable-client';
 import { addDays, dateInZone, weekLetterOn } from '@/lib/timetable-layout';
+import { uuid } from '@/lib/uuid';
 import {
   DAY_KEYS,
   TIMETABLE_LIMITS,
@@ -50,11 +51,7 @@ import {
 
 /** A new id for a school, a subject or anything else the household adds. */
 function newId(prefix: string): string {
-  const unique =
-    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
-  return `${prefix}-${unique.replaceAll('-', '').slice(0, 16)}`;
+  return `${prefix}-${uuid().replaceAll('-', '').slice(0, 16)}`;
 }
 
 /**

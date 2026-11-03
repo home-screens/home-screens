@@ -45,6 +45,9 @@ export function scoreboardUrl(league: string): string | null {
   return `https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard${params ? `?${params}` : ''}`;
 }
 
+/** The sports ESPN files its leagues under; the first segment of a `LEAGUE_MAP` path. */
+export type Sport = 'football' | 'basketball' | 'baseball' | 'hockey' | 'soccer';
+
 export interface SportsLeague {
   /** Config key and `LEAGUE_MAP` key. */
   id: string;
@@ -52,28 +55,44 @@ export interface SportsLeague {
   label: string;
   /** Short caption the wall prints next to a game. */
   wallCode: string;
+  /**
+   * The sport played, which decides how a record reads (soccer counts draws)
+   * and which standings stats ESPN sends. MLS is soccer though the editor
+   * groups it with the American leagues.
+   */
+  sport: Sport;
   /** Editor grouping: the American leagues first, then soccer. */
   group: 'american' | 'soccer';
 }
 
 /** Every league the routes answer, in editor display order. */
 export const SPORTS_LEAGUES: SportsLeague[] = [
-  { id: 'nfl', label: 'NFL', wallCode: 'NFL', group: 'american' },
-  { id: 'ncaaf', label: 'College Football', wallCode: 'NCAAF', group: 'american' },
-  { id: 'nba', label: 'NBA', wallCode: 'NBA', group: 'american' },
-  { id: 'ncaam', label: "Men's College Basketball", wallCode: 'NCAAM', group: 'american' },
-  { id: 'wnba', label: 'WNBA', wallCode: 'WNBA', group: 'american' },
-  { id: 'ncaaw', label: "Women's College Basketball", wallCode: 'NCAAW', group: 'american' },
-  { id: 'mlb', label: 'MLB', wallCode: 'MLB', group: 'american' },
-  { id: 'nhl', label: 'NHL', wallCode: 'NHL', group: 'american' },
-  { id: 'mls', label: 'MLS', wallCode: 'MLS', group: 'american' },
-  { id: 'epl', label: 'Premier League', wallCode: 'EPL', group: 'soccer' },
-  { id: 'laliga', label: 'La Liga', wallCode: 'LA LIGA', group: 'soccer' },
-  { id: 'bundesliga', label: 'Bundesliga', wallCode: 'BUNDESLIGA', group: 'soccer' },
-  { id: 'seriea', label: 'Serie A', wallCode: 'SERIE A', group: 'soccer' },
-  { id: 'ligue1', label: 'Ligue 1', wallCode: 'LIGUE 1', group: 'soccer' },
-  { id: 'liga_mx', label: 'Liga MX', wallCode: 'LIGA MX', group: 'soccer' },
+  { id: 'nfl', label: 'NFL', wallCode: 'NFL', sport: 'football', group: 'american' },
+  { id: 'ncaaf', label: 'College Football', wallCode: 'NCAAF', sport: 'football', group: 'american' },
+  { id: 'nba', label: 'NBA', wallCode: 'NBA', sport: 'basketball', group: 'american' },
+  { id: 'ncaam', label: "Men's College Basketball", wallCode: 'NCAAM', sport: 'basketball', group: 'american' },
+  { id: 'wnba', label: 'WNBA', wallCode: 'WNBA', sport: 'basketball', group: 'american' },
+  { id: 'ncaaw', label: "Women's College Basketball", wallCode: 'NCAAW', sport: 'basketball', group: 'american' },
+  { id: 'mlb', label: 'MLB', wallCode: 'MLB', sport: 'baseball', group: 'american' },
+  { id: 'nhl', label: 'NHL', wallCode: 'NHL', sport: 'hockey', group: 'american' },
+  { id: 'mls', label: 'MLS', wallCode: 'MLS', sport: 'soccer', group: 'american' },
+  { id: 'epl', label: 'Premier League', wallCode: 'EPL', sport: 'soccer', group: 'soccer' },
+  { id: 'laliga', label: 'La Liga', wallCode: 'LA LIGA', sport: 'soccer', group: 'soccer' },
+  { id: 'bundesliga', label: 'Bundesliga', wallCode: 'BUNDESLIGA', sport: 'soccer', group: 'soccer' },
+  { id: 'seriea', label: 'Serie A', wallCode: 'SERIE A', sport: 'soccer', group: 'soccer' },
+  { id: 'ligue1', label: 'Ligue 1', wallCode: 'LIGUE 1', sport: 'soccer', group: 'soccer' },
+  { id: 'liga_mx', label: 'Liga MX', wallCode: 'LIGA MX', sport: 'soccer', group: 'soccer' },
 ];
+
+/** The ids of every soccer league, the one list the record and standings rules read. */
+export const SOCCER_LEAGUE_IDS: ReadonlySet<string> = new Set(
+  SPORTS_LEAGUES.filter((l) => l.sport === 'soccer').map((l) => l.id),
+);
+
+/** Whether a league id, in either case, is a soccer league. */
+export function isSoccerLeague(league: string): boolean {
+  return SOCCER_LEAGUE_IDS.has(league.toLowerCase());
+}
 
 /** Wall caption for a league id in either case; unknown ids print upper-cased. */
 export function leagueWallCode(league: string): string {

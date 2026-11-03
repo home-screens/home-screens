@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { OpenWeatherMapProvider, WeatherAPIProvider, OpenMeteoProvider, YrProvider, SMHIProvider, MetOfficeProvider, EnvCanadaProvider, createWeatherProvider } from '../weather';
+import { createWeatherProvider } from '../weather';
+import { OpenWeatherMapProvider } from '../weather/openweathermap';
+import { WeatherAPIProvider } from '../weather/weatherapi';
+import { OpenMeteoProvider } from '../weather/open-meteo';
+import { YrProvider } from '../weather/yr';
+import { SMHIProvider } from '../weather/smhi';
+import { MetOfficeProvider } from '../weather/metoffice';
+import { EnvCanadaProvider } from '../weather/envcanada';
 import { symbolToIcon, symbolDescription } from '../weather/yr';
 import { wsymb2ToIcon } from '../weather/smhi';
 

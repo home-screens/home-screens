@@ -12,6 +12,14 @@ import { isCustomIconValue } from './custom-icons';
 import { RefusalError, type RefusalOptions } from './refusal';
 
 /**
+ * Pure timer/session math shared by the server stores (timer-data.ts), the
+ * display overlay, and /remote. No fs / store imports: this module must stay
+ * importable from client components: displays materialize the polled session
+ * locally every animation tick, so countdown and step advancement work
+ * between polls with zero server round-trips.
+ */
+
+/**
  * Why a timer request was turned down. Each one has a sentence in the
  * `remote` dictionary under `refusals.timers`, shown on the phone's Timers
  * tab. `timers.badRequest` covers a body the app itself never sends and
@@ -38,14 +46,6 @@ export class TimerError extends RefusalError {
 function validIcon(icon: unknown): boolean {
   return typeof icon === 'string' && (icon.length <= 16 || isCustomIconValue(icon));
 }
-
-/**
- * Pure timer/session math shared by the server stores (timer-data.ts), the
- * display overlay, and /remote. No fs / store imports — this module must stay
- * importable from client components: displays materialize the polled session
- * locally every animation tick, so countdown and step advancement work
- * between polls with zero server round-trips.
- */
 
 /** How long a finished/cancelled session stays readable (celebration window). */
 export const SESSION_LINGER_MS = 15_000;

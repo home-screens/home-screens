@@ -4,7 +4,8 @@
  * public/images/dashboards/<image>.{jpg,webp} (640x1138, 2x the rendered card
  * column) and its landscape twin at public/images/dashboards/landscape/
  * <image>.{jpg,webp} (1280x720). Every screenshot is a real render of the app;
- * the generator is .claude/homepage-shots in the main repo.
+ * the generator is a local Playwright harness in the main repo that is not
+ * checked in.
  */
 export interface Dashboard {
   /** File stem under /images/dashboards */

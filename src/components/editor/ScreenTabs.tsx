@@ -12,7 +12,8 @@ import {
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { isRotationOff } from '@/lib/resolve-screen-duration';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useTranslate } from '@/i18n';

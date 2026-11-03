@@ -3,7 +3,7 @@ import type { ConfigVariant } from './types';
 import { has, lacks, matches, notMatches, child, count, redBackground, redStyle, localIso, localDate } from './shared';
 import { parseDateInTZ } from '@/lib/timezone';
 
-/** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
+/** Config-variant rows for the time and date modules. */
 
 // --- Date helpers: localIso / localDate come from ./shared -----------------
 

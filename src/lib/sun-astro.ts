@@ -3,6 +3,7 @@
  * and the 24h-circle view geometry.
  */
 import SunCalc from 'suncalc';
+import { mulberry32 } from './prng';
 
 type Times = ReturnType<typeof SunCalc.getTimes>;
 
@@ -193,20 +194,9 @@ export function skyThemeColorAt(h: number, anchors: SkyThemeAnchor[]): string {
   return anchors[n - 1].c;
 }
 
-/** Deterministic PRNG (mulberry32). The star scatter must render identically on every
- *  device and reload, so it is seeded from a constant instead of Math.random(). */
+/** The star scatter must render identically on every device and reload, so it
+ *  is drawn from `mulberry32` seeded with this constant instead of Math.random(). */
 export const SKY_STAR_SEED = 20260820;
-
-export function mulberry32(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 export interface SkyStar {
   f: number; // fraction along the dark window, 0–1

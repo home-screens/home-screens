@@ -1,7 +1,7 @@
 
 import type { FamilyMember } from '@/types/family';
 import { describe, it, expect } from 'vitest';
-import { balanceRows, boardColumns, boardIconSize, boardMinColumnWidth, boardNameLines, boardNameRoom, choreDotGap, choreDotRunWidth, choreDotSize, choreTapSize, fitBoard, fitChoreFontSize, fitPerRow, fitStoreFontSize, partitionMembers, resolveHistoryLimit, starIconSize, storeRailEm, storeRailShowsBalances, storeTileColumns, storeUsesRail, weekMembers, type StoreFitInput } from '../layout';
+import { balanceRows, boardColumns, boardIconSize, boardMinColumnWidth, boardNameLines, boardNameRoom, choreDotGap, choreDotSize, choreTapSize, fitBoard, fitChoreFontSize, fitPerRow, fitStoreFontSize, partitionMembers, resolveHistoryLimit, starIconSize, storeRailEm, storeRailShowsBalances, storeTileColumns, storeUsesRail, weekMembers, type StoreFitInput } from '../layout';
 import type { MemberStats, ResolvedAssignment } from '../types';
 
 
@@ -243,14 +243,6 @@ describe('assignee dots on a today row', () => {
 
   it('scales with the fitted type between those bounds', () => {
     expect(choreDotSize(22)).toBe(33);
-  });
-
-  it('measures a run of dots with its gaps, and nothing for an empty run', () => {
-    const size = choreDotSize(22);
-    const gap = choreDotGap(size);
-    expect(choreDotRunWidth(size, 0)).toBe(0);
-    expect(choreDotRunWidth(size, 1)).toBe(size);
-    expect(choreDotRunWidth(size, 5)).toBe(5 * size + 4 * gap);
   });
 
   it('keeps the gap visible at the smallest dot, so five rings do not read as one blob', () => {

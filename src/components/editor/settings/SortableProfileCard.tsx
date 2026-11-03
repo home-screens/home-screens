@@ -13,7 +13,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, GripVertical, Pencil, Trash2, Check, X } from 'lucide-react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { getActiveProfileId } from '@/lib/display-filter';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useSortableSensors } from '@/hooks/useDndSensors';

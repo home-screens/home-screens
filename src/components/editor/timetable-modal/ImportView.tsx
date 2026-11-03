@@ -111,13 +111,6 @@ function periodCount(preview: ImportedTimetable): number {
 }
 
 /**
- * The week a tab holds, with every code turned into a subject id.
- *
- * A cell whose code was neither known nor given a subject is left out rather
- * than guessed at: an empty period is easy to spot and fill in, a wrong
- * subject is not.
- */
-/**
  * The household's answer for one of the sheet's codes.
  *
  * Keyed by the folded code, because that is the identity the rest of the
@@ -148,6 +141,13 @@ export function seedCodeChoices(answer: TimetableImportCheckResult): Record<stri
   return out;
 }
 
+/**
+ * The week a tab holds, with every code turned into a subject id.
+ *
+ * A cell whose code was neither known nor given a subject is left out rather
+ * than guessed at: an empty period is easy to spot and fill in, a wrong
+ * subject is not.
+ */
 export function weekFromPreview(preview: ImportedTimetable, subjectFor: (code: string) => string | undefined): TimetableWeek {
   return weekFromImportedRows(preview, (cell) => cell.subjectId ?? subjectFor(cell.code));
 }

@@ -169,13 +169,6 @@ export function sameTimezone(a: string, b: string): boolean {
 }
 
 /**
- * Create a Date whose local-time methods (getHours, getMonth, etc.) reflect
- * the given IANA timezone. Works by extracting date parts via Intl and
- * reconstructing a local Date from them.
- *
- * If no timezone is provided, returns `new Date()` (system default).
- */
-/**
  * A Date's own calendar day as `YYYY-MM-DD`. The canonical spelling: pass a
  * `toTZWallTime` result to get a day in some other zone.
  */
@@ -231,6 +224,13 @@ export function timestampInTZ(now: Date = new Date(), timezone?: string): string
     + `${offset >= 0 ? '+' : '-'}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
 }
 
+/**
+ * Create a Date whose local-time methods (getHours, getMonth, etc.) reflect
+ * the given IANA timezone. Works by extracting date parts via Intl and
+ * reconstructing a local Date from them.
+ *
+ * If no timezone is provided, returns `new Date()` (system default).
+ */
 export function createTZDate(timezone?: string): Date {
   return toTZWallTime(new Date(), timezone);
 }

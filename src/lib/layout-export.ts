@@ -1,5 +1,5 @@
 import { fitModuleToDisplay } from './module-utils';
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import type { ScreenConfiguration, Screen, Profile } from '@/types/config';
 import type { LayoutExport } from '@/types/layout-export';
 import { migrateScreens, getLatestSchemaVersion } from '@/lib/migrations';
@@ -107,7 +107,7 @@ export function importLayout(
   );
 
   const newScreens: Screen[] = sourceScreens.map((screen) => {
-    const newScreenId = uuidv4();
+    const newScreenId = uuid();
     screenIdMap.set(screen.id, newScreenId);
 
     // Resolve name conflicts
@@ -129,7 +129,7 @@ export function importLayout(
       name,
       modules: screen.modules.map((m) => ({
         ...fitModuleToDisplay(m, source, target),
-        id: uuidv4(),
+        id: uuid(),
       })),
     };
   });
@@ -176,7 +176,7 @@ export function importLayout(
 function remapProfiles(profiles: Profile[], screenIdMap: Map<string, string>): Profile[] | undefined {
   const remapped = profiles.map((p) => ({
     ...p,
-    id: uuidv4(),
+    id: uuid(),
     screenIds: p.screenIds
       .map((sid) => screenIdMap.get(sid))
       .filter((id): id is string => !!id),

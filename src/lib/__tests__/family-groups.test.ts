@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupDraftProblem, groupMembers, hasPeopleFilter, pruneGroupMembers, resolvePeopleFilterMembers, sourceIdsForMembers } from '../family-groups';
+import { groupDraftProblem, groupMembers, hasPeopleFilter, pruneGroupMembers, resolvePeopleFilterMembers } from '../family-groups';
 
 const now = '2026-09-17T12:00:00.000Z';
 const member = (id: string) => ({ id, name: id, color: '#60a5fa', createdAt: now, updatedAt: now });
@@ -35,11 +35,6 @@ describe('family groups', () => {
     const groups = [group('kids', ['ella', 'noah'])];
     const filter = { memberIds: ['mom'], groupIds: ['kids', 'gone'], includeShared: false };
     expect([...resolvePeopleFilterMembers(filter, groups)].sort()).toEqual(['ella', 'mom', 'noah']);
-  });
-  it('maps people to the calendar sources they own', () => {
-    const sources = sourceIdsForMembers(new Set(['ella', 'mom']), { ella: ['soccer', 'school'], noah: ['noah-cal'], mom: [] });
-    expect([...sources].sort()).toEqual(['school', 'soccer']);
-    expect(sourceIdsForMembers(new Set(['ella']), undefined).size).toBe(0);
   });
 });
 

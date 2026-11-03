@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { readdirSync } from 'fs';
 import path from 'path';
-import { STARTER_DAY_ART, STARTER_DAY_ART_DIR, starterDayArtPath } from '../starter-day-art';
+import { STARTER_DAY_ART, STARTER_DAY_ART_URL, starterDayArtPath } from '../starter-day-art';
 
 /** The day art that ships with Home Screens. Every catalog entry must have
  *  its committed file and every committed file its entry, so the picker's
  *  thumbnails are the same files the wall renders, so they can't drift. */
 describe('starter day art', () => {
-  const dir = path.join(process.cwd(), STARTER_DAY_ART_DIR);
+  // The files live under public/ at the URL the wall loads them from.
+  const dir = path.join(process.cwd(), 'public', STARTER_DAY_ART_URL);
 
   it('every catalog entry has its svg file on disk', () => {
     const files = new Set(readdirSync(dir));

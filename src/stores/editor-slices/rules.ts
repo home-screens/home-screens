@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { DisplayRule } from '@/types/config';
 import {
@@ -22,7 +22,7 @@ export function createRuleSlice(
         // 'for' 60s is the doorbell-style shape most rules start from.
         const firstScreenId = getActiveScreens(config, selectedDisplayId)[0]?.id ?? '';
         const newRule: DisplayRule = {
-          id: uuidv4(),
+          id: uuid(),
           name,
           when: [],
           action: { kind: 'showScreen', screenId: firstScreenId, mode: 'for', seconds: 60 },
@@ -71,7 +71,7 @@ export function createRuleSlice(
         // Fresh id; blank a showScreen target since screens are per-display and
         // the source screen id won't exist on the target (empty screenId is the
         // established saveable-incomplete posture). enabled: undefined lands it on.
-        const clone: DisplayRule = { ...structuredClone(source), id: uuidv4(), enabled: undefined };
+        const clone: DisplayRule = { ...structuredClone(source), id: uuid(), enabled: undefined };
         if (clone.action.kind === 'showScreen') {
           clone.action = { ...clone.action, screenId: '' };
         }

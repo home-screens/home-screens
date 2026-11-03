@@ -44,12 +44,6 @@ export function mealTagLabel(meal: Pick<SavedMeal, 'id'>, tag: string): string {
 }
 
 /**
- * The family's own meals for a course picker: the ones saved as that kind of
- * dish first ("Add a side" leads with the sides), then everything else, each
- * in library order. Any meal can still be a side; the split only saves a
- * scroll.
- */
-/**
  * The kind of dish a meal is. A meal saved before kinds existed, or never
  * given one, is a main dish: that is what the forms show for it, and what
  * the course pickers group it under.
@@ -67,6 +61,12 @@ export function kindToSave(picked: NonNullable<SavedMeal['category']>, previous:
   return picked === 'main' && previous === undefined ? undefined : picked;
 }
 
+/**
+ * The family's own meals for a course picker: the ones saved as that kind of
+ * dish first ("Add a side" leads with the sides), then everything else, each
+ * in library order. Any meal can still be a side; the split only saves a
+ * scroll.
+ */
 export function mealsForCourse(
   savedMeals: readonly SavedMeal[],
   kind: MealCourseKind,

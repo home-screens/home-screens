@@ -38,7 +38,7 @@ export const QUARANTINE: Partial<Record<string, string>> = {
  * This does hide a change in *which* item gets picked. That is the point:
  * the pick is random by contract, so there is nothing there to regress. What
  * the gate still watches is how the picked item is laid out, sized, coloured
- * and typed, which is what every fix in plan 51 touches.
+ * and typed, which is what every settings-pipeline fix touches.
  */
 export async function pinRandom(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -53,7 +53,7 @@ export async function pinRandom(page: Page): Promise<void> {
   });
 }
 
-/** Phase-1 stand-in, with an id no module fixture can collide with. */
+/** The module the gallery loads a page with first, with an id no module fixture can collide with. */
 export const PLACEHOLDER: ModuleInstance = textModule('GALLERY PLACEHOLDER', { id: 'gallery-placeholder' });
 
 /** A moment on the wall clock. `month` counts from 1, so September is 9. */

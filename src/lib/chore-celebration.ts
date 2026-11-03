@@ -1,5 +1,3 @@
-import type { FullscreenChoreCelebration } from '@/types/config';
-
 /**
  * When a day is finished: the moment a person ticks the last chore they owe
  * today. Both the wall and the phone celebrate it, and the wall has to notice
@@ -14,9 +12,6 @@ export interface DayCounts {
   total: number;
   completed: number;
 }
-
-/** The chart's setting for what a finished day looks like; the phone follows it. */
-export type ChoreCelebration = FullscreenChoreCelebration;
 
 /** How long the celebration stays up, on the wall and on the phone, before it goes by itself. */
 export const CELEBRATION_MS = 6000;

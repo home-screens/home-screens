@@ -11,6 +11,7 @@ import type { ClockViewProps } from './types';
  * World clock — primary local time displayed large on top,
  * with compact timezone rows below showing up to 3 additional zones.
  */
+
 /** Whole days from one `YYYY-MM-DD` to another. */
 function daysBetween(from: string, to: string): number {
   const utc = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));

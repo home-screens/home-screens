@@ -6,7 +6,6 @@ import { FULLSCREEN_THEMES } from '../fullscreen-themes';
 import {
   STARTER_BACKGROUNDS,
   STARTER_BACKGROUNDS_DIR,
-  starterBackgroundForTheme,
   starterBackgroundsIn,
 } from '../starter-backgrounds';
 import { buildStarterBackgroundSvg, parseGradientLayers } from '../starter-background-svg';
@@ -31,15 +30,13 @@ describe('starter background catalog', () => {
   });
 
   it('ships one wall per fullscreen theme, painted from that theme', () => {
+    const walls = starterBackgroundsIn('theme');
     for (const theme of FULLSCREEN_THEMES) {
-      const wall = starterBackgroundForTheme(theme.id);
+      const wall = walls.find((bg) => bg.themeId === theme.id);
       expect(wall, `theme ${theme.id} has no wall`).toBeDefined();
-      expect(wall?.group).toBe('theme');
       expect(wall?.paint).toEqual({ bg: theme.tokens.bg, bgImage: theme.tokens.bgImage });
     }
-    expect(starterBackgroundsIn('theme')).toHaveLength(FULLSCREEN_THEMES.length);
-    expect(starterBackgroundForTheme('no-such-theme')).toBeUndefined();
-    expect(starterBackgroundForTheme(undefined)).toBeUndefined();
+    expect(walls).toHaveLength(FULLSCREEN_THEMES.length);
   });
 });
 

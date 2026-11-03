@@ -10,10 +10,12 @@ import { GROCERY_CATEGORY_ORDER, groceryAisle } from '@/lib/grocery-utils';
 import { emojiGridWithChosen } from '@/lib/icon-value';
 import { useTranslate } from '@/i18n';
 import FormOverlay from './FormOverlay';
+import SaveDeleteFooter from './SaveDeleteFooter';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import PhoneCustomIconSection, { PHONE_SUBHEAD_STYLE } from '@/components/custom-icons/PhoneCustomIconSection';
 import CustomIconsOverlay from './CustomIconsOverlay';
 import { withAlpha } from '@/lib/hex-color';
+import { REMOTE_ACCENT, selectedPillStyle } from './chore-form-styles';
 
 interface MealFormOverlayProps {
   form: MealFormState;
@@ -84,59 +86,15 @@ export default function MealFormOverlay({
       : t('mealForm.saveChangesSubmit');
 
   const footer = (
-    <div
-      style={{
-        padding: '12px 16px',
-        borderTop: '1px solid var(--hs-border)',
-      }}
-    >
-      {saveError && (
-        <div style={{ fontSize: 13, color: 'var(--hs-danger)', marginBottom: 8, textAlign: 'center' }}>
-          {saveError}
-        </div>
-      )}
-      <button
-        onClick={onSave}
-        disabled={!formName.trim() || saving}
-        style={{
-          width: '100%',
-          padding: '14px 24px',
-          minHeight: 50,
-          fontSize: 15,
-          fontWeight: 700,
-          borderRadius: 12,
-          border: 'none',
-          cursor: formName.trim() && !saving ? 'pointer' : 'default',
-          background: formName.trim() && !saving ? '#f59e0b' : 'var(--hs-text-faint)',
-          color: formName.trim() && !saving ? '#000' : 'var(--hs-text-muted)',
-          opacity: formName.trim() && !saving ? 1 : 0.5,
-          transition: 'all 0.15s',
-        }}
-      >
-        {saveLabel}
-      </button>
-      {editingMeal !== 'new' && (
-        <button
-          onClick={onDelete}
-          style={{
-            width: '100%',
-            padding: '12px',
-            minHeight: 44,
-            marginTop: 8,
-            fontSize: 14,
-            fontWeight: 600,
-            borderRadius: 10,
-            border: 'none',
-            background: 'color-mix(in srgb, var(--hs-danger) 12%, transparent)',
-            color: 'var(--hs-danger)',
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}
-        >
-          {t('mealForm.deleteButton')}
-        </button>
-      )}
-    </div>
+    <SaveDeleteFooter
+      saveLabel={saveLabel}
+      canSave={Boolean(formName.trim()) && !saving}
+      onSave={() => void onSave()}
+      notice={saveError}
+      noticeTone="danger"
+      deleteLabel={editingMeal !== 'new' ? t('mealForm.deleteButton') : undefined}
+      onDelete={onDelete}
+    />
   );
 
   return (
@@ -184,8 +142,8 @@ export default function MealFormOverlay({
                 width: '100%',
                 aspectRatio: '1',
                 borderRadius: 8,
-                border: formEmoji === emoji ? '2px solid #f59e0b' : '2px solid transparent',
-                background: formEmoji === emoji ? 'rgba(245,158,11,0.12)' : 'var(--hs-bg-panel)',
+                border: formEmoji === emoji ? `2px solid ${REMOTE_ACCENT}` : '2px solid transparent',
+                background: formEmoji === emoji ? withAlpha(REMOTE_ACCENT, 0.12) : 'var(--hs-bg-panel)',
                 cursor: 'pointer',
                 fontSize: 22,
                 display: 'flex',
@@ -284,9 +242,7 @@ export default function MealFormOverlay({
                   fontSize: 13,
                   fontWeight: 600,
                   borderRadius: 999,
-                  border: isSelected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-                  background: isSelected ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
-                  color: isSelected ? '#f59e0b' : 'var(--hs-text-faint)',
+                  ...selectedPillStyle(isSelected),
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                 }}
@@ -317,9 +273,7 @@ export default function MealFormOverlay({
                   fontSize: 12,
                   fontWeight: 600,
                   borderRadius: 999,
-                  border: isActive ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-                  background: isActive ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
-                  color: isActive ? '#f59e0b' : 'var(--hs-text-faint)',
+                  ...selectedPillStyle(isActive),
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                 }}
@@ -467,8 +421,8 @@ export default function MealFormOverlay({
                 height: 44,
                 borderRadius: 8,
                 border: 'none',
-                background: star <= formRating ? 'rgba(245,158,11,0.2)' : 'var(--hs-bg-panel)',
-                color: star <= formRating ? '#f59e0b' : 'var(--hs-border-strong)',
+                background: star <= formRating ? withAlpha(REMOTE_ACCENT, 0.2) : 'var(--hs-bg-panel)',
+                color: star <= formRating ? REMOTE_ACCENT : 'var(--hs-border-strong)',
                 fontSize: 22,
                 cursor: 'pointer',
                 display: 'flex',

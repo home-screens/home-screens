@@ -2,13 +2,11 @@
 
 import { memo } from 'react';
 import { isDotActive, DOT_COLS, DOT_ROWS } from './dot-matrix-font';
-import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
-import { localeWeekStart } from '@/lib/week-number';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { parseClockTime } from '@/lib/date-info';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
-import { clockDatePattern } from './date-pattern';
+import { CLOCK_INFO_LABELS, useClockDateLine, useDateInfoLine } from './use-date-info';
 import type { ClockViewProps } from './types';
 import { withAlpha } from '@/lib/hex-color';
 
@@ -57,8 +55,6 @@ const DotCharacter = memo(function DotCharacter({
 });
 
 export default function ClockDotMatrixView({ config, format24h, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
-  const t = useTranslate('modules');
-  const locale = useFormattingLocale();
   const { h, mStr, sStr } = parseClockTime(format24h, time);
   // Dot-matrix needs space-padded hours in 12h mode for consistent grid layout
   const hStr = format24h ? String(h).padStart(2, '0') : String(h).padStart(2, ' ');
@@ -73,15 +69,8 @@ export default function ClockDotMatrixView({ config, format24h, now, time, scale
   const charGap = dotGap * 3;
   const colonGap = dotGap * 1.5;
 
-  const dateStr = config.showDate
-    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
-    : null;
-
-  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
-  const infoParts: string[] = [];
-  if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);
-  if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);
-  const infoStr = infoParts.length > 0 ? infoParts.join(' \u00b7 ') : null;
+  const dateStr = useClockDateLine(config, now);
+  const { text: infoStr } = useDateInfoLine(config, now, CLOCK_INFO_LABELS);
 
   return (
     <div

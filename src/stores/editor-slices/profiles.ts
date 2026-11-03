@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { Profile } from '@/types/config';
 import {
@@ -19,7 +19,7 @@ export function createProfileSlice(
       const { selectedDisplayId } = get();
       mutateConfig((config) => {
         const newProfile: Profile = {
-          id: uuidv4(),
+          id: uuid(),
           name,
           screenIds: getActiveScreens(config, selectedDisplayId).map((s) => s.id),
         };

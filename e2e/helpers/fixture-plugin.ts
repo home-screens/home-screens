@@ -20,7 +20,7 @@ export const FIXTURE_STATE_KEY = 'plugin:e2e-fixture:flag';
  * install-tarball fixture can be checked for drift against it — see the
  * parity test in e2e/editor/plugin-lifecycle.spec.ts. Keep this the single
  * source of truth; the tarball is regenerated from it via
- * e2e/fixtures/plugins/build-plugin-fixtures.mjs.
+ * e2e/fixtures/plugins/build-plugin-fixtures.ts.
  */
 export const MANIFEST = {
   id: FIXTURE_PLUGIN_ID,
@@ -271,7 +271,7 @@ export const SEARCH_BUNDLE = `(function () {
 /**
  * A variant bundle that paints its own card from the `style` prop, the way
  * every shipped plugin does (each carries a ModuleStyle-to-CSS function and
- * spreads it onto its root; see plan 50, item 2). Plugins render bare, outside
+ * spreads it onto its root). Plugins render bare, outside
  * ModuleWrapper, so this is the only way Style controls reach them, and it is
  * what the style matrix (e2e/display/module-style.spec.ts) proves the host
  * still delivers. The visible label is unchanged from {@link BUNDLE}.

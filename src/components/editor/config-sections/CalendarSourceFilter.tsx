@@ -5,6 +5,7 @@ import { useEditorStore } from '@/stores/editor-store';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import type { ICalSource, ICloudSource } from '@/types/config';
+import type { GoogleCalendar } from '@/hooks/useGoogleCalendars';
 
 // Stable fallbacks for the store selectors below. A literal `?? []` inside a
 // zustand selector mints a new array per snapshot when the key is absent,
@@ -14,13 +15,6 @@ import type { ICalSource, ICloudSource } from '@/types/config';
 const EMPTY_IDS: string[] = [];
 const EMPTY_ICAL: ICalSource[] = [];
 const EMPTY_ICLOUD: ICloudSource[] = [];
-
-interface GoogleCalendar {
-  id: string;
-  summary: string;
-  backgroundColor: string;
-  primary: boolean;
-}
 
 export interface CalendarSource {
   id: string;

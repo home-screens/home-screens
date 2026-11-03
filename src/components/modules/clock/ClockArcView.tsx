@@ -2,16 +2,15 @@
 
 import { useId, useState, useEffect } from 'react';
 import { parseClockTime } from '@/lib/date-info';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
-import { clockDatePattern } from './date-pattern';
+import { useClockDateLine } from './use-date-info';
 import type { ClockViewProps } from './types';
 import { UI_SANS_STACK } from '@/lib/font-registry';
 
 export default function ClockArcView({ config, format24h, now, time, scaledFontSize, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const locale = useFormattingLocale();
   const id = useId();
   const arcGradientId = `arc-gradient-${id}`;
   const sunGlowId = `sun-glow-${id}`;
@@ -33,9 +32,7 @@ export default function ClockArcView({ config, format24h, now, time, scaledFontS
     ? `${hStr}:${mStr}:${sStr}${period}`
     : `${hStr}:${mStr}${period}`;
 
-  const dateStr = config.showDate
-    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
-    : null;
+  const dateStr = useClockDateLine(config, now);
 
   const svgWidth = Math.max(200, scaledFontSize * 16);
   const svgHeight = svgWidth * 0.55;

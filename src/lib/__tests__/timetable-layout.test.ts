@@ -23,7 +23,6 @@ import {
   resolveHeading,
   rowFacts,
   cardBoxIn,
-  shedFor,
   shedPreset,
   TIMETABLE_PRESETS,
   weekDifferences,
@@ -552,6 +551,30 @@ describe('resolveFocus', () => {
     const focus = resolveFocus(utc('2026-09-12T08:00:00Z'), ZONE, ctx);
     expect(focus).toMatchObject({ focusDate: '2026-09-21', focusLabelKind: 'date' });
     expect(focus.holiday?.backOn).toBe('2026-09-21');
+  });
+
+  it('keeps walking past a public holiday and a closure that follow the break', () => {
+    // The break ends on a Sunday, Whit Monday is a public holiday and the school
+    // takes the Tuesday for itself, so the first day back is the Wednesday.
+    const school = withSpecialDays(GAR, [{ date: '2027-05-18', label: 'Studientag', kind: 'off' }]);
+    const ctx = context(LEON, school, {
+      schoolHolidays: [{ name: 'Pfingstferien', start: '2027-05-10', end: '2027-05-16' }],
+      publicHolidays: [{ date: '2027-05-17', name: 'Pfingstmontag' }],
+    });
+    const focus = resolveFocus(utc('2027-05-12T08:00:00Z'), ZONE, ctx);
+    expect(focus).toMatchObject({ focusDay: 'wed', focusDate: '2027-05-19', focusLabelKind: 'date' });
+    expect(focus.holiday).toEqual({ name: 'Pfingstferien', backOn: '2027-05-19' });
+  });
+
+  it('runs two breaks that touch into one', () => {
+    const ctx = context(LEON, GAR, {
+      schoolHolidays: [
+        { name: 'Osterferien', start: '2027-03-29', end: '2027-04-09' },
+        { name: 'Bewegliche Ferientage', start: '2027-04-12', end: '2027-04-13' },
+      ],
+    });
+    const focus = resolveFocus(utc('2027-04-01T08:00:00Z'), ZONE, ctx);
+    expect(focus.holiday).toEqual({ name: 'Osterferien', backOn: '2027-04-14' });
   });
 
   it('stays on a public holiday and marks the column shut', () => {
@@ -1119,6 +1142,8 @@ describe('the cards in one row agree', () => {
 describe('a size bigger than the cells can hold', () => {
   /** The registry default box, three cards, with the rows a week really has. */
   const input = withRows(DEFAULT_3UP, LEON, GAR, 'more');
+  /** The rung the card settles on when asked for `wanted`. */
+  const shedFor = (card: CardMetricsInput, wanted: number) => resolveCardFontSize(card, wanted).shed;
 
   it('is honoured, and the cells give up the room first and the names after', () => {
     // Text size goes to 160% and every cell clips its own contents, so a card

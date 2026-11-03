@@ -7,9 +7,10 @@ import type { RewardData, RewardDefinition } from '../reward-data';
 let tmpDir: string;
 let origCwd: () => string;
 
-// Re-imported per test so the internal `opQueue` is reset between cases.
-// Without vi.resetModules() each test, a failed enqueueOp in one test could
-// poison the shared queue and make later tests behave unpredictably.
+// Re-imported per test so the store's per-file write queue (`updateAtomic` in
+// json-store.ts) is reset between cases. Without vi.resetModules() each test, a
+// failed update in one test could poison the shared queue and make later tests
+// behave unpredictably.
 let mod: typeof import('../reward-data');
 
 async function writeRewardsFile(data: RewardData): Promise<void> {
@@ -333,7 +334,7 @@ describe('redeemReward', () => {
   });
 });
 
-describe('enqueueOp serialization', () => {
+describe('write serialization', () => {
   it('serializes concurrent credits so none are lost', async () => {
     // Fire a batch of concurrent credit operations. If the op queue were
     // broken (read-modify-write races) the final balance would undercount.

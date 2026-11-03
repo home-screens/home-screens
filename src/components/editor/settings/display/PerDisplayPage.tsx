@@ -31,13 +31,6 @@ import OverridesSubtab from './OverridesSubtab';
  * everything to disk in one go. Skipping the local form layer means
  * undo/redo and per-keystroke validation come for free.
  */
-/**
- * Re-export the canonical subtab list from `lib/settings-route` so external
- * callers that already imported it from this file keep working. The const
- * itself moved to the lib so the route parser can validate `?subtab=X`
- * without dragging a client component into the test path.
- */
-export { PER_DISPLAY_SUBTABS, type PerDisplaySubtab };
 
 interface PerDisplayPageProps {
   displayId: string;

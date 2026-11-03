@@ -7,6 +7,7 @@ import { clampDayNoteText, dayNoteLength, normalizeDayNoteText } from '@/lib/day
 import { DAY_NOTES_LIMITS, type DayNote } from '@/types/day-notes';
 import BottomSheet from './BottomSheet';
 import { DANGER_BUTTON, HELPER_TEXT, PRIMARY_BUTTON, SHEET_FIELD, SHEET_LABEL } from './lists-styles';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 /** `YYYY-MM-DD` as a Date at noon, so formatting it never slips a day. */
 export function dateOfIso(iso: string): Date {
@@ -19,7 +20,6 @@ export function dayInWords(iso: string, locale: string): string {
   return fullDateHeading(dateOfIso(iso), locale);
 }
 
-const AMBER = '#f59e0b';
 /** The counter turns amber this close to the cap, so the cap is never a surprise. */
 const NEAR_LIMIT = 10;
 
@@ -61,7 +61,7 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
     <BottomSheet
       title={dayInWords(date, locale)}
       titleAside={(
-        <span style={{ color: used >= max - NEAR_LIMIT ? AMBER : undefined }}>
+        <span style={{ color: used >= max - NEAR_LIMIT ? REMOTE_ACCENT : undefined }}>
           {t('notes.counter', { used, max })}
         </span>
       )}
@@ -98,7 +98,7 @@ export default function DayNoteSheet({ date, note, initialText, onSave, onRemove
           style={{ ...SHEET_FIELD, display: 'block', minHeight: 72, lineHeight: 1.35, resize: 'none', hyphens: 'auto' }}
         />
         {used >= max && (
-          <p id={limitId} role="status" style={{ ...HELPER_TEXT, color: AMBER, fontSize: 13 }}>
+          <p id={limitId} role="status" style={{ ...HELPER_TEXT, color: REMOTE_ACCENT, fontSize: 13 }}>
             {t('notes.dayNotes.atLimit')}
           </p>
         )}

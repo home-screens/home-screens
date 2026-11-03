@@ -23,6 +23,8 @@ import MealThumb from './MealThumb';
 import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
 import { formatShownMinutes } from './meals-shared';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealPickerSheetProps {
   target: MealPickTarget;
@@ -135,7 +137,7 @@ export default function MealPickerSheet(props: MealPickerSheetProps) {
 }
 
 function Tick() {
-  return <span aria-hidden="true" style={{ fontSize: 15, color: '#f59e0b', fontWeight: 700, flex: 'none' }}>&#10003;</span>;
+  return <span aria-hidden="true" style={{ fontSize: 15, color: REMOTE_ACCENT, fontWeight: 700, flex: 'none' }}>&#10003;</span>;
 }
 
 /** Mealie's recipes, searched live through the hub. */
@@ -251,7 +253,7 @@ function MealieBody({ target, chosenIds, onPickMeal, onPickText }: MealPickerShe
                   <span
                     style={{
                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                      fontSize: 15, fontWeight: 600, lineHeight: '20px', color: chosen ? '#f59e0b' : 'var(--hs-text-primary)',
+                      fontSize: 15, fontWeight: 600, lineHeight: '20px', color: chosen ? REMOTE_ACCENT : 'var(--hs-text-primary)',
                     }}
                   >
                     {meal.name}
@@ -301,8 +303,8 @@ function TypeInsteadRow({ title, note, lit, onClick, testId }: {
         data-testid={testId}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', minHeight: 56,
-          borderRadius: 12, border: `1px dashed ${lit ? '#f59e0b' : 'var(--hs-border-strong)'}`,
-          background: lit ? 'rgba(245,158,11,0.08)' : 'transparent',
+          borderRadius: 12, border: `1px dashed ${lit ? REMOTE_ACCENT : 'var(--hs-border-strong)'}`,
+          background: lit ? withAlpha(REMOTE_ACCENT, 0.08) : 'transparent',
           textAlign: 'left', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit',
         }}
       >
@@ -386,7 +388,7 @@ function LocalBody({ target, library, chosenIds, initialText, onPickMeal, onPick
         }}
       >
         <span style={{ fontSize: 24 }}><Glyph value={meal.emoji ?? DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
-        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: chosen ? '#f59e0b' : 'var(--hs-text-primary)' }}>
+        <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: chosen ? REMOTE_ACCENT : 'var(--hs-text-primary)' }}>
           {meal.name}
         </span>
         {chosen && <Tick />}

@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { usePluginStore } from '@/stores/plugin-store';
 import { useTranslate } from '@/i18n';
 import { collectProvidedStateKeys } from '@/lib/provided-state-keys';

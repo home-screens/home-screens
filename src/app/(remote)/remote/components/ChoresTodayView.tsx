@@ -18,6 +18,7 @@ import ChoreRow, { type ChoreRowAssignment } from './ChoreRow';
 import BonusChoreRow from './BonusChoreRow';
 import DayCompleteSheet from './DayCompleteSheet';
 import type { ChoreRowNotice } from '../hooks/useChoreMarks';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
   morning: Sunrise,
@@ -435,8 +436,8 @@ export default function ChoresTodayView({
             {bonusItems.length > 0 && (
               <div data-testid="bonus-section" style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 0 2px' }}>
-                  <Hand size={16} color="#f59e0b" strokeWidth={2} />
-                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#f59e0b' }}>
+                  <Hand size={16} color={REMOTE_ACCENT} strokeWidth={2} />
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: REMOTE_ACCENT }}>
                     {tModules('chore-chart.bonus.heading')}
                   </span>
                 </div>

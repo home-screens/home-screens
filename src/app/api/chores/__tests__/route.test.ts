@@ -267,7 +267,7 @@ describe('GET /api/chores', () => {
 
     await GET(getRequest());
 
-    // Stale entry exists → purge mutates the array → enqueueOp persists the change.
+    // Stale entry exists → purge mutates the array → the store's updateAtomic persists the change.
     expect(fsPromises.writeFile).toHaveBeenCalled();
   });
 

@@ -1,29 +1,14 @@
 /**
- * Public i18n barrel. Importers should reach for `@/i18n` rather than the
- * individual modules — this keeps the surface area small and gives us a
- * single place to evolve the API.
+ * Public i18n barrel: what components and the plugin host import from
+ * `@/i18n`. The loader, manifest and formatter modules are imported directly
+ * by the few server and test callers that need their internals.
  */
 
-export { I18nProvider, useTranslate, useLocale, useFormattingLocale, translate } from './provider';
+export { I18nProvider, useTranslate, useLocale, useFormattingLocale } from './provider';
 export { dayMonthPattern, dayOfMonthPattern, formatDayRange, fullDateHeading, fullDatePattern, formatDateSync, formatNumber, formatRelativeTime } from './formatters';
-export { LOCALES, FALLBACK_LOCALE, DEFAULT_LOCALE, isRegisteredLocale } from './manifest';
-export { pluralCategory } from './plural';
+export { LOCALES, FALLBACK_LOCALE, DEFAULT_LOCALE } from './manifest';
 export { resolveLocaleChain, resolveShippedLocale, lookupKey, tOrFallback } from './fallback';
-export {
-  loadNamespace,
-  hydrateFromBlob,
-  getCachedNamespace,
-  registerPluginNamespace,
-  revalidateLoaderCache,
-} from './loader';
+export { getCachedNamespace, registerPluginNamespace, revalidateLoaderCache } from './loader';
 export { BUILT_IN_NAMESPACES } from './types';
 
-export type {
-  Locale,
-  Dictionary,
-  Namespace,
-  TranslateFn,
-  LocaleManifest,
-  LocaleManifestEntry,
-} from './types';
-export type { PluralCategory } from './plural';
+export type { Dictionary, Namespace, TranslateFn } from './types';

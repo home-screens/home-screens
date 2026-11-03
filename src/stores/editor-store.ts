@@ -12,14 +12,6 @@ import { createDisplaySlice } from '@/stores/editor-slices/displays';
 import { createLayoutSlice } from '@/stores/editor-slices/layout';
 import type { EditorState, MutateConfig } from '@/stores/editor-slices/types';
 
-// Re-export pure multi-display helpers so existing consumers that import
-// them from `@/stores/editor-store` keep working after the split.
-export { getActiveScreens, getActiveDimensions, getActiveFullscreenTheme, getActiveRules } from '@/lib/editor-multi-display';
-
-// `orientDimensions` now lives in `@/lib/display-filter` so the server-side
-// per-display filter can share it. Re-exported here for existing callers.
-export { orientDimensions } from '@/lib/display-filter';
-
 export type { EditorState } from '@/stores/editor-slices/types';
 
 /**

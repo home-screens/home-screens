@@ -22,17 +22,22 @@ import { fetchWithTimeout } from '@/lib/api-utils';
 import {
   clearSchoolHolidayCaches,
   currentSchoolYear,
-  getPublicHolidays,
-  getSchoolDayInfo,
   getSchoolHolidays,
   getSubdivisions,
   pickLocalizedName,
   schoolYearOf,
   SchoolHolidaysError,
+  type HolidayLists,
   type LocalizedText,
+  type SchoolHolidayPeriod,
 } from '@/lib/school-holidays';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
+
+/** The school holiday a day falls in, read straight off the lists. */
+function holidayOn(date: string, lists: HolidayLists): SchoolHolidayPeriod | undefined {
+  return lists.schoolHolidays.find((p) => p.startDate <= date && date <= p.endDate);
+}
 
 // ---------------------------------------------------------------------------
 // Test data, shaped like the live openholidaysapi.org rows
@@ -201,9 +206,9 @@ describe('getSchoolHolidays results', () => {
 
     // The end date is inclusive: 31 October is still a day off, 1 November is
     // no longer part of the autumn break.
-    expect(getSchoolDayInfo('2026-10-31', result).holiday?.id).toBe('nrw-herbst');
-    expect(getSchoolDayInfo('2026-11-01', result).holiday).toBeNull();
-    expect(getSchoolDayInfo('2026-09-01', result).holiday?.id).toBe('nrw-sommer-25');
+    expect(holidayOn('2026-10-31', result)?.id).toBe('nrw-herbst');
+    expect(holidayOn('2026-11-01', result)).toBeUndefined();
+    expect(holidayOn('2026-09-01', result)?.id).toBe('nrw-sommer-25');
   });
 
   it('drops rows that only apply to a few islands', async () => {
@@ -274,11 +279,8 @@ describe('getSchoolHolidays results', () => {
     });
 
     const result = await getSchoolHolidays('LI', 2026);
-    const info = getSchoolDayInfo('2027-04-02', result);
     expect(result.schoolHolidays[0].halfDay).toBe(true);
     expect(result.schoolHolidays[0].notes?.[0].text).toBe('Ab Mittag');
-    expect(info.schoolDay).toBe(true);
-    expect(info.backToSchool).toBeNull();
   });
 
   it('answers with an empty list for a country the data does not cover', async () => {
@@ -289,12 +291,6 @@ describe('getSchoolHolidays results', () => {
     expect(result.messageKey).toBeUndefined();
     expect(result.schoolHolidays).toEqual([]);
     expect(result.publicHolidays).toEqual([]);
-  });
-
-  it('hands back only the public holidays when that is all the caller wants', async () => {
-    respond({ school: NRW_SCHOOL, public: NRW_PUBLIC });
-    const days = await getPublicHolidays('DE-NW', 2026);
-    expect(days.map((d) => d.date)).toEqual(['2026-10-03', '2026-11-01', '2027-05-17', '2027-05-27']);
   });
 });
 
@@ -338,61 +334,6 @@ describe('pickLocalizedName', () => {
 // School days
 // ---------------------------------------------------------------------------
 
-describe('getSchoolDayInfo', () => {
-  async function nrw() {
-    respond({ school: NRW_SCHOOL, public: NRW_PUBLIC });
-    return getSchoolHolidays('DE-NW', 2026);
-  }
-
-  it('says school is back on the Monday after the autumn break', async () => {
-    const data = await nrw();
-    // The break ends on Saturday 31 October 2026 and the Sunday after it is
-    // Allerheiligen, so the first day back is Monday 2 November.
-    const info = getSchoolDayInfo('2026-10-26', data);
-    expect(info.schoolDay).toBe(false);
-    expect(info.holiday?.id).toBe('nrw-herbst');
-    expect(info.backToSchool).toBe('2026-11-02');
-    expect(getSchoolDayInfo('2026-10-31', data).backToSchool).toBe('2026-11-02');
-    expect(getSchoolDayInfo('2026-11-01', data).backToSchool).toBe('2026-11-02');
-  });
-
-  it('counts a public holiday on a school day as a day off', async () => {
-    const data = await nrw();
-    // Fronleichnam is a Thursday, so school is back on the Friday.
-    const info = getSchoolDayInfo('2027-05-27', data);
-    expect(info.schoolDay).toBe(false);
-    expect(info.publicHoliday?.id).toBe('de-fronleichnam');
-    expect(info.holiday).toBeNull();
-    expect(info.backToSchool).toBe('2027-05-28');
-  });
-
-  it('runs a public holiday and the break after it together', async () => {
-    const data = await nrw();
-    // Pfingstmontag is followed by a single day of Pfingstferien.
-    expect(getSchoolDayInfo('2027-05-17', data).backToSchool).toBe('2027-05-19');
-  });
-
-  it('says nothing is coming up on an ordinary school day', async () => {
-    const data = await nrw();
-    const info = getSchoolDayInfo('2026-10-16', data);
-    expect(info.schoolDay).toBe(true);
-    expect(info.holiday).toBeNull();
-    expect(info.publicHoliday).toBeNull();
-    expect(info.backToSchool).toBeNull();
-  });
-
-  it('skips the weekend from a Saturday', async () => {
-    const data = await nrw();
-    expect(getSchoolDayInfo('2026-09-05', data).backToSchool).toBe('2026-09-07');
-  });
-
-  it('refuses a date it cannot read', async () => {
-    const data = await nrw();
-    expect(() => getSchoolDayInfo('26.10.2026', data)).toThrow(SchoolHolidaysError);
-    expect(() => getSchoolDayInfo('2026-99-99', data)).toThrow(SchoolHolidaysError);
-  });
-});
-
 // ---------------------------------------------------------------------------
 // The saved copy
 // ---------------------------------------------------------------------------
@@ -412,7 +353,7 @@ describe('the saved copy', () => {
     expect(offline.fetchedAt).toBe(first.fetchedAt);
     expect(offline.schoolHolidays.map((h) => h.id)).toEqual(first.schoolHolidays.map((h) => h.id));
     // Still enough to keep the wall right while the network is down.
-    expect(getSchoolDayInfo('2026-10-26', offline).backToSchool).toBe('2026-11-02');
+    expect(holidayOn('2026-10-26', offline)?.id).toBe('nrw-herbst');
   });
 
   it('says so plainly when there is nothing saved to fall back on', async () => {
@@ -532,9 +473,11 @@ describe('the North Rhine-Westphalia fixture', () => {
   });
 
   it('reads the way the verified dates say it should', () => {
-    expect(getSchoolDayInfo('2026-10-26', fixture).backToSchool).toBe('2026-11-02');
-    expect(getSchoolDayInfo('2027-05-06', fixture).publicHoliday?.names[0].text).toBe('Christi Himmelfahrt');
-    expect(getSchoolDayInfo('2026-10-16', fixture).schoolDay).toBe(true);
+    expect(pickLocalizedName(holidayOn('2026-10-26', fixture)?.names, 'de-DE')).toBe('Herbstferien');
+    expect(holidayOn('2026-10-31', fixture)?.endDate).toBe('2026-10-31');
+    expect(fixture.publicHolidays.find((d) => d.date === '2027-05-06')?.names[0].text).toBe('Christi Himmelfahrt');
+    expect(holidayOn('2026-10-16', fixture)).toBeUndefined();
+    expect(fixture.publicHolidays.find((d) => d.date === '2026-10-16')).toBeUndefined();
   });
 });
 

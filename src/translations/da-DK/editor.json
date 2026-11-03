@@ -594,7 +594,6 @@
         "checkingConnection": "Tjekker forbindelsen…",
         "connected": "Forbundet til Google",
         "disconnect": "Afbryd",
-        "selectCalendars": "Vælg kalendere, der skal vises",
         "noCalendars": "Ingen kalendere fundet.",
         "primaryBadge": "(primær)",
         "hideDeclinedLabel": "Skjul begivenheder du har afvist",
@@ -653,7 +652,6 @@
       },
       "health": {
         "heading": "Kildestatus",
-        "holidays": "Helligdage",
         "updated": "Opdateret {time}",
         "updatedNow": "Lige opdateret",
         "notUpdating": "Opdateres ikke",
@@ -2775,25 +2773,6 @@
     "title": "Pligtskema",
     "subtitleMembersChores": "{members} medlemmer · {chores} pligter",
     "loadError": "Kunne ikke indlæse pligtdata. Ændringer bliver ikke gemt.",
-    "members": {
-      "columnTitle": "Familiemedlemmer",
-      "empty": "Ingen medlemmer endnu",
-      "addButton": "Tilføj medlem",
-      "addSubmit": "Tilføj medlem",
-      "saveSubmit": "Gem",
-      "editAriaLabel": "Redigér {name}",
-      "deleteAriaLabel": "Slet {name}",
-      "deleteConfirm": {
-        "title": "Fjern medlem",
-        "message": "Vil du fjerne \"{name}\"? Det fjerner dem også fra alle pligter.",
-        "confirmLabel": "Fjern"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Navn…",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Vælg egen farve"
-    },
     "chores": {
       "columnTitle": "Pligter",
       "addButton": "Tilføj pligt",
@@ -5270,7 +5249,6 @@
       "artUpload": "Tilføj billede",
       "artUploading": "Tilføjer…",
       "artUploadHint": "Billede eller SVG, op til 10 MB",
-      "artUploadFailed": "Billedet kunne ikke tilføjes.",
       "artNames": {
         "birthday": "Fødselsdag",
         "christmas": "Jul",

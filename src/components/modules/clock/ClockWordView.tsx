@@ -1,22 +1,19 @@
 'use client';
 
 import { timeToWords } from './word-time';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
-import { clockDatePattern } from './date-pattern';
+import { useClockDateLine } from './use-date-info';
 import type { ClockViewProps } from './types';
 import { EDITORIAL_SERIF_STACK } from '@/lib/font-registry';
 
 export default function ClockWordView({ config, now, time, scaledFontSize, fitToBox, containerRef }: ClockViewProps) {
   const t = useTranslate('modules');
-  const locale = useFormattingLocale();
   const words = timeToWords(t, time.hours, time.minutes);
 
-  const dateStr = config.showDate
-    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
-    : null;
+  const dateStr = useClockDateLine(config, now);
 
   return (
     <div

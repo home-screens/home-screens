@@ -317,29 +317,3 @@ export function useFormattingLocale(): string {
   }
   return ctx.formattingLocale;
 }
-
-/**
- * Pure server-side translate. Walks the same fallback chain as `useTranslate`
- * but takes the dictionaries explicitly so server components can call it
- * without a React context.
- *
- * `dictionaries` is keyed by locale tag, with each value being a single
- * namespace dictionary. (A server component typically only loads one
- * namespace at a time, so collapsing the namespace key here keeps the
- * call site readable.)
- */
-export function translate(
-  key: string,
-  vars: Record<string, string | number> | undefined,
-  locale: string,
-  dictionaries: Record<string, Dictionary>,
-): string {
-  const chain = resolveLocaleChain(locale, FALLBACK_LOCALE);
-  for (const tag of chain) {
-    const dict = dictionaries[tag];
-    if (!dict) continue;
-    const value = lookupKey(dict, key, vars, tag);
-    if (value !== undefined) return value;
-  }
-  return key;
-}

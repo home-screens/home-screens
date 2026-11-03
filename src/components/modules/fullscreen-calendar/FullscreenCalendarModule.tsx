@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarX } from 'lucide-react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useTZClock } from '@/hooks/useTZClock';
+import { getOrientation } from '@/lib/orientation';
 import { rulesNeedNow, selectCalendarEvents } from '@/lib/calendar-rules';
 import { clampRollingWeeks, listViewCutoff, weekStartsOnFor } from '@/lib/calendar-utils';
 import { householdTimeFormat } from '@/lib/clock-time';
@@ -82,11 +83,6 @@ function legendStripStyle(scale: CalendarScale): React.CSSProperties {
     position: 'relative',
     zIndex: 20,
   };
-}
-
-function getOrientation(w: number, h: number): 'portrait' | 'landscape' {
-  const ratio = w / h;
-  return ratio < 1.2 && h > w ? 'portrait' : 'landscape';
 }
 
 /**

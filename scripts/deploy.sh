@@ -6,7 +6,7 @@ set -euo pipefail
 # This is a workstation tool for fast iterating against a Pi via SSH/rsync.
 # It is NOT the production upgrade mechanism — production devices upgrade
 # themselves via the on-device tarball pipeline (scripts/upgrade.sh, driven
-# by the editor's Updates page or POST /api/upgrade). Releases tagged via
+# by the editor's Updates page or POST /api/system/upgrade). Releases tagged via
 # scripts/release.sh build a tarball in CI that the on-device pipeline
 # consumes; this script is a separate dev-only path.
 #

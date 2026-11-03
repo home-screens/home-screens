@@ -83,6 +83,16 @@ describe('fold-in of pre-v2 inline items', () => {
     config: { title, items, accentColor: '#000000', interactive: true },
   });
 
+  /**
+   * The fold after a crash: the process comes back with the flag still unset
+   * on disk, so the next read scans config.json again.
+   */
+  async function retryFold(): Promise<TodoData> {
+    vi.resetModules();
+    mod = await import('../todo-data');
+    return mod.readTodoData();
+  }
+
   it('moves each module\'s items into a list, points the module at it, and strips the items', async () => {
     await writeData('config.json', {
       version: 12,
@@ -149,10 +159,12 @@ describe('fold-in of pre-v2 inline items', () => {
     await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [legacyModule('m1', 'Groceries', items)] }] });
     const first = await mod.readTodoData();
     expect(first.lists).toHaveLength(1);
-    // The same layout arrives again (a re-import, a restored backup): the
-    // module is folded onto the list that already holds these item ids.
+    // The strip of config.json failed after the lists had landed, and the
+    // retry finds the same items on a layout that was saved again meanwhile:
+    // the module is folded onto the list that already holds these item ids.
+    await writeData('todos.json', { lists: first.lists });
     await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [legacyModule('m2', 'Groceries', items)] }] });
-    const second = await mod.foldInLegacyTodoItemsNow();
+    const second = await retryFold();
     expect(second.lists).toHaveLength(1);
     const config = await readJson<{ screens: Array<{ modules: Array<{ config: Record<string, unknown> }> }> }>('config.json');
     expect(config.screens[0].modules[0].config.listId).toBe(first.lists[0].id);
@@ -186,29 +198,15 @@ describe('fold-in of pre-v2 inline items', () => {
     const config = await readJson<{ screens: Array<{ modules: Array<{ config: Record<string, unknown> }> }> }>('config.json');
     const [a, b] = config.screens[0].modules.map((m) => m.config.listId);
     expect(a).not.toBe(b);
-    // A second pass over the same layout finds each list again rather than
-    // minting more (the retry path after a failed strip).
+    // The retry after a failed strip finds each list again rather than
+    // minting more.
+    await writeData('todos.json', { lists: data.lists });
     await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [
       legacyModule('m1', 'Packing', [{ id: 'p1', text: 'Tent', completed: true }, { id: 'p2', text: 'Stove', completed: false }]),
       legacyModule('m2', 'Packing', [{ id: 'p1', text: 'Tent', completed: false }, { id: 'p2', text: 'Stove', completed: false }]),
     ] }] });
-    const again = await mod.foldInLegacyTodoItemsNow();
+    const again = await retryFold();
     expect(again.lists).toHaveLength(2);
-  });
-
-  it('a forced fold reports its failure so a restore can roll back', async () => {
-    await writeData('config.json', { version: 12, settings: {}, screens: [{ id: 's1', name: 'S1', modules: [
-      legacyModule('m1', 'Groceries', [{ id: 'i1', text: 'Milk', completed: false }]),
-    ] }] });
-    await writeData('todos.json', { lists: [], migratedFromConfig: true });
-    await fs.chmod(path.join(tmpDir, 'data'), 0o500);
-    try {
-      await expect(mod.foldInLegacyTodoItemsNow()).rejects.toThrow();
-    } finally {
-      await fs.chmod(path.join(tmpDir, 'data'), 0o700);
-    }
-    // An ordinary read is not broken by the same failure.
-    await expect(mod.readTodoData()).resolves.toBeTruthy();
   });
 
   it('strips an empty legacy items array without minting an unnamed list', async () => {

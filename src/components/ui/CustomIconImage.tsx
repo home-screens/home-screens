@@ -14,18 +14,6 @@ interface CustomIconImageProps {
   fallback?: ReactNode;
 }
 
-/**
- * One of the household's own pictures. Sized in em by default so it drops
- * into any text row, hero or cell exactly where an emoji sat; the small
- * downward nudge lines its bottom up with an emoji's, which hangs slightly
- * below the text baseline.
- *
- * Until the library has loaded it holds an empty box of the same size, so a
- * row never shifts when the picture arrives. A picture that fails to load
- * (its file gone, a token the hub refused) shows the fallback instead of a
- * broken image; the failure is remembered per URL, so the next catalog
- * refresh, which may hand out a new URL, gets a fresh try.
- */
 /** Whether the device asks for reduced motion, kept current as it changes. */
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -40,6 +28,18 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
+/**
+ * One of the household's own pictures. Sized in em by default so it drops
+ * into any text row, hero or cell exactly where an emoji sat; the small
+ * downward nudge lines its bottom up with an emoji's, which hangs slightly
+ * below the text baseline.
+ *
+ * Until the library has loaded it holds an empty box of the same size, so a
+ * row never shifts when the picture arrives. A picture that fails to load
+ * (its file gone, a token the hub refused) shows the fallback instead of a
+ * broken image; the failure is remembered per URL, so the next catalog
+ * refresh, which may hand out a new URL, gets a fresh try.
+ */
 export default function CustomIconImage({ id, className, style, size = '1em', fallback = null }: CustomIconImageProps) {
   const { byId, loaded } = useCustomIcons();
   const [failedUrl, setFailedUrl] = useState<string | null>(null);

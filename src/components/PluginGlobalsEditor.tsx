@@ -2,7 +2,8 @@
 
 import { useLayoutEffect } from 'react';
 import AccordionSection from '@/components/editor/AccordionSection';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { usePluginStore } from '@/stores/plugin-store';
 import { savePluginSettings } from '@/lib/plugin-settings-client';
 import { getHostSettings, setHostSettings } from '@/lib/plugin-host-settings';

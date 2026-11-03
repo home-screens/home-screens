@@ -36,8 +36,7 @@ describe('buildRotationKey', () => {
     expect(key).toContain('15');
   });
 
-  // Regression: see code-review-remediation.md item 6.
-  // Previously the key only contained source/query/intervalMinutes, so
+  // Regression: previously the key only contained source/query/intervalMinutes, so
   // changing an Immich filter would not invalidate the key and the polling
   // effect would not re-run. Each Immich-specific field must affect the key.
   it('changes when immichAlbumId changes', () => {

@@ -11,7 +11,8 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { useEditorStore, getActiveRules } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveRules } from '@/lib/editor-multi-display';
 import { useEditorSharedState } from '@/hooks/useEditorSharedState';
 import Button from '@/components/ui/Button';
 import { useTranslate } from '@/i18n';

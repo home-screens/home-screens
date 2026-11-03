@@ -162,7 +162,6 @@
       "didIt": "{name} klarede den",
       "youGrabbedIt": "Du snuppede den. Sæt flueben, når du er færdig.",
       "youGotIt": "Godt klaret! +{n}",
-      "finishYoursFirst": "Gør din færdig først",
       "refused": {
         "grabbed": "{name} er allerede i gang med den.",
         "taken": "{name} har allerede klaret den.",
@@ -241,38 +240,9 @@
       "chores": "Pligter",
       "members": "Medlemmer"
     },
-    "members": {
-      "empty": "Ingen medlemmer endnu",
-      "emptyHint": "Start med at tilføje familiemedlemmer",
-      "editAriaLabel": "Redigér {name}",
-      "choreCountSingular": "{n} pligt tildelt",
-      "choreCountPlural": "{n} pligter tildelt",
-      "addButton": "Tilføj medlem"
-    },
     "chores": {
-      "empty": "Ingen pligter endnu",
-      "emptyHintNoMembers": "Tilføj familiemedlemmer først",
-      "emptyHintAddChores": "Tilføj pligter og tildel dem til medlemmer",
       "editAriaLabel": "Redigér {name}",
       "addButton": "Tilføj pligt"
-    },
-    "memberForm": {
-      "titleNew": "Nyt medlem",
-      "titleEdit": "Redigér medlem",
-      "nameLabel": "Navn",
-      "namePlaceholder": "Indtast navn...",
-      "avatarLabel": "Avatar",
-      "addSubmit": "Tilføj medlem",
-      "saveSubmit": "Gem medlem",
-      "deleteButton": "Slet medlem"
-    },
-    "memberDelete": {
-      "title": "Slet \"{name}\"?",
-      "fallbackName": "dem",
-      "descriptionNoChores": "Dette fjerner {name} fra alle tildelte pligter. Pligter uden andre tildelte bliver også slettet.",
-      "descriptionWithChoresSingular": "Dette fjerner {name} fra {count} tildelt pligt. Pligter uden andre tildelte bliver også slettet.",
-      "descriptionWithChoresPlural": "Dette fjerner {name} fra alle {count} tildelte pligter. Pligter uden andre tildelte bliver også slettet.",
-      "confirmLabel": "Slet medlem"
     },
     "choreForm": {
       "titleNew": "Ny pligt",
@@ -687,15 +657,6 @@
       "heading": "Billetsaldi",
       "adjustDownAriaLabel": "Træk en billet fra {name}",
       "adjustUpAriaLabel": "Giv {name} en billet"
-    },
-    "history": {
-      "heading": "Seneste indløsninger",
-      "empty": "Ingen indløsninger endnu",
-      "entry": {
-        "beforeReward": " indløste ",
-        "afterRewardSingular": " for {n} billet",
-        "afterRewardPlural": " for {n} billetter"
-      }
     },
     "saveFailed": "Kunne ikke gemme. Prøv igen.",
     "goal": {

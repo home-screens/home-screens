@@ -34,7 +34,7 @@ async function finishSeededDay(page: Page): Promise<void> {
   expect(res.ok(), `POST /api/chores answered ${res.status()}`).toBe(true);
 }
 
-/** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
+/** Config-variant rows for the fullscreen family modules. */
 export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
   // ===== fullscreen-chore-chart (seed: chores → member "Avery", daily "Feed the
   // dog" with timeOfDay "anytime"; default view 'chores') =====

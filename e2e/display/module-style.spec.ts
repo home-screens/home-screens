@@ -19,9 +19,10 @@ import { NOTES_VIEW_SIZES } from '../helpers/view-matrix';
  * For each module the Property Panel shows a Style section for, mount it under
  * a frozen clock, take a shot, change exactly one control through the config
  * poll, and take another. If the two are byte-identical the control is inert
- * for that module and the test says which one. This is the ratchet plan 50
- * asked for (item 14): it fails for a module that hardcodes white, sizes its
- * type in px, or paints its own opaque background, on the day that lands.
+ * for that module and the test says which one. A font-size control that did
+ * nothing shipped for a release because no check like this existed: it fails
+ * for a module that hardcodes white, sizes its type in px, or paints its own
+ * opaque background, on the day that lands.
  *
  * Two shots in one run, never a baseline on disk, so it is CI-safe where the
  * pixel gallery (e2e/gallery) deliberately is not.
@@ -181,7 +182,7 @@ for (const view of NOTES_MATERIAL_VIEWS) {
  * Plugins render bare, outside ModuleWrapper, and paint their own card from
  * `style`. This is the test that settles whether the host still hands it to
  * them: a grep once said plugins ignored ModuleStyle and nearly cost every
- * plugin its Style section (plan 50, item 2).
+ * plugin its Style section.
  */
 test(`${FIXTURE_PLUGIN_TYPE} honours every Style control`, async ({ page, request, sandboxDir }) => {
   seedFixturePlugin(sandboxDir, { styled: true });

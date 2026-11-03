@@ -55,11 +55,6 @@ function findBlogPostInfo(slug: string): { title: string; category: string } {
     : { title: 'Blog', category: '' }
 }
 
-export function blogOgAlt(slug: string): string {
-  const { title } = findBlogPostInfo(slug)
-  return `Home Screens Blog — ${title}`
-}
-
 export function createBlogOgImage(slug: string) {
   const { title, category } = findBlogPostInfo(slug)
   return async function OgImage() {

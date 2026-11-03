@@ -1,13 +1,12 @@
 'use client';
 
-import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
-import { localeWeekStart } from '@/lib/week-number';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { parseClockTime } from '@/lib/date-info';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { fitBaseSize, fitFactor, splitRowWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap, noShrink } from './fixed-size';
-import { clockDatePattern } from './date-pattern';
+import { CLOCK_INFO_LABELS, useClockDateLine, useDateInfoLine } from './use-date-info';
 import type { ClockViewProps } from './types';
 
 /**
@@ -16,7 +15,6 @@ import type { ClockViewProps } from './types';
  */
 export default function ClockSplitView({ config, format24h, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
-  const locale = useFormattingLocale();
   const { hStr, mStr, sStr, hours } = parseClockTime(format24h, time);
   const ampm = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
@@ -24,15 +22,8 @@ export default function ClockSplitView({ config, format24h, now, time, scaledFon
     ? `${hStr}:${mStr}:${sStr}`
     : `${hStr}:${mStr}`;
 
-  const dateStr = config.showDate
-    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
-    : null;
-
-  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
-
-  const infoParts: { label: string; value: string }[] = [];
-  if (config.showWeekNumber) infoParts.push({ label: t('clock.weekShort'), value: String(weekNumber) });
-  if (config.showDayOfYear) infoParts.push({ label: t('clock.dayShort'), value: String(dayOfYear) });
+  const dateStr = useClockDateLine(config, now);
+  const { parts: infoParts } = useDateInfoLine(config, now, CLOCK_INFO_LABELS);
 
   // Shrink the whole row together when the box is narrower than time,
   // divider and date side by side; the height-derived size stays the ceiling.

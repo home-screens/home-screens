@@ -173,28 +173,6 @@ export function isDayFullyComplete(
   return assigned.every((c) => isChoreComplete(completionSet, c.id, memberId, date));
 }
 
-/** Jump a YYYY-MM-DD date by ±N months, clamped to [earliest, latest].
- *  Handles JS month overflow (e.g. Jan 31 + 1 month → Feb 28/29 not Mar 3). */
-export function addMonthsClamped(
-  iso: string,
-  delta: number,
-  earliest: string,
-  latest: string,
-): string {
-  const d = parseISO(iso);
-  const targetMonth = d.getMonth() + delta;
-  // Try to preserve day-of-month; JS overflow handles shorter months gracefully.
-  const candidate = new Date(d.getFullYear(), targetMonth, d.getDate());
-  // If JS overflowed (e.g. Jan 31 + 1mo → Mar 3), walk back to the last day of the intended month.
-  if (candidate.getMonth() !== ((targetMonth % 12) + 12) % 12) {
-    candidate.setDate(0); // jumps to the last day of the previous (= intended) month
-  }
-  const iso2 = localDateStr(candidate);
-  if (iso2 < earliest) return earliest;
-  if (iso2 > latest) return latest;
-  return iso2;
-}
-
 /** Build per-day earned/total entries for a date range.
  *  - `total` counts members who had any chores assigned that day (vacation days skipped).
  *  - `earned` counts members who completed all their assigned chores that day. */

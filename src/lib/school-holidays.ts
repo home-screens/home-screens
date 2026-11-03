@@ -35,8 +35,6 @@ const EMPTY_TTL_MS = 10 * 60 * 1000;
 const MAX_STORED_ENTRIES = 16;
 /** Guard against a malformed range turning one row into thousands of days. */
 const MAX_PUBLIC_HOLIDAY_DAYS = 31;
-/** How far ahead "back to school" will look before giving up. */
-const MAX_LOOKAHEAD_DAYS = 366;
 /** Used for the region labels and as the second choice for every name. */
 const FALLBACK_LANGUAGE = 'EN';
 
@@ -157,18 +155,6 @@ export interface HolidayRegionsResult {
   fetchedAt: string;
 }
 
-/** What one date looks like to a school timetable. */
-export interface SchoolDayInfo {
-  /** The school holiday this date falls in, or null. */
-  holiday: SchoolHolidayPeriod | null;
-  /** The public holiday on this date, or null. */
-  publicHoliday: PublicHolidayDay | null;
-  /** False at the weekend, on a public holiday and on a full day of Ferien. */
-  schoolDay: boolean;
-  /** The next day school is back, or null when this date is already one. */
-  backToSchool: string | null;
-}
-
 type OpenHolidaysType = 'Public' | 'Bank' | 'Optional' | 'School' | 'BackToSchool' | 'EndOfLessons';
 
 interface OpenHolidaysHoliday {
@@ -201,11 +187,6 @@ function addDays(date: string, days: number): string {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
-}
-
-/** 0 is Sunday, matching the rest of the codebase's day numbering. */
-function weekdayOf(date: string): number {
-  return new Date(`${date}T00:00:00Z`).getUTCDay();
 }
 
 /** The school year a `YYYY-MM-DD` day falls in: 2026 means September 2026 to August 2027. */
@@ -575,15 +556,6 @@ export async function getSchoolHolidays(region: string, schoolYear: number): Pro
 }
 
 /**
- * Just the public holidays for a region and school year, from the same cached
- * pair of requests as `getSchoolHolidays`.
- */
-export async function getPublicHolidays(region: string, schoolYear: number): Promise<PublicHolidayDay[]> {
-  const result = await getSchoolHolidays(region, schoolYear);
-  return result.publicHolidays;
-}
-
-/**
  * The regions a country can be asked about, for the settings picker, what that
  * country calls one of them, and whether it has school holidays at all. All of
  * it comes from live data: of the languages this app ships, only Germany,
@@ -604,52 +576,5 @@ export async function getSubdivisions(country: string): Promise<HolidayRegionsRe
     regionCategory: [],
     hasSchoolHolidays: false,
     fetchedAt: new Date().toISOString(),
-  };
-}
-
-function findHoliday(date: string, periods: SchoolHolidayPeriod[]): SchoolHolidayPeriod | null {
-  return periods.find((p) => p.startDate <= date && date <= p.endDate) ?? null;
-}
-
-function findPublicHoliday(date: string, days: PublicHolidayDay[]): PublicHolidayDay | null {
-  return days.find((d) => d.date === date) ?? null;
-}
-
-function isSchoolDay(date: string, data: HolidayLists): boolean {
-  const weekday = weekdayOf(date);
-  if (weekday === 0 || weekday === 6) return false;
-  if (findPublicHoliday(date, data.publicHolidays)) return false;
-  const holiday = findHoliday(date, data.schoolHolidays);
-  // A half day is still a school day, just a short one.
-  return !holiday || holiday.halfDay;
-}
-
-/**
- * What one date looks like to a timetable: the holiday it falls in, if any, and
- * the next day school is back.
- *
- * "Back" skips weekends, public holidays and any further Ferien, which is why
- * Herbstferien ending on Saturday 31 October 2026 reads as back on Monday 2
- * November: the Sunday in between is Allerheiligen.
- */
-export function getSchoolDayInfo(date: string, data: HolidayLists): SchoolDayInfo {
-  if (!isValidISODate(date)) throw new SchoolHolidaysError(400, 'That is not a day we know');
-  const schoolDay = isSchoolDay(date, data);
-  let backToSchool: string | null = null;
-  if (!schoolDay) {
-    let next = addDays(date, 1);
-    for (let i = 0; i < MAX_LOOKAHEAD_DAYS; i++) {
-      if (isSchoolDay(next, data)) {
-        backToSchool = next;
-        break;
-      }
-      next = addDays(next, 1);
-    }
-  }
-  return {
-    holiday: findHoliday(date, data.schoolHolidays),
-    publicHoliday: findPublicHoliday(date, data.publicHolidays),
-    schoolDay,
-    backToSchool,
   };
 }

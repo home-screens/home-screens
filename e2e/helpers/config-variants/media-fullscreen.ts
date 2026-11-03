@@ -2,7 +2,8 @@ import { expect } from '@playwright/test';
 import type { ConfigVariant } from './types';
 import { has, child, count, matches, TINY_GIF, TINY_GIF_2 } from './shared';
 
-/** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md.
+/**
+ * Config-variant rows for the media and full-screen modules.
  *
  * Media & Display / Full Screen modules: qr-code, shape, image, photo-slideshow,
  * fullscreen-photo. Each row flips one (or a tight cluster of) rendering-affecting

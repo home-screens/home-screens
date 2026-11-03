@@ -193,14 +193,6 @@ test.beforeEach(async ({ sandboxDir }) => {
 });
 
 /**
- * Any install/toggle/uninstall calls loadPlugins(), which flips the plugin
- * store's `loading` flag — and the editor page renders a full-screen loader
- * while that is true, unmounting and remounting PluginStorePanel back on its
- * default Browse tab. Callers that acted from the Installed tab must re-select
- * it afterward; this helper clicks the always-present Installed tab button and
- * auto-waits through the remount.
- */
-/**
  * Select the Installed tab and make sure the selection stuck.
  *
  * An install or uninstall reloads the plugin store, which remounts this panel

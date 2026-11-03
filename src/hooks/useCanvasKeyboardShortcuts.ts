@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { GRID_SIZE } from '@/lib/constants';
 import { isDialogOpen, isMenuOpen, isTypingTarget } from '@/lib/editor-keyboard';

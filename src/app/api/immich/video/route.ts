@@ -5,6 +5,12 @@ import { immichFetch } from '@/lib/immich';
 
 export const dynamic = 'force-dynamic';
 
+/** Headers passed through from Immich so seeking and progress work. */
+const PASSTHROUGH_HEADERS = ['content-type', 'content-range', 'content-length', 'accept-ranges'];
+
+/** Playback outlives the thumbnail route's 15s budget; give streams 15 minutes. */
+const PLAYBACK_TIMEOUT_MS = 15 * 60_000;
+
 /**
  * GET /api/immich/video?assetId=<uuid>&mt=<token>
  *
@@ -15,13 +21,6 @@ export const dynamic = 'force-dynamic';
  * usual display credentials or an `mt` media token bound to this assetId,
  * because a bare <video src> cannot send a Bearer header.
  */
-
-/** Headers passed through from Immich so seeking and progress work. */
-const PASSTHROUGH_HEADERS = ['content-type', 'content-range', 'content-length', 'accept-ranges'];
-
-/** Playback outlives the thumbnail route's 15s budget; give streams 15 minutes. */
-const PLAYBACK_TIMEOUT_MS = 15 * 60_000;
-
 export const GET = withMediaTokenAuth(async (request: NextRequest) => {
   const assetId = request.nextUrl.searchParams.get('assetId');
   if (!assetId) return NextResponse.json({ error: 'assetId required' }, { status: 400 });

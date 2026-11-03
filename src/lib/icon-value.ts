@@ -15,7 +15,7 @@
  * verbatim — a hand-edited config shows the user exactly what they typed
  * instead of silently blanking.
  */
-import { buildIconClass, type FaIconKind } from '@/lib/font-awesome-icons';
+import type { FaIconKind } from '@/lib/font-awesome-icons';
 import { parseCustomIconValue } from '@/lib/custom-icons';
 
 export const FA_VALUE_PREFIX = 'fa:';
@@ -50,20 +50,6 @@ export function parseIconValue(value: string | null | undefined): ParsedIconValu
 /** Build the stored value for a Font Awesome pick. */
 export function faIconValue(name: string, kind: FaIconKind): string {
   return `${FA_VALUE_PREFIX}${kind}:${name}`;
-}
-
-export function isFaIconValue(value: string | null | undefined): boolean {
-  return parseIconValue(value)?.type === 'fa';
-}
-
-/**
- * Font Awesome class string for a stored value, or `null` when the value is
- * text. Lets non-React callers (canvas measurement, tests) branch the same
- * way the `<Glyph>` component does.
- */
-export function iconValueFaClass(value: string | null | undefined): string | null {
-  const parsed = parseIconValue(value);
-  return parsed?.type === 'fa' ? buildIconClass(parsed.name, parsed.kind) : null;
 }
 
 /**

@@ -16,7 +16,6 @@ export interface StarterDayArt {
   path: string;
 }
 
-export const STARTER_DAY_ART_DIR = 'public/starter-day-art';
 /** URL prefix the files are served under. */
 export const STARTER_DAY_ART_URL = '/starter-day-art';
 

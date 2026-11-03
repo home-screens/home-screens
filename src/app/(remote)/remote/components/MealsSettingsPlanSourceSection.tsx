@@ -8,6 +8,8 @@ import { useMealieCheck } from '@/hooks/useMealieCheck';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
 import { mealieProblemWords } from './MealsMealieStatus';
+import { REMOTE_ACCENT, selectedPillStyle } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsSettingsPlanSourceSectionProps {
   /** The sheet's draft: Mealie, or unset for Home Screens. */
@@ -42,9 +44,7 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
     padding: 12,
     minHeight: 48,
     borderRadius: 10,
-    border: selected ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
-    background: selected ? 'rgba(245, 158, 11, 0.12)' : 'var(--hs-bg-panel)',
-    color: selected ? '#f59e0b' : 'var(--hs-text-muted)',
+    ...selectedPillStyle(selected, 'var(--hs-text-muted)'),
     fontSize: 14,
     fontWeight: 600,
     cursor: disabled ? 'default' : 'pointer',
@@ -72,10 +72,10 @@ export default function MealsSettingsPlanSourceSection({ planSource, savedPlanSo
       <div
         role="status"
         data-testid={`meals-plan-source-${fixInSettings}`}
-        style={{ margin: '10px 0 0', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.28)', borderRadius: 10, padding: '10px 12px' }}
+        style={{ margin: '10px 0 0', background: withAlpha(REMOTE_ACCENT, 0.08), border: `1px solid ${withAlpha(REMOTE_ACCENT, 0.28)}`, borderRadius: 10, padding: '10px 12px' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--hs-text-primary)', lineHeight: '19px' }}>
-          <CloudOff size={16} strokeWidth={2} aria-hidden style={{ color: '#f59e0b', flex: 'none' }} />
+          <CloudOff size={16} strokeWidth={2} aria-hidden style={{ color: REMOTE_ACCENT, flex: 'none' }} />
           {t(`${words}.title`)}
         </div>
         <p style={{ margin: '4px 0 0 24px', fontSize: 13, color: 'var(--hs-text-muted)', lineHeight: '19px' }}>{t(`${words}.description`)}</p>

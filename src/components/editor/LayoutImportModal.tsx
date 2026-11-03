@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useEditorStore, getActiveDimensions } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveDimensions } from '@/lib/editor-multi-display';
 import type { LayoutExport } from '@/types/layout-export';
 import Button from '@/components/ui/Button';
 import ModalFrame, { EscHint } from '@/components/ui/ModalFrame';

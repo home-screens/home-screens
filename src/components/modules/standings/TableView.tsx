@@ -3,7 +3,8 @@
 import { useRotatingIndex } from '@/hooks/useRotatingIndex';
 import type { StandingsGroup, StandingsEntry } from '@/lib/espn-standings';
 import { isFavoriteTeam } from '@/lib/sports-order';
-import { formatRecord, getPlayoffTeamCount, isSoccer, StandingsHeader, StandingsTeamRow } from './shared';
+import { isSoccerLeague } from '@/lib/espn';
+import { formatRecord, getPlayoffTeamCount, StandingsHeader, StandingsTeamRow } from './shared';
 
 interface TableViewProps {
   groups: StandingsGroup[];
@@ -36,7 +37,7 @@ function getColumns(league: string): { key: string; label: string; width: string
       { key: 'strk', label: 'STRK', width: 'w-12' },
     ];
   }
-  if (isSoccer(l)) {
+  if (isSoccerLeague(l)) {
     return [
       { key: 'gp', label: 'GP', width: 'w-9' },
       { key: 'record', label: 'W-D-L', width: 'w-14' },

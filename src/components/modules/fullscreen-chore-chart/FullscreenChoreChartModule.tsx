@@ -39,11 +39,11 @@ const EMPTY_GOALS: Record<string, string> = {};
 import type { RewardDefinition } from '@/lib/reward-data';
 import { RewardHistoryView, type RewardHistoryVariant } from './RewardHistoryView';
 import { type ChoreRow, buildChoreRows, getUniqueInitials } from '@/lib/chore-rows';
+import { getOrientation } from '@/lib/orientation';
 import {
   type ToggleParams,
   TOD_ORDER,
   ROW_HEIGHT_FLOOR,
-  getOrientation,
   getCurrentTimeOfDay,
   buildMemberRows,
   fitRowHeight,

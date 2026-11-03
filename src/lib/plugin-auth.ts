@@ -25,6 +25,7 @@ import { getPluginSecret } from '@/lib/plugin-secrets';
 import { readAuthState } from '@/lib/auth';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
+import { requestOrigin } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
 import { refreshGarminTokens, type GarminPendingMfa } from '@/lib/plugin-auth-garmin';
 import { classifyDeviceTokenAnswer, SLOW_DOWN_STEP_MS, type DeviceTokenAnswer } from '@/lib/oauth-device-flow';
@@ -269,16 +270,11 @@ export async function verifyAuthFlowState(state: string): Promise<string | null>
 
 /* ─── OAuth2 helpers ─────────────────────────── */
 
-/** The single callback URL to register with providers, derived per-request.
- *  Derived from the Host header (or x-forwarded-* behind a proxy) rather than
- *  request.url, whose host is the server's bind address (e.g. 0.0.0.0) — the
- *  redirect must match the origin the browser is actually using. */
+/** The single callback URL to register with providers, derived per-request
+ *  from the origin the browser is actually using (`requestOrigin`), since the
+ *  redirect must match it. */
 export function getPluginAuthRedirectUri(request: Request): string {
-  const url = new URL(request.url);
-  const host =
-    request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? url.host;
-  const proto = request.headers.get('x-forwarded-proto') ?? url.protocol.replace(':', '');
-  return `${proto}://${host}/api/plugins/auth/callback`;
+  return `${requestOrigin(request)}/api/plugins/auth/callback`;
 }
 
 async function getOAuthClientCredentials(

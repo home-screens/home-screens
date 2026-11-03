@@ -7,6 +7,7 @@ import { useCustomIcons } from '@/hooks/useCustomIcons';
 import { useCustomIconUpload } from '@/hooks/useCustomIconUpload';
 import { ACCEPT_ATTRIBUTE, customIconValue, parseCustomIconValue, type CustomIconEntry } from '@/lib/custom-icons';
 import PhoneCustomIconReviewSheet from './PhoneCustomIconReviewSheet';
+import { REMOTE_ACCENT } from '@/app/(remote)/remote/components/chore-form-styles';
 
 /** Section heading inside a phone picker. The brighter of the two faint
  *  greys: the darker one measured 4.18:1 at this size, under the minimum. */
@@ -46,7 +47,7 @@ interface PhoneCustomIconSectionProps {
  * own section (`EditorCustomIconSection`); they share the upload flow and the
  * rules, not the markup.
  */
-export default function PhoneCustomIconSection({ value, onPick, accent = '#f59e0b', captions = false, suggestedName }: PhoneCustomIconSectionProps) {
+export default function PhoneCustomIconSection({ value, onPick, accent = REMOTE_ACCENT, captions = false, suggestedName }: PhoneCustomIconSectionProps) {
   const t = useTranslate('core');
   const { icons, byId } = useCustomIcons();
   const upload = useCustomIconUpload((icon) => onPick(customIconValue(icon.id)), { suggestedName });

@@ -31,6 +31,13 @@ interface OverviewSubtabProps {
 }
 
 /**
+ * How recently the panel power agent must have polled to count as working.
+ * It polls every 3s; 30s rides out a kiosk restart without flashing the
+ * "hasn't checked in" note.
+ */
+const PANEL_POWER_AGENT_FRESH_MS = 30_000;
+
+/**
  * Display detail "Overview" — three at-a-glance KV cards, a quick
  * summary of which fields the user has currently overridden on this
  * display, the active-profile picker, and the identity block (name /
@@ -50,13 +57,6 @@ interface OverviewSubtabProps {
  * tells the user not just *which* fields they overrode, but how far
  * each one drifts from the shared default.
  */
-/**
- * How recently the panel power agent must have polled to count as working.
- * It polls every 3s; 30s rides out a kiosk restart without flashing the
- * "hasn't checked in" note.
- */
-const PANEL_POWER_AGENT_FRESH_MS = 30_000;
-
 export default function OverviewSubtab({
   config,
   display,

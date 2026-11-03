@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { COLLEGE_LEAGUES, LEAGUE_MAP, SPORTS_LEAGUES, SCOREBOARD_PARAMS, leagueLabel, leagueWallCode, parseCuratedRank, parseESPNEvent, parseESPNTeam, scoreboardUrl } from '../espn';
+import { COLLEGE_LEAGUES, LEAGUE_MAP, SOCCER_LEAGUE_IDS, SPORTS_LEAGUES, SCOREBOARD_PARAMS, isSoccerLeague, leagueLabel, leagueWallCode, parseCuratedRank, parseESPNEvent, parseESPNTeam, scoreboardUrl } from '../espn';
 
 describe('LEAGUE_MAP', () => {
   it('contains all expected leagues', () => {
@@ -87,6 +87,19 @@ describe('SPORTS_LEAGUES', () => {
     for (const id of COLLEGE_LEAGUES) expect(SCOREBOARD_PARAMS[id]).toMatch(/^groups=\d+&limit=\d+$/);
     expect(scoreboardUrl('ncaam')).toContain('mens-college-basketball/scoreboard?groups=50&limit=400');
     expect(scoreboardUrl('ncaaw')).toContain('womens-college-basketball/scoreboard?groups=50&limit=400');
+  });
+
+  it("each league's sport is the one ESPN files it under", () => {
+    for (const league of SPORTS_LEAGUES) {
+      expect(LEAGUE_MAP[league.id].split('/')[0]).toBe(league.sport);
+    }
+  });
+
+  it('counts MLS as soccer even though the editor groups it with the American leagues', () => {
+    expect([...SOCCER_LEAGUE_IDS].sort()).toEqual(['bundesliga', 'epl', 'laliga', 'liga_mx', 'ligue1', 'mls', 'seriea']);
+    expect(isSoccerLeague('MLS')).toBe(true);
+    expect(isSoccerLeague('nhl')).toBe(false);
+    expect(isSoccerLeague('xyz')).toBe(false);
   });
 
   it('wall codes stay short enough for a list row and labels are human', () => {

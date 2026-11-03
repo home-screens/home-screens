@@ -137,22 +137,6 @@ describe('collectCredentials', () => {
     expect(payload.oauthTokens).toEqual({ googlePicker: { access_token: 'real' } });
   });
 
-  // readAllPluginSecrets falls back to data/plugins/<id>/secrets.json, but
-  // nothing asked it to: only data/plugin-secrets/ was ever enumerated, so a
-  // server that hadn't upgraded its plugins backed up none of their keys.
-  it('collects plugin secrets that still live only at the legacy path', async () => {
-    await writeRaw(path.join('data', 'plugins', 'old-plugin'), 'secrets.json', { api_key: 'legacy' });
-    const payload = await collectCredentials();
-    expect(payload.pluginSecrets).toEqual({ 'old-plugin': { api_key: 'legacy' } });
-  });
-
-  it('prefers the new location when a plugin has both', async () => {
-    await writeRaw(path.join('data', 'plugins', 'both'), 'secrets.json', { api_key: 'legacy' });
-    await writeRaw(SECRETS_DIR, 'both.json', { api_key: 'current' });
-    const payload = await collectCredentials();
-    expect(payload.pluginSecrets).toEqual({ both: { api_key: 'current' } });
-  });
-
   it('carries auth when only IP rules are set, with no password', async () => {
     await writeAuthStateRaw({
       passwordHash: null,

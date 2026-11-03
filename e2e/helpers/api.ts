@@ -376,19 +376,6 @@ export const E2E_TIMETABLE_SEED_MEMBER_IDS: string[] = [
   E2E_TIMETABLE_MEMBER_IDS.mia,
 ];
 
-/**
- * The five people `timetableHouseholdSeed()` gives a week to, in card order.
- * Lina is in the roster with no timetable on purpose, so a person the module
- * has to skip is always present.
- */
-export const E2E_TIMETABLE_HOUSEHOLD_MEMBER_IDS: string[] = [
-  E2E_TIMETABLE_MEMBER_IDS.leon,
-  E2E_TIMETABLE_MEMBER_IDS.emma,
-  E2E_TIMETABLE_MEMBER_IDS.mia,
-  E2E_TIMETABLE_MEMBER_IDS.paul,
-  E2E_TIMETABLE_MEMBER_IDS.jonas,
-];
-
 /** The schools both seeds use: one secondary with A/B weeks, one primary with after-school care. */
 export const E2E_TIMETABLE_SCHOOL_IDS = { secondary: 'gar', primary: 'ggs' } as const;
 

@@ -3,6 +3,7 @@ import type { FullscreenWeatherConfig } from '@/types/config';
 import { FULL_BAR_INTENSITY, isPrecipitating, precipitationOutlook } from '@/lib/weather/precipitation';
 import type { SkyCondition } from './sky-layer';
 import type { SunTimes } from '@/lib/weather/sun-times';
+import type { Orientation } from '@/lib/orientation';
 
 /**
  * Scale system shared by every view.
@@ -34,7 +35,7 @@ export interface WeatherScale {
   isDark: boolean;
   /**
    * Canvas shape. Landscape is a different **arrangement** of the same parts,
-   * not a rescaling of the portrait one — see `getOrientation`.
+   * not a rescaling of the portrait one (see `getOrientation` in src/lib/orientation.ts).
    */
   orientation: Orientation;
   /**
@@ -44,19 +45,6 @@ export interface WeatherScale {
    * of the canvas down when the loop is near its floor.
    */
   fit: number;
-}
-
-export type Orientation = 'portrait' | 'landscape';
-
-/**
- * Canvas shape, from the rendered box.
- *
- * Ties go to portrait: a square canvas reads correctly as a vertical stack,
- * and splitting it into two columns leaves both too narrow for the charts.
- * Mirrors `getOrientation` in fullscreen-chore-chart.
- */
-export function getOrientation(width: number, height: number): Orientation {
-  return width > height ? 'landscape' : 'portrait';
 }
 
 /**

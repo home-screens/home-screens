@@ -2,7 +2,8 @@
 
 import { isRotationOff } from '@/lib/resolve-screen-duration';
 import { useMemo, useState } from 'react';
-import { useEditorStore, getActiveScreens } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens } from '@/lib/editor-multi-display';
 import { useTranslate } from '@/i18n';
 import { SHORT_SCREEN_DURATION_MS } from '@/lib/constants';
 import AccordionSection from './AccordionSection';

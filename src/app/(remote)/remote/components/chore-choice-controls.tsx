@@ -1,5 +1,7 @@
 'use client';
 
+import { REMOTE_ACCENT } from './chore-form-styles';
+
 /**
  * The two pickers the chore screens on the phone share: a two-way switch and
  * a list of choices with a line under each. The chore form uses both, the
@@ -28,8 +30,8 @@ export function Segmented<T extends string>({ value, options, onChange, testId, 
             onClick={() => onChange(opt.value)}
             style={{
               minHeight: 40, borderRadius: 9, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600,
-              background: on ? 'color-mix(in srgb, #f59e0b 22%, var(--hs-bg-panel))' : 'transparent',
-              color: on ? '#f59e0b' : 'var(--hs-text-faint)',
+              background: on ? `color-mix(in srgb, ${REMOTE_ACCENT} 22%, var(--hs-bg-panel))` : 'transparent',
+              color: on ? REMOTE_ACCENT : 'var(--hs-text-faint)',
               transition: 'all 0.15s',
             }}
           >
@@ -71,7 +73,7 @@ export function ChoiceList<T extends string>({ value, options, onChange, testId,
               aria-hidden
               style={{
                 width: 20, height: 20, borderRadius: '50%', flexShrink: 0, marginTop: 1, boxSizing: 'border-box',
-                border: on ? '6px solid #f59e0b' : '2px solid var(--hs-border-strong)',
+                border: on ? `6px solid ${REMOTE_ACCENT}` : '2px solid var(--hs-border-strong)',
               }}
             />
             <span style={{ minWidth: 0 }}>

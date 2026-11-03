@@ -40,10 +40,10 @@ export interface ViewSpec {
 }
 
 /**
- * The box each notes view is designed for (plan 220 and the materials
- * mockup). Board, Bubbles, Timeline and By person are the registry's
- * 440 x 520 and are left out; the materials are named even where that is
- * their size, so the list reads as the mockup does. Shared with the notes
+ * The box each notes view was designed in. Board, Bubbles, Timeline and By
+ * person are the registry's 440 x 520 and are left out; the materials are
+ * named even where that is their size, so the list reads as the design does.
+ * Shared with the notes
  * config-variant rows and the material style probes.
  */
 export const NOTES_VIEW_SIZES: Partial<Record<string, { w: number; h: number }>> = {

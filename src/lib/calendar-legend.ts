@@ -123,24 +123,6 @@ export function legendSources(
   });
 }
 
-/**
- * Legend rows for a view: scope events to the window it draws (null = the
- * caller's set is already exactly what renders), collect unique sources, and
- * swap the holidays pseudo-source's baked-in English name for the localized
- * label. The one composition both calendar modules share.
- */
-export function buildLegend(
-  events: { start: string; end: string; sourceId?: string; sourceName?: string; calendarColor?: string }[],
-  window: { start: Date; end: Date } | null,
-  timezone: string | undefined,
-  holidaysLabel: string,
-): LegendSource[] {
-  const scoped = window ? eventsInWindow(events, window.start, window.end, timezone) : events;
-  return legendSources(scoped).map((s) =>
-    s.sourceId === 'holidays' ? { ...s, sourceName: holidaysLabel } : s,
-  );
-}
-
 /** Classic rows as `LegendRow`s, so one component renders every mode. */
 export function sourceLegendRows(sources: readonly LegendSource[]): LegendRow[] {
   return sources.map((s) => ({ kind: 'source', id: s.sourceId, name: s.sourceName, color: s.calendarColor, sourceIds: [s.sourceId] }));

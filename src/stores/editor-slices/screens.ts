@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { Screen } from '@/types/config';
 import { pruneDanglingScreenRefs } from '@/lib/display-filter';
@@ -20,7 +20,7 @@ export function createScreenSlice(
       if (!config) return;
       const currentScreens = getActiveScreens(config, selectedDisplayId);
       const newScreen: Screen = {
-        id: uuidv4(),
+        id: uuid(),
         name: name ?? `Screen ${currentScreens.length + 1}`,
         backgroundImage: '',
         modules: [],
@@ -77,9 +77,9 @@ export function createScreenSlice(
       const cloned = structuredClone(src);
       const copy: Screen = {
         ...cloned,
-        id: uuidv4(),
+        id: uuid(),
         name: copyName ?? `${src.name} copy`,
-        modules: cloned.modules.map((m) => ({ ...m, id: uuidv4(), showOnEveryScreen: undefined })),
+        modules: cloned.modules.map((m) => ({ ...m, id: uuid(), showOnEveryScreen: undefined })),
       };
       mutateConfig((cfg) => {
         const screens = getActiveScreens(cfg, selectedDisplayId);
@@ -108,8 +108,8 @@ export function createScreenSlice(
       const to = getActiveDimensions(config, selectedDisplayId);
       const copies: Screen[] = structuredClone(source.screens).map((screen) => ({
         ...screen,
-        id: uuidv4(),
-        modules: screen.modules.map((m) => ({ ...fitModuleToDisplay(m, from, to), id: uuidv4() })),
+        id: uuid(),
+        modules: screen.modules.map((m) => ({ ...fitModuleToDisplay(m, from, to), id: uuid() })),
       }));
       mutateConfig((cfg) => ({
         config: withActiveScreens(

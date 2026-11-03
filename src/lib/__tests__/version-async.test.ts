@@ -88,7 +88,7 @@ function makeRelease(tag: string, opts?: { prerelease?: boolean; draft?: boolean
 }
 
 // ---------------------------------------------------------------------------
-// fetchGitHubReleases / fetchLatestStableRelease / getChannelReleases
+// fetchGitHubReleases / getChannelReleases
 // ---------------------------------------------------------------------------
 describe('fetchGitHubReleases', () => {
   it('fetches releases from GitHub API', async () => {
@@ -125,28 +125,6 @@ describe('fetchGitHubReleases', () => {
 
     const { fetchGitHubReleases } = await loadModule();
     await expect(fetchGitHubReleases({ force: true })).rejects.toThrow('GitHub API returned 403');
-  });
-});
-
-describe('fetchLatestStableRelease', () => {
-  it('returns the release GitHub calls latest', async () => {
-    mockGitHub({ latest: { status: 200, body: makeRelease('v1.12.2') } });
-    const { fetchLatestStableRelease } = await loadModule();
-    expect((await fetchLatestStableRelease({ force: true }))?.tag_name).toBe('v1.12.2');
-  });
-
-  it('treats 404 as no stable release yet rather than an error', async () => {
-    mockGitHub({ latest: { status: 404 } });
-    const { fetchLatestStableRelease } = await loadModule();
-    expect(await fetchLatestStableRelease({ force: true })).toBeNull();
-  });
-
-  it('serves the cache inside the TTL without a second request', async () => {
-    const calls = mockGitHub({ latest: { status: 200, body: makeRelease('v1.12.2'), etag: '"e1"' } });
-    const { fetchLatestStableRelease } = await loadModule();
-    await fetchLatestStableRelease({ force: true });
-    await fetchLatestStableRelease();
-    expect(calls.filter((u) => u.includes('/releases/latest'))).toHaveLength(1);
   });
 });
 
@@ -202,6 +180,12 @@ describe('getChannelReleases', () => {
     const { getChannelReleases } = await loadModule();
     const stable = await getChannelReleases('stable', { force: true });
     expect(stable.map((r) => r.tag_name)).toEqual(['v1.12.2', 'v1.12.0']);
+  });
+
+  it('treats a 404 on releases/latest as no stable yet, not an outage', async () => {
+    mockGitHub({ page: { status: 200, body: page }, latest: { status: 404 } });
+    const { getChannelReleases } = await loadModule();
+    expect(await getChannelReleases('stable', { force: true })).toEqual([]);
   });
 
   it('stable still resolves from releases/latest when the page fails', async () => {

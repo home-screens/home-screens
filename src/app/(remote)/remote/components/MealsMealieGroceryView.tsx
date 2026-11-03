@@ -22,11 +22,10 @@ import { useCopyTime } from '@/components/meals/useCopyTime';
 import { mealieProblemWords, mealieSaveFailedWords, RetryButton, useHomeCopyClock } from './MealsMealieStatus';
 import { openOutside } from './meals-shared';
 import { shareOrCopyText } from './share-text';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 /** The warning colour of the theme in use: amber in the dark theme, a darker amber that reads on the light one. */
 const WARN = 'var(--hs-warning)';
-const AMBER = '#f59e0b';
-
 /** A text button inside a status line (Undo). */
 const lineButton: CSSProperties = {
   flex: 'none', minHeight: 44, padding: '0 12px', marginLeft: 'auto', border: 'none', background: 'none',
@@ -118,7 +117,7 @@ export default function MealsMealieGroceryView({
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '10px 24px',
         minHeight: 44, borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
         ...(primary
-          ? { border: 'none', background: AMBER, color: '#000' }
+          ? { border: 'none', background: REMOTE_ACCENT, color: '#000' }
           : { border: '1px solid var(--hs-border)', background: 'var(--hs-bg-panel)', color: 'var(--hs-text-body)' }),
       }}
     >
@@ -150,7 +149,7 @@ export default function MealsMealieGroceryView({
         >
           {/* Trying again is what anyone can do; Open Mealie asks a grown-up to sign in. */}
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <RetryButton onRetry={shopping.retry} style={{ padding: '0 18px', background: AMBER, color: '#000' }} />
+            <RetryButton onRetry={shopping.retry} style={{ padding: '0 18px', background: REMOTE_ACCENT, color: '#000' }} />
             {!connection && openButton(false)}
           </div>
         </CenterMessage>
@@ -310,7 +309,7 @@ export default function MealsMealieGroceryView({
             aria-label={t('mealie.grocery.addButton')}
             style={{
               width: 44, height: 44, flex: 'none', borderRadius: 10, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: draft.trim() ? AMBER : 'var(--hs-bg-card)', color: draft.trim() ? '#000' : 'var(--hs-text-faint)',
+              background: draft.trim() ? REMOTE_ACCENT : 'var(--hs-bg-card)', color: draft.trim() ? '#000' : 'var(--hs-text-faint)',
               cursor: draft.trim() && !shopping.adding ? 'pointer' : 'default', opacity: shopping.adding ? 0.6 : 1,
             }}
           >

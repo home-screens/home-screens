@@ -1,33 +1,22 @@
 'use client';
 
-import { parseClockTime, getDateInfoValues } from '@/lib/date-info';
-import { localeWeekStart } from '@/lib/week-number';
-import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import { parseClockTime } from '@/lib/date-info';
+import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
-import { clockDatePattern } from './date-pattern';
+import { CLOCK_INFO_LABELS, useClockDateLine, useDateInfoLine } from './use-date-info';
 import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
 import type { ClockViewProps } from './types';
 
 export default function ClockClassicView({ config, format24h, now, time, scaledFontSize, autoFontSize, fitToBox, containerRef, boxWidth }: ClockViewProps) {
   const t = useTranslate('modules');
-  const locale = useFormattingLocale();
   const { hStr, mStr, sStr, hours } = parseClockTime(format24h, time);
   const ampm = format24h ? '' : hours >= 12 ? t('clock.pm') : t('clock.am');
 
-  const dateStr = config.showDate
-    ? formatDateSync(now, clockDatePattern(config.dateFormat, locale), { locale })
-    : null;
-
-  // Inline localized version of buildInfoParts: date-info.ts still hard-codes
-  // English labels, so this view builds its own translated label.
-  const { weekNumber, dayOfYear } = getDateInfoValues(now, localeWeekStart(locale));
-  const infoParts: string[] = [];
-  if (config.showWeekNumber) infoParts.push(`${t('clock.weekShort')} ${weekNumber}`);
-  if (config.showDayOfYear) infoParts.push(`${t('clock.dayShort')} ${dayOfYear}`);
-  const infoStr = infoParts.length > 0 ? infoParts.join(' · ') : null;
+  const dateStr = useClockDateLine(config, now);
+  const { text: infoStr } = useDateInfoLine(config, now, CLOCK_INFO_LABELS);
 
   // Shrink everything together when the box is narrower than the time line;
   // the height-derived size stays the ceiling. Measured at the auto size, so

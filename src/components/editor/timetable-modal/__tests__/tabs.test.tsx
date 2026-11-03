@@ -292,7 +292,8 @@ describe('SchoolsTab', () => {
   });
 
   it('keeps a break named with the word somebody typed when its name box is emptied', () => {
-    // Plan 71's nameless break was fixed by never creating one, but a break
+    // A break saved without a name used to be dropped; that was fixed by never
+    // creating one ("+ Break" starts out named "Break"), but a break
     // whose name was cleared to retype it was still thrown away, times and all.
     let latest: TimetableData | null = null;
     wrap(<SchoolsHarness onChange={(data) => { latest = data; }} />);

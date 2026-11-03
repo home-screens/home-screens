@@ -11,6 +11,8 @@ import { useTranslate } from '@/i18n';
 import MealFormOverlay from './MealFormOverlay';
 import RecipeWallButton from './RecipeWallButton';
 import Glyph from '@/components/ui/Glyph';
+import { REMOTE_ACCENT, selectedPillStyle } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsLibraryViewProps {
   savedMeals: SavedMeal[];
@@ -87,10 +89,8 @@ export default function MealsLibraryView({
                 fontSize: 12,
                 fontWeight: 600,
                 borderRadius: 999,
-                border: isActive ? '1px solid #f59e0b' : '1px solid var(--hs-border)',
+                ...selectedPillStyle(isActive),
                 cursor: 'pointer',
-                background: isActive ? 'rgba(245,158,11,0.15)' : 'var(--hs-bg-panel)',
-                color: isActive ? '#f59e0b' : 'var(--hs-text-faint)',
                 flexShrink: 0,
                 whiteSpace: 'nowrap',
                 fontFamily: 'inherit',
@@ -234,13 +234,13 @@ export default function MealsLibraryView({
           width: 52,
           height: 52,
           borderRadius: 16,
-          background: '#f59e0b',
+          background: REMOTE_ACCENT,
           color: '#000',
           fontSize: 28,
           fontWeight: 300,
           border: 'none',
           cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(245,158,11,0.3)',
+          boxShadow: `0 4px 20px ${withAlpha(REMOTE_ACCENT, 0.3)}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

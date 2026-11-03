@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatDuration, type UnitValue } from '@/lib/duration-format';
+import { formatDuration, formatShortDuration, type UnitValue } from '@/lib/duration-format';
 
 /**
  * `renderWords` memoizes `Intl.DurationFormat` instances because both callers
@@ -85,5 +85,15 @@ describe('formatDuration non-words formats are unaffected by the cache', () => {
     expect(formatDuration(MINUTES_SECONDS, 'colon', 'en-US')).toBe('0:45');
     expect(formatDuration(HOURS_MINUTES, 'units', 'en-US')).toBe('1h 30m');
     expect(formatDuration(MINUTES_SECONDS, 'units', 'en-US')).toBe('0m 45s');
+  });
+});
+
+describe('formatShortDuration', () => {
+  it('rounds to whole seconds and keeps the seconds past a minute', () => {
+    expect(formatShortDuration(400)).toBeNull();
+    expect(formatShortDuration(1500)).toBe('2s');
+    expect(formatShortDuration(59_000)).toBe('59s');
+    expect(formatShortDuration(90_000)).toBe('1m 30s');
+    expect(formatShortDuration(300_000)).toBe('5m 0s');
   });
 });

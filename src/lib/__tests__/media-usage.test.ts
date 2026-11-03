@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   blockedRemovals,
   classifyMediaRef,
-  normalizeMediaRef,
   removalBlocksByFile,
   rewriteMediaRefs,
   scanMediaUsage,
@@ -12,7 +11,10 @@ import {
   type MediaUse,
 } from '../media-usage';
 
-describe('normalizeMediaRef', () => {
+/** The library path `classifyMediaRef` reads out of a candidate string, or null. */
+const normalizeMediaRef = (value: string): string | null => classifyMediaRef(value)?.path ?? null;
+
+describe('classifyMediaRef paths', () => {
   it('extracts and decodes the file param from serve URLs, ignoring the media token', () => {
     expect(normalizeMediaRef('/api/backgrounds/serve?file=calendar-art%2Fpumpkins.jfif'))
       .toBe('calendar-art/pumpkins.jfif');

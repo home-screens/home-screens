@@ -1,4 +1,25 @@
 import type React from 'react';
+import { withAlpha } from '@/lib/hex-color';
+
+/**
+ * The phone's one accent: the amber of a lit chip, a save button, a section
+ * heading. Tints of it go through `withAlpha`, never a hex suffix.
+ */
+export const REMOTE_ACCENT = '#f59e0b';
+
+/**
+ * The border, wash and ink of a chip or option button: amber when it is the
+ * chosen one, quiet otherwise. `idleColor` is the unchosen ink, faint for a
+ * filter chip and muted for a settings option. Size and shape stay with the
+ * caller.
+ */
+export function selectedPillStyle(selected: boolean, idleColor = 'var(--hs-text-faint)'): React.CSSProperties {
+  return {
+    border: `1px solid ${selected ? REMOTE_ACCENT : 'var(--hs-border)'}`,
+    background: selected ? withAlpha(REMOTE_ACCENT, 0.15) : 'var(--hs-bg-panel)',
+    color: selected ? REMOTE_ACCENT : idleColor,
+  };
+}
 
 export const INPUT_STYLE: React.CSSProperties = {
   width: '100%',

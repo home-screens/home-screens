@@ -18,7 +18,7 @@
  * hour, dim indigo at night) and never touches it again, so the Pi pays a
  * single pass of pixel math and then only composites.
  *
- * How a cloud is built (the design notes live in .claude/plans/208):
+ * How a cloud is built:
  *   1. Silhouette: a dome of circles along an arch with an off-centre crown,
  *      two smaller lobes riding on each big one, and a skirt row tucked under
  *      so the underside is flat. The circles join with a smooth maximum, never

@@ -1713,7 +1713,7 @@ describe('editor store', () => {
     // directly changes the active canvas size, even when global settings
     // disagree.
     it('returns main display node dimensions, not global settings', async () => {
-      const { getActiveDimensions } = await import('@/stores/editor-store');
+      const { getActiveDimensions } = await import('@/lib/editor-multi-display');
       const config = makeConfig({
         settings: {
           ...makeConfig().settings,
@@ -1738,7 +1738,7 @@ describe('editor store', () => {
     });
 
     it('does not let an inherited global transform flip a display\'s own dimensions', async () => {
-      const { getActiveDimensions } = await import('@/stores/editor-store');
+      const { getActiveDimensions } = await import('@/lib/editor-multi-display');
       // Mirrors filterConfigForDisplay: the global '90' rotates the hub's
       // own panel; a display with its own landscape dimensions and no
       // declared rotation keeps them as typed, so the editor canvas agrees
@@ -3148,7 +3148,7 @@ describe('editor store', () => {
 
   describe('multi-display: getActiveScreens helper branches', () => {
     it('returns config.screens when selectedDisplayId is null (legacy mode)', async () => {
-      const mod = await import('@/stores/editor-store');
+      const mod = await import('@/lib/editor-multi-display');
       const config = makeConfig({
         screens: [{ id: 'g1', name: 'G1', backgroundImage: '', modules: [] }],
       });
@@ -3158,7 +3158,7 @@ describe('editor store', () => {
     });
 
     it('returns display.screens for a multi-display with owned screens', async () => {
-      const mod = await import('@/stores/editor-store');
+      const mod = await import('@/lib/editor-multi-display');
       const config = makeConfig({
         screens: [],
         displays: [{
@@ -3171,7 +3171,7 @@ describe('editor store', () => {
     });
 
     it('falls back to config.screens when the selected display ID is unknown', async () => {
-      const mod = await import('@/stores/editor-store');
+      const mod = await import('@/lib/editor-multi-display');
       const config = makeConfig({
         screens: [{ id: 'g1', name: 'G1', backgroundImage: '', modules: [] }],
       });

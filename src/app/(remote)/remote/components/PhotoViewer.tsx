@@ -8,6 +8,8 @@ import { displaySizedUrl, fitInside, serveUrlFor } from '@/lib/media-paths';
 import { formatBytes } from '@/lib/format-bytes';
 import { useBackGesture } from '../hooks/useBackGesture';
 import { setToastFloor } from '../remote-toast';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 /** What the panel under the picture says about one file, worked out by the tab. */
 export interface PhotoFacts {
@@ -297,7 +299,7 @@ export default function PhotoViewer({
               </span>
             )}
             {info.usedAlone && (
-              <span data-testid="photo-viewer-used-alone" style={chip('rgba(245,158,11,0.14)', '#fcd34d')}>
+              <span data-testid="photo-viewer-used-alone" style={chip(withAlpha(REMOTE_ACCENT, 0.14), '#fcd34d')}>
                 <Lock size={14} aria-hidden="true" />
                 {info.usedAlone}
               </span>

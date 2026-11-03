@@ -162,7 +162,6 @@
       "didIt": "{name} hat's geschafft",
       "youGrabbedIt": "Du hast sie dir geschnappt. Hak sie ab, wenn du fertig bist.",
       "youGotIt": "Geschafft! +{n}",
-      "finishYoursFirst": "Mach erst deine fertig",
       "refused": {
         "grabbed": "{name} ist da schon dran.",
         "taken": "{name} hat die schon gemacht.",
@@ -241,38 +240,9 @@
       "chores": "Aufgaben",
       "members": "Mitglieder"
     },
-    "members": {
-      "empty": "Noch keine Mitglieder",
-      "emptyHint": "Füge Familienmitglieder hinzu, um loszulegen",
-      "editAriaLabel": "{name} bearbeiten",
-      "choreCountSingular": "{n} Aufgabe zugewiesen",
-      "choreCountPlural": "{n} Aufgaben zugewiesen",
-      "addButton": "Mitglied hinzufügen"
-    },
     "chores": {
-      "empty": "Noch keine Aufgaben",
-      "emptyHintNoMembers": "Füge zuerst Familienmitglieder hinzu",
-      "emptyHintAddChores": "Füge Aufgaben hinzu und weise sie Mitgliedern zu",
       "editAriaLabel": "{name} bearbeiten",
       "addButton": "Aufgabe hinzufügen"
-    },
-    "memberForm": {
-      "titleNew": "Neues Mitglied",
-      "titleEdit": "Mitglied bearbeiten",
-      "nameLabel": "Name",
-      "namePlaceholder": "Namen eingeben…",
-      "avatarLabel": "Avatar",
-      "addSubmit": "Mitglied hinzufügen",
-      "saveSubmit": "Mitglied speichern",
-      "deleteButton": "Mitglied löschen"
-    },
-    "memberDelete": {
-      "title": "„{name}“ löschen?",
-      "fallbackName": "diese Person",
-      "descriptionNoChores": "{name} wird aus allen zugewiesenen Aufgaben entfernt. Aufgaben ohne weitere Personen werden ebenfalls gelöscht.",
-      "descriptionWithChoresSingular": "{name} wird aus {count} zugewiesenen Aufgabe entfernt. Aufgaben ohne weitere Personen werden ebenfalls gelöscht.",
-      "descriptionWithChoresPlural": "{name} wird aus allen {count} zugewiesenen Aufgaben entfernt. Aufgaben ohne weitere Personen werden ebenfalls gelöscht.",
-      "confirmLabel": "Mitglied löschen"
     },
     "choreForm": {
       "titleNew": "Neue Aufgabe",
@@ -687,15 +657,6 @@
       "heading": "Ticketkonten",
       "adjustDownAriaLabel": "Ein Ticket von {name} abziehen",
       "adjustUpAriaLabel": "Ein Ticket zu {name} hinzufügen"
-    },
-    "history": {
-      "heading": "Letzte Einlösungen",
-      "empty": "Noch keine Einlösungen",
-      "entry": {
-        "beforeReward": " hat ",
-        "afterRewardSingular": " eingelöst für {n} Ticket",
-        "afterRewardPlural": " eingelöst für {n} Tickets"
-      }
     },
     "saveFailed": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
     "goal": {

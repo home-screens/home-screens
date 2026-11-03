@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react';
 import type { StandingsEntry } from '@/lib/espn-standings';
-import { leagueWallCode } from '@/lib/espn';
+import { isSoccerLeague, leagueWallCode } from '@/lib/espn';
 import { PaginationDots } from '../shared/PaginationDots';
 import { TeamLogo } from '../shared/TeamLogo';
 import { withAlpha } from '@/lib/hex-color';
-
-export { TeamLogo };
 
 interface StandingsTeamRowProps {
   entry: StandingsEntry;
@@ -119,7 +117,7 @@ export function formatRecord(entry: StandingsEntry, league: string): string {
   if (l === 'nhl') {
     return `${entry.wins}-${entry.losses}${entry.otLosses ? `-${entry.otLosses}` : ''}`;
   }
-  if (['mls', 'epl', 'laliga', 'bundesliga', 'seriea', 'ligue1', 'liga_mx'].includes(l)) {
+  if (isSoccerLeague(l)) {
     return `${entry.wins}-${entry.draws ?? 0}-${entry.losses}`;
   }
   if (l === 'nfl') {
@@ -144,12 +142,6 @@ export function getPlayoffTeamCount(league: string, grouping: 'division' | 'conf
   const twoConference = ['nfl', 'nba', 'mlb', 'nhl'];
   if (grouping === 'league' && twoConference.includes(l)) return perConf * 2;
   return perConf;
-}
-
-const SOCCER_LEAGUES = ['mls', 'epl', 'laliga', 'bundesliga', 'seriea', 'ligue1', 'liga_mx'];
-
-export function isSoccer(league: string): boolean {
-  return SOCCER_LEAGUES.includes(league.toLowerCase());
 }
 
 export function StandingsHeader({

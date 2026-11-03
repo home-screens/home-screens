@@ -18,7 +18,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { useEditorStore } from '@/stores/editor-store';
 import { removePluginModules } from '@/lib/plugin-modules';
 import Button from '@/components/ui/Button';
-import type { RegistryPlugin, InstalledPlugin, PluginRegistry, PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
+import type { RegistryPlugin, RegistryPluginVersion, InstalledPlugin, PluginRegistry, PluginPermission, PluginSecretDeclaration } from '@/types/plugins';
 import type { DevPlugin } from '@/lib/plugin-loader';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import { logger } from '@/lib/logger';
@@ -745,102 +745,117 @@ function UpdatesTab({
     return <p className="text-sm text-hs-text-faint text-center py-8">{t('settings.pluginStorePanel.updates.allUpToDate')}</p>;
   }
 
+  const rowProps = { onInstall, onShowReleaseNotes, actionInProgress };
+  const regOf = (plugin: InstalledPlugin) => registry.find((r) => r.id === plugin.id);
+
   return (
     <div className="space-y-2">
       {updatable.map((plugin) => {
-        const reg = registry.find((r) => r.id === plugin.id);
+        const reg = regOf(plugin);
         const latest = reg ? latestVersion(reg, APP_VERSION, { includeBeta: plugin.channel === 'beta' }) : null;
-        const isBeta = !!reg && resolveChannel(reg, latest) === 'beta';
         return (
-          <div key={plugin.id} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
-                {isBeta && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
-                <span className="text-xs text-hs-text-faint">
-                  v{plugin.version} → v{latest?.version}
-                </span>
-              </div>
-              {latest?.changelog && (
-                <p className="text-xs text-hs-text-muted mt-0.5">{latest.changelog}</p>
-              )}
-              {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!latest || actionInProgress === plugin.id}
-              onClick={() => latest && onInstall(plugin.id, latest.version)}
-            >
-              {actionInProgress === plugin.id
-                ? t('settings.pluginStorePanel.updates.updatingButton')
-                : t('settings.pluginStorePanel.updates.updateButton')}
-            </Button>
-          </div>
+          <UpdateRow
+            key={plugin.id}
+            plugin={plugin}
+            reg={reg}
+            target={latest}
+            showBetaBadge={!!reg && resolveChannel(reg, latest) === 'beta'}
+            hint={latest?.changelog}
+            busyLabel={t('settings.pluginStorePanel.updates.updatingButton')}
+            actionLabel={t('settings.pluginStorePanel.updates.updateButton')}
+            {...rowProps}
+          />
         );
       })}
       {betaUpgradable.map((plugin) => {
-        const reg = registry.find((r) => r.id === plugin.id);
+        const reg = regOf(plugin);
         const latest = reg ? latestVersion(reg, APP_VERSION, { includeBeta: true }) : null;
         return (
-          <div key={`beta-${plugin.id}`} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
-                <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />
-                <span className="text-xs text-hs-text-faint">
-                  v{plugin.version} → v{latest?.version}
-                </span>
-              </div>
-              {latest?.changelog && (
-                <p className="text-xs text-hs-text-muted mt-0.5">{latest.changelog}</p>
-              )}
-              {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!latest || actionInProgress === plugin.id}
-              onClick={() => latest && onInstall(plugin.id, latest.version)}
-            >
-              {actionInProgress === plugin.id
-                ? t('settings.pluginStorePanel.updates.tryingBetaButton')
-                : t('settings.pluginStorePanel.updates.tryBetaButton', { version: latest?.version ?? '' })}
-            </Button>
-          </div>
+          <UpdateRow
+            key={`beta-${plugin.id}`}
+            plugin={plugin}
+            reg={reg}
+            target={latest}
+            showBetaBadge
+            hint={latest?.changelog}
+            busyLabel={t('settings.pluginStorePanel.updates.tryingBetaButton')}
+            actionLabel={t('settings.pluginStorePanel.updates.tryBetaButton', { version: latest?.version ?? '' })}
+            {...rowProps}
+          />
         );
       })}
       {betaDowngradable.map((plugin) => {
-        const reg = registry.find((r) => r.id === plugin.id);
+        const reg = regOf(plugin);
         const stable = reg ? latestVersion(reg, APP_VERSION, { includeBeta: false }) : null;
         return (
-          <div key={`stable-${plugin.id}`} className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
-                <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />
-                <span className="text-xs text-hs-text-faint">
-                  v{plugin.version} → v{stable?.version}
-                </span>
-              </div>
-              <p className="text-xs text-hs-text-muted mt-0.5">
-                {t('settings.pluginStorePanel.updates.backToStableHint')}
-              </p>
-              {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
-            </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!stable || actionInProgress === plugin.id}
-              onClick={() => stable && onInstall(plugin.id, stable.version)}
-            >
-              {actionInProgress === plugin.id
-                ? t('settings.pluginStorePanel.updates.updatingButton')
-                : t('settings.pluginStorePanel.updates.backToStableButton', { version: stable?.version ?? '' })}
-            </Button>
-          </div>
+          <UpdateRow
+            key={`stable-${plugin.id}`}
+            plugin={plugin}
+            reg={reg}
+            target={stable}
+            showBetaBadge
+            hint={t('settings.pluginStorePanel.updates.backToStableHint')}
+            busyLabel={t('settings.pluginStorePanel.updates.updatingButton')}
+            actionLabel={t('settings.pluginStorePanel.updates.backToStableButton', { version: stable?.version ?? '' })}
+            {...rowProps}
+          />
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * One line of the Updates tab: the plugin, the version it is on and the one
+ * `target` offers, a hint under them (the release's changelog, or why the
+ * move is offered), and the button that installs it.
+ */
+function UpdateRow({
+  plugin,
+  reg,
+  target,
+  showBetaBadge,
+  hint,
+  busyLabel,
+  actionLabel,
+  onInstall,
+  onShowReleaseNotes,
+  actionInProgress,
+}: {
+  plugin: InstalledPlugin;
+  reg: RegistryPlugin | undefined;
+  target: RegistryPluginVersion | null;
+  showBetaBadge: boolean;
+  hint: string | undefined;
+  busyLabel: string;
+  actionLabel: string;
+  onInstall: (id: string, version: string) => void;
+  onShowReleaseNotes: (plugin: RegistryPlugin) => void;
+  actionInProgress: string | null;
+}) {
+  const t = useTranslate('editor');
+  const busy = actionInProgress === plugin.id;
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg border border-hs-border-strong bg-hs-hover">
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-hs-text-primary">{plugin.id}</span>
+          {showBetaBadge && <BetaBadge label={t('settings.pluginStorePanel.beta.badge')} />}
+          <span className="text-xs text-hs-text-faint">
+            v{plugin.version} → v{target?.version}
+          </span>
+        </div>
+        {hint && <p className="text-xs text-hs-text-muted mt-0.5">{hint}</p>}
+        {reg && <ReleaseNotesButton plugin={reg} onShow={onShowReleaseNotes} />}
+      </div>
+      <Button
+        variant="secondary"
+        size="sm"
+        disabled={!target || busy}
+        onClick={() => target && onInstall(plugin.id, target.version)}
+      >
+        {busy ? busyLabel : actionLabel}
+      </Button>
     </div>
   );
 }

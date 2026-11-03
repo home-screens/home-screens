@@ -35,8 +35,8 @@ export interface EditorSharedState extends DisplaySharedState {
  *
  * An EMPTY local bus still never counts as a source — `states` stays null so
  * an offline display keeps rendering neutral verdicts, never a confident
- * "unmet" conjured from a bus nothing publishes to (the phase-4
- * never-stale-green invariant). A bus holding only tombstones is not that
+ * "unmet" conjured from a bus nothing publishes to (a verdict is never
+ * confident on state nobody is sending). A bus holding only tombstones is not that
  * case: those are the values the display is evaluating against right now, and
  * they drop out on their own once the TTL reaps them.
  */

@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import { useDisplayTarget } from '../display-target';
 import { usePendingCommand } from '../hooks';
 import { CONFIRM_TIMEOUT_MS } from '@/lib/display-liveness';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 interface BrightnessCardProps {
   /**
@@ -94,7 +95,7 @@ export default function BrightnessCard({ reportedValues, disabled, onSent, onNoC
           [&::-moz-range-thumb]:w-[22px] [&::-moz-range-thumb]:h-[22px] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
         style={{
           background: known
-            ? `linear-gradient(to right, #f59e0b ${sliderValue}%, var(--hs-border-strong) ${sliderValue}%)`
+            ? `linear-gradient(to right, ${REMOTE_ACCENT} ${sliderValue}%, var(--hs-border-strong) ${sliderValue}%)`
             : 'var(--hs-border-strong)',
         }}
         aria-label={known ? t('brightnessCard.valueAriaLabel', { percent: shown }) : t('brightnessCard.unknownAriaLabel')}

@@ -2,6 +2,8 @@
 
 import type { CSSProperties } from 'react';
 import { useTranslate } from '@/i18n';
+import { REMOTE_ACCENT } from './chore-form-styles';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsWeekNavProps {
   /** Either "This Week" or the viewed date range */
@@ -51,7 +53,7 @@ export default function MealsWeekNav({ weekLabel, isCurrentWeek, navigateWeek, j
             onClick={jumpToToday}
             style={{
               flex: 'none', minHeight: 44, padding: '0 12px', borderRadius: 10, border: 'none',
-              background: 'rgba(245,158,11,0.12)', color: '#f59e0b',
+              background: withAlpha(REMOTE_ACCENT, 0.12), color: REMOTE_ACCENT,
               fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
             }}
           >

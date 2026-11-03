@@ -31,6 +31,7 @@ import { Card, Label, TopBar, AlertBand, MiniHero, PrecipLegendHeader } from './
  * time axis and 0-100 across it, drawn with `preserveAspectRatio="none"` and
  * a non-scaling stroke, so it lands exactly on the DOM dots at any size.
  */
+
 /** The entries the timeline draws, with everything a row or column needs about each. */
 function timeline(p: WeatherViewProps) {
   const hrs = timelineHours(p.hourly);

@@ -32,7 +32,8 @@
  *
  * Clearing is reserved for the one case where the producer genuinely no
  * longer exists: no calendar source configured, so nothing is fetched at all
- * (`clearCalendarState`). The cold-start guard then works in our favour — a
+ * (`useSharedDisplayData` clears every key in `CALENDAR_STATE_KEY_LIST`). The
+ * cold-start guard then works in our favour: a
  * calendar removed and later re-added must not fire rules off its first
  * publish.
  */

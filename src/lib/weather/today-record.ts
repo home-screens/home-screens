@@ -88,10 +88,3 @@ function isOlderThanADay(date: string, than: string): boolean {
   const ms = Date.parse(`${than}T00:00:00Z`) - Date.parse(`${date}T00:00:00Z`);
   return Number.isFinite(ms) ? ms > 86_400_000 : date < than;
 }
-
-/** The day's range so far for a key, if the hub has one for that day. */
-export async function readDayRange(key: string, date: string): Promise<DayRange | undefined> {
-  const { readings } = await store.read();
-  const r = readings[key];
-  return r && r.date === date ? r : undefined;
-}

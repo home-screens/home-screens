@@ -144,7 +144,7 @@ export const INK = 'var(--module-ink, currentcolor)';
  * The card's ink at an alpha.
  *
  * For every fill, rule, ring and placeholder that used to be a literal
- * `rgba(255,255,255,x)` and so assumed a dark card (plan 50, item 19). The
+ * `rgba(255,255,255,x)` and so assumed a dark card. The
  * same idea as DIVIDER, for the alphas the tiers do not cover: at the
  * default white text it resolves to exactly the old value, so nothing already
  * on a wall changes, and on a light card with dark text the element darkens
@@ -179,7 +179,7 @@ export function ink(alpha: number): string {
 // separate obeyed the setting. At the default white text these resolve to
 // exactly what they always were, so no card already on a wall changes.
 //
-// Built on `ink()` below since item 19 found two traps in the first version
+// Built on `ink()` below since the first version had two traps
 // (oklab mixing lands a level off at anti-aliased edges; `currentColor` on an
 // element that sets its own colour is that colour, not the card's). Same
 // values, now exact at white and anchored to the card's ink.

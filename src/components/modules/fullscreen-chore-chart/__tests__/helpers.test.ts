@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  getOrientation,
   getCurrentTimeOfDay,
   groupPillMetrics,
   groupPillMinRow,
@@ -38,20 +37,6 @@ function makeAssignment(
 ): ResolvedAssignment {
   return { chore, memberId, isCompleted, isSkipped: false, groupIds: chore.assigneeGroupIds ?? [] };
 }
-
-describe('getOrientation', () => {
-  it('returns portrait when height > width', () => {
-    expect(getOrientation(1080, 1920)).toBe('portrait');
-  });
-
-  it('returns landscape when width >= height', () => {
-    expect(getOrientation(1920, 1080)).toBe('landscape');
-  });
-
-  it('returns landscape when width equals height', () => {
-    expect(getOrientation(1080, 1080)).toBe('landscape');
-  });
-});
 
 describe('getCurrentTimeOfDay', () => {
   it('returns morning for hours 0-11', () => {

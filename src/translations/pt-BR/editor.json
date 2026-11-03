@@ -594,7 +594,6 @@
         "checkingConnection": "Verificando conexão…",
         "connected": "Conectado ao Google",
         "disconnect": "Desconectar",
-        "selectCalendars": "Selecione os calendários a exibir",
         "noCalendars": "Nenhum calendário encontrado.",
         "primaryBadge": "(principal)",
         "hideDeclinedLabel": "Ocultar eventos recusados",
@@ -653,7 +652,6 @@
       },
       "health": {
         "heading": "Status das fontes",
-        "holidays": "Feriados nacionais",
         "updated": "Atualizado {time}",
         "updatedNow": "Atualizado agora",
         "notUpdating": "Sem atualizar",
@@ -2775,25 +2773,6 @@
     "title": "Quadro de tarefas",
     "subtitleMembersChores": "{members} membros · {chores} tarefas",
     "loadError": "Falha ao carregar dados das tarefas. Alterações não serão salvas.",
-    "members": {
-      "columnTitle": "Membros da família",
-      "empty": "Nenhum membro ainda",
-      "addButton": "Adicionar membro",
-      "addSubmit": "Adicionar membro",
-      "saveSubmit": "Salvar",
-      "editAriaLabel": "Editar {name}",
-      "deleteAriaLabel": "Excluir {name}",
-      "deleteConfirm": {
-        "title": "Remover membro",
-        "message": "Remover \"{name}\"? Isso também remove a pessoa de todas as tarefas.",
-        "confirmLabel": "Remover"
-      }
-    },
-    "memberForm": {
-      "namePlaceholder": "Nome...",
-      "avatarLabel": "Avatar",
-      "customColorTitle": "Escolher cor personalizada"
-    },
     "chores": {
       "columnTitle": "Tarefas",
       "addButton": "Adicionar tarefa",
@@ -5270,7 +5249,6 @@
       "artUpload": "Adicionar imagem",
       "artUploading": "Adicionando…",
       "artUploadHint": "Imagem ou SVG, até 10 MB",
-      "artUploadFailed": "Não foi possível adicionar a imagem.",
       "artNames": {
         "birthday": "Aniversário",
         "christmas": "Natal",

@@ -26,11 +26,6 @@ export function readScheduleClock(now: ScheduleClock): WallClock {
 }
 
 /**
- * Returns false only when the module has been explicitly disabled
- * (`enabled === false`). Undefined / true both mean "enabled".
- * Mirrors the `Screen.enabled` convention used by ScreenRotator and the remote view.
- */
-/**
  * The three AND-combined gates every module instance passes before it is
  * drawn anywhere: the on/off switch, the schedule and the visibility
  * conditions. Shared by the screen renderer and PinnedModuleLayer so a module
@@ -46,6 +41,11 @@ export function passesModuleGates(
   return isModuleEnabled(mod) && isModuleVisible(mod.schedule, now) && evaluateVisibility(mod.visibility, states, now);
 }
 
+/**
+ * Returns false only when the module has been explicitly disabled
+ * (`enabled === false`). Undefined / true both mean "enabled".
+ * Mirrors the `Screen.enabled` convention used by ScreenRotator and the remote view.
+ */
 export function isModuleEnabled(mod: Pick<ModuleInstance, 'enabled'>): boolean {
   return mod.enabled !== false;
 }

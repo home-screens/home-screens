@@ -40,7 +40,6 @@ let box = moduleFor({ width: 570, height: 880 });
 const attach = () => {};
 vi.mock('@/hooks/useElementBox', () => ({
   useElementBox: () => [attach, box],
-  useElementWidth: () => [attach, box.width],
 }));
 
 // Every fetch the module makes, answered from these. `asked` records the URLs

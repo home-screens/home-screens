@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { uuid } from '@/lib/uuid';
 
 type SetFn = (updates: Record<string, unknown>) => void;
 
@@ -17,7 +17,7 @@ export function useListEditor<T extends WithId>(
   defaultItem: Omit<T, 'id'>
 ) {
   const add = () => {
-    set({ [key]: [...items, { id: uuidv4(), ...defaultItem }] });
+    set({ [key]: [...items, { id: uuid(), ...defaultItem }] });
   };
 
   const remove = (id: string) => {

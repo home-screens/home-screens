@@ -15,7 +15,6 @@ import {
   updateChoreInList,
   removeChoreFromList,
   parseISO,
-  addMonthsClamped,
   computeDayEntries,
   isAssignedOn,
   choresAssignedTo,
@@ -508,44 +507,6 @@ describe('parseISO', () => {
     expect(d.getMonth()).toBe(3); // April = 3
     expect(d.getDate()).toBe(9);
     expect(d.getHours()).toBe(0);
-  });
-});
-
-describe('addMonthsClamped', () => {
-  it('walks one month forward within the same year', () => {
-    expect(addMonthsClamped('2026-03-15', 1, '2025-01-01', '2026-12-31')).toBe('2026-04-15');
-  });
-
-  it('walks one month backward within the same year', () => {
-    expect(addMonthsClamped('2026-03-15', -1, '2025-01-01', '2026-12-31')).toBe('2026-02-15');
-  });
-
-  it('handles JS month overflow — Jan 31 + 1 month → Feb 28 (non-leap)', () => {
-    expect(addMonthsClamped('2025-01-31', 1, '2024-01-01', '2026-12-31')).toBe('2025-02-28');
-  });
-
-  it('handles JS month overflow — Jan 31 + 1 month → Feb 29 (leap year)', () => {
-    expect(addMonthsClamped('2024-01-31', 1, '2023-01-01', '2026-12-31')).toBe('2024-02-29');
-  });
-
-  it('handles JS month overflow — Mar 31 - 1 month → Feb 28 (non-leap)', () => {
-    expect(addMonthsClamped('2025-03-31', -1, '2024-01-01', '2026-12-31')).toBe('2025-02-28');
-  });
-
-  it('clamps to earliest when target falls below the window', () => {
-    expect(addMonthsClamped('2026-03-15', -6, '2026-01-01', '2026-12-31')).toBe('2026-01-01');
-  });
-
-  it('clamps to latest when target rises above the window', () => {
-    expect(addMonthsClamped('2026-10-15', 6, '2026-01-01', '2026-12-31')).toBe('2026-12-31');
-  });
-
-  it('crosses the year boundary going forward', () => {
-    expect(addMonthsClamped('2025-12-15', 1, '2024-01-01', '2026-12-31')).toBe('2026-01-15');
-  });
-
-  it('crosses the year boundary going backward', () => {
-    expect(addMonthsClamped('2026-01-15', -1, '2024-01-01', '2026-12-31')).toBe('2025-12-15');
   });
 });
 

@@ -190,7 +190,6 @@ const ROUTE_DECISIONS: Record<string, string> = {
   // Real Google OAuth device flow — unreachable without live Google credentials.
   '/api/auth/google/device': 'requires a real Google OAuth exchange; no safe CI path',
   '/api/auth/google/status': 'requires a real Google OAuth exchange; no safe CI path',
-  // Phase-5 burn-down: these need a colocated __tests__/route.test.ts.
 };
 
 /**
@@ -275,7 +274,7 @@ test('every API route is E2E-exercised, unit-tested, or an explicit decision', (
 
 /**
  * Module types that deliberately have NO row in CONFIG_VARIANTS
- * (e2e/helpers/config-variants.ts). The variant matrix flips one
+ * (e2e/helpers/config-variants/). The variant matrix flips one
  * rendering-affecting config field per row and asserts the render changed;
  * a module lands here only when it has no field that produces a
  * client-observable render difference the harness can drive. Each entry is
@@ -477,8 +476,8 @@ type FieldDecision =
 
 /**
  * Fields with an explicit coverage decision instead of a CONFIG_VARIANTS row,
- * keyed `<module-type>.<field>`. 'deferred' entries are the Phase-1 burn-down
- * list: delete each as its variant row lands. Every other reason is a durable,
+ * keyed `<module-type>.<field>`. 'deferred' entries are the known gaps:
+ * delete each as its variant row lands. Every other reason is a durable,
  * auditable decision. A NEW field on any module config lands red here unless
  * it gets a row or a reasoned entry.
  */
@@ -896,8 +895,8 @@ test('every module with an empty state has an empty-state fixture or a pending e
 
 /**
  * Non-editor surfaces that must each have a locale spec looping every manifest
- * locale. Specs listed in LOCALE_SURFACE_PENDING do not exist yet (Phase-4
- * burn-down); once a spec lands its entry is deleted and every locale must be
+ * locale. Specs listed in LOCALE_SURFACE_PENDING do not exist yet; once a
+ * spec lands its entry is deleted and every locale must be
  * referenced in it from then on.
  */
 const LOCALE_SURFACE_SPECS = [

@@ -26,6 +26,7 @@ import type { FullscreenCalendarConfig } from '@/types/config';
  * pill budget, computed by each view) and `showMonthName` (rolling grids
  * cross months mid-row, so their 1sts render "MMM d").
  */
+
 /**
  * A day note in a day-grid cell: one line at 0.9 of the cell's type with
  * 0.15 of it as padding above and below, then a small gap. Bigger than the

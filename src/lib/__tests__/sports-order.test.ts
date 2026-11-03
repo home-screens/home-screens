@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Game } from '../espn';
-import { enabledFavorites, favoriteRank, favoriteSide, isFavoriteGame, isFavoriteLeagueEnabled, isFavoriteTeam, orderGames, parseTeamKey, teamKey } from '../sports-order';
+import { enabledFavorites, favoriteRank, favoriteSide, isFavoriteLeagueEnabled, isFavoriteTeam, orderGames, parseTeamKey, teamKey } from '../sports-order';
 
 function game(id: string, league: string, away: string, home: string): Game {
   return {
@@ -67,13 +67,12 @@ describe('orderGames', () => {
   });
 });
 
-describe('favoriteSide / isFavoriteGame', () => {
+describe('favoriteSide', () => {
   it('names the side our team is on, away first when both sides are favorites', () => {
     expect(favoriteSide(GAMES[2], ['nfl:MIN'])).toBe('home');
     expect(favoriteSide(GAMES[2], ['nfl:MIA'])).toBe('away');
     expect(favoriteSide(GAMES[2], ['nfl:MIN', 'nfl:MIA'])).toBe('away');
     expect(favoriteSide(GAMES[2], ['nfl:GB'])).toBeNull();
-    expect(isFavoriteGame(GAMES[2], ['nfl:min'])).toBe(true);
   });
 });
 

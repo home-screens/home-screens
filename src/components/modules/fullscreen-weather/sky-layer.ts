@@ -150,7 +150,6 @@ export interface SkyScene {
   key: string;
   base: SkyBase;
   palette: CloudPalette;
-  /** Which cloud layers drift, with their opacity. */
   /** Opacity per cloud sprite layer; `veil` is the thin stratus of a night sky. */
   clouds: Partial<Record<'far' | 'mid' | 'near' | 'veil', number>>;
   /** A flat sheet of cloud across the top, for overcast and precipitation. */

@@ -22,6 +22,7 @@ import MealPickerSheet from './MealPickerSheet';
 import ConfirmSheet from './ConfirmSheet';
 import AtHomePill from './AtHomePill';
 import { MealieUnreachable, MealsSourcePill, MealsWeekLoading } from './MealsMealieStatus';
+import { REMOTE_ACCENT } from './chore-form-styles';
 
 export default function MealsTab() {
   const locale = useFormattingLocale();
@@ -396,7 +397,7 @@ export default function MealsTab() {
             <button
               type="button"
               onClick={() => { notice.undo?.(); dismissNotice(); }}
-              style={{ flex: 'none', whiteSpace: 'nowrap', minHeight: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--hs-border)', background: 'transparent', color: '#f59e0b', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ flex: 'none', whiteSpace: 'nowrap', minHeight: 36, padding: '0 12px', borderRadius: 8, border: '1px solid var(--hs-border)', background: 'transparent', color: REMOTE_ACCENT, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}
             >
               {notice.undoLabel ?? t('mealsTab.notice.undo')}
             </button>

@@ -4,7 +4,8 @@ import { useRef, useEffect, useMemo, useCallback, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { LayoutDashboard, Monitor, Plus, Copy, Layers } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import { useEditorStore, getActiveScreens, getActiveDimensions, getActiveFullscreenTheme } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveScreens, getActiveDimensions, getActiveFullscreenTheme } from '@/lib/editor-multi-display';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import {
   DISPLAY_BACKGROUND,

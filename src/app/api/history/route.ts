@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cachedProxyRoute, fetchWithTimeout } from '@/lib/api-utils';
 import { householdToday } from '@/lib/household-day';
 import type { HistoryEvent, HistoryResponse } from '@/lib/history-types';
+import { shuffleArray } from '@/lib/shuffle';
 import pkg from '../../../../package.json';
 
 export const dynamic = 'force-dynamic';
@@ -64,15 +65,6 @@ async function fetchWikipedia(date: string): Promise<HistoryEvent[]> {
   }
 }
 
-/** Shuffle array in place (Fisher-Yates) */
-function shuffle<T>(arr: T[]): T[] {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
 /**
  * The day a display asks for, when it is within a day of the household's
  * today, else the household's today. Displays name the household day they
@@ -127,7 +119,7 @@ const { GET, cache } = cachedProxyRoute<HistoryResponse, { date: string; sources
       return NextResponse.json({ error: 'Failed to fetch historical events' }, { status: 502 });
     }
 
-    return { date, events: shuffle(deduped) };
+    return { date, events: shuffleArray(deduped) };
   },
   errorMessage: 'Failed to fetch historical events',
 });

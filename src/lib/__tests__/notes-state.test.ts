@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NOTES_STATE_KEYS, NOTES_STATE_KEY_LIST, deriveNotesState, notesProvidedStateKeys } from '../notes-state';
+import { NOTES_STATE_KEYS, deriveNotesState, notesProvidedStateKeys } from '../notes-state';
 import type { Note } from '@/types/notes';
 
 const NOW = new Date('2026-10-20T15:00:00.000Z');
@@ -46,7 +46,7 @@ describe('deriveNotesState', () => {
 describe('notesProvidedStateKeys', () => {
   it('offers every key the board publishes, labelled through the dictionary', () => {
     const keys = notesProvidedStateKeys((key) => `t:${key}`);
-    expect(keys.map((k) => k.key)).toEqual(NOTES_STATE_KEY_LIST);
+    expect(keys.map((k) => k.key)).toEqual(Object.values(NOTES_STATE_KEYS));
     expect(keys).toEqual([
       { key: 'notes.count', label: 't:stateKeys.notes.count', sampleValues: ['3'] },
       { key: 'notes.important', label: 't:stateKeys.notes.important', sampleValues: ['1'] },
@@ -55,7 +55,6 @@ describe('notesProvidedStateKeys', () => {
   });
 
   it('names exactly the keys deriveNotesState publishes', () => {
-    expect(Object.keys(deriveNotesState([], NOW)).sort()).toEqual([...NOTES_STATE_KEY_LIST].sort());
-    expect(NOTES_STATE_KEY_LIST).toEqual(Object.values(NOTES_STATE_KEYS));
+    expect(Object.keys(deriveNotesState([], NOW)).sort()).toEqual(Object.values(NOTES_STATE_KEYS).sort());
   });
 });

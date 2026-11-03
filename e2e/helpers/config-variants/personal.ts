@@ -5,7 +5,7 @@ import type { ConfigVariant } from './types';
 import { NOTES_VIEW_SIZES } from '../view-matrix';
 import { has, lacks, child, redStyle, matches, notMatches } from './shared';
 
-/** Phase-1 batch rows — see .claude/plans/2026-07-09-e2e-100-percent-coverage.md. */
+/** Config-variant rows for the personal modules. */
 
 // --- Todoist stub bodies ---------------------------------------------------
 // A rich task set (two root tasks in different projects/labels + one subtask)

@@ -73,7 +73,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // "{screens} · {when}": the profile card's collapsed summary is the screen
   // count and the schedule, both already localized, joined by a separator.
   'editor|settings.profilesPage.card.summaryScheduled',
-  'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',
   'editor|configSections.clock.elapsedFormat',
@@ -289,7 +288,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|alertSender.duration5Min',
   'remote|alertSender.typeInfo',
   'remote|choresManage.choreForm.rotationLabel',
-  'remote|choresManage.memberForm.avatarLabel',
   'remote|choresTab.memberAriaLabel',
   'remote|mealForm.minPlaceholder',
   'remote|mealForm.recipeUrlPlaceholder',
@@ -435,7 +433,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|backupReminder.backupButton',
     'remote|choresManage.choreForm.nameLabel',
     'remote|choresManage.choreForm.ticketsLabel',
-    'remote|choresManage.memberForm.nameLabel',
     // "Offline" is the standard word in German.
     'remote|displayHero.stateOffline',
     // "Details" is the standard word in German.
@@ -519,8 +516,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|choresTab.ticketCountSingular',
     'remote|mobileColorPicker.colorLabel',
     'remote|rewardForm.visible',
-    'remote|rewardsView.history.entry.afterRewardPlural',
-    'remote|rewardsView.history.entry.afterRewardSingular',
     'remote|rewardsView.ticketCountPlural',
     'remote|rewardsView.ticketCountSingular',
     'remote|settingsSheet.system.hostLabel',
@@ -687,8 +682,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|mealsTab.subNav.plan',
     'remote|photosTab.header',
     'remote|rewardForm.visible',
-    'remote|rewardsView.history.entry.afterRewardPlural',
-    'remote|rewardsView.history.entry.afterRewardSingular',
     'remote|rewardsView.ticketCountPlural',
     'remote|rewardsView.ticketCountSingular',
     'remote|tabs.photos',
@@ -951,8 +944,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|choresManage.choreForm.ticketsLabel',
     'remote|choresTab.ticketCountPlural',
     'remote|choresTab.ticketCountSingular',
-    'remote|rewardsView.history.entry.afterRewardPlural',
-    'remote|rewardsView.history.entry.afterRewardSingular',
     'remote|rewardsView.ticketCountPlural',
     'remote|rewardsView.ticketCountSingular',
     'remote|settingsSheet.system.hostLabel',

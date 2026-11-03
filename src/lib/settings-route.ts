@@ -64,12 +64,6 @@ export const PER_DISPLAY_SUBTABS = ['overview', 'overrides'] as const;
 export type PerDisplaySubtab = (typeof PER_DISPLAY_SUBTABS)[number];
 
 /**
- * Resolved settings route. Three discriminated kinds:
- *   - `defaults` — render a Defaults source-of-truth page
- *   - `display`  — render a per-display drill-down page
- *   - `displays` — render the all-displays index
- */
-/**
  * Panel ids for the Defaults pages that have an intra-page tab bar. Mirrors
  * `SCREEN_PANELS` in `ScreenSection.tsx` and `AUTOMATION_PANELS` in
  * `AutomationSection.tsx`; kept here so the route type can carry a panel
@@ -120,6 +114,12 @@ export type DefaultsRoute =
     }[DefaultPageId]
   | { kind: 'defaults'; page: DefaultPageId; panel?: undefined };
 
+/**
+ * Resolved settings route. Three discriminated kinds:
+ *   - `defaults`: render a Defaults source-of-truth page
+ *   - `display`: render a per-display drill-down page
+ *   - `displays`: render the all-displays index
+ */
 export type SettingsRoute =
   | DefaultsRoute
   | { kind: 'display'; displayId: string; subtab: PerDisplaySubtab }
@@ -211,25 +211,6 @@ export function validPanelFor(
 }
 
 /**
- * Pure URL parser. Takes a `URLSearchParams` and returns the resolved
- * `SettingsRoute`. Used from a `useMemo` in the page component so the
- * route derives directly from the current URL without a popstate listener.
- *
- * Order matters:
- *   1. `?section=display` requires a non-empty `id` to dispatch to
- *      a per-display page; an unrecognized `subtab` falls back
- *      to `overview`.
- *   2. `?section=displays` is the all-displays index.
- *   3. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`.
- *      A URL whose `section` is absent or didn't dispatch above (an
- *      unrecognized value, or `display` with no id) but that carries a
- *      `page` or `panel` param is parsed the same way — a hand-trimmed
- *      `?page=screen&panel=sleep` or a miscased `?section=Defaults&page=X`
- *      renders the intended page instead of silently losing it.
- *   4. Unknown / missing params land on `defaults/screen`. (A bare URL can
- *      instead land on the caller's `landingPage` — see resolveSettingsRoute.)
- */
-/**
  * Pages and tabs from before the 2026-07 reorganization, mapped to where
  * their content lives now.
  *
@@ -283,6 +264,25 @@ function retiredTabRoute(params: URLSearchParams): SettingsRoute | undefined {
     : { kind: 'defaults', page: target.page }) as SettingsRoute;
 }
 
+/**
+ * Pure URL parser. Takes a `URLSearchParams` and returns the resolved
+ * `SettingsRoute`. Used from a `useMemo` in the page component so the
+ * route derives directly from the current URL without a popstate listener.
+ *
+ * Order matters:
+ *   1. `?section=display` requires a non-empty `id` to dispatch to
+ *      a per-display page; an unrecognized `subtab` falls back
+ *      to `overview`.
+ *   2. `?section=displays` is the all-displays index.
+ *   3. `?section=defaults&page=X` validates against `DEFAULT_PAGE_IDS`.
+ *      A URL whose `section` is absent or didn't dispatch above (an
+ *      unrecognized value, or `display` with no id) but that carries a
+ *      `page` or `panel` param is parsed the same way: a hand-trimmed
+ *      `?page=screen&panel=sleep` or a miscased `?section=Defaults&page=X`
+ *      renders the intended page instead of silently losing it.
+ *   4. Unknown / missing params land on `defaults/screen`. (A bare URL can
+ *      instead land on the caller's `landingPage`; see resolveSettingsRoute.)
+ */
 export function parseSettingsRoute(params: URLSearchParams): SettingsRoute {
   const section = params.get('section');
   if (section === 'display') {

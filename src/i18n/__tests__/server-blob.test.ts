@@ -1,8 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { buildLocaleBlob, encodeBlobForScriptTag } from '../server-blob';
-
-const LINE_SEPARATOR = String.fromCharCode(0x2028);
-const PARAGRAPH_SEPARATOR = String.fromCharCode(0x2029);
+import { buildLocaleBlob } from '../server-blob';
 
 describe('buildLocaleBlob', () => {
   it('returns a record keyed by the requested namespaces', async () => {
@@ -60,32 +57,5 @@ describe('buildLocaleBlob', () => {
     } finally {
       warnSpy.mockRestore();
     }
-  });
-});
-
-describe('encodeBlobForScriptTag', () => {
-  it('escapes embedded </script> sequences so the blob cannot break out', () => {
-    const out = encodeBlobForScriptTag({ ns: { evil: '</script>' } });
-    expect(out).not.toContain('</script>');
-    expect(out).toContain('\\u003c/script>');
-  });
-
-  it('round-trips through JSON.parse for normal content', () => {
-    const blob = { core: { today: 'Today' } };
-    const out = encodeBlobForScriptTag(blob);
-    expect(JSON.parse(out)).toEqual(blob);
-  });
-
-  it('escapes U+2028 and U+2029 line separators', () => {
-    const blob = {
-      ns: {
-        sep: `a${LINE_SEPARATOR}b${PARAGRAPH_SEPARATOR}c`,
-      },
-    };
-    const out = encodeBlobForScriptTag(blob);
-    expect(out).not.toContain(LINE_SEPARATOR);
-    expect(out).not.toContain(PARAGRAPH_SEPARATOR);
-    // The escaped form still parses back to the original characters.
-    expect(JSON.parse(out)).toEqual(blob);
   });
 });
