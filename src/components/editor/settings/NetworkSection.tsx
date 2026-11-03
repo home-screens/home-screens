@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { useEditorStore } from '@/stores/editor-store';
 import InterfaceCard from './network/InterfaceCard';
 import WifiScanSection from './network/WifiScanSection';
@@ -73,13 +74,10 @@ export default function NetworkSection() {
     }
   }, [selectedWifiIface]);
 
-  /* ── Poll overview every 10s ───────────────── */
+  /* ── Poll overview every 10s while the tab is in view ── */
+  // Every poll runs nmcli on the Pi, so a background editor tab must not keep it going.
 
-  useEffect(() => {
-    fetchOverview();
-    const interval = setInterval(fetchOverview, POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [fetchOverview]);
+  usePolledFetch(() => { void fetchOverview(); }, [fetchOverview], { intervalMs: POLL_INTERVAL_MS, pauseWhenHidden: true });
 
   /* ── Handlers ──────────────────────────────── */
 

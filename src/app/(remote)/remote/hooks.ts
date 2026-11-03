@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { DisplayApiEntry, DisplaysApiResponse } from '@/lib/displays-api-types';
 
@@ -55,6 +56,11 @@ export function useCommand() {
 // useRemoteStatus — polls display status with burst-polling after commands
 // ---------------------------------------------------------------------------
 
+/**
+ * The selected display's heartbeat, polled while the phone is in view.
+ * `nudge()` polls in a burst after a command so the phone sees the display
+ * act on it.
+ */
 export function useRemoteStatus(pollMs = 5000, displayId?: string) {
   const [status, setStatus] = useState<DisplayStatus | null>(null);
   const [isConnected, setIsConnected] = useState(true);
@@ -69,10 +75,8 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
   // user-initiated hub restart can watch for "went away, then came back".
   const [lastPollFailed, setLastPollFailed] = useState(false);
   const failuresRef = useRef(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
-  const burstTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const poll = useCallback(async () => {
+  const poll = useCallback(async (isMounted: () => boolean) => {
     try {
       const url = displayId
         ? `/api/display/status?display=${encodeURIComponent(displayId)}`
@@ -80,6 +84,7 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
       const res = await editorFetch(url);
       if (res.ok) {
         const data: DisplayStatus | null = await res.json();
+        if (!isMounted()) return;
         failuresRef.current = 0;
         setIsConnected(true);
         setLastPollFailed(false);
@@ -94,37 +99,22 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
     } catch (e) {
       // 401 already triggered a /login redirect; don't count it as a network
       // failure or the "disconnected" banner would flash on the way out.
-      if (isSessionExpired(e)) return;
+      if (isSessionExpired(e) || !isMounted()) return;
       failuresRef.current++;
       setLastPollFailed(true);
       if (failuresRef.current >= 3) setIsConnected(false);
     }
   }, [displayId]);
 
-  useEffect(() => {
-    // Reset status whenever the target display changes so the UI doesn't
-    // show stale data from the previous target.
+  // Reset status whenever the target display changes so the UI doesn't
+  // show stale data from the previous target.
+  const reset = useCallback(() => {
     setStatus(null);
     setLastUpdated(null);
     setNeverConnected(false);
-    poll();
-    intervalRef.current = setInterval(poll, pollMs);
-    return () => {
-      clearInterval(intervalRef.current);
-      clearTimeout(burstTimerRef.current);
-    };
-  }, [poll, pollMs]);
+  }, []);
 
-  const nudge = useCallback(() => {
-    clearInterval(intervalRef.current);
-    clearTimeout(burstTimerRef.current);
-    poll();
-    intervalRef.current = setInterval(poll, 1000);
-    burstTimerRef.current = setTimeout(() => {
-      clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(poll, pollMs);
-    }, 10_000);
-  }, [poll, pollMs]);
+  const { nudge } = usePolledFetch(poll, [poll], { intervalMs: pollMs, pauseWhenHidden: true, onSetup: reset });
 
   return { status, isConnected, lastUpdated, neverConnected, lastPollFailed, nudge };
 }
@@ -142,44 +132,21 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
  */
 export function useAllDisplayStatuses(enabled: boolean, pollMs = 5000) {
   const [entries, setEntries] = useState<DisplayApiEntry[] | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval>>(undefined);
-  const burstTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const poll = useCallback(async () => {
+  const poll = useCallback(async (isMounted: () => boolean) => {
     try {
       const res = await editorFetch('/api/displays');
       if (!res.ok) return;
       const data = (await res.json()) as DisplaysApiResponse;
-      setEntries(data.displays);
+      if (isMounted()) setEntries(data.displays);
     } catch {
       // Hub reachability is tracked by useRemoteStatus; keep the last list.
     }
   }, []);
 
-  useEffect(() => {
-    if (!enabled) {
-      setEntries(null);
-      return;
-    }
-    poll();
-    intervalRef.current = setInterval(poll, pollMs);
-    return () => {
-      clearInterval(intervalRef.current);
-      clearTimeout(burstTimerRef.current);
-    };
-  }, [enabled, poll, pollMs]);
+  const clear = useCallback(() => setEntries(null), []);
 
-  const nudge = useCallback(() => {
-    if (!enabled) return;
-    clearInterval(intervalRef.current);
-    clearTimeout(burstTimerRef.current);
-    poll();
-    intervalRef.current = setInterval(poll, 1000);
-    burstTimerRef.current = setTimeout(() => {
-      clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(poll, pollMs);
-    }, 10_000);
-  }, [enabled, poll, pollMs]);
+  const { nudge } = usePolledFetch(poll, [poll], { intervalMs: pollMs, enabled, pauseWhenHidden: true, onSkip: clear });
 
   return { entries, nudge };
 }

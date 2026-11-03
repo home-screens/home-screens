@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { MealSession, type MealEdit, type MealieRange, type MealSnapshot } from '@/lib/meal-client';
 import type { MealSlotType } from '@/types/config';
 
@@ -54,28 +55,17 @@ export function useMealSession(surface: MealSessionSurface, { poll }: { poll: bo
     }
   }, [session]);
 
-  // Asked again when polling turns on or off: the editor's window opening or
-  // closing brings in edits made elsewhere meanwhile.
-  useEffect(() => { void load(); }, [load, poll]);
-
-  // A copy left open for hours would be hours old, a grocery item ticked on
-  // another phone would never show, and a load that failed during a Wi-Fi
-  // blip would leave the meals missing for good.
-  useEffect(() => {
-    if (!poll) return;
-    const again = () => { void load(); };
-    const whenVisible = () => {
-      if (document.visibilityState === 'visible') again();
-    };
-    document.addEventListener('visibilitychange', whenVisible);
-    window.addEventListener('online', again);
-    const timer = setInterval(whenVisible, MEAL_POLL_MS);
-    return () => {
-      document.removeEventListener('visibilitychange', whenVisible);
-      window.removeEventListener('online', again);
-      clearInterval(timer);
-    };
-  }, [poll, load]);
+  // Loaded on mount and again when polling turns on or off: the editor's
+  // window opening or closing brings in edits made elsewhere meanwhile.
+  // While polling, asked again every so often in view and when the device
+  // is back online: a copy left open for hours would be hours old, a grocery
+  // item ticked on another phone would never show, and a load that failed
+  // during a Wi-Fi blip would leave the meals missing for good.
+  usePolledFetch(
+    () => { void load(); },
+    [load, poll],
+    { intervalMs: poll ? MEAL_POLL_MS : undefined, pauseWhenHidden: poll },
+  );
 
   /**
    * Save one edit (see `MealEdit`); the surface has already shown it. Once

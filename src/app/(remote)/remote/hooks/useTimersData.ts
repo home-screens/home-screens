@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { materializeSession } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, Routine, TimerSession, TimerTargets, TimerView } from '@/types/timers';
 import { resolveTimerTargets, useDisplayTarget } from '../display-target';
@@ -16,7 +17,7 @@ export type TimerControlAction = 'pause' | 'resume' | 'skip' | 'add-minute' | 's
 
 /**
  * Data + actions behind the /remote Timers tab. Polls the active session
- * while the tab is mounted and materializes it locally every second, so the
+ * while the tab is in view and materializes it locally every second, so the
  * control card counts down smoothly between polls. Routines are replaced
  * wholesale on save; each save quotes the revision of the list it was built
  * from, so a routine another phone made meanwhile is never dropped.
@@ -46,11 +47,7 @@ export function useTimersData() {
     }
   }, []);
 
-  useEffect(() => {
-    void refreshSession();
-    const id = setInterval(() => void refreshSession(), SESSION_POLL_MS);
-    return () => clearInterval(id);
-  }, [refreshSession]);
+  usePolledFetch(() => { void refreshSession(); }, [refreshSession], { intervalMs: SESSION_POLL_MS, pauseWhenHidden: true });
 
   // A failed load must NOT present as "no routines": saves PUT the whole
   // list, so treating a blip as empty would let the next save wipe every
@@ -87,12 +84,13 @@ export function useTimersData() {
   const loadRoutines = useCallback(() => readRoutines(false), [readRoutines]);
 
   // Polled, so a routine made on another phone shows up here while the tab
-  // is open. A poll that fails keeps the list on screen.
-  useEffect(() => {
-    void readRoutines(false);
-    const id = setInterval(() => void readRoutines(true), ROUTINES_POLL_MS);
-    return () => clearInterval(id);
-  }, [readRoutines]);
+  // is in view. Only the first read says so when it fails; a poll that fails
+  // keeps the list on screen.
+  usePolledFetch(
+    (_isMounted, reason) => { void readRoutines(reason !== 'setup'); },
+    [readRoutines],
+    { intervalMs: ROUTINES_POLL_MS, pauseWhenHidden: true },
+  );
 
   const live: MaterializedTimerSession | null = useMemo(
     () => materializeSession(serverSession, now),

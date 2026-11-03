@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslate } from '@/i18n';
+import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { useEditorStore } from '@/stores/editor-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import type { DisplayStatus } from '@/lib/display-commands';
@@ -77,15 +78,17 @@ export default function StatsSection() {
   }, [selectedDisplayId]);
 
   useEffect(() => {
-    loadStats();
-    loadDisplayStatus();
-    const id = setInterval(loadDisplayStatus, 5_000);
-    return () => clearInterval(id);
-  }, [loadStats, loadDisplayStatus]);
+    void loadStats();
+  }, [loadStats]);
 
-  useEffect(() => {
-    setDisplayStatus(null);
-  }, [selectedDisplayId]);
+  // The heartbeat is polled while the page is in view; a change of display
+  // starts from nothing rather than the previous display's status.
+  const clearDisplayStatus = useCallback(() => setDisplayStatus(null), []);
+  usePolledFetch(
+    () => { void loadDisplayStatus(); },
+    [loadDisplayStatus],
+    { intervalMs: 5_000, pauseWhenHidden: true, onSetup: clearDisplayStatus },
+  );
 
   if (loading) {
     return (
