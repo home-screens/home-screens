@@ -26,6 +26,7 @@ import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 import { ChoiceList, Segmented } from './chore-choice-controls';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 const SUB_LABEL_STYLE = { fontSize: 12, fontWeight: 600, color: 'var(--hs-text-faint)', margin: '0 0 6px' } as const;
 
@@ -114,11 +115,11 @@ function GroupAvatarStack({ members }: { members: FamilyMember[] }) {
           style={{
             width: 24, height: 24, borderRadius: '50%', marginLeft: i === 0 ? 0 : -8,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: m.color, color: '#fff', fontSize: 11, fontWeight: 700,
+            background: m.color, color: memberInk(m.color), fontSize: 11, fontWeight: 700,
             border: '2px solid var(--hs-bg-panel)',
           }}
         >
-          {m.name[0]}
+          {memberInitials(m.name)}
         </span>
       ))}
       {extra > 0 && (
@@ -522,9 +523,9 @@ export default function ChoreFormOverlay({
                       }}
                     >
                       {m.emoji ? (
-                        <ChoreIcon value={m.emoji} size={18} color={m.color} fallback={<span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>} />
+                        <ChoreIcon value={m.emoji} size={18} color={m.color} fallback={<span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{memberInitials(m.name)}</span>} />
                       ) : (
-                        <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{m.name[0]}</span>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: m.color }}>{memberInitials(m.name)}</span>
                       )}
                     </div>
                     <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--hs-text-body)', flex: 1 }}>
@@ -585,9 +586,9 @@ export default function ChoreFormOverlay({
                         }}
                       >
                         {member.emoji ? (
-                          <ChoreIcon value={member.emoji} size={16} color={member.color} fallback={<span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{member.name[0]}</span>} />
+                          <ChoreIcon value={member.emoji} size={16} color={member.color} fallback={<span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{memberInitials(member.name)}</span>} />
                         ) : (
-                          <span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{member.name[0]}</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: member.color }}>{memberInitials(member.name)}</span>
                         )}
                       </div>
                     }

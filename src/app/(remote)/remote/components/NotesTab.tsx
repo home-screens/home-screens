@@ -4,7 +4,7 @@ import { useId, useMemo, useState, type CSSProperties } from 'react';
 import { CalendarDays, ChevronDown, ChevronRight, ChevronUp, Pin, RotateCcw, TriangleAlert } from 'lucide-react';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useFamilyData } from '@/hooks/useFamilyData';
-import { arrangeNotes, formatNoteAge, goneNotes, initialOf, timeLeftParts } from '@/lib/notes-rules';
+import { arrangeNotes, formatNoteAge, goneNotes, timeLeftParts } from '@/lib/notes-rules';
 import { DEFAULT_NOTE_LIFE, NOTES_LIMITS, type Note } from '@/types/notes';
 import type { FamilyMember } from '@/types/family';
 import { useNotes } from '../hooks/useNotes';
@@ -17,6 +17,7 @@ import { DANGER_BUTTON, GHOST_BUTTON } from './lists-styles';
 import { NOTE_ICON_PATH, NoteGlyph } from '@/components/notes/NoteGlyph';
 import DayNotesPage from './DayNotesPage';
 import TabNotSetUp from './TabNotSetUp';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 const MINUTE_MS = 60_000;
 
@@ -95,8 +96,8 @@ function AuthorBubble({ member }: { member: FamilyMember | undefined }) {
     return <span aria-hidden="true" style={{ ...base, border: '1.5px dashed var(--hs-text-faint)', boxSizing: 'border-box' }} />;
   }
   return (
-    <span aria-hidden="true" style={{ ...base, background: member.color, color: '#111' }}>
-      {initialOf(member.name)}
+    <span aria-hidden="true" style={{ ...base, background: member.color, color: memberInk(member.color) }}>
+      {memberInitials(member.name)}
     </span>
   );
 }

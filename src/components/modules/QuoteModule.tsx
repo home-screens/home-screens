@@ -7,6 +7,7 @@ import { quoteUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { ScaledAccentContent } from './shared/ScaledAccentContent';
 import { useTranslate } from '@/i18n';
+import { withAlpha } from '@/lib/hex-color';
 
 interface QuoteModuleProps {
   config: QuoteConfig;
@@ -40,7 +41,7 @@ export default function QuoteModule({ config, style }: QuoteModuleProps) {
 
           <div
             className="flex flex-col px-5 relative"
-            style={{ borderLeft: `3px solid ${hasAccent ? `${accentColor}50` : ink(0.15)}` }}
+            style={{ borderLeft: `3px solid ${hasAccent ? withAlpha(accentColor, 0.31) : ink(0.15)}` }}
           >
             <p className="leading-relaxed italic">
               {data.quote}

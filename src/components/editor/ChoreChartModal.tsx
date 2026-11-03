@@ -49,6 +49,7 @@ import { groupMembers } from '@/lib/family-groups';
 import { bonusShowsOn } from '@/lib/chore-bonus';
 import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { radioGroupKeyDown, radioTabIndex } from '@/components/ui/radio-group-keys';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 // ── Props ─────────────────────────────────────────────────────────
 
@@ -443,10 +444,10 @@ function ChoreForm({
               return (
                 <div key={memberId} className="flex items-center gap-1.5 pl-2 pr-1.5 py-1.5 border-b border-hs-border last:border-b-0">
                   <div
-                    className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold text-white shrink-0"
-                    style={{ background: member.color }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold shrink-0"
+                    style={{ background: member.color, color: memberInk(member.color) }}
                   >
-                    {member.emoji ? <ChoreIcon value={member.emoji} size={14} color="white" fallback={member.name[0]} /> : member.name[0]}
+                    {member.emoji ? <ChoreIcon value={member.emoji} size={14} color={memberInk(member.color)} fallback={memberInitials(member.name)} /> : memberInitials(member.name)}
                   </div>
                   <span className="text-xs font-medium text-hs-text-body w-20 truncate shrink-0">{member.name}</span>
                   <div className="flex gap-0.5 flex-1">

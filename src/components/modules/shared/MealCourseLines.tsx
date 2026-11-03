@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 import type { ResolvedCourse } from '@/lib/meal-courses';
 import { getMealCourseLabelKey } from '@/lib/meal-courses';
 import { useLocale, useTranslate } from '@/i18n';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealCourseLinesProps {
   courses: ResolvedCourse[];
@@ -125,7 +126,7 @@ export function MealCourseCount({ count, color, fontSize, padding = '0 0.42em', 
         flexShrink: 0,
         fontSize,
         color,
-        backgroundColor: `${color}24`,
+        backgroundColor: withAlpha(color, 0.14),
         padding,
         ...style,
       }}

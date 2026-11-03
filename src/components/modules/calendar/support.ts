@@ -30,15 +30,6 @@ export interface EventDisplayStyle {
   owners?: ReadonlyMap<string, EventOwner>;
 }
 
-/** Accent color at a given alpha. ColorPicker's text input accepts any CSS
- * color, so plain hex-suffix concatenation ("red" + "cc") would produce
- * invalid CSS; only append when the value really is a 6-digit hex. */
-export function withAlpha(color: string, alphaHex: string): string {
-  if (/^#[0-9a-fA-F]{6}$/.test(color)) return `${color}${alphaHex}`;
-  const pct = Math.round((parseInt(alphaHex, 16) / 255) * 100);
-  return `color-mix(in srgb, ${color} ${pct}%, transparent)`;
-}
-
 /** "Today" / "Tomorrow" / "Yesterday" / "Friday, Mar 6" for a day header. */
 export function formatRelativeDay(
   date: Date,

@@ -74,6 +74,18 @@ describe('getUniqueInitials', () => {
     expect(result.get('2')).toBe('Dav');
   });
 
+  it('steps over an emoji or symbol in front of a name, for the letter and the extension', () => {
+    const members = [
+      { id: '1', name: '* Ava' },
+      { id: '2', name: '🌟 Avery' },
+      { id: '3', name: '🦄' },
+    ];
+    const result = getUniqueInitials(members);
+    expect(result.get('1')).toBe('Ava');
+    expect(result.get('2')).toBe('Ave');
+    expect(result.get('3')).toBe('🦄');
+  });
+
   it('caps at 3 characters for unresolvable collisions', () => {
     const members = [
       { id: '1', name: 'AAAAAA' },

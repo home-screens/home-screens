@@ -14,6 +14,7 @@ import { DEFAULT_REWARD_ICON } from '@/lib/chore-constants';
 import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
+import { withAlpha } from '@/lib/hex-color';
 
 interface RewardFormOverlayProps {
   reward: RewardDefinition | null; // null = add mode
@@ -253,7 +254,7 @@ export default function RewardFormOverlay({
                     fontSize: 13,
                     fontWeight: 500,
                     cursor: 'pointer',
-                    border: isSelected ? `1px solid ${m.color}40` : '1px solid transparent',
+                    border: isSelected ? `1px solid ${withAlpha(m.color, 0.25)}` : '1px solid transparent',
                     background: isSelected ? `color-mix(in srgb, ${m.color} 15%, transparent)` : 'var(--hs-bg-card)',
                     color: isSelected ? m.color : 'var(--hs-text-faint)',
                     transition: 'all 0.15s',

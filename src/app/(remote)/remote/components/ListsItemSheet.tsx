@@ -18,6 +18,7 @@ import {
   personChipStyle,
   segmentStyle,
 } from './lists-styles';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 type DueMode = 'none' | 'today' | 'tomorrow' | 'pick';
 
@@ -125,7 +126,7 @@ export default function ListsItemSheet({ item, todayISO, members, onSave, onDele
                       height: 22,
                       borderRadius: '50%',
                       background: m.color,
-                      color: '#111',
+                      color: memberInk(m.color),
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -134,7 +135,7 @@ export default function ListsItemSheet({ item, todayISO, members, onSave, onDele
                       flex: 'none',
                     }}
                   >
-                    {m.name.trim().charAt(0).toUpperCase()}
+                    {memberInitials(m.name)}
                   </span>
                   {m.name}
                 </button>

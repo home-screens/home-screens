@@ -14,6 +14,7 @@ import type { WallGrocery } from '../shared/useWallGrocery';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { BROWSE_HOLD_ATTR } from '@/components/display/useTapRotationHold';
+import { withAlpha } from '@/lib/hex-color';
 
 interface GroceryViewProps {
   config: MealPlannerConfig;
@@ -80,7 +81,7 @@ export function GroceryView({ config, grocery, tappable }: GroceryViewProps) {
         <span
           data-testid="meal-grocery-left"
           className="rounded-full font-semibold tabular-nums whitespace-nowrap shrink-0"
-          style={{ fontSize: '0.66em', padding: '0.1em 0.6em', background: `${accent}33`, color: ink(0.9) }}
+          style={{ fontSize: '0.66em', padding: '0.1em 0.6em', background: withAlpha(accent, 0.2), color: ink(0.9) }}
         >
           {t('meal-planner.grocery.toGet', { count: rows.left })}
         </span>

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { ink } from '@/lib/constants';
-import { initialOf } from '@/lib/notes-rules';
 import type { NoteAuthor } from './shared';
+import { memberInitials } from '@/lib/family-avatar';
 
 /** The letter's size as a share of the bubble, the chore chart's proportion. */
 const LETTER = 0.64;
@@ -40,7 +40,7 @@ export function AuthorBubble({ author, em = 0.93, style }: {
         ...style,
       }}
     >
-      {author.color ? initialOf(author.name) : '?'}
+      {author.color ? memberInitials(author.name) : '?'}
     </span>
   );
 }

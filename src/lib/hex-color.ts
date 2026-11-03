@@ -21,17 +21,40 @@ export function parseHexToRgb(color: string): [number, number, number] | null {
 }
 
 /**
- * Hex plus rgb()/rgba() functional notation — the two notations every color
+ * Hex plus rgb()/rgba() functional notation, the two notations every color
  * control in the app produces, and the two every consumer can reason about
- * (contrast picks, alpha math). Anything else (named colors, hsl(), gradients,
- * color-mix) returns `null`; callers keep their fallback, and `ColorPicker`
- * refuses the input rather than storing a value the renderers cannot read.
+ * (contrast picks, alpha math). The channels may be comma- or space-separated,
+ * since a theme file or a hand edit writes either. Anything else (named
+ * colors, hsl(), gradients, color-mix) returns `null`; callers keep their
+ * fallback, and `ColorPicker` refuses the input rather than storing a value
+ * the renderers cannot read.
  */
 export function parseCssColorToRgb(color: string | undefined): [number, number, number] | null {
   if (!color) return null;
-  const fn = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  const c = color.trim();
+  const fn = c.match(/^rgba?\(\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)/i);
   if (fn) return [Number(fn[1]), Number(fn[2]), Number(fn[3])];
-  return parseHexToRgb(color);
+  return parseHexToRgb(c);
+}
+
+/**
+ * The same colour, see-through: an `rgba()` at `alpha` for hex and
+ * rgb()/rgba() inputs (an rgba() input's own alpha is multiplied in, so a
+ * 40% card at 50% is 20%), and a `color-mix()` for anything the parser
+ * refuses (a named colour or hsl() hand-written into config.json), which
+ * lets the browser apply the alpha instead of the property being dropped.
+ *
+ * Every tinted fill, ring, glow and track derived from a user-chosen colour
+ * goes through here. A colour picker accepts `rgb(255, 0, 0)` as well as
+ * hex, and a hex-suffix idiom like `${accent}33` turns such a value into
+ * invalid CSS that silently paints nothing.
+ */
+export function withAlpha(color: string, alpha: number): string {
+  const rgb = parseCssColorToRgb(color);
+  const clamped = Math.min(1, Math.max(0, alpha));
+  if (!rgb) return `color-mix(in srgb, ${color} ${Number((clamped * 100).toFixed(1))}%, transparent)`;
+  const own = parseCssColorAlpha(color) ?? 1;
+  return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${Number((own * clamped).toFixed(3))})`;
 }
 
 /**
@@ -56,9 +79,10 @@ export function parseCssColorAlpha(color: string | undefined): number | null {
   if (!color) return null;
   if (isTransparentKeyword(color)) return 0;
   if (parseCssColorToRgb(color) === null) return null;
-  const fn = color.match(/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)$/i);
+  const c = color.trim();
+  const fn = c.match(/^rgba?\(\s*\d+\s*[, ]\s*\d+\s*[, ]\s*\d+\s*[,/]\s*([\d.]+)\s*\)$/i);
   if (fn) return Number(fn[1]);
-  const hex = color.startsWith('#') ? color.slice(1) : color;
+  const hex = c.startsWith('#') ? c.slice(1) : c;
   if (/^[0-9a-f]{8}$/i.test(hex)) return parseInt(hex.slice(6, 8), 16) / 255;
   return 1;
 }

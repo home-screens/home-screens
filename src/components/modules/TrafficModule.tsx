@@ -12,6 +12,7 @@ import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SectionHeader } from './shared/SectionHeader';
 import { ContentCard } from './shared/ContentCard';
 import { useTranslate } from '@/i18n';
+import { withAlpha } from '@/lib/hex-color';
 
 interface TrafficModuleProps {
   config: TrafficConfig;
@@ -69,7 +70,7 @@ function TrafficRouteCard({ row }: { row: TrafficRow }) {
                 className="px-1.5 py-0.5 rounded-full font-medium tabular-nums"
                 style={{
                   fontSize: '0.7em',
-                  backgroundColor: `${edge}20`,
+                  backgroundColor: withAlpha(edge, 0.125),
                   color: edge,
                 }}
               >

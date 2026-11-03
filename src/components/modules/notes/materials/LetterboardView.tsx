@@ -1,11 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { initialOf } from '@/lib/notes-rules';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { useStepper } from '../useStepper';
 import { PinGlyph, ageOf, authorOf } from '../shared';
 import type { MaterialViewProps } from './types';
+import { memberInitials } from '@/lib/family-avatar';
 
 const FELT = '#171717';
 const GROOVE = '#262626';
@@ -148,7 +148,7 @@ export function LetterboardView({ ctx, all, stepSeconds, padding, width, height 
               boxShadow: '0 0.09em 0.09em rgba(0, 0, 0, 0.6)',
             }}
           >
-            {author.color ? initialOf(author.name) : '?'}
+            {author.color ? memberInitials(author.name) : '?'}
           </span>
         )}
         {credit && <span className="truncate">{credit}</span>}

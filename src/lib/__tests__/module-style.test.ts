@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildModuleShadow, colorWithAlpha, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize, svgFontSize, textSizeDefinitionFor } from '../module-style';
+import { buildModuleShadow, resolveTextScale, resolveModuleStyle, displayTextPercent, moduleBaseFontSize, svgFontSize, textSizeDefinitionFor } from '../module-style';
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
 
 describe('buildModuleShadow', () => {
@@ -51,33 +51,6 @@ describe('buildModuleShadow', () => {
     // ambient = round(3.5) = 4
     expect(result).toContain('4px 7px');
     expect(result).toContain('0 0 4px');
-  });
-});
-
-describe('colorWithAlpha', () => {
-  it('converts 6-digit hex to rgba', () => {
-    expect(colorWithAlpha('#3f3f3f', 0.7)).toBe('rgba(63, 63, 63, 0.7)');
-  });
-
-  it('converts 3-digit hex to rgba', () => {
-    expect(colorWithAlpha('#fff', 0.5)).toBe('rgba(255, 255, 255, 0.5)');
-  });
-
-  it('multiplies existing rgba alpha', () => {
-    expect(colorWithAlpha('rgba(0, 0, 0, 0.4)', 0.5)).toBe('rgba(0, 0, 0, 0.2)');
-  });
-
-  it('preserves rgba alpha when opacity is 1', () => {
-    expect(colorWithAlpha('rgba(0, 0, 0, 0.4)', 1)).toBe('rgba(0, 0, 0, 0.4)');
-  });
-
-  it('converts rgb to rgba', () => {
-    expect(colorWithAlpha('rgb(100, 200, 50)', 0.8)).toBe('rgba(100, 200, 50, 0.8)');
-  });
-
-  it('falls back to color-mix for colors it cannot parse, so alpha still applies', () => {
-    expect(colorWithAlpha('red', 0.5)).toBe('color-mix(in srgb, red 50%, transparent)');
-    expect(colorWithAlpha('hsl(50 90% 60%)', 0.85)).toBe('color-mix(in srgb, hsl(50 90% 60%) 85%, transparent)');
   });
 });
 

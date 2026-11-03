@@ -12,6 +12,7 @@ import {
 } from './weather-view-utils';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { isoDateInTZ } from '@/lib/timezone';
+import { withAlpha } from '@/lib/hex-color';
 
 /** Section label: small, tracked-out, muted. Shared by every card. */
 export function Label({ children, s, style }: { children: React.ReactNode; s: number; style?: React.CSSProperties }) {
@@ -126,7 +127,7 @@ export function AlertBand({ p }: { p: WeatherViewProps }) {
       style={{
         flex: 'none', display: 'flex', alignItems: 'center', gap: u * 1.7,
         padding: `${u * 1.7}px ${u * 2.3}px`, borderRadius: u * 1.9,
-        color: fg, border: `1px solid ${fg}55`, background: `${fg}14`,
+        color: fg, border: `1px solid ${withAlpha(fg, 0.333)}`, background: withAlpha(fg, 0.08),
       }}
     >
       <div style={{ flex: 'none', fontSize: s * 3, lineHeight: 1 }} aria-hidden>⚠</div>

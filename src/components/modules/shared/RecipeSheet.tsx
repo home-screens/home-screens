@@ -14,6 +14,7 @@ import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { useMinutesText } from './useMealMinutes';
 import type { MealRecipeState } from './useMealRecipe';
 import { WallScroller } from './WallScroller';
+import { withAlpha } from '@/lib/hex-color';
 
 /**
  * A tap on a step keeps the screen where it is this long. Someone cooking
@@ -281,7 +282,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
     return (
       <span data-testid={tid('recipe-serving', m)} style={{
         fontSize: P(size), fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color,
-        background: `${color}1a`, padding: `${P(size * 0.33)}px ${P(size * 0.9)}px`, borderRadius: P(size * 0.42),
+        background: withAlpha(color, 0.1), padding: `${P(size * 0.33)}px ${P(size * 0.9)}px`, borderRadius: P(size * 0.42),
         display: 'inline-flex', alignItems: 'center', gap: P(size * 0.5), whiteSpace: 'nowrap', maxWidth: '100%',
       }}>
         {serving.now && (

@@ -6,6 +6,7 @@ import type { Game, TeamCard } from '@/lib/espn';
 import { leagueWallCode } from '@/lib/espn';
 import { TeamLogo, GameStatus, RankTag, type KickoffFn } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
+import { withAlpha } from '@/lib/hex-color';
 
 /** Which side of a game the card's team is on; away when the abbreviations do not settle it. */
 function ourSide(game: Game, abbr: string): 'home' | 'away' {
@@ -61,7 +62,7 @@ export function TeamView({ cards, kickoff, rotateIntervalMs }: { cards: TeamCard
   return (
     <div className="flex flex-col justify-center h-full gap-3 px-5" data-team-key={card.key}>
       <div className="flex items-center gap-3.5">
-        <div className="rounded-xl p-2 shrink-0" style={{ backgroundColor: `#${card.color}25` }}>
+        <div className="rounded-xl p-2 shrink-0" style={{ backgroundColor: `#${withAlpha(card.color, 0.145)}` }}>
           <TeamLogo src={card.logo} alt={card.abbr} size={46} />
         </div>
         <div className="min-w-0 flex-1">

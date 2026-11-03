@@ -7,6 +7,7 @@
  */
 
 import type { FullscreenTypographySize } from '@/types/config';
+import { parseCssColorToRgb } from '@/lib/hex-color';
 
 /**
  * How a calendar event block is painted. Only the calendar reads this; the
@@ -444,22 +445,9 @@ export function resolveFullscreenAccent(
 const ON_ACCENT_LIGHT = '#ffffff';
 const ON_ACCENT_DARK = '#1c1917';
 
-function parseColorChannels(color: string): [number, number, number] | null {
-  const c = color.trim();
-  const hex = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
-  if (hex) {
-    let h = hex[1];
-    if (h.length === 3) h = h.split('').map((ch) => ch + ch).join('');
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-  }
-  const rgb = c.match(/^rgba?\(\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)/i);
-  if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
-  return null;
-}
-
 /** WCAG relative luminance of a hex or rgb() colour; null when it cannot be parsed. */
 export function relativeLuminance(color: string): number | null {
-  const ch = parseColorChannels(color);
+  const ch = parseCssColorToRgb(color);
   if (!ch) return null;
   const [r, g, b] = ch.map((v) => {
     const s = v / 255;

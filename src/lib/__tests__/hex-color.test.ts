@@ -5,6 +5,7 @@ import {
   parseCssColorAlpha,
   parseEditableColor,
   withCssColorAlpha,
+  withAlpha,
 } from '@/lib/hex-color';
 
 describe('parseHexToRgb', () => {
@@ -24,6 +25,8 @@ describe('parseCssColorToRgb', () => {
   it('reads the functional notations too', () => {
     expect(parseCssColorToRgb('rgb(1, 2, 3)')).toEqual([1, 2, 3]);
     expect(parseCssColorToRgb('rgba(0, 0, 0, 0.4)')).toEqual([0, 0, 0]);
+    expect(parseCssColorToRgb('rgb(37 99 235)')).toEqual([37, 99, 235]);
+    expect(parseCssColorToRgb('  #abc  ')).toEqual([170, 187, 204]);
   });
 
   it('refuses notations the renderers cannot reason about', () => {
@@ -113,5 +116,37 @@ describe('withCssColorAlpha', () => {
 
   it('refuses a colour it cannot parse', () => {
     expect(withCssColorAlpha('rebeccapurple', 0.5)).toBeNull();
+  });
+});
+
+describe('withAlpha', () => {
+  it('turns hex into rgba at the alpha', () => {
+    expect(withAlpha('#3f3f3f', 0.7)).toBe('rgba(63, 63, 63, 0.7)');
+    expect(withAlpha('#fff', 0.5)).toBe('rgba(255, 255, 255, 0.5)');
+    expect(withAlpha('#3B82F6', 0.2)).toBe('rgba(59, 130, 246, 0.2)');
+  });
+
+  it('turns a typed rgb() accent into rgba, which the old hex-suffix idiom could not', () => {
+    expect(withAlpha('rgb(255, 0, 0)', 0.2)).toBe('rgba(255, 0, 0, 0.2)');
+    expect(withAlpha('rgb(100, 200, 50)', 0.8)).toBe('rgba(100, 200, 50, 0.8)');
+    expect(withAlpha('rgb(37 99 235)', 0.25)).toBe('rgba(37, 99, 235, 0.25)');
+  });
+
+  it('multiplies the alpha an rgba() or 8-digit hex already carries', () => {
+    expect(withAlpha('rgba(0, 0, 0, 0.4)', 0.5)).toBe('rgba(0, 0, 0, 0.2)');
+    expect(withAlpha('rgba(0, 0, 0, 0.4)', 1)).toBe('rgba(0, 0, 0, 0.4)');
+    expect(withAlpha('#00000080', 0.5)).toBe('rgba(0, 0, 0, 0.251)');
+  });
+
+  it('falls back to color-mix for colours it cannot parse, so the alpha still applies', () => {
+    expect(withAlpha('red', 0.5)).toBe('color-mix(in srgb, red 50%, transparent)');
+    expect(withAlpha('hsl(50 90% 60%)', 0.85)).toBe('color-mix(in srgb, hsl(50 90% 60%) 85%, transparent)');
+    expect(withAlpha('var(--accent)', 0.125)).toBe('color-mix(in srgb, var(--accent) 12.5%, transparent)');
+  });
+
+  it('clamps the alpha and keeps the number short', () => {
+    expect(withAlpha('#000000', 2)).toBe('rgba(0, 0, 0, 1)');
+    expect(withAlpha('#000000', -1)).toBe('rgba(0, 0, 0, 0)');
+    expect(withAlpha('#000000', 0.1 + 0.2)).toBe('rgba(0, 0, 0, 0.3)');
   });
 });

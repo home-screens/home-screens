@@ -6,6 +6,7 @@ import { fitBaseSize, fitFactor, flipRowWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
+import { withAlpha } from '@/lib/hex-color';
 
 const FLIP_DURATION = 500; // ms
 
@@ -40,7 +41,7 @@ function FlipCard({
   const w = size * 0.65;
   const h = size;
   const fs = size * 0.82;
-  const borderColor = accentColor ? `${accentColor}20` : 'rgba(255,255,255,0.06)';
+  const borderColor = accentColor ? withAlpha(accentColor, 0.125) : 'rgba(255,255,255,0.06)';
   // Each side is its own property: a `border` shorthand changing under a
   // `borderTop: 'none'` (when the colour changes) would draw the seam edge back.
   const edge = `1px solid ${borderColor}`;

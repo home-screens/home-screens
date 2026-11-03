@@ -33,6 +33,7 @@ import { useTranslate } from '@/i18n';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type { MealPlanSource, MealSettings, MealSlotType, TimeFormat, WeekStartDay } from '@/types/config';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import { withAlpha } from '@/lib/hex-color';
 
 /**
  * Editor settings page section for meal-planner shared settings.
@@ -460,8 +461,8 @@ export default function MealsSection() {
                           }`}
                           style={isSelected ? {
                             color: meta.color,
-                            borderColor: `${meta.color}66`,
-                            backgroundColor: `${meta.color}15`,
+                            borderColor: withAlpha(meta.color, 0.4),
+                            backgroundColor: withAlpha(meta.color, 0.08),
                           } : undefined}
                         >
                           {formatMealTime(preset, tf)}

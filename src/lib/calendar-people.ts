@@ -4,6 +4,7 @@ import { hasPeopleFilter, resolvePeopleFilterMembers } from '@/lib/family-groups
 import { eventHoursOnDay } from '@/lib/calendar-event-layout';
 import { isEventOnDay } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+import { memberInitials } from '@/lib/family-avatar';
 
 /** Neutral gray for the shared "Everyone" row and unknown-member avatars;
  *  person rows use their own configured color. */
@@ -32,27 +33,9 @@ export interface PersonRow {
 
 export const EVERYONE_ROW_ID = '__everyone__';
 
-/**
- * The first letter or number in a word, so a name written with an emoji or a
- * symbol in front of it still gives up its letter.
- *
- * A dot is meant to read as the person at a glance, and a household that
- * writes "* Mia" wants the M: one star among five dots tells nobody apart.
- */
-function firstLetter(word: string): string {
-  for (const character of word) {
-    if (/[\p{L}\p{N}]/u.test(character)) return character.toLocaleUpperCase();
-  }
-  return '';
-}
-
-/** "Ella" -> "E", "Mary Ann" -> "MA", "ella" -> "E". Empty names get "?". */
-export function initialsOf(name: string): string {
-  // Words that carry no letter at all drop out before the one-or-two rule, so
-  // an emoji standing on its own in front of a name does not eat a slot.
-  const words = name.trim().split(/\s+/).map(firstLetter).filter(Boolean);
-  if (words.length === 0) return '?';
-  return words.slice(0, 2).join('');
+/** The calendar's name tags carry two letters: "Ella" is E, "Mary Ann" is MA. */
+function initialsOf(name: string): string {
+  return memberInitials(name, { max: 2 });
 }
 
 /** A source id that no configured person owns. Holidays are never a person's. */

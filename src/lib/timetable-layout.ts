@@ -47,7 +47,7 @@ import type {
   WeekLetter,
 } from '@/types/timetables';
 import { DAY_KEYS } from '@/types/timetables';
-import { initialsOf } from '@/lib/calendar-people';
+import { memberInitials } from '@/lib/family-avatar';
 import { parseTimeToMinutes } from '@/lib/sleep-timeline';
 import { isoDateInTZ, toTZWallTime } from '@/lib/timezone';
 
@@ -3239,7 +3239,7 @@ export function cardModel(input: TimetableCardInput): TimetableCardModel {
       id: input.member.id,
       name: input.member.name,
       color: input.member.color,
-      initials: initialsOf(input.member.name),
+      initials: memberInitials(input.member.name, { max: 2 }),
     },
     className: timetable.className,
     detail,

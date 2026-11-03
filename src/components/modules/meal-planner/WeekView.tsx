@@ -14,6 +14,7 @@ import { MealCourseCount } from '../shared/MealCourseLines';
 import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
+import { withAlpha } from '@/lib/hex-color';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -197,7 +198,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                     style={{
                       gap: WEEK_LINE_GAP_PX,
                       backgroundColor: name ? SLOT_META[slot].bg : 'transparent',
-                      borderLeft: isToday && name ? `2px solid ${SLOT_META[slot].color}40` : '2px solid transparent',
+                      borderLeft: isToday && name ? `2px solid ${withAlpha(SLOT_META[slot].color, 0.25)}` : '2px solid transparent',
                     }}
                   >
                     {name ? (

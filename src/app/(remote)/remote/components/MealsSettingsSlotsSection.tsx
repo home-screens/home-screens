@@ -4,6 +4,7 @@ import type { MealSlotType } from '@/types/config';
 import { SLOT_ORDER, SLOT_META, getMealSlotLabelKey } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsSettingsSlotsSectionProps {
   enabledSlots: MealSlotType[];
@@ -43,9 +44,9 @@ export default function MealsSettingsSlotsSection({ enabledSlots, onToggleSlot }
                 minHeight: 50,
                 borderRadius: 10,
                 border: isEnabled
-                  ? `1px solid ${meta.color}40`
+                  ? `1px solid ${withAlpha(meta.color, 0.25)}`
                   : '1px solid var(--hs-border)',
-                background: isEnabled ? `${meta.color}12` : 'var(--hs-bg-panel)',
+                background: isEnabled ? withAlpha(meta.color, 0.07) : 'var(--hs-bg-panel)',
                 color: 'inherit',
                 cursor: 'pointer',
                 textAlign: 'left' as const,

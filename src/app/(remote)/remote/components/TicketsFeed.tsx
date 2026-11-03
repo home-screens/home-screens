@@ -9,6 +9,7 @@ import { formatTimeAgoLocalized } from '@/lib/chore-constants';
 import { useTranslate } from '@/i18n';
 import { useHouseholdNow } from '../household-clock';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
+import { memberInitials } from '@/lib/family-avatar';
 
 interface LedgerAnswer {
   rows: TicketLedgerRow[];
@@ -112,10 +113,10 @@ export default function TicketsFeed({
               >
                 {m.emoji ? (
                   <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                    <ChoreIcon value={m.emoji} size={18} color={isActive ? m.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{m.name[0]}</span>} />
+                    <ChoreIcon value={m.emoji} size={18} color={isActive ? m.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{memberInitials(m.name)}</span>} />
                   </span>
                 ) : (
-                  <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{m.name[0]}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{memberInitials(m.name)}</span>
                 )}
                 <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</span>
               </button>

@@ -3,6 +3,7 @@ import type { StandingsEntry } from '@/lib/espn-standings';
 import { leagueWallCode } from '@/lib/espn';
 import { PaginationDots } from '../shared/PaginationDots';
 import { TeamLogo } from '../shared/TeamLogo';
+import { withAlpha } from '@/lib/hex-color';
 
 export { TeamLogo };
 
@@ -85,7 +86,7 @@ export function StandingsTeamRow({
         borderLeft: `${borderWidth}px solid #${entry.teamColor}`,
         // A favorite's row is washed in its own color, stronger at the edge
         // where the border already is, so it stands out at wall distance.
-        ...(highlight ? { background: `linear-gradient(90deg, #${entry.teamColor}55 0%, #${entry.teamColor}18 100%)` } : {}),
+        ...(highlight ? { background: `linear-gradient(90deg, #${withAlpha(entry.teamColor, 0.333)} 0%, #${withAlpha(entry.teamColor, 0.09)} 100%)` } : {}),
       }}
       data-favorite={highlight ? 'true' : undefined}
     >
@@ -93,7 +94,7 @@ export function StandingsTeamRow({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `linear-gradient(90deg, #${entry.teamColor}10 0%, transparent ${barWidth}%)`,
+            background: `linear-gradient(90deg, #${withAlpha(entry.teamColor, 0.06)} 0%, transparent ${barWidth}%)`,
           }}
         />
       )}

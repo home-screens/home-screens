@@ -12,6 +12,7 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useScaledFontSize } from '@/hooks/useScaledFontSize';
 import { useTranslate, useLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
+import { withAlpha } from '@/lib/hex-color';
 
 interface AffirmationsModuleProps {
   config: AffirmationsConfig;
@@ -164,8 +165,8 @@ function CardView({ entry, accentColor, showCategory, t }: { entry: Entry; accen
     <div
       className="flex flex-col items-center justify-center h-full gap-2 px-5 rounded-xl"
       style={{
-        background: `linear-gradient(135deg, ${accentColor}15 0%, ${accentColor}08 100%)`,
-        borderLeft: `3px solid ${accentColor}50`,
+        background: `linear-gradient(135deg, ${withAlpha(accentColor, 0.08)} 0%, ${withAlpha(accentColor, 0.03)} 100%)`,
+        borderLeft: `3px solid ${withAlpha(accentColor, 0.31)}`,
       }}
     >
       {showCategory && (

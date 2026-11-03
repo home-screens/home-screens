@@ -19,6 +19,7 @@ import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
+import { memberInitials } from '@/lib/family-avatar';
 
 interface TodayViewProps {
   config: ChoreChartConfig;
@@ -108,7 +109,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
           title={doneEarlier}
           size={dotSize}
           color={member.color}
-          initial={initials.get(member.id) ?? member.name.slice(0, 1)}
+          initial={initials.get(member.id) ?? memberInitials(member.name)}
           isCompleted
           style={{ opacity: 0.72 }}
         />
@@ -123,7 +124,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
           title={member.name}
           size={dotSize}
           color={member.color}
-          initial={initials.get(member.id) ?? member.name.slice(0, 1)}
+          initial={initials.get(member.id) ?? memberInitials(member.name)}
           isCompleted={false}
           isSkipped
         />
@@ -150,7 +151,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
         title={member.name}
         size={dotSize}
         color={member.color}
-        initial={initials.get(member.id) ?? member.name.slice(0, 1)}
+        initial={initials.get(member.id) ?? memberInitials(member.name)}
         isCompleted={assignee.isCompleted}
         style={{
           cursor: touch ? 'pointer' : 'default',
@@ -259,7 +260,7 @@ export function TodayView({ config, data, timezone, fontSize }: TodayViewProps) 
                   title={holder.name}
                   size={dotSize}
                   color={holder.color}
-                  initial={initials.get(holder.id) ?? holder.name.slice(0, 1)}
+                  initial={initials.get(holder.id) ?? memberInitials(holder.name)}
                   isCompleted={grab.status === 'done'}
                 />
               </>

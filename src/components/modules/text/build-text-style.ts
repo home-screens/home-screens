@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { TextConfig, ModuleStyle } from '@/types/config';
+import { withAlpha } from '@/lib/hex-color';
 
 interface BuildTextStyleParams {
   config: TextConfig;
@@ -26,7 +27,7 @@ function applyEffectStyles(
   switch (effect) {
     case 'glow': {
       const c = config.accentColor || style.textColor;
-      textStyle.textShadow = `0 0 10px ${c}, 0 0 20px ${c}, 0 0 40px ${c}80`;
+      textStyle.textShadow = `0 0 10px ${c}, 0 0 20px ${c}, 0 0 40px ${withAlpha(c, 0.5)}`;
       textStyle.animation = `_textGlow ${animSeconds}s ease-in-out infinite alternate`;
       break;
     }

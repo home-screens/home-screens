@@ -9,12 +9,13 @@ import type { RewardRedemption } from '@/lib/reward-data';
 import { sortRedemptionsNewestFirst } from '@/lib/reward-rules';
 import { groupRedemptionsByDay, summarizeRedemptions, SUMMARY_DAYS, type RedemptionGroup } from '@/lib/reward-history';
 import { formatTimeAgoLocalized } from '@/lib/chore-constants';
-import { getDensityMultiplier, onAccentFor } from '@/lib/fullscreen-themes';
+import { getDensityMultiplier } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
 import FamilyEmptyState from '@/components/modules/FamilyEmptyState';
 import { useElementBox } from '@/hooks/useElementBox';
 import FitList from './FitList';
 import { splitGroupsAt } from './rewards/historyLayout';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** `days` groups the feed by how long ago, `totals` leads with sums, `spotlight` with the newest. */
 export type RewardHistoryVariant = 'days' | 'totals' | 'spotlight';
@@ -109,10 +110,10 @@ export function RewardHistoryView({
           fontSize: size * 0.44,
           fontWeight: 800,
           lineHeight: 1,
-          color: color ? onAccentFor(color) : 'var(--fcc-text-2)',
+          color: color ? memberInk(color) : 'var(--fcc-text-2)',
         }}
       >
-        {name.charAt(0).toUpperCase()}
+        {memberInitials(name)}
       </span>
     );
   };

@@ -8,6 +8,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { classifyDue, formatDueLabel } from '@/lib/todo-due-labels';
 import type { TodoListItem } from '@/types/todos';
 import type { FamilyMember } from '@/types/family';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** Initials shown per row before the "+N" bubble (the five-plus-members rule). */
 const MAX_INITIALS = 2;
@@ -50,8 +51,8 @@ function Assignees({ ids, members }: { ids: string[]; members: ReadonlyMap<strin
       style={{ display: 'inline-flex', flex: 'none', paddingLeft: OVERLAP_PX, paddingRight: 2 }}
     >
       {shown.map((m) => (
-        <span key={m.id} style={{ ...bubble, background: m.color, color: '#111' }} aria-hidden="true">
-          {m.name.trim().charAt(0).toUpperCase()}
+        <span key={m.id} style={{ ...bubble, background: m.color, color: memberInk(m.color) }} aria-hidden="true">
+          {memberInitials(m.name)}
         </span>
       ))}
       {extra > 0 && (

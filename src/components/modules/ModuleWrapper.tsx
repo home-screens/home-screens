@@ -2,7 +2,8 @@
 
 import { DEFAULT_MODULE_STYLE, type ModuleStyle } from '@/types/config';
 import type { CSSProperties, ReactNode } from 'react';
-import { buildModuleShadow, colorWithAlpha, resolveTitleFontSize } from '@/lib/module-style';
+import { buildModuleShadow, resolveTitleFontSize } from '@/lib/module-style';
+import { withAlpha } from '@/lib/hex-color';
 import { resolveFontStack } from '@/lib/font-registry';
 
 interface ModuleWrapperProps {
@@ -30,7 +31,7 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
   // backdrop, making the blur invisible. Using rgba lets the blur show through.
   // Without this, backdrop-filter has no visible effect in Chrome.
   const bg = hasBlur
-    ? colorWithAlpha(style.backgroundColor, style.opacity)
+    ? withAlpha(style.backgroundColor, style.opacity)
     : style.backgroundColor;
 
   const wrapperStyle: CSSProperties & Record<`--${string}`, string | number> = {

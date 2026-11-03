@@ -20,7 +20,8 @@ import { useTranslate } from '@/i18n';
 import { FAMILY_LIMITS, MEMBER_COLORS, type FamilyGroup, type FamilyMember } from '@/types/family';
 import { groupDraftProblem, groupMembers } from '@/lib/family-groups';
 import { choreAssigneeIds } from '@/lib/chore-assignments';
-import { initialsOf } from '@/lib/calendar-people';
+import { withAlpha } from '@/lib/hex-color';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 const PAGE_SIZE = 12;
 interface Draft { member: FamilyMember; initial: FamilyMember; baseline: FamilySnapshot; isNew: boolean }
@@ -74,7 +75,7 @@ function MemberStack({ members, extra }: { members: readonly FamilyMember[]; ext
   return (
     <span className="flex shrink-0 items-center" aria-hidden="true">
       {members.map((member, index) => (
-        <span key={member.id} className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ring-2 ring-hs-panel ${index > 0 ? '-ml-2' : ''}`} style={{ backgroundColor: member.color }}>{initialsOf(member.name)}</span>
+        <span key={member.id} className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ring-2 ring-hs-panel ${index > 0 ? '-ml-2' : ''}`} style={{ backgroundColor: member.color, color: memberInk(member.color) }}>{memberInitials(member.name, { max: 2 })}</span>
       ))}
       {extra > 0 && <span className={`flex h-8 w-8 items-center justify-center rounded-full bg-hs-card text-xs font-semibold text-hs-text-muted ring-2 ring-hs-panel ${members.length > 0 ? '-ml-2' : ''}`}>+{extra}</span>}
     </span>
@@ -265,7 +266,7 @@ export default function FamilyManager({ onChanged, onEditingChange, variant = 'd
           const index = currentPage * PAGE_SIZE + row;
           return (
             <div key={member.id} className="flex flex-wrap items-center gap-2 bg-hs-panel p-3" data-testid="family-member">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg" style={{ backgroundColor: `${member.color}25`, color: member.color }}>{member.emoji ? <ChoreIcon value={member.emoji} color={member.color} size={24} bare fallback={member.name.slice(0, 1)} /> : member.name.slice(0, 1)}</span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg" style={{ backgroundColor: withAlpha(member.color, 0.145), color: member.color }}>{member.emoji ? <ChoreIcon value={member.emoji} color={member.color} size={24} bare fallback={memberInitials(member.name)} /> : memberInitials(member.name)}</span>
               <div className="min-w-24 flex-1 break-words"><span className="text-sm font-medium text-hs-text-primary">{member.name}</span>{(choreCounts || hasTimetable) && <p className="mt-1 text-xs text-hs-text-muted">{[choreCounts && t('family.choreCount', { count: choreCounts.get(member.id) ?? 0 }), hasTimetable?.has(member.id) && t('family.hasTimetable')].filter(Boolean).join(' · ')}</p>}</div>
               <div className="flex shrink-0">
                 <Button variant="ghost" className="min-h-12 min-w-12 px-1" disabled={!editable || index === 0} aria-label={t('family.moveUp', { name: member.name })} onClick={() => reorder(index, -1)}><ArrowUp size={16} /></Button>

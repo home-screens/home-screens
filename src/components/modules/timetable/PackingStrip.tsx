@@ -13,8 +13,9 @@ import { Backpack } from 'lucide-react';
 import { ink } from '@/lib/constants';
 import { smallPrintPx } from '@/lib/timetable-layout';
 import type { RowsGeometry, DayGeometry } from '@/lib/timetable-day-fit';
-import { pickGridTimeColor, pickPillTextColor } from '@/lib/calendar-color';
+import { pickGridTimeColor } from '@/lib/calendar-color';
 import { BringPills, type DayPerson, type DayTokens } from './DayCard';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 export interface PackingStripProps {
   /** "Pack tonight", "Bring today" or "Pack for Monday". */
@@ -97,10 +98,10 @@ export default function PackingStrip({ title, subtitle, persons, geometry, token
                 fontWeight: 800,
                 lineHeight: 1,
                 background: entry.member.color,
-                color: pickPillTextColor(entry.member.color),
+                color: memberInk(entry.member.color),
               }}
             >
-              {entry.member.name.slice(0, 1)}
+              {memberInitials(entry.member.name)}
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2em', minWidth: 0 }}>
               <span

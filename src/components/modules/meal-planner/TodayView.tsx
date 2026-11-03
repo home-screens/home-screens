@@ -10,6 +10,7 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
+import { withAlpha } from '@/lib/hex-color';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -63,7 +64,7 @@ function SlotCard({
       className="flex flex-col rounded-lg overflow-hidden"
       style={{
         backgroundColor: name ? meta.bg : ink(0.02),
-        borderLeft: `3px solid ${isActive ? meta.color : `${meta.color}30`}`,
+        borderLeft: `3px solid ${isActive ? meta.color : withAlpha(meta.color, 0.19)}`,
       }}
     >
       {/* Slot label + serving time */}
@@ -88,7 +89,7 @@ function SlotCard({
             // Capitals like the slot name beside it and every other "now"
             // on the wall.
             className="rounded-full px-1.5 py-px tracking-normal font-normal ml-auto"
-            style={{ backgroundColor: `${meta.color}20`, fontSize: '0.9em' }}
+            style={{ backgroundColor: withAlpha(meta.color, 0.125), fontSize: '0.9em' }}
           >
             {t('meal-planner.now')}
           </span>
@@ -164,7 +165,7 @@ export function TodayView({ config, settings, timeFormat, plan, savedMeals, toda
         <div className="flex items-center gap-2 mb-0.5">
           <div
             className="h-px flex-1 rounded-full"
-            style={{ backgroundColor: `${config.accentColor}30` }}
+            style={{ backgroundColor: withAlpha(config.accentColor, 0.19) }}
           />
           <span
             className="uppercase tracking-[0.2em] font-semibold shrink-0"
@@ -174,7 +175,7 @@ export function TodayView({ config, settings, timeFormat, plan, savedMeals, toda
           </span>
           <div
             className="h-px flex-1 rounded-full"
-            style={{ backgroundColor: `${config.accentColor}30` }}
+            style={{ backgroundColor: withAlpha(config.accentColor, 0.19) }}
           />
         </div>
       )}

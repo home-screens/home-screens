@@ -6,6 +6,7 @@ import { formatProgressPercent } from '@/lib/progress-percent';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
+import { withAlpha } from '@/lib/hex-color';
 
 /**
  * Progress clock — SVG ring showing how far through the day we are,
@@ -81,7 +82,7 @@ export default function ClockProgressView({ config, format24h, time, scaledFontS
             strokeDashoffset={dashOffset}
             style={{
               transition: 'stroke-dashoffset 1s ease',
-              filter: `drop-shadow(0 0 4px ${accentColor}40)`,
+              filter: `drop-shadow(0 0 4px ${withAlpha(accentColor, 0.25)})`,
             }}
           />
         </svg>

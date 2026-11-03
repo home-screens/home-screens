@@ -24,6 +24,8 @@ import type {
   TimetableView,
 } from '@/types/config';
 import { DEFAULT_TOMORROW_FROM } from '@/lib/timetable-day';
+import { withAlpha } from '@/lib/hex-color';
+import { memberInitials } from '@/lib/family-avatar';
 
 const FAMILY_PAGE = settingsPath({ kind: 'defaults', page: 'family' });
 
@@ -182,9 +184,9 @@ export function TimetableConfigSection({ mod, screenId }: { mod: ModuleInstance;
                     <span
                       aria-hidden="true"
                       className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase"
-                      style={{ backgroundColor: `${member.color}25`, color: member.color }}
+                      style={{ backgroundColor: withAlpha(member.color, 0.145), color: member.color }}
                     >
-                      {member.name.slice(0, 1)}
+                      {memberInitials(member.name)}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span

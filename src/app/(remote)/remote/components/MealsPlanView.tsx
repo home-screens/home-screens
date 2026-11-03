@@ -17,6 +17,7 @@ import type { MealsViewProps } from './meals-shared';
 import MealTimeChip from '@/components/meals/MealTimeChip';
 import MealThumb from './MealThumb';
 import { MealiePausedNotice } from './MealsMealieStatus';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsPlanViewProps extends MealsViewProps {
   /** Household GlobalSettings.timeFormat — resolves the effective format when
@@ -201,8 +202,8 @@ export default function MealsPlanView({
                         padding: '3px 12px',
                         minHeight: 50,
                         borderRadius: 10,
-                        border: name ? `1px solid ${SLOT_META[slot].color}30` : '1px dashed var(--hs-border)',
-                        background: name ? `${SLOT_META[slot].color}10` : 'transparent',
+                        border: name ? `1px solid ${withAlpha(SLOT_META[slot].color, 0.19)}` : '1px dashed var(--hs-border)',
+                        background: name ? withAlpha(SLOT_META[slot].color, 0.06) : 'transparent',
                         overflow: 'visible' as const,
                       }}
                     >

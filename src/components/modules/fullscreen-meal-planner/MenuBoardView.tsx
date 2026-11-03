@@ -7,6 +7,7 @@ import { MealTapTarget } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
+import { withAlpha } from '@/lib/hex-color';
 
 /**
  * Today's menu as a restaurant board. The day's meals spread over the whole
@@ -133,7 +134,7 @@ export default function MenuBoardView({
                 <span style={{
                   fontSize: P(24), fontWeight: 700, textTransform: 'uppercase' as const,
                   letterSpacing: '0.14em', color: course.meta.color,
-                  background: `${course.meta.color}1a`,
+                  background: withAlpha(course.meta.color, 0.1),
                   padding: `${P(8)}px ${P(22)}px`, borderRadius: P(10),
                   display: 'inline-flex', alignItems: 'baseline', gap: P(12),
                   marginBottom: P(14),

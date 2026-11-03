@@ -27,6 +27,7 @@ import {
   type StoreLayout,
 } from '../layout';
 import { RewardHistoryView } from './RewardHistoryView';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 interface StoreViewProps {
   config: ChoreChartConfig;
@@ -135,9 +136,9 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
   const avatar = (member: FamilyMember, size = '1.7em') => (
     <span
       className="inline-flex shrink-0 items-center justify-center rounded-full"
-      style={{ width: size, height: size, fontSize: '0.8em', fontWeight: 800, lineHeight: 1, background: member.color, color: onAccentFor(member.color) }}
+      style={{ width: size, height: size, fontSize: '0.8em', fontWeight: 800, lineHeight: 1, background: member.color, color: memberInk(member.color) }}
     >
-      {member.name.charAt(0).toUpperCase()}
+      {memberInitials(member.name)}
     </span>
   );
 

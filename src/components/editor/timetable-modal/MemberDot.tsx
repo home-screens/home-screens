@@ -16,6 +16,8 @@
 
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import type { FamilyMember } from '@/types/family';
+import { withAlpha } from '@/lib/hex-color';
+import { memberInitials } from '@/lib/family-avatar';
 
 export default function MemberDot({ member, size = 22 }: { member: FamilyMember; size?: number }) {
   return (
@@ -27,14 +29,14 @@ export default function MemberDot({ member, size = 22 }: { member: FamilyMember;
         width: size,
         height: size,
         fontSize: Math.max(10, Math.round(size * 0.45)),
-        backgroundColor: `${member.color}25`,
+        backgroundColor: withAlpha(member.color, 0.145),
         color: member.color,
       }}
     >
       {member.emoji ? (
-        <ChoreIcon value={member.emoji} color={member.color} size={Math.round(size * 0.6)} bare fallback={member.name.slice(0, 1)} />
+        <ChoreIcon value={member.emoji} color={member.color} size={Math.round(size * 0.6)} bare fallback={memberInitials(member.name)} />
       ) : (
-        member.name.slice(0, 1)
+        memberInitials(member.name)
       )}
     </span>
   );

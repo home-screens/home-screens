@@ -18,7 +18,8 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, CalendarGridTheme, ModuleStyle } from '@/types/config';
-import { withAlpha, type EventDisplayStyle } from './support';
+import type { EventDisplayStyle } from './support';
+import { withAlpha } from '@/lib/hex-color';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { EventCard } from './EventCard';
@@ -212,7 +213,7 @@ function MoreCount({ date, events, count, fontSize, accentColor, textColor, modu
         fontSize,
         lineHeight: 1.5,
         padding: '0 0.6em',
-        backgroundColor: withAlpha(accentColor, '40'),
+        backgroundColor: withAlpha(accentColor, 0.25),
         color: pickTintedTextColor(textColor, accentColor, moduleBackground),
       }}
     >
@@ -383,8 +384,8 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
 
   // Badge colors are loop-invariant; computed once, not per cell (up to 84
   // cells re-render on every minute tick).
-  const todayBadgeBg = withAlpha(accentColor, 'cc');
-  const dayBadgeBg = withAlpha(accentColor, '40');
+  const todayBadgeBg = withAlpha(accentColor, 0.8);
+  const dayBadgeBg = withAlpha(accentColor, 0.25);
   const todayText = pickPillTextColor(accentColor);
   const dayText = pickTintedTextColor(style.textColor, accentColor, style.backgroundColor);
   const monthText = pickTintedTextColor(accentColor, accentColor, style.backgroundColor);
@@ -426,7 +427,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
               const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
               const cellTap = openDayCellProps(openDay, date, dayEvents);
               const cellFill = isToday
-                ? withAlpha(accentColor, '1f')
+                ? withAlpha(accentColor, 0.12)
                 : grid.kind === 'rolling' && isWeekendDay(date) ? ink(0.05) : ink(0.02);
 
               return (
@@ -439,7 +440,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
                     // `background` shorthand for a rule color, and a style
                     // must never carry both that and a longhand.
                     background: marksMonthStart
-                      ? `linear-gradient(to right, ${withAlpha(accentColor, '33')}, transparent) ${cellFill}`
+                      ? `linear-gradient(to right, ${withAlpha(accentColor, 0.2)}, transparent) ${cellFill}`
                       : cellFill,
                     opacity: isMuted ? TEXT_OPACITY.tertiary : 1,
                   }, decor)}
@@ -589,9 +590,9 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
   // Loop-invariant colors, hoisted like the banner view's (up to 84 cells
   // re-render on every minute tick).
   const todayBadgeText = pickPillTextColor(accentColor);
-  const todayCellTint = withAlpha(accentColor, '24');
+  const todayCellTint = withAlpha(accentColor, 0.14);
   const todayRing = `inset 0 0 0 1.5px ${accentColor}`;
-  const monthRule = `inset 0 2px 0 ${withAlpha(accentColor, 'bf')}`;
+  const monthRule = `inset 0 2px 0 ${withAlpha(accentColor, 0.75)}`;
 
   const { weeks } = grid;
   const eventsByDay = useGridEventsByDay(weeks, events, eventStyle.timezone);

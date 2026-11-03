@@ -1,7 +1,8 @@
 import { addDays, startOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { parseEventWallTime } from '@/lib/calendar-utils';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
-import { EVERYONE_COLOR, initialsOf, type EventOwner } from '@/lib/calendar-people';
+import { EVERYONE_COLOR, type EventOwner } from '@/lib/calendar-people';
+import { memberInitials } from '@/lib/family-avatar';
 import type { CalendarLegendMode, CalendarPerson } from '@/types/config';
 import type { FamilyGroup } from '@/types/family';
 
@@ -161,7 +162,7 @@ export function peopleLegendRows(
 ): LegendRow[] {
   const owners = new Map<string, EventOwner>();
   for (const person of people) {
-    const owner: EventOwner = { id: person.id, name: person.name, color: person.color, initials: initialsOf(person.name) };
+    const owner: EventOwner = { id: person.id, name: person.name, color: person.color, initials: memberInitials(person.name, { max: 2 }) };
     for (const sourceId of person.sourceIds) if (!owners.has(sourceId)) owners.set(sourceId, owner);
   }
   const present = new Set<string>();
@@ -172,7 +173,7 @@ export function peopleLegendRows(
     if (owner) present.add(owner.id);
     else { shared = true; if (ev.sourceId) sharedSources.add(ev.sourceId); }
   }
-  const avatarOf = (p: CalendarPerson): LegendAvatar => ({ initials: initialsOf(p.name), color: p.color, name: p.name });
+  const avatarOf = (p: CalendarPerson): LegendAvatar => ({ initials: memberInitials(p.name, { max: 2 }), color: p.color, name: p.name });
   const rows: LegendRow[] = [];
   const placed = new Set<string>();
   if (mode === 'groups') {
@@ -187,7 +188,7 @@ export function peopleLegendRows(
     if (!present.has(person.id) || placed.has(person.id)) continue;
     rows.push({ kind: 'person', id: person.id, name: person.name, avatar: avatarOf(person), sourceIds: [...person.sourceIds] });
   }
-  if (shared) rows.push({ kind: 'everyone', id: '__everyone__', name: everyoneLabel, avatar: { initials: initialsOf(everyoneLabel), color: EVERYONE_COLOR, name: everyoneLabel }, sourceIds: [...sharedSources] });
+  if (shared) rows.push({ kind: 'everyone', id: '__everyone__', name: everyoneLabel, avatar: { initials: memberInitials(everyoneLabel, { max: 2 }), color: EVERYONE_COLOR, name: everyoneLabel }, sourceIds: [...sharedSources] });
   return rows;
 }
 

@@ -6,6 +6,7 @@ import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
 import { COLON_PULSE_ANIMATION, COLON_PULSE_KEYFRAMES } from './colon-pulse';
 import { ink } from '@/lib/constants';
+import { withAlpha } from '@/lib/hex-color';
 
 // Seven-segment digit map: [top, topRight, bottomRight, bottom, bottomLeft, topLeft, middle]
 const SEGMENT_MAP: Record<string, boolean[]> = {
@@ -28,7 +29,7 @@ function Segment({ active, color, style }: { active: boolean; color: string; sty
         ...style,
         background: active ? color : ink(0.05),
         boxShadow: active
-          ? `0 0 8px ${color}80, 0 0 20px ${color}40`
+          ? `0 0 8px ${withAlpha(color, 0.5)}, 0 0 20px ${withAlpha(color, 0.25)}`
           : 'none',
         borderRadius: 2,
         transition: 'opacity 0.15s ease',
@@ -94,7 +95,7 @@ function Colon({ size, color }: { size: number; color: string }) {
           height: dotSize,
           borderRadius: 1,
           background: color,
-          boxShadow: `0 0 8px ${color}80`,
+          boxShadow: `0 0 8px ${withAlpha(color, 0.5)}`,
           marginTop: size * 0.2,
         }}
       />
@@ -104,7 +105,7 @@ function Colon({ size, color }: { size: number; color: string }) {
           height: dotSize,
           borderRadius: 1,
           background: color,
-          boxShadow: `0 0 8px ${color}80`,
+          boxShadow: `0 0 8px ${withAlpha(color, 0.5)}`,
           marginBottom: size * 0.2,
         }}
       />

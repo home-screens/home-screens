@@ -62,6 +62,7 @@ import {
   LunchCell,
   type CardTokens,
 } from './cells';
+import { memberInk } from '@/lib/family-avatar';
 
 /** Row one holds the day names, so the model's first row is grid row two. */
 const FIRST_ROW = 2;
@@ -390,7 +391,7 @@ export default function WeekCard({
               fontSize: '0.88em',
               fontWeight: 800,
               background: model.member.color,
-              color: pickPillTextColor(model.member.color),
+              color: memberInk(model.member.color),
             }}
           >
             {model.member.initials}

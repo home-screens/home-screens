@@ -9,6 +9,7 @@ import { useTranslate } from '@/i18n';
 import MemberDot from '../shared/MemberDot';
 import AssigneeDot from './AssigneeDot';
 import type { ToggleParams } from './helpers';
+import { memberInitials } from '@/lib/family-avatar';
 
 /** An open sheet closes itself when nobody touches the wall for this long. */
 const SHEET_IDLE_MS = 30_000;
@@ -126,7 +127,7 @@ function BonusTile({ item, memberMap, initialsMap, s, cols, allowTouch, today, l
       )}
       {holder && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 * s, fontSize: 22 * s, fontWeight: 600, lineHeight: 1.2, color: done ? 'var(--fcc-text-2)' : 'var(--fcc-text)' }}>
-          <MemberDot size={dot} color={holder.color} initial={initialsMap.get(holder.id) ?? holder.name[0]} isCompleted={done} />
+          <MemberDot size={dot} color={holder.color} initial={initialsMap.get(holder.id) ?? memberInitials(holder.name)} isCompleted={done} />
           <span style={{ minWidth: 0 }}>
             {/* Done on an earlier day this week: say which, or a kid reads it as done today. */}
             {done && grab.date !== today
@@ -157,7 +158,7 @@ function BonusTile({ item, memberMap, initialsMap, s, cols, allowTouch, today, l
                 choreName={chore.name}
                 memberName={member.name}
                 memberColor={member.color}
-                initial={initialsMap.get(id) ?? member.name[0]}
+                initial={initialsMap.get(id) ?? memberInitials(member.name)}
                 allowTouch={allowTouch && !doneOtherDay}
                 onToggle={onToggle}
                 doneEarlierLabel={doneOtherDay ? didItOn(member.name, doneOn) : undefined}
@@ -381,7 +382,7 @@ export function GrabPickerSheet({ item, memberMap, initialsMap, s, heldBy, onPic
               }}
             >
               <span style={{ opacity: held ? 0.35 : 1 }}>
-                <MemberDot size={big} color={member.color} initial={initialsMap.get(id) ?? member.name[0]} isCompleted={false} />
+                <MemberDot size={big} color={member.color} initial={initialsMap.get(id) ?? memberInitials(member.name)} isCompleted={false} />
               </span>
               <span style={{ opacity: held ? 0.6 : 1 }}>{member.name}</span>
               {held && (

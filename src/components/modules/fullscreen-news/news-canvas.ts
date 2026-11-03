@@ -1,6 +1,6 @@
 import type { TranslateFn } from '@/i18n';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
-import { colorWithAlpha } from '@/lib/module-style';
+import { withAlpha } from '@/lib/hex-color';
 import type { NewsDisplayItem } from '@/lib/news/types';
 import type { FullscreenNewsConfig, NewsTapAction, TimeFormat } from '@/types/config';
 
@@ -84,7 +84,7 @@ export interface NewsViewContext {
  * returned untouched.
  */
 export function themeBgAlpha(theme: FullscreenThemeTokens, alpha: number): string {
-  return colorWithAlpha(theme.bg, alpha);
+  return withAlpha(theme.bg, alpha);
 }
 
 /** The colour behind a source initial: the feed colour, else the accent. */

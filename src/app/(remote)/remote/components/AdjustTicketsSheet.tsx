@@ -6,6 +6,7 @@ import type { FamilyMember } from '@/types/family';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import BottomSheet from './BottomSheet';
 import { INPUT_STYLE } from './chore-form-styles';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** The most a reason may say; the hub cuts it here too. */
 export const REASON_MAX_CHARS = 80;
@@ -117,7 +118,7 @@ export default function AdjustTicketsSheet({
                 color: on ? 'var(--hs-text-primary)' : 'var(--hs-text-muted)', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               }}
             >
-              <span style={{ width: 18, height: 18, borderRadius: '50%', background: member.color, color: 'white', fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{member.name[0]}</span>
+              <span style={{ width: 18, height: 18, borderRadius: '50%', background: member.color, color: memberInk(member.color), fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{memberInitials(member.name)}</span>
               {member.name}
               <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--hs-text-faint)', fontVariantNumeric: 'tabular-nums' }}>· {balances[member.id] ?? 0}</span>
             </button>

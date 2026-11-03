@@ -13,6 +13,7 @@ import FormOverlay from './FormOverlay';
 import { useFormDirty } from '@/hooks/useFormDirty';
 import PhoneCustomIconSection, { PHONE_SUBHEAD_STYLE } from '@/components/custom-icons/PhoneCustomIconSection';
 import CustomIconsOverlay from './CustomIconsOverlay';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealFormOverlayProps {
   form: MealFormState;
@@ -251,7 +252,7 @@ export default function MealFormOverlay({
                     fontWeight: 600,
                     borderRadius: 12,
                     border: isSelected ? `1px solid ${hex}` : '1px solid var(--hs-border)',
-                    background: isSelected ? `${hex}14` : 'var(--hs-bg-panel)',
+                    background: isSelected ? withAlpha(hex, 0.08) : 'var(--hs-bg-panel)',
                     color: isSelected ? hex : 'var(--hs-text-faint)',
                     cursor: 'pointer',
                     transition: 'all 0.15s',

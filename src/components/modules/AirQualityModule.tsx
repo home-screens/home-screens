@@ -10,6 +10,7 @@ import { airQualityUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import { ContentCard } from './shared/ContentCard';
+import { withAlpha } from '@/lib/hex-color';
 
 interface AirQualityModuleProps {
   config: AirQualityConfig;
@@ -101,7 +102,7 @@ export default function AirQualityModule({ config, style, latitude, longitude, l
     <ModuleWrapper style={style}>
       <div
         className="flex flex-col gap-3 w-full h-full justify-center"
-        style={{ background: `linear-gradient(135deg, ${aqiColor}12, transparent 60%)` }}
+        style={{ background: `linear-gradient(135deg, ${withAlpha(aqiColor, 0.07)}, transparent 60%)` }}
       >
         {config.showAQI !== false && (
           <div className="flex items-center gap-3">

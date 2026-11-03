@@ -6,6 +6,7 @@ import { leagueWallCode } from '@/lib/espn';
 import { favoriteSide } from '@/lib/sports-order';
 import { TeamLogo, isWinner, formatScore, GameStatus, FavoriteBar, RankTag, type KickoffFn } from './shared';
 import { PaginationDots } from '../shared/PaginationDots';
+import { withAlpha } from '@/lib/hex-color';
 
 function TeamRow({
   logo,
@@ -26,7 +27,7 @@ function TeamRow({
 }) {
   return (
     <div className="flex items-center gap-3 w-full">
-      <div className="rounded-lg p-1.5 shrink-0" style={{ backgroundColor: `#${color}15` }}>
+      <div className="rounded-lg p-1.5 shrink-0" style={{ backgroundColor: `#${withAlpha(color, 0.08)}` }}>
         <TeamLogo src={logo} alt={abbr} size={36} />
       </div>
       <div className="flex-1 min-w-0">

@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import { ink } from '@/lib/constants';
+import { withAlpha } from '@/lib/hex-color';
 
 /** Default box size: a comfortable fingertip target on a 1080-wide wall. */
 export const TAP_CHECKBOX_SIZE = 38;
@@ -63,12 +64,4 @@ export function TapCheckbox({
       )}
     </span>
   );
-}
-
-/** Colour at an alpha; hex colours get a real alpha, anything else falls back to a neutral tint. */
-function withAlpha(color: string, alpha: number): string {
-  const hex = /^#([0-9a-f]{6})$/i.exec(color);
-  if (!hex) return `rgba(255,255,255,${alpha})`;
-  const n = parseInt(hex[1], 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }

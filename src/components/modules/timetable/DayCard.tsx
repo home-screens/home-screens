@@ -20,11 +20,12 @@ import { axisShare, tickLabel, type DayAxis, type FamilyDayBlock, type FamilyDay
 import { careLineForm, DAY_LINE, nameFitsLine, wordsFit, type ColumnsGeometry, type DayGeometry, type RowsGeometry } from '@/lib/timetable-day-fit';
 import { ink } from '@/lib/constants';
 import { formatClockMinutes, formatClockTime } from '@/lib/clock-time';
-import { pickGridTimeColor, pickPillTextColor } from '@/lib/calendar-color';
+import { pickGridTimeColor } from '@/lib/calendar-color';
 import { hyphenateSubjectName, SUBJECT_BREAK_MARKS } from '@/lib/timetable-subjects';
 import { useTranslate } from '@/i18n';
 import { SubjectIcon } from './cells';
 import type { PersonEntry } from './useTimetablePeople';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 export interface DayTokens {
   /** The card's background: what a subject colour is tinted into. */
@@ -188,10 +189,10 @@ function Avatar({ entry, em = 0.8 }: { entry: PersonEntry; em?: number }) {
         fontWeight: 800,
         lineHeight: 1,
         background: entry.member.color,
-        color: pickPillTextColor(entry.member.color),
+        color: memberInk(entry.member.color),
       }}
     >
-      {entry.member.name.slice(0, 1)}
+      {memberInitials(entry.member.name)}
     </span>
   );
 }

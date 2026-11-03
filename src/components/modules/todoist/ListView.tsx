@@ -12,6 +12,7 @@ import {
 } from './todoist-utils';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
+import { withAlpha } from '@/lib/hex-color';
 
 export function TaskRow({
   task,
@@ -109,7 +110,7 @@ export function TaskRow({
                 style={{
                   fontSize: '0.65em',
                   color: dueInfo.color,
-                  backgroundColor: `${dueInfo.color}15`,
+                  backgroundColor: withAlpha(dueInfo.color, 0.08),
                 }}
               >
                 {dueInfo.text}
@@ -149,7 +150,7 @@ export function TaskRow({
                     className="rounded-full px-1.5 py-px"
                     style={{
                       fontSize: '0.6em',
-                      backgroundColor: `${t.labelColors[label] ?? '#808080'}25`,
+                      backgroundColor: withAlpha(t.labelColors[label] ?? '#808080', 0.145),
                       color: t.labelColors[label] ?? '#808080',
                     }}
                   >

@@ -5,6 +5,7 @@ import { useTranslate } from '@/i18n';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
+import { withAlpha } from '@/lib/hex-color';
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -100,7 +101,7 @@ export default function ClockRadialView({ config, format24h, time, scaledFontSiz
   const outerColor = accentColor;
   const midColor = accentShade(accentColor, 10);
   const innerColor = accentShade(accentColor, 20);
-  const trackColor = `${accentColor}1a`;
+  const trackColor = withAlpha(accentColor, 0.1);
 
   const timeStr = config.showSeconds
     ? `${hStr}:${mStr}:${sStr}`

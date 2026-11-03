@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { CalendarEvent, CalendarPerson } from '@/types/config';
 import {
-  buildPersonRows, eventsForRow, initialsOf, busyBlocksForDay, clusterBusyBlocks, freeGaps, commonFreeGaps, EVERYONE_ROW_ID,
+  buildPersonRows, eventsForRow, busyBlocksForDay, clusterBusyBlocks, freeGaps, commonFreeGaps, EVERYONE_ROW_ID,
 } from '@/lib/calendar-people';
 
 const ev = (id: string, sourceId: string | undefined, extra: Partial<CalendarEvent> = {}): CalendarEvent => ({
@@ -14,34 +14,6 @@ const people: CalendarPerson[] = [
   { id: 'p-owen', name: 'Owen Lee', color: '#ea580c', sourceIds: ['src-owen', 'src-owen-school'] },
 ];
 const opts = { everyoneLabel: 'Everyone', everyoneColor: '#888', includeEveryone: true };
-
-describe('initialsOf', () => {
-  it('takes one letter for a single word and two for two words', () => {
-    expect(initialsOf('Ella')).toBe('E');
-    expect(initialsOf('owen lee')).toBe('OL');
-    expect(initialsOf('Mary Ann Smith')).toBe('MA');
-    expect(initialsOf('  ')).toBe('?');
-  });
-
-  it('steps over an emoji in front of a name and takes the letter', () => {
-    // A dot is there to tell five people apart, so a star in place of a letter
-    // is the one thing it must not draw.
-    expect(initialsOf('🌟 Mia')).toBe('M');
-    expect(initialsOf('🌟Mia')).toBe('M');
-    expect(initialsOf('⭐ Mary Ann')).toBe('MA');
-    expect(initialsOf('Mia 🌟')).toBe('M');
-  });
-
-  it('falls back to a question mark for a name with no letters at all', () => {
-    expect(initialsOf('🌟')).toBe('?');
-    expect(initialsOf('🌟 ✨')).toBe('?');
-  });
-
-  it('keeps letters that are not Latin', () => {
-    expect(initialsOf('Åse')).toBe('Å');
-    expect(initialsOf('Ærø Bo')).toBe('ÆB');
-  });
-});
 
 describe('buildPersonRows with people configured', () => {
   it('lists every person even with no events, in settings order', () => {

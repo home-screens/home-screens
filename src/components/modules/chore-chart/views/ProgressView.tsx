@@ -8,6 +8,7 @@ import { balanceRows, fitPerRow, partitionMembers } from '../layout';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import ChoreIcon from '../ChoreIcon';
+import { memberInitials } from '@/lib/family-avatar';
 
 interface ProgressViewProps {
   config: ChoreChartConfig;
@@ -130,7 +131,7 @@ export function ProgressView({ config, data, width, fontSize }: ProgressViewProp
                     </div>
                   </div>
                   <div style={{ fontSize: '1.1em' }} className="flex justify-center">
-                    {member.emoji ? <ChoreIcon value={member.emoji} size={22} color={member.color} fallback={<span style={{ color: member.color }}>{member.name[0]}</span>} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
+                    {member.emoji ? <ChoreIcon value={member.emoji} size={22} color={member.color} fallback={<span style={{ color: member.color }}>{memberInitials(member.name)}</span>} /> : <span style={{ color: member.color }}>{memberInitials(member.name)}</span>}
                   </div>
                   <div className="truncate max-w-full" title={member.name} style={{ fontSize: '0.65em', fontWeight: 600, color: member.color }}>
                     {member.name}

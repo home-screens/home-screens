@@ -4,6 +4,7 @@ import type { MealSettings, MealSlotType, TimeFormat } from '@/types/config';
 import { SLOT_META, formatMealTime, getMealSlotLabelKey, getSlotTimePresets } from '@/lib/meal-constants';
 import { useTranslate } from '@/i18n';
 import { SECTION_HEADING_STYLE } from './meals-shared';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealsSettingsDefaultTimesSectionProps {
   enabledSlots: MealSlotType[];
@@ -106,7 +107,7 @@ export default function MealsSettingsDefaultTimesSection({
                         minHeight: 36,
                         borderRadius: 6,
                         border: isSelected ? `1px solid ${meta.color}` : '1px solid var(--hs-border)',
-                        background: isSelected ? `${meta.color}15` : 'var(--hs-bg-body)',
+                        background: isSelected ? withAlpha(meta.color, 0.08) : 'var(--hs-bg-body)',
                         color: isSelected ? meta.color : 'var(--hs-text-muted)',
                         fontSize: 12,
                         fontWeight: 600,

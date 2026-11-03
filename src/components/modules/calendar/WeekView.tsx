@@ -8,7 +8,8 @@ import { DayArtLayer } from '../shared/DayArtLayer';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { CalendarConfig, CalendarEvent, ModuleStyle } from '@/types/config';
-import { withAlpha, type EventDisplayStyle } from './support';
+import type { EventDisplayStyle } from './support';
+import { withAlpha } from '@/lib/hex-color';
 import { DayCellEvents, WeekNumberCell, gridTemplateFor, scaledEm } from './grid';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
@@ -69,7 +70,7 @@ export function WeekView({ events, config, style, today, now, anchor, accentColo
                   height: '1.8em',
                   fontSize: scaledEm(0.85, dayLabelScale),
                   fontWeight: isToday ? 700 : 500,
-                  backgroundColor: isToday ? withAlpha(accentColor, 'cc') : 'transparent',
+                  backgroundColor: isToday ? withAlpha(accentColor, 0.8) : 'transparent',
                   opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.secondary,
                 }}
               >

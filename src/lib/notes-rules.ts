@@ -134,18 +134,6 @@ export function cardColumns(widthPx: number): number {
   return 3;
 }
 
-/**
- * The initial drawn in an author bubble: the first letter in the name,
- * upper-cased, so "Big Guns" is B and a name that starts with an emoji
- * ("🦄Mia") takes its M rather than half a surrogate pair, the calendar's
- * rule. A name with no letter at all gives its first whole character.
- */
-export function initialOf(name: string): string {
-  const letter = name.match(/\p{L}/u);
-  if (letter) return letter[0].toLocaleUpperCase();
-  return (Array.from(name.trim())[0] ?? '').toLocaleUpperCase();
-}
-
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
 const DAY_MS = 24 * HOUR_MS;

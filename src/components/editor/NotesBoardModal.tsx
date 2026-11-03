@@ -17,7 +17,8 @@ import {
   type NotesPayload,
   type NotesWriteRequest,
 } from '@/lib/notes-client';
-import { arrangeNotes, formatNoteAge, goneNotes, initialOf, isLive, timeLeftParts } from '@/lib/notes-rules';
+import { arrangeNotes, formatNoteAge, goneNotes, isLive, timeLeftParts } from '@/lib/notes-rules';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 import type { NotePatch } from '@/lib/notes-actions';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useFamilyData } from '@/hooks/useFamilyData';
@@ -93,9 +94,9 @@ function AuthorDot({ member }: { member: FamilyMember | undefined }) {
     <span
       aria-hidden="true"
       className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
-      style={{ backgroundColor: member.color, color: '#111' }}
+      style={{ backgroundColor: member.color, color: memberInk(member.color) }}
     >
-      {initialOf(member.name)}
+      {memberInitials(member.name)}
     </span>
   );
 }

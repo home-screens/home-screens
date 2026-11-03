@@ -17,6 +17,7 @@ import type { EventDisplayStyle } from './support';
 import Glyph from '@/components/ui/Glyph';
 import { eventOwner } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
+import { withAlpha } from '@/lib/hex-color';
 
 // Memoized: grid views mount hundreds of these and the module re-renders
 // every minute on the timezone clock tick with the same event object refs,
@@ -118,7 +119,7 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
         // color bar moves flush with the day and section headers.
         padding: showBackground ? '6px 10px' : '6px 0',
         opacity: eventOpacity(event, dimmed ? 0.4 : 1),
-        boxShadow: live ? `inset 0 0 0 1px ${accentColor}aa` : undefined,
+        boxShadow: live ? `inset 0 0 0 1px ${withAlpha(accentColor, 0.667)}` : undefined,
         ...(showBackground ? {} : { backgroundColor: 'transparent', borderTop: 'none' }),
       }}
     >

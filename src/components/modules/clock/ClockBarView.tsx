@@ -6,6 +6,7 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { fitBaseSize, fitFactor, timeLineWidth } from './fit-width';
 import { clockAlignmentStyle } from './alignment';
 import type { ClockViewProps } from './types';
+import { withAlpha } from '@/lib/hex-color';
 
 interface BarRowProps {
   label: string;
@@ -39,7 +40,7 @@ function BarRow({ label, value, max, accentColor, fontSize }: BarRowProps) {
         className="flex-1 relative rounded-full overflow-hidden"
         style={{
           height: barHeight,
-          backgroundColor: `${accentColor}1a`,
+          backgroundColor: withAlpha(accentColor, 0.1),
         }}
       >
         <div

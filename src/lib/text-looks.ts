@@ -14,7 +14,7 @@
  */
 
 import { DEFAULT_MODULE_STYLE, type ModuleStyle, type TextLook } from '@/types/config';
-import { colorWithAlpha } from '@/lib/module-style';
+import { withAlpha } from '@/lib/hex-color';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { collectSourceKeys, containsTimeCondition, evaluateConditionsTri, type ScheduleClock } from '@/lib/schedule';
 import { extractSharedStateKeys } from '@/lib/shared-state-template';
@@ -186,7 +186,7 @@ export function applyTextLook(style: ModuleStyle, overrides: TextLookOverrides):
     // `lookContentOpacity`), so the border kept its full color while the
     // words and the fill faded. The fade goes into the border's alpha too.
     if (next.backdropBlur > 0 && next.borderWidth > 0) {
-      next.borderColor = colorWithAlpha(next.borderColor ?? DEFAULT_MODULE_STYLE.borderColor, overrides.opacity);
+      next.borderColor = withAlpha(next.borderColor ?? DEFAULT_MODULE_STYLE.borderColor, overrides.opacity);
     }
   }
   return next;

@@ -4,8 +4,8 @@ import type { FamilyMember } from '@/types/family';
 
 import React from 'react';
 import { Ticket } from 'lucide-react';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
-import { onAccentFor } from '@/lib/fullscreen-themes';
 
 interface MemberPickerProps {
   members: FamilyMember[];
@@ -83,10 +83,10 @@ export default function MemberPicker({ members, balances, selectedId, onSelect, 
                 fontSize: avatar * 0.46,
                 fontWeight: 700,
                 lineHeight: 1,
-                color: onAccentFor(member.color),
+                color: memberInk(member.color),
               }}
             >
-              {member.name.charAt(0).toUpperCase()}
+              {memberInitials(member.name)}
             </span>
 
             <span style={{ fontSize: nameSize, fontWeight: 700, lineHeight: 1.1, whiteSpace: 'nowrap' }}>

@@ -23,6 +23,7 @@ import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 import { displayFetch } from '@/lib/display-fetch';
 import { todoListsUrl, familyUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { sendTodoWrite, updateItemRequest, TODO_LISTS_TTL_MS, type TodoListsPayload } from '@/lib/todo-client';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** Members change about never; one poll a minute keeps initials current. */
 const MEMBERS_TTL_MS = FETCH_KEY_REGISTRY['family']?.ttlMs ?? 60_000;
@@ -216,10 +217,10 @@ function Assignees({ ids, members }: { ids: string[]; members: ReadonlyMap<strin
           key={m.id}
           className={bubble}
           title={m.name}
-          // Dark on the member's colour: chip ink, not card ink.
-          style={{ ...bubbleStyle, backgroundColor: m.color, color: '#111', boxShadow: ring }}
+          // Ink picked for the member's colour: chip ink, not card ink.
+          style={{ ...bubbleStyle, backgroundColor: m.color, color: memberInk(m.color), boxShadow: ring }}
         >
-          {m.name.trim().charAt(0).toUpperCase()}
+          {memberInitials(m.name)}
         </span>
       ))}
       {extra > 0 && (

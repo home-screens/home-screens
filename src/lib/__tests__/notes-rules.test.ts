@@ -7,7 +7,6 @@ import {
   formatNoteAge,
   goneNotes,
   groupByDay,
-  initialOf,
   isGone,
   isLive,
   isSweepable,
@@ -261,30 +260,6 @@ describe('cardColumns', () => {
     expect(cardColumns(899)).toBe(2);
     expect(cardColumns(900)).toBe(3);
     expect(cardColumns(2160)).toBe(3);
-  });
-});
-
-describe('initialOf', () => {
-  it('takes the first letter of the trimmed name, upper-cased', () => {
-    expect(initialOf('ada')).toBe('A');
-    expect(initialOf('  Ben ')).toBe('B');
-    expect(initialOf('élise')).toBe('É');
-  });
-
-  it('gives an empty name no initial', () => {
-    expect(initialOf('')).toBe('');
-    expect(initialOf('   ')).toBe('');
-  });
-
-  it('takes the first letter of the first word that has one, never half an emoji', () => {
-    expect(initialOf('Big Guns')).toBe('B');
-    expect(initialOf('\u{1F984} Mia')).toBe('M');
-  });
-
-  it('falls back to the first whole character of a name with no letter', () => {
-    expect(initialOf('\u{1F984}')).toBe('\u{1F984}');
-    expect(initialOf('\u{1F984} \u{1F31F}')).toBe('\u{1F984}');
-    expect(initialOf('42')).toBe('4');
   });
 });
 

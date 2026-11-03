@@ -116,7 +116,8 @@ export default function ColorPicker({
             onBlur={() => {
               const trimmed = draft.trim();
               if (HEX_RE.test(trimmed)) {
-                // Normalize 3-digit hex to 6-digit so ${color}XX opacity suffixes work
+                // Store every hex in its 6-digit form, the shape the swatch
+                // emits and the reset button compares against the default.
                 const normalized = trimmed.length === 4
                   ? `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`
                   : trimmed;

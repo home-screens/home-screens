@@ -17,6 +17,7 @@ import TicketsFeed from './TicketsFeed';
 import { useHouseholdTimezone } from '../household-clock';
 import { showToast } from '../remote-toast';
 import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -554,10 +555,10 @@ function RedeemSection({
             >
               {member.emoji ? (
                 <span style={{ flexShrink: 0, display: 'inline-flex' }}>
-                  <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{member.name[0]}</span>} />
+                  <ChoreIcon value={member.emoji} size={18} color={isActive ? member.color : 'var(--hs-text-muted)'} fallback={<span style={{ fontSize: 16, fontWeight: 600 }}>{memberInitials(member.name)}</span>} />
                 </span>
               ) : (
-                <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{member.name[0]}</span>
+                <span style={{ fontSize: 16, fontWeight: 600, flexShrink: 0 }}>{memberInitials(member.name)}</span>
               )}
               <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{member.name}</span>
             </button>
@@ -859,12 +860,12 @@ function BalancesSection({
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: 12,
-              color: 'white',
+              color: memberInk(member.color),
               flexShrink: 0,
               fontWeight: 700,
             }}
           >
-            {member.name[0]}
+            {memberInitials(member.name)}
           </div>
           <div style={{ flex: 1, fontSize: 14, fontWeight: 500, color: 'var(--hs-text-body)' }}>
             {member.name}

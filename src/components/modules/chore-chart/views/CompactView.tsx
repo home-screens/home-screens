@@ -15,6 +15,7 @@ import { wallRowPress } from '../../shared/wallPress';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress, TicketValue, showsTicketValue } from '../ChoreRowExtras';
+import { memberInitials } from '@/lib/family-avatar';
 
 interface CompactViewProps {
   config: ChoreChartConfig;
@@ -120,7 +121,7 @@ export function CompactView({ config, data, width, fontSize }: CompactViewProps)
         <div className="flex-1" />
         {!aggregate && active.map((m) => (
           <span key={m.id} title={m.name} className="flex items-center justify-center" style={{ width: columnWidth }}>
-            {m.emoji ? <ChoreIcon value={m.emoji} size={16} color={m.color} fallback={<span style={{ color: m.color }}>{m.name[0]}</span>} /> : <span style={{ color: m.color }}>{m.name[0]}</span>}
+            {m.emoji ? <ChoreIcon value={m.emoji} size={16} color={m.color} fallback={<span style={{ color: m.color }}>{memberInitials(m.name)}</span>} /> : <span style={{ color: m.color }}>{memberInitials(m.name)}</span>}
           </span>
         ))}
       </div>

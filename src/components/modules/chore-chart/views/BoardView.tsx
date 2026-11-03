@@ -14,6 +14,8 @@ import { wallRowPress } from '../../shared/wallPress';
 import { usePressedKey } from '../../shared/usePressedKey';
 import { useHoldToUncheck } from '@/hooks/useHoldToUncheck';
 import { HoldHint, HoldProgress } from '../ChoreRowExtras';
+import { withAlpha } from '@/lib/hex-color';
+import { memberInitials } from '@/lib/family-avatar';
 
 interface BoardViewProps {
   config: ChoreChartConfig;
@@ -49,10 +51,10 @@ function MemberColumn({ member, stats, showPoints, fontSize, children }: MemberC
       {/* Header */}
       <div
         className="text-center rounded-t-md py-1.5 mb-1 min-w-0"
-        style={{ backgroundColor: `${member.color}18` }}
+        style={{ backgroundColor: withAlpha(member.color, 0.09) }}
       >
         <div style={{ fontSize: '1.3em' }} className="flex justify-center">
-          {member.emoji ? <ChoreIcon value={member.emoji} size={boardIconSize(fontSize)} color={member.color} fallback={<span style={{ color: member.color }}>{member.name[0]}</span>} /> : <span style={{ color: member.color }}>{member.name[0]}</span>}
+          {member.emoji ? <ChoreIcon value={member.emoji} size={boardIconSize(fontSize)} color={member.color} fallback={<span style={{ color: member.color }}>{memberInitials(member.name)}</span>} /> : <span style={{ color: member.color }}>{memberInitials(member.name)}</span>}
         </div>
         <div
           className="truncate px-1"

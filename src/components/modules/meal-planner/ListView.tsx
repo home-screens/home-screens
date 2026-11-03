@@ -15,6 +15,7 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { mealTagLabel } from '@/lib/meal-dish-rules';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
+import { withAlpha } from '@/lib/hex-color';
 
 /** Marks each day heading, the lines the scroll can stop at. */
 const DAY_HEADING_ATTR = 'data-list-day';
@@ -139,7 +140,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
               )}
               <div
                 className="h-px flex-1"
-                style={{ backgroundColor: isToday ? `${config.accentColor}30` : DIVIDER.subtle }}
+                style={{ backgroundColor: isToday ? withAlpha(config.accentColor, 0.19) : DIVIDER.subtle }}
               />
             </div>
 

@@ -9,6 +9,7 @@ import { CONFETTI } from '@/components/display/timer-views/TimerCelebration';
 import { CELEBRATION_MS } from '@/lib/chore-celebration';
 import { playTimerSound } from '@/components/display/timer-views/timer-sounds';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 export interface DayCompleteEvent {
   /** Stable for the card's life: a kid joining the card changes its names, not its key. */
@@ -86,13 +87,13 @@ export default function DayCompleteOverlay({ event, kind, k, tc, sound, onDone }
       key={member.id}
       style={{
         width: size, height: size, borderRadius: '50%', background: member.color, flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', color: memberInk(member.color),
         boxShadow: `0 0 0 ${ring}px color-mix(in srgb, ${member.color} 22%, transparent)`,
         fontSize: size * 0.45, fontWeight: 800, marginLeft: offset,
       }}
     >
-      <ChoreIcon value={member.emoji ?? ''} size={size * 0.55} color="white" bare fallback={null} />
-      {!member.emoji && member.name[0]}
+      <ChoreIcon value={member.emoji ?? ''} size={size * 0.55} color={memberInk(member.color)} bare fallback={null} />
+      {!member.emoji && memberInitials(member.name)}
     </div>
   );
   // Up to three finishers side by side, overlapping a little past one.

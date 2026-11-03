@@ -1,3 +1,5 @@
+import { withAlpha } from '@/lib/hex-color';
+
 // Default display dimensions (portrait 1080p)
 export const DEFAULT_DISPLAY_WIDTH = 1080;
 export const DEFAULT_DISPLAY_HEIGHT = 1920;
@@ -205,7 +207,7 @@ export function resolveAccent(config: { accentColor?: string }): {
   const accentColor = config.accentColor ?? '#000000';
   const hasAccent = hasAccentColor(accentColor);
   const gradientStyle: React.CSSProperties = hasAccent
-    ? { background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)` }
+    ? { background: `linear-gradient(135deg, ${withAlpha(accentColor, 0.08)}, ${withAlpha(accentColor, 0.03)})` }
     : {};
   return { accentColor, hasAccent, gradientStyle };
 }

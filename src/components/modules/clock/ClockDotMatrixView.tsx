@@ -10,6 +10,7 @@ import { clockAlignmentStyle } from './alignment';
 import { noWrap } from './fixed-size';
 import { clockDatePattern } from './date-pattern';
 import type { ClockViewProps } from './types';
+import { withAlpha } from '@/lib/hex-color';
 
 const DotCharacter = memo(function DotCharacter({
   char,
@@ -43,7 +44,7 @@ const DotCharacter = memo(function DotCharacter({
                 borderRadius: '50%',
                 backgroundColor: active ? accentColor : ink(0.08),
                 boxShadow: active
-                  ? `0 0 ${dotSize * 0.5}px ${accentColor}, 0 0 ${dotSize * 1.2}px ${accentColor}40`
+                  ? `0 0 ${dotSize * 0.5}px ${accentColor}, 0 0 ${dotSize * 1.2}px ${withAlpha(accentColor, 0.25)}`
                   : 'none',
                 transition: 'background-color 0.2s ease, box-shadow 0.2s ease',
               }}

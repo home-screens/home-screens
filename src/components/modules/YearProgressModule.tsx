@@ -6,6 +6,7 @@ import type { YearProgressConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 import { TEXT_OPACITY, resolveAccent, ink } from '@/lib/constants';
 import { formatProgressPercent } from '@/lib/progress-percent';
+import { withAlpha } from '@/lib/hex-color';
 
 interface YearProgressModuleProps {
   config: YearProgressConfig;
@@ -74,9 +75,9 @@ function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent, l
           style={{
             width: `${clamped}%`,
             background: hasAccent
-              ? `linear-gradient(90deg, ${accentColor}90, ${accentColor})`
+              ? `linear-gradient(90deg, ${withAlpha(accentColor, 0.565)}, ${accentColor})`
               : ink(0.7),
-            boxShadow: hasAccent ? `0 0 8px ${accentColor}60` : undefined,
+            boxShadow: hasAccent ? `0 0 8px ${withAlpha(accentColor, 0.375)}` : undefined,
             transition: 'width 0.5s ease',
           }}
         >
@@ -88,7 +89,7 @@ function ProgressBar({ label, percent, showPercentage, accentColor, hasAccent, l
                 height: '12px',
                 // The glowing tip of an accent-coloured bar: white for the glow, chip ink.
                 backgroundColor: '#fff',
-                boxShadow: `0 0 6px ${accentColor}, 0 0 12px ${accentColor}80`,
+                boxShadow: `0 0 6px ${accentColor}, 0 0 12px ${withAlpha(accentColor, 0.5)}`,
               }}
             />
           )}

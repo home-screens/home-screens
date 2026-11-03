@@ -11,6 +11,7 @@ import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
 import { LABEL_STYLE } from './chore-form-styles';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** The chore accent, the same amber the chore form's save button uses. */
 const AMBER = '#f59e0b';
@@ -44,10 +45,10 @@ function Initial({ name, color, size = 20 }: { name: string; color: string; size
       style={{
         width: size, height: size, borderRadius: '50%', flexShrink: 0,
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        background: color, color: '#111', fontSize: 10, fontWeight: 700,
+        background: color, color: memberInk(color), fontSize: 10, fontWeight: 700,
       }}
     >
-      {name[0]}
+      {memberInitials(name)}
     </span>
   );
 }
@@ -142,11 +143,11 @@ export default function StarterChoresOverlay({
                     style={{
                       width: 20, height: 20, borderRadius: '50%', marginLeft: i === 0 ? 0 : -7,
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: m.color, color: '#111', fontSize: 10, fontWeight: 700,
+                      background: m.color, color: memberInk(m.color), fontSize: 10, fontWeight: 700,
                       border: '2px solid var(--hs-bg-card)',
                     }}
                   >
-                    {m.name[0]}
+                    {memberInitials(m.name)}
                   </span>
                 ))}
                 {inGroup.length > shown.length && (

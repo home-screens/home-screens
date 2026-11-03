@@ -10,7 +10,7 @@ import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { weekStartsOnFor } from '@/lib/calendar-utils';
 import { weekNumberFor } from '@/lib/week-number';
 import { pickPillTextColor, DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
-import { colorWithAlpha } from '@/lib/module-style';
+import { withAlpha } from '@/lib/hex-color';
 import type { MultiMonthConfig, ModuleStyle, WeekStartDay, MultiMonthTodayStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
 
@@ -98,7 +98,7 @@ function todayMarkerStyle(todayStyle: MultiMonthTodayStyle, accent: string): CSS
     case 'filled':
     case 'square':
       return {
-        background: colorWithAlpha(accent, TODAY_FILL_ALPHA),
+        background: withAlpha(accent, TODAY_FILL_ALPHA),
         // A light accent (amber, lime) needs dark digits to stay readable —
         // the same auto-contrast pick the calendar modules' pills use.
         color: pickPillTextColor(accent),

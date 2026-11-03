@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import { DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import { mealTagLabel } from '@/lib/meal-dish-rules';
 import { useMealMinutes } from './useMealMinutes';
+import { withAlpha } from '@/lib/hex-color';
 
 interface MealMetaPillsProps {
   meal: SavedMeal | null;
@@ -45,7 +46,7 @@ export function MealMetaPills({ meal, showPrepTime, showDifficulty, showTags, sh
         <span style={{
           ...pillStyle,
           color: difficultyColor ?? 'var(--fmp-text-3)',
-          border: difficultyColor ? `1px solid ${difficultyColor}40` : undefined,
+          border: difficultyColor ? `1px solid ${withAlpha(difficultyColor, 0.25)}` : undefined,
         }}>
           {tCore(`meal.difficulty.${difficulty}`)}
         </span>

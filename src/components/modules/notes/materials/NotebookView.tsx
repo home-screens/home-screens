@@ -3,10 +3,10 @@
 import { useRef } from 'react';
 import { Star } from 'lucide-react';
 import { UI_SANS_STACK } from '@/lib/font-registry';
-import { initialOf } from '@/lib/notes-rules';
 import type { MaterialViewProps } from './types';
 import { useFitCount } from '../useFitCount';
 import { ageOf, authorOf, fitKeyOf, type NotesContext } from '../shared';
+import { memberInitials } from '@/lib/family-avatar';
 
 const PAPER = '#fbf8ee';
 const RULE = 'rgba(110, 150, 210, 0.45)';
@@ -160,7 +160,7 @@ export function NotebookView({ ctx, shown, hidden, title, showTitle, padding, he
                       color: initialInk(author.color),
                     }}
                   >
-                    {author.color ? initialOf(author.name) : '?'}
+                    {author.color ? memberInitials(author.name) : '?'}
                   </span>
                 )}
                 <div className="line-clamp-3" style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>

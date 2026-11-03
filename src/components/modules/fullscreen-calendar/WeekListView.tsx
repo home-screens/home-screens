@@ -21,7 +21,8 @@ import { DayBadges } from '../shared/DayBadges';
 import { DayArtLayer } from '../shared/DayArtLayer';
 import { CountdownPill, EventProgressBar, EVENT_TIME_TEXT, eventAriaLabel } from './list-view-bits';
 import { formatMealTime, getMealSlotLabelKey, resolveMealTimeFormat, toISODate } from '@/lib/meal-constants';
-import { EVERYONE_COLOR, eventOwner, initialsOf } from '@/lib/calendar-people';
+import { EVERYONE_COLOR, eventOwner } from '@/lib/calendar-people';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { EventMarker } from '../shared/EventMarker';
 import { weekMealLabels, type DayExtras, type ExtrasIndex } from '@/lib/calendar-extras';
 import type { MealSlotType, TimeFormat } from '@/types/config';
@@ -298,10 +299,10 @@ function DayExtrasRows({ day, members, fontSize, scale, hasEvents, band, mealLab
                 <span key={id} style={{
                   width: avatarSize, height: avatarSize, borderRadius: '50%',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  background: m?.color ?? EVERYONE_COLOR, color: '#fff', fontSize: fontSize * 0.55, fontWeight: 700,
+                  background: m?.color ?? EVERYONE_COLOR, color: memberInk(m?.color ?? EVERYONE_COLOR), fontSize: fontSize * 0.55, fontWeight: 700,
                   border: '1.5px solid var(--cal-bg)', marginLeft: i === 0 ? 0 : -avatarSize * 0.3,
                 }}>
-                  {initialsOf(m?.name ?? '?')}
+                  {memberInitials(m?.name ?? '', { max: 2 })}
                 </span>
               );
             })}

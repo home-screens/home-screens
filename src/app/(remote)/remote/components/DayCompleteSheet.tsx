@@ -5,6 +5,7 @@ import type { FamilyMember } from '@/types/family';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useTranslate } from '@/i18n';
+import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** How long the phone's celebration stays before it goes by itself. */
 export const DAY_COMPLETE_SHEET_MS = 5000;
@@ -89,13 +90,13 @@ export default function DayCompleteSheet({
         ))}
         <div
           style={{
-            width: 72, height: 72, borderRadius: '50%', margin: '0 auto 14px', background: member.color, color: 'white',
+            width: 72, height: 72, borderRadius: '50%', margin: '0 auto 14px', background: member.color, color: memberInk(member.color),
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30, fontWeight: 800,
             boxShadow: `0 0 0 8px color-mix(in srgb, ${member.color} 20%, transparent)`,
           }}
         >
-          <ChoreIcon value={member.emoji ?? ''} size={36} color="white" bare fallback={null} />
-          {!member.emoji && member.name[0]}
+          <ChoreIcon value={member.emoji ?? ''} size={36} color={memberInk(member.color)} bare fallback={null} />
+          {!member.emoji && memberInitials(member.name)}
         </div>
         <h3 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--hs-text-primary)' }}>
           {t('choresTab.dayComplete.title', { name: member.name })}

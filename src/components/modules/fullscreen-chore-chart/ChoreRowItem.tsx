@@ -8,6 +8,7 @@ import { useTranslate } from '@/i18n';
 import AssigneeDot from './AssigneeDot';
 import { dotGap, dotRunWidth, groupPillMetrics, groupPillPadY, TOD_ICONS, type ToggleParams } from './helpers';
 import type { ChoreRow } from '@/lib/chore-rows';
+import { memberInitials } from '@/lib/family-avatar';
 
 interface ChoreRowItemProps {
   row: ChoreRow;
@@ -182,7 +183,7 @@ export default function ChoreRowItem({
         choreName={row.choreName}
         memberName={member.name}
         memberColor={member.color}
-        initial={showInitials ? (initialsMap.get(a.memberId) ?? member.name[0]) : ''}
+        initial={showInitials ? (initialsMap.get(a.memberId) ?? memberInitials(member.name)) : ''}
         allowTouch={allowTouch}
         onToggle={onToggle}
       />

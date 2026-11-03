@@ -12,6 +12,7 @@ import { AccentDivider } from './shared/AccentDivider';
 import { ScaledAccentContent } from './shared/ScaledAccentContent';
 import { useTranslate } from '@/i18n';
 import type { HistoryResponse } from '@/lib/history-types';
+import { withAlpha } from '@/lib/hex-color';
 
 interface HistoryModuleProps {
   config: HistoryConfig;
@@ -76,7 +77,7 @@ export default function HistoryModule({ config, style, timezone }: HistoryModule
                   className="inline-block mt-2 px-2 py-0.5 rounded-full"
                   style={{
                     fontSize: '0.7em',
-                    backgroundColor: hasAccent ? `${accentColor}20` : ink(0.08),
+                    backgroundColor: hasAccent ? withAlpha(accentColor, 0.125) : ink(0.08),
                     color: hasAccent ? accentColor : ink(0.7),
                   }}
                 >
