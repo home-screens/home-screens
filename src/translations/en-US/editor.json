@@ -2230,6 +2230,7 @@
       "redirectUriLabel": "Add this redirect URL when you set up the connection:",
       "deviceCodeIntro": "Open this link and enter the code:",
       "devicePolling": "Waiting for you to approve…",
+      "cancelButton": "Cancel",
       "errorGeneric": "Something went wrong. Please try again.",
       "popupBlocked": "Your browser blocked the sign-in window. Allow pop-ups for this site and try again.",
       "garmin": {
@@ -5901,5 +5902,9 @@
     "allOf": "all of {n}",
     "anyOf": "any of {n}",
     "noneOf": "none of {n}"
+  },
+  "deviceSignIn": {
+    "hubUnreachable": "Couldn't reach Home Screens. Check the connection and try again.",
+    "codeExpired": "That code expired. Start sign-in again."
   }
 }

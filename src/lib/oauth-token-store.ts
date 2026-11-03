@@ -2,18 +2,23 @@ import path from 'path';
 import { createJsonStore } from './json-store';
 import { onDataTransactionCommit, withDataTransaction } from './data-transaction';
 import { fetchWithTimeout } from './api-utils';
-import { logger } from './logger';
+import { logger, type Logger } from './logger';
 
 /**
- * Provider-neutral OAuth token store: everything about holding a grant —
+ * Provider-neutral OAuth token store: everything about holding a grant,
  * persistence, proactive refresh (60s before expiry, single-flight, refresh
  * token preserved), passive/liveness checks, and optional revocation.
  *
  * The provider supplies endpoints, token-request credentials, and the tokens
  * file path. Google's two grants (calendar + photos import) and the OneDrive
  * grant all build on this factory. Providers with no revocation endpoint
- * (Microsoft consumer accounts) omit revokeUrl — disconnect then only clears
+ * (Microsoft consumer accounts) omit revokeUrl; disconnect then only clears
  * the tokens file.
+ *
+ * The renewal itself (`resolveAccessToken` below) is shared further: the
+ * plugin auth engine holds its grants in its own files and renews them
+ * through the same rule, so a provider outage means the same thing on a
+ * plugin as on the calendar.
  */
 
 export interface StoredOAuthTokens {
@@ -33,8 +38,20 @@ export interface StoredOAuthTokens {
  */
 export class TokenRenewalUnavailableError extends Error {
   constructor() {
-    super("Couldn't reach Google to renew the sign-in. Try again in a few minutes.");
+    super("Couldn't renew the sign-in right now. Try again in a few minutes.");
     this.name = 'TokenRenewalUnavailableError';
+  }
+}
+
+/**
+ * A renewal no retry will fix: the provider refused the grant or the app,
+ * or the credentials to renew with are gone. The household has to sign in
+ * again (or fix its own app).
+ */
+export class TokenRenewalRefusedError extends Error {
+  constructor(reason: string) {
+    super(reason);
+    this.name = 'TokenRenewalRefusedError';
   }
 }
 
@@ -47,10 +64,134 @@ export class TokenRenewalUnavailableError extends Error {
  */
 const REFUSED_GRANT_ERRORS = new Set(['invalid_grant', 'invalid_client', 'unauthorized_client']);
 
+/** Whether a token endpoint's answer refuses the grant or the app for good. */
+export function isRefusedGrant(data: Record<string, unknown> | null | undefined): boolean {
+  return typeof data?.error === 'string' && REFUSED_GRANT_ERRORS.has(data.error);
+}
+
+/** Renew while a token has less than this long left. */
+export const REFRESH_GRACE_MS = 60_000;
+
+export interface AccessTokenResolution<T extends StoredOAuthTokens> {
+  /** One renewal at a time per grant; concurrent callers share it. */
+  key: string;
+  log: Logger;
+  load: () => Promise<T | null>;
+  save: (tokens: T) => Promise<void>;
+  /**
+   * The grant's save generation, read before the tokens and compared after
+   * the renewal (see `renewAndSave`).
+   */
+  generation: () => number;
+  /**
+   * Whether this grant can be renewed at all: it holds a refresh token, or
+   * its flow mints anew. A grant that cannot is used until it expires.
+   */
+  renewable: (tokens: T) => boolean;
+  /**
+   * The renewed grant. Throws `TokenRenewalRefusedError` when no retry will
+   * help; any other throw (unreachable, busy, 5xx, an answer with no token)
+   * is an outage.
+   */
+  renew: (tokens: T) => Promise<T>;
+  /** Called once a renewal is saved (the plugin engine audits it). */
+  onRenewed?: () => void;
+  /** Renew even while the current token is fresh: the one retry after an upstream 401. */
+  force?: boolean;
+}
+
+// Serialized per grant WITHIN THIS PROCESS: concurrent callers (several
+// display Pis polling at once) share one in-flight renewal instead of racing
+// the provider, since some providers rotate the refresh token and a lost
+// race bricks the grant. The app runs a single server process on the hub; a
+// cross-worker deployment would need a file mutex.
+const renewalsInFlight = new Map<string, Promise<string | null>>();
+
+/**
+ * A currently valid access token for a stored grant, renewing when it is
+ * within a minute of expiry (or on `force`). Null when there is no usable
+ * grant: none saved, or the provider refused a renewal. Throws
+ * `TokenRenewalUnavailableError` when a renewal could not happen right now
+ * and the current token has already expired.
+ */
+export async function resolveAccessToken<T extends StoredOAuthTokens>(
+  resolution: AccessTokenResolution<T>,
+): Promise<string | null> {
+  const startedAt = resolution.generation();
+  const tokens = await resolution.load();
+  if (!tokens) return null;
+
+  const now = Date.now();
+  const fresh = Boolean(tokens.expiry_date) && (tokens.expiry_date as number) > now + REFRESH_GRACE_MS;
+  if (tokens.access_token && fresh && !resolution.force) return tokens.access_token;
+
+  if (!resolution.renewable(tokens)) {
+    // Access-token-only grant: usable until it expires, then dead. No
+    // expiry recorded means we can't tell; assume still valid.
+    if (tokens.access_token && (!tokens.expiry_date || tokens.expiry_date > now)) {
+      return tokens.access_token;
+    }
+    return null;
+  }
+
+  const existing = renewalsInFlight.get(resolution.key);
+  if (existing) return existing;
+  const flight = renewAndSave(resolution, tokens, startedAt)
+    .finally(() => renewalsInFlight.delete(resolution.key));
+  renewalsInFlight.set(resolution.key, flight);
+  return flight;
+}
+
+/** `startedAt` is the generation observed before `tokens` were read. */
+async function renewAndSave<T extends StoredOAuthTokens>(
+  resolution: AccessTokenResolution<T>,
+  tokens: T,
+  startedAt: number,
+): Promise<string | null> {
+  const { log } = resolution;
+  let renewed: T;
+  try {
+    renewed = await resolution.renew(tokens);
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    if (err instanceof TokenRenewalRefusedError) {
+      log.error('Token refresh refused, sign in again:', reason);
+      return null;
+    }
+    log.warn('Token refresh failed for now:', reason);
+    // We renew a minute early, so the current token may still work; hand it
+    // out until it expires, then say the renewal is unavailable rather than
+    // that the grant is gone.
+    if (tokens.access_token && tokens.expiry_date && tokens.expiry_date > Date.now()) {
+      return tokens.access_token;
+    }
+    throw new TokenRenewalUnavailableError();
+  }
+
+  // A renewal reads the tokens, spends a network round trip, then saves what
+  // it started from plus a new access token. If the grant was replaced in
+  // the meantime (a backup restore, a disconnect, a fresh sign-in), that
+  // save would put the previous account's refresh token back over the new
+  // one, so it only commits while the generation it started under is still
+  // current. Checked AFTER acquiring the same lock as restore: a network
+  // response can arrive while restore holds the lock, before its generation
+  // bump. The persisted comparison also covers a restore in another process.
+  return withDataTransaction(async () => {
+    const current = await resolution.load();
+    if (resolution.generation() !== startedAt || JSON.stringify(current) !== JSON.stringify(tokens)) {
+      log.warn('Token refresh discarded: the stored grant was replaced while it was in flight');
+      return null;
+    }
+    await resolution.save(renewed);
+    resolution.onRenewed?.();
+    return renewed.access_token ?? null;
+  });
+}
+
 export interface OAuthTokenStoreOptions {
   /** Path of the tokens JSON file, relative to process.cwd(). */
   tokensPath: string;
-  /** Revocation endpoint; absent → disconnect only clears the tokens file. */
+  /** Revocation endpoint; absent means disconnect only clears the tokens file. */
   revokeUrl?: string;
   /**
    * Where a refresh goes and the client params it carries (client_id, and
@@ -60,7 +201,7 @@ export interface OAuthTokenStoreOptions {
    * message when unusable.
    */
   getTokenClient: () => Promise<{ tokenUrl: string; params: Record<string, string> }>;
-  /** Passive presence check — no network. */
+  /** Passive presence check, no network. */
   hasCredentials: () => Promise<boolean>;
   /** Logger namespace. */
   logName: string;
@@ -70,9 +211,9 @@ export interface OAuthTokenStore {
   readonly filePath: string;
   loadTokens(): Promise<StoredOAuthTokens | null>;
   saveTokens(tokens: StoredOAuthTokens): Promise<void>;
-  /** Passive credential presence check, supplied by the provider — no network. */
+  /** Passive credential presence check, supplied by the provider, no network. */
   hasCredentials(): Promise<boolean>;
-  /** Passive presence check — no network. */
+  /** Passive presence check, no network. */
   isConnected(): Promise<boolean>;
   /**
    * A currently valid access token, refreshing proactively (60s before
@@ -97,19 +238,13 @@ export interface OAuthTokenStore {
 
 export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenStore {
   const log = logger(opts.logName);
-  let refreshInFlight: Promise<string | null> | null = null;
 
-  // Bumped by every save. A refresh reads the tokens, spends a network round
-  // trip, then saves what it started from plus a new access token. If the
-  // grant was replaced in the meantime (a backup restore, a disconnect, a
-  // fresh sign-in), that save would put the previous account's refresh token
-  // back over the new one, so a refresh only commits while the generation it
-  // started under is still current. The write queue below cannot provide
-  // this: it orders the file writes, not the stale read that produced one.
-  // Only a journal that wrote THIS tokens file counts: a chore toggle or a
-  // list edit commits a journal too, and bumping on those would throw away
-  // a refresh that finished underneath them, which with a provider that
-  // rotates refresh tokens means reconnecting the account.
+  // Bumped by every save, and by every journal that wrote THIS tokens file:
+  // a chore toggle or a list edit commits a journal too, and bumping on
+  // those would throw away a refresh that finished underneath them, which
+  // with a provider that rotates refresh tokens means reconnecting the
+  // account. The write queue below cannot provide this: it orders the file
+  // writes, not the stale read that produced one.
   let generation = 0;
   const ownPath = path.normalize(opts.tokensPath);
   onDataTransactionCommit((paths) => {
@@ -136,30 +271,24 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
     await store.write(tokens);
   }
 
-  /** `startedAt` is the generation observed before the tokens were read. */
-  async function refreshAccessToken(tokens: StoredOAuthTokens, startedAt: number): Promise<string | null> {
+  /** One refresh_token round trip; the outcome is sorted by `resolveAccessToken`. */
+  async function renewGrant(tokens: StoredOAuthTokens): Promise<StoredOAuthTokens> {
     let client: { tokenUrl: string; params: Record<string, string> };
     try {
       client = await opts.getTokenClient();
     } catch (err) {
-      log.error('Token refresh impossible:', err instanceof Error ? err.message : err);
-      return null;
+      // No client to renew with is a setup problem, not an outage.
+      throw new TokenRenewalRefusedError(err instanceof Error ? err.message : String(err));
     }
-    let res: Response;
-    try {
-      res = await fetchWithTimeout(client.tokenUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          ...client.params,
-          refresh_token: tokens.refresh_token!,
-          grant_type: 'refresh_token',
-        }),
-      });
-    } catch (err) {
-      log.warn('Token refresh could not reach the token endpoint:', err instanceof Error ? err.message : err);
-      return renewalUnavailable(tokens);
-    }
+    const res = await fetchWithTimeout(client.tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        ...client.params,
+        refresh_token: tokens.refresh_token!,
+        grant_type: 'refresh_token',
+      }),
+    });
     const data = (await res.json().catch(() => null)) as {
       access_token?: string;
       refresh_token?: string;
@@ -169,68 +298,28 @@ export function createOAuthTokenStore(opts: OAuthTokenStoreOptions): OAuthTokenS
       error_description?: string;
     } | null;
     if (!res.ok || !data?.access_token) {
-      const reason = data?.error_description || data?.error || res.status;
-      if (data?.error && REFUSED_GRANT_ERRORS.has(data.error)) {
-        log.error('Token refresh refused, sign in again:', reason);
-        return null;
-      }
-      log.warn('Token refresh failed for now:', reason);
-      return renewalUnavailable(tokens);
+      const reason = String(data?.error_description || data?.error || res.status);
+      throw isRefusedGrant(data) ? new TokenRenewalRefusedError(reason) : new Error(reason);
     }
-    const accessToken = data.access_token;
-    return withDataTransaction(async () => {
-      // Check AFTER acquiring the same lock as restore. A network response
-      // can arrive while restore holds the lock, before its generation bump.
-      // The persisted comparison also covers a restore in another process.
-      const current = await loadTokens();
-      if (generation !== startedAt || JSON.stringify(current) !== JSON.stringify(tokens)) {
-        log.warn('Token refresh discarded: the stored grant was replaced while it was in flight');
-        return null;
-      }
-      await saveTokens({
-        ...tokens,
-        access_token: accessToken,
-        expiry_date: Date.now() + (data.expires_in ?? 3600) * 1000,
-        refresh_token: data.refresh_token || tokens.refresh_token,
-        scope: data.scope ?? tokens.scope,
-      });
-      return accessToken;
-    });
-  }
-
-  /**
-   * A refresh that could not happen right now. We refresh a minute early, so
-   * the current token may still work; hand it out until it expires, then say
-   * the renewal is unavailable rather than that the grant is gone.
-   */
-  function renewalUnavailable(tokens: StoredOAuthTokens): string {
-    if (tokens.access_token && tokens.expiry_date && tokens.expiry_date > Date.now()) {
-      return tokens.access_token;
-    }
-    throw new TokenRenewalUnavailableError();
+    return {
+      ...tokens,
+      access_token: data.access_token,
+      expiry_date: Date.now() + (data.expires_in ?? 3600) * 1000,
+      refresh_token: data.refresh_token || tokens.refresh_token,
+      scope: data.scope ?? tokens.scope,
+    };
   }
 
   async function getAccessToken(): Promise<string | null> {
-    const startedAt = generation;
-    const tokens = await loadTokens();
-    if (!tokens) return null;
-
-    const fresh = tokens.expiry_date ? tokens.expiry_date > Date.now() + 60_000 : false;
-    if (tokens.access_token && fresh) return tokens.access_token;
-
-    if (!tokens.refresh_token) {
-      // Access-token-only grant — usable until it expires, then dead.
-      // No expiry_date recorded means we can't tell; assume still valid.
-      if (tokens.access_token && (!tokens.expiry_date || tokens.expiry_date > Date.now())) {
-        return tokens.access_token;
-      }
-      return null;
-    }
-
-    if (!refreshInFlight) {
-      refreshInFlight = refreshAccessToken(tokens, startedAt).finally(() => { refreshInFlight = null; });
-    }
-    return refreshInFlight;
+    return resolveAccessToken<StoredOAuthTokens>({
+      key: ownPath,
+      log,
+      load: loadTokens,
+      save: saveTokens,
+      generation: () => generation,
+      renewable: (tokens) => Boolean(tokens.refresh_token),
+      renew: renewGrant,
+    });
   }
 
   async function isConnected(): Promise<boolean> {

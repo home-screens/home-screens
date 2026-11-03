@@ -1,7 +1,8 @@
 import type { auth as googleAuth } from '@googleapis/calendar';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { SignInHelperUnreachableError, type GoogleClientMode, type StoredGoogleTokens } from '@/lib/google-token-store';
+import { type GoogleClientMode, type StoredGoogleTokens } from '@/lib/google-token-store';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
+import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from '@/lib/oauth-device-flow';
 import { logger } from '@/lib/logger';
 import { bumpCalendarRevision } from '@/lib/calendar-revision';
 
@@ -48,57 +49,63 @@ export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   return res.json();
 }
 
+export type GoogleDevicePoll =
+  /** `slowDown` when Google asked for polls spaced further apart. */
+  | { status: 'pending'; slowDown?: true }
+  /** `error` carries a warning the sign-in still went through with. */
+  | { status: 'success'; error?: string }
+  | { status: 'expired' | 'denied'; error: string };
+
 /** Poll Google's token endpoint for a device code grant. */
-export async function pollDeviceToken(
-  deviceCode: string,
-): Promise<{ status: 'pending' | 'success' | 'expired' | 'denied'; error?: string }> {
-  let result: Awaited<ReturnType<typeof store.requestToken>>;
+export async function pollDeviceToken(deviceCode: string): Promise<GoogleDevicePoll> {
+  // A missing credential is a setup problem and still throws; from here on
+  // the only way the request fails is Google or the sign-in helper not
+  // answering, and the code on screen is still good for its whole lifetime,
+  // so that keeps waiting rather than end a sign-in the family may be
+  // halfway through.
+  const client = await store.getClient();
+  let answer: DeviceTokenAnswer;
   try {
-    result = await store.requestToken({
+    const result = await store.requestToken({
       device_code: deviceCode,
       grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
     });
+    answer = classifyDeviceTokenAnswer(result.status, result.data);
   } catch (err) {
-    // Home Screens' sign-in helper could not be reached. The code on screen
-    // is still good for its whole lifetime, so keep waiting rather than end
-    // a sign-in the family may be halfway through.
-    if (err instanceof SignInHelperUnreachableError) return { status: 'pending' };
-    throw err;
+    log.warn('Device poll got no answer:', err instanceof Error ? err.message : err);
+    answer = { kind: 'transient' };
   }
-  const { ok, status: httpStatus, data: body, client } = result;
-  const data = body as StoredGoogleTokens & { expires_in?: number; error?: string; error_description?: string };
-  // Busy or briefly down (Google, or the helper's rate limit): same reason.
-  if (!ok && (httpStatus === 429 || httpStatus >= 500)) return { status: 'pending' };
 
-  if (ok && data.access_token) {
-    // Success — convert expires_in (relative seconds) to expiry_date (absolute ms)
-    // so getAuthenticatedClient() can proactively refresh before expiry
-    if (data.expires_in && !data.expiry_date) {
-      data.expiry_date = Date.now() + data.expires_in * 1000;
+  switch (answer.kind) {
+    case 'granted': {
+      const data = answer.tokens as StoredGoogleTokens & { expires_in?: number };
+      if (!data.access_token) return { status: 'denied', error: 'Google did not return a sign-in.' };
+      // expires_in is relative seconds; expiry_date is the absolute ms the
+      // store renews against.
+      if (data.expires_in && !data.expiry_date) {
+        data.expiry_date = Date.now() + data.expires_in * 1000;
+      }
+      await store.saveGrant(data, client);
+      bumpCalendarRevision();
+      if (!data.refresh_token) {
+        return {
+          status: 'success',
+          error: 'Google did not return a refresh token, so the calendar will stop updating when the access token expires (about an hour). To fix: revoke access at myaccount.google.com/permissions, then sign in again.',
+        };
+      }
+      return { status: 'success' };
     }
-    await store.saveGrant(data, client);
-    bumpCalendarRevision();
-    if (!data.refresh_token) {
-      return {
-        status: 'success',
-        error: 'Google did not return a refresh token — calendar will stop updating when the access token expires (~1 hour). To fix: revoke access at myaccount.google.com/permissions, then sign in again.',
-      };
-    }
-    return { status: 'success' };
+    case 'pending':
+    case 'transient':
+      return { status: 'pending' };
+    case 'slowDown':
+      return { status: 'pending', slowDown: true };
+    case 'expired':
+      return { status: 'expired', error: 'Code expired. Please try again.' };
+    case 'denied':
+      if (!answer.declined) log.error('Device sign-in ended at Google:', answer.detail);
+      return { status: 'denied', error: answer.declined || !answer.detail ? 'Access was denied.' : answer.detail };
   }
-
-  // Handle known polling states
-  if (data.error === 'authorization_pending' || data.error === 'slow_down') {
-    return { status: 'pending' };
-  }
-  if (data.error === 'expired_token') {
-    return { status: 'expired', error: 'Code expired. Please try again.' };
-  }
-  if (data.error === 'access_denied') {
-    return { status: 'denied', error: 'Access was denied.' };
-  }
-
-  return { status: 'denied', error: data.error_description || data.error || 'Unknown error' };
 }
 
 export async function loadTokens(): Promise<StoredGoogleTokens | null> {

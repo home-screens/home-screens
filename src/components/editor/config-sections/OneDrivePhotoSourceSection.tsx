@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import LabeledField from '@/components/ui/LabeledField';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
+import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
 import { Folder, FolderUp } from 'lucide-react';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { formatNumber } from '@/i18n/formatters';
@@ -23,13 +24,6 @@ interface OneDriveStatus {
   credentialsConfigured: boolean;
   connected: boolean;
   account?: string | null;
-}
-
-interface DeviceFlowStart {
-  userCode: string;
-  verificationUri: string;
-  intervalMs: number;
-  expiresInSeconds: number;
 }
 
 interface FoldersResponse {
@@ -51,19 +45,17 @@ interface TrailEntry {
 /**
  * OneDrive photo source for the two slideshow modules. Sign-in is the
  * device-code flow: the panel shows the code, the user finishes at the
- * verification link on any device, and the poll below picks up the result.
- * The folder browser walks the drive's folder tree and stores the Graph
- * item ID (stable across renames) plus a display label. Preview strip and
- * status dot mirror the Immich section so the two sources feel alike.
+ * verification link on any device, and the shared poll loop picks up the
+ * result. The folder browser walks the drive's folder tree and stores the
+ * Graph item ID (stable across renames) plus a display label. Preview strip
+ * and status dot mirror the Immich section so the two sources feel alike.
  */
 export function OneDrivePhotoSourceSection({ config, set }: Props) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const [status, setStatus] = useState<OneDriveStatus | null>(null);
   const [checking, setChecking] = useState(true);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [flow, setFlow] = useState<DeviceFlowStart | null>(null);
 
   const [browsing, setBrowsing] = useState(false);
   const [trail, setTrail] = useState<TrailEntry[]>([{ id: null, name: 'OneDrive' }]);
@@ -89,63 +81,46 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
 
   useEffect(() => { refreshStatus(); }, [refreshStatus]);
 
-  // Poll the pending device flow. State-driven so teardown runs on
-  // cancel/unmount, mirroring the Google Photos picker section's loop.
-  useEffect(() => {
-    if (!flow) return;
-    let cancelled = false;
-    let inFlight = false;
-    let settled = false;
-    let failures = 0;
-    const MAX_CONSECUTIVE_FAILURES = 5;
-
-    const finish = (timer: ReturnType<typeof setInterval>, message?: string) => {
-      settled = true;
-      clearInterval(timer);
-      setFlow(null);
-      if (message) setError(message);
-      refreshStatus();
-    };
-
-    const timer = setInterval(async () => {
-      if (inFlight || settled) return;
-      inFlight = true;
-      try {
-        const res = await editorFetch('/api/onedrive/auth');
-        if (cancelled || settled) return;
-        if (!res.ok) {
-          if (++failures >= MAX_CONSECUTIVE_FAILURES) finish(timer, t('configSections.onedriveSource.signInFailed'));
-          return;
-        }
-        failures = 0;
-        const data = await res.json();
-        // A slow_down bumps the server's requested interval; re-arming the
-        // flow state restarts this effect at the new spacing.
-        if (data.state === 'pending' && typeof data.intervalMs === 'number' && data.intervalMs > flow.intervalMs) {
-          setFlow({ ...flow, intervalMs: data.intervalMs });
-          return;
-        }
-        if (data.state === 'connected') finish(timer);
-        else if (data.state === 'expired') finish(timer, t('configSections.onedriveSource.signInExpired'));
-        else if (data.state === 'declined') finish(timer, t('configSections.onedriveSource.signInDeclined'));
-        else if (data.state === 'failed') finish(timer, t('configSections.onedriveSource.signInFailed'));
-        // 'idle' means no pending flow is left (hub restarted, another tab
-        // replaced it, or a disconnect raced us) — the shown code is dead.
-        else if (data.state === 'idle') finish(timer, t('configSections.onedriveSource.signInExpired'));
-        // 'pending' keeps waiting.
-      } catch {
-        if (!cancelled && !settled && ++failures >= MAX_CONSECUTIVE_FAILURES) {
-          finish(timer, t('configSections.onedriveSource.signInFailed'));
-        }
-      } finally {
-        inFlight = false;
+  // The server's `error` sentences are English, for curl. Everything shown
+  // here comes from the dictionary, keyed off `code` and `state`.
+  const signIn = useDeviceCodeSignIn({
+    start: async () => {
+      const res = await editorFetch('/api/onedrive/auth', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(t(data?.code === 'credentials_missing'
+          ? 'configSections.onedriveSource.credentialsNeeded'
+          : 'configSections.onedriveSource.signInFailed'));
       }
-    }, Math.max(flow.intervalMs || 5000, 2000));
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [flow, refreshStatus, t]);
+      return {
+        userCode: data.userCode,
+        verificationUrl: data.verificationUri,
+        intervalMs: data.intervalMs,
+        expiresInMs: data.expiresInSeconds * 1000,
+      };
+    },
+    poll: async (): Promise<DeviceCodePoll> => {
+      const res = await editorFetch('/api/onedrive/auth');
+      // The hub answers every poll with 200 and a state; anything else is
+      // the hub itself having trouble, which the loop treats as a miss.
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      switch (data.state) {
+        case 'pending': return { status: 'pending', slowDown: data.slowDown === true };
+        case 'connected': return { status: 'connected' };
+        case 'declined': return { status: 'ended', message: t('configSections.onedriveSource.signInDeclined') };
+        case 'failed': return { status: 'ended', message: t('configSections.onedriveSource.signInFailed') };
+        // 'idle' means no pending flow is left (hub restarted, another tab
+        // replaced it, or a disconnect raced us): the shown code is dead.
+        default: return { status: 'ended', message: t('configSections.onedriveSource.signInExpired') };
+      }
+    },
+    onConnected: refreshStatus,
+    words: {
+      codeExpired: t('configSections.onedriveSource.signInExpired'),
+      hubUnreachable: t('deviceSignIn.hubUnreachable'),
+    },
+  });
 
   // Folder browser data — refetches as the trail descends (manual fetch so
   // a 404 folder can be told apart from still-loading).
@@ -182,28 +157,6 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
     .slice(0, PREVIEW_COUNT)
     .map((item) => item.url.replace('size=preview', 'size=thumbnail'));
 
-  const signIn = async () => {
-    setError(null);
-    setBusy(true);
-    try {
-      const res = await editorFetch('/api/onedrive/auth', { method: 'POST' });
-      const data = await res.json();
-      // The server's `error` sentence is English, for curl. Everything shown
-      // here comes from the dictionary, keyed off `code`.
-      if (!res.ok) {
-        setError(t(data?.code === 'credentials_missing'
-          ? 'configSections.onedriveSource.credentialsNeeded'
-          : 'configSections.onedriveSource.signInFailed'));
-        return;
-      }
-      setFlow(data);
-    } catch {
-      setError(t('configSections.onedriveSource.signInFailed'));
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const disconnect = async () => {
     setError(null);
     // The folder is forgotten only once the hub confirms the sign-in is gone;
@@ -233,18 +186,18 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
   }
 
   if (!status?.connected) {
-    if (flow) {
+    if (signIn.code) {
       return (
         <div className="space-y-1.5 p-2 rounded bg-hs-card border border-hs-border-strong">
           <p className="text-[11px] text-hs-text-muted">{t('configSections.onedriveSource.waiting')}</p>
-          <p className="text-lg font-semibold text-hs-text-primary tracking-widest">{flow.userCode}</p>
+          <p className="text-lg font-semibold text-hs-text-primary tracking-widest">{signIn.code.userCode}</p>
           <p className="text-[11px] text-hs-text-muted">
             {t('configSections.onedriveSource.enterCode')}{' '}
-            <a href={flow.verificationUri} target="_blank" rel="noreferrer" className="text-hs-accent hover:text-hs-accent-hover">
-              {flow.verificationUri.replace(/^https?:\/\//, '')}
+            <a href={signIn.code.verificationUrl} target="_blank" rel="noreferrer" className="text-hs-accent hover:text-hs-accent-hover">
+              {signIn.code.verificationUrl.replace(/^https?:\/\//, '')}
             </a>
           </p>
-          <button onClick={() => setFlow(null)} className="text-[10px] text-hs-text-faint hover:text-hs-text-muted">
+          <button onClick={signIn.cancel} className="text-[10px] text-hs-text-faint hover:text-hs-text-muted">
             {t('configSections.onedriveSource.cancel')}
           </button>
         </div>
@@ -252,10 +205,10 @@ export function OneDrivePhotoSourceSection({ config, set }: Props) {
     }
     return (
       <div className="space-y-1.5">
-        <Button size="sm" variant="primary" onClick={signIn} disabled={busy}>
+        <Button size="sm" variant="primary" onClick={signIn.start} disabled={signIn.busy}>
           {t('configSections.onedriveSource.signIn')}
         </Button>
-        {error && <p className="text-[11px] text-hs-warning leading-relaxed">{error}</p>}
+        {signIn.error && <p className="text-[11px] text-hs-warning leading-relaxed">{signIn.error}</p>}
       </div>
     );
   }

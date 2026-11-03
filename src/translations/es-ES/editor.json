@@ -2230,6 +2230,7 @@
       "redirectUriLabel": "Añade esta URL de redirección al configurar la conexión:",
       "deviceCodeIntro": "Abre este enlace e introduce el código:",
       "devicePolling": "Esperando tu aprobación…",
+      "cancelButton": "Cancelar",
       "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
       "popupBlocked": "Tu navegador bloqueó la ventana de inicio de sesión. Permite las ventanas emergentes en este sitio e inténtalo de nuevo.",
       "garmin": {
@@ -5901,5 +5902,9 @@
     "allOf": "todas de {n}",
     "anyOf": "cualquiera de {n}",
     "noneOf": "ninguna de {n}"
+  },
+  "deviceSignIn": {
+    "hubUnreachable": "No se pudo contactar con Home Screens. Comprueba la conexión e inténtalo de nuevo.",
+    "codeExpired": "Ese código caducó. Vuelve a iniciar sesión."
   }
 }

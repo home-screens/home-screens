@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
 import Button from '@/components/ui/Button';
 import StatusDot from '@/components/ui/StatusDot';
 import type { PluginAuth } from '@/types/plugins';
@@ -9,8 +10,6 @@ import { useTranslate } from '@/i18n';
 import { logger } from '@/lib/logger';
 
 const log = logger('plugin-auth-ui');
-
-const DEVICE_POLL_MS = 4000;
 
 interface AuthStatus {
   connected: boolean;
@@ -44,9 +43,6 @@ export default function PluginAuthSection({
   const [mfaRequired, setMfaRequired] = useState(false);
   const [mfaCode, setMfaCode] = useState('');
 
-  // Device flow display
-  const [deviceCode, setDeviceCode] = useState<{ userCode: string; verificationUrl: string } | null>(null);
-  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Popup (authorization_code) bookkeeping, ref-tracked so unmount can tear
   // both down — a function-local interval/listener would leak past unmount.
   const popupCloseCheck = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -76,44 +72,47 @@ export default function PluginAuthSection({
 
   useEffect(() => {
     fetchStatus();
-    return () => {
-      if (pollTimer.current) clearTimeout(pollTimer.current);
-      cleanupPopupWatch();
-    };
+    return cleanupPopupWatch;
   }, [fetchStatus, cleanupPopupWatch]);
 
-  function resetTransient() {
+  // --- OAuth2 device_code ---
+  // The provider's own wording for a sign-in that ended comes through the
+  // hub's `error`; the words for the hub itself going quiet are ours.
+  const deviceSignIn = useDeviceCodeSignIn({
+    start: async () => {
+      const res = await editorFetch(`${base}/start`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? t('settings.pluginAuth.errorGeneric'));
+      return {
+        userCode: data.userCode,
+        verificationUrl: data.verificationUrl,
+        intervalMs: (data.interval ?? 5) * 1000,
+        expiresInMs: (data.expiresIn ?? 600) * 1000,
+      };
+    },
+    poll: async (): Promise<DeviceCodePoll> => {
+      const res = await editorFetch(`${base}/poll`, { method: 'PUT' });
+      const data = await res.json();
+      if (data.status === 'connected') return { status: 'connected' };
+      if (data.status === 'pending') return { status: 'pending', slowDown: data.slowDown === true };
+      return { status: 'ended', message: data.error ?? t('settings.pluginAuth.errorGeneric') };
+    },
+    onConnected: fetchStatus,
+    words: {
+      codeExpired: t('deviceSignIn.codeExpired'),
+      hubUnreachable: t('deviceSignIn.hubUnreachable'),
+    },
+  });
+
+  const cancelDeviceSignIn = deviceSignIn.cancel;
+  const clearDeviceSignInError = deviceSignIn.clearError;
+  const resetTransient = useCallback(() => {
     setError('');
     setMfaRequired(false);
     setMfaCode('');
-    setDeviceCode(null);
-    if (pollTimer.current) clearTimeout(pollTimer.current);
-  }
-
-  // --- Device flow polling ---
-  const pollDevice = useCallback(async () => {
-    try {
-      const res = await editorFetch(`${base}/poll`, { method: 'PUT' });
-      const data = await res.json();
-      if (data.status === 'connected') {
-        setDeviceCode(null);
-        setBusy(false);
-        await fetchStatus();
-        return;
-      }
-      if (data.status === 'pending') {
-        pollTimer.current = setTimeout(pollDevice, DEVICE_POLL_MS);
-        return;
-      }
-      // expired / denied
-      setError(data.error ?? t('settings.pluginAuth.errorGeneric'));
-      setDeviceCode(null);
-      setBusy(false);
-    } catch (err) {
-      log.debug('Device poll failed:', err);
-      setBusy(false);
-    }
-  }, [base, fetchStatus, t]);
+    cancelDeviceSignIn();
+    clearDeviceSignInError();
+  }, [cancelDeviceSignIn, clearDeviceSignInError]);
 
   // --- OAuth2 authorization_code popup ---
   const connectAuthCode = useCallback(async () => {
@@ -166,27 +165,13 @@ export default function PluginAuthSection({
       log.debug('Auth-code connect failed:', err);
       setBusy(false);
     }
-  }, [base, fetchStatus, t, cleanupPopupWatch]);
+  }, [base, fetchStatus, t, cleanupPopupWatch, resetTransient]);
 
-  // --- OAuth2 device_code ---
+  const startDeviceSignIn = deviceSignIn.start;
   const connectDevice = useCallback(async () => {
     resetTransient();
-    setBusy(true);
-    try {
-      const res = await editorFetch(`${base}/start`, { method: 'POST' });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? t('settings.pluginAuth.errorGeneric'));
-        setBusy(false);
-        return;
-      }
-      setDeviceCode({ userCode: data.userCode, verificationUrl: data.verificationUrl });
-      pollTimer.current = setTimeout(pollDevice, DEVICE_POLL_MS);
-    } catch (err) {
-      log.debug('Device connect failed:', err);
-      setBusy(false);
-    }
-  }, [base, pollDevice, t]);
+    await startDeviceSignIn();
+  }, [resetTransient, startDeviceSignIn]);
 
   // --- OAuth2 client_credentials ---
   const connectClientCredentials = useCallback(async () => {
@@ -202,7 +187,7 @@ export default function PluginAuthSection({
     } finally {
       setBusy(false);
     }
-  }, [base, fetchStatus, t]);
+  }, [base, fetchStatus, t, resetTransient]);
 
   // --- Garmin sign-in ---
   const signInGarmin = useCallback(async () => {
@@ -277,7 +262,7 @@ export default function PluginAuthSection({
     } finally {
       setBusy(false);
     }
-  }, [base, fetchStatus]);
+  }, [base, fetchStatus, resetTransient]);
 
   // Trigger connect from a plugin's own embedded button (__HS_SDK__.startAuth).
   const startConnect = useCallback(() => {
@@ -370,23 +355,28 @@ export default function PluginAuthSection({
             </>
           )}
         </div>
-      ) : auth.flow === 'device_code' && deviceCode ? (
+      ) : auth.flow === 'device_code' && deviceSignIn.code ? (
         <div className="space-y-2">
           <p className="text-xs text-hs-text-muted">
             {t('settings.pluginAuth.deviceCodeIntro')}
           </p>
           <a
-            href={deviceCode.verificationUrl}
+            href={deviceSignIn.code.verificationUrl}
             target="_blank"
             rel="noreferrer"
             className="block text-xs text-hs-accent underline break-all"
           >
-            {deviceCode.verificationUrl}
+            {deviceSignIn.code.verificationUrl}
           </a>
           <div className="text-center font-mono text-lg tracking-widest text-hs-text-body bg-hs-card border border-hs-border-strong rounded-md py-2">
-            {deviceCode.userCode}
+            {deviceSignIn.code.userCode}
           </div>
-          <p className="text-xs text-hs-text-faint">{t('settings.pluginAuth.devicePolling')}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-hs-text-faint">{t('settings.pluginAuth.devicePolling')}</p>
+            <Button variant="ghost" size="sm" onClick={deviceSignIn.cancel}>
+              {t('settings.pluginAuth.cancelButton')}
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -408,13 +398,13 @@ export default function PluginAuthSection({
                 ? connectDevice
                 : connectClientCredentials
             }
-            disabled={busy}
+            disabled={busy || deviceSignIn.busy}
           >
-            {busy ? t('settings.pluginAuth.connecting') : t('settings.pluginAuth.connectButton')}
+            {busy || deviceSignIn.busy ? t('settings.pluginAuth.connecting') : t('settings.pluginAuth.connectButton')}
           </Button>
         </div>
       )}
-      {error && <p className="text-xs text-hs-danger">{error}</p>}
+      {(error || deviceSignIn.error) && <p className="text-xs text-hs-danger">{error || deviceSignIn.error}</p>}
     </div>
   );
 }

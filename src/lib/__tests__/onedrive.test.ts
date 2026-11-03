@@ -110,13 +110,39 @@ describe('device flow', () => {
     expect(result.message).toContain('app not found');
   });
 
-  it('backs off and reports the longer interval on slow_down', async () => {
+  it('asks the editor to space its polls out on slow_down', async () => {
     await seedPendingFlow();
     mockFetch.mockResolvedValue(errTokenResponse({ error: 'slow_down' }));
 
     const result = await pollDeviceFlow();
 
-    expect(result).toEqual({ state: 'pending', intervalMs: 10_000 });
+    expect(result).toEqual({ state: 'pending', slowDown: true });
+  });
+
+  it.each([
+    ['Microsoft is busy', () => new Response(JSON.stringify({ error: 'rate_limited' }), { status: 429 })],
+    ['Microsoft is briefly down', () => new Response(JSON.stringify({ error: 'temporarily_unavailable' }), { status: 503 })],
+    ['a proxy answers with an error page', () => new Response('<html>Bad gateway</html>', { status: 502 })],
+    ['Microsoft cannot be reached', () => { throw new TypeError('fetch failed'); }],
+  ])('keeps the flow alive when %s', async (_, answer) => {
+    vi.useFakeTimers();
+    try {
+      await seedPendingFlow();
+      mockFetch.mockImplementation(async () => answer());
+
+      const poll = pollDeviceFlow();
+      await vi.advanceTimersByTimeAsync(60_000); // fetchWithTimeout's own retries
+      expect(await poll).toEqual({ state: 'pending' });
+
+      // The code on screen is still good: the next poll asks Microsoft again.
+      mockFetch.mockReset();
+      mockFetch.mockResolvedValue(okTokenResponse());
+      const next = pollDeviceFlow();
+      await vi.advanceTimersByTimeAsync(60_000);
+      expect((await next).state).toBe('connected');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('clears the pending flow on disconnect so a late sign-in cannot resurrect the grant', async () => {

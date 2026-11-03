@@ -22,6 +22,7 @@
 
 import crypto from 'crypto';
 import { fetchWithTimeout } from '@/lib/api-utils';
+import { TokenRenewalRefusedError } from '@/lib/oauth-token-store';
 import { logger } from '@/lib/logger';
 import type { GarminOauth1Credential, PluginTokens } from '@/lib/plugin-auth-types';
 
@@ -346,9 +347,14 @@ async function exchangeForBearer(
   const accessToken = data.access_token;
   if (!res.ok || typeof accessToken !== 'string' || !accessToken) {
     log.error('Garmin OAuth2 exchange failed:', res.status);
-    throw new Error(opts.login
+    const message = opts.login
       ? 'Garmin sign-in did not go through. Please try again in a few minutes.'
-      : 'Garmin connection expired. Reconnect the account in the editor.');
+      : 'Garmin connection expired. Reconnect the account in the editor.';
+    // Garmin turning the credential away (a 4xx) is a refusal no retry will
+    // change; Garmin being down or answering without a token is an outage,
+    // and the renewal says so instead of asking the family to reconnect.
+    if (res.status >= 400 && res.status < 500) throw new TokenRenewalRefusedError(message);
+    throw new Error(message);
   }
   const expiresIn = typeof data.expires_in === 'number' ? data.expires_in : 3600;
   return {

@@ -2,6 +2,7 @@ import { getSecret } from './secrets';
 import { fetchWithTimeout, createTTLCache, type FetchRetryOptions } from './api-utils';
 import { shuffleArray } from './shuffle';
 import { createOAuthTokenStore } from './oauth-token-store';
+import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from './oauth-device-flow';
 import { ONEDRIVE_MAX_SAMPLE } from './onedrive-shared';
 import { logger } from './logger';
 import type { MediaListItem } from '@/types/config';
@@ -97,7 +98,6 @@ export function clearOneDriveCaches(): void {
 interface PendingDeviceFlow {
   deviceCode: string;
   clientId: string;
-  intervalMs: number;
   expiresAt: number;
 }
 
@@ -133,13 +133,12 @@ export async function startDeviceFlow(): Promise<DeviceFlowStart> {
   pendingDeviceFlow = {
     deviceCode: data.device_code,
     clientId,
-    intervalMs: Math.max((data.interval ?? 5) * 1000, 2000),
     expiresAt: Date.now() + (data.expires_in ?? 900) * 1000,
   };
   return {
     userCode: data.user_code,
     verificationUri: data.verification_uri || 'https://microsoft.com/link',
-    intervalMs: pendingDeviceFlow.intervalMs,
+    intervalMs: Math.max((data.interval ?? 5) * 1000, 2000),
     expiresInSeconds: data.expires_in ?? 900,
   };
 }
@@ -149,11 +148,11 @@ export type DevicePollState = 'idle' | 'pending' | 'connected' | 'expired' | 'de
 export interface DevicePollResult {
   state: DevicePollState;
   message?: string;
-  /** Re-spaced poll interval (present on pending, after a slow_down nudge). */
-  intervalMs?: number;
+  /** On pending: Microsoft asked for polls spaced further apart. */
+  slowDown?: true;
 }
 
-/** One poll attempt of the pending flow. Callers space calls at flow.intervalMs. */
+/** One poll attempt of the pending flow. Callers space calls at the start's intervalMs. */
 export async function pollDeviceFlow(): Promise<DevicePollResult> {
   const pending = pendingDeviceFlow;
   if (!pending) return { state: 'idle' };
@@ -162,42 +161,59 @@ export async function pollDeviceFlow(): Promise<DevicePollResult> {
     return { state: 'expired' };
   }
 
-  const res = await fetchWithTimeout(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-      client_id: pending.clientId,
-      device_code: pending.deviceCode,
-    }),
-    timeout: 15_000,
-  });
-  const data = await res.json();
-
-  if (res.ok && data.access_token) {
-    pendingDeviceFlow = null;
-    await tokenStore.saveTokens({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token ?? null,
-      expiry_date: Date.now() + (data.expires_in ?? 3600) * 1000,
-      token_type: data.token_type ?? null,
-      scope: data.scope,
+  let answer: DeviceTokenAnswer;
+  try {
+    const res = await fetchWithTimeout(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+        client_id: pending.clientId,
+        device_code: pending.deviceCode,
+      }),
+      timeout: 15_000,
     });
-    return { state: 'connected' };
+    answer = classifyDeviceTokenAnswer(res.status, await res.json().catch(() => null));
+  } catch (err) {
+    // Microsoft did not answer at all. The code on screen is still good for
+    // its whole lifetime, so keep waiting rather than end a sign-in the
+    // family may be halfway through.
+    log.warn('Device poll got no answer:', err instanceof Error ? err.message : err);
+    answer = { kind: 'transient' };
   }
 
-  const error: string = data.error || '';
-  if (error === 'authorization_pending' || error === 'slow_down') {
-    // RFC 8628: back off 5s on slow_down. The route passes intervalMs
-    // through so the editor can re-space its polling.
-    if (error === 'slow_down') pending.intervalMs += 5000;
-    return { state: 'pending', intervalMs: pending.intervalMs };
+  switch (answer.kind) {
+    case 'granted': {
+      const data = answer.tokens;
+      if (typeof data.access_token !== 'string' || !data.access_token) {
+        pendingDeviceFlow = null;
+        log.error('Device flow answered without a token');
+        return { state: 'failed', message: 'Microsoft did not return a sign-in' };
+      }
+      pendingDeviceFlow = null;
+      await tokenStore.saveTokens({
+        access_token: data.access_token,
+        refresh_token: typeof data.refresh_token === 'string' ? data.refresh_token : null,
+        expiry_date: Date.now() + (typeof data.expires_in === 'number' ? data.expires_in : 3600) * 1000,
+        token_type: typeof data.token_type === 'string' ? data.token_type : null,
+        scope: typeof data.scope === 'string' ? data.scope : undefined,
+      });
+      return { state: 'connected' };
+    }
+    case 'pending':
+    case 'transient':
+      return { state: 'pending' };
+    case 'slowDown':
+      return { state: 'pending', slowDown: true };
+    case 'expired':
+      pendingDeviceFlow = null;
+      return { state: 'expired' };
+    case 'denied':
+      pendingDeviceFlow = null;
+      if (answer.declined) return { state: 'declined' };
+      log.error('Device flow failed:', answer.detail);
+      return { state: 'failed', message: answer.detail || 'Sign-in did not work' };
   }
-  pendingDeviceFlow = null;
-  if (error === 'expired_token') return { state: 'expired' };
-  if (error === 'authorization_declined') return { state: 'declined' };
-  log.error('Device flow failed:', data.error_description || error || res.status);
-  return { state: 'failed', message: data.error_description || error || 'Sign-in did not work' };
 }
 
 // ── Graph calls ───────────────────────────────────────────────────────

@@ -790,6 +790,14 @@ On proxy requests to a `tokenTargetDomains` domain, the host injects the stored 
 
 Plugins should surface this as a "reconnect" prompt rather than a generic fetch error.
 
+When the stored sign-in is intact but the provider could not renew it right now (the provider is down, busy or unreachable), the proxy answers HTTP 503 instead:
+
+```json
+{ "error": "upstream_unavailable", "message": "Couldn't renew the sign-in right now. Try again in a few minutes." }
+```
+
+Treat that like any other outage: show "not updating" and try again on the next poll. Reconnecting would not help.
+
 ### Auth API Endpoints
 
 | Endpoint | Method | Description |

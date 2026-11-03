@@ -2230,6 +2230,7 @@
       "redirectUriLabel": "Voeg deze omleidings-URL toe bij het instellen van de verbinding:",
       "deviceCodeIntro": "Open deze link en voer de code in:",
       "devicePolling": "Wachten op je goedkeuring…",
+      "cancelButton": "Annuleren",
       "errorGeneric": "Er ging iets mis. Probeer het opnieuw.",
       "popupBlocked": "Je browser heeft het aanmeldvenster geblokkeerd. Sta pop-ups voor deze site toe en probeer het opnieuw.",
       "garmin": {
@@ -5901,5 +5902,9 @@
     "allOf": "alle van {n}",
     "anyOf": "een van {n}",
     "noneOf": "geen van {n}"
+  },
+  "deviceSignIn": {
+    "hubUnreachable": "Kon Home Screens niet bereiken. Controleer de verbinding en probeer het opnieuw.",
+    "codeExpired": "Die code is verlopen. Start opnieuw met inloggen."
   }
 }

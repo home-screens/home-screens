@@ -164,6 +164,58 @@ describe('plugin proxy — auth token injection', () => {
     expect(mocks.followRedirects).not.toHaveBeenCalled();
   });
 
+  it('returns 401 auth_expired when the provider refuses to renew the grant', async () => {
+    await seedPlugin('o', { auth: OAUTH_HEADER_AUTH, allowedDomains: ['api.example.com'] });
+    await fs.mkdir(path.join(tmpDir, 'data', 'plugin-secrets'), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, 'data', 'plugin-secrets', 'o.json'), JSON.stringify({ client_id: 'cid' }));
+    const { savePluginTokens } = await import('@/lib/plugin-auth');
+    await savePluginTokens('o', { access_token: 'stale', refresh_token: 'revoked', token_type: 'Bearer', expiry_date: Date.now() - 1000 });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: 'invalid_grant' }), { status: 400, headers: { 'content-type': 'application/json' } }),
+    ));
+
+    const { POST } = await import('../route');
+    const res = await POST(proxyReq('o', { url: 'https://api.example.com/data' }), ctx('o'));
+    expect(res.status).toBe(401);
+    expect(await res.json()).toMatchObject({ error: 'auth_expired' });
+    expect(mocks.followRedirects).not.toHaveBeenCalled();
+  });
+
+  it('answers a provider outage at refresh time as a retryable 503, never as a reconnect prompt', async () => {
+    await seedPlugin('o', { auth: OAUTH_HEADER_AUTH, allowedDomains: ['api.example.com'] });
+    await fs.mkdir(path.join(tmpDir, 'data', 'plugin-secrets'), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, 'data', 'plugin-secrets', 'o.json'), JSON.stringify({ client_id: 'cid' }));
+    const { savePluginTokens, loadPluginTokens } = await import('@/lib/plugin-auth');
+    const grant = { access_token: 'stale', refresh_token: 'rt-1', token_type: 'Bearer', expiry_date: Date.now() - 1000 };
+    await savePluginTokens('o', grant);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ error: 'temporarily_unavailable' }), { status: 503, headers: { 'content-type': 'application/json' } }),
+    ));
+
+    const { POST } = await import('../route');
+    const res = await POST(proxyReq('o', { url: 'https://api.example.com/data' }), ctx('o'));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toMatchObject({ error: 'upstream_unavailable' });
+    expect(mocks.followRedirects).not.toHaveBeenCalled();
+    // The grant is intact for the next poll.
+    expect(await loadPluginTokens('o')).toEqual(grant);
+  });
+
+  it('still sends the current token when an early renewal hits an outage', async () => {
+    await seedPlugin('o', { auth: OAUTH_HEADER_AUTH, allowedDomains: ['api.example.com'] });
+    await fs.mkdir(path.join(tmpDir, 'data', 'plugin-secrets'), { recursive: true });
+    await fs.writeFile(path.join(tmpDir, 'data', 'plugin-secrets', 'o.json'), JSON.stringify({ client_id: 'cid' }));
+    const { savePluginTokens } = await import('@/lib/plugin-auth');
+    // Within the renew-early minute, but not expired.
+    await savePluginTokens('o', { access_token: 'still-good', refresh_token: 'rt-1', token_type: 'Bearer', expiry_date: Date.now() + 30_000 });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('<html>Bad gateway</html>', { status: 502 })));
+
+    const { POST } = await import('../route');
+    const res = await POST(proxyReq('o', { url: 'https://api.example.com/data' }), ctx('o'));
+    expect(res.status).toBe(200);
+    expect(upstreamCall().headers.Authorization).toBe('Bearer still-good');
+  });
+
   it('force-refreshes once and retries on a single upstream 401', async () => {
     await seedPlugin('o', { auth: OAUTH_HEADER_AUTH, allowedDomains: ['api.example.com'] });
     await fs.mkdir(path.join(tmpDir, 'data', 'plugin-secrets'), { recursive: true });

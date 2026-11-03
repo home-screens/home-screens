@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
 
 interface UseGoogleDeviceFlowOptions {
   onSuccess: () => Promise<void>;
@@ -20,113 +21,74 @@ interface UseGoogleDeviceFlowReturn {
   clearError: () => void;
 }
 
+/**
+ * Google Calendar's device-code sign-in: the shared poll loop against the
+ * calendar's own endpoint, plus the two things only Google has, a masked
+ * client id to check when starting fails and a warning a sign-in can
+ * succeed with (no refresh token).
+ */
 export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): UseGoogleDeviceFlowReturn {
   const t = useTranslate('core');
-  const [userCode, setUserCode] = useState<string | null>(null);
-  const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
-  const [deviceFlowError, setDeviceFlowError] = useState<string | null>(null);
+  const te = useTranslate('editor');
   const [clientIdHint, setClientIdHint] = useState<string | null>(null);
-  const [deviceFlowPolling, setDeviceFlowPolling] = useState(false);
-  const pollingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cancelledRef = useRef(false);
+  const [warning, setWarning] = useState<string | null>(null);
+  // The device code is the hub's handle on the flow, so every poll carries it.
+  const deviceCodeRef = useRef<string | null>(null);
 
-  // Clean up polling on unmount
-  useEffect(() => {
-    return () => {
-      cancelledRef.current = true;
-      if (pollingTimerRef.current) clearTimeout(pollingTimerRef.current);
-    };
-  }, []);
-
-  const pollForToken = useCallback((code: string, interval: number, expiresIn: number) => {
-    const deadline = Date.now() + expiresIn * 1000;
-    const pollInterval = Math.max(interval, 5) * 1000;
-    cancelledRef.current = false;
-
-    const scheduleNext = (fn: () => void) => {
-      pollingTimerRef.current = setTimeout(fn, pollInterval);
-    };
-
-    const poll = async () => {
-      if (cancelledRef.current) return;
-      if (Date.now() > deadline) {
-        setDeviceFlowPolling(false);
-        setDeviceFlowError(t('errors.codeExpired'));
-        setUserCode(null);
-        return;
-      }
-      try {
-        const res = await editorFetch('/api/auth/google/device', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ device_code: code }),
-        });
-        if (cancelledRef.current) return;
-        const data = await res.json();
-        if (data.status === 'success') {
-          setDeviceFlowPolling(false);
-          setUserCode(null);
-          if (data.error) setDeviceFlowError(data.error);
-          await onSuccess();
-          return;
-        }
-        if (data.status === 'pending') {
-          scheduleNext(poll);
-          return;
-        }
-        setDeviceFlowPolling(false);
-        setDeviceFlowError(data.error || t('errors.authorizationFailed'));
-        setUserCode(null);
-      } catch {
-        if (!cancelledRef.current) scheduleNext(poll);
-      }
-    };
-
-    scheduleNext(poll);
-  }, [onSuccess, t]);
-
-  const startDeviceFlow = useCallback(async () => {
-    cancelledRef.current = true;
-    if (pollingTimerRef.current) clearTimeout(pollingTimerRef.current);
-    setDeviceFlowError(null);
-    setClientIdHint(null);
-    setUserCode(null);
-    try {
+  const signIn = useDeviceCodeSignIn({
+    start: async () => {
+      setClientIdHint(null);
+      setWarning(null);
       const res = await editorFetch('/api/auth/google/device', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
         if (data.clientIdHint) setClientIdHint(data.clientIdHint);
         throw new Error(data.error || t('errors.deviceFlowFailed'));
       }
-      setUserCode(data.user_code);
-      setVerificationUrl(data.verification_url);
-      setDeviceFlowPolling(true);
-      pollForToken(data.device_code, data.interval || 5, data.expires_in || 1800);
-    } catch (err) {
-      setDeviceFlowError(err instanceof Error ? err.message : t('errors.startSignInFailed'));
-    }
-  }, [pollForToken, t]);
+      deviceCodeRef.current = data.device_code;
+      return {
+        userCode: data.user_code,
+        verificationUrl: data.verification_url,
+        intervalMs: (data.interval || 5) * 1000,
+        expiresInMs: (data.expires_in || 1800) * 1000,
+      };
+    },
+    poll: async (): Promise<DeviceCodePoll> => {
+      const res = await editorFetch('/api/auth/google/device', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_code: deviceCodeRef.current }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        if (data.error) setWarning(data.error);
+        return { status: 'connected' };
+      }
+      if (data.status === 'pending') return { status: 'pending', slowDown: data.slowDown === true };
+      return { status: 'ended', message: data.error || t('errors.authorizationFailed') };
+    },
+    onConnected: onSuccess,
+    words: {
+      codeExpired: t('errors.codeExpired'),
+      hubUnreachable: te('deviceSignIn.hubUnreachable'),
+    },
+  });
 
-  const cancel = useCallback(() => {
-    cancelledRef.current = true;
-    if (pollingTimerRef.current) clearTimeout(pollingTimerRef.current);
-    setDeviceFlowPolling(false);
-    setUserCode(null);
-  }, []);
-
+  const clearSignInError = signIn.clearError;
   const clearError = useCallback(() => {
-    setDeviceFlowError(null);
+    clearSignInError();
+    setWarning(null);
     setClientIdHint(null);
-  }, []);
+  }, [clearSignInError]);
 
   return {
-    userCode,
-    verificationUrl,
-    deviceFlowError,
+    userCode: signIn.code?.userCode ?? null,
+    verificationUrl: signIn.code?.verificationUrl ?? null,
+    deviceFlowError: signIn.error ?? warning,
     clientIdHint,
-    deviceFlowPolling,
-    startDeviceFlow,
-    cancel,
+    deviceFlowPolling: signIn.busy,
+    startDeviceFlow: signIn.start,
+    cancel: signIn.cancel,
     clearError,
   };
 }

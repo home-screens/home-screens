@@ -19,7 +19,16 @@ vi.mock('@/lib/secrets', () => ({
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-import { createOAuthTokenStore, TokenRenewalUnavailableError, type OAuthTokenStoreOptions } from '@/lib/oauth-token-store';
+import {
+  createOAuthTokenStore,
+  resolveAccessToken,
+  TokenRenewalRefusedError,
+  TokenRenewalUnavailableError,
+  type AccessTokenResolution,
+  type OAuthTokenStoreOptions,
+  type StoredOAuthTokens,
+} from '@/lib/oauth-token-store';
+import { logger } from '@/lib/logger';
 
 function tokenResponse(extras: Record<string, unknown> = {}) {
   return {
@@ -253,5 +262,108 @@ describe('createOAuthTokenStore: grant replaced during a refresh', () => {
 
     expect(await pending).toBe('at-new');
     expect(JSON.parse(tokensContent!).access_token).toBe('at-new');
+  });
+});
+
+describe('resolveAccessToken: the renewal rule the host store and the plugin engine share', () => {
+  /** An in-memory grant with every knob of the rule under the test's control. */
+  function grant(tokens: StoredOAuthTokens | null, overrides: Partial<AccessTokenResolution<StoredOAuthTokens>> = {}) {
+    let stored = tokens;
+    let generation = 0;
+    const saves: StoredOAuthTokens[] = [];
+    const renew = vi.fn(async (current: StoredOAuthTokens) => ({ ...current, access_token: 'renewed', expiry_date: Date.now() + 3600_000 }));
+    const resolution: AccessTokenResolution<StoredOAuthTokens> = {
+      key: `test-${Math.random()}`,
+      log: logger('test'),
+      load: async () => stored,
+      save: async (next) => { generation += 1; stored = next; saves.push(next); },
+      generation: () => generation,
+      renewable: (current) => Boolean(current.refresh_token),
+      renew,
+      ...overrides,
+    };
+    return {
+      resolution,
+      renew,
+      saves,
+      replace: (next: StoredOAuthTokens) => { generation += 1; stored = next; },
+    };
+  }
+
+  it('hands out a fresh token without renewing', async () => {
+    const g = grant({ access_token: 'fresh', refresh_token: 'rt', expiry_date: Date.now() + 3600_000 });
+    expect(await resolveAccessToken(g.resolution)).toBe('fresh');
+    expect(g.renew).not.toHaveBeenCalled();
+  });
+
+  it('renews within the last minute and saves what came back', async () => {
+    const g = grant({ access_token: 'old', refresh_token: 'rt', expiry_date: Date.now() + 30_000 });
+    const onRenewed = vi.fn();
+    expect(await resolveAccessToken({ ...g.resolution, onRenewed })).toBe('renewed');
+    expect(g.saves).toHaveLength(1);
+    expect(onRenewed).toHaveBeenCalledOnce();
+  });
+
+  it('renews a fresh token on force, for the one retry after an upstream 401', async () => {
+    const g = grant({ access_token: 'fresh', refresh_token: 'rt', expiry_date: Date.now() + 3600_000 });
+    expect(await resolveAccessToken({ ...g.resolution, force: true })).toBe('renewed');
+  });
+
+  it('answers null for a refused renewal and leaves the grant alone', async () => {
+    const g = grant({ access_token: 'old', refresh_token: 'rt', expiry_date: Date.now() - 1000 });
+    g.renew.mockRejectedValue(new TokenRenewalRefusedError('invalid_grant'));
+    expect(await resolveAccessToken(g.resolution)).toBeNull();
+    expect(g.saves).toHaveLength(0);
+  });
+
+  it('on an outage keeps handing out the current token while it lasts, then says the renewal is unavailable', async () => {
+    const early = grant({ access_token: 'still-good', refresh_token: 'rt', expiry_date: Date.now() + 30_000 });
+    early.renew.mockRejectedValue(new TypeError('fetch failed'));
+    expect(await resolveAccessToken(early.resolution)).toBe('still-good');
+
+    const expired = grant({ access_token: 'gone', refresh_token: 'rt', expiry_date: Date.now() - 1000 });
+    expired.renew.mockRejectedValue(new Error('503'));
+    await expect(resolveAccessToken(expired.resolution)).rejects.toBeInstanceOf(TokenRenewalUnavailableError);
+  });
+
+  it('uses a grant that cannot be renewed until it expires, then answers null', async () => {
+    const live = grant({ access_token: 'solo', expiry_date: Date.now() + 30_000 });
+    expect(await resolveAccessToken(live.resolution)).toBe('solo');
+    expect(live.renew).not.toHaveBeenCalled();
+
+    const dead = grant({ access_token: 'solo', expiry_date: Date.now() - 1000 });
+    expect(await resolveAccessToken(dead.resolution)).toBeNull();
+
+    // A flow that mints anew counts as renewable with no refresh token at all.
+    const minted = grant({ access_token: 'old', expiry_date: Date.now() - 1000 }, { renewable: () => true });
+    expect(await resolveAccessToken(minted.resolution)).toBe('renewed');
+  });
+
+  it('shares one renewal between concurrent callers of the same grant', async () => {
+    const g = grant({ access_token: 'old', refresh_token: 'rt', expiry_date: Date.now() - 1000 });
+    let release!: () => void;
+    g.renew.mockImplementation(() => new Promise((resolve) => {
+      release = () => resolve({ access_token: 'renewed', refresh_token: 'rt', expiry_date: Date.now() + 3600_000 });
+    }));
+    const a = resolveAccessToken(g.resolution);
+    const b = resolveAccessToken(g.resolution);
+    await new Promise((resolve) => setImmediate(resolve));
+    release();
+    expect(await Promise.all([a, b])).toEqual(['renewed', 'renewed']);
+    expect(g.renew).toHaveBeenCalledOnce();
+  });
+
+  it('discards a renewal that finishes after the grant was replaced', async () => {
+    const g = grant({ access_token: 'old', refresh_token: 'rt-old-account', expiry_date: Date.now() - 1000 });
+    let release!: () => void;
+    g.renew.mockImplementation(() => new Promise((resolve) => {
+      release = () => resolve({ access_token: 'renewed-old', refresh_token: 'rt-old-account', expiry_date: Date.now() + 3600_000 });
+    }));
+    const pending = resolveAccessToken(g.resolution);
+    await new Promise((resolve) => setImmediate(resolve));
+    g.replace({ access_token: 'restored', refresh_token: 'rt-restored', expiry_date: Date.now() + 3600_000 });
+    release();
+    expect(await pending).toBeNull();
+    expect(g.saves).toHaveLength(0);
   });
 });

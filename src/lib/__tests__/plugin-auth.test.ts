@@ -37,10 +37,16 @@ async function seedSecret(pluginId: string, keyOrObj: string | Record<string, st
   await fs.writeFile(path.join(dir, `${pluginId}.json`), JSON.stringify(obj));
 }
 
-function jsonResponse(body: unknown, init?: { status?: number; setCookie?: string[] }): Response {
+function jsonResponse(body: unknown, init?: { status?: number; setCookie?: string[]; retryAfter?: string }): Response {
   const headers = new Headers({ 'content-type': 'application/json' });
   for (const c of init?.setCookie ?? []) headers.append('set-cookie', c);
+  if (init?.retryAfter !== undefined) headers.set('retry-after', init.retryAfter);
   return new Response(JSON.stringify(body), { status: init?.status ?? 200, headers });
+}
+
+/** A transient answer that asks for no wait, so fetchWithTimeout's retries pass at once. */
+function outage(status: number, body: unknown): Response {
+  return jsonResponse(body, { status, retryAfter: '0' });
 }
 
 const OAUTH_MANIFEST = {
@@ -247,6 +253,57 @@ describe('plugin-auth getValidAccessToken', () => {
     const { getValidAccessToken } = await import('../plugin-auth');
     expect(await getValidAccessToken('p1')).toBeNull();
   });
+
+  it('returns null and keeps the grant on disk when the provider refuses the refresh', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ error: 'invalid_grant' }, { status: 400 })));
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens } = await import('../plugin-auth');
+    await savePluginTokens('p1', { access_token: 'stale', refresh_token: 'revoked', token_type: 'Bearer', expiry_date: Date.now() - 1000 });
+
+    expect(await getValidAccessToken('p1')).toBeNull();
+    expect((await loadPluginTokens('p1'))?.refresh_token).toBe('revoked');
+  });
+
+  it.each([
+    ['the provider is down', () => outage(503, { error: 'temporarily_unavailable' })],
+    ['the provider is rate limiting', () => outage(429, { error: 'rate_limited' })],
+    ['the provider cannot be reached', () => { throw new TypeError('fetch failed'); }],
+  ])('says the renewal is unavailable, not that the sign-in is gone, when %s', async (_, answer) => {
+    vi.stubGlobal('fetch', vi.fn(async () => answer()));
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePluginTokens, getValidAccessToken, loadPluginTokens } = await import('../plugin-auth');
+    const { TokenRenewalUnavailableError } = await import('../oauth-token-store');
+    const grant = { access_token: 'expired', refresh_token: 'rt-1', token_type: 'Bearer', expiry_date: Date.now() - 1000 };
+    await savePluginTokens('p1', grant);
+
+    await expect(getValidAccessToken('p1')).rejects.toBeInstanceOf(TokenRenewalUnavailableError);
+    expect(await loadPluginTokens('p1')).toEqual(grant);
+  });
+
+  it('keeps handing out the current token while it lasts when an early renewal fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('fetch failed'); }));
+    await seedManifest('p1', OAUTH_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePluginTokens, getValidAccessToken } = await import('../plugin-auth');
+    await savePluginTokens('p1', { access_token: 'still-good', refresh_token: 'rt-1', token_type: 'Bearer', expiry_date: Date.now() + 30_000 });
+
+    expect(await getValidAccessToken('p1')).toBe('still-good');
+  });
+
+  it('uses an access-token-only grant until it expires instead of renewing a minute early', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    await seedManifest('p1', OAUTH_MANIFEST);
+    const { savePluginTokens, getValidAccessToken } = await import('../plugin-auth');
+    await savePluginTokens('p1', { access_token: 'solo', token_type: 'Bearer', expiry_date: Date.now() + 30_000 });
+    expect(await getValidAccessToken('p1')).toBe('solo');
+
+    await savePluginTokens('p1', { access_token: 'solo', token_type: 'Bearer', expiry_date: Date.now() - 1000 });
+    expect(await getValidAccessToken('p1')).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('plugin-auth refresh racing a replaced grant', () => {
@@ -450,9 +507,48 @@ describe('plugin-auth device_code flow', () => {
       kind: 'device_code', deviceCode: 'DC', intervalMs: 5000, nextPollAt: Date.now() - 1,
     });
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ error: 'slow_down' }, { status: 400 })));
-    expect(await pollDeviceFlow('p1', DEVICE_MANIFEST.auth as never)).toEqual({ status: 'pending' });
+    expect(await pollDeviceFlow('p1', DEVICE_MANIFEST.auth as never)).toEqual({ status: 'pending', slowDown: true });
     const pending = await loadPendingAuth('p1');
     expect(pending?.kind === 'device_code' && pending.intervalMs).toBe(10000); // +5000
+  });
+
+  it.each([
+    ['the provider is briefly down', () => outage(503, { error: 'temporarily_unavailable' })],
+    ['the provider is rate limiting', () => outage(429, { error: 'rate_limited' })],
+    ['the provider cannot be reached', () => { throw new TypeError('fetch failed'); }],
+  ])('keeps the pending flow when %s, so finishing at the provider still connects', async (_, answer) => {
+    await seedManifest('p1', DEVICE_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePendingAuth, pollDeviceFlow, loadPendingAuth, loadPluginTokens } = await import('../plugin-auth');
+    await savePendingAuth('p1', {
+      kind: 'device_code', deviceCode: 'DC', intervalMs: 5000, nextPollAt: Date.now() - 1,
+    });
+    vi.stubGlobal('fetch', vi.fn(async () => answer()));
+
+    expect(await pollDeviceFlow('p1', DEVICE_MANIFEST.auth as never)).toEqual({ status: 'pending' });
+    const pending = await loadPendingAuth('p1');
+    expect(pending?.kind).toBe('device_code');
+
+    // The code on screen is still good: once the interval passes, the next
+    // poll asks the provider again and takes the grant.
+    await savePendingAuth('p1', { ...(pending as Extract<typeof pending, { kind: 'device_code' }>), nextPollAt: Date.now() - 1 });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(jsonResponse({ access_token: 'AT', expires_in: 3600 })));
+    expect(await pollDeviceFlow('p1', DEVICE_MANIFEST.auth as never)).toEqual({ status: 'connected' });
+    expect((await loadPluginTokens('p1'))?.access_token).toBe('AT');
+  });
+
+  it('ends the flow with the provider\'s reason when the app itself is refused', async () => {
+    await seedManifest('p1', DEVICE_MANIFEST);
+    await seedSecret('p1', 'client_id', 'cid');
+    const { savePendingAuth, pollDeviceFlow, loadPendingAuth } = await import('../plugin-auth');
+    await savePendingAuth('p1', {
+      kind: 'device_code', deviceCode: 'DC', intervalMs: 5000, nextPollAt: Date.now() - 1,
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      jsonResponse({ error: 'invalid_client', error_description: 'No such app' }, { status: 401 }),
+    ));
+    expect(await pollDeviceFlow('p1', DEVICE_MANIFEST.auth as never)).toEqual({ status: 'denied', error: 'No such app' });
+    expect(await loadPendingAuth('p1')).toBeNull();
   });
 
   it('stores tokens and clears pending on a successful poll', async () => {

@@ -15,6 +15,7 @@ import {
 } from '@/lib/plugin-proxy';
 import { getValidAccessToken, loadPluginTokens, tokenInjectionSpec } from '@/lib/plugin-auth';
 import type { TokenInjectionSpec } from '@/lib/plugin-auth';
+import { TokenRenewalUnavailableError } from '@/lib/oauth-token-store';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,6 +124,27 @@ function injectToken(
 }
 
 type RouteContext = { params: Promise<{ pluginId: string }> };
+
+/** The grant is gone: the family has to reconnect the plugin in the editor. */
+function authExpired(): NextResponse {
+  return NextResponse.json(
+    { error: 'auth_expired', message: 'Plugin authentication expired. Reconnect in the module settings.' },
+    { status: 401 },
+  );
+}
+
+/**
+ * The grant is intact but could not be renewed right now (the provider
+ * down, busy or unreachable). Answered like any upstream outage, so the
+ * plugin shows "not updating" and tries again on its next poll instead of
+ * asking for a reconnect that would change nothing.
+ */
+function renewalUnavailable(): NextResponse {
+  return NextResponse.json(
+    { error: 'upstream_unavailable', message: "Couldn't renew the sign-in right now. Try again in a few minutes." },
+    { status: 503 },
+  );
+}
 
 export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   const { pluginId } = await ctx.params;
@@ -264,17 +286,27 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   // refresh path, so a second resolution would be redundant I/O on the hottest
   // route). The single 401-retry re-resolves with force to bypass the expiry
   // check, since that is the only case where a fresh read matters.
-  let accessToken = injectAuth ? await getValidAccessToken(safeId) : null;
-  if (injectAuth && !accessToken) {
-    // Distinguish "never connected" (proceed unauthenticated — plugin may be
-    // hitting a public endpoint) from "connected but refresh failed" (surface
-    // a reconnect prompt instead of a confusing upstream 401).
-    const stored = await loadPluginTokens(safeId);
-    if (stored) {
-      return NextResponse.json(
-        { error: 'auth_expired', message: 'Plugin authentication expired. Reconnect in the module settings.' },
-        { status: 401 },
-      );
+  //
+  // Two different answers when there is no token to send: a renewal the
+  // provider refused means the grant is gone, and the family has to
+  // reconnect in the editor; a renewal that could not happen right now (the
+  // provider down, busy, or unreachable) is an outage the plugin retries on
+  // its next poll, and telling the family to reconnect would not fix it.
+  let accessToken: string | null = null;
+  if (injectAuth) {
+    try {
+      accessToken = await getValidAccessToken(safeId);
+    } catch (err) {
+      if (err instanceof TokenRenewalUnavailableError) return renewalUnavailable();
+      throw err;
+    }
+    if (!accessToken) {
+      // Distinguish "never connected" (proceed unauthenticated, the plugin
+      // may be hitting a public endpoint) from "connected but the renewal
+      // was refused" (surface a reconnect prompt instead of a confusing
+      // upstream 401).
+      const stored = await loadPluginTokens(safeId);
+      if (stored) return authExpired();
     }
   }
 
@@ -282,23 +314,20 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
   // re-validation (see followRedirectsWithValidation for the full rationale).
   //
   // On a 401 that names an invalid token, and only when we actually injected
-  // one, force-refresh once and retry — a token can go stale between our expiry
+  // one, force-refresh once and retry: a token can go stale between our expiry
   // check and the upstream's clock. A 401 that survives the refresh is not a
   // staleness problem (usually insufficient scope), so it starts a cooldown and
   // the upstream's own 401 is passed through to the plugin rather than being
   // relabelled `auth_expired`: telling the user to reconnect would not fix a
   // scope error.
   const payload = body.payload;
-  async function makeRequest(force: boolean) {
+  async function makeRequest() {
     const headers = { ...upstreamHeaders };
     let url = upstreamUrl;
     let injected = false;
-    if (injectAuth && injectSpec) {
-      if (force) accessToken = await getValidAccessToken(safeId, { force: true });
-      if (accessToken) {
-        url = injectToken(injectSpec, url, headers, accessToken);
-        injected = true;
-      }
+    if (injectAuth && injectSpec && accessToken) {
+      url = injectToken(injectSpec, url, headers, accessToken);
+      injected = true;
     }
     const followed = await followRedirectsWithValidation({
       pluginId: safeId, url, method, payload, headers, allowedDomains, allowLan, safeCheck,
@@ -306,10 +335,10 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     return { followed, injected };
   }
 
-  let { followed, injected } = await makeRequest(false);
+  let { followed, injected } = await makeRequest();
   // Only retry when we actually sent a token and the upstream says that token
-  // is bad. Retrying a request that carried no token cannot help — there is
-  // nothing stale to refresh — and it used to burn a refresh grant anyway.
+  // is bad. Retrying a request that carried no token cannot help, there is
+  // nothing stale to refresh, and it used to burn a refresh grant anyway.
   if (
     followed.ok &&
     followed.response.status === 401 &&
@@ -318,7 +347,16 @@ export const POST = withDisplayAuth<RouteContext>(async (request, ctx) => {
     looksLikeExpiredToken(followed.response) &&
     !inRefreshCooldown(safeId)
   ) {
-    ({ followed, injected } = await makeRequest(true));
+    try {
+      accessToken = await getValidAccessToken(safeId, { force: true });
+    } catch (err) {
+      if (err instanceof TokenRenewalUnavailableError) return renewalUnavailable();
+      throw err;
+    }
+    // The upstream turned the token down and the provider will not renew
+    // it: the grant is gone.
+    if (!accessToken) return authExpired();
+    ({ followed, injected } = await makeRequest());
     // Still 401 after a real refresh: refreshing is not the fix. Back off so a
     // polling display cannot grind the provider's token endpoint.
     if (followed.ok && followed.response.status === 401) {

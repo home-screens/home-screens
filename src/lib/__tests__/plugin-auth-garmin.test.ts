@@ -180,6 +180,20 @@ describe('garmin adapter', () => {
     expect(String((exchange?.[1] as RequestInit)?.body ?? '')).toContain('mfa_token=MFA-TOK');
   });
 
+  it('refuses the renewal when Garmin turns the credential away, and reports an outage otherwise', async () => {
+    const stored = { access_token: 'x', token_type: 'Bearer', expiry_date: 0, garmin_oauth1: { token: 'OT1', secret: 'OS1' } };
+    const { TokenRenewalRefusedError } = await import('../oauth-token-store');
+    const { refreshGarminTokens } = await import('../plugin-auth-garmin');
+
+    vi.stubGlobal('fetch', garminFetchMock({ exchange: jsonResponse({ error: 'invalid_token' }, { status: 401 }) }));
+    await expect(refreshGarminTokens(stored)).rejects.toBeInstanceOf(TokenRenewalRefusedError);
+
+    vi.stubGlobal('fetch', garminFetchMock({ exchange: textResponse('bad gateway', 502) }));
+    const outage = await refreshGarminTokens(stored).catch((err: unknown) => err);
+    expect(outage).toBeInstanceOf(Error);
+    expect(outage).not.toBeInstanceOf(TokenRenewalRefusedError);
+  });
+
   it('throws a reconnect error when no OAuth1 credential is stored', async () => {
     vi.stubGlobal('fetch', vi.fn());
     const { refreshGarminTokens } = await import('../plugin-auth-garmin');

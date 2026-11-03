@@ -259,8 +259,7 @@ describe('pollDeviceToken', () => {
 
     const result = await pollDeviceToken('device-code');
 
-    expect(result.status).toBe('success');
-    expect(result.error).toContain('refresh token');
+    expect(result).toMatchObject({ status: 'success', error: expect.stringContaining('refresh token') });
     expect(mockWriteFile).toHaveBeenCalledOnce();
   });
 
@@ -303,13 +302,32 @@ describe('pollDeviceToken', () => {
     expect(writtenData.expiry_date).toBe(existingExpiry);
   });
 
-  it('returns pending for authorization_pending and slow_down', async () => {
+  it('returns pending for authorization_pending, and asks the editor to slow down on slow_down', async () => {
     setupCredentials();
     globalThis.fetch = mockFetchResponse({ error: 'authorization_pending' }, false, 428);
-    expect((await pollDeviceToken('device-code')).status).toBe('pending');
+    expect(await pollDeviceToken('device-code')).toEqual({ status: 'pending' });
 
     globalThis.fetch = mockFetchResponse({ error: 'slow_down' }, false, 428);
-    expect((await pollDeviceToken('device-code')).status).toBe('pending');
+    expect(await pollDeviceToken('device-code')).toEqual({ status: 'pending', slowDown: true });
+  });
+
+  it.each([
+    ['Google is busy', () => ({ ok: false, status: 429, json: async () => ({ error: 'rate_limited' }) })],
+    ['Google is briefly down', () => ({ ok: false, status: 503, json: async () => ({ error: 'temporarily_unavailable' }) })],
+    ['Google cannot be reached', () => { throw new TypeError('fetch failed'); }],
+  ])('keeps waiting on the code when %s, with the household\'s own app too', async (_, answer) => {
+    vi.useFakeTimers();
+    try {
+      setupCredentials();
+      vi.stubGlobal('fetch', vi.fn(async () => answer()));
+
+      const poll = pollDeviceToken('device-code');
+      await vi.advanceTimersByTimeAsync(10_000); // fetchWithTimeout's own retries
+      expect(await poll).toEqual({ status: 'pending' });
+      expect(mockWriteFile).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('returns expired for expired_token error', async () => {
@@ -340,12 +358,12 @@ describe('pollDeviceToken', () => {
     expect(result).toEqual({ status: 'denied', error: 'Something went wrong' });
   });
 
-  it('returns denied with fallback message when no error fields present', async () => {
+  it('returns denied with the plain sentence when a refusal says nothing', async () => {
     setupCredentials();
     globalThis.fetch = mockFetchResponse({}, false, 400);
 
     const result = await pollDeviceToken('device-code');
-    expect(result).toEqual({ status: 'denied', error: 'Unknown error' });
+    expect(result).toEqual({ status: 'denied', error: 'Access was denied.' });
   });
 
   it('sends correct grant_type and device_code in request body', async () => {

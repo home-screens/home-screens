@@ -2230,6 +2230,7 @@
       "redirectUriLabel": "Tilføj denne omdirigerings-URL, når du opsætter forbindelsen:",
       "deviceCodeIntro": "Åbn dette link, og indtast koden:",
       "devicePolling": "Venter på din godkendelse…",
+      "cancelButton": "Annuller",
       "errorGeneric": "Noget gik galt. Prøv igen.",
       "popupBlocked": "Din browser blokerede login-vinduet. Tillad pop op-vinduer for dette websted, og prøv igen.",
       "garmin": {
@@ -5901,5 +5902,9 @@
     "allOf": "alle af {n}",
     "anyOf": "enhver af {n}",
     "noneOf": "ingen af {n}"
+  },
+  "deviceSignIn": {
+    "hubUnreachable": "Kunne ikke få kontakt til Home Screens. Tjek forbindelsen, og prøv igen.",
+    "codeExpired": "Koden udløb. Start login igen."
   }
 }

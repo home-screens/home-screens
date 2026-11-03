@@ -2230,6 +2230,7 @@
       "redirectUriLabel": "Füge diese Weiterleitungs-URL beim Einrichten der Verbindung hinzu:",
       "deviceCodeIntro": "Öffne diesen Link und gib den Code ein:",
       "devicePolling": "Warte auf deine Bestätigung…",
+      "cancelButton": "Abbrechen",
       "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
       "popupBlocked": "Dein Browser hat das Anmeldefenster blockiert. Erlaube Pop-ups für diese Seite und versuche es erneut.",
       "garmin": {
@@ -5901,5 +5902,9 @@
     "allOf": "alle von {n}",
     "anyOf": "beliebige von {n}",
     "noneOf": "keine von {n}"
+  },
+  "deviceSignIn": {
+    "hubUnreachable": "Home Screens war nicht erreichbar. Prüfe die Verbindung und versuche es erneut.",
+    "codeExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut."
   }
 }

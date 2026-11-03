@@ -1,4 +1,4 @@
-import { durableWriteFile, onDataTransactionCommit, withDataTransaction } from './data-transaction';
+import { durableWriteFile, onDataTransactionCommit } from './data-transaction';
 /**
  * Plugin auth engine: token storage, OAuth2 flows, and provider adapters.
  *
@@ -27,6 +27,8 @@ import { fetchWithTimeout } from '@/lib/api-utils';
 import { audit } from '@/lib/audit';
 import { logger } from '@/lib/logger';
 import { refreshGarminTokens, type GarminPendingMfa } from '@/lib/plugin-auth-garmin';
+import { classifyDeviceTokenAnswer, SLOW_DOWN_STEP_MS, type DeviceTokenAnswer } from '@/lib/oauth-device-flow';
+import { isRefusedGrant, resolveAccessToken, TokenRenewalRefusedError } from '@/lib/oauth-token-store';
 import type { PluginTokens, TokenInjectionSpec } from '@/lib/plugin-auth-types';
 import type { OAuth2Auth, PluginAuth } from '@/types/plugins';
 
@@ -36,7 +38,6 @@ const log = logger('plugin-auth');
 
 export const TOKENS_DIR = path.join('data', 'plugin-tokens');
 const PENDING_TTL_MS = 10 * 60 * 1000; // fallback user-interactive window
-const REFRESH_GRACE_MS = 60_000; // refresh when expiring within 60s
 
 /* ─── Token storage ──────────────────────────── */
 
@@ -499,12 +500,13 @@ export async function startDeviceFlow(pluginId: string, auth: OAuth2Auth): Promi
 // Per-plugin serialization of the device-poll read-modify-write. Two proxy
 // callers polling at once would otherwise both clear the nextPollAt gate and
 // both POST the token endpoint, tripping the provider's slow_down. This holds
-// only within one process (see refreshInFlight's note); a cross-worker race
-// is self-correcting because the provider itself enforces the interval.
+// only within one process; a cross-worker race is self-correcting because
+// the provider itself enforces the interval.
 const pollInFlight = new Map<string, Promise<DeviceFlowPoll>>();
 
 export type DeviceFlowPoll =
-  | { status: 'pending' }
+  /** `slowDown` when the provider asked for polls spaced further apart. */
+  | { status: 'pending'; slowDown?: true }
   | { status: 'connected' }
   | { status: 'expired' | 'denied'; error: string };
 
@@ -539,32 +541,48 @@ async function pollDeviceFlowInner(pluginId: string, auth: OAuth2Auth): Promise<
   const headers: Record<string, string> = {};
   applyClientAuth(auth, clientId, clientSecret, params, headers);
 
-  const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
-  if (result.ok && typeof result.data.access_token === 'string') {
-    await savePluginTokens(pluginId, parseTokenResponse(auth, result.data));
-    await deletePendingAuth(pluginId);
-    return { status: 'connected' };
+  let answer: DeviceTokenAnswer;
+  try {
+    const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
+    answer = classifyDeviceTokenAnswer(result.status, result.data);
+  } catch (err) {
+    // The provider did not answer at all. The code on screen is still good
+    // for its whole lifetime, so keep waiting rather than end a sign-in the
+    // family may be halfway through.
+    log.warn(`Device poll for plugin ${pluginId} got no answer:`, err instanceof Error ? err.message : err);
+    answer = { kind: 'transient' };
   }
 
-  const errorCode = typeof result.data.error === 'string' ? result.data.error : '';
-  if (errorCode === 'authorization_pending' || errorCode === 'slow_down') {
-    const intervalMs = errorCode === 'slow_down' ? pending.intervalMs + 5000 : pending.intervalMs;
-    // Preserve the provider's original code lifetime — don't reset the TTL to
-    // a fresh full window on every poll.
-    await savePendingAuth(pluginId, {
-      kind: 'device_code',
-      deviceCode: pending.deviceCode,
-      intervalMs,
-      nextPollAt: Date.now() + intervalMs,
-    }, Math.max(pending.expiresAt - Date.now(), 0));
-    return { status: 'pending' };
+  switch (answer.kind) {
+    case 'granted':
+      await savePluginTokens(pluginId, parseTokenResponse(auth, answer.tokens));
+      await deletePendingAuth(pluginId);
+      return { status: 'connected' };
+    case 'pending':
+    case 'slowDown':
+    case 'transient': {
+      const intervalMs = answer.kind === 'slowDown' ? pending.intervalMs + SLOW_DOWN_STEP_MS : pending.intervalMs;
+      // Preserve the provider's original code lifetime rather than resetting
+      // the TTL to a fresh full window on every poll.
+      await savePendingAuth(pluginId, {
+        kind: 'device_code',
+        deviceCode: pending.deviceCode,
+        intervalMs,
+        nextPollAt: Date.now() + intervalMs,
+      }, Math.max(pending.expiresAt - Date.now(), 0));
+      return answer.kind === 'slowDown' ? { status: 'pending', slowDown: true } : { status: 'pending' };
+    }
+    case 'expired':
+      await deletePendingAuth(pluginId);
+      return { status: 'expired', error: 'The code expired. Start the sign-in again.' };
+    case 'denied':
+      await deletePendingAuth(pluginId);
+      if (!answer.declined) log.error(`Device sign-in for plugin ${pluginId} ended at the provider:`, answer.detail);
+      return {
+        status: 'denied',
+        error: answer.declined || !answer.detail ? 'The sign-in was not approved.' : answer.detail,
+      };
   }
-  await deletePendingAuth(pluginId);
-  if (errorCode === 'expired_token') {
-    return { status: 'expired', error: 'The code expired. Start the sign-in again.' };
-  }
-  const detail = typeof result.data.error_description === 'string' ? result.data.error_description : errorCode;
-  return { status: 'denied', error: detail || 'The sign-in was not approved.' };
 }
 
 /* ─── Client Credentials flow ────────────────── */
@@ -585,13 +603,24 @@ async function mintClientCredentials(pluginId: string, auth: OAuth2Auth): Promis
   applyClientAuth(auth, clientId, clientSecret, params, headers);
 
   const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
-  if (!result.ok) {
-    const detail = typeof result.data.error_description === 'string'
-      ? result.data.error_description
-      : typeof result.data.error === 'string' ? result.data.error : `HTTP ${result.status}`;
-    throw new Error(`Could not connect: ${detail}`);
-  }
+  if (!result.ok) throw tokenEndpointFailure(result, 'Could not connect');
   return parseTokenResponse(auth, result.data);
+}
+
+/**
+ * A token endpoint's refusal as the error to throw: one no retry will fix
+ * when the provider turned the grant or the app down, a plain one (an
+ * outage) otherwise. The start routes show the message either way.
+ */
+function tokenEndpointFailure(
+  result: { status: number; data: Record<string, unknown> },
+  what: string,
+): Error {
+  const detail = typeof result.data.error_description === 'string'
+    ? result.data.error_description
+    : typeof result.data.error === 'string' ? result.data.error : `HTTP ${result.status}`;
+  const message = `${what}: ${detail}`;
+  return isRefusedGrant(result.data) ? new TokenRenewalRefusedError(message) : new Error(message);
 }
 
 /* ─── Token injection (provider → proxy seam) ── */
@@ -624,18 +653,34 @@ export function tokenInjectionSpec(auth: PluginAuth, allowedDomains: string[]): 
 
 /* ─── Refresh + access-token resolution ──────── */
 
-async function refreshTokens(pluginId: string, auth: PluginAuth, tokens: PluginTokens): Promise<PluginTokens> {
+/**
+ * The renewed grant, by adapter. Throws `TokenRenewalRefusedError` when no
+ * retry will help (`resolveAccessToken` then answers null, and the proxy
+ * asks the household to reconnect); any other throw is an outage the proxy
+ * passes through as such.
+ */
+async function renewPluginTokens(pluginId: string, auth: PluginAuth, tokens: PluginTokens): Promise<PluginTokens> {
   if (auth.type === 'garmin') {
+    if (!tokens.garmin_oauth1) {
+      throw new TokenRenewalRefusedError('No Garmin sign-in credential stored. Reconnect the account.');
+    }
+    // The exchange refuses (TokenRenewalRefusedError) when Garmin turns the
+    // credential away, and throws plainly when Garmin is down or unreachable.
     return refreshGarminTokens(tokens);
   }
   if (!tokens.refresh_token) {
-    if (auth.flow === 'client_credentials') {
-      // No refresh tokens in this flow — just mint a new access token.
-      return mintClientCredentials(pluginId, auth);
-    }
-    throw new Error('No refresh token stored — reconnect the account.');
+    // Only client_credentials grants reach here without a refresh token
+    // (see `renewable` below): there are none in that flow, so mint anew.
+    return mintClientCredentials(pluginId, auth);
   }
-  const { clientId, clientSecret } = await getOAuthClientCredentials(pluginId, auth);
+  let clientId: string;
+  let clientSecret: string | null;
+  try {
+    ({ clientId, clientSecret } = await getOAuthClientCredentials(pluginId, auth));
+  } catch (err) {
+    // The credentials to renew with are gone: a setup problem, not an outage.
+    throw new TokenRenewalRefusedError(err instanceof Error ? err.message : String(err));
+  }
   const params: Record<string, string> = {
     grant_type: 'refresh_token',
     refresh_token: tokens.refresh_token,
@@ -644,58 +689,19 @@ async function refreshTokens(pluginId: string, auth: PluginAuth, tokens: PluginT
   applyClientAuth(auth, clientId, clientSecret, params, headers);
 
   const result = await postTokenEndpoint(auth.tokenUrl, params, headers);
-  if (!result.ok || typeof result.data.access_token !== 'string') {
-    throw new Error(`Token refresh failed (HTTP ${result.status})`);
-  }
+  if (!result.ok) throw tokenEndpointFailure(result, 'Token refresh failed');
   return parseTokenResponse(auth, result.data, tokens);
 }
 
-// Refresh is serialized per plugin WITHIN THIS PROCESS: concurrent proxy
-// requests (e.g. several display Pis polling at once) share one in-flight
-// refresh instead of racing the provider — some providers rotate the refresh
-// token, so a lost race bricks the grant. Note this is a single-process lock;
-// under multiple Next workers two processes can still refresh concurrently.
-// Acceptable here (the app runs a single server process on the Pi hub); a
-// cross-worker deployment would need a file mutex.
-const refreshInFlight = new Map<string, Promise<PluginTokens | null>>();
-
-function refreshSerialized(
-  pluginId: string,
-  auth: PluginAuth,
-  tokens: PluginTokens,
-  /** The generation observed before `tokens` were read. */
-  startedAt: number,
-): Promise<PluginTokens | null> {
-  const existing = refreshInFlight.get(pluginId);
-  if (existing) return existing;
-  const promise = (async () => {
-    try {
-      const renewed = await refreshTokens(pluginId, auth, tokens);
-      return await withDataTransaction(async () => {
-        const current = await loadPluginTokens(pluginId);
-        if (tokenGeneration(pluginId) !== startedAt || JSON.stringify(current) !== JSON.stringify(tokens)) {
-          log.warn(`Token refresh discarded for plugin ${pluginId}: the stored grant was replaced while it was in flight`);
-          return null;
-        }
-        await savePluginTokens(pluginId, renewed);
-        audit({ action: 'plugin_token_refresh', pluginId });
-        return renewed;
-      });
-    } catch (err) {
-      log.error(`Token refresh failed for plugin ${pluginId}:`, err instanceof Error ? err.message : err);
-      return null;
-    } finally {
-      refreshInFlight.delete(pluginId);
-    }
-  })();
-  refreshInFlight.set(pluginId, promise);
-  return promise;
-}
-
 /**
- * The proxy's entry point: returns a currently-valid access token, refreshing
- * (serialized per plugin) when expired or expiring within 60s. `force` skips
- * the expiry check — used for the single 401 retry.
+ * The proxy's entry point: a currently valid access token, renewed through
+ * the same rule as the host's own grants (`resolveAccessToken`: single
+ * flight per plugin, a save that commits only while the grant it started
+ * from is still on disk, an outage told apart from a refused grant). Null
+ * when there is no usable grant; throws `TokenRenewalUnavailableError` when
+ * a renewal could not happen right now and the current token has expired.
+ * `force` renews even a fresh token, for the single retry after an upstream
+ * 401.
  */
 export async function getValidAccessToken(
   pluginId: string,
@@ -705,15 +711,19 @@ export async function getValidAccessToken(
   const auth = manifest?.auth;
   if (!auth) return null;
 
-  const startedAt = tokenGeneration(pluginId);
-  const tokens = await loadPluginTokens(pluginId);
-  if (!tokens) return null;
-
-  const fresh = tokens.expiry_date > Date.now() + REFRESH_GRACE_MS;
-  if (fresh && !opts?.force) return tokens.access_token;
-
-  const renewed = await refreshSerialized(pluginId, auth, tokens, startedAt);
-  return renewed?.access_token ?? null;
+  return resolveAccessToken<PluginTokens>({
+    key: `plugin:${sanitizePluginId(pluginId)}`,
+    log,
+    load: () => loadPluginTokens(pluginId),
+    save: (tokens) => savePluginTokens(pluginId, tokens),
+    generation: () => tokenGeneration(pluginId),
+    // Garmin re-mints from its stored credential and client_credentials
+    // mints anew; every other grant needs a refresh token to renew.
+    renewable: (tokens) => auth.type === 'garmin' || auth.flow === 'client_credentials' || Boolean(tokens.refresh_token),
+    renew: (tokens) => renewPluginTokens(pluginId, auth, tokens),
+    onRenewed: () => audit({ action: 'plugin_token_refresh', pluginId }),
+    force: opts?.force,
+  });
 }
 
 /* ─── Disconnect ─────────────────────────────── */
