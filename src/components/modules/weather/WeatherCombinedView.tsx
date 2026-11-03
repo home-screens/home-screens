@@ -1,7 +1,7 @@
 'use client';
 
-import { CloudRain, Droplets, Wind, Gauge, Eye, Thermometer } from 'lucide-react';
-import { pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { CloudRain, Droplets, Wind } from 'lucide-react';
+import { windUnitLabel } from '@/lib/weather/units';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
@@ -10,11 +10,14 @@ import { dayLabel } from './day-label';
 import { useTZClock } from '@/hooks/useTZClock';
 import { localISODate } from '@/lib/timezone';
 import { WeatherEmptyState } from './WeatherEmptyState';
+import { CurrentWeatherStats } from './CurrentWeatherStats';
+import { CurrentConditionsHeader } from './CurrentConditionsHeader';
+import { HourColumn } from './HourColumn';
 import { getLocalizedConditionLabel } from './condition-label';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import type { WeatherViewProps } from './types';
 
-export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, timeFormat, scaledFontSize }: WeatherViewProps) {
+export default function WeatherCombinedView({ config, hourly, forecast, units, timezone, timeFormat, scaledFontSize, latitude, longitude }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -26,7 +29,6 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
   const days = forecast.slice(0, config.daysToShow);
   const windUnit = windUnitLabel(units);
   const current = hourly[0];
-  const pressure = current?.pressure != null ? pressureForUnits(current.pressure, units) : null;
 
   // Three fixed bands, so this view never reports a natural height — its rows
   // just spill past the bottom of the last band. It overflowed at both ends of
@@ -38,62 +40,33 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
       hours.length, days.length, config.showHighLow !== false, config.showFeelsLike !== false,
       config.showPrecipitation !== false, config.showHumidity, config.showWind,
       config.showPressure, config.showVisibility, config.showDewPoint,
+      config.showUV, config.showSunTimes,
     ].join('|'),
   );
 
   return (
     <div ref={boxRef} className="w-full h-full overflow-hidden" style={{ fontSize: `${fontSize}px` }}>
     <div ref={contentRef} className="w-full h-full flex flex-col">
-      {/* Current conditions — 25% */}
+      {/* Current conditions, 25%. The same header and stat chips as the
+          Hourly, Current and Compact views, so a chip added there lands here. */}
       {current && (
-        <div className="flex items-center gap-4" style={{ flex: '0 0 25%' }}>
-          {(() => { const Icon = getWeatherIcon(current.icon, config.iconSet); return <Icon size="2.5em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(current.icon, tWeather)} role="img" />; })()}
-          <span className="font-light" style={{ fontSize: '3em' }}>{Math.round(current.temp)}&deg;</span>
-          <div className="flex flex-col gap-0.5">
-            {forecast[0] && (
-              <span style={{ fontSize: '0.8em', opacity: TEXT_OPACITY.secondary }}>
-                {t('weather.highLow', { high: `${Math.round(forecast[0].high)}°`, low: `${Math.round(forecast[0].low)}°` })}
-              </span>
-            )}
-            {config.showFeelsLike !== false && current.feelsLike != null && (
-              <span style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim }}>
-                {t('weather.feelsLike', { temp: `${Math.round(current.feelsLike)}°` })}
-              </span>
-            )}
+        <div style={{ flex: '0 0 25%' }}>
+          <CurrentConditionsHeader config={config} current={current} today={forecast[0]} layout="inline">
             <div className="flex items-center gap-2 flex-wrap">
-              <WeatherStat icon={CloudRain} value={current.precipProbability} unit="%" visible={config.showPrecipitation !== false} fontSize="0.75em" />
-              <WeatherStat icon={Droplets} value={current.humidity} unit="%" visible={config.showHumidity} fontSize="0.75em" />
-              <WeatherStat icon={Wind} value={current.windSpeed} visible={config.showWind} fontSize="0.75em" />
-              <WeatherStat icon={Gauge} value={pressure?.value} unit={pressure ? ` ${pressure.unit}` : undefined} visible={config.showPressure} fontSize="0.75em" />
-              <WeatherStat icon={Eye} value={current.visibility} unit={units === 'metric' ? ' km' : ' mi'} visible={config.showVisibility} fontSize="0.75em" />
-              <WeatherStat icon={Thermometer} value={current.dewPoint} unit="°" visible={config.showDewPoint} fontSize="0.75em" />
+              <CurrentWeatherStats config={config} current={current} units={units} fontSize="0.75em" latitude={latitude} longitude={longitude} timezone={timezone} timeFormat={timeFormat} />
             </div>
-          </div>
+          </CurrentConditionsHeader>
         </div>
       )}
 
-      {/* Hourly strip — 25% */}
+      {/* Hourly strip, 25%, the Hourly view's columns at a smaller size. */}
       {hours.length > 1 && (
         <div className="flex flex-col" style={{ flex: '0 0 25%' }}>
           <div className="w-full h-px opacity-20 bg-current" />
-          <div className="flex items-center justify-around flex-1">
-            {hours.slice(1).map((hour, i) => {
-              const Icon = getWeatherIcon(hour.icon, config.iconSet);
-              return (
-                <div key={i} className="flex flex-col items-center gap-0.5">
-                  <span style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.dim }}>
-                    {new Date(hour.time).toLocaleTimeString(locale, {
-                      hour: 'numeric',
-                      hour12: timeFormat !== '24h',
-                      ...(timezone ? { timeZone: timezone } : {}),
-                    })}
-                  </span>
-                  <Icon size="1.4em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(hour.icon, tWeather)} role="img" />
-                  <span className="font-medium" style={{ fontSize: '0.75em' }}>{Math.round(hour.temp)}&deg;</span>
-                  <WeatherStat icon={CloudRain} value={hour.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
-                </div>
-              );
-            })}
+          <div className="flex items-center justify-around flex-1" style={{ fontSize: '0.85em' }} data-testid="weather-hours">
+            {hours.slice(1).map((hour, i) => (
+              <HourColumn key={i} config={config} hour={hour} timezone={timezone} timeFormat={timeFormat} />
+            ))}
           </div>
         </div>
       )}

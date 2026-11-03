@@ -79,7 +79,7 @@ const VIEW_FIELDS: Record<WeatherView, readonly Field[]> = {
   current: ['icons', 'feelsLike', ...STATION, 'uv', 'sunTimes'],
   hourly: ['icons', 'hours', 'feelsLike', 'precipitation', 'humidity', 'wind'],
   daily: ['icons', 'days', 'featuredDay', 'relativeDays', 'highLow', 'precipitation', 'precipAmount', 'humidity', 'wind'],
-  combined: ['icons', 'hours', 'days', 'feelsLike', 'highLow', ...STATION],
+  combined: ['icons', 'hours', 'days', 'feelsLike', 'highLow', ...STATION, 'uv', 'sunTimes'],
   compact: ['icons', 'feelsLike', 'highLow', ...STATION, 'uv', 'sunTimes'],
   table: ['icons', 'days', 'highLow', 'precipitation', 'precipAmount', 'humidity', 'wind'],
   precipitation: [],

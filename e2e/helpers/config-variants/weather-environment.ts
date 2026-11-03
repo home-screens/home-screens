@@ -134,6 +134,17 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
     config: { view: 'current', showSunTimes: true },
     expect: async (mod) => { await child('[data-testid="weather-stat-sunrise"]')(mod); await child('[data-testid="weather-stat-sunset"]')(mod); },
   },
+  // The combined view shares the current view's stats row, chips included.
+  {
+    type: 'weather', name: 'combined-show-uv', kind: 'networked', stubKey: 'weather', stubBody: WEATHER_UV,
+    config: { view: 'combined', showUV: true },
+    expect: has('UV 3'),
+  },
+  {
+    type: 'weather', name: 'combined-show-sun-times', kind: 'networked', stubKey: 'weather',
+    config: { view: 'combined', showSunTimes: true },
+    expect: async (mod) => { await child('[data-testid="weather-stat-sunrise"]')(mod); await child('[data-testid="weather-stat-sunset"]')(mod); },
+  },
   // showLocation adds a place-name header above the view, sourced from
   // settings.locationName (matrixSettings has coordinates but no name).
   {
