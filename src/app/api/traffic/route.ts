@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cachedProxyRoute, fetchWithTimeout, createTTLCache, SetupError } from '@/lib/api-utils';
+import { upstreamError, UpstreamError } from '@/lib/upstream-error';
 import { getSecret } from '@/lib/secrets';
 import { logger } from '@/lib/logger';
 import type { TrafficRouteResult, TrafficTimes } from '@/lib/traffic-routes';
@@ -24,21 +25,17 @@ export const geocodeCache = createTTLCache<string>(60 * 60 * 1000); // 1 hour
 class RouteNotFoundError extends Error {}
 
 /**
- * Sorts a refused upstream answer by who can fix it. A rejected key fails
- * every route alike, so it is a setup error for the whole module; a request
- * the service turned down is this route's addresses; anything else is the
- * service having a bad moment. The service's own words go to the log only:
- * they are not something a family can act on.
+ * A refused answer, sorted by who can fix it: a rejected key is a setup error
+ * for the whole module (`upstreamError`), a request the service turned down
+ * is this route's addresses, and anything else is the service having a bad
+ * moment. Google answers an unknown key with a 400 that names it, not a 401.
  */
-async function upstreamError(res: Response, service: string): Promise<Error> {
-  const text = await res.text().catch(() => '');
-  log.warn(`${service} answered ${res.status}: ${text}`);
-  // Google answers an unknown key with a 400 that names it, not a 401.
-  if (res.status === 401 || res.status === 403 || /API_KEY_INVALID/.test(text)) {
-    return new SetupError(`${service} turned the key down (${res.status})`, 'invalidKey', service);
+async function trafficError(res: Response, service: string): Promise<Error> {
+  const error = await upstreamError(res, service, { keyRejected: /API_KEY_INVALID/ });
+  if (error instanceof UpstreamError && (error.status === 400 || error.status === 404)) {
+    return new RouteNotFoundError(`${service} could not route it (${error.status})`);
   }
-  if (res.status === 400 || res.status === 404) return new RouteNotFoundError(`${service} could not route it (${res.status})`);
-  return new Error(`${service} answered ${res.status}`);
+  return error;
 }
 
 function travelTimes(baseSeconds: number, trafficSeconds: number): TrafficTimes {
@@ -72,7 +69,7 @@ async function googleRoute(route: RouteInput, apiKey: string): Promise<TrafficTi
       body: JSON.stringify(body),
     },
   );
-  if (!res.ok) throw await upstreamError(res, 'Google Maps');
+  if (!res.ok) throw await trafficError(res, 'Google Maps');
 
   const data = await res.json();
   const r = data.routes?.[0];
@@ -89,7 +86,7 @@ async function tomtomGeocode(address: string, apiKey: string): Promise<string> {
 
   const url = `https://api.tomtom.com/search/2/geocode/${encodeURIComponent(address)}.json?key=${apiKey}&limit=1`;
   const res = await fetchWithTimeout(url);
-  if (!res.ok) throw await upstreamError(res, 'TomTom');
+  if (!res.ok) throw await trafficError(res, 'TomTom');
   const data = await res.json();
   const pos = data.results?.[0]?.position;
   if (!pos) throw new RouteNotFoundError('TomTom could not place an address');
@@ -106,7 +103,7 @@ async function tomtomRoute(route: RouteInput, apiKey: string): Promise<TrafficTi
 
   const url = `https://api.tomtom.com/routing/1/calculateRoute/${originCoords}:${destCoords}/json?key=${apiKey}&traffic=true&computeTravelTimeFor=all`;
   const res = await fetchWithTimeout(url);
-  if (!res.ok) throw await upstreamError(res, 'TomTom');
+  if (!res.ok) throw await trafficError(res, 'TomTom');
 
   const data = await res.json();
   const summary = data.routes?.[0]?.summary;

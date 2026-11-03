@@ -85,6 +85,33 @@ describe('immichFetch', () => {
     );
   });
 
+  it.each([401, 403])('answers a key Immich turns down (%i) as a setup problem, not an outage', async (status) => {
+    mockGetSecret.mockImplementation(async (key) => {
+      if (key === 'immich_url') return 'http://immich:2283';
+      if (key === 'immich_api_key') return 'revoked-key';
+      return null;
+    });
+    mockFetch.mockResolvedValue(new Response('{"message":"Invalid API key"}', { status }));
+
+    await expect(immichFetch('/api/albums')).rejects.toMatchObject({
+      name: 'SetupError',
+      needs: 'invalidKey',
+      service: 'Immich',
+    });
+  });
+
+  it('hands any other refused answer back for the caller to read', async () => {
+    mockGetSecret.mockImplementation(async (key) => {
+      if (key === 'immich_url') return 'http://immich:2283';
+      if (key === 'immich_api_key') return 'secret-key';
+      return null;
+    });
+    mockFetch.mockResolvedValue(new Response('', { status: 500 }));
+
+    const res = await immichFetch('/api/albums');
+    expect(res.status).toBe(500);
+  });
+
   it('merges caller-provided headers with the API key', async () => {
     mockGetSecret.mockImplementation(async (key) => {
       if (key === 'immich_url') return 'http://immich:2283';

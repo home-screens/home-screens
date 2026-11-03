@@ -1,4 +1,5 @@
-import { fetchWithTimeout, SetupError } from '@/lib/api-utils';
+import { fetchWithTimeout } from '@/lib/api-utils';
+import { upstreamError } from '@/lib/upstream-error';
 
 export async function fetchWeatherJSON<T>(url: string, provider: string, init?: RequestInit): Promise<T> {
   const res = await fetchWithTimeout(url, init);
@@ -18,11 +19,6 @@ export async function fetchWeatherJSON<T>(url: string, provider: string, init?: 
  */
 export async function fetchKeyedWeatherJSON<T>(url: string, provider: string, init?: RequestInit): Promise<T> {
   const res = await fetchWithTimeout(url, init);
-  if (!res.ok) {
-    const body = await res.text();
-    const message = `${provider} API error ${res.status}: ${body}`;
-    if (res.status === 401 || res.status === 403) throw new SetupError(message, 'invalidKey', provider, 'weather');
-    throw new Error(message);
-  }
+  if (!res.ok) throw await upstreamError(res, provider, { page: 'weather' });
   return res.json();
 }

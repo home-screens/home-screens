@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody, SetupError } from '@/lib/api-utils';
+import { withAuth, cachedProxyRoute, fetchWithTimeout, validateTodoistToken, requireSecret, parseJsonBody } from '@/lib/api-utils';
 import { setSecret } from '@/lib/secrets';
+import { upstreamError } from '@/lib/upstream-error';
 import { logger } from '@/lib/logger';
 
 const log = logger('todoist');
@@ -10,7 +11,9 @@ export const dynamic = 'force-dynamic';
 
 const TODOIST_API = 'https://api.todoist.com/api/v1';
 
-// Named color → hex map (v2 style, kept for backwards compat)
+// Todoist names a project's or label's colour (`berry_red`, `sky_blue`) in
+// API v1 as it did in v2; this map is what turns those names into the hex the
+// module paints with. Without it every project and label would be grey.
 const TODOIST_COLORS: Record<string, string> = {
   berry_red: '#b8255f',
   red: '#db4035',
@@ -143,13 +146,8 @@ async function fetchTodoistList(
     const res = await fetchWithTimeout(url.toString(), {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      const message = `Todoist API ${endpoint} returned ${res.status}: ${text}`;
-      // A rejected token is something the household can fix, not an outage.
-      if (res.status === 401 || res.status === 403) throw new SetupError(message, 'invalidKey', 'Todoist');
-      throw new Error(message);
-    }
+    // A rejected token is something the household can fix, not an outage.
+    if (!res.ok) throw await upstreamError(res, 'Todoist');
     const json = await res.json();
 
     if (Array.isArray(json)) {

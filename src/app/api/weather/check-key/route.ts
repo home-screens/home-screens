@@ -41,8 +41,12 @@ export const POST = withAuth(async (request) => {
     await createWeatherProvider(provider, key).getHourly(PROBE_LAT, PROBE_LON, 'metric');
     return NextResponse.json({ ok: true } satisfies WeatherKeyCheck);
   } catch (err) {
-    const detail = err instanceof Error ? err.message : undefined;
     const rejected = err instanceof SetupError && err.needs === 'invalidKey';
+    // The provider's own reason, when it gave one, so a parent can tell a
+    // mistyped key from a disabled one.
+    const detail = err instanceof SetupError && err.detail
+      ? `${err.message}: ${err.detail}`
+      : err instanceof Error ? err.message : undefined;
     return NextResponse.json({
       ok: false,
       reason: rejected ? 'rejected' : 'unreachable',

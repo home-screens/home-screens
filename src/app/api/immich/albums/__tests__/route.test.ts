@@ -64,6 +64,17 @@ describe('GET /api/immich/albums', () => {
     expect(json).toEqual({ error: 'Failed to fetch albums from Immich' });
   });
 
+  it('answers a key Immich turned down with the setup card, not an outage', async () => {
+    const { SetupError } = await import('@/lib/api-utils');
+    mockImmichFetch.mockRejectedValue(new SetupError('Immich turned the key down (401)', 'invalidKey', 'Immich'));
+
+    const res = await GET(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json).toMatchObject({ code: 'setup', setup: { needs: 'invalidKey', service: 'Immich' } });
+  });
+
   it('surfaces a generic error and never puts the configured API key in the body', async () => {
     // The x-api-key value is injected inside immichFetch (mocked here); the route
     // never holds it, so a realistic failure returns only the generic message plus

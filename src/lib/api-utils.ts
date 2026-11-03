@@ -57,6 +57,12 @@ export class SetupError extends Error {
     public readonly service: string,
     /** Defaults page that holds the missing field; API keys unless said otherwise. */
     public readonly page?: SetupPage,
+    /**
+     * The service's own words for the refusal, when it gave any. Kept out of
+     * the message so no module answer carries them; the editor's key check
+     * shows them next to the field, where a parent pasting a key can use them.
+     */
+    public readonly detail?: string,
   ) {
     super(message);
     this.name = 'SetupError';

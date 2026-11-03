@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { cachedProxyRoute, getLocationFromConfig, fetchWithTimeout, requireSecret, setupErrorResponse } from '@/lib/api-utils';
+import { cachedProxyRoute, getLocationFromConfig, fetchWithTimeout, requireSecret, SetupError } from '@/lib/api-utils';
+import { upstreamError } from '@/lib/upstream-error';
 import { logger } from '@/lib/logger';
 
 const log = logger('air-quality');
@@ -35,11 +36,11 @@ const { GET, cache } = cachedProxyRoute<Record<string, unknown>, AirQualityParam
       `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lon}&appid=${apiKey}`,
     );
 
-    if (airRes.status === 401 || airRes.status === 403) {
-      log.warn(`Air pollution API rejected the OpenWeatherMap key (${airRes.status})`);
-      return setupErrorResponse(`OpenWeatherMap rejected the API key (${airRes.status})`, 'invalidKey', 'OpenWeatherMap', 'weather');
-    }
     if (!airRes.ok) {
+      // A rejected key is the household's to fix (the setup card); anything
+      // else is the service having a bad moment.
+      const error = await upstreamError(airRes, 'OpenWeatherMap', { page: 'weather' });
+      if (error instanceof SetupError) throw error;
       log.error(`Air pollution API returned ${airRes.status}`);
       return NextResponse.json({ error: 'Failed to fetch air quality data' }, { status: 502 });
     }

@@ -1,5 +1,6 @@
 import { getSecret } from './secrets';
 import { fetchWithTimeout, SetupError, type FetchRetryOptions } from './api-utils';
+import { upstreamError } from './upstream-error';
 
 // -- Types matching Immich API response shapes --
 
@@ -73,16 +74,25 @@ export async function getImmichConfig(): Promise<{ url: string; apiKey: string }
   return { url: url.replace(/\/+$/, ''), apiKey };
 }
 
+/**
+ * A request to the household's Immich server with its key. A missing server
+ * or a key Immich turns down throws a `SetupError`, so every route that
+ * calls this answers with the "finish setup" card through `errorResponse`
+ * instead of reporting a revoked key as an outage. Any other answer, refused
+ * or not, is returned for the caller to read.
+ */
 export async function immichFetch(
   path: string,
   init?: FetchRetryOptions,
 ): Promise<Response> {
   const cfg = await getImmichConfig();
   if (!cfg) throw new SetupError('Immich not configured', 'connection', 'Immich');
-  return fetchWithTimeout(`${cfg.url}${path}`, {
+  const res = await fetchWithTimeout(`${cfg.url}${path}`, {
     ...init,
     headers: { 'x-api-key': cfg.apiKey, ...init?.headers },
   });
+  if (res.status === 401 || res.status === 403) throw await upstreamError(res, 'Immich');
+  return res;
 }
 
 // -- Connection validation --
