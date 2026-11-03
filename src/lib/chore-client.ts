@@ -1,5 +1,6 @@
-import type { ChoreDefinition, ChoreSettings } from '@/types/config';
-import { readChoreSettings } from './chore-bonus';
+import type { ChoreCompletion, ChoreDefinition, ChoreGrab, ChoreSettings, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
+import { readChoreSettings, type BonusRefusal } from './chore-bonus';
+import { choreGrabUrl, choreToggleUrl } from './fetch-keys';
 import { readJson, refusalMessage } from './hub-request';
 
 /**
@@ -30,8 +31,100 @@ export function asChoreSnapshot(json: unknown): ChoreSnapshot | null {
   return { chores: d.chores as ChoreDefinition[], settings: readChoreSettings(d.settings), revision: d.revision };
 }
 
-/** `editorFetch` on the editor and phone; the wall never writes chores. */
+/** `editorFetch` on the editor and phone, `displayFetch` on the wall. */
 export type ChoreFetch = (url: string, init?: RequestInit) => Promise<Response>;
+
+/** The lists every chore write answers with: ticks, who is holding which bonus chore, and when each was last put back. */
+export interface ChoreMarks {
+  completions: ChoreCompletion[];
+  grabs?: ChoreGrab[];
+  bonusResets?: Record<string, string>;
+}
+
+/**
+ * The lists in a chore write's answer and nothing else it carries (rewards,
+ * `changed`), or null when the body has no lists (an older hub, a broken body).
+ */
+export function choreMarksOf(body: unknown): ChoreMarks | null {
+  const b = body as Partial<ChoreMarks> | null;
+  if (!b || typeof b !== 'object' || !Array.isArray(b.completions)) return null;
+  return {
+    completions: b.completions,
+    ...(Array.isArray(b.grabs) ? { grabs: b.grabs } : {}),
+    ...(b.bonusResets && typeof b.bonusResets === 'object' ? { bonusResets: b.bonusResets } : {}),
+  };
+}
+
+/**
+ * What a tick, a grab, a "not today" or a put-back came to. The phone and the
+ * wall answer each case the same way: a refusal shows the lists its answer
+ * carries, and when it carries none, or the hub could not be reached, the
+ * screen goes back to what it had and the next poll shows the truth.
+ */
+export type ChoreWriteOutcome =
+  /**
+   * The hub took it. `changed` is false when it had nothing to do (already
+   * done this time round). `answer` carries the lists after the write and
+   * whatever else the route said: rewards moved, an overspent balance.
+   */
+  | { ok: true; changed: boolean; answer: ChoreToggleResponse }
+  /**
+   * The hub refused: a bonus chore someone else has, or that is not open to
+   * this person. `refusal` says why and `memberId` who got there first;
+   * `marks` is where the lists stand, when the answer carried them.
+   */
+  | { ok: false; refused: true; refusal?: BonusRefusal; memberId?: string; marks: ChoreMarks | null }
+  /**
+   * Nothing was saved: the hub could not be reached, answered with an error,
+   * or with a body no screen can show. `error` is what the fetcher threw, so
+   * the phone can tell an expired session (already on its way to sign-in)
+   * from a hub out of reach.
+   */
+  | { ok: false; refused: false; refusal?: undefined; memberId?: undefined; error?: unknown };
+
+/** A write to the lists besides a tick: grab or let go, "not today" for some people, put a bonus chore back. */
+export type ChoreMarksWrite =
+  | { kind: 'grab'; choreId: string; memberId: string; action: 'grab' | 'let-go' }
+  | { kind: 'skip'; choreId: string; memberIds: string[]; date: string; skipped: boolean }
+  | { kind: 'put-back'; choreId: string };
+
+// Grabs are read-cached under their key; the other two are phone-only writes
+// with no key in the registry.
+const MARKS_URL: Record<ChoreMarksWrite['kind'], string> = {
+  grab: choreGrabUrl(),
+  skip: '/api/chores/skip',
+  'put-back': '/api/chores/put-back',
+};
+
+async function sendChoreWrite(fetcher: ChoreFetch, url: string, body: unknown): Promise<ChoreWriteOutcome> {
+  try {
+    const res = await fetcher(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const json = await readJson(res) as (Partial<ChoreToggleResponse> & { reason?: BonusRefusal; memberId?: string }) | null;
+    if (res.status === 409) {
+      return { ok: false, refused: true, refusal: json?.reason, memberId: json?.memberId, marks: choreMarksOf(json) };
+    }
+    const marks = res.ok ? choreMarksOf(json) : null;
+    if (!marks) return { ok: false, refused: false };
+    return { ok: true, changed: json?.changed !== false, answer: { ...json, ...marks } as ChoreToggleResponse };
+  } catch (error) {
+    return { ok: false, refused: false, error };
+  }
+}
+
+/** Tick or un-tick a chore for someone on a day. `direction` makes the write idempotent (see `planChoreToggle`). */
+export function postChoreToggle(fetcher: ChoreFetch, request: ChoreToggleRequest): Promise<ChoreWriteOutcome> {
+  return sendChoreWrite(fetcher, choreToggleUrl(), request);
+}
+
+/** Send one of the other writes to the lists. Every one answers with the lists, like a tick. */
+export function postChoreMarks(fetcher: ChoreFetch, write: ChoreMarksWrite): Promise<ChoreWriteOutcome> {
+  const { kind, ...body } = write;
+  return sendChoreWrite(fetcher, MARKS_URL[kind], body);
+}
 
 export type ChoreSaveOutcome =
   | { kind: 'saved'; snapshot: ChoreSnapshot }

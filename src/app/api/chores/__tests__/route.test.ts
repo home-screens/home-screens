@@ -125,6 +125,18 @@ const choreDataFixture = {
       rotation: 'none',
     },
     {
+      id: 'chore-grab',
+      name: 'Wash the car',
+      emoji: 'car',
+      points: 3,
+      frequency: 'daily',
+      daysOfWeek: [],
+      timeOfDay: 'anytime',
+      assigneeIds: ['kid-1', 'kid-2'],
+      rotation: 'none',
+      bonus: { claim: 'first', comesBack: 'daily' },
+    },
+    {
       id: 'chore-free',
       name: 'Smile',
       emoji: 'smile',
@@ -155,7 +167,11 @@ function daysAhead(n: number): string {
 }
 
 function seedCompletions(completions: Array<Record<string, string>>): void {
-  fakeFs.set(DATA_FILE, JSON.stringify({ completions }));
+  seedMarks({ completions });
+}
+
+function seedMarks(marks: { completions: Array<Record<string, string>>; grabs?: Array<Record<string, string>> }): void {
+  fakeFs.set(DATA_FILE, JSON.stringify(marks));
   identity.set(DATA_FILE, ++writes);
 }
 
@@ -169,7 +185,7 @@ beforeEach(() => {
   fakeFs.clear();
   identity.clear();
 
-  vi.mocked(readChoreData).mockResolvedValue({ chores: choreDataFixture.chores } as never);
+  vi.mocked(readChoreData).mockResolvedValue({ chores: choreDataFixture.chores, settings: { grabLimit: 1, grabHold: 'day' } } as never);
   vi.mocked(readFamilyData).mockResolvedValue({ members: choreDataFixture.members } as never);
   // The plan carries the post-move RewardData; the route embeds that snapshot
   // in the POST response so clients update balances without a second read.
@@ -798,5 +814,80 @@ describe('POST /api/chores — one commit for both files', () => {
     // Already complete: no write, and no empty transaction either.
     await POST(makePostRequest(body));
     expect(commitDataTransaction).not.toHaveBeenCalled();
+  });
+});
+
+// ============================================================================
+// A bonus chore that is up for grabs: the hub alone knows who is holding it,
+// so it is the hub that refuses a tick, ends a grab or hands one back.
+
+describe('POST /api/chores on an up-for-grabs chore', () => {
+  it('refuses a tick on a chore someone else holds, with the reason, the holder and the lists as they stand', async () => {
+    const grab = { choreId: 'chore-grab', memberId: 'kid-2', date: daysAgo(0) };
+    seedMarks({ completions: [], grabs: [grab] });
+
+    const res = await POST(makePostRequest({ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0), direction: 'complete' }));
+    expect(res.status).toBe(409);
+    const body = await res.json();
+    expect(body.error).toBe('Someone else has this bonus chore, or it is not open to this person.');
+    expect(body.reason).toBe('grabbed');
+    expect(body.memberId).toBe('kid-2');
+    expect(body.completions).toEqual([]);
+    expect(body.grabs).toEqual([grab]);
+    expect(commitDataTransaction).not.toHaveBeenCalled();
+    expect(planPointsMove).not.toHaveBeenCalled();
+  });
+
+  it('refuses a tick by someone the chore is not open to', async () => {
+    vi.mocked(readFamilyData).mockResolvedValue({ members: [...choreDataFixture.members, { id: 'kid-3', name: 'Cy', color: '#0000ff' }] } as never);
+    const res = await POST(makePostRequest({ choreId: 'chore-grab', memberId: 'kid-3', date: daysAgo(0) }));
+    expect(res.status).toBe(409);
+    expect((await res.json()).reason).toBe('not-yours');
+  });
+
+  it('finishing the chore one holds ends the grab, remembers it on the completion, and pays', async () => {
+    seedMarks({ completions: [], grabs: [{ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0) }] });
+
+    const res = await POST(makePostRequest({ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0) }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.changed).toBe(true);
+    expect(body.completions).toHaveLength(1);
+    expect(body.completions[0]).toMatchObject({ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0), endedGrab: daysAgo(0) });
+    expect(body.grabs).toEqual([]);
+    expect(planPointsMove).toHaveBeenCalledWith('kid-1', 3);
+    const saved = JSON.parse(fakeFs.get(DATA_FILE)!);
+    expect(saved.grabs).toEqual([]);
+    expect(saved.completions[0].endedGrab).toBe(daysAgo(0));
+  });
+
+  it('un-ticking hands the grab back with its own date, and takes the tickets back', async () => {
+    seedMarks({ completions: [{ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0), at: new Date().toISOString(), endedGrab: daysAgo(0) }], grabs: [] });
+
+    const res = await POST(makePostRequest({ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0), direction: 'uncomplete' }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.changed).toBe(true);
+    expect(body.completions).toEqual([]);
+    expect(body.grabs).toEqual([{ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0) }]);
+    expect(planPointsMove).toHaveBeenCalledWith('kid-1', -3);
+  });
+
+  it('a tick nobody had grabbed for leaves nobody holding the chore when undone', async () => {
+    await POST(makePostRequest({ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0) }));
+    const res = await POST(makePostRequest({ choreId: 'chore-grab', memberId: 'kid-1', date: daysAgo(0) }));
+    const body = await res.json();
+    expect(body.completions).toEqual([]);
+    expect(body.grabs).toEqual([]);
+  });
+
+  it('ticking over a "not today" mark replaces the mark', async () => {
+    seedCompletions([{ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0), status: 'skipped' }]);
+    const res = await POST(makePostRequest({ choreId: 'chore-pts5', memberId: 'kid-1', date: daysAgo(0), direction: 'complete' }));
+    const body = await res.json();
+    expect(body.changed).toBe(true);
+    expect(body.completions).toHaveLength(1);
+    expect(body.completions[0].status).toBeUndefined();
+    expect(planPointsMove).toHaveBeenCalledWith('kid-1', 5);
   });
 });

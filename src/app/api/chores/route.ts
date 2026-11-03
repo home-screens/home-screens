@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import type { ChoreCompletion, ChoreToggleRequest } from '@/types/config';
+import type { ChoreToggleRequest } from '@/types/config';
 import { publicErrorResponse, isValidISODate, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { readChoreData } from '@/lib/chore-data';
 import { familyResponse, readFamilyData } from '@/lib/family-data';
-import { atGrabLimit, checkBonusComplete, grabHolds, resetViewDay, countsSinceReset, readChoreSettings, isBonusChore, pruneChoreMarks, tickEndsGrabs, type BonusCheck } from '@/lib/chore-bonus';
+import { readChoreSettings, pruneChoreMarks } from '@/lib/chore-bonus';
+import { applyChoreToggle, type ChoreToggleContext, type ChoreToggleResult } from '@/lib/chore-toggle';
 import { withFamilyWrite, validateMemberReferences } from '@/lib/family-api';
 import { commitDataTransaction, withDataTransaction, type TransactionChange } from '@/lib/data-transaction';
 import { choresEtag, choresPageEtag, holdsEtag, revalidatedHeaders } from '@/lib/chore-revisions';
@@ -103,6 +104,24 @@ export const GET = async (request: NextRequest) => {
   }
 };
 
+/**
+ * Plan the toggle in the store's own queue, where the read and the plan agree
+ * with every other write to the file, and hand back what it came to.
+ */
+async function planChoreToggleUpdate(
+  request: ChoreToggleRequest,
+  context: ChoreToggleContext,
+): Promise<{ toggle: ChoreToggleResult; change: TransactionChange | null }> {
+  let toggle: ChoreToggleResult | undefined;
+  const { change } = await planCompletionsUpdate((data) => {
+    toggle = applyChoreToggle(data, request, context);
+    return toggle.data;
+  });
+  // The store runs its mutator exactly once before the plan resolves.
+  if (!toggle) throw new Error('The chore toggle was never planned');
+  return { toggle, change };
+}
+
 export const POST = async (request: NextRequest) => {
   try {
   return await withFamilyWrite<ChoreToggleRequest, Response>(request, { maxBytes: SMALL_BODY_BYTES }, async (body) => {
@@ -147,90 +166,22 @@ export const POST = async (request: NextRequest) => {
   const [choreData, family] = await Promise.all([readChoreData(), readFamilyData()]);
   const chore = choreData.chores.find((c) => c.id === choreId);
 
-  // Set inside the mutator so the credit/debit below can be skipped for
-  // directional no-ops — a repeated "I finished the dishes" from a voice
-  // caller must never flip the chore back off or move points twice.
-  let changed = false;
-  let refused: BonusCheck | null = null;
-  let refusedMarks: ReturnType<typeof choreMarks> | null = null;
-  // A finished entry for this chore, person and day that still counts. One
-  // made before a grown-up put the chore back is an earlier round: it stays
-  // (its tickets were earned) and is neither this tick's "already done" nor
-  // what an un-tick takes away.
-  const sameDay = (c: ChoreCompletion) => c.choreId === choreId && c.memberId === memberId && c.date === date;
-  const isDoneIn = (resets: Record<string, string> | undefined) => (c: ChoreCompletion) =>
-    sameDay(c) && !c.status && (!chore || countsSinceReset(chore, c, resets ?? {}, resetViewDay(date, today)));
-  const completionsPlan = await planCompletionsUpdate((data) => {
-    const existing = data.completions.findIndex(isDoneIn(data.bonusResets));
-
-    // Directional requests are idempotent: already in the requested state →
-    // return the same reference, which planUpdate reports as "no change".
-    if (direction === 'complete' && existing >= 0) return data;
-    if (direction === 'uncomplete' && existing < 0) return data;
-
-    // A bonus chore can be finished only by someone it is open to, and an up-
-    // for-grabs one only once and only by whoever is holding it. An everyone-
-    // can chore already done this time round is a no-op, like a repeat tick.
-    if (existing < 0 && chore && isBonusChore(chore)) {
-      const check = checkBonusComplete(chore, memberId, date, choreMarks(data), family.groups ?? [], choreData.settings.grabHold, today);
-      if (check && 'already' in check) return data;
-      if (check) { refused = check; refusedMarks = choreMarks(data); return data; }
-    }
-    changed = true;
-
-    // Return a new object so the reference-equality check sees a change and
-    // the plan carries an after-image. Mutating `data` in-place would look
-    // like a no-op to the store. Ticking a chore marked "not today" replaces
-    // the mark. Finishing an up-for-grabs chore in today's time round ends its
-    // grabs; ticking an earlier round (yesterday's daily chore) leaves today's
-    // grab alone. Un-ticking one that finished the person's own grab today
-    // hands the grab back, rather than putting the chore up for grabs to
-    // everyone; unless they have grabbed as many others as the household
-    // allows since, when it goes back up for grabs instead. A tick nobody had
-    // grabbed for (a grown-up's slip) leaves nobody holding it when undone.
-    const endsGrabs = !!chore && isBonusChore(chore) && tickEndsGrabs(chore, date, today);
-    const grabs = data.grabs ?? [];
-    if (existing >= 0) {
-      const completions = data.completions.filter((_, i) => i !== existing);
-      // Any day of today's round (a grown-up unticks Tuesday of a Mon+Tue chore).
-      const ended = data.completions[existing].endedGrab;
-      const undoneToday = endsGrabs && typeof ended === 'string'
-        && !grabs.some((g) => g.choreId === choreId)
-        && !atGrabLimit(memberId, choreData.chores, today, { completions, grabs, bonusResets: data.bonusResets ?? {} }, choreData.settings, family.groups ?? []);
-      return {
-        ...data,
-        completions,
-        // With its own date: a tick and an un-tick must not restart how long it lasts.
-        ...(undoneToday ? { grabs: [...grabs, { choreId, memberId, date: ended }] } : {}),
-      };
-    }
-    return {
-      ...data,
-      completions: [...data.completions.filter((c) => !(sameDay(c) && c.status)), {
-        choreId, memberId, date, at: new Date().toISOString(),
-        // Only a grab that still holds: a lapsed one left in the file until
-        // the next clean-up was never this person's to get back.
-        ...(() => {
-          if (!endsGrabs || !chore || !isBonusChore(chore)) return {};
-          const own = grabs.find((g) => g.choreId === choreId && g.memberId === memberId && grabHolds(g, chore, today, choreData.settings.grabHold, today));
-          return own ? { endedGrab: own.date > today ? today : own.date } : {};
-        })(),
-      }],
-      ...(endsGrabs ? { grabs: grabs.filter((g) => g.choreId !== choreId) } : {}),
-    };
+  const { toggle, change } = await planChoreToggleUpdate(body, {
+    chores: choreData.chores,
+    groups: family.groups ?? [],
+    settings: choreData.settings,
+    today,
+    now: new Date().toISOString(),
   });
 
-  if (refused) {
-    const { refusal, memberId: holder } = refused as BonusCheck;
+  if (toggle.outcome === 'refused') {
+    const { refusal, memberId: holder } = toggle.refused;
     return NextResponse.json(
       // The lists as they stand, so the screen that asked can show why at once.
-      { error: 'Someone else has this bonus chore, or it is not open to this person.', reason: refusal, ...(holder ? { memberId: holder } : {}), ...((refusedMarks as ReturnType<typeof choreMarks> | null) ?? {}) },
+      { error: 'Someone else has this bonus chore, or it is not open to this person.', reason: refusal, ...(holder ? { memberId: holder } : {}), ...choreMarks(toggle.data) },
       { status: 409 },
     );
   }
-
-  const result = completionsPlan.result;
-  const wasAdded = result.completions.some(isDoneIn(result.bonusResets));
 
   // Credit on add, exact-debit on remove. Both files are PLANNED here and
   // published together below: they were two independent durable writes, so a
@@ -241,9 +192,13 @@ export const POST = async (request: NextRequest) => {
   // which is also what lets the two plans be committed as one unit.
   let rewards: RewardData | undefined;
   const changes: TransactionChange[] = [];
-  if (completionsPlan.change) changes.push(completionsPlan.change);
+  if (change) changes.push(change);
 
-  if (changed && chore && chore.points > 0) {
+  // A directional no-op moves nothing: a repeated "I finished the dishes"
+  // from a voice caller must never flip the chore back off or pay twice.
+  const changed = toggle.outcome === 'changed';
+  if (toggle.outcome === 'changed' && chore && chore.points > 0) {
+    const wasAdded = toggle.direction === 'complete';
     const move = await planPointsMove(memberId, wasAdded ? chore.points : -chore.points);
     if (move.change) changes.push(move.change);
     rewards = move.data;
@@ -255,12 +210,12 @@ export const POST = async (request: NextRequest) => {
   if (changes.length) await commitDataTransaction({ kind: 'chore-toggle', changes });
 
   // When no credit/debit happened (0-point chore or chore-not-found) we omit
-  // `rewards` — balances didn't change, so the client has no reason to refresh
+  // `rewards`: balances did not change, so the client has no reason to refresh
   // its rewards cache from this response.
   // `changed` lets a repeating caller (voice) distinguish "just done" from
   // "already done" without re-deriving it from the completions list.
   return NextResponse.json({
-    ...choreMarks(result),
+    ...choreMarks(toggle.data),
     changed,
     ...(rewards ? { rewards } : {}),
     ...(overspent ? { overspent } : {}),

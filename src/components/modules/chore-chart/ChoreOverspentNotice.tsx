@@ -2,7 +2,7 @@
 
 import { useTranslate } from '@/i18n';
 import { DIVIDER } from '@/lib/constants';
-import type { OverspentNotice } from './chore-toggle';
+import type { OverspentNotice } from '@/lib/chore-toggle';
 
 /**
  * The sentence itself, in one place. Both chore charts say it: the card at the

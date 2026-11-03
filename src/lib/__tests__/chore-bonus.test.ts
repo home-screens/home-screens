@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ChoreCompletion, ChoreDefinition, ChoreGrab, ChoreSettings } from '@/types/config';
 import {
+  applyToggleGrabEffects,
   atGrabLimit,
   bonusTicketsEarned,
   canPutBack,
@@ -403,6 +404,66 @@ describe('plan 109 rules', () => {
     const windows = bonus('windows', {}, { claim: 'each', comesBack: 'weekly' });
     const [item] = resolveBonusFor([windows], kids, SAT, marks([{ choreId: 'windows', memberId: 'cleo', date: WED }]), groups, settings(), SAT);
     expect(item.doneOn).toEqual({ cleo: WED });
+  });
+});
+
+describe('what a tick does to grabs', () => {
+  const chore = bonus('wash-car');
+  const chores = [chore, bonus('mow')];
+  const tick = (memberId: string, date = SAT) => ({ direction: 'complete' as const, memberId, date });
+  const untick = (memberId: string, endedGrab?: string, date = SAT) => ({ direction: 'uncomplete' as const, memberId, date, undone: { endedGrab } });
+
+  it('leaves a regular chore and an everyone-can chore alone', () => {
+    const regular = { ...chore, bonus: undefined };
+    const each = bonus('leaves', {}, { claim: 'each', comesBack: 'daily' });
+    const held = marks([], [{ choreId: 'wash-car', memberId: 'ada', date: SAT }]);
+    expect(applyToggleGrabEffects(regular, tick('ada'), held, chores, settings(), groups, SAT)).toEqual({});
+    expect(applyToggleGrabEffects(each, tick('ada'), held, chores, settings(), groups, SAT)).toEqual({});
+  });
+
+  it('a tick ends every grab on the chore and remembers the person\'s own grab that still held', () => {
+    const own = { choreId: 'wash-car', memberId: 'ada', date: SAT };
+    const other = { choreId: 'mow', memberId: 'ada', date: SAT };
+    expect(applyToggleGrabEffects(chore, tick('ada'), marks([], [own, other]), chores, settings(), groups, SAT))
+      .toEqual({ grabs: [other], endedGrab: SAT });
+  });
+
+  it('a tick does not remember a lapsed grab, and stamps a grab dated after today as today', () => {
+    const lapsed = { choreId: 'wash-car', memberId: 'ada', date: WED };
+    expect(applyToggleGrabEffects(chore, tick('ada'), marks([], [lapsed]), chores, settings(), groups, SAT)).toEqual({ grabs: [] });
+    const ahead = { choreId: 'wash-car', memberId: 'ada', date: SUN };
+    expect(applyToggleGrabEffects(chore, tick('ada'), marks([], [ahead]), chores, settings(), groups, SAT)).toEqual({ grabs: [], endedGrab: SAT });
+  });
+
+  it('a tick nobody had grabbed for remembers nothing', () => {
+    expect(applyToggleGrabEffects(chore, tick('ada'), marks(), chores, settings(), groups, SAT)).toEqual({ grabs: [] });
+  });
+
+  it('an un-tick hands the grab back with its own date', () => {
+    expect(applyToggleGrabEffects(chore, untick('ada', WED), marks(), chores, settings({ grabHold: 'until-back' }), groups, SAT))
+      .toEqual({ grabs: [{ choreId: 'wash-car', memberId: 'ada', date: WED }] });
+  });
+
+  it('an un-tick hands nothing back when the tick remembered no grab', () => {
+    expect(applyToggleGrabEffects(chore, untick('ada'), marks(), chores, settings(), groups, SAT)).toEqual({});
+  });
+
+  it('an un-tick leaves the chore to whoever grabbed it since', () => {
+    const since = { choreId: 'wash-car', memberId: 'bram', date: SAT };
+    expect(applyToggleGrabEffects(chore, untick('ada', SAT), marks([], [since]), chores, settings(), groups, SAT)).toEqual({});
+  });
+
+  it('an un-tick puts the chore back up for grabs when the person holds as many as allowed', () => {
+    const held = { choreId: 'mow', memberId: 'ada', date: SAT };
+    expect(applyToggleGrabEffects(chore, untick('ada', SAT), marks([], [held]), chores, settings({ grabLimit: 1 }), groups, SAT)).toEqual({});
+    expect(applyToggleGrabEffects(chore, untick('ada', SAT), marks([], [held]), chores, settings({ grabLimit: 0 }), groups, SAT))
+      .toEqual({ grabs: [held, { choreId: 'wash-car', memberId: 'ada', date: SAT }] });
+  });
+
+  it('an earlier round leaves today\'s grab alone, ticked or un-ticked', () => {
+    const todays = marks([], [{ choreId: 'wash-car', memberId: 'bram', date: SAT }]);
+    expect(applyToggleGrabEffects(chore, tick('ada', WED), todays, chores, settings(), groups, SAT)).toEqual({});
+    expect(applyToggleGrabEffects(chore, untick('ada', WED, WED), todays, chores, settings(), groups, SAT)).toEqual({});
   });
 });
 

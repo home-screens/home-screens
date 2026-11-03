@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
-import type { ChoreDefinition, ChoreCompletion, ChoreGrab, ChoreSettings, ChoreToggleRequest, ChoreToggleResponse } from '@/types/config';
-import { bonusTicketsEarned, countsSinceReset, readChoreSettings, resetViewDay, resolveBonusFor, type BonusItem, type BonusMarks, type BonusRefusal } from '@/lib/chore-bonus';
+import type { ChoreDefinition, ChoreCompletion, ChoreGrab, ChoreSettings } from '@/types/config';
+import { bonusTicketsEarned, countsSinceReset, readChoreSettings, resetViewDay, resolveBonusFor, type BonusItem, type BonusMarks } from '@/lib/chore-bonus';
+import { choreMarksOf, postChoreMarks, postChoreToggle, type ChoreMarks, type ChoreWriteOutcome } from '@/lib/chore-client';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useFetchData } from '@/hooks/useFetchData';
 import type { FetchError } from '@/lib/fetch-error';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayCache } from '@/lib/display-cache';
-import { choresUrl, choresDataUrl, choreGrabUrl, choreToggleUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
+import { choresUrl, choresDataUrl, rewardsUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import type { RewardRedemption, RewardDefinition } from '@/lib/reward-data';
 import {
   type ResolvedAssignment,
@@ -28,7 +29,7 @@ import { choresOwedBy } from '@/lib/chore-assignments';
 import { getLocalizedDayNames } from '@/lib/meal-constants';
 import { useFormattingLocale } from '@/i18n';
 import { isoDateInTZ } from '@/lib/timezone';
-import { planChoreToggle, readOverspentNotice, type OverspentNotice } from './chore-toggle';
+import { planChoreToggle, readOverspentNotice, type OverspentNotice } from '@/lib/chore-toggle';
 
 const EMPTY_REDEMPTIONS: RewardRedemption[] = [];
 const EMPTY_GOALS: Record<string, string> = {};
@@ -36,7 +37,7 @@ const EMPTY_GOALS: Record<string, string> = {};
 /** How long the overspent message stays on the wall before it clears itself. */
 const OVERSPENT_NOTICE_MS = 12_000;
 
-/** Display-only settings accepted by useChoreData — no members/chores,
+/** Display-only settings accepted by useChoreData: no members/chores,
  *  those are fetched separately from /api/family and /api/chores/data. */
 export interface ChoreDataConfig {
   weekStartDay: 'sunday' | 'monday';
@@ -113,20 +114,7 @@ interface ChoreDataState {
   applyRedemption: (result: RedemptionResult) => void;
 }
 
-/** What a tick or a grab came to. `refusal` and `memberId` come from a 409: who got there first. */
-export type ChoreWriteOutcome =
-  /** `changed` is false when the hub had nothing to do (already done this time round). */
-  | { ok: true; changed?: boolean }
-  | { ok: false; refusal?: BonusRefusal; memberId?: string };
-
-/** The lists in a chore write's answer, without anything else it carries (rewards, `changed`). */
-function marksOf(body: Partial<ChoresResponse>): Partial<ChoresResponse> {
-  return {
-    ...(body.completions ? { completions: body.completions } : {}),
-    ...(body.grabs ? { grabs: body.grabs } : {}),
-    ...(body.bonusResets ? { bonusResets: body.bonusResets } : {}),
-  };
-}
+export type { ChoreWriteOutcome } from '@/lib/chore-client';
 
 export interface RedemptionResult {
   balances?: Record<string, number>;
@@ -236,7 +224,7 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     return stats;
   }, [members, groups, chores, todayAssignments, completionSet, completions, config.weekStartDay, rewards, today]);
 
-  // Week data for star chart — aligned to configured week start day
+  // Week data for star chart, aligned to configured week start day
   const weekData = useMemo(() => {
     const days: WeekDayData[] = [];
     const weekDates = getWeekDatesFor(parseISO(today), config.weekStartDay);
@@ -298,16 +286,18 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
     });
   }, [publishRewards]);
 
-  // A refused write answers with the lists as they stand; without them (an
-  // older hub, a broken body) the screen goes back to what it had.
-  const applyMarks = useCallback((body: Partial<ChoresResponse> | null, completionsBefore: ChoreCompletion[], grabsBefore: ChoreGrab[]) => {
-    setCompletions(body?.completions ?? completionsBefore);
-    setGrabs(body?.grabs ?? grabsBefore);
-    if (body?.bonusResets) setBonusResets(body.bonusResets);
-    if (body?.completions) publishMarks(marksOf(body));
+  // What a write answered with, or what the screen had before it: a refusal
+  // answers with the lists as they stand, so the wall shows who has the chore
+  // at once, not at the next poll; without them (an older hub, a broken
+  // body, a hub out of reach) the screen goes back to what it had.
+  const applyMarks = useCallback((marks: ChoreMarks | null, completionsBefore: ChoreCompletion[], grabsBefore: ChoreGrab[]) => {
+    setCompletions(marks?.completions ?? completionsBefore);
+    setGrabs(marks?.grabs ?? grabsBefore);
+    if (marks?.bonusResets) setBonusResets(marks.bonusResets);
+    if (marks) publishMarks(marks);
   }, [publishMarks]);
 
-  const toggleComplete = useCallback(async (choreId: string, memberId: string) => {
+  const toggleComplete = useCallback(async (choreId: string, memberId: string): Promise<ChoreWriteOutcome> => {
     // One plan drives both the optimistic update and the direction the server
     // is told, so the screen and the request can never disagree. It is worked
     // out here rather than inside a state updater: React may run an updater
@@ -319,66 +309,32 @@ export function useChoreData(config: ChoreDataConfig, timezone: string | undefin
 
     setCompletions(plan.completions);
 
-    try {
-      const reqBody: ChoreToggleRequest = { choreId, memberId, date: today, direction: plan.direction };
-      const res = await displayFetch(choreToggleUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqBody),
-      });
-      if (res.status === 409) {
-        // Someone else has this bonus chore: the answer carries the lists as
-        // they stand, so the wall shows who has it at once, not at the next poll.
-        const refused = await res.json().catch(() => null);
-        applyMarks(refused, snapshot, grabs);
-        return { ok: false, refusal: refused?.reason, memberId: refused?.memberId };
-      }
-      if (!res.ok) throw new Error('Failed to toggle');
-      const data: ChoreToggleResponse = await res.json();
-      setCompletions(data.completions ?? []);
-      if (data.grabs) setGrabs(data.grabs);
-      publishMarks(marksOf(data));
-      // Update rewards from the POST response so ticket balances reflect the
-      // new credit/debit instantly, without waiting for the next rewards read.
-      if (data.rewards) publishRewards(data.rewards);
-      // Un-ticking takes the tickets back, and they may already be spent. The
-      // screen says so rather than leaving a kid to find a negative balance
-      // later with nothing to explain it.
-      setOverspentNotice(readOverspentNotice(data.overspent, members));
-      return { ok: true, changed: data.changed !== false };
-    } catch {
-      setCompletions(snapshot);
-      return { ok: false };
+    const outcome = await postChoreToggle(displayFetch, { choreId, memberId, date: today, direction: plan.direction });
+    if (!outcome.ok) {
+      applyMarks(outcome.refused ? outcome.marks : null, snapshot, grabs);
+      return outcome;
     }
-  }, [publishRewards, publishMarks, members, completions, chores, bonusResets, grabs, applyMarks, today]);
+    const { answer } = outcome;
+    applyMarks(choreMarksOf(answer), snapshot, grabs);
+    // Update rewards from the POST response so ticket balances reflect the
+    // new credit/debit instantly, without waiting for the next rewards read.
+    if (answer.rewards) publishRewards(answer.rewards);
+    // Un-ticking takes the tickets back, and they may already be spent. The
+    // screen says so rather than leaving a kid to find a negative balance
+    // later with nothing to explain it.
+    setOverspentNotice(readOverspentNotice(answer.overspent, members));
+    return outcome;
+  }, [publishRewards, members, completions, chores, bonusResets, grabs, applyMarks, today]);
 
   const grabChore = useCallback(async (choreId: string, memberId: string, action: 'grab' | 'let-go'): Promise<ChoreWriteOutcome> => {
     const snapshot = grabs;
     setGrabs(action === 'grab'
       ? [...snapshot.filter((g) => g.choreId !== choreId), { choreId, memberId, date: today }]
       : snapshot.filter((g) => !(g.choreId === choreId && g.memberId === memberId)));
-    try {
-      const res = await displayFetch(choreGrabUrl(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choreId, memberId, action }),
-      });
-      if (res.status === 409) {
-        const refused = await res.json().catch(() => null);
-        applyMarks(refused, completions, snapshot);
-        return { ok: false, refusal: refused?.reason, memberId: refused?.memberId };
-      }
-      if (!res.ok) throw new Error('Failed to grab');
-      const data: ChoreToggleResponse = await res.json();
-      setCompletions(data.completions ?? []);
-      setGrabs(data.grabs ?? []);
-      publishMarks(marksOf(data));
-      return { ok: true };
-    } catch {
-      setGrabs(snapshot);
-      return { ok: false };
-    }
-  }, [grabs, completions, applyMarks, publishMarks, today]);
+    const outcome = await postChoreMarks(displayFetch, { kind: 'grab', choreId, memberId, action });
+    applyMarks(outcome.ok ? choreMarksOf(outcome.answer) : outcome.refused ? outcome.marks : null, completions, snapshot);
+    return outcome;
+  }, [grabs, completions, applyMarks, today]);
 
   // The notice is a passing message, not a state of the world: it clears
   // itself so a wall display is not left holding it for the rest of the day.

@@ -505,6 +505,71 @@ export function tickEndsGrabs(chore: BonusChore, date: string, today: string): b
   return chore.bonus.claim === 'first' && sameRound(chore, date, today);
 }
 
+/** What a tick or an un-tick changes about a bonus chore's grabs. */
+export interface ToggleGrabEffects {
+  /** The grabs after the toggle. Absent when it leaves them as they are. */
+  grabs?: ChoreGrab[];
+  /**
+   * A tick only: the day of the person's own grab it finished, kept on the
+   * completion so that un-ticking can hand the grab back with its own date.
+   */
+  endedGrab?: string;
+}
+
+/** A tick or an un-tick of a chore, as the grab rules see it. */
+export interface GrabToggle {
+  direction: 'complete' | 'uncomplete';
+  memberId: string;
+  date: string;
+  /** An un-tick: the finished entry it takes away. */
+  undone?: Pick<ChoreCompletion, 'endedGrab'>;
+}
+
+/**
+ * What ticking or un-ticking `chore` on `date` does to its grabs. Nothing,
+ * unless the chore is up for grabs and the tick finishes today's time round:
+ * ticking an earlier round (yesterday's daily chore) leaves today's grab alone.
+ *
+ * A tick ends the chore's grabs, and remembers the person's own grab when it
+ * still held (a lapsed one left in the file until the next clean-up was never
+ * theirs to get back). A tick nobody had grabbed for (a grown-up's slip)
+ * remembers nothing, so nobody holds the chore when it is undone.
+ *
+ * An un-tick of a tick that finished the person's own grab hands the grab
+ * back with its original date, so a tick and an un-tick never restart how
+ * long it lasts; unless someone has grabbed the chore since, or the person
+ * has grabbed as many others as the household allows, when the chore goes
+ * back up for grabs to everyone instead.
+ *
+ * `marks` holds the completions as they stand after the toggle and the grabs
+ * as they stood before it.
+ */
+export function applyToggleGrabEffects(
+  chore: ChoreDefinition,
+  toggle: GrabToggle,
+  marks: BonusMarks,
+  chores: readonly ChoreDefinition[],
+  settings: ChoreSettings,
+  groups: readonly ChoreGroup[],
+  today: string,
+): ToggleGrabEffects {
+  if (!isBonusChore(chore) || !tickEndsGrabs(chore, toggle.date, today)) return {};
+  const grabs = marks.grabs;
+  if (toggle.direction === 'uncomplete') {
+    const ended = toggle.undone?.endedGrab;
+    const handsBack = typeof ended === 'string'
+      && !grabs.some((g) => g.choreId === chore.id)
+      && !atGrabLimit(toggle.memberId, chores, today, marks, settings, groups);
+    return handsBack ? { grabs: [...grabs, { choreId: chore.id, memberId: toggle.memberId, date: ended }] } : {};
+  }
+  const own = grabs.find((g) => g.choreId === chore.id && g.memberId === toggle.memberId && grabHolds(g, chore, today, settings.grabHold, today));
+  return {
+    grabs: grabs.filter((g) => g.choreId !== chore.id),
+    // A grab dated after today was made before the household's day stepped back: it is today's.
+    ...(own ? { endedGrab: own.date > today ? today : own.date } : {}),
+  };
+}
+
 /**
  * The order a screen with limited room shows bonus chores in: ones someone is
  * holding first (the holder must be able to reach theirs), then open ones,
