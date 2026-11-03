@@ -6,8 +6,13 @@ import type { ScreenConfiguration } from '@/types/config';
 vi.mock('fs', () => ({
   promises: {
     readFile: vi.fn(),
-    writeFile: vi.fn(),
   },
+}));
+
+// kiosk.conf is sourced by the boot scripts, so it is written whole or not at
+// all, through the same durable writer the data stores use.
+vi.mock('@/lib/data-transaction', () => ({
+  durableWriteFile: vi.fn(),
 }));
 
 vi.mock('child_process', () => ({
@@ -24,6 +29,7 @@ vi.mock('@/lib/data-root', () => ({
   getDataRoot: () => '/opt/home-screens/current',
 }));
 
+import { durableWriteFile } from '@/lib/data-transaction';
 import { syncKioskConf, applyDisplaySettings } from '../kiosk';
 
 function makeConfig(overrides: Partial<ScreenConfiguration['settings']> = {}, rawOverrides: Record<string, unknown> = {}): ScreenConfiguration {
@@ -44,42 +50,42 @@ describe('syncKioskConf', () => {
     vi.clearAllMocks();
     // Default: file doesn't exist yet
     vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
-    vi.mocked(fs.writeFile).mockResolvedValue();
+    vi.mocked(durableWriteFile).mockResolvedValue();
   });
 
   it('writes display mode with max dimension first (landscape format)', async () => {
     await syncKioskConf(makeConfig({ displayWidth: 1080, displayHeight: 1920 }));
 
-    expect(fs.writeFile).toHaveBeenCalledOnce();
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    expect(durableWriteFile).toHaveBeenCalledOnce();
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).toContain('DISPLAY_MODE="1920x1080"');
   });
 
   it('writes display mode with dimensions already in landscape order', async () => {
     await syncKioskConf(makeConfig({ displayWidth: 1920, displayHeight: 1080 }));
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).toContain('DISPLAY_MODE="1920x1080"');
   });
 
   it('includes transform when not normal', async () => {
     await syncKioskConf(makeConfig({ displayTransform: '90' as never }));
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).toContain('DISPLAY_TRANSFORM="90"');
   });
 
   it('omits transform when set to normal', async () => {
     await syncKioskConf(makeConfig({ displayTransform: 'normal' }));
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).not.toContain('DISPLAY_TRANSFORM');
   });
 
   it('omits transform when undefined', async () => {
     await syncKioskConf(makeConfig({ displayTransform: undefined }));
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).not.toContain('DISPLAY_TRANSFORM');
   });
 
@@ -87,7 +93,7 @@ describe('syncKioskConf', () => {
     const config = makeConfig({}, { settings: { displayWidth: 1080, displayHeight: 1920, displayTransform: 'normal', piVariant: 'pi-5' } });
     await syncKioskConf(config);
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).toContain('PI_VARIANT="pi-5"');
   });
 
@@ -95,7 +101,7 @@ describe('syncKioskConf', () => {
     const config = makeConfig({}, { settings: { displayWidth: 1080, displayHeight: 1920, displayTransform: 'normal', piVariant: 'pi; rm -rf /' } });
     await syncKioskConf(config);
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).not.toContain('PI_VARIANT');
     expect(content).not.toContain('rm -rf');
   });
@@ -104,7 +110,7 @@ describe('syncKioskConf', () => {
     const config = makeConfig({}, { settings: { displayWidth: 1080, displayHeight: 1920, displayTransform: 'normal', piVariant: '`whoami`' } });
     await syncKioskConf(config);
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).not.toContain('PI_VARIANT');
   });
 
@@ -112,7 +118,7 @@ describe('syncKioskConf', () => {
     const config = makeConfig({}, { settings: { displayWidth: 1080, displayHeight: 1920, displayTransform: 'normal', piVariant: 'Pi5' } });
     await syncKioskConf(config);
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).not.toContain('PI_VARIANT');
   });
 
@@ -122,7 +128,7 @@ describe('syncKioskConf', () => {
 
     await syncKioskConf(config);
 
-    expect(fs.writeFile).not.toHaveBeenCalled();
+    expect(durableWriteFile).not.toHaveBeenCalled();
   });
 
   it('writes when content differs from existing file', async () => {
@@ -131,20 +137,20 @@ describe('syncKioskConf', () => {
 
     await syncKioskConf(config);
 
-    expect(fs.writeFile).toHaveBeenCalledOnce();
+    expect(durableWriteFile).toHaveBeenCalledOnce();
   });
 
   it('omits display mode when dimensions are zero', async () => {
     await syncKioskConf(makeConfig({ displayWidth: 0, displayHeight: 0 }));
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content).not.toContain('DISPLAY_MODE');
   });
 
   it('output ends with newline', async () => {
     await syncKioskConf(makeConfig());
 
-    const content = vi.mocked(fs.writeFile).mock.calls[0][1] as string;
+    const content = vi.mocked(durableWriteFile).mock.calls[0][1] as string;
     expect(content.endsWith('\n')).toBe(true);
   });
 });

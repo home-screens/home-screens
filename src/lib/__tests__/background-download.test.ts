@@ -42,10 +42,7 @@ function mockFetch(opts: {
         ok,
         status,
         headers: new Headers({ 'content-type': contentType }),
-        arrayBuffer: () =>
-          Promise.resolve(
-            body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength),
-          ),
+        body: new Response(new Uint8Array(body)).body,
       }),
     ),
   );
@@ -291,6 +288,43 @@ describe('downloadAndSaveBackground', () => {
 
       const files = await fs.readdir(bgsDir);
       expect(files).toContain('existing.png');
+    });
+  });
+
+  describe('streamed through the library writer', () => {
+    it('refuses a picture over the import cap and leaves nothing on disk', async () => {
+      const { MAX_IMPORT_IMAGE_BYTES } = await import('@/lib/media-formats');
+      // Chunks arrive until the cap is crossed; the body is never buffered whole.
+      const chunk = new Uint8Array(1024 * 1024);
+      let sent = 0;
+      const endless = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          sent += chunk.length;
+          if (sent > MAX_IMPORT_IMAGE_BYTES + chunk.length * 2) controller.close();
+          else controller.enqueue(chunk);
+        },
+      });
+      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({
+        ok: true, status: 200, headers: new Headers({ 'content-type': 'image/jpeg' }), body: endless,
+      })));
+
+      await expect(callDownload('https://example.com/huge.jpg', 'huge')).rejects.toThrow('byte limit');
+      expect(await fs.readdir(bgsDir)).toEqual([]);
+    });
+
+    it('leaves no partial file under the final name when the download drops', async () => {
+      const dropped = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new Uint8Array([1, 2, 3]));
+          controller.error(new Error('connection reset'));
+        },
+      });
+      vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({
+        ok: true, status: 200, headers: new Headers({ 'content-type': 'image/jpeg' }), body: dropped,
+      })));
+
+      await expect(callDownload('https://example.com/pic.jpg', 'dropped')).rejects.toThrow('connection reset');
+      expect(await fs.readdir(bgsDir)).toEqual([]);
     });
   });
 

@@ -8,6 +8,7 @@ import { execFile } from 'child_process';
 import path from 'path';
 import { appScriptPath } from '@/lib/app-dir';
 import { getDataRoot } from '@/lib/data-root';
+import { durableWriteFile } from '@/lib/data-transaction';
 import { DISPLAY_TRANSFORMS, findMainDisplay, isValidTouchMatrix } from '@/lib/display-filter';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -112,7 +113,10 @@ export async function syncKioskConf(config: ScreenConfiguration): Promise<boolea
   } catch {
     // File doesn't exist yet — write it
   }
-  await fs.writeFile(confPath, desired, 'utf-8');
+  // Whole or untouched: the kiosk scripts source this file at boot, and a
+  // power cut during a plain rewrite would leave it empty or partial, which
+  // boots a portrait wall unrotated until the next save.
+  await durableWriteFile(confPath, desired);
   return true;
 }
 

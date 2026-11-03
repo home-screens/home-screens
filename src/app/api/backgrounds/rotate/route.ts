@@ -102,15 +102,20 @@ async function fetchAndSavePhoto(query: string, accessKey: string, canvas: { w: 
   const imgRes = await fetchWithTimeout(imageUrl);
   if (!imgRes.ok) return null;
 
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
-  const ext = 'jpg';
-  const filename = `rotation-unsplash-${photoId}.${ext}`;
-  const filePath = path.join(BGS, filename);
-
-  await fs.mkdir(BGS, { recursive: true });
-  await fs.writeFile(filePath, buffer);
-
+  const filename = `rotation-unsplash-${photoId}.jpg`;
+  await saveRotationFile(filename, imgRes.body);
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
+}
+
+/**
+ * Streams a downloaded picture into the library under its rotation name:
+ * capped like an import, never held whole in the hub's memory, and landing
+ * under the final name only once complete, so a dropped download or a power
+ * cut mid-write never leaves a truncated picture for the wall to serve.
+ */
+async function saveRotationFile(filename: string, body: ReadableStream<Uint8Array> | null): Promise<void> {
+  await fs.mkdir(BGS, { recursive: true });
+  await writeLibraryFile(path.join(BGS, filename), body, MAX_IMPORT_IMAGE_BYTES);
 }
 
 async function fetchAndSaveApod(): Promise<string | null> {
@@ -128,16 +133,11 @@ async function fetchAndSaveApod(): Promise<string | null> {
   const imgRes = await fetchWithTimeout(imageUrl, { timeout: 30_000 });
   if (!imgRes.ok) return null;
 
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
   const apodContentType = imgRes.headers.get('content-type') ?? '';
   const apodExt = apodContentType.includes('png') ? '.png' : apodContentType.includes('webp') ? '.webp' : '.jpg';
   const dateStr = (apod.date as string || '').replace(/-/g, '');
   const filename = `rotation-nasa-apod-${dateStr}${apodExt}`;
-  const filePath = path.join(BGS, filename);
-
-  await fs.mkdir(BGS, { recursive: true });
-  await fs.writeFile(filePath, buffer);
-
+  await saveRotationFile(filename, imgRes.body);
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
 }
 
@@ -164,15 +164,10 @@ async function fetchAndSaveImmichPhoto(rotation: BackgroundRotation): Promise<st
   const imgRes = await immichFetch(`/api/assets/${assetId}/thumbnail?size=preview`, { timeout: 15_000 });
   if (!imgRes.ok) return null;
 
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
   const contentType = imgRes.headers.get('content-type') ?? '';
   const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
   const filename = `rotation-immich-${assetId}${ext}`;
-  const filePath = path.join(BGS, filename);
-
-  await fs.mkdir(BGS, { recursive: true });
-  await fs.writeFile(filePath, buffer);
-
+  await saveRotationFile(filename, imgRes.body);
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
 }
 
@@ -192,14 +187,25 @@ async function fetchAndSaveICloudPhoto(rotation: BackgroundRotation): Promise<st
   // swaps it. The rotation- prefix keeps these prunable without ever touching
   // user-imported icloud-<guid> files living in the same root.
   const filename = `rotation-icloud-${pick.guid.replace(/[^A-Za-z0-9-]/g, '')}${ext}`;
-  const filePath = path.join(BGS, filename);
-
-  await fs.mkdir(BGS, { recursive: true });
-  // Stream to disk like the import path — an Apple original can be tens of
-  // MB, too much to buffer whole on a Pi hub, and the cap applies mid-stream.
-  await writeLibraryFile(filePath, imgRes.body, MAX_IMPORT_IMAGE_BYTES);
-
+  await saveRotationFile(filename, imgRes.body);
   return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
+}
+
+/**
+ * Downloads in progress, one per screen. A download can outlast the wall's
+ * next poll (NASA retries for up to a minute and a half), and two displays
+ * showing the same screen ask within seconds of each other, so a request
+ * that finds one running joins it instead of starting a second download of
+ * the same file.
+ */
+const inFlight = new Map<string, Promise<string | null>>();
+
+function fetchOnce(screenId: string, fetchPhoto: () => Promise<string | null>): Promise<string | null> {
+  const running = inFlight.get(screenId);
+  if (running) return running;
+  const run = fetchPhoto().finally(() => inFlight.delete(screenId));
+  inFlight.set(screenId, run);
+  return run;
 }
 
 /**
@@ -259,17 +265,17 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     let newPath: string | null = null;
 
     if (source === 'immich') {
-      newPath = await fetchAndSaveImmichPhoto(rotation);
+      newPath = await fetchOnce(screenId, () => fetchAndSaveImmichPhoto(rotation));
     } else if (source === 'icloud') {
-      newPath = await fetchAndSaveICloudPhoto(rotation);
+      newPath = await fetchOnce(screenId, () => fetchAndSaveICloudPhoto(rotation));
     } else if (source === 'nasa-apod') {
-      newPath = await fetchAndSaveApod();
+      newPath = await fetchOnce(screenId, fetchAndSaveApod);
     } else {
       const accessKey = await getUnsplashAccessKey();
       if (!accessKey) {
         return NextResponse.json({ path: entry?.path || screen.backgroundImage || null });
       }
-      newPath = await fetchAndSavePhoto(rotation.query, accessKey, canvasOf(config, screenId));
+      newPath = await fetchOnce(screenId, () => fetchAndSavePhoto(rotation.query, accessKey, canvasOf(config, screenId)));
     }
 
     if (newPath) {

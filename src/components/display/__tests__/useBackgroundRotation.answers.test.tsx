@@ -4,7 +4,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import type { Screen } from '@/types/config';
 
 const displayFetch = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/display-fetch', () => ({ displayFetch }));
+vi.mock('@/lib/display-fetch', () => ({ displayFetch, DISPLAY_FETCH_LONG_TIMEOUT_MS: 60_000 }));
 
 import { useBackgroundRotation } from '../useBackgroundRotation';
 
@@ -80,6 +80,15 @@ describe('useBackgroundRotation answers', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('gives the lookup the long budget, since the hub downloads the picture before answering', async () => {
+    renderHook(() => useBackgroundRotation([screen(true)]));
+    await waitFor(() => expect(displayFetch).toHaveBeenCalled());
+    expect(displayFetch).toHaveBeenCalledWith(
+      '/api/backgrounds/rotate?screenId=s',
+      expect.objectContaining({ timeoutMs: 60_000 }),
+    );
   });
 
   it('settles on the own picture when the first lookup fails', async () => {

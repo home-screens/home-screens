@@ -1,4 +1,5 @@
 import { createWriteStream, promises as fs } from 'fs';
+import { randomUUID } from 'crypto';
 import { Readable, Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 import path from 'path';
@@ -66,9 +67,14 @@ export async function listLibraryFolder(folder: string): Promise<string[]> {
  * Stream a web ReadableStream to a library file in chunks — never the whole
  * asset in memory, because the hub is often a Raspberry Pi and imports
  * include videos of tens to hundreds of MB. Enforces the byte cap WHILE
- * writing (a Content-Length header can lie or be absent); on overflow or any
- * mid-stream failure the partial file is removed so the library never holds
- * truncated media.
+ * writing (a Content-Length header can lie or be absent).
+ *
+ * The bytes go to a temporary name beside the file and take the final name
+ * only once the whole body has landed, so the library never holds truncated
+ * media under a name the wall would serve: not after an overflow or a
+ * dropped connection (the partial file is removed), not after a power cut
+ * mid-write (the stray `.tmp` is never served), and a replacement keeps the
+ * old picture whole until the new one is complete.
  */
 export async function writeLibraryFile(
   filePath: string,
@@ -84,14 +90,16 @@ export async function writeLibraryFile(
       else callback(null, chunk);
     },
   });
+  const tmp = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   try {
     await pipeline(
       Readable.fromWeb(body as import('stream/web').ReadableStream),
       cap,
-      createWriteStream(filePath),
+      createWriteStream(tmp),
     );
+    await fs.rename(tmp, filePath);
   } catch (err) {
-    await fs.rm(filePath, { force: true }).catch(() => { /* nothing to clean */ });
+    await fs.rm(tmp, { force: true }).catch(() => { /* nothing to clean */ });
     throw err;
   }
 }

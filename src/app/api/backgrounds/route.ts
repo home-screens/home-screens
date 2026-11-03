@@ -186,14 +186,9 @@ async function replaceLibraryFile(target: string, files: File[]): Promise<NextRe
   }
   const svgProblem = await svgSizeProblem(file);
   if (svgProblem) return NextResponse.json({ error: svgProblem }, { status: 400 });
-  const tmp = `${filePath}.replace-${process.pid}.tmp`;
-  try {
-    await writeLibraryFile(tmp, file.stream(), maxSize);
-    await fs.rename(tmp, filePath);
-  } catch (err) {
-    await fs.unlink(tmp).catch(() => { /* never written */ });
-    throw err;
-  }
+  // Lands under the final name only once whole, so a replaced picture
+  // stays whole until the new one is complete.
+  await writeLibraryFile(filePath, file.stream(), maxSize);
   await removeThumbnails(relativePath);
   bumpLibraryRevision();
   // The wall keeps a picture in an <img> that never re-requests an unchanged

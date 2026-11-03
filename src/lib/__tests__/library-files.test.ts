@@ -60,12 +60,53 @@ describe('writeLibraryFile', () => {
     expect(await fs.readFile(file, 'utf-8')).toBe('jpeg-bytes');
   });
 
-  it('rejects a body over the byte cap and removes the partial file', async () => {
+  it('rejects a body over the byte cap and leaves nothing behind, neither the file nor a temp', async () => {
     const file = path.join(DIR, 'huge.mp4');
     await expect(
       writeLibraryFile(file, streamOf('x'.repeat(64), 'y'.repeat(64)), 100),
     ).rejects.toThrow('byte limit');
     await expect(fs.access(file)).rejects.toThrow();
+    expect(await fs.readdir(DIR)).toEqual([]);
+  });
+
+  it('never puts a cut-off download under the final name, and keeps the picture it would replace', async () => {
+    const file = path.join(DIR, 'wall.jpg');
+    await fs.writeFile(file, 'the old picture');
+    const dropped = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('half of the new'));
+        controller.error(new Error('connection reset'));
+      },
+    });
+    await expect(writeLibraryFile(file, dropped, 1024)).rejects.toThrow('connection reset');
+    expect(await fs.readFile(file, 'utf-8')).toBe('the old picture');
+    expect(await fs.readdir(DIR)).toEqual(['wall.jpg']);
+  });
+
+  it('writes beside the file and takes the final name only once whole', async () => {
+    const file = path.join(DIR, 'new.jpg');
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const slow = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        controller.enqueue(new TextEncoder().encode('first half,'));
+        await gate;
+        controller.enqueue(new TextEncoder().encode(' second half'));
+        controller.close();
+      },
+    });
+    const writing = writeLibraryFile(file, slow, 1024);
+    // Wait for the first chunk to land somewhere.
+    for (let i = 0; i < 50 && (await fs.readdir(DIR)).length === 0; i++) await new Promise((r) => setTimeout(r, 5));
+    const during = await fs.readdir(DIR);
+    expect(during).toHaveLength(1);
+    expect(during[0]).toMatch(/^new\.jpg\..+\.tmp$/);
+    await expect(fs.access(file)).rejects.toThrow();
+
+    release();
+    await writing;
+    expect(await fs.readdir(DIR)).toEqual(['new.jpg']);
+    expect(await fs.readFile(file, 'utf-8')).toBe('first half, second half');
   });
 
   it('rejects a missing body', async () => {

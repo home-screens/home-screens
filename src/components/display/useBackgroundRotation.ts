@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
-import { displayFetch } from '@/lib/display-fetch';
+import { displayFetch, DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
@@ -84,7 +84,12 @@ export function useBackgroundRotation(screens: Screen[]) {
     async function pollEachScreen() {
       for (const screen of screensWithRotation) {
         try {
-          const res = await displayFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`);
+          // The hub downloads the next picture before it answers, which can
+          // take well over the ordinary request budget on a slow uplink.
+          const res = await displayFetch(
+            `/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`,
+            { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS },
+          );
           if (res.ok) {
             const data = await res.json();
             const path: string | null = data.path || null;

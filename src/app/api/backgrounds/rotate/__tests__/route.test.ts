@@ -15,12 +15,12 @@ vi.mock('@/lib/auth', () => ({
 // it must hand back a real Writable or stream.pipeline rejects.
 const fsMock = vi.hoisted(() => ({
   readFile: vi.fn(),
-  writeFile: vi.fn(),
   mkdir: vi.fn(),
   readdir: vi.fn(),
   stat: vi.fn(),
   unlink: vi.fn(),
   rm: vi.fn(),
+  rename: vi.fn(),
 }));
 const createWriteStreamMock = vi.hoisted(() => vi.fn());
 vi.mock('fs', () => ({ promises: fsMock, createWriteStream: createWriteStreamMock }));
@@ -97,12 +97,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   cacheState.value = {}; // empty rotation cache by default
   fsMock.readFile.mockRejectedValue(new Error('ENOENT'));
-  fsMock.writeFile.mockResolvedValue(undefined);
   fsMock.mkdir.mockResolvedValue(undefined);
   fsMock.readdir.mockResolvedValue([]); // nothing to prune by default
   fsMock.stat.mockResolvedValue({ mtimeMs: 0 });
   fsMock.unlink.mockResolvedValue(undefined);
   fsMock.rm.mockResolvedValue(undefined);
+  fsMock.rename.mockResolvedValue(undefined);
   createWriteStreamMock.mockImplementation(
     () => new Writable({ write(_chunk, _encoding, callback) { callback(); } }),
   );
@@ -214,8 +214,12 @@ describe('GET /api/backgrounds/rotate — Immich rotation', () => {
     });
     // Random search + thumbnail download.
     expect(mockImmichFetch).toHaveBeenCalledTimes(2);
-    // The image file is written through fs; the cache entry lands in the store.
-    expect(fsMock.writeFile).toHaveBeenCalled();
+    // The image is streamed to a temp name and renamed into place; the cache
+    // entry lands in the store.
+    expect(fsMock.rename).toHaveBeenCalledWith(
+      expect.stringMatching(/rotation-immich-asset1\.jpg\..+\.tmp$/),
+      expect.stringMatching(/rotation-immich-asset1\.jpg$/),
+    );
     expect(cacheState.value).toHaveProperty('s1');
   });
 
@@ -229,7 +233,7 @@ describe('GET /api/backgrounds/rotate — Immich rotation', () => {
     const json = await res.json();
 
     expect(json).toEqual({ path: '/bg.jpg' });
-    expect(fsMock.writeFile).not.toHaveBeenCalled();
+    expect(createWriteStreamMock).not.toHaveBeenCalled();
   });
 });
 
@@ -252,7 +256,7 @@ describe('GET /api/backgrounds/rotate — Unsplash rotation', () => {
 
     expect(json).toEqual({ path: '/bg.jpg' });
     expect(mockFetch).not.toHaveBeenCalled();
-    expect(fsMock.writeFile).not.toHaveBeenCalled();
+    expect(createWriteStreamMock).not.toHaveBeenCalled();
   });
 
   it('fetches Unsplash metadata, downloads the image, and saves a fresh path', async () => {
@@ -280,7 +284,44 @@ describe('GET /api/backgrounds/rotate — Unsplash rotation', () => {
     });
     // Metadata fetch + image download.
     expect(mockFetch).toHaveBeenCalledTimes(2);
-    expect(fsMock.writeFile).toHaveBeenCalled();
+    expect(fsMock.rename).toHaveBeenCalledWith(
+      expect.stringMatching(/rotation-unsplash-photo42\.jpg\..+\.tmp$/),
+      expect.stringMatching(/rotation-unsplash-photo42\.jpg$/),
+    );
+  });
+
+  /**
+   * A download can outlast the wall's next poll, and two displays showing
+   * the same screen ask within seconds of each other. The second request
+   * joins the running download instead of starting another write of the
+   * same file.
+   */
+  it('lets an overlapping request for the same screen join the running download', async () => {
+    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
+    mockUnsplashKey.mockResolvedValue('unsplash-key');
+    let finishDownload!: () => void;
+    const slowBody = new ReadableStream<Uint8Array>({
+      start(controller) {
+        finishDownload = () => { controller.enqueue(new Uint8Array([7])); controller.close(); };
+      },
+    });
+    mockFetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'photo42', urls: { regular: 'https://images.unsplash.com/photo42' } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(slowBody, { status: 200 }));
+
+    const first = GET(rotateReq());
+    // The first request is inside its download before the second arrives.
+    for (let i = 0; i < 50 && mockFetch.mock.calls.length < 2; i++) await new Promise((r) => setTimeout(r, 1));
+    const second = GET(rotateReq());
+    await new Promise((r) => setTimeout(r, 5));
+    finishDownload();
+
+    const [a, b] = await Promise.all([first.then((r) => r.json()), second.then((r) => r.json())]);
+    expect(a).toEqual({ path: '/api/backgrounds/serve?file=rotation-unsplash-photo42.jpg', fresh: true });
+    expect(b).toEqual(a);
+    // One metadata fetch and one image download served both requests.
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(createWriteStreamMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -364,7 +405,10 @@ describe('GET /api/backgrounds/rotate — NASA APOD rotation', () => {
       path: '/api/backgrounds/serve?file=rotation-nasa-apod-20240501.jpg',
       fresh: true,
     });
-    expect(fsMock.writeFile).toHaveBeenCalled();
+    expect(fsMock.rename).toHaveBeenCalledWith(
+      expect.stringMatching(/rotation-nasa-apod-20240501\.jpg\..+\.tmp$/),
+      expect.stringMatching(/rotation-nasa-apod-20240501\.jpg$/),
+    );
   });
 
   it('falls back to the static background when the APOD entry is not an image', async () => {
@@ -380,7 +424,7 @@ describe('GET /api/backgrounds/rotate — NASA APOD rotation', () => {
     const json = await res.json();
 
     expect(json).toEqual({ path: '/bg.jpg' });
-    expect(fsMock.writeFile).not.toHaveBeenCalled();
+    expect(createWriteStreamMock).not.toHaveBeenCalled();
   });
 });
 
@@ -450,7 +494,7 @@ describe('GET /api/backgrounds/rotate — iCloud rotation', () => {
     const json = await (await GET(rotateReq())).json();
 
     expect(json).toEqual({ path: '/bg.jpg' });
-    expect(fsMock.writeFile).not.toHaveBeenCalled();
+    expect(createWriteStreamMock).not.toHaveBeenCalled();
   });
 
   it('serves the cached image while fresh, without re-resolving the album', async () => {

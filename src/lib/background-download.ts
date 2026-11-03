@@ -2,6 +2,8 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { fetchWithTimeout } from '@/lib/api-utils';
+import { writeLibraryFile } from '@/lib/library-files';
+import { MAX_IMPORT_IMAGE_BYTES } from '@/lib/media-formats';
 
 const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
 
@@ -62,8 +64,6 @@ export async function downloadAndSaveBackground(
       throw new Error('URL did not return an image');
     }
   }
-  const buffer: Buffer = Buffer.from(await res.arrayBuffer());
-
   // Content-type can carry parameters ("image/jpeg; charset=binary").
   const mediaType = contentType.split(';')[0].trim().toLowerCase();
   const isTiff = mediaType.includes('tiff') || /\.tiff?(\?|$)/i.test(imageUrl);
@@ -79,7 +79,10 @@ export async function downloadAndSaveBackground(
   const safeName = filenamePrefix.replace(/[^a-zA-Z0-9._-]/g, '_') + ext;
 
   await fs.mkdir(BGS, { recursive: true });
-  await fs.writeFile(path.join(BGS, safeName), buffer);
+  // Streamed and capped like an import, landing under its name only once
+  // whole: a picture is never held entire in the hub's memory, and a dropped
+  // download never leaves a truncated file for the wall to serve.
+  await writeLibraryFile(path.join(BGS, safeName), res.body, MAX_IMPORT_IMAGE_BYTES);
 
   return { path: `/api/backgrounds/serve?file=${encodeURIComponent(safeName)}` };
 }
