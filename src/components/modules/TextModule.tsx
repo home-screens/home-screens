@@ -199,7 +199,12 @@ export default function TextModule({ config, style: ownStyle, timezone }: TextMo
         style={{
           display: 'inline-block',
           whiteSpace: 'pre',
-          animation: `${animName} ${animSeconds}s ease-in-out infinite`,
+          // Longhands only: an `animation` shorthand rewritten on a speed
+          // change resets the delay beside it and the letters fall into step.
+          animationName: animName,
+          animationDuration: `${animSeconds}s`,
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
           animationDelay: `${i * stagger}s`,
         }}
       >

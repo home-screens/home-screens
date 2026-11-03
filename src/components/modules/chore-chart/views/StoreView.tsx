@@ -277,7 +277,9 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
                 disabled={!tappable}
                 onClick={tappable ? () => setChoosingFor(reward) : undefined}
                 className="flex w-full items-center text-left"
-                style={{ ...rowStyle(i), minHeight: allowTouch ? STORE_TAP_PX : undefined, boxSizing: 'border-box', background: 'none', border: 'none', borderTop: rowStyle(i).borderTop, color: 'inherit', font: 'inherit', cursor: tappable ? 'pointer' : 'default' }}
+                // `border: 'none'` goes ahead of the row style: placed after it, it
+                // painted over the divider, whose key keeps its spread position.
+                style={{ border: 'none', ...rowStyle(i), minHeight: allowTouch ? STORE_TAP_PX : undefined, boxSizing: 'border-box', background: 'none', color: 'inherit', font: 'inherit', cursor: tappable ? 'pointer' : 'default' }}
               >
                 {icon(reward, 1.2)}
                 <span className="min-w-0 flex-1 truncate" style={{ fontWeight: 500 }}>{reward.name}</span>

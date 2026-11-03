@@ -237,15 +237,19 @@ export default function WeekView({
                   </div>
                 );
 
+                // Each side is its own property: a `border` shorthand changing
+                // under the meal-colour top would repaint the top edge too, so
+                // the stripe vanished when the meal turned "now".
+                const edge = isActiveSlot ? '2px solid var(--fmp-accent)' : '1px solid var(--fmp-border-sub)';
                 return (
                   <div key={slot} style={{
                     flex: 1, minWidth: 0,
                     background: 'var(--fmp-surface)',
                     borderRadius: P(12),
-                    border: isActiveSlot
-                      ? `2px solid var(--fmp-accent)`
-                      : '1px solid var(--fmp-border-sub)',
                     borderTop: `${P(4)}px solid ${meta.color}`,
+                    borderRight: edge,
+                    borderBottom: edge,
+                    borderLeft: edge,
                     boxShadow: isActiveSlot
                       ? `0 0 0 2px var(--fmp-accent), var(--fmp-card-shadow)`
                       : 'var(--fmp-card-shadow)',

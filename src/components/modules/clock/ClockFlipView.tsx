@@ -41,6 +41,11 @@ function FlipCard({
   const h = size;
   const fs = size * 0.82;
   const borderColor = accentColor ? `${accentColor}20` : 'rgba(255,255,255,0.06)';
+  // Each side is its own property: a `border` shorthand changing under a
+  // `borderTop: 'none'` (when the colour changes) would draw the seam edge back.
+  const edge = `1px solid ${borderColor}`;
+  const topHalfEdges = { borderTop: edge, borderRight: edge, borderBottom: 'none', borderLeft: edge };
+  const bottomHalfEdges = { borderTop: 'none', borderRight: edge, borderBottom: edge, borderLeft: edge };
 
   // Shared text style — full card height, centered, so clipping top/bottom half works
   // The digits are white on purpose: they sit on the flap's own dark fill
@@ -65,8 +70,7 @@ function FlipCard({
           position: 'absolute', top: 0, left: 0, width: w, height: h / 2,
           overflow: 'hidden', background: '#1a1a1a',
           borderRadius: '6px 6px 0 0',
-          border: `1px solid ${borderColor}`,
-          borderBottom: 'none',
+          ...topHalfEdges,
         }}
       >
         <span className="tabular-nums" style={{ ...textBase, top: 0, color: 'rgba(255,255,255,0.92)' }} suppressHydrationWarning>
@@ -79,8 +83,7 @@ function FlipCard({
           position: 'absolute', top: h / 2, left: 0, width: w, height: h / 2,
           overflow: 'hidden', background: '#151515',
           borderRadius: '0 0 6px 6px',
-          border: `1px solid ${borderColor}`,
-          borderTop: 'none',
+          ...bottomHalfEdges,
         }}
       >
         <span className="tabular-nums" style={{ ...textBase, top: -h / 2, color: 'rgba(255,255,255,0.85)' }} suppressHydrationWarning>
@@ -95,8 +98,7 @@ function FlipCard({
             position: 'absolute', top: 0, left: 0, width: w, height: h / 2,
             overflow: 'hidden', background: '#1a1a1a',
             borderRadius: '6px 6px 0 0',
-            border: `1px solid ${borderColor}`,
-            borderBottom: 'none',
+            ...topHalfEdges,
             transformOrigin: '50% 100%',
             animation: `flip-top-down ${FLIP_DURATION}ms ease-in forwards`,
             zIndex: 3,

@@ -63,7 +63,7 @@ describe('TextModule', () => {
       const spans = container.querySelectorAll('span > span');
       // Two characters → two animated spans (plus possibly the outer wrapper)
       const animatedSpans = Array.from(spans).filter((s) =>
-        (s as HTMLElement).style.animation?.includes('_textWave'),
+        (s as HTMLElement).style.animationName?.includes('_textWave'),
       );
       expect(animatedSpans.length).toBe(2);
     });
@@ -74,7 +74,7 @@ describe('TextModule', () => {
       // No per-char spans should carry the wave animation
       const spans = Array.from(container.querySelectorAll('span'));
       const animatedSpans = spans.filter((s) =>
-        (s as HTMLElement).style.animation?.includes('_textWave'),
+        (s as HTMLElement).style.animationName?.includes('_textWave'),
       );
       expect(animatedSpans.length).toBe(0);
       expect(container.textContent).toContain('aaa');
@@ -88,7 +88,7 @@ describe('TextModule', () => {
       });
       const spans = Array.from(container.querySelectorAll('span'));
       const animatedSpans = spans.filter((s) =>
-        (s as HTMLElement).style.animation?.includes('_textBounce'),
+        (s as HTMLElement).style.animationName?.includes('_textBounce'),
       );
       // Markdown short-circuit: no per-char animated spans
       expect(animatedSpans.length).toBe(0);
