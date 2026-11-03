@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "En dagsnote skal have et par ord.",
+      "textTooLong": "Højst {max} tegn.",
+      "badDate": "Den dag findes ikke i kalenderen.",
+      "dayOver": "Den dag er forbi. Vælg i dag eller en dag efter.",
+      "dayTooFar": "Den dag er for langt væk. Vælg en dag inden for et år.",
+      "duplicate": "Den note er der allerede.",
+      "dayFull": "En dag kan have {max} noter. Ret eller fjern en først.",
+      "tooMany": "Der er for mange dagsnoter. Fjern nogle først.",
+      "noteGone": "Den note er der ikke længere."
+    },
+    "timers": {
+      "notRunning": "Der kører ingen timer.",
+      "routineGone": "Den rutine findes ikke længere. Vælg en anden.",
+      "badRequest": "Det virkede ikke. Genindlæs siden, og prøv igen.",
+      "invalid": "Den rutine kan ikke gemmes, som den er. Tjek dens navn og trin.",
+      "reload": "Genindlæs siden, og prøv igen.",
+      "revision": "En anden har ændret rutinerne. Din seneste ændring blev ikke gemt. Prøv igen."
+    }
+  },
   "tabs": {
     "control": "Kontrol",
     "chores": "Pligter",
@@ -1116,7 +1137,7 @@
     "showingOnDisplay": "Vises på skærmen",
     "waitingForDisplay": "Venter på, at en skærm tager den…",
     "notShowing": "Ingen skærm viser den endnu. Tjek, at en skærm er tændt.",
-    "changedElsewhere": "En anden har ændret rutinerne. Din seneste ændring blev ikke gemt. Prøv igen.",
+    "failed": "Noget gik galt. Prøv igen.",
     "whyNoSave": {
       "name": "Giv rutinen et navn for at gemme.",
       "stepName": "Giv hvert trin et navn for at gemme.",

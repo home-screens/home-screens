@@ -87,6 +87,11 @@ const BLOB = {
         folderCreated: 'created {name}',
         folderRenamed: 'renamed {name}',
         folderDeleted: 'deleted {name}',
+      },
+    },
+    refusals: {
+      library: {
+        fileExists: '{name} already in that folder',
         folderNotEmpty: 'not-empty',
       },
     },
@@ -821,13 +826,13 @@ describe('MediaLibraryPage move', () => {
       .toEqual({ screens: [{ id: 's1', backgroundImage: 'nature/lake_sunset.jpg' }] });
   });
 
-  it('shows the server reason when a move is refused and keeps the selection', async () => {
-    libraryOps.move.mockResolvedValue({ ok: false, status: 409, error: 'lake_sunset.jpg is already in that folder' });
+  it('shows the refusal in its own words when a move is refused and keeps the selection', async () => {
+    libraryOps.move.mockResolvedValue({ ok: false, status: 409, error: 'HUB SENTENCE', code: 'library.fileExists', params: { name: 'lake_sunset.jpg' } });
     await renderLoaded();
     select('lake_sunset.jpg');
     fireEvent.change(screen.getByTestId('media-move-select'), { target: { value: 'nature' } });
     await waitFor(() => expect(screen.getByTestId('media-outcome').getAttribute('data-ok')).toBe('false'));
-    expect(screen.getByTestId('media-outcome').textContent).toContain('already in that folder');
+    expect(screen.getByTestId('media-outcome').textContent).toBe('lake_sunset.jpg already in that folder');
     expect(document.querySelectorAll('[data-selected="true"]')).toHaveLength(1);
   });
 });
@@ -863,7 +868,7 @@ describe('MediaLibraryPage folders', () => {
   });
 
   it('deletes an empty folder after a confirm and explains a full one', async () => {
-    libraryOps.deleteFolder.mockResolvedValueOnce({ ok: false, status: 409, error: 'Directory is not empty. Delete all photos first.' });
+    libraryOps.deleteFolder.mockResolvedValueOnce({ ok: false, status: 409, error: 'Directory is not empty. Delete all photos first.', code: 'library.folderNotEmpty' });
     await renderLoaded();
     fireEvent.click(screen.getByTestId('media-chip-clips'));
     fireEvent.click(screen.getByTestId('media-folder-delete'));

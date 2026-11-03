@@ -143,7 +143,7 @@ describe('TimetableModal', () => {
     render('emma');
     await settle();
 
-    state.request.mockResolvedValueOnce(reply(409, { error: 'nope', reason: 'revision', data: DATA, revision: 'r9' }));
+    state.request.mockResolvedValueOnce(reply(409, { error: 'nope', code: 'timetables.revision', data: DATA, revision: 'r9' }));
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Tuesday, period 1, Free' }));
     await act(async () => {
       vi.advanceTimersByTime(400);
@@ -296,13 +296,16 @@ describe('TimetableModal', () => {
     render('emma');
     await settle();
 
-    state.request.mockResolvedValue(reply(400, { error: 'Class names can be up to 60 characters' }));
+    // The hub's English sentence is for its log; the window shows the
+    // household's own words for the code.
+    state.request.mockResolvedValue(reply(400, { error: 'Class names can be up to 60 characters', code: 'timetables.invalid' }));
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Tuesday, period 1, Free' }));
     await act(async () => {
       vi.advanceTimersByTime(400);
     });
 
-    expect(screen.getAllByText('Class names can be up to 60 characters')).toHaveLength(1);
+    expect(screen.getAllByText("Something in the timetables couldn't be saved as it is. Reload the page and make the change again.")).toHaveLength(1);
+    expect(screen.queryByText('Class names can be up to 60 characters')).toBeNull();
   });
 
   it('sends a household with no school to add one before painting a week', async () => {
@@ -343,7 +346,7 @@ describe('TimetableModal, closing while a save keeps failing', () => {
     render('emma', onClose);
     await settle();
 
-    state.request.mockResolvedValue(reply(400, { error: 'Room names can be up to 16 characters' }));
+    state.request.mockResolvedValue(reply(400, { error: 'Room names can be up to 16 characters', code: 'timetables.invalid' }));
     fireEvent.pointerDown(screen.getByRole('button', { name: 'Tuesday, period 1, Free' }));
     await act(async () => {
       vi.advanceTimersByTime(400);
@@ -354,7 +357,7 @@ describe('TimetableModal, closing while a save keeps failing', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     await act(async () => {});
     expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getAllByText('Room names can be up to 16 characters').length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Something in the timetables couldn't be saved as it is. Reload the page and make the change again.").length).toBeGreaterThan(0);
 
     // And then the exit is offered outright.
     fireEvent.click(screen.getByRole('button', { name: 'Close without saving' }));
@@ -541,7 +544,7 @@ describe('checking a sheet with pending edits', () => {
   it('keeps the draft and stops without syncing or reloading when saving fails', async () => {
     state.request.mockImplementation(async (_url: string, init?: RequestInit) =>
       init?.method === 'PUT'
-        ? reply(400, { error: 'Please finish the school name.' })
+        ? reply(409, { error: 'Please finish the school name.', code: 'timetables.member' })
         : reply(200, { data: structuredClone(SYNCED), revision: 'r1' }),
     );
     render('emma');
@@ -552,7 +555,8 @@ describe('checking a sheet with pending edits', () => {
     await settle();
     expect(state.request.mock.calls.map(([, init]) => init?.method ?? 'GET')).toEqual(['GET', 'PUT']);
     expect((screen.getByLabelText('Class') as HTMLInputElement).value).toBe('11b');
-    expect(screen.getByRole('alert').textContent).toContain('Please finish the school name.');
+    expect(screen.getByRole('alert').textContent).toContain('A timetable belongs to somebody who is no longer in the family. Reopen the page and pick a person again.');
+    expect(screen.getByRole('alert').textContent).not.toContain('Please finish the school name.');
     expect(screen.getByLabelText('Class').closest('fieldset')?.disabled).toBe(false);
   });
 

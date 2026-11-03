@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "No se pudo conectar con Home Screens, así que eso no se guardó. Comprueba la conexión e inténtalo de nuevo.",
+    "lists": {
+      "failed": "Algo salió mal. Inténtalo de nuevo.",
+      "nameRequired": "Ponle un nombre a la lista",
+      "nameTooLong": "El nombre de una lista puede tener hasta {max} caracteres",
+      "textRequired": "Escribe algo primero",
+      "textTooLong": "Un elemento puede tener hasta {max} caracteres",
+      "badDate": "Ese día no existe",
+      "badColor": "Elige un color de la lista",
+      "listGone": "Esa lista ya no existe",
+      "itemGone": "Ese elemento ya no existe",
+      "tooManyLists": "Puedes tener hasta {max} listas",
+      "tooManyItems": "Una lista puede tener hasta {max} elementos",
+      "orderChanged": "La lista cambió mientras movías cosas. Inténtalo de nuevo.",
+      "badRequest": "No se pudo entender ese cambio. Recarga la página e inténtalo de nuevo."
+    },
+    "notes": {
+      "failed": "Eso no se guardó. Inténtalo de nuevo.",
+      "textRequired": "Escribe algo primero.",
+      "textTooLong": "Una nota puede tener {max} caracteres como máximo.",
+      "badAuthor": "El autor tiene que ser alguien de la familia.",
+      "badLife": "Elige cuánto tiempo debe quedarse la nota.",
+      "badRequest": "No se pudo entender ese cambio. Recarga la página e inténtalo de nuevo.",
+      "noteGone": "Esa nota ya no está aquí.",
+      "boardFull": "El tablón está lleno: {max} notas. Quita algunas primero."
+    },
+    "family": {
+      "revision": "Alguien cambió la familia mientras la editabas. Se muestra la lista actual. Vuelve a realizar tu cambio.",
+      "badRequest": "No se pudo entender ese cambio. Recarga la página e inténtalo de nuevo.",
+      "nameTooLong": "Los nombres pueden tener hasta {max} caracteres.",
+      "tooManyMembers": "Puedes añadir personas mientras la familia tenga menos de {max} miembros.",
+      "tooManyGroups": "Puedes tener hasta {max} grupos.",
+      "groupNameTooLong": "El nombre de un grupo puede tener hasta {max} caracteres.",
+      "groupNameTaken": "Ya tienes un grupo llamado {name}.",
+      "groupMemberRemoved": "Un grupo incluye a alguien que no está en la lista de la familia. Actualiza e inténtalo de nuevo.",
+      "memberRemoved": "Alguien de esta selección fue eliminado. Actualiza y elige de nuevo.",
+      "groupRemoved": "Un grupo de esta selección fue eliminado. Actualiza y elige de nuevo.",
+      "dataInvalid": "Los datos de la familia necesitan atención. Abre los ajustes para revisarlos o restaura una copia de seguridad.",
+      "dataWaiting": "Los datos de la familia se están recuperando. Inténtalo de nuevo en un minuto.",
+      "restoreMissing": "Esa copia de seguridad incluye personas o grupos que no están en su lista de familia, así que no se restauró. Restaura una copia que los incluya."
+    }
+  },
   "today": "Hoy",
   "tomorrow": "Mañana",
   "yesterday": "Ayer",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Guardando…",
+    "uploadingCount": "Subiendo {current} de {total}...",
     "connected": "Conectado",
     "disabled": "Desactivada",
     "never": "Nunca",
@@ -96,6 +140,7 @@
     "fetchFailed": "No se pudo conectar para cargar estos datos",
     "loadImagesFailed": "Error al cargar las imágenes",
     "uploadFailed": "Error al subir",
+    "uploadFailedFor": "No se pudo subir {name}",
     "createFolderFailed": "Error al crear la carpeta",
     "deleteFolderFailed": "Error al eliminar la carpeta",
     "deleteImageFailed": "Error al eliminar la foto",
@@ -230,7 +275,6 @@
     "retry": "Reintentar",
     "saved": "Familia guardada.",
     "saving": "Guardando…",
-    "conflict": "Alguien cambió la familia mientras la editabas. Se muestra la lista actual. Vuelve a realizar tu cambio.",
     "removeTitle": "¿Eliminar a {name}?",
     "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de vales y acceso a recompensas. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
     "remove": "Eliminar persona",

@@ -6,14 +6,14 @@ const validDays = (days: unknown) => Array.isArray(days) && days.every((day) => 
 /** A chore's saved group list; absent means none, anything else malformed stops the removal. */
 function groupIds(value: unknown): string[] {
   if (value === undefined) return [];
-  if (!Array.isArray(value) || value.some((id) => typeof id !== 'string')) throw new FamilyError('A saved chore group assignment is invalid.', 409);
+  if (!Array.isArray(value) || value.some((id) => typeof id !== 'string')) throw new FamilyError('family.dataInvalid', 'A saved chore group assignment is invalid.', { status: 409 });
   return value;
 }
 
 /** A chore's saved schedule rows, people or groups; absent means none, anything else malformed stops the change. */
 function scheduleRows(value: unknown): Record<string, number[]> {
   if (value === undefined) return {};
-  if (!isRecord(value) || Object.values(value).some((days) => !validDays(days))) throw new FamilyError('The saved chore schedule is invalid.', 409);
+  if (!isRecord(value) || Object.values(value).some((days) => !validDays(days))) throw new FamilyError('family.dataInvalid', 'The saved chore schedule is invalid.', { status: 409 });
   return value as Record<string, number[]>;
 }
 
@@ -46,10 +46,10 @@ function settleSchedule(chore: Doc, schedule: Record<string, number[]>, groupSch
  * back means nothing named the groups.
  */
 export function removeChoreGroups(doc: Doc, removed: ReadonlySet<string>): Doc {
-  if (!Array.isArray(doc.chores)) throw new FamilyError('The saved chore definitions are invalid.', 409);
+  if (!Array.isArray(doc.chores)) throw new FamilyError('family.dataInvalid', 'The saved chore definitions are invalid.', { status: 409 });
   let changed = false;
   const chores = doc.chores.map((chore: unknown) => {
-    if (!isRecord(chore)) throw new FamilyError('The saved chore definitions are invalid.', 409);
+    if (!isRecord(chore)) throw new FamilyError('family.dataInvalid', 'The saved chore definitions are invalid.', { status: 409 });
     const before = groupIds(chore.assigneeGroupIds);
     const kept = before.filter((id) => !removed.has(id));
     const rowsBefore = scheduleRows(chore.groupSchedule);
@@ -87,9 +87,9 @@ export const choreReferences: MemberReferenceDomain = {
   unreadable: 'refuse',
   removeMembers(doc, removed) {
     const next = structuredClone(doc);
-    if (!Array.isArray(next.chores)) throw new FamilyError('The saved chore definitions are invalid.', 409);
+    if (!Array.isArray(next.chores)) throw new FamilyError('family.dataInvalid', 'The saved chore definitions are invalid.', { status: 409 });
     next.chores = next.chores.flatMap((chore: unknown) => {
-      if (!isRecord(chore)) throw new FamilyError('The saved chore definitions are invalid.', 409);
+      if (!isRecord(chore)) throw new FamilyError('family.dataInvalid', 'The saved chore definitions are invalid.', { status: 409 });
       const stripped: Doc = { ...chore, assigneeIds: stripIds(chore.assigneeIds, removed) };
       const updated = (chore.schedule !== undefined
         ? settleSchedule(stripped, scheduleRows(withoutKeys(chore.schedule, removed)), scheduleRows(chore.groupSchedule))
@@ -107,17 +107,17 @@ export const choreReferences: MemberReferenceDomain = {
       missing.push(...missingAssignment(chore.assigneeIds, `${label}, assigneeIds`, members));
       if (chore.assigneeGroupIds !== undefined) missing.push(...missingAssignment(chore.assigneeGroupIds, `${label}, assigneeGroupIds`, groups));
       if (chore.schedule !== undefined) {
-        if (!isRecord(chore.schedule)) throw new FamilyError(`${label}, schedule must map person IDs to days.`);
+        if (!isRecord(chore.schedule)) throw new FamilyError('family.dataInvalid', `${label}, schedule must map person IDs to days.`);
         missing.push(...missingAssignment(Object.keys(chore.schedule), `${label}, schedule`, members));
         for (const [id, days] of Object.entries(chore.schedule)) {
-          if (!validDays(days)) throw new FamilyError(`${label}, schedule for ${JSON.stringify(id)} contains invalid days.`);
+          if (!validDays(days)) throw new FamilyError('family.dataInvalid', `${label}, schedule for ${JSON.stringify(id)} contains invalid days.`);
         }
       }
       if (chore.groupSchedule !== undefined) {
-        if (!isRecord(chore.groupSchedule)) throw new FamilyError(`${label}, groupSchedule must map group IDs to days.`);
+        if (!isRecord(chore.groupSchedule)) throw new FamilyError('family.dataInvalid', `${label}, groupSchedule must map group IDs to days.`);
         missing.push(...missingAssignment(Object.keys(chore.groupSchedule), `${label}, groupSchedule`, groups));
         for (const [id, days] of Object.entries(chore.groupSchedule)) {
-          if (!validDays(days)) throw new FamilyError(`${label}, groupSchedule for ${JSON.stringify(id)} contains invalid days.`);
+          if (!validDays(days)) throw new FamilyError('family.dataInvalid', `${label}, groupSchedule for ${JSON.stringify(id)} contains invalid days.`);
         }
       }
     }

@@ -16,6 +16,7 @@ import {
   startSession,
   updateSessionAtomic,
 } from '@/lib/timer-data';
+import { TimerError } from '@/lib/timer-logic';
 import { TIMER_VIEWS, type TimerSession, type TimerView } from '@/types/timers';
 
 export const dynamic = 'force-dynamic';
@@ -54,7 +55,8 @@ interface SessionActionBody {
  *
  * Display-auth (not editor-auth) on purpose: touch kiosks post `step-done`.
  * Every mutation runs inside the store's atomic queue so overlapping taps
- * from multiple displays can't interleave.
+ * from multiple displays can't interleave. A refusal is a `TimerError` the
+ * route wrapper answers with its code.
  */
 export const POST = withDisplayAuth(async (request: NextRequest) => {
   const body = await parseJsonBody<SessionActionBody>(request);
@@ -63,7 +65,6 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
 
   if (body.action === 'start') {
     const started = await handleStart(body, now);
-    if (started instanceof NextResponse) return started;
     return NextResponse.json({ session: materializeSession(started, now) });
   }
 
@@ -76,17 +77,13 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
     cancel: cancelSession,
   };
   const op = body.action ? CONTROL_ACTIONS[body.action] : undefined;
-  if (!op) {
-    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
-  }
+  if (!op) throw new TimerError(400, 'timers.badRequest', 'Unknown action');
 
   const updated = await updateSessionAtomic((current) => {
     // Materialize first so controls act on the step the user is looking at,
     // not a step that silently elapsed since the last write.
     const live = materializeSession(current.session, now);
-    if (!live || live.status !== 'running') {
-      throw NextResponse.json({ error: 'No timer is running' }, { status: 404 });
-    }
+    if (!live || live.status !== 'running') throw new TimerError(404, 'timers.notRunning', 'No timer is running');
     const { awaitingTap, ...session } = live;
     void awaitingTap;
     return { session: op(session, now) };
@@ -98,26 +95,16 @@ export const POST = withDisplayAuth(async (request: NextRequest) => {
 async function handleStart(
   body: SessionActionBody,
   now: number,
-): Promise<TimerSession | NextResponse> {
-  if (!isValidTargets(body.targets)) {
-    return NextResponse.json({ error: 'Invalid targets' }, { status: 400 });
-  }
-  if (body.view !== undefined && !TIMER_VIEWS.includes(body.view)) {
-    return NextResponse.json({ error: 'Invalid view' }, { status: 400 });
-  }
-  if (body.sound !== undefined && typeof body.sound !== 'boolean') {
-    return NextResponse.json({ error: 'Invalid sound' }, { status: 400 });
-  }
+): Promise<TimerSession> {
+  if (!isValidTargets(body.targets)) throw new TimerError(400, 'timers.badRequest', 'Invalid targets');
+  if (body.view !== undefined && !TIMER_VIEWS.includes(body.view)) throw new TimerError(400, 'timers.badRequest', 'Invalid view');
+  if (body.sound !== undefined && typeof body.sound !== 'boolean') throw new TimerError(400, 'timers.badRequest', 'Invalid sound');
 
   if (body.kind === 'routine') {
-    if (typeof body.routineId !== 'string' || !body.routineId) {
-      return NextResponse.json({ error: 'Missing routineId' }, { status: 400 });
-    }
+    if (typeof body.routineId !== 'string' || !body.routineId) throw new TimerError(400, 'timers.badRequest', 'Missing routineId');
     const { routines } = await readRoutinesFile();
     const routine = routines.find((r) => r.id === body.routineId);
-    if (!routine) {
-      return NextResponse.json({ error: 'Routine not found' }, { status: 404 });
-    }
+    if (!routine) throw new TimerError(404, 'timers.routineGone', 'Routine not found');
     const { session } = await updateSessionAtomic(() => ({
       session: startSession(
         { kind: 'routine', routine, targets: body.targets as 'all' | string[], view: body.view, sound: body.sound },
@@ -134,7 +121,7 @@ async function handleStart(
       body.durationSec < MIN_STEP_SEC ||
       body.durationSec > MAX_STEP_SEC
     ) {
-      return NextResponse.json({ error: 'Invalid duration' }, { status: 400 });
+      throw new TimerError(400, 'timers.badRequest', 'Invalid duration');
     }
     const { session } = await updateSessionAtomic(() => ({
       session: startSession(
@@ -145,5 +132,5 @@ async function handleStart(
     return session!;
   }
 
-  return NextResponse.json({ error: 'Invalid kind' }, { status: 400 });
+  throw new TimerError(400, 'timers.badRequest', 'Invalid kind');
 }

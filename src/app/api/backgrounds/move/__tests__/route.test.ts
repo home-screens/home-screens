@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 /**
- * Route-level tests for POST /api/backgrounds/move: body validation and the
- * mapping of `LibraryMoveError` onto HTTP statuses. The move itself is
+ * Route-level tests for POST /api/backgrounds/move: body validation and a
+ * `LibraryMoveError` reaching the route wrapper, which answers with its code. The move itself is
  * covered by `src/lib/__tests__/library-moves.test.ts` on a real temp library.
  */
 vi.mock('@/lib/auth', () => ({
@@ -11,13 +11,11 @@ vi.mock('@/lib/auth', () => ({
   requireDisplayAuth: vi.fn(async () => {}),
 }));
 
-vi.mock('@/lib/library-moves', () => ({
+// The real refusal class, so the route wrapper recognises what the mocked
+// move throws; only the move itself is faked.
+vi.mock('@/lib/library-moves', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/library-moves')>()),
   moveLibraryFiles: vi.fn(),
-  LibraryMoveError: class LibraryMoveError extends Error {
-    constructor(message: string, readonly status: number) {
-      super(message);
-    }
-  },
 }));
 
 import { LibraryMoveError, moveLibraryFiles } from '@/lib/library-moves';
@@ -52,11 +50,11 @@ describe('POST /api/backgrounds/move', () => {
     expect(move).not.toHaveBeenCalled();
   });
 
-  it('maps a refusal onto its status and message', async () => {
-    move.mockRejectedValueOnce(new LibraryMoveError('a.jpg is already in that folder', 409));
+  it('answers a refusal with its status, code, params and sentence', async () => {
+    move.mockRejectedValueOnce(new LibraryMoveError(409, 'library.fileExists', 'a.jpg is already in that folder', { name: 'a.jpg' }));
     const res = await POST(request({ files: ['a.jpg'], directory: 'trips' }));
     expect(res.status).toBe(409);
-    expect((await res.json()).error).toBe('a.jpg is already in that folder');
+    expect(await res.json()).toEqual({ error: 'a.jpg is already in that folder', code: 'library.fileExists', params: { name: 'a.jpg' } });
   });
 
   it('answers 500 with the generic message on an unexpected error', async () => {

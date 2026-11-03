@@ -83,7 +83,7 @@ describe('PATCH /api/notes/[noteId]', () => {
     const raw = await fs.readFile(notesPath(), 'utf-8');
     const res = await patch('a', { authorId: 'stranger', text: 'Changed' });
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
+    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', code: 'family.memberRemoved', reason: 'member' });
     expect(await fs.readFile(notesPath(), 'utf-8')).toBe(raw);
   });
 
@@ -130,7 +130,7 @@ describe('PATCH /api/notes/[noteId]', () => {
     const raw = await fs.readFile(notesPath(), 'utf-8');
     const res = await patch('a', { action: 'shred' });
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'Unknown action' });
+    expect(await res.json()).toEqual({ error: 'Unknown action', code: 'notes.badRequest' });
     expect(await fs.readFile(notesPath(), 'utf-8')).toBe(raw);
   });
 
@@ -138,14 +138,14 @@ describe('PATCH /api/notes/[noteId]', () => {
     for (const body of [{ text: 'x' }, { action: 'take-down' }, { action: 'repost' }]) {
       const res = await patch('missing', body);
       expect(res.status).toBe(404);
-      expect(await res.json()).toEqual({ error: 'That note is no longer here.' });
+      expect(await res.json()).toEqual({ error: 'That note is no longer here.', code: 'notes.noteGone' });
     }
   });
 
   it("refuses a bad field with the server's own words", async () => {
     const res = await patch('a', { text: '' });
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'Write something first.' });
+    expect(await res.json()).toEqual({ error: 'Write something first.', code: 'notes.textRequired' });
   });
 
   it('refuses a body that is not an object', async () => {
@@ -172,7 +172,7 @@ describe('DELETE /api/notes/[noteId]', () => {
   it('answers 404 for a note that is not there', async () => {
     const res = await remove('missing');
     expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ error: 'That note is no longer here.' });
+    expect(await res.json()).toEqual({ error: 'That note is no longer here.', code: 'notes.noteGone' });
   });
 
   it('needs a signed-in session', async () => {

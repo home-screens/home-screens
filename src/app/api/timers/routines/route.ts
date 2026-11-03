@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
 import { readRoutinesFile, updateRoutinesAtomic, validateRoutines } from '@/lib/timer-data';
 import { contentRevision } from '@/lib/content-revision';
+import { TimerError } from '@/lib/timer-logic';
 import type { Routine } from '@/types/timers';
 
 export const dynamic = 'force-dynamic';
@@ -31,14 +32,10 @@ export const PUT = withAuth(async (req: NextRequest) => {
   const body = await parseJsonBody<{ routines?: Routine[]; revision?: unknown }>(req);
   if (body instanceof NextResponse) return body;
 
-  const error = validateRoutines(body.routines);
-  if (error) {
-    return NextResponse.json({ error }, { status: 400 });
-  }
+  const problem = validateRoutines(body.routines);
+  if (problem) throw new TimerError(400, 'timers.invalid', problem);
   const { revision } = body;
-  if (typeof revision !== 'string' || !revision) {
-    return NextResponse.json({ error: 'Reload the page and try again.' }, { status: 400 });
-  }
+  if (typeof revision !== 'string' || !revision) throw new TimerError(400, 'timers.reload', 'Reload the page and try again.');
 
   // Compared inside the store's queue, so nothing lands between the check
   // and the write.
@@ -52,12 +49,9 @@ export const PUT = withAuth(async (req: NextRequest) => {
   });
   const { theirs } = conflict;
   if (theirs) {
-    return NextResponse.json({
-      error: 'Somebody else changed the routines. Make your change again.',
-      reason: 'revision',
-      routines: theirs,
-      revision: contentRevision(theirs),
-    }, { status: 409 });
+    throw new TimerError(409, 'timers.revision', 'Somebody else changed the routines. Make your change again.', {
+      extra: { reason: 'revision', routines: theirs, revision: contentRevision(theirs) },
+    });
   }
   return NextResponse.json({ routines: data.routines, revision: contentRevision(data.routines) });
 }, 'Failed to save routines');

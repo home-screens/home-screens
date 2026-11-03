@@ -1,13 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { ChevronDown, ChevronRight, MessageSquareText, Pin, TriangleAlert, type LucideIcon } from 'lucide-react';
-import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
+import { editorFetch } from '@/lib/editor-fetch';
+import { HubUnreachableError, refusalText } from '@/lib/hub-request';
 import { displayCache } from '@/lib/display-cache';
 import { FETCH_KEY_REGISTRY, notesUrl } from '@/lib/fetch-keys';
 import {
+  NOTES_TTL_MS,
   allNotesUrl,
   createNoteRequest,
   deleteNoteRequest,
@@ -22,6 +23,7 @@ import { memberInitials, memberInk } from '@/lib/family-avatar';
 import type { NotePatch } from '@/lib/notes-actions';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { useFamilyData } from '@/hooks/useFamilyData';
+import { useWriteSession } from '@/hooks/useWriteSession';
 import Button from '@/components/ui/Button';
 import LabeledField from '@/components/ui/LabeledField';
 import Toggle from '@/components/ui/Toggle';
@@ -262,12 +264,23 @@ function NoteRow({ note, members, author, age, left, onSaveText, onPatch, onTake
 
 // ── Modal ─────────────────────────────────────────────────────────
 
+async function loadBoard(): Promise<Note[] | null> {
+  const res = await editorFetch(allNotesUrl());
+  if (!res.ok) return null;
+  const data = (await res.json()) as NotesPayload;
+  return Array.isArray(data.notes) ? data.notes : [];
+}
+
 /**
  * The family notes board, written from the editor: post a note, change the
  * ones on the wall, take them down, and bring back or delete the ones that
- * came down this week. Every change goes straight to `/api/notes`, each
- * answer replaces the local copy with server truth, and the canvas preview
- * is handed the same answer so it changes with the click.
+ * came down this week. Every change goes straight to `/api/notes`. The
+ * board is read once when the modal opens; every write answers with it,
+ * and writes go out one at a time in the order they were asked for
+ * (`useWriteSession`): a pin and an unpin a moment apart must land in that
+ * order, or the board keeps the first one. A refused write is followed by
+ * a fresh read, so whatever it changed locally does not stand. The canvas
+ * preview is handed every copy shown here, so it changes with the click.
  */
 export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const t = useTranslate('editor');
@@ -277,11 +290,8 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const { members } = useFamilyData();
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // Stamped with every answer as well as on the tick: a note taken down a
+  // Stamped with every change as well as on the tick: a note taken down a
   // moment ago carries an expiry of "now", and a clock read before it would
   // still count it as on the wall.
   const [now, setNow] = useState(() => new Date());
@@ -295,120 +305,38 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const [important, setImportant] = useState(false);
   const draftRef = useRef<HTMLTextAreaElement>(null);
 
+  const saveFailed = t('common.saveError');
+
+  const { data: notes, loaded, loadError: loadFailed, write } = useWriteSession<Note[], NotesWriteRequest>({
+    initial: [],
+    load: loadBoard,
+    send: async (request) => ({ data: (await sendNotesWrite(editorFetch, request, saveFailed)).notes }),
+    holdMs: NOTES_TTL_MS,
+    onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.notes.failed')),
+    // A write that went through clears an earlier refusal; the read after
+    // a refusal does not, or the message would vanish unread.
+    onSaved: () => setError(null),
+  });
+  const loadError = loadFailed ? t('notesBoardModal.loadError') : null;
+
   // The latest notes the modal knows about, for callbacks that outlive a
   // render (a row's unmount flush must not resurrect a deleted note).
   const notesRef = useRef<Note[]>([]);
   notesRef.current = notes;
-  // Only the most recently issued write may replace the local copy. Two
-  // rapid writes can still reach the server in the other order, in which
-  // case the answer we keep predates the one we dropped; once every request
-  // has settled after such a drop, the board is fetched afresh.
-  const requestSeq = useRef(0);
-  const inFlight = useRef(0);
-  const droppedResponse = useRef(false);
-
-  const saveFailed = t('common.saveError');
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
     return () => clearInterval(id);
   }, []);
 
-  /** Take the server's board as the truth here and on the canvas preview. */
-  const adopt = useCallback((next: Note[]) => {
-    const at = new Date();
-    setNotes(next);
-    setNow(at);
-    displayCache.replace(notesUrl(), { notes: next.filter((n) => isLive(n, at)) }, FETCH_KEY_REGISTRY.notes.ttlMs);
-  }, []);
-
+  // Every copy shown here is the truth for the canvas preview too, once the
+  // hub has answered: the empty board before that is not a board.
   useEffect(() => {
-    editorFetch(allNotesUrl())
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<NotesPayload>;
-      })
-      .then((data) => {
-        setNotes(Array.isArray(data.notes) ? data.notes : []);
-        setNow(new Date());
-        setLoaded(true);
-      })
-      .catch((e) => {
-        if (isSessionExpired(e)) return;
-        setLoadError(t('notesBoardModal.loadError'));
-      });
-    // Read once when the modal opens; every write answers with the board.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /**
-   * Bring the local copy back in step with the server: after a dropped
-   * out-of-order answer, or after a write the server refused (the
-   * optimistic change must not stand). The answer is adopted only if no
-   * write started while it was on its way; otherwise it is stale by
-   * definition and the next settle fetches again.
-   */
-  const reconcile = useCallback(() => {
-    const seqAtStart = requestSeq.current;
-    editorFetch(allNotesUrl())
-      .then((res) => (res.ok ? (res.json() as Promise<NotesPayload>) : null))
-      .then((data) => {
-        if (!data) return;
-        if (seqAtStart !== requestSeq.current) {
-          droppedResponse.current = true;
-          return;
-        }
-        adopt(data.notes);
-      })
-      .catch(() => { /* the next write or reopen brings the board back in step */ });
-  }, [adopt]);
-
-  /** Run one write now and adopt its answer unless a later write has been sent since. */
-  const writeNow = useCallback(
-    async (req: NotesWriteRequest): Promise<boolean> => {
-      const seq = ++requestSeq.current;
-      inFlight.current += 1;
-      try {
-        const { notes: next } = await sendNotesWrite(editorFetch, req, saveFailed);
-        // A write that went through clears an earlier refusal; the reconcile
-        // after a refusal does not, or the message would vanish unread.
-        setError(null);
-        if (seq !== requestSeq.current) {
-          droppedResponse.current = true;
-          return true;
-        }
-        adopt(next);
-        return true;
-      } catch (e) {
-        if (isSessionExpired(e)) return false;
-        setError(requestFailureText(e, { unreachable: t('common.hubUnreachable'), fallback: saveFailed }));
-        // Whatever this write changed locally was refused: fetch the truth
-        // once the other requests are done with it.
-        droppedResponse.current = true;
-        return false;
-      } finally {
-        inFlight.current -= 1;
-        if (inFlight.current === 0 && droppedResponse.current) {
-          droppedResponse.current = false;
-          reconcile();
-        }
-      }
-    },
-    [adopt, reconcile, saveFailed, t],
-  );
-
-  // Writes go out one at a time, in the order they were asked for, the way
-  // the phone's hook sends them: a pin and an unpin a moment apart must land
-  // in that order, or the board keeps the first one.
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
-  const write = useCallback(
-    (req: NotesWriteRequest): Promise<boolean> => {
-      const run = queueRef.current.then(() => writeNow(req));
-      queueRef.current = run.catch(() => undefined);
-      return run;
-    },
-    [writeNow],
-  );
+    if (!loaded) return;
+    const at = new Date();
+    setNow(at);
+    displayCache.replace(notesUrl(), { notes: notes.filter((n) => isLive(n, at)) }, FETCH_KEY_REGISTRY.notes.ttlMs);
+  }, [notes, loaded]);
 
   // Only an id in today's roster is ever sent: a note naming someone no
   // longer in the family would stop a backup from restoring.
@@ -427,14 +355,14 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
     // if nothing new has been typed since.
     setDraft('');
     draftRef.current?.focus();
-    const ok = await write(createNoteRequest({
+    const saved = await write(null, createNoteRequest({
       text,
       life,
       pinned,
       important,
       ...(authorId ? { authorId } : {}),
     }));
-    if (ok) {
+    if (saved) {
       setPinned(false);
       setImportant(false);
     } else {
@@ -454,7 +382,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
     const base = sentTextRef.current.get(id) ?? current.text;
     if (trimmed === base) return;
     sentTextRef.current.set(id, trimmed);
-    void write(updateNoteRequest(id, { text: trimmed })).finally(() => {
+    void write(null, updateNoteRequest(id, { text: trimmed })).finally(() => {
       if (sentTextRef.current.get(id) === trimmed) sentTextRef.current.delete(id);
     });
   };
@@ -462,26 +390,28 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
   const patch = (id: string, change: NotePatch) => {
     // Flags and the author show at once; a new life waits for the server,
     // which works out the expiry from its own clock.
-    setNotes((prev) => prev.map((n) => {
-      if (n.id !== id) return n;
-      const next: Note = { ...n };
-      if (change.pinned !== undefined) next.pinned = change.pinned;
-      if (change.important !== undefined) next.important = change.important;
-      if (change.authorId !== undefined) {
-        if (change.authorId) next.authorId = change.authorId;
-        else delete next.authorId;
-      }
-      return next;
-    }));
-    void write(updateNoteRequest(id, change));
+    void write(
+      (ns) => ns.map((n) => {
+        if (n.id !== id) return n;
+        const next: Note = { ...n };
+        if (change.pinned !== undefined) next.pinned = change.pinned;
+        if (change.important !== undefined) next.important = change.important;
+        if (change.authorId !== undefined) {
+          if (change.authorId) next.authorId = change.authorId;
+          else delete next.authorId;
+        }
+        return next;
+      }),
+      updateNoteRequest(id, change),
+    );
   };
 
   const takeDown = (id: string) => {
-    void write(noteActionRequest(id, 'take-down'));
+    void write(null, noteActionRequest(id, 'take-down'));
   };
 
   const repost = (id: string) => {
-    void write(noteActionRequest(id, 'repost'));
+    void write(null, noteActionRequest(id, 'repost'));
   };
 
   const remove = async (id: string) => {
@@ -492,7 +422,7 @@ export default function NotesBoardModal({ onClose }: { onClose: () => void }) {
       variant: 'danger',
     });
     if (!ok) return;
-    void write(deleteNoteRequest(id));
+    void write(null, deleteNoteRequest(id));
   };
 
   const live = useMemo(() => arrangeNotes(notes, now).shown, [notes, now]);

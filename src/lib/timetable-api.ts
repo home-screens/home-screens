@@ -2,22 +2,17 @@
  * What the timetable routes hand back, in one place.
  *
  * The store and the spreadsheet reader are both deliberately route-free: one
- * throws a `TimetableError`, the other answers with message keys and never
- * throws at all. This file is the thin layer between them and a JSON reply,
- * so both routes stay a handful of lines and the editor has one module to
- * import the reply shapes from.
+ * throws a `TimetableError` the route wrapper answers with, the other answers
+ * with message keys and never throws at all. This file is the thin layer
+ * between them and a JSON reply, so both routes stay a handful of lines and
+ * the editor has one module to import the reply shapes from.
  */
 
 import { NextResponse } from 'next/server';
 import type { FamilyMember } from '@/types/family';
 import type { TimetableSubject } from '@/types/timetables';
 import { readFamilyData } from './family-data';
-import {
-  TimetableError,
-  readTimetables,
-  replaceTimetables,
-  type ReplaceTimetablesInput,
-} from './timetable-data';
+import { readTimetables, replaceTimetables, type ReplaceTimetablesInput } from './timetable-data';
 import {
   fetchSheetCsv,
   fetchSheetTabs,
@@ -31,60 +26,32 @@ import {
 import { syncDueSheetsInBackground } from './timetable-sync';
 
 /**
- * A refusal the store raised, as its own reply. Anything else is left alone
- * so the route wrapper reports it as the service failure it is.
- */
-function refusal(error: unknown): NextResponse | null {
-  return error instanceof TimetableError
-    ? NextResponse.json({ error: error.message }, { status: error.status })
-    : null;
-}
-
-/**
  * The whole document and the revision a save has to quote back.
  *
  * This is also where the hourly sheet check gets its chance. Every wall polls
  * this route about once a minute, which is the only clock a single-process app
  * on a Pi has; the check is started and not waited for, so the answer served
  * here is always what is on disk, and a new week arrives on the next poll.
+ *
+ * A refusal the store raised (a file it cannot read) reaches the route
+ * wrapper, which answers with its code.
  */
 export async function timetableRead(): Promise<NextResponse> {
-  try {
-    const snapshot = await readTimetables();
-    syncDueSheetsInBackground(snapshot.data);
-    return NextResponse.json(snapshot);
-  } catch (error) {
-    const refused = refusal(error);
-    if (refused) return refused;
-    throw error;
-  }
+  const snapshot = await readTimetables();
+  syncDueSheetsInBackground(snapshot.data);
+  return NextResponse.json(snapshot);
 }
 
 /**
  * Save the whole document and answer with what is now on disk, so the editor
  * reconciles in one step. A save that started from an older copy is refused
- * with the saved document alongside the reason, which is what lets the editor
- * say somebody else changed this and offer to reload it.
+ * with `timetables.revision` and the saved document alongside, which is what
+ * lets the editor say somebody else changed this and offer to reload it; the
+ * store raises that refusal with the copy it compared against, and the route
+ * wrapper answers with it.
  */
 export async function timetableWrite(input: ReplaceTimetablesInput): Promise<NextResponse> {
-  try {
-    return NextResponse.json(await replaceTimetables(input));
-  } catch (error) {
-    if (error instanceof TimetableError) {
-      // Only a stale revision is a conflict the editor may resolve by adopting
-      // the saved document, so the reason travels with the refusal. Without it
-      // "somebody is no longer in the family" and "the file cannot be read"
-      // arrived looking identical, and the editor threw away every unsaved edit
-      // to fix a race that had not happened.
-      const conflict = error.reason === 'revision';
-      const saved = conflict ? await readTimetables().catch(() => null) : null;
-      return NextResponse.json(
-        { error: error.message, ...(error.reason ? { reason: error.reason } : {}), ...(saved ?? {}) },
-        { status: error.status },
-      );
-    }
-    throw error;
-  }
+  return NextResponse.json(await replaceTimetables(input));
 }
 
 // ---------------------------------------------------------------------------

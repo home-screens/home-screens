@@ -8,6 +8,7 @@ import { toTZWallTime } from './timezone';
 import { isValidISODate } from './api-utils';
 import { mapConfigModules } from './migrations/module-walk';
 import { uuid } from './uuid';
+import { RefusalError, type RefusalParams } from './refusal';
 import { logger } from './logger';
 import {
   TODO_LIMITS,
@@ -47,10 +48,30 @@ const store = createJsonStore<TodoData>({
 /** Whole-file write, for a backup restore. Everything else goes through `updateTodoData`. */
 export const writeTodoData = store.write;
 
-/** Thrown by the pure operations below; routes map it to a JSON error response. */
-export class TodoError extends Error {
-  constructor(public readonly status: number, message: string) {
-    super(message);
+/**
+ * Why a list write was turned down. Each one has a sentence in the `core`
+ * dictionary under `refusals.lists`, shown on the phone and in the editor.
+ * `lists.badRequest` covers a body the app itself never sends; its English
+ * `error` still says exactly what was wrong.
+ */
+export type TodoRefusalCode =
+  | 'lists.nameRequired'
+  | 'lists.nameTooLong'
+  | 'lists.textRequired'
+  | 'lists.textTooLong'
+  | 'lists.badDate'
+  | 'lists.badColor'
+  | 'lists.listGone'
+  | 'lists.itemGone'
+  | 'lists.tooManyLists'
+  | 'lists.tooManyItems'
+  | 'lists.orderChanged'
+  | 'lists.badRequest';
+
+/** Thrown by the pure operations below; the route wrapper answers with its code. */
+export class TodoError extends RefusalError {
+  constructor(status: number, code: TodoRefusalCode, message: string, params?: RefusalParams) {
+    super(status, code, message, params ? { params } : {});
     this.name = 'TodoError';
   }
 }
@@ -289,21 +310,21 @@ function uniqueSlug(name: string, taken: Set<string>): string {
 }
 
 function cleanName(raw: unknown): string {
-  if (typeof raw !== 'string') throw new TodoError(400, 'Give the list a name');
+  if (typeof raw !== 'string') throw new TodoError(400, 'lists.nameRequired', 'Give the list a name');
   const name = raw.trim();
-  if (!name) throw new TodoError(400, 'Give the list a name');
+  if (!name) throw new TodoError(400, 'lists.nameRequired', 'Give the list a name');
   if (name.length > TODO_LIMITS.maxListNameLength) {
-    throw new TodoError(400, `List names can be up to ${TODO_LIMITS.maxListNameLength} characters`);
+    throw new TodoError(400, 'lists.nameTooLong', `List names can be up to ${TODO_LIMITS.maxListNameLength} characters`, { max: TODO_LIMITS.maxListNameLength });
   }
   return name;
 }
 
 function cleanText(raw: unknown): string {
-  if (typeof raw !== 'string') throw new TodoError(400, 'Type something first');
+  if (typeof raw !== 'string') throw new TodoError(400, 'lists.textRequired', 'Type something first');
   const text = raw.trim();
-  if (!text) throw new TodoError(400, 'Type something first');
+  if (!text) throw new TodoError(400, 'lists.textRequired', 'Type something first');
   if (text.length > TODO_LIMITS.maxItemTextLength) {
-    throw new TodoError(400, `Items can be up to ${TODO_LIMITS.maxItemTextLength} characters`);
+    throw new TodoError(400, 'lists.textTooLong', `Items can be up to ${TODO_LIMITS.maxItemTextLength} characters`, { max: TODO_LIMITS.maxItemTextLength });
   }
   return text;
 }
@@ -311,7 +332,7 @@ function cleanText(raw: unknown): string {
 function cleanDueDate(raw: unknown): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
   if (typeof raw !== 'string' || !isValidISODate(raw)) {
-    throw new TodoError(400, 'That is not a day we recognise');
+    throw new TodoError(400, 'lists.badDate', 'That is not a day we recognise');
   }
   return raw;
 }
@@ -323,7 +344,7 @@ function cleanDueDate(raw: unknown): string | undefined {
 function cleanAssignees(raw: unknown): string[] | undefined {
   if (raw === undefined || raw === null) return undefined;
   if (!Array.isArray(raw) || raw.some((id) => typeof id !== 'string')) {
-    throw new TodoError(400, 'People must be a list of ids');
+    throw new TodoError(400, 'lists.badRequest', 'People must be a list of ids');
   }
   const ids = Array.from(new Set(raw as string[])).slice(0, 32);
   return ids.length > 0 ? ids : undefined;
@@ -331,14 +352,14 @@ function cleanAssignees(raw: unknown): string[] | undefined {
 
 function cleanColor(raw: unknown): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
-  if (typeof raw !== 'string' || !HEX_COLOR.test(raw)) throw new TodoError(400, 'Pick a colour from the list');
+  if (typeof raw !== 'string' || !HEX_COLOR.test(raw)) throw new TodoError(400, 'lists.badColor', 'Pick a colour from the list');
   return raw.toLowerCase();
 }
 
 
 function findList(data: TodoData, listId: string): TodoList {
   const list = data.lists.find((l) => l.id === listId);
-  if (!list) throw new TodoError(404, 'That list is gone');
+  if (!list) throw new TodoError(404, 'lists.listGone', 'That list is gone');
   return list;
 }
 
@@ -355,7 +376,7 @@ export interface CreateListInput {
 
 export function createList(data: TodoData, input: CreateListInput, now = new Date()): { data: TodoData; list: TodoList } {
   if (data.lists.length >= TODO_LIMITS.maxLists) {
-    throw new TodoError(400, `You can have up to ${TODO_LIMITS.maxLists} lists`);
+    throw new TodoError(400, 'lists.tooManyLists', `You can have up to ${TODO_LIMITS.maxLists} lists`, { max: TODO_LIMITS.maxLists });
   }
   const name = cleanName(input.name);
   const iso = now.toISOString();
@@ -381,13 +402,13 @@ function applyRepeatInput(
   let next = list;
   if (input.repeat !== undefined) {
     if (typeof input.repeat !== 'string' || !REPEATS.has(input.repeat as TodoRepeat)) {
-      throw new TodoError(400, 'Repeat must be never, daily or weekly');
+      throw new TodoError(400, 'lists.badRequest', 'Repeat must be never, daily or weekly');
     }
     next = { ...next, repeat: input.repeat as TodoRepeat };
   }
   if (input.repeatDay !== undefined) {
     if (typeof input.repeatDay !== 'number' || !Number.isInteger(input.repeatDay) || input.repeatDay < 0 || input.repeatDay > 6) {
-      throw new TodoError(400, 'Repeat day must be 0 (Sunday) to 6 (Saturday)');
+      throw new TodoError(400, 'lists.badRequest', 'Repeat day must be 0 (Sunday) to 6 (Saturday)');
     }
     next = { ...next, repeatDay: input.repeatDay };
   }
@@ -421,11 +442,11 @@ export function updateList(data: TodoData, listId: string, input: UpdateListInpu
   if (input.itemOrder !== undefined) {
     const order = input.itemOrder;
     if (!Array.isArray(order) || order.some((id) => typeof id !== 'string')) {
-      throw new TodoError(400, 'itemOrder must be a list of item ids');
+      throw new TodoError(400, 'lists.badRequest', 'itemOrder must be a list of item ids');
     }
     const byId = new Map(list.items.map((it) => [it.id, it]));
     if (order.length !== byId.size || new Set(order).size !== order.length || order.some((id) => !byId.has(id))) {
-      throw new TodoError(409, 'The list changed while you were moving things. Try again.');
+      throw new TodoError(409, 'lists.orderChanged', 'The list changed while you were moving things. Try again.');
     }
     list = { ...list, items: (order as string[]).map((id) => byId.get(id)!) };
   }
@@ -437,7 +458,7 @@ export function updateList(data: TodoData, listId: string, input: UpdateListInpu
     } else if (input.action === 'clear-completed') {
       list = { ...list, items: list.items.filter((it) => !it.completed) };
     } else {
-      throw new TodoError(400, 'Unknown action');
+      throw new TodoError(400, 'lists.badRequest', 'Unknown action');
     }
   }
   const before = findList(data, listId);
@@ -461,7 +482,7 @@ export interface AddItemInput {
 export function addItem(data: TodoData, listId: string, input: AddItemInput, now = new Date()): { data: TodoData; item: TodoListItem } {
   const list = findList(data, listId);
   if (list.items.length >= TODO_LIMITS.maxItemsPerList) {
-    throw new TodoError(400, `A list can hold up to ${TODO_LIMITS.maxItemsPerList} items`);
+    throw new TodoError(400, 'lists.tooManyItems', `A list can hold up to ${TODO_LIMITS.maxItemsPerList} items`, { max: TODO_LIMITS.maxItemsPerList });
   }
   const iso = now.toISOString();
   const item: TodoListItem = {
@@ -487,12 +508,12 @@ export interface UpdateItemInput {
 export function updateItem(data: TodoData, listId: string, itemId: string, input: UpdateItemInput, now = new Date()): TodoData {
   const list = findList(data, listId);
   const idx = list.items.findIndex((it) => it.id === itemId);
-  if (idx === -1) throw new TodoError(404, 'That item is gone');
+  if (idx === -1) throw new TodoError(404, 'lists.itemGone', 'That item is gone');
   let item = list.items[idx];
   const iso = now.toISOString();
   if (input.text !== undefined) item = { ...item, text: cleanText(input.text) };
   if (input.completed !== undefined) {
-    if (typeof input.completed !== 'boolean') throw new TodoError(400, 'completed must be true or false');
+    if (typeof input.completed !== 'boolean') throw new TodoError(400, 'lists.badRequest', 'completed must be true or false');
     if (input.completed !== item.completed) {
       item = { ...item, completed: input.completed, completedAt: input.completed ? iso : undefined };
     }
@@ -507,7 +528,7 @@ export function updateItem(data: TodoData, listId: string, itemId: string, input
 
 export function deleteItem(data: TodoData, listId: string, itemId: string, now = new Date()): TodoData {
   const list = findList(data, listId);
-  if (!list.items.some((it) => it.id === itemId)) throw new TodoError(404, 'That item is gone');
+  if (!list.items.some((it) => it.id === itemId)) throw new TodoError(404, 'lists.itemGone', 'That item is gone');
   return replaceList(data, {
     ...list,
     items: list.items.filter((it) => it.id !== itemId),

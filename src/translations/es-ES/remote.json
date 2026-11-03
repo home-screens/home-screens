@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "Una nota del día necesita unas palabras.",
+      "textTooLong": "Como máximo {max} caracteres.",
+      "badDate": "Ese día no está en el calendario.",
+      "dayOver": "Ese día ya pasó. Elige hoy o un día posterior.",
+      "dayTooFar": "Ese día está demasiado lejos. Elige un día dentro de un año.",
+      "duplicate": "Esa nota ya está ahí.",
+      "dayFull": "Un día admite {max} notas. Cambia o quita una primero.",
+      "tooMany": "Hay demasiadas notas del día. Quita algunas primero.",
+      "noteGone": "Esa nota ya no está."
+    },
+    "timers": {
+      "notRunning": "No hay ningún temporizador en marcha.",
+      "routineGone": "Esa rutina ya no existe. Elige otra.",
+      "badRequest": "Eso no funcionó. Recarga la página e inténtalo de nuevo.",
+      "invalid": "Esa rutina no se puede guardar así. Revisa su nombre y sus pasos.",
+      "reload": "Recarga la página e inténtalo de nuevo.",
+      "revision": "Otra persona ha cambiado las rutinas. Tu último cambio no se guardó. Inténtalo de nuevo."
+    }
+  },
   "tabs": {
     "control": "Control",
     "chores": "Tareas",
@@ -1116,7 +1137,7 @@
     "showingOnDisplay": "En marcha en la pantalla",
     "waitingForDisplay": "Esperando a que una pantalla lo muestre…",
     "notShowing": "Ninguna pantalla lo muestra todavía. Comprueba que hay una pantalla encendida.",
-    "changedElsewhere": "Otra persona ha cambiado las rutinas. Tu último cambio no se guardó. Inténtalo de nuevo.",
+    "failed": "Algo salió mal. Inténtalo de nuevo.",
     "whyNoSave": {
       "name": "Ponle un nombre a la rutina para guardarla.",
       "stepName": "Ponle un nombre a cada paso para guardar.",

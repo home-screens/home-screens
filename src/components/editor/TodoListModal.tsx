@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ListTodo } from 'lucide-react';
-import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
+import { editorFetch } from '@/lib/editor-fetch';
+import { HubUnreachableError, refusalText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import {
+  TODO_LISTS_TTL_MS,
   addItemRequest,
   deleteItemRequest,
   listActionRequest,
@@ -16,6 +17,7 @@ import {
   type TodoWriteRequest,
 } from '@/lib/todo-client';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
+import { useWriteSession } from '@/hooks/useWriteSession';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -113,166 +115,85 @@ function ItemRow({
 
 // ── Modal ─────────────────────────────────────────────────────────
 
+async function loadLists(): Promise<TodoList[] | null> {
+  const res = await editorFetch(todoListsUrl());
+  if (!res.ok) return null;
+  const data = (await res.json()) as TodoListsPayload;
+  return Array.isArray(data.lists) ? data.lists : null;
+}
+
 /**
  * Edits one shared to-do list in place: name, items, and the two bulk
  * actions. Every change goes straight to `/api/todo/lists` so the wall, the
- * phone and the editor preview all see it, and each response replaces the
- * local copy with server truth.
+ * phone and the editor preview all see it. The lists are read once when the
+ * modal opens; every write answers with them, and writes go out one at a
+ * time in the order they were asked for (`useWriteSession`): a tick and an
+ * untick a moment apart must land in that order, or the list keeps the
+ * first one. A refused write is followed by a fresh read, so whatever it
+ * changed locally does not stand.
  */
 export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const [list, setList] = useState<TodoList | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [name, setName] = useState('');
+  // The name as typed here; until something is typed the field shows the hub's.
+  const [typedName, setTypedName] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const addInputRef = useRef<HTMLInputElement>(null);
+
+  const saveFailed = t('common.saveError');
+
+  const { data: lists, loaded, loadError: loadFailed, write } = useWriteSession<TodoList[], TodoWriteRequest>({
+    initial: [],
+    load: loadLists,
+    send: async (request) => ({ data: (await sendTodoWrite(editorFetch, request, saveFailed)).lists }),
+    holdMs: TODO_LISTS_TTL_MS,
+    onRefused: (e) => setError(e instanceof HubUnreachableError ? t('common.hubUnreachable') : refusalText(e, tCore, 'refusals.lists.failed')),
+    // A write that went through clears an earlier refusal; the read after
+    // a refusal does not, or the message would vanish unread.
+    onSaved: () => setError(null),
+  });
+
+  const list = lists.find((l) => l.id === listId) ?? null;
+  const loadError = loadFailed
+    ? t('todoListModal.loadError')
+    : loaded && !list
+      ? t('todoListModal.listGone')
+      : null;
   // The latest list the modal knows about, for callbacks that outlive a render
   // (a row's unmount flush must not resurrect an item that was just removed).
   const listRef = useRef<TodoList | null>(null);
   listRef.current = list;
-  // Only the most recently issued write may replace the local copy. Two
-  // rapid writes can still reach the server in the other order, in which
-  // case the response we keep predates the one we dropped; once every
-  // request has settled after such a drop, the list is fetched afresh.
-  const requestSeq = useRef(0);
-  const inFlight = useRef(0);
-  const droppedResponse = useRef(false);
-
-  const saveFailed = t('common.saveError');
-
-  useEffect(() => {
-    editorFetch(todoListsUrl())
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<TodoListsPayload>;
-      })
-      .then((data) => {
-        const found = data.lists.find((l) => l.id === listId);
-        if (!found) {
-          setLoadError(t('todoListModal.listGone'));
-          return;
-        }
-        setList(found);
-        setName(found.name);
-        setLoaded(true);
-      })
-      .catch((e) => {
-        if (isSessionExpired(e)) return;
-        setLoadError(t('todoListModal.loadError'));
-      });
-    // The list id is fixed for the life of the modal.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listId]);
-
-  const adoptLists = useCallback((lists: TodoList[]): boolean => {
-    const next = lists.find((l) => l.id === listId);
-    if (!next) {
-      setLoadError(t('todoListModal.listGone'));
-      return false;
-    }
-    setList(next);
-    return true;
-  }, [listId, t]);
-
-  /**
-   * Bring the local copy back in step with the server: after a dropped
-   * out-of-order response, or after a write the server refused (the
-   * optimistic change must not stand). The answer is adopted only if no
-   * write started while it was on its way; otherwise it is stale by
-   * definition and the next settle fetches again.
-   */
-  const reconcile = useCallback(() => {
-    const seqAtStart = requestSeq.current;
-    editorFetch(todoListsUrl())
-      .then((res) => (res.ok ? (res.json() as Promise<TodoListsPayload>) : null))
-      .then((data) => {
-        if (!data) return;
-        if (seqAtStart !== requestSeq.current) {
-          droppedResponse.current = true;
-          return;
-        }
-        adoptLists(data.lists);
-      })
-      .catch(() => { /* the next write or reopen brings the list back in step */ });
-  }, [adoptLists]);
-
-  /** Run one write now and adopt its answer unless a later write has been sent since. */
-  const writeNow = useCallback(
-    async (req: TodoWriteRequest): Promise<boolean> => {
-      const seq = ++requestSeq.current;
-      inFlight.current += 1;
-      try {
-        const { lists } = await sendTodoWrite(editorFetch, req, saveFailed);
-        // A write that went through clears an earlier refusal; the reconcile
-        // after a refusal does not, or the message would vanish unread.
-        setError(null);
-        if (seq !== requestSeq.current) {
-          droppedResponse.current = true;
-          return true;
-        }
-        return adoptLists(lists);
-      } catch (e) {
-        if (isSessionExpired(e)) return false;
-        setError(requestFailureText(e, { unreachable: t('common.hubUnreachable'), fallback: saveFailed }));
-        // Whatever this write changed locally was refused: fetch the truth
-        // once the other requests are done with it.
-        droppedResponse.current = true;
-        return false;
-      } finally {
-        inFlight.current -= 1;
-        if (inFlight.current === 0 && droppedResponse.current) {
-          droppedResponse.current = false;
-          reconcile();
-        }
-      }
-    },
-    [adoptLists, reconcile, saveFailed, t],
-  );
-
-  // Writes go out one at a time, in the order they were asked for, the way
-  // the phone's hook sends them: a tick and an untick a moment apart must
-  // land in that order, or the list keeps the first one.
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
-  const write = useCallback(
-    (req: TodoWriteRequest): Promise<boolean> => {
-      const run = queueRef.current.then(() => writeNow(req));
-      queueRef.current = run.catch(() => undefined);
-      return run;
-    },
-    [writeNow],
-  );
 
   // ── Name ──
+  const name = typedName ?? list?.name ?? '';
   const { flush: flushName } = useDebouncedSave({
-    values: [name],
+    values: [typedName],
     enabled: loaded,
     save: () => {
       const trimmed = name.trim();
       if (!trimmed || trimmed === listRef.current?.name) return;
-      return write(updateListRequest(listId, { name: trimmed }));
+      return write(null, updateListRequest(listId, { name: trimmed }));
     },
   });
 
   // ── Items ──
   const toggleItem = (itemId: string, completed: boolean) => {
-    setList((prev) =>
-      prev ? { ...prev, items: prev.items.map((i) => (i.id === itemId ? { ...i, completed } : i)) } : prev,
+    void write(
+      (ls) => ls.map((l) => (l.id === listId ? { ...l, items: l.items.map((i) => (i.id === itemId ? { ...i, completed } : i)) } : l)),
+      updateItemRequest(listId, itemId, { completed }),
     );
-    void write(updateItemRequest(listId, itemId, { completed }));
   };
 
   const saveItemText = (itemId: string, text: string) => {
     const current = listRef.current?.items.find((i) => i.id === itemId);
     const trimmed = text.trim();
     if (!current || !trimmed || trimmed === current.text) return;
-    void write(updateItemRequest(listId, itemId, { text: trimmed }));
+    void write(null, updateItemRequest(listId, itemId, { text: trimmed }));
   };
 
   const deleteItem = (itemId: string) => {
-    void write(deleteItemRequest(listId, itemId));
+    void write(null, deleteItemRequest(listId, itemId));
   };
 
   const addItem = async () => {
@@ -284,13 +205,13 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
     // been typed since.
     setDraft('');
     addInputRef.current?.focus();
-    const ok = await write(addItemRequest(listId, text));
-    if (!ok) setDraft((current) => current || text);
+    const saved = await write(null, addItemRequest(listId, text));
+    if (!saved) setDraft((current) => current || text);
   };
 
   // ── Bulk actions ──
   const uncheckAll = () => {
-    void write(listActionRequest(listId, 'uncheck-all'));
+    void write(null, listActionRequest(listId, 'uncheck-all'));
   };
 
   const removeDone = async () => {
@@ -303,7 +224,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       variant: 'danger',
     });
     if (!ok) return;
-    void write(listActionRequest(listId, 'clear-completed'));
+    void write(null, listActionRequest(listId, 'clear-completed'));
   };
 
   const items = list?.items ?? [];
@@ -330,7 +251,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
         </div>
       )}
 
-      {!loaded ? (
+      {!list ? (
         !loadError && (
           <div className="flex flex-1 min-h-0 items-center justify-center text-sm text-hs-text-faint">
             {tCore('loading')}
@@ -345,7 +266,7 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
                 type="text"
                 value={name}
                 maxLength={TODO_LIMITS.maxListNameLength}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setTypedName(e.target.value)}
                 onBlur={flushName}
                 className={MODAL_INPUT_CLASS}
               />

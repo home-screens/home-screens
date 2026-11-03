@@ -37,10 +37,11 @@ export interface DayNotesWriteResult {
 }
 
 /**
- * Send one write and hand back every note. A refusal throws the hub's own
- * words ("A day holds 3 notes"), else `fallback`, and so does an answer
- * without notes, so it is never taken for an empty calendar; a hub out of
- * reach and an expired session come through as themselves.
+ * Send one write and hand back every note. A refusal throws a `RefusalError`
+ * carrying the hub's code (`dayNotes.dayFull`, which the phone phrases with
+ * `refusalText`), else `fallback`, and so does an answer without notes, so
+ * it is never taken for an empty calendar; a hub out of reach and an expired
+ * session come through as themselves.
  */
 export async function sendDayNotesWrite(fetcher: HubFetch, request: JsonWriteRequest, fallback: string): Promise<DayNotesWriteResult> {
   const json = (await sendJsonWrite(fetcher, request, fallback)) as Partial<DayNotesWriteResult> | null;

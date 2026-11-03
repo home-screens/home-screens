@@ -9,6 +9,7 @@ import { ROTATION_FILE_RE } from '@/lib/background-rotation-cache';
 import { removeThumbnails } from '@/lib/thumbnails';
 import { fileNameOf, folderOf } from '@/lib/media-paths';
 import type { ScreenConfiguration } from '@/types/config';
+import { RefusalError, type RefusalParams } from '@/lib/refusal';
 
 /**
  * Moving files between folders and renaming folders, with the config
@@ -25,9 +26,29 @@ import type { ScreenConfiguration } from '@/types/config';
 
 export const MAX_FOLDER_DEPTH = 2;
 
-export class LibraryMoveError extends Error {
-  constructor(message: string, readonly status: number) {
-    super(message);
+/**
+ * Why a move, rename or folder change was turned down. Each one has a
+ * sentence in the `editor` dictionary under `refusals.library`; the phone's
+ * Photos tab phrases the same refusals from the status alone.
+ */
+export type LibraryRefusalCode =
+  | 'library.badFolder'
+  | 'library.folderGone'
+  | 'library.badPath'
+  | 'library.fileGone'
+  | 'library.fileExists'
+  | 'library.nameClash'
+  | 'library.reservedName'
+  | 'library.badName'
+  | 'library.tooDeep'
+  | 'library.folderExists'
+  | 'library.folderNotEmpty';
+
+/** Thrown by the operations below and the folder routes; the route wrapper answers with its code. */
+export class LibraryMoveError extends RefusalError {
+  constructor(status: number, code: LibraryRefusalCode, message: string, params?: RefusalParams) {
+    super(status, code, message, params ? { params } : {});
+    this.name = 'LibraryMoveError';
   }
 }
 
@@ -46,11 +67,11 @@ export function cleanFolderPath(raw: string): string | null {
 
 async function requireFolder(folder: string): Promise<string> {
   const abs = folder === '' ? libraryRoot() : safeLibraryPath(folder);
-  if (!abs) throw new LibraryMoveError('Invalid folder', 400);
+  if (!abs) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid folder');
   try {
     if (!(await fs.stat(abs)).isDirectory()) throw new Error('not a dir');
   } catch {
-    throw new LibraryMoveError('Folder not found', 404);
+    throw new LibraryMoveError(404, 'library.folderGone', 'Folder not found');
   }
   return abs;
 }
@@ -66,11 +87,11 @@ async function moveNoClobber(from: string, to: string): Promise<void> {
     await fs.link(from, to);
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
-    if (code === 'EEXIST') throw new LibraryMoveError(`${path.basename(to)} is already in that folder`, 409);
+    if (code === 'EEXIST') throw new LibraryMoveError(409, 'library.fileExists', `${path.basename(to)} is already in that folder`, { name: path.basename(to) });
     if (code !== 'EXDEV' && code !== 'EPERM' && code !== 'ENOTSUP') throw err;
     try {
       await fs.access(to);
-      throw new LibraryMoveError(`${path.basename(to)} is already in that folder`, 409);
+      throw new LibraryMoveError(409, 'library.fileExists', `${path.basename(to)} is already in that folder`, { name: path.basename(to) });
     } catch (accessErr) {
       if (accessErr instanceof LibraryMoveError) throw accessErr;
     }
@@ -110,7 +131,7 @@ interface PlannedMove {
  */
 export async function moveLibraryFiles(files: string[], directory: string): Promise<MoveResult> {
   const folder = cleanFolderPath(directory);
-  if (folder == null) throw new LibraryMoveError('Invalid folder', 400);
+  if (folder == null) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid folder');
   const targetDir = await requireFolder(folder);
 
   const plan: PlannedMove[] = [];
@@ -119,29 +140,29 @@ export async function moveLibraryFiles(files: string[], directory: string): Prom
   for (const raw of files) {
     const from = cleanLibraryPath(raw);
     const absFrom = from ? safeLibraryPath(from) : null;
-    if (!from || !absFrom) throw new LibraryMoveError('Invalid path', 400);
+    if (!from || !absFrom) throw new LibraryMoveError(400, 'library.badPath', 'Invalid path');
     if (seenSources.has(from)) continue;
     seenSources.add(from);
     try {
       if (!(await fs.stat(absFrom)).isFile()) throw new Error('not a file');
     } catch {
-      throw new LibraryMoveError(`File not found: ${raw}`, 404);
+      throw new LibraryMoveError(404, 'library.fileGone', `File not found: ${raw}`, { name: fileNameOf(from) });
     }
     const name = fileNameOf(from);
     const to = folder ? `${folder}/${name}` : name;
     if (to === from) continue;
     if (!folder && ROTATION_FILE_RE.test(name)) {
-      throw new LibraryMoveError(`Names starting with "rotation-" are kept for rotating backgrounds at the top level. Rename ${name} first.`, 400);
+      throw new LibraryMoveError(400, 'library.reservedName', `Names starting with "rotation-" are kept for rotating backgrounds at the top level. Rename ${name} first.`, { name });
     }
     const clash = targetNames.get(name);
     if (clash) {
-      throw new LibraryMoveError(`${clash} and ${from} are both called ${name}; only one can go there`, 409);
+      throw new LibraryMoveError(409, 'library.nameClash', `${clash} and ${from} are both called ${name}; only one can go there`, { name });
     }
     targetNames.set(name, from);
     const absTo = path.join(targetDir, name);
     try {
       await fs.access(absTo);
-      throw new LibraryMoveError(`${name} is already in that folder`, 409);
+      throw new LibraryMoveError(409, 'library.fileExists', `${name} is already in that folder`, { name });
     } catch (err) {
       if (err instanceof LibraryMoveError) throw err;
     }
@@ -232,22 +253,22 @@ export interface RenameResult {
  */
 export async function renameLibraryFolder(current: string, newName: string): Promise<RenameResult> {
   const from = cleanFolderPath(current);
-  if (!from) throw new LibraryMoveError('Invalid folder', 400);
+  if (!from) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid folder');
   const absFrom = await requireFolder(from);
   const safeName = sanitizeFolderName(newName);
-  if (!safeName) throw new LibraryMoveError('Invalid folder name', 400);
+  if (!safeName) throw new LibraryMoveError(400, 'library.badName', 'Invalid folder name');
   const parent = folderOf(from);
   const to = parent ? `${parent}/${safeName}` : safeName;
   if (to === from) {
     const revision = configRevision(await readCurrentConfig());
     return { from, to, rewritten: 0, revision, previousRevision: revision };
   }
-  if (to.split('/').length > MAX_FOLDER_DEPTH) throw new LibraryMoveError('Maximum folder depth is 2', 400);
+  if (to.split('/').length > MAX_FOLDER_DEPTH) throw new LibraryMoveError(400, 'library.tooDeep', `Maximum folder depth is ${MAX_FOLDER_DEPTH}`, { max: MAX_FOLDER_DEPTH });
   const absTo = safeLibraryPath(to);
-  if (!absTo) throw new LibraryMoveError('Invalid folder name', 400);
+  if (!absTo) throw new LibraryMoveError(400, 'library.badName', 'Invalid folder name');
   try {
     await fs.access(absTo);
-    throw new LibraryMoveError(`A folder called ${safeName} is already there`, 409);
+    throw new LibraryMoveError(409, 'library.folderExists', `A folder called ${safeName} is already there`, { name: safeName });
   } catch (err) {
     if (err instanceof LibraryMoveError) throw err;
   }

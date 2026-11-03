@@ -20,6 +20,7 @@ import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
 import { editorFetch } from '@/lib/editor-fetch';
+import { refusalText } from '@/lib/hub-request';
 import { checkSheetNow } from '@/lib/timetable-client';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import type { TimetableData, TimetableSchool, TimetableWeek, WeekLetter } from '@/types/timetables';
@@ -89,6 +90,7 @@ export default function TimetableModal({ memberId, onClose }: TimetableModalProp
     loadFailed: t('timetableModal.loadError'),
     saveFailed: t('common.saveError'),
     unreachable: t('common.hubUnreachable'),
+    refusal: (error) => refusalText(error, t, 'common.saveError', 'common.hubUnreachable'),
   });
   const data = draft.data ?? EMPTY_TIMETABLE_DATA;
 

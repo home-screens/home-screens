@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { deleteNote, repost, takeDown, updateNote, type NoteAction, type NotePatch } from '@/lib/notes-actions';
 import { notesWrite } from '@/lib/notes-api';
+import { NotesError } from '@/lib/notes-errors';
 import { asObject } from '@/lib/todo-api';
 
 export const dynamic = 'force-dynamic';
@@ -23,9 +24,7 @@ export const PATCH = withAuth(async (request: NextRequest, ctx: RouteContext) =>
   const fields = asObject(body);
   if (fields instanceof NextResponse) return fields;
   const { action, ...patch } = body;
-  if (action !== undefined && !ACTIONS.has(action)) {
-    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
-  }
+  if (action !== undefined && !ACTIONS.has(action)) throw new NotesError(400, 'notes.badRequest', 'Unknown action');
   return notesWrite((data) => {
     const now = new Date();
     if (action === 'take-down') return takeDown(data, noteId, now);

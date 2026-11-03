@@ -1,10 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
+import { useCallback, useMemo } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
+import { HubUnreachableError, refusalText } from '@/lib/hub-request';
 import { todoListsUrl } from '@/lib/fetch-keys';
 import { useTranslate } from '@/i18n';
+import { useWriteSession } from '@/hooks/useWriteSession';
+import { sameId, tempId, type ResolveId } from '@/lib/write-session';
 import type { TodoList, TodoListItem } from '@/types/todos';
 import type { TodoListAction } from '@/lib/todo-data';
 import {
@@ -26,7 +28,6 @@ export type { TodoListAction };
 import { showToast } from '../remote-toast';
 
 const LISTS_POLL_MS = 5_000;
-const TEMP_PREFIX = 'tmp-';
 
 export type ListPatch = TodoListPatch;
 export type ItemPatch = TodoItemPatch;
@@ -35,18 +36,6 @@ interface Options {
   /** The list the tab is showing. Held by the caller so it survives a tab switch. */
   selectedListId: string | null;
   onSelectList: (id: string | null) => void;
-}
-
-type ResolveId = (id: string) => string;
-/** A local change replayed over server truth until its request lands. */
-type Mutation = (lists: TodoList[], resolveId: ResolveId) => TodoList[];
-
-function tempId(): string {
-  return `${TEMP_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function sameId(candidate: string, wanted: string, resolveId: ResolveId): boolean {
-  return candidate === wanted || candidate === resolveId(wanted);
 }
 
 function patchList(lists: TodoList[], listId: string, resolveId: ResolveId, fn: (list: TodoList) => TodoList): TodoList[] {
@@ -66,116 +55,38 @@ function patchItem(
   }));
 }
 
+async function loadLists(): Promise<TodoList[] | null> {
+  const res = await editorFetch(todoListsUrl());
+  if (!res.ok) return null;
+  const json = (await res.json()) as { lists?: TodoList[] };
+  return Array.isArray(json.lists) ? json.lists : [];
+}
+
 /**
- * Data + actions behind the /remote Lists tab.
- *
- * Polls every list while the tab is mounted. Writes go out one at a time,
- * in the order they were asked for, so a run of items typed into the add
- * bar lands on the list in typing order. Each write's local change is kept
- * as a pending mutation and replayed over the newest server answer until
- * its own request lands, so a tap on an item whose add has not come back
- * yet is neither lost nor flashed away by the add's response. Temp ids are
- * mapped to the server's ids as the answers arrive, and every request
- * resolves its ids when it is sent, not when it was queued.
- *
- * Polls are held off for one period after a write and ignored while one is
- * in flight (the same guard `useTimersData` uses). A failed write drops its
- * mutation, shows the server's message and refetches.
+ * Data + actions behind the /remote Lists tab: every list, polled while the
+ * tab is in view, with each write's local change shown at once and replayed
+ * over newer answers until its request lands (`useWriteSession`). A failed
+ * write drops its change and shows the hub's refusal in the family's
+ * language (`refusals.lists` in the `core` dictionary, shared with the
+ * editor's list window).
  */
 export function useTodoLists({ selectedListId, onSelectList }: Options) {
   const t = useTranslate('remote');
-  const [lists, setLists] = useState<TodoList[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  // Set when a load fails before anything has loaded, so the tab can say so
-  // and offer a retry instead of a blank page (the timers tab's pattern).
-  const [loadError, setLoadError] = useState(false);
+  const tCore = useTranslate('core');
 
-  const serverRef = useRef<TodoList[]>([]);
-  const pendingRef = useRef<Array<{ apply: Mutation }>>([]);
-  const idMapRef = useRef(new Map<string, string>());
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
-  const holdUntilRef = useRef(0);
-  const inFlightRef = useRef(0);
-
-  const resolveId = useCallback<ResolveId>((id) => idMapRef.current.get(id) ?? id, []);
-
-  const render = useCallback(() => {
-    setLists(pendingRef.current.reduce((ls, p) => p.apply(ls, resolveId), serverRef.current));
-  }, [resolveId]);
-
-  const refresh = useCallback(async (force = false) => {
-    try {
-      const res = await editorFetch(todoListsUrl());
-      if (!res.ok) {
-        setLoadError(true);
-        return;
-      }
-      const json = (await res.json()) as { lists?: TodoList[] };
-      if (!force && (Date.now() < holdUntilRef.current || inFlightRef.current > 0)) return;
-      serverRef.current = Array.isArray(json.lists) ? json.lists : [];
-      render();
-      setLoaded(true);
-      setLoadError(false);
-    } catch (e) {
-      if (isSessionExpired(e)) return;
-      setLoadError(true);
-    }
-  }, [render]);
-
-  useEffect(() => {
-    void refresh();
-    const id = setInterval(() => void refresh(), LISTS_POLL_MS);
-    return () => clearInterval(id);
-  }, [refresh]);
-
-
-  /**
-   * Queue one write. `apply` shows the change at once; `request` is built
-   * when the write's turn comes, with ids resolved; `onSuccess` sees the
-   * server's lists and the server truth from before this write.
-   */
-  const write = useCallback(
-    (
-      apply: Mutation,
-      request: (resolveId: ResolveId) => TodoWriteRequest,
-      onSuccess?: (created?: { id: string }) => void,
-    ): Promise<TodoList[] | null> => {
-      const entry = { apply };
-      pendingRef.current.push(entry);
-      render();
-      inFlightRef.current += 1;
-
-      const run = async (): Promise<TodoList[] | null> => {
-        try {
-          const { lists, created } = await sendTodoWrite(
-            editorFetch,
-            request(resolveId),
-            t('lists.errors.generic'),
-          );
-          holdUntilRef.current = Date.now() + LISTS_POLL_MS;
-          serverRef.current = lists;
-          pendingRef.current = pendingRef.current.filter((p) => p !== entry);
-          onSuccess?.(created);
-          render();
-          return lists;
-        } catch (e) {
-          pendingRef.current = pendingRef.current.filter((p) => p !== entry);
-          if (isSessionExpired(e)) return null;
-          render();
-          showToast(requestFailureText(e, { unreachable: t('hubRequest.saveFailed'), fallback: t('lists.errors.generic') }), 'error');
-          void refresh(true);
-          return null;
-        } finally {
-          inFlightRef.current -= 1;
-        }
-      };
-
-      const result = queueRef.current.then(run, run);
-      queueRef.current = result;
-      return result;
+  const { data: lists, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<TodoList[], TodoWriteRequest, { id: string }>({
+    initial: [],
+    load: loadLists,
+    send: async (request) => {
+      const { lists, created } = await sendTodoWrite(editorFetch, request, t('lists.errors.generic'));
+      return { data: lists, created };
     },
-    [render, resolveId, refresh, t],
-  );
+    pollMs: LISTS_POLL_MS,
+    onRefused: (e) => showToast(
+      e instanceof HubUnreachableError ? t('hubRequest.saveFailed') : refusalText(e, tCore, 'refusals.lists.failed'),
+      'error',
+    ),
+  });
 
   // ── Items ──
 
@@ -210,11 +121,11 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
         (created) => {
           // The route names the item it made, so the optimistic row's temp
           // id can be pointed at the real one before anything taps it.
-          if (created) idMapRef.current.set(temp, created.id);
+          if (created) mapId(temp, created.id);
         },
       ).then((saved) => saved !== null);
     },
-    [write],
+    [write, mapId],
   );
 
   const updateItem = useCallback(
@@ -287,14 +198,14 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
           // The route names the list it made. Diffing the lists instead
           // would pick up one another phone added in the same moment.
           if (created) {
-            idMapRef.current.set(temp, created.id);
+            mapId(temp, created.id);
             onSelectList(created.id);
           }
         },
       );
       return result !== null;
     },
-    [write, onSelectList],
+    [write, mapId, onSelectList],
   );
 
   const updateList = useCallback(
@@ -347,7 +258,7 @@ export function useTodoLists({ selectedListId, onSelectList }: Options) {
     lists,
     loaded,
     loadError,
-    retry: () => refresh(true),
+    retry,
     selectedList,
     selectList: onSelectList,
     toggleItem,

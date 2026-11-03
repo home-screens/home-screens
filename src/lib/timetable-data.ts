@@ -38,6 +38,7 @@ import { readTransactionFile, withDataTransaction } from './data-transaction';
 import { validateMemberReferences, withFamilyData } from './family-api';
 import { createJsonStore } from './json-store';
 import { parseTimeToMinutes } from './sleep-timeline';
+import { RefusalError, type RefusalOptions } from './refusal';
 import { getDefaultSubjects } from './timetable-subjects';
 
 export const TIMETABLES_FILE_PATH = 'data/timetables.json';
@@ -52,24 +53,29 @@ const store = createJsonStore<TimetableData>({
 });
 
 /**
- * Why a 409 was raised, for the one caller that has to tell them apart.
+ * Why a save was turned down. Each one has a sentence in the `editor`
+ * dictionary under `refusals.timetables`.
  *
- * Three different refusals share the status: a save that started from an older
- * copy, a save naming somebody who has left the family, and a file that cannot
- * be read at all. Only the first is a conflict the editor may resolve by
- * adopting the saved document; doing that for the other two threw away
- * everything unsaved and explained it with the wrong sentence.
+ * Three different refusals share a 409: a save that started from an older
+ * copy, a save naming somebody who has left the family, and a file that
+ * cannot be read at all. Only the first is a conflict the editor may resolve
+ * by adopting the saved document (which the refusal carries); doing that for
+ * the other two threw away everything unsaved and explained it with the
+ * wrong sentence. `timetables.invalid` covers every shape check in
+ * `cleanTimetableData`; the editor makes those checks itself before saving,
+ * so the English `error` keeps the exact reason for logs and the API.
  */
-export type TimetableConflictReason = 'revision' | 'member' | 'corrupt';
+export type TimetableRefusalCode =
+  | 'timetables.revision'
+  | 'timetables.member'
+  | 'timetables.corrupt'
+  | 'timetables.reopen'
+  | 'timetables.invalid';
 
-/** Thrown by the operations below; routes map it to a JSON error response. */
-export class TimetableError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-    public readonly reason?: TimetableConflictReason,
-  ) {
-    super(message);
+/** Thrown by the operations below; the route wrapper answers with its code. */
+export class TimetableError extends RefusalError {
+  constructor(status: number, code: TimetableRefusalCode, message: string, options: RefusalOptions = {}) {
+    super(status, code, message, options);
     this.name = 'TimetableError';
   }
 }
@@ -78,7 +84,7 @@ const CORRUPT_MESSAGE = 'The saved timetables could not be read. Restore or repa
 
 /** Map an unreadable file to a friendly refusal; anything else passes through. */
 function readFailure(error: unknown): unknown {
-  return error instanceof SyntaxError ? new TimetableError(409, CORRUPT_MESSAGE, 'corrupt') : error;
+  return error instanceof SyntaxError ? new TimetableError(409, 'timetables.corrupt', CORRUPT_MESSAGE) : error;
 }
 
 export function timetableRevision(data: TimetableData): string {
@@ -149,66 +155,66 @@ const MAX_PERIOD_NUMBER = 99;
 const HOLIDAY_REGION = /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/;
 
 function asRecord(raw: unknown, message: string): Record<string, unknown> {
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TimetableError(400, message);
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new TimetableError(400, 'timetables.invalid', message);
   return raw as Record<string, unknown>;
 }
 
 function asList(raw: unknown, message: string): unknown[] {
-  if (!Array.isArray(raw)) throw new TimetableError(400, message);
+  if (!Array.isArray(raw)) throw new TimetableError(400, 'timetables.invalid', message);
   return raw;
 }
 
 function cleanId(raw: unknown, message: string): string {
-  if (typeof raw !== 'string' || !raw.trim() || raw.length > MAX_ID_LENGTH) throw new TimetableError(400, message);
+  if (typeof raw !== 'string' || !raw.trim() || raw.length > MAX_ID_LENGTH) throw new TimetableError(400, 'timetables.invalid', message);
   return raw.trim();
 }
 
 /** A required piece of short text, trimmed and capped. */
 function cleanText(raw: unknown, max: number, needed: string, tooLong: string): string {
-  if (typeof raw !== 'string' || !raw.trim()) throw new TimetableError(400, needed);
+  if (typeof raw !== 'string' || !raw.trim()) throw new TimetableError(400, 'timetables.invalid', needed);
   const text = raw.trim();
-  if (text.length > max) throw new TimetableError(400, tooLong);
+  if (text.length > max) throw new TimetableError(400, 'timetables.invalid', tooLong);
   return text;
 }
 
 /** Optional short text. Blank counts as "not set" and is dropped. */
 function cleanOptionalText(raw: unknown, max: number, message: string): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
-  if (typeof raw !== 'string') throw new TimetableError(400, message);
+  if (typeof raw !== 'string') throw new TimetableError(400, 'timetables.invalid', message);
   const text = raw.trim();
   if (!text) return undefined;
-  if (text.length > max) throw new TimetableError(400, message);
+  if (text.length > max) throw new TimetableError(400, 'timetables.invalid', message);
   return text;
 }
 
 function cleanFlag(raw: unknown, message: string): boolean | undefined {
   if (raw === undefined || raw === null) return undefined;
-  if (typeof raw !== 'boolean') throw new TimetableError(400, message);
+  if (typeof raw !== 'boolean') throw new TimetableError(400, 'timetables.invalid', message);
   return raw;
 }
 
 function cleanColor(raw: unknown, message: string): string {
-  if (typeof raw !== 'string' || !HEX_COLOR.test(raw)) throw new TimetableError(400, message);
+  if (typeof raw !== 'string' || !HEX_COLOR.test(raw)) throw new TimetableError(400, 'timetables.invalid', message);
   return raw.toLowerCase();
 }
 
 /** 'HH:MM' on a 24 hour clock, so the stored times also sort as text. */
 function cleanTime(raw: unknown, message: string): string {
   if (typeof raw !== 'string' || !CLOCK_TIME.test(raw) || parseTimeToMinutes(raw) === null) {
-    throw new TimetableError(400, message);
+    throw new TimetableError(400, 'timetables.invalid', message);
   }
   return raw;
 }
 
 function cleanPeriodNumber(raw: unknown, message: string): number {
   if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 1 || raw > MAX_PERIOD_NUMBER) {
-    throw new TimetableError(400, message);
+    throw new TimetableError(400, 'timetables.invalid', message);
   }
   return raw;
 }
 
 function cleanTimestamp(raw: unknown, message: string): string {
-  if (typeof raw !== 'string' || Number.isNaN(Date.parse(raw))) throw new TimetableError(400, message);
+  if (typeof raw !== 'string' || Number.isNaN(Date.parse(raw))) throw new TimetableError(400, 'timetables.invalid', message);
   return raw;
 }
 
@@ -217,7 +223,7 @@ function cleanTimestamp(raw: unknown, message: string): string {
 function cleanSlots(raw: unknown, at: string): TimetableSlot[] {
   const entries = asList(raw, `${at} needs a list of periods and breaks`);
   if (entries.length > TIMETABLE_LIMITS.maxSlotsPerSchool) {
-    throw new TimetableError(400, `${at} can have up to ${TIMETABLE_LIMITS.maxSlotsPerSchool} periods and breaks`);
+    throw new TimetableError(400, 'timetables.invalid', `${at} can have up to ${TIMETABLE_LIMITS.maxSlotsPerSchool} periods and breaks`);
   }
   const numbers = new Set<number>();
   let previousEnd = -1;
@@ -227,12 +233,12 @@ function cleanSlots(raw: unknown, at: string): TimetableSlot[] {
     const end = cleanTime(slot.end, `${at}: times look like 08:15`);
     const startsAt = parseTimeToMinutes(start) ?? 0;
     const endsAt = parseTimeToMinutes(end) ?? 0;
-    if (endsAt <= startsAt) throw new TimetableError(400, `${at}: the period starting at ${start} has to end later than it starts`);
-    if (startsAt < previousEnd) throw new TimetableError(400, `${at}: periods and breaks have to run in time order without overlapping`);
+    if (endsAt <= startsAt) throw new TimetableError(400, 'timetables.invalid', `${at}: the period starting at ${start} has to end later than it starts`);
+    if (startsAt < previousEnd) throw new TimetableError(400, 'timetables.invalid', `${at}: periods and breaks have to run in time order without overlapping`);
     previousEnd = endsAt;
     if (slot.kind === 'period') {
       const n = cleanPeriodNumber(slot.n, `${at}: every period needs a number`);
-      if (numbers.has(n)) throw new TimetableError(400, `${at} uses period ${n} twice`);
+      if (numbers.has(n)) throw new TimetableError(400, 'timetables.invalid', `${at} uses period ${n} twice`);
       numbers.add(n);
       return { kind: 'period', n, start, end };
     }
@@ -245,7 +251,7 @@ function cleanSlots(raw: unknown, at: string): TimetableSlot[] {
       );
       return { kind: 'break', label, start, end };
     }
-    throw new TimetableError(400, `${at}: a row is either a lesson period or a break`);
+    throw new TimetableError(400, 'timetables.invalid', `${at}: a row is either a lesson period or a break`);
   });
 }
 
@@ -256,10 +262,10 @@ function cleanSlots(raw: unknown, at: string): TimetableSlot[] {
  */
 function cleanHolidayRegion(raw: unknown, at: string): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
-  if (typeof raw !== 'string') throw new TimetableError(400, `${at}: school holidays need a region code like DE-NW`);
+  if (typeof raw !== 'string') throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
   const region = raw.trim().toUpperCase();
   if (!region) return undefined;
-  if (!HOLIDAY_REGION.test(region)) throw new TimetableError(400, `${at}: school holidays need a region code like DE-NW`);
+  if (!HOLIDAY_REGION.test(region)) throw new TimetableError(400, 'timetables.invalid', `${at}: school holidays need a region code like DE-NW`);
   return region;
 }
 
@@ -285,15 +291,15 @@ function cleanCare(raw: unknown, at: string): TimetableSchool['care'] {
 function cleanSpecialDays(raw: unknown, at: string): TimetableSpecialDay[] {
   const entries = asList(raw, `${at} needs a list of special days`);
   if (entries.length > TIMETABLE_LIMITS.maxSpecialDaysPerSchool) {
-    throw new TimetableError(400, `${at} can have up to ${TIMETABLE_LIMITS.maxSpecialDaysPerSchool} special days`);
+    throw new TimetableError(400, 'timetables.invalid', `${at} can have up to ${TIMETABLE_LIMITS.maxSpecialDaysPerSchool} special days`);
   }
   const dates = new Set<string>();
   return entries.map((entry): TimetableSpecialDay => {
     const day = asRecord(entry, `${at} has a special day that is not saved properly`);
     if (typeof day.date !== 'string' || !isValidISODate(day.date)) {
-      throw new TimetableError(400, `${at}: special days need a real date, like 2026-02-16`);
+      throw new TimetableError(400, 'timetables.invalid', `${at}: special days need a real date, like 2026-02-16`);
     }
-    if (dates.has(day.date)) throw new TimetableError(400, `${at} has two special days on ${day.date}`);
+    if (dates.has(day.date)) throw new TimetableError(400, 'timetables.invalid', `${at} has two special days on ${day.date}`);
     dates.add(day.date);
     const label = cleanText(
       day.label,
@@ -306,7 +312,7 @@ function cleanSpecialDays(raw: unknown, at: string): TimetableSpecialDay[] {
       const period = cleanPeriodNumber(day.period, `${at}: say which period the day on ${day.date} ends after`);
       return { date: day.date, label, kind: 'ends-after', period };
     }
-    throw new TimetableError(400, `${at}: a special day is either a day off or a short day`);
+    throw new TimetableError(400, 'timetables.invalid', `${at}: a special day is either a day off or a short day`);
   });
 }
 
@@ -324,17 +330,17 @@ function cleanNotes(
 ): TimetableNote[] {
   const entries = asList(raw, `${at} needs a list of dates`);
   if (entries.length > TIMETABLE_LIMITS.maxNotesPerTimetable) {
-    throw new TimetableError(400, `${at} can have up to ${TIMETABLE_LIMITS.maxNotesPerTimetable} dates`);
+    throw new TimetableError(400, 'timetables.invalid', `${at} can have up to ${TIMETABLE_LIMITS.maxNotesPerTimetable} dates`);
   }
   const periods = new Set(school.slots.filter((slot) => slot.kind === 'period').map((slot) => (slot as { n: number }).n));
   const ids = new Set<string>();
   const notes = entries.map((entry): TimetableNote => {
     const note = asRecord(entry, `${at} has a date that is not saved properly`);
     const id = cleanId(note.id, `${at} has a date with no id`);
-    if (ids.has(id)) throw new TimetableError(400, `${at} has two dates with the same id`);
+    if (ids.has(id)) throw new TimetableError(400, 'timetables.invalid', `${at} has two dates with the same id`);
     ids.add(id);
     if (typeof note.date !== 'string' || !isValidISODate(note.date)) {
-      throw new TimetableError(400, `${at}: dates need a real day, like 2026-02-16`);
+      throw new TimetableError(400, 'timetables.invalid', `${at}: dates need a real day, like 2026-02-16`);
     }
     const text = cleanOptionalText(
       note.text,
@@ -343,23 +349,23 @@ function cleanNotes(
     );
     if (note.kind === 'test') {
       const subjectId = cleanId(note.subjectId, `${at}: say which subject the test on ${note.date} is in`);
-      if (!subjectIds.has(subjectId)) throw new TimetableError(400, `${at}: the test on ${note.date} is in a subject that is not in the list`);
+      if (!subjectIds.has(subjectId)) throw new TimetableError(400, 'timetables.invalid', `${at}: the test on ${note.date} is in a subject that is not in the list`);
       return { id, date: note.date, kind: 'test', subjectId, ...(text ? { text } : {}) };
     }
     if (note.kind === 'bring') {
-      if (!text) throw new TimetableError(400, `${at}: say what to bring on ${note.date}`);
+      if (!text) throw new TimetableError(400, 'timetables.invalid', `${at}: say what to bring on ${note.date}`);
       return { id, date: note.date, kind: 'bring', text };
     }
     if (note.kind === 'cancelled') {
       const list = asList(note.periods, `${at}: say which lessons are off on ${note.date}`);
       const cleaned = [...new Set(list.map((n) => cleanPeriodNumber(n, `${at}: lessons that are off are listed by period number`)))].sort((a, b) => a - b);
-      if (cleaned.length === 0) throw new TimetableError(400, `${at}: say which lessons are off on ${note.date}`);
+      if (cleaned.length === 0) throw new TimetableError(400, 'timetables.invalid', `${at}: say which lessons are off on ${note.date}`);
       for (const n of cleaned) {
-        if (!periods.has(n)) throw new TimetableError(400, `${at}: ${school.name} has no period ${n} to be off on ${note.date}`);
+        if (!periods.has(n)) throw new TimetableError(400, 'timetables.invalid', `${at}: ${school.name} has no period ${n} to be off on ${note.date}`);
       }
       return { id, date: note.date, kind: 'cancelled', periods: cleaned };
     }
-    throw new TimetableError(400, `${at}: a date is a test, something to bring, or a lesson that is off`);
+    throw new TimetableError(400, 'timetables.invalid', `${at}: a date is a test, something to bring, or a lesson that is off`);
   });
   return notes.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
@@ -394,10 +400,10 @@ function cleanWeekCycle(raw: unknown, at: string): TimetableSchool['weekCycle'] 
   const cycle = asRecord(raw, `${at}: say whether the weeks alternate`);
   if (cycle.mode === 'off') return { mode: 'off' };
   if (cycle.mode === 'parity') {
-    if (cycle.oddWeek !== 'A' && cycle.oddWeek !== 'B') throw new TimetableError(400, `${at}: odd weeks are either week A or week B`);
+    if (cycle.oddWeek !== 'A' && cycle.oddWeek !== 'B') throw new TimetableError(400, 'timetables.invalid', `${at}: odd weeks are either week A or week B`);
     return { mode: 'parity', oddWeek: cycle.oddWeek };
   }
-  throw new TimetableError(400, `${at}: say whether the weeks alternate`);
+  throw new TimetableError(400, 'timetables.invalid', `${at}: say whether the weeks alternate`);
 }
 
 // ── Subjects ──
@@ -405,13 +411,13 @@ function cleanWeekCycle(raw: unknown, at: string): TimetableSchool['weekCycle'] 
 function cleanSubjects(raw: unknown): TimetableSubject[] {
   const entries = asList(raw, 'Subjects have to be saved as a list');
   if (entries.length > TIMETABLE_LIMITS.maxSubjects) {
-    throw new TimetableError(400, `You can have up to ${TIMETABLE_LIMITS.maxSubjects} subjects`);
+    throw new TimetableError(400, 'timetables.invalid', `You can have up to ${TIMETABLE_LIMITS.maxSubjects} subjects`);
   }
   const ids = new Set<string>();
   return entries.map((entry, index): TimetableSubject => {
     const subject = asRecord(entry, `Subject ${index + 1} is not saved properly`);
     const id = cleanId(subject.id, `Subject ${index + 1} is missing its id`);
-    if (ids.has(id)) throw new TimetableError(400, 'Two subjects share the same id');
+    if (ids.has(id)) throw new TimetableError(400, 'timetables.invalid', 'Two subjects share the same id');
     ids.add(id);
     const name = cleanText(
       subject.name,
@@ -442,7 +448,7 @@ function cleanCell(raw: unknown, at: string, subjectIds: ReadonlySet<string>): T
   const cell = asRecord(raw, `${at} has a lesson that is not saved properly`);
   if (cell.lunch === true) return { lunch: true };
   const subjectId = cleanId(cell.subjectId, `${at} has a lesson with no subject`);
-  if (!subjectIds.has(subjectId)) throw new TimetableError(400, `${at} has a lesson whose subject is not in the subject list`);
+  if (!subjectIds.has(subjectId)) throw new TimetableError(400, 'timetables.invalid', `${at} has a lesson whose subject is not in the subject list`);
   const room = cleanOptionalText(cell.room, TIMETABLE_LIMITS.maxRoomLength, `Room names can be up to ${TIMETABLE_LIMITS.maxRoomLength} characters`);
   const course = cleanOptionalText(cell.course, TIMETABLE_LIMITS.maxCodeLength, `Course badges can be up to ${TIMETABLE_LIMITS.maxCodeLength} characters`);
   return { subjectId, ...(room ? { room } : {}), ...(course ? { course } : {}) };
@@ -460,7 +466,7 @@ function cleanWeek(raw: unknown, at: string, subjectIds: ReadonlySet<string>): T
       if (value === undefined || value === null) continue;
       const n = Number(key);
       if (!Number.isInteger(n) || n < 1 || n > MAX_PERIOD_NUMBER) {
-        throw new TimetableError(400, `${at} has a lesson in a period that is not numbered`);
+        throw new TimetableError(400, 'timetables.invalid', `${at} has a lesson in a period that is not numbered`);
       }
       cells[n] = cleanCell(value, at, subjectIds);
     }
@@ -495,12 +501,12 @@ function cleanSourceCodes(raw: unknown, at: string, subjectIds: ReadonlySet<stri
 function cleanSource(raw: unknown, at: string, subjectIds: ReadonlySet<string>): Timetable['source'] {
   if (raw === undefined || raw === null) return undefined;
   const source = asRecord(raw, `${at}: the spreadsheet it came from is not saved properly`);
-  if (source.kind !== 'sheet') throw new TimetableError(400, `${at}: the spreadsheet it came from is not saved properly`);
+  if (source.kind !== 'sheet') throw new TimetableError(400, 'timetables.invalid', `${at}: the spreadsheet it came from is not saved properly`);
   const url = cleanText(source.url, MAX_LINK_LENGTH, `${at}: the spreadsheet needs a link`, `${at}: that spreadsheet link is too long`);
-  if (!WEB_LINK.test(url)) throw new TimetableError(400, `${at}: a spreadsheet link has to start with https://`);
+  if (!WEB_LINK.test(url)) throw new TimetableError(400, 'timetables.invalid', `${at}: a spreadsheet link has to start with https://`);
   const importedAt = cleanTimestamp(source.importedAt, `${at}: the spreadsheet needs the time it was read`);
   const sync = cleanFlag(source.sync, `${at}: keeping the spreadsheet up to date is either on or off`);
-  if (sync === undefined) throw new TimetableError(400, `${at}: keeping the spreadsheet up to date is either on or off`);
+  if (sync === undefined) throw new TimetableError(400, 'timetables.invalid', `${at}: keeping the spreadsheet up to date is either on or off`);
   const tab = cleanOptionalText(source.tab, MAX_ID_LENGTH, `${at}: that spreadsheet tab is not saved properly`);
   const codes = cleanSourceCodes(source.codes, at, subjectIds);
   const lastCheckedAt = source.lastCheckedAt === undefined || source.lastCheckedAt === null
@@ -530,7 +536,7 @@ function cleanTimetable(
   const memberId = cleanId(entry.memberId, `${where} is missing the person it belongs to`);
   const schoolId = cleanId(entry.schoolId, `${where} is missing its school`);
   const school = schools.get(schoolId);
-  if (!school) throw new TimetableError(400, `${where} points at a school that is not in the list`);
+  if (!school) throw new TimetableError(400, 'timetables.invalid', `${where} points at a school that is not in the list`);
   const className = cleanOptionalText(entry.className, TIMETABLE_LIMITS.maxNameLength, `Class names can be up to ${TIMETABLE_LIMITS.maxNameLength} characters`);
   const usualRoom = cleanOptionalText(entry.usualRoom, TIMETABLE_LIMITS.maxRoomLength, `Room names can be up to ${TIMETABLE_LIMITS.maxRoomLength} characters`);
   const icons = cleanFlag(entry.icons, `${where}: subject pictures are either on or off`);
@@ -538,7 +544,7 @@ function cleanTimetable(
   const weekA = cleanWeek(weeks.A, `${where}, week A`, subjectIds);
   let weekB: TimetableWeek | undefined;
   if (weeks.B !== undefined && weeks.B !== null) {
-    if (school.weekCycle.mode === 'off') throw new TimetableError(400, `${where} has a week B, but ${school.name} does not alternate weeks`);
+    if (school.weekCycle.mode === 'off') throw new TimetableError(400, 'timetables.invalid', `${where} has a week B, but ${school.name} does not alternate weeks`);
     weekB = cleanWeek(weeks.B, `${where}, week B`, subjectIds);
   }
   const source = cleanSource(entry.source, where, subjectIds);
@@ -588,12 +594,12 @@ export function cleanTimetableData(raw: unknown): TimetableData {
   const doc = asRecord(raw, 'Timetables are saved as schools, subjects and timetables');
   const schoolEntries = asList(doc.schools, 'Schools have to be saved as a list');
   if (schoolEntries.length > TIMETABLE_LIMITS.maxSchools) {
-    throw new TimetableError(400, `You can have up to ${TIMETABLE_LIMITS.maxSchools} schools`);
+    throw new TimetableError(400, 'timetables.invalid', `You can have up to ${TIMETABLE_LIMITS.maxSchools} schools`);
   }
   const schools = schoolEntries.map((entry, index) => cleanSchool(entry, index));
   const byId = new Map<string, TimetableSchool>();
   for (const school of schools) {
-    if (byId.has(school.id)) throw new TimetableError(400, 'Two schools share the same id');
+    if (byId.has(school.id)) throw new TimetableError(400, 'timetables.invalid', 'Two schools share the same id');
     byId.set(school.id, school);
   }
 
@@ -602,12 +608,12 @@ export function cleanTimetableData(raw: unknown): TimetableData {
 
   const entries = asList(doc.timetables, 'Timetables have to be saved as a list');
   if (entries.length > TIMETABLE_LIMITS.maxTimetables) {
-    throw new TimetableError(400, `You can have up to ${TIMETABLE_LIMITS.maxTimetables} timetables`);
+    throw new TimetableError(400, 'timetables.invalid', `You can have up to ${TIMETABLE_LIMITS.maxTimetables} timetables`);
   }
   const timetables = entries.map((entry, index) => cleanTimetable(entry, index, byId, subjectIds));
   const members = new Set<string>();
   for (const timetable of timetables) {
-    if (members.has(timetable.memberId)) throw new TimetableError(400, 'One person cannot have two timetables');
+    if (members.has(timetable.memberId)) throw new TimetableError(400, 'timetables.invalid', 'One person cannot have two timetables');
     members.add(timetable.memberId);
   }
 
@@ -732,16 +738,16 @@ export function replaceTimetables(input: ReplaceTimetablesInput, now: Date = new
       const saved = await store.updateAtomic(async (current) => {
         const base = await withSeededSubjects(current);
         if (typeof input.revision !== 'string' || !input.revision) {
-          throw new TimetableError(400, 'Reopen the timetables page and try saving again.');
+          throw new TimetableError(400, 'timetables.reopen', 'Reopen the timetables page and try saving again.');
         }
         if (input.revision !== timetableRevision(base)) {
-          throw new TimetableError(409, 'Somebody else changed the timetables. Reopen the page and make your change again.', 'revision');
+          throw new TimetableError(409, 'timetables.revision', 'Somebody else changed the timetables. Reopen the page and make your change again.', { extra: { ...snapshot(base) } });
         }
         const next = withoutPastNotes(withServerNotes(cleanTimetableData(input.data), base), now);
         const missing = await validateMemberReferences(next.timetables.map((timetable) => timetable.memberId));
         // The check answers with a ready-made response for a route; here only
         // its verdict matters, so the timetable wording is used instead.
-        if (missing) throw new TimetableError(409, 'A timetable belongs to somebody who is no longer in the family. Reopen the page and pick a person again.', 'member');
+        if (missing) throw new TimetableError(409, 'timetables.member', 'A timetable belongs to somebody who is no longer in the family. Reopen the page and pick a person again.');
         return next;
       });
       return snapshot(saved);

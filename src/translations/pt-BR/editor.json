@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "timetables": {
+      "member": "Um horário pertence a alguém que não está mais na família. Reabra a página e escolha uma pessoa de novo.",
+      "corrupt": "Os horários salvos não puderam ser lidos. Restaure ou conserte o arquivo antes de fazer alterações.",
+      "reopen": "Reabra a página de horários e tente salvar de novo.",
+      "invalid": "Algo nos horários não pôde ser salvo assim. Recarregue a página e faça a alteração de novo."
+    },
+    "library": {
+      "badFolder": "Essa pasta não pode ser usada.",
+      "folderGone": "Essa pasta não existe mais.",
+      "badPath": "Esse arquivo não pode ser usado.",
+      "fileGone": "{name} não existe mais.",
+      "fileExists": "{name} já está nessa pasta.",
+      "nameClash": "Dois dos arquivos se chamam {name}; só um pode ir para lá.",
+      "reservedName": "Nomes que começam com \"rotation-\" são reservados para fundos rotativos no nível de cima. Renomeie {name} primeiro.",
+      "badName": "Esse nome de pasta não pode ser usado. Tente um com letras e números.",
+      "tooDeep": "As pastas só podem ter {max} níveis.",
+      "folderExists": "Já existe uma pasta chamada {name} aqui.",
+      "folderNotEmpty": "Essa pasta ainda tem arquivos. Mova ou exclua eles primeiro."
+    }
+  },
   "languageAndRegion": {
     "title": "Idioma e região",
     "languageLabel": "Idioma",
@@ -1280,7 +1301,6 @@
       "deleteFolderTitle": "Excluir a pasta {name}?",
       "deleteFolderMessage": "Só uma pasta vazia pode ser excluída.",
       "folderDeleted": "Pasta {name} excluída",
-      "folderNotEmpty": "Essa pasta ainda tem arquivos. Mova ou exclua eles primeiro.",
       "deleteFolderFailed": "Não foi possível excluir a pasta"
     },
     "iconsPage": {

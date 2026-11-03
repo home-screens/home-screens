@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "Home Screens was niet bereikbaar, dus dat is niet opgeslagen. Controleer de verbinding en probeer het opnieuw.",
+    "lists": {
+      "failed": "Er ging iets mis. Probeer het opnieuw.",
+      "nameRequired": "Geef de lijst een naam",
+      "nameTooLong": "Een lijstnaam mag maximaal {max} tekens lang zijn",
+      "textRequired": "Typ eerst iets",
+      "textTooLong": "Een item mag maximaal {max} tekens lang zijn",
+      "badDate": "Die dag kennen we niet",
+      "badColor": "Kies een kleur uit de lijst",
+      "listGone": "Die lijst bestaat niet meer",
+      "itemGone": "Dat item bestaat niet meer",
+      "tooManyLists": "Je kunt maximaal {max} lijsten hebben",
+      "tooManyItems": "Een lijst kan maximaal {max} items bevatten",
+      "orderChanged": "De lijst is veranderd terwijl je dingen verplaatste. Probeer het opnieuw.",
+      "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens."
+    },
+    "notes": {
+      "failed": "Dat is niet opgeslagen. Probeer het opnieuw.",
+      "textRequired": "Schrijf eerst iets.",
+      "textTooLong": "Een notitie mag maximaal {max} tekens lang zijn.",
+      "badAuthor": "De schrijver moet iemand uit het gezin zijn.",
+      "badLife": "Kies hoe lang de notitie moet blijven.",
+      "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens.",
+      "noteGone": "Die notitie is er niet meer.",
+      "boardFull": "Het prikbord is vol: {max} notities. Haal er eerst een paar af."
+    },
+    "family": {
+      "revision": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",
+      "badRequest": "Die wijziging werd niet begrepen. Laad de pagina opnieuw en probeer het nog eens.",
+      "nameTooLong": "Een naam mag maximaal {max} tekens lang zijn.",
+      "tooManyMembers": "Je kunt mensen toevoegen zolang het gezin minder dan {max} leden heeft.",
+      "tooManyGroups": "Je kunt maximaal {max} groepen hebben.",
+      "groupNameTooLong": "Een groepsnaam mag maximaal {max} tekens lang zijn.",
+      "groupNameTaken": "Je hebt al een groep met de naam {name}.",
+      "groupMemberRemoved": "Een groep noemt iemand die niet op de gezinslijst staat. Ververs en probeer het opnieuw.",
+      "memberRemoved": "Iemand uit deze keuze is verwijderd. Ververs en kies opnieuw.",
+      "groupRemoved": "Een groep uit deze keuze is verwijderd. Ververs en kies opnieuw.",
+      "dataInvalid": "De gezinsgegevens hebben aandacht nodig. Open de instellingen om ze na te kijken of zet een back-up terug.",
+      "dataWaiting": "De gezinsgegevens worden hersteld. Probeer het over een minuut opnieuw.",
+      "restoreMissing": "Die back-up noemt mensen of groepen die niet op zijn gezinslijst staan, dus hij is niet teruggezet. Zet een back-up terug waar ze in staan."
+    }
+  },
   "today": "Vandaag",
   "tomorrow": "Morgen",
   "yesterday": "Gisteren",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Opslaan…",
+    "uploadingCount": "{current} van {total} wordt geüpload...",
     "connected": "Verbonden",
     "disabled": "Uitgeschakeld",
     "never": "Nooit",
@@ -96,6 +140,7 @@
     "fetchFailed": "Kon geen verbinding maken om deze gegevens te laden",
     "loadImagesFailed": "Afbeeldingen konden niet worden geladen",
     "uploadFailed": "Uploaden mislukt",
+    "uploadFailedFor": "Uploaden van {name} is mislukt",
     "createFolderFailed": "Map kon niet worden aangemaakt",
     "deleteFolderFailed": "Map kon niet worden verwijderd",
     "deleteImageFailed": "Foto kon niet worden verwijderd",
@@ -230,7 +275,6 @@
     "retry": "Opnieuw proberen",
     "saved": "Gezin opgeslagen.",
     "saving": "Opslaan…",
-    "conflict": "Iemand heeft het gezin gewijzigd terwijl je bezig was. De actuele lijst wordt getoond. Voer je wijziging opnieuw uit.",
     "removeTitle": "{name} verwijderen?",
     "removeDescription": "Als je {name} verwijdert, worden de klusjes, schema’s, geschiedenis, tickets en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Klusjes waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "remove": "Persoon verwijderen",

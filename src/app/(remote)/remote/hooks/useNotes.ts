@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
+import { useCallback, useEffect, useState } from 'react';
+import { editorFetch } from '@/lib/editor-fetch';
+import { HubUnreachableError, refusalText } from '@/lib/hub-request';
 import { useTranslate } from '@/i18n';
+import { useWriteSession } from '@/hooks/useWriteSession';
+import { sameId, tempId } from '@/lib/write-session';
 import {
   createNote,
   deleteNote,
@@ -30,51 +32,27 @@ import { showToast } from '../remote-toast';
 const NOTES_POLL_MS = NOTES_TTL_MS;
 /** How often ages and time left move on when nothing else changed. */
 const CLOCK_TICK_MS = 30_000;
-const TEMP_PREFIX = 'tmp-';
 
-type ResolveId = (id: string) => string;
-/**
- * A local change replayed over server truth until its request lands. Each
- * one runs the store's own action from `lib/notes-actions.ts`, so what the
- * phone shows before the answer is what the store will hold after it.
- */
-type Mutation = (notes: Note[], resolveId: ResolveId) => Note[];
+const tolerated = (e: unknown) => e instanceof NotesError;
 
-function tempId(): string {
-  return `${TEMP_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function sameId(candidate: string, wanted: string, resolveId: ResolveId): boolean {
-  return candidate === wanted || candidate === resolveId(wanted);
-}
-
-/**
- * Server truth with every pending change on top. A change the newer truth no
- * longer allows (another phone deleted the note) is skipped rather than
- * thrown; its own request answers for it.
- */
-function replay(pending: ReadonlyArray<{ apply: Mutation }>, server: Note[], resolveId: ResolveId): Note[] {
-  return pending.reduce((ns, p) => {
-    try {
-      return p.apply(ns, resolveId);
-    } catch (e) {
-      if (e instanceof NotesError) return ns;
-      throw e;
-    }
-  }, server);
+async function loadNotes(): Promise<Note[] | null> {
+  const res = await editorFetch(allNotesUrl());
+  if (!res.ok) return null;
+  const json = (await res.json()) as { notes?: Note[] };
+  return Array.isArray(json.notes) ? json.notes : [];
 }
 
 /**
  * Data and actions behind the /remote Notes tab: every note on the board,
- * live and gone, polled while the tab is mounted.
+ * live and gone, polled while the tab is in view.
  *
- * The same write machinery as the Lists tab: writes go out one at a time in
- * the order they were asked for, each one's local change (the store's own
- * action) is replayed over the newest server answer until its request
- * lands, a posted note's temp id is pointed at the server's id as soon as
- * the answer names it, and polls are held off for one period after a write.
- * A failed write drops its change, shows the server's message (a refused
- * author included) and refetches.
+ * Each write's local change is the store's own action from
+ * `lib/notes-actions.ts`, so what the phone shows before the answer is what
+ * the store will hold after it (`useWriteSession` shows it at once and
+ * replays it over newer answers). A change the rules refuse on what the
+ * phone shows now (a blank note, a board full of live notes) is not sent:
+ * its code goes straight to the toast, phrased the way the hub's own refusal
+ * is (`refusals.notes` in the `core` dictionary, shared with the editor).
  *
  * `now` lives here rather than in the tab: it is stamped with every change,
  * so a note taken down leaves the live list at once instead of on the next
@@ -82,107 +60,32 @@ function replay(pending: ReadonlyArray<{ apply: Mutation }>, server: Note[], res
  */
 export function useNotes() {
   const t = useTranslate('remote');
-  const [notes, setNotes] = useState<Note[]>([]);
+  const tCore = useTranslate('core');
   const [now, setNow] = useState(() => new Date());
-  const [loaded, setLoaded] = useState(false);
-  const [loadError, setLoadError] = useState(false);
 
-  const serverRef = useRef<Note[]>([]);
-  const pendingRef = useRef<Array<{ apply: Mutation }>>([]);
-  const idMapRef = useRef(new Map<string, string>());
-  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
-  const holdUntilRef = useRef(0);
-  const inFlightRef = useRef(0);
-
-  const resolveId = useCallback<ResolveId>((id) => idMapRef.current.get(id) ?? id, []);
-
-  const render = useCallback(() => {
-    setNotes(replay(pendingRef.current, serverRef.current, resolveId));
-    setNow(new Date());
-  }, [resolveId]);
-
-  const refresh = useCallback(async (force = false) => {
-    try {
-      const res = await editorFetch(allNotesUrl());
-      if (!res.ok) {
-        setLoadError(true);
-        return;
-      }
-      const json = (await res.json()) as { notes?: Note[] };
-      if (!force && (Date.now() < holdUntilRef.current || inFlightRef.current > 0)) return;
-      serverRef.current = Array.isArray(json.notes) ? json.notes : [];
-      render();
-      setLoaded(true);
-      setLoadError(false);
-    } catch (e) {
-      if (isSessionExpired(e)) return;
-      setLoadError(true);
-    }
-  }, [render]);
+  const { data: notes, loaded, loadError, retry, write, mapId, resolveId } = useWriteSession<Note[], NotesWriteRequest, Note>({
+    initial: [],
+    load: loadNotes,
+    send: async (request) => {
+      const { notes, created } = await sendNotesWrite(editorFetch, request, t('notes.saveError'));
+      return { data: notes, created };
+    },
+    pollMs: NOTES_POLL_MS,
+    tolerates: tolerated,
+    onRefused: (e) => showToast(
+      e instanceof HubUnreachableError ? t('hubRequest.saveFailed') : refusalText(e, tCore, 'refusals.notes.failed'),
+      'error',
+    ),
+  });
 
   useEffect(() => {
-    void refresh();
-    const id = setInterval(() => void refresh(), NOTES_POLL_MS);
-    return () => clearInterval(id);
-  }, [refresh]);
+    setNow(new Date());
+  }, [notes]);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), CLOCK_TICK_MS);
     return () => clearInterval(id);
   }, []);
-
-  /**
-   * Queue one write. `apply` shows the change at once; `request` is built
-   * when the write's turn comes, with ids resolved; `onSuccess` sees the
-   * note the server made, when it made one. A change the rules refuse on
-   * what the phone shows now (a blank note, a board full of live notes) is
-   * not sent: its message goes straight to the toast and this answers null.
-   */
-  const write = useCallback(
-    (
-      apply: Mutation,
-      request: (resolveId: ResolveId) => NotesWriteRequest,
-      onSuccess?: (created?: Note) => void,
-    ): Promise<Note[] | null> => {
-      try {
-        apply(replay(pendingRef.current, serverRef.current, resolveId), resolveId);
-      } catch (e) {
-        if (!(e instanceof NotesError)) throw e;
-        showToast(e.message, 'error');
-        return Promise.resolve(null);
-      }
-      const entry = { apply };
-      pendingRef.current.push(entry);
-      render();
-      inFlightRef.current += 1;
-
-      const run = async (): Promise<Note[] | null> => {
-        try {
-          const { notes: next, created } = await sendNotesWrite(editorFetch, request(resolveId), t('notes.saveError'));
-          holdUntilRef.current = Date.now() + NOTES_POLL_MS;
-          serverRef.current = next;
-          pendingRef.current = pendingRef.current.filter((p) => p !== entry);
-          onSuccess?.(created);
-          render();
-          return next;
-        } catch (e) {
-          pendingRef.current = pendingRef.current.filter((p) => p !== entry);
-          if (isSessionExpired(e)) return null;
-          render();
-          showToast(requestFailureText(e, { unreachable: t('hubRequest.saveFailed'), fallback: t('notes.saveError') }), 'error');
-          void refresh(true);
-          return null;
-        } finally {
-          inFlightRef.current -= 1;
-        }
-      };
-
-      const result = queueRef.current.then(run, run);
-      queueRef.current = result;
-      return result;
-    },
-    [render, resolveId, refresh, t],
-  );
 
   /**
    * Resolves to whether the note was saved, so the write bar can hand back
@@ -200,11 +103,11 @@ export function useNotes() {
         },
         () => createNoteRequest(input),
         (created) => {
-          if (created) idMapRef.current.set(temp, created.id);
+          if (created) mapId(temp, created.id);
         },
       ).then((saved) => saved !== null);
     },
-    [write],
+    [write, mapId],
   );
 
   const update = useCallback(
@@ -261,7 +164,7 @@ export function useNotes() {
     now,
     loaded,
     loadError,
-    retry: () => refresh(true),
+    retry,
     findNote,
     post,
     update,

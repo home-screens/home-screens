@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "Home Screens war nicht erreichbar, deshalb wurde das nicht gespeichert. Prüfe die Verbindung und versuche es noch einmal.",
+    "lists": {
+      "failed": "Etwas ist schiefgelaufen. Versuche es noch einmal.",
+      "nameRequired": "Gib der Liste einen Namen",
+      "nameTooLong": "Listennamen dürfen bis zu {max} Zeichen lang sein",
+      "textRequired": "Schreib erst etwas",
+      "textTooLong": "Einträge dürfen bis zu {max} Zeichen lang sein",
+      "badDate": "Diesen Tag kennen wir nicht",
+      "badColor": "Wähle eine Farbe aus der Liste",
+      "listGone": "Diese Liste gibt es nicht mehr",
+      "itemGone": "Diesen Eintrag gibt es nicht mehr",
+      "tooManyLists": "Du kannst bis zu {max} Listen haben",
+      "tooManyItems": "Eine Liste fasst bis zu {max} Einträge",
+      "orderChanged": "Die Liste hat sich geändert, während du etwas verschoben hast. Versuche es noch einmal.",
+      "badRequest": "Diese Änderung konnte nicht verstanden werden. Lade die Seite neu und versuche es noch einmal."
+    },
+    "notes": {
+      "failed": "Das wurde nicht gespeichert. Versuche es noch einmal.",
+      "textRequired": "Schreib erst etwas.",
+      "textTooLong": "Eine Notiz darf höchstens {max} Zeichen lang sein.",
+      "badAuthor": "Der Verfasser muss jemand aus der Familie sein.",
+      "badLife": "Wähle, wie lange die Notiz bleiben soll.",
+      "badRequest": "Diese Änderung konnte nicht verstanden werden. Lade die Seite neu und versuche es noch einmal.",
+      "noteGone": "Diese Notiz ist nicht mehr da.",
+      "boardFull": "Die Pinnwand ist voll: {max} Notizen. Nimm erst einige ab."
+    },
+    "family": {
+      "revision": "Die Familie wurde während deiner Bearbeitung geändert. Die aktuelle Liste wird angezeigt. Bitte führe deine Änderung erneut aus.",
+      "badRequest": "Diese Änderung konnte nicht verstanden werden. Lade die Seite neu und versuche es noch einmal.",
+      "nameTooLong": "Namen dürfen bis zu {max} Zeichen lang sein.",
+      "tooManyMembers": "Du kannst Personen hinzufügen, solange die Familie weniger als {max} Mitglieder hat.",
+      "tooManyGroups": "Du kannst bis zu {max} Gruppen haben.",
+      "groupNameTooLong": "Gruppennamen dürfen bis zu {max} Zeichen lang sein.",
+      "groupNameTaken": "Eine Gruppe namens {name} gibt es schon.",
+      "groupMemberRemoved": "Eine Gruppe nennt jemanden, der nicht in der Familienliste steht. Lade neu und versuche es noch einmal.",
+      "memberRemoved": "Jemand aus dieser Auswahl wurde entfernt. Lade neu und wähle noch einmal.",
+      "groupRemoved": "Eine Gruppe aus dieser Auswahl wurde entfernt. Lade neu und wähle noch einmal.",
+      "dataInvalid": "Die Familiendaten brauchen Aufmerksamkeit. Öffne die Einstellungen, um sie zu prüfen, oder stelle ein Backup wieder her.",
+      "dataWaiting": "Die Familiendaten werden gerade wiederhergestellt. Bitte versuche es in einer Minute noch einmal.",
+      "restoreMissing": "Dieses Backup nennt Personen oder Gruppen, die nicht in seiner Familienliste stehen, deshalb wurde es nicht wiederhergestellt. Stelle ein Backup wieder her, das sie enthält."
+    }
+  },
   "today": "Heute",
   "tomorrow": "Morgen",
   "yesterday": "Gestern",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Speichert…",
+    "uploadingCount": "{current} von {total} wird hochgeladen...",
     "connected": "Verbunden",
     "disabled": "Deaktiviert",
     "never": "Nie",
@@ -96,6 +140,7 @@
     "fetchFailed": "Verbindung zum Laden der Daten fehlgeschlagen",
     "loadImagesFailed": "Bilder konnten nicht geladen werden",
     "uploadFailed": "Upload fehlgeschlagen",
+    "uploadFailedFor": "Hochladen von {name} fehlgeschlagen",
     "createFolderFailed": "Ordner konnte nicht erstellt werden",
     "deleteFolderFailed": "Ordner konnte nicht gelöscht werden",
     "deleteImageFailed": "Foto konnte nicht gelöscht werden",
@@ -230,7 +275,6 @@
     "retry": "Erneut versuchen",
     "saved": "Familie gespeichert.",
     "saving": "Wird gespeichert…",
-    "conflict": "Die Familie wurde während deiner Bearbeitung geändert. Die aktuelle Liste wird angezeigt. Bitte führe deine Änderung erneut aus.",
     "removeTitle": "{name} entfernen?",
     "removeDescription": "Wenn du {name} entfernst, werden Aufgabenverteilung, Zeitpläne, erledigte Aufgaben, Tickets und der Zugang zu Belohnungen für diese Person gelöscht. Auch die Auswahl ihrer Kalender wird vergessen. Aufgaben, für die niemand mehr zuständig ist, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
     "remove": "Person entfernen",

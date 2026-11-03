@@ -17,7 +17,7 @@ import { displayCache } from './display-cache';
 import { FETCH_KEY_REGISTRY, timetablesUrl } from './fetch-keys';
 import type { TimetableData } from '@/types/timetables';
 import type { TimetableImportCheckResult } from './timetable-api';
-import { readJson, refusalMessage } from './hub-request';
+import { readJson, refusalError } from './hub-request';
 import type { EditorFetchInit } from './editor-fetch';
 
 /** How long a loaded document stays fresh for everything else on the page. */
@@ -68,7 +68,7 @@ export function primeTimetableCache(snapshot: TimetableSnapshot): void {
   displayCache.replace(timetablesUrl(), snapshot, TIMETABLES_TTL_MS);
 }
 
-/** Load the whole document. Rejects with a plain reason when it cannot. */
+/** Load the whole document. Rejects with the hub's refusal, or `fallbackMessage`, when it cannot. */
 export async function loadTimetables(
   fetcher: TimetableFetch,
   fallbackMessage: string,
@@ -76,7 +76,7 @@ export async function loadTimetables(
   const res = await fetcher(timetablesUrl());
   const json = await readJson(res);
   const snapshot = res.ok ? asSnapshot(json) : null;
-  if (!snapshot) throw new Error(refusalMessage(json, fallbackMessage));
+  if (!snapshot) throw refusalError(json, res.status, fallbackMessage);
   primeTimetableCache(snapshot);
   return snapshot;
 }
@@ -103,13 +103,13 @@ export async function saveTimetables(
   // A 409 is only a conflict when the store says it was about the revision. It
   // also answers 409 for a person who has left the family and for a file it
   // cannot read, and adopting the saved document for either of those discarded
-  // everything unsaved to explain a race that never happened. Those reject with
-  // the store's own plain sentence instead.
-  if (res.status === 409 && (json as { reason?: unknown } | null)?.reason === 'revision') {
+  // everything unsaved to explain a race that never happened. Those reject as
+  // the refusals they are, phrased by the window.
+  if (res.status === 409 && (json as { code?: unknown } | null)?.code === 'timetables.revision') {
     return { kind: 'conflict', snapshot: asSnapshot(json) };
   }
   const saved = res.ok ? asSnapshot(json) : null;
-  if (!saved) throw new Error(refusalMessage(json, fallbackMessage));
+  if (!saved) throw refusalError(json, res.status, fallbackMessage);
   primeTimetableCache(saved);
   return { kind: 'saved', snapshot: saved };
 }
@@ -134,7 +134,7 @@ export async function checkSheetNow(
     body: JSON.stringify({ memberId }),
   });
   const json = await readJson(res);
-  if (!res.ok) throw new Error(refusalMessage(json, fallbackMessage));
+  if (!res.ok) throw refusalError(json, res.status, fallbackMessage);
 }
 
 /**
@@ -155,7 +155,7 @@ export async function checkTimetableFiles(
     body: JSON.stringify({ files }),
   });
   const json = await readJson(res);
-  if (!res.ok) throw new Error(refusalMessage(json, fallbackMessage));
+  if (!res.ok) throw refusalError(json, res.status, fallbackMessage);
   const result = json as TimetableImportCheckResult | null;
   if (!result || typeof result !== 'object' || typeof result.ok !== 'boolean') {
     throw new Error(fallbackMessage);
@@ -183,7 +183,7 @@ export async function checkSheetLink(
     body: JSON.stringify({ url }),
   });
   const json = await readJson(res);
-  if (!res.ok) throw new Error(refusalMessage(json, fallbackMessage));
+  if (!res.ok) throw refusalError(json, res.status, fallbackMessage);
   const result = json as TimetableImportCheckResult | null;
   if (!result || typeof result !== 'object' || typeof result.ok !== 'boolean') {
     throw new Error(fallbackMessage);

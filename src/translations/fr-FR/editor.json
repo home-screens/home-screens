@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "timetables": {
+      "member": "Un emploi du temps appartient à quelqu'un qui n'est plus dans la famille. Rouvrez la page et choisissez à nouveau une personne.",
+      "corrupt": "Les emplois du temps enregistrés n'ont pas pu être lus. Restaurez ou réparez le fichier avant de faire des modifications.",
+      "reopen": "Rouvrez la page des emplois du temps et réessayez d'enregistrer.",
+      "invalid": "Quelque chose dans les emplois du temps n'a pas pu être enregistré tel quel. Rechargez la page et refaites la modification."
+    },
+    "library": {
+      "badFolder": "Ce dossier ne peut pas être utilisé.",
+      "folderGone": "Ce dossier n'existe plus.",
+      "badPath": "Ce fichier ne peut pas être utilisé.",
+      "fileGone": "{name} n'existe plus.",
+      "fileExists": "{name} est déjà dans ce dossier.",
+      "nameClash": "Deux des fichiers s'appellent {name} ; un seul peut y aller.",
+      "reservedName": "Les noms commençant par « rotation- » sont réservés aux fonds tournants au premier niveau. Renommez {name} d'abord.",
+      "badName": "Ce nom de dossier ne peut pas être utilisé. Essayez avec des lettres et des chiffres.",
+      "tooDeep": "Les dossiers ne peuvent avoir que {max} niveaux.",
+      "folderExists": "Il y a déjà un dossier appelé {name} ici.",
+      "folderNotEmpty": "Ce dossier contient encore des fichiers. Déplacez-les ou supprimez-les d'abord."
+    }
+  },
   "languageAndRegion": {
     "title": "Langue et région",
     "languageLabel": "Langue",
@@ -1280,7 +1301,6 @@
       "deleteFolderTitle": "Supprimer le dossier {name} ?",
       "deleteFolderMessage": "Seul un dossier vide peut être supprimé.",
       "folderDeleted": "Dossier {name} supprimé",
-      "folderNotEmpty": "Ce dossier contient encore des fichiers. Déplacez-les ou supprimez-les d'abord.",
       "deleteFolderFailed": "Impossible de supprimer le dossier"
     },
     "iconsPage": {

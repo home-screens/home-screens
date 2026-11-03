@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import sharp from 'sharp';
 import { createJsonStore } from './json-store';
+import { RefusalError } from './refusal';
 import { commitDataTransaction, getDataRoot, readTransactionFile, withDataTransaction, type TransactionChange } from './data-transaction';
 import { ICON_REFERENCE_STORES, replaceIconReferences } from './custom-icon-removal';
 import { configRevision, readConfig } from './config';
@@ -48,9 +49,16 @@ const store = createJsonStore<CustomIconIndex>({
   errorHandling: 'throw-corrupt',
 });
 
-export class CustomIconError extends Error {
-  constructor(readonly code: CustomIconErrorCode, readonly status: number, message: string) {
-    super(message);
+/**
+ * A refusal the family can act on. The route wrapper answers with its code,
+ * which the icon pages map to `customIcons.errors.<code>` in the `core`
+ * dictionary; the code keeps its kebab spelling because that is what the
+ * client's `CUSTOM_ICON_ERROR_CODES` lists.
+ */
+export class CustomIconError extends RefusalError {
+  declare readonly code: CustomIconErrorCode;
+  constructor(code: CustomIconErrorCode, status: number, message: string) {
+    super(status, code, message);
     this.name = 'CustomIconError';
   }
 }

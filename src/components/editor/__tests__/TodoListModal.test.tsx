@@ -7,6 +7,7 @@ import editor from '@/translations/en-US/editor.json';
 import { I18nProvider } from '@/i18n/provider';
 import { addItem, deleteItem, updateItem, updateList, TodoError } from '@/lib/todo-data';
 import type { TodoData } from '@/types/todos';
+import { refusalBody } from '@/lib/refusal';
 
 const state = vi.hoisted(() => ({ request: vi.fn() }));
 vi.mock('@/lib/editor-fetch', () => ({
@@ -34,7 +35,7 @@ function seed(): TodoData {
 // A hub in miniature: the real list actions over an in-memory store, so the
 // modal is checked against what the routes would actually answer.
 let board: TodoData;
-let refuseNext: string | null;
+let refuseNext: Record<string, unknown> | null;
 let writes: Array<{ method: string; url: string; body?: Record<string, unknown> }>;
 /** When set, every write waits here until released, in order. */
 let held: Array<() => void> | null;
@@ -45,9 +46,9 @@ function reply(status: number, body: unknown): Response {
 
 function answer(url: string, method: string, body: Record<string, unknown> | undefined): Response {
   if (refuseNext) {
-    const error = refuseNext;
+    const refusal = refuseNext;
     refuseNext = null;
-    return reply(409, { error });
+    return reply(409, refusal);
   }
   try {
     const rest = url.replace('/api/todo/lists', '').split('/').filter(Boolean);
@@ -62,7 +63,7 @@ function answer(url: string, method: string, body: Record<string, unknown> | und
     }
     return reply(200, { lists: board.lists });
   } catch (e) {
-    return reply(e instanceof TodoError ? e.status : 500, { error: (e as Error).message });
+    return reply(e instanceof TodoError ? e.status : 500, e instanceof TodoError ? refusalBody(e) : { error: (e as Error).message });
   }
 }
 
@@ -134,14 +135,15 @@ describe('TodoListModal', () => {
     render();
     await settle();
 
-    refuseNext = 'The list is full.';
+    refuseNext = { error: 'HUB SENTENCE', code: 'lists.tooManyItems', params: { max: 500 } };
     fireEvent.click(screen.getByLabelText('Done: Milk'));
     await settle();
-    // The refusal is shown, and the board was fetched back from the hub
-    // without clearing it.
-    expect(screen.getByRole('alert').textContent).toContain('The list is full.');
+    // The refusal is shown in the dictionary's words, never the hub's, and
+    // the board was fetched back from the hub without clearing it.
+    expect(screen.getByRole('alert').textContent).toContain('A list can hold up to 500 items');
+    expect(screen.getByRole('alert').textContent).not.toContain('HUB SENTENCE');
     await settle();
-    expect(screen.getByRole('alert').textContent).toContain('The list is full.');
+    expect(screen.getByRole('alert').textContent).toContain('A list can hold up to 500 items');
 
     fireEvent.click(screen.getByLabelText('Done: Eggs'));
     await settle();

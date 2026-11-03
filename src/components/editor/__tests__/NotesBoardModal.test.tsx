@@ -7,6 +7,7 @@ import editor from '@/translations/en-US/editor.json';
 import { I18nProvider } from '@/i18n/provider';
 import { createNote, deleteNote, repost, takeDown, updateNote } from '@/lib/notes-actions';
 import { NotesError } from '@/lib/notes-errors';
+import { refusalBody } from '@/lib/refusal';
 import { displayCache } from '@/lib/display-cache';
 import { notesUrl } from '@/lib/fetch-keys';
 import { useConfirmStore } from '@/stores/confirm-store';
@@ -63,7 +64,7 @@ function seedBoard(): NotesData {
 // A hub in miniature: the real board actions over an in-memory file, so the
 // modal is checked against what the routes would actually answer.
 let board: NotesData;
-let refuseNext: string | null;
+let refuseNext: Record<string, unknown> | null;
 let writes: Array<{ method: string; url: string; body?: Record<string, unknown> }>;
 
 function reply(status: number, body: unknown): Response {
@@ -76,9 +77,9 @@ function fakeHub(url: string, init?: RequestInit): Promise<Response> {
   if (method === 'GET') return Promise.resolve(reply(200, { notes: board.notes }));
   writes.push({ method, url, body });
   if (refuseNext) {
-    const error = refuseNext;
+    const refusal = refuseNext;
     refuseNext = null;
-    return Promise.resolve(reply(409, { error }));
+    return Promise.resolve(reply(409, refusal));
   }
   const now = new Date();
   try {
@@ -95,7 +96,7 @@ function fakeHub(url: string, init?: RequestInit): Promise<Response> {
     return Promise.resolve(reply(200, { notes: board.notes }));
   } catch (e) {
     const status = e instanceof NotesError ? e.status : 500;
-    return Promise.resolve(reply(status, { error: (e as Error).message }));
+    return Promise.resolve(reply(status, e instanceof NotesError ? refusalBody(e) : { error: (e as Error).message }));
   }
 }
 
@@ -388,18 +389,19 @@ describe('NotesBoardModal', () => {
     render();
     await settle();
 
-    refuseNext = 'The board is full: 200 notes. Take some down first.';
+    refuseNext = { error: 'HUB SENTENCE', code: 'notes.boardFull', params: { max: 200 } };
     fireEvent.change(screen.getByTestId('notes-modal-text'), { target: { value: 'One more' } });
     fireEvent.click(screen.getByTestId('notes-modal-post'));
     await settle();
 
+    // The dictionary's words for the code, never the hub's sentence.
     expect(screen.getByRole('alert').textContent).toBe('The board is full: 200 notes. Take some down first.');
     expect((screen.getByTestId('notes-modal-text') as HTMLTextAreaElement).value).toBe('One more');
     // The refused write is followed by a fresh read of the whole board.
     expect(state.request.mock.calls.filter(([, init]) => !init?.method)).toHaveLength(2);
 
     // An optimistic pin the hub refuses is put back.
-    refuseNext = 'Something went wrong';
+    refuseNext = { error: 'Something went wrong' };
     fireEvent.click(within(rowFor('Pizza is in the fridge')).getByTestId('notes-modal-row-pin'));
     expect(within(rowFor('Pizza is in the fridge')).getByTestId('notes-modal-row-pin').getAttribute('aria-pressed')).toBe('true');
     await settle();

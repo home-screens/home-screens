@@ -145,7 +145,7 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
     const uploaded: string[] = [];
 
     for (let i = 0; i < total; i++) {
-      setUploadProgress(`Uploading ${i + 1} of ${total}...`);
+      setUploadProgress(t('status.uploadingCount', { current: i + 1, total }));
       const formData = new FormData();
       formData.append('file', fileList[i]);
       if (selectedDir) formData.append('directory', selectedDir);
@@ -158,8 +158,10 @@ export function useImageLibrary({ initialDirectory }: UseImageLibraryOptions): U
           timeoutMs: null,
         });
         if (!res.ok) {
-          const data = await res.json();
-          setError(data.error || `Upload failed for ${fileList[i].name}`);
+          const data = (await res.json().catch(() => null)) as { error?: unknown } | null;
+          // The upload route's refusals carry no code yet, so its own sentence
+          // is the most a parent gets; without one, say which file failed.
+          setError(typeof data?.error === 'string' && data.error ? data.error : t('errors.uploadFailedFor', { name: fileList[i].name }));
           hadError = true;
         } else {
           hadSuccess = true;

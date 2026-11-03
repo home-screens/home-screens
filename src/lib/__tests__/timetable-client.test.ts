@@ -40,7 +40,7 @@ describe('saveTimetables', () => {
 
   it('reports a 409 as a conflict carrying what is saved now', async () => {
     const saved = { schools: [], subjects: [], timetables: [] };
-    const fetcher = vi.fn().mockResolvedValue(reply(409, { reason: 'revision', error: 'Somebody else changed them', data: saved, revision: 'r9' }));
+    const fetcher = vi.fn().mockResolvedValue(reply(409, { code: 'timetables.revision', error: 'Somebody else changed them', data: saved, revision: 'r9' }));
 
     await expect(saveTimetables(fetcher, { data: DATA, revision: 'r1' }, 'fallback')).resolves.toEqual({
       kind: 'conflict',
@@ -53,6 +53,13 @@ describe('saveTimetables', () => {
     await expect(saveTimetables(fetcher, { data: DATA, revision: 'r1' }, 'fallback')).rejects.toThrow(
       'Give the break at 09:25 a name',
     );
+  });
+
+  // A 409 about somebody who left the family is not a conflict the window may
+  // resolve by adopting the saved copy; it is a refusal with its own code.
+  it('rejects a 409 that is not about the revision, carrying its code', async () => {
+    const fetcher = vi.fn().mockResolvedValue(reply(409, { code: 'timetables.member', error: 'A timetable belongs to somebody who is no longer in the family.' }));
+    await expect(saveTimetables(fetcher, { data: DATA, revision: 'r1' }, 'fallback')).rejects.toMatchObject({ code: 'timetables.member', status: 409 });
   });
 });
 

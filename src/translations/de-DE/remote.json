@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "Eine Tagesnotiz braucht ein paar Worte.",
+      "textTooLong": "Höchstens {max} Zeichen, bitte.",
+      "badDate": "Diesen Tag gibt es im Kalender nicht.",
+      "dayOver": "Dieser Tag ist vorbei. Wähle heute oder einen späteren Tag.",
+      "dayTooFar": "Dieser Tag ist zu weit weg. Wähle einen Tag innerhalb eines Jahres.",
+      "duplicate": "Diese Notiz ist schon da.",
+      "dayFull": "Ein Tag fasst {max} Notizen. Ändere oder entferne erst eine.",
+      "tooMany": "Es gibt zu viele Tagesnotizen. Entferne erst einige.",
+      "noteGone": "Diese Notiz ist nicht mehr da."
+    },
+    "timers": {
+      "notRunning": "Es läuft kein Timer.",
+      "routineGone": "Diesen Ablauf gibt es nicht mehr. Wähle einen anderen.",
+      "badRequest": "Das hat nicht geklappt. Lade die Seite neu und versuche es noch einmal.",
+      "invalid": "Dieser Ablauf kann so nicht gespeichert werden. Prüfe seinen Namen und seine Schritte.",
+      "reload": "Lade die Seite neu und versuche es noch einmal.",
+      "revision": "Jemand anderes hat die Abläufe geändert. Deine letzte Änderung wurde nicht gespeichert. Bitte versuche es noch einmal."
+    }
+  },
   "tabs": {
     "control": "Steuerung",
     "chores": "Aufgaben",
@@ -1116,7 +1137,7 @@
     "showingOnDisplay": "Läuft auf dem Display",
     "waitingForDisplay": "Warte, bis ein Display ihn übernimmt…",
     "notShowing": "Noch kein Display zeigt ihn an. Prüfe, ob ein Display eingeschaltet ist.",
-    "changedElsewhere": "Jemand anderes hat die Abläufe geändert. Deine letzte Änderung wurde nicht gespeichert. Bitte versuche es noch einmal.",
+    "failed": "Etwas ist schiefgelaufen. Versuche es noch einmal.",
     "whyNoSave": {
       "name": "Gib dem Ablauf einen Namen, um zu speichern.",
       "stepName": "Gib jedem Schritt einen Namen, um zu speichern.",

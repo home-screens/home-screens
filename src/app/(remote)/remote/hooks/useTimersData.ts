@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { readJson, refusalText } from '@/lib/hub-request';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { materializeSession } from '@/lib/timer-logic';
 import type { MaterializedTimerSession, Routine, TimerSession, TimerTargets, TimerView } from '@/types/timers';
@@ -121,19 +122,19 @@ export function useTimersData() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-        const json = await res.json();
+        const json = (await readJson(res)) as { session?: TimerSession | null } | null;
         if (!res.ok) {
-          setError(typeof json.error === 'string' ? json.error : 'Something went wrong');
+          setError(refusalText(json, t, 'timers.failed'));
           return;
         }
         holdUntilRef.current = Date.now() + SESSION_POLL_MS;
-        setServerSession(json.session);
+        setServerSession(json?.session ?? null);
         setNow(Date.now());
       } catch (e) {
-        if (!isSessionExpired(e)) setError('Something went wrong');
+        if (!isSessionExpired(e)) setError(refusalText(e, t, 'timers.failed', 'hubRequest.saveFailed'));
       }
     },
-    [],
+    [t],
   );
 
   const startRoutine = useCallback(
@@ -173,23 +174,23 @@ export function useTimersData() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ routines: change(list), revision: revisionRef.current }),
         });
-        const json = await res.json();
-        if (res.status === 409 && json.reason === 'revision' && Array.isArray(json.routines) && typeof json.revision === 'string') {
+        const json = (await readJson(res)) as { reason?: unknown; routines?: Routine[]; revision?: unknown } | null;
+        if (res.status === 409 && json?.reason === 'revision' && Array.isArray(json.routines) && typeof json.revision === 'string') {
           adopt(json.routines, json.revision);
           list = json.routines;
           continue;
         }
-        if (!res.ok) {
-          setError(typeof json.error === 'string' ? json.error : 'Something went wrong');
+        if (!res.ok || !json || !Array.isArray(json.routines) || typeof json.revision !== 'string') {
+          setError(refusalText(json, t, 'timers.failed'));
           return false;
         }
         adopt(json.routines, json.revision);
         return true;
       }
-      setError(t('timers.changedElsewhere'));
+      setError(t('refusals.timers.revision'));
       return false;
     } catch (e) {
-      if (!isSessionExpired(e)) setError('Something went wrong');
+      if (!isSessionExpired(e)) setError(refusalText(e, t, 'timers.failed', 'hubRequest.saveFailed'));
       return false;
     } finally {
       savingRef.current += 1;

@@ -15,6 +15,7 @@ import type { Timetable, TimetableData } from '@/types/timetables';
 import { useFamilyData, publishFamilyData, type FamilySnapshot } from '@/hooks/useFamilyData';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { editorFetch } from '@/lib/editor-fetch';
+import { readJson, refusalText } from '@/lib/hub-request';
 import { uuid } from '@/lib/uuid';
 import { useTranslate } from '@/i18n';
 import { FAMILY_LIMITS, MEMBER_COLORS, type FamilyGroup, type FamilyMember } from '@/types/family';
@@ -122,28 +123,38 @@ export default function FamilyManager({ onChanged, onEditingChange, variant = 'd
     setDeletingGroup(null);
   }
 
-  /** One checked write for both lists: a 409 adopts the hub's roster and asks for the edit again. */
+  /**
+   * One checked write for both lists. A refusal is shown in the household's
+   * language from its code (`refusals.family`); one that carries the hub's
+   * roster (somebody else saved first, a group names someone who left)
+   * adopts it and asks for the edit again.
+   */
   async function submit(url: string, body: Record<string, unknown>, savedKey: string, failedKey: string) {
     setBusy(true);
     setNotice(null);
     try {
       const response = await editorFetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const result = await response.json();
+      const result = (await readJson(response)) as Record<string, unknown> | null;
       if (response.status === 409) {
-        if (Array.isArray(result.members) && typeof result.revision === 'string') publishFamilyData({ ...result, groups: Array.isArray(result.groups) ? result.groups : [] });
+        if (result && Array.isArray(result.members) && typeof result.revision === 'string') publishFamilyData({ ...result, groups: Array.isArray(result.groups) ? result.groups : [] } as FamilySnapshot);
         else refresh();
         // The baseline is no longer valid. A fresh, deliberate edit is required.
         closeForms();
-        setNotice(t('family.conflict'));
+        setNotice(refusalText(result, t, 'refusals.family.revision'));
         return;
       }
-      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : t(failedKey));
-      publishFamilyData(result as FamilySnapshot);
+      if (!response.ok) {
+        setNotice(refusalText(result, t, failedKey));
+        setDeleting(null);
+        setDeletingGroup(null);
+        return;
+      }
+      publishFamilyData(result as unknown as FamilySnapshot);
       closeForms();
       setNotice(t(savedKey));
       onChanged?.();
     } catch (cause) {
-      setNotice(cause instanceof Error ? cause.message : t(failedKey));
+      setNotice(refusalText(cause, t, failedKey, 'refusals.hubUnreachable'));
       setDeleting(null);
       setDeletingGroup(null);
     } finally {

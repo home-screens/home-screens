@@ -217,6 +217,7 @@ async function validateRestoredReferences(files: Map<string, unknown>, members: 
     for (const [key, records] of Object.entries(plan.evidence)) evidence[key] = { ...evidence[key], ...records };
   }
   if (missing.length > 0) throw new FamilyError(
+    'family.restoreMissing',
     `Restore stopped because these assignments name people or groups missing from the restored family:\n${missing.join('\n')}\nRestore a backup containing their family records, or remove these assignments from the named records and retry.`,
   );
   return evidence;

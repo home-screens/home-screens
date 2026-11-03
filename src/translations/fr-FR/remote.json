@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "Une note du jour a besoin de quelques mots.",
+      "textTooLong": "Pas plus de {max} caractères.",
+      "badDate": "Ce jour n'est pas sur le calendrier.",
+      "dayOver": "Ce jour est passé. Choisis aujourd'hui ou un jour après.",
+      "dayTooFar": "Ce jour est trop loin. Choisis un jour dans l'année.",
+      "duplicate": "Cette note est déjà là.",
+      "dayFull": "Un jour peut avoir {max} notes. Modifie ou retire une note d'abord.",
+      "tooMany": "Il y a trop de notes du jour. Retire-en quelques-unes d'abord.",
+      "noteGone": "Cette note n'est plus là."
+    },
+    "timers": {
+      "notRunning": "Aucun minuteur n'est en cours.",
+      "routineGone": "Cette routine n'existe plus. Choisis-en une autre.",
+      "badRequest": "Ça n'a pas marché. Recharge la page et réessaie.",
+      "invalid": "Cette routine ne peut pas être enregistrée telle quelle. Vérifie son nom et ses étapes.",
+      "reload": "Recharge la page et réessaie.",
+      "revision": "Quelqu'un d'autre a modifié les routines. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît."
+    }
+  },
   "tabs": {
     "control": "Contrôle",
     "chores": "Tâches",
@@ -1116,7 +1137,7 @@
     "showingOnDisplay": "Affiché sur l'écran",
     "waitingForDisplay": "En attente qu'un écran le prenne…",
     "notShowing": "Aucun écran ne l'affiche encore. Vérifie qu'un écran est allumé.",
-    "changedElsewhere": "Quelqu'un d'autre a modifié les routines. Ta dernière modification n'a pas été enregistrée. Réessaie, s'il te plaît.",
+    "failed": "Quelque chose n'a pas marché. Réessaie.",
     "whyNoSave": {
       "name": "Donne un nom à la routine pour l'enregistrer.",
       "stepName": "Donne un nom à chaque étape pour enregistrer.",

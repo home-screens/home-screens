@@ -29,7 +29,7 @@ export const rewardReferences: MemberReferenceDomain = {
   unreadable: 'refuse',
   removeMembers(doc, removed) {
     const next = structuredClone(doc);
-    if (!Array.isArray(next.rewards)) throw new FamilyError('The saved rewards are invalid.', 409);
+    if (!Array.isArray(next.rewards)) throw new FamilyError('family.dataInvalid', 'The saved rewards are invalid.', { status: 409 });
     next.balances = withoutKeys(next.balances, removed);
     if (next.goals !== undefined) {
       const goals = withoutKeys(next.goals, removed);

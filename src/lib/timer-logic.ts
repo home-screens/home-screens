@@ -9,6 +9,30 @@ import {
 } from '@/types/timers';
 import { uuid } from './uuid';
 import { isCustomIconValue } from './custom-icons';
+import { RefusalError, type RefusalOptions } from './refusal';
+
+/**
+ * Why a timer request was turned down. Each one has a sentence in the
+ * `remote` dictionary under `refusals.timers`, shown on the phone's Timers
+ * tab. `timers.badRequest` covers a body the app itself never sends and
+ * `timers.invalid` a routine list that fails `validateRoutines`; both keep
+ * the exact reason in the English `error`.
+ */
+export type TimerRefusalCode =
+  | 'timers.notRunning'
+  | 'timers.routineGone'
+  | 'timers.badRequest'
+  | 'timers.invalid'
+  | 'timers.reload'
+  | 'timers.revision';
+
+/** Thrown by the timer routes; the route wrapper answers with its code. */
+export class TimerError extends RefusalError {
+  constructor(status: number, code: TimerRefusalCode, message: string, options: RefusalOptions = {}) {
+    super(status, code, message, options);
+    this.name = 'TimerError';
+  }
+}
 
 /** An emoji or short text, or one of the household's own pictures. */
 function validIcon(icon: unknown): boolean {

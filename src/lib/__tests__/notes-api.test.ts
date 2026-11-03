@@ -51,14 +51,12 @@ describe('authorProblem', () => {
   it('refuses someone who is not in the family', async () => {
     const res = await authorProblem('stranger');
     expect(res?.status).toBe(409);
-    expect(await res!.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
+    expect(await res!.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', code: 'family.memberRemoved', reason: 'member' });
   });
 
   it('refuses an author that is not an id', async () => {
     for (const value of [7, true, { id: 'mom' }, ['mom']]) {
-      const res = await authorProblem(value);
-      expect(res?.status).toBe(400);
-      expect(await res!.json()).toEqual({ error: 'The author must be a family member.' });
+      await expect(authorProblem(value)).rejects.toMatchObject({ status: 400, code: 'notes.badAuthor', message: 'The author must be a family member.' });
     }
   });
 });
@@ -78,10 +76,9 @@ describe('notesWrite', () => {
     expect((JSON.parse(await fs.readFile(notesPath(), 'utf-8')) as NotesData).notes).toHaveLength(2);
   });
 
-  it("turns a NotesError into its status and the error's own words", async () => {
-    const res = await notesWrite(() => { throw new NotesError(409, 'The board is full: 200 notes. Take some down first.'); });
-    expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'The board is full: 200 notes. Take some down first.' });
+  it('lets a NotesError through to the route wrapper, which answers with its code', async () => {
+    const refusal = new NotesError(409, 'notes.boardFull', 'The board is full: 200 notes. Take some down first.', { max: 200 });
+    await expect(notesWrite(() => { throw refusal; })).rejects.toBe(refusal);
   });
 
   it('lets any other failure through to the route wrapper', async () => {

@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "timetables": {
+      "member": "Ein Stundenplan gehört jemandem, der nicht mehr in der Familie ist. Öffne die Seite neu und wähle noch einmal eine Person.",
+      "corrupt": "Die gespeicherten Stundenpläne konnten nicht gelesen werden. Stelle die Datei wieder her oder repariere sie, bevor du etwas änderst.",
+      "reopen": "Öffne die Stundenplanseite neu und versuche noch einmal zu speichern.",
+      "invalid": "Etwas in den Stundenplänen konnte so nicht gespeichert werden. Lade die Seite neu und mache die Änderung noch einmal."
+    },
+    "library": {
+      "badFolder": "Dieser Ordner kann nicht verwendet werden.",
+      "folderGone": "Diesen Ordner gibt es nicht mehr.",
+      "badPath": "Diese Datei kann nicht verwendet werden.",
+      "fileGone": "{name} gibt es nicht mehr.",
+      "fileExists": "{name} ist schon in diesem Ordner.",
+      "nameClash": "Zwei der Dateien heißen {name}; nur eine kann dorthin.",
+      "reservedName": "Namen, die mit „rotation-“ beginnen, sind auf der obersten Ebene für wechselnde Hintergründe reserviert. Benenne {name} zuerst um.",
+      "badName": "Dieser Ordnername kann nicht verwendet werden. Versuche einen aus Buchstaben und Zahlen.",
+      "tooDeep": "Ordner können nur {max} Ebenen tief sein.",
+      "folderExists": "Hier gibt es schon einen Ordner namens {name}.",
+      "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst."
+    }
+  },
   "languageAndRegion": {
     "title": "Sprache & Region",
     "languageLabel": "Sprache",
@@ -1280,7 +1301,6 @@
       "deleteFolderTitle": "Den Ordner {name} löschen?",
       "deleteFolderMessage": "Nur ein leerer Ordner kann gelöscht werden.",
       "folderDeleted": "Ordner {name} gelöscht",
-      "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst.",
       "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden"
     },
     "iconsPage": {

@@ -14,7 +14,7 @@ export const calendarReferences: MemberReferenceDomain = {
   unreadable: 'refuse',
   removeMembers(doc, removed) {
     const next = structuredClone(doc);
-    if (!isRecord(next.settings)) throw new FamilyError('The saved configuration is invalid.', 409);
+    if (!isRecord(next.settings)) throw new FamilyError('family.dataInvalid', 'The saved configuration is invalid.', { status: 409 });
     if (isRecord(next.settings.calendar) && next.settings.calendar.personSources !== undefined) {
       next.settings.calendar.personSources = withoutKeys(next.settings.calendar.personSources, removed);
     }

@@ -12,9 +12,9 @@ export const todoReferences: MemberReferenceDomain = {
   unreadable: 'refuse',
   removeMembers(doc, removed) {
     const next = structuredClone(doc);
-    if (!Array.isArray(next.lists)) throw new FamilyError('The saved lists are invalid.', 409);
+    if (!Array.isArray(next.lists)) throw new FamilyError('family.dataInvalid', 'The saved lists are invalid.', { status: 409 });
     next.lists = next.lists.map((list: Doc) => {
-      if (!Array.isArray(list.items)) throw new FamilyError('The saved list items are invalid.', 409);
+      if (!Array.isArray(list.items)) throw new FamilyError('family.dataInvalid', 'The saved list items are invalid.', { status: 409 });
       return { ...list, items: list.items.map((item: Doc) => ({ ...item, ...(item.assigneeIds !== undefined ? { assigneeIds: stripIds(item.assigneeIds, removed) } : {}) })) };
     });
     return next;

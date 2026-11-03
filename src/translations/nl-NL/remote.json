@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "Een dagnotitie heeft een paar woorden nodig.",
+      "textTooLong": "Hou het bij {max} tekens of minder.",
+      "badDate": "Die dag staat niet op de kalender.",
+      "dayOver": "Die dag is voorbij. Kies vandaag of een dag erna.",
+      "dayTooFar": "Die dag is te ver weg. Kies een dag binnen een jaar.",
+      "duplicate": "Die notitie staat er al.",
+      "dayFull": "Een dag kan {max} notities hebben. Wijzig of verwijder er eerst een.",
+      "tooMany": "Er zijn te veel dagnotities. Verwijder er eerst een paar.",
+      "noteGone": "Die notitie is er niet meer."
+    },
+    "timers": {
+      "notRunning": "Er loopt geen timer.",
+      "routineGone": "Die routine bestaat niet meer. Kies een andere.",
+      "badRequest": "Dat lukte niet. Laad de pagina opnieuw en probeer het nog eens.",
+      "invalid": "Die routine kan zo niet worden opgeslagen. Controleer de naam en de stappen.",
+      "reload": "Laad de pagina opnieuw en probeer het nog eens.",
+      "revision": "Iemand anders heeft de routines gewijzigd. Je laatste wijziging is niet opgeslagen. Probeer het opnieuw."
+    }
+  },
   "tabs": {
     "control": "Bediening",
     "chores": "Klusjes",
@@ -1116,7 +1137,7 @@
     "showingOnDisplay": "Te zien op het scherm",
     "waitingForDisplay": "Wachten tot een scherm hem oppakt…",
     "notShowing": "Nog geen scherm laat hem zien. Controleer of er een scherm aanstaat.",
-    "changedElsewhere": "Iemand anders heeft de routines gewijzigd. Je laatste wijziging is niet opgeslagen. Probeer het opnieuw.",
+    "failed": "Er ging iets mis. Probeer het opnieuw.",
     "whyNoSave": {
       "name": "Geef de routine een naam om op te slaan.",
       "stepName": "Geef elke stap een naam om op te slaan.",

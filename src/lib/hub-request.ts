@@ -1,8 +1,12 @@
 /**
  * What every phone and editor request to the hub shares once `editorFetch`
  * has sent it: the error for a hub that could not be reached, reading an
- * answer that may have no body, and a refusal in the route's own words.
+ * answer that may have no body, a refusal as the error it is, and the words
+ * a surface shows for one in the family's own language.
  */
+
+import type { TranslateFn } from '@/i18n/types';
+import { RefusalError, isRefusalBody, refusalFromBody } from './refusal';
 
 /**
  * How long one request may take, answer body included, before it counts as
@@ -27,11 +31,41 @@ export class HubUnreachableError extends Error {
 /**
  * What a surface shows for a request that failed: its own sentence for a hub
  * out of reach, the route's refusal when the error carries one, its fallback
- * otherwise.
+ * otherwise. For a store whose refusals carry a code, `refusalText` shows the
+ * family's own language instead.
  */
 export function requestFailureText(err: unknown, words: { unreachable: string; fallback: string }): string {
   if (err instanceof HubUnreachableError) return words.unreachable;
   return err instanceof Error && err.message ? err.message : words.fallback;
+}
+
+/** The dictionary key for a refusal code: `refusals.lists.nameTooLong`. */
+export function refusalKey(code: string): string {
+  return `refusals.${code}`;
+}
+
+/**
+ * What a surface shows for a refused request, in the family's language.
+ *
+ * `source` is the error a client threw (`RefusalError`, `HubUnreachableError`
+ * or anything else) or the hub's answer body itself. A refusal code maps to
+ * `refusals.<code>` in the dictionary `t` reads, with the refusal's params
+ * filled in; a hub out of reach shows `unreachableKey`; anything else, a code
+ * with no sentence included, shows `fallbackKey`. The hub's English sentence
+ * is never shown: it is for logs, and a German phone read "A day holds 3
+ * notes" off it.
+ */
+export function refusalText(source: unknown, t: TranslateFn, fallbackKey: string, unreachableKey = fallbackKey): string {
+  if (source instanceof HubUnreachableError) return t(unreachableKey);
+  const refusal = source instanceof RefusalError
+    ? source
+    : isRefusalBody(source) ? refusalFromBody(source, 0, '') : null;
+  if (refusal) {
+    const key = refusalKey(refusal.code);
+    const text = t(key, refusal.params);
+    if (text !== key) return text;
+  }
+  return t(fallbackKey);
 }
 
 /**
@@ -69,10 +103,19 @@ export interface JsonWriteRequest {
 }
 
 /**
+ * The error a refused answer becomes: a `RefusalError` carrying the code and
+ * params when the hub named one (a surface shows it through `refusalText`),
+ * else a plain error with the route's own sentence or `fallback`.
+ */
+export function refusalError(json: unknown, status: number, fallback: string): Error {
+  return refusalFromBody(json, status, fallback) ?? new Error(refusalMessage(json, fallback));
+}
+
+/**
  * Send one JSON write and hand back the answer's JSON. A refusal rejects with
- * the route's own sentence, else `fallback`; a hub that cannot be reached
- * rejects with `HubUnreachableError` and an expired session with its own
- * error, both untouched, so a caller can tell the three apart.
+ * `refusalError` (a `RefusalError` when the hub named a code); a hub that
+ * cannot be reached rejects with `HubUnreachableError` and an expired session
+ * with its own error, both untouched, so a caller can tell the three apart.
  */
 export async function sendJsonWrite(fetcher: HubFetch, request: JsonWriteRequest, fallback: string): Promise<unknown> {
   const res = await fetcher(request.url, {
@@ -80,6 +123,6 @@ export async function sendJsonWrite(fetcher: HubFetch, request: JsonWriteRequest
     ...(request.body !== undefined ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(request.body) } : {}),
   });
   const json = await readJson(res);
-  if (!res.ok) throw new Error(refusalMessage(json, fallback));
+  if (!res.ok) throw refusalError(json, res.status, fallback);
   return json;
 }

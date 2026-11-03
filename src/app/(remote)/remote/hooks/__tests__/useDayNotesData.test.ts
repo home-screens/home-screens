@@ -3,7 +3,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 
-const translate = (key: string) => key;
+// A dictionary in miniature: one refusal in German, everything else its key.
+const translate = (key: string, vars?: Record<string, string | number>) =>
+  key === 'refusals.dayNotes.dayFull' ? `Ein Tag fasst ${vars?.max} Notizen.` : key;
 vi.mock('@/i18n', () => ({ useTranslate: () => translate }));
 const showToast = vi.fn();
 vi.mock('../../remote-toast', () => ({ showToast: (...args: unknown[]) => showToast(...args) }));
@@ -13,7 +15,7 @@ import type { DayNote } from '@/types/day-notes';
 
 const TODAY = '2026-10-30';
 const ok = (json: unknown) => ({ ok: true, status: 200, json: async () => json });
-const refused = (status: number, error: string) => ({ ok: false, status, json: async () => ({ error }) });
+const refused = (status: number, body: Record<string, unknown>) => ({ ok: false, status, json: async () => body });
 
 /** A hand-held answer: the test decides when the hub replies. */
 function deferred() {
@@ -85,16 +87,17 @@ describe('useDayNotesData', () => {
     act(() => { saved = result.current.add(TODAY, 'One more', TODAY); });
     expect(await saved).toBe(false);
     expect(writes(fetchMock)).toEqual([]);
-    expect(showToast).toHaveBeenCalledWith(expect.stringMatching(/3 notes/), 'error');
+    // The rule that refused on the phone is phrased from the same dictionary key as the hub's refusal would be.
+    expect(showToast).toHaveBeenCalledWith('Ein Tag fasst 3 Notizen.', 'error');
     expect(result.current.notes).toHaveLength(3);
   });
 
-  it('puts a note back and shows the hub\'s words when a remove is refused', async () => {
+  it('puts a note back and shows its own sentence, never the hub\'s, when a remove fails without a code', async () => {
     const fetchMock = vi.fn();
     const note = { id: 'n1', date: TODAY, text: 'Library books' };
     const { result } = await loaded(fetchMock, [note]);
     fetchMock
-      .mockResolvedValueOnce(refused(500, 'Disk full'))
+      .mockResolvedValueOnce(refused(500, { error: 'Disk full' }))
       .mockResolvedValueOnce(ok({ notes: [note] }));
 
     let removed!: Promise<boolean>;
@@ -102,7 +105,23 @@ describe('useDayNotesData', () => {
     expect(result.current.notes).toEqual([]);
     await act(async () => { expect(await removed).toBe(false); });
 
-    expect(showToast).toHaveBeenCalledWith('Disk full', 'error');
+    expect(showToast).toHaveBeenCalledWith('notes.dayNotes.saveError', 'error');
+    expect(showToast).not.toHaveBeenCalledWith('Disk full', 'error');
     await waitFor(() => expect(result.current.notes).toEqual([note]));
+  });
+
+  it('shows a hub refusal in the family\'s language', async () => {
+    const fetchMock = vi.fn();
+    const { result } = await loaded(fetchMock, []);
+    fetchMock
+      .mockResolvedValueOnce(refused(409, { error: 'A day holds 3 notes. Change or remove one first.', code: 'dayNotes.dayFull', params: { max: 3 } }))
+      .mockResolvedValueOnce(ok({ notes: [] }));
+
+    let saved!: Promise<boolean>;
+    act(() => { saved = result.current.add(TODAY, 'Picture day', TODAY); });
+    await act(async () => { expect(await saved).toBe(false); });
+
+    expect(showToast).toHaveBeenCalledWith('Ein Tag fasst 3 Notizen.', 'error');
+    expect(showToast).not.toHaveBeenCalledWith(expect.stringMatching(/A day holds/), 'error');
   });
 });

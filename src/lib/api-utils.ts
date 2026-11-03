@@ -7,9 +7,21 @@ import { verifyMediaToken } from '@/lib/media-token';
 import { getSecret, type SecretKey } from '@/lib/secrets';
 import { CLIENT_IP_HEADER, LOCAL_IP_HEADER } from '@/lib/client-ip';
 import { logger } from '@/lib/logger';
-import { FamilyError, isFamilyDataError } from './family-errors';
+import { isFamilyDataError } from './family-errors';
+import { RefusalError, refusalBody } from './refusal';
 
 const log = logger('api');
+
+/**
+ * A refusal as its answer: `{ error, code, params }` plus whatever the
+ * refusal carries beside it (a conflict's current copy). `error` stays the
+ * English sentence for logs and the API docs; a phone or editor shows its
+ * own words for `code` (`refusalText` in `hub-request.ts`).
+ */
+export function refusalResponse(error: RefusalError): NextResponse {
+  return NextResponse.json(refusalBody(error), { status: error.status });
+}
+
 /**
  * Standardized error response for API routes.
  *
@@ -36,9 +48,13 @@ export function errorResponse(
     log.warn(fallbackMessage, error.message);
     return setupErrorResponse(error.message, error.needs, error.service, error.page);
   }
+  if (error instanceof RefusalError) {
+    log.warn(fallbackMessage, error.message);
+    return refusalResponse(error);
+  }
   if (isFamilyDataError(error)) {
     log.warn(fallbackMessage, error.message);
-    return NextResponse.json({ error: error.message, ...(error instanceof FamilyError ? error.current : undefined) }, { status: error.status });
+    return NextResponse.json({ error: error.message }, { status: error.status });
   }
   const detail = error instanceof Error ? error.message : undefined;
   log.error(fallbackMessage, error);
@@ -98,10 +114,16 @@ export function publicErrorResponse(
 ): NextResponse {
   log.error(fallbackMessage, error);
   if (isFamilyDataError(error)) {
+    // The family error's own sentence can name a file, and a refusal's extra
+    // fields can carry the roster, so an anonymous caller gets neither.
     const message = error.status === 503
       ? 'Family data is waiting to recover. Please try again in a minute.'
       : 'Family data needs attention. Open Settings to review it or restore a backup.';
-    return NextResponse.json({ error: message }, { status: error.status });
+    const code = error instanceof RefusalError ? error.code : undefined;
+    return NextResponse.json({ error: message, ...(code ? { code } : {}) }, { status: error.status });
+  }
+  if (error instanceof RefusalError) {
+    return NextResponse.json({ error: error.message, code: error.code, ...(error.params ? { params: error.params } : {}) }, { status: error.status });
   }
   return NextResponse.json({ error: fallbackMessage }, { status });
 }

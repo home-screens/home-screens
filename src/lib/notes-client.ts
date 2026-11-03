@@ -48,9 +48,9 @@ export interface NotesWriteResult extends NotesPayload {
 }
 
 /**
- * Send one write and hand back the server's notes. A refusal throws the
- * server's own message when it gave one (the actions speak plainly: "The
- * board is full"), else `fallback`, and so does an answer without notes, so
+ * Send one write and hand back the server's notes. A refusal throws a
+ * `RefusalError` carrying the hub's code (the surface phrases it with
+ * `refusalText`), else `fallback`, and so does an answer without notes, so
  * it is never taken for an empty board; a hub out of reach and an expired
  * session come through as themselves.
  */

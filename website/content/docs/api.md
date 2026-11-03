@@ -48,6 +48,10 @@ For bookmarkable links, the `/api/display/*` routes also accept the token as a `
 
 If you have listed networks under **Settings > Security > Allowed networks** with **Let displays on these networks in without the key** turned on, `GET` requests from those addresses clear display access with no token at all, bookmarked commands such as `/api/display/wake` included. A `POST` from those addresses still needs the token or a session cookie.
 
+### When a request is turned down
+
+A request the hub refuses because of what it asked for (a list name that is too long, a note on a day that is over, a photo moved onto one with the same name, a family edit made from an old copy) answers with its status and a body of `{ "error": "...", "code": "...", "params": { ... } }`. `error` is a plain English sentence for logs and for anyone reading the API by hand. `code` names the refusal (`lists.nameTooLong`, `dayNotes.dayFull`, `library.fileExists`, `family.revision`) and `params` carries what the sentence quotes, such as the limit or the file name, so the phone and the editor show the family's own language instead of the English. A conflict adds what is saved now beside those fields (the family roster, the timetable document, the routine list), so a page can reconcile in one step. Requests that fail for other reasons, a body that is not JSON or a service that is down, answer `{ "error": "..." }` with no code.
+
 ### Cross-origin writes
 
 Every `POST`, `PUT`, `PATCH` and `DELETE` under `/api/` is refused with `403` when the request carries an `Origin` header that does not match the hub's own address. Browsers add that header to every cross-site request and page scripts cannot remove it, so a web page on some other site cannot make a browser in your house change your settings, even on an install with no password. Requests with no `Origin` header at all are allowed, so `curl`, Home Assistant, scripts and the per-Pi reporter are unaffected. `GET` and `HEAD` are never checked.
@@ -818,7 +822,7 @@ Replaces the routine list wholesale (the list is capped at 50, so replace-the-li
 
 **Body:** `{ "routines": [ ... ], "revision": "..." }`: the list in the same shape as the GET response, and the `revision` of the copy it was built from (from GET or the previous save). A save with no revision is a `400`.
 
-When someone else saved first, the answer is a `409` with `"reason": "revision"` and the current `routines` and `revision`. Make the change again on top of that list and send it with the new revision.
+When someone else saved first, the answer is a `409` with `"code": "timers.revision"`, `"reason": "revision"` and the current `routines` and `revision`. Make the change again on top of that list and send it with the new revision.
 
 ### GET /api/timers/session
 
@@ -936,7 +940,7 @@ Replaces the whole document. Requires a valid session. Send `{ "data": { ... }, 
 
 Every member ID is checked against the family roster inside the same locked section as the write, so somebody cannot be removed between the check and the file landing. Validation is all-or-nothing, and the store caps a household at 16 schools, 16 slots per school, 64 subjects, 64 timetables and 64 special days per school.
 
-**Response:** the saved `{ "data": ..., "revision": ... }`, so the editor reconciles in one step. A save that started from an older copy comes back `409` with the same two fields alongside the error, which is what lets the editor say somebody else changed this and offer to reload it.
+**Response:** the saved `{ "data": ..., "revision": ... }`, so the editor reconciles in one step. A save that started from an older copy comes back `409` with `"code": "timetables.revision"` and the same two fields alongside the error, which is what lets the editor say somebody else changed this and offer to reload it. A `409` with `"code": "timetables.member"` (a timetable for somebody who has left the family) or `"code": "timetables.corrupt"` (a file the hub cannot read) is not that conflict, and the editor keeps the unsaved edits.
 
 ### GET /api/timetables/holidays
 

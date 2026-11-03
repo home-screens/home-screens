@@ -60,13 +60,13 @@ export const isRecord = (value: unknown): value is Doc => !!value && typeof valu
 
 /** `ids` without the removed people; refuses a list that is not one of ids. */
 export function stripIds(ids: unknown, removed: ReadonlySet<string>): string[] {
-  if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string')) throw new FamilyError('A saved member assignment is invalid.', 409);
+  if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string')) throw new FamilyError('family.dataInvalid', 'A saved member assignment is invalid.', { status: 409 });
   return ids.filter((id) => !removed.has(id));
 }
 
 /** A mapping keyed by member id without the removed people's entries. */
 export function withoutKeys(value: unknown, removed: ReadonlySet<string>): Doc {
-  if (!isRecord(value)) throw new FamilyError('A saved member mapping is invalid.', 409);
+  if (!isRecord(value)) throw new FamilyError('family.dataInvalid', 'A saved member mapping is invalid.', { status: 409 });
   return Object.fromEntries(Object.entries(value).filter(([id]) => !removed.has(id)));
 }
 
@@ -85,9 +85,9 @@ export function recordLabel(file: string, location: string, record: Doc): string
 
 /** The ids in a saved assignment, refusing anything that is not a well-formed person id. */
 export function checkedIds(value: unknown, label: string): string[] {
-  if (!Array.isArray(value)) throw new FamilyError(`${label} must be a list of person IDs.`);
+  if (!Array.isArray(value)) throw new FamilyError('family.dataInvalid', `${label} must be a list of person IDs.`);
   const invalid = value.filter((id) => !validFamilyId(id));
-  if (invalid.length > 0) throw new FamilyError(`${label} contains invalid person IDs: ${invalid.map((id) => JSON.stringify(id)).join(', ')}. Repair this record and retry.`);
+  if (invalid.length > 0) throw new FamilyError('family.dataInvalid', `${label} contains invalid person IDs: ${invalid.map((id) => JSON.stringify(id)).join(', ')}. Repair this record and retry.`);
   return value;
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { format } from 'date-fns';
 import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import LabeledField from '@/components/ui/LabeledField';
@@ -28,9 +27,10 @@ import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
  *  date next to them so "EEEE" stops being a guess. */
 const CUSTOM_DATE_EXAMPLES = ['EEEE, MMMM d', 'EEE d MMM', 'd/M/yyyy'];
 
-function safeFormat(pattern: string, now: Date, t: (key: string) => string): string {
+/** The example in the household's language, so a French editor sees "lundi", not "Monday". */
+function safeFormat(pattern: string, now: Date, locale: string, t: (key: string) => string): string {
   try {
-    return format(now, pattern);
+    return formatDateSync(now, pattern, { locale });
   } catch {
     return t('configSections.clock.invalidFormat');
   }
@@ -309,7 +309,7 @@ export function ClockConfigSection({ mod, screenId }: { mod: ModuleInstance; scr
                 >
                   <code className="font-mono text-[11px] text-hs-text-secondary">{pattern}</code>
                   <span className="text-[11px] text-hs-text-faint">
-                    {safeFormat(pattern, previewNow, t)}
+                    {safeFormat(pattern, previewNow, formattingLocale, t)}
                   </span>
                 </button>
               ))}

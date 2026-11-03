@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "Não foi possível conectar ao Home Screens, então isso não foi salvo. Verifique a conexão e tente de novo.",
+    "lists": {
+      "failed": "Algo deu errado. Tente de novo.",
+      "nameRequired": "Dê um nome à lista",
+      "nameTooLong": "O nome de uma lista pode ter até {max} caracteres",
+      "textRequired": "Escreva algo primeiro",
+      "textTooLong": "Um item pode ter até {max} caracteres",
+      "badDate": "Esse dia não existe",
+      "badColor": "Escolha uma cor da lista",
+      "listGone": "Essa lista não existe mais",
+      "itemGone": "Esse item não existe mais",
+      "tooManyLists": "Você pode ter até {max} listas",
+      "tooManyItems": "Uma lista pode ter até {max} itens",
+      "orderChanged": "A lista mudou enquanto você movia os itens. Tente de novo.",
+      "badRequest": "Não deu para entender essa alteração. Recarregue a página e tente de novo."
+    },
+    "notes": {
+      "failed": "Isso não foi salvo. Tente de novo.",
+      "textRequired": "Escreva algo primeiro.",
+      "textTooLong": "Uma nota pode ter no máximo {max} caracteres.",
+      "badAuthor": "O autor precisa ser alguém da família.",
+      "badLife": "Escolha por quanto tempo a nota deve ficar.",
+      "badRequest": "Não deu para entender essa alteração. Recarregue a página e tente de novo.",
+      "noteGone": "Essa nota não está mais aqui.",
+      "boardFull": "O mural está cheio: {max} notas. Tire algumas primeiro."
+    },
+    "family": {
+      "revision": "Alguém alterou a família enquanto você editava. A lista atual está sendo exibida. Faça sua alteração novamente.",
+      "badRequest": "Não deu para entender essa alteração. Recarregue a página e tente de novo.",
+      "nameTooLong": "Os nomes podem ter até {max} caracteres.",
+      "tooManyMembers": "Você pode adicionar pessoas enquanto a família tiver menos de {max} membros.",
+      "tooManyGroups": "Você pode ter até {max} grupos.",
+      "groupNameTooLong": "O nome de um grupo pode ter até {max} caracteres.",
+      "groupNameTaken": "Você já tem um grupo chamado {name}.",
+      "groupMemberRemoved": "Um grupo inclui alguém que não está na lista da família. Atualize e tente de novo.",
+      "memberRemoved": "Alguém dessa seleção foi removido. Atualize e escolha de novo.",
+      "groupRemoved": "Um grupo dessa seleção foi removido. Atualize e escolha de novo.",
+      "dataInvalid": "Os dados da família precisam de atenção. Abra as configurações para conferir ou restaure um backup.",
+      "dataWaiting": "Os dados da família estão sendo recuperados. Tente de novo em um minuto.",
+      "restoreMissing": "Esse backup inclui pessoas ou grupos que não estão na lista de família dele, então não foi restaurado. Restaure um backup que os inclua."
+    }
+  },
   "today": "Hoje",
   "tomorrow": "Amanhã",
   "yesterday": "Ontem",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Salvando…",
+    "uploadingCount": "Enviando {current} de {total}...",
     "connected": "Conectado",
     "disabled": "Desativada",
     "never": "Nunca",
@@ -96,6 +140,7 @@
     "fetchFailed": "Não foi possível conectar para carregar estes dados",
     "loadImagesFailed": "Falha ao carregar imagens",
     "uploadFailed": "Falha no envio",
+    "uploadFailedFor": "Falha ao enviar {name}",
     "createFolderFailed": "Falha ao criar pasta",
     "deleteFolderFailed": "Falha ao excluir pasta",
     "deleteImageFailed": "Falha ao excluir foto",
@@ -230,7 +275,6 @@
     "retry": "Tentar novamente",
     "saved": "Família salva.",
     "saving": "Salvando…",
-    "conflict": "Alguém alterou a família enquanto você editava. A lista atual está sendo exibida. Faça sua alteração novamente.",
     "removeTitle": "Remover {name}?",
     "removeDescription": "Ao remover {name}, as atribuições de tarefas, horários, histórico, saldo de tickets e acesso às recompensas dessa pessoa são apagados. A escolha dos calendários dela também é esquecida. Tarefas que ficarem sem ninguém responsável são excluídas. Isso não pode ser desfeito.",
     "remove": "Remover pessoa",

@@ -7,8 +7,9 @@ import type { NotesData } from '@/types/notes';
 /**
  * Run one write against the notes board and answer with every note, live
  * and gone, so the phone reconciles against server truth in one step. A
- * `NotesError` (validation, missing note, full board) becomes its JSON
- * error; anything else propagates to the route wrapper's generic handler.
+ * `NotesError` (validation, missing note, full board) reaches the route
+ * wrapper, which answers with its code; so does anything else, as the
+ * failure it is.
  */
 export async function notesWrite(
   mutate: (data: NotesData) => NotesData | Promise<NotesData>,
@@ -22,19 +23,12 @@ export async function notesWrite(
    */
   opts: { authorId?: unknown } = {},
 ): Promise<NextResponse> {
-  try {
-    return await withDataTransaction(async () => {
-      const bad = await authorProblem(opts.authorId);
-      if (bad) return bad;
-      const data = await updateNotesData(mutate);
-      return NextResponse.json({ notes: data.notes, ...(extra ? extra() : {}) });
-    });
-  } catch (err) {
-    if (err instanceof NotesError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
-    }
-    throw err;
-  }
+  return withDataTransaction(async () => {
+    const bad = await authorProblem(opts.authorId);
+    if (bad) return bad;
+    const data = await updateNotesData(mutate);
+    return NextResponse.json({ notes: data.notes, ...(extra ? extra() : {}) });
+  });
 }
 
 /**
@@ -45,6 +39,6 @@ export async function notesWrite(
  */
 export async function authorProblem(authorId: unknown): Promise<NextResponse | null> {
   if (authorId === undefined || authorId === null || authorId === '') return null;
-  if (typeof authorId !== 'string') return NextResponse.json({ error: 'The author must be a family member.' }, { status: 400 });
+  if (typeof authorId !== 'string') throw new NotesError(400, 'notes.badAuthor', 'The author must be a family member.');
   return validateMemberReferences([authorId]);
 }

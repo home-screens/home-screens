@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { TodoError, updateTodoData } from './todo-data';
+import { updateTodoData } from './todo-data';
 import { validateMemberReferences } from './family-api';
 import { withDataTransaction } from './data-transaction';
 import type { TodoData } from '@/types/todos';
@@ -19,8 +19,8 @@ export function asObject(body: unknown): Record<string, unknown> | NextResponse 
 /**
  * Run one write against the shared to-do store and answer with every list,
  * so the caller reconciles against server truth in one step. A `TodoError`
- * (validation, missing list or item) becomes its JSON error; anything else
- * propagates to the route wrapper's generic handler.
+ * (validation, missing list or item) reaches the route wrapper, which
+ * answers with its code; so does anything else, as the failure it is.
  */
 export async function todoWrite(
   mutate: (data: TodoData) => TodoData | Promise<TodoData>,
@@ -39,20 +39,13 @@ export async function todoWrite(
    */
   opts: { assigneeIds?: unknown } = {},
 ): Promise<NextResponse> {
-  try {
-    return await withDataTransaction(async () => {
-      const ids = opts.assigneeIds;
-      if (Array.isArray(ids) && ids.every((id) => typeof id === 'string')) {
-        const missing = await validateMemberReferences(ids);
-        if (missing) return missing;
-      }
-      const data = await updateTodoData(mutate);
-      return NextResponse.json({ lists: data.lists, ...(extra ? extra() : {}) });
-    });
-  } catch (err) {
-    if (err instanceof TodoError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
+  return withDataTransaction(async () => {
+    const ids = opts.assigneeIds;
+    if (Array.isArray(ids) && ids.every((id) => typeof id === 'string')) {
+      const missing = await validateMemberReferences(ids);
+      if (missing) return missing;
     }
-    throw err;
-  }
+    const data = await updateTodoData(mutate);
+    return NextResponse.json({ lists: data.lists, ...(extra ? extra() : {}) });
+  });
 }

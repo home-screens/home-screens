@@ -27,7 +27,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
 import { loadTimetables, saveTimetables } from '@/lib/timetable-client';
 import { addDays, dateInZone, weekLetterOn } from '@/lib/timetable-layout';
 import {
@@ -726,6 +725,11 @@ export interface TimetableDraftMessages {
   saveFailed: string;
   /** Shown when a save could not reach the hub at all. */
   unreachable: string;
+  /**
+   * The words for a refused save: the hub's code phrased in the household's
+   * language (`refusals.timetables`), else `saveFailed` or `unreachable`.
+   */
+  refusal: (error: unknown) => string;
 }
 
 export interface TimetableDraft {
@@ -885,7 +889,7 @@ export function useTimetableDraft(messages: TimetableDraftMessages): TimetableDr
     save: persist,
     onError: (error) => {
       if (isSessionExpired(error)) return;
-      setSaveError(requestFailureText(error, { unreachable: messagesRef.current.unreachable, fallback: messagesRef.current.saveFailed }));
+      setSaveError(messagesRef.current.refusal(error));
     },
   });
 
@@ -907,7 +911,7 @@ export function useTimetableDraft(messages: TimetableDraftMessages): TimetableDr
       return await persist();
     } catch (error) {
       if (isSessionExpired(error)) return true;
-      setSaveError(requestFailureText(error, { unreachable: messagesRef.current.unreachable, fallback: messagesRef.current.saveFailed }));
+      setSaveError(messagesRef.current.refusal(error));
       return false;
     }
   }, [cancel, persist]);

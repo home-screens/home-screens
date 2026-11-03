@@ -1,5 +1,6 @@
 import { DAY_NOTES_LIMITS, type DayNote, type DayNotesData } from '@/types/day-notes';
 import { localISODate } from './timezone';
+import { RefusalError, type RefusalParams } from './refusal';
 
 /**
  * The rules for calendar day notes, shared by the API, the phone's optimistic
@@ -7,9 +8,24 @@ import { localISODate } from './timezone';
  * system imports, so the phone runs exactly what the server will.
  */
 
-export class DayNotesError extends Error {
-  constructor(public readonly status: number, message: string) {
-    super(message);
+/**
+ * Why a day note write was turned down. Each one has a sentence in the
+ * `remote` dictionary under `refusals.dayNotes`, shown on the phone.
+ */
+export type DayNotesRefusalCode =
+  | 'dayNotes.textRequired'
+  | 'dayNotes.textTooLong'
+  | 'dayNotes.badDate'
+  | 'dayNotes.dayOver'
+  | 'dayNotes.dayTooFar'
+  | 'dayNotes.duplicate'
+  | 'dayNotes.dayFull'
+  | 'dayNotes.tooMany'
+  | 'dayNotes.noteGone';
+
+export class DayNotesError extends RefusalError {
+  constructor(status: number, code: DayNotesRefusalCode, message: string, params?: RefusalParams) {
+    super(status, code, message, params ? { params } : {});
     this.name = 'DayNotesError';
   }
 }
@@ -82,18 +98,18 @@ export function notesOnDay(data: DayNotesData, date: string): DayNote[] {
 }
 
 function checkWords(text: unknown): string {
-  if (typeof text !== 'string') throw new DayNotesError(400, 'A day note needs some words.');
+  if (typeof text !== 'string') throw new DayNotesError(400, 'dayNotes.textRequired', 'A day note needs some words.');
   const words = normalizeDayNoteText(text);
   if (dayNoteLength(words) > DAY_NOTES_LIMITS.maxTextLength) {
-    throw new DayNotesError(400, `Keep it to ${DAY_NOTES_LIMITS.maxTextLength} letters or fewer.`);
+    throw new DayNotesError(400, 'dayNotes.textTooLong', `Keep it to ${DAY_NOTES_LIMITS.maxTextLength} letters or fewer.`, { max: DAY_NOTES_LIMITS.maxTextLength });
   }
   return words;
 }
 
 function checkWritableDay(date: unknown, today: string): string {
-  if (!isIsoDate(date)) throw new DayNotesError(400, 'That is not a day on the calendar.');
-  if (date < today) throw new DayNotesError(400, 'That day is over. Pick today or a day after it.');
-  if (date > addIsoDays(today, DAY_NOTES_LIMITS.aheadDays)) throw new DayNotesError(400, 'That day is too far away. Pick a day within a year.');
+  if (!isIsoDate(date)) throw new DayNotesError(400, 'dayNotes.badDate', 'That is not a day on the calendar.');
+  if (date < today) throw new DayNotesError(400, 'dayNotes.dayOver', 'That day is over. Pick today or a day after it.');
+  if (date > addIsoDays(today, DAY_NOTES_LIMITS.aheadDays)) throw new DayNotesError(400, 'dayNotes.dayTooFar', 'That day is too far away. Pick a day within a year.');
   return date;
 }
 
@@ -105,12 +121,12 @@ function checkWritableDay(date: unknown, today: string): string {
 export function addDayNote(data: DayNotesData, input: { id: string; date: unknown; text: unknown }, today: string): DayNotesData {
   const date = checkWritableDay(input.date, today);
   const words = checkWords(input.text);
-  if (!words) throw new DayNotesError(400, 'A day note needs some words.');
-  if (data.notes.some((note) => note.id === input.id)) throw new DayNotesError(409, 'That note is already there.');
+  if (!words) throw new DayNotesError(400, 'dayNotes.textRequired', 'A day note needs some words.');
+  if (data.notes.some((note) => note.id === input.id)) throw new DayNotesError(409, 'dayNotes.duplicate', 'That note is already there.');
   if (notesOnDay(data, date).length >= DAY_NOTES_LIMITS.maxPerDay) {
-    throw new DayNotesError(409, `A day holds ${DAY_NOTES_LIMITS.maxPerDay} notes. Change or remove one first.`);
+    throw new DayNotesError(409, 'dayNotes.dayFull', `A day holds ${DAY_NOTES_LIMITS.maxPerDay} notes. Change or remove one first.`, { max: DAY_NOTES_LIMITS.maxPerDay });
   }
-  if (data.notes.length >= DAY_NOTES_LIMITS.maxNotes) throw new DayNotesError(409, 'There are too many day notes. Remove some first.');
+  if (data.notes.length >= DAY_NOTES_LIMITS.maxNotes) throw new DayNotesError(409, 'dayNotes.tooMany', 'There are too many day notes. Remove some first.');
   return { ...data, notes: [...data.notes, { id: input.id, date, text: words }] };
 }
 
@@ -120,7 +136,7 @@ export function addDayNote(data: DayNotesData, input: { id: string; date: unknow
  */
 export function updateDayNote(data: DayNotesData, id: string, text: unknown, today: string): DayNotesData {
   const note = data.notes.find((n) => n.id === id);
-  if (!note) throw new DayNotesError(404, 'That note is not there any more.');
+  if (!note) throw new DayNotesError(404, 'dayNotes.noteGone', 'That note is not there any more.');
   const words = checkWords(text);
   if (!words) return removeDayNote(data, id);
   checkWritableDay(note.date, today);

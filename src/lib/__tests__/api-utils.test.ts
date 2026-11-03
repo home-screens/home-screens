@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { errorResponse, publicErrorResponse, createTTLCache, createLastGoodCache, createRateLimiter, getLocationFromConfig, fetchWithTimeout, withAuth, withDisplayAuth, cachedProxyRoute, parseTagParam, parseJsonBody, execErrorMessage, assertOptionalArrays, assertRequiredArrays, isTransientError, parseRetryAfter, fetchWithRetry } from '@/lib/api-utils';
 import { silenceConsole } from '@/test-utils';
 import { DataTransactionError, FamilyError, FamilyMergeError } from '../family-errors';
+import { RefusalError } from '../refusal';
 
 vi.mock('@/lib/config', () => ({
   readConfig: vi.fn(),
@@ -32,11 +33,17 @@ describe('errorResponse', () => {
     expect(await response.json()).toEqual({ error: error.message });
   });
 
-  it('returns the current family snapshot with a revision conflict', async () => {
+  it('returns the current family snapshot with a revision conflict, under its code', async () => {
     const current = { members: [], groups: [], revision: 'current-revision' };
-    const response = errorResponse(new FamilyError('Refresh and apply your changes again.', 409, current), 'fallback');
+    const response = errorResponse(new FamilyError('family.revision', 'Refresh and apply your changes again.', { status: 409, current }), 'fallback');
     expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({ error: 'Refresh and apply your changes again.', ...current });
+    expect(await response.json()).toEqual({ error: 'Refresh and apply your changes again.', code: 'family.revision', ...current });
+  });
+
+  it('answers any refusal with its code and params beside the English sentence', async () => {
+    const response = errorResponse(new RefusalError(400, 'lists.nameTooLong', 'List names can be up to 60 characters', { params: { max: 60 } }), 'fallback');
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'List names can be up to 60 characters', code: 'lists.nameTooLong', params: { max: 60 } });
   });
 
   it('does not treat arbitrary errors carrying a status as family errors', async () => {
@@ -103,15 +110,27 @@ describe('publicErrorResponse', () => {
   it.each([
     new DataTransactionError('/private/install/data/config.json failed recovery'),
     new FamilyMergeError('/private/install/data/family.json has conflicting identities'),
-    new FamilyError('/private/install/data/family.json changed', 409, { members: [], groups: [], revision: 'private-revision' }),
+    new FamilyError('family.revision', '/private/install/data/family.json changed', { status: 409, current: { members: [], groups: [], revision: 'private-revision' } }),
   ])('keeps typed family status without exposing paths or private state', async (error) => {
     const response = publicErrorResponse(error, 'fallback');
     expect(response.status).toBe(error.status);
     const body = await response.json();
-    expect(Object.keys(body)).toEqual(['error']);
+    expect(Object.keys(body).filter((key) => key !== 'code')).toEqual(['error']);
     expect(body.error).not.toContain('/private');
     expect(body.error).not.toContain('private-revision');
     expect(body.error).toContain('Family data');
+  });
+
+  it('keeps a family refusal code for an anonymous caller, but not the roster it carries', async () => {
+    const error = new FamilyError('family.revision', 'changed', { status: 409, current: { members: [], groups: [], revision: 'private-revision' } });
+    const body = await publicErrorResponse(error, 'fallback').json();
+    expect(body).toEqual({ error: 'Family data needs attention. Open Settings to review it or restore a backup.', code: 'family.revision' });
+  });
+
+  it('answers any other refusal with its code and params', async () => {
+    const error = new RefusalError(409, 'lists.orderChanged', 'The list changed', { params: { max: 3 }, extra: { lists: [] } });
+    const body = await publicErrorResponse(error, 'fallback').json();
+    expect(body).toEqual({ error: 'The list changed', code: 'lists.orderChanged', params: { max: 3 } });
   });
 
   it('never emits a detail field, even for Error instances', async () => {

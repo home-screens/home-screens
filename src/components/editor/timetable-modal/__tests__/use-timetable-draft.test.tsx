@@ -27,7 +27,12 @@ function reply(status: number, body: unknown): Response {
 }
 
 function Harness() {
-  const draft = useTimetableDraft({ loadFailed: 'load failed', saveFailed: 'save failed', unreachable: 'unreachable' });
+  const draft = useTimetableDraft({
+    loadFailed: 'load failed',
+    saveFailed: 'save failed',
+    unreachable: 'unreachable',
+    refusal: (error) => (error instanceof Error && error.message ? error.message : 'save failed'),
+  });
   return (
     <div>
       <span data-testid="schools">{draft.data ? draft.data.schools.map((school) => school.name).join(',') : ''}</span>
@@ -126,7 +131,7 @@ describe('useTimetableDraft', () => {
     await settle();
 
     const theirs = { ...SAVED, schools: [{ ...SCHOOL, name: 'Grundschule' }] };
-    state.request.mockResolvedValueOnce(reply(409, { error: 'Somebody else changed them', reason: 'revision', data: theirs, revision: 'r9' }));
+    state.request.mockResolvedValueOnce(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', data: theirs, revision: 'r9' }));
 
     fireEvent.click(screen.getByText('edit'));
     await act(async () => { vi.advanceTimersByTime(400); });
@@ -196,7 +201,7 @@ describe('useTimetableDraft', () => {
     fireEvent.click(screen.getByText('done'));
     await settle();
     await act(async () => {
-      land(reply(409, { error: 'Somebody else changed them', reason: 'revision', data: theirs, revision: 'r9' }));
+      land(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', data: theirs, revision: 'r9' }));
     });
     await settle();
 
@@ -248,7 +253,7 @@ describe('useTimetableDraft, against a store that refuses a stale revision', () 
       return new Promise<Response>((resolve) => {
         held.push(() => {
           if (sent.revision !== revision) {
-            resolve(reply(409, { error: 'Somebody else changed them', reason: 'revision', data: saved, revision }));
+            resolve(reply(409, { error: 'Somebody else changed them', code: 'timetables.revision', data: saved, revision }));
             return;
           }
           saved = sent.data;

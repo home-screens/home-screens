@@ -6,7 +6,7 @@ import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withAuth, parseJsonBody } from '@/lib/api-utils';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
 import { libraryMediaKind } from '@/lib/library-files';
-import { LibraryMoveError, renameLibraryFolder } from '@/lib/library-moves';
+import { LibraryMoveError, MAX_FOLDER_DEPTH, renameLibraryFolder } from '@/lib/library-moves';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,23 +102,17 @@ export const POST = withAuth(async (request: NextRequest) => {
   if (body instanceof NextResponse) return body;
   const { name, parent } = body;
 
-  if (!name || typeof name !== 'string') {
-    return NextResponse.json({ error: 'name is required' }, { status: 400 });
-  }
+  if (!name || typeof name !== 'string') throw new LibraryMoveError(400, 'library.badName', 'name is required');
 
   const safeName = sanitizeFolderName(name);
 
-  if (!safeName) {
-    return NextResponse.json({ error: 'Invalid directory name' }, { status: 400 });
-  }
+  if (!safeName) throw new LibraryMoveError(400, 'library.badName', 'Invalid directory name');
 
   // Resolve parent directory
   let parentDir: string;
   if (parent && typeof parent === 'string') {
     const resolved = safePath(parent);
-    if (!resolved) {
-      return NextResponse.json({ error: 'Invalid parent directory' }, { status: 400 });
-    }
+    if (!resolved) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid parent directory');
     parentDir = resolved;
   } else {
     parentDir = BGS;
@@ -126,23 +120,19 @@ export const POST = withAuth(async (request: NextRequest) => {
 
   const newDirPath = path.join(parentDir, safeName);
   const resolvedNew = safePath(path.relative(BGS, newDirPath));
-  if (!resolvedNew) {
-    return NextResponse.json({ error: 'Invalid directory path' }, { status: 400 });
-  }
+  if (!resolvedNew) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid directory path');
 
-  // Enforce max depth of 2 to match the listing API
+  // Enforce the same depth cap as the listing API and a rename.
   const relativeNew = path.relative(BGS, resolvedNew);
   const depth = relativeNew.split(path.sep).length;
-  if (depth > 2) {
-    return NextResponse.json({ error: 'Maximum folder depth is 2' }, { status: 400 });
+  if (depth > MAX_FOLDER_DEPTH) {
+    throw new LibraryMoveError(400, 'library.tooDeep', `Maximum folder depth is ${MAX_FOLDER_DEPTH}`, { max: MAX_FOLDER_DEPTH });
   }
 
   // A folder that is already there is not "created": say so, so the phone
   // does not announce a new folder that is the old one.
   const taken = await fs.stat(resolvedNew).then(() => true, () => false);
-  if (taken) {
-    return NextResponse.json({ error: "There's already a folder with that name here." }, { status: 409 });
-  }
+  if (taken) throw new LibraryMoveError(409, 'library.folderExists', "There's already a folder with that name here.", { name: safeName });
 
   await fs.mkdir(resolvedNew, { recursive: true });
 
@@ -160,31 +150,25 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   if (body instanceof NextResponse) return body;
   const { path: dirPath } = body;
 
-  if (!dirPath || typeof dirPath !== 'string') {
-    return NextResponse.json({ error: 'path is required' }, { status: 400 });
-  }
+  if (!dirPath || typeof dirPath !== 'string') throw new LibraryMoveError(400, 'library.badFolder', 'path is required');
 
   // Prevent deleting root
   if (dirPath === '' || dirPath === '/' || dirPath === '.') {
-    return NextResponse.json({ error: 'Cannot delete root directory' }, { status: 400 });
+    throw new LibraryMoveError(400, 'library.badFolder', 'Cannot delete root directory');
   }
 
   const resolved = safePath(dirPath);
-  if (!resolved) {
-    return NextResponse.json({ error: 'Invalid directory path' }, { status: 400 });
-  }
+  if (!resolved) throw new LibraryMoveError(400, 'library.badFolder', 'Invalid directory path');
 
   // Verify directory exists
   let stat;
   try {
     stat = await fs.stat(resolved);
   } catch {
-    return NextResponse.json({ error: 'Directory not found' }, { status: 404 });
+    throw new LibraryMoveError(404, 'library.folderGone', 'Directory not found');
   }
 
-  if (!stat.isDirectory()) {
-    return NextResponse.json({ error: 'Path is not a directory' }, { status: 400 });
-  }
+  if (!stat.isDirectory()) throw new LibraryMoveError(400, 'library.folderGone', 'Path is not a directory');
 
   // Refuse if directory contains files. The clutter a Mac or Windows PC leaves
   // in a folder it has opened is not something anyone can see or move from
@@ -192,10 +176,7 @@ export const DELETE = withAuth(async (request: NextRequest) => {
   const entries = await fs.readdir(resolved);
   const leftovers = entries.filter(isSystemClutter);
   if (entries.length > leftovers.length) {
-    return NextResponse.json(
-      { error: 'Directory is not empty. Delete all photos first.' },
-      { status: 409 },
-    );
+    throw new LibraryMoveError(409, 'library.folderNotEmpty', 'Directory is not empty. Delete all photos first.');
   }
 
   for (const name of leftovers) await fs.rm(path.join(resolved, name), { force: true });
@@ -214,18 +195,7 @@ export const PATCH = withAuth(async (request: NextRequest) => {
   const body = await parseJsonBody<{ path?: unknown; name?: unknown }>(request);
   if (body instanceof NextResponse) return body;
   const { path: dirPath, name } = body;
-  if (!dirPath || typeof dirPath !== 'string') {
-    return NextResponse.json({ error: 'path is required' }, { status: 400 });
-  }
-  if (!name || typeof name !== 'string') {
-    return NextResponse.json({ error: 'name is required' }, { status: 400 });
-  }
-  try {
-    return NextResponse.json(await renameLibraryFolder(dirPath, name));
-  } catch (err) {
-    if (err instanceof LibraryMoveError) {
-      return NextResponse.json({ error: err.message }, { status: err.status });
-    }
-    throw err;
-  }
+  if (!dirPath || typeof dirPath !== 'string') throw new LibraryMoveError(400, 'library.badFolder', 'path is required');
+  if (!name || typeof name !== 'string') throw new LibraryMoveError(400, 'library.badName', 'name is required');
+  return NextResponse.json(await renameLibraryFolder(dirPath, name));
 }, 'Failed to rename directory');

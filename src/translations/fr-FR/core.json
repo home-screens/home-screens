@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "Impossible de joindre Home Screens, donc ça n'a pas été enregistré. Vérifiez la connexion et réessayez.",
+    "lists": {
+      "failed": "Quelque chose n'a pas marché. Réessayez.",
+      "nameRequired": "Donnez un nom à la liste",
+      "nameTooLong": "Un nom de liste peut avoir jusqu'à {max} caractères",
+      "textRequired": "Écrivez d'abord quelque chose",
+      "textTooLong": "Un élément peut avoir jusqu'à {max} caractères",
+      "badDate": "Ce jour n'existe pas",
+      "badColor": "Choisissez une couleur dans la liste",
+      "listGone": "Cette liste n'existe plus",
+      "itemGone": "Cet élément n'existe plus",
+      "tooManyLists": "Vous pouvez avoir jusqu'à {max} listes",
+      "tooManyItems": "Une liste peut contenir jusqu'à {max} éléments",
+      "orderChanged": "La liste a changé pendant que vous déplaciez des éléments. Réessayez.",
+      "badRequest": "Cette modification n'a pas pu être comprise. Rechargez la page et réessayez."
+    },
+    "notes": {
+      "failed": "Ça n'a pas été enregistré. Réessayez.",
+      "textRequired": "Écrivez d'abord quelque chose.",
+      "textTooLong": "Une note peut avoir {max} caractères au maximum.",
+      "badAuthor": "L'auteur doit être un membre de la famille.",
+      "badLife": "Choisissez combien de temps la note doit rester.",
+      "badRequest": "Cette modification n'a pas pu être comprise. Rechargez la page et réessayez.",
+      "noteGone": "Cette note n'est plus là.",
+      "boardFull": "Le tableau est plein : {max} notes. Retirez-en quelques-unes d'abord."
+    },
+    "family": {
+      "revision": "La famille a été modifiée pendant votre saisie. La liste actuelle est affichée. Veuillez refaire votre modification.",
+      "badRequest": "Cette modification n'a pas pu être comprise. Rechargez la page et réessayez.",
+      "nameTooLong": "Un nom peut avoir jusqu'à {max} caractères.",
+      "tooManyMembers": "Vous pouvez ajouter des personnes tant que la famille compte moins de {max} membres.",
+      "tooManyGroups": "Vous pouvez avoir jusqu'à {max} groupes.",
+      "groupNameTooLong": "Un nom de groupe peut avoir jusqu'à {max} caractères.",
+      "groupNameTaken": "Vous avez déjà un groupe appelé {name}.",
+      "groupMemberRemoved": "Un groupe nomme quelqu'un qui n'est pas dans la liste de la famille. Actualisez et réessayez.",
+      "memberRemoved": "Quelqu'un dans cette sélection a été retiré. Actualisez et choisissez à nouveau.",
+      "groupRemoved": "Un groupe de cette sélection a été retiré. Actualisez et choisissez à nouveau.",
+      "dataInvalid": "Les données de la famille ont besoin d'attention. Ouvrez les réglages pour les vérifier ou restaurez une sauvegarde.",
+      "dataWaiting": "Les données de la famille sont en cours de récupération. Réessayez dans une minute.",
+      "restoreMissing": "Cette sauvegarde nomme des personnes ou des groupes absents de sa liste de famille, donc elle n'a pas été restaurée. Restaurez une sauvegarde qui les contient."
+    }
+  },
   "today": "Aujourd'hui",
   "tomorrow": "Demain",
   "yesterday": "Hier",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Enregistrement…",
+    "uploadingCount": "Envoi de {current} sur {total}...",
     "connected": "Connecté",
     "disabled": "Désactivé",
     "never": "Jamais",
@@ -96,6 +140,7 @@
     "fetchFailed": "Impossible de se connecter pour charger ces données",
     "loadImagesFailed": "Échec du chargement des images",
     "uploadFailed": "Échec de l'envoi",
+    "uploadFailedFor": "L'envoi de {name} a échoué",
     "createFolderFailed": "Échec de la création du dossier",
     "deleteFolderFailed": "Échec de la suppression du dossier",
     "deleteImageFailed": "Échec de la suppression de la photo",
@@ -230,7 +275,6 @@
     "retry": "Réessayer",
     "saved": "Famille enregistrée.",
     "saving": "Enregistrement…",
-    "conflict": "La famille a été modifiée pendant votre saisie. La liste actuelle est affichée. Veuillez refaire votre modification.",
     "removeTitle": "Supprimer {name} ?",
     "removeDescription": "Supprimer {name} efface ses attributions de tâches, plannings, historique, solde de tickets et accès aux récompenses. Le choix de ses calendriers est aussi oublié. Les tâches sans personne pour les faire sont supprimées. Cette action est irréversible.",
     "remove": "Supprimer la personne",

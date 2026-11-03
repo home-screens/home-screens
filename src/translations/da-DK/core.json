@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "Home Screens kunne ikke nås, så det blev ikke gemt. Tjek forbindelsen, og prøv igen.",
+    "lists": {
+      "failed": "Noget gik galt. Prøv igen.",
+      "nameRequired": "Giv listen et navn",
+      "nameTooLong": "Et listenavn må højst være {max} tegn",
+      "textRequired": "Skriv noget først",
+      "textTooLong": "Et punkt må højst være {max} tegn",
+      "badDate": "Den dag kender vi ikke",
+      "badColor": "Vælg en farve fra listen",
+      "listGone": "Den liste findes ikke længere",
+      "itemGone": "Det punkt findes ikke længere",
+      "tooManyLists": "Du kan have op til {max} lister",
+      "tooManyItems": "En liste kan rumme op til {max} punkter",
+      "orderChanged": "Listen ændrede sig, mens du flyttede rundt på ting. Prøv igen.",
+      "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen."
+    },
+    "notes": {
+      "failed": "Det blev ikke gemt. Prøv igen.",
+      "textRequired": "Skriv noget først.",
+      "textTooLong": "En seddel må højst være {max} tegn.",
+      "badAuthor": "Afsenderen skal være en fra familien.",
+      "badLife": "Vælg, hvor længe sedlen skal blive hængende.",
+      "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen.",
+      "noteGone": "Den seddel er her ikke længere.",
+      "boardFull": "Tavlen er fuld: {max} sedler. Tag nogle ned først."
+    },
+    "family": {
+      "revision": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",
+      "badRequest": "Den ændring kunne ikke forstås. Genindlæs siden, og prøv igen.",
+      "nameTooLong": "Navne må højst være {max} tegn.",
+      "tooManyMembers": "Du kan tilføje personer, så længe familien har færre end {max} medlemmer.",
+      "tooManyGroups": "Du kan have op til {max} grupper.",
+      "groupNameTooLong": "Gruppenavne må højst være {max} tegn.",
+      "groupNameTaken": "Du har allerede en gruppe, der hedder {name}.",
+      "groupMemberRemoved": "En gruppe nævner en, der ikke står på familielisten. Opdater, og prøv igen.",
+      "memberRemoved": "En i dette valg er blevet fjernet. Opdater, og vælg igen.",
+      "groupRemoved": "En gruppe i dette valg er blevet fjernet. Opdater, og vælg igen.",
+      "dataInvalid": "Familiens data kræver opmærksomhed. Åbn indstillingerne for at gennemgå dem, eller gendan en sikkerhedskopi.",
+      "dataWaiting": "Familiens data er ved at blive gendannet. Prøv igen om et minut.",
+      "restoreMissing": "Den sikkerhedskopi nævner personer eller grupper, der ikke står på dens familieliste, så den blev ikke gendannet. Gendan en sikkerhedskopi, der har dem med."
+    }
+  },
   "today": "I dag",
   "tomorrow": "I morgen",
   "yesterday": "I går",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Gemmer…",
+    "uploadingCount": "Uploader {current} af {total}...",
     "connected": "Forbundet",
     "disabled": "Deaktiveret",
     "never": "Aldrig",
@@ -96,6 +140,7 @@
     "fetchFailed": "Kunne ikke oprette forbindelse for at hente disse data",
     "loadImagesFailed": "Indlæsning af billederne fejlede",
     "uploadFailed": "Upload fejlede",
+    "uploadFailedFor": "Upload af {name} mislykkedes",
     "createFolderFailed": "Oprettelse af mappen fejlede",
     "deleteFolderFailed": "Sletning af mappen fejlede",
     "deleteImageFailed": "Sletning af billedet fejlede",
@@ -230,7 +275,6 @@
     "retry": "Prøv igen",
     "saved": "Familie gemt.",
     "saving": "Gemmer…",
-    "conflict": "Nogen ændrede familien, mens du redigerede. Den aktuelle liste vises. Foretag din ændring igen.",
     "removeTitle": "Fjern {name}?",
     "removeDescription": "Når du fjerner {name}, slettes personens pligter, planer, historik, billetter og adgang til belønninger. Valget af personens kalendere glemmes også. Pligter uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
     "remove": "Fjern person",

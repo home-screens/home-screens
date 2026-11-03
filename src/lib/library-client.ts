@@ -2,6 +2,7 @@
 
 import { editorFetch, sessionExpired } from '@/lib/editor-fetch';
 import { readJson, refusalMessage } from '@/lib/hub-request';
+import { refusalFromBody, type RefusalParams } from '@/lib/refusal';
 import type { MediaUse } from '@/lib/media-usage';
 
 /**
@@ -78,11 +79,17 @@ export async function deleteLibraryImage(imageUrl: string): Promise<DeleteLibrar
   return deleteLibraryFile(file);
 }
 
-/** Outcome of a folder or move operation: the server's message on failure. */
+/**
+ * Outcome of a folder or move operation. On failure the hub's refusal code
+ * and params ride along (`refusalText` phrases them); `error` is the hub's
+ * English sentence, for logs.
+ */
 export interface LibraryActionResult<T = undefined> {
   ok: boolean;
   status: number;
   error?: string;
+  code?: string;
+  params?: RefusalParams;
   data?: T;
 }
 
@@ -93,9 +100,14 @@ async function libraryAction<T>(url: string, method: string, body: unknown): Pro
     body: JSON.stringify(body),
   });
   const data = (await readJson(res)) as T | null;
-  return res.ok
-    ? { ok: true, status: res.status, data: data ?? undefined }
-    : { ok: false, status: res.status, error: refusalMessage(data, '') || undefined };
+  if (res.ok) return { ok: true, status: res.status, data: data ?? undefined };
+  const refused = refusalFromBody(data, res.status, '');
+  return {
+    ok: false,
+    status: res.status,
+    error: refusalMessage(data, '') || undefined,
+    ...(refused ? { code: refused.code, ...(refused.params ? { params: refused.params } : {}) } : {}),
+  };
 }
 
 export interface MoveLibraryResult {

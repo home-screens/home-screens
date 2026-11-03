@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "A day note needs some words.",
+      "textTooLong": "Keep it to {max} letters or fewer.",
+      "badDate": "That is not a day on the calendar.",
+      "dayOver": "That day is over. Pick today or a day after it.",
+      "dayTooFar": "That day is too far away. Pick a day within a year.",
+      "duplicate": "That note is already there.",
+      "dayFull": "A day holds {max} notes. Change or remove one first.",
+      "tooMany": "There are too many day notes. Remove some first.",
+      "noteGone": "That note is not there any more."
+    },
+    "timers": {
+      "notRunning": "No timer is running.",
+      "routineGone": "That routine is gone. Pick another one.",
+      "badRequest": "That didn't work. Reload the page and try again.",
+      "invalid": "That routine can't be saved as it is. Check its name and steps.",
+      "reload": "Reload the page and try again.",
+      "revision": "Someone else changed the routines. Your last change wasn't saved. Please try it again."
+    }
+  },
   "tabs": {
     "control": "Control",
     "chores": "Chores",
@@ -1116,7 +1137,7 @@
     "showingOnDisplay": "Showing on the display",
     "waitingForDisplay": "Waiting for a display to pick it up…",
     "notShowing": "No display is showing this yet. Check that a display is on.",
-    "changedElsewhere": "Someone else changed the routines. Your last change wasn't saved. Please try it again.",
+    "failed": "Something went wrong. Try again.",
     "whyNoSave": {
       "name": "Give the routine a name to save.",
       "stepName": "Give every step a name to save.",

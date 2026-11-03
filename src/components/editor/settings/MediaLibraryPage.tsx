@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { FolderPlus, Monitor, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { refusalText } from '@/lib/hub-request';
 import {
   createLibraryFolder,
   deleteLibraryFile,
@@ -406,7 +407,7 @@ export default function MediaLibraryPage() {
     try {
       const result = await moveLibraryFiles(paths, directory);
       if (!result.ok || !result.data) {
-        setOutcome({ ok: false, text: result.error ?? t('settings.mediaPage.moveFailed') });
+        setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.moveFailed') });
         return;
       }
       setSelected(new Set());
@@ -438,7 +439,7 @@ export default function MediaLibraryPage() {
         // as a tree; at the top level (or All) it goes at the top level.
         const result = await createLibraryFolder(name, currentFolder ?? undefined);
         if (!result.ok || !result.data) {
-          setOutcome({ ok: false, text: result.error ?? t('settings.mediaPage.createFolderFailed') });
+          setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.createFolderFailed') });
           return;
         }
         setFolderForm(null);
@@ -447,7 +448,7 @@ export default function MediaLibraryPage() {
       } else if (currentFolder) {
         const result = await renameLibraryFolder(currentFolder, name);
         if (!result.ok || !result.data) {
-          setOutcome({ ok: false, text: result.error ?? t('settings.mediaPage.renameFolderFailed') });
+          setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.renameFolderFailed') });
           return;
         }
         setFolderForm(null);
@@ -487,12 +488,7 @@ export default function MediaLibraryPage() {
     try {
       const result = await deleteLibraryFolder(currentFolder);
       if (!result.ok) {
-        setOutcome({
-          ok: false,
-          text: result.status === 409
-            ? t('settings.mediaPage.folderNotEmpty')
-            : result.error ?? t('settings.mediaPage.deleteFolderFailed'),
-        });
+        setOutcome({ ok: false, text: refusalText(result, t, 'settings.mediaPage.deleteFolderFailed') });
         return;
       }
       setFolder('all');

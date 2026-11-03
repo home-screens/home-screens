@@ -31,8 +31,8 @@ export function familyResponse(data: FamilyData): FamilyResponse {
 function parseObject(raw: string | null, fallback: Record<string, unknown>, filename: string): Record<string, unknown> {
   if (raw === null) return fallback;
   let parsed: unknown;
-  try { parsed = JSON.parse(raw); } catch { throw new FamilyError(`${filename} is corrupt. Please restore or repair it before changing family data.`, 409); }
-  if (!isRecord(parsed)) throw new FamilyError(`${filename} must contain an object.`, 409);
+  try { parsed = JSON.parse(raw); } catch { throw new FamilyError('family.dataInvalid', `${filename} is corrupt. Please restore or repair it before changing family data.`, { status: 409 }); }
+  if (!isRecord(parsed)) throw new FamilyError('family.dataInvalid', `${filename} must contain an object.`, { status: 409 });
   return parsed;
 }
 /** The saved object, or null when the file holds something else entirely. */
@@ -43,7 +43,7 @@ function readableObject(raw: string): Record<string, unknown> | null {
 }
 async function readRawFamily(): Promise<FamilyData> {
   const value = parseObject(await readTransactionFile(FAMILY_FILE_PATH), { members: [] }, 'family.json');
-  if (!validateFamilyData(value)) throw new FamilyError(familyValidationError(value)!, 409);
+  if (!validateFamilyData(value)) throw new FamilyError('family.dataInvalid', familyValidationError(value)!, { status: 409 });
   return value;
 }
 
@@ -84,7 +84,7 @@ export async function settleFamilyMigration(): Promise<void> {
     const run = (async () => {
       const sources = await sourceSignature(root);
       const failure = migrationFailures.get(root);
-      if (failure?.sources === sources && Date.now() < failure.retryAt) throw new FamilyError(`Home Screens could not read one of its saved files: ${failure.message} Try again in a minute, or restore a backup.`, 503);
+      if (failure?.sources === sources && Date.now() < failure.retryAt) throw new FamilyError('family.dataWaiting', `Home Screens could not read one of its saved files: ${failure.message} Try again in a minute, or restore a backup.`, { status: 503 });
       if (settledSources.get(root) === sources) return;
       try {
         await runMigration();
@@ -106,17 +106,17 @@ async function runMigration(): Promise<void> {
     readTransactionFile(FAMILY_FILE_PATH), readTransactionFile('data/chores.json'), readTransactionFile('data/config.json'),
   ]);
   const family = parseObject(familyRaw, { members: [] }, 'family.json');
-  if (!validateFamilyData(family)) throw new FamilyError(familyValidationError(family)!, 409);
+  if (!validateFamilyData(family)) throw new FamilyError('family.dataInvalid', familyValidationError(family)!, { status: 409 });
   const chores = parseObject(choreRaw, { chores: [] }, 'chores.json');
-  if (!Array.isArray(chores.chores) || (chores.members !== undefined && !Array.isArray(chores.members))) throw new FamilyError('The saved chore data is invalid.', 409);
+  if (!Array.isArray(chores.chores) || (chores.members !== undefined && !Array.isArray(chores.members))) throw new FamilyError('family.dataInvalid', 'The saved chore data is invalid.', { status: 409 });
   const config = parseObject(configRaw, {}, 'config.json');
-  if (configRaw !== null && (!isRecord(config.settings) || !Array.isArray(config.screens))) throw new FamilyError('The saved configuration is invalid.', 409);
+  if (configRaw !== null && (!isRecord(config.settings) || !Array.isArray(config.screens))) throw new FamilyError('family.dataInvalid', 'The saved configuration is invalid.', { status: 409 });
   const settings = (config.settings ?? {}) as Record<string, unknown>;
-  if (settings.calendar !== undefined && !isRecord(settings.calendar)) throw new FamilyError('The saved calendar settings are invalid.', 409);
+  if (settings.calendar !== undefined && !isRecord(settings.calendar)) throw new FamilyError('family.dataInvalid', 'The saved calendar settings are invalid.', { status: 409 });
   const calendar = (settings.calendar ?? {}) as Record<string, unknown>;
   const hasLegacyPeople = Object.prototype.hasOwnProperty.call(calendar, 'people');
   if (family.migrated && !Object.prototype.hasOwnProperty.call(chores, 'members') && !hasLegacyPeople) return;
-  if (hasLegacyPeople && !Array.isArray(calendar.people)) throw new FamilyError('The saved calendar people are invalid.', 409);
+  if (hasLegacyPeople && !Array.isArray(calendar.people)) throw new FamilyError('family.dataInvalid', 'The saved calendar people are invalid.', { status: 409 });
   const planned = planFamilyMerge({
     existingFamily: family, choreMembers: chores.members as LegacyFamilyMember[] | undefined,
     calendarPeople: calendar.people as LegacyCalendarPerson[] | undefined,
@@ -169,7 +169,7 @@ export function readFamilyData(): Promise<FamilyData> {
 /** Low-level modern-restore writer; normal authoring goes through revision checks. */
 export function writeFamilyData(data: FamilyData): Promise<void> {
   return withDataTransaction(async () => {
-    if (!validateFamilyData(data)) throw new FamilyError(familyValidationError(data)!);
+    if (!validateFamilyData(data)) throw new FamilyError('family.dataInvalid', familyValidationError(data)!);
     await commitDataTransaction({ kind: 'family-restore', changes: [{ path: FAMILY_FILE_PATH, before: await readTransactionFile(FAMILY_FILE_PATH), after: json(data) }] });
   });
 }
@@ -188,10 +188,10 @@ export async function replaceFamilyMembers(input: ReplaceFamilyInput): Promise<F
     await settleFamilyMigration();
     const current = await readRawFamily();
     const snapshot = familyResponse(current);
-    if (!input || typeof input.revision !== 'string' || !input.revision) throw new FamilyError('Refresh the family list before saving. A revision is required.');
-    if (input.revision !== snapshot.revision) throw new FamilyError('Someone changed the family list. Refresh and apply your changes again.', 409, snapshot);
+    if (!input || typeof input.revision !== 'string' || !input.revision) throw new FamilyError('family.badRequest', 'Refresh the family list before saving. A revision is required.');
+    if (input.revision !== snapshot.revision) throw new FamilyError('family.revision', 'Someone changed the family list. Refresh and apply your changes again.', { status: 409, current: snapshot });
     if (!Array.isArray(input.members) || !Array.isArray(input.removedIds) || input.removedIds.some((id) => !validFamilyId(id))
-      || new Set(input.removedIds).size !== input.removedIds.length) throw new FamilyError('Include the updated member list and the people being removed.');
+      || new Set(input.removedIds).size !== input.removedIds.length) throw new FamilyError('family.badRequest', 'Include the updated member list and the people being removed.');
     const byId = new Map(current.members.map((member) => [member.id, member]));
     const incomingIds = new Set<string>();
     const now = new Date().toISOString();
@@ -199,19 +199,19 @@ export async function replaceFamilyMembers(input: ReplaceFamilyInput): Promise<F
     const members: FamilyMember[] = input.members.map((item) => {
       if (!isRecord(item) || (item.id !== undefined && (!validFamilyId(item.id) || incomingIds.has(item.id)))
         || typeof item.name !== 'string' || !item.name.trim() || !validFamilyColor(item.color)
-        || (item.emoji !== undefined && (typeof item.emoji !== 'string' || item.emoji.length > 32))) throw new FamilyError('Each family member needs a unique identity, name and color.');
+        || (item.emoji !== undefined && (typeof item.emoji !== 'string' || item.emoji.length > 32))) throw new FamilyError('family.badRequest', 'Each family member needs a unique identity, name and color.');
       if (item.id) incomingIds.add(item.id);
       const existing = item.id ? byId.get(item.id) : undefined;
-      if (item.name.length > FAMILY_LIMITS.maxNameLength && item.name !== existing?.name) throw new FamilyError(`Names can have up to ${FAMILY_LIMITS.maxNameLength} characters.`);
-      if (existing && ((item.createdAt !== undefined && item.createdAt !== existing.createdAt) || (item.updatedAt !== undefined && item.updatedAt !== existing.updatedAt))) throw new FamilyError('Member timestamps cannot be changed.');
+      if (item.name.length > FAMILY_LIMITS.maxNameLength && item.name !== existing?.name) throw new FamilyError('family.nameTooLong', `Names can have up to ${FAMILY_LIMITS.maxNameLength} characters.`, { params: { max: FAMILY_LIMITS.maxNameLength } });
+      if (existing && ((item.createdAt !== undefined && item.createdAt !== existing.createdAt) || (item.updatedAt !== undefined && item.updatedAt !== existing.updatedAt))) throw new FamilyError('family.badRequest', 'Member timestamps cannot be changed.');
       const name = item.name === existing?.name ? item.name : item.name.trim();
       if (!existing) { added++; return { id: randomUUID(), name, color: item.color, ...(item.emoji !== undefined ? { emoji: item.emoji } : {}), createdAt: now, updatedAt: now }; }
       const changed = name !== existing.name || item.color !== existing.color || item.emoji !== existing.emoji;
       return { ...existing, name, color: item.color, emoji: item.emoji, updatedAt: changed ? now : existing.updatedAt };
     });
-    if (added > 0 && members.length > FAMILY_LIMITS.maxMembers) throw new FamilyError(`You can add people when the family has fewer than ${FAMILY_LIMITS.maxMembers} members.`);
+    if (added > 0 && members.length > FAMILY_LIMITS.maxMembers) throw new FamilyError('family.tooManyMembers', `You can add people when the family has fewer than ${FAMILY_LIMITS.maxMembers} members.`, { params: { max: FAMILY_LIMITS.maxMembers } });
     const removed = current.members.filter((member) => !incomingIds.has(member.id)).map((member) => member.id);
-    if (removed.length !== input.removedIds.length || removed.some((id) => !input.removedIds.includes(id))) throw new FamilyError('Confirm exactly which people should be removed before saving.');
+    if (removed.length !== input.removedIds.length || removed.some((id) => !input.removedIds.includes(id))) throw new FamilyError('family.badRequest', 'Confirm exactly which people should be removed before saving.');
     const removedSet = new Set(removed);
     const aliases = Object.fromEntries(Object.entries(current.aliasIds ?? {}).filter(([, target]) => !removedSet.has(target)));
     const family: FamilyData = { ...current, members, aliasIds: aliases, migrated: true };
@@ -242,10 +242,10 @@ export async function replaceFamilyGroups(input: ReplaceGroupsInput): Promise<Fa
     await settleFamilyMigration();
     const current = await readRawFamily();
     const snapshot = familyResponse(current);
-    if (!input || typeof input.revision !== 'string' || !input.revision) throw new FamilyError('Refresh the family list before saving. A revision is required.');
-    if (input.revision !== snapshot.revision) throw new FamilyError('Someone changed the family list. Refresh and apply your changes again.', 409, snapshot);
-    if (!Array.isArray(input.groups)) throw new FamilyError('Include the updated group list.');
-    if (input.groups.length > FAMILY_LIMITS.maxGroups) throw new FamilyError(`You can have up to ${FAMILY_LIMITS.maxGroups} groups.`);
+    if (!input || typeof input.revision !== 'string' || !input.revision) throw new FamilyError('family.badRequest', 'Refresh the family list before saving. A revision is required.');
+    if (input.revision !== snapshot.revision) throw new FamilyError('family.revision', 'Someone changed the family list. Refresh and apply your changes again.', { status: 409, current: snapshot });
+    if (!Array.isArray(input.groups)) throw new FamilyError('family.badRequest', 'Include the updated group list.');
+    if (input.groups.length > FAMILY_LIMITS.maxGroups) throw new FamilyError('family.tooManyGroups', `You can have up to ${FAMILY_LIMITS.maxGroups} groups.`, { params: { max: FAMILY_LIMITS.maxGroups } });
     const memberIds = new Set(current.members.map((member) => member.id));
     const byId = new Map((current.groups ?? []).map((group) => [group.id, group]));
     const incomingIds = new Set<string>();
@@ -253,10 +253,10 @@ export async function replaceFamilyGroups(input: ReplaceGroupsInput): Promise<Fa
     const groups: FamilyGroup[] = input.groups.map((item) => {
       if (!isRecord(item) || (item.id !== undefined && (!validFamilyId(item.id) || incomingIds.has(item.id)))
         || typeof item.name !== 'string' || !item.name.trim() || !Array.isArray(item.memberIds)
-        || item.memberIds.some((id) => typeof id !== 'string')) throw new FamilyError('Each group needs a unique identity, a name and a list of people.');
-      if (item.name.trim().length > FAMILY_LIMITS.maxGroupNameLength) throw new FamilyError(`Group names can have up to ${FAMILY_LIMITS.maxGroupNameLength} characters.`);
+        || item.memberIds.some((id) => typeof id !== 'string')) throw new FamilyError('family.badRequest', 'Each group needs a unique identity, a name and a list of people.');
+      if (item.name.trim().length > FAMILY_LIMITS.maxGroupNameLength) throw new FamilyError('family.groupNameTooLong', `Group names can have up to ${FAMILY_LIMITS.maxGroupNameLength} characters.`, { params: { max: FAMILY_LIMITS.maxGroupNameLength } });
       const unknown = item.memberIds.find((id) => !memberIds.has(id));
-      if (unknown !== undefined) throw new FamilyError('A group names someone who is not on the family list. Refresh and try again.', 409, snapshot);
+      if (unknown !== undefined) throw new FamilyError('family.groupMemberRemoved', 'A group names someone who is not on the family list. Refresh and try again.', { status: 409, current: snapshot });
       if (item.id) incomingIds.add(item.id);
       const name = item.name.trim();
       // Family order, deduplicated, so a group reads the same everywhere.
@@ -268,7 +268,7 @@ export async function replaceFamilyGroups(input: ReplaceGroupsInput): Promise<Fa
     });
     // A group is picked by name, so two that read the same cannot be told apart.
     const repeated = groups.find((group, index) => groups.some((other, at) => at < index && sameGroupName(other.name, group.name)));
-    if (repeated) throw new FamilyError(`You already have a group called ${repeated.name}.`);
+    if (repeated) throw new FamilyError('family.groupNameTaken', `You already have a group called ${repeated.name}.`, { params: { name: repeated.name } });
     const family: FamilyData = { ...current, groups, migrated: true };
     const changes: TransactionChange[] = [{ path: FAMILY_FILE_PATH, before: await readTransactionFile(FAMILY_FILE_PATH), after: json(family) }];
     const kept = new Set(groups.map((group) => group.id));

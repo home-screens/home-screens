@@ -33,34 +33,34 @@ export type NoteAction = 'take-down' | 'repost';
 const LIVES: ReadonlySet<NoteLife> = new Set(NOTE_LIVES);
 
 function cleanText(raw: unknown): string {
-  if (typeof raw !== 'string') throw new NotesError(400, 'Write something first.');
+  if (typeof raw !== 'string') throw new NotesError(400, 'notes.textRequired', 'Write something first.');
   const text = raw.trim();
-  if (!text) throw new NotesError(400, 'Write something first.');
-  if (text.length > NOTES_LIMITS.maxTextLength) throw new NotesError(400, `A note can be ${NOTES_LIMITS.maxTextLength} characters at most.`);
+  if (!text) throw new NotesError(400, 'notes.textRequired', 'Write something first.');
+  if (text.length > NOTES_LIMITS.maxTextLength) throw new NotesError(400, 'notes.textTooLong', `A note can be ${NOTES_LIMITS.maxTextLength} characters at most.`, { max: NOTES_LIMITS.maxTextLength });
   return text;
 }
 
 function cleanAuthor(raw: unknown): string | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined;
-  if (typeof raw !== 'string') throw new NotesError(400, 'The author must be a family member.');
+  if (typeof raw !== 'string') throw new NotesError(400, 'notes.badAuthor', 'The author must be a family member.');
   return raw;
 }
 
 function cleanLife(raw: unknown, fallback: NoteLife): NoteLife {
   if (raw === undefined) return fallback;
-  if (!LIVES.has(raw as NoteLife)) throw new NotesError(400, 'Pick how long the note should stay.');
+  if (!LIVES.has(raw as NoteLife)) throw new NotesError(400, 'notes.badLife', 'Pick how long the note should stay.');
   return raw as NoteLife;
 }
 
 function cleanFlag(raw: unknown, fallback: boolean): boolean {
   if (raw === undefined) return fallback;
-  if (typeof raw !== 'boolean') throw new NotesError(400, 'Pinned and important must be on or off.');
+  if (typeof raw !== 'boolean') throw new NotesError(400, 'notes.badRequest', 'Pinned and important must be on or off.');
   return raw;
 }
 
 function find(data: NotesData, id: string): Note {
   const note = data.notes.find((n) => n.id === id);
-  if (!note) throw new NotesError(404, 'That note is no longer here.');
+  if (!note) throw new NotesError(404, 'notes.noteGone', 'That note is no longer here.');
   return note;
 }
 
@@ -84,7 +84,7 @@ export function createNote(data: NotesData, input: CreateNoteInput, now: Date): 
     const gone = notes.filter((n) => isGone(n, now) || isSweepable(n, now)).sort((a, b) => Date.parse(a.expiresAt ?? '') - Date.parse(b.expiresAt ?? ''));
     const drop = new Set(gone.slice(0, notes.length - NOTES_LIMITS.maxNotes + 1).map((n) => n.id));
     notes = notes.filter((n) => !drop.has(n.id));
-    if (notes.length >= NOTES_LIMITS.maxNotes) throw new NotesError(409, `The board is full: ${NOTES_LIMITS.maxNotes} notes. Take some down first.`);
+    if (notes.length >= NOTES_LIMITS.maxNotes) throw new NotesError(409, 'notes.boardFull', `The board is full: ${NOTES_LIMITS.maxNotes} notes. Take some down first.`, { max: NOTES_LIMITS.maxNotes });
   }
   const at = now.toISOString();
   const note: Note = {

@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "timetables": {
+      "member": "Een rooster hoort bij iemand die niet meer in het gezin zit. Open de pagina opnieuw en kies weer een persoon.",
+      "corrupt": "De opgeslagen roosters konden niet worden gelezen. Zet het bestand terug of herstel het voordat je iets wijzigt.",
+      "reopen": "Open de roosterpagina opnieuw en probeer nog eens op te slaan.",
+      "invalid": "Iets in de roosters kon zo niet worden opgeslagen. Laad de pagina opnieuw en maak de wijziging nog eens."
+    },
+    "library": {
+      "badFolder": "Die map kan niet worden gebruikt.",
+      "folderGone": "Die map bestaat niet meer.",
+      "badPath": "Dat bestand kan niet worden gebruikt.",
+      "fileGone": "{name} bestaat niet meer.",
+      "fileExists": "{name} staat al in die map.",
+      "nameClash": "Twee van de bestanden heten {name}; er kan er maar één naartoe.",
+      "reservedName": "Namen die met \"rotation-\" beginnen zijn op het bovenste niveau gereserveerd voor wisselende achtergronden. Geef {name} eerst een andere naam.",
+      "badName": "Die mapnaam kan niet worden gebruikt. Probeer er een met letters en cijfers.",
+      "tooDeep": "Mappen kunnen maar {max} niveaus diep gaan.",
+      "folderExists": "Er is hier al een map met de naam {name}.",
+      "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst."
+    }
+  },
   "languageAndRegion": {
     "title": "Taal & regio",
     "languageLabel": "Taal",
@@ -1280,7 +1301,6 @@
       "deleteFolderTitle": "De map {name} verwijderen?",
       "deleteFolderMessage": "Alleen een lege map kan worden verwijderd.",
       "folderDeleted": "Map {name} verwijderd",
-      "folderNotEmpty": "Die map bevat nog bestanden. Verplaats of verwijder ze eerst.",
       "deleteFolderFailed": "De map kon niet worden verwijderd"
     },
     "iconsPage": {

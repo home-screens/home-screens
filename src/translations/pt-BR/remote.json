@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "dayNotes": {
+      "textRequired": "Uma nota do dia precisa de algumas palavras.",
+      "textTooLong": "No máximo {max} caracteres.",
+      "badDate": "Esse dia não está no calendário.",
+      "dayOver": "Esse dia já passou. Escolha hoje ou um dia depois.",
+      "dayTooFar": "Esse dia está longe demais. Escolha um dia dentro de um ano.",
+      "duplicate": "Essa nota já está lá.",
+      "dayFull": "Um dia comporta {max} notas. Altere ou remova uma primeiro.",
+      "tooMany": "Há notas do dia demais. Remova algumas primeiro.",
+      "noteGone": "Essa nota não está mais lá."
+    },
+    "timers": {
+      "notRunning": "Nenhum timer está rodando.",
+      "routineGone": "Essa rotina não existe mais. Escolha outra.",
+      "badRequest": "Isso não funcionou. Recarregue a página e tente de novo.",
+      "invalid": "Essa rotina não pode ser salva assim. Confira o nome e os passos.",
+      "reload": "Recarregue a página e tente de novo.",
+      "revision": "Outra pessoa alterou as rotinas. Sua última alteração não foi salva. Tente de novo."
+    }
+  },
   "tabs": {
     "control": "Controle",
     "chores": "Tarefas",
@@ -1117,7 +1138,7 @@
     "showingOnDisplay": "Aparecendo na tela",
     "waitingForDisplay": "Aguardando uma tela assumir…",
     "notShowing": "Nenhuma tela está mostrando ainda. Confira se alguma tela está ligada.",
-    "changedElsewhere": "Outra pessoa alterou as rotinas. Sua última alteração não foi salva. Tente de novo.",
+    "failed": "Algo deu errado. Tente de novo.",
     "whyNoSave": {
       "name": "Dê um nome à rotina para salvar.",
       "stepName": "Dê um nome a cada passo para salvar.",

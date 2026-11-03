@@ -1,4 +1,25 @@
 {
+  "refusals": {
+    "timetables": {
+      "member": "Un horario pertenece a alguien que ya no está en la familia. Vuelve a abrir la página y elige una persona de nuevo.",
+      "corrupt": "No se pudieron leer los horarios guardados. Restaura o repara el archivo antes de hacer cambios.",
+      "reopen": "Vuelve a abrir la página de horarios e intenta guardar de nuevo.",
+      "invalid": "Algo en los horarios no se pudo guardar así. Recarga la página y vuelve a hacer el cambio."
+    },
+    "library": {
+      "badFolder": "Esa carpeta no se puede usar.",
+      "folderGone": "Esa carpeta ya no existe.",
+      "badPath": "Ese archivo no se puede usar.",
+      "fileGone": "{name} ya no existe.",
+      "fileExists": "{name} ya está en esa carpeta.",
+      "nameClash": "Dos de los archivos se llaman {name}; solo uno puede ir ahí.",
+      "reservedName": "Los nombres que empiezan por \"rotation-\" están reservados para los fondos rotativos del nivel superior. Cambia el nombre de {name} primero.",
+      "badName": "Ese nombre de carpeta no se puede usar. Prueba con letras y números.",
+      "tooDeep": "Las carpetas solo pueden tener {max} niveles.",
+      "folderExists": "Ya hay una carpeta llamada {name} aquí.",
+      "folderNotEmpty": "Esa carpeta todavía tiene archivos. Muévelos o elimínalos primero."
+    }
+  },
   "languageAndRegion": {
     "title": "Idioma y región",
     "languageLabel": "Idioma",
@@ -1280,7 +1301,6 @@
       "deleteFolderTitle": "¿Eliminar la carpeta {name}?",
       "deleteFolderMessage": "Solo se puede eliminar una carpeta vacía.",
       "folderDeleted": "Carpeta {name} eliminada",
-      "folderNotEmpty": "Esa carpeta todavía tiene archivos. Muévelos o elimínalos primero.",
       "deleteFolderFailed": "No se pudo eliminar la carpeta"
     },
     "iconsPage": {

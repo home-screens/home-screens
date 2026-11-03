@@ -127,11 +127,12 @@ export function primeTodoCache(lists: TodoList[]): void {
 /**
  * Send one write and hand back the lists it answers with.
  *
- * A 4xx carries `{ error }` in plain language from the store's validation and
- * becomes that message; an answer without lists becomes `fallbackMessage`. A
- * hub out of reach and an expired session propagate untouched so callers can
- * still recognise them. Rejects rather than returning a flag, so an optimistic
- * caller can leave its local change alone until it knows the write was refused.
+ * A 4xx carries `{ error, code, params }` from the store's validation and
+ * becomes a `RefusalError` the surface phrases with `refusalText`; an answer
+ * without lists becomes `fallbackMessage`. A hub out of reach and an expired
+ * session propagate untouched so callers can still recognise them. Rejects
+ * rather than returning a flag, so an optimistic caller can leave its local
+ * change alone until it knows the write was refused.
  */
 export async function sendTodoWrite(
   fetcher: TodoFetch,

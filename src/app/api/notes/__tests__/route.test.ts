@@ -121,14 +121,14 @@ describe('POST /api/notes', () => {
   it('refuses an author who is not in the family, and writes nothing', async () => {
     const res = await post({ text: 'Who wrote this?', authorId: 'stranger' });
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
+    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', code: 'family.memberRemoved', reason: 'member' });
     await expect(fs.access(notesPath())).rejects.toThrow();
   });
 
   it('refuses an author that is not an id', async () => {
     const res = await post({ text: 'x', authorId: 7 });
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'The author must be a family member.' });
+    expect(await res.json()).toEqual({ error: 'The author must be a family member.', code: 'notes.badAuthor' });
   });
 
   it('posts as nobody when the author is null, empty or left out', async () => {
@@ -154,23 +154,23 @@ describe('POST /api/notes', () => {
     expect(await res.json()).toEqual({ error: 'Invalid JSON body' });
   });
 
-  it("refuses an empty note with the server's own words, and writes nothing", async () => {
+  it("refuses an empty note with a code and the server's own words, and writes nothing", async () => {
     const res = await post({ text: '   ' });
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'Write something first.' });
+    expect(await res.json()).toEqual({ error: 'Write something first.', code: 'notes.textRequired' });
     await expect(fs.access(notesPath())).rejects.toThrow();
   });
 
   it('refuses a bad life or flag with its reason', async () => {
-    expect(await (await post({ text: 'x', life: 'forever' })).json()).toEqual({ error: 'Pick how long the note should stay.' });
-    expect(await (await post({ text: 'x', pinned: 'yes' })).json()).toEqual({ error: 'Pinned and important must be on or off.' });
+    expect(await (await post({ text: 'x', life: 'forever' })).json()).toEqual({ error: 'Pick how long the note should stay.', code: 'notes.badLife' });
+    expect(await (await post({ text: 'x', pinned: 'yes' })).json()).toEqual({ error: 'Pinned and important must be on or off.', code: 'notes.badRequest' });
   });
 
   it('refuses a full board of live notes with 409', async () => {
     await seed({ notes: Array.from({ length: NOTES_LIMITS.maxNotes }, (_, i) => note(`n${i}`)) });
     const res = await post({ text: 'One too many' });
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'The board is full: 200 notes. Take some down first.' });
+    expect(await res.json()).toEqual({ error: 'The board is full: 200 notes. Take some down first.', code: 'notes.boardFull', params: { max: 200 } });
     expect((await saved()).notes).toHaveLength(NOTES_LIMITS.maxNotes);
   });
 

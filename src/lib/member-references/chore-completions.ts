@@ -18,10 +18,10 @@ export const choreCompletionReferences: MemberReferenceDomain = {
   unreadable: 'refuse',
   removeMembers(doc, removed) {
     const next = structuredClone(doc);
-    if (!Array.isArray(next.completions)) throw new FamilyError('The saved chore completions are invalid.', 409);
+    if (!Array.isArray(next.completions)) throw new FamilyError('family.dataInvalid', 'The saved chore completions are invalid.', { status: 409 });
     next.completions = next.completions.filter((completion: Doc) => !removed.has(completion.memberId as string));
     if (next.grabs !== undefined) {
-      if (!Array.isArray(next.grabs)) throw new FamilyError('The saved chore completions are invalid.', 409);
+      if (!Array.isArray(next.grabs)) throw new FamilyError('family.dataInvalid', 'The saved chore completions are invalid.', { status: 409 });
       next.grabs = next.grabs.filter((grab: Doc) => !removed.has(grab.memberId as string));
     }
     return next;

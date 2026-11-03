@@ -127,8 +127,10 @@ test('a failed member save warns in the sub-view where the edit happened', async
   await page.getByLabel('Name', { exact: true }).fill('Charlie');
   await page.getByTestId('family-manager').getByRole('button', { name: 'Save', exact: true }).click();
 
-  // Not getByRole('alert') — Next's route announcer is also role="alert".
-  await expect(page.getByTestId('family-manager').getByRole('status')).toHaveText('nope');
+  // Not getByRole('alert'): Next's route announcer is also role="alert". The
+  // hub's own sentence is never shown; an answer without a refusal code gets
+  // the surface's fallback in the family's language.
+  await expect(page.getByTestId('family-manager').getByRole('status')).toHaveText('Could not save your family.');
 });
 
 test('admin edits a member name and it round-trips', async ({ page, request, sandboxDir }) => {

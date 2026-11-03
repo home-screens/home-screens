@@ -50,7 +50,7 @@ describe('todoWrite assignees', () => {
     const raw = await fs.readFile(todosPath(), 'utf-8');
     const res = await todoWrite((data) => updateItem(data, 'l1', 'i1', { assigneeIds: ['mom', 'gone'] }), undefined, { assigneeIds: ['mom', 'gone'] });
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', reason: 'member' });
+    expect(await res.json()).toEqual({ error: 'Someone in this selection was removed. Refresh and choose again.', code: 'family.memberRemoved', reason: 'member' });
     expect(await fs.readFile(todosPath(), 'utf-8')).toBe(raw);
   });
 
@@ -66,9 +66,8 @@ describe('todoWrite assignees', () => {
     expect(res.status).toBe(200);
   });
 
-  it("leaves a value that is not a list of ids to the action's own refusal", async () => {
-    const res = await todoWrite((data) => updateItem(data, 'l1', 'i1', { assigneeIds: 'mom' }), undefined, { assigneeIds: 'mom' });
-    expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'People must be a list of ids' });
+  it("leaves a value that is not a list of ids to the action's own refusal, which reaches the route wrapper", async () => {
+    await expect(todoWrite((data) => updateItem(data, 'l1', 'i1', { assigneeIds: 'mom' }), undefined, { assigneeIds: 'mom' }))
+      .rejects.toMatchObject({ status: 400, code: 'lists.badRequest', message: 'People must be a list of ids' });
   });
 });

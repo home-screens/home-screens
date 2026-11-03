@@ -1,4 +1,47 @@
 {
+  "refusals": {
+    "hubUnreachable": "Couldn't reach Home Screens, so that wasn't saved. Check the connection and try again.",
+    "lists": {
+      "failed": "Something went wrong. Try again.",
+      "nameRequired": "Give the list a name",
+      "nameTooLong": "List names can be up to {max} characters",
+      "textRequired": "Type something first",
+      "textTooLong": "Items can be up to {max} characters",
+      "badDate": "That is not a day we recognize",
+      "badColor": "Pick a color from the list",
+      "listGone": "That list is gone",
+      "itemGone": "That item is gone",
+      "tooManyLists": "You can have up to {max} lists",
+      "tooManyItems": "A list can hold up to {max} items",
+      "orderChanged": "The list changed while you were moving things. Try again.",
+      "badRequest": "That change couldn't be understood. Reload the page and try again."
+    },
+    "notes": {
+      "failed": "That didn't save. Try again.",
+      "textRequired": "Write something first.",
+      "textTooLong": "A note can be {max} characters at most.",
+      "badAuthor": "The author must be a family member.",
+      "badLife": "Pick how long the note should stay.",
+      "badRequest": "That change couldn't be understood. Reload the page and try again.",
+      "noteGone": "That note is no longer here.",
+      "boardFull": "The board is full: {max} notes. Take some down first."
+    },
+    "family": {
+      "revision": "Someone changed the family while you were editing. The latest roster is shown. Please make your edit again.",
+      "badRequest": "That change couldn't be understood. Reload the page and try again.",
+      "nameTooLong": "Names can have up to {max} characters.",
+      "tooManyMembers": "You can add people when the family has fewer than {max} members.",
+      "tooManyGroups": "You can have up to {max} groups.",
+      "groupNameTooLong": "Group names can have up to {max} characters.",
+      "groupNameTaken": "You already have a group called {name}.",
+      "groupMemberRemoved": "A group names someone who is not on the family list. Refresh and try again.",
+      "memberRemoved": "Someone in this selection was removed. Refresh and choose again.",
+      "groupRemoved": "A group in this selection was removed. Refresh and choose again.",
+      "dataInvalid": "Family data needs attention. Open Settings to review it or restore a backup.",
+      "dataWaiting": "Family data is waiting to recover. Please try again in a minute.",
+      "restoreMissing": "That backup names people or groups who aren't in its family list, so it wasn't restored. Restore a backup that includes them."
+    }
+  },
   "today": "Today",
   "tomorrow": "Tomorrow",
   "yesterday": "Yesterday",
@@ -23,6 +66,7 @@
   },
   "status": {
     "saving": "Saving…",
+    "uploadingCount": "Uploading {current} of {total}...",
     "connected": "Connected",
     "disabled": "Disabled",
     "never": "Never",
@@ -96,6 +140,7 @@
     "fetchFailed": "Couldn't connect to load this data",
     "loadImagesFailed": "Failed to load images",
     "uploadFailed": "Upload failed",
+    "uploadFailedFor": "Upload failed for {name}",
     "createFolderFailed": "Failed to create folder",
     "deleteFolderFailed": "Failed to delete folder",
     "deleteImageFailed": "Failed to delete photo",
@@ -230,7 +275,6 @@
     "retry": "Try again",
     "saved": "Family saved.",
     "saving": "Saving…",
-    "conflict": "Someone changed the family while you were editing. The latest roster is shown. Please make your edit again.",
     "removeTitle": "Remove {name}?",
     "removeDescription": "Removing {name} clears their chore assignments, schedules, completion history, ticket balance and reward access, and forgets which calendars are theirs. Chores with no one left are deleted. This cannot be undone.",
     "remove": "Remove person",

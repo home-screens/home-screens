@@ -102,9 +102,9 @@ describe('validateNotesData', () => {
 describe('NotesError', () => {
   it('is the same class whether imported from the store or its own file', () => {
     expect(ReexportedNotesError).toBe(NotesError);
-    const error = new NotesError(409, 'The board is full.');
+    const error = new NotesError(409, 'notes.boardFull', 'The board is full.', { max: 200 });
     expect(error).toBeInstanceOf(Error);
-    expect(error).toMatchObject({ name: 'NotesError', status: 409, message: 'The board is full.' });
+    expect(error).toMatchObject({ name: 'NotesError', status: 409, code: 'notes.boardFull', params: { max: 200 }, message: 'The board is full.' });
   });
 });
 
@@ -208,7 +208,7 @@ describe('updateNotesData', () => {
   it('leaves the file alone when the mutator refuses', async () => {
     const raw = JSON.stringify({ notes: [note('old', { expiresAt: fromNow(-NOTES_GONE_KEEP_MS - HOUR) }), note('live', { expiresAt: fromNow(DAY) })] });
     await seedRaw(raw);
-    await expect(updateNotesData(() => { throw new NotesError(404, 'That note is no longer here.'); })).rejects.toMatchObject({ status: 404, message: 'That note is no longer here.' });
+    await expect(updateNotesData(() => { throw new NotesError(404, 'notes.noteGone', 'That note is no longer here.'); })).rejects.toMatchObject({ status: 404, message: 'That note is no longer here.' });
     expect(await fs.readFile(file(), 'utf-8')).toBe(raw);
   });
 
