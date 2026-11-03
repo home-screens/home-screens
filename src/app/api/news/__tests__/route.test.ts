@@ -384,6 +384,30 @@ describe('GET /api/news', () => {
       expect(isSafeLocalOrExternalUrl).toHaveBeenCalledWith(LAN_FEED);
     });
 
+    it('ignores an opt-in left in the frozen config.screens once displays exist', async () => {
+      // After the first display is added, config.screens is a snapshot the
+      // editor never writes again. A feed removed from every live wall must
+      // not keep its exemption from the SSRF guard through that snapshot.
+      vi.mocked(readConfig).mockResolvedValue({
+        ...baseConfig(),
+        screens: [{
+          id: 'old', name: 'Old', modules: [{
+            id: 'n', type: 'news', position: { x: 0, y: 0 }, size: { w: 1, h: 1 }, zIndex: 1,
+            config: { feeds: [{ id: 'lan', url: LAN_FEED, homeNetwork: true }] },
+          }],
+        }],
+        displays: [{
+          id: 'main', name: 'Main', displayWidth: 1080, displayHeight: 1920,
+          screens: [{ id: 's', name: 'S', modules: [] }],
+        }],
+      } as unknown as ScreenConfiguration);
+
+      const { json } = await call([LAN_FEED]);
+      expect(json.feeds[0]).toMatchObject({ url: LAN_FEED, ok: false, error: 'blocked-url' });
+      expect(isSafeLocalOrExternalUrl).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
     it('lets an editor session check a feed it has not saved yet', async () => {
       const res = await GET(new NextRequest(
         `http://localhost/api/news?feed=${encodeURIComponent(LAN_FEED)}&lan=${encodeURIComponent(LAN_FEED)}`,

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createTTLCache, fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
 import { hasEditorSession } from '@/lib/auth';
 import { readConfig } from '@/lib/config';
+import { getAllScreens } from '@/lib/display-filter';
 import { isSafeExternalUrl, isSafeLocalOrExternalUrl } from '@/lib/url-safety';
 import { decodeFeedBody, parseFeed, FeedParseError } from '@/lib/news/parse-feed';
 import { resolveSource } from '@/lib/news/sources';
@@ -48,21 +49,20 @@ const inflight = new Map<string, Promise<NewsFeedResult>>();
 
 /** Every feed URL any news module has opted into home-network fetching. */
 function homeNetworkFeeds(config: ScreenConfiguration): Set<string> {
+  // Live screens only: once a display exists, `config.screens` is a frozen
+  // snapshot, and a feed removed from every wall must lose its exemption
+  // from the SSRF guard with it.
   const urls = new Set<string>();
-  const visit = (screens: ScreenConfiguration['screens'] | undefined) => {
-    for (const screen of screens ?? []) {
-      for (const mod of screen.modules ?? []) {
-        if (mod.type !== 'news' && mod.type !== 'fullscreen-news') continue;
-        const feeds = (mod.config as { feeds?: NewsFeedSource[] } | undefined)?.feeds;
-        if (!Array.isArray(feeds)) continue;
-        for (const f of feeds) {
-          if (f && f.homeNetwork === true && typeof f.url === 'string') urls.add(f.url.trim());
-        }
+  for (const screen of getAllScreens(config)) {
+    for (const mod of screen.modules ?? []) {
+      if (mod.type !== 'news' && mod.type !== 'fullscreen-news') continue;
+      const feeds = (mod.config as { feeds?: NewsFeedSource[] } | undefined)?.feeds;
+      if (!Array.isArray(feeds)) continue;
+      for (const f of feeds) {
+        if (f && f.homeNetwork === true && typeof f.url === 'string') urls.add(f.url.trim());
       }
     }
-  };
-  visit(config.screens);
-  for (const d of config.displays ?? []) visit(d.screens);
+  }
   return urls;
 }
 
