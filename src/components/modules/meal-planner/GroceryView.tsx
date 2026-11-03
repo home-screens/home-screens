@@ -120,7 +120,7 @@ function GroceryRow({ item, accent, tappable, pressed, onTick }: {
     <>
       <span
         className="flex-1 min-w-0 truncate"
-        style={{ textDecoration: item.checked ? 'line-through' : undefined, textDecorationColor: item.checked ? accent : undefined }}
+        style={{ textDecorationLine: item.checked ? 'line-through' : 'none', textDecorationColor: item.checked ? accent : undefined }}
       >
         {item.text}
         {item.note && <span style={{ color: ink(TEXT_OPACITY.dim), fontSize: '0.88em' }}> &middot; {item.note}</span>}

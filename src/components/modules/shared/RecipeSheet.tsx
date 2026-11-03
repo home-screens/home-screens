@@ -428,7 +428,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
           const text = (
             <span style={{
               color: isTicked ? 'var(--fmp-text-3)' : 'var(--fmp-text)', minWidth: 0, textAlign: 'left',
-              textDecoration: isTicked ? 'line-through' : undefined, textDecorationThickness: P(2),
+              textDecorationLine: isTicked ? 'line-through' : 'none', textDecorationThickness: P(2),
             }}>
               {ing.text}
               {ing.amount && <span style={{ color: 'var(--fmp-text-3)', marginLeft: P(12), whiteSpace: 'nowrap' }}>{ing.amount}</span>}

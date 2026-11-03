@@ -368,7 +368,7 @@ function RowBody({ item, ctx, tappable, pressed, boxSize }: {
         className="line-clamp-2 flex-1 min-w-0"
         style={{
           lineHeight: 1.2,
-          textDecoration: item.completed ? 'line-through' : 'none',
+          textDecorationLine: item.completed ? 'line-through' : 'none',
           textDecorationColor: item.completed ? ctx.accentColor : undefined,
         }}
       >
@@ -739,7 +739,7 @@ function FocusView({ list, title, showTitle, placement, accentColor, t }: ViewPr
               lineHeight: 1.15,
               letterSpacing: '-0.02em',
               marginBottom: '0.36em',
-              textDecoration: item.completed ? 'line-through' : 'none',
+              textDecorationLine: item.completed ? 'line-through' : 'none',
               textDecorationColor: item.completed ? accentColor : undefined,
             }}
           >
@@ -820,7 +820,7 @@ function ProgressView({ list, title, showTitle, placement, accentColor, t }: Vie
               <span
                 key={it.id}
                 data-testid="todo-item"
-                style={{ textDecoration: it.completed ? 'line-through' : 'none', textDecorationColor: it.completed ? accentColor : undefined }}
+                style={{ textDecorationLine: it.completed ? 'line-through' : 'none', textDecorationColor: it.completed ? accentColor : undefined }}
               >
                 {it.text}{i < named.length - 1 ? ', ' : ''}
               </span>
@@ -861,7 +861,7 @@ function CompactView({ list, title, showTitle, placement, accentColor, t, fontPx
             />
             <span
               className="truncate"
-              style={{ lineHeight: 1.2, textDecoration: item.completed ? 'line-through' : 'none', textDecorationColor: item.completed ? accentColor : undefined }}
+              style={{ lineHeight: 1.2, textDecorationLine: item.completed ? 'line-through' : 'none', textDecorationColor: item.completed ? accentColor : undefined }}
             >
               {item.text}
             </span>
