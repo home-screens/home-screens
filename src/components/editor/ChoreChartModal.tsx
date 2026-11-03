@@ -1,13 +1,12 @@
 'use client';
 
 import { Fragment, useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { asChoreSnapshot, ChoreSession, type ChoreSnapshot } from '@/lib/chore-client';
-import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
+import { asChoreSnapshot } from '@/lib/chore-client';
+import { editorFetch, throwIfNotOk } from '@/lib/editor-fetch';
+import { useChoreAutosave } from '@/components/chores/useChoreAutosave';
 import { displayCache } from '@/lib/display-cache';
 import FamilyManager from '@/components/family/FamilyManager';
 import { useFamilyData } from '@/hooks/useFamilyData';
-import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import Button from '@/components/ui/Button';
 import CRUDModalShell from '@/components/editor/CRUDModalShell';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
@@ -1030,20 +1029,25 @@ export default function ChoreChartModal({
   const [loadError, setLoadError] = useState(false);
   /** `conflict`, or the words of a save that failed. */
   const [saveError, setSaveError] = useState<string | null>(null);
-  // Saves go through one session (`lib/chore-client.ts`): they run in order,
-  // each quoting the revision the previous one was answered with, so a list
-  // from an older copy cannot overwrite what a phone saved since.
-  const [session] = useState(() => new ChoreSession(editorFetch));
-  // A list the hub handed us (the load, a reload, or a conflict's current
-  // copy) is already saved: the auto-save below must not send it back.
-  const adoptedRef = useRef<ChoreDefinition[] | null>(null);
   const [choreSettings, setChoreSettings] = useState<ChoreSettings | null>(null);
-  const adoptChores = useCallback((snapshot: ChoreSnapshot) => {
-    adoptedRef.current = snapshot.chores;
-    session.adopt(snapshot);
-    setChores(snapshot.chores);
-    setChoreSettings(snapshot.settings);
-  }, [session]);
+  // Saving is shared with the phone's Chores tab (`useChoreAutosave`): saves
+  // in order, a failed one sent again until it lands, a conflict shown as the
+  // other surface's list.
+  const { adopt: adoptChores, flush: flushSave } = useChoreAutosave(chores, {
+    show: (snapshot) => {
+      setChores(snapshot.chores);
+      setChoreSettings(snapshot.settings);
+    },
+    conflict: () => setSaveError('conflict'),
+    saved: () => {
+      setSaveError(null);
+      displayCache.invalidate('/api/chores/data');
+    },
+    failed: setSaveError,
+  }, {
+    enabled: loaded,
+    words: { refused: t('common.saveError'), unreachable: t('common.hubUnreachable') },
+  });
   const [showAddChore, setShowAddChore] = useState(false);
   const [editingChoreId, setEditingChoreId] = useState<string | null>(null);
   // The starter list takes the form's column, so opening one closes the other.
@@ -1093,32 +1097,6 @@ export default function ChoreChartModal({
       })
       .catch(() => setLoadError(true));
   }, [adoptChores]);
-
-  const { flush: flushSave } = useDebouncedSave({
-    values: [chores],
-    enabled: loaded,
-    save: async () => {
-      if (chores === adoptedRef.current) return;
-      const outcome = await session.save(chores, chores.length === 0, t('common.saveError'));
-      // Somebody else saved first. Show their list rather than replace it;
-      // the change made here has to be made again on top of it.
-      if (outcome.kind === 'conflict') {
-        adoptChores(outcome.snapshot);
-        setSaveError('conflict');
-        return;
-      }
-      if (outcome.kind === 'superseded') return;
-      setSaveError(null);
-      displayCache.invalidate('/api/chores/data');
-    },
-    // The read path above already surfaced failures via `loadError`; the write
-    // path checked nothing (the session now rejects), so a 500 left the edit
-    // on screen and gone on reload.
-    onError: (err) => {
-      if (isSessionExpired(err)) return;
-      setSaveError(requestFailureText(err, { unreachable: t('common.hubUnreachable'), fallback: t('common.saveError') }));
-    },
-  });
 
   // ── Chore CRUD ──
   const addChore = (data: Omit<ChoreDefinition, 'id'>) => {

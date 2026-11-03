@@ -199,8 +199,8 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       .catch(() => { /* the next write or reopen brings the list back in step */ });
   }, [adoptLists]);
 
-  /** Run one write and adopt its answer unless a later write has been sent since. */
-  const write = useCallback(
+  /** Run one write now and adopt its answer unless a later write has been sent since. */
+  const writeNow = useCallback(
     async (req: TodoWriteRequest): Promise<boolean> => {
       const seq = ++requestSeq.current;
       inFlight.current += 1;
@@ -230,6 +230,19 @@ export default function TodoListModal({ listId, onClose }: TodoListModalProps) {
       }
     },
     [adoptLists, reconcile, saveFailed, t],
+  );
+
+  // Writes go out one at a time, in the order they were asked for, the way
+  // the phone's hook sends them: a tick and an untick a moment apart must
+  // land in that order, or the list keeps the first one.
+  const queueRef = useRef<Promise<unknown>>(Promise.resolve());
+  const write = useCallback(
+    (req: TodoWriteRequest): Promise<boolean> => {
+      const run = queueRef.current.then(() => writeNow(req));
+      queueRef.current = run.catch(() => undefined);
+      return run;
+    },
+    [writeNow],
   );
 
   // ── Name ──

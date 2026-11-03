@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import { isFamilySnapshot, useFamilyData, type FamilySnapshot } from '@/hooks/useFamilyData';
-import { useDebouncedSave } from '@/hooks/useDebouncedSave';
 import { Sunrise, Sun, Sunset, Clock, Settings, Hand, ChevronRight } from 'lucide-react';
 import type {
   ChoreChartConfig,
@@ -16,10 +15,11 @@ import type {
   ChoreToggleResponse,
   FullscreenChoreCelebration,
 } from '@/types/config';
-import { asChoreSnapshot, ChoreSession, type ChoreSnapshot } from '@/lib/chore-client';
+import { asChoreSnapshot, type ChoreSnapshot } from '@/lib/chore-client';
+import { useChoreAutosave } from '@/components/chores/useChoreAutosave';
+import { choresAssignedTo, choresOwedBy, isAssignedOn } from '@/lib/chore-assignments';
 import {
   resolveAssignee,
-  choreAppliesToday,
   buildCompletionSet,
   completionKey,
   isChoreComplete,
@@ -33,7 +33,6 @@ import { planChoreToggle } from '@/components/modules/chore-chart/chore-toggle';
 import { atGrabLimit, canPutBack, readChoreSettings, countsSinceReset, resetViewDay, resolveBonusFor, type BonusMarks, type BonusRefusal } from '@/lib/chore-bonus';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { editorFetch, isSessionExpired, throwIfNotOk } from '@/lib/editor-fetch';
-import { requestFailureText } from '@/lib/hub-request';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreHistoryNav from './ChoreHistoryNav';
 import ChoreHistoryBanner from './ChoreHistoryBanner';
@@ -88,18 +87,9 @@ function rememberMember(id: string) {
 
 /** The first member who actually has something to do on `day`, else the first member. */
 function defaultMemberFor(members: FamilyMember[], groups: FamilyGroup[], chores: ChoreDefinition[], day: string): string {
-  const dayOfWeek = new Date(day + 'T00:00:00').getDay();
-  for (const member of members) {
-    const hasChore = chores.some(
-      (c) => choreAppliesToday(c, dayOfWeek, day) && resolveAssignee(c, day, groups).includes(member.id),
-    );
-    if (hasChore) return member.id;
-  }
-  return members[0]?.id ?? '';
+  const withChore = members.find((member) => chores.some((c) => isAssignedOn(c, member.id, day, groups)));
+  return (withChore ?? members[0])?.id ?? '';
 }
-
-/** How often a chore save that failed is sent again. */
-const SAVE_RETRY_MS = 10_000;
 
 interface ChoresTabProps {
   /**
@@ -133,33 +123,40 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   const followsRoster = !!family;
   const { members, groups, revision: familyRevision, loaded: familyLoaded, error: familyError, refresh: refreshFamily } = useFamilyData(roster);
   const [chores, setChores] = useState<ChoreDefinition[]>(choreData.chores ?? []);
-  // The list as last received from or saved to the hub, and the list on screen
-  // right now: an edit not yet saved shows as the two differing, and a poll
-  // that finds another phone's edit must not replace it.
-  const cleanChoresRef = useRef<ChoreDefinition[]>(chores);
-  const choresRef = useRef(chores);
-  choresRef.current = chores;
-  // Saves go through one session (`lib/chore-client.ts`): they run in order,
-  // each quoting the revision the previous one was answered with, so a list
-  // from an older copy cannot overwrite what another phone saved since.
-  const [session] = useState(() => new ChoreSession(editorFetch, choreData));
-  // A list the hub handed us (a reload, or a conflict's current copy) is
-  // already saved: the auto-save below must not send it straight back.
-  const adoptedRef = useRef<ChoreDefinition[] | null>(null);
   const [choreSettings, setChoreSettings] = useState<ChoreSettings>(choreData.settings);
   // Bumped when a settings save starts and ends: a poll that overlapped one
   // read the file before it and would put the old rules back.
   const settingsSaveRef = useRef(0);
-  const adoptChores = useCallback((snapshot: ChoreSnapshot) => {
-    adoptedRef.current = snapshot.chores;
-    cleanChoresRef.current = snapshot.chores;
-    session.adopt(snapshot);
-    setChores(snapshot.chores);
-    setChoreSettings(snapshot.settings);
-  }, [session]);
-  // Only the exact empty list produced by a deliberate last-chore deletion
-  // may bypass the server guard. Missing props or reload data never grant it.
-  const intentionalEmpty = useRef<ChoreDefinition[] | null>(null);
+  // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete)
+  // or a failed auto-save. Rendered as a dismissible banner so the user gets
+  // in-UI feedback without DevTools.
+  const [lastWarning, setLastWarning] = useState<string | null>(null);
+  /** What the last failed save said, so the next save that lands can take it down. */
+  const saveFailureRef = useRef<string | null>(null);
+  // Saving is shared with the editor's chore window (`useChoreAutosave`):
+  // saves in order, a failed one sent again until it lands, a conflict shown
+  // as the other surface's list. The save is flushed on unmount so an edit
+  // made just before leaving the tab is not lost.
+  const { session, adopt: adoptChores, clean: choresClean } = useChoreAutosave(chores, {
+    show: (snapshot) => {
+      setChores(snapshot.chores);
+      setChoreSettings(snapshot.settings);
+    },
+    conflict: () => setLastWarning(t('choresTab.changedElsewhere')),
+    saved: () => {
+      const failed = saveFailureRef.current;
+      setLastWarning((warning) => (warning === failed ? null : warning));
+    },
+    failed: (text) => {
+      log.error('Chore auto-save failed:', text);
+      saveFailureRef.current = text;
+      setLastWarning(text);
+    },
+  }, {
+    initial: choreData,
+    flushOnUnmount: true,
+    words: { refused: t('choresTab.saveFailed'), unreachable: t('hubRequest.saveFailed') },
+  });
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
   const accentColor = config.accentColor ?? '#f59e0b';
 
@@ -210,64 +207,6 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   // they were opened on. Several may be open: closing one as another opens
   // moved the rows under the finger.
   const [openSteps, setOpenSteps] = useState<ReadonlySet<string>>(() => new Set());
-  // Last warning surfaced from POST /api/chores (e.g. balance went negative on un-complete)
-  // or a failed auto-save. Rendered as a dismissible banner so the user gets
-  // in-UI feedback without DevTools.
-  const [lastWarning, setLastWarning] = useState<string | null>(null);
-  /** What the last failed save said, so the next save that lands can take it down. */
-  const saveFailureRef = useRef<string | null>(null);
-
-  // Debounced auto-save. `skipInitial` skips the first effect run after mount
-  // (initial state comes from props), and `flushOnUnmount` ensures any pending
-  // save in the debounce window runs before the component unmounts.
-  // A save that failed is sent again: when the phone is back on the network,
-  // and every few seconds until it lands. The list on screen already shows
-  // the change, so leaving it unsent meant a chore that looked saved and was
-  // gone after a reload.
-  const [unsaved, setUnsaved] = useState(false);
-  const [saveAttempt, setSaveAttempt] = useState(0);
-  useEffect(() => {
-    if (!unsaved) return;
-    const again = () => setSaveAttempt((n) => n + 1);
-    window.addEventListener('online', again);
-    const id = setInterval(again, SAVE_RETRY_MS);
-    return () => {
-      window.removeEventListener('online', again);
-      clearInterval(id);
-    };
-  }, [unsaved]);
-
-  useDebouncedSave({
-    values: [chores, saveAttempt],
-    flushOnUnmount: true,
-    save: async () => {
-      if (chores === adoptedRef.current) return;
-      const outcome = await session.save(chores, chores === intentionalEmpty.current, t('choresTab.saveFailed'));
-      // Somebody else saved first. Show their list rather than replace it;
-      // the change made here has to be made again on top of it.
-      if (outcome.kind === 'conflict') {
-        adoptChores(outcome.snapshot);
-        setUnsaved(false);
-        setLastWarning(t('choresTab.changedElsewhere'));
-      } else if (outcome.kind === 'saved') {
-        cleanChoresRef.current = chores;
-        setUnsaved(false);
-        const failed = saveFailureRef.current;
-        setLastWarning((warning) => (warning === failed ? null : warning));
-      }
-    },
-    // The session rejects on any other failure; without that a 500 resolved
-    // and this never fired: the new member stayed on screen and was gone
-    // after reload, with no warning.
-    onError: (err) => {
-      if (isSessionExpired(err)) return;
-      log.error('Chore auto-save failed:', err);
-      setUnsaved(true);
-      saveFailureRef.current = requestFailureText(err, { unreachable: t('hubRequest.saveFailed'), fallback: t('choresTab.saveFailed') });
-      setLastWarning(saveFailureRef.current);
-    },
-  });
-
   // Track mounted state so in-flight fetches don't setState after unmount.
   const isMountedRef = useRef(true);
   useEffect(() => {
@@ -344,7 +283,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
         Array.isArray(data?.chores)
         && typeof data.choresRevision === 'string'
         && data.choresRevision !== session.currentRevision
-        && choresRef.current === cleanChoresRef.current
+        // A poll that finds another phone's edit must not replace one made here and not yet saved.
+        && choresClean()
       ) {
         adoptChores({ chores: data.chores, settings: readChoreSettings(data.settings), revision: data.choresRevision });
       }
@@ -358,7 +298,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
         setChoreSettings((prev) => (prev.grabLimit === next.grabLimit && prev.grabHold === next.grabHold ? prev : next));
       }
     } catch { /* silent (includes AbortError) */ }
-  }, [applyMarks, adoptChores, isAdmin, session, followsRoster]);
+  }, [applyMarks, adoptChores, choresClean, isAdmin, session, followsRoster]);
 
   const showBalances = !!config.showPoints;
   const fetchRewards = useCallback(async () => {
@@ -436,15 +376,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   // bottom the moment it is tapped is the one thing a thumb cannot follow.
   const myAssignments = useMemo(() => {
     const day = viewingDate;
-    const dayOfWeek = new Date(day + 'T00:00:00').getDay();
-    const assignments: { choreId: string; choreName: string; choreEmoji: string; timeOfDay: ChoreTimeOfDay; points: number; isCompleted: boolean; isSkipped: boolean; steps: string[] }[] = [];
-
-    for (const chore of chores) {
-      if (!choreAppliesToday(chore, dayOfWeek, day)) continue;
-      const assignees = resolveAssignee(chore, day, groups);
-      if (!assignees.includes(selectedMemberId)) continue;
-
-      assignments.push({
+    return choresAssignedTo(chores, selectedMemberId, day, groups)
+      .map((chore) => ({
         choreId: chore.id,
         choreName: chore.name,
         choreEmoji: chore.emoji,
@@ -453,12 +386,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
         isCompleted: isChoreComplete(completionSet, chore.id, selectedMemberId, day),
         isSkipped: isChoreSkipped(completionSet, chore.id, selectedMemberId, day),
         steps: choreStepLines(chore.steps),
-      });
-    }
-
-    return assignments.sort(
-      (a, b) => TIME_OF_DAY_META[a.timeOfDay].order - TIME_OF_DAY_META[b.timeOfDay].order,
-    );
+      }))
+      .sort((a, b) => TIME_OF_DAY_META[a.timeOfDay].order - TIME_OF_DAY_META[b.timeOfDay].order);
   }, [chores, groups, viewingDate, selectedMemberId, completionSet]);
 
   // Group by time of day
@@ -495,19 +424,13 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   // Per-member completion counts for tabs (on the currently-viewed date)
   const memberTabStats = useMemo(() => {
     const day = viewingDate;
-    const dayOfWeek = new Date(day + 'T00:00:00').getDay();
     const stats: Record<string, { total: number; done: number }> = {};
     for (const member of members) {
-      let total = 0;
-      let done = 0;
-      for (const c of chores) {
-        if (!choreAppliesToday(c, dayOfWeek, day)) continue;
-        if (!resolveAssignee(c, day, groups).includes(member.id)) continue;
-        if (isChoreSkipped(completionSet, c.id, member.id, day)) continue;
-        total++;
-        if (isChoreComplete(completionSet, c.id, member.id, day)) done++;
-      }
-      stats[member.id] = { total, done };
+      const owed = choresOwedBy(chores, member.id, day, completionSet, groups);
+      stats[member.id] = {
+        total: owed.length,
+        done: owed.filter((c) => isChoreComplete(completionSet, c.id, member.id, day)).length,
+      };
     }
     return stats;
   }, [members, groups, chores, viewingDate, completionSet]);
@@ -920,10 +843,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
             void fetchCompletions();
             void fetchRewards();
           }}
-          onChoresChange={(next) => {
-            intentionalEmpty.current = chores.length > 0 && next.length === 0 ? next : null;
-            setChores(next);
-          }}
+          onChoresChange={setChores}
           onOpenSettings={() => setShowSettings(true)}
         />
       ) : !familyLoaded && familyError ? (

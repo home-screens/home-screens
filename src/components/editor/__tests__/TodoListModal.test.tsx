@@ -148,4 +148,26 @@ describe('TodoListModal', () => {
     expect(screen.queryByRole('alert')).toBeNull();
     expect(board.lists[0].items.find((i) => i.id === 'eggs')?.completed).toBe(true);
   });
+
+  it('sends a tick and an untick in the order they were clicked, even when the hub is slow', async () => {
+    // Both clicks land before the first answer; sent at once, a hub that
+    // applied them out of order would leave the item ticked.
+    held = [];
+    render();
+    await settle();
+
+    fireEvent.click(screen.getByLabelText('Done: Milk'));
+    await settle();
+    fireEvent.click(screen.getByLabelText('Done: Milk'));
+    await settle();
+    // Only the first write has gone out; the second waits its turn.
+    expect(writes.map((w) => w.body)).toEqual([{ completed: true }]);
+    held.shift()?.();
+    await settle();
+    expect(writes.map((w) => w.body)).toEqual([{ completed: true }, { completed: false }]);
+    held.shift()?.();
+    await settle();
+    expect(board.lists[0].items.find((i) => i.id === 'milk')?.completed).toBe(false);
+    expect((screen.getByLabelText('Done: Milk') as HTMLInputElement).checked).toBe(false);
+  });
 });
