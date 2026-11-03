@@ -86,7 +86,7 @@ describe('restartNeededFor', () => {
   });
 
   it('has setup-system put a changed kiosk.conf on the screen, which is why it needs no restart', () => {
-    const source = readFileSync(path.join(process.cwd(), 'scripts', 'upgrade.sh'), 'utf-8');
+    const source = readFileSync(path.join(process.cwd(), 'scripts', 'lib', 'setup-system.sh'), 'utf-8');
     const written = source.indexOf('changed="${changed}kiosk-conf,"');
     const applied = source.indexOf('"${SCRIPT_DIR}/kiosk-outputs.sh" apply || true', written);
     const touch = source.indexOf('labwc-rc.sh" --create', written);
@@ -101,11 +101,13 @@ describe('restartNeededFor', () => {
     // The literal names setup-system appends to its change list. Names built
     // from variables (a display manager, a timer) are the disable-/enable-
     // and group families, which only matter at the next boot.
-    const source = readFileSync(path.join(process.cwd(), 'scripts', 'upgrade.sh'), 'utf-8');
+    const source = readFileSync(path.join(process.cwd(), 'scripts', 'lib', 'setup-system.sh'), 'utf-8');
     const literal = [...source.matchAll(/changed="\$\{changed\}([a-z0-9-]+),"/g)].map((m) => m[1]);
+    // Whole files installed from templates report the tag on their install line.
+    const installed = [...source.matchAll(/hs_install_file \S+ 0[0-7]{3} ([a-z0-9-]+)/g)].map((m) => m[1]);
     const splash = [...readFileSync(path.join(process.cwd(), 'scripts', 'lib', 'common.sh'), 'utf-8')
       .matchAll(/BOOT_SPLASH_CHANGES="\$\{BOOT_SPLASH_CHANGES\}([a-z0-9-]+),"/g)].map((m) => m[1]);
-    const reported = [...new Set([...literal, ...splash])];
+    const reported = [...new Set([...literal, ...installed, ...splash])];
     expect(reported.length).toBeGreaterThan(20);
     const decided = new Set([...NEEDS_RESTART, ...NO_NOTICE]);
     expect(reported.filter((name) => !decided.has(name))).toEqual([]);

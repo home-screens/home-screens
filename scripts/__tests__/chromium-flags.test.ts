@@ -7,11 +7,11 @@ import path from 'path';
  *
  * The kiosk browser is launched from four places, and only one of them can
  * source lib/common.sh at runtime: kiosk-launcher-display.sh ships to spokes
- * on its own (see KIOSK_BUNDLE_FILES), and upgrade.sh emits the hub launcher
- * as a heredoc, so both carry literal flag lists. They have drifted before —
- * --remote-debugging-port went missing from the display-only launcher, which
- * is the flag that lets a deploy reload the page over CDP instead of killing
- * and relaunching the browser.
+ * on its own (see KIOSK_BUNDLE_FILES), and kiosk-launcher-hub.sh is installed
+ * as a file of its own by setup-system, so both carry literal flag lists.
+ * They have drifted before: --remote-debugging-port went missing from the
+ * display-only launcher, which is the flag that lets a deploy reload the page
+ * over CDP instead of killing and relaunching the browser.
  *
  * This test is what makes that drift loud: the literal lists must match the
  * CHROMIUM_KIOSK_FLAGS / CHROMIUM_KIOSK_PI_FLAGS arrays in common.sh exactly.
@@ -84,8 +84,8 @@ describe('literal chromium invocations match common.sh', () => {
     expect([...flags].sort()).toEqual([...BASE_FLAGS, ...PI_FLAGS].sort());
   });
 
-  it('upgrade.sh generated hub launcher heredoc', () => {
-    const flags = kioskFlagsOf(chromiumInvocation(read('upgrade.sh')));
+  it('kiosk-launcher-hub.sh (hub launcher setup-system installs)', () => {
+    const flags = kioskFlagsOf(chromiumInvocation(read('kiosk-launcher-hub.sh')));
     expect([...flags].sort()).toEqual([...BASE_FLAGS, ...PI_FLAGS].sort());
   });
 
@@ -122,10 +122,8 @@ describe('prefs-cleanup copies match clear_chromium_crash_state', () => {
   });
 
   // Both of these run with no lib/ beside them, so they must inline the body.
-  it.each(['kiosk-launcher-display.sh', 'upgrade.sh'])('%s inlines the same body', (file) => {
-    // upgrade.sh emits its copy inside a single-quoted heredoc, so `'` in the
-    // sed program is escaped as '"'"' — unescape before comparing.
-    const source = read(file).replaceAll(`'"'"'`, "'");
+  it.each(['kiosk-launcher-display.sh', 'kiosk-launcher-hub.sh'])('%s inlines the same body', (file) => {
+    const source = read(file);
     expect(source).toContain(SED);
     expect(source).toContain(PURGE);
   });
@@ -144,23 +142,24 @@ describe('labwc fullscreen-rule heal is identical in every launcher path', () =>
     'fi',
   ].join('\n');
 
-  it('kiosk-launcher-display.sh heals before exec', () => {
-    const source = read('kiosk-launcher-display.sh');
+  it.each(['kiosk-launcher-display.sh', 'kiosk-launcher-hub.sh'])('%s heals before exec', (file) => {
+    const source = read(file);
     expect(source).toContain(HEAL);
     expect(source.indexOf(HEAL)).toBeLessThan(source.indexOf('exec chromium \\'));
   });
 
-  it('upgrade.sh carries it in the hub launcher heredoc and the relaunch fallback', () => {
+  it('upgrade.sh carries it in the relaunch fallback', () => {
     // The relaunch fallback is nested inside a case arm, so compare with all
     // leading indentation removed from both sides.
     const flat = (text: string) => text.replace(/^ +/gm, '');
-    const source = flat(read('upgrade.sh').replaceAll(`'"'"'`, "'"));
-    expect(source.split(flat(HEAL)).length - 1).toBe(2);
+    const source = flat(read('upgrade.sh'));
+    expect(source.split(flat(HEAL)).length - 1).toBe(1);
   });
 
-  it('neither rc.xml template still fires ToggleFullscreen', () => {
-    expect(read('install.sh')).not.toContain('<action name="ToggleFullscreen"/>');
-    expect(read('upgrade.sh')).not.toContain('<action name="ToggleFullscreen"/>');
+  it('no rc.xml template still fires ToggleFullscreen', () => {
+    for (const file of ['install.sh', 'upgrade.sh', 'lib/setup-system.sh', 'labwc-rc.sh']) {
+      expect(read(file)).not.toContain('<action name="ToggleFullscreen"/>');
+    }
   });
 });
 
@@ -182,15 +181,15 @@ describe('translate-prompt copies match disable_chromium_translate_prompt', () =
     expect(read('start-display.sh')).toContain('disable_chromium_translate_prompt');
   });
 
-  it.each(['kiosk-launcher-display.sh', 'upgrade.sh'])('%s inlines the same body', (file) => {
-    const source = read(file).replaceAll(`'"'"'`, "'");
+  it.each(['kiosk-launcher-display.sh', 'kiosk-launcher-hub.sh'])('%s inlines the same body', (file) => {
+    const source = read(file);
     expect(source).toContain(SET_PREF);
     expect(source).toContain(SEED_PREF);
   });
 
   it('no launcher still passes the dead --disable-translate flag', () => {
     // Flag lines only: the comments explaining why it went are allowed to name it.
-    for (const file of ['lib/common.sh', 'kiosk-launcher-display.sh', 'upgrade.sh', 'start-display.sh']) {
+    for (const file of ['lib/common.sh', 'kiosk-launcher-display.sh', 'kiosk-launcher-hub.sh', 'upgrade.sh', 'start-display.sh']) {
       expect(read(file)).not.toMatch(/^\s*--disable-translate\b/m);
       expect(read(file)).not.toMatch(/^\s*--disable-features=Translate\b/m);
     }

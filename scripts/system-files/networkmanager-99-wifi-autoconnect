@@ -1,0 +1,10 @@
+#!/bin/bash
+# Home Screens: ensure WiFi connections always reconnect and stay awake.
+# Runs on any NM connection "up" event; $CONNECTION_UUID is set by NM.
+[ "$2" != "up" ] && exit 0
+CONN_TYPE=$(nmcli -g connection.type connection show "$CONNECTION_UUID" 2>/dev/null)
+[ "$CONN_TYPE" != "802-11-wireless" ] && exit 0
+CURRENT=$(nmcli -g connection.autoconnect-retries connection show "$CONNECTION_UUID" 2>/dev/null)
+[ "$CURRENT" = "0" ] && exit 0
+nmcli connection modify "$CONNECTION_UUID" connection.autoconnect-retries 0 2>/dev/null
+nmcli connection modify "$CONNECTION_UUID" 802-11-wireless.powersave 2 2>/dev/null

@@ -46,12 +46,12 @@ describe('setup_font_aliases', () => {
   });
 
   it('is called by both entry points', () => {
-    expect(read('upgrade.sh'), 'upgrade.sh setup-system never calls it').toContain('setup_font_aliases');
+    expect(read('lib/setup-system.sh'), 'upgrade.sh setup-system never calls it').toContain('setup_font_aliases');
     expect(read('install.sh'), 'the display-only install never calls it').toContain('setup_font_aliases');
   });
 
   it('installs the font package the aliases point at', () => {
-    expect(read('upgrade.sh')).toContain('fonts-dejavu-core');
+    expect(read('lib/setup-system.sh')).toContain('fonts-dejavu-core');
     expect(read('install.sh')).toContain('fonts-dejavu-core');
   });
 

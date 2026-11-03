@@ -120,7 +120,8 @@ describe('hs_installs_session_package', () => {
   });
 
   it('is what setup-system asks before reporting session-packages', () => {
-    expect(UPGRADE).toMatch(/if hs_installs_session_package \$\{missing\}; then\n\s+changed="\$\{changed\}session-packages,"/);
+    const setupSystem = readFileSync(path.join(process.cwd(), 'scripts', 'lib', 'setup-system.sh'), 'utf-8');
+    expect(setupSystem).toMatch(/if hs_installs_session_package \$\{missing\}; then\n\s+changed="\$\{changed\}session-packages,"/);
   });
 });
 

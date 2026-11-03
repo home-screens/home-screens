@@ -1,0 +1,21 @@
+[Unit]
+Description=Home Screens Next.js Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{USER}}
+WorkingDirectory=-{{WORKING_DIR}}
+ExecStartPre=/bin/bash -c '[ -d {{APP_DIR}} ] || [ ! -d {{APP_DIR}}.rollback ] || mv {{APP_DIR}}.rollback {{APP_DIR}}'
+ExecStart={{EXEC_START}}
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillMode=mixed
+Environment=NODE_ENV=production
+Environment=PORT={{PORT}}
+Environment=UV_THREADPOOL_SIZE=8
+
+[Install]
+WantedBy=multi-user.target

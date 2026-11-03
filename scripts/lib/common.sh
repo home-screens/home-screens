@@ -137,6 +137,46 @@ ensure_npm_floor() {
   info "npm $(npm --version) installed."
 }
 
+# --- System files ---
+
+# hs_install_if_changed <path> <mode> <tag>
+# Installs the content on stdin at <path> as root, with <mode>, when the file
+# is missing or holds something else, and prints <tag> when it wrote. An
+# identical file is left alone, its mtime included, so a step can run on
+# every update and only its follow-ups (a daemon-reload, a cache refresh)
+# need to know whether anything was written. Parent directories are created.
+# Compared and written the way the setup steps always did it: trailing
+# newlines are trimmed and exactly one is written.
+hs_install_if_changed() {
+  local path="$1" mode="$2" tag="$3" desired
+  desired="$(cat)"
+  if [ -f "${path}" ] && [ "$(sudo cat "${path}" 2>/dev/null)" = "${desired}" ]; then
+    return 0
+  fi
+  sudo mkdir -p "$(dirname "${path}")"
+  printf '%s\n' "${desired}" | sudo tee "${path}" > /dev/null
+  sudo chmod "${mode}" "${path}"
+  printf '%s\n' "${tag}"
+}
+
+# hs_render_template <template> [NAME=value]...
+# Prints the template with every {{NAME}} replaced by its value. Plain text
+# substitution: nothing else in the template is interpreted, so a unit file
+# keeps its $TERM and %I as written. patsub_replacement (bash 5.2) would read
+# an & in a value as the matched text; older bash has no such option.
+hs_render_template() {
+  local content pair name value
+  content="$(cat "$1")"
+  shift
+  shopt -u patsub_replacement 2>/dev/null || true
+  for pair in "$@"; do
+    name="${pair%%=*}"
+    value="${pair#*=}"
+    content="${content//"{{${name}}}"/${value}}"
+  done
+  printf '%s\n' "${content}"
+}
+
 # --- Programs the kiosk session runs ---
 # Brought to the archive's newest version on every install by setup-system
 # (hub) and on the nightly tick by kiosk-update-privileged.sh (spoke; the
@@ -154,10 +194,10 @@ SYSTEM_PACKAGE_HOLDS=""
 
 # --- Chromium kiosk flags ---
 #
-# The kiosk browser invocation is emitted or executed from five places: the
-# display-only launcher (install.sh), the hub launcher (upgrade.sh setup-system),
-# upgrade.sh's reload-browser relaunch fallback (twice, with and without
-# dbus-run-session), and start-display.sh. They drift: --remote-debugging-port
+# The kiosk browser invocation is emitted or executed from four places: the
+# display-only launcher (kiosk-launcher-display.sh), the hub launcher
+# (kiosk-launcher-hub.sh, installed by setup-system), upgrade.sh's
+# reload-browser relaunch fallback, and start-display.sh. They drift: --remote-debugging-port
 # went missing from the display-only launcher, and that is the flag letting a
 # deploy reload the page over CDP instead of killing and relaunching Chromium.
 #
@@ -205,8 +245,8 @@ CHROMIUM_KIOSK_PI_FLAGS=(
 # session's app window alongside the new --app window and the duplicate tab
 # silently drains the command queue.
 #
-# kiosk-launcher-display.sh and upgrade.sh's generated launcher carry literal
-# copies of this body because they run with no lib/ beside them.
+# kiosk-launcher-display.sh and kiosk-launcher-hub.sh carry literal copies
+# of this body because they run with no lib/ beside them.
 # scripts/__tests__/chromium-flags.test.ts fails if those copies drift.
 clear_chromium_crash_state() {
   local prefs="${HOME}/.config/chromium/Default/Preferences"
@@ -222,7 +262,7 @@ clear_chromium_crash_state() {
 # anything years ago and no feature flag covers this: the desktop offer is
 # gated on the translate.enabled profile pref (what the TranslateEnabled
 # policy sets), so seed it off before launch. Same copy rule as above:
-# kiosk-launcher-display.sh and upgrade.sh's launcher inline this body and
+# kiosk-launcher-display.sh and kiosk-launcher-hub.sh inline this body and
 # chromium-flags.test.ts keeps them in step.
 disable_chromium_translate_prompt() {
   local CHROME_PREFS="${HOME}/.config/chromium/Default/Preferences"

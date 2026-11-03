@@ -5,25 +5,27 @@ import os from 'os';
 import path from 'path';
 
 /**
- * What the display-only launcher does about rotation and resolution.
+ * What the two kiosk launchers do about rotation and resolution.
  *
- * It hands them to kiosk-outputs.sh, which keeps them through a monitor
+ * Both hand them to kiosk-outputs.sh, which keeps them through a monitor
  * reconnect. A kiosk-update.sh from before that helper existed installs only
- * the files it knows, this launcher among them, and relaunches straight into
- * it, so for one boot the helper can be missing. The launcher then sets the
- * screen once the old way instead of leaving a portrait wall sideways.
+ * the files it knows, the display-only launcher among them, and relaunches
+ * straight into it, so for one boot the helper can be missing on a spoke.
+ * That launcher then sets the screen once the old way instead of leaving a
+ * portrait wall sideways. The hub launcher ships in the same tree as the
+ * helper and never sets a screen itself.
  */
 
-/** The launcher's rotation block, from the helper check to its closing fi. */
-const BLOCK = (() => {
-  const source = readFileSync(path.join(process.cwd(), 'scripts', 'kiosk-launcher-display.sh'), 'utf-8');
+/** A launcher's rotation block, from the helper check to its closing fi. */
+function rotationBlock(file: string): string {
+  const source = readFileSync(path.join(process.cwd(), 'scripts', file), 'utf-8');
   const start = source.indexOf('if [ -x "${APP_DIR}/scripts/kiosk-outputs.sh" ]; then');
-  if (start < 0) throw new Error('no rotation block in kiosk-launcher-display.sh');
+  if (start < 0) throw new Error(`no rotation block in ${file}`);
   const end = source.indexOf('\nfi\n', start);
   return source.slice(start, end + 4);
-})();
+}
 
-function runBlock({ helper, transform, mode }: { helper: boolean; transform?: string; mode?: string }) {
+function runBlock(block: string, { helper, transform, mode }: { helper: boolean; transform?: string; mode?: string }) {
   const root = mkdtempSync(path.join(os.tmpdir(), 'launcher-rotation-'));
   const app = path.join(root, 'app');
   const bin = path.join(root, 'bin');
@@ -43,7 +45,7 @@ function runBlock({ helper, transform, mode }: { helper: boolean; transform?: st
     `APP_DIR="${app}"`,
     `DISPLAY_TRANSFORM="${transform ?? ''}"`,
     `DISPLAY_MODE="${mode ?? ''}"`,
-    BLOCK,
+    block,
     'wait',
   ].join('\n');
   execFileSync('bash', ['-c', script], { env: { ...process.env, PATH: `${bin}:/usr/bin:/bin` } });
@@ -51,22 +53,41 @@ function runBlock({ helper, transform, mode }: { helper: boolean; transform?: st
 }
 
 describe('display-only launcher rotation', () => {
+  const BLOCK = rotationBlock('kiosk-launcher-display.sh');
+
   it('hands the screen settings to kiosk-outputs.sh when it is there', () => {
-    expect(runBlock({ helper: true, transform: '90', mode: '1920x1080' })).toEqual(['kiosk-outputs.sh start']);
+    expect(runBlock(BLOCK, { helper: true, transform: '90', mode: '1920x1080' })).toEqual(['kiosk-outputs.sh start']);
   });
 
   it('asks the helper even with nothing to rotate, so kanshi still keeps the screen as it is', () => {
-    expect(runBlock({ helper: true })).toEqual(['kiosk-outputs.sh start']);
+    expect(runBlock(BLOCK, { helper: true })).toEqual(['kiosk-outputs.sh start']);
   });
 
   it('sets rotation and resolution once itself when the helper has not arrived yet', () => {
-    expect(runBlock({ helper: false, transform: '90', mode: '1920x1080' })).toEqual([
+    expect(runBlock(BLOCK, { helper: false, transform: '90', mode: '1920x1080' })).toEqual([
       'wlr-randr --output HDMI-A-2 --mode 1920x1080',
       'wlr-randr --output HDMI-A-2 --transform 90',
     ]);
   });
 
   it('leaves an unrotated screen alone when the helper has not arrived yet', () => {
-    expect(runBlock({ helper: false })).toEqual([]);
+    expect(runBlock(BLOCK, { helper: false })).toEqual([]);
+  });
+});
+
+describe('hub launcher rotation', () => {
+  const BLOCK = rotationBlock('kiosk-launcher-hub.sh');
+
+  it('hands the screen settings to kiosk-outputs.sh', () => {
+    expect(runBlock(BLOCK, { helper: true, transform: '90', mode: '1920x1080' })).toEqual(['kiosk-outputs.sh start']);
+  });
+
+  it('asks the helper even with nothing to rotate, so kanshi still keeps the screen as it is', () => {
+    expect(runBlock(BLOCK, { helper: true })).toEqual(['kiosk-outputs.sh start']);
+  });
+
+  it('never sets a screen itself: the hub tree always carries the helper', () => {
+    expect(runBlock(BLOCK, { helper: false, transform: '90', mode: '1920x1080' })).toEqual([]);
+    expect(BLOCK).not.toContain('wlr-randr --output');
   });
 });

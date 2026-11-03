@@ -99,8 +99,7 @@ describe('output detection', () => {
     // one-shot rotation is gone the next time the monitor reconnects, and it
     // can land after kanshi's and undo it. Reading the listing (a bare
     // wlr-randr, to wait for a lit screen before Chromium) changes nothing.
-    const hubLauncher = read('upgrade.sh').match(/DESIRED_LAUNCHER='[\s\S]*?--force-gpu-mem-available-mb=256'/)?.[0];
-    expect(hubLauncher).toBeDefined();
+    const hubLauncher = read('kiosk-launcher-hub.sh');
     expect(hubLauncher).toContain('kiosk-outputs.sh" start');
     expect(hubLauncher).not.toContain('wlr-randr --output');
     // The display-only launcher only sets a screen itself when the helper is

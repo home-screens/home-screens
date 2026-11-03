@@ -48,9 +48,9 @@ export interface HubPanel {
  * never leaves here: it reads as `normal`, which is also how the page treats
  * it. Saves refuse such a value too, but config.json can be edited by hand.
  *
- * The generator inside upgrade.sh's setup-system is a literal copy of this
- * rule (it runs with no lib beside it); scripts/__tests__/kiosk-conf.test.ts
- * keeps the two in step.
+ * scripts/lib/kiosk-conf.cjs, which setup-system runs on the Pi, is a
+ * literal copy of this rule (it runs with no TypeScript beside it);
+ * scripts/__tests__/kiosk-conf.test.ts keeps the two in step.
  */
 export function resolveHubPanel(config: ScreenConfiguration): HubPanel {
   const s = config.settings;

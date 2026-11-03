@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { mkdtempSync, readFileSync, writeFileSync } from 'fs';
+import { mkdtempSync, writeFileSync } from 'fs';
 import { execFileSync } from 'child_process';
+import { createRequire } from 'module';
 import os from 'os';
 import path from 'path';
 import { buildKioskConf } from '@/lib/kiosk';
@@ -10,35 +11,26 @@ import type { ScreenConfiguration } from '@/types/config';
  * Which size and rotation kiosk.conf carries.
  *
  * Two writers produce the file and cannot share code at runtime: the app
- * rewrites it after every config save (TypeScript), and setup-system in
- * upgrade.sh regenerates it with an inline node program. Both once read only
- * the global settings, so on a config with a displays list, where the editor
- * saves the hub's rotation on the main display instead, the page was laid out
- * for a rotation the compositor never applied. This file holds the two to the
- * same answer.
+ * rewrites it after every config save (TypeScript), and setup-system
+ * regenerates it with scripts/lib/kiosk-conf.cjs, which runs with no built
+ * app beside it. Both once read only the global settings, so on a config
+ * with a displays list, where the editor saves the hub's rotation on the
+ * main display instead, the page was laid out for a rotation the compositor
+ * never applied. This file holds the two to the same answer.
  */
 
-/**
- * The generator exactly as setup-system runs it: the whole
- * `DESIRED_KIOSK=$(node <<GENEOF ... )` assignment, through bash, so the
- * quoting bash does to the program on the way to node is under test too.
- */
-const GENERATOR = (() => {
-  const source = readFileSync(path.join(process.cwd(), 'scripts', 'upgrade.sh'), 'utf-8');
-  const match = source.match(/DESIRED_KIOSK=\$\(node <<GENEOF\n[\s\S]*?\nGENEOF\n\s*\)\n/);
-  if (!match) throw new Error('no kiosk.conf generator found in upgrade.sh');
-  return `${match[0]}\nprintf '%s\\n' "\${DESIRED_KIOSK}"\n`;
-})();
+const GENERATOR = path.join(process.cwd(), 'scripts', 'lib', 'kiosk-conf.cjs');
+const { buildKioskConf: buildKioskConfShell } = createRequire(import.meta.url)(GENERATOR) as {
+  buildKioskConf: (config: unknown) => string;
+};
 
 const dir = mkdtempSync(path.join(os.tmpdir(), 'kiosk-conf-'));
 
-function runShellGenerator(config: unknown): string {
+/** The generator the way setup-system runs it: as a program over config.json. */
+function runGenerator(config: unknown): string {
   const file = path.join(dir, 'config.json');
   writeFileSync(file, JSON.stringify(config));
-  return execFileSync('bash', ['-c', GENERATOR], {
-    encoding: 'utf8',
-    env: { ...process.env, CONFIG_FILE: file },
-  });
+  return execFileSync('node', [GENERATOR, file], { encoding: 'utf8' });
 }
 
 const globals = { displayWidth: 1920, displayHeight: 1080, displayTransform: 'normal', piVariant: 'lite' };
@@ -64,6 +56,11 @@ const CASES: Array<{ name: string; config: Record<string, unknown>; want: string
       displays: [{ id: 'main', name: 'Main', displayTransform: 'normal' }],
     },
     want: 'DISPLAY_MODE="1920x1080"\nPI_VARIANT="lite"\n',
+  },
+  {
+    name: 'a variant that is not a plain word is left out: kiosk.conf is sourced by bash',
+    config: { settings: { ...globals, piVariant: 'lite"; rm -rf /' } },
+    want: 'DISPLAY_MODE="1920x1080"\n',
   },
   {
     name: 'main is used even when another display is listed first',
@@ -173,7 +170,17 @@ describe('kiosk.conf generation', () => {
       expect(buildKioskConf(c.config as unknown as ScreenConfiguration)).toBe(c.want);
     });
     it(`setup-system writer: ${c.name}`, () => {
-      expect(runShellGenerator(c.config)).toBe(c.want);
+      expect(buildKioskConfShell(c.config)).toBe(c.want);
     });
   }
+
+  it('prints the same content when run over config.json, as setup-system runs it', () => {
+    for (const c of CASES.slice(0, 3)) {
+      expect(runGenerator(c.config)).toBe(c.want);
+    }
+  });
+
+  it('fails loudly on a config.json it cannot read, so setup-system stops rather than writing an empty file', () => {
+    expect(() => execFileSync('node', [GENERATOR, path.join(dir, 'missing.json')], { stdio: 'pipe' })).toThrow();
+  });
 });

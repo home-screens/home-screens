@@ -23,8 +23,8 @@ const KIOSK_SESSION_PACKAGES = ['chromium', 'labwc', 'wtype', 'wlr-randr', 'wlop
 const ADDED_AFTER_FLASH = ['wlopm', 'kanshi'];
 
 function hubPackages(): string[] {
-  const match = read('scripts/upgrade.sh').match(/REQUIRED_PACKAGES="([^"]+)"/);
-  if (!match) throw new Error('no REQUIRED_PACKAGES in upgrade.sh');
+  const match = read('scripts/lib/setup-system.sh').match(/REQUIRED_PACKAGES="([^"]+)"/);
+  if (!match) throw new Error('no REQUIRED_PACKAGES in setup-system.sh');
   return words(match[1]);
 }
 
