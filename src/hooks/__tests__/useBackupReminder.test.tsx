@@ -99,7 +99,13 @@ describe('useBackupReminder file name', () => {
 
   it('saves a zip when the remembered choice carries pictures (the default)', async () => {
     const hook = await backUpInChicago();
-    expect(mocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'home-screens-backup-2026-09-22.zip');
+    // The archive comes back through Response.blob(), whose Blob is Node's
+    // own class rather than jsdom's on Node 22, so the check is on the
+    // bytes the hub streamed, not on the Blob's realm.
+    expect(mocks.downloadBlob).toHaveBeenCalledTimes(1);
+    const [blob, filename] = mocks.downloadBlob.mock.calls[0] as [Blob, string];
+    expect(filename).toBe('home-screens-backup-2026-09-22.zip');
+    expect(await blob.text()).toBe(JSON.stringify({ _type: 'home-screens-backup' }));
     expect(hook.result.current.picturesLeftOut).toBe(false);
   });
 
