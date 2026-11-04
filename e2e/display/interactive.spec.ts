@@ -280,7 +280,9 @@ test.describe('meal-planner recipe tap', () => {
     // QR is rendered as an inline SVG (qrcode.react).
     await expect(dialog.locator('svg')).toBeVisible();
 
-    // The QR variant dismisses on tapping anywhere in the overlay.
+    // The QR variant dismisses on tapping anywhere in the overlay, once past
+    // a double tap: the scrim ignores the second half of the tap that opened it.
+    await page.waitForTimeout(DOUBLE_TAP_MS);
     await dialog.click();
     await expect(dialog).toBeHidden();
   });
@@ -1333,7 +1335,9 @@ test.describe('fullscreen-meal-planner recipe tap', () => {
     // QR is rendered as an inline SVG (qrcode.react).
     await expect(dialog.locator('svg')).toBeVisible();
 
-    // The QR variant dismisses on tapping anywhere in the overlay.
+    // The QR variant dismisses on tapping anywhere in the overlay, once past
+    // a double tap: the scrim ignores the second half of the tap that opened it.
+    await page.waitForTimeout(DOUBLE_TAP_MS);
     await dialog.click();
     await expect(dialog).toBeHidden();
   });
