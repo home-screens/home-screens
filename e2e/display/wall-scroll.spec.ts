@@ -170,6 +170,9 @@ test.describe('Full-Screen Calendar Agenda', () => {
     test.use({ hasTouch: true });
 
     test('a finger drag scrolls the agenda', async ({ page, request }) => {
+      // The fixture's first event is Wednesday late morning; on the real
+      // clock the agenda has already dropped it by Wednesday afternoon.
+      await page.clock.install({ time: NOW });
       await stubModuleData(page, { overrides: { calendar: twoWeeksOfEvents() } });
       await show(page, request, 'fullscreen-calendar', { view: 'agenda', eventTapDetails: true }, { w: 1080, h: 1920 });
       await page.waitForFunction(() => document.body.style.touchAction === 'pan-y');
