@@ -5,6 +5,25 @@
  *   import { mockFetch, mockFetchError, silenceConsole } from '@/test-utils';
  */
 import { vi, beforeEach } from 'vitest';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+// ---------------------------------------------------------------------------
+// Data seeding
+// ---------------------------------------------------------------------------
+
+/**
+ * Put a JSON document under the sandboxed `data/` exactly as the app would
+ * find it on disk, bypassing every store rule. For arranging a test's
+ * starting state only: production code has no whole-file writer, because a
+ * restore goes through the data transaction and everything else through a
+ * store's own update function.
+ */
+export async function seedDataFile(relPath: string, value: unknown): Promise<void> {
+  const full = path.join(process.cwd(), relPath);
+  await fs.mkdir(path.dirname(full), { recursive: true });
+  await fs.writeFile(full, JSON.stringify(value, null, 2), 'utf-8');
+}
 
 // ---------------------------------------------------------------------------
 // Fetch helpers

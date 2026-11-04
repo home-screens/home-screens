@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslate } from '@/i18n';
 import { editorFetch } from '@/lib/editor-fetch';
+import { errorWithDetail } from '@/lib/hub-request';
 import { useDeviceCodeSignIn, type DeviceCodePoll } from '@/hooks/useDeviceCodeSignIn';
 
 interface UseGoogleDeviceFlowOptions {
@@ -43,7 +44,7 @@ export function useGoogleDeviceFlow({ onSuccess }: UseGoogleDeviceFlowOptions): 
       const data = await res.json();
       if (!res.ok) {
         if (data.clientIdHint) setClientIdHint(data.clientIdHint);
-        throw new Error(data.error || t('errors.deviceFlowFailed'));
+        throw new Error(errorWithDetail(data) || t('errors.deviceFlowFailed'));
       }
       deviceCodeRef.current = data.device_code;
       return {

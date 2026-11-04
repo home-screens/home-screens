@@ -14,17 +14,12 @@ export const dynamic = 'force-dynamic';
  * comes straight back here. Answers `{ url, returnsToHub }`.
  */
 export const GET = withAuth(async (request: NextRequest) => {
-  try {
-    const hubAddress = confirmHubAddress(request.nextUrl.searchParams.get('origin'), {
-      host: request.headers.get('host'),
-      forwardedHost: request.headers.get('x-forwarded-host'),
-      viaTrustedProxy: request.headers.get(VIA_TRUSTED_PROXY_HEADER) === '1',
-    });
-    return NextResponse.json(await getPickerAuthUrl(hubAddress));
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to build sign-in link';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  const hubAddress = confirmHubAddress(request.nextUrl.searchParams.get('origin'), {
+    host: request.headers.get('host'),
+    forwardedHost: request.headers.get('x-forwarded-host'),
+    viaTrustedProxy: request.headers.get(VIA_TRUSTED_PROXY_HEADER) === '1',
+  });
+  return NextResponse.json(await getPickerAuthUrl(hubAddress));
 }, 'Failed to build sign-in link');
 
 /**

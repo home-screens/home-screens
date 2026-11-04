@@ -78,9 +78,6 @@ export function readChoreData(): Promise<ChoreData & { settings: ChoreSettings }
   });
 }
 
-/** Replace the whole document, settings included. */
-export const writeChoreData = store.write;
-
 /** Replace the chore list, keeping the household settings saved beside it. */
 export function writeChoreList(chores: ChoreDefinition[]): Promise<ChoreData> {
   return store.updateAtomic((data) => ({ ...data, chores }));

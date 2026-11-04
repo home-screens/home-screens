@@ -188,7 +188,6 @@ test('every multi-view module is in VIEW_MATRIX or explicitly allowlisted', () =
  */
 const ROUTE_DECISIONS: Record<string, string> = {
   // Real Google OAuth device flow — unreachable without live Google credentials.
-  '/api/auth/google/device': 'requires a real Google OAuth exchange; no safe CI path',
   '/api/auth/google/status': 'requires a real Google OAuth exchange; no safe CI path',
 };
 

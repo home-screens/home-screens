@@ -1,6 +1,6 @@
 import type { GoogleAppPreference } from '@/types/config';
 import { getSecret, type SecretKey } from './secrets';
-import { fetchWithTimeout } from './api-utils';
+import { fetchWithTimeout, SetupError } from './api-utils';
 import { chooseGoogleApp } from './google-app-choice';
 import { createOAuthTokenStore, type StoredOAuthTokens } from './oauth-token-store';
 import { logger } from './logger';
@@ -70,7 +70,9 @@ export interface GoogleTokenStoreOptions {
   hosted: () => HostedGoogleClient | null;
   /** The household's choice between its own saved app and Home Screens' (the API keys switch). */
   preference: () => Promise<GoogleAppPreference>;
-  /** Thrown when neither the household's app nor Home Screens' app is usable. */
+  /** The service as the editor names it, for the setup answer a missing client gets. */
+  service: string;
+  /** The sentence of that answer: what to add and where. */
   missingCredentialsMessage: string;
   /** Logger namespace. */
   logName: string;
@@ -80,7 +82,7 @@ export interface GoogleTokenStore {
   readonly filePath: string;
   loadTokens(): Promise<StoredGoogleTokens | null>;
   saveTokens(tokens: StoredGoogleTokens): Promise<void>;
-  /** The client to sign in and refresh with. Throws `missingCredentialsMessage` when there is none. */
+  /** The client to sign in and refresh with. Throws a `SetupError` carrying `missingCredentialsMessage` when there is none. */
   getClient(): Promise<GoogleClient>;
   /**
    * The client id alone, for steps that need nothing else (starting a device
@@ -166,7 +168,7 @@ export function createGoogleTokenStore(opts: GoogleTokenStoreOptions): GoogleTok
 
   async function getClient(): Promise<GoogleClient> {
     const client = await resolveClient();
-    if (!isUsable(client)) throw new Error(opts.missingCredentialsMessage);
+    if (!isUsable(client)) throw new SetupError(opts.missingCredentialsMessage, 'key', opts.service, 'integrations');
     return client;
   }
 

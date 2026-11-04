@@ -117,6 +117,19 @@ describe('createImageDownloadHandler', () => {
     expect((await handler(postRequest({ imageUrl: 'https://example.com/img.jpg' }))).status).toBe(500);
   });
 
+  it('answers malformed JSON with 400, not as a download failure', async () => {
+    mockDownload.mockClear();
+    const handler = makeHandler();
+    const res = await handler(new NextRequest('http://localhost/api/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{not json',
+    }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('Invalid JSON body');
+    expect(mockDownload).not.toHaveBeenCalled();
+  });
+
   it('calls beforeDownload hook with full body', async () => {
     const beforeDownload = vi.fn();
     const handler = makeHandler({ beforeDownload });

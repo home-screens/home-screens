@@ -54,16 +54,6 @@ async function writeAuthState(state: AuthState): Promise<void> {
   cachedState = null;
 }
 
-/**
- * Replace the whole auth state wholesale. Only the credential-backup restore
- * uses this — every other caller goes through setPassword/clearPassword/
- * setIpAllowlistConfig, which preserve the fields they don't own. Named
- * `Raw` as a warning: the caller is responsible for a coherent state (a
- * passwordHash without its salt is unusable) and for the fact that replacing
- * `cookieSecret` invalidates every session cookie already issued.
- */
-export const writeAuthStateRaw = writeAuthState;
-
 /* ─── Cached reads (requireSession hot path) ─────── */
 
 let cachedState: { state: AuthState; signature: string } | null = null;

@@ -22,6 +22,7 @@ export const googleCalendarTokenStore = createGoogleTokenStore({
   clientSecretKey: 'google_client_secret',
   hosted: hostedCalendarClient,
   preference: readGoogleAppPreference,
+  service: 'Google Calendar',
   missingCredentialsMessage:
     'Google Calendar needs both a Client ID and a Client Secret. Add them in Settings → API keys.',
   logName: 'google-auth',
@@ -34,6 +35,7 @@ export const googlePickerTokenStore = createGoogleTokenStore({
   clientSecretKey: 'google_web_client_secret',
   hosted: hostedPhotosClient,
   preference: readGoogleAppPreference,
+  service: 'Google Photos',
   missingCredentialsMessage:
     'Google Photos import needs both a Photos Import Client ID and Secret. Add them in Settings → API keys.',
   logName: 'google-picker',

@@ -29,8 +29,7 @@ vi.mock('@/lib/auth', async (importActual) => ({
 
 import { POST } from '@/app/api/backup/route';
 import { writeConfig } from '@/lib/config';
-import { writeChoreData } from '@/lib/chore-data';
-import { writeFamilyData } from '@/lib/family-data';
+import { seedDataFile } from '@/test-utils';
 import { getLatestSchemaVersion } from '@/lib/migrations';
 import type { ScreenConfiguration } from '@/types/config';
 
@@ -61,8 +60,8 @@ function restoreRequest(body: unknown): NextRequest {
 beforeEach(async () => {
   vi.clearAllMocks();
   await writeConfig(config('Today'));
-  await writeChoreData({ chores: [] });
-  await writeFamilyData({ members: [], migrated: true });
+  await seedDataFile('data/chores.json', { chores: [] });
+  await seedDataFile('data/family.json', { members: [], migrated: true });
   await fs.rm(path.join(process.cwd(), 'data', 'backups'), { recursive: true, force: true });
 });
 

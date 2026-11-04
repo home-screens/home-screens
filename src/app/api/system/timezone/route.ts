@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
-import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, errorResponse } from '@/lib/api-utils';
 import { requireSudo } from '@/lib/sudo-grant';
 import { isKnownTimezone } from '@/lib/timezone';
 
@@ -46,10 +46,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     await execFileAsync('sudo', ['timedatectl', 'set-timezone', timezone]);
   } catch (err: unknown) {
-    return NextResponse.json(
-      { ok: false, error: execErrorMessage(err, 'Failed to set the device timezone') },
-      { status: 500 },
-    );
+    return errorResponse(err, 'Failed to set the device timezone');
   }
 
   // Node resolves the system zone once and caches it, so without this the

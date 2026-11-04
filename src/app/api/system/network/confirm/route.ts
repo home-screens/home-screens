@@ -44,10 +44,7 @@ export const POST = withAuth(async (request: NextRequest) => {
   const confirmed = confirmRollback(rollbackId);
 
   if (!confirmed) {
-    return NextResponse.json(
-      { ok: false, error: 'No matching pending rollback' },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: 'No matching pending rollback' }, { status: 404 });
   }
 
   // 3. Uninhibit the watchdog now that the change is confirmed

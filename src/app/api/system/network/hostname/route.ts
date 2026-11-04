@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
 import { readFile } from 'fs/promises';
-import { withAuth, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, execErrorMessage, errorResponse } from '@/lib/api-utils';
 import { requireSudo } from '@/lib/sudo-grant';
 import { validateHostname } from '@/lib/network-validation';
 import { logger } from '@/lib/logger';
@@ -35,10 +35,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
   try {
     await execFileAsync('sudo', ['hostnamectl', 'set-hostname', hostname]);
   } catch (err: unknown) {
-    return NextResponse.json(
-      { ok: false, error: execErrorMessage(err, 'Failed to set hostname') },
-      { status: 500 },
-    );
+    return errorResponse(err, 'Failed to set hostname');
   }
 
   // 3. Update /etc/hosts so avahi advertises the correct .local name.

@@ -189,7 +189,8 @@ describe('DELETE /api/system/network/wifi/saved', () => {
     const res = await DELETE(deleteRequest({ connectionId: VALID_UUID }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/unknown connection/);
+    expect(body.ok).toBeUndefined();
+    expect(body.error).toBe('Failed to delete connection');
+    expect(body.detail).toBe('unknown connection');
   });
 });

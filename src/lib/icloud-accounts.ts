@@ -32,11 +32,10 @@ const store = createJsonStore<ICloudAccountsFile>({
 });
 
 /**
- * Whole-file read/write, used by the credential backup. Everything else goes
- * through the add/remove helpers below, which mutate atomically.
+ * Whole-file read, used by the credential backup. Every write goes through
+ * the add/remove helpers below, which mutate atomically.
  */
 export const readICloudAccountsFile = store.read;
-export const writeICloudAccountsFile = store.write;
 
 export async function listICloudAccounts(): Promise<ICloudAccount[]> {
   const file = await store.read();

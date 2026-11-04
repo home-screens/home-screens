@@ -169,7 +169,7 @@ export default function NetworkSection() {
           return;
         }
 
-        if (res.ok && data.ok) {
+        if (res.ok) {
           fetchOverview();
         }
       } catch {

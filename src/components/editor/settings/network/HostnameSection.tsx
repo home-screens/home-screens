@@ -49,7 +49,7 @@ export default function HostnameSection({
 
       const data = await res.json();
 
-      if (res.ok && data.ok) {
+      if (res.ok) {
         setSuccessMsg(t('settings.networkPage.hostname.successMessage'));
         onSaved();
 

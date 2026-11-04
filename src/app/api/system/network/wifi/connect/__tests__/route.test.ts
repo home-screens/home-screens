@@ -321,7 +321,7 @@ describe('POST /api/system/network/wifi/connect', () => {
       mockNmcliSudo.mockResolvedValue('');
       const res = await POST(postRequest({ ssid: 'HomeNet', password: 'password1', iface: 'wlan0' }));
       expect(res.status).toBe(500);
-      expect((await res.json()).ok).toBe(false);
+      expect((await res.json()).ok).toBeUndefined();
       // Nothing was brought up on a profile we could not identify.
       expect(sudoCalls().some((c) => c.includes('connection up'))).toBe(false);
     });
@@ -335,7 +335,7 @@ describe('POST /api/system/network/wifi/connect', () => {
     const res = await POST(postRequest({ ssid: 'HomeNet', password: 'wrongpass1', iface: 'wlan0' }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
+    expect(body.ok).toBeUndefined();
     // The page gets a sentence a parent can act on; nmcli's own text rides along for the log
     expect(body.error).toBe('The password was not accepted. Check it and try again.');
     expect(body.detail).toMatch(/Secrets were required/);

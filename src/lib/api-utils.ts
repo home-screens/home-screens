@@ -56,7 +56,8 @@ export function errorResponse(
     log.warn(fallbackMessage, error.message);
     return NextResponse.json({ error: error.message }, { status: error.status });
   }
-  const detail = error instanceof Error ? error.message : undefined;
+  // A failed command's stderr says more than Node's "Command failed: ..." line.
+  const detail = execStderr(error) ?? (error instanceof Error ? error.message : undefined);
   log.error(fallbackMessage, error);
   return NextResponse.json({ error: fallbackMessage, detail }, { status });
 }
@@ -963,9 +964,14 @@ async function readBodyCapped(
  * stderr property at all.
  */
 export function execErrorMessage(err: unknown, fallback: string): string {
-  return err && typeof err === 'object' && 'stderr' in err
-    ? String((err as { stderr: unknown }).stderr).trim()
-    : fallback;
+  return execStderr(err) ?? fallback;
+}
+
+/** What a failed `execFile` printed to stderr, when it printed anything. */
+export function execStderr(err: unknown): string | undefined {
+  if (!err || typeof err !== 'object' || !('stderr' in err)) return undefined;
+  const text = String((err as { stderr: unknown }).stderr).trim();
+  return text || undefined;
 }
 
 /**

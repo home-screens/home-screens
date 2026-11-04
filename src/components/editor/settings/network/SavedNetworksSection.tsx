@@ -112,7 +112,7 @@ export default function SavedNetworksSection({ refreshKey }: SavedNetworksSectio
           });
           return;
         }
-        if (res.ok && data.ok) {
+        if (res.ok) {
           setNetworks((prev) => prev.filter((n) => n.id !== connectionId));
         } else if (data.needsSudoPassword) {
           setSudoRetryId(connectionId);

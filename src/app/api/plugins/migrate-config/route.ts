@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { withAuth } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { updateConfigAtomic, configRevision } from '@/lib/config';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { getPluginManifest, PLUGIN_ID_PATTERN } from '@/lib/plugin-utils';
@@ -23,14 +23,9 @@ import { migrateConfigModules } from '@/lib/plugin-config-migration';
  * arbitrary migration rules into the config.
  */
 export const POST = withAuth(async (request: NextRequest) => {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
-
-  const { pluginId, oldVersion } = (body ?? {}) as { pluginId?: unknown; oldVersion?: unknown };
+  const body = await parseJsonBody<{ pluginId?: unknown; oldVersion?: unknown } | null>(request, { maxBytes: SMALL_BODY_BYTES });
+  if (body instanceof NextResponse) return body;
+  const { pluginId, oldVersion } = body ?? {};
 
   if (typeof pluginId !== 'string' || !PLUGIN_ID_PATTERN.test(pluginId)) {
     return NextResponse.json({ error: 'Invalid plugin ID' }, { status: 400 });

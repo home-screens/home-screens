@@ -111,7 +111,7 @@ export default function WifiConnectModal({
           return;
         }
 
-        if (!res.ok || data.ok === false) {
+        if (!res.ok) {
           setError(data.error ?? t('settings.networkPage.wifiConnect.defaultConnectError'));
           setConnecting(false);
           return;

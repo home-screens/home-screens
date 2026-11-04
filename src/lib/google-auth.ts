@@ -1,5 +1,5 @@
 import type { auth as googleAuth } from '@googleapis/calendar';
-import { fetchWithTimeout } from '@/lib/api-utils';
+import { fetchWithTimeout, SetupError } from '@/lib/api-utils';
 import { type GoogleClientMode, type StoredGoogleTokens } from '@/lib/google-token-store';
 import { googleCalendarTokenStore } from '@/lib/google-token-stores';
 import { classifyDeviceTokenAnswer, type DeviceTokenAnswer } from '@/lib/oauth-device-flow';
@@ -30,7 +30,9 @@ interface DeviceCodeResponse {
 /** Request a device code + user code from Google. */
 export async function requestDeviceCode(): Promise<DeviceCodeResponse> {
   const clientId = await store.getClientId();
-  if (!clientId) throw new Error('Google Calendar Client ID is not configured. Add it in Settings → API keys.');
+  if (!clientId) {
+    throw new SetupError('Google Calendar Client ID is not configured. Add it in Settings → API keys.', 'key', 'Google Calendar', 'integrations');
+  }
 
   const res = await fetchWithTimeout(DEVICE_CODE_URL, {
     method: 'POST',

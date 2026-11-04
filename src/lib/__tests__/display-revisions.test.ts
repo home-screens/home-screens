@@ -26,7 +26,7 @@ import { readDisplayRevisions } from '@/lib/display-revisions';
 import { bumpLibraryRevision, libraryRevision } from '@/lib/library-revision';
 import { bumpCalendarRevision, calendarRevision } from '@/lib/calendar-revision';
 import { notesEtag } from '@/lib/notes-revision';
-import { writeNotesData } from '@/lib/notes-data';
+import { updateNotesData } from '@/lib/notes-data';
 import { dayNotesEtag } from '@/lib/day-notes-revision';
 import { updateDayNotesData } from '@/lib/day-notes-data';
 
@@ -73,7 +73,7 @@ describe('readDisplayRevisions', () => {
   it('names the notes board by the ETag its read answers with, and a new one once the board is saved', async () => {
     const before = await readDisplayRevisions();
     expect(before.notes).toMatch(/^"[0-9a-f]+"$/);
-    await writeNotesData({ notes: [] });
+    await updateNotesData(() => ({ notes: [] }));
     const after = await readDisplayRevisions();
     expect(after.notes).toBe(await notesEtag());
     expect(after.notes).not.toBe(before.notes);

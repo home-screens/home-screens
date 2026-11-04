@@ -7,7 +7,7 @@ vi.mock('@/lib/build-id', () => ({ readBuildId: vi.fn() }));
 
 import { readBuildId } from '@/lib/build-id';
 import { choresEtag, rewardsEtag } from '@/lib/chore-revisions';
-import { writeCompletions } from '@/lib/chore-completion-data';
+import { updateCompletionsAtomic } from '@/lib/chore-completion-data';
 import { writeChoreSettings } from '@/lib/chore-data';
 
 let root: string;
@@ -35,7 +35,7 @@ describe('choresEtag', () => {
   it('changes when a completion is saved, even to the same bytes', async () => {
     const before = await choresEtag('2026-09-25');
     // A store write lands through a rename: a new file, whatever it holds.
-    await writeCompletions({ completions: [] });
+    await updateCompletionsAtomic(() => ({ completions: [] }));
     expect(await choresEtag('2026-09-25')).not.toBe(before);
   });
 
@@ -74,7 +74,7 @@ describe('choresEtag', () => {
 describe('rewardsEtag', () => {
   it('changes when the rewards file changes and not when the chores do', async () => {
     const before = await rewardsEtag('2026-09-25');
-    await writeCompletions({ completions: [] });
+    await updateCompletionsAtomic(() => ({ completions: [] }));
     expect(await rewardsEtag('2026-09-25')).toBe(before);
     await put('rewards.json', { rewards: [], balances: { ada: 3 }, redemptions: [] });
     expect(await rewardsEtag('2026-09-25')).not.toBe(before);

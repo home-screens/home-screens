@@ -64,12 +64,22 @@ describe('/api/google-picker/auth', () => {
     expect(mockGetAuthUrl).toHaveBeenLastCalledWith('https://hub.lan');
   });
 
-  it('GET surfaces missing-credentials errors', async () => {
-    mockGetAuthUrl.mockRejectedValue(new Error('Google Photos import needs a web Client ID'));
+  it('GET answers a missing client as a setup problem, sentence intact', async () => {
+    // Imported after the module reset above, so it is the class the route checks against.
+    const { SetupError } = await import('@/lib/api-utils');
+    mockGetAuthUrl.mockRejectedValue(new SetupError('Google Photos import needs a web Client ID', 'key', 'Google Photos', 'integrations'));
+    const { GET } = await importRoute();
+    const response = await GET(getRequest());
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: expect.stringContaining('web Client ID'), code: 'setup', setup: { needs: 'key', service: 'Google Photos' } });
+  });
+
+  it('GET answers any other failure with a plain sentence and the cause as detail', async () => {
+    mockGetAuthUrl.mockRejectedValue(new Error('helper down'));
     const { GET } = await importRoute();
     const response = await GET(getRequest());
     expect(response.status).toBe(500);
-    expect((await response.json()).error).toContain('web Client ID');
+    expect(await response.json()).toEqual({ error: 'Failed to build sign-in link', detail: 'helper down' });
   });
 
   it('POST exchanges the pasted code', async () => {

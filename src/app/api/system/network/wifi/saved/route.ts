@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, getClientIP, getLocalIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, getClientIP, getLocalIP, parseJsonBody, errorResponse } from '@/lib/api-utils';
 import { requireSudo } from '@/lib/sudo-grant';
 import {
   nmcliSudo,
@@ -137,9 +137,6 @@ export const DELETE = withAuth(async (request: NextRequest) => {
     await nmcliSudo(['connection', 'delete', connectionId]);
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
-    return NextResponse.json(
-      { ok: false, error: execErrorMessage(err, 'Failed to delete connection') },
-      { status: 500 },
-    );
+    return errorResponse(err, 'Failed to delete connection');
   }
 }, 'Failed to manage saved WiFi networks');

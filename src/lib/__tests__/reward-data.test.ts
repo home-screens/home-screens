@@ -239,7 +239,7 @@ describe('setSavingsGoal', () => {
   });
 
   it('clears the goal when that reward is redeemed, and keeps a different one', async () => {
-    await mod.writeRewardData({ rewards: [MOVIE_NIGHT, ICE_CREAM], balances: { alice: 20, bob: 20 }, redemptions: [], goals: { alice: 'r-movie', bob: 'r-movie' } });
+    await writeRewardsFile({ rewards: [MOVIE_NIGHT, ICE_CREAM], balances: { alice: 20, bob: 20 }, redemptions: [], goals: { alice: 'r-movie', bob: 'r-movie' } });
     await mod.redeemReward(ICE_CREAM, 'alice', 'Alice');
     expect((await readRewardsFile()).goals).toEqual({ alice: 'r-movie', bob: 'r-movie' });
     await mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice');
@@ -247,7 +247,7 @@ describe('setSavingsGoal', () => {
   });
 
   it('drops goals whose reward is deleted from the list', async () => {
-    await mod.writeRewardData({ rewards: [MOVIE_NIGHT, ICE_CREAM], balances: {}, redemptions: [], goals: { alice: 'r-movie', bob: 'r-ice' } });
+    await writeRewardsFile({ rewards: [MOVIE_NIGHT, ICE_CREAM], balances: {}, redemptions: [], goals: { alice: 'r-movie', bob: 'r-ice' } });
     const result = await mod.updateRewardDefinitions([ICE_CREAM]);
     expect(result.goals).toEqual({ bob: 'r-ice' });
   });
@@ -283,7 +283,7 @@ describe('planPointsMove', () => {
   it('blocks redemptions while the balance is negative', async () => {
     await mod.adjustPoints('alice', 2);
     await mod.adjustPoints('alice', -10); // floors at 0
-    await mod.writeRewardData({ rewards: [MOVIE_NIGHT], balances: { alice: -8 }, redemptions: [] });
+    await writeRewardsFile({ rewards: [MOVIE_NIGHT], balances: { alice: -8 }, redemptions: [] });
     await expect(mod.redeemReward(MOVIE_NIGHT, 'alice', 'Alice')).rejects.toThrow('Insufficient balance');
   });
 });
@@ -427,20 +427,6 @@ describe('redemption purge persistence', () => {
     expect(onDisk.redemptions.map((r) => r.id)).not.toContain('gone');
     expect(onDisk.redemptions).toHaveLength(2);
     expect(onDisk.balances.alice).toBe(5);
-  });
-
-  it('leaves the bytes alone on the raw restore write', async () => {
-    // writeRewardData is the restore path: it must land exactly what it is
-    // given, expired rows included, rather than silently editing a backup.
-    await seedStale();
-    await mod.writeRewardData({
-      rewards: [],
-      balances: {},
-      redemptions: [stale('from-backup')],
-    });
-
-    const onDisk = await readRewardsFile();
-    expect(onDisk.redemptions.map((r) => r.id)).toEqual(['from-backup']);
   });
 });
 

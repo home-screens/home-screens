@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, parseTagParam } from '@/lib/api-utils';
+import { withAuth, parseTagParam, parseJsonBody, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { downloadAndSaveBackground, UnsupportedImageFormatError } from '@/lib/background-download';
 import { isSafeExternalUrl } from '@/lib/url-safety';
 
@@ -15,7 +15,9 @@ export function createImageDownloadHandler(config: {
   errorMsg: string;
 }) {
   return withAuth(async (request: NextRequest) => {
-    const body = await request.json();
+    const parsed = await parseJsonBody<Record<string, unknown> | null>(request, { maxBytes: SMALL_BODY_BYTES });
+    if (parsed instanceof NextResponse) return parsed;
+    const body = parsed ?? {};
     const { imageUrl, filename } = body as { imageUrl?: string; filename?: string };
 
     if (!imageUrl) {

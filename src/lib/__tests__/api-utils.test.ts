@@ -1337,9 +1337,12 @@ describe('execErrorMessage', () => {
     expect(execErrorMessage(undefined, 'fallback')).toBe('fallback');
   });
 
-  it('returns an empty string when stderr is present but empty (locks existing route behavior)', () => {
+  it('falls back when stderr is present but empty', () => {
+    // A command that died without a word used to answer with an empty
+    // sentence, which the page showed as nothing (an empty string is not
+    // nullish, so its own default never kicked in).
     const err = Object.assign(new Error('killed'), { stderr: '' });
-    expect(execErrorMessage(err, 'fallback')).toBe('');
+    expect(execErrorMessage(err, 'fallback')).toBe('fallback');
   });
 });
 

@@ -111,7 +111,7 @@ export default function IPSettingsPanel({
         return;
       }
 
-      if (!res.ok || !data.ok) {
+      if (!res.ok) {
         setErrorMsg(data.error ?? t('settings.networkPage.ipSettings.defaultErrorMessage'));
         return;
       }

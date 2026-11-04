@@ -4,17 +4,15 @@ import path from 'path';
 
 import {
   collectCredentials,
-  snapshotCredentials,
-  applyCredentials,
   listPluginCredentialIds,
   planCredentialRestore,
 } from '@/lib/backup-credentials';
 import { commitDataTransaction, withDataTransaction } from '@/lib/data-transaction';
 import { readSecrets, writeSecrets } from '@/lib/secrets';
-import { writeICloudAccountsFile } from '@/lib/icloud-accounts';
 import { googleCalendarTokenStore, googlePickerTokenStore } from '@/lib/google-token-stores';
-import { readAuthState, writeAuthStateRaw } from '@/lib/auth';
-import type { CredentialPayload } from '@/lib/backup-credentials-types';
+import { readAuthState } from '@/lib/auth';
+import { seedDataFile } from '@/test-utils';
+import type { CredentialApplyResult, CredentialPayload } from '@/lib/backup-credentials-types';
 
 const SECRETS_DIR = path.join('data', 'plugin-secrets');
 const TOKENS_DIR = path.join('data', 'plugin-tokens');
@@ -36,13 +34,22 @@ async function readRaw(dir: string, name: string): Promise<unknown | null> {
 /** Wipe every store this suite touches back to empty. */
 async function resetStores(): Promise<void> {
   await writeSecrets({});
-  await writeICloudAccountsFile({ accounts: [] });
+  await seedDataFile('data/icloud-accounts.json', { accounts: [] });
   await googleCalendarTokenStore.saveTokens({});
   await googlePickerTokenStore.saveTokens({});
-  await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
+  await seedDataFile('data/auth.json', { passwordHash: null, salt: null, cookieSecret: null });
   for (const dir of [SECRETS_DIR, TOKENS_DIR, path.join('data', 'plugins')]) {
     await fs.rm(path.join(process.cwd(), dir), { recursive: true, force: true });
   }
+}
+
+/** Plan and commit a restore the way the backup route does. */
+async function restore(payload: CredentialPayload, clientIp = ''): Promise<CredentialApplyResult> {
+  return withDataTransaction(async () => {
+    const planned = await planCredentialRestore(payload, clientIp);
+    await commitDataTransaction({ kind: 'credential-test', changes: planned.changes });
+    return planned.result;
+  });
 }
 
 beforeEach(resetStores);
@@ -65,6 +72,24 @@ describe('journaled credential restore locations and permissions', () => {
       expect((await fs.stat(path.join(process.cwd(), dir))).mode & 0o777).toBe(0o700);
       expect((await fs.stat(path.join(process.cwd(), dir, 'demo.json'))).mode & 0o777).toBe(0o600);
     }
+  });
+
+  it('plans nothing and writes nothing for an empty payload', async () => {
+    await writeSecrets({ openweathermap_key: 'keep-me' });
+    const planned = await withDataTransaction(() => planCredentialRestore({}, '127.0.0.1'));
+    expect(planned.changes).toEqual([]);
+    expect(planned.result).toEqual({ applied: [], skipped: [] });
+    expect(await readSecrets()).toEqual({ openweathermap_key: 'keep-me' });
+  });
+
+  it('records what each file held before, so the journal can put it back', async () => {
+    await writeSecrets({ openweathermap_key: 'before' });
+    const planned = await withDataTransaction(() => planCredentialRestore({ secrets: { openweathermap_key: 'after' } }, '127.0.0.1'));
+    expect(planned.changes).toHaveLength(1);
+    expect(JSON.parse(planned.changes[0].before!)).toEqual({ openweathermap_key: 'before' });
+    expect(JSON.parse(planned.changes[0].after!)).toEqual({ openweathermap_key: 'after' });
+    // Planning alone leaves the disk as it was.
+    expect(await readSecrets()).toEqual({ openweathermap_key: 'before' });
   });
 });
 
@@ -102,13 +127,13 @@ describe('collectCredentials', () => {
 
   it('collects every section that holds something', async () => {
     await writeSecrets({ openweathermap_key: 'owm-1' });
-    await writeICloudAccountsFile({
+    await seedDataFile('data/icloud-accounts.json', {
       accounts: [{ id: 'a1', appleId: 'me@example.com', appPassword: 'aaaa-bbbb' }],
     });
     await googleCalendarTokenStore.saveTokens({ access_token: 'cal', refresh_token: 'r1' });
     await writeRaw(SECRETS_DIR, 'weather-plus.json', { api_key: 'plugin-key' });
     await writeRaw(TOKENS_DIR, 'weather-plus.json', { access_token: 'plugin-token' });
-    await writeAuthStateRaw({ passwordHash: 'h', salt: 's', cookieSecret: 'c' });
+    await seedDataFile('data/auth.json', { passwordHash: 'h', salt: 's', cookieSecret: 'c' });
 
     const payload = await collectCredentials();
 
@@ -138,7 +163,7 @@ describe('collectCredentials', () => {
   });
 
   it('carries auth when only IP rules are set, with no password', async () => {
-    await writeAuthStateRaw({
+    await seedDataFile('data/auth.json', {
       passwordHash: null,
       salt: null,
       cookieSecret: null,
@@ -147,84 +172,53 @@ describe('collectCredentials', () => {
     const payload = await collectCredentials();
     expect(payload.auth?.ipAllowlist).toEqual(['192.168.1.0/24']);
   });
-
-  it('includeEmpty keeps every section present for the rollback snapshot', async () => {
-    const payload = await collectCredentials({ includeEmpty: true });
-    expect(Object.keys(payload).sort()).toEqual([
-      'auth',
-      'icloudAccounts',
-      'oauthTokens',
-      'pluginSecrets',
-      'pluginTokens',
-      'secrets',
-    ]);
-  });
 });
 
-describe('snapshotCredentials', () => {
-  it('returns only the requested sections, even when they are empty', async () => {
-    const snapshot = await snapshotCredentials(['secrets', 'auth']);
-    expect(Object.keys(snapshot).sort()).toEqual(['auth', 'secrets']);
-    expect(snapshot.secrets).toEqual({});
-  });
-
-  // Apply only touches grant names PRESENT in the map, so a snapshot that
-  // omitted the disconnected ones could never roll a restore back to
-  // disconnected — the backup's account would silently stay signed in.
-  it('records a null sentinel for grants this device does not have', async () => {
-    const snapshot = await snapshotCredentials(['oauthTokens']);
-    expect(snapshot.oauthTokens).toEqual({ google: null, googlePicker: null, onedrive: null });
-  });
-
-  it('rolls a newly-restored OAuth grant back to disconnected', async () => {
-    const snapshot = await snapshotCredentials(['oauthTokens']);
-    await applyCredentials({ oauthTokens: { google: { access_token: 'from-backup' } } });
-    expect((await collectCredentials()).oauthTokens?.google).toEqual({ access_token: 'from-backup' });
-
-    await applyCredentials(snapshot, { enforceIpGuard: false, prunePlugins: true });
-    expect(await collectCredentials()).toEqual({});
-  });
-});
-
-describe('applyCredentials', () => {
+describe('planCredentialRestore', () => {
   it('is a faithful inverse of collect', async () => {
     await writeSecrets({ openweathermap_key: 'owm-1', todoist_token: 'td' });
-    await writeICloudAccountsFile({
+    await seedDataFile('data/icloud-accounts.json', {
       accounts: [{ id: 'a1', appleId: 'me@example.com', appPassword: 'aaaa-bbbb' }],
     });
     await googlePickerTokenStore.saveTokens({ access_token: 'pick' });
     await writeRaw(SECRETS_DIR, 'weather-plus.json', { api_key: 'plugin-key' });
     await writeRaw(TOKENS_DIR, 'weather-plus.json', { access_token: 'plugin-token' });
-    await writeAuthStateRaw({ passwordHash: 'h', salt: 's', cookieSecret: 'c' });
+    await seedDataFile('data/auth.json', { passwordHash: 'h', salt: 's', cookieSecret: 'c' });
 
     const collected = await collectCredentials();
     await resetStores();
     expect(await collectCredentials()).toEqual({});
 
-    const result = await applyCredentials(collected);
+    const result = await restore(collected);
     expect(result.skipped).toEqual([]);
     expect(await collectCredentials()).toEqual(collected);
   });
 
   it('leaves sections absent from the payload untouched', async () => {
     await writeSecrets({ openweathermap_key: 'keep-me' });
-    await applyCredentials({ icloudAccounts: { accounts: [] } });
+    await restore({ icloudAccounts: { accounts: [] } });
     expect(await readSecrets()).toEqual({ openweathermap_key: 'keep-me' });
   });
 
   it('drops secret keys this version does not recognize', async () => {
-    await applyCredentials({
+    await restore({
       secrets: { openweathermap_key: 'good', not_a_real_key: 'bad' } as Record<string, string>,
     });
     expect(await readSecrets()).toEqual({ openweathermap_key: 'good' });
   });
 
   it('drops plugin entries whose id is not a legal plugin id', async () => {
-    await applyCredentials({
+    await restore({
       pluginSecrets: { 'ok-plugin': { k: 'v' }, '../escape': { k: 'v' } },
     });
     expect(await readRaw(SECRETS_DIR, 'ok-plugin.json')).toEqual({ k: 'v' });
     await expect(listPluginCredentialIds(SECRETS_DIR)).resolves.toEqual(['ok-plugin']);
+  });
+
+  it('only adds plugin credentials, never removing files the bundle does not mention', async () => {
+    await writeRaw(SECRETS_DIR, 'untouched.json', { k: 'v' });
+    await restore({ pluginSecrets: { added: { k: 'v' } } });
+    await expect(listPluginCredentialIds(SECRETS_DIR)).resolves.toEqual(['added', 'untouched']);
   });
 
   // `payload.auth` is untrusted JSON only *typed* as AuthState. `{}` and `[]`
@@ -236,14 +230,14 @@ describe('applyCredentials', () => {
     ['an array', []],
     ['a string', 'nope'],
   ])('refuses %s as an auth state', async (_label, value) => {
-    await writeAuthStateRaw({
+    await seedDataFile('data/auth.json', {
       passwordHash: 'existing',
       salt: 'existing',
       cookieSecret: 'secret',
       displayToken: 'token',
       ipAllowlist: ['10.0.0.0/24'],
     });
-    const result = await applyCredentials({ auth: value as never });
+    const result = await restore({ auth: value as never });
     expect(result.skipped).toContain('auth');
     expect(result.applied).not.toContain('auth');
 
@@ -256,7 +250,7 @@ describe('applyCredentials', () => {
 
   // A real auth state with only IP rules and no password is legitimate.
   it('accepts an auth state carrying only IP rules', async () => {
-    const result = await applyCredentials({
+    const result = await restore({
       auth: { passwordHash: null, salt: null, cookieSecret: null, ipAllowlist: ['10.0.0.0/24'] },
     });
     expect(result.applied).toContain('auth');
@@ -265,23 +259,31 @@ describe('applyCredentials', () => {
 
   it('sanitizes a null oauthTokens section instead of throwing', async () => {
     await googleCalendarTokenStore.saveTokens({ access_token: 'keep' });
-    const result = await applyCredentials({ oauthTokens: null as never });
+    const result = await restore({ oauthTokens: null as never });
     expect(result.applied).not.toContain('oauthTokens');
     // The existing grant is untouched, and nothing threw.
     expect((await collectCredentials()).oauthTokens?.google).toEqual({ access_token: 'keep' });
   });
 
   it('drops OAuth entries for providers it does not know', async () => {
-    const result = await applyCredentials({
+    const result = await restore({
       oauthTokens: { google: { access_token: 'ok' }, dropbox: { access_token: 'no' } } as never,
     });
     expect(result.applied).toContain('oauthTokens');
     expect((await collectCredentials()).oauthTokens).toEqual({ google: { access_token: 'ok' } });
   });
 
+  it('clears a grant the bundle lists as null, the way disconnect does', async () => {
+    await googleCalendarTokenStore.saveTokens({ access_token: 'signed-in' });
+    const result = await restore({ oauthTokens: { google: null } });
+    expect(result.applied).toContain('oauthTokens');
+    expect(await googleCalendarTokenStore.loadTokens()).toEqual({});
+    expect((await collectCredentials()).oauthTokens).toBeUndefined();
+  });
+
   it('refuses an auth state whose password hash and salt disagree', async () => {
-    await writeAuthStateRaw({ passwordHash: 'existing', salt: 'existing', cookieSecret: 'c' });
-    const result = await applyCredentials({
+    await seedDataFile('data/auth.json', { passwordHash: 'existing', salt: 'existing', cookieSecret: 'c' });
+    const result = await restore({
       auth: { passwordHash: 'orphan', salt: null, cookieSecret: 'c' },
     });
     expect(result.skipped).toContain('auth');
@@ -302,7 +304,7 @@ describe('applyCredentials', () => {
     };
 
     it('holds back ipRestrictAccess when this device is not on the restored list', async () => {
-      const result = await applyCredentials(restrictedAuth, { clientIp: '192.168.1.50' });
+      const result = await restore(restrictedAuth, '192.168.1.50');
       expect(result.applied).toContain('auth');
       expect(result.skipped).toContain('auth.ipRestrictAccess');
 
@@ -314,41 +316,15 @@ describe('applyCredentials', () => {
     });
 
     it('applies ipRestrictAccess when this device is on the restored list', async () => {
-      const result = await applyCredentials(restrictedAuth, { clientIp: '10.0.0.7' });
+      const result = await restore(restrictedAuth, '10.0.0.7');
       expect(result.skipped).toEqual([]);
       expect((await readAuthState()).ipRestrictAccess).toBe(true);
     });
 
     it('holds back ipRestrictAccess when the request IP is unknown', async () => {
-      const result = await applyCredentials(restrictedAuth);
+      const result = await restore(restrictedAuth, '');
       expect(result.skipped).toContain('auth.ipRestrictAccess');
       expect((await readAuthState()).ipRestrictAccess).toBe(false);
     });
-
-    it('is bypassed on the rollback path, which must restore state verbatim', async () => {
-      const result = await applyCredentials(restrictedAuth, { enforceIpGuard: false });
-      expect(result.skipped).toEqual([]);
-      expect((await readAuthState()).ipRestrictAccess).toBe(true);
-    });
-  });
-
-  it('prunePlugins removes credential files the payload does not mention', async () => {
-    await writeRaw(SECRETS_DIR, 'keep.json', { k: 'v' });
-    await writeRaw(SECRETS_DIR, 'drop.json', { k: 'v' });
-    await writeRaw(TOKENS_DIR, 'drop.json', { access_token: 'a' });
-
-    await applyCredentials(
-      { pluginSecrets: { keep: { k: 'v' } }, pluginTokens: {} },
-      { prunePlugins: true },
-    );
-
-    await expect(listPluginCredentialIds(SECRETS_DIR)).resolves.toEqual(['keep']);
-    await expect(listPluginCredentialIds(TOKENS_DIR)).resolves.toEqual([]);
-  });
-
-  it('does not prune by default, so a restore only adds', async () => {
-    await writeRaw(SECRETS_DIR, 'untouched.json', { k: 'v' });
-    await applyCredentials({ pluginSecrets: { added: { k: 'v' } } });
-    await expect(listPluginCredentialIds(SECRETS_DIR)).resolves.toEqual(['added', 'untouched']);
   });
 });

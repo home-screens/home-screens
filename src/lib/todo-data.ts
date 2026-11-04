@@ -45,9 +45,6 @@ const store = createJsonStore<TodoData>({
   errorHandling: 'throw-corrupt',
 });
 
-/** Whole-file write, for a backup restore. Everything else goes through `updateTodoData`. */
-export const writeTodoData = store.write;
-
 /**
  * Why a list write was turned down. Each one has a sentence in the `core`
  * dictionary under `refusals.lists`, shown on the phone and in the editor.

@@ -7,7 +7,7 @@ vi.mock('@/lib/build-id', () => ({ readBuildId: vi.fn() }));
 
 import { readBuildId } from '@/lib/build-id';
 import { notesEtag } from '@/lib/notes-revision';
-import { updateNotesData, writeNotesData } from '@/lib/notes-data';
+import { updateNotesData } from '@/lib/notes-data';
 
 let root: string;
 const put = (data: unknown) => fs.writeFile(path.join(root, 'data', 'notes.json'), JSON.stringify(data));
@@ -34,15 +34,15 @@ describe('notesEtag', () => {
   it('has a stable value before the board is first saved, and moves once it is', async () => {
     const before = await notesEtag();
     expect(await notesEtag()).toBe(before);
-    await writeNotesData({ notes: [] });
+    await updateNotesData(() => ({ notes: [] }));
     expect(await notesEtag()).not.toBe(before);
   });
 
   it('moves when the board is saved, even to the same bytes', async () => {
-    await writeNotesData({ notes: [] });
+    await updateNotesData(() => ({ notes: [] }));
     const before = await notesEtag();
     // A store write lands through a rename: a new file, whatever it holds.
-    await writeNotesData({ notes: [] });
+    await updateNotesData(() => ({ notes: [] }));
     expect(await notesEtag()).not.toBe(before);
   });
 

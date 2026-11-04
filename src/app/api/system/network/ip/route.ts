@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, getClientIP, parseJsonBody, execErrorMessage, getLocalIP } from '@/lib/api-utils';
+import { withAuth, getClientIP, parseJsonBody, errorResponse, getLocalIP } from '@/lib/api-utils';
 import {
   nmcli,
   nmcliSudo,
@@ -210,10 +210,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await nmcliSudo(modifyArgs);
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
-    return NextResponse.json(
-      { ok: false, error: execErrorMessage(err, 'Failed to modify connection') },
-      { status: 500 },
-    );
+    return errorResponse(err, 'Failed to modify connection');
   }
 
   // 10. Cycle the connection to apply the new settings
@@ -225,10 +222,7 @@ export const PUT = withAuth(async (request: NextRequest) => {
     await ensureSourceRouting();
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
-    return NextResponse.json(
-      { ok: false, error: execErrorMessage(err, 'Failed to cycle connection') },
-      { status: 500 },
-    );
+    return errorResponse(err, 'Failed to cycle connection');
   }
 
   // 11. Schedule rollback for management interface changes

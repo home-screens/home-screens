@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { fetchWithTimeout, requireSecret, withDisplayAuth } from '@/lib/api-utils';
+import { fetchWithTimeout, parseJsonBody, requireSecret, withDisplayAuth, SMALL_BODY_BYTES } from '@/lib/api-utils';
 import { cache as todoistCache } from '@/app/api/todoist/route';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,9 @@ const TASK_ID_RE = /^[A-Za-z0-9]+$/;
 // user's external Todoist account. Stronger than /api/chores because this
 // endpoint causes irreversible-from-here side effects on a third-party service.
 export const POST = withDisplayAuth(async (request: NextRequest) => {
-  const body = await request.json().catch(() => ({}));
-  const taskId = typeof body.taskId === 'string' ? body.taskId : '';
+  const body = await parseJsonBody<{ taskId?: unknown }>(request, { maxBytes: SMALL_BODY_BYTES });
+  if (body instanceof NextResponse) return body;
+  const taskId = typeof body?.taskId === 'string' ? body.taskId : '';
 
   if (!taskId || !TASK_ID_RE.test(taskId)) {
     return NextResponse.json({ error: 'Invalid taskId' }, { status: 400 });

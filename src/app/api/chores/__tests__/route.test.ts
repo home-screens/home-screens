@@ -50,7 +50,6 @@ vi.mock('@/lib/auth', () => ({
 vi.mock('@/lib/chore-data', () => ({
   CHORES_FILE: 'data/chores.json',
   readChoreData: vi.fn(),
-  writeChoreData: vi.fn(),
 }));
 
 // --- reward-data mock -------------------------------------------------------

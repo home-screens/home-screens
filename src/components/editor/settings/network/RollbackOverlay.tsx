@@ -62,9 +62,7 @@ export default function RollbackOverlay({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rollbackId }),
       });
-      const confirmData = await confirmRes.json();
-
-      if (confirmData.ok) {
+      if (confirmRes.ok) {
         confirmedRef.current = true;
         setStatus('confirmed');
         onConfirmed();

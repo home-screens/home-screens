@@ -143,8 +143,9 @@ describe('PUT /api/system/network/hostname', () => {
     const res = await PUT(putRequest({ hostname: 'living-room' }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/hostnamectl: boom/);
+    expect(body.ok).toBeUndefined();
+    expect(body.error).toBe('Failed to set hostname');
+    expect(body.detail).toBe('hostnamectl: boom');
   });
 
   it('still succeeds when the avahi restart fails (non-fatal follow-up)', async () => {

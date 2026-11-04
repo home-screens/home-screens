@@ -43,8 +43,6 @@ const sessionStore = createJsonStore<SessionFile>({
 
 export const readRoutinesFile = routinesStore.read;
 export const updateRoutinesAtomic = routinesStore.updateAtomic;
-/** Whole-file writer for the backup restore path only — everything else goes through updateRoutinesAtomic. */
-export const writeRoutinesFile = routinesStore.write;
 
 // Every display's 3s heartbeat reads the session revision forever, including
 // houses with no timer running — a short read cache turns that steady state

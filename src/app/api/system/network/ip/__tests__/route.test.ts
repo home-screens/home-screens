@@ -185,8 +185,9 @@ describe('PUT /api/system/network/ip — non-management apply', () => {
     const res = await PUT(putRequest({ connectionId: VALID_UUID, method: 'auto' }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/nmcli exploded/);
+    expect(body.ok).toBeUndefined();
+    expect(body.error).toBe('Failed to modify connection');
+    expect(body.detail).toBe('nmcli exploded');
   });
 
   it('maps a failure cycling the connection (down/up) to a 500', async () => {
@@ -197,7 +198,8 @@ describe('PUT /api/system/network/ip — non-management apply', () => {
     const res = await PUT(putRequest({ connectionId: VALID_UUID, method: 'auto' }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/link down failed/);
+    expect(body.ok).toBeUndefined();
+    expect(body.error).toBe('Failed to cycle connection');
+    expect(body.detail).toBe('link down failed');
   });
 });

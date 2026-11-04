@@ -8,7 +8,7 @@ vi.mock('../family-data', () => ({ settleFamilyMigration: vi.fn().mockResolvedVa
 let tmpDir: string;
 let origCwd: () => string;
 let readChoreData: typeof import('../chore-data').readChoreData;
-let writeChoreData: typeof import('../chore-data').writeChoreData;
+let writeChoreList: typeof import('../chore-data').writeChoreList;
 
 beforeEach(async () => {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'home-screens-chore-test-'));
@@ -19,7 +19,7 @@ beforeEach(async () => {
   vi.resetModules();
   const mod = await import('../chore-data');
   readChoreData = mod.readChoreData;
-  writeChoreData = mod.writeChoreData;
+  writeChoreList = mod.writeChoreList;
 });
 
 afterEach(async () => {
@@ -74,13 +74,9 @@ const chore = (id: string, name: string): import('@/types/config').ChoreDefiniti
   timeOfDay: 'anytime', assigneeIds: [], rotation: 'fixed',
 });
 
-describe('writeChoreData', () => {
+describe('writeChoreList', () => {
   it('writes data to data/chores.json', async () => {
-    const choreData = {
-      chores: [chore('bob', 'Dishes')],
-    };
-
-    await writeChoreData(choreData);
+    await writeChoreList([chore('bob', 'Dishes')]);
 
     const raw = await fs.readFile(path.join(tmpDir, 'data', 'chores.json'), 'utf-8');
     const written = JSON.parse(raw);
@@ -88,17 +84,14 @@ describe('writeChoreData', () => {
   });
 
   it('creates data directory if it does not exist', async () => {
-    await writeChoreData({ chores: [] });
+    await writeChoreList([]);
     const stat = await fs.stat(path.join(tmpDir, 'data'));
     expect(stat.isDirectory()).toBe(true);
   });
 
   it('creates a backup before overwriting', async () => {
-    const original = { chores: [chore('1', 'Original')] };
-    await writeChoreData(original);
-
-    const updated = { chores: [chore('2', 'Updated')] };
-    await writeChoreData(updated);
+    await writeChoreList([chore('1', 'Original')]);
+    await writeChoreList([chore('2', 'Updated')]);
 
     const bakRaw = await fs.readFile(path.join(tmpDir, 'data', 'chores.json.bak'), 'utf-8');
     const backup = JSON.parse(bakRaw);
@@ -111,11 +104,8 @@ describe('writeChoreData', () => {
 
   it('serializes writes to avoid race conditions', async () => {
     // Write two values concurrently — the second should win
-    const data1 = { chores: [chore('1', 'First')] };
-    const data2 = { chores: [chore('2', 'Second')] };
-
-    const p1 = writeChoreData(data1);
-    const p2 = writeChoreData(data2);
+    const p1 = writeChoreList([chore('1', 'First')]);
+    const p2 = writeChoreList([chore('2', 'Second')]);
     await Promise.all([p1, p2]);
 
     const raw = await fs.readFile(path.join(tmpDir, 'data', 'chores.json'), 'utf-8');

@@ -166,14 +166,6 @@ async function runMigration(): Promise<void> {
 export function readFamilyData(): Promise<FamilyData> {
   return withDataTransaction(async () => { await settleFamilyMigration(); return readRawFamily(); });
 }
-/** Low-level modern-restore writer; normal authoring goes through revision checks. */
-export function writeFamilyData(data: FamilyData): Promise<void> {
-  return withDataTransaction(async () => {
-    if (!validateFamilyData(data)) throw new FamilyError('family.dataInvalid', familyValidationError(data)!);
-    await commitDataTransaction({ kind: 'family-restore', changes: [{ path: FAMILY_FILE_PATH, before: await readTransactionFile(FAMILY_FILE_PATH), after: json(data) }] });
-  });
-}
-
 export interface FamilyMemberInput {
   id?: string;
   name: string;

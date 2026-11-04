@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { NOTES_FILE, NotesError as ReexportedNotesError, readNotesData, sweepGone, updateNotesData, validateNotesData, writeNotesData } from '../notes-data';
+import { NOTES_FILE, NotesError as ReexportedNotesError, readNotesData, sweepGone, updateNotesData, validateNotesData } from '../notes-data';
 import { NotesError } from '../notes-errors';
 import { NOTES_GONE_KEEP_MS, type Note, type NotesData } from '@/types/notes';
 
@@ -149,14 +149,6 @@ describe('readNotesData', () => {
   it('throws on a corrupt file instead of handing back an empty board', async () => {
     await seedRaw('{"notes": [');
     await expect(readNotesData()).rejects.toThrow();
-  });
-});
-
-describe('writeNotesData', () => {
-  it('writes the whole board, which the next read returns', async () => {
-    const data: NotesData = { notes: [note('a', { authorId: 'mom' }), note('b', { life: 'keep', expiresAt: null })] };
-    await writeNotesData(data);
-    expect(await readNotesData()).toEqual(data);
   });
 });
 

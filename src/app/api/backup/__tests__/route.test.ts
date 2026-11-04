@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server';
 // Auth is the only dependency we stub — every other lib runs for real against
 // the per-worker sandbox `data/` (see vitest.setup.ts), so the export→restore
 // path is exercised end to end through the real json-store atomic writes.
-// importActual so readAuthState/writeAuthStateRaw stay real — the credential
+// importActual so readAuthState stays real — the credential
 // restore path writes data/auth.json through them, in the sandbox.
 vi.mock('@/lib/auth', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/auth')>()),
@@ -19,10 +19,9 @@ import { GET, POST } from '@/app/api/backup/route';
 import { POST as POST_CREDENTIALS } from '@/app/api/backup/credentials/route';
 import { readConfig, writeConfig } from '@/lib/config';
 import { readDayNotesData, updateDayNotesData } from '@/lib/day-notes-data';
-import { readFamilyData, writeFamilyData } from '@/lib/family-data';
-import { writeChoreData } from '@/lib/chore-data';
+import { readFamilyData } from '@/lib/family-data';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
-import { readAuthState, writeAuthStateRaw, isAuthEnabled } from '@/lib/auth';
+import { readAuthState, isAuthEnabled } from '@/lib/auth';
 import { readSecrets, writeSecrets } from '@/lib/secrets';
 import { readTimetables, replaceTimetables } from '@/lib/timetable-data';
 import { encryptCredentials } from '@/lib/backup-crypto';
@@ -31,6 +30,7 @@ import type { ScreenConfiguration } from '@/types/config';
 import type { ChoreData } from '@/lib/chore-data';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { INVALID_CONFIGS } from '@/lib/__tests__/invalid-config-matrix';
+import { seedDataFile } from '@/test-utils';
 
 const cleanConfig = {
   version: getLatestSchemaVersion(),
@@ -57,15 +57,15 @@ beforeEach(async () => {
   // Reset the stores this suite mutates back to a known clean state so tests
   // don't leak into one another (the sandbox data/ is shared across a file).
   await writeConfig(cleanConfig);
-  await writeChoreData(emptyChores);
-  await writeFamilyData({ members: [], migrated: true });
+  await seedDataFile('data/chores.json', emptyChores);
+  await seedDataFile('data/family.json', { members: [], migrated: true });
   await writeBackupState({ lastBackupDate: null, lastDismissedDate: null });
   await writeSecrets({});
   // The timetables store has no "write empty" that means "never saved": the
   // file existing at all is what makes the export carry a timetables section,
   // so the reset has to remove it.
   await fs.rm(path.join(process.cwd(), 'data', 'timetables.json'), { force: true });
-  await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
+  await seedDataFile('data/auth.json', { passwordHash: null, salt: null, cookieSecret: null });
 });
 
 describe('POST /api/backup with malformed to-do lists', () => {
@@ -94,7 +94,7 @@ describe('POST /api/backup with chores the chore save would refuse', () => {
   const chore = { id: 'c1', name: 'Dishes', emoji: '', frequency: 'daily', daysOfWeek: [1], timeOfDay: 'anytime', rotation: 'fixed', assigneeIds: [] };
 
   it('refuses a chore worth fewer than 0 tickets with the sentence the save gives', async () => {
-    await writeChoreData({ chores: [{ ...chore, points: 2 }] } as unknown as ChoreData);
+    await seedDataFile('data/chores.json', { chores: [{ ...chore, points: 2 }] } as unknown as ChoreData);
     const res = await POST(postReq({ _type: 'home-screens-backup', chores: { chores: [{ ...chore, points: -5 }] } }));
     expect(res.status).toBe(400);
     expect((await res.json()).error).toBe('Tickets for a chore must be 0 or more.');
@@ -179,7 +179,7 @@ describe('GET /api/backup', () => {
 
   it('exports the timetables section once a household has saved one', async () => {
     const stamp = '2026-01-01T00:00:00.000Z';
-    await writeFamilyData({ members: [{ id: 'kid', name: 'Robin', color: '#60a5fa', createdAt: stamp, updatedAt: stamp }], migrated: true });
+    await seedDataFile('data/family.json', { members: [{ id: 'kid', name: 'Robin', color: '#60a5fa', createdAt: stamp, updatedAt: stamp }], migrated: true });
     const { revision } = await readTimetables();
     await replaceTimetables({
       data: {
@@ -221,7 +221,7 @@ describe('POST /api/backup — restore', () => {
     } as unknown as ChoreData;
 
     await writeConfig(seededConfig);
-    await writeChoreData(seededChores);
+    await seedDataFile('data/chores.json', seededChores);
     await updateDayNotesData(() => ({ notes: [{ id: 'd1', date: '2099-11-04', text: 'Picture day' }] }));
 
     const bundle = await (await GET(getReq())).json();
@@ -230,8 +230,8 @@ describe('POST /api/backup — restore', () => {
 
     // Wipe both stores.
     await writeConfig(cleanConfig);
-    await writeChoreData(emptyChores);
-  await writeFamilyData({ members: [], migrated: true });
+    await seedDataFile('data/chores.json', emptyChores);
+    await seedDataFile('data/family.json', { members: [], migrated: true });
     expect((await readConfig()).screens[0].id).toBe('default');
     expect((await readFamilyData()).members).toHaveLength(0);
 
@@ -263,7 +263,7 @@ describe('POST /api/backup — restore', () => {
   });
 
   it('only restores the sections present in a partial bundle', async () => {
-    await writeChoreData({ members: [{ id: 'keep', name: 'Keep' }], chores: [] } as unknown as ChoreData);
+    await seedDataFile('data/chores.json', { members: [{ id: 'keep', name: 'Keep' }], chores: [] } as unknown as ChoreData);
 
     const res = await POST(
       postReq({
@@ -563,7 +563,7 @@ describe('POST /api/backup — credential section', () => {
   it('round-trips a real export through GET then POST', async () => {
     // The credentials route refuses to run without an editor password — that
     // is the whole point of its gate — so give this device one.
-    await writeAuthStateRaw({ passwordHash: 'h', salt: 's', cookieSecret: 'c' });
+    await seedDataFile('data/auth.json', { passwordHash: 'h', salt: 's', cookieSecret: 'c' });
     vi.mocked(isAuthEnabled).mockResolvedValue(true);
     await writeSecrets({ openweathermap_key: 'round-trip' });
     const bundle = await (await GET(getReq())).json();

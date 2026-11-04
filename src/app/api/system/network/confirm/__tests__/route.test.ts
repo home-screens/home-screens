@@ -83,7 +83,7 @@ describe('POST /api/system/network/confirm', () => {
     mockConfirm.mockReturnValue(false);
     const res = await POST(postRequest({ rollbackId: VALID_UUID }));
     expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ ok: false, error: 'No matching pending rollback' });
+    expect(await res.json()).toEqual({ error: 'No matching pending rollback' });
     expect(mockUninhibit).not.toHaveBeenCalled();
   });
 

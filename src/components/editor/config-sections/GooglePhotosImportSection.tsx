@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Button from '@/components/ui/Button';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch } from '@/lib/editor-fetch';
+import { errorWithDetail } from '@/lib/hub-request';
 import GoogleSignInButton from '@/components/ui/GoogleSignInButton';
 import { useLibraryImportJob } from '@/hooks/useLibraryImportJob';
 import { useGooglePickerSession } from '@/hooks/useGooglePickerSession';
@@ -119,7 +120,7 @@ export function GooglePhotosImportSection({ onImported }: Props) {
       // The address this editor is on, so the sign-in can come back to it.
       const res = await editorFetch(`/api/google-picker/auth?origin=${encodeURIComponent(window.location.origin)}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(errorWithDetail(data));
       window.open(data.url, '_blank', 'noopener');
       // A link without this hub's address ends on the copy-a-code page.
       setSignInStep(data.returnsToHub ? 'waiting' : 'paste');

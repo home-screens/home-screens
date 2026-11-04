@@ -16,8 +16,8 @@ vi.mock('@/lib/auth', async (importActual) => ({
 import { POST } from '@/app/api/backup/credentials/route';
 import { requireSession } from '@/lib/auth';
 import { writeSecrets } from '@/lib/secrets';
-import { writeICloudAccountsFile } from '@/lib/icloud-accounts';
-import { writeAuthStateRaw, isAuthEnabled } from '@/lib/auth';
+import { isAuthEnabled } from '@/lib/auth';
+import { seedDataFile } from '@/test-utils';
 import { decryptCredentials, BadPassphraseError } from '@/lib/backup-crypto';
 import type { EncryptedCredentialEnvelope } from '@/lib/backup-credentials-types';
 
@@ -31,14 +31,14 @@ function postReq(body: unknown): NextRequest {
 
 /** The route refuses to run without an editor password, so enable one. */
 async function enableAuth(): Promise<void> {
-  await writeAuthStateRaw({ passwordHash: 'hash', salt: 'salt', cookieSecret: 'secret' });
+  await seedDataFile('data/auth.json', { passwordHash: 'hash', salt: 'salt', cookieSecret: 'secret' });
   vi.mocked(isAuthEnabled).mockResolvedValue(true);
 }
 
 beforeEach(async () => {
   vi.clearAllMocks();
   await writeSecrets({});
-  await writeICloudAccountsFile({ accounts: [] });
+  await seedDataFile('data/icloud-accounts.json', { accounts: [] });
   await enableAuth();
 });
 
@@ -47,7 +47,7 @@ describe('POST /api/backup/credentials', () => {
   // editor password is set, which is the default. Without this check the route
   // hands every key, refresh token and data/auth.json to any LAN client.
   it('refuses to run at all when no editor password is set', async () => {
-    await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
+    await seedDataFile('data/auth.json', { passwordHash: null, salt: null, cookieSecret: null });
     vi.mocked(isAuthEnabled).mockResolvedValue(false);
     await writeSecrets({ openweathermap_key: 'must-not-leak' });
 
@@ -59,7 +59,7 @@ describe('POST /api/backup/credentials', () => {
   });
 
   it('leaks nothing in the refusal body', async () => {
-    await writeAuthStateRaw({ passwordHash: null, salt: null, cookieSecret: null });
+    await seedDataFile('data/auth.json', { passwordHash: null, salt: null, cookieSecret: null });
     vi.mocked(isAuthEnabled).mockResolvedValue(false);
     await writeSecrets({ openweathermap_key: 'must-not-leak' });
 
@@ -88,7 +88,7 @@ describe('POST /api/backup/credentials', () => {
 
   it('returns an encrypted envelope that only the password opens', async () => {
     await writeSecrets({ openweathermap_key: 'owm-secret-value' });
-    await writeICloudAccountsFile({
+    await seedDataFile('data/icloud-accounts.json', {
       accounts: [{ id: 'a1', appleId: 'me@example.com', appPassword: 'aaaa-bbbb' }],
     });
 

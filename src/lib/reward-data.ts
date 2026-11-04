@@ -143,12 +143,6 @@ export async function readRewardData(): Promise<RewardData> {
   return purgeOldRedemptions(data);
 }
 
-/** Raw whole-file write. Deliberately skips the redemption purge: a restore
- *  has to land the bytes it was given. Mutations belong on `updateRewards`. */
-export async function writeRewardData(data: RewardData): Promise<void> {
-  await store.write(data);
-}
-
 /**
  * Replace reward definitions atomically (preserves balances/redemptions).
  * A goal pointing at a reward that is no longer in the list goes with it.

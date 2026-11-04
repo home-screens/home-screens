@@ -39,6 +39,21 @@ export function requestFailureText(err: unknown, words: { unreachable: string; f
   return err instanceof Error && err.message ? err.message : words.fallback;
 }
 
+/**
+ * A hub answer's sentence with the service's own words after it, when the
+ * route passed them on as `detail` (Google's reason for turning a sign-in
+ * down, a command's stderr). For the editor's setup pages, where those words
+ * are what the person fixes; a wall never shows them.
+ */
+export function errorWithDetail(json: unknown): string {
+  if (!json || typeof json !== 'object') return '';
+  const { error, detail } = json as { error?: unknown; detail?: unknown };
+  const sentence = typeof error === 'string' ? error : '';
+  const words = typeof detail === 'string' ? detail.trim() : '';
+  if (!sentence) return words;
+  return words ? `${sentence} (${words})` : sentence;
+}
+
 /** The dictionary key for a refusal code: `refusals.lists.nameTooLong`. */
 export function refusalKey(code: string): string {
   return `refusals.${code}`;

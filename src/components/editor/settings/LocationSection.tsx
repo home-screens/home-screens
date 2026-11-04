@@ -221,7 +221,7 @@ export default function LocationSection({ values, onChange }: Props) {
         body: JSON.stringify({ timezone: zone }),
       });
       const data = await res.json();
-      if (res.ok && data.ok) {
+      if (res.ok) {
         // Re-read rather than trusting the request: the offer disappears
         // because the device now reports the new zone, not because we said so.
         await fetchServerTime();

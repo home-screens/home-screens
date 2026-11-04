@@ -113,8 +113,10 @@ describe('PUT /api/system/timezone', () => {
     const res = await PUT(putRequest({ timezone: 'Europe/Berlin' }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/Failed to set time zone: boom/);
+    expect(body.ok).toBeUndefined();
+    // A plain sentence for the page; timedatectl's own words ride as detail for the log and a support thread.
+    expect(body.error).toBe('Failed to set the device timezone');
+    expect(body.detail).toBe('Failed to set time zone: boom');
   });
 
   it('rejects a zone that is not a real IANA name with 400', async () => {

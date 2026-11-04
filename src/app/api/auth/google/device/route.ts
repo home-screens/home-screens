@@ -1,26 +1,39 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { requestDeviceCode, pollDeviceToken } from '@/lib/google-auth';
-import { withAuth, parseJsonBody } from '@/lib/api-utils';
+import { withAuth, parseJsonBody, errorResponse } from '@/lib/api-utils';
+import { getSecret } from '@/lib/secrets';
 
 export const dynamic = 'force-dynamic';
 
-/** POST — start device flow, returns user_code + verification_url */
+/**
+ * A masked copy of the saved Client ID, so a failed start lets the person
+ * check that the right one is configured without the page showing the whole id.
+ */
+async function clientIdHint(): Promise<string | undefined> {
+  try {
+    const id = await getSecret('google_client_id');
+    if (!id) return undefined;
+    return id.length > 32 ? id.slice(0, 8) + '…' + id.slice(-24) : id;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * POST — start device flow, returns user_code + verification_url. A failure
+ * answers the way every route does (a missing client as a setup answer, a
+ * refusal from Google as a 500 with Google's words in `detail`) plus
+ * `clientIdHint`.
+ */
 export const POST = withAuth(async () => {
   try {
-    const data = await requestDeviceCode();
-    return NextResponse.json(data);
+    return NextResponse.json(await requestDeviceCode());
   } catch (error) {
-    // Surface the actual error so the user knows what to fix.
-    // Include masked client ID so they can verify the right one is configured.
-    const message = error instanceof Error ? error.message : 'Failed to start device flow';
-    let clientIdHint: string | undefined;
-    try {
-      const { getSecret } = await import('@/lib/secrets');
-      const id = await getSecret('google_client_id');
-      if (id) clientIdHint = id.length > 32 ? id.slice(0, 8) + '…' + id.slice(-24) : id;
-    } catch { /* ignore */ }
-    return NextResponse.json({ error: message, clientIdHint }, { status: 500 });
+    const response = errorResponse(error, 'Failed to start device flow');
+    const hint = await clientIdHint();
+    if (!hint) return response;
+    return NextResponse.json({ ...(await response.json()), clientIdHint: hint }, { status: response.status });
   }
 }, 'Failed to start device flow');
 

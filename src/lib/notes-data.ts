@@ -23,9 +23,6 @@ const store = createJsonStore<NotesData>({
   errorHandling: 'throw-corrupt',
 });
 
-/** Whole-file write, for a backup restore. Everything else goes through `updateNotesData`. */
-export const writeNotesData = store.write;
-
 export { NotesError } from './notes-errors';
 
 const LIVES: ReadonlySet<NoteLife> = new Set(NOTE_LIVES);

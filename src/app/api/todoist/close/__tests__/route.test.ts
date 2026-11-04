@@ -55,6 +55,15 @@ describe('POST /api/todoist/close', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
+  it('returns 400 for a body that is not JSON', async () => {
+    vi.mocked(getSecret).mockResolvedValue('test-token');
+    global.fetch = vi.fn();
+    const res = await POST(new NextRequest('http://localhost/api/todoist/close', { method: 'POST', body: '{not json' }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('Invalid JSON body');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it('returns 400 when taskId is missing', async () => {
     vi.mocked(getSecret).mockResolvedValue('test-token');
 

@@ -32,7 +32,6 @@ const store = createJsonStore<CompletionsData>({
 });
 
 export const readCompletions = store.read;
-export const writeCompletions = store.write;
 export const updateCompletionsAtomic = store.updateAtomic;
 
 /**

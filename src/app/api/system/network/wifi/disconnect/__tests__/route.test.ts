@@ -108,7 +108,8 @@ describe('POST /api/system/network/wifi/disconnect', () => {
     const res = await POST(postRequest({ connectionId: VALID_UUID, confirmed: true }));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.ok).toBe(false);
-    expect(body.error).toMatch(/connection down failed/);
+    expect(body.ok).toBeUndefined();
+    expect(body.error).toBe('Disconnect failed');
+    expect(body.detail).toBe('connection down failed');
   });
 });

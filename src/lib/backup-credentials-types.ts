@@ -28,11 +28,10 @@ export interface CredentialPayload {
   /**
    * data/{google,google-picker,onedrive}-tokens.json.
    *
-   * An explicit `null` means "this device had no grant here" and clears the
-   * file on apply. Only the pre-restore snapshot writes nulls — an exported
-   * bundle omits absent grants entirely, so restoring someone's backup can
-   * never silently sign a device out of an account the bundle said nothing
-   * about. Without the sentinel a rollback cannot undo a newly-written grant.
+   * An explicit `null` clears that grant on restore, the way disconnect does.
+   * An exported bundle never writes one: it omits absent grants entirely, so
+   * restoring someone's backup can never silently sign a device out of an
+   * account the bundle said nothing about.
    */
   oauthTokens?: Partial<Record<OAuthGrantName, StoredOAuthTokens | null>>;
   /** data/plugin-secrets/<id>.json, keyed by plugin id. */

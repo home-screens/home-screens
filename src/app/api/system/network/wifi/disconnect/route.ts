@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withAuth, getClientIP, getLocalIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, getClientIP, getLocalIP, parseJsonBody, errorResponse } from '@/lib/api-utils';
 import {
   nmcliSudo,
   findActiveDevice,
@@ -78,9 +78,6 @@ export const POST = withAuth(async (request: NextRequest) => {
     await nmcliSudo(['connection', 'down', connectionId]);
     return NextResponse.json({ ok: true });
   } catch (err: unknown) {
-    return NextResponse.json(
-      { ok: false, error: execErrorMessage(err, 'Disconnect failed') },
-      { status: 500 },
-    );
+    return errorResponse(err, 'Disconnect failed');
   }
 }, 'Failed to disconnect WiFi network');

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { execFile as execFileCb } from 'child_process';
-import { withAuth, getClientIP, getLocalIP, parseJsonBody, execErrorMessage } from '@/lib/api-utils';
+import { withAuth, getClientIP, getLocalIP, parseJsonBody, execErrorMessage, errorResponse } from '@/lib/api-utils';
 import { requireSudo } from '@/lib/sudo-grant';
 import {
   nmcliSudo,
@@ -296,13 +296,9 @@ export const POST = withAuth(async (request: NextRequest) => {
   } catch (err: unknown) {
     if (canRollback) await uninhibitWatchdog();
     if (err instanceof PasswordRequiredError) {
-      return NextResponse.json({ ok: false, error: err.message }, { status: 400 });
+      return NextResponse.json({ error: err.message }, { status: 400 });
     }
-    const raw = execErrorMessage(err, 'Connection failed');
-    log.warn('join failed:', raw);
-    return NextResponse.json(
-      { ok: false, error: describeJoinFailure(raw), detail: raw },
-      { status: 500 },
-    );
+    // The sentence names the likely cause; nmcli's own words ride as `detail`.
+    return errorResponse(err, describeJoinFailure(execErrorMessage(err, 'Connection failed')));
   }
 }, 'Failed to connect to WiFi network');
