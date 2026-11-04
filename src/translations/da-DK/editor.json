@@ -730,7 +730,9 @@
         "protectLabel": "Beskyt dem med en adgangskode",
         "plaintextWarning": "Alle, der åbner denne fil, kan bruge dine konti. Gem den et privat sted.",
         "needsEditorPassword": "Kræver først en adgangskode, så filen ikke kan læses af enhver, der finder den.",
-        "savedTo": "{filename} er gemt i dine downloads."
+        "savedTo": "{filename} er gemt i dine downloads.",
+        "picturesLabel": "Billeder i sikkerhedskopien",
+        "picturesSearchWords": "fotos videoer bibliotek diasshow baggrund zip"
       },
       "backupReminder": {
         "heading": "Påmindelse om sikkerhedskopi",

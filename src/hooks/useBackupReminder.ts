@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
-import { downloadBlob } from '@/lib/download';
 import { attachCustomIcons } from '@/lib/custom-icon-backup';
-import { backupFileName } from '@/lib/backup-file-name';
+import { saveBackupFile } from '@/lib/picture-backup';
 import type { BackupState } from '@/lib/backup-state';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
@@ -33,6 +32,9 @@ export function useBackupReminder({
   /** The last download went without the family's icons because they could
    *  not be read, although the switch asked for them. */
   const [iconsLeftOut, setIconsLeftOut] = useState(false);
+  /** The last download went without the library pictures the remembered
+   *  choice asked for (the zip could not be made), so it is a JSON file. */
+  const [picturesLeftOut, setPicturesLeftOut] = useState(false);
   const seedingRef = useRef(false);
 
   // Fetch backup state on mount, then optionally poll
@@ -73,7 +75,7 @@ export function useBackupReminder({
     if (!enabled || !backupState) return false;
     // A backup that could not carry the icons is not the backup the reminder
     // asked for: stay up and say so, so the family can try again.
-    if (iconsLeftOut) return true;
+    if (iconsLeftOut || picturesLeftOut) return true;
     if (dismissed) return false;
     const intervalMs = intervalDays * 86_400_000;
     const now = Date.now();
@@ -92,7 +94,7 @@ export function useBackupReminder({
     if (lastDismissed && now - lastDismissed <= intervalMs) return false;
 
     return true;
-  }, [enabled, intervalDays, backupState, dismissed, iconsLeftOut]);
+  }, [enabled, intervalDays, backupState, dismissed, iconsLeftOut, picturesLeftOut]);
 
   const daysSinceBackup = useMemo(() => {
     if (!backupState?.lastBackupDate) return null;
@@ -101,7 +103,7 @@ export function useBackupReminder({
   }, [backupState?.lastBackupDate]);
 
   /** Download a full backup. Returns true when a file was saved (then
-   *  `iconsLeftOut` says whether it lacks the icons), false on failure. */
+   *  `iconsLeftOut` and `picturesLeftOut` say what it lacks), false on failure. */
   const handleBackup = useCallback(async (): Promise<boolean> => {
     setBusy(true);
     try {
@@ -112,11 +114,11 @@ export function useBackupReminder({
       // to read them saves the rest and reports it rather than saving nothing.
       let leftOut = false;
       try { bundle = await attachCustomIcons(bundle, fetchFn); } catch { leftOut = true; }
-      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      downloadBlob(blob, backupFileName(timezone));
+      const saved = await saveBackupFile(bundle, fetchFn, { timezone });
       // Optimistic update — server records the timestamp via fire-and-forget in the GET handler
       setBackupState((prev) => prev ? { ...prev, lastBackupDate: new Date().toISOString(), lastDismissedDate: null } : prev);
       setIconsLeftOut(leftOut);
+      setPicturesLeftOut(saved.picturesLeftOut);
       setDismissed(true);
       return true;
     } catch {
@@ -129,6 +131,7 @@ export function useBackupReminder({
   const handleDismiss = useCallback(() => {
     setDismissed(true);
     setIconsLeftOut(false);
+    setPicturesLeftOut(false);
     fetchFn('/api/backup/reminder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -136,5 +139,5 @@ export function useBackupReminder({
     }).catch(() => {});
   }, [fetchFn]);
 
-  return { shouldShow, daysSinceBackup, busy, iconsLeftOut, handleBackup, handleDismiss };
+  return { shouldShow, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, handleBackup, handleDismiss };
 }

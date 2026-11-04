@@ -420,6 +420,33 @@
       "leftOut": "Gesichert, aber die eigenen Icons fehlen. Versuch es noch einmal, damit sie mitgesichert werden."
     }
   },
+  "pictureBackup": {
+    "heading": "Bilder",
+    "off": "Weglassen",
+    "used": "Nur die, die deine Bildschirme zeigen",
+    "all": "Alles aus deiner Bildersammlung",
+    "help": "Hintergründe, Diashow-Ordner und Videos auf deinen Bildschirmen. Eine Sicherung mit Bildern wird als ZIP-Datei gespeichert.",
+    "files": {
+      "one": "{count} Datei",
+      "other": "{count} Dateien"
+    },
+    "missingNow": {
+      "one": "{count} Bild, das deine Bildschirme zeigen, fehlt schon und kann nicht gesichert werden.",
+      "other": "{count} Bilder, die deine Bildschirme zeigen, fehlen schon und können nicht gesichert werden."
+    },
+    "openLibrary": "Bilder & Videos öffnen",
+    "leftOut": "Gesichert, aber deine Bilder konnten nicht mitgesichert werden. Versuch es noch einmal, damit sie dabei sind.",
+    "restoreConfirm": {
+      "one": "Diese Sicherung enthält {count} Bild ({size}). Ein Bild mit demselben Namen auf diesem Gerät wird ersetzt. Entfernt wird nichts.",
+      "other": "Diese Sicherung enthält {count} Bilder und Videos ({size}). Ein Bild mit demselben Namen auf diesem Gerät wird ersetzt. Entfernt wird nichts."
+    },
+    "restoreConfirmButton": "Wiederherstellen",
+    "restoreMissing": "Einige Bildschirme zeigen Bilder, die in dieser Sicherung nicht dabei waren. Unter „Bilder & Videos“ siehst du, welche.",
+    "phoneRow": "Bilder in der Sicherung",
+    "phoneUsed": "Nur die auf dem Bildschirm",
+    "phoneAll": "Deine ganze Sammlung",
+    "phoneOff": "Weggelassen"
+  },
   "noTimezone": {
     "title": "Noch keine Zeitzone.",
     "body": "Deine Bildschirme nutzen die Uhr des Hubs ({zone}), deshalb können Uhrzeiten falsch sein.",

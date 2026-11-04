@@ -84,7 +84,7 @@ Going back downloads that version from GitHub and installs it the same way an up
 
 ### How do I backup my configuration?
 
-Go to **Settings > Backups & data** and, under **Save a copy**, click **Save a backup**. This downloads a file containing your screens, modules, settings, location, calendars, family list, chores and rewards, meals, lists, timers and school timetables. **Include your icons** adds the pictures your family added as icons; each computer and phone remembers your choice. You can also back up from the [family remote](/docs/remote-control) by tapping the gear and choosing **Backup All Data**.
+Go to **Settings > Backups & data** and, under **Save a copy**, click **Save a backup**. This downloads a file containing your screens, modules, settings, location, calendars, family list, chores and rewards, meals, lists, timers and school timetables. **Include your icons** adds the pictures your family added as icons; each computer and phone remembers your choice. **Pictures** decides whether your picture library comes too: only the pictures and videos your screens use, everything in the library, or none, with the size shown beside each. A backup with pictures is a zip file. You can also back up from the [family remote](/docs/remote-control) by tapping the gear and choosing **Backup All Data**.
 
 Your API keys and connected accounts are left out unless you ask for them. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file. You will need an editor password set first (Settings > Security). See [Backing up your keys](/docs/configuration#backing-up-your-keys) for what that covers and what happens if you forget the password.
 
@@ -94,7 +94,7 @@ Your API keys and connected accounts are left out unless you ask for them. Tick 
 
 ### How do I restore a backup?
 
-Go to **Settings > Backups & data** and, under **Save a copy**, click **Restore from a file**. Pick a backup you saved earlier. (Do not confuse this with **Import Layout** under **Share Layout**, which only brings in screens and modules.) Your configuration is replaced with the backup's contents. The family remote's gear has **Restore Backup** too.
+Go to **Settings > Backups & data** and, under **Save a copy**, click **Restore from a file**. Pick a backup you saved earlier, a zip or a plain file. (Do not confuse this with **Import Layout** under **Share Layout**, which only brings in screens and modules.) Your configuration is replaced with the backup's contents, and any pictures in the backup are put back into your library. If a backup made without pictures points at ones this hub does not have, the Pictures & videos page lists them under Missing. The family remote's gear has **Restore Backup** too.
 
 If the backup has a password on its keys, you are asked for it. If you cannot remember it, choose **Restore without my keys** and everything else still comes back.
 

@@ -46,6 +46,7 @@
     "sharp": "^0.35.4",
     "suncalc": "^1.9.0",
     "tsdav": "^2.3.1",
+    "yauzl": "^3.4.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
@@ -57,6 +58,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/suncalc": "^1.9.2",
+    "@types/yauzl": "^3.4.0",
     "@vitest/coverage-v8": "^4.1.12",
     "esbuild": "^0.28.1",
     "eslint": "^9.39.4",

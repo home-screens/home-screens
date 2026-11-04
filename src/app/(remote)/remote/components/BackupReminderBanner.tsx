@@ -8,6 +8,8 @@ interface BackupReminderBannerProps {
   busy: boolean;
   /** The last backup went without the family's icons; ask for another. */
   iconsLeftOut?: boolean;
+  /** The last backup went without the library pictures; ask for another. */
+  picturesLeftOut?: boolean;
   onBackup: () => void;
   onDismiss: () => void;
 }
@@ -17,6 +19,7 @@ export default function BackupReminderBanner({
   daysSinceBackup,
   busy,
   iconsLeftOut = false,
+  picturesLeftOut = false,
   onBackup,
   onDismiss,
 }: BackupReminderBannerProps) {
@@ -32,6 +35,8 @@ export default function BackupReminderBanner({
   const days = daysSinceBackup ?? 0;
   const message = iconsLeftOut
     ? tCore('customIcons.backup.leftOut')
+    : picturesLeftOut
+    ? tCore('pictureBackup.leftOut')
     : days === 1
     ? t('backupReminder.daysAgoSingular', { n: days })
     : t('backupReminder.daysAgoPlural', { n: days });

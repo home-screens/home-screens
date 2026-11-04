@@ -20,7 +20,7 @@ const FILE_PASSWORD = 'a good long password';
 const EDITOR_PASSWORD = 'e2e-editor-password';
 
 /** The full-backup restore input is the second .json file input on the page. */
-const backupInput = 'input[type="file"][accept=".json"]';
+const backupInput = '[data-testid="backup-restore-input"]';
 
 // Enables an editor password partway through and never clears it on its own;
 // the afterAll below restores the no-auth baseline for any spec that reuses
@@ -135,7 +135,7 @@ test.describe('with an editor password set', () => {
     expect(raw).not.toContain(API_KEY);
 
     // Restoring it prompts for the password rather than silently skipping.
-    await page.locator(backupInput).nth(1).setInputFiles({
+    await page.locator(backupInput).setInputFiles({
       name: 'home-screens-backup-with-keys.json',
       mimeType: 'application/json',
       buffer: Buffer.from(raw),
@@ -164,7 +164,7 @@ test.describe('with an editor password set', () => {
       screens: [makeScreen('s-changed', 'Changed', [textModule('CHANGED')])],
     }));
 
-    await page.locator(backupInput).nth(1).setInputFiles({
+    await page.locator(backupInput).setInputFiles({
       name: 'home-screens-backup-with-keys.json',
       mimeType: 'application/json',
       buffer: Buffer.from(raw),
@@ -192,7 +192,7 @@ test.describe('with an editor password set', () => {
       credentials: { encrypted: false, data: 'not an object' },
     };
 
-    await page.locator(backupInput).nth(1).setInputFiles({
+    await page.locator(backupInput).setInputFiles({
       name: 'damaged.json',
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(bundle)),
@@ -220,7 +220,7 @@ test.describe('with an editor password set', () => {
     // Wait until the editor has finished its own config load before breaking
     // the endpoint — installing the intercept first would just hang the page
     // on "Loading…" and never get us to the restore.
-    await expect(page.locator(backupInput).nth(1)).toBeAttached();
+    await expect(page.locator(backupInput)).toBeAttached();
 
     // Break only the post-restore config refetch, not the restore itself.
     await page.route('**/api/config', async (route) => {
@@ -228,7 +228,7 @@ test.describe('with an editor password set', () => {
       return route.continue();
     });
 
-    await page.locator(backupInput).nth(1).setInputFiles({
+    await page.locator(backupInput).setInputFiles({
       name: 'plain.json',
       mimeType: 'application/json',
       buffer: Buffer.from(JSON.stringify(bundle)),

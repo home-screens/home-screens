@@ -397,6 +397,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 daysSinceBackup={backup.daysSinceBackup}
                 busy={backup.busy}
                 iconsLeftOut={backup.iconsLeftOut}
+                picturesLeftOut={backup.picturesLeftOut}
                 onBackup={backup.handleBackup}
                 onDismiss={backup.handleDismiss}
               />
@@ -464,6 +465,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 onBackup={backup.handleBackup}
                 backupBusy={backup.busy}
                 backupIconsLeftOut={backup.iconsLeftOut}
+                backupPicturesLeftOut={backup.picturesLeftOut}
                 onPowerAction={handlePowerAction}
               />
             </>

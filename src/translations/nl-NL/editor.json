@@ -730,7 +730,9 @@
         "plaintextWarning": "Iedereen die dit bestand opent, kan je accounts gebruiken. Bewaar het op een privéplek.",
         "needsEditorPassword": "Vraagt eerst om een wachtwoord, zodat het bestand niet leesbaar is voor wie het vindt.",
         "savedTo": "{filename} opgeslagen in je downloads.",
-        "includeIconsLabel": "Eigen pictogrammen meenemen"
+        "includeIconsLabel": "Eigen pictogrammen meenemen",
+        "picturesLabel": "Afbeeldingen in de back-up",
+        "picturesSearchWords": "foto's video's bibliotheek diashow achtergrond zip"
       },
       "backupReminder": {
         "heading": "Back-upherinnering",

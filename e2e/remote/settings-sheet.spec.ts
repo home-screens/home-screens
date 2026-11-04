@@ -135,6 +135,31 @@ test('backup downloads a bundle file with sane name and content', async ({ page 
   await expect(page.getByText('Backup Saved')).toBeVisible();
 });
 
+test('the Pictures row cycles the remembered choice and shows its size', async ({ page, request }) => {
+  await stubStats(page);
+  // A picture in the library is what makes the row appear at all.
+  const folder = `e2e-sheet-${Date.now().toString(36)}`;
+  const seeded = await request.post('/api/backgrounds', {
+    multipart: { directory: folder, file: { name: 'a.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') } },
+  });
+  expect(seeded.ok()).toBe(true);
+  try {
+    await page.goto('/remote');
+    await openSheet(page);
+    const row = page.getByTestId('remote-backup-pictures');
+    await expect(row).toContainText('Only the ones on screen');
+    await row.click();
+    await expect(row).toContainText(/Your whole library · \d+ KB/);
+    await row.click();
+    await expect(row).toContainText('Left out');
+    expect(await page.evaluate(() => localStorage.getItem('hs-backup-pictures'))).toBe('off');
+    await row.click();
+    await expect(row).toContainText('Only the ones on screen');
+  } finally {
+    await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
+  }
+});
+
 test('restore-from-file happy path POSTs the bundle to /api/backup', async ({ page }) => {
   await stubStats(page);
 

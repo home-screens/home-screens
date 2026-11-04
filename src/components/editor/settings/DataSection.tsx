@@ -7,8 +7,6 @@ import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseho
 import { useConfirmStore } from '@/stores/confirm-store';
 import { CONFIG_REVISION_HEADER } from '@/lib/config-revision';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
-import { downloadBlob } from '@/lib/download';
-import { backupFileName } from '@/lib/backup-file-name';
 import { formatDateInTZ, formatTimeInTZ } from '@/lib/timezone';
 import type { LayoutExport } from '@/types/layout-export';
 import type { BackupReminderSettings } from '@/types/config';
@@ -24,6 +22,17 @@ import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
 import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
 import { attachCustomIcons, fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
 import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
+import {
+  fetchPictureBackupSummary,
+  getPictureBackupChoice,
+  isZipBackup,
+  saveBackupFile,
+  setPictureBackupChoice,
+  stageZipBackup,
+  type PictureBackupChoice,
+  type PictureBackupSummary,
+} from '@/lib/picture-backup';
+import { settingsHref } from '@/lib/settings-route';
 import { refreshCustomIcons } from '@/hooks/useCustomIcons';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { describeConfigBackup, LAST_STABLE_BACKUP } from '@/lib/config-backup-label';
@@ -52,6 +61,8 @@ interface RestoreResponse {
   credentials?: CredentialApplyResult;
   /** Restored items pointing at icons the backup did not carry. */
   missingIcons?: number;
+  /** Screens, day rules and slideshows pointing at library files this hub does not hold. */
+  missingPictures?: number;
 }
 
 // kind drives styling/role explicitly — don't sniff English prefixes from message.
@@ -141,6 +152,20 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   useEffect(() => {
     setIncludeIcons(getIncludeCustomIcons());
     void fetchCustomIconBackupSummary(editorFetch).then(setIconSummary);
+  }, []);
+
+  // The library pictures, remembered the same way. `used` is the default:
+  // a backup that cannot put the screens back on a new hub is not the one
+  // anyone meant to make, and the size is on the label.
+  const [pictureChoice, setPictureChoiceState] = useState<PictureBackupChoice>('used');
+  const [pictureSummary, setPictureSummary] = useState<PictureBackupSummary | null>(null);
+  useEffect(() => {
+    setPictureChoiceState(getPictureBackupChoice());
+    void fetchPictureBackupSummary(editorFetch).then(setPictureSummary);
+  }, []);
+  const choosePictures = useCallback((choice: PictureBackupChoice) => {
+    setPictureChoiceState(choice);
+    setPictureBackupChoice(choice);
   }, []);
 
   // Restore-side password prompt for an encrypted bundle. `pendingRestore`
@@ -279,21 +304,22 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
         }
       }
 
-      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      const filename = backupFileName(timezone, { withKeys: withCredentials });
-      downloadBlob(blob, filename);
+      const saved = await saveBackupFile(bundle, editorFetch, { timezone, withKeys: withCredentials, pictures: pictureChoice });
       setLastBackupDate(new Date().toISOString());
       // Pressing the button used to change nothing on screen: the file
       // appeared in the browser's downloads and the only in-app trace was a
       // "Last backup" date below the fold. Say what happened, where the
       // button is.
-      setBackupSaved(filename);
+      setBackupSaved(saved.filename);
+      // The zip could not be made, so the JSON file was saved: a backup
+      // without the pictures beats none, but the family should know.
+      if (saved.picturesLeftOut) useConfirmStore.getState().alert(tCore('pictureBackup.leftOut'));
     } catch {
       useConfirmStore.getState().alert(t('settings.dataPage.alerts.exportBackupFailed'));
     } finally {
       setBackupBusy(false);
     }
-  }, [includeCredentials, timezone, t]);
+  }, [includeCredentials, pictureChoice, timezone, t, tCore]);
 
   // Say what a restore replaces before the OS file picker takes over the
   // screen. Opening the picker first put the destructive explanation after
@@ -334,6 +360,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     const credentials = result.credentials;
     const notices: string[] = [];
     if (result.missingIcons) notices.push(tCore('customIcons.backup.missing'));
+    if (result.missingPictures) notices.push(tCore('pictureBackup.restoreMissing'));
     if (credentials?.skipped.includes('auth.ipRestrictAccess')) {
       notices.push(t('settings.dataPage.restore.ipRulesNotRestored'));
     }
@@ -372,6 +399,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     importConfig(JSON.stringify(await configRes.json()), configRes.headers.get(CONFIG_REVISION_HEADER));
     onSettingsImported();
     setRestoreFinished(true);
+    // The restored screens use other pictures than the ones the labels counted.
+    void fetchPictureBackupSummary(editorFetch).then(setPictureSummary);
   }, [importConfig, onSettingsImported, t, tCore]);
 
   /**
@@ -428,21 +457,58 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     e.target.value = '';
     if (!file) return;
 
+    // What the file holds decides the prompts: a JSON backup is read here,
+    // a zip is put on the hub first (`POST /api/backup/upload`) and the
+    // hub says what is inside, so the pictures travel once and the restore
+    // itself posts only the archive's id.
     let bundle: Record<string, unknown>;
-    try {
-      // Validate JSON parses (the API enforces shape — we only need to see
-      // whether this bundle carries a credential section, and whether it is
-      // locked, before deciding what to prompt for).
-      bundle = JSON.parse(await file.text());
-      if (!bundle || typeof bundle !== 'object') throw new Error('not an object');
-    } catch {
-      useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
-      return;
+    let lacksIcons: boolean;
+    let hasCredentials: boolean;
+    let credentialsEncrypted: boolean;
+    if (isZipBackup(file)) {
+      setBackupBusy(true);
+      try {
+        const staged = await stageZipBackup(file, editorFetch);
+        bundle = { _archive: staged.id };
+        lacksIcons = staged.usesCustomIcons && !staged.hasCustomIcons;
+        hasCredentials = staged.hasCredentials;
+        credentialsEncrypted = staged.credentialsEncrypted;
+        if (staged.pictures.count > 0) {
+          const ok = await useConfirmStore.getState().confirm({
+            message: tCore('pictureBackup.restoreConfirm', { count: staged.pictures.count, size: formatIconBytes(staged.pictures.bytes, formattingLocale) }),
+            confirmLabel: tCore('pictureBackup.restoreConfirmButton'),
+          });
+          if (!ok) return;
+        }
+      } catch (err) {
+        if (isSessionExpired(err)) return;
+        useConfirmStore.getState().alert(restoreFailureText(
+          new RestoreRefused('upload', err instanceof Error ? err.message : null),
+          t('settings.dataPage.alerts.invalidBackupFile'),
+        ));
+        return;
+      } finally {
+        setBackupBusy(false);
+      }
+    } else {
+      try {
+        // Validate JSON parses (the API enforces shape — we only need to see
+        // whether this bundle carries a credential section, and whether it is
+        // locked, before deciding what to prompt for).
+        bundle = JSON.parse(await file.text());
+        if (!bundle || typeof bundle !== 'object') throw new Error('not an object');
+      } catch {
+        useConfirmStore.getState().alert(t('settings.dataPage.alerts.invalidBackupFile'));
+        return;
+      }
+      lacksIcons = bundle.customIcons === undefined && collectCustomIconIds(bundle).size > 0;
+      hasCredentials = bundle.credentials !== undefined;
+      credentialsEncrypted = hasCredentials && isEncryptedEnvelope(bundle.credentials);
     }
 
     // A backup made with its pictures left out, from a household that used
     // some: say so before it replaces anything, not after.
-    if (bundle.customIcons === undefined && collectCustomIconIds(bundle).size > 0) {
+    if (lacksIcons) {
       const ok = await useConfirmStore.getState().confirm({
         message: tCore('customIcons.backup.restoreNoIcons'),
         confirmLabel: t('settings.dataPage.restoreConfirm.confirm'),
@@ -450,8 +516,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       if (!ok) return;
     }
 
-    if (bundle.credentials !== undefined) {
-      if (isEncryptedEnvelope(bundle.credentials)) {
+    if (hasCredentials) {
+      if (credentialsEncrypted) {
         setRestorePasswordError(null);
         setPendingRestore(bundle);
         return;
@@ -483,7 +549,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       if (isSessionExpired(err)) return;
       useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
     }
-  }, [postBackupAndReload, t, tCore]);
+  }, [formattingLocale, postBackupAndReload, t, tCore]);
 
   const handleRestorePassword = useCallback(async (password: string) => {
     if (!pendingRestore) return;
@@ -509,7 +575,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   // restore: drop the credential section and restore everything else.
   const handleRestoreWithoutKeys = useCallback(async () => {
     if (!pendingRestore) return;
+    // A staged zip's bundle is on the hub, which drops the section itself.
     const { credentials: _dropped, ...withoutCredentials } = pendingRestore;
+    if (pendingRestore._archive !== undefined) withoutCredentials._withoutKeys = true;
     setPendingRestore(null);
     try {
       await postBackupAndReload(withoutCredentials);
@@ -550,6 +618,41 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
                   <span className="block text-xs text-hs-text-faint">{tCore('customIcons.backup.help')}</span>
                 </span>
               </label>
+            )}
+            {pictureSummary && pictureSummary.all.count > 0 && (
+              <fieldset className="space-y-1.5 pt-1" data-field-id="data.fullBackupPictures">
+                <legend className="text-xs text-hs-text-body mb-1">{tCore('pictureBackup.heading')}</legend>
+                {(['off', 'used', 'all'] as const).map((choice) => {
+                  const count = choice === 'off' ? null : pictureSummary[choice];
+                  return (
+                    <label key={choice} className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="backup-pictures"
+                        value={choice}
+                        checked={pictureChoice === choice}
+                        onChange={() => choosePictures(choice)}
+                        className="accent-hs-accent mt-0.5"
+                      />
+                      <span className="block text-xs text-hs-text-body">
+                        {tCore(`pictureBackup.${choice}`)}
+                        {count && (
+                          <span className="text-hs-text-faint">
+                            {' '}({tCore('pictureBackup.files', { count: count.count })}, {formatIconBytes(count.bytes, formattingLocale)})
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  );
+                })}
+                <p className="text-xs text-hs-text-faint pl-6">{tCore('pictureBackup.help')}</p>
+                {pictureSummary.missing > 0 && (
+                  <p className="text-xs text-hs-warning pl-6">
+                    {tCore('pictureBackup.missingNow', { count: pictureSummary.missing })}{' '}
+                    <a href={settingsHref({ kind: 'defaults', page: 'media' })} className="underline">{tCore('pictureBackup.openLibrary')}</a>
+                  </p>
+                )}
+              </fieldset>
             )}
             <label
               className={`flex items-start gap-2.5 ${
@@ -812,7 +915,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       <input
         ref={backupInputRef}
         type="file"
-        accept=".json"
+        accept=".json,.zip,application/zip"
+        data-testid="backup-restore-input"
         className="hidden"
         onChange={handleBackupRestore}
       />

@@ -420,6 +420,33 @@
     "photosPrompt": "Want your own pictures for meals and chores?",
     "photosButton": "Add them here"
   },
+  "pictureBackup": {
+    "heading": "Pictures",
+    "off": "Leave them out",
+    "used": "Only the ones your screens use",
+    "all": "Everything in your picture library",
+    "help": "Backgrounds, slideshow folders and videos on your screens. A backup with pictures is saved as a zip file.",
+    "files": {
+      "one": "{count} file",
+      "other": "{count} files"
+    },
+    "missingNow": {
+      "one": "{count} picture your screens use is already missing and cannot be saved.",
+      "other": "{count} pictures your screens use are already missing and cannot be saved."
+    },
+    "openLibrary": "Open Pictures & videos",
+    "leftOut": "Saved, but your pictures could not be added. Try again to include them.",
+    "restoreConfirm": {
+      "one": "This backup holds {count} picture ({size}). A picture already on this hub with the same name is replaced; nothing is removed.",
+      "other": "This backup holds {count} pictures and videos ({size}). A picture already on this hub with the same name is replaced; nothing is removed."
+    },
+    "restoreConfirmButton": "Restore",
+    "restoreMissing": "Some screens use pictures that were not in this backup. Open Pictures & videos to see which.",
+    "phoneRow": "Pictures in the backup",
+    "phoneUsed": "Only the ones on screen",
+    "phoneAll": "Your whole library",
+    "phoneOff": "Left out"
+  },
   "noTimezone": {
     "title": "No time zone yet.",
     "body": "Your screens use the hub's clock ({zone}), so times can be off.",

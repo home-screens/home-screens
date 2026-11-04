@@ -237,6 +237,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'data', fieldId: 'data.fullBackupIncludeIcons', labelKey: 'settings.dataPage.fullBackup.includeIconsLabel', keywordKeys: ['settings.iconsPage.searchWords'] },
   // The family asked for "custom emoji"; the page is called Your icons.
   { pageId: 'icons', fieldId: 'icons.add', labelKey: 'settings.iconsPage.addPictures', keywordKeys: ['settings.iconsPage.searchWords', 'settings.iconsPage.description'] },
+  { pageId: 'data', fieldId: 'data.fullBackupPictures', labelKey: 'settings.dataPage.fullBackup.picturesLabel', keywordKeys: ['settings.dataPage.fullBackup.picturesSearchWords'] },
   { pageId: 'data', fieldId: 'data.fullBackupRestore', labelKey: 'settings.dataPage.fullBackup.restoreButton' },
   { pageId: 'data', fieldId: 'data.fullBackupIncludeCredentials', labelKey: 'settings.dataPage.fullBackup.includeCredentialsLabel', keywordKeys: ['settings.dataPage.fullBackup.includeCredentialsHelp'] },
   { pageId: 'data', fieldId: 'data.fullBackupProtectCredentials', labelKey: 'settings.dataPage.fullBackup.protectLabel' },

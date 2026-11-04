@@ -420,6 +420,33 @@
     "photosPrompt": "¿Quieres tus propias imágenes para las comidas y las tareas?",
     "photosButton": "Añádelas aquí"
   },
+  "pictureBackup": {
+    "heading": "Imágenes",
+    "off": "No incluirlas",
+    "used": "Solo las que usan tus pantallas",
+    "all": "Toda tu biblioteca de imágenes",
+    "help": "Fondos, carpetas de presentación y vídeos de tus pantallas. Una copia con imágenes se guarda como archivo zip.",
+    "files": {
+      "one": "{count} archivo",
+      "other": "{count} archivos"
+    },
+    "missingNow": {
+      "one": "{count} imagen que usan tus pantallas ya falta y no se puede guardar.",
+      "other": "{count} imágenes que usan tus pantallas ya faltan y no se pueden guardar."
+    },
+    "openLibrary": "Abrir Imágenes y vídeos",
+    "leftOut": "Copia guardada, pero no se pudieron añadir tus imágenes. Vuelve a intentarlo para incluirlas.",
+    "restoreConfirm": {
+      "one": "Esta copia contiene {count} imagen ({size}). Si ya hay en este dispositivo una imagen con el mismo nombre, se reemplaza; no se borra nada.",
+      "other": "Esta copia contiene {count} imágenes y vídeos ({size}). Si ya hay en este dispositivo una imagen con el mismo nombre, se reemplaza; no se borra nada."
+    },
+    "restoreConfirmButton": "Restaurar",
+    "restoreMissing": "Algunas pantallas usan imágenes que no estaban en esta copia. Abre Imágenes y vídeos para ver cuáles.",
+    "phoneRow": "Imágenes en la copia",
+    "phoneUsed": "Solo las de la pantalla",
+    "phoneAll": "Toda tu biblioteca",
+    "phoneOff": "Sin incluir"
+  },
   "noTimezone": {
     "title": "Aún no hay zona horaria.",
     "body": "Tus pantallas usan el reloj del hub ({zone}), así que las horas pueden estar mal.",

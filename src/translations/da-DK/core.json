@@ -420,6 +420,33 @@
     "photosPrompt": "Vil du have dine egne billeder til måltider og pligter?",
     "photosButton": "Tilføj dem her"
   },
+  "pictureBackup": {
+    "heading": "Billeder",
+    "off": "Ikke med",
+    "used": "Kun dem, dine skærme bruger",
+    "all": "Hele dit billedbibliotek",
+    "help": "Baggrunde, diasshow-mapper og videoer på dine skærme. En sikkerhedskopi med billeder gemmes som en zip-fil.",
+    "files": {
+      "one": "{count} fil",
+      "other": "{count} filer"
+    },
+    "missingNow": {
+      "one": "{count} billede, som dine skærme bruger, mangler allerede og kan ikke komme med.",
+      "other": "{count} billeder, som dine skærme bruger, mangler allerede og kan ikke komme med."
+    },
+    "openLibrary": "Åbn Billeder & videoer",
+    "leftOut": "Gemt, men dine billeder kunne ikke komme med. Prøv igen for at tage dem med.",
+    "restoreConfirm": {
+      "one": "Denne sikkerhedskopi har {count} billede ({size}). Et billede med samme navn på denne hub bliver erstattet; intet bliver fjernet.",
+      "other": "Denne sikkerhedskopi har {count} billeder og videoer ({size}). Et billede med samme navn på denne hub bliver erstattet; intet bliver fjernet."
+    },
+    "restoreConfirmButton": "Gendan",
+    "restoreMissing": "Nogle skærme bruger billeder, der ikke var med i denne sikkerhedskopi. Åbn Billeder & videoer for at se hvilke.",
+    "phoneRow": "Billeder i sikkerhedskopien",
+    "phoneUsed": "Kun dem på skærmen",
+    "phoneAll": "Hele dit bibliotek",
+    "phoneOff": "Ikke med"
+  },
   "noTimezone": {
     "title": "Ingen tidszone endnu.",
     "body": "Dine skærme bruger hubbens ur ({zone}), så tiderne kan være forkerte.",

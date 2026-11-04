@@ -76,7 +76,7 @@ The gear in the top corner opens a sheet with:
 - the Pi's name, uptime, memory and storage
 - **Family**, the same family list as Settings > Family in the editor
 - **Your icons**, the pictures your family added as icons, to add, rename or remove
-- **Backup All Data** (with an **Include your icons** switch) and **Restore Backup**
+- **Backup All Data** (with an **Include your icons** switch and a **Pictures in the backup** row that cycles between leaving them out, only the ones on screen, and your whole library) and **Restore Backup**
 - a light, dark or system theme for the remote, separate from the editor's
 - **Restart Home Screens** and **Reboot Device**, each of which asks you to confirm first
 

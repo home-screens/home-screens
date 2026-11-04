@@ -730,7 +730,9 @@
         "plaintextWarning": "Toute personne qui ouvre ce fichier peut utiliser vos comptes. Gardez-le dans un endroit privé.",
         "needsEditorPassword": "Nécessite d'abord un mot de passe, pour que le fichier ne soit pas lisible par n'importe qui.",
         "savedTo": "{filename} enregistré dans vos téléchargements.",
-        "includeIconsLabel": "Inclure vos icônes"
+        "includeIconsLabel": "Inclure vos icônes",
+        "picturesLabel": "Photos et vidéos dans la sauvegarde",
+        "picturesSearchWords": "photos vidéos photothèque diaporama fond d'écran zip"
       },
       "backupReminder": {
         "heading": "Rappel de sauvegarde",

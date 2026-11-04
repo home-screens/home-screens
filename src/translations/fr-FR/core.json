@@ -420,6 +420,33 @@
     "photosPrompt": "Envie de vos propres images pour les repas et les tâches ?",
     "photosButton": "Ajoutez-les ici"
   },
+  "pictureBackup": {
+    "heading": "Photos et vidéos",
+    "off": "Ne pas les inclure",
+    "used": "Seulement celles que vos écrans utilisent",
+    "all": "Toute votre photothèque",
+    "help": "Fonds d'écran, dossiers de diaporama et vidéos de vos écrans. Une sauvegarde avec des images est enregistrée en fichier zip.",
+    "files": {
+      "one": "{count} fichier",
+      "other": "{count} fichiers"
+    },
+    "missingNow": {
+      "one": "{count} image utilisée par vos écrans manque déjà et ne peut pas être sauvegardée.",
+      "other": "{count} images utilisées par vos écrans manquent déjà et ne peuvent pas être sauvegardées."
+    },
+    "openLibrary": "Ouvrir Photos et vidéos",
+    "leftOut": "Sauvegarde faite, mais vos images n'ont pas pu être ajoutées. Réessayez pour les inclure.",
+    "restoreConfirm": {
+      "one": "Cette sauvegarde contient {count} image ({size}). Une image du même nom déjà sur cet appareil est remplacée ; rien n'est supprimé.",
+      "other": "Cette sauvegarde contient {count} images et vidéos ({size}). Une image du même nom déjà sur cet appareil est remplacée ; rien n'est supprimé."
+    },
+    "restoreConfirmButton": "Restaurer",
+    "restoreMissing": "Certains écrans utilisent des images qui n'étaient pas dans cette sauvegarde. Ouvrez Photos et vidéos pour voir lesquelles.",
+    "phoneRow": "Photos et vidéos dans la sauvegarde",
+    "phoneUsed": "Seulement celles à l'écran",
+    "phoneAll": "Toute la photothèque",
+    "phoneOff": "Non incluses"
+  },
   "noTimezone": {
     "title": "Pas encore de fuseau horaire.",
     "body": "Vos écrans suivent l'horloge du hub ({zone}), les heures peuvent donc être fausses.",

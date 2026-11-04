@@ -730,7 +730,9 @@
         "plaintextWarning": "Cualquiera que abra este archivo puede usar tus cuentas. Guárdalo en un sitio privado.",
         "needsEditorPassword": "Primero hace falta una contraseña, para que el archivo no lo pueda leer cualquiera que lo encuentre.",
         "savedTo": "Se ha guardado {filename} en tus descargas.",
-        "includeIconsLabel": "Incluir tus iconos"
+        "includeIconsLabel": "Incluir tus iconos",
+        "picturesLabel": "Imágenes en la copia",
+        "picturesSearchWords": "fotos vídeos biblioteca presentación fondo zip"
       },
       "backupReminder": {
         "heading": "Recordatorio de copia",

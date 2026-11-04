@@ -730,7 +730,9 @@
         "plaintextWarning": "Qualquer pessoa que abrir este arquivo pode usar suas contas. Guarde-o em um lugar privado.",
         "needsEditorPassword": "Precisa de uma senha antes, para que o arquivo não possa ser lido por quem o encontrar.",
         "savedTo": "{filename} salvo nos seus downloads.",
-        "includeIconsLabel": "Incluir seus ícones"
+        "includeIconsLabel": "Incluir seus ícones",
+        "picturesLabel": "Fotos no backup",
+        "picturesSearchWords": "fotos vídeos biblioteca slideshow fundo zip"
       },
       "backupReminder": {
         "heading": "Lembrete de backup",

@@ -12,7 +12,7 @@ export default function BackupReminderToast() {
   const tCore = useTranslate('core');
   const reminderSettings = useEditorStore((s) => s.config?.settings?.backupReminder);
   const timezone = useEditorHouseholdTimezone();
-  const { shouldShow, daysSinceBackup, busy, iconsLeftOut, handleBackup, handleDismiss } = useBackupReminder({
+  const { shouldShow, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, handleBackup, handleDismiss } = useBackupReminder({
     enabled: reminderSettings?.enabled ?? false,
     intervalDays: reminderSettings?.intervalDays ?? 7,
     fetchFn: editorFetch,
@@ -34,6 +34,8 @@ export default function BackupReminderToast() {
         <div className="text-hs-warning text-sm">
           {iconsLeftOut
             ? tCore('customIcons.backup.leftOut')
+            : picturesLeftOut
+            ? tCore('pictureBackup.leftOut')
             : t('backupReminder.message', { count: daysSinceBackup ?? 0 })}
         </div>
         <button

@@ -422,6 +422,33 @@
     "photosPrompt": "Quer usar suas próprias fotos nas refeições e tarefas?",
     "photosButton": "Adicionar aqui"
   },
+  "pictureBackup": {
+    "heading": "Fotos",
+    "off": "Deixar de fora",
+    "used": "Só as que suas telas usam",
+    "all": "Toda a sua biblioteca de fotos",
+    "help": "Fundos, pastas de slideshow e vídeos das suas telas. Um backup com fotos é salvo como arquivo zip.",
+    "files": {
+      "one": "{count} arquivo",
+      "other": "{count} arquivos"
+    },
+    "missingNow": {
+      "one": "{count} foto que suas telas usam já está faltando e não pode ser salva.",
+      "other": "{count} fotos que suas telas usam já estão faltando e não podem ser salvas."
+    },
+    "openLibrary": "Abrir Fotos e vídeos",
+    "leftOut": "Backup salvo, mas não deu para incluir suas fotos. Tente de novo para incluí-las.",
+    "restoreConfirm": {
+      "one": "Este backup tem {count} foto ou vídeo ({size}). Se já houver no hub um arquivo com o mesmo nome, ele é substituído; nada é apagado.",
+      "other": "Este backup tem {count} fotos e vídeos ({size}). Se já houver no hub um arquivo com o mesmo nome, ele é substituído; nada é apagado."
+    },
+    "restoreConfirmButton": "Restaurar",
+    "restoreMissing": "Algumas telas usam fotos que não estavam neste backup. Abra Fotos e vídeos para ver quais.",
+    "phoneRow": "Fotos no backup",
+    "phoneUsed": "Só as usadas nas telas",
+    "phoneAll": "Toda a biblioteca",
+    "phoneOff": "Deixadas de fora"
+  },
   "noTimezone": {
     "title": "Ainda sem fuso horário.",
     "body": "Suas telas usam o relógio do hub ({zone}), então os horários podem estar errados.",

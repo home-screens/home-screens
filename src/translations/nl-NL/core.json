@@ -420,6 +420,33 @@
     "photosPrompt": "Wil je eigen foto's gebruiken voor maaltijden en klusjes?",
     "photosButton": "Hier toevoegen"
   },
+  "pictureBackup": {
+    "heading": "Afbeeldingen",
+    "off": "Niet meenemen",
+    "used": "Alleen die je schermen gebruiken",
+    "all": "Je hele afbeeldingenbibliotheek",
+    "help": "Achtergronden, diashowmappen en video's op je schermen. Een back-up met afbeeldingen wordt als zip-bestand opgeslagen.",
+    "files": {
+      "one": "{count} bestand",
+      "other": "{count} bestanden"
+    },
+    "missingNow": {
+      "one": "{count} afbeelding die je schermen gebruiken ontbreekt al en kan niet mee.",
+      "other": "{count} afbeeldingen die je schermen gebruiken ontbreken al en kunnen niet mee."
+    },
+    "openLibrary": "Afbeeldingen & video's openen",
+    "leftOut": "Opgeslagen, maar je afbeeldingen konden niet mee. Probeer het nog eens om ze mee te nemen.",
+    "restoreConfirm": {
+      "one": "Deze back-up bevat {count} afbeelding ({size}). Een afbeelding met dezelfde naam op dit apparaat wordt vervangen; er wordt niets verwijderd.",
+      "other": "Deze back-up bevat {count} afbeeldingen en video's ({size}). Een afbeelding met dezelfde naam op dit apparaat wordt vervangen; er wordt niets verwijderd."
+    },
+    "restoreConfirmButton": "Terugzetten",
+    "restoreMissing": "Sommige schermen gebruiken afbeeldingen die niet in deze back-up zaten. Open Afbeeldingen & video's om te zien welke.",
+    "phoneRow": "Afbeeldingen in de back-up",
+    "phoneUsed": "Alleen die op het scherm",
+    "phoneAll": "Je hele bibliotheek",
+    "phoneOff": "Niet meegenomen"
+  },
   "noTimezone": {
     "title": "Nog geen tijdzone.",
     "body": "Je schermen gebruiken de klok van de hub ({zone}), dus tijden kunnen afwijken.",

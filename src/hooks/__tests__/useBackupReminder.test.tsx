@@ -28,9 +28,20 @@ function fetchFnWith(lastBackupDate: () => string) {
 
 const fetchFn = fetchFnWith(staleBackupDate);
 
+/** Node's own localStorage shadows jsdom's here, so the choice gets a plain in-memory one. */
+function makeLocalStorage() {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, value); },
+    removeItem: (key: string) => { store.delete(key); },
+  };
+}
+
 beforeEach(() => {
   mocks.attachCustomIcons.mockReset();
   mocks.downloadBlob.mockReset();
+  vi.stubGlobal('localStorage', makeLocalStorage());
 });
 
 async function mounted() {
@@ -69,7 +80,7 @@ describe('useBackupReminder with the family icons', () => {
 describe('useBackupReminder file name', () => {
   afterEach(() => { vi.useRealTimers(); });
 
-  it("dates the file with the household's day, not the UTC one", async () => {
+  async function backUpInChicago() {
     // 8 pm on Tuesday 22 September in Chicago is already the 23rd in UTC.
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-09-23T01:00:00Z'));
@@ -77,6 +88,31 @@ describe('useBackupReminder file name', () => {
     const hook = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn, timezone: 'America/Chicago' }));
     await waitFor(() => expect(hook.result.current.shouldShow).toBe(true));
     await act(async () => { await hook.result.current.handleBackup(); });
+    return hook;
+  }
+
+  it("dates the file with the household's day, not the UTC one", async () => {
+    window.localStorage.setItem('hs-backup-pictures', 'off');
+    await backUpInChicago();
     expect(mocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'home-screens-backup-2026-09-22.json');
+  });
+
+  it('saves a zip when the remembered choice carries pictures (the default)', async () => {
+    const hook = await backUpInChicago();
+    expect(mocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), 'home-screens-backup-2026-09-22.zip');
+    expect(hook.result.current.picturesLeftOut).toBe(false);
+  });
+
+  it('falls back to the JSON file and keeps the reminder up when the zip could not be made', async () => {
+    const failingArchive = (url: string): Promise<Response> => url === '/api/backup/archive'
+      ? Promise.resolve(new Response('no', { status: 500 }))
+      : fetchFn(url);
+    mocks.attachCustomIcons.mockImplementation(async (bundle: object) => bundle);
+    const hook = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn: failingArchive }));
+    await waitFor(() => expect(hook.result.current.shouldShow).toBe(true));
+    await act(async () => { await hook.result.current.handleBackup(); });
+    expect(mocks.downloadBlob).toHaveBeenCalledWith(expect.any(Blob), expect.stringMatching(/\.json$/));
+    expect(hook.result.current.picturesLeftOut).toBe(true);
+    expect(hook.result.current.shouldShow).toBe(true);
   });
 });

@@ -13,6 +13,16 @@ import { ChevronLeft, ImagePlus, Users } from 'lucide-react';
 import CustomIconsOverlay from './CustomIconsOverlay';
 import { fetchCustomIconBackupSummary, getIncludeCustomIcons, setIncludeCustomIcons } from '@/lib/custom-icon-backup';
 import { collectCustomIconIds, formatIconBytes } from '@/lib/custom-icons';
+import {
+  fetchPictureBackupSummary,
+  getPictureBackupChoice,
+  isZipBackup,
+  nextPictureBackupChoice,
+  setPictureBackupChoice,
+  stageZipBackup,
+  type PictureBackupChoice,
+  type PictureBackupSummary,
+} from '@/lib/picture-backup';
 import { refreshCustomIcons, useCustomIcons } from '@/hooks/useCustomIcons';
 
 export type PowerAction = 'restart-service' | 'reboot';
@@ -24,6 +34,8 @@ interface SettingsSheetProps {
   backupBusy: boolean;
   /** The last backup went without the family's icons (they could not be read). */
   backupIconsLeftOut?: boolean;
+  /** The last backup went without the library pictures (the zip could not be made). */
+  backupPicturesLeftOut?: boolean;
   /**
    * The user confirmed a restart or reboot of the hub and it was sent. The
    * parent closes this sheet and shows the reconnecting state — the silence
@@ -100,7 +112,7 @@ function PowerRow({
   );
 }
 
-export default function SettingsSheet({ open, onClose, onBackup, backupBusy, backupIconsLeftOut = false, onPowerAction }: SettingsSheetProps) {
+export default function SettingsSheet({ open, onClose, onBackup, backupBusy, backupIconsLeftOut = false, backupPicturesLeftOut = false, onPowerAction }: SettingsSheetProps) {
   const t = useTranslate('remote');
   const tCore = useTranslate('core');
   const [familyOpen, setFamilyOpen] = useState(false);
@@ -110,6 +122,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   const [includeIcons, setIncludeIcons] = useState(true);
   /** Restored items pointing at icons that were not in the backup. */
   const [missingIcons, setMissingIcons] = useState(0);
+  /** Screens pointing at library pictures this hub does not hold after the restore. */
+  const [missingPictures, setMissingPictures] = useState(0);
+  // Which library pictures the backup carries, remembered like the icons switch.
+  const [pictureChoice, setPictureChoiceState] = useState<PictureBackupChoice>('used');
+  const [pictureSummary, setPictureSummary] = useState<PictureBackupSummary | null>(null);
   const [stats, setStats] = useState<SystemStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +142,8 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
   const credentialsSkippedRef = useRef(false);
   /** The chosen bundle points at pictures it does not carry. */
   const restoreLacksIconsRef = useRef(false);
+  /** Pictures and their size in the chosen zip, for the confirming line. */
+  const restorePicturesRef = useRef<{ count: number; bytes: number } | null>(null);
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const restoreTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -150,8 +169,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
       setIconsOpen(false);
       setBackupDone(false);
       setMissingIcons(0);
+      setMissingPictures(0);
       setIncludeIcons(getIncludeCustomIcons());
       void fetchCustomIconBackupSummary(editorFetch).then(setIconSummary);
+      setPictureChoiceState(getPictureBackupChoice());
+      void fetchPictureBackupSummary(editorFetch).then(setPictureSummary);
       void refreshCustomIcons();
       setConfirmPower(null);
       setRestoreState('idle');
@@ -166,9 +188,41 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
     if (ok) setBackupDone(true);
   };
 
+  const cyclePictureChoice = () => {
+    const next = nextPictureBackupChoice(pictureChoice);
+    setPictureChoiceState(next);
+    setPictureBackupChoice(next);
+  };
+
+  const armRestore = (data: Record<string, unknown>) => {
+    restoreDataRef.current = JSON.stringify(data);
+    setRestoreState('confirming');
+    restoreTimerRef.current = setTimeout(() => {
+      setRestoreState('idle');
+      restoreDataRef.current = null;
+    }, 5000);
+  };
+
   const handleRestoreFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    restorePicturesRef.current = null;
+    if (isZipBackup(file)) {
+      // The zip goes to the hub once; the hub says what is inside, and the
+      // restore then posts only its id. Keys are dropped the way they are
+      // for a JSON backup, by the hub this time.
+      e.target.value = '';
+      setRestoreState('busy');
+      stageZipBackup(file, editorFetch).then((staged) => {
+        credentialsSkippedRef.current = staged.hasCredentials;
+        restoreLacksIconsRef.current = staged.usesCustomIcons && !staged.hasCustomIcons;
+        restorePicturesRef.current = staged.pictures.count > 0 ? staged.pictures : null;
+        armRestore({ _archive: staged.id, ...(staged.hasCredentials ? { _withoutKeys: true } : {}) });
+      }).catch(() => {
+        setRestoreState('invalid-file');
+      });
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -189,12 +243,7 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         restoreLacksIconsRef.current = data.customIcons === undefined && collectCustomIconIds(data).size > 0;
         if (credentialsSkippedRef.current) delete data.credentials;
 
-        restoreDataRef.current = JSON.stringify(data);
-        setRestoreState('confirming');
-        restoreTimerRef.current = setTimeout(() => {
-          setRestoreState('idle');
-          restoreDataRef.current = null;
-        }, 5000);
+        armRestore(data);
       } catch {
         setRestoreState('invalid-file');
       }
@@ -217,8 +266,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
         timeoutMs: null,
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const result = (await res.json().catch(() => ({}))) as { missingIcons?: number };
+      const result = (await res.json().catch(() => ({}))) as { missingIcons?: number; missingPictures?: number };
       setMissingIcons(result.missingIcons ?? 0);
+      setMissingPictures(result.missingPictures ?? 0);
       void refreshCustomIcons();
       setRestoreState(credentialsSkippedRef.current ? 'done-without-keys' : 'done');
       restoreDataRef.current = null;
@@ -363,10 +413,34 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
               </span>
             </button>
           )}
+          {pictureSummary && pictureSummary.all.count > 0 && (
+            <button
+              type="button"
+              onClick={cyclePictureChoice}
+              className="w-full flex items-center gap-3 py-3 text-left min-h-[52px]"
+              data-testid="remote-backup-pictures"
+            >
+              <div className="w-9 shrink-0" aria-hidden />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-hs-text-primary">{tCore('pictureBackup.phoneRow')}</div>
+                {/* The state sits under the title, not in a pill beside it:
+                    "Only the ones on screen · 0.2 MB" is wider than half a
+                    phone in every language and pushed the title onto two lines. */}
+                <div className={`text-xs mt-0.5 ${pictureChoice === 'off' ? 'text-hs-text-faint' : 'text-hs-accent-hover'}`}>
+                  {pictureChoice === 'off'
+                    ? tCore('pictureBackup.phoneOff')
+                    : `${tCore(pictureChoice === 'used' ? 'pictureBackup.phoneUsed' : 'pictureBackup.phoneAll')} · ${formatIconBytes(pictureSummary[pictureChoice].bytes)}`}
+                </div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-hs-text-faint shrink-0" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={handleBackup}
-            // Left enabled when the icons were left out, so a tap tries again.
-            disabled={backupBusy || (backupDone && !backupIconsLeftOut)}
+            // Left enabled when the icons or pictures were left out, so a tap tries again.
+            disabled={backupBusy || (backupDone && !backupIconsLeftOut && !backupPicturesLeftOut)}
             className="flex items-center gap-3.5 py-3.5 w-full text-left transition-opacity active:opacity-70 disabled:opacity-40"
           >
             <div className="w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 bg-hs-warning/[0.12] text-hs-warning">
@@ -383,6 +457,9 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
               )}
               {!backupBusy && backupDone && backupIconsLeftOut && (
                 <div role="status" className="text-xs text-hs-warning mt-0.5">{tCore('customIcons.backup.leftOut')}</div>
+              )}
+              {!backupBusy && backupDone && !backupIconsLeftOut && backupPicturesLeftOut && (
+                <div role="status" className="text-xs text-hs-warning mt-0.5">{tCore('pictureBackup.leftOut')}</div>
               )}
             </div>
             {!backupBusy && !backupDone && (
@@ -428,6 +505,11 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
               {restoreState === 'confirming' && restoreLacksIconsRef.current && (
                 <div className="text-xs text-hs-warning mt-1">{tCore('customIcons.backup.restoreNoIcons')}</div>
               )}
+              {restoreState === 'confirming' && restorePicturesRef.current && (
+                <div className="text-xs text-hs-text-muted mt-1">
+                  {tCore('pictureBackup.restoreConfirm', { count: restorePicturesRef.current.count, size: formatIconBytes(restorePicturesRef.current.bytes) })}
+                </div>
+              )}
               {restoreState === 'done-without-keys' && (
                 <div className="text-xs text-hs-text-faint mt-0.5">{t('settingsSheet.data.restore.doneWithoutKeysDescription')}</div>
               )}
@@ -441,13 +523,18 @@ export default function SettingsSheet({ open, onClose, onBackup, backupBusy, bac
           <input
             ref={restoreInputRef}
             type="file"
-            accept=".json"
+            accept=".json,.zip,application/zip"
             className="hidden"
             onChange={handleRestoreFile}
           />
           {missingIcons > 0 && (restoreState === 'done' || restoreState === 'done-without-keys') && (
             <p role="status" className="text-sm text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
               {tCore('customIcons.backup.missing')}
+            </p>
+          )}
+          {missingPictures > 0 && (restoreState === 'done' || restoreState === 'done-without-keys') && (
+            <p role="status" className="text-sm text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-xl px-3.5 py-3 mt-1">
+              {tCore('pictureBackup.restoreMissing')}
             </p>
           )}
         </div>

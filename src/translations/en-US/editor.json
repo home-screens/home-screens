@@ -730,7 +730,9 @@
         "plaintextWarning": "Anyone who opens this file can use your accounts. Keep it somewhere private.",
         "needsEditorPassword": "Needs a password first, so the file isn't readable by anyone who finds it.",
         "savedTo": "Saved {filename} to your downloads.",
-        "includeIconsLabel": "Include your icons"
+        "includeIconsLabel": "Include your icons",
+        "picturesLabel": "Pictures in the backup",
+        "picturesSearchWords": "photos videos library slideshow background zip"
       },
       "backupReminder": {
         "heading": "Backup Reminder",

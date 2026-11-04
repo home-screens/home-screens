@@ -10719,6 +10719,15 @@
       ]
     },
     {
+      "path": "/api/backup/archive",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backup/credentials",
       "methods": [
         {
@@ -10737,12 +10746,30 @@
       ]
     },
     {
+      "path": "/api/backup/pictures",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backup/reminder",
       "methods": [
         {
           "method": "GET",
           "access": "display"
         },
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/backup/upload",
+      "methods": [
         {
           "method": "POST",
           "access": "session"

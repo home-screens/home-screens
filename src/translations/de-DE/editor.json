@@ -730,7 +730,9 @@
         "protectLabel": "Mit einem Passwort schützen",
         "plaintextWarning": "Wer diese Datei öffnet, kann deine Konten nutzen. Bewahre sie an einem privaten Ort auf.",
         "needsEditorPassword": "Braucht zuerst ein Passwort, damit die Datei nicht von jedem gelesen werden kann, der sie findet.",
-        "savedTo": "{filename} in deine Downloads gespeichert."
+        "savedTo": "{filename} in deine Downloads gespeichert.",
+        "picturesLabel": "Bilder in der Sicherung",
+        "picturesSearchWords": "Fotos Videos Sammlung Diashow Hintergrund ZIP"
       },
       "backupReminder": {
         "heading": "Backup-Erinnerung",
