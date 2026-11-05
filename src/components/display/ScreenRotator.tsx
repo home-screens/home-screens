@@ -55,6 +55,8 @@ import { toDockScreen } from '@/lib/screen-dock';
 import { installConsoleBuffer } from '@/lib/console-buffer';
 import { showsPaginationDots } from '@/lib/pagination-dots';
 import { DISPLAY_LAYERS } from '@/lib/display-layers';
+import { usePixelShift } from '@/hooks/usePixelShift';
+import { pixelShiftTransform } from '@/lib/pixel-shift';
 import NoTimezoneBanner from '@/components/NoTimezoneBanner';
 
 interface ScreenRotatorProps {
@@ -131,6 +133,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);
   const cursorRef = useIdleCursor(settings.cursorHideSeconds ?? 3);
+  // Burn-in protection: the whole root box steps along a small lattice once
+  // a minute. Never in the editor's preview, which must stay pixel-exact.
+  const pixelShift = usePixelShift(!preview && settings.pixelShift === true);
 
   useEffect(() => { loadPlugins('display'); }, [loadPlugins]);
 
@@ -786,12 +791,17 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const canvasOffsetLeft = viewportSize.w > 0 ? Math.max(0, (viewportSize.w - displayW * scale) / 2) : 0;
 
   return (
-    <div ref={cursorRef} style={{
+    <div ref={cursorRef} data-testid="display-root" style={{
       position: 'relative',
       width: '100vw',
       height: '100vh',
       overflow: 'hidden',
       backgroundColor: '#000',
+      // A step, never a glide: the wall redraws once a minute, not for
+      // 300 ms of frames (see Screensaver's drifting clock for the same
+      // rule). Scaled about the centre (the default origin) by the walk's
+      // reach, so no edge ever shows the page wrapper behind the box.
+      transform: pixelShift ? pixelShiftTransform(pixelShift, viewportSize.w, viewportSize.h) : undefined,
     }}>
       {/* renderedScreen is the takeover screen while a rule is firing,
           resolved from the display's full screen list (an alert screen may

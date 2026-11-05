@@ -951,6 +951,9 @@
         "cursorHideLabel": "Ocultar cursor tras",
         "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "El cursor del ratón se oculta tras estos segundos sin actividad. Mueve el ratón para mostrarlo de nuevo.",
+        "pixelShiftLabel": "Proteger la pantalla contra el quemado",
+        "pixelShiftToggle": "Desplazar la imagen ligeramente",
+        "pixelShiftHelp": "Mueve todo lo que hay en la pantalla unos píxeles una vez por minuto, para que nada se quede mucho tiempo en el mismo sitio. Ayuda con las pantallas OLED y otras que pueden quemarse. De lejos no se nota.",
         "fullscreenThemeLabel": "Tema en pantalla completa",
         "fullscreenThemeHelp": "Se aplica a todos los módulos en pantalla completa (Calendario, Tareas, Comidas) para que se vean continuos al rotar. Puedes cambiarlo por módulo en el editor."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Puntos de pantalla",
           "showRotationProgress": "Línea de progreso",
           "cursorHideSeconds": "Ocultar cursor",
+          "pixelShift": "Protección contra el quemado",
           "fullscreenTheme": "Tema",
           "sleep": "Suspensión y atenuación",
           "alerts": "Superposición de avisos"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Desactivado",
           "swipeEnabledLabelDisabled": "Desactivado",
           "setupHintLabelDisabled": "Desactivado",
-          "rotationProgressLabelDisabled": "Desactivado"
+          "rotationProgressLabelDisabled": "Desactivado",
+          "pixelShiftOn": "Sí",
+          "pixelShiftOff": "No"
         },
         "footer": {
           "overrideCountSingular": "{count} anulación de display",

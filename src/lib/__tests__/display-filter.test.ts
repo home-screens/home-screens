@@ -794,6 +794,21 @@ describe('filterConfigForDisplay — per-display overrides', () => {
     expect(filtered?.settings.cursorHideSeconds).toBe(10);
   });
 
+  it('pixelShift override beats the global value', () => {
+    const config = makeConfig({
+      settings: makeSettings({ pixelShift: false }),
+      screens: [],
+      displays: [{
+        id: 'kitchen',
+        name: 'Kitchen',
+        screens: [],
+        settings: { pixelShift: true },
+      }],
+    });
+    const filtered = filterConfigForDisplay(config, 'kitchen');
+    expect(filtered?.settings.pixelShift).toBe(true);
+  });
+
   it('pauseEnabled / pauseTimeoutSeconds overrides beat globals', () => {
     const config = makeConfig({
       settings: makeSettings({ pauseEnabled: true, pauseTimeoutSeconds: 300 }),

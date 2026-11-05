@@ -209,6 +209,35 @@ test('a display override decides the dots for that display alone', async ({ page
 });
 
 // ---------------------------------------------------------------------------
+// Burn-in protection: the root box is translated by the lattice offset, and a
+// display override decides it for that display alone. The minute step itself
+// is covered by ScreenRotator.pixelShift.test.tsx with fake timers.
+// ---------------------------------------------------------------------------
+
+test('pixelShift translates the wall root, off by default, per display when overridden', async ({ page, request }) => {
+  const screensFor = (prefix: string) => [makeScreen(`${prefix}-a`, 'A', [textModule(A)])];
+  const rootTransform = () => page.getByTestId('display-root').evaluate((el) => (el as HTMLElement).style.transform);
+  const config = baseConfig({
+    displays: [
+      { id: 'hall', name: 'Hall', screens: screensFor('hall') },
+      { id: 'kitchen', name: 'Kitchen', screens: screensFor('kitchen'), settings: { pixelShift: true } },
+    ],
+  });
+
+  await renderOnDisplay(page, request, config, '/display/kitchen');
+  // Within the lattice (a few pixels, never a visible jump), and enlarged by
+  // about one percent so the edges stay covered at every step.
+  expect(await rootTransform()).toMatch(/^translate\(-?[0-9]+px, -?[0-9]+px\) scale\(1\.0[0-9]+\)$/);
+  const [, x, y] = (await rootTransform()).match(/translate\((-?[0-9]+)px, (-?[0-9]+)px\)/)!;
+  expect(Math.abs(Number(x))).toBeLessThanOrEqual(6);
+  expect(Math.abs(Number(y))).toBeLessThanOrEqual(6);
+
+  await page.goto('/display/hall');
+  await expect(page.getByText(A, { exact: true })).toBeVisible();
+  expect(await rootTransform()).toBe('');
+});
+
+// ---------------------------------------------------------------------------
 // Plugin-driven navigation events (SDK.emit → pluginEventBus → ScreenRotator).
 // ---------------------------------------------------------------------------
 

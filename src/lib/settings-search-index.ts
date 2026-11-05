@@ -154,6 +154,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'screen', fieldId: 'display.transitionEffect', labelKey: 'settings.defaultDisplayPage.fields.transitionEffectLabel', panel: 'appearance', keywordKeys: ['settings.defaultDisplayPage.fields.transitionEffectHelp'], keywords: ['animation'] },
   { pageId: 'screen', fieldId: 'display.transitionDuration', labelKey: 'settings.defaultDisplayPage.fields.transitionDurationLabel', panel: 'appearance', visibleWhen: hasTransition, keywordKeys: ['settings.defaultDisplayPage.fields.transitionDurationHelp'] },
   { pageId: 'screen', fieldId: 'display.cursorHideSeconds', labelKey: 'settings.defaultDisplayPage.fields.cursorHideLabel', panel: 'appearance', keywordKeys: ['settings.defaultDisplayPage.fields.cursorHideHelp'] },
+  { pageId: 'screen', fieldId: 'display.pixelShift', labelKey: 'settings.defaultDisplayPage.fields.pixelShiftLabel', panel: 'appearance', keywordKeys: ['settings.defaultDisplayPage.fields.pixelShiftHelp'], keywords: ['oled', 'pixel shift', 'burn in', 'burn-in'] },
   { pageId: 'screen', fieldId: 'display.fullscreenTheme', labelKey: 'settings.defaultDisplayPage.fields.fullscreenThemeLabel', panel: 'appearance', keywordKeys: ['settings.defaultDisplayPage.fields.fullscreenThemeHelp'] },
 
   // The sleep rows deliberately carry no `visibleWhen`: every gate that can

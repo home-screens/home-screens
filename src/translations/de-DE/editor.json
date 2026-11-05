@@ -951,6 +951,9 @@
         "cursorHideLabel": "Mauszeiger ausblenden nach",
         "cursorHideValue": "{seconds}s",
         "cursorHideHelp": "Der Mauszeiger wird nach der eingestellten Zeit ohne Aktivität ausgeblendet. Bewege die Maus, um ihn wieder anzuzeigen.",
+        "pixelShiftLabel": "Bildschirm vor Einbrennen schützen",
+        "pixelShiftToggle": "Bild leicht verschieben",
+        "pixelShiftHelp": "Verschiebt alles auf dem Display einmal pro Minute um ein paar Pixel, damit nichts lange an derselben Stelle bleibt. Hilft bei OLED- und anderen Bildschirmen, die einbrennen können. Aus der Entfernung fällt es nicht auf.",
         "fullscreenThemeLabel": "Vollbild-Design",
         "fullscreenThemeHelp": "Gilt für alle Vollbild-Module (Kalender, Aufgaben, Mahlzeiten), damit sie beim Wechsel nahtlos wirken. Du kannst dies pro Modul im Editor ändern."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Bildschirmpunkte",
           "showRotationProgress": "Fortschrittslinie",
           "cursorHideSeconds": "Mauszeiger ausblenden",
+          "pixelShift": "Einbrennschutz",
           "fullscreenTheme": "Design",
           "sleep": "Schlafen & Dimmen",
           "alerts": "Hinweis-Overlay"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Deaktiviert",
           "swipeEnabledLabelDisabled": "Deaktiviert",
           "setupHintLabelDisabled": "Deaktiviert",
-          "rotationProgressLabelDisabled": "Deaktiviert"
+          "rotationProgressLabelDisabled": "Deaktiviert",
+          "pixelShiftOn": "An",
+          "pixelShiftOff": "Aus"
         },
         "footer": {
           "overrideCountSingular": "{count} Anzeige-Überschreibung",

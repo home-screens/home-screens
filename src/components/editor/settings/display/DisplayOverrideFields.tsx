@@ -393,6 +393,31 @@ export default function DisplayOverrideFields({ config, display }: DisplayOverri
           </OverrideRow>
 
           <OverrideRow
+            label={t('settings.defaultDisplayPage.fields.pixelShiftLabel')}
+            defaultValue={settings.pixelShift ?? false}
+            override={overrides.pixelShift}
+            onFork={(seed) => setOverride('pixelShift', seed)}
+            onReset={() => setOverride('pixelShift', undefined)}
+            defaultsPageHref={DEFAULTS_HREF}
+            defaultsPageLabel={DEFAULTS_LABEL}
+            formatValue={(v) =>
+              v
+                ? t('settings.perDisplayPage.display.fields.pixelShiftOn')
+                : t('settings.perDisplayPage.display.fields.pixelShiftOff')
+            }
+            displayName={display.name}
+          >
+            {({ value, onChange, disabled }) => (
+              <Toggle
+                label={t('settings.defaultDisplayPage.fields.pixelShiftToggle')}
+                checked={value}
+                disabled={disabled}
+                onChange={onChange}
+              />
+            )}
+          </OverrideRow>
+
+          <OverrideRow
             label={t('settings.defaultDisplayPage.fields.fullscreenThemeLabel')}
             defaultValue={settings.fullscreenTheme ?? 'linen'}
             override={overrides.fullscreenTheme}

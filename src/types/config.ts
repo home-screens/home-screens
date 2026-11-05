@@ -966,6 +966,18 @@ export interface GlobalSettings {
    * @default true
    */
   showPaginationDots?: boolean;
+  /**
+   * Shift the whole picture by a few pixels once a minute so nothing sits on the same spot for
+   * long. For OLED and other screens that can burn in
+   *
+   * The wall's root box is translated along a 25-spot lattice (see
+   * `src/lib/pixel-shift.ts`), stepping on the minute boundary with no
+   * transition, and enlarged by the lattice's reach so no edge uncovers
+   * the page behind it. Off by default.
+   *
+   * @default false
+   */
+  pixelShift?: boolean;
   /** Backup reminder (see BackupReminderSettings) */
   backupReminder?: BackupReminderSettings;
   /** New-release banner (see UpdateNotificationSettings) */
@@ -1148,6 +1160,8 @@ export interface DisplayNodeSettings {
   showRotationProgress?: boolean;
   /** Show the row of screen dots */
   showPaginationDots?: boolean;
+  /** Shift the picture a few pixels once a minute against burn-in */
+  pixelShift?: boolean;
   /** Alert overlay, replacing the shared object as a whole */
   alerts?: AlertSettings;
 

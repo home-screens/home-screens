@@ -951,6 +951,9 @@
         "cursorHideLabel": "Hide cursor after",
         "cursorHideValue": "{seconds}s",
         "cursorHideHelp": "The mouse cursor is hidden after this many seconds of inactivity. Move the mouse to show it again.",
+        "pixelShiftLabel": "Protect the screen from burn-in",
+        "pixelShiftToggle": "Shift the picture slightly",
+        "pixelShiftHelp": "Moves everything on the display a few pixels once a minute, so nothing sits on the same spot for long. Helps OLED and other screens that can burn in. You will not notice it from across the room.",
         "fullscreenThemeLabel": "Fullscreen theme",
         "fullscreenThemeHelp": "Applies to all fullscreen modules (Calendar, Chores, Meals) so they look seamless when rotating. You can change this per module in the editor."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Screen dots",
           "showRotationProgress": "Progress line",
           "cursorHideSeconds": "Hide cursor",
+          "pixelShift": "Burn-in protection",
           "fullscreenTheme": "Theme",
           "sleep": "Sleep & dimming",
           "alerts": "Alert overlay"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Disabled",
           "swipeEnabledLabelDisabled": "Disabled",
           "setupHintLabelDisabled": "Disabled",
-          "rotationProgressLabelDisabled": "Disabled"
+          "rotationProgressLabelDisabled": "Disabled",
+          "pixelShiftOn": "On",
+          "pixelShiftOff": "Off"
         },
         "footer": {
           "overrideCountSingular": "{count} display override",

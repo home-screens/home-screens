@@ -951,6 +951,9 @@
         "cursorHideLabel": "Ocultar cursor após",
         "cursorHideValue": "{seconds}s",
         "cursorHideHelp": "O cursor do mouse é ocultado após esse número de segundos sem atividade. Mexa o mouse para mostrá-lo novamente.",
+        "pixelShiftLabel": "Proteger a tela contra burn-in",
+        "pixelShiftToggle": "Deslocar a imagem levemente",
+        "pixelShiftHelp": "Move tudo na tela alguns pixels uma vez por minuto, para que nada fique muito tempo no mesmo lugar. Ajuda em telas OLED e outras que podem sofrer burn-in. De longe, você não vai notar.",
         "fullscreenThemeLabel": "Tema de tela cheia",
         "fullscreenThemeHelp": "Aplica-se a todos os módulos de tela cheia (Calendário, Tarefas, Refeições) para ficarem coerentes na rotação. Você pode mudar isto por módulo no editor."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Pontos de tela",
           "showRotationProgress": "Linha de progresso",
           "cursorHideSeconds": "Ocultar cursor",
+          "pixelShift": "Proteção contra burn-in",
           "fullscreenTheme": "Tema",
           "sleep": "Suspensão e escurecimento",
           "alerts": "Sobreposição de avisos"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Desativada",
           "swipeEnabledLabelDisabled": "Desativado",
           "setupHintLabelDisabled": "Desativado",
-          "rotationProgressLabelDisabled": "Desativado"
+          "rotationProgressLabelDisabled": "Desativado",
+          "pixelShiftOn": "Ativada",
+          "pixelShiftOff": "Desativada"
         },
         "footer": {
           "overrideCountSingular": "{count} substituição de tela",

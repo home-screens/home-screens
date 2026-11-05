@@ -7650,6 +7650,16 @@
           "defaultText": "true"
         },
         {
+          "name": "pixelShift",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Shift the whole picture by a few pixels once a minute so nothing sits on the same spot for long. For OLED and other screens that can burn in",
+          "defaultText": "false"
+        },
+        {
           "name": "backupReminder",
           "optional": true,
           "type": {
@@ -9450,6 +9460,15 @@
             "text": "boolean"
           },
           "description": "Show the row of screen dots"
+        },
+        {
+          "name": "pixelShift",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Shift the picture a few pixels once a minute against burn-in"
         },
         {
           "name": "alerts",

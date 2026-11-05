@@ -36,6 +36,7 @@ export const DISPLAY_OVERRIDE_FIELDS = [
   'showRotationProgress',
   'showPaginationDots',
   'cursorHideSeconds',
+  'pixelShift',
   'fullscreenTheme',
 ] as const satisfies readonly (keyof DisplayNodeSettings)[];
 

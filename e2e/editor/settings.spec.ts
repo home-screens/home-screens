@@ -417,6 +417,19 @@ test('Defaults › Screen: a display that turns the dots back on keeps the share
   await expect(page.locator('[data-field-id="display.showRotationProgress"]')).toBeVisible();
 });
 
+test('Defaults › Screen: burn-in protection is off by default and saves when switched on', async ({ page, request }) => {
+  await putConfig(request, baseConfig());
+  await page.goto('/editor/settings?section=defaults&page=screen');
+
+  const row = page.locator('[data-field-id="display.pixelShift"]');
+  await expect(row.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
+  await row.getByRole('switch').click();
+
+  await expect
+    .poll(async () => (await getConfig(request)).settings.pixelShift)
+    .toBe(true);
+});
+
 test.describe('per-display overrides', () => {
   function multiDisplayConfig() {
     return baseConfig({
@@ -503,6 +516,22 @@ test.describe('per-display overrides', () => {
 
     await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
     await expect(page.getByText('Screen dots: Off (default: On)', { exact: true })).toBeVisible();
+  });
+
+  test('overriding burn-in protection on for one display saves to that node and is named on the overview', async ({ page, request }) => {
+    await putConfig(request, multiDisplayConfig());
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overrides');
+
+    const row = overrideRow(page, 'Protect the screen from burn-in');
+    await row.getByRole('button', { name: 'Override', exact: true }).click();
+    await row.getByRole('switch').click();
+    await expect
+      .poll(async () => (await kitchenSettings(request)).pixelShift)
+      .toBe(true);
+    expect((await getConfig(request)).settings.pixelShift).not.toBe(true);
+
+    await page.goto('/editor/settings?section=display&id=kitchen&subtab=overview');
+    await expect(page.getByText('Burn-in protection: On (default: Off)', { exact: true })).toBeVisible();
   });
 
   test('a progress-line override is named with its value on the overview and the Defaults banner', async ({ page, request }) => {

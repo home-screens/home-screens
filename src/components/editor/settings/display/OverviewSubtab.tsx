@@ -416,6 +416,12 @@ function formatOverrideComparison(
         formatCursorHide(overrideValue as number),
         defaultValue != null ? formatCursorHide(defaultValue as number) : null,
       );
+    case 'pixelShift':
+      // Unset resolves to off, so there is always a default to name.
+      return compare(
+        formatPauseEnabled(overrideValue as boolean, t),
+        formatPauseEnabled(settings.pixelShift ?? false, t),
+      );
     case 'fullscreenTheme':
       return compare(
         formatFullscreenTheme(overrideValue as string),

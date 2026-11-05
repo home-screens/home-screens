@@ -29,6 +29,7 @@ export interface DisplayState {
   setupHintEnabled: boolean;
   showRotationProgress: boolean;
   showPaginationDots: boolean;
+  pixelShift: boolean;
 }
 
 export interface LocationState {
@@ -106,6 +107,7 @@ export const FORM_DEFAULTS: SettingsState = {
     setupHintEnabled: true,
     showRotationProgress: true,
     showPaginationDots: true,
+    pixelShift: false,
   },
   location: { lat: '', lon: '', locationName: null, timezone: '' },
   weather: { provider: 'open-meteo', units: 'imperial', radarServerUrl: '' },
@@ -201,6 +203,7 @@ export function toFormState(s: GlobalSettings | undefined): SettingsState {
       setupHintEnabled: s.setupHintEnabled ?? FORM_DEFAULTS.display.setupHintEnabled,
       showRotationProgress: s.showRotationProgress ?? FORM_DEFAULTS.display.showRotationProgress,
       showPaginationDots: s.showPaginationDots ?? FORM_DEFAULTS.display.showPaginationDots,
+      pixelShift: s.pixelShift ?? FORM_DEFAULTS.display.pixelShift,
     },
     location: {
       lat: s.latitude?.toString() ?? '',
@@ -254,6 +257,7 @@ export function toConfigSettings(state: SettingsState): Partial<GlobalSettings> 
     setupHintEnabled: display.setupHintEnabled,
     showRotationProgress: display.showRotationProgress,
     showPaginationDots: display.showPaginationDots,
+    pixelShift: display.pixelShift,
     latitude: parsedLat,
     longitude: parsedLon,
     locationName: location.locationName ?? undefined,

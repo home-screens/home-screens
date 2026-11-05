@@ -951,6 +951,9 @@
         "cursorHideLabel": "Masquer le curseur après",
         "cursorHideValue": "{seconds} s",
         "cursorHideHelp": "Le curseur de la souris est masqué après ce nombre de secondes d'inactivité. Bouge la souris pour le réafficher.",
+        "pixelShiftLabel": "Protéger l'écran contre le marquage",
+        "pixelShiftToggle": "Décaler légèrement l'image",
+        "pixelShiftHelp": "Déplace tout l'affichage de quelques pixels une fois par minute, pour que rien ne reste longtemps au même endroit. Utile pour les écrans OLED et les autres écrans qui peuvent se marquer. Cela ne se remarque pas de loin.",
         "fullscreenThemeLabel": "Thème plein écran",
         "fullscreenThemeHelp": "S'applique à tous les modules plein écran (Calendrier, Tâches, Repas) pour une apparence cohérente lors de la rotation. Tu peux le changer par module dans l'éditeur."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Points d'écran",
           "showRotationProgress": "Ligne de progression",
           "cursorHideSeconds": "Masquer le curseur",
+          "pixelShift": "Protection contre le marquage",
           "fullscreenTheme": "Thème",
           "sleep": "Veille et atténuation",
           "alerts": "Superposition d'alerte"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Désactivée",
           "swipeEnabledLabelDisabled": "Désactivé",
           "setupHintLabelDisabled": "Désactivé",
-          "rotationProgressLabelDisabled": "Désactivé"
+          "rotationProgressLabelDisabled": "Désactivé",
+          "pixelShiftOn": "Activé",
+          "pixelShiftOff": "Désactivé"
         },
         "footer": {
           "overrideCountSingular": "{count} surcharge d'affichage",

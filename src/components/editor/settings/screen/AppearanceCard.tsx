@@ -45,6 +45,7 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
     setupHintEnabled,
     showRotationProgress,
     showPaginationDots,
+    pixelShift,
   } = values;
 
   // TRANSITION_OPTIONS is exported and consumed by multiple call sites
@@ -238,6 +239,20 @@ export default function AppearanceCard({ values, onChange, dotDefaultsInUse }: A
         />
         <FieldHelp>
           {t('settings.defaultDisplayPage.fields.cursorHideHelp')}
+        </FieldHelp>
+      </FieldRow>
+
+      {/* The wall's root box steps along a small lattice once a minute
+          (usePixelShift), the way OLED televisions shift their picture. */}
+      <FieldRow fieldId="display.pixelShift">
+        <FieldLabel>{t('settings.defaultDisplayPage.fields.pixelShiftLabel')}</FieldLabel>
+        <Toggle
+          label={t('settings.defaultDisplayPage.fields.pixelShiftToggle')}
+          checked={pixelShift}
+          onChange={(v) => onChange({ pixelShift: v })}
+        />
+        <FieldHelp>
+          {t('settings.defaultDisplayPage.fields.pixelShiftHelp')}
         </FieldHelp>
       </FieldRow>
 

@@ -951,6 +951,9 @@
         "cursorHideLabel": "Cursor verbergen na",
         "cursorHideValue": "{seconds}s",
         "cursorHideHelp": "De muiscursor wordt verborgen na zoveel seconden van inactiviteit. Beweeg de muis om hem weer te tonen.",
+        "pixelShiftLabel": "Scherm beschermen tegen inbranden",
+        "pixelShiftToggle": "Beeld iets verschuiven",
+        "pixelShiftHelp": "Verschuift alles op het scherm elke minuut een paar pixels, zodat niets lang op dezelfde plek blijft staan. Helpt bij OLED-schermen en andere schermen die kunnen inbranden. Van een afstand merk je er niets van.",
         "fullscreenThemeLabel": "Schermvullend thema",
         "fullscreenThemeHelp": "Geldt voor alle schermvullende modules (Kalender, Klusjes, Maaltijden) zodat ze er naadloos uitzien bij rotatie. Je kunt dit per module wijzigen in de editor."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Schermstippen",
           "showRotationProgress": "Voortgangslijn",
           "cursorHideSeconds": "Cursor verbergen",
+          "pixelShift": "Inbrandbescherming",
           "fullscreenTheme": "Thema",
           "sleep": "Slapen & dimmen",
           "alerts": "Meldingsoverlay"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Uitgeschakeld",
           "swipeEnabledLabelDisabled": "Uitgeschakeld",
           "setupHintLabelDisabled": "Uitgeschakeld",
-          "rotationProgressLabelDisabled": "Uitgeschakeld"
+          "rotationProgressLabelDisabled": "Uitgeschakeld",
+          "pixelShiftOn": "Aan",
+          "pixelShiftOff": "Uit"
         },
         "footer": {
           "overrideCountSingular": "{count} display-override",

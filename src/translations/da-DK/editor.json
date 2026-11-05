@@ -951,6 +951,9 @@
         "cursorHideLabel": "Skjul markøren efter",
         "cursorHideValue": "{seconds}s",
         "cursorHideHelp": "Musemarkøren skjules efter så mange sekunder uden aktivitet. Bevæg musen for at få den frem igen.",
+        "pixelShiftLabel": "Beskyt skærmen mod indbrænding",
+        "pixelShiftToggle": "Flyt billedet en smule",
+        "pixelShiftHelp": "Flytter alt på skærmen et par pixels én gang i minuttet, så intet står samme sted ret længe. Hjælper på OLED-skærme og andre skærme, der kan brænde ind. På afstand lægger man ikke mærke til det.",
         "fullscreenThemeLabel": "Tema for fuld skærm",
         "fullscreenThemeHelp": "Gælder for alle moduler i fuld skærm (Kalender, Pligter, Måltider), så de ser ens ud ved skærmskift. Du kan ændre det for hvert modul i editoren."
       },
@@ -1012,6 +1015,7 @@
           "showPaginationDots": "Skærmprikker",
           "showRotationProgress": "Fremdriftslinje",
           "cursorHideSeconds": "Skjul markøren",
+          "pixelShift": "Beskyttelse mod indbrænding",
           "fullscreenTheme": "Tema",
           "sleep": "Slumring & dæmpning",
           "alerts": "Beskeder på skærmen"
@@ -1080,7 +1084,9 @@
           "pauseEnabledLabelDisabled": "Slået fra",
           "swipeEnabledLabelDisabled": "Slået fra",
           "setupHintLabelDisabled": "Slået fra",
-          "rotationProgressLabelDisabled": "Slået fra"
+          "rotationProgressLabelDisabled": "Slået fra",
+          "pixelShiftOn": "Til",
+          "pixelShiftOff": "Fra"
         },
         "footer": {
           "overrideCountSingular": "{count} tilsidesættelse for displayet",
