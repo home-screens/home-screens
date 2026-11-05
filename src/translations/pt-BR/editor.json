@@ -2615,22 +2615,35 @@
       "useSolid": "Usar a cor sólida"
     },
     "title": "Plano de fundo",
+    "effectsTitle": "Efeitos de fundo",
     "statusGroup": "Status",
     "autoRotate": "Rotação automática",
+    "sourcesGroup": "Fontes",
+    "refreshNow": "Atualizar agora",
     "sourceLabel": "Fonte",
-    "searchQueryLabel": "Termo de pesquisa",
-    "searchQueryPlaceholder": "paisagem natureza",
     "rotateEveryLabel": "Trocar a cada",
     "nasaInfo": "A NASA publica uma nova imagem astronômica por dia. A tela vai verificar atualizações no intervalo escolhido.",
+    "picturesHint": "Toque nas imagens que quer mostrar. Uma aparece como fundo fixo; várias alternam.",
     "sources": {
       "nasaApod": "Foto da NASA do dia",
       "icloud": "Álbum Compartilhado do iCloud",
       "unsplash": "Unsplash",
-      "immich": "Immich"
+      "immich": "Immich",
+      "local": "Biblioteca local"
     },
-    "tabs": {
-      "nasa": "NASA",
-      "local": "Planos de fundo"
+    "local": {
+      "folderLabel": "Pasta",
+      "browse": "Procurar",
+      "allPhotosRoot": "Todos os fundos (pasta raiz)",
+      "photoCountOne": "{count} foto",
+      "photoCountOther": "{count} fotos",
+      "noPhotosInFolder": "Ainda não há fotos nesta pasta.",
+      "modeFolder": "Pasta",
+      "modePictures": "Imagens",
+      "upload": "Enviar imagens",
+      "uploading": "Enviando…",
+      "noPictures": "Ainda não há imagens na sua biblioteca. Envie uma para começar.",
+      "picturePick": "Mostrar {name}"
     },
     "intervals": {
       "minutes": "{count} minutos",
@@ -2643,19 +2656,39 @@
       "albumOption": "{name} ({count})",
       "personLabel": "Pessoa",
       "anyone": "Qualquer pessoa",
-      "favoritesOnly": "Só favoritas"
+      "favoritesOnly": "Só favoritas",
+      "noAlbums": "Nenhum álbum encontrado.",
+      "noPeople": "Nenhuma pessoa encontrada.",
+      "personPlusLabel": "Pessoa +",
+      "personMinusLabel": "Pessoa -",
+      "personPlusHint": "Corresponde a mídias com qualquer pessoa selecionada.",
+      "personMinusHint": "Rejeita mídias com qualquer pessoa selecionada.",
+      "modePictures": "Imagens",
+      "modeFilters": "Filtros"
     },
     "icloud": {
       "albumLabel": "Link do álbum",
-      "albumHelp": "No seu iPhone, abra o álbum, ative \"Site público\" e cole o link aqui."
+      "albumHelp": "No seu iPhone, abra o álbum, ative \"Site público\" e cole o link aqui.",
+      "needsLink": "Bloqueada até você colar um link válido de álbum compartilhado."
     },
-    "needsKey": "Precisa de uma chave gratuita",
-    "starterHeading": "Planos de fundo que já vêm com o Home Screens",
+    "unsplash": {
+      "modeQuery": "Buscar",
+      "modeCollections": "Coleções",
+      "collectionPlaceholder": "ID da coleção ou link unsplash.com/collections/...",
+      "addCollection": "Adicionar coleção",
+      "removeCollection": "Remover coleção",
+      "checking": "Verificando...",
+      "collectionNotFound": "Coleção não encontrada. Verifique o ID ou o link.",
+      "collectionValid": "{title} ({count} fotos)"
+    },
     "groups": {
       "theme": "Combina com um tema de tela cheia",
       "color": "Cores",
       "pattern": "Padrões"
     },
+    "useFixed": "Usar {name} como plano de fundo fixo",
+    "includeInRotation": "Incluir {name} na rotação",
+    "inRotation": "Na rotação",
     "inUse": "em uso",
     "starters": {
       "midnight": "Meia-noite",
@@ -2681,8 +2714,13 @@
       "pattern-diagonal": "Diagonal",
       "pattern-paper": "Papel"
     },
-    "yourPicturesHeading": "Suas próprias fotos",
     "sourceKeyMissing": "Esta fonte precisa de uma chave de API que ainda não foi configurada, então a tela continua com a última imagem. Adicione a chave em Configurações ou escolha outra fonte.",
+    "sourceNotSetUp": "Ainda não configurada.",
+    "sourceSetUpLink": "Configurar {source} em Configurações",
+    "pickToRotate": "Toque nos fundos que quer na rotação. Nenhum selecionado ainda.",
+    "modeFixed": "Fundo fixo",
+    "modeRotating": "Alternando entre as fontes selecionadas",
+    "modeHelp": "Escolha uma ou mais mídias. Uma mostra um fundo fixo; várias alternam.",
     "shadeGroup": "Escurecimento",
     "shadeEnable": "Escurecer o plano de fundo",
     "shadeStyleLabel": "Estilo",
@@ -2693,7 +2731,12 @@
       "topBottom": "Em cima e embaixo",
       "edges": "Bordas",
       "both": "Ambos"
-    }
+    },
+    "effectsGroup": "Efeitos",
+    "effectsBrightnessLabel": "Brilho",
+    "effectsContrastLabel": "Contraste",
+    "effectsSaturationLabel": "Saturação",
+    "effectsWarmthLabel": "Calor"
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imagens",

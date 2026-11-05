@@ -33,10 +33,19 @@ export interface WeatherAlertsEvent {
   }>;
 }
 
+/** A screen's rotating background was force-refreshed (the editor's Refresh
+ *  button); `path` is the new answer so listeners can apply it immediately
+ *  instead of waiting for their next poll tick. */
+export interface BackgroundForceRefreshEvent {
+  screenId: string;
+  path: string | null;
+}
+
 export interface EventMap {
   'weather.conditions': WeatherConditionsEvent;
   'weather.alerts': WeatherAlertsEvent;
   'time.period': TimePeriodEvent;
+  'background.forceRefresh': BackgroundForceRefreshEvent;
 }
 
 // ── EventBus implementation ─────────────────────────────────────────

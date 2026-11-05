@@ -355,27 +355,50 @@ export interface ModuleInstance {
   showOnEveryScreen?: boolean;
 }
 
+/** Every source rotation can currently draw photos from. */
+export type BackgroundRotationSourceId = 'unsplash' | 'nasa-apod' | 'immich' | 'icloud' | 'local' | 'color' | 'pattern';
+
 export interface BackgroundRotation {
-  /** Turn rotation on */
-  enabled: boolean;
-  /** Where the images come from */
-  source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud';
+  /** Legacy toggle, retained for config round-tripping. Rotation uses `sources`. */
+  enabled?: boolean;
+  /** Selected sources; an empty list disables rotation. */
+  sources: BackgroundRotationSourceId[];
   /** Unsplash search words; other sources ignore it */
   query: string;
+  /** Unsplash collection IDs; retained when switching to query mode. */
+  unsplashCollections?: string[];
+  /** Active Unsplash mode. Legacy configs infer this from non-empty collections. */
+  unsplashMode?: 'query' | 'collections';
   /** Minutes between images */
   intervalMinutes: number;
-  /** Immich album to use */
-  immichAlbumId?: string;
-  /** Immich person (face) to use */
-  immichPersonId?: string;
+  /** Immich albums to draw from; any asset in any of these qualifies. Empty/undefined = any album. */
+  immichAlbumIds?: string[];
+  /** Immich people who must appear in the photo (at least one). Empty/undefined = anyone. */
+  immichPersonIds?: string[];
+  /** Immich people to exclude from candidate photos. */
+  immichPersonIdsExclude?: string[];
   /** Only use Immich favorites */
   immichFavoritesOnly?: boolean;
+  /** Immich source mode: random photos by filters (default, also for legacy configs) or photos picked by hand. */
+  immichMode?: 'filters' | 'pick';
+  /** Serve URLs of Immich photos picked in `pick` mode; saved as hidden rotation files that live only while chosen. With none picked the filters apply. */
+  immichImages?: string[];
   /**
    * Public iCloud shared album link, or just its token
    *
    * Public share link (icloud.com/sharedalbum/#TOKEN) or bare token.
    */
   icloudAlbumUrl?: string;
+  /** Local media library folder to rotate through, relative to the library root */
+  localFolder?: string;
+  /** Serve URLs of Unsplash photos picked in Search mode; saved as hidden rotation files that live only while chosen. */
+  unsplashImages?: string[];
+  /** Local library source: rotate a folder (default) or show chosen pictures. */
+  localMode?: 'folder' | 'images';
+  /** Serve URLs of the library pictures chosen in `images` mode. None chosen means nothing to show. */
+  localImages?: string[];
+  /** Starter wall IDs selected within each group. Missing or empty = no walls from that group are in rotation. Unknown IDs are ignored. */
+  starterBackgroundIds?: Partial<Record<'color' | 'pattern', string[]>>;
 }
 
 /** Overlay dimming/vignette drawn over a screen's background, between the image and its modules */
@@ -388,6 +411,18 @@ export interface BackgroundShade {
   strength: number;
   /** Shade color (hex or rgb()) */
   color: string;
+}
+
+/** CSS-filter-based tuning applied to the screen background media only. */
+export interface BackgroundEffects {
+  /** CSS brightness(), 0-200 with 100 neutral. */
+  brightness: number;
+  /** CSS contrast(), 0-200 with 100 neutral. */
+  contrast: number;
+  /** CSS saturate(), 0-200 with 100 neutral. */
+  saturation: number;
+  /** Warm/cool tint approximation, -100..100, built from CSS filter primitives. */
+  warmth: number;
 }
 
 export interface Screen {
@@ -407,6 +442,8 @@ export interface Screen {
   backgroundRotation?: BackgroundRotation;
   /** Dim/vignette overlay drawn over the background (see BackgroundShade) */
   shade?: BackgroundShade;
+  /** CSS-filter-based tuning applied to background media only (see BackgroundEffects) */
+  effects?: BackgroundEffects;
   /** The modules on this screen (see ModuleInstance) */
   modules: ModuleInstance[];
   /**

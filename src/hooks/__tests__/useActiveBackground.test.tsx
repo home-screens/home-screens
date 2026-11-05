@@ -31,10 +31,28 @@ async function answer(id: string, res: Response | Error = new Response(JSON.stri
 }
 
 function mount(id: string, on: boolean) {
-  return renderHook(({ id, on }) => useActiveBackground(id, on), { initialProps: { id, on } });
+  return renderHook(({ id, on, key }: { id: string; on: boolean; key?: string }) => useActiveBackground(id, on, key), { initialProps: { id, on } as { id: string; on: boolean; key?: string } });
 }
 
 describe('useActiveBackground', () => {
+  it('re-asks shortly after a rotation setting changes, not on the next 30 s poll', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const { rerender } = mount('a', true);
+      await answer('a');
+      expect(open).toHaveLength(0);
+
+      rerender({ id: 'a', on: true, key: 'tiles-changed' });
+      // Not instantly: autosave has not reached the hub yet.
+      await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
+      expect(open).toHaveLength(0);
+      await act(async () => { await vi.advanceTimersByTimeAsync(600); });
+      expect(open.some((o) => o.id === 'a')).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('has no answer for a rotating screen until its lookup comes back', async () => {
     const { result } = mount('a', true);
     expect(result.current).toBeUndefined();

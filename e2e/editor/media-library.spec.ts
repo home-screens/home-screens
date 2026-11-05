@@ -367,44 +367,17 @@ test.describe('Defaults › Pictures & videos', () => {
   });
 });
 
-test.describe('background picker', () => {
-  test('the background picker no longer offers delete', async ({ page, request }) => {
+test.describe('background controls', () => {
+  test('the editor has only Shade and Sources; uploads remain in the media library', async ({ page, request }) => {
     await putConfig(request, baseConfig());
     await page.goto('/editor');
-    await expect(page.getByTestId('editor-canvas')).toBeVisible();
-    // Empty state = screen selected, no module: the picker lives there.
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
-    await expect(page.getByTestId('background-tab-local')).toBeVisible();
-
-    // Upload stays: push one picture through the picker's own input.
-    const upload = page.getByRole('button', { name: 'Upload Background' });
-    await expect(upload).toBeVisible();
-    await page.locator('[data-file-input]').setInputFiles({
-      name: 'e2e-picker.png',
-      mimeType: 'image/png',
-      buffer: PNG_1X1,
-    });
-
-    // The "Your own pictures" grid (the picker's upload also picks the
-    // background, so the canvas preview carries the same img, hence the scope).
-    const grid = page.getByText('Your own pictures', { exact: true }).locator('xpath=following-sibling::div[1]');
-    const row = grid.locator('img[src*="/api/backgrounds/serve?file=e2e-picker.png"]').locator('xpath=../..');
-    await expect(row).toBeVisible();
-    // The row is just its pick tile (img -> pick button -> row): before the
-    // removal each row carried a second, hover-revealed delete button.
-    await expect(row.locator('button')).toHaveCount(1);
-
-    // Every library row is just its pick tile, and no control anywhere on
-    // the picker answers to the removed "Delete" title.
-    const rows = grid.locator(':scope > div');
-    const rowCount = await rows.count();
-    expect(rowCount).toBeGreaterThan(0);
-    for (let i = 0; i < rowCount; i++) {
-      await expect(rows.nth(i).locator('button')).toHaveCount(1);
-    }
-    await expect(page.locator('button[title="Delete"]')).toHaveCount(0);
-
-    await putConfig(request, baseConfig());
-    await request.delete('/api/backgrounds', { data: { file: 'e2e-picker.png' } });
+    await expect(page.getByRole('heading', { name: 'Shade' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sources' })).toBeVisible();
+    await expect(page.getByTestId('background-tab-local')).toHaveCount(0);
+    await expect(page.getByText('Your own pictures')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Upload Background' })).toHaveCount(0);
+    await page.goto('/editor/settings?section=defaults&page=media');
+    await expect(page.getByTestId('media-upload-button')).toBeVisible();
   });
 });

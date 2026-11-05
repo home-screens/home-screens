@@ -12,6 +12,8 @@ export function createImageDownloadHandler(config: {
   defaultPrefix: string;
   downloadOptions?: { rejectNonWeb?: boolean; validateImage?: boolean };
   beforeDownload?: (body: Record<string, unknown>) => Promise<void> | void;
+  /** Runs once the file is saved; a failure here never fails the download. */
+  afterDownload?: (body: Record<string, unknown>) => Promise<void> | void;
   errorMsg: string;
 }) {
   return withAuth(async (request: NextRequest) => {
@@ -46,6 +48,12 @@ export function createImageDownloadHandler(config: {
         return NextResponse.json({ error: error.message }, { status: 415 });
       }
       throw error;
+    }
+
+    try {
+      await config.afterDownload?.(body);
+    } catch {
+      // Housekeeping only.
     }
 
     return NextResponse.json(result, { status: 201 });

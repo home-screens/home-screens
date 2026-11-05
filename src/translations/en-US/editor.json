@@ -2615,8 +2615,11 @@
       "useSolid": "Use the solid color"
     },
     "title": "Background",
+    "effectsTitle": "Background effects",
     "statusGroup": "Status",
     "autoRotate": "Auto-rotate",
+    "sourcesGroup": "Sources",
+    "refreshNow": "Refresh now",
     "shadeGroup": "Shade",
     "shadeEnable": "Shade background",
     "shadeStyleLabel": "Style",
@@ -2629,19 +2632,29 @@
       "both": "Both"
     },
     "sourceLabel": "Source",
-    "searchQueryLabel": "Search query",
-    "searchQueryPlaceholder": "nature landscape",
     "rotateEveryLabel": "Rotate every",
     "nasaInfo": "NASA publishes one new astronomy image per day. The display will check for updates at the chosen interval.",
+    "picturesHint": "Tap the pictures to show. One shows as a fixed background; several rotate.",
     "sources": {
       "nasaApod": "NASA Picture of the Day",
       "icloud": "iCloud Shared Album",
       "unsplash": "Unsplash",
-      "immich": "Immich"
+      "immich": "Immich",
+      "local": "Local library"
     },
-    "tabs": {
-      "nasa": "NASA",
-      "local": "Backgrounds"
+    "local": {
+      "folderLabel": "Folder",
+      "browse": "Browse",
+      "allPhotosRoot": "All backgrounds (root folder)",
+      "photoCountOne": "{count} photo",
+      "photoCountOther": "{count} photos",
+      "noPhotosInFolder": "No photos in this folder yet.",
+      "modeFolder": "Folder",
+      "modePictures": "Pictures",
+      "upload": "Upload pictures",
+      "uploading": "Uploading…",
+      "noPictures": "No pictures in your library yet. Upload one to start.",
+      "picturePick": "Show {name}"
     },
     "intervals": {
       "minutes": "{count} minutes",
@@ -2654,19 +2667,39 @@
       "albumOption": "{name} ({count})",
       "personLabel": "Person",
       "anyone": "Anyone",
-      "favoritesOnly": "Favorites only"
+      "favoritesOnly": "Favorites only",
+      "noAlbums": "No albums found.",
+      "noPeople": "No people found.",
+      "personPlusLabel": "Person +",
+      "personMinusLabel": "Person -",
+      "personPlusHint": "Matches media containing any selected person.",
+      "personMinusHint": "Rejects media containing any selected person.",
+      "modePictures": "Pictures",
+      "modeFilters": "Filters"
     },
     "icloud": {
       "albumLabel": "Album link",
-      "albumHelp": "On your iPhone, open the album, turn on Public Website, then paste the link here."
+      "albumHelp": "On your iPhone, open the album, turn on Public Website, then paste the link here.",
+      "needsLink": "Locked until you paste a valid shared album link."
     },
-    "needsKey": "Needs a free key",
-    "starterHeading": "Backgrounds that come with Home Screens",
+    "unsplash": {
+      "modeQuery": "Search",
+      "modeCollections": "Collections",
+      "collectionPlaceholder": "Collection ID or unsplash.com/collections/... link",
+      "addCollection": "Add collection",
+      "removeCollection": "Remove collection",
+      "checking": "Checking...",
+      "collectionNotFound": "Collection not found. Check the ID or link.",
+      "collectionValid": "{title} ({count} photos)"
+    },
     "groups": {
       "theme": "Match a full-screen theme",
       "color": "Colors",
       "pattern": "Patterns"
     },
+    "useFixed": "Use {name} as a fixed background",
+    "includeInRotation": "Include {name} in rotation",
+    "inRotation": "In rotation",
     "inUse": "in use",
     "starters": {
       "midnight": "Midnight",
@@ -2692,8 +2725,18 @@
       "pattern-diagonal": "Diagonal",
       "pattern-paper": "Paper"
     },
-    "yourPicturesHeading": "Your own pictures",
-    "sourceKeyMissing": "This source needs an API key that is not set up, so the screen keeps its last picture. Add the key in Settings, or pick another source."
+    "sourceKeyMissing": "This source needs an API key that is not set up, so the screen keeps its last picture. Add the key in Settings, or pick another source.",
+    "sourceNotSetUp": "Not set up yet.",
+    "sourceSetUpLink": "Set up {source} in Settings",
+    "pickToRotate": "Tap the walls you want in the rotation. None selected yet.",
+    "modeFixed": "Fixed background",
+    "modeRotating": "Rotating between the selected sources",
+    "modeHelp": "Pick one or more media. One selected shows a fixed background; several rotate.",
+    "effectsGroup": "Effects",
+    "effectsBrightnessLabel": "Brightness",
+    "effectsContrastLabel": "Contrast",
+    "effectsSaturationLabel": "Saturation",
+    "effectsWarmthLabel": "Warmth"
   },
   "imageBrowserModal": {
     "title": "Image Library",

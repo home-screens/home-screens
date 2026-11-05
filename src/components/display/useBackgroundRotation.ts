@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
 import { displayFetch, DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
+import { activeRotationSources, isRotationActive } from '@/lib/screen-background';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
@@ -20,18 +21,28 @@ const BG_POLL_MS = 60_000;
 export function buildRotationKey(screens: Screen[]): string {
   return JSON.stringify(
     screens
-      .filter((s) => s.backgroundRotation?.enabled)
+      .filter((s) => isRotationActive(s.backgroundRotation))
       .map((s) => {
         const r = s.backgroundRotation!;
         return {
           id: s.id,
-          source: r.source || 'unsplash',
+          sources: activeRotationSources(r),
           query: r.query,
+          unsplashCollections: r.unsplashCollections ?? null,
+          unsplashMode: r.unsplashMode ?? null,
+          unsplashImages: r.unsplashImages ?? null,
           intervalMinutes: r.intervalMinutes,
-          immichAlbumId: r.immichAlbumId ?? null,
-          immichPersonId: r.immichPersonId ?? null,
+          immichAlbumIds: r.immichAlbumIds ?? null,
+          immichPersonIds: r.immichPersonIds ?? null,
+          immichPersonIdsExclude: r.immichPersonIdsExclude ?? null,
           immichFavoritesOnly: r.immichFavoritesOnly ?? false,
+          immichMode: r.immichMode ?? null,
+          immichImages: r.immichImages ?? null,
           icloudAlbumUrl: r.icloudAlbumUrl ?? null,
+          localFolder: r.localFolder ?? null,
+          localMode: r.localMode ?? null,
+          localImages: r.localImages ?? null,
+          starterBackgroundIds: r.starterBackgroundIds ?? null,
         };
       }),
   );
@@ -51,7 +62,7 @@ export function useBackgroundRotation(screens: Screen[]) {
   // A screen with rotation off shows its own picture. Recording that as its
   // answer keeps the picture up when rotation is switched on, until the first
   // photo arrives, instead of blanking it for the lookup.
-  const staticIds = screens.filter((s) => !s.backgroundRotation?.enabled).map((s) => s.id).join('\n');
+  const staticIds = screens.filter((s) => !isRotationActive(s.backgroundRotation)).map((s) => s.id).join('\n');
   useEffect(() => {
     if (!staticIds) return;
     setBackgrounds((prev) => {
@@ -65,7 +76,7 @@ export function useBackgroundRotation(screens: Screen[]) {
     // Skip polling when nothing is configured to rotate.
     if (rotationKey === '[]') return;
 
-    const screensWithRotation = screens.filter((s) => s.backgroundRotation?.enabled);
+    const screensWithRotation = screens.filter((s) => isRotationActive(s.backgroundRotation));
 
     // One poll at a time: the screens are asked in turn, and with the hub
     // away each ask can take the whole request timeout, so a poll can outlast

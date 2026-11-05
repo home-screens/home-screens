@@ -43,7 +43,7 @@ test.beforeEach(async ({ page }) => {
 function rotatingScreen(id: string, name: string, label: string, query: string) {
   return makeScreen(id, name, [textModule(label)], {
     backgroundImage: STATIC_BG,
-    backgroundRotation: { enabled: true, source: 'unsplash', query, intervalMinutes: 1 },
+    backgroundRotation: { enabled: true, sources: ['unsplash'], query, intervalMinutes: 1 },
   });
 }
 

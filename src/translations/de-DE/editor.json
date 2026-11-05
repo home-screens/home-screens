@@ -2615,22 +2615,35 @@
       "useSolid": "Einfarbig lassen"
     },
     "title": "Hintergrund",
+    "effectsTitle": "Hintergrundeffekte",
     "statusGroup": "Status",
     "autoRotate": "Automatisch wechseln",
+    "sourcesGroup": "Quellen",
+    "refreshNow": "Jetzt aktualisieren",
     "sourceLabel": "Quelle",
-    "searchQueryLabel": "Suchbegriff",
-    "searchQueryPlaceholder": "Naturlandschaft",
     "rotateEveryLabel": "Wechseln alle",
     "nasaInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Das Display prüft im gewählten Intervall auf Updates.",
+    "picturesHint": "Tippe auf die Bilder, die angezeigt werden sollen. Eines wird als fester Hintergrund gezeigt, mehrere wechseln sich ab.",
     "sources": {
       "nasaApod": "NASA-Bild des Tages",
       "icloud": "Geteiltes iCloud-Album",
       "unsplash": "Unsplash",
-      "immich": "Immich"
+      "immich": "Immich",
+      "local": "Lokale Bibliothek"
     },
-    "tabs": {
-      "nasa": "NASA",
-      "local": "Hintergründe"
+    "local": {
+      "folderLabel": "Ordner",
+      "browse": "Durchsuchen",
+      "allPhotosRoot": "Alle Hintergründe (Stammordner)",
+      "photoCountOne": "{count} Foto",
+      "photoCountOther": "{count} Fotos",
+      "noPhotosInFolder": "Noch keine Fotos in diesem Ordner.",
+      "modeFolder": "Ordner",
+      "modePictures": "Bilder",
+      "upload": "Bilder hochladen",
+      "uploading": "Wird hochgeladen…",
+      "noPictures": "Noch keine Bilder in deiner Bibliothek. Lade eines hoch, um zu starten.",
+      "picturePick": "{name} anzeigen"
     },
     "intervals": {
       "minutes": "{count} Minuten",
@@ -2643,19 +2656,39 @@
       "albumOption": "{name} ({count})",
       "personLabel": "Person",
       "anyone": "Beliebige Person",
-      "favoritesOnly": "Nur Favoriten"
+      "favoritesOnly": "Nur Favoriten",
+      "noAlbums": "Keine Alben gefunden.",
+      "noPeople": "Keine Personen gefunden.",
+      "personPlusLabel": "Personen einschließen",
+      "personMinusLabel": "Personen ausschließen",
+      "personPlusHint": "Trifft Medien mit einer beliebigen ausgewählten Person.",
+      "personMinusHint": "Schließt Medien mit einer beliebigen ausgewählten Person aus.",
+      "modePictures": "Bilder",
+      "modeFilters": "Filter"
     },
     "icloud": {
       "albumLabel": "Album-Link",
-      "albumHelp": "Öffne das Album auf deinem iPhone, aktiviere „Öffentliche Website“ und füge den Link hier ein."
+      "albumHelp": "Öffne das Album auf deinem iPhone, aktiviere „Öffentliche Website“ und füge den Link hier ein.",
+      "needsLink": "Gesperrt, bis du einen gültigen Link zu einem geteilten Album einfügst."
     },
-    "needsKey": "Braucht einen kostenlosen Schlüssel",
-    "starterHeading": "Hintergründe, die bei Home Screens dabei sind",
+    "unsplash": {
+      "modeQuery": "Suche",
+      "modeCollections": "Sammlungen",
+      "collectionPlaceholder": "Sammlungs-ID oder unsplash.com/collections/...-Link",
+      "addCollection": "Sammlung hinzufügen",
+      "removeCollection": "Sammlung entfernen",
+      "checking": "Wird geprüft...",
+      "collectionNotFound": "Sammlung nicht gefunden. ID oder Link prüfen.",
+      "collectionValid": "{title} ({count} Fotos)"
+    },
     "groups": {
       "theme": "Passend zu einem Vollbild-Design",
       "color": "Farben",
       "pattern": "Muster"
     },
+    "useFixed": "{name} als festen Hintergrund verwenden",
+    "includeInRotation": "{name} in die Rotation aufnehmen",
+    "inRotation": "In Rotation",
     "inUse": "in Benutzung",
     "starters": {
       "midnight": "Mitternacht",
@@ -2681,8 +2714,13 @@
       "pattern-diagonal": "Diagonal",
       "pattern-paper": "Papier"
     },
-    "yourPicturesHeading": "Deine eigenen Bilder",
     "sourceKeyMissing": "Für diese Quelle fehlt ein API-Schlüssel, deshalb behält der Bildschirm sein letztes Bild. Trage den Schlüssel in den Einstellungen ein oder wähle eine andere Quelle.",
+    "sourceNotSetUp": "Noch nicht eingerichtet.",
+    "sourceSetUpLink": "{source} in den Einstellungen einrichten",
+    "pickToRotate": "Tippe auf die Hintergründe für die Rotation. Noch keiner ausgewählt.",
+    "modeFixed": "Fester Hintergrund",
+    "modeRotating": "Wechselt zwischen den gewählten Quellen",
+    "modeHelp": "Wähle ein oder mehrere Medien. Eines ergibt einen festen Hintergrund, mehrere wechseln sich ab.",
     "shadeGroup": "Abdunklung",
     "shadeEnable": "Hintergrund abdunkeln",
     "shadeStyleLabel": "Stil",
@@ -2693,7 +2731,12 @@
       "topBottom": "Oben und unten",
       "edges": "Ränder",
       "both": "Beides"
-    }
+    },
+    "effectsGroup": "Effekte",
+    "effectsBrightnessLabel": "Helligkeit",
+    "effectsContrastLabel": "Kontrast",
+    "effectsSaturationLabel": "Sättigung",
+    "effectsWarmthLabel": "Wärme"
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",

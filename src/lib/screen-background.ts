@@ -1,4 +1,4 @@
-import type { Screen } from '@/types/config';
+import type { BackgroundRotationSourceId, Screen } from '@/types/config';
 import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 
 /**
@@ -7,6 +7,28 @@ import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
  * `undefined` while no answer has come back yet.
  */
 export type RotationAnswer = string | null | undefined;
+
+const ROTATION_SOURCE_IDS: ReadonlySet<string> = new Set(['unsplash', 'nasa-apod', 'immich', 'icloud', 'local', 'color', 'pattern']);
+
+/**
+ * The sources rotation really uses. A saved entry for a source that no longer
+ * exists (the old `theme` source) is ignored: it has no checkbox, so nothing
+ * in the editor could switch it off, yet it kept winning refreshes.
+ */
+export function activeRotationSources(rotation: Screen['backgroundRotation'] | undefined): BackgroundRotationSourceId[] {
+  return (rotation?.sources ?? []).filter((source) => ROTATION_SOURCE_IDS.has(source));
+}
+
+/** A selected source activates rotation; the legacy `enabled` flag does not. */
+export function isRotationActive(rotation: Screen['backgroundRotation'] | undefined): boolean {
+  return activeRotationSources(rotation).length > 0;
+}
+
+export function stopBackgroundRotation(rotation: Screen['backgroundRotation'] | undefined): Screen['backgroundRotation'] | undefined {
+  if (!rotation) return undefined;
+  const { enabled: _enabled, ...rest } = rotation;
+  return { ...rest, sources: [] };
+}
 
 /**
  * The picture a screen paints behind its modules, on the wall and in the
@@ -19,7 +41,7 @@ export function resolveScreenBackground(
   screen: Pick<Screen, 'backgroundImage' | 'backgroundRotation'>,
   rotation: RotationAnswer,
 ): string | undefined {
-  if (!screen.backgroundRotation?.enabled) return screen.backgroundImage || undefined;
+  if (!isRotationActive(screen.backgroundRotation)) return screen.backgroundImage || undefined;
   if (rotation === undefined) return undefined;
   return rotation || screen.backgroundImage || undefined;
 }
@@ -48,6 +70,6 @@ export function pickedBackground(
   screen: Pick<Screen, 'backgroundRotation'> | undefined,
   backgroundImage: string,
 ): Pick<Screen, 'backgroundImage' | 'backgroundRotation'> {
-  if (!screen?.backgroundRotation?.enabled) return { backgroundImage };
-  return { backgroundImage, backgroundRotation: { ...screen.backgroundRotation, enabled: false } };
+  if (!isRotationActive(screen?.backgroundRotation)) return { backgroundImage };
+  return { backgroundImage, backgroundRotation: stopBackgroundRotation(screen?.backgroundRotation) };
 }

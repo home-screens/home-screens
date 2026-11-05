@@ -1,97 +1,72 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo, useId, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveScreens } from '@/lib/editor-multi-display';
-import type { BackgroundRotation, BackgroundShade } from '@/types/config';
-import Slider from '@/components/ui/Slider';
-import ColorPicker from '@/components/ui/ColorPicker';
+import type { BackgroundRotation, BackgroundRotationSourceId } from '@/types/config';
 import LocalBackgrounds from './LocalBackgrounds';
-import UnsplashBrowser from './UnsplashBrowser';
-import NasaBrowser from './NasaBrowser';
-import ImmichBrowser from './ImmichBrowser';
-import { Lock } from 'lucide-react';
+import { ChevronDown, ChevronRight, Lock, RefreshCw } from 'lucide-react';
+import { useGroupOpen } from './useGroupOpen';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
-import Toggle from '@/components/ui/Toggle';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
+import { eventBus } from '@/lib/event-bus';
+import { isUnsplashCollectionsMode } from '@/lib/unsplash-rotation-mode';
+import { activeRotationSources, stopBackgroundRotation } from '@/lib/screen-background';
+import IntegrationSettingsLink, { type BackgroundIntegration } from './IntegrationSettingsLink';
+import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from '@/lib/icloud-parse';
+import { ImmichRotationFields, LocalRotationFields, CollectionsRotationFields } from './BackgroundRotationFields';
+import BackgroundShadeFields from './BackgroundShadeFields';
+import BackgroundEffectsFields from './BackgroundEffectsFields';
+import ThemeBackgrounds from './ThemeBackgrounds';
+import UnsplashSearchPicker from './UnsplashSearchPicker';
+import ImmichPickPicker from './ImmichPickPicker';
+import SourceModeToggle, { SourceHint } from './SourceModeToggle';
+import { effectiveImmichMode } from '@/lib/immich-mode';
 
-interface ImmichAlbumOption { id: string; name: string; assetCount: number }
-interface ImmichPersonOption { id: string; name: string }
+const isICloudLinkValid = (link?: string) => !!(link && (parseICloudSharedAlbumUrl(link) || parseICloudAlbumToken(link)));
 
-function ImmichRotationFields({ rotation, onChange }: {
-  rotation: BackgroundRotation;
-  onChange: (updates: Partial<BackgroundRotation>) => void;
+/**
+ * One rotation source row: label + chevron header, then its inline settings.
+ * Collapse mirrors the Colors/Patterns groups (chevron button, aria-expanded,
+ * remembered per source in localStorage). Collapsing only hides the settings;
+ * it never touches the enabled state or saved config. The chevron is always
+ * shown, even for unselected or unconfigured sources (notes, such as the
+ * setup hint, live inside the collapsible panel). Ticking a source re-expands it.
+ */
+function CollapsibleSource({ id, label, checked, tooltip, header, notes, children }: {
+  id: string; label: string; checked: boolean; tooltip?: string;
+  header: (toggle: React.ReactNode) => React.ReactNode;
+  notes: React.ReactNode; children: React.ReactNode;
 }) {
-  const t = useTranslate('editor');
-  const [albums, setAlbums] = useState<ImmichAlbumOption[]>([]);
-  const [people, setPeople] = useState<ImmichPersonOption[]>([]);
-
-  const fetchOptions = useCallback(async () => {
-    const [albumRes, peopleRes] = await Promise.all([
-      editorFetch('/api/immich/albums').catch(() => null),
-      editorFetch('/api/immich/people').catch(() => null),
-    ]);
-    if (albumRes?.ok) setAlbums(await albumRes.json());
-    if (peopleRes?.ok) setPeople(await peopleRes.json());
-  }, []);
-
-  useEffect(() => { fetchOptions(); }, [fetchOptions]);
-
-  const selectClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
-
+  const [open, setOpen] = useGroupOpen(id);
+  const panelId = useId();
+  const wasChecked = useRef(checked);
+  useEffect(() => {
+    if (checked && !wasChecked.current) setOpen(true);
+    wasChecked.current = checked;
+  }, [checked, setOpen]);
+  const Chevron = open ? ChevronDown : ChevronRight;
+  const toggle = (
+    <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls={panelId}
+      data-testid={`source-group-${id}`} aria-label={label} title={tooltip}
+      className="flex items-center rounded px-1 text-[10px] text-hs-text-muted hover:bg-hs-hover">
+      <Chevron size={11} aria-hidden="true" />
+    </button>
+  );
   return (
-    <>
-      <label className="block">
-        <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.albumLabel')}</span>
-        <select
-          value={rotation.immichAlbumId || ''}
-          onChange={(e) => onChange({ immichAlbumId: e.target.value || undefined, immichPersonId: undefined })}
-          className={selectClass}
-        >
-          <option value="">{t('backgroundPicker.immich.anyAlbum')}</option>
-          {albums.map((a) => (
-            <option key={a.id} value={a.id}>
-              {t('backgroundPicker.immich.albumOption', { name: a.name, count: a.assetCount })}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="block">
-        <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.personLabel')}</span>
-        <select
-          value={rotation.immichPersonId || ''}
-          onChange={(e) => onChange({ immichPersonId: e.target.value || undefined, immichAlbumId: undefined })}
-          className={selectClass}
-        >
-          <option value="">{t('backgroundPicker.immich.anyone')}</option>
-          {people.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-      </label>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={rotation.immichFavoritesOnly || false}
-          onChange={(e) => onChange({ immichFavoritesOnly: e.target.checked || undefined })}
-          className="rounded border-hs-border-strong"
-        />
-        <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.immich.favoritesOnly')}</span>
-      </label>
-    </>
+    <div data-testid={`source-row-${id}`}>
+      <div className="flex items-center gap-2">{header(toggle)}</div>
+      {open && <div id={panelId}>{notes}{children}</div>}
+    </div>
   );
 }
 
 export default function BackgroundPicker() {
   const t = useTranslate('editor');
-  // Opens on the backgrounds that ship with Home Screens. Unsplash used to be
-  // the default tab and dead-ended in "add a free API key", so the first thing
-  // anyone wants to change needed a signup first.
-  const [tab, setTab] = useState<'unsplash' | 'nasa' | 'immich' | 'local'>('local');
-  const { config, selectedDisplayId, selectedScreenId, updateScreen } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, updateScreen, updateScreenRotation } = useEditorStore();
   const { status: secretStatus } = useSecretStatus();
   const hasUnsplashKey = !!secretStatus.unsplash_access_key;
   const hasNasaKey = !!secretStatus.nasa_api_key;
@@ -99,11 +74,11 @@ export default function BackgroundPicker() {
 
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
-  const rotationSource = currentScreen?.backgroundRotation?.source || 'unsplash';
+  const rotationSources = activeRotationSources(currentScreen?.backgroundRotation);
+  const unsplashCollectionsMode = currentScreen?.backgroundRotation
+    ? isUnsplashCollectionsMode(currentScreen.backgroundRotation)
+    : false;
 
-  // Interval options. Re-built per locale (cheap; rebuilds only when `t`
-  // identity changes). Labels run through `t()` so de-DE renders idiomatic
-  // German plurals; the numeric `value` is the underlying minutes count.
   const intervalOptions = useMemo<{ value: number; label: string }[]>(
     () => [
       { value: 15, label: t('backgroundPicker.intervals.minutes', { count: 15 }) },
@@ -116,10 +91,6 @@ export default function BackgroundPicker() {
     [t],
   );
 
-  // Is the screen's own background file still on the hub? Checked when the
-  // panel opens and whenever the path changes (one HEAD request). Only local
-  // paths: a remote URL can't be checked from here without CORS trouble, and
-  // a network hiccup is not a missing file, so errors are not flagged.
   const backgroundPath = currentScreen?.backgroundImage ?? '';
   const [missingPath, setMissingPath] = useState<string | null>(null);
   useEffect(() => {
@@ -134,160 +105,221 @@ export default function BackgroundPicker() {
     return () => { cancelled = true; };
   }, [backgroundPath]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshNow = async () => {
+    if (!selectedScreenId || rotationSources.length === 0 || refreshing) return;
+    setRefreshing(true);
+    try {
+      const res = await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(selectedScreenId)}&force=true`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.fresh) eventBus.publish('background.forceRefresh', { screenId: selectedScreenId, path: data.path ?? null });
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   if (!currentScreen || !selectedScreenId) return null;
 
-  const rotationEnabled = currentScreen?.backgroundRotation?.enabled ?? false;
-  const sourceKeyMissing =
-    (rotationSource === 'unsplash' && !hasUnsplashKey) ||
-    (rotationSource === 'nasa-apod' && !hasNasaKey) ||
-    (rotationSource === 'immich' && !hasImmichKey);
-  // iCloud Shared Albums need no API key, so rotation is always offerable.
-  const anySourceAvailable = true;
+  const ROTATION_SOURCES: { id: BackgroundRotationSourceId; label: string; locked: boolean; integration?: BackgroundIntegration }[] = [
+    { id: 'unsplash', label: t('backgroundPicker.sources.unsplash'), locked: !hasUnsplashKey, integration: 'unsplash' },
+    { id: 'nasa-apod', label: t('backgroundPicker.sources.nasaApod'), locked: !hasNasaKey, integration: 'nasa' },
+    { id: 'immich', label: t('backgroundPicker.sources.immich'), locked: !hasImmichKey, integration: 'immich' },
+    { id: 'icloud', label: t('backgroundPicker.sources.icloud'), locked: !isICloudLinkValid(currentScreen.backgroundRotation?.icloudAlbumUrl) },
+    { id: 'local', label: t('backgroundPicker.sources.local'), locked: false },
+  ];
 
-  const setRotationEnabled = (enabled: boolean) => {
+  const toggleRotationSource = (id: BackgroundRotationSourceId, checked: boolean) => {
     if (!selectedScreenId) return;
-    const current = currentScreen?.backgroundRotation;
-    const updated: BackgroundRotation = {
-      enabled,
-      source: current?.source || (hasUnsplashKey ? 'unsplash' : hasNasaKey ? 'nasa-apod' : hasImmichKey ? 'immich' : 'icloud'),
-      query: current?.query || 'nature landscape',
-      intervalMinutes: current?.intervalMinutes || 60,
-    };
-    updateScreen(selectedScreenId, { backgroundRotation: updated });
+    const current = currentScreen.backgroundRotation?.sources ?? [];
+    const sources = checked ? [...current, id] : current.filter((s) => s !== id);
+    updateScreenRotation(selectedScreenId, {
+      sources,
+      // Pin the mode on first enable so a fresh Immich config that showed Pictures does not flip to filters.
+      ...(checked && id === 'immich' ? { immichMode: effectiveImmichMode(currentScreen.backgroundRotation) } : {}),
+      query: currentScreen.backgroundRotation?.query || 'nature landscape',
+      intervalMinutes: currentScreen.backgroundRotation?.intervalMinutes || 60,
+    });
   };
 
   const rotationFieldClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
-  const shade = currentScreen.shade;
-  const shadeEnabled = shade?.enabled ?? false;
-  const setShadeEnabled = (enabled: boolean) => {
+  // Every source's real controls, shown whenever its panel is open: the checkbox
+  // only decides whether the source is in the rotation. A source without its API
+  // key shows just the setup hint (its pickers would only report errors).
+  const rotation: BackgroundRotation = currentScreen.backgroundRotation ?? { sources: [], query: 'nature landscape', intervalMinutes: 60 };
+  const patchRotation = (updates: Partial<BackgroundRotation>) => {
     if (!selectedScreenId) return;
-    const updated: BackgroundShade = {
-      enabled,
-      style: shade?.style || 'topBottom',
-      strength: shade?.strength ?? 40,
-      color: shade?.color || '#000000',
-    };
-    updateScreen(selectedScreenId, { shade: updated });
+    updateScreenRotation(selectedScreenId, {
+      query: rotation.query || 'nature landscape',
+      intervalMinutes: rotation.intervalMinutes || 60,
+      ...updates,
+    });
   };
-  const updateShade = (updates: Partial<BackgroundShade>) => {
-    if (!selectedScreenId || !shade) return;
-    updateScreen(selectedScreenId, { shade: { ...shade, ...updates } });
+  const sourceControls = (entry: { id: BackgroundRotationSourceId; locked: boolean }) => {
+    const needsKey = entry.locked && entry.id !== 'icloud' && entry.id !== 'nasa-apod' && entry.id !== 'local';
+    if (needsKey) return null;
+    return (
+      <div className="mt-1.5 ml-5 space-y-2">
+        {entry.id === 'unsplash' && (
+          <>
+            <SourceModeToggle
+              testIdPrefix="unsplash-mode"
+              value={unsplashCollectionsMode ? 'collections' : 'query'}
+              onChange={(id) => patchRotation({
+                unsplashMode: id,
+                unsplashCollections: id === 'collections' && !rotation.unsplashCollections?.length ? [''] : rotation.unsplashCollections,
+              })}
+              options={[
+                { id: 'query', label: t('backgroundPicker.unsplash.modeQuery') },
+                { id: 'collections', label: t('backgroundPicker.unsplash.modeCollections') },
+              ]}
+            />
+            {unsplashCollectionsMode ? (
+              <CollectionsRotationFields
+                key={selectedScreenId}
+                collections={rotation.unsplashCollections || []}
+                onChange={(ids) => patchRotation({ unsplashCollections: ids })}
+              />
+            ) : (
+              <UnsplashSearchPicker rotation={rotation} onChange={patchRotation} />
+            )}
+          </>
+        )}
+        {entry.id === 'icloud' && (
+          <label className="block">
+            <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.icloud.albumLabel')}</span>
+            <input
+              type="url"
+              value={rotation.icloudAlbumUrl || ''}
+              onChange={(e) => patchRotation({ icloudAlbumUrl: e.target.value || undefined, sources: rotationSources })}
+              placeholder="https://www.icloud.com/sharedalbum/#..."
+              className={rotationFieldClass}
+            />
+            <SourceHint>{t('backgroundPicker.icloud.albumHelp')}</SourceHint>
+            {entry.locked && (
+              <SourceHint testId="icloud-needs-link">{t('backgroundPicker.icloud.needsLink')}</SourceHint>
+            )}
+          </label>
+        )}
+        {entry.id === 'immich' && (
+          <>
+            <SourceModeToggle
+              testIdPrefix="immich-mode"
+              value={effectiveImmichMode(rotation)}
+              onChange={(id) => patchRotation({ immichMode: id })}
+              options={[
+                { id: 'pick', label: t('backgroundPicker.immich.modePictures') },
+                { id: 'filters', label: t('backgroundPicker.immich.modeFilters') },
+              ]}
+            />
+            {effectiveImmichMode(rotation) === 'pick' ? (
+              <ImmichPickPicker rotation={rotation} onChange={patchRotation} />
+            ) : (
+              <ImmichRotationFields rotation={rotation} onChange={patchRotation} />
+            )}
+          </>
+        )}
+        {entry.id === 'nasa-apod' && <SourceHint>{t('backgroundPicker.nasaInfo')}</SourceHint>}
+        {entry.id === 'local' && <LocalRotationFields rotation={rotation} onChange={patchRotation} />}
+      </div>
+    );
   };
 
   return (
+    <>
+    {/* A full-screen theme wall is a single fixed pick, not a media source, so it sits outside Sources. */}
+    <AccordionSection title={t('backgroundPicker.groups.theme')}>
+      <ThemeBackgrounds selectedScreenId={selectedScreenId} />
+    </AccordionSection>
+
     <AccordionSection title={t('backgroundPicker.title')}>
-      {anySourceAvailable && (
-        <>
-          <PropertyGroup title={t('backgroundPicker.statusGroup')} accent={1}>
-            <Toggle
-              label={t('backgroundPicker.autoRotate')}
-              checked={rotationEnabled}
-              onChange={setRotationEnabled}
-            />
-          </PropertyGroup>
-          {rotationEnabled && (
-            <PropertyGroup title={t('fields.rotation')} accent={2}>
+      <PropertyGroup
+        title={t('backgroundPicker.sourcesGroup')}
+        accent={2}
+        titleExtra={
+                <button
+                  type="button"
+                  onClick={refreshNow}
+                  disabled={rotationSources.length === 0 || refreshing}
+                  aria-label={t('backgroundPicker.refreshNow')}
+                  title={t('backgroundPicker.refreshNow')}
+                  data-testid="background-rotation-refresh"
+                  className="mb-[7px] shrink-0 rounded p-1 text-hs-text-faint hover:text-hs-text-secondary hover:bg-hs-hover disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                >
+                  <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
+                </button>
+              }
+            >
               <div className="space-y-2">
-                <label className="block">
-                  <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.sourceLabel')}</span>
-                  <select
-                    value={rotationSource}
-                    onChange={(e) => {
-                      if (!selectedScreenId) return;
-                      const source = e.target.value as BackgroundRotation['source'];
-                      updateScreen(selectedScreenId, {
-                        backgroundRotation: {
-                          ...currentScreen.backgroundRotation!,
-                          source,
-                          query: source === 'unsplash' ? (currentScreen.backgroundRotation!.query || 'nature landscape') : '',
-                          intervalMinutes: source === 'nasa-apod' ? 240 : (currentScreen.backgroundRotation!.intervalMinutes || 60),
-                        },
-                      });
-                    }}
-                    className={rotationFieldClass}
-                  >
-                    {/* Every option the stored value could be, always. Rendering
-                        only the keyed ones made a stored `unsplash` display as
-                        whatever happened to be first — iCloud — while the
-                        Unsplash-only query field stayed visible underneath. */}
-                    {(hasUnsplashKey || rotationSource === 'unsplash') && (
-                      <option value="unsplash">{t('backgroundPicker.sources.unsplash')}</option>
-                    )}
-                    {(hasNasaKey || rotationSource === 'nasa-apod') && (
-                      <option value="nasa-apod">{t('backgroundPicker.sources.nasaApod')}</option>
-                    )}
-                    {(hasImmichKey || rotationSource === 'immich') && (
-                      <option value="immich">{t('backgroundPicker.sources.immich')}</option>
-                    )}
-                    <option value="icloud">{t('backgroundPicker.sources.icloud')}</option>
-                  </select>
-                  {sourceKeyMissing && (
-                    <span
-                      className="mt-1 block text-[10px] leading-relaxed text-hs-warning"
-                      data-testid="background-source-key-missing"
-                    >
-                      {t('backgroundPicker.sourceKeyMissing')}
-                    </span>
-                  )}
-                </label>
-                {rotationSource === 'unsplash' && (
-                  <label className="block">
-                    <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.searchQueryLabel')}</span>
-                    <input
-                      type="text"
-                      value={currentScreen.backgroundRotation!.query}
-                      onChange={(e) => {
-                        if (!selectedScreenId) return;
-                        updateScreen(selectedScreenId, {
-                          backgroundRotation: { ...currentScreen.backgroundRotation!, query: e.target.value },
-                        });
-                      }}
-                      placeholder={t('backgroundPicker.searchQueryPlaceholder')}
-                      className={rotationFieldClass}
-                    />
-                  </label>
-                )}
-                {rotationSource === 'icloud' && (
-                  <label className="block">
-                    <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.icloud.albumLabel')}</span>
-                    <input
-                      type="url"
-                      value={currentScreen.backgroundRotation!.icloudAlbumUrl || ''}
-                      onChange={(e) => {
-                        if (!selectedScreenId) return;
-                        updateScreen(selectedScreenId, {
-                          backgroundRotation: { ...currentScreen.backgroundRotation!, icloudAlbumUrl: e.target.value || undefined },
-                        });
-                      }}
-                      placeholder="https://www.icloud.com/sharedalbum/#..."
-                      className={rotationFieldClass}
-                    />
-                    <span className="block mt-1 text-[10px] text-hs-text-faint leading-relaxed">
-                      {t('backgroundPicker.icloud.albumHelp')}
-                    </span>
-                  </label>
-                )}
-                {rotationSource === 'immich' && (
-                  <ImmichRotationFields
-                    rotation={currentScreen.backgroundRotation!}
-                    onChange={(updates) => {
-                      if (!selectedScreenId) return;
-                      updateScreen(selectedScreenId, {
-                        backgroundRotation: { ...currentScreen.backgroundRotation!, ...updates },
-                      });
-                    }}
-                  />
-                )}
+                <p className="text-xs font-medium text-hs-text-secondary" data-testid="background-mode" title={t('backgroundPicker.modeHelp')}>
+                  {rotationSources.length > 0 ? t('backgroundPicker.modeRotating') : t('backgroundPicker.modeFixed')}
+                </p>
+                <LocalBackgrounds selectedScreenId={selectedScreenId} />
+                <div className="space-y-2">
+                  {ROTATION_SOURCES.map((entry) => {
+                    const checked = rotationSources.includes(entry.id);
+                    return (
+                      <CollapsibleSource key={entry.id} id={entry.id} checked={checked}
+                        tooltip={entry.locked ? (entry.id === 'icloud' ? t('backgroundPicker.icloud.needsLink') : `${t('backgroundPicker.sourceNotSetUp')} ${t('backgroundPicker.sourceSetUpLink', { source: entry.label })}`) : undefined}
+                        label={entry.label}
+                        header={(toggle) => (<>
+                        <label
+                          className={`flex min-w-0 flex-1 items-center gap-2 ${entry.locked && !checked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                          title={entry.locked ? t('backgroundPicker.sourceSetUpLink', { source: entry.label }) : undefined}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={entry.locked && !checked}
+                            onChange={(e) => toggleRotationSource(entry.id, e.target.checked)}
+                            className="rounded border-hs-border-strong"
+                          />
+                          <span className={`text-xs flex items-center gap-1 ${entry.locked ? 'text-hs-text-faint' : 'text-hs-text-body'}`}>
+                            {entry.locked && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
+                            {entry.label}
+                          </span>
+                        </label>
+                        {toggle}
+                        </>)}
+                        notes={<>
+                        {entry.locked && entry.id !== 'icloud' && (
+                          checked ? (
+                            <span
+                              className="mt-1 block text-[10px] leading-relaxed text-hs-warning"
+                              data-testid="background-source-key-missing"
+                            >
+                              {t('backgroundPicker.sourceKeyMissing')}
+                            </span>
+                          ) : (
+                            <span
+                              className="mt-0.5 block pl-5 text-[10px] leading-relaxed text-hs-text-faint"
+                              data-testid={`background-source-not-set-up-${entry.id}`}
+                            >
+                              {t('backgroundPicker.sourceNotSetUp')}{' '}
+                              {entry.integration && (
+                                <IntegrationSettingsLink integration={entry.integration}>
+                                  {t('backgroundPicker.sourceSetUpLink', { source: entry.label })}
+                                </IntegrationSettingsLink>
+                              )}
+                            </span>
+                          )
+                        )}
+                        </>}
+                      >
+                          {sourceControls(entry)}
+                      </CollapsibleSource>
+                    );
+                  })}
+                </div>
                 <label className="block">
                   <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.rotateEveryLabel')}</span>
                   <select
-                    value={currentScreen.backgroundRotation!.intervalMinutes}
+                    value={currentScreen.backgroundRotation?.intervalMinutes ?? 60}
                     onChange={(e) => {
                       if (!selectedScreenId) return;
-                      updateScreen(selectedScreenId, {
-                        backgroundRotation: { ...currentScreen.backgroundRotation!, intervalMinutes: Number(e.target.value) },
-                      });
+                      updateScreenRotation(selectedScreenId, { intervalMinutes: Number(e.target.value) });
                     }}
                     className={rotationFieldClass}
                   >
@@ -296,54 +328,7 @@ export default function BackgroundPicker() {
                     ))}
                   </select>
                 </label>
-                {rotationSource === 'nasa-apod' && (
-                  <p className="text-[10px] text-hs-text-faint">
-                    {t('backgroundPicker.nasaInfo')}
-                  </p>
-                )}
               </div>
-            </PropertyGroup>
-          )}
-        </>
-      )}
-
-      <PropertyGroup title={t('backgroundPicker.shadeGroup')} accent={1}>
-        <Toggle
-          label={t('backgroundPicker.shadeEnable')}
-          checked={shadeEnabled}
-          onChange={setShadeEnabled}
-        />
-        {shadeEnabled && shade && (
-          <div className="space-y-2 mt-2">
-            <label className="block">
-              <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.shadeStyleLabel')}</span>
-              <select
-                value={shade.style}
-                onChange={(e) => updateShade({ style: e.target.value as BackgroundShade['style'] })}
-                className={rotationFieldClass}
-              >
-                <option value="even">{t('backgroundPicker.shadeStyles.even')}</option>
-                <option value="topBottom">{t('backgroundPicker.shadeStyles.topBottom')}</option>
-                <option value="edges">{t('backgroundPicker.shadeStyles.edges')}</option>
-                <option value="both">{t('backgroundPicker.shadeStyles.both')}</option>
-              </select>
-            </label>
-            <Slider
-              label={t('backgroundPicker.shadeStrengthLabel')}
-              value={shade.strength}
-              min={0}
-              max={100}
-              step={5}
-              displayValue={`${shade.strength}%`}
-              onChange={(value) => updateShade({ strength: value })}
-            />
-            <ColorPicker
-              label={t('backgroundPicker.shadeColorLabel')}
-              value={shade.color}
-              onChange={(value) => updateShade({ color: value })}
-            />
-          </div>
-        )}
       </PropertyGroup>
 
       {missingPath && (
@@ -357,14 +342,21 @@ export default function BackgroundPicker() {
           <div className="flex gap-2 pt-0.5">
             <button
               type="button"
-              onClick={() => setTab('local')}
+              onClick={() => {
+                const group = document.getElementById('starter-group-theme');
+                if (group?.getAttribute('aria-expanded') === 'false') group.click();
+                group?.focus();
+              }}
               className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-body bg-hs-card border border-hs-border-strong hover:bg-hs-hover transition-colors"
             >
               {t('backgroundPicker.missing.pickAnother')}
             </button>
             <button
               type="button"
-              onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
+              onClick={() => updateScreen(selectedScreenId, {
+                backgroundImage: '',
+                ...(rotationSources.length ? { backgroundRotation: stopBackgroundRotation(currentScreen.backgroundRotation) } : {}),
+              })}
               className="text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-text-body bg-hs-card border border-hs-border-strong hover:bg-hs-hover transition-colors"
             >
               {t('backgroundPicker.missing.useSolid')}
@@ -372,59 +364,12 @@ export default function BackgroundPicker() {
           </div>
         </div>
       )}
-
-      {/* Two rows rather than one scrolling row: four tabs do not fit across a
-          288px panel, and a strip that scrolls sideways hid Immich behind an
-          edge nothing advertised. */}
-      <div className="grid grid-cols-2 gap-1 rounded-md bg-hs-card p-0.5">
-        {/* Backgrounds first: it is the only tab that always has something in
-            it. The others carry a lock until their key is set up, so a dead
-            end is visible before it is clicked. */}
-        {([
-          { id: 'local' as const, label: t('backgroundPicker.tabs.local'), locked: false },
-          { id: 'unsplash' as const, label: 'Unsplash', locked: !hasUnsplashKey },
-          { id: 'nasa' as const, label: t('backgroundPicker.tabs.nasa'), locked: !hasNasaKey },
-          { id: 'immich' as const, label: 'Immich', locked: !hasImmichKey },
-        ]).map((entry) => (
-          <button
-            key={entry.id}
-            onClick={() => setTab(entry.id)}
-            data-testid={`background-tab-${entry.id}`}
-            title={entry.locked ? t('backgroundPicker.needsKey') : undefined}
-            className={`flex items-center justify-center gap-1 truncate rounded px-2 py-1.5 text-xs ${
-              tab === entry.id
-                ? 'bg-hs-hover text-hs-text-primary'
-                : entry.locked
-                  ? 'text-hs-text-faint hover:text-hs-text-muted'
-                  : 'text-hs-text-muted hover:text-hs-text-secondary'
-            }`}
-          >
-            {entry.locked && <Lock className="h-2.5 w-2.5" aria-hidden="true" />}
-            {entry.label}
-          </button>
-        ))}
-      </div>
-
-      {/* One tab's contents can be much shorter than another's. Without a floor
-          the panel collapses on every switch, the scroll container clamps, and
-          the picker appears to jump back to the top of the settings panel. */}
-      <div className="min-h-96">
-        {tab === 'unsplash' && (
-          <UnsplashBrowser selectedScreenId={selectedScreenId} hasUnsplashKey={hasUnsplashKey} />
-        )}
-
-        {tab === 'nasa' && (
-          <NasaBrowser selectedScreenId={selectedScreenId} hasNasaKey={hasNasaKey} />
-        )}
-
-        {tab === 'immich' && (
-          <ImmichBrowser selectedScreenId={selectedScreenId} hasImmichKey={hasImmichKey} />
-        )}
-
-        {tab === 'local' && (
-          <LocalBackgrounds selectedScreenId={selectedScreenId} />
-        )}
-      </div>
     </AccordionSection>
+
+    <AccordionSection title={t('backgroundPicker.effectsTitle')}>
+      <BackgroundShadeFields screenId={selectedScreenId} shade={currentScreen.shade} />
+      <BackgroundEffectsFields screenId={selectedScreenId} effects={currentScreen.effects} />
+    </AccordionSection>
+    </>
   );
 }

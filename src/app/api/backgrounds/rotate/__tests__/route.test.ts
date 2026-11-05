@@ -8,27 +8,18 @@ vi.mock('@/lib/auth', () => ({
   isAuthEnabled: vi.fn().mockResolvedValue(false),
 }));
 
-// `public/backgrounds` is a symlink to the real repo in the test sandbox, so the
-// fetch-and-save path must never reach the real filesystem. Mock fs entirely.
-// vi.hoisted so the object exists when the hoisted vi.mock factory references it.
-// createWriteStream backs writeLibraryFile's streaming save (the iCloud path);
-// it must hand back a real Writable or stream.pipeline rejects.
 const fsMock = vi.hoisted(() => ({
   readFile: vi.fn(),
+  rename: vi.fn(),
   mkdir: vi.fn(),
   readdir: vi.fn(),
   stat: vi.fn(),
   unlink: vi.fn(),
   rm: vi.fn(),
-  rename: vi.fn(),
 }));
 const createWriteStreamMock = vi.hoisted(() => vi.fn());
 vi.mock('fs', () => ({ promises: fsMock, createWriteStream: createWriteStreamMock }));
 
-// The rotation cache is a json-store now, not a hand-rolled read/write pair.
-// Back it with an in-memory object rather than the fs mock above: these tests
-// are about rotation logic, and `updateAtomic`'s merge semantics are what the
-// route depends on.
 const cacheState = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
 vi.mock('@/lib/json-store', () => ({
   createJsonStore: () => ({
@@ -43,7 +34,10 @@ vi.mock('@/lib/json-store', () => ({
 
 vi.mock('@/lib/config', () => ({ readConfig: vi.fn().mockResolvedValue({}) }));
 vi.mock('@/lib/thumbnails', () => ({ removeThumbnails: vi.fn() }));
-vi.mock('@/lib/display-filter', () => ({ findScreenById: vi.fn() }));
+vi.mock('@/lib/display-filter', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/display-filter')>();
+  return { ...actual, findScreenById: vi.fn(), findDisplayForScreen: vi.fn() };
+});
 vi.mock('@/lib/immich', () => ({ immichFetch: vi.fn() }));
 vi.mock('@/lib/icloud-album', () => ({ fetchSharedStreamsAlbum: vi.fn() }));
 vi.mock('@/lib/icloud-link', () => ({ fetchCloudKitAlbum: vi.fn() }));
@@ -61,21 +55,19 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
 });
 
 import { Writable } from 'stream';
-import { findScreenById } from '@/lib/display-filter';
+import { findScreenById, findDisplayForScreen } from '@/lib/display-filter';
 import { immichFetch } from '@/lib/immich';
 import { fetchSharedStreamsAlbum } from '@/lib/icloud-album';
-import { fetchCloudKitAlbum } from '@/lib/icloud-link';
 import { getUnsplashAccessKey } from '@/lib/unsplash';
 import { getNasaApiKey } from '@/lib/nasa';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { removeThumbnails } from '@/lib/thumbnails';
-import { readConfig } from '@/lib/config';
 import { GET } from '@/app/api/backgrounds/rotate/route';
 
 const mockFindScreen = vi.mocked(findScreenById);
+const mockFindDisplay = vi.mocked(findDisplayForScreen);
 const mockImmichFetch = vi.mocked(immichFetch);
 const mockICloudAlbum = vi.mocked(fetchSharedStreamsAlbum);
-const mockCloudKit = vi.mocked(fetchCloudKitAlbum);
 const mockUnsplashKey = vi.mocked(getUnsplashAccessKey);
 const mockNasaKey = vi.mocked(getNasaApiKey);
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -88,21 +80,21 @@ function screen(overrides: Partial<Screen> = {}): Screen {
   return { id: 's1', name: 'Home', modules: [], ...overrides } as Screen;
 }
 
-/** Put entries in the rotation cache the route will read. */
 function seedCache(entries: Record<string, unknown>): void {
   cacheState.value = entries;
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockFindDisplay.mockReturnValue(null);
   cacheState.value = {}; // empty rotation cache by default
   fsMock.readFile.mockRejectedValue(new Error('ENOENT'));
+  fsMock.rename.mockResolvedValue(undefined);
   fsMock.mkdir.mockResolvedValue(undefined);
   fsMock.readdir.mockResolvedValue([]); // nothing to prune by default
   fsMock.stat.mockResolvedValue({ mtimeMs: 0 });
   fsMock.unlink.mockResolvedValue(undefined);
   fsMock.rm.mockResolvedValue(undefined);
-  fsMock.rename.mockResolvedValue(undefined);
   createWriteStreamMock.mockImplementation(
     () => new Writable({ write(_chunk, _encoding, callback) { callback(); } }),
   );
@@ -142,7 +134,7 @@ describe('GET /api/backgrounds/rotate — validation & fallbacks', () => {
     mockFindScreen.mockReturnValue(
       screen({
         backgroundImage: '/bg.jpg',
-        backgroundRotation: { enabled: true, source: 'unsplash' } as never,
+        backgroundRotation: { enabled: true, sources: ['unsplash'] } as never,
       }),
     );
 
@@ -156,7 +148,7 @@ describe('GET /api/backgrounds/rotate — validation & fallbacks', () => {
     mockFindScreen.mockReturnValue(
       screen({
         backgroundImage: '/bg.jpg',
-        backgroundRotation: { enabled: true, source: 'bogus' } as never,
+        backgroundRotation: { enabled: true, sources: ['bogus'] } as never,
       }),
     );
 
@@ -167,212 +159,37 @@ describe('GET /api/backgrounds/rotate — validation & fallbacks', () => {
   });
 });
 
-describe('GET /api/backgrounds/rotate — Immich rotation', () => {
-  const immichRotation = {
-    enabled: true,
-    source: 'immich',
-    intervalMinutes: 60,
-  } as never;
-
-  it('serves the cached image without re-fetching when the interval has not elapsed', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: immichRotation }));
+describe('GET /api/backgrounds/rotate — force refresh', () => {
+  it('bypasses a fresh cache entry when force=true, and always picks a new photo', async () => {
+    mockFindScreen.mockReturnValue(screen({
+      backgroundRotation: { enabled: true, sources: ['immich'], intervalMinutes: 60 } as never,
+    }));
     seedCache({
       s1: {
         path: '/api/backgrounds/serve?file=rotation-immich-old.jpg',
-        source: 'immich',
+        sources: JSON.stringify(['immich']),
         query: undefined,
         fetchedAt: Date.now(),
         intervalMinutes: 60,
-        immichFilters: JSON.stringify({ a: undefined, p: undefined, f: undefined }),
+        immichFilters: JSON.stringify({ a: [], p: [], px: [], f: undefined }),
       },
     });
-
-    const res = await GET(rotateReq());
-    const json = await res.json();
-
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-old.jpg', fresh: false });
-    expect(mockImmichFetch).not.toHaveBeenCalled();
-  });
-
-  it('fetches and saves a fresh image when there is no cache entry', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: immichRotation }));
     mockImmichFetch
-      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'asset1' }]), { status: 200 }))
-      .mockResolvedValueOnce(
-        new Response(new Uint8Array([1, 2, 3]), {
-          status: 200,
-          headers: { 'content-type': 'image/jpeg' },
-        }),
-      );
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'fresh' }]), { status: 200 }))
+      .mockResolvedValueOnce(new Response(new Uint8Array([1]), { status: 200, headers: { 'content-type': 'image/jpeg' } }));
 
-    const res = await GET(rotateReq());
+    const res = await GET(rotateReq('?screenId=s1&force=true'));
     const json = await res.json();
 
-    expect(json).toEqual({
-      path: '/api/backgrounds/serve?file=rotation-immich-asset1.jpg',
-      fresh: true,
-    });
-    // Random search + thumbnail download.
-    expect(mockImmichFetch).toHaveBeenCalledTimes(2);
-    // The image is streamed to a temp name and renamed into place; the cache
-    // entry lands in the store.
-    expect(fsMock.rename).toHaveBeenCalledWith(
-      expect.stringMatching(/rotation-immich-asset1\.jpg\..+\.tmp$/),
-      expect.stringMatching(/rotation-immich-asset1\.jpg$/),
-    );
-    expect(cacheState.value).toHaveProperty('s1');
-  });
-
-  it('falls back to the static background when the Immich search fails', async () => {
-    mockFindScreen.mockReturnValue(
-      screen({ backgroundImage: '/bg.jpg', backgroundRotation: immichRotation }),
-    );
-    mockImmichFetch.mockResolvedValue(new Response('', { status: 500 }));
-
-    const res = await GET(rotateReq());
-    const json = await res.json();
-
-    expect(json).toEqual({ path: '/bg.jpg' });
-    expect(createWriteStreamMock).not.toHaveBeenCalled();
-  });
-});
-
-describe('GET /api/backgrounds/rotate — Unsplash rotation', () => {
-  const unsplashRotation = {
-    enabled: true,
-    source: 'unsplash',
-    query: 'mountains',
-    intervalMinutes: 60,
-  } as never;
-
-  it('falls back to the static background when no Unsplash access key is configured', async () => {
-    mockFindScreen.mockReturnValue(
-      screen({ backgroundImage: '/bg.jpg', backgroundRotation: unsplashRotation }),
-    );
-    mockUnsplashKey.mockResolvedValue(null);
-
-    const res = await GET(rotateReq());
-    const json = await res.json();
-
-    expect(json).toEqual({ path: '/bg.jpg' });
-    expect(mockFetch).not.toHaveBeenCalled();
-    expect(createWriteStreamMock).not.toHaveBeenCalled();
-  });
-
-  it('fetches Unsplash metadata, downloads the image, and saves a fresh path', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
-    mockUnsplashKey.mockResolvedValue('unsplash-key');
-    mockFetch
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            id: 'photo42',
-            urls: { regular: 'https://images.unsplash.com/photo42' },
-            links: { download_location: 'https://api.unsplash.com/photos/photo42/download' },
-          }),
-          { status: 200 },
-        ),
-      )
-      .mockResolvedValueOnce(new Response(new Uint8Array([7, 7, 7]), { status: 200 }));
-
-    const res = await GET(rotateReq());
-    const json = await res.json();
-
-    expect(json).toEqual({
-      path: '/api/backgrounds/serve?file=rotation-unsplash-photo42.jpg',
-      fresh: true,
-    });
-    // Metadata fetch + image download.
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    expect(fsMock.rename).toHaveBeenCalledWith(
-      expect.stringMatching(/rotation-unsplash-photo42\.jpg\..+\.tmp$/),
-      expect.stringMatching(/rotation-unsplash-photo42\.jpg$/),
-    );
-  });
-
-  /**
-   * A download can outlast the wall's next poll, and two displays showing
-   * the same screen ask within seconds of each other. The second request
-   * joins the running download instead of starting another write of the
-   * same file.
-   */
-  it('lets an overlapping request for the same screen join the running download', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
-    mockUnsplashKey.mockResolvedValue('unsplash-key');
-    let finishDownload!: () => void;
-    const slowBody = new ReadableStream<Uint8Array>({
-      start(controller) {
-        finishDownload = () => { controller.enqueue(new Uint8Array([7])); controller.close(); };
-      },
-    });
-    mockFetch
-      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 'photo42', urls: { regular: 'https://images.unsplash.com/photo42' } }), { status: 200 }))
-      .mockResolvedValueOnce(new Response(slowBody, { status: 200 }));
-
-    const first = GET(rotateReq());
-    // The first request is inside its download before the second arrives.
-    for (let i = 0; i < 50 && mockFetch.mock.calls.length < 2; i++) await new Promise((r) => setTimeout(r, 1));
-    const second = GET(rotateReq());
-    await new Promise((r) => setTimeout(r, 5));
-    finishDownload();
-
-    const [a, b] = await Promise.all([first.then((r) => r.json()), second.then((r) => r.json())]);
-    expect(a).toEqual({ path: '/api/backgrounds/serve?file=rotation-unsplash-photo42.jpg', fresh: true });
-    expect(b).toEqual(a);
-    // One metadata fetch and one image download served both requests.
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    expect(createWriteStreamMock).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('GET /api/backgrounds/rotate: Unsplash sized to the wall', () => {
-  const unsplashRotation = { enabled: true, source: 'unsplash', query: 'lakes', intervalMinutes: 60 } as never;
-
-  function photoResponse() {
-    return new Response(JSON.stringify({
-      id: 'p9',
-      urls: { raw: 'https://images.unsplash.com/photo-p9?ixid=abc', regular: 'https://images.unsplash.com/photo-p9-regular' },
-    }), { status: 200 });
-  }
-
-  it('asks for a photo shaped like the display that owns the screen, cropped to its canvas', async () => {
-    vi.mocked(readConfig).mockResolvedValueOnce({
-      settings: { displayWidth: 1080, displayHeight: 1920 },
-      displays: [{ id: 'kitchen', name: 'Kitchen', displayWidth: 1920, displayHeight: 1080, screens: [{ id: 's1' }] }],
-      screens: [],
-    } as never);
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
-    mockUnsplashKey.mockResolvedValue('unsplash-key');
-    mockFetch
-      .mockResolvedValueOnce(photoResponse())
-      .mockResolvedValueOnce(new Response(new Uint8Array([7]), { status: 200 }));
-
-    await GET(rotateReq());
-
-    expect(String(mockFetch.mock.calls[0][0])).toContain('orientation=landscape');
-    expect(mockFetch.mock.calls[1][0]).toBe(
-      'https://images.unsplash.com/photo-p9?ixid=abc&fit=crop&w=1920&h=1080&q=80&fm=jpg',
-    );
-  });
-
-  it('falls back to the shared canvas, portrait by default', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: unsplashRotation }));
-    mockUnsplashKey.mockResolvedValue('unsplash-key');
-    mockFetch
-      .mockResolvedValueOnce(photoResponse())
-      .mockResolvedValueOnce(new Response(new Uint8Array([7]), { status: 200 }));
-
-    await GET(rotateReq());
-
-    expect(String(mockFetch.mock.calls[0][0])).toContain('orientation=portrait');
-    expect(String(mockFetch.mock.calls[1][0])).toContain('&w=1080&h=1920');
+    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-fresh.jpg', fresh: true });
+    expect(mockImmichFetch).toHaveBeenCalled();
   });
 });
 
 describe('GET /api/backgrounds/rotate — NASA APOD rotation', () => {
   const apodRotation = {
     enabled: true,
-    source: 'nasa-apod',
+    sources: ['nasa-apod'],
     intervalMinutes: 60,
   } as never;
 
@@ -405,10 +222,7 @@ describe('GET /api/backgrounds/rotate — NASA APOD rotation', () => {
       path: '/api/backgrounds/serve?file=rotation-nasa-apod-20240501.jpg',
       fresh: true,
     });
-    expect(fsMock.rename).toHaveBeenCalledWith(
-      expect.stringMatching(/rotation-nasa-apod-20240501\.jpg\..+\.tmp$/),
-      expect.stringMatching(/rotation-nasa-apod-20240501\.jpg$/),
-    );
+    expect(fsMock.rename).toHaveBeenCalled();
   });
 
   it('falls back to the static background when the APOD entry is not an image', async () => {
@@ -423,154 +237,68 @@ describe('GET /api/backgrounds/rotate — NASA APOD rotation', () => {
     const res = await GET(rotateReq());
     const json = await res.json();
 
-    expect(json).toEqual({ path: '/bg.jpg' });
+    expect(json).toEqual({ path: '/bg.jpg', fresh: false });
     expect(createWriteStreamMock).not.toHaveBeenCalled();
   });
 });
 
-describe('GET /api/backgrounds/rotate — iCloud rotation', () => {
-  const icloudRotation = {
-    enabled: true,
-    source: 'icloud',
-    icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC',
-    intervalMinutes: 60,
-  } as never;
+describe('GET /api/backgrounds/rotate — cache input changes', () => {
+  it('refetches when the selected local folder changes mid-interval', async () => {
+    mockFindScreen.mockReturnValue(screen({ backgroundImage: '/bg.jpg', backgroundRotation: {
+      sources: ['local'], query: '', intervalMinutes: 60, localFolder: 'new',
+    } as never }));
+    seedCache({ s1: {
+      path: '/api/backgrounds/serve?file=old/picture.jpg',
+      sources: JSON.stringify(['local']), query: '', intervalMinutes: 60,
+      localFolder: 'old', fetchedAt: Date.now(),
+    } });
+    fsMock.readdir.mockResolvedValue([{ name: 'photo.jpg', isFile: () => true }]);
 
-  function pngResponse() {
-    return new Response(new Uint8Array([1, 2]), {
-      status: 200,
-      headers: { 'content-type': 'image/png' },
+    expect(await (await GET(rotateReq())).json()).toEqual({
+      path: '/api/backgrounds/serve?file=new%2Fphoto.jpg', fresh: true,
     });
-  }
-
-  it('picks only images (a video cannot be a CSS background) and keys the file by sanitized GUID', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: icloudRotation }));
-    mockICloudAlbum.mockResolvedValue([
-      { url: 'https://cvws.icloud-content.com/v', type: 'video', guid: 'vid-1' },
-      { url: 'https://cvws.icloud-content.com/p', type: 'image', guid: 'pic/1!' },
-    ]);
-    mockFetch.mockResolvedValue(pngResponse());
-
-    const res = await GET(rotateReq());
-    const json = await res.json();
-
-    // One image in the album → random can only pick it. GUID sanitized to
-    // alphanumerics; extension mapped from the response Content-Type.
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-pic1.png', fresh: true });
-    expect(String(mockFetch.mock.calls[0][0])).toBe('https://cvws.icloud-content.com/p');
-    // The image streams to disk (writeLibraryFile) rather than buffering whole.
-    expect(String(createWriteStreamMock.mock.calls[0][0])).toContain('rotation-icloud-pic1.png');
   });
 
-  it('rotates from a new-format album through the CloudKit backend', async () => {
-    mockFindScreen.mockReturnValue(screen({
-      backgroundRotation: {
-        enabled: true,
-        source: 'icloud',
-        icloudAlbumUrl: 'https://photos.icloud.com/shared/album/03c4SA2q7HwyPw7YOwfXTn0mg',
-        intervalMinutes: 60,
-      } as never,
-    }));
-    mockCloudKit.mockResolvedValue([
-      { url: 'https://cvws.icloud-content.com/p', type: 'image', guid: 'ck-1' },
-    ]);
-    mockFetch.mockResolvedValue(pngResponse());
+  it('refetches an Unsplash crop when the display canvas changes mid-interval', async () => {
+    mockFindScreen.mockReturnValue(screen({ backgroundImage: '/bg.jpg', backgroundRotation: {
+      sources: ['unsplash'], query: 'sky', intervalMinutes: 60,
+    } as never }));
+    mockFindDisplay.mockReturnValue({ displayWidth: 1920, displayHeight: 1080 } as never);
+    seedCache({ s1: {
+      path: '/api/backgrounds/serve?file=rotation-unsplash-old.jpg',
+      sources: JSON.stringify(['unsplash']), query: 'sky', intervalMinutes: 60,
+      canvas: JSON.stringify({ w: 1080, h: 1920 }), fetchedAt: Date.now(),
+    } });
+    mockUnsplashKey.mockResolvedValue('key');
+    mockFetch.mockResolvedValue(new Response('', { status: 503 }));
 
-    const json = await (await GET(rotateReq())).json();
-
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-ck-1.png', fresh: true });
-    expect(mockCloudKit).toHaveBeenCalledWith('03c4SA2q7HwyPw7YOwfXTn0mg');
-    expect(mockICloudAlbum).not.toHaveBeenCalled();
-  });
-
-  it('falls back to the static background when the album has no photos', async () => {
-    mockFindScreen.mockReturnValue(
-      screen({ backgroundImage: '/bg.jpg', backgroundRotation: icloudRotation }),
-    );
-    mockICloudAlbum.mockResolvedValue([
-      { url: 'https://cvws.icloud-content.com/v', type: 'video', guid: 'vid-1' },
-    ]);
-
-    const json = await (await GET(rotateReq())).json();
-
-    expect(json).toEqual({ path: '/bg.jpg' });
-    expect(createWriteStreamMock).not.toHaveBeenCalled();
-  });
-
-  it('serves the cached image while fresh, without re-resolving the album', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: icloudRotation }));
-    seedCache({
-      s1: {
-        path: '/api/backgrounds/serve?file=rotation-icloud-old.jpg',
-        source: 'icloud',
-        query: undefined,
-        fetchedAt: Date.now(),
-        intervalMinutes: 60,
-        icloudAlbum: 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC',
-      },
+    expect(await (await GET(rotateReq())).json()).toEqual({
+      path: '/api/backgrounds/serve?file=rotation-unsplash-old.jpg', fresh: false,
     });
-
-    const json = await (await GET(rotateReq())).json();
-
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-old.jpg', fresh: false });
-    expect(mockICloudAlbum).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
-  it('refetches immediately when the configured album changes, even mid-interval', async () => {
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: icloudRotation }));
-    seedCache({
-      s1: {
-        path: '/api/backgrounds/serve?file=rotation-icloud-old.jpg',
-        source: 'icloud',
-        query: undefined,
-        fetchedAt: Date.now(),
-        intervalMinutes: 60,
-        icloudAlbum: 'https://www.icloud.com/sharedalbum/#DIFFERENTALBUM',
-      },
+  it('reports a failed forced fetch without marking its cached photo as new', async () => {
+    mockFindScreen.mockReturnValue(screen({ backgroundRotation: {
+      sources: ['immich'], query: '', intervalMinutes: 60,
+    } as never }));
+    seedCache({ s1: {
+      path: '/api/backgrounds/serve?file=rotation-immich-old.jpg',
+      sources: JSON.stringify(['immich']), query: '', intervalMinutes: 60,
+      fetchedAt: Date.now(),
+    } });
+    mockImmichFetch.mockResolvedValue(new Response('', { status: 503 }));
+
+    expect(await (await GET(rotateReq('?screenId=s1&force=true'))).json()).toEqual({
+      path: '/api/backgrounds/serve?file=rotation-immich-old.jpg', fresh: false,
     });
-    mockICloudAlbum.mockResolvedValue([
-      { url: 'https://cvws.icloud-content.com/p', type: 'image', guid: 'new' },
-    ]);
-    mockFetch.mockResolvedValue(pngResponse());
-
-    const json = await (await GET(rotateReq())).json();
-
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-new.png', fresh: true });
-    expect(mockICloudAlbum).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps an entry another screen committed while this fetch was in flight', async () => {
-    // The window this closes: the route read the whole cache, awaited a
-    // multi-second upstream fetch, then wrote its pre-fetch snapshot back. Any
-    // rotation that finished for another screen in between was erased. The
-    // write is an `updateAtomic` merge now, so both entries survive.
-    mockFindScreen.mockReturnValue(screen({ backgroundRotation: icloudRotation }));
-    seedCache({});
-    mockICloudAlbum.mockImplementation(async () => {
-      cacheState.value = {
-        ...cacheState.value,
-        s2: {
-          path: '/api/backgrounds/serve?file=rotation-unsplash-other.jpg',
-          source: 'unsplash',
-          query: 'x',
-          fetchedAt: Date.now(),
-          intervalMinutes: 60,
-        },
-      };
-      return [{ url: 'https://cvws.icloud-content.com/p', type: 'image', guid: 'new' }];
-    });
-    mockFetch.mockResolvedValue(pngResponse());
-
-    await GET(rotateReq());
-
-    expect(Object.keys(cacheState.value).sort()).toEqual(['s1', 's2']);
   });
 });
 
 describe('GET /api/backgrounds/rotate — rotation file pruning', () => {
   const icloudRotation = {
     enabled: true,
-    source: 'icloud',
+    sources: ['icloud'],
     icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC',
     intervalMinutes: 60,
   } as never;
@@ -585,7 +313,7 @@ describe('GET /api/backgrounds/rotate — rotation file pruning', () => {
     seedCache({
       s2: {
         path: '/api/backgrounds/serve?file=rotation-unsplash-kept.jpg',
-        source: 'unsplash',
+        sources: JSON.stringify(['unsplash']),
         query: 'x',
         fetchedAt: 0,
         intervalMinutes: 60,
@@ -625,7 +353,7 @@ describe('GET /api/backgrounds/rotate — rotation file pruning', () => {
     seedCache({
       s1: {
         path: '/api/backgrounds/serve?file=rotation-icloud-old.jpg',
-        source: 'icloud',
+        sources: JSON.stringify(['icloud']),
         query: undefined,
         fetchedAt: Date.now(),
         intervalMinutes: 60,

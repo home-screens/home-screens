@@ -1,117 +1,88 @@
 'use client';
 
-import { useState, useEffect, useRef, type ReactNode } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { editorFetch } from '@/lib/editor-fetch';
+import { useId } from 'react';
+import { Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
-import { getActiveScreens, getActiveDimensions, getActiveFullscreenTheme } from '@/lib/editor-multi-display';
-import Button from '@/components/ui/Button';
-import FullscreenThemePreview from '@/components/ui/FullscreenThemePreview';
-import { themeTileClass } from '@/components/editor/settings/shared/FullscreenThemeTile';
-import { useTranslate, tOrFallback } from '@/i18n';
-import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
+import { getActiveScreens, getActiveDimensions } from '@/lib/editor-multi-display';
+import { useTranslate } from '@/i18n';
 import {
   starterBackgroundsIn,
-  type StarterBackground,
-  type StarterBackgroundGroup,
+  type StarterRotationBackground,
+  type StarterRotationGroup,
 } from '@/lib/starter-backgrounds';
-import { logger } from '@/lib/logger';
-import { tileThumbnailUrl } from '@/lib/media-paths';
-
-const log = logger('backgrounds');
+import { useGroupOpen } from './useGroupOpen';
+import { isRotationActive } from '@/lib/screen-background';
 
 interface Props {
   selectedScreenId: string;
 }
 
-const GROUP_STORAGE_PREFIX = 'hs-background-group-';
-
-function readGroupOpen(id: string): boolean {
-  try {
-    return localStorage.getItem(GROUP_STORAGE_PREFIX + id) !== 'closed';
-  } catch {
-    return true;
-  }
-}
-
-/** One collapsible heading in the shipped set. Open by default; the choice sticks per browser. */
-function StarterGroup({ id, title, count, children }: { id: StarterBackgroundGroup; title: string; count: number; children: ReactNode }) {
-  const [open, setOpen] = useState(true);
-  useEffect(() => { setOpen(readGroupOpen(id)); }, [id]);
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    try { localStorage.setItem(GROUP_STORAGE_PREFIX + id, next ? 'open' : 'closed'); } catch { /* private mode */ }
-  };
+/** Heading checkbox switches the group's tiles from "pick one" to "rotate through the selection". */
+function StarterGroup({ id, title, count, checked, hint, onChange, children }: {
+  id: StarterRotationGroup; title: string; count: string; checked: boolean; hint?: string;
+  onChange: (checked: boolean) => void; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useGroupOpen(id);
+  const panelId = useId();
+  const toggle = () => setOpen(!open);
   const Chevron = open ? ChevronDown : ChevronRight;
   return (
-    <div className="mt-2">
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={open}
-        data-testid={`starter-group-${id}`}
-        className="flex w-full items-center gap-1 py-1 text-[10px] text-hs-text-faint hover:text-hs-text-muted"
-      >
-        <Chevron size={11} />
-        <span>{title}</span>
-        <span className="ml-auto">{count}</span>
-      </button>
-      {open && <div className="mt-1">{children}</div>}
+    <div data-testid={`starter-source-${id}`} className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-xs text-hs-text-body">
+          <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="rounded border-hs-border-strong" />
+          <span>{title}</span>
+        </label>
+        <button id={`starter-group-${id}`} type="button" onClick={toggle} aria-expanded={open}
+          aria-controls={panelId} data-testid={`starter-group-${id}`}
+          aria-label={checked ? `${title} ${count}` : title} className="flex items-center gap-1 rounded px-1 text-[10px] text-hs-text-muted hover:bg-hs-hover">
+          <span>{checked ? count : ''}</span><Chevron size={11} aria-hidden="true" />
+        </button>
+      </div>
+      {open && (
+        <div id={panelId} className="space-y-1.5">
+          {checked && hint && <p className="text-[10px] leading-relaxed text-hs-text-faint" data-testid={`starter-hint-${id}`}>{hint}</p>}
+          {children}
+        </div>
+      )}
     </div>
   );
 }
 
 export default function LocalBackgrounds({ selectedScreenId }: Props) {
   const t = useTranslate('editor');
-  const [localBackgrounds, setLocalBackgrounds] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { config, selectedDisplayId, updateScreen, pickScreenBackground } = useEditorStore();
+  const { config, selectedDisplayId, pickScreenBackground, updateScreenRotation } = useEditorStore();
 
   const activeScreens = config ? getActiveScreens(config, selectedDisplayId) : [];
   const currentScreen = activeScreens.find((s) => s.id === selectedScreenId);
 
-  useEffect(() => {
-    async function fetchBackgrounds() {
-      try {
-        const res = await editorFetch('/api/backgrounds');
-        const data = await res.json();
-        if (Array.isArray(data)) setLocalBackgrounds(data);
-      } catch (err) {
-        log.debug('Failed to fetch backgrounds:', err);
-      }
-    }
-    fetchBackgrounds();
-  }, []);
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIsLoading(true);
-    setUploadError(null);
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await editorFetch('/api/backgrounds', { method: 'POST', body: formData, timeoutMs: null });
-      const data = await res.json();
-      if (!res.ok) {
-        setUploadError(
-          data.error ?? t('settings.localBackgrounds.uploadFailedWithStatus', { status: res.status }),
-        );
-      } else if (data.path) {
-        setLocalBackgrounds((prev) => prev.includes(data.path) ? prev : [...prev, data.path]);
-        pickScreenBackground(selectedScreenId, data.path);
-      }
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : t('settings.localBackgrounds.uploadFailed'));
-    }
-    setIsLoading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
   if (!currentScreen || !config) return null;
+
+  const rotation = currentScreen.backgroundRotation;
+  const selectedSources = rotation?.sources ?? [];
+  const selectSource = (id: StarterRotationGroup, checked: boolean) => {
+    const sources = checked
+      ? [...selectedSources.filter((source) => source !== id), id]
+      : selectedSources.filter((source) => source !== id);
+    updateScreenRotation(selectedScreenId, {
+      sources, query: rotation?.query || 'nature landscape', intervalMinutes: rotation?.intervalMinutes || 60,
+    });
+  };
+  // Walls are opt-in: nothing is in rotation until the user picks it.
+  const selections = rotation?.starterBackgroundIds;
+  const selectedIds = (group: StarterRotationGroup) => {
+    const ids = selections?.[group] ?? [];
+    return starterBackgroundsIn(group).filter((wall) => ids.includes(wall.id)).map((wall) => wall.id);
+  };
+  const setIncluded = (bg: StarterRotationBackground, include: boolean) => {
+    const group = bg.group;
+    const ids = selectedIds(group);
+    const next = include ? [...ids, bg.id] : ids.filter((id) => id !== bg.id);
+    updateScreenRotation(selectedScreenId, { starterBackgroundIds: { ...selections, [group]: next } });
+  };
+  const selectionCount = (group: StarterRotationGroup) => `${selectedIds(group).length}/${starterBackgroundsIn(group).length}`;
+  const rotating = (group: StarterRotationGroup) => selectedSources.includes(group);
+  const groupHint = (group: StarterRotationGroup) => (selectedIds(group).length === 0 ? t('backgroundPicker.pickToRotate') : undefined);
 
   const pick = (backgroundImage: string) => pickScreenBackground(selectedScreenId, backgroundImage);
 
@@ -122,124 +93,68 @@ export default function LocalBackgrounds({ selectedScreenId }: Props) {
   const tileAspect = landscape ? 'aspect-video' : 'aspect-[9/16]';
   const tileGrid = landscape ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-4 gap-1.5';
   const isCurrent = (path: string) => currentScreen.backgroundImage === path;
-  const tileBorder = (path: string) => (isCurrent(path) ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong');
+  const isIncluded = (bg: StarterRotationBackground) => selectedIds(bg.group).includes(bg.id);
+  // Group in rotation mode: a tile is highlighted when it is in the rotation. Otherwise it is highlighted when it is the fixed wall.
+  const isMarked = (bg: StarterRotationBackground) =>
+    rotating(bg.group) ? isIncluded(bg) : isCurrent(bg.path) && !isRotationActive(currentScreen.backgroundRotation);
+  const onTile = (bg: StarterRotationBackground) => (rotating(bg.group) ? setIncluded(bg, !isIncluded(bg)) : pick(bg.path));
+  const tileLabel = (bg: StarterRotationBackground, name: string) =>
+    t(rotating(bg.group) ? 'backgroundPicker.includeInRotation' : 'backgroundPicker.useFixed', { name });
 
-  // The theme the selected display paints its fullscreen modules with: its
-  // own override first, then the shared default, then the shipped default.
-  const themeInUse = getActiveFullscreenTheme(config, selectedDisplayId) ?? 'linen';
-  const themeWalls = starterBackgroundsIn('theme');
-  const orderedThemeWalls = [
-    ...themeWalls.filter((bg) => bg.themeId === themeInUse),
-    ...themeWalls.filter((bg) => bg.themeId !== themeInUse),
-  ];
   const colorWalls = starterBackgroundsIn('color');
   const patternWalls = starterBackgroundsIn('pattern');
 
-  const wallTile = (bg: StarterBackground) => {
+  const wallTile = (bg: StarterRotationBackground) => {
     const name = t(`backgroundPicker.starters.${bg.id}`);
+    const marked = isMarked(bg);
     return (
-      <div key={bg.id}>
-        <button
-          onClick={() => pick(bg.path)}
-          title={name}
-          data-testid={`starter-background-${bg.id}`}
-          className={`block w-full overflow-hidden rounded border ${tileAspect} ${tileBorder(bg.path)}`}
-        >
-          {/* The thumbnail is the wall's own file, so it cannot drift from what the display paints. */}
-          <img src={bg.path} alt="" className="h-full w-full object-cover" />
-        </button>
-        <div className={`mt-0.5 truncate text-center text-[9px] leading-tight ${isCurrent(bg.path) ? 'text-hs-accent-hover' : 'text-hs-text-muted'}`}>
-          {name}
-        </div>
-      </div>
+      <button
+        key={bg.id}
+        type="button"
+        aria-label={tileLabel(bg, name)}
+        aria-pressed={marked}
+        onClick={() => onTile(bg)}
+        title={name}
+        data-testid={`starter-background-${bg.id}`}
+        className={`relative block w-full overflow-hidden rounded border ${tileAspect} ${marked ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong'}`}
+      >
+        {/* The thumbnail is the wall's own file, so it cannot drift from what the display paints. */}
+        <img src={bg.path} alt="" className="h-full w-full object-cover" />
+        {marked && rotating(bg.group) && (
+          <span className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-hs-accent text-white" aria-hidden="true">
+            <Check size={10} />
+          </span>
+        )}
+      </button>
     );
   };
 
   return (
     <>
-      <p className="text-[10px] text-hs-text-faint">{t('backgroundPicker.starterHeading')}</p>
-
-      <StarterGroup id="theme" title={t('backgroundPicker.groups.theme')} count={themeWalls.length}>
-        <div className="grid grid-cols-2 gap-1.5">
-          {orderedThemeWalls.map((bg) => {
-            const theme = FULLSCREEN_THEMES.find((th) => th.id === bg.themeId);
-            if (!theme) return null;
-            const selected = isCurrent(bg.path);
-            const inUse = theme.id === themeInUse;
-            const group = tOrFallback(t, `settings.defaultDisplayPage.themeGroups.${theme.group}`, theme.group);
-            return (
-              <button
-                key={bg.id}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => pick(bg.path)}
-                data-testid={`starter-background-${bg.id}`}
-                data-in-use={inUse ? 'true' : undefined}
-                className={`flex items-center gap-1.5 rounded-lg border px-1.5 py-1.5 text-left transition-colors ${themeTileClass(selected)}`}
-              >
-                <FullscreenThemePreview tokens={theme.tokens} size="sm" />
-                <div className="min-w-0">
-                  <div className={`truncate text-[10px] font-semibold ${selected ? 'text-hs-accent-hover' : 'text-hs-text-body'}`}>{theme.name}</div>
-                  <div className="truncate text-[9px] text-hs-text-faint">
-                    <span className="capitalize">{group}</span>
-                    {inUse && <span> · {t('backgroundPicker.inUse')}</span>}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </StarterGroup>
-
-      <StarterGroup id="color" title={t('backgroundPicker.groups.color')} count={colorWalls.length}>
+      <StarterGroup id="color" title={t('backgroundPicker.groups.color')} count={selectionCount('color')}
+        hint={groupHint('color')} checked={selectedSources.includes('color')} onChange={(checked) => selectSource('color', checked)}>
         <div className={tileGrid}>
           <div>
             <button
-              onClick={() => updateScreen(selectedScreenId, { backgroundImage: '' })}
+              type="button"
+              aria-pressed={!currentScreen.backgroundImage && !isRotationActive(currentScreen.backgroundRotation)}
+              onClick={() => pick('')}
               data-testid="starter-background-none"
               className={`block w-full rounded border text-[10px] text-hs-text-faint ${tileAspect} ${
-                !currentScreen.backgroundImage ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong'
+                !currentScreen.backgroundImage && !isRotationActive(currentScreen.backgroundRotation) ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong'
               }`}
             >
               {t('settings.localBackgrounds.none')}
             </button>
-            <div className="mt-0.5 text-[9px] leading-tight">&nbsp;</div>
           </div>
           {colorWalls.map(wallTile)}
         </div>
       </StarterGroup>
 
-      <StarterGroup id="pattern" title={t('backgroundPicker.groups.pattern')} count={patternWalls.length}>
+      <StarterGroup id="pattern" title={t('backgroundPicker.groups.pattern')} count={selectionCount('pattern')}
+        hint={groupHint('pattern')} checked={selectedSources.includes('pattern')} onChange={(checked) => selectSource('pattern', checked)}>
         <div className={tileGrid}>{patternWalls.map(wallTile)}</div>
       </StarterGroup>
-
-      <div className="mt-3 space-y-2">
-        <p className="text-[10px] text-hs-text-faint">{t('backgroundPicker.yourPicturesHeading')}</p>
-        {/* Not rendered while empty, so the button sits one gap under the heading, not two. */}
-        {localBackgrounds.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
-            {localBackgrounds.map((bg) => (
-              <div key={bg}>
-                <button
-                  onClick={() => pick(bg)}
-                  className={`${tileAspect} w-full rounded border overflow-hidden ${
-                    currentScreen.backgroundImage === bg ? 'border-hs-accent' : 'border-hs-border-strong'
-                  }`}
-                >
-                  <img src={tileThumbnailUrl(bg)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-        {uploadError && (
-          <p className="text-xs text-hs-danger">{uploadError}</p>
-        )}
-        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} data-file-input="" className="hidden" />
-        <Button size="sm" onClick={() => fileInputRef.current?.click()} disabled={isLoading} className="w-full">
-          {isLoading ? t('settings.localBackgrounds.uploadingButton') : t('settings.localBackgrounds.uploadButton')}
-        </Button>
-      </div>
     </>
   );
 }

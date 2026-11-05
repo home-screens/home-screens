@@ -5,6 +5,7 @@ import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
 import { useTranslate } from '@/i18n';
 import ImageSearchBrowser, { type BrowsePhoto, type CategoryDef, type SearchResult } from './ImageSearchBrowser';
+import IntegrationSettingsLink from './IntegrationSettingsLink';
 
 interface UnsplashPhoto {
   id: string;
@@ -92,7 +93,7 @@ export default function UnsplashBrowser({ selectedScreenId, hasUnsplashKey }: Pr
   if (!hasUnsplashKey) {
     return (
       <div className="text-xs text-hs-text-faint bg-hs-hover rounded-md p-3 space-y-2">
-        <p>{t('imageBrowsers.unsplash.notConfiguredPrefix')} <strong>{t('imageBrowsers.unsplash.settingsWord')}</strong> {t('imageBrowsers.unsplash.notConfiguredSuffix')}</p>
+        <p>{t('imageBrowsers.unsplash.notConfiguredPrefix')} <IntegrationSettingsLink integration="unsplash">{t('imageBrowsers.unsplash.settingsWord')}</IntegrationSettingsLink> {t('imageBrowsers.unsplash.notConfiguredSuffix')}</p>
         <p className="text-hs-text-faint">
           {t('imageBrowsers.unsplash.apiKeyHint')}
         </p>

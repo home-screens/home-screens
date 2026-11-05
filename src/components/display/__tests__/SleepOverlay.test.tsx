@@ -17,9 +17,21 @@ vi.mock('../Screensaver', () => ({
 describe('SleepOverlay', () => {
   afterEach(cleanup);
 
-  it('renders nothing while active', () => {
-    const { container } = render(<SleepOverlay displayState="active" dimOpacity={0} />);
-    expect(container.firstChild).toBeNull();
+  it('keeps the overlay mounted so active and brightness changes can fade', () => {
+    const { container, rerender } = render(<SleepOverlay displayState="active" dimOpacity={0} />);
+    const overlay = container.firstElementChild;
+    const dimmer = overlay?.firstElementChild as HTMLElement;
+    expect(dimmer.style.opacity).toBe('0');
+    expect(dimmer.style.transition).toBe('opacity 500ms ease-in-out');
+    rerender(<SleepOverlay displayState="dimmed" dimOpacity={0.7} brightnessOverride={30} />);
+    expect(container.firstElementChild).toBe(overlay);
+    expect(dimmer.style.opacity).toBe('0.7');
+    rerender(<SleepOverlay displayState="dimmed" dimOpacity={0.4} brightnessOverride={60} />);
+    expect(container.firstElementChild).toBe(overlay);
+    expect(dimmer.style.opacity).toBe('0.4');
+    rerender(<SleepOverlay displayState="active" dimOpacity={0} />);
+    expect(container.firstElementChild).toBe(overlay);
+    expect(dimmer.style.opacity).toBe('0');
   });
 
   it('shows the screensaver for an idle or scheduled dim', () => {

@@ -2615,22 +2615,35 @@
       "useSolid": "Brug den ensfarvede baggrund"
     },
     "title": "Baggrund",
+    "effectsTitle": "Baggrundseffekter",
     "statusGroup": "Status",
     "autoRotate": "Skift automatisk",
+    "sourcesGroup": "Kilder",
+    "refreshNow": "Opdater nu",
     "sourceLabel": "Kilde",
-    "searchQueryLabel": "Søgeord",
-    "searchQueryPlaceholder": "natur landskab",
     "rotateEveryLabel": "Skift hver",
     "nasaInfo": "NASA udgiver ét nyt astronomibillede om dagen. Skærmen tjekker for nye billeder med det valgte interval.",
+    "picturesHint": "Tryk på de billeder, der skal vises. Ét vises som fast baggrund; flere roterer.",
     "sources": {
       "nasaApod": "NASA's dagens billede",
       "icloud": "Delt iCloud-album",
       "unsplash": "Unsplash",
-      "immich": "Immich"
+      "immich": "Immich",
+      "local": "Lokalt bibliotek"
     },
-    "tabs": {
-      "nasa": "NASA",
-      "local": "Baggrunde"
+    "local": {
+      "folderLabel": "Mappe",
+      "browse": "Gennemse",
+      "allPhotosRoot": "Alle baggrunde (rodmappe)",
+      "photoCountOne": "{count} foto",
+      "photoCountOther": "{count} fotos",
+      "noPhotosInFolder": "Ingen fotos i denne mappe endnu.",
+      "modeFolder": "Mappe",
+      "modePictures": "Billeder",
+      "upload": "Upload billeder",
+      "uploading": "Uploader…",
+      "noPictures": "Ingen billeder i dit bibliotek endnu. Upload et for at komme i gang.",
+      "picturePick": "Vis {name}"
     },
     "intervals": {
       "minutes": "{count} minutter",
@@ -2643,19 +2656,39 @@
       "albumOption": "{name} ({count})",
       "personLabel": "Person",
       "anyone": "Alle",
-      "favoritesOnly": "Kun favoritter"
+      "favoritesOnly": "Kun favoritter",
+      "noAlbums": "Ingen albummer fundet.",
+      "noPeople": "Ingen personer fundet.",
+      "personPlusLabel": "Medtag personer",
+      "personMinusLabel": "Udeluk personer",
+      "personPlusHint": "Matcher medier med en vilkårlig valgt person.",
+      "personMinusHint": "Afviser medier med en vilkårlig valgt person.",
+      "modePictures": "Billeder",
+      "modeFilters": "Filtre"
     },
     "icloud": {
       "albumLabel": "Albumlink",
-      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her."
+      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her.",
+      "needsLink": "Låst, indtil du indsætter et gyldigt link til et delt album."
     },
-    "needsKey": "Kræver en gratis nøgle",
-    "starterHeading": "Baggrunde, der følger med Home Screens",
+    "unsplash": {
+      "modeQuery": "Søg",
+      "modeCollections": "Samlinger",
+      "collectionPlaceholder": "Samlings-ID eller unsplash.com/collections/... link",
+      "addCollection": "Tilføj samling",
+      "removeCollection": "Fjern samling",
+      "checking": "Kontrollerer...",
+      "collectionNotFound": "Samling ikke fundet. Tjek ID'et eller linket.",
+      "collectionValid": "{title} ({count} billeder)"
+    },
     "groups": {
       "theme": "Passer til et fuldskærmstema",
       "color": "Farver",
       "pattern": "Mønstre"
     },
+    "useFixed": "Brug {name} som fast baggrund",
+    "includeInRotation": "Medtag {name} i rotation",
+    "inRotation": "I rotation",
     "inUse": "i brug",
     "starters": {
       "midnight": "Midnat",
@@ -2681,8 +2714,13 @@
       "pattern-diagonal": "Diagonal",
       "pattern-paper": "Papir"
     },
-    "yourPicturesHeading": "Dine egne billeder",
     "sourceKeyMissing": "Denne kilde kræver en API-nøgle, som ikke er sat op, så skærmen beholder sit sidste billede. Tilføj nøglen under Indstillinger, eller vælg en anden kilde.",
+    "sourceNotSetUp": "Ikke sat op endnu.",
+    "sourceSetUpLink": "Sæt {source} op i Indstillinger",
+    "pickToRotate": "Tryk på de baggrunde, der skal med i rotationen. Ingen valgt endnu.",
+    "modeFixed": "Fast baggrund",
+    "modeRotating": "Roterer mellem de valgte kilder",
+    "modeHelp": "Vælg ét eller flere medier. Ét valgt giver en fast baggrund; flere roterer.",
     "shadeGroup": "Dæmpning",
     "shadeEnable": "Dæmp baggrunden",
     "shadeStyleLabel": "Stil",
@@ -2693,7 +2731,12 @@
       "topBottom": "Top og bund",
       "edges": "Kanter",
       "both": "Begge"
-    }
+    },
+    "effectsGroup": "Effekter",
+    "effectsBrightnessLabel": "Lysstyrke",
+    "effectsContrastLabel": "Kontrast",
+    "effectsSaturationLabel": "Mætning",
+    "effectsWarmthLabel": "Varme"
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",

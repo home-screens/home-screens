@@ -255,11 +255,33 @@ test.describe('background picker', () => {
     // Empty state = screen selected, no module: the picker lives there.
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
 
-    await expect(page.getByTestId('background-tab-local')).toBeVisible();
-    await expect(page.getByTestId('starter-background-midnight')).toBeVisible();
-    // No API key seeded, so both keyed tabs advertise that before being clicked.
-    await expect(page.getByTestId('background-tab-unsplash')).toHaveAttribute('title', 'Needs a free key');
-    await expect(page.getByTestId('background-tab-nasa')).toHaveAttribute('title', 'Needs a free key');
+    const sources = page.getByRole('heading', { name: 'Sources' }).locator('xpath=../..');
+    await expect(sources.getByRole('checkbox', { name: 'Match a full-screen theme' })).toBeEnabled();
+    await expect(sources.getByRole('checkbox', { name: 'Colors' })).toBeEnabled();
+    await expect(sources.getByRole('checkbox', { name: 'Patterns' })).toBeEnabled();
+    await expect(page.getByTestId('background-tab-local')).toHaveCount(0);
+    await expect(page.getByText('Your own pictures')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Upload Background' })).toHaveCount(0);
+    // Rotation providers remain in Sources; keyed providers need setup.
+    await expect(sources.getByRole('checkbox', { name: 'Unsplash' })).toBeDisabled();
+    await expect(sources.getByRole('checkbox', { name: 'NASA Picture of the Day' })).toBeDisabled();
+    await expect(sources.getByRole('checkbox', { name: 'iCloud Shared Album' })).toBeEnabled();
+    await expect(sources.getByRole('checkbox', { name: 'Local library folder' })).toBeEnabled();
+  });
+
+  test('bundled checkboxes persist source IDs and individual exclusions without changing the fixed image', async ({ page, request }) => {
+    await putConfig(request, baseConfig());
+    await page.goto('/editor');
+    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Colors' }).check());
+    await expect(page.getByTestId('starter-group-color')).toContainText('18/18');
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Include Midnight in rotation' }).uncheck());
+    await expect(page.getByTestId('starter-group-color')).toContainText('17/18');
+    const screen = (await getConfig(request)).screens[0];
+    expect(screen.backgroundRotation?.sources).toContain('color');
+    expect(screen.backgroundRotation?.starterBackgroundIds?.color).toHaveLength(17);
+    expect(screen.backgroundImage).toBe('');
+    await expect(page.getByTestId('starter-background-midnight')).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('a rotating screen paints its photo without showing its own picture first', async ({ page, request }) => {
@@ -273,7 +295,7 @@ test.describe('background picker', () => {
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Screen 1', [textModule('ROTATING')], {
         backgroundImage: '/starter-backgrounds/ocean.svg',
-        backgroundRotation: { enabled: true, source: 'unsplash', query: 'nature landscape', intervalMinutes: 60 },
+        backgroundRotation: { enabled: true, sources: ['unsplash'], query: 'nature landscape', intervalMinutes: 60 },
       })],
     }));
     await page.goto('/editor');
@@ -292,6 +314,7 @@ test.describe('background picker', () => {
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
 
+    await page.getByRole('checkbox', { name: 'Colors' }).check();
     await autosaved(page, async () => {
       await page.getByTestId('starter-background-dusk').click();
     });
@@ -306,6 +329,7 @@ test.describe('background picker', () => {
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
 
+    await page.getByRole('checkbox', { name: 'Match a full-screen theme' }).check();
     const themeGroup = page.getByTestId('starter-group-theme');
     await expect(themeGroup).toContainText('12');
     const themeWalls = page.locator('[data-testid^="starter-background-theme-"]');
@@ -319,7 +343,37 @@ test.describe('background picker', () => {
       await page.getByTestId('starter-background-theme-horizon').click();
     });
     expect((await getConfig(request)).screens[0].backgroundImage).toBe('/starter-backgrounds/theme-horizon.svg');
-    await expect(page.getByTestId('starter-background-theme-horizon')).toHaveAttribute('aria-pressed', 'true');
+    // A fixed pick disables the source, so its rotation settings (tiles) collapse.
+    await expect(page.getByRole('checkbox', { name: 'Match a full-screen theme' })).not.toBeChecked();
+    await expect(page.getByTestId('starter-background-theme-horizon')).toHaveCount(0);
+  });
+
+  test('choosing a static wall or None turns off rotation and does not bind to future theme changes', async ({ page, request }) => {
+    const config = baseConfig({ screens: [makeScreen('screen-1', 'Screen 1', [], {
+      backgroundImage: '/starter-backgrounds/ocean.svg',
+      backgroundRotation: { enabled: true, sources: ['icloud', 'local'], query: 'nature', intervalMinutes: 30 },
+    })] });
+    config.settings.fullscreenTheme = 'aurora';
+    await putConfig(request, config);
+    await page.goto('/editor');
+    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await page.getByRole('checkbox', { name: 'Match a full-screen theme' }).check();
+    await autosaved(page, async () => page.getByTestId('starter-background-theme-aurora').click());
+    let screen = (await getConfig(request)).screens[0];
+    expect(screen.backgroundImage).toBe('/starter-backgrounds/theme-aurora.svg');
+    expect(screen.backgroundRotation?.sources).toEqual([]);
+    expect(screen.backgroundRotation?.enabled).toBe(false);
+    await page.getByRole('checkbox', { name: 'Colors' }).check();
+    await autosaved(page, async () => page.getByTestId('starter-background-none').click());
+    screen = (await getConfig(request)).screens[0];
+    expect(screen.backgroundImage).toBe('');
+    expect(screen.backgroundRotation?.sources).toEqual([]);
+    await page.getByRole('checkbox', { name: 'Match a full-screen theme' }).check();
+    await autosaved(page, async () => page.getByTestId('starter-background-theme-aurora').click());
+    const next = await getConfig(request);
+    next.settings.fullscreenTheme = 'linen';
+    await putConfig(request, next);
+    expect((await getConfig(request)).screens[0].backgroundImage).toBe('/starter-backgrounds/theme-aurora.svg');
   });
 
   test('groups the shipped walls and remembers a collapsed group', async ({ page, request }) => {
@@ -328,8 +382,14 @@ test.describe('background picker', () => {
     await expect(page.getByTestId('editor-canvas')).toBeVisible();
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
 
+    await page.getByRole('checkbox', { name: 'Colors' }).check();
+    await page.getByRole('checkbox', { name: 'Patterns' }).check();
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Match a full-screen theme' }).check());
     await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
     await expect(page.getByTestId('starter-background-pattern-dots')).toBeVisible();
+    await expect(page.getByTestId('starter-group-theme')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('starter-group-color')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('starter-group-pattern')).toHaveAttribute('aria-expanded', 'true');
 
     await page.getByTestId('starter-group-pattern').click();
     await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();

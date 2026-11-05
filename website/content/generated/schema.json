@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 17,
+  "schemaVersion": 18,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -7412,7 +7412,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 17
+          "default": 18
         },
         {
           "name": "settings",
@@ -8434,6 +8434,15 @@
           "description": "Dim/vignette overlay drawn over the background (see BackgroundShade)"
         },
         {
+          "name": "effects",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "BackgroundEffects"
+          },
+          "description": "CSS-filter-based tuning applied to background media only (see BackgroundEffects)"
+        },
+        {
           "name": "modules",
           "optional": false,
           "type": {
@@ -8478,27 +8487,21 @@
       "fields": [
         {
           "name": "enabled",
-          "optional": false,
+          "optional": true,
           "type": {
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Turn rotation on"
+          "description": "Legacy toggle, retained for config round-tripping. Rotation uses `sources`."
         },
         {
-          "name": "source",
-          "optional": true,
+          "name": "sources",
+          "optional": false,
           "type": {
-            "kind": "string",
-            "text": "\"immich\" | \"icloud\" | \"unsplash\" | \"nasa-apod\"",
-            "values": [
-              "unsplash",
-              "nasa-apod",
-              "immich",
-              "icloud"
-            ]
+            "kind": "array",
+            "text": "BackgroundRotationSourceId[]"
           },
-          "description": "Where the images come from"
+          "description": "Selected sources; an empty list disables rotation."
         },
         {
           "name": "query",
@@ -8510,6 +8513,28 @@
           "description": "Unsplash search words; other sources ignore it"
         },
         {
+          "name": "unsplashCollections",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Unsplash collection IDs; retained when switching to query mode."
+        },
+        {
+          "name": "unsplashMode",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"query\" | \"collections\"",
+            "values": [
+              "query",
+              "collections"
+            ]
+          },
+          "description": "Active Unsplash mode. Legacy configs infer this from non-empty collections."
+        },
+        {
           "name": "intervalMinutes",
           "optional": false,
           "type": {
@@ -8519,22 +8544,31 @@
           "description": "Minutes between images"
         },
         {
-          "name": "immichAlbumId",
+          "name": "immichAlbumIds",
           "optional": true,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "array",
+            "text": "string[]"
           },
-          "description": "Immich album to use"
+          "description": "Immich albums to draw from; any asset in any of these qualifies. Empty/undefined = any album."
         },
         {
-          "name": "immichPersonId",
+          "name": "immichPersonIds",
           "optional": true,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "array",
+            "text": "string[]"
           },
-          "description": "Immich person (face) to use"
+          "description": "Immich people who must appear in the photo (at least one). Empty/undefined = anyone."
+        },
+        {
+          "name": "immichPersonIdsExclude",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Immich people to exclude from candidate photos."
         },
         {
           "name": "immichFavoritesOnly",
@@ -8546,6 +8580,28 @@
           "description": "Only use Immich favorites"
         },
         {
+          "name": "immichMode",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"filters\" | \"pick\"",
+            "values": [
+              "filters",
+              "pick"
+            ]
+          },
+          "description": "Immich source mode: random photos by filters (default, also for legacy configs) or photos picked by hand."
+        },
+        {
+          "name": "immichImages",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Serve URLs of Immich photos picked in `pick` mode; saved as hidden rotation files that live only while chosen. With none picked the filters apply."
+        },
+        {
           "name": "icloudAlbumUrl",
           "optional": true,
           "type": {
@@ -8553,6 +8609,55 @@
             "text": "string"
           },
           "description": "Public iCloud shared album link, or just its token"
+        },
+        {
+          "name": "localFolder",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "Local media library folder to rotate through, relative to the library root"
+        },
+        {
+          "name": "unsplashImages",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Serve URLs of Unsplash photos picked in Search mode; saved as hidden rotation files that live only while chosen."
+        },
+        {
+          "name": "localMode",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "\"folder\" | \"images\"",
+            "values": [
+              "folder",
+              "images"
+            ]
+          },
+          "description": "Local library source: rotate a folder (default) or show chosen pictures."
+        },
+        {
+          "name": "localImages",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Serve URLs of the library pictures chosen in `images` mode. None chosen means nothing to show."
+        },
+        {
+          "name": "starterBackgroundIds",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "Partial<Record<\"color\" | \"pattern\", string[]>>"
+          },
+          "description": "Starter wall IDs selected within each group. Missing or empty = no walls from that group are in rotation. Unknown IDs are ignored."
         }
       ]
     },
@@ -11241,6 +11346,24 @@
       ]
     },
     {
+      "path": "/api/immich/pick",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/immich/search",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/immich/serve",
       "methods": [
         {
@@ -12224,6 +12347,15 @@
         },
         {
           "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/unsplash/collections/{id}",
+      "methods": [
+        {
+          "method": "GET",
           "access": "session"
         }
       ]

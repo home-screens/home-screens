@@ -4,6 +4,9 @@ import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplas
 import { fetchWithTimeout, withAuth } from '@/lib/api-utils';
 import { createImageDownloadHandler } from '@/lib/route-factories';
 import { logger } from '@/lib/logger';
+import { readConfig } from '@/lib/config';
+import { pruneRotationFiles } from '@/lib/background-rotation-prune';
+import { UNSPLASH_PICK_PREFIX, rotationCacheStore } from '@/lib/background-rotation-cache';
 
 const log = logger('unsplash');
 
@@ -72,6 +75,12 @@ export const POST = createImageDownloadHandler({
     if (downloadUrl && accessKey && downloadUrl.startsWith(UNSPLASH_API + '/')) {
       trackDownload(downloadUrl, accessKey);
     }
+  },
+  // A hand-picked photo is the only download that is meant to stay temporary:
+  // each new one is the moment to drop the ones no screen names any more.
+  afterDownload: async (body) => {
+    if (typeof body.filename !== 'string' || !body.filename.startsWith(UNSPLASH_PICK_PREFIX)) return;
+    await pruneRotationFiles(await rotationCacheStore.read(), await readConfig());
   },
   errorMsg: 'Failed to download image',
 });

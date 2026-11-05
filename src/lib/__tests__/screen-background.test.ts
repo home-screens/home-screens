@@ -3,14 +3,20 @@ import { pickedBackground, resolveScreenBackground } from '@/lib/screen-backgrou
 
 const OWN = '/starter-backgrounds/ocean.svg';
 const PHOTO = '/api/backgrounds/serve?file=rotation-unsplash-a.jpg';
-const ROTATION = { enabled: true, source: 'unsplash' as const, query: 'nature landscape', intervalMinutes: 60 };
+const ROTATION = { enabled: true, sources: ['unsplash' as const], query: 'nature landscape', intervalMinutes: 60 };
 const rotating = { backgroundImage: OWN, backgroundRotation: ROTATION };
 
 describe('resolveScreenBackground', () => {
   it('paints the own picture when rotation is off, whatever rotation last answered', () => {
     expect(resolveScreenBackground({ backgroundImage: OWN }, undefined)).toBe(OWN);
     expect(resolveScreenBackground({ backgroundImage: OWN }, PHOTO)).toBe(OWN);
-    expect(resolveScreenBackground({ backgroundImage: OWN, backgroundRotation: { ...ROTATION, enabled: false } }, PHOTO)).toBe(OWN);
+    // "Off" is now zero sources, not the legacy `enabled` flag — rotation
+    // with sources still configured is active even if `enabled` is stale.
+    expect(resolveScreenBackground({ backgroundImage: OWN, backgroundRotation: { ...ROTATION, sources: [] } }, PHOTO)).toBe(OWN);
+  });
+
+  it('is active from sources alone, even with the legacy enabled flag false', () => {
+    expect(resolveScreenBackground({ backgroundImage: OWN, backgroundRotation: { ...ROTATION, enabled: false } }, PHOTO)).toBe(PHOTO);
   });
 
   it('paints nothing, not the own picture, while rotation has not answered yet', () => {
@@ -35,12 +41,13 @@ describe('pickedBackground', () => {
   it('turns rotation off and keeps its settings for next time', () => {
     expect(pickedBackground(rotating, PHOTO)).toEqual({
       backgroundImage: PHOTO,
-      backgroundRotation: { ...ROTATION, enabled: false },
+      // Stopping drops the legacy flag and empties `sources`; every other setting stays.
+      backgroundRotation: { query: 'nature landscape', intervalMinutes: 60, sources: [] },
     });
   });
 
   it('only sets the picture when rotation is off or was never set up', () => {
-    expect(pickedBackground({ backgroundRotation: { ...ROTATION, enabled: false } }, PHOTO)).toEqual({ backgroundImage: PHOTO });
+    expect(pickedBackground({ backgroundRotation: { ...ROTATION, sources: [] } }, PHOTO)).toEqual({ backgroundImage: PHOTO });
     expect(pickedBackground({}, PHOTO)).toEqual({ backgroundImage: PHOTO });
     expect(pickedBackground(undefined, PHOTO)).toEqual({ backgroundImage: PHOTO });
   });

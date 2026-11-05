@@ -2,14 +2,21 @@ import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { Screen } from '@/types/config';
 import { pruneDanglingScreenRefs } from '@/lib/display-filter';
+import { normalizeBackgroundEffects } from '@/lib/background-effects';
 import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
 import { pickedBackground } from '@/lib/screen-background';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import { syncEditorUrl } from '@/stores/editor-url';
 import type { EditorGet, MutateConfig, ScreenActions } from './types';
+import { activeRotationSources } from '@/lib/screen-background';
 
 /** Screen CRUD and ordering on the active display. */
+/** Saved entries for sources that no longer exist are dropped on the next edit. */
+function withLiveSources(rotation: NonNullable<Screen['backgroundRotation']>): NonNullable<Screen['backgroundRotation']> {
+  return { ...rotation, sources: activeRotationSources(rotation) };
+}
+
 export function createScreenSlice(
   get: EditorGet,
   mutateConfig: MutateConfig,
@@ -155,6 +162,45 @@ export function createScreenSlice(
           selectedDisplayId,
           getActiveScreens(config, selectedDisplayId).map((s) =>
             s.id === id ? { ...s, ...pickedBackground(s, backgroundImage) } : s,
+          ),
+        ),
+      }), { coalesce: COALESCE_KEYS.updateScreen(id) });
+    },
+
+    updateScreenRotation: (id, updates) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: withActiveScreens(
+          config,
+          selectedDisplayId,
+          getActiveScreens(config, selectedDisplayId).map((s) =>
+            s.id === id ? { ...s, backgroundRotation: withLiveSources({ ...s.backgroundRotation, ...updates } as NonNullable<Screen['backgroundRotation']>) } : s,
+          ),
+        ),
+      }), { coalesce: COALESCE_KEYS.screenRotation(id) });
+    },
+
+    updateScreenShade: (id, updates) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: withActiveScreens(
+          config,
+          selectedDisplayId,
+          getActiveScreens(config, selectedDisplayId).map((s) =>
+            s.id === id ? { ...s, shade: { ...s.shade, ...updates } as Screen['shade'] } : s,
+          ),
+        ),
+      }), { coalesce: COALESCE_KEYS.screenShade(id) });
+    },
+
+    updateScreenEffects: (id, updates) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: withActiveScreens(
+          config,
+          selectedDisplayId,
+          getActiveScreens(config, selectedDisplayId).map((s) =>
+            s.id === id ? { ...s, effects: normalizeBackgroundEffects({ ...s.effects, ...updates }) as Screen['effects'] } : s,
           ),
         ),
       }), { coalesce: COALESCE_KEYS.updateScreen(id) });

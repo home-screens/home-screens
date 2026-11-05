@@ -43,7 +43,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|backgroundPicker.immich.albumOption',
   'editor|backgroundPicker.immich.personLabel',
   'editor|backgroundPicker.statusGroup',
-  'editor|backgroundPicker.tabs.nasa',
+  'editor|backgroundPicker.sourcesGroup',
   // "Beta" is the same software term in every shipped language; the update
   // choice's other labels are translated words.
   'editor|settings.systemPage.channel.beta.label',
@@ -469,7 +469,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|stock-ticker.chartLabels.week',
     'core|actions.color',
     'core|timer.minutesShort',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
@@ -547,6 +546,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.fullscreen-chore-chart.celebrationSimple',
     // "Conditions" is the same word in French (the Weather module's Conditions view).
     'editor|configSections.fullscreen-weather.viewConditions',
+    // "Saturation" is the same word in this language.
+    'editor|backgroundPicker.effectsSaturationLabel',
     // "Bonus" is the same word in this language (bonus chores).
     'modules|chore-chart.bonus.heading',
     'modules|chore-chart.choreForm.kindBonus',
@@ -560,7 +561,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'core|timer.minutesShort',
     'editor|backgroundPicker.intervals.minutes',
     'editor|backgroundPicker.sourceLabel',
-    'editor|backgroundPicker.tabs.local',
+    // "Collections" and "photo(s)" are the same words in French.
+    'editor|backgroundPicker.unsplash.modeCollections',
+    'editor|backgroundPicker.unsplash.collectionValid',
+    'editor|backgroundPicker.local.photoCountOne',
+    'editor|backgroundPicker.local.photoCountOther',
     'editor|choreChartModal.choreForm.dateLabel',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
@@ -709,6 +714,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'nl-NL': new Set([
+    // "Filters" is the Dutch word too.
+    'editor|backgroundPicker.immich.modeFilters',
     // Half is the Dutch word too (a half batch).
     'modules|meal-planner.recipe.batchHalf',
     // "Bonus" and "tickets" are the same words in this language.
@@ -718,6 +725,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|sports.win',
     // "Media" is the Dutch word too (a template category).
     'editor|templatePicker.categories.Media',
+    // "Contrast" is the same word in this language.
+    'editor|backgroundPicker.effectsContrastLabel',
     // "Bonus" is the same word in this language (bonus chores).
     'modules|chore-chart.bonus.heading',
     'modules|chore-chart.choreForm.kindBonus',
@@ -885,7 +894,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',
     'core|timer.minutesShort',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',

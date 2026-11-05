@@ -25,6 +25,7 @@ import type {
 import { SHARED_STATE_KEY_RE } from '@/lib/shared-state-types';
 import { TEXT_LOOK_OPACITY_MAX, TEXT_LOOK_OPACITY_MIN } from '@/lib/text-looks';
 import { DISPLAY_NODE_SETTINGS_KEYS } from '@/lib/display-override-fields';
+import { isRotationActive } from '@/lib/screen-background';
 
 interface FilteredDisplayConfig {
   screens: Screen[];
@@ -120,7 +121,7 @@ export function findMainDisplay(displays: DisplayNode[] | undefined): DisplayNod
 export function isScreenEmpty(screen: Pick<Screen, 'modules' | 'backgroundImage' | 'backgroundRotation'>): boolean {
   return screen.modules.length === 0
     && !screen.backgroundImage
-    && !(screen.backgroundRotation?.enabled);
+    && !isRotationActive(screen.backgroundRotation);
 }
 
 /**
@@ -243,6 +244,27 @@ function pickDisplayNodeSettings(settings: DisplayNodeSettings | undefined): Dis
     if (key in settings) picked[key] = settings[key];
   }
   return picked as DisplayNodeSettings;
+}
+
+/**
+ * Find the display that OWNS a given screen id, mirroring `findScreenById`'s
+ * search order. Unlike `findScreenById`, there is no legacy-pool fallback to
+ * return: a screen living in `config.screens` has no owning `DisplayNode`, so
+ * this returns `null` for it just the same as for a screen that doesn't
+ * exist anywhere. Callers that need per-display canvas dimensions (e.g. the
+ * background rotation route choosing an Unsplash orientation) use this to
+ * find the override source before falling back to the global settings.
+ */
+export function findDisplayForScreen(
+  config: ScreenConfiguration,
+  screenId: string,
+): DisplayNode | null {
+  if (config.displays) {
+    for (const display of config.displays) {
+      if (display.screens.some((s) => s.id === screenId)) return display;
+    }
+  }
+  return null;
 }
 
 /**

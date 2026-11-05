@@ -26,6 +26,9 @@ import type { WallPaint } from './starter-background-svg';
 
 export type StarterBackgroundGroup = 'theme' | 'color' | 'pattern';
 
+/** The groups rotation can draw from. Theme walls are a single fixed pick, never a rotation source. */
+export type StarterRotationGroup = Exclude<StarterBackgroundGroup, 'theme'>;
+
 export interface StarterBackground {
   /** Stable id; also the picker's test id suffix and the i18n key for named walls. */
   id: string;
@@ -96,6 +99,11 @@ const PATTERN_WALLS: StarterBackground[] = [
 
 export const STARTER_BACKGROUNDS: StarterBackground[] = [...THEME_WALLS, ...COLOR_WALLS, ...PATTERN_WALLS];
 
+/** A wall from a group rotation can draw from. */
+export type StarterRotationBackground = StarterBackground & { group: StarterRotationGroup };
+
+export function starterBackgroundsIn(group: StarterRotationGroup): StarterRotationBackground[];
+export function starterBackgroundsIn(group: StarterBackgroundGroup): StarterBackground[];
 export function starterBackgroundsIn(group: StarterBackgroundGroup): StarterBackground[] {
   return STARTER_BACKGROUNDS.filter((bg) => bg.group === group);
 }

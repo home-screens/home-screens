@@ -609,6 +609,71 @@ describe('editor store', () => {
     });
   });
 
+  describe('updateScreenRotation', () => {
+    it('merges partial updates onto the live backgroundRotation, not a stale snapshot', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].backgroundRotation = {
+        enabled: true,
+        sources: ['unsplash'],
+        query: 'space',
+        intervalMinutes: 15,
+        unsplashCollections: ['abc123'],
+      } as never;
+      store.setState({ config });
+
+      // Two edits computed from the same pre-update state, as if two
+      // controls had both read the store before either write landed —
+      // the bug this action fixes let the second call's spread of a
+      // component-captured `backgroundRotation` snapshot silently drop
+      // the first call's change.
+      store.getState().updateScreenRotation('screen-1', { intervalMinutes: 30 });
+      store.getState().updateScreenRotation('screen-1', { unsplashCollections: ['abc123', 'def456'] });
+
+      const rotation = store.getState().config!.screens[0].backgroundRotation!;
+      expect(rotation.intervalMinutes).toBe(30);
+      expect(rotation.unsplashCollections).toEqual(['abc123', 'def456']);
+      expect(rotation.sources).toEqual(['unsplash']);
+      expect(rotation.query).toBe('space');
+    });
+  });
+
+  describe('updateScreenShade', () => {
+    it('merges partial updates onto the live shade, not a stale snapshot', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].shade = { enabled: true, style: 'topBottom', strength: 40, color: '#000000' };
+      store.setState({ config });
+
+      store.getState().updateScreenShade('screen-1', { strength: 60 });
+      store.getState().updateScreenShade('screen-1', { color: '#111111' });
+
+      const shade = store.getState().config!.screens[0].shade!;
+      expect(shade.strength).toBe(60);
+      expect(shade.color).toBe('#111111');
+      expect(shade.style).toBe('topBottom');
+    });
+  });
+
+
+  describe('updateScreenEffects', () => {
+    it('merges partial updates onto the live effects, not a stale snapshot', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      config.screens[0].effects = { brightness: 102, contrast: 103, saturation: 108, warmth: 32 };
+      store.setState({ config });
+
+      store.getState().updateScreenEffects('screen-1', { brightness: 120 });
+      store.getState().updateScreenEffects('screen-1', { warmth: 18 });
+
+      const effects = store.getState().config!.screens[0].effects!;
+      expect(effects.brightness).toBe(120);
+      expect(effects.warmth).toBe(18);
+      expect(effects.contrast).toBe(103);
+      expect(effects.saturation).toBe(108);
+    });
+  });
+
   describe('addScreen', () => {
     it('adds a new screen and selects it', () => {
       const store = useEditorStore;
@@ -875,7 +940,7 @@ describe('editor store', () => {
   });
 
   describe('pickScreenBackground', () => {
-    const rotation = { enabled: true, source: 'unsplash' as const, query: 'nature', intervalMinutes: 60 };
+    const rotation = { sources: ['unsplash' as const], query: 'nature', intervalMinutes: 60 };
 
     it('sets the picture and turns that screen\'s rotation off', () => {
       const store = useEditorStore;
@@ -891,7 +956,7 @@ describe('editor store', () => {
 
       const [s1, s2] = store.getState().config!.screens;
       expect(s1.backgroundImage).toBe('/api/backgrounds/serve?file=unsplash-a.jpg');
-      expect(s1.backgroundRotation).toEqual({ ...rotation, enabled: false });
+      expect(s1.backgroundRotation).toEqual({ ...rotation, sources: [] });
       expect(s2.backgroundRotation).toEqual(rotation);
       expect(store.getState().isDirty).toBe(true);
     });

@@ -2615,22 +2615,35 @@
       "useSolid": "Effen kleur gebruiken"
     },
     "title": "Achtergrond",
+    "effectsTitle": "Achtergrondeffecten",
     "statusGroup": "Status",
     "autoRotate": "Automatisch wisselen",
+    "sourcesGroup": "Bronnen",
+    "refreshNow": "Nu vernieuwen",
     "sourceLabel": "Bron",
-    "searchQueryLabel": "Zoekopdracht",
-    "searchQueryPlaceholder": "natuurlandschap",
     "rotateEveryLabel": "Wisselen elke",
     "nasaInfo": "NASA publiceert elke dag één nieuw astronomiebeeld. Het display controleert op het gekozen interval op updates.",
+    "picturesHint": "Tik op de afbeeldingen die je wilt tonen. Eén geeft een vaste achtergrond; meerdere wisselen af.",
     "sources": {
       "nasaApod": "NASA-foto van de dag",
       "icloud": "Gedeeld iCloud-album",
       "unsplash": "Unsplash",
-      "immich": "Immich"
+      "immich": "Immich",
+      "local": "Lokale bibliotheek"
     },
-    "tabs": {
-      "nasa": "NASA",
-      "local": "Achtergronden"
+    "local": {
+      "folderLabel": "Map",
+      "browse": "Bladeren",
+      "allPhotosRoot": "Alle achtergronden (hoofdmap)",
+      "photoCountOne": "{count} foto",
+      "photoCountOther": "{count} foto's",
+      "noPhotosInFolder": "Nog geen foto's in deze map.",
+      "modeFolder": "Map",
+      "modePictures": "Afbeeldingen",
+      "upload": "Afbeeldingen uploaden",
+      "uploading": "Uploaden…",
+      "noPictures": "Nog geen afbeeldingen in je bibliotheek. Upload er een om te beginnen.",
+      "picturePick": "{name} tonen"
     },
     "intervals": {
       "minutes": "{count} minuten",
@@ -2643,19 +2656,39 @@
       "albumOption": "{name} ({count})",
       "personLabel": "Persoon",
       "anyone": "Iedereen",
-      "favoritesOnly": "Alleen favorieten"
+      "favoritesOnly": "Alleen favorieten",
+      "noAlbums": "Geen albums gevonden.",
+      "noPeople": "Geen personen gevonden.",
+      "personPlusLabel": "Persoon +",
+      "personMinusLabel": "Persoon -",
+      "personPlusHint": "Matcht media met een van de geselecteerde personen.",
+      "personMinusHint": "Weigert media met een van de geselecteerde personen.",
+      "modePictures": "Afbeeldingen",
+      "modeFilters": "Filters"
     },
     "icloud": {
       "albumLabel": "Albumlink",
-      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier."
+      "albumHelp": "Open het album op je iPhone, zet 'Openbare website' aan en plak de link hier.",
+      "needsLink": "Vergrendeld totdat je een geldige link naar een gedeeld album plakt."
     },
-    "needsKey": "Heeft een gratis sleutel nodig",
-    "starterHeading": "Achtergronden die bij Home Screens zitten",
+    "unsplash": {
+      "modeQuery": "Zoeken",
+      "modeCollections": "Collecties",
+      "collectionPlaceholder": "Collectie-ID of unsplash.com/collections/...-link",
+      "addCollection": "Collectie toevoegen",
+      "removeCollection": "Collectie verwijderen",
+      "checking": "Bezig met controleren...",
+      "collectionNotFound": "Collectie niet gevonden. Controleer de ID of link.",
+      "collectionValid": "{title} ({count} foto's)"
+    },
     "groups": {
       "theme": "Passend bij een volledig-scherm thema",
       "color": "Kleuren",
       "pattern": "Patronen"
     },
+    "useFixed": "{name} als vaste achtergrond gebruiken",
+    "includeInRotation": "{name} opnemen in de rotatie",
+    "inRotation": "In rotatie",
     "inUse": "in gebruik",
     "starters": {
       "midnight": "Middernacht",
@@ -2681,8 +2714,13 @@
       "pattern-diagonal": "Diagonaal",
       "pattern-paper": "Papier"
     },
-    "yourPicturesHeading": "Je eigen foto's",
     "sourceKeyMissing": "Deze bron heeft een sleutel nodig die nog niet is ingesteld, dus het scherm houdt de laatste foto. Voeg de sleutel toe bij Instellingen, of kies een andere bron.",
+    "sourceNotSetUp": "Nog niet ingesteld.",
+    "sourceSetUpLink": "{source} instellen in Instellingen",
+    "pickToRotate": "Tik op de achtergronden voor de rotatie. Nog geen geselecteerd.",
+    "modeFixed": "Vaste achtergrond",
+    "modeRotating": "Wisselt tussen de gekozen bronnen",
+    "modeHelp": "Kies één of meer media. Eén geeft een vaste achtergrond; meerdere wisselen af.",
     "shadeGroup": "Verduistering",
     "shadeEnable": "Achtergrond donkerder maken",
     "shadeStyleLabel": "Stijl",
@@ -2693,7 +2731,12 @@
       "topBottom": "Boven en onder",
       "edges": "Randen",
       "both": "Beide"
-    }
+    },
+    "effectsGroup": "Effecten",
+    "effectsBrightnessLabel": "Helderheid",
+    "effectsContrastLabel": "Contrast",
+    "effectsSaturationLabel": "Verzadiging",
+    "effectsWarmthLabel": "Warmte"
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",

@@ -16,7 +16,9 @@ function screen(rotating: boolean): Screen {
     name: 'S',
     backgroundImage: '/starter-backgrounds/ocean.svg',
     modules: [],
-    backgroundRotation: { enabled: rotating, source: 'unsplash', query: 'nature landscape', intervalMinutes: 60 },
+    // Rotation is "on" purely from a non-empty `sources` now (see
+    // isRotationActive) — the legacy `enabled` flag is no longer what gates it.
+    backgroundRotation: { enabled: rotating, sources: rotating ? ['unsplash'] : [], query: 'nature landscape', intervalMinutes: 60 },
   };
 }
 
