@@ -8,6 +8,8 @@ import type {
   ModuleSize,
   GlobalSettings,
   Screen,
+  BackgroundShade,
+  BackgroundEffects,
   Profile,
   DisplayNode,
   DisplayNodeSettings,
@@ -194,6 +196,10 @@ export interface ScreenActions {
   updateScreen: (id: string, updates: Partial<Screen>) => void;
   /** Set a picture picked by hand as the screen's background, turning its rotation off (`pickedBackground`). */
   pickScreenBackground: (id: string, backgroundImage: string) => void;
+  /** Merge onto the screen's live `shade`, so two quick edits (a slider drag and a color pick) never clobber each other. */
+  updateScreenShade: (id: string, updates: Partial<BackgroundShade>) => void;
+  /** Merge one changed field onto the screen's live `effects`; a field back at its default is dropped, and an all-default set is removed (`withBackgroundEffects`). */
+  updateScreenEffects: (id: string, updates: Partial<BackgroundEffects>) => void;
 }
 
 export interface SettingsActions {

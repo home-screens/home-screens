@@ -8434,6 +8434,15 @@
           "description": "Dim/vignette overlay drawn over the background (see BackgroundShade)"
         },
         {
+          "name": "effects",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "BackgroundEffects"
+          },
+          "description": "Brightness, contrast, color and warmth adjustments to the background picture (see BackgroundEffects)"
+        },
+        {
           "name": "modules",
           "optional": false,
           "type": {

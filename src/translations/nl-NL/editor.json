@@ -2693,7 +2693,15 @@
       "topBottom": "Boven en onder",
       "edges": "Randen",
       "both": "Beide"
-    }
+    },
+    "effectsTitle": "Achtergrondeffecten",
+    "effectsGroup": "Effecten",
+    "effectsBrightnessLabel": "Helderheid",
+    "effectsContrastLabel": "Contrast",
+    "effectsSaturationLabel": "Verzadiging",
+    "effectsWarmthLabel": "Warmte",
+    "effectsReset": "Herstel",
+    "effectsResetLabel": "{label} herstellen"
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",

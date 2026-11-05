@@ -40,6 +40,7 @@ export default function BackgroundShadeOverlay({ shade }: { shade: BackgroundSha
   const style: CSSProperties = {
     position: 'absolute',
     inset: 0,
+    zIndex: 2,
     background: buildShadeBackground(shade),
     pointerEvents: 'none',
   };

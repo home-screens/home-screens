@@ -527,6 +527,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'fr-FR': new Set([
+    // Saturation is the French word too (the background effect).
+    'editor|backgroundPicker.effectsSaturationLabel',
     // Double and Triple are the French words too (a double batch).
     'modules|meal-planner.recipe.batchDouble',
     'modules|meal-planner.recipe.batchTriple',
@@ -709,6 +711,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|notes.receiptTotal',
   ]),
   'nl-NL': new Set([
+    // Contrast is the Dutch word too (the background effect).
+    'editor|backgroundPicker.effectsContrastLabel',
     // Half is the Dutch word too (a half batch).
     'modules|meal-planner.recipe.batchHalf',
     // "Bonus" and "tickets" are the same words in this language.

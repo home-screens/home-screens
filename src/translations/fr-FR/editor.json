@@ -2693,7 +2693,15 @@
       "topBottom": "Haut et bas",
       "edges": "Bords",
       "both": "Les deux"
-    }
+    },
+    "effectsTitle": "Effets d'arrière-plan",
+    "effectsGroup": "Effets",
+    "effectsBrightnessLabel": "Luminosité",
+    "effectsContrastLabel": "Contraste",
+    "effectsSaturationLabel": "Saturation",
+    "effectsWarmthLabel": "Chaleur",
+    "effectsReset": "Réinitialiser",
+    "effectsResetLabel": "Réinitialiser {label}"
   },
   "imageBrowserModal": {
     "title": "Bibliothèque d'images",

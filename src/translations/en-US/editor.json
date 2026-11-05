@@ -2693,7 +2693,15 @@
       "pattern-paper": "Paper"
     },
     "yourPicturesHeading": "Your own pictures",
-    "sourceKeyMissing": "This source needs an API key that is not set up, so the screen keeps its last picture. Add the key in Settings, or pick another source."
+    "sourceKeyMissing": "This source needs an API key that is not set up, so the screen keeps its last picture. Add the key in Settings, or pick another source.",
+    "effectsTitle": "Background effects",
+    "effectsGroup": "Effects",
+    "effectsBrightnessLabel": "Brightness",
+    "effectsContrastLabel": "Contrast",
+    "effectsSaturationLabel": "Saturation",
+    "effectsWarmthLabel": "Warmth",
+    "effectsReset": "Reset",
+    "effectsResetLabel": "Reset {label}"
   },
   "imageBrowserModal": {
     "title": "Image Library",

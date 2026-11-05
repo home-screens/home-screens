@@ -897,6 +897,43 @@ describe('editor store', () => {
     });
   });
 
+  describe('updateScreenShade', () => {
+    it('merges one field onto the live shade', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 's1', name: 'A', backgroundImage: '', modules: [], shade: { enabled: true, style: 'even', strength: 40, color: '#000000' } }],
+      });
+      store.setState({ config, isDirty: false });
+
+      store.getState().updateScreenShade('s1', { strength: 60 });
+
+      expect(store.getState().config!.screens[0].shade).toEqual({ enabled: true, style: 'even', strength: 60, color: '#000000' });
+    });
+  });
+
+  describe('updateScreenEffects', () => {
+    it('stores only the fields moved off their default, and removes the set when none is left', () => {
+      const store = useEditorStore;
+      const config = makeConfig({
+        screens: [{ id: 's1', name: 'A', backgroundImage: '', modules: [] }],
+      });
+      store.setState({ config, isDirty: false });
+
+      store.getState().updateScreenEffects('s1', { brightness: 120 });
+      expect(store.getState().config!.screens[0].effects).toEqual({ brightness: 120 });
+
+      store.getState().updateScreenEffects('s1', { warmth: 30 });
+      expect(store.getState().config!.screens[0].effects).toEqual({ brightness: 120, warmth: 30 });
+
+      store.getState().updateScreenEffects('s1', { warmth: 0 });
+      expect(store.getState().config!.screens[0].effects).toEqual({ brightness: 120 });
+
+      store.getState().updateScreenEffects('s1', { brightness: 100 });
+      expect('effects' in store.getState().config!.screens[0]).toBe(false);
+      expect(store.getState().isDirty).toBe(true);
+    });
+  });
+
   describe('reorderProfiles', () => {
     it('moves a profile from one index to another', () => {
       const store = useEditorStore;

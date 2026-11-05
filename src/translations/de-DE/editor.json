@@ -2693,7 +2693,15 @@
       "topBottom": "Oben und unten",
       "edges": "Ränder",
       "both": "Beides"
-    }
+    },
+    "effectsTitle": "Hintergrundeffekte",
+    "effectsGroup": "Effekte",
+    "effectsBrightnessLabel": "Helligkeit",
+    "effectsContrastLabel": "Kontrast",
+    "effectsSaturationLabel": "Sättigung",
+    "effectsWarmthLabel": "Wärme",
+    "effectsReset": "Zurücksetzen",
+    "effectsResetLabel": "{label} zurücksetzen"
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",
