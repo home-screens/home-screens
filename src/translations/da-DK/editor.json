@@ -3651,7 +3651,8 @@
     "console": {
       "live": "Live",
       "waiting": "Venter på output...",
-      "stillWorking": "Arbejder stadig, intet nyt i {duration}"
+      "stillWorking": "Arbejder stadig, intet nyt i {duration}",
+      "reconnecting": "Forbindelsen blev afbrudt, forbinder igen..."
     }
   },
   "holidayPickerModal": {

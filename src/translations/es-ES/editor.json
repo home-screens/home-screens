@@ -3651,7 +3651,8 @@
     "console": {
       "live": "En vivo",
       "waiting": "Esperando salida...",
-      "stillWorking": "Sigue en marcha, nada nuevo desde hace {duration}"
+      "stillWorking": "Sigue en marcha, nada nuevo desde hace {duration}",
+      "reconnecting": "Conexión perdida, reconectando..."
     }
   },
   "holidayPickerModal": {

@@ -3651,7 +3651,8 @@
     "console": {
       "live": "Live",
       "waiting": "Wachten op uitvoer...",
-      "stillWorking": "Nog bezig, al {duration} niets nieuws"
+      "stillWorking": "Nog bezig, al {duration} niets nieuws",
+      "reconnecting": "Verbinding verbroken, opnieuw verbinden..."
     }
   },
   "holidayPickerModal": {

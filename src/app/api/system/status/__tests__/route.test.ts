@@ -71,4 +71,33 @@ describe('GET /api/system/status', () => {
       expect(unsubscribeMock).toHaveBeenCalled();
     });
   });
+
+  describe('keepalive', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('sends a comment every 15 s while the install is silent', async () => {
+      const res = await GET(getRequest());
+      const reader = (res.body as ReadableStream<Uint8Array>).getReader();
+      await vi.advanceTimersByTimeAsync(15_000);
+      const { value } = await reader.read();
+      expect(new TextDecoder().decode(value)).toBe(': keepalive\n\n');
+      await reader.cancel();
+    });
+
+    it('stops with the stream: no timers left after cancel or the terminal close', async () => {
+      const res = await GET(getRequest());
+      const reader = (res.body as ReadableStream<Uint8Array>).getReader();
+      await reader.cancel();
+      expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+      expect(vi.getTimerCount()).toBe(0);
+
+      await GET(getRequest());
+      const emit = subscribeMock.mock.calls[1][0] as Emit;
+      emit({ type: 'progress', step: 'error' });
+      await vi.advanceTimersByTimeAsync(200);
+      expect(unsubscribeMock).toHaveBeenCalledTimes(2);
+      expect(vi.getTimerCount()).toBe(0);
+    });
+  });
 });

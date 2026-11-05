@@ -3651,7 +3651,8 @@
     "console": {
       "live": "En direct",
       "waiting": "En attente de sortie...",
-      "stillWorking": "Toujours en cours, rien de nouveau depuis {duration}"
+      "stillWorking": "Toujours en cours, rien de nouveau depuis {duration}",
+      "reconnecting": "Connexion perdue, reconnexion..."
     }
   },
   "holidayPickerModal": {

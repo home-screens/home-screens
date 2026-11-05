@@ -3651,7 +3651,8 @@
     "console": {
       "live": "Live",
       "waiting": "Waiting for output...",
-      "stillWorking": "Still working, nothing new for {duration}"
+      "stillWorking": "Still working, nothing new for {duration}",
+      "reconnecting": "Connection lost, reconnecting..."
     }
   },
   "holidayPickerModal": {

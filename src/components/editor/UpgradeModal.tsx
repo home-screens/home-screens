@@ -160,6 +160,7 @@ function UpgradeAttempt({
     stepDurations,
     activeStepStartedAt,
     lastEventAt,
+    reconnecting,
   } = useUpgradeStream(ALL_STEPS, targetTag, isRollback);
   const running = !done && !failed;
   const now = useNow(running);
@@ -214,11 +215,13 @@ function UpgradeAttempt({
   const consoleLog = stepLogs[consoleStep] || '';
 
   // Nothing heard for a while: say so under the log, and keep counting.
+  // A dropped stream has its own line; the silence it causes is not news.
   const quietMs = now - lastEventAt;
   const quietLine =
-    isLive && quietMs >= QUIET_AFTER_MS
+    isLive && !reconnecting && quietMs >= QUIET_AFTER_MS
       ? t('upgradeModal.console.stillWorking', { duration: formatShortDuration(quietMs) ?? '' })
       : null;
+  const reconnectingLine = isLive && reconnecting ? t('upgradeModal.console.reconnecting') : null;
   const activeElapsed =
     running && activeStepStartedAt != null ? formatShortDuration(now - activeStepStartedAt) : null;
 
@@ -408,6 +411,15 @@ function UpgradeAttempt({
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-hs-accent-hover animate-pulse flex-shrink-0" aria-hidden />
                   {quietLine}
+                </p>
+              )}
+              {reconnectingLine && (
+                <p
+                  data-testid="upgrade-console-reconnecting"
+                  className="px-4 pb-3 -mt-2 text-[11.5px] leading-[1.7] font-mono text-hs-warning flex items-center gap-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-hs-warning animate-pulse flex-shrink-0" aria-hidden />
+                  {reconnectingLine}
                 </p>
               )}
             </div>

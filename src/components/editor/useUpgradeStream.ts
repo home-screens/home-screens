@@ -43,7 +43,20 @@ export interface UpgradeStreamState {
    * or not.
    */
   lastEventAt: number;
+  /**
+   * The stream dropped mid-install and the browser is trying to get it
+   * back. The install itself is still running on the server; see
+   * handleStreamError.
+   */
+  reconnecting: boolean;
 }
+
+/**
+ * How long a dropped stream may stay down before the window gives up on
+ * it. The browser retries every few seconds; the service restart at the
+ * end of an install refuses connections for about five of them.
+ */
+export const RECONNECT_GIVE_UP_MS = 90_000;
 
 // ---------------------------------------------------------------------------
 // Step state derivation (pure function)
@@ -117,6 +130,21 @@ interface StreamContext {
   setFailed: (b: boolean) => void;
   /** Every event from the server moves the quiet-spell clock. */
   markEvent: () => void;
+  /** The timer that gives up on a dropped stream; null while the stream is up. */
+  giveUpTimer: RefObject<ReturnType<typeof setTimeout> | null>;
+  setReconnecting: (b: boolean) => void;
+}
+
+/** The install is over because the service came back as a fresh process. */
+function finishAfterRestart(ctx: StreamContext): void {
+  ctx.es.close();
+  ctx.setProgress({
+    step: 'complete',
+    progress: 100,
+    message: 'Server restarted. Reconnecting...',
+    restartNeeded: ctx.progressRef.current.restartNeeded === true,
+  });
+  ctx.setDone(true);
 }
 
 /** Progress events — step transitions. */
@@ -124,9 +152,15 @@ function handleProgressEvent(ctx: StreamContext, event: MessageEvent): void {
   try {
     const data = JSON.parse(event.data) as ProgressData & { type: string };
 
-    // Ignore the server's idle state — no upgrade is running yet.
-    // This arrives from subscribeToEvents() before our POST triggers the upgrade.
-    if (data.step === 'idle') return;
+    // The server's idle state arrives from subscribeToEvents() before our
+    // POST triggers the upgrade, and means nothing then. Once real steps
+    // have been seen it can only come from a different process: the one
+    // started by the restart step, which knows nothing of the install that
+    // put it there. That is the install finishing, not a reset.
+    if (data.step === 'idle') {
+      if (ctx.hasSeenRealStep.current) finishAfterRestart(ctx);
+      return;
+    }
     ctx.markEvent();
 
     // Track whether we've seen any real pipeline step (not a terminal state).
@@ -186,9 +220,34 @@ function handleOutputEvent(
   }
 }
 
-/** SSE connection loss — expected during restart, an error anywhere else. */
-function handleStreamError(ctx: StreamContext): void {
+/** The window stops waiting for a dropped stream to come back. */
+function giveUpReconnecting(ctx: StreamContext): void {
+  ctx.giveUpTimer.current = null;
   ctx.es.close();
+  ctx.setReconnecting(false);
+  const currentActive = ctx.activeStepRef.current;
+  const stepLabel = STEP_LABELS[currentActive] || currentActive;
+  ctx.setFailed(true);
+  ctx.setProgress({
+    step: 'error',
+    progress: 0,
+    message: `Connection lost during "${stepLabel}"`,
+    error:
+      'The server connection was lost unexpectedly. The upgrade may still be running — check server logs and try refreshing the page.',
+  });
+}
+
+/**
+ * SSE connection loss. Expected during restart; before the first event it
+ * is a connection problem; anywhere else the install is still running on
+ * the server and only the window has lost sight of it. The browser retries
+ * on its own as long as the EventSource stays open, and the server replays
+ * the current step to every new subscriber, so the window catches up by
+ * itself once the stream is back. A kiosk Pi on WiFi drops a socket now
+ * and then; one blip must not read as a failed install. The browser fires
+ * this again for every retry that fails, so the timer starts once.
+ */
+function handleStreamError(ctx: StreamContext): void {
   const current = ctx.progressRef.current;
   const currentActive = ctx.activeStepRef.current;
 
@@ -198,16 +257,9 @@ function handleStreamError(ctx: StreamContext): void {
     currentActive === 'restart' ||
     currentActive === 'cleanup'
   ) {
-    // SSE connection lost during restart/cleanup — expected, the server is restarting
-    ctx.setProgress({
-      step: 'complete',
-      progress: 100,
-      message: 'Server restarted. Reconnecting...',
-      restartNeeded: current.restartNeeded === true,
-    });
-    ctx.setDone(true);
+    finishAfterRestart(ctx);
   } else if (!ctx.hasSeenRealStep.current) {
-    // SSE failed before any upgrade events arrived — connection issue, not a step failure
+    ctx.es.close();
     ctx.setFailed(true);
     ctx.setProgress({
       step: 'error',
@@ -216,18 +268,21 @@ function handleStreamError(ctx: StreamContext): void {
       error:
         'Could not establish a connection to monitor the upgrade. Try refreshing the page.',
     });
-  } else if (current.step !== 'complete' && current.step !== 'error') {
-    // Unexpected disconnect mid-upgrade — show which step was active
-    const stepLabel = STEP_LABELS[currentActive] || currentActive;
-    ctx.setFailed(true);
-    ctx.setProgress({
-      step: 'error',
-      progress: 0,
-      message: `Connection lost during "${stepLabel}"`,
-      error:
-        'The server connection was lost unexpectedly. The upgrade may still be running — check server logs and try refreshing the page.',
-    });
+  } else if (current.step === 'complete' || current.step === 'error') {
+    ctx.es.close();
+  } else if (ctx.giveUpTimer.current === null) {
+    ctx.setReconnecting(true);
+    ctx.giveUpTimer.current = setTimeout(() => giveUpReconnecting(ctx), RECONNECT_GIVE_UP_MS);
   }
+}
+
+/** The stream is (back) up. The server's replay of the current step follows. */
+function handleStreamOpen(ctx: StreamContext): void {
+  if (ctx.giveUpTimer.current === null) return;
+  clearTimeout(ctx.giveUpTimer.current);
+  ctx.giveUpTimer.current = null;
+  ctx.setReconnecting(false);
+  ctx.markEvent();
 }
 
 /** POST the upgrade/rollback trigger; a failed trigger tears down the stream. */
@@ -305,6 +360,8 @@ export function useUpgradeStream(
   const prevDurationStepRef = useRef(firstStep);
   const [activeStepStartedAt, setActiveStepStartedAt] = useState<number | null>(null);
   const [lastEventAt, setLastEventAt] = useState(() => Date.now());
+  const [reconnecting, setReconnecting] = useState(false);
+  const giveUpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Track visited steps whenever activeStep changes
   useEffect(() => {
@@ -373,6 +430,8 @@ export function useUpgradeStream(
       setDone,
       setFailed,
       markEvent: () => setLastEventAt(Date.now()),
+      giveUpTimer,
+      setReconnecting,
     };
 
     es.addEventListener(
@@ -383,12 +442,14 @@ export function useUpgradeStream(
       'output',
       ((event: MessageEvent) => handleOutputEvent(setStepLogs, ctx.markEvent, event)) as EventListener,
     );
+    es.onopen = () => handleStreamOpen(ctx);
     es.onerror = () => handleStreamError(ctx);
 
     triggerUpgrade(ctx, isRollback, targetTag);
 
     return () => {
       es.close();
+      if (giveUpTimer.current !== null) clearTimeout(giveUpTimer.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time SSE connection on mount; deps are stable refs
   }, []);
@@ -404,6 +465,7 @@ export function useUpgradeStream(
     stepDurations,
     activeStepStartedAt,
     lastEventAt,
+    reconnecting,
   };
 }
 
