@@ -2652,7 +2652,7 @@
     "pickToRotate": "Cliquez sur les fonds que vous voulez dans la rotation. Aucun choisi pour le moment.",
     "modeFixed": "Fond fixe",
     "modeRotating": "Rotation entre les sources sélectionnées",
-    "modeHelp": "Choisissez un ou plusieurs médias. Un seul donne un fond fixe ; plusieurs tournent.",
+    "modeHelp": "Cochez les sources à utiliser. Une seule image reste fixe, plusieurs tournent.",
     "shadeGroup": "Assombrissement",
     "shadeEnable": "Assombrir l’arrière-plan",
     "shadeStyleLabel": "Style",
@@ -2669,9 +2669,9 @@
     "effectsContrastLabel": "Contraste",
     "effectsSaturationLabel": "Saturation",
     "effectsWarmthLabel": "Chaleur",
-    "modeOne": "Affiche une seule image",
+    "modeOne": "Une seule image affichée",
     "refreshDisabled": "Rien à faire tourner pour le moment",
-    "refreshChanged": "Changé",
+    "refreshChanged": "Image changée",
     "refreshNothing": "Pas encore de nouvelle image",
     "sourceNeeds": {
       "library": "Choisissez quelques images",
@@ -5786,10 +5786,10 @@
         "other": "{count} personnes choisies"
       },
       "leaveOut": "Laisser de côté",
-      "noOneLeftOut": "Personne de côté",
+      "noOneLeftOut": "Personne n'est laissé de côté",
       "leftOutChosen": {
-        "one": "{count} personne de côté",
-        "other": "{count} personnes de côté"
+        "one": "{count} personne laissée de côté",
+        "other": "{count} personnes laissées de côté"
       },
       "noAlbums": "Pas encore d'albums",
       "noPeople": "Pas encore de personnes nommées"
@@ -5886,7 +5886,7 @@
       "collectionsHelp": "Les photos viennent de ces collections au lieu des mots de recherche. Collez l'adresse d'une collection sur unsplash.com, ou son identifiant.",
       "collectionLabel": "Collection",
       "addCollection": "Ajouter",
-      "collectionChecking": "Vérification...",
+      "collectionChecking": "Vérification…",
       "collectionValid": "Collection trouvée",
       "collectionEmpty": "Aucune photo dans cette collection",
       "collectionNotFound": "Impossible de trouver cette collection",
@@ -5990,7 +5990,7 @@
       "folder": "Dossier",
       "pictures": "Images",
       "filters": "Filtres",
-      "words": "Mots de recherche",
+      "words": "Mots",
       "collections": "Collections"
     },
     "picked": {
@@ -5999,8 +5999,8 @@
         "one": "{count} choisie.",
         "other": "{count} choisies."
       },
-      "help": "Cliquez sur une image pour l'ajouter, et encore une fois pour la retirer.",
-      "loading": "Chargement des images...",
+      "help": "Cliquez sur une image pour l'ajouter, et à nouveau pour la retirer.",
+      "loading": "Chargement des images…",
       "add": "Ajouter {name}",
       "takeOut": "Retirer {name}"
     }

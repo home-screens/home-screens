@@ -2663,7 +2663,7 @@
     "pickToRotate": "Click the walls you want in the rotation. None picked yet.",
     "modeFixed": "Fixed background",
     "modeRotating": "Rotating between the selected sources",
-    "modeHelp": "Pick one or more media. One selected shows a fixed background; several rotate.",
+    "modeHelp": "Tick the sources to draw from. One picture shows on its own; more than one rotate.",
     "effectsGroup": "Effects",
     "effectsBrightnessLabel": "Brightness",
     "effectsContrastLabel": "Contrast",
@@ -2671,7 +2671,7 @@
     "effectsWarmthLabel": "Warmth",
     "modeOne": "Showing one picture",
     "refreshDisabled": "Nothing to rotate yet",
-    "refreshChanged": "Changed",
+    "refreshChanged": "Picture changed",
     "refreshNothing": "No new picture yet",
     "sourceNeeds": {
       "library": "Pick some pictures",
@@ -5990,7 +5990,7 @@
       "folder": "Folder",
       "pictures": "Pictures",
       "filters": "Filters",
-      "words": "Search words",
+      "words": "Words",
       "collections": "Collections"
     },
     "picked": {

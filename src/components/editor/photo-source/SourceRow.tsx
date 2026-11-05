@@ -24,7 +24,8 @@ export default function SourceRow({ id, label, checked, disabled, onCheck, note,
   extra?: ReactNode;
   children?: ReactNode;
 }) {
-  const [open, setOpen] = useGroupOpen(`source-${id}`);
+  // A ticked source shows its settings; an unticked one stays folded until it is ticked or opened.
+  const [open, setOpen] = useGroupOpen(`source-${id}`, checked);
   const panelId = useId();
   const wasChecked = useRef(checked);
   useEffect(() => {

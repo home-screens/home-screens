@@ -2649,10 +2649,10 @@
     },
     "sourceNotSetUp": "Ikke sat op endnu.",
     "sourceSetUpLink": "Sæt {source} op i Indstillinger",
-    "pickToRotate": "Klik på de vægge, du vil have med i skiftet. Ingen valgt endnu.",
+    "pickToRotate": "Klik på de baggrunde, du vil have med i rotationen. Ingen valgt endnu.",
     "modeFixed": "Fast baggrund",
     "modeRotating": "Roterer mellem de valgte kilder",
-    "modeHelp": "Vælg ét eller flere medier. Ét valgt giver en fast baggrund; flere roterer.",
+    "modeHelp": "Sæt hak ved de kilder, billederne skal komme fra. Ét billede vises fast, flere skifter.",
     "shadeGroup": "Dæmpning",
     "shadeEnable": "Dæmp baggrunden",
     "shadeStyleLabel": "Stil",
@@ -2671,16 +2671,16 @@
     "effectsWarmthLabel": "Varme",
     "modeOne": "Viser ét billede",
     "refreshDisabled": "Intet at skifte imellem endnu",
-    "refreshChanged": "Skiftet",
+    "refreshChanged": "Billedet er skiftet",
     "refreshNothing": "Intet nyt billede endnu",
     "sourceNeeds": {
       "library": "Vælg nogle billeder",
-      "immich": "Vælg nogle fotos",
+      "immich": "Vælg nogle billeder",
       "icloud": "Indsæt først albumlinket",
       "onedrive": "Vælg en mappe",
-      "unsplash": "Skriv søgeord, tilføj en samling eller vælg nogle fotos",
+      "unsplash": "Skriv søgeord, tilføj en samling eller vælg nogle billeder",
       "nasa": "",
-      "wall": "Vælg de vægge, der skal vises"
+      "wall": "Vælg de baggrunde, der skal vises"
     }
   },
   "imageBrowserModal": {
@@ -5779,19 +5779,19 @@
       "favoritesEmpty": "Ingen favoritter endnu. Tryk på hjertet ved et billede i Immich, så dukker det op her.",
       "albumsChosen": {
         "one": "{count} album valgt",
-        "other": "{count} albums valgt"
+        "other": "{count} albummer valgt"
       },
       "peopleChosen": {
         "one": "{count} person valgt",
         "other": "{count} personer valgt"
       },
-      "leaveOut": "Udelad",
+      "leaveOut": "Udeladte personer",
       "noOneLeftOut": "Ingen udeladt",
       "leftOutChosen": {
         "one": "{count} person udeladt",
         "other": "{count} personer udeladt"
       },
-      "noAlbums": "Ingen albums endnu",
+      "noAlbums": "Ingen albummer endnu",
       "noPeople": "Ingen navngivne personer endnu"
     },
     "icloud": {
@@ -5883,12 +5883,12 @@
       "empty": "Intet fundet for de ord. Prøv nogle andre.",
       "loadFailed": "Kunne ikke indlæse billeder fra Unsplash.",
       "rateLimited": "Unsplash' gratis plan giver 50 søgninger i timen, og de er brugt. Prøv igen lidt senere.",
-      "collectionsHelp": "Fotos kommer fra disse samlinger i stedet for søgeord. Indsæt en samlings adresse fra unsplash.com eller dens id.",
+      "collectionsHelp": "Billederne kommer fra disse samlinger i stedet for søgeord. Indsæt adressen på en samling fra unsplash.com eller dens id.",
       "collectionLabel": "Samling",
       "addCollection": "Tilføj",
-      "collectionChecking": "Tjekker...",
+      "collectionChecking": "Tjekker…",
       "collectionValid": "Samlingen blev fundet",
-      "collectionEmpty": "Ingen fotos i denne samling",
+      "collectionEmpty": "Ingen billeder i denne samling",
       "collectionNotFound": "Kunne ikke finde denne samling",
       "removeCollection": "Fjern samlingen {id}",
       "removeCollectionShort": "Fjern"
@@ -5954,7 +5954,7 @@
       "comesWithHomeScreens": "Følger med Home Screens",
       "inLibrary": "I dit bibliotek",
       "inLibraryFolder": "I dit bibliotek, mappen {folder}",
-      "rotatingNote": "Vises, indtil det første roterende billede kommer. Vælger du et billede, slås rotationen fra."
+      "rotatingNote": "Vises, indtil det første billede fra rotationen kommer. Vælger du et billede, slås rotationen fra."
     },
     "google": {
       "add": "Tilføj fra Google Fotos",
@@ -6000,7 +6000,7 @@
         "other": "{count} valgt."
       },
       "help": "Klik på et billede for at tilføje det, og igen for at fjerne det.",
-      "loading": "Henter billeder...",
+      "loading": "Henter billeder…",
       "add": "Tilføj {name}",
       "takeOut": "Fjern {name}"
     }

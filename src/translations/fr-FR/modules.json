@@ -1378,7 +1378,7 @@
     "emptyUnsplash": "Pas encore de photos. Essayez d'autres mots de recherche dans l'éditeur.",
     "emptyNasa": "Aucune image de la NASA pour le moment. Elles reviendront d'elles-mêmes.",
     "photoCredit": "Photo de {name} sur {source}",
-    "emptyPicked": "Aucune photo choisie pour l'instant. Choisissez-en dans l'éditeur."
+    "emptyPicked": "Aucune photo choisie pour l'instant. Choisissez-en quelques-unes dans l'éditeur."
   },
   "video": {
     "name": "Vidéo",

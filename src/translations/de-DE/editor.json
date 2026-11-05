@@ -2649,10 +2649,10 @@
     },
     "sourceNotSetUp": "Noch nicht eingerichtet.",
     "sourceSetUpLink": "{source} in den Einstellungen einrichten",
-    "pickToRotate": "Klicke auf die Wände, die beim Wechseln dabei sein sollen. Noch keine ausgewählt.",
+    "pickToRotate": "Klicke auf die Hintergründe, die beim Wechseln dabei sein sollen. Noch keiner ausgewählt.",
     "modeFixed": "Fester Hintergrund",
     "modeRotating": "Wechselt zwischen den gewählten Quellen",
-    "modeHelp": "Wähle ein oder mehrere Medien. Eines ergibt einen festen Hintergrund, mehrere wechseln sich ab.",
+    "modeHelp": "Hake die Quellen an, aus denen die Bilder kommen sollen. Ein Bild wird fest gezeigt, mehrere wechseln sich ab.",
     "shadeGroup": "Abdunklung",
     "shadeEnable": "Hintergrund abdunkeln",
     "shadeStyleLabel": "Stil",
@@ -2671,16 +2671,16 @@
     "effectsWarmthLabel": "Wärme",
     "modeOne": "Zeigt ein Bild",
     "refreshDisabled": "Noch nichts zum Wechseln",
-    "refreshChanged": "Gewechselt",
+    "refreshChanged": "Bild gewechselt",
     "refreshNothing": "Noch kein neues Bild",
     "sourceNeeds": {
       "library": "Wähle ein paar Bilder aus",
       "immich": "Wähle ein paar Fotos aus",
-      "icloud": "Füge zuerst den Albumlink ein",
-      "onedrive": "Wähle einen Ordner",
-      "unsplash": "Gib Suchwörter ein, füge eine Sammlung hinzu oder wähle Fotos aus",
+      "icloud": "Füge zuerst den Album-Link ein",
+      "onedrive": "Wähle einen Ordner aus",
+      "unsplash": "Gib Suchwörter ein, füge eine Sammlung hinzu oder wähle ein paar Fotos aus",
       "nasa": "",
-      "wall": "Wähle die Wände, die gezeigt werden sollen"
+      "wall": "Wähle die Hintergründe aus, die gezeigt werden sollen"
     }
   },
   "imageBrowserModal": {
@@ -5792,7 +5792,7 @@
         "other": "{count} Personen weggelassen"
       },
       "noAlbums": "Noch keine Alben",
-      "noPeople": "Noch keine benannten Personen"
+      "noPeople": "Noch keine Personen mit Namen"
     },
     "icloud": {
       "albumLink": "Album-Link",
@@ -5886,7 +5886,7 @@
       "collectionsHelp": "Die Fotos kommen aus diesen Sammlungen statt aus Suchwörtern. Füge die Adresse einer Sammlung von unsplash.com oder ihre ID ein.",
       "collectionLabel": "Sammlung",
       "addCollection": "Hinzufügen",
-      "collectionChecking": "Wird geprüft...",
+      "collectionChecking": "Wird geprüft…",
       "collectionValid": "Sammlung gefunden",
       "collectionEmpty": "Keine Fotos in dieser Sammlung",
       "collectionNotFound": "Diese Sammlung wurde nicht gefunden",
@@ -5990,7 +5990,7 @@
       "folder": "Ordner",
       "pictures": "Bilder",
       "filters": "Filter",
-      "words": "Suchwörter",
+      "words": "Wörter",
       "collections": "Sammlungen"
     },
     "picked": {
@@ -6000,7 +6000,7 @@
         "other": "{count} ausgewählt."
       },
       "help": "Klicke auf ein Bild, um es hinzuzufügen, und noch einmal, um es wieder zu entfernen.",
-      "loading": "Bilder werden geladen...",
+      "loading": "Bilder werden geladen…",
       "add": "{name} hinzufügen",
       "takeOut": "{name} entfernen"
     }

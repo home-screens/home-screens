@@ -73,7 +73,7 @@ export default function PickedPicturesFields({ kind, ids, onChange, searchWords 
       ) : browse.tiles.length === 0 ? (
         <p className="text-[10px] text-hs-text-faint">{t(kind === 'immich' ? 'photoSources.immich.empty' : 'photoSources.unsplash.empty')}</p>
       ) : (
-        <PickGrid scroll>
+        <PickGrid scroll columns={3}>
           {browse.tiles.map((tile) => (
             <PickTile
               key={tile.ref}
@@ -81,6 +81,7 @@ export default function PickedPicturesFields({ kind, ids, onChange, searchWords 
               alt={tile.label ?? ''}
               label={tile.credit?.name ?? tile.label}
               secondary={tile.secondary}
+              square
               chosen={chosen.has(tile.ref)}
               disabled={full && !chosen.has(tile.ref)}
               onClick={() => toggle(tile.ref)}

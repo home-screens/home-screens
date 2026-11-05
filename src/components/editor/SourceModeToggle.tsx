@@ -14,7 +14,7 @@ export default function SourceModeToggle<T extends string>({ options, value, onC
   testIdPrefix: string;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-1 rounded-md bg-hs-card p-0.5">
+    <div className="grid gap-1 rounded-md bg-hs-card p-0.5" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
       {options.map((option) => (
         <button
           key={option.id}
@@ -22,7 +22,7 @@ export default function SourceModeToggle<T extends string>({ options, value, onC
           aria-pressed={value === option.id}
           data-testid={`${testIdPrefix}-${option.id}`}
           onClick={() => onChange(option.id)}
-          className={`truncate rounded px-2 py-1 text-[11px] ${
+          className={`truncate rounded py-1 ${options.length > 2 ? 'px-1 text-[10px]' : 'px-2 text-[11px]'} ${
             value === option.id ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >

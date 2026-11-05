@@ -96,6 +96,8 @@ export default function BackgroundPicker() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [refreshed, setRefreshed] = useState<'changed' | 'nothing' | null>(null);
+  // The result note belongs to the screen it was asked for.
+  useEffect(() => { setRefreshed(null); }, [selectedScreenId]);
   const refreshNow = async () => {
     if (!selectedScreenId || !rotating || refreshing) return;
     setRefreshing(true);

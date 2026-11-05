@@ -13,18 +13,21 @@ export function useTileAspect(): string {
   return dims && dims.width > dims.height ? 'aspect-video' : 'aspect-[9/16]';
 }
 
-/** Two-column tile grid shared by every "pictures" picker. */
-export function PickGrid({ children, scroll = false }: { children: ReactNode; scroll?: boolean }) {
-  return <div className={`grid grid-cols-2 gap-1.5 ${scroll ? 'max-h-[400px] overflow-y-auto' : ''}`}>{children}</div>;
+/** The tile grid shared by every "pictures" picker: two display-shaped tiles across, or three square ones. */
+export function PickGrid({ children, scroll = false, columns = 2 }: { children: ReactNode; scroll?: boolean; columns?: 2 | 3 }) {
+  return <div className={`grid ${columns === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1.5 ${scroll ? 'max-h-[400px] overflow-y-auto' : ''}`}>{children}</div>;
 }
 
 /** One pickable picture: highlighted with a check when chosen. */
-export function PickTile({ thumb, alt, label, secondary, chosen, saving, disabled, onClick, ariaLabel, testId }: {
+export function PickTile({ thumb, alt, label, secondary, chosen, saving, disabled, onClick, ariaLabel, testId, square = false }: {
   thumb: string; alt: string; label?: string; secondary?: string;
   chosen: boolean; saving?: boolean; disabled?: boolean;
   onClick: () => void; ariaLabel?: string; testId: string;
+  /** A photo is shown whole-ish in a square, like the Image Library's grid; a wall keeps the display's shape. */
+  square?: boolean;
 }) {
-  const aspect = useTileAspect();
+  const displayAspect = useTileAspect();
+  const aspect = square ? 'aspect-square' : displayAspect;
   const tCore = useTranslate('core');
   return (
     <button

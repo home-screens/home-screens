@@ -2652,7 +2652,7 @@
     "pickToRotate": "Haz clic en los fondos que quieres en la rotación. Aún no hay ninguno elegido.",
     "modeFixed": "Fondo fijo",
     "modeRotating": "Rotando entre las fuentes seleccionadas",
-    "modeHelp": "Elige uno o más medios. Con uno se muestra un fondo fijo; con varios, rotan.",
+    "modeHelp": "Marca las fuentes de las que sacar fotos. Una sola foto se queda fija; varias van rotando.",
     "shadeGroup": "Oscurecimiento",
     "shadeEnable": "Oscurecer el fondo",
     "shadeStyleLabel": "Estilo",
@@ -2669,16 +2669,16 @@
     "effectsContrastLabel": "Contraste",
     "effectsSaturationLabel": "Saturación",
     "effectsWarmthLabel": "Calidez",
-    "modeOne": "Muestra una sola foto",
+    "modeOne": "Mostrando una sola foto",
     "refreshDisabled": "Aún no hay nada que rotar",
-    "refreshChanged": "Cambiado",
+    "refreshChanged": "Fondo cambiado",
     "refreshNothing": "Aún no hay foto nueva",
     "sourceNeeds": {
       "library": "Elige algunas fotos",
       "immich": "Elige algunas fotos",
       "icloud": "Pega primero el enlace del álbum",
       "onedrive": "Elige una carpeta",
-      "unsplash": "Escribe palabras de búsqueda, añade una colección o elige fotos",
+      "unsplash": "Escribe palabras de búsqueda, añade una colección o elige algunas fotos",
       "nasa": "",
       "wall": "Elige los fondos que quieres mostrar"
     }
@@ -5786,10 +5786,10 @@
         "other": "{count} personas elegidas"
       },
       "leaveOut": "Dejar fuera",
-      "noOneLeftOut": "Nadie fuera",
+      "noOneLeftOut": "Nadie queda fuera",
       "leftOutChosen": {
-        "one": "{count} persona fuera",
-        "other": "{count} personas fuera"
+        "one": "{count} persona queda fuera",
+        "other": "{count} personas quedan fuera"
       },
       "noAlbums": "Aún no hay álbumes",
       "noPeople": "Aún no hay personas con nombre"
@@ -5883,7 +5883,7 @@
       "empty": "No se ha encontrado nada con estas palabras. Prueba con otras.",
       "loadFailed": "No se pudieron cargar las fotos de Unsplash.",
       "rateLimited": "El plan gratuito de Unsplash permite 50 búsquedas por hora y ya se han gastado. Vuelve a intentarlo dentro de un rato.",
-      "collectionsHelp": "Las fotos vienen de estas colecciones en vez de palabras de búsqueda. Pega la dirección de una colección de unsplash.com o su id.",
+      "collectionsHelp": "Las fotos vienen de estas colecciones en vez de palabras de búsqueda. Pega la dirección de una colección de unsplash.com o su ID.",
       "collectionLabel": "Colección",
       "addCollection": "Añadir",
       "collectionChecking": "Comprobando...",
@@ -5954,7 +5954,7 @@
       "comesWithHomeScreens": "Viene con Home Screens",
       "inLibrary": "En tu biblioteca",
       "inLibraryFolder": "En tu biblioteca, carpeta {folder}",
-      "rotatingNote": "Se muestra hasta que llegue la primera foto de la rotación. Elegir una foto apaga la rotación."
+      "rotatingNote": "Se muestra hasta que llegue la primera foto de la rotación. Si eliges una foto, se desactiva la rotación."
     },
     "google": {
       "add": "Añadir desde Google Fotos",
@@ -5990,7 +5990,7 @@
       "folder": "Carpeta",
       "pictures": "Fotos",
       "filters": "Filtros",
-      "words": "Palabras de búsqueda",
+      "words": "Palabras",
       "collections": "Colecciones"
     },
     "picked": {
@@ -5999,7 +5999,7 @@
         "one": "{count} elegida.",
         "other": "{count} elegidas."
       },
-      "help": "Haz clic en una foto para añadirla, y otra vez para quitarla.",
+      "help": "Haz clic en una foto para añadirla y otra vez para quitarla.",
       "loading": "Cargando fotos...",
       "add": "Añadir {name}",
       "takeOut": "Quitar {name}"

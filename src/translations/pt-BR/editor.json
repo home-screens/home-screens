@@ -2652,7 +2652,7 @@
     "pickToRotate": "Clique nos fundos que você quer na rotação. Nenhum escolhido ainda.",
     "modeFixed": "Fundo fixo",
     "modeRotating": "Alternando entre as fontes selecionadas",
-    "modeHelp": "Escolha uma ou mais mídias. Uma mostra um fundo fixo; várias alternam.",
+    "modeHelp": "Marque as fontes de onde as fotos vêm. Uma só foto fica fixa; várias vão alternando.",
     "shadeGroup": "Escurecimento",
     "shadeEnable": "Escurecer o plano de fundo",
     "shadeStyleLabel": "Estilo",
@@ -2669,10 +2669,10 @@
     "effectsContrastLabel": "Contraste",
     "effectsSaturationLabel": "Saturação",
     "effectsWarmthLabel": "Calor",
-    "modeOne": "Mostrando uma só foto",
+    "modeOne": "Mostrando uma só imagem",
     "refreshDisabled": "Nada para alternar ainda",
-    "refreshChanged": "Trocado",
-    "refreshNothing": "Nenhuma foto nova ainda",
+    "refreshChanged": "Imagem trocada",
+    "refreshNothing": "Nenhuma imagem nova ainda",
     "sourceNeeds": {
       "library": "Escolha algumas fotos",
       "immich": "Escolha algumas fotos",
@@ -5786,10 +5786,10 @@
         "other": "{count} pessoas escolhidas"
       },
       "leaveOut": "Deixar de fora",
-      "noOneLeftOut": "Ninguém de fora",
+      "noOneLeftOut": "Ninguém fica de fora",
       "leftOutChosen": {
-        "one": "{count} pessoa de fora",
-        "other": "{count} pessoas de fora"
+        "one": "{count} pessoa fica de fora",
+        "other": "{count} pessoas ficam de fora"
       },
       "noAlbums": "Nenhum álbum ainda",
       "noPeople": "Nenhuma pessoa com nome ainda"
@@ -5883,7 +5883,7 @@
       "empty": "Nada encontrado para essas palavras. Tente outras.",
       "loadFailed": "Não foi possível carregar as fotos do Unsplash.",
       "rateLimited": "O plano gratuito do Unsplash permite 50 buscas por hora, e elas acabaram. Tente de novo daqui a pouco.",
-      "collectionsHelp": "As fotos vêm destas coleções em vez de palavras de busca. Cole o endereço de uma coleção do unsplash.com, ou o id dela.",
+      "collectionsHelp": "As fotos vêm destas coleções em vez de palavras de busca. Cole o endereço de uma coleção do unsplash.com ou o ID dela.",
       "collectionLabel": "Coleção",
       "addCollection": "Adicionar",
       "collectionChecking": "Verificando...",
@@ -5954,7 +5954,7 @@
       "comesWithHomeScreens": "Vem com o Home Screens",
       "inLibrary": "Na sua biblioteca",
       "inLibraryFolder": "Na sua biblioteca, pasta {folder}",
-      "rotatingNote": "Mostrada até chegar a primeira foto da rotação. Escolher uma foto desliga a rotação."
+      "rotatingNote": "Mostrada até chegar a primeira imagem da rotação. Escolher uma imagem desliga a rotação."
     },
     "google": {
       "add": "Adicionar do Google Fotos",
@@ -5990,7 +5990,7 @@
       "folder": "Pasta",
       "pictures": "Fotos",
       "filters": "Filtros",
-      "words": "Palavras de busca",
+      "words": "Palavras",
       "collections": "Coleções"
     },
     "picked": {

@@ -67,12 +67,14 @@ function CollectionRow({ id, ready, onRemove }: { id: string; ready: boolean; on
       : error ? t('photoSources.unsplash.collectionNotFound')
         : (data ?? []).length > 0 ? t('photoSources.unsplash.collectionValid') : t('photoSources.unsplash.collectionEmpty');
   return (
-    <div className="flex items-center gap-2 rounded border border-hs-border-strong bg-hs-card px-2 py-1" data-testid={`unsplash-collection-${id}`}>
-      <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-hs-text-body">{id}</span>
-      {status && <span className="shrink-0 text-[10px] text-hs-text-faint">{status}</span>}
-      <button type="button" onClick={onRemove} className="shrink-0 text-[10px] text-hs-text-faint hover:text-hs-text-body" aria-label={t('photoSources.unsplash.removeCollection', { id })}>
-        {t('photoSources.unsplash.removeCollectionShort')}
-      </button>
+    <div className="rounded border border-hs-border-strong bg-hs-card px-2 py-1" data-testid={`unsplash-collection-${id}`}>
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-hs-text-body">{id}</span>
+        <button type="button" onClick={onRemove} className="shrink-0 text-[10px] text-hs-text-faint hover:text-hs-text-body" aria-label={t('photoSources.unsplash.removeCollection', { id })}>
+          {t('photoSources.unsplash.removeCollectionShort')}
+        </button>
+      </div>
+      {status && <div className="text-[10px] text-hs-text-faint">{status}</div>}
     </div>
   );
 }

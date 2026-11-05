@@ -51,13 +51,14 @@ export default function LibraryPicturesFields({ pictures, onChange }: {
       ) : tiles.length === 0 ? (
         <p className="text-[10px] text-hs-text-faint">{t('photoSources.library.empty')}</p>
       ) : (
-        <PickGrid scroll>
+        <PickGrid scroll columns={3}>
           {tiles.map((tile) => (
             <PickTile
               key={tile.path}
               thumb={tileThumbnailUrl(tile.url)}
               alt={pictureDisplayName(tile.path)}
               label={pictureDisplayName(tile.path)}
+              square
               chosen={chosen.has(tile.path)}
               disabled={full && !chosen.has(tile.path)}
               onClick={() => toggle(tile.path)}
