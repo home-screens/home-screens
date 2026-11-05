@@ -156,7 +156,10 @@ function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
  * keeps what it has and the sources rest for a while. Any source works
  * except a video: the background is an <img>.
  *
- * Response: { path: string, fresh: boolean } or { path: string | null }
+ * Response: { path: string, fresh: true } for a new picture; otherwise
+ * { path: string | null, fresh: false } with `spaced: true` when a forced
+ * ask came too soon after the last, or `declined` naming each source that
+ * passed and why, so the editor can say which one did not answer.
  */
 export const GET = withDisplayAuth(async (request: NextRequest) => {
   const screenId = request.nextUrl.searchParams.get('screenId');
@@ -192,7 +195,9 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       ? now - (entry.forcedAt ?? 0) < FORCE_SPACING_MS
       : now - entry.fetchedAt < intervalMinutes * 60_000 || (entry.failedAt !== undefined && now - entry.failedAt < FAILURE_BACKOFF_MS);
     if (spaced && entry.path && await cachedPictureExists(entry.path)) {
-      return NextResponse.json({ path: entry.path, fresh: false });
+      // `spaced` on a forced ask tells the editor to say "wait a moment"
+      // rather than "nothing new", which reads as a source with no pictures.
+      return NextResponse.json({ path: entry.path, fresh: false, ...(force ? { spaced: true } : {}) });
     }
     if (entry.path && !(await cachedPictureExists(entry.path))) entry = { ...entry, path: '' };
   } else {
@@ -204,12 +209,17 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   const previous = previousOf(entry);
   const canvas = canvasOf(config, screenId);
   const failures: string[] = [];
+  // Why each source passed, for the editor's note after a forced refresh:
+  // `empty` answered nothing (no photos for the words, an empty album),
+  // `failed` could not be asked (away, a lapsed sign-in, a bad key).
+  const declined: Array<{ kind: PhotoSource['kind']; reason: 'empty' | 'failed' }> = [];
   for (const source of shuffleArray(candidates)) {
     try {
       const picked = await pickOneFromSource(source, canvas, previous);
       const newPath = picked ? await savePicked(source.kind, picked) : null;
       if (!newPath) {
         failures.push(`${source.kind}: nothing to show`);
+        declined.push({ kind: source.kind, reason: 'empty' });
         continue;
       }
       const next: RotationCacheEntry = {
@@ -233,6 +243,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       // A missing key, a source that is away, or a lapsed sign-in: the next
       // source gets its turn, and the wall keeps what it has if none answers.
       failures.push(`${source.kind}: ${error instanceof Error ? error.message : String(error)}`);
+      declined.push({ kind: source.kind, reason: 'failed' });
     }
   }
 
@@ -242,5 +253,5 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     ...(force ? { forcedAt: now } : {}),
   };
   await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: rested }));
-  return NextResponse.json({ path: entry?.path || fallback });
+  return NextResponse.json({ path: entry?.path || fallback, fresh: false, declined });
 }, 'Failed to rotate background');

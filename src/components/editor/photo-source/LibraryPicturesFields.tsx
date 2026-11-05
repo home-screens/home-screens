@@ -14,12 +14,14 @@ import { PickGrid, PickTile } from '@/components/editor/PickTile';
  * a tick marks the chosen ones. The picks are library paths, shown where
  * they are, never copied.
  */
-export default function LibraryPicturesFields({ pictures, onChange }: {
+export default function LibraryPicturesFields({ pictures, initialDirectory = '', onChange }: {
   pictures: string[];
+  /** The folder to start looking in: the source's own folder, so Folder mode's choice stays in view. */
+  initialDirectory?: string;
   onChange: (pictures: string[]) => void;
 }) {
   const t = useTranslate('editor');
-  const library = useImageLibrary({ initialDirectory: '' });
+  const library = useImageLibrary({ initialDirectory });
   const chosen = new Set(pictures);
   const full = pictures.length >= MAX_PICKED_PICTURES;
   const toggle = (path: string) => {

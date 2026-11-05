@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Nada para alternar ainda",
     "refreshChanged": "Imagem trocada",
     "refreshNothing": "Nenhuma imagem nova ainda",
+    "refreshSpaced": "Espere alguns segundos e tente de novo.",
+    "refreshFailed": "{source} não respondeu.",
+    "refreshEmpty": "Nenhuma imagem de {source} com essas configurações.",
     "sourceNeeds": {
       "library": "Escolha algumas fotos",
       "immich": "Escolha algumas fotos",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Biblioteca de vídeos",
     "uploadVideosButton": "Enviar vídeos",
     "allVideos": "Todos os vídeos",
-    "titleMedia": "Biblioteca de mídia",
+    "titleFolder": "Escolher uma pasta",
     "allMedia": "Todas as fotos e vídeos",
     "uploadMediaButton": "Enviar"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Coleção encontrada",
       "collectionEmpty": "Nenhuma foto nesta coleção",
       "collectionNotFound": "Não foi possível encontrar esta coleção",
+      "collectionUnchecked": "Não deu para verificar esta coleção agora",
       "removeCollection": "Remover a coleção {id}",
       "removeCollectionShort": "Remover"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Fotos",
       "filters": "Filtros",
       "words": "Palavras",
-      "collections": "Coleções"
+      "collections": "Coleções",
+      "forget": {
+        "title": "Esquecer o que você escolheu?",
+        "pictures": {
+          "one": "Mudar para “{mode}” esquece a imagem escolhida aqui. Desfazer traz ela de volta.",
+          "other": "Mudar para “{mode}” esquece as {count} imagens escolhidas aqui. Desfazer traz elas de volta."
+        },
+        "collections": {
+          "one": "Mudar para “{mode}” esquece a coleção adicionada aqui. Desfazer traz ela de volta.",
+          "other": "Mudar para “{mode}” esquece as {count} coleções adicionadas aqui. Desfazer traz elas de volta."
+        },
+        "confirm": "Mudar"
+      }
     },
     "picked": {
       "none": "Nada escolhido ainda.",

@@ -289,7 +289,7 @@ function MediaGrid({
           onChange={onUpload}
           className="hidden"
         />
-        {selectedDir && items.length === 0 && !loadingImages && (
+        {selectedDir && items.length === 0 && !loadingImages && mode !== 'manage-directory' && (
           <Button
             size="sm"
             variant="danger"
@@ -362,19 +362,24 @@ function MediaGrid({
                     />
                   )}
                 </button>
-                {/* Delete button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteItem(item.url);
-                  }}
-                  disabled={deletingImage === item.url}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                  title={tCore('actions.delete')}
-                  aria-label={tCore('actions.delete')}
-                >
-                  {deletingImage === item.url ? '...' : '×'}
-                </button>
+                {/* Delete button. Not while picking a folder: that window
+                    only chooses where a source reads from, and a mis-click
+                    on a tile must not take a family photo with it. Files
+                    are managed on Settings > Pictures & videos. */}
+                {mode !== 'manage-directory' && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteItem(item.url);
+                    }}
+                    disabled={deletingImage === item.url}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-hs-text-secondary hover:bg-hs-danger hover:text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    title={tCore('actions.delete')}
+                    aria-label={tCore('actions.delete')}
+                  >
+                    {deletingImage === item.url ? '...' : '×'}
+                  </button>
+                )}
               </div>
             ))}
           </div>

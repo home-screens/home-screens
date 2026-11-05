@@ -53,11 +53,58 @@ function track(photo: UnsplashPhoto, key: string): void {
   if (location && location.startsWith(`${UNSPLASH_API}/`)) trackDownload(location, key);
 }
 
-/** What a random request searches: the collections when any are named, else the words. */
-function randomParams(source: { query: string; collections?: string[] }): string {
-  return source.collections?.length
-    ? `collections=${encodeURIComponent(source.collections.join(','))}`
-    : `query=${encodeURIComponent(source.query)}`;
+/**
+ * Which of a source's fields the hub reads: the picked photos when that list
+ * exists (even empty), else the collections when that list exists, else the
+ * words. The editor keeps the other fields on the entry across its mode
+ * switch, so presence of a list, not its length, is what decides.
+ */
+export function unsplashMode(source: { collections?: string[]; photoIds?: string[] }): 'pictures' | 'collections' | 'words' {
+  return source.photoIds ? 'pictures' : source.collections ? 'collections' : 'words';
+}
+
+/**
+ * Whether each named collection exists and holds photos, for a day. Needed
+ * because `/photos/random?collections=<id>` ignores an id Unsplash does not
+ * know and answers random photos from all of Unsplash, so a typo would put
+ * anything on the wall while the editor said the collection was fine.
+ */
+const collectionCache = createTTLCache<'ok' | 'empty' | 'missing'>(24 * 60 * 60_000);
+
+async function collectionStatus(id: string, key: string): Promise<'ok' | 'empty' | 'missing'> {
+  const cached = collectionCache.get(id);
+  if (cached) return cached;
+  const res = await unsplashGet(`/collections/${encodeURIComponent(id)}`, key);
+  let status: 'ok' | 'empty' | 'missing';
+  if (res.status === 404) status = 'missing';
+  else if (!res.ok) throw new PhotoSourceError('Could not check the Unsplash collection', 502);
+  else {
+    const data = await res.json() as { total_photos?: number };
+    status = (data.total_photos ?? 0) > 0 ? 'ok' : 'empty';
+  }
+  collectionCache.set(id, status);
+  return status;
+}
+
+/**
+ * The named collections Unsplash knows and that hold photos. When none of
+ * them exists the source is told so (the editor shows it next to the id);
+ * when they exist but are all empty there is simply nothing to show.
+ */
+async function knownCollections(ids: readonly string[], key: string): Promise<string[]> {
+  const statuses = await Promise.all(ids.map(async (id) => [id, await collectionStatus(id, key)] as const));
+  const known = statuses.filter(([, status]) => status !== 'missing');
+  if (ids.length > 0 && known.length === 0) {
+    throw new PhotoSourceError(`Unsplash has no collection ${ids.join(', ')}`, 404, { error: 'unsplash-collection-missing' });
+  }
+  return known.filter(([, status]) => status === 'ok').map(([id]) => id);
+}
+
+/** What a random request searches: the (checked) collections in that mode, else the words. */
+function randomParams(collections: string[] | null, query: string): string {
+  return collections
+    ? `collections=${encodeURIComponent(collections.join(','))}`
+    : `query=${encodeURIComponent(query)}`;
 }
 
 /** Unsplash's own image URL at a given width; `raw` takes their resizing parameters. */
@@ -76,15 +123,16 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
    * random photos for the search, tracked as used.
    */
   async list({ source, count }) {
-    if (!source.photoIds && !source.collections?.length && !source.query) return [];
+    const mode = unsplashMode(source);
+    if (mode === 'collections' ? source.collections!.length === 0 : mode === 'words' && !source.query) return [];
     const n = Math.min(count, PAGE_SIZE);
     const cacheKey = `${sourceCacheKey(source)}-${n}`;
     const cached = listCache.get(cacheKey);
     if (cached) return cached;
     const key = await accessKey();
-    if (source.photoIds) {
+    if (mode === 'pictures') {
       // Hand-picked photos, one lookup each, cached for the hour like a search.
-      const photos = await Promise.all(source.photoIds.slice(0, n).map(async (id) => {
+      const photos = await Promise.all(source.photoIds!.slice(0, n).map(async (id) => {
         const res = await unsplashGet(`/photos/${encodeURIComponent(id)}`, key);
         return res.ok ? await res.json() as UnsplashPhoto : null;
       }));
@@ -98,7 +146,12 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
       listCache.set(cacheKey, items);
       return items;
     }
-    const res = await unsplashGet(`/photos/random?${randomParams(source)}&count=${n}&content_filter=high`, key);
+    const collections = mode === 'collections' ? await knownCollections(source.collections!, key) : null;
+    if (collections && collections.length === 0) {
+      listCache.set(cacheKey, []);
+      return [];
+    }
+    const res = await unsplashGet(`/photos/random?${randomParams(collections, source.query)}&count=${n}&content_filter=high`, key);
     // No photos for these words is an empty slideshow, not an error.
     if (res.status === 404) return [];
     if (!res.ok) throw new PhotoSourceError('Could not load photos from Unsplash', 502);
@@ -117,20 +170,24 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
   async pickOne({ source, canvas, previous }) {
     const key = await accessKey();
     let photo: UnsplashPhoto;
-    if (source.photoIds) {
+    const mode = unsplashMode(source);
+    if (mode === 'pictures') {
       // A rotation that lands on the photo already showing doesn't rotate.
-      const others = source.photoIds.length > 1 ? source.photoIds.filter((id) => !previous?.includes(id)) : source.photoIds;
+      const ids = source.photoIds!;
+      const others = ids.length > 1 ? ids.filter((id) => !previous?.includes(id)) : ids;
       const id = others[Math.floor(Math.random() * others.length)];
       if (!id) return null;
       const res = await unsplashGet(`/photos/${encodeURIComponent(id)}`, key);
       if (!res.ok) return null;
       photo = await res.json() as UnsplashPhoto;
     } else {
-      if (!source.collections?.length && !source.query) return null;
+      if (mode === 'collections' ? source.collections!.length === 0 : !source.query) return null;
+      const collections = mode === 'collections' ? await knownCollections(source.collections!, key) : null;
+      if (collections && collections.length === 0) return null;
       // A photo shaped like the wall: a portrait photo on a landscape wall was
       // blown up to fill the width and cropped to a strip.
       const orientation = canvas.w > canvas.h * 1.1 ? 'landscape' : canvas.h > canvas.w * 1.1 ? 'portrait' : 'squarish';
-      const res = await unsplashGet(`/photos/random?${randomParams(source)}&orientation=${orientation}&content_filter=high`, key);
+      const res = await unsplashGet(`/photos/random?${randomParams(collections, source.query)}&orientation=${orientation}&content_filter=high`, key);
       if (!res.ok) return null;
       photo = await res.json() as UnsplashPhoto;
     }

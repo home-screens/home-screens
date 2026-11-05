@@ -162,11 +162,11 @@ export default function PicturePicker({
   const hint = copyError ?? selection?.hint ?? sourceHint;
 
   const title = mode === 'pick-video' ? t('imageBrowserModal.titleVideos')
-    : mode === 'manage-directory' ? t('imageBrowserModal.titleMedia')
+    : mode === 'manage-directory' ? t('imageBrowserModal.titleFolder')
       : t('imageBrowserModal.title');
 
   return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={mode === 'pick-video' ? t('imageBrowserModal.titleVideos') : t('imageBrowserModal.title')}>
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
       <div className="relative bg-hs-panel border border-hs-border-strong rounded-xl w-full max-w-3xl h-[85vh] flex flex-col">

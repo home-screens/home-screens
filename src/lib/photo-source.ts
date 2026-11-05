@@ -225,6 +225,11 @@ export function rotationSources(rotation: Pick<BackgroundRotation, 'sources'> | 
  * source that does not takes no turn in a rotation and the editor says so
  * next to it. Keys are a separate question (`isReady`), and whether the
  * folder or album actually holds anything is the hub's to find out.
+ *
+ * A kind with several ways to name pictures reads only the one in use: a
+ * picked list that exists (even empty) is the mode, then Unsplash's
+ * collections list, then the words. The editor keeps the other fields on
+ * the entry across its mode switch, so they must not count here.
  */
 export function hasContent(source: PhotoSource): boolean {
   switch (source.kind) {
@@ -233,7 +238,7 @@ export function hasContent(source: PhotoSource): boolean {
     case 'immich': return source.assetIds ? source.assetIds.length > 0 : true;
     case 'icloud': return !!(parseICloudSharedAlbumUrl(source.albumUrl) || parseICloudAlbumToken(source.albumUrl));
     case 'onedrive': return source.folderId !== '';
-    case 'unsplash': return (source.photoIds?.length ?? 0) > 0 || (source.collections?.length ?? 0) > 0 || source.query.trim() !== '';
+    case 'unsplash': return source.photoIds ? source.photoIds.length > 0 : source.collections ? source.collections.length > 0 : source.query.trim() !== '';
     case 'nasa': return true;
   }
 }

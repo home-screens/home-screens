@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Rien à faire tourner pour le moment",
     "refreshChanged": "Image changée",
     "refreshNothing": "Pas encore de nouvelle image",
+    "refreshSpaced": "Attends quelques secondes, puis réessaie.",
+    "refreshFailed": "{source} n'a pas répondu.",
+    "refreshEmpty": "Aucune image de {source} avec ces réglages.",
     "sourceNeeds": {
       "library": "Choisissez quelques images",
       "immich": "Choisissez quelques photos",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Bibliothèque de vidéos",
     "uploadVideosButton": "Téléverser des vidéos",
     "allVideos": "Toutes les vidéos",
-    "titleMedia": "Bibliothèque multimédia",
+    "titleFolder": "Choisir un dossier",
     "allMedia": "Toutes les photos et vidéos",
     "uploadMediaButton": "Téléverser"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Collection trouvée",
       "collectionEmpty": "Aucune photo dans cette collection",
       "collectionNotFound": "Impossible de trouver cette collection",
+      "collectionUnchecked": "Impossible de vérifier cette collection pour le moment",
       "removeCollection": "Retirer la collection {id}",
       "removeCollectionShort": "Retirer"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Images",
       "filters": "Filtres",
       "words": "Mots",
-      "collections": "Collections"
+      "collections": "Collections",
+      "forget": {
+        "title": "Oublier ta sélection ?",
+        "pictures": {
+          "one": "Passer à « {mode} » oublie l'image choisie ici. Annuler la ramène.",
+          "other": "Passer à « {mode} » oublie les {count} images choisies ici. Annuler les ramène."
+        },
+        "collections": {
+          "one": "Passer à « {mode} » oublie la collection ajoutée ici. Annuler la ramène.",
+          "other": "Passer à « {mode} » oublie les {count} collections ajoutées ici. Annuler les ramène."
+        },
+        "confirm": "Changer"
+      }
     },
     "picked": {
       "none": "Rien de choisi pour le moment.",

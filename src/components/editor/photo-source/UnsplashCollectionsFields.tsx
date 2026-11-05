@@ -58,13 +58,16 @@ export default function UnsplashCollectionsFields({ collections, ready, onChange
 function CollectionRow({ id, ready, onRemove }: { id: string; ready: boolean; onRemove: () => void }) {
   const t = useTranslate('editor');
   // One photo from the collection says whether it exists and holds any.
-  const { data, error, loading } = useEditorData<MediaListItem[]>(
+  // The hub checks the collection itself (`/collections/<id>`) and answers
+  // 404 for one Unsplash does not know; any other refusal is a check that
+  // could not be made (the key's hour used up, Unsplash away), not a verdict.
+  const { data, error, failure, loading } = useEditorData<MediaListItem[]>(
     ready ? `${PHOTO_SOURCE_MEDIA_PATH}?${photoSourceParams({ kind: 'unsplash', query: '', collections: [id] })}&count=1` : null,
     null,
   );
   const status = !ready ? null
     : loading || (data === null && !error) ? t('photoSources.unsplash.collectionChecking')
-      : error ? t('photoSources.unsplash.collectionNotFound')
+      : error ? t(failure?.status === 404 ? 'photoSources.unsplash.collectionNotFound' : 'photoSources.unsplash.collectionUnchecked')
         : (data ?? []).length > 0 ? t('photoSources.unsplash.collectionValid') : t('photoSources.unsplash.collectionEmpty');
   return (
     <div className="rounded border border-hs-border-strong bg-hs-card px-2 py-1" data-testid={`unsplash-collection-${id}`}>

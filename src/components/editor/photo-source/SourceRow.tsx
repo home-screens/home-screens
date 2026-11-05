@@ -1,16 +1,18 @@
 'use client';
 
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useGroupOpen } from '@/components/editor/useGroupOpen';
 
 /**
  * One source in a rotating background's Sources list: a checkbox that puts
  * the source in or out of the rotation, its name, and a chevron that opens
- * its settings. Collapsing only hides the settings and is remembered per
- * source; ticking a source opens it. A note under the header says what the
- * source still needs (a key, a link, some pictures) and shows whether open
- * or closed.
+ * its settings. A ticked source starts open, an unticked one folded, and
+ * ticking opens it; the chevron's choice lasts while the row is mounted.
+ * Nothing is remembered across screens: the list is keyed by screen, so
+ * every screen starts from its own ticks and an unticked source never
+ * shows (or fetches for) controls nobody asked for. A note under the
+ * header says what the source still needs (a key, a link, some pictures)
+ * and shows whether open or closed.
  */
 export default function SourceRow({ id, label, checked, disabled, onCheck, note, extra, children }: {
   id: string;
@@ -25,13 +27,13 @@ export default function SourceRow({ id, label, checked, disabled, onCheck, note,
   children?: ReactNode;
 }) {
   // A ticked source shows its settings; an unticked one stays folded until it is ticked or opened.
-  const [open, setOpen] = useGroupOpen(`source-${id}`, checked);
+  const [open, setOpen] = useState(checked);
   const panelId = useId();
   const wasChecked = useRef(checked);
   useEffect(() => {
     if (checked && !wasChecked.current) setOpen(true);
     wasChecked.current = checked;
-  }, [checked, setOpen]);
+  }, [checked]);
   const Chevron = open ? ChevronDown : ChevronRight;
   return (
     <div data-testid={`source-row-${id}`} className="space-y-1">

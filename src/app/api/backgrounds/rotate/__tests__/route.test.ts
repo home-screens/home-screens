@@ -255,7 +255,12 @@ describe('GET /api/backgrounds/rotate: picking from the sources', () => {
 
     const json = await (await GET(rotateReq())).json();
 
-    expect(json).toEqual({ path: null });
+    // Each pass is named with its reason, so a forced refresh can say which source let it down.
+    expect(json).toEqual({ path: null, fresh: false, declined: expect.arrayContaining([
+      { kind: 'immich', reason: 'failed' },
+      { kind: 'unsplash', reason: 'empty' },
+    ]) });
+    expect(json.declined).toHaveLength(2);
     expect(mockPick).toHaveBeenCalledTimes(2);
   });
 
@@ -291,7 +296,7 @@ describe('GET /api/backgrounds/rotate: when every source fails', () => {
 
     const json = await (await GET(rotateReq())).json();
 
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-old.jpg' });
+    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-old.jpg', fresh: false, declined: expect.any(Array) });
     expect(warn).toHaveBeenCalledTimes(1);
     expect(String(warn.mock.calls[0][0])).toContain('immich: away');
     expect(cacheState.value.s1).toMatchObject({ path: '/api/backgrounds/serve?file=rotation-immich-old.jpg', failedAt: expect.any(Number) });
@@ -301,7 +306,7 @@ describe('GET /api/backgrounds/rotate: when every source fails', () => {
     mockFindScreen.mockReturnValue(screen({ backgroundImage: '/bg.jpg', ...rotating() }));
     mockPick.mockResolvedValue(null);
 
-    expect(await (await GET(rotateReq())).json()).toEqual({ path: '/bg.jpg' });
+    expect(await (await GET(rotateReq())).json()).toEqual({ path: '/bg.jpg', fresh: false, declined: expect.any(Array) });
     expect(cacheState.value.s1).toMatchObject({ path: '', failedAt: expect.any(Number) });
   });
 
@@ -411,7 +416,8 @@ describe('GET /api/backgrounds/rotate?force=true', () => {
 
     const json = await (await GET(rotateReq('?screenId=s1&force=true'))).json();
 
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-now.jpg', fresh: false });
+    // `spaced` tells the editor to say "wait a moment", not "nothing new".
+    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-now.jpg', fresh: false, spaced: true });
     expect(mockPick).not.toHaveBeenCalled();
   });
 });

@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Nog niets om te wisselen",
     "refreshChanged": "Foto gewisseld",
     "refreshNothing": "Nog geen nieuwe foto",
+    "refreshSpaced": "Wacht een paar seconden en probeer het dan opnieuw.",
+    "refreshFailed": "{source} gaf geen antwoord.",
+    "refreshEmpty": "Geen foto's van {source} met deze instellingen.",
     "sourceNeeds": {
       "library": "Kies een paar foto's",
       "immich": "Kies een paar foto's",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Videobibliotheek",
     "uploadVideosButton": "Video's uploaden",
     "allVideos": "Alle video's",
-    "titleMedia": "Mediabibliotheek",
+    "titleFolder": "Kies een map",
     "allMedia": "Alle foto's en video's",
     "uploadMediaButton": "Uploaden"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Collectie gevonden",
       "collectionEmpty": "Geen foto's in deze collectie",
       "collectionNotFound": "Deze collectie is niet gevonden",
+      "collectionUnchecked": "Deze collectie kon nu niet worden gecontroleerd",
       "removeCollection": "Collectie {id} verwijderen",
       "removeCollectionShort": "Verwijderen"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Foto's",
       "filters": "Filters",
       "words": "Woorden",
-      "collections": "Collecties"
+      "collections": "Collecties",
+      "forget": {
+        "title": "Je keuze vergeten?",
+        "pictures": {
+          "one": "Overschakelen naar '{mode}' vergeet de foto die je hier hebt gekozen. Ongedaan maken brengt hem terug.",
+          "other": "Overschakelen naar '{mode}' vergeet de {count} foto's die je hier hebt gekozen. Ongedaan maken brengt ze terug."
+        },
+        "collections": {
+          "one": "Overschakelen naar '{mode}' vergeet de collectie die je hier hebt toegevoegd. Ongedaan maken brengt hem terug.",
+          "other": "Overschakelen naar '{mode}' vergeet de {count} collecties die je hier hebt toegevoegd. Ongedaan maken brengt ze terug."
+        },
+        "confirm": "Overschakelen"
+      }
     },
     "picked": {
       "none": "Nog niets gekozen.",

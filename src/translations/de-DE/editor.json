@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Noch nichts zum Wechseln",
     "refreshChanged": "Bild gewechselt",
     "refreshNothing": "Noch kein neues Bild",
+    "refreshSpaced": "Warte ein paar Sekunden und versuch es dann noch einmal.",
+    "refreshFailed": "{source} hat nicht geantwortet.",
+    "refreshEmpty": "Keine Bilder von {source} mit diesen Einstellungen.",
     "sourceNeeds": {
       "library": "Wähle ein paar Bilder aus",
       "immich": "Wähle ein paar Fotos aus",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Videobibliothek",
     "uploadVideosButton": "Videos hochladen",
     "allVideos": "Alle Videos",
-    "titleMedia": "Medienbibliothek",
+    "titleFolder": "Ordner wählen",
     "allMedia": "Alle Fotos & Videos",
     "uploadMediaButton": "Hochladen"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Sammlung gefunden",
       "collectionEmpty": "Keine Fotos in dieser Sammlung",
       "collectionNotFound": "Diese Sammlung wurde nicht gefunden",
+      "collectionUnchecked": "Diese Sammlung konnte gerade nicht geprüft werden",
       "removeCollection": "Sammlung {id} entfernen",
       "removeCollectionShort": "Entfernen"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Bilder",
       "filters": "Filter",
       "words": "Wörter",
-      "collections": "Sammlungen"
+      "collections": "Sammlungen",
+      "forget": {
+        "title": "Auswahl vergessen?",
+        "pictures": {
+          "one": "Beim Wechsel zu „{mode}“ geht das hier ausgewählte Bild verloren. Rückgängig holt es zurück.",
+          "other": "Beim Wechsel zu „{mode}“ gehen die {count} hier ausgewählten Bilder verloren. Rückgängig holt sie zurück."
+        },
+        "collections": {
+          "one": "Beim Wechsel zu „{mode}“ geht die hier hinzugefügte Sammlung verloren. Rückgängig holt sie zurück.",
+          "other": "Beim Wechsel zu „{mode}“ gehen die {count} hier hinzugefügten Sammlungen verloren. Rückgängig holt sie zurück."
+        },
+        "confirm": "Wechseln"
+      }
     },
     "picked": {
       "none": "Noch nichts ausgewählt.",

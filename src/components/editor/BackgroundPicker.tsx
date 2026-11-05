@@ -32,6 +32,41 @@ import BackgroundEffectsFields from './BackgroundEffectsFields';
 
 const FIELD_CLASS = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
+/** The rotate route's answer to a forced refresh (see `GET /api/backgrounds/rotate`). */
+interface RotateAnswer {
+  path: string | null;
+  fresh?: boolean;
+  spaced?: boolean;
+  declined?: Array<{ kind: PhotoSourceKind; reason: 'empty' | 'failed' }>;
+}
+
+/** What the note after Refresh now says: a change, a wait, or which source passed and why. */
+type RefreshResult =
+  | { kind: 'changed' }
+  | { kind: 'nothing' }
+  | { kind: 'spaced' }
+  | { kind: 'failed' | 'empty'; source: PhotoSourceKind };
+
+function refreshResult(data: RotateAnswer): RefreshResult {
+  if (data.fresh) return { kind: 'changed' };
+  if (data.spaced) return { kind: 'spaced' };
+  // A source that could not be asked is the more useful news than one that
+  // had nothing: the person can go and fix it.
+  const named = (data.declined ?? []).filter((d) => d.kind !== 'wall');
+  const failed = named.find((d) => d.reason === 'failed') ?? named[0];
+  return failed ? { kind: failed.reason, source: failed.kind } : { kind: 'nothing' };
+}
+
+function refreshNote(result: RefreshResult, t: ReturnType<typeof useTranslate>): string {
+  switch (result.kind) {
+    case 'changed': return t('backgroundPicker.refreshChanged');
+    case 'spaced': return t('backgroundPicker.refreshSpaced');
+    case 'failed': return t('backgroundPicker.refreshFailed', { source: t(`photoSources.kinds.${result.source}`) });
+    case 'empty': return t('backgroundPicker.refreshEmpty', { source: t(`photoSources.kinds.${result.source}`) });
+    default: return t('backgroundPicker.refreshNothing');
+  }
+}
+
 /** The Settings card that holds a kind's key, for the note on a locked row. */
 const INTEGRATION: Partial<Record<PhotoSourceKind, BackgroundIntegration>> = {
   immich: 'immich',
@@ -95,7 +130,7 @@ export default function BackgroundPicker() {
   const rotating = isRotationActive(rotation) && breadth !== 'none';
 
   const [refreshing, setRefreshing] = useState(false);
-  const [refreshed, setRefreshed] = useState<'changed' | 'nothing' | null>(null);
+  const [refreshed, setRefreshed] = useState<RefreshResult | null>(null);
   // The result note belongs to the screen it was asked for.
   useEffect(() => { setRefreshed(null); }, [selectedScreenId]);
   const refreshNow = async () => {
@@ -103,16 +138,25 @@ export default function BackgroundPicker() {
     setRefreshing(true);
     setRefreshed(null);
     try {
+      // The hub rotates from the sources it has saved. An edit made within
+      // the autosave's 800 ms would otherwise be refreshed against the old
+      // list, so a dirty draft is saved first; a save that is refused (a
+      // conflict) shows its own banner, and the refresh waits for it.
+      const { isDirty, saveConfig } = useEditorStore.getState();
+      if (isDirty) {
+        await saveConfig();
+        if (useEditorStore.getState().isDirty) return;
+      }
       const res = await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(selectedScreenId)}&force=true`, { timeoutMs: null });
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as RotateAnswer;
         if (data.fresh) eventBus.publish('background.forceRefresh', { screenId: selectedScreenId, path: data.path ?? null });
-        setRefreshed(data.fresh ? 'changed' : 'nothing');
+        setRefreshed(refreshResult(data));
       } else {
-        setRefreshed('nothing');
+        setRefreshed({ kind: 'nothing' });
       }
     } catch {
-      setRefreshed('nothing');
+      setRefreshed({ kind: 'nothing' });
     } finally {
       setRefreshing(false);
     }
@@ -202,9 +246,13 @@ export default function BackgroundPicker() {
         <div className="space-y-2">
           <p className="text-xs font-medium text-hs-text-secondary" data-testid="background-mode" title={t('backgroundPicker.modeHelp')}>
             {breadth === 'many' ? t('backgroundPicker.modeRotating') : breadth === 'one' ? t('backgroundPicker.modeOne') : t('backgroundPicker.modeFixed')}
-            {refreshed && <span className="ml-2 font-normal text-hs-text-faint" data-testid="background-refresh-result">{t(refreshed === 'changed' ? 'backgroundPicker.refreshChanged' : 'backgroundPicker.refreshNothing')}</span>}
+            {refreshed && <span className="ml-2 font-normal text-hs-text-faint" data-testid="background-refresh-result">{refreshNote(refreshed, t)}</span>}
           </p>
 
+          {/* Keyed by screen: a row's open/closed state is its own on each
+              screen, so a source ticked here never shows its controls,
+              unticked, on the next screen. */}
+          <div key={screenId} className="space-y-2">
           <WallSourceGroup group="color" source={wallEntry('color')} onChange={(source) => updateScreenRotation(screenId, source ? { source } : { remove: { kind: 'wall', group: 'color' } })} />
           <WallSourceGroup group="pattern" source={wallEntry('pattern')} onChange={(source) => updateScreenRotation(screenId, source ? { source } : { remove: { kind: 'wall', group: 'pattern' } })} />
 
@@ -232,6 +280,7 @@ export default function BackgroundPicker() {
               </SourceRow>
             );
           })}
+          </div>
 
           {breadth === 'many' && (
             <label className="block">

@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Intet at skifte imellem endnu",
     "refreshChanged": "Billedet er skiftet",
     "refreshNothing": "Intet nyt billede endnu",
+    "refreshSpaced": "Vent et par sekunder, og prøv så igen.",
+    "refreshFailed": "{source} svarede ikke.",
+    "refreshEmpty": "Ingen billeder fra {source} med disse indstillinger.",
     "sourceNeeds": {
       "library": "Vælg nogle billeder",
       "immich": "Vælg nogle billeder",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Videobibliotek",
     "uploadVideosButton": "Upload videoer",
     "allVideos": "Alle videoer",
-    "titleMedia": "Mediebibliotek",
+    "titleFolder": "Vælg en mappe",
     "allMedia": "Alle fotos og videoer",
     "uploadMediaButton": "Upload"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Samlingen blev fundet",
       "collectionEmpty": "Ingen billeder i denne samling",
       "collectionNotFound": "Kunne ikke finde denne samling",
+      "collectionUnchecked": "Samlingen kunne ikke tjekkes lige nu",
       "removeCollection": "Fjern samlingen {id}",
       "removeCollectionShort": "Fjern"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Billeder",
       "filters": "Filtre",
       "words": "Søgeord",
-      "collections": "Samlinger"
+      "collections": "Samlinger",
+      "forget": {
+        "title": "Glem det, du har valgt?",
+        "pictures": {
+          "one": "Skifter du til \"{mode}\", glemmes det billede, du har valgt her. Fortryd henter det tilbage.",
+          "other": "Skifter du til \"{mode}\", glemmes de {count} billeder, du har valgt her. Fortryd henter dem tilbage."
+        },
+        "collections": {
+          "one": "Skifter du til \"{mode}\", glemmes den samling, du har tilføjet her. Fortryd henter den tilbage.",
+          "other": "Skifter du til \"{mode}\", glemmes de {count} samlinger, du har tilføjet her. Fortryd henter dem tilbage."
+        },
+        "confirm": "Skift"
+      }
     },
     "picked": {
       "none": "Intet valgt endnu.",

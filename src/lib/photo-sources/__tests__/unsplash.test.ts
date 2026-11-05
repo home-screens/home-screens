@@ -146,11 +146,56 @@ describe('unsplashPhotoSource.pickOne', () => {
     expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'x' }, canvas: { w: 1, h: 1 } })).toBeNull();
   });
 
-  it('draws from the collections instead of the words when any are named', async () => {
-    mockFetch.mockResolvedValueOnce(json(photo('c')));
+  it('draws from the collections instead of the words when any are named, after checking each one', async () => {
+    mockFetch.mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.endsWith('/collections/11') || u.endsWith('/collections/22')) return json({ id: u.slice(-2), total_photos: 5 });
+      return json(photo('c'));
+    });
     const picked = await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'ignored', collections: ['11', '22'] }, canvas: { w: 1080, h: 1920 } });
-    expect(mockFetch.mock.calls[0][0]).toBe('https://api.unsplash.com/photos/random?collections=11%2C22&orientation=portrait&content_filter=high');
+    const urls = mockFetch.mock.calls.map(([url]) => String(url));
+    expect(urls.slice(0, 2).sort()).toEqual(['https://api.unsplash.com/collections/11', 'https://api.unsplash.com/collections/22']);
+    expect(urls[2]).toBe('https://api.unsplash.com/photos/random?collections=11%2C22&orientation=portrait&content_filter=high');
     expect(picked).toMatchObject({ kind: 'download', id: 'c' });
+    // The check is remembered: the next pick goes straight to the photos.
+    mockFetch.mockClear();
+    await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'ignored', collections: ['11', '22'] }, canvas: { w: 1080, h: 1920 } });
+    expect(mockFetch.mock.calls.map(([url]) => String(url))).toEqual(['https://api.unsplash.com/photos/random?collections=11%2C22&orientation=portrait&content_filter=high']);
+  });
+
+  it('never asks for random photos of a collection Unsplash does not know', async () => {
+    // `/photos/random?collections=<unknown>` answers random photos from all of
+    // Unsplash, so a typo would put anything on the wall. Unknown ids are
+    // dropped; when none is known the source says so.
+    mockFetch.mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.endsWith('/collections/typo')) return json({ errors: ['Not found'] }, 404);
+      if (u.endsWith('/collections/33')) return json({ id: '33', total_photos: 2 });
+      if (u.endsWith('/collections/bare')) return json({ id: 'bare', total_photos: 0 });
+      return json(photo('k'));
+    });
+    await expect(unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: '', collections: ['typo'] }, canvas: { w: 1, h: 1 } }))
+      .rejects.toMatchObject({ status: 404, body: { error: 'unsplash-collection-missing' } });
+    expect(mockFetch.mock.calls.map(([url]) => String(url))).toEqual(['https://api.unsplash.com/collections/typo']);
+
+    mockFetch.mockClear();
+    const picked = await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: '', collections: ['typo', '33'] }, canvas: { w: 1, h: 1 } });
+    expect(picked).toMatchObject({ kind: 'download', id: 'k' });
+    expect(mockFetch.mock.calls.map(([url]) => String(url)).at(-1)).toBe('https://api.unsplash.com/photos/random?collections=33&orientation=squarish&content_filter=high');
+
+    // Known but empty: nothing to show, and no random request either.
+    mockFetch.mockClear();
+    expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: '', collections: ['bare'] }, canvas: { w: 1, h: 1 } })).toBeNull();
+    expect(await unsplashPhotoSource.list({ source: { kind: 'unsplash', query: '', collections: ['bare'] }, count: 5, media: 'photos' })).toEqual([]);
+    expect(mockFetch.mock.calls.map(([url]) => String(url))).toEqual(['https://api.unsplash.com/collections/bare']);
+  });
+
+  it('reads the list that exists as the mode, whatever the other fields hold', async () => {
+    // The editor keeps words and collections on the entry while picks are
+    // the mode, and words while collections are: only the mode's list counts.
+    expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'lake', collections: ['11'], photoIds: [] }, canvas: { w: 1, h: 1 } })).toBeNull();
+    expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'lake', collections: [] }, canvas: { w: 1, h: 1 } })).toBeNull();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('picks one of the hand-picked photos by id, avoiding the one showing, and tracks it', async () => {
@@ -164,10 +209,14 @@ describe('unsplashPhotoSource.pickOne', () => {
 });
 
 describe('unsplashPhotoSource.list with collections and picks', () => {
-  it('asks the collections for random photos', async () => {
+  it('asks the collections for random photos once each is known to hold some', async () => {
+    mockFetch.mockResolvedValueOnce(json({ id: '77', total_photos: 3 }));
     mockFetch.mockResolvedValueOnce(json([photo('a')]));
     const items = await unsplashPhotoSource.list({ source: { kind: 'unsplash', query: '', collections: ['77'] }, count: 10, media: 'photos' });
-    expect(mockFetch.mock.calls[0][0]).toBe('https://api.unsplash.com/photos/random?collections=77&count=10&content_filter=high');
+    expect(mockFetch.mock.calls.map(([url]) => String(url))).toEqual([
+      'https://api.unsplash.com/collections/77',
+      'https://api.unsplash.com/photos/random?collections=77&count=10&content_filter=high',
+    ]);
     expect(items).toHaveLength(1);
   });
 

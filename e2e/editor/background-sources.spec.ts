@@ -99,8 +99,13 @@ test.describe('rotation sources', () => {
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '', pictures: [`${folder}/one.png`, `${folder}/two.png`] }]);
     await expect(page.getByTestId('background-mode')).toHaveText('Rotating between the selected sources');
 
-    // Back to Folder mode: the picks go, the folder stands.
-    await autosaved(page, async () => page.getByTestId('library-mode-folder').click());
+    // Back to Folder mode asks before the picks go; the folder stands.
+    await page.getByTestId('library-mode-folder').click();
+    await expect(page.getByRole('dialog')).toContainText('forgets the 2 pictures you picked here');
+    await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '', pictures: [`${folder}/one.png`, `${folder}/two.png`] }]);
+    await page.getByTestId('library-mode-folder').click();
+    await autosaved(page, async () => page.getByRole('dialog').getByRole('button', { name: 'Switch' }).click());
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '' }]);
 
     await putConfig(request, baseConfig());
@@ -129,9 +134,9 @@ test.describe('rotation sources', () => {
     await autosaved(page, async () => page.getByTestId('immich-exclude').getByRole('checkbox', { name: 'Ava' }).check());
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', albumIds: [ALBUM_ID], excludePersonIds: ['e5f6a7b8'] }]);
 
-    // Pictures mode starts from nothing picked and says so.
+    // Pictures mode starts from nothing picked and says so; the filters stay on the entry.
     await autosaved(page, async () => page.getByTestId('immich-mode-pictures').click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', assetIds: [] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', albumIds: [ALBUM_ID], excludePersonIds: ['e5f6a7b8'], assetIds: [] }]);
     await expect(page.getByTestId('source-note-immich')).toHaveText('Pick some photos');
     await expect(page.getByTestId('background-mode')).toHaveText('Fixed background');
 
@@ -139,18 +144,18 @@ test.describe('rotation sources', () => {
     await picker.getByLabel('Album').selectOption(`album:${ALBUM_ID}`);
     await expect(picker.locator('[data-testid^="immich-pick-"]')).toHaveCount(2);
     await autosaved(page, async () => picker.getByTestId('immich-pick-bb22').click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', assetIds: ['bb22'] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', albumIds: [ALBUM_ID], excludePersonIds: ['e5f6a7b8'], assetIds: ['bb22'] }]);
     await expect(page.getByTestId('background-mode')).toHaveText('Showing one picture');
     await autosaved(page, async () => picker.getByTestId('immich-pick-aa11').click());
     await expect(page.getByTestId('background-mode')).toHaveText('Rotating between the selected sources');
     // Clicking a picked tile takes it out again.
     await autosaved(page, async () => picker.getByTestId('immich-pick-bb22').click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', assetIds: ['aa11'] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'immich', albumIds: [ALBUM_ID], excludePersonIds: ['e5f6a7b8'], assetIds: ['aa11'] }]);
 
     expect(handle.externalHits).toEqual([]);
   });
 
-  test('Unsplash: search words, then a collection, then picked photos, each mode clearing the last', async ({ page, request }) => {
+  test('Unsplash: search words, then a collection, then picked photos, each mode keeping the others on the entry', async ({ page, request }) => {
     const handle = await stubModuleData(page, { blockExternal: true });
     await seedSecrets(request);
     await stubBrowse(page);
@@ -165,26 +170,28 @@ test.describe('rotation sources', () => {
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: 'nature landscape' }]);
 
     await autosaved(page, async () => page.getByTestId('unsplash-mode-collections').click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: '', collections: [] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: 'nature landscape', collections: [] }]);
     await expect(page.getByTestId('source-note-unsplash')).toBeVisible();
     await expect(page.getByTestId('background-mode')).toHaveText('Fixed background');
 
     await page.getByTestId('unsplash-collections').getByLabel('Collection').fill('https://unsplash.com/collections/abc123/sunsets');
     await autosaved(page, async () => page.getByTestId('unsplash-collections').getByRole('button', { name: 'Add' }).click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: '', collections: ['abc123'] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: 'nature landscape', collections: ['abc123'] }]);
     await expect(page.getByTestId('unsplash-collection-abc123')).toContainText('Collection found');
     await expect(page.getByTestId('background-mode')).toHaveText('Rotating between the selected sources');
 
     await autosaved(page, async () => page.getByTestId('unsplash-mode-pictures').click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: '', photoIds: [] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: 'nature landscape', collections: ['abc123'], photoIds: [] }]);
     const picker = page.getByTestId('unsplash-picked-pictures');
     await expect(picker.locator('[data-testid^="unsplash-pick-"]')).toHaveCount(2);
     await autosaved(page, async () => picker.getByTestId('unsplash-pick-u1').click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: '', photoIds: ['u1'] }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: 'nature landscape', collections: ['abc123'], photoIds: ['u1'] }]);
     await expect(page.getByTestId('background-mode')).toHaveText('Showing one picture');
 
-    // Back to words: the picks go, the default words come back.
-    await autosaved(page, async () => page.getByTestId('unsplash-mode-words').click());
+    // Back to words asks first (a pick would be lost), then the picks and the collection go and the words stand.
+    await page.getByTestId('unsplash-mode-words').click();
+    await expect(page.getByRole('dialog')).toContainText('forgets the picture you picked here');
+    await autosaved(page, async () => page.getByRole('dialog').getByRole('button', { name: 'Switch' }).click());
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'unsplash', query: 'nature landscape' }]);
 
     expect(handle.externalHits).toEqual([]);

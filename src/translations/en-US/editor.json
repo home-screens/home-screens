@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Nothing to rotate yet",
     "refreshChanged": "Picture changed",
     "refreshNothing": "No new picture yet",
+    "refreshSpaced": "Wait a few seconds, then try again.",
+    "refreshFailed": "{source} didn't answer.",
+    "refreshEmpty": "No pictures from {source} for these settings.",
     "sourceNeeds": {
       "library": "Pick some pictures",
       "immich": "Pick some photos",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Video Library",
     "uploadVideosButton": "Upload Videos",
     "allVideos": "All Videos",
-    "titleMedia": "Media Library",
+    "titleFolder": "Pick a folder",
     "allMedia": "All Photos & Videos",
     "uploadMediaButton": "Upload"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Collection found",
       "collectionEmpty": "No photos in this collection",
       "collectionNotFound": "Couldn't find this collection",
+      "collectionUnchecked": "Couldn't check this collection right now",
       "removeCollection": "Remove collection {id}",
       "removeCollectionShort": "Remove"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Pictures",
       "filters": "Filters",
       "words": "Words",
-      "collections": "Collections"
+      "collections": "Collections",
+      "forget": {
+        "title": "Forget what you picked?",
+        "pictures": {
+          "one": "Switching to {mode} forgets the picture you picked here. Undo brings it back.",
+          "other": "Switching to {mode} forgets the {count} pictures you picked here. Undo brings them back."
+        },
+        "collections": {
+          "one": "Switching to {mode} forgets the collection you added here. Undo brings it back.",
+          "other": "Switching to {mode} forgets the {count} collections you added here. Undo brings them back."
+        },
+        "confirm": "Switch"
+      }
     },
     "picked": {
       "none": "Nothing picked yet.",

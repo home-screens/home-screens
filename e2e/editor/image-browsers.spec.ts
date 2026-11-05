@@ -340,9 +340,10 @@ test.describe('the Image Library in its library-only modes', () => {
     await selectModule(page, request, buildModuleInstance('photo-slideshow'));
     await page.getByRole('button', { name: 'Browse...', exact: true }).click();
 
-    // The mixed management view is media-branded, not image-branded, and
-    // chooses a folder of the library, so it has no source tabs.
-    await expect(page.getByRole('heading', { name: 'Media Library' })).toBeVisible();
+    // The folder picker chooses a folder of the library, so it has no source
+    // tabs, and only adds to the library: a tile carries no delete button here.
+    await expect(page.getByRole('heading', { name: 'Pick a folder' })).toBeVisible();
+    await expect(page.getByRole('dialog').getByRole('button', { name: 'Delete' })).toHaveCount(0);
     await expect(page.getByRole('tab')).toHaveCount(0);
     await expect(page.getByText('All Photos & Videos').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Upload', exact: true })).toBeVisible();

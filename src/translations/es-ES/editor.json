@@ -2673,6 +2673,9 @@
     "refreshDisabled": "Aún no hay nada que rotar",
     "refreshChanged": "Fondo cambiado",
     "refreshNothing": "Aún no hay foto nueva",
+    "refreshSpaced": "Espera unos segundos y vuelve a intentarlo.",
+    "refreshFailed": "{source} no ha respondido.",
+    "refreshEmpty": "No hay fotos de {source} con estos ajustes.",
     "sourceNeeds": {
       "library": "Elige algunas fotos",
       "immich": "Elige algunas fotos",
@@ -2706,7 +2709,7 @@
     "titleVideos": "Biblioteca de vídeos",
     "uploadVideosButton": "Subir vídeos",
     "allVideos": "Todos los vídeos",
-    "titleMedia": "Biblioteca multimedia",
+    "titleFolder": "Elegir una carpeta",
     "allMedia": "Todas las fotos y vídeos",
     "uploadMediaButton": "Subir"
   },
@@ -5892,6 +5895,7 @@
       "collectionValid": "Colección encontrada",
       "collectionEmpty": "No hay fotos en esta colección",
       "collectionNotFound": "No se encontró esta colección",
+      "collectionUnchecked": "Ahora mismo no se ha podido comprobar esta colección",
       "removeCollection": "Quitar la colección {id}",
       "removeCollectionShort": "Quitar"
     },
@@ -5993,7 +5997,19 @@
       "pictures": "Fotos",
       "filters": "Filtros",
       "words": "Palabras",
-      "collections": "Colecciones"
+      "collections": "Colecciones",
+      "forget": {
+        "title": "¿Olvidar lo elegido?",
+        "pictures": {
+          "one": "Al cambiar a «{mode}» se olvida la foto elegida aquí. Deshacer la recupera.",
+          "other": "Al cambiar a «{mode}» se olvidan las {count} fotos elegidas aquí. Deshacer las recupera."
+        },
+        "collections": {
+          "one": "Al cambiar a «{mode}» se olvida la colección añadida aquí. Deshacer la recupera.",
+          "other": "Al cambiar a «{mode}» se olvidan las {count} colecciones añadidas aquí. Deshacer las recupera."
+        },
+        "confirm": "Cambiar"
+      }
     },
     "picked": {
       "none": "Aún no has elegido nada.",
