@@ -3,14 +3,14 @@ title: Photos and backgrounds
 nextjs:
   metadata:
     title: Photos and backgrounds
-    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, browse Unsplash and NASA, and rotate backgrounds on a schedule.
+    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, and rotate backgrounds on a schedule.
     alternates:
       canonical: /docs/backgrounds
 ---
 
-Each screen can have its own background, and your photos can fill a whole screen as a slideshow. Upload your own pictures, import them from Google Photos or an iCloud shared album, browse Unsplash and NASA from the editor, or let the background change on its own every few hours. {% .lead %}
+Each screen can have its own background, and your photos can fill a whole screen as a slideshow. Upload your own pictures to the media library, import them from Google Photos or an iCloud shared album, or let the background change on its own every few hours. {% .lead %}
 
-Photos and backgrounds share one library on the Pi. Anything you upload or import from a photo module is available as a background, and anything you set as a background can be shown by the **Photo Slideshow** and **Full-Screen Photo Viewer** modules. From a phone, the family remote's **Photos** tab uploads into the same library.
+Photos and backgrounds share one library on the Pi. Photos uploaded or imported to the library can be used by photo modules and local-folder background rotation; bundled walls can be picked as static backgrounds. From a phone, the family remote's **Photos** tab uploads into the same library.
 
 {% callout type="note" title="Finding the Background section" %}
 The **Background** section appears in the editor's right sidebar only when no module is selected. If you can't find it, click an empty part of the canvas first to deselect whatever module you were editing. Every procedure on this page assumes you've done that.
@@ -20,13 +20,13 @@ The **Background** section appears in the editor's right sidebar only when no mo
 
 ## Backgrounds that come with Home Screens
 
-The **Backgrounds** tab starts with a set of walls that need no key and no upload. They are tiny drawings rather than photos, so they look sharp on any display, portrait or landscape. They come in three groups, and each group folds away if you don't need it:
+The **Sources** card in the Background section starts with three rotation checkboxes for walls that need no key and no upload. They are tiny drawings rather than photos, so they look sharp on any display, portrait or landscape. Check a group to rotate through its walls; its settings then expand:
 
 - **Match a full-screen theme**: one wall for each of the twelve full-screen themes, painted from the same colors the theme uses. Give a regular screen this wall and it sits next to a full-screen calendar or weather screen without a visible change of color. The theme your display uses (from **Settings > Screen**, or the display's own override) is listed first and marked "in use".
 - **Colors**: eighteen gradients, from deep and moody (Midnight, Ember, Ink) to soft and light (Cloud, Sand, Sage, Blush).
 - **Patterns**: four quiet textures (Dots, Grid, Diagonal, and a light Paper) for a wall with a little texture behind your modules.
 
-Click any of them to use it. If auto-rotation was on for the screen, it is switched off so your choice stays.
+Each group initially includes all its walls. Uncheck an individual wall inside the expanded group to exclude it from rotation; the count shows included/total. At least one wall stays included in a checked group. The theme group rotates through **all** theme walls, not just the current display theme. Use the tile itself to set that wall as a **fixed background** instead: this turns off rotation, and the highlighted tile indicates the fixed choice, not rotation membership. **None** under Colors clears the picture, leaves a solid background, and turns off rotation. A fixed theme wall is a static snapshot: changing the display theme later does not change it. Groups remember their open/closed state in this browser. **Refresh now** and **Rotate every** apply to these groups and other checked sources alike.
 
 ---
 
@@ -37,8 +37,8 @@ To set a background in the editor:
 1. Select the screen you want to customize using the **Screen Tabs** at the top
 2. Click an empty part of the canvas to deselect any module
 3. Open the **Background** section in the right sidebar
-4. Switch to the **Backgrounds** tab to see your uploaded images
-5. Click a thumbnail to apply it, or click **None** to remove the background
+4. In **Sources**, check **Match a full-screen theme**, **Colors**, or **Patterns** to expand its tiles
+5. Click a tile to apply it, or click **None** under Colors to remove the background
 
 The picture fills the whole screen without being stretched; a landscape photo on a portrait wall is cropped at the sides.
 
@@ -58,15 +58,7 @@ Each screen has its own shade, and the editor shows it exactly as the wall will.
 
 ## Uploading custom images
 
-1. Click an empty part of the canvas to deselect any module
-2. Open the **Background** section in the right sidebar
-3. Switch to the **Backgrounds** tab
-4. Click **Upload Background**
-5. Select an image file from your computer
-
-The image is saved into your library on the Pi and set as the current screen's background straight away.
-
-The Upload Background button opens a file chooser; there is no drop zone to drag files onto. It offers image files only. Videos can be added to the same library from a photo or video module's media library browser, but they can't be used as a screen background.
+Open **Settings > Pictures & videos** and use its upload panel to add images to your shared library. The Background section no longer has an upload button or a separate uploaded-picture picker. The media library, photo modules, imports, and background-serving API still work as before.
 
 ### Constraints
 
@@ -78,7 +70,7 @@ The Upload Background button opens a file chooser; there is no drop zone to drag
 
 ## Folders
 
-The background picker's Backgrounds tab shows the top level of your library only. Photos filed into a folder (an iCloud or Google Photos import, or a folder you made from the phone) are for the photo modules, which can point at any folder and everything inside it.
+Photo modules can point at any folder in the media library. For background rotation, the **Local library folder** source inside **Sources** can select a folder of images.
 
 ---
 
@@ -96,7 +88,7 @@ A file that is in use cannot be deleted, but it can be **replaced**: the swap bu
 
 Folders are managed here too: **New folder** makes one (inside the folder you are looking at, or at the top level), and a folder you have opened offers **Rename** and **Delete folder**. Only an empty folder can be deleted. Tick files and pick **Move to** to move them into another folder. Renaming a folder or moving files updates every screen, day rule, module and slideshow that pointed at them, so nothing on the wall goes blank. Use the search box to find a file by name, the sort menu to order by name, newest or largest, **Select all** to tick everything in view, and shift-click to tick a range.
 
-Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The background picker's own delete button is gone: pickers pick and upload, the library page manages. A module's media browser and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
+Deleting happens here, one file at a time from the trash button on its tile, or many at once by ticking their boxes. The library page manages files; the Background section has no separate image browser or upload control. A module's media browser and the phone's Photos tab answer to the same rule: files a screen depends on stay put, and so does a slideshow's last picture, and they say why.
 
 ---
 
@@ -110,49 +102,27 @@ Unsplash provides access to a library of high-quality, freely usable photographs
 2. Create a new application to get an **Access Key**
 3. In the editor, go to **Settings > API keys** and paste the key into **Access Key** on the Unsplash card
 
-### Browsing and selecting
+### Rotation
 
-1. Click an empty part of the canvas to deselect any module, then open the **Background** section in the right sidebar
-2. Switch to the **Unsplash** tab
-3. Use the search bar or click a preset category (Nature, Mountains, Ocean, Forest, Sky, Space, City, Abstract, Flowers, Seasons)
-4. Click a photo to download it and set it as the screen background
-
-When you select a photo it is downloaded once, at 1080 pixels wide, and saved into your library. The wall shows the local copy, so Unsplash is never contacted again for it.
-
-Unsplash searches default to **portrait orientation** to match the typical display layout.
-
----
+Unsplash is one of the eight checkboxes inside the Background section's **Sources** card. Save an access key before enabling it; set a search query or collection there. Direct Unsplash/NASA/Immich browsing and one-off picks are no longer part of this Background section.
 
 ## NASA Astronomy Picture of the Day
 
-NASA offers two image sources, both accessible from the **NASA** tab in the background picker.
+NASA Picture of the Day is a rotation source in the **Sources** card. The old NASA image-search and APOD one-off browser is no longer in the Background section.
 
 ### Setup
 
 1. Get a free API key at [api.nasa.gov](https://api.nasa.gov)
 2. In the editor, go to **Settings > API keys** and paste it into **API Key** on the NASA card
+3. Check **NASA Picture of the Day** in **Sources** and set the interval
 
-The NASA Image Library (search) works without an API key. The Astronomy Picture of the Day (APOD) feature requires one.
-
-### Picture of the Day
-
-The **Picture of the Day** sub-tab shows a random selection of past APOD images (12 at a time). Click **Refresh** to load a new batch. Click any image to download the HD version and set it as your background.
-
-### Image Library
-
-The **Image Library** sub-tab lets you search NASA's full public image archive by keyword. Preset categories include Nebula, Galaxy, Earth, Mars, Moon, Saturn, Jupiter, Sun, Aurora, and ISS.
-
-When you select a NASA image, it is downloaded and saved locally. Non-web image formats (such as TIFF files sometimes used by NASA) are automatically converted to JPEG.
-
-{% callout type="note" title="Image quality" %}
-Some NASA images include embedded timestamps, watermarks, or overlay text that cannot be removed. Preview the thumbnail before selecting.
-{% /callout %}
+NASA publishes a new image daily, so shorter rotation intervals check for updates but cannot produce a new APOD picture more often.
 
 ---
 
 ## Immich integration
 
-[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can browse your Immich library directly from the background picker and use Immich as a source for background rotation.
+[Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can use Immich as a source for background rotation.
 
 ### Setup
 
@@ -160,17 +130,9 @@ Some NASA images include embedded timestamps, watermarks, or overlay text that c
 2. In Immich, go to **Account Settings → API Keys** and generate a new key
 3. In the editor, go to **Settings > API keys** and fill in **Server URL** (e.g. `http://192.168.1.50:2283`) and **API Key** on the Immich card
 
-### Browsing and selecting
+### Rotation
 
-1. Click an empty part of the canvas to deselect any module, then open the **Background** section in the right sidebar
-2. Switch to the **Immich** tab (only visible when both Immich keys are configured)
-3. Optionally filter by album using the dropdown
-4. Click **Refresh** to load a new batch of photos
-5. Click a photo to download it and set it as the screen background
-
-When you select an Immich photo, a display-sized copy is saved into your library and set as the background. If auto-rotation was on, it is switched off so your choice stays.
-
-The Immich browser shows a grid of 20 random photos from your library at a time.
+Check **Immich** inside **Sources**, then optionally filter by album, person, or favorites. The former one-off browser is no longer in the Background section.
 
 ---
 
@@ -186,8 +148,8 @@ iCloud shared albums work without an Apple account or API key, all you need is t
 
 ### Using it
 
-- **As a rotation source**: deselect any module, open the **Background** section, enable auto-rotation, choose **iCloud Shared Album** as the source, and paste the link. The display loads photos straight from Apple's servers. Only still photos are used; any videos in the album are skipped.
-- **Importing into your library**: use **Import from an iCloud link** to download everything a link contains into the selected folder. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo Slideshow, or Full-Screen Photo Viewer module, not from the Background section. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
+- **As a rotation source**: deselect any module, open the **Background** section, check **iCloud Shared Album** in **Sources**, and paste the link. The display loads photos straight from Apple's servers. Only still photos are used; any videos in the album are skipped.
+- **Importing into your library**: use **Import from an iCloud link** to download everything a link contains into the selected folder. That button lives in the media library browser, which opens from the settings of an Image, Video, Photo slideshow, or Full-screen photo module, not from the Background section. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---
 
@@ -228,20 +190,17 @@ To go back to Home Screens' app later, flip the switch next to **Use your own Go
 
 ## Background rotation
 
-Auto-rotation periodically replaces the screen background with a new image from Unsplash, NASA APOD, Immich, or an iCloud shared album.
+Auto-rotation periodically replaces the screen background with a bundled theme, color, or pattern wall, or an image from Unsplash, NASA APOD, Immich, an iCloud shared album, or a local library folder.
 
 ### Enabling rotation
 
 1. Click an empty part of the canvas to deselect any module
 2. Open the **Background** section in the right sidebar
-3. Toggle **Auto-rotate** on
-4. Choose a **Source**: Unsplash, NASA Picture of the Day, Immich, or iCloud Shared Album
-5. For Unsplash, enter a **Search query** (default: "nature landscape")
-6. For Immich, optionally filter by **Album**, **Person**, or **Favorites only**
-7. For iCloud, paste the shared album link
-8. Set the **Rotate every** interval
+3. In **Sources**, check any combination of **Match a full-screen theme**, **Colors**, **Patterns**, **Unsplash**, **NASA Picture of the Day**, **Immich**, **iCloud Shared Album**, and **Local library folder**
+4. Configure each checked source (included bundled walls, query or collections, album/person filters, shared album link, or local folder) as needed
+5. Set **Rotate every** and optionally use **Refresh now**
 
-Unsplash, NASA, and Immich appear in the Source list only once their key is saved on the **Settings > API keys** page. iCloud shared albums need no key, so that option is always there. If the list looks short, a missing key is why.
+Unsplash, NASA, and Immich require credentials from **Settings > API keys**; their checkboxes are disabled until those keys are set. The three bundled groups, iCloud, and Local library folder need no key. **Shade** applies to both static walls and rotating photos.
 
 ### Interval options
 
@@ -256,22 +215,24 @@ Unsplash, NASA, and Immich appear in the Source list only once their key is save
 
 ### How it works
 
-Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi fetches one from the source you picked, saves it into the library, and the wall switches to it.
+Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi chooses one from the selected sources and the wall switches to it. Remote images are saved into the library; bundled walls are served from the installed catalog.
 
+- **Bundled wall rotation** chooses a wall from each checked group. The theme group includes every full-screen theme wall unless you exclude individual tiles; it does not follow the currently selected theme.
 - **Unsplash rotation** fetches a random portrait photo matching the configured query. Download tracking is triggered per the Unsplash API terms.
 - **NASA APOD rotation** fetches the current Astronomy Picture of the Day. Since NASA publishes one new image per day, the display checks for updates at the chosen interval but the image only changes once daily.
 - **Immich rotation** fetches a random photo from your Immich library, optionally filtered by album, person, or favorites. The server caches Immich filter parameters so changing your album or person selection immediately busts the cache and fetches a fresh photo.
+- **Local library folder rotation** cycles through images in the selected folder.
 - **iCloud rotation** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
 
 If a fetch fails (network error, API limit), the previous background is kept until the next successful rotation.
 
 ### Housekeeping
 
-Rotated images are tidied up on their own: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and imports are never touched. If a rotated photo is one you want to keep, pick it as a fixed background and it stays.
+Rotated images are tidied up on their own: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and imports are never touched.
 
 ### Rotation and manual backgrounds
 
-While rotation is on it replaces whatever fixed background the screen had. Picking a new background by hand (from Backgrounds, Unsplash, NASA or Immich) switches rotation off for that screen so your choice stays.
+While rotation is on it replaces whatever fixed background the screen had. Picking a bundled static wall or None in Sources switches rotation off for that screen so your choice stays.
 
 ---
 
