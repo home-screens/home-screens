@@ -7,6 +7,7 @@ import { wallConfigEtag } from './wall-config';
 import { choresEtag, rewardsEtag } from './chore-revisions';
 import { householdToday } from './household-day';
 import { libraryRevision } from './library-revision';
+import { rotationRevision } from './rotation-revision';
 import { calendarRevision } from './calendar-revision';
 import { notesEtag } from './notes-revision';
 import { dayNotesEtag } from './day-notes-revision';
@@ -40,5 +41,5 @@ export async function readDisplayRevisions(): Promise<DisplayRevisions> {
     orUndefined(notesEtag),
     orUndefined(dayNotesEtag),
   ]);
-  return { buildId, plugins, config, timer, chores, rewards, notes, dayNotes, library: libraryRevision(), calendar: calendarRevision() };
+  return { buildId, plugins, config, timer, chores, rewards, notes, dayNotes, library: libraryRevision(), calendar: calendarRevision(), rotation: rotationRevision() };
 }

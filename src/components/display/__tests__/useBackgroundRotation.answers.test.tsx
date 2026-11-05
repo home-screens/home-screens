@@ -7,6 +7,7 @@ const displayFetch = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/display-fetch', () => ({ displayFetch }));
 
 import { useBackgroundRotation } from '../useBackgroundRotation';
+import { publishRevisions, __resetHeartbeatForTests } from '@/lib/display-heartbeat';
 
 const PHOTO = '/api/backgrounds/serve?file=rotation-unsplash-a.jpg';
 
@@ -24,6 +25,7 @@ function screen(rotating: boolean): Screen {
 let open: Array<(res: Response | Error) => void> = [];
 
 beforeEach(() => {
+  __resetHeartbeatForTests();
   open = [];
   displayFetch.mockReset();
   displayFetch.mockImplementation(() => new Promise<Response>((resolve, reject) => {
@@ -38,6 +40,25 @@ async function answer(res: Response | Error = new Response(JSON.stringify({ path
 }
 
 describe('useBackgroundRotation answers', () => {
+  it('re-asks when the heartbeat says a rotation answered anew, not on the next minute', async () => {
+    const { result } = renderHook(() => useBackgroundRotation([screen(true)]));
+    await answer();
+    expect(result.current.s).toBe(PHOTO);
+    expect(open).toHaveLength(0);
+
+    // The first beat only says where the hub is.
+    act(() => { publishRevisions({ rotation: 'r1' }); });
+    expect(open).toHaveLength(0);
+    act(() => { publishRevisions({ rotation: 'r1' }); });
+    expect(open).toHaveLength(0);
+
+    // A moved revision is a new picture somewhere: ask again.
+    act(() => { publishRevisions({ rotation: 'r2' }); });
+    const next = '/api/backgrounds/serve?file=rotation-unsplash-b.jpg';
+    await answer(new Response(JSON.stringify({ path: next })));
+    expect(result.current.s).toBe(next);
+  });
+
   it('has no answer for a rotating screen until its lookup comes back', async () => {
     const { result } = renderHook(() => useBackgroundRotation([screen(true)]));
     expect(result.current.s).toBeUndefined();

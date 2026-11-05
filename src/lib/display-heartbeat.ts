@@ -36,6 +36,12 @@ export interface DisplayRevisions {
    * up in seconds rather than on the calendar's 5-minute poll.
    */
   calendar?: string;
+  /**
+   * The background rotation's answers (`rotation-revision.ts`). A wall re-asks
+   * for its rotating backgrounds when this moves, so a Refresh now in the
+   * editor reaches the wall in seconds rather than on the minute poll.
+   */
+  rotation?: string;
   /** The ETag `GET /api/notes` would be answered with: the family notes board. */
   notes?: string;
   /** The ETag `GET /api/day-notes` would be answered with: the calendar's day notes. */

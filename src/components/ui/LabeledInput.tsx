@@ -14,6 +14,9 @@ interface LabeledInputProps {
   step?: number | string;
   className?: string;
   fieldClassName?: string;
+  /** For a field that saves once typing is done rather than per keystroke. */
+  onBlur?: () => void;
+  onPaste?: (e: React.ClipboardEvent<HTMLInputElement>) => void;
 }
 
 export default function LabeledInput({
@@ -27,6 +30,8 @@ export default function LabeledInput({
   step,
   className,
   fieldClassName,
+  onBlur,
+  onPaste,
 }: LabeledInputProps) {
   return (
     <LabeledField label={label} className={fieldClassName}>
@@ -34,6 +39,8 @@ export default function LabeledInput({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        onPaste={onPaste}
         placeholder={placeholder}
         min={min}
         max={max}

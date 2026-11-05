@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useLayoutEffect, useCallback } from 'react';
 
 const GROUP_STORAGE_PREFIX = 'hs-background-group-';
 
@@ -16,8 +16,11 @@ function writeGroupOpen(id: string, open: boolean): void {
 
 /** Open/closed state of a collapsible background group, remembered per group id in localStorage (open by default). */
 export function useGroupOpen(id: string): [boolean, (open: boolean) => void] {
+  // Open on the server and on the first client render (the two must match),
+  // then the remembered state lands before the first paint, so a closed
+  // group never flashes open.
   const [open, setOpenState] = useState(true);
-  useEffect(() => { setOpenState(readGroupOpen(id)); }, [id]);
+  useLayoutEffect(() => { setOpenState(readGroupOpen(id)); }, [id]);
   const setOpen = useCallback((next: boolean) => {
     setOpenState(next);
     writeGroupOpen(id, next);

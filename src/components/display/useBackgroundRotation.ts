@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
 import { displayFetch } from '@/lib/display-fetch';
+import { subscribeRevisions } from '@/lib/display-heartbeat';
 import { isRotationActive, rotationCacheKey } from '@/lib/photo-source';
 
 /** How often the client polls the server-side rotation cache (ms) */
@@ -83,7 +84,21 @@ export function useBackgroundRotation(screens: Screen[]) {
 
     pollBackgrounds();
     const id = setInterval(pollBackgrounds, BG_POLL_MS);
-    return () => clearInterval(id);
+    // The heartbeat says when a rotation answered anew (an interval that
+    // passed on the hub, Refresh now in the editor): re-ask then, not on the
+    // next minute. The first beat only records where the hub is.
+    let seen: string | undefined;
+    const unsubscribe = subscribeRevisions((revisions) => {
+      const current = revisions.rotation;
+      if (current === undefined) return;
+      const changed = seen !== undefined && seen !== current;
+      seen = current;
+      if (changed) void pollBackgrounds();
+    });
+    return () => {
+      clearInterval(id);
+      unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on rotationKey change; other deps are stable or intentionally excluded
   }, [rotationKey]);
 

@@ -67,7 +67,8 @@ describe('BackgroundPicker', () => {
     render(wrap(<BackgroundPicker />));
     await settle();
     fireEvent.click(rowCheckbox('nasa'));
-    expect(updateScreenRotation).toHaveBeenCalledWith('s1', { source: { kind: 'nasa' } });
+    // NASA has one new picture a day, so ticking it also slows the rotation to four hours.
+    expect(updateScreenRotation).toHaveBeenCalledWith('s1', { source: { kind: 'nasa' }, intervalMinutes: 240 });
 
     cleanup();
     seed([{ kind: 'nasa' }]);

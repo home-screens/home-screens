@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -14,6 +14,7 @@ import { logger } from '@/lib/logger';
 import { canRotate, rotationCacheKey, rotationSources } from '@/lib/photo-source';
 import { pickOneFromSource, type PickedPicture } from '@/lib/photo-sources';
 import { getSecretStatus } from '@/lib/secrets';
+import { bumpRotationRevision } from '@/lib/rotation-revision';
 import { shuffleArray } from '@/lib/shuffle';
 import {
   ROTATION_FILE_RE,
@@ -219,9 +220,14 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       // the fetch above, so a rotation that finished for another screen while
       // this one was waiting on the network keeps its entry.
       const merged = await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: next }));
-      // Prune against the merged view; pruning against the stale snapshot
-      // would delete files the other screen just claimed.
-      await pruneRotationFiles(merged);
+      // The wall's heartbeat says a rotation answered anew, so every wall
+      // showing this screen re-asks within a beat instead of on its own poll.
+      bumpRotationRevision();
+      // Prune against the merged view (pruning against the stale snapshot
+      // would delete files the other screen just claimed), after the answer
+      // is on its way: a readdir and a stat per rotation file need not hold
+      // the wall's picture back.
+      after(() => pruneRotationFiles(merged));
       return NextResponse.json({ path: newPath, fresh: true });
     } catch (error) {
       // A missing key, a source that is away, or a lapsed sign-in: the next

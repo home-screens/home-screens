@@ -123,6 +123,26 @@ describe('ICloudSourceFields wrong-link bridge', () => {
     expect(invalidated).toContain('/api/photo-source/media?kind=library&folder=icloud-imports');
   });
 
+  it('saves the link once typing is done, not on every keystroke', () => {
+    editorFetch.mockResolvedValue(jsonResponse([]));
+    const { set, view } = renderSection('');
+    const input = view.getByLabelText('Album link') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'https://www.icloud.com/sharedalbum/#B0aJ' } });
+    fireEvent.change(input, { target: { value: 'https://www.icloud.com/sharedalbum/#B0aJtFg' } });
+    expect(set).not.toHaveBeenCalled();
+    fireEvent.blur(input);
+    expect(set).toHaveBeenCalledTimes(1);
+    expect(set).toHaveBeenCalledWith({ kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aJtFg' });
+  });
+
+  it('saves a pasted link at once', () => {
+    editorFetch.mockResolvedValue(jsonResponse([]));
+    const { set, view } = renderSection('');
+    const input = view.getByLabelText('Album link');
+    fireEvent.paste(input, { clipboardData: { getData: () => ' https://www.icloud.com/sharedalbum/#B0aJtFg ' } });
+    expect(set).toHaveBeenCalledWith({ kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aJtFg' });
+  });
+
   it('shows the expired message and does not flip when the link is dead', async () => {
     editorFetch.mockResolvedValue(jsonResponse({ error: 'link-expired' }, 400));
 

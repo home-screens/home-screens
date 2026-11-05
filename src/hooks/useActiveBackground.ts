@@ -4,11 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { logger } from '@/lib/logger';
+import { useEditorStore } from '@/stores/editor-store';
 import { eventBus } from '@/lib/event-bus';
 import type { RotationAnswer } from '@/lib/screen-background';
 
-/** Autosave waits 800 ms and then saves; ask the hub only after that, or it answers from the old config. */
-const SETTLE_MS = 1500;
 
 const log = logger('useActiveBackground');
 
@@ -48,16 +47,24 @@ export function useActiveBackground(screenId: string | undefined, rotationEnable
   };
 
   // A changed rotation setting (sources, tiles, filters) should show up within
-  // seconds, not on the next 30 s poll.
+  // seconds, not on the next 30 s poll. The hub answers from the saved
+  // config, so the ask waits for the save that carries the change to land
+  // (the store is clean and not saving) rather than a fixed moment.
   const lastKey = useRef(rotationKey);
+  const [askFor, setAskFor] = useState<string | null>(null);
   useEffect(() => {
     if (lastKey.current === rotationKey) return;
     lastKey.current = rotationKey;
     if (!screenId || !rotationEnabled) return;
-    const id = setTimeout(() => { void fetchAnswer(screenId); }, SETTLE_MS);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAnswer only closes over stable setters
+    setAskFor(screenId);
   }, [rotationKey, screenId, rotationEnabled]);
+  const settled = useEditorStore((state) => !state.isDirty && !state.isSaving);
+  useEffect(() => {
+    if (!askFor || !settled) return;
+    setAskFor(null);
+    void fetchAnswer(askFor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAnswer only closes over stable setters
+  }, [askFor, settled]);
 
   usePolledFetch(
     () => fetchAnswer(screenId!),

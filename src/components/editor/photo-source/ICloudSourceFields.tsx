@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import LabeledInput from '@/components/ui/LabeledInput';
 import { useEditorData } from '@/hooks/useEditorData';
 import { detectICloudSource } from '@/lib/icloud-parse';
@@ -34,6 +34,9 @@ interface Props {
 export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: Props) {
   const t = useTranslate('editor');
   const albumUrl = source.albumUrl;
+  const [draft, setDraft] = useState(albumUrl);
+  useEffect(() => { setDraft(albumUrl); }, [albumUrl]);
+  const commit = () => { if (draft.trim() !== albumUrl) onChange({ kind: 'icloud', albumUrl: draft.trim() }); };
 
   // Same detection the server uses, so the paste-time hint can never disagree
   // with what the import/list endpoints would do.
@@ -48,13 +51,19 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
 
   return (
     <div className="space-y-2">
-      <LabeledInput
-        label={t('photoSources.icloud.albumLink')}
-        type="url"
-        value={albumUrl}
-        placeholder="https://www.icloud.com/sharedalbum/#..."
-        onChange={(v) => onChange({ kind: 'icloud', albumUrl: v })}
-      />
+      {/* The link is saved once typing is done (blur, Enter or a paste), not
+          on every keystroke: a half-typed link is not a source yet. */}
+      <form onSubmit={(e) => { e.preventDefault(); commit(); }}>
+        <LabeledInput
+          label={t('photoSources.icloud.albumLink')}
+          type="url"
+          value={draft}
+          placeholder="https://www.icloud.com/sharedalbum/#..."
+          onChange={setDraft}
+          onBlur={commit}
+          onPaste={(e) => { const pasted = e.clipboardData.getData('text').trim(); if (pasted) { e.preventDefault(); setDraft(pasted); onChange({ kind: 'icloud', albumUrl: pasted }); } }}
+        />
+      </form>
       <p className="text-[10px] text-hs-text-faint leading-relaxed">
         {t('photoSources.icloud.albumHelp')}
       </p>

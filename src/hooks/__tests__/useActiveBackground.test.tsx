@@ -4,6 +4,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 
 const editorFetch = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/editor-fetch', () => ({ editorFetch }));
+import { useEditorStore } from '@/stores/editor-store';
 
 import { useActiveBackground } from '../useActiveBackground';
 
@@ -35,22 +36,24 @@ function mount(id: string, on: boolean) {
 }
 
 describe('useActiveBackground', () => {
-  it('re-asks shortly after a rotation setting changes, not on the next 30 s poll', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
-    try {
-      const { rerender } = mount('a', true);
-      await answer('a');
-      expect(open).toHaveLength(0);
+  it('re-asks once the save carrying a rotation change has landed, not on the next 30 s poll', async () => {
+    const { rerender } = mount('a', true);
+    await answer('a');
+    expect(open).toHaveLength(0);
 
-      rerender({ id: 'a', on: true, key: 'tiles-changed' });
-      // Not instantly: autosave has not reached the hub yet.
-      await act(async () => { await vi.advanceTimersByTimeAsync(1000); });
-      expect(open).toHaveLength(0);
-      await act(async () => { await vi.advanceTimersByTimeAsync(600); });
-      expect(open.some((o) => o.id === 'a')).toBe(true);
-    } finally {
-      vi.useRealTimers();
-    }
+    // The edit is still unsaved: the hub would answer from the old config.
+    act(() => { useEditorStore.setState({ isDirty: true, isSaving: false }); });
+    rerender({ id: 'a', on: true, key: 'tiles-changed' });
+    await act(async () => { await Promise.resolve(); });
+    expect(open).toHaveLength(0);
+    act(() => { useEditorStore.setState({ isDirty: false, isSaving: true }); });
+    await act(async () => { await Promise.resolve(); });
+    expect(open).toHaveLength(0);
+
+    // Saved: ask now.
+    act(() => { useEditorStore.setState({ isDirty: false, isSaving: false }); });
+    await act(async () => { await Promise.resolve(); });
+    expect(open.some((o) => o.id === 'a')).toBe(true);
   });
 
   it('has no answer for a rotating screen until its lookup comes back', async () => {

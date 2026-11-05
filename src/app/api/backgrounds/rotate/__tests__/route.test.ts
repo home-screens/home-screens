@@ -42,6 +42,15 @@ vi.mock('@/lib/json-store', () => ({
 
 vi.mock('@/lib/config', () => ({ readConfig: vi.fn().mockResolvedValue({}) }));
 vi.mock('@/lib/thumbnails', () => ({ removeThumbnails: vi.fn() }));
+// `after` needs a request scope; here the housekeeping just runs at once.
+const afterWork: Promise<unknown>[] = [];
+vi.mock('next/server', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/server')>()),
+  after: (work: () => unknown) => { afterWork.push(Promise.resolve(work())); },
+}));
+/** The housekeeping the route hands to `after`, finished. */
+const settled = () => Promise.all(afterWork.splice(0));
+vi.mock('@/lib/rotation-revision', () => ({ bumpRotationRevision: vi.fn() }));
 vi.mock('@/lib/display-filter', () => ({ findScreenById: vi.fn() }));
 // Which picture a source hands out is each adapter's business (tested with
 // the adapters); this route only saves it, caches it and prunes.
@@ -427,6 +436,7 @@ describe('GET /api/backgrounds/rotate: rotation file pruning', () => {
     }));
 
     await GET(rotateReq());
+    await settled();
 
     const unlinked = fsMock.unlink.mock.calls.map(([p]) => String(p).split(/[\\/]/).pop()).sort();
     // 10 unreferenced candidates (the new file is referenced by s1 now), newest 8 kept.

@@ -25,6 +25,7 @@ import { wallEtag } from '@/lib/wall-config';
 import { readDisplayRevisions } from '@/lib/display-revisions';
 import { bumpLibraryRevision, libraryRevision } from '@/lib/library-revision';
 import { bumpCalendarRevision, calendarRevision } from '@/lib/calendar-revision';
+import { rotationRevision } from '@/lib/rotation-revision';
 import { notesEtag } from '@/lib/notes-revision';
 import { updateNotesData } from '@/lib/notes-data';
 import { dayNotesEtag } from '@/lib/day-notes-revision';
@@ -67,6 +68,7 @@ describe('readDisplayRevisions', () => {
       dayNotes: await dayNotesEtag(),
       library: libraryRevision(),
       calendar: calendarRevision(),
+      rotation: rotationRevision(),
     });
   });
 

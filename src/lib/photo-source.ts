@@ -132,9 +132,15 @@ const UNSPLASH_QUERY_MAX = 100;
 /** The most hand-picked pictures one source carries; the editor stops offering more. */
 export const MAX_PICKED_PICTURES = 200;
 
-/** The entries of a list that pass `test`, without repeats, capped; nothing when none do. */
-function idList(value: unknown, test: (id: string) => boolean, max = MAX_PICKED_PICTURES): string[] | undefined {
+/**
+ * The entries of a list that pass `test`, without repeats, capped. A list
+ * with nothing usable in it is dropped, unless it marks a mode (chosen
+ * pictures, picked photos, collections): there an empty list means "this
+ * mode, nothing picked yet" and is kept as `[]`.
+ */
+function idList(value: unknown, test: (id: string) => boolean, options: { keepEmpty?: boolean; max?: number } = {}): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
+  const max = options.max ?? MAX_PICKED_PICTURES;
   const seen = new Set<string>();
   for (const entry of value) {
     if (typeof entry !== 'string') continue;
@@ -142,7 +148,7 @@ function idList(value: unknown, test: (id: string) => boolean, max = MAX_PICKED_
     if (id && test(id) && !seen.has(id)) seen.add(id);
     if (seen.size >= max) break;
   }
-  return seen.size > 0 ? [...seen] : undefined;
+  return seen.size > 0 || options.keepEmpty ? [...seen] : undefined;
 }
 
 /**
@@ -162,14 +168,14 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
       return { kind: 'wall', group, ids: idList(v.ids, (id) => WALL_ID.test(id)) ?? [] };
     }
     case 'library': {
-      const pictures = idList(v.pictures, (p) => cleanLibraryPath(p) === p);
+      const pictures = idList(v.pictures, (p) => cleanLibraryPath(p) === p, { keepEmpty: true });
       return { kind: 'library', folder: cleanLibraryFolder(text('folder')), ...(pictures ? { pictures } : {}) };
     }
     case 'immich': {
       const albumIds = idList(v.albumIds ?? (text('albumId') ? [text('albumId')] : undefined), (id) => IMMICH_ID.test(id));
       const personIds = idList(v.personIds ?? (text('personId') ? [text('personId')] : undefined), (id) => IMMICH_ID.test(id));
       const excludePersonIds = idList(v.excludePersonIds, (id) => IMMICH_ID.test(id));
-      const assetIds = idList(v.assetIds, (id) => IMMICH_ID.test(id));
+      const assetIds = idList(v.assetIds, (id) => IMMICH_ID.test(id), { keepEmpty: true });
       return {
         kind: 'immich',
         ...(albumIds ? { albumIds } : {}),
@@ -191,8 +197,8 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
       };
     }
     case 'unsplash': {
-      const collections = idList(v.collections, (id) => UNSPLASH_COLLECTION_ID.test(id));
-      const photoIds = idList(v.photoIds, (id) => UNSPLASH_ID.test(id));
+      const collections = idList(v.collections, (id) => UNSPLASH_COLLECTION_ID.test(id), { keepEmpty: true });
+      const photoIds = idList(v.photoIds, (id) => UNSPLASH_ID.test(id), { keepEmpty: true });
       return {
         kind: 'unsplash',
         query: text('query').trim().slice(0, UNSPLASH_QUERY_MAX),

@@ -222,7 +222,8 @@ describe('normalizePhotoSource', () => {
     expect(normalizePhotoSource({ kind: 'library', folder: '', pictures: ['trips/a.jpg', '../x.jpg', '/api/backgrounds/serve?file=b.jpg', 'trips/a.jpg', ''] }))
       .toEqual({ kind: 'library', folder: '', pictures: ['trips/a.jpg'] });
     // Nothing usable means no picked set at all.
-    expect(normalizePhotoSource({ kind: 'library', folder: 'x', pictures: ['../x'] })).toEqual({ kind: 'library', folder: 'x' });
+    // The Pictures mode stays (an empty list), with the bad path gone.
+    expect(normalizePhotoSource({ kind: 'library', folder: 'x', pictures: ['../x'] })).toEqual({ kind: 'library', folder: 'x', pictures: [] });
     expect(cleanLibraryPath(' /trips/a.jpg')).toBe('trips/a.jpg');
     expect(cleanLibraryPath('a/./b.jpg')).toBeNull();
     expect(cleanLibraryPath('')).toBeNull();

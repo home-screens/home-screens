@@ -194,13 +194,13 @@ Whichever provider you pick, set your location first at **Settings > Location & 
 
 ### What photo sources are supported?
 
-The **Photo Slideshow**, the **Full-Screen Photo Viewer** and a screen's rotating background all offer the same six photo sources:
+The **Photo Slideshow**, the **Full-Screen Photo Viewer** and a screen's rotating background all offer the same six photo sources (a rotating background also takes the walls that come with Home Screens, and can mix any number of sources at once):
 
-- **Library folder** (your library): photos and videos you upload from the editor or the phone, or import from Google Photos or an iCloud link; manage them under **Settings > Pictures & videos**
-- **[Immich](https://immich.app)**: a self-hosted Google Photos alternative; show photos from your Immich library with album, person (face recognition), and favorites filtering
+- **Library** (your library): a folder of photos and videos you upload from the editor or the phone, or import from Google Photos or an iCloud link, or a few pictures chosen one by one; manage them under **Settings > Pictures & videos**
+- **[Immich](https://immich.app)**: a self-hosted Google Photos alternative; show photos from your Immich library filtered by albums, people (face recognition), people to leave out and favorites, or picked one by one
 - **iCloud shared album**: paste a public shared album link from Apple Photos; no account or API key needed
 - **OneDrive**: photos straight from a folder and its subfolders in your personal OneDrive, after a one-time Microsoft sign-in (see [OneDrive photos](/docs/modules#one-drive-photos))
-- **Unsplash**: free stock photos for the search words you type, credited to each photographer
+- **Unsplash**: free stock photos for the search words you type, from collections you name, or picked one by one, credited to each photographer
 - **NASA picture of the day**: the newest Astronomy Pictures of the Day
 
 To put one picture somewhere (a background, the Image module, a countdown), the **Image Library** has tabs for your library, Immich, Unsplash and NASA, and copies the picture you pick into your library. See [Choosing a picture](/docs/backgrounds#image-library).
@@ -223,7 +223,7 @@ Several built-in features help prevent burn-in:
 - **Sleep schedule**: configure hours when the display is fully blanked (e.g., overnight) at **Settings > Screen > Sleep & dimming**
 - **Dim schedule**: reduce brightness during certain hours without fully blanking the screen
 - **Screensaver**: while the display is dimmed, before it fully sleeps, a minimal clock can drift slowly around the screen so nothing sits in one place. Once the display is fully asleep the screen is blank, which protects it even better
-- **Background rotation**: automatically cycle background images from a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA to vary what's on screen
+- **Background rotation**: change a screen's background every so often, drawn from any mix of the walls that come with Home Screens, your library, Immich, an iCloud shared album, OneDrive, Unsplash and NASA
 
 ### Can I control the display remotely?
 
