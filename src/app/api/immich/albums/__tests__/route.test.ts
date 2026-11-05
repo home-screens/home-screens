@@ -33,15 +33,12 @@ beforeEach(() => {
 
 describe('GET /api/immich/albums', () => {
   it('normalizes the Immich album shape to { id, name, assetCount }', async () => {
-    mockImmichFetch.mockResolvedValue(
-      new Response(
-        JSON.stringify([
-          { id: 'a1', albumName: 'Family', assetCount: 42, albumThumbnailAssetId: 't1' },
-          { id: 'a2', albumName: 'Trips', assetCount: 7, albumThumbnailAssetId: null },
-        ]),
-        { status: 200 },
-      ),
-    );
+    const owned = [
+      { id: 'a1', albumName: 'Family', assetCount: 42, albumThumbnailAssetId: 't1' },
+      { id: 'a2', albumName: 'Trips', assetCount: 7, albumThumbnailAssetId: null },
+    ];
+    // Immich v3 ignores shared=true and answers every album again.
+    mockImmichFetch.mockImplementation(async () => new Response(JSON.stringify(owned), { status: 200 }));
 
     const res = await GET(req);
     const json = await res.json();
@@ -54,8 +51,33 @@ describe('GET /api/immich/albums', () => {
     expect(mockImmichFetch).toHaveBeenCalledWith('/api/albums');
   });
 
+  it('adds the albums shared with you, which Immich v2 lists only on request', async () => {
+    mockImmichFetch.mockImplementation(async (path: string) => new Response(JSON.stringify(path.includes('shared=true')
+      ? [{ id: 'a9', albumName: 'Grandma\'s', assetCount: 3, albumThumbnailAssetId: null }]
+      : [{ id: 'a1', albumName: 'Family', assetCount: 42, albumThumbnailAssetId: null }]), { status: 200 }));
+
+    const json = await (await GET(req)).json();
+
+    expect(json).toEqual([
+      { id: 'a1', name: 'Family', assetCount: 42 },
+      { id: 'a9', name: 'Grandma\'s', assetCount: 3 },
+    ]);
+    expect(mockImmichFetch).toHaveBeenCalledWith('/api/albums?shared=true');
+  });
+
+  it('answers 403 naming album.read when the key is missing it', async () => {
+    mockImmichFetch.mockImplementation(async () =>
+      new Response(JSON.stringify({ message: 'Missing required permission: album.read' }), { status: 403 }),
+    );
+
+    const res = await GET(req);
+
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: 'missing-permission', permission: 'album.read' });
+  });
+
   it('returns 502 when Immich responds non-ok', async () => {
-    mockImmichFetch.mockResolvedValue(new Response('', { status: 500 }));
+    mockImmichFetch.mockImplementation(async () => new Response('', { status: 500 }));
 
     const res = await GET(req);
     const json = await res.json();

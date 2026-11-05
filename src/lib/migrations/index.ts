@@ -12,6 +12,7 @@ import { v13ToV14 } from './v13-to-v14';
 import { v14ToV15 } from './v14-to-v15';
 import { v15ToV16 } from './v15-to-v16';
 import { v16ToV17 } from './v16-to-v17';
+import { v17ToV18 } from './v17-to-v18';
 
 interface Migration {
   version: number;
@@ -107,6 +108,9 @@ const migrations: Migration[] = [
   // Google calendar id, clock format24h, calendar showWeather, darkMode, raw
   // font stacks) are settled into their replacements and removed.
   v16ToV17,
+  // Migration 018: slideshow, full-screen photo and background rotation name
+  // their pictures' sources with PhotoSource objects; a rotation holds a list.
+  v17ToV18,
 ];
 
 /** @internal Get all migrations sorted by version */

@@ -122,18 +122,18 @@ The temperature curve draws however many hours your source returns, and its head
 {% /module %}
 
 {% module type="fullscreen-photo" %}
-A fullscreen digital photo frame that cycles through photos from a local directory, an Immich library, a OneDrive folder, or an iCloud shared album (with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from the same source.
+A fullscreen digital photo frame that cycles through photos from any photo source (a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA, with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from a library folder, Immich or iCloud.
 
-The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field; the rotation, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label, nothing stores a "mode" setting on the module itself.
+The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field, picked in the [Image Library](/docs/backgrounds#image-library) from any of its tabs; the source, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label, nothing stores a "mode" setting on the module itself. The slideshow's source is `photoSource`, described under [PhotoSource](/docs/configuration#photo-source).
 
 {% fields /%}
 
 {% callout type="note" title="Immich source" %}
-The Immich options only appear in the editor when both **Immich Server URL** and **Immich API Key** are configured in Settings > API keys. Album and person filters are mutually exclusive, selecting one clears the other.
+Until both **Immich Server URL** and **Immich API Key** are saved in Settings > API keys, the Immich option in the **Photo Source** list says it needs setting up. Album and person filters are mutually exclusive, selecting one clears the other. The key needs `asset.read` and `asset.view` to show photos, plus `album.read` and `person.read` for the album and person lists; see [which boxes to tick](/docs/backgrounds#immich-key).
 {% /callout %}
 
 {% callout type="note" title="OneDrive source" %}
-The OneDrive option only appears in the Photo Source picker once a Microsoft **Application (client) ID** is saved in Settings > API keys. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
+Until a Microsoft **Application (client) ID** is saved in Settings > API keys, the OneDrive option in the **Photo Source** list says it needs setting up. Signing in happens in the module itself: click **Sign in with Microsoft** and enter the shown code at the link on any device. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos).
 {% /callout %}
 {% /module %}
 
@@ -159,7 +159,7 @@ Configure sources in **Settings > Calendar**: see [Calendar setup](/docs/calenda
 {% /module %}
 
 {% module type="countdown" %}
-Counts down to one or more future events with visual progress rings.
+Counts down to one or more future events with visual progress rings. Each event can have a background picture, chosen in the [Image Library](/docs/backgrounds#image-library) from your library, Immich, Unsplash or NASA.
 {% /module %}
 
 {% module type="date" %}
@@ -535,7 +535,7 @@ Rich text block with multiple display modes, effects, and styling options.
 {% /module %}
 
 {% module type="image" %}
-Displays a static image.
+Displays a static image: a link, or a picture from the [Image Library](/docs/backgrounds#image-library) (your library, Immich, Unsplash or NASA; pictures from the last three are copied into your library first). **Upload Image** adds a picture from your computer straight to the top of your library.
 {% /module %}
 
 {% module type="video" %}
@@ -553,17 +553,19 @@ MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone re
 {% /module %}
 
 {% module type="photo-slideshow" %}
-Rotates through images from a local directory, an Immich photo library, a OneDrive folder, or an iCloud shared album. Can mix in videos from the same source, videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under the folder picker downloads photos you choose into your library, see [Google Photos](/docs/backgrounds#google-photos).
+Rotates through images from any photo source: a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA's picture of the day. A library folder, Immich and iCloud can mix in videos; videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under a library folder downloads photos you choose into your library, see [Google Photos](/docs/backgrounds#google-photos). The source is `photoSource` and the per-refresh count is `count`, described under [PhotoSource](/docs/configuration#photo-source); a library folder always plays every picture in it, so it has no count.
 
 {% fields /%}
 
-When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive.
+When using Immich as the source, the editor shows a connection status indicator, album and person dropdowns, a favorites toggle, a photo count slider, and a live preview strip of 4 photos matching the current filters. Album and person filters are mutually exclusive. If the album or person list is empty with a note above it, your Immich key is missing `album.read` or `person.read`; see [which boxes to tick](/docs/backgrounds#immich-key).
 
 When using iCloud as the source, paste a public shared album link from the Photos app (**Share > Copy iCloud Link** on a shared album). No Apple account or API key is needed, the display loads photos straight from Apple's servers. The album must have a public website link enabled.
 
 When using OneDrive as the source, the module signs in to your Microsoft account once with a short code, and then you pick a folder. That folder's photos feed the slideshow, subfolders included. The full walkthrough is in [OneDrive photos](/docs/modules#one-drive-photos). Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
-**Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; local videos are any MP4/WebM/MOV files in the same backgrounds folder.
+When using Unsplash as the source, type the search words. The slideshow shows Unsplash's own photos, up to 30 fresh ones an hour, with each photographer's name in a corner as Unsplash asks. When using NASA, it shows the newest Astronomy Pictures of the Day.
+
+**Mixing in videos:** Set **Show** to *Photos + videos* (or *Videos only*) to include video clips. Photos advance on the slide interval; videos play to the end (or the video time limit) and then advance. Videos in slideshows are always silent. Immich mixed albums work out of the box; library videos are any MP4/WebM/MOV files in the same folder.
 {% /module %}
 
 {% module type="qr-code" %}
@@ -651,7 +653,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 | `id` | string | Stable identifier for the rule |
 | `match` | object | Which days the rule applies to (see below) |
 | `background` | string | A color, or `auto` to tint the day from its own events' colors |
-| `backgroundImage` | string | A picture painted on the day, under its number and events: a built-in path such as `/starter-day-art/birthday.svg`, or the serve URL of a picture in the media library's `calendar-art` folder |
+| `backgroundImage` | string | A picture painted on the day, under its number and events: a built-in path such as `/starter-day-art/birthday.svg`, or the serve URL of a picture in the media library (usually its `calendar-art` folder) |
 | `backgroundDim` | number | 0–0.9, how far the picture fades; default 0.4 |
 | `backgroundScale` | number | 10–100, picture size; 100 (the default) fills the day, smaller values span that percent of the day's longer side |
 | `backgroundPositionX` | number | 0–100, where the picture sits left to right when it is smaller than the day; 0 is the left edge, 100 the right, 50 (the default) centered |
@@ -662,7 +664,7 @@ The **Calendar** and **Full-Screen Calendar** modules share two small rules engi
 
 **Specific days** narrows a rule to fixed dates: a day of every month (payday on the 15th), a fixed date each year (October 31), every day of one month, the last day of the month (any month, or just one), or the nth weekday of the month, 1st through 5th or the last, so "the 4th Thursday of November" works. Days that don't exist in a month never match: the 31st simply skips shorter months. A rule's other choices (a badge, an outline, a background) then apply to exactly those days.
 
-A day rule's background can also be a **picture**: pick from the art that ships with Home Screens (birthdays, Halloween, Christmas, and other quiet patterns) or add your own image or SVG under **Your pictures**. The picture is painted on the day cell exactly as it otherwise renders, above the cell's own fill and under the day's number and events, everywhere the calendar draws days. **Art dimming** fades the picture itself: transparent parts of a PNG leave the cell untouched, so the cell keeps its normal look with the art laid in. **Picture size** shrinks the picture inside the day (at 100 it fills the day as before), and **Horizontal position** and **Vertical position** choose which corner or edge a smaller picture sits against. An SVG you add needs a `viewBox` (or a fixed width and height) so it keeps its shape at every size; the library says so if one is missing.
+A day rule's background can also be a **picture**: **Choose a picture** opens the [Image Library](/docs/backgrounds#image-library) on the art that ships with Home Screens (birthdays, Halloween, Christmas, and other quiet patterns), or on your library's `calendar-art` folder, where you can upload your own image or SVG. Immich, Unsplash and NASA pictures work too. The picture is painted on the day cell exactly as it otherwise renders, above the cell's own fill and under the day's number and events, everywhere the calendar draws days. **Art dimming** fades the picture itself: transparent parts of a PNG leave the cell untouched, so the cell keeps its normal look with the art laid in. **Picture size** shrinks the picture inside the day (at 100 it fills the day as before), and **Horizontal position** and **Vertical position** choose which corner or edge a smaller picture sits against. An SVG you add needs a `viewBox` (or a fixed width and height) so it keeps its shape at every size; the library says so if one is missing.
 
 **Matching an event**: every field you set has to hold (they combine with AND), and a rule with an empty match applies to everything:
 

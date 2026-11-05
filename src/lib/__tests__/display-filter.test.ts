@@ -8,6 +8,7 @@ import {
   validateTextLooks,
   MAX_CONDITION_DEPTH,
   findScreenById,
+  findDisplayForScreen,
   getDisplayScreens,
   getDisplayProfiles,
   getAllScreens,
@@ -1183,6 +1184,37 @@ describe('findScreenById', () => {
       }],
     });
     expect(findScreenById(config, 'nonexistent')).toBeNull();
+  });
+});
+
+/* ─── findDisplayForScreen ───────────────────────── */
+
+describe('findDisplayForScreen', () => {
+  it('finds the owning display for a screen it owns', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [
+        { id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k-s1')] },
+        { id: 'bedroom', name: 'Bedroom', screens: [makeScreen('b-s1')] },
+      ],
+    });
+    expect(findDisplayForScreen(config, 'b-s1')?.id).toBe('bedroom');
+  });
+
+  it('returns null for a screen living only in the legacy global pool', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1', 'Main Screen')],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k-s1')] }],
+    });
+    expect(findDisplayForScreen(config, 's1')).toBeNull();
+  });
+
+  it('returns null when the screen does not exist anywhere', () => {
+    const config = makeConfig({
+      screens: [],
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [makeScreen('k-s1')] }],
+    });
+    expect(findDisplayForScreen(config, 'nonexistent')).toBeNull();
   });
 });
 

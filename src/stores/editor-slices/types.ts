@@ -1,4 +1,5 @@
 import type { StoreApi } from 'zustand';
+import type { RotationUpdate } from '@/lib/screen-background';
 import type {
   ScreenConfiguration,
   ModuleType,
@@ -196,6 +197,8 @@ export interface ScreenActions {
   updateScreen: (id: string, updates: Partial<Screen>) => void;
   /** Set a picture picked by hand as the screen's background, turning its rotation off (`pickedBackground`). */
   pickScreenBackground: (id: string, backgroundImage: string) => void;
+  /** One edit to the screen's live rotation (`withRotationUpdate`): the interval, the whole list, one source added or replaced, or one taken out. */
+  updateScreenRotation: (id: string, update: RotationUpdate) => void;
   /** Merge onto the screen's live `shade`, so two quick edits (a slider drag and a color pick) never clobber each other. */
   updateScreenShade: (id: string, updates: Partial<BackgroundShade>) => void;
   /** Merge one changed field onto the screen's live `effects`; a field back at its default is dropped, and an all-default set is removed (`withBackgroundEffects`). */

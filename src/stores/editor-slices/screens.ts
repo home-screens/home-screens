@@ -4,13 +4,14 @@ import type { Screen } from '@/types/config';
 import { pruneDanglingScreenRefs } from '@/lib/display-filter';
 import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
-import { pickedBackground } from '@/lib/screen-background';
+import { pickedBackground, withRotationUpdate } from '@/lib/screen-background';
 import { withBackgroundEffects } from '@/lib/background-effects';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import { syncEditorUrl } from '@/stores/editor-url';
 import type { EditorGet, MutateConfig, ScreenActions } from './types';
 
 /** Screen CRUD and ordering on the active display. */
+
 export function createScreenSlice(
   get: EditorGet,
   mutateConfig: MutateConfig,
@@ -159,6 +160,19 @@ export function createScreenSlice(
           ),
         ),
       }), { coalesce: COALESCE_KEYS.updateScreen(id) });
+    },
+
+    updateScreenRotation: (id, update) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: withActiveScreens(
+          config,
+          selectedDisplayId,
+          getActiveScreens(config, selectedDisplayId).map((s) =>
+            s.id === id ? { ...s, backgroundRotation: withRotationUpdate(s.backgroundRotation, update) } : s,
+          ),
+        ),
+      }), { coalesce: COALESCE_KEYS.screenRotation(id) });
     },
 
     updateScreenShade: (id, updates) => {

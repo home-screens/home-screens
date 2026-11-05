@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslate } from '@/i18n';
 import type { MediaListItem, PhotoSlideshowConfig, ModuleStyle } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -13,6 +13,8 @@ import { handleSlideshowCommand } from './shared/slideshow-commands';
 import VideoLayer from './shared/VideoLayer';
 import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from './shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
+import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
+import PhotoCredit from './shared/PhotoCredit';
 
 /** Renders a single slide layer, fetching API-served images through displayFetch for auth.
  *  The <img> stays mounted while the blob loads so the CSS opacity transition fires on
@@ -60,20 +62,27 @@ interface PhotoSlideshowModuleProps {
 }
 
 const DEFAULT_REFRESH_MS = FETCH_KEY_REGISTRY['photo-slideshow']?.ttlMs ?? 600_000;
+const NO_ITEMS: MediaListItem[] = [];
+
+/** What an empty slideshow says, by why it is empty (`emptyStateFor`). */
+const EMPTY_MESSAGE: Record<PhotoSourceEmptyReason, string> = {
+  addPhotos: 'photo-slideshow.empty',
+  pickPictures: 'photo-slideshow.emptyPicked',
+  checkFilters: 'photo-slideshow.emptyImmich',
+  checkLink: 'photo-slideshow.emptyICloud',
+  checkFolder: 'photo-slideshow.emptyOneDrive',
+  checkSearch: 'photo-slideshow.emptyUnsplash',
+  tryLater: 'photo-slideshow.emptyNasa',
+};
 export const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
 
 export default function PhotoSlideshowModule({ config, style, screenId, moduleId, boxSize }: PhotoSlideshowModuleProps) {
   const t = useTranslate('modules');
   const playVideos = !!(screenId && moduleId);
 
-  // Photo-only configs receive the legacy string[] response; normalize both
-  // shapes into MediaListItem so the render path below is uniform.
   const listUrl = photoSlideshowUrl(config);
-  const [data, error] = useFetchData<string[] | MediaListItem[]>(listUrl, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
-  const items = useMemo<MediaListItem[]>(
-    () => (data ?? []).map((entry) => (typeof entry === 'string' ? { url: entry, type: 'image' as const } : entry)),
-    [data],
-  );
+  const [data, error] = useFetchData<MediaListItem[]>(listUrl, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  const items = data ?? NO_ITEMS;
   const intervalMs = config.intervalMs ?? 30000;
 
   // Per-item rotation: photos advance on the timer, videos on onEnded —
@@ -92,15 +101,9 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const gate = moduleGate({
     style, data, error,
     loadingMessage: t('photo-slideshow.loading'),
-    // An empty iCloud album usually means a bad link or the album's public
-    // website being off; an empty OneDrive folder points back at the
-    // editor's folder picker — say so instead of a generic "no photos".
-    empty: items.length === 0
-      && t(
-        config.source === 'icloud' ? 'photo-slideshow.emptyICloud'
-          : config.source === 'onedrive' ? 'photo-slideshow.emptyOneDrive'
-            : 'photo-slideshow.empty',
-      ),
+    // Say where the fix is (a bad iCloud link, an empty OneDrive folder,
+    // search words that found nothing) instead of a generic "no photos".
+    empty: items.length === 0 && t(EMPTY_MESSAGE[emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'))]),
   });
   if (gate) return gate;
 
@@ -146,6 +149,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
       <div className="relative w-full h-full" style={{ borderRadius: `${style.borderRadius}px`, overflow: 'hidden' }}>
         {renderLayer(0)}
         {renderLayer(1)}
+        <PhotoCredit item={sources[activeLayer]} box={boxSize} />
       </div>
     </ModuleWrapper>
   );

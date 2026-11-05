@@ -31,7 +31,7 @@ function renderOpenPanel(onImported = vi.fn(), selectedDir = 'family') {
     <ICloudImportPanel selectedDir={selectedDir} onImported={onImported} />,
     { wrapper: Wrapper },
   );
-  fireEvent.click(view.getByText('Import from an iCloud link'));
+  fireEvent.click(view.getByText('Add from an iCloud link'));
   return { view, onImported };
 }
 

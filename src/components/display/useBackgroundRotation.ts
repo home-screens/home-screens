@@ -2,38 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
-import { displayFetch, DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
+import { displayFetch } from '@/lib/display-fetch';
+import { subscribeRevisions } from '@/lib/display-heartbeat';
+import { isRotationActive, rotationCacheKey } from '@/lib/photo-source';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
 
 /**
- * Build the stable rotation key for a list of screens. Exported so unit
- * tests can verify that every field affecting background selection
- * (including Immich filters) participates in the key — otherwise the
- * useEffect below will not re-run when the user changes those filters.
- *
- * Uses JSON.stringify rather than a delimiter-joined string so that future
- * fields containing `:` or `|` (e.g. URLs, free-text queries) cannot collide
- * across configs.
+ * The key the poll starts over on: every rotating screen's `rotationCacheKey`,
+ * the same key the hub's rotation cache starts over on, so a changed album
+ * filter or a newly ticked wall re-asks at once and nothing else does.
+ * Exported so the editor's canvas asks with the same key.
  */
 export function buildRotationKey(screens: Screen[]): string {
   return JSON.stringify(
     screens
-      .filter((s) => s.backgroundRotation?.enabled)
-      .map((s) => {
-        const r = s.backgroundRotation!;
-        return {
-          id: s.id,
-          source: r.source || 'unsplash',
-          query: r.query,
-          intervalMinutes: r.intervalMinutes,
-          immichAlbumId: r.immichAlbumId ?? null,
-          immichPersonId: r.immichPersonId ?? null,
-          immichFavoritesOnly: r.immichFavoritesOnly ?? false,
-          icloudAlbumUrl: r.icloudAlbumUrl ?? null,
-        };
-      }),
+      .filter((s) => isRotationActive(s.backgroundRotation))
+      .map((s) => ({ id: s.id, key: rotationCacheKey(s.backgroundRotation) })),
   );
 }
 
@@ -42,16 +28,12 @@ export function useBackgroundRotation(screens: Screen[]) {
   // screen with no entry has no answer yet (see resolveScreenBackground).
   const [backgrounds, setBackgrounds] = useState<Record<string, string | null>>({});
 
-  // Build a stable key from only the rotation-relevant config so we don't
-  // restart polling when unrelated screen fields change. Must include EVERY
-  // field that affects which photo the server returns, otherwise changing
-  // (e.g.) an Immich album filter would not invalidate the rotation cache.
   const rotationKey = buildRotationKey(screens);
 
   // A screen with rotation off shows its own picture. Recording that as its
   // answer keeps the picture up when rotation is switched on, until the first
   // photo arrives, instead of blanking it for the lookup.
-  const staticIds = screens.filter((s) => !s.backgroundRotation?.enabled).map((s) => s.id).join('\n');
+  const staticIds = screens.filter((s) => !isRotationActive(s.backgroundRotation)).map((s) => s.id).join('\n');
   useEffect(() => {
     if (!staticIds) return;
     setBackgrounds((prev) => {
@@ -61,11 +43,11 @@ export function useBackgroundRotation(screens: Screen[]) {
   }, [staticIds]);
 
   useEffect(() => {
-    // '[]' is JSON.stringify([]) — the "no rotating screens" sentinel.
+    // '[]' is JSON.stringify([]): the "no rotating screens" sentinel.
     // Skip polling when nothing is configured to rotate.
     if (rotationKey === '[]') return;
 
-    const screensWithRotation = screens.filter((s) => s.backgroundRotation?.enabled);
+    const screensWithRotation = screens.filter((s) => isRotationActive(s.backgroundRotation));
 
     // One poll at a time: the screens are asked in turn, and with the hub
     // away each ask can take the whole request timeout, so a poll can outlast
@@ -84,12 +66,7 @@ export function useBackgroundRotation(screens: Screen[]) {
     async function pollEachScreen() {
       for (const screen of screensWithRotation) {
         try {
-          // The hub downloads the next picture before it answers, which can
-          // take well over the ordinary request budget on a slow uplink.
-          const res = await displayFetch(
-            `/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`,
-            { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS },
-          );
+          const res = await displayFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`);
           if (res.ok) {
             const data = await res.json();
             const path: string | null = data.path || null;
@@ -107,7 +84,21 @@ export function useBackgroundRotation(screens: Screen[]) {
 
     pollBackgrounds();
     const id = setInterval(pollBackgrounds, BG_POLL_MS);
-    return () => clearInterval(id);
+    // The heartbeat says when a rotation answered anew (an interval that
+    // passed on the hub, Refresh now in the editor): re-ask then, not on the
+    // next minute. The first beat only records where the hub is.
+    let seen: string | undefined;
+    const unsubscribe = subscribeRevisions((revisions) => {
+      const current = revisions.rotation;
+      if (current === undefined) return;
+      const changed = seen !== undefined && seen !== current;
+      seen = current;
+      if (changed) void pollBackgrounds();
+    });
+    return () => {
+      clearInterval(id);
+      unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on rotationKey change; other deps are stable or intentionally excluded
   }, [rotationKey]);
 

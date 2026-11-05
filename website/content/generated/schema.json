@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 17,
+  "schemaVersion": 18,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -1361,14 +1361,27 @@
       "fillsCanvas": true,
       "fields": [
         {
-          "name": "directory",
+          "name": "photoSource",
           "optional": false,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "object",
+            "text": "PhotoSource"
           },
-          "description": "Path to local photo directory (slideshow mode)",
-          "default": ""
+          "description": "Where the slideshow's pictures come from (see PhotoSource)",
+          "default": {
+            "kind": "library",
+            "folder": ""
+          }
+        },
+        {
+          "name": "count",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Pictures to load per refresh, 1 to 200 (up to 30 for Unsplash). A library folder always plays every picture in it",
+          "defaultText": "50"
         },
         {
           "name": "file",
@@ -1377,7 +1390,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Path to a single pinned photo. When set, the viewer shows this image statically and ignores `directory`/`intervalMs`/`transition`/`shuffle`. Shows a \"No photo selected\" empty state until chosen"
+          "description": "Path to a single pinned photo. When set, the viewer shows this image statically and ignores `photoSource`/`intervalMs`/`transition`/`shuffle`. Shows a \"No photo selected\" empty state until chosen"
         },
         {
           "name": "intervalMs",
@@ -1478,97 +1491,6 @@
           "description": "Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too"
         },
         {
-          "name": "source",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"local\" | \"immich\" | \"icloud\" | \"onedrive\"",
-            "values": [
-              "local",
-              "immich",
-              "icloud",
-              "onedrive"
-            ]
-          },
-          "description": "Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album, no keys needed)",
-          "default": "local"
-        },
-        {
-          "name": "immichAlbumId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a specific Immich album"
-        },
-        {
-          "name": "immichPersonId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a recognized person (face) in Immich"
-        },
-        {
-          "name": "immichFavoritesOnly",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Only show photos marked as favorites in Immich",
-          "defaultText": "false"
-        },
-        {
-          "name": "immichCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
-        },
-        {
-          "name": "icloudAlbumUrl",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source)"
-        },
-        {
-          "name": "onedriveFolderId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "OneDrive folder to pull photos from (OneDrive source)"
-        },
-        {
-          "name": "onedriveFolderName",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Folder name as shown in the editor, display only, the ID above is authoritative"
-        },
-        {
-          "name": "onedriveCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
-        },
-        {
           "name": "mediaTypes",
           "optional": true,
           "type": {
@@ -1580,7 +1502,7 @@
               "both"
             ]
           },
-          "description": "What to show: `photos`, `videos`, or `both`",
+          "description": "What to show: `photos`, `videos`, or `both` (videos only from a library folder, Immich or iCloud)",
           "default": "photos"
         },
         {
@@ -6355,14 +6277,27 @@
       "fillsCanvas": false,
       "fields": [
         {
-          "name": "directory",
+          "name": "photoSource",
           "optional": false,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "object",
+            "text": "PhotoSource"
           },
-          "description": "Directory name inside `public/backgrounds/`",
-          "default": ""
+          "description": "Where the pictures come from (see PhotoSource)",
+          "default": {
+            "kind": "library",
+            "folder": ""
+          }
+        },
+        {
+          "name": "count",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Pictures to load per refresh, 1 to 200 (up to 30 for Unsplash). A library folder always plays every picture in it",
+          "defaultText": "50"
         },
         {
           "name": "intervalMs",
@@ -6410,99 +6345,8 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "How often to re-scan the directory for new images (10 min)",
+          "description": "How often to load a fresh set of pictures (10 min)",
           "default": 600000
-        },
-        {
-          "name": "source",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"local\" | \"immich\" | \"icloud\" | \"onedrive\"",
-            "values": [
-              "local",
-              "immich",
-              "icloud",
-              "onedrive"
-            ]
-          },
-          "description": "Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album, no keys needed)",
-          "default": "local"
-        },
-        {
-          "name": "immichAlbumId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a specific Immich album"
-        },
-        {
-          "name": "immichPersonId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a recognized person (face) in Immich"
-        },
-        {
-          "name": "immichFavoritesOnly",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Only show photos marked as favorites in Immich",
-          "defaultText": "false"
-        },
-        {
-          "name": "immichCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
-        },
-        {
-          "name": "icloudAlbumUrl",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source)"
-        },
-        {
-          "name": "onedriveFolderId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "OneDrive folder to pull photos from (OneDrive source)"
-        },
-        {
-          "name": "onedriveFolderName",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Folder name as shown in the editor, display only, the ID above is authoritative"
-        },
-        {
-          "name": "onedriveCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
         },
         {
           "name": "mediaTypes",
@@ -6516,7 +6360,7 @@
               "both"
             ]
           },
-          "description": "What to show: `photos`, `videos`, or `both`",
+          "description": "What to show: `photos`, `videos`, or `both` (videos only from a library folder, Immich or iCloud)",
           "default": "photos"
         },
         {
@@ -7412,7 +7256,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 17
+          "default": 18
         },
         {
           "name": "settings",
@@ -8486,82 +8330,211 @@
       "description": "",
       "fields": [
         {
-          "name": "enabled",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Turn rotation on"
-        },
-        {
-          "name": "source",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"immich\" | \"icloud\" | \"unsplash\" | \"nasa-apod\"",
-            "values": [
-              "unsplash",
-              "nasa-apod",
-              "immich",
-              "icloud"
-            ]
-          },
-          "description": "Where the images come from"
-        },
-        {
-          "name": "query",
-          "optional": false,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Unsplash search words; other sources ignore it"
-        },
-        {
           "name": "intervalMinutes",
           "optional": false,
           "type": {
             "kind": "number",
             "text": "number"
           },
-          "description": "Minutes between images"
+          "description": "Minutes between pictures"
         },
         {
-          "name": "immichAlbumId",
-          "optional": true,
+          "name": "sources",
+          "optional": false,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "array",
+            "text": "PhotoSource[]"
           },
-          "description": "Immich album to use"
+          "description": "Where the pictures come from (see PhotoSource): one entry per source, drawn from in turn. An empty list means the screen keeps its own picture. A background is always a still picture, so videos in a source are skipped"
+        }
+      ]
+    },
+    "PhotoSource": {
+      "name": "PhotoSource",
+      "kind": "variants",
+      "description": "Where a stream of pictures comes from: a library folder or a few chosen library pictures, an Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or picked photos, NASA's Astronomy Picture of the Day, or the walls that come with Home Screens. Photo Slideshow, Full-screen Photo and background rotation all use it",
+      "discriminant": "kind",
+      "variants": [
+        {
+          "value": "library",
+          "description": "A folder in your media library, or a few pictures chosen from it",
+          "fields": [
+            {
+              "name": "folder",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Library folder to show; empty for the top level"
+            },
+            {
+              "name": "pictures",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only these pictures (library paths such as `holiday/beach.jpg`); when set, the folder is not read"
+            }
+          ]
         },
         {
-          "name": "immichPersonId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Immich person (face) to use"
+          "value": "immich",
+          "description": "Your Immich photo library (needs the Immich address and key in Settings > API keys)",
+          "fields": [
+            {
+              "name": "albumIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only photos in any of these Immich albums"
+            },
+            {
+              "name": "personIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only photos showing at least one of these people (faces Immich recognized)"
+            },
+            {
+              "name": "excludePersonIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Leave out photos showing any of these people"
+            },
+            {
+              "name": "favoritesOnly",
+              "optional": true,
+              "type": {
+                "kind": "boolean",
+                "text": "boolean"
+              },
+              "description": "Only photos marked as favorites in Immich",
+              "defaultText": "false"
+            },
+            {
+              "name": "assetIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only these photos, picked one by one (Immich asset ids); when set, the filters are not used"
+            }
+          ]
         },
         {
-          "name": "immichFavoritesOnly",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Only use Immich favorites"
+          "value": "icloud",
+          "description": "A public iCloud shared album; no key needed",
+          "fields": [
+            {
+              "name": "albumUrl",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "The album's public link (`icloud.com/sharedalbum/#TOKEN` or a `photos.icloud.com/shared/album` link)"
+            }
+          ]
         },
         {
-          "name": "icloudAlbumUrl",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Public iCloud shared album link, or just its token"
+          "value": "onedrive",
+          "description": "A folder in OneDrive (needs a one-time Microsoft sign-in)",
+          "fields": [
+            {
+              "name": "folderId",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "The OneDrive folder, and everything inside it"
+            },
+            {
+              "name": "folderName",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Folder name as shown in the editor; display only"
+            }
+          ]
+        },
+        {
+          "value": "unsplash",
+          "description": "Free stock photos from Unsplash (needs an Unsplash key in Settings > API keys)",
+          "fields": [
+            {
+              "name": "query",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Search words, in English (for example `mountains lake`)"
+            },
+            {
+              "name": "collections",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only photos from these Unsplash collections (collection ids); when set, the search words are not used"
+            },
+            {
+              "name": "photoIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only these photos, picked one by one (Unsplash photo ids); when set, nothing else is used"
+            }
+          ]
+        },
+        {
+          "value": "nasa",
+          "description": "NASA's Astronomy Picture of the Day, newest first; no key needed",
+          "fields": []
+        },
+        {
+          "value": "wall",
+          "description": "Walls that come with Home Screens, for a rotating background only",
+          "fields": [
+            {
+              "name": "group",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "\"color\" | \"pattern\"",
+                "values": [
+                  "color",
+                  "pattern"
+                ]
+              },
+              "description": "Which group of walls: the plain colors or the patterns"
+            },
+            {
+              "name": "ids",
+              "optional": false,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "The walls from that group to rotate through (their ids); none chosen means nothing from the group"
+            }
+          ]
         }
       ]
     },
@@ -11205,15 +11178,6 @@
       ]
     },
     {
-      "path": "/api/icloud/photos",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "display"
-        }
-      ]
-    },
-    {
       "path": "/api/image-proxy",
       "methods": [
         {
@@ -11237,15 +11201,6 @@
         {
           "method": "GET",
           "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/immich/photos",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "display"
         }
       ]
     },
@@ -11432,28 +11387,6 @@
       ]
     },
     {
-      "path": "/api/nasa",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        },
-        {
-          "method": "POST",
-          "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/nasa/asset",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        }
-      ]
-    },
-    {
       "path": "/api/news",
       "methods": [
         {
@@ -11515,15 +11448,6 @@
       ]
     },
     {
-      "path": "/api/onedrive/photos",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "display"
-        }
-      ]
-    },
-    {
       "path": "/api/onedrive/serve",
       "methods": [
         {
@@ -11538,6 +11462,33 @@
         {
           "method": "GET",
           "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/photo-source/browse",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/photo-source/import",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/photo-source/media",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
         }
       ]
     },
@@ -12221,19 +12172,6 @@
         {
           "method": "GET",
           "access": "display"
-        }
-      ]
-    },
-    {
-      "path": "/api/unsplash",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        },
-        {
-          "method": "POST",
-          "access": "session"
         }
       ]
     },

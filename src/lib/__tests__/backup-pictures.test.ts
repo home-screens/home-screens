@@ -21,7 +21,7 @@ const config = {
     {
       id: 's1', name: 'Kitchen', backgroundImage: '/api/backgrounds/serve?file=kitchen.jpg',
       modules: [
-        { id: 'm1', type: 'photo-slideshow', config: { source: 'local', directory: 'trips', mediaTypes: 'photos' } },
+        { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trips' }, mediaTypes: 'photos' } },
         { id: 'm2', type: 'video', config: { file: 'clips/intro.mp4' } },
       ],
     },

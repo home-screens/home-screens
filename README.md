@@ -36,7 +36,7 @@ An open-source smart display system built with Next.js. Runs on a Raspberry Pi i
 - **Per-module scheduling**: show or hide modules by day of week and time window
 - **Conditional module visibility**: show or hide any module based on live values such as the weather (hide the rain map on dry days), your calendar (busy now, events today), or anything a plugin publishes (e.g. a Home Assistant sensor), with and/or/not condition logic in the editor
 - **Google Calendar, iCloud + iCal**: display events from Google Calendar (sign in with a short code, no Google setup needed), your iCloud calendars (sign in with an app-specific password, contact birthdays included), or any iCal/ICS feed
-- **Background management**: upload images and videos, browse Unsplash or NASA APOD, pull from an Immich library, an iCloud shared album or a OneDrive folder, or import hand-picked photos from Google Photos, with auto-rotation
+- **Background management**: upload images and videos, choose a picture from the walls that come with Home Screens, Unsplash, NASA or an Immich library in one Image Library, import hand-picked photos from Google Photos, and rotate a screen's background through any mix of those, an iCloud shared album or a OneDrive folder
 - **Per-module styling**: opacity, blur, colors, fonts, border radius, padding
 - **System management**: upgrade, rollback, backup/restore, power control, and network settings (WiFi scan/connect, IP/hostname, diagnostics) from the UI
 - **Raspberry Pi kiosk**: one-command setup with boot splash, auto-login, and display orientation

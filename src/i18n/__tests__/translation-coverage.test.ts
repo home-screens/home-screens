@@ -5,31 +5,33 @@ import { flatten, loadDict } from './helpers/dict';
 import { getAllModuleDefinitions } from '@/lib/module-registry';
 
 /**
- * Untranslated-value ratchet — the third side of the parity guarantee.
+ * Untranslated-value ratchet: the third side of the parity guarantee.
  *
  * `locale-parity.test.ts` catches orphan keys and
  * `dictionary-completeness.test.ts` catches missing keys, but both compare
  * *key sets* only. A locale seeded by copying `en-US/*.json` and translating
- * incrementally passes both at 0% translated — which is exactly how da-DK
+ * incrementally passes both at 0% translated: which is exactly how da-DK
  * shipped 2,743 verbatim-English strings while both ratchets stayed green.
  *
  * This file compares *values*: a locale entry byte-identical to its en-US
  * source is presumed untranslated. Two escape hatches keep that presumption
  * honest:
  *
- *  - `SHARED_UNTRANSLATABLE` — entries that are correctly identical in every
+ *  - `SHARED_UNTRANSLATABLE`: entries that are correctly identical in every
  *    locale: brand names (NASA, Immich, Todoist), technical tokens (URL, TTL,
  *    DHCP, SHA-256), units, and templates that are pure interpolation
  *    (`{name} ({id})`). These never count against any locale.
- *  - `BUDGETS` — per-locale allowance for the remaining long tail, which is a
+ *  - `BUDGETS`: per-locale allowance for the remaining long tail, which is a
  *    mix of real gaps and words that happen to be spelled the same in that
  *    language ("Horizontal" in es/fr/pt, "Tickets" in de/nl). Budgets may only
  *    go down; `translation-coverage` fails both when a locale regresses past
  *    its budget and when a budget has gone stale after an improvement.
  */
 
-/** Correctly identical in every locale — brand names, tokens, units, pure interpolation. */
+/** Correctly identical in every locale: brand names, tokens, units, pure interpolation. */
 const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
+    // Rows main added while the photo-source branch was open.
+    'editor|backgroundPicker.sourcesGroup',
   // The product name, rendered as the watermark's eyebrow on an empty display.
   'core|emptyDisplay.eyebrow',
   // Unit abbreviations on the paused pill's countdown ("4 min", "45 s").
@@ -39,17 +41,10 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|accentColorPicker.presets.cyan',
   'editor|accentColorPicker.presets.orange',
   'editor|accentColorPicker.presets.pink',
-  'editor|backgroundPicker.immich.albumLabel',
-  'editor|backgroundPicker.immich.albumOption',
-  'editor|backgroundPicker.immich.personLabel',
-  'editor|backgroundPicker.statusGroup',
-  'editor|backgroundPicker.tabs.nasa',
   // "Beta" is the same software term in every shipped language; the update
   // choice's other labels are translated words.
   'editor|settings.systemPage.channel.beta.label',
   // Brand names of the rotation sources, spelled the same everywhere.
-  'editor|backgroundPicker.sources.unsplash',
-  'editor|backgroundPicker.sources.immich',
   // Brand names of the sidebar footer's community links, spelled the same everywhere.
   'editor|settings.sidebar.github',
   'editor|settings.sidebar.discord',
@@ -68,11 +63,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // "{name}, {slot}, {day}": a planned cell's spoken name in the planner window.
   'editor|mealPlannerModal.weekGrid.mealCellAriaLabel',
   'editor|canvas.zoomPercent',
-  // "{days}, {time}" — punctuation around two interpolated fragments.
+  // "{days}, {time}": punctuation around two interpolated fragments.
   'editor|scheduleEditor.summary.short',
   // "{screens} · {when}": the profile card's collapsed summary is the screen
   // count and the schedule, both already localized, joined by a separator.
   'editor|settings.profilesPage.card.summaryScheduled',
+  'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',
   'editor|configSections.clock.elapsedFormat',
@@ -87,8 +83,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.fullscreen-calendar.googleCalendar',
   'editor|configSections.fullscreen-calendar.googleCalendarNumbered',
   'editor|configSections.fullscreen-calendar.viewAgenda',
-  'editor|configSections.fullscreen-photo.sourceImmich',
-  'editor|configSections.fullscreen-photo.sourceOneDrive',
   'editor|configSections.fullscreen-photo.transitionZoom',
   'editor|configSections.fullscreen-weather.mapStyleStandard',
   // The card is named by the one word for wind, which German and Dutch spell as English does.
@@ -97,16 +91,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.icon.animation',
   'editor|configSections.iframe.url',
   'editor|configSections.image.tabUrl',
-  'editor|configSections.immichSource.album',
-  'editor|configSections.immichSource.person',
   'editor|configSections.multi-month.layout',
   'editor|configSections.news.addCustomPlaceholder',
   'editor|configSections.news.addKind.reddit',
   'editor|configSections.news.addRedditPlaceholder',
   'editor|configSections.news.addYoutubePlaceholder',
   'editor|configSections.news.sourceReddit',
-  'editor|configSections.photo-slideshow.sourceImmich',
-  'editor|configSections.photo-slideshow.sourceOneDrive',
   'editor|configSections.qr-code.authWEP',
   'editor|configSections.qr-code.authWPA',
   'editor|configSections.qr-code.dataUrlOrTextPlaceholder',
@@ -117,7 +107,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.shape.viewPolygon',
   'editor|configSections.shape.viewZigzag',
   'editor|configSections.text.effectOptions.neon',
-  'editor|configSections.text.emoji',
   'editor|configSections.text.interval',
   'editor|configSections.text.markdown',
   'editor|configSections.text.revealOptions.zoom',
@@ -134,13 +123,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|iconPicker.tabEmoji',
   'editor|iconPicker.tabFontAwesome',
   'editor|imageBrowserModal.newFolderConfirm',
-  'editor|imageBrowserModal.tabs.unsplash',
   'editor|imageBrowserModal.uploadMediaButton',
   'editor|imageBrowserModal.videoCountSingular',
-  'editor|imageBrowsers.nasa.categories.iss',
-  'editor|imageBrowsers.nasa.categories.jupiter',
-  'editor|imageBrowsers.nasa.categories.mars',
-  'editor|imageBrowsers.nasa.categories.saturn',
   'editor|installFromUrlModal.pluginFallbackName',
   'editor|layoutImportModal.countsLine',
   'editor|mealPlannerModal.detail.minPlaceholder',
@@ -182,7 +166,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.integrationsPage.google.name',
   'editor|settings.integrationsPage.immich.name',
   'editor|settings.integrationsPage.microsoft.name',
-  'editor|settings.integrationsPage.nasa.name',
   'editor|settings.integrationsPage.todoist.name',
   'editor|settings.integrationsPage.tomtom.name',
   'editor|settings.integrationsPage.unsplash.name',
@@ -213,14 +196,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.pluginStorePanel.title',
   'editor|settings.profilesPage.displayPicker.optionLabel',
   'editor|settings.rulesPage.displayPicker.optionLabel',
-  'editor|settings.securityPage.forgotPasswordCode',
   'editor|settings.securityPage.ipAllowlist.ipv4Warning.linkLocal',
   'editor|settings.securityPage.ipAllowlist.lockedOutHintCode',
   'editor|settings.sharedStatePage.displayPicker.optionLabel',
   'editor|settings.sidebar.displays',
   'editor|settings.sidebar.navLabels.displays',
   'editor|settings.sidebar.navLabels.stats',
-  'editor|settings.sidebar.websiteTitle',
   'editor|settings.statsSection.cacheTtl',
   'editor|settings.statsSection.cacheUrl',
   'editor|settings.statsSection.deviceMemoryGb',
@@ -272,7 +253,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|meal-planner.recipe.batchTimes',
   'modules|meal-planner.time.minutes',
   'modules|meal-planner.time.minutesShort',
-  'modules|rain-map.minutesAhead',
   'modules|stock-ticker.headers.symbol',
   'modules|todoist.priority.normal',
   'modules|traffic.unitMin',
@@ -302,12 +282,19 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'remote|timers.pause',
   'remote|timers.start',
   'remote|timers.stop',
+  // Photo sources: product and planet names, the same in every language.
+  'editor|photoSources.kinds.immich',
+  'editor|photoSources.kinds.onedrive',
+  'editor|photoSources.kinds.unsplash',
+  'editor|photoSources.picker.tabs.immich',
+  'editor|photoSources.picker.tabs.unsplash',
+  'editor|photoSources.picker.tabs.nasa',
 ]);
 
 /**
  * Per-locale: words this language genuinely spells the same as English.
  * "Horizontal"/"Vertical" in es/fr/pt, "Ticket(s)" everywhere (every locale
- * deliberately adopted the loanword — see `chore-chart.totalTickets`),
+ * deliberately adopted the loanword: see `chore-chart.totalTickets`),
  * "Canvas"/"Blur"/"Screensaver" in nl, "six" in fr, "zero" in pt. Each entry
  * was checked against how the same concept is worded elsewhere in that
  * locale's own files; anything internally inconsistent was translated instead.
@@ -353,6 +340,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Whiteboard" and "Layouts" are the everyday Danish words too (the notes views and their picker heading).
     'editor|configSections.notes.viewWhiteboard',
     'editor|configSections.notes.groupLayouts',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.saturn',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
     // "Bonus" is the same word in this language (the ticket history's bonus line).
@@ -449,6 +441,11 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewWhiteboard',
     'editor|configSections.notes.viewLetterboard',
     'editor|configSections.notes.groupLayouts',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.saturn',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'es-ES': new Set([
     // Triple is the Spanish word too (a triple batch).
@@ -469,7 +466,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|stock-ticker.chartLabels.week',
     'core|actions.color',
     'core|timer.minutesShort',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
@@ -486,8 +482,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.weather.iconSets.color',
     'editor|fields.color',
     'editor|backgroundPicker.shadeColorLabel',
-    'editor|imageBrowserModal.tabs.local',
-    'editor|imageBrowsers.nasa.categories.aurora',
     'editor|mealPlannerModal.library.filters.favorites',
     'editor|registry.categories.personal',
     'editor|settings.dataPage.configBackups.restoreStatus.error',
@@ -525,8 +519,18 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|timers.minutesShort',
     // "Total" is what a Spanish till receipt prints (the notes Receipt view).
     'modules|notes.receiptTotal',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.nasa.ideas.aurora',
+    'editor|photoSources.picker.tabs.library',
+    'editor|photoSources.picker.ideas',
   ]),
   'fr-FR': new Set([
+    // Sources and Collection(s) are the French words too (the background sources).
+    'editor|backgroundPicker.sourcesGroup',
+    'editor|photoSources.modes.collections',
+    'editor|photoSources.unsplash.collectionLabel',
+    // Rows main added while the photo-source branch was open.
+    'modules|meal-planner.recipeBook.filters.dessert',
     // Saturation is the French word too (the background effect).
     'editor|backgroundPicker.effectsSaturationLabel',
     // Double and Triple are the French words too (a double batch).
@@ -537,7 +541,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|mealPicker.savedAs.dessert',
     'editor|mealPlannerModal.library.filters.dessert',
     'remote|mealsTab.library.filters.dessert',
-    'modules|meal-planner.recipeBook.filters.dessert',
     // "Dessert" is the French word for a meal's dessert course and kind of dish.
     'modules|meal-planner.courses.dessert',
     'core|meal.kind.dessert',
@@ -561,8 +564,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.todo.viewCompact',
     'core|timer.minutesShort',
     'editor|backgroundPicker.intervals.minutes',
-    'editor|backgroundPicker.sourceLabel',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.dateLabel',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
@@ -577,16 +578,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.fullscreen-calendar.sources',
     'editor|configSections.fullscreen-photo.mode',
     'editor|configSections.fullscreen-photo.photo',
-    'editor|configSections.fullscreen-photo.photoCountPlural',
-    'editor|configSections.fullscreen-photo.photoCountSingular',
     'editor|configSections.fullscreen-photo.transition',
     'editor|configSections.icon.flipHorizontal',
     'editor|configSections.icon.flipVertical',
     'editor|configSections.icon.style',
     'editor|backgroundPicker.shadeStyleLabel',
     'editor|configSections.news.viewCompact',
-    'editor|configSections.photo-slideshow.photoCountOne',
-    'editor|configSections.photo-slideshow.photoCountOther',
     'editor|configSections.photo-slideshow.transition',
     'editor|configSections.qr-code.mode',
     'editor|configSections.rain-map.latitude',
@@ -606,9 +603,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.weather.views.compact',
     'editor|imageBrowserModal.photoCountPlural',
     'editor|imageBrowserModal.photoCountSingular',
-    'editor|imageBrowserModal.tabs.local',
-    'editor|imageBrowserModal.unsplashCategories.nature',
-    'editor|imageBrowsers.unsplash.categories.nature',
     'editor|layoutExportModal.moduleCountPlural',
     'editor|layoutExportModal.moduleCountSingular',
     'editor|layoutImportModal.moduleCountPlural',
@@ -640,7 +634,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.perDisplayPage.overview.fieldLabels.transitionEffect',
     'editor|settings.pluginAuth.garmin.mfaPlaceholder',
     'editor|settings.rulesPage.card.actionKindLabel',
-    'editor|settings.sidebar.docsTitle',
     'editor|settings.sidebar.groups.admin',
     'editor|settings.statsSection.configurationTitle',
     'editor|settings.statsSection.dataConfiguration',
@@ -709,10 +702,22 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewCompact',
     // "Total" is what a French till receipt prints (the notes Receipt view).
     'modules|notes.receiptTotal',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.immich.albums',
+    'editor|photoSources.library.photoCount',
+    'editor|photoSources.unsplash.ideas.nature',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
-    // Contrast is the Dutch word too (the background effect).
+    // Filters is the Dutch word too (the Immich mode).
+    'editor|photoSources.modes.filters',
+    // Rows main added while the photo-source branch was open.
     'editor|backgroundPicker.effectsContrastLabel',
+    'modules|meal-planner.recipeBook.filters.comfort',
+    'modules|lookAhead.later',
+    // Contrast is the Dutch word too (the background effect).
     // Half is the Dutch word too (a half batch).
     'modules|meal-planner.recipe.batchHalf',
     // "Bonus" and "tickets" are the same words in this language.
@@ -770,8 +775,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.traffic.labelPlaceholder',
     'editor|configSections.traffic.routes',
     'editor|configSections.weather.views.compact',
-    'editor|imageBrowserModal.unsplashCategories.abstract',
-    'editor|imageBrowsers.unsplash.categories.abstract',
     'editor|layoutExportModal.moduleCountPlural',
     'editor|layoutExportModal.moduleCountSingular',
     'editor|layoutImportModal.moduleCountPlural',
@@ -849,10 +852,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Details" is the standard word in Dutch.
     'editor|settings.shared.secretField.detailsToggle',
     'remote|mealsTab.library.filters.comfort',
-    'modules|meal-planner.recipeBook.filters.comfort',
     'remote|mealsTab.subNav.plan',
-    // "Later" is the Dutch word too (the look-ahead arrow's name).
-    'modules|lookAhead.later',
     // "Week" is the Dutch word too (the Meals tab's week view).
     'remote|mealsTab.subNav.week',
     'remote|rewardsView.ticketCountPlural',
@@ -875,6 +875,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.viewCompact',
     // "Whiteboard" is the everyday Dutch word too (the notes Whiteboard view).
     'editor|configSections.notes.viewWhiteboard',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.immich.album',
+    'editor|photoSources.immich.albums',
+    'editor|photoSources.unsplash.ideas.abstract',
+    'editor|photoSources.nasa.ideas.mars',
+    'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'pt-BR': new Set([
     // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
@@ -889,7 +895,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|stock-ticker.chartLabels.day',
     'modules|stock-ticker.chartLabels.week',
     'core|timer.minutesShort',
-    'editor|backgroundPicker.tabs.local',
     'editor|choreChartModal.choreForm.ticketsLabel',
     'modules|chore-chart.choreSummary.ticketCountPlural',
     'modules|chore-chart.choreSummary.ticketCountSingular',
@@ -911,8 +916,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.text.orientationOptions.vertical',
     'editor|configSections.text.revealOptions.fade',
     'editor|configSections.text.sections.marquee',
-    'editor|imageBrowserModal.tabs.local',
-    'editor|imageBrowsers.nasa.categories.aurora',
     'editor|mealPlannerModal.library.filters.favorites',
     'editor|propertyPanel.sections.config',
     'editor|registry.types.qr-code',
@@ -960,6 +963,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
     // "Total" is what a Brazilian till receipt prints (the notes Receipt view).
     'modules|notes.receiptTotal',
+    // Photo sources: the same words in this language.
+    'editor|photoSources.picker.tabs.library',
   ]),
 };
 
@@ -1036,7 +1041,7 @@ describe('translation coverage (untranslated-value ratchet)', () => {
       const found = untranslatedKeys(locale);
       expect(
         found.length,
-        `${locale} now has only ${found.length} untranslated values — lower its BUDGETS entry to ${found.length}.`,
+        `${locale} now has only ${found.length} untranslated values: lower its BUDGETS entry to ${found.length}.`,
       ).toBeGreaterThanOrEqual(budget);
     });
   }

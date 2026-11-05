@@ -37,7 +37,7 @@ function bgPath(sandboxDir: string, ...segments: string[]): string {
 
 /** A full-screen photo module on the only screen ("Screen One"), playing `directory`. */
 function photoConfig(directory = '', extraModules: ModuleInstance[] = [], screen: Record<string, unknown> = {}): ScreenConfiguration {
-  const photo = buildModuleInstance('fullscreen-photo', { directory });
+  const photo = buildModuleInstance('fullscreen-photo', { photoSource: { kind: 'library', folder: directory } });
   return baseConfig({ screens: [makeScreen('screen-0', 'Screen One', [photo, ...extraModules], screen)] });
 }
 
@@ -105,7 +105,7 @@ test('the Photos tab explains itself until a photo module exists', async ({ page
 });
 
 test('a windowed photo-slideshow module also surfaces the Photos tab', async ({ page, request }) => {
-  const photo = buildModuleInstance('photo-slideshow', { directory: '' });
+  const photo = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder: '' } });
   await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'Screen One', [photo])] }));
   await openPhotos(page);
   await expect(page.getByText('No photo slideshow yet')).not.toBeVisible();
@@ -462,7 +462,7 @@ test('renaming the wall\'s folder keeps the slideshow on it', async ({ page, req
   await expect(chip(page, renamed)).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByTestId('photos-folder-card')).toContainText('Showing on Screen One');
   const config = await getConfig(request);
-  expect((config.screens[0].modules[0].config as { directory: string }).directory).toBe(renamed);
+  expect((config.screens[0].modules[0].config as { photoSource: { folder: string } }).photoSource.folder).toBe(renamed);
 });
 
 test('an empty folder can be deleted from its menu', async ({ page, request }) => {
@@ -623,7 +623,7 @@ test('an iCloud album with nothing in it says so, and one that is gone says that
 });
 
 test('the Control tab steps the slideshow on the screen showing now', async ({ page, request }) => {
-  const slideshow = buildModuleInstance('photo-slideshow', { directory: uniqueFolder() });
+  const slideshow = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder: uniqueFolder() } });
   await putConfig(request, baseConfig({ screens: [makeScreen('screen-0', 'Screen One', [slideshow])] }));
   await postHeartbeat(request, { screenCount: 1, currentIndex: 0 });
   await page.goto('/remote');

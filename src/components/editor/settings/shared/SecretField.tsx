@@ -13,7 +13,6 @@ const log = logger('secret-field');
 export type SecretKey =
   // Integration keys
   | 'unsplash_access_key'
-  | 'nasa_api_key'
   | 'todoist_token'
   | 'google_maps_key'
   | 'tomtom_key'

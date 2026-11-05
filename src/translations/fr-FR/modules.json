@@ -939,14 +939,14 @@
     "settings": {
       "grabLimitLabel": "Combien de tâches une personne peut-elle prendre à la fois ?",
       "grabLimit": {
+        "0": "Sans limite",
         "1": "Une à la fois",
         "2": "Deux à la fois",
-        "3": "Trois à la fois",
-        "0": "Sans limite"
+        "3": "Trois à la fois"
       },
       "grabLimitHint": {
-        "1": "Il faut finir ou rendre sa tâche avant d'en prendre une autre.",
-        "0": "Chacun peut en prendre autant qu'il veut."
+        "0": "Chacun peut en prendre autant qu'il veut.",
+        "1": "Il faut finir ou rendre sa tâche avant d'en prendre une autre."
       },
       "grabHoldLabel": "Jusqu'à quand une tâche prise reste réservée ?",
       "grabHold": {
@@ -959,10 +959,10 @@
       },
       "summary": {
         "limit": {
+          "0": "Pas de limite de tâches prises",
           "1": "Une tâche prise à la fois",
           "2": "Deux tâches prises à la fois",
-          "3": "Trois tâches prises à la fois",
-          "0": "Pas de limite de tâches prises"
+          "3": "Trois tâches prises à la fois"
         },
         "hold": {
           "day": "une tâche prise reste réservée jusqu'au coucher",
@@ -1217,7 +1217,11 @@
     "noPhotosYet": "Aucune photo pour l'instant",
     "noPhotosYetHint": "Ajoute des photos depuis ton téléphone sur",
     "noPhotosYetHintICloud": "Vérifiez le lien de l'album dans l'éditeur et assurez-vous que « Site web public » est activé pour l'album.",
-    "noPhotosYetHintOneDrive": "Vérifiez le dossier OneDrive dans l'éditeur."
+    "noPhotosYetHintOneDrive": "Vérifiez le dossier OneDrive dans l'éditeur.",
+    "noPhotosYetHintImmich": "Vérifiez l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur.",
+    "noPhotosYetHintUnsplash": "Essayez d'autres mots de recherche dans l'éditeur.",
+    "noPhotosYetHintNasa": "La NASA n'envoie pas d'images pour le moment. Elles reviendront d'elles-mêmes.",
+    "noPhotosYetHintPicked": "Choisissez des photos dans l'éditeur."
   },
   "dad-joke": {
     "loading": "Chargement de la blague…"
@@ -1369,7 +1373,12 @@
     "loading": "Chargement des photos…",
     "empty": "Aucune photo trouvée",
     "emptyICloud": "Pas encore de photos. Vérifiez le lien de l'album et assurez-vous que « Site web public » est activé.",
-    "emptyOneDrive": "Pas encore de photos. Vérifiez le dossier OneDrive dans l'éditeur."
+    "emptyOneDrive": "Pas encore de photos. Vérifiez le dossier OneDrive dans l'éditeur.",
+    "emptyImmich": "Pas encore de photos. Vérifiez l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur.",
+    "emptyUnsplash": "Pas encore de photos. Essayez d'autres mots de recherche dans l'éditeur.",
+    "emptyNasa": "Aucune image de la NASA pour le moment. Elles reviendront d'elles-mêmes.",
+    "photoCredit": "Photo de {name} sur {source}",
+    "emptyPicked": "Aucune photo choisie pour l'instant. Choisissez-en quelques-unes dans l'éditeur."
   },
   "video": {
     "name": "Vidéo",

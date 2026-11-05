@@ -156,6 +156,9 @@ const PROTECTED_GET_ROUTES = [
   '/api/calendars',
   '/api/backgrounds/directories',
   '/api/backup/pictures',
+  // Browsing Immich, Unsplash or NASA one picture at a time is for choosing
+  // a picture in the editor; a wall reads /api/photo-source/media instead.
+  '/api/photo-source/browse',
   '/api/system/backups',
   '/api/system/changelog',
   '/api/system/version',
@@ -185,9 +188,6 @@ function isProtectedRoute(pathname: string, method: string): boolean {
   if (PROTECTED_GET_ROUTES.some((r) => pathname === r || pathname.startsWith(r + '/'))) {
     return true;
   }
-
-  // Unsplash routes are editor-only
-  if (pathname.startsWith('/api/unsplash')) return true;
 
   return false;
 }

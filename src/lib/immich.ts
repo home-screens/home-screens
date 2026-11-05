@@ -119,6 +119,10 @@ export async function validateImmichConnection(): Promise<{
       timeout: 5000,
       headers: { 'x-api-key': cfg.apiKey },
     });
+    // Immich answers a working key that lacks the optional `server.about`
+    // permission with 403, and only a wrong key with 401. A key scoped to
+    // what the wall needs is connected; it just can't say the version.
+    if (about.status === 403) return { reachable: true, authenticated: true };
     if (!about.ok) return { reachable: true, authenticated: false };
     const data = await about.json();
     // Immich v3 self-reports "v3.0.1" while v2 reported "2.x.x"; normalize so

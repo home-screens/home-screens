@@ -39,8 +39,17 @@ export function safeLibraryPath(relativePath: string): string | null {
  * number of pictures its grid draws.
  */
 export function libraryMediaKind(libraryPath: string): 'image' | 'video' | null {
-  if (isRotationFile(libraryPath)) return null;
+  if (isRotationFile(libraryPath) || isPlaceholderFile(libraryPath)) return null;
   return mediaKindOf(libraryPath);
+}
+
+/**
+ * The app's own placeholder picture ships in the library root, so an
+ * installed hub has it among the family's files; it is never one of theirs
+ * to list, pick or back up.
+ */
+export function isPlaceholderFile(libraryPath: string): boolean {
+  return libraryPath === 'default.svg';
 }
 
 /**

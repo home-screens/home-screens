@@ -31,7 +31,7 @@ A few endpoints are open at every level on purpose, and each one says so where i
 `GET /api/health` answers from any device on your network, with or without a password, and the [IP allowlist](/docs/networking#restrict-access-by-ip) never blocks it (the only other endpoint it always lets through is `GET /api/auth/status`, which the login page needs). It says which version is running and nothing else:
 
 ```json
-{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":17,"uptime":864}
+{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":18,"uptime":864}
 ```
 
 `uptime` is seconds since the hub started, and `schema` is the newest settings format this release can read. Home Screens uses this route itself: an update is only kept once the new version answers here, and a display-only Pi checks it before showing the connecting screen. It is also the first thing to try when a display is blank, see [Troubleshooting](/docs/troubleshooting#is-the-hub-running).
@@ -48,10 +48,6 @@ For bookmarkable links, the `/api/display/*` routes also accept the token as a `
 
 If you have listed networks under **Settings > Security > Allowed networks** with **Let displays on these networks in without the key** turned on, `GET` requests from those addresses clear display access with no token at all, bookmarked commands such as `/api/display/wake` included. A `POST` from those addresses still needs the token or a session cookie.
 
-### When a request is turned down
-
-A request the hub refuses because of what it asked for (a list name that is too long, a note on a day that is over, a photo moved onto one with the same name, a family edit made from an old copy) answers with its status and a body of `{ "error": "...", "code": "...", "params": { ... } }`. `error` is a plain English sentence for logs and for anyone reading the API by hand. `code` names the refusal (`lists.nameTooLong`, `dayNotes.dayFull`, `library.fileExists`, `family.revision`) and `params` carries what the sentence quotes, such as the limit or the file name, so the phone and the editor show the family's own language instead of the English. A conflict adds what is saved now beside those fields (the family roster, the timetable document, the routine list), so a page can reconcile in one step. Requests that fail for other reasons, a body that is not JSON or a service that is down, answer `{ "error": "..." }` with no code.
-
 ### Cross-origin writes
 
 Every `POST`, `PUT`, `PATCH` and `DELETE` under `/api/` is refused with `403` when the request carries an `Origin` header that does not match the hub's own address. Browsers add that header to every cross-site request and page scripts cannot remove it, so a web page on some other site cannot make a browser in your house change your settings, even on an install with no password. Requests with no `Origin` header at all are allowed, so `curl`, Home Assistant, scripts and the per-Pi reporter are unaffected. `GET` and `HEAD` are never checked.
@@ -64,7 +60,7 @@ If you call the API from a page served somewhere else on purpose (a dashboard on
 
 Remote control endpoints for the kiosk display. The display polls for pending commands; the editor or any HTTP client can enqueue commands.
 
-If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [module-enabled](#post-api-display-module-enabled) (show or hide one module), [alert](#post-api-display-alert), [module-command](#post-api-display-module-command) (next story on a news module), [show-photo](#post-api-display-show-photo) (put a picture or video from the library on the screen), [show-recipe](#post-api-display-show-recipe) (open a recipe on the screen), and [hide-recipe](#post-api-display-hide-recipe) (take that recipe down again). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
+If you're scripting a display, a Home Assistant automation, a bookmark on your phone, the endpoints you want are [`/api/display/:command`](#get-api-display-command) (wake, sleep, next-screen, prev-screen), [goto-screen](#post-api-display-goto-screen), [brightness](#post-api-display-brightness), [sleep-override](#post-api-display-sleep-override), [profile](#post-api-display-profile), [module-enabled](#post-api-display-module-enabled) (show or hide one module), [alert](#post-api-display-alert), [module-command](#post-api-display-module-command) (next story on a news module), and [show-photo](#post-api-display-show-photo) (put a picture or video from the library on the screen). For a ready-made Home Assistant package built on them, voice sentences included, see the [Voice Control guide](/docs/voice-control). The rest of this section documents the protocol the kiosk itself speaks and is marked **Client protocol** where it applies; you only need it if you're writing your own display client.
 
 ### Targeting a display (multi-display)
 
@@ -73,7 +69,7 @@ When the hub has more than one display registered, every display-control endpoin
 - **Query string**: append `?display=<id>` (works on GET and POST). Useful for bookmarkable simple commands like `/api/display/wake?display=kitchen`.
 - **JSON body field**: `{ "displayId": "<id>", … }` (POST only).
 
-Use the reserved word `all` as the display target to broadcast to every display that has checked in since the hub started, plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command, show-photo, show-recipe, hide-recipe) and rejected for read-only or mutate-config actions (status, profile, module-enabled). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
+Use the reserved word `all` as the display target to broadcast to every display that has checked in since the hub started, plus the legacy default queue. Broadcast is allowed for command-enqueue actions (simple commands, brightness, sleep-override, alert, module-command, show-photo) and rejected for read-only or mutate-config actions (status, profile, module-enabled). It is also rejected for goto-screen, even though that enqueues a command, because screen sets differ per display and a broadcast jump would be meaningless on most of them.
 
 A command or a status read with no display target goes to the main display (the display with ID `main`, or the first one listed if none has that ID). On a single-display install, with no displays registered, it goes to that one display, so bookmarks and scripts written before you added a second display keep reaching the first one. The display's own calls (its command poll and its status report) are the exception: a display always names itself. See the [Multi-display guide](/docs/multi-display) for the full multi-display setup.
 
@@ -269,26 +265,6 @@ Puts one picture or video from the library over the screen until its time is up 
 `file` is the path inside the library, for example `family/beach.jpg`: the `file=` value in each link `GET /api/backgrounds` returns, not the link itself. Anything that is not a picture or video in the library returns `400`, and a file that is not there returns `404`. The hub works out the link itself, so a request can only ever show a file that is already in the library.
 
 **Response:** `{ "ok": true, "command": "show-photo", "durationMs": 60000 }`
-
-### POST /api/display/show-recipe
-
-Opens one recipe on the screen, on the same recipe card a tapped meal opens, the same as **Show on the wall** in the phone's **Meals**. The card stays until someone closes it or nobody touches it for a while. A second recipe replaces the first. Broadcast with `?display=all` is allowed.
-
-**Body:** `{ "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110", "displayId": "kitchen" }` (`displayId` optional)
-
-`mealId` is a Mealie recipe, written `mealie:` and then the recipe's id, or the `id` of one of your saved meals from `GET /api/meals/data`. The hub looks the meal up itself, so a request can only show a recipe you have. A saved meal needs ingredients or notes to show. An id that is neither returns `400`, and a recipe or meal that is not there anymore returns `404`. When Mealie is the problem (not connected, not answering), the answer says so the way the Mealie endpoints do, with a `failure` field. A display that was off when the recipe was sent skips it if it comes back more than ten minutes later.
-
-**Response:** `{ "ok": true, "command": "show-recipe", "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110" }`
-
-### POST /api/display/hide-recipe
-
-Takes down a recipe that [show-recipe](#post-api-display-show-recipe) put on the screen, the same as **Take it down** on the phone after **Show on the wall**. Send it to the same display the recipe went to. Broadcast with `?display=all` is allowed.
-
-**Body:** `{ "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110", "displayId": "kitchen" }` (both optional)
-
-With `mealId`, only that recipe closes, so a recipe someone else sent since stays up. Without it, whatever recipe a phone put up closes. A display that is showing no recipe ignores it. A `mealId` that is empty or too long returns `400`.
-
-**Response:** `{ "ok": true, "command": "hide-recipe" }`
 
 ### POST /api/display/sleep-override
 
@@ -822,7 +798,7 @@ Replaces the routine list wholesale (the list is capped at 50, so replace-the-li
 
 **Body:** `{ "routines": [ ... ], "revision": "..." }`: the list in the same shape as the GET response, and the `revision` of the copy it was built from (from GET or the previous save). A save with no revision is a `400`.
 
-When someone else saved first, the answer is a `409` with `"code": "timers.revision"`, `"reason": "revision"` and the current `routines` and `revision`. Make the change again on top of that list and send it with the new revision.
+When someone else saved first, the answer is a `409` with `"reason": "revision"` and the current `routines` and `revision`. Make the change again on top of that list and send it with the new revision.
 
 ### GET /api/timers/session
 
@@ -940,7 +916,7 @@ Replaces the whole document. Requires a valid session. Send `{ "data": { ... }, 
 
 Every member ID is checked against the family roster inside the same locked section as the write, so somebody cannot be removed between the check and the file landing. Validation is all-or-nothing, and the store caps a household at 16 schools, 16 slots per school, 64 subjects, 64 timetables and 64 special days per school.
 
-**Response:** the saved `{ "data": ..., "revision": ... }`, so the editor reconciles in one step. A save that started from an older copy comes back `409` with `"code": "timetables.revision"` and the same two fields alongside the error, which is what lets the editor say somebody else changed this and offer to reload it. A `409` with `"code": "timetables.member"` (a timetable for somebody who has left the family) or `"code": "timetables.corrupt"` (a file the hub cannot read) is not that conflict, and the editor keeps the unsaved edits.
+**Response:** the saved `{ "data": ..., "revision": ... }`, so the editor reconciles in one step. A save that started from an older copy comes back `409` with the same two fields alongside the error, which is what lets the editor say somebody else changed this and offer to reload it.
 
 ### GET /api/timetables/holidays
 
@@ -972,25 +948,11 @@ Full household backup bundle, exports `config`, `family`, `chores`, `choreComple
 
 GET never returns credentials or icon pictures. A bundle can carry an optional `credentials` section, but only `POST /api/backup/credentials` produces one. It can also carry an optional `customIcons` section, the pictures the family added as icons: the editor and the phone fetch it from `GET /api/backup/custom-icons` (session required; `?summary=1` answers only `{ "count": ..., "bytes": ... }`) and add it when **Include your icons** is on. Restoring a bundle without it keeps the icons already on the hub, and anything pointing at an icon the hub does not have shows a standard icon. This is what **Settings > Backups & data > Save a copy** uses, and it is distinct from the upgrade-time config-only snapshots under `/api/system/backups`.
 
-The library pictures never travel inside the bundle. A backup with pictures is a zip (`POST /api/backup/archive`), and POST also accepts `{ "_archive": "<id>" }` naming a zip staged with `POST /api/backup/upload`, plus `_passphrase` and `_withoutKeys: true` to drop its credential section. The pictures in the archive are written into the library around the data commit: a file already there with the same size is kept, a different size is replaced, and nothing is deleted.
-
 To restore a bundle whose `credentials` section is encrypted, add a transient `_passphrase` field to the POST body (it is stripped before anything is written and never stored). Credential failures come back as machine codes so the editor can localize them: `400 { "error": "passphrase_required" }` when the section is locked and no password was sent, `400 { "error": "bad_passphrase" }` when it was wrong, and `400 { "error": "invalid_credentials" }` when the section is damaged. None of these write anything, dropping the `credentials` field and re-posting restores everything else.
 
 A restore body is capped at 100 MB, room for a full icon library. The config inside it is checked for shape and for a valid display registry before anything is written, and if a later part of the bundle fails partway through, the parts that already landed are put back the way they were, so a failed restore doesn't leave a mix of old and new data.
 
-**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, including `family` and `customIcons`, `true` for the ones the bundle actually contained. `missingIcons` counts the icons the restored data points at that this hub does not have, which happens only when the bundle was made without its icons. `missingPictures` counts the library files and folders the restored screens, day rules and slideshows point at that this hub does not hold, and a zip restore adds `pictures: { added, replaced, kept, skipped, failed }`. A modern bundle replaces the roster when `family` is present. Older bundles without it retain the current roster and fold legacy chore and calendar identities into it by ID first. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
-
-### GET /api/backup/pictures
-
-`?summary=1` answers `{ "used": { "count", "bytes" }, "all": { "count", "bytes" }, "missing" }`: how many library files the screens use and how many the whole library holds, with their sizes, and how many config references already point at nothing. The labels beside the **Pictures** choice come from here. Session required; any other query is a 400.
-
-### POST /api/backup/archive
-
-**Body:** `{ "bundle": <a bundle from GET /api/backup, icons and keys included>, "pictures": "used" | "all" }`. Streams a zip holding `backup.json` (the bundle, unchanged) and `pictures/<library path>` for each chosen file, stored uncompressed; `used` is every file the bundle's own config references, by the same rule the Pictures & videos page marks a file as used. Session required.
-
-### POST /api/backup/upload
-
-**Body:** a zip backup, raw (`Content-Type: application/zip`). Stages it on the hub under `data/restore-staging/` and answers `{ "id", "hasCredentials", "credentialsEncrypted", "hasCustomIcons", "usesCustomIcons", "pictures": { "count", "bytes", "skipped" } }`, enough for the editor and the phone to run their prompts before posting `{ "_archive": id }` to `POST /api/backup`. A file that is not a backup is a 400; one that does not fit beside a 200 MB margin on the library's volume is a 413. Staged archives are removed when the restore finishes and after a quarter of an hour otherwise. Session required.
+**POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, including `family` and `customIcons`, `true` for the ones the bundle actually contained. `missingIcons` counts the icons the restored data points at that this hub does not have, which happens only when the bundle was made without its icons. A modern bundle replaces the roster when `family` is present. Older bundles without it retain the current roster and fold legacy chore and calendar identities into it by ID first. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
 
 ### POST /api/backup/credentials
 

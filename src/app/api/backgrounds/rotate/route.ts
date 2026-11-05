@@ -1,34 +1,54 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { readConfig } from '@/lib/config';
-import { BACKGROUNDS_DIR, DEFAULT_DISPLAY_HEIGHT, DEFAULT_DISPLAY_WIDTH } from '@/lib/constants';
-import { getUnsplashAccessKey, trackDownload } from '@/lib/unsplash';
-import { NASA_APOD_API, getNasaApiKey } from '@/lib/nasa';
-import { immichFetch } from '@/lib/immich';
-import { fetchICloudMedia } from '@/lib/icloud-media';
-import { writeLibraryFile } from '@/lib/library-files';
-import { MAX_IMPORT_IMAGE_BYTES } from '@/lib/media-formats';
+import { DEFAULT_DISPLAY_HEIGHT, DEFAULT_DISPLAY_WIDTH } from '@/lib/constants';
+import { libraryRoot, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
+import { MAX_IMPORT_IMAGE_BYTES, extensionForContentType, mediaKindOf } from '@/lib/media-formats';
+import { serveUrlFor } from '@/lib/media-paths';
 import { removeThumbnails } from '@/lib/thumbnails';
-import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { withDisplayAuth } from '@/lib/api-utils';
 import { findScreenById } from '@/lib/display-filter';
+import { logger } from '@/lib/logger';
+import { canRotate, rotationCacheKey, rotationSources } from '@/lib/photo-source';
+import { pickOneFromSource, type PickedPicture } from '@/lib/photo-sources';
+import { getSecretStatus } from '@/lib/secrets';
+import { bumpRotationRevision } from '@/lib/rotation-revision';
+import { shuffleArray } from '@/lib/shuffle';
 import {
   ROTATION_FILE_RE,
   referencedRotationFiles,
+  rotationCacheFileName,
   rotationCacheStore as cacheStore,
   type BackgroundCache,
   type RotationCacheEntry,
 } from '@/lib/background-rotation-cache';
-import type { BackgroundRotation, ScreenConfiguration } from '@/types/config';
+import type { PhotoSource, ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
-const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
+const log = logger('rotate');
 
 /** Unreferenced rotation files kept as a grace buffer, newest first, so a
  *  display still showing the previous background doesn't lose it mid-swap. */
 const PRUNE_KEEP_RECENT = 8;
+
+const DEFAULT_INTERVAL_MINUTES = 60;
+
+/**
+ * After every source failed, how long the screen keeps what it has before
+ * the sources are asked again. Without it a source that is away costs an
+ * upstream call on every poll, a minute apart, for as long as it is away.
+ */
+export const FAILURE_BACKOFF_MS = 5 * 60_000;
+
+/**
+ * The least time between two forced refreshes of one screen. Refresh now in
+ * the editor is one click away, and Unsplash's free plan allows 50 requests
+ * an hour.
+ */
+export const FORCE_SPACING_MS = 5_000;
 
 /**
  * Rotation files accumulate forever otherwise: an iCloud album alone can
@@ -39,10 +59,11 @@ const PRUNE_KEEP_RECENT = 8;
  */
 async function pruneRotationFiles(cache: BackgroundCache): Promise<void> {
   const referenced = referencedRotationFiles(cache);
+  const root = libraryRoot();
 
   let entries;
   try {
-    entries = await fs.readdir(BGS, { withFileTypes: true });
+    entries = await fs.readdir(root, { withFileTypes: true });
   } catch {
     return;
   }
@@ -51,13 +72,13 @@ async function pruneRotationFiles(cache: BackgroundCache): Promise<void> {
   for (const dirent of entries) {
     if (!dirent.isFile() || !ROTATION_FILE_RE.test(dirent.name) || referenced.has(dirent.name)) continue;
     try {
-      candidates.push({ name: dirent.name, mtimeMs: (await fs.stat(path.join(BGS, dirent.name))).mtimeMs });
+      candidates.push({ name: dirent.name, mtimeMs: (await fs.stat(path.join(root, dirent.name))).mtimeMs });
     } catch { /* raced deletion */ }
   }
 
   candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
   for (const { name } of candidates.slice(PRUNE_KEEP_RECENT)) {
-    await fs.unlink(path.join(BGS, name)).catch(() => { /* best effort */ });
+    await fs.unlink(path.join(root, name)).catch(() => { /* best effort */ });
     // The wall asked for a copy sized to its screen; it goes with the file.
     await removeThumbnails(name);
   }
@@ -72,160 +93,80 @@ function canvasOf(config: ScreenConfiguration, screenId: string): { w: number; h
   };
 }
 
-async function fetchAndSavePhoto(query: string, accessKey: string, canvas: { w: number; h: number }): Promise<string | null> {
-  // A photo shaped like the wall: a portrait photo on a landscape wall was
-  // blown up to fill the width and cropped to a strip.
-  const orientation = canvas.w > canvas.h * 1.1 ? 'landscape' : canvas.h > canvas.w * 1.1 ? 'portrait' : 'squarish';
-  const res = await fetchWithTimeout(
-    `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=${orientation}&content_filter=high`,
-    { headers: { Authorization: `Client-ID ${accessKey}` } },
-  );
+/**
+ * The URL a picked picture is shown from. A bundled wall is its own path and
+ * a library pick is served where it is, with no copy. A download is saved at
+ * the library's top level as `rotation-<kind>-<id>`, streamed to disk under
+ * the import size cap, and reused when the same picture comes round again.
+ * The `rotation-` prefix keeps these prunable without ever touching a
+ * household's own files.
+ */
+async function savePicked(kind: PhotoSource['kind'], picked: PickedPicture): Promise<string | null> {
+  if (picked.kind === 'static') return picked.path;
+  if (picked.kind === 'library') return serveUrlFor(picked.path);
+  const root = libraryRoot();
+  const stem = `rotation-${kind}-${picked.id.replace(/[^A-Za-z0-9._-]/g, '_')}`;
+  await fs.mkdir(root, { recursive: true });
+  const existing = (await fs.readdir(root)).find((name) => name.replace(/\.[^.]+$/, '') === stem && mediaKindOf(name) === 'image');
+  if (existing) return serveUrlFor(existing);
+
+  const res = await picked.open();
   if (!res.ok) return null;
-
-  const photo = await res.json();
-  // `raw` takes Unsplash's resizing parameters, so the download is cropped
-  // to the canvas; `regular` is 1080 px wide whatever the wall.
-  const raw: string | undefined = photo.urls?.raw;
-  const imageUrl = raw
-    ? `${raw}${raw.includes('?') ? '&' : '?'}fit=crop&w=${canvas.w}&h=${canvas.h}&q=80&fm=jpg`
-    : photo.urls?.regular;
-  const photoId = photo.id;
-  if (!imageUrl || !photoId) return null;
-
-  // Trigger download tracking (required by Unsplash API terms)
-  const downloadLocation = photo.links?.download_location;
-  if (downloadLocation) {
-    trackDownload(downloadLocation, accessKey);
+  const ext = extensionForContentType(res.headers.get('content-type'), 'image');
+  if (!ext) {
+    await res.body?.cancel().catch(() => { /* nothing to drain */ });
+    return null;
   }
-
-  // Download and save locally
-  const imgRes = await fetchWithTimeout(imageUrl);
-  if (!imgRes.ok) return null;
-
-  const filename = `rotation-unsplash-${photoId}.jpg`;
-  await saveRotationFile(filename, imgRes.body);
-  return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
+  const name = `${stem}${ext}`;
+  await writeLibraryFile(path.join(root, name), res.body, MAX_IMPORT_IMAGE_BYTES);
+  return serveUrlFor(name);
 }
 
 /**
- * Streams a downloaded picture into the library under its rotation name:
- * capped like an import, never held whole in the hub's memory, and landing
- * under the final name only once complete, so a dropped download or a power
- * cut mid-write never leaves a truncated picture for the wall to serve.
+ * Whether the cached answer still points at a picture the hub has. A library
+ * file can be deleted or moved from the media page; a bundled wall or a
+ * remote URL is taken as it is.
  */
-async function saveRotationFile(filename: string, body: ReadableStream<Uint8Array> | null): Promise<void> {
-  await fs.mkdir(BGS, { recursive: true });
-  await writeLibraryFile(path.join(BGS, filename), body, MAX_IMPORT_IMAGE_BYTES);
+async function cachedPictureExists(servePath: string): Promise<boolean> {
+  const file = rotationCacheFileName(servePath);
+  if (!file) return true;
+  const abs = safeLibraryPath(file);
+  if (!abs) return false;
+  try {
+    await fs.access(abs);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
-async function fetchAndSaveApod(): Promise<string | null> {
-  const apiKey = await getNasaApiKey();
-  if (!apiKey) return null;
-  const res = await fetchWithTimeout(`${NASA_APOD_API}?api_key=${apiKey}&thumbs=true`);
-  if (!res.ok) return null;
-
-  const apod = await res.json();
-  if (apod.media_type !== 'image') return null;
-
-  const imageUrl = apod.hdurl || apod.url;
-  if (!imageUrl) return null;
-
-  const imgRes = await fetchWithTimeout(imageUrl, { timeout: 30_000 });
-  if (!imgRes.ok) return null;
-
-  const apodContentType = imgRes.headers.get('content-type') ?? '';
-  const apodExt = apodContentType.includes('png') ? '.png' : apodContentType.includes('webp') ? '.webp' : '.jpg';
-  const dateStr = (apod.date as string || '').replace(/-/g, '');
-  const filename = `rotation-nasa-apod-${dateStr}${apodExt}`;
-  await saveRotationFile(filename, imgRes.body);
-  return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
-}
-
-async function fetchAndSaveImmichPhoto(rotation: BackgroundRotation): Promise<string | null> {
-  // Immich v3 removed `assets` from the album detail response; search/random
-  // accepts albumIds on v2+ and handles all filter combinations server-side.
-  const body: Record<string, unknown> = { type: 'IMAGE', size: 1 };
-  if (rotation.immichAlbumId) body.albumIds = [rotation.immichAlbumId];
-  if (rotation.immichPersonId) body.personIds = [rotation.immichPersonId];
-  if (rotation.immichFavoritesOnly) body.isFavorite = true;
-
-  const res = await immichFetch('/api/search/random', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) return null;
-
-  const assets = await res.json();
-  if (!Array.isArray(assets) || assets.length === 0) return null;
-  const assetId = assets[0].id as string;
-
-  // Download preview-quality image
-  const imgRes = await immichFetch(`/api/assets/${assetId}/thumbnail?size=preview`, { timeout: 15_000 });
-  if (!imgRes.ok) return null;
-
-  const contentType = imgRes.headers.get('content-type') ?? '';
-  const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
-  const filename = `rotation-immich-${assetId}${ext}`;
-  await saveRotationFile(filename, imgRes.body);
-  return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
-}
-
-async function fetchAndSaveICloudPhoto(rotation: BackgroundRotation): Promise<string | null> {
-  // Backgrounds are photos only — a video can't be a CSS background image.
-  const images = (await fetchICloudMedia(rotation.icloudAlbumUrl || '')).filter((item) => item.type === 'image');
-  if (images.length === 0) return null;
-  const pick = images[Math.floor(Math.random() * images.length)];
-
-  const imgRes = await fetchWithTimeout(pick.url, { timeout: 30_000 });
-  if (!imgRes.ok) return null;
-
-  const contentType = imgRes.headers.get('content-type') ?? '';
-  const ext = contentType.includes('png') ? '.png' : contentType.includes('webp') ? '.webp' : '.jpg';
-  // Keyed by the photo's stable GUID (like rotation-immich-<assetId>): the
-  // serve path must change between rotations or useBackgroundRotation never
-  // swaps it. The rotation- prefix keeps these prunable without ever touching
-  // user-imported icloud-<guid> files living in the same root.
-  const filename = `rotation-icloud-${pick.guid.replace(/[^A-Za-z0-9-]/g, '')}${ext}`;
-  await saveRotationFile(filename, imgRes.body);
-  return `/api/backgrounds/serve?file=${encodeURIComponent(filename)}`;
+/** Where the picture showing now came from, so a fresh pick can avoid it. */
+function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
+  if (!entry?.path) return undefined;
+  return rotationCacheFileName(entry.path) ?? entry.path;
 }
 
 /**
- * Downloads in progress, one per screen. A download can outlast the wall's
- * next poll (NASA retries for up to a minute and a half), and two displays
- * showing the same screen ask within seconds of each other, so a request
- * that finds one running joins it instead of starting a second download of
- * the same file.
- */
-const inFlight = new Map<string, Promise<string | null>>();
-
-function fetchOnce(screenId: string, fetchPhoto: () => Promise<string | null>): Promise<string | null> {
-  const running = inFlight.get(screenId);
-  if (running) return running;
-  const run = fetchPhoto().finally(() => inFlight.delete(screenId));
-  inFlight.set(screenId, run);
-  return run;
-}
-
-/**
- * GET /api/backgrounds/rotate?screenId=X
+ * GET /api/backgrounds/rotate?screenId=X[&force=true]
  *
- * Returns the current rotating background for a screen, fetching a new one
- * from Unsplash only when the configured interval has elapsed.
+ * The current rotating background for a screen, picking a new one from the
+ * screen's sources only when the interval has passed, the sources changed,
+ * or the editor asked (force, spaced a few seconds apart). The ready sources
+ * are tried in a random order until one answers; when none does the screen
+ * keeps what it has and the sources rest for a while. Any source works
+ * except a video: the background is an <img>.
  *
- * Response: { path: string, fresh: boolean } or { path: null }
+ * Response: { path: string, fresh: boolean } or { path: string | null }
  */
 export const GET = withDisplayAuth(async (request: NextRequest) => {
   const screenId = request.nextUrl.searchParams.get('screenId');
   if (!screenId) {
     return NextResponse.json({ error: 'screenId required' }, { status: 400 });
   }
+  const force = request.nextUrl.searchParams.get('force') === 'true';
 
-  // Read config to get this screen's rotation settings. Look across every
-  // display's owned `screens` AND the legacy global pool — in multi-display
-  // mode the screen we care about almost certainly lives under a
-  // `display.screens` array, not `config.screens`.
+  // Look across every display's own `screens` and the legacy global pool: in
+  // multi-display mode the screen almost certainly lives under a display.
   const config = await readConfig();
   const screen = findScreenById(config, screenId);
   if (!screen) {
@@ -233,73 +174,73 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   }
 
   const rotation = screen.backgroundRotation;
-  const source = rotation?.source || 'unsplash';
-  if (!rotation?.enabled || (source === 'unsplash' && !rotation.query) || (source !== 'unsplash' && source !== 'nasa-apod' && source !== 'immich' && source !== 'icloud')) {
-    return NextResponse.json({ path: screen.backgroundImage || null });
+  const fallback = screen.backgroundImage || null;
+  const secrets = await getSecretStatus();
+  const candidates = rotationSources(rotation).filter((source) => canRotate(source, secrets));
+  if (!rotation || candidates.length === 0) {
+    return NextResponse.json({ path: fallback });
   }
 
   const cache = await cacheStore.read();
-  const entry = cache[screenId];
-  const intervalMs = (rotation.intervalMinutes || 60) * 60 * 1000;
+  let entry: RotationCacheEntry | undefined = cache[screenId];
+  const intervalMinutes = rotation.intervalMinutes || DEFAULT_INTERVAL_MINUTES;
+  const sourceKey = rotationCacheKey(rotation);
   const now = Date.now();
-  const immichFilters = source === 'immich'
-    ? JSON.stringify({ a: rotation.immichAlbumId, p: rotation.immichPersonId, f: rotation.immichFavoritesOnly })
-    : undefined;
-  const icloudAlbum = source === 'icloud' ? (rotation.icloudAlbumUrl || '') : undefined;
 
-  // Check if cached entry is still fresh
-  if (
-    entry &&
-    entry.source === source &&
-    entry.query === rotation.query &&
-    entry.intervalMinutes === (rotation.intervalMinutes || 60) &&
-    entry.immichFilters === immichFilters &&
-    entry.icloudAlbum === icloudAlbum &&
-    now - entry.fetchedAt < intervalMs
-  ) {
-    return NextResponse.json({ path: entry.path, fresh: false });
+  if (entry && entry.sourceKey === sourceKey) {
+    const spaced = force
+      ? now - (entry.forcedAt ?? 0) < FORCE_SPACING_MS
+      : now - entry.fetchedAt < intervalMinutes * 60_000 || (entry.failedAt !== undefined && now - entry.failedAt < FAILURE_BACKOFF_MS);
+    if (spaced && entry.path && await cachedPictureExists(entry.path)) {
+      return NextResponse.json({ path: entry.path, fresh: false });
+    }
+    if (entry.path && !(await cachedPictureExists(entry.path))) entry = { ...entry, path: '' };
+  } else {
+    entry = undefined;
   }
 
-  // Need to fetch a new background
-  try {
-    let newPath: string | null = null;
-
-    if (source === 'immich') {
-      newPath = await fetchOnce(screenId, () => fetchAndSaveImmichPhoto(rotation));
-    } else if (source === 'icloud') {
-      newPath = await fetchOnce(screenId, () => fetchAndSaveICloudPhoto(rotation));
-    } else if (source === 'nasa-apod') {
-      newPath = await fetchOnce(screenId, fetchAndSaveApod);
-    } else {
-      const accessKey = await getUnsplashAccessKey();
-      if (!accessKey) {
-        return NextResponse.json({ path: entry?.path || screen.backgroundImage || null });
+  // Need a new background: every ready source gets a turn, in a random order,
+  // until one answers.
+  const previous = previousOf(entry);
+  const canvas = canvasOf(config, screenId);
+  const failures: string[] = [];
+  for (const source of shuffleArray(candidates)) {
+    try {
+      const picked = await pickOneFromSource(source, canvas, previous);
+      const newPath = picked ? await savePicked(source.kind, picked) : null;
+      if (!newPath) {
+        failures.push(`${source.kind}: nothing to show`);
+        continue;
       }
-      newPath = await fetchOnce(screenId, () => fetchAndSavePhoto(rotation.query, accessKey, canvasOf(config, screenId)));
-    }
-
-    if (newPath) {
-      const entry: RotationCacheEntry = {
-        path: newPath,
-        source,
-        query: rotation.query,
-        fetchedAt: now,
-        intervalMinutes: rotation.intervalMinutes || 60,
-        immichFilters,
-        icloudAlbum,
+      const next: RotationCacheEntry = {
+        path: newPath, sourceKey, fetchedAt: now, intervalMinutes,
+        ...(force ? { forcedAt: now } : entry?.forcedAt ? { forcedAt: entry.forcedAt } : {}),
       };
       // Merge into whatever is on disk now, not into the snapshot read before
       // the fetch above, so a rotation that finished for another screen while
       // this one was waiting on the network keeps its entry.
-      const merged = await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: entry }));
-      // Prune against the merged view; pruning against the stale snapshot
-      // would delete files the other screen just claimed.
-      await pruneRotationFiles(merged);
+      const merged = await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: next }));
+      // The wall's heartbeat says a rotation answered anew, so every wall
+      // showing this screen re-asks within a beat instead of on its own poll.
+      bumpRotationRevision();
+      // Prune against the merged view (pruning against the stale snapshot
+      // would delete files the other screen just claimed), after the answer
+      // is on its way: a readdir and a stat per rotation file need not hold
+      // the wall's picture back.
+      after(() => pruneRotationFiles(merged));
       return NextResponse.json({ path: newPath, fresh: true });
+    } catch (error) {
+      // A missing key, a source that is away, or a lapsed sign-in: the next
+      // source gets its turn, and the wall keeps what it has if none answers.
+      failures.push(`${source.kind}: ${error instanceof Error ? error.message : String(error)}`);
     }
-  } catch {
-    // Fall through to return cached/fallback
   }
 
-  return NextResponse.json({ path: entry?.path || screen.backgroundImage || null });
+  log.warn(`No background for screen ${screenId}; sources rest for ${FAILURE_BACKOFF_MS / 60_000} minutes (${failures.join('; ')})`);
+  const rested: RotationCacheEntry = {
+    path: entry?.path ?? '', sourceKey, fetchedAt: entry?.fetchedAt ?? 0, intervalMinutes, failedAt: now,
+    ...(force ? { forcedAt: now } : {}),
+  };
+  await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: rested }));
+  return NextResponse.json({ path: entry?.path || fallback });
 }, 'Failed to rotate background');

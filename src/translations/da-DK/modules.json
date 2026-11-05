@@ -936,14 +936,14 @@
     "settings": {
       "grabLimitLabel": "Hvor mange kan én person snuppe ad gangen?",
       "grabLimit": {
+        "0": "Ingen grænse",
         "1": "Én ad gangen",
         "2": "To ad gangen",
-        "3": "Tre ad gangen",
-        "0": "Ingen grænse"
+        "3": "Tre ad gangen"
       },
       "grabLimitHint": {
-        "1": "Gør den færdig eller giv slip, før du snupper en ny.",
-        "0": "Alle kan snuppe så mange, de vil."
+        "0": "Alle kan snuppe så mange, de vil.",
+        "1": "Gør den færdig eller giv slip, før du snupper en ny."
       },
       "grabHoldLabel": "Hvor længe er en snuppet pligt deres?",
       "grabHold": {
@@ -956,10 +956,10 @@
       },
       "summary": {
         "limit": {
+          "0": "Ingen grænse",
           "1": "Én ad gangen",
           "2": "To ad gangen",
-          "3": "Tre ad gangen",
-          "0": "Ingen grænse"
+          "3": "Tre ad gangen"
         },
         "hold": {
           "day": "en snuppet pligt gælder til sengetid",
@@ -1214,7 +1214,11 @@
     "noPhotosYet": "Ingen billeder endnu",
     "noPhotosYetHint": "Tilføj billeder fra din telefon på",
     "noPhotosYetHintICloud": "Tjek albumlinket i editoren, og sørg for, at 'Offentligt websted' er slået til for albummet.",
-    "noPhotosYetHintOneDrive": "Tjek OneDrive-mappen i editoren."
+    "noPhotosYetHintOneDrive": "Tjek OneDrive-mappen i editoren.",
+    "noPhotosYetHintImmich": "Tjek Immich-albummet, personen og valget af favoritter i editoren.",
+    "noPhotosYetHintUnsplash": "Prøv andre søgeord i editoren.",
+    "noPhotosYetHintNasa": "NASA sender ikke billeder lige nu. De kommer selv tilbage.",
+    "noPhotosYetHintPicked": "Vælg nogle billeder i editoren."
   },
   "dad-joke": {
     "loading": "Indlæser vittighed…"
@@ -1361,7 +1365,12 @@
     "loading": "Indlæser billeder…",
     "empty": "Ingen billeder fundet",
     "emptyICloud": "Ingen fotos endnu. Tjek albumlinket, og sørg for, at 'Offentligt websted' er slået til.",
-    "emptyOneDrive": "Endnu ingen billeder. Tjek OneDrive-mappen i editoren."
+    "emptyOneDrive": "Endnu ingen billeder. Tjek OneDrive-mappen i editoren.",
+    "emptyImmich": "Ingen billeder endnu. Tjek Immich-albummet, personen og valget af favoritter i editoren.",
+    "emptyUnsplash": "Ingen billeder endnu. Prøv andre søgeord i editoren.",
+    "emptyNasa": "Ingen billeder fra NASA lige nu. De kommer selv tilbage.",
+    "photoCredit": "Foto af {name} på {source}",
+    "emptyPicked": "Ingen billeder valgt endnu. Vælg nogle i editoren."
   },
   "video": {
     "name": "Video",

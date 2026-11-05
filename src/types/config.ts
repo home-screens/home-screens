@@ -355,27 +355,112 @@ export interface ModuleInstance {
   showOnEveryScreen?: boolean;
 }
 
+/**
+ * Where a stream of pictures comes from: a library folder or a few chosen library pictures, an
+ * Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or
+ * picked photos, NASA's Astronomy Picture of the Day, or the walls that come with Home Screens.
+ * Photo Slideshow, Full-screen Photo and background rotation all use it
+ *
+ * One rules file (src/lib/photo-source.ts) says what each kind needs and
+ * offers, and one adapter per kind (src/lib/photo-sources/) reads it.
+ * Google Photos is not a kind: its API only allows importing picked photos
+ * into the library, so it lands in a library folder. Inside a kind, picked
+ * pictures win over a collection, and a collection over the filters or the
+ * search words; the editor clears the other fields when the mode changes.
+ */
+export type PhotoSource =
+  | {
+      /** A folder in your media library, or a few pictures chosen from it */
+      kind: 'library';
+      /** Library folder to show; empty for the top level */
+      folder: string;
+      /**
+       * Only these pictures (library paths such as `holiday/beach.jpg`); when set, the folder is not read
+       *
+       * Paths relative to the library root, never serve URLs.
+       */
+      pictures?: string[];
+    }
+  | {
+      /** Your Immich photo library (needs the Immich address and key in Settings > API keys) */
+      kind: 'immich';
+      /** Only photos in any of these Immich albums */
+      albumIds?: string[];
+      /** Only photos showing at least one of these people (faces Immich recognized) */
+      personIds?: string[];
+      /** Leave out photos showing any of these people */
+      excludePersonIds?: string[];
+      /**
+       * Only photos marked as favorites in Immich
+       *
+       * @default false
+       */
+      favoritesOnly?: boolean;
+      /** Only these photos, picked one by one (Immich asset ids); when set, the filters are not used */
+      assetIds?: string[];
+    }
+  | {
+      /** A public iCloud shared album; no key needed */
+      kind: 'icloud';
+      /**
+       * The album's public link (`icloud.com/sharedalbum/#TOKEN` or a `photos.icloud.com/shared/album` link)
+       *
+       * A bare token is accepted too (icloud-parse.ts).
+       */
+      albumUrl: string;
+    }
+  | {
+      /** A folder in OneDrive (needs a one-time Microsoft sign-in) */
+      kind: 'onedrive';
+      /**
+       * The OneDrive folder, and everything inside it
+       *
+       * Graph driveItem ID: stable across renames.
+       */
+      folderId: string;
+      /**
+       * Folder name as shown in the editor; display only
+       *
+       * Captured at pick time. The ID is authoritative.
+       */
+      folderName?: string;
+    }
+  | {
+      /** Free stock photos from Unsplash (needs an Unsplash key in Settings > API keys) */
+      kind: 'unsplash';
+      /** Search words, in English (for example `mountains lake`) */
+      query: string;
+      /** Only photos from these Unsplash collections (collection ids); when set, the search words are not used */
+      collections?: string[];
+      /** Only these photos, picked one by one (Unsplash photo ids); when set, nothing else is used */
+      photoIds?: string[];
+    }
+  | {
+      /** NASA's Astronomy Picture of the Day, newest first; no key needed */
+      kind: 'nasa';
+    }
+  | {
+      /**
+       * Walls that come with Home Screens, for a rotating background only
+       *
+       * Never offered to the photo modules (`offeredFor`).
+       */
+      kind: 'wall';
+      /** Which group of walls: the plain colors or the patterns */
+      group: 'color' | 'pattern';
+      /** The walls from that group to rotate through (their ids); none chosen means nothing from the group */
+      ids: string[];
+    };
+
 export interface BackgroundRotation {
-  /** Turn rotation on */
-  enabled: boolean;
-  /** Where the images come from */
-  source?: 'unsplash' | 'nasa-apod' | 'immich' | 'icloud';
-  /** Unsplash search words; other sources ignore it */
-  query: string;
-  /** Minutes between images */
+  /** Minutes between pictures */
   intervalMinutes: number;
-  /** Immich album to use */
-  immichAlbumId?: string;
-  /** Immich person (face) to use */
-  immichPersonId?: string;
-  /** Only use Immich favorites */
-  immichFavoritesOnly?: boolean;
   /**
-   * Public iCloud shared album link, or just its token
-   *
-   * Public share link (icloud.com/sharedalbum/#TOKEN) or bare token.
+   * Where the pictures come from (see PhotoSource): one entry per source, drawn from in turn. An empty
+   * list means the screen keeps its own picture. A background is always a still picture, so videos
+   * in a source are skipped
    */
-  icloudAlbumUrl?: string;
+  sources: PhotoSource[];
 }
 
 /** Overlay dimming/vignette drawn over a screen's background, between the image and its modules */
@@ -3190,10 +3275,8 @@ export interface SunriseSunsetConfig {
 
 // Photo slideshow module config
 /**
- * One entry in a typed media list. `/api/backgrounds` and `/api/immich/photos`
- * return plain `string[]` URL lists unless a `media=` query param is present
- * (set only when a slideshow's `mediaTypes` is not 'photos'), in which case
- * they return this shape — so pre-video configs keep their old responses.
+ * One entry in the media list `/api/photo-source/media` (and the library's
+ * own `/api/backgrounds` listing) answers with.
  */
 export interface MediaListItem {
   url: string;
@@ -3202,73 +3285,35 @@ export interface MediaListItem {
   posterUrl?: string;
   /** Source-reported duration, when the backend knows it (Immich does; local files don't). */
   durationMs?: number;
+  /** Who took the photo, when the source asks to be credited on screen (Unsplash). */
+  credit?: { name: string; source: string };
 }
 
 /** Which media kinds a slideshow should pull from its source. */
 export type SlideshowMediaTypes = 'photos' | 'videos' | 'both';
 
 export interface PhotoSlideshowConfig {
-  /** Directory name inside `public/backgrounds/` */
-  directory: string;
+  /** Where the pictures come from (see PhotoSource) */
+  photoSource: PhotoSource;
+  /**
+   * Pictures to load per refresh, 1 to 200 (up to 30 for Unsplash). A library folder always plays
+   * every picture in it
+   *
+   * @default 50
+   */
+  count?: number;
   /** Time between transitions (30 sec) */
   intervalMs: number;
   /** Transition effect: `fade` or `none` */
   transition: 'fade' | 'none';
   /** Image fit mode */
   objectFit: 'cover' | 'contain' | 'fill';
-  /** How often to re-scan the directory for new images (10 min) */
+  /** How often to load a fresh set of pictures (10 min) */
   refreshIntervalMs: number;
   /**
-   * Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time
-   * Microsoft sign-in), or `icloud` (a public shared album, no keys needed)
-   */
-  source?: 'local' | 'immich' | 'icloud' | 'onedrive';
-  /** Filter to a specific Immich album */
-  immichAlbumId?: string;
-  /** Filter to a recognized person (face) in Immich */
-  immichPersonId?: string;
-  /**
-   * Only show photos marked as favorites in Immich
+   * What to show: `photos`, `videos`, or `both` (videos only from a library folder, Immich or iCloud)
    *
-   * @default false
-   */
-  immichFavoritesOnly?: boolean;
-  /**
-   * Number of photos to load per refresh (10–200)
-   *
-   * @default 50
-   */
-  immichCount?: number;
-  /**
-   * iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source)
-   *
-   * Public share link (icloud.com/sharedalbum/#TOKEN) or bare token.
-   */
-  icloudAlbumUrl?: string;
-  /**
-   * OneDrive folder to pull photos from (OneDrive source)
-   *
-   * Graph driveItem ID of the OneDrive folder this module pulls from (source 'onedrive').
-   */
-  onedriveFolderId?: string;
-  /**
-   * Folder name as shown in the editor, display only, the ID above is authoritative
-   *
-   * Folder label captured at pick time — display only, the ID is authoritative.
-   */
-  onedriveFolderName?: string;
-  /**
-   * Number of photos to load per refresh (10–200)
-   *
-   * Photos per refresh for source 'onedrive'. Default 50.
-   *
-   * @default 50
-   */
-  onedriveCount?: number;
-  /**
-   * What to show: `photos`, `videos`, or `both`
-   *
-   * Default 'photos' — existing photo-only behavior.
+   * Default 'photos'. Sources that can't play video (canPlayVideo) answer pictures only.
    */
   mediaTypes?: SlideshowMediaTypes;
   /**
@@ -4788,11 +4833,18 @@ export interface FullscreenWeatherConfig {
 export type FullscreenPhotoTransition = 'fade' | 'slide' | 'zoom' | 'none';
 
 export interface FullscreenPhotoConfig {
-  /** Path to local photo directory (slideshow mode) */
-  directory: string;
+  /** Where the slideshow's pictures come from (see PhotoSource) */
+  photoSource: PhotoSource;
+  /**
+   * Pictures to load per refresh, 1 to 200 (up to 30 for Unsplash). A library folder always plays
+   * every picture in it
+   *
+   * @default 50
+   */
+  count?: number;
   /**
    * Path to a single pinned photo. When set, the viewer shows this image statically and ignores
-   * `directory`/`intervalMs`/`transition`/`shuffle`. Shows a "No photo selected" empty state until
+   * `photoSource`/`intervalMs`/`transition`/`shuffle`. Shows a "No photo selected" empty state until
    * chosen
    */
   file?: string;
@@ -4829,56 +4881,9 @@ export interface FullscreenPhotoConfig {
    */
   theme?: string;
   /**
-   * Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time
-   * Microsoft sign-in), or `icloud` (a public shared album, no keys needed)
-   */
-  source?: 'local' | 'immich' | 'icloud' | 'onedrive';
-  /** Filter to a specific Immich album */
-  immichAlbumId?: string;
-  /** Filter to a recognized person (face) in Immich */
-  immichPersonId?: string;
-  /**
-   * Only show photos marked as favorites in Immich
+   * What to show: `photos`, `videos`, or `both` (videos only from a library folder, Immich or iCloud)
    *
-   * @default false
-   */
-  immichFavoritesOnly?: boolean;
-  /**
-   * Number of photos to load per refresh (10–200)
-   *
-   * @default 50
-   */
-  immichCount?: number;
-  /**
-   * iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source)
-   *
-   * Public share link (icloud.com/sharedalbum/#TOKEN) or bare token.
-   */
-  icloudAlbumUrl?: string;
-  /**
-   * OneDrive folder to pull photos from (OneDrive source)
-   *
-   * Graph driveItem ID of the OneDrive folder this module pulls from (source 'onedrive').
-   */
-  onedriveFolderId?: string;
-  /**
-   * Folder name as shown in the editor, display only, the ID above is authoritative
-   *
-   * Folder label captured at pick time — display only, the ID is authoritative.
-   */
-  onedriveFolderName?: string;
-  /**
-   * Number of photos to load per refresh (10–200)
-   *
-   * Photos per refresh for source 'onedrive'. Default 50.
-   *
-   * @default 50
-   */
-  onedriveCount?: number;
-  /**
-   * What to show: `photos`, `videos`, or `both`
-   *
-   * Default 'photos' — existing photo-only behavior.
+   * Default 'photos'. Sources that can't play video (canPlayVideo) answer pictures only.
    */
   mediaTypes?: SlideshowMediaTypes;
   /**

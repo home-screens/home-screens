@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
-import { displayCache } from '@/lib/display-cache';
+import { invalidateLibraryReads } from '@/lib/library-client';
 
 export interface LibraryImportJobStatus {
   state: 'running' | 'done' | 'error';
@@ -76,7 +76,7 @@ export function useLibraryImportJob(endpoint: string, onFinished?: (job: Library
           // The import just changed the library's contents on disk — any
           // module preview holding a fresh-cached backgrounds list would
           // otherwise show the pre-import state for up to a full TTL.
-          displayCache.invalidateByPrefix('/api/backgrounds');
+          invalidateLibraryReads();
           onFinishedRef.current?.(status);
         }
       } catch {

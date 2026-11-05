@@ -8,13 +8,16 @@ import { createJsonStore } from '@/lib/json-store';
  */
 
 export interface RotationCacheEntry {
+  /** Serve URL (or bundled path) of the picture the screen shows; empty when none has come yet. */
   path: string;
-  source: string;
-  query: string;
+  /** `rotationCacheKey` of the sources it came from; a different key means start over. */
+  sourceKey: string;
   fetchedAt: number;
   intervalMinutes: number;
-  immichFilters?: string;
-  icloudAlbum?: string;
+  /** When every source last failed to answer; the sources rest until the back-off has passed. */
+  failedAt?: number;
+  /** When the editor last forced a refresh; the next forced one waits a few seconds. */
+  forcedAt?: number;
 }
 
 export type BackgroundCache = Record<string, RotationCacheEntry>;

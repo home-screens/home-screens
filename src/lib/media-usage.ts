@@ -1,7 +1,8 @@
 import { folderOf } from '@/lib/media-paths';
 import { mediaKindOf } from '@/lib/media-formats';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
-import type { SlideshowMediaTypes } from '@/types/config';
+import { isRotationActive, normalizePhotoSource } from '@/lib/photo-source';
+import type { PhotoSource, SlideshowMediaTypes } from '@/types/config';
 
 /**
  * Generic media-usage scan: walks the ENTIRE config JSON for strings that
@@ -42,7 +43,7 @@ export interface MissingMedia {
 // never read as a library reference; an absolute origin in front of the path
 // is tolerated because hand-edited configs sometimes carry one. Every
 // construction site puts `file` first (serve route serveUrl, rotate route,
-// background-download); a param ever prepended before it needs this revisited.
+// media-paths serveUrlFor); a param ever prepended before it needs this revisited.
 const SERVE_RE = /^(?:https?:\/\/[^/]+)?\/api\/backgrounds\/serve\?file=([^&]+)/;
 const LEGACY_STATIC_PREFIX = '/backgrounds/';
 /** Bare strings only count as a *missing* file when they end like a media
@@ -86,7 +87,7 @@ function kindFor(configPath: string): MediaUseKind {
 /**
  * The folder a module instance shows as a slideshow, or null when it shows a
  * single file or a non-library source. Mirrors the module's own fetch rules:
- * a local (or unset) source, and for fullscreen-photo the shared single-photo
+ * a library `photoSource`, and for fullscreen-photo the shared single-photo
  * mode check (a `file` key present in any form means one picture).
  */
 function slideshowFolder(node: Record<string, unknown>): string | null {
@@ -94,10 +95,37 @@ function slideshowFolder(node: Record<string, unknown>): string | null {
   const config = node.config;
   if (!config || typeof config !== 'object') return null;
   const c = config as Record<string, unknown>;
-  if (typeof c.directory !== 'string') return null;
-  if (c.source != null && c.source !== 'local') return null;
+  const source = normalizePhotoSource(c.photoSource);
+  if (source?.kind !== 'library') return null;
   if (node.type === 'fullscreen-photo' && isSinglePhotoMode(c)) return null;
-  return c.directory.replace(/^\/+|\/+$/g, '');
+  return source.folder;
+}
+
+/**
+ * The library folder a screen's rotating background picks from, or null
+ * when it reads another source. With `playing`, also null while rotation is
+ * off: only a rotation that is on holds on to the folder's last picture the
+ * way a slideshow does, but a folder rename must follow a switched-off one
+ * too, or turning it back on would read a folder that is gone.
+ */
+function rotationFolders(node: Record<string, unknown>, playing: boolean): Array<{ index: number; folder: string }> {
+  const rotation = node.backgroundRotation;
+  if (!rotation || typeof rotation !== 'object') return [];
+  const r = rotation as { sources?: unknown };
+  if (!Array.isArray(r.sources)) return [];
+  if (playing && !isRotationActive(r as { sources: PhotoSource[] })) return [];
+  const folders: Array<{ index: number; folder: string }> = [];
+  r.sources.forEach((entry, index) => {
+    const source = normalizePhotoSource(entry);
+    // Chosen pictures are files, which the string walk protects on its own.
+    if (source?.kind === 'library' && !source.pictures) folders.push({ index, folder: source.folder });
+  });
+  return folders;
+}
+
+/** True for a use that is a whole folder playing on a wall (a slideshow or a rotating background). */
+export function isRotatingBackgroundUse(use: Pick<MediaUse, 'kind' | 'configPath'>): boolean {
+  return use.kind === 'slideshow' && /\.backgroundRotation\.sources\.\d+\.folder$/.test(use.configPath);
 }
 
 /** What a slideshow module plays from its folder, mirroring its list fetch:
@@ -169,7 +197,15 @@ function walkConfig(
         onFolder({
           folder,
           shows: slideshowShows(obj),
-          use: { kind: 'slideshow', name: next.name, configPath: `${path}.config.directory`, ...ids(next) },
+          use: { kind: 'slideshow', name: next.name, configPath: `${path}.config.photoSource.folder`, ...ids(next) },
+          ...(next.displayName ? { displayName: next.displayName } : {}),
+        });
+      }
+      for (const { index, folder: rotating } of key === 'screens' ? rotationFolders(obj, true) : []) {
+        onFolder({
+          folder: rotating,
+          shows: 'photos',
+          use: { kind: 'slideshow', name: next.name, configPath: `${path}.backgroundRotation.sources.${index}.folder`, ...ids(next) },
           ...(next.displayName ? { displayName: next.displayName } : {}),
         });
       }
@@ -426,15 +462,34 @@ export function rewriteMediaRefs<T>(
       let touched = false;
       const out: Record<string, unknown> = {};
       const folder = slideshowFolder(obj);
+      const rotating = rotationFolders(obj, false);
       for (const [k, v] of Object.entries(obj)) {
         let next: unknown;
         if (k === 'config' && folder != null && v && typeof v === 'object') {
-          // The slideshow's own `directory` is not a file path; map it as a folder.
+          // A slideshow's folder is not a file path; map it as a folder.
           const c = { ...(v as Record<string, unknown>) };
           const nextFolder = mapFolder(folder);
-          if (nextFolder != null) { c.directory = nextFolder; changed += 1; }
+          if (nextFolder != null) {
+            c.photoSource = { ...(c.photoSource as Record<string, unknown>), folder: nextFolder };
+            changed += 1;
+          }
           const inner = walk(c) as Record<string, unknown>;
           next = inner === c && nextFolder == null ? v : inner;
+        } else if (k === 'backgroundRotation' && rotating.length > 0 && v && typeof v === 'object') {
+          // A rotating background's folders likewise, one per library entry.
+          const c = { ...(v as Record<string, unknown>) };
+          const sources = [...(c.sources as unknown[])];
+          let moved = false;
+          for (const { index, folder: own } of rotating) {
+            const nextFolder = mapFolder(own);
+            if (nextFolder == null) continue;
+            sources[index] = { ...(sources[index] as Record<string, unknown>), folder: nextFolder };
+            changed += 1;
+            moved = true;
+          }
+          if (moved) c.sources = sources;
+          const inner = walk(c) as Record<string, unknown>;
+          next = inner === c && !moved ? v : inner;
         } else {
           next = walk(v);
         }

@@ -164,7 +164,7 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
   {
     // Two images + a short interval: the second crossfades in (intervalMs). transition
     // 'none' means the slide layers carry no CSS transition (default 'fade' adds one).
-    type: 'photo-slideshow', name: 'no-transition-advance', kind: 'networked', stubKey: 'backgrounds', stubBody: [TINY_GIF, TINY_GIF_2],
+    type: 'photo-slideshow', name: 'no-transition-advance', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }, { url: TINY_GIF_2, type: 'image' }],
     config: { intervalMs: 100, transition: 'none' },
     expect: async (mod) => {
       await expect(mod.locator('img[src$="RAA7"]')).toBeAttached();
@@ -177,7 +177,7 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
   {
     // Crossfade path with a single image. transition 'none' → no CSS transition;
     // objectFit 'contain' → computed object-fit on the slide <img>.
-    type: 'fullscreen-photo', name: 'transition-none-contain', kind: 'networked', stubKey: 'backgrounds', stubBody: [TINY_GIF],
+    type: 'fullscreen-photo', name: 'transition-none-contain', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'none', objectFit: 'contain' },
     expect: async (mod) => {
       const img = mod.locator('img').first();
@@ -255,59 +255,90 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
       await expect(clock).toHaveCSS('color', 'rgb(255, 255, 255)');
     },
   },
+  // Every PhotoSource kind is a row per module: the list URL names the kind,
+  // and each kind's stub answers its own payload, so a fall-through to the
+  // library source would not match the payload-tail selectors below. The
+  // library kind is the fixture's default render.
   {
-    // source 'immich' routes the fetch to /api/immich/photos (the 'immich' stub
-    // serves the same bare URL array as backgrounds), and the image renders
-    // from that payload.
+    // An Immich source with filters lists through the immich stub.
     type: 'photo-slideshow', name: 'source-immich', kind: 'networked', stubKey: 'immich',
-    config: { source: 'immich' },
+    config: { photoSource: { kind: 'immich', albumId: 'a1b2c3', favoritesOnly: true } },
     expect: async (mod) => {
       await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
     },
   },
   {
-    // Same immich routing for the fullscreen viewer.
-    type: 'fullscreen-photo', name: 'source-immich', kind: 'networked', stubKey: 'immich',
-    config: { source: 'immich' },
-    expect: async (mod) => {
-      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
-    },
-  },
-  {
-    // source 'icloud' + a pasted share link route the fetch to
-    // /api/icloud/photos (legacy bare-array shape), and the image renders
-    // from that payload.
+    // An iCloud shared album lists through the icloud stub.
     type: 'photo-slideshow', name: 'source-icloud', kind: 'networked', stubKey: 'icloud',
-    config: { source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' },
+    config: { photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' } },
     expect: async (mod) => {
       await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
     },
   },
   {
-    // Same icloud routing for the fullscreen viewer.
-    type: 'fullscreen-photo', name: 'source-icloud', kind: 'networked', stubKey: 'icloud',
-    config: { source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' },
-    expect: async (mod) => {
-      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
-    },
-  },
-  {
-    // source 'onedrive' routes the fetch to /api/onedrive/photos (typed
-    // shape served by the 'onedrive' stub). The payload-tail selector is
-    // routing-sensitive: the backgrounds fixture's gif ends ICTAEAOw, so a
-    // fall-through to the local source would not match.
+    // A OneDrive folder lists through the onedrive stub (its gif ends RAA7).
     type: 'photo-slideshow', name: 'source-onedrive', kind: 'networked', stubKey: 'onedrive',
-    config: { source: 'onedrive', onedriveFolderId: 'FldE2E1' },
+    config: { photoSource: { kind: 'onedrive', folderId: 'FldE2E1', folderName: 'Family' } },
     expect: async (mod) => {
       await expect(mod.locator('img[src$="RAA7"]').first()).toBeAttached();
     },
   },
   {
-    // Same onedrive routing for the fullscreen viewer.
+    // Unsplash photos hotlink and credit their photographer in a corner, as Unsplash asks.
+    type: 'photo-slideshow', name: 'source-unsplash', kind: 'networked', stubKey: 'unsplash',
+    config: { photoSource: { kind: 'unsplash', query: 'mountains lake' } },
+    expect: async (mod) => {
+      await expect(mod.locator('img[src$="RAEAOw=="]').first()).toBeAttached();
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Photo by Ana Ruiz on Unsplash');
+    },
+  },
+  {
+    // NASA's pictures of the day list through the nasa stub (its gif ends ADs=).
+    type: 'photo-slideshow', name: 'source-nasa', kind: 'networked', stubKey: 'nasa',
+    config: { photoSource: { kind: 'nasa' } },
+    expect: async (mod) => {
+      await expect(mod.locator('img[src$="ADs="]').first()).toBeAttached();
+    },
+  },
+  {
+    // An Immich source with filters lists through the immich stub.
+    type: 'fullscreen-photo', name: 'source-immich', kind: 'networked', stubKey: 'immich',
+    config: { photoSource: { kind: 'immich', albumId: 'a1b2c3', favoritesOnly: true } },
+    expect: async (mod) => {
+      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
+    },
+  },
+  {
+    // An iCloud shared album lists through the icloud stub.
+    type: 'fullscreen-photo', name: 'source-icloud', kind: 'networked', stubKey: 'icloud',
+    config: { photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' } },
+    expect: async (mod) => {
+      await expect(mod.locator('img').first()).toHaveAttribute('src', /^data:image\/gif/);
+    },
+  },
+  {
+    // A OneDrive folder lists through the onedrive stub (its gif ends RAA7).
     type: 'fullscreen-photo', name: 'source-onedrive', kind: 'networked', stubKey: 'onedrive',
-    config: { source: 'onedrive', onedriveFolderId: 'FldE2E1' },
+    config: { photoSource: { kind: 'onedrive', folderId: 'FldE2E1', folderName: 'Family' } },
     expect: async (mod) => {
       await expect(mod.locator('img[src$="RAA7"]').first()).toBeAttached();
+    },
+  },
+  {
+    // Unsplash photos hotlink and credit their photographer in a corner, as Unsplash asks.
+    type: 'fullscreen-photo', name: 'source-unsplash', kind: 'networked', stubKey: 'unsplash',
+    config: { photoSource: { kind: 'unsplash', query: 'mountains lake' } },
+    expect: async (mod) => {
+      await expect(mod.locator('img[src$="RAEAOw=="]').first()).toBeAttached();
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Photo by Ana Ruiz on Unsplash');
+    },
+  },
+  {
+    // NASA's pictures of the day list through the nasa stub (its gif ends ADs=).
+    type: 'fullscreen-photo', name: 'source-nasa', kind: 'networked', stubKey: 'nasa',
+    config: { photoSource: { kind: 'nasa' } },
+    expect: async (mod) => {
+      await expect(mod.locator('img[src$="ADs="]').first()).toBeAttached();
     },
   },
 

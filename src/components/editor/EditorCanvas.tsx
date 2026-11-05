@@ -26,7 +26,9 @@ import { useCanvasZoom } from '@/hooks/useCanvasZoom';
 import { useCanvasBaseScale, CANVAS_TOOLBAR_RESERVE_PX } from '@/hooks/useCanvasBaseScale';
 import { useCanvasDragState } from '@/hooks/useCanvasDragState';
 import { useActiveBackground } from '@/hooks/useActiveBackground';
-import { resolveScreenBackground } from '@/lib/screen-background';
+import { buildRotationKey } from '@/components/display/useBackgroundRotation';
+import { resolveScreenBackground, isRotationActive } from '@/lib/screen-background';
+import BackgroundMediaLayer from '@/components/BackgroundMediaLayer';
 import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance, BackgroundEffects, BackgroundShade } from '@/types/config';
@@ -51,7 +53,6 @@ import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import CanvasToolbar from './CanvasToolbar';
 import StartFromTemplateButton from './StartFromTemplateButton';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
-import BackgroundMediaLayer from '@/components/BackgroundMediaLayer';
 
 /**
  * What an empty screen shows inside the display frame. The first editor visit
@@ -378,7 +379,8 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   // rotating background that the display is using.
   const rotatingBackground = useActiveBackground(
     currentScreen?.id,
-    currentScreen?.backgroundRotation?.enabled ?? false,
+    isRotationActive(currentScreen?.backgroundRotation),
+    currentScreen ? buildRotationKey([currentScreen]) : undefined,
   );
 
   // Reset zoom when switching screens

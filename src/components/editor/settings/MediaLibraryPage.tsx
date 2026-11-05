@@ -11,21 +11,20 @@ import {
   deleteLibraryFile,
   deleteLibraryFolder,
   moveLibraryFiles,
-  renameLibraryFolder,
-} from '@/lib/library-client';
-import { displayCache } from '@/lib/display-cache';
+  renameLibraryFolder, invalidateLibraryReads } from '@/lib/library-client';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorStore } from '@/stores/editor-store';
 import Button from '@/components/ui/Button';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import { useTranslate } from '@/i18n';
 import { MEDIA_SORTERS, type MediaInventory, type MediaInventoryItem, type MediaSortKey } from '@/lib/media-inventory';
-import { removalBlocksByFile, rewriteMediaRefs, type MediaUse, type MediaUseKind } from '@/lib/media-usage';
+import { isRotatingBackgroundUse, removalBlocksByFile, rewriteMediaRefs, type MediaUse, type MediaUseKind } from '@/lib/media-usage';
 import { TILE_THUMBNAIL_WIDTH, extensionOf, fileNameOf, folderOf, serveUrlFor, typeTagOf } from '@/lib/media-paths';
 import { formatBytes } from '@/lib/format-bytes';
 import { mediaKindOf } from '@/lib/media-formats';
 import { isUnplayableVideo } from '@/lib/video-codec';
 import MediaViewer, { UsedByEntry, type UsedByLine } from './MediaViewer';
+import { GooglePhotosImportSheet, ICloudImportSheet } from './MediaImportPanels';
 import { logger } from '@/lib/logger';
 
 const log = logger('media-library');
@@ -49,7 +48,9 @@ const KIND_LABELS: Record<KindFilter, string> = {
  *  slideshow keeping this file as its last picture says so. */
 function usageLabel(t: ReturnType<typeof useTranslate>, use: MediaUse, lastPicture = false): string {
   const kind = KNOWN_USE_KINDS.has(use.kind) ? use.kind : 'other';
-  const key = kind === 'slideshow' && lastPicture ? 'slideshowLast' : kind;
+  // A rotating background playing a folder is held like a slideshow but named for what it is.
+  const folderKind = isRotatingBackgroundUse(use) ? 'rotatingFolder' : 'slideshow';
+  const key = kind === 'slideshow' ? (lastPicture ? `${folderKind}Last` : folderKind) : kind;
   return t(`settings.mediaPage.kind.${key}`, { name: use.name || t('settings.mediaPage.unnamed') });
 }
 
@@ -110,6 +111,8 @@ export default function MediaLibraryPage() {
   const [deleteFailed, setDeleteFailed] = useState(0);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  /** One add-from-elsewhere panel at a time, in the upload panel's place. */
+  const [importPanel, setImportPanel] = useState<'icloud' | 'google' | null>(null);
   const [uploadDir, setUploadDir] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -220,7 +223,7 @@ export default function MediaLibraryPage() {
   /** Every mutation ends the same way: canvas previews forget their listing,
    *  the inventory reloads, and the page tells the user what happened. */
   const finish = async (result: Outcome | null) => {
-    displayCache.invalidateByPrefix('/api/backgrounds');
+    invalidateLibraryReads();
     if (result) setOutcome(result);
     await refresh();
   };
@@ -381,7 +384,7 @@ export default function MediaLibraryPage() {
         if (!isSessionExpired(err)) failedNow += 1;
       }
     }
-    if (deletedAny) displayCache.invalidateByPrefix('/api/backgrounds');
+    if (deletedAny) invalidateLibraryReads();
     setSelected(new Set());
     setRefused(refusedNow);
     setDeleteFailed(failedNow);
@@ -537,11 +540,27 @@ export default function MediaLibraryPage() {
         <Button
           variant="primary"
           size="sm"
-          onClick={() => setUploadOpen((open) => !open)}
+          onClick={() => { setImportPanel(null); setUploadOpen((open) => !open); }}
           disabled={busy}
           data-testid="media-upload-button"
         >
           {t('settings.mediaPage.upload')}
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => { setUploadOpen(false); setImportPanel((open) => (open === 'icloud' ? null : 'icloud')); }}
+          aria-pressed={importPanel === 'icloud'}
+          data-testid="media-icloud-button"
+        >
+          {t('photoSources.import.icloudTitle')}
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => { setUploadOpen(false); setImportPanel((open) => (open === 'google' ? null : 'google')); }}
+          aria-pressed={importPanel === 'google'}
+          data-testid="media-google-button"
+        >
+          {t('photoSources.google.add')}
         </Button>
         <Button
           variant="danger"
@@ -624,6 +643,13 @@ export default function MediaLibraryPage() {
             )))}
           </div>
         </div>
+      )}
+
+      {importPanel === 'icloud' && (
+        <ICloudImportSheet initialFolder={currentFolder ?? ''} directories={directories} onImported={() => void refresh()} />
+      )}
+      {importPanel === 'google' && (
+        <GooglePhotosImportSheet initialFolder={currentFolder ?? ''} directories={directories} onImported={() => void refresh()} />
       )}
 
       {uploadOpen && (

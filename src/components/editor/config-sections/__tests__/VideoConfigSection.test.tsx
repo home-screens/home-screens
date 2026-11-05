@@ -23,7 +23,7 @@ vi.mock('@/hooks/useModuleConfig', () => ({
   useModuleConfig: () => ({ config: moduleState.config, set: moduleState.set }),
 }));
 
-vi.mock('@/components/editor/ImageBrowserModal', () => ({
+vi.mock('@/components/editor/picture-picker/PicturePicker', () => ({
   default: ({ initialDirectory }: { initialDirectory?: string }) => (
     <div data-testid="image-browser" data-directory={initialDirectory ?? ''} />
   ),

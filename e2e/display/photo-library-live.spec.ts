@@ -48,18 +48,25 @@ function trackServedPictures(page: Page): string[] {
   return served;
 }
 
+/** The wall's read of one library folder's slideshow list. */
+function isFolderList(url: URL, folder: string): boolean {
+  return url.pathname === '/api/photo-source/media'
+    && url.searchParams.get('kind') === 'library'
+    && url.searchParams.get('folder') === folder;
+}
+
 test('a photo added from a phone reaches the wall\'s slideshow within a few beats', async ({ page, request }) => {
   const folder = uniqueFolder();
   created.push(folder);
   await seedImage(request, folder, 'e2e-first.png');
-  const slideshow = buildModuleInstance('photo-slideshow', { source: 'local', directory: folder });
+  const slideshow = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder } });
 
-  const listReads: string[][] = [];
+  const listReads: unknown[][] = [];
   page.on('response', async (res) => {
     const url = new URL(res.url());
-    if (url.pathname !== '/api/backgrounds' || url.searchParams.get('directory') !== folder) return;
+    if (!isFolderList(url, folder)) return;
     try {
-      listReads.push(await res.json() as string[]);
+      listReads.push(await res.json() as unknown[]);
     } catch {
       // A reload disposed the body; the next read counts.
     }
@@ -77,14 +84,14 @@ test('a photo still reaches the wall when the first re-read after it fails', asy
   const folder = uniqueFolder();
   created.push(folder);
   await seedImage(request, folder, 'e2e-first.png');
-  const slideshow = buildModuleInstance('photo-slideshow', { source: 'local', directory: folder });
-  const isList = (url: URL) => url.pathname === '/api/backgrounds' && url.searchParams.get('directory') === folder;
+  const slideshow = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder } });
+  const isList = (url: URL) => isFolderList(url, folder);
 
-  const listReads: string[][] = [];
+  const listReads: unknown[][] = [];
   page.on('response', async (res) => {
     if (!isList(new URL(res.url())) || !res.ok()) return;
     try {
-      listReads.push(await res.json() as string[]);
+      listReads.push(await res.json() as unknown[]);
     } catch {
       // A reload disposed the body; the next read counts.
     }
@@ -110,7 +117,7 @@ test('the slideshow moves on when the phone says next', async ({ page, request }
   created.push(folder);
   for (const name of ['e2e-a.png', 'e2e-b.png', 'e2e-c.png']) await seedImage(request, folder, name);
   // A long interval, so only the command moves it.
-  const slideshow = buildModuleInstance('photo-slideshow', { source: 'local', directory: folder, intervalMs: 600_000 });
+  const slideshow = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder }, intervalMs: 600_000 });
   const served = trackServedPictures(page);
   await renderOnDisplay(page, request, baseConfig({ screens: [makeScreen('s1', 'Hall', [slideshow])] }));
   await expect.poll(() => new Set(served.filter((f) => f.startsWith(`${folder}/`))).size).toBe(1);

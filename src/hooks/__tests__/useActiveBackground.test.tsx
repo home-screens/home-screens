@@ -4,6 +4,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 
 const editorFetch = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/editor-fetch', () => ({ editorFetch }));
+import { useEditorStore } from '@/stores/editor-store';
 
 import { useActiveBackground } from '../useActiveBackground';
 
@@ -31,10 +32,30 @@ async function answer(id: string, res: Response | Error = new Response(JSON.stri
 }
 
 function mount(id: string, on: boolean) {
-  return renderHook(({ id, on }) => useActiveBackground(id, on), { initialProps: { id, on } });
+  return renderHook(({ id, on, key }: { id: string; on: boolean; key?: string }) => useActiveBackground(id, on, key), { initialProps: { id, on } as { id: string; on: boolean; key?: string } });
 }
 
 describe('useActiveBackground', () => {
+  it('re-asks once the save carrying a rotation change has landed, not on the next 30 s poll', async () => {
+    const { rerender } = mount('a', true);
+    await answer('a');
+    expect(open).toHaveLength(0);
+
+    // The edit is still unsaved: the hub would answer from the old config.
+    act(() => { useEditorStore.setState({ isDirty: true, isSaving: false }); });
+    rerender({ id: 'a', on: true, key: 'tiles-changed' });
+    await act(async () => { await Promise.resolve(); });
+    expect(open).toHaveLength(0);
+    act(() => { useEditorStore.setState({ isDirty: false, isSaving: true }); });
+    await act(async () => { await Promise.resolve(); });
+    expect(open).toHaveLength(0);
+
+    // Saved: ask now.
+    act(() => { useEditorStore.setState({ isDirty: false, isSaving: false }); });
+    await act(async () => { await Promise.resolve(); });
+    expect(open.some((o) => o.id === 'a')).toBe(true);
+  });
+
   it('has no answer for a rotating screen until its lookup comes back', async () => {
     const { result } = mount('a', true);
     expect(result.current).toBeUndefined();

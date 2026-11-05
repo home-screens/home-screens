@@ -384,9 +384,8 @@ const WRAPPER_ACCESS: Record<string, DocsAccess> = {
   withAuth: 'session',
   withDisplayAuth: 'display',
   withMediaTokenAuth: 'media',
-  // src/lib/route-factories.ts: both wrap their handler in withAuth.
+  // src/lib/route-factories.ts: wraps its handler in withAuth.
   createTagActionRoute: 'session',
-  createImageDownloadHandler: 'session',
 };
 
 /** Access for a hand-written handler, from the auth checks it makes itself. */

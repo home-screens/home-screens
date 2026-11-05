@@ -6,6 +6,13 @@ import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 export interface EditorData<T> {
   data: T | null;
   error: boolean;
+  /**
+   * The hub's answer when it refused the read: its status and JSON body (null
+   * when the body was not JSON). Null for a network failure or a success. Lets
+   * a caller tell "your Immich key can't see albums" (403 with a reason) from
+   * the server being away.
+   */
+  failure: { status: number; body: unknown } | null;
   loading: boolean;
   refetch: () => void;
 }
@@ -30,6 +37,7 @@ export function useEditorData<T>(
 ): EditorData<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState(false);
+  const [failure, setFailure] = useState<EditorData<T>['failure']>(null);
   const [loading, setLoading] = useState(false);
   // Bumped by refetch() to re-run the effect without a URL change.
   const [reloadTick, setReloadTick] = useState(0);
@@ -40,12 +48,14 @@ export function useEditorData<T>(
     if (!url) {
       setData(null);
       setError(false);
+      setFailure(null);
       setLoading(false);
       return;
     }
     const controller = new AbortController();
     setLoading(true);
     setError(false);
+    setFailure(null);
 
     editorFetch(url, { signal: controller.signal, timeoutMs })
       .then(async (res) => {
@@ -56,6 +66,9 @@ export function useEditorData<T>(
           setData(json);
           setError(false);
         } else {
+          const body: unknown = await res.json().catch(() => null);
+          if (controller.signal.aborted) return;
+          setFailure({ status: res.status, body });
           setError(true);
         }
       })
@@ -72,5 +85,5 @@ export function useEditorData<T>(
     return () => controller.abort();
   }, [url, reloadTick, timeoutMs]);
 
-  return { data, error, loading, refetch };
+  return { data, error, failure, loading, refetch };
 }
