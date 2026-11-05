@@ -1132,7 +1132,7 @@ test('photo-slideshow: every source is listed, and one without its key says so',
 
   const source = page.getByLabel('Photo Source');
   await expect(source.locator('option')).toHaveText([
-    'Library folder',
+    'Library',
     'Immich (needs setting up)',
     'iCloud shared album',
     'OneDrive (needs setting up)',

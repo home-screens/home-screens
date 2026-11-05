@@ -35,7 +35,7 @@ const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 0)
 function renderFields(use: 'stream' | 'background', photoSource: PhotoSource, extra: Record<string, unknown> = {}) {
   const onChange = vi.fn();
   const view = render(wrap(<PhotoSourceFields use={use} value={{ photoSource, ...extra }} onChange={onChange} />));
-  const sourceSelect = () => screen.getByDisplayValue(/Library folder|Immich|iCloud|OneDrive|Unsplash|NASA/) as HTMLSelectElement;
+  const sourceSelect = () => screen.getByDisplayValue(/^Library|Immich|iCloud|OneDrive|Unsplash|NASA/) as HTMLSelectElement;
   return { onChange, view, sourceSelect };
 }
 
@@ -47,7 +47,7 @@ describe('PhotoSourceFields', () => {
     const { sourceSelect } = renderFields(use, { kind: 'library', folder: '' });
     await settle();
     expect(Array.from(sourceSelect().options).map((o) => o.text)).toEqual([
-      'Library folder',
+      'Library',
       'Immich',
       'iCloud shared album',
       'OneDrive (needs setting up)',

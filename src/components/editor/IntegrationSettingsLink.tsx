@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { settingsPath } from '@/lib/settings-route';
 
-export type BackgroundIntegration = 'immich' | 'unsplash' | 'nasa';
+export type BackgroundIntegration = 'immich' | 'unsplash' | 'nasa' | 'microsoft';
 
 /** Link to the Settings > Integrations card for a background source that still needs its key. */
 export default function IntegrationSettingsLink({ integration, children }: { integration: BackgroundIntegration; children: ReactNode }) {

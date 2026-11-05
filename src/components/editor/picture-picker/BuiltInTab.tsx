@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useTranslate } from '@/i18n';
-import { useEditorStore, getActiveFullscreenTheme } from '@/stores/editor-store';
+import { useEditorStore } from '@/stores/editor-store';
+import { getActiveFullscreenTheme } from '@/lib/editor-multi-display';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { STARTER_BACKGROUNDS_URL, starterBackgroundsIn, type StarterBackgroundGroup } from '@/lib/starter-backgrounds';
 import { STARTER_DAY_ART, STARTER_DAY_ART_URL } from '@/lib/starter-day-art';

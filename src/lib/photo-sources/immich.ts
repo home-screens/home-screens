@@ -31,10 +31,37 @@ function failed(res: Response, permission: ImmichPermission, what: string): neve
 
 function filters(source: ImmichSource): Record<string, unknown> {
   const body: Record<string, unknown> = {};
-  if (source.albumId) body.albumIds = [source.albumId];
-  if (source.personId) body.personIds = [source.personId];
+  if (source.albumIds?.length) body.albumIds = source.albumIds;
+  if (source.personIds?.length) body.personIds = source.personIds;
   if (source.favoritesOnly) body.isFavorite = true;
   return body;
+}
+
+/**
+ * Whether an asset shows anyone on the exclude list. Immich's random search
+ * has no "not these people", so the candidates are checked afterwards, all
+ * at once. An answer that cannot be read (a key without the permission that
+ * fills `people`) is unknown, and an unknown photo is kept rather than
+ * dropped: the filter must never make a source go silent.
+ */
+async function showsExcludedPerson(asset: ImmichAsset, excludePersonIds: string[]): Promise<boolean> {
+  const listed = (asset as { people?: Array<{ id?: string }> }).people;
+  const people = Array.isArray(listed) ? listed : await (async () => {
+    const res = await immichFetch(`/api/assets/${asset.id}`).catch(() => null);
+    if (!res?.ok) return null;
+    const detail = await res.json().catch(() => null) as { people?: Array<{ id?: string }> } | null;
+    return Array.isArray(detail?.people) ? detail.people : null;
+  })();
+  if (!people) return false;
+  return people.some((person) => typeof person.id === 'string' && excludePersonIds.includes(person.id));
+}
+
+/** The candidates without anyone on the exclude list, checked in parallel. */
+async function withoutExcluded(assets: ImmichAsset[], source: ImmichSource): Promise<ImmichAsset[]> {
+  const exclude = source.excludePersonIds ?? [];
+  if (exclude.length === 0 || assets.length === 0) return assets;
+  const flags = await Promise.all(assets.map((asset) => showsExcludedPerson(asset, exclude)));
+  return assets.filter((_, i) => !flags[i]);
 }
 
 /**
@@ -71,9 +98,9 @@ function collectionFilters(collection: string): ImmichSource | null {
   if (collection === 'all') return { kind: 'immich' };
   if (collection === 'favorites') return { kind: 'immich', favoritesOnly: true };
   const album = /^album:([a-f0-9-]{1,64})$/i.exec(collection);
-  if (album) return { kind: 'immich', albumId: album[1] };
+  if (album) return { kind: 'immich', albumIds: [album[1]] };
   const person = /^person:([a-f0-9-]{1,64})$/i.exec(collection);
-  if (person) return { kind: 'immich', personId: person[1] };
+  if (person) return { kind: 'immich', personIds: [person[1]] };
   return null;
 }
 
@@ -85,7 +112,10 @@ export const immichPhotoSource: PhotoSourceAdapter<'immich'> & PickableSource = 
     const cached = listCache.get(cacheKey);
     if (cached) return cached;
     let assets: ImmichAsset[];
-    if (media === 'photos') {
+    if (source.assetIds) {
+      // Hand-picked photos play as they are; videos are never picked.
+      assets = media === 'videos' ? [] : source.assetIds.map((id) => ({ id, type: 'IMAGE' }) as ImmichAsset);
+    } else if (media === 'photos') {
       assets = await searchRandom(source, 'IMAGE', count);
     } else if (media === 'videos') {
       assets = await searchRandom(source, 'VIDEO', count);
@@ -94,16 +124,27 @@ export const immichPhotoSource: PhotoSourceAdapter<'immich'> & PickableSource = 
       // Merged photo+video results interleave randomly.
       assets = shuffleArray([...images, ...videos]).slice(0, count);
     }
+    if (!source.assetIds) assets = await withoutExcluded(assets, source);
     const items = await Promise.all(assets.map(toItem));
     listCache.set(cacheKey, items);
     return items;
   },
 
-  async pickOne({ source }) {
-    const [asset] = await searchRandom(source, 'IMAGE', 1);
-    if (!asset) return null;
+  async pickOne({ source, previous }) {
+    let id: string | undefined;
+    if (source.assetIds) {
+      // A rotation that lands on the photo already showing doesn't rotate.
+      const others = source.assetIds.length > 1 ? source.assetIds.filter((assetId) => !previous?.includes(assetId)) : source.assetIds;
+      id = others[Math.floor(Math.random() * others.length)];
+    } else {
+      // A handful of candidates, so an excluded person leaves something to show.
+      const candidates = await withoutExcluded(await searchRandom(source, 'IMAGE', source.excludePersonIds?.length ? 10 : 1), source);
+      id = candidates[0]?.id;
+    }
+    if (!id) return null;
+    const assetId = id;
     // The preview is display-sized and always a web format, unlike an original (HEIC, RAW).
-    return { kind: 'download', id: asset.id, open: () => immichFetch(`/api/assets/${asset.id}/thumbnail?size=preview`, { timeout: 30_000 }) };
+    return { kind: 'download', id: assetId, open: () => immichFetch(`/api/assets/${assetId}/thumbnail?size=preview`, { timeout: 30_000 }) };
   },
 
   /**

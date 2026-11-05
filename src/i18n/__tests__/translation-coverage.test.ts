@@ -5,31 +5,33 @@ import { flatten, loadDict } from './helpers/dict';
 import { getAllModuleDefinitions } from '@/lib/module-registry';
 
 /**
- * Untranslated-value ratchet — the third side of the parity guarantee.
+ * Untranslated-value ratchet: the third side of the parity guarantee.
  *
  * `locale-parity.test.ts` catches orphan keys and
  * `dictionary-completeness.test.ts` catches missing keys, but both compare
  * *key sets* only. A locale seeded by copying `en-US/*.json` and translating
- * incrementally passes both at 0% translated — which is exactly how da-DK
+ * incrementally passes both at 0% translated: which is exactly how da-DK
  * shipped 2,743 verbatim-English strings while both ratchets stayed green.
  *
  * This file compares *values*: a locale entry byte-identical to its en-US
  * source is presumed untranslated. Two escape hatches keep that presumption
  * honest:
  *
- *  - `SHARED_UNTRANSLATABLE` — entries that are correctly identical in every
+ *  - `SHARED_UNTRANSLATABLE`: entries that are correctly identical in every
  *    locale: brand names (NASA, Immich, Todoist), technical tokens (URL, TTL,
  *    DHCP, SHA-256), units, and templates that are pure interpolation
  *    (`{name} ({id})`). These never count against any locale.
- *  - `BUDGETS` — per-locale allowance for the remaining long tail, which is a
+ *  - `BUDGETS`: per-locale allowance for the remaining long tail, which is a
  *    mix of real gaps and words that happen to be spelled the same in that
  *    language ("Horizontal" in es/fr/pt, "Tickets" in de/nl). Budgets may only
  *    go down; `translation-coverage` fails both when a locale regresses past
  *    its budget and when a budget has gone stale after an improvement.
  */
 
-/** Correctly identical in every locale — brand names, tokens, units, pure interpolation. */
+/** Correctly identical in every locale: brand names, tokens, units, pure interpolation. */
 const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
+    // Rows main added while the photo-source branch was open.
+    'editor|backgroundPicker.sourcesGroup',
   // The product name, rendered as the watermark's eyebrow on an empty display.
   'core|emptyDisplay.eyebrow',
   // Unit abbreviations on the paused pill's countdown ("4 min", "45 s").
@@ -39,7 +41,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|accentColorPicker.presets.cyan',
   'editor|accentColorPicker.presets.orange',
   'editor|accentColorPicker.presets.pink',
-  'editor|backgroundPicker.statusGroup',
   // "Beta" is the same software term in every shipped language; the update
   // choice's other labels are translated words.
   'editor|settings.systemPage.channel.beta.label',
@@ -62,11 +63,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // "{name}, {slot}, {day}": a planned cell's spoken name in the planner window.
   'editor|mealPlannerModal.weekGrid.mealCellAriaLabel',
   'editor|canvas.zoomPercent',
-  // "{days}, {time}" — punctuation around two interpolated fragments.
+  // "{days}, {time}": punctuation around two interpolated fragments.
   'editor|scheduleEditor.summary.short',
   // "{screens} · {when}": the profile card's collapsed summary is the screen
   // count and the schedule, both already localized, joined by a separator.
   'editor|settings.profilesPage.card.summaryScheduled',
+  'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',
   'editor|configSections.clock.elapsedFormat',
@@ -105,7 +107,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|configSections.shape.viewPolygon',
   'editor|configSections.shape.viewZigzag',
   'editor|configSections.text.effectOptions.neon',
-  'editor|configSections.text.emoji',
   'editor|configSections.text.interval',
   'editor|configSections.text.markdown',
   'editor|configSections.text.revealOptions.zoom',
@@ -195,14 +196,12 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.pluginStorePanel.title',
   'editor|settings.profilesPage.displayPicker.optionLabel',
   'editor|settings.rulesPage.displayPicker.optionLabel',
-  'editor|settings.securityPage.forgotPasswordCode',
   'editor|settings.securityPage.ipAllowlist.ipv4Warning.linkLocal',
   'editor|settings.securityPage.ipAllowlist.lockedOutHintCode',
   'editor|settings.sharedStatePage.displayPicker.optionLabel',
   'editor|settings.sidebar.displays',
   'editor|settings.sidebar.navLabels.displays',
   'editor|settings.sidebar.navLabels.stats',
-  'editor|settings.sidebar.websiteTitle',
   'editor|settings.statsSection.cacheTtl',
   'editor|settings.statsSection.cacheUrl',
   'editor|settings.statsSection.deviceMemoryGb',
@@ -254,7 +253,6 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'modules|meal-planner.recipe.batchTimes',
   'modules|meal-planner.time.minutes',
   'modules|meal-planner.time.minutesShort',
-  'modules|rain-map.minutesAhead',
   'modules|stock-ticker.headers.symbol',
   'modules|todoist.priority.normal',
   'modules|traffic.unitMin',
@@ -296,7 +294,7 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
 /**
  * Per-locale: words this language genuinely spells the same as English.
  * "Horizontal"/"Vertical" in es/fr/pt, "Ticket(s)" everywhere (every locale
- * deliberately adopted the loanword — see `chore-chart.totalTickets`),
+ * deliberately adopted the loanword: see `chore-chart.totalTickets`),
  * "Canvas"/"Blur"/"Screensaver" in nl, "six" in fr, "zero" in pt. Each entry
  * was checked against how the same concept is worded elsewhere in that
  * locale's own files; anything internally inconsistent was translated instead.
@@ -344,7 +342,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
     // Photo sources: the same words in this language.
     'editor|photoSources.immich.album',
-    'editor|photoSources.immich.person',
     'editor|photoSources.nasa.ideas.mars',
     'editor|photoSources.nasa.ideas.saturn',
     'editor|photoSources.nasa.ideas.jupiter',
@@ -446,7 +443,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.notes.groupLayouts',
     // Photo sources: the same words in this language.
     'editor|photoSources.immich.album',
-    'editor|photoSources.immich.person',
     'editor|photoSources.nasa.ideas.mars',
     'editor|photoSources.nasa.ideas.saturn',
     'editor|photoSources.nasa.ideas.jupiter',
@@ -529,6 +525,13 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.picker.ideas',
   ]),
   'fr-FR': new Set([
+    // Sources and Collection(s) are the French words too (the background sources).
+    'editor|backgroundPicker.sourcesGroup',
+    'editor|photoSources.modes.collections',
+    'editor|photoSources.unsplash.collectionLabel',
+    // Rows main added while the photo-source branch was open.
+    'modules|meal-planner.recipeBook.filters.dessert',
+    'editor|backgroundPicker.effectsSaturationLabel',
     // Double and Triple are the French words too (a double batch).
     'modules|meal-planner.recipe.batchDouble',
     'modules|meal-planner.recipe.batchTriple',
@@ -537,7 +540,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'remote|mealPicker.savedAs.dessert',
     'editor|mealPlannerModal.library.filters.dessert',
     'remote|mealsTab.library.filters.dessert',
-    'modules|meal-planner.recipeBook.filters.dessert',
     // "Dessert" is the French word for a meal's dessert course and kind of dish.
     'modules|meal-planner.courses.dessert',
     'core|meal.kind.dessert',
@@ -549,8 +551,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|configSections.fullscreen-chore-chart.celebrationSimple',
     // "Conditions" is the same word in French (the Weather module's Conditions view).
     'editor|configSections.fullscreen-weather.viewConditions',
-    // "Saturation" is the same word in this language.
-    'editor|backgroundPicker.effectsSaturationLabel',
     // "Bonus" is the same word in this language (bonus chores).
     'modules|chore-chart.bonus.heading',
     'modules|chore-chart.choreForm.kindBonus',
@@ -633,7 +633,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|settings.perDisplayPage.overview.fieldLabels.transitionEffect',
     'editor|settings.pluginAuth.garmin.mfaPlaceholder',
     'editor|settings.rulesPage.card.actionKindLabel',
-    'editor|settings.sidebar.docsTitle',
     'editor|settings.sidebar.groups.admin',
     'editor|settings.statsSection.configurationTitle',
     'editor|settings.statsSection.dataConfiguration',
@@ -711,8 +710,12 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
-    // "Filters" is the Dutch word too.
-    'editor|backgroundPicker.immich.modeFilters',
+    // Filters is the Dutch word too (the Immich mode).
+    'editor|photoSources.modes.filters',
+    // Rows main added while the photo-source branch was open.
+    'editor|backgroundPicker.effectsContrastLabel',
+    'modules|meal-planner.recipeBook.filters.comfort',
+    'modules|lookAhead.later',
     // Half is the Dutch word too (a half batch).
     'modules|meal-planner.recipe.batchHalf',
     // "Bonus" and "tickets" are the same words in this language.
@@ -722,8 +725,6 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|sports.win',
     // "Media" is the Dutch word too (a template category).
     'editor|templatePicker.categories.Media',
-    // "Contrast" is the same word in this language.
-    'editor|backgroundPicker.effectsContrastLabel',
     // "Bonus" is the same word in this language (bonus chores).
     'modules|chore-chart.bonus.heading',
     'modules|chore-chart.choreForm.kindBonus',
@@ -849,10 +850,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     // "Details" is the standard word in Dutch.
     'editor|settings.shared.secretField.detailsToggle',
     'remote|mealsTab.library.filters.comfort',
-    'modules|meal-planner.recipeBook.filters.comfort',
     'remote|mealsTab.subNav.plan',
-    // "Later" is the Dutch word too (the look-ahead arrow's name).
-    'modules|lookAhead.later',
     // "Week" is the Dutch word too (the Meals tab's week view).
     'remote|mealsTab.subNav.week',
     'remote|rewardsView.ticketCountPlural',
@@ -1041,7 +1039,7 @@ describe('translation coverage (untranslated-value ratchet)', () => {
       const found = untranslatedKeys(locale);
       expect(
         found.length,
-        `${locale} now has only ${found.length} untranslated values — lower its BUDGETS entry to ${found.length}.`,
+        `${locale} now has only ${found.length} untranslated values: lower its BUDGETS entry to ${found.length}.`,
       ).toBeGreaterThanOrEqual(budget);
     });
   }

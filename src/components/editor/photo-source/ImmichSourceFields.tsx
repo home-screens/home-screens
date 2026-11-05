@@ -3,13 +3,13 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import LabeledField from '@/components/ui/LabeledField';
-import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useTranslate } from '@/i18n';
 import type { ImmichAlbumSummary, ImmichPersonSummary } from '@/lib/immich';
 import { missingImmichPermission } from '@/lib/immich-permissions';
 import ImmichPermissionNote from './ImmichPermissionNote';
+import CheckboxList from './CheckboxList';
 import { PHOTO_SOURCE_MEDIA_PATH, photoSourceParams } from '@/lib/photo-source';
 import type { MediaListItem, PhotoSource } from '@/types/config';
 
@@ -27,37 +27,38 @@ interface Props {
 }
 
 /**
- * Immich's part of the photo source fields: the one copy of the connection
- * line and the album, person and favorites filters, used by slideshows and
- * rotating backgrounds alike. Album and person narrow the same search, and
- * choosing one clears the other.
+ * Immich's filters: the one copy of the connection line and the album,
+ * people, left-out people and favorites choices, used by slideshows and
+ * rotating backgrounds alike. Albums and people are any-of lists; nothing
+ * ticked means any. The filters narrow one search together.
  */
 export function ImmichSourceFields({ source, onChange }: Props) {
   const t = useTranslate('editor');
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [checking, setChecking] = useState(true);
 
-  const albumId = source.albumId ?? '';
-  const personId = source.personId ?? '';
+  const albumIds = source.albumIds ?? [];
+  const personIds = source.personIds ?? [];
+  const excludePersonIds = source.excludePersonIds ?? [];
   const favoritesOnly = source.favoritesOnly === true;
   const set = (patch: Partial<ImmichSource>) => {
     const next: ImmichSource = { ...source, ...patch };
     // Absent rather than empty, so the saved source reads the same as a fresh one.
-    if (!next.albumId) delete next.albumId;
-    if (!next.personId) delete next.personId;
+    if (!next.albumIds?.length) delete next.albumIds;
+    if (!next.personIds?.length) delete next.personIds;
+    if (!next.excludePersonIds?.length) delete next.excludePersonIds;
     if (!next.favoritesOnly) delete next.favoritesOnly;
     onChange(next);
   };
 
-  // Albums + people load once the connection authenticates; disabling the URL
-  // (null) until then mirrors the old `if (!status?.authenticated) return`.
+  // Albums + people load once the connection authenticates.
   const authed = !!status?.authenticated;
   const { data: albumsData, failure: albumsFailure } = useEditorData<ImmichAlbumSummary[]>(authed ? '/api/immich/albums' : null);
   const albums = albumsData ?? [];
   const { data: peopleData, failure: peopleFailure } = useEditorData<ImmichPersonSummary[]>(authed ? '/api/immich/people' : null);
   const people = peopleData ?? [];
   // A key that can show photos but not list albums or people: say which box
-  // to tick instead of leaving the list at "Any album" with no reason.
+  // to tick instead of leaving the list empty with no reason.
   const albumsHidden = missingImmichPermission(albumsFailure);
   const peopleHidden = missingImmichPermission(peopleFailure);
 
@@ -71,8 +72,8 @@ export function ImmichSourceFields({ source, onChange }: Props) {
     [previewData],
   );
 
-  const selectedAlbum = albums.find((a) => a.id === albumId);
-  const photoCount = selectedAlbum ? selectedAlbum.assetCount : null;
+  const photoCount = albumIds.length === 1 ? albums.find((a) => a.id === albumIds[0])?.assetCount ?? null : null;
+  const peopleOptions = people.map((p) => ({ id: p.id, label: p.name, thumbnailUrl: p.thumbnailUrl }));
 
   const checkConnection = useCallback(async () => {
     setChecking(true);
@@ -116,55 +117,47 @@ export function ImmichSourceFields({ source, onChange }: Props) {
 
       {status?.authenticated && (
         <>
-          {/* Album picker */}
-          <LabeledField label={t('photoSources.immich.album')}>
+          <LabeledField label={t('photoSources.immich.albums')}>
             {albumsHidden && <ImmichPermissionNote permission={albumsHidden} className="mb-1" />}
-            <select
-              value={albumId}
-              onChange={(e) => set({ albumId: e.target.value || undefined, personId: undefined })}
-              className={INPUT_CLASS}
-            >
-              <option value="">{t('photoSources.immich.anyAlbum')}</option>
-              {albums.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name} ({a.assetCount})
-                </option>
-              ))}
-            </select>
+            <p className="mb-1 text-[10px] text-hs-text-faint">{albumIds.length === 0 ? t('photoSources.immich.anyAlbum') : t('photoSources.immich.albumsChosen', { count: albumIds.length })}</p>
+            <CheckboxList
+              options={albums.map((a) => ({ id: a.id, label: `${a.name} (${a.assetCount})` }))}
+              selected={albumIds}
+              onChange={(ids) => set({ albumIds: ids })}
+              emptyLabel={t('photoSources.immich.noAlbums')}
+              testId="immich-albums"
+            />
           </LabeledField>
 
-          {/* Person filter */}
-          <LabeledField label={t('photoSources.immich.person')}>
+          <LabeledField label={t('photoSources.immich.people')}>
             {peopleHidden && <ImmichPermissionNote permission={peopleHidden} className="mb-1" />}
-            <div className="flex gap-1.5 items-center">
-              <select
-                value={personId}
-                onChange={(e) => set({ personId: e.target.value || undefined, albumId: undefined })}
-                className={`${INPUT_CLASS} flex-1`}
-              >
-                <option value="">{t('photoSources.immich.anyone')}</option>
-                {people.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-              {personId && people.find((p) => p.id === personId)?.thumbnailUrl && (
-                <img
-                  src={people.find((p) => p.id === personId)!.thumbnailUrl}
-                  alt=""
-                  className="w-6 h-6 rounded-full object-cover border border-hs-border-strong"
-                />
-              )}
-            </div>
+            <p className="mb-1 text-[10px] text-hs-text-faint">{personIds.length === 0 ? t('photoSources.immich.anyone') : t('photoSources.immich.peopleChosen', { count: personIds.length })}</p>
+            <CheckboxList
+              options={peopleOptions}
+              selected={personIds}
+              onChange={(ids) => set({ personIds: ids, excludePersonIds: excludePersonIds.filter((id) => !ids.includes(id)) })}
+              emptyLabel={t('photoSources.immich.noPeople')}
+              testId="immich-people"
+            />
           </LabeledField>
 
-          {/* Favorites toggle */}
+          <LabeledField label={t('photoSources.immich.leaveOut')}>
+            <p className="mb-1 text-[10px] text-hs-text-faint">{excludePersonIds.length === 0 ? t('photoSources.immich.noOneLeftOut') : t('photoSources.immich.leftOutChosen', { count: excludePersonIds.length })}</p>
+            <CheckboxList
+              options={peopleOptions.filter((p) => !personIds.includes(p.id))}
+              selected={excludePersonIds}
+              onChange={(ids) => set({ excludePersonIds: ids })}
+              emptyLabel={t('photoSources.immich.noPeople')}
+              testId="immich-exclude"
+            />
+          </LabeledField>
+
           <Toggle
             label={t('photoSources.immich.favoritesOnly')}
             checked={favoritesOnly}
             onChange={(v) => set({ favoritesOnly: v })}
           />
 
-          {/* Preview strip */}
           {previewImages.length > 0 && (
             <div className="mt-1.5">
               {photoCount !== null && (

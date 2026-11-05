@@ -1,4 +1,5 @@
 import type { Screen } from '@/types/config';
+import { isRotationActive } from '@/lib/photo-source';
 import { isScreenEmpty } from '@/lib/display-filter';
 import { isPinnedModule } from '@/lib/pinned-modules';
 
@@ -36,6 +37,6 @@ export function selectRotatingScreens(screens: Screen[]): Screen[] {
 function hasNothingOfItsOwn(screen: Screen): boolean {
   if (isScreenEmpty(screen)) return true;
   return !screen.backgroundImage
-    && !screen.backgroundRotation?.enabled
+    && !isRotationActive(screen.backgroundRotation)
     && screen.modules.every((mod) => isPinnedModule(mod) || mod.backgroundProvider === true);
 }

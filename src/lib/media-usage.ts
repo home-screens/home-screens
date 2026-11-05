@@ -1,8 +1,8 @@
 import { folderOf } from '@/lib/media-paths';
 import { mediaKindOf } from '@/lib/media-formats';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
-import { normalizePhotoSource } from '@/lib/photo-source';
-import type { SlideshowMediaTypes } from '@/types/config';
+import { isRotationActive, normalizePhotoSource } from '@/lib/photo-source';
+import type { PhotoSource, SlideshowMediaTypes } from '@/types/config';
 
 /**
  * Generic media-usage scan: walks the ENTIRE config JSON for strings that
@@ -108,18 +108,24 @@ function slideshowFolder(node: Record<string, unknown>): string | null {
  * way a slideshow does, but a folder rename must follow a switched-off one
  * too, or turning it back on would read a folder that is gone.
  */
-function rotationFolder(node: Record<string, unknown>, playing: boolean): string | null {
+function rotationFolders(node: Record<string, unknown>, playing: boolean): Array<{ index: number; folder: string }> {
   const rotation = node.backgroundRotation;
-  if (!rotation || typeof rotation !== 'object') return null;
-  const r = rotation as Record<string, unknown>;
-  if (playing && r.enabled !== true) return null;
-  const source = normalizePhotoSource(r.photoSource);
-  return source?.kind === 'library' ? source.folder : null;
+  if (!rotation || typeof rotation !== 'object') return [];
+  const r = rotation as { sources?: unknown };
+  if (!Array.isArray(r.sources)) return [];
+  if (playing && !isRotationActive(r as { sources: PhotoSource[] })) return [];
+  const folders: Array<{ index: number; folder: string }> = [];
+  r.sources.forEach((entry, index) => {
+    const source = normalizePhotoSource(entry);
+    // Chosen pictures are files, which the string walk protects on its own.
+    if (source?.kind === 'library' && !source.pictures) folders.push({ index, folder: source.folder });
+  });
+  return folders;
 }
 
 /** True for a use that is a whole folder playing on a wall (a slideshow or a rotating background). */
 export function isRotatingBackgroundUse(use: Pick<MediaUse, 'kind' | 'configPath'>): boolean {
-  return use.kind === 'slideshow' && use.configPath.endsWith('.backgroundRotation.photoSource.folder');
+  return use.kind === 'slideshow' && /\.backgroundRotation\.sources\.\d+\.folder$/.test(use.configPath);
 }
 
 /** What a slideshow module plays from its folder, mirroring its list fetch:
@@ -195,12 +201,11 @@ function walkConfig(
           ...(next.displayName ? { displayName: next.displayName } : {}),
         });
       }
-      const rotating = key === 'screens' ? rotationFolder(obj, true) : null;
-      if (rotating != null) {
+      for (const { index, folder: rotating } of key === 'screens' ? rotationFolders(obj, true) : []) {
         onFolder({
           folder: rotating,
           shows: 'photos',
-          use: { kind: 'slideshow', name: next.name, configPath: `${path}.backgroundRotation.photoSource.folder`, ...ids(next) },
+          use: { kind: 'slideshow', name: next.name, configPath: `${path}.backgroundRotation.sources.${index}.folder`, ...ids(next) },
           ...(next.displayName ? { displayName: next.displayName } : {}),
         });
       }
@@ -457,21 +462,34 @@ export function rewriteMediaRefs<T>(
       let touched = false;
       const out: Record<string, unknown> = {};
       const folder = slideshowFolder(obj);
-      const rotating = rotationFolder(obj, false);
+      const rotating = rotationFolders(obj, false);
       for (const [k, v] of Object.entries(obj)) {
         let next: unknown;
-        const ownFolder = k === 'config' ? folder : k === 'backgroundRotation' ? rotating : null;
-        if (ownFolder != null && v && typeof v === 'object') {
-          // A slideshow's or rotating background's folder is not a file
-          // path; map it as a folder.
+        if (k === 'config' && folder != null && v && typeof v === 'object') {
+          // A slideshow's folder is not a file path; map it as a folder.
           const c = { ...(v as Record<string, unknown>) };
-          const nextFolder = mapFolder(ownFolder);
+          const nextFolder = mapFolder(folder);
           if (nextFolder != null) {
             c.photoSource = { ...(c.photoSource as Record<string, unknown>), folder: nextFolder };
             changed += 1;
           }
           const inner = walk(c) as Record<string, unknown>;
           next = inner === c && nextFolder == null ? v : inner;
+        } else if (k === 'backgroundRotation' && rotating.length > 0 && v && typeof v === 'object') {
+          // A rotating background's folders likewise, one per library entry.
+          const c = { ...(v as Record<string, unknown>) };
+          const sources = [...(c.sources as unknown[])];
+          let moved = false;
+          for (const { index, folder: own } of rotating) {
+            const nextFolder = mapFolder(own);
+            if (nextFolder == null) continue;
+            sources[index] = { ...(sources[index] as Record<string, unknown>), folder: nextFolder };
+            changed += 1;
+            moved = true;
+          }
+          if (moved) c.sources = sources;
+          const inner = walk(c) as Record<string, unknown>;
+          next = inner === c && !moved ? v : inner;
         } else {
           next = walk(v);
         }

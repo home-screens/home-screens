@@ -108,8 +108,8 @@ const migrations: Migration[] = [
   // Google calendar id, clock format24h, calendar showWeather, darkMode, raw
   // font stacks) are settled into their replacements and removed.
   v16ToV17,
-  // Migration 018: background rotation's single `source` enum became a
-  // `sources` array so several sources can be enabled at once.
+  // Migration 018: slideshow, full-screen photo and background rotation name
+  // their pictures' sources with PhotoSource objects; a rotation holds a list.
   v17ToV18,
 ];
 

@@ -47,15 +47,23 @@ export const libraryPhotoSource: PhotoSourceAdapter<'library'> = {
   kind: 'library',
 
   async list({ source, media }) {
+    if (source.pictures) {
+      // Chosen pictures play as they are, in the order chosen; videos are never chosen.
+      return media === 'videos' ? [] : source.pictures
+        .filter((path) => libraryMediaKind(path) === 'image')
+        .map((path) => ({ url: serveUrlFor(path), type: 'image' as const }));
+    }
     // A folder plays all of itself; it has no per-refresh count.
     return (await listLibraryMedia(source.folder, media)) ?? [];
   },
 
   async pickOne({ source, previous }) {
     const clean = cleanLibraryFolder(source.folder);
-    const pictures = ((await listLibraryMedia(clean, 'photos')) ?? [])
-      .map((item) => new URL(item.url, 'http://local').searchParams.get('file'))
-      .filter((file): file is string => !!file);
+    const pictures = source.pictures
+      ? source.pictures.filter((path) => libraryMediaKind(path) === 'image')
+      : ((await listLibraryMedia(clean, 'photos')) ?? [])
+        .map((item) => new URL(item.url, 'http://local').searchParams.get('file'))
+        .filter((file): file is string => !!file);
     if (pictures.length === 0) return null;
     // A rotation that lands on the picture already showing doesn't rotate.
     const others = pictures.length > 1 ? pictures.filter((file) => file !== previous) : pictures;

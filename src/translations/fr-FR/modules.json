@@ -1220,7 +1220,8 @@
     "noPhotosYetHintOneDrive": "Vérifiez le dossier OneDrive dans l'éditeur.",
     "noPhotosYetHintImmich": "Vérifiez l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur.",
     "noPhotosYetHintUnsplash": "Essayez d'autres mots de recherche dans l'éditeur.",
-    "noPhotosYetHintNasa": "La NASA n'envoie pas d'images pour le moment. Elles reviendront d'elles-mêmes."
+    "noPhotosYetHintNasa": "La NASA n'envoie pas d'images pour le moment. Elles reviendront d'elles-mêmes.",
+    "noPhotosYetHintPicked": "Choisissez des photos dans l'éditeur."
   },
   "dad-joke": {
     "loading": "Chargement de la blague…"
@@ -1376,7 +1377,8 @@
     "emptyImmich": "Pas encore de photos. Vérifiez l'album Immich, la personne et l'option « Favoris uniquement » dans l'éditeur.",
     "emptyUnsplash": "Pas encore de photos. Essayez d'autres mots de recherche dans l'éditeur.",
     "emptyNasa": "Aucune image de la NASA pour le moment. Elles reviendront d'elles-mêmes.",
-    "photoCredit": "Photo de {name} sur {source}"
+    "photoCredit": "Photo de {name} sur {source}",
+    "emptyPicked": "Aucune photo choisie pour l'instant. Choisissez-en dans l'éditeur."
   },
   "video": {
     "name": "Vidéo",

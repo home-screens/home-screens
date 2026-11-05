@@ -8,6 +8,7 @@ import { icloudPhotoSource } from './icloud';
 import { onedrivePhotoSource } from './onedrive';
 import { unsplashPhotoSource } from './unsplash';
 import { nasaPhotoSource } from './nasa';
+import { wallPhotoSource } from './wall';
 import { PhotoSourceError, type PhotoSourceAdapter, type PickableSource, type PickedPicture } from './types';
 
 export * from './types';
@@ -19,6 +20,7 @@ const ADAPTERS: { [K in PhotoSourceKind]: PhotoSourceAdapter<K> } = {
   onedrive: onedrivePhotoSource,
   unsplash: unsplashPhotoSource,
   nasa: nasaPhotoSource,
+  wall: wallPhotoSource,
 };
 
 /** The adapter for one kind of photo source. */

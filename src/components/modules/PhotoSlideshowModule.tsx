@@ -13,7 +13,7 @@ import { handleSlideshowCommand } from './shared/slideshow-commands';
 import VideoLayer from './shared/VideoLayer';
 import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from './shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
-import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason } from '@/lib/photo-source';
+import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
 import PhotoCredit from './shared/PhotoCredit';
 
 /** Renders a single slide layer, fetching API-served images through displayFetch for auth.
@@ -67,6 +67,7 @@ const NO_ITEMS: MediaListItem[] = [];
 /** What an empty slideshow says, by why it is empty (`emptyStateFor`). */
 const EMPTY_MESSAGE: Record<PhotoSourceEmptyReason, string> = {
   addPhotos: 'photo-slideshow.empty',
+  pickPictures: 'photo-slideshow.emptyPicked',
   checkFilters: 'photo-slideshow.emptyImmich',
   checkLink: 'photo-slideshow.emptyICloud',
   checkFolder: 'photo-slideshow.emptyOneDrive',
@@ -102,7 +103,7 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
     loadingMessage: t('photo-slideshow.loading'),
     // Say where the fix is (a bad iCloud link, an empty OneDrive folder,
     // search words that found nothing) instead of a generic "no photos".
-    empty: items.length === 0 && t(EMPTY_MESSAGE[emptyStateFor(normalizePhotoSource(config.photoSource) ?? { kind: 'library' })]),
+    empty: items.length === 0 && t(EMPTY_MESSAGE[emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'))]),
   });
   if (gate) return gate;
 

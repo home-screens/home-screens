@@ -356,35 +356,48 @@ export interface ModuleInstance {
 }
 
 /**
- * Where a stream of pictures comes from: a library folder, an Immich library, an iCloud shared
- * album, a OneDrive folder, an Unsplash search or NASA's Astronomy Picture of the Day. Photo
- * Slideshow, Full-screen Photo and background rotation all use it
+ * Where a stream of pictures comes from: a library folder or a few chosen library pictures, an
+ * Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or
+ * picked photos, NASA's Astronomy Picture of the Day, or the walls that come with Home Screens.
+ * Photo Slideshow, Full-screen Photo and background rotation all use it
  *
  * One rules file (src/lib/photo-source.ts) says what each kind needs and
  * offers, and one adapter per kind (src/lib/photo-sources/) reads it.
  * Google Photos is not a kind: its API only allows importing picked photos
- * into the library, so it lands in a library folder.
+ * into the library, so it lands in a library folder. Inside a kind, picked
+ * pictures win over a collection, and a collection over the filters or the
+ * search words; the editor clears the other fields when the mode changes.
  */
 export type PhotoSource =
   | {
-      /** A folder in your media library */
+      /** A folder in your media library, or a few pictures chosen from it */
       kind: 'library';
       /** Library folder to show; empty for the top level */
       folder: string;
+      /**
+       * Only these pictures (library paths such as `holiday/beach.jpg`); when set, the folder is not read
+       *
+       * Paths relative to the library root, never serve URLs.
+       */
+      pictures?: string[];
     }
   | {
       /** Your Immich photo library (needs the Immich address and key in Settings > API keys) */
       kind: 'immich';
-      /** Only photos in this Immich album */
-      albumId?: string;
-      /** Only photos of this person (a face Immich recognized) */
-      personId?: string;
+      /** Only photos in any of these Immich albums */
+      albumIds?: string[];
+      /** Only photos showing at least one of these people (faces Immich recognized) */
+      personIds?: string[];
+      /** Leave out photos showing any of these people */
+      excludePersonIds?: string[];
       /**
        * Only photos marked as favorites in Immich
        *
        * @default false
        */
       favoritesOnly?: boolean;
+      /** Only these photos, picked one by one (Immich asset ids); when set, the filters are not used */
+      assetIds?: string[];
     }
   | {
       /** A public iCloud shared album; no key needed */
@@ -417,22 +430,37 @@ export type PhotoSource =
       kind: 'unsplash';
       /** Search words, in English (for example `mountains lake`) */
       query: string;
+      /** Only photos from these Unsplash collections (collection ids); when set, the search words are not used */
+      collections?: string[];
+      /** Only these photos, picked one by one (Unsplash photo ids); when set, nothing else is used */
+      photoIds?: string[];
     }
   | {
       /** NASA's Astronomy Picture of the Day, newest first; no key needed */
       kind: 'nasa';
+    }
+  | {
+      /**
+       * Walls that come with Home Screens, for a rotating background only
+       *
+       * Never offered to the photo modules (`offeredFor`).
+       */
+      kind: 'wall';
+      /** Which group of walls: the plain colors or the patterns */
+      group: 'color' | 'pattern';
+      /** The walls from that group to rotate through (their ids); none chosen means nothing from the group */
+      ids: string[];
     };
 
 export interface BackgroundRotation {
-  /** Turn rotation on */
-  enabled: boolean;
   /** Minutes between pictures */
   intervalMinutes: number;
   /**
-   * Where the pictures come from (see PhotoSource). A background is always a still picture, so
-   * videos in the source are skipped
+   * Where the pictures come from (see PhotoSource): one entry per source, drawn from in turn. An empty
+   * list means the screen keeps its own picture. A background is always a still picture, so videos
+   * in a source are skipped
    */
-  photoSource: PhotoSource;
+  sources: PhotoSource[];
 }
 
 /** Overlay dimming/vignette drawn over a screen's background, between the image and its modules */

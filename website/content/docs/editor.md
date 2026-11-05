@@ -235,7 +235,7 @@ A picture from Immich, Unsplash or NASA is copied into your library first, so th
 
 ### Rotating backgrounds
 
-Turn on **Auto-rotate** and choose a **Photo Source**: a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA. These are the same sources and settings the photo modules use. See [Background rotation](/docs/backgrounds#background-rotation).
+Under **Sources**, tick what the screen should rotate through: the walls that come with Home Screens, your library, Immich, an iCloud shared album, OneDrive, Unsplash or NASA's picture of the day, in any mix. Each source's settings are the same ones the photo modules use. See [Background rotation](/docs/backgrounds#background-rotation).
 
 ### Per-Screen Backgrounds
 

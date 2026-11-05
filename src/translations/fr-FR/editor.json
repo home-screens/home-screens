@@ -1469,12 +1469,6 @@
         "accessKeyPlaceholder": "Colle ta clé Unsplash",
         "accessKeyHelp": "Gratuit sur unsplash.com/developers ; 50 requêtes/heure en niveau gratuit."
       },
-      "nasa": {
-        "name": "NASA",
-        "description": "Image astronomique du jour",
-        "apiKeyPlaceholder": "Colle ta clé API NASA",
-        "apiKeyHelp": "Gratuit sur api.nasa.gov ; 1 000 requêtes/heure. La recherche dans la bibliothèque d'images fonctionne sans clé."
-      },
       "todoist": {
         "name": "Todoist",
         "description": "Affiche les tâches de tes projets",
@@ -2193,13 +2187,6 @@
       "savesAutomatically": "Les modifications sont enregistrées automatiquement.",
       "learnMore": "En savoir plus"
     },
-    "localBackgrounds": {
-      "none": "Aucun",
-      "uploadButton": "Téléverser un arrière-plan",
-      "uploadingButton": "Téléversement…",
-      "uploadFailed": "Échec du téléversement",
-      "uploadFailedWithStatus": "Échec du téléversement ({status})"
-    },
     "pluginInstallPreview": {
       "verifiedTitle": "Vérifié",
       "versionPrefix": "v",
@@ -2621,79 +2608,20 @@
     },
     "title": "Arrière-plan",
     "effectsTitle": "Effets d'arrière-plan",
-    "statusGroup": "État",
-    "autoRotate": "Rotation auto",
     "sourcesGroup": "Sources",
     "refreshNow": "Actualiser maintenant",
-    "sourceLabel": "Source",
     "rotateEveryLabel": "Tourner toutes les",
-    "nasaInfo": "La NASA publie une nouvelle image astronomique par jour. L'affichage vérifiera les mises à jour à l'intervalle choisi.",
-    "picturesHint": "Touchez les images à afficher. Une seule donne un fond fixe ; plusieurs tournent.",
-    "sources": {
-      "nasaApod": "Image du jour NASA",
-      "icloud": "Album partagé iCloud",
-      "unsplash": "Unsplash",
-      "immich": "Immich",
-      "local": "Bibliothèque locale"
-    },
-    "local": {
-      "folderLabel": "Dossier",
-      "browse": "Parcourir",
-      "allPhotosRoot": "Tous les arrière-plans (dossier racine)",
-      "photoCountOne": "{count} photo",
-      "photoCountOther": "{count} photos",
-      "noPhotosInFolder": "Aucune photo dans ce dossier pour le moment.",
-      "modeFolder": "Dossier",
-      "modePictures": "Images",
-      "upload": "Importer des images",
-      "uploading": "Import en cours…",
-      "noPictures": "Aucune image dans votre bibliothèque pour l'instant. Importez-en une pour commencer.",
-      "picturePick": "Afficher {name}"
-    },
     "intervals": {
       "minutes": "{count} minutes",
       "hourSingular": "1 heure",
       "hours": "{count} heures"
-    },
-    "immich": {
-      "albumLabel": "Album",
-      "anyAlbum": "N'importe quel album",
-      "albumOption": "{name} ({count})",
-      "personLabel": "Personne",
-      "anyone": "N'importe qui",
-      "favoritesOnly": "Favoris uniquement",
-      "noAlbums": "Aucun album trouvé.",
-      "noPeople": "Aucune personne trouvée.",
-      "personPlusLabel": "Personne +",
-      "personMinusLabel": "Personne -",
-      "personPlusHint": "Correspond aux médias contenant n'importe quelle personne sélectionnée.",
-      "personMinusHint": "Rejette les médias contenant n'importe quelle personne sélectionnée.",
-      "modePictures": "Images",
-      "modeFilters": "Filtres"
-    },
-    "icloud": {
-      "albumLabel": "Lien de l'album",
-      "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici.",
-      "needsLink": "Verrouillée tant que vous n'avez pas collé un lien d'album partagé valide."
-    },
-    "unsplash": {
-      "modeQuery": "Recherche",
-      "modeCollections": "Collections",
-      "collectionPlaceholder": "ID de collection ou lien unsplash.com/collections/...",
-      "addCollection": "Ajouter une collection",
-      "removeCollection": "Retirer la collection",
-      "checking": "Vérification...",
-      "collectionNotFound": "Collection introuvable. Vérifiez l'ID ou le lien.",
-      "collectionValid": "{title} ({count} photos)"
     },
     "groups": {
       "theme": "Assorti à un thème plein écran",
       "color": "Couleurs",
       "pattern": "Motifs"
     },
-    "useFixed": "Utiliser {name} comme arrière-plan fixe",
     "includeInRotation": "Inclure {name} dans la rotation",
-    "inRotation": "Dans la rotation",
     "inUse": "utilisé",
     "starters": {
       "midnight": "Minuit",
@@ -2719,10 +2647,9 @@
       "pattern-diagonal": "Diagonale",
       "pattern-paper": "Papier"
     },
-    "sourceKeyMissing": "Cette source a besoin d'une clé API qui n'est pas encore configurée, l'écran garde donc sa dernière image. Ajoutez la clé dans les Paramètres, ou choisissez une autre source.",
     "sourceNotSetUp": "Pas encore configurée.",
     "sourceSetUpLink": "Configurer {source} dans les Réglages",
-    "pickToRotate": "Touchez les fonds à inclure dans la rotation. Aucun sélectionné pour l'instant.",
+    "pickToRotate": "Cliquez sur les fonds que vous voulez dans la rotation. Aucun choisi pour le moment.",
     "modeFixed": "Fond fixe",
     "modeRotating": "Rotation entre les sources sélectionnées",
     "modeHelp": "Choisissez un ou plusieurs médias. Un seul donne un fond fixe ; plusieurs tournent.",
@@ -2741,14 +2668,23 @@
     "effectsBrightnessLabel": "Luminosité",
     "effectsContrastLabel": "Contraste",
     "effectsSaturationLabel": "Saturation",
-    "effectsWarmthLabel": "Chaleur"
+    "effectsWarmthLabel": "Chaleur",
+    "modeOne": "Affiche une seule image",
+    "refreshDisabled": "Rien à faire tourner pour le moment",
+    "refreshChanged": "Changé",
+    "refreshNothing": "Pas encore de nouvelle image",
+    "sourceNeeds": {
+      "library": "Choisissez quelques images",
+      "immich": "Choisissez quelques photos",
+      "icloud": "Collez d'abord le lien de l'album",
+      "onedrive": "Choisissez un dossier",
+      "unsplash": "Tapez des mots de recherche, ajoutez une collection ou choisissez des photos",
+      "nasa": "",
+      "wall": "Choisissez les fonds à afficher"
+    }
   },
   "imageBrowserModal": {
     "title": "Bibliothèque d'images",
-    "tabs": {
-      "local": "Local",
-      "unsplash": "Unsplash"
-    },
     "allPhotos": "Toutes les photos",
     "newFolderPlaceholder": "Nom du dossier",
     "newFolderConfirm": "OK",
@@ -2762,21 +2698,6 @@
     "photoCountPlural": "{count} photos",
     "confirmSelectImage": "Sélectionner l'image",
     "confirmUseFolder": "Utiliser ce dossier",
-    "unsplashAttribution": "Photos par Unsplash, enregistrées dans ta bibliothèque locale",
-    "unsplashSearchPlaceholder": "Rechercher sur Unsplash…",
-    "unsplashCategories": {
-      "nature": "Nature",
-      "mountains": "Montagnes",
-      "ocean": "Océan",
-      "holidays": "Vacances",
-      "birthday": "Anniversaire",
-      "flowers": "Fleurs",
-      "seasons": "Saisons",
-      "abstract": "Abstrait"
-    },
-    "errors": {
-      "searchUnsplash": "Échec de la recherche Unsplash"
-    },
     "confirmSelectVideo": "Sélectionner la vidéo",
     "videoCountSingular": "{count} vidéo",
     "videoCountPlural": "{count} vidéos",
@@ -2788,7 +2709,7 @@
     "uploadMediaButton": "Téléverser"
   },
   "icloudImport": {
-    "toggle": "Importer depuis un lien iCloud",
+    "toggle": "Ajouter depuis un lien iCloud",
     "placeholder": "Collez un lien d'album ou de photos iCloud",
     "start": "Importer",
     "importing": "Importation…",
@@ -4335,22 +4256,12 @@
     "fullscreen-photo": {
       "themeDefaultMidnight": "Par défaut (Minuit)",
       "themeDefault": "Par défaut (depuis les paramètres)",
-      "photoSource": "Source des photos",
-      "sourceLocal": "Photos locales",
-      "sourceImmich": "Immich",
-      "sourceICloud": "Album partagé iCloud",
       "mode": "Mode",
       "modeSlideshow": "Diaporama",
       "modeSingle": "Photo unique",
       "photo": "Photo",
       "noneSelected": "Aucune sélectionnée",
       "choose": "Choisir…",
-      "photoFolder": "Dossier de photos",
-      "allPhotosRoot": "Toutes les photos (racine)",
-      "browse": "Parcourir…",
-      "photoCountSingular": "{count} photo",
-      "photoCountPlural": "{count} photos",
-      "noPhotosInFolder": "Aucune photo dans ce dossier",
       "slideIntervalSeconds": "Intervalle entre les diapos (secondes)",
       "transition": "Transition",
       "transitionFade": "Fondu",
@@ -4360,8 +4271,7 @@
       "shuffleOrder": "Ordre aléatoire",
       "kenBurnsEffect": "Effet Ken Burns",
       "showClockOverlay": "Afficher l'horloge en superposition",
-      "clockBackground": "Fond de l'horloge",
-      "sourceOneDrive": "OneDrive"
+      "clockBackground": "Fond de l'horloge"
     },
     "garbage-day": {
       "frequencyWeekly": "Chaque semaine",
@@ -4472,30 +4382,6 @@
       "urlHint": "Vous pouvez coller un lien YouTube ou un lien direct vers un fichier vidéo (MP4/WebM).",
       "icloudLinkDetected": "Ceci est un lien de photos iCloud, il ne peut pas être lu directement. Enregistrez ses vidéos dans votre bibliothèque et utilisez-les depuis là.",
       "icloudNoVideos": "Ce lien ne contient aucune vidéo."
-    },
-    "immichSource": {
-      "connecting": "Connexion…",
-      "connected": "Connecté",
-      "connectedWithVersion": "Connecté (v{version})",
-      "apiKeyInvalid": "Clé API invalide",
-      "cannotReachServer": "Impossible d'atteindre le serveur",
-      "retry": "Réessayer",
-      "album": "Album",
-      "anyAlbum": "N'importe quel album",
-      "person": "Personne",
-      "anyone": "N'importe qui",
-      "favoritesOnly": "Favoris uniquement",
-      "photosPerRefresh": "Photos par actualisation",
-      "photoInAlbumSingular": "{count} photo dans l'album",
-      "photoInAlbumPlural": "{count} photos dans l'album"
-    },
-    "icloudSource": {
-      "albumLink": "Lien de l'album",
-      "albumHelp": "Sur votre iPhone, ouvrez l'album, activez « Site web public », puis collez le lien ici.",
-      "noItemsFound": "Rien trouvé pour l'instant. Vérifiez le lien et assurez-vous que « Site web public » est activé pour l'album.",
-      "photoLinkDetected": "Ceci est un lien de photos, pas un lien d'album partagé. Les liens photos expirent après environ un mois ; nous enregistrons donc des copies dans votre bibliothèque et les affichons à la place.",
-      "photoLinkAction": "Enregistrer dans la bibliothèque",
-      "videoHint": "Certaines vidéos iPhone peuvent ne pas se lire sur les écrans plus anciens. Les vidéos illisibles sont ignorées automatiquement."
     },
     "googlePhotosImport": {
       "importButton": "Importer depuis Google Photos",
@@ -4720,21 +4606,10 @@
       "tapDetails": "Afficher le résumé"
     },
     "photo-slideshow": {
-      "sourceLocal": "Photos locales",
-      "sourceImmich": "Immich",
-      "sourceICloud": "Album partagé iCloud",
       "transitionFade": "Fondu",
       "transitionNone": "Aucune",
-      "photoSource": "Source des photos",
-      "folder": "Dossier",
-      "allPhotosRoot": "Toutes les photos (racine)",
-      "browse": "Parcourir…",
-      "photoCountOne": "{count} photo",
-      "photoCountOther": "{count} photos",
-      "noPhotosInFolder": "Aucune photo dans ce dossier",
       "slideInterval": "Intervalle entre les diapos (secondes)",
-      "transition": "Transition",
-      "sourceOneDrive": "OneDrive"
+      "transition": "Transition"
     },
     "qr-code": {
       "modeCustom": "Personnalisé (URL / texte)",
@@ -5313,10 +5188,6 @@
       "artScale": "Taille de l'image",
       "artPositionX": "Position horizontale",
       "artPositionY": "Position verticale",
-      "artTabBuiltin": "Inclus",
-      "artTabYours": "Vos images",
-      "artUpload": "Ajouter une image",
-      "artUploading": "Ajout en cours…",
       "artUploadHint": "Image ou SVG, jusqu'à 10 Mo",
       "artNames": {
         "birthday": "Anniversaire",
@@ -5420,35 +5291,6 @@
       "typographySize": "Taille du texte",
       "accentTheme": "La couleur d’accent suit le thème",
       "accentColor": "Couleur d’accent"
-    },
-    "onedriveSource": {
-      "checking": "Vérification de la connexion OneDrive…",
-      "credentialsNeeded": "Ajoutez d'abord votre ID d'application Microsoft dans Paramètres, Clés API.",
-      "signIn": "Se connecter avec Microsoft",
-      "waiting": "En attente de la fin de votre connexion",
-      "enterCode": "Saisissez ce code sur",
-      "cancel": "Annuler",
-      "signedIn": "Connecté",
-      "connectedAs": "Connecté en tant que {account}",
-      "disconnect": "Déconnecter OneDrive",
-      "retry": "Réessayer",
-      "folder": "Dossier",
-      "noFolderChosen": "Aucun dossier choisi",
-      "chooseFolder": "Choisir un dossier",
-      "changeFolder": "Changer de dossier",
-      "loadingFolders": "Chargement des dossiers…",
-      "upOneFolder": "Dossier parent",
-      "emptyFolder": "Aucun sous-dossier ici",
-      "useThisFolder": "Utiliser ce dossier",
-      "capNote": "Si l'arborescence du dossier contient plus de {cap} photos, le diaporama utilise un échantillon aléatoire de {cap} photos.",
-      "loadFailed": "Impossible de charger vos dossiers OneDrive.",
-      "folderNotFound": "Dossier introuvable. Choisissez un autre dossier.",
-      "photosPerRefresh": "Photos par actualisation",
-      "noPhotos": "Pas encore de photos dans ce dossier",
-      "signInDeclined": "La connexion a été annulée",
-      "signInExpired": "Ce code a expiré. Relancez la connexion.",
-      "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez.",
-      "disconnectFailed": "Impossible de déconnecter OneDrive. Vérifiez votre connexion Internet et réessayez."
     },
     "locationRow": {
       "set": "Lieu : {name}",
@@ -5559,85 +5401,6 @@
       "groupLayouts": "Dispositions",
       "groupMaterials": "Décors",
       "materialHelp": "Cette apparence a ses propres couleurs et sa propre écriture, donc les réglages d'arrière-plan, de couleur du texte, de bordure et de police ne s'appliquent pas."
-    }
-  },
-  "imageBrowsers": {
-    "errors": {
-      "saveImage": "Échec de l'enregistrement de l'image"
-    },
-    "immich": {
-      "allPhotos": "Toutes les photos",
-      "noPhotos": "Aucune photo trouvée",
-      "attribution": "Photos de ta bibliothèque Immich",
-      "notConfiguredPrefix": "Ajoute l'URL de ton serveur Immich et ta clé API dans",
-      "settingsWord": "Paramètres",
-      "notConfiguredSuffix": "pour parcourir ta bibliothèque de photos.",
-      "apiKeyHint": "Crée une clé API dans Immich → Paramètres du compte → Clés API",
-      "errors": {
-        "loadPhotos": "Échec du chargement des photos",
-        "fetchImage": "Impossible de charger cette image"
-      }
-    },
-    "unsplash": {
-      "attribution": "Photos par Unsplash",
-      "searchPlaceholder": "Rechercher n'importe quoi…",
-      "notConfiguredPrefix": "Ajoute une clé API Unsplash gratuite dans",
-      "settingsWord": "Paramètres",
-      "notConfiguredSuffix": "pour parcourir des milliers d'arrière-plans HD.",
-      "apiKeyHint": "Obtiens-en une sur unsplash.com/developers",
-      "errors": {
-        "search": "Échec de la recherche sur Unsplash"
-      },
-      "categories": {
-        "nature": "Nature",
-        "mountains": "Montagnes",
-        "ocean": "Océan",
-        "forest": "Forêt",
-        "sky": "Ciel",
-        "space": "Espace",
-        "city": "Ville",
-        "abstract": "Abstrait",
-        "flowers": "Fleurs",
-        "seasons": "Saisons"
-      }
-    },
-    "nasa": {
-      "attribution": "Images fournies par NASA",
-      "searchPlaceholder": "Rechercher des images NASA…",
-      "watermarkNote": "Remarque : certaines images NASA contiennent des horodatages ou filigranes intégrés impossibles à retirer.",
-      "notConfiguredPrefix": "Ajoute une clé API NASA gratuite dans",
-      "settingsWord": "Paramètres",
-      "notConfiguredSuffix": "pour parcourir l'Image astronomique du jour.",
-      "apiKeyHint": "Obtiens-en une sur api.nasa.gov",
-      "modes": {
-        "apod": "Image du jour",
-        "library": "Bibliothèque d'images"
-      },
-      "errors": {
-        "fetch": "Impossible de charger les images de la NASA"
-      },
-      "categories": {
-        "nebula": "Nébuleuse",
-        "galaxy": "Galaxie",
-        "earth": "Terre",
-        "mars": "Mars",
-        "moon": "Lune",
-        "saturn": "Saturne",
-        "jupiter": "Jupiter",
-        "sun": "Soleil",
-        "aurora": "Aurore",
-        "iss": "ISS"
-      }
-    },
-    "search": {
-      "placeholder": "Rechercher n'importe quoi…",
-      "searchButton": "Rechercher",
-      "prev": "Préc.",
-      "next": "Suiv.",
-      "pageOf": "Page {page} sur {total}",
-      "errors": {
-        "load": "Échec du chargement des images"
-      }
     }
   },
   "modals": {
@@ -5992,7 +5755,6 @@
       "retry": "Réessayer",
       "album": "Album",
       "anyAlbum": "N'importe quel album",
-      "person": "Personne",
       "anyone": "N'importe qui",
       "favoritesOnly": "Favoris uniquement",
       "photoInAlbum": {
@@ -6014,7 +5776,23 @@
       "keyRejected": "Votre clé Immich n'a pas été acceptée. Vérifiez-la dans Paramètres > Clés API.",
       "needsSetup": "Pour parcourir Immich ici, ajoutez d'abord son adresse et sa clé.",
       "copyHint": "Une copie est enregistrée dans le dossier Immich de votre bibliothèque, pour qu'elle reste affichée même si Immich est éteint.",
-      "favoritesEmpty": "Pas encore de favoris. Touchez le cœur d'une photo dans Immich et elle apparaîtra ici."
+      "favoritesEmpty": "Pas encore de favoris. Touchez le cœur d'une photo dans Immich et elle apparaîtra ici.",
+      "albumsChosen": {
+        "one": "{count} album choisi",
+        "other": "{count} albums choisis"
+      },
+      "peopleChosen": {
+        "one": "{count} personne choisie",
+        "other": "{count} personnes choisies"
+      },
+      "leaveOut": "Laisser de côté",
+      "noOneLeftOut": "Personne de côté",
+      "leftOutChosen": {
+        "one": "{count} personne de côté",
+        "other": "{count} personnes de côté"
+      },
+      "noAlbums": "Pas encore d'albums",
+      "noPeople": "Pas encore de personnes nommées"
     },
     "icloud": {
       "albumLink": "Lien de l'album",
@@ -6023,7 +5801,8 @@
       "photoLinkDetected": "Ceci est un lien de photos, pas un lien d'album partagé. Les liens photos expirent après environ un mois ; nous enregistrons donc des copies dans votre bibliothèque et les affichons à la place.",
       "photoLinkAction": "Enregistrer dans la bibliothèque",
       "videoHint": "Certaines vidéos iPhone peuvent ne pas se lire sur les écrans plus anciens. Les vidéos illisibles sont ignorées automatiquement.",
-      "checking": "Vérification de l'album…"
+      "checking": "Vérification de l'album…",
+      "linkOk": "Le lien a l'air bon"
     },
     "onedrive": {
       "checking": "Vérification de la connexion OneDrive…",
@@ -6050,7 +5829,8 @@
       "noPhotos": "Pas encore de photos dans ce dossier",
       "signInDeclined": "La connexion a été annulée",
       "signInExpired": "Ce code a expiré. Relancez la connexion.",
-      "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez."
+      "signInFailed": "La connexion a échoué. Vérifiez l'ID d'application et réessayez.",
+      "disconnectFailed": "Impossible de déconnecter OneDrive. Vérifiez votre connexion Internet et réessayez."
     },
     "sourceLabel": "Source des photos",
     "needsFreeKey": "clé gratuite requise",
@@ -6059,7 +5839,7 @@
     "keyMissingBackground": "Cette source n'est pas encore configurée, donc l'écran garde sa dernière image. Configurez-la dans Paramètres > Clés API, ou choisissez une autre source.",
     "photosPerRefresh": "Photos par actualisation",
     "kinds": {
-      "library": "Dossier de la bibliothèque",
+      "library": "Bibliothèque",
       "immich": "Immich",
       "icloud": "Album partagé iCloud",
       "onedrive": "OneDrive",
@@ -6102,7 +5882,16 @@
       "copyHint": "Photos d'Unsplash. Une copie est enregistrée dans le dossier Unsplash de votre bibliothèque.",
       "empty": "Rien trouvé pour ces mots. Essayez-en d'autres.",
       "loadFailed": "Impossible de charger les photos d'Unsplash.",
-      "rateLimited": "Le forfait gratuit d'Unsplash permet 50 recherches par heure, et elles sont épuisées. Réessayez un peu plus tard."
+      "rateLimited": "Le forfait gratuit d'Unsplash permet 50 recherches par heure, et elles sont épuisées. Réessayez un peu plus tard.",
+      "collectionsHelp": "Les photos viennent de ces collections au lieu des mots de recherche. Collez l'adresse d'une collection sur unsplash.com, ou son identifiant.",
+      "collectionLabel": "Collection",
+      "addCollection": "Ajouter",
+      "collectionChecking": "Vérification...",
+      "collectionValid": "Collection trouvée",
+      "collectionEmpty": "Aucune photo dans cette collection",
+      "collectionNotFound": "Impossible de trouver cette collection",
+      "removeCollection": "Retirer la collection {id}",
+      "removeCollectionShort": "Retirer"
     },
     "nasa": {
       "pictureOfTheDay": "Image du jour",
@@ -6165,7 +5954,7 @@
       "comesWithHomeScreens": "Fournie avec Home Screens",
       "inLibrary": "Dans votre bibliothèque",
       "inLibraryFolder": "Dans votre bibliothèque, dossier {folder}",
-      "rotatingNote": "Affichée jusqu'à l'arrivée de la première image en rotation. Choisir une image désactive la rotation auto."
+      "rotatingNote": "Affichée jusqu'à l'arrivée de la première image de la rotation. Choisir une image arrête la rotation."
     },
     "google": {
       "add": "Ajouter depuis Google Photos",
@@ -6196,6 +5985,24 @@
       "googleIntro": "Choisissez des photos dans Google Photos, puis revenez ici. Elles seront ajoutées au dossier ci-dessous.",
       "googleSignInIntro": "Connectez-vous une fois à Google Photos, puis choisissez des photos à ajouter ici.",
       "openGoogle": "Ouvrir Google Photos"
+    },
+    "modes": {
+      "folder": "Dossier",
+      "pictures": "Images",
+      "filters": "Filtres",
+      "words": "Mots de recherche",
+      "collections": "Collections"
+    },
+    "picked": {
+      "none": "Rien de choisi pour le moment.",
+      "count": {
+        "one": "{count} choisie.",
+        "other": "{count} choisies."
+      },
+      "help": "Cliquez sur une image pour l'ajouter, et encore une fois pour la retirer.",
+      "loading": "Chargement des images...",
+      "add": "Ajouter {name}",
+      "takeOut": "Retirer {name}"
     }
   }
 }

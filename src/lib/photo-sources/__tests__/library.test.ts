@@ -72,6 +72,22 @@ describe('libraryPhotoSource', () => {
     expect(await libraryPhotoSource.list({ source: { kind: 'library', folder: '../x' }, count: 50, media: 'photos' })).toEqual([]);
   });
 
+  it('plays the chosen pictures as they are, in the order chosen, leaving out anything that is not a picture', async () => {
+    const source = { kind: 'library' as const, folder: '', pictures: ['trips/b.png', 'trips/clip.mp4', 'top.jpg'] };
+    expect(await libraryPhotoSource.list({ source, count: 1, media: 'photos' })).toEqual([
+      { url: serve('trips/b.png'), type: 'image' },
+      { url: serve('top.jpg'), type: 'image' },
+    ]);
+    expect(await libraryPhotoSource.list({ source, count: 1, media: 'videos' })).toEqual([]);
+  });
+
+  it('picks one of the chosen pictures, avoiding the one showing', async () => {
+    const source = { kind: 'library' as const, folder: '', pictures: ['trips/a.jpg', 'top.jpg'] };
+    const picked = await libraryPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 }, previous: 'trips/a.jpg' });
+    expect(picked).toEqual({ kind: 'library', path: 'top.jpg' });
+    expect(await libraryPhotoSource.pickOne({ source: { kind: 'library', folder: '', pictures: [] }, canvas: { w: 1, h: 1 } })).toBeNull();
+  });
+
   it('picks a still picture from the folder, served where it is', async () => {
     const picked = await libraryPhotoSource.pickOne({ source: { kind: 'library', folder: 'trips' }, canvas: { w: 1080, h: 1920 } });
     expect(picked?.kind).toBe('library');

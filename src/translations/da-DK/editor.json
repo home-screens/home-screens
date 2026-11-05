@@ -1469,12 +1469,6 @@
         "accessKeyPlaceholder": "Indsæt din Unsplash-adgangsnøgle",
         "accessKeyHelp": "Gratis på unsplash.com/developers; 50 forespørgsler i timen på det gratis niveau."
       },
-      "nasa": {
-        "name": "NASA",
-        "description": "Dagens astronomibillede",
-        "apiKeyPlaceholder": "Indsæt din NASA-API-nøgle",
-        "apiKeyHelp": "Gratis på api.nasa.gov; 1.000 forespørgsler i timen. Søgning i billedarkivet virker uden nøgle."
-      },
       "todoist": {
         "name": "Todoist",
         "description": "Vis opgaver fra dine projekter",
@@ -2193,13 +2187,6 @@
       "savesAutomatically": "Ændringer gemmes automatisk.",
       "learnMore": "Læs mere"
     },
-    "localBackgrounds": {
-      "none": "Ingen",
-      "uploadButton": "Upload baggrund",
-      "uploadingButton": "Uploader…",
-      "uploadFailed": "Upload mislykkedes",
-      "uploadFailedWithStatus": "Upload mislykkedes ({status})"
-    },
     "pluginInstallPreview": {
       "verifiedTitle": "Godkendt",
       "versionPrefix": "v",
@@ -2621,79 +2608,20 @@
     },
     "title": "Baggrund",
     "effectsTitle": "Baggrundseffekter",
-    "statusGroup": "Status",
-    "autoRotate": "Skift automatisk",
     "sourcesGroup": "Kilder",
     "refreshNow": "Opdater nu",
-    "sourceLabel": "Kilde",
     "rotateEveryLabel": "Skift hver",
-    "nasaInfo": "NASA udgiver ét nyt astronomibillede om dagen. Skærmen tjekker for nye billeder med det valgte interval.",
-    "picturesHint": "Tryk på de billeder, der skal vises. Ét vises som fast baggrund; flere roterer.",
-    "sources": {
-      "nasaApod": "NASA's dagens billede",
-      "icloud": "Delt iCloud-album",
-      "unsplash": "Unsplash",
-      "immich": "Immich",
-      "local": "Lokalt bibliotek"
-    },
-    "local": {
-      "folderLabel": "Mappe",
-      "browse": "Gennemse",
-      "allPhotosRoot": "Alle baggrunde (rodmappe)",
-      "photoCountOne": "{count} foto",
-      "photoCountOther": "{count} fotos",
-      "noPhotosInFolder": "Ingen fotos i denne mappe endnu.",
-      "modeFolder": "Mappe",
-      "modePictures": "Billeder",
-      "upload": "Upload billeder",
-      "uploading": "Uploader…",
-      "noPictures": "Ingen billeder i dit bibliotek endnu. Upload et for at komme i gang.",
-      "picturePick": "Vis {name}"
-    },
     "intervals": {
       "minutes": "{count} minutter",
       "hourSingular": "1 time",
       "hours": "{count} timer"
-    },
-    "immich": {
-      "albumLabel": "Album",
-      "anyAlbum": "Alle album",
-      "albumOption": "{name} ({count})",
-      "personLabel": "Person",
-      "anyone": "Alle",
-      "favoritesOnly": "Kun favoritter",
-      "noAlbums": "Ingen albummer fundet.",
-      "noPeople": "Ingen personer fundet.",
-      "personPlusLabel": "Medtag personer",
-      "personMinusLabel": "Udeluk personer",
-      "personPlusHint": "Matcher medier med en vilkårlig valgt person.",
-      "personMinusHint": "Afviser medier med en vilkårlig valgt person.",
-      "modePictures": "Billeder",
-      "modeFilters": "Filtre"
-    },
-    "icloud": {
-      "albumLabel": "Albumlink",
-      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her.",
-      "needsLink": "Låst, indtil du indsætter et gyldigt link til et delt album."
-    },
-    "unsplash": {
-      "modeQuery": "Søg",
-      "modeCollections": "Samlinger",
-      "collectionPlaceholder": "Samlings-ID eller unsplash.com/collections/... link",
-      "addCollection": "Tilføj samling",
-      "removeCollection": "Fjern samling",
-      "checking": "Kontrollerer...",
-      "collectionNotFound": "Samling ikke fundet. Tjek ID'et eller linket.",
-      "collectionValid": "{title} ({count} billeder)"
     },
     "groups": {
       "theme": "Passer til et fuldskærmstema",
       "color": "Farver",
       "pattern": "Mønstre"
     },
-    "useFixed": "Brug {name} som fast baggrund",
     "includeInRotation": "Medtag {name} i rotation",
-    "inRotation": "I rotation",
     "inUse": "i brug",
     "starters": {
       "midnight": "Midnat",
@@ -2719,10 +2647,9 @@
       "pattern-diagonal": "Diagonal",
       "pattern-paper": "Papir"
     },
-    "sourceKeyMissing": "Denne kilde kræver en API-nøgle, som ikke er sat op, så skærmen beholder sit sidste billede. Tilføj nøglen under Indstillinger, eller vælg en anden kilde.",
     "sourceNotSetUp": "Ikke sat op endnu.",
     "sourceSetUpLink": "Sæt {source} op i Indstillinger",
-    "pickToRotate": "Tryk på de baggrunde, der skal med i rotationen. Ingen valgt endnu.",
+    "pickToRotate": "Klik på de vægge, du vil have med i skiftet. Ingen valgt endnu.",
     "modeFixed": "Fast baggrund",
     "modeRotating": "Roterer mellem de valgte kilder",
     "modeHelp": "Vælg ét eller flere medier. Ét valgt giver en fast baggrund; flere roterer.",
@@ -2741,14 +2668,23 @@
     "effectsBrightnessLabel": "Lysstyrke",
     "effectsContrastLabel": "Kontrast",
     "effectsSaturationLabel": "Mætning",
-    "effectsWarmthLabel": "Varme"
+    "effectsWarmthLabel": "Varme",
+    "modeOne": "Viser ét billede",
+    "refreshDisabled": "Intet at skifte imellem endnu",
+    "refreshChanged": "Skiftet",
+    "refreshNothing": "Intet nyt billede endnu",
+    "sourceNeeds": {
+      "library": "Vælg nogle billeder",
+      "immich": "Vælg nogle fotos",
+      "icloud": "Indsæt først albumlinket",
+      "onedrive": "Vælg en mappe",
+      "unsplash": "Skriv søgeord, tilføj en samling eller vælg nogle fotos",
+      "nasa": "",
+      "wall": "Vælg de vægge, der skal vises"
+    }
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",
-    "tabs": {
-      "local": "Lokalt",
-      "unsplash": "Unsplash"
-    },
     "allPhotos": "Alle billeder",
     "newFolderPlaceholder": "Mappenavn",
     "newFolderConfirm": "OK",
@@ -2762,21 +2698,6 @@
     "photoCountPlural": "{count} billeder",
     "confirmSelectImage": "Vælg billede",
     "confirmUseFolder": "Brug denne mappe",
-    "unsplashAttribution": "Billeder fra Unsplash, gemt i dit lokale arkiv",
-    "unsplashSearchPlaceholder": "Søg på Unsplash…",
-    "unsplashCategories": {
-      "nature": "Natur",
-      "mountains": "Bjerge",
-      "ocean": "Hav",
-      "holidays": "Højtider",
-      "birthday": "Fødselsdag",
-      "flowers": "Blomster",
-      "seasons": "Årstider",
-      "abstract": "Abstrakt"
-    },
-    "errors": {
-      "searchUnsplash": "Kunne ikke søge i Unsplash"
-    },
     "confirmSelectVideo": "Vælg video",
     "videoCountSingular": "{count} video",
     "videoCountPlural": "{count} videoer",
@@ -2788,7 +2709,7 @@
     "uploadMediaButton": "Upload"
   },
   "icloudImport": {
-    "toggle": "Importér fra et iCloud-link",
+    "toggle": "Tilføj fra et iCloud-link",
     "placeholder": "Indsæt et iCloud-album- eller fotolink",
     "start": "Importér",
     "importing": "Importerer…",
@@ -4335,22 +4256,12 @@
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (midnat)",
       "themeDefault": "Standard (fra Indstillinger)",
-      "photoSource": "Billedkilde",
-      "sourceLocal": "Lokale billeder",
-      "sourceImmich": "Immich",
-      "sourceICloud": "Delt iCloud-album",
       "mode": "Tilstand",
       "modeSlideshow": "Billedshow",
       "modeSingle": "Ét billede",
       "photo": "Billede",
       "noneSelected": "Intet valgt",
       "choose": "Vælg…",
-      "photoFolder": "Billedmappe",
-      "allPhotosRoot": "Alle billeder (rod)",
-      "browse": "Gennemse…",
-      "photoCountSingular": "{count} billede",
-      "photoCountPlural": "{count} billeder",
-      "noPhotosInFolder": "Ingen billeder i denne mappe",
       "slideIntervalSeconds": "Tid pr. billede (sekunder)",
       "transition": "Overgang",
       "transitionFade": "Toning",
@@ -4360,8 +4271,7 @@
       "shuffleOrder": "Bland rækkefølgen",
       "kenBurnsEffect": "Ken Burns-effekt",
       "showClockOverlay": "Vis ur ovenpå",
-      "clockBackground": "Urets baggrund",
-      "sourceOneDrive": "OneDrive"
+      "clockBackground": "Urets baggrund"
     },
     "garbage-day": {
       "frequencyWeekly": "Hver uge",
@@ -4472,30 +4382,6 @@
       "urlHint": "Du kan indsætte et YouTube-link eller et direkte videolink (MP4/WebM).",
       "icloudLinkDetected": "Dette er et iCloud-fotolink og kan ikke afspilles direkte. Gem videoerne i dit bibliotek, og brug dem derfra.",
       "icloudNoVideos": "Dette link indeholder ingen videoer."
-    },
-    "immichSource": {
-      "connecting": "Forbinder…",
-      "connected": "Forbundet",
-      "connectedWithVersion": "Forbundet (v{version})",
-      "apiKeyInvalid": "API-nøglen er ugyldig",
-      "cannotReachServer": "Kan ikke få kontakt til serveren",
-      "retry": "Prøv igen",
-      "album": "Album",
-      "anyAlbum": "Alle album",
-      "person": "Person",
-      "anyone": "Alle",
-      "favoritesOnly": "Kun favoritter",
-      "photosPerRefresh": "Billeder pr. opdatering",
-      "photoInAlbumSingular": "{count} billede i albummet",
-      "photoInAlbumPlural": "{count} billeder i albummet"
-    },
-    "icloudSource": {
-      "albumLink": "Albumlink",
-      "albumHelp": "Åbn albummet på din iPhone, slå 'Offentligt websted' til, og indsæt linket her.",
-      "noItemsFound": "Intet fundet endnu. Tjek linket, og sørg for, at 'Offentligt websted' er slået til for albummet.",
-      "photoLinkDetected": "Dette er et fotolink, ikke et link til et delt album. Fotolinks holder op med at virke efter cirka en måned, så vi gemmer kopier i dit bibliotek og viser dem i stedet.",
-      "photoLinkAction": "Gem i biblioteket",
-      "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over."
     },
     "googlePhotosImport": {
       "importButton": "Importér fra Google Fotos",
@@ -4720,21 +4606,10 @@
       "tapDetails": "Vis resuméet"
     },
     "photo-slideshow": {
-      "sourceLocal": "Lokale billeder",
-      "sourceImmich": "Immich",
-      "sourceICloud": "Delt iCloud-album",
       "transitionFade": "Toning",
       "transitionNone": "Ingen",
-      "photoSource": "Billedkilde",
-      "folder": "Mappe",
-      "allPhotosRoot": "Alle billeder (rod)",
-      "browse": "Gennemse…",
-      "photoCountOne": "{count} billede",
-      "photoCountOther": "{count} billeder",
-      "noPhotosInFolder": "Ingen billeder i denne mappe",
       "slideInterval": "Tid pr. billede (sekunder)",
-      "transition": "Overgang",
-      "sourceOneDrive": "OneDrive"
+      "transition": "Overgang"
     },
     "qr-code": {
       "modeCustom": "Egen (URL / tekst)",
@@ -5313,10 +5188,6 @@
       "artScale": "Billedstørrelse",
       "artPositionX": "Vandret placering",
       "artPositionY": "Lodret placering",
-      "artTabBuiltin": "Medfølgende",
-      "artTabYours": "Dine billeder",
-      "artUpload": "Tilføj billede",
-      "artUploading": "Tilføjer…",
       "artUploadHint": "Billede eller SVG, op til 10 MB",
       "artNames": {
         "birthday": "Fødselsdag",
@@ -5420,35 +5291,6 @@
       "typographySize": "Tekststørrelse",
       "accentTheme": "Accentfarven følger temaet",
       "accentColor": "Accentfarve"
-    },
-    "onedriveSource": {
-      "checking": "Tjekker OneDrive-forbindelsen…",
-      "credentialsNeeded": "Tilføj først dit Microsoft Application ID under Indstillinger, API-nøgler.",
-      "signIn": "Log ind med Microsoft",
-      "waiting": "Venter på, at du er færdig med at logge ind",
-      "enterCode": "Indtast denne kode på",
-      "cancel": "Annuller",
-      "signedIn": "Logget ind",
-      "connectedAs": "Logget ind som {account}",
-      "disconnect": "Frakobl OneDrive",
-      "retry": "Prøv igen",
-      "folder": "Mappe",
-      "noFolderChosen": "Endnu ingen mappe valgt",
-      "chooseFolder": "Vælg mappe",
-      "changeFolder": "Skift mappe",
-      "loadingFolders": "Indlæser mapper…",
-      "upOneFolder": "En mappe op",
-      "emptyFolder": "Ingen undermapper her",
-      "useThisFolder": "Brug denne mappe",
-      "capNote": "Hvis mappestrukturen indeholder mere end {cap} billeder, bruger billedshowet et tilfældigt udvalg på {cap}.",
-      "loadFailed": "Kunne ikke indlæse dine OneDrive-mapper.",
-      "folderNotFound": "Mappen blev ikke fundet. Vælg en anden mappe.",
-      "photosPerRefresh": "Billeder pr. opdatering",
-      "noPhotos": "Endnu ingen billeder i denne mappe",
-      "signInDeclined": "Login blev annulleret",
-      "signInExpired": "Koden udløb. Start login igen.",
-      "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen.",
-      "disconnectFailed": "OneDrive kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen."
     },
     "locationRow": {
       "set": "Placering: {name}",
@@ -5559,85 +5401,6 @@
       "groupLayouts": "Layouts",
       "groupMaterials": "Materialer",
       "materialHelp": "Dette udseende har sine egne farver og sin egen skrift, så indstillingerne for baggrund, tekstfarve, kant og skrifttype gælder ikke her."
-    }
-  },
-  "imageBrowsers": {
-    "errors": {
-      "saveImage": "Kunne ikke gemme billedet"
-    },
-    "immich": {
-      "allPhotos": "Alle billeder",
-      "noPhotos": "Ingen billeder fundet",
-      "attribution": "Billeder fra dit Immich-arkiv",
-      "notConfiguredPrefix": "Tilføj din Immich-server-URL og API-nøgle under",
-      "settingsWord": "Indstillinger",
-      "notConfiguredSuffix": "for at gennemse dit billedarkiv.",
-      "apiKeyHint": "Opret en API-nøgle i Immich → Account Settings → API Keys",
-      "errors": {
-        "loadPhotos": "Kunne ikke indlæse billeder",
-        "fetchImage": "Billedet kunne ikke hentes"
-      }
-    },
-    "unsplash": {
-      "attribution": "Billeder fra Unsplash",
-      "searchPlaceholder": "Søg efter hvad som helst…",
-      "notConfiguredPrefix": "Tilføj en gratis Unsplash-API-nøgle under",
-      "settingsWord": "Indstillinger",
-      "notConfiguredSuffix": "for at gennemse tusindvis af HD-baggrunde.",
-      "apiKeyHint": "Hent en på unsplash.com/developers",
-      "errors": {
-        "search": "Søgningen på Unsplash mislykkedes"
-      },
-      "categories": {
-        "nature": "Natur",
-        "mountains": "Bjerge",
-        "ocean": "Hav",
-        "forest": "Skov",
-        "sky": "Himmel",
-        "space": "Rummet",
-        "city": "By",
-        "abstract": "Abstrakt",
-        "flowers": "Blomster",
-        "seasons": "Årstider"
-      }
-    },
-    "nasa": {
-      "attribution": "Billeder venligst udlånt af NASA",
-      "searchPlaceholder": "Søg i NASA's billeder…",
-      "watermarkNote": "Bemærk: Nogle NASA-billeder har indlejrede tidsstempler eller vandmærker, som ikke kan fjernes.",
-      "notConfiguredPrefix": "Tilføj en gratis NASA-API-nøgle under",
-      "settingsWord": "Indstillinger",
-      "notConfiguredSuffix": "for at gennemse dagens astronomibillede.",
-      "apiKeyHint": "Hent en på api.nasa.gov",
-      "modes": {
-        "apod": "Dagens billede",
-        "library": "Billedarkiv"
-      },
-      "errors": {
-        "fetch": "NASA-billederne kunne ikke hentes"
-      },
-      "categories": {
-        "nebula": "Stjernetåge",
-        "galaxy": "Galakse",
-        "earth": "Jorden",
-        "mars": "Mars",
-        "moon": "Månen",
-        "saturn": "Saturn",
-        "jupiter": "Jupiter",
-        "sun": "Solen",
-        "aurora": "Nordlys",
-        "iss": "ISS"
-      }
-    },
-    "search": {
-      "placeholder": "Søg efter hvad som helst…",
-      "searchButton": "Søg",
-      "prev": "Forrige",
-      "next": "Næste",
-      "pageOf": "Side {page} af {total}",
-      "errors": {
-        "load": "Kunne ikke indlæse billeder"
-      }
     }
   },
   "modals": {
@@ -5992,7 +5755,6 @@
       "retry": "Prøv igen",
       "album": "Album",
       "anyAlbum": "Alle album",
-      "person": "Person",
       "anyone": "Alle",
       "favoritesOnly": "Kun favoritter",
       "photoInAlbum": {
@@ -6014,7 +5776,23 @@
       "keyRejected": "Din Immich-nøgle blev ikke godkendt. Tjek den under Indstillinger > API-nøgler.",
       "needsSetup": "Immich skal have en adresse og en nøgle, før du kan gennemse det her.",
       "copyHint": "En kopi gemmes i Immich-mappen i dit bibliotek, så billedet stadig vises, hvis Immich er slukket.",
-      "favoritesEmpty": "Ingen favoritter endnu. Tryk på hjertet ved et billede i Immich, så dukker det op her."
+      "favoritesEmpty": "Ingen favoritter endnu. Tryk på hjertet ved et billede i Immich, så dukker det op her.",
+      "albumsChosen": {
+        "one": "{count} album valgt",
+        "other": "{count} albums valgt"
+      },
+      "peopleChosen": {
+        "one": "{count} person valgt",
+        "other": "{count} personer valgt"
+      },
+      "leaveOut": "Udelad",
+      "noOneLeftOut": "Ingen udeladt",
+      "leftOutChosen": {
+        "one": "{count} person udeladt",
+        "other": "{count} personer udeladt"
+      },
+      "noAlbums": "Ingen albums endnu",
+      "noPeople": "Ingen navngivne personer endnu"
     },
     "icloud": {
       "albumLink": "Albumlink",
@@ -6023,7 +5801,8 @@
       "photoLinkDetected": "Dette er et fotolink, ikke et link til et delt album. Fotolinks holder op med at virke efter cirka en måned, så vi gemmer kopier i dit bibliotek og viser dem i stedet.",
       "photoLinkAction": "Gem i biblioteket",
       "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over.",
-      "checking": "Tjekker albummet…"
+      "checking": "Tjekker albummet…",
+      "linkOk": "Linket ser rigtigt ud"
     },
     "onedrive": {
       "checking": "Tjekker OneDrive-forbindelsen…",
@@ -6050,7 +5829,8 @@
       "noPhotos": "Endnu ingen billeder i denne mappe",
       "signInDeclined": "Login blev annulleret",
       "signInExpired": "Koden udløb. Start login igen.",
-      "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen."
+      "signInFailed": "Login virkede ikke. Tjek Application ID og prøv igen.",
+      "disconnectFailed": "OneDrive kunne ikke afbrydes. Tjek din internetforbindelse, og prøv igen."
     },
     "sourceLabel": "Billedkilde",
     "needsFreeKey": "kræver en gratis nøgle",
@@ -6059,7 +5839,7 @@
     "keyMissingBackground": "Denne kilde er ikke sat op endnu, så skærmen beholder sit sidste billede. Sæt den op under Indstillinger > API-nøgler, eller vælg en anden kilde.",
     "photosPerRefresh": "Billeder pr. opdatering",
     "kinds": {
-      "library": "Mappe i biblioteket",
+      "library": "Bibliotek",
       "immich": "Immich",
       "icloud": "Delt iCloud-album",
       "onedrive": "OneDrive",
@@ -6102,7 +5882,16 @@
       "copyHint": "Billeder fra Unsplash. En kopi gemmes i Unsplash-mappen i dit bibliotek.",
       "empty": "Intet fundet for de ord. Prøv nogle andre.",
       "loadFailed": "Kunne ikke indlæse billeder fra Unsplash.",
-      "rateLimited": "Unsplash' gratis plan giver 50 søgninger i timen, og de er brugt. Prøv igen lidt senere."
+      "rateLimited": "Unsplash' gratis plan giver 50 søgninger i timen, og de er brugt. Prøv igen lidt senere.",
+      "collectionsHelp": "Fotos kommer fra disse samlinger i stedet for søgeord. Indsæt en samlings adresse fra unsplash.com eller dens id.",
+      "collectionLabel": "Samling",
+      "addCollection": "Tilføj",
+      "collectionChecking": "Tjekker...",
+      "collectionValid": "Samlingen blev fundet",
+      "collectionEmpty": "Ingen fotos i denne samling",
+      "collectionNotFound": "Kunne ikke finde denne samling",
+      "removeCollection": "Fjern samlingen {id}",
+      "removeCollectionShort": "Fjern"
     },
     "nasa": {
       "pictureOfTheDay": "Dagens billede",
@@ -6165,7 +5954,7 @@
       "comesWithHomeScreens": "Følger med Home Screens",
       "inLibrary": "I dit bibliotek",
       "inLibraryFolder": "I dit bibliotek, mappen {folder}",
-      "rotatingNote": "Vises, indtil det første skiftende billede kommer. Vælger du et billede, slås 'Skift automatisk' fra."
+      "rotatingNote": "Vises, indtil det første roterende billede kommer. Vælger du et billede, slås rotationen fra."
     },
     "google": {
       "add": "Tilføj fra Google Fotos",
@@ -6196,6 +5985,24 @@
       "googleIntro": "Vælg billeder i Google Fotos, og kom så tilbage hertil. De bliver tilføjet til mappen nedenfor.",
       "googleSignInIntro": "Log ind på Google Fotos én gang, og vælg så de billeder, du vil tilføje her.",
       "openGoogle": "Åbn Google Fotos"
+    },
+    "modes": {
+      "folder": "Mappe",
+      "pictures": "Billeder",
+      "filters": "Filtre",
+      "words": "Søgeord",
+      "collections": "Samlinger"
+    },
+    "picked": {
+      "none": "Intet valgt endnu.",
+      "count": {
+        "one": "{count} valgt.",
+        "other": "{count} valgt."
+      },
+      "help": "Klik på et billede for at tilføje det, og igen for at fjerne det.",
+      "loading": "Henter billeder...",
+      "add": "Tilføj {name}",
+      "takeOut": "Fjern {name}"
     }
   }
 }

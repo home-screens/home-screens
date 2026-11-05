@@ -1217,7 +1217,8 @@
     "noPhotosYetHintOneDrive": "Controleer de OneDrive-map in de editor.",
     "noPhotosYetHintImmich": "Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
     "noPhotosYetHintUnsplash": "Probeer in de editor andere zoekwoorden.",
-    "noPhotosYetHintNasa": "NASA stuurt op dit moment geen afbeeldingen. Ze komen vanzelf terug."
+    "noPhotosYetHintNasa": "NASA stuurt op dit moment geen afbeeldingen. Ze komen vanzelf terug.",
+    "noPhotosYetHintPicked": "Kies een paar foto's in de editor."
   },
   "dad-joke": {
     "loading": "Mop laden…"
@@ -1368,7 +1369,8 @@
     "emptyImmich": "Nog geen foto's. Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
     "emptyUnsplash": "Nog geen foto's. Probeer in de editor andere zoekwoorden.",
     "emptyNasa": "Op dit moment geen afbeeldingen van NASA. Ze komen vanzelf terug.",
-    "photoCredit": "Foto door {name} op {source}"
+    "photoCredit": "Foto door {name} op {source}",
+    "emptyPicked": "Nog geen foto's gekozen. Kies er een paar in de editor."
   },
   "video": {
     "name": "Video",

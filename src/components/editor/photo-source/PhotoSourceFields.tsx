@@ -1,14 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
-import { useEditorData } from '@/hooks/useEditorData';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
 import {
-  PHOTO_SOURCE_MEDIA_PATH,
   canPlayVideo,
   clampPhotoCount,
   defaultPhotoSource,
@@ -17,17 +13,12 @@ import {
   needs,
   normalizePhotoSource,
   offeredFor,
-  photoSourceParams,
   usesCount,
   type PhotoSourceKind,
 } from '@/lib/photo-source';
-import type { MediaListItem, PhotoSource, SlideshowMediaTypes } from '@/types/config';
+import type { PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import { MediaTypesFields } from '@/components/editor/config-sections/MediaTypesFields';
-import { ImmichSourceFields } from './ImmichSourceFields';
-import { ICloudSourceFields } from './ICloudSourceFields';
-import { OneDriveSourceFields } from './OneDriveSourceFields';
-import { LibraryFolderFields } from './LibraryFolderFields';
-import PreviewStrip from './PreviewStrip';
+import PhotoSourceEntryFields from './PhotoSourceEntryFields';
 
 /** What the source block writes back: any of these fields, merged into the owner's config. */
 export interface PhotoSourcePatch {
@@ -39,11 +30,11 @@ export interface PhotoSourcePatch {
 
 /**
  * The one block that says where a stream of pictures comes from, used by
- * Photo Slideshow, Full-screen Photo and a screen's rotating background, so
- * all three offer the same sources with the same filters. Every source is
- * always listed; one that still needs a key says so in the list and under
- * it. What it needs, whether it plays video and whether it has a per-refresh
- * count all come from the rules in `photo-source.ts`.
+ * Photo Slideshow and Full-screen Photo, so both offer the same sources with
+ * the same filters (a rotating background lists the same kinds as rows).
+ * Every source is always listed; one that still needs a key says so in the
+ * list and under it. What it needs, whether it plays video and whether it
+ * has a per-refresh count all come from the rules in `photo-source.ts`.
  *
  * Slide timing, transition and fit are the module's own display settings
  * and stay in each module's section.
@@ -57,14 +48,15 @@ export default function PhotoSourceFields({ use, value, onChange }: {
   const t = useTranslate('editor');
   const { status } = useSecretStatus();
   const source = normalizePhotoSource(value.photoSource) ?? defaultPhotoSource('library');
-  const kinds = offeredFor(use);
+  // Walls are picked as tiles in a background's Sources list, never from a select.
+  const kinds = offeredFor(use).filter((kind) => kind !== 'wall');
   const count = clampPhotoCount(value.count, source.kind);
   const setSource = (photoSource: PhotoSource) => onChange({ photoSource });
 
   const optionLabel = (kind: PhotoSourceKind) => {
     const name = t(`photoSources.kinds.${kind}`);
     if (isReady(kind, status, use)) return name;
-    // A free key (Unsplash, NASA) or a server or sign-in to set up (Immich, OneDrive).
+    // A free key (Unsplash) or a server or sign-in to set up (Immich, OneDrive).
     const note = needs(kind).signIn || kind === 'immich' ? t('photoSources.needsSettingUp') : t('photoSources.needsFreeKey');
     return `${name} (${note})`;
   };
@@ -83,20 +75,7 @@ export default function PhotoSourceFields({ use, value, onChange }: {
         </p>
       )}
 
-      {source.kind === 'library' && (
-        <LibraryFolderFields source={source} onChange={setSource} withGoogleImport={use === 'stream'} />
-      )}
-      {source.kind === 'immich' && <ImmichSourceFields source={source} onChange={setSource} />}
-      {source.kind === 'icloud' && (
-        <ICloudSourceFields source={source} mediaTypes={use === 'stream' ? value.mediaTypes : undefined} onChange={setSource} />
-      )}
-      {source.kind === 'onedrive' && <OneDriveSourceFields source={source} count={count} onChange={setSource} />}
-      {source.kind === 'unsplash' && <UnsplashSourceFields source={source} count={count} ready={isReady('unsplash', status)} use={use} onChange={setSource} />}
-      {source.kind === 'nasa' && (
-        <p className="text-[10px] leading-relaxed text-hs-text-faint">
-          {t(use === 'background' ? 'photoSources.nasa.backgroundInfo' : 'photoSources.nasa.streamInfo')}
-        </p>
-      )}
+      <PhotoSourceEntryFields use={use} source={source} count={count} mediaTypes={value.mediaTypes} onChange={setSource} />
 
       {use === 'stream' && canPlayVideo(source.kind) && (
         <MediaTypesFields config={value as Record<string, unknown>} set={onChange} />
@@ -112,42 +91,6 @@ export default function PhotoSourceFields({ use, value, onChange }: {
           onChange={(v) => onChange({ count: v })}
         />
       )}
-    </>
-  );
-}
-
-/** Search words for Unsplash, with a peek at what they bring once a key is saved. */
-function UnsplashSourceFields({ source, count, ready, use, onChange }: {
-  source: Extract<PhotoSource, { kind: 'unsplash' }>;
-  count: number;
-  ready: boolean;
-  use: 'stream' | 'background';
-  onChange: (source: PhotoSource) => void;
-}) {
-  const t = useTranslate('editor');
-  // Each new set of words costs one of the free plan's 50 requests an hour,
-  // so the preview waits for typing to settle.
-  const [settled, setSettled] = useState(source.query);
-  useEffect(() => {
-    const timer = setTimeout(() => setSettled(source.query), 900);
-    return () => clearTimeout(timer);
-  }, [source.query]);
-  // The wall's own count, so the preview fills the hub's hour-long cache the
-  // wall then reads instead of spending a second request.
-  const previewUrl = ready && settled.trim()
-    ? `${PHOTO_SOURCE_MEDIA_PATH}?${photoSourceParams({ kind: 'unsplash', query: settled.trim() })}&count=${count}`
-    : null;
-  const { data } = useEditorData<MediaListItem[]>(previewUrl);
-  return (
-    <>
-      <LabeledInput
-        label={t('photoSources.unsplash.searchWords')}
-        value={source.query}
-        placeholder={t('photoSources.unsplash.searchWordsPlaceholder')}
-        onChange={(query) => onChange({ kind: 'unsplash', query })}
-      />
-      <p className="-mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t(use === 'background' ? 'photoSources.unsplash.searchHelpBackground' : 'photoSources.unsplash.searchHelp')}</p>
-      <PreviewStrip urls={(data ?? []).slice(0, 4).map((item) => item.url)} />
     </>
   );
 }

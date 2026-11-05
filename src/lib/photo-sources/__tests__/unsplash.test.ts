@@ -145,6 +145,42 @@ describe('unsplashPhotoSource.pickOne', () => {
     mockFetch.mockResolvedValueOnce(json({}, 500));
     expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'x' }, canvas: { w: 1, h: 1 } })).toBeNull();
   });
+
+  it('draws from the collections instead of the words when any are named', async () => {
+    mockFetch.mockResolvedValueOnce(json(photo('c')));
+    const picked = await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: 'ignored', collections: ['11', '22'] }, canvas: { w: 1080, h: 1920 } });
+    expect(mockFetch.mock.calls[0][0]).toBe('https://api.unsplash.com/photos/random?collections=11%2C22&orientation=portrait&content_filter=high');
+    expect(picked).toMatchObject({ kind: 'download', id: 'c' });
+  });
+
+  it('picks one of the hand-picked photos by id, avoiding the one showing, and tracks it', async () => {
+    mockFetch.mockResolvedValueOnce(json(photo('p2')));
+    const picked = await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: '', photoIds: ['p1', 'p2'] }, canvas: { w: 1080, h: 1920 }, previous: 'rotation-unsplash-p1.jpg' });
+    expect(mockFetch.mock.calls[0][0]).toBe('https://api.unsplash.com/photos/p2');
+    expect(picked).toMatchObject({ kind: 'download', id: 'p2' });
+    expect(trackDownload).toHaveBeenCalledTimes(1);
+    expect(await unsplashPhotoSource.pickOne({ source: { kind: 'unsplash', query: '', photoIds: [] }, canvas: { w: 1, h: 1 } })).toBeNull();
+  });
+});
+
+describe('unsplashPhotoSource.list with collections and picks', () => {
+  it('asks the collections for random photos', async () => {
+    mockFetch.mockResolvedValueOnce(json([photo('a')]));
+    const items = await unsplashPhotoSource.list({ source: { kind: 'unsplash', query: '', collections: ['77'] }, count: 10, media: 'photos' });
+    expect(mockFetch.mock.calls[0][0]).toBe('https://api.unsplash.com/photos/random?collections=77&count=10&content_filter=high');
+    expect(items).toHaveLength(1);
+  });
+
+  it('looks each hand-picked photo up and hotlinks it with its credit', async () => {
+    mockFetch.mockImplementation(async (url) => json(photo(String(url).endsWith('/x1') ? 'x1' : 'x2')));
+    const items = await unsplashPhotoSource.list({ source: { kind: 'unsplash', query: '', photoIds: ['x1', 'x2'] }, count: 10, media: 'photos' });
+    expect(mockFetch.mock.calls.map(([url]) => url).sort()).toEqual(['https://api.unsplash.com/photos/x1', 'https://api.unsplash.com/photos/x2']);
+    expect(items).toEqual([
+      { url: 'https://images.unsplash.com/photo-x1?ixid=1&w=1920&q=80&fm=jpg&fit=max', type: 'image', credit: { name: 'Taylor x1', source: 'Unsplash' } },
+      { url: 'https://images.unsplash.com/photo-x2?ixid=1&w=1920&q=80&fm=jpg&fit=max', type: 'image', credit: { name: 'Taylor x2', source: 'Unsplash' } },
+    ]);
+    expect(trackDownload).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('unsplashPhotoSource.browse', () => {

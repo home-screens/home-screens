@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 17,
+  "schemaVersion": 18,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -108,15 +108,6 @@
           "default": true
         },
         {
-          "name": "showWeather",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to `off`, `true` to `header`"
-        },
-        {
           "name": "weatherPlacement",
           "optional": true,
           "type": {
@@ -162,23 +153,13 @@
           "description": "Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter"
         },
         {
-          "name": "darkMode",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Superseded by `theme` (see above). Kept so older configurations still render",
-          "default": false
-        },
-        {
           "name": "theme",
           "optional": true,
           "type": {
             "kind": "string",
             "text": "string"
           },
-          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
+          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, or Linen when that is unset too"
         },
         {
           "name": "todayHighlightStyle",
@@ -227,8 +208,8 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description",
-          "default": false
+          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
+          "default": true
         },
         {
           "name": "eventTapStyle",
@@ -844,16 +825,6 @@
           "default": true
         },
         {
-          "name": "darkMode",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Superseded by `theme` (see above). Kept so older configurations still render",
-          "default": true
-        },
-        {
           "name": "density",
           "optional": false,
           "type": {
@@ -903,7 +874,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
+          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, or Charcoal when that is unset too"
         },
         {
           "name": "celebration",
@@ -963,10 +934,11 @@
               "menu-board",
               "next-meal",
               "recipe",
-              "grocery"
+              "grocery",
+              "recipes"
             ]
           },
-          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), or `grocery` (the grocery list)",
+          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), `grocery` (the grocery list), or `recipes` (the recipe book: every recipe to browse and search, each opening on a recipe card to cook from)",
           "default": "week"
         },
         {
@@ -1075,7 +1047,7 @@
             ]
           },
           "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
-          "default": "off"
+          "default": "card"
         },
         {
           "name": "showTitle",
@@ -1094,7 +1066,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Let people use the wall on a touch screen: tick things off the grocery list and step through a recipe. A tick writes to the family's list, never to the layout",
+          "description": "Let people use the wall on a touch screen: tick things off the grocery list, step through a recipe, search and open recipes in the recipe book, and scroll a view that runs past the screen. A tick writes to the family's list, never to the layout",
           "default": true
         }
       ],
@@ -1104,7 +1076,8 @@
         "menu-board",
         "next-meal",
         "recipe",
-        "grocery"
+        "grocery",
+        "recipes"
       ]
     },
     {
@@ -1808,18 +1781,8 @@
           "default": "classic"
         },
         {
-          "name": "format24h",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "The older per-clock 24-hour toggle. Only read when `hourFormat` is absent",
-          "default": false
-        },
-        {
           "name": "hourFormat",
-          "optional": true,
+          "optional": false,
           "type": {
             "kind": "string",
             "text": "ClockHourFormat",
@@ -1829,7 +1792,7 @@
               "24h"
             ]
           },
-          "description": "Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock. Clocks from before this option existed have no `hourFormat` and keep using `format24h`",
+          "description": "Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock",
           "default": "inherit"
         },
         {
@@ -2303,8 +2266,8 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description",
-          "default": false
+          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
+          "default": true
         },
         {
           "name": "eventTapStyle",
@@ -4490,7 +4453,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Render items as tap targets so anyone at the kiosk can tick them. A tap writes to the shared list, never to the layout",
+          "description": "Render items as tap targets so anyone at the kiosk can tick them, and let a finger scroll the List and Compact views past the rows that fit. A tap writes to the shared list, never to the layout",
           "default": true
         },
         {
@@ -5273,10 +5236,11 @@
               "next-meal",
               "compact",
               "list",
-              "grocery"
+              "grocery",
+              "recipes"
             ]
           },
-          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, or `grocery` (the grocery list)",
+          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, `grocery` (the grocery list), or `recipes` (the family's recipes to browse and search, each opening on a recipe card)",
           "default": "week"
         },
         {
@@ -5333,7 +5297,7 @@
             ]
           },
           "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
-          "default": "off"
+          "default": "card"
         },
         {
           "name": "showTitle",
@@ -5352,7 +5316,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Let people tick things off the grocery list on a touch screen. A tick writes to the family's list, never to the layout",
+          "description": "Let people use the wall on a touch screen: tick things off the grocery list, search and open recipes in the recipe view, and scroll a list or week that runs past the box (it goes back to today a minute later). A tick writes to the family's list, never to the layout",
           "default": true
         }
       ],
@@ -5362,7 +5326,8 @@
         "next-meal",
         "compact",
         "list",
-        "grocery"
+        "grocery",
+        "recipes"
       ]
     },
     {
@@ -7291,7 +7256,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 17
+          "default": 18
         },
         {
           "name": "settings",
@@ -7310,12 +7275,9 @@
             "longitude": 0,
             "weather": {
               "provider": "open-meteo",
-              "latitude": 0,
-              "longitude": 0,
               "units": "imperial"
             },
             "calendar": {
-              "googleCalendarId": "",
               "googleCalendarIds": [],
               "icalSources": [],
               "daysAhead": 7
@@ -7490,8 +7452,6 @@
           "description": "Weather source, location, and units (see WeatherSettings)",
           "default": {
             "provider": "open-meteo",
-            "latitude": 0,
-            "longitude": 0,
             "units": "imperial"
           }
         },
@@ -7504,7 +7464,6 @@
           },
           "description": "Calendar sources and options (see CalendarSettings)",
           "default": {
-            "googleCalendarId": "",
             "googleCalendarIds": [],
             "icalSources": [],
             "daysAhead": 7
@@ -7990,26 +7949,6 @@
           "default": "open-meteo"
         },
         {
-          "name": "latitude",
-          "optional": false,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Latitude the forecast is fetched for",
-          "default": 0
-        },
-        {
-          "name": "longitude",
-          "optional": false,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Longitude the forecast is fetched for",
-          "default": 0
-        },
-        {
           "name": "units",
           "optional": false,
           "type": {
@@ -8039,16 +7978,6 @@
       "kind": "interface",
       "description": "",
       "fields": [
-        {
-          "name": "googleCalendarId",
-          "optional": false,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "A single Google calendar ID, from before several could be picked; `googleCalendarIds` replaced it",
-          "default": ""
-        },
         {
           "name": "googleCalendarIds",
           "optional": false,
@@ -8349,6 +8278,15 @@
           "description": "Dim/vignette overlay drawn over the background (see BackgroundShade)"
         },
         {
+          "name": "effects",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "BackgroundEffects"
+          },
+          "description": "CSS-filter-based tuning applied to background media only (see BackgroundEffects)"
+        },
+        {
           "name": "modules",
           "optional": false,
           "type": {
@@ -8392,15 +8330,6 @@
       "description": "",
       "fields": [
         {
-          "name": "enabled",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Turn rotation on"
-        },
-        {
           "name": "intervalMinutes",
           "optional": false,
           "type": {
@@ -8410,25 +8339,25 @@
           "description": "Minutes between pictures"
         },
         {
-          "name": "photoSource",
+          "name": "sources",
           "optional": false,
           "type": {
-            "kind": "object",
-            "text": "PhotoSource"
+            "kind": "array",
+            "text": "PhotoSource[]"
           },
-          "description": "Where the pictures come from (see PhotoSource). A background is always a still picture, so videos in the source are skipped"
+          "description": "Where the pictures come from (see PhotoSource): one entry per source, drawn from in turn. An empty list means the screen keeps its own picture. A background is always a still picture, so videos in a source are skipped"
         }
       ]
     },
     "PhotoSource": {
       "name": "PhotoSource",
       "kind": "variants",
-      "description": "Where a stream of pictures comes from: a library folder, an Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search or NASA's Astronomy Picture of the Day. Photo Slideshow, Full-screen Photo and background rotation all use it",
+      "description": "Where a stream of pictures comes from: a library folder or a few chosen library pictures, an Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or picked photos, NASA's Astronomy Picture of the Day, or the walls that come with Home Screens. Photo Slideshow, Full-screen Photo and background rotation all use it",
       "discriminant": "kind",
       "variants": [
         {
           "value": "library",
-          "description": "A folder in your media library",
+          "description": "A folder in your media library, or a few pictures chosen from it",
           "fields": [
             {
               "name": "folder",
@@ -8438,6 +8367,15 @@
                 "text": "string"
               },
               "description": "Library folder to show; empty for the top level"
+            },
+            {
+              "name": "pictures",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only these pictures (library paths such as `holiday/beach.jpg`); when set, the folder is not read"
             }
           ]
         },
@@ -8446,22 +8384,31 @@
           "description": "Your Immich photo library (needs the Immich address and key in Settings > API keys)",
           "fields": [
             {
-              "name": "albumId",
+              "name": "albumIds",
               "optional": true,
               "type": {
-                "kind": "string",
-                "text": "string"
+                "kind": "array",
+                "text": "string[]"
               },
-              "description": "Only photos in this Immich album"
+              "description": "Only photos in any of these Immich albums"
             },
             {
-              "name": "personId",
+              "name": "personIds",
               "optional": true,
               "type": {
-                "kind": "string",
-                "text": "string"
+                "kind": "array",
+                "text": "string[]"
               },
-              "description": "Only photos of this person (a face Immich recognized)"
+              "description": "Only photos showing at least one of these people (faces Immich recognized)"
+            },
+            {
+              "name": "excludePersonIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Leave out photos showing any of these people"
             },
             {
               "name": "favoritesOnly",
@@ -8472,6 +8419,15 @@
               },
               "description": "Only photos marked as favorites in Immich",
               "defaultText": "false"
+            },
+            {
+              "name": "assetIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only these photos, picked one by one (Immich asset ids); when set, the filters are not used"
             }
           ]
         },
@@ -8526,6 +8482,24 @@
                 "text": "string"
               },
               "description": "Search words, in English (for example `mountains lake`)"
+            },
+            {
+              "name": "collections",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only photos from these Unsplash collections (collection ids); when set, the search words are not used"
+            },
+            {
+              "name": "photoIds",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only these photos, picked one by one (Unsplash photo ids); when set, nothing else is used"
             }
           ]
         },
@@ -8533,6 +8507,34 @@
           "value": "nasa",
           "description": "NASA's Astronomy Picture of the Day, newest first; no key needed",
           "fields": []
+        },
+        {
+          "value": "wall",
+          "description": "Walls that come with Home Screens, for a rotating background only",
+          "fields": [
+            {
+              "name": "group",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "\"color\" | \"pattern\"",
+                "values": [
+                  "color",
+                  "pattern"
+                ]
+              },
+              "description": "Which group of walls: the plain colors or the patterns"
+            },
+            {
+              "name": "ids",
+              "optional": false,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "The walls from that group to rotate through (their ids); none chosen means nothing from the group"
+            }
+          ]
         }
       ]
     },
@@ -10699,6 +10701,15 @@
       ]
     },
     {
+      "path": "/api/backup/archive",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backup/credentials",
       "methods": [
         {
@@ -10717,6 +10728,15 @@
       ]
     },
     {
+      "path": "/api/backup/pictures",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
       "path": "/api/backup/reminder",
       "methods": [
         {
@@ -10725,7 +10745,16 @@
         },
         {
           "method": "POST",
-          "access": "display"
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/backup/upload",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
         }
       ]
     },
@@ -11216,7 +11245,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11225,7 +11254,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11274,7 +11303,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11961,7 +11990,7 @@
         },
         {
           "method": "POST",
-          "access": "display"
+          "access": "session"
         }
       ]
     },
@@ -12125,10 +12154,6 @@
         {
           "method": "GET",
           "access": "display"
-        },
-        {
-          "method": "PUT",
-          "access": "session"
         }
       ]
     },

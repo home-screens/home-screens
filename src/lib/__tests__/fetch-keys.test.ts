@@ -258,10 +258,10 @@ describe('photoSlideshowUrl', () => {
 
   it('carries every Immich filter and the count', () => {
     const url = photoSlideshowUrl({
-      photoSource: { kind: 'immich', albumId: 'abc-123', personId: 'def-456', favoritesOnly: true },
+      photoSource: { kind: 'immich', albumIds: ['abc-123', 'abc-124'], personIds: ['def-456'], excludePersonIds: ['abc-789'], favoritesOnly: true },
       count: 100,
     });
-    expect(url).toBe(`${MEDIA}?kind=immich&album=abc-123&person=def-456&favorites=1&count=100`);
+    expect(url).toBe(`${MEDIA}?kind=immich&albums=abc-123%2Cabc-124&people=def-456&exclude=abc-789&favorites=1&count=100`);
   });
 
   it('carries the iCloud link and the OneDrive folder', () => {

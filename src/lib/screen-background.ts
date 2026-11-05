@@ -1,5 +1,8 @@
-import type { BackgroundRotationSourceId, Screen } from '@/types/config';
+import type { BackgroundRotation, PhotoSource, Screen } from '@/types/config';
 import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
+import { isRotationActive, normalizePhotoSource } from '@/lib/photo-source';
+
+export { isRotationActive };
 
 /**
  * What background rotation has answered for one screen: the photo it is
@@ -8,26 +11,47 @@ import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
  */
 export type RotationAnswer = string | null | undefined;
 
-const ROTATION_SOURCE_IDS: ReadonlySet<string> = new Set(['unsplash', 'nasa-apod', 'immich', 'icloud', 'local', 'color', 'pattern']);
+export const DEFAULT_ROTATION_INTERVAL_MINUTES = 60;
 
 /**
- * The sources rotation really uses. A saved entry for a source that no longer
- * exists (the old `theme` source) is ignored: it has no checkbox, so nothing
- * in the editor could switch it off, yet it kept winning refreshes.
+ * A screen's rotation after an edit, always a complete `BackgroundRotation`:
+ * the one place its shape is built, so no component carries the defaults.
+ * `sources` replaces the list when given; `source` adds or replaces the
+ * entry of its kind (and, for walls, its group), and `remove` takes that
+ * kind's entry out. Entries that are not sources are dropped on the way.
  */
-export function activeRotationSources(rotation: Screen['backgroundRotation'] | undefined): BackgroundRotationSourceId[] {
-  return (rotation?.sources ?? []).filter((source) => ROTATION_SOURCE_IDS.has(source));
+export interface RotationUpdate {
+  intervalMinutes?: number;
+  /** The whole list, replacing what is there. */
+  sources?: PhotoSource[];
+  /** One source, added or replacing the entry of its kind (and group, for walls). */
+  source?: PhotoSource;
+  /** The entry of this kind (and group, for walls) taken out. */
+  remove?: { kind: PhotoSource['kind']; group?: 'color' | 'pattern' };
 }
 
-/** A selected source activates rotation; the legacy `enabled` flag does not. */
-export function isRotationActive(rotation: Screen['backgroundRotation'] | undefined): boolean {
-  return activeRotationSources(rotation).length > 0;
+export function withRotationUpdate(current: BackgroundRotation | undefined, update: RotationUpdate): BackgroundRotation {
+  const same = (a: PhotoSource, b: { kind: PhotoSource['kind']; group?: 'color' | 'pattern' }) =>
+    a.kind === b.kind && (a.kind !== 'wall' || b.group === undefined || a.group === b.group);
+  let sources = (update.sources ?? current?.sources ?? [])
+    .map(normalizePhotoSource)
+    .filter((source): source is PhotoSource => source !== null);
+  if (update.source) {
+    const next = normalizePhotoSource(update.source);
+    if (next) {
+      const at = sources.findIndex((source) => same(source, next.kind === 'wall' ? { kind: 'wall', group: next.group } : { kind: next.kind }));
+      sources = at === -1 ? [...sources, next] : sources.map((source, i) => (i === at ? next : source));
+    }
+  }
+  if (update.remove) sources = sources.filter((source) => !same(source, update.remove!));
+  const intervalMinutes = update.intervalMinutes ?? current?.intervalMinutes ?? DEFAULT_ROTATION_INTERVAL_MINUTES;
+  return { intervalMinutes, sources };
 }
 
-export function stopBackgroundRotation(rotation: Screen['backgroundRotation'] | undefined): Screen['backgroundRotation'] | undefined {
+/** The rotation with its sources emptied: the screen keeps its own picture. */
+export function stopBackgroundRotation(rotation: BackgroundRotation | undefined): BackgroundRotation | undefined {
   if (!rotation) return undefined;
-  const { enabled: _enabled, ...rest } = rotation;
-  return { ...rest, sources: [] };
+  return withRotationUpdate(rotation, { sources: [] });
 }
 
 /**
@@ -61,10 +85,10 @@ export function screenBackgroundSrc(
 }
 
 /**
- * What picking a background by hand does to a screen, from any tab of the
- * background picker or an upload: the picture becomes the screen's own, and
- * rotation stops. A rotating screen would paint over the choice within the
- * hour, which reads as "it didn't save".
+ * What picking a background by hand does to a screen, from the Image Library
+ * or an upload: the picture becomes the screen's own, and rotation stops. A
+ * rotating screen would paint over the choice within the hour, which reads
+ * as "it didn't save".
  */
 export function pickedBackground(
   screen: Pick<Screen, 'backgroundRotation'> | undefined,

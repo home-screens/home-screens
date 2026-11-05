@@ -46,7 +46,7 @@ describe('immichPhotoSource.list', () => {
     const albumId = freshAlbum();
     mockFetch.mockResolvedValue(json([{ id: 'p1', type: 'IMAGE' }, { id: 'p2', type: 'IMAGE' }]));
 
-    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumId, personId: 'b1', favoritesOnly: true }, count: 20, media: 'photos' });
+    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumIds: [albumId], personIds: ['b1'], favoritesOnly: true }, count: 20, media: 'photos' });
 
     expect(mockFetch).toHaveBeenCalledWith('/api/search/random', expect.objectContaining({ method: 'POST' }));
     expect(bodyOf(0)).toEqual({ albumIds: [albumId], personIds: ['b1'], isFavorite: true, type: 'IMAGE', size: 20 });
@@ -59,7 +59,7 @@ describe('immichPhotoSource.list', () => {
   it('hands videos over with a media token, a poster and the reported length', async () => {
     mockFetch.mockResolvedValue(json([{ id: 'v1', type: 'VIDEO', duration: '0:00:12.500' }]));
 
-    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumId: freshAlbum() }, count: 5, media: 'videos' });
+    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumIds: [freshAlbum()] }, count: 5, media: 'videos' });
 
     expect(bodyOf(0).type).toBe('VIDEO');
     expect(items).toEqual([{
@@ -76,7 +76,7 @@ describe('immichPhotoSource.list', () => {
       return json(type === 'IMAGE' ? [{ id: 'p1', type: 'IMAGE' }, { id: 'p2', type: 'IMAGE' }] : [{ id: 'v1', type: 'VIDEO' }, { id: 'v2', type: 'VIDEO' }]);
     });
 
-    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumId: freshAlbum() }, count: 3, media: 'both' });
+    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumIds: [freshAlbum()] }, count: 3, media: 'both' });
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(items).toHaveLength(3);
@@ -84,7 +84,7 @@ describe('immichPhotoSource.list', () => {
 
   it('keeps a list for five minutes, so walls refreshing together share one search', async () => {
     vi.useFakeTimers();
-    const source = { kind: 'immich' as const, albumId: freshAlbum() };
+    const source = { kind: 'immich' as const, albumIds: [freshAlbum()] };
     mockFetch.mockImplementation(async () => json([{ id: 'p1', type: 'IMAGE' }]));
 
     await immichPhotoSource.list({ source, count: 10, media: 'photos' });
@@ -103,7 +103,7 @@ describe('immichPhotoSource.list', () => {
   it('names the missing permission when the key cannot search', async () => {
     mockFetch.mockResolvedValue(json({ message: 'Missing required permission: asset.read' }, 403));
 
-    const error = await immichPhotoSource.list({ source: { kind: 'immich', albumId: freshAlbum() }, count: 5, media: 'photos' }).catch((e) => e);
+    const error = await immichPhotoSource.list({ source: { kind: 'immich', albumIds: [freshAlbum()] }, count: 5, media: 'photos' }).catch((e) => e);
 
     expect(error).toBeInstanceOf(PhotoSourceError);
     expect(error.status).toBe(403);
@@ -112,7 +112,7 @@ describe('immichPhotoSource.list', () => {
 
   it('answers 502 for any other failure', async () => {
     mockFetch.mockResolvedValue(json({}, 500));
-    const error = await immichPhotoSource.list({ source: { kind: 'immich', albumId: freshAlbum() }, count: 5, media: 'photos' }).catch((e) => e);
+    const error = await immichPhotoSource.list({ source: { kind: 'immich', albumIds: [freshAlbum()] }, count: 5, media: 'photos' }).catch((e) => e);
     expect(error.status).toBe(502);
   });
 });
@@ -120,7 +120,7 @@ describe('immichPhotoSource.list', () => {
 describe('immichPhotoSource.pickOne', () => {
   it('picks one random picture and downloads its display-sized preview', async () => {
     mockFetch.mockResolvedValueOnce(json([{ id: 'p9', type: 'IMAGE' }]));
-    const picked = await immichPhotoSource.pickOne({ source: { kind: 'immich', personId: 'b1' }, canvas: { w: 1080, h: 1920 } });
+    const picked = await immichPhotoSource.pickOne({ source: { kind: 'immich', personIds: ['b1'] }, canvas: { w: 1080, h: 1920 } });
 
     expect(bodyOf(0)).toEqual({ personIds: ['b1'], type: 'IMAGE', size: 1 });
     expect(picked).toMatchObject({ kind: 'download', id: 'p9' });
@@ -132,6 +132,62 @@ describe('immichPhotoSource.pickOne', () => {
   it('has nothing when nothing matches', async () => {
     mockFetch.mockResolvedValue(json([]));
     expect(await immichPhotoSource.pickOne({ source: { kind: 'immich' }, canvas: { w: 1, h: 1 } })).toBeNull();
+  });
+
+  it('picks one of the hand-picked photos without a search, avoiding the one showing', async () => {
+    const picked = await immichPhotoSource.pickOne({ source: { kind: 'immich', assetIds: ['a1', 'b2'] }, canvas: { w: 1, h: 1 }, previous: 'rotation-immich-a1.jpg' });
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(picked).toMatchObject({ kind: 'download', id: 'b2' });
+    expect(await immichPhotoSource.pickOne({ source: { kind: 'immich', assetIds: [] }, canvas: { w: 1, h: 1 } })).toBeNull();
+  });
+
+  it('asks for a handful and leaves out anyone on the exclude list, checking the candidates all at once', async () => {
+    mockFetch.mockImplementation(async (path: string) => {
+      if (path === '/api/search/random') return json([{ id: 'p1', type: 'IMAGE' }, { id: 'p2', type: 'IMAGE' }]);
+      if (path === '/api/assets/p1') return json({ id: 'p1', people: [{ id: 'bad' }] });
+      if (path === '/api/assets/p2') return json({ id: 'p2', people: [{ id: 'fine' }] });
+      return json({}, 404);
+    });
+
+    const picked = await immichPhotoSource.pickOne({ source: { kind: 'immich', excludePersonIds: ['bad'] }, canvas: { w: 1, h: 1 } });
+
+    expect(bodyOf(0)).toEqual({ type: 'IMAGE', size: 10 });
+    expect(picked).toMatchObject({ kind: 'download', id: 'p2' });
+    // Both detail lookups went out before either answered.
+    expect(mockFetch.mock.calls.map(([path]) => path)).toEqual(['/api/search/random', '/api/assets/p1', '/api/assets/p2']);
+  });
+
+  it('keeps a photo whose people cannot be read rather than dropping it', async () => {
+    mockFetch.mockImplementation(async (path: string) => {
+      if (path === '/api/search/random') return json([{ id: 'p1', type: 'IMAGE' }]);
+      return json({ error: 'no permission' }, 403);
+    });
+    const picked = await immichPhotoSource.pickOne({ source: { kind: 'immich', excludePersonIds: ['bad'] }, canvas: { w: 1, h: 1 } });
+    expect(picked).toMatchObject({ kind: 'download', id: 'p1' });
+  });
+});
+
+describe('immichPhotoSource.list with picks and left-out people', () => {
+  it('plays the hand-picked photos as they are, never videos, without a search', async () => {
+    const items = await immichPhotoSource.list({ source: { kind: 'immich', assetIds: ['a1', 'b2'] }, count: 20, media: 'both' });
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(items).toEqual([
+      { url: '/api/immich/serve?assetId=a1&size=preview', type: 'image' },
+      { url: '/api/immich/serve?assetId=b2&size=preview', type: 'image' },
+    ]);
+    expect(await immichPhotoSource.list({ source: { kind: 'immich', assetIds: ['a1'] }, count: 20, media: 'videos' })).toEqual([]);
+  });
+
+  it('leaves out the photos showing anyone on the exclude list', async () => {
+    const albumId = freshAlbum();
+    mockFetch.mockImplementation(async (path: string) => {
+      if (path === '/api/search/random') return json([{ id: 'p1', type: 'IMAGE', people: [{ id: 'bad' }] }, { id: 'p2', type: 'IMAGE', people: [] }]);
+      return json({}, 404);
+    });
+    const items = await immichPhotoSource.list({ source: { kind: 'immich', albumIds: [albumId], excludePersonIds: ['bad'] }, count: 5, media: 'photos' });
+    expect(items.map((item) => item.url)).toEqual(['/api/immich/serve?assetId=p2&size=preview']);
+    // People already on the asset need no second lookup.
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
 

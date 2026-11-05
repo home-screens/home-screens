@@ -1220,7 +1220,8 @@
     "noPhotosYetHintOneDrive": "Verifique a pasta do OneDrive no editor.",
     "noPhotosYetHintImmich": "Confira no editor o álbum, a pessoa e a opção de favoritos do Immich.",
     "noPhotosYetHintUnsplash": "Tente outras palavras de busca no editor.",
-    "noPhotosYetHintNasa": "A NASA não está enviando imagens agora. Elas voltam sozinhas."
+    "noPhotosYetHintNasa": "A NASA não está enviando imagens agora. Elas voltam sozinhas.",
+    "noPhotosYetHintPicked": "Escolha algumas fotos no editor."
   },
   "dad-joke": {
     "loading": "Carregando piada…"
@@ -1376,7 +1377,8 @@
     "emptyImmich": "Nenhuma foto ainda. Confira no editor o álbum, a pessoa e a opção de favoritos do Immich.",
     "emptyUnsplash": "Nenhuma foto ainda. Tente outras palavras de busca no editor.",
     "emptyNasa": "Nenhuma imagem da NASA agora. Elas voltam sozinhas.",
-    "photoCredit": "Foto de {name} no {source}"
+    "photoCredit": "Foto de {name} no {source}",
+    "emptyPicked": "Nenhuma foto escolhida ainda. Escolha algumas no editor."
   },
   "video": {
     "name": "Vídeo",

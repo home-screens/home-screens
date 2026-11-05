@@ -19,7 +19,7 @@ import VideoLayer from '../shared/VideoLayer';
 import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from '../shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
 import { householdTimeFormat } from '@/lib/clock-time';
-import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason } from '@/lib/photo-source';
+import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason, defaultPhotoSource } from '@/lib/photo-source';
 import PhotoCredit from '../shared/PhotoCredit';
 
 const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
@@ -27,6 +27,7 @@ const NO_ITEMS: MediaListItem[] = [];
 
 /** The editor-side fix an empty source's wall names (`emptyStateFor`); an empty library folder shows the phone address instead. */
 const CLOUD_HINT: Record<Exclude<PhotoSourceEmptyReason, 'addPhotos'>, string> = {
+  pickPictures: 'fullscreen-photo.noPhotosYetHintPicked',
   checkFilters: 'fullscreen-photo.noPhotosYetHintImmich',
   checkLink: 'fullscreen-photo.noPhotosYetHintICloud',
   checkFolder: 'fullscreen-photo.noPhotosYetHintOneDrive',
@@ -354,7 +355,7 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     // An empty library folder is filled from a phone; every other source's
     // fix is in the editor (a link, a folder, filters, search words or a
     // key), so it gets its own hint instead of phone-upload advice.
-    const reason = emptyStateFor(normalizePhotoSource(config.photoSource) ?? { kind: 'library' });
+    const reason = emptyStateFor(normalizePhotoSource(config.photoSource) ?? defaultPhotoSource('library'));
     const cloudHint = needsSetup ? error!.message : reason === 'addPhotos' ? null : t(CLOUD_HINT[reason]);
     return (
       <div

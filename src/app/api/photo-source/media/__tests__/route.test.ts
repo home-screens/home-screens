@@ -31,11 +31,11 @@ beforeEach(() => {
 
 describe('GET /api/photo-source/media', () => {
   it('lists the source the query names, with the media and count it asks for', async () => {
-    const res = await GET(req('kind=immich&album=abc-1&favorites=1&count=80&media=both'));
+    const res = await GET(req('kind=immich&albums=abc-1&favorites=1&count=80&media=both'));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([{ url: '/a.jpg', type: 'image' }]);
-    expect(mockList).toHaveBeenCalledWith({ kind: 'immich', albumId: 'abc-1', favoritesOnly: true }, 80, 'both');
+    expect(mockList).toHaveBeenCalledWith({ kind: 'immich', albumIds: ['abc-1'], favoritesOnly: true }, 80, 'both');
   });
 
   it('asks for photos and 50 when the query says nothing', async () => {

@@ -53,6 +53,13 @@ function track(photo: UnsplashPhoto, key: string): void {
   if (location && location.startsWith(`${UNSPLASH_API}/`)) trackDownload(location, key);
 }
 
+/** What a random request searches: the collections when any are named, else the words. */
+function randomParams(source: { query: string; collections?: string[] }): string {
+  return source.collections?.length
+    ? `collections=${encodeURIComponent(source.collections.join(','))}`
+    : `query=${encodeURIComponent(source.query)}`;
+}
+
 /** Unsplash's own image URL at a given width; `raw` takes their resizing parameters. */
 function sized(photo: UnsplashPhoto, params: string): string | null {
   const raw = photo.urls?.raw;
@@ -69,13 +76,29 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
    * random photos for the search, tracked as used.
    */
   async list({ source, count }) {
-    if (!source.query) return [];
+    if (!source.photoIds && !source.collections?.length && !source.query) return [];
     const n = Math.min(count, PAGE_SIZE);
     const cacheKey = `${sourceCacheKey(source)}-${n}`;
     const cached = listCache.get(cacheKey);
     if (cached) return cached;
     const key = await accessKey();
-    const res = await unsplashGet(`/photos/random?query=${encodeURIComponent(source.query)}&count=${n}&content_filter=high`, key);
+    if (source.photoIds) {
+      // Hand-picked photos, one lookup each, cached for the hour like a search.
+      const photos = await Promise.all(source.photoIds.slice(0, n).map(async (id) => {
+        const res = await unsplashGet(`/photos/${encodeURIComponent(id)}`, key);
+        return res.ok ? await res.json() as UnsplashPhoto : null;
+      }));
+      const items: MediaListItem[] = [];
+      for (const photo of photos) {
+        const url = photo ? sized(photo, 'w=1920&q=80&fm=jpg&fit=max') : null;
+        if (!photo || !url) continue;
+        track(photo, key);
+        items.push({ url, type: 'image', ...(photo.user?.name ? { credit: { name: photo.user.name, source: 'Unsplash' } } : {}) });
+      }
+      listCache.set(cacheKey, items);
+      return items;
+    }
+    const res = await unsplashGet(`/photos/random?${randomParams(source)}&count=${n}&content_filter=high`, key);
     // No photos for these words is an empty slideshow, not an error.
     if (res.status === 404) return [];
     if (!res.ok) throw new PhotoSourceError('Could not load photos from Unsplash', 502);
@@ -91,15 +114,26 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
     return items;
   },
 
-  async pickOne({ source, canvas }) {
-    if (!source.query) return null;
+  async pickOne({ source, canvas, previous }) {
     const key = await accessKey();
-    // A photo shaped like the wall: a portrait photo on a landscape wall was
-    // blown up to fill the width and cropped to a strip.
-    const orientation = canvas.w > canvas.h * 1.1 ? 'landscape' : canvas.h > canvas.w * 1.1 ? 'portrait' : 'squarish';
-    const res = await unsplashGet(`/photos/random?query=${encodeURIComponent(source.query)}&orientation=${orientation}&content_filter=high`, key);
-    if (!res.ok) return null;
-    const photo = await res.json() as UnsplashPhoto;
+    let photo: UnsplashPhoto;
+    if (source.photoIds) {
+      // A rotation that lands on the photo already showing doesn't rotate.
+      const others = source.photoIds.length > 1 ? source.photoIds.filter((id) => !previous?.includes(id)) : source.photoIds;
+      const id = others[Math.floor(Math.random() * others.length)];
+      if (!id) return null;
+      const res = await unsplashGet(`/photos/${encodeURIComponent(id)}`, key);
+      if (!res.ok) return null;
+      photo = await res.json() as UnsplashPhoto;
+    } else {
+      if (!source.collections?.length && !source.query) return null;
+      // A photo shaped like the wall: a portrait photo on a landscape wall was
+      // blown up to fill the width and cropped to a strip.
+      const orientation = canvas.w > canvas.h * 1.1 ? 'landscape' : canvas.h > canvas.w * 1.1 ? 'portrait' : 'squarish';
+      const res = await unsplashGet(`/photos/random?${randomParams(source)}&orientation=${orientation}&content_filter=high`, key);
+      if (!res.ok) return null;
+      photo = await res.json() as UnsplashPhoto;
+    }
     // Cropped to the canvas; `regular` is 1080 px wide whatever the wall.
     const url = sized(photo, `fit=crop&w=${canvas.w}&h=${canvas.h}&q=80&fm=jpg`);
     if (!url || !photo.id) return null;

@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page, Route } from '@playwright/test';
 import type { Screen } from '@/types/config';
-import { clearSecrets, getConfig, putConfig } from '../helpers/api';
+import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 import { buildModuleInstance } from '../helpers/module-fixtures';
 import { selectModule, autosaved, moduleConfig } from '../helpers/editor';
@@ -106,7 +106,7 @@ test.describe('the Image Library from a screen background', () => {
     await stubModuleData(page, { blockExternal: true });
     await page.route('**/api/backgrounds/rotate*', (route) => json(route, { path: null }));
     const library = await openBackgroundPicker(page, request, {
-      backgroundRotation: { enabled: true, intervalMinutes: 60, photoSource: { kind: 'library', folder: '' } },
+      backgroundRotation: { intervalMinutes: 60, sources: [{ kind: 'library', folder: '' }] },
     });
     await library.getByTestId('builtin-group-color').click();
     await library.getByTestId('starter-picture-ocean').click();
@@ -115,7 +115,7 @@ test.describe('the Image Library from a screen background', () => {
     });
     const screen = (await getConfig(request)).screens[0];
     expect(screen.backgroundImage).toBe('/starter-backgrounds/ocean.svg');
-    expect(screen.backgroundRotation?.enabled).toBe(false);
+    expect(screen.backgroundRotation?.sources).toEqual([]);
     await expect(page.getByTestId('background-picture-name')).toHaveText('Ocean');
   });
 
@@ -241,38 +241,6 @@ test.describe('the Image Library from a screen background', () => {
     expect(imports).toEqual([{ kind: 'nasa', ref: 'image:PIA1' }]);
     expect((await getConfig(request)).screens[0].backgroundImage).toBe(SAVED);
     expect(handle.externalHits).toEqual([]);
-  });
-});
-
-test.describe('a rotating background\'s source', () => {
-  test('offers every source, and warns when the chosen one has no key', async ({ page, request }) => {
-    await page.route('**/api/backgrounds/rotate*', (route) => json(route, { path: null }));
-    await clearSecrets(request, ['unsplash_access_key', 'immich_api_key', 'immich_url', 'microsoft_client_id']);
-    await putConfig(request, baseConfig({
-      screens: [makeScreen('screen-1', 'Screen 1', [textModule('BG')], {
-        backgroundRotation: { enabled: true, intervalMinutes: 60, photoSource: { kind: 'library', folder: '' } },
-      })],
-    }));
-    await page.goto('/editor');
-    await expect(page.getByText('Select a module to edit')).toBeVisible();
-
-    const source = page.getByLabel('Photo Source');
-    await expect(source.locator('option')).toHaveCount(6);
-    await expect(page.getByTestId('photo-source-key-missing')).toHaveCount(0);
-    await autosaved(page, async () => {
-      await source.selectOption('nasa');
-    });
-    const rotation = (await getConfig(request)).screens[0].backgroundRotation!;
-    expect(rotation.photoSource).toEqual({ kind: 'nasa' });
-    // One new picture a day: checking hourly gains nothing.
-    expect(rotation.intervalMinutes).toBe(240);
-    // NASA needs no key; Unsplash does, and says so under the list.
-    await expect(page.getByTestId('photo-source-key-missing')).toHaveCount(0);
-    await source.selectOption('unsplash');
-    await expect(page.getByTestId('photo-source-key-missing')).toBeVisible();
-    // A background is a still picture: no video choice, no per-refresh count.
-    await expect(page.locator('select:has(option[value="videos"])')).toHaveCount(0);
-    await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);
   });
 });
 

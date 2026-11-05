@@ -1217,7 +1217,8 @@
     "noPhotosYetHintOneDrive": "Tjek OneDrive-mappen i editoren.",
     "noPhotosYetHintImmich": "Tjek Immich-albummet, personen og valget af favoritter i editoren.",
     "noPhotosYetHintUnsplash": "Prøv andre søgeord i editoren.",
-    "noPhotosYetHintNasa": "NASA sender ikke billeder lige nu. De kommer selv tilbage."
+    "noPhotosYetHintNasa": "NASA sender ikke billeder lige nu. De kommer selv tilbage.",
+    "noPhotosYetHintPicked": "Vælg nogle billeder i editoren."
   },
   "dad-joke": {
     "loading": "Indlæser vittighed…"
@@ -1368,7 +1369,8 @@
     "emptyImmich": "Ingen billeder endnu. Tjek Immich-albummet, personen og valget af favoritter i editoren.",
     "emptyUnsplash": "Ingen billeder endnu. Prøv andre søgeord i editoren.",
     "emptyNasa": "Ingen billeder fra NASA lige nu. De kommer selv tilbage.",
-    "photoCredit": "Foto af {name} på {source}"
+    "photoCredit": "Foto af {name} på {source}",
+    "emptyPicked": "Ingen billeder valgt endnu. Vælg nogle i editoren."
   },
   "video": {
     "name": "Video",

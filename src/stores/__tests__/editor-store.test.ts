@@ -610,31 +610,37 @@ describe('editor store', () => {
   });
 
   describe('updateScreenRotation', () => {
-    it('merges partial updates onto the live backgroundRotation, not a stale snapshot', () => {
+    it('applies each edit to the live rotation, so two controls never clobber each other', () => {
       const store = useEditorStore;
       const config = makeConfig();
-      config.screens[0].backgroundRotation = {
-        enabled: true,
-        sources: ['unsplash'],
-        query: 'space',
-        intervalMinutes: 15,
-        unsplashCollections: ['abc123'],
-      } as never;
+      config.screens[0].backgroundRotation = { intervalMinutes: 15, sources: [{ kind: 'unsplash', query: 'space' }] };
       store.setState({ config });
 
       // Two edits computed from the same pre-update state, as if two
-      // controls had both read the store before either write landed —
-      // the bug this action fixes let the second call's spread of a
-      // component-captured `backgroundRotation` snapshot silently drop
-      // the first call's change.
+      // controls had both read the store before either write landed.
       store.getState().updateScreenRotation('screen-1', { intervalMinutes: 30 });
-      store.getState().updateScreenRotation('screen-1', { unsplashCollections: ['abc123', 'def456'] });
+      store.getState().updateScreenRotation('screen-1', { source: { kind: 'wall', group: 'color', ids: ['ocean'] } });
 
       const rotation = store.getState().config!.screens[0].backgroundRotation!;
-      expect(rotation.intervalMinutes).toBe(30);
-      expect(rotation.unsplashCollections).toEqual(['abc123', 'def456']);
-      expect(rotation.sources).toEqual(['unsplash']);
-      expect(rotation.query).toBe('space');
+      expect(rotation).toEqual({
+        intervalMinutes: 30,
+        sources: [{ kind: 'unsplash', query: 'space' }, { kind: 'wall', group: 'color', ids: ['ocean'] }],
+      });
+    });
+
+    it('replaces the entry of a kind, takes one out, and starts a rotation from nothing', () => {
+      const store = useEditorStore;
+      const config = makeConfig();
+      store.setState({ config });
+
+      store.getState().updateScreenRotation('screen-1', { source: { kind: 'nasa' } });
+      expect(store.getState().config!.screens[0].backgroundRotation).toEqual({ intervalMinutes: 60, sources: [{ kind: 'nasa' }] });
+
+      store.getState().updateScreenRotation('screen-1', { source: { kind: 'unsplash', query: 'lakes' } });
+      store.getState().updateScreenRotation('screen-1', { source: { kind: 'unsplash', query: 'rivers' } });
+      store.getState().updateScreenRotation('screen-1', { remove: { kind: 'nasa' } });
+      expect(store.getState().config!.screens[0].backgroundRotation).toEqual({ intervalMinutes: 60, sources: [{ kind: 'unsplash', query: 'rivers' }] });
+      expect(store.getState().isDirty).toBe(true);
     });
   });
 
@@ -940,7 +946,7 @@ describe('editor store', () => {
   });
 
   describe('pickScreenBackground', () => {
-    const rotation = { enabled: true, photoSource: { kind: 'unsplash' as const, query: 'nature' }, intervalMinutes: 60 };
+    const rotation = { intervalMinutes: 60, sources: [{ kind: 'unsplash' as const, query: 'nature' }] };
 
     it('sets the picture and turns that screen\'s rotation off', () => {
       const store = useEditorStore;

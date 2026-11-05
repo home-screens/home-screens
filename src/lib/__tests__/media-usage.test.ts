@@ -3,7 +3,6 @@ import {
   blockedRemovals,
   classifyMediaRef,
   isRotatingBackgroundUse,
-  normalizeMediaRef,
   removalBlocksByFile,
   rewriteMediaRefs,
   scanMediaUsage,
@@ -13,7 +12,10 @@ import {
   type MediaUse,
 } from '../media-usage';
 
-describe('normalizeMediaRef', () => {
+/** The library path `classifyMediaRef` reads out of a candidate string, or null. */
+const normalizeMediaRef = (value: string): string | null => classifyMediaRef(value)?.path ?? null;
+
+describe('classifyMediaRef paths', () => {
   it('extracts and decodes the file param from serve URLs, ignoring the media token', () => {
     expect(normalizeMediaRef('/api/backgrounds/serve?file=calendar-art%2Fpumpkins.jfif'))
       .toBe('calendar-art/pumpkins.jfif');
@@ -356,20 +358,21 @@ describe('blockedRemovals and removalBlocksByFile', () => {
 });
 
 describe('a rotating background on a library folder', () => {
-  const library = new Set(['walls/a.jpg', 'walls/b.jpg', 'walls/clip.mp4', 'other.jpg']);
-  const rotating = (enabled: boolean, photoSource: unknown = { kind: 'library', folder: 'walls' }) => ({
+  const library = new Set(['walls/a.jpg', 'walls/b.jpg', 'walls/clip.mp4', 'other.jpg', 'trips/c.jpg']);
+  const rotating = (sources: unknown[]) => ({
     displays: [{ id: 'main', screens: [
-      { id: 's1', name: 'Hall', backgroundImage: '', modules: [], backgroundRotation: { enabled, intervalMinutes: 60, photoSource } },
+      { id: 's1', name: 'Hall', backgroundImage: '', modules: [], backgroundRotation: { intervalMinutes: 60, sources } },
     ] }],
   });
+  const FOLDER = { kind: 'library', folder: 'walls' };
 
   it('marks the folder\'s pictures as used by the screen, like a slideshow that plays photos', () => {
-    const usage = scanMediaUsage(rotating(true), library);
+    const usage = scanMediaUsage(rotating([{ kind: 'nasa' }, FOLDER]), library);
     const use = usage.get('walls/a.jpg')![0];
     expect(use).toEqual({
       kind: 'slideshow',
       name: 'Hall',
-      configPath: 'displays[0].screens[0].backgroundRotation.photoSource.folder',
+      configPath: 'displays[0].screens[0].backgroundRotation.sources.1.folder',
       displayId: 'main',
       screenId: 's1',
     });
@@ -380,9 +383,12 @@ describe('a rotating background on a library folder', () => {
     expect(usage.has('other.jpg')).toBe(false);
   });
 
-  it('holds nothing while rotation is off or reads another source', () => {
-    expect(scanMediaUsage(rotating(false), library).size).toBe(0);
-    expect(scanMediaUsage(rotating(true, { kind: 'immich' }), library).size).toBe(0);
+  it('holds nothing while the rotation reads other sources, and the chosen pictures are held as files', () => {
+    expect(scanMediaUsage(rotating([]), library).size).toBe(0);
+    expect(scanMediaUsage(rotating([{ kind: 'immich' }]), library).size).toBe(0);
+    const chosen = scanMediaUsage(rotating([{ kind: 'library', folder: '', pictures: ['walls/a.jpg', 'trips/c.jpg'] }]), library);
+    expect([...chosen.keys()].sort()).toEqual(['trips/c.jpg', 'walls/a.jpg']);
+    expect(chosen.get('walls/a.jpg')![0].kind).not.toBe('slideshow');
   });
 
   it('is told apart from a slideshow module\'s use', () => {
@@ -394,35 +400,35 @@ describe('a rotating background on a library folder', () => {
   });
 
   it('keeps the folder\'s last picture from being deleted, and lets the others go', () => {
-    const usage = scanMediaUsage(rotating(true), library);
+    const usage = scanMediaUsage(rotating([FOLDER]), library);
     expect(blockedRemovals(usage, ['walls/a.jpg'], 'delete').size).toBe(0);
     const both = blockedRemovals(usage, ['walls/a.jpg', 'walls/b.jpg'], 'delete');
     expect([...both.keys()]).toEqual(['walls/b.jpg']);
     expect(isRotatingBackgroundUse(both.get('walls/b.jpg')![0])).toBe(true);
   });
 
-  it('follows a folder rename, for a module and a rotation alike, keeping the rest of the source', () => {
+  it('follows a folder rename, for a module and a rotation alike, keeping the rest of the rotation', () => {
     const config = {
       screens: [{
         id: 's1',
-        backgroundRotation: { enabled: true, intervalMinutes: 30, photoSource: { kind: 'library', folder: 'trips' } },
+        backgroundRotation: { intervalMinutes: 30, sources: [{ kind: 'nasa' }, { kind: 'library', folder: 'trips' }] },
         modules: [{ type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trips' }, intervalMs: 5000 } }],
       }],
     };
     const { config: out, changed } = rewriteMediaRefs(config, () => null, (f) => (f === 'trips' ? 'summer' : null));
     expect(changed).toBe(2);
-    expect(out.screens[0].backgroundRotation).toEqual({ enabled: true, intervalMinutes: 30, photoSource: { kind: 'library', folder: 'summer' } });
+    expect(out.screens[0].backgroundRotation).toEqual({ intervalMinutes: 30, sources: [{ kind: 'nasa' }, { kind: 'library', folder: 'summer' }] });
     expect(out.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'summer' }, intervalMs: 5000 });
     // The input is not changed in place.
-    expect(config.screens[0].backgroundRotation.photoSource.folder).toBe('trips');
+    expect(config.screens[0].backgroundRotation.sources[1]).toEqual({ kind: 'library', folder: 'trips' });
   });
 
-  it('follows a folder rename for a rotation that is switched off, so turning it on finds the folder', () => {
+  it('follows a picture rename for chosen pictures, through the file mapper', () => {
     const config = {
-      screens: [{ id: 's1', backgroundRotation: { enabled: false, intervalMinutes: 30, photoSource: { kind: 'library', folder: 'trips' } }, modules: [] }],
+      screens: [{ id: 's1', backgroundRotation: { intervalMinutes: 30, sources: [{ kind: 'library', folder: '', pictures: ['trips/a.jpg', 'b.jpg'] }] }, modules: [] }],
     };
-    const { config: out, changed } = rewriteMediaRefs(config, () => null, (f) => (f === 'trips' ? 'summer' : null));
+    const { config: out, changed } = rewriteMediaRefs(config, (f) => (f === 'trips/a.jpg' ? 'summer/a.jpg' : null), () => null);
     expect(changed).toBe(1);
-    expect(out.screens[0].backgroundRotation.photoSource).toEqual({ kind: 'library', folder: 'summer' });
+    expect(out.screens[0].backgroundRotation.sources[0]).toEqual({ kind: 'library', folder: '', pictures: ['summer/a.jpg', 'b.jpg'] });
   });
 });

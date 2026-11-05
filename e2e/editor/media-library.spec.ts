@@ -373,7 +373,7 @@ test.describe('rotating backgrounds and imports', () => {
     await seedImage(request, folder, 'e2e-wall.png');
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Hall', [textModule('HALL')], {
-        backgroundRotation: { enabled: true, intervalMinutes: 60, photoSource: { kind: 'library', folder } },
+        backgroundRotation: { intervalMinutes: 60, sources: [{ kind: 'library', folder }] },
       })],
     }));
 
@@ -388,7 +388,7 @@ test.describe('rotating backgrounds and imports', () => {
     // Switched off, the rotation lets the folder go.
     await putConfig(request, baseConfig({
       screens: [makeScreen('screen-1', 'Hall', [textModule('HALL')], {
-        backgroundRotation: { enabled: false, intervalMinutes: 60, photoSource: { kind: 'library', folder } },
+        backgroundRotation: { intervalMinutes: 60, sources: [] },
       })],
     }));
     const freed = await request.delete('/api/backgrounds', { data: { file: 'e2e-wall.png', directory: folder } });

@@ -21,13 +21,13 @@ interface Props {
 
 /**
  * iCloud's part of the photo source fields (slideshows and rotating backgrounds).
- * No API key needed — the album's public share link is the whole setup. The
+ * No API key needed: the album's public share link is the whole setup. The
  * preview strip doubles as validation: a pasted link either shows photos or
  * the "check the link" hint.
  *
  * Wrong-link bridge: Apple has TWO near-identical link products, and users
  * can't be expected to know the difference. A pasted iCloud Link
- * (share.icloud.com — expires ~30 days, unusable as a live source) offers a
+ * (share.icloud.com: expires ~30 days, unusable as a live source) offers a
  * one-click import into the library and then flips this module to the local
  * folder, so pasting either link kind ends in a working slideshow.
  */
@@ -60,7 +60,7 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
       </p>
 
       {/* Wrong-link bridge: a photo link can't play live, but it CAN be
-          saved — offer that instead of failing silently. */}
+          saved: offer that instead of failing silently. */}
       {linkKind === 'link' && (
         <ICloudLinkImportBridge
           url={albumUrl}
@@ -87,6 +87,9 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
         <p className="text-[10px] text-hs-warning">{t('photoSources.icloud.noItemsFound')}</p>
       )}
 
+      {linkKind === 'album' && previewData !== null && previewImages.length > 0 && (
+        <p className="text-[10px] text-hs-success">{t('photoSources.icloud.linkOk')}</p>
+      )}
       {linkKind === 'album' && previewData !== null && (
         previewImages.length > 0 ? (
           <div className="flex gap-1 mt-1 overflow-x-auto">

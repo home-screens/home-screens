@@ -246,16 +246,17 @@ To go back to Home Screens' app later, flip the switch next to **Use your own Go
 
 ## Background rotation
 
-Auto-rotation replaces the screen background with a new picture every so often, from any photo source: a folder in your library, Immich, an iCloud shared album, a OneDrive folder, Unsplash, or NASA's picture of the day.
+A rotating background changes the picture behind a screen every so often, drawn from any of the sources you tick under **Sources**: the walls that come with Home Screens, a folder or a few chosen pictures from your library, Immich, an iCloud shared album, a OneDrive folder, Unsplash, or NASA's picture of the day. Tick as many as you like; each change picks one of them.
 
-### Enabling rotation
+### Turning it on
 
 1. Click an empty part of the canvas to deselect any module
-2. Open the **Background** section in the right sidebar
-3. Toggle **Auto-rotate** on
-4. Choose a **Photo Source**. Every source is in the list; one that still needs a key says so in brackets and under the list
-5. Fill in what that source needs: a **Folder** (Browse), Immich's **Album**, **Person** or **Favorites only**, an iCloud album link, a OneDrive folder, or Unsplash **Search words**
-6. Set the **Rotate every** interval
+2. Open the **Background** section in the right sidebar and find **Sources**
+3. Tick a source. Its settings open underneath; the chevron on the right hides or shows them
+4. Fill in what that source needs. **Colors** and **Patterns** show their walls as tiles: click the ones you want in the rotation. **Library** takes a **Folder**, or switch it to **Pictures** and click the pictures you want. **Immich** takes **Filters** (any of your albums and people, people to leave out, favorites only) or **Pictures** you pick one by one. **iCloud shared album** takes the album's link. **OneDrive** takes a folder. **Unsplash** takes **Search words**, **Collections** or **Pictures** you pick. **NASA picture of the day** needs nothing
+5. Set **Rotate every** at the bottom
+
+A source that still needs its key stays greyed out and says where to add it. Until something you ticked can give a picture, the line at the top reads **Fixed background** and **Refresh now** stays off; with exactly one picture picked it reads **Showing one picture** and there is no interval to set.
 
 These are the same source settings the Photo Slideshow and Full-Screen Photo Viewer use, so whatever you can show in a slideshow you can rotate behind a screen. A background is always a still picture, so videos are skipped.
 
@@ -267,29 +268,28 @@ These are the same source settings the Photo Slideshow and Full-Screen Photo Vie
 | 30 minutes | Moderate rotation |
 | 1 hour | Default |
 | 2 hours | Balanced |
-| 4 hours | Set for you when you choose NASA |
+| 4 hours | Set for you when you tick NASA |
 | 8 hours | Minimal changes |
 
 ### How it works
 
-Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi fetches one from the source you picked, saves it into the library, and the wall switches to it.
+Every minute the wall asks the Pi whether it is time for a new background. When the interval has passed, the Pi picks one of the ticked sources at random, fetches a picture from it, and the wall switches to it. A source that answers nothing (an empty folder, a search with no results, a service that is away) passes its turn to the next one; when none can answer, the screen keeps what it has and the sources are left alone for five minutes before they are asked again. **Refresh now** in the editor fetches a new picture straight away, a few seconds apart at most.
 
-- **Library folder** picks a different picture from the folder each time. It is shown straight from the library, with no copy, and the folder's last picture can't be deleted while the rotation uses it.
-- **Unsplash** fetches a random photo matching the search words, shaped like your display. Download tracking is triggered per the Unsplash API terms.
+- **Colors** and **Patterns** show one of the walls you picked. They are files the wall already has, so nothing is downloaded.
+- **Library** picks a different picture from the folder, or from the pictures you chose, each time. It is shown straight from the library, with no copy, and a folder's last picture can't be deleted while a rotation uses it.
+- **Unsplash** fetches a random photo matching the search words or from the collections you named, shaped like your display, or one of the photos you picked. Download tracking is triggered per the Unsplash API terms.
 - **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
-- **Immich** fetches a random photo, optionally from one album, of one person, or from your favorites. Changing the album or person fetches a fresh photo straight away.
+- **Immich** fetches a random photo matching the filters (any of the albums ticked, any of the people ticked, none of the people left out, favorites only), or one of the photos you picked. Changing a filter fetches a fresh photo straight away.
 - **iCloud** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
 - **OneDrive** fetches a random photo from the folder and everything inside it.
-
-If a fetch fails (network error, API limit), the previous background is kept until the next successful rotation.
 
 ### Housekeeping
 
 Downloaded rotation pictures are tidied up on their own: only the ones screens are currently using, plus the eight most recent, are kept. Your own uploads and imports are never touched.
 
-### Rotation and manual backgrounds
+### Rotation and a fixed picture
 
-While rotation is on it replaces whatever fixed background the screen had; that picture shows until the first rotating one arrives. Picking a background with **Choose a picture** switches rotation off for that screen so your choice stays.
+While a rotation is on it replaces whatever fixed picture the screen had; that picture shows until the first rotating one arrives. Choosing a picture with **Choose a picture** unticks every source for that screen so your choice stays.
 
 ---
 

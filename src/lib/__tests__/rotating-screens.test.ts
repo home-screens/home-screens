@@ -57,7 +57,7 @@ describe('selectRotatingScreens', () => {
 
   it('keeps a screen whose only content is a rotating background', () => {
     const slideshow = makeScreen('s2', [], {
-      backgroundRotation: { enabled: true, photoSource: { kind: 'unsplash' as const, query: 'lakes' }, intervalMinutes: 30 },
+      backgroundRotation: { intervalMinutes: 30, sources: [{ kind: 'unsplash' as const, query: 'lakes' }] },
     });
     const rotating = makeScreen('s1', [makeModule()]);
 

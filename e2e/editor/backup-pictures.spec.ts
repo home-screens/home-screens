@@ -53,7 +53,7 @@ function zipEntries(file: string): Promise<string[]> {
 /** A config whose screen background is `bg` and whose slideshow plays `folder`. */
 function configUsing(folder: string, bg: string) {
   const slideshow = buildModuleInstance('photo-slideshow');
-  slideshow.config = { ...slideshow.config, source: 'local', directory: `${folder}/slides`, mediaTypes: 'photos' };
+  slideshow.config = { ...slideshow.config, photoSource: { kind: 'library', folder: `${folder}/slides` }, mediaTypes: 'photos' };
   return baseConfig({
     screens: [makeScreen('s1', 'Kitchen', [textModule('hello'), slideshow], {
       backgroundImage: `/api/backgrounds/serve?file=${encodeURIComponent(`${folder}/${bg}`)}`,

@@ -121,7 +121,7 @@ test.describe('PropertyPanel empty-state pickers', () => {
 
     await expect
       .poll(async () => (await getConfig(request)).screens[0].backgroundRotation?.sources)
-      .toEqual(['unsplash']);
+      .toEqual([{ kind: 'unsplash', query: 'nature landscape' }]);
   });
 });
 

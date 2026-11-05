@@ -5,17 +5,12 @@ import { pruneDanglingScreenRefs } from '@/lib/display-filter';
 import { normalizeBackgroundEffects } from '@/lib/background-effects';
 import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
-import { pickedBackground } from '@/lib/screen-background';
+import { pickedBackground, withRotationUpdate } from '@/lib/screen-background';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import { syncEditorUrl } from '@/stores/editor-url';
 import type { EditorGet, MutateConfig, ScreenActions } from './types';
-import { activeRotationSources } from '@/lib/screen-background';
 
 /** Screen CRUD and ordering on the active display. */
-/** Saved entries for sources that no longer exist are dropped on the next edit. */
-function withLiveSources(rotation: NonNullable<Screen['backgroundRotation']>): NonNullable<Screen['backgroundRotation']> {
-  return { ...rotation, sources: activeRotationSources(rotation) };
-}
 
 export function createScreenSlice(
   get: EditorGet,
@@ -167,14 +162,14 @@ export function createScreenSlice(
       }), { coalesce: COALESCE_KEYS.updateScreen(id) });
     },
 
-    updateScreenRotation: (id, updates) => {
+    updateScreenRotation: (id, update) => {
       const { selectedDisplayId } = get();
       mutateConfig((config) => ({
         config: withActiveScreens(
           config,
           selectedDisplayId,
           getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === id ? { ...s, backgroundRotation: withLiveSources({ ...s.backgroundRotation, ...updates } as NonNullable<Screen['backgroundRotation']>) } : s,
+            s.id === id ? { ...s, backgroundRotation: withRotationUpdate(s.backgroundRotation, update) } : s,
           ),
         ),
       }), { coalesce: COALESCE_KEYS.screenRotation(id) });
