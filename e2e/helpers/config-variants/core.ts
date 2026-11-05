@@ -777,17 +777,17 @@ export const CORE_VARIANTS: ConfigVariant[] = [
 
   // -- photo-slideshow / fullscreen-photo --
   {
-    type: 'photo-slideshow', name: 'object-fit-contain', kind: 'networked', stubKey: 'backgrounds', stubBody: [TINY_GIF],
+    type: 'photo-slideshow', name: 'object-fit-contain', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { objectFit: 'contain' },
     expect: async (mod) => { await expect(mod.locator('img').first()).toHaveCSS('object-fit', 'contain'); },
   },
   {
-    type: 'fullscreen-photo', name: 'transition-slide', kind: 'networked', stubKey: 'backgrounds', stubBody: [TINY_GIF],
+    type: 'fullscreen-photo', name: 'transition-slide', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'slide' },
     expect: child('img[style*="transform 800ms"]'),
   },
   {
-    type: 'fullscreen-photo', name: 'transition-zoom', kind: 'networked', stubKey: 'backgrounds', stubBody: [TINY_GIF],
+    type: 'fullscreen-photo', name: 'transition-zoom', kind: 'networked', stubKey: 'backgrounds', stubBody: [{ url: TINY_GIF, type: 'image' }],
     config: { transition: 'zoom' },
     expect: child('img[style*="transform 1000ms"]'),
   },

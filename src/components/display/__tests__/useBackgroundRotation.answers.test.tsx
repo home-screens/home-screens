@@ -4,7 +4,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import type { Screen } from '@/types/config';
 
 const displayFetch = vi.hoisted(() => vi.fn());
-vi.mock('@/lib/display-fetch', () => ({ displayFetch, DISPLAY_FETCH_LONG_TIMEOUT_MS: 60_000 }));
+vi.mock('@/lib/display-fetch', () => ({ displayFetch }));
 
 import { useBackgroundRotation } from '../useBackgroundRotation';
 
@@ -16,9 +16,7 @@ function screen(rotating: boolean): Screen {
     name: 'S',
     backgroundImage: '/starter-backgrounds/ocean.svg',
     modules: [],
-    // Rotation is "on" purely from a non-empty `sources` now (see
-    // isRotationActive) — the legacy `enabled` flag is no longer what gates it.
-    backgroundRotation: { enabled: rotating, sources: rotating ? ['unsplash'] : [], query: 'nature landscape', intervalMinutes: 60 },
+    backgroundRotation: { enabled: rotating, photoSource: { kind: 'unsplash' as const, query: 'nature landscape' }, intervalMinutes: 60 },
   };
 }
 
@@ -82,15 +80,6 @@ describe('useBackgroundRotation answers', () => {
     } finally {
       vi.useRealTimers();
     }
-  });
-
-  it('gives the lookup the long budget, since the hub downloads the picture before answering', async () => {
-    renderHook(() => useBackgroundRotation([screen(true)]));
-    await waitFor(() => expect(displayFetch).toHaveBeenCalled());
-    expect(displayFetch).toHaveBeenCalledWith(
-      '/api/backgrounds/rotate?screenId=s',
-      expect.objectContaining({ timeoutMs: 60_000 }),
-    );
   });
 
   it('settles on the own picture when the first lookup fails', async () => {

@@ -306,7 +306,7 @@ test.describe('Defaults › Pictures & videos', () => {
     const folder = uniqueFolder();
     await seedImage(request, folder, 'e2e-slide-a.png');
     await seedImage(request, folder, 'e2e-slide-b.png');
-    const slideshow = buildModuleInstance('photo-slideshow', { source: 'local', directory: folder });
+    const slideshow = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder } });
     await putConfig(request, baseConfig({ screens: [makeScreen('screen-1', 'Hall', [slideshow])] }));
 
     await page.goto('/editor/settings?section=defaults&page=media');
@@ -347,7 +347,7 @@ test.describe('Defaults › Pictures & videos', () => {
   test('deleting a whole slideshow folder keeps its last picture and says so', async ({ page, request }) => {
     const folder = uniqueFolder();
     for (const name of ['e2e-x.png', 'e2e-y.png', 'e2e-z.png']) await seedImage(request, folder, name);
-    const slideshow = buildModuleInstance('photo-slideshow', { source: 'local', directory: folder });
+    const slideshow = buildModuleInstance('photo-slideshow', { photoSource: { kind: 'library', folder } });
     await putConfig(request, baseConfig({ screens: [makeScreen('screen-1', 'Hall', [slideshow])] }));
 
     await page.goto('/editor/settings?section=defaults&page=media');
@@ -367,17 +367,58 @@ test.describe('Defaults › Pictures & videos', () => {
   });
 });
 
-test.describe('background controls', () => {
-  test('the editor has only Shade and Sources; uploads remain in the media library', async ({ page, request }) => {
-    await putConfig(request, baseConfig());
-    await page.goto('/editor');
-    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
-    await expect(page.getByRole('heading', { name: 'Shade' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Sources' })).toBeVisible();
-    await expect(page.getByTestId('background-tab-local')).toHaveCount(0);
-    await expect(page.getByText('Your own pictures')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Upload Background' })).toHaveCount(0);
+test.describe('rotating backgrounds and imports', () => {
+  test("a rotating background on a library folder holds that folder's last picture", async ({ page, request }) => {
+    const folder = uniqueFolder();
+    await seedImage(request, folder, 'e2e-wall.png');
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Hall', [textModule('HALL')], {
+        backgroundRotation: { enabled: true, intervalMinutes: 60, photoSource: { kind: 'library', folder } },
+      })],
+    }));
+
     await page.goto('/editor/settings?section=defaults&page=media');
-    await expect(page.getByTestId('media-upload-button')).toBeVisible();
+    await page.getByTestId(`media-chip-${folder}`).click();
+    const tile = page.getByTestId(`media-tile-${folder}/e2e-wall.png`);
+    await expect(tile.locator('[data-in-use]')).toHaveAttribute('title', "Rotating background on 'Hall' (its last picture)");
+    await expect(tile.getByTestId('media-tile-delete')).toHaveCount(0);
+    const res = await request.delete('/api/backgrounds', { data: { file: 'e2e-wall.png', directory: folder } });
+    expect(res.status()).toBe(409);
+
+    // Switched off, the rotation lets the folder go.
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('screen-1', 'Hall', [textModule('HALL')], {
+        backgroundRotation: { enabled: false, intervalMinutes: 60, photoSource: { kind: 'library', folder } },
+      })],
+    }));
+    const freed = await request.delete('/api/backgrounds', { data: { file: 'e2e-wall.png', directory: folder } });
+    expect(freed.ok()).toBe(true);
+    await putConfig(request, baseConfig());
+    await removeFolder(request, folder);
+  });
+
+  test('adds from an iCloud link or Google Photos into the folder being viewed', async ({ page, request }) => {
+    const folder = uniqueFolder();
+    await seedImage(request, folder, 'e2e-import.png');
+    await putConfig(request, baseConfig());
+
+    await page.goto('/editor/settings?section=defaults&page=media');
+    await page.getByTestId(`media-chip-${folder}`).click();
+    await page.getByTestId('media-icloud-button').click();
+    const icloud = page.getByTestId('media-icloud-panel');
+    await expect(icloud).toContainText('Add from an iCloud link');
+    // Save into starts at the folder being viewed.
+    await expect(icloud.getByTestId('media-import-folder')).toHaveValue(folder);
+
+    // One panel at a time, in the upload panel's place.
+    await page.getByTestId('media-google-button').click();
+    await expect(icloud).toHaveCount(0);
+    await expect(page.getByTestId('media-google-panel')).toContainText('Add from Google Photos');
+    await page.getByTestId('media-upload-button').click();
+    await expect(page.getByTestId('media-google-panel')).toHaveCount(0);
+    await expect(page.getByTestId('media-upload-panel')).toBeVisible();
+
+    await request.delete('/api/backgrounds', { data: { file: 'e2e-import.png', directory: folder } });
+    await removeFolder(request, folder);
   });
 });

@@ -37,7 +37,7 @@ Most modules show something useful the moment you drop them on the canvas. A han
 
 **Set your location once.** Weather, Full-Screen Weather, Moon Phase, Sunrise / Sunset, Air Quality, and Rain Map can't show anything until they know where you are. Set it once in **Settings > Location & language**, and every one of them picks it up. Greeting and Affirmations work without it but use it, when it's there, to match what they say to the weather outside.
 
-**A few modules need a free account key.** Air Quality needs an OpenWeatherMap key even though it isn't the weather module, Traffic needs Google Maps or TomTom (without one it shows made-up travel times), and Todoist needs your API token. Photo modules only need a key if you point them at an Immich library or a OneDrive folder. Weather needs one only for certain providers, and calendars are set up under **Settings > Calendar** rather than API keys.
+**A few modules need a free account key.** Air Quality needs an OpenWeatherMap key even though it isn't the weather module, Traffic needs Google Maps or TomTom (without one it shows made-up travel times), and Todoist needs your API token. Photo modules only need a key if you point them at Immich, OneDrive, Unsplash or NASA. Weather needs one only for certain providers, and calendars are set up under **Settings > Calendar** rather than API keys.
 
 ### OneDrive photos
 
@@ -46,7 +46,7 @@ Photo Slideshow and Full-Screen Photo Viewer can pull photos straight from a per
 1. Create a free app registration: sign in at [portal.azure.com](https://portal.azure.com), open **App registrations**, and choose **New registration**. Give it a name of your choice and pick "Personal accounts only". Leave the Redirect parts empty. Click Register.
 2. Open **Manage > Authentication > Settings** and enable **Allow public client flows**. Click Save.
 3. Click on **Overview** and Copy the **Application (client) ID** and paste it into the **Microsoft OneDrive** card under **Settings > API keys**.
-4. Back in the module's Photo Source picker choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well). The code works for 15 minutes; if it runs out, start the sign-in again.
+4. Back in the module's **Photo Source** list choose **OneDrive**, click **Sign in with Microsoft**, and enter the shown code at the link on any device (a phone works well). The code works for 15 minutes; if it runs out, start the sign-in again.
 5. Pick a folder. Photos come from that folder and every folder inside it. Photos shuffle on every refresh; very large folders use a random sample of 1,000 photos.
 
 If the saved sign-in ever stops working on its own, click **Sign in with Microsoft** again.
@@ -70,7 +70,7 @@ Ambient displays that fill the whole screen. They have no position, size or styl
 - **Full-Screen Chore Chart** ([reference](/docs/module-reference#full-screen-chore-chart)): the chore board for the whole family, grouped by time of day or by person, with each person's tickets and the week's stars. Views: **Chore Board**, **Rewards Store**, where kids browse what their tickets can buy, and three **Reward History** views (day by day, totals, and the newest reward in the spotlight). Needs people and chores from the [family remote](/docs/chores). Kids can check things off on a touchscreen.
 - **Full-Screen Meal Planner** ([reference](/docs/module-reference#full-screen-meal-planner)): the week's meals. Views: **Week**, **Today**, **Menu Board**, **Next Meal**, **Recipe** (the next meal's ingredients and steps, big enough to cook from) and **Grocery List**. Needs meals planned from the [family remote](/docs/meals).
 - **Full-Screen News** ([reference](/docs/module-reference#full-screen-news)): headlines with their photos. Views: **Story** (one story at a time) and **Front page** (a lead story and five more). Uses the same feed list as the News Headlines tile; see the [News](/docs/news) page.
-- **Full-Screen Photo Viewer** ([reference](/docs/module-reference#full-screen-photo-viewer)): a digital photo frame with transitions, shuffle and a slow Ken Burns drift, from your own library, Immich, OneDrive or an iCloud shared album, or a single photo as a fixed wallpaper. Needs photos; see [Photos and backgrounds](/docs/backgrounds). Putting one on a screen also switches on the family remote's Photos tab.
+- **Full-Screen Photo Viewer** ([reference](/docs/module-reference#full-screen-photo-viewer)): a digital photo frame with transitions, shuffle and a slow Ken Burns drift, from your own library, Immich, an iCloud shared album, OneDrive, Unsplash or NASA, or a single photo as a fixed wallpaper. Needs photos; see [Photos and backgrounds](/docs/backgrounds). Putting one on a screen also switches on the family remote's Photos tab.
 
 ### Time & Date
 
@@ -123,8 +123,8 @@ All of these use the location under **Settings > Location & language**; see [Wea
 ### Media & Display
 
 - **Text** ([reference](/docs/module-reference#text)): any words, with rich formatting, gradients, twelve effects and a scrolling marquee. Needs nothing.
-- **Image** ([reference](/docs/module-reference#image)): one picture from your library or a link. **Video** ([reference](/docs/module-reference#video)): a video from your library, a direct link or YouTube, looping, with or without sound.
-- **Photo Slideshow** ([reference](/docs/module-reference#photo-slideshow)): photos, videos or both from a folder in your library, Immich, OneDrive or an iCloud shared album. See [Photos and backgrounds](/docs/backgrounds).
+- **Image** ([reference](/docs/module-reference#image)): one picture from your library, Immich, Unsplash, NASA or a link. **Video** ([reference](/docs/module-reference#video)): a video from your library, a direct link or YouTube, looping, with or without sound.
+- **Photo Slideshow** ([reference](/docs/module-reference#photo-slideshow)): photos, videos or both from a folder in your library, Immich or an iCloud shared album, or photos from OneDrive, Unsplash or NASA. See [Photos and backgrounds](/docs/backgrounds).
 - **QR Code** ([reference](/docs/module-reference#qr-code)): any link, or your WiFi so guests can join by scanning. Needs nothing.
 - **Web Embed** ([reference](/docs/module-reference#web-embed-i-frame)): any web page in a tile: a Home Assistant dashboard, a Grafana chart, a Google Sheet. Needs a page that allows being embedded.
 - **Icon** ([reference](/docs/module-reference#icon)): a single Font Awesome icon with colour, rotation and a spin, beat, bounce or shake. **Shape & Divider** ([reference](/docs/module-reference#shape-and-divider)): {% $stats.shapeViewCount %} views of lines, waves, dots, frames, glows and gradients for tidying a layout.
@@ -151,7 +151,7 @@ If your display is a touchscreen, a handful of modules do more than just show in
 
 ## Configuring a module
 
-Selecting a module opens the property panel on the right, grouped into **Position & Size**, **Style**, the module's own settings, then **Visibility**, **Schedule**, and **Conditions**. Clicking empty canvas switches the panel to screen-level settings and the background picker instead.
+Selecting a module opens the property panel on the right, grouped into **Position & Size**, **Style**, the module's own settings, then **Visibility**, **Schedule**, and **Conditions**. Clicking empty canvas switches the panel to screen-level settings and the screen's background instead.
 
 Numeric fields clamp to sensible ranges and any field with a fixed set of choices becomes a dropdown, so you can't type an invalid value. The [Editor guide](/docs/editor#configuring-modules) covers each section in detail, and the [Module Reference](/docs/module-reference) lists the exact allowed values per module.
 

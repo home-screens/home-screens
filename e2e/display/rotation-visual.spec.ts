@@ -30,7 +30,7 @@ const STATIC_BG = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAE
 const ROTATED_A = '/e2e-rotated/photo-a.jpg';
 const ROTATED_B = '/e2e-rotated/photo-b.jpg';
 // 1x1 PNG served for the rotated paths: a background whose file is missing
-// hides itself, so the paths must actually resolve.
+// hides itself (audit 39 item 75), so the paths must actually resolve.
 const ROTATED_PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
   'base64',
@@ -43,7 +43,7 @@ test.beforeEach(async ({ page }) => {
 function rotatingScreen(id: string, name: string, label: string, query: string) {
   return makeScreen(id, name, [textModule(label)], {
     backgroundImage: STATIC_BG,
-    backgroundRotation: { enabled: true, sources: ['unsplash'], query, intervalMinutes: 1 },
+    backgroundRotation: { enabled: true, photoSource: { kind: 'unsplash', query }, intervalMinutes: 1 },
   });
 }
 

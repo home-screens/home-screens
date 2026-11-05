@@ -16,7 +16,7 @@ import { formatDuration } from '@/lib/duration-format';
 import { isoDateInTZ, localISODateTime } from '@/lib/timezone';
 import HolidayPickerModal from '@/components/editor/HolidayPickerModal';
 import { useEditorHouseholdNow } from '@/components/editor/useEditorHouseholdClock';
-import ImageBrowserModal from '@/components/editor/ImageBrowserModal';
+import PicturePicker from '@/components/editor/picture-picker/PicturePicker';
 import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import { tileThumbnailUrl } from '@/lib/media-paths';
 
@@ -268,8 +268,9 @@ export function CountdownConfigSection({ mod, screenId }: { mod: ModuleInstance;
 
       {/* Image Browser Modal */}
       {imageBrowserEventId && (
-        <ImageBrowserModal
+        <PicturePicker
           mode="pick-image"
+          currentValue={events.find((e) => e.id === imageBrowserEventId)?.backgroundImage}
           onSelectImage={handleImageSelect}
           onClose={() => setImageBrowserEventId(null)}
         />

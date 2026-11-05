@@ -1,133 +1,102 @@
 /**
- * Migration 017: the superseded fields are retired.
+ * Migration 017: every stream of pictures names its source with one
+ * `photoSource` object.
  *
- * Six values used to be read through a fallback at render time because the
- * field that replaced them was never written back. Each is settled here once
- * so the readers can drop their fallbacks:
+ * Photo Slideshow and Full-screen Photo used to carry a flat set of fields
+ * per source (`source`, `directory`, `immichAlbumId`, `immichPersonId`,
+ * `immichFavoritesOnly`, `icloudAlbumUrl`, `onedriveFolderId`,
+ * `onedriveFolderName`) plus a count per source (`immichCount`,
+ * `onedriveCount`). A screen's `backgroundRotation` had its own spelling of
+ * the same idea (`source: 'nasa-apod'`, `query`, `immich*`,
+ * `icloudAlbumUrl`). All three now read `photoSource` (see PhotoSource), and
+ * the two modules one `count`.
  *
- * - `settings.weather.latitude` / `longitude` were a second copy of the
- *   household location. The top level wins where it is set (a 0 counts as
- *   set, as the readers' `??` always treated it); only an absent top-level
- *   pair takes the weather copy. The weather copy is removed.
- * - `settings.calendar.googleCalendarId` was the single calendar from before
- *   several could be picked. It becomes the one entry of an empty
- *   `googleCalendarIds` and is removed.
- * - A clock's `format24h` toggle was read only while `hourFormat` was absent.
- *   Such a clock gets `hourFormat` pinned to what its toggle said, so it keeps
- *   showing the same clock; the toggle is removed everywhere.
- * - A full-screen calendar's `showWeather` was read only while
- *   `weatherPlacement` was absent: `false` meant off, anything else the
- *   header pill. The placement is written and the toggle removed.
- * - `darkMode` on the full-screen calendar and chore chart was the last word
- *   on a module with no `theme` of its own and no display theme to inherit:
- *   `true` painted Charcoal, `false` Linen. The registry now carries each
- *   type's own default theme (Charcoal for the chore chart, Linen for the
- *   calendar), so `theme` is written only where the boolean picked the other
- *   palette and nothing else was deciding; a module that already inherits a
- *   display theme keeps inheriting it. A module without the boolean at all
- *   takes the type default. The boolean is removed.
- * - A font stored as one of the raw CSS stacks the picker wrote before fonts
- *   had ids (a module's Style font or a Text module's own) becomes the id.
- *   Any other raw stack is a hand-edited choice and stays.
+ * Each source keeps exactly what it showed: the same folder, album, person,
+ * link or search words. A module whose `source` was missing or unknown
+ * played its library folder, so it becomes a library source; a rotation
+ * whose `source` was missing searched Unsplash. A library folder loses any
+ * leading or trailing slash: the library never accepted one (a bundled
+ * template's `/photos` listed nothing). Full-screen Photo's `file` stays.
+ * Shapes that are not objects pass through untouched.
  */
 
-import type { ScreenConfiguration, GlobalSettings } from '@/types/config';
-import { mapConfigModules } from './module-walk';
+import type { ScreenConfiguration, PhotoSource } from '@/types/config';
+import { mapConfigModules, mapConfigScreens } from './module-walk';
 
-/** What the boolean painted, and the palette each type now defaults to. */
-const DARK_MODE_THEME = (darkMode: unknown): string => (darkMode ? 'charcoal' : 'linen');
-const TYPE_DEFAULT_THEME: Record<string, string> = {
-  'fullscreen-chore-chart': 'charcoal',
-  'fullscreen-calendar': 'linen',
-};
+const MODULE_FIELDS = [
+  'source', 'directory', 'immichAlbumId', 'immichPersonId', 'immichFavoritesOnly', 'immichCount',
+  'icloudAlbumUrl', 'onedriveFolderId', 'onedriveFolderName', 'onedriveCount',
+];
+const ROTATION_FIELDS = ['source', 'query', 'immichAlbumId', 'immichPersonId', 'immichFavoritesOnly', 'icloudAlbumUrl'];
 
-/** The raw CSS stacks older pickers stored, and the registry id each became. */
-const LEGACY_FONT_STACK_TO_ID: Record<string, string> = {
-  'Inter, system-ui, sans-serif': 'inter',
-  'Georgia, serif': 'georgia',
-  'monospace': 'mono',
-  'system-ui, sans-serif': 'system-ui',
-  'ui-monospace, "SF Mono", Menlo, monospace': 'mono',
-  'system-ui, -apple-system, "Segoe UI", sans-serif': 'system-ui',
-};
+const text = (value: unknown): string => (typeof value === 'string' ? value : '');
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+function immichSource(cfg: Record<string, unknown>): PhotoSource {
+  return {
+    kind: 'immich',
+    ...(text(cfg.immichAlbumId) ? { albumId: text(cfg.immichAlbumId) } : {}),
+    ...(text(cfg.immichPersonId) ? { personId: text(cfg.immichPersonId) } : {}),
+    ...(cfg.immichFavoritesOnly === true ? { favoritesOnly: true } : {}),
+  };
 }
 
-function legacyFontId(value: unknown): string | undefined {
-  return typeof value === 'string' ? LEGACY_FONT_STACK_TO_ID[value.trim()] : undefined;
+function moduleSource(cfg: Record<string, unknown>): PhotoSource {
+  switch (cfg.source) {
+    case 'immich': return immichSource(cfg);
+    case 'icloud': return { kind: 'icloud', albumUrl: text(cfg.icloudAlbumUrl) };
+    case 'onedrive': return {
+      kind: 'onedrive',
+      folderId: text(cfg.onedriveFolderId),
+      ...(text(cfg.onedriveFolderName) ? { folderName: text(cfg.onedriveFolderName) } : {}),
+    };
+    default: return { kind: 'library', folder: text(cfg.directory).replace(/^\/+|\/+$/g, '') };
+  }
 }
 
-function migrateSettings(settings: GlobalSettings): GlobalSettings {
-  if (!isRecord(settings)) return settings;
-  let next: Record<string, unknown> = settings;
+function moduleCount(cfg: Record<string, unknown>): number | undefined {
+  const count = cfg.source === 'immich' ? cfg.immichCount : cfg.source === 'onedrive' ? cfg.onedriveCount : undefined;
+  return typeof count === 'number' && Number.isFinite(count) ? count : undefined;
+}
 
-  const weather = next.weather;
-  if (isRecord(weather) && ('latitude' in weather || 'longitude' in weather)) {
-    const { latitude, longitude, ...rest } = weather;
-    next = { ...next, weather: rest };
-    if (next.latitude == null && next.longitude == null && latitude != null && longitude != null) {
-      next = { ...next, latitude, longitude };
-    }
+function rotationSource(rotation: Record<string, unknown>): PhotoSource {
+  switch (rotation.source) {
+    case 'nasa-apod': return { kind: 'nasa' };
+    case 'immich': return immichSource(rotation);
+    case 'icloud': return { kind: 'icloud', albumUrl: text(rotation.icloudAlbumUrl) };
+    default: return { kind: 'unsplash', query: text(rotation.query) };
   }
+}
 
-  const calendar = next.calendar;
-  if (isRecord(calendar) && 'googleCalendarId' in calendar) {
-    const { googleCalendarId, ...rest } = calendar;
-    const ids = Array.isArray(rest.googleCalendarIds) ? rest.googleCalendarIds : [];
-    const single = typeof googleCalendarId === 'string' && googleCalendarId ? [googleCalendarId] : [];
-    next = { ...next, calendar: { ...rest, googleCalendarIds: ids.length ? ids : single } };
-  }
-
-  return next as unknown as GlobalSettings;
+function without(obj: Record<string, unknown>, keys: readonly string[]): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key)));
 }
 
 export const v16ToV17 = {
   version: 17,
-  description: 'Superseded fields retired: weather location copy, single Google calendar id, clock format24h, calendar showWeather, darkMode, raw font stacks',
+  description: 'Photo sources: slideshow, full-screen photo and background rotation name their source with photoSource',
   up: (config: ScreenConfiguration): ScreenConfiguration => {
-    const settings = migrateSettings(config.settings);
-    const sharedTheme = isRecord(settings) ? settings.fullscreenTheme : undefined;
-
-    const modules = mapConfigModules(config, (mod, site) => {
-      let next = mod;
-
-      if (isRecord(mod.style) && legacyFontId(mod.style.fontFamily)) {
-        next = { ...next, style: { ...mod.style, fontFamily: legacyFontId(mod.style.fontFamily)! } };
-      }
-
-      if (!isRecord(mod.config)) return next;
-      const cfg = mod.config as Record<string, unknown>;
-      let out: Record<string, unknown> | null = null;
-      const edit = () => (out ??= { ...cfg });
-
-      if (mod.type === 'text' && legacyFontId(cfg.fontFamily)) {
-        edit().fontFamily = legacyFontId(cfg.fontFamily)!;
-      }
-
-      if (mod.type === 'clock' && 'format24h' in cfg) {
-        if (cfg.hourFormat === undefined) edit().hourFormat = cfg.format24h ? '24h' : '12h';
-        delete edit().format24h;
-      }
-
-      if (mod.type === 'fullscreen-calendar' && 'showWeather' in cfg) {
-        if (cfg.weatherPlacement === undefined) edit().weatherPlacement = cfg.showWeather === false ? 'off' : 'header';
-        delete edit().showWeather;
-      }
-
-      const typeDefault = TYPE_DEFAULT_THEME[mod.type as string];
-      if (typeDefault && 'darkMode' in cfg) {
-        const inherited = site.display?.settings?.fullscreenTheme ?? sharedTheme;
-        if (cfg.theme === undefined && !inherited && cfg.darkMode !== undefined && DARK_MODE_THEME(cfg.darkMode) !== typeDefault) {
-          edit().theme = DARK_MODE_THEME(cfg.darkMode);
-        }
-        delete edit().darkMode;
-      }
-
-      return out ? { ...next, config: out as typeof mod.config } : next;
+    const withModules = {
+      ...config,
+      ...mapConfigModules(config, (mod) => {
+        if (mod.type !== 'photo-slideshow' && mod.type !== 'fullscreen-photo') return mod;
+        if (!mod.config || typeof mod.config !== 'object') return mod;
+        const cfg = mod.config as Record<string, unknown>;
+        if (cfg.photoSource && typeof cfg.photoSource === 'object') return mod;
+        const count = moduleCount(cfg);
+        const next = { ...without(cfg, MODULE_FIELDS), photoSource: moduleSource(cfg), ...(count !== undefined ? { count } : {}) };
+        return { ...mod, config: next as typeof mod.config };
+      }),
+    };
+    const screens = mapConfigScreens(withModules, (screen) => {
+      const rotation = screen.backgroundRotation as unknown;
+      if (!rotation || typeof rotation !== 'object') return screen;
+      const r = rotation as Record<string, unknown>;
+      if (r.photoSource && typeof r.photoSource === 'object') return screen;
+      return {
+        ...screen,
+        backgroundRotation: { ...without(r, ROTATION_FIELDS), photoSource: rotationSource(r) } as unknown as typeof screen.backgroundRotation,
+      };
     });
-
-    return { ...config, ...modules, settings, version: 17 };
+    return { ...withModules, ...screens, version: 17 };
   },
 };

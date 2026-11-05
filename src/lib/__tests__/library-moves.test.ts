@@ -128,7 +128,7 @@ describe('moveLibraryFiles', () => {
     await seed('nature/b.jpg');
     await seed('trips/.keep');
     configState.config = { screens: [{ id: 's1', name: 'Hall', modules: [
-      { id: 'm1', type: 'photo-slideshow', config: { source: 'local', directory: 'nature' } },
+      { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
     ] }] };
 
     const result = await moveLibraryFiles(['nature/a.jpg', 'nature/b.jpg'], 'trips');
@@ -136,7 +136,7 @@ describe('moveLibraryFiles', () => {
     expect(result.moved).toEqual([{ from: 'nature/a.jpg', to: 'trips/a.jpg' }]);
     expect(result.kept).toEqual([{
       path: 'nature/b.jpg',
-      usage: [{ kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.directory', screenId: 's1', moduleId: 'm1' }],
+      usage: [{ kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.photoSource.folder', screenId: 's1', moduleId: 'm1' }],
     }]);
     expect(await exists('trips/a.jpg')).toBe(true);
     expect(await exists('nature/b.jpg')).toBe(true);
@@ -148,7 +148,7 @@ describe('moveLibraryFiles', () => {
     await seed('trips/.keep');
     // Photos only: the video left in the folder is nothing the slideshow can show.
     configState.config = { screens: [{ id: 's1', name: 'Hall', modules: [
-      { id: 'm1', type: 'photo-slideshow', config: { source: 'local', directory: 'nature' } },
+      { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
     ] }] };
 
     const result = await moveLibraryFiles(['nature/a.jpg', 'nature/clip.mp4'], 'trips');
@@ -198,10 +198,10 @@ describe('renameLibraryFolder', () => {
     configState.config = { screens: [
       { id: 's1', name: 'Hall', backgroundImage: 'trips/a.jpg' },
       { id: 's2', name: 'Den', modules: [
-        { id: 'm1', type: 'photo-slideshow', config: { source: 'local', directory: 'trips' } },
-        { id: 'm2', type: 'fullscreen-photo', config: { directory: 'trips/kids' } },
+        { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'trips' } } },
+        { id: 'm2', type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'trips/kids' } } },
         { id: 'm3', type: 'video', config: { file: 'trips/kids/b.jpg' } },
-        { id: 'm4', type: 'photo-slideshow', config: { source: 'local', directory: 'tripsy' } },
+        { id: 'm4', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'tripsy' } } },
       ] },
     ] };
 
@@ -215,9 +215,9 @@ describe('renameLibraryFolder', () => {
     expect(result.revision).not.toBe(before);
     expect(await exists('Summer-2026/kids/b.jpg')).toBe(true);
     expect(await exists('trips')).toBe(false);
-    const screens = configState.config.screens as Array<{ backgroundImage?: string; modules?: { config: Record<string, string> }[] }>;
+    const screens = configState.config.screens as Array<{ backgroundImage?: string; modules?: { config: { photoSource?: { folder: string }; file?: string } }[] }>;
     expect(screens[0].backgroundImage).toBe('Summer-2026/a.jpg');
-    expect(screens[1].modules!.map((m) => m.config.directory ?? m.config.file)).toEqual([
+    expect(screens[1].modules!.map((m) => m.config.photoSource?.folder ?? m.config.file)).toEqual([
       'Summer-2026', 'Summer-2026/kids', 'Summer-2026/kids/b.jpg', 'tripsy',
     ]);
   });

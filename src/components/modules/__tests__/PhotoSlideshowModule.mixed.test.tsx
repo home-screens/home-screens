@@ -12,7 +12,7 @@ beforeAll(() => {
   HTMLMediaElement.prototype.pause = vi.fn();
 });
 
-let mockData: string[] | MediaListItem[] | null = null;
+let mockData: MediaListItem[] | null = null;
 vi.mock('@/hooks/useFetchData', () => ({
   useFetchData: () => [mockData, null],
 }));
@@ -33,7 +33,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 
 function makeConfig(overrides: Partial<PhotoSlideshowConfig> = {}): PhotoSlideshowConfig {
   return {
-    directory: '', intervalMs: 10_000, transition: 'fade', objectFit: 'cover',
+    photoSource: { kind: 'library', folder: '' }, intervalMs: 10_000, transition: 'fade', objectFit: 'cover',
     refreshIntervalMs: 600_000, ...overrides,
   };
 }
@@ -126,8 +126,8 @@ describe('PhotoSlideshowModule mixed media', () => {
     expect(img.style.transition).toBe('');
   });
 
-  it('keeps the legacy photo-only path for string[] responses', () => {
-    mockData = ['/api/backgrounds/serve?file=a.jpg', '/api/backgrounds/serve?file=b.jpg'];
+  it('fades between photos on an all-photo list', () => {
+    mockData = [{ url: '/api/backgrounds/serve?file=a.jpg', type: 'image' }, { url: '/api/backgrounds/serve?file=b.jpg', type: 'image' }];
     const { container } = renderSlideshow(makeConfig());
 
     const img = activeElement(container) as HTMLElement;
@@ -138,7 +138,7 @@ describe('PhotoSlideshowModule mixed media', () => {
   });
 
   it('alternates two photos across full passes without reloading unchanged images', () => {
-    mockData = ['/api/backgrounds/serve?file=a.jpg', '/api/backgrounds/serve?file=b.jpg'];
+    mockData = [{ url: '/api/backgrounds/serve?file=a.jpg', type: 'image' }, { url: '/api/backgrounds/serve?file=b.jpg', type: 'image' }];
     const { container } = renderSlideshow(makeConfig());
     expect(activeElement(container)?.getAttribute('src')).toContain('a.jpg');
     for (let step = 1; step <= 6; step++) {

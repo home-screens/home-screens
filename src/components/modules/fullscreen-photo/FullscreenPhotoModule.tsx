@@ -19,9 +19,20 @@ import VideoLayer from '../shared/VideoLayer';
 import { useCrossfadeLayers, useSlideImage, readyWhenDecoded, type LayerIndex } from '../shared/useCrossfadeLayers';
 import type { PictureBox } from '@/lib/media-paths';
 import { householdTimeFormat } from '@/lib/clock-time';
+import { emptyStateFor, normalizePhotoSource, type PhotoSourceEmptyReason } from '@/lib/photo-source';
+import PhotoCredit from '../shared/PhotoCredit';
 
 const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;
 const NO_ITEMS: MediaListItem[] = [];
+
+/** The editor-side fix an empty source's wall names (`emptyStateFor`); an empty library folder shows the phone address instead. */
+const CLOUD_HINT: Record<Exclude<PhotoSourceEmptyReason, 'addPhotos'>, string> = {
+  checkFilters: 'fullscreen-photo.noPhotosYetHintImmich',
+  checkLink: 'fullscreen-photo.noPhotosYetHintICloud',
+  checkFolder: 'fullscreen-photo.noPhotosYetHintOneDrive',
+  checkSearch: 'fullscreen-photo.noPhotosYetHintUnsplash',
+  tryLater: 'fullscreen-photo.noPhotosYetHintNasa',
+};
 
 // ── Ken Burns keyframes (injected once) ──────
 
@@ -269,15 +280,10 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
   // as the editor's toggle reads it.
   const showClock = config.showClock ?? true;
 
-  // Fetch photo list (reuses same API as photo-slideshow) — skip when single photo.
-  // Photo-only configs receive the legacy string[] response; normalize both
-  // shapes into MediaListItem so the render path below is uniform.
+  // The photo list (the same media route as photo-slideshow); none for a single photo.
   const listUrl = isSinglePhoto ? '' : photoSlideshowUrl(config);
-  const [data] = useFetchData<string[] | MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
-  const items = useMemo<MediaListItem[]>(
-    () => (data ?? []).map((entry) => (typeof entry === 'string' ? { url: entry, type: 'image' as const } : entry)),
-    [data],
-  );
+  const [data, error] = useFetchData<MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
+  const items = data ?? NO_ITEMS;
 
   const intervalMs = config.intervalMs ?? 30000;
   // Per-item rotation: photos advance on the timer, videos on onEnded —
@@ -341,13 +347,15 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
     );
   }
 
-  if (data !== null && items.length === 0) {
-    // An empty iCloud album usually means a bad link or the album's public
-    // website being off; an empty OneDrive folder points back at the
-    // editor's folder picker — say so instead of phone-upload advice.
-    const cloudHint = config.source === 'icloud' ? t('fullscreen-photo.noPhotosYetHintICloud')
-      : config.source === 'onedrive' ? t('fullscreen-photo.noPhotosYetHintOneDrive')
-        : null;
+  // A source that needs setting up (a missing key, a lapsed sign-in) says so
+  // in the same place an empty one does, rather than spinning forever.
+  const needsSetup = data === null && error?.kind === 'setup';
+  if ((data !== null && items.length === 0) || needsSetup) {
+    // An empty library folder is filled from a phone; every other source's
+    // fix is in the editor (a link, a folder, filters, search words or a
+    // key), so it gets its own hint instead of phone-upload advice.
+    const reason = emptyStateFor(normalizePhotoSource(config.photoSource) ?? { kind: 'library' });
+    const cloudHint = needsSetup ? error!.message : reason === 'addPhotos' ? null : t(CLOUD_HINT[reason]);
     return (
       <div
         ref={containerRef}
@@ -419,6 +427,8 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
       {renderLayer(0)}
       {/* Layer 1 */}
       {renderLayer(1)}
+
+      <PhotoCredit item={sources[activeLayer]} box={boxSize} corner={showClock ? 'top' : 'bottom'} />
 
       {/* Clock overlay */}
       {showClock && (

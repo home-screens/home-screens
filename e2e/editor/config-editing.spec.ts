@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
-import { getConfig, putConfig, seedDisplaySharedState, seedNotes, seedTimetables, E2E_NOTE_TEXTS } from '../helpers/api';
+import { clearSecrets, getConfig, putConfig, seedDisplaySharedState, seedNotes, seedTimetables, E2E_NOTE_TEXTS } from '../helpers/api';
 import { baseConfig, makeScreen } from '../helpers/config-fixtures';
 import { buildModuleInstance, matrixSettings } from '../helpers/module-fixtures';
 import { autosaved, moduleConfig, selectModule } from '../helpers/editor';
@@ -386,12 +386,25 @@ test('calendar: adding an event rule and a day rule persists', async ({ page, re
   await autosaved(page, async () => {
     await dayCard.getByLabel(/^Background/).selectOption('picture');
   });
+  // The rule's picture opens the Image Library on the day art that ships.
   const artPicker = dayCard.locator('[data-day-art-picker]');
+  await artPicker.getByTestId('day-art-choose').click();
+  const library = page.getByRole('dialog', { name: 'Image Library' });
+  await expect(library.getByTestId('picker-tab-builtin')).toHaveAttribute('aria-selected', 'true');
+  await library.getByTestId('starter-picture-halloween').click();
   await autosaved(page, async () => {
-    await artPicker.locator('[data-art-option="halloween"]').click();
+    await library.getByTestId('picker-confirm').click();
   });
   saved = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
   expect(saved[0].backgroundImage).toBe('/starter-day-art/halloween.svg');
+  await expect(artPicker.getByTestId('day-art-name')).toHaveText('Halloween');
+
+  // Remove clears the picture and leaves the rule.
+  await autosaved(page, async () => {
+    await artPicker.getByTestId('day-art-remove').click();
+  });
+  saved = (await moduleConfig(request, 'calendar')).dayRules as Array<Record<string, unknown>>;
+  expect(saved[0].backgroundImage).toBeUndefined();
 
   // Removing the only rule clears the list back to undefined, not [].
   await autosaved(page, async () => {
@@ -1052,6 +1065,20 @@ test('image: editing Alt Text persists', async ({ page, request }) => {
   expect((await moduleConfig(request, 'image')).alt).toBe('E2E alt text');
 });
 
+test('image: the Image Library offers every source as a tab', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('image', {
+    src: 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==',
+  }));
+
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  await page.getByRole('button', { name: 'Browse Library...' }).click();
+  const library = page.getByRole('dialog', { name: 'Image Library' });
+  // No built-in pictures for an Image module, so the library's own tab leads.
+  await expect(library.getByRole('tab')).toHaveText(['Local', 'Immich', 'Unsplash', 'NASA']);
+  await expect(library.getByTestId('picker-tab-library')).toHaveAttribute('aria-selected', 'true');
+  await expect(library.getByTestId('picker-confirm')).toBeDisabled();
+});
+
 test('video: toggling Play on repeat persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('video'));
 
@@ -1094,9 +1121,40 @@ test('photo-slideshow: OneDrive source offers sign-in and persists the choice', 
     await page.getByLabel('Photo Source').selectOption('onedrive');
   });
 
-  expect((await moduleConfig(request, 'photo-slideshow')).source).toBe('onedrive');
+  expect((await moduleConfig(request, 'photo-slideshow')).photoSource).toEqual({ kind: 'onedrive', folderId: '' });
   // No stored grant in the sandbox, so the panel offers device-code sign-in.
   await expect(page.getByRole('button', { name: 'Sign in with Microsoft' })).toBeVisible();
+});
+
+test('photo-slideshow: every source is listed, and one without its key says so', async ({ page, request }) => {
+  await clearSecrets(request, ['unsplash_access_key', 'immich_api_key', 'immich_url', 'microsoft_client_id']);
+  await selectModule(page, request, buildModuleInstance('photo-slideshow'));
+
+  const source = page.getByLabel('Photo Source');
+  await expect(source.locator('option')).toHaveText([
+    'Library folder',
+    'Immich (needs setting up)',
+    'iCloud shared album',
+    'OneDrive (needs setting up)',
+    'Unsplash (needs a free key)',
+    'NASA picture of the day',
+  ]);
+  // A library folder plays all of itself, so it has no per-refresh count.
+  await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);
+
+  await autosaved(page, async () => {
+    await source.selectOption('unsplash');
+  });
+  expect((await moduleConfig(request, 'photo-slideshow')).photoSource).toEqual({ kind: 'unsplash', query: 'nature landscape' });
+  await expect(page.getByTestId('photo-source-key-missing')).toBeVisible();
+  // Unsplash plays photos only, and one request brings up to 30.
+  await expect(page.locator('select:has(option[value="videos"])')).toHaveCount(0);
+  await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveAttribute('max', '30');
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Search words').fill('mountains lake');
+  });
+  expect((await moduleConfig(request, 'photo-slideshow')).photoSource).toEqual({ kind: 'unsplash', query: 'mountains lake' });
 });
 
 test('qr-code: switching Mode persists', async ({ page, request }) => {
@@ -1332,6 +1390,21 @@ test('fullscreen-photo: switching Mode persists', async ({ page, request }) => {
   });
 
   expect((await moduleConfig(request, 'fullscreen-photo')).file).toBe('');
+});
+
+test('fullscreen-photo: a single picture is offered whatever the slideshow source', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('fullscreen-photo', {
+    photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B125e2eFixture' },
+  }));
+
+  await autosaved(page, async () => {
+    await page.getByLabel('Mode').selectOption('single');
+  });
+  expect((await moduleConfig(request, 'fullscreen-photo')).file).toBe('');
+  // One picture, chosen in the Image Library; the source fields step aside.
+  await expect(page.getByLabel('Photo Source')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Choose...' }).click();
+  await expect(page.getByRole('dialog', { name: 'Image Library' }).getByTestId('picker-tab-library')).toBeVisible();
 });
 
 test('fullscreen-photo: Clock Background starts at the theme\'s own and persists', async ({ page, request }) => {

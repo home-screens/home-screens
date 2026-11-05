@@ -83,7 +83,7 @@ function distinctShown(samples: FrameSample[]): Set<string> {
 
 for (const type of ['photo-slideshow', 'fullscreen-photo'] as const) {
   test(`${type}: the outgoing photo stays up while a slow replacement downloads`, async ({ page, request }) => {
-    await stubModuleData(page, { overrides: { backgrounds: [SERVED_A, SERVED_B] } });
+    await stubModuleData(page, { overrides: { backgrounds: [SERVED_A, SERVED_B].map((url) => ({ url, type: 'image' })) } });
     await stubServe(page, ['b.gif'], []);
     const display = await renderOnDisplay(page, request, baseConfig({
       screens: [makeScreen('s1', 'S1', [buildModuleInstance(type, { intervalMs: INTERVAL_MS, transition: 'fade' })])],
@@ -98,7 +98,7 @@ for (const type of ['photo-slideshow', 'fullscreen-photo'] as const) {
   });
 
   test(`${type}: a photo that fails to download is skipped without a blank frame`, async ({ page, request }) => {
-    await stubModuleData(page, { overrides: { backgrounds: [SERVED_A, SERVED_DEAD, SERVED_B] } });
+    await stubModuleData(page, { overrides: { backgrounds: [SERVED_A, SERVED_DEAD, SERVED_B].map((url) => ({ url, type: 'image' })) } });
     await stubServe(page, [], ['dead.gif']);
     const display = await renderOnDisplay(page, request, baseConfig({
       screens: [makeScreen('s1', 'S1', [buildModuleInstance(type, { intervalMs: INTERVAL_MS, transition: 'fade' })])],

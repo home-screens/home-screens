@@ -114,3 +114,16 @@ export function extensionOf(libraryPath: string): string {
 export function typeTagOf(libraryPath: string): string {
   return extensionOf(libraryPath).slice(1).toUpperCase();
 }
+
+/**
+ * A library picture's name as a person reads it. A picture picked from
+ * Immich, Unsplash or NASA is stored as `<title>--<source>-<id>.<ext>` (the
+ * id keeps a repeat pick from making a duplicate); the id part is left out
+ * here, so "colors-of-the-moon--nasa-2026-11-01.jpg" reads as
+ * "colors-of-the-moon.jpg". Any other file reads as its file name.
+ */
+export function pictureDisplayName(libraryPath: string): string {
+  const name = fileNameOf(libraryPath);
+  const titled = /^(.+?)--(?:immich|unsplash|nasa)-.+?(\.[^.]+)$/.exec(name);
+  return titled ? `${titled[1]}${titled[2]}` : name;
+}

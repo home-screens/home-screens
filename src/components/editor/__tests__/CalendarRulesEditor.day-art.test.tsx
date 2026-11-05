@@ -15,7 +15,17 @@ import { CalendarRulesEditor } from '../config-sections/CalendarRulesEditor';
 import type { CalendarDayRule } from '@/types/config';
 
 vi.mock('@/lib/editor-fetch', () => ({
-  editorFetch: vi.fn(async () => ({ ok: true, json: async () => [] })),
+  editorFetch: vi.fn(async (url: string) => ({
+    ok: true,
+    status: 200,
+    headers: new Headers(),
+    json: async () => (url.startsWith('/api/backgrounds/directories') ? { directories: [] }
+      : url.startsWith('/api/auth/google/apps') ? { photos: { mode: 'own', hostedAvailable: false } }
+        : url.startsWith('/api/secrets') ? {}
+          : []),
+  })),
+  isSessionExpired: () => false,
+  sessionExpired: () => new Error('expired'),
 }));
 
 function Harness({ initial, stateRef }: {
@@ -72,20 +82,25 @@ describe('two day rules with picture backgrounds', () => {
     const picker = card2.querySelector('[data-day-art-picker]');
     expect(picker, 'picture picker rendered in card 2').toBeTruthy();
 
-    // Card 1 shows halloween pressed; card 2 must not (it seeded celebrate).
-    expect(cards[0].querySelector('[data-art-option="halloween"]')?.getAttribute('aria-pressed')).toBe('true');
-    expect(picker!.querySelector('[data-art-option="halloween"]')?.getAttribute('aria-pressed')).toBe('false');
+    // Card 1 holds Halloween; card 2 must not (it seeded its own art).
+    const name = (card: Element) => card.querySelector('[data-testid="day-art-name"]')?.textContent;
+    expect(name(cards[0])).toMatch(/halloween/i);
+    expect(name(card2)).not.toMatch(/halloween/i);
 
-    // Pick birthday on card 2.
+    // Pick birthday on card 2, in the Image Library its field opens.
     await act(async () => {
-      fireEvent.click(picker!.querySelector('[data-art-option="birthday"]')!);
+      fireEvent.click(picker!.querySelector('[data-testid="day-art-choose"]')!);
+    });
+    await act(async () => {
+      fireEvent.click(card2.querySelector('[data-testid="starter-picture-birthday"]')!);
+    });
+    await act(async () => {
+      fireEvent.click(card2.querySelector('[data-testid="picker-confirm"]')!);
     });
 
-    // Card 2 now shows birthday pressed and halloween not; card 1 unchanged.
-    expect(card2.querySelector('[data-art-option="birthday"]')?.getAttribute('aria-pressed')).toBe('true');
-    expect(card2.querySelector('[data-art-option="halloween"]')?.getAttribute('aria-pressed')).toBe('false');
-    expect(cards[0].querySelector('[data-art-option="halloween"]')?.getAttribute('aria-pressed')).toBe('true');
-    expect(cards[0].querySelector('[data-art-option="birthday"]')?.getAttribute('aria-pressed')).toBe('false');
+    // Card 2 now holds birthday; card 1 is unchanged.
+    expect(name(card2)).toMatch(/birthday/i);
+    expect(name(cards[0])).toMatch(/halloween/i);
   });
 });
 

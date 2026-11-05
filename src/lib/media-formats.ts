@@ -56,3 +56,35 @@ export const MAX_VIDEO_BYTES = 200 * 1024 * 1024; // 200 MB per video file
  *  ceiling than uploads: Apple originals (48 MP photos) legitimately exceed
  *  10 MB. */
 export const MAX_IMPORT_IMAGE_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Raster pictures and videos a download may be saved as, by the media type a
+ * server answered with. SVG is left out on purpose: a picture fetched from
+ * another service is only ever a photo, and an SVG from elsewhere could carry
+ * script. TIFF, HEIC and BMP are left out because the display can't show
+ * them; saving their bytes under `.jpg` gave the wall JPEG headers over TIFF
+ * data and a broken picture.
+ */
+const EXTENSION_BY_CONTENT_TYPE: Readonly<Record<string, string>> = {
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+  'image/avif': '.avif',
+  'video/mp4': '.mp4',
+  'video/quicktime': '.mov',
+  'video/webm': '.webm',
+};
+
+/**
+ * The extension to save a download under, from its Content-Type (parameters
+ * such as `; charset=binary` ignored), or null when the type is not one the
+ * display can show. `kind` limits the answer to pictures or videos.
+ */
+export function extensionForContentType(contentType: string | null | undefined, kind?: 'image' | 'video'): string | null {
+  const mediaType = (contentType ?? '').split(';')[0].trim().toLowerCase();
+  const ext = EXTENSION_BY_CONTENT_TYPE[mediaType];
+  if (!ext) return null;
+  if (kind && !mediaType.startsWith(`${kind}/`)) return null;
+  return ext;
+}

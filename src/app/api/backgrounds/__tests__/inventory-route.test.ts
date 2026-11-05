@@ -237,8 +237,8 @@ describe('GET /api/backgrounds/inventory', () => {
       // Hidden from the listing, but on disk: not missing.
       { id: 's3', name: 'Rot', backgroundImage: 'rotation-unsplash-live.jpg' },
       { id: 's4', name: 'Den', modules: [
-        { id: 'm1', type: 'photo-slideshow', config: { directory: 'old-trips' } },
-        { id: 'm2', type: 'photo-slideshow', config: { directory: 'nature' } },
+        { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'old-trips' } } },
+        { id: 'm2', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
       ] },
     ] };
     const { GET } = await getHandlers();
@@ -255,8 +255,8 @@ describe('GET /api/backgrounds/inventory', () => {
     await fs.mkdir(path.join(bgsDir, 'empty-yet'));
     configState.config = { screens: [
       { id: 's1', name: 'Den', modules: [
-        { id: 'm1', type: 'photo-slideshow', config: { directory: 'nature', mediaTypes: 'both' } },
-        { id: 'm2', type: 'fullscreen-photo', config: { directory: 'empty-yet' } },
+        { id: 'm1', type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' }, mediaTypes: 'both' } },
+        { id: 'm2', type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: 'empty-yet' } } },
       ] },
     ] };
     const { GET } = await getHandlers();

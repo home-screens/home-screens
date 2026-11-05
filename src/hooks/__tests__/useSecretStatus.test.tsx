@@ -36,14 +36,14 @@ describe('useSecretStatus', () => {
   });
 
   it('concurrent mounts share a single in-flight request', async () => {
-    const fetchMock = vi.fn(async () => jsonResponse({ nasa_api_key: true }));
+    const fetchMock = vi.fn(async () => jsonResponse({ unsplash_access_key: true }));
     vi.stubGlobal('fetch', fetchMock);
 
     const a = renderHook(() => useSecretStatus());
     const b = renderHook(() => useSecretStatus());
 
-    await waitFor(() => expect(a.result.current.status).toEqual({ nasa_api_key: true }));
-    await waitFor(() => expect(b.result.current.status).toEqual({ nasa_api_key: true }));
+    await waitFor(() => expect(a.result.current.status).toEqual({ unsplash_access_key: true }));
+    await waitFor(() => expect(b.result.current.status).toEqual({ unsplash_access_key: true }));
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

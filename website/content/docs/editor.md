@@ -225,17 +225,17 @@ The transition effect and duration are configurable in **Settings > Screen**. Th
 
 Click an empty area of the canvas to deselect any module; the **Background** section appears in the right sidebar only when no module is selected.
 
-### Choose a Background
+### Choose a background
 
-The Background section has **Shade** and **Sources** cards. Within Sources, the expandable **Match a full-screen theme**, **Colors**, and **Patterns** groups offer bundled still images; the theme in use appears first. Choosing a tile or **None** (under Colors) turns off rotation. Theme matching is a static image pick, not a live link to future theme changes. The same card also offers five rotation sources: Unsplash, NASA, Immich, iCloud, and Local library folder.
+1. Under **Picture**, click **Choose a picture**. The **Image Library** opens
+2. Pick a tab: **Built-in** (the backgrounds that ship with Home Screens), **Local** (your own library, with **Upload Photos**), **Immich**, **Unsplash** or **NASA**
+3. Click a picture, then **Select Image**. **None** removes the background
 
-Upload images through **Settings > Pictures & videos** instead. They remain in the shared media library for photo/video modules and local-folder rotation. Videos cannot be selected as a screen background. The media library browser in module settings still supports **Import from an iCloud link**; see the [Backgrounds guide](/docs/backgrounds#i-cloud-shared-albums).
+A picture from Immich, Unsplash or NASA is copied into your library first, so the wall doesn't need that service to show it. Backgrounds are still images only; videos live in the same library but are used by the Video module and slideshows. The **Local** tab can also add everything from an iCloud link or pick photos from Google Photos, into the folder you have selected. See [Choosing a picture](/docs/backgrounds#image-library) for every tab.
 
-### Unsplash Integration
+### Rotating backgrounds
 
-If you've set an Unsplash access key in Settings, you can:
-
-- Enable background rotation from Unsplash inside the Sources card (query or collections)
+Turn on **Auto-rotate** and choose a **Photo Source**: a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA. These are the same sources and settings the photo modules use. See [Background rotation](/docs/backgrounds#background-rotation).
 
 ### Per-Screen Backgrounds
 
@@ -353,7 +353,7 @@ Two things to know: addresses with colons (IPv6) never match, so add the IPv4 ra
 
 ### Backups & data
 
-- **Save a copy**: **Save a backup** downloads everything, chores and meals included. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Include your icons** adds the pictures your family added as icons; each computer and phone remembers the choice. Under **Pictures**, choose whether the backup also carries your picture library: **Leave them out**, **Only the ones your screens use** (backgrounds, slideshow folders and videos a screen shows) or **Everything in your picture library**; each choice shows how many files and how big, and a backup with pictures is saved as a zip file. **Restore from a file** puts a backup back, a zip or a plain file alike; pictures in it are put back into the library (a picture already on the hub with the same name is replaced, nothing is removed). A locked backup asks for its password and offers **Restore without my keys**.
+- **Save a copy**: **Save a backup** downloads everything, chores and meals included. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Include your icons** adds the pictures your family added as icons; each computer and phone remembers the choice. **Restore from a file** puts a backup back; a locked backup asks for its password and offers **Restore without my keys**.
 - **Share Layout**: **Export Layout** writes only screens and modules, with no personal data, and is the safe one to hand to someone else. **Import Layout** brings one in as new screens.
 - **Templates**: **Browse Templates** starts a screen from a ready-made layout while keeping your settings.
 - **Automatic snapshots** are taken before every update, each with **Download** and **Restore**.

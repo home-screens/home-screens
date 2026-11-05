@@ -65,6 +65,11 @@ function makeGetRequest(params?: Record<string, string>): NextRequest {
   return new NextRequest(url);
 }
 
+/** The serve URLs of a typed list (the listing always answers MediaListItem[]). */
+async function urlsOf(res: Response): Promise<string[]> {
+  return ((await res.json()) as Array<{ url: string }>).map((item) => item.url);
+}
+
 /** Build a FormData-bearing POST request */
 function makePostRequest(
   files: Array<{ name: string; type: string; content: Buffer }>,
@@ -140,12 +145,13 @@ describe('safePath — directory traversal prevention', () => {
     expect(json).toEqual([]);
   });
 
-  it('rejects absolute path traversal (GET)', async () => {
+  it('reads an absolute-looking directory as a library folder, never outside the library', async () => {
     const { GET } = await getHandlers();
+    // A leading slash is dropped, so "/etc/passwd" names the library folder
+    // "etc/passwd", which does not exist: nothing outside the library is read.
     const res = await GET(makeGetRequest({ directory: '/etc/passwd' }));
-    expect(res.status).toBe(400);
-    const json = await res.json();
-    expect(json.error).toBe('Invalid directory');
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([]);
   });
 
   it('rejects nested traversal: subdir/../../.. (GET)', async () => {
@@ -174,7 +180,7 @@ describe('safePath — directory traversal prevention', () => {
 
     const res = await GET(makeGetRequest({ directory: 'wallpapers' }));
     expect(res.status).toBe(200);
-    const json = await res.json();
+    const json = await urlsOf(res);
     expect(json).toHaveLength(1);
     expect(json[0]).toContain('nature.jpg');
   });
@@ -224,7 +230,7 @@ describe('GET /api/backgrounds', () => {
 
     const res = await GET(makeGetRequest());
     expect(res.status).toBe(200);
-    const json: string[] = await res.json();
+    const json = await urlsOf(res);
 
     expect(json).toHaveLength(5);
 
@@ -248,7 +254,7 @@ describe('GET /api/backgrounds', () => {
     await fs.writeFile(path.join(bgsDir, 'my photo (1).jpg'), 'img');
 
     const res = await GET(makeGetRequest());
-    const json: string[] = await res.json();
+    const json = await urlsOf(res);
 
     expect(json).toHaveLength(1);
     expect(json[0]).toBe(
@@ -264,7 +270,7 @@ describe('GET /api/backgrounds', () => {
 
     const res = await GET(makeGetRequest({ directory: 'seasonal' }));
     expect(res.status).toBe(200);
-    const json: string[] = await res.json();
+    const json = await urlsOf(res);
 
     expect(json).toHaveLength(1);
     expect(json[0]).toBe(
@@ -310,7 +316,7 @@ describe('GET /api/backgrounds', () => {
     await fs.writeFile(path.join(bgsDir, 'photo.jpeg'), 'img');
 
     const res = await GET(makeGetRequest());
-    const json: string[] = await res.json();
+    const json = await urlsOf(res);
     expect(json).toHaveLength(1);
   });
 
@@ -320,7 +326,7 @@ describe('GET /api/backgrounds', () => {
     await fs.writeFile(path.join(bgsDir, 'art.PNG'), 'img');
 
     const res = await GET(makeGetRequest());
-    const json: string[] = await res.json();
+    const json = await urlsOf(res);
     expect(json).toHaveLength(2);
   });
 
@@ -330,7 +336,7 @@ describe('GET /api/backgrounds', () => {
     await fs.writeFile(path.join(bgsDir, 'real.jpg'), 'img');
 
     const res = await GET(makeGetRequest());
-    const json: string[] = await res.json();
+    const json = await urlsOf(res);
     expect(json).toHaveLength(1);
     expect(json[0]).toContain('real.jpg');
   });
@@ -343,11 +349,11 @@ describe('GET /api/backgrounds', () => {
     await fs.mkdir(path.join(bgsDir, 'Trips'));
     await fs.writeFile(path.join(bgsDir, 'Trips', 'rotation-day.jpg'), 'img');
 
-    const plain: string[] = await (await GET(makeGetRequest())).json();
+    const plain = await urlsOf(await GET(makeGetRequest()));
     expect(plain).toEqual([`/api/backgrounds/serve?file=${encodeURIComponent('beach.jpg')}`]);
     const typed: { url: string }[] = await (await GET(makeGetRequest({ media: 'both' }))).json();
     expect(typed.map((item) => item.url)).toEqual([`/api/backgrounds/serve?file=${encodeURIComponent('beach.jpg')}`]);
-    const trips: string[] = await (await GET(makeGetRequest({ directory: 'Trips' }))).json();
+    const trips = await urlsOf(await GET(makeGetRequest({ directory: 'Trips' })));
     expect(trips).toEqual([`/api/backgrounds/serve?file=${encodeURIComponent('Trips/rotation-day.jpg')}`]);
   });
 });
@@ -386,13 +392,13 @@ describe('GET /api/backgrounds with media parameter', () => {
     await fs.writeFile(path.join(bgsDir, 'readme.txt'), 'text');
   });
 
-  it('without media= stays a plain string[] of image URLs (back-compat)', async () => {
+  it('without media= answers typed image entries, as media=photos does', async () => {
     const { GET } = await getHandlers();
     const res = await GET(makeGetRequest());
     const json = await res.json();
     expect(json).toHaveLength(1);
-    expect(typeof json[0]).toBe('string');
-    expect(json[0]).toContain('photo.jpg');
+    expect(json[0].type).toBe('image');
+    expect(json[0].url).toContain('photo.jpg');
   });
 
   it('media=photos returns typed image entries only', async () => {
@@ -1137,7 +1143,7 @@ describe('DELETE /api/backgrounds in-use protection', () => {
   it('lets a slideshow picture go while the slideshow has another to show', async () => {
     configState.config = {
       screens: [{ id: 's1', name: 'Hall', modules: [
-        { type: 'photo-slideshow', config: { source: 'local', directory: 'nature' } },
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
       ] }],
     };
     const { DELETE } = await getHandlers();
@@ -1152,7 +1158,7 @@ describe('DELETE /api/backgrounds in-use protection', () => {
     const last = await DELETE(makeDeleteRequest({ file: 'b.png', directory: 'nature' }));
     expect(last.status).toBe(409);
     expect((await last.json()).usage).toEqual([
-      { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.directory', screenId: 's1' },
+      { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.photoSource.folder', screenId: 's1' },
     ]);
     await expect(fs.access(path.join(bgsDir, 'nature', 'b.png'))).resolves.toBeUndefined();
   });
@@ -1160,7 +1166,7 @@ describe('DELETE /api/backgrounds in-use protection', () => {
   it("keeps a photos-only slideshow's last photo even with videos left beside it", async () => {
     configState.config = {
       screens: [{ id: 's1', name: 'Hall', modules: [
-        { type: 'photo-slideshow', config: { source: 'local', directory: 'nature' } },
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
       ] }],
     };
     const { DELETE } = await getHandlers();
@@ -1176,7 +1182,7 @@ describe('DELETE /api/backgrounds in-use protection', () => {
 
   it("does not count the background rotation's downloads as a top-level slideshow's other pictures", async () => {
     configState.config = {
-      screens: [{ id: 's1', name: 'Hall', modules: [{ type: 'fullscreen-photo', config: { directory: '' } }] }],
+      screens: [{ id: 's1', name: 'Hall', modules: [{ type: 'fullscreen-photo', config: { photoSource: { kind: 'library', folder: '' } } }] }],
     };
     const { DELETE } = await getHandlers();
     await fs.writeFile(path.join(bgsDir, 'only.jpg'), 'img');
@@ -1189,7 +1195,7 @@ describe('DELETE /api/backgrounds in-use protection', () => {
   it('refuses every file inside a folder a slideshow shows', async () => {
     configState.config = {
       screens: [{ id: 's1', name: 'Hall', modules: [
-        { type: 'photo-slideshow', config: { source: 'local', directory: 'nature' } },
+        { type: 'photo-slideshow', config: { photoSource: { kind: 'library', folder: 'nature' } } },
       ] }],
     };
     const { DELETE } = await getHandlers();
@@ -1198,7 +1204,7 @@ describe('DELETE /api/backgrounds in-use protection', () => {
     const res = await DELETE(makeDeleteRequest({ file: 'a.png', directory: 'nature' }));
     expect(res.status).toBe(409);
     expect((await res.json()).usage).toEqual([
-      { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.directory', screenId: 's1' },
+      { kind: 'slideshow', name: 'Hall', configPath: 'screens[0].modules[0].config.photoSource.folder', screenId: 's1' },
     ]);
     await expect(fs.access(abs)).resolves.toBeUndefined();
   });
@@ -1300,7 +1306,7 @@ describe('svg day art', () => {
     await fs.writeFile(path.join(dir, 'pumpkin.svg'), '<svg/>');
     const { GET } = await getHandlers();
     const res = await GET(makeGetRequest({ directory: 'calendar-art' }));
-    expect(await res.json()).toEqual([
+    expect(await urlsOf(res)).toEqual([
       '/api/backgrounds/serve?file=calendar-art%2Fpumpkin.svg',
     ]);
   });
@@ -1311,7 +1317,7 @@ describe('svg day art', () => {
     await fs.writeFile(path.join(dir, 'pumpkins_dark.jfif'), 'img');
     const { GET } = await getHandlers();
     const res = await GET(makeGetRequest({ directory: 'calendar-art' }));
-    expect(await res.json()).toEqual([
+    expect(await urlsOf(res)).toEqual([
       '/api/backgrounds/serve?file=calendar-art%2Fpumpkins_dark.jfif',
     ]);
   });

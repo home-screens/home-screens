@@ -74,7 +74,6 @@ describe('GET /api/secrets', () => {
       pirateweather_key: false,
       metoffice_key: false,
       unsplash_access_key: false,
-      nasa_api_key: false,
       todoist_token: true,
       google_maps_key: false,
       tomtom_key: false,

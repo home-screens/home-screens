@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import { withAuth, withDisplayAuth, parseJsonBody } from '@/lib/api-utils';
-import { libraryMediaKind, listLibraryFolder, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
+import { listLibraryFolder, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
 import {
   IMAGE_FILE_RE,
   IMAGE_MIME_TYPES,
@@ -20,7 +20,9 @@ import { LIBRARY_REVISION_HEADER, bumpLibraryRevision, libraryRevision } from '@
 import { isRotationFile, referencedRotationFiles, rotationCacheStore } from '@/lib/background-rotation-cache';
 import { ROTATION_FILE_RE } from '@/lib/background-rotation-cache';
 import { removeThumbnails } from '@/lib/thumbnails';
-import { extensionOf, fileNameOf, folderOf } from '@/lib/media-paths';
+import { extensionOf, fileNameOf, folderOf, serveUrlFor } from '@/lib/media-paths';
+import { listLibraryMedia } from '@/lib/photo-sources/library';
+import { isMediaTypes } from '@/lib/photo-source';
 import { enqueueCommand } from '@/lib/display-commands';
 import { svgDeclaresSize } from '@/lib/svg-intrinsic-size';
 import type { MediaListItem } from '@/types/config';
@@ -31,8 +33,7 @@ const BGS = path.join(process.cwd(), BACKGROUNDS_DIR);
 
 /** Helper: resolve a background filename to its serve URL */
 function serveUrl(filename: string, directory?: string) {
-  const filePath = directory ? `${directory}/${filename}` : filename;
-  return `/api/backgrounds/serve?file=${encodeURIComponent(filePath)}`;
+  return serveUrlFor(directory ? `${directory}/${filename}` : filename);
 }
 
 export const GET = withDisplayAuth(async (request: NextRequest) => {
@@ -71,60 +72,13 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     return NextResponse.json([item]);
   }
 
-  let dir: string;
-  if (directory) {
-    const resolved = safeLibraryPath(directory);
-    if (!resolved) {
-      return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
-    }
-    dir = resolved;
-  } else {
-    dir = BGS;
-  }
-
   // Which library revision this list reflects, taken before the folder is
-  // read so the list is at least that new. A wall compares it with the one
-  // its heartbeat names and re-reads a list that is behind.
+  // read so the list is at least that new.
   const listHeaders = { [LIBRARY_REVISION_HEADER]: libraryRevision() };
-
-  // Only auto-create the root directory; subdirectories must already exist
-  if (!directory) {
-    await fs.mkdir(dir, { recursive: true });
-  } else {
-    try {
-      await fs.access(dir);
-    } catch {
-      return NextResponse.json([], { status: 200, headers: listHeaders });
-    }
-  }
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  // Only what the library lists (`libraryMediaKind`): top-level `rotation-`
-  // downloads belong to the background rotation, not to a slideshow or a
-  // picture picker, and the folder counts leave them out the same way.
-  const files = entries
-    .filter((e) => e.isFile())
-    .map((e) => ({ name: e.name, kind: libraryMediaKind(directory ? `${directory}/${e.name}` : e.name) }));
-
-  // No media param → legacy string[] of image URLs, exactly as before videos existed.
-  if (!media) {
-    const paths = files
-      .filter((f) => f.kind === 'image')
-      .map((f) => serveUrl(f.name, directory || undefined));
-    return NextResponse.json(paths, { headers: listHeaders });
-  }
-
-  const items: MediaListItem[] = [];
-  for (const { name, kind } of files) {
-    if (kind === 'image' && media !== 'videos') {
-      items.push({ url: serveUrl(name, directory || undefined), type: 'image' });
-    } else if (kind === 'video' && media !== 'photos') {
-      // Bind the token to the same `file` value the serve route reads back.
-      const filePath = directory ? `${directory}/${name}` : name;
-      const token = await mintMediaToken(filePath);
-      const url = serveUrl(name, directory || undefined) + (token ? `&mt=${encodeURIComponent(token)}` : '');
-      items.push({ url, type: 'video' });
-    }
-  }
+  // The same listing a library slideshow plays (photo-sources/library), so
+  // the editor's grid and the wall can never disagree about a folder.
+  const items = await listLibraryMedia(directory, isMediaTypes(media) ? media : 'photos');
+  if (!items) return NextResponse.json({ error: 'Invalid directory' }, { status: 400 });
   return NextResponse.json(items, { headers: listHeaders });
 }, 'Failed to list backgrounds');
 

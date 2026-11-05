@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import type { Screen } from '@/types/config';
-import { displayFetch, DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
-import { activeRotationSources, isRotationActive } from '@/lib/screen-background';
+import { displayFetch } from '@/lib/display-fetch';
+import { normalizePhotoSource, sourceCacheKey } from '@/lib/photo-source';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
@@ -11,38 +11,21 @@ const BG_POLL_MS = 60_000;
 /**
  * Build the stable rotation key for a list of screens. Exported so unit
  * tests can verify that every field affecting background selection
- * (including Immich filters) participates in the key — otherwise the
- * useEffect below will not re-run when the user changes those filters.
- *
- * Uses JSON.stringify rather than a delimiter-joined string so that future
- * fields containing `:` or `|` (e.g. URLs, free-text queries) cannot collide
- * across configs.
+ * participates in the key; otherwise the useEffect below would not re-run
+ * when the user changes (say) an Immich album filter. The source's part is
+ * `sourceCacheKey`, the same key the hub's rotation cache starts over on.
  */
 export function buildRotationKey(screens: Screen[]): string {
   return JSON.stringify(
     screens
-      .filter((s) => isRotationActive(s.backgroundRotation))
+      .filter((s) => s.backgroundRotation?.enabled)
       .map((s) => {
         const r = s.backgroundRotation!;
+        const source = normalizePhotoSource(r.photoSource);
         return {
           id: s.id,
-          sources: activeRotationSources(r),
-          query: r.query,
-          unsplashCollections: r.unsplashCollections ?? null,
-          unsplashMode: r.unsplashMode ?? null,
-          unsplashImages: r.unsplashImages ?? null,
+          source: source ? sourceCacheKey(source) : null,
           intervalMinutes: r.intervalMinutes,
-          immichAlbumIds: r.immichAlbumIds ?? null,
-          immichPersonIds: r.immichPersonIds ?? null,
-          immichPersonIdsExclude: r.immichPersonIdsExclude ?? null,
-          immichFavoritesOnly: r.immichFavoritesOnly ?? false,
-          immichMode: r.immichMode ?? null,
-          immichImages: r.immichImages ?? null,
-          icloudAlbumUrl: r.icloudAlbumUrl ?? null,
-          localFolder: r.localFolder ?? null,
-          localMode: r.localMode ?? null,
-          localImages: r.localImages ?? null,
-          starterBackgroundIds: r.starterBackgroundIds ?? null,
         };
       }),
   );
@@ -62,7 +45,7 @@ export function useBackgroundRotation(screens: Screen[]) {
   // A screen with rotation off shows its own picture. Recording that as its
   // answer keeps the picture up when rotation is switched on, until the first
   // photo arrives, instead of blanking it for the lookup.
-  const staticIds = screens.filter((s) => !isRotationActive(s.backgroundRotation)).map((s) => s.id).join('\n');
+  const staticIds = screens.filter((s) => !s.backgroundRotation?.enabled).map((s) => s.id).join('\n');
   useEffect(() => {
     if (!staticIds) return;
     setBackgrounds((prev) => {
@@ -76,7 +59,7 @@ export function useBackgroundRotation(screens: Screen[]) {
     // Skip polling when nothing is configured to rotate.
     if (rotationKey === '[]') return;
 
-    const screensWithRotation = screens.filter((s) => isRotationActive(s.backgroundRotation));
+    const screensWithRotation = screens.filter((s) => s.backgroundRotation?.enabled);
 
     // One poll at a time: the screens are asked in turn, and with the hub
     // away each ask can take the whole request timeout, so a poll can outlast
@@ -95,12 +78,7 @@ export function useBackgroundRotation(screens: Screen[]) {
     async function pollEachScreen() {
       for (const screen of screensWithRotation) {
         try {
-          // The hub downloads the next picture before it answers, which can
-          // take well over the ordinary request budget on a slow uplink.
-          const res = await displayFetch(
-            `/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`,
-            { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS },
-          );
+          const res = await displayFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screen.id)}`);
           if (res.ok) {
             const data = await res.json();
             const path: string | null = data.path || null;

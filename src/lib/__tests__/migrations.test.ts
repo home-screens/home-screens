@@ -13,9 +13,12 @@ function makeConfig(version: number): ScreenConfiguration {
       longitude: 0,
       weather: {
         provider: 'weatherapi',
+        latitude: 0,
+        longitude: 0,
         units: 'imperial',
       },
       calendar: {
+        googleCalendarId: '',
         googleCalendarIds: [],
         icalSources: [],
         daysAhead: 7,
@@ -59,8 +62,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 18', () => {
-    expect(getLatestSchemaVersion()).toBe(18);
+  it('getLatestSchemaVersion returns 17', () => {
+    expect(getLatestSchemaVersion()).toBe(17);
   });
 });
 
@@ -295,9 +298,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(18);
-    // v2 through v18 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(17);
+    expect(result.version).toBe(17);
+    // v2 through v17 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(16);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -325,9 +328,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(18);
-    // Only v4 through v18 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(15);
+    expect(result.version).toBe(17);
+    // Only v4 through v17 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(14);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -797,7 +800,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(18);
+    expect(result.version).toBe(17);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -838,9 +841,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(18);
+    expect(result.version).toBe(17);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v18: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v17: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -854,7 +857,7 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(18);
+    expect(migrated.version).toBe(17);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
     expect(config).toEqual(before);
@@ -1009,205 +1012,148 @@ describe('migration v16: the full-screen weather card toggles become one ordered
   });
 });
 
-describe('migration v17: the superseded fields are retired', () => {
-  type AnyModule = ScreenConfiguration['screens'][number]['modules'][number];
-  type AnySettings = Record<string, unknown>;
-  function legacy(settings: AnySettings = {}, modules: Array<{ type: string; config: Record<string, unknown>; style?: Record<string, unknown> }> = []): ScreenConfiguration {
-    const config = makeConfig(16);
-    config.settings = { ...config.settings, ...settings } as unknown as ScreenConfiguration['settings'];
-    config.screens[0].modules = modules.map((m, i) => ({
-      id: `m-${i}`, type: m.type, x: 0, y: 0, width: 400, height: 200, config: m.config, style: m.style ?? {},
-    })) as unknown as AnyModule[];
+describe('migration v17: photo modules and background rotation name their source with photoSource', () => {
+  type Module = ScreenConfiguration['screens'][number]['modules'][number];
+  function withModule(config: ScreenConfiguration, type: string, cfg: unknown): ScreenConfiguration {
+    config.screens[0].modules = [{
+      id: 'photo-1', type, x: 0, y: 0, width: 1080, height: 1920, config: cfg, style: {},
+    } as unknown as Module];
     return config;
   }
-  const settingsOf = (config: ScreenConfiguration) => migrateUp(config, 17).config.settings as unknown as AnySettings;
-  const moduleOf = (config: ScreenConfiguration, i = 0) => migrateUp(config, 17).config.screens[0].modules[i];
+  const migratedModule = (cfg: Record<string, unknown>, type = 'photo-slideshow') =>
+    migrateUp(withModule(makeConfig(16), type, cfg), 17).config.screens[0].modules[0].config as Record<string, unknown>;
+  const migratedRotation = (rotation: unknown) => {
+    const config = makeConfig(16);
+    (config.screens[0] as unknown as Record<string, unknown>).backgroundRotation = rotation;
+    return migrateUp(config, 17).config.screens[0].backgroundRotation as unknown as Record<string, unknown>;
+  };
+  const OLD_FIELDS = [
+    'source', 'directory', 'immichAlbumId', 'immichPersonId', 'immichFavoritesOnly', 'immichCount',
+    'icloudAlbumUrl', 'onedriveFolderId', 'onedriveFolderName', 'onedriveCount',
+  ];
 
-  it('copies the weather location up only where the household pair is absent, and removes the copy', () => {
-    const copied = settingsOf(legacy({ latitude: undefined, longitude: undefined, weather: { provider: 'open-meteo', latitude: 44.7, longitude: -93.4, units: 'imperial' } }));
-    expect(copied.latitude).toBe(44.7);
-    expect(copied.longitude).toBe(-93.4);
-    expect(copied.weather).toEqual({ provider: 'open-meteo', units: 'imperial' });
+  describe.each(['photo-slideshow', 'fullscreen-photo'])('%s', (type) => {
+    it('reads a missing or local source as its library folder', () => {
+      expect(migratedModule({ directory: 'trips', intervalMs: 5000 }, type))
+        .toEqual({ photoSource: { kind: 'library', folder: 'trips' }, intervalMs: 5000 });
+      expect(migratedModule({ source: 'local', directory: 'trips' }, type).photoSource).toEqual({ kind: 'library', folder: 'trips' });
+      expect(migratedModule({ source: 'local' }, type).photoSource).toEqual({ kind: 'library', folder: '' });
+    });
 
-    const kept = settingsOf(legacy({ latitude: 0, longitude: 0, weather: { provider: 'open-meteo', latitude: 44.7, longitude: -93.4, units: 'imperial' } }));
-    expect(kept.latitude).toBe(0);
-    expect(kept.weather).toEqual({ provider: 'open-meteo', units: 'imperial' });
+    it('plays the library folder for an unknown source, as the module did', () => {
+      expect(migratedModule({ source: 'dropbox', directory: 'x' }, type).photoSource).toEqual({ kind: 'library', folder: 'x' });
+    });
+
+    it('drops the slashes the library never accepted around a folder', () => {
+      expect(migratedModule({ directory: '/photos/' }, type).photoSource).toEqual({ kind: 'library', folder: 'photos' });
+    });
+
+    it('moves the Immich filters and count, leaving out the ones not set', () => {
+      expect(migratedModule({
+        source: 'immich', directory: 'ignored', immichAlbumId: 'abc', immichPersonId: 'def', immichFavoritesOnly: true, immichCount: 120,
+      }, type)).toEqual({ photoSource: { kind: 'immich', albumId: 'abc', personId: 'def', favoritesOnly: true }, count: 120 });
+      expect(migratedModule({ source: 'immich', immichFavoritesOnly: false }, type)).toEqual({ photoSource: { kind: 'immich' } });
+    });
+
+    it('moves the iCloud link', () => {
+      expect(migratedModule({ source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B0aG' }, type))
+        .toEqual({ photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aG' } });
+      expect(migratedModule({ source: 'icloud' }, type).photoSource).toEqual({ kind: 'icloud', albumUrl: '' });
+    });
+
+    it('moves the OneDrive folder, its name and its count', () => {
+      expect(migratedModule({ source: 'onedrive', onedriveFolderId: 'ABC!12', onedriveFolderName: 'Family', onedriveCount: 80 }, type))
+        .toEqual({ photoSource: { kind: 'onedrive', folderId: 'ABC!12', folderName: 'Family' }, count: 80 });
+    });
+
+    it('keeps only the count of the source in use', () => {
+      expect(migratedModule({ source: 'local', immichCount: 120, onedriveCount: 80 }, type)).toEqual({ photoSource: { kind: 'library', folder: '' } });
+    });
+
+    it('removes every old field and keeps the rest of the config', () => {
+      const result = migratedModule({
+        source: 'onedrive', directory: 'a', immichAlbumId: 'abc', immichPersonId: 'def', immichFavoritesOnly: true, immichCount: 1,
+        icloudAlbumUrl: 'x', onedriveFolderId: 'F!1', onedriveFolderName: 'n', onedriveCount: 2, mediaTypes: 'both', objectFit: 'contain',
+      }, type);
+      for (const field of OLD_FIELDS) expect(field in result).toBe(false);
+      expect(result.mediaTypes).toBe('both');
+      expect(result.objectFit).toBe('contain');
+    });
+
+    it('does not touch a module already on the new shape', () => {
+      const cfg = { photoSource: { kind: 'nasa' }, directory: 'left-alone' };
+      expect(migratedModule(cfg, type)).toEqual(cfg);
+    });
   });
 
-  it('lists the single Google calendar where the list is empty, and removes the field', () => {
-    const listed = settingsOf(legacy({ calendar: { googleCalendarId: 'old@example.com', googleCalendarIds: [], icalSources: [], daysAhead: 7 } }));
-    expect(listed.calendar).toEqual({ googleCalendarIds: ['old@example.com'], icalSources: [], daysAhead: 7 });
-
-    const kept = settingsOf(legacy({ calendar: { googleCalendarId: 'old@example.com', googleCalendarIds: ['a'], icalSources: [], daysAhead: 7 } }));
-    expect((kept.calendar as AnySettings).googleCalendarIds).toEqual(['a']);
-    expect('googleCalendarId' in (kept.calendar as AnySettings)).toBe(false);
+  it("keeps Full-screen Photo's single picture", () => {
+    expect(migratedModule({ directory: 'trips', file: '/api/backgrounds/serve?file=trips%2Fa.jpg' }, 'fullscreen-photo'))
+      .toEqual({ photoSource: { kind: 'library', folder: 'trips' }, file: '/api/backgrounds/serve?file=trips%2Fa.jpg' });
   });
 
-  it('pins a clock without hourFormat to what its toggle showed, and drops the toggle everywhere', () => {
-    const config = legacy({}, [
-      { type: 'clock', config: { view: 'classic', format24h: true } },
-      { type: 'clock', config: { view: 'classic', format24h: false } },
-      { type: 'clock', config: { view: 'classic', format24h: true, hourFormat: 'inherit' } },
-    ]);
-    expect(moduleOf(config, 0).config).toEqual({ view: 'classic', hourFormat: '24h' });
-    expect(moduleOf(config, 1).config).toEqual({ view: 'classic', hourFormat: '12h' });
-    expect(moduleOf(config, 2).config).toEqual({ view: 'classic', hourFormat: 'inherit' });
+  it('leaves other module types and malformed configs alone', () => {
+    expect(migratedModule({ directory: 'x', source: 'immich' }, 'iframe')).toEqual({ directory: 'x', source: 'immich' });
+    const config = withModule(makeConfig(16), 'photo-slideshow', 'not an object');
+    expect(migrateUp(config, 17).config.screens[0].modules[0].config).toBe('not an object');
   });
 
-  it('writes the weather placement a calendar read from showWeather, and drops the toggle', () => {
-    const config = legacy({}, [
-      { type: 'fullscreen-calendar', config: { view: 'schedule', showWeather: false } },
-      { type: 'fullscreen-calendar', config: { view: 'schedule', showWeather: true } },
-      { type: 'fullscreen-calendar', config: { view: 'schedule', showWeather: false, weatherPlacement: 'days' } },
-    ]);
-    expect(moduleOf(config, 0).config).toEqual({ view: 'schedule', weatherPlacement: 'off' });
-    expect(moduleOf(config, 1).config).toEqual({ view: 'schedule', weatherPlacement: 'header' });
-    expect(moduleOf(config, 2).config).toEqual({ view: 'schedule', weatherPlacement: 'days' });
+  describe('background rotation', () => {
+    it('reads a missing source as an Unsplash search, keeping its words', () => {
+      expect(migratedRotation({ enabled: true, query: 'mountains', intervalMinutes: 30 }))
+        .toEqual({ enabled: true, intervalMinutes: 30, photoSource: { kind: 'unsplash', query: 'mountains' } });
+      expect(migratedRotation({ enabled: false, source: 'unsplash', intervalMinutes: 60 }).photoSource)
+        .toEqual({ kind: 'unsplash', query: '' });
+    });
+
+    it('turns NASA APOD into the nasa source and drops its unused words', () => {
+      expect(migratedRotation({ enabled: true, source: 'nasa-apod', query: '', intervalMinutes: 240 }))
+        .toEqual({ enabled: true, intervalMinutes: 240, photoSource: { kind: 'nasa' } });
+    });
+
+    it('moves the Immich filters', () => {
+      expect(migratedRotation({
+        enabled: true, source: 'immich', query: '', intervalMinutes: 60, immichAlbumId: 'abc', immichPersonId: 'def', immichFavoritesOnly: true,
+      })).toEqual({ enabled: true, intervalMinutes: 60, photoSource: { kind: 'immich', albumId: 'abc', personId: 'def', favoritesOnly: true } });
+    });
+
+    it('moves the iCloud link', () => {
+      expect(migratedRotation({ enabled: true, source: 'icloud', query: '', intervalMinutes: 60, icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B0' }))
+        .toEqual({ enabled: true, intervalMinutes: 60, photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0' } });
+    });
+
+    it('does not touch a rotation already on the new shape, or one that is not an object', () => {
+      const current = { enabled: true, intervalMinutes: 60, photoSource: { kind: 'library', folder: 'walls' }, query: 'left' };
+      expect(migratedRotation(current)).toEqual(current);
+      expect(migratedRotation('broken')).toBe('broken');
+    });
+
+    it('leaves a screen with no rotation as it was', () => {
+      const config = makeConfig(16);
+      const { config: result } = migrateUp(config, 17);
+      expect(result.screens).toEqual(config.screens);
+    });
   });
 
-  it('writes a theme only where darkMode picked the other palette and nothing else was deciding', () => {
-    const config = legacy({}, [
-      { type: 'fullscreen-chore-chart', config: { view: 'chores', darkMode: true } },
-      { type: 'fullscreen-chore-chart', config: { view: 'chores', darkMode: false } },
-      { type: 'fullscreen-calendar', config: { view: 'schedule', darkMode: false } },
-      { type: 'fullscreen-calendar', config: { view: 'schedule', darkMode: true } },
-      { type: 'fullscreen-calendar', config: { view: 'schedule', darkMode: true, theme: 'mist' } },
-      { type: 'fullscreen-chore-chart', config: { view: 'chores' } },
-    ]);
-    expect(moduleOf(config, 0).config).toEqual({ view: 'chores' });
-    expect(moduleOf(config, 1).config).toEqual({ view: 'chores', theme: 'linen' });
-    expect(moduleOf(config, 2).config).toEqual({ view: 'schedule' });
-    expect(moduleOf(config, 3).config).toEqual({ view: 'schedule', theme: 'charcoal' });
-    expect(moduleOf(config, 4).config).toEqual({ view: 'schedule', theme: 'mist' });
-    expect(moduleOf(config, 5).config).toEqual({ view: 'chores' });
-  });
-
-  it('leaves a module that inherits a display theme inheriting it', () => {
-    const shared = legacy({ fullscreenTheme: 'slate' }, [{ type: 'fullscreen-chore-chart', config: { view: 'chores', darkMode: false } }]);
-    expect(moduleOf(shared).config).toEqual({ view: 'chores' });
-
-    const perDisplay = legacy({}, [{ type: 'fullscreen-chore-chart', config: { view: 'chores', darkMode: false } }]);
-    perDisplay.displays = [
-      { id: 'main', name: 'Main', settings: { fullscreenTheme: 'slate' }, screens: structuredClone(perDisplay.screens) },
-      { id: 'kitchen', name: 'Kitchen', screens: structuredClone(perDisplay.screens) },
+  it("reaches modules and rotations on a display's own screens, and passes a display without screens", () => {
+    const config = withModule(makeConfig(16), 'photo-slideshow', { source: 'immich', immichAlbumId: 'abc' });
+    (config.screens[0] as unknown as Record<string, unknown>).backgroundRotation = { enabled: true, source: 'nasa-apod', query: '', intervalMinutes: 60 };
+    config.displays = [
+      { id: 'main', name: 'Main', screens: structuredClone(config.screens) },
+      { id: 'odd', name: 'Odd' },
     ] as unknown as NonNullable<ScreenConfiguration['displays']>;
-    const { config: result } = migrateUp(perDisplay, 17);
-    expect(result.displays?.[0].screens[0].modules[0].config).toEqual({ view: 'chores' });
-    expect(result.displays?.[1].screens[0].modules[0].config).toEqual({ view: 'chores', theme: 'linen' });
-  });
-
-  it('rewrites the raw font stacks older pickers stored to registry ids, and keeps any other stack', () => {
-    const config = legacy({}, [
-      { type: 'clock', config: { view: 'classic', hourFormat: 'inherit' }, style: { fontFamily: 'monospace' } },
-      { type: 'text', config: { text: 'hi', fontFamily: 'Inter, system-ui, sans-serif' }, style: { fontFamily: 'Georgia, serif' } },
-      { type: 'text', config: { text: 'hi', fontFamily: 'Comic Sans MS, cursive' }, style: { fontFamily: 'playfair' } },
-    ]);
-    expect(moduleOf(config, 0).style.fontFamily).toBe('mono');
-    expect(moduleOf(config, 1).style.fontFamily).toBe('georgia');
-    expect(moduleOf(config, 1).config.fontFamily).toBe('inter');
-    expect(moduleOf(config, 2).config.fontFamily).toBe('Comic Sans MS, cursive');
-    expect(moduleOf(config, 2).style.fontFamily).toBe('playfair');
-  });
-
-  it('is a structural no-op for a config already on the new shape', () => {
-    const config = legacy({}, [{ type: 'clock', config: { view: 'classic', hourFormat: 'inherit' }, style: { fontFamily: 'inter' } }]);
     const { config: result } = migrateUp(config, 17);
-    expect(result.screens[0].modules[0]).toBe(result.screens[0].modules[0]);
-    expect(result.screens[0].modules[0].config).toEqual({ view: 'classic', hourFormat: 'inherit' });
-    expect(result.settings).toEqual(config.settings);
+    const shown = result.displays![0].screens[0];
+    expect(shown.modules[0].config).toEqual({ photoSource: { kind: 'immich', albumId: 'abc' } });
+    expect(shown.backgroundRotation).toEqual({ enabled: true, intervalMinutes: 60, photoSource: { kind: 'nasa' } });
+    expect(result.displays![1]).toEqual({ id: 'odd', name: 'Odd' });
+    // The frozen top-level copy follows too.
+    expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'immich', albumId: 'abc' } });
   });
 
-  it('does not mutate its input', () => {
-    const config = legacy({ calendar: { googleCalendarId: 'x', googleCalendarIds: [], icalSources: [], daysAhead: 7 } }, [{ type: 'clock', config: { view: 'classic', format24h: true } }]);
-    const before = structuredClone(config);
-    migrateUp(config, 17);
-    expect(config).toEqual(before);
-  });
-});
-
-describe('migration v18: backgroundRotation.source (singular) folded into sources (array)', () => {
-  it('wraps a legacy single source into a one-element sources array, keeping every other rotation field', () => {
-    const config = makeConfig(17);
-    config.screens[0].backgroundRotation = {
-      enabled: true,
-      source: 'immich',
-      query: '',
-      intervalMinutes: 45,
-      immichAlbumId: 'album-1',
-      immichPersonId: 'person-1',
-      immichFavoritesOnly: true,
-    } as never;
-    const before = structuredClone(config);
-
-    const { config: migrated } = migrateUp(config, 18);
-
-    expect(migrated.version).toBe(18);
-    expect(migrated.screens[0].backgroundRotation).toEqual({
-      enabled: true,
-      query: '',
-      intervalMinutes: 45,
-      immichAlbumIds: ['album-1'],
-      immichPersonIds: ['person-1'],
-      immichFavoritesOnly: true,
-      sources: ['immich'],
-    });
-    // Lossless and non-mutating: the original config object is untouched.
-    expect(config).toEqual(before);
-  });
-
-  it('keeps disabled legacy rotations disabled with a normalized empty source list', () => {
-    const config = makeConfig(17);
-    config.screens.push({
-      id: 'disabled',
-      name: 'Screen 2',
-      backgroundImage: '',
-      modules: [],
-      backgroundRotation: { enabled: false, source: 'unsplash', query: 'x', intervalMinutes: 60 } as never,
-    });
-
-    const { config: migrated } = migrateUp(config, 18);
-
-    expect(migrated.version).toBe(18);
-    expect(migrated.screens[0].backgroundRotation).toBeUndefined();
-    expect(migrated.screens[1].backgroundRotation).toEqual({ enabled: false, sources: [], query: 'x', intervalMinutes: 60 });
-  });
-
-  it('migrates display-owned Immich filters and allows a disabled rotation to be enabled later', () => {
-    const config = makeConfig(17);
-    config.displays = [{
-      id: 'kitchen', name: 'Kitchen', screens: [{
-        id: 'owned', name: 'Owned', backgroundImage: '', modules: [],
-        backgroundRotation: {
-          enabled: false, source: 'immich', query: '', intervalMinutes: 60,
-          immichPersonId: 'person-2',
-        } as never,
-      }],
-    }] as ScreenConfiguration['displays'];
-
-    const { config: migrated } = migrateUp(config, 18);
-    expect(migrated.displays?.[0].screens[0].backgroundRotation).toEqual({
-      enabled: false, sources: [], query: '', intervalMinutes: 60,
-      immichPersonIds: ['person-2'],
-    });
-    expect(config.displays?.[0].screens[0].backgroundRotation).toHaveProperty('source', 'immich');
-  });
-
-  it('leaves an already-migrated sources array untouched', () => {
-    const config = makeConfig(17);
-    config.screens[0].backgroundRotation = {
-      enabled: true,
-      sources: ['unsplash', 'immich'],
-      query: 'mountains',
-      intervalMinutes: 60,
-    } as never;
-
-    const { config: migrated } = migrateUp(config, 18);
-
-    expect(migrated.screens[0].backgroundRotation).toEqual({
-      enabled: true,
-      sources: ['unsplash', 'immich'],
-      query: 'mountains',
-      intervalMinutes: 60,
-    });
+  it('is part of the full chain from v1', () => {
+    const config = withModule(makeConfig(1), 'photo-slideshow', { source: 'local', directory: 'trips' });
+    const { config: result, migrationsRun } = migrateUp(config);
+    expect(migrationsRun.at(-1)).toMatch(/^v17: /);
+    expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'trips' } });
   });
 });

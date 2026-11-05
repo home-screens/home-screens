@@ -3,7 +3,7 @@ import path from 'path';
 import { randomUUID } from 'crypto';
 import { fetchWithTimeout } from './api-utils';
 import { safeLibraryPath, writeLibraryFile } from './library-files';
-import { MAX_VIDEO_BYTES, MAX_IMPORT_IMAGE_BYTES } from './media-formats';
+import { MAX_VIDEO_BYTES, MAX_IMPORT_IMAGE_BYTES, extensionForContentType, mediaKindOf } from './media-formats';
 import { bumpLibraryRevision } from './library-revision';
 import { logger } from './logger';
 
@@ -88,17 +88,6 @@ const PER_FILE_TIMEOUT_MS = 120_000;
  */
 export const MAX_IMPORT_ITEMS = 2000;
 
-const EXT_BY_CONTENT_TYPE: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-  'image/avif': 'avif',
-  'video/mp4': 'mp4',
-  'video/quicktime': 'mov',
-  'video/webm': 'webm',
-};
-
 const jobs = new Map<string, LibraryImportJob>();
 
 /** Test hook. */
@@ -176,9 +165,8 @@ async function downloadOne(
   // route don't expect.
   let filename = plan.filename;
   if (!filename) {
-    const contentType = (res.headers.get('content-type') ?? '').split(';')[0].trim();
-    const ext = EXT_BY_CONTENT_TYPE[contentType] ?? (plan.type === 'video' ? 'mp4' : 'jpg');
-    filename = `${stem}.${ext}`;
+    const ext = extensionForContentType(res.headers.get('content-type')) ?? (plan.type === 'video' ? '.mp4' : '.jpg');
+    filename = `${stem}${ext}`;
   }
 
   const maxBytes = plan.type === 'video' ? MAX_VIDEO_BYTES : MAX_IMPORT_IMAGE_BYTES;
@@ -277,4 +265,111 @@ export function beginLibraryImport(
       if (job.done > 0) bumpLibraryRevision();
       void opts.onFinished?.(job);
     });
+}
+
+// ── One picture at a time ─────────────────────────────────────────────
+
+/**
+ * Thrown when a picked picture is real but in a format the display can't
+ * show (NASA's archive sometimes serves TIFF). Its message is written to be
+ * shown to a person; the import route answers 415 with it.
+ */
+export class UnsupportedImageFormatError extends Error {
+  constructor(message = "This picture is in a format the display can't show. Try a different one.") {
+    super(message);
+    this.name = 'UnsupportedImageFormatError';
+  }
+}
+
+/** Between a picked picture's title and its `<kind>-<id>` in the file name. */
+export const TITLE_SEPARATOR = '--';
+
+/**
+ * A title as the start of a file name: plain letters and digits joined by
+ * single hyphens, accents dropped, at most 60 characters ("Colors of the
+ * Moon" becomes "colors-of-the-moon", "IMG_2041.HEIC" becomes "img_2041").
+ */
+export function titleSlug(title: string): string {
+  return title
+    .replace(/\.(jpe?g|png|heic|heif|webp|gif|avif|tiff?|dng|raw)$/i, '')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '')
+    .slice(0, 60)
+    .replace(/-+$/, '');
+}
+
+export interface PictureImport {
+  /** The source, which starts the file name (`immich-<id>.jpg`). */
+  kind: string;
+  /** The picture's id at the source; anything outside [A-Za-z0-9._-] becomes `_`. */
+  id: string;
+  /** Library folder to save into ('' for the top level). */
+  folder: string;
+  /**
+   * Starts the download. Called only when the library has no copy yet. May
+   * also name the picture (a photo's original file name or title), which
+   * then leads the file name so the library and the editor show something a
+   * person recognizes.
+   */
+  open: () => Promise<Response | { response: Response; title?: string }>;
+  /** The URL the bytes come from, used for the extension when the server's type says nothing useful. */
+  urlHint?: string;
+}
+
+export interface PictureImportResult {
+  /** Library-relative path of the copy. */
+  path: string;
+  /** True when an earlier pick of the same picture was reused. */
+  reused: boolean;
+}
+
+/**
+ * Copy one picked picture into the library: the one path every source's
+ * "Select Image" takes. It downloads on the hub (an Immich pick no longer
+ * travels hub to browser to hub), streams to disk under the import size cap,
+ * names the file `<kind>-<id>` so picking the same picture again reuses the
+ * copy instead of making `-2`, `-3` duplicates, and bumps the library
+ * revision so walls showing that folder re-read it.
+ */
+export async function importPictureToLibrary(pick: PictureImport): Promise<PictureImportResult> {
+  const dir = safeLibraryPath(pick.folder);
+  if (!dir) throw new Error('invalid folder');
+  const stem = `${pick.kind}-${pick.id.replace(/[^A-Za-z0-9._-]/g, '_')}`;
+  const relative = (name: string) => (pick.folder ? `${pick.folder}/${name}` : name);
+
+  await fs.mkdir(dir, { recursive: true });
+  try {
+    for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+      const entryStem = entry.name.replace(/\.[^.]+$/, '');
+      if (entry.isFile() && (entryStem === stem || entryStem.endsWith(`${TITLE_SEPARATOR}${stem}`)) && mediaKindOf(entry.name) === 'image') {
+        return { path: relative(entry.name), reused: true };
+      }
+    }
+  } catch { /* fresh folder */ }
+
+  const opened = await pick.open();
+  const res = opened instanceof Response ? opened : opened.response;
+  const title = opened instanceof Response ? '' : titleSlug(opened.title ?? '');
+  if (!res.ok) throw new Error(`download failed with status ${res.status}`);
+  const contentType = res.headers.get('content-type');
+  let ext = extensionForContentType(contentType, 'image');
+  if (!ext && pick.urlHint && !/^image\/tiff/i.test(contentType ?? '')) {
+    // Some archives answer application/octet-stream; trust a web-picture
+    // extension on the URL itself, never a TIFF.
+    const fromUrl = /\.(jpe?g|png|webp|gif|avif)(?:[?#]|$)/i.exec(pick.urlHint)?.[1]?.toLowerCase();
+    if (fromUrl) ext = fromUrl === 'jpeg' ? '.jpg' : `.${fromUrl}`;
+  }
+  if (!ext) {
+    await res.body?.cancel().catch(() => { /* nothing to drain */ });
+    throw new UnsupportedImageFormatError();
+  }
+  // The title leads and the source's id ends the name, so the folder sorts
+  // by what the pictures are and a repeat pick still finds its copy.
+  const name = `${title ? `${title}${TITLE_SEPARATOR}` : ''}${stem}${ext}`;
+  await writeLibraryFile(path.join(dir, name), res.body, MAX_IMPORT_IMAGE_BYTES);
+  bumpLibraryRevision();
+  return { path: relative(name), reused: false };
 }

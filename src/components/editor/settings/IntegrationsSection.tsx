@@ -3,7 +3,6 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
-  Globe,
   CheckCircle2,
   Send,
   Camera,
@@ -54,7 +53,6 @@ export default function IntegrationsSection() {
         immich: getStatusInfo(status, ['immich_url', 'immich_api_key'], t),
         microsoft: getStatusInfo(status, ['microsoft_client_id'], t),
         unsplash: getStatusInfo(status, ['unsplash_access_key'], t),
-        nasa: getStatusInfo(status, ['nasa_api_key'], t),
         todoist: getStatusInfo(status, ['todoist_token'], t),
         tomtom: getStatusInfo(status, ['tomtom_key'], t),
       },
@@ -76,7 +74,7 @@ export default function IntegrationsSection() {
     isServiceConnected(service, Object.keys(status).filter((k) => status[k as SecretKey]), apps),
   ).length;
 
-  const { immich, microsoft, unsplash, nasa, todoist, tomtom } = cardStatus;
+  const { immich, microsoft, unsplash, todoist, tomtom } = cardStatus;
 
   return (
     <section>
@@ -169,25 +167,6 @@ export default function IntegrationsSection() {
               placeholder={t('settings.integrationsPage.unsplash.accessKeyPlaceholder')}
               helpText={t('settings.integrationsPage.unsplash.accessKeyHelp')}
               status={!!status.unsplash_access_key}
-              onSaved={refetch}
-            />
-          </IntegrationCard>
-
-          <IntegrationCard
-            fieldId="integrations.nasa"
-            icon={<Globe className="w-[18px] h-[18px] text-white" />}
-            iconBg="#0b3d91"
-            name={t('settings.integrationsPage.nasa.name')}
-            description={t('settings.integrationsPage.nasa.description')}
-            statusLabel={nasa.label}
-            statusType={nasa.type}
-          >
-            <SecretField
-              label={t('common.apiKey')}
-              secretKey="nasa_api_key"
-              placeholder={t('settings.integrationsPage.nasa.apiKeyPlaceholder')}
-              helpText={t('settings.integrationsPage.nasa.apiKeyHelp')}
-              status={!!status.nasa_api_key}
               onSaved={refetch}
             />
           </IntegrationCard>

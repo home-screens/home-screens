@@ -588,8 +588,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: Image,
     category: 'Full Screen',
     defaultConfig: {
-      source: 'local',
-      directory: '',
+      photoSource: { kind: 'library', folder: '' },
       intervalMs: 30000,
       transition: 'fade',
       objectFit: 'cover',
@@ -1291,8 +1290,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
     icon: Image,
     category: 'Media & Display',
     defaultConfig: {
-      source: 'local',
-      directory: '',
+      photoSource: { kind: 'library', folder: '' },
       intervalMs: 30000,
       transition: 'fade',
       objectFit: 'cover',

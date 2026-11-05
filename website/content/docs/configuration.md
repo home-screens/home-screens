@@ -75,9 +75,8 @@ Supported secret keys:
 | `google_web_client_id` | Google Photos import, only with your own Google app (web application client) |
 | `google_web_client_secret` | Google Photos import, only with your own Google app |
 | `microsoft_client_id` | OneDrive photos in the Photo Slideshow and Full-Screen Photo Viewer (the Application ID of your own Microsoft app) |
-| `nasa_api_key` | Background rotation (NASA APOD) |
 | `immich_url` | Immich server URL (e.g. `http://192.168.1.50:2283`) |
-| `immich_api_key` | Immich API key (Account Settings → API Keys) |
+| `immich_api_key` | Immich API key (Account Settings > API Keys; [which boxes to tick](/docs/backgrounds#immich-key)) |
 
 ## Environment variables
 
@@ -165,6 +164,12 @@ A screen's three gates (`enabled`, `schedule`, `visibility`) are AND-combined, l
 #### BackgroundRotation
 
 {% type-reference name="BackgroundRotation" /%}
+
+#### PhotoSource
+
+Where a stream of pictures comes from. A screen's rotating background, the Photo Slideshow and the Full-screen Photo Viewer all use it, as `photoSource`, so they offer the same sources. `kind` decides which other fields there are.
+
+{% type-reference name="PhotoSource" /%}
 
 #### BackgroundShade
 
@@ -418,7 +423,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
 
 ```json
 {
-  "version": 18,
+  "version": 17,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,
@@ -428,9 +433,12 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
     "timezone": "America/Denver",
     "weather": {
       "provider": "pirateweather",
+      "latitude": 40.0150,
+      "longitude": -105.2705,
       "units": "imperial"
     },
     "calendar": {
+      "googleCalendarId": "",
       "googleCalendarIds": ["primary"],
       "icalSources": [],
       "daysAhead": 7
@@ -450,7 +458,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
           "zIndex": 1,
           "config": {
             "view": "classic",
-            "hourFormat": "inherit",
+            "format24h": false,
             "showSeconds": true,
             "showDate": true
           },

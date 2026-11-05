@@ -623,7 +623,8 @@
           "cancel": "Cancel",
           "help": "Shows your Google calendars on your screens. You'll finish signing in on your phone or computer with a short code.",
           "signIn": "Sign in with Google"
-        }
+        },
+        "selectCalendars": "Select calendars to display"
       },
       "icloud": {
         "heading": "iCloud Calendar",
@@ -671,7 +672,8 @@
           "linkInvalid": "The link isn't a valid web address",
           "linkUnreachable": "Could not reach the link",
           "linkUnreadable": "The link didn't return a readable calendar"
-        }
+        },
+        "holidays": "Public Holidays"
       },
       "people": {
         "heading": "Whose calendars?",
@@ -1211,7 +1213,9 @@
         "other": "Somewhere in settings",
         "slideshow": "Slideshow on '{name}'",
         "slideshowLast": "Slideshow on '{name}' (its last picture)",
-        "rotation": "Rotating background on a screen right now"
+        "rotation": "Rotating background on a screen right now",
+        "rotatingFolder": "Rotating background on '{name}'",
+        "rotatingFolderLast": "Rotating background on '{name}' (its last picture)"
       },
       "selected": "{count} selected",
       "empty": "Nothing here yet. Upload some pictures or videos",
@@ -1301,7 +1305,8 @@
       "deleteFolderTitle": "Delete the folder {name}?",
       "deleteFolderMessage": "Only an empty folder can be deleted.",
       "folderDeleted": "Folder {name} deleted",
-      "deleteFolderFailed": "Couldn't delete the folder"
+      "deleteFolderFailed": "Couldn't delete the folder",
+      "folderNotEmpty": "That folder still has files in it. Move or delete them first."
     },
     "iconsPage": {
       "description": "Pictures your family added. Use them for meals, chores, rewards, people, routines and screen icons.",
@@ -2861,6 +2866,25 @@
       "hint": "{count} everyday chores, sorted by time of day",
       "headerButton": "Starter list",
       "columnTitle": "Starter chores"
+    },
+    "members": {
+      "columnTitle": "Family Members",
+      "empty": "No members yet",
+      "addButton": "Add Member",
+      "addSubmit": "Add Member",
+      "saveSubmit": "Save",
+      "editAriaLabel": "Edit {name}",
+      "deleteAriaLabel": "Delete {name}",
+      "deleteConfirm": {
+        "title": "Remove member",
+        "message": "Remove \"{name}\"? This also removes them from every chore.",
+        "confirmLabel": "Remove"
+      }
+    },
+    "memberForm": {
+      "namePlaceholder": "Name...",
+      "avatarLabel": "Avatar",
+      "customColorTitle": "Pick custom color"
     }
   },
   "todoListModal": {
@@ -5313,7 +5337,10 @@
       "badgeTextPlaceholder": "No school",
       "badgeFilled": "Colored badge",
       "matchesEveryEvent": "Right now this rule covers every event. Add a word, calendar, or other detail above to narrow it down.",
-      "matchesEveryDay": "Right now this rule covers every day. Add a detail above to narrow it down."
+      "matchesEveryDay": "Right now this rule covers every day. Add a detail above to narrow it down.",
+      "artPicture": "Picture",
+      "artNone": "No picture yet",
+      "artRemove": "Remove"
     },
     "calendarGroups": {
       "whatShows": "What shows",
@@ -5949,5 +5976,226 @@
   "deviceSignIn": {
     "hubUnreachable": "Couldn't reach Home Screens. Check the connection and try again.",
     "codeExpired": "That code expired. Start sign-in again."
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Albums are hidden.",
+        "peopleHidden": "People are hidden.",
+        "photosHidden": "Photos are hidden.",
+        "howToFix": "Your Immich key can't see them. In Immich, open Account Settings > API Keys, edit this key and tick {permission}."
+      },
+      "connected": "Connected",
+      "connectedWithVersion": "Connected (v{version})",
+      "apiKeyInvalid": "API key invalid",
+      "cannotReachServer": "Cannot reach server",
+      "retry": "Retry",
+      "album": "Album",
+      "anyAlbum": "Any album",
+      "person": "Person",
+      "anyone": "Anyone",
+      "favoritesOnly": "Favorites Only",
+      "photoInAlbum": {
+        "one": "{count} photo in album",
+        "other": "{count} photos in album"
+      },
+      "connecting": "Connecting...",
+      "allPhotos": "All photos",
+      "favorites": "Favorites",
+      "albums": "Albums",
+      "people": "People",
+      "namedPeopleOnly": "Only named people are listed",
+      "newestFirst": "newest first",
+      "onlyVideos": "No photos in this album, only videos. This window picks still pictures.",
+      "empty": "No photos here yet.",
+      "loadFailed": "Couldn't load photos from Immich.",
+      "unreachable": "Can't reach your Immich server.",
+      "unreachableHelp": "Check that it's on, and that the address on Settings > API keys is right.",
+      "keyRejected": "Your Immich key wasn't accepted. Check it on Settings > API keys.",
+      "needsSetup": "Immich needs its address and key before you can browse it here.",
+      "copyHint": "A copy goes into your library's Immich folder, so it keeps showing if Immich is off.",
+      "favoritesEmpty": "No favorites yet. Tap the heart on a photo in Immich and it shows up here."
+    },
+    "icloud": {
+      "albumLink": "Album link",
+      "albumHelp": "On your iPhone, open the album, turn on Public Website, then paste the link here.",
+      "noItemsFound": "Nothing found yet. Check the link and make sure the album's Public Website is turned on.",
+      "photoLinkDetected": "This is a photo link, not a Shared Album link. Photo links stop working after about a month, so we save copies into your library and show those instead.",
+      "photoLinkAction": "Save to library",
+      "videoHint": "Some iPhone videos may not play on older displays. Videos that can't play are skipped automatically.",
+      "checking": "Checking the album..."
+    },
+    "onedrive": {
+      "checking": "Checking the OneDrive connection…",
+      "credentialsNeeded": "Add your Microsoft Application ID under Settings, API keys first.",
+      "signIn": "Sign in with Microsoft",
+      "waiting": "Waiting for you to finish signing in",
+      "enterCode": "Enter this code at",
+      "cancel": "Cancel",
+      "signedIn": "Signed in",
+      "connectedAs": "Signed in as {account}",
+      "disconnect": "Disconnect OneDrive",
+      "retry": "Try again",
+      "folder": "Folder",
+      "noFolderChosen": "No folder chosen yet",
+      "chooseFolder": "Choose folder",
+      "changeFolder": "Change folder",
+      "loadingFolders": "Loading folders…",
+      "upOneFolder": "Up a folder",
+      "emptyFolder": "No subfolders in this folder",
+      "useThisFolder": "Use this folder",
+      "capNote": "If the folder tree has more than {cap} photos, slides use a random sample of {cap}.",
+      "loadFailed": "Could not load your OneDrive folders.",
+      "folderNotFound": "Folder not found. Choose a different folder.",
+      "noPhotos": "No photos in this folder yet",
+      "signInDeclined": "Sign-in was cancelled",
+      "signInExpired": "That code expired. Start sign-in again.",
+      "signInFailed": "Sign-in did not work. Check the Application ID and try again."
+    },
+    "sourceLabel": "Photo Source",
+    "needsFreeKey": "needs a free key",
+    "needsSettingUp": "needs setting up",
+    "keyMissing": "This source isn't set up yet, so no new pictures come in. Add it in Settings > API keys, or pick another source.",
+    "keyMissingBackground": "This source isn't set up yet, so the screen keeps its last picture. Add it in Settings > API keys, or pick another source.",
+    "photosPerRefresh": "Photos per Refresh",
+    "kinds": {
+      "library": "Library folder",
+      "immich": "Immich",
+      "icloud": "iCloud shared album",
+      "onedrive": "OneDrive",
+      "unsplash": "Unsplash",
+      "nasa": "NASA picture of the day"
+    },
+    "library": {
+      "folder": "Folder",
+      "topLevel": "All Photos (top level)",
+      "browse": "Browse...",
+      "photoCount": {
+        "one": "{count} photo",
+        "other": "{count} photos"
+      },
+      "empty": "No photos in this folder yet"
+    },
+    "unsplash": {
+      "searchWords": "Search words",
+      "searchWordsPlaceholder": "mountains lake",
+      "searchHelp": "Fresh photos for these words on every refresh. Each one shows its photographer's name in a corner, as Unsplash asks.",
+      "searchHelpBackground": "A new photo for these words each time the background changes.",
+      "searchPlaceholder": "Search Unsplash photos",
+      "needsKey": "Unsplash needs a free key before you can browse it here.",
+      "orSearch": "Or search for anything above",
+      "ideas": {
+        "nature": "Nature",
+        "mountains": "Mountains",
+        "ocean": "Ocean",
+        "forest": "Forest",
+        "sky": "Sky",
+        "space": "Space",
+        "city": "City",
+        "flowers": "Flowers",
+        "seasons": "Seasons",
+        "holidays": "Holidays",
+        "birthday": "Birthday",
+        "abstract": "Abstract"
+      },
+      "creditHint": "Photo by {name} on Unsplash. A copy goes into your library's Unsplash folder.",
+      "copyHint": "Photos from Unsplash. A copy goes into your library's Unsplash folder.",
+      "empty": "Nothing found for these words. Try others.",
+      "loadFailed": "Couldn't load photos from Unsplash.",
+      "rateLimited": "Unsplash's free plan allows 50 searches an hour, and they're used up. Try again a little later."
+    },
+    "nasa": {
+      "pictureOfTheDay": "Picture of the day",
+      "newestFirst": "newest first",
+      "searchGroup": "Search NASA's library",
+      "searchPlaceholder": "Search NASA's image library",
+      "ideas": {
+        "nebula": "Nebula",
+        "galaxy": "Galaxy",
+        "earth": "Earth",
+        "mars": "Mars",
+        "moon": "Moon",
+        "saturn": "Saturn",
+        "jupiter": "Jupiter",
+        "sun": "Sun",
+        "aurora": "Aurora",
+        "iss": "Space station"
+      },
+      "copyHint": "Images courtesy of NASA. A copy goes into your library's NASA folder.",
+      "empty": "Nothing found. Try other words.",
+      "loadFailed": "Couldn't load pictures from NASA.",
+      "streamInfo": "The newest Astronomy Pictures of the Day.",
+      "backgroundInfo": "NASA publishes one new astronomy picture a day. The screen shows the newest one.",
+      "apodUnavailable": "NASA's Picture of the Day isn't sending pictures right now. Searching NASA's library still works."
+    },
+    "picker": {
+      "tabs": {
+        "builtin": "Built-in",
+        "library": "Local",
+        "immich": "Immich",
+        "unsplash": "Unsplash",
+        "nasa": "NASA"
+      },
+      "ideas": "Ideas",
+      "search": "Search",
+      "showMore": "Show more",
+      "copying": "Copying...",
+      "copyFailed": "Couldn't copy this picture. Try again.",
+      "loadFailed": "Couldn't load more. Try again.",
+      "tryAgain": "Try again",
+      "notSetUp": "Not set up yet",
+      "openApiKeys": "Open Settings > API keys",
+      "favorite": "Favorite",
+      "unsupportedFormat": "This picture is in a format the display can't show. Try a different one."
+    },
+    "builtIn": {
+      "themeWalls": "Theme walls",
+      "colors": "Colors",
+      "patterns": "Patterns",
+      "dayPictures": "Day pictures",
+      "sidebarNote": "These come with Home Screens",
+      "copyHint": "Comes with Home Screens, so it is always there."
+    },
+    "background": {
+      "pictureGroup": "Picture",
+      "choose": "Choose a picture",
+      "none": "None",
+      "noPicture": "No picture",
+      "plainColor": "The screen shows its plain color.",
+      "comesWithHomeScreens": "Comes with Home Screens",
+      "inLibrary": "In your library",
+      "inLibraryFolder": "In your library, {folder} folder",
+      "rotatingNote": "Shown until the first rotating picture arrives. Choosing a picture turns Auto-rotate off."
+    },
+    "google": {
+      "add": "Add from Google Photos",
+      "signInToAdd": "Sign in to add from Google Photos",
+      "needsSetup": "Google Photos needs setting up in Settings > API keys",
+      "waiting": "Waiting for your picks...",
+      "openAgain": "Open Google Photos again",
+      "cancel": "Cancel",
+      "adding": "Adding {done} of {total} to {folder}",
+      "added": {
+        "one": "Added 1.",
+        "other": "Added {count}."
+      },
+      "alreadyHere": {
+        "one": "1 was already here.",
+        "other": "{count} were already here."
+      },
+      "notSaved": {
+        "one": "1 couldn't be saved.",
+        "other": "{count} couldn't be saved."
+      }
+    },
+    "import": {
+      "icloudTitle": "Add from an iCloud link",
+      "icloudIntro": "Paste a Shared Album link, or a link from Copy iCloud Link in the Photos app. Everything in it is added to the folder below.",
+      "add": "Add",
+      "progress": "Adding {done} of {total}",
+      "googleIntro": "Pick photos in Google Photos, then come back here. They'll be added to the folder below.",
+      "googleSignInIntro": "Sign in to Google Photos once, then pick photos to add here.",
+      "openGoogle": "Open Google Photos"
+    }
   }
 }

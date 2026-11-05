@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 18,
+  "schemaVersion": 17,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -108,6 +108,15 @@
           "default": true
         },
         {
+          "name": "showWeather",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Superseded by `weatherPlacement`. Kept so older configurations still render: `false` maps to `off`, `true` to `header`"
+        },
+        {
           "name": "weatherPlacement",
           "optional": true,
           "type": {
@@ -153,13 +162,23 @@
           "description": "Keyword filter on event titles: `{ mode, terms }` where `mode` is `include` (keep only matching events) or `exclude` (drop them). Terms are case-insensitive substrings; an empty `terms` list means no filter"
         },
         {
+          "name": "darkMode",
+          "optional": false,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Superseded by `theme` (see above). Kept so older configurations still render",
+          "default": false
+        },
+        {
           "name": "theme",
           "optional": true,
           "type": {
             "kind": "string",
             "text": "string"
           },
-          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, or Linen when that is unset too"
+          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
         },
         {
           "name": "todayHighlightStyle",
@@ -208,8 +227,8 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
-          "default": true
+          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description",
+          "default": false
         },
         {
           "name": "eventTapStyle",
@@ -825,6 +844,16 @@
           "default": true
         },
         {
+          "name": "darkMode",
+          "optional": false,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Superseded by `theme` (see above). Kept so older configurations still render",
+          "default": true
+        },
+        {
           "name": "density",
           "optional": false,
           "type": {
@@ -874,7 +903,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, or Charcoal when that is unset too"
+          "description": "One of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen"
         },
         {
           "name": "celebration",
@@ -934,11 +963,10 @@
               "menu-board",
               "next-meal",
               "recipe",
-              "grocery",
-              "recipes"
+              "grocery"
             ]
           },
-          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), `grocery` (the grocery list), or `recipes` (the recipe book: every recipe to browse and search, each opening on a recipe card to cook from)",
+          "description": "Display style: `week`, `today`, `menu-board`, `next-meal`, `recipe` (the next meal's recipe), or `grocery` (the grocery list)",
           "default": "week"
         },
         {
@@ -1047,7 +1075,7 @@
             ]
           },
           "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
-          "default": "card"
+          "default": "off"
         },
         {
           "name": "showTitle",
@@ -1066,7 +1094,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Let people use the wall on a touch screen: tick things off the grocery list, step through a recipe, search and open recipes in the recipe book, and scroll a view that runs past the screen. A tick writes to the family's list, never to the layout",
+          "description": "Let people use the wall on a touch screen: tick things off the grocery list and step through a recipe. A tick writes to the family's list, never to the layout",
           "default": true
         }
       ],
@@ -1076,8 +1104,7 @@
         "menu-board",
         "next-meal",
         "recipe",
-        "grocery",
-        "recipes"
+        "grocery"
       ]
     },
     {
@@ -1361,14 +1388,27 @@
       "fillsCanvas": true,
       "fields": [
         {
-          "name": "directory",
+          "name": "photoSource",
           "optional": false,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "object",
+            "text": "PhotoSource"
           },
-          "description": "Path to local photo directory (slideshow mode)",
-          "default": ""
+          "description": "Where the slideshow's pictures come from (see PhotoSource)",
+          "default": {
+            "kind": "library",
+            "folder": ""
+          }
+        },
+        {
+          "name": "count",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Pictures to load per refresh, 1 to 200 (up to 30 for Unsplash). A library folder always plays every picture in it",
+          "defaultText": "50"
         },
         {
           "name": "file",
@@ -1377,7 +1417,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Path to a single pinned photo. When set, the viewer shows this image statically and ignores `directory`/`intervalMs`/`transition`/`shuffle`. Shows a \"No photo selected\" empty state until chosen"
+          "description": "Path to a single pinned photo. When set, the viewer shows this image statically and ignores `photoSource`/`intervalMs`/`transition`/`shuffle`. Shows a \"No photo selected\" empty state until chosen"
         },
         {
           "name": "intervalMs",
@@ -1478,97 +1518,6 @@
           "description": "Palette for the clock overlay and empty states; one of the twelve shared full-screen palettes (see [Themes](#full-screen) above). Unset = inherit the display default from Settings > Screen, and Midnight if that is unset too"
         },
         {
-          "name": "source",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"local\" | \"immich\" | \"icloud\" | \"onedrive\"",
-            "values": [
-              "local",
-              "immich",
-              "icloud",
-              "onedrive"
-            ]
-          },
-          "description": "Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album, no keys needed)",
-          "default": "local"
-        },
-        {
-          "name": "immichAlbumId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a specific Immich album"
-        },
-        {
-          "name": "immichPersonId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a recognized person (face) in Immich"
-        },
-        {
-          "name": "immichFavoritesOnly",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Only show photos marked as favorites in Immich",
-          "defaultText": "false"
-        },
-        {
-          "name": "immichCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
-        },
-        {
-          "name": "icloudAlbumUrl",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source)"
-        },
-        {
-          "name": "onedriveFolderId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "OneDrive folder to pull photos from (OneDrive source)"
-        },
-        {
-          "name": "onedriveFolderName",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Folder name as shown in the editor, display only, the ID above is authoritative"
-        },
-        {
-          "name": "onedriveCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
-        },
-        {
           "name": "mediaTypes",
           "optional": true,
           "type": {
@@ -1580,7 +1529,7 @@
               "both"
             ]
           },
-          "description": "What to show: `photos`, `videos`, or `both`",
+          "description": "What to show: `photos`, `videos`, or `both` (videos only from a library folder, Immich or iCloud)",
           "default": "photos"
         },
         {
@@ -1859,8 +1808,18 @@
           "default": "classic"
         },
         {
-          "name": "hourFormat",
+          "name": "format24h",
           "optional": false,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "The older per-clock 24-hour toggle. Only read when `hourFormat` is absent",
+          "default": false
+        },
+        {
+          "name": "hourFormat",
+          "optional": true,
           "type": {
             "kind": "string",
             "text": "ClockHourFormat",
@@ -1870,7 +1829,7 @@
               "24h"
             ]
           },
-          "description": "Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock",
+          "description": "Where the 12/24-hour choice comes from: `inherit` follows the display's **Time format** setting, `12h` or `24h` pins it for this clock. Clocks from before this option existed have no `hourFormat` and keep using `format24h`",
           "default": "inherit"
         },
         {
@@ -2344,8 +2303,8 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description. In the grid views a busy day's \"+N more\" (and the day itself) opens every event that day. Lists that run past the box scroll with a finger and go back to today a minute later",
-          "default": true
+          "description": "On touch displays, tap an event to open a detail panel with its time, location, and description",
+          "default": false
         },
         {
           "name": "eventTapStyle",
@@ -4531,7 +4490,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Render items as tap targets so anyone at the kiosk can tick them, and let a finger scroll the List and Compact views past the rows that fit. A tap writes to the shared list, never to the layout",
+          "description": "Render items as tap targets so anyone at the kiosk can tick them. A tap writes to the shared list, never to the layout",
           "default": true
         },
         {
@@ -5314,11 +5273,10 @@
               "next-meal",
               "compact",
               "list",
-              "grocery",
-              "recipes"
+              "grocery"
             ]
           },
-          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, `grocery` (the grocery list), or `recipes` (the family's recipes to browse and search, each opening on a recipe card)",
+          "description": "Display style: `week`, `today`, `next-meal`, `compact`, `list`, or `grocery` (the grocery list)",
           "default": "week"
         },
         {
@@ -5375,7 +5333,7 @@
             ]
           },
           "description": "What tapping a meal does: `off`, `qr` (fullscreen QR code of its recipe link), `card` (the recipe's ingredients and steps on a card over the wall), or `iframe` (embed the recipe page)",
-          "default": "card"
+          "default": "off"
         },
         {
           "name": "showTitle",
@@ -5394,7 +5352,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Let people use the wall on a touch screen: tick things off the grocery list, search and open recipes in the recipe view, and scroll a list or week that runs past the box (it goes back to today a minute later). A tick writes to the family's list, never to the layout",
+          "description": "Let people tick things off the grocery list on a touch screen. A tick writes to the family's list, never to the layout",
           "default": true
         }
       ],
@@ -5404,8 +5362,7 @@
         "next-meal",
         "compact",
         "list",
-        "grocery",
-        "recipes"
+        "grocery"
       ]
     },
     {
@@ -6355,14 +6312,27 @@
       "fillsCanvas": false,
       "fields": [
         {
-          "name": "directory",
+          "name": "photoSource",
           "optional": false,
           "type": {
-            "kind": "string",
-            "text": "string"
+            "kind": "object",
+            "text": "PhotoSource"
           },
-          "description": "Directory name inside `public/backgrounds/`",
-          "default": ""
+          "description": "Where the pictures come from (see PhotoSource)",
+          "default": {
+            "kind": "library",
+            "folder": ""
+          }
+        },
+        {
+          "name": "count",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Pictures to load per refresh, 1 to 200 (up to 30 for Unsplash). A library folder always plays every picture in it",
+          "defaultText": "50"
         },
         {
           "name": "intervalMs",
@@ -6410,99 +6380,8 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "How often to re-scan the directory for new images (10 min)",
+          "description": "How often to load a fresh set of pictures (10 min)",
           "default": 600000
-        },
-        {
-          "name": "source",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"local\" | \"immich\" | \"icloud\" | \"onedrive\"",
-            "values": [
-              "local",
-              "immich",
-              "icloud",
-              "onedrive"
-            ]
-          },
-          "description": "Photo source: `local`, `immich` (requires keys in Settings > API keys), `onedrive` (a one-time Microsoft sign-in), or `icloud` (a public shared album, no keys needed)",
-          "default": "local"
-        },
-        {
-          "name": "immichAlbumId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a specific Immich album"
-        },
-        {
-          "name": "immichPersonId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Filter to a recognized person (face) in Immich"
-        },
-        {
-          "name": "immichFavoritesOnly",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Only show photos marked as favorites in Immich",
-          "defaultText": "false"
-        },
-        {
-          "name": "immichCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
-        },
-        {
-          "name": "icloudAlbumUrl",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "iCloud shared album link (`icloud.com/sharedalbum/#TOKEN`) or bare token (iCloud source)"
-        },
-        {
-          "name": "onedriveFolderId",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "OneDrive folder to pull photos from (OneDrive source)"
-        },
-        {
-          "name": "onedriveFolderName",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Folder name as shown in the editor, display only, the ID above is authoritative"
-        },
-        {
-          "name": "onedriveCount",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Number of photos to load per refresh (10–200)",
-          "defaultText": "50"
         },
         {
           "name": "mediaTypes",
@@ -6516,7 +6395,7 @@
               "both"
             ]
           },
-          "description": "What to show: `photos`, `videos`, or `both`",
+          "description": "What to show: `photos`, `videos`, or `both` (videos only from a library folder, Immich or iCloud)",
           "default": "photos"
         },
         {
@@ -7412,7 +7291,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 18
+          "default": 17
         },
         {
           "name": "settings",
@@ -7431,9 +7310,12 @@
             "longitude": 0,
             "weather": {
               "provider": "open-meteo",
+              "latitude": 0,
+              "longitude": 0,
               "units": "imperial"
             },
             "calendar": {
+              "googleCalendarId": "",
               "googleCalendarIds": [],
               "icalSources": [],
               "daysAhead": 7
@@ -7608,6 +7490,8 @@
           "description": "Weather source, location, and units (see WeatherSettings)",
           "default": {
             "provider": "open-meteo",
+            "latitude": 0,
+            "longitude": 0,
             "units": "imperial"
           }
         },
@@ -7620,6 +7504,7 @@
           },
           "description": "Calendar sources and options (see CalendarSettings)",
           "default": {
+            "googleCalendarId": "",
             "googleCalendarIds": [],
             "icalSources": [],
             "daysAhead": 7
@@ -8105,6 +7990,26 @@
           "default": "open-meteo"
         },
         {
+          "name": "latitude",
+          "optional": false,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Latitude the forecast is fetched for",
+          "default": 0
+        },
+        {
+          "name": "longitude",
+          "optional": false,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "Longitude the forecast is fetched for",
+          "default": 0
+        },
+        {
           "name": "units",
           "optional": false,
           "type": {
@@ -8134,6 +8039,16 @@
       "kind": "interface",
       "description": "",
       "fields": [
+        {
+          "name": "googleCalendarId",
+          "optional": false,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "A single Google calendar ID, from before several could be picked; `googleCalendarIds` replaced it",
+          "default": ""
+        },
         {
           "name": "googleCalendarIds",
           "optional": false,
@@ -8434,15 +8349,6 @@
           "description": "Dim/vignette overlay drawn over the background (see BackgroundShade)"
         },
         {
-          "name": "effects",
-          "optional": true,
-          "type": {
-            "kind": "object",
-            "text": "BackgroundEffects"
-          },
-          "description": "CSS-filter-based tuning applied to background media only (see BackgroundEffects)"
-        },
-        {
           "name": "modules",
           "optional": false,
           "type": {
@@ -8487,52 +8393,12 @@
       "fields": [
         {
           "name": "enabled",
-          "optional": true,
+          "optional": false,
           "type": {
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Legacy toggle, retained for config round-tripping. Rotation uses `sources`."
-        },
-        {
-          "name": "sources",
-          "optional": false,
-          "type": {
-            "kind": "array",
-            "text": "BackgroundRotationSourceId[]"
-          },
-          "description": "Selected sources; an empty list disables rotation."
-        },
-        {
-          "name": "query",
-          "optional": false,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Unsplash search words; other sources ignore it"
-        },
-        {
-          "name": "unsplashCollections",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Unsplash collection IDs; retained when switching to query mode."
-        },
-        {
-          "name": "unsplashMode",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"query\" | \"collections\"",
-            "values": [
-              "query",
-              "collections"
-            ]
-          },
-          "description": "Active Unsplash mode. Legacy configs infer this from non-empty collections."
+          "description": "Turn rotation on"
         },
         {
           "name": "intervalMinutes",
@@ -8541,123 +8407,132 @@
             "kind": "number",
             "text": "number"
           },
-          "description": "Minutes between images"
+          "description": "Minutes between pictures"
         },
         {
-          "name": "immichAlbumIds",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Immich albums to draw from; any asset in any of these qualifies. Empty/undefined = any album."
-        },
-        {
-          "name": "immichPersonIds",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Immich people who must appear in the photo (at least one). Empty/undefined = anyone."
-        },
-        {
-          "name": "immichPersonIdsExclude",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Immich people to exclude from candidate photos."
-        },
-        {
-          "name": "immichFavoritesOnly",
-          "optional": true,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Only use Immich favorites"
-        },
-        {
-          "name": "immichMode",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"filters\" | \"pick\"",
-            "values": [
-              "filters",
-              "pick"
-            ]
-          },
-          "description": "Immich source mode: random photos by filters (default, also for legacy configs) or photos picked by hand."
-        },
-        {
-          "name": "immichImages",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Serve URLs of Immich photos picked in `pick` mode; saved as hidden rotation files that live only while chosen. With none picked the filters apply."
-        },
-        {
-          "name": "icloudAlbumUrl",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Public iCloud shared album link, or just its token"
-        },
-        {
-          "name": "localFolder",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "string"
-          },
-          "description": "Local media library folder to rotate through, relative to the library root"
-        },
-        {
-          "name": "unsplashImages",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Serve URLs of Unsplash photos picked in Search mode; saved as hidden rotation files that live only while chosen."
-        },
-        {
-          "name": "localMode",
-          "optional": true,
-          "type": {
-            "kind": "string",
-            "text": "\"folder\" | \"images\"",
-            "values": [
-              "folder",
-              "images"
-            ]
-          },
-          "description": "Local library source: rotate a folder (default) or show chosen pictures."
-        },
-        {
-          "name": "localImages",
-          "optional": true,
-          "type": {
-            "kind": "array",
-            "text": "string[]"
-          },
-          "description": "Serve URLs of the library pictures chosen in `images` mode. None chosen means nothing to show."
-        },
-        {
-          "name": "starterBackgroundIds",
-          "optional": true,
+          "name": "photoSource",
+          "optional": false,
           "type": {
             "kind": "object",
-            "text": "Partial<Record<\"color\" | \"pattern\", string[]>>"
+            "text": "PhotoSource"
           },
-          "description": "Starter wall IDs selected within each group. Missing or empty = no walls from that group are in rotation. Unknown IDs are ignored."
+          "description": "Where the pictures come from (see PhotoSource). A background is always a still picture, so videos in the source are skipped"
+        }
+      ]
+    },
+    "PhotoSource": {
+      "name": "PhotoSource",
+      "kind": "variants",
+      "description": "Where a stream of pictures comes from: a library folder, an Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search or NASA's Astronomy Picture of the Day. Photo Slideshow, Full-screen Photo and background rotation all use it",
+      "discriminant": "kind",
+      "variants": [
+        {
+          "value": "library",
+          "description": "A folder in your media library",
+          "fields": [
+            {
+              "name": "folder",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Library folder to show; empty for the top level"
+            }
+          ]
+        },
+        {
+          "value": "immich",
+          "description": "Your Immich photo library (needs the Immich address and key in Settings > API keys)",
+          "fields": [
+            {
+              "name": "albumId",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Only photos in this Immich album"
+            },
+            {
+              "name": "personId",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Only photos of this person (a face Immich recognized)"
+            },
+            {
+              "name": "favoritesOnly",
+              "optional": true,
+              "type": {
+                "kind": "boolean",
+                "text": "boolean"
+              },
+              "description": "Only photos marked as favorites in Immich",
+              "defaultText": "false"
+            }
+          ]
+        },
+        {
+          "value": "icloud",
+          "description": "A public iCloud shared album; no key needed",
+          "fields": [
+            {
+              "name": "albumUrl",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "The album's public link (`icloud.com/sharedalbum/#TOKEN` or a `photos.icloud.com/shared/album` link)"
+            }
+          ]
+        },
+        {
+          "value": "onedrive",
+          "description": "A folder in OneDrive (needs a one-time Microsoft sign-in)",
+          "fields": [
+            {
+              "name": "folderId",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "The OneDrive folder, and everything inside it"
+            },
+            {
+              "name": "folderName",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Folder name as shown in the editor; display only"
+            }
+          ]
+        },
+        {
+          "value": "unsplash",
+          "description": "Free stock photos from Unsplash (needs an Unsplash key in Settings > API keys)",
+          "fields": [
+            {
+              "name": "query",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Search words, in English (for example `mountains lake`)"
+            }
+          ]
+        },
+        {
+          "value": "nasa",
+          "description": "NASA's Astronomy Picture of the Day, newest first; no key needed",
+          "fields": []
         }
       ]
     },
@@ -10824,15 +10699,6 @@
       ]
     },
     {
-      "path": "/api/backup/archive",
-      "methods": [
-        {
-          "method": "POST",
-          "access": "session"
-        }
-      ]
-    },
-    {
       "path": "/api/backup/credentials",
       "methods": [
         {
@@ -10851,15 +10717,6 @@
       ]
     },
     {
-      "path": "/api/backup/pictures",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        }
-      ]
-    },
-    {
       "path": "/api/backup/reminder",
       "methods": [
         {
@@ -10868,16 +10725,7 @@
         },
         {
           "method": "POST",
-          "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/backup/upload",
-      "methods": [
-        {
-          "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -11301,15 +11149,6 @@
       ]
     },
     {
-      "path": "/api/icloud/photos",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "display"
-        }
-      ]
-    },
-    {
       "path": "/api/image-proxy",
       "methods": [
         {
@@ -11329,33 +11168,6 @@
     },
     {
       "path": "/api/immich/people",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/immich/photos",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "display"
-        }
-      ]
-    },
-    {
-      "path": "/api/immich/pick",
-      "methods": [
-        {
-          "method": "POST",
-          "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/immich/search",
       "methods": [
         {
           "method": "GET",
@@ -11404,7 +11216,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "display"
+          "access": "session"
         }
       ]
     },
@@ -11413,7 +11225,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "display"
+          "access": "session"
         }
       ]
     },
@@ -11462,7 +11274,7 @@
       "methods": [
         {
           "method": "GET",
-          "access": "display"
+          "access": "session"
         }
       ]
     },
@@ -11546,28 +11358,6 @@
       ]
     },
     {
-      "path": "/api/nasa",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        },
-        {
-          "method": "POST",
-          "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/nasa/asset",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        }
-      ]
-    },
-    {
       "path": "/api/news",
       "methods": [
         {
@@ -11629,15 +11419,6 @@
       ]
     },
     {
-      "path": "/api/onedrive/photos",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "display"
-        }
-      ]
-    },
-    {
       "path": "/api/onedrive/serve",
       "methods": [
         {
@@ -11652,6 +11433,33 @@
         {
           "method": "GET",
           "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/photo-source/browse",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/photo-source/import",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/photo-source/media",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
         }
       ]
     },
@@ -12153,7 +11961,7 @@
         },
         {
           "method": "POST",
-          "access": "session"
+          "access": "display"
         }
       ]
     },
@@ -12317,6 +12125,10 @@
         {
           "method": "GET",
           "access": "display"
+        },
+        {
+          "method": "PUT",
+          "access": "session"
         }
       ]
     },
@@ -12335,28 +12147,6 @@
         {
           "method": "GET",
           "access": "display"
-        }
-      ]
-    },
-    {
-      "path": "/api/unsplash",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
-        },
-        {
-          "method": "POST",
-          "access": "session"
-        }
-      ]
-    },
-    {
-      "path": "/api/unsplash/collections/{id}",
-      "methods": [
-        {
-          "method": "GET",
-          "access": "session"
         }
       ]
     },

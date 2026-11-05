@@ -236,112 +236,56 @@ describe('standingsUrl', () => {
 });
 
 describe('photoSlideshowUrl', () => {
-  it('includes directory when provided', () => {
-    expect(photoSlideshowUrl({ directory: 'vacation/2026' }))
-      .toBe('/api/backgrounds?directory=vacation%2F2026');
+  const MEDIA = '/api/photo-source/media';
+
+  it('lists a library folder', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'library', folder: 'vacation/2026' } }))
+      .toBe(`${MEDIA}?kind=library&folder=vacation%2F2026`);
   });
 
-  it('uses bare endpoint when directory is missing', () => {
-    expect(photoSlideshowUrl({})).toBe('/api/backgrounds');
+  it('lists the top level for a library source with no folder', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'library', folder: '' } })).toBe(`${MEDIA}?kind=library`);
   });
 
-  it('returns local endpoint when source is local', () => {
-    expect(photoSlideshowUrl({ source: 'local', directory: 'pics' }))
-      .toBe('/api/backgrounds?directory=pics');
+  it('falls back to the top level when the config has no usable source', () => {
+    expect(photoSlideshowUrl({})).toBe(`${MEDIA}?kind=library`);
+    expect(photoSlideshowUrl({ photoSource: { kind: 'dropbox' } })).toBe(`${MEDIA}?kind=library`);
   });
 
-  it('returns immich endpoint when source is immich', () => {
-    const url = photoSlideshowUrl({ source: 'immich' });
-    expect(url).toBe('/api/immich/photos?');
+  it('never sends a count for a library folder, which plays all of itself', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'library', folder: 'a' }, count: 20 })).toBe(`${MEDIA}?kind=library&folder=a`);
   });
 
-  it('includes albumId for immich source', () => {
-    const url = photoSlideshowUrl({ source: 'immich', immichAlbumId: 'abc-123' });
-    expect(url).toContain('albumId=abc-123');
-  });
-
-  it('includes personId for immich source', () => {
-    const url = photoSlideshowUrl({ source: 'immich', immichPersonId: 'xyz' });
-    expect(url).toContain('personId=xyz');
-  });
-
-  it('includes favorites flag for immich source', () => {
-    const url = photoSlideshowUrl({ source: 'immich', immichFavoritesOnly: true });
-    expect(url).toContain('favorites=true');
-  });
-
-  it('includes count for immich source', () => {
-    const url = photoSlideshowUrl({ source: 'immich', immichCount: 20 });
-    expect(url).toContain('count=20');
-  });
-
-  it('combines multiple immich filters', () => {
+  it('carries every Immich filter and the count', () => {
     const url = photoSlideshowUrl({
-      source: 'immich',
-      immichAlbumId: 'album-1',
-      immichPersonId: 'person-1',
-      immichFavoritesOnly: true,
-      immichCount: 100,
+      photoSource: { kind: 'immich', albumId: 'abc-123', personId: 'def-456', favoritesOnly: true },
+      count: 100,
     });
-    expect(url).toContain('albumId=album-1');
-    expect(url).toContain('personId=person-1');
-    expect(url).toContain('favorites=true');
-    expect(url).toContain('count=100');
+    expect(url).toBe(`${MEDIA}?kind=immich&album=abc-123&person=def-456&favorites=1&count=100`);
   });
 
-  it('adds media=both to the local endpoint', () => {
-    expect(photoSlideshowUrl({ mediaTypes: 'both' })).toBe('/api/backgrounds?media=both');
+  it('carries the iCloud link and the OneDrive folder', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aG' } }))
+      .toBe(`${MEDIA}?kind=icloud&link=${encodeURIComponent('https://www.icloud.com/sharedalbum/#B0aG')}`);
+    expect(photoSlideshowUrl({ photoSource: { kind: 'onedrive', folderId: 'ABC!123', folderName: 'Family' }, count: 40 }))
+      .toBe(`${MEDIA}?kind=onedrive&folderId=ABC%21123&count=40`);
   });
 
-  it('adds media=videos alongside a directory', () => {
-    expect(photoSlideshowUrl({ directory: 'clips', mediaTypes: 'videos' }))
-      .toBe('/api/backgrounds?directory=clips&media=videos');
+  it('holds an Unsplash count to one request, and names the search words', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'unsplash', query: 'mountains lake' }, count: 100 }))
+      .toBe(`${MEDIA}?kind=unsplash&query=mountains+lake&count=30`);
   });
 
-  it('omits media= for photo-only configs (legacy string[] back-compat)', () => {
-    expect(photoSlideshowUrl({ mediaTypes: 'photos' })).toBe('/api/backgrounds');
-    expect(photoSlideshowUrl({})).toBe('/api/backgrounds');
+  it('asks for videos only from sources that can play them', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'library', folder: 'clips' }, mediaTypes: 'videos' }))
+      .toBe(`${MEDIA}?kind=library&folder=clips&media=videos`);
+    expect(photoSlideshowUrl({ photoSource: { kind: 'immich' }, mediaTypes: 'both' })).toBe(`${MEDIA}?kind=immich&media=both`);
+    expect(photoSlideshowUrl({ photoSource: { kind: 'onedrive', folderId: 'A!1' }, mediaTypes: 'both' })).toBe(`${MEDIA}?kind=onedrive&folderId=A%211`);
+    expect(photoSlideshowUrl({ photoSource: { kind: 'nasa' }, mediaTypes: 'videos' })).toBe(`${MEDIA}?kind=nasa`);
   });
 
-  it('adds media= for immich sources', () => {
-    expect(photoSlideshowUrl({ source: 'immich', mediaTypes: 'videos' }))
-      .toBe('/api/immich/photos?media=videos');
-    expect(photoSlideshowUrl({ source: 'immich', immichAlbumId: 'a1', mediaTypes: 'both' }))
-      .toBe('/api/immich/photos?albumId=a1&media=both');
-  });
-
-  it('omits media= for photo-only immich configs (legacy string[] back-compat)', () => {
-    expect(photoSlideshowUrl({ source: 'immich', mediaTypes: 'photos' }))
-      .toBe('/api/immich/photos?');
-  });
-
-  it('returns icloud endpoint with the album link when source is icloud', () => {
-    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC' }))
-      .toBe(`/api/icloud/photos?album=${encodeURIComponent('https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC')}`);
-  });
-
-  it('adds media= for icloud sources', () => {
-    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'B125ON9t3mbLNC', mediaTypes: 'both' }))
-      .toBe('/api/icloud/photos?album=B125ON9t3mbLNC&media=both');
-  });
-
-  it('omits media= for photo-only icloud configs (legacy string[] back-compat)', () => {
-    expect(photoSlideshowUrl({ source: 'icloud', icloudAlbumUrl: 'B125ON9t3mbLNC', mediaTypes: 'photos' }))
-      .toBe('/api/icloud/photos?album=B125ON9t3mbLNC');
-  });
-
-  it('omits album= when the icloud link is unset', () => {
-    expect(photoSlideshowUrl({ source: 'icloud' })).toBe('/api/icloud/photos?');
-  });
-
-  it('returns the onedrive endpoint for source onedrive', () => {
-    expect(photoSlideshowUrl({ source: 'onedrive' })).toBe('/api/onedrive/photos');
-  });
-
-  it('includes folderId and count for onedrive source', () => {
-    const url = photoSlideshowUrl({ source: 'onedrive', onedriveFolderId: 'fld!1', onedriveCount: 20 });
-    // URLSearchParams form-encodes '!' — the route decodes it back to fld!1.
-    expect(url).toBe('/api/onedrive/photos?folderId=fld%211&count=20');
+  it('leaves media off for photos, the default', () => {
+    expect(photoSlideshowUrl({ photoSource: { kind: 'library', folder: '' }, mediaTypes: 'photos' })).toBe(`${MEDIA}?kind=library`);
   });
 });
 
@@ -366,22 +310,22 @@ describe('videoModuleUrl', () => {
 });
 
 describe('isLibraryListUrl', () => {
-  it('matches a slideshow list of a library folder', () => {
-    expect(isLibraryListUrl('/api/backgrounds')).toBe(true);
-    expect(isLibraryListUrl('/api/backgrounds?directory=Favorites&media=both')).toBe(true);
+  it('is true for a library source\'s list', () => {
+    expect(isLibraryListUrl('/api/photo-source/media?kind=library')).toBe(true);
+    expect(isLibraryListUrl('/api/photo-source/media?kind=library&folder=a&media=both')).toBe(true);
   });
 
-  it('skips the video module lookup, served files, the rotate route and other sources', () => {
-    expect(isLibraryListUrl('/api/backgrounds?media=videos&file=a.mp4')).toBe(false);
-    expect(isLibraryListUrl('/api/backgrounds/serve?file=a.jpg')).toBe(false);
-    expect(isLibraryListUrl('/api/backgrounds/rotate')).toBe(false);
-    expect(isLibraryListUrl('/api/immich/photos')).toBe(false);
+  it('is false for other sources, the video module\'s lookup and other routes', () => {
+    expect(isLibraryListUrl('/api/photo-source/media?kind=immich')).toBe(false);
+    expect(isLibraryListUrl('/api/backgrounds?file=a.mp4&media=videos')).toBe(false);
+    expect(isLibraryListUrl('/api/backgrounds?directory=a')).toBe(false);
+    expect(isLibraryListUrl('/api/weather')).toBe(false);
   });
 
   it('agrees with the URLs the slideshow and video modules build', () => {
-    expect(isLibraryListUrl(photoSlideshowUrl({ directory: 'Favorites', mediaTypes: 'both' }))).toBe(true);
+    expect(isLibraryListUrl(photoSlideshowUrl({ photoSource: { kind: 'library', folder: 'Favorites' }, mediaTypes: 'both' }))).toBe(true);
     expect(isLibraryListUrl(photoSlideshowUrl({}))).toBe(true);
-    expect(isLibraryListUrl(photoSlideshowUrl({ source: 'immich', immichAlbumId: 'a1' }))).toBe(false);
+    expect(isLibraryListUrl(photoSlideshowUrl({ photoSource: { kind: 'immich', albumId: 'a1' } }))).toBe(false);
     expect(isLibraryListUrl(videoModuleUrl({ source: 'file', file: 'clips/a.mp4' })!)).toBe(false);
   });
 });

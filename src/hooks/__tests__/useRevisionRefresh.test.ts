@@ -6,8 +6,8 @@ import { publishRevisions, __resetHeartbeatForTests } from '@/lib/display-heartb
 import { displayCache } from '@/lib/display-cache';
 import { useCalendarRefresh, useLibraryRefresh } from '../useRevisionRefresh';
 
-const FAVORITES = '/api/backgrounds?directory=Favorites&media=both';
-const HALLWAY = '/api/backgrounds?directory=Beach-week';
+const FAVORITES = '/api/photo-source/media?kind=library&folder=Favorites&media=both';
+const HALLWAY = '/api/photo-source/media?kind=library&folder=Beach-week';
 const VIDEO_FILE = '/api/backgrounds?media=videos&file=clips%2Fwalk.mp4';
 
 /** Cache a list the way a read of it stores it: with the revision it was read at. */
@@ -120,8 +120,9 @@ describe('useLibraryRefresh', () => {
     expect(asked).toEqual([FAVORITES]);
   });
 
-  it('never re-reads a single-file lookup or a list that says no revision', () => {
+  it('never re-reads a single-file lookup, another source\'s list, or a list that says no revision', () => {
     displayCache.storeBody(VIDEO_FILE, '[]', 600_000, 'r1');
+    displayCache.storeBody('/api/photo-source/media?kind=immich&album=abc', '[]', 600_000, 'r1');
     listReadAt(HALLWAY, undefined);
     renderHook(() => useLibraryRefresh());
     beats('r2', 'r2', 'r2');
@@ -150,7 +151,7 @@ describe('displayCache.revisionsWhere', () => {
   it('lists the matching cached URLs with the revision each answer is at', () => {
     listReadAt(FAVORITES, 'r7');
     displayCache.set('/api/other', { a: 1 }, 1000);
-    expect(displayCache.revisionsWhere((url) => url.startsWith('/api/backgrounds'))).toEqual([
+    expect(displayCache.revisionsWhere((url) => url.startsWith('/api/photo-source/media'))).toEqual([
       { url: FAVORITES, revision: 'r7' },
     ]);
   });

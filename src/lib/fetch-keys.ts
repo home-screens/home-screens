@@ -7,6 +7,7 @@
 import { RECENT_CHORE_DAYS } from '@/components/modules/chore-chart/types';
 import { DEFAULT_SPORTS_LEAGUES, MAX_FAVORITE_TEAMS, enabledFavorites } from './sports-order';
 import { isCompleteTrafficRoute } from './traffic-routes';
+import { PHOTO_SOURCE_MEDIA_PATH, canPlayVideo, clampPhotoCount, normalizePhotoSource, photoSourceParams, usesCount } from './photo-source';
 import type { TrafficRoute } from '@/types/config';
 
 // Typed config interfaces lack index signatures, making Record<string, unknown>
@@ -138,52 +139,30 @@ export function dadJokeUrl(): string {
   return '/api/jokes';
 }
 
+/**
+ * The list a Photo Slideshow or Full-screen Photo plays: its `photoSource`
+ * through the one media route. `count` goes along only for sources that
+ * have one, and `media` only for sources that can play video, so the URL
+ * (the fetch key) changes exactly when what the wall would get changes.
+ */
 export function photoSlideshowUrl(config: AnyConfig): string {
-  // `media=` flips the response to the typed shape; omitted for photo-only
-  // configs so they keep receiving the legacy string[] responses.
-  const media = config.mediaTypes as string | undefined;
-  const wantsMedia = media === 'videos' || media === 'both';
-  if (config.source === 'immich') {
-    const params = new URLSearchParams();
-    if (config.immichAlbumId) params.set('albumId', config.immichAlbumId as string);
-    if (config.immichPersonId) params.set('personId', config.immichPersonId as string);
-    if (config.immichFavoritesOnly) params.set('favorites', 'true');
-    if (config.immichCount) params.set('count', String(config.immichCount));
-    if (wantsMedia) params.set('media', media!);
-    return `/api/immich/photos?${params}`;
-  }
-  if (config.source === 'icloud') {
-    const params = new URLSearchParams();
-    if (config.icloudAlbumUrl) params.set('album', config.icloudAlbumUrl as string);
-    if (wantsMedia) params.set('media', media!);
-    return `/api/icloud/photos?${params}`;
-  }
-  if (config.source === 'onedrive') {
-    // Photos-only source: no media= param, so the route always answers the
-    // typed MediaListItem[] shape.
-    const params = new URLSearchParams();
-    if (config.onedriveFolderId) params.set('folderId', config.onedriveFolderId);
-    if (config.onedriveCount) params.set('count', String(config.onedriveCount));
-    const query = params.toString();
-    return query ? `/api/onedrive/photos?${query}` : '/api/onedrive/photos';
-  }
-  const dir = config.directory as string | undefined;
-  const params = new URLSearchParams();
-  if (dir) params.set('directory', dir);
-  if (wantsMedia) params.set('media', media!);
-  const query = params.toString();
-  return query ? `/api/backgrounds?${query}` : '/api/backgrounds';
+  const source = normalizePhotoSource(config.photoSource) ?? { kind: 'library', folder: '' };
+  const params = photoSourceParams(source);
+  if (usesCount(source.kind) && config.count != null) params.set('count', String(clampPhotoCount(config.count, source.kind)));
+  const media = config.mediaTypes;
+  if (canPlayVideo(source.kind) && (media === 'videos' || media === 'both')) params.set('media', media);
+  return `${PHOTO_SOURCE_MEDIA_PATH}?${params}`;
 }
 
 /**
  * Whether a data URL is a slideshow's list of a library folder (what
- * `photoSlideshowUrl` builds for a local source), as opposed to the video
- * module's single-file lookup (`file=`) or another source's list. These are
- * the reads a wall re-does when the library changes.
+ * `photoSlideshowUrl` builds for a library source), as opposed to the video
+ * module's single-file lookup or another source's list. These are the reads
+ * a wall re-does when the library changes.
  */
 export function isLibraryListUrl(url: string): boolean {
   const [path, query = ''] = url.split('?');
-  return path === '/api/backgrounds' && !new URLSearchParams(query).has('file');
+  return path === PHOTO_SOURCE_MEDIA_PATH && new URLSearchParams(query).get('kind') === 'library';
 }
 
 /**
@@ -278,8 +257,11 @@ export const FETCH_KEY_REGISTRY: Record<string, {
   history:        { buildUrl: historyUrl, ttlMs: 3_600_000 },      // no server cache
   quote:          { buildUrl: quoteUrl, ttlMs: 3_600_000 },        // server: 1hr
   'dad-joke':     { buildUrl: dadJokeUrl, ttlMs: 60_000 },         // server: 1min
-  'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // no server cache
-  'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // reuses same backgrounds API
+  // Server: Immich and OneDrive lists 5min, Unsplash and NASA 1hr, iCloud
+  // albums 5min per album; a library folder is read fresh and re-read early
+  // when the library revision moves.
+  'photo-slideshow': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 },
+  'fullscreen-photo': { buildUrl: photoSlideshowUrl, ttlMs: 600_000 }, // same media route
   video:              { buildUrl: videoModuleUrl, ttlMs: 600_000 },    // media-token refresh cadence
   // A wall reads the chores when its heartbeat names a new revision, so a
   // check-off on a phone's /chores page shows within a beat. The 5s poll is

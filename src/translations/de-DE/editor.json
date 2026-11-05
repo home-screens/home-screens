@@ -623,7 +623,8 @@
           "cancel": "Abbrechen",
           "help": "Zeigt deine Google-Kalender auf deinen Displays an. Du schließt die Anmeldung mit einem kurzen Code auf deinem Handy oder Computer ab.",
           "signIn": "Über Google anmelden"
-        }
+        },
+        "selectCalendars": "Kalender zur Anzeige auswählen"
       },
       "icloud": {
         "heading": "iCloud-Kalender",
@@ -671,7 +672,8 @@
           "linkInvalid": "Der Link ist keine gültige Webadresse",
           "linkUnreachable": "Der Link ist nicht erreichbar",
           "linkUnreadable": "Der Link lieferte keinen lesbaren Kalender"
-        }
+        },
+        "holidays": "Feiertage"
       },
       "people": {
         "heading": "Wem gehören die Kalender?",
@@ -1211,7 +1213,9 @@
         "other": "Irgendwo in den Einstellungen",
         "slideshow": "Diashow auf '{name}'",
         "slideshowLast": "Diashow auf '{name}' (ihr letztes Bild)",
-        "rotation": "Gerade als wechselnder Hintergrund auf einem Bildschirm"
+        "rotation": "Gerade als wechselnder Hintergrund auf einem Bildschirm",
+        "rotatingFolder": "Wechselnder Hintergrund auf '{name}'",
+        "rotatingFolderLast": "Wechselnder Hintergrund auf '{name}' (sein letztes Bild)"
       },
       "selected": "{count} ausgewählt",
       "empty": "Noch nichts hier. Lade ein paar Bilder oder Videos hoch",
@@ -1301,7 +1305,8 @@
       "deleteFolderTitle": "Den Ordner {name} löschen?",
       "deleteFolderMessage": "Nur ein leerer Ordner kann gelöscht werden.",
       "folderDeleted": "Ordner {name} gelöscht",
-      "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden"
+      "deleteFolderFailed": "Der Ordner konnte nicht gelöscht werden",
+      "folderNotEmpty": "In diesem Ordner sind noch Dateien. Verschiebe oder lösche sie zuerst."
     },
     "iconsPage": {
       "description": "Bilder, die deine Familie hinzugefügt hat. Verwende sie für Mahlzeiten, Aufgaben, Belohnungen, Personen, Routinen und Bildschirm-Icons.",
@@ -2861,6 +2866,25 @@
       "hint": "{count} alltägliche Aufgaben, nach Tageszeit sortiert",
       "headerButton": "Vorschläge",
       "columnTitle": "Aufgabenvorschläge"
+    },
+    "members": {
+      "columnTitle": "Familienmitglieder",
+      "empty": "Noch keine Mitglieder",
+      "addButton": "Mitglied hinzufügen",
+      "addSubmit": "Mitglied hinzufügen",
+      "saveSubmit": "Speichern",
+      "editAriaLabel": "{name} bearbeiten",
+      "deleteAriaLabel": "{name} löschen",
+      "deleteConfirm": {
+        "title": "Mitglied entfernen",
+        "message": "„{name}“ entfernen? Damit verschwindet das Mitglied auch aus allen Aufgaben.",
+        "confirmLabel": "Entfernen"
+      }
+    },
+    "memberForm": {
+      "namePlaceholder": "Name…",
+      "avatarLabel": "Avatar",
+      "customColorTitle": "Eigene Farbe wählen"
     }
   },
   "todoListModal": {
@@ -5313,7 +5337,10 @@
       "badgeTextPlaceholder": "Schulfrei",
       "badgeFilled": "Farbiges Abzeichen",
       "matchesEveryEvent": "Diese Regel gilt aktuell für jeden Termin. Ergänze oben ein Wort, einen Kalender oder ein anderes Detail, um sie einzugrenzen.",
-      "matchesEveryDay": "Diese Regel gilt aktuell für jeden Tag. Ergänze oben ein Detail, um sie einzugrenzen."
+      "matchesEveryDay": "Diese Regel gilt aktuell für jeden Tag. Ergänze oben ein Detail, um sie einzugrenzen.",
+      "artPicture": "Bild",
+      "artNone": "Noch kein Bild",
+      "artRemove": "Entfernen"
     },
     "calendarGroups": {
       "whatShows": "Was angezeigt wird",
@@ -5949,5 +5976,226 @@
   "deviceSignIn": {
     "hubUnreachable": "Home Screens war nicht erreichbar. Prüfe die Verbindung und versuche es erneut.",
     "codeExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut."
+  },
+  "photoSources": {
+    "immich": {
+      "permissionNote": {
+        "albumsHidden": "Alben sind ausgeblendet.",
+        "peopleHidden": "Personen sind ausgeblendet.",
+        "photosHidden": "Fotos sind ausgeblendet.",
+        "howToFix": "Dein Immich-Schlüssel kann sie nicht sehen. Öffne in Immich Kontoeinstellungen > API-Schlüssel, bearbeite diesen Schlüssel und setze den Haken bei {permission}."
+      },
+      "connected": "Verbunden",
+      "connectedWithVersion": "Verbunden (v{version})",
+      "apiKeyInvalid": "API-Schlüssel ungültig",
+      "cannotReachServer": "Server nicht erreichbar",
+      "retry": "Erneut versuchen",
+      "album": "Album",
+      "anyAlbum": "Beliebiges Album",
+      "person": "Person",
+      "anyone": "Beliebige Person",
+      "favoritesOnly": "Nur Favoriten",
+      "photoInAlbum": {
+        "one": "{count} Foto im Album",
+        "other": "{count} Fotos im Album"
+      },
+      "connecting": "Verbindung wird hergestellt…",
+      "allPhotos": "Alle Fotos",
+      "favorites": "Favoriten",
+      "albums": "Alben",
+      "people": "Personen",
+      "namedPeopleOnly": "Hier stehen nur Personen mit Namen",
+      "newestFirst": "neueste zuerst",
+      "onlyVideos": "In diesem Album sind keine Fotos, nur Videos. Hier kannst du nur Fotos auswählen.",
+      "empty": "Hier gibt es noch keine Fotos.",
+      "loadFailed": "Die Fotos aus Immich konnten nicht geladen werden.",
+      "unreachable": "Dein Immich-Server ist nicht erreichbar.",
+      "unreachableHelp": "Prüfe, ob er eingeschaltet ist und ob die Adresse unter Einstellungen > API-Schlüssel stimmt.",
+      "keyRejected": "Dein Immich-Schlüssel wurde nicht angenommen. Prüfe ihn unter Einstellungen > API-Schlüssel.",
+      "needsSetup": "Immich braucht zuerst seine Adresse und seinen Schlüssel, dann kannst du es hier durchsuchen.",
+      "copyHint": "Eine Kopie kommt in den Immich-Ordner deiner Bibliothek. So bleibt das Bild auch zu sehen, wenn Immich aus ist.",
+      "favoritesEmpty": "Noch keine Favoriten. Tippe in Immich bei einem Foto auf das Herz, dann erscheint es hier."
+    },
+    "icloud": {
+      "albumLink": "Album-Link",
+      "albumHelp": "Öffne das Album auf deinem iPhone, aktiviere „Öffentliche Website“ und füge den Link hier ein.",
+      "noItemsFound": "Noch nichts gefunden. Prüfe den Link und stelle sicher, dass „Öffentliche Website“ für das Album aktiviert ist.",
+      "photoLinkDetected": "Das ist ein Fotolink, kein Link zu einem geteilten Album. Fotolinks funktionieren nach etwa einem Monat nicht mehr. Deshalb speichern wir Kopien in deiner Mediathek und zeigen diese an.",
+      "photoLinkAction": "In Mediathek speichern",
+      "videoHint": "Manche iPhone-Videos lassen sich auf älteren Displays nicht abspielen. Solche Videos werden automatisch übersprungen.",
+      "checking": "Album wird geprüft…"
+    },
+    "onedrive": {
+      "checking": "OneDrive-Verbindung wird geprüft…",
+      "credentialsNeeded": "Trage zuerst deine Microsoft Application ID unter Einstellungen, API-Schlüssel ein.",
+      "signIn": "Mit Microsoft anmelden",
+      "waiting": "Warte darauf, dass du die Anmeldung abschließt",
+      "enterCode": "Gib diesen Code ein auf",
+      "cancel": "Abbrechen",
+      "signedIn": "Angemeldet",
+      "connectedAs": "Angemeldet als {account}",
+      "disconnect": "OneDrive trennen",
+      "retry": "Erneut versuchen",
+      "folder": "Ordner",
+      "noFolderChosen": "Noch kein Ordner gewählt",
+      "chooseFolder": "Ordner wählen",
+      "changeFolder": "Ordner wechseln",
+      "loadingFolders": "Ordner werden geladen…",
+      "upOneFolder": "Ein Ordner nach oben",
+      "emptyFolder": "Keine Unterordner in diesem Ordner",
+      "useThisFolder": "Diesen Ordner verwenden",
+      "capNote": "Wenn der Ordnerbaum mehr als {cap} Fotos enthält, nutzt die Diashow eine Zufallsauswahl von {cap}.",
+      "loadFailed": "OneDrive-Ordner konnten nicht geladen werden.",
+      "folderNotFound": "Ordner nicht gefunden. Wähle einen anderen Ordner.",
+      "noPhotos": "Noch keine Fotos in diesem Ordner",
+      "signInDeclined": "Anmeldung wurde abgebrochen",
+      "signInExpired": "Dieser Code ist abgelaufen. Starte die Anmeldung erneut.",
+      "signInFailed": "Anmeldung hat nicht funktioniert. Prüfe die Application ID und versuche es erneut."
+    },
+    "sourceLabel": "Fotoquelle",
+    "needsFreeKey": "braucht einen kostenlosen Schlüssel",
+    "needsSettingUp": "muss noch eingerichtet werden",
+    "keyMissing": "Diese Quelle ist noch nicht eingerichtet, deshalb kommen keine neuen Bilder dazu. Richte sie unter Einstellungen > API-Schlüssel ein oder wähle eine andere Quelle.",
+    "keyMissingBackground": "Diese Quelle ist noch nicht eingerichtet, deshalb behält der Bildschirm sein letztes Bild. Richte sie unter Einstellungen > API-Schlüssel ein oder wähle eine andere Quelle.",
+    "photosPerRefresh": "Fotos pro Aktualisierung",
+    "kinds": {
+      "library": "Ordner aus der Bibliothek",
+      "immich": "Immich",
+      "icloud": "Geteiltes iCloud-Album",
+      "onedrive": "OneDrive",
+      "unsplash": "Unsplash",
+      "nasa": "NASA-Bild des Tages"
+    },
+    "library": {
+      "folder": "Ordner",
+      "topLevel": "Alle Fotos (oberste Ebene)",
+      "browse": "Durchsuchen …",
+      "photoCount": {
+        "one": "{count} Foto",
+        "other": "{count} Fotos"
+      },
+      "empty": "Noch keine Fotos in diesem Ordner"
+    },
+    "unsplash": {
+      "searchWords": "Suchwörter",
+      "searchWordsPlaceholder": "Berge See",
+      "searchHelp": "Bei jeder Aktualisierung neue Fotos zu diesen Wörtern. Jedes zeigt in einer Ecke, wer es fotografiert hat, so wie Unsplash es möchte.",
+      "searchHelpBackground": "Jedes Mal, wenn der Hintergrund wechselt, ein neues Foto zu diesen Wörtern.",
+      "searchPlaceholder": "Fotos auf Unsplash suchen",
+      "needsKey": "Unsplash braucht zuerst einen kostenlosen Schlüssel, dann kannst du es hier durchsuchen.",
+      "orSearch": "Oder such oben nach allem, was du willst",
+      "ideas": {
+        "nature": "Natur",
+        "mountains": "Berge",
+        "ocean": "Meer",
+        "forest": "Wald",
+        "sky": "Himmel",
+        "space": "Weltraum",
+        "city": "Stadt",
+        "flowers": "Blumen",
+        "seasons": "Jahreszeiten",
+        "holidays": "Feiertage",
+        "birthday": "Geburtstag",
+        "abstract": "Abstrakt"
+      },
+      "creditHint": "Foto von {name} auf Unsplash. Eine Kopie kommt in den Unsplash-Ordner deiner Bibliothek.",
+      "copyHint": "Fotos von Unsplash. Eine Kopie kommt in den Unsplash-Ordner deiner Bibliothek.",
+      "empty": "Zu diesen Wörtern wurde nichts gefunden. Probiere andere.",
+      "loadFailed": "Die Fotos von Unsplash konnten nicht geladen werden.",
+      "rateLimited": "Mit dem kostenlosen Unsplash-Konto gehen 50 Suchen pro Stunde, und die sind aufgebraucht. Versuch es etwas später noch einmal."
+    },
+    "nasa": {
+      "pictureOfTheDay": "Bild des Tages",
+      "newestFirst": "neueste zuerst",
+      "searchGroup": "Im Bildarchiv der NASA suchen",
+      "searchPlaceholder": "Bildarchiv der NASA durchsuchen",
+      "ideas": {
+        "nebula": "Nebel",
+        "galaxy": "Galaxie",
+        "earth": "Erde",
+        "mars": "Mars",
+        "moon": "Mond",
+        "saturn": "Saturn",
+        "jupiter": "Jupiter",
+        "sun": "Sonne",
+        "aurora": "Polarlicht",
+        "iss": "Raumstation"
+      },
+      "copyHint": "Bilder mit freundlicher Genehmigung der NASA. Eine Kopie kommt in den NASA-Ordner deiner Bibliothek.",
+      "empty": "Nichts gefunden. Probiere andere Wörter.",
+      "loadFailed": "Die Bilder von der NASA konnten nicht geladen werden.",
+      "streamInfo": "Die neuesten Astronomiebilder des Tages.",
+      "backgroundInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Der Bildschirm zeigt immer das neueste.",
+      "apodUnavailable": "Die NASA schickt gerade keine Bilder des Tages. Die Suche im Bildarchiv der NASA klappt weiterhin."
+    },
+    "picker": {
+      "tabs": {
+        "builtin": "Mitgeliefert",
+        "library": "Lokal",
+        "immich": "Immich",
+        "unsplash": "Unsplash",
+        "nasa": "NASA"
+      },
+      "ideas": "Ideen",
+      "search": "Suchen",
+      "showMore": "Mehr anzeigen",
+      "copying": "Wird kopiert…",
+      "copyFailed": "Dieses Bild konnte nicht kopiert werden. Versuch es noch einmal.",
+      "loadFailed": "Weitere Bilder konnten nicht geladen werden. Versuch es noch einmal.",
+      "tryAgain": "Erneut versuchen",
+      "notSetUp": "Noch nicht eingerichtet",
+      "openApiKeys": "Einstellungen > API-Schlüssel öffnen",
+      "favorite": "Favorit",
+      "unsupportedFormat": "Dieses Bild hat ein Format, das das Display nicht zeigen kann. Nimm ein anderes."
+    },
+    "builtIn": {
+      "themeWalls": "Design-Hintergründe",
+      "colors": "Farben",
+      "patterns": "Muster",
+      "dayPictures": "Tagesbilder",
+      "sidebarNote": "Diese Bilder sind bei Home Screens dabei",
+      "copyHint": "Ist bei Home Screens dabei und deshalb immer da."
+    },
+    "background": {
+      "pictureGroup": "Bild",
+      "choose": "Bild auswählen",
+      "none": "Keins",
+      "noPicture": "Kein Bild",
+      "plainColor": "Der Bildschirm zeigt nur seine Hintergrundfarbe.",
+      "comesWithHomeScreens": "Bei Home Screens dabei",
+      "inLibrary": "In deiner Bibliothek",
+      "inLibraryFolder": "Im Ordner {folder} deiner Bibliothek",
+      "rotatingNote": "Wird gezeigt, bis das erste wechselnde Bild da ist. Wenn du ein Bild auswählst, wird „Automatisch wechseln“ ausgeschaltet."
+    },
+    "google": {
+      "add": "Aus Google Fotos hinzufügen",
+      "signInToAdd": "Anmelden und aus Google Fotos hinzufügen",
+      "needsSetup": "Google Fotos muss erst unter Einstellungen > API-Schlüssel eingerichtet werden",
+      "waiting": "Warte auf deine Auswahl…",
+      "openAgain": "Google Fotos erneut öffnen",
+      "cancel": "Abbrechen",
+      "adding": "Wird zu „{folder}“ hinzugefügt: {done} von {total}",
+      "added": {
+        "one": "1 hinzugefügt.",
+        "other": "{count} hinzugefügt."
+      },
+      "alreadyHere": {
+        "one": "1 war schon da.",
+        "other": "{count} waren schon da."
+      },
+      "notSaved": {
+        "one": "1 konnte nicht gespeichert werden.",
+        "other": "{count} konnten nicht gespeichert werden."
+      }
+    },
+    "import": {
+      "icloudTitle": "Aus einem iCloud-Link hinzufügen",
+      "icloudIntro": "Füge einen Link zu einem geteilten Album ein. Ein Link über „iCloud-Link kopieren“ in der Fotos-App geht auch. Alles darin kommt in den Ordner unten.",
+      "add": "Hinzufügen",
+      "progress": "Wird hinzugefügt: {done} von {total}",
+      "googleIntro": "Wähle Fotos in Google Fotos aus und komm dann hierher zurück. Sie kommen in den Ordner unten.",
+      "googleSignInIntro": "Melde dich einmal bei Google Fotos an. Danach kannst du Fotos auswählen und hier hinzufügen.",
+      "openGoogle": "Google Fotos öffnen"
+    }
   }
 }

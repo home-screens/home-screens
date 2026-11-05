@@ -940,7 +940,7 @@ describe('editor store', () => {
   });
 
   describe('pickScreenBackground', () => {
-    const rotation = { sources: ['unsplash' as const], query: 'nature', intervalMinutes: 60 };
+    const rotation = { enabled: true, photoSource: { kind: 'unsplash' as const, query: 'nature' }, intervalMinutes: 60 };
 
     it('sets the picture and turns that screen\'s rotation off', () => {
       const store = useEditorStore;
