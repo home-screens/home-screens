@@ -76,6 +76,9 @@ async function mounted() {
 }
 
 beforeEach(() => {
+  // The fixtures are dated around NOW; pin the date so they do not expire as the real clock moves on.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(NOW);
   vi.clearAllMocks();
   vi.stubGlobal('fetch', vi.fn(fakeHub));
   board = { notes: [note('plain', 'Pizza is in the fridge'), note('pinned', 'Grandma visits', { pinned: true })] };
@@ -85,6 +88,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
