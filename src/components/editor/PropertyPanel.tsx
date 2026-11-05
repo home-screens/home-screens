@@ -32,7 +32,7 @@ import { useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import PluginSettingsSections from './PluginSettingsSections';
-import { ChevronLeft, HelpCircle, Monitor, PanelRight, PanelRightClose, Sliders } from 'lucide-react';
+import { MousePointerClick, ChevronLeft, HelpCircle, Monitor, PanelRight, PanelRightClose, Sliders } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import { PANEL_SECTION_CONDITIONS } from './panel-section-reveal';
 import FontFamilyPicker from '@/components/ui/FontFamilyPicker';
@@ -592,19 +592,28 @@ export default function PropertyPanel({
   }
 
   if (!selectedModule || !selectedScreenId || !currentScreen) {
+    // With no screen there is nothing for the screen settings or the
+    // background picker to edit, and both render null — leaving the divider
+    // alone in the panel as three unexplained dots.
     const hasScreen = !!currentScreen && !!selectedScreenId;
     return (
       <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
         <PanelCollapseButton onCollapse={onCollapse} t={t} />
         <EditingDisplayRow />
+        <FirstRunChecklist />
         {hasScreen && (
-          <div>
-            <BackgroundPicker />
-            <SectionDivider />
-            <ScreenSettingsSection />
+          <div className="flex flex-col items-center gap-2 py-6 text-hs-text-faint mb-5">
+            <MousePointerClick size={28} strokeWidth={1.5} className="opacity-30" />
+            <p className="text-sm">{t('propertyPanel.emptyState')}</p>
           </div>
         )}
-        <FirstRunChecklist />
+        {hasScreen && (
+          <div>
+            <ScreenSettingsSection />
+            <SectionDivider />
+            <BackgroundPicker />
+          </div>
+        )}
       </div>
     );
   }

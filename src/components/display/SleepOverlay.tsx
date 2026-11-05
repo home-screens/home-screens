@@ -39,6 +39,8 @@ export default function SleepOverlay({
   timezone,
   timeFormat,
 }: SleepOverlayProps) {
+  if (displayState === 'active') return null;
+
   const screensaverMode = screensaver?.mode ?? 'clock';
   const showScreensaver = displayState === 'dimmed' && brightnessOverride === null && screensaverMode !== 'off';
 
@@ -57,8 +59,8 @@ export default function SleepOverlay({
           position: 'absolute',
           inset: 0,
           backgroundColor: '#000',
-          opacity: displayState === 'active' ? 0 : dimOpacity,
-          transition: 'opacity 500ms ease-in-out',
+          opacity: dimOpacity,
+          transition: 'opacity 1s ease-in-out',
         }}
       />
 

@@ -99,11 +99,10 @@ test.describe('PropertyPanel empty-state pickers', () => {
       .toBe('08:00');
   });
 
-  test('enabling background auto-rotate persists per-screen', async ({ page, request }) => {
-    // The picker's rotation controls only render when at least one image source
-    // key exists; seed an Unsplash key so the "Auto-rotate" toggle appears.
-    // (The plan's `settings.background` / "solid color|gradient" shape does not
-    // exist — the real picker writes `screen.backgroundRotation`.)
+  test('ticking a background source persists per-screen', async ({ page, request }) => {
+    // Rotation is on when the screen's `backgroundRotation.sources` names a
+    // source; ticking one in the Sources group writes it. Unsplash needs a key
+    // before its row can be ticked, so seed one.
     const seeded = await request.put('/api/secrets', {
       data: { key: 'unsplash_access_key', value: 'e2e-test-key' },
     });
@@ -117,12 +116,12 @@ test.describe('PropertyPanel empty-state pickers', () => {
     await expect(page.getByText('Select a module to edit')).toBeVisible();
 
     await autosaved(page, async () => {
-      await page.getByRole('switch', { name: 'Auto-rotate' }).click();
+      await page.getByRole('checkbox', { name: 'Unsplash' }).check();
     });
 
     await expect
-      .poll(async () => (await getConfig(request)).screens[0].backgroundRotation?.enabled)
-      .toBe(true);
+      .poll(async () => (await getConfig(request)).screens[0].backgroundRotation?.sources)
+      .toEqual(['unsplash']);
   });
 });
 

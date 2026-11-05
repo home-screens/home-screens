@@ -81,7 +81,7 @@ describe('CrossfadeBackground', () => {
     URL.revokeObjectURL = vi.fn();
     let releaseSecond!: (response: Response) => void;
     vi.mocked(displayFetch)
-      .mockResolvedValueOnce(new Response(new Blob(['first'])))
+      .mockResolvedValueOnce(new Response('first'))
       .mockImplementationOnce(() => new Promise<Response>((resolve) => { releaseSecond = resolve; }));
     try {
       const { container, rerender } = render(<CrossfadeBackground src="/api/backgrounds/serve?file=first.jpg" authenticate />);
@@ -95,7 +95,7 @@ describe('CrossfadeBackground', () => {
       expect(container.querySelectorAll('img')).toHaveLength(1);
       expect(container.querySelector('img')?.getAttribute('src')).toBe('blob:background-1');
 
-      await act(async () => { releaseSecond(new Response(new Blob(['second']))); });
+      await act(async () => { releaseSecond(new Response('second')); });
       images = container.querySelectorAll('img');
       expect(images).toHaveLength(2);
       expect(images[0].getAttribute('src')).toBe('blob:background-1');
