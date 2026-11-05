@@ -1369,7 +1369,7 @@
     "emptyImmich": "No photos yet. Check the Immich album, person and favorites choice in the editor.",
     "emptyUnsplash": "No photos yet. Try different search words in the editor.",
     "emptyNasa": "No pictures from NASA right now. They come back on their own.",
-    "photoCredit": "Photo by {name} on {source}",
+    "photoCredit": "{name} / {source}",
     "emptyPicked": "No pictures picked yet. Pick some in the editor."
   },
   "video": {

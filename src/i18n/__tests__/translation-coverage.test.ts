@@ -34,6 +34,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
     'editor|backgroundPicker.sourcesGroup',
   // The product name, rendered as the watermark's eyebrow on an empty display.
   'core|emptyDisplay.eyebrow',
+  // The photo credit is two names and a slash ("Ana Ruiz / Unsplash"), the
+  // smallest wording the Unsplash API guidelines accept; no word to translate.
+  'modules|photo-slideshow.photoCredit',
   // Unit abbreviations on the paused pill's countdown ("4 min", "45 s").
   'core|pagination.minutes',
   'core|pagination.seconds',

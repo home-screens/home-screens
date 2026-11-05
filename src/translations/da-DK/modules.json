@@ -1369,7 +1369,7 @@
     "emptyImmich": "Ingen billeder endnu. Tjek Immich-albummet, personen og valget af favoritter i editoren.",
     "emptyUnsplash": "Ingen billeder endnu. Prøv andre søgeord i editoren.",
     "emptyNasa": "Ingen billeder fra NASA lige nu. De kommer selv tilbage.",
-    "photoCredit": "Foto af {name} på {source}",
+    "photoCredit": "{name} / {source}",
     "emptyPicked": "Ingen billeder valgt endnu. Vælg nogle i editoren."
   },
   "video": {

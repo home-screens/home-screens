@@ -1369,7 +1369,7 @@
     "emptyImmich": "Nog geen foto's. Controleer in de editor het Immich-album, de persoon en de keuze voor favorieten.",
     "emptyUnsplash": "Nog geen foto's. Probeer in de editor andere zoekwoorden.",
     "emptyNasa": "Op dit moment geen afbeeldingen van NASA. Ze komen vanzelf terug.",
-    "photoCredit": "Foto door {name} op {source}",
+    "photoCredit": "{name} / {source}",
     "emptyPicked": "Nog geen foto's gekozen. Kies er een paar in de editor."
   },
   "video": {

@@ -5,10 +5,13 @@ import type { MediaListItem } from '@/types/config';
 import type { PictureBox } from '@/lib/media-paths';
 
 /**
- * "Photo by <name> on Unsplash" in a corner of the slide that is showing,
+ * "<name> / Unsplash" in a corner of the slide that is showing,
  * for sources that ask to be credited on screen (Unsplash's API guidelines
- * do). Light text with a soft shadow, sized to the module, never taking
- * taps. Nothing renders for a picture without a credit.
+ * do). Small, dimmed text with a soft shadow, sized to the module, never
+ * taking taps: a caption to find when you look for it, not a label on the
+ * picture. On a 1080-wide wall it is 12px at 40% white, as quiet as it can
+ * be while still readable up close. Nothing renders for a picture without a
+ * credit.
  */
 export default function PhotoCredit({ item, box, corner = 'bottom' }: {
   item: MediaListItem | null | undefined;
@@ -18,7 +21,7 @@ export default function PhotoCredit({ item, box, corner = 'bottom' }: {
 }) {
   const t = useTranslate('modules');
   if (!item?.credit) return null;
-  const fontSize = box ? Math.max(10, Math.round(Math.min(box.w, box.h) * 0.022)) : 12;
+  const fontSize = box ? Math.max(10, Math.round(Math.min(box.w, box.h) * 0.011)) : 10;
   return (
     <div
       data-testid="photo-credit"
@@ -28,8 +31,8 @@ export default function PhotoCredit({ item, box, corner = 'bottom' }: {
         maxWidth: '70%',
         padding: `${Math.round(fontSize * 0.6)}px ${Math.round(fontSize * 0.9)}px`,
         fontSize,
-        color: 'rgba(255,255,255,0.85)',
-        textShadow: '0 1px 3px rgba(0,0,0,0.7)',
+        color: 'rgba(255,255,255,0.4)',
+        textShadow: '0 1px 2px rgba(0,0,0,0.6)',
       }}
     >
       {t('photo-slideshow.photoCredit', { name: item.credit.name, source: item.credit.source })}

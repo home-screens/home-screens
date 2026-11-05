@@ -1369,7 +1369,7 @@
     "emptyImmich": "Noch keine Fotos. Prüfe im Editor das Immich-Album, die Person und die Favoriten-Auswahl.",
     "emptyUnsplash": "Noch keine Fotos. Probiere im Editor andere Suchwörter.",
     "emptyNasa": "Gerade keine Bilder von der NASA. Sie kommen von selbst wieder.",
-    "photoCredit": "Foto von {name} auf {source}",
+    "photoCredit": "{name} / {source}",
     "emptyPicked": "Noch keine Bilder ausgewählt. Wähle welche im Editor aus."
   },
   "video": {

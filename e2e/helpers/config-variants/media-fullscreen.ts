@@ -289,7 +289,7 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     config: { photoSource: { kind: 'unsplash', query: 'mountains lake' } },
     expect: async (mod) => {
       await expect(mod.locator('img[src$="RAEAOw=="]').first()).toBeAttached();
-      await expect(mod.getByTestId('photo-credit')).toHaveText('Photo by Ana Ruiz on Unsplash');
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Ana Ruiz / Unsplash');
     },
   },
   {
@@ -330,7 +330,7 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     config: { photoSource: { kind: 'unsplash', query: 'mountains lake' } },
     expect: async (mod) => {
       await expect(mod.locator('img[src$="RAEAOw=="]').first()).toBeAttached();
-      await expect(mod.getByTestId('photo-credit')).toHaveText('Photo by Ana Ruiz on Unsplash');
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Ana Ruiz / Unsplash');
     },
   },
   {

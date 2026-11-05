@@ -1377,7 +1377,7 @@
     "emptyImmich": "Aún no hay fotos. Revisa en el editor el álbum, la persona y la opción de favoritos de Immich.",
     "emptyUnsplash": "Aún no hay fotos. Prueba otras palabras de búsqueda en el editor.",
     "emptyNasa": "Ahora mismo no hay imágenes de la NASA. Volverán solas.",
-    "photoCredit": "Foto de {name} en {source}",
+    "photoCredit": "{name} / {source}",
     "emptyPicked": "Aún no hay fotos elegidas. Elige algunas en el editor."
   },
   "video": {
