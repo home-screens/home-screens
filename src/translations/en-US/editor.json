@@ -2681,7 +2681,9 @@
       "unsplash": "Type search words, add a collection or pick some photos",
       "nasa": "",
       "wall": "Pick the walls to show"
-    }
+    },
+    "effectsReset": "Reset",
+    "effectsResetLabel": "Reset {label}"
   },
   "imageBrowserModal": {
     "title": "Image Library",

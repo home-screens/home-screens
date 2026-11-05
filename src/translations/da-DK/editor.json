@@ -2681,7 +2681,9 @@
       "unsplash": "Skriv søgeord, tilføj en samling eller vælg nogle billeder",
       "nasa": "",
       "wall": "Vælg de baggrunde, der skal vises"
-    }
+    },
+    "effectsReset": "Nulstil",
+    "effectsResetLabel": "Nulstil {label}"
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",

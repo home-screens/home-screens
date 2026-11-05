@@ -531,6 +531,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.unsplash.collectionLabel',
     // Rows main added while the photo-source branch was open.
     'modules|meal-planner.recipeBook.filters.dessert',
+    // Saturation is the French word too (the background effect).
     'editor|backgroundPicker.effectsSaturationLabel',
     // Double and Triple are the French words too (a double batch).
     'modules|meal-planner.recipe.batchDouble',
@@ -716,6 +717,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|backgroundPicker.effectsContrastLabel',
     'modules|meal-planner.recipeBook.filters.comfort',
     'modules|lookAhead.later',
+    // Contrast is the Dutch word too (the background effect).
     // Half is the Dutch word too (a half batch).
     'modules|meal-planner.recipe.batchHalf',
     // "Bonus" and "tickets" are the same words in this language.

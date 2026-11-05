@@ -2681,7 +2681,9 @@
       "unsplash": "Typ zoekwoorden, voeg een collectie toe of kies een paar foto's",
       "nasa": "",
       "wall": "Kies de achtergronden die je wilt tonen"
-    }
+    },
+    "effectsReset": "Herstel",
+    "effectsResetLabel": "{label} herstellen"
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",

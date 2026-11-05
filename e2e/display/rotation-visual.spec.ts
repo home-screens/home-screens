@@ -65,6 +65,8 @@ test('background rotation paints the fetched image without showing the static on
 
   answer();
   await expect(page.locator('img').first()).toHaveAttribute('src', ROTATED_A);
+  // The first picture is painted at once: nothing to fade over.
+  await expect(page.locator('img').first()).toHaveCSS('opacity', '1');
 });
 
 test('the background src advances as the display rotates between rotating screens', async ({ page, request }) => {

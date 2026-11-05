@@ -148,7 +148,10 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         isolation: 'isolate',
       }}
     >
-      <BackgroundMediaLayer src={rawBackground} shade={screen.shade} effects={screen.effects} authenticate />
+      {/* Keyed by screen: a screen switch paints the new wall in its first frame
+          under the View Transition; the crossfade is for a new picture on the
+          same screen. */}
+      <BackgroundMediaLayer key={screen.id} src={rawBackground} shade={screen.shade} effects={screen.effects} authenticate />
 
       {visibleModules.map((mod) => {
         const Component = getModuleComponent(mod.type);

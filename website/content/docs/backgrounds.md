@@ -68,6 +68,10 @@ A bright photo can make light text hard to read. In the **Background** section, 
 
 Each screen has its own shade, and the editor shows it exactly as the wall will.
 
+## Adjusting the picture
+
+Next to the shade, under **Background effects**, four sliders adjust the picture itself: **Brightness**, **Contrast**, **Saturation** and **Warmth**. Brightness, contrast and saturation run from 0 to 200%, with 100% leaving the picture as it is; warmth runs from cool to warm, with 0 adding no tint. **Reset** beside a slider puts that one back. The adjustments touch only the picture, never the modules over it, and the editor shows them exactly as the wall will.
+
 ---
 
 ## Uploading custom images

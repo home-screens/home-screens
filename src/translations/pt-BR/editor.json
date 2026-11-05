@@ -2681,7 +2681,9 @@
       "unsplash": "Digite palavras de busca, adicione uma coleção ou escolha algumas fotos",
       "nasa": "",
       "wall": "Escolha os fundos para mostrar"
-    }
+    },
+    "effectsReset": "Redefinir",
+    "effectsResetLabel": "Redefinir {label}"
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imagens",

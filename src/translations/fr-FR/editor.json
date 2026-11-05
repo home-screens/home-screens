@@ -2681,7 +2681,9 @@
       "unsplash": "Tapez des mots de recherche, ajoutez une collection ou choisissez des photos",
       "nasa": "",
       "wall": "Choisissez les fonds à afficher"
-    }
+    },
+    "effectsReset": "Réinitialiser",
+    "effectsResetLabel": "Réinitialiser {label}"
   },
   "imageBrowserModal": {
     "title": "Bibliothèque d'images",

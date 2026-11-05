@@ -2,10 +2,10 @@ import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { Screen } from '@/types/config';
 import { pruneDanglingScreenRefs } from '@/lib/display-filter';
-import { normalizeBackgroundEffects } from '@/lib/background-effects';
 import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
 import { pickedBackground, withRotationUpdate } from '@/lib/screen-background';
+import { withBackgroundEffects } from '@/lib/background-effects';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import { syncEditorUrl } from '@/stores/editor-url';
 import type { EditorGet, MutateConfig, ScreenActions } from './types';
@@ -194,11 +194,14 @@ export function createScreenSlice(
         config: withActiveScreens(
           config,
           selectedDisplayId,
-          getActiveScreens(config, selectedDisplayId).map((s) =>
-            s.id === id ? { ...s, effects: normalizeBackgroundEffects({ ...s.effects, ...updates }) as Screen['effects'] } : s,
-          ),
+          getActiveScreens(config, selectedDisplayId).map((s) => {
+            if (s.id !== id) return s;
+            const { effects: _effects, ...rest } = s;
+            const effects = withBackgroundEffects(s.effects, updates);
+            return effects ? { ...rest, effects } : rest;
+          }),
         ),
-      }), { coalesce: COALESCE_KEYS.updateScreen(id) });
+      }), { coalesce: COALESCE_KEYS.screenEffects(id) });
     },
   };
 }

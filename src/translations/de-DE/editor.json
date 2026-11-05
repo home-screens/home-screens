@@ -2681,7 +2681,9 @@
       "unsplash": "Gib Suchwörter ein, füge eine Sammlung hinzu oder wähle ein paar Fotos aus",
       "nasa": "",
       "wall": "Wähle die Hintergründe aus, die gezeigt werden sollen"
-    }
+    },
+    "effectsReset": "Zurücksetzen",
+    "effectsResetLabel": "{label} zurücksetzen"
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",

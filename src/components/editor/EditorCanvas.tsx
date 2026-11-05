@@ -706,7 +706,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   );
 }
 
-/** Reads the PageBackgroundContext override and renders the appropriate background, plus its shade overlay */
+/** Reads the PageBackgroundContext override and renders the same background layer the wall paints: picture, effects and shade. */
 function CanvasBackground({ screenBackground, canvas, shade, effects }: {
   screenBackground: string | undefined;
   canvas: PictureBox;
@@ -715,7 +715,8 @@ function CanvasBackground({ screenBackground, canvas, shade, effects }: {
 }) {
   const { overrideBackground } = usePageBackground();
   // The same canvas-sized copy the wall asks for, not the camera original:
-  // the hub makes it once for both.
+  // the hub makes it once for both. A missing file falls back to the solid
+  // color, the same as on the wall; the screen settings panel reports it.
   const bg = displaySizedUrl(overrideBackground || screenBackground, canvas);
   return <BackgroundMediaLayer src={bg} shade={shade} effects={effects} />;
 }

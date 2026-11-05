@@ -9,11 +9,14 @@ interface SliderProps {
   displayValue?: string;
   onChange: (value: number) => void;
   disabled?: boolean;
-  onReset?: () => void;
-  resetLabel?: string;
 }
 
-export default function Slider({ label, value, min, max, step = 1, displayValue, onChange, disabled, onReset, resetLabel }: SliderProps) {
+/** A reset button needs its own words: the visible text and an accessible name that says what it resets. */
+type ResetProps =
+  | { onReset?: undefined; resetLabel?: undefined; resetTitle?: undefined }
+  | { onReset: () => void; resetLabel: string; resetTitle: string };
+
+export default function Slider({ label, value, min, max, step = 1, displayValue, onChange, disabled, onReset, resetLabel, resetTitle }: SliderProps & ResetProps) {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs text-hs-text-muted flex justify-between">
@@ -36,11 +39,11 @@ export default function Slider({ label, value, min, max, step = 1, displayValue,
             type="button"
             onClick={onReset}
             disabled={disabled}
-            aria-label={resetLabel ?? `Reset ${label}`}
-            title={resetLabel ?? `Reset ${label}`}
+            aria-label={resetTitle}
+            title={resetTitle}
             className="shrink-0 rounded border border-hs-border-strong px-2 py-0.5 text-[10px] text-hs-text-faint hover:bg-hs-hover hover:text-hs-text-body disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Reset
+            {resetLabel}
           </button>
         )}
       </span>

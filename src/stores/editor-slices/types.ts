@@ -199,9 +199,9 @@ export interface ScreenActions {
   pickScreenBackground: (id: string, backgroundImage: string) => void;
   /** One edit to the screen's live rotation (`withRotationUpdate`): the interval, the whole list, one source added or replaced, or one taken out. */
   updateScreenRotation: (id: string, update: RotationUpdate) => void;
-  /** Same live-merge guarantee as `updateScreenRotation`, for `shade`. */
+  /** Merge onto the screen's live `shade`, so two quick edits (a slider drag and a color pick) never clobber each other. */
   updateScreenShade: (id: string, updates: Partial<BackgroundShade>) => void;
-  /** Same live-merge guarantee as `updateScreenRotation`, for `effects`. */
+  /** Merge one changed field onto the screen's live `effects`; a field back at its default is dropped, and an all-default set is removed (`withBackgroundEffects`). */
   updateScreenEffects: (id: string, updates: Partial<BackgroundEffects>) => void;
 }
 

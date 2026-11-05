@@ -63,6 +63,7 @@ export const COALESCE_KEYS = {
   updateScreen: (screenId: string) => asKey(`screen:${screenId}`),
   screenRotation: (screenId: string) => asKey(`screenRotation:${screenId}`),
   screenShade: (screenId: string) => asKey(`screenShade:${screenId}`),
+  screenEffects: (screenId: string) => asKey(`screenEffects:${screenId}`),
   settings: asKey('settings'),
   updateProfile: (profileId: string) => asKey(`profile:${profileId}`),
   reorderProfiles: asKey('reorderProfiles'),

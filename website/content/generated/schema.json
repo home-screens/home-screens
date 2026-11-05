@@ -8284,7 +8284,7 @@
             "kind": "object",
             "text": "BackgroundEffects"
           },
-          "description": "CSS-filter-based tuning applied to background media only (see BackgroundEffects)"
+          "description": "Brightness, contrast, color and warmth adjustments to the background picture (see BackgroundEffects)"
         },
         {
           "name": "modules",
