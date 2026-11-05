@@ -2693,7 +2693,15 @@
       "topBottom": "Top og bund",
       "edges": "Kanter",
       "both": "Begge"
-    }
+    },
+    "effectsTitle": "Baggrundseffekter",
+    "effectsGroup": "Effekter",
+    "effectsBrightnessLabel": "Lysstyrke",
+    "effectsContrastLabel": "Kontrast",
+    "effectsSaturationLabel": "Mætning",
+    "effectsWarmthLabel": "Varme",
+    "effectsReset": "Nulstil",
+    "effectsResetLabel": "Nulstil {label}"
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",

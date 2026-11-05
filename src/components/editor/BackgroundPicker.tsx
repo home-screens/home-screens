@@ -4,9 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveScreens } from '@/lib/editor-multi-display';
-import type { BackgroundRotation, BackgroundShade } from '@/types/config';
-import Slider from '@/components/ui/Slider';
-import ColorPicker from '@/components/ui/ColorPicker';
+import type { BackgroundRotation } from '@/types/config';
 import LocalBackgrounds from './LocalBackgrounds';
 import UnsplashBrowser from './UnsplashBrowser';
 import NasaBrowser from './NasaBrowser';
@@ -14,6 +12,8 @@ import ImmichBrowser from './ImmichBrowser';
 import { Lock } from 'lucide-react';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
+import BackgroundShadeFields from './BackgroundShadeFields';
+import BackgroundEffectsFields from './BackgroundEffectsFields';
 import Toggle from '@/components/ui/Toggle';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
@@ -158,24 +158,8 @@ export default function BackgroundPicker() {
 
   const rotationFieldClass = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
-  const shade = currentScreen.shade;
-  const shadeEnabled = shade?.enabled ?? false;
-  const setShadeEnabled = (enabled: boolean) => {
-    if (!selectedScreenId) return;
-    const updated: BackgroundShade = {
-      enabled,
-      style: shade?.style || 'topBottom',
-      strength: shade?.strength ?? 40,
-      color: shade?.color || '#000000',
-    };
-    updateScreen(selectedScreenId, { shade: updated });
-  };
-  const updateShade = (updates: Partial<BackgroundShade>) => {
-    if (!selectedScreenId || !shade) return;
-    updateScreen(selectedScreenId, { shade: { ...shade, ...updates } });
-  };
-
   return (
+    <>
     <AccordionSection title={t('backgroundPicker.title')}>
       {anySourceAvailable && (
         <>
@@ -307,45 +291,6 @@ export default function BackgroundPicker() {
         </>
       )}
 
-      <PropertyGroup title={t('backgroundPicker.shadeGroup')} accent={1}>
-        <Toggle
-          label={t('backgroundPicker.shadeEnable')}
-          checked={shadeEnabled}
-          onChange={setShadeEnabled}
-        />
-        {shadeEnabled && shade && (
-          <div className="space-y-2 mt-2">
-            <label className="block">
-              <span className="text-[10px] text-hs-text-faint">{t('backgroundPicker.shadeStyleLabel')}</span>
-              <select
-                value={shade.style}
-                onChange={(e) => updateShade({ style: e.target.value as BackgroundShade['style'] })}
-                className={rotationFieldClass}
-              >
-                <option value="even">{t('backgroundPicker.shadeStyles.even')}</option>
-                <option value="topBottom">{t('backgroundPicker.shadeStyles.topBottom')}</option>
-                <option value="edges">{t('backgroundPicker.shadeStyles.edges')}</option>
-                <option value="both">{t('backgroundPicker.shadeStyles.both')}</option>
-              </select>
-            </label>
-            <Slider
-              label={t('backgroundPicker.shadeStrengthLabel')}
-              value={shade.strength}
-              min={0}
-              max={100}
-              step={5}
-              displayValue={`${shade.strength}%`}
-              onChange={(value) => updateShade({ strength: value })}
-            />
-            <ColorPicker
-              label={t('backgroundPicker.shadeColorLabel')}
-              value={shade.color}
-              onChange={(value) => updateShade({ color: value })}
-            />
-          </div>
-        )}
-      </PropertyGroup>
-
       {missingPath && (
         <div className="rounded-md border border-hs-danger/40 bg-hs-danger/10 px-2.5 py-2 space-y-1.5" data-testid="background-missing">
           <div className="text-[10px] text-hs-text-faint">{t('backgroundPicker.missing.label')}</div>
@@ -426,5 +371,11 @@ export default function BackgroundPicker() {
         )}
       </div>
     </AccordionSection>
+
+    <AccordionSection title={t('backgroundPicker.effectsTitle')}>
+      <BackgroundShadeFields screenId={selectedScreenId} shade={currentScreen.shade} />
+      <BackgroundEffectsFields screenId={selectedScreenId} effects={currentScreen.effects} />
+    </AccordionSection>
+    </>
   );
 }

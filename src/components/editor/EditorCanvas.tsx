@@ -29,7 +29,7 @@ import { useActiveBackground } from '@/hooks/useActiveBackground';
 import { resolveScreenBackground } from '@/lib/screen-background';
 import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 import { useTranslate, type TranslateFn } from '@/i18n';
-import type { ModuleInstance, BackgroundShade } from '@/types/config';
+import type { ModuleInstance, BackgroundEffects, BackgroundShade } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
 import { isScreenEmpty, getDisplayProfiles, getActiveProfileId } from '@/lib/display-filter';
 import { displayShowsPaginationDots } from '@/lib/pagination-dots';
@@ -51,7 +51,7 @@ import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import CanvasToolbar from './CanvasToolbar';
 import StartFromTemplateButton from './StartFromTemplateButton';
 import { PageBackgroundProvider, usePageBackground } from '@/contexts/PageBackgroundContext';
-import BackgroundShadeOverlay from '@/components/BackgroundShadeOverlay';
+import BackgroundMediaLayer from '@/components/BackgroundMediaLayer';
 
 /**
  * What an empty screen shows inside the display frame. The first editor visit
@@ -594,6 +594,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                 screenBackground={resolveScreenBackground(currentScreen, rotatingBackground)}
                 canvas={{ w: displayWidth, h: displayHeight }}
                 shade={currentScreen.shade}
+                effects={currentScreen.effects}
               />
               {snapEnabled && <GridOverlay scale={effectiveScale} />}
               {isScreenEmpty(currentScreen) && (
@@ -703,30 +704,17 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   );
 }
 
-/** Reads the PageBackgroundContext override and renders the appropriate background, plus its shade overlay */
-function CanvasBackground({ screenBackground, canvas, shade }: {
+/** Reads the PageBackgroundContext override and renders the same background layer the wall paints: picture, effects and shade. */
+function CanvasBackground({ screenBackground, canvas, shade, effects }: {
   screenBackground: string | undefined;
   canvas: PictureBox;
   shade: BackgroundShade | undefined;
+  effects: BackgroundEffects | undefined;
 }) {
   const { overrideBackground } = usePageBackground();
   // The same canvas-sized copy the wall asks for, not the camera original:
-  // the hub makes it once for both.
+  // the hub makes it once for both. A missing file falls back to the solid
+  // color, the same as on the wall; the screen settings panel reports it.
   const bg = displaySizedUrl(overrideBackground || screenBackground, canvas);
-  // A missing file falls back to the solid color, the same as on the wall;
-  // the screen settings panel is where the missing path is reported.
-  const [broken, setBroken] = useState<string | null>(null);
-  return (
-    <>
-      {bg && broken !== bg && (
-        <img
-          src={bg}
-          alt=""
-          onError={() => setBroken(bg)}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      )}
-      <BackgroundShadeOverlay shade={shade} />
-    </>
-  );
+  return <BackgroundMediaLayer src={bg} shade={shade} effects={effects} />;
 }

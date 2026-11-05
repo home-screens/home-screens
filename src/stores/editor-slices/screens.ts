@@ -5,6 +5,7 @@ import { pruneDanglingScreenRefs } from '@/lib/display-filter';
 import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
 import { pickedBackground } from '@/lib/screen-background';
+import { withBackgroundEffects } from '@/lib/background-effects';
 import { COALESCE_KEYS } from '@/stores/editor-save';
 import { syncEditorUrl } from '@/stores/editor-url';
 import type { EditorGet, MutateConfig, ScreenActions } from './types';
@@ -158,6 +159,35 @@ export function createScreenSlice(
           ),
         ),
       }), { coalesce: COALESCE_KEYS.updateScreen(id) });
+    },
+
+    updateScreenShade: (id, updates) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: withActiveScreens(
+          config,
+          selectedDisplayId,
+          getActiveScreens(config, selectedDisplayId).map((s) =>
+            s.id === id ? { ...s, shade: { ...s.shade, ...updates } as Screen['shade'] } : s,
+          ),
+        ),
+      }), { coalesce: COALESCE_KEYS.screenShade(id) });
+    },
+
+    updateScreenEffects: (id, updates) => {
+      const { selectedDisplayId } = get();
+      mutateConfig((config) => ({
+        config: withActiveScreens(
+          config,
+          selectedDisplayId,
+          getActiveScreens(config, selectedDisplayId).map((s) => {
+            if (s.id !== id) return s;
+            const { effects: _effects, ...rest } = s;
+            const effects = withBackgroundEffects(s.effects, updates);
+            return effects ? { ...rest, effects } : rest;
+          }),
+        ),
+      }), { coalesce: COALESCE_KEYS.screenEffects(id) });
     },
   };
 }

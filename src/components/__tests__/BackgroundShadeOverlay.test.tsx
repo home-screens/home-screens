@@ -60,4 +60,11 @@ describe('BackgroundShadeOverlay', () => {
     const { getByTestId } = render(<BackgroundShadeOverlay shade={base} />);
     expect(getByTestId('background-shade-overlay')).toBeTruthy();
   });
+
+  it('paints above the active crossfade image (z-index 1)', () => {
+    const { container } = render(<BackgroundShadeOverlay shade={base} />);
+    const overlay = container.querySelector('[data-testid="background-shade-overlay"]') as HTMLElement;
+    expect(Number(overlay.style.zIndex)).toBeGreaterThan(1);
+    expect(overlay.style.background).toBe('rgba(0, 0, 0, 0.5)');
+  });
 });

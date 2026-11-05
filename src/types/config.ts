@@ -390,6 +390,26 @@ export interface BackgroundShade {
   color: string;
 }
 
+/**
+ * Small adjustments to the picture behind a screen, as percentages of the
+ * picture as it is. A field that is not set leaves that part of the picture
+ * alone, so an empty object and no object mean the same thing.
+ *
+ * Only the fields a person has moved off their default are stored
+ * (`withBackgroundEffects`); the wall turns the set into one CSS `filter` on
+ * the background layer alone, never on the modules over it.
+ */
+export interface BackgroundEffects {
+  /** How bright the picture is, 0 to 200; 100 leaves it as it is */
+  brightness?: number;
+  /** How strong the contrast is, 0 to 200; 100 leaves it as it is */
+  contrast?: number;
+  /** How vivid the colors are, 0 to 200; 100 leaves it as it is */
+  saturation?: number;
+  /** A warm (positive) or cool (negative) tint, -100 to 100; 0 adds none */
+  warmth?: number;
+}
+
 export interface Screen {
   /** Unique ID */
   id: string;
@@ -407,6 +427,8 @@ export interface Screen {
   backgroundRotation?: BackgroundRotation;
   /** Dim/vignette overlay drawn over the background (see BackgroundShade) */
   shade?: BackgroundShade;
+  /** Brightness, contrast, color and warmth adjustments to the background picture (see BackgroundEffects) */
+  effects?: BackgroundEffects;
   /** The modules on this screen (see ModuleInstance) */
   modules: ModuleInstance[];
   /**
