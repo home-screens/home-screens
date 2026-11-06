@@ -11384,6 +11384,15 @@
       ]
     },
     {
+      "path": "/api/meals/favorite",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "display"
+        }
+      ]
+    },
+    {
       "path": "/api/meals/grocery",
       "methods": [
         {

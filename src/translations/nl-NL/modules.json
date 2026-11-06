@@ -436,6 +436,7 @@
       "noRecipeHint": "Voeg ingrediënten of notities toe bij Maaltijden op je telefoon, dan staat het hier.",
       "noFavoritesTitle": "Nog geen favorieten",
       "noFavoritesHint": "Tik in Mealie op het hartje bij een recept, dan staat het hier.",
+      "noFavoritesHintTouch": "Tik op het hartje bij een recept, dan staat het hier.",
       "noRecentTitle": "Nog niets gemaakt",
       "noRecentHint": "Recepten die je in Mealie als gemaakt markeert, staan hier, nieuwste eerst.",
       "mealieEmptyTitle": "Nog geen recepten in Mealie",
@@ -492,6 +493,8 @@
     "openRecipeAria": "Recept voor {name} openen",
     "showQrInstead": "QR-code tonen",
     "closeRecipe": "Sluiten",
+    "favoriteAdd": "{meal} aan favorieten toevoegen",
+    "favoriteRemove": "{meal} uit favorieten verwijderen",
     "planFromPhoneHint": "Plan maaltijden via een telefoon: open {url} en tik op Maaltijden",
     "courses": {
       "main": "Hoofdgerecht",

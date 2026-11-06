@@ -251,6 +251,14 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
       if (path === '/api/users/self/favorites') {
         return send(200, { ratings: state.recipes.filter((r) => r.favorite).map((r) => ({ recipeId: r.id, rating: 5, isFavorite: true })) });
       }
+      // A heart, by recipe id as Mealie 2.0 on takes it. A new list rather
+      // than a change to the recipe, which every spec shares.
+      const heart = /^\/api\/users\/u1\/favorites\/([0-9a-f-]{36})$/.exec(path);
+      if (heart && (req.method === 'POST' || req.method === 'DELETE')) {
+        if (!state.recipes.some((r) => r.id === heart[1])) return send(404, { detail: 'Not found' });
+        state.recipes = state.recipes.map((r) => (r.id === heart[1] ? { ...r, favorite: req.method === 'POST' } : r));
+        return send(200, null);
+      }
       if (path === '/api/households/mealplans' && req.method === 'GET') {
         const start = url.searchParams.get('start_date') ?? '0000-00-00';
         const end = url.searchParams.get('end_date') ?? '9999-99-99';

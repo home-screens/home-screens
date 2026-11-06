@@ -11,6 +11,7 @@ import {
   upsertSavedMeal,
   removeSavedMeal,
   toggleSavedMealFavorite,
+  setSavedMealFavorite,
   restorePlanEntries,
   replacesDish,
   suggestPlanWeek,
@@ -415,5 +416,19 @@ describe('restorePlanEntries', () => {
     const next = restorePlanEntries(meanwhile, removed);
     expect(next).toEqual([entry('2026-09-16', 'm-3'), removed[0]]);
     expect(find(next, '2026-09-15')?.time).toBe('18:30');
+  });
+});
+
+describe('setSavedMealFavorite', () => {
+  it('sets the heart whatever it was, so a heart sent twice is still one heart', () => {
+    const on = setSavedMealFavorite([meal('m-1'), meal('m-2')], 'm-1', true);
+    expect(on.map((m) => !!m.isFavorite)).toEqual([true, false]);
+    expect(setSavedMealFavorite(on, 'm-1', true)).toBe(on);
+    expect(setSavedMealFavorite(on, 'm-1', false)[0].isFavorite).toBe(false);
+  });
+
+  it('gives the same list back for a meal that is not there', () => {
+    const list = [meal('m-1')];
+    expect(setSavedMealFavorite(list, 'gone', true)).toBe(list);
   });
 });

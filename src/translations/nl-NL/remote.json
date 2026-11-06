@@ -1502,7 +1502,8 @@
       "noneDescription": "Controleer de spelling of probeer een korter woord.",
       "emptyTitle": "Nog geen recepten in Mealie",
       "emptyDescription": "Recepten die je in Mealie toevoegt, staan hier.",
-      "openRecipeAriaLabel": "{meal} openen in Mealie"
+      "openRecipeAriaLabel": "{meal} openen in Mealie",
+      "noFavoritesDescription": "Tik op het hartje bij een recept, dan staat het hier."
     },
     "grocery": {
       "lists": "Boodschappenlijsten",

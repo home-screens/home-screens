@@ -12,7 +12,8 @@ const MEALIE_RECIPE_TTL_MS = 10 * 60_000;
 export type MealRecipeState =
   | { status: 'loading' }
   | { status: 'failed' }
-  | { status: 'ready'; recipe: RecipeDetail };
+  /** `favorite`: whether a Mealie recipe is one of Mealie's favorites, as the hub said when it was read. */
+  | { status: 'ready'; recipe: RecipeDetail; favorite?: boolean };
 
 /**
  * A meal's recipe for the wall: a Mealie recipe read through the hub
@@ -26,7 +27,9 @@ export function useMealRecipe(meal: SavedMeal | null, scale = 1): MealRecipeStat
   return useMemo<MealRecipeState>(() => {
     if (!meal) return { status: 'failed' };
     if (!mealieId) return { status: 'ready', recipe: savedMealRecipe(meal) };
-    if (wire && Array.isArray(wire.ingredients) && Array.isArray(wire.steps)) return { status: 'ready', recipe: mealieRecipe(wire) };
+    if (wire && Array.isArray(wire.ingredients) && Array.isArray(wire.steps)) {
+      return { status: 'ready', recipe: mealieRecipe(wire), ...(typeof wire.meal?.isFavorite === 'boolean' ? { favorite: wire.meal.isFavorite } : {}) };
+    }
     return error ? { status: 'failed' } : { status: 'loading' };
   }, [meal, mealieId, wire, error]);
 }

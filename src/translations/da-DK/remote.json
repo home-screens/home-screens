@@ -1502,7 +1502,8 @@
       "noneDescription": "Tjek stavningen, eller prøv et kortere ord.",
       "emptyTitle": "Ingen opskrifter i Mealie endnu",
       "emptyDescription": "Opskrifter, I tilføjer i Mealie, vises her.",
-      "openRecipeAriaLabel": "Åbn {meal} i Mealie"
+      "openRecipeAriaLabel": "Åbn {meal} i Mealie",
+      "noFavoritesDescription": "Tryk på hjertet ved en opskrift, så dukker den op her."
     },
     "grocery": {
       "lists": "Indkøbslister",

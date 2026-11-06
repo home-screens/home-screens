@@ -436,6 +436,7 @@
       "noRecipeHint": "Ajoute-lui des ingrédients ou des notes dans Repas sur ton téléphone, et il apparaîtra ici.",
       "noFavoritesTitle": "Pas encore de favoris",
       "noFavoritesHint": "Touche le cœur d'une recette dans Mealie et elle apparaîtra ici.",
+      "noFavoritesHintTouch": "Touche le cœur d'une recette et elle apparaîtra ici.",
       "noRecentTitle": "Rien de cuisiné pour l'instant",
       "noRecentHint": "Les recettes que tu marques comme cuisinées dans Mealie apparaissent ici, les plus récentes d'abord.",
       "mealieEmptyTitle": "Pas encore de recettes dans Mealie",
@@ -492,6 +493,8 @@
     "openRecipeAria": "Ouvrir la recette de {name}",
     "showQrInstead": "Afficher le code QR",
     "closeRecipe": "Fermer",
+    "favoriteAdd": "Ajouter {meal} aux favoris",
+    "favoriteRemove": "Retirer {meal} des favoris",
     "planFromPhoneHint": "Planifie les repas depuis un téléphone : ouvre {url} et touche Repas",
     "courses": {
       "main": "Plat",

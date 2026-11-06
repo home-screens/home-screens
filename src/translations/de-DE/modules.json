@@ -436,6 +436,7 @@
       "noRecipeHint": "Trag am Handy unter Mahlzeiten Zutaten oder Notizen dafür ein, dann erscheint das Rezept hier.",
       "noFavoritesTitle": "Noch keine Favoriten",
       "noFavoritesHint": "Tippe in Mealie bei einem Rezept auf das Herz, dann erscheint es hier.",
+      "noFavoritesHintTouch": "Tippe bei einem Rezept auf das Herz, dann erscheint es hier.",
       "noRecentTitle": "Noch nichts gekocht",
       "noRecentHint": "Rezepte, die du in Mealie als gekocht markierst, erscheinen hier, die neuesten zuerst.",
       "mealieEmptyTitle": "Noch keine Rezepte in Mealie",
@@ -492,6 +493,8 @@
     "openRecipeAria": "Rezept für {name} öffnen",
     "showQrInstead": "QR-Code anzeigen",
     "closeRecipe": "Schließen",
+    "favoriteAdd": "{meal} zu Favoriten hinzufügen",
+    "favoriteRemove": "{meal} aus Favoriten entfernen",
     "planFromPhoneHint": "Plane Mahlzeiten am Handy: Öffne {url} und tippe auf Mahlzeiten",
     "courses": {
       "main": "Hauptgericht",

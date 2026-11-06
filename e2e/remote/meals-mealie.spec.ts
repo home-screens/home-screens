@@ -375,3 +375,56 @@ test("the picker's cookbook chips narrow the recipes to pick from", async ({ pag
   await expect(picker.getByRole('button', { name: /^Blueberry Pancakes/ })).toBeVisible();
   await expect(picker.getByRole('button', { name: /^Cheese Board/ })).toHaveCount(0);
 });
+
+test("the Library's hearts save to Mealie's favorites, and one taken off on Favorites waits for the list to load again", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await page.goto('/remote');
+  await openMeals(page);
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  const library = page.getByTestId('mealie-library');
+  const cards = library.getByTestId('mealie-library-card');
+  const heart = (name: string) => cards.filter({ hasText: name }).getByTestId('mealie-library-heart');
+  const favorite = (slug: string) => mealie!.recipes.find((r) => r.slug === slug)?.favorite ?? false;
+
+  // Opens on Favorites, every one hearted.
+  await expect(cards).toHaveCount(2);
+  await expect(heart('Harvest Chili')).toHaveAttribute('aria-pressed', 'true');
+
+  await library.getByRole('button', { name: 'All', exact: true }).click();
+  await expect(cards).toHaveCount(FAKE_RECIPES.length);
+  await expect(heart('Skillet Cornbread')).toHaveAttribute('aria-pressed', 'false');
+  await heart('Skillet Cornbread').click();
+  await expect(heart('Skillet Cornbread')).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => favorite('skillet-cornbread')).toBe(true);
+  // The heart is its own button: the recipe did not open in Mealie.
+  expect(page.context().pages()).toHaveLength(1);
+
+  await library.getByRole('button', { name: /Favorites/ }).click();
+  await expect(cards).toHaveCount(3);
+  await heart('Harvest Chili').click();
+  await expect.poll(() => favorite('harvest-chili')).toBe(false);
+  // Still there with an empty heart, so a slip is one tap to undo.
+  await expect(cards).toHaveCount(3);
+  await expect(heart('Harvest Chili')).toHaveAttribute('aria-pressed', 'false');
+
+  await library.getByRole('button', { name: 'All', exact: true }).click();
+  await library.getByRole('button', { name: /Favorites/ }).click();
+  await expect(cards).toHaveCount(2);
+  await expect(cards.filter({ hasText: 'Harvest Chili' })).toHaveCount(0);
+});
+
+test("a heart Mealie does not take goes back, and the tab says why", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await page.goto('/remote');
+  await openMeals(page);
+  await page.getByRole('button', { name: 'Library', exact: true }).click();
+  const heart = page.getByTestId('mealie-library-card').filter({ hasText: 'Harvest Chili' }).getByTestId('mealie-library-heart');
+  await expect(heart).toHaveAttribute('aria-pressed', 'true');
+
+  await mealie.close();
+  await heart.click();
+  await expect(page.getByText("Mealie isn't answering, so that wasn't saved. Try again in a moment.")).toBeVisible();
+  await expect(heart).toHaveAttribute('aria-pressed', 'true');
+});

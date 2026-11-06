@@ -1,30 +1,42 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { BookOpen, CloudOff, ExternalLink, Search } from 'lucide-react';
-import { fetchMealieCategories } from '@/lib/meal-client';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { BookOpen, CloudOff, ExternalLink, Heart, Search } from 'lucide-react';
+import { fetchMealieCategories, mealieClientProblem } from '@/lib/meal-client';
+import type { SavedMeal } from '@/types/config';
 import type { MealieCategory } from '@/lib/mealie';
 import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
 import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import { useMealieLink } from '@/components/meals/useMealieLink';
+import { useMealFavorite } from '@/components/meals/useMealFavorite';
 import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import MealThumb from './MealThumb';
 import RecipeWallButton from './RecipeWallButton';
-import { mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
+import { mealieSaveFailedWords, mealieSearchFailedWords, RetryButton } from './MealsMealieStatus';
 import { CenterMessage, FilterChip, RecipeSearchBox, RecipeShortcutChips, RecipeSkeletonRows } from './MealieRecipeParts';
 import { CARD_STYLE, formatShownMinutes, openOutside } from './meals-shared';
 
 /**
  * The Library while the plan lives in Mealie: a window onto Mealie's recipes,
  * searchable, opening on Favorites (hundreds of recipes A to Z is a lot to
- * scroll). Each card opens the recipe in Mealie; there is nothing to add,
- * edit or heart here, because the recipes live there.
+ * scroll). Each card opens the recipe in Mealie; there is nothing to add or
+ * edit here, because the recipes live there. The heart is the one change:
+ * it saves to Mealie's favorites, the list the Favorites chip reads.
  */
-export default function MealsMealieLibraryView({ baseUrl, wallNotices }: { baseUrl: string | undefined; wallNotices: WallNotices }) {
+export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFailed }: {
+  baseUrl: string | undefined;
+  wallNotices: WallNotices;
+  /** Says a heart Mealie did not take, on the tab's red line. */
+  onSaveFailed: (message: string) => void;
+}) {
   const t = useTranslate('remote');
+  const heartFailed = useCallback((err: unknown) => {
+    const problem = mealieClientProblem(err);
+    onSaveFailed(t(problem === 'connection' ? 'hubRequest.saveFailed' : mealieSaveFailedWords(problem) ?? 'mealsTab.saveFailed'));
+  }, [onSaveFailed, t]);
   // Favorites, Recently made, All, or one of Mealie's own categories or
   // cookbooks, chosen from the chips after All.
   const { query, setQuery, shortcut, choose, cookbooks, search } = useMealieRecipeBrowser(editorFetch);
@@ -70,7 +82,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices }: { baseU
     const [title, description] = shortcut.kind === 'search'
       ? [t('mealie.search.noneTitle', { query: typed }), t('mealie.library.noneDescription')]
       : shortcut.kind === 'favorites'
-        ? [t('mealie.search.noFavoritesTitle'), t('mealie.search.noFavoritesDescription')]
+        ? [t('mealie.search.noFavoritesTitle'), t('mealie.library.noFavoritesDescription')]
         : shortcut.kind === 'recent'
           ? [t('mealie.search.noRecentTitle'), t('mealie.search.noRecentDescription')]
           : [t('mealie.library.emptyTitle'), t('mealie.library.emptyDescription')];
@@ -113,9 +125,9 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices }: { baseU
               </span>
             )}
           </span>
-          {/* The whole card opens the recipe in Mealie, the link mark too. A
-              button laid over it rather than around it, so the wall button
-              beside the mark is a button of its own, not one inside another. */}
+          {/* The whole card opens the recipe in Mealie. A button laid over it
+              rather than around it, so the wall button and the heart beside
+              it are buttons of their own, not ones inside another. */}
           <button
             type="button"
             onClick={() => openOutside(meal.recipeUrl && mealieLink(meal.recipeUrl))}
@@ -123,9 +135,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices }: { baseU
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, margin: 0, border: 'none', borderRadius: 'inherit', background: 'transparent', cursor: 'pointer' }}
           />
           <RecipeWallButton meal={meal} notices={wallNotices} style={{ position: 'relative' }} />
-          <span aria-hidden style={{ width: 34, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--hs-text-faint)', flex: 'none' }}>
-            <ExternalLink size={18} strokeWidth={2} />
-          </span>
+          <LibraryHeart meal={meal} onFailed={heartFailed} />
         </div>
       );
     });
@@ -184,5 +194,29 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices }: { baseU
       {body}
       <div ref={endRef} aria-hidden style={{ height: 1 }} />
     </div>
+  );
+}
+
+/** A recipe's heart on its card: red when it is one of Mealie's favorites. */
+function LibraryHeart({ meal, onFailed }: { meal: SavedMeal; onFailed: (err: unknown) => void }) {
+  const t = useTranslate('remote');
+  const { isFavorite, toggle } = useMealFavorite(meal, editorFetch, onFailed);
+  if (isFavorite === null) return null;
+  return (
+    <button
+      type="button"
+      data-testid="mealie-library-heart"
+      onClick={toggle}
+      aria-pressed={isFavorite}
+      aria-label={t(isFavorite ? 'mealsTab.library.favoriteRemoveAriaLabel' : 'mealsTab.library.favoriteAddAriaLabel')}
+      style={{
+        // Above the card's own button, which covers the whole card.
+        position: 'relative', flex: 'none', width: 44, height: 44, margin: '0 -6px', padding: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', background: 'transparent', cursor: 'pointer',
+        color: isFavorite ? 'var(--hs-danger)' : 'var(--hs-text-faint)',
+      }}
+    >
+      <Heart size={22} strokeWidth={2} fill={isFavorite ? 'currentColor' : 'none'} aria-hidden />
+    </button>
   );
 }

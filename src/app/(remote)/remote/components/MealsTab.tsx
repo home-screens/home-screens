@@ -264,7 +264,7 @@ export default function MealsTab() {
         status.state === 'unreachable' ? (
           <MealieUnreachable problem={status.problem} onRetry={retryWeek} />
         ) : (
-          <MealsMealieLibraryView baseUrl={baseUrl} wallNotices={wallNotices} />
+          <MealsMealieLibraryView baseUrl={baseUrl} wallNotices={wallNotices} onSaveFailed={setSaveError} />
         )
       ) : (
         <MealsLibraryView

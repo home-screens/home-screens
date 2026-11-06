@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ExternalLink, Heart, History, Pencil, Search, X } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -9,19 +9,21 @@ import type { MealieProblem } from '@/lib/meal-sources';
 import { parseMealieMealId, type MealieRecipeDetail } from '@/lib/mealie-map';
 import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import { useMealieLink } from '@/components/meals/useMealieLink';
+import { useMealFavorite } from '@/components/meals/useMealFavorite';
 import MealPicture from '@/components/meals/MealPicture';
 import { MODAL_INPUT_CLASS } from '@/components/ui/input-classes';
 import { useTranslate } from '@/i18n';
 import { useDishTime } from './dish-time';
 import DishPicture from './DishPicture';
 import { mealieRequestFailedKeys } from './mealie-problem-words';
+import { mealSaveFailedKey } from './save-failed-words';
 
 /**
  * The sidebar's three tabs while the plan lives in Mealie. Recipes are
  * Mealie's, so there is nothing to add, edit or delete here: the Library
  * browses them and Detail shows one read only with a way to open it in
- * Mealie. Grocery, the family's Mealie shopping list, is in
- * `SidebarMealieGrocery.tsx`.
+ * Mealie, and a Favorite button that hearts it in Mealie. Grocery, the
+ * family's Mealie shopping list, is in `SidebarMealieGrocery.tsx`.
  */
 
 const linkButton =
@@ -127,7 +129,7 @@ export function MealieLibrary({
             {shortcut.kind === 'search'
               ? t('mealPlannerModal.picker.noRecipesCalled', { text: query })
               : shortcut.kind === 'favorites'
-                ? t('mealPlannerModal.picker.noFavorites')
+                ? t('mealPlannerModal.mealie.noFavorites')
                 : t('mealPlannerModal.picker.noRecentlyMade')}
           </div>
         )}
@@ -165,6 +167,18 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
   const t = useTranslate('editor');
   const dishTime = useDishTime();
   const mealieLink = useMealieLink();
+  const recipeId = parseMealieMealId(meal?.id);
+  const loaded = useMealieRecipeDetail(recipeId);
+  // A recipe from the Library says whether it is a favorite; one from the
+  // week does not, and its recipe, once loaded, does.
+  const heartMeal = meal && meal.isFavorite === undefined && loaded?.detail
+    ? { id: meal.id, isFavorite: loaded.detail.meal.isFavorite }
+    : meal;
+  const [heartFailed, setHeartFailed] = useState<{ id: string; key: string } | null>(null);
+  const onHeartFailed = useCallback((err: unknown) => {
+    if (meal) setHeartFailed({ id: meal.id, key: mealSaveFailedKey({ problem: err instanceof MealClientError ? err.problem : undefined }, true) });
+  }, [meal]);
+  const favorite = useMealFavorite(heartMeal, editorFetch, onHeartFailed);
 
   if (!meal) {
     return (
@@ -192,15 +206,39 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
       )}
       <div className="mt-3 text-lg font-bold text-hs-text-body leading-snug">{meal.name}</div>
       {meta && <div className="mt-0.5 text-xs text-hs-text-faint">{meta}</div>}
-      {meal.recipeUrl && (
-        <div className="mt-3">
-          <a href={mealieLink(meal.recipeUrl)} target="_blank" rel="noopener noreferrer" className={linkButton}>
-            {t('mealPlannerModal.openInMealie')}
-            <ExternalLink className="w-3.5 h-3.5" aria-hidden />
-          </a>
+      {(favorite.isFavorite !== null || meal.recipeUrl) && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {favorite.isFavorite !== null && (
+            <button
+              type="button"
+              data-testid="mealie-detail-favorite"
+              aria-pressed={favorite.isFavorite}
+              onClick={() => { setHeartFailed(null); favorite.toggle(); }}
+              className={linkButton}
+              style={favorite.isFavorite ? {
+                borderColor: 'color-mix(in srgb, var(--hs-danger) 45%, transparent)',
+                background: 'color-mix(in srgb, var(--hs-danger) 10%, transparent)',
+                color: 'var(--hs-danger)',
+              } : undefined}
+            >
+              <Heart
+                className={favorite.isFavorite ? 'w-3.5 h-3.5' : 'w-3.5 h-3.5 text-hs-text-muted'}
+                fill={favorite.isFavorite ? 'currentColor' : 'none'}
+                aria-hidden
+              />
+              {t('mealPlannerModal.mealie.favorite')}
+            </button>
+          )}
+          {meal.recipeUrl && (
+            <a href={mealieLink(meal.recipeUrl)} target="_blank" rel="noopener noreferrer" className={linkButton}>
+              {t('mealPlannerModal.openInMealie')}
+              <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+            </a>
+          )}
         </div>
       )}
-      <MealieIngredients recipeId={parseMealieMealId(meal.id)} />
+      {heartFailed?.id === meal.id && <p role="alert" className="mt-2 text-xs text-hs-danger">{t(heartFailed.key)}</p>}
+      <MealieIngredients recipeId={recipeId} current={loaded} />
       <p className="mt-4 flex items-start gap-1.5 text-[11.5px] leading-4 text-hs-text-faint">
         <Pencil className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
         <span>{t('mealPlannerModal.mealie.readOnlyNote')}</span>
@@ -209,10 +247,16 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
   );
 }
 
-/** The recipe's ingredients from Mealie, two to a row, read only. */
-function MealieIngredients({ recipeId }: { recipeId: string | null }) {
-  const t = useTranslate('editor');
-  const [state, setState] = useState<{ id: string; detail: MealieRecipeDetail | null; failed: boolean; problem?: MealieProblem } | null>(null);
+interface LoadedRecipe {
+  id: string;
+  detail: MealieRecipeDetail | null;
+  failed: boolean;
+  problem?: MealieProblem;
+}
+
+/** One Mealie recipe in full for the Detail tab, or null while it is on its way. */
+function useMealieRecipeDetail(recipeId: string | null): LoadedRecipe | null {
+  const [state, setState] = useState<LoadedRecipe | null>(null);
   useEffect(() => {
     if (!recipeId) return;
     const controller = new AbortController();
@@ -225,8 +269,13 @@ function MealieIngredients({ recipeId }: { recipeId: string | null }) {
     );
     return () => controller.abort();
   }, [recipeId]);
+  return state && state.id === recipeId ? state : null;
+}
+
+/** The recipe's ingredients from Mealie, two to a row, read only. */
+function MealieIngredients({ recipeId, current }: { recipeId: string | null; current: LoadedRecipe | null }) {
+  const t = useTranslate('editor');
   if (!recipeId) return null;
-  const current = state?.id === recipeId ? state : null;
   if (current?.detail && current.detail.ingredients.length === 0) return null;
   // Mealie refusing the token is not Mealie losing the ingredients.
   const failed = mealieRequestFailedKeys(current?.problem, 'mealPlannerModal.mealie.ingredientsFailed');

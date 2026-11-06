@@ -3092,6 +3092,8 @@
         "other": "Voor {count} personen"
       },
       "readOnlyNote": "Dit recept staat in Mealie. Pas het daar aan en het is hier binnen een paar minuten bijgewerkt.",
+      "favorite": "Favoriet",
+      "noFavorites": "Nog geen favorieten. Open een recept en klik op ‘Favoriet’, of zoek hierboven.",
       "grocery": {
         "list": "Boodschappenlijst",
         "listOption": {

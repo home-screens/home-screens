@@ -3092,6 +3092,8 @@
         "other": "Serve {count} pessoas"
       },
       "readOnlyNote": "Esta receita fica no Mealie. Mude-a lá e ela se atualiza aqui em poucos minutos.",
+      "favorite": "Favorita",
+      "noFavorites": "Ainda não há favoritas. Abra uma receita e clique em “Favorita” ou pesquise acima.",
       "grocery": {
         "list": "Lista de compras",
         "listOption": {

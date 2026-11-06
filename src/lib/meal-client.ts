@@ -577,6 +577,20 @@ export async function fetchMealieRecipeDetail(fetcher: MealFetch, recipeId: stri
   return d as MealieRecipeDetail;
 }
 
+/**
+ * Put the heart on a recipe or take it off: in Mealie for a Mealie recipe,
+ * in meals.json for one of the family's own. A refusal carries why when
+ * Mealie was the problem.
+ */
+export async function saveMealFavorite(fetcher: MealFetch, mealId: string, favorite: boolean): Promise<void> {
+  const res = await fetcher('/api/meals/favorite', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mealId, favorite }),
+  });
+  if (!res.ok) throw mealieRefusal('save', await readJson(res), 'The favorite could not be saved.');
+}
+
 // ── Mealie's shopping list ──
 
 const SHOPPING_URL = '/api/mealie/shopping';

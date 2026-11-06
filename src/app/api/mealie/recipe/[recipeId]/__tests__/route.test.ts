@@ -8,11 +8,11 @@ vi.mock('@/lib/auth', () => ({
 }));
 vi.mock('@/lib/mealie', async (importOriginal) => {
   const real = await importOriginal<typeof import('@/lib/mealie')>();
-  return { ...real, getMealieContext: vi.fn(), getMealieRecipe: vi.fn() };
+  return { ...real, getMealieContext: vi.fn(), getMealieRecipe: vi.fn(), getMealieFavoriteIds: vi.fn() };
 });
 
 import { GET } from '../route';
-import { getMealieContext, getMealieRecipe, MealieError } from '@/lib/mealie';
+import { getMealieContext, getMealieFavoriteIds, getMealieRecipe, MealieError } from '@/lib/mealie';
 
 const ID = '0f1e2d3c-4b5a-4968-8776-655443322110';
 const get = (id: string, query = '') => GET(new NextRequest(`http://localhost/api/mealie/recipe/${id}${query}`), { params: Promise.resolve({ recipeId: id }) });
@@ -21,6 +21,7 @@ describe('GET /api/mealie/recipe/[recipeId]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getMealieContext).mockResolvedValue({ baseUrl: 'http://mealie.local', groupSlug: 'home' });
+    vi.mocked(getMealieFavoriteIds).mockResolvedValue(new Set([ID]));
   });
 
   it('answers the ingredients and steps as plain lines, with section headings', async () => {
@@ -30,7 +31,8 @@ describe('GET /api/mealie/recipe/[recipeId]', () => {
       recipeInstructions: [{ title: '', text: 'Simmer.' }, { title: 'Serve', text: 'Top with cheese.' }, { text: ' ' }],
     });
     const body = await (await get(ID)).json();
-    expect(body.meal).toMatchObject({ id: `mealie:${ID}`, name: 'Chili', recipeUrl: 'http://mealie.local/g/home/r/chili' });
+    // The wall's recipe card draws its heart from this.
+    expect(body.meal).toMatchObject({ id: `mealie:${ID}`, name: 'Chili', recipeUrl: 'http://mealie.local/g/home/r/chili', isFavorite: true });
     expect(body.description).toBe('Warm.');
     expect(body.ingredients).toEqual([{ heading: 'For the pot', text: '1 lb beans' }, { text: '2 onions' }]);
     expect(body.steps).toEqual([{ text: 'Simmer.' }, { heading: 'Serve', text: 'Top with cheese.' }]);

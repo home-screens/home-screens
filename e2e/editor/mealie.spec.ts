@@ -165,3 +165,20 @@ test("the planner window's Grocery tab ticks and adds to the Mealie list, and it
   // The phone opens on the same list.
   expect((await (await request.get('/api/mealie/shopping')).json()).list.id).toBe(FAKE_COSTCO_ID);
 });
+
+test("the planner window's Detail tab hearts a Mealie recipe in Mealie", async ({ page, request }) => {
+  mealie = await startFakeMealie();
+  await connectFakeMealie(request, mealie);
+  await selectModule(page, request, buildModuleInstance('meal-planner'));
+  await page.getByRole('button', { name: 'Edit Meal Plan' }).click();
+  await expect(page.locator('[data-meal-cell]').getByText('Harvest Chili')).toBeVisible();
+
+  // The Library opens on Favorites; a search finds the rest.
+  await page.getByRole('textbox', { name: 'Search recipes in Mealie' }).first().fill('cornbread');
+  await page.getByRole('button', { name: /Skillet Cornbread/ }).first().click();
+  const favorite = page.getByTestId('mealie-detail-favorite');
+  await expect(favorite).toHaveAttribute('aria-pressed', 'false');
+  await favorite.click();
+  await expect(favorite).toHaveAttribute('aria-pressed', 'true');
+  await expect.poll(() => mealie!.recipes.find((r) => r.slug === 'skillet-cornbread')?.favorite).toBe(true);
+});

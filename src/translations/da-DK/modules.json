@@ -436,6 +436,7 @@
       "noRecipeHint": "Tilføj ingredienser eller noter til måltidet under Måltider på telefonen, så vises det her.",
       "noFavoritesTitle": "Ingen favoritter endnu",
       "noFavoritesHint": "Tryk på hjertet ved en opskrift i Mealie, så dukker den op her.",
+      "noFavoritesHintTouch": "Tryk på hjertet ved en opskrift, så dukker den op her.",
       "noRecentTitle": "Intet lavet endnu",
       "noRecentHint": "Opskrifter, I markerer som lavet i Mealie, vises her, nyeste først.",
       "mealieEmptyTitle": "Ingen opskrifter i Mealie endnu",
@@ -492,6 +493,8 @@
     "openRecipeAria": "Åbn opskriften på {name}",
     "showQrInstead": "Vis QR-kode",
     "closeRecipe": "Luk",
+    "favoriteAdd": "Føj {meal} til favoritter",
+    "favoriteRemove": "Fjern {meal} fra favoritter",
     "planFromPhoneHint": "Planlæg måltider fra en telefon: åbn {url} og tryk på Måltider",
     "courses": {
       "main": "Hovedret",

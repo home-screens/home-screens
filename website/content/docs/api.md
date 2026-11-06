@@ -687,6 +687,22 @@ Toggles a grocery item's checked state on one week's list. If the item is alread
 
 While the meal plan lives in Mealie, the tick goes to the Mealie shopping list the family shops from instead, on every item with that `name` or `alsoCalled` (salt from two recipes is two items), and `week` is not used. **Response:** `{ "changed": true, "matched": 2, "source": "mealie" }`: `matched` is how many items carry the name, so `0` means it is not on the list.
 
+### POST /api/meals/favorite
+
+Puts the heart on a recipe or takes it off. Display access, a display token works, so a touch wall's Recipe book can heart recipes.
+
+**Body:**
+```json
+{
+  "mealId": "mealie:0f1e2d3c-4b5a-4968-8776-655443322110",
+  "favorite": true
+}
+```
+
+A Mealie recipe (`mealie:<recipe id>`) is hearted in Mealie, among the favorites of the Mealie user whose token is saved, so it shows in Mealie's own pages too. Any other `mealId` is one of the family's own saved meals, marked in `meals.json`; one that is not there is `404`. `favorite` sets the heart rather than flipping it, so sending it twice is still one heart.
+
+**Response:** `{ "mealId": "mealie:0f1e2d3c-...", "favorite": true }`
+
 ## Mealie
 
 The hub talks to the household's [Mealie](https://mealie.io) with the address and token saved on Settings > API keys. Errors from Mealie come back as `{ "error": "...", "failure": "..." }`, where `failure` is one of `not-set-up`, `bad-address`, `unreachable`, `not-mealie`, `too-old`, `key-rejected` or `upstream`.
@@ -728,9 +744,9 @@ If any meal's entries in Mealie are no longer the ones in `before`, nothing is w
 
 ### GET /api/mealie/recipes
 
-One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Requires a valid session.
+One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Display access, a display token works. `isFavorite` says whether each recipe is one of the favorites of the Mealie user whose token is saved.
 
-**Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "..." }], "page": 1, "totalPages": 29, "total": 848 }`
+**Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "...", "isFavorite": true }], "page": 1, "totalPages": 29, "total": 848 }`
 
 ### GET /api/mealie/shopping
 

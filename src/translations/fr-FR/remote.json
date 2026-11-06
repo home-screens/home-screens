@@ -1502,7 +1502,8 @@
       "noneDescription": "Vérifie l'orthographe, ou essaie un mot plus court.",
       "emptyTitle": "Pas encore de recettes dans Mealie",
       "emptyDescription": "Les recettes que tu ajoutes dans Mealie apparaissent ici.",
-      "openRecipeAriaLabel": "Ouvrir {meal} dans Mealie"
+      "openRecipeAriaLabel": "Ouvrir {meal} dans Mealie",
+      "noFavoritesDescription": "Touche le cœur d'une recette et elle apparaîtra ici."
     },
     "grocery": {
       "lists": "Listes de courses",

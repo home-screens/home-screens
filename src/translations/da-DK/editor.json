@@ -3092,6 +3092,8 @@
         "other": "Til {count} personer"
       },
       "readOnlyNote": "Denne opskrift ligger i Mealie. Ret den der, så er den opdateret her inden for et par minutter.",
+      "favorite": "Favorit",
+      "noFavorites": "Ingen favoritter endnu. Åbn en opskrift og klik på »Favorit«, eller søg ovenfor.",
       "grocery": {
         "list": "Indkøbsliste",
         "listOption": {

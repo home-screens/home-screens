@@ -407,3 +407,72 @@ test.describe('Recipe book from Mealie', () => {
     await expect(sheet.getByTestId('recipe-book-sheet-chip-category:dessert')).toBeVisible();
   });
 });
+
+test.describe('Hearts on the Recipe book', () => {
+  test.afterEach(async ({ request }) => {
+    await disconnectFakeMealie(request);
+    await mealie?.close();
+    mealie = null;
+  });
+
+  const heartOf = (scope: Locator, name: string) =>
+    scope.getByTestId('recipe-book-item').filter({ has: scope.page().getByTestId('recipe-book-tile-name').getByText(name, { exact: true }) }).getByTestId('recipe-book-heart');
+
+  test("hearts the family's own recipes on a tile and on the card, saved where the phone's Library reads them", async ({ page, request }) => {
+    await seedMeals(request, { savedMeals: LOCAL, plan: [] });
+    await show(request, 'fullscreen-meal-planner');
+    const mod = await open(page);
+    await expect.poll(() => tileNames(mod)).toHaveLength(3);
+    const favorite = async (id: string) => ((await (await request.get('/api/meals/data')).json()).savedMeals as { id: string; isFavorite?: boolean }[])
+      .find((m) => m.id === id)?.isFavorite ?? false;
+
+    await expect(heartOf(mod, 'Tacos')).toHaveAttribute('aria-pressed', 'true');
+    await expect(heartOf(mod, 'Waffles')).toHaveAttribute('aria-pressed', 'false');
+    await heartOf(mod, 'Waffles').click();
+    await expect(heartOf(mod, 'Waffles')).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => favorite('meal-w')).toBe(true);
+    // Tapping the heart does not open the recipe.
+    await expect(page.getByTestId('recipe-card')).toHaveCount(0);
+
+    await mod.getByTestId('recipe-book-tile').filter({ hasText: 'Waffles' }).click();
+    const card = page.getByTestId('recipe-card');
+    await expect(card.getByTestId('recipe-card-heart')).toHaveAttribute('aria-pressed', 'true');
+    await card.getByTestId('recipe-card-heart').click();
+    await expect(card.getByTestId('recipe-card-heart')).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(() => favorite('meal-w')).toBe(false);
+    await card.getByTestId('recipe-card-close').click();
+    await expect(heartOf(mod, 'Waffles')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test("hearts a Mealie recipe in Mealie, and the recipe card agrees", async ({ page, request }) => {
+    mealie = await startFakeMealie();
+    await connectFakeMealie(request, mealie);
+    await show(request, 'fullscreen-meal-planner');
+    const mod = await open(page);
+    await expect.poll(() => sortedTileNames(mod)).toEqual(['Apple Crumble', 'Harvest Chili']);
+    await expect(heartOf(mod, 'Harvest Chili')).toHaveAttribute('aria-pressed', 'true');
+
+    await mod.getByTestId('recipe-book-chip-all').click();
+    await expect.poll(() => tileNames(mod)).toHaveLength(6);
+    await expect(heartOf(mod, 'Skillet Cornbread')).toHaveAttribute('aria-pressed', 'false');
+    await heartOf(mod, 'Skillet Cornbread').click();
+    await expect.poll(() => mealie!.recipes.find((r) => r.slug === 'skillet-cornbread')?.favorite).toBe(true);
+    expect(mealie.requests).toContain('POST /api/users/u1/favorites/1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d');
+
+    await mod.getByTestId('recipe-book-tile').filter({ hasText: 'Harvest Chili' }).click();
+    const card = page.getByTestId('recipe-card');
+    await expect(card.getByTestId('recipe-card-heart')).toHaveAttribute('aria-pressed', 'true');
+    await card.getByTestId('recipe-card-heart').click();
+    await expect.poll(() => mealie!.recipes.find((r) => r.slug === 'harvest-chili')?.favorite).toBe(false);
+  });
+
+  test('a wall without touch shows only the red hearts of favorites', async ({ page, request }) => {
+    await seedMeals(request, { savedMeals: LOCAL, plan: [] });
+    await show(request, 'fullscreen-meal-planner', { interactive: false });
+    const mod = await open(page);
+    await expect.poll(() => tileNames(mod)).toHaveLength(3);
+    await expect(mod.getByTestId('recipe-book-heart')).toHaveCount(1);
+    await expect(heartOf(mod, 'Tacos')).toBeVisible();
+    await expect(mod.getByRole('button', { name: /favorites/ })).toHaveCount(0);
+  });
+});

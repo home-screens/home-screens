@@ -11,13 +11,14 @@ vi.mock('@/lib/mealie', async (importOriginal) => {
   return {
     ...real,
     getMealieContext: vi.fn(),
+    getMealieFavoriteIds: vi.fn(),
     searchMealieRecipes: vi.fn(),
   };
 });
 
 import { GET } from '../route';
 import { requireDisplayAuth, requireSession } from '@/lib/auth';
-import { getMealieContext, searchMealieRecipes, MealieError } from '@/lib/mealie';
+import { getMealieContext, getMealieFavoriteIds, searchMealieRecipes, MealieError } from '@/lib/mealie';
 
 const req = (q = '') => new NextRequest(`http://localhost/api/mealie/recipes${q}`);
 const RECIPE = { id: '0f1e2d3c-4b5a-4968-8776-655443322110', slug: 'tikka', name: 'Tikka', image: 'abc', prepTime: '15 minutes' };
@@ -27,6 +28,7 @@ describe('GET /api/mealie/recipes', () => {
     vi.clearAllMocks();
     vi.mocked(getMealieContext).mockResolvedValue({ baseUrl: 'http://mealie.local', groupSlug: 'home' });
     vi.mocked(searchMealieRecipes).mockResolvedValue({ items: [RECIPE], page: 1, totalPages: 1, total: 1 });
+    vi.mocked(getMealieFavoriteIds).mockResolvedValue(new Set());
   });
 
   it('answers with Mealie recipes as saved meals', async () => {
@@ -39,11 +41,20 @@ describe('GET /api/mealie/recipes', () => {
         recipeUrl: 'http://mealie.local/g/home/r/tikka',
         prepTime: 15,
         photoUrl: `/api/mealie/image/${RECIPE.id}?v=abc`,
+        isFavorite: false,
       }],
       page: 1,
       totalPages: 1,
       total: 1,
     });
+  });
+
+  it("says which recipes are the hub's Mealie user's favorites, for the hearts", async () => {
+    const other = { ...RECIPE, id: '1f1e2d3c-4b5a-4968-8776-655443322110', slug: 'naan', name: 'Naan' };
+    vi.mocked(searchMealieRecipes).mockResolvedValue({ items: [RECIPE, other], page: 1, totalPages: 1, total: 2 });
+    vi.mocked(getMealieFavoriteIds).mockResolvedValue(new Set([RECIPE.id]));
+    const { items } = await (await GET(req())).json();
+    expect(items.map((m: { name: string; isFavorite: boolean }) => [m.name, m.isFavorite])).toEqual([['Tikka', true], ['Naan', false]]);
   });
 
   it('refuses an unknown filter or a made-up category', async () => {

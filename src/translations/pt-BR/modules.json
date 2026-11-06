@@ -436,6 +436,7 @@
       "noRecipeHint": "Adicione ingredientes ou notas em Refeições no celular e ela aparece aqui.",
       "noFavoritesTitle": "Nenhuma favorita ainda",
       "noFavoritesHint": "Toque no coração de uma receita no Mealie e ela aparece aqui.",
+      "noFavoritesHintTouch": "Toque no coração de uma receita e ela aparece aqui.",
       "noRecentTitle": "Nada feito ainda",
       "noRecentHint": "As receitas que você marcar como feitas no Mealie aparecem aqui, as mais recentes primeiro.",
       "mealieEmptyTitle": "Nenhuma receita no Mealie ainda",
@@ -492,6 +493,8 @@
     "openRecipeAria": "Abrir a receita de {name}",
     "showQrInstead": "Mostrar código QR",
     "closeRecipe": "Fechar",
+    "favoriteAdd": "Adicionar {meal} aos favoritos",
+    "favoriteRemove": "Remover {meal} dos favoritos",
     "planFromPhoneHint": "Planeje as refeições pelo celular: abra {url} e toque em Refeições",
     "courses": {
       "main": "Prato",

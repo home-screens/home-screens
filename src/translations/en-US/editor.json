@@ -3092,6 +3092,8 @@
         "other": "Serves {count}"
       },
       "readOnlyNote": "This recipe lives in Mealie. Change it there and it updates here within a couple of minutes.",
+      "favorite": "Favorite",
+      "noFavorites": "No favorites yet. Open a recipe and click Favorite, or search above.",
       "grocery": {
         "list": "Shopping list",
         "listOption": {

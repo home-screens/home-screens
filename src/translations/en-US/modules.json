@@ -436,6 +436,7 @@
       "noRecipeHint": "Add ingredients or notes to it in Meals on your phone, and it shows up here.",
       "noFavoritesTitle": "No favorites yet",
       "noFavoritesHint": "Tap the heart on a recipe in Mealie and it shows up here.",
+      "noFavoritesHintTouch": "Tap the heart on any recipe and it shows up here.",
       "noRecentTitle": "Nothing made yet",
       "noRecentHint": "Recipes you mark as made in Mealie show up here, newest first.",
       "mealieEmptyTitle": "No recipes in Mealie yet",
@@ -492,6 +493,8 @@
     "openRecipeAria": "Open recipe for {name}",
     "showQrInstead": "Show QR code",
     "closeRecipe": "Close",
+    "favoriteAdd": "Add {meal} to favorites",
+    "favoriteRemove": "Remove {meal} from favorites",
     "planFromPhoneHint": "Plan meals from a phone: open {url} and tap Meals",
     "courses": {
       "main": "Main",

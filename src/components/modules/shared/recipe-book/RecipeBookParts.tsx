@@ -31,9 +31,16 @@ const ICONS = {
   cloudOff: 'm2 2 20 20M5.782 5.782A7 7 0 0 0 9 19h8.5a4.5 4.5 0 0 0 1.307-.193M21.532 16.5A4.5 4.5 0 0 0 17.5 10h-1.79A7.008 7.008 0 0 0 10 5.07',
 } as const;
 
-export function BookIcon({ name, size, strokeWidth = 2.2, style }: { name: keyof typeof ICONS; size: number; strokeWidth?: number; style?: CSSProperties }) {
+export function BookIcon({ name, size, strokeWidth = 2.2, fill = 'none', style }: {
+  name: keyof typeof ICONS;
+  size: number;
+  strokeWidth?: number;
+  /** `currentColor` for a filled heart. */
+  fill?: string;
+  style?: CSSProperties;
+}) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, ...style }}>
+    <svg viewBox="0 0 24 24" width={size} height={size} fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0, ...style }}>
       <path d={ICONS[name]} />
     </svg>
   );
@@ -44,14 +51,16 @@ export function BookIcon({ name, size, strokeWidth = 2.2, style }: { name: keyof
 /**
  * One recipe in the book: its photo (or emoji, or the faded plate of a Mealie
  * recipe without a photo) at 4:3, its name on two lines at most, and how long
- * it takes. A button on a touch wall; a picture otherwise.
+ * it takes. A button on a touch wall; a picture otherwise. `heart` sits on
+ * the picture's corner, beside the tile's button rather than inside it.
  */
-export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25 }: {
+export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25, heart }: {
   meal: SavedMeal;
   P: Px;
   onOpen?: (meal: SavedMeal) => void;
   nameSize?: number;
   metaSize?: number;
+  heart?: ReactNode;
 }) {
   const minutes = useMealMinutes()(meal);
   const picture = meal.photoUrl
@@ -82,18 +91,19 @@ export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25 }: {
     </>
   );
   const style: CSSProperties = { display: 'flex', flexDirection: 'column', minWidth: 0 };
-  if (!onOpen) return <div data-testid="recipe-book-tile" style={style}>{body}</div>;
-  return (
+  const tile = !onOpen ? <div data-testid="recipe-book-tile" style={style}>{body}</div> : (
     <button
       type="button"
       {...wallPressProps}
       data-testid="recipe-book-tile"
       onClick={() => onOpen(meal)}
-      style={{ ...style, border: 0, background: 'none', padding: 0, font: 'inherit', color: 'inherit', cursor: 'pointer' }}
+      style={{ ...style, width: '100%', border: 0, background: 'none', padding: 0, font: 'inherit', color: 'inherit', cursor: 'pointer' }}
     >
       {body}
     </button>
   );
+  if (!heart) return tile;
+  return <div data-testid="recipe-book-item" style={{ position: 'relative', minWidth: 0 }}>{tile}{heart}</div>;
 }
 
 /** Soft boxes where the tiles will be, while the first page is on its way. */

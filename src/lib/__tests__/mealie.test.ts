@@ -108,3 +108,57 @@ describe('getMealieContext', () => {
     expect(fetchWithTimeout).not.toHaveBeenCalled();
   });
 });
+
+describe('Mealie favorites', () => {
+  // Each test its own key, so the half-minute favorites cache of one never answers another.
+  let n = 0;
+  let favorites: string[];
+  const R1 = '0f1e2d3c-4b5a-4968-8776-655443322110';
+  const R2 = '1f1e2d3c-4b5a-4968-8776-655443322110';
+  const favoriteCalls = () => vi.mocked(fetchWithTimeout).mock.calls.filter(([url]) => String(url).endsWith('/api/users/self/favorites'));
+  const writes = () => vi.mocked(fetchWithTimeout).mock.calls
+    .filter(([url]) => String(url).includes('/api/users/u/favorites/'))
+    .map(([url, init]) => `${(init as RequestInit).method} ${String(url).replace('http://mealie.local', '')}`);
+
+  beforeEach(() => {
+    secrets.values = { mealie_url: 'http://mealie.local', mealie_api_key: `key-${n++}` };
+    favorites = [R1];
+    vi.mocked(fetchWithTimeout).mockImplementation(async (url, init) => {
+      const u = String(url);
+      if (u.endsWith('/api/users/self')) return json(USER);
+      if (u.endsWith('/api/users/self/favorites')) {
+        return json({ ratings: [...favorites.map((recipeId) => ({ recipeId, isFavorite: true })), { recipeId: R2, rating: 4, isFavorite: false }] });
+      }
+      if (u.includes('/api/users/u/favorites/')) return new Response(null, { status: 200 });
+      throw new Error(`unexpected ${(init as RequestInit | undefined)?.method ?? 'GET'} ${u}`);
+    });
+  });
+
+  it("reads the key's person's hearts once per half minute, leaving out ratings that are not hearts", async () => {
+    const { getMealieFavoriteIds } = await import('../mealie');
+    expect([...await getMealieFavoriteIds()]).toEqual([R1]);
+    await getMealieFavoriteIds();
+    expect(favoriteCalls()).toHaveLength(1);
+  });
+
+  it('hearts and un-hearts by recipe id for the key\'s person, and the next read agrees without asking Mealie', async () => {
+    const { getMealieFavoriteIds, setMealieFavorite } = await import('../mealie');
+    await getMealieFavoriteIds();
+    await setMealieFavorite(R2, true);
+    await setMealieFavorite(R1, false);
+    expect(writes()).toEqual([`POST /api/users/u/favorites/${R2}`, `DELETE /api/users/u/favorites/${R1}`]);
+    expect([...await getMealieFavoriteIds()]).toEqual([R2]);
+    expect(favoriteCalls()).toHaveLength(1);
+  });
+
+  it('says Mealie had a problem when it refuses a heart, and leaves the hearts as they were', async () => {
+    const { getMealieFavoriteIds, setMealieFavorite } = await import('../mealie');
+    await getMealieFavoriteIds();
+    const answer = vi.mocked(fetchWithTimeout).getMockImplementation()!;
+    vi.mocked(fetchWithTimeout).mockImplementation(async (url, init) => (
+      String(url).includes('/api/users/u/favorites/') ? new Response('{"detail":"Not found"}', { status: 404 }) : answer(url, init)
+    ));
+    await expect(setMealieFavorite(R2, true)).rejects.toMatchObject({ failure: 'upstream', status: 404 });
+    expect([...await getMealieFavoriteIds()]).toEqual([R1]);
+  });
+});

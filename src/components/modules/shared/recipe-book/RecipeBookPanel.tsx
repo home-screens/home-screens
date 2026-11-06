@@ -11,6 +11,7 @@ import { recipeBookChipId, recipeBookHeading } from '@/lib/meal-recipe-book';
 import { WallScroller } from '../WallScroller';
 import { WallKeyboard } from '../WallKeyboard';
 import { mealieWords } from '../mealie-problem';
+import { WallRecipeHeart } from '../WallRecipeHeart';
 import type { WallRecipeBook } from './useWallRecipeBook';
 import { BookMessage, RecipeBookChips, RecipeSearchField, RecipeTile, RecipeTileSkeletons, SECTION_LABEL, useChipLabel, type Px } from './RecipeBookParts';
 
@@ -36,18 +37,23 @@ interface RecipeBookPanelProps {
   onCardChange?: (open: boolean) => void;
 }
 
-/** What an empty book says, as keys under `meal-planner.recipeBook` and their values. */
+/**
+ * What an empty book says, as keys under `meal-planner.recipeBook` and their
+ * values. Empty Favorites on a touch wall points at the hearts on its own
+ * tiles; without touch, at Mealie's.
+ */
 function emptyMessage(
   book: WallRecipeBook,
   typed: string,
   chipLabel: (chip: WallRecipeBook['active']) => string,
+  interactive: boolean,
 ): [string, string, Record<string, string>] {
   const chip = book.active;
   // A saved meal with no recipe is not in the book; say so rather than "check the spelling".
   if (typed && book.withoutRecipe) return ['noRecipeTitle', 'noRecipeHint', { name: book.withoutRecipe.name }];
   if (typed) return ['noneTitle', 'noneHint', { query: typed }];
   if (book.source === 'local' && chip.kind === 'local' && chip.filter === 'all') return ['emptyTitle', 'emptyHint', {}];
-  if (chip.kind === 'mealie' && chip.filter === 'favorites') return ['noFavoritesTitle', 'noFavoritesHint', {}];
+  if (chip.kind === 'mealie' && chip.filter === 'favorites') return ['noFavoritesTitle', interactive ? 'noFavoritesHintTouch' : 'noFavoritesHint', {}];
   if (chip.kind === 'mealie' && chip.filter === 'recent') return ['noRecentTitle', 'noRecentHint', {}];
   if (chip.kind === 'mealie') return ['mealieEmptyTitle', 'mealieEmptyHint', {}];
   return ['noneInGroupTitle', 'noneInGroupHint', { group: chipLabel(chip) }];
@@ -192,7 +198,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       </div>
     );
   } else if (book.items.length === 0) {
-    const [titleKey, hintKey, values] = emptyMessage(book, typed ? words.trim() : '', chipLabel);
+    const [titleKey, hintKey, values] = emptyMessage(book, typed ? words.trim() : '', chipLabel, interactive);
     body = (
       <BookMessage
         testId="recipe-book-empty"
@@ -214,6 +220,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
             nameSize={landscape ? 28 : 31}
             metaSize={landscape ? 23 : 25}
             onOpen={interactive ? setOpen : undefined}
+            heart={<WallRecipeHeart meal={meal} P={P} place="tile" interactive={interactive} />}
           />
         ))}
       </div>

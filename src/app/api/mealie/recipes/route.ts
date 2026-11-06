@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
-import { getMealieContext, isMealieRecipeFilter, searchMealieRecipes } from '@/lib/mealie';
+import { getMealieContext, getMealieFavoriteIds, isMealieRecipeFilter, searchMealieRecipes } from '@/lib/mealie';
 import { mealieRecipeToMeal } from '@/lib/mealie-map';
 import { withMealieErrors } from '@/lib/mealie-api';
 
@@ -10,9 +10,9 @@ export const dynamic = 'force-dynamic';
 /**
  * GET /api/mealie/recipes?search=&filter=all|favorites|recent&category=&cookbook=&page=: one page
  * of the family's Mealie recipes for the phone's and the editor's pickers and
- * the wall's recipe book, searched in Mealie and handed back as saved meals.
- * Nothing is copied into Home Screens. Display access, since the wall reads
- * it; it only ever reads.
+ * the wall's recipe book, searched in Mealie and handed back as saved meals,
+ * each saying whether it is a favorite (its heart). Nothing is copied into
+ * Home Screens. Display access, since the wall reads it; it only ever reads.
  */
 export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest) => {
   const params = request.nextUrl.searchParams;
@@ -28,12 +28,13 @@ export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest)
   if (cookbook !== undefined && !/^[a-z0-9-]{1,100}$/.test(cookbook)) {
     return NextResponse.json({ error: 'cookbook must be a Mealie cookbook slug' }, { status: 400 });
   }
-  const [result, mealie] = await Promise.all([
+  const [result, mealie, favorites] = await Promise.all([
     searchMealieRecipes({ search, filter, category, cookbook, page: Number.isInteger(page) ? page : 1 }),
     getMealieContext(),
+    getMealieFavoriteIds(),
   ]);
   return NextResponse.json({
-    items: result.items.map((r) => mealieRecipeToMeal(r, mealie)),
+    items: result.items.map((r) => mealieRecipeToMeal(r, mealie, favorites)),
     page: result.page,
     totalPages: result.totalPages,
     total: result.total,

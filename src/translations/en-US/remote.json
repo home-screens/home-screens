@@ -1502,7 +1502,8 @@
       "noneDescription": "Check the spelling, or try a shorter word.",
       "emptyTitle": "No recipes in Mealie yet",
       "emptyDescription": "Recipes you add in Mealie show up here.",
-      "openRecipeAriaLabel": "Open {meal} in Mealie"
+      "openRecipeAriaLabel": "Open {meal} in Mealie",
+      "noFavoritesDescription": "Tap the heart on any recipe and it shows up here."
     },
     "grocery": {
       "lists": "Shopping lists",

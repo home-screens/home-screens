@@ -13,12 +13,14 @@ import { recipeServingAt, useMealOverlayTheme, useMealRecipeContext, type MealSe
 import { useWallOverlayScale } from './useWallOverlayScale';
 import { WallOverlay } from './WallOverlay';
 import { wallPressProps } from './wallPress';
+import { WallRecipeHeart } from './WallRecipeHeart';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
 
 /**
  * The recipe of a tapped meal, drawn on a card over the wall in the display's
- * full-screen theme: the same layout as the Recipe view, with a close button,
+ * full-screen theme: the same layout as the Recipe view, with a close button
+ * and the recipe's heart under it,
  * a QR code for a phone, and the courses as buttons that open their own
  * recipes on the same card. A card nobody cooks from closes itself ten
  * minutes after the last touch; the first tick, step or course starts
@@ -41,6 +43,11 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const { serving, courses, scale } = useMemo(() => recipeServingAt(ctx, at, meal), [ctx, at, meal]);
   const recipe = useMealRecipe(meal, scale);
   const recipeUrl = recipeLink(meal);
+  // A recipe tapped in the book says whether it is a favorite; one tapped on
+  // the plan does not, and its recipe, once read, does.
+  const heartMeal = meal.isFavorite === undefined && recipe.status === 'ready' && recipe.favorite !== undefined
+    ? { ...meal, isFavorite: recipe.favorite }
+    : meal;
 
   const footer = (measuring: boolean) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: P(26), marginTop: P(24), flexShrink: 0 }}>
@@ -114,6 +121,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
         >
           &times;
         </button>
+        <WallRecipeHeart meal={heartMeal} P={P} place="card" />
       </div>
     </WallOverlay>
   );

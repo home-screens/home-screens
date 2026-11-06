@@ -222,8 +222,13 @@ export function mealieRecipeUrl(recipeId: string, scale = 1): string {
   return `/api/mealie/recipe/${encodeURIComponent(recipeId)}${scale !== 1 ? `?scale=${scale}` : ''}`;
 }
 
-/** A Mealie recipe as the saved meal every view already knows how to draw. */
-export function mealieRecipeToMeal(recipe: MealieRecipeSummary, ctx: MealieContext): SavedMeal {
+/**
+ * A Mealie recipe as the saved meal every view already knows how to draw.
+ * With `favorites` (the hearted recipe ids, `getMealieFavoriteIds`) the meal
+ * says whether it is one, true or false; without, `isFavorite` is left out,
+ * which for a Mealie meal means not known (the plan's meals).
+ */
+export function mealieRecipeToMeal(recipe: MealieRecipeSummary, ctx: MealieContext, favorites?: ReadonlySet<string>): SavedMeal {
   const tags: string[] = [];
   const seen = new Set<string>();
   for (const o of [...(recipe.recipeCategory ?? []), ...(recipe.tags ?? [])]) {
@@ -252,6 +257,7 @@ export function mealieRecipeToMeal(recipe: MealieRecipeSummary, ctx: MealieConte
   if (typeof recipe.rating === 'number' && recipe.rating > 0) meal.rating = Math.min(5, Math.max(1, Math.round(recipe.rating)));
   const photoUrl = mealiePhotoUrl(recipe);
   if (photoUrl) meal.photoUrl = photoUrl;
+  if (favorites) meal.isFavorite = favorites.has(recipe.id);
   return meal;
 }
 
@@ -560,7 +566,7 @@ export function mealieIngredientText(ing: MealieRecipeIngredient, scale = 1): st
 }
 
 /** `scale` batches of the recipe; the meal itself (and its servings) stays as Mealie has it. */
-export function mealieRecipeDetail(recipe: MealieRecipe, ctx: MealieContext, scale = 1): MealieRecipeDetail {
+export function mealieRecipeDetail(recipe: MealieRecipe, ctx: MealieContext, scale = 1, favorites?: ReadonlySet<string>): MealieRecipeDetail {
   const ingredients: MealieRecipeDetail['ingredients'] = [];
   for (const ing of recipe.recipeIngredient ?? []) {
     const text = mealieIngredientText(ing, scale);
@@ -574,5 +580,5 @@ export function mealieRecipeDetail(recipe: MealieRecipe, ctx: MealieContext, sca
     if (text) steps.push({ ...(heading ? { heading } : {}), text });
   }
   const description = recipe.description?.trim();
-  return { meal: mealieRecipeToMeal(recipe, ctx), ...(description ? { description } : {}), ingredients, steps };
+  return { meal: mealieRecipeToMeal(recipe, ctx, favorites), ...(description ? { description } : {}), ingredients, steps };
 }

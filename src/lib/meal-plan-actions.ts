@@ -334,6 +334,17 @@ export function toggleSavedMealFavorite(savedMeals: SavedMeal[], mealId: string)
 }
 
 /**
+ * Make a saved meal a favorite or not, whatever it was: a heart sent twice is
+ * still one heart. The same list back when nothing changes (no such meal, or
+ * already so), which tells the store there is nothing to write.
+ */
+export function setSavedMealFavorite(savedMeals: SavedMeal[], mealId: string, favorite: boolean): SavedMeal[] {
+  const meal = savedMeals.find((m) => m.id === mealId);
+  if (!meal || !!meal.isFavorite === favorite) return savedMeals;
+  return savedMeals.map((m) => (m.id === mealId ? { ...m, isFavorite: favorite } : m));
+}
+
+/**
  * Put entries back into the plan exactly as they were, replacing whatever has
  * been planned into their slots since. For undoing a deletion or a cleared
  * week: `assignPlanSlot` would rebuild them from date, slot and meal alone and

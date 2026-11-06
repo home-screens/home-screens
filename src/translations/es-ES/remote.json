@@ -1502,7 +1502,8 @@
       "noneDescription": "Revisa cómo está escrito o prueba con una palabra más corta.",
       "emptyTitle": "Aún no hay recetas en Mealie",
       "emptyDescription": "Las recetas que añadas en Mealie aparecen aquí.",
-      "openRecipeAriaLabel": "Abrir {meal} en Mealie"
+      "openRecipeAriaLabel": "Abrir {meal} en Mealie",
+      "noFavoritesDescription": "Toca el corazón de una receta y aparecerá aquí."
     },
     "grocery": {
       "lists": "Listas de la compra",

@@ -481,8 +481,7 @@ export async function searchMealieRecipes(opts: {
     params.set('orderDirection', 'asc');
   }
   if (opts.filter === 'favorites') {
-    const favorites = await mealieJson<{ ratings?: { recipeId: string; isFavorite?: boolean }[] }>('/api/users/self/favorites');
-    const ids = (favorites?.ratings ?? []).filter((r) => r.isFavorite !== false).map((r) => r.recipeId);
+    const ids = [...await getMealieFavoriteIds()];
     if (ids.length === 0) return { items: [], page: 1, totalPages: 0, total: 0 };
     params.set('queryFilter', `id IN [${ids.map((id) => JSON.stringify(id)).join(',')}]`);
   }
@@ -589,6 +588,57 @@ export async function getMealieRecipe(recipeId: string): Promise<MealieRecipe> {
   const recipe = await mealieJson<MealieRecipe>(`/api/recipes/${encodeURIComponent(recipeId)}`, undefined, cfg);
   recipeCache.set(key, recipe);
   return recipe;
+}
+
+// ── Favorites ──
+
+const favoritesCache = createTTLCache<ReadonlySet<string>>(30_000);
+
+/**
+ * The recipes hearted by the person whose key the hub holds, by recipe id.
+ * Mealie keeps favorites per person; this is the list every Favorites chip
+ * reads and every heart on a Home Screens surface writes. Kept half a minute
+ * on the hub, so one page of a list and the next agree; a heart made here
+ * changes it at once, one made in Mealie's own pages shows within the half
+ * minute.
+ */
+export async function getMealieFavoriteIds(cfg?: MealieConfig): Promise<ReadonlySet<string>> {
+  const conn = cfg ?? await requireMealieConfig();
+  const key = mealieConnectionKey(conn);
+  const cached = favoritesCache.get(key);
+  if (cached) return cached;
+  const answer = await mealieJson<{ ratings?: { recipeId?: unknown; isFavorite?: boolean }[] }>('/api/users/self/favorites', undefined, conn);
+  const ids = new Set<string>();
+  for (const r of answer?.ratings ?? []) {
+    if (typeof r.recipeId === 'string' && r.isFavorite !== false) ids.add(r.recipeId);
+  }
+  favoritesCache.set(key, ids);
+  return ids;
+}
+
+/**
+ * Heart a recipe in Mealie, or take the heart off, for the person whose key
+ * the hub holds. Mealie (2.0 on) takes the recipe's id where its path says
+ * slug, and answers the same however many times it is asked, so a heart
+ * sent twice is still one heart.
+ */
+export async function setMealieFavorite(recipeId: string, favorite: boolean): Promise<void> {
+  const cfg = await requireMealieConfig();
+  const user = await getMealieUser(cfg);
+  const res = await mealieFetch(
+    `/api/users/${encodeURIComponent(user.id)}/favorites/${encodeURIComponent(recipeId)}`,
+    { method: favorite ? 'POST' : 'DELETE' },
+    cfg,
+  );
+  if (!res.ok) throw new MealieError('upstream', `Mealie answered ${res.status}`, res.status);
+  const key = mealieConnectionKey(cfg);
+  const cached = favoritesCache.get(key);
+  if (cached) {
+    const next = new Set(cached);
+    if (favorite) next.add(recipeId);
+    else next.delete(recipeId);
+    favoritesCache.set(key, next);
+  }
 }
 
 /** The sizes Mealie keeps of every recipe photo. */
