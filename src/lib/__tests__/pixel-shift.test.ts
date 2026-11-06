@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PIXEL_SHIFT_PITCH_PX, PIXEL_SHIFT_POSITIONS, PIXEL_SHIFT_REACH_PX, pixelShiftMinute, pixelShiftOffset, pixelShiftTransform } from '../pixel-shift';
+import { CLOCK_WANDER_REACH_X_PX, CLOCK_WANDER_REACH_Y_PX, PIXEL_SHIFT_PITCH_PX, PIXEL_SHIFT_POSITIONS, PIXEL_SHIFT_REACH_PX, pixelShiftMinute, pixelShiftOffset, pixelShiftTransform, wanderOffset } from '../pixel-shift';
 
 describe('pixel shift lattice', () => {
   it('visits 25 distinct spots within two pitches of centre', () => {
@@ -53,5 +53,41 @@ describe('pixel shift lattice', () => {
 
   it('only translates until the viewport is measured', () => {
     expect(pixelShiftTransform({ x: 3, y: -3 }, 0, 0)).toBe('translate(3px, -3px)');
+  });
+});
+
+describe('clock wander', () => {
+  const RX = CLOCK_WANDER_REACH_X_PX;
+  const RY = CLOCK_WANDER_REACH_Y_PX;
+
+  it('moves one pixel a minute on each axis and stays inside its rectangle', () => {
+    for (let m = 0; m < 4 * RX * 4 * RY; m++) {
+      const a = wanderOffset(m, RX, RY);
+      const b = wanderOffset(m + 1, RX, RY);
+      expect(Math.abs(a.x - b.x)).toBe(1);
+      expect(Math.abs(a.y - b.y)).toBe(1);
+      expect(a.x).toBeGreaterThanOrEqual(0);
+      expect(a.x).toBeLessThanOrEqual(2 * RX);
+      expect(Math.abs(a.y)).toBeLessThanOrEqual(RY);
+    }
+  });
+
+  it('starts at rest, only drifts to the right, and covers every spot of the rectangle', () => {
+    expect(wanderOffset(0, RX, RY)).toEqual({ x: RX, y: 0 });
+    const xs = new Set<number>();
+    const ys = new Set<number>();
+    for (let m = 0; m < 4 * RX * 4 * RY; m++) {
+      const { x, y } = wanderOffset(m, RX, RY);
+      xs.add(x);
+      ys.add(y);
+    }
+    expect(xs.size).toBe(2 * RX + 1);
+    expect(ys.size).toBe(2 * RY + 1);
+  });
+
+  it('collapses an axis with no room and wraps for negative minutes', () => {
+    expect(wanderOffset(17, 0, RY).x).toBe(0);
+    expect(wanderOffset(17, RX, 0).y).toBe(0);
+    expect(wanderOffset(-1, RX, RY)).toEqual(wanderOffset(4 * RX * 4 * RY - 1, RX, RY));
   });
 });

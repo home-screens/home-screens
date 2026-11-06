@@ -10,6 +10,10 @@ import { useModuleCommand } from '@/hooks/useModuleCommand';
 import { handleSlideshowCommand } from '../shared/slideshow-commands';
 import { useTZClock } from '@/hooks/useTZClock';
 import { photoThemeTokens, clockOverlayPaint, type ClockBackdropSettings } from '@/lib/fullscreen-photo-theme';
+import { useBurnInProtection } from '@/components/display/burn-in-context';
+import { useElementBox } from '@/hooks/useElementBox';
+import { useWander } from '@/hooks/usePixelShift';
+import { CLOCK_WANDER_REACH_X_PX, CLOCK_WANDER_REACH_Y_PX } from '@/lib/pixel-shift';
 import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
 import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
@@ -204,6 +208,22 @@ function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: Fullsc
   const time = useTZClock(timezone, 60_000);
   const locale = useFormattingLocale();
 
+  // Burn-in protection: the text block drifts inside the band, a pixel a
+  // minute on the same tick as the time, as far as the band has room for
+  // (its inner width less the text, halved, capped at the reach). The
+  // whole-wall shift only reaches 6 px, which blurs the digits' edges and
+  // leaves their cores lit; the band has tens of pixels to spare. Until the
+  // band is measured (the server render, the first client frame) the full
+  // reach is assumed: a full-width wall, the usual case, then paints its
+  // first frame where the clock stays instead of jumping once measured.
+  const protect = useBurnInProtection();
+  const [bandRef, band] = useElementBox();
+  const [textRef, text] = useElementBox();
+  const reachX = band.width > 0 && text.width > 0
+    ? Math.max(0, Math.min(CLOCK_WANDER_REACH_X_PX, Math.floor((band.width - text.width) / 2)))
+    : CLOCK_WANDER_REACH_X_PX;
+  const wander = useWander(protect, reachX, CLOCK_WANDER_REACH_Y_PX);
+
   const is12Hour = householdTimeFormat(timeFormat, locale) === '12h';
   const hours = is12Hour ? (time.getHours() % 12 || 12) : time.getHours();
   const minutes = time.getMinutes().toString().padStart(2, '0');
@@ -224,32 +244,42 @@ function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: Fullsc
 
   return (
     <div
+      ref={bandRef}
       data-testid="fullscreen-photo-clock"
       className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-start px-10 pb-10"
-      style={{ background: paint.background }}
+      // The extra bottom padding keeps the text on the solid part of the
+      // backdrop when it drifts down; a step, never a glide.
+      style={{ background: paint.background, paddingBottom: wander ? 40 + CLOCK_WANDER_REACH_Y_PX : undefined }}
     >
-      <div className="flex items-baseline gap-2 pt-16">
-        <span
-          className="font-light tracking-tight leading-none"
-          style={{ color: textColor, fontSize: 'min(12vw, 96px)' }}
-        >
-          {hours}:{minutes}
-        </span>
-        {ampm !== null && (
-          <span
-            className="font-medium leading-none"
-            style={{ color: textMuted, fontSize: 'min(3.5vw, 28px)' }}
-          >
-            {ampm}
-          </span>
-        )}
-      </div>
-      <span
-        className="font-normal mt-1 leading-none"
-        style={{ color: textMuted, fontSize: 'min(3vw, 22px)' }}
+      <div
+        ref={textRef}
+        data-testid="fullscreen-photo-clock-text"
+        className="flex flex-col items-start"
+        style={{ transform: wander ? `translate(${wander.x}px, ${wander.y}px)` : undefined }}
       >
-        {dateStr}
-      </span>
+        <div className="flex items-baseline gap-2 pt-16">
+          <span
+            className="font-light tracking-tight leading-none"
+            style={{ color: textColor, fontSize: 'min(12vw, 96px)' }}
+          >
+            {hours}:{minutes}
+          </span>
+          {ampm !== null && (
+            <span
+              className="font-medium leading-none"
+              style={{ color: textMuted, fontSize: 'min(3.5vw, 28px)' }}
+            >
+              {ampm}
+            </span>
+          )}
+        </div>
+        <span
+          className="font-normal mt-1 leading-none"
+          style={{ color: textMuted, fontSize: 'min(3vw, 22px)' }}
+        >
+          {dateStr}
+        </span>
+      </div>
     </div>
   );
 }

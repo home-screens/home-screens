@@ -51,6 +51,7 @@ import { setHostSettings } from '@/lib/plugin-host-settings';
 import { setDisplayToken } from '@/lib/display-fetch';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { RotationProvider, type RotationState } from '@/components/display/rotation-context';
+import { BurnInProtectionProvider } from '@/components/display/burn-in-context';
 import { toDockScreen } from '@/lib/screen-dock';
 import { installConsoleBuffer } from '@/lib/console-buffer';
 import { showsPaginationDots } from '@/lib/pagination-dots';
@@ -135,7 +136,8 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const cursorRef = useIdleCursor(settings.cursorHideSeconds ?? 3);
   // Burn-in protection: the whole root box steps along a small lattice once
   // a minute. Never in the editor's preview, which must stay pixel-exact.
-  const pixelShift = usePixelShift(!preview && settings.pixelShift === true);
+  const burnInProtection = !preview && settings.pixelShift === true;
+  const pixelShift = usePixelShift(burnInProtection);
 
   useEffect(() => { loadPlugins('display'); }, [loadPlugins]);
 
@@ -809,6 +811,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       {/* The preview surface keeps tappable modules (display-control)
           from commanding the real kiosk this window is standing in for. */}
       <ModuleSurfaceProvider value={preview ? 'preview' : 'display'}>
+        <BurnInProtectionProvider value={burnInProtection}>
         <RotationProvider value={rotationState}>
           {showHint || !renderedScreen ? (
             settings.setupHintEnabled === false
@@ -860,6 +863,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
             displayId={displayId}
           />
         </RotationProvider>
+        </BurnInProtectionProvider>
       </ModuleSurfaceProvider>
 
       {/* Sibling of ScreenRenderer inside the stable outer div, so state

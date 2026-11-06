@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures';
 import { putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { TINY_GIF } from '../helpers/config-variants/shared';
 import { renderOnDisplay } from '../helpers/display';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { ModuleInstance, Profile } from '@/types/config';
@@ -235,6 +236,37 @@ test('pixelShift translates the wall root, off by default, per display when over
   await page.goto('/display/hall');
   await expect(page.getByText(A, { exact: true })).toBeVisible();
   expect(await rootTransform()).toBe('');
+});
+
+test('the photo overlay clock wanders inside its band on a protected display only', async ({ page, request }) => {
+  const photo = (id: string): ModuleInstance => ({
+    id, type: 'fullscreen-photo', position: { x: 0, y: 0 }, size: { w: 1080, h: 1920 }, zIndex: 1, style: { ...DEFAULT_MODULE_STYLE },
+    config: { photoSource: { kind: 'library', folder: '' }, file: TINY_GIF, intervalMs: 30000, transition: 'none', objectFit: 'cover', shuffle: false, showClock: true, kenBurns: false },
+  });
+  const config = baseConfig({
+    displays: [
+      { id: 'hall', name: 'Hall', screens: [makeScreen('hall-p', 'P', [photo('hall-photo')])] },
+      { id: 'kitchen', name: 'Kitchen', screens: [makeScreen('kitchen-p', 'P', [photo('kitchen-photo')])], settings: { pixelShift: true } },
+    ],
+  });
+  const text = () => page.getByTestId('fullscreen-photo-clock-text');
+  const transformOf = () => text().evaluate((el) => (el as HTMLElement).style.transform);
+
+  await renderOnDisplay(page, request, config, '/display/kitchen');
+  await expect(text()).toBeVisible();
+  // Sideways within the band's spare room (0 to 60 px), up or down within 12 px.
+  await expect.poll(transformOf).toMatch(/^translate\([0-9]+px, -?[0-9]+px\)$/);
+  const [, x, y] = (await transformOf()).match(/translate\((-?[0-9]+)px, (-?[0-9]+)px\)/)!;
+  expect(Number(x)).toBeGreaterThanOrEqual(0);
+  expect(Number(x)).toBeLessThanOrEqual(60);
+  expect(Math.abs(Number(y))).toBeLessThanOrEqual(12);
+  // The band grew below so the text stays on its solid part.
+  await expect(page.getByTestId('fullscreen-photo-clock')).toHaveCSS('padding-bottom', '52px');
+
+  await page.goto('/display/hall');
+  await expect(text()).toBeVisible();
+  expect(await transformOf()).toBe('');
+  await expect(page.getByTestId('fullscreen-photo-clock')).toHaveCSS('padding-bottom', '40px');
 });
 
 // ---------------------------------------------------------------------------

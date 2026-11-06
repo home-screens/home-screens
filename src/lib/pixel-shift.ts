@@ -75,3 +75,40 @@ export function pixelShiftTransform(offset: PixelShiftOffset, w: number, h: numb
   const scale = 1 + (2 * PIXEL_SHIFT_REACH_PX) / short;
   return `${translate} scale(${scale})`;
 }
+
+// ── The photo clock's wander ─────────────────────────────────────────
+
+/** How far the overlay clock drifts to the right of its resting place: 0 to twice this. */
+export const CLOCK_WANDER_REACH_X_PX = 30;
+/** How far the overlay clock drifts up or down. */
+export const CLOCK_WANDER_REACH_Y_PX = 12;
+
+/**
+ * A triangle wave of amplitude `reach` that moves one pixel per minute:
+ * 0 up to +reach, down through 0 to -reach, back to 0, over 4 * reach
+ * minutes. Zero everywhere for a reach of zero.
+ */
+function triangle(minute: number, reach: number): number {
+  if (reach <= 0) return 0;
+  const period = 4 * reach;
+  const t = ((Math.floor(minute) % period) + period) % period;
+  if (t < reach) return t;
+  if (t < 3 * reach) return 2 * reach - t;
+  return t - period;
+}
+
+/**
+ * Where a static element with room to move sits during `minute` of the
+ * epoch: a pair of triangle waves at one pixel per minute, the horizontal
+ * one offset so the element only drifts to the right of where it was
+ * authored (0 to 2 * reachX, never into the padding on its left) and the
+ * vertical one centred (-reachY to +reachY). The two periods differ, so the
+ * path covers the whole rectangle over a few hours. A stroke 10 px wide
+ * then lights any pixel about a sixth of the time instead of all of it.
+ */
+export function wanderOffset(minute: number, reachX: number, reachY: number): PixelShiftOffset {
+  return {
+    x: reachX > 0 ? reachX + triangle(minute, reachX) : 0,
+    y: triangle(minute, reachY),
+  };
+}
