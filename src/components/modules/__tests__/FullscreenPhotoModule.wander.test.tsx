@@ -7,7 +7,7 @@ import { DEFAULT_MODULE_STYLE, type FullscreenPhotoConfig, type ModuleStyle } fr
 import { I18nProvider } from '@/i18n/provider';
 import enUSModules from '@/translations/en-US/modules.json';
 import { BurnInProtectionProvider } from '@/components/display/burn-in-context';
-import { CLOCK_WANDER_REACH_X_PX, CLOCK_WANDER_REACH_Y_PX, pixelShiftMinute, wanderOffset } from '@/lib/pixel-shift';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX, pixelShiftMinute, wanderOffset } from '@/lib/pixel-shift';
 
 /**
  * The overlay clock answers the display's burn-in protection by drifting
@@ -60,12 +60,12 @@ describe('FullscreenPhotoModule clock wander', () => {
     const { container } = renderClock(true);
     act(() => { vi.advanceTimersByTime(0); });
     const at = (minute: number) => {
-      const { x, y } = wanderOffset(minute, CLOCK_WANDER_REACH_X_PX, CLOCK_WANDER_REACH_Y_PX);
+      const { x, y } = wanderOffset(minute, WANDER_REACH_X_PX, WANDER_REACH_Y_PX);
       return `translate(${x}px, ${y}px)`;
     };
     const m0 = pixelShiftMinute(start);
     expect(textBlock(container).style.transform).toBe(at(m0));
-    expect(band(container).style.paddingBottom).toBe(`${40 + CLOCK_WANDER_REACH_Y_PX}px`);
+    expect(band(container).style.paddingBottom).toBe(`${40 + WANDER_REACH_Y_PX}px`);
     expect(textBlock(container).style.transition).toBe('');
 
     act(() => { vi.advanceTimersByTime(39_000); });

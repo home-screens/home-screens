@@ -76,12 +76,31 @@ export function pixelShiftTransform(offset: PixelShiftOffset, w: number, h: numb
   return `${translate} scale(${scale})`;
 }
 
-// ── The photo clock's wander ─────────────────────────────────────────
+// ── Wandering inside a box ───────────────────────────────────────────
 
-/** How far the overlay clock drifts to the right of its resting place: 0 to twice this. */
-export const CLOCK_WANDER_REACH_X_PX = 30;
-/** How far the overlay clock drifts up or down. */
-export const CLOCK_WANDER_REACH_Y_PX = 12;
+/**
+ * The widest an element wanders along its long axis, either side of its
+ * centre: the photo clock across its band, the Display Control dock along
+ * its pill. The measured room caps it further.
+ */
+export const WANDER_REACH_X_PX = 30;
+/** The widest an element wanders across its short axis, either side of its centre. */
+export const WANDER_REACH_Y_PX = 12;
+
+/**
+ * Where a wandering element's offset is measured from.
+ *
+ * `start`: the element was authored against its leading edge (the photo
+ * clock, left-aligned in its band), so it only drifts away from that edge,
+ * 0 to twice the reach, never into the padding behind it.
+ *
+ * `centre`: the element was authored centred (the dock pill), so it drifts
+ * either way, minus the reach to plus the reach.
+ *
+ * Only the horizontal axis takes an anchor; the vertical one is always
+ * centred, since neither element was authored against its top or bottom.
+ */
+export type WanderAnchor = 'start' | 'centre';
 
 /**
  * A triangle wave of amplitude `reach` that moves one pixel per minute:
@@ -100,15 +119,21 @@ function triangle(minute: number, reach: number): number {
 /**
  * Where a static element with room to move sits during `minute` of the
  * epoch: a pair of triangle waves at one pixel per minute, the horizontal
- * one offset so the element only drifts to the right of where it was
- * authored (0 to 2 * reachX, never into the padding on its left) and the
- * vertical one centred (-reachY to +reachY). The two periods differ, so the
- * path covers the whole rectangle over a few hours. A stroke 10 px wide
- * then lights any pixel about a sixth of the time instead of all of it.
+ * one placed by `anchor` and the vertical one centred (-reachY to +reachY).
+ * Unequal reaches give the two waves different periods, so the path sweeps
+ * the rectangle over a few hours rather than one diagonal. A stroke 10 px
+ * wide then lights any pixel about a sixth of the time instead of all of it.
+ * Reaches are whole pixels; the caller floors what it measured.
  */
-export function wanderOffset(minute: number, reachX: number, reachY: number): PixelShiftOffset {
+export function wanderOffset(
+  minute: number,
+  reachX: number,
+  reachY: number,
+  anchor: WanderAnchor = 'start',
+): PixelShiftOffset {
+  const dx = triangle(minute, reachX);
   return {
-    x: reachX > 0 ? reachX + triangle(minute, reachX) : 0,
+    x: anchor === 'start' && reachX > 0 ? reachX + dx : dx,
     y: triangle(minute, reachY),
   };
 }

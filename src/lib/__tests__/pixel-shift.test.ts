@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CLOCK_WANDER_REACH_X_PX, CLOCK_WANDER_REACH_Y_PX, PIXEL_SHIFT_PITCH_PX, PIXEL_SHIFT_POSITIONS, PIXEL_SHIFT_REACH_PX, pixelShiftMinute, pixelShiftOffset, pixelShiftTransform, wanderOffset } from '../pixel-shift';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX, PIXEL_SHIFT_PITCH_PX, PIXEL_SHIFT_POSITIONS, PIXEL_SHIFT_REACH_PX, pixelShiftMinute, pixelShiftOffset, pixelShiftTransform, wanderOffset } from '../pixel-shift';
 
 describe('pixel shift lattice', () => {
   it('visits 25 distinct spots within two pitches of centre', () => {
@@ -56,9 +56,9 @@ describe('pixel shift lattice', () => {
   });
 });
 
-describe('clock wander', () => {
-  const RX = CLOCK_WANDER_REACH_X_PX;
-  const RY = CLOCK_WANDER_REACH_Y_PX;
+describe('wander from the start', () => {
+  const RX = WANDER_REACH_X_PX;
+  const RY = WANDER_REACH_Y_PX;
 
   it('moves one pixel a minute on each axis and stays inside its rectangle', () => {
     for (let m = 0; m < 4 * RX * 4 * RY; m++) {
@@ -89,5 +89,43 @@ describe('clock wander', () => {
     expect(wanderOffset(17, 0, RY).x).toBe(0);
     expect(wanderOffset(17, RX, 0).y).toBe(0);
     expect(wanderOffset(-1, RX, RY)).toEqual(wanderOffset(4 * RX * 4 * RY - 1, RX, RY));
+  });});
+
+describe('centred wander', () => {
+  const RX = WANDER_REACH_X_PX;
+  const RY = WANDER_REACH_Y_PX;
+  const centre = (m: number, rx = RX, ry = RY) => wanderOffset(m, rx, ry, 'centre');
+
+  it('starts at rest and moves one pixel a minute on each axis, either way of centre', () => {
+    expect(centre(0)).toEqual({ x: 0, y: 0 });
+    const xs = new Set<number>();
+    for (let m = 0; m < 4 * RX * 4 * RY; m++) {
+      const a = centre(m);
+      const b = centre(m + 1);
+      expect(Math.abs(a.x - b.x)).toBe(1);
+      expect(Math.abs(a.y - b.y)).toBe(1);
+      expect(Math.abs(a.x)).toBeLessThanOrEqual(RX);
+      expect(Math.abs(a.y)).toBeLessThanOrEqual(RY);
+      xs.add(a.x);
+    }
+    expect(Math.min(...xs)).toBe(-RX);
+    expect(Math.max(...xs)).toBe(RX);
+    expect(xs.size).toBe(2 * RX + 1);
+  });
+
+  it('is the start wave moved back by its reach, so both anchors take the same path', () => {
+    for (let m = 0; m < 200; m++) {
+      const s = wanderOffset(m, 7, 3);
+      const c = centre(m, 7, 3);
+      expect(c.x).toBe(s.x - 7);
+      expect(c.y).toBe(s.y);
+    }
+  });
+
+  it('holds still on an axis with no room', () => {
+    for (let m = 0; m < 50; m++) {
+      expect(centre(m, 0, RY).x).toBe(0);
+      expect(centre(m, RX, 0).y).toBe(0);
+    }
   });
 });

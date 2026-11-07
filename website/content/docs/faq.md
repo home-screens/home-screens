@@ -219,6 +219,7 @@ The cursor hides on its own after a few seconds without movement. **Hide cursor 
 
 Several built-in features help prevent burn-in:
 
+- **Protect the screen from burn-in**: under **Settings > Screen > Rotation & appearance**, moves everything on the display a few pixels once a minute. The Full-Screen Photo Viewer's clock and a Display Control dock also drift a little inside their own space. Each display can have its own setting under **Per display**
 - **Screen rotation**: cycle through multiple screens at a set interval so no single layout stays on screen indefinitely
 - **Sleep schedule**: configure hours when the display is fully blanked (e.g., overnight) at **Settings > Screen > Sleep & dimming**
 - **Dim schedule**: reduce brightness during certain hours without fully blanking the screen

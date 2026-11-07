@@ -8,6 +8,9 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { dockTileColor, type DockScreen } from '@/lib/screen-dock';
 import Glyph from '@/components/ui/Glyph';
 import { useElementBox } from '@/hooks/useElementBox';
+import { useWander } from '@/hooks/usePixelShift';
+import { useBurnInProtection } from '@/components/display/burn-in-context';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX } from '@/lib/pixel-shift';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
@@ -56,6 +59,27 @@ export function DockLayout(props: DockLayoutProps) {
   });
   const dim = pickerOpen ? 'opacity-35' : '';
 
+  // Burn-in protection: the pill drifts inside the room around it, a pixel a
+  // minute on the wall's minute tick, as far as that room allows (half the
+  // spare room each way, capped). The dock is the brightest thing that never
+  // changes on a wall, usually shown on every screen, and the whole-wall
+  // shift only reaches 6 px, which blurs a tile's edges and leaves its body
+  // lit. The long reach runs along the dock, the short one across it. Zero
+  // until both boxes are measured, since the dock resizes once measured
+  // anyway, and zero for a pill that scrolls, which fills its room. Nothing
+  // is measured while protection is off.
+  const protect = useBurnInProtection();
+  const [roomRef, room] = useElementBox();
+  const [pillRef, pill] = useElementBox('border');
+  const spare = (roomSize: number, pillSize: number, cap: number) =>
+    room.width > 0 && pill.width > 0 ? Math.max(0, Math.min(cap, Math.floor((roomSize - pillSize) / 2))) : 0;
+  const wander = useWander(
+    protect,
+    spare(room.width, pill.width, m.vertical ? WANDER_REACH_Y_PX : WANDER_REACH_X_PX),
+    spare(room.height, pill.height, m.vertical ? WANDER_REACH_X_PX : WANDER_REACH_Y_PX),
+    'centre',
+  );
+
   return (
     <div
       ref={boxRef}
@@ -74,7 +98,11 @@ export function DockLayout(props: DockLayoutProps) {
         />
       )}
 
-      <div className={`relative flex min-h-0 min-w-0 flex-1 items-center justify-center transition-opacity ${dim}`}>
+      <div
+        ref={protect ? roomRef : undefined}
+        data-testid="display-control-dock-room"
+        className={`relative flex min-h-0 min-w-0 flex-1 items-center justify-center transition-opacity ${dim}`}
+      >
         {screens.length === 0 ? (
           <span
             className="whitespace-nowrap text-hs-text-muted"
@@ -84,6 +112,7 @@ export function DockLayout(props: DockLayoutProps) {
           </span>
         ) : (
           <div
+            ref={protect ? pillRef : undefined}
             data-testid="display-control-dock"
             // The pill scrolls along its axis once the tiles pass the floor,
             // so a drag across it must scroll it, not change the screen.
@@ -93,6 +122,8 @@ export function DockLayout(props: DockLayoutProps) {
               gap: m.gap,
               padding: m.vertical ? `${m.padIn}px ${m.padAcross}px` : `${m.padAcross}px ${m.padIn}px`,
               borderRadius: m.pillRadius,
+              // A step on the minute, never a glide (see the wall shift).
+              transform: wander ? `translate(${wander.x}px, ${wander.y}px)` : undefined,
             }}
           >
             {screens.map((screen, i) => {

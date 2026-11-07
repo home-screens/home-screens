@@ -13,7 +13,7 @@ import { photoThemeTokens, clockOverlayPaint, type ClockBackdropSettings } from 
 import { useBurnInProtection } from '@/components/display/burn-in-context';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useWander } from '@/hooks/usePixelShift';
-import { CLOCK_WANDER_REACH_X_PX, CLOCK_WANDER_REACH_Y_PX } from '@/lib/pixel-shift';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX } from '@/lib/pixel-shift';
 import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
 import { useOrigin } from '@/hooks/useOrigin';
 import { phoneSurfaceLabel, phoneSurfaceUrl } from '@/lib/phone-surfaces';
@@ -220,9 +220,9 @@ function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: Fullsc
   const [bandRef, band] = useElementBox();
   const [textRef, text] = useElementBox();
   const reachX = band.width > 0 && text.width > 0
-    ? Math.max(0, Math.min(CLOCK_WANDER_REACH_X_PX, Math.floor((band.width - text.width) / 2)))
-    : CLOCK_WANDER_REACH_X_PX;
-  const wander = useWander(protect, reachX, CLOCK_WANDER_REACH_Y_PX);
+    ? Math.max(0, Math.min(WANDER_REACH_X_PX, Math.floor((band.width - text.width) / 2)))
+    : WANDER_REACH_X_PX;
+  const wander = useWander(protect, reachX, WANDER_REACH_Y_PX);
 
   const is12Hour = householdTimeFormat(timeFormat, locale) === '12h';
   const hours = is12Hour ? (time.getHours() % 12 || 12) : time.getHours();
@@ -249,7 +249,7 @@ function ClockOverlay({ theme, backdrop, timezone, timeFormat }: { theme: Fullsc
       className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-start px-10 pb-10"
       // The extra bottom padding keeps the text on the solid part of the
       // backdrop when it drifts down; a step, never a glide.
-      style={{ background: paint.background, paddingBottom: wander ? 40 + CLOCK_WANDER_REACH_Y_PX : undefined }}
+      style={{ background: paint.background, paddingBottom: wander ? 40 + WANDER_REACH_Y_PX : undefined }}
     >
       <div
         ref={textRef}

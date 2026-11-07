@@ -19,8 +19,13 @@ export interface ElementBox {
  * `controlMetrics`, which already subtracts it again). Handing those the content
  * box would take the padding off twice and leave the measurement chasing its
  * own output.
+ *
+ * `border` is `offsetWidth`/`offsetHeight`, padding and border included: the
+ * room an element takes in its parent's layout, for a caller working out how
+ * far the element can move inside that parent (the dock pill's burn-in
+ * wander). Transforms do not change it.
  */
-export type ElementBoxMode = 'content' | 'padding';
+export type ElementBoxMode = 'content' | 'padding' | 'border';
 
 const px = (value: string): number => {
   const n = parseFloat(value);
@@ -56,8 +61,8 @@ export function useElementBox<T extends HTMLElement = HTMLDivElement>(
     // observer. No cleanup effect is needed on top of that.
     if (!el) return;
     const measure = () => {
-      let width = el.clientWidth;
-      let height = el.clientHeight;
+      let width = mode === 'border' ? el.offsetWidth : el.clientWidth;
+      let height = mode === 'border' ? el.offsetHeight : el.clientHeight;
       if (mode === 'content') {
         const cs = getComputedStyle(el);
         width = Math.max(0, width - px(cs.paddingLeft) - px(cs.paddingRight));

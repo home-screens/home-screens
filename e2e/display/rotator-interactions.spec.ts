@@ -269,6 +269,64 @@ test('the photo overlay clock wanders inside its band on a protected display onl
   await expect(page.getByTestId('fullscreen-photo-clock')).toHaveCSS('padding-bottom', '40px');
 });
 
+test('a Display Control dock shown on every screen wanders inside its box on a protected display only', async ({ page, request }) => {
+  // A full-width strip along the bottom, far wider than two tiles need. It is
+  // also tall enough that the tiles reach their largest size and stop
+  // growing, so there is room across the dock too; a shorter dock's tiles
+  // grow to fill it and the pill only drifts along it.
+  const dock = (id: string): ModuleInstance => ({
+    id, type: 'display-control', position: { x: 0, y: 1620 }, size: { w: 1080, h: 300 }, zIndex: 5, style: { ...DEFAULT_MODULE_STYLE },
+    showOnEveryScreen: true,
+    config: { layout: 'dock', defaultTarget: 'self', allowRetargeting: false, compact: false },
+  });
+  const screensFor = (prefix: string) => [
+    makeScreen(`${prefix}-a`, 'A', [textModule(A), dock(`${prefix}-dock`)]),
+    makeScreen(`${prefix}-b`, 'B', [textModule(B)]),
+  ];
+  const config = baseConfig({
+    displays: [
+      { id: 'hall', name: 'Hall', screens: screensFor('hall') },
+      { id: 'kitchen', name: 'Kitchen', screens: screensFor('kitchen'), settings: { pixelShift: true } },
+    ],
+  });
+  const pill = () => page.getByTestId('display-control-dock');
+  const offsetOf = async () => {
+    const t = await pill().evaluate((el) => (el as HTMLElement).style.transform);
+    const match = t.match(/^translate\((-?[0-9]+)px, (-?[0-9]+)px\)$/);
+    return match ? { x: Number(match[1]), y: Number(match[2]) } : null;
+  };
+
+  await page.clock.install();
+  await renderOnDisplay(page, request, config, '/display/kitchen');
+  await expect(pill()).toBeVisible();
+  await expect.poll(offsetOf).not.toBeNull();
+  const first = (await offsetOf())!;
+  // At most 30 px along the dock and 12 px across it, either way of centre.
+  expect(Math.abs(first.x)).toBeLessThanOrEqual(30);
+  expect(Math.abs(first.y)).toBeLessThanOrEqual(12);
+  expect(await pill().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0s');
+
+  // A minute on, it has stepped exactly a pixel on each axis: both reaches
+  // were measured as more than zero, and it steps rather than glides.
+  await page.clock.fastForward(60_000);
+  await expect.poll(offsetOf).not.toEqual(first);
+  const next = (await offsetOf())!;
+  expect(Math.abs(next.x - first.x)).toBe(1);
+  expect(Math.abs(next.y - first.y)).toBe(1);
+
+  // Wherever it is, the pill stays inside the room it was centred in.
+  const room = (await page.getByTestId('display-control-dock-room').boundingBox())!;
+  const box = (await pill().boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(room.x - 0.5);
+  expect(box.y).toBeGreaterThanOrEqual(room.y - 0.5);
+  expect(box.x + box.width).toBeLessThanOrEqual(room.x + room.width + 0.5);
+  expect(box.y + box.height).toBeLessThanOrEqual(room.y + room.height + 0.5);
+
+  await page.goto('/display/hall');
+  await expect(pill()).toBeVisible();
+  expect(await pill().evaluate((el) => (el as HTMLElement).style.transform)).toBe('');
+});
+
 // ---------------------------------------------------------------------------
 // Plugin-driven navigation events (SDK.emit → pluginEventBus → ScreenRotator).
 // ---------------------------------------------------------------------------
