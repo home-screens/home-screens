@@ -5,7 +5,7 @@ import type { Screen, GlobalSettings, ScreenConfiguration, Profile, DisplayRule 
 import type { InstalledPlugin } from '@/types/plugins';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
-import { filterConfigForDisplay, LEGACY_DISPLAY_ID } from '@/lib/display-filter';
+import { displayDescriptors, filterConfigForDisplay, LEGACY_DISPLAY_ID, type DisplayDescriptor } from '@/lib/display-filter';
 import { dataFingerprintOfParts } from '@/lib/config-data-fingerprint';
 import { stableStringify } from '@/lib/stable-stringify';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -22,9 +22,6 @@ const log = logger('display');
  * downstream a compile error rather than a wall an hour off the chore chart.
  */
 export type DisplaySettings = GlobalSettings & { timezone: string };
-
-/** Minimal display descriptor surfaced to modules that need to target displays */
-export type DisplayDescriptor = { id: string; name: string };
 
 /** Per-plugin settings fingerprints (lowercased id → stable-stringified settings). */
 type SettingsFingerprints = Map<string, string>;
@@ -185,9 +182,7 @@ export function useLiveConfig(
           hubTimezoneRef.current = hubZone;
           if (cfg.screens && cfg.settings) {
             // Update the displays registry for any module that needs it (e.g. display-control)
-            setDisplays(
-              cfg.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [],
-            );
+            setDisplays(displayDescriptors(cfg.displays));
             if (displayId) {
               // Multi-display mode: filter through the same pure function the
               // server's per-display page uses, so the two cannot drift.

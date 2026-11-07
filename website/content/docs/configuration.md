@@ -179,7 +179,7 @@ Where a stream of pictures comes from. A screen's rotating background, the Photo
 
 {% type-reference name="ModuleInstance" /%}
 
-The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combined: a module renders only when it is enabled, its schedule window matches, and its visibility conditions are met. A module with `showOnEveryScreen` passes the same gates but is drawn once, above the rotating canvas, on every screen of its display rather than on its home screen alone.
+The three visibility gates (`enabled`, `schedule`, `visibility`) are AND-combined: a module renders only when it is enabled, its schedule window matches, and its visibility conditions are met. A module with `showOnEveryScreen` passes the same gates but is drawn once, above the rotating canvas, on every screen of its display rather than on its home screen alone. A module with `openButtonScreen` carries a button that opens that screen of the same display; a screen with `rotation: "opened"` never takes a turn and, once opened, goes back after its own `goBackAfterMs` of no touch (two minutes when unset, `0` to stay).
 
 ### ModuleSchedule
 
@@ -423,7 +423,7 @@ Plugin bundles themselves are still not in the backup, so a restored Pi comes up
 
 ```json
 {
-  "version": 18,
+  "version": 19,
   "settings": {
     "rotationIntervalMs": 30000,
     "displayWidth": 1080,

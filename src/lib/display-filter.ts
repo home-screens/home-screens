@@ -135,6 +135,26 @@ export function getDisplayScreens(display: DisplayNode): Screen[] {
   return display.screens;
 }
 
+/** A display as a module that sends commands to displays sees it (the Display Control picker and dock). */
+export interface DisplayDescriptor {
+  id: string;
+  name: string;
+  /**
+   * Its switched-on screens: what a `goto-screen` naming one reaches there.
+   * Unset when not known, and then every name is taken as reaching it.
+   */
+  screens?: Array<{ id: string; name: string }>;
+}
+
+/** Every display in `displays` as a module that sends commands to displays sees it. */
+export function displayDescriptors(displays: readonly DisplayNode[] | undefined): DisplayDescriptor[] {
+  return (displays ?? []).map((d) => ({
+    id: d.id,
+    name: d.name,
+    screens: getDisplayScreens(d).filter((s) => s.enabled !== false).map((s) => ({ id: s.id, name: s.name })),
+  }));
+}
+
 /**
  * Every screen the installation has, across every display.
  *
@@ -426,7 +446,69 @@ export function pruneDanglingScreenRefs(
     next = { ...next, displays: updatedDisplays };
   }
 
+  // Open buttons that opened the deleted screen go with it: a button with
+  // nowhere to go is not a thing the wall can draw. Same scope as the rules
+  // (the legacy list plus the selected display's own screens).
+  const screens = screensWithoutOpenButtonsTo(next.screens, (id) => id === deletedScreenId);
+  if (screens !== next.screens) next = { ...next, screens };
+  if (next.displays && selectedDisplayId) {
+    let changed = false;
+    const updatedDisplays = next.displays.map((d) => {
+      if (d.id !== selectedDisplayId) return d;
+      const tidy = screensWithoutOpenButtonsTo(d.screens, (id) => id === deletedScreenId);
+      if (tidy === d.screens) return d;
+      changed = true;
+      return { ...d, screens: tidy };
+    });
+    if (changed) next = { ...next, displays: updatedDisplays };
+  }
+
   return next;
+}
+
+/**
+ * `screens` with every module open button whose target `isGone` cleared; the
+ * same array (and the same screen and module objects) when none is.
+ */
+function screensWithoutOpenButtonsTo(screens: Screen[], isGone: (screenId: string) => boolean): Screen[] {
+  if (!Array.isArray(screens)) return screens;
+  let changed = false;
+  const next = screens.map((screen) => {
+    if (!Array.isArray(screen?.modules) || !screen.modules.some((m) => typeof m?.openButtonScreen === 'string' && isGone(m.openButtonScreen))) return screen;
+    changed = true;
+    return {
+      ...screen,
+      modules: screen.modules.map((m) => {
+        if (typeof m?.openButtonScreen !== 'string' || !isGone(m.openButtonScreen)) return m;
+        const { openButtonScreen: _gone, ...rest } = m;
+        return rest;
+      }),
+    };
+  });
+  return changed ? next : screens;
+}
+
+/** `screens` with every open button that opens a screen not in `screens` cleared; the same array when none does. */
+export function screensWithoutMissingOpenButtons(screens: Screen[]): Screen[] {
+  if (!Array.isArray(screens)) return screens;
+  const ids = new Set(screens.map((s) => s.id));
+  return screensWithoutOpenButtonsTo(screens, (id) => !ids.has(id));
+}
+
+/**
+ * `screens` with every open button whose target is a key of `idMap` pointed at
+ * the new id. Screens copied under fresh ids (an imported layout, screens
+ * copied from another display) pass the old-to-new map so a button keeps
+ * opening the copy of its screen instead of an id this display does not have.
+ */
+export function screensWithOpenButtonsMoved(screens: Screen[], idMap: ReadonlyMap<string, string>): Screen[] {
+  return screens.map((screen) => ({
+    ...screen,
+    modules: screen.modules.map((m) => {
+      const to = typeof m.openButtonScreen === 'string' ? idMap.get(m.openButtonScreen) : undefined;
+      return to ? { ...m, openButtonScreen: to } : m;
+    }),
+  }));
 }
 
 /** `profiles` with every screen that is not in `screens` dropped; the same array when none is missing. */
@@ -483,17 +565,23 @@ export function withoutDanglingScreenRefs(config: ScreenConfiguration): ScreenCo
   }
   const rules = rulesWithoutMissingScreens(next.rules, next.screens);
   if (rules !== next.rules) next = { ...next, rules };
+  if (!multiDisplay) {
+    const screens = screensWithoutMissingOpenButtons(next.screens);
+    if (screens !== next.screens) next = { ...next, screens };
+  }
   if (multiDisplay) {
     let changed = false;
     const displays = config.displays!.map((d) => {
       const profiles = profilesWithoutMissingScreens(d.profiles, d.screens);
       const displayRules = rulesWithoutMissingScreens(d.rules, d.screens);
-      if (profiles === d.profiles && displayRules === d.rules) return d;
+      const screens = screensWithoutMissingOpenButtons(d.screens);
+      if (profiles === d.profiles && displayRules === d.rules && screens === d.screens) return d;
       changed = true;
       return {
         ...d,
         ...(profiles !== d.profiles ? { profiles } : {}),
         ...(displayRules !== d.rules ? { rules: displayRules } : {}),
+        ...(screens !== d.screens ? { screens } : {}),
       };
     });
     if (changed) next = { ...next, displays };
@@ -607,6 +695,29 @@ function validateDisplayId(display: DisplayNode, seen: Set<string>): string | nu
 function validateDisplayScreens(display: DisplayNode): string | null {
   if (display.screens.length > MAX_SCREENS_PER_DISPLAY) {
     return `Display "${display.id}" has too many screens: ${display.screens.length} (max ${MAX_SCREENS_PER_DISPLAY})`;
+  }
+  return validateOpenButtons(display.screens, `on display "${display.id}"`);
+}
+
+/**
+ * Every module open button opens a screen in `screens` that is not the
+ * module's own: a button to another display's screen has nowhere to go on
+ * this wall, and a button to its own screen would do nothing. Exported for
+ * the single-display save gate, which has no display to walk.
+ */
+export function validateOpenButtons(screens: Screen[], where = ''): string | null {
+  const ids = new Set(screens.map((s) => s.id));
+  for (const screen of screens) {
+    for (const mod of screen.modules) {
+      const target = mod.openButtonScreen;
+      if (target === undefined) continue;
+      if (typeof target !== 'string' || target === '' || !ids.has(target)) {
+        return `A module on screen "${screen.name}"${where ? ` ${where}` : ''} has an open button to a screen that is not there`;
+      }
+      if (target === screen.id) {
+        return `A module on screen "${screen.name}"${where ? ` ${where}` : ''} has an open button to its own screen`;
+      }
+    }
   }
   return null;
 }
@@ -1091,7 +1202,9 @@ function validateDisplayDimensions(display: DisplayNode): string | null {
  */
 export function validateDisplays(config: ScreenConfiguration): string | null {
   const displays = config.displays;
-  if (!displays || displays.length === 0) return null;
+  // One display: its screens are `config.screens`, and the open buttons on
+  // them are the only cross-screen reference a single wall can hold.
+  if (!displays || displays.length === 0) return validateOpenButtons(config.screens ?? []);
 
   if (displays.length > MAX_DISPLAYS) {
     return `Too many displays: ${displays.length} (max ${MAX_DISPLAYS})`;

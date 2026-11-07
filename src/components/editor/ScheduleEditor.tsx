@@ -22,11 +22,13 @@ interface ScheduleEditorProps {
    * the conditions editor and names each after what it gates.
    */
   statusTitle?: string;
+  /** `opened`: a screen that shows only when opened, whose schedule says when it can be opened. */
+  wording?: 'show' | 'opened';
 }
 
 const EVERY_DAY = [0, 1, 2, 3, 4, 5, 6];
 
-export function ScheduleEditor({ schedule, onChange, statusTitle }: ScheduleEditorProps) {
+export function ScheduleEditor({ schedule, onChange, statusTitle, wording = 'show' }: ScheduleEditorProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
   const timeFormat = useEditorStore((s) => s.config?.settings.timeFormat);
@@ -71,7 +73,7 @@ export function ScheduleEditor({ schedule, onChange, statusTitle }: ScheduleEdit
   return (
     <div className="space-y-3">
       <PropertyGroup title={statusTitle ?? t('scheduleEditor.statusTitle')} accent={1}>
-        <Toggle label={t('scheduleEditor.enableLabel')} checked={enabled} onChange={toggleEnabled} />
+        <Toggle label={t(wording === 'opened' ? 'scheduleEditor.opened.enableLabel' : 'scheduleEditor.enableLabel')} checked={enabled} onChange={toggleEnabled} />
       </PropertyGroup>
 
       {schedule && (
@@ -99,6 +101,7 @@ export function ScheduleEditor({ schedule, onChange, statusTitle }: ScheduleEdit
 
           <PropertyGroup title={t('scheduleEditor.weekPreviewTitle')} accent={2}>
             <ScheduleWeekStrip
+              wording={wording}
               schedule={schedule}
               timeFormat={timeFormat}
               shape={shape}
@@ -155,13 +158,13 @@ export function ScheduleEditor({ schedule, onChange, statusTitle }: ScheduleEdit
             {/* A native time input ignores `placeholder`, so an empty window
                 reads as "--:-- --" and nothing says that empty means all day. */}
             <p className="mt-1.5 text-[10px] text-hs-text-faint leading-relaxed">
-              {t('scheduleEditor.allDayHint')}
+              {t(wording === 'opened' ? 'scheduleEditor.opened.allDayHint' : 'scheduleEditor.allDayHint')}
             </p>
           </PropertyGroup>
 
           <PropertyGroup title={t('scheduleEditor.behaviorTitle')} accent={4}>
             <Toggle
-              label={t('scheduleEditor.invertLabel')}
+              label={t(wording === 'opened' ? 'scheduleEditor.opened.invertLabel' : 'scheduleEditor.invertLabel')}
               checked={!!schedule?.invert}
               onChange={(v) => setSchedule({ invert: v || undefined })}
             />
@@ -170,7 +173,7 @@ export function ScheduleEditor({ schedule, onChange, statusTitle }: ScheduleEdit
                 data-testid="schedule-never-shows"
                 className="mt-1.5 text-[10px] text-amber-400 leading-relaxed"
               >
-                {t('scheduleEditor.neverShows')}
+                {t(wording === 'opened' ? 'scheduleEditor.opened.neverShows' : 'scheduleEditor.neverShows')}
               </p>
             )}
           </PropertyGroup>

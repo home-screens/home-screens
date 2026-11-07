@@ -12,6 +12,7 @@ import { collectConditionSourceKeys, passesModuleGates, type ScheduleClock } fro
 import { collectPinnedModules } from '@/lib/pinned-modules';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
+import { OpenButtonSlot } from '@/components/modules/shared/OpenScreenButton';
 import PluginPlaceholder from '@/components/modules/PluginPlaceholder';
 import { useTranslate } from '@/i18n';
 import { usePluginStore } from '@/stores/plugin-store';
@@ -125,9 +126,11 @@ const PinnedModuleLayer = memo(function PinnedModuleLayer({
           const extraProps = buildModuleProps(mod, source);
           return (
             <div key={mod.id} data-module-id={mod.id} data-module-type={mod.type} data-pinned="true" style={box}>
-              <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-                <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
-              </ModuleErrorBoundary>
+              <OpenButtonSlot mod={mod} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))}>
+                <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
+                  <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
+                </ModuleErrorBoundary>
+              </OpenButtonSlot>
             </div>
           );
         })}

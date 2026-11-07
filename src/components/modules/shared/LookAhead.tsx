@@ -16,7 +16,7 @@ import { wallPressProps } from './wallPress';
 export type LookAheadTone = 'ink' | 'theme' | 'meal';
 
 const TONES: Record<LookAheadTone, { bg: string; border: string; color: string }> = {
-  ink: { bg: ink(0.08), border: ink(0.16), color: ink(0.82) },
+  ink: { bg: ink(0.1), border: ink(0.3), color: ink(0.9) },
   theme: {
     bg: 'color-mix(in srgb, var(--cal-text-primary) 5%, transparent)',
     border: 'color-mix(in srgb, var(--cal-text-primary) 14%, transparent)',

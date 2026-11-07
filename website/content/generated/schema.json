@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 18,
+  "schemaVersion": 19,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -7256,7 +7256,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 18
+          "default": 19
         },
         {
           "name": "settings",
@@ -8315,6 +8315,28 @@
           "description": "How long this screen shows, in milliseconds. Unset uses the display's rotation interval; `0` keeps the screen up until someone moves on"
         },
         {
+          "name": "rotation",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "ScreenRotationMode",
+            "values": [
+              "turn",
+              "opened"
+            ]
+          },
+          "description": "`turn` (the default) takes its turn with the other screens; `opened` keeps the screen out of the rotation and shows it only when a module's open button, a display rule or a dock button opens it"
+        },
+        {
+          "name": "goBackAfterMs",
+          "optional": true,
+          "type": {
+            "kind": "number",
+            "text": "number"
+          },
+          "description": "For a screen that shows only when opened: how long it stays with nobody touching it, in milliseconds, before the display goes back to where it was. Unset means two minutes; `0` stays until someone taps Back"
+        },
+        {
           "name": "schedule",
           "optional": true,
           "type": {
@@ -8759,6 +8781,15 @@
           },
           "description": "Show the module on every screen of this display, on top of whatever is there, and keep it in place while the screens change",
           "defaultText": "false"
+        },
+        {
+          "name": "openButtonScreen",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "string"
+          },
+          "description": "Draw a button under the module that opens this screen (its id) when tapped. The button carries the screen's name. Unset means no button"
         }
       ]
     },

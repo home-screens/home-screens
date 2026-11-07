@@ -110,3 +110,23 @@ test('the fit line warns when more buttons are chosen than the module holds', as
   await expect(hint).toHaveAttribute('data-warn', 'true');
   await expect(hint).toContainText('so the dock scrolls');
 });
+
+test('a dock aimed at another display names the buttons that display has no screen for, and fades them', async ({ page, request }) => {
+  const dock = { ...buildModuleInstance('display-control', { layout: 'dock', defaultTarget: 'hallway' }), position: { x: 100, y: 1600 }, size: { w: 880, h: 200 } };
+  await putConfig(request, baseConfig({
+    displays: [
+      { id: 'main', name: 'Kitchen', screens: [makeScreen('home', 'Home', [dock]), makeScreen('weather', 'Weather', [textModule('PAGE 2')])] },
+      { id: 'hallway', name: 'Hallway', screens: [makeScreen('h-weather', 'weather', [textModule('HALL')])] },
+    ],
+  }));
+  await page.goto('/editor?display=main&screen=home');
+  await expect(page.getByTestId('editor-canvas')).toBeVisible();
+  await page.locator(`[data-module-id="${DOCK_ID}"]`).click();
+
+  await expect(page.getByTestId('dock-missing-there')).toHaveText(
+    'On Hallway, a button opens the screen with the same name. Hallway has no screen called Home, so those buttons are faded and do nothing there.',
+  );
+  const canvasDock = page.locator(`[data-module-id="${DOCK_ID}"]`);
+  await expect(canvasDock.getByRole('button', { name: 'Go to Home' })).toHaveAttribute('aria-disabled', 'true');
+  await expect(canvasDock.getByRole('button', { name: 'Go to Weather' })).not.toHaveAttribute('aria-disabled');
+});

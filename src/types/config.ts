@@ -353,6 +353,20 @@ export interface ModuleInstance {
    * @default false
    */
   showOnEveryScreen?: boolean;
+  /**
+   * Draw a button under the module that opens this screen (its id) when tapped. The button carries
+   * the screen's name. Unset means no button
+   *
+   * The screen must be on the same display and must not be the module's own
+   * screen (`validateDisplays`). Deleting the screen clears the field
+   * (`pruneDanglingScreenRefs`, `withoutDanglingScreenRefs`). The module's
+   * box on the wall draws the button (`OpenScreenButton`); the card frame
+   * makes room for it. Opening a screen that takes its turn jumps the
+   * rotation there; opening one that shows only when opened pins it until
+   * that screen's quiet time (`Screen.goBackAfterMs`) runs out or someone
+   * moves on.
+   */
+  openButtonScreen?: string;
 }
 
 /**
@@ -495,6 +509,12 @@ export interface BackgroundEffects {
   warmth?: number;
 }
 
+/**
+ * How a screen gets on the wall: `turn` takes its turn in the rotation,
+ * `opened` waits out of the rotation until something opens it.
+ */
+export type ScreenRotationMode = 'turn' | 'opened';
+
 export interface Screen {
   /** Unique ID */
   id: string;
@@ -526,6 +546,27 @@ export interface Screen {
    * - positive integer: this screen auto-advances after exactly this many ms.
    */
   rotationDurationMs?: number;
+  /**
+   * `turn` (the default) takes its turn with the other screens; `opened` keeps the screen out of
+   * the rotation and shows it only when a module's open button, a display rule or a dock button
+   * opens it
+   *
+   * An `opened` screen stays in `enabledScreens` (rules and the dock can
+   * reach it) but never in the rotation list. `enabled: false` still means
+   * off for everything. How long it stays once opened is `goBackAfterMs`.
+   */
+  rotation?: ScreenRotationMode;
+  /**
+   * For a screen that shows only when opened: how long it stays with nobody touching it, in
+   * milliseconds, before the display goes back to where it was. Unset means two minutes; `0`
+   * stays until someone taps Back
+   *
+   * Any touch on the screen starts the count again. One number for every way
+   * of opening the screen (a module's open button, a dock button, a rule, a
+   * phone command); the module's Open button section edits it in place.
+   * Read by ScreenRotator through `resolveGoBackAfterMs`.
+   */
+  goBackAfterMs?: number;
   /**
    * Only put this screen in the rotation during these days and times (see ModuleSchedule). When no
    * scheduled screen matches, every enabled screen shows

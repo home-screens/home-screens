@@ -173,6 +173,13 @@ export interface ModuleDefinition {
    */
   hasOwnTitle?: boolean;
   /**
+   * The full-screen module this small one expands into, for the editor's
+   * "Add a ... screen" shortcut in a module's Open button section: one click
+   * makes a screen holding the twin (with `config` over its defaults), kept
+   * out of the rotation, and points the button at it.
+   */
+  fullscreenTwin?: { type: import('@/types/config').BuiltinModuleType; config?: Record<string, unknown> };
+  /**
    * Shared-state keys this module type publishes (see shared-state-store.ts).
    * Declaring either field marks the type as a state producer: the editor
    * offers the "run in background" toggle and lists these keys in the
@@ -668,6 +675,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'calendar',
+    fullscreenTwin: { type: 'fullscreen-calendar' },
     needsInstanceAddress: true,
     label: 'Calendar',
     icon: CalendarDays,
@@ -780,6 +788,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- Weather & Environment --
   {
     type: 'weather',
+    fullscreenTwin: { type: 'fullscreen-weather' },
     autoSizesText: true,
     label: 'Weather',
     icon: CloudSun,
@@ -876,6 +885,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   // -- News & Finance --
   {
     type: 'news',
+    fullscreenTwin: { type: 'fullscreen-news' },
     autoSizesText: true,
     label: 'News Headlines',
     icon: Newspaper,
@@ -1168,6 +1178,8 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'meal-planner',
+    // The small planner already shows the week; the twin opens on the book.
+    fullscreenTwin: { type: 'fullscreen-meal-planner', config: { view: 'recipes' } },
     needsInstanceAddress: true,
     label: 'Meal Planner',
     icon: UtensilsCrossed,
@@ -1188,6 +1200,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'chore-chart',
+    fullscreenTwin: { type: 'fullscreen-chore-chart' },
     label: 'Chore Chart',
     icon: ClipboardList,
     category: 'Personal',
@@ -1284,6 +1297,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
   },
   {
     type: 'photo-slideshow',
+    fullscreenTwin: { type: 'fullscreen-photo' },
     needsInstanceAddress: true,
     needsBoxSize: true,
     label: 'Photo Slideshow',

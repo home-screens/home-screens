@@ -19,7 +19,7 @@ import { mealieWords } from '../shared/mealie-problem';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
 import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
 import { useLookAhead } from '../shared/useLookAhead';
-import { LookAheadBar } from '../shared/LookAhead';
+import { LookAheadBar, useLookAheadWords } from '../shared/LookAhead';
 import { useWallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
 import { recipeBookSource } from '@/lib/meal-recipe-book';
 
@@ -45,6 +45,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   // arrows show where taps are on, as the finger scrolling does). They draw
   // the week stepped to; `todayISO` still marks the real day.
   const look = useLookAhead({ step: mealLookAhead(view, mealie.state !== 'local'), enabled: interactive, today: fromISODate(todayISO) });
+  const ownHeading = useLookAheadWords(look);
   const { weekDates, plan } = useMealWeek(fullPlan, toISODate(look.anchor), settings.weekStartDay);
   const book = useWallRecipeBook({
     source: recipeBookSource(data?.mealieConnected ?? false),
@@ -104,6 +105,14 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   // With the arrows on, the Week and List views get a heading row naming the
   // week shown, its dates and the arrows. It heads the empty state too, so a
   // week with nothing planned can still step to one that has meals.
+  // A card title that repeats the planner's own heading ("This week") would
+  // print twice; the heading is the title then. Only while the heading is
+  // drawn: with Tap on the Wall off there is no look-ahead bar, and the card
+  // title is the only place the week is named.
+  const cardStyle = look.on && style.title && ownHeading && style.title.trim().toLowerCase() === ownHeading.toLowerCase()
+    ? { ...style, title: undefined }
+    : style;
+
   const withArrows = (body: ReactNode) => {
     if (!look.on) return body;
     const dates = formatDayRange(fromISODate(weekDates[0]), fromISODate(weekDates[6]), locale, { year: false });
@@ -118,7 +127,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
 
   if (!hasMeals) {
     return (
-      <ModuleWrapper style={style}>
+      <ModuleWrapper style={cardStyle}>
         {withArrows(
           // Another week with nothing planned is just that, not a wall waiting
           // to be set up: no "plan from a phone" hint with the hub's address.
@@ -133,7 +142,7 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   }
 
   return (
-    <ModuleWrapper style={style}>
+    <ModuleWrapper style={cardStyle}>
       <MealRecipeContext.Provider value={recipeContext}>
       {view === 'week' && withArrows(<WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} interactive={interactive} />)}
       {/* The whole plan: late in the evening Today shows tomorrow, which can be in next week. */}

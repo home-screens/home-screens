@@ -373,7 +373,7 @@
   },
   "meal-planner": {
     "recipeBook": {
-      "title": "Rezepte",
+      "title": "Rezeptbuch",
       "count": {
         "one": "1 Rezept",
         "other": "{count} Rezepte"
@@ -450,6 +450,11 @@
         "mealieNotConnected": "Verbinde es in den Einstellungen am Computer, dann erscheinen seine Rezepte.",
         "mealieTokenRefused": "Speichere in den Einstellungen am Computer ein neues Mealie-Token, dann erscheinen seine Rezepte.",
         "mealieSetup": "Prüfe Mealie in den Einstellungen am Computer, dann erscheinen seine Rezepte."
+      },
+      "fewRecipesHint": "Mahlzeiten mit Zutaten oder Notizen erscheinen hier. Füge sie am Handy hinzu.",
+      "countInBook": {
+        "one": "{count} im Buch",
+        "other": "{count} im Buch"
       }
     },
     "loading": "Mahlzeiten werden geladen…",
@@ -558,6 +563,10 @@
     "backToToday": "Zurück zu heute",
     "backToNow": "Zurück zum Jetzt",
     "backToTop": "Zurück nach oben"
+  },
+  "openButton": {
+    "open": "{name} öffnen",
+    "unavailable": "Gerade am Display ausgeblendet: Dieser Screen ist außerhalb seiner Zeiten oder Bedingungen."
   },
   "lookAhead": {
     "thisWeek": "Diese Woche",

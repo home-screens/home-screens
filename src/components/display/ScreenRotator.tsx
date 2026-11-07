@@ -21,12 +21,15 @@ import RecipeShowOverlay from './RecipeShowOverlay';
 import { settingsTimeFormat } from '@/lib/clock-time';
 import NetworkIndicator from './NetworkIndicator';
 import PaginationDots from './PaginationDots';
+import { useOpenedScreen } from './useOpenedScreen';
+import { resolveGoBackAfterMs, showsOnlyWhenOpened } from '@/lib/on-demand-screen';
 import { useDisplayControl } from './useDisplayControl';
 import { useCalendarRefresh, useLibraryRefresh } from '@/hooks/useRevisionRefresh';
 import { useDisplayRules } from './useDisplayRules';
 import { useBackgroundRotation } from './useBackgroundRotation';
 import { screenBackgroundSrc } from '@/lib/screen-background';
-import { useLiveConfig, type DisplayDescriptor } from './useLiveConfig';
+import { useLiveConfig } from './useLiveConfig';
+import type { DisplayDescriptor } from '@/lib/display-filter';
 import { useSharedDisplayData } from './useSharedDisplayData';
 import { usePrefetchNextScreen } from './usePrefetchNextScreen';
 import { useBootWarmup } from './useBootWarmup';
@@ -34,7 +37,7 @@ import { useScreenRotationTimer } from './useScreenRotationTimer';
 import { usePauseRotation } from './usePauseRotation';
 import { useScreenTransition } from './useScreenTransition';
 import { useSwipeNavigation } from './useSwipeNavigation';
-import { useInteractionHeld, useRotationHeld } from '@/lib/interaction-hold';
+import { interactionIsHeld, releaseRotationHold, useInteractionHeld, useRotationHeld } from '@/lib/interaction-hold';
 import { useTapRotationHold } from './useTapRotationHold';
 import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
@@ -105,6 +108,13 @@ interface ScreenRotatorProps {
 }
 
 const clearAlerts = () => useAlertStore.getState().clearAlerts();
+
+/**
+ * How long after a tap changes the screen a second tap is swallowed: long
+ * enough for a quick double tap (a child's), short enough that a deliberate
+ * tap on the new screen always lands.
+ */
+const SCREEN_CHANGE_TAP_GUARD_MS = 450;
 const hideShownPhoto = () => usePhotoShowStore.getState().hide();
 const hideShownRecipe = () => useRecipeShowStore.getState().hide();
 
@@ -156,6 +166,15 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // being edited must show that screen, whatever the rotation thinks.
   const startScreenRef = useRef<string | null>(initialScreenId ?? null);
   const [pinnedScreenId, setPinnedScreenId] = useState<string | null>(initialScreenId ?? null);
+  // A screen that shows only when opened, while it is up: which one, the
+  // screen the display left to show it (null when nothing was showing), and
+  // the opener's quiet time. Set beside pinnedScreenId, cleared with it by
+  // forgetStartScreen.
+  const [opened, setOpened] = useState<{ screenId: string; returnTo: string | null; goBackAfterMs: number } | null>(null);
+  const openedRef = useRef(opened);
+  useEffect(() => { openedRef.current = opened; }, [opened]);
+  // Bumped when the opened screen is asked for again, to restart its quiet time.
+  const [openedRestarts, setOpenedRestarts] = useState(0);
 
   // Viewport measurement lives here (not in ScreenRenderer) so it persists across screen transitions
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
@@ -194,10 +213,13 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // "no match → all screens" safety.
   const screenConditionKeys = useMemo(() => collectScreenConditionSourceKeys(enabledScreens), [enabledScreens]);
   const screenStates = useSharedStateKeys(screenConditionKeys);
+  // A screen that shows only when opened never takes a turn. It stays in
+  // enabledScreens for the dock, the rules and an open button to reach.
+  const turnScreens = useMemo(() => enabledScreens.filter((s) => !showsOnlyWhenOpened(s)), [enabledScreens]);
   const availableScreens = useMemo(() => {
-    const filtered = enabledScreens.filter((s) => isScreenInRotation(s, now, screenStates));
-    return filtered.length > 0 ? filtered : enabledScreens;
-  }, [enabledScreens, now, screenStates]);
+    const filtered = turnScreens.filter((s) => isScreenInRotation(s, now, screenStates));
+    return filtered.length > 0 ? filtered : turnScreens;
+  }, [turnScreens, now, screenStates]);
 
   // The profile in effect is what the heartbeat reports, not the manual pick:
   // a scheduled profile overrides the pick, and a phone that showed the pick
@@ -258,9 +280,11 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // keep cycling for the takeover's duration. Not allScreens: that would
   // poll every off-rotation screen's background around the clock.
   const backgroundScreens = useMemo(() => {
-    if (!takeoverScreen || screens.some((s) => s.id === takeoverScreen.id)) return screens;
-    return [...screens, takeoverScreen];
-  }, [screens, takeoverScreen]);
+    const extra = [takeoverScreen, pinnedScreen].filter((s, i, list): s is Screen =>
+      !!s && !screens.some((r) => r.id === s.id) && list.findIndex((o) => o?.id === s.id) === i);
+    if (extra.length === 0) return screens;
+    return [...screens, ...extra];
+  }, [screens, takeoverScreen, pinnedScreen]);
   const rotatingBackgrounds = useBackgroundRotation(backgroundScreens);
 
   // Stable `transition(fn)` that reads the live transition settings internally.
@@ -295,6 +319,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const forgetStartScreen = useCallback(() => {
     startScreenRef.current = null;
     setPinnedScreenId(null);
+    setOpened(null);
   }, []);
 
   const goToScreen = useCallback((index: number) => {
@@ -339,23 +364,18 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     activeIndex: safeIndex,
     screenKey,
     goToScreen,
+    // A pause does not run out while a screen that shows only when opened
+    // is up: the rotation is held anyway, and the pill is out of sight.
+    frozen: opened !== null,
   });
 
   // Remote `goto-screen` command: the payload is a raw id-or-name string
-  // (voice says names) resolved here against the rotation list — the hub
-  // never sees this display's screens, so resolution can't happen there.
-  // A target outside the current rotation (excluded by profile/schedule, or
-  // a typo'd sentence) is ignored with a warn; jumping to a screen the
-  // rotation can't otherwise show would strand the kiosk on it.
-  const gotoScreenByTarget = useCallback((target: string) => {
-    const index = resolveScreenTargetIndex(screens, target);
-    if (index === -1) {
-      console.warn(`goto-screen: no screen in the current rotation matches "${target}"`);
-      return;
-    }
-    goToScreen(index);
-    clearPause();
-  }, [screens, goToScreen, clearPause]);
+  // (voice says names) resolved here against every switched-on screen; the
+  // hub never sees this display's screens, so resolution can't happen there.
+  // A rotating screen is jumped to; one outside the rotation (shows only
+  // when opened, off-profile) is shown the way a dock button shows it, for
+  // its quiet time or one dwell. A switched-off screen or a typo'd sentence
+  // is ignored with a warn. Declared after showScreen below.
 
   // What the Display Control dock sees: the rotation list and every
   // switched-on screen, each with its icon settled once per list, the screen
@@ -363,25 +383,124 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // rotation's own index), and a way to show a screen that clears a pause
   // the way a dot tap does.
   const dockScreens = useMemo(() => screens.map(toDockScreen), [screens]);
-  const dockAllScreens = useMemo(() => enabledScreens.map(toDockScreen), [enabledScreens]);
+  // Every screen something may show right now: the switched-on screens, less
+  // any that show only when opened whose schedule or conditions say not now.
+  // The dock's tiles, the open buttons and the phone's command all read it,
+  // so an evening-only Recipe Book has no door in the morning.
+  const openableScreens = useMemo(
+    () => enabledScreens.filter((s) => !showsOnlyWhenOpened(s) || isScreenInRotation(s, now, screenStates)),
+    [enabledScreens, now, screenStates],
+  );
+  const dockAllScreens = useMemo(() => openableScreens.map(toDockScreen), [openableScreens]);
+  const renderedScreenId = renderedScreen?.id ?? null;
+  const renderedScreenIdRef = useRef(renderedScreenId);
+  useEffect(() => { renderedScreenIdRef.current = renderedScreenId; }, [renderedScreenId]);
+  // A tap that changes the screen must not land again on the screen it
+  // brought up: a quick double tap on an open button would otherwise open
+  // whatever recipe now sits under the finger. Read by the click guard below.
+  const screenChangeGuardUntilRef = useRef(0);
   const showScreen = useCallback((screenId: string) => {
+    // The tap that asked for the screen is not a reason to hold the screen
+    // it asked for: it gets its ordinary dwell.
+    releaseRotationHold();
+    screenChangeGuardUntilRef.current = Date.now() + SCREEN_CHANGE_TAP_GUARD_MS;
     const index = screens.findIndex((s) => s.id === screenId);
     if (index !== -1) {
       goToScreen(index);
       clearPause();
       return;
     }
-    if (!enabledScreens.some((s) => s.id === screenId)) return;
+    const target = openableScreens.find((s) => s.id === screenId);
+    if (!target) return;
+    releaseActiveTakeover();
+    if (showsOnlyWhenOpened(target)) {
+      // Asked for again while it is up (a phone, Home Assistant, a second
+      // tap on a dock tile): keep it, and start its quiet time again.
+      if (openedRef.current?.screenId === screenId) {
+        setOpenedRestarts((n) => n + 1);
+        return;
+      }
+      // A screen that shows only when opened: pin it and remember where the
+      // display was, so its quiet time (useOpenedScreen) and the back chip
+      // can take the display back there. A pause someone set by hand is
+      // left alone: the rotation is held while the screen is up anyway, and
+      // the pause is still there on the way back.
+      const from = renderedScreenIdRef.current;
+      transition(() => {
+        setPinnedScreenId(screenId);
+        setOpened({ screenId, returnTo: from === screenId ? null : from, goBackAfterMs: resolveGoBackAfterMs(target) });
+      });
+      return;
+    }
     // Not rotating right now (off its schedule, condition unmet, off-profile):
     // a dock button for it still works. Pin it the way a requested start
     // screen is pinned, with a fresh dwell; the next move, timed or by hand,
     // releases it (forgetStartScreen), and with rotation off it stays.
-    releaseActiveTakeover();
     transition(() => { setPinnedScreenId(screenId); });
     setRotationEpoch((e) => e + 1);
     clearPause();
-  }, [screens, enabledScreens, goToScreen, clearPause, releaseActiveTakeover, transition]);
-  const renderedScreenId = renderedScreen?.id ?? null;
+  }, [screens, openableScreens, goToScreen, clearPause, releaseActiveTakeover, transition]);
+
+  const gotoScreenByTarget = useCallback((target: string) => {
+    const index = resolveScreenTargetIndex(enabledScreens, target);
+    if (index === -1) {
+      console.warn(`goto-screen: no switched-on screen matches "${target}"`);
+      return;
+    }
+    showScreen(enabledScreens[index].id);
+  }, [enabledScreens, showScreen]);
+
+  // Where the display goes when an opened screen's quiet time runs out or
+  // its back chip is tapped: the screen it left, if that still rotates
+  // (with a fresh dwell), or pinned for a dwell if it is switched on but out
+  // of the rotation; otherwise the rotation resumes where it stood.
+  const returnFromOpened = useCallback(() => {
+    // A flick on the book's list or a tap on the chip earned a hold on the
+    // screen being left; the screen coming back gets its own dwell, and the
+    // tap on the chip does not land again on what the screen shows there.
+    releaseRotationHold();
+    screenChangeGuardUntilRef.current = Date.now() + SCREEN_CHANGE_TAP_GUARD_MS;
+    const returnTo = opened?.returnTo ?? null;
+    const index = returnTo ? screens.findIndex((s) => s.id === returnTo) : -1;
+    if (index !== -1) {
+      goToScreen(index);
+      setRotationEpoch((e) => e + 1);
+      return;
+    }
+    if (returnTo && enabledScreens.some((s) => s.id === returnTo && !showsOnlyWhenOpened(s))) {
+      transition(() => { setPinnedScreenId(returnTo); setOpened(null); });
+      setRotationEpoch((e) => e + 1);
+      return;
+    }
+    transition(() => { forgetStartScreen(); });
+    setRotationEpoch((e) => e + 1);
+  }, [opened, screens, enabledScreens, goToScreen, transition, forgetStartScreen]);
+
+  // The opened screen's quiet time: any touch starts it again, and when it
+  // runs out the display goes back. Only while the opened screen is really
+  // the one in front (a rule takeover over it holds the clock), and not
+  // while an overlay such as a recipe card holds the display: the card's
+  // own close rule wins, and the chip steps aside with the page under it.
+  const openedInFront = opened !== null && renderedScreenId === opened.screenId;
+  const overlayHeld = useInteractionHeld();
+  const goesBackAt = useOpenedScreen(openedInFront ? opened.screenId : null, opened?.goBackAfterMs ?? 0, returnFromOpened, overlayHeld, openedRestarts);
+  const returnScreenName = opened?.returnTo ? allScreens.find((s) => s.id === opened.returnTo)?.name ?? null : null;
+  const openedBack = useMemo(
+    () => (openedInFront ? { name: returnScreenName, onBack: returnFromOpened, hidden: overlayHeld, goesBackAt } : undefined),
+    [openedInFront, returnScreenName, returnFromOpened, overlayHeld, goesBackAt],
+  );
+
+  // Escape on a keyboard (a laptop showing the wall) does what the chip does.
+  useEffect(() => {
+    if (!openedInFront) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || interactionIsHeld()) return;
+      returnFromOpened();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openedInFront, returnFromOpened]);
+
   const rotationState = useMemo<RotationState>(
     () => ({
       screens: dockScreens,
@@ -399,7 +518,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     // screen, and a black rectangle at 10 PM reads as "it's broken".
     sleep: preview ? undefined : settings.sleep,
     timezone: settings.timezone,
-    screenIndex: safeIndex,
+    // -1 while the screen in front has no place in the rotation (a rule
+    // takeover or a screen that shows only when opened).
+    screenIndex: renderedScreen && screens[safeIndex]?.id === renderedScreen.id ? safeIndex : -1,
     screenId: renderedScreen?.id ?? '',
     screenName: renderedScreen?.name ?? '',
     screenCount: screens.length,
@@ -475,10 +596,12 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // manager's own touch listener does that). Navigating too would land the
   // waking user on a screen they never saw change, and would silently discard
   // an explicit double-tap pause.
+  // A flick on a screen that was opened means "back", whichever way it
+  // goes: the screen has no neighbours in the rotation to flick to.
   useSwipeNavigation({
     enabled: (settings.swipeEnabled ?? true) && contentIsLive && !interactionHeld,
-    onSwipeLeft: () => { nextScreen(); resetRotation(); clearPause(); },
-    onSwipeRight: () => { prevScreen(); resetRotation(); clearPause(); },
+    onSwipeLeft: () => { if (opened) { returnFromOpened(); return; } nextScreen(); resetRotation(); clearPause(); },
+    onSwipeRight: () => { if (opened) { returnFromOpened(); return; } prevScreen(); resetRotation(); clearPause(); },
   });
 
   // Chromium only honours overscroll-behavior at the document root (html/
@@ -583,7 +706,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Prefetch next screen's API data and background before rotation fires
   usePrefetchNextScreen(
     screens, screenKey, currentIndex, currentDuration, displayState, settings.timezone,
-    takeoverScreen !== null,
+    takeoverScreen !== null || opened !== null,
     (screen) => screenBackgroundSrc(screen, rotatingBackgrounds[screen.id], { w: displayW, h: displayH }),
   );
 
@@ -681,7 +804,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
       // display itself, and the tap on its Dismiss button seconds later must
       // land, not be eaten as the "wake tap".
       if (e.target instanceof Element && e.target.closest('[data-alert-control]')) return;
-      if (!contentIsLiveRef.current || Date.now() < wakeGuardUntilRef.current) {
+      if (!contentIsLiveRef.current || Date.now() < wakeGuardUntilRef.current || Date.now() < screenChangeGuardUntilRef.current) {
         e.stopPropagation();
         e.preventDefault();
       }
@@ -699,7 +822,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const dwellStartedAt = useScreenRotationTimer({
     durationMs: currentDuration,
     onAdvance: nextScreen,
-    // SIX ways a kiosk sits frozen on one screen, all of which look identical
+    // SEVEN ways a kiosk sits frozen on one screen, all of which look identical
     // from across the room. Start here when debugging "it stopped rotating":
     //   1. screens.length <= 1: only one screen resolves for the active
     //      profile/schedule, so there is nothing to rotate to
@@ -716,7 +839,9 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
     // swipeEnabled is off, the display is dimmed/asleep, or an overlay is
     // open) a horizontal flick anywhere on the touchscreen. States 3-5 all
     // yield to any of them; an open overlay leaves with its screen.
-    active: screens.length > 1 && displayState !== 'asleep' && !paused && !rotationHeld && !takeoverScreen && !preview,
+    //   7. opened: a screen that shows only when opened is up; its own quiet
+    //      time (useOpenedScreen) takes the display back, not the rotation
+    active: screens.length > 1 && displayState !== 'asleep' && !paused && !rotationHeld && !takeoverScreen && !opened && !preview,
     resetKey: rotationEpoch,
   });
 
@@ -838,7 +963,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
                 transition: 'transform 300ms ease',
               }}
             >
-              <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} />
+              <ScreenRenderer screen={renderedScreen} settings={settings} rotatingBackground={rotatingBackgrounds[renderedScreen.id]} sharedData={sharedData} displayW={displayW} displayH={displayH} scale={scale} availableDisplays={displays} displayId={displayId} openedBack={openedBack} />
             </div>
           )}
           {/* Modules flagged "Show on every screen", drawn once above the
@@ -878,7 +1003,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           allScreens: demand must survive profile filtering. */}
       <PluginServiceLayer screens={allScreens} rules={rules} />
 
-      {showDots && (
+      {showDots && !opened && (
         <PaginationDots
           screens={screens}
           activeIndex={safeIndex}
@@ -888,6 +1013,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           pausedUntil={pausedUntil}
           progress={preview ? null : rotationProgress}
           hidden={canvasAsleep}
+          showPausePill={!preview}
         />
       )}
 

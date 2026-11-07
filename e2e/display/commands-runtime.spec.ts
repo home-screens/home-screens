@@ -134,9 +134,11 @@ test('goto-screen jumps to a screen by name (case-insensitive) or id, and ignore
   await page.clock.runFor(3_000);
   await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible();
 
-  // Unknown target: command drains but the client warns and stays put. Ride
-  // out one 3s poll cycle (in virtual time) so the bogus command has drained.
-  await sendCommand(request, id, 'goto-screen', { screen: 'garage' });
+  // Unknown target: the hub knows the display's screens and refuses it in
+  // words, so nothing is queued and the wall stays put.
+  const unknown = await request.post(`/api/display/goto-screen?display=${encodeURIComponent(id)}`, { data: { screen: 'garage' } });
+  expect(unknown.status()).toBe(404);
+  expect((await unknown.json()).error).toBe('No screen called "garage" on this display');
   await page.clock.runFor(3_000);
   await expect(page.getByText('GOTO SCREEN CHARLIE', { exact: true })).toBeVisible();
 

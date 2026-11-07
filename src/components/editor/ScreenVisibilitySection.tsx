@@ -14,17 +14,20 @@ export function ScreenVisibilitySection({
   screenId,
   visibility,
   statusTitle,
+  opened = false,
 }: {
   screenId: string;
   visibility: ModuleVisibility | undefined;
   statusTitle?: string;
+  /** The screen shows only when opened: the words say "be opened", not "be in the rotation". */
+  opened?: boolean;
 }) {
   const updateScreen = useEditorStore((s) => s.updateScreen);
   return (
     <VisibilityConditionsEditor
       visibility={visibility}
       onChange={(next) => updateScreen(screenId, { visibility: next })}
-      subject="screen"
+      subject={opened ? 'screenOpened' : 'screen'}
       statusTitle={statusTitle}
     />
   );

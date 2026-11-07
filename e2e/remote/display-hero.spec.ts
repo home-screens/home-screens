@@ -18,13 +18,13 @@ import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
 async function postStatus(
   request: APIRequestContext,
   display: string,
-  overrides: { displayState?: 'active' | 'dimmed' | 'asleep'; screenCount?: number; currentIndex?: number } = {},
+  overrides: { displayState?: 'active' | 'dimmed' | 'asleep'; screenCount?: number; currentIndex?: number; name?: string } = {},
 ): Promise<void> {
-  const { displayState = 'active', screenCount = 2, currentIndex = 0 } = overrides;
+  const { displayState = 'active', screenCount = 2, currentIndex = 0, name = `Screen ${currentIndex}` } = overrides;
   const res = await request.post(`/api/display/status?display=${display}`, {
     data: {
       displayId: display,
-      currentScreen: { index: currentIndex, id: `screen-${currentIndex}`, name: `Screen ${currentIndex}` },
+      currentScreen: { index: currentIndex, id: `screen-${currentIndex}`, name },
       screenCount,
       activeProfile: null,
       displayState,
@@ -55,6 +55,15 @@ test('the hero shows the live screen index and Active state from a heartbeat', a
   await expect(page.getByText('Screen 1 of 2')).toBeVisible({ timeout: 10000 });
   // State badge reads the active label.
   await expect(page.getByText('Active', { exact: true })).toBeVisible();
+});
+
+test('a screen that shows only when opened is named with no place in the rotation', async ({ page, request }) => {
+  await putConfig(request, oneDisplay('heroopened', 'Hero Opened'));
+  await postStatus(request, 'heroopened', { screenCount: 2, currentIndex: -1, name: 'Recipe Book' });
+  await page.goto('/remote');
+
+  await expect(page.getByText('Recipe Book', { exact: true })).toBeVisible({ timeout: 10000 });
+  await expect(page.getByText(/Screen \d+ of 2/)).toHaveCount(0);
 });
 
 test('the hero renders the Asleep state for an asleep heartbeat', async ({ page, request }) => {

@@ -7,6 +7,7 @@ import type { LibraryFilter } from '@/lib/meal-constants';
 import { displayFetch } from '@/lib/display-fetch';
 import { fetchMealieCategories, searchMealieRecipes, type MealieClientProblem } from '@/lib/meal-client';
 import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
+import { mealHeartsChangedHere, useMealHeartsChangedHere } from '@/components/meals/useMealFavorite';
 import {
   LOCAL_BOOK_CHIPS, localBookMeals, localBookSearch, mealieBookChips, recipeBookChipId,
   type RecipeBookChip, type RecipeBookSource,
@@ -39,6 +40,8 @@ export interface WallRecipeBook {
   widenedTo: string | null;
   /** The saved meal the typed words name that has no recipe, when that is why nothing was found. */
   withoutRecipe: SavedMeal | null;
+  /** How many saved meals are not in the book because they have no recipe (local books only). */
+  withoutRecipeCount: number;
 }
 
 /**
@@ -75,8 +78,40 @@ export function useWallRecipeBook({ source, savedMeals, enabled }: {
   // ── A family without Mealie ──
   const [localQuery, setLocalQuery] = useState('');
   const [localFilter, setLocalFilter] = useState<LibraryFilter>('all');
-  const recipeMeals = useMemo(() => localBookMeals(savedMeals, '', 'all'), [savedMeals]);
-  const local = useMemo(() => localBookSearch(savedMeals, localQuery, localFilter), [savedMeals, localQuery, localFilter]);
+  // Hearts changed on the wall count before the meals load again (about a
+  // minute): one just hearted is on Favorites at once, and choosing the chip
+  // leaves out one just taken off. While Favorites is up, a heart taken off
+  // there keeps its tile, drawn empty, until the meals load again, so the
+  // tile does not jump away under the finger. The hearts only choose which
+  // recipes are listed: the tiles get the meals as loaded, since a heart that
+  // read its own change back as loaded would take it for saved and forget it.
+  const heartsHere = useMealHeartsChangedHere();
+  const [heartsAtChoose, setHeartsAtChoose] = useState(mealHeartsChangedHere);
+  const bookMeals = useMemo(() => {
+    if (heartsHere.size === 0 && heartsAtChoose.size === 0) return savedMeals;
+    return savedMeals.map((meal) => {
+      const isFavorite = heartsHere.get(meal.id) === true || (heartsAtChoose.get(meal.id) ?? meal.isFavorite === true);
+      return isFavorite === (meal.isFavorite === true) ? meal : { ...meal, isFavorite };
+    });
+  }, [savedMeals, heartsHere, heartsAtChoose]);
+  const recipeMeals = useMemo(() => localBookMeals(bookMeals, '', 'all'), [bookMeals]);
+  // Typed words search the whole book: the chip row is out of sight while
+  // the keyboard is up, so a chip still narrowing the search was a filter
+  // nobody could see.
+  const local = useMemo(() => {
+    const found = localBookSearch(bookMeals, localQuery, localQuery.trim() ? 'all' : localFilter);
+    if (bookMeals === savedMeals) return found;
+    const loaded = new Map(savedMeals.map((meal) => [meal.id, meal]));
+    return { ...found, items: found.items.map((meal) => loaded.get(meal.id) ?? meal) };
+  }, [bookMeals, savedMeals, localQuery, localFilter]);
+  // The chips with something behind them: All and Favorites always (the
+  // empty Favorites page says how to add one), the rest only when a recipe
+  // would show, so an untagged household is not offered a row of dead ends.
+  const localChips = useMemo(
+    () => LOCAL_BOOK_CHIPS.filter((chip) => chip.kind !== 'local' || chip.filter === 'all' || chip.filter === 'favorites'
+      || chip.filter === localFilter || localBookMeals(bookMeals, '', chip.filter).length > 0),
+    [bookMeals, localFilter],
+  );
 
   // Mealie not answering: ask again once a minute, nobody has to be there.
   // Here rather than in a view, so the full-screen book and the small
@@ -106,6 +141,7 @@ export function useWallRecipeBook({ source, savedMeals, enabled }: {
     if (chip.kind === 'local') {
       setLocalQuery('');
       setLocalFilter(chip.filter);
+      setHeartsAtChoose(mealHeartsChangedHere());
     } else if (chip.kind === 'mealie') chooseMealie(chip.filter);
     else if (chip.kind === 'cookbook') chooseMealie({ cookbook: chip.slug });
     else chooseMealie({ category: chip.slug });
@@ -114,7 +150,7 @@ export function useWallRecipeBook({ source, savedMeals, enabled }: {
   if (source === 'local') {
     return {
       source,
-      chips: [...LOCAL_BOOK_CHIPS],
+      chips: localChips,
       active: { kind: 'local', filter: localFilter },
       choose,
       query: localQuery,
@@ -124,6 +160,7 @@ export function useWallRecipeBook({ source, savedMeals, enabled }: {
       problem: null,
       total: local.items.length,
       recipeCount: recipeMeals.length,
+      withoutRecipeCount: Math.max(0, savedMeals.length - recipeMeals.length),
       hasMore: false,
       loadMore: () => {},
       retry: () => {},
@@ -150,5 +187,6 @@ export function useWallRecipeBook({ source, savedMeals, enabled }: {
     retry: search.retry,
     widenedTo: search.widenedTo,
     withoutRecipe: null,
+    withoutRecipeCount: 0,
   };
 }

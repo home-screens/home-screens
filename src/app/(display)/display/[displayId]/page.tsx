@@ -1,6 +1,6 @@
 import { readConfig } from '@/lib/config';
 import { getDisplayToken } from '@/lib/auth';
-import { filterConfigForDisplay } from '@/lib/display-filter';
+import { displayDescriptors, filterConfigForDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import { hubTimezone } from '@/lib/household-day';
 import { wallConfigEtag } from '@/lib/wall-config';
@@ -39,7 +39,7 @@ export default async function DisplayPage({
     return <DisplayNotFound displayId={displayId} displayToken={displayToken ?? null} />;
   }
 
-  const availableDisplays = config.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
+  const availableDisplays = displayDescriptors(config.displays);
 
   return (
     <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#000' }}>

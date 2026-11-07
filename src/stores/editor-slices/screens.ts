@@ -1,7 +1,10 @@
 import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
-import type { Screen } from '@/types/config';
-import { pruneDanglingScreenRefs } from '@/lib/display-filter';
+import type { ModuleInstance, Screen } from '@/types/config';
+import { getModuleDefinition } from '@/lib/module-registry';
+import { defaultPresetForLocale } from '@/lib/news-presets';
+import { DEFAULT_MODULE_STYLE } from '@/types/config';
+import { pruneDanglingScreenRefs, screensWithOpenButtonsMoved } from '@/lib/display-filter';
 import { getActiveDimensions, getActiveScreens, withActiveScreens } from '@/lib/editor-multi-display';
 import { fitModuleToDisplay } from '@/lib/module-utils';
 import { pickedBackground, withRotationUpdate } from '@/lib/screen-background';
@@ -37,6 +40,42 @@ export function createScreenSlice(
         selectedModuleId: null,
       }));
       syncEditorUrl({ screen: newScreen.id });
+    },
+
+    addScreenOpenedFrom: (fromScreenId, moduleId, twin, name) => {
+      const { config, selectedDisplayId } = get();
+      const def = getModuleDefinition(twin.type);
+      if (!config || !def) return null;
+      const dims = getActiveDimensions(config, selectedDisplayId);
+      const moduleConfig: Record<string, unknown> = { ...def.defaultConfig, ...(twin.config ?? {}) };
+      if (twin.type === 'fullscreen-news') {
+        const preset = defaultPresetForLocale(config.settings?.locale);
+        moduleConfig.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
+      }
+      const twinModule: ModuleInstance = {
+        id: uuid(),
+        type: twin.type,
+        position: { x: 0, y: 0 },
+        size: def.fillsCanvas ? { w: dims.width, h: dims.height } : { ...def.defaultSize },
+        zIndex: 1,
+        config: moduleConfig,
+        style: { ...DEFAULT_MODULE_STYLE, ...def.defaultStyle },
+      };
+      const newScreen: Screen = { id: uuid(), name, backgroundImage: '', modules: [twinModule], rotation: 'opened' };
+      mutateConfig((cfg) => ({
+        config: withActiveScreens(
+          cfg,
+          selectedDisplayId,
+          [
+            ...getActiveScreens(cfg, selectedDisplayId).map((screen) => screen.id !== fromScreenId ? screen : {
+              ...screen,
+              modules: screen.modules.map((m) => (m.id === moduleId ? { ...m, openButtonScreen: newScreen.id } : m)),
+            }),
+            newScreen,
+          ],
+        ),
+      }));
+      return newScreen.id;
     },
 
     removeScreen: (id) => {
@@ -108,11 +147,21 @@ export function createScreenSlice(
       // this display's shape, as an imported layout's are.
       const from = getActiveDimensions(config, sourceDisplayId);
       const to = getActiveDimensions(config, selectedDisplayId);
-      const copies: Screen[] = structuredClone(source.screens).map((screen) => ({
-        ...screen,
-        id: uuid(),
-        modules: screen.modules.map((m) => ({ ...fitModuleToDisplay(m, from, to), id: uuid() })),
-      }));
+      // Open buttons move to the copies of their screens: every screen they
+      // can open comes along, and the source display's ids are not here.
+      const idMap = new Map<string, string>();
+      const copies: Screen[] = screensWithOpenButtonsMoved(
+        structuredClone(source.screens).map((screen) => {
+          const id = uuid();
+          idMap.set(screen.id, id);
+          return {
+            ...screen,
+            id,
+            modules: screen.modules.map((m) => ({ ...fitModuleToDisplay(m, from, to), id: uuid() })),
+          };
+        }),
+        idMap,
+      );
       mutateConfig((cfg) => ({
         config: withActiveScreens(
           cfg,

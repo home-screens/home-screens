@@ -103,6 +103,17 @@ export function holdRotationFor(ms: number): () => void {
 }
 
 /**
+ * End the timed hold now. For a navigation that leaves the surface the hold
+ * was earned on (the way back from an opened screen): the screen the display
+ * returns to gets its own dwell, not the minute a flick on a list earned.
+ */
+export function releaseRotationHold(): void {
+  if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
+  tapUntil = 0;
+  setTapHeld(false);
+}
+
+/**
  * True while a component holds the display. ScreenRotator turns flick
  * navigation off for it, as well as the rotation timer.
  */

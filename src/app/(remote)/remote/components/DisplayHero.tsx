@@ -70,7 +70,9 @@ export default function DisplayHero({ status, isConnected, lastUpdated, neverCon
                         ? t('displayHero.lastSeenTimeAgo', {
                             ago: formatTimeAgoLocalized(new Date(entry.lastSeen ?? 0), tCore),
                           })
-                        : `${entry.status.currentScreen.name} · ${t('displayHero.screenIndex', {
+                        : entry.status.currentScreen.index < 0
+                          ? entry.status.currentScreen.name
+                          : `${entry.status.currentScreen.name} · ${t('displayHero.screenIndex', {
                             current: entry.status.currentScreen.index + 1,
                             total: entry.status.screenCount,
                           })}`
@@ -131,9 +133,12 @@ export default function DisplayHero({ status, isConnected, lastUpdated, neverCon
           <div className="text-[26px] font-bold tracking-tight text-hs-text-primary mb-1">
             {status.currentScreen.name}
           </div>
-          <div className="text-[13px] text-hs-text-faint">
-            {t('displayHero.screenIndex', { current: status.currentScreen.index + 1, total: status.screenCount })}
-          </div>
+          {/* A screen that shows only when opened has no place in the rotation (index -1). */}
+          {status.currentScreen.index >= 0 && (
+            <div className="text-[13px] text-hs-text-faint">
+              {t('displayHero.screenIndex', { current: status.currentScreen.index + 1, total: status.screenCount })}
+            </div>
+          )}
           {isOffline && (
             <div className="mt-2 text-[13px] text-hs-text-faint">{t('displayHero.controlsPaused')}</div>
           )}

@@ -21,12 +21,15 @@ export function buildScreenDeleteConfirm(
   screen: { name: string; modules: ModuleInstance[] },
   t: TranslateFn,
   tCore: TranslateFn,
+  /** The modules on other screens whose open button opens this one ("Kitchen: Meal Planner"); their buttons go with it. */
+  openers: readonly string[] = [],
 ): DeleteConfirmContent {
+  const detail = t('screenTabs.deleteConfirmDetail', { count: screen.modules.length });
   return {
     title: t('screenTabs.deleteConfirmTitle', { name: screen.name }),
     // A plural-form entry, so each locale picks its own branch rather than
     // having a count glued onto a sentence.
-    message: t('screenTabs.deleteConfirmDetail', { count: screen.modules.length }),
+    message: openers.length > 0 ? t('screenTabs.deleteConfirmOpeners', { names: openers.join(', '), count: screen.modules.length }) : detail,
     confirmLabel: tCore('actions.delete'),
     variant: 'danger',
   };

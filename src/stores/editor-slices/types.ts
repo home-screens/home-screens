@@ -188,6 +188,12 @@ export interface ModuleActions {
 export interface ScreenActions {
   /** `name` is the new screen's name in the household's language ("Screen 4"). */
   addScreen: (name?: string) => void;
+  /**
+   * One click from a module's Open button section: a new screen named `name`
+   * holding `twin` (a full-screen module over its defaults), kept out of the
+   * rotation, with the module's button pointed at it. Selection stays put.
+   */
+  addScreenOpenedFrom: (fromScreenId: string, moduleId: string, twin: { type: ModuleType; config?: Record<string, unknown> }, name: string) => string | null;
   removeScreen: (id: string) => void;
   /** Clone a screen (fresh screen and module ids) right after the original, selected; `copyName` is the copy's name in the household's language ("Home copy"). */
   duplicateScreen: (id: string, copyName?: string) => void;

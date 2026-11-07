@@ -28,6 +28,9 @@ export function mealShownMinutes(meal: SavedMeal | null | undefined): number | n
   return total > 0 ? total : null;
 }
 
+/** The longest a meal can take, prep and cook together, and still count as Quick without the tag. */
+export const QUICK_MEAL_MINUTES = 30;
+
 /** Whole hours and the minutes left over, for "2h 20m". */
 export function splitMinutes(total: number): { hours: number; minutes: number } {
   const whole = Math.max(0, Math.round(total));
@@ -154,6 +157,10 @@ export function filterLibraryMeals(meals: SavedMeal[], query: string, filter: Li
     case 'side':
     case 'dessert':
     case 'drink': return found.filter((m) => mealKind(m) === filter);
+    // Quick is what a family would guess: tagged quick, or ready in half an
+    // hour or less, prep and cook together.
+    case 'quick': return found.filter((m) => m.tags?.some((t) => normalizeTag(t) === 'quick')
+      || ((mealShownMinutes(m) ?? Infinity) <= QUICK_MEAL_MINUTES));
     default: return found.filter((m) => m.tags?.some((t) => normalizeTag(t) === filter));
   }
 }

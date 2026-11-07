@@ -6,6 +6,7 @@ import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
+import { OpenButtonSlot } from '@/components/modules/shared/OpenScreenButton';
 import { ModuleSurfaceProvider } from '@/components/modules/module-surface';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import { useEditorStore } from '@/stores/editor-store';
@@ -47,11 +48,14 @@ export const ModulePreview = memo(function ModulePreview({ mod, source }: { mod:
 
   // A plugin that throws while rendering must not take the editor down with it
   // and discard unsaved config edits.
+  const style = resolveModuleStyle(mod.style, getModuleDefinition(mod.type));
   return (
     <ModuleSurfaceProvider value="editor">
-      <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-        <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
-      </ModuleErrorBoundary>
+      <OpenButtonSlot mod={mod} style={style}>
+        <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
+          <Component config={mod.config} style={style} {...extraProps} />
+        </ModuleErrorBoundary>
+      </OpenButtonSlot>
     </ModuleSurfaceProvider>
   );
 });

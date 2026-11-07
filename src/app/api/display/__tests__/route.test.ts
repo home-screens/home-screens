@@ -394,6 +394,43 @@ describe('POST /api/display/brightness', () => {
 });
 
 describe('POST /api/display/goto-screen', () => {
+  const screenOf = (id: string, name: string, extra: Record<string, unknown> = {}) => ({ id, name, backgroundImage: '', modules: [], ...extra });
+  beforeEach(() => {
+    vi.mocked(readConfig).mockResolvedValue({
+      screens: [screenOf('cal', 'Calendar'), screenOf('night', 'Night', { enabled: false })],
+      settings: {},
+      displays: undefined,
+    } as never);
+  });
+
+  it('refuses a screen the display does not have, in words a shortcut can show', async () => {
+    const res = await POST(makeRequest({ screen: 'Nope' }), makeParams('goto-screen'));
+    expect(res.status).toBe(404);
+    expect((await res.json()).error).toBe('No screen called "Nope" on this display');
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('refuses a screen that shows only when opened while it is outside its hours', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-06T10:00:00Z'));
+    vi.mocked(readConfig).mockResolvedValue({
+      screens: [screenOf('book', 'Recipe Book', { rotation: 'opened', schedule: { startTime: '03:00', endTime: '04:00' } })],
+      settings: { timezone: 'UTC' },
+    } as never);
+    const res = await POST(makeRequest({ screen: 'Recipe Book' }), makeParams('goto-screen'));
+    vi.useRealTimers();
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toBe('Recipe Book is outside its hours right now');
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
+  it('refuses a switched-off screen and says so', async () => {
+    const res = await POST(makeRequest({ screen: 'night' }), makeParams('goto-screen'));
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toBe('Night is switched off');
+    expect(enqueueCommand).not.toHaveBeenCalled();
+  });
+
   it('enqueues the target string on the default queue', async () => {
     const res = await POST(makeRequest({ screen: 'Calendar' }), makeParams('goto-screen'));
     const json = await res.json();
@@ -403,7 +440,12 @@ describe('POST /api/display/goto-screen', () => {
     expect(enqueueCommand).toHaveBeenCalledWith(undefined, 'goto-screen', { screen: 'Calendar' });
   });
 
-  it('targets a specific display via the body displayId', async () => {
+  it('targets a specific display via the body displayId, checked against that display\'s screens', async () => {
+    vi.mocked(readConfig).mockResolvedValue({
+      screens: [],
+      settings: {},
+      displays: [{ id: 'kitchen', name: 'Kitchen', screens: [screenOf('photos', 'Photos')] }],
+    } as never);
     const res = await POST(
       makeRequest({ screen: 'photos', displayId: 'kitchen' }),
       makeParams('goto-screen'),
@@ -1431,7 +1473,8 @@ describe('commands with no display named', () => {
     vi.mocked(readConfig).mockResolvedValue({
       screens: [],
       settings: {},
-      displays: ids.map((id) => ({ id, name: id, screens: [] })),
+      // goto-screen checks the name against the display's own screens.
+      displays: ids.map((id) => ({ id, name: id, screens: [{ id: `${id}-cal`, name: 'Calendar', backgroundImage: '', modules: [] }] })),
     } as never);
   }
 

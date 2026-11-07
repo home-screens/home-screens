@@ -86,6 +86,10 @@
     "body": "Open op een telefoon of computer in je thuisnetwerk",
     "hideHint": "Liever een leeg scherm? Instellingen › Scherm › Deze tip tonen"
   },
+  "openedScreen": {
+    "backTo": "Terug naar {name}",
+    "back": "Terug"
+  },
   "pagination": {
     "paused": "Gepauzeerd",
     "previousScreen": "Vorig scherm",
@@ -93,7 +97,8 @@
     "resumesIn": "Gaat verder over {time} · tik om nu verder te gaan",
     "tapToResume": "tik om verder te gaan",
     "minutes": "{count} min",
-    "seconds": "{count} sec"
+    "seconds": "{count} sec",
+    "heldInPreview": "De rotatie staat stil in de voorbeeldweergave"
   },
   "displayNotFound": {
     "notRegistered": "Display nog niet toegevoegd",

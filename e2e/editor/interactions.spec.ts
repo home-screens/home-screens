@@ -3,6 +3,7 @@ import { test, expect } from '../fixtures';
 import type { APIRequestContext, Page } from '@playwright/test';
 import { getConfig, putConfig } from '../helpers/api';
 import { baseConfig, makeScreen, textModule } from '../helpers/config-fixtures';
+import { buildModuleInstance } from '../helpers/module-fixtures';
 import { dragPaletteToCanvas } from '../helpers/editor';
 
 async function openEditor(page: Page): Promise<void> {
@@ -403,16 +404,16 @@ test.describe('screen context menu', () => {
     }));
     await openEditor(page);
 
-    // Disable the non-active screen via its context menu.
+    // Switch off the non-active screen via its context menu.
     await page.locator('span.max-w-32', { hasText: 'Screen 2' }).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Disable', exact: true }).click();
+    await page.getByRole('button', { name: 'Switch off', exact: true }).click();
 
     await pollConfig(request, (c) => c.screens.find((s) => s.id === 'b')!.enabled).then((p) => p.toBe(false));
     await expect(page.getByLabel('Disabled', { exact: true })).toBeVisible();
 
-    // Re-open the menu — it now offers Enable — and clear the disabled state.
+    // Re-open the menu, which now offers Switch on, and clear the switched-off state.
     await page.locator('span.max-w-32', { hasText: 'Screen 2' }).click({ button: 'right' });
-    await page.getByRole('button', { name: 'Enable', exact: true }).click();
+    await page.getByRole('button', { name: 'Switch on', exact: true }).click();
 
     await pollConfig(request, (c) => c.screens.find((s) => s.id === 'b')!.enabled).then((p) => p.toBeUndefined());
     await expect(page.getByLabel('Disabled', { exact: true })).toBeHidden();
@@ -480,6 +481,223 @@ test.describe('per-screen rotation duration', () => {
     await page.getByRole('button', { name: 'Back to the usual', exact: true }).click();
     await pollConfig(request, (c) => c.screens[0].rotationDurationMs).then((p) => p.toBeUndefined());
     await expect(page.getByText('Stays', { exact: true })).toBeHidden();
+  });
+});
+
+test.describe('open button and screens that show only when opened', () => {
+  test('the screen rotation choice persists and badges the tab', async ({ page, request }) => {
+    await putConfig(request, baseConfig({ screens: [makeScreen('a', 'Recipe Book', [])] }));
+    await openEditor(page);
+
+    await page.getByRole('radio', { name: 'Shows only when opened' }).check();
+    await pollConfig(request, (c) => c.screens[0].rotation).then((p) => p.toBe('opened'));
+    // Nothing opens it yet, and both the tab and the panel say so.
+    await expect(page.getByTestId('screen-tab-orphaned')).toHaveText('Nothing opens it');
+    await expect(page.getByTestId('screen-rotation-opened-help')).toContainText('Nothing opens this screen, so it never shows');
+    // The duration override has no place on a screen with no turn.
+    await expect(page.getByRole('button', { name: 'Use a different time', exact: true })).toBeHidden();
+
+    // The quiet time is the screen's: whole or half minutes, a day at most,
+    // and the field says when it put a typed value right.
+    const minutes = page.locator('#screen-go-back-after');
+    await expect(minutes).toHaveValue('2');
+    await minutes.fill('1.5');
+    await pollConfig(request, (c) => c.screens[0].goBackAfterMs).then((p) => p.toBe(90_000));
+    // A value that has to be put right says what it will become, and is
+    // saved adjusted when the field is left.
+    await minutes.fill('99999');
+    await expect(page.getByTestId('go-back-after-note')).toHaveText('Will be saved as 1440 minutes, a whole day.');
+    await minutes.press('Tab');
+    await pollConfig(request, (c) => c.screens[0].goBackAfterMs).then((p) => p.toBe(86_400_000));
+    await expect(page.getByTestId('go-back-after-note')).toHaveText('Changed 99999 to 1440 minutes, a whole day.');
+    await minutes.fill('1,5');
+    await pollConfig(request, (c) => c.screens[0].goBackAfterMs).then((p) => p.toBe(90_000));
+    await minutes.fill('2.3');
+    await minutes.press('Tab');
+    await pollConfig(request, (c) => c.screens[0].goBackAfterMs).then((p) => p.toBe(150_000));
+    await expect(page.getByTestId('go-back-after-note')).toHaveText('Changed 2.3 to 2.5: whole or half minutes.');
+    // A blank or a minus never saves: the field goes back and says so.
+    await minutes.fill('');
+    await minutes.press('Tab');
+    await expect(minutes).toHaveValue('2.5');
+    await expect(page.getByTestId('go-back-after-note')).toHaveText('That is not a number of minutes, so it stays at 2.5.');
+    await minutes.fill('-3');
+    await minutes.press('Tab');
+    await pollConfig(request, (c) => c.screens[0].goBackAfterMs).then((p) => p.toBe(150_000));
+    await minutes.fill('0');
+    await pollConfig(request, (c) => c.screens[0].goBackAfterMs).then((p) => p.toBe(0));
+    await expect(page.getByTestId('go-back-after-note')).toBeHidden();
+
+    await page.getByRole('radio', { name: 'Takes its turn with the other screens' }).check();
+    await pollConfig(request, (c) => c.screens[0].rotation).then((p) => p.toBeUndefined());
+    await expect(page.getByTestId('screen-tab-orphaned')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Use a different time', exact: true })).toBeVisible();
+  });
+
+  test('the open button lists only screens it can open, edits the target\'s quiet time in place, and the canvas draws it', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [
+        makeScreen('kitchen', 'Kitchen', [textModule('KITCHEN', { id: 'kitchen-text', position: { x: 100, y: 100 }, size: { w: 600, h: 300 } })]),
+        makeScreen('recipes', 'Recipe Book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
+        makeScreen('night', 'Night', [], { enabled: false }),
+        makeScreen('evening', 'Evening', [textModule('EVENING', { position: { x: 0, y: 0 } })]),
+      ],
+    }));
+    await openEditor(page);
+    await page.locator('[data-module-id="kitchen-text"]').click();
+    await page.getByRole('button', { name: 'Open button' }).click();
+
+    const select = page.locator('#module-open-button-kitchen-text');
+    await expect(select).toHaveValue('');
+    // Never the module's own screen, never a switched-off one: nothing greyed.
+    // Screens are grouped by how they show.
+    await expect(select.locator('option')).toHaveText(['Nothing', 'Recipe Book', 'Evening']);
+    await expect(select.locator('optgroup')).toHaveCount(2);
+    await expect(select.locator('optgroup').first()).toHaveAttribute('label', 'Shows only when opened');
+    await expect(select.locator('optgroup').last()).toHaveAttribute('label', 'In the rotation');
+
+    await select.selectOption('recipes');
+    await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBe('recipes'));
+    await expect(page.getByTestId('open-button-target-holds')).toHaveText('Shows Text');
+    const pill = page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-button"]');
+    await expect(pill).toHaveAttribute('aria-label', 'Open Recipe Book');
+
+    // The target screen's quiet time, edited from here: one number, the screen's.
+    const minutes = page.locator('#module-open-button-go-back-kitchen-text');
+    await expect(minutes).toHaveValue('2');
+    await minutes.fill('5');
+    await pollConfig(request, (c) => c.screens[1].goBackAfterMs).then((p) => p.toBe(300_000));
+    await minutes.fill('0');
+    await pollConfig(request, (c) => c.screens[1].goBackAfterMs).then((p) => p.toBe(0));
+    await expect(page.getByTestId('open-button-in-rotation-hint')).toBeHidden();
+
+    // A screen that takes its turn has no quiet time, and the section says why.
+    await putConfig(request, await getConfig(request).then((c) => ({ ...c, screens: c.screens.map((s) => (s.id === 'recipes' ? { ...s, rotation: undefined } : s)) })));
+    await page.reload();
+    // A module with a button opens on its Open button section.
+    await page.locator('[data-module-id="kitchen-text"]').click();
+    await expect(page.getByTestId('open-button-in-rotation-hint')).toContainText('Recipe Book takes its turn');
+    await expect(minutes).toBeHidden();
+    // Both targets are in the rotation now: one list, no group headings.
+    await expect(select.locator('optgroup')).toHaveCount(0);
+    // The screen's rotation can be fixed from here, without a trip to its settings.
+    await page.getByRole('switch', { name: 'Shows only when opened' }).click();
+    await pollConfig(request, (c) => c.screens[1].rotation).then((p) => p.toBe('opened'));
+    await expect(minutes).toBeVisible();
+    await page.getByRole('switch', { name: 'Shows only when opened' }).click();
+    await pollConfig(request, (c) => c.screens[1].rotation).then((p) => p.toBeUndefined());
+    // The way to that screen's settings is one click, and it lands on Rotation.
+    await page.getByRole('button', { name: 'Open its screen settings' }).click();
+    const turnRadio = page.getByRole('radio', { name: 'Takes its turn with the other screens' });
+    await expect(turnRadio).toBeChecked();
+    await expect(turnRadio).toBeInViewport();
+    await expect(page.getByTestId('screen-rotation-openers')).toContainText('Text on Kitchen opens this screen');
+
+    await page.getByText('Kitchen', { exact: true }).first().click();
+    await page.locator('[data-module-id="kitchen-text"]').click();
+    await select.selectOption('');
+    await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBeUndefined());
+    await expect(pill).toBeHidden();
+  });
+
+  test('a module with a full-screen twin makes its target screen in one click', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [makeScreen('kitchen', 'Kitchen', [{ ...buildModuleInstance('meal-planner'), id: 'meals', position: { x: 100, y: 100 }, size: { w: 800, h: 600 } }])],
+    }));
+    await openEditor(page);
+    await page.locator('[data-module-id="meals"]').click();
+    await page.getByRole('button', { name: 'Open button' }).click();
+
+    await page.getByRole('button', { name: 'Add a Recipe Book screen' }).click();
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
+    const config = await getConfig(request);
+    const added = config.screens[1];
+    // Named after what it shows, which is what the wall's button then says.
+    expect(added.name).toBe('Recipe Book');
+    expect(added.rotation).toBe('opened');
+    expect(added.modules.map((m) => m.type)).toEqual(['fullscreen-meal-planner']);
+    expect(added.modules[0].config.view).toBe('recipes');
+    expect(config.screens[0].modules[0].openButtonScreen).toBe(added.id);
+
+    // The section now shows the target, its quiet time, and no shortcut; the
+    // selection stayed on the planner.
+    await expect(page.locator('#module-open-button-meals')).toHaveValue(added.id);
+    await expect(page.locator('#module-open-button-go-back-meals')).toHaveValue('2');
+    await expect(page.getByTestId('open-button-add-twin')).toBeHidden();
+    await expect(page.getByTestId('open-button-twin-added')).toContainText('Added Recipe Book');
+    await expect(page.getByTestId('open-button-target-theme')).toContainText('Linen');
+    const pill = page.locator('[data-module-id="meals"] [data-testid="open-screen-button"]');
+    await expect(pill).toHaveAttribute('aria-label', 'Open Recipe Book');
+    await expect(page.getByTestId('screen-tab-opens-only')).toHaveText('When opened');
+
+    // With Tap on the Wall off the button has no business on the wall, and the section says why.
+    await page.getByRole('switch', { name: 'Tap on the Wall' }).click();
+    await expect(pill).toBeHidden();
+    await expect(page.getByTestId('open-button-tap-off')).toBeVisible();
+    await page.getByRole('switch', { name: 'Tap on the Wall' }).click();
+    await expect(pill).toBeVisible();
+
+    // Picking Nothing strands the screen: the section and the tab both say so.
+    await page.locator('#module-open-button-meals').selectOption('');
+    await expect(page.getByTestId('open-button-orphaned')).toContainText('Recipe Book now has nothing that opens it');
+    await expect(page.getByTestId('screen-tab-orphaned')).toHaveText('Nothing opens it');
+    // The warning offers the way out.
+    await page.getByRole('button', { name: 'Pick it again' }).click();
+    await expect(page.locator('#module-open-button-meals')).toHaveValue(added.id);
+    await expect(page.getByTestId('screen-tab-opens-only')).toHaveText('When opened');
+
+    // A click on the pill on the canvas opens the Open button section.
+    await pill.click();
+    await expect(page.locator('[data-panel-section="open-button"]')).toHaveAttribute('data-revealed', '');
+
+    // Outside the screen's hours the canvas pill is dimmed and the section says when it shows.
+    const book = (await getConfig(request)).screens[1];
+    await putConfig(request, await getConfig(request).then((c) => ({
+      ...c, screens: c.screens.map((s) => (s.id === book.id ? { ...s, schedule: { startTime: '03:00', endTime: '03:01' } } : s)),
+    })));
+    await page.reload();
+    await page.locator('[data-module-id="meals"]').click();
+    await expect(page.getByTestId('open-button-gated')).toContainText('The button only shows');
+    await expect(pill).toHaveAttribute('data-unavailable', '');
+
+    // Deleting the screen offers Undo, which brings it and the button back.
+    await page.getByText('Recipe Book', { exact: true }).first().click();
+    await page.getByRole('button', { name: 'Delete Recipe Book', exact: true }).click();
+    await page.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.getByTestId('deleted-screen-toast')).toContainText('Recipe Book deleted');
+    await page.getByTestId('deleted-screen-toast').getByRole('button', { name: 'Undo' }).click();
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
+    await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBe(book.id));
+  });
+
+  test('deleting the target screen removes the button', async ({ page, request }) => {
+    await putConfig(request, baseConfig({
+      screens: [
+        makeScreen('kitchen', 'Kitchen', [textModule('KITCHEN', { id: 'kitchen-text', position: { x: 100, y: 100 }, size: { w: 600, h: 300 }, openButtonScreen: 'recipes' })]),
+        makeScreen('recipes', 'Recipe Book', [textModule('BOOK', { position: { x: 0, y: 0 } })], { rotation: 'opened' }),
+      ],
+    }));
+    await openEditor(page);
+    await expect(page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-button"]')).toBeVisible();
+
+    // The tab itself is a button whose name includes its controls' names, so
+    // the X needs an exact match. The confirm names the button that goes.
+    await page.getByText('Recipe Book', { exact: true }).first().click();
+    await page.getByRole('button', { name: 'Delete Recipe Book', exact: true }).click();
+    await expect(page.getByRole('dialog')).toContainText('Text on Kitchen has a button that opens this screen');
+    await page.getByRole('button', { name: 'Delete', exact: true }).click();
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(1));
+    await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBeUndefined());
+    await expect(page.locator('[data-module-id="kitchen-text"] [data-testid="open-screen-button"]')).toBeHidden();
+
+    // Undone another way, the toast goes with it: its Undo would take back
+    // the restore and delete the screen again.
+    await expect(page.getByTestId('deleted-screen-toast')).toBeVisible();
+    await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press('ControlOrMeta+z');
+    await pollConfig(request, (c) => c.screens.length).then((p) => p.toBe(2));
+    await expect(page.getByTestId('deleted-screen-toast')).toBeHidden();
+    await pollConfig(request, (c) => c.screens[0].modules[0].openButtonScreen).then((p) => p.toBe('recipes'));
   });
 });
 

@@ -86,6 +86,10 @@
     "body": "Öffne auf einem Handy oder Computer in deinem WLAN",
     "hideHint": "Lieber ein leerer Bildschirm? Einstellungen › Bildschirm › Diesen Hinweis anzeigen"
   },
+  "openedScreen": {
+    "backTo": "Zurück zu {name}",
+    "back": "Zurück"
+  },
   "pagination": {
     "paused": "Pausiert",
     "previousScreen": "Vorheriger Bildschirm",
@@ -93,7 +97,8 @@
     "resumesIn": "Geht in {time} weiter · zum Fortsetzen tippen",
     "tapToResume": "zum Fortsetzen tippen",
     "minutes": "{count} Min.",
-    "seconds": "{count} Sek."
+    "seconds": "{count} Sek.",
+    "heldInPreview": "In der Vorschau ist die Rotation angehalten"
   },
   "displayNotFound": {
     "notRegistered": "Display noch nicht hinzugefügt",

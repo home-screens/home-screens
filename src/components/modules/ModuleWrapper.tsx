@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { buildModuleShadow, resolveTitleFontSize } from '@/lib/module-style';
 import { withAlpha } from '@/lib/hex-color';
 import { resolveFontStack } from '@/lib/font-registry';
+import { useModuleFrame } from './module-frame';
 
 interface ModuleWrapperProps {
   style: ModuleStyle;
@@ -25,6 +26,10 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
   // reserve height.
   const title = style.title?.trim() || '';
   const titleFontSize = resolveTitleFontSize(style);
+  // The box may draw an open button over the bottom of the card; the card
+  // keeps its content clear of it. Zero for every module without one, so the
+  // padding stays the one shorthand it always was.
+  const { reserveBottomPx } = useModuleFrame();
 
   // IMPORTANT: When backdrop blur is active, bake opacity into the background
   // color's alpha channel. An opaque background completely covers the blurred
@@ -38,6 +43,7 @@ export default function ModuleWrapper({ style, children }: ModuleWrapperProps) {
     opacity: hasBlur ? undefined : style.opacity,
     borderRadius: `${style.borderRadius}px`,
     padding: `${style.padding}px`,
+    ...(reserveBottomPx > 0 ? { paddingBottom: `${style.padding + reserveBottomPx}px` } : {}),
     backgroundColor: bg,
     color: style.textColor,
     fontFamily: resolveFontStack(style.fontFamily) ?? style.fontFamily,

@@ -123,15 +123,15 @@ export function describeSchedule(
   t: TranslateFn,
   formattingLocale: string,
   timeFormat: TimeFormat | undefined,
+  /** `opened`: the schedule of a screen that shows only when opened, which gates opening it, not showing it. */
+  wording: 'show' | 'opened' = 'show',
 ): ScheduleSummary {
   const short = t('scheduleEditor.summary.short', {
     days: formatScheduleDays(schedule, t, formattingLocale),
     time: formatScheduleTime(schedule, t, formattingLocale, timeFormat),
   });
-  return {
-    short,
-    sentence: schedule?.invert
-      ? t('scheduleEditor.summary.hides', { when: short })
-      : t('scheduleEditor.summary.shows', { when: short }),
-  };
+  const key = wording === 'opened'
+    ? (schedule?.invert ? 'scheduleEditor.opened.summaryHides' : 'scheduleEditor.opened.summaryShows')
+    : (schedule?.invert ? 'scheduleEditor.summary.hides' : 'scheduleEditor.summary.shows');
+  return { short, sentence: t(key, { when: short }) };
 }

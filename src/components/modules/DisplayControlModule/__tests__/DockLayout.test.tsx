@@ -77,6 +77,21 @@ describe('DisplayControlModule dock layout', () => {
     expect(gotoCalls()).toEqual([{ url: '/api/display/goto-screen', body: { screen: 's3', displayId: 'hallway' } }]);
   });
 
+  it('aimed at another display, fades a tile that display has no screen of the same name for, and sends it nothing', async () => {
+    const state = rotation();
+    const known = [{ id: 'kitchen', name: 'Kitchen' }, { id: 'hallway', name: 'Hallway', screens: [{ id: 'h1', name: 'calendar ' }] }];
+    render(wrap(<DisplayControlModule config={{ ...base, defaultTarget: 'hallway' }} availableDisplays={known} />, state));
+    const home = screen.getByRole('button', { name: 'Go to Home' });
+    expect(home.getAttribute('aria-disabled')).toBe('true');
+    await act(async () => { fireEvent.click(home); });
+    expect(gotoCalls()).toEqual([]);
+    // Names match the way the hub's goto-screen matches them: trimmed, any case.
+    const calendar = screen.getByRole('button', { name: 'Go to Calendar' });
+    expect(calendar.getAttribute('aria-disabled')).toBeNull();
+    await act(async () => { fireEvent.click(calendar); });
+    expect(gotoCalls()).toEqual([{ url: '/api/display/goto-screen', body: { screen: 'Calendar', displayId: 'hallway' } }]);
+  });
+
   it('with All displays jumps here and sends every other display the name', async () => {
     const state = rotation();
     render(wrap(<DisplayControlModule config={{ ...base, defaultTarget: 'all' }} availableDisplays={displays} />, state));

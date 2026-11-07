@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveScreens } from '@/lib/editor-multi-display';
@@ -11,6 +11,7 @@ import { useWallClock } from '@/hooks/useTZClock';
 import ModuleStatusChips from './ModuleStatusChips';
 import { useConfirmStore } from '@/stores/confirm-store';
 import Slider from '@/components/ui/Slider';
+import Toggle from '@/components/ui/Toggle';
 import ColorPicker from '@/components/ui/ColorPicker';
 import Button from '@/components/ui/Button';
 import BackgroundPicker from '@/components/editor/BackgroundPicker';
@@ -23,12 +24,20 @@ import { ScheduleSection } from '@/components/editor/ScheduleSection';
 import VisibilityConditionsSection from '@/components/editor/VisibilityConditionsSection';
 import { isStateProducerType } from '@/lib/provided-state-keys';
 import { stackExtremes } from '@/lib/module-utils';
-import type { BuiltinModuleType, ModuleInstance } from '@/types/config';
+import { describeScreenContents } from '@/lib/screen-dock';
+import { DEFAULT_GO_BACK_AFTER_MS, openedScreenTheme, screenHasOpener, showsOnlyWhenOpened } from '@/lib/on-demand-screen';
+import { FULLSCREEN_THEMES, getThemeTokens } from '@/lib/fullscreen-themes';
+import { openButtonHidden } from '@/components/modules/shared/OpenScreenButton';
+import { PANEL_SECTION_OPEN_BUTTON, PANEL_SECTION_SCREEN_SETTINGS, revealPanelSection } from './panel-section-reveal';
+import { describeSchedule } from '@/lib/schedule-summary';
+import { GoBackAfterField } from './GoBackAfterField';
+import { isRotationOff, resolveScreenDuration } from '@/lib/resolve-screen-duration';
+import type { BuiltinModuleType, ModuleInstance, Screen } from '@/types/config';
 import { usePluginStore } from '@/stores/plugin-store';
 import { getModuleDefinition, resolveModuleDescription, resolveModuleLabel, styleReachesModule, ownedStyleFields } from '@/lib/module-registry';
 import { buildModuleDeleteConfirm } from '@/lib/delete-confirmations';
 import { moduleDocsUrl } from '@/lib/module-docs';
-import { useTranslate, type TranslateFn } from '@/i18n';
+import { useFormattingLocale, useTranslate, type TranslateFn } from '@/i18n';
 import PluginConfigRenderer from './PluginConfigRenderer';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
 import PluginSettingsSections from './PluginSettingsSections';
@@ -544,7 +553,24 @@ export default function PropertyPanel({
 } = {}) {
   const t = useTranslate('editor');
   const tCore = useTranslate('core');
-  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, removeModule, duplicateModule, updateModule, reorderModule } = useEditorStore();
+  const { config, selectedDisplayId, selectedScreenId, selectedModuleId, selectModule, selectScreen, removeModule, duplicateModule, updateModule, updateScreen, reorderModule, addScreenOpenedFrom } = useEditorStore();
+  const formattingLocale = useFormattingLocale();
+  // The one-click screen just added from a module's Open button section, for
+  // its confirmation line, and a screen left with nothing to open it.
+  const [twinAdded, setTwinAdded] = useState<{ moduleId: string; screenId: string; name: string } | null>(null);
+  // The confirmation is a moment, not a state of the module: it goes after a
+  // few seconds, and with another selection.
+  useEffect(() => {
+    if (!twinAdded) return;
+    const timer = setTimeout(() => setTwinAdded(null), 8_000);
+    return () => clearTimeout(timer);
+  }, [twinAdded]);
+  useEffect(() => { setTwinAdded(null); setOrphaned(null); }, [selectedModuleId, selectedScreenId]);
+  // A new selection starts at the top of its panel, not at the scroll the
+  // last one was left at (a link that reveals a section scrolls on from there).
+  const panelScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (panelScrollRef.current) panelScrollRef.current.scrollTop = 0; }, [selectedModuleId, selectedScreenId]);
+  const [orphaned, setOrphaned] = useState<{ moduleId: string; screenId: string; name: string } | null>(null);
   const pluginMap = usePluginStore((s) => s.plugins);
   // Same clock and live values the canvas badges use, so the chip here and the
   // badge over there always agree. The poll is armed only while the selected
@@ -597,7 +623,7 @@ export default function PropertyPanel({
     // alone in the panel as three unexplained dots.
     const hasScreen = !!currentScreen && !!selectedScreenId;
     return (
-      <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
+      <div ref={panelScrollRef} className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
         <PanelCollapseButton onCollapse={onCollapse} t={t} />
         <EditingDisplayRow />
         <FirstRunChecklist />
@@ -643,11 +669,15 @@ export default function PropertyPanel({
   const showStyleControls = styleReachesModule(moduleDef);
   const { atFront, atBack } = stackExtremes(currentScreen.modules, selectedModule.id);
   const moduleLabel = resolveModuleLabel(selectedModule.type, t);
-  const moduleDescription = resolveModuleDescription(selectedModule.type, t);
+  // The full-screen planner's one-line description names its week; its
+  // Recipe Book view is a different thing and says so.
+  const moduleDescription = selectedModule.type === 'fullscreen-meal-planner' && selectedModule.config.view === 'recipes'
+    ? t('registry.viewDescriptions.fullscreen-meal-planner.recipes')
+    : resolveModuleDescription(selectedModule.type, t);
   const docsUrl = moduleDocsUrl(selectedModule.type);
 
   return (
-    <div className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
+    <div ref={panelScrollRef} className="w-72 flex-shrink-0 bg-hs-panel border-l border-hs-border-strong p-4 overflow-y-auto">
       <PanelCollapseButton onCollapse={onCollapse} t={t} />
       <EditingDisplayRow />
       <div className="space-y-5">
@@ -771,6 +801,240 @@ export default function PropertyPanel({
         )}
 
         {isPlugin && loadedPlugin && <PluginSettingsSections manifest={loadedPlugin.manifest} />}
+
+        {(() => {
+          // The button's own section: where it goes, and for a screen that
+          // shows only when opened, that screen's quiet time, edited here in
+          // place. Its badge names the target, so a module with a button says
+          // so while the section is closed. Only screens the button can open
+          // are listed: never the module's own, never a switched-off one
+          // (a target switched off after being picked stays, marked off).
+          const target = selectedModule.openButtonScreen
+            ? activeScreens.find((s) => s.id === selectedModule.openButtonScreen) ?? null
+            : null;
+          const targetOff = !!target && target.enabled === false;
+          const openable = activeScreens.filter((s) => s.id !== selectedScreenId && (s.enabled !== false || s.id === target?.id));
+          const opened = !!target && showsOnlyWhenOpened(target);
+          const badge = target
+            ? (targetOff ? t('propertyPanel.openButton.offShort') : target.name)
+            : t('propertyPanel.openButton.none');
+          const displayNode = selectedDisplayId ? config?.displays?.find((d) => d.id === selectedDisplayId) : undefined;
+          const displayRules = displayNode?.rules ?? config?.rules;
+          const turnSeconds = target && !opened && config
+            ? (isRotationOff(config.settings, displayNode) ? 0 : Math.round(resolveScreenDuration(target, config.settings) / 1000))
+            : 0;
+          const minutesId = `module-open-button-go-back-${selectedModule.id}`;
+          const openedGroup = openable.filter((s) => showsOnlyWhenOpened(s));
+          const rotatingGroup = openable.filter((s) => !showsOnlyWhenOpened(s));
+          const optionLabel = (screen: Screen) => (screen.enabled === false ? t('propertyPanel.openButton.offBadge', { name: screen.name }) : screen.name);
+          const bothGroups = openedGroup.length > 0 && rotatingGroup.length > 0;
+          // The module's full-screen twin, offered as a one-click screen while
+          // no screen of this display holds it yet. The screen is named after
+          // what it shows, not after the module type.
+          const twin = moduleDef?.fullscreenTwin;
+          const twinName = twin ? t(`propertyPanel.openButton.twinScreenName.${twin.type}`) : '';
+          const twinExists = !!twin && activeScreens.some((s) => s.id !== selectedScreenId && s.modules.some((m) => m.type === twin.type));
+          const offerTwin = !!twin && !twinExists && !target;
+          const added = twinAdded?.moduleId === selectedModule.id && twinAdded.screenId === target?.id ? twinAdded : null;
+          const contents = target ? describeScreenContents(target, t, formattingLocale) : '';
+          const targetTheme = target && target.modules.some((m) => getModuleDefinition(m.type)?.category === 'Full Screen') && config
+            ? getThemeTokens(openedScreenTheme(target, config.settings.fullscreenTheme))
+            : null;
+          const targetThemeName = target && config
+            ? FULLSCREEN_THEMES.find((th) => th.id === (openedScreenTheme(target, config.settings.fullscreenTheme) ?? 'linen'))?.name ?? ''
+            : '';
+          const tapOff = openButtonHidden(selectedModule.config);
+          const gatedBySchedule = opened && !!target?.schedule;
+          const gatedByConditions = opened && (target?.visibility?.conditions.length ?? 0) > 0;
+          const goToTarget = (screenId: string) => {
+            selectScreen(screenId);
+            // The panel starts at the top for the new selection; bring the
+            // Rotation group into view and mark it.
+            setTimeout(() => revealPanelSection(PANEL_SECTION_SCREEN_SETTINGS), 60);
+          };
+          const actionClass = 'text-[11px] font-medium px-2.5 py-1 rounded-md text-hs-accent-hover bg-hs-accent-soft border border-hs-accent/35 hover:bg-hs-accent/20 transition-colors';
+          const helpClass = 'text-[11px] text-hs-text-faint leading-relaxed';
+          return (
+            <AccordionSection id={PANEL_SECTION_OPEN_BUTTON} title={t('propertyPanel.openButton.sectionTitle')} defaultOpen={!!selectedModule.openButtonScreen} badge={badge}>
+              <div className="space-y-2">
+                <label htmlFor={`module-open-button-${selectedModule.id}`} className="block text-xs text-hs-text-muted">
+                  {t('propertyPanel.openButton.label')}
+                </label>
+                <select
+                  id={`module-open-button-${selectedModule.id}`}
+                  data-field-id="openButtonScreen"
+                  value={selectedModule.openButtonScreen ?? ''}
+                  aria-describedby={`module-open-button-help-${selectedModule.id}`}
+                  onChange={(e) => {
+                    const next = e.target.value || undefined;
+                    // Any change can strand the screen the button opened, if
+                    // it showed only when opened and nothing else opens it:
+                    // say so where the choice was made.
+                    const previous = target;
+                    const stranded = !!previous && previous.id !== next && showsOnlyWhenOpened(previous)
+                      && !screenHasOpener(
+                        activeScreens.map((s) => s.id === selectedScreenId ? { ...s, modules: s.modules.filter((m) => m.id !== selectedModule.id) } : s),
+                        displayRules,
+                        previous.id,
+                      );
+                    setOrphaned(stranded && previous ? { moduleId: selectedModule.id, screenId: previous.id, name: previous.name } : null);
+                    setTwinAdded(null);
+                    updateModule(selectedScreenId, selectedModule.id, {
+                      // Omit the field entirely for "Nothing" so configs stay clean.
+                      openButtonScreen: next,
+                    });
+                  }}
+                  className="w-full px-2 py-1.5 text-sm bg-hs-input border border-hs-border-strong rounded text-hs-text-body"
+                >
+                  <option value="">{t('propertyPanel.openButton.none')}</option>
+                  {bothGroups ? (
+                    <>
+                      <optgroup label={t('propertyPanel.openButton.groupOpened')}>
+                        {openedGroup.map((screen) => <option key={screen.id} value={screen.id}>{optionLabel(screen)}</option>)}
+                      </optgroup>
+                      <optgroup label={t('propertyPanel.openButton.groupRotation')}>
+                        {rotatingGroup.map((screen) => <option key={screen.id} value={screen.id}>{optionLabel(screen)}</option>)}
+                      </optgroup>
+                    </>
+                  ) : (
+                    [...openedGroup, ...rotatingGroup].map((screen) => <option key={screen.id} value={screen.id}>{optionLabel(screen)}</option>)
+                  )}
+                </select>
+                <p id={`module-open-button-help-${selectedModule.id}`} className={helpClass}>
+                  {t('propertyPanel.openButton.help')}
+                </p>
+                {orphaned?.moduleId === selectedModule.id && orphaned.screenId !== target?.id && (
+                  <div className="space-y-1.5" data-testid="open-button-orphaned">
+                    <p className="text-xs text-hs-warning">{t('propertyPanel.openButton.orphaned', { name: orphaned.name })}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        className={actionClass}
+                        onClick={() => {
+                          updateModule(selectedScreenId, selectedModule.id, { openButtonScreen: orphaned.screenId });
+                          setOrphaned(null);
+                        }}
+                      >
+                        {t('propertyPanel.openButton.pickAgain')}
+                      </button>
+                      <button
+                        type="button"
+                        className={actionClass}
+                        onClick={() => {
+                          updateScreen(orphaned.screenId, { rotation: undefined });
+                          setOrphaned(null);
+                        }}
+                      >
+                        {t('propertyPanel.openButton.letItTakeTurn')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {offerTwin && twin && (
+                  <div className="pt-1 space-y-1.5" data-testid="open-button-add-twin">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const screenId = addScreenOpenedFrom(selectedScreenId, selectedModule.id, twin, twinName);
+                        setTwinAdded(screenId ? { moduleId: selectedModule.id, screenId, name: twinName } : null);
+                        setOrphaned(null);
+                      }}
+                      className={actionClass}
+                    >
+                      {t('propertyPanel.openButton.addTwinScreen', { name: twinName })}
+                    </button>
+                    <p className={helpClass}>{t('propertyPanel.openButton.addTwinHelp', { name: twinName })}</p>
+                  </div>
+                )}
+                {added && target && (
+                  <p className="text-xs text-hs-success" data-testid="open-button-twin-added">
+                    {t('propertyPanel.openButton.twinAdded', { name: added.name })}
+                  </p>
+                )}
+                {contents && target && (
+                  <p className="text-xs text-hs-text-muted" data-testid="open-button-target-holds">
+                    {t('propertyPanel.openButton.holds', { what: contents })}
+                  </p>
+                )}
+                {targetTheme && target && (
+                  <p className="text-xs text-hs-text-muted flex items-center gap-2" data-testid="open-button-target-theme">
+                    <span aria-hidden className="inline-block h-3.5 w-3.5 rounded-full border border-hs-border-strong" style={{ background: `linear-gradient(135deg, ${targetTheme.bg} 50%, ${targetTheme.text} 50%)` }} />
+                    <span>{t('propertyPanel.openButton.theme', { theme: targetThemeName })}</span>
+                  </p>
+                )}
+                {tapOff && target && (
+                  <div className="space-y-1.5" data-testid="open-button-tap-off">
+                    <p className="text-xs text-hs-warning">{t('propertyPanel.openButton.tapOff')}</p>
+                    <button
+                      type="button"
+                      className={actionClass}
+                      onClick={() => updateModule(selectedScreenId, selectedModule.id, { config: { ...selectedModule.config, interactive: true } })}
+                    >
+                      {t('propertyPanel.openButton.turnOnTap')}
+                    </button>
+                  </div>
+                )}
+                {targetOff && target && (
+                  <div className="space-y-1.5" data-testid="open-button-target-off">
+                    <p className="text-xs text-hs-warning">{t('propertyPanel.openButton.targetOff')}</p>
+                    <button type="button" className={actionClass} onClick={() => updateScreen(target.id, { enabled: undefined })}>
+                      {t('propertyPanel.openButton.switchOn')}
+                    </button>
+                  </div>
+                )}
+                {(gatedBySchedule || gatedByConditions) && target && config && (
+                  <p className="text-xs text-hs-text-muted" data-testid="open-button-gated">
+                    {gatedBySchedule
+                      ? t('propertyPanel.openButton.onlyWhen', { when: describeSchedule(target.schedule, t, formattingLocale, config.settings.timeFormat).short })
+                      : t('propertyPanel.openButton.onlyConditions')}
+                  </p>
+                )}
+                {target && opened && (
+                  <div className="pt-1 space-y-3">
+                    <Toggle
+                      label={t('propertyPanel.openButton.keepOut')}
+                      checked
+                      onChange={() => updateScreen(target.id, { rotation: undefined })}
+                    />
+                    <div>
+                      <label htmlFor={minutesId} className="block text-xs text-hs-text-muted mb-1.5">
+                        {t('propertyPanel.openButton.goBackAfterLabel')}
+                      </label>
+                      <GoBackAfterField
+                        id={minutesId}
+                        screen={target}
+                        t={t}
+                        onChange={(ms) => updateScreen(target.id, { goBackAfterMs: ms === DEFAULT_GO_BACK_AFTER_MS ? undefined : ms })}
+                      />
+                    </div>
+                  </div>
+                )}
+                {target && !opened && (
+                  <div className="pt-1 space-y-2" data-testid="open-button-in-rotation-hint">
+                    <p className={helpClass}>
+                      {turnSeconds > 0
+                        ? t('propertyPanel.openButton.inRotationHint', { name: target.name, seconds: turnSeconds, home: currentScreen.name })
+                        : t('propertyPanel.openButton.inRotationStaysHint', { name: target.name, home: currentScreen.name })}
+                    </p>
+                    {/* The screen's rotation choice, flipped from here so the
+                        whole setup lives in one section; the screen's own
+                        Rotation group mirrors it. */}
+                    <Toggle
+                      label={t('propertyPanel.openButton.keepOut')}
+                      checked={false}
+                      onChange={() => updateScreen(target.id, { rotation: 'opened' })}
+                    />
+                  </div>
+                )}
+                {target && (
+                  <button type="button" onClick={() => goToTarget(target.id)} className={actionClass}>
+                    {t('propertyPanel.openButton.openScreenSettings')}
+                  </button>
+                )}
+              </div>
+            </AccordionSection>
+          );
+        })()}
 
         <AccordionSection title={t('propertyPanel.sections.visibility')} defaultOpen={false}>
           <PropertyGroup title={t('propertyPanel.sections.settings')} accent={3}>

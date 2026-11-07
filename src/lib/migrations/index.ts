@@ -13,6 +13,7 @@ import { v14ToV15 } from './v14-to-v15';
 import { v15ToV16 } from './v15-to-v16';
 import { v16ToV17 } from './v16-to-v17';
 import { v17ToV18 } from './v17-to-v18';
+import { v18ToV19 } from './v18-to-v19';
 
 interface Migration {
   version: number;
@@ -111,6 +112,8 @@ const migrations: Migration[] = [
   // Migration 018: slideshow, full-screen photo and background rotation name
   // their pictures' sources with PhotoSource objects; a rotation holds a list.
   v17ToV18,
+  // Migration 019: open buttons on modules; screens that show only when opened.
+  v18ToV19,
 ];
 
 /** @internal Get all migrations sorted by version */

@@ -59,8 +59,8 @@ describe('migrations', () => {
     expect(JSON.stringify(config)).toBe(original);
   });
 
-  it('getLatestSchemaVersion returns 18', () => {
-    expect(getLatestSchemaVersion()).toBe(18);
+  it('getLatestSchemaVersion returns 19', () => {
+    expect(getLatestSchemaVersion()).toBe(19);
   });
 });
 
@@ -295,9 +295,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(18);
+    expect(result.version).toBe(19);
     // v2 through v18 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(17);
+    expect(migrationsRun).toHaveLength(18);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -325,9 +325,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(18);
+    expect(result.version).toBe(19);
     // Only v4 through v18 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(15);
+    expect(migrationsRun).toHaveLength(16);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -797,7 +797,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(18);
+    expect(result.version).toBe(19);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -838,9 +838,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(18);
+    expect(result.version).toBe(19);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v18: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v19: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -854,7 +854,7 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(18);
+    expect(migrated.version).toBe(19);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
     expect(config).toEqual(before);
@@ -1398,7 +1398,33 @@ describe('migration v18: photo modules and background rotation name their source
   it('is part of the full chain from v1', () => {
     const config = withModule(makeConfig(1), 'photo-slideshow', { source: 'local', directory: 'trips' });
     const { config: result, migrationsRun } = migrateUp(config);
-    expect(migrationsRun.at(-1)).toMatch(/^v18: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v19: /);
     expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'trips' } });
+  });
+});
+
+describe('migration v19: open buttons and screens that show only when opened', () => {
+  function withModule(config: ScreenConfiguration, type: string, cfg: unknown): ScreenConfiguration {
+    config.screens[0].modules = [{
+      id: 'meals-1', type, position: { x: 0, y: 0 }, size: { w: 500, h: 400 }, zIndex: 1, config: cfg, style: {},
+    } as unknown as ScreenConfiguration['screens'][number]['modules'][number]];
+    return config;
+  }
+
+  it('bumps the version and changes nothing else', () => {
+    const config = withModule(makeConfig(18), 'meal-planner', { view: 'week' });
+    const before = structuredClone(config);
+    const { config: result, migrationsRun } = migrateUp(config, 19);
+    expect(migrationsRun).toEqual(['v19: Open buttons on modules; screens that show only when opened']);
+    expect(result).toEqual({ ...before, version: 19 });
+    expect(config).toEqual(before);
+  });
+
+  it('keeps a v19 config with the new fields verbatim', () => {
+    const config = withModule(makeConfig(19), 'meal-planner', { view: 'week' });
+    config.screens[0].modules[0].openButtonScreen = 'recipes';
+    config.screens.push({ id: 'recipes', name: 'Recipe Book', backgroundImage: '', modules: [], rotation: 'opened', goBackAfterMs: 60_000 });
+    const before = structuredClone(config);
+    expect(migrateUp(config).config).toEqual(before);
   });
 });

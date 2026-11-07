@@ -12,7 +12,9 @@ import type { DockScreen } from '@/lib/screen-dock';
  *
  * `showScreen` shows a screen by id on this very rotation (no hub round
  * trip): a jump when the screen is rotating, a pinned stay when it is not.
- * Null where nothing rotates: unit tests and the background-provider layer.
+ * A screen that shows only when opened stays for its own quiet time
+ * (`Screen.goBackAfterMs`) and then the display goes back. Null where
+ * nothing rotates: unit tests and the background-provider layer.
  */
 export interface RotationState {
   /** The rotation as it stands, in order. */

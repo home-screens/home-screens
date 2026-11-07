@@ -211,9 +211,10 @@ function ScreenSearchPopover({
       {!trimmed ? (
         <p className="px-3 pb-3 pt-2.5 text-xs text-hs-text-faint">{t('screenSearch.hint')}</p>
       ) : results.length === 0 ? (
-        <p data-testid="screen-search-empty" className="px-4 py-7 text-center text-[13px] text-hs-text-muted">
-          {t('screenSearch.noResults', { query: trimmed })}
-        </p>
+        <div data-testid="screen-search-empty" className="px-4 py-7 text-center">
+          <p className="text-[13px] text-hs-text-muted">{t('screenSearch.noResults', { query: trimmed })}</p>
+          <p className="mt-2 text-xs text-hs-text-faint">{t('screenSearch.settingsHint')}</p>
+        </div>
       ) : (
         <>
           <ul

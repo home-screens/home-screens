@@ -86,6 +86,10 @@
     "body": "Åbn på en telefon eller computer på dit hjemme-wi-fi",
     "hideHint": "Vil du hellere have en tom skærm? Indstillinger › Skærm › Vis dette tip"
   },
+  "openedScreen": {
+    "backTo": "Tilbage til {name}",
+    "back": "Tilbage"
+  },
   "pagination": {
     "paused": "Sat på pause",
     "previousScreen": "Forrige skærm",
@@ -93,7 +97,8 @@
     "resumesIn": "Fortsætter om {time} · tryk for at fortsætte nu",
     "tapToResume": "tryk for at fortsætte",
     "minutes": "{count} min",
-    "seconds": "{count} sek."
+    "seconds": "{count} sek.",
+    "heldInPreview": "Rotationen står stille i forhåndsvisningen"
   },
   "displayNotFound": {
     "notRegistered": "Skærm ikke tilføjet endnu",

@@ -4,6 +4,7 @@ import LabeledField from '@/components/ui/LabeledField';
 import FullscreenThemeTile, { themeTileClass } from '@/components/editor/settings/shared/FullscreenThemeTile';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
 import { useTranslate } from '@/i18n';
+import { useEditorStore } from '@/stores/editor-store';
 
 interface FullscreenThemeSelectProps {
   /** Current theme id (undefined = inherit the display default). */
@@ -30,6 +31,10 @@ export default function FullscreenThemeSelect({
   defaultOptionKey,
 }: FullscreenThemeSelectProps) {
   const t = useTranslate('editor');
+  // The default tile says which theme it stands for, so "Default" and a
+  // "Drawn in the Linen theme" line elsewhere never seem to disagree.
+  const defaultThemeId = useEditorStore((st) => st.config?.settings.fullscreenTheme) ?? 'linen';
+  const defaultThemeName = FULLSCREEN_THEMES.find((th) => th.id === defaultThemeId)?.name ?? '';
   return (
     // `div`, not the default `label`: a label wrapping thirteen buttons
     // forwards a click on the caption or the gap between tiles to the first
@@ -49,6 +54,9 @@ export default function FullscreenThemeSelect({
             }`}
           >
             {t(defaultOptionKey)}
+          </span>
+          <span className="text-[10px] text-hs-text-faint text-center leading-tight" data-testid="theme-default-name">
+            {defaultThemeName}
           </span>
         </button>
 

@@ -20,6 +20,14 @@ describe('meal validation', () => {
     expect(validateMealData(raw)).toBe(message);
   });
 
+  it('takes ingredients only as named entries, the shape the book and the grocery list read', () => {
+    expect(validateSavedMeals([{ ...tacos, ingredients: [{ name: 'Tortillas', amount: '8' }, { name: 'Salsa' }] }])).toBeNull();
+    expect(validateSavedMeals([{ ...tacos, ingredients: [] }])).toBeNull();
+    expect(validateSavedMeals([{ ...tacos, ingredients: ['Tortillas'] }])).toMatch(/Each ingredient needs a name/);
+    expect(validateSavedMeals([{ ...tacos, ingredients: [{ amount: '2' }] }])).toMatch(/Each ingredient needs a name/);
+    expect(validateSavedMeals([{ ...tacos, ingredients: 'Tortillas' }])).toMatch(/Each ingredient needs a name/);
+  });
+
   it('checks each list on its own for a partial save', () => {
     expect(validateSavedMeals([tacos])).toBeNull();
     expect(validateSavedMeals('tacos')).toBe('Meals need a list of saved meals.');

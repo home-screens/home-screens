@@ -390,7 +390,7 @@ test.describe('background picker', () => {
     await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);
   });
 
-  test('groups the shipped walls and remembers a collapsed group', async ({ page, request }) => {
+  test('groups the shipped walls, folds a group, and opens a ticked group again on the next visit', async ({ page, request }) => {
     await page.route('**/api/backgrounds/rotate*', (route) => route.fulfill({ json: { path: null } }));
     await putConfig(request, baseConfig());
     await page.goto('/editor');
@@ -406,10 +406,14 @@ test.describe('background picker', () => {
 
     await page.getByTestId('source-group-pattern').click();
     await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();
+    await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
+    // The fold lasts while the panel is up and is not remembered: a ticked
+    // source starts open on the next visit, so its settings are never hidden
+    // behind a choice made on another screen.
     await page.reload();
     await page.getByTestId('editor-canvas').click({ position: { x: 5, y: 5 } });
-    await expect(page.getByTestId('source-group-pattern')).toBeVisible();
-    await expect(page.getByTestId('starter-background-pattern-dots')).toBeHidden();
+    await expect(page.getByTestId('source-group-pattern')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByTestId('starter-background-pattern-dots')).toBeVisible();
     await expect(page.getByTestId('starter-background-ocean')).toBeVisible();
   });
 });

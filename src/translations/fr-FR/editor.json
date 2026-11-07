@@ -151,7 +151,8 @@
       "copyFrom": "Copier les écrans de {name}"
     },
     "zoomFit": "Ajuster",
-    "zoomHint": "Ctrl + molette pour zoomer, molette pour vous déplacer"
+    "zoomHint": "Ctrl + molette pour zoomer, molette pour vous déplacer",
+    "backChipTitle": "Affiché sur l’écran pour pouvoir revenir"
   },
   "draggableModule": {
     "conditionGatedTitle": "Affiché uniquement lorsque ses conditions sont remplies",
@@ -198,7 +199,7 @@
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "planifié",
     "conditionalTooltip": "affiché seulement si les conditions correspondent",
-    "disabledTooltip": "désactivé, non affiché",
+    "disabledTooltip": "éteint, pas affiché sur l’écran",
     "disabledIndicatorAriaLabel": "Désactivé",
     "disabledBadge": "Inactif",
     "stickyBadge": "Fixe",
@@ -225,14 +226,26 @@
       "moveLeft": "Déplacer à gauche",
       "moveRight": "Déplacer à droite",
       "exportThisScreen": "Exporter cet écran",
-      "enable": "Activer",
-      "disable": "Désactiver",
+      "enable": "Allumer",
+      "disable": "Éteindre",
       "rename": "Renommer",
       "duplicate": "Dupliquer",
       "delete": "Supprimer"
     },
     "newScreenName": "Écran {number}",
-    "copyName": "{name} (copie)"
+    "copyName": "{name} (copie)",
+    "opensOnlyBadge": "À l’ouverture",
+    "opensOnlyTooltip": "n’apparaît que lorsqu’on l’ouvre",
+    "deleteConfirmOpeners": {
+      "zero": "{names} a un bouton qui ouvre cet écran. Ce bouton disparaît aussi, et cet écran est vide. Vous pouvez annuler.",
+      "one": "{names} a un bouton qui ouvre cet écran. Ce bouton, le module de cet écran et ses réglages disparaissent. Vous pouvez annuler.",
+      "other": "{names} a un bouton qui ouvre cet écran. Ce bouton, les {count} modules de cet écran et leurs réglages disparaissent. Vous pouvez annuler."
+    },
+    "orphanedBadge": "Rien ne l’ouvre",
+    "orphanedTooltip": "n’apparaît que lorsqu’on l’ouvre, et rien ne l’ouvre",
+    "deletedToast": "{name} supprimé",
+    "undoDelete": "Annuler",
+    "dismissDeleted": "Fermer"
   },
   "screenSearch": {
     "buttonAriaLabel": "Trouver un écran ou un module",
@@ -249,7 +262,8 @@
       "escape": "échap",
       "move": "déplacer",
       "go": "ouvrir"
-    }
+    },
+    "settingsHint": "Vous cherchez un réglage ? Sélectionnez un module pour ses réglages, ou cliquez sur un endroit vide de l’écran pour les réglages de l’écran. Les réglages de la maison sont dans Réglages."
   },
   "screenSettings": {
     "sectionTitle": "Paramètres de l'écran",
@@ -265,7 +279,28 @@
     "inheritsHintValue": "{seconds} secondes",
     "inheritsHintAfter": ", comme vos autres écrans.",
     "overrideButton": "Choisir une autre durée",
-    "resetButton": "Revenir à la durée habituelle"
+    "resetButton": "Revenir à la durée habituelle",
+    "rotationTurn": "Passe à son tour avec les autres écrans",
+    "rotationOpened": "N’apparaît que lorsqu’on l’ouvre",
+    "rotationOpenedHelp": "Rien n’affiche cet écran tant que quelque chose ne l’ouvre pas. Pour ajouter un bouton qui l’ouvre, choisissez un module sur un autre écran et utilisez sa section Bouton d’ouverture.",
+    "rotationOpenedBy": "Ouvert par {names}. Rien d’autre n’affiche cet écran.",
+    "openerName": "{module} sur {screen}",
+    "openersTurn": "{names} ouvre cet écran. Avec un tour à lui, il s’affiche {seconds} secondes, puis la rotation continue.",
+    "openersStay": "{names} ouvre cet écran. Avec un tour à lui, il reste jusqu’à ce que quelqu’un passe à autre chose.",
+    "goBackAfterLabel": "Revenir après",
+    "goBackAfterUnit": "minutes sans toucher",
+    "goBackAfterHelp": "Chaque toucher relance le compte. Tant qu’une fiche recette est ouverte, le compte attend, jusqu’à 10 minutes. 0 reste jusqu’à ce que quelqu’un touche Retour.",
+    "rotationOrphaned": "Rien n’ouvre cet écran, il n’apparaît donc jamais. Donnez à un module d’un autre écran un bouton d’ouverture vers lui, ou faites-le passer à son tour.",
+    "switchedOff": "Cet écran est éteint, rien ne l’affiche donc.",
+    "switchOn": "Allumer",
+    "openedOnlyWhen": "Ses boutons d’ouverture n’apparaissent que {when}.",
+    "openedOnlyConditions": "Ses boutons d’ouverture n’apparaissent que tant que les conditions ci-dessous correspondent.",
+    "openerNameCount": "{name} ({count})",
+    "goBackAfterWillBeRounded": "Sera enregistré comme {to} : minutes entières ou demi-minutes.",
+    "goBackAfterWillBeClamped": "Sera enregistré comme {to} minutes, une journée entière.",
+    "goBackAfterChangedRounded": "{from} changé en {to} : minutes entières ou demi-minutes.",
+    "goBackAfterChangedClamped": "{from} changé en {to} minutes, une journée entière.",
+    "goBackAfterKept": "Ce n’est pas un nombre de minutes, la valeur reste à {to}."
   },
   "scheduleEditor": {
     "statusTitle": "État",
@@ -296,7 +331,15 @@
       "window": "de {start} à {end}",
       "windowSpanned": "{start} jusqu’à {end} {span}"
     },
-    "allDayHint": "Laissez les deux vides pour un affichage toute la journée."
+    "allDayHint": "Laissez les deux vides pour un affichage toute la journée.",
+    "opened": {
+      "enableLabel": "Ne l’ouvrir qu’à certaines heures",
+      "summaryShows": "Peut être ouvert {when}.",
+      "summaryHides": "Ne peut pas être ouvert {when}. Peut l’être le reste du temps.",
+      "allDayHint": "Laissez les deux vides pour l’ouvrir toute la journée.",
+      "invertLabel": "Ne pas l’ouvrir pendant ces heures à la place",
+      "neverShows": "Avec ces réglages, il ne peut jamais être ouvert."
+    }
   },
   "registry": {
     "categories": {
@@ -361,7 +404,7 @@
     "descriptions": {
       "fullscreen-calendar": "Toute votre semaine ou votre mois, en plein écran",
       "fullscreen-chore-chart": "Les tâches de toute la famille, en plein écran",
-      "fullscreen-meal-planner": "Les dîners de la semaine, en plein écran",
+      "fullscreen-meal-planner": "Le plan de repas, en plein écran",
       "fullscreen-photo": "Vos photos, en plein écran",
       "fullscreen-news": "Les titres de l'actualité, en plein écran",
       "fullscreen-weather": "Les prévisions météo, en plein écran",
@@ -453,6 +496,11 @@
       "display-control": "tactile boutons veille reveil luminosite ecran suivant",
       "traffic": "trajet route circulation embouteillage bouchons travail ecole",
       "notes": "notes tableau message messages mot memo pense-bete rappel frigo post-it famille"
+    },
+    "viewDescriptions": {
+      "fullscreen-meal-planner": {
+        "recipes": "Les recettes de la famille, en plein écran"
+      }
     }
   },
   "settings": {
@@ -3605,7 +3653,47 @@
     "whatIsThis": "Qu'est-ce que c'est ?",
     "editingDisplay": "Vous modifiez",
     "collapseTitle": "Masquer le panneau des réglages",
-    "expandTitle": "Afficher le panneau des réglages"
+    "expandTitle": "Afficher le panneau des réglages",
+    "openButton": {
+      "label": "Afficher un bouton qui ouvre",
+      "none": "Rien",
+      "andMore": "et {count} de plus",
+      "help": "Ajoute dans le coin bas du module un bouton portant le nom de cet écran. Sur un écran tactile, le toucher affiche l’écran.",
+      "sectionTitle": "Bouton d’ouverture",
+      "opensOnTap": "{name} (s’ouvre au toucher)",
+      "offBadge": "{name} (éteint)",
+      "holds": "Affiche {what}",
+      "targetOff": "Le bouton est masqué tant que cet écran est éteint.",
+      "goBackAfterLabel": "Revenir après",
+      "inRotationHint": "{name} passe à son tour avec les autres écrans : un toucher l’affiche pendant ses {seconds} secondes habituelles, puis la rotation continue. Pour revenir à {home} quand personne ne l’a touché depuis un moment, activez « N’apparaît que lorsqu’on l’ouvre ».",
+      "inRotationStaysHint": "{name} passe à son tour avec les autres écrans et reste jusqu’à ce que quelqu’un passe à autre chose. Pour revenir à {home} quand personne ne l’a touché depuis un moment, activez « N’apparaît que lorsqu’on l’ouvre ».",
+      "openScreenSettings": "Ouvrir ses réglages d’écran",
+      "groupOpened": "N’apparaît que lorsqu’on l’ouvre",
+      "groupRotation": "Dans la rotation",
+      "keepOut": "N’apparaît que lorsqu’on l’ouvre",
+      "addTwinScreen": "Ajouter un écran {name}",
+      "addTwinHelp": "Crée un écran {name} qui n’apparaît que lorsqu’on l’ouvre, et y pointe ce bouton.",
+      "offShort": "Éteint",
+      "theme": "Dans le thème {theme}",
+      "tapOff": "« Toucher l’écran mural » est désactivé pour ce module, l’écran n’affiche donc aucun bouton.",
+      "orphaned": "Plus rien n’ouvre {name}, il n’apparaît donc jamais. Choisissez-le à nouveau, ou faites-le passer à son tour.",
+      "twinAdded": "{name} ajouté. Il n’apparaît que lorsqu’on l’ouvre ; ouvrez ses réglages d’écran ci-dessous pour le mettre en forme.",
+      "twinScreenName": {
+        "fullscreen-meal-planner": "Livre de recettes",
+        "fullscreen-calendar": "Calendrier",
+        "fullscreen-weather": "Météo",
+        "fullscreen-chore-chart": "Tâches",
+        "fullscreen-news": "Actualités",
+        "fullscreen-photo": "Photos"
+      },
+      "holdsView": "{module}, vue {view}",
+      "pickAgain": "Le choisir à nouveau",
+      "letItTakeTurn": "Le faire passer à son tour",
+      "turnOnTap": "Activer « Toucher l’écran mural »",
+      "switchOn": "L’allumer",
+      "onlyWhen": "Le bouton n’apparaît que {when}.",
+      "onlyConditions": "Le bouton n’apparaît que tant que les conditions de cet écran correspondent."
+    }
   },
   "sudoPrompt": {
     "title": "Autoriser Home Screens à modifier cet appareil",
@@ -4044,6 +4132,7 @@
       "targetSelf": "Cet affichage (self)",
       "targetAll": "Tous les affichages",
       "legacyHint": "Il n'y a qu'un seul affichage, donc c'est celui qui est commandé.",
+      "dockMissingThere": "Sur {display}, un bouton ouvre l'écran du même nom. {display} n'a pas d'écran appelé {names}, donc ces boutons sont pâles et n'y font rien.",
       "allowRetargeting": "Autoriser l'utilisateur à changer de cible à l'exécution",
       "compact": "Icônes seulement, sans texte",
       "dockHint": "Un bouton par écran de cet affichage. Touchez-en un pour aller directement à cet écran.",
@@ -4252,9 +4341,6 @@
       "accentColor": "Couleur d'accent",
       "savedMealsCount": "{count} repas enregistrés",
       "plannedCount": "{count} planifiés",
-      "editMealPlanner": "Modifier le planificateur de repas",
-      "mobileHintPrefix": "Les créneaux de repas, le début de semaine, le format d'heure et les heures de service par défaut sont partagés entre tous les modules de repas. Modifie-les depuis",
-      "mobileHintSettingsLink": "Paramètres → Repas",
       "tapRecipeAction": "Toucher un repas pour ouvrir la recette",
       "tapRecipeActionOff": "Désactivé",
       "tapRecipeActionQr": "Afficher le code QR",
@@ -4264,8 +4350,16 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, de suivre une recette étape par étape, de chercher dans le livre de recettes, de faire défiler les longues vues et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile.",
-      "mobileHintTail": "pour que tous les modules de repas restent synchronisés."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, de suivre une recette étape par étape, de chercher dans le livre de recettes, de faire défiler les longues vues et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin.",
+      "recipeCountHint": {
+        "one": "{count} repas sur {meals} a une recette. Pas encore de recette : {missing}. Ajoutez des ingrédients ou des notes avec Modifier le plan de repas ci-dessous, ou depuis le téléphone.",
+        "other": "{count} repas sur {meals} ont une recette. Pas encore de recette : {missing}. Ajoutez des ingrédients ou des notes avec Modifier le plan de repas ci-dessous, ou depuis le téléphone."
+      },
+      "recipeCountAll": {
+        "one": "Le seul repas enregistré a une recette.",
+        "other": "Les {count} repas enregistrés ont tous une recette."
+      },
+      "andMore": "{count} de plus"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Par défaut (Minuit)",
@@ -4444,7 +4538,7 @@
       "viewCompact": "Compact (aujourd'hui + demain)",
       "viewList": "Liste complète de la semaine",
       "viewGrocery": "Liste de courses",
-      "viewRecipes": "Recettes",
+      "viewRecipes": "Livre de recettes",
       "showEmoji": "Afficher les images",
       "showPrepTime": "Afficher le temps total",
       "showTags": "Afficher les étiquettes",
@@ -4464,7 +4558,7 @@
       "tapRecipeActionCardHint": "Affiche les ingrédients et les étapes sur une fiche, directement sur l'affichage. Fonctionne aussi pour les repas enregistrés avec des ingrédients ou des notes. Un repas avec un lien de recette a en plus un code QR pour ouvrir la recette sur un téléphone.",
       "tapRecipeActionNoLinkHint": "Un repas sans lien de recette affiche plutôt ses ingrédients et ses notes sur la fiche recette.",
       "interactive": "Activer le tactile sur le mur",
-      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile."
+      "interactiveHint": "Permet de cocher des articles de la liste de courses, d'ouvrir des recettes, de faire défiler les longues listes et de voir le menu de la semaine prochaine sur un écran tactile. Désactive-le si l'affichage n'est pas tactile. Le bouton d’ouverture en a aussi besoin."
     },
     "moon-phase": {
       "showIllumination": "Afficher le % d'illumination",
@@ -5628,7 +5722,15 @@
       "allMustMatchHint": "Toutes les conditions doivent correspondre pour que l'écran s'affiche.",
       "whenUnknownHide": "Laisser l'écran de côté",
       "whenUnknownShow": "Garder l'écran"
-    }
+    },
+    "screenOpened": {
+      "enableHelp": "N’autoriser l’ouverture de cet écran que lorsque les valeurs en direct de vos services connectés correspondent (par exemple le prochain événement est dans moins d’une heure).",
+      "noConditionsHint": "Aucune condition pour l’instant. L’écran peut être ouvert à tout moment jusqu’à ce que vous en ajoutiez une.",
+      "allMustMatchHint": "Toutes les conditions doivent correspondre pour que l’écran puisse être ouvert.",
+      "whenUnknownHide": "Ne pas l’ouvrir",
+      "whenUnknownShow": "Le laisser s’ouvrir"
+    },
+    "matchTitle": "Ce qui doit correspondre"
   },
   "stateKeys": {
     "calendar": {

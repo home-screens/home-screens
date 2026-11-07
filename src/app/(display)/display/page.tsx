@@ -1,6 +1,6 @@
 import { readConfig } from '@/lib/config';
 import { getDisplayToken } from '@/lib/auth';
-import { filterConfigForDisplay, findMainDisplay } from '@/lib/display-filter';
+import { displayDescriptors, filterConfigForDisplay, findMainDisplay } from '@/lib/display-filter';
 import ScreenRotator from '@/components/display/ScreenRotator';
 import { hubTimezone } from '@/lib/household-day';
 import { wallConfigEtag } from '@/lib/wall-config';
@@ -31,7 +31,7 @@ export default async function DisplayPage({
 }) {
   const [config, displayToken, preview] = await Promise.all([readConfig(), getDisplayToken(), searchParams.then(parseDisplaySearchParams)]);
 
-  const availableDisplays = config.displays?.map((d) => ({ id: d.id, name: d.name })) ?? [];
+  const availableDisplays = displayDescriptors(config.displays);
 
   const target = findMainDisplay(config.displays);
   if (target) {

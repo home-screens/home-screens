@@ -500,6 +500,19 @@ describe('editor store', () => {
       expect(store.getState().selectedModuleId).toBeNull();
     });
 
+    it('points open buttons at the copies of their screens', () => {
+      const store = useEditorStore;
+      const config = twoDisplays();
+      config.displays![0].screens[0].modules[0].openButtonScreen = 'k-2';
+      store.setState({ config, selectedDisplayId: 'playroom', selectedScreenId: null });
+
+      store.getState().copyScreensFromDisplay('kitchen');
+
+      const copied = store.getState().config!.displays!.find((d) => d.id === 'playroom')!.screens;
+      expect(copied[0].modules[0].openButtonScreen).toBe(copied[1].id);
+      expect(store.getState().config!.displays![0].screens[0].modules[0].openButtonScreen).toBe('k-2');
+    });
+
     it('does nothing when the source is the active display, is unknown, or has no screens', () => {
       const store = useEditorStore;
       for (const source of ['playroom', 'nope', 'empty']) {

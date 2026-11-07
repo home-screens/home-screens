@@ -86,6 +86,10 @@
     "body": "No celular ou computador conectado ao seu Wi-Fi, abra",
     "hideHint": "Prefere uma tela em branco? Configurações › Tela › Mostrar esta dica"
   },
+  "openedScreen": {
+    "backTo": "Voltar para {name}",
+    "back": "Voltar"
+  },
   "pagination": {
     "paused": "Pausado",
     "previousScreen": "Tela anterior",
@@ -93,7 +97,8 @@
     "resumesIn": "Continua em {time} · toque para continuar agora",
     "tapToResume": "toque para continuar",
     "minutes": "{count} min",
-    "seconds": "{count} s"
+    "seconds": "{count} s",
+    "heldInPreview": "O rodízio fica parado na prévia"
   },
   "displayNotFound": {
     "notRegistered": "Tela ainda não adicionada",

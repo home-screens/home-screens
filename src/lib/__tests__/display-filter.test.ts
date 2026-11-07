@@ -21,6 +21,7 @@ import {
   RESERVED_DISPLAY_IDS,
   SLUG_RE,
   MAIN_DISPLAY_ID,
+  displayDescriptors,
 } from '@/lib/display-filter';
 import type {
   AlertSettings,
@@ -1701,5 +1702,110 @@ describe('withoutDanglingScreenRefs', () => {
     const tidy = withoutDanglingScreenRefs(config);
     expect(validateDisplays(tidy)).toBeNull();
     expect(validateAllSchedules(tidy)).toBeNull();
+  });
+});
+
+/* ─── open buttons ──────────────────────────────── */
+
+describe('open buttons', () => {
+  const button = (id: string, openButtonScreen?: string): ModuleInstance => ({
+    id, type: 'meal-planner', position: { x: 0, y: 0 }, size: { w: 400, h: 300 }, zIndex: 1, config: {}, style: {} as ModuleInstance['style'],
+    ...(openButtonScreen !== undefined ? { openButtonScreen } : {}),
+  });
+  const withModules = (id: string, modules: ModuleInstance[]): Screen => ({ ...makeScreen(id), modules });
+
+  describe('validateDisplays', () => {
+    it('accepts a button to another screen of the same display, with or without displays', () => {
+      const single = makeConfig({ screens: [withModules('kitchen', [button('m1', 'recipes')]), makeScreen('recipes')] });
+      expect(validateDisplays(single)).toBeNull();
+      const multi = makeConfig({
+        screens: [],
+        displays: [{ id: 'main', name: 'Main', screens: [withModules('kitchen', [button('m1', 'recipes')]), makeScreen('recipes')] }],
+      });
+      expect(validateDisplays(multi)).toBeNull();
+    });
+
+    it('refuses a button to a screen that is not there, on another display, or its own', () => {
+      expect(validateDisplays(makeConfig({ screens: [withModules('kitchen', [button('m1', 'gone')])] }))).toMatch(/not there/);
+      expect(validateDisplays(makeConfig({ screens: [withModules('kitchen', [button('m1', 'kitchen')])] }))).toMatch(/own screen/);
+      expect(validateDisplays(makeConfig({ screens: [withModules('kitchen', [button('m1', '')])] }))).toMatch(/not there/);
+      const multi = makeConfig({
+        screens: [],
+        displays: [
+          { id: 'main', name: 'Main', screens: [withModules('kitchen', [button('m1', 'b-recipes')])] },
+          { id: 'bedroom', name: 'Bedroom', screens: [makeScreen('b-recipes')] },
+        ],
+      });
+      expect(validateDisplays(multi)).toMatch(/on display "main".*not there/);
+    });
+  });
+
+  describe('pruneDanglingScreenRefs', () => {
+    it('removes the buttons that opened the deleted screen and nothing else', () => {
+      const config = makeConfig({
+        screens: [withModules('kitchen', [button('m1', 'recipes'), button('m2', 'weather'), button('m3')]), makeScreen('weather')],
+      });
+      const result = pruneDanglingScreenRefs(config, 'recipes', null);
+      expect(result.screens[0].modules.map((m) => m.openButtonScreen)).toEqual([undefined, 'weather', undefined]);
+      expect(Object.keys(result.screens[0].modules[0])).not.toContain('openButtonScreen');
+      expect(result.screens[0].modules[1]).toBe(config.screens[0].modules[1]);
+      expect(result.screens[1]).toBe(config.screens[1]);
+      expect(config.screens[0].modules[0].openButtonScreen).toBe('recipes');
+    });
+
+    it('scopes the display walk to the selected display', () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [
+          { id: 'main', name: 'Main', screens: [withModules('kitchen', [button('m1', 'recipes')])] },
+          { id: 'bedroom', name: 'Bedroom', screens: [withModules('b1', [button('m2', 'recipes')])] },
+        ],
+      });
+      const result = pruneDanglingScreenRefs(config, 'recipes', 'main');
+      expect(result.displays![0].screens[0].modules[0].openButtonScreen).toBeUndefined();
+      expect(result.displays![1]).toBe(config.displays![1]);
+    });
+  });
+
+  describe('withoutDanglingScreenRefs', () => {
+    it('clears a button to a screen that is not there and leaves the rest alone', () => {
+      const config = makeConfig({
+        screens: [withModules('kitchen', [button('m1', 'gone'), button('m2', 'weather')]), makeScreen('weather')],
+      });
+      const tidy = withoutDanglingScreenRefs(config);
+      expect(tidy.screens[0].modules.map((m) => m.openButtonScreen)).toEqual([undefined, 'weather']);
+      expect(tidy.screens[1]).toBe(config.screens[1]);
+      expect(validateDisplays(tidy)).toBeNull();
+      const fine = makeConfig({ screens: [withModules('kitchen', [button('m1', 'weather')]), makeScreen('weather')] });
+      expect(withoutDanglingScreenRefs(fine)).toBe(fine);
+    });
+
+    it("tidies each display's screens against that display's own", () => {
+      const config = makeConfig({
+        screens: [],
+        displays: [
+          { id: 'main', name: 'Main', screens: [withModules('kitchen', [button('m1', 'b-recipes')])] },
+          { id: 'bedroom', name: 'Bedroom', screens: [withModules('b1', [button('m2', 'b-recipes')]), makeScreen('b-recipes')] },
+        ],
+      });
+      const tidy = withoutDanglingScreenRefs(config);
+      expect(tidy.displays![0].screens[0].modules[0].openButtonScreen).toBeUndefined();
+      expect(tidy.displays![1]).toBe(config.displays![1]);
+      expect(validateDisplays(tidy)).toBeNull();
+    });
+  });
+});
+
+describe('displayDescriptors', () => {
+  it('names each display and the switched-on screens a command naming one reaches', () => {
+    const off = { ...makeScreen('h2', 'Night'), enabled: false };
+    expect(displayDescriptors([
+      { id: 'main', name: 'Kitchen', screens: [makeScreen('k1', 'Home')] },
+      { id: 'hallway', name: 'Hallway', screens: [makeScreen('h1', 'Calendar'), off] },
+    ])).toEqual([
+      { id: 'main', name: 'Kitchen', screens: [{ id: 'k1', name: 'Home' }] },
+      { id: 'hallway', name: 'Hallway', screens: [{ id: 'h1', name: 'Calendar' }] },
+    ]);
+    expect(displayDescriptors(undefined)).toEqual([]);
   });
 });

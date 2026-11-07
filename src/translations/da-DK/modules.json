@@ -373,7 +373,7 @@
   },
   "meal-planner": {
     "recipeBook": {
-      "title": "Opskrifter",
+      "title": "Opskriftsbog",
       "count": {
         "one": "1 opskrift",
         "other": "{count} opskrifter"
@@ -450,6 +450,11 @@
         "mealieNotConnected": "Forbind den under Indstillinger på computeren for at vise opskrifterne.",
         "mealieTokenRefused": "Gem et nyt Mealie-token under Indstillinger på computeren for at vise opskrifterne.",
         "mealieSetup": "Tjek Mealie under Indstillinger på computeren for at vise opskrifterne."
+      },
+      "fewRecipesHint": "Måltider med ingredienser eller noter vises her. Tilføj dem fra telefonen.",
+      "countInBook": {
+        "one": "{count} i bogen",
+        "other": "{count} i bogen"
       }
     },
     "loading": "Indlæser måltider…",
@@ -558,6 +563,10 @@
     "backToToday": "Tilbage til i dag",
     "backToNow": "Tilbage til nu",
     "backToTop": "Tilbage til toppen"
+  },
+  "openButton": {
+    "open": "Åbn {name}",
+    "unavailable": "Skjult på skærmen lige nu: den skærm er uden for sine tider eller betingelser."
   },
   "lookAhead": {
     "thisWeek": "Denne uge",

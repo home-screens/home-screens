@@ -33,9 +33,9 @@ import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { ModuleInstance, BackgroundEffects, BackgroundShade } from '@/types/config';
 import { stackOrder } from '@/lib/module-utils';
-import { isScreenEmpty, getDisplayProfiles, getActiveProfileId } from '@/lib/display-filter';
+import { isScreenEmpty, getDisplayProfiles, getActiveProfileId, displayDescriptors } from '@/lib/display-filter';
 import { displayShowsPaginationDots } from '@/lib/pagination-dots';
-import { resolveProfileScreens } from '@/lib/schedule';
+import { evaluateVisibility, isModuleVisible, resolveProfileScreens } from '@/lib/schedule';
 import { usePreviewData } from './usePreviewData';
 import DraggableModule, { ModulePreview } from './DraggableModule';
 import { collectPinnedModules } from '@/lib/pinned-modules';
@@ -43,6 +43,8 @@ import { getModuleDefinition } from '@/lib/module-registry';
 import { buildModuleShadow } from '@/lib/module-style';
 import type { ModuleDataSource } from '@/lib/module-props';
 import { RotationProvider, type RotationState } from '@/components/display/rotation-context';
+import { openersOf, showsOnlyWhenOpened } from '@/lib/on-demand-screen';
+import OpenedScreenBackChip from '@/components/display/OpenedScreenBackChip';
 import { toDockScreen } from '@/lib/screen-dock';
 import ModuleContextMenu, { type ModuleMenuState } from './ModuleContextMenu';
 import SelectionOverlay from './SelectionOverlay';
@@ -350,7 +352,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
       previewData,
       // TargetPicker footprint matters for sizing; empty here would hide the
       // picker behind isLegacyMode even when allowRetargeting is on.
-      displaysForPicker?.map((d) => ({ id: d.id, name: d.name })) ?? [],
+      displayDescriptors(displaysForPicker),
     ),
     [previewSettings, previewData, displaysForPicker],
   );
@@ -419,7 +421,7 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   // runs (schedule windows aside).
   const rotatingScreens = useMemo(() => {
     if (!config) return [];
-    const enabled = activeScreens.filter((s) => s.enabled !== false);
+    const enabled = activeScreens.filter((s) => s.enabled !== false && !showsOnlyWhenOpened(s));
     const display = selectedDisplayId ? config.displays?.find((d) => d.id === selectedDisplayId) : undefined;
     const profiles = display ? getDisplayProfiles(display, config.profiles) : config.profiles;
     return resolveProfileScreens(enabled, profiles, getActiveProfileId(config, selectedDisplayId), now);
@@ -448,10 +450,19 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
   // like any other, so showing a screen is a no-op here.
   const rotationState = useMemo<RotationState>(() => ({
     screens: rotatingScreens.map(toDockScreen),
-    allScreens: activeScreens.filter((s) => s.enabled !== false).map(toDockScreen),
+    // A screen that shows only when opened and is out of reach right now
+    // (outside its hours; conditions judged from the display's live values
+    // when it has reported) is marked, so its open buttons draw dimmed.
+    allScreens: activeScreens.filter((s) => s.enabled !== false).map((s) => {
+      const dock = toDockScreen(s);
+      if (!showsOnlyWhenOpened(s)) return dock;
+      const outOfHours = !isModuleVisible(s.schedule, now);
+      const conditionsUnmet = !!verdictStates && (s.visibility?.conditions.length ?? 0) > 0 && !evaluateVisibility(s.visibility, verdictStates, now);
+      return outOfHours || conditionsUnmet ? { ...dock, unavailable: true } : dock;
+    }),
     activeScreenId: selectedScreenId ?? null,
     showScreen: () => {},
-  }), [rotatingScreens, activeScreens, selectedScreenId]);
+  }), [rotatingScreens, activeScreens, selectedScreenId, now, verdictStates]);
 
   if (!currentScreen) {
     // A display with no screens at all is a different problem from "nothing
@@ -631,8 +642,26 @@ export default function EditorCanvas({ onScaleChange, canvasRef }: { onScaleChan
                 />
               ))}
               </RotationProvider>
-              {showDotsGuide && (
+              {showDotsGuide && !showsOnlyWhenOpened(currentScreen) && (
                 <DotsGuide screenCount={rotatingScreenCount} scale={effectiveScale} t={t} />
+              )}
+              {showsOnlyWhenOpened(currentScreen) && config && (
+                // Where the wall's back chip and its strip will sit, so what
+                // they take is seen here first, named the way the wall names
+                // it (the screen of the first module that opens this one).
+                // Inert, with a hover note: a click on the canvas selects.
+                <div className="absolute left-0 top-0 pointer-events-none" style={{ width: displayWidth, height: displayHeight, zoom: effectiveScale, zIndex: 9990 }}>
+                  <div className="pointer-events-auto">
+                    <OpenedScreenBackChip
+                      screen={currentScreen}
+                      returnName={openersOf(activeScreens, currentScreen.id)[0]?.screen.name ?? null}
+                      settings={config.settings}
+                      onBack={() => {}}
+                      inert
+                      title={t('canvas.backChipTitle')}
+                    />
+                  </div>
+                </div>
               )}
               {(() => {
                 const sel = currentScreen.modules.find((m) => m.id === selectedModuleId);

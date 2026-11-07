@@ -32,6 +32,8 @@ interface DragState {
 }
 
 interface ScheduleWeekStripProps {
+  /** `opened`: the sentence says when the screen can be opened, not when it shows. */
+  wording?: 'show' | 'opened';
   schedule: ModuleSchedule;
   timeFormat: TimeFormat | undefined;
   /**
@@ -83,6 +85,7 @@ export default function ScheduleWeekStrip({
   shape,
   onToggleDay,
   onDragEdge,
+  wording = 'show',
 }: ScheduleWeekStripProps) {
   const t = useTranslate('editor');
   const formattingLocale = useFormattingLocale();
@@ -245,8 +248,8 @@ export default function ScheduleWeekStrip({
   // chart says nothing to a screen reader. `describeSchedule` already produces
   // the sentence this used to show, so it moves here rather than being deleted.
   const spokenSummary = useMemo(
-    () => describeSchedule(schedule, t, formattingLocale, timeFormat).sentence,
-    [schedule, t, formattingLocale, timeFormat],
+    () => describeSchedule(schedule, t, formattingLocale, timeFormat, wording).sentence,
+    [schedule, t, formattingLocale, timeFormat, wording],
   );
 
   const VARIANT_CLASS = {

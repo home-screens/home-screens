@@ -86,6 +86,10 @@
     "body": "En un móvil u ordenador conectado a tu wifi, abre",
     "hideHint": "¿Prefieres una pantalla en blanco? Ajustes › Pantalla › Mostrar este aviso"
   },
+  "openedScreen": {
+    "backTo": "Volver a {name}",
+    "back": "Volver"
+  },
   "pagination": {
     "paused": "En pausa",
     "previousScreen": "Pantalla anterior",
@@ -93,7 +97,8 @@
     "resumesIn": "Continúa en {time} · toca para continuar",
     "tapToResume": "toca para continuar",
     "minutes": "{count} min",
-    "seconds": "{count} s"
+    "seconds": "{count} s",
+    "heldInPreview": "La rotación está detenida en la vista previa"
   },
   "displayNotFound": {
     "notRegistered": "Pantalla aún no añadida",

@@ -5,6 +5,7 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState, type CSSPrope
 import { useElementBox } from '@/hooks/useElementBox';
 import type { SavedMeal } from '@/types/config';
 import { useTranslate } from '@/i18n';
+import { useInteractionHold } from '@/lib/interaction-hold';
 import type { MealieClientProblem } from '@/lib/meal-client';
 import { deleteKey, typeKey } from '@/lib/wall-keyboard';
 import { recipeBookChipId, recipeBookHeading } from '@/lib/meal-recipe-book';
@@ -53,10 +54,17 @@ function emptyMessage(
   if (typed && book.withoutRecipe) return ['noRecipeTitle', 'noRecipeHint', { name: book.withoutRecipe.name }];
   if (typed) return ['noneTitle', 'noneHint', { query: typed }];
   if (book.source === 'local' && chip.kind === 'local' && chip.filter === 'all') return ['emptyTitle', 'emptyHint', {}];
+  if (chip.kind === 'local' && chip.filter === 'favorites') return ['noFavoritesTitle', 'noFavoritesHintTouch', {}];
   if (chip.kind === 'mealie' && chip.filter === 'favorites') return ['noFavoritesTitle', interactive ? 'noFavoritesHintTouch' : 'noFavoritesHint', {}];
   if (chip.kind === 'mealie' && chip.filter === 'recent') return ['noRecentTitle', 'noRecentHint', {}];
   if (chip.kind === 'mealie') return ['mealieEmptyTitle', 'mealieEmptyHint', {}];
   return ['noneInGroupTitle', 'noneInGroupHint', { group: chipLabel(chip) }];
+}
+
+/** The interaction hold, as a component, for a lazily loaded overlay's loading gap. */
+function HoldDisplay(): null {
+  useInteractionHold();
+  return null;
 }
 
 function problemWords(problem: MealieClientProblem): ReturnType<typeof mealieWords> {
@@ -105,9 +113,8 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
   const gapX = P(landscape ? 24 : 28);
   const fits = box.width ? Math.floor((box.width - 2 * side + gapX) / (P(280) + gapX)) : 99;
   const cols = Math.max(1, Math.min(landscape ? 6 : 3, fits));
-  const placeholder = book.recipeCount
-    ? t('meal-planner.recipeBook.searchCount', { count: book.recipeCount })
-    : t('meal-planner.recipeBook.searchPlaceholder');
+  // The heading under the chips already counts the book; the field does not repeat it.
+  const placeholder = t('meal-planner.recipeBook.searchPlaceholder');
   const searchField = (
     <RecipeSearchField
       P={P}
@@ -121,12 +128,26 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       font={landscape ? 32 : 36}
     />
   );
-  const count = book.recipeCount !== null && mode === 'book' && (
+  // The size of the whole book, beside the title. Not while the heading under
+  // the chips already says the same number ("12 recipes, A to Z" on the All
+  // chip of a book kept here): the page would count itself twice.
+  const headingCountsBook = mode === 'book' && !typed && book.active.kind === 'local' && book.active.filter === 'all';
+  // On a chip that narrows the book the number is the whole book's, and says so.
+  const narrowed = mode === 'book' && !(book.active.kind === 'mealie' && book.active.filter === 'all') && !headingCountsBook;
+  const count = book.recipeCount !== null && !headingCountsBook && (
     <span data-testid="recipe-book-count" style={{ ...SECTION_LABEL, fontSize: P(landscape ? 22 : 24), flexShrink: 0 }}>
-      {t('meal-planner.recipeBook.count', { count: book.recipeCount })}
+      {t(narrowed ? 'meal-planner.recipeBook.countInBook' : 'meal-planner.recipeBook.count', { count: book.recipeCount })}
     </span>
   );
   const title = <span style={{ fontFamily: headerFont, fontSize: P(landscape ? 72 : 78), lineHeight: 1, color: 'var(--fmp-text)', flexShrink: 0 }}>{t('meal-planner.recipeBook.title')}</span>;
+  // A book with almost nothing in it while the planner is full of meals
+  // looks broken: say what gets a meal into the book. Gone once the book
+  // has a few recipes, and never for Mealie's book.
+  const fewRecipes = mode === 'book' && book.source === 'local' && book.withoutRecipeCount > 0 && book.recipeCount !== null && book.recipeCount < 3 && (
+    <p data-testid="recipe-book-few-hint" style={{ margin: `${P(14)}px 0 0`, fontSize: P(landscape ? 24 : 26), lineHeight: 1.3, color: 'var(--fmp-text-3)' }}>
+      {t('meal-planner.recipeBook.fewRecipesHint')}
+    </p>
+  );
   const showChips = mode === 'book' && !typing && !typed;
   const chips = showChips && (
     <div style={{ marginTop: P(landscape ? 24 : 28) }}>
@@ -151,6 +172,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
           <div style={{ flex: 1, minWidth: 0 }}>{searchField}</div>
           {count}
         </div>
+        {fewRecipes}
         {chips}
       </>
     );
@@ -158,6 +180,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
     header = (
       <>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: P(24) }}>{title}{count}</div>
+        {fewRecipes}
         <div style={{ marginTop: P(30) }}>{searchField}</div>
         {chips}
       </>
@@ -282,9 +305,14 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
         </div>
       )}
       {open && (
-        <Suspense fallback={null}>
-          <RecipeCard meal={open} onClose={() => setOpen(null)} />
-        </Suspense>
+        <>
+          {/* Holds the display from the tap, not from when the lazily loaded
+              card mounts: a flick in that gap read as "go back". */}
+          <HoldDisplay />
+          <Suspense fallback={null}>
+            <RecipeCard meal={open} onClose={() => setOpen(null)} />
+          </Suspense>
+        </>
       )}
     </div>
   );

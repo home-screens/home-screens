@@ -120,7 +120,7 @@ export function VisibilityOutcomeLine({
 }
 
 /** What the conditions gate; picks the wording, nothing else. */
-export type VisibilitySubject = 'module' | 'screen';
+export type VisibilitySubject = 'module' | 'screen' | 'screenOpened';
 
 /**
  * The module adapter: reads the module's tree and writes it back through
@@ -158,7 +158,9 @@ export function VisibilityConditionsEditor({
   // The strings that name the thing being gated have a screen variant under
   // `visibilityConditions.screen`; everything else is shared.
   const subjectKey = (key: string) =>
-    subject === 'screen' ? `visibilityConditions.screen.${key}` : `visibilityConditions.${key}`;
+    subject === 'screen' ? `visibilityConditions.screen.${key}`
+      : subject === 'screenOpened' ? `visibilityConditions.screenOpened.${key}`
+        : `visibilityConditions.${key}`;
 
   // Live values from the selected display's last heartbeat, for the
   // current-value hint and case-mismatch warning on condition inputs.
@@ -222,12 +224,12 @@ export function VisibilityConditionsEditor({
             setVisibility(on ? { conditions: [] } : undefined)
           }
         />
-        <p className="text-xs text-hs-text-dim mt-1">{t(subjectKey('enableHelp'))}</p>
+        <p className="text-[11px] text-hs-text-faint leading-relaxed mt-1">{t(subjectKey('enableHelp'))}</p>
       </PropertyGroup>
 
       {enabled && visibility && (
         <>
-          <PropertyGroup title={t('visibilityConditions.conditionsTitle')} accent={2}>
+          <PropertyGroup title={t(statusTitle ? 'visibilityConditions.matchTitle' : 'visibilityConditions.conditionsTitle')} accent={2}>
             <div className="space-y-2">
               {providedKeys.length === 0 && !searchAvailable && (
                 <p className="text-xs text-hs-warning">{t('visibilityConditions.noProvidersHint')}</p>

@@ -34,30 +34,45 @@ const roboto = localFont({
   weight: '100 900',
   variable: '--font-roboto',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const playfair = localFont({
   src: './fonts/playfair-display-variable.woff2',
   weight: '400 900',
   variable: '--font-playfair',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const lora = localFont({
   src: './fonts/lora-variable.woff2',
   weight: '400 700',
   variable: '--font-lora',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const jetbrains = localFont({
   src: './fonts/jetbrains-mono-variable.woff2',
   weight: '100 800',
   variable: '--font-jetbrains',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const caveat = localFont({
   src: './fonts/caveat-variable.woff2',
   weight: '400 700',
   variable: '--font-caveat',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 // Metric-compatible substitute for Georgia, which is a Microsoft core font and
 // is not installed on Raspberry Pi OS. Sits behind real Georgia in the stack,
@@ -68,6 +83,9 @@ const gelasio = localFont({
   weight: '400 700',
   variable: '--font-gelasio',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 
 // Static families: a distinct file per weight.
@@ -79,24 +97,36 @@ const poppins = localFont({
   ],
   variable: '--font-poppins',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const dmSerif = localFont({
   src: './fonts/dm-serif-display-400.woff2',
   weight: '400',
   variable: '--font-dm-serif',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const bebas = localFont({
   src: './fonts/bebas-neue-400.woff2',
   weight: '400',
   variable: '--font-bebas',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 const pacifico = localFont({
   src: './fonts/pacifico-400.woff2',
   weight: '400',
   variable: '--font-pacifico',
   display: 'swap',
+  // Loaded when a module uses it; preloading every family on every page
+  // made the browser warn about a dozen unused preloads on the wall.
+  preload: false,
 });
 
 const FONT_VARIABLES = [

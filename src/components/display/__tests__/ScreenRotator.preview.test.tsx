@@ -148,7 +148,11 @@ describe('ScreenRotator start screen and preview mode', () => {
     expect(rendered()).toBe('weather');
     act(() => { vi.advanceTimersByTime(5000); });
     expect(rendered()).toBe('weather');
-    expect(dom.getByTestId('pause-pill')).toBeTruthy();
+    // Held, but quietly: the paused pill would sit over the content the
+    // preview exists to show. The active dot carries the pause glyph.
+    expect(dom.queryByTestId('pause-pill')).toBeNull();
+    expect(dom.getByTestId('pagination-held')).toBeTruthy();
+    expect(dom.queryByRole('button', { name: 'Resume rotation' })).toBeNull();
 
     // Third arg of useDisplayCommands is `drain`; last arg of useStatusReporter is `enabled`.
     expect(useDisplayCommands).toHaveBeenCalled();

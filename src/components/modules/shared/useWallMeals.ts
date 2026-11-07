@@ -129,7 +129,9 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
     mealie,
     grocery,
     interactive: config.interactive !== false && !!screenId && !!moduleId,
-    recipeTapMode: resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId),
+    // Opening a recipe is a tap on the wall, so it follows "Tap on the Wall":
+    // with that off the rows are not tappable and show no "›".
+    recipeTapMode: config.interactive === false ? 'off' : resolveRecipeTapMode(config.tapRecipeAction, screenId, moduleId),
     recipeContext,
   };
 }

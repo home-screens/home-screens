@@ -86,6 +86,10 @@
     "body": "Sur un téléphone ou un ordinateur connecté à ton Wi-Fi, ouvre",
     "hideHint": "Tu préfères un écran vide ? Paramètres › Écran › Afficher cette astuce"
   },
+  "openedScreen": {
+    "backTo": "Retour à {name}",
+    "back": "Retour"
+  },
   "pagination": {
     "paused": "En pause",
     "previousScreen": "Écran précédent",
@@ -93,7 +97,8 @@
     "resumesIn": "Reprend dans {time} · touche pour reprendre",
     "tapToResume": "touche pour reprendre",
     "minutes": "{count} min",
-    "seconds": "{count} s"
+    "seconds": "{count} s",
+    "heldInPreview": "La rotation est suspendue dans l’aperçu"
   },
   "displayNotFound": {
     "notRegistered": "Affichage pas encore ajouté",

@@ -40,6 +40,16 @@ describe('buildScreenDeleteConfirm', () => {
     }
   });
 
+  it('names the buttons that open the screen, since they go with it', () => {
+    for (const count of [0, 1, 4]) {
+      const built = buildScreenDeleteConfirm({ name: 'Recipe Book', modules: modules(count) }, t, tCore, ['Meal Planner on Kitchen']);
+      expect(built.message).toContain('Meal Planner on Kitchen has a button that opens this screen');
+      expect(built.message.toLowerCase()).toContain('undo');
+      expect(built.message).not.toMatch(/\{\w+\}/);
+    }
+    expect(buildScreenDeleteConfirm({ name: 'R', modules: modules(4) }, t, tCore, ['X on Y']).message).toContain('4 modules');
+  });
+
   it('resolves every string it returns, leaving no raw key behind', () => {
     for (const count of [0, 1, 4]) {
       const built = buildScreenDeleteConfirm({ name: 'S', modules: modules(count) }, t, tCore);

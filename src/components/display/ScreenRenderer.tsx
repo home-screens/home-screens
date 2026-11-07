@@ -2,8 +2,11 @@
 
 import { useMemo, useEffect } from 'react';
 import type { Screen, ModuleInstance } from '@/types/config';
+import type { DisplayDescriptor } from '@/lib/display-filter';
 import { getModuleComponent } from '@/lib/module-components';
 import ModuleErrorBoundary from '@/components/ModuleErrorBoundary';
+import { OpenButtonSlot } from '@/components/modules/shared/OpenScreenButton';
+import OpenedScreenBackChip, { CHIP_CLEAR_PX } from './OpenedScreenBackChip';
 import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
 import { passesModuleGates, collectConditionSourceKeys, type ScheduleClock } from '@/lib/schedule';
 import { DISPLAY_BACKGROUND } from '@/lib/constants';
@@ -52,11 +55,17 @@ interface ScreenRendererProps {
   displayH: number;
   scale: number;
   /** Registered displays for display-control module target picker. Empty = legacy mode. */
-  availableDisplays?: Array<{ id: string; name: string }>;
+  availableDisplays?: DisplayDescriptor[];
   /** Display id this page is rendering as — needed because the legacy /display route
    *  renders its main display inline rather than redirecting, so the URL doesn't carry
    *  the id. The display-control module uses this to resolve `defaultTarget: 'self'`. */
   displayId?: string;
+  /**
+   * Set while this screen was opened by a button, a dock tile or a command
+   * and will go back: the way back, drawn inside the frame so it scales with
+   * the wall. `hidden` while an overlay holds the display.
+   */
+  openedBack?: { name: string | null; onBack: () => void; hidden: boolean; goesBackAt: number | null };
 }
 
 function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
@@ -74,7 +83,7 @@ export default function ScreenRenderer(props: ScreenRendererProps) {
   );
 }
 
-function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [], displayId }: ScreenRendererProps) {
+function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData, displayW, displayH, scale, availableDisplays = [], displayId, openedBack }: ScreenRendererProps) {
   const { overrideBackground } = usePageBackground();
   // The `modules` namespace is preloaded by the display layout's I18nProvider,
   // which wraps this component — same path PluginPlaceholder already uses.
@@ -181,6 +190,14 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
         }
 
         const extraProps = buildModuleProps(mod, source);
+        const style = resolveModuleStyle(mod.style, getModuleDefinition(mod.type));
+        // While the back chip is drawn, a module that reaches the frame's
+        // bottom gives up the strip the chip sits on, so a full-screen book
+        // ends above the chip instead of under it.
+        const clearBottom = openedBack ? displayH - CHIP_CLEAR_PX : displayH;
+        const height = mod.position.y + mod.size.h > clearBottom
+          ? Math.max(0, clearBottom - mod.position.y)
+          : mod.size.h;
 
         return (
           <div
@@ -192,16 +209,30 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
               left: mod.position.x,
               top: mod.position.y,
               width: mod.size.w,
-              height: mod.size.h,
+              height,
               zIndex: mod.zIndex,
             }}
           >
-            <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
-              <Component config={mod.config} style={resolveModuleStyle(mod.style, getModuleDefinition(mod.type))} {...extraProps} />
-            </ModuleErrorBoundary>
+            <OpenButtonSlot mod={mod} style={style}>
+              <ModuleErrorBoundary moduleType={mod.type} fallbackText={tModules('common.moduleFailed')}>
+                <Component config={mod.config} style={style} {...extraProps} />
+              </ModuleErrorBoundary>
+            </OpenButtonSlot>
           </div>
         );
       })}
+      {openedBack && (
+        // The strip stays while an overlay is up (no black band under a
+        // recipe card); only the chip steps aside.
+        <OpenedScreenBackChip
+          screen={screen}
+          returnName={openedBack.name}
+          settings={settings}
+          onBack={openedBack.onBack}
+          chipHidden={openedBack.hidden}
+          goesBackAt={openedBack.goesBackAt}
+        />
+      )}
     </div>
   );
 }

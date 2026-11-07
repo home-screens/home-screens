@@ -5,6 +5,7 @@ import { hasAnyCalendarSource } from '@/lib/calendar-sources';
 import { hasCalendarOwners, livePersonSources } from '@/lib/calendar-source-refs';
 import { settingsPath } from './settings-route';
 import type { FetchError } from './fetch-error';
+import type { DisplayDescriptor } from './display-filter';
 
 /**
  * Raw per-provider weather payloads plus the calendar payload, fetched once by
@@ -138,7 +139,7 @@ export interface ModuleDataSource {
    * not tell "no calendars picked yet" from "still loading".
    */
   calendarConfigured: boolean;
-  availableDisplays: Array<{ id: string; name: string }>;
+  availableDisplays: DisplayDescriptor[];
   /**
    * The display this render is acting as, and the screen it is on.
    *
@@ -340,7 +341,7 @@ export function toDisplaySource(
   },
   location: { lat: number; lon: number } | null,
   sharedData: SharedDisplayData,
-  availableDisplays: Array<{ id: string; name: string }> = [],
+  availableDisplays: DisplayDescriptor[] = [],
   /** Omitted by the background-provider layer, which is not on a screen. */
   address: { renderDisplayId?: string; screenId?: string } = {},
 ): ModuleDataSource {
@@ -382,7 +383,7 @@ export function toDisplaySource(
 export function toEditorSource(
   settings: PreviewSettings | null,
   previewData: PreviewData,
-  displays: Array<{ id: string; name: string }> = [],
+  displays: DisplayDescriptor[] = [],
 ): ModuleDataSource {
   const globalProvider = settings?.globalProvider ?? 'open-meteo';
   return {

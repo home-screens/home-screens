@@ -373,7 +373,7 @@
   },
   "meal-planner": {
     "recipeBook": {
-      "title": "Recetas",
+      "title": "Recetario",
       "count": {
         "one": "1 receta",
         "other": "{count} recetas"
@@ -450,6 +450,11 @@
         "mealieNotConnected": "Conéctalo en Ajustes en el ordenador para ver sus recetas.",
         "mealieTokenRefused": "Guarda un token nuevo de Mealie en Ajustes en el ordenador para ver sus recetas.",
         "mealieSetup": "Revisa Mealie en Ajustes en el ordenador para ver sus recetas."
+      },
+      "fewRecipesHint": "Aquí aparecen las comidas con ingredientes o notas. Añádelas desde el teléfono.",
+      "countInBook": {
+        "one": "{count} en el recetario",
+        "other": "{count} en el recetario"
       }
     },
     "loading": "Cargando comidas…",
@@ -561,6 +566,10 @@
     "backToToday": "Volver a hoy",
     "backToNow": "Volver al presente",
     "backToTop": "Volver arriba"
+  },
+  "openButton": {
+    "open": "Abrir {name}",
+    "unavailable": "Oculto en la pantalla ahora mismo: esa pantalla está fuera de sus horas o de sus condiciones."
   },
   "lookAhead": {
     "thisWeek": "Esta semana",

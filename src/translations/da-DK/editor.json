@@ -151,7 +151,8 @@
       "copyFrom": "Kopiér skærme fra {name}"
     },
     "zoomFit": "Tilpas",
-    "zoomHint": "Ctrl+rul for at zoome, rul for at flytte rundt"
+    "zoomHint": "Ctrl+rul for at zoome, rul for at flytte rundt",
+    "backChipTitle": "Vises på skærmen, så man kan gå tilbage"
   },
   "draggableModule": {
     "conditionGatedTitle": "Vises kun, når betingelserne er opfyldt",
@@ -198,7 +199,7 @@
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "planlagt",
     "conditionalTooltip": "vises kun, når betingelserne passer",
-    "disabledTooltip": "slået fra, vises ikke på displayet",
+    "disabledTooltip": "slukket, vises ikke på skærmen",
     "disabledIndicatorAriaLabel": "Slået fra",
     "disabledBadge": "Fra",
     "stickyBadge": "Bliver",
@@ -225,14 +226,26 @@
       "moveLeft": "Flyt til venstre",
       "moveRight": "Flyt til højre",
       "exportThisScreen": "Eksportér denne skærm",
-      "enable": "Slå til",
-      "disable": "Slå fra",
+      "enable": "Tænd",
+      "disable": "Sluk",
       "rename": "Omdøb",
       "duplicate": "Duplikér",
       "delete": "Slet"
     },
     "newScreenName": "Skærm {number}",
-    "copyName": "{name} kopi"
+    "copyName": "{name} kopi",
+    "opensOnlyBadge": "Når åbnet",
+    "opensOnlyTooltip": "vises kun, når den åbnes",
+    "deleteConfirmOpeners": {
+      "zero": "{names} har en knap, der åbner denne skærm. Den knap forsvinder også, og denne skærm er tom. Du kan fortryde.",
+      "one": "{names} har en knap, der åbner denne skærm. Den knap, skærmens modul og dets indstillinger forsvinder. Du kan fortryde.",
+      "other": "{names} har en knap, der åbner denne skærm. Den knap, skærmens {count} moduler og deres indstillinger forsvinder. Du kan fortryde."
+    },
+    "orphanedBadge": "Intet åbner den",
+    "orphanedTooltip": "vises kun, når den åbnes, og intet åbner den",
+    "deletedToast": "{name} slettet",
+    "undoDelete": "Fortryd",
+    "dismissDeleted": "Luk"
   },
   "screenSearch": {
     "buttonAriaLabel": "Find en skærm eller et modul",
@@ -249,7 +262,8 @@
       "escape": "esc",
       "move": "flyt",
       "go": "åbn"
-    }
+    },
+    "settingsHint": "Leder du efter en indstilling? Vælg et modul for dets indstillinger, eller klik på et tomt sted på skærmen for skærmens egne indstillinger. Husstandens indstillinger ligger under Indstillinger."
   },
   "screenSettings": {
     "sectionTitle": "Skærmindstillinger",
@@ -265,7 +279,28 @@
     "inheritsHintValue": "{seconds} sekunder",
     "inheritsHintAfter": ", ligesom dine andre skærme.",
     "overrideButton": "Brug en anden tid",
-    "resetButton": "Tilbage til det sædvanlige"
+    "resetButton": "Tilbage til det sædvanlige",
+    "rotationTurn": "Får sin tur sammen med de andre skærme",
+    "rotationOpened": "Vises kun, når den åbnes",
+    "rotationOpenedHelp": "Intet viser denne skærm, før noget åbner den. Vil du have en knap, der åbner den, så vælg et modul på en anden skærm og brug dets afsnit Åbn-knap.",
+    "rotationOpenedBy": "Åbnes af {names}. Intet andet viser denne skærm.",
+    "openerName": "{module} på {screen}",
+    "openersTurn": "{names} åbner denne skærm. Med sin egen tur vises den i {seconds} sekunder, og så går rotationen videre.",
+    "openersStay": "{names} åbner denne skærm. Med sin egen tur bliver den, til nogen går videre.",
+    "goBackAfterLabel": "Gå tilbage efter",
+    "goBackAfterUnit": "minutter uden berøring",
+    "goBackAfterHelp": "Hver berøring starter tællingen forfra. Mens et opskriftskort er åbent, venter tællingen, op til 10 minutter. 0 bliver, til nogen trykker på Tilbage.",
+    "rotationOrphaned": "Intet åbner denne skærm, så den vises aldrig. Giv et modul på en anden skærm en åbn-knap til den, eller lad den få sin tur med de andre.",
+    "switchedOff": "Denne skærm er slukket, så intet viser den.",
+    "switchOn": "Tænd",
+    "openedOnlyWhen": "Dens åbn-knapper vises kun {when}.",
+    "openedOnlyConditions": "Dens åbn-knapper vises kun, mens betingelserne herunder passer.",
+    "openerNameCount": "{name} ({count})",
+    "goBackAfterWillBeRounded": "Gemmes som {to}: hele eller halve minutter.",
+    "goBackAfterWillBeClamped": "Gemmes som {to} minutter, et helt døgn.",
+    "goBackAfterChangedRounded": "{from} ændret til {to}: hele eller halve minutter.",
+    "goBackAfterChangedClamped": "{from} ændret til {to} minutter, et helt døgn.",
+    "goBackAfterKept": "Det er ikke et antal minutter, så det bliver ved {to}."
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -296,7 +331,15 @@
       "window": "{start} til {end}",
       "windowSpanned": "{start} til {end} {span}"
     },
-    "allDayHint": "Lad dem begge stå tomme for at vise hele dagen."
+    "allDayHint": "Lad dem begge stå tomme for at vise hele dagen.",
+    "opened": {
+      "enableLabel": "Lad den kun åbne på bestemte tider",
+      "summaryShows": "Kan åbnes {when}.",
+      "summaryHides": "Kan ikke åbnes {when}. Resten af tiden kan den.",
+      "allDayHint": "Lad begge være tomme, så den kan åbnes hele dagen.",
+      "invertLabel": "Lad den i stedet ikke åbne i disse timer",
+      "neverShows": "Med disse indstillinger kan den aldrig åbnes."
+    }
   },
   "registry": {
     "categories": {
@@ -361,7 +404,7 @@
     "descriptions": {
       "fullscreen-calendar": "Hele ugen eller måneden, så den fylder skærmen",
       "fullscreen-chore-chart": "Alles pligter, så de fylder skærmen",
-      "fullscreen-meal-planner": "Ugens aftensmad, så den fylder skærmen",
+      "fullscreen-meal-planner": "Madplanen, der fylder skærmen",
       "fullscreen-photo": "Dine billeder, så de fylder skærmen",
       "fullscreen-news": "Overskrifter, så de fylder skærmen",
       "fullscreen-weather": "Vejrudsigten, så den fylder skærmen",
@@ -453,6 +496,11 @@
       "display-control": "tryk knapper tænd sluk vække lysstyrke skærm",
       "traffic": "pendling køretur rute trafik arbejde skole",
       "notes": "noter opslagstavle beskeder familie køleskab seddel sedler huskeseddel"
+    },
+    "viewDescriptions": {
+      "fullscreen-meal-planner": {
+        "recipes": "Familiens opskrifter, der fylder skærmen"
+      }
     }
   },
   "settings": {
@@ -3605,7 +3653,47 @@
     "whatIsThis": "Hvad er det her?",
     "editingDisplay": "Redigerer",
     "collapseTitle": "Skjul indstillingspanelet",
-    "expandTitle": "Vis indstillingspanelet"
+    "expandTitle": "Vis indstillingspanelet",
+    "openButton": {
+      "label": "Vis en knap, der åbner",
+      "none": "Ingenting",
+      "andMore": "og {count} til",
+      "help": "Sætter en knap med skærmens navn i modulets nederste hjørne. Et tryk på en berøringsskærm viser skærmen.",
+      "sectionTitle": "Åbn-knap",
+      "opensOnTap": "{name} (åbner ved tryk)",
+      "offBadge": "{name} (slukket)",
+      "holds": "Viser {what}",
+      "targetOff": "Knappen er skjult, så længe den skærm er slukket.",
+      "goBackAfterLabel": "Gå tilbage efter",
+      "inRotationHint": "{name} får sin tur sammen med de andre skærme, så et tryk viser den i de sædvanlige {seconds} sekunder, og rotationen går videre. Skal den gå tilbage til {home}, når ingen har rørt den et stykke tid, så slå “Vises kun, når den åbnes” til.",
+      "inRotationStaysHint": "{name} får sin tur sammen med de andre skærme og bliver, til nogen går videre. Skal den gå tilbage til {home}, når ingen har rørt den et stykke tid, så slå “Vises kun, når den åbnes” til.",
+      "openScreenSettings": "Åbn dens skærmindstillinger",
+      "groupOpened": "Vises kun, når den åbnes",
+      "groupRotation": "I rotationen",
+      "keepOut": "Vises kun, når den åbnes",
+      "addTwinScreen": "Tilføj en {name}-skærm",
+      "addTwinHelp": "Laver en {name}-skærm, der kun vises, når den åbnes, og retter denne knap mod den.",
+      "offShort": "Slukket",
+      "theme": "I temaet {theme}",
+      "tapOff": "“Tryk på skærmen” er slået fra for dette modul, så skærmen viser ingen knap.",
+      "orphaned": "Intet åbner {name} længere, så den vises aldrig. Vælg den igen, eller lad den få sin tur med de andre.",
+      "twinAdded": "{name} tilføjet. Den vises kun, når den åbnes; åbn dens skærmindstillinger herunder for at give den udseende.",
+      "twinScreenName": {
+        "fullscreen-meal-planner": "Opskriftsbog",
+        "fullscreen-calendar": "Kalender",
+        "fullscreen-weather": "Vejr",
+        "fullscreen-chore-chart": "Pligter",
+        "fullscreen-news": "Nyheder",
+        "fullscreen-photo": "Billeder"
+      },
+      "holdsView": "{module}, visningen {view}",
+      "pickAgain": "Vælg den igen",
+      "letItTakeTurn": "Lad den få sin tur",
+      "turnOnTap": "Slå “Tryk på skærmen” til",
+      "switchOn": "Tænd den",
+      "onlyWhen": "Knappen vises kun {when}.",
+      "onlyConditions": "Knappen vises kun, mens den skærms betingelser passer."
+    }
   },
   "sudoPrompt": {
     "title": "Tillad Home Screens at ændre denne enhed",
@@ -4044,6 +4132,7 @@
       "targetSelf": "Dette display (sig selv)",
       "targetAll": "Alle displays",
       "legacyHint": "Der er kun én skærm, så det er den, der styres.",
+      "dockMissingThere": "På {display} åbner en knap skærmen med samme navn. {display} har ingen skærm, der hedder {names}, så de knapper er blege og gør ingenting der.",
       "allowRetargeting": "Lad brugeren skifte mål undervejs",
       "compact": "Kun ikoner, ingen ord",
       "dockHint": "Én knap pr. skærm på dette display. Tryk på en for at hoppe direkte til den skærm.",
@@ -4252,9 +4341,6 @@
       "accentColor": "Accentfarve",
       "savedMealsCount": "{count} gemte måltider",
       "plannedCount": "{count} planlagt",
-      "editMealPlanner": "Redigér madplan",
-      "mobileHintPrefix": "Måltider, ugestart, tidsformat og standard serveringstider deles af alle måltidsmoduler. Redigér dem under",
-      "mobileHintSettingsLink": "Indstillinger → Måltider",
       "tapRecipeAction": "Tryk på et måltid for opskriften",
       "tapRecipeActionOff": "Fra",
       "tapRecipeActionQr": "Vis QR-kode",
@@ -4264,8 +4350,16 @@
       "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet. Virker også for måltider, der er gemt med ingredienser eller noter. Har et måltid et opskriftslink, får det også en kode til at åbne opskriften på en telefon.",
       "tapRecipeActionNoLinkHint": "Et måltid uden opskriftslink viser i stedet sine ingredienser og noter på opskriftskortet.",
       "interactive": "Tryk på displayet",
-      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, gå trin for trin gennem en opskrift, søge i opskriftsbogen, rulle i lange visninger og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm.",
-      "mobileHintTail": "så alle måltidsmoduler holdes ens."
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, gå trin for trin gennem en opskrift, søge i opskriftsbogen, rulle i lange visninger og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm. Åbn-knappen har også brug for det.",
+      "recipeCountHint": {
+        "one": "{count} af {meals} måltider har en opskrift. Endnu uden opskrift: {missing}. Tilføj ingredienser eller noter med Rediger madplan herunder, eller fra telefonen.",
+        "other": "{count} af {meals} måltider har en opskrift. Endnu uden opskrift: {missing}. Tilføj ingredienser eller noter med Rediger madplan herunder, eller fra telefonen."
+      },
+      "recipeCountAll": {
+        "one": "Det ene gemte måltid har en opskrift.",
+        "other": "Alle {count} gemte måltider har en opskrift."
+      },
+      "andMore": "{count} til"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (midnat)",
@@ -4444,7 +4538,7 @@
       "viewCompact": "Kompakt (i dag + i morgen)",
       "viewList": "Hele ugen som liste",
       "viewGrocery": "Indkøbsliste",
-      "viewRecipes": "Opskrifter",
+      "viewRecipes": "Opskriftsbog",
       "showEmoji": "Vis billeder",
       "showPrepTime": "Vis samlet tid",
       "showTags": "Vis tags",
@@ -4464,7 +4558,7 @@
       "tapRecipeActionCardHint": "Viser ingredienserne og trinnene på et kort direkte på displayet. Virker også for måltider, der er gemt med ingredienser eller noter. Har et måltid et opskriftslink, får det også en kode til at åbne opskriften på en telefon.",
       "tapRecipeActionNoLinkHint": "Et måltid uden opskriftslink viser i stedet sine ingredienser og noter på opskriftskortet.",
       "interactive": "Tryk på displayet",
-      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, åbne opskrifter, rulle i lange lister og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm."
+      "interactiveHint": "På en touchskærm kan alle krydse ting af på indkøbslisten, åbne opskrifter, rulle i lange lister og se planen for næste uge. Slå det fra, hvis displayet ikke er en touchskærm. Åbn-knappen har også brug for det."
     },
     "moon-phase": {
       "showIllumination": "Vis oplyst i %",
@@ -5628,7 +5722,15 @@
       "allMustMatchHint": "Alle betingelser skal passe, for at skærmen vises.",
       "whenUnknownHide": "Lad skærmen være ude",
       "whenUnknownShow": "Behold skærmen"
-    }
+    },
+    "screenOpened": {
+      "enableHelp": "Lad kun denne skærm åbne, mens liveværdier fra dine forbundne tjenester passer (for eksempel er næste kalenderbegivenhed mindre end en time væk).",
+      "noConditionsHint": "Ingen betingelser endnu. Skærmen kan åbnes når som helst, til du tilføjer en.",
+      "allMustMatchHint": "Alle betingelser skal passe, for at skærmen kan åbnes.",
+      "whenUnknownHide": "Lad den ikke åbne",
+      "whenUnknownShow": "Lad den åbne"
+    },
+    "matchTitle": "Hvad der skal passe"
   },
   "stateKeys": {
     "calendar": {

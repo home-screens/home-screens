@@ -31,5 +31,7 @@ test('Preview opens the selected screen, rotation held, in a new tab', async ({ 
   expect(url.searchParams.get('preview')).toBe('1');
 
   await expect(popup.getByText('PREVIEW SCREEN B', { exact: true })).toBeVisible();
-  await expect(popup.getByTestId('pause-pill')).toBeVisible();
+  // Held, quietly: no paused pill over the content; the active dot says so.
+  await expect(popup.getByTestId('pagination-held')).toBeVisible();
+  await expect(popup.getByTestId('pause-pill')).toHaveCount(0);
 });

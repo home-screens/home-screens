@@ -51,14 +51,20 @@ test.describe('Recipe book, a family without Mealie', () => {
     await expect(mod.getByTestId('recipe-book')).toHaveAttribute('data-source', 'local');
     await expect.poll(() => tileNames(mod)).toEqual(['banana bread', 'Tacos', 'Waffles']);
     await expect(mod.getByTestId('recipe-book-heading')).toHaveText('3 recipes, A to Z');
-    await expect(mod.getByTestId('recipe-book-count')).toHaveText('3 recipes');
+    // The heading counts the whole book on All; the title does not say it again.
+    await expect(mod.getByTestId('recipe-book-count')).toHaveCount(0);
     // Prep and cook together, as every meal view shows it.
     await expect(mod.getByTestId('recipe-book-tile').filter({ hasText: 'Waffles' })).toContainText('25 min');
 
     await mod.getByTestId('recipe-book-chip-local:favorites').click();
     await expect.poll(() => tileNames(mod)).toEqual(['Tacos']);
-    await mod.getByTestId('recipe-book-chip-local:dessert').click();
-    await expect(mod.getByTestId('recipe-book-empty')).toContainText('Nothing in “Desserts” yet');
+    // Only chips with a recipe behind them are offered: no desserts here.
+    await expect(mod.getByTestId('recipe-book-chip-local:dessert')).toHaveCount(0);
+    // Quick is tagged quick or ready in half an hour: Tacos (tag) and Waffles (25 min).
+    await mod.getByTestId('recipe-book-chip-local:quick').click();
+    await expect.poll(() => tileNames(mod)).toEqual(['Tacos', 'Waffles']);
+    // On a narrowing chip the count names the whole book.
+    await expect(mod.getByTestId('recipe-book-count')).toHaveText('3 in the book');
   });
 
   test('searches with the wall keyboard and opens a recipe to cook from', async ({ page, request }) => {
@@ -254,7 +260,7 @@ test.describe('Recipe book from Mealie', () => {
     await expect(mod.getByTestId('recipe-book')).toHaveAttribute('data-source', 'mealie');
     await expect.poll(() => sortedTileNames(mod)).toEqual(['Apple Crumble', 'Harvest Chili']);
     await expect(mod.getByTestId('recipe-book-heading')).toHaveText('2 favorites, A to Z');
-    await expect(mod.getByTestId('recipe-book-count')).toHaveText('6 recipes');
+    await expect(mod.getByTestId('recipe-book-count')).toHaveText('6 in the book');
     const chipIds = await mod.getByTestId('recipe-book-chips').locator('[data-testid^="recipe-book-chip-"]').evaluateAll(
       (els) => els.map((el) => el.getAttribute('data-testid')!.replace('recipe-book-chip-', '')),
     );
@@ -399,7 +405,7 @@ test.describe('Recipe book from Mealie', () => {
     await page.clock.fastForward(61_000);
     await expect.poll(() => sortedTileNames(mod)).toEqual(['Apple Crumble', 'Harvest Chili']);
     await expect.poll(chipIds).toEqual(expect.arrayContaining(['cookbook:weeknight-dinners', 'cookbook:kids-like-it']));
-    await expect(mod.getByTestId('recipe-book-count')).toHaveText('6 recipes');
+    await expect(mod.getByTestId('recipe-book-count')).toHaveText('6 in the book');
     // The categories are back too, behind "+ N more" when two rows are full.
     await mod.getByTestId('recipe-book-chip-more').click();
     const sheet = mod.getByTestId('recipe-book-chip-sheet');
@@ -442,6 +448,29 @@ test.describe('Hearts on the Recipe book', () => {
     await expect.poll(() => favorite('meal-w')).toBe(false);
     await card.getByTestId('recipe-card-close').click();
     await expect(heartOf(mod, 'Waffles')).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  test('Favorites counts a heart changed on the wall at once, and keeps a tile un-hearted there until it is chosen again', async ({ page, request }) => {
+    await seedMeals(request, { savedMeals: LOCAL, plan: [] });
+    await show(request, 'fullscreen-meal-planner');
+    const mod = await open(page);
+    await expect.poll(() => tileNames(mod)).toHaveLength(3);
+
+    // Hearted on All: on Favorites straight away, not a minute later.
+    await heartOf(mod, 'Waffles').click();
+    await mod.getByTestId('recipe-book-chip-local:favorites').click();
+    await expect.poll(() => sortedTileNames(mod)).toEqual(['Tacos', 'Waffles']);
+
+    // Taken off on Favorites: the tile stays, drawn empty, rather than jumping away.
+    await heartOf(mod, 'Waffles').click();
+    await expect(heartOf(mod, 'Waffles')).toHaveAttribute('aria-pressed', 'false');
+    await expect.poll(() => sortedTileNames(mod)).toEqual(['Tacos', 'Waffles']);
+
+    // Choosing the chip again leaves it out.
+    await mod.getByTestId('recipe-book-chip-local:all').click();
+    await heartOf(mod, 'Tacos').click();
+    await mod.getByTestId('recipe-book-chip-local:favorites').click();
+    await expect(mod.getByTestId('recipe-book-item')).toHaveCount(0);
   });
 
   test("hearts a Mealie recipe in Mealie, and the recipe card agrees", async ({ page, request }) => {

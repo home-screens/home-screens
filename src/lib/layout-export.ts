@@ -3,6 +3,7 @@ import { uuid } from '@/lib/uuid';
 import type { ScreenConfiguration, Screen, Profile } from '@/types/config';
 import type { LayoutExport } from '@/types/layout-export';
 import { migrateScreens, getLatestSchemaVersion } from '@/lib/migrations';
+import { screensWithOpenButtonsMoved, screensWithoutMissingOpenButtons } from '@/lib/display-filter';
 
 // ── Export ───────────────────────────────────────────────────────────
 
@@ -134,8 +135,14 @@ export function importLayout(
     };
   });
 
-  const screens =
-    mode === 'replace' ? newScreens : [...existingConfig.screens, ...newScreens];
+  // An imported open button follows its screen when the file brought that
+  // screen along. One whose screen stayed behind keeps working only when this
+  // display already has that screen (your own export added back); otherwise
+  // it is cleared, since a button to a missing screen fails every save.
+  const screens = screensWithoutMissingOpenButtons([
+    ...(mode === 'replace' ? [] : existingConfig.screens),
+    ...screensWithOpenButtonsMoved(newScreens, screenIdMap),
+  ]);
 
   // Profiles describe a whole layout, so only a replace brings them in.
   // Adding screens leaves the display's own profiles exactly as they were:

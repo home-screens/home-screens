@@ -6,8 +6,11 @@ import { useModuleConfig } from '@/hooks/useModuleConfig';
 import LabeledField from '@/components/ui/LabeledField';
 import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/editor/PropertyPanel';
-import { useTranslate } from '@/i18n';
+import { useLocale, useTranslate } from '@/i18n';
 import { getActiveScreens } from '@/lib/editor-multi-display';
+import { displayDescriptors } from '@/lib/display-filter';
+import { showsOnlyWhenOpened } from '@/lib/on-demand-screen';
+import { dockGotoTarget, dockScreensOn, resolveDockButtons, toDockScreen } from '@/lib/screen-dock';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { controlMetrics, dockCapacity } from '@/components/modules/DisplayControlModule/metrics';
 import { DEFAULT_MODULE_STYLE, type ModuleInstance, type DisplayControlConfig, type DisplayNode, type Screen } from '@/types/config';
@@ -35,6 +38,19 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
 
   const legacy = displays.length === 0;
   const showPicker = c.allowRetargeting === true && !legacy;
+  const locale = useLocale();
+  // Aimed at one other display, a dock button opens that display's screen of
+  // the same name, and the wall fades the ones it has none for. Named here so
+  // the faded tiles are not a mystery.
+  const elsewhere = c.layout === 'dock' && !legacy && c.defaultTarget !== 'self' && c.defaultTarget !== 'all' && c.defaultTarget !== selectedDisplayId
+    ? displays.find((d) => d.id === c.defaultTarget)
+    : undefined;
+  const missingThere = useMemo(() => {
+    if (!elsewhere) return [];
+    const on = displayScreens.filter((s) => s.enabled !== false);
+    const tiles = resolveDockButtons(c.dockButtons, on.filter((s) => !showsOnlyWhenOpened(s)).map(toDockScreen), on.map(toDockScreen));
+    return dockScreensOn(tiles, displayDescriptors([elsewhere])[0].screens).filter((s) => s.unavailable).map(dockGotoTarget);
+  }, [elsewhere, displayScreens, c.dockButtons]);
   // How many buttons the dock holds: the wall measures the module's padding
   // box, which is its size less the card's padding and border. A cardless
   // module (this one, by its registry entry) draws no card, so the box is
@@ -124,6 +140,14 @@ export function DisplayControlConfigSection({ mod, screenId }: { mod: ModuleInst
         {legacy && (
           <p className="text-[11px] text-hs-text-faint mt-0.5">
             {t('configSections.display-control.legacyHint')}
+          </p>
+        )}
+        {elsewhere && missingThere.length > 0 && (
+          <p className="text-[11px] text-hs-warning mt-0.5" data-testid="dock-missing-there">
+            {t('configSections.display-control.dockMissingThere', {
+              display: elsewhere.name.trim() || elsewhere.id,
+              names: new Intl.ListFormat(locale, { type: 'disjunction' }).format(missingThere),
+            })}
           </p>
         )}
       </LabeledField>

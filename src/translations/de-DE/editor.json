@@ -151,7 +151,8 @@
       "copyFrom": "Bildschirme von {name} übernehmen"
     },
     "zoomFit": "Anpassen",
-    "zoomHint": "Strg+Scrollen zum Zoomen, Scrollen zum Verschieben"
+    "zoomHint": "Strg+Scrollen zum Zoomen, Scrollen zum Verschieben",
+    "backChipTitle": "Erscheint am Display, damit man zurückkehren kann"
   },
   "draggableModule": {
     "conditionGatedTitle": "Wird nur angezeigt, wenn die Bedingungen erfüllt sind",
@@ -198,7 +199,7 @@
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "geplant",
     "conditionalTooltip": "nur wenn Bedingungen zutreffen",
-    "disabledTooltip": "deaktiviert – wird auf dem Display nicht angezeigt",
+    "disabledTooltip": "ausgeschaltet, nicht auf dem Display",
     "disabledIndicatorAriaLabel": "Deaktiviert",
     "disabledBadge": "Aus",
     "stickyBadge": "Bleibt",
@@ -225,14 +226,26 @@
       "moveLeft": "Nach links verschieben",
       "moveRight": "Nach rechts verschieben",
       "exportThisScreen": "Diesen Screen exportieren",
-      "enable": "Aktivieren",
-      "disable": "Deaktivieren",
+      "enable": "Einschalten",
+      "disable": "Ausschalten",
       "rename": "Umbenennen",
       "duplicate": "Duplizieren",
       "delete": "Löschen"
     },
     "newScreenName": "Bildschirm {number}",
-    "copyName": "{name} Kopie"
+    "copyName": "{name} Kopie",
+    "opensOnlyBadge": "Beim Öffnen",
+    "opensOnlyTooltip": "erscheint nur, wenn er geöffnet wird",
+    "deleteConfirmOpeners": {
+      "zero": "{names} hat einen Knopf, der diesen Screen öffnet. Der Knopf verschwindet auch, und dieser Screen ist leer. Du kannst das rückgängig machen.",
+      "one": "{names} hat einen Knopf, der diesen Screen öffnet. Der Knopf, das Modul dieses Screens und seine Einstellungen verschwinden. Du kannst das rückgängig machen.",
+      "other": "{names} hat einen Knopf, der diesen Screen öffnet. Der Knopf, die {count} Module dieses Screens und ihre Einstellungen verschwinden. Du kannst das rückgängig machen."
+    },
+    "orphanedBadge": "Nichts öffnet ihn",
+    "orphanedTooltip": "erscheint nur, wenn er geöffnet wird, und nichts öffnet ihn",
+    "deletedToast": "{name} gelöscht",
+    "undoDelete": "Rückgängig",
+    "dismissDeleted": "Schließen"
   },
   "screenSearch": {
     "buttonAriaLabel": "Bildschirm oder Modul finden",
@@ -249,7 +262,8 @@
       "escape": "esc",
       "move": "bewegen",
       "go": "öffnen"
-    }
+    },
+    "settingsHint": "Suchst du eine Einstellung? Wähle ein Modul für seine Einstellungen oder klicke auf eine leere Stelle des Screens für die Einstellungen des Screens. Haushaltseinstellungen findest du unter „Einstellungen“."
   },
   "screenSettings": {
     "sectionTitle": "Screen-Einstellungen",
@@ -265,7 +279,28 @@
     "inheritsHintValue": "{seconds} Sekunden",
     "inheritsHintAfter": " lang gezeigt, genau wie deine anderen Bildschirme.",
     "overrideButton": "Eine andere Zeit einstellen",
-    "resetButton": "Zurück zur üblichen Zeit"
+    "resetButton": "Zurück zur üblichen Zeit",
+    "rotationTurn": "Kommt mit den anderen Screens an die Reihe",
+    "rotationOpened": "Erscheint nur, wenn er geöffnet wird",
+    "rotationOpenedHelp": "Nichts zeigt diesen Screen, bis etwas ihn öffnet. Für einen Knopf, der ihn öffnet, wähle ein Modul auf einem anderen Screen und nutze dessen Bereich „Öffnen-Knopf“.",
+    "rotationOpenedBy": "Geöffnet von {names}. Sonst zeigt nichts diesen Screen.",
+    "openerName": "{module} auf {screen}",
+    "openersTurn": "{names} öffnet diesen Screen. Mit eigener Reihe bleibt er {seconds} Sekunden, dann geht die Rotation weiter.",
+    "openersStay": "{names} öffnet diesen Screen. Mit eigener Reihe bleibt er, bis jemand weitergeht.",
+    "goBackAfterLabel": "Zurück nach",
+    "goBackAfterUnit": "Minuten ohne Berührung",
+    "goBackAfterHelp": "Jede Berührung startet die Zählung neu. Solange eine Rezeptkarte offen ist, wartet die Zählung, bis zu 10 Minuten. 0 bleibt, bis jemand auf Zurück tippt.",
+    "rotationOrphaned": "Nichts öffnet diesen Screen, also erscheint er nie. Gib einem Modul auf einem anderen Screen einen Öffnen-Knopf dafür, oder lass ihn mit den anderen an die Reihe kommen.",
+    "switchedOff": "Dieser Screen ist ausgeschaltet, also zeigt ihn nichts.",
+    "switchOn": "Einschalten",
+    "openedOnlyWhen": "Seine Öffnen-Knöpfe erscheinen nur {when}.",
+    "openedOnlyConditions": "Seine Öffnen-Knöpfe erscheinen nur, solange die Bedingungen unten passen.",
+    "openerNameCount": "{name} ({count})",
+    "goBackAfterWillBeRounded": "Wird als {to} gespeichert: ganze oder halbe Minuten.",
+    "goBackAfterWillBeClamped": "Wird als {to} Minuten gespeichert, ein ganzer Tag.",
+    "goBackAfterChangedRounded": "{from} zu {to} geändert: ganze oder halbe Minuten.",
+    "goBackAfterChangedClamped": "{from} zu {to} Minuten geändert, ein ganzer Tag.",
+    "goBackAfterKept": "Das ist keine Zahl an Minuten, also bleibt es bei {to}."
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -296,7 +331,15 @@
       "window": "{start} bis {end}",
       "windowSpanned": "{start} bis {end} {span}"
     },
-    "allDayHint": "Lass beide leer, damit es den ganzen Tag zu sehen ist."
+    "allDayHint": "Lass beide leer, damit es den ganzen Tag zu sehen ist.",
+    "opened": {
+      "enableLabel": "Nur zu bestimmten Zeiten öffnen lassen",
+      "summaryShows": "Lässt sich {when} öffnen.",
+      "summaryHides": "Lässt sich {when} nicht öffnen. Sonst schon.",
+      "allDayHint": "Lass beide leer, damit er sich den ganzen Tag öffnen lässt.",
+      "invertLabel": "Stattdessen in diesen Stunden nicht öffnen lassen",
+      "neverShows": "Mit diesen Einstellungen lässt er sich nie öffnen."
+    }
   },
   "registry": {
     "categories": {
@@ -361,7 +404,7 @@
     "descriptions": {
       "fullscreen-calendar": "Deine ganze Woche oder der ganze Monat, bildschirmfüllend",
       "fullscreen-chore-chart": "Die Aufgaben von allen, bildschirmfüllend",
-      "fullscreen-meal-planner": "Das Abendessen dieser Woche, bildschirmfüllend",
+      "fullscreen-meal-planner": "Der Essensplan, bildschirmfüllend",
       "fullscreen-photo": "Deine Bilder, bildschirmfüllend",
       "fullscreen-news": "Schlagzeilen, bildschirmfüllend",
       "fullscreen-weather": "Die Vorhersage, bildschirmfüllend",
@@ -453,6 +496,11 @@
       "display-control": "touch tippen knoepfe knöpfe aufwecken schlafen helligkeit bildschirm",
       "traffic": "verkehr pendeln fahrt route stau arbeit schule",
       "notes": "notizen pinnwand nachricht mitteilung familie kühlschrank kuehlschrank zettel"
+    },
+    "viewDescriptions": {
+      "fullscreen-meal-planner": {
+        "recipes": "Die Rezepte der Familie, bildschirmfüllend"
+      }
     }
   },
   "settings": {
@@ -3605,7 +3653,47 @@
     "whatIsThis": "Was ist das?",
     "editingDisplay": "Bearbeitet wird",
     "collapseTitle": "Einstellungsbereich ausblenden",
-    "expandTitle": "Einstellungsbereich anzeigen"
+    "expandTitle": "Einstellungsbereich anzeigen",
+    "openButton": {
+      "label": "Knopf zeigen, der Folgendes öffnet",
+      "none": "Nichts",
+      "andMore": "und {count} weitere",
+      "help": "Fügt in der unteren Ecke des Moduls einen Knopf mit dem Namen dieses Screens hinzu. Ein Tipp darauf am Touch-Display zeigt den Screen.",
+      "sectionTitle": "Öffnen-Knopf",
+      "opensOnTap": "{name} (öffnet sich per Tipp)",
+      "offBadge": "{name} (aus)",
+      "holds": "Zeigt {what}",
+      "targetOff": "Der Knopf ist ausgeblendet, solange dieser Screen ausgeschaltet ist.",
+      "goBackAfterLabel": "Zurück nach",
+      "inRotationHint": "{name} kommt mit den anderen Screens an die Reihe, ein Tipp zeigt ihn also für die üblichen {seconds} Sekunden, dann geht die Rotation weiter. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
+      "inRotationStaysHint": "{name} kommt mit den anderen Screens an die Reihe und bleibt, bis jemand weitergeht. Soll das Display zu {home} zurückkehren, wenn eine Weile niemand ihn berührt hat, schalte „Erscheint nur, wenn er geöffnet wird“ ein.",
+      "openScreenSettings": "Seine Screen-Einstellungen öffnen",
+      "groupOpened": "Erscheint nur, wenn geöffnet",
+      "groupRotation": "In der Rotation",
+      "keepOut": "Erscheint nur, wenn er geöffnet wird",
+      "addTwinScreen": "Screen „{name}“ hinzufügen",
+      "addTwinHelp": "Legt einen Screen „{name}“ an, der nur erscheint, wenn er geöffnet wird, und richtet diesen Knopf darauf.",
+      "offShort": "Aus",
+      "theme": "Im Design „{theme}“",
+      "tapOff": "„Am Display antippen“ ist für dieses Modul aus, also zeigt das Display keinen Knopf.",
+      "orphaned": "Nichts öffnet {name} mehr, also erscheint er nie. Wähle ihn wieder aus oder lass ihn mit den anderen an die Reihe kommen.",
+      "twinAdded": "{name} hinzugefügt. Er erscheint nur, wenn er geöffnet wird; öffne unten seine Screen-Einstellungen, um ihn zu gestalten.",
+      "twinScreenName": {
+        "fullscreen-meal-planner": "Rezeptbuch",
+        "fullscreen-calendar": "Kalender",
+        "fullscreen-weather": "Wetter",
+        "fullscreen-chore-chart": "Aufgaben",
+        "fullscreen-news": "Nachrichten",
+        "fullscreen-photo": "Fotos"
+      },
+      "holdsView": "{module}, Ansicht „{view}“",
+      "pickAgain": "Wieder auswählen",
+      "letItTakeTurn": "Mit den anderen an die Reihe kommen lassen",
+      "turnOnTap": "„Am Display antippen“ einschalten",
+      "switchOn": "Einschalten",
+      "onlyWhen": "Der Knopf erscheint nur {when}.",
+      "onlyConditions": "Der Knopf erscheint nur, solange die Bedingungen dieses Screens passen."
+    }
   },
   "sudoPrompt": {
     "title": "Home Screens erlauben, Änderungen an diesem Gerät vorzunehmen",
@@ -4044,6 +4132,7 @@
       "targetSelf": "Dieses Display (selbst)",
       "targetAll": "Alle Displays",
       "legacyHint": "Es gibt nur ein Display, also wird genau dieses gesteuert.",
+      "dockMissingThere": "Auf {display} öffnet ein Knopf den Bildschirm mit demselben Namen. {display} hat keinen Bildschirm namens {names}, deshalb sind diese Knöpfe blass und tun dort nichts.",
       "allowRetargeting": "Nutzer darf das Ziel zur Laufzeit ändern",
       "compact": "Nur Symbole, keine Wörter",
       "dockHint": "Ein Knopf pro Bildschirm dieses Displays. Antippen springt direkt zu dem Bildschirm.",
@@ -4252,9 +4341,6 @@
       "accentColor": "Akzentfarbe",
       "savedMealsCount": "{count} gespeicherte Mahlzeiten",
       "plannedCount": "{count} geplant",
-      "editMealPlanner": "Mahlzeitenplaner bearbeiten",
-      "mobileHintPrefix": "Mahlzeiten-Slots, Wochenbeginn, Zeitformat und Standard-Servierzeiten werden von allen Mahlzeiten-Modulen geteilt. Bearbeite sie unter",
-      "mobileHintSettingsLink": "Einstellungen → Mahlzeiten",
       "tapRecipeAction": "Rezept per Tippen öffnen",
       "tapRecipeActionOff": "Aus",
       "tapRecipeActionQr": "QR-Code anzeigen",
@@ -4264,8 +4350,16 @@
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, ein Rezept Schritt für Schritt durchgehen, im Rezeptbuch suchen, lange Ansichten scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus.",
-      "mobileHintTail": "damit alle Mahlzeiten-Module gleich bleiben."
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, ein Rezept Schritt für Schritt durchgehen, im Rezeptbuch suchen, lange Ansichten scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es.",
+      "recipeCountHint": {
+        "one": "{count} von {meals} Mahlzeiten hat ein Rezept. Noch ohne Rezept: {missing}. Zutaten oder Notizen fügst du unten mit „Essensplan bearbeiten“ oder am Handy hinzu.",
+        "other": "{count} von {meals} Mahlzeiten haben ein Rezept. Noch ohne Rezept: {missing}. Zutaten oder Notizen fügst du unten mit „Essensplan bearbeiten“ oder am Handy hinzu."
+      },
+      "recipeCountAll": {
+        "one": "Die eine gespeicherte Mahlzeit hat ein Rezept.",
+        "other": "Alle {count} gespeicherten Mahlzeiten haben ein Rezept."
+      },
+      "andMore": "{count} weitere"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standard (Midnight)",
@@ -4444,7 +4538,7 @@
       "viewCompact": "Kompakt (heute + morgen)",
       "viewList": "Vollständige Wochenliste",
       "viewGrocery": "Einkaufsliste",
-      "viewRecipes": "Rezepte",
+      "viewRecipes": "Rezeptbuch",
       "showEmoji": "Bilder anzeigen",
       "showPrepTime": "Gesamtzeit anzeigen",
       "showTags": "Tags anzeigen",
@@ -4464,7 +4558,7 @@
       "tapRecipeActionCardHint": "Zeigt Zutaten und Schritte auf einer Karte direkt auf dem Display. Klappt auch bei Mahlzeiten, die mit Zutaten oder Notizen gespeichert sind. Hat eine Mahlzeit einen Rezept-Link, gibt es dazu einen QR-Code, um das Rezept am Handy zu öffnen.",
       "tapRecipeActionNoLinkHint": "Eine Mahlzeit ohne Rezept-Link zeigt stattdessen ihre Zutaten und Notizen auf der Rezeptkarte.",
       "interactive": "Antippen an der Wand",
-      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus."
+      "interactiveHint": "Damit kann man auf einem Touchscreen Sachen auf der Einkaufsliste abhaken, Rezepte öffnen, lange Listen scrollen und den Plan für nächste Woche ansehen. Schalte das bei einem Display ohne Touchscreen aus. Auch der Öffnen-Knopf braucht es."
     },
     "moon-phase": {
       "showIllumination": "Beleuchtung in % anzeigen",
@@ -5628,7 +5722,15 @@
       "allMustMatchHint": "Alle Bedingungen müssen zutreffen, damit der Bildschirm angezeigt wird.",
       "whenUnknownHide": "Bildschirm auslassen",
       "whenUnknownShow": "Bildschirm weiter anzeigen"
-    }
+    },
+    "screenOpened": {
+      "enableHelp": "Diesen Screen nur öffnen lassen, solange Live-Werte deiner verbundenen Dienste passen (zum Beispiel ist der nächste Kalendertermin weniger als eine Stunde entfernt).",
+      "noConditionsHint": "Noch keine Bedingungen. Der Screen lässt sich jederzeit öffnen, bis du eine hinzufügst.",
+      "allMustMatchHint": "Alle Bedingungen müssen passen, damit sich der Screen öffnen lässt.",
+      "whenUnknownHide": "Nicht öffnen lassen",
+      "whenUnknownShow": "Öffnen lassen"
+    },
+    "matchTitle": "Was passen muss"
   },
   "stateKeys": {
     "calendar": {

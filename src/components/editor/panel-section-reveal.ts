@@ -19,6 +19,10 @@ type Listener = () => void;
 const listeners = new Map<string, Set<Listener>>();
 
 export const PANEL_SECTION_CONDITIONS = 'conditions';
+/** The screen's own settings (rotation, schedule, conditions), opened from a module's Open button section. */
+export const PANEL_SECTION_SCREEN_SETTINGS = 'screen-settings';
+/** A module's Open button section, opened by a click on its pill on the canvas. */
+export const PANEL_SECTION_OPEN_BUTTON = 'open-button';
 
 /** Open the section registered under `id`, if it is mounted. */
 export function revealPanelSection(id: string): void {

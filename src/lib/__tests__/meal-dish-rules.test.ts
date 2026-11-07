@@ -229,6 +229,16 @@ describe('filterLibraryMeals', () => {
     expect(ids(filterLibraryMeals(library, '', 'quick'))).toEqual(['tacos', 'rice']);
     expect(ids(filterLibraryMeals(library, 'rice', 'side'))).toEqual(['rice']);
   });
+
+  it('counts a meal ready in half an hour as Quick without the tag, prep and cook together', () => {
+    const timed: SavedMeal[] = [
+      { id: 'fast', name: 'Fish tacos', prepTime: 10, cookTime: 15 },
+      { id: 'edge', name: 'Pasta', prepTime: 30 },
+      { id: 'slow', name: 'Roast', prepTime: 20, cookTime: 70 },
+      { id: 'untimed', name: 'Leftovers' },
+    ];
+    expect(ids(filterLibraryMeals(timed, '', 'quick'))).toEqual(['fast', 'edge']);
+  });
 });
 
 describe('dinnerCategories', () => {

@@ -373,7 +373,7 @@
   },
   "meal-planner": {
     "recipeBook": {
-      "title": "Recepten",
+      "title": "Receptenboek",
       "count": {
         "one": "1 recept",
         "other": "{count} recepten"
@@ -450,6 +450,11 @@
         "mealieNotConnected": "Koppel het in Instellingen op de computer om de recepten te zien.",
         "mealieTokenRefused": "Sla een nieuwe Mealie-token op in Instellingen op de computer om de recepten te zien.",
         "mealieSetup": "Controleer Mealie in Instellingen op de computer om de recepten te zien."
+      },
+      "fewRecipesHint": "Maaltijden met ingrediënten of notities staan hier. Voeg ze toe op de telefoon.",
+      "countInBook": {
+        "one": "{count} in het boek",
+        "other": "{count} in het boek"
       }
     },
     "loading": "Maaltijden laden…",
@@ -558,6 +563,10 @@
     "backToToday": "Terug naar vandaag",
     "backToNow": "Terug naar nu",
     "backToTop": "Terug naar boven"
+  },
+  "openButton": {
+    "open": "{name} openen",
+    "unavailable": "Nu verborgen op het scherm: dat scherm valt buiten zijn uren of voorwaarden."
   },
   "lookAhead": {
     "thisWeek": "Deze week",

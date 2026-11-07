@@ -12,6 +12,13 @@ export function validateSavedMeals(meals: unknown): string | null {
   if (meals.some((meal) => !isRecord(meal) || typeof meal.id !== 'string' || !meal.id || typeof meal.name !== 'string')) {
     return 'Each saved meal needs an id and a name.';
   }
+  // An ingredient is `{ name, amount? }`. A bare string was stored once by a
+  // hand-written import and then counted as no recipe at all: the recipe book
+  // left the meal out under a hint saying meals with ingredients show there.
+  if (meals.some((meal) => isRecord(meal) && meal.ingredients !== undefined
+    && (!Array.isArray(meal.ingredients) || meal.ingredients.some((i) => !isRecord(i) || typeof i.name !== 'string')))) {
+    return 'Each ingredient needs a name, written as { "name": "Flour", "amount": "2 cups" }.';
+  }
   return null;
 }
 

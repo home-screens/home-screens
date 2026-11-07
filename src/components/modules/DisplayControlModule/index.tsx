@@ -13,7 +13,8 @@ import { PanelLayout } from './PanelLayout';
 import { NavLayout } from './NavLayout';
 import { DockLayout } from './DockLayout';
 import { useRotation } from '@/components/display/rotation-context';
-import { resolveDockButtons, type DockScreen } from '@/lib/screen-dock';
+import { dockGotoTarget, dockScreensOn, resolveDockButtons, type DockScreen } from '@/lib/screen-dock';
+import type { DisplayDescriptor } from '@/lib/display-filter';
 import type { LayoutProps } from './types';
 
 const EMPTY_SCREENS: DockScreen[] = [];
@@ -21,7 +22,7 @@ const EMPTY_SCREENS: DockScreen[] = [];
 export interface DisplayControlModuleProps {
   config: DisplayControlConfig;
   /** Optional injection for tests; normal usage reads from config. */
-  availableDisplays?: Array<{ id: string; name: string }>;
+  availableDisplays?: DisplayDescriptor[];
   /** Authoritative render-as display id, threaded down from ScreenRenderer.
    *  Preferred over the URL-based useDisplayId() because the legacy /display
    *  route renders multi-display main inline without redirecting, so
@@ -120,19 +121,23 @@ export default function DisplayControlModule({
   // of it; "All displays" is this display locally plus every other one by name.
   const rotation = useRotation();
   // The dock's own list when it has one, else the rotation (resolveDockButtons).
+  // Aimed at one other display, a tile that display has no screen of the same
+  // name for is dimmed and does nothing, rather than a tap that goes nowhere.
+  const otherTarget = currentTarget !== undefined && currentTarget !== 'all' && currentTarget !== renderDisplayId ? currentTarget : null;
+  const screensThere = otherTarget ? availableDisplays.find((d) => d.id === otherTarget)?.screens : undefined;
   const dockScreens = useMemo(
-    () => (rotation ? resolveDockButtons(config.dockButtons, rotation.screens, rotation.allScreens) : EMPTY_SCREENS),
-    [rotation, config.dockButtons],
+    () => (rotation ? dockScreensOn(resolveDockButtons(config.dockButtons, rotation.screens, rotation.allScreens), screensThere) : EMPTY_SCREENS),
+    [rotation, config.dockButtons, screensThere],
   );
   const activeScreenId = rotation?.activeScreenId ?? null;
   const dockActiveIndex = activeScreenId ? dockScreens.findIndex((s) => s.id === activeScreenId) : -1;
   const onGoto = useCallback((index: number) => {
     const screen = dockScreens[index];
-    if (!screen) return;
+    if (!screen || screen.unavailable) return;
     const targetsSelf = currentTarget === undefined || currentTarget === renderDisplayId;
     if (targetsSelf || currentTarget === 'all') rotation?.showScreen(screen.id);
     if (targetsSelf) return;
-    const payload = { screen: screen.name.trim() || screen.id };
+    const payload = { screen: dockGotoTarget(screen) };
     const others = currentTarget === 'all'
       ? availableDisplays.filter((d) => d.id !== renderDisplayId).map((d) => d.id)
       : [currentTarget];
@@ -163,6 +168,12 @@ export default function DisplayControlModule({
     case 'nav':
       return <NavLayout {...layoutProps} />;
     case 'dock':
+      // A dock with its own buttons whose screens are all out of reach right
+      // now (outside their hours) has nothing to offer: "No screens yet" on
+      // a finished wall reads as setup never done. The editor still draws it.
+      if (surface === 'display' && (config.dockButtons?.length ?? 0) > 0 && dockScreens.length === 0 && config.dockExtras !== true) {
+        return null;
+      }
       return (
         <DockLayout
           {...layoutProps}

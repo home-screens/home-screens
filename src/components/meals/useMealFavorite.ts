@@ -18,8 +18,12 @@ const saving = new Map<string, number>();
 /** Each meal's saves, one after another, so two quick taps land in the order they were made. */
 const queue = new Map<string, Promise<void>>();
 const listeners = new Set<() => void>();
+/** `changed` as of the last change, a new map each time, for lists that read every heart. */
+let changedSnapshot: ReadonlyMap<string, boolean> = new Map();
+const NO_HEARTS: ReadonlyMap<string, boolean> = new Map();
 
 function emit() {
+  changedSnapshot = new Map(changed);
   for (const listener of listeners) listener();
 }
 
@@ -91,6 +95,20 @@ export function useMealFavorite(
   }, [id, isFavorite, fetcher, onFailed]);
 
   return { isFavorite, toggle };
+}
+
+/**
+ * Every heart changed on this page and not yet in what the page loaded, by
+ * meal id, for a list that filters on hearts (the wall's Favorites) to count
+ * them before the meals load again.
+ */
+export function useMealHeartsChangedHere(): ReadonlyMap<string, boolean> {
+  return useSyncExternalStore(subscribe, () => changedSnapshot, () => NO_HEARTS);
+}
+
+/** The same, read once (when a list is chosen). */
+export function mealHeartsChangedHere(): ReadonlyMap<string, boolean> {
+  return changedSnapshot;
 }
 
 /** Forget every heart changed on this page; for tests. */

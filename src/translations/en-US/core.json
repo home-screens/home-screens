@@ -86,6 +86,10 @@
     "body": "On a phone or computer on your home Wi-Fi, open",
     "hideHint": "Want a blank screen instead? Settings › Screen › Show this hint"
   },
+  "openedScreen": {
+    "backTo": "Back to {name}",
+    "back": "Back"
+  },
   "pagination": {
     "paused": "Paused",
     "previousScreen": "Previous screen",
@@ -93,7 +97,8 @@
     "resumesIn": "Resumes in {time} · tap to resume now",
     "tapToResume": "tap to resume",
     "minutes": "{count} min",
-    "seconds": "{count} sec"
+    "seconds": "{count} sec",
+    "heldInPreview": "Rotation is held in the preview"
   },
   "displayNotFound": {
     "notRegistered": "Display Not Added Yet",

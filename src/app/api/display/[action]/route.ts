@@ -19,7 +19,10 @@ import {
 import { updateConfigAtomic } from '@/lib/config';
 import { readConfigCached } from '@/lib/config-cache';
 import { readDisplayRevisions } from '@/lib/display-revisions';
-import { findMainDisplay, getDisplayProfiles, isValidDisplayId } from '@/lib/display-filter';
+import { findMainDisplay, getDisplayProfiles, getDisplayScreens, isValidDisplayId } from '@/lib/display-filter';
+import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
+import { isModuleVisible } from '@/lib/schedule';
+import { wallClockParts } from '@/lib/timezone';
 import { errorResponse, withDisplayAuth, getClientIP } from '@/lib/api-utils';
 import { validateBrowserStats } from '@/lib/hardware-stats';
 import { safeLibraryPath } from '@/lib/library-files';
@@ -298,6 +301,26 @@ async function handleGotoScreen(
   }
   const displayId = pickDisplayId(body, queryDisplayId, { allowBroadcast: false });
   if (displayId instanceof NextResponse) return displayId;
+  // The hub holds the display's screens, so a name the wall would ignore is
+  // refused here in words a phone shortcut can show, rather than queued and
+  // dropped with a green tick.
+  const config = await readConfigCached();
+  const display = config.displays?.find((d) => d.id === (displayId ?? findMainDisplay(config.displays)?.id));
+  const screens: Screen[] = display ? getDisplayScreens(display) : config.screens;
+  const index = resolveScreenTargetIndex(screens, screen);
+  if (index === -1) {
+    return NextResponse.json({ error: `No screen called "${screen}" on this display` }, { status: 404 });
+  }
+  if (screens[index].enabled === false) {
+    return NextResponse.json({ error: `${screens[index].name} is switched off` }, { status: 409 });
+  }
+  // A screen that shows only when opened obeys its own hours; its live
+  // conditions are the wall's to judge, so only the schedule is checked here.
+  // The time zone is household-wide; a display cannot override it.
+  const timezone = config.settings?.timezone;
+  if (screens[index].rotation === 'opened' && !isModuleVisible(screens[index].schedule, wallClockParts(new Date(), timezone || undefined))) {
+    return NextResponse.json({ error: `${screens[index].name} is outside its hours right now` }, { status: 409 });
+  }
   await enqueueForTarget(displayId, 'goto-screen', { screen });
   return NextResponse.json({ ok: true, command: 'goto-screen', screen });
 }

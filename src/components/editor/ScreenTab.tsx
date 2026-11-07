@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Clock, Eye, MoreHorizontal, X } from 'lucide-react';
 import { useTranslate, type TranslateFn } from '@/i18n';
 import type { Screen } from '@/types/config';
+import { showsOnlyWhenOpened } from '@/lib/on-demand-screen';
 
 /** Fingers and trackpads alike: every control on a tab is a 24px square. */
 const TAB_CONTROL = 'flex h-6 w-6 shrink-0 items-center justify-center rounded text-hs-text-faint transition-colors hover:bg-hs-hover';
@@ -41,6 +42,8 @@ function DurationBadge({ ms, t }: { ms: number; t: TranslateFn }) {
 
 interface ScreenTabProps {
   screen: Screen;
+  /** True when the screen shows only when opened and nothing opens it. */
+  orphaned?: boolean;
   isSelected: boolean;
   isEditing: boolean;
   editValue: string;
@@ -58,6 +61,7 @@ interface ScreenTabProps {
 
 export default function ScreenTab({
   screen,
+  orphaned = false,
   isSelected,
   isEditing,
   editValue,
@@ -88,6 +92,8 @@ export default function ScreenTab({
 
   const isDisabled = screen.enabled === false;
   const isConditional = (screen.visibility?.conditions.length ?? 0) > 0;
+  const opensOnly = showsOnlyWhenOpened(screen);
+  const stranded = opensOnly && orphaned;
 
   const style = {
     transform: CSS.Transform.toString(clampedTransform),
@@ -110,7 +116,9 @@ export default function ScreenTab({
       data-active={isSelected}
       title={(() => {
         const parts: string[] = [screen.name];
-        if (screen.rotationDurationMs === 0) parts.push(t('screenTabs.stickyTooltip'));
+        if (stranded) parts.push(t('screenTabs.orphanedTooltip'));
+        else if (opensOnly) parts.push(t('screenTabs.opensOnlyTooltip'));
+        else if (screen.rotationDurationMs === 0) parts.push(t('screenTabs.stickyTooltip'));
         else if (screen.rotationDurationMs != null) parts.push(t('screenTabs.secondsSuffix', { seconds: Math.round(screen.rotationDurationMs / 1000) }));
         if (screen.schedule) parts.push(t('screenTabs.scheduledTooltip'));
         if (isConditional) parts.push(t('screenTabs.conditionalTooltip'));
@@ -148,7 +156,15 @@ export default function ScreenTab({
       ) : (
         <>
           <span className="max-w-32 truncate">{screen.name}</span>
-          {screen.rotationDurationMs != null && !rotationOff && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
+          {opensOnly ? (
+            <span
+              className={`ml-1 text-[9px] font-semibold tracking-wide rounded-full px-1.5 py-[1px] border ${stranded ? 'text-hs-warning bg-hs-warning/15 border-hs-warning/35' : 'text-hs-accent-hover bg-hs-accent-soft border-hs-accent/35'}`}
+              data-testid={stranded ? 'screen-tab-orphaned' : 'screen-tab-opens-only'}
+              aria-hidden
+            >
+              {t(stranded ? 'screenTabs.orphanedBadge' : 'screenTabs.opensOnlyBadge')}
+            </span>
+          ) : screen.rotationDurationMs != null && !rotationOff && <DurationBadge ms={screen.rotationDurationMs} t={t} />}
           {screen.schedule && (
             <Clock
               className="ml-0.5 h-3 w-3 text-hs-text-faint"

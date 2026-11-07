@@ -16,6 +16,8 @@ interface UsePauseRotationOptions {
   screenKey: string;
   /** Navigate to a screen. Called for a tap on a non-active dot. */
   goToScreen: (index: number) => void;
+  /** True while the pause clock should stand still (a screen that shows only when opened is up). */
+  frozen?: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ export function usePauseRotation({
   activeIndex,
   screenKey,
   goToScreen,
+  frozen = false,
 }: UsePauseRotationOptions): {
   paused: boolean;
   /**
@@ -79,10 +82,13 @@ export function usePauseRotation({
     if (pauseEnabled === false) setPaused(false);
   }, [pauseEnabled]);
 
-  // Auto-resume, so a forgotten pause self-heals.
+  // Auto-resume, so a forgotten pause self-heals. While `frozen` the clock
+  // stops where it is and the remaining time is kept for when it thaws.
+  const remainingRef = useRef<number | null>(null);
   useEffect(() => {
     if (!paused) {
       setPausedUntil(null);
+      remainingRef.current = null;
       return;
     }
     const timeout = pauseTimeoutSeconds ?? DEFAULT_PAUSE_TIMEOUT_S;
@@ -90,10 +96,19 @@ export function usePauseRotation({
       setPausedUntil(null); // 0 means stay paused indefinitely
       return;
     }
-    setPausedUntil(Date.now() + timeout * 1000);
-    const timer = setTimeout(() => setPaused(false), timeout * 1000);
-    return () => clearTimeout(timer);
-  }, [paused, pauseTimeoutSeconds]);
+    if (frozen) {
+      setPausedUntil(null);
+      return;
+    }
+    const remaining = remainingRef.current ?? timeout * 1000;
+    const until = Date.now() + remaining;
+    setPausedUntil(until);
+    const timer = setTimeout(() => setPaused(false), remaining);
+    return () => {
+      clearTimeout(timer);
+      remainingRef.current = Math.max(0, until - Date.now());
+    };
+  }, [paused, pauseTimeoutSeconds, frozen]);
 
   const handleDotClick = useCallback(
     (index: number) => {

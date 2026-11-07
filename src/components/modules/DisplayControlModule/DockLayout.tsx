@@ -104,6 +104,7 @@ export function DockLayout(props: DockLayoutProps) {
                   name={name}
                   color={screen.color || dockTileColor(i)}
                   active={i === activeIndex}
+                  unavailable={screen.unavailable === true}
                   ariaLabel={t('display-control.goTo', { name })}
                   onClick={() => onGoto(i)}
                 >
@@ -183,12 +184,14 @@ function itemStyle(m: DockMetrics): CSSProperties {
 
 /** A screen's tile: coloured square, name, and the "showing now" dot. */
 function DockTile({
-  m, name, color, active, ariaLabel, onClick, children,
+  m, name, color, active, unavailable, ariaLabel, onClick, children,
 }: {
   m: DockMetrics;
   name: string;
   color: string;
   active: boolean;
+  /** Drawn faded and pressing it does nothing (DockScreen.unavailable). */
+  unavailable: boolean;
   ariaLabel: string;
   onClick: () => void;
   children: ReactNode;
@@ -199,8 +202,9 @@ function DockTile({
       {...wallPress(`${ITEM_CLASS} ${m.vertical ? 'flex-row justify-start' : 'flex-col'}`)}
       aria-label={ariaLabel}
       aria-current={active ? 'true' : undefined}
+      aria-disabled={unavailable ? 'true' : undefined}
       onClick={onClick}
-      style={itemStyle(m)}
+      style={{ ...itemStyle(m), ...(unavailable ? { opacity: 0.35 } : {}) }}
     >
       <span
         className={`flex shrink-0 items-center justify-center text-white ${active ? '' : 'brightness-[.86] saturate-[.78]'}`}

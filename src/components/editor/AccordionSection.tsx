@@ -15,18 +15,29 @@ export default function AccordionSection({ title, defaultOpen = true, badge, id,
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [flash, setFlash] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Open and bring the heading into view once the height animation has
-  // settled, so the scroll lands on the final layout rather than mid-slide.
+  // settled, so the scroll lands on the final layout rather than mid-slide,
+  // then mark the section for a moment: "this is the part you were sent to".
   const reveal = useCallback(() => {
     setOpen(true);
-    setTimeout(() => rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+    setTimeout(() => {
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setFlash(true);
+      setTimeout(() => setFlash(false), 1_400);
+    }, 250);
   }, []);
   usePanelSectionReveal(id, reveal);
 
   return (
-    <div ref={rootRef} data-panel-section={id}>
+    <div
+      ref={rootRef}
+      data-panel-section={id}
+      data-revealed={flash ? '' : undefined}
+      className={`rounded-md transition-shadow duration-500 ${flash ? 'ring-2 ring-hs-accent/60' : 'ring-0 ring-transparent'}`}
+    >
       <button
         type="button"
         onClick={() => setOpen(!open)}

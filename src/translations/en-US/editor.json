@@ -151,7 +151,8 @@
       "copyFrom": "Copy screens from {name}"
     },
     "zoomFit": "Fit",
-    "zoomHint": "Ctrl+scroll to zoom, scroll to move around"
+    "zoomHint": "Ctrl+scroll to zoom, scroll to move around",
+    "backChipTitle": "Shown on the wall so people can go back"
   },
   "draggableModule": {
     "conditionGatedTitle": "Shows only when its conditions are met",
@@ -198,7 +199,7 @@
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "scheduled",
     "conditionalTooltip": "shown only when conditions match",
-    "disabledTooltip": "disabled, not shown on display",
+    "disabledTooltip": "switched off, not shown on the display",
     "disabledIndicatorAriaLabel": "Disabled",
     "disabledBadge": "Off",
     "stickyBadge": "Stays",
@@ -225,14 +226,26 @@
       "moveLeft": "Move Left",
       "moveRight": "Move Right",
       "exportThisScreen": "Export This Screen",
-      "enable": "Enable",
-      "disable": "Disable",
+      "enable": "Switch on",
+      "disable": "Switch off",
       "rename": "Rename",
       "duplicate": "Duplicate",
       "delete": "Delete"
     },
     "newScreenName": "Screen {number}",
-    "copyName": "{name} copy"
+    "copyName": "{name} copy",
+    "opensOnlyBadge": "When opened",
+    "opensOnlyTooltip": "shows only when opened",
+    "deleteConfirmOpeners": {
+      "zero": "{names} has a button that opens this screen. That button goes too, and this screen is empty. You can undo this.",
+      "one": "{names} has a button that opens this screen. That button, this screen’s module and its settings all go. You can undo this.",
+      "other": "{names} has a button that opens this screen. That button, this screen’s {count} modules and their settings all go. You can undo this."
+    },
+    "orphanedBadge": "Nothing opens it",
+    "orphanedTooltip": "shows only when opened, and nothing opens it",
+    "deletedToast": "{name} deleted",
+    "undoDelete": "Undo",
+    "dismissDeleted": "Dismiss"
   },
   "screenSearch": {
     "buttonAriaLabel": "Find a screen or module",
@@ -249,7 +262,8 @@
       "escape": "esc",
       "move": "move",
       "go": "go"
-    }
+    },
+    "settingsHint": "Looking for a setting? Select a module for its settings, or click an empty spot on the screen for the screen’s own settings. Household settings are under Settings."
   },
   "screenSettings": {
     "sectionTitle": "Screen settings",
@@ -265,7 +279,28 @@
     "inheritsHintValue": "{seconds} seconds",
     "inheritsHintAfter": ", the same as your other screens.",
     "overrideButton": "Use a different time",
-    "resetButton": "Back to the usual"
+    "resetButton": "Back to the usual",
+    "rotationTurn": "Takes its turn with the other screens",
+    "rotationOpened": "Shows only when opened",
+    "rotationOpenedHelp": "Nothing shows this screen until something opens it. To add a button that opens it, pick a module on another screen and use its Open button section.",
+    "rotationOpenedBy": "Opened by {names}. Nothing else shows this screen.",
+    "openerName": "{module} on {screen}",
+    "openersTurn": "{names} opens this screen. With a turn of its own it shows for {seconds} seconds, then the rotation carries on.",
+    "openersStay": "{names} opens this screen. With a turn of its own it stays up until someone moves on.",
+    "goBackAfterLabel": "Go back after",
+    "goBackAfterUnit": "minutes without a touch",
+    "goBackAfterHelp": "Any touch starts the count again. While a recipe card is open the count waits, up to 10 minutes. 0 stays until someone taps Back.",
+    "rotationOrphaned": "Nothing opens this screen, so it never shows. Give a module on another screen an Open button to it, or set it to take its turn.",
+    "switchedOff": "This screen is switched off, so nothing shows it.",
+    "switchOn": "Switch on",
+    "openedOnlyWhen": "Its open buttons only show {when}.",
+    "openedOnlyConditions": "Its open buttons only show while the conditions below match.",
+    "openerNameCount": "{name} ({count})",
+    "goBackAfterWillBeRounded": "Will be saved as {to}: whole or half minutes.",
+    "goBackAfterWillBeClamped": "Will be saved as {to} minutes, a whole day.",
+    "goBackAfterChangedRounded": "Changed {from} to {to}: whole or half minutes.",
+    "goBackAfterChangedClamped": "Changed {from} to {to} minutes, a whole day.",
+    "goBackAfterKept": "That is not a number of minutes, so it stays at {to}."
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -296,7 +331,15 @@
       "window": "{start} to {end}",
       "windowSpanned": "{start} until {end} {span}"
     },
-    "allDayHint": "Leave both empty to show all day."
+    "allDayHint": "Leave both empty to show all day.",
+    "opened": {
+      "enableLabel": "Only let it open at certain times",
+      "summaryShows": "Can be opened {when}.",
+      "summaryHides": "Can’t be opened {when}. Can be opened the rest of the time.",
+      "allDayHint": "Leave both empty to let it open all day.",
+      "invertLabel": "Don’t let it open during these hours instead",
+      "neverShows": "With these settings it can never be opened."
+    }
   },
   "registry": {
     "categories": {
@@ -361,7 +404,7 @@
     "descriptions": {
       "fullscreen-calendar": "Your whole week or month, filling the screen",
       "fullscreen-chore-chart": "Everyone's chores, filling the screen",
-      "fullscreen-meal-planner": "This week's dinners, filling the screen",
+      "fullscreen-meal-planner": "The meal plan, filling the screen",
       "fullscreen-photo": "Your pictures, filling the screen",
       "fullscreen-news": "Headlines, filling the screen",
       "fullscreen-weather": "The forecast, filling the screen",
@@ -453,6 +496,11 @@
       "display-control": "touch buttons sleep wake brightness next screen",
       "traffic": "commute drive route traffic school work",
       "notes": "notes board message family fridge post"
+    },
+    "viewDescriptions": {
+      "fullscreen-meal-planner": {
+        "recipes": "The family’s recipes, filling the screen"
+      }
     }
   },
   "settings": {
@@ -3605,7 +3653,47 @@
     "whatIsThis": "What is this?",
     "editingDisplay": "Editing",
     "collapseTitle": "Hide the settings panel",
-    "expandTitle": "Show the settings panel"
+    "expandTitle": "Show the settings panel",
+    "openButton": {
+      "label": "Show a button that opens",
+      "none": "Nothing",
+      "andMore": "and {count} more",
+      "help": "Adds a button in the module’s bottom corner with that screen’s name on it. Tapping it on a touch display shows the screen.",
+      "sectionTitle": "Open button",
+      "opensOnTap": "{name} (opens on tap)",
+      "offBadge": "{name} (off)",
+      "holds": "Shows {what}",
+      "targetOff": "The button is hidden while that screen is switched off.",
+      "goBackAfterLabel": "Go back after",
+      "inRotationHint": "{name} takes its turn with the other screens, so a tap shows it for its usual {seconds} seconds and the rotation carries on. To come back to {home} after nobody has touched it for a while, switch on Shows only when opened.",
+      "inRotationStaysHint": "{name} takes its turn with the other screens and stays up until someone moves on. To come back to {home} after nobody has touched it for a while, switch on Shows only when opened.",
+      "openScreenSettings": "Open its screen settings",
+      "groupOpened": "Shows only when opened",
+      "groupRotation": "In the rotation",
+      "keepOut": "Shows only when opened",
+      "addTwinScreen": "Add a {name} screen",
+      "addTwinHelp": "Makes a {name} screen that shows only when opened, and points this button at it.",
+      "offShort": "Off",
+      "theme": "Drawn in the {theme} theme",
+      "tapOff": "Tap on the Wall is off for this module, so the wall shows no button.",
+      "orphaned": "{name} now has nothing that opens it, so it never shows. Pick it again, or set it to take its turn.",
+      "twinAdded": "Added {name}. It shows only when opened; open its screen settings below to style it.",
+      "twinScreenName": {
+        "fullscreen-meal-planner": "Recipe Book",
+        "fullscreen-calendar": "Calendar",
+        "fullscreen-weather": "Weather",
+        "fullscreen-chore-chart": "Chores",
+        "fullscreen-news": "News",
+        "fullscreen-photo": "Photos"
+      },
+      "holdsView": "{module}, {view} view",
+      "pickAgain": "Pick it again",
+      "letItTakeTurn": "Let it take its turn",
+      "turnOnTap": "Turn on Tap on the Wall",
+      "switchOn": "Switch it on",
+      "onlyWhen": "The button only shows {when}.",
+      "onlyConditions": "The button only shows while that screen’s conditions match."
+    }
   },
   "sudoPrompt": {
     "title": "Allow Home Screens to make changes to this device",
@@ -4044,6 +4132,7 @@
       "targetSelf": "This display (self)",
       "targetAll": "All displays",
       "legacyHint": "There's only one display, so this is the one it controls.",
+      "dockMissingThere": "On {display}, a button opens the screen with the same name. {display} has no screen called {names}, so those buttons are faded and do nothing there.",
       "allowRetargeting": "Allow user to change target at runtime",
       "compact": "Icons only, no words",
       "dockHint": "One button per screen of this display. Tap one to jump straight to that screen.",
@@ -4252,9 +4341,6 @@
       "accentColor": "Accent Color",
       "savedMealsCount": "{count} saved meals",
       "plannedCount": "{count} planned",
-      "editMealPlanner": "Edit Meal Planner",
-      "mobileHintPrefix": "Meal slots, week start, time format, and default serving times are shared across all meal modules. Edit them from",
-      "mobileHintSettingsLink": "Settings → Meals",
       "tapRecipeAction": "Tap Meal to Open Recipe",
       "tapRecipeActionOff": "Off",
       "tapRecipeActionQr": "Show QR code",
@@ -4264,8 +4350,16 @@
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
       "interactive": "Tap on the Wall",
-      "interactiveHint": "Lets people tick things off the grocery list, step through a recipe, search the recipe book, scroll long views and look at next week's plan on a touch screen. Turn it off on a display without one.",
-      "mobileHintTail": "so every meal module stays in sync."
+      "interactiveHint": "Lets people tick things off the grocery list, step through a recipe, search the recipe book, scroll long views and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too.",
+      "recipeCountHint": {
+        "one": "{count} of {meals} meals has a recipe. No recipe yet: {missing}. Add ingredients or notes with Edit Meal Plan below, or from the phone.",
+        "other": "{count} of {meals} meals have a recipe. No recipe yet: {missing}. Add ingredients or notes with Edit Meal Plan below, or from the phone."
+      },
+      "recipeCountAll": {
+        "one": "The one saved meal has a recipe.",
+        "other": "All {count} saved meals have a recipe."
+      },
+      "andMore": "{count} more"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Default (Midnight)",
@@ -4444,7 +4538,7 @@
       "viewCompact": "Compact (Today + Tomorrow)",
       "viewList": "Full Week List",
       "viewGrocery": "Grocery List",
-      "viewRecipes": "Recipes",
+      "viewRecipes": "Recipe Book",
       "showEmoji": "Show Pictures",
       "showPrepTime": "Show Cooking Time",
       "showTags": "Show Tags",
@@ -4464,7 +4558,7 @@
       "tapRecipeActionCardHint": "Shows the ingredients and steps on a card right on the display. Works for meals saved with ingredients or notes too. A meal with a recipe link also gets a code to open it on a phone.",
       "tapRecipeActionNoLinkHint": "A meal with no recipe link shows its ingredients and notes on the recipe card instead.",
       "interactive": "Tap on the Wall",
-      "interactiveHint": "Lets people tick things off the grocery list, open recipes, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one."
+      "interactiveHint": "Lets people tick things off the grocery list, open recipes, scroll long lists and look at next week's plan on a touch screen. Turn it off on a display without one. The Open button needs it too."
     },
     "moon-phase": {
       "showIllumination": "Show Illumination %",
@@ -5628,7 +5722,15 @@
       "allMustMatchHint": "All conditions must match for the screen to show.",
       "whenUnknownHide": "Leave the screen out",
       "whenUnknownShow": "Keep the screen in"
-    }
+    },
+    "screenOpened": {
+      "enableHelp": "Let this screen be opened only while live values from your connected services match (for example the next calendar event is less than an hour away).",
+      "noConditionsHint": "No conditions yet. The screen can be opened any time until you add one.",
+      "allMustMatchHint": "All conditions must match for the screen to be opened.",
+      "whenUnknownHide": "Don’t let it open",
+      "whenUnknownShow": "Let it open"
+    },
+    "matchTitle": "What must match"
   },
   "stateKeys": {
     "calendar": {

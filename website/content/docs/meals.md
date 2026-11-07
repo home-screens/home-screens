@@ -12,7 +12,7 @@ Plan the week's dinners on your phone, see them on the wall, and take the grocer
 
 ## 1. Put a meal planner on a screen
 
-In the editor, drag **Meal Planner** from the **Personal** group onto a screen. Its views are in the module's settings: the whole **week**, **today**, the **next meal**, a **compact** strip, a **list**, the **grocery list**, and your **recipes**. The **Full-Screen Meal Planner** fills the screen with a week, a day, a **menu board**, the next meal, the next meal's **recipe**, the grocery list, or a **recipe book**.
+In the editor, drag **Meal Planner** from the **Personal** group onto a screen. Its views are in the module's settings: the whole **week**, **today**, the **next meal**, a **compact** strip, a **list**, the **grocery list**, and your **Recipe Book**. The **Full-Screen Meal Planner** fills the screen with a week, a day, a **menu board**, the next meal, the next meal's **recipe**, the grocery list, or a **recipe book**.
 
 The planner is empty until you add meals, which you do on a phone or in the editor with **Edit Meal Plan** in the module's settings (**Edit Meal Planner** on the Full-Screen Meal Planner).
 
@@ -94,9 +94,9 @@ The recipe card is made for cooking along: tap an ingredient to tick it off as i
 
 ### A recipe book on the wall
 
-For a kitchen that cooks from the wall instead of a cookbook, the **Recipe book** view of the Full-Screen Meal Planner shows every recipe as a tile with its photo and cooking time. Chips across the top pick Favorites, Recently made, All, or one of your cookbooks or categories. Tap the search box and a keyboard comes up on the wall, in your household's language; tap a recipe and it opens on the recipe card. On a touchscreen, the heart on each photo and on the recipe card makes the recipe a favorite, in Mealie when you use it. The tiles scroll with a finger and go back to the top on their own a minute later.
+For a kitchen that cooks from the wall instead of a cookbook, the **Recipe book** view of the Full-Screen Meal Planner shows every recipe as a tile with its photo and cooking time. Chips across the top pick Favorites, Recently made, All, or one of your cookbooks or categories. Without Mealie the chips are your own filters (Favorites, the kinds of dish and your tags), and only those with a recipe behind them show; **Quick** means tagged quick or ready in half an hour or less, prep and cook together. Only saved meals with ingredients or notes are in the book, and the editor's panel for the Recipe Book view says how many that is and names the ones without. Tap the search box and a keyboard comes up on the wall, in your household's language, and the words search the whole book; tap a recipe and it opens on the recipe card. To open the book from a small Meal Planner on another screen, use its **Open button** (see [Open button](/docs/editor#open-button)). On a touchscreen, the heart on each photo and on the recipe card makes the recipe a favorite, in Mealie when you use it. The tiles scroll with a finger and go back to the top on their own a minute later.
 
-With Mealie connected the book is Mealie's recipes, even if you plan meals in Home Screens. Without Mealie it is the meals in your library that have ingredients or notes. The small Meal Planner's **Recipes** view lists the same recipes in a narrow column, and opens the whole book over the screen to search.
+With Mealie connected the book is Mealie's recipes, even if you plan meals in Home Screens. Without Mealie it is the meals in your library that have ingredients or notes. The small Meal Planner's **Recipe Book** view lists the same recipes in a narrow column, and opens the whole book over the screen to search.
 
 ### Send a recipe to the wall from your phone
 

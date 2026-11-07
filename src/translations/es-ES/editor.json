@@ -151,7 +151,8 @@
       "copyFrom": "Copiar las pantallas de {name}"
     },
     "zoomFit": "Ajustar",
-    "zoomHint": "Ctrl + rueda para hacer zoom, rueda para moverte"
+    "zoomHint": "Ctrl + rueda para hacer zoom, rueda para moverte",
+    "backChipTitle": "Aparece en la pantalla para poder volver"
   },
   "draggableModule": {
     "conditionGatedTitle": "Solo se muestra cuando se cumplen sus condiciones",
@@ -198,7 +199,7 @@
     "secondsSuffix": "{seconds} s",
     "scheduledTooltip": "programada",
     "conditionalTooltip": "se muestra solo si las condiciones coinciden",
-    "disabledTooltip": "desactivada, no se muestra en el display",
+    "disabledTooltip": "apagada, no se muestra en la pantalla",
     "disabledIndicatorAriaLabel": "Desactivada",
     "disabledBadge": "Apagada",
     "stickyBadge": "Fija",
@@ -225,14 +226,26 @@
       "moveLeft": "Mover a la izquierda",
       "moveRight": "Mover a la derecha",
       "exportThisScreen": "Exportar esta pantalla",
-      "enable": "Activar",
-      "disable": "Desactivar",
+      "enable": "Encender",
+      "disable": "Apagar",
       "rename": "Renombrar",
       "duplicate": "Duplicar",
       "delete": "Eliminar"
     },
     "newScreenName": "Pantalla {number}",
-    "copyName": "{name} (copia)"
+    "copyName": "{name} (copia)",
+    "opensOnlyBadge": "Al abrirse",
+    "opensOnlyTooltip": "solo aparece cuando se abre",
+    "deleteConfirmOpeners": {
+      "zero": "{names} tiene un botón que abre esta pantalla. Ese botón también se va, y esta pantalla está vacía. Puedes deshacerlo.",
+      "one": "{names} tiene un botón que abre esta pantalla. Ese botón, el módulo de esta pantalla y sus ajustes se van. Puedes deshacerlo.",
+      "other": "{names} tiene un botón que abre esta pantalla. Ese botón, los {count} módulos de esta pantalla y sus ajustes se van. Puedes deshacerlo."
+    },
+    "orphanedBadge": "Nada la abre",
+    "orphanedTooltip": "solo aparece cuando se abre, y nada la abre",
+    "deletedToast": "{name} eliminada",
+    "undoDelete": "Deshacer",
+    "dismissDeleted": "Cerrar"
   },
   "screenSearch": {
     "buttonAriaLabel": "Buscar una pantalla o un módulo",
@@ -249,7 +262,8 @@
       "escape": "esc",
       "move": "mover",
       "go": "ir"
-    }
+    },
+    "settingsHint": "¿Buscas un ajuste? Elige un módulo para sus ajustes, o haz clic en un hueco de la pantalla para los ajustes de la pantalla. Los ajustes de la casa están en Ajustes."
   },
   "screenSettings": {
     "sectionTitle": "Ajustes de la pantalla",
@@ -265,7 +279,28 @@
     "inheritsHintValue": "{seconds} segundos",
     "inheritsHintAfter": ", igual que tus otras pantallas.",
     "overrideButton": "Usar otro tiempo",
-    "resetButton": "Volver al de siempre"
+    "resetButton": "Volver al de siempre",
+    "rotationTurn": "Se turna con las otras pantallas",
+    "rotationOpened": "Solo aparece cuando se abre",
+    "rotationOpenedHelp": "Nada muestra esta pantalla hasta que algo la abre. Para añadir un botón que la abra, elige un módulo en otra pantalla y usa su sección Botón de abrir.",
+    "rotationOpenedBy": "La abre {names}. Nada más muestra esta pantalla.",
+    "openerName": "{module} en {screen}",
+    "openersTurn": "{names} abre esta pantalla. Con turno propio se muestra {seconds} segundos y luego la rotación sigue.",
+    "openersStay": "{names} abre esta pantalla. Con turno propio se queda hasta que alguien pase a otra cosa.",
+    "goBackAfterLabel": "Volver después de",
+    "goBackAfterUnit": "minutos sin tocar",
+    "goBackAfterHelp": "Cada toque reinicia la cuenta. Mientras haya una ficha de receta abierta, la cuenta espera, hasta 10 minutos. Con 0 se queda hasta que alguien toque Volver.",
+    "rotationOrphaned": "Nada abre esta pantalla, así que nunca aparece. Da a un módulo de otra pantalla un botón de abrir hacia ella, o haz que se turne con las demás.",
+    "switchedOff": "Esta pantalla está apagada, así que nada la muestra.",
+    "switchOn": "Encender",
+    "openedOnlyWhen": "Sus botones de abrir solo aparecen {when}.",
+    "openedOnlyConditions": "Sus botones de abrir solo aparecen mientras se cumplan las condiciones de abajo.",
+    "openerNameCount": "{name} ({count})",
+    "goBackAfterWillBeRounded": "Se guardará como {to}: minutos enteros o medios.",
+    "goBackAfterWillBeClamped": "Se guardará como {to} minutos, un día entero.",
+    "goBackAfterChangedRounded": "{from} cambiado a {to}: minutos enteros o medios.",
+    "goBackAfterChangedClamped": "{from} cambiado a {to} minutos, un día entero.",
+    "goBackAfterKept": "Eso no es un número de minutos, así que se queda en {to}."
   },
   "scheduleEditor": {
     "statusTitle": "Estado",
@@ -296,7 +331,15 @@
       "window": "de {start} a {end}",
       "windowSpanned": "{start} hasta {end} {span}"
     },
-    "allDayHint": "Déjalos vacíos para que se vea todo el día."
+    "allDayHint": "Déjalos vacíos para que se vea todo el día.",
+    "opened": {
+      "enableLabel": "Dejar que se abra solo a ciertas horas",
+      "summaryShows": "Se puede abrir {when}.",
+      "summaryHides": "No se puede abrir {when}. El resto del tiempo sí.",
+      "allDayHint": "Deja ambos vacíos para que se pueda abrir todo el día.",
+      "invertLabel": "En su lugar, no dejar que se abra en estas horas",
+      "neverShows": "Con estos ajustes nunca se puede abrir."
+    }
   },
   "registry": {
     "categories": {
@@ -361,7 +404,7 @@
     "descriptions": {
       "fullscreen-calendar": "Toda tu semana o tu mes, a pantalla completa",
       "fullscreen-chore-chart": "Las tareas de todos, a pantalla completa",
-      "fullscreen-meal-planner": "Las cenas de esta semana, a pantalla completa",
+      "fullscreen-meal-planner": "El plan de comidas, a pantalla completa",
       "fullscreen-photo": "Tus fotos, a pantalla completa",
       "fullscreen-news": "Los titulares, a pantalla completa",
       "fullscreen-weather": "La previsión del tiempo, a pantalla completa",
@@ -453,6 +496,11 @@
       "display-control": "tactil táctil botones encender apagar brillo pantalla",
       "traffic": "trafico tráfico trayecto ruta coche trabajo cole",
       "notes": "notas tablón corcho mensaje familia nevera frigorífico pósit recado aviso"
+    },
+    "viewDescriptions": {
+      "fullscreen-meal-planner": {
+        "recipes": "Las recetas de la familia, a pantalla completa"
+      }
     }
   },
   "settings": {
@@ -3605,7 +3653,47 @@
     "whatIsThis": "¿Qué es esto?",
     "editingDisplay": "Editando",
     "collapseTitle": "Ocultar el panel de ajustes",
-    "expandTitle": "Mostrar el panel de ajustes"
+    "expandTitle": "Mostrar el panel de ajustes",
+    "openButton": {
+      "label": "Mostrar un botón que abre",
+      "none": "Nada",
+      "andMore": "y {count} más",
+      "help": "Añade en la esquina inferior del módulo un botón con el nombre de esa pantalla. Al tocarlo en una pantalla táctil se muestra la pantalla.",
+      "sectionTitle": "Botón de abrir",
+      "opensOnTap": "{name} (se abre al tocar)",
+      "offBadge": "{name} (apagada)",
+      "holds": "Muestra {what}",
+      "targetOff": "El botón está oculto mientras esa pantalla esté apagada.",
+      "goBackAfterLabel": "Volver después de",
+      "inRotationHint": "{name} se turna con las otras pantallas, así que un toque la muestra durante sus {seconds} segundos habituales y la rotación sigue. Para volver a {home} cuando nadie la haya tocado en un rato, activa «Solo aparece cuando se abre».",
+      "inRotationStaysHint": "{name} se turna con las otras pantallas y se queda hasta que alguien pase a otra cosa. Para volver a {home} cuando nadie la haya tocado en un rato, activa «Solo aparece cuando se abre».",
+      "openScreenSettings": "Abrir sus ajustes de pantalla",
+      "groupOpened": "Solo aparece cuando se abre",
+      "groupRotation": "En la rotación",
+      "keepOut": "Solo aparece cuando se abre",
+      "addTwinScreen": "Añadir una pantalla {name}",
+      "addTwinHelp": "Crea una pantalla {name} que solo aparece cuando se abre, y apunta este botón a ella.",
+      "offShort": "Apagada",
+      "theme": "Con el tema {theme}",
+      "tapOff": "«Tocar en la pantalla» está desactivado en este módulo, así que la pantalla no muestra el botón.",
+      "orphaned": "Ya nada abre {name}, así que nunca aparece. Vuelve a elegirla o haz que se turne con las demás.",
+      "twinAdded": "{name} añadida. Solo aparece cuando se abre; abre sus ajustes de pantalla abajo para darle estilo.",
+      "twinScreenName": {
+        "fullscreen-meal-planner": "Recetario",
+        "fullscreen-calendar": "Calendario",
+        "fullscreen-weather": "Tiempo",
+        "fullscreen-chore-chart": "Tareas",
+        "fullscreen-news": "Noticias",
+        "fullscreen-photo": "Fotos"
+      },
+      "holdsView": "{module}, vista {view}",
+      "pickAgain": "Volver a elegirla",
+      "letItTakeTurn": "Que se turne con las demás",
+      "turnOnTap": "Activar «Tocar en la pantalla»",
+      "switchOn": "Encenderla",
+      "onlyWhen": "El botón solo aparece {when}.",
+      "onlyConditions": "El botón solo aparece mientras se cumplan las condiciones de esa pantalla."
+    }
   },
   "sudoPrompt": {
     "title": "Permitir que Home Screens haga cambios en este dispositivo",
@@ -4044,6 +4132,7 @@
       "targetSelf": "Este display (propio)",
       "targetAll": "Todos los displays",
       "legacyHint": "Solo hay una pantalla, así que es la que se controla.",
+      "dockMissingThere": "En {display}, un botón abre la pantalla con el mismo nombre. {display} no tiene ninguna pantalla llamada {names}, así que esos botones se ven apagados y allí no hacen nada.",
       "allowRetargeting": "Permitir al usuario cambiar el destino en tiempo de ejecución",
       "compact": "Solo iconos, sin texto",
       "dockHint": "Un botón por cada pantalla de este display. Toca uno para ir directamente a esa pantalla.",
@@ -4252,9 +4341,6 @@
       "accentColor": "Color de acento",
       "savedMealsCount": "{count} comidas guardadas",
       "plannedCount": "{count} planificadas",
-      "editMealPlanner": "Editar planificador de comidas",
-      "mobileHintPrefix": "Las franjas de comidas, el inicio de semana, el formato de hora y los horarios predeterminados se comparten entre todos los módulos de comidas. Edítalos desde",
-      "mobileHintSettingsLink": "Ajustes → Comidas",
       "tapRecipeAction": "Tocar una comida abre la receta",
       "tapRecipeActionOff": "Desactivado",
       "tapRecipeActionQr": "Mostrar código QR",
@@ -4264,8 +4350,16 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, seguir una receta paso a paso, buscar en el recetario, desplazar las vistas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil.",
-      "mobileHintTail": "para que todos los módulos de comidas sigan sincronizados."
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, seguir una receta paso a paso, buscar en el recetario, desplazar las vistas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita.",
+      "recipeCountHint": {
+        "one": "{count} de {meals} comidas tiene receta. Aún sin receta: {missing}. Añade ingredientes o notas con Editar plan de comidas abajo, o desde el teléfono.",
+        "other": "{count} de {meals} comidas tienen receta. Aún sin receta: {missing}. Añade ingredientes o notas con Editar plan de comidas abajo, o desde el teléfono."
+      },
+      "recipeCountAll": {
+        "one": "La única comida guardada tiene receta.",
+        "other": "Las {count} comidas guardadas tienen receta."
+      },
+      "andMore": "{count} más"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Predeterminado (Midnight)",
@@ -4444,7 +4538,7 @@
       "viewCompact": "Compacto (hoy + mañana)",
       "viewList": "Lista semanal completa",
       "viewGrocery": "Lista de la compra",
-      "viewRecipes": "Recetas",
+      "viewRecipes": "Recetario",
       "showEmoji": "Mostrar imágenes",
       "showPrepTime": "Mostrar tiempo total",
       "showTags": "Mostrar etiquetas",
@@ -4464,7 +4558,7 @@
       "tapRecipeActionCardHint": "Muestra los ingredientes y los pasos en una ficha directamente en el display. También sirve para comidas guardadas con ingredientes o notas. Si la comida tiene un enlace a la receta, sale también un código para abrirla en el móvil.",
       "tapRecipeActionNoLinkHint": "Si una comida no tiene enlace a la receta, se muestra en su lugar la ficha con sus ingredientes y notas.",
       "interactive": "Tocar en la pared",
-      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil."
+      "interactiveHint": "Permite tachar cosas de la lista de la compra, abrir recetas, desplazar las listas largas y ver el menú de la semana que viene en un display táctil. Desactívalo si el display no es táctil. El botón de abrir también lo necesita."
     },
     "moon-phase": {
       "showIllumination": "Mostrar % de iluminación",
@@ -5628,7 +5722,15 @@
       "allMustMatchHint": "Todas las condiciones deben coincidir para que la pantalla se muestre.",
       "whenUnknownHide": "Dejar la pantalla fuera",
       "whenUnknownShow": "Mantener la pantalla"
-    }
+    },
+    "screenOpened": {
+      "enableHelp": "Dejar que esta pantalla se abra solo mientras los valores en directo de tus servicios conectados coincidan (por ejemplo, el próximo evento es en menos de una hora).",
+      "noConditionsHint": "Aún no hay condiciones. La pantalla se puede abrir en cualquier momento hasta que añadas una.",
+      "allMustMatchHint": "Todas las condiciones deben cumplirse para que la pantalla se pueda abrir.",
+      "whenUnknownHide": "No dejar que se abra",
+      "whenUnknownShow": "Dejar que se abra"
+    },
+    "matchTitle": "Lo que debe cumplirse"
   },
   "stateKeys": {
     "calendar": {

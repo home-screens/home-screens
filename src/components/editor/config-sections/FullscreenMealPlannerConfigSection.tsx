@@ -10,12 +10,13 @@ import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useTypographySizeOptions } from './useTypographySizeOptions';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useMealPlannerData } from '@/hooks/useMealPlannerData';
+import { mealHasRecipe } from '@/lib/meal-recipe';
 import MealPlannerModal from '@/components/editor/meal-planner-modal';
 import { mealSaveFailedKey } from '@/components/editor/meal-planner-modal/save-failed-words';
 import { DEFAULT_ACCENT_COLOR } from '@/lib/meal-constants';
 import { resolveFullscreenAccent } from '@/lib/fullscreen-themes';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
 import { settingsPath } from '@/lib/settings-route';
 import PhoneSurfaceLinks from '@/components/editor/PhoneSurfaceLinks';
 import type {
@@ -27,6 +28,7 @@ type Config = Partial<FullscreenMealPlannerConfig>;
 
 export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
+  const formattingLocale = useFormattingLocale();
   const { config: c, set } = useModuleConfig<Config>(mod, screenId);
   const view = c.view ?? 'week';
   // The Recipe book lists recipes to open on the card: it shows no tags, and
@@ -62,19 +64,42 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
 
   return (
     <>
-      {/* Theme Override */}
-      <FullscreenThemeSelect
-        value={c.theme}
-        onChange={(theme) => set({ theme })}
-        defaultOptionKey="configSections.fullscreen-meal-planner.themeDefault"
-      />
-
-      {/* View */}
+      {/* View first: it decides what the screen is; the theme only dresses it. */}
       <LabeledSelect
         label={t('configSections.fullscreen-meal-planner.view')}
         value={view}
         onChange={(v) => set({ view: v })}
         options={VIEWS}
+      />
+      {/* The book holds only meals with a recipe: say how many that is right
+          under the choice, before the wall shows an empty page. */}
+      {(view === 'recipes' || view === 'recipe') && mealData.source !== 'mealie' && (() => {
+        // Which meals are missing, by name, and where a recipe is added: the
+        // Edit Meal Plan button below is right here, the phone is the other way.
+        const without = mealData.savedMeals.filter((meal): boolean => !mealHasRecipe(meal)).map((meal) => meal.name);
+        const named = without.length > 2
+          ? [...without.slice(0, 2), t('configSections.fullscreen-meal-planner.andMore', { count: without.length - 2 })]
+          : without;
+        let missing = named.join(', ');
+        try { missing = new Intl.ListFormat(formattingLocale, { type: 'conjunction' }).format(named); } catch { /* older engine */ }
+        return (
+          <p className="text-[11px] text-hs-text-muted leading-relaxed -mt-2" data-testid="fullscreen-meal-planner-recipe-count">
+            {without.length === 0
+              ? t('configSections.fullscreen-meal-planner.recipeCountAll', { count: mealData.savedMeals.length })
+              : t('configSections.fullscreen-meal-planner.recipeCountHint', {
+                count: mealData.savedMeals.length - without.length,
+                meals: mealData.savedMeals.length,
+                missing,
+              })}
+          </p>
+        );
+      })()}
+
+      {/* Theme Override */}
+      <FullscreenThemeSelect
+        value={c.theme}
+        onChange={(theme) => set({ theme })}
+        defaultOptionKey="configSections.fullscreen-meal-planner.themeDefault"
       />
 
       {/* Density */}
@@ -158,6 +183,15 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
         onChange={(v) => set({ accentColor: v })}
       />
 
+      {/* Shared meal settings, then the phone, then the plan: the same order
+          and words as the small planner's panel. */}
+      <p className="text-[11px] text-hs-text-faint leading-relaxed">
+        {t('configSections.meal-planner.sharedSettingsPrefix')}{' '}
+        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.meal-planner.sharedSettingsLink')}</Link>{' '}
+        {t('configSections.meal-planner.sharedSettingsSuffix')}
+      </p>
+      <PhoneSurfaceLinks context="meals" />
+
       {/* Open Modal */}
       <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
         <div className="flex items-center gap-2 text-xs text-hs-text-faint">
@@ -173,12 +207,13 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
             </>
           )}
         </div>
+
         <Button
           variant="primary"
           className="w-full text-xs"
           onClick={() => setShowModal(true)}
         >
-          {t('configSections.fullscreen-meal-planner.editMealPlanner')}
+          {t('configSections.meal-planner.editMealPlan')}
         </Button>
         {/* The meal change, not the layout: meals save on their own, so the
             editor's Saved can be right while this is not. */}
@@ -186,14 +221,6 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           <p role="alert" className="text-xs text-hs-danger">{t(mealSaveFailedKey(saveError, mealData.source === 'mealie'))}</p>
         )}
       </div>
-
-      {/* Mobile hint */}
-      <p className="text-[11px] text-hs-text-faint leading-relaxed">
-        {t('configSections.fullscreen-meal-planner.mobileHintPrefix')}{' '}
-        <Link href={settingsPath({ kind: 'defaults', page: 'meals' })} className="text-hs-accent hover:text-hs-accent-hover underline">{t('configSections.fullscreen-meal-planner.mobileHintSettingsLink')}</Link>{' '}
-        {t('configSections.fullscreen-meal-planner.mobileHintTail')}
-      </p>
-      <PhoneSurfaceLinks context="meals" />
 
       {/* Modal */}
       {showModal && (

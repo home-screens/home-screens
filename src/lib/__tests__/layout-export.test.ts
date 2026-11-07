@@ -400,6 +400,35 @@ describe('importLayout', () => {
     expect(result.screens[0].modules[1].config).toEqual({ view: 'next', scale: 1 });
   });
 
+  describe('open buttons', () => {
+    function withButton(screen: Screen, target: string): Screen {
+      return { ...screen, modules: screen.modules.map((m) => ({ ...m, openButtonScreen: target })) };
+    }
+
+    it('point at the imported copy of a screen that came in the same file', () => {
+      const layout = makeLayout([withButton(makeScreen('kitchen', 'Kitchen'), 'recipes'), makeScreen('recipes', 'Recipe Book')]);
+      for (const mode of ['add', 'replace'] as const) {
+        const result = importLayout(layout, makeConfig([makeScreen('recipes', 'Recipe Book')]), { mode });
+        const kitchen = result.screens.find((s) => s.name === 'Kitchen')!;
+        const book = result.screens.find((s) => s.name.startsWith('Recipe Book') && s.id !== 'recipes')!;
+        expect(kitchen.modules[0].openButtonScreen).toBe(book.id);
+      }
+    });
+
+    it('keep a screen left behind only when this display already has it', () => {
+      const layout = makeLayout([withButton(makeScreen('kitchen', 'Kitchen'), 'recipes')]);
+
+      const sameHub = importLayout(layout, makeConfig([makeScreen('recipes', 'Recipe Book')]), { mode: 'add' });
+      expect(sameHub.screens.find((s) => s.name === 'Kitchen')!.modules[0].openButtonScreen).toBe('recipes');
+
+      const elsewhere = importLayout(layout, makeConfig([makeScreen('evening', 'Evening')]), { mode: 'add' });
+      expect(elsewhere.screens.find((s) => s.name === 'Kitchen')!.modules[0]).not.toHaveProperty('openButtonScreen');
+
+      const replaced = importLayout(layout, makeConfig([makeScreen('recipes', 'Recipe Book')]), { mode: 'replace' });
+      expect(replaced.screens[0].modules[0]).not.toHaveProperty('openButtonScreen');
+    });
+  });
+
   it('clears activeProfile on replace mode', () => {
     const existing = makeConfig([makeScreen('e1', 'Old')]);
     existing.settings.activeProfile = 'old-profile-id';

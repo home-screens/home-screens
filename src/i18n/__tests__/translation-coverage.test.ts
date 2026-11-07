@@ -71,6 +71,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   // "{screens} · {when}": the profile card's collapsed summary is the screen
   // count and the schedule, both already localized, joined by a separator.
   'editor|settings.profilesPage.card.summaryScheduled',
+  // "{name} ({count})": an opener already named and localized, with how many.
+  'editor|screenSettings.openerNameCount',
   'editor|choreChartModal.memberForm.avatarLabel',
   'editor|configSections.calendar.googleCalendar',
   'editor|configSections.calendar.googleCalendarNumbered',
@@ -528,6 +530,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.picker.ideas',
   ]),
   'fr-FR': new Set([
+    // "Photos" is the French word too (the name of a photo screen made from the Open button section).
+    'editor|propertyPanel.openButton.twinScreenName.fullscreen-photo',
     // Sources and Collection(s) are the French words too (the background sources).
     'editor|backgroundPicker.sourcesGroup',
     'editor|photoSources.modes.collections',

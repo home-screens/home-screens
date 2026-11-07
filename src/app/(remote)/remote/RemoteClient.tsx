@@ -300,8 +300,10 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
     if (!status) return;
     const count = status.screenCount;
     const cur = navPending.expected ?? status.currentScreen.index;
-    const next = direction === 'next' ? (cur + 1) % count : (cur - 1 + count) % count;
-    navPending.start(next);
+    // From a screen that shows only when opened (index -1) the wall moves on
+    // from the screen it came from, which the phone does not know: no guess
+    // to show or confirm, the next heartbeat says where it went.
+    if (cur >= 0) navPending.start(direction === 'next' ? (cur + 1) % count : (cur - 1 + count) % count);
     nudgeAllPolls();
     const url = withDisplayTarget(
       `/api/display/${direction === 'next' ? 'next-screen' : 'prev-screen'}`,

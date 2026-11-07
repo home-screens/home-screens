@@ -31,7 +31,7 @@ A few endpoints are open at every level on purpose, and each one says so where i
 `GET /api/health` answers from any device on your network, with or without a password, and the [IP allowlist](/docs/networking#restrict-access-by-ip) never blocks it (the only other endpoint it always lets through is `GET /api/auth/status`, which the login page needs). It says which version is running and nothing else:
 
 ```json
-{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":18,"uptime":864}
+{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":19,"uptime":864}
 ```
 
 `uptime` is seconds since the hub started, and `schema` is the newest settings format this release can read. Home Screens uses this route itself: an update is only kept once the new version answers here, and a display-only Pi checks it before showing the connecting screen. It is also the first thing to try when a display is blank, see [Troubleshooting](/docs/troubleshooting#is-the-hub-running).
@@ -189,6 +189,9 @@ Returns the last-known display status as reported by the display client. Accepts
 }
 ```
 
+`currentScreen.index` is the screen's place in the rotation, or `-1` while the display shows a screen with no place in it (a rule takeover, or a screen that shows only when opened).
+
+
 `activeProfile` is the profile whose screens the display is showing right now, or `null` when every screen rotates. While a scheduled profile's time is on, that is the scheduled profile and `profileScheduled` is `true`; the profile picked by hand (from [POST /api/display/profile](#post-api-display-profile) or the editor) takes over when the schedule ends.
 
 `hwStats` is present only when the per-Pi reporter has posted to `/api/display/hw-stats`. `browserStats` is present once the display has sent at least one heartbeat from a modern client; older clients omit it.
@@ -242,7 +245,7 @@ Jumps the display straight to a specific screen, the command behind "show the ca
 
 **Body:** `{ "screen": "calendar", "displayId": "kitchen" }` (`displayId` optional)
 
-`screen` is a screen **id or name**; the display client resolves it against its own rotation, matching the id first and then the name case-insensitively. The hub can't validate the target (screen sets are per-display and the queue never reads config), so an unknown target still returns `ok` here and is ignored with a console warning on the display. A screen excluded from the current rotation, for example by the active profile, is also ignored rather than jumped to. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
+`screen` is a screen **id or name**, matched against the display's own screens by id first and then by name, case-insensitively. A screen the display does not have answers `404 { "error": "No screen called \"Nope\" on this display" }`, a switched-off screen answers `409 { "error": "Night is switched off" }`, and a screen that shows only when opened answers `409 { "error": "Recipe Book is outside its hours right now" }` outside its schedule, so a phone shortcut or an automation can show why nothing happened. Asking for a screen that is already up starts its **Go back after** time again. A screen in the rotation is jumped to; one outside it (a screen that shows only when opened, or one left out by the active profile) is shown the way a dock button shows it: for its **Go back after** time with a back chip, or for one turn. A screen that shows only when opened but is outside its own schedule or conditions right now is ignored on the display. Does **not** accept `all` as a target; an empty or missing `screen` returns `400`.
 
 **Response:** `{ "ok": true, "command": "goto-screen", "screen": "calendar" }`
 
@@ -618,7 +621,7 @@ While the plan lives in Mealie (`settings.planSource` is `"mealie"`), the answer
 
 ### PUT /api/meals/data
 
-Partial update, every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session.
+Partial update, every writable field is optional, and omitted fields are preserved from the existing on-disk data. The request must include at least one of `savedMeals`, `plan`, `groceryChecked`, or `settings`, or the server returns `400`. Requires a valid session. Each saved meal needs an `id` and a `name`, and each of its `ingredients` is an object with a `name` (and optional `amount` and `category`), never a bare string; anything else returns `400` with a plain message. Only meals with an ingredient or notes appear in the Recipe Book.
 
 The entire read-modify-write cycle runs inside the meal-data store queue, so cross-surface writers (editor settings sheet, `/remote`, grocery checks) cannot interleave and silently lose each other's edits.
 

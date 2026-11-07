@@ -35,7 +35,9 @@ test('?preview=1 holds rotation, shows the requested off-rotation screen, and st
   await renderOnDisplay(page, request, baseConfig({ screens: list, settings: { rotationIntervalMs: 1_000 } }), '/display?screen=s2&preview=1');
   // A disabled screen is out of the rotation, and still what the preview shows.
   await expect(page.getByText('PAGE 2', { exact: true })).toBeVisible();
-  await expect(page.getByTestId('pause-pill')).toBeVisible();
+  // Held, quietly: no paused pill over the content; the active dot says so.
+  await expect(page.getByTestId('pagination-held')).toBeVisible();
+  await expect(page.getByTestId('pause-pill')).toHaveCount(0);
 
   // Three intervals later it is still there, and the hub never heard from us.
   await page.waitForTimeout(3_200);

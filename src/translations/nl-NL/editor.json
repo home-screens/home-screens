@@ -151,7 +151,8 @@
       "copyFrom": "Schermen kopiëren van {name}"
     },
     "zoomFit": "Passend",
-    "zoomHint": "Ctrl+scrollen om te zoomen, scrollen om te verschuiven"
+    "zoomHint": "Ctrl+scrollen om te zoomen, scrollen om te verschuiven",
+    "backChipTitle": "Verschijnt op het scherm zodat men terug kan"
   },
   "draggableModule": {
     "conditionGatedTitle": "Wordt alleen getoond als aan de voorwaarden is voldaan",
@@ -198,7 +199,7 @@
     "secondsSuffix": "{seconds}s",
     "scheduledTooltip": "gepland",
     "conditionalTooltip": "alleen getoond als voorwaarden overeenkomen",
-    "disabledTooltip": "uitgeschakeld, niet getoond op display",
+    "disabledTooltip": "uitgezet, niet op het scherm",
     "disabledIndicatorAriaLabel": "Uitgeschakeld",
     "disabledBadge": "Uit",
     "stickyBadge": "Blijft",
@@ -225,14 +226,26 @@
       "moveLeft": "Naar links verplaatsen",
       "moveRight": "Naar rechts verplaatsen",
       "exportThisScreen": "Dit scherm exporteren",
-      "enable": "Inschakelen",
-      "disable": "Uitschakelen",
+      "enable": "Aanzetten",
+      "disable": "Uitzetten",
       "rename": "Hernoemen",
       "duplicate": "Dupliceren",
       "delete": "Verwijderen"
     },
     "newScreenName": "Scherm {number}",
-    "copyName": "{name} kopie"
+    "copyName": "{name} kopie",
+    "opensOnlyBadge": "Bij openen",
+    "opensOnlyTooltip": "verschijnt alleen wanneer geopend",
+    "deleteConfirmOpeners": {
+      "zero": "{names} heeft een knop die dit scherm opent. Die knop verdwijnt ook, en dit scherm is leeg. Je kunt dit ongedaan maken.",
+      "one": "{names} heeft een knop die dit scherm opent. Die knop, de module van dit scherm en de instellingen ervan verdwijnen. Je kunt dit ongedaan maken.",
+      "other": "{names} heeft een knop die dit scherm opent. Die knop, de {count} modules van dit scherm en hun instellingen verdwijnen. Je kunt dit ongedaan maken."
+    },
+    "orphanedBadge": "Niets opent het",
+    "orphanedTooltip": "verschijnt alleen wanneer geopend, en niets opent het",
+    "deletedToast": "{name} verwijderd",
+    "undoDelete": "Ongedaan maken",
+    "dismissDeleted": "Sluiten"
   },
   "screenSearch": {
     "buttonAriaLabel": "Een scherm of module zoeken",
@@ -249,7 +262,8 @@
       "escape": "esc",
       "move": "verplaatsen",
       "go": "openen"
-    }
+    },
+    "settingsHint": "Zoek je een instelling? Kies een module voor zijn instellingen, of klik op een lege plek van het scherm voor de instellingen van het scherm. Huishoudinstellingen staan onder Instellingen."
   },
   "screenSettings": {
     "sectionTitle": "Scherminstellingen",
@@ -265,7 +279,28 @@
     "inheritsHintValue": "{seconds} seconden",
     "inheritsHintAfter": " in beeld, net als je andere schermen.",
     "overrideButton": "Een andere tijd gebruiken",
-    "resetButton": "Terug naar de gewone tijd"
+    "resetButton": "Terug naar de gewone tijd",
+    "rotationTurn": "Komt aan de beurt met de andere schermen",
+    "rotationOpened": "Verschijnt alleen wanneer het geopend wordt",
+    "rotationOpenedHelp": "Niets toont dit scherm tot iets het opent. Voor een knop die het opent kies je een module op een ander scherm en gebruik je het onderdeel Open-knop daar.",
+    "rotationOpenedBy": "Geopend door {names}. Verder toont niets dit scherm.",
+    "openerName": "{module} op {screen}",
+    "openersTurn": "{names} opent dit scherm. Met een eigen beurt blijft het {seconds} seconden staan en daarna gaat de rotatie verder.",
+    "openersStay": "{names} opent dit scherm. Met een eigen beurt blijft het staan tot iemand verder gaat.",
+    "goBackAfterLabel": "Terug na",
+    "goBackAfterUnit": "minuten zonder aanraking",
+    "goBackAfterHelp": "Elke aanraking start de telling opnieuw. Zolang een receptkaart open is, wacht de telling, tot 10 minuten. 0 blijft tot iemand op Terug tikt.",
+    "rotationOrphaned": "Niets opent dit scherm, dus het verschijnt nooit. Geef een module op een ander scherm een open-knop ernaartoe, of laat het aan de beurt komen met de andere.",
+    "switchedOff": "Dit scherm staat uit, dus niets toont het.",
+    "switchOn": "Aanzetten",
+    "openedOnlyWhen": "De open-knoppen verschijnen alleen {when}.",
+    "openedOnlyConditions": "De open-knoppen verschijnen alleen zolang de voorwaarden hieronder kloppen.",
+    "openerNameCount": "{name} ({count})",
+    "goBackAfterWillBeRounded": "Wordt opgeslagen als {to}: hele of halve minuten.",
+    "goBackAfterWillBeClamped": "Wordt opgeslagen als {to} minuten, een hele dag.",
+    "goBackAfterChangedRounded": "{from} gewijzigd in {to}: hele of halve minuten.",
+    "goBackAfterChangedClamped": "{from} gewijzigd in {to} minuten, een hele dag.",
+    "goBackAfterKept": "Dat is geen aantal minuten, dus het blijft {to}."
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -296,7 +331,15 @@
       "window": "{start} tot {end}",
       "windowSpanned": "{start} tot {end} {span}"
     },
-    "allDayHint": "Laat ze allebei leeg om de hele dag te tonen."
+    "allDayHint": "Laat ze allebei leeg om de hele dag te tonen.",
+    "opened": {
+      "enableLabel": "Alleen op bepaalde tijden laten openen",
+      "summaryShows": "Kan geopend worden {when}.",
+      "summaryHides": "Kan niet geopend worden {when}. De rest van de tijd wel.",
+      "allDayHint": "Laat beide leeg om het de hele dag te laten openen.",
+      "invertLabel": "In plaats daarvan in deze uren niet laten openen",
+      "neverShows": "Met deze instellingen kan het nooit geopend worden."
+    }
   },
   "registry": {
     "categories": {
@@ -361,7 +404,7 @@
     "descriptions": {
       "fullscreen-calendar": "Je hele week of maand, schermvullend",
       "fullscreen-chore-chart": "De klusjes van iedereen, schermvullend",
-      "fullscreen-meal-planner": "Het avondeten van deze week, schermvullend",
+      "fullscreen-meal-planner": "Het maaltijdplan, schermvullend",
       "fullscreen-photo": "Je foto's, schermvullend",
       "fullscreen-news": "Nieuwskoppen, schermvullend",
       "fullscreen-weather": "De weersverwachting, schermvullend",
@@ -453,6 +496,11 @@
       "display-control": "aanraken knoppen slapen wekken helderheid volgend scherm",
       "traffic": "verkeer file reistijd route werk school woon-werk",
       "notes": "notities prikbord briefjes berichten mededelingen gezin koelkast memo"
+    },
+    "viewDescriptions": {
+      "fullscreen-meal-planner": {
+        "recipes": "De recepten van het gezin, schermvullend"
+      }
     }
   },
   "settings": {
@@ -3605,7 +3653,47 @@
     "whatIsThis": "Wat is dit?",
     "editingDisplay": "Je bewerkt",
     "collapseTitle": "Instellingenpaneel verbergen",
-    "expandTitle": "Instellingenpaneel tonen"
+    "expandTitle": "Instellingenpaneel tonen",
+    "openButton": {
+      "label": "Toon een knop die opent",
+      "none": "Niets",
+      "andMore": "en {count} meer",
+      "help": "Zet in de onderhoek van de module een knop met de naam van dat scherm. Een tik erop op een aanraakscherm toont het scherm.",
+      "sectionTitle": "Open-knop",
+      "opensOnTap": "{name} (opent bij een tik)",
+      "offBadge": "{name} (uit)",
+      "holds": "Toont {what}",
+      "targetOff": "De knop is verborgen zolang dat scherm uit staat.",
+      "goBackAfterLabel": "Terug na",
+      "inRotationHint": "{name} komt aan de beurt met de andere schermen, dus een tik toont het voor de gebruikelijke {seconds} seconden en daarna gaat de rotatie verder. Wil je terug naar {home} als niemand het een tijdje heeft aangeraakt, zet dan ‘Verschijnt alleen wanneer geopend’ aan.",
+      "inRotationStaysHint": "{name} komt aan de beurt met de andere schermen en blijft tot iemand verder gaat. Wil je terug naar {home} als niemand het een tijdje heeft aangeraakt, zet dan ‘Verschijnt alleen wanneer geopend’ aan.",
+      "openScreenSettings": "Zijn scherminstellingen openen",
+      "groupOpened": "Verschijnt alleen wanneer geopend",
+      "groupRotation": "In de rotatie",
+      "keepOut": "Verschijnt alleen wanneer geopend",
+      "addTwinScreen": "Een {name}-scherm toevoegen",
+      "addTwinHelp": "Maakt een {name}-scherm dat alleen verschijnt wanneer het geopend wordt, en richt deze knop erop.",
+      "offShort": "Uit",
+      "theme": "In het thema {theme}",
+      "tapOff": "‘Tikken op het scherm’ staat uit voor deze module, dus het scherm toont geen knop.",
+      "orphaned": "Niets opent {name} nog, dus het verschijnt nooit. Kies het opnieuw, of laat het aan de beurt komen met de andere.",
+      "twinAdded": "{name} toegevoegd. Het verschijnt alleen wanneer het geopend wordt; open hieronder zijn scherminstellingen om het vorm te geven.",
+      "twinScreenName": {
+        "fullscreen-meal-planner": "Receptenboek",
+        "fullscreen-calendar": "Agenda",
+        "fullscreen-weather": "Weer",
+        "fullscreen-chore-chart": "Klusjes",
+        "fullscreen-news": "Nieuws",
+        "fullscreen-photo": "Foto’s"
+      },
+      "holdsView": "{module}, weergave {view}",
+      "pickAgain": "Opnieuw kiezen",
+      "letItTakeTurn": "Aan de beurt laten komen",
+      "turnOnTap": "‘Tikken op het scherm’ aanzetten",
+      "switchOn": "Aanzetten",
+      "onlyWhen": "De knop verschijnt alleen {when}.",
+      "onlyConditions": "De knop verschijnt alleen zolang de voorwaarden van dat scherm kloppen."
+    }
   },
   "sudoPrompt": {
     "title": "Home Screens toestaan om wijzigingen aan dit apparaat te maken",
@@ -4044,6 +4132,7 @@
       "targetSelf": "Dit display (zelf)",
       "targetAll": "Alle displays",
       "legacyHint": "Er is maar één display, dus dit is het display dat wordt bediend.",
+      "dockMissingThere": "Op {display} opent een knop het scherm met dezelfde naam. {display} heeft geen scherm dat {names} heet, dus die knoppen zijn vervaagd en doen daar niets.",
       "allowRetargeting": "Gebruiker mag het doel tijdens gebruik wijzigen",
       "compact": "Alleen pictogrammen, geen tekst",
       "dockHint": "Eén knop per scherm van dit display. Tik erop om meteen naar dat scherm te gaan.",
@@ -4252,9 +4341,6 @@
       "accentColor": "Accentkleur",
       "savedMealsCount": "{count} opgeslagen maaltijden",
       "plannedCount": "{count} gepland",
-      "editMealPlanner": "Maaltijdplanner bewerken",
-      "mobileHintPrefix": "Maaltijdslots, weekstart, tijdsopmaak en standaardserveertijden worden gedeeld door alle maaltijdmodules. Bewerk ze via",
-      "mobileHintSettingsLink": "Instellingen → Maaltijden",
       "tapRecipeAction": "Tik op een maaltijd voor het recept",
       "tapRecipeActionOff": "Uit",
       "tapRecipeActionQr": "QR-code tonen",
@@ -4264,8 +4350,16 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, stap voor stap door een recept gaan, in het receptenboek zoeken, door lange weergaven scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen.",
-      "mobileHintTail": "zodat alle maaltijdmodules gelijk blijven."
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, stap voor stap door een recept gaan, in het receptenboek zoeken, door lange weergaven scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig.",
+      "recipeCountHint": {
+        "one": "{count} van de {meals} maaltijden heeft een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met Maaltijdplan bewerken hieronder, of op de telefoon.",
+        "other": "{count} van de {meals} maaltijden hebben een recept. Nog zonder recept: {missing}. Voeg ingrediënten of notities toe met Maaltijdplan bewerken hieronder, of op de telefoon."
+      },
+      "recipeCountAll": {
+        "one": "De ene bewaarde maaltijd heeft een recept.",
+        "other": "Alle {count} bewaarde maaltijden hebben een recept."
+      },
+      "andMore": "{count} meer"
     },
     "fullscreen-photo": {
       "themeDefaultMidnight": "Standaard (Midnight)",
@@ -4444,7 +4538,7 @@
       "viewCompact": "Compact (vandaag + morgen)",
       "viewList": "Volledige weeklijst",
       "viewGrocery": "Boodschappenlijst",
-      "viewRecipes": "Recepten",
+      "viewRecipes": "Receptenboek",
       "showEmoji": "Afbeeldingen tonen",
       "showPrepTime": "Totale tijd tonen",
       "showTags": "Tags tonen",
@@ -4464,7 +4558,7 @@
       "tapRecipeActionCardHint": "Toont de ingrediënten en stappen op een kaart, direct op het display. Werkt ook voor maaltijden die met ingrediënten of notities zijn opgeslagen. Heeft een maaltijd een receptlink, dan staat er ook een code bij om het recept op een telefoon te openen.",
       "tapRecipeActionNoLinkHint": "Een maaltijd zonder receptlink toont in plaats daarvan zijn ingrediënten en notities op de receptkaart.",
       "interactive": "Tikken op het display",
-      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen."
+      "interactiveHint": "Hiermee kan iedereen op een touchscreen dingen op de boodschappenlijst afvinken, recepten openen, door lange lijsten scrollen en het plan voor volgende week bekijken. Zet dit uit op een display zonder touchscreen. De open-knop heeft het ook nodig."
     },
     "moon-phase": {
       "showIllumination": "Verlichtingspercentage tonen",
@@ -5628,7 +5722,15 @@
       "allMustMatchHint": "Alle voorwaarden moeten overeenkomen om het scherm te tonen.",
       "whenUnknownHide": "Scherm weglaten",
       "whenUnknownShow": "Scherm erin houden"
-    }
+    },
+    "screenOpened": {
+      "enableHelp": "Laat dit scherm alleen openen zolang live waarden van je gekoppelde diensten kloppen (bijvoorbeeld het volgende agenda-item is binnen een uur).",
+      "noConditionsHint": "Nog geen voorwaarden. Het scherm kan altijd geopend worden tot je er een toevoegt.",
+      "allMustMatchHint": "Alle voorwaarden moeten kloppen om het scherm te kunnen openen.",
+      "whenUnknownHide": "Niet laten openen",
+      "whenUnknownShow": "Laten openen"
+    },
+    "matchTitle": "Wat moet kloppen"
   },
   "stateKeys": {
     "calendar": {

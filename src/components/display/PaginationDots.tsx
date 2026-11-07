@@ -36,6 +36,12 @@ interface PaginationDotsProps {
   progress?: RotationProgress | null;
   /** True while the wall is asleep: keep the layout, stop drawing (see canvasAsleep in ScreenRotator). */
   hidden?: boolean;
+  /**
+   * False keeps the paused pill away: the editor's Preview is always held,
+   * and a pill over the content it exists to show only gets in the way. The
+   * pause glyph on the active dot still says so.
+   */
+  showPausePill?: boolean;
 }
 
 /** How long the screen name stays up after a tap. */
@@ -70,6 +76,7 @@ export default function PaginationDots({
   pausedUntil = null,
   progress = null,
   hidden = false,
+  showPausePill = true,
 }: PaginationDotsProps) {
   const t = useTranslate('core');
   const [flashedName, setFlashedName] = useState<string | null>(null);
@@ -185,7 +192,7 @@ export default function PaginationDots({
           contentVisibility: hidden ? 'hidden' : undefined,
         }}
       >
-        {paused && (
+        {paused && showPausePill && (
           <button
             type="button"
             data-testid="pause-pill"
@@ -287,10 +294,31 @@ export default function PaginationDots({
             {progressLine}
           </div>
         ) : (
-          <div style={{ position: 'relative', display: 'flex', gap: PAGINATION_GAP_PX }} data-testid="pagination-dots">
+          <div
+            data-testid="pagination-dots"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              gap: PAGINATION_GAP_PX,
+              // A dark plate under the light dots, so they read on a light
+              // full-screen page as well as a dark one.
+              background: 'rgba(0, 0, 0, 0.32)',
+              borderRadius: 999,
+              padding: '0 6px',
+            }}
+          >
             {screens.map((s, i) => {
               const isActive = i === activeIndex;
               const showPause = isActive && paused;
+              if (isActive && !showPausePill && paused) {
+                // The Preview is always held and cannot resume: the glyph says
+                // so without being a button that reads as "pause".
+                return (
+                  <span key={s.id} data-testid="pagination-held" title={t('pagination.heldInPreview')} style={{ ...hitTarget, width: PAGINATION_HIT_PX, cursor: 'default' }}>
+                    {pauseGlyph}
+                  </span>
+                );
+              }
               return (
                 <button
                   key={s.id}
