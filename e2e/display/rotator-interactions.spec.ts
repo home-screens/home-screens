@@ -270,12 +270,12 @@ test('the photo overlay clock wanders inside its band on a protected display onl
 });
 
 test('a Display Control dock shown on every screen wanders inside its box on a protected display only', async ({ page, request }) => {
-  // A full-width strip along the bottom, far wider than two tiles need. It is
-  // also tall enough that the tiles reach their largest size and stop
-  // growing, so there is room across the dock too; a shorter dock's tiles
-  // grow to fill it and the pill only drifts along it.
+  // A full-width strip along the bottom, far wider than two tiles need. Its
+  // tiles grow to fill its height, so the room up and down is the dock's own
+  // margin around the pill, and only the margin above it: the bottom of the
+  // module is the bottom of the screen, where the wall shift hides a strip.
   const dock = (id: string): ModuleInstance => ({
-    id, type: 'display-control', position: { x: 0, y: 1620 }, size: { w: 1080, h: 300 }, zIndex: 5, style: { ...DEFAULT_MODULE_STYLE },
+    id, type: 'display-control', position: { x: 0, y: 1740 }, size: { w: 1080, h: 180 }, zIndex: 5, style: { ...DEFAULT_MODULE_STYLE },
     showOnEveryScreen: true,
     config: { layout: 'dock', defaultTarget: 'self', allowRetargeting: false, compact: false },
   });
@@ -301,9 +301,10 @@ test('a Display Control dock shown on every screen wanders inside its box on a p
   await expect(pill()).toBeVisible();
   await expect.poll(offsetOf).not.toBeNull();
   const first = (await offsetOf())!;
-  // At most 30 px along the dock and 12 px across it, either way of centre.
+  // At most 30 px either way along the dock, and up to 12 px up from where it rests, never down.
   expect(Math.abs(first.x)).toBeLessThanOrEqual(30);
-  expect(Math.abs(first.y)).toBeLessThanOrEqual(12);
+  expect(first.y).toBeGreaterThanOrEqual(-12);
+  expect(first.y).toBeLessThanOrEqual(0);
   expect(await pill().evaluate((el) => getComputedStyle(el).transitionDuration)).toBe('0s');
 
   // A minute on, it has stepped exactly a pixel on each axis: both reaches
@@ -313,14 +314,15 @@ test('a Display Control dock shown on every screen wanders inside its box on a p
   const next = (await offsetOf())!;
   expect(Math.abs(next.x - first.x)).toBe(1);
   expect(Math.abs(next.y - first.y)).toBe(1);
+  expect(next.y).toBeLessThanOrEqual(0);
 
-  // Wherever it is, the pill stays inside the room it was centred in.
-  const room = (await page.getByTestId('display-control-dock-room').boundingBox())!;
-  const box = (await pill().boundingBox())!;
-  expect(box.x).toBeGreaterThanOrEqual(room.x - 0.5);
-  expect(box.y).toBeGreaterThanOrEqual(room.y - 0.5);
-  expect(box.x + box.width).toBeLessThanOrEqual(room.x + room.width + 0.5);
-  expect(box.y + box.height).toBeLessThanOrEqual(room.y + room.height + 0.5);
+  // Wherever it is, the pill stays inside the module's box.
+  const moduleBox = (await page.locator('[data-layout="dock"]').boundingBox())!;
+  const pillBox = (await pill().boundingBox())!;
+  expect(pillBox.x).toBeGreaterThanOrEqual(moduleBox.x - 0.5);
+  expect(pillBox.y).toBeGreaterThanOrEqual(moduleBox.y - 0.5);
+  expect(pillBox.x + pillBox.width).toBeLessThanOrEqual(moduleBox.x + moduleBox.width + 0.5);
+  expect(pillBox.y + pillBox.height).toBeLessThanOrEqual(moduleBox.y + moduleBox.height + 0.5);
 
   await page.goto('/display/hall');
   await expect(pill()).toBeVisible();

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX, PIXEL_SHIFT_PITCH_PX, PIXEL_SHIFT_POSITIONS, PIXEL_SHIFT_REACH_PX, pixelShiftMinute, pixelShiftOffset, pixelShiftTransform, wanderOffset } from '../pixel-shift';
+import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX, PIXEL_SHIFT_PITCH_PX, PIXEL_SHIFT_POSITIONS, PIXEL_SHIFT_REACH_PX, pixelShiftMinute, pixelShiftOffset, pixelShiftTransform, wanderBetween, wanderOffset } from '../pixel-shift';
 
 describe('pixel shift lattice', () => {
   it('visits 25 distinct spots within two pitches of centre', () => {
@@ -91,41 +91,29 @@ describe('wander from the start', () => {
     expect(wanderOffset(-1, RX, RY)).toEqual(wanderOffset(4 * RX * 4 * RY - 1, RX, RY));
   });});
 
-describe('centred wander', () => {
-  const RX = WANDER_REACH_X_PX;
-  const RY = WANDER_REACH_Y_PX;
-  const centre = (m: number, rx = RX, ry = RY) => wanderOffset(m, rx, ry, 'centre');
-
-  it('starts at rest and moves one pixel a minute on each axis, either way of centre', () => {
-    expect(centre(0)).toEqual({ x: 0, y: 0 });
-    const xs = new Set<number>();
-    for (let m = 0; m < 4 * RX * 4 * RY; m++) {
-      const a = centre(m);
-      const b = centre(m + 1);
-      expect(Math.abs(a.x - b.x)).toBe(1);
-      expect(Math.abs(a.y - b.y)).toBe(1);
-      expect(Math.abs(a.x)).toBeLessThanOrEqual(RX);
-      expect(Math.abs(a.y)).toBeLessThanOrEqual(RY);
-      xs.add(a.x);
-    }
-    expect(Math.min(...xs)).toBe(-RX);
-    expect(Math.max(...xs)).toBe(RX);
-    expect(xs.size).toBe(2 * RX + 1);
-  });
-
-  it('is the start wave moved back by its reach, so both anchors take the same path', () => {
-    for (let m = 0; m < 200; m++) {
-      const s = wanderOffset(m, 7, 3);
-      const c = centre(m, 7, 3);
-      expect(c.x).toBe(s.x - 7);
-      expect(c.y).toBe(s.y);
+describe('wander between two limits', () => {
+  it('steps one pixel a minute, stays inside its limits and reaches both', () => {
+    for (const [lo, hi] of [[-12, 12], [-12, 0], [-30, 7], [0, 5]] as const) {
+      const seen = new Set<number>();
+      for (let m = 0; m < 4 * (hi - lo) + 3; m++) {
+        const a = wanderBetween(m, lo, hi);
+        expect(Math.abs(wanderBetween(m + 1, lo, hi) - a)).toBe(1);
+        expect(a).toBeGreaterThanOrEqual(lo);
+        expect(a).toBeLessThanOrEqual(hi);
+        seen.add(a);
+      }
+      expect(Math.min(...seen)).toBe(lo);
+      expect(Math.max(...seen)).toBe(hi);
+      expect(seen.size).toBe(hi - lo + 1);
     }
   });
 
-  it('holds still on an axis with no room', () => {
-    for (let m = 0; m < 50; m++) {
-      expect(centre(m, 0, RY).x).toBe(0);
-      expect(centre(m, RX, 0).y).toBe(0);
-    }
+  it('never crosses to the side with no room', () => {
+    for (let m = 0; m < 200; m++) expect(wanderBetween(m, -12, 0)).toBeLessThanOrEqual(0);
+  });
+
+  it('holds still at 0 with no room either side, and wraps for negative minutes', () => {
+    for (let m = 0; m < 20; m++) expect(wanderBetween(m, 0, 0)).toBe(0);
+    expect(wanderBetween(-1, -5, 3)).toBe(wanderBetween(2 * 8 - 1, -5, 3));
   });
 });

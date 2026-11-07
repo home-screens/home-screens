@@ -79,28 +79,28 @@ export function pixelShiftTransform(offset: PixelShiftOffset, w: number, h: numb
 // ── Wandering inside a box ───────────────────────────────────────────
 
 /**
- * The widest an element wanders along its long axis, either side of its
- * centre: the photo clock across its band, the Display Control dock along
- * its pill. The measured room caps it further.
+ * The widest an element wanders along its long axis: the photo clock across
+ * its band (either side of the middle of its path), the Display Control dock
+ * along its pill (either side of where it rests). The measured room caps it
+ * further.
  */
 export const WANDER_REACH_X_PX = 30;
-/** The widest an element wanders across its short axis, either side of its centre. */
+/** The widest an element wanders across its short axis, either way. */
 export const WANDER_REACH_Y_PX = 12;
 
 /**
- * Where a wandering element's offset is measured from.
+ * How far from the edge of the screen an element's box must be, measured on
+ * the wall as drawn (`getBoundingClientRect` against the viewport), for its
+ * edge to stay on screen at every minute of the wall shift.
  *
- * `start`: the element was authored against its leading edge (the photo
- * clock, left-aligned in its band), so it only drifts away from that edge,
- * 0 to twice the reach, never into the padding behind it.
- *
- * `centre`: the element was authored centred (the dock pill), so it drifts
- * either way, minus the reach to plus the reach.
- *
- * Only the horizontal axis takes an anchor; the vertical one is always
- * centred, since neither element was authored against its top or bottom.
+ * The enlargement in `pixelShiftTransform` hides a strip at each edge of the
+ * screen, about 11 px at the top and bottom of a portrait wall, and the
+ * translate moves everything up to R (`PIXEL_SHIFT_REACH_PX`) either way on
+ * top of that. The enlargement is the same every minute, so a distance
+ * measured now changes by at most 2R as the translate walks: 2R or more now
+ * means on screen always, whichever way the wall is turned.
  */
-export type WanderAnchor = 'start' | 'centre';
+export const PIXEL_SHIFT_EDGE_CLEARANCE_PX = 2 * PIXEL_SHIFT_REACH_PX;
 
 /**
  * A triangle wave of amplitude `reach` that moves one pixel per minute:
@@ -119,21 +119,32 @@ function triangle(minute: number, reach: number): number {
 /**
  * Where a static element with room to move sits during `minute` of the
  * epoch: a pair of triangle waves at one pixel per minute, the horizontal
- * one placed by `anchor` and the vertical one centred (-reachY to +reachY).
- * Unequal reaches give the two waves different periods, so the path sweeps
- * the rectangle over a few hours rather than one diagonal. A stroke 10 px
- * wide then lights any pixel about a sixth of the time instead of all of it.
- * Reaches are whole pixels; the caller floors what it measured.
+ * one offset so the element only drifts to the right of where it was
+ * authored (0 to 2 * reachX, never into the padding on its left) and the
+ * vertical one centred (-reachY to +reachY). The two periods differ, so the
+ * path sweeps the rectangle over a few hours rather than one diagonal. A
+ * stroke 10 px wide then lights any pixel about a sixth of the time instead
+ * of all of it. Reaches are whole pixels; the caller floors what it measured.
  */
-export function wanderOffset(
-  minute: number,
-  reachX: number,
-  reachY: number,
-  anchor: WanderAnchor = 'start',
-): PixelShiftOffset {
-  const dx = triangle(minute, reachX);
+export function wanderOffset(minute: number, reachX: number, reachY: number): PixelShiftOffset {
   return {
-    x: anchor === 'start' && reachX > 0 ? reachX + dx : dx,
+    x: reachX > 0 ? reachX + triangle(minute, reachX) : 0,
     y: triangle(minute, reachY),
   };
+}
+
+/**
+ * One axis of a wander whose room differs on its two sides: a triangle wave
+ * between `lo` (zero or below) and `hi` (zero or above) that moves one pixel
+ * per minute, sitting at `lo` on minute 0 of each lap. The Display Control
+ * dock uses it so the pill can drift into its margin on a side clear of the
+ * screen edge and not on a side against it. Whole pixels; a range of zero
+ * width holds still at 0.
+ */
+export function wanderBetween(minute: number, lo: number, hi: number): number {
+  const span = hi - lo;
+  if (span <= 0) return 0;
+  const period = 2 * span;
+  const t = ((Math.floor(minute) % period) + period) % period;
+  return lo + (t <= span ? t : period - t);
 }

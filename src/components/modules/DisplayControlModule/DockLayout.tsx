@@ -1,16 +1,16 @@
 'use client';
 
 import { wallPress } from '@/components/modules/shared/wallPress';
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import { useTranslate } from '@/i18n';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { dockTileColor, type DockScreen } from '@/lib/screen-dock';
 import Glyph from '@/components/ui/Glyph';
 import { useElementBox } from '@/hooks/useElementBox';
-import { useWander } from '@/hooks/usePixelShift';
+import { useEpochMinute } from '@/hooks/useEpochMinute';
 import { useBurnInProtection } from '@/components/display/burn-in-context';
-import { WANDER_REACH_X_PX, WANDER_REACH_Y_PX } from '@/lib/pixel-shift';
+import { PIXEL_SHIFT_EDGE_CLEARANCE_PX, WANDER_REACH_X_PX, WANDER_REACH_Y_PX, wanderBetween } from '@/lib/pixel-shift';
 import type { LayoutProps } from './types';
 import { TargetPicker } from './TargetPicker';
 import { HoldConfirmButton } from './HoldConfirmButton';
@@ -59,30 +59,59 @@ export function DockLayout(props: DockLayoutProps) {
   });
   const dim = pickerOpen ? 'opacity-35' : '';
 
-  // Burn-in protection: the pill drifts inside the room around it, a pixel a
-  // minute on the wall's minute tick, as far as that room allows (half the
-  // spare room each way, capped). The dock is the brightest thing that never
-  // changes on a wall, usually shown on every screen, and the whole-wall
-  // shift only reaches 6 px, which blurs a tile's edges and leaves its body
-  // lit. The long reach runs along the dock, the short one across it. Zero
-  // until both boxes are measured, since the dock resizes once measured
-  // anyway, and zero for a pill that scrolls, which fills its room. Nothing
-  // is measured while protection is off.
+  // Burn-in protection: the pill drifts a pixel a minute on the wall's minute
+  // tick, as far as the empty space around it allows. The dock is the
+  // brightest thing that never changes on a wall, usually shown on every
+  // screen, and the whole-wall shift only reaches 6 px, which blurs a tile's
+  // edges and leaves its body lit. The long reach runs along the dock, the
+  // short one across it.
+  //
+  // The room on each side is half the spare room in the centring box plus
+  // the dock's own margin: the tiles grow to fill the box across the dock
+  // until they reach their largest size, so on most docks the margin is all
+  // the room there is up and down (a bottom dock). The margin is `m.outer`,
+  // or the gap to the picker row on the side next to it. A side whose module
+  // edge sits against the screen edge gets no margin: the wall shift already
+  // hides a strip there, and a pill drifting into it lost its "showing now"
+  // dot under the bottom of a portrait wall. A bottom dock therefore drifts up
+  // into its margin and never lower than it rests.
+  //
+  // Zero until both boxes are measured, since the dock resizes once measured
+  // anyway. Nothing is measured while protection is off.
   const protect = useBurnInProtection();
   const [roomRef, room] = useElementBox();
   const [pillRef, pill] = useElementBox('border');
-  const spare = (roomSize: number, pillSize: number, cap: number) =>
-    room.width > 0 && pill.width > 0 ? Math.max(0, Math.min(cap, Math.floor((roomSize - pillSize) / 2))) : 0;
-  const wander = useWander(
-    protect,
-    spare(room.width, pill.width, m.vertical ? WANDER_REACH_Y_PX : WANDER_REACH_X_PX),
-    spare(room.height, pill.height, m.vertical ? WANDER_REACH_X_PX : WANDER_REACH_Y_PX),
-    'centre',
-  );
+  const boxEl = useRef<HTMLDivElement | null>(null);
+  const attachBox = useCallback((el: HTMLDivElement | null) => {
+    boxEl.current = el;
+    boxRef(el);
+  }, [boxRef]);
+  const minute = useEpochMinute(protect);
+  const [edges, setEdges] = useState<ScreenEdges>(NO_SCREEN_EDGES);
+  // Read again each minute as well as on resize: the module can move
+  // without changing size.
+  useLayoutEffect(() => {
+    const el = boxEl.current;
+    if (!protect || !el) return;
+    const next = screenEdgesOf(el.getBoundingClientRect(), window.innerWidth, window.innerHeight);
+    setEdges((prev) => (sameEdges(prev, next) ? prev : next));
+  }, [protect, minute, box.width, box.height]);
+  const measured = room.width > 0 && pill.width > 0;
+  const range = (roomSize: number, pillSize: number, nearMargin: number, farMargin: number, cap: number): [number, number] => {
+    if (!measured) return [0, 0];
+    const spare = (roomSize - pillSize) / 2;
+    const side = (margin: number) => Math.max(0, Math.min(cap, Math.floor(spare + margin)));
+    return [-side(nearMargin), side(farMargin)];
+  };
+  const capX = m.vertical ? WANDER_REACH_Y_PX : WANDER_REACH_X_PX;
+  const capY = m.vertical ? WANDER_REACH_X_PX : WANDER_REACH_Y_PX;
+  const [loX, hiX] = range(room.width, pill.width, edges.left ? 0 : m.outer, edges.right ? 0 : m.outer, capX);
+  const [loY, hiY] = range(room.height, pill.height, edges.top ? 0 : (showPicker ? pm.gap : m.outer), edges.bottom ? 0 : m.outer, capY);
+  const wander = protect ? { x: wanderBetween(minute, loX, hiX), y: wanderBetween(minute, loY, hiY) } : null;
 
   return (
     <div
-      ref={boxRef}
+      ref={attachBox}
       className="h-full w-full flex flex-col"
       style={{ padding: m.outer, gap: pm.gap }}
       data-layout="dock"
@@ -309,4 +338,23 @@ function OwnGlyph({ value, size }: { value: string; size: number }) {
 function ScreenGlyph({ type, size }: { type: DockScreen['iconType']; size: number }) {
   const Icon = (type && getModuleDefinition(type)?.icon) || LayoutGrid;
   return <Icon size={size} strokeWidth={1.75} aria-hidden="true" />;
+}
+
+/** Which sides of the dock's module sit against the edge of the screen, where the wall shift hides a strip. */
+interface ScreenEdges {
+  top: boolean;
+  bottom: boolean;
+  left: boolean;
+  right: boolean;
+}
+
+const NO_SCREEN_EDGES: ScreenEdges = { top: false, bottom: false, left: false, right: false };
+
+function screenEdgesOf(r: DOMRect, viewportW: number, viewportH: number): ScreenEdges {
+  const c = PIXEL_SHIFT_EDGE_CLEARANCE_PX;
+  return { top: r.top < c, bottom: viewportH - r.bottom < c, left: r.left < c, right: viewportW - r.right < c };
+}
+
+function sameEdges(a: ScreenEdges, b: ScreenEdges): boolean {
+  return a.top === b.top && a.bottom === b.bottom && a.left === b.left && a.right === b.right;
 }
