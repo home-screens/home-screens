@@ -747,7 +747,7 @@ If any meal's entries in Mealie are no longer the ones in `before`, nothing is w
 
 ### GET /api/mealie/recipes
 
-One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Display access, a display token works. `isFavorite` says whether each recipe is one of the favorites of the Mealie user whose token is saved.
+One page of the household's Mealie recipes as saved meals, searched in Mealie on every call. `?search=` (one or two letters match the start of a word in a recipe's name; longer searches use Mealie's own search, and recipes whose name holds every word come first), `?filter=favorites` or `?filter=recent` (most recently made), `?page=`. Display access, a display token works. `isFavorite` says whether each recipe is one of the favorites of the Mealie user whose token is saved.
 
 **Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "...", "isFavorite": true }], "page": 1, "totalPages": 29, "total": 848 }`
 

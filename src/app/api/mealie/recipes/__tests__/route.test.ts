@@ -32,8 +32,10 @@ describe('GET /api/mealie/recipes', () => {
   });
 
   it('answers with Mealie recipes as saved meals', async () => {
-    const res = await GET(req('?search=tik&filter=favorites&page=2'));
-    expect(searchMealieRecipes).toHaveBeenCalledWith({ search: 'tik', filter: 'favorites', category: undefined, cookbook: undefined, page: 2 });
+    const request = req('?search=tik&filter=favorites&page=2');
+    const res = await GET(request);
+    // The request's own signal, so the picker dropping it reaches Mealie's call.
+    expect(searchMealieRecipes).toHaveBeenCalledWith({ search: 'tik', filter: 'favorites', category: undefined, cookbook: undefined, page: 2, signal: request.signal });
     expect(await res.json()).toEqual({
       items: [{
         id: `mealie:${RECIPE.id}`,

@@ -174,6 +174,11 @@ function shoppingDisplay(i: FakeShoppingItem): string {
   return [amount, i.unit ?? '', food, i.note].filter(Boolean).join(' ');
 }
 
+/** Mealie's case-blind LIKE as a regular expression: `%` is any run of characters. */
+function likePattern(pattern: string): RegExp {
+  return new RegExp(`^${pattern.split('%').map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.*')}$`, 'i');
+}
+
 function recipeSummary(r: FakeRecipe) {
   return {
     id: r.id,
@@ -361,13 +366,17 @@ export async function startFakeMealie(entries: FakeEntry[] = defaultFakeEntries(
         const search = (url.searchParams.get('search') ?? '').toLowerCase();
         const cookbook = FAKE_COOKBOOKS.find((c) => c.slug === url.searchParams.get('cookbook'));
         const filter = url.searchParams.get('queryFilter') ?? '';
-        const like = [...filter.matchAll(/name LIKE "%([^%]+)%"/g)].map((m) => m[1].toLowerCase());
+        // The hub's name lookups: `name LIKE` patterns ORed inside a group, groups ANDed
+        // (`(name LIKE "mac%" OR name LIKE "% mac%") AND (name LIKE "cheese%" OR name LIKE "% cheese%")`).
+        const nameGroups = filter.split(' AND ')
+          .map((group) => [...group.matchAll(/name LIKE "([^"]*)"/g)].map((m) => likePattern(m[1])))
+          .filter((group) => group.length > 0);
         const ids = /id IN \[(.*)\]/.exec(filter)?.[1]?.match(/"([^"]+)"/g)?.map((s) => s.replace(/"/g, ''));
         const category = /recipeCategory\.slug (NOT IN|IN) \[(.*)\]/.exec(filter);
         const slugs = category?.[2].match(/"([^"]+)"/g)?.map((s) => s.replace(/"/g, '')) ?? [];
         let items = state.recipes.filter((r) => {
           const name = r.name.toLowerCase();
-          if (like.length && !like.every((w) => name.includes(w))) return false;
+          if (!nameGroups.every((group) => group.some((re) => re.test(r.name)))) return false;
           if (ids && !ids.includes(r.id)) return false;
           if (category) {
             const inOne = (r.categories ?? []).some((c) => slugs.includes(c));

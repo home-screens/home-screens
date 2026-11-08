@@ -448,6 +448,101 @@ export function isMealieRecipeFilter(value: string): value is MealieRecipeFilter
 }
 
 /**
+ * With fewer letters than this, a search reads recipe names only, by the
+ * start of a word. Mealie's own search also reads every ingredient line, and
+ * one or two letters are in nearly all of them: on a Pi with a few thousand
+ * recipes, "b" held Mealie's database for minutes, everything else queued
+ * behind it, and it still failed (SQLite takes at most 32,766 values in one
+ * query, and Mealie passed it every matching line).
+ */
+const MEALIE_SHORT_SEARCH_LETTERS = 3;
+
+/**
+ * How many searches one hub has at Mealie at a time. Mealie keeps running a
+ * search the hub stopped waiting for, so a picker typed into slowly would
+ * otherwise pile one search per pause onto a Mealie that is already slow.
+ */
+const MEALIE_SEARCHES_AT_ONCE = 2;
+
+let searchesOut = 0;
+const searchLine: Array<() => void> = [];
+
+function droppedSearch(): MealieError {
+  return new MealieError('unreachable', 'The search was dropped before it reached Mealie');
+}
+
+/**
+ * Wait for a turn to search Mealie. Resolves with the function that hands the
+ * turn on. A caller that gives up while waiting leaves the line, so its search
+ * never goes out.
+ */
+function takeSearchTurn(signal?: AbortSignal): Promise<() => void> {
+  if (signal?.aborted) return Promise.reject(droppedSearch());
+  let handedOn = false;
+  const handOn = () => {
+    if (handedOn) return;
+    handedOn = true;
+    const next = searchLine.shift();
+    // The turn passes straight to the next in line, so a newcomer cannot slip in between.
+    if (next) next();
+    else searchesOut--;
+  };
+  if (searchesOut < MEALIE_SEARCHES_AT_ONCE) {
+    searchesOut++;
+    return Promise.resolve(handOn);
+  }
+  return new Promise((resolve, reject) => {
+    const start = () => {
+      signal?.removeEventListener('abort', leave);
+      resolve(handOn);
+    };
+    const leave = () => {
+      const at = searchLine.indexOf(start);
+      if (at >= 0) searchLine.splice(at, 1);
+      reject(droppedSearch());
+    };
+    searchLine.push(start);
+    signal?.addEventListener('abort', leave, { once: true });
+  });
+}
+
+/** One search call to Mealie, in turn, never retried: Mealie is still running the search a retry would send again. */
+async function mealieSearchJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const handOn = await takeSearchTurn(signal);
+  try {
+    return await mealieJson<T>(path, { retries: 0, signal });
+  } finally {
+    handOn();
+  }
+}
+
+/** Recipe names with a word starting with `letters`, as a Mealie query filter. LIKE is case-blind in Mealie on every database it runs on. */
+function nameWordStartFilter(letters: string): string {
+  return `name LIKE ${JSON.stringify(`${letters}%`)} OR name LIKE ${JSON.stringify(`% ${letters}%`)}`;
+}
+
+/** How many words from another typed word a typed word may sit when the name holds it only as the start of a longer word. */
+const PART_WORD_REACH = 3;
+
+/**
+ * Whether a recipe name holds every typed word closely enough to be what was
+ * meant. A word the name holds whole ("rice") may be anywhere in it, in any
+ * order. A word that only starts a longer one ("mac" in "Macaroni") must sit
+ * within three words of another typed word: a word's start alone cannot tell
+ * "Macaroni and Cheese" from "Cheese and Onion Bread (bread Machine)", but how
+ * far it sits from "cheese" can. `words` are lower case.
+ */
+export function nameHoldsWords(name: string, words: readonly string[]): boolean {
+  const tokens = name.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const found = words.map((w) => tokens.flatMap((t, at) => (t.startsWith(w) ? [{ at, whole: t === w }] : [])));
+  return found.every((hits, i) => hits.some((hit) => hit.whole || found.some((others, j) => (
+    j !== i && others.some((other) => other.at !== hit.at && Math.abs(other.at - hit.at) <= PART_WORD_REACH)
+  ))));
+}
+
+type MealieRecipeListing = { items?: MealieRecipeSummary[]; page?: number; total_pages?: number; total?: number };
+
+/**
  * One page of Mealie's recipes for a picker: by name, the household's
  * favorites, or what was made most recently. Searched in Mealie on every
  * call; nothing is copied into Home Screens.
@@ -461,12 +556,21 @@ export async function searchMealieRecipes(opts: {
   cookbook?: string;
   page?: number;
   perPage?: number;
+  /** The caller giving up: a search still waiting for its turn never goes out, and one at Mealie is no longer waited for. */
+  signal?: AbortSignal;
 }): Promise<MealieRecipePage> {
+  const pageNumber = Math.max(1, opts.page ?? 1);
   const params = new URLSearchParams({
-    page: String(Math.max(1, opts.page ?? 1)),
+    page: String(pageNumber),
     perPage: String(Math.min(100, Math.max(1, opts.perPage ?? 30))),
   });
-  const search = opts.search?.trim();
+  const typed = opts.search?.trim() ?? '';
+  const short = Array.from(typed).length < MEALIE_SHORT_SEARCH_LETTERS;
+  // Mealie's own search, for three letters or more.
+  const search = short ? '' : typed;
+  // Names only, for one or two letters.
+  const nameStart = short ? typed.replace(/["%_\\]/g, '') : '';
+  const filters: string[] = [];
   if (search) params.set('search', search);
   if (opts.category) params.set('categories', opts.category);
   if (opts.cookbook) params.set('cookbook', opts.cookbook);
@@ -475,7 +579,7 @@ export async function searchMealieRecipes(opts: {
     params.set('orderDirection', 'desc');
     // Mealie 3.29 ignores `IS NOT NULL` on lastMade and answers every recipe;
     // a date comparison is honoured and leaves only what was ever made.
-    params.set('queryFilter', 'lastMade > 1970-01-01');
+    filters.push('lastMade > 1970-01-01');
   } else if (!search) {
     params.set('orderBy', 'name');
     params.set('orderDirection', 'asc');
@@ -483,33 +587,43 @@ export async function searchMealieRecipes(opts: {
   if (opts.filter === 'favorites') {
     const ids = [...await getMealieFavoriteIds()];
     if (ids.length === 0) return { items: [], page: 1, totalPages: 0, total: 0 };
-    params.set('queryFilter', `id IN [${ids.map((id) => JSON.stringify(id)).join(',')}]`);
+    filters.push(`id IN [${ids.map((id) => JSON.stringify(id)).join(',')}]`);
   }
+  if (nameStart) filters.push(nameWordStartFilter(nameStart));
+  if (filters.length > 0) params.set('queryFilter', filters.length === 1 ? filters[0] : filters.map((f) => `(${f})`).join(' AND '));
+
   const words = search ? searchWords(search) : [];
-  const [page, allWords] = await Promise.all([
-    mealieJson<{ items?: MealieRecipeSummary[]; page?: number; total_pages?: number; total?: number }>(`/api/recipes?${params.toString()}`),
+  if (words.length > 1 && pageNumber === 1 && opts.filter !== 'favorites') {
     // Mealie's search matches any one word ("mac and cheese" finds 288
-    // recipes, most of them only cheesy), so the first page leads with the
-    // recipes whose name has every word in it.
-    words.length > 1 && (opts.page ?? 1) === 1 && opts.filter !== 'favorites'
-      ? mealieJson<{ items?: MealieRecipeSummary[] }>(`/api/recipes?${new URLSearchParams({
-        page: '1',
-        perPage: params.get('perPage')!,
-        orderBy: 'name',
-        orderDirection: 'asc',
-        // LIKE is case-blind in Mealie on every database it runs on.
-        queryFilter: words.map((w) => `name LIKE ${JSON.stringify(`%${w}%`)}`).join(' AND '),
-      }).toString()}`).catch(() => null)
-      : Promise.resolve(null),
-  ]);
-  const items = Array.isArray(page?.items) ? page.items : [];
-  const first = Array.isArray(allWords?.items) ? allWords.items : [];
-  // Recipes holding every word are the answer; the any-word list behind them
-  // read as "288 recipes" for "mac and cheese". Only with none of those does
-  // Mealie's own wider match stand in.
-  if (first.length > 0) return { items: first, page: 1, totalPages: 1, total: first.length };
+    // recipes, most of them only cheesy), so the recipes whose name holds
+    // every word are the answer when there are any. Asked first, on its own:
+    // the wider search costs Mealie far more and was thrown away whenever
+    // this found something. Mealie narrows to names where each word starts a
+    // word, and `nameHoldsWords` drops the ones a part word only lands in by
+    // chance ("Machine" for "mac").
+    const allWords = await mealieSearchJson<MealieRecipeListing>(`/api/recipes?${new URLSearchParams({
+      page: '1',
+      perPage: '100',
+      orderBy: 'name',
+      orderDirection: 'asc',
+      queryFilter: words.map((w) => `(${nameWordStartFilter(w)})`).join(' AND '),
+    }).toString()}`, opts.signal).catch((err: unknown) => {
+      // A dropped search stops here; a failed name lookup leaves it to the wider search.
+      if (opts.signal?.aborted) throw err;
+      return null;
+    });
+    const first = (Array.isArray(allWords?.items) ? allWords.items : [])
+      .filter((r) => typeof r.name === 'string' && nameHoldsWords(r.name, words))
+      .slice(0, Number(params.get('perPage')));
+    if (first.length > 0) return { items: first, page: 1, totalPages: 1, total: first.length };
+  }
+  const path = `/api/recipes?${params.toString()}`;
+  // Plain listings (by name, favorites, recently made) are cheap for Mealie and keep the usual retries.
+  const page = search || nameStart
+    ? await mealieSearchJson<MealieRecipeListing>(path, opts.signal)
+    : await mealieJson<MealieRecipeListing>(path, { signal: opts.signal });
   return {
-    items,
+    items: Array.isArray(page?.items) ? page.items : [],
     page: page?.page ?? 1,
     totalPages: page?.total_pages ?? 0,
     total: page?.total ?? 0,

@@ -29,7 +29,8 @@ export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest)
     return NextResponse.json({ error: 'cookbook must be a Mealie cookbook slug' }, { status: 400 });
   }
   const [result, mealie, favorites] = await Promise.all([
-    searchMealieRecipes({ search, filter, category, cookbook, page: Number.isInteger(page) ? page : 1 }),
+    // The picker dropping this search (more letters typed) reaches Mealie's call too.
+    searchMealieRecipes({ search, filter, category, cookbook, page: Number.isInteger(page) ? page : 1, signal: request.signal }),
     getMealieContext(),
     getMealieFavoriteIds(),
   ]);
