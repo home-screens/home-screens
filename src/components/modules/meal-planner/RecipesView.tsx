@@ -107,6 +107,30 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
         <div key={meal.id} data-testid="recipe-list-row" style={row}>{body}</div>
       );
     });
+    // The last chip's or words' rows, while these are on their way: old, and not for tapping.
+    if (book.outdated) {
+      list = <div data-testid="recipe-list-outdated" style={{ opacity: 0.35, pointerEvents: 'none', transition: 'opacity 150ms' }}>{list}</div>;
+    } else if (book.hasMore && interactive) {
+      // The end of a page is not the end of the book: say more are coming, or that they did not come.
+      // Only where a finger can scroll there; a wall without touch never reads another page.
+      list = (
+        <>
+          {list}
+          {book.moreFailed ? (
+            <button
+              type="button"
+              data-testid="recipe-list-more-failed"
+              onClick={book.retryMore}
+              style={{ display: 'block', width: '100%', border: 0, background: 'none', font: 'inherit', color: 'inherit', cursor: 'pointer', padding: '0.8em 0.3em', fontSize: '0.75em', opacity: 0.6 }}
+            >
+              {t('meal-planner.recipeBook.moreFailed')} · {t('meal-planner.recipeBook.tryAgain')}
+            </button>
+          ) : (
+            <div data-testid="recipe-list-more" style={{ padding: '0.8em 0.3em', fontSize: '0.75em', opacity: 0.45, textAlign: 'center' }}>{t('meal-planner.recipeBook.loadingMore')}</div>
+          )}
+        </>
+      );
+    }
   }
 
   return (
@@ -141,7 +165,7 @@ export function RecipesView({ config, book, fontSize, interactive }: RecipesView
       <WallScroller
         enabled={interactive}
         testId="recipe-list-scroll"
-        homeKey={`${book.query}|${book.active.kind}`}
+        homeKey={`${book.query}|${book.active.kind}|${book.refreshed}`}
         backLabel={t('wallScroll.backToTop')}
         backStyle={{ background: config.accentColor || DEFAULT_ACCENT_COLOR, fontSize: '0.75em' }}
         thumbColor={ink(0.35)}

@@ -60,6 +60,15 @@ describe('GET /api/mealie/recipe/[recipeId]', () => {
     expect((await get(ID)).status).toBe(502);
   });
 
+  it("says a recipe Mealie no longer has is gone, not that Mealie is down", async () => {
+    vi.mocked(getMealieRecipe).mockRejectedValue(new MealieError('upstream', 'Mealie answered 404', 404));
+    const res = await get(ID);
+    expect(res.status).toBe(404);
+    expect(await res.json()).toMatchObject({ reason: 'gone' });
+    vi.mocked(getMealieRecipe).mockRejectedValue(new MealieError('upstream', 'Mealie answered 500', 500));
+    expect((await get(ID)).status).toBe(502);
+  });
+
   it('says Mealie is not connected when nothing is saved', async () => {
     const real = await vi.importActual<typeof import('@/lib/mealie')>('@/lib/mealie');
     vi.mocked(getMealieRecipe).mockImplementationOnce(real.getMealieRecipe);

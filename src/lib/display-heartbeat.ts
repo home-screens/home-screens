@@ -46,6 +46,12 @@ export interface DisplayRevisions {
   notes?: string;
   /** The ETag `GET /api/day-notes` would be answered with: the calendar's day notes. */
   dayNotes?: string;
+  /**
+   * What `GET /api/meals/data` would answer (`meals-revision.ts`). A wall
+   * re-reads its meals when this moves, so a meal planned or saved from a
+   * phone shows up in seconds rather than on the meal modules' minute poll.
+   */
+  meals?: string;
 }
 
 type Listener = (revisions: DisplayRevisions) => void;

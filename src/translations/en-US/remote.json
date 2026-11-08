@@ -1500,6 +1500,7 @@
         "other": "Search {count} recipes…"
       },
       "noneDescription": "Check the spelling, or try a shorter word.",
+      "moreFailed": "Couldn't get more recipes.",
       "emptyTitle": "No recipes in Mealie yet",
       "emptyDescription": "Recipes you add in Mealie show up here.",
       "openRecipeAriaLabel": "Open {meal} in Mealie",

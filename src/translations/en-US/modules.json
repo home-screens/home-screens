@@ -411,6 +411,7 @@
       },
       "heading": {
         "search": "Recipes with “{query}”",
+        "looking": "Looking for “{query}”…",
         "widened": "Nothing called “{query}”. Here are recipes with “{part}”.",
         "favorites": {
           "one": "1 favorite",
@@ -430,6 +431,8 @@
       },
       "tryAgain": "Try again",
       "loading": "Getting the recipes",
+      "loadingMore": "Getting more recipes…",
+      "moreFailed": "Couldn't get more recipes",
       "noneTitle": "No recipes called “{query}”",
       "noneHint": "Check the spelling, or try a shorter word.",
       "noRecipeTitle": "“{name}” has no recipe yet",
@@ -535,6 +538,7 @@
       "nextStep": "Next step",
       "loading": "Getting the recipe",
       "failed": "Couldn't get the recipe right now",
+      "gone": "This recipe isn't in Mealie anymore",
       "stepAria": "Step {step}",
       "pageAria": "Page {page} of {pages}",
       "openCourseAria": "Open the recipe for {name}",

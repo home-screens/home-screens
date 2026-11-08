@@ -1501,6 +1501,7 @@
         "other": "Pesquisar em {count} receitas…"
       },
       "noneDescription": "Confira a ortografia ou tente uma palavra mais curta.",
+      "moreFailed": "Não deu para buscar mais receitas.",
       "emptyTitle": "Nenhuma receita no Mealie ainda",
       "emptyDescription": "As receitas que você adicionar no Mealie aparecem aqui.",
       "openRecipeAriaLabel": "Abrir {meal} no Mealie",

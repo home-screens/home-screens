@@ -29,6 +29,12 @@ export interface FetchError {
   /** Developer-facing detail; logged and shown in the editor, never on the wall. */
   message: string;
   setup?: SetupInfo;
+  /**
+   * `gone`: the thing asked for no longer exists where it lived (a recipe
+   * deleted in Mealie), which waiting will not fix. Taken from the answer's
+   * `reason`.
+   */
+  reason?: 'gone';
 }
 
 /** Wire shape of a classified setup error body from an API route. */
@@ -51,7 +57,7 @@ export function setupError(needs: SetupNeed, service: string, opts?: { message?:
 export function sameFetchError(a: FetchError | null, b: FetchError | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
-  return a.kind === b.kind && a.message === b.message
+  return a.kind === b.kind && a.message === b.message && a.reason === b.reason
     && a.setup?.needs === b.setup?.needs && a.setup?.service === b.setup?.service && a.setup?.page === b.setup?.page;
 }
 
@@ -62,9 +68,10 @@ export function sameFetchError(a: FetchError | null, b: FetchError | null): bool
 export async function readFetchError(res: Response, fallbackMessage: string): Promise<FetchError> {
   let msg = fallbackMessage;
   try {
-    const body = await res.json() as Partial<SetupErrorBody> & { detail?: string };
+    const body = await res.json() as Partial<SetupErrorBody> & { detail?: string; reason?: unknown };
     if (body.error) msg = body.error;
     if (body.detail) msg = `${msg}: ${body.detail}`;
+    if (body.reason === 'gone' && res.status === 404) return { ...transientError(msg), reason: 'gone' };
     if (body.code === 'setup' && body.setup && typeof body.setup.service === 'string') {
       const page = body.setup.page === 'weather' ? 'weather' : undefined;
       return { kind: 'setup', message: msg, setup: { needs: body.setup.needs, service: body.setup.service, ...(page ? { page } : {}) } };

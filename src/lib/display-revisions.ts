@@ -11,6 +11,7 @@ import { rotationRevision } from './rotation-revision';
 import { calendarRevision } from './calendar-revision';
 import { notesEtag } from './notes-revision';
 import { dayNotesEtag } from './day-notes-revision';
+import { mealsRevision } from './meals-revision';
 
 async function orUndefined(read: () => Promise<string>): Promise<string | undefined> {
   try {
@@ -31,7 +32,7 @@ async function orUndefined(read: () => Promise<string>): Promise<string | undefi
 export async function readDisplayRevisions(): Promise<DisplayRevisions> {
   // Never throws: an unreadable config falls back to the hub's own zone.
   const today = await householdToday();
-  const [buildId, plugins, config, timer, chores, rewards, notes, dayNotes] = await Promise.all([
+  const [buildId, plugins, config, timer, chores, rewards, notes, dayNotes, meals] = await Promise.all([
     orUndefined(readBuildId),
     orUndefined(getInstalledRevision),
     orUndefined(async () => wallConfigEtag(await readConfigCached())),
@@ -40,6 +41,7 @@ export async function readDisplayRevisions(): Promise<DisplayRevisions> {
     orUndefined(() => rewardsEtag(today)),
     orUndefined(notesEtag),
     orUndefined(dayNotesEtag),
+    orUndefined(mealsRevision),
   ]);
-  return { buildId, plugins, config, timer, chores, rewards, notes, dayNotes, library: libraryRevision(), calendar: calendarRevision(), rotation: rotationRevision() };
+  return { buildId, plugins, config, timer, chores, rewards, notes, dayNotes, meals, library: libraryRevision(), calendar: calendarRevision(), rotation: rotationRevision() };
 }

@@ -411,6 +411,7 @@
       },
       "heading": {
         "search": "Receitas com “{query}”",
+        "looking": "Procurando “{query}”…",
         "widened": "Nenhuma receita chamada “{query}”. Veja receitas com “{part}”.",
         "favorites": {
           "one": "{count} favorita",
@@ -430,6 +431,8 @@
       },
       "tryAgain": "Tentar de novo",
       "loading": "Buscando as receitas",
+      "loadingMore": "Buscando mais receitas…",
+      "moreFailed": "Não deu para buscar mais receitas",
       "noneTitle": "Nenhuma receita chamada “{query}”",
       "noneHint": "Confira a ortografia ou tente uma palavra mais curta.",
       "noRecipeTitle": "“{name}” ainda não tem receita",
@@ -535,6 +538,7 @@
       "nextStep": "Próximo passo",
       "loading": "Buscando a receita",
       "failed": "Não deu para buscar a receita agora",
+      "gone": "Esta receita não está mais no Mealie",
       "stepAria": "Passo {step}",
       "pageAria": "Página {page} de {pages}",
       "openCourseAria": "Abrir a receita de {name}",

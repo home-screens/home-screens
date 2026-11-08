@@ -411,6 +411,7 @@
       },
       "heading": {
         "search": "Rezepte mit „{query}“",
+        "looking": "Suche nach „{query}“…",
         "widened": "Keine Treffer für „{query}“. Hier sind Rezepte mit „{part}“.",
         "favorites": {
           "one": "1 Favorit",
@@ -430,6 +431,8 @@
       },
       "tryAgain": "Noch einmal versuchen",
       "loading": "Rezepte werden geladen",
+      "loadingMore": "Weitere Rezepte werden geladen…",
+      "moreFailed": "Weitere Rezepte lassen sich gerade nicht laden",
       "noneTitle": "Keine Rezepte namens „{query}“",
       "noneHint": "Prüfe die Schreibweise oder versuch ein kürzeres Wort.",
       "noRecipeTitle": "„{name}“ hat noch kein Rezept",
@@ -535,6 +538,7 @@
       "nextStep": "Nächster Schritt",
       "loading": "Rezept wird geladen",
       "failed": "Das Rezept lässt sich gerade nicht laden",
+      "gone": "Dieses Rezept gibt es in Mealie nicht mehr",
       "stepAria": "Schritt {step}",
       "pageAria": "Seite {page} von {pages}",
       "openCourseAria": "Rezept für {name} öffnen",

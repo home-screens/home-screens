@@ -35,6 +35,7 @@ vi.mock('@/lib/meal-data', () => {
     },
   };
   return {
+    MEALS_FILE: 'data/meals.json',
     readMealData,
     writeMealData,
     prunePlan: vi.fn((plan: unknown[]) => plan), // pass-through for tests
@@ -110,6 +111,8 @@ describe('GET /api/meals/data', () => {
     expect(res.status).toBe(200);
     expect(json.savedMeals).toHaveLength(1);
     expect(json.plan).toHaveLength(1);
+    // The revision a wall compares with its heartbeat's (`useMealsRefresh`).
+    expect(res.headers.get('X-Meals-Revision')).toMatch(/^"[0-9a-f]+"$/);
     // The vitest sandbox's data/ has no config.json, so the global falls
     // through to the default rather than a configured preference.
     expect(json.globalTimeFormat).toBe('12h');

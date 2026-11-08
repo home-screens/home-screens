@@ -411,6 +411,7 @@
       },
       "heading": {
         "search": "Recepten met ‘{query}’",
+        "looking": "Zoeken naar ‘{query}’…",
         "widened": "Niets met de naam ‘{query}’. Wel recepten met ‘{part}’.",
         "favorites": {
           "one": "1 favoriet",
@@ -430,6 +431,8 @@
       },
       "tryAgain": "Opnieuw proberen",
       "loading": "De recepten worden opgehaald",
+      "loadingMore": "Er worden meer recepten opgehaald…",
+      "moreFailed": "Meer recepten ophalen lukt nu niet",
       "noneTitle": "Geen recepten met de naam ‘{query}’",
       "noneHint": "Controleer de spelling of probeer een korter woord.",
       "noRecipeTitle": "‘{name}’ heeft nog geen recept",
@@ -535,6 +538,7 @@
       "nextStep": "Volgende stap",
       "loading": "Het recept wordt opgehaald",
       "failed": "Kan het recept nu niet ophalen",
+      "gone": "Dit recept staat niet meer in Mealie",
       "stepAria": "Stap {step}",
       "pageAria": "Pagina {page} van {pages}",
       "openCourseAria": "Recept voor {name} openen",

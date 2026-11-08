@@ -1500,6 +1500,7 @@
         "other": "Rechercher parmi {count} recettes…"
       },
       "noneDescription": "Vérifie l'orthographe, ou essaie un mot plus court.",
+      "moreFailed": "Impossible de récupérer d'autres recettes.",
       "emptyTitle": "Pas encore de recettes dans Mealie",
       "emptyDescription": "Les recettes que tu ajoutes dans Mealie apparaissent ici.",
       "openRecipeAriaLabel": "Ouvrir {meal} dans Mealie",

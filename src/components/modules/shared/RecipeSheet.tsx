@@ -176,7 +176,19 @@ export function RecipeSheet(props: RecipeSheetProps) {
   // Any touch on the recipe: its pages stop turning by themselves.
   const [touched, setTouched] = useState(false);
   // Kept only while this recipe is up: nothing is saved, nothing reaches the grocery list.
-  const [ticked, setTicked] = useState<ReadonlySet<number>>(() => new Set());
+  // By the line, not its place: an open recipe read again after a fix in
+  // Mealie (a minute's copy) that gained a line above keeps each tick on its
+  // own line. A line written twice is told apart by which copy it is.
+  const [ticked, setTicked] = useState<ReadonlySet<string>>(() => new Set());
+  const tickKeys = useMemo(() => {
+    const seen = new Map<string, number>();
+    return (detail?.ingredients ?? []).map((line) => {
+      const n = seen.get(line.text) ?? 0;
+      seen.set(line.text, n + 1);
+      return `${n}|${line.text}`;
+    });
+  }, [detail]);
+  const isTickedAt = useCallback((i: number) => ticked.has(tickKeys[i]), [ticked, tickKeys]);
   useEffect(() => {
     setPage(0);
     setMarker(null);
@@ -251,13 +263,14 @@ export function RecipeSheet(props: RecipeSheetProps) {
   }, [cook, markerPage]);
   const tick = useCallback((i: number) => {
     cook();
+    const key = tickKeys[i];
     setTicked((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
-  }, [cook]);
+  }, [cook, tickKeys]);
 
   // ── Pieces ── (`m`: drawing the hidden measuring copy, which carries no test ids)
   const tid = (name: string, m: boolean) => (m ? undefined : name);
@@ -415,7 +428,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
     const m = copy !== 'shown';
     const total = detail.ingredients.length;
     // The measuring copy counts as nothing ticked; the header's words never change a row's height.
-    const done = m ? 0 : detail.ingredients.filter((_, i) => ticked.has(i)).length;
+    const done = m ? 0 : detail.ingredients.filter((_, i) => isTickedAt(i)).length;
     const right = interactive && done > 0 ? t('meal-planner.recipe.ingredientsReady', { done, total }) : String(total);
     const grid = (
       <div
@@ -427,7 +440,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
         }}
       >
         {detail.ingredients.map((ing, i) => {
-          const isTicked = !m && ticked.has(i);
+          const isTicked = !m && isTickedAt(i);
           const text = (
             <span style={{
               color: isTicked ? 'var(--fmp-text-3)' : 'var(--fmp-text)', minWidth: 0, textAlign: 'left',
@@ -509,7 +522,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
     if (!interactive || !detail || detail.ingredients.length === 0) return null;
     const m = copy !== 'shown';
     const total = detail.ingredients.length;
-    const done = m ? 0 : detail.ingredients.filter((_, i) => ticked.has(i)).length;
+    const done = m ? 0 : detail.ingredients.filter((_, i) => isTickedAt(i)).length;
     const style: CSSProperties = {
       display: 'inline-flex', alignItems: 'baseline', gap: P(12), maxWidth: '100%', whiteSpace: 'nowrap', overflow: 'hidden',
       marginTop: P(6), padding: `${P(10)}px ${P(20)}px`, borderRadius: P(16), border: '1.5px solid var(--fmp-border)',
@@ -670,7 +683,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
     if (recipe.status === 'ready') return null;
     return card(
       <div data-testid={tid(`recipe-${recipe.status}`, m)} style={{ fontSize: P(32), color: 'var(--fmp-text-2)', textAlign: 'center', padding: `${P(40)}px 0` }}>
-        {t(recipe.status === 'loading' ? 'meal-planner.recipe.loading' : 'meal-planner.recipe.failed')}
+        {t(`meal-planner.recipe.${recipe.status}`)}
       </div>,
     );
   };

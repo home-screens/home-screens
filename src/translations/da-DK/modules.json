@@ -411,6 +411,7 @@
       },
       "heading": {
         "search": "Opskrifter med “{query}”",
+        "looking": "Leder efter “{query}”…",
         "widened": "Intet, der hedder “{query}”. Her er opskrifter med “{part}”.",
         "favorites": {
           "one": "1 favorit",
@@ -430,6 +431,8 @@
       },
       "tryAgain": "Prøv igen",
       "loading": "Henter opskrifterne",
+      "loadingMore": "Henter flere opskrifter…",
+      "moreFailed": "Kan ikke hente flere opskrifter lige nu",
       "noneTitle": "Ingen opskrifter, der hedder “{query}”",
       "noneHint": "Tjek stavningen, eller prøv et kortere ord.",
       "noRecipeTitle": "“{name}” har ingen opskrift endnu",
@@ -535,6 +538,7 @@
       "nextStep": "Næste trin",
       "loading": "Henter opskriften",
       "failed": "Kan ikke hente opskriften lige nu",
+      "gone": "Den her opskrift findes ikke i Mealie længere",
       "stepAria": "Trin {step}",
       "pageAria": "Side {page} af {pages}",
       "openCourseAria": "Åbn opskriften på {name}",

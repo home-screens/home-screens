@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { SavedMeal } from '@/types/config';
 import { MealClientError, type MealFetch } from '@/lib/meal-client';
-import { resetMealFavorites, useMealFavorite } from '../useMealFavorite';
+import { noteMealsLoaded, resetMealFavorites, useMealFavorite } from '../useMealFavorite';
 
 afterEach(() => {
   cleanup();
@@ -81,5 +81,25 @@ describe('useMealFavorite', () => {
     const { result } = renderHook(() => ({ own: useMealFavorite({ id: 'tacos' }, ok()), plan: useMealFavorite({ id: RECIPE }, ok()) }));
     expect(result.current.own.isFavorite).toBe(false);
     expect(result.current.plan.isFavorite).toBeNull();
+  });
+
+  /* A heart tapped on the wall and taken off on a phone afterwards stayed full on the wall until it reloaded. */
+  it('lets a list asked for after the save lead, even when it says otherwise', async () => {
+    const fetcher = ok();
+    const { result, rerender } = twoPlaces({ id: RECIPE, isFavorite: false }, fetcher);
+    act(() => result.current.tile.toggle());
+    await waitFor(() => expect(fetcher).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.tile.isFavorite).toBe(true));
+    // A list asked for before the save finished says nothing about it: the tap stays.
+    const old = { id: RECIPE, isFavorite: false };
+    noteMealsLoaded([old], 0);
+    rerender({ m: old });
+    expect(result.current.tile.isFavorite).toBe(true);
+    // One asked for afterwards says the heart was taken off elsewhere: it shows.
+    const later = { id: RECIPE, isFavorite: false };
+    noteMealsLoaded([later], Date.now() + 1);
+    rerender({ m: later });
+    await waitFor(() => expect(result.current.tile.isFavorite).toBe(false));
+    expect(result.current.card.isFavorite).toBe(false);
   });
 });

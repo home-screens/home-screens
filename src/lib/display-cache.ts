@@ -13,6 +13,7 @@ import { displayFetch } from '@/lib/display-fetch';
 import { followedRevision } from '@/lib/display-heartbeat';
 import { LIBRARY_REVISION_HEADER } from '@/lib/library-revision';
 import { CALENDAR_REVISION_HEADER } from '@/lib/calendar-revision';
+import { MEALS_REVISION_HEADER } from '@/lib/meals-hub-revision';
 import { logger } from '@/lib/logger';
 
 const log = logger('display-cache');
@@ -47,6 +48,7 @@ export function answerRevision(res: Response, asked: string | undefined): string
   return res.headers?.get?.('ETag')
     ?? res.headers?.get?.(LIBRARY_REVISION_HEADER)
     ?? res.headers?.get?.(CALENDAR_REVISION_HEADER)
+    ?? res.headers?.get?.(MEALS_REVISION_HEADER)
     ?? asked;
 }
 

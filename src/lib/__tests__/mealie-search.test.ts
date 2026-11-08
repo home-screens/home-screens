@@ -80,9 +80,12 @@ describe('searchMealieRecipes', () => {
     expect(call.init.retries).toBe(0);
   });
 
-  it('keeps the usual retries for a plain listing, which costs Mealie little', async () => {
+  it('keeps a retry for a plain listing, which costs Mealie little, inside the time a wall waits', async () => {
     await searchMealieRecipes({ filter: 'all' });
-    expect(recipeCalls()[0].init.retries).toBe(2);
+    const { retries, timeout } = recipeCalls()[0].init;
+    expect(retries).toBe(1);
+    // Two tries and the half-second pause between them end before a wall stops waiting for the hub.
+    expect(2 * (timeout ?? 0) + 500).toBeLessThan(15_000);
   });
 
   it('asks first for names where each word starts a word, keeps those that hold the words, and goes no further', async () => {

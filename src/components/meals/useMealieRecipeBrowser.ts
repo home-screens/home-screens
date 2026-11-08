@@ -29,8 +29,20 @@ export interface MealieRecipeBrowser {
   query: string;
   setQuery: (query: string) => void;
   shortcut: RecipeShortcut;
-  /** Show a shortcut, leaving the search box empty. */
+  /**
+   * Show a shortcut, leaving the search box empty. The one already showing,
+   * with nothing typed, reads it again (`refresh`): tapping the lit chip is
+   * how anyone asks for recipes just added in Mealie.
+   */
   choose: (choice: RecipeShortcutChoice) => void;
+  /** Read the recipes shown and the cookbooks again, keeping the list on screen meanwhile. */
+  refresh: () => void;
+  /**
+   * Goes up on every `refresh` (the lit chip tapped included), for what a
+   * surface reads beside the recipes (its categories, its count) to read
+   * again too.
+   */
+  refreshes: number;
   /** The household's category for the course being chosen ("Side"), when it has one. */
   courseCategory: MealieCategory | null;
   /** The household's cookbooks, for chips after the shortcuts. */
@@ -81,15 +93,28 @@ export function useMealieRecipeBrowser(
     enabled: enabled && ready,
     widen,
   });
-  // Asked again when Mealie answers after an outage, or the chips stay missing.
-  const cookbooks = useMealieCookbooks(fetcher, enabled && withCookbooks, search.recovered);
+  // Asked again when Mealie answers after an outage, or the chips stay missing,
+  // and on a refresh.
+  const [refreshes, setRefreshes] = useState(0);
+  const cookbooks = useMealieCookbooks(fetcher, enabled && withCookbooks, search.recovered + refreshes);
+
+  const { refresh: refreshSearch } = search;
+  const refresh = useCallback(() => {
+    refreshSearch();
+    setRefreshes((n) => n + 1);
+  }, [refreshSearch]);
 
   const choose = useCallback((choice: RecipeShortcutChoice) => {
+    const next: { filter: MealieRecipeFilter; category?: string; cookbook?: string } = typeof choice === 'string'
+      ? { filter: choice }
+      : 'category' in choice ? { filter: 'all', category: choice.category } : { filter: 'all', cookbook: choice.cookbook };
+    if (!typed && next.filter === chosen.filter && next.category === chosen.category && next.cookbook === chosen.cookbook) {
+      refresh();
+      return;
+    }
     setQuery('');
-    if (typeof choice === 'string') setChosen({ filter: choice });
-    else if ('category' in choice) setChosen({ filter: 'all', category: choice.category });
-    else setChosen({ filter: 'all', cookbook: choice.cookbook });
-  }, []);
+    setChosen(next);
+  }, [typed, chosen, refresh]);
 
   let shortcut: RecipeShortcut;
   if (typed) shortcut = { kind: 'search', query: typed };
@@ -97,5 +122,5 @@ export function useMealieRecipeBrowser(
   else if (chosen.category) shortcut = { kind: 'category', slug: chosen.category, name: courseCategory?.slug === chosen.category ? courseCategory.name : null };
   else shortcut = { kind: chosen.filter };
 
-  return { query, setQuery, shortcut, choose, courseCategory, cookbooks, search, ready };
+  return { query, setQuery, shortcut, choose, refresh, refreshes, courseCategory, cookbooks, search, ready };
 }

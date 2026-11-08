@@ -1500,6 +1500,7 @@
         "other": "Søg i {count} opskrifter…"
       },
       "noneDescription": "Tjek stavningen, eller prøv et kortere ord.",
+      "moreFailed": "Kan ikke hente flere opskrifter lige nu.",
       "emptyTitle": "Ingen opskrifter i Mealie endnu",
       "emptyDescription": "Opskrifter, I tilføjer i Mealie, vises her.",
       "openRecipeAriaLabel": "Åbn {meal} i Mealie",

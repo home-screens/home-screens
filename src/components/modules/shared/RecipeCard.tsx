@@ -42,14 +42,16 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
   const { panelStyle } = useMealOverlayTheme();
   const { serving, courses, scale } = useMemo(() => recipeServingAt(ctx, at, meal), [ctx, at, meal]);
   const recipe = useMealRecipe(meal, scale);
-  const recipeUrl = recipeLink(meal);
+  // A recipe deleted in Mealie: its page there is gone too, and so is anything to heart or cook.
+  const gone = recipe.status === 'gone';
+  const recipeUrl = gone ? '' : recipeLink(meal);
   // A recipe tapped in the book says whether it is a favorite; one tapped on
   // the plan does not, and its recipe, once read, does.
   const heartMeal = meal.isFavorite === undefined && recipe.status === 'ready' && recipe.favorite !== undefined
     ? { ...meal, isFavorite: recipe.favorite }
     : meal;
 
-  const footer = (measuring: boolean) => (
+  const footer = (measuring: boolean) => gone ? null : (
     <div style={{ display: 'flex', alignItems: 'center', gap: P(26), marginTop: P(24), flexShrink: 0 }}>
       {recipeUrl && (
         <div data-testid={measuring ? undefined : 'recipe-card-qr'} style={{
@@ -121,7 +123,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
         >
           &times;
         </button>
-        <WallRecipeHeart meal={heartMeal} P={P} place="card" />
+        {!gone && <WallRecipeHeart meal={heartMeal} P={P} place="card" />}
       </div>
     </WallOverlay>
   );

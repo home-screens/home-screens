@@ -30,6 +30,14 @@ describe('readFetchError', () => {
     expect(err).toEqual({ kind: 'transient', message: 'Failed: upstream 502' });
   });
 
+  it('says a 404 the hub answers as gone is gone, and nothing else', async () => {
+    expect(await readFetchError(res(404, { error: 'That recipe is no longer in Mealie.', reason: 'gone' }), 'API error 404'))
+      .toEqual({ kind: 'transient', message: 'That recipe is no longer in Mealie.', reason: 'gone' });
+    expect((await readFetchError(res(502, { error: 'x', reason: 'gone' }), 'API error 502')).reason).toBeUndefined();
+    expect((await readFetchError(res(404, { error: 'x' }), 'API error 404')).reason).toBeUndefined();
+    expect(sameFetchError({ ...transientError('x'), reason: 'gone' }, transientError('x'))).toBe(false);
+  });
+
   it('falls back to the given message when the body is not JSON', async () => {
     expect(await readFetchError(res(502), 'API error 502')).toEqual(transientError('API error 502'));
   });

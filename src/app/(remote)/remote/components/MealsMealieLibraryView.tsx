@@ -11,7 +11,7 @@ import { useTranslate } from '@/i18n';
 import { useMealieRecipeBrowser } from '@/components/meals/useMealieRecipeBrowser';
 import { useMealieLink } from '@/components/meals/useMealieLink';
 import { useMealFavorite } from '@/components/meals/useMealFavorite';
-import { useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
+import { noteMealieRecipeCount, useMealieRecipeCount } from '../hooks/useMealieRecipeCount';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import MealThumb from './MealThumb';
 import RecipeWallButton from './RecipeWallButton';
@@ -39,10 +39,23 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
   }, [onSaveFailed, t]);
   // Favorites, Recently made, All, or one of Mealie's own categories or
   // cookbooks, chosen from the chips after All.
-  const { query, setQuery, shortcut, choose, cookbooks, search } = useMealieRecipeBrowser(editorFetch);
+  const { query, setQuery, shortcut, choose, cookbooks, search, refresh, refreshes } = useMealieRecipeBrowser(editorFetch);
   const typed = query.trim();
-  const count = useMealieRecipeCount(true, search.recovered);
+  const count = useMealieRecipeCount(true, search.recovered + refreshes);
   const mealieLink = useMealieLink();
+  // All with nothing typed is the whole book, so its answer is the count in the box.
+  const allAnswered = shortcut.kind === 'all' && !search.loading && !search.outdated && !search.problem;
+  useEffect(() => {
+    if (allAnswered) noteMealieRecipeCount(search.total);
+  }, [allAnswered, search.total]);
+  // A phone tab is opened again hours later: read what Mealie has now.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refresh]);
 
   // The household's categories for the chips; without them the Library still
   // works from Favorites, Recently made and All. Asked again once Mealie
@@ -53,7 +66,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
     const controller = new AbortController();
     fetchMealieCategories(editorFetch, controller.signal).then(setCategories, () => {});
     return () => controller.abort();
-  }, [recovered]);
+  }, [recovered, refreshes]);
 
   // More cards as the list nears its end; the page itself scrolls here.
   const endRef = useRef<HTMLDivElement>(null);
@@ -192,6 +205,14 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
         ))}
       </RecipeShortcutChips>
       {body}
+      {/* The end of a page is not the end of the book. */}
+      {!search.loading && search.hasMore && search.loadingMore && <RecipeSkeletonRows count={2} square={64} radius={10} card />}
+      {!search.loading && search.hasMore && search.moreFailed && (
+        <div data-testid="mealie-library-more-failed" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '12px 16px 4px', textAlign: 'center' }}>
+          <span style={{ fontSize: 13, color: 'var(--hs-text-muted)' }}>{t('mealie.library.moreFailed')}</span>
+          <RetryButton onRetry={search.retryMore} style={{ padding: '0 18px' }} />
+        </div>
+      )}
       <div ref={endRef} aria-hidden style={{ height: 1 }} />
     </div>
   );

@@ -1500,6 +1500,7 @@
         "other": "Zoek in {count} recepten…"
       },
       "noneDescription": "Controleer de spelling of probeer een korter woord.",
+      "moreFailed": "Meer recepten ophalen lukt nu niet.",
       "emptyTitle": "Nog geen recepten in Mealie",
       "emptyDescription": "Recepten die je in Mealie toevoegt, staan hier.",
       "openRecipeAriaLabel": "{meal} openen in Mealie",

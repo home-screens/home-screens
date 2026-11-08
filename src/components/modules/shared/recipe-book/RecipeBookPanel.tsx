@@ -189,6 +189,23 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
 
   // ── What goes where the tiles are ──
   const heading = recipeBookHeading(words, book.active, book.total, book.active.kind === 'local' ? chipLabel(book.active) : '', book.widenedTo);
+  // The tiles on hand are the last chip's or words', or there are none yet:
+  // the heading says what is coming instead of counting the old ones.
+  const waiting = book.outdated || (book.loading && book.items.length === 0);
+  const tryAgain = (onClick: () => void, testId?: string) => (
+    <button
+      type="button"
+      {...wallPressProps}
+      data-testid={testId}
+      onClick={onClick}
+      style={{
+        marginTop: P(10), border: 0, borderRadius: 999, padding: `${P(20)}px ${P(44)}px`, background: 'var(--fmp-accent)',
+        color: 'var(--fmp-on-accent, #fff)', font: 'inherit', fontSize: P(30), fontWeight: 700, cursor: 'pointer',
+      }}
+    >
+      {t('meal-planner.recipeBook.tryAgain')}
+    </button>
+  );
   let body;
   if (problem && book.items.length === 0) {
     const word = problemWords(problem);
@@ -199,19 +216,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
         icon="cloudOff"
         title={t(`meal-planner.${word}`)}
         hint={t(`meal-planner.recipeBook.problemHint.${word}`)}
-        action={interactive && (
-          <button
-            type="button"
-            {...wallPressProps}
-            onClick={retry}
-            style={{
-              marginTop: P(10), border: 0, borderRadius: 999, padding: `${P(20)}px ${P(44)}px`, background: 'var(--fmp-accent)',
-              color: 'var(--fmp-on-accent, #fff)', font: 'inherit', fontSize: P(30), fontWeight: 700, cursor: 'pointer',
-            }}
-          >
-            {t('meal-planner.recipeBook.tryAgain')}
-          </button>
-        )}
+        action={interactive && tryAgain(retry)}
       />
     );
   } else if (book.loading && book.items.length === 0) {
@@ -234,23 +239,45 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
     );
   } else {
     body = (
-      <div data-testid="recipe-book-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, columnGap: gapX, rowGap: P(landscape ? 30 : 34) }}>
-        {book.items.map((meal) => (
-          <RecipeTile
-            key={meal.id}
-            meal={meal}
-            P={P}
-            nameSize={landscape ? 28 : 31}
-            metaSize={landscape ? 23 : 25}
-            onOpen={interactive ? setOpen : undefined}
-            heart={<WallRecipeHeart meal={meal} P={P} place="tile" interactive={interactive} />}
-          />
-        ))}
-      </div>
+      <>
+        <div
+          data-testid="recipe-book-grid"
+          data-outdated={book.outdated ? '' : undefined}
+          style={{
+            display: 'grid', gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, columnGap: gapX, rowGap: P(landscape ? 30 : 34),
+            // Old tiles stay (a blank grid on every key would flash) but read as old, and take no taps.
+            opacity: book.outdated ? 0.35 : 1, pointerEvents: book.outdated ? 'none' : undefined, transition: 'opacity 150ms',
+          }}
+        >
+          {book.items.map((meal) => (
+            <RecipeTile
+              key={meal.id}
+              meal={meal}
+              P={P}
+              nameSize={landscape ? 28 : 31}
+              metaSize={landscape ? 23 : 25}
+              onOpen={interactive ? setOpen : undefined}
+              heart={<WallRecipeHeart meal={meal} P={P} place="tile" interactive={interactive} />}
+            />
+          ))}
+          {/* More to come: the next page's places, so the end of a page never reads as the end of the book.
+              Only where a finger can scroll there; a wall without touch never reads another page. */}
+          {interactive && book.hasMore && !book.moreFailed && !book.outdated && <RecipeTileSkeletons count={cols} P={P} />}
+        </div>
+        {interactive && book.hasMore && book.moreFailed && !book.outdated && (
+          <div data-testid="recipe-book-more-failed" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: P(12), padding: `${P(40)}px 0 ${P(10)}px`, textAlign: 'center' }}>
+            <span style={{ fontSize: P(28), color: 'var(--fmp-text-2)' }}>{t('meal-planner.recipeBook.moreFailed')}</span>
+            {tryAgain(book.retryMore, 'recipe-book-more-retry')}
+          </div>
+        )}
+      </>
     );
   }
 
   const showHeading = book.items.length > 0 || (book.loading && !problem);
+  let headingText: string;
+  if (waiting) headingText = typed ? t('meal-planner.recipeBook.heading.looking', { query: words.trim() }) : t('meal-planner.recipeBook.loading');
+  else headingText = t(`meal-planner.recipeBook.heading.${heading.key}`, heading.values);
   const backStyle: CSSProperties = {
     background: 'var(--fmp-accent)', color: 'var(--fmp-on-accent, #fff)', fontSize: P(28), padding: `${P(16)}px ${P(34)}px`,
     boxShadow: '0 8px 24px color-mix(in srgb, var(--fmp-accent) 35%, transparent)',
@@ -267,10 +294,10 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       {showHeading && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: P(20), padding: `${P(30)}px ${side}px ${P(22)}px`, flexShrink: 0 }}>
           {/* The shorter-spelling line is a sentence and may take two lines; the others stay on one. */}
-          <span data-testid="recipe-book-heading" data-heading={heading.key} style={{ ...SECTION_LABEL, fontSize: P(23), minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: heading.key === 'widened' ? 'normal' : 'nowrap' }}>
-            {t(`meal-planner.recipeBook.heading.${heading.key}`, heading.values)}
+          <span data-testid="recipe-book-heading" data-heading={waiting ? 'waiting' : heading.key} style={{ ...SECTION_LABEL, fontSize: P(23), minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: !waiting && heading.key === 'widened' ? 'normal' : 'nowrap' }}>
+            {headingText}
           </span>
-          {heading.sideKey && (
+          {!waiting && heading.sideKey && (
             <span style={{ fontSize: P(23), fontWeight: 600, color: 'var(--fmp-text-3)', flexShrink: 0 }}>{t(`meal-planner.recipeBook.heading.${heading.sideKey}`)}</span>
           )}
         </div>
@@ -278,7 +305,7 @@ export function RecipeBookPanel({ book, P, landscape, interactive, headerFont, m
       <WallScroller
         enabled={interactive}
         testId="recipe-book-scroll"
-        homeKey={`${words.trim()}|${recipeBookChipId(book.active)}`}
+        homeKey={`${words.trim()}|${recipeBookChipId(book.active)}|${book.refreshed}`}
         backLabel={t('wallScroll.backToTop')}
         backStyle={backStyle}
         thumbColor="color-mix(in srgb, var(--fmp-text) 28%, transparent)"

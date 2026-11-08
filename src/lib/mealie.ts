@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'crypto';
 import { getSecret } from './secrets';
 import { createLastGoodCache, createTTLCache, fetchWithTimeout, type FetchRetryOptions } from './api-utils';
 import type { MealieContext } from './mealie-map';
+import { mealiePlanRevision } from './meals-hub-revision';
 
 /**
  * The hub's side of a connected Mealie (https://mealie.io): where it is, how
@@ -225,6 +226,16 @@ export async function mealieJson<T>(
   }
 }
 
+/**
+ * The budget for a read a wall is waiting on (the recipe book's pages, its
+ * chips, a recipe card, the hearts): two tries of 6 s with the half-second
+ * pause between them, inside the 15 s a wall waits for the hub
+ * (`DISPLAY_FETCH_TIMEOUT_MS`). The usual 10 s with two retries could run 30 s,
+ * so a first try that stalled left the retry 5 s before the wall walked away
+ * and the third try never started.
+ */
+export const MEALIE_WALL_READ = { timeout: 6_000, retries: 1 } as const satisfies FetchRetryOptions;
+
 /** Parse Mealie's own version string. `nightly` and other named builds count as current. */
 export function mealieMajorVersion(version: string): number | null {
   const m = /^v?(\d+)\./.exec(version.trim());
@@ -371,9 +382,13 @@ export async function readMealiePlan(start: string, end: string, { fresh = false
   }
 }
 
-/** Forget every cached plan read, after a save changed Mealie. */
+/**
+ * Forget every cached plan read, after a save changed Mealie, and tell the
+ * walls (the meals revision on their heartbeat) to read the plan again.
+ */
 export function clearMealiePlanCache(): void {
   planCache.clear();
+  mealiePlanRevision.bump();
 }
 
 export function createMealieEntry(entry: MealiePlanEntryWrite): Promise<MealiePlanEntry> {
@@ -618,10 +633,10 @@ export async function searchMealieRecipes(opts: {
     if (first.length > 0) return { items: first, page: 1, totalPages: 1, total: first.length };
   }
   const path = `/api/recipes?${params.toString()}`;
-  // Plain listings (by name, favorites, recently made) are cheap for Mealie and keep the usual retries.
+  // Plain listings (by name, favorites, recently made) are cheap for Mealie and keep a retry.
   const page = search || nameStart
     ? await mealieSearchJson<MealieRecipeListing>(path, opts.signal)
-    : await mealieJson<MealieRecipeListing>(path, { signal: opts.signal });
+    : await mealieJson<MealieRecipeListing>(path, { ...MEALIE_WALL_READ, signal: opts.signal });
   return {
     items: Array.isArray(page?.items) ? page.items : [],
     page: page?.page ?? 1,
@@ -642,7 +657,7 @@ export interface MealieCategory {
 
 /** The household's Mealie recipe categories, A to Z, for the Library's filters. */
 export async function listMealieCategories(): Promise<MealieCategory[]> {
-  const page = await mealieJson<{ items?: { name?: string; slug?: string }[] }>('/api/organizers/categories?perPage=-1&orderBy=name&orderDirection=asc');
+  const page = await mealieJson<{ items?: { name?: string; slug?: string }[] }>('/api/organizers/categories?perPage=-1&orderBy=name&orderDirection=asc', MEALIE_WALL_READ);
   return (page?.items ?? [])
     .filter((c): c is MealieCategory => typeof c.name === 'string' && typeof c.slug === 'string' && !!c.slug)
     .map((c) => ({ name: c.name, slug: c.slug }));
@@ -656,7 +671,7 @@ export interface MealieCookbook {
 
 /** The household's Mealie cookbooks, in the household's own order, for the Library's and the pickers' filters. */
 export async function listMealieCookbooks(): Promise<MealieCookbook[]> {
-  const page = await mealieJson<{ items?: { name?: string; slug?: string; position?: number }[] }>('/api/households/cookbooks?perPage=-1');
+  const page = await mealieJson<{ items?: { name?: string; slug?: string; position?: number }[] }>('/api/households/cookbooks?perPage=-1', MEALIE_WALL_READ);
   return (page?.items ?? [])
     .filter((c): c is MealieCookbook & { position?: number } => typeof c.name === 'string' && typeof c.slug === 'string' && !!c.slug)
     .sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name))
@@ -691,15 +706,24 @@ export interface MealieRecipe extends MealieRecipeSummary {
   recipeInstructions?: { title?: string | null; text?: string | null }[];
 }
 
-const recipeCache = createTTLCache<MealieRecipe>(10 * 60_000);
+/**
+ * Half a minute: a recipe fixed in Mealie (a typo, an amount) and then sent
+ * to the wall to cook from has to be the fixed one. Ten minutes here, on top
+ * of the wall's own copy, showed the old lines for up to twenty. Shorter than
+ * the wall's minute (`MEALIE_RECIPE_TTL_MS`), so each time an open card reads
+ * again it gets Mealie's recipe, not this copy from the last time: at a
+ * minute each, a re-read landing just inside this copy's minute kept the old
+ * lines for two. A read is one small call, made only while a recipe is open.
+ */
+const recipeCache = createTTLCache<MealieRecipe>(30_000);
 
-/** One recipe by its id, from a ten-minute cache: recipes change far less often than the plan. */
+/** One recipe by its id, from a half-minute cache shared by every wall. */
 export async function getMealieRecipe(recipeId: string): Promise<MealieRecipe> {
   const cfg = await requireMealieConfig();
   const key = `${mealieConnectionKey(cfg)}|${recipeId}`;
   const cached = recipeCache.get(key);
   if (cached) return cached;
-  const recipe = await mealieJson<MealieRecipe>(`/api/recipes/${encodeURIComponent(recipeId)}`, undefined, cfg);
+  const recipe = await mealieJson<MealieRecipe>(`/api/recipes/${encodeURIComponent(recipeId)}`, MEALIE_WALL_READ, cfg);
   recipeCache.set(key, recipe);
   return recipe;
 }
@@ -721,7 +745,7 @@ export async function getMealieFavoriteIds(cfg?: MealieConfig): Promise<Readonly
   const key = mealieConnectionKey(conn);
   const cached = favoritesCache.get(key);
   if (cached) return cached;
-  const answer = await mealieJson<{ ratings?: { recipeId?: unknown; isFavorite?: boolean }[] }>('/api/users/self/favorites', undefined, conn);
+  const answer = await mealieJson<{ ratings?: { recipeId?: unknown; isFavorite?: boolean }[] }>('/api/users/self/favorites', MEALIE_WALL_READ, conn);
   const ids = new Set<string>();
   for (const r of answer?.ratings ?? []) {
     if (typeof r.recipeId === 'string' && r.isFavorite !== false) ids.add(r.recipeId);
@@ -753,6 +777,52 @@ export async function setMealieFavorite(recipeId: string, favorite: boolean): Pr
     else next.delete(recipeId);
     favoritesCache.set(key, next);
   }
+}
+
+// ── Has the book changed ──
+
+/**
+ * Half a minute, shared by every wall: a wall showing the recipe book asks
+ * once a minute, so a change in Mealie reaches it within about a minute and a
+ * half, and Mealie answers this a couple of times a minute however many walls
+ * there are.
+ */
+const REVISION_TTL_MS = 30_000;
+const revisionCache = createLastGoodCache<string>(REVISION_TTL_MS, REVISION_TTL_MS);
+
+/**
+ * A short string that changes whenever what a recipe book shows could have:
+ * a recipe added, deleted, renamed, edited or filed under another category
+ * (how many there are and when the newest change was), a heart (the
+ * favorites), or a category or cookbook added, renamed or removed (the
+ * chips). A wall re-reads its book only when this moves, so an idle book costs
+ * Mealie one small listing, not a page of recipes. Mealie answers the newest
+ * change by itself in about 0.2 s with 7,700 recipes on a Pi.
+ */
+export async function getMealieRecipesRevision(): Promise<string> {
+  const cfg = await requireMealieConfig();
+  return revisionCache.read(mealieConnectionKey(cfg), async () => {
+    const [newest, favorites, categories, cookbooks] = await Promise.all([
+      mealieJson<MealieRecipeListing>('/api/recipes?page=1&perPage=1&orderBy=updatedAt&orderDirection=desc', MEALIE_WALL_READ, cfg),
+      getMealieFavoriteIds(cfg),
+      listMealieCategories(),
+      listMealieCookbooks(),
+    ]);
+    const latest = newest?.items?.[0];
+    const parts = [
+      String(newest?.total ?? 0),
+      latest?.updatedAt ?? latest?.dateUpdated ?? '',
+      [...favorites].sort().join(','),
+      categories.map((c) => `${c.slug}=${c.name}`).join(','),
+      cookbooks.map((c) => `${c.slug}=${c.name}`).join(','),
+    ];
+    return createHash('sha256').update(parts.join('|')).digest('hex').slice(0, 16);
+  });
+}
+
+/** Forget the revisions read; for tests. */
+export function clearMealieRecipesRevision(): void {
+  revisionCache.clear();
 }
 
 /** The sizes Mealie keeps of every recipe photo. */

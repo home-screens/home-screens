@@ -8,6 +8,7 @@ import { isGroceryChecked, normalizeGroceryChecked, pruneGroceryChecked, rekeyGr
 import { mealRevision } from '@/lib/meal-revision';
 import { normalizeStoredPlanEntry } from '@/lib/meal-courses';
 import { mealsAnswer, mealsWire } from '@/lib/meal-answer';
+import { MEALS_REVISION_HEADER, mealsRevision } from '@/lib/meals-revision';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,16 @@ function cameFromMealie(entry: unknown): boolean {
  * in-process writes invalidate it, so displays polling every 60s share one
  * config parse without serving stale or defaulted settings.
  *
+ * The answer says the meals revision it was read at (`X-Meals-Revision`),
+ * taken before the read, so a wall whose heartbeat names a newer one reads
+ * again (`useMealsRefresh`). Taken first, a write landing during the read
+ * leaves the answer behind rather than ahead.
  */
 export const GET = withDisplayAuth(async () => {
-  return NextResponse.json(await mealsAnswer(await readMealData()));
+  const revision = await mealsRevision();
+  const res = NextResponse.json(await mealsAnswer(await readMealData()));
+  res.headers.set(MEALS_REVISION_HEADER, revision);
+  return res;
 }, 'Failed to read meal data');
 
 /**

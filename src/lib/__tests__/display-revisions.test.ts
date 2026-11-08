@@ -30,6 +30,9 @@ import { notesEtag } from '@/lib/notes-revision';
 import { updateNotesData } from '@/lib/notes-data';
 import { dayNotesEtag } from '@/lib/day-notes-revision';
 import { updateDayNotesData } from '@/lib/day-notes-data';
+import { mealsRevision } from '@/lib/meals-revision';
+import { updateMealData } from '@/lib/meal-data';
+import { mealiePlanRevision } from '@/lib/meals-hub-revision';
 
 const CONFIG = { screens: [], settings: { timezone: 'UTC' } } as unknown as ScreenConfiguration;
 
@@ -66,6 +69,7 @@ describe('readDisplayRevisions', () => {
       rewards: '"rewards-2026-09-25"',
       notes: await notesEtag(),
       dayNotes: await dayNotesEtag(),
+      meals: await mealsRevision(),
       library: libraryRevision(),
       calendar: calendarRevision(),
       rotation: rotationRevision(),
@@ -92,6 +96,18 @@ describe('readDisplayRevisions', () => {
     expect({ ...after, dayNotes: undefined }).toEqual({ ...before, dayNotes: undefined });
   });
 
+  it('names a new meals revision once a meal is saved, and once a save changes the plan in Mealie', async () => {
+    const before = await readDisplayRevisions();
+    expect(before.meals).toMatch(/^"[0-9a-f]+"$/);
+    await updateMealData((data) => ({ ...data, savedMeals: [{ id: 'm1', name: 'Tacos' }] }));
+    const saved = await readDisplayRevisions();
+    expect(saved.meals).toBe(await mealsRevision());
+    expect(saved.meals).not.toBe(before.meals);
+    expect({ ...saved, meals: undefined }).toEqual({ ...before, meals: undefined });
+    mealiePlanRevision.bump();
+    expect((await readDisplayRevisions()).meals).not.toBe(saved.meals);
+  });
+
   it('leaves out only the notes and day notes when their folder cannot be looked at', async () => {
     // A file where the data folder should be: stat answers ENOTDIR, not ENOENT.
     await fs.rm(path.join(root, 'data'), { recursive: true });
@@ -101,6 +117,7 @@ describe('readDisplayRevisions', () => {
 
     expect(revisions.notes).toBeUndefined();
     expect(revisions.dayNotes).toBeUndefined();
+    expect(revisions.meals).toBeUndefined();
     expect(revisions).toMatchObject({ buildId: 'build-1', chores: '"chores-2026-09-25"', rewards: '"rewards-2026-09-25"' });
   });
 

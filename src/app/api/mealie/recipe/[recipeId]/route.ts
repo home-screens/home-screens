@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
-import { getMealieContext, getMealieFavoriteIds, getMealieRecipe } from '@/lib/mealie';
+import { getMealieContext, getMealieFavoriteIds, getMealieRecipe, MealieError } from '@/lib/mealie';
 import { isMealieRecipeId, mealieRecipeDetail } from '@/lib/mealie-map';
 import { normalizeRecipeScale } from '@/lib/meal-courses';
 import { withMealieErrors } from '@/lib/mealie-api';
@@ -16,7 +16,9 @@ type RouteContext = { params: Promise<{ recipeId: string }> };
  * `scale` (a double batch is 2) multiplies the amounts the way Mealie does;
  * omitted, the lines are Mealie's own. The meal says whether it is a
  * favorite, for the heart on the wall's recipe card. Display access, so a
- * wall can read it too. The recipe is cached ten minutes on the hub.
+ * wall can read it too. The recipe is cached half a minute on the hub. A recipe
+ * Mealie no longer has is `404` with `reason: 'gone'`, so a card can say it
+ * was removed rather than "not right now".
  */
 export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest, ctx: RouteContext) => {
   const { recipeId } = await ctx.params;
@@ -24,6 +26,15 @@ export const GET = withDisplayAuth(withMealieErrors(async (request: NextRequest,
   const rawScale = request.nextUrl.searchParams.get('scale');
   const scale = rawScale === null ? 1 : normalizeRecipeScale(Number(rawScale)) ?? (Number(rawScale) === 1 ? 1 : null);
   if (scale === null) return NextResponse.json({ error: 'scale must be a number above 0 and at most 100' }, { status: 400 });
-  const [recipe, mealie, favorites] = await Promise.all([getMealieRecipe(recipeId), getMealieContext(), getMealieFavoriteIds()]);
+  const [recipe, mealie, favorites] = await Promise.all([
+    getMealieRecipe(recipeId).catch((err: unknown) => {
+      // Mealie answers a recipe it no longer has with a 404 in JSON.
+      if (err instanceof MealieError && err.status === 404) return null;
+      throw err;
+    }),
+    getMealieContext(),
+    getMealieFavoriteIds(),
+  ]);
+  if (!recipe) return NextResponse.json({ error: 'That recipe is no longer in Mealie.', reason: 'gone' }, { status: 404 });
   return NextResponse.json(mealieRecipeDetail(recipe, mealie, scale, favorites));
 }), 'Failed to read the Mealie recipe');

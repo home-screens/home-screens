@@ -67,6 +67,16 @@ test.describe('Recipe book, a family without Mealie', () => {
     await expect(mod.getByTestId('recipe-book-count')).toHaveText('3 in the book');
   });
 
+  test('a meal saved from a phone shows in seconds, not at the next minute', async ({ page, request }) => {
+    await seedMeals(request, { savedMeals: LOCAL, plan: [] });
+    await show(request, 'fullscreen-meal-planner');
+    const mod = await open(page);
+    await expect.poll(() => tileNames(mod)).toEqual(['banana bread', 'Tacos', 'Waffles']);
+    // The wall's heartbeat names the meals revision; a change is read within a couple of beats.
+    await seedMeals(request, { savedMeals: [...LOCAL, { id: 'meal-c', name: 'Chili', notes: 'Simmer an hour.' }], plan: [] });
+    await expect.poll(() => tileNames(mod), { timeout: 15_000 }).toEqual(['banana bread', 'Chili', 'Tacos', 'Waffles']);
+  });
+
   test('searches with the wall keyboard and opens a recipe to cook from', async ({ page, request }) => {
     await seedMeals(request, { savedMeals: LOCAL, plan: [] });
     await show(request, 'fullscreen-meal-planner');
@@ -322,6 +332,63 @@ test.describe('Recipe book from Mealie', () => {
     await expect(sheet).toHaveCount(0);
     await expect(mod.getByTestId('recipe-book-chip-cookbook:kids-like-it')).toHaveAttribute('data-on', '');
     await expect.poll(() => sortedTileNames(mod)).toEqual(['Blueberry Pancakes', 'Mac and Cheese']);
+  });
+
+  test('reads Mealie again when the lit chip is tapped: a recipe added there shows, and both counts agree', async ({ page, request }) => {
+    mealie = await startFakeMealie();
+    await connectFakeMealie(request, mealie);
+    await show(request, 'fullscreen-meal-planner');
+    const mod = await open(page);
+    await mod.getByTestId('recipe-book-chip-all').click();
+    await expect(mod.getByTestId('recipe-book-heading')).toHaveText('6 recipes, A to Z');
+    await expect(mod.getByTestId('recipe-book-count')).toHaveText('6 recipes');
+
+    mealie.recipes = [...mealie.recipes, { id: '9a9a9a9a-0000-4000-8000-000000000001', slug: 'zucchini-bread', name: 'Zucchini Bread', photo: false, prepMinutes: 15 }];
+    await mod.getByTestId('recipe-book-chip-all').click();
+    await expect.poll(() => sortedTileNames(mod)).toContain('Zucchini Bread');
+    await expect(mod.getByTestId('recipe-book-heading')).toHaveText('7 recipes, A to Z');
+    await expect(mod.getByTestId('recipe-book-count')).toHaveText('7 recipes');
+  });
+
+  test('a recipe deleted in Mealie says so on its card, and leaves the book', async ({ page, request }) => {
+    mealie = await startFakeMealie();
+    await connectFakeMealie(request, mealie);
+    await show(request, 'fullscreen-meal-planner');
+    const mod = await open(page);
+    await mod.getByTestId('recipe-book-chip-all').click();
+    await expect.poll(() => sortedTileNames(mod)).toContain('Mac and Cheese');
+
+    mealie.recipes = mealie.recipes.filter((r) => r.name !== 'Mac and Cheese');
+    await mod.getByTestId('recipe-book-tile').filter({ hasText: 'Mac and Cheese' }).click();
+    const card = page.getByTestId('recipe-card');
+    await expect(card.getByTestId('recipe-gone')).toHaveText("This recipe isn't in Mealie anymore");
+    // Nothing to scan, heart or cook from.
+    await expect(card.getByTestId('recipe-card-qr')).toHaveCount(0);
+    await expect(card.getByTestId('recipe-card-stays')).toHaveCount(0);
+    await card.getByTestId('recipe-card-close').click();
+    await expect.poll(() => sortedTileNames(mod)).not.toContain('Mac and Cheese');
+  });
+
+  test('while a search is on its way, the last tiles read as old and the heading says what is coming', async ({ page, request }) => {
+    mealie = await startFakeMealie();
+    await connectFakeMealie(request, mealie);
+    await show(request, 'fullscreen-meal-planner');
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => { release = resolve; });
+    await page.route(/\/api\/mealie\/recipes\?.*search=/, async (route) => {
+      await held;
+      await route.continue();
+    });
+    const mod = await open(page);
+    await expect.poll(() => sortedTileNames(mod)).toEqual(['Apple Crumble', 'Harvest Chili']);
+    await mod.getByTestId('recipe-book-search').click();
+    await type(page, 'mac');
+    await expect(mod.getByTestId('recipe-book-grid')).toHaveAttribute('data-outdated', '');
+    await expect(mod.getByTestId('recipe-book-heading')).toHaveText('Looking for “mac”…');
+    release();
+    await expect.poll(() => tileNames(mod)).toEqual(['Mac and Cheese']);
+    await expect(mod.getByTestId('recipe-book-grid')).not.toHaveAttribute('data-outdated');
+    await expect(mod.getByTestId('recipe-book-heading')).toHaveText('Recipes with “mac”');
   });
 
   test('says so when Mealie is not answering', async ({ page, request }) => {

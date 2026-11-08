@@ -566,6 +566,19 @@ export async function fetchMealieCookbooks(fetcher: MealFetch, signal?: AbortSig
   return list.filter((c): c is MealieCookbook => !!c && typeof c.name === 'string' && typeof c.slug === 'string');
 }
 
+/**
+ * Whether the household's Mealie recipes changed: a short string that moves
+ * when they, the favorites, the categories or the cookbooks do. A recipe
+ * book on screen compares it with the last one and reads again when it moved.
+ */
+export async function fetchMealieRecipesRevision(fetcher: MealFetch, signal?: AbortSignal): Promise<string> {
+  const res = await fetcher('/api/mealie/recipes/revision', { signal });
+  const json = await readJson(res);
+  const revision = (json as { revision?: unknown } | null)?.revision;
+  if (!res.ok || typeof revision !== 'string') throw mealieRefusal('load', json, "We couldn't reach Mealie.");
+  return revision;
+}
+
 /** One Mealie recipe in full, by the id its saved meal carries (`mealie:<id>`). */
 export async function fetchMealieRecipeDetail(fetcher: MealFetch, recipeId: string, signal?: AbortSignal): Promise<MealieRecipeDetail> {
   const res = await fetcher(mealieRecipeUrl(recipeId), { signal });

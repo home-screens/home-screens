@@ -17,6 +17,25 @@ const changed = new Map<string, boolean>();
 const saving = new Map<string, number>();
 /** Each meal's saves, one after another, so two quick taps land in the order they were made. */
 const queue = new Map<string, Promise<void>>();
+/** When each heart's last save finished (`Date.now()`), by meal id. */
+const settledAt = new Map<string, number>();
+/**
+ * When the list a meal came in was asked for, for lists read from Mealie
+ * (`noteMealsLoaded`). One asked for after a heart's save finished says what
+ * the heart is now, whatever this page changed: a heart tapped here and taken
+ * off on a phone afterwards stayed drawn full until the page reloaded,
+ * because the remembered tap only gave way to a list that agreed with it.
+ */
+const askedAt = new WeakMap<object, number>();
+
+/**
+ * Record that these meals came in a list asked for at `at`. Only for answers
+ * that cannot predate a save made before `at` (a search the hub answers live
+ * from Mealie); the minute-polled meals copy can, so it is not stamped.
+ */
+export function noteMealsLoaded(meals: readonly object[], at: number): void {
+  for (const meal of meals) askedAt.set(meal, at);
+}
 const listeners = new Set<() => void>();
 /** `changed` as of the last change, a new map each time, for lists that read every heart. */
 let changedSnapshot: ReadonlyMap<string, boolean> = new Map();
@@ -62,14 +81,20 @@ export function useMealFavorite(
   const base = meal ? loaded(meal) : null;
   const isFavorite = mine ?? base;
 
-  // Once what was loaded says the same as the heart changed here, the loaded
-  // copy is the truth again, so a heart changed later in Mealie shows.
+  // Once what was loaded says the same as the heart changed here, or was
+  // asked for after its save finished, the loaded copy is the truth again,
+  // so a heart changed later in Mealie or on another screen shows.
+  const loadedAt = meal ? askedAt.get(meal) : undefined;
   useEffect(() => {
-    if (mine !== undefined && base === mine && !busy) {
+    if (mine === undefined || busy) return;
+    const saved = settledAt.get(id);
+    const newer = base !== null && loadedAt !== undefined && saved !== undefined && loadedAt >= saved;
+    if (base === mine || newer) {
       changed.delete(id);
+      settledAt.delete(id);
       emit();
     }
-  }, [id, mine, base, busy]);
+  }, [id, mine, base, busy, loadedAt]);
 
   const toggle = useCallback(() => {
     if (!id || isFavorite === null) return;
@@ -87,7 +112,10 @@ export function useMealFavorite(
       .finally(() => {
         const left = (saving.get(id) ?? 1) - 1;
         if (left > 0) saving.set(id, left);
-        else saving.delete(id);
+        else {
+          saving.delete(id);
+          settledAt.set(id, Date.now());
+        }
         if (queue.get(id) === run) queue.delete(id);
         emit();
       });
@@ -116,5 +144,6 @@ export function resetMealFavorites(): void {
   changed.clear();
   saving.clear();
   queue.clear();
+  settledAt.clear();
   emit();
 }

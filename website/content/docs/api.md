@@ -751,6 +751,12 @@ One page of the household's Mealie recipes as saved meals, searched in Mealie on
 
 **Response:** `{ "items": [{ "id": "mealie:...", "name": "Lasagne", "prepTime": 20, "photoUrl": "...", "isFavorite": true }], "page": 1, "totalPages": 29, "total": 848 }`
 
+### GET /api/mealie/recipes/revision
+
+A short string that changes whenever the household's Mealie recipes do: one added, deleted, renamed or edited, a heart, or a category or cookbook added, renamed or removed. A wall showing the recipe book asks once a minute and reads its recipes again only when this changes. Kept half a minute on the hub. Display access.
+
+**Response:** `{ "revision": "3f9c0a1b7d2e4c58" }`
+
 ### GET /api/mealie/shopping
 
 The household's Mealie shopping lists and one of them in full: `?list=<id>`, else the list the family shops from, else the one made first. Display access.

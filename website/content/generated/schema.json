@@ -11358,6 +11358,15 @@
       ]
     },
     {
+      "path": "/api/mealie/recipes/revision",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
       "path": "/api/mealie/shopping",
       "methods": [
         {

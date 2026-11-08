@@ -1500,6 +1500,7 @@
         "other": "{count} Rezepte durchsuchen…"
       },
       "noneDescription": "Prüfe die Schreibweise oder versuch ein kürzeres Wort.",
+      "moreFailed": "Weitere Rezepte lassen sich gerade nicht laden.",
       "emptyTitle": "Noch keine Rezepte in Mealie",
       "emptyDescription": "Rezepte, die du in Mealie anlegst, erscheinen hier.",
       "openRecipeAriaLabel": "{meal} in Mealie öffnen",

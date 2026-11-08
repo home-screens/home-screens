@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * Mealie's plan as the hub reads it: the minute cache every wall shares, and
@@ -160,5 +160,95 @@ describe('Mealie favorites', () => {
     ));
     await expect(setMealieFavorite(R2, true)).rejects.toMatchObject({ failure: 'upstream', status: 404 });
     expect([...await getMealieFavoriteIds()]).toEqual([R1]);
+  });
+});
+
+describe('the recipe book revision', () => {
+  // Each test its own key, so the caches of one never answer another.
+  let n = 0;
+  let book: { total: number; updatedAt: string; favorites: string[]; categories: string[]; cookbooks: string[] };
+  const revisionCalls = () => vi.mocked(fetchWithTimeout).mock.calls.filter(([url]) => String(url).includes('orderBy=updatedAt'));
+
+  beforeEach(async () => {
+    const { clearMealieRecipesRevision } = await import('../mealie');
+    clearMealieRecipesRevision();
+    vi.useRealTimers();
+    secrets.values = { mealie_url: 'http://mealie.local', mealie_api_key: `rev-${n++}` };
+    book = { total: 848, updatedAt: '2026-11-08T17:00:00Z', favorites: ['a'], categories: ['side'], cookbooks: ['weeknight'] };
+    vi.mocked(fetchWithTimeout).mockImplementation(async (url) => {
+      const u = String(url);
+      if (u.includes('orderBy=updatedAt')) return json({ items: [{ id: 'x', slug: 'x', name: 'X', updatedAt: book.updatedAt }], total: book.total });
+      if (u.endsWith('/api/users/self/favorites')) return json({ ratings: book.favorites.map((recipeId) => ({ recipeId, isFavorite: true })) });
+      if (u.includes('/api/organizers/categories')) return json({ items: book.categories.map((slug) => ({ name: slug, slug })) });
+      if (u.includes('/api/households/cookbooks')) return json({ items: book.cookbooks.map((slug) => ({ name: slug, slug })) });
+      throw new Error(`unexpected ${u}`);
+    });
+  });
+
+  it('asks Mealie once for every wall, with the budget a wall can wait for', async () => {
+    const { getMealieRecipesRevision, MEALIE_WALL_READ } = await import('../mealie');
+    const [a, b] = await Promise.all([getMealieRecipesRevision(), getMealieRecipesRevision()]);
+    expect(a).toBe(b);
+    expect(a).toMatch(/^[0-9a-f]{16}$/);
+    expect(revisionCalls()).toHaveLength(1);
+    expect(revisionCalls()[0][1]).toMatchObject(MEALIE_WALL_READ);
+  });
+
+  it('moves when a recipe is added, deleted or edited, a heart changes, or a chip would', async () => {
+    const { clearMealieRecipesRevision, getMealieRecipesRevision } = await import('../mealie');
+    const seen = new Set<string>();
+    const read = async () => {
+      clearMealieRecipesRevision();
+      // The hearts are kept half a minute on their own; a new key reads them again.
+      secrets.values = { ...secrets.values, mealie_api_key: `rev-${n++}` };
+      return getMealieRecipesRevision();
+    };
+    seen.add(await read());
+    expect(await read()).toBe([...seen][0]);
+    const changes: Array<() => void> = [
+      () => { book.total = 849; book.updatedAt = '2026-11-08T17:01:00Z'; },
+      () => { book.total = 848; },
+      () => { book.updatedAt = '2026-11-08T17:02:00Z'; },
+      () => { book.favorites = ['a', 'b']; },
+      () => { book.categories = ['side', 'soup']; },
+      () => { book.cookbooks = []; },
+    ];
+    for (const change of changes) {
+      change();
+      const next = await read();
+      expect(seen.has(next)).toBe(false);
+      seen.add(next);
+    }
+  });
+});
+
+describe('a recipe for a wall', () => {
+  const ID = '0f1e2d3c-4b5a-4968-8776-655443322110';
+  let n = 0;
+  beforeEach(() => {
+    secrets.values = { mealie_url: 'http://mealie.local', mealie_api_key: `recipe-${n++}` };
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('is kept half a minute, so an open card reading again each minute gets the fixed recipe', async () => {
+    vi.useFakeTimers({ now: new Date('2026-11-08T17:00:00Z'), toFake: ['Date'] });
+    let name = 'Chili';
+    vi.mocked(fetchWithTimeout).mockImplementation(async () => json({ id: ID, slug: 'chili', name }));
+    const { getMealieRecipe, MEALIE_WALL_READ } = await import('../mealie');
+    expect((await getMealieRecipe(ID)).name).toBe('Chili');
+    expect(vi.mocked(fetchWithTimeout).mock.calls[0][1]).toMatchObject(MEALIE_WALL_READ);
+    name = 'Chili, fixed';
+    vi.setSystemTime(new Date('2026-11-08T17:00:25Z'));
+    expect((await getMealieRecipe(ID)).name).toBe('Chili');
+    vi.setSystemTime(new Date('2026-11-08T17:00:31Z'));
+    expect((await getMealieRecipe(ID)).name).toBe('Chili, fixed');
+  });
+
+  it("says a recipe Mealie no longer has is gone, by Mealie's own 404", async () => {
+    vi.mocked(fetchWithTimeout).mockImplementation(async () => new Response('{"detail":"Not found"}', { status: 404, headers: { 'Content-Type': 'application/json' } }));
+    const { getMealieRecipe } = await import('../mealie');
+    await expect(getMealieRecipe(ID)).rejects.toMatchObject({ failure: 'upstream', status: 404 });
   });
 });

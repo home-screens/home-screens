@@ -24,7 +24,7 @@ import PaginationDots from './PaginationDots';
 import { useOpenedScreen } from './useOpenedScreen';
 import { resolveGoBackAfterMs, showsOnlyWhenOpened } from '@/lib/on-demand-screen';
 import { useDisplayControl } from './useDisplayControl';
-import { useCalendarRefresh, useLibraryRefresh } from '@/hooks/useRevisionRefresh';
+import { useCalendarRefresh, useLibraryRefresh, useMealsRefresh } from '@/hooks/useRevisionRefresh';
 import { useDisplayRules } from './useDisplayRules';
 import { useBackgroundRotation } from './useBackgroundRotation';
 import { screenBackgroundSrc } from '@/lib/screen-background';
@@ -538,6 +538,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // and a Google Calendar sign-in reaches the calendar the same way.
   useLibraryRefresh();
   useCalendarRefresh();
+  useMealsRefresh();
 
   // Shared data needs all screens (for weather provider detection), not just
   // active profile screens. After useDisplayControl because an asleep wall

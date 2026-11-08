@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { subscribeRevisions, type DisplayRevisions } from '@/lib/display-heartbeat';
 import { displayCache } from '@/lib/display-cache';
-import { isLibraryListUrl } from '@/lib/fetch-keys';
 import { isCalendarReadUrl } from '@/lib/calendar-sources';
+import { isLibraryListUrl, mealsDataUrl } from '@/lib/fetch-keys';
 
 /**
  * Re-reads the wall's cached answers for one kind of data when the hub says
@@ -25,7 +25,7 @@ import { isCalendarReadUrl } from '@/lib/calendar-sources';
  * once.
  */
 export function useRevisionRefresh(
-  field: keyof Pick<DisplayRevisions, 'library' | 'calendar'>,
+  field: keyof Pick<DisplayRevisions, 'library' | 'calendar' | 'meals'>,
   isRead: (url: string) => boolean,
 ): void {
   useEffect(() => {
@@ -60,4 +60,12 @@ export function useLibraryRefresh(): void {
 /** The calendar, after a Google Calendar sign-in or disconnect. */
 export function useCalendarRefresh(): void {
   useRevisionRefresh('calendar', isCalendarReadUrl);
+}
+
+const MEALS_URL = mealsDataUrl();
+const isMealsReadUrl = (url: string) => url.split('?')[0] === MEALS_URL;
+
+/** The meals, after a phone or the editor saved, planned, hearted or ticked something. */
+export function useMealsRefresh(): void {
+  useRevisionRefresh('meals', isMealsReadUrl);
 }
