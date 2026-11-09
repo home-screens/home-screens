@@ -1,7 +1,7 @@
 import { uuid } from '@/lib/uuid';
 import type { ModuleInstance } from '@/types/config';
 import { DEFAULT_MODULE_STYLE as defaultStyle } from '@/types/config';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { addedModuleSize, addsAtOrigin, getModuleDefinition } from '@/lib/module-registry';
 import { defaultPresetForLocale } from '@/lib/news-presets';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, GRID_SIZE } from '@/lib/constants';
 import {
@@ -51,7 +51,6 @@ export function createModuleSlice(
       if (!def) return;
       const state = get();
       const cfg = state.config;
-      const fillsCanvas = def.fillsCanvas && cfg;
       const dims = cfg
         ? getActiveDimensions(cfg, state.selectedDisplayId)
         : { width: DEFAULT_DISPLAY_WIDTH, height: DEFAULT_DISPLAY_HEIGHT };
@@ -71,12 +70,18 @@ export function createModuleSlice(
         const preset = defaultPresetForLocale(cfg?.settings?.locale);
         moduleConfig.feeds = [{ id: `default-${preset.id}`, url: preset.url, label: preset.publisher }];
       }
-      const size = fillsCanvas ? { w: dims.width, h: dims.height } : { ...def.defaultSize };
+      const size = addedModuleSize(def, dims);
       // No drop point (palette click / Enter) — take the next free spot on the
       // target screen so the new module never lands hidden under another one.
-      const resolvedPosition = fillsCanvas
+      // A drop point is held inside the canvas for the box actually placed.
+      const resolvedPosition = addsAtOrigin(def)
         ? { x: 0, y: 0 }
-        : position ?? findFreePosition(
+        : position
+          ? {
+            x: Math.max(0, Math.min(dims.width - size.w, position.x)),
+            y: Math.max(0, Math.min(dims.height - size.h, position.y)),
+          }
+          : findFreePosition(
             (cfg ? getActiveScreens(cfg, state.selectedDisplayId) : []).find((s) => s.id === screenId)?.modules ?? [],
             size,
             dims,

@@ -19,7 +19,7 @@ import { useUndoRedoShortcuts } from '@/hooks/useUndoRedoShortcuts';
 import { useCanvasKeyboardShortcuts } from '@/hooks/useCanvasKeyboardShortcuts';
 import { resolveDragPosition } from '@/lib/alignment-guides';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT, MIN_EDITOR_WIDTH, snapToGrid } from '@/lib/constants';
-import { getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
+import { addedModuleSize, getModuleDefinition, resolveModuleLabel } from '@/lib/module-registry';
 import { resolveChoreModuleConfig } from '@/lib/chore-module-config';
 import type { ModuleType } from '@/types/config';
 
@@ -135,11 +135,10 @@ export default function EditorPage() {
       if (data?.source === 'palette' && over?.id === 'canvas-drop') {
         const scale = canvasScaleRef.current;
         const moduleType = data.moduleType as ModuleType;
-        // Resolve through the registry so plugin-registered modules use their
-        // own declared `defaultSize` instead of falling through to the generic
-        // 200×200 guard. The fallback only kicks in for truly unregistered
-        // types (e.g. a stale palette entry).
-        const defaultSize = getModuleDefinition(moduleType)?.defaultSize ?? { w: 200, h: 200 };
+        // Center the drop on the box the module will actually take (its
+        // default size, fitted to this canvas, or the whole canvas), resolved
+        // through the registry so plugin-registered modules count too.
+        const defaultSize = addedModuleSize(getModuleDefinition(moduleType), dims);
         // dnd-kit's event.delta is the translate applied to the active node
         // (with scroll-offset compensation baked in), not the raw pointer
         // delta — using it for drop position breaks whenever a scrollable

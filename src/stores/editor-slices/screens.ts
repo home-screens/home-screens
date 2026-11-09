@@ -1,7 +1,7 @@
 import { uuid } from '@/lib/uuid';
 import { arrayMove } from '@dnd-kit/sortable';
 import type { ModuleInstance, Screen } from '@/types/config';
-import { getModuleDefinition } from '@/lib/module-registry';
+import { addedModuleSize, getModuleDefinition } from '@/lib/module-registry';
 import { defaultPresetForLocale } from '@/lib/news-presets';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import { pruneDanglingScreenRefs, screensWithOpenButtonsMoved } from '@/lib/display-filter';
@@ -56,7 +56,7 @@ export function createScreenSlice(
         id: uuid(),
         type: twin.type,
         position: { x: 0, y: 0 },
-        size: def.fillsCanvas ? { w: dims.width, h: dims.height } : { ...def.defaultSize },
+        size: addedModuleSize(def, dims),
         zIndex: 1,
         config: moduleConfig,
         style: { ...DEFAULT_MODULE_STYLE, ...def.defaultStyle },

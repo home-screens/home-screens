@@ -131,6 +131,37 @@ describe('editor store', () => {
       expect(feeds[0].url).toBe(defaultPresetForLocale('en-US').url);
     });
 
+    describe('size on a landscape display', () => {
+      const landscape = () => {
+        const config = makeConfig();
+        config.settings.displayWidth = 1920;
+        config.settings.displayHeight = 1080;
+        return config;
+      };
+      const plugin = (extra: Record<string, unknown>) => ({
+        id: 'big', name: 'Big', version: '1.0.0', moduleType: 'big-widget', category: 'Personal',
+        defaultConfig: {}, defaultSize: { w: 1080, h: 1920 }, ...extra,
+      }) as unknown as import('@/types/plugins').PluginManifest;
+
+      it('starts a fillsCanvasOnAdd plugin at the whole canvas, even from a drop point', async () => {
+        (await import('@/lib/module-registry')).registerPluginModule(plugin({ fillsCanvasOnAdd: true }));
+        useEditorStore.setState({ config: landscape(), isDirty: false });
+        useEditorStore.getState().addModule('screen-1', 'plugin:big-widget' as never, { x: 400, y: 0 });
+        const mod = useEditorStore.getState().config!.screens[0].modules[0];
+        expect(mod.size).toEqual({ w: 1920, h: 1080 });
+        expect(mod.position).toEqual({ x: 0, y: 0 });
+      });
+
+      it('shrinks an oversized default to fit and keeps the drop inside the canvas', async () => {
+        (await import('@/lib/module-registry')).registerPluginModule(plugin({}));
+        useEditorStore.setState({ config: landscape(), isDirty: false });
+        useEditorStore.getState().addModule('screen-1', 'plugin:big-widget' as never, { x: 1600, y: 300 });
+        const mod = useEditorStore.getState().config!.screens[0].modules[0];
+        expect(mod.size).toEqual({ w: 607, h: 1080 });
+        expect(mod.position).toEqual({ x: 1920 - 607, y: 0 });
+      });
+    });
+
     it('renormalizes a legacy tied screen so zIndex stays dense on add', () => {
       const store = useEditorStore;
       const config = makeConfig();

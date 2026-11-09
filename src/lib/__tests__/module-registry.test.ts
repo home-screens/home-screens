@@ -10,6 +10,8 @@ import {
   unregisterModule,
   resolveModuleLabel,
   styleReachesModule,
+  addedModuleSize,
+  addsAtOrigin,
 } from '@/lib/module-registry';
 import type { ModuleDefinition } from '@/lib/module-registry';
 import type { ModuleType, BuiltinModuleType } from '@/types/config';
@@ -650,5 +652,47 @@ describe('resolveModuleLabel', () => {
   it('falls back to the raw type for anything unregistered', () => {
     expect(resolveModuleLabel('plugin:acme:missing' as ModuleType, t)).toBe('plugin:acme:missing');
     expect(resolveModuleLabel('not-a-module' as ModuleType, t)).toBe('not-a-module');
+  });
+});
+
+describe('addedModuleSize: the box a new module takes', () => {
+  const portrait = { width: 1080, height: 1920 };
+  const landscape = { width: 1920, height: 1080 };
+  const manifest = {
+    id: 'big', name: 'Big', version: '1.0.0', moduleType: 'big-widget', category: 'Personal',
+    defaultSize: { w: 1080, h: 1920 },
+  } as unknown as import('@/types/plugins').PluginManifest;
+
+  afterEach(() => {
+    unregisterModule('plugin:big-widget' as ModuleType);
+  });
+
+  it('keeps a default size that fits', () => {
+    expect(addedModuleSize(getModuleDefinition('clock'), landscape)).toEqual(getModuleDefinition('clock')!.defaultSize);
+  });
+
+  it('shrinks a default bigger than the canvas, keeping its shape', () => {
+    registerPluginModule(manifest);
+    const def = getModuleDefinition('plugin:big-widget' as ModuleType);
+    expect(addedModuleSize(def, portrait)).toEqual({ w: 1080, h: 1920 });
+    expect(addedModuleSize(def, landscape)).toEqual({ w: 607, h: 1080 });
+    expect(addsAtOrigin(def)).toBe(false);
+  });
+
+  it('gives a plugin that asks for it the whole canvas, in either orientation', () => {
+    registerPluginModule({ ...manifest, fillsCanvasOnAdd: true });
+    const def = getModuleDefinition('plugin:big-widget' as ModuleType)!;
+    expect(def.fillsCanvasOnAdd).toBe(true);
+    expect(addedModuleSize(def, landscape)).toEqual({ w: 1920, h: 1080 });
+    expect(addedModuleSize(def, portrait)).toEqual({ w: 1080, h: 1920 });
+    expect(addsAtOrigin(def)).toBe(true);
+    // Still an ordinary module: Style reaches it, unlike fillsCanvas.
+    expect(def.fillsCanvas).toBeUndefined();
+    expect(styleReachesModule(def)).toBe(true);
+  });
+
+  it('ignores anything but a literal true from a manifest', () => {
+    registerPluginModule({ ...manifest, fillsCanvasOnAdd: 'yes' as unknown as boolean });
+    expect(getModuleDefinition('plugin:big-widget' as ModuleType)!.fillsCanvasOnAdd).toBe(false);
   });
 });

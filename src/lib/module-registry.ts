@@ -78,6 +78,14 @@ export interface ModuleDefinition {
   /** When true, the module snaps to full canvas size (position 0,0) on add. */
   fillsCanvas?: boolean;
   /**
+   * When true, a new instance starts at the full canvas size (position 0,0),
+   * in whichever orientation the display has, but stays an ordinary module:
+   * resizable, movable, and styled. Plugins opt in with the manifest's
+   * `fillsCanvasOnAdd`; they cannot be `fillsCanvas`, which also pins the
+   * module and hides its Style section.
+   */
+  fillsCanvasOnAdd?: boolean;
+  /**
    * True for modules that render bare, without ModuleWrapper's card chrome
    * (currently only display-control among builtins).
    *
@@ -278,6 +286,7 @@ export function registerPluginModule(
     defaultConfig: manifest.defaultConfig ?? {},
     defaultSize: manifest.defaultSize ?? { w: 400, h: 300 },
     defaultStyle: manifest.defaultStyle,
+    fillsCanvasOnAdd: manifest.fillsCanvasOnAdd === true,
     description: manifest.description,
     providesState,
     deriveProvidedKeys,
@@ -334,6 +343,30 @@ export function resolveFullscreenTheme(
  */
 export function styleReachesModule(def: Pick<ModuleDefinition, 'fillsCanvas' | 'cardless'> | undefined): boolean {
   return !def?.fillsCanvas && !def?.cardless;
+}
+
+/**
+ * The box a newly added module takes on a canvas of `dims`.
+ *
+ * A module that fills the canvas takes the whole of it. Anything else takes
+ * its default size, shrunk (keeping its shape) when that is bigger than the
+ * canvas, so a module designed for a portrait wall never lands half off a
+ * landscape one.
+ */
+export function addedModuleSize(
+  def: Pick<ModuleDefinition, 'defaultSize' | 'fillsCanvas' | 'fillsCanvasOnAdd'> | undefined,
+  dims: { width: number; height: number },
+): { w: number; h: number } {
+  if (def?.fillsCanvas || def?.fillsCanvasOnAdd) return { w: dims.width, h: dims.height };
+  const size = def?.defaultSize ?? { w: 200, h: 200 };
+  const scale = Math.min(1, dims.width / size.w, dims.height / size.h);
+  if (!(scale > 0) || scale >= 1) return { ...size };
+  return { w: Math.floor(size.w * scale), h: Math.floor(size.h * scale) };
+}
+
+/** A new instance of this module goes to the canvas origin, not a drop point. */
+export function addsAtOrigin(def: Pick<ModuleDefinition, 'fillsCanvas' | 'fillsCanvasOnAdd'> | undefined): boolean {
+  return Boolean(def?.fillsCanvas || def?.fillsCanvasOnAdd);
 }
 
 /**

@@ -83,7 +83,7 @@ The host only *rejects* a manifest missing `id`, `name`, `version`, `moduleType`
 | `category` | string | Module palette category (e.g., `"Weather & Environment"`, `"Personal"`, or any custom string). |
 | `icon` | string | Lucide icon name (e.g., `"sparkles"`, `"cloud-rain"`). |
 | `defaultConfig` | object | Default configuration values for new instances of this module. |
-| `defaultSize` | object | Default grid size as `{ w: number, h: number }` in pixels. |
+| `defaultSize` | object | Default grid size as `{ w: number, h: number }` in pixels. A size bigger than the screen is shrunk to fit, keeping its shape. |
 | `exports` | object | Maps export names in your bundle: `component` (defaults to `default`), `configSection` (optional, see [Custom Config Section](#custom-config-section)), and `stateProvider` (optional headless publisher, see [Shared State and Visibility Conditions](#shared-state-and-visibility-conditions)). |
 
 ### Optional Fields
@@ -91,6 +91,7 @@ The host only *rejects* a manifest missing `id`, `name`, `version`, `moduleType`
 | Field | Type | Description |
 |---|---|---|
 | `defaultStyle` | object | Partial `ModuleStyle` overrides (e.g., `{ "fontSize": 26 }`). |
+| `fillsCanvasOnAdd` | boolean | Start new instances at the full screen size instead of `defaultSize`, portrait or landscape. The module can still be resized and styled. For full-screen plugins. |
 | `configSchema` | object | JSON Schema with UI widget annotations for declarative config rendering (see below). Ignored entirely if your bundle also exports a `ConfigSection`. |
 | `settingsSchema` | object | Same dialect as `configSchema`, but for values shared by every instance of the plugin rather than per module (see [Settings Schema](#settings-schema)). |
 | `dataRequirements` | array | Data the plugin needs from the host: `"location"`, `"weather"`, `"calendar"`. |

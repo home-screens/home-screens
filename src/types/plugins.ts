@@ -25,6 +25,12 @@ export interface PluginManifest {
   icon: string; // lucide icon name
   defaultConfig: Record<string, unknown>;
   defaultSize: { w: number; h: number };
+  /**
+   * Start new instances at the full canvas size instead of `defaultSize`, in
+   * whichever orientation the display has. The module stays resizable and
+   * styled. For full-screen plugins; hosts that predate it use `defaultSize`.
+   */
+  fillsCanvasOnAdd?: boolean;
   defaultStyle?: Partial<ModuleStyle>;
   configSchema?: PluginConfigSchema;
   /**
