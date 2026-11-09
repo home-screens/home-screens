@@ -645,6 +645,29 @@ describe('runUpgrade — tarball path', () => {
     expect((downloadCall![1] as string[])[3]).toBe('home-screens/home-screens');
   });
 
+  it('shows the script\'s own error when it exits with one, not the raw JSON line', async () => {
+    const message = 'This device could not reach GitHub to download v1.2.0. Check its internet connection and try again.';
+    mockSpawn.mockImplementation((_cmd: string, args: string[]) => (args[1] === 'download'
+      ? createFakeChild(`curl progress\n${JSON.stringify({ ok: false, error: message })}`, 1)
+      : createFakeChild(JSON.stringify({ ok: true }))));
+    const errors: string[] = [];
+    upgradeModule.subscribeToEvents((e) => {
+      if (e.type === 'progress' && e.step === 'error' && e.error) errors.push(e.error);
+    });
+
+    await expect(upgradeModule.runUpgrade('v1.2.0')).rejects.toThrow(message);
+
+    expect(errors).toEqual([message]);
+  });
+
+  it('keeps the step name and output tail when a script exits without its own error', async () => {
+    mockSpawn.mockImplementation((_cmd: string, args: string[]) => (args[1] === 'download'
+      ? createFakeChild('tar: unexpected end of file', 1)
+      : createFakeChild(JSON.stringify({ ok: true }))));
+
+    await expect(upgradeModule.runUpgrade('v1.2.0')).rejects.toThrow('download failed: tar: unexpected end of file');
+  });
+
   it('cleans up staging directory on pipeline failure', async () => {
     let callCount = 0;
     mockSpawn.mockImplementation(() => {

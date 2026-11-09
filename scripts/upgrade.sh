@@ -564,10 +564,28 @@ case "${action}" in
     # Clean up staging on any failure, signal, or cancellation
     trap 'rm -rf "${staging_dir}" 2>/dev/null; true' ERR INT TERM
 
-    # Check that the release asset exists before committing to download
-    if ! curl -fsSL --head --max-time 10 "${download_url}" >/dev/null 2>&1; then
+    # Check that the release asset exists before committing to download.
+    # Only a 404 means the file is missing. A device that cannot reach GitHub
+    # (no network, DNS, a clock too far off for TLS, the 10 s limit) was told
+    # "not found" too, which sent people looking for a release that was there
+    # all along, so curl's own reason goes along with that message.
+    head_err=$(mktemp)
+    head_exit=0
+    head_status=$(curl -sSL --head --max-time 10 -o /dev/null -w '%{http_code}' "${download_url}" 2>"${head_err}") || head_exit=$?
+    head_reason=$(tr '\r\n' '  ' <"${head_err}" | sed -e 's/ *$//' -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+    rm -f "${head_err}"
+    head_error=""
+    if [ "${head_exit}" -ne 0 ]; then
+      head_error="This device could not reach GitHub to download ${tag}. Check its internet connection and try again."
+      [ -z "${head_reason}" ] || head_error="${head_error} (${head_reason})"
+    elif [ "${head_status}" = "404" ]; then
+      head_error="GitHub does not have the download for ${tag} (${asset_name})."
+    elif [[ "${head_status}" != 2?? ]]; then
+      head_error="GitHub could not send the download for ${tag} right now (error ${head_status}). Try again in a few minutes."
+    fi
+    if [ -n "${head_error}" ]; then
       rm -rf "${staging_dir}"
-      echo "{\"ok\":false,\"error\":\"Release asset not found: ${asset_name}\"}"
+      echo "{\"ok\":false,\"error\":\"${head_error}\"}"
       exit 1
     fi
 

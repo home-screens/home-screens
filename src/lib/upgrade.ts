@@ -161,10 +161,14 @@ function runUpgradeScript(
             ),
           );
         } else if (code !== 0) {
-          // The bash script uses `2>&1` so stderr is often empty — the real
+          // A script that gave its own `{"ok":false,"error":...}` answer
+          // already said what went wrong in words meant for the person
+          // updating; the raw JSON line used to reach them instead. Otherwise
+          // the bash script uses `2>&1` so stderr is often empty; the real
           // error text ends up on stdout. Include stdout tail for context.
+          const answer = parseLastLineObject(stdout, {});
           const detail = stderr || lastLines(stdout, 10) || `exit code ${code}`;
-          reject(new Error(`${action} failed: ${detail}`));
+          reject(new Error(typeof answer.error === 'string' ? answer.error : `${action} failed: ${detail}`));
         } else {
           resolve(stdout.trim());
         }
