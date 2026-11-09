@@ -55,8 +55,10 @@ export interface ArchivePicture {
  */
 export function composeBackupArchive(bundle: unknown, pictures: readonly ArchivePicture[]): Readable {
   // Stored, not deflated: pictures and videos do not shrink, and deflate
-  // costs a Pi real time on a 100 MB library.
-  const archive = new ZipArchive({ store: true });
+  // costs a Pi real time on a 100 MB library. One stat at a time: archiver
+  // queues a file when its lstat returns, so concurrent stats would write
+  // the pictures in whatever order the disk answered, not the library's.
+  const archive = new ZipArchive({ store: true, statConcurrency: 1 });
   archive.on('error', (err) => { archive.destroy(err); });
   archive.on('warning', (err) => { log.warn('Backup archive skipped a file', err.message); });
   archive.append(JSON.stringify(bundle, null, 2), { name: BUNDLE_ENTRY });
