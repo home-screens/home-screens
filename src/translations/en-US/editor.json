@@ -6111,7 +6111,35 @@
         "other": "about {count} paintings match"
       },
       "manyMatch": "Plenty of paintings match (too many to count here)",
-      "fewMatches": "Only a few paintings match, so the same ones will come back often. Try loosening a filter."
+      "fewMatches": "Only a few paintings match, so the same ones will come back often. Try loosening a filter.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionism",
+          "dutch": "Dutch Golden Age",
+          "landscapes": "Landscapes",
+          "portraits": "Portraits",
+          "stillLife": "Still life",
+          "seascapes": "Seascapes",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Search paintings: a museum, artist or style",
+        "matched": "Matched: {matches}",
+        "matchTypes": {
+          "museum": "museum",
+          "artist": "artist",
+          "movement": "style",
+          "genre": "subject"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Paintings from open collections. A copy goes into your library's art folder.",
+        "creditHint": "{credit}. A copy goes into your library's art folder.",
+        "empty": "No paintings found. Try other words, or another collection.",
+        "loadFailed": "Couldn't load paintings.",
+        "unavailable": "The collection isn't sending paintings right now. Try again a little later.",
+        "orSearch": "Or search for anything above"
+      }
     },
     "picker": {
       "tabs": {
@@ -6119,7 +6147,8 @@
         "library": "Local",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Art"
       },
       "ideas": "Ideas",
       "search": "Search",

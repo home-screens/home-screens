@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import type { PickImportKind } from '@/lib/photo-source';
+import type { BrowseMatch } from '@/lib/photo-sources/types';
 import type { BrowseTile } from './types';
 
 export interface PickerBrowse {
@@ -12,6 +13,7 @@ export interface PickerBrowse {
   /** True while Show more loads. */
   loadingMore: boolean;
   hasMore: boolean;
+  matched: BrowseMatch[];
   /** The hub's refusal (status and body), or a network failure as status 0. */
   failure: { status: number; body: unknown } | null;
   more: () => void;
@@ -32,6 +34,7 @@ export function usePickerBrowse({ kind, collection, query = '', orientation, ena
 }): PickerBrowse {
   const [tiles, setTiles] = useState<BrowseTile[]>([]);
   const [nextPage, setNextPage] = useState<number | null>(null);
+  const [matched, setMatched] = useState<BrowseMatch[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [failure, setFailure] = useState<PickerBrowse['failure']>(null);
@@ -44,13 +47,14 @@ export function usePickerBrowse({ kind, collection, query = '', orientation, ena
     if (orientation) params.set('orientation', orientation);
     try {
       const res = await editorFetch(`/api/photo-source/browse?${params}`, { signal });
-      const body = await res.json().catch(() => null) as { items?: BrowseTile[]; nextPage?: number | null } | null;
+      const body = await res.json().catch(() => null) as { items?: BrowseTile[]; nextPage?: number | null; matched?: BrowseMatch[] } | null;
       if (gen !== generation.current) return;
       if (!res.ok || !body) {
         setFailure({ status: res.status, body });
         return;
       }
-      setTiles((prev) => (page === 1 ? body.items ?? [] : [...prev, ...(body.items ?? [])]));
+      setTiles((prev) => (page === 1 ? body.items ?? [] : [...prev, ...(body.items ?? []).filter((item) => !prev.some((tile) => tile.ref === item.ref))]));
+      if (page === 1) setMatched(body.matched ?? []);
       setNextPage(body.nextPage ?? null);
     } catch (err) {
       if (signal?.aborted || isSessionExpired(err) || gen !== generation.current) return;
@@ -62,6 +66,7 @@ export function usePickerBrowse({ kind, collection, query = '', orientation, ena
     const gen = ++generation.current;
     setTiles([]);
     setNextPage(null);
+    setMatched([]);
     setFailure(null);
     setLoadingMore(false);
     if (!enabled) {
@@ -87,5 +92,5 @@ export function usePickerBrowse({ kind, collection, query = '', orientation, ena
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
-  return { tiles, loading, loadingMore, hasMore: nextPage !== null, failure, more, retry };
+  return { tiles, loading, loadingMore, hasMore: nextPage !== null, matched, failure, more, retry };
 }

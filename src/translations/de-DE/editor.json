@@ -6111,7 +6111,35 @@
         "other": "etwa {count} Gemälde passen"
       },
       "manyMatch": "Sehr viele Gemälde passen (zu viele, um sie hier zu zählen)",
-      "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter."
+      "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionismus",
+          "dutch": "Holländisches Goldenes Zeitalter",
+          "landscapes": "Landschaften",
+          "portraits": "Porträts",
+          "stillLife": "Stillleben",
+          "seascapes": "Seestücke",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Gemälde suchen: Museum, Künstler oder Stil",
+        "matched": "Gefunden: {matches}",
+        "matchTypes": {
+          "museum": "Museum",
+          "artist": "Künstler",
+          "movement": "Stil",
+          "genre": "Motiv"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Gemälde aus offenen Sammlungen. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
+        "creditHint": "{credit}. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
+        "empty": "Keine Gemälde gefunden. Probiere andere Wörter oder eine andere Sammlung.",
+        "loadFailed": "Die Gemälde konnten nicht geladen werden.",
+        "unavailable": "Die Sammlung liefert gerade keine Gemälde. Versuche es etwas später noch einmal.",
+        "orSearch": "Oder such oben nach allem, was du willst"
+      }
     },
     "picker": {
       "tabs": {
@@ -6119,7 +6147,8 @@
         "library": "Lokal",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Kunst"
       },
       "ideas": "Ideen",
       "search": "Suchen",

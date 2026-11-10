@@ -5,9 +5,15 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-utils')>();
   return { ...actual, fetchWithTimeout: vi.fn() };
 });
+vi.mock('@/lib/library-import', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/library-import')>();
+  return { ...actual, importPictureToLibrary: vi.fn(async () => ({ path: 'art/x.jpg', reused: false })) };
+});
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { artCount, artPhotoSource, isOpenLicense, __test } from '../art';
+import { importPictureToLibrary } from '@/lib/library-import';
+import { artCount, artPhotoSource, artPickableSource, isOpenLicense, __test } from '../art';
+import { PhotoSourceError } from '../types';
 import type { PhotoSource } from '@/types/config';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -195,5 +201,94 @@ describe('counts', () => {
     expect(await artCount(art({ genre: 'nude' }))).toEqual({ count: null, approximate: true });
     await artCount(art({ genre: 'nude' }));
     expect(sparqls()).toHaveLength(2);
+  });
+});
+
+describe('picker search', () => {
+  const entities = (...pairs: Array<[string, string]>) => json({ results: { bindings: pairs.map(([id, role]) => ({ e: { value: `http://www.wikidata.org/entity/${id}` }, role: { value: role } })) } });
+
+  it('reads the keyword as the museum and artist it names, in one query, and drops licence-blocked paintings', async () => {
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q19675', label: 'Louvre Museum' }, { id: 'Q1461794', label: 'Louvre - Rivoli' }, { id: 'Q551652', label: 'Mihály Munkácsy' }] }),
+      'SELECT ?e ?role': () => entities(['Q19675', 'museum'], ['Q551652', 'artist']),
+      'LIMIT 60': () => wikidata(row('Q1', 'Christ before Pilate', 'Pilate.jpg'), row('Q2', 'Locked', 'Locked.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Pilate.jpg', 'CC BY-SA 4.0'], ['Locked.jpg', 'CC BY-NC 4.0']),
+    });
+
+    const page = await artPickableSource.browse({ collection: 'wikimedia', page: 1, query: 'Louvre Munkácsy' });
+
+    expect(page.matched).toEqual([{ type: 'museum', label: 'Louvre Museum' }, { type: 'artist', label: 'Mihály Munkácsy' }]);
+    expect(page.items).toMatchObject([{ ref: 'wikimedia:Q1', label: 'Christ before Pilate', credit: { name: 'Mihály Munkácsy' }, secondary: '1869, Louvre Museum, CC BY-SA 4.0' }]);
+    const paintings = sparqls().find((q) => q.includes('LIMIT 60'))!;
+    expect(paintings).toContain('{ ?item wdt:P195/wdt:P361* wd:Q19675 } UNION { ?item wdt:P170 wd:Q551652 }');
+  });
+
+  it('pages by Wikidata rows: a full page has a next one and page 2 starts after the first', async () => {
+    const rows = Array.from({ length: 60 }, (_, i) => row(`Q${i + 1}`, `P${i + 1}`, `P${i + 1}.jpg`));
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q19675', label: 'Louvre Museum' }] }),
+      'SELECT ?e ?role': () => entities(['Q19675', 'museum']),
+      'LIMIT 60': () => wikidata(...rows),
+      'commons.wikimedia.org/w/api.php': () => commons(),
+    });
+    expect((await artPickableSource.browse({ collection: 'wikimedia', page: 1, query: 'louvre' })).nextPage).toBe(2);
+    await artPickableSource.browse({ collection: 'wikimedia', page: 2, query: 'louvre' });
+    expect(sparqls().at(-1)).toContain('OFFSET 60');
+  });
+
+  it('falls back to the paintings\' titles when the words name no museum, artist, movement or subject', async () => {
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q5', label: 'Human' }] }),
+      'SELECT ?e ?role': () => entities(),
+      'mwapi:gsrsearch': () => wikidata(row('Q9', 'Sunset', 'Sunset.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Sunset.jpg', 'CC0']),
+    });
+    const page = await artPickableSource.browse({ collection: 'wikimedia', page: 1, query: 'sunset "quoted"' });
+    expect(page).toMatchObject({ matched: [], nextPage: null, items: [{ ref: 'wikimedia:Q9' }] });
+    expect(sparqls().at(-1)).toContain('gsrsearch "sunset quoted haswbstatement:P31=Q3305213"');
+  });
+
+  it('pages the Art Institute and Cleveland by their own totals', async () => {
+    upstream({ 'artworks/search': () => json({ data: [aicHit()], pagination: { total_pages: 2 } }), 'openaccess-api': () => json({ data: [clevelandHit(1)], info: { total: 45 } }) });
+    expect(await artPickableSource.browse({ collection: 'aic', page: 2, query: 'monet' })).toMatchObject({ nextPage: null, items: [{ ref: 'aic:1' }] });
+    expect(await artPickableSource.browse({ collection: 'cleveland', page: 1, query: 'monet' })).toMatchObject({ nextPage: 2, items: [{ ref: 'cleveland:1' }] });
+    expect(new URL(lastUrl()).searchParams.get('skip')).toBe('0');
+  });
+
+  it('asks nobody for empty words, and explains a museum that does not answer', async () => {
+    expect(await artPickableSource.browse({ collection: 'aic', page: 1, query: ' ' })).toEqual({ items: [], nextPage: null });
+    expect(mockFetch).not.toHaveBeenCalled();
+    mockFetch.mockRejectedValue(new Error('timeout'));
+    await expect(artPickableSource.browse({ collection: 'cleveland', page: 1, query: 'monet' })).rejects.toMatchObject({ status: 503, body: { error: 'art-unavailable' } });
+  });
+});
+
+describe('import', () => {
+  const open = async () => vi.mocked(importPictureToLibrary).mock.calls.at(-1)![0].open();
+
+  it('copies an open-licence painting named after its title and artist, at library size', async () => {
+    upstream({
+      'query.wikidata.org': () => wikidata(row('Q1', 'Christ before Pilate', 'Pilate.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Pilate.jpg', 'Public domain']),
+      'Special:FilePath': () => new Response('img'),
+    });
+    await artPickableSource.importOne({ ref: 'wikimedia:Q1', folder: 'art' });
+    expect(vi.mocked(importPictureToLibrary).mock.calls[0][0]).toMatchObject({ kind: 'art', id: 'wikimedia:Q1', folder: 'art' });
+    expect(await open()).toMatchObject({ title: 'Christ before Pilate Mihály Munkácsy' });
+    expect(lastUrl()).toContain('Special:FilePath/Pilate.jpg?width=2560');
+  });
+
+  it('re-checks the licence and refuses what is not open on every provider', async () => {
+    upstream({ 'query.wikidata.org': () => wikidata(row('Q2', 'Locked', 'Locked.jpg')), 'commons.wikimedia.org/w/api.php': () => commons(['Locked.jpg', 'CC BY-NC 4.0']) });
+    await artPickableSource.importOne({ ref: 'wikimedia:Q2', folder: 'art' });
+    expect(await open().catch((e) => e)).toMatchObject({ status: 404 });
+
+    upstream({ 'artworks/1?': () => json({ data: { ...aicHit(), is_public_domain: false, artwork_type_title: 'Painting' } }) });
+    await artPickableSource.importOne({ ref: 'aic:1', folder: 'art' });
+    expect(await open().catch((e) => e)).toBeInstanceOf(PhotoSourceError);
+
+    upstream({ 'artworks/9?': () => json({ data: { ...clevelandHit(9), type: 'Painting', share_license_status: 'Copyrighted' } }) });
+    await artPickableSource.importOne({ ref: 'cleveland:9', folder: 'art' });
+    expect(await open().catch((e) => e)).toMatchObject({ status: 404 });
   });
 });

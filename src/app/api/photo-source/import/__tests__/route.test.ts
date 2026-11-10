@@ -44,6 +44,8 @@ describe('POST /api/photo-source/import', () => {
     ['unsplash', 'aB3_x', 'unsplash'],
     ['nasa', 'apod:2026-11-01', 'nasa'],
     ['nasa', 'image:PIA12345', 'nasa'],
+    ['art', 'wikimedia:Q12418', 'art'],
+    ['art', 'cleveland:135382', 'art'],
   ])('lands a %s pick in its own folder by default', async (kind, ref, folder) => {
     await POST(req({ kind, ref }));
     expect(importOne).toHaveBeenCalledWith({ ref, folder });
@@ -68,6 +70,7 @@ describe('POST /api/photo-source/import', () => {
       [{ ref: 'abc' }, 'Unknown photo source'],
       [{ kind: 'immich', ref: '../etc' }, 'Invalid picture'],
       [{ kind: 'nasa', ref: 'PIA1' }, 'Invalid picture'],
+      [{ kind: 'art', ref: 'Q12418' }, 'Invalid picture'],
       [{ kind: 'immich' }, 'Invalid picture'],
       [{ kind: 'immich', ref: 'abc', folder: 7 }, 'Invalid folder'],
       [{ kind: 'immich', ref: 'abc', folder: '../../etc' }, 'Invalid folder'],

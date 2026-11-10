@@ -35,11 +35,12 @@ describe('GET /api/photo-source/browse', () => {
     expect(browse).toHaveBeenCalledWith({ collection: 'album:abc', page: 3, query: '' });
   });
 
-  it('starts Immich on all photos and the search sources on search', async () => {
+  it('starts Immich on all photos, the search sources on search and art on Wikimedia', async () => {
     await GET(req('kind=immich'));
     await GET(req('kind=unsplash&query=lakes'));
     await GET(req('kind=nasa&query=moon'));
-    expect(browse.mock.calls.map(([args]) => args.collection)).toEqual(['all', 'search', 'search']);
+    await GET(req('kind=art&query=louvre'));
+    expect(browse.mock.calls.map(([args]) => args.collection)).toEqual(['all', 'search', 'search', 'wikimedia']);
   });
 
   it('holds the page to 1..1000 and the search words to 100 characters', async () => {

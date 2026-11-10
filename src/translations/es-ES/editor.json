@@ -6111,7 +6111,35 @@
         "other": "unas {count} pinturas coinciden"
       },
       "manyMatch": "Coinciden muchísimas pinturas (demasiadas para contarlas aquí)",
-      "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro."
+      "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impresionismo",
+          "dutch": "Siglo de Oro neerlandés",
+          "landscapes": "Paisajes",
+          "portraits": "Retratos",
+          "stillLife": "Bodegones",
+          "seascapes": "Marinas",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Buscar pinturas: un museo, un artista o un estilo",
+        "matched": "Coincidencias: {matches}",
+        "matchTypes": {
+          "museum": "museo",
+          "artist": "artista",
+          "movement": "estilo",
+          "genre": "tema"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Pinturas de colecciones abiertas. Se guarda una copia en la carpeta art de tu biblioteca.",
+        "creditHint": "{credit}. Se guarda una copia en la carpeta art de tu biblioteca.",
+        "empty": "No se han encontrado pinturas. Prueba con otras palabras u otra colección.",
+        "loadFailed": "No se pudieron cargar las pinturas.",
+        "unavailable": "La colección no envía pinturas ahora mismo. Inténtalo de nuevo un poco más tarde.",
+        "orSearch": "O busca lo que quieras arriba"
+      }
     },
     "picker": {
       "tabs": {
@@ -6119,7 +6147,8 @@
         "library": "Local",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Arte"
       },
       "ideas": "Ideas",
       "search": "Buscar",

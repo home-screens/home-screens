@@ -84,7 +84,7 @@ export function usesCount(kind: PhotoSourceKind): boolean {
  * the walls that come with Home Screens, which are no good as a slideshow.
  */
 export function offeredFor(use: PhotoSourceUse): readonly PhotoSourceKind[] {
-  if (use === 'pick') return ['library', 'immich', 'unsplash', 'nasa'];
+  if (use === 'pick') return ['library', 'immich', 'unsplash', 'nasa', 'art'];
   if (use === 'stream') return PHOTO_SOURCE_KINDS.filter((kind) => kind !== 'wall');
   return PHOTO_SOURCE_KINDS;
 }
@@ -538,22 +538,24 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
  * its own folder (like `google-photos` and `icloud-imports`), so a household
  * can see where a copy came from and tidy one source at a time.
  */
-export const IMPORT_FOLDER: Readonly<Record<'immich' | 'unsplash' | 'nasa', string>> = {
+export const IMPORT_FOLDER: Readonly<Record<'immich' | 'unsplash' | 'nasa' | 'art', string>> = {
   immich: 'immich',
   unsplash: 'unsplash',
   nasa: 'nasa',
+  art: 'art',
 };
 
 /** Sources whose single pictures can be copied into the library. */
 export type PickImportKind = keyof typeof IMPORT_FOLDER;
 
 export function isPickImportKind(value: unknown): value is PickImportKind {
-  return value === 'immich' || value === 'unsplash' || value === 'nasa';
+  return value === 'immich' || value === 'unsplash' || value === 'nasa' || value === 'art';
 }
 
 /**
  * Whether `ref` can name one picture of `kind`: an Immich asset id, an
- * Unsplash photo id, or NASA's `apod:YYYY-MM-DD` / `image:<nasa id>`. The ref becomes part of a file name and an upstream URL, so the alphabet is
+ * Unsplash photo id, NASA's `apod:YYYY-MM-DD` / `image:<nasa id>`, or a
+ * painting as `<provider>:<id>`. The ref becomes part of a file name and an upstream URL, so the alphabet is
  * closed.
  */
 export function isValidPickRef(kind: PickImportKind, ref: string): boolean {
@@ -561,5 +563,6 @@ export function isValidPickRef(kind: PickImportKind, ref: string): boolean {
     case 'immich': return IMMICH_ID.test(ref);
     case 'unsplash': return UNSPLASH_ID.test(ref);
     case 'nasa': return /^apod:\d{4}-\d{2}-\d{2}$/.test(ref) || /^image:[A-Za-z0-9._-]{1,120}$/.test(ref);
+    case 'art': return /^(?:wikimedia:Q\d{1,12}|aic:\d{1,12}|cleveland:\d{1,12})$/.test(ref);
   }
 }

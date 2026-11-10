@@ -13,6 +13,7 @@ import LocalTab, { type PickerMode } from './LocalTab';
 import ImmichTab from './ImmichTab';
 import UnsplashTab from './UnsplashTab';
 import NasaTab from './NasaTab';
+import ArtTab from './ArtTab';
 import BuiltInTab, { isBuiltInPicture, type BuiltInSet } from './BuiltInTab';
 import { PictureImportError } from './import-picture';
 import { missingImmichPermission } from '@/lib/immich-permissions';
@@ -49,6 +50,7 @@ const COPY_HINT: Partial<Record<TabId, string>> = {
   immich: 'photoSources.immich.copyHint',
   unsplash: 'photoSources.unsplash.copyHint',
   nasa: 'photoSources.nasa.copyHint',
+  art: 'photoSources.art.picker.copyHint',
   builtin: 'photoSources.builtIn.copyHint',
 };
 
@@ -144,6 +146,7 @@ export default function PicturePicker({
     const code = (err.body as { error?: string } | null)?.error;
     if (code === 'unsplash-rate-limit') return t('photoSources.unsplash.rateLimited');
     if (code === 'apod-unavailable') return t('photoSources.nasa.apodUnavailable');
+    if (code === 'art-unavailable') return t('photoSources.art.picker.unavailable');
     const permission = missingImmichPermission({ status: err.status, body: err.body });
     if (permission) return `${t('photoSources.immich.permissionNote.photosHidden')} ${t('photoSources.immich.permissionNote.howToFix').replace('{permission}', permission)}`;
     return t('photoSources.picker.copyFailed');
@@ -214,6 +217,7 @@ export default function PicturePicker({
             : <ImmichTab {...tabProps} />)}
           {tab === 'unsplash' && <UnsplashTab {...tabProps} ready={!locked('unsplash')} orientation={orientation} />}
           {tab === 'nasa' && <NasaTab {...tabProps} />}
+          {tab === 'art' && <ArtTab {...tabProps} />}
         </div>
 
         <div className="flex items-center gap-2 px-4 py-3 border-t border-hs-border-strong">

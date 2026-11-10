@@ -294,10 +294,14 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|photoSources.picker.tabs.immich',
   'editor|photoSources.picker.tabs.unsplash',
   'editor|photoSources.picker.tabs.nasa',
-  // Museum names and an artist's name, the same in every language.
+  // Museum and painter names, and the "Louvre Museum (museum)" template.
   'editor|photoSources.art.providers.aic',
   'editor|photoSources.art.providers.cleveland',
   'editor|photoSources.art.artistPlaceholder',
+  'editor|photoSources.art.picker.ideas.louvre',
+  'editor|photoSources.art.picker.ideas.rijksmuseum',
+  'editor|photoSources.art.picker.ideas.vanGogh',
+  'editor|photoSources.art.picker.matchItem',
 ]);
 
 /**
@@ -312,6 +316,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
     // Art labels that read the same in this language.
     'editor|photoSources.art.museum',
+    'editor|photoSources.art.picker.matchTypes.museum',
     // "Dessert" is the Danish word too (a meal's course, a kind of dish).
     'modules|meal-planner.courses.dessert',
     'core|meal.kind.dessert',
@@ -542,6 +547,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|propertyPanel.openButton.twinScreenName.fullscreen-photo',
     // Art labels that read the same in this language.
     'editor|photoSources.art.genres.portrait',
+    'editor|photoSources.art.picker.ideas.portraits',
+    'editor|photoSources.art.picker.matchTypes.movement',
     // Sources and Collection(s) are the French words too (the background sources).
     'editor|backgroundPicker.sourcesGroup',
     'editor|photoSources.modes.collections',
@@ -730,6 +737,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'nl-NL': new Set([
     // Art labels that read the same in this language.
     'editor|photoSources.art.museum',
+    'editor|photoSources.art.picker.matchTypes.museum',
     // Filters is the Dutch word too (the Immich mode).
     'editor|photoSources.modes.filters',
     // Rows main added while the photo-source branch was open.

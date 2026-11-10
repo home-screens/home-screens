@@ -6111,7 +6111,35 @@
         "other": "environ {count} tableaux correspondent"
       },
       "manyMatch": "Beaucoup de tableaux correspondent (trop pour les compter ici)",
-      "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre."
+      "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionnisme",
+          "dutch": "Âge d'or néerlandais",
+          "landscapes": "Paysages",
+          "portraits": "Portraits",
+          "stillLife": "Natures mortes",
+          "seascapes": "Marines",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Rechercher des peintures : un musée, un artiste ou un style",
+        "matched": "Correspondances : {matches}",
+        "matchTypes": {
+          "museum": "musée",
+          "artist": "artiste",
+          "movement": "style",
+          "genre": "sujet"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Peintures de collections ouvertes. Une copie est enregistrée dans le dossier art de votre bibliothèque.",
+        "creditHint": "{credit}. Une copie est enregistrée dans le dossier art de votre bibliothèque.",
+        "empty": "Aucune peinture trouvée. Essayez d'autres mots ou une autre collection.",
+        "loadFailed": "Impossible de charger les peintures.",
+        "unavailable": "La collection n'envoie pas de peintures pour le moment. Réessayez un peu plus tard.",
+        "orSearch": "Ou recherchez ce que vous voulez ci-dessus"
+      }
     },
     "picker": {
       "tabs": {
@@ -6119,7 +6147,8 @@
         "library": "Bibliothèque",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Peintures"
       },
       "ideas": "Idées",
       "search": "Rechercher",

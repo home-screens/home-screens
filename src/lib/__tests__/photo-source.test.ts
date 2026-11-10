@@ -84,7 +84,7 @@ describe('per-kind rules', () => {
 
 describe('offeredFor', () => {
   it('offers the browsable sources for picking one picture', () => {
-    expect(offeredFor('pick')).toEqual(['library', 'immich', 'unsplash', 'nasa']);
+    expect(offeredFor('pick')).toEqual(['library', 'immich', 'unsplash', 'nasa', 'art']);
   });
 
   it('offers every photo kind for a stream, and the walls too for a rotating background', () => {
@@ -385,11 +385,11 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
 
 describe('picking one picture', () => {
   it('knows which sources copy single pictures', () => {
-    for (const kind of ['immich', 'unsplash', 'nasa']) expect(isPickImportKind(kind)).toBe(true);
+    for (const kind of ['immich', 'unsplash', 'nasa', 'art']) expect(isPickImportKind(kind)).toBe(true);
     for (const kind of ['library', 'icloud', 'onedrive', 'wall', '', null]) expect(isPickImportKind(kind)).toBe(false);
   });
 
-  it.each<['immich' | 'unsplash' | 'nasa', string, boolean]>([
+  it.each<['immich' | 'unsplash' | 'nasa' | 'art', string, boolean]>([
     ['immich', '8d1d93ea-60f5-497d-96f4-5f3cb72e1474', true],
     ['immich', 'abc', true],
     ['immich', '../etc', false],
@@ -403,6 +403,9 @@ describe('picking one picture', () => {
     ['nasa', 'image:as11-40-5874.v2', true],
     ['nasa', 'image:../x', false],
     ['nasa', 'PIA12345', false],
+    ['art', 'wikimedia:Q12418', true],
+    ['art', 'aic:16568', true],
+    ['art', 'louvre:1', false],
   ])('%s ref %j is valid: %s', (kind, ref, valid) => {
     expect(isValidPickRef(kind, ref)).toBe(valid);
   });

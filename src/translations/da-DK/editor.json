@@ -6111,7 +6111,35 @@
         "other": "cirka {count} malerier passer"
       },
       "manyMatch": "Rigtig mange malerier passer (for mange til at tælle her)",
-      "fewMatches": "Kun få malerier passer, så de samme vender ofte tilbage. Prøv at løsne et filter."
+      "fewMatches": "Kun få malerier passer, så de samme vender ofte tilbage. Prøv at løsne et filter.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionisme",
+          "dutch": "Hollands guldalder",
+          "landscapes": "Landskaber",
+          "portraits": "Portrætter",
+          "stillLife": "Stilleben",
+          "seascapes": "Havbilleder",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Søg i malerier: et museum, en kunstner eller en stil",
+        "matched": "Fundet: {matches}",
+        "matchTypes": {
+          "museum": "museum",
+          "artist": "kunstner",
+          "movement": "stil",
+          "genre": "motiv"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Malerier fra åbne samlinger. En kopi gemmes i art-mappen i dit bibliotek.",
+        "creditHint": "{credit}. En kopi gemmes i art-mappen i dit bibliotek.",
+        "empty": "Ingen malerier fundet. Prøv andre ord eller en anden samling.",
+        "loadFailed": "Kunne ikke indlæse malerier.",
+        "unavailable": "Samlingen sender ikke malerier lige nu. Prøv igen lidt senere.",
+        "orSearch": "Eller søg efter hvad som helst ovenfor"
+      }
     },
     "picker": {
       "tabs": {
@@ -6119,7 +6147,8 @@
         "library": "Lokalt",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Kunst"
       },
       "ideas": "Ideer",
       "search": "Søg",

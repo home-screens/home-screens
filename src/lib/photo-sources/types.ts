@@ -64,8 +64,15 @@ export interface BrowseItem {
   credit?: { name: string; url?: string };
 }
 
+export interface BrowseMatch {
+  type: 'museum' | 'artist' | 'movement' | 'genre';
+  label: string;
+}
+
 export interface BrowsePage {
   items: BrowseItem[];
+  /** What the search words were taken to mean (art). */
+  matched?: BrowseMatch[];
   /** The page to ask for next, or null at the end. */
   nextPage: number | null;
 }

@@ -1,9 +1,10 @@
 import { createTTLCache, fetchWithTimeout, type FetchRetryOptions } from '@/lib/api-utils';
 import { composeFit, paintingFits } from '@/lib/art-fit';
-import { ART_MUSEUMS, DEFAULT_ART_FIT, DEFAULT_ART_MIN_SHORT_SIDE, type ArtCount, type PhotoSourceOf } from '@/lib/photo-source';
+import { importPictureToLibrary } from '@/lib/library-import';
+import { ART_MUSEUMS, ART_PROVIDERS, DEFAULT_ART_FIT, DEFAULT_ART_MIN_SHORT_SIDE, type ArtCount, type PhotoSourceOf } from '@/lib/photo-source';
 import { shuffleArray } from '@/lib/shuffle';
 import type { ArtGenre, ArtProvider, MediaListItem } from '@/types/config';
-import { PhotoSourceError, type PhotoSourceAdapter } from './types';
+import { PhotoSourceError, type BrowseItem, type BrowseMatch, type BrowsePage, type PhotoSourceAdapter, type PickableSource } from './types';
 
 type ArtSource = PhotoSourceOf<'art'>;
 
@@ -33,8 +34,13 @@ const GENRES: Record<ArtGenre, { wikidata: string; aic: string[]; word: string }
 
 const BATCH = 50;
 const STREAM_WIDTH = 1920;
+const IMPORT_WIDTH = 2560;
 const AIC_MAX_WIDTH = 1686;
 const DEFAULT_CANVAS = { w: 1080, h: 1920 };
+const BROWSE_PAGE = 30;
+const WIKIMEDIA_ROWS = 60;
+const MAX_MATCHES = 4;
+const BROWSE_FETCH = { timeout: 25_000, retries: 0 } as const;
 const HOUR = 60 * 60_000;
 
 interface ArtWork {
@@ -315,8 +321,8 @@ function clevelandWork(hit: ClevelandHit, minShortSide: number): ArtWork | null 
   };
 }
 
-const clevelandSearch = (params: URLSearchParams) => memo(`cleveland:${params}`, async () => {
-  const data = await getJson<{ data?: ClevelandHit[]; info?: { total?: number } }>(`${CLEVELAND_API}?${params}`, 'The Cleveland Museum of Art');
+const clevelandSearch = (params: URLSearchParams, init?: FetchRetryOptions) => memo(`cleveland:${params}`, async () => {
+  const data = await getJson<{ data?: ClevelandHit[]; info?: { total?: number } }>(`${CLEVELAND_API}?${params}`, 'The Cleveland Museum of Art', init);
   return { hits: data.data ?? [], total: data.info?.total ?? 0 };
 });
 
@@ -339,11 +345,6 @@ async function clevelandWorks(source: ArtSource): Promise<ArtWork[]> {
   return works.length > 0 || filtered ? works : ask(0);
 }
 
-const creditOf = (work: ArtWork) => ({
-  name: [work.title, work.artist, work.year].filter(Boolean).join(', '),
-  source: work.license ? `${work.museum}, ${work.license}` : work.museum,
-});
-
 export async function artCount(source: ArtSource): Promise<ArtCount> {
   if (source.provider === 'wikimedia') return wikimediaCount(source);
   const count = source.provider === 'aic'
@@ -362,7 +363,138 @@ export async function artMuseums(): Promise<Array<{ id: string; count: number | 
   return out;
 }
 
-const WORKS = { wikimedia: wikimediaWorks, aic: aicWorks, cleveland: clevelandWorks } satisfies Record<ArtProvider, unknown>;
+type MatchType = BrowseMatch['type'];
+const PROPERTY: Record<MatchType, string> = { museum: 'P195', artist: 'P170', movement: 'P135', genre: 'P136' };
+const ROLES = Object.keys(PROPERTY) as MatchType[];
+type Match = BrowseMatch & { id: string; roles: MatchType[] };
+
+/** The Wikidata entities for the words that paintings actually point to as museum, artist, movement or subject. */
+const resolveKeyword = (words: string) => memo(`resolve:${words.toLowerCase()}`, async (): Promise<Match[]> => {
+  const params = new URLSearchParams({ action: 'wbsearchentities', search: words, language: 'en', type: 'item', limit: '7', format: 'json' });
+  const found = await getJson<{ search?: Array<{ id?: string; label?: string }> }>(`${WIKIDATA_API}?${params}`, 'Wikidata', BROWSE_FETCH);
+  const candidates = (found.search ?? []).flatMap((hit) => (hit.id && /^Q\d+$/.test(hit.id) ? [{ id: hit.id, label: clean(hit.label) ?? hit.id }] : []));
+  if (candidates.length === 0) return [];
+  const exists = (type: MatchType) => `{ BIND("${type}" AS ?role) FILTER EXISTS { ?p wdt:${PROPERTY[type]} ?e ; wdt:P31 wd:${PAINTING} ; wdt:P18 ?i } }`;
+  const rows = await sparql(`SELECT ?e ?role WHERE {
+  VALUES ?e { ${candidates.map((c) => `wd:${c.id}`).join(' ')} }
+  ${ROLES.map(exists).join(' UNION ')}
+}`, BROWSE_FETCH);
+  const seen = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const id = qidOf(row.e?.value);
+    if (id && row.role) seen.set(id, (seen.get(id) ?? new Set()).add(row.role.value));
+  }
+  return candidates.flatMap(({ id, label }) => {
+    const roles = ROLES.filter((role) => seen.get(id)?.has(role));
+    return roles.length > 0 ? [{ id, label, type: roles[0], roles }] : [];
+  }).slice(0, MAX_MATCHES);
+});
+
+const tileOf = (provider: ArtProvider, work: ArtWork): BrowseItem => ({
+  ref: `${provider}:${work.id}`,
+  thumbUrl: work.url(400),
+  label: work.title,
+  secondary: [work.year, work.museum, work.license].filter(Boolean).join(', '),
+  ...(work.artist ? { credit: { name: work.artist } } : {}),
+});
+
+async function wikimediaBrowse(words: string, page: number): Promise<BrowsePage> {
+  const matches = await resolveKeyword(words);
+  if (matches.length > 0) {
+    // One branch per entity with the id written in; a museum list under the department path is far slower.
+    const branches = matches.flatMap((m) => m.roles.map((role) => `{ ?item ${role === 'museum' ? 'wdt:P195/wdt:P361*' : `wdt:${PROPERTY[role]}`} wd:${m.id} }`));
+    // No sort: ordering the union of a big museum and a movement outruns Wikidata's time limit.
+    const rows = await sparql(paintingQuery(`${PAINTINGS} ${branches.join(' UNION ')}`, `LIMIT ${WIKIMEDIA_ROWS} OFFSET ${(page - 1) * WIKIMEDIA_ROWS}`), BROWSE_FETCH);
+    if (rows.length > 0 || page > 1) {
+      return {
+        items: (await openWorks(rows)).map((work) => tileOf('wikimedia', work)),
+        nextPage: rows.length >= WIKIMEDIA_ROWS ? page + 1 : null,
+        matched: matches.map(({ type, label }) => ({ type, label })),
+      };
+    }
+  }
+  const safe = words.replace(/["\\\n\r]/g, ' ').trim();
+  const rows = await sparql(paintingQuery(`SERVICE wikibase:mwapi {
+    bd:serviceParam wikibase:api "Generator" ; wikibase:endpoint "www.wikidata.org" ;
+      mwapi:generator "search" ; mwapi:gsrsearch "${safe} haswbstatement:P31=${PAINTING}" ; mwapi:gsrlimit "50" ; mwapi:gsroffset "${(page - 1) * 50}" .
+    ?item wikibase:apiOutputItem mwapi:title .
+  }
+  ?item wdt:P18 ?image .`), BROWSE_FETCH);
+  const paintings = new Set(rows.map((row) => row.item?.value)).size;
+  return { items: (await openWorks(rows)).map((work) => tileOf('wikimedia', work)), nextPage: paintings >= 20 ? page + 1 : null, matched: [] };
+}
+
+async function aicBrowse(words: string, page: number): Promise<BrowsePage> {
+  const fields = ['title', 'artist_title', 'style_title', 'subject_titles', 'term_titles', 'place_of_origin'];
+  const { works, totalPages } = await aicSearch([...AIC_BASE, { multi_match: { query: words, fields } }], page, BROWSE_PAGE);
+  return { items: works.map((work) => tileOf('aic', work)), nextPage: page < totalPages ? page + 1 : null };
+}
+
+async function clevelandBrowse(words: string, page: number): Promise<BrowsePage> {
+  const params = new URLSearchParams({ type: 'Painting', cc0: '1', has_image: '1', q: words, limit: String(BROWSE_PAGE), skip: String((page - 1) * BROWSE_PAGE), fields: CLEVELAND_FIELDS });
+  const { hits, total } = await clevelandSearch(params, BROWSE_FETCH);
+  return { items: hits.flatMap((hit) => clevelandWork(hit, 0) ?? []).map((work) => tileOf('cleveland', work)), nextPage: page * BROWSE_PAGE < total ? page + 1 : null };
+}
+
+const wikimediaOne = async (id: string) => (await openWorks(await sparql(paintingQuery(`VALUES ?item { wd:${id} } ${PAINTINGS}`), BROWSE_FETCH)))[0] ?? null;
+
+async function aicOne(id: string): Promise<ArtWork | null> {
+  const fields = [...AIC_FIELDS, 'is_public_domain', 'artwork_type_title'].join(',');
+  const { data: hit } = await getJson<{ data?: AicHit }>(`${AIC_API}/${id}?fields=${fields}`, PROVIDERS.aic.name);
+  return hit?.is_public_domain && hit.artwork_type_title === 'Painting' ? aicWork(hit) : null;
+}
+
+async function clevelandOne(id: string): Promise<ArtWork | null> {
+  const { data: hit } = await getJson<{ data?: ClevelandHit }>(`${CLEVELAND_API}${id}?fields=${CLEVELAND_FIELDS},type,share_license_status`, PROVIDERS.cleveland.name);
+  return hit?.type === 'Painting' && hit.share_license_status === 'CC0' ? clevelandWork(hit, 0) : null;
+}
+
+const PROVIDERS = {
+  wikimedia: { name: 'Wikidata', works: wikimediaWorks, browse: wikimediaBrowse, one: wikimediaOne },
+  aic: { name: 'The Art Institute of Chicago', works: aicWorks, browse: aicBrowse, one: aicOne },
+  cleveland: { name: 'The Cleveland Museum of Art', works: clevelandWorks, browse: clevelandBrowse, one: clevelandOne },
+} satisfies Record<ArtProvider, unknown>;
+
+async function explained<T>(provider: ArtProvider, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    throw error instanceof PhotoSourceError ? error : unavailable(PROVIDERS[provider].name);
+  }
+}
+
+export const artPickableSource: PickableSource = {
+  kind: 'art',
+
+  async browse({ collection, page, query }) {
+    const provider = ART_PROVIDERS.find((p) => p === collection) ?? 'wikimedia';
+    const words = query?.trim();
+    if (!words) return { items: [], nextPage: null };
+    return memo(`browse:${JSON.stringify([provider, words.toLowerCase(), page])}`, () => explained(provider, () => PROVIDERS[provider].browse(words, page)));
+  },
+
+  async importOne({ ref, folder }) {
+    const [provider, id] = ref.split(':') as [ArtProvider, string];
+    return importPictureToLibrary({
+      kind: 'art',
+      id: ref,
+      folder,
+      open: async () => {
+        const work = await explained(provider, () => PROVIDERS[provider].one(id));
+        if (!work) throw new PhotoSourceError('That painting is no longer there', 404);
+        return {
+          response: await fetchWithTimeout(work.url(IMPORT_WIDTH), { headers: { 'User-Agent': USER_AGENT }, timeout: 60_000 }),
+          title: [work.title, work.artist].filter(Boolean).join(' '),
+        };
+      },
+    });
+  },
+};
+
+const creditOf = (work: ArtWork) => ({
+  name: [work.title, work.artist, work.year].filter(Boolean).join(', '),
+  source: work.license ? `${work.museum}, ${work.license}` : work.museum,
+});
 
 async function worksFor(source: ArtSource, canvas: { w: number; h: number }): Promise<ArtWork[]> {
   const filters = {
@@ -370,7 +502,7 @@ async function worksFor(source: ArtSource, canvas: { w: number; h: number }): Pr
     minShortSide: source.minShortSide ?? DEFAULT_ART_MIN_SHORT_SIDE,
     aspectTolerance: source.aspectTolerance,
   };
-  return (await WORKS[source.provider](source)).filter((work) => paintingFits(work, filters, canvas));
+  return (await PROVIDERS[source.provider].works(source)).filter((work) => paintingFits(work, filters, canvas));
 }
 
 export const artPhotoSource: PhotoSourceAdapter<'art'> = {

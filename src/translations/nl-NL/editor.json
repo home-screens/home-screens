@@ -6111,7 +6111,35 @@
         "other": "ongeveer {count} schilderijen komen overeen"
       },
       "manyMatch": "Heel veel schilderijen komen overeen (te veel om hier te tellen)",
-      "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer."
+      "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionisme",
+          "dutch": "Gouden Eeuw",
+          "landscapes": "Landschappen",
+          "portraits": "Portretten",
+          "stillLife": "Stillevens",
+          "seascapes": "Zeegezichten",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Zoek schilderijen: een museum, kunstenaar of stijl",
+        "matched": "Gevonden: {matches}",
+        "matchTypes": {
+          "museum": "museum",
+          "artist": "kunstenaar",
+          "movement": "stijl",
+          "genre": "onderwerp"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Schilderijen uit open collecties. Er komt een kopie in de art-map van je bibliotheek.",
+        "creditHint": "{credit}. Er komt een kopie in de art-map van je bibliotheek.",
+        "empty": "Geen schilderijen gevonden. Probeer andere woorden of een andere collectie.",
+        "loadFailed": "Kon de schilderijen niet laden.",
+        "unavailable": "De collectie stuurt nu geen schilderijen. Probeer het straks nog eens.",
+        "orSearch": "Of zoek hierboven naar wat je maar wilt"
+      }
     },
     "picker": {
       "tabs": {
@@ -6119,7 +6147,8 @@
         "library": "Lokaal",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Kunst"
       },
       "ideas": "Ideeën",
       "search": "Zoeken",

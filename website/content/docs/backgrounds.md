@@ -3,7 +3,7 @@ title: Photos and backgrounds
 nextjs:
   metadata:
     title: Photos and backgrounds
-    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, pick from Immich, Unsplash and NASA, and rotate backgrounds on a schedule.
+    description: Put your own photos on the wall and behind every screen. Upload, import from Google Photos or an iCloud shared album, pick from Immich, Unsplash, NASA and museum paintings, and rotate backgrounds on a schedule.
     alternates:
       canonical: /docs/backgrounds
 ---
@@ -25,10 +25,11 @@ Every place that takes one picture opens the same window, the **Image Library**:
 - **Built-in**: the pictures that ship with Home Screens. Only a screen background and a day rule have this tab, and it comes first.
 - **Local**: your own library on the Pi, folder by folder, with **Upload Photos**, **Add from an iCloud link** and **Add from Google Photos**.
 - **Immich**, **Unsplash** and **NASA**: browse them right here.
+- **Art**: paintings from open museum collections, found by a word. It needs no key. See [Paintings from museums](#paintings-from-museums).
 
 Each tab works the same way: collections down the side (folders, albums, ideas), pictures in the middle, and you click one to choose it, then **Select Image**. A tab whose service isn't set up yet still shows, with a small lock and a line pointing to **Settings > API keys**.
 
-A picture from Immich, Unsplash or NASA is copied into your library, into a folder named after where it came from (`immich`, `unsplash`, `nasa`), so the wall never needs that service to be up to show it. Picking the same picture again uses the copy you already have.
+A picture from Immich, Unsplash, NASA or the Art tab is copied into your library, into a folder named after where it came from (`immich`, `unsplash`, `nasa`, `art`), so the wall never needs that service to be up to show it. Picking the same picture again uses the copy you already have.
 
 ---
 
@@ -93,7 +94,7 @@ To upload many pictures at once, or drag files in, use **Settings > Pictures & v
 
 ## Folders
 
-The Image Library's **Local** tab lists every folder in your library, and its imports (an iCloud link, Google Photos) and uploads go into the folder you have selected. Pictures copied from Immich, Unsplash and NASA land in their own `immich`, `unsplash` and `nasa` folders, next to `google-photos` and `icloud-imports`.
+The Image Library's **Local** tab lists every folder in your library, and its imports (an iCloud link, Google Photos) and uploads go into the folder you have selected. Pictures copied from Immich, Unsplash, NASA and the Art tab land in their own `immich`, `unsplash`, `nasa` and `art` folders, next to `google-photos` and `icloud-imports`.
 
 ---
 
@@ -159,9 +160,9 @@ As a **Photo Source**, NASA shows the newest pictures of the day in a slideshow,
 
 ---
 
-## Paintings from museums
+## Paintings from museums {% #paintings-from-museums %}
 
-**Paintings from museums** is a Photo Source for slideshows, full-screen photos and rotating backgrounds. It needs no key or setup, and it is not in the Image Library's picker. Only paintings from open collections are used: public domain, CC0 or credit-only Creative Commons pictures. Drawings, prints and digital works are left out.
+**Paintings from museums** is a Photo Source for slideshows, full-screen photos and rotating backgrounds. It needs no key or setup. Only paintings from open collections are used: public domain, CC0 or credit-only Creative Commons pictures. Drawings, prints and digital works are left out.
 
 Pick a **Collection**:
 
@@ -186,6 +187,14 @@ For a rotating background, **On the screen** says how a painting sits behind you
 - **Whole painting on a dark wall** shows the whole painting with dark bars where it doesn't reach.
 
 Each painting's title, artist, year and museum show quietly in a corner of the screen. The museums are asked politely, so a list is kept for a few hours rather than fetched on every refresh.
+
+### The Art tab
+
+To choose one painting, open the **Art** tab of the Image Library. Pick a **Collection** (Wikimedia to start with, the Art Institute of Chicago or the Cleveland Museum of Art), then an idea down the side (Impressionism, Dutch Golden Age, Landscapes, Portraits, Louvre, Rijksmuseum and more) or type a word above the pictures.
+
+On Wikimedia a word can be a museum, an artist, a style or a subject: **Louvre**, **Munkácsy** and **Renaissance** all work. A line above the pictures says what the word was taken for, for example *Matched: Louvre Museum (museum)*; a word that is none of those is looked up in the paintings' titles. The Art Institute and the Cleveland museum search their own catalogues for the word. Choosing a painting shows its title, artist, year and museum in the footer, and the licence when it asks for credit.
+
+The painting you select is saved into your library's `art` folder, named after its title and artist. If the museum isn't sending paintings, the tab says so and you can try again.
 
 ---
 
