@@ -51,8 +51,12 @@ function saveDevPlugins(devPlugins: Map<string, DevPlugin>): void {
  * Load a plugin from a local dev server URL.
  * Fetches manifest.json and bundle.js from the URL root, registers the plugin,
  * and stores the mapping in localStorage (not persisted to disk config).
+ *
+ * `renderOnly` is the editor's Preview window: it shows the dev bundle the
+ * editor already set up, so it registers nothing on the server, migrates no
+ * config and leaves the localStorage map alone.
  */
-export async function loadDevPlugin(url: string): Promise<void> {
+export async function loadDevPlugin(url: string, { renderOnly = false }: { renderOnly?: boolean } = {}): Promise<void> {
   // Normalise: strip trailing slash
   const base = url.replace(/\/+$/, '');
 
@@ -86,7 +90,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   // that was never installed would otherwise 404, and a previously installed one
   // would migrate against its stale manifest.
   let registered = false;
-  try {
+  if (!renderOnly) try {
     const devRes = await fetch('/api/plugins/dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -96,7 +100,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   } catch {
     // Handled below alongside a non-ok response.
   }
-  if (!registered) {
+  if (!registered && !renderOnly) {
     // Non-fatal — proxy features won't work but the plugin will still render
     log.warn(`Failed to register dev plugin "${manifest.id}" server-side — pluginFetch will not work`);
   }
@@ -120,6 +124,7 @@ export async function loadDevPlugin(url: string): Promise<void> {
   usePluginStore.getState().registerPlugin(moduleType, component, manifest, configSection, stateProvider, searchStateKeys);
 
   // 7. Persist dev mapping in localStorage
+  if (renderOnly) return;
   devPlugins.set(manifest.id, { url: base, manifest });
   saveDevPlugins(devPlugins);
 }
@@ -158,7 +163,7 @@ const pollInFlight = new Set<string>();
  * On change (different ETag or Content-Length), auto-reload the plugin.
  * An in-flight guard prevents concurrent ticks from double-reloading.
  */
-export function startDevPolling(pluginId: string): void {
+export function startDevPolling(pluginId: string, { renderOnly = false }: { renderOnly?: boolean } = {}): void {
   stopDevPolling(pluginId); // clear any existing interval
 
   const interval = setInterval(async () => {
@@ -179,7 +184,7 @@ export function startDevPolling(pluginId: string): void {
 
       if (prev !== undefined && prev !== etag) {
         // Bundle changed — reload
-        await loadDevPlugin(dev.url);
+        await loadDevPlugin(dev.url, { renderOnly });
       }
 
       bundleETags.set(pluginId, etag);
@@ -302,10 +307,12 @@ function purgePluginStateKeys(pluginIds: Iterable<string>): void {
 /**
  * The surface a plugin load runs on. The caller always knows which page
  * mounted it; the loader must not guess from the URL. `editor` unlocks the
- * authenticated-only work (dev overrides, config migrations); `display`
- * loads installed bundles only.
+ * authenticated-only work (registering dev overrides, config migrations);
+ * `preview` is the editor's Preview window (`/display?preview=1`), which
+ * renders the editor's dev overrides but writes nothing; `display` loads
+ * installed bundles only.
  */
-export type PluginSurface = 'editor' | 'display';
+export type PluginSurface = 'editor' | 'preview' | 'display';
 
 /**
  * Fetch the installed+enabled plugin list. Returns null on any failure —
@@ -324,7 +331,7 @@ async function fetchEnabledPlugins(): Promise<InstalledPlugin[] | null> {
 }
 
 /**
- * Editor-only: load dev-override plugins from localStorage. A failed
+ * Editor and Preview: load dev-override plugins from localStorage. A failed
  * override falls back to the installed copy it displaced, so a dead dev
  * server never takes a module off the palette. Can queue migrations via the
  * fallback path, so it must run before `runPendingMigrations`.
@@ -332,11 +339,12 @@ async function fetchEnabledPlugins(): Promise<InstalledPlugin[] | null> {
 async function loadDevOverrides(
   installedPlugins: InstalledPlugin[],
   pendingMigrations: PendingMigration[],
+  renderOnly: boolean,
 ): Promise<void> {
   for (const [pluginId, dev] of getDevPlugins()) {
     try {
-      await loadDevPlugin(dev.url);
-      startDevPolling(pluginId);
+      await loadDevPlugin(dev.url, { renderOnly });
+      startDevPolling(pluginId, { renderOnly });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       log.warn(`Dev plugin ${pluginId} failed to load from ${dev.url}:`, message);
@@ -346,7 +354,7 @@ async function loadDevOverrides(
       // seconds later is picked up automatically. Arming only on success meant
       // one failed override pinned the editor to the installed bundle until the
       // developer reloaded or re-added the URL by hand.
-      startDevPolling(pluginId);
+      startDevPolling(pluginId, { renderOnly });
 
       // A dead dev server must not take the module off the palette: fall
       // back to the installed copy that was skipped in favor of the override.
@@ -441,13 +449,14 @@ export async function loadAllPlugins({ surface }: { surface: PluginSurface }): P
 
   // Dev overrides live in localStorage, which is shared across every tab of
   // the origin — including unauthenticated display tabs. Only the editor
-  // loads dev bundles, so only the editor may skip an installed copy in
-  // favor of its override, and only the editor counts dev ids toward the
-  // "still present" set below — a display never mounts a dev-only producer,
-  // so sparing its shared-state keys would leave conditioned modules
-  // evaluating a dead producer's values forever.
+  // and its Preview window load dev bundles, so only they may skip an
+  // installed copy in favor of its override, and only they count dev ids
+  // toward the "still present" set below — a display never mounts a
+  // dev-only producer, so sparing its shared-state keys would leave
+  // conditioned modules evaluating a dead producer's values forever.
   const isEditor = surface === 'editor';
-  const devPluginIds = isEditor ? new Set(getDevPlugins().keys()) : new Set<string>();
+  const usesDevOverrides = surface !== 'display';
+  const devPluginIds = usesDevOverrides ? new Set(getDevPlugins().keys()) : new Set<string>();
 
   // Now that the new plugin set is known, purge shared-state keys only for
   // plugins that are gone from it (uninstalled or disabled). A re-registered
@@ -460,10 +469,11 @@ export async function loadAllPlugins({ surface }: { surface: PluginSurface }): P
   );
 
   // Load installed plugins in parallel, collect pending migrations. On the
-  // editor, skip any plugin whose dev override will load from the dev server;
-  // on a display page the override never loads, so keep the installed copy.
+  // editor and in Preview, skip any plugin whose dev override will load from
+  // the dev server; on a display page the override never loads, so keep the
+  // installed copy.
   const pendingMigrations: PendingMigration[] = [];
-  const installedOnly = plugins.filter((p) => (isEditor ? !devPluginIds.has(p.id) : true));
+  const installedOnly = plugins.filter((p) => !devPluginIds.has(p.id));
 
   if (installedOnly.length > 0) {
     await Promise.allSettled(
@@ -471,14 +481,16 @@ export async function loadAllPlugins({ surface }: { surface: PluginSurface }): P
     );
   }
 
-  // Migrations and dev plugins only run in the editor (authenticated context).
-  // The display page is unauthenticated — PUT /api/config would fail with 401.
-  if (!isEditor) return true;
+  if (!usesDevOverrides) return true;
 
   // Dev overrides before migrations: a failed override falls back to
   // loadSinglePlugin, which can queue a migration the loop must still process.
-  await loadDevOverrides(plugins, pendingMigrations);
-  await runPendingMigrations(pendingMigrations);
+  await loadDevOverrides(plugins, pendingMigrations, !isEditor);
+
+  // Migrations only run in the editor (authenticated context). The display
+  // page is unauthenticated — PUT /api/config would fail with 401 — and a
+  // Preview window leaves them to the editor tab that opened it.
+  if (isEditor) await runPendingMigrations(pendingMigrations);
   return true;
 }
 

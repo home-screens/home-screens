@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { Screen, GlobalSettings, ScreenConfiguration, Profile, DisplayRule } from '@/types/config';
 import type { InstalledPlugin } from '@/types/plugins';
+import type { PluginSurface } from '@/lib/plugin-loader';
 import { displayCache } from '@/lib/display-cache';
 import { displayFetch } from '@/lib/display-fetch';
 import { displayDescriptors, filterConfigForDisplay, LEGACY_DISPLAY_ID, type DisplayDescriptor } from '@/lib/display-filter';
@@ -66,6 +67,8 @@ export function useLiveConfig(
   initialDisplays?: DisplayDescriptor[],
   initialRules?: DisplayRule[],
   initialConfigEtag?: string,
+  /** `preview` in the editor's Preview window, so a plugin reload keeps its dev builds. */
+  pluginSurface: PluginSurface = 'display',
 ) {
   const [screens, setScreens] = useState(initialScreens);
   const [settings, setSettings] = useState<DisplaySettings>(() => withHouseholdTimezone(initialSettings, hubTimezone));
@@ -251,7 +254,7 @@ export function useLiveConfig(
             // failed; keeping the old hash makes the next beat retry the
             // reload instead of believing the new set is already live.
             try {
-              const ok = await usePluginStore.getState().loadPlugins('display');
+              const ok = await usePluginStore.getState().loadPlugins(pluginSurface);
               if (ok) {
                 pluginHashRef.current = newHash;
                 // loadAllPlugins refreshed the settings map wholesale
@@ -327,7 +330,7 @@ export function useLiveConfig(
       mounted = false;
       unsubscribe();
     };
-  }, [displayId]);
+  }, [displayId, pluginSurface]);
 
   return { screens, settings, timezoneSaved, profiles, rules, displays };
 }

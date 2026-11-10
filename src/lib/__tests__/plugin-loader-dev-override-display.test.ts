@@ -184,4 +184,45 @@ describe('loadAllPlugins dev-override display fallback', () => {
     expect(hits.devBundle).toBe(1);
     expect(hits.installedBundle).toBe(0);
   });
+
+  it('loads the dev override in a Preview window without writing anything', async () => {
+    const manifest = makeManifest('overridden', 'overridden');
+    const saved = JSON.stringify({ overridden: { url: DEV_BASE, manifest } });
+    localStorage.setItem('hs:devPlugins', saved);
+
+    const { spy, hits } = mockFetch({
+      installed: [{ id: 'overridden', moduleType: 'overridden', version: '1.0.0' }],
+      manifests: { overridden: manifest },
+      // A newer dev build: on the editor this would run a config migration.
+      devManifest: { ...manifest, version: '2.0.0' },
+    });
+
+    await loadAllPlugins({ surface: 'preview' });
+
+    expect(usePluginStore.getState().plugins.get('plugin:overridden')?.manifest.version).toBe('2.0.0');
+    expect(hits.devBundle).toBe(1);
+    expect(hits.installedBundle).toBe(0);
+    // Registering the dev plugin and migrating config stay with the editor.
+    const writes = spy.mock.calls.filter(([, init]) => init?.method && init.method !== 'GET' && init.method !== 'HEAD');
+    expect(writes).toEqual([]);
+    expect(localStorage.getItem('hs:devPlugins')).toBe(saved);
+  });
+
+  it('falls back to the installed copy in a Preview window when the dev server is down', async () => {
+    const manifest = makeManifest('overridden', 'overridden');
+    localStorage.setItem(
+      'hs:devPlugins',
+      JSON.stringify({ overridden: { url: DEV_BASE, manifest } }),
+    );
+
+    const { hits } = mockFetch({
+      installed: [{ id: 'overridden', moduleType: 'overridden', version: '1.0.0' }],
+      manifests: { overridden: manifest },
+    });
+
+    await loadAllPlugins({ surface: 'preview' });
+
+    expect(usePluginStore.getState().plugins.has('plugin:overridden')).toBe(true);
+    expect(hits.installedBundle).toBe(1);
+  });
 });

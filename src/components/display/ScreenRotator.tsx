@@ -139,7 +139,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   // Set display token before any fetches fire — useLayoutEffect runs before useEffect
   useLayoutEffect(() => { setDisplayToken(displayToken ?? null); }, [displayToken]);
 
-  const { screens: allScreens, settings, timezoneSaved, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, hubTimezone, initialProfiles, displayId, initialDisplays, initialRules, configEtag);
+  const { screens: allScreens, settings, timezoneSaved, profiles, rules, displays } = useLiveConfig(initialScreens, initialSettings, hubTimezone, initialProfiles, displayId, initialDisplays, initialRules, configEtag, preview ? 'preview' : 'display');
   const loadPlugins = usePluginStore((s) => s.loadPlugins);
   // Subscribe to plugin count to trigger re-render when plugins finish loading
   usePluginStore((s) => s.plugins.size);
@@ -149,7 +149,8 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
   const burnInProtection = !preview && settings.pixelShift === true;
   const pixelShift = usePixelShift(burnInProtection);
 
-  useEffect(() => { loadPlugins('display'); }, [loadPlugins]);
+  // A Preview window shows the plugin builds the editor is developing against.
+  useEffect(() => { loadPlugins(preview ? 'preview' : 'display'); }, [loadPlugins, preview]);
 
   // Install the console ring buffer so the `dump-console-log` command
   // can return recent browser logs as part of a diagnostics bundle.

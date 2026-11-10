@@ -41,7 +41,8 @@ interface PluginState {
   /**
    * Fetch installed plugins → load bundles → register in module registry.
    * `surface` names the page mounting the load — the loader must not guess
-   * it from the URL. Editor surfaces get dev overrides + config migrations.
+   * it from the URL. The editor gets dev overrides + config migrations; its
+   * Preview window gets the dev overrides only.
    * Resolves false when the reload was a no-op (installed-list fetch
    * failed) so hash-driven callers keep their old hash and retry.
    */

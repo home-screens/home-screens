@@ -31,10 +31,10 @@ When the app starts, plugin loading follows this sequence:
 2. Load every enabled plugin in parallel; within each one, fetch its `manifest.json` first, then its version-stamped `dist/bundle.js`
 3. Execute each bundle via inline `<script>` injection, reading exports from `window.__HS_PLUGIN__`
 4. Register the plugin in the module registry and the Zustand plugin store
-5. (Editor only) Load dev plugins from `localStorage` and start hot-reload polling
+5. (Editor and its Preview window) Load dev plugins from `localStorage` and start hot-reload polling
 6. (Editor only) Run any pending config migrations, sequentially, to avoid concurrent config writes
 
-Steps 5 and 6 run in that order on purpose: a dev override that fails to load falls back to the installed copy, which can queue a migration the loop still has to process. Both steps are skipped on a display page, which is unauthenticated and could not write config anyway.
+Steps 5 and 6 run in that order on purpose: a dev override that fails to load falls back to the installed copy, which can queue a migration the loop still has to process. Both steps are skipped on a display page, which is unauthenticated and could not write config anyway. A Preview window runs step 5 only, and only to render.
 
 ---
 
@@ -586,9 +586,11 @@ When a dev plugin is loaded:
 Registering a dev plugin also runs the **full** manifest validation server-side and writes `manifest.json` into `data/plugins/<id>/` with an enabled `installed.json` entry, so a dev plugin shows up in the Installed tab and a manifest that fails validation is rejected with an error before `pluginFetch` will work at all. To unload one, use the **Unload** button on its card in the Developer tab.
 
 {% callout type="note" title="Dev overrides apply in the editor tab only" %}
-A dev plugin overrides the installed version of the same plugin **in the editor**. A `/display` tab in the same browser always loads the installed copy, even though `localStorage` is shared across the origin: the display path deliberately ignores dev plugins, so that a plugin with a dev override registered in this browser doesn't vanish from the kiosk entirely.
+A dev plugin overrides the installed version of the same plugin **in the editor and in the window its Preview button opens**. Preview shows the same dev build full size, the way a wall would, and reloads it when the bundle changes. It only renders: registering the dev plugin and migrating config stay with the editor tab.
 
-So test dev builds in the editor preview. To see a build on a real kiosk, install it for real; **Install from URL…** accepts a pre-release tarball.
+Any other `/display` tab in the same browser loads the installed copy, even though `localStorage` is shared across the origin: the display path deliberately ignores dev plugins, so that a plugin with a dev override registered in this browser doesn't vanish from the kiosk entirely.
+
+So test dev builds in the editor and its Preview. To see a build on a real kiosk, install it for real; **Install from URL…** accepts a pre-release tarball.
 {% /callout %}
 
 ---
