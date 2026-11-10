@@ -1234,6 +1234,7 @@
     "noPhotosYetHintImmich": "Prüfe im Editor das Immich-Album, die Person und die Favoriten-Auswahl.",
     "noPhotosYetHintUnsplash": "Probiere im Editor andere Suchwörter.",
     "noPhotosYetHintNasa": "Die NASA schickt gerade keine Bilder. Sie kommen von selbst wieder.",
+    "noPhotosYetHintArt": "Probiere im Editor andere Künstler oder Stile aus.",
     "noPhotosYetHintPicked": "Wähle im Editor ein paar Bilder aus."
   },
   "dad-joke": {
@@ -1385,6 +1386,7 @@
     "emptyImmich": "Noch keine Fotos. Prüfe im Editor das Immich-Album, die Person und die Favoriten-Auswahl.",
     "emptyUnsplash": "Noch keine Fotos. Probiere im Editor andere Suchwörter.",
     "emptyNasa": "Gerade keine Bilder von der NASA. Sie kommen von selbst wieder.",
+    "emptyArt": "Keine Gemälde gefunden. Probiere im Editor andere Künstler oder Stile aus.",
     "photoCredit": "{name} / {source}",
     "emptyPicked": "Noch keine Bilder ausgewählt. Wähle welche im Editor aus."
   },

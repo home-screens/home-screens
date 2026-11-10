@@ -2737,6 +2737,7 @@
       "onedrive": "Choisissez un dossier",
       "unsplash": "Tapez des mots de recherche, ajoutez une collection ou choisissez des photos",
       "nasa": "",
+      "art": "",
       "wall": "Choisissez les fonds à afficher"
     },
     "effectsReset": "Réinitialiser",
@@ -5966,7 +5967,8 @@
       "icloud": "Album partagé iCloud",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "Image du jour de la NASA"
+      "nasa": "Image du jour de la NASA",
+      "art": "Peintures de musées"
     },
     "library": {
       "folder": "Dossier",
@@ -6040,6 +6042,40 @@
       "streamInfo": "Les images astronomiques du jour les plus récentes.",
       "backgroundInfo": "La NASA publie une nouvelle image astronomique chaque jour. L'écran affiche la plus récente.",
       "apodUnavailable": "La NASA n'envoie pas d'image du jour en ce moment. La recherche dans la bibliothèque de la NASA fonctionne toujours."
+    },
+    "art": {
+      "provider": "Fonds",
+      "providers": {
+        "wikimedia": "Wikimedia (de nombreux musées)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Artiste",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Style ou mouvement",
+      "stylePlaceholder": "Impressionnisme",
+      "orientation": "Format",
+      "orientations": {
+        "any": "Au choix",
+        "portrait": "Portrait (vertical)",
+        "landscape": "Paysage (horizontal)"
+      },
+      "minSize": "Plus petit côté (pixels)",
+      "shape": "Proche de la forme de l'écran",
+      "shapes": {
+        "any": "Toute forme",
+        "loose": "À peu près",
+        "medium": "De près",
+        "strict": "Comme l'écran"
+      },
+      "fit": "Sur l'écran",
+      "fits": {
+        "matte": "Tableau entier sur un fond flou",
+        "cover": "Remplir l'écran (bords rognés)",
+        "contain": "Tableau entier sur un mur sombre"
+      },
+      "streamInfo": "Des tableaux célèbres issus de collections de musées en libre accès. Le titre, l'artiste et le musée s'affichent dans un coin.",
+      "backgroundInfo": "Un nouveau tableau à chaque changement de fond. Le titre, l'artiste et le musée s'affichent discrètement dans un coin."
     },
     "picker": {
       "tabs": {

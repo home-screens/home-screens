@@ -31,7 +31,7 @@ export interface PickArgs<K extends PhotoSourceKind> {
  */
 export type PickedPicture =
   | { kind: 'library'; path: string }
-  | { kind: 'download'; id: string; open: () => Promise<Response> }
+  | { kind: 'download'; id: string; open: () => Promise<Response>; credit?: { name: string; source: string } }
   /** A picture the wall already has at a public path (a bundled wall): shown as it is. */
   | { kind: 'static'; path: string };
 

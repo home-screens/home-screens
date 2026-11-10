@@ -48,6 +48,7 @@ describe('per-kind rules', () => {
     ['onedrive', ['microsoft_client_id'], true, false, true, 'checkFolder'],
     ['unsplash', ['unsplash_access_key'], false, false, true, 'checkSearch'],
     ['nasa', [], false, false, true, 'tryLater'],
+    ['art', [], false, false, true, 'checkArt'],
   ])('%s', (kind, secrets, signIn, video, counted, empty) => {
     expect(needs(kind).secrets).toEqual(secrets);
     expect(needs(kind).signIn).toBe(signIn);
@@ -61,7 +62,7 @@ describe('per-kind rules', () => {
   });
 
   it('lists the kinds in the editor order', () => {
-    expect(PHOTO_SOURCE_KINDS).toEqual(['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa']);
+    expect(PHOTO_SOURCE_KINDS).toEqual(['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa', 'art']);
     expect(isPhotoSourceKind('dropbox')).toBe(false);
     expect(isPhotoSourceKind(undefined)).toBe(false);
   });
@@ -87,7 +88,7 @@ describe('offeredFor', () => {
   });
 
   it('offers every photo kind for a stream, and the walls too for a rotating background', () => {
-    expect(offeredFor('stream')).toEqual(['library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa']);
+    expect(offeredFor('stream')).toEqual(['library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa', 'art']);
     expect(offeredFor('background')).toEqual(PHOTO_SOURCE_KINDS);
   });
 });
@@ -138,6 +139,7 @@ describe('hasContent, candidateCount and canRotate', () => {
     ['Unsplash picks', { kind: 'unsplash', query: '', photoIds: ['p1'] }, true, 1],
     ['blank Unsplash words', { kind: 'unsplash', query: '  ' }, false, undefined],
     ['NASA', { kind: 'nasa' }, true, undefined],
+    ['art', { kind: 'art', provider: 'aic' }, true, undefined],
   ])('%s', (_label, source, content, count) => {
     expect(hasContent(source)).toBe(content);
     expect(candidateCount(source)).toBe(count);
@@ -194,6 +196,11 @@ describe('normalizePhotoSource', () => {
       .toEqual({ kind: 'onedrive', folderId: 'ABC!123', folderName: 'Family' });
     expect(normalizePhotoSource({ kind: 'unsplash', query: ' lakes ' })).toEqual({ kind: 'unsplash', query: 'lakes' });
     expect(normalizePhotoSource({ kind: 'nasa', query: 'x' })).toEqual({ kind: 'nasa' });
+    expect(normalizePhotoSource({ kind: 'art', provider: 'aic', artist: ' Monet ', style: '', orientation: 'any', fit: 'sideways', minShortSide: 5, aspectTolerance: 3, extra: 1 }))
+      .toEqual({ kind: 'art', provider: 'aic', artist: 'Monet', minShortSide: 100, aspectTolerance: 1 });
+    expect(normalizePhotoSource({ kind: 'art', provider: 'louvre' })).toEqual({ kind: 'art', provider: 'wikimedia' });
+    expect(normalizePhotoSource({ kind: 'art', provider: 'wikimedia', museums: ['Q19675', 'Q19675', 'nope', 7], fromYear: -5, toYear: 9999.4, genre: 'abstract' }))
+      .toEqual({ kind: 'art', provider: 'wikimedia', museums: ['Q19675'], fromYear: 0, toYear: 2100 });
     expect(normalizePhotoSource({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'], extra: 1 })).toEqual({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'] });
   });
 
@@ -266,6 +273,9 @@ describe('sourceCacheKey', () => {
     ['walls', { kind: 'wall', group: 'color', ids: ['ocean'] }, { kind: 'wall', group: 'color', ids: ['dusk'] }],
     ['wall group', { kind: 'wall', group: 'color', ids: [] }, { kind: 'wall', group: 'pattern', ids: [] }],
     ['kind', { kind: 'library', folder: '' }, { kind: 'nasa' }],
+    ['art provider', { kind: 'art', provider: 'aic' }, { kind: 'art', provider: 'cleveland' }],
+    ['art museums', { kind: 'art', provider: 'wikimedia', museums: ['Q19675'] }, { kind: 'art', provider: 'wikimedia', museums: ['Q160236'] }],
+    ['art fit', { kind: 'art', provider: 'aic', fit: 'cover' }, { kind: 'art', provider: 'aic', fit: 'matte' }],
   ])('changes with the %s', (_label, a, b) => {
     expect(key(a)).not.toBe(key(b));
   });
@@ -342,6 +352,8 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
     { kind: 'unsplash', query: '', collections: ['c1', 'c2'] },
     { kind: 'unsplash', query: '', photoIds: ['p1'] },
     { kind: 'nasa' },
+    { kind: 'art', provider: 'cleveland', artist: 'van Gogh', style: 'Post-Impressionism', orientation: 'portrait', minShortSide: 1200, aspectTolerance: 0.25, fit: 'contain' },
+    { kind: 'art', provider: 'wikimedia', museums: ['Q19675', 'Q160236'], fromYear: 1600, toYear: 1800, genre: 'landscape' },
     { kind: 'wall', group: 'pattern', ids: ['pattern-dots', 'pattern-grid'] },
     { kind: 'wall', group: 'color', ids: [] },
   ])('round-trips %j', (source) => {

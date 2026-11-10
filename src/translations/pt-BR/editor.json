@@ -2737,6 +2737,7 @@
       "onedrive": "Escolha uma pasta",
       "unsplash": "Digite palavras de busca, adicione uma coleção ou escolha algumas fotos",
       "nasa": "",
+      "art": "",
       "wall": "Escolha os fundos para mostrar"
     },
     "effectsReset": "Redefinir",
@@ -5966,7 +5967,8 @@
       "icloud": "Álbum compartilhado do iCloud",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "Imagem do dia da NASA"
+      "nasa": "Imagem do dia da NASA",
+      "art": "Pinturas de museus"
     },
     "library": {
       "folder": "Pasta",
@@ -6040,6 +6042,40 @@
       "streamInfo": "As Imagens Astronômicas do Dia mais recentes.",
       "backgroundInfo": "A NASA publica uma nova imagem de astronomia por dia. A tela mostra a mais recente.",
       "apodUnavailable": "A NASA não está enviando a Imagem do dia agora. A busca na biblioteca da NASA continua funcionando."
+    },
+    "art": {
+      "provider": "Acervo",
+      "providers": {
+        "wikimedia": "Wikimedia (vários museus)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Artista",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Estilo ou movimento",
+      "stylePlaceholder": "Impressionismo",
+      "orientation": "Formato",
+      "orientations": {
+        "any": "Qualquer",
+        "portrait": "Retrato (em pé)",
+        "landscape": "Paisagem (deitado)"
+      },
+      "minSize": "Menor lado (pixels)",
+      "shape": "Parecido com o formato da tela",
+      "shapes": {
+        "any": "Qualquer formato",
+        "loose": "Mais ou menos",
+        "medium": "Bem parecido",
+        "strict": "Igual ao da tela"
+      },
+      "fit": "Na tela",
+      "fits": {
+        "matte": "Pintura inteira sobre um fundo desfocado",
+        "cover": "Preencher a tela (corta as bordas)",
+        "contain": "Pintura inteira sobre uma parede escura"
+      },
+      "streamInfo": "Pinturas famosas de acervos de museus abertos a todos. O título, o artista e o museu aparecem num canto.",
+      "backgroundInfo": "Uma pintura nova a cada troca de fundo. O título, o artista e o museu aparecem discretos num canto."
     },
     "picker": {
       "tabs": {

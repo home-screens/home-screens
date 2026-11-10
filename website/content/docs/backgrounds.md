@@ -159,6 +159,28 @@ As a **Photo Source**, NASA shows the newest pictures of the day in a slideshow,
 
 ---
 
+## Paintings from museums
+
+**Paintings from museums** is a Photo Source for slideshows, full-screen photos and rotating backgrounds. It needs no key or setup, and it is not in the Image Library's picker. Only paintings from open collections are used: public domain, CC0 or credit-only Creative Commons pictures. Drawings, prints and digital works are left out.
+
+Pick a **Collection**:
+
+- **Wikimedia** takes famous paintings from many museums, found through Wikidata and Wikimedia Commons. Pictures whose licence asks for credit show the licence in the caption.
+- **Art Institute of Chicago** takes the public-domain paintings in that museum's collection.
+- **Cleveland Museum of Art** takes the museum's open-access paintings.
+
+Narrow them down with an **Artist** (for example `Claude Monet`), a **Style or movement** (for example `Impressionism`), a **Shape** (tall, wide or either), a **Smallest side** in pixels so small scans stay off a big screen, and **Match the screen's shape** to skip paintings that are the wrong shape for your display.
+
+For a rotating background, **On the screen** says how a painting sits behind your modules:
+
+- **Whole painting on a soft blur** (the default) shows the whole painting over a darkened, blurred copy of itself when its shape differs from the screen's.
+- **Fill the screen** crops the painting's edges to fill the screen.
+- **Whole painting on a dark wall** shows the whole painting with dark bars where it doesn't reach.
+
+Each painting's title, artist, year and museum show quietly in a corner of the screen. The museums are asked politely, so a list is kept for a few hours rather than fetched on every refresh.
+
+---
+
 ## Immich integration
 
 [Immich](https://immich.app) is a self-hosted Google Photos alternative. When configured, you can pick photos from your Immich library in the Image Library, and use Immich as the photo source for slideshows and rotating backgrounds.
@@ -289,6 +311,7 @@ Every minute the wall asks the Pi whether it is time for a new background. When 
 - **Library** picks a different picture from the folder, or from the pictures you chose, each time. It is shown straight from the library, with no copy, and a folder's last picture can't be deleted while a rotation uses it.
 - **Unsplash** fetches a random photo matching the search words or from the collections you named, shaped like your display, or one of the photos you picked. A collection is checked with Unsplash when you add it and before it is drawn from, so a mistyped id reads "Couldn't find this collection" instead of putting random photos on the wall. Download tracking is triggered per the Unsplash API terms.
 - **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
+- **Paintings from museums** fetches a random painting that matches the artist, style, size and shape you chose, fitted to your screen as set under **On the screen**.
 - **Immich** fetches a random photo matching the filters (any of the albums ticked, any of the people ticked, none of the people left out, favorites only), or one of the photos you picked. Changing a filter fetches a fresh photo straight away.
 - **iCloud** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
 - **OneDrive** fetches a random photo from the folder and everything inside it.

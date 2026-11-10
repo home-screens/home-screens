@@ -2737,6 +2737,7 @@
       "onedrive": "Vælg en mappe",
       "unsplash": "Skriv søgeord, tilføj en samling eller vælg nogle billeder",
       "nasa": "",
+      "art": "",
       "wall": "Vælg de baggrunde, der skal vises"
     },
     "effectsReset": "Nulstil",
@@ -5966,7 +5967,8 @@
       "icloud": "Delt iCloud-album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "Dagens billede fra NASA"
+      "nasa": "Dagens billede fra NASA",
+      "art": "Malerier fra museer"
     },
     "library": {
       "folder": "Mappe",
@@ -6040,6 +6042,40 @@
       "streamInfo": "De nyeste af NASA's daglige astronomibilleder.",
       "backgroundInfo": "NASA udgiver ét nyt astronomibillede om dagen. Skærmen viser det nyeste.",
       "apodUnavailable": "NASA sender ikke dagens billede lige nu. Søgning i NASA's arkiv virker stadig."
+    },
+    "art": {
+      "provider": "Samling",
+      "providers": {
+        "wikimedia": "Wikimedia (mange museer)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Kunstner",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Stil eller retning",
+      "stylePlaceholder": "Impressionisme",
+      "orientation": "Format",
+      "orientations": {
+        "any": "Alle",
+        "portrait": "Højformat",
+        "landscape": "Bredformat"
+      },
+      "minSize": "Korteste side (pixel)",
+      "shape": "Passer til skærmens form",
+      "shapes": {
+        "any": "Alle former",
+        "loose": "Nogenlunde",
+        "medium": "Tæt på",
+        "strict": "Præcis som skærmen"
+      },
+      "fit": "På skærmen",
+      "fits": {
+        "matte": "Hele maleriet på sløret baggrund",
+        "cover": "Fyld skærmen (kanterne beskæres)",
+        "contain": "Hele maleriet på mørk væg"
+      },
+      "streamInfo": "Berømte malerier fra åbne museumssamlinger. Titel, kunstner og museum vises i et hjørne.",
+      "backgroundInfo": "Et nyt maleri hver gang baggrunden skifter. Titel, kunstner og museum vises diskret i et hjørne."
     },
     "picker": {
       "tabs": {

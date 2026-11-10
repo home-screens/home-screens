@@ -294,6 +294,10 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|photoSources.picker.tabs.immich',
   'editor|photoSources.picker.tabs.unsplash',
   'editor|photoSources.picker.tabs.nasa',
+  // Museum names and an artist's name, the same in every language.
+  'editor|photoSources.art.providers.aic',
+  'editor|photoSources.art.providers.cleveland',
+  'editor|photoSources.art.artistPlaceholder',
 ]);
 
 /**

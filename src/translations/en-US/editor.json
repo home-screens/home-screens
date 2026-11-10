@@ -2737,6 +2737,7 @@
       "onedrive": "Choose a folder",
       "unsplash": "Type search words, add a collection or pick some photos",
       "nasa": "",
+      "art": "",
       "wall": "Pick the walls to show"
     },
     "effectsReset": "Reset",
@@ -5966,7 +5967,8 @@
       "icloud": "iCloud shared album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA picture of the day"
+      "nasa": "NASA picture of the day",
+      "art": "Paintings from museums"
     },
     "library": {
       "folder": "Folder",
@@ -6040,6 +6042,40 @@
       "streamInfo": "The newest Astronomy Pictures of the Day.",
       "backgroundInfo": "NASA publishes one new astronomy picture a day. The screen shows the newest one.",
       "apodUnavailable": "NASA's Picture of the Day isn't sending pictures right now. Searching NASA's library still works."
+    },
+    "art": {
+      "provider": "Collection",
+      "providers": {
+        "wikimedia": "Wikimedia (many museums)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Artist",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Style or movement",
+      "stylePlaceholder": "Impressionism",
+      "orientation": "Shape",
+      "orientations": {
+        "any": "Any",
+        "portrait": "Tall (portrait)",
+        "landscape": "Wide (landscape)"
+      },
+      "minSize": "Smallest side (pixels)",
+      "shape": "Match the screen's shape",
+      "shapes": {
+        "any": "Any shape",
+        "loose": "Roughly",
+        "medium": "Closely",
+        "strict": "Exactly like the screen"
+      },
+      "fit": "On the screen",
+      "fits": {
+        "matte": "Whole painting on a soft blur",
+        "cover": "Fill the screen (crops the edges)",
+        "contain": "Whole painting on a dark wall"
+      },
+      "streamInfo": "Famous paintings from open museum collections. The title, artist and museum show in a corner.",
+      "backgroundInfo": "A new painting each time the background changes. The title, artist and museum show quietly in a corner."
     },
     "picker": {
       "tabs": {

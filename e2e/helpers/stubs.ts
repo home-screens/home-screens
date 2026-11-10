@@ -79,6 +79,7 @@ const PHOTO_MEDIA_STUBS: Record<string, { key: string; file: string }> = {
   // Unsplash items carry the photographer, which the slideshow credits.
   unsplash: { key: 'unsplash', file: 'unsplash' },
   nasa: { key: 'nasa', file: 'nasa' },
+  art: { key: 'art', file: 'art' },
 };
 
 type Override =

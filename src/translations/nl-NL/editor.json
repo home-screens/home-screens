@@ -2737,6 +2737,7 @@
       "onedrive": "Kies een map",
       "unsplash": "Typ zoekwoorden, voeg een collectie toe of kies een paar foto's",
       "nasa": "",
+      "art": "",
       "wall": "Kies de achtergronden die je wilt tonen"
     },
     "effectsReset": "Herstel",
@@ -5966,7 +5967,8 @@
       "icloud": "Gedeeld iCloud-album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA-foto van de dag"
+      "nasa": "NASA-foto van de dag",
+      "art": "Schilderijen uit musea"
     },
     "library": {
       "folder": "Map",
@@ -6040,6 +6042,40 @@
       "streamInfo": "De nieuwste astronomische foto's van de dag.",
       "backgroundInfo": "NASA publiceert elke dag één nieuwe astronomische foto. Het scherm toont de nieuwste.",
       "apodUnavailable": "NASA stuurt op dit moment geen foto van de dag. Zoeken in de NASA-bibliotheek werkt nog wel."
+    },
+    "art": {
+      "provider": "Collectie",
+      "providers": {
+        "wikimedia": "Wikimedia (veel musea)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Kunstenaar",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Stijl of stroming",
+      "stylePlaceholder": "Impressionisme",
+      "orientation": "Formaat",
+      "orientations": {
+        "any": "Maakt niet uit",
+        "portrait": "Staand",
+        "landscape": "Liggend"
+      },
+      "minSize": "Kortste zijde (pixels)",
+      "shape": "Past bij de vorm van het scherm",
+      "shapes": {
+        "any": "Elke vorm",
+        "loose": "Ongeveer",
+        "medium": "Dichtbij",
+        "strict": "Precies als het scherm"
+      },
+      "fit": "Op het scherm",
+      "fits": {
+        "matte": "Heel schilderij op een zachte vervaging",
+        "cover": "Scherm vullen (randen worden bijgesneden)",
+        "contain": "Heel schilderij op een donkere muur"
+      },
+      "streamInfo": "Beroemde schilderijen uit openbare museumcollecties. Titel, kunstenaar en museum staan in een hoek.",
+      "backgroundInfo": "Elke keer dat de achtergrond wisselt een nieuw schilderij. Titel, kunstenaar en museum staan discreet in een hoek."
     },
     "picker": {
       "tabs": {

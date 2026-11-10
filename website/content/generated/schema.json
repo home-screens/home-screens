@@ -8556,6 +8556,138 @@
           "fields": []
         },
         {
+          "value": "art",
+          "description": "Famous paintings from museum collections open to everyone; no key needed",
+          "fields": [
+            {
+              "name": "provider",
+              "optional": false,
+              "type": {
+                "kind": "string",
+                "text": "ArtProvider",
+                "values": [
+                  "wikimedia",
+                  "aic",
+                  "cleveland"
+                ]
+              },
+              "description": "Which museum collection the paintings come from"
+            },
+            {
+              "name": "artist",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Only paintings by this artist (for example `Claude Monet`)"
+            },
+            {
+              "name": "style",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "string"
+              },
+              "description": "Only paintings in this style or movement (for example `Impressionism`)"
+            },
+            {
+              "name": "museums",
+              "optional": true,
+              "type": {
+                "kind": "array",
+                "text": "string[]"
+              },
+              "description": "Only paintings from these museums (Wikimedia only)"
+            },
+            {
+              "name": "fromYear",
+              "optional": true,
+              "type": {
+                "kind": "number",
+                "text": "number"
+              },
+              "description": "Only paintings made in or after this year"
+            },
+            {
+              "name": "toYear",
+              "optional": true,
+              "type": {
+                "kind": "number",
+                "text": "number"
+              },
+              "description": "Only paintings made in or before this year"
+            },
+            {
+              "name": "genre",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtGenre",
+                "values": [
+                  "landscape",
+                  "portrait",
+                  "still-life",
+                  "seascape",
+                  "religious",
+                  "mythological",
+                  "history",
+                  "genre-scene",
+                  "cityscape",
+                  "nude"
+                ]
+              },
+              "description": "Only paintings of this kind of subject"
+            },
+            {
+              "name": "orientation",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtOrientation",
+                "values": [
+                  "portrait",
+                  "landscape",
+                  "any"
+                ]
+              },
+              "description": "Only paintings shaped like this"
+            },
+            {
+              "name": "minShortSide",
+              "optional": true,
+              "type": {
+                "kind": "number",
+                "text": "number"
+              },
+              "description": "Skip paintings whose shorter side is smaller than this many pixels"
+            },
+            {
+              "name": "aspectTolerance",
+              "optional": true,
+              "type": {
+                "kind": "number",
+                "text": "number"
+              },
+              "description": "How far a painting's shape may differ from the screen's before it is skipped"
+            },
+            {
+              "name": "fit",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtFit",
+                "values": [
+                  "cover",
+                  "contain",
+                  "matte"
+                ]
+              },
+              "description": "How a painting sits on the screen"
+            }
+          ]
+        },
+        {
           "value": "wall",
           "description": "Walls that come with Home Screens, for a rotating background only",
           "fields": [

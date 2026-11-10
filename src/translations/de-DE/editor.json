@@ -2737,6 +2737,7 @@
       "onedrive": "Wähle einen Ordner aus",
       "unsplash": "Gib Suchwörter ein, füge eine Sammlung hinzu oder wähle ein paar Fotos aus",
       "nasa": "",
+      "art": "",
       "wall": "Wähle die Hintergründe aus, die gezeigt werden sollen"
     },
     "effectsReset": "Zurücksetzen",
@@ -5966,7 +5967,8 @@
       "icloud": "Geteiltes iCloud-Album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA-Bild des Tages"
+      "nasa": "NASA-Bild des Tages",
+      "art": "Gemälde aus Museen"
     },
     "library": {
       "folder": "Ordner",
@@ -6040,6 +6042,40 @@
       "streamInfo": "Die neuesten Astronomiebilder des Tages.",
       "backgroundInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Der Bildschirm zeigt immer das neueste.",
       "apodUnavailable": "Die NASA schickt gerade keine Bilder des Tages. Die Suche im Bildarchiv der NASA klappt weiterhin."
+    },
+    "art": {
+      "provider": "Sammlung",
+      "providers": {
+        "wikimedia": "Wikimedia (viele Museen)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Künstler",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Stil oder Epoche",
+      "stylePlaceholder": "Impressionismus",
+      "orientation": "Format",
+      "orientations": {
+        "any": "Beliebig",
+        "portrait": "Hochformat",
+        "landscape": "Querformat"
+      },
+      "minSize": "Kürzeste Seite (Pixel)",
+      "shape": "Zur Form des Bildschirms passend",
+      "shapes": {
+        "any": "Jede Form",
+        "loose": "Ungefähr",
+        "medium": "Genau",
+        "strict": "Genau wie der Bildschirm"
+      },
+      "fit": "Auf dem Bildschirm",
+      "fits": {
+        "matte": "Ganzes Gemälde auf weichem Unschärfe-Hintergrund",
+        "cover": "Bildschirm füllen (Ränder werden abgeschnitten)",
+        "contain": "Ganzes Gemälde auf dunkler Wand"
+      },
+      "streamInfo": "Berühmte Gemälde aus frei zugänglichen Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
+      "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke."
     },
     "picker": {
       "tabs": {

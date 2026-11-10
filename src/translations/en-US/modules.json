@@ -1234,6 +1234,7 @@
     "noPhotosYetHintImmich": "Check the Immich album, person and favorites choice in the editor.",
     "noPhotosYetHintUnsplash": "Try different search words in the editor.",
     "noPhotosYetHintNasa": "NASA isn't sending pictures right now. They come back on their own.",
+    "noPhotosYetHintArt": "Try different artist or style words in the editor.",
     "noPhotosYetHintPicked": "Pick some pictures in the editor."
   },
   "dad-joke": {
@@ -1385,6 +1386,7 @@
     "emptyImmich": "No photos yet. Check the Immich album, person and favorites choice in the editor.",
     "emptyUnsplash": "No photos yet. Try different search words in the editor.",
     "emptyNasa": "No pictures from NASA right now. They come back on their own.",
+    "emptyArt": "No paintings found. Try different artist or style words in the editor.",
     "photoCredit": "{name} / {source}",
     "emptyPicked": "No pictures picked yet. Pick some in the editor."
   },

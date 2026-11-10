@@ -1150,6 +1150,7 @@ test('photo-slideshow: every source is listed, and one without its key says so',
     'OneDrive (needs setting up)',
     'Unsplash (needs a free key)',
     'NASA picture of the day',
+    'Paintings from museums',
   ]);
   // A library folder plays all of itself, so it has no per-refresh count.
   await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);
