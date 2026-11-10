@@ -14,6 +14,8 @@ export interface RotationCacheEntry {
   sourceKey: string;
   fetchedAt: number;
   intervalMinutes: number;
+  /** The caption shown on the wall, set by sources that ask for credit (art). */
+  credit?: { name: string; source: string };
   /** When every source last failed to answer; the sources rest until the back-off has passed. */
   failedAt?: number;
   /** When the editor last forced a refresh; the next forced one waits a few seconds. */

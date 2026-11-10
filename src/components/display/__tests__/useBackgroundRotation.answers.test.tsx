@@ -8,6 +8,7 @@ vi.mock('@/lib/display-fetch', () => ({ displayFetch }));
 
 import { useBackgroundRotation } from '../useBackgroundRotation';
 import { publishRevisions, __resetHeartbeatForTests } from '@/lib/display-heartbeat';
+import { setBackgroundCaption, useBackgroundCaption } from '@/lib/background-caption-store';
 
 const PHOTO = '/api/backgrounds/serve?file=rotation-unsplash-a.jpg';
 
@@ -107,5 +108,20 @@ describe('useBackgroundRotation answers', () => {
     const { result } = renderHook(() => useBackgroundRotation([screen(true)]));
     await answer(new Error('offline'));
     expect(result.current.s).toBeNull();
+  });
+
+  it('keeps the caption an answer carries, and drops it when a later answer has none', async () => {
+    const caption = { name: 'Irises, Vincent van Gogh, 1889', source: 'Cleveland Museum of Art' };
+    renderHook(() => useBackgroundRotation([screen(true)]));
+    const shown = renderHook(() => useBackgroundCaption('s'));
+    await answer(new Response(JSON.stringify({ path: PHOTO, credit: caption })));
+    expect(shown.result.current).toEqual(caption);
+
+    act(() => { publishRevisions({ rotation: 'r1' }); });
+    act(() => { publishRevisions({ rotation: 'r2' }); });
+    await answer(new Response(JSON.stringify({ path: PHOTO })));
+    expect(shown.result.current).toBeUndefined();
+    setBackgroundCaption('s', null);
+    __resetHeartbeatForTests();
   });
 });

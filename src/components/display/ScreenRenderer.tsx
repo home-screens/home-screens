@@ -43,6 +43,8 @@ import { getLocation } from '@/lib/location';
 import { getModuleDefinition } from '@/lib/module-registry';
 import { resolveModuleStyle } from '@/lib/module-style';
 import BackgroundMediaLayer from '@/components/BackgroundMediaLayer';
+import PhotoCredit from '@/components/modules/shared/PhotoCredit';
+import { useBackgroundCaption } from '@/lib/background-caption-store';
 import { screenBackgroundSrc, type RotationAnswer } from '@/lib/screen-background';
 import { displaySizedUrl } from '@/lib/media-paths';
 
@@ -123,6 +125,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   );
 
   const canvas = { w: displayW, h: displayH };
+  const caption = useBackgroundCaption(screen.id);
   // Module-requested override takes priority over screen background. A
   // library picture is asked for at the canvas size (see displaySizedUrl).
   const rawBackground = overrideBackground
@@ -161,6 +164,9 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
           under the View Transition; the crossfade is for a new picture on the
           same screen. */}
       <BackgroundMediaLayer key={screen.id} src={rawBackground} shade={screen.shade} effects={screen.effects} authenticate />
+      {caption && rotatingBackground && (
+        <PhotoCredit item={{ url: '', type: 'image', credit: caption }} box={{ w: displayW, h: displayH }} />
+      )}
 
       {visibleModules.map((mod) => {
         const Component = getModuleComponent(mod.type);

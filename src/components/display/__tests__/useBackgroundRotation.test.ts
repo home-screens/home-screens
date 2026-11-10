@@ -47,6 +47,7 @@ describe('buildRotationKey', () => {
     ['Unsplash collections', { kind: 'unsplash', query: '', collections: ['c1'] }, { kind: 'unsplash', query: '', collections: ['c2'] }],
     ['Unsplash picks', { kind: 'unsplash', query: '', photoIds: ['p1'] }, { kind: 'unsplash', query: '', photoIds: ['p2'] }],
     ['walls', { kind: 'wall', group: 'color', ids: ['ocean'] }, { kind: 'wall', group: 'color', ids: ['dusk'] }],
+    ['art fit', { kind: 'art', provider: 'aic', fit: 'cover' }, { kind: 'art', provider: 'aic', fit: 'matte' }],
     ['kind', { kind: 'nasa' }, { kind: 'unsplash', query: 'nasa' }],
   ])('changes when the %s change', (_label, a, b) => {
     expect(buildRotationKey([screen('s1', [a])])).not.toBe(buildRotationKey([screen('s1', [b])]));
