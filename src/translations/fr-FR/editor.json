@@ -6075,7 +6075,43 @@
         "contain": "Tableau entier sur un mur sombre"
       },
       "streamInfo": "Des tableaux célèbres issus de collections de musées en libre accès. Le titre, l'artiste et le musée s'affichent dans un coin.",
-      "backgroundInfo": "Un nouveau tableau à chaque changement de fond. Le titre, l'artiste et le musée s'affichent discrètement dans un coin."
+      "backgroundInfo": "Un nouveau tableau à chaque changement de fond. Le titre, l'artiste et le musée s'affichent discrètement dans un coin.",
+      "addFilter": "+ Ajouter un filtre",
+      "filters": "Affiner",
+      "removeFilter": "Retirer le filtre : {filter}",
+      "museum": "Musée",
+      "anyMuseum": "N’importe quel musée",
+      "museumsChosen": {
+        "one": "{count} musée choisi",
+        "other": "{count} musées choisis"
+      },
+      "period": "Période",
+      "fromYear": "À partir de l’année",
+      "toYear": "Jusqu’à l’année",
+      "genre": "Sujet",
+      "choose": "Choisir…",
+      "genres": {
+        "landscape": "Paysages",
+        "portrait": "Portraits",
+        "still-life": "Natures mortes",
+        "seascape": "Marines",
+        "religious": "Religieux",
+        "mythological": "Mythologie",
+        "history": "Histoire",
+        "genre-scene": "Scènes de la vie quotidienne",
+        "cityscape": "Vues de villes",
+        "nude": "Nus"
+      },
+      "matchCount": {
+        "one": "{count} tableau correspond",
+        "other": "{count} tableaux correspondent"
+      },
+      "matchCountAbout": {
+        "one": "environ {count} tableau correspond",
+        "other": "environ {count} tableaux correspondent"
+      },
+      "manyMatch": "Beaucoup de tableaux correspondent (trop pour les compter ici)",
+      "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre."
     },
     "picker": {
       "tabs": {

@@ -6075,7 +6075,43 @@
         "contain": "Whole painting on a dark wall"
       },
       "streamInfo": "Famous paintings from open museum collections. The title, artist and museum show in a corner.",
-      "backgroundInfo": "A new painting each time the background changes. The title, artist and museum show quietly in a corner."
+      "backgroundInfo": "A new painting each time the background changes. The title, artist and museum show quietly in a corner.",
+      "addFilter": "+ Add filter",
+      "filters": "Narrow down",
+      "removeFilter": "Remove filter: {filter}",
+      "museum": "Museum",
+      "anyMuseum": "Any museum",
+      "museumsChosen": {
+        "one": "{count} museum chosen",
+        "other": "{count} museums chosen"
+      },
+      "period": "Period",
+      "fromYear": "From year",
+      "toYear": "To year",
+      "genre": "Subject",
+      "choose": "Choose…",
+      "genres": {
+        "landscape": "Landscapes",
+        "portrait": "Portraits",
+        "still-life": "Still life",
+        "seascape": "Seascapes",
+        "religious": "Religious",
+        "mythological": "Mythology",
+        "history": "History",
+        "genre-scene": "Scenes of everyday life",
+        "cityscape": "Cityscapes",
+        "nude": "Nudes"
+      },
+      "matchCount": {
+        "one": "{count} painting matches",
+        "other": "{count} paintings match"
+      },
+      "matchCountAbout": {
+        "one": "about {count} painting matches",
+        "other": "about {count} paintings match"
+      },
+      "manyMatch": "Plenty of paintings match (too many to count here)",
+      "fewMatches": "Only a few paintings match, so the same ones will come back often. Try loosening a filter."
     },
     "picker": {
       "tabs": {

@@ -7,7 +7,7 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
 });
 
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { artPhotoSource, isOpenLicense, __test } from '../art';
+import { artCount, artPhotoSource, isOpenLicense, __test } from '../art';
 import type { PhotoSource } from '@/types/config';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -176,5 +176,24 @@ describe('background picks', () => {
     upstream({ 'openaccess-api': () => json({ data: [] }) });
     __test.cache.clear();
     expect(await artPhotoSource.pickOne({ source: art({ provider: 'cleveland' }), canvas: CANVAS })).toBeNull();
+  });
+});
+
+describe('counts', () => {
+  it('reads the museums\' own totals as exact', async () => {
+    upstream({ 'artworks/search': () => json({ data: [], pagination: { total: 123 } }), 'openaccess-api': () => json({ data: [], info: { total: 45 } }) });
+    expect(await artCount(art({ provider: 'aic' }))).toEqual({ count: 123, approximate: false });
+    expect(await artCount(art({ provider: 'cleveland' }))).toEqual({ count: 45, approximate: false });
+  });
+
+  it('counts Wikidata approximately, and calls a timeout unknown without asking again at once', async () => {
+    upstream({ 'COUNT(DISTINCT': () => wikidata({ n: { value: '812' } }) });
+    expect(await artCount(art())).toEqual({ count: 812, approximate: true });
+
+    __test.cache.clear();
+    upstream({ 'COUNT(DISTINCT': () => { throw new Error('timeout'); } });
+    expect(await artCount(art({ genre: 'nude' }))).toEqual({ count: null, approximate: true });
+    await artCount(art({ genre: 'nude' }));
+    expect(sparqls()).toHaveLength(2);
   });
 });

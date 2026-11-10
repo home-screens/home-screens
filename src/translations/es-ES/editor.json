@@ -6075,7 +6075,43 @@
         "contain": "Pintura entera sobre una pared oscura"
       },
       "streamInfo": "Pinturas famosas de colecciones de museos abiertas a todos. El título, el artista y el museo aparecen en una esquina.",
-      "backgroundInfo": "Una pintura nueva cada vez que cambia el fondo. El título, el artista y el museo aparecen discretos en una esquina."
+      "backgroundInfo": "Una pintura nueva cada vez que cambia el fondo. El título, el artista y el museo aparecen discretos en una esquina.",
+      "addFilter": "+ Añadir filtro",
+      "filters": "Acotar",
+      "removeFilter": "Quitar filtro: {filter}",
+      "museum": "Museo",
+      "anyMuseum": "Cualquier museo",
+      "museumsChosen": {
+        "one": "{count} museo elegido",
+        "other": "{count} museos elegidos"
+      },
+      "period": "Época",
+      "fromYear": "Desde el año",
+      "toYear": "Hasta el año",
+      "genre": "Tema",
+      "choose": "Elegir…",
+      "genres": {
+        "landscape": "Paisajes",
+        "portrait": "Retratos",
+        "still-life": "Bodegones",
+        "seascape": "Marinas",
+        "religious": "Religiosos",
+        "mythological": "Mitología",
+        "history": "Historia",
+        "genre-scene": "Escenas cotidianas",
+        "cityscape": "Vistas urbanas",
+        "nude": "Desnudos"
+      },
+      "matchCount": {
+        "one": "{count} pintura coincide",
+        "other": "{count} pinturas coinciden"
+      },
+      "matchCountAbout": {
+        "one": "unas {count} pintura coincide",
+        "other": "unas {count} pinturas coinciden"
+      },
+      "manyMatch": "Coinciden muchísimas pinturas (demasiadas para contarlas aquí)",
+      "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro."
     },
     "picker": {
       "tabs": {

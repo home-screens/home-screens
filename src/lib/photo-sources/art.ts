@@ -1,6 +1,6 @@
 import { createTTLCache, fetchWithTimeout, type FetchRetryOptions } from '@/lib/api-utils';
 import { composeFit, paintingFits } from '@/lib/art-fit';
-import { DEFAULT_ART_FIT, DEFAULT_ART_MIN_SHORT_SIDE, type PhotoSourceOf } from '@/lib/photo-source';
+import { ART_MUSEUMS, DEFAULT_ART_FIT, DEFAULT_ART_MIN_SHORT_SIDE, type ArtCount, type PhotoSourceOf } from '@/lib/photo-source';
 import { shuffleArray } from '@/lib/shuffle';
 import type { ArtGenre, ArtProvider, MediaListItem } from '@/types/config';
 import { PhotoSourceError, type PhotoSourceAdapter } from './types';
@@ -205,6 +205,24 @@ async function wikimediaWorks(source: ArtSource): Promise<ArtWork[]> {
   return works.length > 0 || offset === 0 ? works : page(0);
 }
 
+async function wikimediaCount(source: ArtSource): Promise<ArtCount> {
+  const asked = await wikidataClauses(source);
+  if (!asked) return { count: 0, approximate: true };
+  const query = `SELECT (COUNT(DISTINCT ?item) AS ?n) WHERE { ${PAINTINGS} ${asked.clauses.join('\n  ')} }`;
+  const known = cache.get(`count:${query}`) as ArtCount | null;
+  if (known) return known;
+  let count: number | null = null;
+  try {
+    const rows = await sparql(query, { timeout: 8_000, retries: 0 });
+    count = Number(rows[0]?.n?.value);
+    if (!Number.isFinite(count)) count = null;
+  } catch {
+  }
+  const answer = { count, approximate: true };
+  cache.set(`count:${query}`, answer, count === null ? 5 * 60_000 : undefined);
+  return answer;
+}
+
 interface AicHit {
   id?: number;
   title?: string;
@@ -325,6 +343,24 @@ const creditOf = (work: ArtWork) => ({
   name: [work.title, work.artist, work.year].filter(Boolean).join(', '),
   source: work.license ? `${work.museum}, ${work.license}` : work.museum,
 });
+
+export async function artCount(source: ArtSource): Promise<ArtCount> {
+  if (source.provider === 'wikimedia') return wikimediaCount(source);
+  const count = source.provider === 'aic'
+    ? (await aicSearch(aicMust(source), 1, 1)).total
+    : (await clevelandSearch(clevelandParams(source, { limit: '1', fields: 'id' }))).total;
+  return { count, approximate: false };
+}
+
+/** Slow museums are listed without a count and tried on a later visit. */
+export async function artMuseums(): Promise<Array<{ id: string; count: number | null }>> {
+  const deadline = Date.now() + 12_000;
+  const out: Array<{ id: string; count: number | null }> = [];
+  for (const { id } of ART_MUSEUMS) {
+    out.push({ id, count: Date.now() < deadline ? (await wikimediaCount({ kind: 'art', provider: 'wikimedia', museums: [id] })).count : null });
+  }
+  return out;
+}
 
 const WORKS = { wikimedia: wikimediaWorks, aic: aicWorks, cleveland: clevelandWorks } satisfies Record<ArtProvider, unknown>;
 

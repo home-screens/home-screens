@@ -162,6 +162,9 @@ export async function stubModuleData(page: Page, opts: StubOptions = {}): Promis
     const kind = new URL(route.request().url()).searchParams.get('kind') ?? 'library';
     const stub = PHOTO_MEDIA_STUBS[kind];
     if (!stub) return route.fulfill({ status: 400, contentType: 'application/json', body: '{"error":"Unknown photo source"}' });
+    const info = new URL(route.request().url()).searchParams.get('info');
+    if (info === 'count') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ count: 4900, approximate: true }) });
+    if (info === 'museums') return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ id: 'Q19675', count: 4900 }]) });
     const override = overrides[stub.key];
     if (override !== undefined && isStatusOverride(override)) {
       return route.fulfill({ status: override.status, contentType: 'application/json', body: JSON.stringify(override.body ?? {}) });

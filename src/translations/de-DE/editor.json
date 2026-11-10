@@ -6075,7 +6075,43 @@
         "contain": "Ganzes Gemälde auf dunkler Wand"
       },
       "streamInfo": "Berühmte Gemälde aus frei zugänglichen Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
-      "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke."
+      "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke.",
+      "addFilter": "+ Filter hinzufügen",
+      "filters": "Eingrenzen",
+      "removeFilter": "Filter entfernen: {filter}",
+      "museum": "Museum",
+      "anyMuseum": "Jedes Museum",
+      "museumsChosen": {
+        "one": "{count} Museum ausgewählt",
+        "other": "{count} Museen ausgewählt"
+      },
+      "period": "Zeitraum",
+      "fromYear": "Ab Jahr",
+      "toYear": "Bis Jahr",
+      "genre": "Motiv",
+      "choose": "Auswählen…",
+      "genres": {
+        "landscape": "Landschaften",
+        "portrait": "Porträts",
+        "still-life": "Stillleben",
+        "seascape": "Seestücke",
+        "religious": "Religiöses",
+        "mythological": "Mythologie",
+        "history": "Geschichte",
+        "genre-scene": "Alltagsszenen",
+        "cityscape": "Stadtansichten",
+        "nude": "Akte"
+      },
+      "matchCount": {
+        "one": "{count} Gemälde passt",
+        "other": "{count} Gemälde passen"
+      },
+      "matchCountAbout": {
+        "one": "etwa {count} Gemälde passt",
+        "other": "etwa {count} Gemälde passen"
+      },
+      "manyMatch": "Sehr viele Gemälde passen (zu viele, um sie hier zu zählen)",
+      "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter."
     },
     "picker": {
       "tabs": {

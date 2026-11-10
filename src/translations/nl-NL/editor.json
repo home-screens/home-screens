@@ -6075,7 +6075,43 @@
         "contain": "Heel schilderij op een donkere muur"
       },
       "streamInfo": "Beroemde schilderijen uit openbare museumcollecties. Titel, kunstenaar en museum staan in een hoek.",
-      "backgroundInfo": "Elke keer dat de achtergrond wisselt een nieuw schilderij. Titel, kunstenaar en museum staan discreet in een hoek."
+      "backgroundInfo": "Elke keer dat de achtergrond wisselt een nieuw schilderij. Titel, kunstenaar en museum staan discreet in een hoek.",
+      "addFilter": "+ Filter toevoegen",
+      "filters": "Verfijnen",
+      "removeFilter": "Filter verwijderen: {filter}",
+      "museum": "Museum",
+      "anyMuseum": "Elk museum",
+      "museumsChosen": {
+        "one": "{count} museum gekozen",
+        "other": "{count} musea gekozen"
+      },
+      "period": "Periode",
+      "fromYear": "Vanaf jaar",
+      "toYear": "Tot jaar",
+      "genre": "Onderwerp",
+      "choose": "Kies…",
+      "genres": {
+        "landscape": "Landschappen",
+        "portrait": "Portretten",
+        "still-life": "Stillevens",
+        "seascape": "Zeegezichten",
+        "religious": "Religieus",
+        "mythological": "Mythologie",
+        "history": "Geschiedenis",
+        "genre-scene": "Taferelen uit het dagelijks leven",
+        "cityscape": "Stadsgezichten",
+        "nude": "Naakten"
+      },
+      "matchCount": {
+        "one": "{count} schilderij komt overeen",
+        "other": "{count} schilderijen komen overeen"
+      },
+      "matchCountAbout": {
+        "one": "ongeveer {count} schilderij komt overeen",
+        "other": "ongeveer {count} schilderijen komen overeen"
+      },
+      "manyMatch": "Heel veel schilderijen komen overeen (te veel om hier te tellen)",
+      "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer."
     },
     "picker": {
       "tabs": {

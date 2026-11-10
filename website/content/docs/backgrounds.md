@@ -169,7 +169,15 @@ Pick a **Collection**:
 - **Art Institute of Chicago** takes the public-domain paintings in that museum's collection.
 - **Cleveland Museum of Art** takes the museum's open-access paintings.
 
-Narrow them down with an **Artist** (for example `Claude Monet`), a **Style or movement** (for example `Impressionism`), a **Shape** (tall, wide or either), a **Smallest side** in pixels so small scans stay off a big screen, and **Match the screen's shape** to skip paintings that are the wrong shape for your display.
+Nothing is filtered at first. Choose **+ Add filter** to narrow the paintings down; each filter you add shows as its own field, with a cross to take it away again:
+
+- **Museum** (Wikimedia only) lists the main museums with roughly how many paintings each has. Tick several and a painting from any of them counts. The other two collections are one museum each.
+- **Period** takes a first and a last year, either of which can be left empty. Paintings made over a span of years match when the span meets your period.
+- **Subject** picks landscapes, portraits, still life, seascapes, religious scenes, mythology, history, everyday scenes, cityscapes or nudes. The Art Institute matches its own subject terms and the Cleveland museum matches the word, so a few subjects have few or no paintings there.
+- **Artist** (for example `Claude Monet`) and **Style or movement** (for example `Impressionism`) take free text.
+- **Shape** (tall, wide or either), **Smallest side** in pixels (so small scans stay off a big screen; paintings under 800 pixels are skipped unless you set it lower) and **Match the screen's shape** skip paintings that are the wrong shape for your display.
+
+Under the filters the editor says how many paintings match and shows a few of them. The Art Institute and Cleveland museum give an exact total. For Wikimedia the number is **about**: it counts Wikidata's paintings with a picture, and the licence check can leave out some. When Wikidata is too slow to count, the editor says plenty match instead. The count leaves out the shape and size filters, and the editor warns when only a few paintings match, because the same ones would then come back often.
 
 For a rotating background, **On the screen** says how a painting sits behind your modules:
 
@@ -311,7 +319,7 @@ Every minute the wall asks the Pi whether it is time for a new background. When 
 - **Library** picks a different picture from the folder, or from the pictures you chose, each time. It is shown straight from the library, with no copy, and a folder's last picture can't be deleted while a rotation uses it.
 - **Unsplash** fetches a random photo matching the search words or from the collections you named, shaped like your display, or one of the photos you picked. A collection is checked with Unsplash when you add it and before it is drawn from, so a mistyped id reads "Couldn't find this collection" instead of putting random photos on the wall. Download tracking is triggered per the Unsplash API terms.
 - **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
-- **Paintings from museums** fetches a random painting that matches the artist, style, size and shape you chose, fitted to your screen as set under **On the screen**.
+- **Paintings from museums** fetches a random painting that matches the filters you chose (museum, period, subject, artist, style, size and shape), fitted to your screen as set under **On the screen**.
 - **Immich** fetches a random photo matching the filters (any of the albums ticked, any of the people ticked, none of the people left out, favorites only), or one of the photos you picked. Changing a filter fetches a fresh photo straight away.
 - **iCloud** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
 - **OneDrive** fetches a random photo from the folder and everything inside it.

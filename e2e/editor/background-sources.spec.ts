@@ -122,6 +122,32 @@ test.describe('rotation sources', () => {
     await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
   });
 
+  test('Paintings: filters are added one by one, counted, and taken away again', async ({ page, request }) => {
+    await stubModuleData(page, { blockExternal: true });
+    await openSources(page, request);
+
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Paintings from museums' }).check());
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia' }]);
+    await expect(page.getByLabel('Artist', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('art-count')).toHaveText('about 4900 paintings match');
+    await expect(page.getByTestId('photo-source-preview')).toBeVisible();
+
+    await page.getByRole('combobox', { name: 'Narrow down' }).selectOption('museum');
+    await autosaved(page, async () => page.getByTestId('art-museums').getByRole('checkbox', { name: 'Louvre Museum (4900)' }).check());
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia', museums: ['Q19675'] }]);
+
+    await page.getByRole('combobox', { name: 'Narrow down' }).selectOption('period');
+    await autosaved(page, async () => page.getByLabel('From year').fill('1600'));
+    await autosaved(page, async () => page.getByLabel('To year').fill('1800'));
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia', museums: ['Q19675'], fromYear: 1600, toYear: 1800 }]);
+
+    await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Museum' }).click());
+    await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Period' }).click());
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia' }]);
+
+    await putConfig(request, baseConfig());
+  });
+
   test('Immich: any-of filters, a person left out, then photos picked one by one', async ({ page, request }) => {
     const handle = await stubModuleData(page, { blockExternal: true });
     await seedSecrets(request);

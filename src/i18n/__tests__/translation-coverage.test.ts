@@ -310,6 +310,8 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // Art labels that read the same in this language.
+    'editor|photoSources.art.museum',
     // "Dessert" is the Danish word too (a meal's course, a kind of dish).
     'modules|meal-planner.courses.dessert',
     'core|meal.kind.dessert',
@@ -356,6 +358,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
+    // Art labels that read the same in this language.
+    'editor|photoSources.art.museum',
     // "Bonus" is the same word in this language (the ticket history's bonus line).
     'remote|rewardsView.tickets.bonusLine',
     // "Bonus" is the same word in this language (bonus chores).
@@ -536,6 +540,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'fr-FR': new Set([
     // "Photos" is the French word too (the name of a photo screen made from the Open button section).
     'editor|propertyPanel.openButton.twinScreenName.fullscreen-photo',
+    // Art labels that read the same in this language.
+    'editor|photoSources.art.genres.portrait',
     // Sources and Collection(s) are the French words too (the background sources).
     'editor|backgroundPicker.sourcesGroup',
     'editor|photoSources.modes.collections',
@@ -722,6 +728,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
+    // Art labels that read the same in this language.
+    'editor|photoSources.art.museum',
     // Filters is the Dutch word too (the Immich mode).
     'editor|photoSources.modes.filters',
     // Rows main added while the photo-source branch was open.

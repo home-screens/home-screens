@@ -132,6 +132,8 @@ const UNSPLASH_COLLECTION_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const WALL_ID = /^[a-z0-9-]{1,64}$/;
 const UNSPLASH_QUERY_MAX = 100;
 const ART_TEXT_MAX = 100;
+/** How many paintings match, for the editor; `count` is null when the collection took too long to say. */
+export interface ArtCount { count: number | null; approximate: boolean }
 export const ART_PROVIDERS: readonly ArtProvider[] = ['wikimedia', 'aic', 'cleveland'];
 export const ART_ORIENTATIONS: readonly ArtOrientation[] = ['any', 'portrait', 'landscape'];
 export const ART_FITS: readonly ArtFit[] = ['matte', 'cover', 'contain'];

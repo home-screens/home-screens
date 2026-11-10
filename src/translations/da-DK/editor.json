@@ -6075,7 +6075,43 @@
         "contain": "Hele maleriet på mørk væg"
       },
       "streamInfo": "Berømte malerier fra åbne museumssamlinger. Titel, kunstner og museum vises i et hjørne.",
-      "backgroundInfo": "Et nyt maleri hver gang baggrunden skifter. Titel, kunstner og museum vises diskret i et hjørne."
+      "backgroundInfo": "Et nyt maleri hver gang baggrunden skifter. Titel, kunstner og museum vises diskret i et hjørne.",
+      "addFilter": "+ Tilføj filter",
+      "filters": "Indsnævr",
+      "removeFilter": "Fjern filter: {filter}",
+      "museum": "Museum",
+      "anyMuseum": "Alle museer",
+      "museumsChosen": {
+        "one": "{count} museum valgt",
+        "other": "{count} museer valgt"
+      },
+      "period": "Periode",
+      "fromYear": "Fra år",
+      "toYear": "Til år",
+      "genre": "Motiv",
+      "choose": "Vælg…",
+      "genres": {
+        "landscape": "Landskaber",
+        "portrait": "Portrætter",
+        "still-life": "Stilleben",
+        "seascape": "Havbilleder",
+        "religious": "Religiøse",
+        "mythological": "Mytologi",
+        "history": "Historie",
+        "genre-scene": "Hverdagsscener",
+        "cityscape": "Bybilleder",
+        "nude": "Nøgenstudier"
+      },
+      "matchCount": {
+        "one": "{count} maleri passer",
+        "other": "{count} malerier passer"
+      },
+      "matchCountAbout": {
+        "one": "cirka {count} maleri passer",
+        "other": "cirka {count} malerier passer"
+      },
+      "manyMatch": "Rigtig mange malerier passer (for mange til at tælle her)",
+      "fewMatches": "Kun få malerier passer, så de samme vender ofte tilbage. Prøv at løsne et filter."
     },
     "picker": {
       "tabs": {

@@ -6075,7 +6075,43 @@
         "contain": "Pintura inteira sobre uma parede escura"
       },
       "streamInfo": "Pinturas famosas de acervos de museus abertos a todos. O título, o artista e o museu aparecem num canto.",
-      "backgroundInfo": "Uma pintura nova a cada troca de fundo. O título, o artista e o museu aparecem discretos num canto."
+      "backgroundInfo": "Uma pintura nova a cada troca de fundo. O título, o artista e o museu aparecem discretos num canto.",
+      "addFilter": "+ Adicionar filtro",
+      "filters": "Refinar",
+      "removeFilter": "Remover filtro: {filter}",
+      "museum": "Museu",
+      "anyMuseum": "Qualquer museu",
+      "museumsChosen": {
+        "one": "{count} museu escolhido",
+        "other": "{count} museus escolhidos"
+      },
+      "period": "Período",
+      "fromYear": "A partir do ano",
+      "toYear": "Até o ano",
+      "genre": "Tema",
+      "choose": "Escolher…",
+      "genres": {
+        "landscape": "Paisagens",
+        "portrait": "Retratos",
+        "still-life": "Naturezas-mortas",
+        "seascape": "Marinhas",
+        "religious": "Religiosos",
+        "mythological": "Mitologia",
+        "history": "História",
+        "genre-scene": "Cenas do cotidiano",
+        "cityscape": "Vistas urbanas",
+        "nude": "Nus"
+      },
+      "matchCount": {
+        "one": "{count} pintura corresponde",
+        "other": "{count} pinturas correspondem"
+      },
+      "matchCountAbout": {
+        "one": "cerca de {count} pintura corresponde",
+        "other": "cerca de {count} pinturas correspondem"
+      },
+      "manyMatch": "Muitas pinturas correspondem (demais para contar aqui)",
+      "fewMatches": "Poucas pinturas correspondem, então as mesmas voltarão com frequência. Tente afrouxar um filtro."
     },
     "picker": {
       "tabs": {
