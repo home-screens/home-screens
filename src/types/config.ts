@@ -1647,6 +1647,9 @@ export interface CalendarFetchStatus {
 }
 // Agenda boundary separators; month beats week when boundaries coincide.
 export type AgendaSeparators = 'none' | 'weeks' | 'weeks-and-months';
+
+/** How the Calendar module's daily and agenda views draw an all-day event. */
+export type CalendarAllDayStyle = 'full' | 'title-only';
 // Schedule view first column: sliding today, calendar-stable week start,
 // or the upcoming weekend (Saturday, held through Sunday).
 export type ScheduleStartAnchor = 'today' | 'start-of-week' | 'next-weekend';
@@ -2017,6 +2020,17 @@ export interface CalendarConfig {
   showLocation: boolean;
   /** Daily and agenda views: show the background surface behind each event row. Defaults to true. */
   showEventBackground?: boolean;
+  // Daily + agenda: 'title-only' draws an all-day row (and the middle day of
+  // a timed multi-day event, which reads "All day" too) as one line, so a
+  // day with several of them leaves room for the timed events.
+  /**
+   * Daily and agenda views: how all-day events are drawn. `full` gives them the same card as timed
+   * events; `title-only` shrinks each one to a single line with just its title, leaving more room
+   * for the day's timed events. Tapping one still opens its details
+   *
+   * @default "full"
+   */
+  allDayStyle?: CalendarAllDayStyle;
   /** Maximum number of events to display */
   maxEvents: number;
   /** Show week numbers in week/multi-week/month views */

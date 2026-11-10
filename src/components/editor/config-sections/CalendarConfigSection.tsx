@@ -15,7 +15,7 @@ import { CalendarPeopleFilter, LegendModeSelect, NameTagsToggle, useCalendarRost
 import { CalendarTitleFilterControl } from './CalendarTitleFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
 import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
-import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
+import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarAllDayStyle, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
 import { CalendarDayNotesToggle } from './CalendarDayNotesToggle';
 
 // Stable selector fallback — a literal `?? []` inside a zustand selector
@@ -31,6 +31,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     showTime?: boolean;
     showLocation?: boolean;
     showEventBackground?: boolean;
+    allDayStyle?: CalendarAllDayStyle;
     maxEvents?: number;
     showWeekNumbers?: boolean;
     sourceFilter?: string[];
@@ -268,6 +269,15 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
             <Toggle label={t('configSections.calendar.showTime')} checked={c.showTime !== false} onChange={(v) => set({ showTime: v })} />
             <Toggle label={t('configSections.calendar.showLocation')} checked={!!c.showLocation} onChange={(v) => set({ showLocation: v })} />
             <Toggle label={t('configSections.calendar.showEventBackground')} checked={c.showEventBackground !== false} onChange={(v) => set({ showEventBackground: v })} />
+            <LabeledSelect
+              label={t('configSections.calendar.allDayStyle')}
+              value={c.allDayStyle ?? 'full'}
+              onChange={(v) => set({ allDayStyle: v })}
+              options={[
+                { value: 'full', label: t('configSections.calendar.allDayStyleFull') },
+                { value: 'title-only', label: t('configSections.calendar.allDayStyleTitleOnly') },
+              ]}
+            />
           </>
         )}
         {viewMode === 'daily' && (

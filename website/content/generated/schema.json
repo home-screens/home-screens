@@ -2107,6 +2107,21 @@
           "default": true
         },
         {
+          "name": "allDayStyle",
+          "optional": true,
+          "type": {
+            "kind": "string",
+            "text": "CalendarAllDayStyle",
+            "values": [
+              "full",
+              "title-only"
+            ]
+          },
+          "description": "Daily and agenda views: how all-day events are drawn. `full` gives them the same card as timed events; `title-only` shrinks each one to a single line with just its title, leaving more room for the day's timed events. Tapping one still opens its details",
+          "defaultText": "\"full\"",
+          "default": "full"
+        },
+        {
           "name": "maxEvents",
           "optional": false,
           "type": {

@@ -209,6 +209,18 @@ test('calendar: toggling event backgrounds persists', async ({ page, request }) 
   expect((await moduleConfig(request, 'calendar')).showEventBackground).toBe(false);
 });
 
+test('calendar: choosing Title only for all-day events persists', async ({ page, request }) => {
+  await selectModule(page, request, buildModuleInstance('calendar'));
+
+  const allDay = page.getByLabel('All-day events');
+  await expect(allDay).toHaveValue('full');
+  await autosaved(page, async () => {
+    await allDay.selectOption('title-only');
+  });
+
+  expect((await moduleConfig(request, 'calendar')).allDayStyle).toBe('title-only');
+});
+
 test('calendar: the week grid offers Show Time for its classic pills, and it persists', async ({ page, request }) => {
   await selectModule(page, request, buildModuleInstance('calendar', { viewMode: 'week' }));
 

@@ -137,6 +137,7 @@ export function DailyView({ events, config, style, today, now, anchor, stepped =
   // Days someone stepped back to on purpose are read, not faded.
   const dimPastEvents = config.dimPastEvents === true && !stepped;
   const showNowRule = config.showNowRule === true;
+  const allDayTitleOnly = config.allDayStyle === 'title-only';
 
   const days = Array.from({ length: daysToShow }, (_, i) => {
     const date = addDays(anchor ?? today, i);
@@ -199,7 +200,7 @@ export function DailyView({ events, config, style, today, now, anchor, stepped =
                 }).map((row) => row.kind === 'now-rule' ? (
                   <NowRule key="now-rule" now={now} accentColor={accentColor} timeFormat={eventStyle.timeFormat} locale={locale} />
                 ) : (
-                  <EventCard key={row.ev.id} event={row.ev} segment={row.segment} countdown={row.countdown} progress={row.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={dimPastEvents && row.isPast} live={showNowRule && row.isLive} />
+                  <EventCard key={row.ev.id} event={row.ev} segment={row.segment} countdown={row.countdown} progress={row.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} titleOnly={allDayTitleOnly && (isAllDayEvent(row.ev) || row.segment === 'middle')} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={dimPastEvents && row.isPast} live={showNowRule && row.isLive} />
                 ))
               )}
             </div>

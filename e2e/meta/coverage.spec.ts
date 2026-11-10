@@ -690,6 +690,7 @@ const DISCRIMINATOR_UNION_DECISIONS: Record<string, string> = {
   TextRevealOnRotation: 'reveal animation flavors on the rotation feature; field-level row suffices',
   TextWrapMode: 'CSS wrap strategies; field-level row suffices',
   AgendaSeparators: 'boundary-marker density; the weeks-and-months row renders both separator kinds, weeks shares the week-rule path, none is the default matrix render',
+  CalendarAllDayStyle: 'how one all-day row is drawn in the two list views; the all-day-title-only-daily and -agenda rows cover the one-line look, full is the default matrix render',
   CalendarLegendPlacement: 'placement of one legend row; both modules carry legend-header and legend-footer variant rows, off is the default matrix render',
   CalendarLegendMode: 'what one key strip lists; the legend-mode-groups (fullscreen) and legend-mode-people (small) rows cover both non-default modes, calendars is the default render',
   TodayHighlightStyle: 'styling intensity levels; field-level row (off) suffices',

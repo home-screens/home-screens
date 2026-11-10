@@ -719,6 +719,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTime: true,
       showLocation: false,
       showEventBackground: true,
+      allDayStyle: 'full',
       maxEvents: 20,
       showWeekNumbers: false,
       weeksToShow: 6,

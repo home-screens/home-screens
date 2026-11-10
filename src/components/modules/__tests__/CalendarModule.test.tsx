@@ -1212,3 +1212,62 @@ describe('rolling view', () => {
     expect((cells[17] as HTMLElement).textContent).toContain('Aug');
   });
 });
+
+describe('CalendarModule list views: allDayStyle title-only', () => {
+  const day = format(now, 'yyyy-MM-dd');
+  const nextDay = format(addDays(now, 1), 'yyyy-MM-dd');
+  const listEvents: CalendarEvent[] = [
+    { id: 'allday', title: 'Grandma Visiting', start: day, end: nextDay, allDay: true, location: 'Guest Room', description: 'Leaves Thursday' },
+    // Started yesterday, ends tomorrow: today is its middle day, which reads "All day" too.
+    { id: 'passing', title: 'Race Weekend', start: format(addDays(now, -1), LOCAL), end: format(addDays(now, 1), LOCAL), allDay: false, location: 'Race Track' },
+    { id: 'timed', title: 'Swim Practice', start: format(addHours(now, 2), LOCAL), end: format(addHours(now, 3), LOCAL), allDay: false, location: 'Sports Hall', description: 'Bring goggles' },
+  ];
+  const listConfig = (overrides: Partial<CalendarConfig>) => makeConfig({
+    daysToShow: 1, showLocation: true, dailyShowDescription: true, agendaShowDescription: true, agendaShowFinishedToday: true, ...overrides,
+  });
+  const row = (container: HTMLElement, id: string) => container.querySelector(`[data-event-id="${id}"]`) as HTMLElement;
+
+  for (const viewMode of ['daily', 'agenda'] as const) {
+    it(`${viewMode}: an all-day row is one line with only its title, timed rows keep every detail`, () => {
+      const { container } = render(
+        <Wrapper><CalendarModule config={listConfig({ viewMode, allDayStyle: 'title-only' })} style={style} events={listEvents} /></Wrapper>,
+      );
+      const allDay = row(container, 'allday');
+      expect(allDay.getAttribute('data-all-day-row')).toBe('title-only');
+      expect(allDay.textContent).toBe('Grandma Visiting');
+
+      const timed = row(container, 'timed');
+      expect(timed.hasAttribute('data-all-day-row')).toBe(false);
+      expect(timed.textContent).toContain('Sports Hall');
+      expect(timed.textContent).toContain('Bring goggles');
+    });
+
+    it(`${viewMode}: full (and unset) keeps the all-day card as it was`, () => {
+      for (const allDayStyle of ['full', undefined] as const) {
+        const { container } = render(
+          <Wrapper><CalendarModule config={listConfig({ viewMode, allDayStyle })} style={style} events={listEvents} /></Wrapper>,
+        );
+        const allDay = row(container, 'allday');
+        expect(allDay.hasAttribute('data-all-day-row')).toBe(false);
+        expect(allDay.textContent).toContain('All day');
+        expect(allDay.textContent).toContain('Guest Room');
+        expect(allDay.textContent).toContain('Leaves Thursday');
+        cleanup();
+      }
+    });
+  }
+
+  it('daily: a timed event passing through the day takes the one-line row too', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={listConfig({ viewMode: 'daily', allDayStyle: 'title-only' })} style={style} events={listEvents} /></Wrapper>,
+    );
+    expect(row(container, 'passing').textContent).toBe('Race Weekend');
+  });
+
+  it('the grid views ignore it', () => {
+    const { container } = render(
+      <Wrapper><CalendarModule config={makeConfig({ viewMode: 'week', allDayStyle: 'title-only' })} style={style} events={listEvents} /></Wrapper>,
+    );
+    expect(container.querySelector('[data-all-day-row]')).toBeNull();
+  });
+});

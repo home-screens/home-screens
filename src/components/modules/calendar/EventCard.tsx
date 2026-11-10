@@ -22,13 +22,15 @@ import { withAlpha } from '@/lib/hex-color';
 // Memoized: grid views mount hundreds of these and the module re-renders
 // every minute on the timezone clock tick with the same event object refs,
 // so the shallow compare skips re-parsing/re-formatting every pill per tick.
-export const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, accentColor, eventStyle, t, locale, segment, countdown, progress, dimmed, live }: {
+export const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, titleOnly, accentColor, eventStyle, t, locale, segment, countdown, progress, dimmed, live }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
   showLocation: boolean;
   showDescription?: boolean;
   compact?: boolean;
+  /** List views: draw this all-day row as one line, title only (`allDayStyle`). */
+  titleOnly?: boolean;
   accentColor: string;
   eventStyle: EventDisplayStyle;
   t: TranslateFn;
@@ -90,6 +92,39 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
         )}
         <span className="truncate" style={{ fontSize: '0.7em' }}>{event.title}</span>
       </div>
+    );
+  }
+
+  // One line for an all-day row: the mark and the title. The "All day" line,
+  // place and description are left to the tap overlay, so several all-day
+  // events no longer push the day's timed ones out of the box.
+  if (titleOnly) {
+    const glyph = eventGlyph(event);
+    return (
+      <ContentCard
+        data-event-id={event.id}
+        data-all-day-row="title-only"
+        className="flex items-center gap-2"
+        style={{
+          padding: showBackground ? '3px 10px' : '3px 0',
+          opacity: eventOpacity(event, dimmed ? 0.4 : 1),
+          ...(showBackground ? {} : { backgroundColor: 'transparent', borderTop: 'none' }),
+        }}
+      >
+        {glyph ? (
+          <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.8em', lineHeight: 1 }}><Glyph value={glyph} /></span>
+        ) : (
+          <div className="w-0.5 rounded-full shrink-0" style={{ height: '1em', backgroundColor: event.calendarColor ?? accentColor }} />
+        )}
+        <p className="min-w-0 flex-1 truncate font-medium leading-tight" style={{ fontSize: '0.85em' }}>
+          {!glyph && owner && <EventMarker owner={owner} color={event.calendarColor ?? accentColor} size="0.5em" tagSize="1.3em" style={{ verticalAlign: 'middle', marginTop: '-0.15em', marginRight: '0.35em' }} />}
+          {event.title}
+        </p>
+        {tapDetails && (
+          // A size down from the full card's chevron, so it never makes the row taller than its title.
+          <span aria-hidden="true" data-testid="event-chevron" className="shrink-0" style={{ fontSize: '1em', lineHeight: 1, opacity: 0.4 }}>›</span>
+        )}
+      </ContentCard>
     );
   }
 

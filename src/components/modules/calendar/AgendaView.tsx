@@ -202,7 +202,7 @@ export function AgendaView({ events, config, style, today, now, anchor, stepped 
                 countdownAllDay: false,
               });
               return (
-                <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={isFinished(ev)} />
+                <EventCard key={ev.id} event={ev} segment={segment} countdown={status.countdown} progress={status.progress} textColor={style.textColor} showTime={showTime} showLocation={showLocation} showDescription={showDescription} titleOnly={config.allDayStyle === 'title-only' && (isAllDay || segment === 'middle')} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} dimmed={isFinished(ev)} />
               );
             })}
           </div>

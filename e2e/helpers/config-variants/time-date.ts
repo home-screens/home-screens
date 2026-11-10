@@ -742,6 +742,42 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     expect: async (mod) => { await has('CAL FREE DAY')(mod); await expect(mod).not.toContainText('No events'); },
   },
   {
+    // allDayStyle 'title-only': the all-day row is one line carrying only its
+    // title (no "All day" line, no place), while the timed row beside it
+    // keeps its place. The same data under the default look shows both
+    // places, so the absent one is the setting's doing.
+    type: 'calendar', name: 'all-day-title-only-daily', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      todayEvent('cad-1', 'CAL ALLDAY', { allDay: true, start: localDate(0), end: localDate(1), location: 'CAL ALLDAY PLACE' }),
+      todayEvent('cad-2', 'CAL TIMED', { location: 'CAL TIMED PLACE' }),
+    ],
+    config: { viewMode: 'daily', daysToShow: 1, showLocation: true, allDayStyle: 'title-only' },
+    expect: async (mod) => {
+      // The row is its title and, with tap to open on, the chevron: no "All day" line.
+      const row = mod.locator('[data-all-day-row="title-only"]');
+      await expect(row.locator('p')).toHaveText('CAL ALLDAY');
+      await expect(row).not.toContainText('All day');
+      await has('CAL TIMED PLACE')(mod);
+      await expect(mod).not.toContainText('CAL ALLDAY PLACE');
+    },
+  },
+  {
+    type: 'calendar', name: 'all-day-title-only-agenda', kind: 'networked', stubKey: 'calendar',
+    stubBody: [
+      todayEvent('caa-1', 'CAL ALLDAY', { allDay: true, start: localDate(0), end: localDate(1), location: 'CAL ALLDAY PLACE' }),
+      todayEvent('caa-2', 'CAL TIMED', { location: 'CAL TIMED PLACE' }),
+    ],
+    config: { viewMode: 'agenda', showLocation: true, allDayStyle: 'title-only' },
+    expect: async (mod) => {
+      // The row is its title and, with tap to open on, the chevron: no "All day" line.
+      const row = mod.locator('[data-all-day-row="title-only"]');
+      await expect(row.locator('p')).toHaveText('CAL ALLDAY');
+      await expect(row).not.toContainText('All day');
+      await has('CAL TIMED PLACE')(mod);
+      await expect(mod).not.toContainText('CAL ALLDAY PLACE');
+    },
+  },
+  {
     // Two events seven days apart always straddle a week start, so the
     // "Week of" separator renders between their agenda groups. 'weeks' mode
     // (not 'weeks-and-months') keeps the assertion date-proof: a month
