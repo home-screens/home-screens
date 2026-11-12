@@ -36,7 +36,7 @@ You can add up to 64 people. Existing larger families are preserved. With five o
 
 The quickest start is the ready-made list. While the chore list is empty, **Manage** shows **Pick from the list**: 27 everyday chores sorted into Morning, After school, Evening and Once a week, each with an icon and a ticket value. Tick the ones your house does, say who they go to (your biggest group, such as "Kids", is picked for you, or everyone when you have no groups), choose the day the once-a-week ones land on (Saturday unless you change it), and add them in one go. They become ordinary chores you can change one by one afterwards. The list stays reachable later through **Add from the starter list** under the Add Chore button. In the editor, **Edit Chore Chart** in the Chore Chart's settings offers the same list: **Pick from the starter list** while you have no chores yet, and **Starter list** next to **Add Chore** after that. Anything already on your list is marked so it cannot be added twice.
 
-To write a chore yourself, still under **Manage**, add it with a name, an emoji, and how many **tickets** it is worth. Then decide when and who:
+To write a chore yourself, still under **Manage**, add it with a name, an emoji, and how many **tickets** it is worth. **Steps** is optional: a short how-to, one step per line, up to 12. On the phone a chore with steps gets a small arrow that opens the list, so "clean your room" can say what that means. Then decide when and who:
 
 - **When:** every day, certain days of the week, every other week, or once on a date. Each chore also has a time of day (morning, afternoon, evening, or anytime), which is how the wall groups the list and highlights what is due now.
 - **Who:** one person, several, or a [group](/docs/family#groups) such as "Kids". Give a chore to a group and everyone in it gets it, each with their own tick. Add somebody to the group later and they get it too. With several people you choose how it is shared:
@@ -48,7 +48,7 @@ To write a chore yourself, still under **Manage**, add it with a name, an emoji,
 
 ## 4. Checking things off
 
-Kids check off chores in three places: on the wall if it is a touchscreen, on the kids' page, or on the family remote's **Today** tab. A finished chore gets a strike-through and its tickets are added to that person's balance. Finishing the last chore of the day gets a short celebration. On the Full-Screen Chore Chart a chore given to a group shows the group's name next to one ring per person, so everybody still ticks their own.
+Kids check off chores in three places: on the wall if it is a touchscreen, on the kids' page, or on the family remote's **Today** tab. A finished chore gets a strike-through and its tickets are added to that person's balance. Finishing the last chore of the day gets a short celebration on the phone and on the Full-Screen Chore Chart. **Celebration** in the chart's settings picks how big: **Off**, **Simple** (a card over the chart) or **Big** (the whole screen), with an optional chime on the wall. On the Full-Screen Chore Chart a chore given to a group shows the group's name next to one ring per person, so everybody still ticks their own.
 
 {% screenshot name="kid-view" phone=true caption="The kids' page. Pick your name, check things off. Yesterday can be looked at but not changed." /%}
 
@@ -83,9 +83,9 @@ Sometimes a chore cannot be done: a kid is home sick, or there is no school so n
 Under **Chores > Rewards** on the family remote:
 
 - **Edit list** is where you invent things to buy: a name, an emoji, a ticket price, and optionally who it is for. Movie night, pick the dinner, 30 minutes of screen time.
-- **Redeem** is what kids see on their page too: pick a reward and spend the tickets. It only works when the balance covers the price.
-- **Balances** shows everyone's tickets and lets a grown-up adjust them by hand.
-- **History** lists every reward that has been redeemed.
+- **Redeem** is what kids see on their page too: pick a reward and spend the tickets. It only works when the balance covers the price. **Pick something to save for** sets one reward as a goal; the Today list and the Full-Screen Chore Chart then show how many tickets are still to go. Redeeming the reward clears the goal, and **Stop saving** drops it.
+- **Balances** shows everyone's tickets and lets a grown-up adjust them by hand. **Give or take tickets…** does it for several people at once and has room for a reason.
+- **History** lists every ticket earned, spent, and given or taken by a grown-up, day by day, with totals for the last 30 days. A reason typed with an adjustment shows here, which answers "why do I only have 12 tickets?". Grown-ups pick whose history to read; kids see their own.
 
 Tickets are earned automatically as chores are checked off, using each chore's ticket value. Bonus chores pay the same way.
 

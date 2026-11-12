@@ -74,7 +74,7 @@ With **Switch the screen's power off too** turned on, the Pi cuts the screen's s
 
 **Screen flashes on while asleep**
 
-If a sleeping screen lights up for a moment every few seconds, your monitor is reconnecting while it looks for a signal. Update Home Screens, and when **Settings > System & updates** shows **Restart to finish the update**, restart; the screen then stays dark until the display wakes.
+If a sleeping screen lights up for a moment every few seconds, your monitor is reconnecting while it looks for a signal. Update Home Screens, and when **Settings > System & updates** shows **Restart to finish the update**, restart; the screen then stays dark until the display wakes. Many monitors also have an **auto input** (or **auto source**) setting in their own menu; turning it off stops the monitor from reconnecting in the first place.
 
 **Check on the Pi**
 
@@ -335,7 +335,7 @@ The installer applies WiFi hardening (infinite reconnect retries, disabled MAC r
 
 ### Connecting to WiFi fails with "key-mgmt: property is missing"
 
-On releases before 1.15, **Settings > Network > Connect** failed with `802-11-wireless-security.key-mgmt: property is missing` whenever the Pi already had a saved entry for that network: reconnecting to your own network, retyping its password, or joining it from a USB adapter. The cause is a bug in the `nmcli` that ships with Raspberry Pi OS Trixie (NetworkManager 1.50 to 1.54.3), which rebuilds a reused saved entry without its security type. Update Home Screens; 1.15 creates its own saved entry per network and adapter and never reuses one. If you cannot update yet, join from a terminal instead:
+On releases before 1.15, **Connect** under **Settings > Network > WiFi** failed with `802-11-wireless-security.key-mgmt: property is missing` whenever the Pi already had a saved entry for that network: reconnecting to your own network, retyping its password, or joining it from a USB adapter. The cause is a bug in the `nmcli` that ships with Raspberry Pi OS Trixie (NetworkManager 1.50 to 1.54.3), which rebuilds a reused saved entry without its security type. Update Home Screens; 1.15 creates its own saved entry per network and adapter and never reuses one. If you cannot update yet, join from a terminal instead:
 
 ```bash
 sudo nmcli connection add type wifi ifname wlan0 con-name "HomeNet (wlan0)" ssid "HomeNet" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "your-password"

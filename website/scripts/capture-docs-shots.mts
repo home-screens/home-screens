@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { launchServer, type HsServer } from '../../e2e/helpers/server';
 import { baseConfig, makeScreen } from '../../e2e/helpers/config-fixtures';
 import { buildModuleInstance } from '../../e2e/helpers/module-fixtures';
-import { putConfig } from '../../e2e/helpers/api';
+import { putConfig, seedHouseholdChores, seedMeals } from '../../e2e/helpers/api';
 import { richWeather } from '../../e2e/helpers/weather-payload';
 import type { ModuleInstance, Screen, ScreenConfiguration } from '@/types/config';
 
@@ -441,17 +441,21 @@ async function heartbeat(request: APIRequestContext, opts: { display?: string; s
  * address, which no reader can tell apart).
  */
 async function prettifyOrigin(page: Page, origin: string): Promise<void> {
-  await page.evaluate(`(function (from, to) {
+  // The pages print either the address the browser used or the machine's own
+  // network address, so match any host on the sandbox's port.
+  const port = new URL(origin).port;
+  await page.evaluate(`(function (port, to) {
+    var from = new RegExp('(?:localhost|\\\\d{1,3}(?:\\\\.\\\\d{1,3}){3}):' + port, 'g');
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     var nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
     nodes.forEach(function (node) {
-      if (node.nodeValue && node.nodeValue.indexOf(from) >= 0) node.nodeValue = node.nodeValue.split(from).join(to);
+      if (node.nodeValue && node.nodeValue.indexOf(':' + port) >= 0) node.nodeValue = node.nodeValue.replace(from, to);
     });
     Array.prototype.forEach.call(document.querySelectorAll('input'), function (input) {
-      if (input.value && input.value.indexOf(from) >= 0) input.value = input.value.split(from).join(to);
+      if (input.value && input.value.indexOf(':' + port) >= 0) input.value = input.value.replace(from, to);
     });
-  })(${JSON.stringify(origin.replace(/^https?:\/\//, ''))}, 'home-screens.local:3000')`);
+  })(${JSON.stringify(port)}, 'home-screens.local:3000')`);
 }
 
 const DESKTOP = { width: 1440, height: 900 };
@@ -689,7 +693,16 @@ const SHOTS: Shot[] = [
   {
     name: 'remote-meals', scenario: 'family', viewport: PHONE, maxWidth: 780,
     alt: 'The family remote\'s Meals tab with this week\'s dinners.',
-    run: async (page, ctx) => { await openRemote(page, ctx, 'Meals'); },
+    run: async (page, ctx) => {
+      await openRemote(page, ctx, 'Meals');
+      // The tab brings today into view, which late in the week scrolls the
+      // heading and the week's first days off the top.
+      await page.evaluate(() => {
+        window.scrollTo(0, 0);
+        for (const el of document.querySelectorAll('*')) if (el.scrollTop > 0) el.scrollTop = 0;
+      });
+      await settle(page, 300);
+    },
   },
   {
     name: 'remote-timers', scenario: 'family', viewport: PHONE, maxWidth: 780,
@@ -757,16 +770,14 @@ const STATIC_SHOTS: { name: string; file: string; alt: string }[] = [
   { name: 'plugin-strava-latest', file: 'plugins/strava/latest-hero.webp', alt: "The Strava plugin's latest activity view with a route map." },
 ];
 
-async function seedFamilyData(request: APIRequestContext): Promise<void> {
-  let res = await request.put('/api/chores/data', { data: { members: MEMBERS, chores: CHORES } });
-  if (!res.ok()) throw new Error(`seed chores: ${res.status()} ${await res.text()}`);
+async function seedFamilyData(request: APIRequestContext, sandboxDir: string): Promise<void> {
+  await seedHouseholdChores(request, sandboxDir, { members: MEMBERS, chores: CHORES });
   const today = isoDate(new Date());
   for (const [choreId, memberId] of [['c-bed', 'm-avery'], ['c-bed', 'm-jordan'], ['c-bed', 'm-quinn'], ['c-dog', 'm-avery'], ['c-dishes', 'm-casey'], ['c-backpack', 'm-jordan']]) {
-    res = await request.post('/api/chores', { data: { choreId, memberId, date: today } });
+    const res = await request.post('/api/chores', { data: { choreId, memberId, date: today } });
     if (!res.ok()) throw new Error(`toggle chore: ${res.status()} ${await res.text()}`);
   }
-  res = await request.put('/api/meals/data', { data: { savedMeals: MEALS, plan: mealPlan(), settings: { enabledSlots: ['dinner'], weekStartDay: 'monday' } } });
-  if (!res.ok()) throw new Error(`seed meals: ${res.status()} ${await res.text()}`);
+  await seedMeals(request, { savedMeals: MEALS, plan: mealPlan(), settings: { enabledSlots: ['dinner'], weekStartDay: 'monday' } });
 }
 
 async function writeImage(name: string, png: Buffer, maxWidth: number): Promise<{ width: number; height: number }> {
@@ -798,7 +809,7 @@ async function main(): Promise<void> {
   const failures: string[] = [];
 
   try {
-    await seedFamilyData(request);
+    await seedFamilyData(request, server.sandboxDir);
     browser = await chromium.launch();
 
     for (const shot of shots) {
@@ -818,6 +829,13 @@ async function main(): Promise<void> {
         locale: 'en-US',
         timezoneId: LOCATION.timezone,
       });
+      // The first-run checklist belongs in the brand-new editor shots only; a
+      // lived-in household has hidden it, and it would sit under the callouts.
+      if (shot.scenario !== 'fresh') {
+        await context.addInitScript(() => {
+          try { localStorage.setItem('hs-first-run-checklist-dismissed', '1'); } catch { /* storage off */ }
+        });
+      }
       const page = await context.newPage();
       try {
         await installStubs(page);
