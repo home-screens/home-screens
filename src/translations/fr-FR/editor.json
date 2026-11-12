@@ -2664,7 +2664,7 @@
     "effectsTitle": "Effets d'arrière-plan",
     "sourcesGroup": "Sources",
     "refreshNow": "Actualiser maintenant",
-    "rotateEveryLabel": "Tourner toutes les",
+    "rotateEveryLabel": "Durée d'affichage de chaque image",
     "intervals": {
       "minutes": "{count} minutes",
       "hourSingular": "1 heure",
@@ -2740,7 +2740,9 @@
       "wall": "Choisissez les fonds à afficher"
     },
     "effectsReset": "Réinitialiser",
-    "effectsResetLabel": "Réinitialiser {label}"
+    "effectsResetLabel": "Réinitialiser {label}",
+    "refreshSame": "Une seule image à afficher",
+    "nasaPace": "La NASA ne publie qu'une nouvelle image par jour : la même revient jusqu'à la suivante."
   },
   "imageBrowserModal": {
     "title": "Bibliothèque d'images",
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "Enregistrer dans la bibliothèque",
       "videoHint": "Certaines vidéos iPhone peuvent ne pas se lire sur les écrans plus anciens. Les vidéos illisibles sont ignorées automatiquement.",
       "checking": "Vérification de l'album…",
-      "linkOk": "Le lien a l'air bon"
+      "linkOk": "Le lien a l'air bon",
+      "notAlbumLink": "Ça ne ressemble pas à un lien d'album partagé"
     },
     "onedrive": {
       "checking": "Vérification de la connexion OneDrive…",
@@ -5973,7 +5976,8 @@
         "one": "{count} photo",
         "other": "{count} photos"
       },
-      "empty": "Pas encore de photos dans ce dossier"
+      "empty": "Pas encore de photos dans ce dossier",
+      "onlyVideos": "Ce dossier ne contient que des vidéos. Pour l'arrière-plan, il faut une photo."
     },
     "unsplash": {
       "searchWords": "Mots de recherche",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Fournie avec Home Screens",
       "inLibrary": "Dans votre bibliothèque",
       "inLibraryFolder": "Dans votre bibliothèque, dossier {folder}",
-      "rotatingNote": "Affichée jusqu'à l'arrivée de la première image de la rotation. Choisir une image arrête la rotation."
+      "rotatingNote": "Affichée jusqu'à l'arrivée de la première image de la rotation. Choisir une image arrête la rotation.",
+      "lastRotating": "Image laissée par la rotation"
     },
     "google": {
       "add": "Ajouter depuis Google Photos",

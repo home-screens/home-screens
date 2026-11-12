@@ -13,10 +13,10 @@ import PropertyGroup from './PropertyGroup';
 import { useSecretStatus } from '@/hooks/useSecretStatus';
 import { useTranslate } from '@/i18n';
 import { libraryFileFromServeUrl } from '@/lib/library-client';
-import { pictureDisplayName, tileThumbnailUrl } from '@/lib/media-paths';
+import { isRotationFile, pictureDisplayName, tileThumbnailUrl } from '@/lib/media-paths';
 import {
   clampPhotoCount, defaultPhotoSource, hasContent, isReady, isRotationActive, offeredFor,
-  rotationBreadth, rotationSources, type PhotoSourceKind,
+  rotationBreadth, rotationCacheKey, rotationSources, type PhotoSourceKind,
 } from '@/lib/photo-source';
 import { DEFAULT_ROTATION_INTERVAL_MINUTES } from '@/lib/screen-background';
 import { FULLSCREEN_THEMES } from '@/lib/fullscreen-themes';
@@ -37,19 +37,23 @@ interface RotateAnswer {
   path: string | null;
   fresh?: boolean;
   spaced?: boolean;
+  /** The sources were asked and the picture already showing is all they have. */
+  same?: boolean;
   declined?: Array<{ kind: PhotoSourceKind; reason: 'empty' | 'failed' }>;
 }
 
-/** What the note after Refresh now says: a change, a wait, or which source passed and why. */
+/** What the note after Refresh now says: a change, a wait, the one picture there is, or which source passed and why. */
 type RefreshResult =
   | { kind: 'changed' }
   | { kind: 'nothing' }
   | { kind: 'spaced' }
+  | { kind: 'same' }
   | { kind: 'failed' | 'empty'; source: PhotoSourceKind };
 
 function refreshResult(data: RotateAnswer): RefreshResult {
   if (data.fresh) return { kind: 'changed' };
   if (data.spaced) return { kind: 'spaced' };
+  if (data.same) return { kind: 'same' };
   // A source that could not be asked is the more useful news than one that
   // had nothing: the person can go and fix it.
   const named = (data.declined ?? []).filter((d) => d.kind !== 'wall');
@@ -61,6 +65,7 @@ function refreshNote(result: RefreshResult, t: ReturnType<typeof useTranslate>):
   switch (result.kind) {
     case 'changed': return t('backgroundPicker.refreshChanged');
     case 'spaced': return t('backgroundPicker.refreshSpaced');
+    case 'same': return t('backgroundPicker.refreshSame');
     case 'failed': return t('backgroundPicker.refreshFailed', { source: t(`photoSources.kinds.${result.source}`) });
     case 'empty': return t('backgroundPicker.refreshEmpty', { source: t(`photoSources.kinds.${result.source}`) });
     default: return t('backgroundPicker.refreshNothing');
@@ -73,6 +78,16 @@ const INTEGRATION: Partial<Record<PhotoSourceKind, BackgroundIntegration>> = {
   unsplash: 'unsplash',
   onedrive: 'microsoft',
 };
+
+/**
+ * What a source was set to when it was unticked, per screen, for as long as
+ * the editor page stays open. Unticking takes a source out of the saved
+ * rotation; ticking it again brings back its walls, link, words or picks
+ * instead of starting from nothing.
+ */
+const untickedSources = new Map<string, PhotoSource>();
+const untickedKey = (screenId: string, source: Pick<PhotoSource, 'kind'> & { group?: string }) =>
+  `${screenId}:${source.kind}${source.group ? `:${source.group}` : ''}`;
 
 /**
  * A screen's background: one picture chosen in the Image Library (the same
@@ -131,8 +146,10 @@ export default function BackgroundPicker() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [refreshed, setRefreshed] = useState<RefreshResult | null>(null);
-  // The result note belongs to the screen it was asked for.
-  useEffect(() => { setRefreshed(null); }, [selectedScreenId]);
+  // The result note belongs to the screen and the sources it was asked for:
+  // any edit to either (a tick, a pick, a fixed picture) takes it down.
+  const rotationKey = rotationCacheKey(rotation);
+  useEffect(() => { setRefreshed(null); }, [selectedScreenId, rotationKey, backgroundPath]);
   const refreshNow = async () => {
     if (!selectedScreenId || !rotating || refreshing) return;
     setRefreshing(true);
@@ -184,11 +201,38 @@ export default function BackgroundPicker() {
         </>
       );
     }
-    if (entry && !hasContent(entry)) return t(`backgroundPicker.sourceNeeds.${kind}`);
+    if (entry && !hasContent(entry)) {
+      // Something is typed, and it is not a shared album's link.
+      if (entry.kind === 'icloud' && entry.albumUrl.trim() !== '') return t('photoSources.icloud.notAlbumLink');
+      return t(`backgroundPicker.sourceNeeds.${kind}`);
+    }
     return undefined;
   };
 
   const kinds = offeredFor('background').filter((kind) => kind !== 'wall');
+
+  /** Tick or untick a source, keeping what an unticked one was set to for the next tick. */
+  const checkSource = (kind: PhotoSourceKind, checked: boolean) => {
+    const key = untickedKey(screenId, { kind });
+    if (checked) {
+      updateScreenRotation(screenId, withNasaPace({ source: untickedSources.get(key) ?? defaultPhotoSource(kind) }));
+      return;
+    }
+    const entry = entryOf(kind);
+    if (entry) untickedSources.set(key, entry);
+    updateScreenRotation(screenId, { remove: { kind } });
+  };
+  const changeWalls = (group: 'color' | 'pattern', source: Extract<PhotoSource, { kind: 'wall' }> | null) => {
+    const key = untickedKey(screenId, { kind: 'wall', group });
+    const before = wallEntry(group);
+    if (!source) {
+      if (before) untickedSources.set(key, before);
+      updateScreenRotation(screenId, { remove: { kind: 'wall', group } });
+      return;
+    }
+    // Just ticked: the walls it had when it was unticked come back.
+    updateScreenRotation(screenId, { source: before ? source : untickedSources.get(key) ?? source });
+  };
 
   // NASA has one new picture a day; checking hourly gains nothing.
   const withNasaPace = (update: { source: PhotoSource }) =>
@@ -253,8 +297,8 @@ export default function BackgroundPicker() {
               screen, so a source ticked here never shows its controls,
               unticked, on the next screen. */}
           <div key={screenId} className="space-y-2">
-          <WallSourceGroup group="color" source={wallEntry('color')} onChange={(source) => updateScreenRotation(screenId, source ? { source } : { remove: { kind: 'wall', group: 'color' } })} />
-          <WallSourceGroup group="pattern" source={wallEntry('pattern')} onChange={(source) => updateScreenRotation(screenId, source ? { source } : { remove: { kind: 'wall', group: 'pattern' } })} />
+          <WallSourceGroup group="color" source={wallEntry('color')} onChange={(source) => changeWalls('color', source)} />
+          <WallSourceGroup group="pattern" source={wallEntry('pattern')} onChange={(source) => changeWalls('pattern', source)} />
 
           {kinds.map((kind) => {
             const entry = entryOf(kind);
@@ -266,11 +310,15 @@ export default function BackgroundPicker() {
                 label={t(`photoSources.kinds.${kind}`)}
                 checked={entry !== null}
                 disabled={!ready && entry === null}
-                onCheck={(checked) => updateScreenRotation(screenId, checked ? withNasaPace({ source: defaultPhotoSource(kind) }) : { remove: { kind } })}
+                onCheck={(checked) => checkSource(kind, checked)}
                 note={rowNote(kind, entry)}
               >
                 {ready && (
+                  // Remounted by a tick, so a source put back in is checked
+                  // afresh (is Immich still there?) and never shows what it
+                  // said while it was out.
                   <PhotoSourceEntryFields
+                    key={entry ? 'in' : 'out'}
                     use="background"
                     source={entry ?? defaultPhotoSource(kind)}
                     count={clampPhotoCount(undefined, kind)}
@@ -295,6 +343,9 @@ export default function BackgroundPicker() {
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
+              {entryOf('nasa') && (rotation?.intervalMinutes ?? DEFAULT_ROTATION_INTERVAL_MINUTES) < 240 && (
+                <span className="mt-1 block text-[10px] leading-relaxed text-hs-text-faint" data-testid="background-nasa-pace">{t('backgroundPicker.nasaPace')}</span>
+              )}
             </label>
           )}
         </div>
@@ -332,7 +383,9 @@ function PictureField({ value, orientation, rotating, onChoose, onNone }: {
   const t = useTranslate('editor');
   const starter = STARTER_BACKGROUNDS.find((bg) => bg.path === value);
   const file = value ? libraryFileFromServeUrl(value) : null;
+  // A leftover download of the rotation's own: its file name says nothing to a person.
   const name = !value ? t('photoSources.background.noPicture')
+    : file && isRotationFile(file) ? t('photoSources.background.lastRotating')
     : starter ? (starter.group === 'theme'
       ? FULLSCREEN_THEMES.find((th) => th.id === starter.themeId)?.name ?? starter.id
       : t(`backgroundPicker.starters.${starter.id}`))

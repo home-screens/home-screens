@@ -44,6 +44,8 @@ export interface BrowseArgs {
   query?: string;
   /** The wall's shape, for sources that can prefer pictures shaped like it. */
   orientation?: 'portrait' | 'landscape';
+  /** For the `picked` collection: the photos to look up, so picks can be shown as tiles. */
+  refs?: string[];
 }
 
 /** One tile in the picker's grid. */

@@ -2664,7 +2664,7 @@
     "effectsTitle": "Achtergrondeffecten",
     "sourcesGroup": "Bronnen",
     "refreshNow": "Nu vernieuwen",
-    "rotateEveryLabel": "Wisselen elke",
+    "rotateEveryLabel": "Nieuwe foto na",
     "intervals": {
       "minutes": "{count} minuten",
       "hourSingular": "1 uur",
@@ -2740,7 +2740,9 @@
       "wall": "Kies de achtergronden die je wilt tonen"
     },
     "effectsReset": "Herstel",
-    "effectsResetLabel": "{label} herstellen"
+    "effectsResetLabel": "{label} herstellen",
+    "refreshSame": "Er is maar één foto om te tonen",
+    "nasaPace": "NASA heeft elke dag één nieuwe foto, dus dezelfde komt steeds terug tot de volgende er is."
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "Opslaan in bibliotheek",
       "videoHint": "Sommige iPhone-video's spelen mogelijk niet af op oudere schermen. Video's die niet afspelen worden automatisch overgeslagen.",
       "checking": "Album wordt gecontroleerd…",
-      "linkOk": "De link ziet er goed uit"
+      "linkOk": "De link ziet er goed uit",
+      "notAlbumLink": "Dat lijkt geen link van een gedeeld album"
     },
     "onedrive": {
       "checking": "OneDrive-verbinding controleren…",
@@ -5973,7 +5976,8 @@
         "one": "{count} foto",
         "other": "{count} foto's"
       },
-      "empty": "Nog geen foto's in deze map"
+      "empty": "Nog geen foto's in deze map",
+      "onlyVideos": "In deze map staan alleen video's. Een achtergrond heeft een foto nodig."
     },
     "unsplash": {
       "searchWords": "Zoekwoorden",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Zit standaard in Home Screens",
       "inLibrary": "In je bibliotheek",
       "inLibraryFolder": "In je bibliotheek, map {folder}",
-      "rotatingNote": "Wordt getoond tot de eerste wisselende foto er is. Als je een foto kiest, gaat het wisselen uit."
+      "rotatingNote": "Wordt getoond tot de eerste wisselende foto er is. Als je een foto kiest, gaat het wisselen uit.",
+      "lastRotating": "Laatste wisselende foto"
     },
     "google": {
       "add": "Toevoegen uit Google Foto's",

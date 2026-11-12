@@ -6,10 +6,10 @@ import { readConfig } from '@/lib/config';
 import { DEFAULT_DISPLAY_HEIGHT, DEFAULT_DISPLAY_WIDTH } from '@/lib/constants';
 import { libraryRoot, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
 import { MAX_IMPORT_IMAGE_BYTES, extensionForContentType, mediaKindOf } from '@/lib/media-formats';
-import { serveUrlFor } from '@/lib/media-paths';
+import { ROTATION_FILE_RE, serveUrlFor } from '@/lib/media-paths';
 import { removeThumbnails } from '@/lib/thumbnails';
 import { withDisplayAuth } from '@/lib/api-utils';
-import { findScreenById } from '@/lib/display-filter';
+import { findScreenById, getAllScreens } from '@/lib/display-filter';
 import { logger } from '@/lib/logger';
 import { canRotate, rotationCacheKey, rotationSources } from '@/lib/photo-source';
 import { pickOneFromSource, type PickedPicture } from '@/lib/photo-sources';
@@ -17,14 +17,13 @@ import { getSecretStatus } from '@/lib/secrets';
 import { bumpRotationRevision } from '@/lib/rotation-revision';
 import { shuffleArray } from '@/lib/shuffle';
 import {
-  ROTATION_FILE_RE,
   referencedRotationFiles,
   rotationCacheFileName,
   rotationCacheStore as cacheStore,
   type BackgroundCache,
   type RotationCacheEntry,
 } from '@/lib/background-rotation-cache';
-import type { PhotoSource, ScreenConfiguration } from '@/types/config';
+import type { PhotoSource, Screen, ScreenConfiguration } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,11 +53,17 @@ export const FORCE_SPACING_MS = 5_000;
  * Rotation files accumulate forever otherwise: an iCloud album alone can
  * leave thousands of one-time backgrounds on a Pi SD card over a few weeks.
  * Deletes rotation-cache files that no screen's cache entry references,
- * keeping the newest few as a grace buffer. Best-effort: any error just
+ * keeping the newest few as a grace buffer. A rotation file a screen names
+ * as its own picture (older versions could leave one there) is that
+ * screen's fallback and is never deleted. Best-effort: any error just
  * leaves files for the next rotation to prune.
  */
-async function pruneRotationFiles(cache: BackgroundCache): Promise<void> {
+async function pruneRotationFiles(cache: BackgroundCache, screens: readonly Screen[]): Promise<void> {
   const referenced = referencedRotationFiles(cache);
+  for (const screen of screens) {
+    const own = screen.backgroundImage ? rotationCacheFileName(screen.backgroundImage) : null;
+    if (own) referenced.add(own);
+  }
   const root = libraryRoot();
 
   let entries;
@@ -140,6 +145,15 @@ async function cachedPictureExists(servePath: string): Promise<boolean> {
   }
 }
 
+/**
+ * The cache without entries for screens that are gone. A deleted screen's
+ * entry would otherwise sit there for good and keep its rotation file from
+ * ever being pruned.
+ */
+function withoutGoneScreens(cache: BackgroundCache, live: ReadonlySet<string>): BackgroundCache {
+  return Object.fromEntries(Object.entries(cache).filter(([id]) => live.has(id)));
+}
+
 /** Where the picture showing now came from, so a fresh pick can avoid it. */
 function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
   if (!entry?.path) return undefined;
@@ -158,8 +172,10 @@ function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
  *
  * Response: { path: string, fresh: true } for a new picture; otherwise
  * { path: string | null, fresh: false } with `spaced: true` when a forced
- * ask came too soon after the last, or `declined` naming each source that
- * passed and why, so the editor can say which one did not answer.
+ * ask came too soon after the last, `same: true` when the sources were asked
+ * and the picture already showing is the only one they have, or `declined`
+ * naming each source that passed and why, so the editor can say which one
+ * did not answer.
  */
 export const GET = withDisplayAuth(async (request: NextRequest) => {
   const screenId = request.nextUrl.searchParams.get('screenId');
@@ -208,11 +224,26 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   // until one answers.
   const previous = previousOf(entry);
   const canvas = canvasOf(config, screenId);
+  const screens = getAllScreens(config);
+  const liveScreens = new Set(screens.map((s) => s.id));
   const failures: string[] = [];
   // Why each source passed, for the editor's note after a forced refresh:
   // `empty` answered nothing (no photos for the words, an empty album),
   // `failed` could not be asked (away, a lapsed sign-in, a bad key).
   const declined: Array<{ kind: PhotoSource['kind']; reason: 'empty' | 'failed' }> = [];
+  // A source whose only picture is the one already showing. The others still
+  // get their turn, so a refresh changes the picture whenever anything can.
+  let sameAgain = false;
+  const settle = async (newPath: string) => {
+    const next: RotationCacheEntry = {
+      path: newPath, sourceKey, fetchedAt: now, intervalMinutes,
+      ...(force ? { forcedAt: now } : entry?.forcedAt ? { forcedAt: entry.forcedAt } : {}),
+    };
+    // Merge into whatever is on disk now, not into the snapshot read before
+    // the fetch above, so a rotation that finished for another screen while
+    // this one was waiting on the network keeps its entry.
+    return cacheStore.updateAtomic((current) => ({ ...withoutGoneScreens(current, liveScreens), [screenId]: next }));
+  };
   for (const source of shuffleArray(candidates)) {
     try {
       const picked = await pickOneFromSource(source, canvas, previous);
@@ -222,14 +253,11 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
         declined.push({ kind: source.kind, reason: 'empty' });
         continue;
       }
-      const next: RotationCacheEntry = {
-        path: newPath, sourceKey, fetchedAt: now, intervalMinutes,
-        ...(force ? { forcedAt: now } : entry?.forcedAt ? { forcedAt: entry.forcedAt } : {}),
-      };
-      // Merge into whatever is on disk now, not into the snapshot read before
-      // the fetch above, so a rotation that finished for another screen while
-      // this one was waiting on the network keeps its entry.
-      const merged = await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: next }));
+      if (entry?.path && newPath === entry.path) {
+        sameAgain = true;
+        continue;
+      }
+      const merged = await settle(newPath);
       // The wall's heartbeat says a rotation answered anew, so every wall
       // showing this screen re-asks within a beat instead of on its own poll.
       bumpRotationRevision();
@@ -237,7 +265,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       // would delete files the other screen just claimed), after the answer
       // is on its way: a readdir and a stat per rotation file need not hold
       // the wall's picture back.
-      after(() => pruneRotationFiles(merged));
+      after(() => pruneRotationFiles(merged, screens));
       return NextResponse.json({ path: newPath, fresh: true });
     } catch (error) {
       // A missing key, a source that is away, or a lapsed sign-in: the next
@@ -247,11 +275,18 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     }
   }
 
+  if (sameAgain && entry?.path) {
+    // Asked and answered, with the picture the walls already show: the
+    // interval starts over, and nothing is announced as new.
+    await settle(entry.path);
+    return NextResponse.json({ path: entry.path, fresh: false, same: true });
+  }
+
   log.warn(`No background for screen ${screenId}; sources rest for ${FAILURE_BACKOFF_MS / 60_000} minutes (${failures.join('; ')})`);
   const rested: RotationCacheEntry = {
     path: entry?.path ?? '', sourceKey, fetchedAt: entry?.fetchedAt ?? 0, intervalMinutes, failedAt: now,
     ...(force ? { forcedAt: now } : {}),
   };
-  await cacheStore.updateAtomic((current) => ({ ...current, [screenId]: rested }));
+  await cacheStore.updateAtomic((current) => ({ ...withoutGoneScreens(current, liveScreens), [screenId]: rested }));
   return NextResponse.json({ path: entry?.path || fallback, fresh: false, declined });
 }, 'Failed to rotate background');

@@ -39,11 +39,6 @@ export const rotationCacheStore = createJsonStore<BackgroundCache>({
   transient: true,
 });
 
-/** Only files the rotation savers wrote themselves (top-level, this prefix);
- *  user uploads and iCloud imports never carry it, so pruning can't touch
- *  them and the library page never lists them. */
-export const ROTATION_FILE_RE = /^rotation-/;
-
 /** Library-relative path a cached serve URL points at, or null. */
 export function rotationCacheFileName(servePath: string): string | null {
   try {
@@ -61,9 +56,4 @@ export function referencedRotationFiles(cache: BackgroundCache): Set<string> {
     if (name) referenced.add(name);
   }
   return referenced;
-}
-
-/** True for a library-relative path the rotation feature owns. */
-export function isRotationFile(libraryPath: string): boolean {
-  return !libraryPath.includes('/') && ROTATION_FILE_RE.test(libraryPath);
 }

@@ -5,9 +5,8 @@ import { blockedRemovals, rewriteMediaRefs, scanMediaUsage, type MediaUse } from
 import { libraryRoot, listLibraryFolder, safeLibraryPath } from '@/lib/library-files';
 import { bumpLibraryRevision } from '@/lib/library-revision';
 import { sanitizeFolderName } from '@/lib/library-folder-name';
-import { ROTATION_FILE_RE } from '@/lib/background-rotation-cache';
 import { removeThumbnails } from '@/lib/thumbnails';
-import { fileNameOf, folderOf } from '@/lib/media-paths';
+import { ROTATION_FILE_RE, fileNameOf, folderOf } from '@/lib/media-paths';
 import type { ScreenConfiguration } from '@/types/config';
 import { RefusalError, type RefusalParams } from '@/lib/refusal';
 

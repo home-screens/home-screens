@@ -232,6 +232,64 @@ describe('unsplashPhotoSource.list with collections and picks', () => {
   });
 });
 
+describe('unsplashPhotoSource.browse: the photos already picked', () => {
+  it('answers a tile for a photo a search already showed without asking Unsplash again', async () => {
+    mockFetch.mockResolvedValue(json({ results: [photo('seen1'), photo('seen2')], total_pages: 1 }));
+    await unsplashPhotoSource.browse({ collection: 'search', query: freshQuery(), page: 1 });
+    mockFetch.mockClear();
+
+    const page = await unsplashPhotoSource.browse({ collection: 'picked', page: 1, refs: ['seen2', 'seen1'] });
+
+    expect(page).toEqual({
+      items: [
+        { ref: 'seen2', thumbUrl: 'https://images.unsplash.com/s-seen2', label: 'photo seen2', credit: { name: 'Taylor seen2' } },
+        { ref: 'seen1', thumbUrl: 'https://images.unsplash.com/s-seen1', label: 'photo seen1', credit: { name: 'Taylor seen1' } },
+      ],
+      nextPage: null,
+    });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('looks up a photo it has not seen, once', async () => {
+    mockFetch.mockResolvedValue(json(photo('new1')));
+
+    const first = await unsplashPhotoSource.browse({ collection: 'picked', page: 1, refs: ['new1'] });
+    const again = await unsplashPhotoSource.browse({ collection: 'picked', page: 1, refs: ['new1'] });
+
+    expect(first.items.map((item) => item.ref)).toEqual(['new1']);
+    expect(again).toEqual(first);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(String(mockFetch.mock.calls[0][0])).toBe('https://api.unsplash.com/photos/new1');
+  });
+
+  it('leaves out a photo that is gone or could not be asked about, and keeps the rest', async () => {
+    mockFetch.mockImplementation(async (url) => (
+      String(url).endsWith('/gone1') ? json({}, 404)
+        : String(url).endsWith('/limit1') ? new Response('', { status: 403, headers: { 'x-ratelimit-remaining': '0' } })
+          : json(photo('here1'))
+    ));
+
+    const page = await unsplashPhotoSource.browse({ collection: 'picked', page: 1, refs: ['gone1', 'here1', 'limit1'] });
+
+    expect(page.items.map((item) => item.ref)).toEqual(['here1']);
+  });
+
+  it('looks up at most twenty photos in one request', async () => {
+    mockFetch.mockImplementation(async (url) => json(photo(String(url).split('/').pop()!)));
+    const refs = Array.from({ length: 30 }, (_, i) => `many${i}`);
+
+    const page = await unsplashPhotoSource.browse({ collection: 'picked', page: 1, refs });
+
+    expect(mockFetch).toHaveBeenCalledTimes(20);
+    expect(page.items).toHaveLength(20);
+  });
+
+  it('asks nothing when nothing is picked', async () => {
+    expect(await unsplashPhotoSource.browse({ collection: 'picked', page: 1 })).toEqual({ items: [], nextPage: null });
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('unsplashPhotoSource.browse', () => {
   it('searches a page at a time with small tiles and credits, and pages until the last', async () => {
     mockFetch.mockResolvedValue(json({ results: [photo('a'), { id: 'no-pictures' }], total_pages: 3 }));

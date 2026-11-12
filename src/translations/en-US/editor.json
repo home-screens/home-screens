@@ -2675,7 +2675,7 @@
       "edges": "Edges",
       "both": "Both"
     },
-    "rotateEveryLabel": "Rotate every",
+    "rotateEveryLabel": "New picture every",
     "intervals": {
       "minutes": "{count} minutes",
       "hourSingular": "1 hour",
@@ -2740,7 +2740,9 @@
       "wall": "Pick the walls to show"
     },
     "effectsReset": "Reset",
-    "effectsResetLabel": "Reset {label}"
+    "effectsResetLabel": "Reset {label}",
+    "refreshSame": "Only one picture to show",
+    "nasaPace": "NASA has one new picture a day, so the same one comes round again until the next arrives."
   },
   "imageBrowserModal": {
     "title": "Image Library",
@@ -5875,7 +5877,7 @@
       "album": "Album",
       "anyAlbum": "Any album",
       "anyone": "Anyone",
-      "favoritesOnly": "Favorites Only",
+      "favoritesOnly": "Favorites only",
       "photoInAlbum": {
         "one": "{count} photo in album",
         "other": "{count} photos in album"
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "Save to library",
       "videoHint": "Some iPhone videos may not play on older displays. Videos that can't play are skipped automatically.",
       "checking": "Checking the album...",
-      "linkOk": "Link looks good"
+      "linkOk": "Link looks good",
+      "notAlbumLink": "That doesn't look like a shared album link"
     },
     "onedrive": {
       "checking": "Checking the OneDrive connection…",
@@ -5973,7 +5976,8 @@
         "one": "{count} photo",
         "other": "{count} photos"
       },
-      "empty": "No photos in this folder yet"
+      "empty": "No photos in this folder yet",
+      "onlyVideos": "This folder only has videos. A background needs a still picture."
     },
     "unsplash": {
       "searchWords": "Search words",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Comes with Home Screens",
       "inLibrary": "In your library",
       "inLibraryFolder": "In your library, {folder} folder",
-      "rotatingNote": "Shown until the first rotating picture arrives. Choosing a picture turns the rotation off."
+      "rotatingNote": "Shown until the first rotating picture arrives. Choosing a picture turns the rotation off.",
+      "lastRotating": "Last rotating picture"
     },
     "google": {
       "add": "Add from Google Photos",

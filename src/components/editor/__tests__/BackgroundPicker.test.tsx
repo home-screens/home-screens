@@ -17,7 +17,10 @@ const store = vi.hoisted(() => ({
   state: {} as Record<string, unknown>,
 }));
 vi.mock('@/stores/editor-store', () => ({
-  useEditorStore: (selector?: (state: Record<string, unknown>) => unknown) => (selector ? selector(store.state) : store.state),
+  useEditorStore: Object.assign(
+    (selector?: (state: Record<string, unknown>) => unknown) => (selector ? selector(store.state) : store.state),
+    { getState: () => store.state },
+  ),
 }));
 
 import BackgroundPicker from '../BackgroundPicker';
@@ -93,7 +96,7 @@ describe('BackgroundPicker', () => {
     expect(rowCheckbox('nasa').disabled).toBe(false);
   });
 
-  it('says Fixed, then one picture, then Rotating as the walls add up, and offers Refresh and Rotate every accordingly', async () => {
+  it('says Fixed, then one picture, then Rotating as the walls add up, and offers Refresh and the interval accordingly', async () => {
     seed();
     render(wrap(<BackgroundPicker />));
     await settle();
@@ -124,6 +127,76 @@ describe('BackgroundPicker', () => {
     expect(screen.getByTestId('source-note-color').textContent).toContain('Click the walls');
     expect(screen.getByTestId('source-note-icloud').textContent).toContain('Paste the album link');
     expect(screen.getByTestId('background-mode').textContent).toContain('Fixed background');
+  });
+
+  it('something typed that is not an album link says so, not "paste the link first"', async () => {
+    seed([{ kind: 'icloud', albumUrl: 'not a link' }]);
+    render(wrap(<BackgroundPicker />));
+    await settle();
+    expect(screen.getByTestId('source-note-icloud').textContent).toBe("That doesn't look like a shared album link");
+  });
+
+  it('a source unticked and ticked again comes back as it was set', async () => {
+    const walls: PhotoSource = { kind: 'wall', group: 'color', ids: ['ocean', 'dusk', 'plum'] };
+    const album: PhotoSource = { kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0abc123' };
+    seed([walls, album]);
+    render(wrap(<BackgroundPicker />));
+    await settle();
+    fireEvent.click(rowCheckbox('color'));
+    fireEvent.click(rowCheckbox('icloud'));
+    expect(updateScreenRotation).toHaveBeenCalledWith('s1', { remove: { kind: 'wall', group: 'color' } });
+    expect(updateScreenRotation).toHaveBeenCalledWith('s1', { remove: { kind: 'icloud' } });
+
+    // The store has taken both out; ticking them again restores what they held.
+    cleanup();
+    seed([]);
+    render(wrap(<BackgroundPicker />));
+    await settle();
+    fireEvent.click(rowCheckbox('color'));
+    expect(updateScreenRotation).toHaveBeenLastCalledWith('s1', { source: walls });
+    fireEvent.click(rowCheckbox('icloud'));
+    expect(updateScreenRotation).toHaveBeenLastCalledWith('s1', { source: album });
+    // A group never unticked on this screen starts empty.
+    fireEvent.click(rowCheckbox('pattern'));
+    expect(updateScreenRotation).toHaveBeenLastCalledWith('s1', { source: { kind: 'wall', group: 'pattern', ids: [] } });
+  });
+
+  it('says NASA has one picture a day when the pace is faster than that is worth', async () => {
+    seed([{ kind: 'nasa' }, { kind: 'wall', group: 'color', ids: ['ocean', 'dusk'] }]);
+    render(wrap(<BackgroundPicker />));
+    await settle();
+    expect(screen.getByTestId('background-nasa-pace').textContent).toContain('one new picture a day');
+
+    cleanup();
+    seed([{ kind: 'wall', group: 'color', ids: ['ocean', 'dusk'] }]);
+    render(wrap(<BackgroundPicker />));
+    await settle();
+    expect(screen.queryByTestId('background-nasa-pace')).toBeNull();
+  });
+
+  it('a refresh that lands on the picture already up says there is only one, and an edit takes the note down', async () => {
+    seed([{ kind: 'wall', group: 'color', ids: ['ocean'] }]);
+    editorFetch.mockImplementation(async (url: string) => ({
+      ok: true, status: 200, headers: new Headers(),
+      json: async () => (String(url).startsWith('/api/backgrounds/rotate') ? { path: '/starter-backgrounds/ocean.svg', fresh: false, same: true } : []),
+    }));
+    const { rerender } = render(wrap(<BackgroundPicker />));
+    await settle();
+    fireEvent.click(screen.getByTestId('background-rotation-refresh'));
+    await settle();
+    expect(screen.getByTestId('background-refresh-result').textContent).toBe('Only one picture to show');
+
+    seed([{ kind: 'wall', group: 'color', ids: ['ocean', 'dusk'] }]);
+    rerender(wrap(<BackgroundPicker />));
+    await settle();
+    expect(screen.queryByTestId('background-refresh-result')).toBeNull();
+  });
+
+  it('names a leftover rotation download as the last rotating picture, not by its file name', async () => {
+    seed([], '/api/backgrounds/serve?file=rotation-unsplash-EqQFaL5imFQ.jpg');
+    render(wrap(<BackgroundPicker />));
+    await settle();
+    expect(screen.getByTestId('background-picture-name').textContent).toBe('Last rotating picture');
   });
 
   it('the wall tiles toggle the group\'s picks through the rotation action', async () => {

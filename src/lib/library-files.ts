@@ -5,7 +5,7 @@ import { pipeline } from 'stream/promises';
 import path from 'path';
 import { BACKGROUNDS_DIR } from './constants';
 import { mediaKindOf } from './media-formats';
-import { isRotationFile } from './background-rotation-cache';
+import { isRotationFile } from './media-paths';
 import { readImageDimensions } from './image-dimensions';
 import type { MediaInventoryDirectory, MediaInventoryItem, MediaInventoryStorage } from './media-inventory';
 

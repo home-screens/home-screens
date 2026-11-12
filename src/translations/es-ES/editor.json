@@ -2664,7 +2664,7 @@
     "effectsTitle": "Efectos de fondo",
     "sourcesGroup": "Fuentes",
     "refreshNow": "Actualizar ahora",
-    "rotateEveryLabel": "Rotar cada",
+    "rotateEveryLabel": "Foto nueva cada",
     "intervals": {
       "minutes": "{count} minutos",
       "hourSingular": "1 hora",
@@ -2740,7 +2740,9 @@
       "wall": "Elige los fondos que quieres mostrar"
     },
     "effectsReset": "Restablecer",
-    "effectsResetLabel": "Restablecer {label}"
+    "effectsResetLabel": "Restablecer {label}",
+    "refreshSame": "Solo hay una foto que mostrar",
+    "nasaPace": "La NASA publica una sola foto nueva al día, así que la misma vuelve a salir hasta que llegue la siguiente."
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imágenes",
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "Guardar en la biblioteca",
       "videoHint": "Algunos videos de iPhone pueden no reproducirse en pantallas más antiguas. Los videos que no se pueden reproducir se omiten automáticamente.",
       "checking": "Comprobando el álbum…",
-      "linkOk": "El enlace parece correcto"
+      "linkOk": "El enlace parece correcto",
+      "notAlbumLink": "Eso no parece el enlace de un álbum compartido"
     },
     "onedrive": {
       "checking": "Comprobando la conexión de OneDrive…",
@@ -5973,7 +5976,8 @@
         "one": "{count} foto",
         "other": "{count} fotos"
       },
-      "empty": "Aún no hay fotos en esta carpeta"
+      "empty": "Aún no hay fotos en esta carpeta",
+      "onlyVideos": "En esta carpeta solo hay vídeos. Para el fondo hace falta una foto."
     },
     "unsplash": {
       "searchWords": "Palabras de búsqueda",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Viene con Home Screens",
       "inLibrary": "En tu biblioteca",
       "inLibraryFolder": "En tu biblioteca, carpeta {folder}",
-      "rotatingNote": "Se muestra hasta que llegue la primera foto de la rotación. Si eliges una foto, se desactiva la rotación."
+      "rotatingNote": "Se muestra hasta que llegue la primera foto de la rotación. Si eliges una foto, se desactiva la rotación.",
+      "lastRotating": "Última foto de la rotación"
     },
     "google": {
       "add": "Añadir desde Google Fotos",

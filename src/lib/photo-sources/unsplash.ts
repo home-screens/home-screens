@@ -3,7 +3,7 @@ import { UNSPLASH_API, getUnsplashAccessKey, trackDownload } from '@/lib/unsplas
 import { importPictureToLibrary } from '@/lib/library-import';
 import { sourceCacheKey } from '@/lib/photo-source';
 import type { MediaListItem } from '@/types/config';
-import { PhotoSourceError, type BrowsePage, type PhotoSourceAdapter, type PickableSource } from './types';
+import { PhotoSourceError, type BrowseItem, type BrowsePage, type PhotoSourceAdapter, type PickableSource } from './types';
 
 /** Tiles per picker page, and the most one random request hands out. */
 const PAGE_SIZE = 30;
@@ -45,6 +45,32 @@ async function unsplashGet(path: string, key: string): Promise<Response> {
  * already seen costs nothing from the free plan's 50 requests an hour.
  */
 const browseCache = createTTLCache<BrowsePage>(60 * 60_000);
+
+/**
+ * A picker tile per photo id, kept while the hub runs: every search page
+ * fills it, so showing the photos someone picked from a search costs
+ * nothing. Only a pick the hub has not seen since it started is looked up.
+ */
+const tileCache = new Map<string, BrowseItem>();
+const TILE_CACHE_MAX = 2000;
+/** The most photos one `picked` request looks up, out of the free plan's 50 requests an hour. */
+const PICKED_LOOKUPS_MAX = 20;
+
+function tileOf(photo: UnsplashPhoto): BrowseItem | null {
+  const thumbUrl = photo.urls?.small ?? photo.urls?.thumb;
+  if (!photo.id || !thumbUrl) return null;
+  const tile: BrowseItem = {
+    ref: photo.id,
+    thumbUrl,
+    label: photo.description || photo.alt_description || '',
+    ...(photo.user?.name ? { credit: { name: photo.user.name } } : {}),
+  };
+  if (!tileCache.has(tile.ref) && tileCache.size >= TILE_CACHE_MAX) {
+    tileCache.delete(tileCache.keys().next().value!);
+  }
+  tileCache.set(tile.ref, tile);
+  return tile;
+}
 
 /** Download tracking, which Unsplash's API guidelines require whenever a photo is used. */
 function track(photo: UnsplashPhoto, key: string): void {
@@ -198,7 +224,23 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
     return { kind: 'download', id: photo.id, open: () => fetchWithTimeout(url, { timeout: 60_000 }) };
   },
 
-  async browse({ query, page, orientation }): Promise<BrowsePage> {
+  async browse({ collection, query, page, orientation, refs }): Promise<BrowsePage> {
+    if (collection === 'picked') {
+      // The photos already picked, as tiles. A photo that is gone, or one
+      // past what this request may look up, is left out: the editor still
+      // lists the pick, without a picture.
+      const unknown = (refs ?? []).filter((ref) => !tileCache.has(ref)).slice(0, PICKED_LOOKUPS_MAX);
+      if (unknown.length > 0) {
+        const key = await accessKey();
+        await Promise.all(unknown.map(async (ref) => {
+          try {
+            const res = await unsplashGet(`/photos/${encodeURIComponent(ref)}`, key);
+            if (res.ok) tileOf(await res.json() as UnsplashPhoto);
+          } catch { /* the hourly limit, or Unsplash away: no picture for this one */ }
+        }));
+      }
+      return { items: (refs ?? []).flatMap((ref) => tileCache.get(ref) ?? []), nextPage: null };
+    }
     const words = query?.trim();
     if (!words) return { items: [], nextPage: null };
     const cacheKey = JSON.stringify([words.toLowerCase(), page, orientation ?? null]);
@@ -211,12 +253,7 @@ export const unsplashPhotoSource: PhotoSourceAdapter<'unsplash'> & PickableSourc
     if (!res.ok) throw new PhotoSourceError('Could not search Unsplash', 502);
     const data = await res.json() as { results?: UnsplashPhoto[]; total_pages?: number };
     const result: BrowsePage = {
-      items: (data.results ?? []).filter((p) => p.id && (p.urls?.small || p.urls?.thumb)).map((p) => ({
-        ref: p.id,
-        thumbUrl: (p.urls?.small ?? p.urls?.thumb)!,
-        label: p.description || p.alt_description || '',
-        ...(p.user?.name ? { credit: { name: p.user.name } } : {}),
-      })),
+      items: (data.results ?? []).flatMap((p) => tileOf(p) ?? []),
       nextPage: page < (data.total_pages ?? 1) ? page + 1 : null,
     };
     browseCache.set(cacheKey, result);

@@ -3,19 +3,23 @@
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useImageLibrary } from '@/hooks/useImageLibrary';
 import { libraryFileFromServeUrl } from '@/lib/library-client';
-import { tileThumbnailUrl, pictureDisplayName } from '@/lib/media-paths';
-import { MAX_PICKED_PICTURES } from '@/lib/photo-source';
+import { serveUrlFor, tileThumbnailUrl, pictureDisplayName } from '@/lib/media-paths';
+import { MAX_PICKED_PICTURES, type PhotoSourceUse } from '@/lib/photo-source';
 import { useTranslate } from '@/i18n';
 import { PickGrid, PickTile } from '@/components/editor/PickTile';
+import PickedStrip from './PickedStrip';
 
 /**
  * Pictures chosen one by one from the media library, as a source: every
  * folder is offered, the pictures in the one being looked at are tiles, and
- * a tick marks the chosen ones. The picks are library paths, shown where
- * they are, never copied.
+ * a tick marks the chosen ones. Every pick, from whichever folder, is also
+ * listed above the grid. The picks are library paths, shown where they are,
+ * never copied.
  */
-export default function LibraryPicturesFields({ pictures, initialDirectory = '', onChange }: {
+export default function LibraryPicturesFields({ pictures, initialDirectory = '', use, onChange }: {
   pictures: string[];
+  /** A background shows stills only, so a folder of videos gets its own words there. */
+  use: PhotoSourceUse;
   /** The folder to start looking in: the source's own folder, so Folder mode's choice stays in view. */
   initialDirectory?: string;
   onChange: (pictures: string[]) => void;
@@ -48,10 +52,16 @@ export default function LibraryPicturesFields({ pictures, initialDirectory = '',
         {pictures.length === 0 ? t('photoSources.picked.none') : t('photoSources.picked.count', { count: pictures.length })}
         {' '}{t('photoSources.picked.help')}
       </p>
+      <PickedStrip
+        items={pictures.map((path) => ({ id: path, thumb: tileThumbnailUrl(serveUrlFor(path)), name: pictureDisplayName(path) }))}
+        onRemove={toggle}
+      />
       {library.loadingImages ? (
         <p className="py-4 text-center text-xs text-hs-text-faint">{t('photoSources.picked.loading')}</p>
       ) : tiles.length === 0 ? (
-        <p className="text-[10px] text-hs-text-faint">{t('photoSources.library.empty')}</p>
+        <p className="text-[10px] text-hs-text-faint" data-testid="library-pictures-empty">
+          {t(use === 'background' && library.items.some((item) => item.type === 'video') ? 'photoSources.library.onlyVideos' : 'photoSources.library.empty')}
+        </p>
       ) : (
         <PickGrid scroll columns={3}>
           {tiles.map((tile) => (

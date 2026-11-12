@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Button from '@/components/ui/Button';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import { useEditorData } from '@/hooks/useEditorData';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useEditorStore } from '@/stores/editor-store';
 import { getActiveDimensions } from '@/lib/editor-multi-display';
 import type { ImmichAlbumSummary } from '@/lib/immich';
@@ -12,13 +13,25 @@ import { useTranslate } from '@/i18n';
 import SearchBox from '@/components/editor/picture-picker/SearchBox';
 import { usePickerBrowse } from '@/components/editor/picture-picker/usePickerBrowse';
 import { PickGrid, PickTile } from '@/components/editor/PickTile';
+import type { BrowseTile } from '@/components/editor/picture-picker/types';
+import PickedStrip from './PickedStrip';
+
+/**
+ * The tile of every Unsplash photo this editor has picked or been told
+ * about, for as long as the page is open. An Unsplash pick is only an id,
+ * and its picture cannot be had from the id alone, so the tile is kept
+ * when a photo is picked and asked for (once) when a pick came from an
+ * earlier visit.
+ */
+const unsplashTiles = new Map<string, BrowseTile>();
 
 /**
  * Photos picked one by one from Immich or Unsplash, as a source: the same
  * pages the Image Library browses, with a tick on each chosen tile. Immich
  * offers its albums and favorites to browse; Unsplash takes search words.
- * The picks are ids, downloaded when their turn comes, so nothing is saved
- * until a wall shows it.
+ * Every pick is also listed above the grid, whatever album or search the
+ * grid is on. The picks are ids, downloaded when their turn comes, so
+ * nothing is saved until a wall shows it.
  */
 export default function PickedPicturesFields({ kind, ids, onChange, searchWords = 'nature landscape' }: {
   kind: 'immich' | 'unsplash';
@@ -40,8 +53,40 @@ export default function PickedPicturesFields({ kind, ids, onChange, searchWords 
 
   const toggle = (ref: string) => {
     if (chosen.has(ref)) onChange(ids.filter((id) => id !== ref));
-    else if (!full) onChange([...ids, ref]);
+    else if (!full) {
+      const tile = browse.tiles.find((candidate) => candidate.ref === ref);
+      if (kind === 'unsplash' && tile) unsplashTiles.set(ref, tile);
+      onChange([...ids, ref]);
+    }
   };
+
+  // Unsplash picks the page has no tile for (picked on an earlier visit) are
+  // asked about once; the hub answers from what its searches already showed
+  // and looks up the rest.
+  const [, setTilesSeen] = useState(0);
+  const asked = useRef(new Set<string>());
+  useEffect(() => {
+    if (kind !== 'unsplash') return;
+    const unknown = ids.filter((id) => !unsplashTiles.has(id) && !asked.current.has(id));
+    if (unknown.length === 0) return;
+    for (const id of unknown) asked.current.add(id);
+    void editorFetch(`/api/photo-source/browse?kind=unsplash&collection=picked&refs=${unknown.map(encodeURIComponent).join(',')}`)
+      .then(async (res) => (res.ok ? await res.json() as { items?: BrowseTile[] } : null))
+      .then((body) => {
+        for (const tile of body?.items ?? []) unsplashTiles.set(tile.ref, tile);
+        setTilesSeen((n) => n + 1);
+      })
+      .catch(() => { /* the picks stay listed, without their pictures */ });
+  }, [kind, ids]);
+  const shown = new Map(browse.tiles.map((tile) => [tile.ref, tile]));
+  const picked = ids.map((id, index) => {
+    const tile = kind === 'unsplash' ? unsplashTiles.get(id) : shown.get(id);
+    return {
+      id,
+      thumb: kind === 'immich' ? `/api/immich/serve?assetId=${encodeURIComponent(id)}&size=thumbnail` : tile?.thumbUrl,
+      name: tile?.label || tile?.credit?.name || `#${index + 1}`,
+    };
+  });
 
   return (
     <div className="space-y-2" data-testid={`${kind}-picked-pictures`}>
@@ -63,6 +108,7 @@ export default function PickedPicturesFields({ kind, ids, onChange, searchWords 
         {ids.length === 0 ? t('photoSources.picked.none') : t('photoSources.picked.count', { count: ids.length })}
         {' '}{t('photoSources.picked.help')}
       </p>
+      <PickedStrip items={picked} onRemove={toggle} />
       {browse.loading ? (
         <p className="py-4 text-center text-xs text-hs-text-faint">{t('photoSources.picked.loading')}</p>
       ) : browse.failure && browse.tiles.length === 0 ? (

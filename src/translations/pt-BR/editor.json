@@ -2740,7 +2740,9 @@
       "wall": "Escolha os fundos para mostrar"
     },
     "effectsReset": "Redefinir",
-    "effectsResetLabel": "Redefinir {label}"
+    "effectsResetLabel": "Redefinir {label}",
+    "refreshSame": "Só há uma imagem para mostrar",
+    "nasaPace": "A NASA publica uma imagem nova por dia, então a mesma imagem aparece de novo até chegar a próxima."
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imagens",
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "Salvar na biblioteca",
       "videoHint": "Alguns vídeos do iPhone podem não tocar em telas mais antigas. Vídeos que não tocam são pulados automaticamente.",
       "checking": "Verificando o álbum…",
-      "linkOk": "O link parece certo"
+      "linkOk": "O link parece certo",
+      "notAlbumLink": "Isso não parece um link de álbum compartilhado"
     },
     "onedrive": {
       "checking": "Verificando a conexão do OneDrive…",
@@ -5973,7 +5976,8 @@
         "one": "{count} foto",
         "other": "{count} fotos"
       },
-      "empty": "Ainda não há fotos nesta pasta"
+      "empty": "Ainda não há fotos nesta pasta",
+      "onlyVideos": "Esta pasta só tem vídeos. O plano de fundo precisa de uma foto."
     },
     "unsplash": {
       "searchWords": "Palavras de busca",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Vem com o Home Screens",
       "inLibrary": "Na sua biblioteca",
       "inLibraryFolder": "Na sua biblioteca, pasta {folder}",
-      "rotatingNote": "Mostrada até chegar a primeira imagem da rotação. Escolher uma imagem desliga a rotação."
+      "rotatingNote": "Mostrada até chegar a primeira imagem da rotação. Escolher uma imagem desliga a rotação.",
+      "lastRotating": "Última imagem da rotação"
     },
     "google": {
       "add": "Adicionar do Google Fotos",

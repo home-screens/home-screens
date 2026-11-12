@@ -99,6 +99,16 @@ test.describe('rotation sources', () => {
     expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '', pictures: [`${folder}/one.png`, `${folder}/two.png`] }]);
     await expect(page.getByTestId('background-mode')).toHaveText('Rotating between the selected sources');
 
+    // Every pick is listed above the grid, and stays there when the grid moves to another folder.
+    const strip = page.getByTestId('picked-strip');
+    await expect(strip.getByRole('button')).toHaveCount(2);
+    await page.getByTestId('library-picked-pictures').getByLabel('Folder').selectOption('');
+    await expect(strip.getByRole('button')).toHaveCount(2);
+    await autosaved(page, async () => strip.getByTestId(`picked-${folder}/two.png`).click());
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'library', folder: '', pictures: [`${folder}/one.png`] }]);
+    await page.getByTestId('library-picked-pictures').getByLabel('Folder').selectOption(folder);
+    await autosaved(page, async () => page.getByTestId(`library-pick-${folder}/two.png`).click());
+
     // Back to Folder mode asks before the picks go; the folder stands.
     await page.getByTestId('library-mode-folder').click();
     await expect(page.getByRole('dialog')).toContainText('forgets the 2 pictures you picked here');

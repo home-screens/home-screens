@@ -2664,7 +2664,7 @@
     "effectsTitle": "Hintergrundeffekte",
     "sourcesGroup": "Quellen",
     "refreshNow": "Jetzt aktualisieren",
-    "rotateEveryLabel": "Wechseln alle",
+    "rotateEveryLabel": "Neues Bild nach",
     "intervals": {
       "minutes": "{count} Minuten",
       "hourSingular": "1 Stunde",
@@ -2740,7 +2740,9 @@
       "wall": "Wähle die Hintergründe aus, die gezeigt werden sollen"
     },
     "effectsReset": "Zurücksetzen",
-    "effectsResetLabel": "{label} zurücksetzen"
+    "effectsResetLabel": "{label} zurücksetzen",
+    "refreshSame": "Es gibt nur ein Bild",
+    "nasaPace": "Die NASA hat nur ein neues Bild pro Tag. Bis das nächste kommt, ist dasselbe wieder dran."
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "In Mediathek speichern",
       "videoHint": "Manche iPhone-Videos lassen sich auf älteren Displays nicht abspielen. Solche Videos werden automatisch übersprungen.",
       "checking": "Album wird geprüft…",
-      "linkOk": "Der Link sieht gut aus"
+      "linkOk": "Der Link sieht gut aus",
+      "notAlbumLink": "Das sieht nicht nach einem Link zu einem geteilten Album aus"
     },
     "onedrive": {
       "checking": "OneDrive-Verbindung wird geprüft…",
@@ -5973,7 +5976,8 @@
         "one": "{count} Foto",
         "other": "{count} Fotos"
       },
-      "empty": "Noch keine Fotos in diesem Ordner"
+      "empty": "Noch keine Fotos in diesem Ordner",
+      "onlyVideos": "In diesem Ordner sind nur Videos. Ein Hintergrund braucht ein Foto."
     },
     "unsplash": {
       "searchWords": "Suchwörter",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Bei Home Screens dabei",
       "inLibrary": "In deiner Bibliothek",
       "inLibraryFolder": "Im Ordner {folder} deiner Bibliothek",
-      "rotatingNote": "Wird gezeigt, bis das erste wechselnde Bild da ist. Ein ausgewähltes Bild schaltet den Wechsel aus."
+      "rotatingNote": "Wird gezeigt, bis das erste wechselnde Bild da ist. Ein ausgewähltes Bild schaltet den Wechsel aus.",
+      "lastRotating": "Letztes wechselndes Bild"
     },
     "google": {
       "add": "Aus Google Fotos hinzufügen",

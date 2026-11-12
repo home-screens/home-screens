@@ -85,8 +85,8 @@ export default function PhotoSourceEntryFields({ use, source, count, mediaTypes,
             ]}
           />
           {mode === 'pictures'
-            ? <LibraryPicturesFields pictures={source.pictures ?? []} initialDirectory={source.folder} onChange={(pictures) => onChange({ ...source, pictures })} />
-            : <LibraryFolderFields source={source as Library} onChange={onChange} withGoogleImport={use === 'stream'} />}
+            ? <LibraryPicturesFields pictures={source.pictures ?? []} initialDirectory={source.folder} use={use} onChange={(pictures) => onChange({ ...source, pictures })} />
+            : <LibraryFolderFields source={source as Library} onChange={onChange} use={use} />}
         </>
       );
     }
@@ -198,7 +198,10 @@ function UnsplashWordsFields({ source, count, ready, use, onChange }: {
   const previewUrl = ready && settled.trim()
     ? `${PHOTO_SOURCE_MEDIA_PATH}?${photoSourceParams({ kind: 'unsplash', query: settled.trim() })}&count=${count}`
     : null;
-  const { data } = useEditorData<MediaListItem[]>(previewUrl);
+  const { data, failure, loading } = useEditorData<MediaListItem[]>(previewUrl);
+  // Words that bring nothing must not look like words that work: the wall
+  // would simply never change. Said once the search for these words is back.
+  const answered = previewUrl !== null && !loading && settled.trim() === source.query.trim();
   return (
     <>
       <LabeledInput
@@ -208,6 +211,12 @@ function UnsplashWordsFields({ source, count, ready, use, onChange }: {
         onChange={(query) => onChange({ ...source, query })}
       />
       <p className="-mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t(use === 'background' ? 'photoSources.unsplash.searchHelpBackground' : 'photoSources.unsplash.searchHelp')}</p>
+      {answered && failure?.status === 429 && (
+        <p className="text-[10px] leading-relaxed text-hs-warning" data-testid="unsplash-words-limit">{t('photoSources.unsplash.rateLimited')}</p>
+      )}
+      {answered && data !== null && data.length === 0 && !failure && (
+        <p className="text-[10px] leading-relaxed text-hs-warning" data-testid="unsplash-words-empty">{t('photoSources.unsplash.empty')}</p>
+      )}
       <PreviewStrip urls={(data ?? []).slice(0, 4).map((item) => item.url)} />
     </>
   );

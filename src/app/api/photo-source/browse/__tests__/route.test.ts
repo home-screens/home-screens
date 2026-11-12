@@ -58,6 +58,13 @@ describe('GET /api/photo-source/browse', () => {
     expect('orientation' in browse.mock.calls[1][0]).toBe(false);
   });
 
+  it('passes the picked photos to look up, leaving out anything that is not a photo id', async () => {
+    await GET(req('kind=unsplash&collection=picked&refs=abc123,../etc,Zx_9-q'));
+    await GET(req('kind=unsplash&query=sea'));
+    expect(browse.mock.calls[0][0]).toMatchObject({ collection: 'picked', refs: ['abc123', 'Zx_9-q'] });
+    expect('refs' in browse.mock.calls[1][0]).toBe(false);
+  });
+
   it('refuses sources that are not browsed one picture at a time', async () => {
     for (const kind of ['library', 'icloud', 'onedrive', '']) {
       const res = await GET(req(`kind=${kind}`));

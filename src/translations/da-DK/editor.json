@@ -2664,7 +2664,7 @@
     "effectsTitle": "Baggrundseffekter",
     "sourcesGroup": "Kilder",
     "refreshNow": "Opdater nu",
-    "rotateEveryLabel": "Skift hver",
+    "rotateEveryLabel": "Hvert billede vises i",
     "intervals": {
       "minutes": "{count} minutter",
       "hourSingular": "1 time",
@@ -2740,7 +2740,9 @@
       "wall": "Vælg de baggrunde, der skal vises"
     },
     "effectsReset": "Nulstil",
-    "effectsResetLabel": "Nulstil {label}"
+    "effectsResetLabel": "Nulstil {label}",
+    "refreshSame": "Der er kun ét billede at vise",
+    "nasaPace": "NASA udgiver kun ét nyt billede om dagen, så det samme kommer igen, indtil det næste er klar."
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",
@@ -5921,7 +5923,8 @@
       "photoLinkAction": "Gem i biblioteket",
       "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over.",
       "checking": "Tjekker albummet…",
-      "linkOk": "Linket ser rigtigt ud"
+      "linkOk": "Linket ser rigtigt ud",
+      "notAlbumLink": "Det ligner ikke et link til et delt album"
     },
     "onedrive": {
       "checking": "Tjekker OneDrive-forbindelsen…",
@@ -5973,7 +5976,8 @@
         "one": "{count} billede",
         "other": "{count} billeder"
       },
-      "empty": "Endnu ingen billeder i denne mappe"
+      "empty": "Endnu ingen billeder i denne mappe",
+      "onlyVideos": "Der er kun videoer i denne mappe. En baggrund skal være et stillbillede."
     },
     "unsplash": {
       "searchWords": "Søgeord",
@@ -6074,7 +6078,8 @@
       "comesWithHomeScreens": "Følger med Home Screens",
       "inLibrary": "I dit bibliotek",
       "inLibraryFolder": "I dit bibliotek, mappen {folder}",
-      "rotatingNote": "Vises, indtil det første billede fra rotationen kommer. Vælger du et billede, slås rotationen fra."
+      "rotatingNote": "Vises, indtil det første billede fra rotationen kommer. Vælger du et billede, slås rotationen fra.",
+      "lastRotating": "Seneste billede fra rotationen"
     },
     "google": {
       "add": "Tilføj fra Google Fotos",

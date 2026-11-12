@@ -3,9 +3,11 @@
 import type { ReactNode } from 'react';
 
 /**
- * The two-way mode switch every rotation source uses (Unsplash Search/Collections,
- * Immich Pictures/Filters, Local Pictures/Folder). Convention: the hand-picked
- * "pictures" mode comes first.
+ * The mode switch a photo source with more than one way to name its pictures
+ * shows (Library Folder/Pictures, Immich Filters/Pictures, Unsplash
+ * Words/Collections/Pictures). Two choices share the width evenly; three
+ * take the room their own words need, so a long word in one language
+ * ("Sammlungen") is not cut short while a short one beside it has room to spare.
  */
 export default function SourceModeToggle<T extends string>({ options, value, onChange, testIdPrefix }: {
   options: ReadonlyArray<{ id: T; label: string }>;
@@ -14,7 +16,7 @@ export default function SourceModeToggle<T extends string>({ options, value, onC
   testIdPrefix: string;
 }) {
   return (
-    <div className="grid gap-1 rounded-md bg-hs-card p-0.5" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}>
+    <div className="flex gap-1 rounded-md bg-hs-card p-0.5">
       {options.map((option) => (
         <button
           key={option.id}
@@ -22,7 +24,7 @@ export default function SourceModeToggle<T extends string>({ options, value, onC
           aria-pressed={value === option.id}
           data-testid={`${testIdPrefix}-${option.id}`}
           onClick={() => onChange(option.id)}
-          className={`truncate rounded py-1 ${options.length > 2 ? 'px-1 text-[10px]' : 'px-2 text-[11px]'} ${
+          className={`min-w-0 truncate rounded py-1 ${options.length > 2 ? 'flex-auto px-1 text-[10px]' : 'flex-1 px-2 text-[11px]'} ${
             value === option.id ? 'bg-hs-hover text-hs-text-primary' : 'text-hs-text-muted hover:text-hs-text-secondary'
           }`}
         >

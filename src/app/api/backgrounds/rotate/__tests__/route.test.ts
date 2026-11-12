@@ -51,7 +51,12 @@ vi.mock('next/server', async (importOriginal) => ({
 /** The housekeeping the route hands to `after`, finished. */
 const settled = () => Promise.all(afterWork.splice(0));
 vi.mock('@/lib/rotation-revision', () => ({ bumpRotationRevision: vi.fn() }));
-vi.mock('@/lib/display-filter', () => ({ findScreenById: vi.fn() }));
+// The screens the config still has: a cache entry for any other id is dropped.
+const liveScreens = vi.hoisted(() => ({ ids: ['s1', 's2'], pictures: {} as Record<string, string> }));
+vi.mock('@/lib/display-filter', () => ({
+  findScreenById: vi.fn(),
+  getAllScreens: vi.fn(() => liveScreens.ids.map((id) => ({ id, backgroundImage: liveScreens.pictures[id] ?? '' }))),
+}));
 // Which picture a source hands out is each adapter's business (tested with
 // the adapters); this route only saves it, caches it and prunes.
 vi.mock('@/lib/photo-sources', () => ({ pickOneFromSource: vi.fn() }));
@@ -65,6 +70,7 @@ import { Writable } from 'stream';
 import { findScreenById } from '@/lib/display-filter';
 import { pickOneFromSource } from '@/lib/photo-sources';
 import { removeThumbnails } from '@/lib/thumbnails';
+import { bumpRotationRevision } from '@/lib/rotation-revision';
 import { readConfig } from '@/lib/config';
 import { rotationCacheKey } from '@/lib/photo-source';
 import { GET, FAILURE_BACKOFF_MS, FORCE_SPACING_MS } from '@/app/api/backgrounds/rotate/route';
@@ -121,6 +127,8 @@ const picked = (id: string) => ({ kind: 'download' as const, id, open: async () 
 beforeEach(() => {
   vi.clearAllMocks();
   cacheState.value = {};
+  liveScreens.ids = ['s1', 's2'];
+  liveScreens.pictures = {};
   secrets.status = { ...KEYS };
   fsMock.readFile.mockRejectedValue(new Error('ENOENT'));
   fsMock.writeFile.mockResolvedValue(undefined);
@@ -422,6 +430,64 @@ describe('GET /api/backgrounds/rotate?force=true', () => {
   });
 });
 
+describe('GET /api/backgrounds/rotate: the same picture again', () => {
+  it('says so instead of calling it new, and starts the interval over', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating([{ kind: 'wall', group: 'color', ids: ['ocean'] }])));
+    seedCache({ s1: { ...entry('x', [{ kind: 'wall', group: 'color', ids: ['ocean'] }], 0), path: '/starter-backgrounds/ocean.svg' } });
+    mockPick.mockResolvedValue({ kind: 'static', path: '/starter-backgrounds/ocean.svg' });
+
+    const json = await (await GET(rotateReq('?screenId=s1&force=true'))).json();
+
+    expect(json).toEqual({ path: '/starter-backgrounds/ocean.svg', fresh: false, same: true });
+    expect(cacheState.value.s1).toMatchObject({ path: '/starter-backgrounds/ocean.svg', forcedAt: expect.any(Number) });
+    expect((cacheState.value.s1 as { fetchedAt: number }).fetchedAt).toBeGreaterThan(0);
+    // Nothing changed on any wall, so none is told to ask again.
+    expect(vi.mocked(bumpRotationRevision)).not.toHaveBeenCalled();
+  });
+
+  it('gives the other sources their turn before settling for the picture already up', async () => {
+    const sources: PhotoSource[] = [{ kind: 'wall', group: 'color', ids: ['ocean'] }, { kind: 'wall', group: 'pattern', ids: ['pattern-dots'] }];
+    mockFindScreen.mockReturnValue(screen(rotating(sources)));
+    seedCache({ s1: { ...entry('x', sources, 0), path: '/starter-backgrounds/ocean.svg' } });
+    mockPick.mockImplementation(async (source) => ({
+      kind: 'static',
+      path: source.kind === 'wall' && source.group === 'color' ? '/starter-backgrounds/ocean.svg' : '/starter-backgrounds/pattern-dots.svg',
+    }));
+
+    // Whichever source the shuffle asks first, the answer is the other picture.
+    for (let i = 0; i < 6; i += 1) {
+      seedCache({ s1: { ...entry('x', sources, 0), path: '/starter-backgrounds/ocean.svg' } });
+      const json = await (await GET(rotateReq())).json();
+      expect(json).toEqual({ path: '/starter-backgrounds/pattern-dots.svg', fresh: true });
+    }
+  });
+});
+
+describe('GET /api/backgrounds/rotate: screens that are gone', () => {
+  it('drops their cache entries on the next write, so their files can be pruned', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating()));
+    seedCache({
+      s2: entry('rotation-unsplash-kept.jpg', [UNSPLASH], 0),
+      'screen-deleted': entry('rotation-unsplash-orphan.jpg', [UNSPLASH], 0),
+    });
+    mockPick.mockResolvedValue(picked('now'));
+
+    await GET(rotateReq());
+
+    expect(Object.keys(cacheState.value).sort()).toEqual(['s1', 's2']);
+  });
+
+  it('drops them when every source failed too', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating()));
+    seedCache({ 'screen-deleted': entry('rotation-unsplash-orphan.jpg', [UNSPLASH], 0) });
+    mockPick.mockRejectedValue(new Error('away'));
+
+    await GET(rotateReq());
+
+    expect(Object.keys(cacheState.value)).toEqual(['s1']);
+  });
+});
+
 describe('GET /api/backgrounds/rotate: rotation file pruning', () => {
   it('deletes old unreferenced rotation files but never user files or referenced ones', async () => {
     mockFindScreen.mockReturnValue(screen(rotating()));
@@ -449,6 +515,22 @@ describe('GET /api/backgrounds/rotate: rotation file pruning', () => {
     expect(unlinked).toEqual(['rotation-icloud-stale0.jpg', 'rotation-icloud-stale1.jpg']);
     // Their wall-sized copies go with them.
     expect(vi.mocked(removeThumbnails).mock.calls.map(([name]) => name).sort()).toEqual(unlinked);
+  });
+
+  it('never deletes a rotation file a screen names as its own picture', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating()));
+    liveScreens.pictures = { s2: '/api/backgrounds/serve?file=rotation-unsplash-own.jpg' };
+    mockPick.mockResolvedValue(picked('now'));
+    const stale = Array.from({ length: 9 }, (_, i) => `rotation-icloud-stale${i + 1}.jpg`);
+    libraryHolds([{ name: 'rotation-unsplash-own.jpg' }, ...stale.map((name) => ({ name }))]);
+    // The screen's own picture is the oldest file there is.
+    fsMock.stat.mockImplementation(async (p: unknown) => ({ mtimeMs: Number(String(p).match(/stale(\d+)/)?.[1] ?? 0) }));
+
+    await GET(rotateReq());
+    await settled();
+
+    const unlinked = fsMock.unlink.mock.calls.map(([p]) => String(p).split(/[\\/]/).pop());
+    expect(unlinked).toEqual(['rotation-icloud-stale1.jpg']);
   });
 
   it('does not prune on a request that served from cache', async () => {

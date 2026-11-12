@@ -63,15 +63,19 @@ export default function WallSourceGroup({ group, source, onChange }: {
               onClick={() => toggle(wall.id)}
               title={name}
               data-testid={`starter-background-${wall.id}`}
-              className={`relative block w-full overflow-hidden rounded border ${tileAspect} ${marked ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong'}`}
+              className="block w-full min-w-0 text-left"
             >
-              {/* The thumbnail is the wall's own file, so it cannot drift from what the display paints. */}
-              <img src={wall.path} alt="" className="h-full w-full object-cover" />
-              {marked && (
-                <span className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-hs-accent text-white" aria-hidden="true">
-                  <Check size={10} />
-                </span>
-              )}
+              <span className={`relative block w-full overflow-hidden rounded border ${tileAspect} ${marked ? 'border-hs-accent ring-1 ring-hs-accent' : 'border-hs-border-strong'}`}>
+                {/* The thumbnail is the wall's own file, so it cannot drift from what the display paints. */}
+                <img src={wall.path} alt="" className="h-full w-full object-cover" />
+                {marked && (
+                  <span className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-hs-accent text-white" aria-hidden="true">
+                    <Check size={10} />
+                  </span>
+                )}
+              </span>
+              {/* The name under the tile, as the Image Library prints it: Midnight and Ocean look alike at this size. */}
+              <span className={`mt-0.5 block truncate text-[9px] leading-tight ${marked ? 'text-hs-text-body' : 'text-hs-text-faint'}`} aria-hidden="true">{name}</span>
             </button>
           );
         })}
