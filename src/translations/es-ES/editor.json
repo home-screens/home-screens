@@ -2737,6 +2737,7 @@
       "onedrive": "Elige una carpeta",
       "unsplash": "Escribe palabras de búsqueda, añade una colección o elige algunas fotos",
       "nasa": "",
+      "art": "",
       "wall": "Elige los fondos que quieres mostrar"
     },
     "effectsReset": "Restablecer",
@@ -5966,7 +5967,8 @@
       "icloud": "Álbum compartido de iCloud",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "Imagen del día de la NASA"
+      "nasa": "Imagen del día de la NASA",
+      "art": "Pinturas de museos"
     },
     "library": {
       "folder": "Carpeta",
@@ -6041,13 +6043,114 @@
       "backgroundInfo": "La NASA publica una imagen astronómica nueva al día. La pantalla muestra la más reciente.",
       "apodUnavailable": "Ahora mismo la NASA no está enviando la imagen del día. Buscar en la biblioteca de la NASA sigue funcionando."
     },
+    "art": {
+      "provider": "Colección",
+      "providers": {
+        "wikimedia": "Wikimedia (muchos museos)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Artista",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Estilo o movimiento",
+      "stylePlaceholder": "Impresionismo",
+      "orientation": "Formato",
+      "orientations": {
+        "any": "Cualquiera",
+        "portrait": "Vertical",
+        "landscape": "Horizontal"
+      },
+      "minSize": "Lado más corto (píxeles)",
+      "familyFriendly": "Apto para familias",
+      "familyFriendlyHint": "Mejor esfuerzo, sin garantía",
+      "shape": "Parecido a la forma de la pantalla",
+      "shapes": {
+        "any": "Cualquier forma",
+        "loose": "Aproximado",
+        "medium": "Muy parecido",
+        "strict": "Igual que la pantalla"
+      },
+      "fit": "En la pantalla",
+      "fits": {
+        "matte": "Pintura entera sobre un fondo difuminado",
+        "cover": "Llenar la pantalla (recorta los bordes)",
+        "contain": "Pintura entera sobre una pared oscura"
+      },
+      "streamInfo": "Pinturas famosas de colecciones de museos abiertas a todos. El título, el artista y el museo aparecen en una esquina.",
+      "backgroundInfo": "Una pintura nueva cada vez que cambia el fondo. El título, el artista y el museo aparecen discretos en una esquina.",
+      "addFilter": "+ Añadir filtro",
+      "filters": "Acotar",
+      "removeFilter": "Quitar filtro: {filter}",
+      "museum": "Museo",
+      "anyMuseum": "Cualquier museo",
+      "museumsChosen": {
+        "one": "{count} museo elegido",
+        "other": "{count} museos elegidos"
+      },
+      "period": "Época",
+      "fromYear": "Desde el año",
+      "toYear": "Hasta el año",
+      "genre": "Tema",
+      "choose": "Elegir…",
+      "genres": {
+        "landscape": "Paisajes",
+        "portrait": "Retratos",
+        "still-life": "Bodegones",
+        "seascape": "Marinas",
+        "religious": "Religiosos",
+        "mythological": "Mitología",
+        "history": "Historia",
+        "genre-scene": "Escenas cotidianas",
+        "cityscape": "Vistas urbanas",
+        "nude": "Desnudos"
+      },
+      "matchCount": {
+        "one": "{count} pintura coincide",
+        "other": "{count} pinturas coinciden"
+      },
+      "matchCountAbout": {
+        "one": "unas {count} pintura coincide",
+        "other": "unas {count} pinturas coinciden"
+      },
+      "manyMatch": "Coinciden muchísimas pinturas (demasiadas para contarlas aquí)",
+      "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impresionismo",
+          "dutch": "Siglo de Oro neerlandés",
+          "landscapes": "Paisajes",
+          "portraits": "Retratos",
+          "stillLife": "Bodegones",
+          "seascapes": "Marinas",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Buscar pinturas: un museo, un artista o un estilo",
+        "matched": "Coincidencias: {matches}",
+        "matchTypes": {
+          "museum": "museo",
+          "artist": "artista",
+          "movement": "estilo",
+          "genre": "tema"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Pinturas de colecciones abiertas. Se guarda una copia en la carpeta art de tu biblioteca.",
+        "creditHint": "{credit}. Se guarda una copia en la carpeta art de tu biblioteca.",
+        "empty": "No se han encontrado pinturas. Prueba con otras palabras u otra colección.",
+        "loadFailed": "No se pudieron cargar las pinturas.",
+        "unavailable": "La colección no envía pinturas ahora mismo. Inténtalo de nuevo un poco más tarde.",
+        "orSearch": "O busca lo que quieras arriba"
+      }
+    },
     "picker": {
       "tabs": {
         "builtin": "Incluidas",
         "library": "Local",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Arte"
       },
       "ideas": "Ideas",
       "search": "Buscar",

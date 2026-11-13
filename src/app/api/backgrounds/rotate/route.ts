@@ -170,7 +170,8 @@ function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
  * keeps what it has and the sources rest for a while. Any source works
  * except a video: the background is an <img>.
  *
- * Response: { path: string, fresh: true } for a new picture; otherwise
+ * Response: { path: string, fresh: true } for a new picture (plus `credit`
+ * for a caption, art only); otherwise
  * { path: string | null, fresh: false } with `spaced: true` when a forced
  * ask came too soon after the last, `same: true` when the sources were asked
  * and the picture already showing is the only one they have, or `declined`
@@ -213,7 +214,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     if (spaced && entry.path && await cachedPictureExists(entry.path)) {
       // `spaced` on a forced ask tells the editor to say "wait a moment"
       // rather than "nothing new", which reads as a source with no pictures.
-      return NextResponse.json({ path: entry.path, fresh: false, ...(force ? { spaced: true } : {}) });
+      return NextResponse.json({ path: entry.path, fresh: false, ...(entry.credit ? { credit: entry.credit } : {}), ...(force ? { spaced: true } : {}) });
     }
     if (entry.path && !(await cachedPictureExists(entry.path))) entry = { ...entry, path: '' };
   } else {
@@ -234,9 +235,10 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   // A source whose only picture is the one already showing. The others still
   // get their turn, so a refresh changes the picture whenever anything can.
   let sameAgain = false;
-  const settle = async (newPath: string) => {
+  const settle = async (newPath: string, credit?: RotationCacheEntry['credit']) => {
     const next: RotationCacheEntry = {
       path: newPath, sourceKey, fetchedAt: now, intervalMinutes,
+      ...(credit ? { credit } : {}),
       ...(force ? { forcedAt: now } : entry?.forcedAt ? { forcedAt: entry.forcedAt } : {}),
     };
     // Merge into whatever is on disk now, not into the snapshot read before
@@ -248,6 +250,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     try {
       const picked = await pickOneFromSource(source, canvas, previous);
       const newPath = picked ? await savePicked(source.kind, picked) : null;
+      const credit = picked?.kind === 'download' ? picked.credit : undefined;
       if (!newPath) {
         failures.push(`${source.kind}: nothing to show`);
         declined.push({ kind: source.kind, reason: 'empty' });
@@ -257,7 +260,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
         sameAgain = true;
         continue;
       }
-      const merged = await settle(newPath);
+      const merged = await settle(newPath, credit);
       // The wall's heartbeat says a rotation answered anew, so every wall
       // showing this screen re-asks within a beat instead of on its own poll.
       bumpRotationRevision();
@@ -266,7 +269,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
       // is on its way: a readdir and a stat per rotation file need not hold
       // the wall's picture back.
       after(() => pruneRotationFiles(merged, screens));
-      return NextResponse.json({ path: newPath, fresh: true });
+      return NextResponse.json({ path: newPath, fresh: true, ...(credit ? { credit } : {}) });
     } catch (error) {
       // A missing key, a source that is away, or a lapsed sign-in: the next
       // source gets its turn, and the wall keeps what it has if none answers.
@@ -278,15 +281,16 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   if (sameAgain && entry?.path) {
     // Asked and answered, with the picture the walls already show: the
     // interval starts over, and nothing is announced as new.
-    await settle(entry.path);
-    return NextResponse.json({ path: entry.path, fresh: false, same: true });
+    await settle(entry.path, entry.credit);
+    return NextResponse.json({ path: entry.path, fresh: false, same: true, ...(entry.credit ? { credit: entry.credit } : {}) });
   }
 
   log.warn(`No background for screen ${screenId}; sources rest for ${FAILURE_BACKOFF_MS / 60_000} minutes (${failures.join('; ')})`);
   const rested: RotationCacheEntry = {
     path: entry?.path ?? '', sourceKey, fetchedAt: entry?.fetchedAt ?? 0, intervalMinutes, failedAt: now,
+    ...(entry?.credit ? { credit: entry.credit } : {}),
     ...(force ? { forcedAt: now } : {}),
   };
   await cacheStore.updateAtomic((current) => ({ ...withoutGoneScreens(current, liveScreens), [screenId]: rested }));
-  return NextResponse.json({ path: entry?.path || fallback, fresh: false, declined });
+  return NextResponse.json({ path: entry?.path || fallback, fresh: false, declined, ...(entry?.path && entry.credit ? { credit: entry.credit } : {}) });
 }, 'Failed to rotate background');

@@ -31,7 +31,7 @@ export interface PickArgs<K extends PhotoSourceKind> {
  */
 export type PickedPicture =
   | { kind: 'library'; path: string }
-  | { kind: 'download'; id: string; open: () => Promise<Response> }
+  | { kind: 'download'; id: string; open: () => Promise<Response>; credit?: { name: string; source: string } }
   /** A picture the wall already has at a public path (a bundled wall): shown as it is. */
   | { kind: 'static'; path: string };
 
@@ -44,6 +44,8 @@ export interface BrowseArgs {
   query?: string;
   /** The wall's shape, for sources that can prefer pictures shaped like it. */
   orientation?: 'portrait' | 'landscape';
+  /** Leave out paintings that look nude, best effort (art). */
+  familyFriendly?: boolean;
   /** For the `picked` collection: the photos to look up, so picks can be shown as tiles. */
   refs?: string[];
 }
@@ -64,8 +66,15 @@ export interface BrowseItem {
   credit?: { name: string; url?: string };
 }
 
+export interface BrowseMatch {
+  type: 'museum' | 'artist' | 'movement' | 'genre';
+  label: string;
+}
+
 export interface BrowsePage {
   items: BrowseItem[];
+  /** What the search words were taken to mean (art). */
+  matched?: BrowseMatch[];
   /** The page to ask for next, or null at the end. */
   nextPage: number | null;
 }

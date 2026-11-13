@@ -8,6 +8,7 @@ import { icloudPhotoSource } from './icloud';
 import { onedrivePhotoSource } from './onedrive';
 import { unsplashPhotoSource } from './unsplash';
 import { nasaPhotoSource } from './nasa';
+import { artPhotoSource, artPickableSource } from './art';
 import { wallPhotoSource } from './wall';
 import { PhotoSourceError, type PhotoSourceAdapter, type PickableSource, type PickedPicture } from './types';
 
@@ -20,6 +21,7 @@ const ADAPTERS: { [K in PhotoSourceKind]: PhotoSourceAdapter<K> } = {
   onedrive: onedrivePhotoSource,
   unsplash: unsplashPhotoSource,
   nasa: nasaPhotoSource,
+  art: artPhotoSource,
   wall: wallPhotoSource,
 };
 
@@ -32,6 +34,7 @@ const PICKABLE: Record<PickImportKind, PickableSource> = {
   immich: immichPhotoSource,
   unsplash: unsplashPhotoSource,
   nasa: nasaPhotoSource,
+  art: artPickableSource,
 };
 
 /** The adapter that browses and copies single pictures for the picker. */

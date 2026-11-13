@@ -72,6 +72,7 @@ const EMPTY_MESSAGE: Record<PhotoSourceEmptyReason, string> = {
   checkLink: 'photo-slideshow.emptyICloud',
   checkFolder: 'photo-slideshow.emptyOneDrive',
   checkSearch: 'photo-slideshow.emptyUnsplash',
+  checkArt: 'photo-slideshow.emptyArt',
   tryLater: 'photo-slideshow.emptyNasa',
 };
 export const DEFAULT_MAX_VIDEO_DURATION_MS = 60_000;

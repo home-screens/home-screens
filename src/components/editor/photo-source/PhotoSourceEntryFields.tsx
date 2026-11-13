@@ -17,6 +17,7 @@ import LibraryPicturesFields from './LibraryPicturesFields';
 import PickedPicturesFields from './PickedPicturesFields';
 import UnsplashCollectionsFields from './UnsplashCollectionsFields';
 import PreviewStrip from './PreviewStrip';
+import ArtSourceFields from './ArtSourceFields';
 
 type Library = Extract<PhotoSource, { kind: 'library' }>;
 type Immich = Extract<PhotoSource, { kind: 'immich' }>;
@@ -171,6 +172,8 @@ export default function PhotoSourceEntryFields({ use, source, count, mediaTypes,
           {t(use === 'background' ? 'photoSources.nasa.backgroundInfo' : 'photoSources.nasa.streamInfo')}
         </p>
       );
+    case 'art':
+      return <ArtSourceFields use={use} source={source} onChange={onChange} />;
     case 'wall':
       // Walls are picked as tiles in the background's Sources list, never here.
       return null;

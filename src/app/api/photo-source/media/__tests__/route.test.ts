@@ -12,7 +12,13 @@ vi.mock('@/lib/photo-sources', async (importOriginal) => {
   return { ...actual, listPhotoSource: vi.fn() };
 });
 
+vi.mock('@/lib/photo-sources/art', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/photo-sources/art')>();
+  return { ...actual, artCount: vi.fn(), artMuseums: vi.fn() };
+});
+
 import { listPhotoSource, PhotoSourceError } from '@/lib/photo-sources';
+import { artCount, artMuseums } from '@/lib/photo-sources/art';
 import { SetupError } from '@/lib/api-utils';
 import { UnsupportedImageFormatError } from '@/lib/library-import';
 import { libraryRevision } from '@/lib/library-revision';
@@ -95,5 +101,21 @@ describe('GET /api/photo-source/media', () => {
     const failed = await GET(req('kind=nasa'));
     expect(failed.status).toBe(500);
     expect((await failed.json()).error).toBe('Failed to load photos');
+  });
+
+  it('answers how many paintings match instead of pictures for info=count', async () => {
+    vi.mocked(artCount).mockResolvedValueOnce({ count: 4900, approximate: true });
+    const res = await GET(req('kind=art&provider=wikimedia&museums=Q19675&from=1600&info=count'));
+    expect(await res.json()).toEqual({ count: 4900, approximate: true });
+    expect(artCount).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia', museums: ['Q19675'], fromYear: 1600 });
+    expect(mockList).not.toHaveBeenCalled();
+  });
+
+  it('answers the museums for info=museums, refuses info for other sources, and passes on an unavailable collection', async () => {
+    vi.mocked(artMuseums).mockResolvedValueOnce([{ id: 'Q19675', count: 4900 }]);
+    expect(await (await GET(req('kind=art&info=museums'))).json()).toEqual([{ id: 'Q19675', count: 4900 }]);
+    expect((await GET(req('kind=immich&info=count'))).status).toBe(400);
+    vi.mocked(artCount).mockRejectedValueOnce(new PhotoSourceError('away', 503, { error: 'art-unavailable' }));
+    expect((await GET(req('kind=art&provider=aic&info=count'))).status).toBe(503);
   });
 });

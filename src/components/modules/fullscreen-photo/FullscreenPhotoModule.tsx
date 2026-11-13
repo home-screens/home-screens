@@ -36,6 +36,7 @@ const CLOUD_HINT: Record<Exclude<PhotoSourceEmptyReason, 'addPhotos'>, string> =
   checkLink: 'fullscreen-photo.noPhotosYetHintICloud',
   checkFolder: 'fullscreen-photo.noPhotosYetHintOneDrive',
   checkSearch: 'fullscreen-photo.noPhotosYetHintUnsplash',
+  checkArt: 'fullscreen-photo.noPhotosYetHintArt',
   tryLater: 'fullscreen-photo.noPhotosYetHintNasa',
 };
 

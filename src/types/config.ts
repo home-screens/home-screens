@@ -454,6 +454,85 @@ export type PhotoSource =
       kind: 'nasa';
     }
   | {
+      /** Famous paintings from museum collections open to everyone; no key needed */
+      kind: 'art';
+      /**
+       * Which museum collection the paintings come from
+       *
+       * `wikimedia` is Wikidata and Wikimedia Commons (many museums, public-domain and freely licensed images only),
+       * `aic` is the Art Institute of Chicago and `cleveland` is the Cleveland Museum of Art.
+       */
+      provider: ArtProvider;
+      /**
+       * Only paintings by this artist (for example `Claude Monet`)
+       *
+       * Free text, matched against the artist's name. Empty or unset means any artist.
+       */
+      artist?: string;
+      /**
+       * Only paintings in this style or movement (for example `Impressionism`)
+       *
+       * Free text. Wikimedia matches the movement or genre, the museums match their own style and classification fields.
+       */
+      style?: string;
+      /**
+       * Only paintings from these museums (Wikimedia only)
+       *
+       * Wikidata ids of the museums, such as `Q19675` for the Louvre. Any of them matches. Empty or unset means any museum. The other collections are one museum each and ignore this.
+       */
+      museums?: string[];
+      /**
+       * Only paintings made in or after this year
+       *
+       * A whole year, 0 to 2100. Unset means no earliest year.
+       */
+      fromYear?: number;
+      /**
+       * Only paintings made in or before this year
+       *
+       * A whole year, 0 to 2100. Unset means no latest year.
+       */
+      toYear?: number;
+      /**
+       * Only paintings of this kind of subject
+       *
+       * One of `landscape`, `portrait`, `still-life`, `seascape`, `religious`, `mythological`, `history`, `genre-scene`, `cityscape` or `nude`. Unset means any subject.
+       */
+      genre?: ArtGenre;
+      /**
+       * Only paintings shaped like this
+       *
+       * `portrait` is taller than wide, `landscape` wider than tall, `any` (the default) takes both and leans on `fit` to suit the screen.
+       */
+      orientation?: ArtOrientation;
+      /**
+       * Skip paintings whose shorter side is smaller than this many pixels
+       *
+       * Keeps small scans off a big screen. Unset means 800.
+       */
+      minShortSide?: number;
+      /**
+       * How far a painting's shape may differ from the screen's before it is skipped
+       *
+       * A fraction of the aspect ratio, 0 to 1. Unset means any shape is welcome. Smaller is stricter.
+       */
+      aspectTolerance?: number;
+      /**
+       * How a painting sits on the screen
+       *
+       * `cover` fills the screen and crops the edges, `contain` shows the whole painting on a dark wall,
+       * `matte` shows the whole painting over a soft, darkened blur of itself. Unset means `matte`.
+       * Applies to a rotating background; a slideshow always shows the whole painting.
+       */
+      fit?: ArtFit;
+      /**
+       * Leave out paintings that look nude, for a home with children
+       *
+       * Best effort and not guaranteed: it goes by the museums' subject data and a few words in the title, so some paintings can still get through. Unset means off.
+       */
+      familyFriendly?: boolean;
+    }
+  | {
       /**
        * Walls that come with Home Screens, for a rotating background only
        *
@@ -465,6 +544,15 @@ export type PhotoSource =
       /** The walls from that group to rotate through (their ids); none chosen means nothing from the group */
       ids: string[];
     };
+
+/** Where the `art` photo source gets its paintings */
+export type ArtProvider = 'wikimedia' | 'aic' | 'cleveland';
+/** The subjects the `art` source can be narrowed to */
+export type ArtGenre = 'landscape' | 'portrait' | 'still-life' | 'seascape' | 'religious' | 'mythological' | 'history' | 'genre-scene' | 'cityscape' | 'nude';
+/** Which paintings by shape the `art` source takes */
+export type ArtOrientation = 'portrait' | 'landscape' | 'any';
+/** How a painting sits on the screen */
+export type ArtFit = 'cover' | 'contain' | 'matte';
 
 export interface BackgroundRotation {
   /** Minutes between pictures */
@@ -3354,7 +3442,7 @@ export interface MediaListItem {
   posterUrl?: string;
   /** Source-reported duration, when the backend knows it (Immich does; local files don't). */
   durationMs?: number;
-  /** Who took the photo, when the source asks to be credited on screen (Unsplash). */
+  /** Who took the photo, or which painting this is, when the source asks to be credited on screen (Unsplash, art). */
   credit?: { name: string; source: string };
 }
 

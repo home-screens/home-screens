@@ -2737,6 +2737,7 @@
       "onedrive": "Kies een map",
       "unsplash": "Typ zoekwoorden, voeg een collectie toe of kies een paar foto's",
       "nasa": "",
+      "art": "",
       "wall": "Kies de achtergronden die je wilt tonen"
     },
     "effectsReset": "Herstel",
@@ -5966,7 +5967,8 @@
       "icloud": "Gedeeld iCloud-album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA-foto van de dag"
+      "nasa": "NASA-foto van de dag",
+      "art": "Schilderijen uit musea"
     },
     "library": {
       "folder": "Map",
@@ -6041,13 +6043,114 @@
       "backgroundInfo": "NASA publiceert elke dag één nieuwe astronomische foto. Het scherm toont de nieuwste.",
       "apodUnavailable": "NASA stuurt op dit moment geen foto van de dag. Zoeken in de NASA-bibliotheek werkt nog wel."
     },
+    "art": {
+      "provider": "Collectie",
+      "providers": {
+        "wikimedia": "Wikimedia (veel musea)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Kunstenaar",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Stijl of stroming",
+      "stylePlaceholder": "Impressionisme",
+      "orientation": "Formaat",
+      "orientations": {
+        "any": "Maakt niet uit",
+        "portrait": "Staand",
+        "landscape": "Liggend"
+      },
+      "minSize": "Kortste zijde (pixels)",
+      "familyFriendly": "Gezinsvriendelijk",
+      "familyFriendlyHint": "Zo goed mogelijk, geen garantie",
+      "shape": "Past bij de vorm van het scherm",
+      "shapes": {
+        "any": "Elke vorm",
+        "loose": "Ongeveer",
+        "medium": "Dichtbij",
+        "strict": "Precies als het scherm"
+      },
+      "fit": "Op het scherm",
+      "fits": {
+        "matte": "Heel schilderij op een zachte vervaging",
+        "cover": "Scherm vullen (randen worden bijgesneden)",
+        "contain": "Heel schilderij op een donkere muur"
+      },
+      "streamInfo": "Beroemde schilderijen uit openbare museumcollecties. Titel, kunstenaar en museum staan in een hoek.",
+      "backgroundInfo": "Elke keer dat de achtergrond wisselt een nieuw schilderij. Titel, kunstenaar en museum staan discreet in een hoek.",
+      "addFilter": "+ Filter toevoegen",
+      "filters": "Verfijnen",
+      "removeFilter": "Filter verwijderen: {filter}",
+      "museum": "Museum",
+      "anyMuseum": "Elk museum",
+      "museumsChosen": {
+        "one": "{count} museum gekozen",
+        "other": "{count} musea gekozen"
+      },
+      "period": "Periode",
+      "fromYear": "Vanaf jaar",
+      "toYear": "Tot jaar",
+      "genre": "Onderwerp",
+      "choose": "Kies…",
+      "genres": {
+        "landscape": "Landschappen",
+        "portrait": "Portretten",
+        "still-life": "Stillevens",
+        "seascape": "Zeegezichten",
+        "religious": "Religieus",
+        "mythological": "Mythologie",
+        "history": "Geschiedenis",
+        "genre-scene": "Taferelen uit het dagelijks leven",
+        "cityscape": "Stadsgezichten",
+        "nude": "Naakten"
+      },
+      "matchCount": {
+        "one": "{count} schilderij komt overeen",
+        "other": "{count} schilderijen komen overeen"
+      },
+      "matchCountAbout": {
+        "one": "ongeveer {count} schilderij komt overeen",
+        "other": "ongeveer {count} schilderijen komen overeen"
+      },
+      "manyMatch": "Heel veel schilderijen komen overeen (te veel om hier te tellen)",
+      "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionisme",
+          "dutch": "Gouden Eeuw",
+          "landscapes": "Landschappen",
+          "portraits": "Portretten",
+          "stillLife": "Stillevens",
+          "seascapes": "Zeegezichten",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Zoek schilderijen: een museum, kunstenaar of stijl",
+        "matched": "Gevonden: {matches}",
+        "matchTypes": {
+          "museum": "museum",
+          "artist": "kunstenaar",
+          "movement": "stijl",
+          "genre": "onderwerp"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Schilderijen uit open collecties. Er komt een kopie in de art-map van je bibliotheek.",
+        "creditHint": "{credit}. Er komt een kopie in de art-map van je bibliotheek.",
+        "empty": "Geen schilderijen gevonden. Probeer andere woorden of een andere collectie.",
+        "loadFailed": "Kon de schilderijen niet laden.",
+        "unavailable": "De collectie stuurt nu geen schilderijen. Probeer het straks nog eens.",
+        "orSearch": "Of zoek hierboven naar wat je maar wilt"
+      }
+    },
     "picker": {
       "tabs": {
         "builtin": "Ingebouwd",
         "library": "Lokaal",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Kunst"
       },
       "ideas": "Ideeën",
       "search": "Zoeken",

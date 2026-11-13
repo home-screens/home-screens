@@ -1,4 +1,4 @@
-import type { BackgroundRotation, PhotoSource, SlideshowMediaTypes } from '@/types/config';
+import type { ArtFit, ArtGenre, ArtOrientation, ArtProvider, BackgroundRotation, PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import type { SecretKey } from '@/lib/secrets';
 import { isOneDriveItemId } from '@/lib/onedrive-shared';
 import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from '@/lib/icloud-parse';
@@ -22,7 +22,7 @@ export type PhotoSourceOf<K extends PhotoSourceKind> = Extract<PhotoSource, { ki
 export const PHOTO_SOURCE_MEDIA_PATH = '/api/photo-source/media';
 
 /** Every kind, in the order the editor lists them. */
-export const PHOTO_SOURCE_KINDS: readonly PhotoSourceKind[] = ['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa'];
+export const PHOTO_SOURCE_KINDS: readonly PhotoSourceKind[] = ['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa', 'art'];
 
 export function isPhotoSourceKind(value: unknown): value is PhotoSourceKind {
   return typeof value === 'string' && (PHOTO_SOURCE_KINDS as readonly string[]).includes(value);
@@ -53,6 +53,7 @@ const NEEDS: Record<PhotoSourceKind, PhotoSourceNeeds> = {
   onedrive: { secrets: ['microsoft_client_id'], signIn: true, pickWithoutSecrets: false },
   unsplash: { secrets: ['unsplash_access_key'], signIn: false, pickWithoutSecrets: false },
   nasa: { secrets: [], signIn: false, pickWithoutSecrets: true },
+  art: { secrets: [], signIn: false, pickWithoutSecrets: true },
 };
 
 /** What a kind needs before it can show anything. */
@@ -83,7 +84,7 @@ export function usesCount(kind: PhotoSourceKind): boolean {
  * the walls that come with Home Screens, which are no good as a slideshow.
  */
 export function offeredFor(use: PhotoSourceUse): readonly PhotoSourceKind[] {
-  if (use === 'pick') return ['library', 'immich', 'unsplash', 'nasa'];
+  if (use === 'pick') return ['library', 'immich', 'unsplash', 'nasa', 'art'];
   if (use === 'stream') return PHOTO_SOURCE_KINDS.filter((kind) => kind !== 'wall');
   return PHOTO_SOURCE_KINDS;
 }
@@ -109,6 +110,7 @@ export function defaultPhotoSource(kind: PhotoSourceKind): PhotoSource {
     case 'onedrive': return { kind, folderId: '' };
     case 'unsplash': return { kind, query: 'nature landscape' };
     case 'nasa': return { kind };
+    case 'art': return { kind, provider: 'wikimedia' };
   }
 }
 
@@ -129,6 +131,39 @@ const UNSPLASH_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const UNSPLASH_COLLECTION_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const WALL_ID = /^[a-z0-9-]{1,64}$/;
 const UNSPLASH_QUERY_MAX = 100;
+const ART_TEXT_MAX = 100;
+/** How many paintings match, for the editor; `count` is null when the collection took too long to say. */
+export interface ArtCount { count: number | null; approximate: boolean }
+export const ART_PROVIDERS: readonly ArtProvider[] = ['wikimedia', 'aic', 'cleveland'];
+export const ART_ORIENTATIONS: readonly ArtOrientation[] = ['any', 'portrait', 'landscape'];
+export const ART_FITS: readonly ArtFit[] = ['matte', 'cover', 'contain'];
+export const ART_GENRES: readonly ArtGenre[] = ['landscape', 'portrait', 'still-life', 'seascape', 'religious', 'mythological', 'history', 'genre-scene', 'cityscape', 'nude'];
+export const ART_YEAR_MIN = 0;
+export const ART_YEAR_MAX = 2100;
+const WIKIDATA_ID = /^Q\d{1,12}$/;
+const ART_MUSEUMS_MAX = 20;
+/** Museums offered for the Wikimedia collection, by Wikidata id; others can be written into a config by id. */
+export const ART_MUSEUMS: ReadonlyArray<{ id: string; name: string }> = [
+  { id: 'Q19675', name: 'Louvre Museum' },
+  { id: 'Q160236', name: 'Metropolitan Museum of Art' },
+  { id: 'Q214867', name: 'National Gallery of Art' },
+  { id: 'Q180788', name: 'National Gallery' },
+  { id: 'Q160112', name: 'Museo del Prado' },
+  { id: 'Q190804', name: 'Rijksmuseum' },
+  { id: 'Q224124', name: 'Van Gogh Museum' },
+  { id: 'Q221092', name: 'Mauritshuis' },
+  { id: 'Q51252', name: 'Uffizi Gallery' },
+  { id: 'Q23402', name: "Musée d'Orsay" },
+  { id: 'Q95569', name: 'Kunsthistorisches Museum' },
+  { id: 'Q132783', name: 'Hermitage Museum' },
+  { id: 'Q176251', name: 'Thyssen-Bornemisza Museum' },
+  { id: 'Q1201549', name: 'Detroit Institute of Arts' },
+];
+export const DEFAULT_ART_MIN_SHORT_SIDE = 800;
+export const DEFAULT_ART_FIT: ArtFit = 'matte';
+export function artNumber(value: unknown, min: number, max: number): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.min(Math.max(Math.round(value), min), max) : undefined;
+}
 /** The most hand-picked pictures one source carries; the editor stops offering more. */
 export const MAX_PICKED_PICTURES = 200;
 
@@ -208,6 +243,34 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
     }
     case 'nasa':
       return { kind: 'nasa' };
+    case 'art': {
+      const provider = ART_PROVIDERS.find((p) => p === v.provider) ?? 'wikimedia';
+      const artist = text('artist').trim().slice(0, ART_TEXT_MAX);
+      const style = text('style').trim().slice(0, ART_TEXT_MAX);
+      const orientation = ART_ORIENTATIONS.find((o) => o === v.orientation);
+      const fit = ART_FITS.find((f) => f === v.fit);
+      const museums = idList(v.museums, (id) => WIKIDATA_ID.test(id), { max: ART_MUSEUMS_MAX });
+      const genre = ART_GENRES.find((g) => g === v.genre);
+      const fromYear = artNumber(v.fromYear, ART_YEAR_MIN, ART_YEAR_MAX);
+      const toYear = artNumber(v.toYear, ART_YEAR_MIN, ART_YEAR_MAX);
+      const minShortSide = artNumber(v.minShortSide, 100, 8000);
+      const aspectTolerance = typeof v.aspectTolerance === 'number' && Number.isFinite(v.aspectTolerance) ? Math.min(Math.max(v.aspectTolerance, 0), 1) : undefined;
+      return {
+        kind: 'art',
+        provider,
+        ...(artist ? { artist } : {}),
+        ...(style ? { style } : {}),
+        ...(museums ? { museums } : {}),
+        ...(fromYear !== undefined ? { fromYear } : {}),
+        ...(toYear !== undefined ? { toYear } : {}),
+        ...(genre ? { genre } : {}),
+        ...(orientation && orientation !== 'any' ? { orientation } : {}),
+        ...(minShortSide !== undefined ? { minShortSide } : {}),
+        ...(aspectTolerance !== undefined ? { aspectTolerance } : {}),
+        ...(fit ? { fit } : {}),
+        ...(v.familyFriendly === true ? { familyFriendly: true } : {}),
+      };
+    }
     default:
       return null;
   }
@@ -240,6 +303,7 @@ export function hasContent(source: PhotoSource): boolean {
     case 'onedrive': return source.folderId !== '';
     case 'unsplash': return source.photoIds ? source.photoIds.length > 0 : source.collections ? source.collections.length > 0 : source.query.trim() !== '';
     case 'nasa': return true;
+    case 'art': return true;
   }
 }
 
@@ -317,6 +381,11 @@ export function sourceCacheKey(source: PhotoSource): string {
       source.photoIds ? [...source.photoIds].sort() : null,
     ]);
     case 'nasa': return JSON.stringify(['nasa']);
+    case 'art': return JSON.stringify([
+      'art', source.provider, (source.artist ?? '').toLowerCase(), (source.style ?? '').toLowerCase(),
+      [...(source.museums ?? [])].sort(), source.fromYear ?? null, source.toYear ?? null, source.genre ?? null,
+      source.orientation ?? 'any', source.minShortSide ?? null, source.aspectTolerance ?? null, source.fit ?? DEFAULT_ART_FIT, !!source.familyFriendly,
+    ]);
   }
 }
 
@@ -339,9 +408,10 @@ export function rotationCacheKey(rotation: Pick<BackgroundRotation, 'sources' | 
  * - `checkLink`: the iCloud album link is wrong or its public website is off
  * - `checkFolder`: the OneDrive folder is empty or no longer there
  * - `checkSearch`: Unsplash found nothing for the search words or collection
+ * - `checkArt`: no painting matched the filters (or the museum is away)
  * - `tryLater`: NASA sent nothing; it comes back on its own
  */
-export type PhotoSourceEmptyReason = 'addPhotos' | 'pickPictures' | 'checkFilters' | 'checkLink' | 'checkFolder' | 'checkSearch' | 'tryLater';
+export type PhotoSourceEmptyReason = 'addPhotos' | 'pickPictures' | 'checkFilters' | 'checkLink' | 'checkFolder' | 'checkSearch' | 'checkArt' | 'tryLater';
 
 export function emptyStateFor(source: PhotoSource): PhotoSourceEmptyReason {
   switch (source.kind) {
@@ -352,6 +422,7 @@ export function emptyStateFor(source: PhotoSource): PhotoSourceEmptyReason {
     case 'onedrive': return 'checkFolder';
     case 'unsplash': return source.photoIds ? 'pickPictures' : 'checkSearch';
     case 'nasa': return 'tryLater';
+    case 'art': return 'checkArt';
   }
 }
 
@@ -417,6 +488,20 @@ export function photoSourceParams(source: PhotoSource): URLSearchParams {
       break;
     case 'nasa':
       break;
+    case 'art':
+      params.set('provider', source.provider);
+      if (source.artist) params.set('artist', source.artist);
+      if (source.style) params.set('style', source.style);
+      list('museums', source.museums);
+      if (source.fromYear !== undefined) params.set('from', String(source.fromYear));
+      if (source.toYear !== undefined) params.set('to', String(source.toYear));
+      if (source.genre) params.set('genre', source.genre);
+      if (source.orientation) params.set('orientation', source.orientation);
+      if (source.minShortSide !== undefined) params.set('minShort', String(source.minShortSide));
+      if (source.aspectTolerance !== undefined) params.set('tolerance', String(source.aspectTolerance));
+      if (source.familyFriendly) params.set('family', '1');
+      if (source.fit) params.set('fit', source.fit);
+      break;
   }
   return params;
 }
@@ -437,6 +522,16 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
     case 'onedrive': return normalizePhotoSource({ kind, folderId: get('folderId') });
     case 'unsplash': return normalizePhotoSource({ kind, query: get('query'), collections: list('collections'), photoIds: list('photos') });
     case 'nasa': return { kind };
+    case 'art': return normalizePhotoSource({
+      kind, provider: get('provider'), artist: get('artist'), style: get('style'), orientation: get('orientation'),
+      museums: list('museums'), genre: get('genre'),
+      fromYear: params.has('from') ? Number(get('from')) : undefined,
+      toYear: params.has('to') ? Number(get('to')) : undefined,
+      minShortSide: params.has('minShort') ? Number(get('minShort')) : undefined,
+      aspectTolerance: params.has('tolerance') ? Number(get('tolerance')) : undefined,
+      fit: get('fit'),
+      familyFriendly: params.get('family') === '1',
+    });
     default: return null;
   }
 }
@@ -446,23 +541,24 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
  * its own folder (like `google-photos` and `icloud-imports`), so a household
  * can see where a copy came from and tidy one source at a time.
  */
-export const IMPORT_FOLDER: Readonly<Record<'immich' | 'unsplash' | 'nasa', string>> = {
+export const IMPORT_FOLDER: Readonly<Record<'immich' | 'unsplash' | 'nasa' | 'art', string>> = {
   immich: 'immich',
   unsplash: 'unsplash',
   nasa: 'nasa',
+  art: 'art',
 };
 
 /** Sources whose single pictures can be copied into the library. */
 export type PickImportKind = keyof typeof IMPORT_FOLDER;
 
 export function isPickImportKind(value: unknown): value is PickImportKind {
-  return value === 'immich' || value === 'unsplash' || value === 'nasa';
+  return value === 'immich' || value === 'unsplash' || value === 'nasa' || value === 'art';
 }
 
 /**
  * Whether `ref` can name one picture of `kind`: an Immich asset id, an
- * Unsplash photo id, or NASA's `apod:YYYY-MM-DD` / `image:<nasa id>`. The
- * ref becomes part of a file name and an upstream URL, so the alphabet is
+ * Unsplash photo id, NASA's `apod:YYYY-MM-DD` / `image:<nasa id>`, or a
+ * painting as `<provider>:<id>`. The ref becomes part of a file name and an upstream URL, so the alphabet is
  * closed.
  */
 export function isValidPickRef(kind: PickImportKind, ref: string): boolean {
@@ -470,5 +566,6 @@ export function isValidPickRef(kind: PickImportKind, ref: string): boolean {
     case 'immich': return IMMICH_ID.test(ref);
     case 'unsplash': return UNSPLASH_ID.test(ref);
     case 'nasa': return /^apod:\d{4}-\d{2}-\d{2}$/.test(ref) || /^image:[A-Za-z0-9._-]{1,120}$/.test(ref);
+    case 'art': return /^(?:wikimedia:Q\d{1,12}|aic:\d{1,12}|cleveland:\d{1,12})$/.test(ref);
   }
 }

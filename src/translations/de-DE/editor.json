@@ -2737,6 +2737,7 @@
       "onedrive": "Wähle einen Ordner aus",
       "unsplash": "Gib Suchwörter ein, füge eine Sammlung hinzu oder wähle ein paar Fotos aus",
       "nasa": "",
+      "art": "",
       "wall": "Wähle die Hintergründe aus, die gezeigt werden sollen"
     },
     "effectsReset": "Zurücksetzen",
@@ -5966,7 +5967,8 @@
       "icloud": "Geteiltes iCloud-Album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA-Bild des Tages"
+      "nasa": "NASA-Bild des Tages",
+      "art": "Gemälde aus Museen"
     },
     "library": {
       "folder": "Ordner",
@@ -6041,13 +6043,114 @@
       "backgroundInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Der Bildschirm zeigt immer das neueste.",
       "apodUnavailable": "Die NASA schickt gerade keine Bilder des Tages. Die Suche im Bildarchiv der NASA klappt weiterhin."
     },
+    "art": {
+      "provider": "Sammlung",
+      "providers": {
+        "wikimedia": "Wikimedia (viele Museen)",
+        "aic": "Art Institute of Chicago",
+        "cleveland": "Cleveland Museum of Art"
+      },
+      "artist": "Künstler",
+      "artistPlaceholder": "Claude Monet",
+      "style": "Stil oder Epoche",
+      "stylePlaceholder": "Impressionismus",
+      "orientation": "Format",
+      "orientations": {
+        "any": "Beliebig",
+        "portrait": "Hochformat",
+        "landscape": "Querformat"
+      },
+      "minSize": "Kürzeste Seite (Pixel)",
+      "familyFriendly": "Familienfreundlich",
+      "familyFriendlyHint": "So gut es geht, ohne Garantie",
+      "shape": "Zur Form des Bildschirms passend",
+      "shapes": {
+        "any": "Jede Form",
+        "loose": "Ungefähr",
+        "medium": "Genau",
+        "strict": "Genau wie der Bildschirm"
+      },
+      "fit": "Auf dem Bildschirm",
+      "fits": {
+        "matte": "Ganzes Gemälde auf weichem Unschärfe-Hintergrund",
+        "cover": "Bildschirm füllen (Ränder werden abgeschnitten)",
+        "contain": "Ganzes Gemälde auf dunkler Wand"
+      },
+      "streamInfo": "Berühmte Gemälde aus frei zugänglichen Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
+      "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke.",
+      "addFilter": "+ Filter hinzufügen",
+      "filters": "Eingrenzen",
+      "removeFilter": "Filter entfernen: {filter}",
+      "museum": "Museum",
+      "anyMuseum": "Jedes Museum",
+      "museumsChosen": {
+        "one": "{count} Museum ausgewählt",
+        "other": "{count} Museen ausgewählt"
+      },
+      "period": "Zeitraum",
+      "fromYear": "Ab Jahr",
+      "toYear": "Bis Jahr",
+      "genre": "Motiv",
+      "choose": "Auswählen…",
+      "genres": {
+        "landscape": "Landschaften",
+        "portrait": "Porträts",
+        "still-life": "Stillleben",
+        "seascape": "Seestücke",
+        "religious": "Religiöses",
+        "mythological": "Mythologie",
+        "history": "Geschichte",
+        "genre-scene": "Alltagsszenen",
+        "cityscape": "Stadtansichten",
+        "nude": "Akte"
+      },
+      "matchCount": {
+        "one": "{count} Gemälde passt",
+        "other": "{count} Gemälde passen"
+      },
+      "matchCountAbout": {
+        "one": "etwa {count} Gemälde passt",
+        "other": "etwa {count} Gemälde passen"
+      },
+      "manyMatch": "Sehr viele Gemälde passen (zu viele, um sie hier zu zählen)",
+      "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionismus",
+          "dutch": "Holländisches Goldenes Zeitalter",
+          "landscapes": "Landschaften",
+          "portraits": "Porträts",
+          "stillLife": "Stillleben",
+          "seascapes": "Seestücke",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Gemälde suchen: Museum, Künstler oder Stil",
+        "matched": "Gefunden: {matches}",
+        "matchTypes": {
+          "museum": "Museum",
+          "artist": "Künstler",
+          "movement": "Stil",
+          "genre": "Motiv"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Gemälde aus offenen Sammlungen. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
+        "creditHint": "{credit}. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
+        "empty": "Keine Gemälde gefunden. Probiere andere Wörter oder eine andere Sammlung.",
+        "loadFailed": "Die Gemälde konnten nicht geladen werden.",
+        "unavailable": "Die Sammlung liefert gerade keine Gemälde. Versuche es etwas später noch einmal.",
+        "orSearch": "Oder such oben nach allem, was du willst"
+      }
+    },
     "picker": {
       "tabs": {
         "builtin": "Mitgeliefert",
         "library": "Lokal",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Kunst"
       },
       "ideas": "Ideen",
       "search": "Suchen",

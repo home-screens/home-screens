@@ -51,7 +51,7 @@ describe('PicturePicker tabs', () => {
   it('offers every source that picks one picture, Built-in first where the spot has built-ins', async () => {
     render(wrap(<PicturePicker mode="pick-image" builtIn="backgrounds" onClose={() => {}} />));
     await settle();
-    expect(tabNames()).toEqual(['Built-in', 'Local', 'Immich', 'Unsplash', 'NASA']);
+    expect(tabNames()).toEqual(['Built-in', 'Local', 'Immich', 'Unsplash', 'NASA', 'Art']);
     // No current picture: a spot with built-ins opens on them.
     expect(screen.getByTestId('picker-tab-builtin').getAttribute('aria-selected')).toBe('true');
   });
@@ -60,8 +60,9 @@ describe('PicturePicker tabs', () => {
     render(wrap(<PicturePicker mode="pick-image" onClose={() => {}} />));
     await settle();
     expect(screen.getByTestId('picker-tab-unsplash').querySelector('svg')).not.toBeNull();
-    // NASA's library search needs no key, so it never carries the lock.
+    // NASA's library search and the art tab need no key, so they never carry the lock.
     expect(screen.getByTestId('picker-tab-nasa').querySelector('svg')).toBeNull();
+    expect(screen.getByTestId('picker-tab-art').querySelector('svg')).toBeNull();
     fireEvent.click(screen.getByTestId('picker-tab-unsplash'));
     await settle();
     expect(screen.getByTestId('picker-setup-hint').textContent).toContain('Unsplash needs a free key');
@@ -225,5 +226,64 @@ describe('PicturePicker Unsplash tab', () => {
     await act(async () => { fireEvent.click(screen.getByTestId('picker-confirm')); });
     await settle();
     expect(onSelectImage).toHaveBeenCalledWith('/api/backgrounds/serve?file=unsplash%2Funsplash-u1.jpg');
+  });
+});
+
+describe('PicturePicker Art tab', () => {
+  const painting = { ref: 'wikimedia:Q1', thumbUrl: '/t/q1.jpg', label: 'Christ before Pilate', secondary: '1881, Hungarian National Gallery', credit: { name: 'Mihály Munkácsy' } };
+
+  async function openArt(onSelectImage = vi.fn()) {
+    routes.push((url) => (url.startsWith('/api/photo-source/browse')
+      ? { body: { items: [painting], nextPage: null, matched: [{ type: 'museum', label: 'Louvre Museum' }, { type: 'artist', label: 'Mihály Munkácsy' }] } }
+      : undefined));
+    render(wrap(<PicturePicker mode="pick-image" onSelectImage={onSelectImage} onClose={() => {}} />));
+    await settle();
+    fireEvent.click(screen.getByTestId('picker-tab-art'));
+    await settle();
+    return onSelectImage;
+  }
+
+  it('searches an idea in English on Wikimedia first, says what the words matched, and searches typed words on another collection', async () => {
+    await openArt();
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Impressionism')).toBe(true);
+    fireEvent.click(screen.getByTestId('art-idea-dutch'));
+    await settle();
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Dutch+Golden+Age')).toBe(true);
+    expect(screen.getByTestId('art-matched').textContent).toBe('Matched: Louvre Museum (museum), Mihály Munkácsy (artist)');
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'aic' } });
+    await settle();
+    fireEvent.change(screen.getByTestId('picker-search'), { target: { value: 'water lilies' } });
+    fireEvent.click(screen.getByText('Search'));
+    await settle();
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=aic&page=1&query=water+lilies')).toBe(true);
+  });
+
+  it('asks the museums to leave nudes out once the family friendly switch is on', async () => {
+    await openArt();
+    fireEvent.click(screen.getByRole('switch'));
+    await settle();
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Impressionism&family=1')).toBe(true);
+  });
+
+  it('shows the credit when a painting is chosen and copies it on Select Image', async () => {
+    routes.push((url) => (url === '/api/photo-source/import' ? { status: 201, body: { path: '/api/backgrounds/serve?file=art%2Fart-wikimedia_Q1.jpg' } } : undefined));
+    const onSelectImage = await openArt();
+    fireEvent.click(document.querySelector('[data-ref="wikimedia:Q1"]')!);
+    expect(screen.getByTestId('picker-hint').textContent)
+      .toBe("Christ before Pilate, Mihály Munkácsy, 1881, Hungarian National Gallery. A copy goes into your library's art folder.");
+    await act(async () => { fireEvent.click(screen.getByTestId('picker-confirm')); });
+    await settle();
+    const copy = calls.find((c) => c.url === '/api/photo-source/import')!;
+    expect(JSON.parse(String(copy.init?.body))).toEqual({ kind: 'art', ref: 'wikimedia:Q1' });
+    expect(onSelectImage).toHaveBeenCalledWith('/api/backgrounds/serve?file=art%2Fart-wikimedia_Q1.jpg');
+  });
+
+  it('says so when the museum is not sending paintings', async () => {
+    routes.push((url) => (url.startsWith('/api/photo-source/browse') ? { status: 503, body: { error: 'art-unavailable' } } : undefined));
+    render(wrap(<PicturePicker mode="pick-image" onClose={() => {}} />));
+    await settle();
+    fireEvent.click(screen.getByTestId('picker-tab-art'));
+    await settle();
+    expect(screen.getByTestId('picker-setup-hint').textContent).toContain("isn't sending paintings right now");
   });
 });
