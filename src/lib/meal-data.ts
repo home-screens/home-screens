@@ -1,4 +1,6 @@
 import { promises as fs } from 'fs';
+import type { FamilyMealRating } from '@/types/meal-ratings';
+import { validateFamilyMealRatings } from './meal-ratings';
 import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType } from '@/types/config';
 import { createJsonStore } from './json-store';
 import { withDataTransaction } from './data-transaction';
@@ -15,6 +17,8 @@ const log = logger('meal-settings-migration');
 // ── Data shape ────────────────────────────────
 
 export interface MealData {
+  /** Individual family votes, stored separately from the original shared SavedMeal.rating. */
+  familyRatings?: FamilyMealRating[];
   /** The meal library (see SavedMeal below) */
   savedMeals: SavedMeal[];
   /** Planned meals, one entry per day and slot (see PlannedMeal) */
@@ -253,6 +257,9 @@ async function parseAndMigrate(
     groceryChecked: normalizeGroceryChecked(raw.groceryChecked),
     settings: normalizeMealSettings(raw.settings),
   };
+  const invalidRatings = validateFamilyMealRatings(raw.familyRatings);
+  if (invalidRatings) throw new Error(invalidRatings);
+  if (Array.isArray(raw.familyRatings)) data.familyRatings = raw.familyRatings as FamilyMealRating[];
   const mealieExtras = normalizeMealieExtras(raw.mealieExtras);
   if (mealieExtras) data.mealieExtras = mealieExtras;
   if (typeof raw.mealieShoppingList === 'string' && raw.mealieShoppingList) data.mealieShoppingList = raw.mealieShoppingList;

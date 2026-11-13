@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import { Fragment, useCallback, useMemo, useRef, type CSSProperties } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
@@ -246,6 +248,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                           </span>
                           {layout.countAt === 'name' && count}
                         </MealTapTarget>
+                        <FamilyMealStars meal={meal} size="max(0.6em, 12px)" />
                         {/* The serving time, under the name where it costs the
                             name no width; left off when the row has no room. */}
                         {(layout.showTime || layout.countAt === 'line') && (

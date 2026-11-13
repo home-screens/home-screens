@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import { wallPressProps } from '../wallPress';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -82,6 +84,7 @@ export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25, hear
       }}>
         {meal.name}
       </span>
+      <FamilyMealStars meal={meal} size={P(metaSize)} style={{ color: 'var(--fmp-text-2)', marginTop: P(6) }} />
       {minutes && (
         <span style={{ display: 'flex', alignItems: 'center', gap: P(8), fontSize: P(metaSize), color: 'var(--fmp-text-3)', marginTop: P(6), fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden' }}>
           <BookIcon name="clock" size={P(metaSize)} />

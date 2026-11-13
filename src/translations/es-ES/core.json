@@ -471,5 +471,33 @@
     "setMealTime": "Establecer hora de la comida",
     "servingTime": "Hora de servir",
     "clearTime": "Borrar hora"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Votos familiares: {count}",
+    "original": "Valoración compartida original: {rating} / 5",
+    "forMeal": "Valorar {meal}",
+    "who": "¿Quién valora?",
+    "choose": "Elige un familiar",
+    "stars": "Elige de 1 a 5 estrellas",
+    "star": "{count} estrellas",
+    "yourVote": "Tu valoración: {rating} / 5",
+    "notRated": "Aún no has valorado esta receta.",
+    "clear": "Borrar mi valoración",
+    "saving": "Guardando…",
+    "saved": "Valoración guardada.",
+    "saveError": "No se guardó tu valoración. Comprueba la conexión y toca una estrella para volver a intentarlo.",
+    "loadError": "No se pudieron actualizar las valoraciones.",
+    "retry": "Reintentar",
+    "loading": "Cargando valoraciones…",
+    "noMembers": "Añade personas en Ajustes > Familia para empezar a valorar.",
+    "rate": "Valorar plato",
+    "dinner": "Valorar la cena",
+    "close": "Listo",
+    "hint": "Cada persona tiene un voto por receta. Vuelve a valorar para actualizarlo; la media familiar usa los votos actuales de todos.",
+    "noDinner": "No hay cena planificada para este día.",
+    "typed": "Los platos escritos no tienen una receta guardada que valorar. Guárdalos primero en la biblioteca de recetas.",
+    "unavailable": "La receta guardada para la cena no está disponible.",
+    "originalLabel": "Valoración compartida original",
+    "sharedStar": "Valoración compartida: {count} estrellas"
   }
 }

@@ -26,6 +26,7 @@ type Config = {
   showEmoji?: boolean;
   showPrepTime?: boolean;
   showTags?: boolean;
+  showFamilyRatings?: boolean;
   accentColor?: string;
   tapRecipeAction?: RecipeTapAction;
   showTitle?: boolean;
@@ -82,6 +83,8 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           onChange={(v) => set({ showTags: v })}
         />
       )}
+
+      <Toggle label={t('configSections.meal-planner.showFamilyRatings')} checked={c.showFamilyRatings !== false} onChange={(v) => set({ showFamilyRatings: v })} />
 
       {/* Tap-to-open recipe */}
       {plannedMeals && (

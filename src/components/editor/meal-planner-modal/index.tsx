@@ -1,5 +1,7 @@
 'use client';
 
+import { RateDinnerButton } from '@/components/meals/FamilyMealRating';
+
 import { useState, useCallback, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import { CookingPot, ExternalLink, RefreshCw, TriangleAlert } from 'lucide-react';
 import { uuid } from '@/lib/uuid';
@@ -665,6 +667,7 @@ export default function MealPlannerModal({
       maxWidth="max-w-[1340px]"
       headerActions={
         <div className="flex items-center gap-2">
+          {loaded && <RateDinnerButton plan={weekPlan} meals={allMeals} date={viewedWeekDates.includes(todayISO) ? todayISO : viewedWeekDates[0]} />}
           {onMealie && plannerUrl && (
             <a
               href={plannerUrl}

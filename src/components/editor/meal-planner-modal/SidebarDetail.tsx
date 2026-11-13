@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealRatingButton, FamilyMealSummary } from '@/components/meals/FamilyMealRating';
+
 import { ingredientsToSave } from '@/lib/meal-ingredients';
 import { useState, useEffect, useMemo } from 'react';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
@@ -192,6 +194,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <span className="text-4xl"><Glyph value={emoji || DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
           <div className="flex-1">
             <div className="text-lg font-bold text-hs-text-body">{name || t('mealPlannerModal.detail.untitledFallback')}</div>
+            <div className="text-xs text-hs-text-faint">{tCore('mealRatings.originalLabel')}</div>
             <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -199,6 +202,8 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
                   type="button"
                   className="text-base transition-colors"
                   style={{ color: rating && star <= rating ? '#f59e0b' : 'var(--hs-text-faint)' }}
+                  aria-label={tCore('mealRatings.sharedStar', { count: star })}
+                  aria-pressed={rating === star}
                   onClick={() => setRating(star === rating ? undefined : star)}
                 >
                   ★
@@ -215,6 +220,9 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
             {meal.isFavorite ? '♥' : '♡'}
           </button>
         </div>
+
+        <FamilyMealSummary meal={meal} />
+        <FamilyMealRatingButton meal={meal} />
 
         {/* Name */}
         <div className="mb-4">

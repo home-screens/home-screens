@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import { useCallback, useMemo, useRef } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
@@ -176,6 +178,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
                           <span className="truncate font-medium" style={{ fontSize: NAME_SIZE }}>
                             {name}
                           </span>
+                          <FamilyMealStars meal={meal} size={SMALL_SIZE} />
                           <MealCourseNames
                             courses={courses}
                             style={{ fontSize: SMALL_SIZE, opacity: TEXT_OPACITY.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}

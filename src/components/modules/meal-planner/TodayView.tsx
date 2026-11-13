@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
@@ -113,6 +115,7 @@ function SlotCard({
               <p className="font-medium truncate" style={{ fontSize: '0.95em' }}>
                 {name}
               </p>
+              <FamilyMealStars meal={meal} size="0.65em" />
               <MealCourseLines courses={courses} labelSize="0.5em" nameSize="0.72em" gap="0.6em" style={{ marginTop: 1 }} />
               {(showPrepTime || showTags) && (
                 <div className="flex flex-wrap items-center gap-1.5 mt-1" style={{ fontSize: '0.55em' }}>

@@ -22,6 +22,7 @@ import MealPickerSheet from './MealPickerSheet';
 import ConfirmSheet from './ConfirmSheet';
 import AtHomePill from './AtHomePill';
 import { MealieUnreachable, MealsSourcePill, MealsWeekLoading } from './MealsMealieStatus';
+import { DinnerRatingBoard } from '@/components/meals/FamilyMealRating';
 import { REMOTE_ACCENT } from './chore-form-styles';
 
 export default function MealsTab() {
@@ -96,6 +97,7 @@ export default function MealsTab() {
     saveSettings,
   } = useMealsTabData(place.week);
 
+  const [ratingDate, setRatingDate] = useState<string | null>(null);
   const [subView, setSubView] = useState<MealsSubView>(place.view);
   // Leaving a sub-tab takes its notice along: an Undo for the plan does not
   // follow the family onto the grocery list.
@@ -205,7 +207,7 @@ export default function MealsTab() {
 
       <MealsSubNav subView={subView} setSubView={openView} />
 
-      {(subView === 'week' || subView === 'plan' || (subView === 'grocery' && !fromMealie)) && (
+      {(subView === 'week' || subView === 'plan' || subView === 'rate' || (subView === 'grocery' && !fromMealie)) && (
         <MealsWeekNav
           weekLabel={weekLabel}
           isCurrentWeek={isCurrentWeek}
@@ -256,6 +258,18 @@ export default function MealsTab() {
           settings={settings}
           setSubView={openView}
         />
+      )}
+
+      {/* Rate the selected day in the displayed week, rather than always using today. */}
+      {subView === 'rate' && (
+        <div>
+          <label>{tModules(getMealSlotLabelKey('dinner'))}
+            <select aria-label={tModules(getMealSlotLabelKey('dinner'))} value={weekDates.some((d) => d.date === (ratingDate ?? todayISO)) ? (ratingDate ?? todayISO) : weekDates[0].date} onChange={(e) => setRatingDate(e.target.value)} style={{ minHeight: 44, padding: 8, margin: 8, borderRadius: 8 }}>
+              {weekDates.map((day) => <option key={day.date} value={day.date}>{dayNamesFull[day.dayIndex]} · {day.date}</option>)}
+            </select>
+          </label>
+          {unreachable ? <MealieUnreachable problem={status.state === 'unreachable' ? status.problem : 'unreachable'} onRetry={retryWeek} /> : !weekReady ? <MealsWeekLoading /> : <DinnerRatingBoard plan={weekPlan} meals={meals} date={weekDates.some((d) => d.date === (ratingDate ?? todayISO)) ? (ratingDate ?? todayISO) : weekDates[0].date} />}
+        </div>
       )}
 
       {subView === 'library' && (fromMealie ? (

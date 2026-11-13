@@ -471,5 +471,33 @@
     "setMealTime": "Indstil tid for måltid",
     "servingTime": "Indstil tid for servering",
     "clearTime": "Nulstil tid"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Familiestemmer: {count}",
+    "original": "Oprindelig fælles bedømmelse: {rating} / 5",
+    "forMeal": "Bedøm {meal}",
+    "who": "Hvem bedømmer?",
+    "choose": "Vælg et familiemedlem",
+    "stars": "Vælg 1 til 5 stjerner",
+    "star": "{count} stjerner",
+    "yourVote": "Din bedømmelse: {rating} / 5",
+    "notRated": "Du har ikke bedømt denne opskrift endnu.",
+    "clear": "Ryd min bedømmelse",
+    "saving": "Gemmer…",
+    "saved": "Bedømmelse gemt.",
+    "saveError": "Din bedømmelse blev ikke gemt. Tjek forbindelsen, og tryk på en stjerne for at prøve igen.",
+    "loadError": "Bedømmelserne kunne ikke opdateres.",
+    "retry": "Prøv igen",
+    "loading": "Henter bedømmelser…",
+    "noMembers": "Tilføj personer under Indstillinger > Familie for at bedømme.",
+    "rate": "Bedøm retten",
+    "dinner": "Bedøm aftensmaden",
+    "close": "Færdig",
+    "hint": "Hver person har én bedømmelse pr. opskrift. Bedøm igen for at ændre din stemme; familiens gennemsnit bruger alles aktuelle stemmer.",
+    "noDinner": "Der er ikke planlagt aftensmad denne dag.",
+    "typed": "Indtastede retter har ingen gemt opskrift at bedømme. Gem dem først i opskriftsbiblioteket.",
+    "unavailable": "Den gemte opskrift til aftensmaden er ikke tilgængelig.",
+    "originalLabel": "Oprindelig fælles bedømmelse",
+    "sharedStar": "Fælles bedømmelse: {count} stjerner"
   }
 }

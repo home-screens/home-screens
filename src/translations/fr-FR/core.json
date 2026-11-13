@@ -471,5 +471,33 @@
     "setMealTime": "Définir l'heure du repas",
     "servingTime": "Heure de service",
     "clearTime": "Effacer l'heure"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Votes familiaux : {count}",
+    "original": "Note commune d’origine : {rating} / 5",
+    "forMeal": "Noter {meal}",
+    "who": "Qui donne son avis ?",
+    "choose": "Choisir un membre de la famille",
+    "stars": "Choisir de 1 à 5 étoiles",
+    "star": "{count} étoiles",
+    "yourVote": "Votre note : {rating} / 5",
+    "notRated": "Vous n’avez pas encore noté cette recette.",
+    "clear": "Effacer ma note",
+    "saving": "Enregistrement…",
+    "saved": "Note enregistrée.",
+    "saveError": "Votre note n’a pas été enregistrée. Vérifiez la connexion et touchez une étoile pour réessayer.",
+    "loadError": "Impossible d’actualiser les notes.",
+    "retry": "Réessayer",
+    "loading": "Chargement des notes…",
+    "noMembers": "Ajoutez des personnes dans Réglages > Famille pour commencer à noter.",
+    "rate": "Noter le plat",
+    "dinner": "Noter le dîner",
+    "close": "Terminé",
+    "hint": "Chaque personne a une note par recette. Notez à nouveau pour la modifier ; la moyenne familiale utilise les notes actuelles de chacun.",
+    "noDinner": "Aucun dîner n’est prévu ce jour-là.",
+    "typed": "Les plats saisis n’ont pas de recette enregistrée à noter. Ajoutez-les d’abord à la bibliothèque de recettes.",
+    "unavailable": "La recette enregistrée pour le dîner est indisponible.",
+    "originalLabel": "Note commune d’origine",
+    "sharedStar": "Note commune : {count} étoiles"
   }
 }

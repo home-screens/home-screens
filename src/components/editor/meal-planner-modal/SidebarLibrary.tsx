@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealSummary } from '@/components/meals/FamilyMealRating';
+
 import { useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
 import { LIBRARY_FILTERS, type LibraryFilter, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
@@ -158,6 +160,7 @@ export default function SidebarLibrary({
                   <div className="text-sm font-semibold text-hs-text-body truncate">
                     {meal.name}
                   </div>
+                  <FamilyMealSummary meal={meal} />
                   {meta.length > 0 && (
                     <div className="text-xs text-hs-text-faint">
                       {meta.join(' · ')}

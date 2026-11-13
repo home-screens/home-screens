@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealRatingButton, FamilyMealSummary } from '@/components/meals/FamilyMealRating';
+
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
 import type { MealSettings, MealSlotType, PlannedMeal, SavedMeal, TimeFormat } from '@/types/config';
@@ -228,6 +230,7 @@ export default function MealSheet({
         </div>
 
         <div ref={bodyRef} style={{ overflowY: 'auto', overscrollBehavior: 'contain', padding: '14px 16px 16px', flex: 1, minHeight: 0 }}>
+          {main && <><FamilyMealSummary meal={main} /><FamilyMealRatingButton meal={main} /></>}
           {paused && <MealiePausedNotice updatedAt={paused.updatedAt} problem={paused.problem} todayISO={todayISO} onRetry={onRetry} />}
           <div aria-disabled={paused ? true : undefined} style={locked}>
             <div style={SECTION}>{t('mealSheet.mainDish')}</div>

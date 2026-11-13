@@ -108,6 +108,16 @@ const CASES: Record<string, { doc: Doc; afterRemoval: Doc; restore: { missing: n
     ] },
     restore: { missing: 1 },
   },
+  'data/meals.json': {
+    doc: { savedMeals: [{ id: 'recipe', name: 'Soup', rating: 3 }], plan: [], familyRatings: [
+      { mealId: 'recipe', memberId: 'gone', rating: 2, updatedAt: now },
+      { mealId: 'recipe', memberId: 'kept', rating: 5, updatedAt: now },
+    ] },
+    afterRemoval: { savedMeals: [{ id: 'recipe', name: 'Soup', rating: 3 }], plan: [], familyRatings: [
+      { mealId: 'recipe', memberId: 'kept', rating: 5, updatedAt: now },
+    ] },
+    restore: { missing: 1 },
+  },
 };
 
 describe('chores handed to a group', () => {

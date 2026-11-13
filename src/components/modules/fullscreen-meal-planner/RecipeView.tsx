@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealRatingButton } from '@/components/meals/FamilyMealRating';
+
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import type { SavedMeal } from '@/types/config';
 import { minutesOfDay, toISODate } from '@/lib/meal-constants';
@@ -23,7 +25,7 @@ const RecipeCard = lazy(() => import('../shared/RecipeCard').then((m) => ({ defa
  * on a card.
  */
 export default function RecipeView({
-  settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, headerFont, bodyFont, landscape, interactive,
+  config, settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, headerFont, bodyFont, landscape, interactive,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const ctx = useMealRecipeContext();
@@ -78,6 +80,7 @@ export default function RecipeView({
         layout={landscape ? 'landscape' : 'portrait'}
         showPicture={showEmoji}
         interactive={interactive}
+        footer={interactive && config.showFamilyRatings !== false ? () => <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0, paddingTop: P(18) }}><FamilyMealRatingButton meal={next.meal} style={{ fontSize: P(28), gap: P(10), padding: `${P(10)}px ${P(25)}px` }} /></div> : undefined}
         onCourse={setCourse}
         resetKey={`${next.date}|${next.slot}|${next.meal.id}`}
       />

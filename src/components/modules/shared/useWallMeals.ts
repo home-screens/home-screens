@@ -23,7 +23,7 @@ export interface WallMealsOptions {
   timezone: string | undefined;
   /** The full-screen theme a recipe card is drawn in. */
   theme: string | undefined;
-  config: { tapRecipeAction?: RecipeTapAction; interactive?: boolean };
+  config: { tapRecipeAction?: RecipeTapAction; interactive?: boolean; accentColor?: string; showFamilyRatings?: boolean };
   screenId: string | undefined;
   moduleId: string | undefined;
 }
@@ -109,9 +109,10 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
   );
   const grocery = useWallGrocery(grocerySource, localGrocery, todayISO);
 
+  // Carry module visibility and accent settings through portals into recipe cards.
   const recipeContext = useMemo<MealRecipeContextValue>(
-    () => ({ theme, plan: fullPlan, savedMeals, settings, timeFormat, now }),
-    [theme, fullPlan, savedMeals, settings, timeFormat, now],
+    () => ({ theme, accentColor: config.accentColor, showFamilyRatings: config.showFamilyRatings !== false, plan: fullPlan, savedMeals, settings, timeFormat, now }),
+    [theme, config.accentColor, config.showFamilyRatings, fullPlan, savedMeals, settings, timeFormat, now],
   );
 
   return {

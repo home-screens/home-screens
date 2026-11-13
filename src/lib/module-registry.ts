@@ -579,6 +579,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       accentColor: '',
       showPrepTime: true,
       showTags: true,
+      showFamilyRatings: true,
       showEmoji: true,
       showDifficulty: false,
       // The recipe card for new modules; an older module that never set this stays off (MealTapTarget).
@@ -1224,6 +1225,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showEmoji: true,
       showPrepTime: true,
       showTags: true,
+      showFamilyRatings: true,
       accentColor: DEFAULT_ACCENT_COLOR,
       // The recipe card for new modules; an older module that never set this stays off (MealTapTarget).
       tapRecipeAction: 'card',

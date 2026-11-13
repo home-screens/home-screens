@@ -1,8 +1,10 @@
 'use client';
 
+import { RateDinnerButton } from '@/components/meals/FamilyMealRating';
+
 import type { ReactNode } from 'react';
 import type { MealPlannerConfig, ModuleStyle } from '@/types/config';
-import { DEFAULT_ACCENT_COLOR, fromISODate, planHasDrawnMeal, toISODate, weekPlannedSlots } from '@/lib/meal-constants';
+import { DEFAULT_ACCENT_COLOR, fromISODate, mealDayLead, getNextPlannedMeal, planHasDrawnMeal, toISODate, weekPlannedSlots } from '@/lib/meal-constants';
 import { mealLookAhead } from '@/lib/look-ahead';
 import { formatDayRange, useFormattingLocale, useTranslate } from '@/i18n';
 import ModuleWrapper from '../ModuleWrapper';
@@ -52,6 +54,13 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
     savedMeals,
     enabled: view === 'recipes' && data !== null,
   });
+
+  // Use the same day selectors as the view so evening rollover also advances the rating dialog.
+  const ratingDate = view === 'today'
+    ? mealDayLead(todayISO, nowMinutes, settings.enabledSlots, fullPlan, savedMeals, settings.defaultSlotTimes)?.date ?? todayISO
+    : view === 'next-meal'
+      ? getNextPlannedMeal(todayISO, nowMinutes, fullPlan, savedMeals, settings.enabledSlots, settings.defaultSlotTimes)?.date ?? todayISO
+      : (view === 'week' || view === 'list') && !weekDates.includes(todayISO) ? weekDates[0] : todayISO;
 
   // A plan counts by what it draws (`weekPlannedSlots`), as the full-screen
   // Week counts it: an entry for a meal that is switched off (Mealie plans
@@ -144,12 +153,17 @@ export default function MealPlannerModule({ config, style, timezone, fullscreenT
   return (
     <ModuleWrapper style={cardStyle}>
       <MealRecipeContext.Provider value={recipeContext}>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, minHeight: 0 }}>
       {view === 'week' && withArrows(<WeekView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} fontSize={style.fontSize} interactive={interactive} />)}
       {/* The whole plan: late in the evening Today shows tomorrow, which can be in next week. */}
       {view === 'today' && <TodayView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'next-meal' && <NextMealView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} nowMinutes={nowMinutes} recipeTapMode={recipeTapMode} />}
       {view === 'compact' && <CompactView config={config} settings={settings} timeFormat={timeFormat} plan={fullPlan} savedMeals={savedMeals} todayISO={todayISO} recipeTapMode={recipeTapMode} />}
       {view === 'list' && withArrows(<ListView config={config} settings={settings} timeFormat={timeFormat} plan={plan} savedMeals={savedMeals} weekDates={weekDates} todayISO={todayISO} recipeTapMode={recipeTapMode} interactive={interactive} fontSize={style.fontSize} />)}
+      </div>
+      {interactive && config.showFamilyRatings !== false && <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', paddingTop: '0.4em' }}><RateDinnerButton plan={fullPlan} meals={savedMeals} date={ratingDate} style={{ fontSize: '0.65em' }} /></div>}
+      </div>
       </MealRecipeContext.Provider>
     </ModuleWrapper>
   );

@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import type { MealSlotType, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
@@ -320,11 +322,11 @@ export function RecipeSheet(props: RecipeSheetProps) {
     return word.key === 'batchTimes' ? t('meal-planner.recipe.batchTimes', { scale: word.scale }) : t(`meal-planner.recipe.${word.key}`);
   };
 
+  // Match the rating number to the cooking values' text baseline, not their line-box edges.
   const stats = (value: number, label: number, gapPx: number, m: boolean) => {
     const list = recipeStats(meal, scale);
-    if (list.length === 0) return null;
     return (
-      <div style={{ display: 'flex', gap: P(gapPx), flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'last baseline', gap: P(gapPx), flexWrap: 'wrap' }}>
         {list.map((s) => (
           <div key={s.kind} style={{ display: 'flex', flexDirection: 'column', gap: P(2) }}>
             <span style={{ ...SECTION_LABEL, fontSize: P(label) }}>{t(`meal-planner.recipe.${s.kind}`)}</span>
@@ -336,6 +338,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             </span>
           </div>
         ))}
+        <FamilyMealStars meal={meal} size={P(value)} />
       </div>
     );
   };
@@ -667,15 +670,23 @@ export function RecipeSheet(props: RecipeSheetProps) {
     );
   };
 
-  const notesCard = (m: boolean) => {
+  // Keep the heading fixed while long notes scroll within the available pane.
+  const notesCard = (copy: Copy) => {
     if (!detail || detail.notes.length === 0) return null;
     return card(
       <>
         {sectionHead(t('meal-planner.recipe.notes'))}
-        <div data-testid={tid('recipe-notes', m)} style={{ fontSize: P(33), lineHeight: 1.45, color: 'var(--fmp-text)' }}>
-          {detail.notes.map((n, i) => <p key={i} style={{ margin: 0, marginBottom: P(14) }}>{n}</p>)}
-        </div>
+        {scrollBox(
+          copy,
+          { flex: 1, minHeight: 0 },
+          { fontSize: P(33), lineHeight: 1.45, color: 'var(--fmp-text)' },
+          <div data-testid={tid('recipe-notes', copy !== 'shown')}>
+            {detail.notes.map((n, i) => <p key={i} style={{ margin: 0, marginBottom: P(14) }}>{n}</p>)}
+          </div>,
+          { homeKey: resetKey },
+        )}
       </>,
+      { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
     );
   };
 
@@ -780,7 +791,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             {dots(copy)}
           </div>
         )}
-        {!paged && detail && <div style={{ marginTop: P(28), flexShrink: 0 }}>{notesCard(measuring)}</div>}
+        {!paged && detail && <div style={{ marginTop: P(28), flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>{notesCard(copy)}</div>}
         {touchBar(measuring)}
         {footer?.(measuring)}
       </>
@@ -812,7 +823,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', paddingRight: headerEndGap }}>
           {paged && stepsCard(copy, shown, 32)}
           {/* A saved meal's notes take the steps' place, beside the ingredients rather than under them. */}
-          {!paged && detail && <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>{notesCard(measuring)}</div>}
+          {!paged && detail && <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>{notesCard(copy)}</div>}
           {touchBar(measuring)}
           {footer?.(measuring)}
         </div>

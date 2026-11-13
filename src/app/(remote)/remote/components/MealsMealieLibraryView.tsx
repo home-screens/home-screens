@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealRatingButton } from '@/components/meals/FamilyMealRating';
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BookOpen, CloudOff, ExternalLink, Heart, Search } from 'lucide-react';
 import { fetchMealieCategories, mealieClientProblem } from '@/lib/meal-client';
@@ -147,6 +149,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
             aria-label={t('mealie.library.openRecipeAriaLabel', { meal: meal.name })}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, margin: 0, border: 'none', borderRadius: 'inherit', background: 'transparent', cursor: 'pointer' }}
           />
+          <FamilyMealRatingButton meal={meal} style={{ position: 'relative', fontSize: 12 }} />
           <RecipeWallButton meal={meal} notices={wallNotices} style={{ position: 'relative' }} />
           <LibraryHeart meal={meal} onFailed={heartFailed} />
         </div>

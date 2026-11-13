@@ -1,3 +1,4 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/meals/FamilyMealRating';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, fromISODate, formatMealTime, resolvePlannedMealTime, mealDayLead, minutesOfDay } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
@@ -20,7 +21,7 @@ import { useMealMinutes } from '../shared/useMealMinutes';
  * its own height on a touch wall, and a finger scrolls down to the rest.
  */
 export default function TodayView({
-  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
+  config, settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
@@ -146,6 +147,7 @@ export default function TodayView({
                 {note}
               </span>
             ))}
+            <FamilyMealStars meal={heroMeal} size={P(34)} />
             <MealMetaPills
               meal={heroMeal}
               showPrepTime={showPrepTime}
@@ -155,6 +157,7 @@ export default function TodayView({
               pillStyle={pillStyle}
               gap={P(14)}
             />
+            {interactive && config.showFamilyRatings !== false && <WallRateDinnerButton size={P(28)} date={day} />}
           </>
         ) : (
           <span style={{ fontSize: P(60), fontFamily: headerFont, color: 'var(--fmp-text-3)', lineHeight: 1.1 }}>
@@ -240,6 +243,7 @@ export default function TodayView({
                       }}>
                         {name ?? t('fullscreen-meal-planner.notPlanned')}
                       </div>
+                      <FamilyMealStars meal={meal} size={P(26)} style={{ marginTop: P(8) }} />
                       <MealCourseLines
                         courses={courses}
                         labelSize={`${P(20)}px`}

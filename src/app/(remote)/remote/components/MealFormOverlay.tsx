@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealRatingButton } from '@/components/meals/FamilyMealRating';
+
 import { useState } from 'react';
 import type { MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
@@ -409,7 +411,8 @@ export default function MealFormOverlay({
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.ratingLabel')}</div>
+        {editingMeal && editingMeal !== 'new' && <FamilyMealRatingButton meal={editingMeal} />}
+        <div style={LABEL_STYLE}>{tCore('mealRatings.originalLabel')}</div>
         <div style={{ display: 'flex', gap: 6 }}>
           {[1, 2, 3, 4, 5].map((star) => (
             <button

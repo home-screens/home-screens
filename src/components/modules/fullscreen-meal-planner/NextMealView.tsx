@@ -1,3 +1,4 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/meals/FamilyMealRating';
 import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, type NextPlannedMeal } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
@@ -13,7 +14,7 @@ import { MealMetaPills } from '../shared/MealMetaPills';
  * authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function NextMealView({
-  next, settings, timeFormat, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode, photoBackdrop,
+  next, config, settings, timeFormat, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode, photoBackdrop, interactive,
 }: MealPlannerViewProps & {
   /** The next meal (`getNextPlannedMeal`), worked out once by the module for its fit and its photo too. */
   next: NextPlannedMeal | null;
@@ -144,6 +145,8 @@ export default function NextMealView({
         </span>
       ))}
 
+      <FamilyMealStars meal={meal} size={P(36)} style={{ color: ink.text2 }} />
+
       {/* Meta pills and tags share one row, like the today hero. */}
       <MealMetaPills
         meal={meal}
@@ -153,6 +156,7 @@ export default function NextMealView({
         pillStyle={pillStyle}
         gap={P(16)}
       />
+      {interactive && config.showFamilyRatings !== false && <WallRateDinnerButton size={P(28)} date={date} />}
     </div>
   );
 }

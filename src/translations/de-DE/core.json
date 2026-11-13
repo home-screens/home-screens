@@ -471,5 +471,33 @@
     "setMealTime": "Mahlzeit-Zeit festlegen",
     "servingTime": "Servierzeit",
     "clearTime": "Zeit löschen"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Familienstimmen: {count}",
+    "original": "Ursprüngliche gemeinsame Bewertung: {rating} / 5",
+    "forMeal": "{meal} bewerten",
+    "who": "Wer bewertet?",
+    "choose": "Familienmitglied wählen",
+    "stars": "1 bis 5 Sterne wählen",
+    "star": "{count} Sterne",
+    "yourVote": "Deine Bewertung: {rating} / 5",
+    "notRated": "Du hast dieses Rezept noch nicht bewertet.",
+    "clear": "Meine Bewertung löschen",
+    "saving": "Wird gespeichert…",
+    "saved": "Bewertung gespeichert.",
+    "saveError": "Deine Bewertung wurde nicht gespeichert. Prüfe die Verbindung und tippe erneut auf einen Stern.",
+    "loadError": "Bewertungen konnten nicht aktualisiert werden.",
+    "retry": "Erneut versuchen",
+    "loading": "Bewertungen werden geladen…",
+    "noMembers": "Füge unter Einstellungen > Familie Personen hinzu, um zu bewerten.",
+    "rate": "Gericht bewerten",
+    "dinner": "Abendessen bewerten",
+    "close": "Fertig",
+    "hint": "Jede Person hat eine Bewertung pro Rezept. Eine neue Bewertung ersetzt deine bisherige Stimme; der Familiendurchschnitt zählt alle aktuellen Stimmen.",
+    "noDinner": "Für diesen Tag ist kein Abendessen geplant.",
+    "typed": "Eingetippte Gerichte haben kein gespeichertes Rezept. Speichere sie zuerst in der Rezeptbibliothek.",
+    "unavailable": "Das gespeicherte Rezept für das Abendessen ist nicht verfügbar.",
+    "originalLabel": "Ursprüngliche gemeinsame Bewertung",
+    "sharedStar": "Gemeinsame Bewertung: {count} Sterne"
   }
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal } from '@/lib/meal-constants';
@@ -87,6 +89,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
             {name}
           </p>
         </MealTapTarget>
+        <FamilyMealStars meal={meal} size="0.8em" />
 
         {/* Serving time */}
         {time && (

@@ -1,3 +1,4 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/meals/FamilyMealRating';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
@@ -18,7 +19,7 @@ import { withAlpha } from '@/lib/hex-color';
  * next. Sizes are authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function MenuBoardView({
-  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
+  config, settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -108,7 +109,7 @@ export default function MenuBoardView({
           const pictured = showEmoji && mealHasPicture(course.meal);
           const minutes = showPrepTime ? mealMinutes(course.meal) : null;
           return (
-          <div key={course.slot} style={{ display: 'contents' }}>
+          <div key={course.slot} style={{ display: 'flex', flexDirection: 'column', gap: P(18), minWidth: 0 }}>
             {/* Picture beside everything else, which shares one edge: slot
                 pill, name, courses, note, cooking time */}
             <MealTapTarget
@@ -177,6 +178,7 @@ export default function MenuBoardView({
                     {note}
                   </div>
                 ))}
+                <FamilyMealStars meal={course.meal} size={P(30)} style={{ marginTop: P(14) }} />
                 {(minutes || (showDifficulty && course.meal?.difficulty)) && (
                   <div style={{ display: 'flex', gap: P(20), fontSize: P(26), color: 'var(--fmp-text-3)', marginTop: P(12) }}>
                     {minutes && (
@@ -190,6 +192,8 @@ export default function MenuBoardView({
                 )}
               </div>
             </MealTapTarget>
+            {/* Keep voting separate from the configured recipe-tap action. */}
+            {interactive && config.showFamilyRatings !== false && course.slot === 'dinner' && <div style={{ paddingLeft: anyPictured ? P(170) : 0, textAlign: anyPictured ? 'left' : 'center' }}><WallRateDinnerButton size={P(28)} date={todayISO} /></div>}
 
             {/* Separator between meals (single column only) */}
             {!twoUp && i < meals.length - 1 && (
@@ -201,6 +205,8 @@ export default function MenuBoardView({
       </div>
 
       <div style={{ margin: `${P(30)}px 0`, width: '100%', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>{divider}</div>
+
+      {interactive && config.showFamilyRatings !== false && !meals.some((course) => course.slot === 'dinner') && <WallRateDinnerButton size={P(28)} date={todayISO} />}
 
       {/* Bottom ornament */}
       <div style={{ fontSize: P(30), color: 'var(--fmp-text-3)', letterSpacing: '0.5em', flexShrink: 0 }}>

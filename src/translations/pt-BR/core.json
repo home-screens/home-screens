@@ -473,5 +473,33 @@
     "setMealTime": "Definir hora da refeição",
     "servingTime": "Hora de servir",
     "clearTime": "Limpar hora"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Votos da família: {count}",
+    "original": "Avaliação compartilhada original: {rating} / 5",
+    "forMeal": "Avaliar {meal}",
+    "who": "Quem está avaliando?",
+    "choose": "Escolha um familiar",
+    "stars": "Escolha de 1 a 5 estrelas",
+    "star": "{count} estrelas",
+    "yourVote": "Sua avaliação: {rating} / 5",
+    "notRated": "Você ainda não avaliou esta receita.",
+    "clear": "Limpar minha avaliação",
+    "saving": "Salvando…",
+    "saved": "Avaliação salva.",
+    "saveError": "Sua avaliação não foi salva. Verifique a conexão e toque em uma estrela para tentar novamente.",
+    "loadError": "Não foi possível atualizar as avaliações.",
+    "retry": "Tentar novamente",
+    "loading": "Carregando avaliações…",
+    "noMembers": "Adicione pessoas em Configurações > Família para começar a avaliar.",
+    "rate": "Avaliar prato",
+    "dinner": "Avaliar o jantar",
+    "close": "Concluído",
+    "hint": "Cada pessoa tem uma avaliação por receita. Avalie novamente para atualizar seu voto; a média familiar usa os votos atuais de todos.",
+    "noDinner": "Não há jantar planejado para este dia.",
+    "typed": "Pratos digitados não têm uma receita salva para avaliar. Salve-os primeiro na biblioteca de receitas.",
+    "unavailable": "A receita salva para o jantar não está disponível.",
+    "originalLabel": "Avaliação compartilhada original",
+    "sharedStar": "Avaliação compartilhada: {count} estrelas"
   }
 }

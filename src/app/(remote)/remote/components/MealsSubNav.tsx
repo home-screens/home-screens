@@ -6,6 +6,7 @@ import { MEALS_SUB_VIEWS, type MealsSubView } from './meals-shared';
 // Keyed by MealsSubView so adding a sub-view is a compile error here, not a
 // missing tab at runtime.
 const ICONS: Record<MealsSubView, React.ReactNode> = {
+  rate: <span aria-hidden="true">★</span>,
   week: (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="1" y="2" width="12" height="11" rx="1.5" /><line x1="1" y1="5.5" x2="13" y2="5.5" /><line x1="4.5" y1="1" x2="4.5" y2="3" /><line x1="9.5" y1="1" x2="9.5" y2="3" />
@@ -35,10 +36,12 @@ interface MealsSubNavProps {
 
 export default function MealsSubNav({ subView, setSubView }: MealsSubNavProps) {
   const t = useTranslate('remote');
+  const tCore = useTranslate('core');
 
   // The week tab keeps its name whichever week is shown: the dates sit
   // between the arrows below, and in the tab they wrapped onto two lines.
   const labels: Record<MealsSubView, string> = {
+    rate: tCore('mealRatings.dinner'),
     week: t('mealsTab.subNav.week'),
     plan: t('mealsTab.subNav.plan'),
     library: t('mealsTab.subNav.library'),
@@ -50,6 +53,7 @@ export default function MealsSubNav({ subView, setSubView }: MealsSubNavProps) {
       style={{
         display: 'flex',
         gap: 2,
+        overflowX: 'auto',
         padding: 3,
         background: 'var(--hs-bg-panel)',
         borderRadius: 10,
@@ -63,7 +67,7 @@ export default function MealsSubNav({ subView, setSubView }: MealsSubNavProps) {
             key={view}
             onClick={() => setSubView(view)}
             style={{
-              flex: 1,
+              flex: '1 0 auto',
               padding: '8px 6px',
               minHeight: 40,
               fontSize: 13,

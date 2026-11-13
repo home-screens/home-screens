@@ -1,5 +1,7 @@
 'use client';
 
+import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
+
 import { useMemo } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY } from '@/lib/constants';
@@ -87,6 +89,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
                           {name}
                         </span>
                       </MealTapTarget>
+                      <FamilyMealStars meal={meal} size="0.6em" />
                       <MealCourseCount count={courses.length} color={meta.color} fontSize="0.55em" />
                       {time && (
                         <span

@@ -1,5 +1,7 @@
 'use client';
 
+import { useFamilyMealRatings } from '@/components/meals/useFamilyMealRatings';
+
 import { useMemo, useRef } from 'react';
 import { useFullscreenDims } from '@/hooks/useFullscreenDims';
 import { useFitScale, FIT_FACTOR_ATTR, FIT_MIN_FACTOR, FIT_SETTLED_ATTR } from '@/hooks/useFitScale';
@@ -148,11 +150,14 @@ export default function FullscreenMealPlannerModule({
   const backdrop = useAuthImageState(mealPhotoSrc(showEmoji ? next?.meal ?? null : null, 'full'));
   const backdropUrl = backdrop.status === 'ready' ? backdrop.url : undefined;
 
+  const { data: familyRatings } = useFamilyMealRatings();
+  // A first vote adds a row; refit for that layout change, not for each score edit.
+  const ratingLayout = config.showFamilyRatings === false ? '' : [...new Set(familyRatings?.ratings.filter((vote) => familyRatings.members.some((member) => member.id === vote.memberId)).map((vote) => vote.mealId) ?? [])].sort().join('|');
   const stackRef = useRef<HTMLDivElement>(null);
   const { factor: fit, settled: fitSettled } = useFitScale(stackRef, [
     view, config.typographySize, config.density, dims.w, dims.h,
-    config.showEmoji, config.showPrepTime, config.showTags, config.showDifficulty, config.showTitle,
-    slots.length, mealCount, textLength,
+    config.showEmoji, config.showPrepTime, config.showTags, config.showDifficulty, config.showTitle, config.showFamilyRatings,
+    slots.length, mealCount, textLength, ratingLayout,
     // Another week has its own meals, and the heading changes with it.
     shownWeek.weekDates[0],
     // The backdrop takes the big picture out of the stack, which frees room.
@@ -265,6 +270,7 @@ export default function FullscreenMealPlannerModule({
           }}
         >
           <MealRecipeContext.Provider value={recipeContext}>
+          <div style={{ flex: 1, minHeight: 0 }}>
           {view === 'week' && <WeekView {...viewProps} plan={shownWeek.plan} weekDates={shownWeek.weekDates} look={look} />}
           {/* The whole plan: late in the evening Today shows tomorrow, which
               can be in next week. */}
@@ -275,6 +281,7 @@ export default function FullscreenMealPlannerModule({
           {view === 'recipe' && <RecipeView {...viewProps} plan={fullPlan} />}
           {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} />}
           {view === 'recipes' && <RecipeBookView {...viewProps} book={book} />}
+          </div>
           </MealRecipeContext.Provider>
         </div>
       )}

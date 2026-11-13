@@ -6,6 +6,7 @@ import { useTranslate } from '@/i18n';
 import { displayFetch } from '@/lib/display-fetch';
 import { useMealFavorite } from '@/components/meals/useMealFavorite';
 import { BookIcon, type Px } from './recipe-book/RecipeBookParts';
+import { recipeCardActionStyle } from './recipe-card-actions';
 import { wallPressProps } from './wallPress';
 
 /** The heart's red, the same on the light and the dark full-screen themes. */
@@ -42,13 +43,15 @@ export function WallRecipeHeart({ meal, P, place, interactive = true }: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    ...(!tile ? recipeCardActionStyle(P, 1) : {}),
     color: isFavorite ? HEART_RED : 'var(--fmp-text-2)',
     background: tile
       ? 'color-mix(in srgb, var(--fmp-surface) 94%, transparent)'
       : isFavorite ? `color-mix(in srgb, ${HEART_RED} 16%, var(--fmp-border-sub))` : 'var(--fmp-border-sub)',
     ...(tile ? { boxShadow: '0 4px 14px rgba(0,0,0,0.18)' } : {}),
   };
-  const icon = <BookIcon name="heart" size={P(tile ? 40 : 46)} fill={isFavorite ? 'currentColor' : 'none'} />;
+  // Offset the top-heavy heart shape for optical centering in the round button.
+  const icon = <BookIcon name="heart" size={P(tile ? 40 : 46)} fill={isFavorite ? 'currentColor' : 'none'} style={tile ? undefined : { transform: `translateY(${P(4)}px)` }} />;
   const testId = tile ? 'recipe-book-heart' : 'recipe-card-heart';
   if (!interactive) return <span data-testid={testId} aria-hidden style={style}>{icon}</span>;
   return (

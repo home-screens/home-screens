@@ -58,7 +58,7 @@ export const CARD_STYLE: React.CSSProperties = {
  * source of truth: `MealsSubNav` maps over it, so a new member renders a tab
  * instead of silently existing only in the type.
  */
-export const MEALS_SUB_VIEWS = ['week', 'plan', 'library', 'grocery'] as const;
+export const MEALS_SUB_VIEWS = ['week', 'plan', 'library', 'grocery', 'rate'] as const;
 
 export type MealsSubView = (typeof MEALS_SUB_VIEWS)[number];
 

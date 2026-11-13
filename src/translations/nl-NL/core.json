@@ -471,5 +471,33 @@
     "setMealTime": "Maaltijdtijd instellen",
     "servingTime": "Serveertijd",
     "clearTime": "Tijd wissen"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Gezinsstemmen: {count}",
+    "original": "Oorspronkelijke gedeelde beoordeling: {rating} / 5",
+    "forMeal": "{meal} beoordelen",
+    "who": "Wie beoordeelt er?",
+    "choose": "Kies een gezinslid",
+    "stars": "Kies 1 tot 5 sterren",
+    "star": "{count} sterren",
+    "yourVote": "Jouw beoordeling: {rating} / 5",
+    "notRated": "Je hebt dit recept nog niet beoordeeld.",
+    "clear": "Mijn beoordeling wissen",
+    "saving": "Opslaan…",
+    "saved": "Beoordeling opgeslagen.",
+    "saveError": "Je beoordeling is niet opgeslagen. Controleer de verbinding en tik op een ster om het opnieuw te proberen.",
+    "loadError": "Beoordelingen konden niet worden vernieuwd.",
+    "retry": "Opnieuw proberen",
+    "loading": "Beoordelingen laden…",
+    "noMembers": "Voeg personen toe via Instellingen > Gezin om te beoordelen.",
+    "rate": "Gerecht beoordelen",
+    "dinner": "Avondeten beoordelen",
+    "close": "Gereed",
+    "hint": "Iedereen heeft één beoordeling per recept. Beoordeel opnieuw om je stem te wijzigen; het gezinsgemiddelde gebruikt ieders huidige stem.",
+    "noDinner": "Er is voor deze dag geen avondeten gepland.",
+    "typed": "Getypte gerechten hebben geen opgeslagen recept om te beoordelen. Sla ze eerst op in de receptenbibliotheek.",
+    "unavailable": "Het opgeslagen recept voor het avondeten is niet beschikbaar.",
+    "originalLabel": "Oorspronkelijke gedeelde beoordeling",
+    "sharedStar": "Gedeelde beoordeling: {count} sterren"
   }
 }
