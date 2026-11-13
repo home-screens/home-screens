@@ -71,7 +71,7 @@ const STUBS: Record<string, { glob: string; file: string }> = {
  */
 const PHOTO_MEDIA_STUBS: Record<string, { key: string; file: string }> = {
   library: { key: 'backgrounds', file: 'backgrounds' },
-  // Real Immich and iCloud lists carry hub serve URLs and Apple CDN URLs;
+  // Real Immich and iCloud lists carry hub serve URLs;
   // data: URLs keep the render fully offline under blockExternal.
   immich: { key: 'immich', file: 'backgrounds' },
   icloud: { key: 'icloud', file: 'backgrounds' },

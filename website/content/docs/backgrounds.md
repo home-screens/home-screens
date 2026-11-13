@@ -206,7 +206,7 @@ iCloud shared albums work without an Apple account or API key, all you need is t
 
 ### Using it
 
-- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo Source** and paste the link. The display loads photos straight from Apple's servers. A rotating background only uses still photos; any videos in the album are skipped.
+- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo Source** and paste the link. The hub fetches the photos from Apple and passes them to the display. A rotating background only uses still photos; any videos in the album are skipped.
 - **Importing into your library**: **Add from an iCloud link** downloads everything a link contains into a folder. It is on the Image Library's **Local** tab (into the selected folder) and on **Settings > Pictures & videos**. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---

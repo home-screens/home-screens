@@ -104,6 +104,28 @@ describe('useMediaRotation batch holding', () => {
     expect(result.current[0][1]).toBe(batchB[1]); // walking the new batch's content
   });
 
+  it('never shows the old first slide on the way to the refresh', () => {
+    const batchA = [photo(0), photo(1)];
+    const batchB = [photo(10), photo(11)];
+    const rendered: string[] = [];
+    const { rerender } = renderHook(
+      ({ items }) => {
+        const rotation = useMediaRotation(items, 5000, false, true, '/api/photos');
+        rendered.push(rotation[0][rotation[1]].url);
+        return rotation;
+      },
+      { initialProps: { items: batchA } },
+    );
+    rerender({ items: batchB });
+    act(() => vi.advanceTimersByTime(5001)); // → the last slide of the pass
+    rendered.length = 0;
+
+    // The wrap goes straight to the refresh. A render of /p0.jpg in between
+    // would start a fade to a photo that is replaced before it finishes.
+    act(() => vi.advanceTimersByTime(5001));
+    expect(new Set(rendered)).toEqual(new Set(['/p10.jpg']));
+  });
+
   it('adopts a new batch immediately when the source key changes', () => {
     const batchA = [photo(0), photo(1)];
     const batchB = [photo(10), photo(11)];

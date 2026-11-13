@@ -189,21 +189,17 @@ export function useMediaRotation<T extends MediaItem>(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `active`, `intervalMs` and `resumeId` are read only when items/shuffle change, and must not re-run this
   }, [items, batchKey, shuffle, buildOrder]);
 
-  // Set by a forward wrap only: stepping back onto the first slide must not
-  // hand the slideshow to a refresh that is waiting for the pass to end.
-  const wrappedRef = useRef(false);
-
-  // A held refresh takes over when the pass wraps back to the start.
-  useEffect(() => {
-    if (pos !== 0 || !wrappedRef.current) return;
-    wrappedRef.current = false;
-    if (active.length === 0 || pendingRef.current === active) return;
-    keyRef.current = batchKey;
-    adopt(pendingRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on wrap commits only
-  }, [pos]);
-
   const count = active.length;
+
+  // What is on screen, for `next` and `back` to move from and the unmount to save.
+  const playingRef = useRef({ active, order, pos });
+  playingRef.current = { active, order, pos };
+
+  // Kept in step with `setPos` so two moves in one tick both count.
+  const moveTo = useCallback((to: number) => {
+    playingRef.current = { ...playingRef.current, pos: to };
+    setPos(to);
+  }, []);
 
   // An advance that came in while paused (a video that ended): taken on play.
   const heldRef = useRef(false);
@@ -211,22 +207,29 @@ export function useMediaRotation<T extends MediaItem>(
   const next = useCallback(() => {
     heldRef.current = false;
     if (count <= 1) return;
-    setPos((prev) => {
-      const following = prev + 1;
-      if (following >= count) {
-        if (shuffle) setOrder((prevOrder) => shuffleArray(prevOrder));
-        wrappedRef.current = true;
-        return 0;
-      }
-      return following;
-    });
-  }, [count, shuffle]);
+    const { active: batch, order: walked, pos: at } = playingRef.current;
+    const following = at + 1;
+    const wraps = following >= batch.length;
+    // A held refresh takes over when the pass ends, in the same step: showing
+    // the old list's first slide for a moment first would start a fade to a
+    // photo that is replaced before it finishes. Only a move forward does
+    // this: stepping back onto the first slide leaves the refresh waiting.
+    const held = pendingRef.current;
+    if (wraps && held !== batch && held.length > 0) {
+      playingRef.current = { ...playingRef.current, active: held, pos: 0 };
+      adopt(held);
+      return;
+    }
+    if (wraps && shuffle) setOrder(shuffleArray(walked));
+    moveTo(wraps ? 0 : following);
+  }, [count, shuffle, adopt, moveTo]);
 
   const back = useCallback(() => {
     heldRef.current = false;
     if (count <= 1) return;
-    setPos((prev) => (prev === 0 ? count - 1 : prev - 1));
-  }, [count]);
+    const at = playingRef.current.pos;
+    moveTo(at === 0 ? count - 1 : at - 1);
+  }, [count, moveTo]);
 
   const [paused, setPausedState] = useState(false);
   const pausedRef = useRef(paused);
@@ -256,9 +259,6 @@ export function useMediaRotation<T extends MediaItem>(
     // to the same index after a reshuffle.
   }, [count, isEventDriven, paused, pos, index, intervalMs, advance]);
 
-  // What is on screen, for the unmount below to save.
-  const playingRef = useRef({ active, order, pos });
-  playingRef.current = { active, order, pos };
   const shownSinceRef = useRef(0);
   useEffect(() => {
     shownSinceRef.current = Date.now();

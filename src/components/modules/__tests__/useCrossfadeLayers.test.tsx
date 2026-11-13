@@ -112,6 +112,45 @@ describe('useCrossfadeLayers', () => {
     expect(result.current.activeLayer).toBe(1);
   });
 
+  it('loads a new batch\'s picture under the same index in the hidden layer, keeping the photo on screen', () => {
+    const { result, rerender, advance } = mount(A, 0);
+    act(() => { result.current.layerReady(0); });
+    // The pass wrapped onto a refreshed list: index 0 again, another photo.
+    rerender({ item: B, index: 0 });
+    expect(result.current.sources).toEqual([A, B]);
+    expect(result.current.activeLayer).toBe(0);
+
+    // It fails: A is still up, and the slide is skipped like any other.
+    act(() => { result.current.layerFailed(1); });
+    expect(result.current.sources[0]).toBe(A);
+    expect(result.current.activeLayer).toBe(0);
+    act(() => { vi.advanceTimersByTime(FAILED_SLIDE_SKIP_MS); });
+    expect(advance).toHaveBeenCalledTimes(1);
+  });
+
+  it('fades to a new batch\'s picture under the same index once it has loaded', () => {
+    const { result, rerender } = mount(A, 0);
+    act(() => { result.current.layerReady(0); });
+    rerender({ item: B, index: 0 });
+    act(() => { result.current.layerReady(1); });
+    expect(result.current.activeLayer).toBe(1);
+  });
+
+  it('replaces both layers when the picture changes before anything is on screen', () => {
+    const { result, rerender } = mount(A, 0);
+    rerender({ item: B, index: 0 });
+    expect(result.current.sources).toEqual([B, B]);
+    expect(result.current.activeLayer).toBe(0);
+  });
+
+  it('does not treat a fresh access token on the playing video as a new slide', () => {
+    const fresh: MediaListItem = { url: '/api/v/1?mt=999.sig', type: 'video' };
+    const { result, rerender } = mount({ url: '/api/v/1?mt=111.sig', type: 'video' }, 0);
+    rerender({ item: fresh, index: 0 });
+    expect(result.current.sources).toEqual([fresh, fresh]);
+    expect(result.current.activeLayer).toBe(0);
+  });
+
   it('a new slide arriving while one is still pending replaces it in the same layer', () => {
     const C: MediaListItem = { url: '/api/p/c', type: 'image' };
     const { result, rerender } = mount(A, 0);

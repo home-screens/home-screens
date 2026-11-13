@@ -72,7 +72,7 @@ describe('readyWhenDecoded', () => {
     let finishDecode!: () => void;
     const img = { src: 'blob:1', decode: () => new Promise<void>((r) => { finishDecode = r; }) } as HTMLImageElement;
     const onReady = vi.fn();
-    readyWhenDecoded(img, onReady);
+    readyWhenDecoded(img, onReady, undefined);
     await Promise.resolve();
     expect(onReady).not.toHaveBeenCalled();
     finishDecode();
@@ -83,10 +83,36 @@ describe('readyWhenDecoded', () => {
     let finishDecode!: () => void;
     const img = { src: 'blob:1', decode: () => new Promise<void>((r) => { finishDecode = r; }) } as HTMLImageElement;
     const onReady = vi.fn();
-    readyWhenDecoded(img, onReady);
+    const onFailed = vi.fn();
+    readyWhenDecoded(img, onReady, onFailed);
     img.src = 'blob:2';
     finishDecode();
     await new Promise((r) => setTimeout(r, 0));
     expect(onReady).not.toHaveBeenCalled();
+    expect(onFailed).not.toHaveBeenCalled();
+  });
+
+  it('reports a picture that downloaded but cannot be decoded as failed, never as ready', async () => {
+    const img = { src: 'blob:1', decode: () => Promise.reject(new Error('EncodingError')) } as HTMLImageElement;
+    const onReady = vi.fn();
+    const onFailed = vi.fn();
+    readyWhenDecoded(img, onReady, onFailed);
+    await vi.waitFor(() => expect(onFailed).toHaveBeenCalledTimes(1));
+    expect(onReady).not.toHaveBeenCalled();
+  });
+
+  it('stays quiet when a decode is cut short by the layer changing picture or going away', async () => {
+    const onReady = vi.fn();
+    const onFailed = vi.fn();
+    let abort!: () => void;
+    const swapped = { src: 'blob:1', decode: () => new Promise<void>((_, reject) => { abort = () => reject(new Error('EncodingError')); }) } as HTMLImageElement;
+    readyWhenDecoded(swapped, onReady, onFailed);
+    swapped.src = 'blob:2';
+    abort();
+    const removed = { src: 'blob:3', isConnected: false, decode: () => Promise.reject(new Error('EncodingError')) } as HTMLImageElement;
+    readyWhenDecoded(removed, onReady, onFailed);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(onReady).not.toHaveBeenCalled();
+    expect(onFailed).not.toHaveBeenCalled();
   });
 });

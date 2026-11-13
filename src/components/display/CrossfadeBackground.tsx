@@ -181,14 +181,15 @@ function MediaLayer({ slot, layer, isActive, isPending, alt, authenticate, filte
   }, [authenticate, auth.status, slot, onFailed]);
 
   const ready = useCallback(() => onReady(slot), [onReady, slot]);
+  const failed = useCallback(() => onFailed(slot), [onFailed, slot]);
   // A picture that finished before React attached onLoad (cached, or in the
   // server HTML) reports itself from the ref: ready when it has pixels,
   // failed when it is complete without any.
   const probe = useCallback((img: HTMLImageElement | null) => {
     if (!img || !img.complete) return;
-    if (img.naturalWidth > 0) readyWhenDecoded(img, ready);
-    else onFailed(slot);
-  }, [ready, onFailed, slot]);
+    if (img.naturalWidth > 0) readyWhenDecoded(img, ready, failed);
+    else failed();
+  }, [ready, failed]);
 
   // The incoming layer sits above the one on screen, which stays at full
   // opacity beneath it until it is emptied, so the fade never shows the solid
@@ -210,8 +211,8 @@ function MediaLayer({ slot, layer, isActive, isPending, alt, authenticate, filte
       ref={probe}
       src={src}
       alt={alt}
-      onLoad={(e) => readyWhenDecoded(e.currentTarget, ready)}
-      onError={() => onFailed(slot)}
+      onLoad={(e) => readyWhenDecoded(e.currentTarget, ready, failed)}
+      onError={failed}
       style={style}
     />
   );

@@ -27,14 +27,37 @@ const SERVED_DEAD = '/api/backgrounds/serve?file=dead.gif';
 
 const INTERVAL_MS = 1500;
 const SLOW_MS = 3000;
+/** The wall re-reads its photo list this often (the fetch key's TTL). */
+const LIST_POLL_MS = 600_000;
 
-async function stubServe(page: Page, slow: string[], dead: string[]) {
+const served = (file: string) => ({ url: `/api/backgrounds/serve?file=${file}`, type: 'image' as const });
+
+/** A second valid picture, two pixels wide so the page can tell it from the others. */
+const WIDE_GIF_BYTES = Buffer.from('R0lGODlhAgABAIAAAAAAAP///yH5BAEAAAAALAAAAAACAAEAAAICRAoAOw==', 'base64');
+
+/** Stubs the serve route; answers the files asked for, in order. */
+async function stubServe(page: Page, slow: string[], dead: string[], wide: string[] = []): Promise<string[]> {
+  const requested: string[] = [];
   await page.route('**/api/backgrounds/serve*', async (route) => {
     const file = new URL(route.request().url()).searchParams.get('file') ?? '';
+    requested.push(file);
     if (dead.includes(file)) return route.fulfill({ status: 404, body: 'gone' });
+    if (wide.includes(file)) return route.fulfill({ body: WIDE_GIF_BYTES, contentType: 'image/gif' });
     if (slow.includes(file)) await new Promise((resolve) => setTimeout(resolve, SLOW_MS));
     return route.fulfill({ body: GIF_BYTES, contentType: 'image/gif' });
   });
+  return requested;
+}
+
+/**
+ * Answers the photo list with `first` until `refresh()` is called and with
+ * `later` from then on, as a source that deals a new set on every read does.
+ * Registered after stubModuleData, so it wins.
+ */
+async function stubListThenRefresh(page: Page, first: unknown[], later: unknown[]) {
+  let refreshed = false;
+  await page.route('**/api/photo-source/media*', (route) => route.fulfill({ json: refreshed ? later : first }));
+  return { refresh: () => { refreshed = true; } };
 }
 
 interface FrameSample {
@@ -110,5 +133,55 @@ for (const type of ['photo-slideshow', 'fullscreen-photo'] as const) {
     const samples = await sampleFrames(mod, INTERVAL_MS + 2000 + 2500);
     expect(samples.filter((s) => s.visible <= 0.9)).toEqual([]);
     expect(distinctShown(samples).size).toBeGreaterThanOrEqual(2); // a, then b; never a gap
+  });
+
+  test(`${type}: a photo the browser cannot decode is skipped, never shown`, async ({ page, request }) => {
+    // The picture downloads and `onLoad` fires, then its decode is refused,
+    // as for one with more pixels than the device can hold. Chromium on a
+    // test machine decodes whatever it loads, so the refusal is forced here
+    // for the one two-pixel-wide picture.
+    await page.addInitScript(() => {
+      const decode = HTMLImageElement.prototype.decode;
+      HTMLImageElement.prototype.decode = function (this: HTMLImageElement) {
+        if (this.naturalWidth === 2) return Promise.reject(new DOMException('The source image cannot be decoded.', 'EncodingError'));
+        return decode.call(this);
+      };
+    });
+    await stubModuleData(page, { overrides: { backgrounds: ['a.gif', 'refused.gif', 'b.gif'].map(served) } });
+    const requested = await stubServe(page, [], [], ['refused.gif']);
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance(type, { intervalMs: INTERVAL_MS, transition: 'fade' })])],
+    }));
+    const mod = display.module(type);
+    await settledOnFirstSlide(mod);
+
+    // First advance lands on the refused photo; the skip fires 2s later and b loads.
+    const samples = await sampleFrames(mod, INTERVAL_MS + 2000 + 2500);
+    expect(requested).toContain('refused.gif');
+    expect(samples.filter((s) => s.visible <= 0.9)).toEqual([]);
+    // a, then b. A third picture at full opacity would be the one that cannot paint.
+    expect(distinctShown(samples).size).toBe(2);
+  });
+
+  test(`${type}: the pass wraps onto a refreshed list without a blank frame, even when its first photo is gone`, async ({ page, request }) => {
+    await page.clock.install();
+    await stubModuleData(page);
+    const list = await stubListThenRefresh(page, ['a.gif', 'b.gif'].map(served), ['dead.gif', 'c.gif'].map(served));
+    await stubServe(page, [], ['dead.gif']);
+    const display = await renderOnDisplay(page, request, baseConfig({
+      screens: [makeScreen('s1', 'S1', [buildModuleInstance(type, { intervalMs: INTERVAL_MS, transition: 'fade' })])],
+    }));
+    const mod = display.module(type);
+    await settledOnFirstSlide(mod);
+
+    // The wall's next read of the list brings the new set, which waits for
+    // the pass to end. The jump also moves the slideshow on to b.
+    list.refresh();
+    await page.clock.fastForward(LIST_POLL_MS);
+
+    // b's turn, the wrap onto the new set, the 2s skip of its dead first photo, then c.
+    const samples = await sampleFrames(mod, INTERVAL_MS + 2000 + 3500);
+    expect(samples.filter((s) => s.visible <= 0.9)).toEqual([]);
+    expect(distinctShown(samples).size).toBeGreaterThanOrEqual(2); // b, then c; never a gap
   });
 }

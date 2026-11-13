@@ -44,7 +44,7 @@ function SlideLayer({ src, box, active, objectFit, isFade, onReady, onFailed }: 
         zIndex: active ? 1 : 0,
         visibility: authSrc ? 'visible' : 'hidden',
       }}
-      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady)}
+      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady, onFailed)}
       onError={onFailed}
     />
   );

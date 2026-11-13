@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import nextConfig from '../../../next.config.mjs';
 
 /**
- * Slideshow video (iCloud shared albums, remote-URL video) plays from raw
- * cross-origin CDN URLs in a <video> element. Without an explicit media-src,
+ * A video given by its web address plays from that raw cross-origin URL in
+ * a <video> element. Without an explicit media-src,
  * CSP falls back to default-src 'self' and blocks every clip. Guard the
  * directive so a future CSP edit can't silently re-break remote video.
  */

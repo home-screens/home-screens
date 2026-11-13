@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MediaListItem } from '@/types/config';
 import { useAuthImageState, type AuthImageState } from '@/components/display/useAuthImage';
 import { displaySizedUrl, type PictureBox } from '@/lib/media-paths';
+import { stripMediaToken } from '@/lib/media-url';
 
 /**
  * How long a slide whose image failed to load keeps the previous slide on
@@ -22,19 +23,30 @@ export type LayerIndex = 0 | 1;
  * and stuttered it; waiting for `decode()` starts the fade on a picture that
  * is ready to paint. A layer whose picture changed while decoding stays
  * quiet: the new picture's own load reports it.
+ *
+ * A picture that downloaded but cannot be decoded (damaged, or more pixels
+ * than the device can hold) is reported failed. `onLoad` has already fired
+ * for it, so no `onError` follows; reporting it ready put a picture that
+ * could not paint on screen for a whole slide.
  */
-export function readyWhenDecoded(img: HTMLImageElement, onReady: (() => void) | undefined): void {
-  if (!onReady) return;
+export function readyWhenDecoded(
+  img: HTMLImageElement,
+  onReady: (() => void) | undefined,
+  onFailed: (() => void) | undefined,
+): void {
+  if (!onReady && !onFailed) return;
   if (typeof img.decode !== 'function') {
-    onReady();
+    onReady?.();
     return;
   }
   const src = img.src;
-  img.decode()
-    .catch(() => { /* a picture that cannot decode fires onError instead */ })
-    .then(() => {
-      if (img.src === src) onReady();
-    });
+  // A decode also rejects when the picture changed or the layer went away
+  // meanwhile; neither is a failure of the picture now in the layer.
+  const current = () => img.src === src && img.isConnected !== false;
+  img.decode().then(
+    () => { if (current()) onReady?.(); },
+    () => { if (current()) onFailed?.(); },
+  );
 }
 
 /**
@@ -74,6 +86,11 @@ export interface CrossfadeLayers<T> {
  * behavior) faded the outgoing photo out over a layer that had nothing to
  * show yet: every slow, uncached cloud photo produced a blank frame, and a
  * failed download left it blank until the next slide.
+ *
+ * A batch that changes under the same index (the wrap onto a refreshed list)
+ * goes through the hidden layer too. Putting it straight into the layer on
+ * screen dropped the outgoing photo with no fade, and a first photo that
+ * failed left the wall blank until a later one loaded.
  *
  * Videos still cut immediately: VideoLayer owns its own loading and stall
  * handling, and a crossfade would run two decoders at once, which Pi hardware
@@ -127,7 +144,17 @@ export function useCrossfadeLayers<T extends MediaListItem>(
       setSources(next);
     };
 
-    if (prevIndexRef.current !== index) {
+    // A new batch can put a different picture under the index already
+    // showing (the first slide of the next pass, or another folder picked in
+    // the editor). That is a slide change like any other, as long as there is
+    // a slide on screen to keep up while the new one loads. The same asset
+    // with a fresh access token is not a change: VideoLayer keeps playing it.
+    const shown = sourcesRef.current[activeLayerRef.current];
+    const replacesShown = shown !== null
+      && (shown.type !== item.type || stripMediaToken(shown.url) !== stripMediaToken(item.url))
+      && (shown.type === 'video' || readyRef.current[activeLayerRef.current]);
+
+    if (prevIndexRef.current !== index || replacesShown) {
       prevIndexRef.current = index;
       const nextLayer: LayerIndex = activeLayerRef.current === 0 ? 1 : 0;
       const updated: [T | null, T | null] = [...sourcesRef.current];
@@ -139,7 +166,7 @@ export function useCrossfadeLayers<T extends MediaListItem>(
         pendingLayerRef.current = nextLayer;
       }
     } else {
-      // Initial load, or the batch changed under the same index: both layers
+      // Initial load, or a change before anything was on screen: both layers
       // carry the slide, and the active one shows it as soon as it loads.
       pendingLayerRef.current = null;
       updateSources([item, item]);

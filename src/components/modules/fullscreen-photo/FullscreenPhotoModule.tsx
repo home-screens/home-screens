@@ -143,7 +143,7 @@ function SlideLayer({
       alt=""
       className="absolute inset-0 w-full h-full"
       style={{ ...transitionStyle, ...kenBurnsStyle }}
-      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady)}
+      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady, onFailed)}
       onError={onFailed}
     />
   );

@@ -333,14 +333,21 @@ async function resolveLiveAlbum(token: string): Promise<ICloudAlbumItem[] | null
       const posterUrl = pickPosterUrl(fields);
       items.push({ url: picked.res.downloadURL, type: 'video', guid, ...(posterUrl ? { posterUrl } : {}) });
     } else {
-      items.push({ url: picked.res.downloadURL, type: 'image', guid });
+      // The medium JPEG is what iCloud's own web viewer shows: about 2000
+      // pixels on its long side, the size the legacy backend's largest
+      // derivative has, whatever the camera original weighs.
+      const previewUrl = rendition(fields, 'resJPEGMedRes')?.downloadURL;
+      items.push({
+        url: picked.res.downloadURL, type: 'image', guid,
+        ...(previewUrl && previewUrl !== picked.res.downloadURL ? { previewUrl } : {}),
+      });
     }
   }
   return items;
 }
 
 /** Signed CloudKit download URLs expire (the resolve grant lives ~20 min); a
- *  5-minute cache keeps every display poll well inside that window, matching
+ *  5-minute cache keeps every hub fetch well inside that window, matching
  *  the legacy sharedstreams album cache. A null (private/expired/deleted)
  *  caches for just 60s: long enough that a wall-mounted kiosk pointed at a
  *  dead link stops hammering Apple on every poll, short enough that a
@@ -349,7 +356,7 @@ const liveAlbumResolver = createResolverCache(5 * 60_000, 60_000, resolveLiveAlb
 
 /**
  * Live media list for a new-format shared album, shaped like a legacy album
- * (fetchSharedStreamsAlbum) so /api/icloud/photos treats both backends
+ * (fetchSharedStreamsAlbum) so fetchICloudMedia treats both backends
  * identically. Returns null when the album is missing/private/expired (vs. []
  * for empty), so the route can fall through to its friendly empty state.
  * Cached per token with concurrent cold fetches collapsed into one Apple

@@ -1,28 +1,35 @@
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { fetchICloudMedia } from '@/lib/icloud-media';
+import { fetchICloudMedia, icloudMediaResource, icloudServeUrl, icloudVideoUrl } from '@/lib/icloud-media';
+import { mintMediaToken } from '@/lib/media-token';
 import { shuffleArray } from '@/lib/shuffle';
 import type { MediaListItem } from '@/types/config';
 import type { PhotoSourceAdapter } from './types';
 
 /**
- * A public iCloud shared album. Asset URLs are Apple-signed and public, so
- * the wall loads them straight from Apple's CDN: no media tokens, no
- * streaming proxy, two small JSON calls per album refresh (cached 5 minutes
- * per album in the iCloud readers). A missing or malformed link is an empty
- * album; the wall's empty state says to check the link.
+ * A public iCloud shared album. Apple's asset URLs are signed and die within
+ * the hour, sooner than a long slideshow pass ends, so the wall is handed hub
+ * addresses instead: `/api/icloud/serve` proxies and caches a photo's bytes
+ * and `/api/icloud/video` streams a video, each reading the current URL from
+ * the album the iCloud readers keep for five minutes. A missing or malformed
+ * link is an empty album; the wall's empty state says to check the link.
  */
 export const icloudPhotoSource: PhotoSourceAdapter<'icloud'> = {
   kind: 'icloud',
 
   async list({ source, count, media }) {
-    const all = await fetchICloudMedia(source.albumUrl);
+    const link = source.albumUrl;
+    const all = await fetchICloudMedia(link);
     const wanted = media === 'both' ? all : all.filter((item) => (media === 'videos' ? item.type === 'video' : item.type === 'image'));
     // Shuffled per request so refreshes vary without asking Apple again.
-    // Mapped field by field so internal fields (guid) never reach the wall.
-    return shuffleArray(wanted).slice(0, count).map((item): MediaListItem => ({
-      url: item.url,
-      type: item.type,
-      ...(item.posterUrl ? { posterUrl: item.posterUrl } : {}),
+    return Promise.all(shuffleArray(wanted).slice(0, count).map(async (item): Promise<MediaListItem> => {
+      if (item.type === 'image') return { url: icloudServeUrl(link, item.guid), type: 'image' };
+      // Bind the token to the album item the video route reads back.
+      const token = await mintMediaToken(icloudMediaResource(link, item.guid));
+      return {
+        url: `${icloudVideoUrl(link, item.guid)}${token ? `&mt=${encodeURIComponent(token)}` : ''}`,
+        type: 'video',
+        ...(item.posterUrl ? { posterUrl: icloudServeUrl(link, item.guid, true) } : {}),
+      };
     }));
   },
 

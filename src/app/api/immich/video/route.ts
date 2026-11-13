@@ -2,14 +2,9 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { withMediaTokenAuth } from '@/lib/api-utils';
 import { immichFetch } from '@/lib/immich';
+import { isPlayableUpstream, PLAYBACK_TIMEOUT_MS, videoPassthrough } from '@/lib/video-proxy';
 
 export const dynamic = 'force-dynamic';
-
-/** Headers passed through from Immich so seeking and progress work. */
-const PASSTHROUGH_HEADERS = ['content-type', 'content-range', 'content-length', 'accept-ranges'];
-
-/** Playback outlives the thumbnail route's 15s budget; give streams 15 minutes. */
-const PLAYBACK_TIMEOUT_MS = 15 * 60_000;
 
 /**
  * GET /api/immich/video?assetId=<uuid>&mt=<token>
@@ -36,17 +31,8 @@ export const GET = withMediaTokenAuth(async (request: NextRequest) => {
     signal: request.signal,
   });
 
-  // 416 passes through (with its Content-Range) so the browser can correct
-  // an out-of-bounds range request instead of seeing an opaque 502.
-  if (!res.ok && res.status !== 206 && res.status !== 416) {
+  if (!isPlayableUpstream(res)) {
     return NextResponse.json({ error: 'Failed to fetch video from Immich' }, { status: 502 });
   }
-
-  const headers = new Headers();
-  for (const name of PASSTHROUGH_HEADERS) {
-    const value = res.headers.get(name);
-    if (value) headers.set(name, value);
-  }
-
-  return new Response(res.body, { status: res.status, headers });
+  return videoPassthrough(res);
 }, 'Failed to stream Immich video', (request) => request.nextUrl.searchParams.get('assetId'));

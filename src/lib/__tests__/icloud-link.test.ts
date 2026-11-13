@@ -309,6 +309,24 @@ describe('fetchCloudKitAlbum', () => {
     ]);
   });
 
+  it('names the medium JPEG beside a larger original as the copy to show', async () => {
+    const withMedium = jpegMaster('0900');
+    Object.assign(withMedium.fields, {
+      resJPEGMedRes: field({ downloadURL: 'https://cvws.icloud-content.com/jpegmed-0900', size: 400000 }),
+    });
+    // A HEIC is already answered with its medium JPEG: nothing smaller to name.
+    routeFetch({ query: () => queryResponse([withMedium, heicMaster('0100'), jpegMaster('0200')]) });
+
+    const items = (await fetchCloudKitAlbum(TOKEN))!;
+
+    expect(items[0]).toMatchObject({
+      url: 'https://cvws.icloud-content.com/orig-0900',
+      previewUrl: 'https://cvws.icloud-content.com/jpegmed-0900',
+    });
+    expect(items[1]).not.toHaveProperty('previewUrl');
+    expect(items[2]).not.toHaveProperty('previewUrl');
+  });
+
   it('gives videos the MP4 rendition plus a JPEG poster', async () => {
     routeFetch({ query: () => queryResponse([videoMaster('0333')]) });
 

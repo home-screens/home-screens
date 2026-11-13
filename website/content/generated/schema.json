@@ -11243,6 +11243,24 @@
       ]
     },
     {
+      "path": "/api/icloud/serve",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/icloud/video",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "media"
+        }
+      ]
+    },
+    {
       "path": "/api/image-proxy",
       "methods": [
         {
