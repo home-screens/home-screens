@@ -170,6 +170,8 @@ Pick a **Collection**:
 - **Art Institute of Chicago** takes the public-domain paintings in that museum's collection.
 - **Cleveland Museum of Art** takes the museum's open-access paintings.
 
+**Family friendly** is a switch that is always shown above the filters, and the Art tab has the same one. It leaves out paintings that look nude, but it is best effort and not guaranteed: it goes by the museums' subject data and a few words in the title, so some paintings can still get through.
+
 Nothing is filtered at first. Choose **+ Add filter** to narrow the paintings down; each filter you add shows as its own field, with a cross to take it away again:
 
 - **Museum** (Wikimedia only) lists the main museums with roughly how many paintings each has. Tick several and a painting from any of them counts. The other two collections are one museum each.

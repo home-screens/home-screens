@@ -6061,6 +6061,8 @@
         "landscape": "Wide (landscape)"
       },
       "minSize": "Smallest side (pixels)",
+      "familyFriendly": "Family friendly",
+      "familyFriendlyHint": "Best effort, not guaranteed",
       "shape": "Match the screen's shape",
       "shapes": {
         "any": "Any shape",

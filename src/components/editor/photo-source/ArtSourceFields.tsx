@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useSettledValue } from '@/hooks/useSettledValue';
@@ -180,6 +181,10 @@ export default function ArtSourceFields({ use, source, onChange }: {
         onChange={(provider) => set({ provider, ...(provider === 'wikimedia' ? {} : { museums: undefined }) })}
         options={ART_PROVIDERS.map((value) => ({ value, label: t(`photoSources.art.providers.${value}`) }))}
       />
+      <div>
+        <Toggle label={t('photoSources.art.familyFriendly')} checked={!!source.familyFriendly} onChange={(familyFriendly) => set({ familyFriendly: familyFriendly || undefined })} />
+        <p className="mt-0.5 text-[10px] text-hs-text-faint">{t('photoSources.art.familyFriendlyHint')}</p>
+      </div>
       {shown.map((filter) => (
         <div key={filter} className="flex items-end gap-1" data-testid={`art-filter-${filter}`}>
           <div className="min-w-0 flex-1">{field(filter)}</div>

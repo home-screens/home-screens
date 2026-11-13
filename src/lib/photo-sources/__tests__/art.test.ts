@@ -154,6 +154,23 @@ describe('museum collections', () => {
   });
 });
 
+describe('family friendly', () => {
+  it('keeps nude-tagged Wikidata paintings, nude subjects out of the Art Institute, and nude titles out of every list', async () => {
+    upstream({
+      'query.wikidata.org': () => wikidata(row('Q1', 'Evening Bathers', 'B.jpg'), row('Q2', 'Haystacks', 'H.jpg'), { ...row('Q3', 'Quiet Pool', 'Q.jpg'), nude: { value: 'http://www.wikidata.org/entity/Q40446' } }),
+      'commons.wikimedia.org/w/api.php': () => commons(['B.jpg', 'Public domain'], ['H.jpg', 'Public domain'], ['Q.jpg', 'Public domain']),
+    });
+    const items = await artPhotoSource.list({ source: art({ familyFriendly: true }), count: 5, media: 'photos' });
+    expect(items.map((i) => i.credit?.name)).toEqual(['Haystacks, Mihály Munkácsy, 1869']);
+    expect(sparqls()[0]).toContain('?item wdt:P136|wdt:P180 ?nude . VALUES ?nude { wd:Q40446 wd:Q10791 wd:Q1168168 }');
+
+    let body = '';
+    upstream({ 'artworks/search': (_url, init) => { body = String(init?.body); return json({ data: [aicHit({ title: 'Nude Study' })] }); } });
+    expect(await artPhotoSource.list({ source: art({ provider: 'aic', familyFriendly: true }), count: 5, media: 'photos' })).toEqual([]);
+    expect(body).toContain('"must_not":[{"match_phrase":{"subject_titles":"nudes"}}');
+  });
+});
+
 describe('background picks', () => {
   const body = () => sharp({ create: { width: 160, height: 100, channels: 3, background: '#2060c0' } }).jpeg().toBuffer();
   const wire = async () => {

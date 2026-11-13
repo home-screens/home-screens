@@ -6061,6 +6061,8 @@
         "landscape": "Liggend"
       },
       "minSize": "Kortste zijde (pixels)",
+      "familyFriendly": "Gezinsvriendelijk",
+      "familyFriendlyHint": "Zo goed mogelijk, geen garantie",
       "shape": "Past bij de vorm van het scherm",
       "shapes": {
         "any": "Elke vorm",

@@ -6061,6 +6061,8 @@
         "landscape": "Horizontal"
       },
       "minSize": "Lado más corto (píxeles)",
+      "familyFriendly": "Apto para familias",
+      "familyFriendlyHint": "Mejor esfuerzo, sin garantía",
       "shape": "Parecido a la forma de la pantalla",
       "shapes": {
         "any": "Cualquier forma",

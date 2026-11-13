@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
 import { ART_PROVIDERS } from '@/lib/photo-source';
 import type { ArtProvider } from '@/types/config';
@@ -31,8 +32,9 @@ export default function ArtTab({ selection, onSelect, copying }: PickerTabProps)
   const [provider, setProvider] = useState<ArtProvider>('wikimedia');
   const [idea, setIdea] = useState<string | null>(ART_IDEAS[0].key);
   const [typed, setTyped] = useState('');
+  const [familyFriendly, setFamilyFriendly] = useState(false);
   const query = idea ? ART_IDEAS.find((i) => i.key === idea)!.query : typed;
-  const browse = usePickerBrowse({ kind: 'art', collection: provider, query });
+  const browse = usePickerBrowse({ kind: 'art', collection: provider, query, familyFriendly });
 
   return (
     <div className="flex flex-1 min-h-0">
@@ -44,6 +46,9 @@ export default function ArtTab({ selection, onSelect, copying }: PickerTabProps)
             onChange={(next) => { setProvider(next); onSelect(null); }}
             options={ART_PROVIDERS.map((value) => ({ value, label: t(`photoSources.art.providers.${value}`) }))}
           />
+        </div>
+        <div className="px-1 pb-1" title={t('photoSources.art.familyFriendlyHint')}>
+          <Toggle label={t('photoSources.art.familyFriendly')} checked={familyFriendly} onChange={(next) => { setFamilyFriendly(next); onSelect(null); }} />
         </div>
         <PickerGroup title={t('photoSources.picker.ideas')} />
         {ART_IDEAS.map((i) => (

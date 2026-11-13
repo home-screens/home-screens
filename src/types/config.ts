@@ -525,6 +525,12 @@ export type PhotoSource =
        * Applies to a rotating background; a slideshow always shows the whole painting.
        */
       fit?: ArtFit;
+      /**
+       * Leave out paintings that look nude, for a home with children
+       *
+       * Best effort and not guaranteed: it goes by the museums' subject data and a few words in the title, so some paintings can still get through. Unset means off.
+       */
+      familyFriendly?: boolean;
     }
   | {
       /**

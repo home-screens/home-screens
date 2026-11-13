@@ -51,9 +51,21 @@ describe('ArtSourceFields', () => {
     view.unmount();
 
     renderArt();
-    expect(document.querySelectorAll('input')).toHaveLength(0);
+    expect(document.querySelectorAll('input[type=number], input[type=text]')).toHaveLength(0);
     addFilter('genre');
     expect(screen.getByText('Subject', { selector: 'span' })).toBeTruthy();
+  });
+
+  it('shows the family friendly switch without the filter menu and saves it only when on', () => {
+    const { onChange, view } = renderArt();
+    expect(screen.getByText('Best effort, not guaranteed')).toBeTruthy();
+    fireEvent.click(screen.getByRole('switch'));
+    expect(onChange).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia', familyFriendly: true });
+    view.unmount();
+
+    const again = renderArt({ familyFriendly: true });
+    fireEvent.click(screen.getByRole('switch'));
+    expect(again.onChange).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia' });
   });
 
   it('saves the period as whole years and the genre as a choice', () => {

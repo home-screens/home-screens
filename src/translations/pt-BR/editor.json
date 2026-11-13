@@ -6061,6 +6061,8 @@
         "landscape": "Paisagem (deitado)"
       },
       "minSize": "Menor lado (pixels)",
+      "familyFriendly": "Para toda a família",
+      "familyFriendlyHint": "Melhor esforço, sem garantia",
       "shape": "Parecido com o formato da tela",
       "shapes": {
         "any": "Qualquer formato",

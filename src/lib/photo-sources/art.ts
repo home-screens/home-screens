@@ -32,6 +32,11 @@ const GENRES: Record<ArtGenre, { wikidata: string; aic: string[]; word: string }
   'nude': { wikidata: 'Q40446', aic: ['nude', 'nudes'], word: 'nude' },
 };
 
+// Best effort: Wikidata nude genre (P136), nudity depiction (P180) and erotic art, AIC subject terms, and a few title words.
+const NUDE_ITEMS = ['Q40446', 'Q10791', 'Q1168168'];
+const NUDE_AIC_TERMS = ['nudes', 'nudity'];
+const NUDE_WORDS = /\b(nudes?|naked|nudity|nu|akt|bathers?|baigneuses?|badende|desnud[oa]s?|nudo|nuda)\b/i;
+
 const BATCH = 50;
 const STREAM_WIDTH = 1920;
 const IMPORT_WIDTH = 2560;
@@ -54,6 +59,8 @@ interface ArtWork {
   url: (width: number) => string;
   /** Only set for a licence that asks for credit (CC BY). */
   license?: string;
+  /** Extra text the museum gives, searched for the family-friendly filter. */
+  blurb?: string;
 }
 
 const cache = createTTLCache<unknown>(6 * HOUR);
@@ -97,12 +104,17 @@ const sparql = async (query: string, init: FetchRetryOptions = {}) => (await get
   `${WIKIDATA_SPARQL}?${new URLSearchParams({ query, format: 'json' })}`, 'Wikidata', { ...init, headers: { Accept: 'application/sparql-results+json' } },
 )).results?.bindings ?? [];
 
-const paintingQuery = (where: string, tail = '') => `SELECT ?item ?itemLabel ?creatorLabel ?image ?date ?collectionLabel WHERE {
+const NUDE_TAGGED = `?item wdt:P136|wdt:P180 ?nude . VALUES ?nude { ${NUDE_ITEMS.map((id) => `wd:${id}`).join(' ')} }`;
+// A nude tag is read per row and dropped afterwards: a MINUS or NOT EXISTS over a big museum takes 20 s or more.
+const paintingQuery = (where: string, tail = '', family?: Family) => `SELECT ?item ?itemLabel ?creatorLabel ?image ?date ?collectionLabel${family?.familyFriendly ? ' ?nude' : ''} WHERE {
   ${where}
+  ${family?.familyFriendly ? `OPTIONAL { ${NUDE_TAGGED} }` : ''}
   OPTIONAL { ?item wdt:P170 ?creator } OPTIONAL { ?item wdt:P571 ?date } OPTIONAL { ?item wdt:P195 ?collection }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
 } ${tail}`;
 const PAINTINGS = `?item wdt:P31 wd:${PAINTING} ; wdt:P18 ?image .`;
+type Family = Pick<ArtSource, 'familyFriendly'>;
+const mild = (source: Family, works: ArtWork[]) => (source.familyFriendly ? works.filter((work) => !NUDE_WORDS.test(`${work.title} ${work.blurb ?? ''}`)) : works);
 
 const qidOf = (value: string | undefined) => /\/(Q\d+)$/.exec(value ?? '')?.[1];
 
@@ -146,10 +158,11 @@ async function commonsInfo(names: string[]): Promise<Map<string, FileInfo>> {
 
 async function openWorks(rows: Row[]): Promise<ArtWork[]> {
   const byItem = new Map<string, { row: Row; name: string }>();
+  const nude = new Set(rows.filter((row) => row.nude).map((row) => qidOf(row.item?.value)));
   for (const row of rows) {
     const qid = qidOf(row.item?.value);
     const name = row.image && commonsFileName(row.image.value);
-    if (qid && name && !byItem.has(qid)) byItem.set(qid, { row, name });
+    if (qid && name && !nude.has(qid) && !byItem.has(qid)) byItem.set(qid, { row, name });
   }
   const info = await commonsInfo([...new Set([...byItem.values()].map((entry) => entry.name))]);
   const works: ArtWork[] = [];
@@ -203,8 +216,8 @@ async function wikidataClauses(source: ArtSource): Promise<{ clauses: string[]; 
 async function wikimediaWorks(source: ArtSource): Promise<ArtWork[]> {
   const asked = await wikidataClauses(source);
   if (!asked) return [];
-  const page = (offset: number) => memo(`wikimedia:${JSON.stringify([asked.clauses, offset])}`, async () => openWorks(await sparql(
-    paintingQuery(`${PAINTINGS} ${asked.clauses.join('\n  ')}`, `LIMIT ${BATCH * 2} OFFSET ${offset}`),
+  const page = (offset: number) => memo(`wikimedia:${JSON.stringify([asked.clauses, offset, !!source.familyFriendly])}`, async () => openWorks(await sparql(
+    paintingQuery(`${PAINTINGS} ${asked.clauses.join('\n  ')}`, `LIMIT ${BATCH * 2} OFFSET ${offset}`, source),
   )));
   const offset = source.artist?.trim() || source.style?.trim() ? 0 : randomInt(asked.narrowed ? 10 : 40) * BATCH;
   const works = await page(offset);
@@ -214,18 +227,23 @@ async function wikimediaWorks(source: ArtSource): Promise<ArtWork[]> {
 async function wikimediaCount(source: ArtSource): Promise<ArtCount> {
   const asked = await wikidataClauses(source);
   if (!asked) return { count: 0, approximate: true };
-  const query = `SELECT (COUNT(DISTINCT ?item) AS ?n) WHERE { ${PAINTINGS} ${asked.clauses.join('\n  ')} }`;
-  const known = cache.get(`count:${query}`) as ArtCount | null;
+  const body = `${PAINTINGS} ${asked.clauses.join('\n  ')}`;
+  const key = `count:${body}:${!!source.familyFriendly}`;
+  const known = cache.get(key) as ArtCount | null;
   if (known) return known;
-  let count: number | null = null;
-  try {
-    const rows = await sparql(query, { timeout: 8_000, retries: 0 });
-    count = Number(rows[0]?.n?.value);
-    if (!Number.isFinite(count)) count = null;
-  } catch {
-  }
+  const ask = async (extra = '') => {
+    try {
+      const n = Number((await sparql(`SELECT (COUNT(DISTINCT ?item) AS ?n) WHERE { ${body} ${extra} }`, { timeout: 8_000, retries: 0 }))[0]?.n?.value);
+      return Number.isFinite(n) ? n : null;
+    } catch {
+      return null;
+    }
+  };
+  const total = await ask();
+  const nudes = source.familyFriendly && total !== null ? await ask(NUDE_TAGGED) : 0;
+  const count = total === null || nudes === null ? null : total - nudes;
   const answer = { count, approximate: true };
-  cache.set(`count:${query}`, answer, count === null ? 5 * 60_000 : undefined);
+  cache.set(key, answer, count === null ? 5 * 60_000 : undefined);
   return answer;
 }
 
@@ -241,6 +259,7 @@ interface AicHit {
 }
 
 const AIC_BASE = [{ term: { is_public_domain: true } }, { match_phrase: { artwork_type_title: 'Painting' } }, { exists: { field: 'image_id' } }];
+const aicNotNude = { bool: { must_not: NUDE_AIC_TERMS.map((term) => ({ match_phrase: { subject_titles: term } })) } };
 const AIC_FIELDS = ['id', 'title', 'artist_title', 'date_display', 'image_id', 'thumbnail'];
 
 function aicMust(source: ArtSource): unknown[] {
@@ -252,6 +271,7 @@ function aicMust(source: ArtSource): unknown[] {
   if (source.fromYear !== undefined) must.push({ range: { date_end: { gte: source.fromYear } } });
   if (source.toYear !== undefined) must.push({ range: { date_start: { lte: source.toYear } } });
   if (source.genre) must.push({ bool: { should: GENRES[source.genre].aic.map((term) => ({ match_phrase: { subject_titles: term } })), minimum_should_match: 1 } });
+  if (source.familyFriendly) must.push(aicNotNude);
   return must;
 }
 
@@ -297,9 +317,11 @@ interface ClevelandHit {
   images?: { web?: ClevelandImage; print?: ClevelandImage } | null;
   type?: string;
   share_license_status?: string;
+  description?: string | null;
 }
 
 const CLEVELAND_FIELDS = 'id,title,creation_date,creators,images';
+const clevelandFields = (source: Family) => (source.familyFriendly ? `${CLEVELAND_FIELDS},description` : CLEVELAND_FIELDS);
 
 function clevelandWork(hit: ClevelandHit, minShortSide: number): ArtWork | null {
   const images = [hit.images?.web, hit.images?.print].flatMap((image) => {
@@ -318,6 +340,7 @@ function clevelandWork(hit: ClevelandHit, minShortSide: number): ArtWork | null 
     width: image.width,
     height: image.height,
     url: () => image.url,
+    ...(hit.description ? { blurb: hit.description } : {}),
   };
 }
 
@@ -338,19 +361,26 @@ function clevelandParams(source: ArtSource, extra: Record<string, string>): URLS
 
 async function clevelandWorks(source: ArtSource): Promise<ArtWork[]> {
   const minShortSide = source.minShortSide ?? DEFAULT_ART_MIN_SHORT_SIDE;
-  const ask = async (skip: number) => (await clevelandSearch(clevelandParams(source, { limit: String(BATCH), skip: String(skip), fields: CLEVELAND_FIELDS })))
+  const ask = async (skip: number) => (await clevelandSearch(clevelandParams(source, { limit: String(BATCH), skip: String(skip), fields: clevelandFields(source) })))
     .hits.flatMap((hit) => clevelandWork(hit, minShortSide) ?? []);
   const filtered = !!(source.artist?.trim() || source.style?.trim() || source.genre || source.fromYear !== undefined || source.toYear !== undefined);
   const works = await ask(filtered ? 0 : randomInt(20) * BATCH);
   return works.length > 0 || filtered ? works : ask(0);
 }
 
+/** Cleveland has no subject field, so its paintings that mention a nude in the description are taken off the total. */
+async function clevelandNudes(source: ArtSource): Promise<number> {
+  const params = clevelandParams(source, { limit: '1', fields: 'id' });
+  params.set('q', [params.get('q'), 'nude'].filter(Boolean).join(' '));
+  return (await clevelandSearch(params)).total;
+}
+
 export async function artCount(source: ArtSource): Promise<ArtCount> {
   if (source.provider === 'wikimedia') return wikimediaCount(source);
   const count = source.provider === 'aic'
     ? (await aicSearch(aicMust(source), 1, 1)).total
-    : (await clevelandSearch(clevelandParams(source, { limit: '1', fields: 'id' }))).total;
-  return { count, approximate: false };
+    : (await clevelandSearch(clevelandParams(source, { limit: '1', fields: 'id' }))).total - (source.familyFriendly ? await clevelandNudes(source) : 0);
+  return { count, approximate: !!source.familyFriendly && source.provider === 'cleveland' };
 }
 
 /** Slow museums are listed without a count and tried on a later visit. */
@@ -398,16 +428,16 @@ const tileOf = (provider: ArtProvider, work: ArtWork): BrowseItem => ({
   ...(work.artist ? { credit: { name: work.artist } } : {}),
 });
 
-async function wikimediaBrowse(words: string, page: number): Promise<BrowsePage> {
+async function wikimediaBrowse(words: string, page: number, source: Family): Promise<BrowsePage> {
   const matches = await resolveKeyword(words);
   if (matches.length > 0) {
     // One branch per entity with the id written in; a museum list under the department path is far slower.
     const branches = matches.flatMap((m) => m.roles.map((role) => `{ ?item ${role === 'museum' ? 'wdt:P195/wdt:P361*' : `wdt:${PROPERTY[role]}`} wd:${m.id} }`));
     // No sort: ordering the union of a big museum and a movement outruns Wikidata's time limit.
-    const rows = await sparql(paintingQuery(`${PAINTINGS} ${branches.join(' UNION ')}`, `LIMIT ${WIKIMEDIA_ROWS} OFFSET ${(page - 1) * WIKIMEDIA_ROWS}`), BROWSE_FETCH);
+    const rows = await sparql(paintingQuery(`${PAINTINGS} ${branches.join(' UNION ')}`, `LIMIT ${WIKIMEDIA_ROWS} OFFSET ${(page - 1) * WIKIMEDIA_ROWS}`, source), BROWSE_FETCH);
     if (rows.length > 0 || page > 1) {
       return {
-        items: (await openWorks(rows)).map((work) => tileOf('wikimedia', work)),
+        items: mild(source, await openWorks(rows)).map((work) => tileOf('wikimedia', work)),
         nextPage: rows.length >= WIKIMEDIA_ROWS ? page + 1 : null,
         matched: matches.map(({ type, label }) => ({ type, label })),
       };
@@ -419,21 +449,21 @@ async function wikimediaBrowse(words: string, page: number): Promise<BrowsePage>
       mwapi:generator "search" ; mwapi:gsrsearch "${safe} haswbstatement:P31=${PAINTING}" ; mwapi:gsrlimit "50" ; mwapi:gsroffset "${(page - 1) * 50}" .
     ?item wikibase:apiOutputItem mwapi:title .
   }
-  ?item wdt:P18 ?image .`), BROWSE_FETCH);
+  ?item wdt:P18 ?image .`, '', source), BROWSE_FETCH);
   const paintings = new Set(rows.map((row) => row.item?.value)).size;
-  return { items: (await openWorks(rows)).map((work) => tileOf('wikimedia', work)), nextPage: paintings >= 20 ? page + 1 : null, matched: [] };
+  return { items: mild(source, await openWorks(rows)).map((work) => tileOf('wikimedia', work)), nextPage: paintings >= 20 ? page + 1 : null, matched: [] };
 }
 
-async function aicBrowse(words: string, page: number): Promise<BrowsePage> {
+async function aicBrowse(words: string, page: number, source: Family): Promise<BrowsePage> {
   const fields = ['title', 'artist_title', 'style_title', 'subject_titles', 'term_titles', 'place_of_origin'];
-  const { works, totalPages } = await aicSearch([...AIC_BASE, { multi_match: { query: words, fields } }], page, BROWSE_PAGE);
-  return { items: works.map((work) => tileOf('aic', work)), nextPage: page < totalPages ? page + 1 : null };
+  const { works, totalPages } = await aicSearch([...AIC_BASE, { multi_match: { query: words, fields } }, ...(source.familyFriendly ? [aicNotNude] : [])], page, BROWSE_PAGE);
+  return { items: mild(source, works).map((work) => tileOf('aic', work)), nextPage: page < totalPages ? page + 1 : null };
 }
 
-async function clevelandBrowse(words: string, page: number): Promise<BrowsePage> {
-  const params = new URLSearchParams({ type: 'Painting', cc0: '1', has_image: '1', q: words, limit: String(BROWSE_PAGE), skip: String((page - 1) * BROWSE_PAGE), fields: CLEVELAND_FIELDS });
+async function clevelandBrowse(words: string, page: number, source: Family): Promise<BrowsePage> {
+  const params = new URLSearchParams({ type: 'Painting', cc0: '1', has_image: '1', q: words, limit: String(BROWSE_PAGE), skip: String((page - 1) * BROWSE_PAGE), fields: clevelandFields(source) });
   const { hits, total } = await clevelandSearch(params, BROWSE_FETCH);
-  return { items: hits.flatMap((hit) => clevelandWork(hit, 0) ?? []).map((work) => tileOf('cleveland', work)), nextPage: page * BROWSE_PAGE < total ? page + 1 : null };
+  return { items: mild(source, hits.flatMap((hit) => clevelandWork(hit, 0) ?? [])).map((work) => tileOf('cleveland', work)), nextPage: page * BROWSE_PAGE < total ? page + 1 : null };
 }
 
 const wikimediaOne = async (id: string) => (await openWorks(await sparql(paintingQuery(`VALUES ?item { wd:${id} } ${PAINTINGS}`), BROWSE_FETCH)))[0] ?? null;
@@ -466,11 +496,11 @@ async function explained<T>(provider: ArtProvider, run: () => Promise<T>): Promi
 export const artPickableSource: PickableSource = {
   kind: 'art',
 
-  async browse({ collection, page, query }) {
+  async browse({ collection, page, query, familyFriendly }) {
     const provider = ART_PROVIDERS.find((p) => p === collection) ?? 'wikimedia';
     const words = query?.trim();
     if (!words) return { items: [], nextPage: null };
-    return memo(`browse:${JSON.stringify([provider, words.toLowerCase(), page])}`, () => explained(provider, () => PROVIDERS[provider].browse(words, page)));
+    return memo(`browse:${JSON.stringify([provider, words.toLowerCase(), page, !!familyFriendly])}`, () => explained(provider, () => PROVIDERS[provider].browse(words, page, { familyFriendly })));
   },
 
   async importOne({ ref, folder }) {
@@ -502,7 +532,7 @@ async function worksFor(source: ArtSource, canvas: { w: number; h: number }): Pr
     minShortSide: source.minShortSide ?? DEFAULT_ART_MIN_SHORT_SIDE,
     aspectTolerance: source.aspectTolerance,
   };
-  return (await PROVIDERS[source.provider].works(source)).filter((work) => paintingFits(work, filters, canvas));
+  return mild(source, await PROVIDERS[source.provider].works(source)).filter((work) => paintingFits(work, filters, canvas));
 }
 
 export const artPhotoSource: PhotoSourceAdapter<'art'> = {

@@ -8684,6 +8684,15 @@
                 ]
               },
               "description": "How a painting sits on the screen"
+            },
+            {
+              "name": "familyFriendly",
+              "optional": true,
+              "type": {
+                "kind": "boolean",
+                "text": "boolean"
+              },
+              "description": "Leave out paintings that look nude, for a home with children"
             }
           ]
         },

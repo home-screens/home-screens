@@ -7,7 +7,7 @@ import { getPickableSource, photoSourceErrorResponse } from '@/lib/photo-sources
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/photo-source/browse?kind=immich|unsplash|nasa|art&collection=<id>&page=N[&query=words][&orientation=portrait|landscape]
+ * GET /api/photo-source/browse?kind=immich|unsplash|nasa|art&collection=<id>&page=N[&query=words][&orientation=portrait|landscape][&family=1]
  *
  * One page of the Image Library's grid for a source: `{ items, nextPage }`.
  * `collection` is the sidebar entry (`all`, `favorites`, `album:<id>`,
@@ -31,6 +31,7 @@ export const GET = withAuth(async (request: NextRequest) => {
       collection,
       page,
       query,
+      ...(params.get('family') === '1' ? { familyFriendly: true } : {}),
       ...(orientation === 'portrait' || orientation === 'landscape' ? { orientation } : {}),
       ...(refs.length > 0 ? { refs } : {}),
     });

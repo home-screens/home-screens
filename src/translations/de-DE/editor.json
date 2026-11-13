@@ -6061,6 +6061,8 @@
         "landscape": "Querformat"
       },
       "minSize": "Kürzeste Seite (Pixel)",
+      "familyFriendly": "Familienfreundlich",
+      "familyFriendlyHint": "So gut es geht, ohne Garantie",
       "shape": "Zur Form des Bildschirms passend",
       "shapes": {
         "any": "Jede Form",

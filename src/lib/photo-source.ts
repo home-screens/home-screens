@@ -268,6 +268,7 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
         ...(minShortSide !== undefined ? { minShortSide } : {}),
         ...(aspectTolerance !== undefined ? { aspectTolerance } : {}),
         ...(fit ? { fit } : {}),
+        ...(v.familyFriendly === true ? { familyFriendly: true } : {}),
       };
     }
     default:
@@ -383,7 +384,7 @@ export function sourceCacheKey(source: PhotoSource): string {
     case 'art': return JSON.stringify([
       'art', source.provider, (source.artist ?? '').toLowerCase(), (source.style ?? '').toLowerCase(),
       [...(source.museums ?? [])].sort(), source.fromYear ?? null, source.toYear ?? null, source.genre ?? null,
-      source.orientation ?? 'any', source.minShortSide ?? null, source.aspectTolerance ?? null, source.fit ?? DEFAULT_ART_FIT,
+      source.orientation ?? 'any', source.minShortSide ?? null, source.aspectTolerance ?? null, source.fit ?? DEFAULT_ART_FIT, !!source.familyFriendly,
     ]);
   }
 }
@@ -498,6 +499,7 @@ export function photoSourceParams(source: PhotoSource): URLSearchParams {
       if (source.orientation) params.set('orientation', source.orientation);
       if (source.minShortSide !== undefined) params.set('minShort', String(source.minShortSide));
       if (source.aspectTolerance !== undefined) params.set('tolerance', String(source.aspectTolerance));
+      if (source.familyFriendly) params.set('family', '1');
       if (source.fit) params.set('fit', source.fit);
       break;
   }
@@ -528,6 +530,7 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
       minShortSide: params.has('minShort') ? Number(get('minShort')) : undefined,
       aspectTolerance: params.has('tolerance') ? Number(get('tolerance')) : undefined,
       fit: get('fit'),
+      familyFriendly: params.get('family') === '1',
     });
     default: return null;
   }

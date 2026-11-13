@@ -258,6 +258,13 @@ describe('PicturePicker Art tab', () => {
     expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=aic&page=1&query=water+lilies')).toBe(true);
   });
 
+  it('asks the museums to leave nudes out once the family friendly switch is on', async () => {
+    await openArt();
+    fireEvent.click(screen.getByRole('switch'));
+    await settle();
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Impressionism&family=1')).toBe(true);
+  });
+
   it('shows the credit when a painting is chosen and copies it on Select Image', async () => {
     routes.push((url) => (url === '/api/photo-source/import' ? { status: 201, body: { path: '/api/backgrounds/serve?file=art%2Fart-wikimedia_Q1.jpg' } } : undefined));
     const onSelectImage = await openArt();

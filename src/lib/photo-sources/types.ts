@@ -44,6 +44,8 @@ export interface BrowseArgs {
   query?: string;
   /** The wall's shape, for sources that can prefer pictures shaped like it. */
   orientation?: 'portrait' | 'landscape';
+  /** Leave out paintings that look nude, best effort (art). */
+  familyFriendly?: boolean;
   /** For the `picked` collection: the photos to look up, so picks can be shown as tiles. */
   refs?: string[];
 }

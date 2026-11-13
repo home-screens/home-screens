@@ -6061,6 +6061,8 @@
         "landscape": "Bredformat"
       },
       "minSize": "Korteste side (pixel)",
+      "familyFriendly": "Børnevenlig",
+      "familyFriendlyHint": "Så godt som muligt, ingen garanti",
       "shape": "Passer til skærmens form",
       "shapes": {
         "any": "Alle former",
