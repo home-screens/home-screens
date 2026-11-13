@@ -148,11 +148,34 @@ export default function ScheduleWeekStrip({
 
   /** Pointer position → the day row and the snapped minute under it. */
   const pointToSlot = useCallback((clientX: number, clientY: number) => {
-    const box = rowsRef.current?.getBoundingClientRect();
-    if (!box) return null;
-    const day = Math.max(0, Math.min(6, Math.floor((clientY - box.top) / ROW_PITCH)));
-    // Tracks are inset by the chip gutter; measure against a track, not the row.
-    const track = rowsRef.current?.querySelector('[data-track]')?.getBoundingClientRect();
+    // Hit-test the row under the pointer directly rather than deriving it
+    // from a remembered container top and a hardcoded row pitch: a fixed
+    // arithmetic offset silently goes stale the moment anything above the
+    // strip reflows between the drag's start and a later pointermove, and a
+    // captured `clientY` is never re-validated against the row it was aimed
+    // at. Hit-testing always reflects the row actually under the cursor right
+    // now, so it self-corrects regardless of any such shift.
+    // Only a row of this strip counts. The drag listens on the window, so the
+    // pointer can be over another strip (a second time condition below this
+    // one), whose rows carry days of their own.
+    const under = document
+      .elementFromPoint(clientX, clientY)
+      ?.closest<HTMLElement>('[data-track]');
+    const hit = under && rowsRef.current?.contains(under) ? under : null;
+    const dayAttr = hit?.dataset.day;
+    let day: number;
+    let track: DOMRect | undefined;
+    if (dayAttr !== undefined) {
+      day = Number(dayAttr);
+      track = hit!.getBoundingClientRect();
+    } else {
+      // Between rows (the gutter margin) or off the strip entirely: fall
+      // back to the pitch estimate, clamped to a valid row.
+      const box = rowsRef.current?.getBoundingClientRect();
+      if (!box) return null;
+      day = Math.max(0, Math.min(6, Math.floor((clientY - box.top) / ROW_PITCH)));
+      track = rowsRef.current?.querySelector('[data-track]')?.getBoundingClientRect();
+    }
     if (!track || track.width === 0) return null;
     const ratio = Math.max(0, Math.min(1, (clientX - track.left) / track.width));
     const minute = Math.round((ratio * MINUTES_PER_DAY) / SNAP_MINUTES) * SNAP_MINUTES;
@@ -329,6 +352,7 @@ export default function ScheduleWeekStrip({
                   off the square band ends that carry the "continues" signal. */}
               <div
                 data-track
+                data-day={day}
                 data-testid={`schedule-track-${day}`}
                 className="relative flex-1 h-[18px] rounded-sm bg-hs-card"
               >
