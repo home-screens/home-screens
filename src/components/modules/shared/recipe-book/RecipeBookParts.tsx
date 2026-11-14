@@ -1,7 +1,5 @@
 'use client';
 
-import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
-
 import { wallPressProps } from '../wallPress';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -13,6 +11,7 @@ import { chipsThatFit, recipeBookChipId, type RecipeBookChip } from '@/lib/meal-
 import { useElementBox } from '@/hooks/useElementBox';
 import MealPicture from '@/components/meals/MealPicture';
 import { useMealMinutes } from '../useMealMinutes';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 /** The chooser of every chip closes itself after this long with no touch, like the event detail. */
 export const CHIP_SHEET_AUTO_CLOSE_MS = 45_000;

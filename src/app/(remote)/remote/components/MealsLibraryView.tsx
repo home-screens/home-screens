@@ -1,11 +1,11 @@
 'use client';
 
-import { FamilyMealRatingButton, FamilyMealSummary } from '@/components/meals/FamilyMealRating';
-
 import type { SavedMeal } from '@/types/config';
 import type { MealFormState } from '../hooks/useMealForm';
 import type { WallNotices } from '../hooks/useShowRecipeOnWall';
 import { INPUT_STYLE, CARD_STYLE, formatShownMinutes } from './meals-shared';
+import { FamilyMealSummary } from '@/components/meals/meal-votes';
+import MealRateButton from './MealRatingSheet';
 import { LIBRARY_FILTERS, DEFAULT_MEAL_EMOJI, formatTagLabel, type LibraryFilter } from '@/lib/meal-constants';
 import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { mealHasRecipe } from '@/lib/meal-recipe';
@@ -167,7 +167,7 @@ export default function MealsLibraryView({
                 <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)', marginBottom: 4 }}>
                   {meal.name}
                 </div>
-                <FamilyMealSummary meal={meal} style={{ display: 'block', fontSize: 12 }} />
+                <FamilyMealSummary meal={meal} style={{ display: 'block', fontSize: 12, color: 'var(--hs-text-muted)', marginBottom: 4 }} />
                 <div style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)' }}>
                   {/* A side, dessert or drink says so; a main dish needs no label. */}
                   {meal.category && meal.category !== 'main' && (
@@ -197,7 +197,7 @@ export default function MealsLibraryView({
               </div>
             </button>
 
-            <FamilyMealRatingButton meal={meal} style={{ fontSize: 12 }} />
+            <MealRateButton meal={meal} />
             {mealHasRecipe(meal) && <RecipeWallButton meal={meal} notices={wallNotices} />}
 
             <button

@@ -1,8 +1,7 @@
 'use client';
 
-import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
-
 import { Fragment, useCallback, useMemo, useRef, type CSSProperties } from 'react';
+import { Star } from 'lucide-react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
 import { SLOT_META, getLocalizedDayNames, resolveMealWithEntry, dateToDayIndex, formatMealTime, resolvePlannedMealTime, weekPlannedSlots } from '@/lib/meal-constants';
@@ -17,6 +16,8 @@ import { GRID_PICTURE_SIZE } from '@/lib/meal-constants';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { withAlpha } from '@/lib/hex-color';
+import { familyMealAverage } from '@/lib/meal-ratings';
+import { useMealVotes } from '@/components/meals/meal-votes';
 
 interface WeekViewProps {
   config: MealPlannerConfig;
@@ -55,6 +56,8 @@ const TIME_CHAR_EM = 0.6;
 const COUNT_PAD_EM = 0.42;
 /** The line under a name: the course count's pill is the taller of what it holds. */
 const SMALL_LINE_HEIGHT = 1.45;
+/** The rating's star and the gap after it, in em of the small line's type. */
+const RATING_STAR_EM = 1.25;
 /** A word of a dish name too long for a line of its cell: cut with an ellipsis. */
 const LONG_WORD_STYLE: CSSProperties = {
   display: 'inline-block',
@@ -67,7 +70,10 @@ const LONG_WORD_STYLE: CSSProperties = {
 
 export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekDates, todayISO, recipeTapMode, fontSize, interactive }: WeekViewProps) {
   const t = useTranslate('modules');
+  const tCore = useTranslate('core');
   const formattingLocale = useFormattingLocale();
+  const votes = useMealVotes();
+  const showRatings = config.showFamilyRatings !== false;
   const dayNames = useMemo(() => getLocalizedDayNames(formattingLocale, 'short'), [formattingLocale]);
   // Another week has no today to rest at: it starts at its top.
   const showsToday = weekDates.includes(todayISO);
@@ -176,6 +182,10 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                 const pictured = showEmoji && mealHasPicture(meal);
                 const courseCount = courses.length;
                 const words = name ? weekCellWords(name) : [];
+                const rating = showRatings && meal ? familyMealAverage(votes, meal.id) : null;
+                const ratingText = rating && rating.average !== null
+                  ? rating.average.toLocaleString(formattingLocale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+                  : '';
                 const layout = weekCellLayout({
                   cellPx,
                   rowPx,
@@ -185,6 +195,7 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                   picturePx: pictured ? PICTURE_LINE_EM * fontSize : 0,
                   timePx: timeLabel.length * TIME_CHAR_EM * smallPx,
                   countPx: courseCount > 0 ? (String(courseCount).length + 1) * TIME_CHAR_EM * smallPx + 2 * COUNT_PAD_EM * smallPx : 0,
+                  ratingPx: ratingText ? (ratingText.length * TIME_CHAR_EM + RATING_STAR_EM) * smallPx : 0,
                   smallLinePx: SMALL_LINE_HEIGHT * smallPx,
                 });
                 const count = <MealCourseCount count={courseCount} color={SLOT_META[slot].color} fontSize="max(0.55em, 11px)" />;
@@ -248,10 +259,11 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                           </span>
                           {layout.countAt === 'name' && count}
                         </MealTapTarget>
-                        <FamilyMealStars meal={meal} size="max(0.6em, 12px)" />
                         {/* The serving time, under the name where it costs the
-                            name no width; left off when the row has no room. */}
-                        {(layout.showTime || layout.countAt === 'line') && (
+                            name no width; left off when the row has no room. The
+                            family's rating follows it, one star and the average:
+                            five stars are wider than most cells. */}
+                        {(layout.showTime || layout.countAt === 'line' || layout.showRating) && (
                           <span className="flex flex-wrap items-center min-w-0" style={{ gap: `${WEEK_LINE_GAP_PX}px ${WEEK_GAP_PX}px` }}>
                             {layout.showTime && (
                               <span
@@ -268,6 +280,25 @@ export function WeekView({ config, settings, timeFormat, plan, savedMeals, weekD
                               </span>
                             )}
                             {layout.countAt === 'line' && count}
+                            {layout.showRating && rating && (
+                              <span
+                                role="img"
+                                data-meal-week-rating=""
+                                aria-label={tCore('mealRatings.average', { average: ratingText, count: rating.count })}
+                                className="inline-flex items-center"
+                                style={{
+                                  gap: '0.25em',
+                                  fontSize: 'max(0.55em, 11px)',
+                                  lineHeight: 1.3,
+                                  opacity: TEXT_OPACITY.tertiary,
+                                  fontVariantNumeric: 'tabular-nums',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                <Star size="0.95em" fill="currentColor" strokeWidth={0} aria-hidden="true" />
+                                {ratingText}
+                              </span>
+                            )}
                           </span>
                         )}
                       </>

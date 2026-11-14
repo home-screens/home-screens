@@ -1,8 +1,7 @@
 'use client';
 
-import { FamilyMealRatingButton, FamilyMealSummary } from '@/components/meals/FamilyMealRating';
-
 import { useCallback, useEffect, useState } from 'react';
+import { MealRatingControl } from './MealRatingControl';
 import { ExternalLink, Heart, History, Pencil, Search, X } from 'lucide-react';
 import type { SavedMeal } from '@/types/config';
 import { editorFetch } from '@/lib/editor-fetch';
@@ -207,9 +206,8 @@ export function MealieDetail({ meal }: { meal: SavedMeal | null }) {
         </div>
       )}
       <div className="mt-3 text-lg font-bold text-hs-text-body leading-snug">{meal.name}</div>
-      <FamilyMealSummary meal={meal} />
-      <FamilyMealRatingButton meal={meal} />
       {meta && <div className="mt-0.5 text-xs text-hs-text-faint">{meta}</div>}
+      <div className="mt-3"><MealRatingControl meal={meal} /></div>
       {(favorite.isFavorite !== null || meal.recipeUrl) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {favorite.isFavorite !== null && (

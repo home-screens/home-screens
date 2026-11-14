@@ -1,4 +1,4 @@
-import { FamilyMealStars, WallRateDinnerButton } from '@/components/meals/FamilyMealRating';
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { useCallback, useMemo, useRef } from 'react';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime, formatShortDayMonth, fromISODate, weekPlannedSlots } from '@/lib/meal-constants';
@@ -34,7 +34,7 @@ interface WeekViewProps extends MealPlannerViewProps {
  * bottom; on a touch wall a finger scrolls it, and it rests where today shows.
  */
 export default function WeekView({
-  config, settings, timeFormat, savedMeals, plan, now, slots, activeSlot, s, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
+  settings, timeFormat, savedMeals, plan, now, slots, activeSlot, s, showEmoji, showPrepTime, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
   weekDates, look,
 }: WeekViewProps) {
   const t = useTranslate('modules');
@@ -356,7 +356,7 @@ export default function WeekView({
         </div>
       )}
 
-      {weekEmpty && interactive && config.showFamilyRatings !== false && <WallRateDinnerButton size={P(24)} date={showsToday ? todayISO : weekDates[0]} />}
+      {weekEmpty && interactive && <WallRateDinnerButton size={P(24)} />}
       {weekEmpty && (
         <div data-testid="fmp-week-empty" style={{ flex: 1, display: 'flex', color: 'var(--fmp-text-2)' }}>
           <FamilyEmptyState
@@ -409,7 +409,7 @@ export default function WeekView({
             borderRadius: P(3), width: `${pct}%`, transition: 'width 0.5s ease',
           }} />
         </div>
-        {interactive && config.showFamilyRatings !== false && <div style={{ marginLeft: 'auto' }}><WallRateDinnerButton size={P(24)} date={showsToday ? todayISO : weekDates[0]} /></div>}
+        {interactive && <WallRateDinnerButton size={P(24)} style={{ marginLeft: 'auto' }} />}
       </div>
       )}
     </div>

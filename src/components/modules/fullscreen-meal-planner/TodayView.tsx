@@ -1,4 +1,4 @@
-import { FamilyMealStars, WallRateDinnerButton } from '@/components/meals/FamilyMealRating';
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, fromISODate, formatMealTime, resolvePlannedMealTime, mealDayLead, minutesOfDay } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
@@ -21,7 +21,7 @@ import { useMealMinutes } from '../shared/useMealMinutes';
  * its own height on a touch wall, and a finger scrolls down to the rest.
  */
 export default function TodayView({
-  config, settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
+  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showTags, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive, fitFloored,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const mealMinutes = useMealMinutes();
@@ -157,7 +157,6 @@ export default function TodayView({
               pillStyle={pillStyle}
               gap={P(14)}
             />
-            {interactive && config.showFamilyRatings !== false && <WallRateDinnerButton size={P(28)} date={day} />}
           </>
         ) : (
           <span style={{ fontSize: P(60), fontFamily: headerFont, color: 'var(--fmp-text-3)', lineHeight: 1.1 }}>
@@ -297,6 +296,11 @@ export default function TodayView({
           {cards}
         </WallScroller>
       ) : cards}
+
+      {/* At the view's bottom edge, apart from the meals, as in Week. Inside
+          the hero it read as a button for the lunch shown above it, and it
+          opens the last dinner the family sat down to. */}
+      {interactive && <WallRateDinnerButton size={P(24)} style={{ alignSelf: 'flex-end', marginTop: P(16) }} />}
     </div>
   );
 }

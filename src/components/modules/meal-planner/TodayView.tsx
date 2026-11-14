@@ -1,7 +1,5 @@
 'use client';
 
-import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
-
 import { motion } from 'framer-motion';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, MealSlotType, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER, ink } from '@/lib/constants';
@@ -13,6 +11,7 @@ import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
 import { withAlpha } from '@/lib/hex-color';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 interface TodayViewProps {
   config: MealPlannerConfig;

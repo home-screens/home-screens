@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { parseJsonBody, withDisplayAuth } from '@/lib/api-utils';
-import { readMealData, updateMealData } from '@/lib/meal-data';
+import { updateMealData } from '@/lib/meal-data';
 import { readFamilyData } from '@/lib/family-data';
 import { withDataTransaction } from '@/lib/data-transaction';
 import { claimsMealieId, parseMealieMealId } from '@/lib/mealie-map';
@@ -10,13 +10,12 @@ import { setFamilyMealRating, validMealVote } from '@/lib/meal-ratings';
 
 export const dynamic = 'force-dynamic';
 
-// Read votes and the roster together so a member removal cannot produce a mixed snapshot.
-export const GET = withDisplayAuth(async () => withDataTransaction(async () => {
-  const family = await readFamilyData();
-  const data = await readMealData();
-  return NextResponse.json({ ratings: data.familyRatings ?? [], members: family.members });
-}), 'Failed to load meal ratings');
-
+/**
+ * POST /api/meals/ratings: one person's stars for one recipe, or `rating:
+ * null` to take them back. The wall may send it (a display token), so it
+ * sits in the display tier like ticking a to-do. The votes themselves are
+ * read with the rest of the meals (`GET /api/meals/data`).
+ */
 export const POST = withDisplayAuth(withMealieErrors(async (req: NextRequest) => {
   const body = await parseJsonBody<{ mealId?: unknown; memberId?: unknown; rating?: unknown }>(req);
   if (body instanceof NextResponse) return body;
@@ -25,7 +24,7 @@ export const POST = withDisplayAuth(withMealieErrors(async (req: NextRequest) =>
   if (typeof mealId !== 'string' || !mealId || mealId.length > 200
     || typeof memberId !== 'string' || !memberId || memberId.length > 200
     || (rating !== null && !validMealVote(rating))) {
-    return NextResponse.json({ error: 'Choose a meal, a family member and 1–5 stars (or null to clear).' }, { status: 400 });
+    return NextResponse.json({ error: 'Choose a meal, a family member and 1 to 5 stars (or null to clear).' }, { status: 400 });
   }
   // Keep Mealie requests outside the data lock; clearing a vote still works while it is offline.
   if (claimsMealieId(mealId)) {
@@ -45,6 +44,6 @@ export const POST = withDisplayAuth(withMealieErrors(async (req: NextRequest) =>
       const next = setFamilyMealRating(votes, mealId, memberId, rating, new Date().toISOString());
       return next === votes ? current : { ...current, familyRatings: next };
     });
-    return NextResponse.json({ ratings: data.familyRatings ?? [], members: family.members });
+    return NextResponse.json({ ratings: data.familyRatings ?? [] });
   });
 }), 'Failed to save meal rating');

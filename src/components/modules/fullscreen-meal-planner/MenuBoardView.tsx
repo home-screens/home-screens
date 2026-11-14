@@ -1,4 +1,4 @@
-import { FamilyMealStars, WallRateDinnerButton } from '@/components/meals/FamilyMealRating';
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
@@ -19,7 +19,7 @@ import { withAlpha } from '@/lib/hex-color';
  * next. Sizes are authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function MenuBoardView({
-  config, settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive,
+  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -109,7 +109,7 @@ export default function MenuBoardView({
           const pictured = showEmoji && mealHasPicture(course.meal);
           const minutes = showPrepTime ? mealMinutes(course.meal) : null;
           return (
-          <div key={course.slot} style={{ display: 'flex', flexDirection: 'column', gap: P(18), minWidth: 0 }}>
+          <div key={course.slot} style={{ display: 'contents' }}>
             {/* Picture beside everything else, which shares one edge: slot
                 pill, name, courses, note, cooking time */}
             <MealTapTarget
@@ -192,8 +192,6 @@ export default function MenuBoardView({
                 )}
               </div>
             </MealTapTarget>
-            {/* Keep voting separate from the configured recipe-tap action. */}
-            {interactive && config.showFamilyRatings !== false && course.slot === 'dinner' && <div style={{ paddingLeft: anyPictured ? P(170) : 0, textAlign: anyPictured ? 'left' : 'center' }}><WallRateDinnerButton size={P(28)} date={todayISO} /></div>}
 
             {/* Separator between meals (single column only) */}
             {!twoUp && i < meals.length - 1 && (
@@ -206,7 +204,9 @@ export default function MenuBoardView({
 
       <div style={{ margin: `${P(30)}px 0`, width: '100%', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>{divider}</div>
 
-      {interactive && config.showFamilyRatings !== false && !meals.some((course) => course.slot === 'dinner') && <WallRateDinnerButton size={P(28)} date={todayISO} />}
+      {/* Under the menu, outside the meals: the meals and their separators keep
+          the spacing they share, and voting stays apart from what a tap on a meal opens. */}
+      {interactive && <WallRateDinnerButton size={P(28)} style={{ marginBottom: P(30) }} />}
 
       {/* Bottom ornament */}
       <div style={{ fontSize: P(30), color: 'var(--fmp-text-3)', letterSpacing: '0.5em', flexShrink: 0 }}>

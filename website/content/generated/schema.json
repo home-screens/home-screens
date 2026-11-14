@@ -9765,7 +9765,7 @@
             "kind": "array",
             "text": "FamilyMealRating[]"
           },
-          "description": "Individual family votes, stored separately from the original shared SavedMeal.rating."
+          "description": "The family's votes: one per person and recipe (see `meal-ratings.ts`)."
         },
         {
           "name": "savedMeals",
@@ -9955,15 +9955,6 @@
             "text": "string"
           },
           "description": "Notes"
-        },
-        {
-          "name": "rating",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Rating, 1 to 5"
         },
         {
           "name": "isFavorite",
@@ -11501,10 +11492,6 @@
     {
       "path": "/api/meals/ratings",
       "methods": [
-        {
-          "method": "GET",
-          "access": "display"
-        },
         {
           "method": "POST",
           "access": "display"

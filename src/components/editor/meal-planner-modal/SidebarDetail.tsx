@@ -1,9 +1,8 @@
 'use client';
 
-import { FamilyMealRatingButton, FamilyMealSummary } from '@/components/meals/FamilyMealRating';
-
 import { ingredientsToSave } from '@/lib/meal-ingredients';
 import { useState, useEffect, useMemo } from 'react';
+import { MealRatingControl } from './MealRatingControl';
 import type { SavedMeal, MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
 import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
@@ -96,7 +95,6 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
   const [ingredients, setIngredients] = useState<MealIngredient[]>([]);
   const [recipeUrl, setRecipeUrl] = useState('');
   const [notes, setNotes] = useState('');
-  const [rating, setRating] = useState<number | undefined>(undefined);
   const [emojiSearch, setEmojiSearch] = useState('');
 
   const filteredEmojis = useMemo(() => {
@@ -121,7 +119,6 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
     setIngredients(meal.ingredients ? meal.ingredients.map((i) => ({ ...i })) : []);
     setRecipeUrl(meal.recipeUrl ?? '');
     setNotes(meal.notes ?? '');
-    setRating(meal.rating);
     setEmojiSearch('');
   }, [meal?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -153,7 +150,6 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
       ingredients: ingredientsToSave(ingredients),
       recipeUrl: recipeUrl.trim() || undefined,
       notes: notes.trim() || undefined,
-      rating: rating || undefined,
       isFavorite: meal.isFavorite,
     };
     onSave(assembled);
@@ -194,22 +190,6 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           <span className="text-4xl"><Glyph value={emoji || DEFAULT_MEAL_EMOJI} fallback={DEFAULT_MEAL_EMOJI} /></span>
           <div className="flex-1">
             <div className="text-lg font-bold text-hs-text-body">{name || t('mealPlannerModal.detail.untitledFallback')}</div>
-            <div className="text-xs text-hs-text-faint">{tCore('mealRatings.originalLabel')}</div>
-            <div className="flex gap-0.5">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  className="text-base transition-colors"
-                  style={{ color: rating && star <= rating ? '#f59e0b' : 'var(--hs-text-faint)' }}
-                  aria-label={tCore('mealRatings.sharedStar', { count: star })}
-                  aria-pressed={rating === star}
-                  onClick={() => setRating(star === rating ? undefined : star)}
-                >
-                  ★
-                </button>
-              ))}
-            </div>
           </div>
           <button
             type="button"
@@ -221,8 +201,7 @@ export default function SidebarDetail({ meal, onSave, onDelete, onToggleFavorite
           </button>
         </div>
 
-        <FamilyMealSummary meal={meal} />
-        <FamilyMealRatingButton meal={meal} />
+        <MealRatingControl meal={meal} />
 
         {/* Name */}
         <div className="mb-4">

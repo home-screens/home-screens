@@ -1,8 +1,7 @@
 'use client';
 
-import { FamilyMealSummary } from '@/components/meals/FamilyMealRating';
-
 import { useMemo, useState } from 'react';
+import { FamilyMealSummary } from '@/components/meals/meal-votes';
 import type { SavedMeal } from '@/types/config';
 import { LIBRARY_FILTERS, type LibraryFilter, DEFAULT_MEAL_EMOJI } from '@/lib/meal-constants';
 import { filterLibraryMeals } from '@/lib/meal-dish-rules';
@@ -17,12 +16,6 @@ interface SidebarLibraryProps {
   onSelectMeal: (id: string) => void;
   onToggleFavorite: (id: string) => void;
   onAddMeal: () => void;
-}
-
-function starRating(rating: number | undefined): string {
-  if (!rating) return '';
-  const filled = Math.round(rating);
-  return '★'.repeat(filled) + '☆'.repeat(5 - filled);
 }
 
 export default function SidebarLibrary({
@@ -143,7 +136,6 @@ export default function SidebarLibrary({
             if (meal.difficulty) {
               meta.push(tCore(`meal.difficulty.${meal.difficulty}`));
             }
-            if (meal.rating) meta.push(starRating(meal.rating));
 
             return (
               <div
@@ -160,7 +152,7 @@ export default function SidebarLibrary({
                   <div className="text-sm font-semibold text-hs-text-body truncate">
                     {meal.name}
                   </div>
-                  <FamilyMealSummary meal={meal} />
+                  <FamilyMealSummary meal={meal} className="block text-xs text-hs-text-faint" />
                   {meta.length > 0 && (
                     <div className="text-xs text-hs-text-faint">
                       {meta.join(' · ')}

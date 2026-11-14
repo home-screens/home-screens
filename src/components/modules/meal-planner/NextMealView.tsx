@@ -1,7 +1,5 @@
 'use client';
 
-import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
-
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
 import { SLOT_META, getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, getNextPlannedMeal } from '@/lib/meal-constants';
@@ -11,6 +9,7 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;

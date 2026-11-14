@@ -281,7 +281,7 @@
     "saved": "Gezin opgeslagen.",
     "saving": "Opslaan…",
     "removeTitle": "{name} verwijderen?",
-    "removeDescription": "Als je {name} verwijdert, worden de klusjes, schema’s, geschiedenis, tickets en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Klusjes waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "removeDescription": "Als je {name} verwijdert, worden de klusjes, schema’s, geschiedenis, tickets, beoordelingen van gerechten en toegang tot beloningen van deze persoon gewist. Ook de keuze van hun kalenders wordt vergeten. Klusjes waar niemand meer voor is, worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "remove": "Persoon verwijderen",
     "editName": "{name} bewerken",
     "moveUp": "{name} omhoog",
@@ -474,7 +474,6 @@
   },
   "mealRatings": {
     "average": "★ {average} / 5 · Gezinsstemmen: {count}",
-    "original": "Oorspronkelijke gedeelde beoordeling: {rating} / 5",
     "forMeal": "{meal} beoordelen",
     "who": "Wie beoordeelt er?",
     "choose": "Kies een gezinslid",
@@ -483,11 +482,8 @@
     "yourVote": "Jouw beoordeling: {rating} / 5",
     "notRated": "Je hebt dit recept nog niet beoordeeld.",
     "clear": "Mijn beoordeling wissen",
-    "saving": "Opslaan…",
-    "saved": "Beoordeling opgeslagen.",
     "saveError": "Je beoordeling is niet opgeslagen. Controleer de verbinding en tik op een ster om het opnieuw te proberen.",
     "loadError": "Beoordelingen konden niet worden vernieuwd.",
-    "retry": "Opnieuw proberen",
     "loading": "Beoordelingen laden…",
     "noMembers": "Voeg personen toe via Instellingen > Gezin om te beoordelen.",
     "rate": "Gerecht beoordelen",
@@ -495,9 +491,10 @@
     "close": "Gereed",
     "hint": "Iedereen heeft één beoordeling per recept. Beoordeel opnieuw om je stem te wijzigen; het gezinsgemiddelde gebruikt ieders huidige stem.",
     "noDinner": "Er is voor deze dag geen avondeten gepland.",
-    "typed": "Getypte gerechten hebben geen opgeslagen recept om te beoordelen. Sla ze eerst op in de receptenbibliotheek.",
-    "unavailable": "Het opgeslagen recept voor het avondeten is niet beschikbaar.",
-    "originalLabel": "Oorspronkelijke gedeelde beoordeling",
-    "sharedStar": "Gedeelde beoordeling: {count} sterren"
+    "typed": {
+      "one": "{dishes}: zelf ingetypt, dus geen recept om te beoordelen.",
+      "other": "{dishes}: zelf ingetypt, dus geen recept om te beoordelen."
+    },
+    "unavailable": "Het opgeslagen recept voor het avondeten is niet beschikbaar."
   }
 }

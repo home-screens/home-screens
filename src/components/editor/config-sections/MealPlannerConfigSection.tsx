@@ -185,6 +185,7 @@ export function MealPlannerConfigSection({ mod, screenId }: { mod: ModuleInstanc
           plan={mealData.plan}
           settings={mealData.settings}
           groceryChecked={mealData.groceryChecked}
+          familyRatings={mealData.familyRatings}
           onToggleGroceryItem={toggleGroceryItem}
           accentColor={c.accentColor ?? DEFAULT_ACCENT_COLOR}
           onUpdate={handleModalUpdate}

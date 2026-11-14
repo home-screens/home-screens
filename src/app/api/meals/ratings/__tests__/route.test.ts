@@ -16,8 +16,8 @@ vi.mock('@/lib/mealie', async (importOriginal) => ({
   ...await importOriginal<typeof import('@/lib/mealie')>(), getMealieRecipe: vi.fn(),
 }));
 
-import { GET, POST } from '../route';
-import { readMealData, writeMealData } from '@/lib/meal-data';
+import { POST } from '../route';
+import { readMealData, updateMealData, writeMealData } from '@/lib/meal-data';
 import { requireDisplayAuth, requireSession } from '@/lib/auth';
 import { getMealieRecipe, MealieError } from '@/lib/mealie';
 
@@ -32,7 +32,7 @@ beforeEach(async () => {
   vi.mocked(getMealieRecipe).mockReset();
   const data = await readMealData();
   await writeMealData({ ...data, familyRatings: undefined,
-    savedMeals: [{ id: 'soup', name: 'Soup', rating: 3, isFavorite: true }],
+    savedMeals: [{ id: 'soup', name: 'Soup', isFavorite: true }],
     plan: [{ date: '2099-01-01', slot: 'dinner', mealId: 'soup', courses: [
       { kind: 'side', customText: 'Bread' }, { kind: 'drink', customText: 'Water' },
     ] }],
@@ -40,15 +40,39 @@ beforeEach(async () => {
 });
 
 describe('/api/meals/ratings', () => {
-  it('reads older data without votes and uses display authentication', async () => {
-    const res = await GET(new NextRequest('http://localhost/api/meals/ratings'));
+  it('takes a vote from a wall and answers with every vote', async () => {
+    const res = await vote(4);
     expect(res.status).toBe(200);
-    expect((await res.json()).ratings).toEqual([]);
+    expect(await res.json()).toEqual({ ratings: [expect.objectContaining({ mealId: 'soup', memberId: 'one', rating: 4 })] });
     expect(requireDisplayAuth).toHaveBeenCalled();
     expect(requireSession).not.toHaveBeenCalled();
   });
 
-  it('updates and clears one vote without changing the shared rating or meal data', async () => {
+  it('reads meals whose stored votes hold a bad row, and repairs the file', async () => {
+    const data = await readMealData();
+    const good = { mealId: 'soup', memberId: 'one', rating: 4, updatedAt: '2026-01-01T00:00:00.000Z' };
+    await writeMealData({ ...data, familyRatings: [
+      good,
+      { mealId: 'soup', memberId: 'two', rating: 9, updatedAt: 'never' },
+      { ...good, rating: 2, updatedAt: '2025-12-01T00:00:00.000Z' },
+    ] as never });
+    // The plan and the recipes still load, with the one real vote.
+    const read = await readMealData();
+    expect(read.savedMeals).toHaveLength(1);
+    expect(read.familyRatings).toEqual([good]);
+    // And a vote can still be saved on top of it.
+    expect((await vote(5, 'two')).status).toBe(200);
+    expect((await readMealData()).familyRatings).toEqual([good, expect.objectContaining({ memberId: 'two', rating: 5 })]);
+  });
+
+  it('takes a deleted recipe\'s votes along and keeps a Mealie recipe\'s', async () => {
+    await vote(4);
+    await vote(3, 'two', `mealie:${RECIPE}`);
+    await updateMealData((current) => ({ ...current, savedMeals: [] }));
+    expect((await readMealData()).familyRatings).toEqual([expect.objectContaining({ mealId: `mealie:${RECIPE}`, memberId: 'two' })]);
+  });
+
+  it('updates and clears one vote without changing the meals or the plan', async () => {
     const before = await readMealData();
     await vote(2);
     await vote(5);

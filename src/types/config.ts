@@ -3821,12 +3821,6 @@ export interface SavedMeal {
   recipeUrl?: string;
   /** Notes */
   notes?: string;
-  /**
-   * Rating, 1 to 5
-   *
-   * 1-5
-   */
-  rating?: number;
   /** Marked as a favorite */
   isFavorite?: boolean;
   /**

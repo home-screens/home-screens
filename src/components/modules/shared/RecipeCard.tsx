@@ -1,7 +1,5 @@
 'use client';
 
-import { FamilyMealRatingButton } from '@/components/meals/FamilyMealRating';
-
 import { useCallback, useMemo, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import type { SavedMeal } from '@/types/config';
@@ -18,6 +16,7 @@ import { wallPressProps } from './wallPress';
 import { BookIcon } from './recipe-book/RecipeBookParts';
 import { recipeCardActionStyle } from './recipe-card-actions';
 import { WallRecipeHeart } from './WallRecipeHeart';
+import { WallRateMealButton } from './MealRatingWall';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
 
@@ -78,6 +77,9 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
           </span>
         </div>
       </div>
+      {/* In the footer's own row, which every page already keeps room for, so it never covers the recipe.
+          The measuring copies draw it too (inert there) and take the same room. */}
+      <WallRateMealButton meal={meal} size={P(28)} style={{ marginLeft: 'auto' }} measuring={measuring} />
     </div>
   );
 
@@ -124,10 +126,7 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
         >
           <BookIcon name="x" size={P(46)} />
         </button>
-        {!gone && <>
-          <WallRecipeHeart meal={heartMeal} P={P} place="card" />
-          <FamilyMealRatingButton meal={meal} iconOnly style={recipeCardActionStyle(P, 2)} />
-        </>}
+        {!gone && <WallRecipeHeart meal={heartMeal} P={P} place="card" />}
       </div>
     </WallOverlay>
   );

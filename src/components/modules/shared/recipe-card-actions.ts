@@ -1,8 +1,12 @@
 import type { CSSProperties } from 'react';
 import type { Px } from './recipe-book/RecipeBookParts';
 
-// Keep close, favorite and rating buttons on the same size and spacing rules.
-export function recipeCardActionStyle(P: Px, index: 0 | 1 | 2): CSSProperties {
+/**
+ * The round buttons down the recipe card's top corner, close then the heart,
+ * on one size and spacing. Two is all the header keeps room for beside it
+ * (`headerEndGap`): a third would sit over the Steps card on later pages.
+ */
+export function recipeCardActionStyle(P: Px, index: 0 | 1): CSSProperties {
   return {
     position: 'absolute', top: P(28 + 108 * index), right: P(28),
     width: P(92), height: P(92), minWidth: 0, minHeight: 0,

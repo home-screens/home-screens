@@ -1,7 +1,5 @@
 'use client';
 
-import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
-
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 import type { MealSlotType, SavedMeal, TimeFormat } from '@/types/config';
 import { getMealCourseLabelKey, type ResolvedCourse } from '@/lib/meal-courses';
@@ -17,6 +15,7 @@ import { useMinutesText } from './useMealMinutes';
 import type { MealRecipeState } from './useMealRecipe';
 import { WallScroller } from './WallScroller';
 import { withAlpha } from '@/lib/hex-color';
+import { FamilyMealStars, useShowsFamilyStars } from './MealRatingWall';
 
 /**
  * A tap on a step keeps the screen where it is this long. Someone cooking
@@ -112,6 +111,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
   const minutesText = useMinutesText();
   const fontsReady = useFontsReady();
   const detail: RecipeDetail | null = recipe.status === 'ready' ? recipe.recipe : null;
+  const rated = useShowsFamilyStars(meal);
   const steps = useMemo(() => detail?.steps ?? [], [detail]);
   const paged = steps.length > 0;
 
@@ -322,9 +322,10 @@ export function RecipeSheet(props: RecipeSheetProps) {
     return word.key === 'batchTimes' ? t('meal-planner.recipe.batchTimes', { scale: word.scale }) : t(`meal-planner.recipe.${word.key}`);
   };
 
-  // Match the rating number to the cooking values' text baseline, not their line-box edges.
+  // The family's stars sit on the cooking values' text baseline, not their line-box edges.
   const stats = (value: number, label: number, gapPx: number, m: boolean) => {
     const list = recipeStats(meal, scale);
+    if (list.length === 0 && !rated) return null;
     return (
       <div style={{ display: 'flex', alignItems: 'last baseline', gap: P(gapPx), flexWrap: 'wrap' }}>
         {list.map((s) => (
@@ -670,7 +671,9 @@ export function RecipeSheet(props: RecipeSheetProps) {
     );
   };
 
-  // Keep the heading fixed while long notes scroll within the available pane.
+  // The heading stays put while notes longer than their box scroll under it
+  // (a finger scrolls them on a touch wall). The card is as tall as its notes
+  // and no taller, so short notes look as they always did.
   const notesCard = (copy: Copy) => {
     if (!detail || detail.notes.length === 0) return null;
     return card(
@@ -678,15 +681,16 @@ export function RecipeSheet(props: RecipeSheetProps) {
         {sectionHead(t('meal-planner.recipe.notes'))}
         {scrollBox(
           copy,
-          { flex: 1, minHeight: 0 },
-          { fontSize: P(33), lineHeight: 1.45, color: 'var(--fmp-text)' },
+          // Out into the card's side padding, like the steps: the scroll thumb sits there and the notes keep their width.
+          { flex: '0 1 auto', minHeight: 0, margin: `0 -${P(26)}px` },
+          { fontSize: P(33), lineHeight: 1.45, color: 'var(--fmp-text)', padding: `0 ${P(26)}px` },
           <div data-testid={tid('recipe-notes', copy !== 'shown')}>
             {detail.notes.map((n, i) => <p key={i} style={{ margin: 0, marginBottom: P(14) }}>{n}</p>)}
           </div>,
           { homeKey: resetKey },
         )}
       </>,
-      { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' },
+      { flex: '0 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' },
     );
   };
 
@@ -742,6 +746,8 @@ export function RecipeSheet(props: RecipeSheetProps) {
 
   const portrait = (copy: Copy, variant: 'first' | 'rest', shown: number[] | 'all') => {
     const measuring = copy !== 'shown';
+    // A saved meal (no steps, so no pages) with both a list and notes.
+    const sharesWithNotes = !paged && hasIngredients && (detail?.notes.length ?? 0) > 0;
     return (
       <>
         {variant === 'first' ? (
@@ -758,7 +764,7 @@ export function RecipeSheet(props: RecipeSheetProps) {
             </div>
             {courseLine(30, measuring)}
             {/* Shrinks to the room left when the list is longer than the page: the list steps down, then scrolls. */}
-            {hasIngredients && (
+            {hasIngredients && !sharesWithNotes && (
               <div style={{ marginTop: P(40), flex: '0 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 {ingredients(copy, 2, 30 * ingScale, 16 * ingScale, ingScale)}
               </div>
@@ -791,7 +797,22 @@ export function RecipeSheet(props: RecipeSheetProps) {
             {dots(copy)}
           </div>
         )}
-        {!paged && detail && <div style={{ marginTop: P(28), flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>{notesCard(copy)}</div>}
+        {/* A saved meal's ingredients and notes share what is left of the page. Each is as tall as it
+            needs while both fit. When they do not, the room is dealt out evenly and whatever one of
+            them leaves over goes to the other (two `auto` rows of a grid do exactly that), so short
+            notes stay whole under a long list, a short list stays whole over long notes, and two long
+            ones get half each and scroll. Neither can squeeze the other to nothing. */}
+        {sharesWithNotes && (
+          <div style={{ flex: '0 1 auto', minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gridTemplateRows: 'auto auto' }}>
+            <div style={{ marginTop: P(40), minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+              {ingredients(copy, 2, 30 * ingScale, 16 * ingScale, ingScale)}
+            </div>
+            <div style={{ marginTop: P(28), minHeight: 0, display: 'flex', flexDirection: 'column' }}>{notesCard(copy)}</div>
+          </div>
+        )}
+        {!paged && detail && !sharesWithNotes && (
+          <div style={{ marginTop: P(28), flex: '0 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>{notesCard(copy)}</div>
+        )}
         {touchBar(measuring)}
         {footer?.(measuring)}
       </>

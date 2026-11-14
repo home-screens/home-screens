@@ -18,7 +18,7 @@ import type { RecipeServing } from './RecipeSheet';
 export interface MealRecipeContextValue {
   /** The display's full-screen theme (Settings > Screen), or the module's own. */
   theme: string | undefined;
-  accentColor?: string;
+  /** The module's Show Family Ratings switch; off hides the stars and the rating buttons, never the votes. */
   showFamilyRatings?: boolean;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
@@ -41,13 +41,11 @@ export function useMealRecipeContext(): MealRecipeContextValue | null {
  * beside its position and shape. The panel also takes `className="fmp-root"`.
  */
 export function useMealOverlayTheme(): { theme: FullscreenThemeTokens; panelStyle: CSSProperties } {
-  // Portaled overlays cannot inherit the module's CSS variables, so rebuild its palette here.
-  const ctx = useMealRecipeContext();
-  const theme = getThemeTokens(ctx?.theme);
+  const theme = getThemeTokens(useMealRecipeContext()?.theme);
   const panelStyle = {
     ...buildThemeCSSVars('fmp', theme),
-    '--fmp-accent': resolveFullscreenAccent(ctx?.accentColor ?? '', theme, DEFAULT_ACCENT_COLOR),
-    '--fmp-on-accent': resolveFullscreenOnAccent(ctx?.accentColor ?? '', theme, DEFAULT_ACCENT_COLOR),
+    '--fmp-accent': resolveFullscreenAccent('', theme, DEFAULT_ACCENT_COLOR),
+    '--fmp-on-accent': resolveFullscreenOnAccent('', theme, DEFAULT_ACCENT_COLOR),
     display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: UI_SANS_STACK, lineHeight: 1.5,
     backgroundColor: 'var(--fmp-bg)', backgroundImage: 'var(--fmp-bg-image)', color: 'var(--fmp-text)',
     colorScheme: theme.isDark ? 'dark' : 'light',

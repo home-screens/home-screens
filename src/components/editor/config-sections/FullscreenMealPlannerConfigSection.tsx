@@ -230,6 +230,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           plan={mealData.plan}
           settings={mealData.settings}
           groceryChecked={mealData.groceryChecked}
+          familyRatings={mealData.familyRatings}
           onToggleGroceryItem={toggleGroceryItem}
           accentColor={accentColor}
           onUpdate={handleModalUpdate}

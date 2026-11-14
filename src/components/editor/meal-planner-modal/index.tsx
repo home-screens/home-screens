@@ -1,7 +1,5 @@
 'use client';
 
-import { RateDinnerButton } from '@/components/meals/FamilyMealRating';
-
 import { useState, useCallback, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
 import { CookingPot, ExternalLink, RefreshCw, TriangleAlert } from 'lucide-react';
 import { uuid } from '@/lib/uuid';
@@ -69,6 +67,8 @@ import { withoutSuggested, type MealEdit, type MealieRange, type MealieSuggested
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
 import type { MealSaveFailure } from '@/hooks/useMealPlannerData';
+import { MealVotesProvider } from '@/components/meals/meal-votes';
+import type { FamilyMealRating } from '@/types/meal-ratings';
 import { mealSaveFailedKey } from './save-failed-words';
 import { mealieProblemKey } from './mealie-problem-words';
 
@@ -81,6 +81,8 @@ interface MealPlannerModalProps {
   settings: MealSettings;
   /** Every week's grocery ticks, shared with the phone. */
   groceryChecked: GroceryChecked;
+  /** The family's votes, as the meals answer carried them. */
+  familyRatings?: readonly FamilyMealRating[];
   /** Tick or untick one item on the list of `week` (that week's key). */
   onToggleGroceryItem: (week: string, item: string) => void;
   accentColor: string;
@@ -136,6 +138,7 @@ interface PopoverState {
 
 export default function MealPlannerModal({
   savedMeals,
+  familyRatings,
   plan,
   settings,
   groceryChecked,
@@ -660,6 +663,7 @@ export default function MealPlannerModal({
   ) : loaded ? t('mealPlannerModal.subtitleMealsPlanned', { meals: savedMeals.length, planned: plan.length }) : null;
 
   return (
+    <MealVotesProvider loaded={familyRatings}>
     <CRUDModalShell
       title={t('mealPlannerModal.title')}
       icon={<span className="text-lg">&#127869;</span>}
@@ -667,7 +671,6 @@ export default function MealPlannerModal({
       maxWidth="max-w-[1340px]"
       headerActions={
         <div className="flex items-center gap-2">
-          {loaded && <RateDinnerButton plan={weekPlan} meals={allMeals} date={viewedWeekDates.includes(todayISO) ? todayISO : viewedWeekDates[0]} />}
           {onMealie && plannerUrl && (
             <a
               href={plannerUrl}
@@ -856,6 +859,7 @@ export default function MealPlannerModal({
         </div>
       )}
     </CRUDModalShell>
+    </MealVotesProvider>
   );
 }
 

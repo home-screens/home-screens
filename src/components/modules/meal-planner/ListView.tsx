@@ -1,7 +1,5 @@
 'use client';
 
-import { FamilyMealStars } from '@/components/meals/FamilyMealRating';
-
 import { useCallback, useMemo, useRef } from 'react';
 import type { MealPlannerConfig, MealSettings, SavedMeal, PlannedMeal, TimeFormat } from '@/types/config';
 import { TEXT_OPACITY, DIVIDER } from '@/lib/constants';
@@ -18,6 +16,7 @@ import { mealTagLabel } from '@/lib/meal-dish-rules';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { withAlpha } from '@/lib/hex-color';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 /** Marks each day heading, the lines the scroll can stop at. */
 const DAY_HEADING_ATTR = 'data-list-day';
