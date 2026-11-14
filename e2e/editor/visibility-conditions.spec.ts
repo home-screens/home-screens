@@ -40,7 +40,15 @@ async function openConditions(page: Page, request: APIRequestContext, mod: Modul
   await page.locator(`[data-module-id="${mod.id}"]`).click();
   // The conditions UI is its own accordion (propertyPanel.sections.conditions),
   // collapsed by default and separate from the "Visibility" enabled/schedule one.
-  await page.getByRole('button', { name: 'Conditions' }).click();
+  const heading = page.getByRole('button', { name: 'Conditions' });
+  await heading.click();
+  // The section slides open over 200 ms, and until it is done the panel is
+  // still growing: a hover or a measurement made sooner lands wherever the
+  // scroll happens to be, which depends on how fast the machine is. Its body
+  // is the heading's next sibling, and its height reads `auto` once it rests.
+  await expect
+    .poll(() => heading.locator('xpath=following-sibling::div[1]').evaluate((body) => (body as HTMLElement).style.height))
+    .toBe('auto');
 }
 
 /** Persisted visibility block for the single module in the single screen. */
@@ -213,8 +221,11 @@ test('dragging one time condition\'s end over another\'s strip does not read the
   // The first stretch ends on Tuesday. Drag that end down, off the bottom of
   // its own strip and onto the second strip's Monday row.
   const grip = strips.nth(0).getByTestId('schedule-track-2').getByTestId('schedule-grip-end');
-  await grip.hover();
   const otherMonday = strips.nth(1).getByTestId('schedule-track-1');
+  // Both ends of the drag have to be on screen at once: rest the second strip
+  // on the panel's bottom edge, which leaves the first strip in view above it.
+  await strips.nth(1).evaluate((strip) => strip.scrollIntoView({ block: 'end' }));
+  await grip.hover();
   const box = (await otherMonday.boundingBox())!;
   const target = { x: box.x + box.width * 0.5, y: box.y + box.height / 2 };
   // The pointer really is over the other strip's row, the case under test.
