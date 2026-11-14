@@ -249,4 +249,13 @@ export const FULLSCREEN_FAMILY_VARIANTS: ConfigVariant[] = [
       expect(colors.some((c) => /^rgba?\(255,0,0/.test(c.replace(/\s/g, '')))).toBe(true);
     },
   },
+  ...(['fullscreen-meal-planner', 'meal-planner'] as const).flatMap((type): ConfigVariant[] =>
+    [true, false].map((showFamilyRatings) => ({
+      type, name: `family-ratings-${showFamilyRatings ? 'on' : 'off'}`, kind: 'local-data', seed: 'meals', seedData: TAGGED_MEALS,
+      config: { view: 'today', showFamilyRatings },
+      expect: async (mod) => {
+        await has('Tagged Feast')(mod);
+        await expect(mod.getByRole('button', { name: 'Rate Dinner', exact: true })).toHaveCount(showFamilyRatings ? 1 : 0);
+      },
+    }))),
 ];

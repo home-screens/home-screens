@@ -1,3 +1,4 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, fromISODate, formatMealTime, resolvePlannedMealTime, mealDayLead, minutesOfDay } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import type { MealPlannerViewProps } from './meal-planner-utils';
@@ -146,6 +147,7 @@ export default function TodayView({
                 {note}
               </span>
             ))}
+            <FamilyMealStars meal={heroMeal} size={P(34)} />
             <MealMetaPills
               meal={heroMeal}
               showPrepTime={showPrepTime}
@@ -240,6 +242,7 @@ export default function TodayView({
                       }}>
                         {name ?? t('fullscreen-meal-planner.notPlanned')}
                       </div>
+                      <FamilyMealStars meal={meal} size={P(26)} style={{ marginTop: P(8) }} />
                       <MealCourseLines
                         courses={courses}
                         labelSize={`${P(20)}px`}
@@ -293,6 +296,11 @@ export default function TodayView({
           {cards}
         </WallScroller>
       ) : cards}
+
+      {/* At the view's bottom edge, apart from the meals, as in Week. Inside
+          the hero it read as a button for the lunch shown above it, and it
+          opens the last dinner the family sat down to. */}
+      {interactive && <WallRateDinnerButton size={P(24)} style={{ alignSelf: 'flex-end', marginTop: P(16) }} />}
     </div>
   );
 }

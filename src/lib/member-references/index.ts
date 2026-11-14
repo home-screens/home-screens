@@ -4,6 +4,7 @@ import { choreCompletionReferences } from './chore-completions';
 import { rewardReferences } from './rewards';
 import { todoReferences } from './todos';
 import { notesReferences } from './notes';
+import { mealRatingReferences } from './meal-ratings';
 import { timetableReferences } from './timetables';
 import type { MemberReferenceDomain } from './contract';
 
@@ -25,4 +26,6 @@ export const MEMBER_REFERENCE_DOMAINS: readonly MemberReferenceDomain[] = [
   todoReferences,
   timetableReferences,
   notesReferences,
+  // Include meal votes in member deletion and backup reference checks.
+  mealRatingReferences,
 ];

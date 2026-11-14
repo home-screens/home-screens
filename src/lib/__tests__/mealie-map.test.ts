@@ -41,7 +41,6 @@ function recipe(key: keyof typeof RECIPE_IDS, extra: Partial<MealieRecipeSummary
     image: 'xmR8',
     recipeCategory: [{ name: 'Dinner' }],
     tags: [{ name: 'Indian' }],
-    rating: null,
     recipeServings: 4,
     totalTime: '45 minutes',
     prepTime: '15 minutes',
@@ -138,7 +137,7 @@ describe('connection helpers', () => {
 
 describe('mealieRecipeToMeal', () => {
   it('maps what the views draw', () => {
-    const meal = mealieRecipeToMeal(recipe('tikka', { rating: 4.4, tags: [{ name: 'Indian' }, { name: 'indian' }, { name: 'Quick' }] }), ctx);
+    const meal = mealieRecipeToMeal(recipe('tikka', { tags: [{ name: 'Indian' }, { name: 'indian' }, { name: 'Quick' }] }), ctx);
     expect(meal).toEqual({
       id: `mealie:${RECIPE_IDS.tikka}`,
       name: 'Tikka',
@@ -147,7 +146,6 @@ describe('mealieRecipeToMeal', () => {
       prepTime: 15,
       cookTime: 30,
       servings: 4,
-      rating: 4,
       photoUrl: `/api/mealie/image/${RECIPE_IDS.tikka}?v=xmR8`,
     });
   });

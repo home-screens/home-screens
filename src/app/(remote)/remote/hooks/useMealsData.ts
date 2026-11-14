@@ -7,6 +7,7 @@ import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { MealClientError, saveMealSettings, type MealEdit, type MealSnapshot } from '@/lib/meal-client';
 import { HubUnreachableError } from '@/lib/hub-request';
 import type { MealieWireBlock } from '@/lib/meal-sources';
+import type { FamilyMealRating } from '@/types/meal-ratings';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
 import { isRepeatTap, type LastTap } from '@/lib/sheet-tap-guard';
@@ -18,6 +19,7 @@ export function useMealsData() {
   const [savedMeals, setSavedMeals] = useState<SavedMeal[]>([]);
   const [plan, setPlan] = useState<PlannedMeal[]>([]);
   const [groceryChecked, setGroceryChecked] = useState<GroceryChecked>({});
+  const [familyRatings, setFamilyRatings] = useState<FamilyMealRating[]>([]);
   const [settings, setSettings] = useState<MealSettings>({ ...DEFAULT_MEAL_SETTINGS });
   // Household GlobalSettings.timeFormat, reported alongside the meal settings
   // (always present in the GET response). Meal surfaces resolve their effective
@@ -37,6 +39,7 @@ export function useMealsData() {
     setSavedMeals(snapshot.savedMeals);
     setPlan(snapshot.plan);
     setGroceryChecked(snapshot.groceryChecked);
+    setFamilyRatings(snapshot.familyRatings);
     setSource(snapshot.source);
     setMealie(snapshot.mealie);
     setMealieConnected(snapshot.mealieConnected);
@@ -148,6 +151,7 @@ export function useMealsData() {
     setPlan,
     groceryChecked,
     setGroceryChecked,
+    familyRatings,
     settings,
     setSettings,
     globalTimeFormat,

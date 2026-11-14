@@ -22,6 +22,7 @@ import GroceryView from './GroceryView';
 import RecipeBookView from './RecipeBookView';
 import { MealRecipeContext } from '../shared/MealRecipeContext';
 import { useMealWeek, useWallMeals } from '../shared/useWallMeals';
+import { MealVotesScope } from '@/components/meals/meal-votes';
 import { useLookAhead } from '../shared/useLookAhead';
 import { useWallRecipeBook } from '../shared/recipe-book/useWallRecipeBook';
 import { recipeBookSource } from '@/lib/meal-recipe-book';
@@ -55,7 +56,7 @@ export default function FullscreenMealPlannerModule({
   // ── Data fetching ──
   const {
     data, error, now, todayISO, nowMinutes, settings, timeFormat, savedMeals, fullPlan, plan,
-    mealie, grocery, interactive, recipeTapMode, recipeContext,
+    mealie, grocery, interactive, recipeTapMode, recipeContext, familyRatings,
   } = useWallMeals({ moduleType: 'fullscreen-meal-planner', view, timezone, theme: config.theme ?? fullscreenTheme, config, screenId, moduleId });
   // The Week view steps a week at a time on a touch wall and draws the week
   // stepped to; today's meal and every other view stay on this week.
@@ -148,11 +149,16 @@ export default function FullscreenMealPlannerModule({
   const backdrop = useAuthImageState(mealPhotoSrc(showEmoji ? next?.meal ?? null : null, 'full'));
   const backdropUrl = backdrop.status === 'ready' ? backdrop.url : undefined;
 
+  // A recipe's first vote adds its stars row; refit for that, not for each change of score.
+  const ratingLayout = useMemo(
+    () => (config.showFamilyRatings === false ? '' : [...new Set(familyRatings.map((vote) => vote.mealId))].sort().join('|')),
+    [config.showFamilyRatings, familyRatings],
+  );
   const stackRef = useRef<HTMLDivElement>(null);
   const { factor: fit, settled: fitSettled } = useFitScale(stackRef, [
     view, config.typographySize, config.density, dims.w, dims.h,
-    config.showEmoji, config.showPrepTime, config.showTags, config.showDifficulty, config.showTitle,
-    slots.length, mealCount, textLength,
+    config.showEmoji, config.showPrepTime, config.showTags, config.showDifficulty, config.showTitle, config.showFamilyRatings,
+    slots.length, mealCount, textLength, ratingLayout,
     // Another week has its own meals, and the heading changes with it.
     shownWeek.weekDates[0],
     // The backdrop takes the big picture out of the stack, which frees room.
@@ -265,6 +271,7 @@ export default function FullscreenMealPlannerModule({
           }}
         >
           <MealRecipeContext.Provider value={recipeContext}>
+          <MealVotesScope votes={familyRatings}>
           {view === 'week' && <WeekView {...viewProps} plan={shownWeek.plan} weekDates={shownWeek.weekDates} look={look} />}
           {/* The whole plan: late in the evening Today shows tomorrow, which
               can be in next week. */}
@@ -275,6 +282,7 @@ export default function FullscreenMealPlannerModule({
           {view === 'recipe' && <RecipeView {...viewProps} plan={fullPlan} />}
           {view === 'grocery' && <GroceryView {...viewProps} grocery={grocery} tappable={interactive} accent={accent} />}
           {view === 'recipes' && <RecipeBookView {...viewProps} book={book} />}
+          </MealVotesScope>
           </MealRecipeContext.Provider>
         </div>
       )}

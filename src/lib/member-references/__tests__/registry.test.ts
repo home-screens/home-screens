@@ -108,7 +108,31 @@ const CASES: Record<string, { doc: Doc; afterRemoval: Doc; restore: { missing: n
     ] },
     restore: { missing: 1 },
   },
+  'data/meals.json': {
+    doc: { savedMeals: [{ id: 'recipe', name: 'Soup', rating: 3 }], plan: [], familyRatings: [
+      { mealId: 'recipe', memberId: 'gone', rating: 2, updatedAt: now },
+      { mealId: 'recipe', memberId: 'kept', rating: 5, updatedAt: now },
+    ] },
+    afterRemoval: { savedMeals: [{ id: 'recipe', name: 'Soup', rating: 3 }], plan: [], familyRatings: [
+      { mealId: 'recipe', memberId: 'kept', rating: 5, updatedAt: now },
+    ] },
+    restore: { missing: 1 },
+  },
 };
+
+describe('meal votes with a bad row', () => {
+  const domain = MEMBER_REFERENCE_DOMAINS.find((d) => d.path === 'data/meals.json')!;
+  const kept = { mealId: 'recipe', memberId: 'kept', rating: 5, updatedAt: now };
+  const doc: Doc = { savedMeals: [], plan: [], familyRatings: [
+    { mealId: 'recipe', memberId: 'gone', rating: 2, updatedAt: now },
+    { mealId: 'recipe', memberId: 'gone', rating: 99, updatedAt: 'never' },
+    kept,
+  ] };
+
+  it('still lets a person be removed, taking their real votes along', () => {
+    expect(domain.removeMembers(doc, new Set(['gone']))).toEqual({ savedMeals: [], plan: [], familyRatings: [kept] });
+  });
+});
 
 describe('chores handed to a group', () => {
   const domain = MEMBER_REFERENCE_DOMAINS.find((entry) => entry.path === 'data/chores.json')!;

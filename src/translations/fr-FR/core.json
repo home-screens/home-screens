@@ -281,7 +281,7 @@
     "saved": "Famille enregistrée.",
     "saving": "Enregistrement…",
     "removeTitle": "Supprimer {name} ?",
-    "removeDescription": "Supprimer {name} efface ses attributions de tâches, plannings, historique, solde de tickets et accès aux récompenses. Le choix de ses calendriers est aussi oublié. Les tâches sans personne pour les faire sont supprimées. Cette action est irréversible.",
+    "removeDescription": "Supprimer {name} efface ses attributions de tâches, plannings, historique, solde de tickets, accès aux récompenses et notes données aux plats. Le choix de ses calendriers est aussi oublié. Les tâches sans personne pour les faire sont supprimées. Cette action est irréversible.",
     "remove": "Supprimer la personne",
     "editName": "Modifier {name}",
     "moveUp": "Monter {name}",
@@ -471,5 +471,30 @@
     "setMealTime": "Définir l'heure du repas",
     "servingTime": "Heure de service",
     "clearTime": "Effacer l'heure"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Votes familiaux : {count}",
+    "forMeal": "Noter {meal}",
+    "who": "Qui donne son avis ?",
+    "choose": "Choisir un membre de la famille",
+    "stars": "Choisir de 1 à 5 étoiles",
+    "star": "{count} étoiles",
+    "yourVote": "Votre note : {rating} / 5",
+    "notRated": "Vous n’avez pas encore noté cette recette.",
+    "clear": "Effacer ma note",
+    "saveError": "Votre note n’a pas été enregistrée. Vérifiez la connexion et touchez une étoile pour réessayer.",
+    "loadError": "Impossible d’actualiser les notes.",
+    "loading": "Chargement des notes…",
+    "noMembers": "Ajoutez des personnes dans Réglages > Famille pour commencer à noter.",
+    "rate": "Noter le plat",
+    "dinner": "Noter le dîner",
+    "close": "Terminé",
+    "hint": "Chaque personne a une note par recette. Notez à nouveau pour la modifier ; la moyenne familiale utilise les notes actuelles de chacun.",
+    "noDinner": "Aucun dîner n’est prévu ce jour-là.",
+    "typed": {
+      "one": "{dishes} : ce plat a été tapé à la main, il n’a donc pas de recette à noter.",
+      "other": "{dishes} : ces plats ont été tapés à la main, ils n’ont donc pas de recette à noter."
+    },
+    "unavailable": "La recette enregistrée pour le dîner est indisponible."
   }
 }

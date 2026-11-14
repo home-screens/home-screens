@@ -281,7 +281,7 @@
     "saved": "Familie gemt.",
     "saving": "Gemmer…",
     "removeTitle": "Fjern {name}?",
-    "removeDescription": "Når du fjerner {name}, slettes personens pligter, planer, historik, billetter og adgang til belønninger. Valget af personens kalendere glemmes også. Pligter uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
+    "removeDescription": "Når du fjerner {name}, slettes personens pligter, planer, historik, billetter, bedømmelser af retter og adgang til belønninger. Valget af personens kalendere glemmes også. Pligter uden nogen tilbage til at udføre dem slettes. Dette kan ikke fortrydes.",
     "remove": "Fjern person",
     "editName": "Rediger {name}",
     "moveUp": "Flyt {name} op",
@@ -471,5 +471,30 @@
     "setMealTime": "Indstil tid for måltid",
     "servingTime": "Indstil tid for servering",
     "clearTime": "Nulstil tid"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Familiestemmer: {count}",
+    "forMeal": "Bedøm {meal}",
+    "who": "Hvem bedømmer?",
+    "choose": "Vælg et familiemedlem",
+    "stars": "Vælg 1 til 5 stjerner",
+    "star": "{count} stjerner",
+    "yourVote": "Din bedømmelse: {rating} / 5",
+    "notRated": "Du har ikke bedømt denne opskrift endnu.",
+    "clear": "Ryd min bedømmelse",
+    "saveError": "Din bedømmelse blev ikke gemt. Tjek forbindelsen, og tryk på en stjerne for at prøve igen.",
+    "loadError": "Bedømmelserne kunne ikke opdateres.",
+    "loading": "Henter bedømmelser…",
+    "noMembers": "Tilføj personer under Indstillinger > Familie for at bedømme.",
+    "rate": "Bedøm retten",
+    "dinner": "Bedøm aftensmaden",
+    "close": "Færdig",
+    "hint": "Hver person har én bedømmelse pr. opskrift. Bedøm igen for at ændre din stemme; familiens gennemsnit bruger alles aktuelle stemmer.",
+    "noDinner": "Der er ikke planlagt aftensmad denne dag.",
+    "typed": {
+      "one": "{dishes} er bare skrevet ind, så der er ingen opskrift at bedømme.",
+      "other": "{dishes} er bare skrevet ind, så der er ingen opskrift at bedømme."
+    },
+    "unavailable": "Den gemte opskrift til aftensmaden er ikke tilgængelig."
   }
 }

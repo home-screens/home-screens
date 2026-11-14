@@ -1005,6 +1005,16 @@
           "default": true
         },
         {
+          "name": "showFamilyRatings",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access.",
+          "default": true
+        },
+        {
           "name": "showEmoji",
           "optional": false,
           "type": {
@@ -5286,6 +5296,16 @@
             "text": "boolean"
           },
           "description": "Show meal tags",
+          "default": true
+        },
+        {
+          "name": "showFamilyRatings",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access.",
           "default": true
         },
         {
@@ -9739,6 +9759,15 @@
       "description": "",
       "fields": [
         {
+          "name": "familyRatings",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "FamilyMealRating[]"
+          },
+          "description": "The family's votes: one per person and recipe (see `meal-ratings.ts`)."
+        },
+        {
           "name": "savedMeals",
           "optional": false,
           "type": {
@@ -9926,15 +9955,6 @@
             "text": "string"
           },
           "description": "Notes"
-        },
-        {
-          "name": "rating",
-          "optional": true,
-          "type": {
-            "kind": "number",
-            "text": "number"
-          },
-          "description": "Rating, 1 to 5"
         },
         {
           "name": "isFavorite",
@@ -11483,6 +11503,15 @@
       "methods": [
         {
           "method": "GET",
+          "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/meals/ratings",
+      "methods": [
+        {
+          "method": "POST",
           "access": "display"
         }
       ]

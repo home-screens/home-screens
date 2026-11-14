@@ -22,6 +22,8 @@ import MealPickerSheet from './MealPickerSheet';
 import ConfirmSheet from './ConfirmSheet';
 import AtHomePill from './AtHomePill';
 import { MealieUnreachable, MealsSourcePill, MealsWeekLoading } from './MealsMealieStatus';
+import { MealVotesProvider } from '@/components/meals/meal-votes';
+import { DinnerRatingSheet } from './MealRatingSheet';
 import { REMOTE_ACCENT } from './chore-form-styles';
 
 export default function MealsTab() {
@@ -36,6 +38,8 @@ export default function MealsTab() {
   const {
     savedMeals,
     meals,
+    familyRatings,
+    nowMinutes,
     weekPlan,
     week,
     settings,
@@ -96,6 +100,7 @@ export default function MealsTab() {
     saveSettings,
   } = useMealsTabData(place.week);
 
+  const [ratingDinner, setRatingDinner] = useState(false);
   const [subView, setSubView] = useState<MealsSubView>(place.view);
   // Leaving a sub-tab takes its notice along: an Undo for the plan does not
   // follow the family onto the grocery list.
@@ -193,13 +198,14 @@ export default function MealsTab() {
   // Library's add button), or, while a sheet is up, at the top of the screen
   // over the dimmed page. At the bottom they covered the sheet's own rows
   // (the serving time, Clear).
-  const toastPlace: CSSProperties = sheet || picker || confirmAction || showSettings
+  const toastPlace: CSSProperties = sheet || picker || confirmAction || showSettings || ratingDinner
     ? { top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }
     : { bottom: subView === 'library' && !fromMealie ? 144 : 100 };
 
   return (
+    <MealVotesProvider loaded={familyRatings}>
     <div>
-      <MealsTabHeader todayISO={todayISO} onOpenSettings={() => setShowSettings(true)} />
+      <MealsTabHeader todayISO={todayISO} onOpenSettings={() => setShowSettings(true)} onRateDinner={() => setRatingDinner(true)} />
       <MealsSourcePill status={status} todayISO={todayISO} />
       <AtHomePill style={{ marginTop: 8 }} />
 
@@ -356,6 +362,23 @@ export default function MealsTab() {
         />
       )}
 
+      {/* Rate Dinner is something the family does, not a view of the plan, so
+          it opens over whichever tab is up and closes back onto it. */}
+      {ratingDinner && (
+        <DinnerRatingSheet
+          weekDates={weekDates}
+          todayISO={todayISO}
+          nowMinutes={nowMinutes}
+          plan={weekPlan}
+          meals={meals}
+          defaultSlotTimes={settings.defaultSlotTimes}
+          waiting={unreachable
+            ? <MealieUnreachable problem={status.state === 'unreachable' || status.state === 'stale' ? status.problem : 'unreachable'} onRetry={retryWeek} />
+            : !weekReady ? <MealsWeekLoading /> : null}
+          onClose={() => setRatingDinner(false)}
+        />
+      )}
+
       {showSettings && (
         <MealsSettingsSheet
           settings={settings}
@@ -430,5 +453,6 @@ export default function MealsTab() {
       )}
 
     </div>
+    </MealVotesProvider>
   );
 }

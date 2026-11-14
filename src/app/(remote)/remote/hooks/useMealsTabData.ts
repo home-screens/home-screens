@@ -40,6 +40,7 @@ export function useMealsTabData(keptWeek: string | null = null) {
     plan,
     setPlan,
     groceryChecked,
+    familyRatings,
     settings,
     setSettings,
     globalTimeFormat,
@@ -214,6 +215,8 @@ export function useMealsTabData(keptWeek: string | null = null) {
   return {
     savedMeals,
     meals,
+    familyRatings,
+    nowMinutes: weekNav.nowMinutes,
     weekPlan: planActions.weekPlan,
     week: planActions.week,
     settings,

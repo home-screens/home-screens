@@ -10,6 +10,7 @@ import { px } from './meal-planner-utils';
 import { RecipeSheet } from '../shared/RecipeSheet';
 import { useMealRecipe } from '../shared/useMealRecipe';
 import { recipeServingAt, useMealRecipeContext } from '../shared/MealRecipeContext';
+import { WallRateMealButton } from '@/components/modules/shared/MealRatingWall';
 
 // Lazy, like the tap target's: the card brings qrcode.react, which the other
 // meal views never need.
@@ -23,7 +24,7 @@ const RecipeCard = lazy(() => import('../shared/RecipeCard').then((m) => ({ defa
  * on a card.
  */
 export default function RecipeView({
-  settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, headerFont, bodyFont, landscape, interactive,
+  config, settings, timeFormat, savedMeals, plan, now, slots, s, pad, showEmoji, headerFont, bodyFont, landscape, interactive,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const ctx = useMealRecipeContext();
@@ -78,6 +79,7 @@ export default function RecipeView({
         layout={landscape ? 'landscape' : 'portrait'}
         showPicture={showEmoji}
         interactive={interactive}
+        footer={interactive && config.showFamilyRatings !== false ? () => <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0, paddingTop: P(18) }}><WallRateMealButton meal={next.meal} size={P(28)} /></div> : undefined}
         onCourse={setCourse}
         resetKey={`${next.date}|${next.slot}|${next.meal.id}`}
       />

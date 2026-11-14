@@ -9,6 +9,7 @@ import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 interface NextMealViewProps {
   config: MealPlannerConfig;
@@ -87,6 +88,7 @@ export function NextMealView({ config, settings, timeFormat, plan, savedMeals, t
             {name}
           </p>
         </MealTapTarget>
+        <FamilyMealStars meal={meal} size="0.8em" />
 
         {/* Serving time */}
         {time && (

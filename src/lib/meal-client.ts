@@ -10,6 +10,8 @@ import type { MealieCategory, MealieCookbook, MealieFailure, MealieRecipeFilter 
 import { mealieRecipeUrl, type MealieRecipeDetail } from '@/lib/mealie-map';
 import type { MealieShoppingAnswer } from '@/lib/mealie-shopping';
 import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type GroceryCheckDirection } from '@/lib/grocery-checks';
+import { MEAL_RATINGS_URL, normalizeFamilyMealRatings } from '@/lib/meal-ratings';
+import type { FamilyMealRating } from '@/types/meal-ratings';
 
 /**
  * The transport contract of `/api/meals/data`, shared by the phone's Meals
@@ -23,7 +25,8 @@ import { normalizeGroceryChecked, withGroceryWeek, type GroceryChecked, type Gro
 const MEALIE_PLAN_URL = '/api/mealie/plan';
 
 /**
- * `editorFetch` on the editor and phone; the wall never writes meals. It bounds
+ * `editorFetch` on the editor and phone; the wall saves only a heart or a
+ * person's stars, with `displayFetch`. It bounds
  * every request and rejects with `HubUnreachableError` when the hub cannot be
  * reached, which the calls here pass on untouched.
  */
@@ -35,6 +38,8 @@ export interface MealSnapshot {
   plan: PlannedMeal[];
   /** Each week's grocery ticks (see `grocery-checks.ts`). */
   groceryChecked: GroceryChecked;
+  /** Each person's stars for a recipe (see `meal-ratings.ts`); saved one vote at a time, never with the plan. */
+  familyRatings: FamilyMealRating[];
   settings: MealSettings;
   globalTimeFormat: TimeFormat;
   /** Quoted back on every save of `savedMeals` or `plan`. */
@@ -104,6 +109,7 @@ export function readMealAnswer(json: unknown, fallbackTimeFormat: TimeFormat): M
     savedMeals: merged.savedMeals,
     plan: merged.plan,
     groceryChecked: normalizeGroceryChecked(d.groceryChecked),
+    familyRatings: normalizeFamilyMealRatings(d.familyRatings),
     settings,
     globalTimeFormat: d.globalTimeFormat === '24h' || d.globalTimeFormat === '12h' ? d.globalTimeFormat : fallbackTimeFormat,
     source: merged.source,
@@ -602,6 +608,19 @@ export async function saveMealFavorite(fetcher: MealFetch, mealId: string, favor
     body: JSON.stringify({ mealId, favorite }),
   });
   if (!res.ok) throw mealieRefusal('save', await readJson(res), 'The favorite could not be saved.');
+}
+
+/**
+ * Save one person's stars for one recipe, or take them back with `null`
+ * (`POST /api/meals/ratings`). Rejects with what the hub said when it refused.
+ */
+export async function saveMealVote(fetcher: MealFetch, mealId: string, memberId: string, rating: number | null): Promise<void> {
+  const res = await fetcher(MEAL_RATINGS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mealId, memberId, rating }),
+  });
+  if (!res.ok) throw mealieRefusal('save', await readJson(res), 'The rating could not be saved.');
 }
 
 // ── Mealie's shopping list ──

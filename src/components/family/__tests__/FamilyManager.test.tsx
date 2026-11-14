@@ -102,6 +102,8 @@ describe('FamilyManager safety', () => {
     const confirmation = screen.getByRole('alertdialog').textContent;
     expect(confirmation).toContain('Alex is assigned to 1 chore.');
     expect(confirmation).toContain('Alex has a school timetable, and it is removed as well.');
+    // Their stars on the family's meals go with them, and the warning says so.
+    expect(confirmation).toContain('meal ratings');
     expect(confirmation).toContain('This cannot be undone.');
   });
 

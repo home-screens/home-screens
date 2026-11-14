@@ -438,8 +438,6 @@
     "recipeUrlPlaceholder": "https://…",
     "notesLabel": "Notities",
     "notesPlaceholder": "Notities over deze maaltijd…",
-    "ratingLabel": "Beoordeling",
-    "ratingStarAriaLabel": "Geef {n} van de 5 sterren",
     "favoriteOn": "Favoriet",
     "favoriteOff": "Aan favorieten toevoegen"
   },

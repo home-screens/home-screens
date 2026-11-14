@@ -11,6 +11,7 @@ import { chipsThatFit, recipeBookChipId, type RecipeBookChip } from '@/lib/meal-
 import { useElementBox } from '@/hooks/useElementBox';
 import MealPicture from '@/components/meals/MealPicture';
 import { useMealMinutes } from '../useMealMinutes';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 /** The chooser of every chip closes itself after this long with no touch, like the event detail. */
 export const CHIP_SHEET_AUTO_CLOSE_MS = 45_000;
@@ -82,6 +83,7 @@ export function RecipeTile({ meal, P, onOpen, nameSize = 31, metaSize = 25, hear
       }}>
         {meal.name}
       </span>
+      <FamilyMealStars meal={meal} size={P(metaSize)} style={{ color: 'var(--fmp-text-2)', marginTop: P(6) }} />
       {minutes && (
         <span style={{ display: 'flex', alignItems: 'center', gap: P(8), fontSize: P(metaSize), color: 'var(--fmp-text-3)', marginTop: P(6), fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden' }}>
           <BookIcon name="clock" size={P(metaSize)} />

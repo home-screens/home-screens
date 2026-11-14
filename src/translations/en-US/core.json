@@ -281,7 +281,7 @@
     "saved": "Family saved.",
     "saving": "Saving…",
     "removeTitle": "Remove {name}?",
-    "removeDescription": "Removing {name} clears their chore assignments, schedules, completion history, ticket balance and reward access, and forgets which calendars are theirs. Chores with no one left are deleted. This cannot be undone.",
+    "removeDescription": "Removing {name} clears their chore assignments, schedules, completion history, ticket balance, reward access and meal ratings, and forgets which calendars are theirs. Chores with no one left are deleted. This cannot be undone.",
     "remove": "Remove person",
     "editName": "Edit {name}",
     "moveUp": "Move {name} up",
@@ -471,5 +471,30 @@
     "setMealTime": "Set meal time",
     "servingTime": "Serving time",
     "clearTime": "Clear time"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Family votes: {count}",
+    "forMeal": "Rate {meal}",
+    "who": "Who is rating?",
+    "choose": "Choose a family member",
+    "stars": "Choose 1 to 5 stars",
+    "star": "{count} stars",
+    "yourVote": "Your rating: {rating} / 5",
+    "notRated": "You have not rated this recipe yet.",
+    "clear": "Clear my rating",
+    "saveError": "Your rating was not saved. Check the connection and tap a star to try again.",
+    "loadError": "Ratings could not be refreshed.",
+    "loading": "Loading ratings…",
+    "noMembers": "Add family members in Settings > Family to start rating.",
+    "rate": "Rate meal",
+    "dinner": "Rate Dinner",
+    "close": "Done",
+    "hint": "Each person has one rating per recipe. Rate it again to update your vote; the family average uses everyone’s current vote.",
+    "noDinner": "No dinner is planned for this day.",
+    "typed": {
+      "one": "There is no recipe to rate for {dishes}, because it was only typed in.",
+      "other": "There are no recipes to rate for {dishes}, because they were only typed in."
+    },
+    "unavailable": "The saved dinner recipe is unavailable."
   }
 }

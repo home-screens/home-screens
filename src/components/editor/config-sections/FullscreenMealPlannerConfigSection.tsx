@@ -124,6 +124,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
       {plannedMeals && (
         <Toggle label={t('configSections.fullscreen-meal-planner.showTags')} checked={c.showTags !== false} onChange={(v) => set({ showTags: v })} />
       )}
+      <Toggle label={t('configSections.fullscreen-meal-planner.showFamilyRatings')} checked={c.showFamilyRatings !== false} onChange={(v) => set({ showFamilyRatings: v })} />
       <Toggle label={t('configSections.fullscreen-meal-planner.showDifficulty')} checked={!!c.showDifficulty} onChange={(v) => set({ showDifficulty: v })} />
       {view !== 'next-meal' && (
         <Toggle label={t('common.showTitle')} checked={c.showTitle !== false} onChange={(v) => set({ showTitle: v })} />
@@ -229,6 +230,7 @@ export function FullscreenMealPlannerConfigSection({ mod, screenId }: { mod: Mod
           plan={mealData.plan}
           settings={mealData.settings}
           groceryChecked={mealData.groceryChecked}
+          familyRatings={mealData.familyRatings}
           onToggleGroceryItem={toggleGroceryItem}
           accentColor={accentColor}
           onUpdate={handleModalUpdate}

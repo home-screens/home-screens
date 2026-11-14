@@ -1,3 +1,4 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { SLOT_META, SLOT_ORDER, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime } from '@/lib/meal-constants';
 import { useFormattingLocale, useTranslate, fullDateHeading } from '@/i18n';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
@@ -18,7 +19,7 @@ import { withAlpha } from '@/lib/hex-color';
  * next. Sizes are authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function MenuBoardView({
-  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape,
+  settings, timeFormat, savedMeals, plan, now, slots, s, showEmoji, showPrepTime, showDifficulty, showTitle, headerFont, bodyFont, recipeTapMode, landscape, interactive,
 }: MealPlannerViewProps) {
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
@@ -177,6 +178,7 @@ export default function MenuBoardView({
                     {note}
                   </div>
                 ))}
+                <FamilyMealStars meal={course.meal} size={P(30)} style={{ marginTop: P(14) }} />
                 {(minutes || (showDifficulty && course.meal?.difficulty)) && (
                   <div style={{ display: 'flex', gap: P(20), fontSize: P(26), color: 'var(--fmp-text-3)', marginTop: P(12) }}>
                     {minutes && (
@@ -201,6 +203,10 @@ export default function MenuBoardView({
       </div>
 
       <div style={{ margin: `${P(30)}px 0`, width: '100%', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>{divider}</div>
+
+      {/* Under the menu, outside the meals: the meals and their separators keep
+          the spacing they share, and voting stays apart from what a tap on a meal opens. */}
+      {interactive && <WallRateDinnerButton size={P(28)} style={{ marginBottom: P(30) }} />}
 
       {/* Bottom ornament */}
       <div style={{ fontSize: P(30), color: 'var(--fmp-text-3)', letterSpacing: '0.5em', flexShrink: 0 }}>

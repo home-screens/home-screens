@@ -1,3 +1,4 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { useCallback, useMemo, useRef } from 'react';
 import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import { SLOT_META, getLocalizedDayNames, getMealSlotLabelKey, resolveMealWithEntry, toISODate, formatMealTime, resolvePlannedMealTime, formatShortDayMonth, fromISODate, weekPlannedSlots } from '@/lib/meal-constants';
@@ -224,6 +225,7 @@ export default function WeekView({
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden',
                       }}
                     />
+                    <FamilyMealStars meal={meal} size={P(24)} />
                     {(time || minutes) && (
                       <span style={{ display: 'flex', flexWrap: 'wrap', justifyContent: align, columnGap: P(10), fontSize: P(21), lineHeight: 1.2 }}>
                         {time && (
@@ -354,6 +356,7 @@ export default function WeekView({
         </div>
       )}
 
+      {weekEmpty && interactive && <WallRateDinnerButton size={P(24)} />}
       {weekEmpty && (
         <div data-testid="fmp-week-empty" style={{ flex: 1, display: 'flex', color: 'var(--fmp-text-2)' }}>
           <FamilyEmptyState
@@ -392,7 +395,7 @@ export default function WeekView({
       {!weekEmpty && (
       <div style={{
         paddingTop: P(16), flexShrink: 0,
-        display: 'flex', alignItems: 'center', gap: P(14),
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: P(14),
       }}>
         <span style={{ fontSize: P(22), color: 'var(--fmp-text-3)', fontWeight: 500, whiteSpace: 'nowrap' as const }}>
           {t('fullscreen-meal-planner.mealsPlannedCount', { filled, total })}
@@ -406,6 +409,7 @@ export default function WeekView({
             borderRadius: P(3), width: `${pct}%`, transition: 'width 0.5s ease',
           }} />
         </div>
+        {interactive && <WallRateDinnerButton size={P(24)} style={{ marginLeft: 'auto' }} />}
       </div>
       )}
     </div>

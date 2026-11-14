@@ -11,6 +11,7 @@ import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseLines } from '../shared/MealCourseLines';
 import { useMealMinutes } from '../shared/useMealMinutes';
 import { withAlpha } from '@/lib/hex-color';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 interface TodayViewProps {
   config: MealPlannerConfig;
@@ -113,6 +114,7 @@ function SlotCard({
               <p className="font-medium truncate" style={{ fontSize: '0.95em' }}>
                 {name}
               </p>
+              <FamilyMealStars meal={meal} size="0.65em" />
               <MealCourseLines courses={courses} labelSize="0.5em" nameSize="0.72em" gap="0.6em" style={{ marginTop: 1 }} />
               {(showPrepTime || showTags) && (
                 <div className="flex flex-wrap items-center gap-1.5 mt-1" style={{ fontSize: '0.55em' }}>

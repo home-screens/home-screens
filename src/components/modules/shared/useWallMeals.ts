@@ -12,6 +12,8 @@ import { DEFAULT_MEAL_SETTINGS, filterPlanToWeek, getWeekDatesForRange, minutesO
 import { resolveRecipeTapMode, type RecipeTapMode } from './MealTapTarget';
 import type { MealRecipeContextValue } from './MealRecipeContext';
 import { useWallGrocery, type WallGrocery } from './useWallGrocery';
+import { useVotesWithPending } from '@/components/meals/meal-votes';
+import type { FamilyMealRating } from '@/types/meal-ratings';
 
 const NO_MEALS: SavedMeal[] = [];
 const NO_PLAN: PlannedMeal[] = [];
@@ -23,7 +25,7 @@ export interface WallMealsOptions {
   timezone: string | undefined;
   /** The full-screen theme a recipe card is drawn in. */
   theme: string | undefined;
-  config: { tapRecipeAction?: RecipeTapAction; interactive?: boolean };
+  config: { tapRecipeAction?: RecipeTapAction; interactive?: boolean; showFamilyRatings?: boolean };
   screenId: string | undefined;
   moduleId: string | undefined;
 }
@@ -50,6 +52,8 @@ export interface WallMeals {
   mealie: MealieStatus;
   /** The grocery list, read only while the module shows it. */
   grocery: WallGrocery;
+  /** The family's votes, this wall's own just-made ones included. */
+  familyRatings: readonly FamilyMealRating[];
   /** A real display with taps switched on; the editor preview draws the rows only. */
   interactive: boolean;
   recipeTapMode: RecipeTapMode;
@@ -109,10 +113,13 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
   );
   const grocery = useWallGrocery(grocerySource, localGrocery, todayISO);
 
+  // The ratings switch rides along so a recipe card, portalled out of the module, follows it too.
   const recipeContext = useMemo<MealRecipeContextValue>(
-    () => ({ theme, plan: fullPlan, savedMeals, settings, timeFormat, now }),
-    [theme, fullPlan, savedMeals, settings, timeFormat, now],
+    () => ({ theme, showFamilyRatings: config.showFamilyRatings !== false, plan: fullPlan, savedMeals, settings, timeFormat, now }),
+    [theme, config.showFamilyRatings, fullPlan, savedMeals, settings, timeFormat, now],
   );
+  // The family's votes ride the meals answer; a vote made on this wall shows before the next one lands.
+  const familyRatings = useVotesWithPending(data?.familyRatings);
 
   return {
     data,
@@ -128,6 +135,7 @@ export function useWallMeals({ moduleType, view, timezone, theme, config, screen
     plan,
     mealie,
     grocery,
+    familyRatings,
     interactive: config.interactive !== false && !!screenId && !!moduleId,
     // Opening a recipe is a tap on the wall, so it follows "Tap on the Wall":
     // with that off the rows are not tappable and show no "›".
