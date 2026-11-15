@@ -30,7 +30,8 @@ vi.mock('fs', () => ({
 
 const mockWriteLibraryFile = vi.fn();
 const mockSafeLibraryPath = vi.fn();
-vi.mock('@/lib/library-files', () => ({
+vi.mock('@/lib/library-files', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/library-files')>()),
   writeLibraryFile: (...args: unknown[]) => mockWriteLibraryFile(...args),
   safeLibraryPath: (...args: unknown[]) => mockSafeLibraryPath(...args),
 }));

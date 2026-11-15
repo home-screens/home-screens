@@ -1,8 +1,7 @@
 import { fetchSharedStreamsAlbumForImport, findSharedStreamsItem, listSharedStreamsAlbum } from './icloud-album';
 import { fetchCloudKitAlbumForImport, findCloudKitItem, listCloudKitAlbum } from './icloud-link';
 import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from './icloud-parse';
-import { createTTLCache, fetchWithTimeout } from './api-utils';
-import { extensionForContentType, sniffImageContentType } from './media-formats';
+import { createTTLCache } from './api-utils';
 import type { ICloudAlbumEntry, ICloudAlbumItem } from './icloud-types';
 
 /**
@@ -82,55 +81,6 @@ export function icloudVideoUrl(albumLink: string, guid: string): string {
 /** What an `mt` token for one album item is bound to. */
 export function icloudMediaResource(albumLink: string, guid: string): string {
   return `icloud:${albumLink}#${guid}`;
-}
-
-/** Enough of a picture's start to tell what it is (`sniffImageContentType`). */
-const PICTURE_HEAD_BYTES = 12;
-
-/** The first bytes of a body, and a body that still carries all of it. */
-async function peekBody(body: ReadableStream<Uint8Array>, wanted: number): Promise<{ head: Uint8Array; body: ReadableStream<Uint8Array> }> {
-  const reader = body.getReader();
-  const read: Uint8Array[] = [];
-  let have = 0;
-  while (have < wanted) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    read.push(value);
-    have += value.length;
-  }
-  const rest = new ReadableStream<Uint8Array>({
-    start(controller) {
-      for (const chunk of read) controller.enqueue(chunk);
-    },
-    async pull(controller) {
-      const { done, value } = await reader.read();
-      if (done) controller.close();
-      else controller.enqueue(value);
-    },
-    cancel(reason) {
-      return reader.cancel(reason);
-    },
-  });
-  return { head: Buffer.concat(read).subarray(0, wanted), body: rest };
-}
-
-/**
- * Download a photo or a poster frame from one of Apple's links, answered
- * with the media type of what it is. The legacy backend names its pictures
- * (`image/jpeg`); the newer one answers every file as
- * `application/octet-stream`, whatever it holds. A browser paints that
- * anyway, but a rotating background is saved under a name taken from the
- * type and had none to take, so a newer album never gave it a picture. Where
- * Apple does not name a picture type, the first bytes say which it is; bytes
- * that are no picture the wall can show keep the type Apple gave.
- */
-export async function fetchICloudPicture(url: string): Promise<Response> {
-  const res = await fetchWithTimeout(url, { timeout: 30_000 });
-  const declared = res.headers.get('content-type');
-  if (!res.ok || !res.body || extensionForContentType(declared, 'image')) return res;
-  const { head, body } = await peekBody(res.body, PICTURE_HEAD_BYTES);
-  const contentType = sniffImageContentType(head) ?? declared;
-  return new Response(body, { status: res.status, headers: contentType ? { 'Content-Type': contentType } : undefined });
 }
 
 /**

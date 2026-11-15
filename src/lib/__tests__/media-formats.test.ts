@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extensionForContentType, mediaKindOf, sniffImageContentType } from '@/lib/media-formats';
+import { extensionForContentType, mediaKindOf, pictureContentType, sniffImageContentType } from '@/lib/media-formats';
 
 describe('extensionForContentType', () => {
   it.each([
@@ -60,5 +60,27 @@ describe('sniffImageContentType', () => {
     expect(sniffImageContentType(bytes('<svg xmlns='))).toBeNull();
     expect(sniffImageContentType(bytes([0xff, 0xd8]))).toBeNull();
     expect(sniffImageContentType(new Uint8Array())).toBeNull();
+  });
+});
+
+describe('pictureContentType', () => {
+  const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0]);
+  const NOT_A_PICTURE = new Uint8Array([1, 2, 3, 4]);
+
+  it('keeps the declared type when it names a picture the display can show', () => {
+    expect(pictureContentType('image/png', JPEG)).toBe('image/png');
+    expect(pictureContentType('image/jpeg; charset=binary', NOT_A_PICTURE)).toBe('image/jpeg; charset=binary');
+  });
+
+  it('reads the bytes when the declared type says nothing, or names something else', () => {
+    for (const declared of ['application/octet-stream', 'binary/octet-stream', 'image/jpg', 'video/mp4', '', null, undefined]) {
+      expect(pictureContentType(declared, JPEG)).toBe('image/jpeg');
+    }
+  });
+
+  it('has no answer when neither names a picture the display can show', () => {
+    expect(pictureContentType('application/octet-stream', NOT_A_PICTURE)).toBeNull();
+    expect(pictureContentType('image/tiff', NOT_A_PICTURE)).toBeNull();
+    expect(pictureContentType(null, new Uint8Array())).toBeNull();
   });
 });

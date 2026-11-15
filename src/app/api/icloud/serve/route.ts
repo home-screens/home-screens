@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { withDisplayAuth } from '@/lib/api-utils';
-import { fetchICloudPicture, findICloudItem, icloudPhotoBytesCache, isICloudAlbumLink } from '@/lib/icloud-media';
+import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
+import { findICloudItem, icloudPhotoBytesCache, isICloudAlbumLink } from '@/lib/icloud-media';
+import { PICTURE_HEAD_BYTES, pictureContentType } from '@/lib/media-formats';
 import { isAppleContentUrl } from '@/lib/icloud-parse';
 
 export const dynamic = 'force-dynamic';
@@ -55,11 +56,14 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   if (!url) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (!isAppleContentUrl(url)) return NextResponse.json({ error: 'Failed to fetch photo from iCloud' }, { status: 502 });
 
-  const res = await fetchICloudPicture(url);
+  const res = await fetchWithTimeout(url, { timeout: 30_000 });
   if (!res.ok) return NextResponse.json({ error: 'Failed to fetch photo from iCloud' }, { status: 502 });
 
   const data = await res.arrayBuffer();
-  const contentType = res.headers.get('Content-Type') || 'image/jpeg';
+  // A newer album's files all come as `application/octet-stream`; the wall is
+  // told what the picture is.
+  const declared = res.headers.get('Content-Type');
+  const contentType = pictureContentType(declared, new Uint8Array(data).subarray(0, PICTURE_HEAD_BYTES)) ?? declared ?? 'image/jpeg';
   if (data.byteLength <= MAX_CACHED_BYTES) icloudPhotoBytesCache.set(cacheKey, { data, contentType });
   return imageResponse(data, contentType);
 }, 'Could not serve iCloud photo');

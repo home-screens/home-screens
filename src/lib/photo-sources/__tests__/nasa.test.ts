@@ -182,7 +182,7 @@ describe('nasaPhotoSource.importOne', () => {
     expect(queryOf(0).get('after')).toBe('2026-10-15T00:00:00');
     expect(queryOf(0).get('before')).toBe('2026-10-16T00:00:00');
     const pick = vi.mocked(importPictureToLibrary).mock.calls[0][0];
-    expect(pick).toMatchObject({ kind: 'nasa', id: '2026-10-15', folder: 'nasa', urlHint: `${ASSETS}/2026-10-15.jpg` });
+    expect(pick).toMatchObject({ kind: 'nasa', id: '2026-10-15', folder: 'nasa' });
     mockFetch.mockResolvedValueOnce(new Response('img'));
     await pick.open();
     expect(mockFetch.mock.calls[1][0]).toBe(`${ASSETS}/2026-10-15.jpg`);
@@ -207,9 +207,11 @@ describe('nasaPhotoSource.importOne', () => {
     await nasaPhotoSource.importOne({ ref: 'image:PIA1', folder: 'nasa' });
 
     expect(mockFetch.mock.calls[0][0]).toBe('https://images-api.nasa.gov/asset/PIA1');
-    expect(vi.mocked(importPictureToLibrary).mock.calls[0][0]).toMatchObject({
-      kind: 'nasa', id: 'PIA1', urlHint: 'https://images-assets.nasa.gov/image/PIA1/PIA1~orig.jpg',
-    });
+    const pick = vi.mocked(importPictureToLibrary).mock.calls[0][0];
+    expect(pick).toMatchObject({ kind: 'nasa', id: 'PIA1' });
+    mockFetch.mockResolvedValueOnce(new Response('img'));
+    await pick.open();
+    expect(mockFetch.mock.calls[1][0]).toBe('https://images-assets.nasa.gov/image/PIA1/PIA1~orig.jpg');
   });
 
   it('refuses an entry that only has TIFFs, which the display cannot show', async () => {

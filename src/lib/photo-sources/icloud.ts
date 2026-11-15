@@ -1,4 +1,5 @@
-import { fetchICloudPicture, findICloudItem, icloudMediaResource, icloudServeUrl, icloudVideoUrl, listICloudAlbum } from '@/lib/icloud-media';
+import { fetchWithTimeout } from '@/lib/api-utils';
+import { findICloudItem, icloudMediaResource, icloudServeUrl, icloudVideoUrl, listICloudAlbum } from '@/lib/icloud-media';
 import { mintMediaToken } from '@/lib/media-token';
 import { shuffleArray } from '@/lib/shuffle';
 import type { MediaListItem } from '@/types/config';
@@ -48,7 +49,7 @@ export const icloudPhotoSource: PhotoSourceAdapter<'icloud'> = {
       open: async () => {
         const item = await findICloudItem(link, pick.guid);
         if (!item) return new Response(null, { status: 404 });
-        return fetchICloudPicture(item.url);
+        return fetchWithTimeout(item.url, { timeout: 30_000 });
       },
     };
   },

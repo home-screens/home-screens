@@ -221,6 +221,31 @@ describe('GET /api/backgrounds/rotate: picking from the sources', () => {
     expect(String(fsMock.rename.mock.calls[0][1])).toMatch(/[\\/]rotation-immich-asset-1\.png$/);
   });
 
+  it('saves a download the server did not name as the picture its bytes say it is', async () => {
+    // A newer iCloud album and some archives answer every file this way.
+    mockFindScreen.mockReturnValue(screen(rotating([{ kind: 'icloud', albumUrl: 'https://photos.icloud.com/shared/album/0f0a3hdUxHZ0-C8uQ7Dq1JxLw' }])));
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48]);
+    mockPick.mockResolvedValue({
+      kind: 'download', id: 'asset-1',
+      open: async () => new Response(png, { headers: { 'content-type': 'application/octet-stream' } }),
+    });
+
+    const json = await (await GET(rotateReq())).json();
+
+    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-icloud-asset-1.png', fresh: true });
+    expect(String(fsMock.rename.mock.calls[0][1])).toMatch(/[\\/]rotation-icloud-asset-1\.png$/);
+  });
+
+  it('declines a download that is neither named as a picture nor one by its bytes', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating()));
+    mockPick.mockResolvedValue({ kind: 'download', id: 'asset-1', open: async () => imageResponse('application/octet-stream') });
+
+    const json = await (await GET(rotateReq())).json();
+
+    expect(json).toEqual({ path: null, fresh: false, declined: [{ kind: 'immich', reason: 'empty' }] });
+    expect(createWriteStreamMock).not.toHaveBeenCalled();
+  });
+
   it('turns odd characters in an id into underscores in the file name', async () => {
     mockFindScreen.mockReturnValue(screen(rotating([{ kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aGcD12' }])));
     mockPick.mockResolvedValue({ kind: 'download', id: 'a/b c', open: async () => imageResponse() });

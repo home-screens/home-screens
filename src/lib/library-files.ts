@@ -4,7 +4,7 @@ import { Readable, Transform } from 'stream';
 import { pipeline } from 'stream/promises';
 import path from 'path';
 import { BACKGROUNDS_DIR } from './constants';
-import { mediaKindOf } from './media-formats';
+import { PICTURE_HEAD_BYTES, extensionForContentType, mediaKindOf, pictureContentType } from './media-formats';
 import { isRotationFile } from './media-paths';
 import { readImageDimensions } from './image-dimensions';
 import type { MediaInventoryDirectory, MediaInventoryItem, MediaInventoryStorage } from './media-inventory';
@@ -72,6 +72,60 @@ export async function listLibraryFolder(folder: string): Promise<string[]> {
     if (entry.isFile() && libraryMediaKind(libraryPath)) out.push(libraryPath);
   }
   return out;
+}
+
+/** The first bytes of a body, and a body that still carries all of it. */
+async function peekBody(body: ReadableStream<Uint8Array>, wanted: number): Promise<{ head: Uint8Array; body: ReadableStream<Uint8Array> }> {
+  const reader = body.getReader();
+  const read: Uint8Array[] = [];
+  let have = 0;
+  while (have < wanted) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    read.push(value);
+    have += value.length;
+  }
+  const rest = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of read) controller.enqueue(chunk);
+    },
+    async pull(controller) {
+      const { done, value } = await reader.read();
+      if (done) controller.close();
+      else controller.enqueue(value);
+    },
+    cancel(reason) {
+      return reader.cancel(reason);
+    },
+  });
+  return { head: Buffer.concat(read).subarray(0, wanted), body: rest };
+}
+
+/**
+ * What a download is, as the extension to save it under, with a body that
+ * still carries every byte of it (write that one: the response's own body
+ * may have been read from). Every download that takes its file name from
+ * what the server sent asks here: a rotating background, a picked picture
+ * and an album import. Each used to read the Content-Type on its own, with
+ * its own idea of what to do when that said nothing, so a server answering
+ * `application/octet-stream` was handled for a picked picture and not for a
+ * background.
+ *
+ * The declared type answers when it names a format the display can show.
+ * When it does not, a picture is known by its first bytes
+ * (`pictureContentType`); a video is only ever known by its declared type.
+ * `ext` is null for anything else, and what that means is the caller's
+ * business. `kind` limits the answer to pictures or videos.
+ */
+export async function identifyDownload(
+  res: Response,
+  kind?: 'image' | 'video',
+): Promise<{ ext: string | null; body: ReadableStream<Uint8Array> | null }> {
+  const declared = res.headers.get('content-type');
+  const named = extensionForContentType(declared, kind);
+  if (named || kind === 'video' || !res.body) return { ext: named, body: res.body };
+  const { head, body } = await peekBody(res.body, PICTURE_HEAD_BYTES);
+  return { ext: extensionForContentType(pictureContentType(declared, head), 'image'), body };
 }
 
 /**

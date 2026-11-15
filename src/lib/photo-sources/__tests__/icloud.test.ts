@@ -96,18 +96,6 @@ describe('icloudPhotoSource.pickOne', () => {
     expect(fetchWithTimeout).toHaveBeenCalledWith('https://cvws.icloud-content.com/p1', { timeout: 30_000 });
   });
 
-  it('opens a newer album\'s picture named as the picture it is, so a background can be saved from it', async () => {
-    mockAlbum.mockResolvedValue([ALBUM[0]]);
-    const picked = await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } });
-    mockFind.mockResolvedValue({ url: 'https://cvws.icloud-content.com/p1', type: 'image', guid: 'G1' });
-    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d]);
-    vi.mocked(fetchWithTimeout).mockResolvedValue(new Response(png, { headers: { 'Content-Type': 'application/octet-stream' } }));
-
-    const res = await (picked as { open: () => Promise<Response> }).open();
-    expect(res.headers.get('Content-Type')).toBe('image/png');
-    expect((await res.arrayBuffer()).byteLength).toBe(png.byteLength);
-  });
-
   it('opens as not found when the album lost the photo after it was picked', async () => {
     mockAlbum.mockResolvedValue([ALBUM[0]]);
     const picked = await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } });

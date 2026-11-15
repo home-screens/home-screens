@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { safeLibraryPath, writeLibraryFile, libraryRoot, libraryMediaKind, listLibraryFolder } from '@/lib/library-files';
+import { identifyDownload, safeLibraryPath, writeLibraryFile, libraryRoot, libraryMediaKind, listLibraryFolder } from '@/lib/library-files';
 
 // The vitest sandbox chdirs each test file into an isolated cwd, so these
 // real fs writes never touch the repo's library. Scoped to one named folder;
@@ -111,5 +111,100 @@ describe('writeLibraryFile', () => {
 
   it('rejects a missing body', async () => {
     await expect(writeLibraryFile(path.join(DIR, 'none.jpg'), null, 100)).rejects.toThrow('empty');
+  });
+});
+
+describe('identifyDownload', () => {
+  const JPEG = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00];
+  const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48];
+  const HEIC = [0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63, 0, 0];
+
+  /** A download that arrives a few bytes at a time, answered with the type given (or none). */
+  function download(bytes: number[], contentType: string | null, pieceSize = bytes.length): Response {
+    let at = 0;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        if (at >= bytes.length) return controller.close();
+        controller.enqueue(new Uint8Array(bytes.slice(at, at + pieceSize)));
+        at += pieceSize;
+      },
+    });
+    return new Response(body, { headers: contentType ? { 'Content-Type': contentType } : undefined });
+  }
+
+  async function bytesOf(body: ReadableStream<Uint8Array> | null): Promise<number[]> {
+    return [...new Uint8Array(await new Response(body).arrayBuffer())];
+  }
+
+  it('takes the server at its word when it names a format the display can show', async () => {
+    const res = download(PNG, 'image/jpeg; charset=binary');
+    const { ext, body } = await identifyDownload(res, 'image');
+    expect(ext).toBe('.jpg');
+    // Nothing was read to find out.
+    expect(body).toBe(res.body);
+
+    expect((await identifyDownload(download([1, 2, 3], 'video/mp4'))).ext).toBe('.mp4');
+  });
+
+  it('knows a picture by its bytes when the server answers a plain download, and keeps every byte', async () => {
+    const jpeg = await identifyDownload(download(JPEG, 'application/octet-stream', 5), 'image');
+    expect(jpeg.ext).toBe('.jpg');
+    expect(await bytesOf(jpeg.body)).toEqual(JPEG);
+
+    const png = await identifyDownload(download(PNG, 'application/octet-stream', 1));
+    expect(png.ext).toBe('.png');
+    expect(await bytesOf(png.body)).toEqual(PNG);
+  });
+
+  it('knows a picture that came with no type, or with one nobody uses', async () => {
+    expect((await identifyDownload(download(JPEG, null), 'image')).ext).toBe('.jpg');
+    expect((await identifyDownload(download(JPEG, 'image/jpg'), 'image')).ext).toBe('.jpg');
+  });
+
+  it('has no answer for bytes the display cannot show, whatever they are called, and still hands the body on', async () => {
+    const heic = await identifyDownload(download(HEIC, 'application/octet-stream'), 'image');
+    expect(heic.ext).toBeNull();
+    expect(await bytesOf(heic.body)).toEqual(HEIC);
+
+    expect((await identifyDownload(download(HEIC, 'image/heic'), 'image')).ext).toBeNull();
+    expect((await identifyDownload(download([0x3c, 0x68, 0x74, 0x6d, 0x6c, 0x3e], 'text/html'), 'image')).ext).toBeNull();
+  });
+
+  it('never takes a video for a picture, or a picture for a video', async () => {
+    expect((await identifyDownload(download(JPEG, 'video/mp4'), 'image')).ext).toBe('.jpg');
+    expect((await identifyDownload(download([1, 2, 3], 'video/mp4'), 'image')).ext).toBeNull();
+    // A video is only known by its declared type; its body is not read.
+    const res = download(JPEG, 'application/octet-stream');
+    const asVideo = await identifyDownload(res, 'video');
+    expect(asVideo.ext).toBeNull();
+    expect(asVideo.body).toBe(res.body);
+  });
+
+  it('copes with a download shorter than the bytes it looks at, and with one that has no body', async () => {
+    const short = await identifyDownload(download([0xff, 0xd8, 0xff], 'application/octet-stream'), 'image');
+    expect(short.ext).toBe('.jpg');
+    expect(await bytesOf(short.body)).toEqual([0xff, 0xd8, 0xff]);
+
+    expect(await identifyDownload(new Response(null, { status: 204 }), 'image')).toEqual({ ext: null, body: null });
+  });
+
+  it('lets the caller stop a download it will not keep', async () => {
+    let cancelled = false;
+    const res = new Response(new ReadableStream<Uint8Array>({
+      pull(controller) { controller.enqueue(new Uint8Array(HEIC)); },
+      cancel() { cancelled = true; },
+    }), { headers: { 'Content-Type': 'application/octet-stream' } });
+
+    const { ext, body } = await identifyDownload(res, 'image');
+    expect(ext).toBeNull();
+    await body!.cancel();
+    expect(cancelled).toBe(true);
+  });
+
+  it('writes to disk through writeLibraryFile', async () => {
+    const { ext, body } = await identifyDownload(download(JPEG, 'application/octet-stream', 4), 'image');
+    const file = path.join(DIR, `named${ext}`);
+    await writeLibraryFile(file, body, 1024);
+    expect([...await fs.readFile(file)]).toEqual(JPEG);
   });
 });
