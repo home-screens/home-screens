@@ -47,6 +47,9 @@ test('the button names its screen, opens it with a back chip, and the chip retur
   // The card keeps its content clear of the pill: its bottom padding grows
   // by the pill's height, so the content box ends above the pill.
   const card = page.locator('[data-module-type="meal-planner"] [data-module-card]');
+  // The loading card is swapped for the real one when the meals arrive;
+  // measure the real one, not a card that is gone by the time it is read.
+  await expect(card).toContainText('This week');
   const padding = await card.evaluate((el) => {
     const cs = getComputedStyle(el);
     return { top: parseFloat(cs.paddingTop), bottom: parseFloat(cs.paddingBottom) };
