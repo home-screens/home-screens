@@ -23,13 +23,13 @@ vi.mock('@/lib/icloud-link', async (importOriginal) => {
   return {
     ...actual,
     listICloudLinkItems: vi.fn(),
-    fetchCloudKitAlbum: vi.fn(),
+    fetchCloudKitAlbumForImport: vi.fn(),
   };
 });
 
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { fetchSharedStreamsAlbumForImport } from '@/lib/icloud-album';
-import { listICloudLinkItems, fetchCloudKitAlbum } from '@/lib/icloud-link';
+import { listICloudLinkItems, fetchCloudKitAlbumForImport } from '@/lib/icloud-link';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import {
   clearICloudImportJobs,
@@ -42,7 +42,7 @@ import { detectICloudSource } from '@/lib/icloud-parse';
 const mockFetch = vi.mocked(fetchWithTimeout);
 const mockAlbum = vi.mocked(fetchSharedStreamsAlbumForImport);
 const mockLink = vi.mocked(listICloudLinkItems);
-const mockCloudKit = vi.mocked(fetchCloudKitAlbum);
+const mockCloudKit = vi.mocked(fetchCloudKitAlbumForImport);
 
 const ALBUM_URL = 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC';
 const NEW_ALBUM_URL = 'https://photos.icloud.com/shared/album/03c4SA2q7HwyPw7YOwfXTn0mg';

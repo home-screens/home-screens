@@ -20,15 +20,19 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   return { ...actual, fetchWithTimeout: vi.fn() };
 });
 
-// The album reader behind fetchICloudMedia for a photos.icloud.com/shared/album link.
-vi.mock('@/lib/icloud-link', () => ({ fetchCloudKitAlbum: vi.fn() }));
+// The item lookup behind findICloudItem for a photos.icloud.com/shared/album link.
+vi.mock('@/lib/icloud-link', () => ({
+  listCloudKitAlbum: vi.fn(),
+  findCloudKitItem: vi.fn(),
+  fetchCloudKitAlbumForImport: vi.fn(),
+}));
 
 import { GET } from '@/app/api/icloud/video/route';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { fetchCloudKitAlbum } from '@/lib/icloud-link';
+import { findCloudKitItem } from '@/lib/icloud-link';
 import { icloudMediaResource, icloudVideoUrl } from '@/lib/icloud-media';
 
-const mockAlbum = vi.mocked(fetchCloudKitAlbum);
+const mockFind = vi.mocked(findCloudKitItem);
 const mockFetch = vi.mocked(fetchWithTimeout);
 const SECRET = 's'.repeat(64);
 
@@ -50,7 +54,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   authState.authRejects = false;
   authState.secret = null;
-  mockAlbum.mockResolvedValue(ALBUM);
+  mockFind.mockImplementation(async (_token, guid) => ALBUM.find((item) => item.guid === guid) ?? null);
 });
 
 describe('GET /api/icloud/video', () => {
@@ -73,7 +77,7 @@ describe('GET /api/icloud/video', () => {
     expect(res.headers.get('Accept-Ranges')).toBe('bytes');
     expect(await res.text()).toBe('chunk-bytes');
 
-    expect(mockAlbum).toHaveBeenCalledWith(TOKEN);
+    expect(mockFind).toHaveBeenCalledWith(TOKEN, 'V1');
     const [url, init] = mockFetch.mock.calls[0] as [string, { headers?: Record<string, string>; retries?: number; signal?: AbortSignal }];
     expect(url).toBe(`${CDN}/v1`);
     expect(init.headers).toEqual({ Range: 'bytes=0-10' });
@@ -109,7 +113,7 @@ describe('GET /api/icloud/video', () => {
     const get = (query: string) => GET(new NextRequest(`http://localhost/api/icloud/video${query}`));
     expect((await get('')).status).toBe(400);
     expect((await get('?link=https%3A%2F%2Fexample.com%2Falbum&id=V1')).status).toBe(400);
-    expect(mockAlbum).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
   });
 
   describe('with sign-in on and no display credentials (a bare <video src>)', () => {

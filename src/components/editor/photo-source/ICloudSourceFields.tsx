@@ -11,6 +11,9 @@ import { useTranslate } from '@/i18n';
 
 type ICloudSource = Extract<PhotoSource, { kind: 'icloud' }>;
 
+/** How long "Checking the album..." stands before it says a big album takes a while. */
+const SLOW_CHECK_MS = 8_000;
+
 interface Props {
   source: ICloudSource;
   /** What the slideshow plays, for the video hint; unset for a rotating background. */
@@ -22,8 +25,9 @@ interface Props {
 /**
  * iCloud's part of the photo source fields (slideshows and rotating backgrounds).
  * No API key needed: the album's public share link is the whole setup. The
- * preview strip doubles as validation: a pasted link either shows photos or
- * the "check the link" hint.
+ * preview strip doubles as validation: a pasted link shows photos, the
+ * "check the link" hint when the album read as empty, or "iCloud didn't
+ * answer" with a Try again when the hub could not read it at all.
  *
  * Wrong-link bridge: Apple has TWO near-identical link products, and users
  * can't be expected to know the difference. A pasted iCloud Link
@@ -45,9 +49,23 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
   const previewUrl = linkKind === 'album'
     ? `${PHOTO_SOURCE_MEDIA_PATH}?${photoSourceParams(source)}&count=4`
     : null;
-  // A cold preview reads the whole album from Apple, 25 photos per call.
-  const { data: previewData, loading: checking, error: unreadable } = useEditorData<MediaListItem[]>(previewUrl, null);
+  // No time limit: the first read of an album waits for Apple, which can take
+  // most of a minute over a big one.
+  const { data: previewData, loading: checking, error: noAnswer, refetch } = useEditorData<MediaListItem[]>(previewUrl, null);
   const previewImages = useMemo(() => (previewData ?? []).map((item) => item.url), [previewData]);
+
+  // Say the wait is expected before it starts to look stuck.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    setSlow(false);
+    if (!checking) return;
+    const timer = setTimeout(() => setSlow(true), SLOW_CHECK_MS);
+    return () => clearTimeout(timer);
+  }, [checking, previewUrl]);
+
+  // What the last read that worked found. A failed read keeps the answer
+  // before it, which may be another link's, so it is not shown beside one.
+  const answered = previewData !== null && !noAnswer;
 
   return (
     <div className="space-y-2">
@@ -87,19 +105,27 @@ export function ICloudSourceFields({ source, mediaTypes = 'photos', onChange }: 
       )}
 
       {linkKind === 'album' && checking && (
-        <p className="text-[10px] text-hs-text-faint" data-testid="icloud-checking">{t('photoSources.icloud.checking')}</p>
+        <p className="text-[10px] text-hs-text-faint" data-testid="icloud-checking">
+          {t(slow ? 'photoSources.icloud.checkingSlow' : 'photoSources.icloud.checking')}
+        </p>
       )}
 
-      {/* A link that leads nowhere (sharing turned off, the album deleted)
-          can take Apple a while to refuse; say so once it does. */}
-      {linkKind === 'album' && !checking && unreadable && (
-        <p className="text-[10px] text-hs-warning">{t('photoSources.icloud.noItemsFound')}</p>
+      {/* The hub could not read the album: iCloud was slow, busy or out of
+          reach. That says nothing about the link, so it is not blamed; the
+          "check the link" hint below is for an album that read as empty. */}
+      {linkKind === 'album' && !checking && noAnswer && (
+        <p className="text-[10px] text-hs-warning" data-testid="icloud-no-answer">
+          {t('photoSources.icloud.noAnswer')}{' '}
+          <button type="button" onClick={refetch} className="text-hs-accent hover:text-hs-accent-hover">
+            {t('photoSources.icloud.tryAgain')}
+          </button>
+        </p>
       )}
 
-      {linkKind === 'album' && previewData !== null && previewImages.length > 0 && (
+      {linkKind === 'album' && answered && previewImages.length > 0 && (
         <p className="text-[10px] text-hs-success">{t('photoSources.icloud.linkOk')}</p>
       )}
-      {linkKind === 'album' && previewData !== null && (
+      {linkKind === 'album' && answered && (
         previewImages.length > 0 ? (
           <div className="flex gap-1 mt-1 overflow-x-auto">
             {previewImages.map((url) => (

@@ -20,9 +20,19 @@ const responses = new Map<string, unknown>();
 const etags = new Map<string, string>();
 let heldRequest: Promise<unknown> | null = null;
 let requestCount = 0;
+/** What the hub refuses every request with, when set. */
+let refusal: { status: number; body: unknown } | null = null;
+/** The options each request was made with. */
+const requestInits: unknown[] = [];
 vi.mock('@/lib/display-fetch', () => ({
-  displayFetch: async (url: string) => {
+  displayFetch: async (url: string, init?: unknown) => {
     requestCount++;
+    requestInits.push(init);
+    if (refusal) {
+      const { status, body } = refusal;
+      const res = { ok: false, status, json: async () => body, clone: () => res };
+      return res;
+    }
     if (heldRequest) {
       const pending = heldRequest;
       heldRequest = null;
@@ -35,13 +45,15 @@ vi.mock('@/lib/display-fetch', () => ({
   },
 }));
 
-import { useFetchData } from '../useFetchData';
+import { EMPTY_HANDED_RETRY_MS, useFetchData } from '../useFetchData';
 import { publishRevisions, __resetHeartbeatForTests } from '@/lib/display-heartbeat';
 
 beforeEach(() => {
   hubUp = true;
   heldRequest = null;
   requestCount = 0;
+  refusal = null;
+  requestInits.length = 0;
   responses.clear();
   etags.clear();
   displayCache.clear();
@@ -50,6 +62,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 const DAY1 = '/api/calendar?timeMin=2026-09-04';
@@ -513,5 +526,125 @@ describe('useFetchData while paused', () => {
     await new Promise((resolve) => setTimeout(resolve, 80));
     expect(requestCount).toBe(0);
     expect(result.current[0]).toEqual({ events: ['cached'] });
+  });
+});
+
+describe('useFetchData with nothing to show', () => {
+  const url = '/api/photo-source/media?kind=icloud';
+  const TEN_MINUTES = 600_000;
+  const advance = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  it('asks again within seconds after a failed first read, not a whole refresh later', async () => {
+    hubUp = false;
+    const { result } = renderHook(() => useFetchData<string[]>(url, TEN_MINUTES));
+    await advance(0);
+    expect(result.current[1]?.kind).toBe('transient');
+    expect(requestCount).toBe(1);
+
+    // The hub was only slow: its answer is ready by the first early try.
+    hubUp = true;
+    responses.set(url, ['photo']);
+    await advance(EMPTY_HANDED_RETRY_MS[0]);
+    expect(requestCount).toBe(2);
+    expect(result.current[0]).toEqual(['photo']);
+    expect(result.current[1]).toBeNull();
+  });
+
+  it('tries three times, further apart each time, then leaves it to the poll', async () => {
+    hubUp = false;
+    renderHook(() => useFetchData<string[]>(url, TEN_MINUTES));
+    await advance(0);
+
+    for (const [tries, wait] of EMPTY_HANDED_RETRY_MS.entries()) {
+      await advance(wait - 1);
+      expect(requestCount).toBe(1 + tries);
+      await advance(1);
+      expect(requestCount).toBe(2 + tries);
+    }
+
+    // Still down: nothing more until the poll comes round.
+    const early = EMPTY_HANDED_RETRY_MS.reduce((sum, ms) => sum + ms, 0);
+    await advance(TEN_MINUTES - early - 1);
+    expect(requestCount).toBe(4);
+    await advance(1);
+    expect(requestCount).toBe(5);
+  });
+
+  it('starts counting again after a read that worked', async () => {
+    hubUp = false;
+    const { result, rerender } = renderHook(({ at }) => useFetchData<string[]>(at, TEN_MINUTES), { initialProps: { at: url } });
+    await advance(0);
+    hubUp = true;
+    await advance(EMPTY_HANDED_RETRY_MS[0]);
+    expect(result.current[0]).not.toBeNull();
+
+    // A different album, and the hub is down again.
+    hubUp = false;
+    rerender({ at: `${url}&count=40` });
+    await advance(0);
+    const asked = requestCount;
+    await advance(EMPTY_HANDED_RETRY_MS[0]);
+    expect(requestCount).toBe(asked + 1);
+  });
+
+  it('leaves a card that has data to its poll', async () => {
+    responses.set(url, ['photo']);
+    const { result } = renderHook(() => useFetchData<string[]>(url, TEN_MINUTES));
+    await advance(0);
+    expect(result.current[0]).toEqual(['photo']);
+
+    hubUp = false;
+    await advance(TEN_MINUTES);
+    expect(result.current[1]?.kind).toBe('transient');
+    const asked = requestCount;
+    await advance(EMPTY_HANDED_RETRY_MS[0] + EMPTY_HANDED_RETRY_MS[1] + EMPTY_HANDED_RETRY_MS[2]);
+    expect(requestCount).toBe(asked);
+    expect(result.current[0]).toEqual(['photo']);
+  });
+
+  it('does not hurry a read the household has to set up first', async () => {
+    refusal = { status: 400, body: { error: 'Immich needs a key', code: 'setup', setup: { needs: 'key', service: 'Immich' } } };
+    const { result } = renderHook(() => useFetchData<string[]>(url, TEN_MINUTES));
+    await advance(0);
+    expect(result.current[1]?.kind).toBe('setup');
+
+    await advance(EMPTY_HANDED_RETRY_MS[0] + EMPTY_HANDED_RETRY_MS[1] + EMPTY_HANDED_RETRY_MS[2]);
+    expect(requestCount).toBe(1);
+  });
+
+  it('tries early after the hub refused for a reason that may pass', async () => {
+    refusal = { status: 500, body: { error: 'Failed to load photos' } };
+    renderHook(() => useFetchData<string[]>(url, TEN_MINUTES));
+    await advance(0);
+    await advance(EMPTY_HANDED_RETRY_MS[0]);
+    expect(requestCount).toBe(2);
+  });
+
+  it('makes no early try once the card is gone', async () => {
+    hubUp = false;
+    const { unmount } = renderHook(() => useFetchData<string[]>(url, TEN_MINUTES));
+    await advance(0);
+    unmount();
+    await advance(TEN_MINUTES);
+    expect(requestCount).toBe(1);
+  });
+});
+
+describe('useFetchData time limit', () => {
+  it('leaves the request to the ordinary limit unless asked', async () => {
+    const { result } = renderHook(() => useFetchData<unknown>('/api/weather', 60000));
+    await waitFor(() => expect(result.current[0]).not.toBeNull());
+    expect(requestInits).toEqual([undefined]);
+  });
+
+  it('passes on a longer limit for a read the hub is slow to answer', async () => {
+    const { result } = renderHook(() => useFetchData<unknown>('/api/photo-source/media?kind=icloud', 60000, { timeoutMs: 60_000 }));
+    await waitFor(() => expect(result.current[0]).not.toBeNull());
+    expect(requestInits).toEqual([{ timeoutMs: 60_000 }]);
   });
 });

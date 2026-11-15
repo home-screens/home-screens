@@ -5925,6 +5925,9 @@
       "photoLinkAction": "Salvar na biblioteca",
       "videoHint": "Alguns vídeos do iPhone podem não tocar em telas mais antigas. Vídeos que não tocam são pulados automaticamente.",
       "checking": "Verificando o álbum…",
+      "checkingSlow": "Ainda verificando. Um álbum grande pode levar um minuto.",
+      "noAnswer": "O iCloud não respondeu agora. Seu link pode estar certo.",
+      "tryAgain": "Tentar de novo",
       "linkOk": "O link parece certo",
       "notAlbumLink": "Isso não parece um link de álbum compartilhado"
     },

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/api-utils', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/api-utils')>();
@@ -9,8 +9,16 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
 });
 
 import { createHash } from 'crypto';
+import { promises as fs } from 'fs';
+import path from 'path';
 import { fetchWithTimeout } from '@/lib/api-utils';
-import { listICloudLinkItems, fetchCloudKitAlbum, clearICloudLinkCaches } from '@/lib/icloud-link';
+import {
+  clearICloudLinkCaches,
+  fetchCloudKitAlbumForImport,
+  findCloudKitItem,
+  listCloudKitAlbum,
+  listICloudLinkItems,
+} from '@/lib/icloud-link';
 import { parseICloudLinkToken } from '@/lib/icloud-parse';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
@@ -135,10 +143,23 @@ function routeFetch(handlers: {
   });
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks();
-  clearICloudLinkCaches();
+  await clearICloudLinkCaches();
 });
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
+function callsTo(kind: 'resolve' | 'query'): number {
+  return mockFetch.mock.calls.filter(([url]) => String(url).includes(`/records/${kind}`)).length;
+}
+
+/** Let a read that was set off behind an answer finish. */
+async function settle() {
+  await vi.advanceTimersByTimeAsync(0);
+}
 
 describe('parseICloudLinkToken', () => {
   it('extracts the token from a share.icloud.com link', () => {
@@ -272,13 +293,60 @@ describe('listICloudLinkItems', () => {
     expect(mockFetch.mock.calls.every(([u]) => !String(u).includes('evil.example.com'))).toBe(true);
   });
 
-  it('returns null when resolve rejects the token (4xx)', async () => {
+  it('returns null when resolve answers that the link is not there (404)', async () => {
     routeFetch({
       resolve: () => new Response('', { status: 404 }),
       query: () => queryResponse([]),
     });
 
     expect(await listICloudLinkItems(TOKEN)).toBeNull();
+  });
+
+  it('throws when Apple says to slow down, which says nothing about the link', async () => {
+    routeFetch({
+      resolve: () => new Response('', { status: 429 }),
+      query: () => queryResponse([]),
+    });
+
+    await expect(listICloudLinkItems(TOKEN)).rejects.toThrow('429');
+  });
+
+  it('returns null when resolve names the link as not found', async () => {
+    routeFetch({
+      resolve: () => new Response(JSON.stringify({ results: [{ shortGUID: { value: TOKEN }, serverErrorCode: 'NOT_FOUND', reason: 'not found' }] })),
+      query: () => queryResponse([]),
+    });
+
+    expect(await listICloudLinkItems(TOKEN)).toBeNull();
+  });
+
+  it('throws when resolve answers something that cannot be read, which says nothing about the link', async () => {
+    routeFetch({ resolve: () => new Response('<html>busy</html>'), query: () => queryResponse([]) });
+    await expect(listICloudLinkItems(TOKEN)).rejects.toThrow('without a result');
+
+    routeFetch({ resolve: () => new Response(JSON.stringify({ results: [] })), query: () => queryResponse([]) });
+    await expect(listICloudLinkItems(TOKEN)).rejects.toThrow('without a result');
+  });
+
+  it.each(['THROTTLED', 'TRY_AGAIN_LATER', 'INTERNAL_ERROR'])('throws when resolve names a passing trouble (%s)', async (serverErrorCode) => {
+    routeFetch({
+      resolve: () => new Response(JSON.stringify({ results: [{ shortGUID: { value: TOKEN }, serverErrorCode }] })),
+      query: () => queryResponse([]),
+    });
+
+    await expect(listICloudLinkItems(TOKEN)).rejects.toThrow(serverErrorCode);
+  });
+
+  it('throws when a page of the album cannot be read, and never shows the album cut short', async () => {
+    let page = 0;
+    routeFetch({
+      query: () => {
+        page += 1;
+        return page === 1 ? queryResponse([jpegMaster('0001')], 'more') : new Response('<html>busy</html>');
+      },
+    });
+
+    await expect(listICloudLinkItems(TOKEN)).rejects.toThrow('could not be read');
   });
 
   it('throws on a resolve 5xx so callers can distinguish outage from expiry', async () => {
@@ -297,11 +365,11 @@ describe('listICloudLinkItems', () => {
   });
 });
 
-describe('fetchCloudKitAlbum', () => {
+describe('fetchCloudKitAlbumForImport', () => {
   it('returns display items (url/type/guid) for photos', async () => {
     routeFetch({ query: () => queryResponse([jpegMaster('0200'), heicMaster('0100')]) });
 
-    const items = await fetchCloudKitAlbum(TOKEN);
+    const items = await fetchCloudKitAlbumForImport(TOKEN);
 
     expect(items).toEqual([
       { url: 'https://cvws.icloud-content.com/orig-0200', type: 'image', guid: 'Aq1w2e/0200==' },
@@ -317,7 +385,7 @@ describe('fetchCloudKitAlbum', () => {
     // A HEIC is already answered with its medium JPEG: nothing smaller to name.
     routeFetch({ query: () => queryResponse([withMedium, heicMaster('0100'), jpegMaster('0200')]) });
 
-    const items = (await fetchCloudKitAlbum(TOKEN))!;
+    const items = (await fetchCloudKitAlbumForImport(TOKEN))!;
 
     expect(items[0]).toMatchObject({
       url: 'https://cvws.icloud-content.com/orig-0900',
@@ -330,7 +398,7 @@ describe('fetchCloudKitAlbum', () => {
   it('gives videos the MP4 rendition plus a JPEG poster', async () => {
     routeFetch({ query: () => queryResponse([videoMaster('0333')]) });
 
-    const items = await fetchCloudKitAlbum(TOKEN);
+    const items = await fetchCloudKitAlbumForImport(TOKEN);
 
     expect(items).toEqual([{
       url: 'https://cvws.icloud-content.com/vidmed-0333',
@@ -343,7 +411,7 @@ describe('fetchCloudKitAlbum', () => {
   it('omits posterUrl when a video has no JPEG rendition', async () => {
     routeFetch({ query: () => queryResponse([mp4Master('0500')]) });
 
-    const items = (await fetchCloudKitAlbum(TOKEN))!;
+    const items = (await fetchCloudKitAlbumForImport(TOKEN))!;
 
     expect(items[0].type).toBe('video');
     expect(items[0]).not.toHaveProperty('posterUrl');
@@ -352,7 +420,7 @@ describe('fetchCloudKitAlbum', () => {
   it('handles a mixed photo + video album in one pass', async () => {
     routeFetch({ query: () => queryResponse([jpegMaster('0200'), videoMaster('0333'), heicMaster('0100')]) });
 
-    const items = (await fetchCloudKitAlbum(TOKEN))!;
+    const items = (await fetchCloudKitAlbumForImport(TOKEN))!;
 
     expect(items.map((i) => i.type)).toEqual(['image', 'video', 'image']);
     expect(items[1]).toMatchObject({
@@ -372,7 +440,7 @@ describe('fetchCloudKitAlbum', () => {
       field({ downloadURL: 'https://cvws.icloud-content.com/posterthumb-0701', size: 1 });
     routeFetch({ query: () => queryResponse([master, thumbOnly]) });
 
-    const items = (await fetchCloudKitAlbum(TOKEN))!;
+    const items = (await fetchCloudKitAlbumForImport(TOKEN))!;
 
     expect(items[0].posterUrl).toBe('https://cvws.icloud-content.com/posterfull-0700');
     expect(items[1].posterUrl).toBe('https://cvws.icloud-content.com/posterthumb-0701');
@@ -386,7 +454,7 @@ describe('fetchCloudKitAlbum', () => {
     delete (bareMaster as Record<string, unknown>).recordName;
     routeFetch({ query: () => queryResponse([noFingerprint, bareMaster]) });
 
-    const items = (await fetchCloudKitAlbum(TOKEN))!;
+    const items = (await fetchCloudKitAlbumForImport(TOKEN))!;
 
     expect(items[0].guid).toBe('master-0800');
     // The hash keeps the guid short and filename-safe — never the raw signed
@@ -396,51 +464,242 @@ describe('fetchCloudKitAlbum', () => {
     );
   });
 
-  it('caches per token so repeat polls make no second Apple round-trip', async () => {
-    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
-
-    await fetchCloudKitAlbum(TOKEN);
-    const callsAfterFirst = mockFetch.mock.calls.length;
-    await fetchCloudKitAlbum(TOKEN);
-
-    expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
-  });
-
-  it('negative-caches a private/expired album briefly, then re-resolves', async () => {
-    vi.useFakeTimers();
-    try {
-      routeFetch({
-        resolve: () => resolveResponse({ anonymousPublicAccess: undefined }),
-        query: () => queryResponse([]),
-      });
-
-      expect(await fetchCloudKitAlbum(TOKEN)).toBeNull();
-      const callsAfterFirst = mockFetch.mock.calls.length;
-
-      // Inside the negative TTL a kiosk polling a dead link gets the cached
-      // null without another Apple round-trip.
-      expect(await fetchCloudKitAlbum(TOKEN)).toBeNull();
-      expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
-
-      // After the TTL a fixed-up album re-resolves rather than staying blank.
-      vi.advanceTimersByTime(61_000);
-      routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
-      expect(await fetchCloudKitAlbum(TOKEN)).toHaveLength(1);
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it('stops paging a giant album at the record ceiling', async () => {
     // 300 masters per page, continuation marker always present: an unbounded
     // loop would run all 100 pages; the ceiling (4400 records) stops it at 15.
     const page = Array.from({ length: 300 }, (_, i) => jpegMaster(`p${i}`));
     routeFetch({ query: () => queryResponse(page, 'more') });
 
-    const items = (await fetchCloudKitAlbum(TOKEN))!;
+    const items = (await fetchCloudKitAlbumForImport(TOKEN))!;
 
     const queryCalls = mockFetch.mock.calls.filter(([u]) => String(u).includes('/shared/records/query'));
     expect(queryCalls).toHaveLength(15);
     expect(items).toHaveLength(4500);
+  });
+});
+
+describe('listCloudKitAlbum', () => {
+  it('names the album\'s items without their links', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200'), videoMaster('0333'), mp4Master('0500')]) });
+
+    expect(await listCloudKitAlbum(TOKEN)).toEqual([
+      { guid: 'Aq1w2e/0200==', type: 'image', hasPoster: false },
+      { guid: 'AXaxFKq1/0333==', type: 'video', hasPoster: true },
+      { guid: 'Bq2x3Yz/0500==', type: 'video', hasPoster: false },
+    ]);
+  });
+
+  it('answers a repeat from the copy in hand, with no second Apple round-trip', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+
+    await listCloudKitAlbum(TOKEN);
+    const callsAfterFirst = mockFetch.mock.calls.length;
+    await listCloudKitAlbum(TOKEN);
+
+    expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
+  });
+
+  it('answers at once from an aged copy and reads Apple behind it', async () => {
+    vi.useFakeTimers();
+    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+    await listCloudKitAlbum(TOKEN);
+    vi.advanceTimersByTime(5 * 60_000 + 1);
+
+    let release!: (r: Response) => void;
+    mockFetch.mockImplementation(() => new Promise<Response>((resolve) => { release = resolve; }));
+    // Apple has not answered; the wall has its list anyway.
+    expect((await listCloudKitAlbum(TOKEN))?.map((entry) => entry.guid)).toEqual(['Aq1w2e/0001==']);
+
+    release(resolveResponse());
+    routeFetch({ query: () => queryResponse([jpegMaster('0001'), jpegMaster('0002')]) });
+    await settle();
+    expect(await listCloudKitAlbum(TOKEN)).toHaveLength(2);
+  });
+
+  it('keeps showing the copy in hand while Apple cannot be read', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.useFakeTimers();
+    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+    await listCloudKitAlbum(TOKEN);
+    vi.advanceTimersByTime(60 * 60_000);
+
+    routeFetch({ query: () => new Response('', { status: 503 }) });
+    expect(await listCloudKitAlbum(TOKEN)).toHaveLength(1);
+    await settle();
+    expect(await listCloudKitAlbum(TOKEN)).toHaveLength(1);
+    warn.mockRestore();
+  });
+
+  it('does not ask again about a private or expired album for a minute, then looks again', async () => {
+    vi.useFakeTimers();
+    routeFetch({
+      resolve: () => resolveResponse({ anonymousPublicAccess: undefined }),
+      query: () => queryResponse([]),
+    });
+
+    expect(await listCloudKitAlbum(TOKEN)).toBeNull();
+    const callsAfterFirst = mockFetch.mock.calls.length;
+
+    // A kiosk polling a dead link is answered without another round-trip.
+    expect(await listCloudKitAlbum(TOKEN)).toBeNull();
+    expect(mockFetch.mock.calls.length).toBe(callsAfterFirst);
+
+    // A fixed-up album shows within a minute rather than staying blank.
+    vi.advanceTimersByTime(61_000);
+    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+    expect(await listCloudKitAlbum(TOKEN)).toHaveLength(1);
+  });
+
+  it('keeps the album it has when Apple answers something unreadable in place of the link', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.useFakeTimers();
+    routeFetch({ query: () => queryResponse([jpegMaster('0001')]) });
+    await listCloudKitAlbum(TOKEN);
+    vi.advanceTimersByTime(5 * 60_000 + 1);
+
+    routeFetch({ resolve: () => new Response('<html>busy</html>'), query: () => queryResponse([]) });
+    expect(await listCloudKitAlbum(TOKEN)).toHaveLength(1);
+    await settle();
+    expect(await listCloudKitAlbum(TOKEN)).toHaveLength(1);
+    warn.mockRestore();
+  });
+
+  it('throws when Apple does not answer for an album the hub has never read', async () => {
+    routeFetch({ query: () => new Response('', { status: 503 }) });
+    await expect(listCloudKitAlbum(TOKEN)).rejects.toThrow('503');
+  });
+});
+
+describe('findCloudKitItem', () => {
+  const PHOTO_GUID = 'Aq1w2e/0200==';
+
+  it('finds an item with its links, from the same read that listed the album', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200'), videoMaster('0333')]) });
+    await listCloudKitAlbum(TOKEN);
+
+    expect(await findCloudKitItem(TOKEN, PHOTO_GUID)).toEqual({
+      url: 'https://cvws.icloud-content.com/orig-0200', type: 'image', guid: PHOTO_GUID,
+    });
+    expect(await findCloudKitItem(TOKEN, 'AXaxFKq1/0333==')).toMatchObject({
+      url: 'https://cvws.icloud-content.com/vidmed-0333',
+      posterUrl: 'https://cvws.icloud-content.com/poster-0333',
+    });
+    expect(callsTo('query')).toBe(1);
+  });
+
+  it('reads the album itself when it is the first to ask', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200')]) });
+    expect(await findCloudKitItem(TOKEN, PHOTO_GUID)).toMatchObject({ guid: PHOTO_GUID });
+    expect(callsTo('query')).toBe(1);
+  });
+
+  it('has nothing for a guid the album does not name, and asks Apple nothing for it', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200')]) });
+    await listCloudKitAlbum(TOKEN);
+    mockFetch.mockClear();
+
+    expect(await findCloudKitItem(TOKEN, 'made-up')).toBeNull();
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('has nothing for an album that is gone', async () => {
+    routeFetch({ resolve: () => resolveResponse({ anonymousPublicAccess: undefined }), query: () => queryResponse([]) });
+    expect(await findCloudKitItem(TOKEN, PHOTO_GUID)).toBeNull();
+  });
+
+  describe('as the read its links came from ages', () => {
+    /** Each read signs its links anew. */
+    function signedAlbum() {
+      let reads = 0;
+      routeFetch({
+        query: () => {
+          reads += 1;
+          const master = jpegMaster('0200');
+          master.fields.resOriginalRes = field({ downloadURL: `https://cvws.icloud-content.com/orig-0200?read=${reads}`, size: 900000 });
+          return queryResponse([master]);
+        },
+      });
+    }
+
+    beforeEach(async () => {
+      vi.useFakeTimers();
+      signedAlbum();
+      await listCloudKitAlbum(TOKEN);
+    });
+
+    it('hands out the links in hand without waiting, and sets a new read off behind them', async () => {
+      vi.advanceTimersByTime(6 * 60_000);
+
+      expect((await findCloudKitItem(TOKEN, PHOTO_GUID))?.url).toContain('read=1');
+      await settle();
+      expect(callsTo('query')).toBe(2);
+      expect((await findCloudKitItem(TOKEN, PHOTO_GUID))?.url).toContain('read=2');
+    });
+
+    it('waits for a new read once the links in hand are too old to trust', async () => {
+      vi.advanceTimersByTime(10 * 60_000 + 1);
+
+      expect((await findCloudKitItem(TOKEN, PHOTO_GUID))?.url).toContain('read=2');
+      // One read answered both the list's refresh and the item.
+      expect(callsTo('query')).toBe(2);
+    });
+
+    it('fails rather than hand out a dead link when that read does not get an answer', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.advanceTimersByTime(10 * 60_000 + 1);
+      routeFetch({ query: () => new Response('', { status: 503 }) });
+
+      await expect(findCloudKitItem(TOKEN, PHOTO_GUID)).rejects.toThrow('503');
+      warn.mockRestore();
+    });
+
+    it('has nothing for an item the family took out of the album since', async () => {
+      vi.advanceTimersByTime(10 * 60_000 + 1);
+      routeFetch({ query: () => queryResponse([jpegMaster('0999')]) });
+
+      expect(await findCloudKitItem(TOKEN, PHOTO_GUID)).toBeNull();
+    });
+  });
+});
+
+describe('after a hub restart', () => {
+  it('lists the album from disk without waiting for Apple, then waits for links it can trust', async () => {
+    await fs.writeFile(path.join('data', 'icloud-albums.json'), JSON.stringify({
+      [`cloudkit:${TOKEN}`]: {
+        entries: [{ guid: 'Aq1w2e/0200==', type: 'image', hasPoster: false }, { guid: 'no-type', hasPoster: false }],
+        readAt: Date.now() - 60_000,
+      },
+    }));
+    let release!: () => void;
+    const appleAnswers = new Promise<void>((resolve) => { release = resolve; });
+    routeFetch({ query: () => queryResponse([jpegMaster('0200')]) });
+    const answer = mockFetch.getMockImplementation()!;
+    mockFetch.mockImplementation(async (...args) => {
+      await appleAnswers;
+      return answer(...args);
+    });
+
+    // The wall has its list while Apple is still being read.
+    expect(await listCloudKitAlbum(TOKEN)).toEqual([{ guid: 'Aq1w2e/0200==', type: 'image', hasPoster: false }]);
+
+    // A picture needs a link, and the disk holds none: that waits for the read.
+    const item = findCloudKitItem(TOKEN, 'Aq1w2e/0200==');
+    release();
+    expect(await item).toMatchObject({ url: 'https://cvws.icloud-content.com/orig-0200' });
+    expect(callsTo('query')).toBe(1);
+  });
+
+  it('writes down what the album holds, without any link', async () => {
+    routeFetch({ query: () => queryResponse([jpegMaster('0200'), videoMaster('0333')]) });
+    await listCloudKitAlbum(TOKEN);
+
+    await vi.waitFor(async () => {
+      const saved = await fs.readFile(path.join('data', 'icloud-albums.json'), 'utf-8');
+      expect(JSON.parse(saved)[`cloudkit:${TOKEN}`].entries).toEqual([
+        { guid: 'Aq1w2e/0200==', type: 'image', hasPoster: false },
+        { guid: 'AXaxFKq1/0333==', type: 'video', hasPoster: true },
+      ]);
+      expect(saved).not.toContain('icloud-content.com');
+    });
   });
 });

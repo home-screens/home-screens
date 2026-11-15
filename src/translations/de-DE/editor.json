@@ -5925,6 +5925,9 @@
       "photoLinkAction": "In Mediathek speichern",
       "videoHint": "Manche iPhone-Videos lassen sich auf älteren Displays nicht abspielen. Solche Videos werden automatisch übersprungen.",
       "checking": "Album wird geprüft…",
+      "checkingSlow": "Wird noch geprüft. Bei einem großen Album kann das eine Minute dauern.",
+      "noAnswer": "iCloud hat gerade nicht geantwortet. Dein Link ist vielleicht in Ordnung.",
+      "tryAgain": "Erneut versuchen",
       "linkOk": "Der Link sieht gut aus",
       "notAlbumLink": "Das sieht nicht nach einem Link zu einem geteilten Album aus"
     },

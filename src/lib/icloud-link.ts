@@ -1,6 +1,7 @@
 import { createHash } from 'crypto';
-import { createResolverCache, fetchWithTimeout } from './api-utils';
-import type { ICloudAlbumItem } from './icloud-types';
+import { fetchWithTimeout } from './api-utils';
+import { createAlbumKeeper, type AlbumKeeper } from './icloud-album-keeper';
+import type { ICloudAlbumEntry, ICloudAlbumItem } from './icloud-types';
 
 /**
  * Client for Apple's CloudKit web API, which backs two Apple products:
@@ -8,7 +9,7 @@ import type { ICloudAlbumItem } from './icloud-types';
  *     after ~30 days, only ever IMPORTED into the local library.
  *   - New-format Shared Albums (photos.icloud.com/shared/album/…, iOS 27+) —
  *     persistent albums that replace the legacy sharedstreams ones and are used
- *     as a LIVE slideshow source (see fetchCloudKitAlbum).
+ *     as a LIVE slideshow source (see listCloudKitAlbum).
  * Both resolve through the same anonymous flow; only the output shape differs
  * (downloadable items for import vs. display items for live rendering).
  *
@@ -57,6 +58,9 @@ const APPLE_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
 };
 
+/** CloudKit error codes that mean "not now", as opposed to "not there". */
+const PASSING_SERVER_ERRORS = new Set(['THROTTLED', 'TRY_AGAIN_LATER', 'INTERNAL_ERROR']);
+
 interface ResolvedLink {
   partition: string;
   accessToken: string;
@@ -66,8 +70,8 @@ interface ResolvedLink {
 /**
  * Resolve the short GUID to the shared zone + anonymous access grant.
  * Returns null when the link is expired, revoked, or not a photo share —
- * callers surface that as "this link doesn't work anymore", distinct from a
- * network failure (which throws).
+ * callers surface that as "this link doesn't work anymore", distinct from
+ * Apple not answering (a network failure or any error status), which throws.
  */
 async function resolveLink(token: string): Promise<ResolvedLink | null> {
   const res = await fetchWithTimeout(RESOLVE_URL, {
@@ -76,13 +80,22 @@ async function resolveLink(token: string): Promise<ResolvedLink | null> {
     body: JSON.stringify({ shortGUIDs: [{ value: token, shouldFetchRootRecord: true }] }),
     timeout: 15_000,
   });
-  if (!res.ok) {
-    if (res.status >= 500) throw new Error(`iCloud link resolve failed with status ${res.status}`);
-    return null;
-  }
+  // A link that leads nowhere is a 200 naming a serverErrorCode (NOT_FOUND
+  // for a dead one, checked against Apple), which falls out below as "no
+  // access grant"; a 404 or 410 is taken the same way. Any other status is
+  // Apple not answering properly, a 429 "slow down" included, and says
+  // nothing about the link.
+  if (res.status === 404 || res.status === 410) return null;
+  if (!res.ok) throw new Error(`iCloud link resolve failed with status ${res.status}`);
 
+  // Neither does an answer that cannot be read, or one that names a passing
+  // trouble of Apple's own. "Gone" makes the hub forget the album it had.
   const data = await res.json().catch(() => null) as { results?: Array<Record<string, unknown>> } | null;
   const result = data?.results?.[0];
+  if (!result) throw new Error('iCloud link resolve answered without a result');
+  if (typeof result.serverErrorCode === 'string' && PASSING_SERVER_ERRORS.has(result.serverErrorCode)) {
+    throw new Error(`iCloud link resolve failed with ${result.serverErrorCode}`);
+  }
   const anon = result?.anonymousPublicAccess as { databasePartition?: string; token?: string } | undefined;
   const zoneID = result?.zoneID as Record<string, unknown> | undefined;
   if (!anon?.databasePartition || !anon.token || !zoneID) return null;
@@ -138,9 +151,11 @@ async function queryRecords(link: ResolvedLink): Promise<CloudKitRecord[]> {
       timeout: 30_000,
     });
     if (!res.ok) throw new Error(`iCloud link query failed with status ${res.status}`);
+    // A page that cannot be read is not the end of the album: stopping here
+    // would show the family an album cut short, or an empty one.
     const data = await res.json().catch(() => null) as
       { records?: CloudKitRecord[]; continuationMarker?: string } | null;
-    if (!data) break;
+    if (!data) throw new Error('iCloud link query answered a page that could not be read');
     records.push(...(data.records ?? []));
     continuationMarker = data.continuationMarker;
     if (!continuationMarker || records.length >= MAX_QUERY_RECORDS) break;
@@ -286,9 +301,10 @@ export async function listICloudLinkItems(token: string): Promise<ICloudLinkItem
 
 // ── Live shared-album source (new-format photos.icloud.com/shared/album/…) ──
 
-/** Test hook — clears the live-album cache. */
-export function clearICloudLinkCaches(): void {
-  liveAlbumResolver.clear();
+/** Test hook: forgets every live album and its links. */
+export async function clearICloudLinkCaches(): Promise<void> {
+  await state.albums.clear();
+  state.linked.clear();
 }
 
 /** A web-safe JPEG poster for a video item; omitted when none is available
@@ -346,22 +362,105 @@ async function resolveLiveAlbum(token: string): Promise<ICloudAlbumItem[] | null
   return items;
 }
 
-/** Signed CloudKit download URLs expire (the resolve grant lives ~20 min); a
- *  5-minute cache keeps every hub fetch well inside that window, matching
- *  the legacy sharedstreams album cache. A null (private/expired/deleted)
- *  caches for just 60s: long enough that a wall-mounted kiosk pointed at a
- *  dead link stops hammering Apple on every poll, short enough that a
- *  fixed-up album reappears within a minute. */
-const liveAlbumResolver = createResolverCache(5 * 60_000, 60_000, resolveLiveAlbum);
+// ── What a live album holds, kept ────────────────────────────────────
+//
+// One read of an album answers two things that age very differently. Which
+// items it holds changes when the family adds a photo; that list is kept for
+// a day, refreshed behind the copy in hand and written to disk, like the
+// legacy backend's (icloud-album-keeper.ts). The links to those items are
+// signed and die 15 minutes after the read that issued them (the expiry is
+// written into each link, and a live one answered at 11 minutes and was
+// refused at 16), so that read is only trusted for part of that, in memory.
 
 /**
- * Live media list for a new-format shared album, shaped like a legacy album
- * (fetchSharedStreamsAlbum) so fetchICloudMedia treats both backends
- * identically. Returns null when the album is missing/private/expired (vs. []
- * for empty), so the route can fall through to its friendly empty state.
- * Cached per token with concurrent cold fetches collapsed into one Apple
- * round-trip.
+ * How old a read may be for its links still to be handed out. A link is used
+ * the moment it is handed out, so this leaves a picture five minutes of the
+ * link's fifteen to finish downloading.
  */
-export async function fetchCloudKitAlbum(token: string): Promise<ICloudAlbumItem[] | null> {
-  return liveAlbumResolver.fetch(token);
+const LINKS_GOOD_MS = 10 * 60_000;
+
+/** One read of an album with its links, and when that read started. */
+interface LinkedAlbum {
+  items: ICloudAlbumItem[];
+  readAt: number;
+}
+
+/**
+ * Held on `globalThis` because route bundles can each carry their own copy
+ * of a module (webpack dev does): the list route and the two routes that
+ * serve an item must share one read of an album, not page through it three
+ * times.
+ */
+interface LiveAlbumState {
+  /** What each album holds. */
+  albums: AlbumKeeper<ICloudAlbumEntry>;
+  /** The newest read of each album, for its links. */
+  linked: Map<string, LinkedAlbum>;
+}
+
+function isAlbumEntry(value: unknown): value is ICloudAlbumEntry {
+  const entry = value as ICloudAlbumEntry | null;
+  return typeof entry === 'object' && entry !== null
+    && typeof entry.guid === 'string' && typeof entry.hasPoster === 'boolean'
+    && (entry.type === 'image' || entry.type === 'video');
+}
+
+/** Read an album for the keeper, holding on to the links the read came with. */
+async function readLiveAlbum(token: string): Promise<ICloudAlbumEntry[] | null> {
+  const readAt = Date.now();
+  const items = await resolveLiveAlbum(token);
+  // Reads too old to hand a link out from are only weight: a big album's
+  // links run to megabytes.
+  for (const [other, linked] of state.linked) {
+    if (other === token || readAt - linked.readAt > LINKS_GOOD_MS) state.linked.delete(other);
+  }
+  if (!items) return null;
+  state.linked.set(token, { items, readAt });
+  return items.map((item) => ({ guid: item.guid, type: item.type, hasPoster: item.posterUrl !== undefined }));
+}
+
+const stateKey = Symbol.for('home-screens.icloud-link.v1');
+const globals = globalThis as typeof globalThis & { [stateKey]?: LiveAlbumState };
+const state: LiveAlbumState = globals[stateKey] ??= {
+  albums: createAlbumKeeper<ICloudAlbumEntry>({ backend: 'cloudkit', read: readLiveAlbum, isEntry: isAlbumEntry }),
+  linked: new Map(),
+};
+
+/**
+ * A new-format shared album's items without their links, or null when the
+ * album is missing, private or expired (an empty album is []), so the route
+ * can fall through to its friendly empty state. This is all a slideshow list
+ * needs, and it costs Apple nothing while the hub has a copy.
+ */
+export async function listCloudKitAlbum(token: string): Promise<ICloudAlbumEntry[] | null> {
+  return state.albums.entries(token);
+}
+
+/**
+ * One item with links that still work, or null when the album does not have
+ * it. The guid is matched against the album before Apple is asked anything,
+ * so a made-up one costs no call. Apple is only waited for when the hub has
+ * no read of the album recent enough to trust its links: while a wall is
+ * showing the album, each item served keeps a fresh read coming behind it.
+ */
+export async function findCloudKitItem(token: string, guid: string): Promise<ICloudAlbumItem | null> {
+  const entries = await state.albums.entries(token);
+  if (!entries?.some((entry) => entry.guid === guid)) return null;
+
+  let linked = state.linked.get(token);
+  if (!linked || Date.now() - linked.readAt > LINKS_GOOD_MS) {
+    if (!(await state.albums.refresh(token))) return null;
+    linked = state.linked.get(token);
+  }
+  return linked?.items.find((item) => item.guid === guid) ?? null;
+}
+
+/**
+ * Every item with its link, for an import: null when the album is missing,
+ * private or expired, so the person hears the link is dead rather than that
+ * there was nothing new. Read afresh, so an import copies what the album
+ * holds now and its downloads start on links just issued.
+ */
+export async function fetchCloudKitAlbumForImport(token: string): Promise<ICloudAlbumItem[] | null> {
+  return resolveLiveAlbum(token);
 }

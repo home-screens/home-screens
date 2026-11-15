@@ -41,7 +41,7 @@ const inFlight = new Map<string, SharedRequest>();
 // supersedes the old request; the rest join its newly started replacement.
 const handledInvalidations = new WeakSet<Event>();
 
-function sharedFetch(url: string, ttlMs: number): SharedRequest {
+function sharedFetch(url: string, ttlMs: number, timeoutMs: number | undefined): SharedRequest {
   const existing = inFlight.get(url);
   if (existing) return existing;
   // The beat this request answers, taken before it goes out, for an answer
@@ -50,7 +50,7 @@ function sharedFetch(url: string, ttlMs: number): SharedRequest {
   const request = { invalidated: false } as SharedRequest;
   request.promise = (async (): Promise<SharedResult> => {
     try {
-      const res = await displayFetch(url);
+      const res = await (timeoutMs === undefined ? displayFetch(url) : displayFetch(url, { timeoutMs }));
       if (!res.ok) return { kind: 'http', res };
       const body = await res.text();
       // A write published newer data while this downloaded (`onReplace`):
@@ -86,7 +86,25 @@ export interface FetchDataOptions {
    * stopped asking for is current again the moment it wakes.
    */
   paused?: boolean;
+  /**
+   * How long one request may take, for a read the hub cannot always answer
+   * inside `DISPLAY_FETCH_TIMEOUT_MS` (a photo list whose album the hub has
+   * to read from the cloud first). Subscribers to one URL share a request,
+   * so they should agree on this.
+   */
+  timeoutMs?: number;
 }
+
+/**
+ * How soon a card with nothing to show asks again after a failed read, one
+ * entry per try. A card that has data keeps it through a failure and can
+ * wait for its next poll, but an empty one would otherwise say "not updating"
+ * for a whole refresh (ten minutes for photos) over a blip, or over a read
+ * the hub was still finishing when the request gave up. Three tries, then
+ * back to the poll, so a service that stays down is not asked any faster
+ * than that for long.
+ */
+export const EMPTY_HANDED_RETRY_MS = [5_000, 15_000, 45_000];
 
 /**
  * Fetch + poll a display data URL. Returns [data, error, updatedAt].
@@ -124,7 +142,7 @@ export function useFetchData<T>(
   refreshMs: number,
   options: FetchDataOptions = {},
 ): [T | null, FetchError | null, number | null] {
-  const { datasetKey, stampEveryFetch = false, paused = false } = options;
+  const { datasetKey, stampEveryFetch = false, paused = false, timeoutMs } = options;
   const t = useTranslate('core');
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<FetchError | null>(null);
@@ -144,8 +162,14 @@ export function useFetchData<T>(
   stampRef.current = stampEveryFetch;
 
   useEffect(() => {
+    // Early tries made since the last answer (`EMPTY_HANDED_RETRY_MS`).
+    let earlyRetries = 0;
+    let earlyRetry: ReturnType<typeof setTimeout> | undefined;
+
     /** Show `next` as data fetched (or published) at `at`, with no failure standing. */
     function show(next: T | null, at: number | null) {
+      earlyRetries = 0;
+      clearTimeout(earlyRetry);
       const changed = next !== shown.current;
       lastSuccessAt.current = at;
       failing.current = false;
@@ -173,7 +197,7 @@ export function useFetchData<T>(
     const controller = new AbortController();
 
     async function fetchAndCache() {
-      const request = sharedFetch(url, refreshMs);
+      const request = sharedFetch(url, refreshMs, timeoutMs);
       const result = await request.promise;
       // Unmounted, or pointed at another URL, while the request was out.
       if (controller.signal.aborted || request.invalidated) return;
@@ -206,6 +230,13 @@ export function useFetchData<T>(
         log.warn(`${url}: ${next.message}`);
         return next;
       });
+      // Nothing to show, and nothing the household has to fix first: ask
+      // again soon instead of at the next poll.
+      const worthAnEarlyTry = shown.current === null && next.kind === 'transient' && next.reason !== 'gone';
+      if (worthAnEarlyTry && !paused && earlyRetries < EMPTY_HANDED_RETRY_MS.length) {
+        clearTimeout(earlyRetry);
+        earlyRetry = setTimeout(fetchAndCache, EMPTY_HANDED_RETRY_MS[earlyRetries++]);
+      }
     }
 
     // Re-fetch immediately when this URL's cache is invalidated
@@ -273,13 +304,14 @@ export function useFetchData<T>(
 
     return () => {
       controller.abort();
+      clearTimeout(earlyRetry);
       if (interval) clearInterval(interval);
       unsubscribe();
       window.removeEventListener('displaycache:invalidate', onInvalidate);
       window.removeEventListener('displaycache:refresh', onRefresh);
       window.removeEventListener('displaycache:replace', onReplace);
     };
-  }, [url, refreshMs, t, paused]);
+  }, [url, refreshMs, t, paused, timeoutMs]);
 
   return [data, error, updatedAt];
 }

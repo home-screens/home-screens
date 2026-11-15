@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/icloud-media', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/icloud-media')>();
-  return { ...actual, fetchICloudMedia: vi.fn() };
+  return { ...actual, listICloudAlbum: vi.fn(), findICloudItem: vi.fn() };
 });
 vi.mock('@/lib/media-token', () => ({ mintMediaToken: vi.fn() }));
 vi.mock('@/lib/api-utils', async (importOriginal) => {
@@ -10,20 +10,21 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   return { ...actual, fetchWithTimeout: vi.fn() };
 });
 
-import { fetchICloudMedia } from '@/lib/icloud-media';
+import { findICloudItem, listICloudAlbum } from '@/lib/icloud-media';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { mintMediaToken } from '@/lib/media-token';
 import { icloudPhotoSource } from '../icloud';
 
-const mockAlbum = vi.mocked(fetchICloudMedia);
+const mockAlbum = vi.mocked(listICloudAlbum);
+const mockFind = vi.mocked(findICloudItem);
 const mockMint = vi.mocked(mintMediaToken);
 const LINK = 'https://www.icloud.com/sharedalbum/#B0aG';
 const source = { kind: 'icloud' as const, albumUrl: LINK };
 
 const ALBUM = [
-  { url: 'https://cvws.icloud-content.com/p1', type: 'image' as const, guid: 'G1' },
-  { url: 'https://cvws.icloud-content.com/p2', type: 'image' as const, guid: 'G2' },
-  { url: 'https://cvws.icloud-content.com/v1', type: 'video' as const, guid: 'G3', posterUrl: 'https://cvws.icloud-content.com/v1.jpg' },
+  { type: 'image' as const, guid: 'G1', hasPoster: false },
+  { type: 'image' as const, guid: 'G2', hasPoster: false },
+  { type: 'video' as const, guid: 'G3', hasPoster: true },
 ];
 
 beforeEach(() => {
@@ -64,7 +65,7 @@ describe('icloudPhotoSource.list', () => {
   });
 
   it('leaves the poster off a video that has none', async () => {
-    mockAlbum.mockResolvedValue([{ url: 'https://cvws.icloud-content.com/v2', type: 'video', guid: 'G4' }]);
+    mockAlbum.mockResolvedValue([{ type: 'video', guid: 'G4', hasPoster: false }]);
     const [item] = await icloudPhotoSource.list({ source, count: 50, media: 'both' });
     expect(item).not.toHaveProperty('posterUrl');
   });
@@ -81,13 +82,39 @@ describe('icloudPhotoSource.list', () => {
 });
 
 describe('icloudPhotoSource.pickOne', () => {
-  it('picks a still picture, keyed by its guid, and downloads it from Apple', async () => {
+  it('picks a still picture, keyed by its guid, and downloads it from the link Apple has for it then', async () => {
     mockAlbum.mockResolvedValue([ALBUM[0], ALBUM[2]]);
     const picked = await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } });
     expect(picked).toMatchObject({ kind: 'download', id: 'G1' });
+    // Picking asks Apple for no link; opening the download does.
+    expect(mockFind).not.toHaveBeenCalled();
+
+    mockFind.mockResolvedValue({ url: 'https://cvws.icloud-content.com/p1', type: 'image', guid: 'G1' });
     vi.mocked(fetchWithTimeout).mockResolvedValue(new Response('img'));
     await (picked as { open: () => Promise<Response> }).open();
+    expect(mockFind).toHaveBeenCalledWith(LINK, 'G1');
     expect(fetchWithTimeout).toHaveBeenCalledWith('https://cvws.icloud-content.com/p1', { timeout: 30_000 });
+  });
+
+  it('opens a newer album\'s picture named as the picture it is, so a background can be saved from it', async () => {
+    mockAlbum.mockResolvedValue([ALBUM[0]]);
+    const picked = await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } });
+    mockFind.mockResolvedValue({ url: 'https://cvws.icloud-content.com/p1', type: 'image', guid: 'G1' });
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d]);
+    vi.mocked(fetchWithTimeout).mockResolvedValue(new Response(png, { headers: { 'Content-Type': 'application/octet-stream' } }));
+
+    const res = await (picked as { open: () => Promise<Response> }).open();
+    expect(res.headers.get('Content-Type')).toBe('image/png');
+    expect((await res.arrayBuffer()).byteLength).toBe(png.byteLength);
+  });
+
+  it('opens as not found when the album lost the photo after it was picked', async () => {
+    mockAlbum.mockResolvedValue([ALBUM[0]]);
+    const picked = await icloudPhotoSource.pickOne({ source, canvas: { w: 1, h: 1 } });
+    mockFind.mockResolvedValue(null);
+    const res = await (picked as { open: () => Promise<Response> }).open();
+    expect(res.status).toBe(404);
+    expect(fetchWithTimeout).not.toHaveBeenCalled();
   });
 
   it('keeps only letters, digits and dashes of a guid', async () => {

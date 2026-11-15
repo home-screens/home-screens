@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { fetchWithTimeout, withDisplayAuth } from '@/lib/api-utils';
-import { findICloudItem, icloudPhotoBytesCache, isICloudAlbumLink } from '@/lib/icloud-media';
+import { withDisplayAuth } from '@/lib/api-utils';
+import { fetchICloudPicture, findICloudItem, icloudPhotoBytesCache, isICloudAlbumLink } from '@/lib/icloud-media';
 import { isAppleContentUrl } from '@/lib/icloud-parse';
 
 export const dynamic = 'force-dynamic';
@@ -55,7 +55,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   if (!url) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (!isAppleContentUrl(url)) return NextResponse.json({ error: 'Failed to fetch photo from iCloud' }, { status: 502 });
 
-  const res = await fetchWithTimeout(url, { timeout: 30_000 });
+  const res = await fetchICloudPicture(url);
   if (!res.ok) return NextResponse.json({ error: 'Failed to fetch photo from iCloud' }, { status: 502 });
 
   const data = await res.arrayBuffer();

@@ -58,18 +58,70 @@ describe('ICloudSourceFields wrong-link bridge', () => {
     expect(previewUrl).toContain('/api/photo-source/media?kind=icloud&link=');
   });
 
-  it('says it is checking an album link, then that it found nothing when Apple refuses it', async () => {
-    let refuse: (r: Response) => void = () => {};
-    editorFetch.mockImplementation(() => new Promise<Response>((resolve) => { refuse = resolve; }));
+  it('says it is checking an album link, then to check the link when the album read as empty', async () => {
+    let answer: (r: Response) => void = () => {};
+    editorFetch.mockImplementation(() => new Promise<Response>((resolve) => { answer = resolve; }));
 
     const { view } = renderSection(ALBUM_LINK);
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
-    expect(view.getByTestId('icloud-checking')).toBeTruthy();
+    expect(view.getByTestId('icloud-checking').textContent).toBe('Checking the album...');
 
-    await act(async () => { refuse(jsonResponse({ error: 'Failed to load photos' }, 500)); });
+    // A dead link, or sharing turned off: the hub answers an empty album.
+    await act(async () => { answer(jsonResponse([])); });
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
     expect(view.queryByTestId('icloud-checking')).toBeNull();
     expect(view.getByText(/Nothing found yet\. Check the link/)).toBeTruthy();
+    expect(view.queryByTestId('icloud-no-answer')).toBeNull();
+  });
+
+  it('says a big album takes a while once the check has run for some seconds', async () => {
+    editorFetch.mockImplementation(() => new Promise<Response>(() => {}));
+
+    const { view } = renderSection(ALBUM_LINK);
+    await act(async () => { await vi.advanceTimersByTimeAsync(7_999); });
+    expect(view.getByTestId('icloud-checking').textContent).toBe('Checking the album...');
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(view.getByTestId('icloud-checking').textContent).toBe('Still checking. A big album can take a minute.');
+  });
+
+  it('does not blame the link when the hub could not read the album, and offers another try', async () => {
+    editorFetch.mockResolvedValueOnce(jsonResponse({ error: 'Failed to load photos' }, 500));
+
+    const { view } = renderSection(ALBUM_LINK);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.getByTestId('icloud-no-answer').textContent).toContain("iCloud didn't answer just now. Your link may be fine.");
+    expect(view.queryByText(/Check the link/)).toBeNull();
+
+    editorFetch.mockResolvedValueOnce(jsonResponse([{ url: 'data:image/gif;base64,AAA', type: 'image' }]));
+    await act(async () => { fireEvent.click(view.getByText('Try again')); });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(editorFetch).toHaveBeenCalledTimes(2);
+    expect(view.queryByTestId('icloud-no-answer')).toBeNull();
+    expect(view.getByText('Link looks good')).toBeTruthy();
+  });
+
+  it('says the same when the request never reached the hub', async () => {
+    editorFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    const { view } = renderSection(ALBUM_LINK);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.getByTestId('icloud-no-answer')).toBeTruthy();
+  });
+
+  it('does not show the last album\'s photos beside a read that failed', async () => {
+    editorFetch.mockResolvedValueOnce(jsonResponse([{ url: 'data:image/gif;base64,AAA', type: 'image' }]));
+    const set = vi.fn();
+    const view = render(<ICloudSourceFields source={{ kind: 'icloud', albumUrl: ALBUM_LINK }} onChange={set} />, { wrapper: Wrapper });
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.container.querySelectorAll('img')).toHaveLength(1);
+
+    editorFetch.mockResolvedValueOnce(jsonResponse({ error: 'Failed to load photos' }, 500));
+    view.rerender(<ICloudSourceFields source={{ kind: 'icloud', albumUrl: 'https://www.icloud.com/sharedalbum/#B0aG5oqs3qGhrh' }} onChange={set} />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(view.getByTestId('icloud-no-answer')).toBeTruthy();
+    expect(view.container.querySelectorAll('img')).toHaveLength(0);
+    expect(view.queryByText('Link looks good')).toBeNull();
   });
 
   it('offers Save to library instead of silence for a pasted photo link', () => {

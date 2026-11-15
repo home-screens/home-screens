@@ -5925,6 +5925,9 @@
       "photoLinkAction": "Opslaan in bibliotheek",
       "videoHint": "Sommige iPhone-video's spelen mogelijk niet af op oudere schermen. Video's die niet afspelen worden automatisch overgeslagen.",
       "checking": "Album wordt gecontroleerd…",
+      "checkingSlow": "Nog bezig met controleren. Een groot album kan een minuut duren.",
+      "noAnswer": "iCloud gaf net geen antwoord. Je link is misschien gewoon goed.",
+      "tryAgain": "Opnieuw proberen",
       "linkOk": "De link ziet er goed uit",
       "notAlbumLink": "Dat lijkt geen link van een gedeeld album"
     },

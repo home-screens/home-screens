@@ -5925,6 +5925,9 @@
       "photoLinkAction": "Gem i biblioteket",
       "videoHint": "Nogle iPhone-videoer kan muligvis ikke afspilles på ældre skærme. Videoer, der ikke kan afspilles, springes automatisk over.",
       "checking": "Tjekker albummet…",
+      "checkingSlow": "Tjekker stadig. Et stort album kan tage et minut.",
+      "noAnswer": "iCloud svarede ikke lige nu. Dit link er måske helt fint.",
+      "tryAgain": "Prøv igen",
       "linkOk": "Linket ser rigtigt ud",
       "notAlbumLink": "Det ligner ikke et link til et delt album"
     },

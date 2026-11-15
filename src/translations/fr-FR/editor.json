@@ -5925,6 +5925,9 @@
       "photoLinkAction": "Enregistrer dans la bibliothèque",
       "videoHint": "Certaines vidéos iPhone peuvent ne pas se lire sur les écrans plus anciens. Les vidéos illisibles sont ignorées automatiquement.",
       "checking": "Vérification de l'album…",
+      "checkingSlow": "Vérification toujours en cours. Un grand album peut prendre une minute.",
+      "noAnswer": "iCloud n'a pas répondu pour l'instant. Votre lien est peut-être bon.",
+      "tryAgain": "Réessayer",
       "linkOk": "Le lien a l'air bon",
       "notAlbumLink": "Ça ne ressemble pas à un lien d'album partagé"
     },

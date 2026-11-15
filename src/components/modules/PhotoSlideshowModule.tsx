@@ -6,6 +6,7 @@ import type { MediaListItem, PhotoSlideshowConfig, ModuleStyle } from '@/types/c
 import ModuleWrapper from './ModuleWrapper';
 import { moduleGate } from './ModuleStates';
 import { useFetchData } from '@/hooks/useFetchData';
+import { DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
 import { useModuleCommand } from '@/hooks/useModuleCommand';
@@ -81,7 +82,8 @@ export default function PhotoSlideshowModule({ config, style, screenId, moduleId
   const playVideos = !!(screenId && moduleId);
 
   const listUrl = photoSlideshowUrl(config);
-  const [data, error] = useFetchData<MediaListItem[]>(listUrl, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS);
+  // A cloud source the hub has not read yet can take most of a minute to list.
+  const [data, error] = useFetchData<MediaListItem[]>(listUrl, config.refreshIntervalMs ?? DEFAULT_REFRESH_MS, { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS });
   const items = data ?? NO_ITEMS;
   const intervalMs = config.intervalMs ?? 30000;
 

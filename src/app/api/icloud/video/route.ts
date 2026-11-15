@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/icloud/video?link=<album link>&id=<guid>&mt=<token>
  *
  * Streaming proxy for one video of a shared album. The display never holds
- * Apple's signed URL, which dies within the hour: every request, each seek
+ * Apple's signed URL, which dies within 20 minutes: every request, each seek
  * included, reads the current one from the album the hub keeps. The incoming
  * Range header is forwarded and the body piped straight through. Auth accepts
  * the usual display credentials or an `mt` media token bound to this album

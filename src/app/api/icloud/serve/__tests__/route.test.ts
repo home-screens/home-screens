@@ -12,16 +12,20 @@ vi.mock('@/lib/api-utils', async (importOriginal) => {
   return { ...actual, fetchWithTimeout: vi.fn() };
 });
 
-// The album reader behind fetchICloudMedia for an icloud.com/sharedalbum link.
-vi.mock('@/lib/icloud-album', () => ({ fetchSharedStreamsAlbum: vi.fn(), fetchSharedStreamsAlbumForImport: vi.fn() }));
+// The item lookup behind findICloudItem for an icloud.com/sharedalbum link.
+vi.mock('@/lib/icloud-album', () => ({
+  listSharedStreamsAlbum: vi.fn(),
+  findSharedStreamsItem: vi.fn(),
+  fetchSharedStreamsAlbumForImport: vi.fn(),
+}));
 
 import { GET } from '@/app/api/icloud/serve/route';
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { requireDisplayAuth } from '@/lib/auth';
-import { fetchSharedStreamsAlbum } from '@/lib/icloud-album';
+import { findSharedStreamsItem } from '@/lib/icloud-album';
 import { icloudPhotoBytesCache, icloudServeUrl } from '@/lib/icloud-media';
 
-const mockAlbum = vi.mocked(fetchSharedStreamsAlbum);
+const mockFind = vi.mocked(findSharedStreamsItem);
 const mockFetch = vi.mocked(fetchWithTimeout);
 
 const TOKEN = 'B0aG5oqs3qGhrh';
@@ -47,7 +51,7 @@ function picture(bytes = 3, contentType = 'image/jpeg') {
 beforeEach(() => {
   vi.clearAllMocks();
   icloudPhotoBytesCache.clear();
-  mockAlbum.mockResolvedValue(ALBUM);
+  mockFind.mockImplementation(async (_token, guid) => ALBUM.find((item) => item.guid === guid) ?? null);
   mockFetch.mockImplementation(async () => picture());
 });
 
@@ -59,7 +63,7 @@ describe('GET /api/icloud/serve', () => {
     expect(res.headers.get('Content-Type')).toBe('image/jpeg');
     expect(res.headers.get('Cache-Control')).toBe('public, max-age=604800, immutable');
     expect((await res.arrayBuffer()).byteLength).toBe(3);
-    expect(mockAlbum).toHaveBeenCalledWith(TOKEN);
+    expect(mockFind).toHaveBeenCalledWith(TOKEN, 'G1');
     expect(mockFetch).toHaveBeenCalledWith(`${CDN}/p1`, { timeout: 30_000 });
     // Display-polled route: the display tier, never session-only.
     expect(requireDisplayAuth).toHaveBeenCalled();
@@ -70,10 +74,10 @@ describe('GET /api/icloud/serve', () => {
     expect(mockFetch).toHaveBeenCalledWith(`${CDN}/med-2`, { timeout: 30_000 });
   });
 
-  it('follows the link Apple signs anew: the same address works after the album is re-read', async () => {
+  it('follows the link Apple signs anew: the same address works after the link is looked up again', async () => {
     await GET(serveReq('G1'));
     icloudPhotoBytesCache.clear();
-    mockAlbum.mockResolvedValue([{ ...ALBUM[0], url: `${CDN}/p1-resigned` }]);
+    mockFind.mockResolvedValue({ ...ALBUM[0], url: `${CDN}/p1-resigned` });
 
     expect((await GET(serveReq('G1'))).status).toBe(200);
     expect(mockFetch).toHaveBeenLastCalledWith(`${CDN}/p1-resigned`, { timeout: 30_000 });
@@ -84,7 +88,7 @@ describe('GET /api/icloud/serve', () => {
     const again = await GET(serveReq('G1'));
 
     expect(again.status).toBe(200);
-    expect(mockAlbum).toHaveBeenCalledTimes(1);
+    expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
@@ -120,6 +124,18 @@ describe('GET /api/icloud/serve', () => {
     expect((await GET(serveReq('G1'))).status).toBe(200);
   });
 
+  it('serves a newer album\'s picture as the picture it is, not as the plain download Apple calls it', async () => {
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00]);
+    mockFetch.mockImplementation(async () => new Response(jpeg, { headers: { 'Content-Type': 'application/octet-stream' } }));
+
+    const res = await GET(serveReq('G1'));
+    expect(res.headers.get('Content-Type')).toBe('image/jpeg');
+    expect((await res.arrayBuffer()).byteLength).toBe(jpeg.byteLength);
+    // The kept copy carries the type too.
+    expect((await GET(serveReq('G1'))).headers.get('Content-Type')).toBe('image/jpeg');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
   it('requires a link, an id, and a link that is an album', async () => {
     const get = (query: string) => GET(new NextRequest(`http://localhost/api/icloud/serve${query}`));
     expect((await get('')).status).toBe(400);
@@ -127,6 +143,6 @@ describe('GET /api/icloud/serve', () => {
     expect((await get('?id=G1')).status).toBe(400);
     expect((await get('?link=https%3A%2F%2Fexample.com%2Falbum&id=G1')).status).toBe(400);
     expect((await get(`?link=${encodeURIComponent(LINK)}&id=${'x'.repeat(201)}`)).status).toBe(400);
-    expect(mockAlbum).not.toHaveBeenCalled();
+    expect(mockFind).not.toHaveBeenCalled();
   });
 });

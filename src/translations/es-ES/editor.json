@@ -5925,6 +5925,9 @@
       "photoLinkAction": "Guardar en la biblioteca",
       "videoHint": "Algunos videos de iPhone pueden no reproducirse en pantallas más antiguas. Los videos que no se pueden reproducir se omiten automáticamente.",
       "checking": "Comprobando el álbum…",
+      "checkingSlow": "Seguimos comprobando. Un álbum grande puede tardar un minuto.",
+      "noAnswer": "iCloud no respondió esta vez. Puede que tu enlace esté bien.",
+      "tryAgain": "Reintentar",
       "linkOk": "El enlace parece correcto",
       "notAlbumLink": "Eso no parece el enlace de un álbum compartido"
     },
