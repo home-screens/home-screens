@@ -77,6 +77,11 @@ test.describe('property panel: what a module is, and why it is hidden', () => {
   test('a conditioned module names the state key it is waiting on', async ({ page, request }) => {
     const mod = buildModuleInstance('clock');
     mod.visibility = { conditions: [{ kind: 'state', sourceKey: 'kitchen_motion', equals: 'on' }] };
+    // The chip names the key only while no wall has reported. Another spec's
+    // wall, reporting to this server in the last minute, turns it into
+    // "Hidden now", so this test answers the poll itself.
+    await page.route('**/api/display/shared-state*', (route) =>
+      route.fulfill({ json: { entries: {}, reportedAt: null } }));
     await selectModule(page, request, mod);
 
     await expect(page.getByTestId('module-status-chips').first())

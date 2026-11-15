@@ -163,6 +163,9 @@ export default function FullscreenMealPlannerModule({
     shownWeek.weekDates[0],
     // The backdrop takes the big picture out of the stack, which frees room.
     !!backdropUrl,
+    // The stack is only drawn once the plan is in. A day with nothing planned
+    // changes none of the counts above, so without this the fit never ran on it.
+    data !== null,
   ], view !== 'recipes'); // The recipe book scrolls; shrinking it to fit would only make it unreadable.
   const s = bu * typoMul * fit;
 
