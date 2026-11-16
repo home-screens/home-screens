@@ -296,7 +296,10 @@ test('a Display Control dock shown on every screen wanders inside its box on a p
     return match ? { x: Number(match[1]), y: Number(match[2]) } : null;
   };
 
-  await page.clock.install();
+  // A fixed minute, so the walk is at the same step on every run. At this one
+  // a pill a pixel or two shorter than its box once sat a pixel below where
+  // it rests.
+  await page.clock.install({ time: new Date('2026-11-15T15:43:33Z') });
   await renderOnDisplay(page, request, config, '/display/kitchen');
   await expect(pill()).toBeVisible();
   await expect.poll(offsetOf).not.toBeNull();

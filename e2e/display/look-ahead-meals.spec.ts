@@ -34,10 +34,23 @@ function iso(d: Date): string {
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
-/** What the heading row says for a week's dates: "November 1 – 7". */
-function range(weeks: number, year = false): string {
-  return formatDayRange(day(weeks, 0), day(weeks, 6), 'en-US', { year });
+/**
+ * What the heading row says for a week's dates: "November 1 – 7", or
+ * "Nov 1 – 7" where the row has no room to write the month out.
+ */
+function range(weeks: number, year = false, month: 'long' | 'short' = 'long'): string {
+  return formatDayRange(day(weeks, 0), day(weeks, 6), 'en-US', { year, month });
 }
+
+/**
+ * The small planner's box. Wide enough that its heading writes out the dates
+ * of any week, the longest included ("November 29 – December 5" beside
+ * "In 2 weeks" and the way back): the weeks here follow the real calendar, so
+ * every few weeks one of them runs from one month into the next.
+ */
+const ROOMY = { w: 960, h: 720 };
+/** Too narrow for the heading to write any month out once the way back is showing. */
+const NARROW = { w: 380, h: 720 };
 
 /**
  * A dinner (or two) in every week the arrows reach except the one two weeks
@@ -69,6 +82,7 @@ async function show(
   request: APIRequestContext,
   type: 'meal-planner' | 'fullscreen-meal-planner',
   config: Record<string, unknown>,
+  size = ROOMY,
 ): Promise<Locator> {
   const mod = buildModuleInstance(type, config);
   mod.id = 'meals';
@@ -76,7 +90,7 @@ async function show(
     mod.size = { w: 1080, h: 1920 };
     mod.position = { x: 0, y: 0 };
   } else {
-    mod.size = { w: 640, h: 720 };
+    mod.size = size;
     mod.position = { x: 60, y: 120 };
   }
   await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [mod])] }));
@@ -173,6 +187,16 @@ test.describe('Meal Planner Week', () => {
     // Greyed, it still answers a finger (Playwright waits on aria-disabled unless forced).
     await forward.click({ force: true });
     await expect(mod.getByTestId('look-ahead-limit')).toHaveText('Up to 8 weeks ahead');
+  });
+
+  test('shortens the months where the heading has no room to write them out', async ({ page, request }) => {
+    await page.clock.install({ time: NOW });
+    await seedWeeks(request);
+    const mod = await show(page, request, 'meal-planner', { view: 'week', interactive: true }, NARROW);
+
+    await mod.getByTestId('look-ahead-forward').click();
+    await expect(mod.getByTestId('look-ahead-words')).toHaveText('Next week');
+    await expect(mod.getByTestId('look-ahead-dates')).toHaveText(range(1, false, 'short'));
   });
 });
 

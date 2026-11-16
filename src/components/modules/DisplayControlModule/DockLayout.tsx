@@ -73,8 +73,12 @@ export function DockLayout(props: DockLayoutProps) {
   // or the gap to the picker row on the side next to it. A side whose module
   // edge sits against the screen edge gets no margin: the wall shift already
   // hides a strip there, and a pill drifting into it lost its "showing now"
-  // dot under the bottom of a portrait wall. A bottom dock therefore drifts up
-  // into its margin and never lower than it rests.
+  // dot under the bottom of a portrait wall. The spare room on that side
+  // counts only past the depth of that strip, so the pixel or two a pill
+  // falls short of its box is not room to move toward the edge, while a
+  // full-width dock still drifts sideways through the room beside its pill.
+  // A bottom dock therefore drifts up into its margin and never lower than
+  // it rests.
   //
   // Zero until both boxes are measured, since the dock resizes once measured
   // anyway. Nothing is measured while protection is off.
@@ -105,8 +109,9 @@ export function DockLayout(props: DockLayoutProps) {
   };
   const capX = m.vertical ? WANDER_REACH_Y_PX : WANDER_REACH_X_PX;
   const capY = m.vertical ? WANDER_REACH_X_PX : WANDER_REACH_Y_PX;
-  const [loX, hiX] = range(room.width, pill.width, edges.left ? 0 : m.outer, edges.right ? 0 : m.outer, capX);
-  const [loY, hiY] = range(room.height, pill.height, edges.top ? 0 : (showPicker ? pm.gap : m.outer), edges.bottom ? 0 : m.outer, capY);
+  const atEdge = -PIXEL_SHIFT_EDGE_CLEARANCE_PX;
+  const [loX, hiX] = range(room.width, pill.width, edges.left ? atEdge : m.outer, edges.right ? atEdge : m.outer, capX);
+  const [loY, hiY] = range(room.height, pill.height, edges.top ? atEdge : (showPicker ? pm.gap : m.outer), edges.bottom ? atEdge : m.outer, capY);
   const wander = protect ? { x: wanderBetween(minute, loX, hiX), y: wanderBetween(minute, loY, hiY) } : null;
 
   return (
