@@ -6,6 +6,7 @@ import { displayFetch } from '@/lib/display-fetch';
 import { subscribeRevisions } from '@/lib/display-heartbeat';
 import { isRotationActive, rotationCacheKey } from '@/lib/photo-source';
 import { setBackgroundCaption } from '@/lib/background-caption-store';
+import { isArtCaption } from '@/lib/art-presentation';
 
 /** How often the client polls the server-side rotation cache (ms) */
 const BG_POLL_MS = 60_000;
@@ -73,7 +74,9 @@ export function useBackgroundRotation(screens: Screen[]) {
             const path: string | null = data.path || null;
             setBackgrounds((prev) => (prev[screen.id] === path ? prev : { ...prev, [screen.id]: path }));
             const credit = data.credit;
-            setBackgroundCaption(screen.id, path && credit && typeof credit.name === 'string' && typeof credit.source === 'string' ? credit : null);
+            setBackgroundCaption(screen.id, path && credit && typeof credit.name === 'string' && typeof credit.source === 'string'
+              ? { name: credit.name, source: credit.source, ...(isArtCaption(credit.art) ? { art: credit.art } : {}) }
+              : null);
             continue;
           }
         } catch {

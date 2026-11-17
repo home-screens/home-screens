@@ -1019,6 +1019,17 @@
         "other": "{count} konnten nicht hinzugefügt werden."
       },
       "nothingFound": "In diesem Album gibt es nichts hinzuzufügen."
+    },
+    "art": {
+      "onWall": "Jetzt an der Wand",
+      "onWallAt": "Jetzt an der Wand · {wall}",
+      "next": "Nächstes Gemälde",
+      "hide": "Nicht mehr zeigen",
+      "about": "Über dieses Gemälde",
+      "nextSent": "Ein neues Gemälde ist unterwegs.",
+      "hidden": "{title} wird nicht mehr gezeigt.",
+      "undo": "Rückgängig",
+      "failed": "Das hat nicht geklappt. Versuch es noch einmal."
     }
   },
   "slideshowControls": {

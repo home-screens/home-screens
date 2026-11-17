@@ -1,13 +1,16 @@
 import { useSyncExternalStore } from 'react';
+import type { PictureCredit } from '@/lib/art-presentation';
 
-export interface BackgroundCaption { name: string; source: string }
+export type BackgroundCaption = PictureCredit;
 
 const captions = new Map<string, BackgroundCaption>();
 const listeners = new Set<() => void>();
 
+// A painting's label settings can change while the picture stays, so the whole caption is compared.
+const same = (a: BackgroundCaption | undefined, b: BackgroundCaption | null | undefined) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
 export function setBackgroundCaption(screenId: string, caption: BackgroundCaption | null | undefined): void {
-  const current = captions.get(screenId);
-  if (current?.name === caption?.name && current?.source === caption?.source) return;
+  if (same(captions.get(screenId), caption)) return;
   if (caption) captions.set(screenId, caption);
   else captions.delete(screenId);
   listeners.forEach((listener) => listener());

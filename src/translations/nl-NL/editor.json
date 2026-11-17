@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Wordt opgeslagen als {to} minuten, een hele dag.",
     "goBackAfterChangedRounded": "{from} gewijzigd in {to}: hele of halve minuten.",
     "goBackAfterChangedClamped": "{from} gewijzigd in {to} minuten, een hele dag.",
-    "goBackAfterKept": "Dat is geen aantal minuten, dus het blijft {to}."
+    "goBackAfterKept": "Dat is geen aantal minuten, dus het blijft {to}.",
+    "artModeGroup": "Kunstmodus",
+    "artModeToggle": "Kunstmodus",
+    "artModeHint": "Verbergt de modules van dit scherm en toont alleen de afbeelding en het bordje.",
+    "artModeWhen": "Wanneer",
+    "artModeAlways": "Altijd",
+    "artModeBetween": "Tussen twee tijden",
+    "artModeFrom": "Vanaf",
+    "artModeUntil": "Tot"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2743,7 +2751,15 @@
     "effectsReset": "Herstel",
     "effectsResetLabel": "{label} herstellen",
     "refreshSame": "Er is maar één foto om te tonen",
-    "nasaPace": "NASA heeft elke dag één nieuwe foto, dus dezelfde komt steeds terug tot de volgende er is."
+    "nasaPace": "NASA heeft elke dag één nieuwe foto, dus dezelfde komt steeds terug tot de volgende er is.",
+    "eveningGroup": "Avondlicht",
+    "eveningToggle": "Avondlicht",
+    "eveningHint": "’s Avonds warmer en donkerder, zodat een afbeelding op papier lijkt en niet op een verlicht scherm.",
+    "eveningFrom": "Vanaf",
+    "eveningFromSunset": "Zonsondergang",
+    "eveningFromTime": "Een vaste tijd",
+    "eveningUntil": "Tot",
+    "eveningSunsetHint": "Voor zonsondergang moet je woonplaats in Instellingen staan. Zonder begint de avond om 20.00 uur."
   },
   "imageBrowserModal": {
     "title": "Afbeeldingsbibliotheek",
@@ -6066,6 +6082,8 @@
       },
       "fit": "Op het scherm",
       "fits": {
+        "framed": "Ingelijst aan de muur",
+        "mat": "In een passe-partout",
         "matte": "Heel schilderij op een zachte vervaging",
         "cover": "Scherm vullen (randen worden bijgesneden)",
         "contain": "Heel schilderij op een donkere muur"
@@ -6119,7 +6137,44 @@
         "loadFailed": "Kon de schilderijen niet laden.",
         "unavailable": "De collectie stuurt nu geen schilderijen. Probeer het straks nog eens.",
         "orSearch": "Of zoek hierboven naar wat je maar wilt"
-      }
+      },
+      "wall": "Kleur van de muur",
+      "walls": {
+        "charcoal": "Antraciet",
+        "warm-white": "Warm wit",
+        "sage": "Saliegroen",
+        "painting": "Uit het schilderij"
+      },
+      "mat": "Passe-partout",
+      "mats": {
+        "cream": "Crème",
+        "white": "Wit",
+        "charcoal": "Antraciet",
+        "none": "Geen",
+        "painting": "Uit het schilderij"
+      },
+      "frame": "Lijst",
+      "frames": {
+        "black": "Zwart",
+        "oak": "Eiken",
+        "gold": "Goud",
+        "white": "Wit"
+      },
+      "label": "Museumbordje",
+      "labels": {
+        "brief": "De eerste 15 seconden",
+        "always": "Altijd",
+        "off": "Uit"
+      },
+      "labelHint": "Titel, kunstenaar, jaar en museum. De rest van de tijd staat het kleine bijschrift in de hoek.",
+      "texture": "Doekstructuur",
+      "drift": "Langzaam bewegen",
+      "driftHint": "Het schilderij groeit en schuift de eerste minuut heel langzaam en staat daarna stil.",
+      "hiddenCount": {
+        "one": "{count} schilderij is vanaf de telefoon verborgen.",
+        "other": "{count} schilderijen zijn vanaf de telefoon verborgen."
+      },
+      "hiddenShow": "Weer tonen"
     },
     "picker": {
       "tabs": {

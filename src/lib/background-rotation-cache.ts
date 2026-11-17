@@ -1,4 +1,5 @@
 import { createJsonStore } from '@/lib/json-store';
+import type { PictureCredit } from '@/lib/art-presentation';
 
 /**
  * The background-rotation cache (`data/background-cache.json`): one entry per
@@ -14,8 +15,8 @@ export interface RotationCacheEntry {
   sourceKey: string;
   fetchedAt: number;
   intervalMinutes: number;
-  /** The caption shown on the wall, set by sources that ask for credit (art). */
-  credit?: { name: string; source: string };
+  /** The caption shown on the wall, set by sources that ask for credit; a painting's also says how to label it. */
+  credit?: PictureCredit;
   /** When every source last failed to answer; the sources rest until the back-off has passed. */
   failedAt?: number;
   /** When the editor last forced a refresh; the next forced one waits a few seconds. */

@@ -1019,6 +1019,17 @@
         "other": "{count} kunne ikke tilføjes."
       },
       "nothingFound": "Der er intet at tilføje fra det album."
+    },
+    "art": {
+      "onWall": "På væggen nu",
+      "onWallAt": "På væggen nu · {wall}",
+      "next": "Næste maleri",
+      "hide": "Vis ikke igen",
+      "about": "Om dette maleri",
+      "nextSent": "Et nyt maleri er på vej.",
+      "hidden": "Du ser ikke {title} igen.",
+      "undo": "Fortryd",
+      "failed": "Det virkede ikke. Prøv igen."
     }
   },
   "slideshowControls": {

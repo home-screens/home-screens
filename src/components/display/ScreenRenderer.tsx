@@ -45,6 +45,9 @@ import { resolveModuleStyle } from '@/lib/module-style';
 import BackgroundMediaLayer from '@/components/BackgroundMediaLayer';
 import PhotoCredit from '@/components/modules/shared/PhotoCredit';
 import { useBackgroundCaption } from '@/lib/background-caption-store';
+import ArtLabel, { useArtLabelShown } from './ArtLabel';
+import { artModeActive, eveningLightActive } from '@/lib/screen-hours';
+import { sunTimesFor } from '@/lib/weather/sun-times';
 import { screenBackgroundSrc, type RotationAnswer } from '@/lib/screen-background';
 import { displaySizedUrl } from '@/lib/media-paths';
 
@@ -119,13 +122,25 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
   const conditionKeys = useMemo(() => collectConditionSourceKeys(screen.modules), [screen.modules]);
   const states = useSharedStateKeys(conditionKeys);
 
+  // Art mode: the screen's modules step aside and only the picture and its label show.
+  const artMode = artModeActive(screen, now.minuteOfDay);
   const visibleModules = useMemo(
-    () => screen.modules.filter((mod) => isModuleRenderable(mod, now, states)),
-    [screen.modules, now, states],
+    () => (artMode ? [] : screen.modules.filter((mod) => isModuleRenderable(mod, now, states))),
+    [screen.modules, now, states, artMode],
   );
 
   const canvas = { w: displayW, h: displayH };
   const caption = useBackgroundCaption(screen.id);
+  const art = rotatingBackground ? caption?.art : undefined;
+  const labelShown = useArtLabelShown(art, rotatingBackground);
+  // Evening light, by the display's own clock; "sunset" needs the household's location.
+  const location = getLocation(settings);
+  const evening = useMemo(() => {
+    if (!screen.eveningLight) return undefined;
+    const sun = screen.eveningLight.from === 'sunset' && location ? sunTimesFor(new Date(), location.lat, location.lon, timezone) : null;
+    return eveningLightActive(screen, now.minuteOfDay, sun?.sunset ? sun.sunsetHour * 60 : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputed each minute the wall clock ticks
+  }, [screen.eveningLight, now.minuteOfDay, now.isoDate, location?.lat, location?.lon, timezone]);
   // Module-requested override takes priority over screen background. A
   // library picture is asked for at the canvas size (see displaySizedUrl).
   const rawBackground = overrideBackground
@@ -163,8 +178,9 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
       {/* Keyed by screen: a screen switch paints the new wall in its first frame
           under the View Transition; the crossfade is for a new picture on the
           same screen. */}
-      <BackgroundMediaLayer key={screen.id} src={rawBackground} shade={screen.shade} effects={screen.effects} authenticate />
-      {caption && rotatingBackground && (
+      <BackgroundMediaLayer key={screen.id} src={rawBackground} shade={screen.shade} effects={screen.effects} authenticate drift={!!art?.drift} evening={evening} />
+      {art && <ArtLabel art={art} shown={labelShown} evening={evening === true} />}
+      {caption && rotatingBackground && !labelShown && (
         <PhotoCredit item={{ url: '', type: 'image', credit: caption }} box={{ w: displayW, h: displayH }} />
       )}
 

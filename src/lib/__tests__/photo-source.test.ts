@@ -202,6 +202,13 @@ describe('normalizePhotoSource', () => {
     expect(normalizePhotoSource({ kind: 'art', fromYear: -5, toYear: 9999.4, genre: 'nude' })).toEqual({ kind: 'art', fromYear: 0, toYear: 2100 });
     expect(normalizePhotoSource({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' }))
       .toEqual({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' });
+    // How a painting is hung: only the choices there are, a mat only where its fit offers it, switches only off their usual.
+    expect(normalizePhotoSource({ kind: 'art', fit: 'framed', wall: 'sage', mat: 'none', frame: 'oak', label: 'always', texture: false, drift: true }))
+      .toEqual({ kind: 'art', fit: 'framed', wall: 'sage', mat: 'none', frame: 'oak', label: 'always', texture: false, drift: true });
+    expect(normalizePhotoSource({ kind: 'art', fit: 'framed', wall: 'pink', mat: 'painting', frame: 'steel', label: 'sometimes', texture: true, drift: false }))
+      .toEqual({ kind: 'art', fit: 'framed' });
+    expect(normalizePhotoSource({ kind: 'art', fit: 'mat', mat: 'painting' })).toEqual({ kind: 'art', fit: 'mat', mat: 'painting' });
+    expect(normalizePhotoSource({ kind: 'art', fit: 'mat', mat: 'none' })).toEqual({ kind: 'art', fit: 'mat' });
     expect(normalizePhotoSource({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'], extra: 1 })).toEqual({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'] });
   });
 
@@ -278,6 +285,10 @@ describe('sourceCacheKey', () => {
     ['art artist', { kind: 'art', artist: 'Monet' }, { kind: 'art', artist: 'Turner' }],
     ['art period', { kind: 'art', fromYear: 1600 }, { kind: 'art', fromYear: 1700 }],
     ['art fit', { kind: 'art', fit: 'cover' }, { kind: 'art', fit: 'matte' }],
+    ['art wall', { kind: 'art', wall: 'sage' }, { kind: 'art' }],
+    ['art frame', { kind: 'art', frame: 'oak' }, { kind: 'art', frame: 'gold' }],
+    ['art label', { kind: 'art', label: 'off' }, { kind: 'art' }],
+    ['art texture', { kind: 'art', texture: false }, { kind: 'art' }],
   ])('changes with the %s', (_label, a, b) => {
     expect(key(a)).not.toBe(key(b));
   });
@@ -356,6 +367,8 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
     { kind: 'nasa' },
     { kind: 'art', artist: 'van Gogh', orientation: 'portrait', aspectTolerance: 0.25, fit: 'contain' },
     { kind: 'art', fromYear: 1600, toYear: 1800, genre: 'landscape' },
+    { kind: 'art', fit: 'framed', wall: 'painting', mat: 'none', frame: 'gold', label: 'off', texture: false },
+    { kind: 'art', fit: 'cover', drift: true },
     { kind: 'wall', group: 'pattern', ids: ['pattern-dots', 'pattern-grid'] },
     { kind: 'wall', group: 'color', ids: [] },
   ])('round-trips %j', (source) => {

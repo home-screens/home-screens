@@ -177,11 +177,32 @@ Under the filters the editor says how many paintings match and shows a few of th
 
 For a rotating background, **On the screen** says how a painting sits behind your modules:
 
-- **Whole painting on a soft blur** (the default) shows the whole painting over a darkened, blurred copy of itself when its shape differs from the screen's.
+- **Framed on a wall** (the default) hangs the painting in a mat and a frame on a coloured wall, a little above the middle, the way a picture hangs in a room. Choose the **Wall color** (charcoal, warm white, sage, or a soft colour taken from the painting), the **Mat** (cream, white, charcoal, or none) and the **Frame** (black, oak, gold or white).
+- **In a mat** shows the painting in a mat that fills the screen. The mat can be cream, white, charcoal, or a soft colour taken from the painting.
+- **Whole painting on a soft blur** shows the whole painting over a darkened, blurred copy of itself when its shape differs from the screen's.
 - **Fill the screen** crops the painting's edges to fill the screen.
 - **Whole painting on a dark wall** shows the whole painting with dark bars where it doesn't reach.
 
-Each painting's title, artist, year and museum show quietly in a corner of the screen. The list of paintings is part of Home Screens, but the pictures themselves are fetched from Wikimedia Commons when they are shown, so the wall needs the internet for them.
+A framed or matted painting has a cut edge where the mat meets it and a soft shadow in the opening. **Canvas texture** lays a faint weave over the painting; switch it off for a flat picture. **Slow drift**, for a painting that fills the screen, lets it grow and slide a little over its first minute, too slowly to catch, and then hold still. It is off unless you switch it on.
+
+**Museum label** shows the title, artist, year and museum the way a gallery does: on a small card beside a framed painting, or lettered on the mat under a matted one. It shows **for the first 15 seconds** of each painting (the default), **always**, or not at all. Whenever the label is not up, the same details show quietly in a corner of the screen.
+
+The list of paintings is part of Home Screens, but the pictures themselves are fetched from Wikimedia Commons when they are shown, so the wall needs the internet for them.
+
+### Evening light and art mode
+
+Two switches turn a screen into something closer to a picture on the wall. Neither is only for paintings; they work with any background.
+
+- **Evening light**, under **Background effects**, warms and dims the background in the evening, so a picture looks like paper under a lamp and not a lit screen. It starts at **Sunset** (which needs your town in Settings; without it, 8 PM) or at a time you choose, and ends at a time the next morning. The change eases in over a minute and a half. Your modules stay as bright as they were.
+- **Art mode**, under the screen's own settings, hides that screen's modules and shows only the picture and its label. It can be on **always**, or only **between two times**, for example from 9 PM to 7 AM.
+
+### From your phone
+
+When a wall is showing a painting, the **Photos** tab of the [family remote](/docs/remote-control) has an **On the wall now** card with the painting, its title, artist, year and museum.
+
+- **Next painting** changes the wall straight away.
+- **Don't show again** takes that painting away from every wall in the house, with **Undo** for a few seconds. To bring hidden paintings back later, open the source in the editor: under the match count it says how many are hidden, with **Show them again**.
+- **About this painting** opens its page on Wikimedia Commons.
 
 ### The Art tab
 

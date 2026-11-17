@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Se guardará como {to} minutos, un día entero.",
     "goBackAfterChangedRounded": "{from} cambiado a {to}: minutos enteros o medios.",
     "goBackAfterChangedClamped": "{from} cambiado a {to} minutos, un día entero.",
-    "goBackAfterKept": "Eso no es un número de minutos, así que se queda en {to}."
+    "goBackAfterKept": "Eso no es un número de minutos, así que se queda en {to}.",
+    "artModeGroup": "Modo arte",
+    "artModeToggle": "Modo arte",
+    "artModeHint": "Oculta los módulos de esta pantalla y muestra solo la imagen y su cartela.",
+    "artModeWhen": "Cuándo",
+    "artModeAlways": "Siempre",
+    "artModeBetween": "Entre dos horas",
+    "artModeFrom": "Desde",
+    "artModeUntil": "Hasta"
   },
   "scheduleEditor": {
     "statusTitle": "Estado",
@@ -2743,7 +2751,15 @@
     "effectsReset": "Restablecer",
     "effectsResetLabel": "Restablecer {label}",
     "refreshSame": "Solo hay una foto que mostrar",
-    "nasaPace": "La NASA publica una sola foto nueva al día, así que la misma vuelve a salir hasta que llegue la siguiente."
+    "nasaPace": "La NASA publica una sola foto nueva al día, así que la misma vuelve a salir hasta que llegue la siguiente.",
+    "eveningGroup": "Luz de tarde",
+    "eveningToggle": "Luz de tarde",
+    "eveningHint": "Más cálido y tenue por la tarde, para que una imagen parezca papel y no una pantalla encendida.",
+    "eveningFrom": "Desde",
+    "eveningFromSunset": "Puesta de sol",
+    "eveningFromTime": "Una hora fija",
+    "eveningUntil": "Hasta",
+    "eveningSunsetHint": "La puesta de sol necesita tu localidad en Ajustes. Sin ella, la tarde empieza a las 20:00."
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imágenes",
@@ -6066,6 +6082,8 @@
       },
       "fit": "En la pantalla",
       "fits": {
+        "framed": "Enmarcado en una pared",
+        "mat": "En un paspartú",
         "matte": "Pintura entera sobre un fondo difuminado",
         "cover": "Llenar la pantalla (recorta los bordes)",
         "contain": "Pintura entera sobre una pared oscura"
@@ -6119,7 +6137,44 @@
         "loadFailed": "No se pudieron cargar las pinturas.",
         "unavailable": "La colección no envía pinturas ahora mismo. Inténtalo de nuevo un poco más tarde.",
         "orSearch": "O busca lo que quieras arriba"
-      }
+      },
+      "wall": "Color de la pared",
+      "walls": {
+        "charcoal": "Antracita",
+        "warm-white": "Blanco cálido",
+        "sage": "Salvia",
+        "painting": "De la pintura"
+      },
+      "mat": "Paspartú",
+      "mats": {
+        "cream": "Crema",
+        "white": "Blanco",
+        "charcoal": "Antracita",
+        "none": "Ninguno",
+        "painting": "De la pintura"
+      },
+      "frame": "Marco",
+      "frames": {
+        "black": "Negro",
+        "oak": "Roble",
+        "gold": "Dorado",
+        "white": "Blanco"
+      },
+      "label": "Cartela de museo",
+      "labels": {
+        "brief": "Durante los primeros 15 segundos",
+        "always": "Siempre",
+        "off": "Desactivado"
+      },
+      "labelHint": "Título, artista, año y museo. El resto del tiempo se ve el pequeño pie de foto en la esquina.",
+      "texture": "Textura de lienzo",
+      "drift": "Deriva lenta",
+      "driftHint": "La pintura crece y se desliza muy despacio durante su primer minuto y luego se queda quieta.",
+      "hiddenCount": {
+        "one": "{count} pintura está oculta desde el teléfono.",
+        "other": "{count} pinturas están ocultas desde el teléfono."
+      },
+      "hiddenShow": "Mostrarlas de nuevo"
     },
     "picker": {
       "tabs": {

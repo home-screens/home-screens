@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Gemmes som {to} minutter, et helt døgn.",
     "goBackAfterChangedRounded": "{from} ændret til {to}: hele eller halve minutter.",
     "goBackAfterChangedClamped": "{from} ændret til {to} minutter, et helt døgn.",
-    "goBackAfterKept": "Det er ikke et antal minutter, så det bliver ved {to}."
+    "goBackAfterKept": "Det er ikke et antal minutter, så det bliver ved {to}.",
+    "artModeGroup": "Kunsttilstand",
+    "artModeToggle": "Kunsttilstand",
+    "artModeHint": "Skjuler skærmens moduler og viser kun billedet og dets skilt.",
+    "artModeWhen": "Hvornår",
+    "artModeAlways": "Altid",
+    "artModeBetween": "Mellem to tidspunkter",
+    "artModeFrom": "Fra",
+    "artModeUntil": "Indtil"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2743,7 +2751,15 @@
     "effectsReset": "Nulstil",
     "effectsResetLabel": "Nulstil {label}",
     "refreshSame": "Der er kun ét billede at vise",
-    "nasaPace": "NASA udgiver kun ét nyt billede om dagen, så det samme kommer igen, indtil det næste er klar."
+    "nasaPace": "NASA udgiver kun ét nyt billede om dagen, så det samme kommer igen, indtil det næste er klar.",
+    "eveningGroup": "Aftenlys",
+    "eveningToggle": "Aftenlys",
+    "eveningHint": "Varmere og mørkere om aftenen, så et billede ligner papir og ikke en tændt skærm.",
+    "eveningFrom": "Fra",
+    "eveningFromSunset": "Solnedgang",
+    "eveningFromTime": "Et fast tidspunkt",
+    "eveningUntil": "Indtil",
+    "eveningSunsetHint": "Solnedgang kræver din by i Indstillinger. Uden den begynder aftenen kl. 20."
   },
   "imageBrowserModal": {
     "title": "Billedarkiv",
@@ -6066,6 +6082,8 @@
       },
       "fit": "På skærmen",
       "fits": {
+        "framed": "Indrammet på væggen",
+        "mat": "I passepartout",
         "matte": "Hele maleriet på sløret baggrund",
         "cover": "Fyld skærmen (kanterne beskæres)",
         "contain": "Hele maleriet på mørk væg"
@@ -6119,7 +6137,44 @@
         "loadFailed": "Kunne ikke indlæse malerier.",
         "unavailable": "Samlingen sender ikke malerier lige nu. Prøv igen lidt senere.",
         "orSearch": "Eller søg efter hvad som helst ovenfor"
-      }
+      },
+      "wall": "Vægfarve",
+      "walls": {
+        "charcoal": "Koksgrå",
+        "warm-white": "Varm hvid",
+        "sage": "Salvie",
+        "painting": "Fra maleriet"
+      },
+      "mat": "Passepartout",
+      "mats": {
+        "cream": "Creme",
+        "white": "Hvid",
+        "charcoal": "Koksgrå",
+        "none": "Ingen",
+        "painting": "Fra maleriet"
+      },
+      "frame": "Ramme",
+      "frames": {
+        "black": "Sort",
+        "oak": "Eg",
+        "gold": "Guld",
+        "white": "Hvid"
+      },
+      "label": "Museumsskilt",
+      "labels": {
+        "brief": "De første 15 sekunder",
+        "always": "Altid",
+        "off": "Fra"
+      },
+      "labelHint": "Titel, kunstner, år og museum. Resten af tiden står den lille billedtekst i hjørnet.",
+      "texture": "Lærredsstruktur",
+      "drift": "Langsom bevægelse",
+      "driftHint": "Maleriet vokser og glider meget langsomt det første minut og står derefter stille.",
+      "hiddenCount": {
+        "one": "{count} maleri er skjult fra telefonen.",
+        "other": "{count} malerier er skjult fra telefonen."
+      },
+      "hiddenShow": "Vis dem igen"
     },
     "picker": {
       "tabs": {

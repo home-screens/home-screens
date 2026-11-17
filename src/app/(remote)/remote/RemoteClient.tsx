@@ -40,6 +40,7 @@ import NotesTab, { type NotesPage } from './components/NotesTab';
 import { ADD_BAR_HEIGHT } from './components/AddBar';
 import MealsTab from './components/MealsTab';
 import PhotosTab from './components/PhotosTab';
+import ArtNowCard from './components/ArtNowCard';
 import YourIconsPrompt from './components/YourIconsPrompt';
 import TabNotSetUp from './components/TabNotSetUp';
 import type { UpdateChannel } from '@/lib/semver';
@@ -510,6 +511,8 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
           ) : activeTab === 'photos' ? (
             <>
               <div className="px-4 pb-8 pt-4">
+                {/* A wall can show paintings with no photo slideshow anywhere, so the card stands apart from the tab's own content. */}
+                <ArtNowCard />
                 {hasPhotos
                   ? <PhotosTab directory={initialData.photoDirectory} />
                   : <TabNotSetUp kind="photos" />}

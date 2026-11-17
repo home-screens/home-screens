@@ -5,18 +5,23 @@ import { X } from 'lucide-react';
 import LabeledField from '@/components/ui/LabeledField';
 import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
+import Toggle from '@/components/ui/Toggle';
 import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useSettledValue } from '@/hooks/useSettledValue';
 import { useTranslate } from '@/i18n';
 import { getActiveDimensions } from '@/lib/editor-multi-display';
+import { normalizeArtHidden } from '@/lib/art-hidden';
 import { useEditorStore } from '@/stores/editor-store';
 import {
-  ART_FITS, ART_GENRES, ART_ORIENTATIONS, ART_YEAR_MAX, ART_YEAR_MIN, DEFAULT_ART_FIT,
+  ART_FITS, ART_FRAMES, ART_GENRES, ART_LABELS, ART_MATS, ART_ORIENTATIONS, ART_WALLS, ART_YEAR_MAX, ART_YEAR_MIN,
+  DEFAULT_ART_FIT, DEFAULT_ART_FRAME, DEFAULT_ART_LABEL, DEFAULT_ART_MAT, DEFAULT_ART_WALL,
   PHOTO_SOURCE_MEDIA_PATH, artNumber, photoSourceParams, type PhotoSourceUse,
 } from '@/lib/photo-source';
+import { ART_FRAME_COLORS, ART_MAT_COLORS, ART_WALL_COLORS } from '@/lib/art-presentation';
 import type { ArtGenre, MediaListItem, PhotoSource } from '@/types/config';
 import PreviewStrip from './PreviewStrip';
+import ArtSwatches from './ArtSwatches';
 
 type Art = Extract<PhotoSource, { kind: 'art' }>;
 
@@ -38,6 +43,9 @@ type Filter = keyof typeof FILTERS;
 /** Fewer matches than this and the wall would show the same few paintings over and over. */
 const FEW_MATCHES = 20;
 
+/** The square for "from the painting": no one colour, so a soft blend stands in for it. */
+const FROM_PAINTING = 'linear-gradient(135deg, #b9bfbf, #c9c2ab)';
+
 const yearOf = (value: string) => (value.trim() === '' ? undefined : artNumber(Number(value), ART_YEAR_MIN, ART_YEAR_MAX));
 
 export default function ArtSourceFields({ use, source, onChange }: {
@@ -54,6 +62,8 @@ export default function ArtSourceFields({ use, source, onChange }: {
   const offered = (Object.keys(FILTERS) as Filter[]).filter((filter) => filter !== 'shape' || use === 'background');
   const shown = offered.filter((filter) => added.includes(filter) || FILTERS[filter].some((field) => source[field] !== undefined));
   const remaining = offered.filter((filter) => !shown.includes(filter));
+  const fit = source.fit ?? DEFAULT_ART_FIT;
+  const hung = fit === 'framed' || fit === 'mat';
   const filterLabel = (filter: Filter) => t(`photoSources.art.${filter}`);
   const remove = (filter: Filter) => {
     setAdded(added.filter((f) => f !== filter));
@@ -65,7 +75,8 @@ export default function ArtSourceFields({ use, source, onChange }: {
     params.set('count', '4');
     return params.toString();
   }, [source]), 600);
-  const { config, selectedDisplayId } = useEditorStore();
+  const { config, selectedDisplayId, updateSettings } = useEditorStore();
+  const hiddenCount = normalizeArtHidden(config?.settings.artHidden).length;
   const screen = config ? getActiveDimensions(config, selectedDisplayId) : null;
   // A background's count keeps to the screen-shape filter, which needs the screen's size.
   const shaped = use === 'background' && screen ? `&w=${screen.width}&h=${screen.height}` : '';
@@ -162,14 +173,73 @@ export default function ArtSourceFields({ use, source, onChange }: {
       {counted && counted.count === 0 && (
         <p className="text-[10px] text-hs-warning" data-testid="art-none">{t('photoSources.art.noMatches')}</p>
       )}
+      {hiddenCount > 0 && (
+        <p className="text-[10px] text-hs-text-faint" data-testid="art-hidden">
+          {t('photoSources.art.hiddenCount', { count: hiddenCount })}{' '}
+          <button type="button" className="text-hs-accent-hover underline" onClick={() => updateSettings({ artHidden: undefined })}>{t('photoSources.art.hiddenShow')}</button>
+        </p>
+      )}
       <PreviewStrip urls={(previewData ?? []).map((item) => item.url)} />
       {use === 'background' && (
-        <LabeledSelect
-          label={t('photoSources.art.fit')}
-          value={source.fit ?? DEFAULT_ART_FIT}
-          onChange={(fit) => set({ fit })}
-          options={ART_FITS.map((value) => ({ value, label: t(`photoSources.art.fits.${value}`) }))}
-        />
+        <>
+          <LabeledSelect
+            label={t('photoSources.art.fit')}
+            value={fit}
+            // A mat colour the new choice does not offer goes back to the default.
+            onChange={(next) => set({ fit: next, ...(source.mat && !(next === 'mat' ? ART_MATS.mat : ART_MATS.framed).includes(source.mat) ? { mat: undefined } : {}) })}
+            options={ART_FITS.map((value) => ({ value, label: t(`photoSources.art.fits.${value}`) }))}
+          />
+          {fit === 'framed' && (
+            <ArtSwatches
+              label={t('photoSources.art.wall')}
+              testId="art-wall"
+              value={source.wall ?? DEFAULT_ART_WALL}
+              onChange={(wall) => set({ wall: wall === DEFAULT_ART_WALL ? undefined : wall })}
+              options={ART_WALLS.map((value) => ({ value, label: t(`photoSources.art.walls.${value}`), paint: value === 'painting' ? FROM_PAINTING : ART_WALL_COLORS[value] }))}
+            />
+          )}
+          {hung && (
+            <ArtSwatches
+              label={t('photoSources.art.mat')}
+              testId="art-mat"
+              value={source.mat ?? DEFAULT_ART_MAT}
+              onChange={(mat) => set({ mat: mat === DEFAULT_ART_MAT ? undefined : mat })}
+              options={ART_MATS[fit].map((value) => ({
+                value,
+                label: t(`photoSources.art.mats.${value}`),
+                paint: value === 'painting' ? FROM_PAINTING : value === 'none' ? 'transparent' : ART_MAT_COLORS[value],
+                empty: value === 'none',
+              }))}
+            />
+          )}
+          {fit === 'framed' && (
+            <ArtSwatches
+              label={t('photoSources.art.frame')}
+              testId="art-frame"
+              value={source.frame ?? DEFAULT_ART_FRAME}
+              onChange={(frame) => set({ frame: frame === DEFAULT_ART_FRAME ? undefined : frame })}
+              options={ART_FRAMES.map((value) => ({ value, label: t(`photoSources.art.frames.${value}`), paint: ART_FRAME_COLORS[value] }))}
+            />
+          )}
+          <div>
+            <LabeledSelect
+              label={t('photoSources.art.label')}
+              value={source.label ?? DEFAULT_ART_LABEL}
+              onChange={(label) => set({ label: label === DEFAULT_ART_LABEL ? undefined : label })}
+              options={ART_LABELS.map((value) => ({ value, label: t(`photoSources.art.labels.${value}`) }))}
+            />
+            <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t('photoSources.art.labelHint')}</p>
+          </div>
+          {hung && (
+            <Toggle label={t('photoSources.art.texture')} checked={source.texture !== false} onChange={(on) => set({ texture: on ? undefined : false })} />
+          )}
+          {fit === 'cover' && (
+            <div>
+              <Toggle label={t('photoSources.art.drift')} checked={!!source.drift} onChange={(on) => set({ drift: on || undefined })} />
+              <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t('photoSources.art.driftHint')}</p>
+            </div>
+          )}
+        </>
       )}
       <p className="text-[10px] leading-relaxed text-hs-text-faint">
         {t(use === 'background' ? 'photoSources.art.backgroundInfo' : 'photoSources.art.streamInfo')}

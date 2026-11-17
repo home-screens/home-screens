@@ -500,11 +500,50 @@ export type PhotoSource =
       /**
        * How a painting sits on the screen
        *
-       * `cover` fills the screen and crops the edges, `contain` shows the whole painting on a dark wall,
-       * `matte` shows the whole painting over a soft, darkened blur of itself. Unset means `matte`.
+       * `framed` hangs it on a coloured wall in a mat and a frame, `mat` shows it in a mat that fills the screen,
+       * `matte` shows the whole painting over a soft, darkened blur of itself, `cover` fills the screen and crops
+       * the edges, `contain` shows the whole painting on a dark wall. Unset means `framed`.
        * Applies to a rotating background; a slideshow or full-screen photo fits pictures by its own setting.
        */
       fit?: ArtFit;
+      /**
+       * The colour of the wall a framed painting hangs on
+       *
+       * `charcoal`, `warm-white`, `sage`, or `painting` for a soft colour taken from the painting itself. Unset means `charcoal`. Only `framed` uses it.
+       */
+      wall?: ArtWall;
+      /**
+       * The colour of the mat around the painting
+       *
+       * `cream`, `white` or `charcoal`. A framed painting can also have `none` (the frame sits on the painting), and a mat
+       * that fills the screen can be `painting`, a soft colour taken from the painting itself. Unset means `cream`.
+       */
+      mat?: ArtMat;
+      /**
+       * The frame around a framed painting
+       *
+       * `black`, `oak`, `gold` or `white`. Unset means `black`. Only `framed` uses it.
+       */
+      frame?: ArtFrame;
+      /**
+       * Whether a museum label with the title, artist, year and museum is shown
+       *
+       * `brief` shows it for the first 15 seconds of each painting, `always` keeps it up, `off` never shows it.
+       * Unset means `brief`. The small caption in the corner shows whenever the label does not.
+       */
+      label?: ArtLabel;
+      /**
+       * A faint canvas weave over the painting
+       *
+       * Unset means on. `framed` and `mat` use it.
+       */
+      texture?: boolean;
+      /**
+       * Let a painting that fills the screen grow and slide very slowly for its first minute
+       *
+       * Unset means off. Only `cover` uses it.
+       */
+      drift?: boolean;
     }
   | {
       /**
@@ -523,8 +562,32 @@ export type PhotoSource =
 export type ArtGenre = 'landscape' | 'seascape' | 'cityscape' | 'still-life';
 /** Which paintings by shape the `art` source takes */
 export type ArtOrientation = 'portrait' | 'landscape' | 'any';
+/** When a screen's background is warmed and dimmed (see Screen.eveningLight) */
+export interface EveningLight {
+  /** `sunset`, or a time as `HH:MM` */
+  from: string;
+  /** A time as `HH:MM` */
+  until: string;
+}
+
+/** When a screen shows only its picture (see Screen.artMode) */
+export interface ArtMode {
+  /** Start of the hours, as `HH:MM`; with `until`, or neither */
+  from?: string;
+  /** End of the hours, as `HH:MM` */
+  until?: string;
+}
+
 /** How a painting sits on the screen */
-export type ArtFit = 'cover' | 'contain' | 'matte';
+export type ArtFit = 'framed' | 'mat' | 'matte' | 'cover' | 'contain';
+/** The wall a framed painting hangs on */
+export type ArtWall = 'charcoal' | 'warm-white' | 'sage' | 'painting';
+/** The mat around a painting */
+export type ArtMat = 'cream' | 'white' | 'charcoal' | 'painting' | 'none';
+/** The frame around a framed painting */
+export type ArtFrame = 'black' | 'oak' | 'gold' | 'white';
+/** When a painting's museum label is shown */
+export type ArtLabel = 'brief' | 'always' | 'off';
 
 export interface BackgroundRotation {
   /** Minutes between pictures */
@@ -594,6 +657,20 @@ export interface Screen {
   shade?: BackgroundShade;
   /** Brightness, contrast, color and warmth adjustments to the background picture (see BackgroundEffects) */
   effects?: BackgroundEffects;
+  /**
+   * Warm and dim the background in the evening, so a picture looks like paper and not a lit screen
+   *
+   * `from` is `sunset` (needs the household's location; 8 PM without one) or a time as `HH:MM`, `until` a time as
+   * `HH:MM` the next morning. Unset means off. The modules over the background are left as they are.
+   */
+  eveningLight?: EveningLight;
+  /**
+   * Art mode: hide this screen's modules and show only its picture and label
+   *
+   * An empty object means always. With `from` and `until` (both `HH:MM`) the modules are hidden only between those
+   * times, which may run past midnight. Unset means off.
+   */
+  artMode?: ArtMode;
   /** The modules on this screen (see ModuleInstance) */
   modules: ModuleInstance[];
   /**
@@ -925,6 +1002,13 @@ export interface AutoUpdateSettings {
 export type GoogleAppPreference = 'own' | 'hosted';
 
 export interface GlobalSettings {
+  /**
+   * Paintings the household does not want to see again
+   *
+   * Wikidata ids of paintings from the art collection, added from the phone's "Don't show again". They are left out
+   * of every slideshow and rotating background. Unset means none.
+   */
+  artHidden?: string[];
   /**
    * How long each screen shows before the next one, in milliseconds. `0` turns automatic rotation
    * off: the display stays on a screen until someone taps, swipes or sends it somewhere

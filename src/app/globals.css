@@ -231,6 +231,8 @@ body {
 
 /* Sheets and cards over the wall (`WallOverlay`): the scrim fades in, a
    sheet rises from the bottom, a card grows into place. */
+/* A painting that fills the screen grows a little and slides, too slowly to catch, then holds. */
+@keyframes hs-art-drift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.06) translate(-1.2%, -1.6%); } }
 @keyframes wall-scrim-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wall-sheet-in { from { transform: translate(-50%, 10%); opacity: 0.4; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes wall-card-in { from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }

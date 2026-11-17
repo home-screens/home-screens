@@ -159,6 +159,8 @@ const PROTECTED_GET_ROUTES = [
   // Browsing Immich, Unsplash or NASA one picture at a time is for choosing
   // a picture in the editor; a wall reads /api/photo-source/media instead.
   '/api/photo-source/browse',
+  // What a wall is showing, for the phone's "On the wall now" card.
+  '/api/art',
   '/api/system/backups',
   '/api/system/changelog',
   '/api/system/version',

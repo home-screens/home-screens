@@ -9,6 +9,8 @@ vi.mock('@/lib/library-import', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/library-import')>();
   return { ...actual, importPictureToLibrary: vi.fn(async () => ({ path: 'art/x.jpg', reused: false })) };
 });
+const hiddenList = vi.hoisted(() => ({ ids: [] as string[] }));
+vi.mock('@/lib/config', () => ({ readConfig: vi.fn(async () => ({ settings: { artHidden: hiddenList.ids } })) }));
 vi.mock('../art-collection.json', () => ({
   default: [
     ['Q1', 'Wheat Field.jpg', 'Wheat Field', 'Vincent van Gogh', 1888, 'Van Gogh Museum', 4000, 3000, 'landscape'],
@@ -58,6 +60,7 @@ const titles = async (source: Art) => (await artPhotoSource.list({ source, count
 
 beforeEach(() => {
   vi.clearAllMocks();
+  hiddenList.ids = [];
   __test.cache.clear();
   vi.spyOn(Math, 'random').mockReturnValue(0);
 });
@@ -101,14 +104,21 @@ describe('the collection on a wall', () => {
     expect(await titles(art({ artist: 'Rembrandt' }))).toEqual([]);
   });
 
-  it('counts the matches exactly', () => {
-    expect(artCount(art())).toEqual({ count: 4 });
-    expect(artCount(art({ artist: 'Cézanne', genre: 'still-life' }))).toEqual({ count: 1 });
-    expect(artCount(art({ genre: 'seascape', orientation: 'landscape' }))).toEqual({ count: 0 });
+  it('counts the matches exactly', async () => {
+    expect(await artCount(art())).toEqual({ count: 4 });
+    expect(await artCount(art({ artist: 'Cézanne', genre: 'still-life' }))).toEqual({ count: 1 });
+    expect(await artCount(art({ genre: 'seascape', orientation: 'landscape' }))).toEqual({ count: 0 });
     // The screen-shape filter counts only once the screen's size is known: the harbour alone is near 1080x1920.
-    expect(artCount(art({ aspectTolerance: 0.25 }))).toEqual({ count: 4 });
-    expect(artCount(art({ aspectTolerance: 0.25 }), CANVAS)).toEqual({ count: 1 });
+    expect(await artCount(art({ aspectTolerance: 0.25 }))).toEqual({ count: 4 });
+    expect(await artCount(art({ aspectTolerance: 0.25 }), CANVAS)).toEqual({ count: 1 });
     expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('leaves out the paintings the household said "don\'t show again" to, everywhere', async () => {
+    hiddenList.ids = ['Q2', 'Q4', 'not-an-id'];
+    expect(await titles(art())).toEqual(['Apples', 'Wheat Field']);
+    expect(await artCount(art())).toEqual({ count: 2 });
+    expect(await artPhotoSource.pickOne({ source: art({ genre: 'cityscape' }), canvas: CANVAS })).toBeNull();
   });
 });
 
@@ -122,10 +132,35 @@ describe('background picks', () => {
     return { id: (picked as { id: string }).id, size: [meta.width, meta.height] };
   };
 
-  it('hands cover the painting itself and shapes matte and contain to the canvas', async () => {
+  it('hands cover the painting itself and paints every other fit to the canvas', async () => {
     expect((await open('cover')).size).toEqual([160, 100]);
-    expect((await open('contain')).size).toEqual([108, 192]);
-    expect(await open()).toEqual({ id: 'Q4-matte-108x192', size: [108, 192] });
+    expect(await open('contain')).toEqual({ id: 'Q4-contain-108x192', size: [108, 192] });
+    expect(await open('matte')).toEqual({ id: 'Q4-matte-108x192', size: [108, 192] });
+    expect(await open('mat')).toEqual({ id: 'Q4-mat-charcoal.cream.black.w.2-108x192', size: [108, 192] });
+    // Framed on a wall is what a source gets when it says nothing; the colours are part of the id.
+    expect(await open()).toEqual({ id: 'Q4-framed-charcoal.cream.black.w.2-108x192', size: [108, 192] });
+  });
+
+  it('tells the wall how to label the painting, where the label goes, and when it may drift', async () => {
+    const pick = async (source: Art) => (await artPhotoSource.pickOne({ source, canvas: CANVAS })) as unknown as { id: string; credit: { name: string; source: string; art: Record<string, unknown> } };
+    const framed = await pick(art({ genre: 'landscape', wall: 'sage', mat: 'none', frame: 'oak', texture: false, label: 'always' }));
+    // The trailing 2 is the hanging's version: a wall is never handed a copy painted an older way.
+    expect(framed.id).toBe('Q1-framed-sage.none.oak.p.2-1080x1920');
+    expect(framed.credit).toMatchObject({ name: 'Wheat Field, Vincent van Gogh, 1888', source: 'Van Gogh Museum' });
+    expect(framed.credit.art).toMatchObject({
+      id: 'Q1', file: 'Wheat Field.jpg', title: 'Wheat Field', artist: 'Vincent van Gogh', year: 1888, museum: 'Van Gogh Museum', label: 'always',
+      // A card on the wall, its right edge under the frame's.
+      place: { style: 'placard', w: 330, unit: 1 },
+    });
+    expect(framed.credit.art.drift).toBeUndefined();
+
+    const matted = await pick(art({ genre: 'landscape', fit: 'mat', mat: 'charcoal' }));
+    expect(matted.credit.art).toMatchObject({ label: 'brief', place: { style: 'printed', tone: 'light', x: 92, w: 896 } });
+
+    const filled = await pick(art({ genre: 'landscape', fit: 'cover', drift: true }));
+    expect(filled.credit.art).toMatchObject({ drift: true, place: { style: 'placard' } });
+    // Drift is for a painting that fills the screen only.
+    expect((await pick(art({ genre: 'landscape', fit: 'matte', drift: true }))).credit.art.drift).toBeUndefined();
   });
 
   it('asks Commons for the next ready width up from what the screen needs, never more than the painting has', async () => {
@@ -136,7 +171,9 @@ describe('background picks', () => {
       return new URL(lastUrl()).searchParams.get('width');
     };
     // Whole painting inside 1080x1920: 1080 wide, so 1280 is the next width Commons keeps.
-    expect(await ask(art({ genre: 'landscape' }))).toBe('1280');
+    expect(await ask(art({ genre: 'landscape', fit: 'matte' }))).toBe('1280');
+    // In a frame the painting is 700 wide on this screen.
+    expect(await ask(art({ genre: 'landscape' }))).toBe('960');
     // Cover on a tall screen needs 1920 x (4000/3000) = 2560 across.
     expect(await ask(art({ genre: 'landscape', fit: 'cover' }))).toBe('3840');
     // The canal is only 1600 wide.
@@ -145,12 +182,12 @@ describe('background picks', () => {
 
   it('avoids the painting showing now, keeps to the screen\'s shape when asked, and answers null when nothing matches', async () => {
     const picked = await artPhotoSource.pickOne({ source: art({ artist: 'Cézanne' }), canvas: CANVAS, previous: 'rotation-art-Q2-matte-1080x1920.jpg' });
-    expect(picked).toMatchObject({ id: 'Q3-matte-1080x1920', credit: { name: 'Apples, Paul Cézanne', source: 'Louvre Museum' } });
+    expect(picked).toMatchObject({ id: expect.stringMatching(/^Q3-framed-/), credit: { name: 'Apples, Paul Cézanne', source: 'Louvre Museum' } });
 
     // Only the harbour (2000x3000) is near a 1080x1920 screen's shape.
-    expect(await artPhotoSource.pickOne({ source: art({ aspectTolerance: 0.25 }), canvas: CANVAS })).toMatchObject({ id: 'Q2-matte-1080x1920' });
+    expect(await artPhotoSource.pickOne({ source: art({ aspectTolerance: 0.25 }), canvas: CANVAS })).toMatchObject({ id: expect.stringMatching(/^Q2-/) });
     // On a wide screen only the canal (1600x1000) is close.
-    expect(await artPhotoSource.pickOne({ source: art({ aspectTolerance: 0.15 }), canvas: { w: 1920, h: 1080 } })).toMatchObject({ id: 'Q4-matte-1920x1080' });
+    expect(await artPhotoSource.pickOne({ source: art({ aspectTolerance: 0.15 }), canvas: { w: 1920, h: 1080 } })).toMatchObject({ id: expect.stringMatching(/^Q4-.*-1920x1080$/) });
     expect(await artPhotoSource.pickOne({ source: art({ artist: 'Rembrandt' }), canvas: CANVAS })).toBeNull();
     expect(mockFetch).not.toHaveBeenCalled();
   });

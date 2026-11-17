@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Wird als {to} Minuten gespeichert, ein ganzer Tag.",
     "goBackAfterChangedRounded": "{from} zu {to} geändert: ganze oder halbe Minuten.",
     "goBackAfterChangedClamped": "{from} zu {to} Minuten geändert, ein ganzer Tag.",
-    "goBackAfterKept": "Das ist keine Zahl an Minuten, also bleibt es bei {to}."
+    "goBackAfterKept": "Das ist keine Zahl an Minuten, also bleibt es bei {to}.",
+    "artModeGroup": "Kunstmodus",
+    "artModeToggle": "Kunstmodus",
+    "artModeHint": "Blendet die Module dieses Bildschirms aus und zeigt nur das Bild und sein Schild.",
+    "artModeWhen": "Wann",
+    "artModeAlways": "Immer",
+    "artModeBetween": "Zwischen zwei Uhrzeiten",
+    "artModeFrom": "Ab",
+    "artModeUntil": "Bis"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2743,7 +2751,15 @@
     "effectsReset": "Zurücksetzen",
     "effectsResetLabel": "{label} zurücksetzen",
     "refreshSame": "Es gibt nur ein Bild",
-    "nasaPace": "Die NASA hat nur ein neues Bild pro Tag. Bis das nächste kommt, ist dasselbe wieder dran."
+    "nasaPace": "Die NASA hat nur ein neues Bild pro Tag. Bis das nächste kommt, ist dasselbe wieder dran.",
+    "eveningGroup": "Abendlicht",
+    "eveningToggle": "Abendlicht",
+    "eveningHint": "Abends wärmer und dunkler, damit ein Bild wie Papier wirkt und nicht wie ein leuchtender Bildschirm.",
+    "eveningFrom": "Ab",
+    "eveningFromSunset": "Sonnenuntergang",
+    "eveningFromTime": "Feste Uhrzeit",
+    "eveningUntil": "Bis",
+    "eveningSunsetHint": "Für den Sonnenuntergang muss dein Ort in den Einstellungen stehen. Ohne ihn beginnt der Abend um 20 Uhr."
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",
@@ -6066,6 +6082,8 @@
       },
       "fit": "Auf dem Bildschirm",
       "fits": {
+        "framed": "Gerahmt an der Wand",
+        "mat": "Im Passepartout",
         "matte": "Ganzes Gemälde auf weichem Unschärfe-Hintergrund",
         "cover": "Bildschirm füllen (Ränder werden abgeschnitten)",
         "contain": "Ganzes Gemälde auf dunkler Wand"
@@ -6119,7 +6137,44 @@
         "loadFailed": "Die Gemälde konnten nicht geladen werden.",
         "unavailable": "Die Sammlung liefert gerade keine Gemälde. Versuche es etwas später noch einmal.",
         "orSearch": "Oder such oben nach allem, was du willst"
-      }
+      },
+      "wall": "Wandfarbe",
+      "walls": {
+        "charcoal": "Anthrazit",
+        "warm-white": "Warmweiß",
+        "sage": "Salbei",
+        "painting": "Aus dem Gemälde"
+      },
+      "mat": "Passepartout",
+      "mats": {
+        "cream": "Creme",
+        "white": "Weiß",
+        "charcoal": "Anthrazit",
+        "none": "Keins",
+        "painting": "Aus dem Gemälde"
+      },
+      "frame": "Rahmen",
+      "frames": {
+        "black": "Schwarz",
+        "oak": "Eiche",
+        "gold": "Gold",
+        "white": "Weiß"
+      },
+      "label": "Museumsschild",
+      "labels": {
+        "brief": "In den ersten 15 Sekunden",
+        "always": "Immer",
+        "off": "Aus"
+      },
+      "labelHint": "Titel, Künstler, Jahr und Museum. Die übrige Zeit steht die kleine Bildunterschrift in der Ecke.",
+      "texture": "Leinwandstruktur",
+      "drift": "Langsames Gleiten",
+      "driftHint": "Das Gemälde wächst und gleitet in der ersten Minute ganz langsam und steht dann still.",
+      "hiddenCount": {
+        "one": "{count} Gemälde ist vom Handy aus ausgeblendet.",
+        "other": "{count} Gemälde sind vom Handy aus ausgeblendet."
+      },
+      "hiddenShow": "Wieder zeigen"
     },
     "picker": {
       "tabs": {

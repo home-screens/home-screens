@@ -7371,6 +7371,15 @@
       "description": "",
       "fields": [
         {
+          "name": "artHidden",
+          "optional": true,
+          "type": {
+            "kind": "array",
+            "text": "string[]"
+          },
+          "description": "Paintings the household does not want to see again"
+        },
+        {
           "name": "rotationIntervalMs",
           "optional": false,
           "type": {
@@ -8332,6 +8341,24 @@
           "description": "Brightness, contrast, color and warmth adjustments to the background picture (see BackgroundEffects)"
         },
         {
+          "name": "eveningLight",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "EveningLight"
+          },
+          "description": "Warm and dim the background in the evening, so a picture looks like paper and not a lit screen"
+        },
+        {
+          "name": "artMode",
+          "optional": true,
+          "type": {
+            "kind": "object",
+            "text": "ArtMode"
+          },
+          "description": "Art mode: hide this screen's modules and show only its picture and label"
+        },
+        {
           "name": "modules",
           "optional": false,
           "type": {
@@ -8651,12 +8678,92 @@
                 "kind": "string",
                 "text": "ArtFit",
                 "values": [
+                  "framed",
+                  "mat",
+                  "matte",
                   "cover",
-                  "contain",
-                  "matte"
+                  "contain"
                 ]
               },
               "description": "How a painting sits on the screen"
+            },
+            {
+              "name": "wall",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtWall",
+                "values": [
+                  "charcoal",
+                  "warm-white",
+                  "sage",
+                  "painting"
+                ]
+              },
+              "description": "The colour of the wall a framed painting hangs on"
+            },
+            {
+              "name": "mat",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtMat",
+                "values": [
+                  "cream",
+                  "white",
+                  "charcoal",
+                  "painting",
+                  "none"
+                ]
+              },
+              "description": "The colour of the mat around the painting"
+            },
+            {
+              "name": "frame",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtFrame",
+                "values": [
+                  "black",
+                  "oak",
+                  "gold",
+                  "white"
+                ]
+              },
+              "description": "The frame around a framed painting"
+            },
+            {
+              "name": "label",
+              "optional": true,
+              "type": {
+                "kind": "string",
+                "text": "ArtLabel",
+                "values": [
+                  "brief",
+                  "always",
+                  "off"
+                ]
+              },
+              "description": "Whether a museum label with the title, artist, year and museum is shown"
+            },
+            {
+              "name": "texture",
+              "optional": true,
+              "type": {
+                "kind": "boolean",
+                "text": "boolean"
+              },
+              "description": "A faint canvas weave over the painting"
+            },
+            {
+              "name": "drift",
+              "optional": true,
+              "type": {
+                "kind": "boolean",
+                "text": "boolean"
+              },
+              "description": "Let a painting that fills the screen grow and slide very slowly for its first minute"
             }
           ]
         },
@@ -10674,6 +10781,24 @@
         {
           "method": "GET",
           "access": "display"
+        }
+      ]
+    },
+    {
+      "path": "/api/art/hidden",
+      "methods": [
+        {
+          "method": "POST",
+          "access": "session"
+        }
+      ]
+    },
+    {
+      "path": "/api/art/now",
+      "methods": [
+        {
+          "method": "GET",
+          "access": "session"
         }
       ]
     },

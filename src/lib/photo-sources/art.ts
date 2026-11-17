@@ -1,7 +1,11 @@
 import { createTTLCache, fetchWithTimeout, type FetchRetryOptions } from '@/lib/api-utils';
 import { ART_MIN_SHORT_SIDE, composeFit, paintingFits } from '@/lib/art-fit';
+import { composeArtWall } from '@/lib/art-frame';
+import { ART_HANGING_VERSION, artLayout, cornerLabel, matLettering, type ArtCaption, type ArtLayout } from '@/lib/art-presentation';
+import { normalizeArtHidden } from '@/lib/art-hidden';
+import { readConfig } from '@/lib/config';
 import { importPictureToLibrary } from '@/lib/library-import';
-import { DEFAULT_ART_FIT, type PhotoSourceOf } from '@/lib/photo-source';
+import { DEFAULT_ART_FIT, DEFAULT_ART_FRAME, DEFAULT_ART_LABEL, DEFAULT_ART_MAT, DEFAULT_ART_WALL, type PhotoSourceOf } from '@/lib/photo-source';
 import { shuffleArray } from '@/lib/shuffle';
 import type { ArtGenre, MediaListItem } from '@/types/config';
 import collection from './art-collection.json';
@@ -75,11 +79,25 @@ const pictureUrl = (painting: Pick<Painting, 'file' | 'width'>, wanted: number) 
   return `${COMMONS_FILE}/${encodeURIComponent(painting.file)}?width=${Math.min(width, painting.width)}`;
 };
 
-/** The collection's paintings that pass the source's subject, artist, period and tall-or-wide filters. */
-function matching(source: ArtSource) {
+/** The paintings this household has said "don't show again" to. */
+async function hiddenNow(): Promise<Set<string>> {
+  return new Set(normalizeArtHidden((await readConfig()).settings?.artHidden));
+}
+
+/** Whether `id` is a painting in the shipped collection. */
+export const isCollectionPainting = (id: string) => COLLECTION.some((painting) => painting.id === id);
+
+/** A painting's page on Wikimedia Commons, and a small picture of it for the phone. */
+export const artAboutUrl = (file: string) => `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, '_'))}`;
+export const artThumbUrl = (file: string) => `${COMMONS_FILE}/${encodeURIComponent(file)}?width=${TILE_WIDTH}`;
+
+/** The collection's paintings that pass the source's subject, artist, period and tall-or-wide filters, less the hidden ones. */
+async function matching(source: ArtSource) {
   const artist = fold(source.artist?.trim() ?? '');
+  const hidden = await hiddenNow();
   return COLLECTION.filter((painting) => (
-    (!source.genre || painting.genre === source.genre)
+    !hidden.has(painting.id)
+    && (!source.genre || painting.genre === source.genre)
     && (!artist || painting.artistFolded.includes(artist))
     && (source.fromYear === undefined || (painting.year !== undefined && painting.year >= source.fromYear))
     && (source.toYear === undefined || (painting.year !== undefined && painting.year <= source.toYear))
@@ -88,8 +106,8 @@ function matching(source: ArtSource) {
 }
 
 /** How many paintings match, for the editor. With a `canvas` the screen-shape filter counts too, as it does for a rotating background. */
-export function artCount(source: ArtSource, canvas?: { w: number; h: number }): { count: number } {
-  const paintings = matching(source);
+export async function artCount(source: ArtSource, canvas?: { w: number; h: number }): Promise<{ count: number }> {
+  const paintings = await matching(source);
   return { count: canvas ? paintings.filter((painting) => paintingFits(painting, { aspectTolerance: source.aspectTolerance }, canvas)).length : paintings.length };
 }
 
@@ -104,29 +122,42 @@ export const artPhotoSource: PhotoSourceAdapter<'art'> = {
   async list({ source, count, media }) {
     if (media === 'videos') return [];
     // A slideshow fits pictures into its own box by its own setting, so the screen-shape filter is for backgrounds only.
-    return shuffleArray(matching(source)).slice(0, count)
+    return shuffleArray(await matching(source)).slice(0, count)
       .map((painting): MediaListItem => ({ url: pictureUrl(painting, STREAM_WIDTH), type: 'image', credit: creditOf(painting) }));
   },
 
   async pickOne({ source, canvas, previous }) {
-    const paintings = matching(source).filter((painting) => paintingFits(painting, { aspectTolerance: source.aspectTolerance }, canvas));
+    const paintings = (await matching(source)).filter((painting) => paintingFits(painting, { aspectTolerance: source.aspectTolerance }, canvas));
     const fresh = paintings.filter((painting) => !previous?.includes(`art-${painting.id}-`));
     const pool = fresh.length > 0 ? fresh : paintings;
     const painting = pool[Math.floor(Math.random() * pool.length)];
     if (!painting) return null;
     const fit = source.fit ?? DEFAULT_ART_FIT;
     const aspect = painting.width / painting.height;
-    const url = pictureUrl(painting, fit === 'cover' ? Math.max(canvas.w, canvas.h * aspect) : Math.min(canvas.w, canvas.h * aspect));
+    const hung = fit === 'framed' || fit === 'mat';
+    const mat = source.mat ?? DEFAULT_ART_MAT;
+    const hanging = { fit: hung ? fit : 'framed' as const, wall: source.wall ?? DEFAULT_ART_WALL, mat, frame: source.frame ?? DEFAULT_ART_FRAME, texture: source.texture !== false };
+    const layout: ArtLayout | null = hung ? artLayout(fit, aspect, canvas, mat, matLettering(mat)) : null;
+    const wanted = layout ? layout.opening.w : fit === 'cover' ? Math.max(canvas.w, canvas.h * aspect) : Math.min(canvas.w, canvas.h * aspect);
+    const url = pictureUrl(painting, wanted);
+    const art: ArtCaption = {
+      id: painting.id, file: painting.file, title: painting.title, artist: painting.artist,
+      ...(painting.year !== undefined ? { year: painting.year } : {}), ...(painting.museum ? { museum: painting.museum } : {}),
+      label: source.label ?? DEFAULT_ART_LABEL,
+      place: layout ? layout.label : cornerLabel(canvas),
+      ...(fit === 'cover' && source.drift ? { drift: true } : {}),
+    };
+    // Everything that changes the painted picture is part of the id, so a new wall colour is not handed the old copy.
+    const look = hung ? `${fit}-${[hanging.wall, hanging.mat, hanging.frame, hanging.texture ? 'w' : 'p', ART_HANGING_VERSION].join('.')}` : fit;
     return {
       kind: 'download',
-      // The fit is part of the id so a screen changing from cover to matte is not handed the cropped copy.
-      id: `${painting.id}-${fit}-${canvas.w}x${canvas.h}`,
-      credit: creditOf(painting),
+      id: `${painting.id}-${look}-${canvas.w}x${canvas.h}`,
+      credit: { ...creditOf(painting), art },
       open: async () => {
         const res = await fetchWithTimeout(url, { headers: { 'User-Agent': USER_AGENT }, timeout: 60_000 });
         if (!res.ok || fit === 'cover') return res;
         const original = Buffer.from(await res.arrayBuffer());
-        const composed = await composeFit(original, fit, canvas);
+        const composed = layout ? await composeArtWall(original, hanging, canvas, layout) : await composeFit(original, fit, canvas);
         return new Response(new Uint8Array(composed?.data ?? original), { headers: { 'content-type': composed?.contentType ?? res.headers.get('content-type') ?? 'image/jpeg' } });
       },
     };

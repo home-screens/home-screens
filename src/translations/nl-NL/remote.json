@@ -1019,6 +1019,17 @@
         "other": "{count} konden niet worden toegevoegd."
       },
       "nothingFound": "Er staat niets in dat album om toe te voegen."
+    },
+    "art": {
+      "onWall": "Nu aan de muur",
+      "onWallAt": "Nu aan de muur · {wall}",
+      "next": "Volgend schilderij",
+      "hide": "Niet meer tonen",
+      "about": "Over dit schilderij",
+      "nextSent": "Er komt een nieuw schilderij aan.",
+      "hidden": "Je ziet {title} niet meer.",
+      "undo": "Ongedaan maken",
+      "failed": "Dat lukte niet. Probeer het opnieuw."
     }
   },
   "slideshowControls": {

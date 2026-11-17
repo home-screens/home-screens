@@ -1019,6 +1019,17 @@
         "other": "{count} no se pudieron añadir."
       },
       "nothingFound": "No hay nada que añadir de ese álbum."
+    },
+    "art": {
+      "onWall": "Ahora en la pared",
+      "onWallAt": "Ahora en la pared · {wall}",
+      "next": "Siguiente pintura",
+      "hide": "No mostrar más",
+      "about": "Sobre esta pintura",
+      "nextSent": "Viene una nueva pintura.",
+      "hidden": "No volverás a ver {title}.",
+      "undo": "Deshacer",
+      "failed": "No ha funcionado. Inténtalo de nuevo."
     }
   },
   "slideshowControls": {

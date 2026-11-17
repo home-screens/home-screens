@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Será salvo como {to} minutos, um dia inteiro.",
     "goBackAfterChangedRounded": "{from} trocado por {to}: minutos inteiros ou meios.",
     "goBackAfterChangedClamped": "{from} trocado por {to} minutos, um dia inteiro.",
-    "goBackAfterKept": "Isso não é um número de minutos, então fica em {to}."
+    "goBackAfterKept": "Isso não é um número de minutos, então fica em {to}.",
+    "artModeGroup": "Modo arte",
+    "artModeToggle": "Modo arte",
+    "artModeHint": "Oculta os módulos desta tela e mostra só a imagem e sua etiqueta.",
+    "artModeWhen": "Quando",
+    "artModeAlways": "Sempre",
+    "artModeBetween": "Entre dois horários",
+    "artModeFrom": "A partir de",
+    "artModeUntil": "Até"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2743,7 +2751,15 @@
     "effectsReset": "Redefinir",
     "effectsResetLabel": "Redefinir {label}",
     "refreshSame": "Só há uma imagem para mostrar",
-    "nasaPace": "A NASA publica uma imagem nova por dia, então a mesma imagem aparece de novo até chegar a próxima."
+    "nasaPace": "A NASA publica uma imagem nova por dia, então a mesma imagem aparece de novo até chegar a próxima.",
+    "eveningGroup": "Luz da noite",
+    "eveningToggle": "Luz da noite",
+    "eveningHint": "Mais quente e mais escuro à noite, para que a imagem pareça papel e não uma tela acesa.",
+    "eveningFrom": "A partir de",
+    "eveningFromSunset": "Pôr do sol",
+    "eveningFromTime": "Um horário fixo",
+    "eveningUntil": "Até",
+    "eveningSunsetHint": "O pôr do sol precisa da sua cidade nos Ajustes. Sem ela, a noite começa às 20h."
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imagens",
@@ -6066,6 +6082,8 @@
       },
       "fit": "Na tela",
       "fits": {
+        "framed": "Emoldurado na parede",
+        "mat": "Em um passe-partout",
         "matte": "Pintura inteira sobre um fundo desfocado",
         "cover": "Preencher a tela (corta as bordas)",
         "contain": "Pintura inteira sobre uma parede escura"
@@ -6119,7 +6137,44 @@
         "loadFailed": "Não foi possível carregar as pinturas.",
         "unavailable": "A coleção não está enviando pinturas agora. Tente de novo daqui a pouco.",
         "orSearch": "Ou busque qualquer coisa acima"
-      }
+      },
+      "wall": "Cor da parede",
+      "walls": {
+        "charcoal": "Grafite",
+        "warm-white": "Branco quente",
+        "sage": "Sálvia",
+        "painting": "Da pintura"
+      },
+      "mat": "Passe-partout",
+      "mats": {
+        "cream": "Creme",
+        "white": "Branco",
+        "charcoal": "Grafite",
+        "none": "Nenhum",
+        "painting": "Da pintura"
+      },
+      "frame": "Moldura",
+      "frames": {
+        "black": "Preto",
+        "oak": "Carvalho",
+        "gold": "Dourado",
+        "white": "Branco"
+      },
+      "label": "Etiqueta de museu",
+      "labels": {
+        "brief": "Nos primeiros 15 segundos",
+        "always": "Sempre",
+        "off": "Desligado"
+      },
+      "labelHint": "Título, artista, ano e museu. No resto do tempo, a pequena legenda fica no canto.",
+      "texture": "Textura de tela",
+      "drift": "Movimento lento",
+      "driftHint": "A pintura cresce e desliza bem devagar no primeiro minuto e depois fica parada.",
+      "hiddenCount": {
+        "one": "{count} pintura está oculta pelo celular.",
+        "other": "{count} pinturas estão ocultas pelo celular."
+      },
+      "hiddenShow": "Mostrar de novo"
     },
     "picker": {
       "tabs": {

@@ -360,7 +360,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
-    // Art labels that read the same in this language.
+    // Art labels that read the same in this language: "Gold" is the German word too (a picture frame).
+    'editor|photoSources.art.frames.gold',
     // "Bonus" is the same word in this language (the ticket history's bonus line).
     'remote|rewardsView.tickets.bonusLine',
     // "Bonus" is the same word in this language (bonus chores).

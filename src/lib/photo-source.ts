@@ -1,4 +1,4 @@
-import type { ArtFit, ArtGenre, ArtOrientation, BackgroundRotation, PhotoSource, SlideshowMediaTypes } from '@/types/config';
+import type { ArtFit, ArtFrame, ArtGenre, ArtLabel, ArtMat, ArtOrientation, ArtWall, BackgroundRotation, PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import type { SecretKey } from '@/lib/secrets';
 import { isOneDriveItemId } from '@/lib/onedrive-shared';
 import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from '@/lib/icloud-parse';
@@ -134,11 +134,20 @@ const UNSPLASH_QUERY_MAX = 100;
 const ART_TEXT_MAX = 100;
 const WIKIDATA_ID = /^Q\d{1,12}$/;
 export const ART_ORIENTATIONS: readonly ArtOrientation[] = ['any', 'portrait', 'landscape'];
-export const ART_FITS: readonly ArtFit[] = ['matte', 'cover', 'contain'];
+export const ART_FITS: readonly ArtFit[] = ['framed', 'mat', 'matte', 'cover', 'contain'];
+export const ART_WALLS: readonly ArtWall[] = ['charcoal', 'warm-white', 'sage', 'painting'];
+/** The mats each fit offers: a frame can sit straight on the painting, a mat that fills the screen can take its colour from it. */
+export const ART_MATS: Readonly<Record<'framed' | 'mat', readonly ArtMat[]>> = { framed: ['cream', 'white', 'charcoal', 'none'], mat: ['cream', 'white', 'charcoal', 'painting'] };
+export const ART_FRAMES: readonly ArtFrame[] = ['black', 'oak', 'gold', 'white'];
+export const ART_LABELS: readonly ArtLabel[] = ['brief', 'always', 'off'];
 export const ART_GENRES: readonly ArtGenre[] = ['landscape', 'seascape', 'cityscape', 'still-life'];
 export const ART_YEAR_MIN = 0;
 export const ART_YEAR_MAX = 2100;
-export const DEFAULT_ART_FIT: ArtFit = 'matte';
+export const DEFAULT_ART_FIT: ArtFit = 'framed';
+export const DEFAULT_ART_WALL: ArtWall = 'charcoal';
+export const DEFAULT_ART_MAT: ArtMat = 'cream';
+export const DEFAULT_ART_FRAME: ArtFrame = 'black';
+export const DEFAULT_ART_LABEL: ArtLabel = 'brief';
 export function artNumber(value: unknown, min: number, max: number): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? Math.min(Math.max(Math.round(value), min), max) : undefined;
 }
@@ -229,6 +238,11 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
       const fromYear = artNumber(v.fromYear, ART_YEAR_MIN, ART_YEAR_MAX);
       const toYear = artNumber(v.toYear, ART_YEAR_MIN, ART_YEAR_MAX);
       const aspectTolerance = typeof v.aspectTolerance === 'number' && Number.isFinite(v.aspectTolerance) ? Math.min(Math.max(v.aspectTolerance, 0), 1) : undefined;
+      const wall = ART_WALLS.find((w) => w === v.wall);
+      // A mat is kept only where the fit offers it, so a frame is never left with a mat coloured "from the painting".
+      const mat = (fit === 'mat' ? ART_MATS.mat : ART_MATS.framed).find((m) => m === v.mat);
+      const frame = ART_FRAMES.find((f) => f === v.frame);
+      const label = ART_LABELS.find((l) => l === v.label);
       return {
         kind: 'art',
         ...(artist ? { artist } : {}),
@@ -238,6 +252,12 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
         ...(orientation && orientation !== 'any' ? { orientation } : {}),
         ...(aspectTolerance !== undefined ? { aspectTolerance } : {}),
         ...(fit ? { fit } : {}),
+        ...(wall ? { wall } : {}),
+        ...(mat ? { mat } : {}),
+        ...(frame ? { frame } : {}),
+        ...(label ? { label } : {}),
+        ...(v.texture === false ? { texture: false } : {}),
+        ...(v.drift === true ? { drift: true } : {}),
       };
     }
     default:
@@ -353,6 +373,7 @@ export function sourceCacheKey(source: PhotoSource): string {
     case 'art': return JSON.stringify([
       'art', (source.artist ?? '').toLowerCase(), source.fromYear ?? null, source.toYear ?? null, source.genre ?? null,
       source.orientation ?? 'any', source.aspectTolerance ?? null, source.fit ?? DEFAULT_ART_FIT,
+      source.wall ?? null, source.mat ?? null, source.frame ?? null, source.label ?? null, source.texture ?? null, source.drift ?? null,
     ]);
   }
 }
@@ -464,6 +485,12 @@ export function photoSourceParams(source: PhotoSource): URLSearchParams {
       if (source.orientation) params.set('orientation', source.orientation);
       if (source.aspectTolerance !== undefined) params.set('tolerance', String(source.aspectTolerance));
       if (source.fit) params.set('fit', source.fit);
+      if (source.wall) params.set('wall', source.wall);
+      if (source.mat) params.set('mat', source.mat);
+      if (source.frame) params.set('frame', source.frame);
+      if (source.label) params.set('label', source.label);
+      if (source.texture === false) params.set('texture', '0');
+      if (source.drift) params.set('drift', '1');
       break;
   }
   return params;
@@ -490,7 +517,9 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
       fromYear: params.has('from') ? Number(get('from')) : undefined,
       toYear: params.has('to') ? Number(get('to')) : undefined,
       aspectTolerance: params.has('tolerance') ? Number(get('tolerance')) : undefined,
-      fit: get('fit'),
+      fit: get('fit'), wall: get('wall'), mat: get('mat'), frame: get('frame'), label: get('label'),
+      texture: params.get('texture') === '0' ? false : undefined,
+      drift: params.get('drift') === '1',
     });
     default: return null;
   }

@@ -33,7 +33,7 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
     const w = Number(params.get('w'));
     const h = Number(params.get('h'));
     const canvas = Number.isInteger(w) && Number.isInteger(h) && w >= 100 && h >= 100 && w <= 20_000 && h <= 20_000 ? { w, h } : undefined;
-    return NextResponse.json(artCount(source, canvas));
+    return NextResponse.json(await artCount(source, canvas));
   }
   const media = params.get('media') ?? 'photos';
   if (!isMediaTypes(media)) return NextResponse.json({ error: 'Invalid media parameter' }, { status: 400 });
