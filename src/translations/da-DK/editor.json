@@ -6070,7 +6070,7 @@
         "cover": "Fyld skærmen (kanterne beskæres)",
         "contain": "Hele maleriet på mørk væg"
       },
-      "streamInfo": "Berømte malerier fra åbne museumssamlinger. Titel, kunstner og museum vises i et hjørne.",
+      "streamInfo": "Landskaber, havbilleder, bybilleder og stilleben fra museumssamlinger. Titel, kunstner og museum vises i et hjørne.",
       "backgroundInfo": "Et nyt maleri hver gang baggrunden skifter. Titel, kunstner og museum vises diskret i et hjørne.",
       "addFilter": "+ Tilføj filter",
       "filters": "Indsnævr",
@@ -6091,6 +6091,7 @@
         "other": "{count} malerier passer"
       },
       "fewMatches": "Kun få malerier passer, så de samme vender ofte tilbage. Prøv at løsne et filter.",
+      "noMatches": "Ingen malerier passer. Prøv at løsne et filter.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionisme",

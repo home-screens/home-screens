@@ -6070,7 +6070,7 @@
         "cover": "Llenar la pantalla (recorta los bordes)",
         "contain": "Pintura entera sobre una pared oscura"
       },
-      "streamInfo": "Pinturas famosas de colecciones de museos abiertas a todos. El título, el artista y el museo aparecen en una esquina.",
+      "streamInfo": "Paisajes, marinas, vistas urbanas y bodegones de colecciones de museos. El título, el artista y el museo aparecen en una esquina.",
       "backgroundInfo": "Una pintura nueva cada vez que cambia el fondo. El título, el artista y el museo aparecen discretos en una esquina.",
       "addFilter": "+ Añadir filtro",
       "filters": "Acotar",
@@ -6091,6 +6091,7 @@
         "other": "{count} pinturas coinciden"
       },
       "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro.",
+      "noMatches": "No coincide ninguna pintura. Prueba a relajar un filtro.",
       "picker": {
         "ideas": {
           "impressionism": "Impresionismo",

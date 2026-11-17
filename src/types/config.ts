@@ -502,7 +502,7 @@ export type PhotoSource =
        *
        * `cover` fills the screen and crops the edges, `contain` shows the whole painting on a dark wall,
        * `matte` shows the whole painting over a soft, darkened blur of itself. Unset means `matte`.
-       * Applies to a rotating background; a slideshow always shows the whole painting.
+       * Applies to a rotating background; a slideshow or full-screen photo fits pictures by its own setting.
        */
       fit?: ArtFit;
     }

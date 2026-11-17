@@ -6067,10 +6067,10 @@
       "fit": "On the screen",
       "fits": {
         "matte": "Whole painting on a soft blur",
-        "cover": "Fill the screen (crops the edges)",
+        "cover": "Fill the screen (crops edges)",
         "contain": "Whole painting on a dark wall"
       },
-      "streamInfo": "Famous paintings from open museum collections. The title, artist and museum show in a corner.",
+      "streamInfo": "Landscapes, seascapes, city views and still lifes from museum collections. The title, artist and museum show in a corner.",
       "backgroundInfo": "A new painting each time the background changes. The title, artist and museum show quietly in a corner.",
       "addFilter": "+ Add filter",
       "filters": "Narrow down",
@@ -6091,6 +6091,7 @@
         "other": "{count} paintings match"
       },
       "fewMatches": "Only a few paintings match, so the same ones will come back often. Try loosening a filter.",
+      "noMatches": "No paintings match. Try loosening a filter.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionism",

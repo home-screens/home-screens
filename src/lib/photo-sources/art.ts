@@ -1,5 +1,5 @@
 import { createTTLCache, fetchWithTimeout, type FetchRetryOptions } from '@/lib/api-utils';
-import { composeFit, paintingFits } from '@/lib/art-fit';
+import { ART_MIN_SHORT_SIDE, composeFit, paintingFits } from '@/lib/art-fit';
 import { importPictureToLibrary } from '@/lib/library-import';
 import { DEFAULT_ART_FIT, type PhotoSourceOf } from '@/lib/photo-source';
 import { shuffleArray } from '@/lib/shuffle';
@@ -39,7 +39,8 @@ const TILE_WIDTH = 500;
 const DEFAULT_CANVAS = { w: 1080, h: 1920 };
 const WIKIMEDIA_ROWS = 60;
 const MAX_MATCHES = 4;
-const BROWSE_FETCH = { timeout: 25_000, retries: 0 } as const;
+// One more try after a short wait: Wikidata turns a search away now and then (429, 5xx) and takes it the second time.
+const BROWSE_FETCH = { timeout: 20_000, retries: 1, baseDelayMs: 1_500 } as const;
 const HOUR = 60 * 60_000;
 
 interface Painting {
@@ -86,9 +87,10 @@ function matching(source: ArtSource) {
   ));
 }
 
-/** How many paintings match, for the editor. */
-export function artCount(source: ArtSource): { count: number } {
-  return { count: matching(source).length };
+/** How many paintings match, for the editor. With a `canvas` the screen-shape filter counts too, as it does for a rotating background. */
+export function artCount(source: ArtSource, canvas?: { w: number; h: number }): { count: number } {
+  const paintings = matching(source);
+  return { count: canvas ? paintings.filter((painting) => paintingFits(painting, { aspectTolerance: source.aspectTolerance }, canvas)).length : paintings.length };
 }
 
 const creditOf = (painting: Painting) => ({
@@ -101,7 +103,7 @@ export const artPhotoSource: PhotoSourceAdapter<'art'> = {
 
   async list({ source, count, media }) {
     if (media === 'videos') return [];
-    // A slideshow shows the whole painting whatever its shape, so the screen-shape filter is for backgrounds only.
+    // A slideshow fits pictures into its own box by its own setting, so the screen-shape filter is for backgrounds only.
     return shuffleArray(matching(source)).slice(0, count)
       .map((painting): MediaListItem => ({ url: pictureUrl(painting, STREAM_WIDTH), type: 'image', credit: creditOf(painting) }));
   },
@@ -242,7 +244,7 @@ async function flaggedAmong(ids: string[]): Promise<Set<string>> {
   return new Set(rows.flatMap((row) => qidOf(row.item?.value) ?? []));
 }
 
-/** The rows' paintings that are open to use, not flagged and not named like something to leave out. */
+/** The rows' paintings that are open to use, big enough for a wall, not flagged and not named like something to leave out. */
 async function openPaintings(rows: Row[]): Promise<Painting[]> {
   const byItem = new Map<string, { row: Row; name: string }>();
   for (const row of rows) {
@@ -257,6 +259,7 @@ async function openPaintings(rows: Row[]): Promise<Painting[]> {
     const file = info.get(name);
     const title = named(row.itemLabel?.value);
     if (flagged.has(qid) || !file || !isOpenLicense(file.license) || !title || TITLE_WORDS.test(title)) continue;
+    if (Math.min(file.width, file.height) < ART_MIN_SHORT_SIDE) continue;
     const artist = named(row.creatorLabel?.value);
     const year = yearOf(row.date?.value);
     const museum = named(row.collectionLabel?.value);

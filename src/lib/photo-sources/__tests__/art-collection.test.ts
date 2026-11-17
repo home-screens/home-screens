@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import collection from '../art-collection.json';
 import turnedDown from '../../../../scripts/art-collection-turned-down.json';
 import { SAFE_GENRES, TITLE_WORDS } from '../art-safety';
+import { ART_MIN_SHORT_SIDE } from '@/lib/art-fit';
 
 /**
  * The shipped collection is the only thing a wall draws paintings from, so a
@@ -27,7 +28,7 @@ describe('the shipped art collection', () => {
       expect(typeof title === 'string' && title.length > 0 && typeof artist === 'string' && artist.length > 0).toBe(true);
       expect(year === null || (Number.isInteger(year) && (year as number) > 0)).toBe(true);
       expect(museum === null || (typeof museum === 'string' && museum.length > 0)).toBe(true);
-      expect(Math.min(width as number, height as number)).toBeGreaterThanOrEqual(1000);
+      expect(Math.min(width as number, height as number)).toBeGreaterThanOrEqual(ART_MIN_SHORT_SIDE);
       expect(Object.keys(SAFE_GENRES)).toContain(genre);
     }
   });

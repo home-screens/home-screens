@@ -6061,7 +6061,7 @@
       "shapes": {
         "any": "Jede Form",
         "loose": "Ungefähr",
-        "medium": "Genau",
+        "medium": "Ziemlich genau",
         "strict": "Genau wie der Bildschirm"
       },
       "fit": "Auf dem Bildschirm",
@@ -6070,7 +6070,7 @@
         "cover": "Bildschirm füllen (Ränder werden abgeschnitten)",
         "contain": "Ganzes Gemälde auf dunkler Wand"
       },
-      "streamInfo": "Berühmte Gemälde aus frei zugänglichen Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
+      "streamInfo": "Landschaften, Seestücke, Stadtansichten und Stillleben aus Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
       "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke.",
       "addFilter": "+ Filter hinzufügen",
       "filters": "Eingrenzen",
@@ -6091,6 +6091,7 @@
         "other": "{count} Gemälde passen"
       },
       "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter.",
+      "noMatches": "Keine Gemälde passen. Lockere einen Filter.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionismus",

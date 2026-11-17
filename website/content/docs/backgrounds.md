@@ -171,9 +171,9 @@ Nothing is filtered at first. Choose **+ Add filter** to narrow the paintings do
 - **Subject** picks landscapes, seascapes, cityscapes or still life.
 - **Period** takes a first and a last year, either of which can be left empty. A painting with no year on record is left out once a period is set.
 - **Artist** (for example `Claude Monet`) takes free text. Part of a name is enough, and accents don't matter: `cezanne` finds Cézanne.
-- **Shape** (tall, wide or either) and **Match the screen's shape** skip paintings that are the wrong shape for your display.
+- **Shape** (tall, wide or either) skips paintings that are the wrong way up for where they go. A rotating background also has **Match the screen's shape**, which skips paintings whose shape is too far from your display's; a slideshow fits pictures into its own box, so it does not have this one.
 
-Under the filters the editor says how many paintings match and shows a few of them. The count leaves out **Match the screen's shape**, and the editor warns when only a few paintings match, because the same ones would then come back often.
+Under the filters the editor says how many paintings match and shows a few of them. It warns when only a few match, because the same ones would then come back often, and says so when none do.
 
 For a rotating background, **On the screen** says how a painting sits behind your modules:
 
@@ -187,7 +187,7 @@ Each painting's title, artist, year and museum show quietly in a corner of the s
 
 To choose one painting, open the **Art** tab of the Image Library. Pick an idea down the side (Impressionism, Dutch Golden Age, Landscapes, Still life, Louvre, Rijksmuseum and more) or type a word above the pictures.
 
-This tab searches Wikidata and Wikimedia Commons as you go, so it reaches many more paintings than the collection the wall draws from. It keeps to the same four subjects and leaves out paintings that are tagged or titled as nudes, but nobody has looked at these one by one. You see each picture before you choose it, and only the one you choose is ever shown.
+This tab searches Wikidata and Wikimedia Commons as you go, so it reaches many more paintings than the collection the wall draws from. It keeps to the same four subjects, leaves out paintings that are tagged or titled as nudes and scans too small for a wall, but nobody has looked at these one by one. You see each picture before you choose it, and only the one you choose is ever shown.
 
 A word can be a museum, an artist, a style or a subject: **Louvre**, **Munkácsy** and **Renaissance** all work. A line above the pictures says what the word was taken for, for example *Matched: Louvre Museum (museum)*; a word that is none of those is searched for in what Wikidata says about each painting. Choosing a painting shows its title, artist, year and museum in the footer, and the licence when it asks for credit.
 

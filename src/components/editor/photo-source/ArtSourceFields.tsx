@@ -9,6 +9,8 @@ import { INPUT_CLASS } from '@/components/ui/input-classes';
 import { useEditorData } from '@/hooks/useEditorData';
 import { useSettledValue } from '@/hooks/useSettledValue';
 import { useTranslate } from '@/i18n';
+import { getActiveDimensions } from '@/lib/editor-multi-display';
+import { useEditorStore } from '@/stores/editor-store';
 import {
   ART_FITS, ART_GENRES, ART_ORIENTATIONS, ART_YEAR_MAX, ART_YEAR_MIN, DEFAULT_ART_FIT,
   PHOTO_SOURCE_MEDIA_PATH, artNumber, photoSourceParams, type PhotoSourceUse,
@@ -48,7 +50,8 @@ export default function ArtSourceFields({ use, source, onChange }: {
     Object.entries({ ...source, ...patch }).filter(([, value]) => value !== undefined && value !== ''),
   ) as Art);
   const [added, setAdded] = useState<Filter[]>([]);
-  const offered = Object.keys(FILTERS) as Filter[];
+  // Matching the screen's shape is for a rotating background: a slideshow fits pictures into its own box.
+  const offered = (Object.keys(FILTERS) as Filter[]).filter((filter) => filter !== 'shape' || use === 'background');
   const shown = offered.filter((filter) => added.includes(filter) || FILTERS[filter].some((field) => source[field] !== undefined));
   const remaining = offered.filter((filter) => !shown.includes(filter));
   const filterLabel = (filter: Filter) => t(`photoSources.art.${filter}`);
@@ -62,7 +65,11 @@ export default function ArtSourceFields({ use, source, onChange }: {
     params.set('count', '4');
     return params.toString();
   }, [source]), 600);
-  const { data: counted } = useEditorData<{ count: number }>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}&info=count`);
+  const { config, selectedDisplayId } = useEditorStore();
+  const screen = config ? getActiveDimensions(config, selectedDisplayId) : null;
+  // A background's count keeps to the screen-shape filter, which needs the screen's size.
+  const shaped = use === 'background' && screen ? `&w=${screen.width}&h=${screen.height}` : '';
+  const { data: counted } = useEditorData<{ count: number }>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}&info=count${shaped}`);
   const { data: previewData } = useEditorData<MediaListItem[]>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}`);
 
   const field = (filter: Filter): ReactNode => {
@@ -146,11 +153,14 @@ export default function ArtSourceFields({ use, source, onChange }: {
           options={[{ value: '', label: t('photoSources.art.addFilter') }, ...remaining.map((filter) => ({ value: filter, label: filterLabel(filter) }))]}
         />
       )}
-      {counted && (
+      {counted && counted.count > 0 && (
         <p className="text-[10px] text-hs-text-faint" data-testid="art-count">{t('photoSources.art.matchCount', { count: counted.count })}</p>
       )}
-      {counted && counted.count < FEW_MATCHES && (
+      {counted && counted.count > 0 && counted.count < FEW_MATCHES && (
         <p className="text-[10px] text-hs-warning" data-testid="art-few">{t('photoSources.art.fewMatches')}</p>
+      )}
+      {counted && counted.count === 0 && (
+        <p className="text-[10px] text-hs-warning" data-testid="art-none">{t('photoSources.art.noMatches')}</p>
       )}
       <PreviewStrip urls={(previewData ?? []).map((item) => item.url)} />
       {use === 'background' && (

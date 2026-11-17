@@ -6070,7 +6070,7 @@
         "cover": "Remplir l'écran (bords rognés)",
         "contain": "Tableau entier sur un mur sombre"
       },
-      "streamInfo": "Des tableaux célèbres issus de collections de musées en libre accès. Le titre, l'artiste et le musée s'affichent dans un coin.",
+      "streamInfo": "Des paysages, des marines, des vues de villes et des natures mortes issus de collections de musées. Le titre, l'artiste et le musée s'affichent dans un coin.",
       "backgroundInfo": "Un nouveau tableau à chaque changement de fond. Le titre, l'artiste et le musée s'affichent discrètement dans un coin.",
       "addFilter": "+ Ajouter un filtre",
       "filters": "Affiner",
@@ -6091,6 +6091,7 @@
         "other": "{count} tableaux correspondent"
       },
       "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre.",
+      "noMatches": "Aucun tableau ne correspond. Essayez d’assouplir un filtre.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionnisme",

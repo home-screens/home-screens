@@ -8,6 +8,9 @@ interface ArtFilters {
 
 type Canvas = { w: number; h: number };
 
+/** A painting whose shorter side has fewer pixels than this is a small scan that turns to mush on a wall: left out of the collection and of the picker's search alike. */
+export const ART_MIN_SHORT_SIDE = 1000;
+
 /** Closer shapes need no matte. */
 const SAME_SHAPE = 0.03;
 const MATTE_BRIGHTNESS = 0.4;

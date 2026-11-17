@@ -105,6 +105,9 @@ describe('the collection on a wall', () => {
     expect(artCount(art())).toEqual({ count: 4 });
     expect(artCount(art({ artist: 'Cézanne', genre: 'still-life' }))).toEqual({ count: 1 });
     expect(artCount(art({ genre: 'seascape', orientation: 'landscape' }))).toEqual({ count: 0 });
+    // The screen-shape filter counts only once the screen's size is known: the harbour alone is near 1080x1920.
+    expect(artCount(art({ aspectTolerance: 0.25 }))).toEqual({ count: 4 });
+    expect(artCount(art({ aspectTolerance: 0.25 }), CANVAS)).toEqual({ count: 1 });
     expect(mockFetch).not.toHaveBeenCalled();
   });
 });
@@ -178,6 +181,18 @@ describe('picker search', () => {
     const paintings = sparqls().find((q) => q.includes('LIMIT 60'))!;
     // The page is cut inside, before titles and artists are looked up.
     expect(paintings).toContain(`{ SELECT DISTINCT ?item ?image WHERE { ?item wdt:P31 wd:Q3305213 ; wdt:P18 ?image . ${SAFE} { ?item wdt:P195/wdt:P361* wd:Q19675 } UNION { ?item wdt:P170 wd:Q551652 } } LIMIT 60 OFFSET 0 }`);
+  });
+
+  it('leaves out scans too small for a wall', async () => {
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q19675', label: 'Louvre Museum' }] }),
+      'SELECT ?e ?role': () => entities(['Q19675', 'museum']),
+      'VALUES ?flag': () => flagged(),
+      'LIMIT 60': () => wikidata(row('Q1', 'Thumbnail', 'Small.jpg'), row('Q2', 'Just Enough', 'Enough.jpg'), row('Q3', 'Narrow Strip', 'Strip.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Small.jpg', 'Public domain', 574, 341], ['Enough.jpg', 'Public domain', 1600, 1000], ['Strip.jpg', 'Public domain', 4000, 999]),
+    });
+    const page = await artPickableSource.browse({ collection: 'search', page: 1, query: 'louvre' });
+    expect(page.items.map((item) => item.label)).toEqual(['Just Enough']);
   });
 
   it('drops a painting tagged as bare skin or an unsafe subject, and one named like it', async () => {

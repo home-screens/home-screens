@@ -6070,7 +6070,7 @@
         "cover": "Preencher a tela (corta as bordas)",
         "contain": "Pintura inteira sobre uma parede escura"
       },
-      "streamInfo": "Pinturas famosas de acervos de museus abertos a todos. O título, o artista e o museu aparecem num canto.",
+      "streamInfo": "Paisagens, marinhas, vistas urbanas e naturezas-mortas de acervos de museus. O título, o artista e o museu aparecem num canto.",
       "backgroundInfo": "Uma pintura nova a cada troca de fundo. O título, o artista e o museu aparecem discretos num canto.",
       "addFilter": "+ Adicionar filtro",
       "filters": "Refinar",
@@ -6091,6 +6091,7 @@
         "other": "{count} pinturas correspondem"
       },
       "fewMatches": "Poucas pinturas correspondem, então as mesmas voltarão com frequência. Tente afrouxar um filtro.",
+      "noMatches": "Nenhuma pintura corresponde. Tente afrouxar um filtro.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionismo",

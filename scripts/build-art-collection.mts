@@ -28,7 +28,7 @@
 //   with a title of its own in English (not "Untitled", not a file name)
 // - none of the NUDE_TAGS as a genre or as something it depicts, no TITLE_WORDS in its title
 //   (all three lists are in src/lib/photo-sources/art-safety.ts, shared with the picture picker's search)
-// - the Commons file is public domain or CC0, at least MIN_SHORT_SIDE pixels on its shorter side
+// - the Commons file is public domain or CC0, at least ART_MIN_SHORT_SIDE pixels on its shorter side
 // - at most PER_ARTIST paintings by one artist in each subject, better-known artists first
 //
 // The tags are only a first sieve. They are added by volunteers and miss a lot,
@@ -38,6 +38,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { ART_MIN_SHORT_SIDE } from '../src/lib/art-fit';
 import { NUDE_TAGS, SAFE_GENRES, TITLE_WORDS, UNSAFE_GENRES } from '../src/lib/photo-sources/art-safety';
 import type { ArtGenre } from '../src/types/config';
 
@@ -54,7 +55,6 @@ const PAINTING = 'Q3305213';
 /** How many candidates to gather for each subject. */
 const WANT: Record<ArtGenre, number> = { 'landscape': 3000, 'still-life': 1300, 'cityscape': 1300, 'seascape': 1000 };
 
-const MIN_SHORT_SIDE = 1000;
 /** Wider or taller than this and a painting is a strip on any screen. */
 const MAX_ASPECT = 2.6;
 const PER_ARTIST = 30;
@@ -259,7 +259,7 @@ async function candidates(work: string) {
     if (!file || !file.width) return drop<typeof painting & { width: number; height: number }>('no file on Commons');
     if (!isPublicDomain(file.license)) return drop<typeof painting & { width: number; height: number }>('licence');
     const aspect = file.width / file.height;
-    if (Math.min(file.width, file.height) < MIN_SHORT_SIDE || aspect > MAX_ASPECT || aspect < 1 / MAX_ASPECT) return drop<typeof painting & { width: number; height: number }>('too small or a strip');
+    if (Math.min(file.width, file.height) < ART_MIN_SHORT_SIDE || aspect > MAX_ASPECT || aspect < 1 / MAX_ASPECT) return drop<typeof painting & { width: number; height: number }>('too small or a strip');
     return [{ ...painting, width: file.width, height: file.height }];
   });
 

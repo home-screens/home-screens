@@ -6070,7 +6070,7 @@
         "cover": "Scherm vullen (randen worden bijgesneden)",
         "contain": "Heel schilderij op een donkere muur"
       },
-      "streamInfo": "Beroemde schilderijen uit openbare museumcollecties. Titel, kunstenaar en museum staan in een hoek.",
+      "streamInfo": "Landschappen, zeegezichten, stadsgezichten en stillevens uit museumcollecties. Titel, kunstenaar en museum staan in een hoek.",
       "backgroundInfo": "Elke keer dat de achtergrond wisselt een nieuw schilderij. Titel, kunstenaar en museum staan discreet in een hoek.",
       "addFilter": "+ Filter toevoegen",
       "filters": "Verfijnen",
@@ -6091,6 +6091,7 @@
         "other": "{count} schilderijen komen overeen"
       },
       "fewMatches": "Er komen maar weinig schilderijen overeen, dus dezelfde keren vaak terug. Maak een filter ruimer.",
+      "noMatches": "Er komt geen schilderij overeen. Maak een filter ruimer.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionisme",

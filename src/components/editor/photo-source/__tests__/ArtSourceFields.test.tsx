@@ -42,7 +42,8 @@ describe('ArtSourceFields', () => {
   it('filters nothing until a filter is added from the menu, and a cross takes it away again', () => {
     const { onChange, view } = renderArt({ artist: 'Claude Monet' });
     const menu = screen.getByDisplayValue('+ Add filter') as HTMLSelectElement;
-    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['+ Add filter', 'Subject', 'Period', 'Shape', "Match the screen's shape"]);
+    // A slideshow fits pictures into its own box, so it is not offered the screen-shape filter.
+    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['+ Add filter', 'Subject', 'Period', 'Shape']);
     fireEvent.click(screen.getByLabelText('Remove filter: Artist'));
     expect(onChange).toHaveBeenCalledWith({ kind: 'art' });
     view.unmount();
@@ -51,6 +52,13 @@ describe('ArtSourceFields', () => {
     expect(document.querySelectorAll('input[type=number], input[type=text]')).toHaveLength(0);
     addFilter('genre');
     expect(screen.getByText('Subject', { selector: 'span' })).toBeTruthy();
+  });
+
+  it('offers a rotating background the screen-shape filter and the fit', () => {
+    renderArt({}, 'background');
+    const menu = screen.getByDisplayValue('+ Add filter') as HTMLSelectElement;
+    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['+ Add filter', 'Subject', 'Period', 'Artist', 'Shape', "Match the screen's shape"]);
+    expect(screen.getByDisplayValue('Whole painting on a soft blur')).toBeTruthy();
   });
 
   it('offers only the subjects the collection is made of', () => {
@@ -83,5 +91,14 @@ describe('ArtSourceFields', () => {
     await afterDebounce();
     expect(screen.getByTestId('art-count').textContent).toBe('3 paintings match');
     expect(screen.getByTestId('art-few')).toBeTruthy();
+  });
+
+  it('says plainly when nothing matches, without the "only a few" warning', async () => {
+    answer = { count: 0 };
+    renderArt({ artist: 'Nobody' });
+    await afterDebounce();
+    expect(screen.getByTestId('art-none').textContent).toBe('No paintings match. Try loosening a filter.');
+    expect(screen.queryByTestId('art-count')).toBeNull();
+    expect(screen.queryByTestId('art-few')).toBeNull();
   });
 });

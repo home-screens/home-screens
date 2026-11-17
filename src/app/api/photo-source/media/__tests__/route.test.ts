@@ -107,8 +107,16 @@ describe('GET /api/photo-source/media', () => {
     vi.mocked(artCount).mockReturnValueOnce({ count: 812 });
     const res = await GET(req('kind=art&genre=landscape&from=1600&info=count'));
     expect(await res.json()).toEqual({ count: 812 });
-    expect(artCount).toHaveBeenCalledWith({ kind: 'art', genre: 'landscape', fromYear: 1600 });
+    expect(artCount).toHaveBeenCalledWith({ kind: 'art', genre: 'landscape', fromYear: 1600 }, undefined);
     expect(mockList).not.toHaveBeenCalled();
+  });
+
+  it('hands the count a screen size when one is given, and ignores a size that is not one', async () => {
+    vi.mocked(artCount).mockReturnValue({ count: 7 });
+    await GET(req('kind=art&tolerance=0.1&info=count&w=1080&h=1920'));
+    expect(artCount).toHaveBeenLastCalledWith({ kind: 'art', aspectTolerance: 0.1 }, { w: 1080, h: 1920 });
+    await GET(req('kind=art&tolerance=0.1&info=count&w=0&h=abc'));
+    expect(artCount).toHaveBeenLastCalledWith({ kind: 'art', aspectTolerance: 0.1 }, undefined);
   });
 
   it('refuses info for other sources and any other kind of info', async () => {

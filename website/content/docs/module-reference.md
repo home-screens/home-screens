@@ -122,7 +122,7 @@ The temperature curve draws however many hours your source returns, and its head
 {% /module %}
 
 {% module type="fullscreen-photo" %}
-A fullscreen digital photo frame that cycles through photos from any photo source (a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA, with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from a library folder, Immich or iCloud.
+A fullscreen digital photo frame that cycles through photos from any photo source (a library folder, Immich, an iCloud shared album, OneDrive, Unsplash, NASA or [paintings from museums](/docs/backgrounds#paintings-from-museums), with [Google Photos available as an import](/docs/backgrounds#google-photos)), **or displays a single pinned photo** as a static wallpaper. Supports transitions, shuffle, and an optional clock overlay, and can mix in videos from a library folder, Immich or iCloud.
 
 The editor's **Mode** dropdown toggles between Slideshow and Single Photo. Single-photo mode simply sets the `file` field, picked in the [Image Library](/docs/backgrounds#image-library) from any of its tabs; the source, interval, transition, and shuffle controls are hidden while `file` is set. "Single Photo" is only an editor UI label, nothing stores a "mode" setting on the module itself. The slideshow's source is `photoSource`, described under [PhotoSource](/docs/configuration#photo-source).
 
@@ -535,7 +535,7 @@ Rich text block with multiple display modes, effects, and styling options.
 {% /module %}
 
 {% module type="image" %}
-Displays a static image: a link, or a picture from the [Image Library](/docs/backgrounds#image-library) (your library, Immich, Unsplash or NASA; pictures from the last three are copied into your library first). **Upload Image** adds a picture from your computer straight to the top of your library.
+Displays a static image: a link, or a picture from the [Image Library](/docs/backgrounds#image-library) (your library, Immich, Unsplash, NASA or the Art tab's paintings; pictures from the last four are copied into your library first). **Upload Image** adds a picture from your computer straight to the top of your library.
 {% /module %}
 
 {% module type="video" %}
@@ -553,7 +553,7 @@ MP4 videos with H.264 encoding play smoothly on Raspberry Pi hardware. iPhone re
 {% /module %}
 
 {% module type="photo-slideshow" %}
-Rotates through images from any photo source: a library folder, Immich, an iCloud shared album, OneDrive, Unsplash or NASA's picture of the day. A library folder, Immich and iCloud can mix in videos; videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under a library folder downloads photos you choose into your library, see [Google Photos](/docs/backgrounds#google-photos). The source is `photoSource` and the per-refresh count is `count`, described under [PhotoSource](/docs/configuration#photo-source); a library folder always plays every picture in it, so it has no count.
+Rotates through images from any photo source: a library folder, Immich, an iCloud shared album, OneDrive, Unsplash, NASA's picture of the day or [paintings from museums](/docs/backgrounds#paintings-from-museums). A library folder, Immich and iCloud can mix in videos; videos play muted, advance to the next slide when they finish, and use a hard cut instead of a crossfade. Google Photos works too, as an import: the **Import from Google Photos** button under a library folder downloads photos you choose into your library, see [Google Photos](/docs/backgrounds#google-photos). The source is `photoSource` and the per-refresh count is `count`, described under [PhotoSource](/docs/configuration#photo-source); a library folder always plays every picture in it, so it has no count.
 
 {% fields /%}
 
