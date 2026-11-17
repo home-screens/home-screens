@@ -489,6 +489,45 @@ Vitest runs in a `node` environment by default (component and hook tests opt int
 
 The E2E suite (`e2e/`, Playwright) boots each test worker against its own production server with a private `data/` sandbox, so it never touches your real config either. It is split into seven projects (`meta`, `smoke`, `editor`, `display`, `remote`, `chores`, and `auth`), each runnable on its own with `--project=<name>`. It covers every module type, config field, empty state, and locale via data-driven fixture registries; the `meta` coverage ratchets fail the suite if a new module, field, discriminator, empty state, or API route lacks a fixture or an explicit opt-out entry. Step 7 of [Adding a New Module](#adding-a-new-module) lists the registries.
 
+### See your change safely
+
+`npm run dev` reads and writes the real `data/` folder, which is fine on a fresh clone and risky once that folder holds a household you care about. To try a change in the running app without touching it, start a sandbox hub: a second server on a spare port with its own private `data/` and its own picture folder. The source, the build and `node_modules` are shared with your checkout.
+
+```bash
+npm run build                                                        # once, and after each change
+.claude/skills/sandbox-hub/scripts/hub.sh start 3140 --household     # prints http://127.0.0.1:3140
+.claude/skills/sandbox-hub/scripts/hub.sh stop 3140                  # stops it and deletes the sandbox
+```
+
+`--household` seeds a made-up family of seven with chores, rewards, a week of meals, two lists and three screens, so `/editor`, `/remote`, `/chores` and `/display` all have something to show. Leave it off for a brand-new hub, which is the right start for testing first-run and setup flows, or pass `--seed <folder>` to copy in your own `config.json` and other data files. There is no password until you set one inside the sandbox.
+
+| Option | What it does |
+|---|---|
+| `--household` | Seed the made-up family |
+| `--seed <folder>` | Copy your own data files into the sandbox (applied after `--household`) |
+| `--config <file>` | Use one file as the sandbox's `config.json` (applied last) |
+| `--assets <folder>` | Put pictures into the sandbox's `public/backgrounds/` before it starts |
+| `--root <tree>` | Serve another checkout or worktree instead of this one |
+| `--dev` | Run `next dev` on a copy of `src/` instead of the production build |
+
+`--dev` skips the build, which is handy for `/editor` and `/remote` while you are still editing; run `hub.sh sync 3140` after each edit to copy `src/` across. The wall needs the production build: under `--dev` the display page never loads its modules in a sandbox. Do not run `npm run build` in a checkout whose `npm run dev` is still running, because the build makes that dev server reload over and over. Stop it first, or use `--dev`.
+
+Put `TZ=Europe/Berlin` (or any zone) in front of `start` to give the hub a different clock, which is the only way to test what the server thinks "today" is. Several sandboxes can run side by side on different ports. `hub.sh path 3140` prints the sandbox folder, where `data/` and `server.log` live, and `hub.sh` with no arguments prints the full usage.
+
+To drive a sandbox from a script, `.claude/skills/sandbox-hub/scripts/harness.mjs` opens a Playwright page at phone, tablet, desktop or wall size, can answer weather, calendar and the other outside services from the E2E fixtures, and reports every console error and failed request when it closes:
+
+```js
+import { open } from './.claude/skills/sandbox-hub/scripts/harness.mjs';
+
+const s = await open({ base: 'http://127.0.0.1:3140', device: 'phone', out: 'test-results/shots', stubs: 'all' });
+await s.goto('/remote');
+await s.page.getByRole('button', { name: 'Chores' }).click();
+await s.shot('chores');
+await s.done();
+```
+
+Both tools are also [Claude Code](https://claude.com/claude-code) skills checked into `.claude/skills/`, so an assistant working in the repo can use them unprompted: `sandbox-hub` is the one above, and `compare-renders` builds a before-and-after picture gallery of the same screen on two trees, for showing a visual bug or proving a visual fix.
+
 ## Website & Docs
 
 The marketing site and this documentation live in `website/`, a separate Next.js app that static-exports to Cloudflare Pages.

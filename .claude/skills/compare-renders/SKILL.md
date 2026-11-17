@@ -17,12 +17,12 @@ Synthetic CSS repros are a fine first check, but the deliverable is the real ren
 
 - Playwright's Chromium, installed once with `npx playwright install chromium`. Both `.mjs` scripts and the Step 6 gallery check launch it.
 - Memory for a second production build. The branch build below runs with `NODE_OPTIONS='--max-old-space-size=3072'`; lower it if the machine is tight, or build the two trees one after the other instead of side by side.
-- Two free local ports. The examples use 3131 and 3132 throughout, but nothing depends on those numbers; pass any two ports to `sandbox.sh` and put the same ones in the job file.
+- Two free local ports. The examples use 3131 and 3132 throughout, but nothing depends on those numbers; pass any two ports to `hub.sh` and put the same ones in the job file.
 - The `version` in `templates/example-config.json` must equal the current schema version, which is the highest `vN-to-vM` file in `src/lib/migrations/`. Bump it when a migration lands; a stale value makes the server migrate the config on read.
 
 ## Scripts (in `scripts/`, run from the repo root)
 
-- `sandbox.sh start <repo-root> <sandbox-dir> <port> <config.json> [assets-dir]` mirrors a built tree into a sandbox, copies any test pictures from `assets-dir` into its `public/backgrounds/` (reference them as `/backgrounds/<file>`), and starts `next start` there; prints the base URL once `/login` answers. `sandbox.sh stop <port>` kills by port.
+- The servers come from the `sandbox-hub` skill's launcher, `.claude/skills/sandbox-hub/scripts/hub.sh` (called `hub.sh` below). `hub.sh start <port> --root <tree> --config <config.json> [--assets <dir>]` mirrors a built tree into a private sandbox, copies any test pictures from the assets folder into its `public/backgrounds/` (reference them as `/backgrounds/<file>`), and starts `next start` there; it prints the base URL once `/login` answers. `hub.sh stop <port>` stops it and deletes the sandbox, and `hub.sh path <port>` prints the sandbox folder.
 - `shoot.mjs <job.json>` screenshots and measures every screen in the job on every server in the job; writes PNGs and `measurements.json` to the job's `out` directory.
 - `measure.mjs <image.png> [--column 0.4] [--threshold 200] [--dark]` scans one column of a PNG and prints runs of light (or dark) rows as `[first, last, top%, height%]`, which is what the gallery callouts take.
 - `templates/example-config.json` and `templates/example-job.json` are a complete, working input pair (two weather modules on a portrait display, temperature measured), ready to copy and edit.
@@ -48,18 +48,18 @@ Mirror `baseConfig` from `e2e/helpers/config-fixtures.ts` (version = the current
 - Whatever makes the module render the state under test: the view under review, a location for location-bound modules (the example config uses Boulder, CO), a rule that matches everything if rules are involved.
 - A source so the module does not show its "nothing set up yet" empty state. For calendars that is `settings.calendar.googleCalendarIds: ['primary']`; the data itself comes from a browser-side stub (Step 4), never from the server.
 
-Write the same file into both sandboxes. To change it later, rewrite `data/config.json` and wait 2s (the config read has a short cache); no restart needed.
+Write the same file into both sandboxes. To change it later, rewrite `data/config.json` in each sandbox (`hub.sh path <port>` prints the folder) and wait 2s (the config read has a short cache); no restart needed.
 
 ### Step 3: Start both servers
 
 ```
-scripts/sandbox.sh start <repo> <scratch>/prod-main 3131 <scratch>/config.json
-scripts/sandbox.sh start <scratch>/wt <scratch>/prod-branch 3132 <scratch>/config.json
+.claude/skills/sandbox-hub/scripts/hub.sh start 3131 --config <scratch>/config.json
+.claude/skills/sandbox-hub/scripts/hub.sh start 3132 --root <scratch>/wt --config <scratch>/config.json
 ```
 
 Sandboxes symlink every top-level entry except `data/` and `public/` (private, so uploads and writes never reach the real ones), `public/` gets its children linked individually with an empty local `backgrounds/`, and the server runs with the sandbox as cwd and `HOME_SCREENS_DIR` unset, which is the whole isolation (data paths resolve through cwd). No `auth.json` means no password and no login.
 
-Files dropped into a sandbox's `public/` after boot return 404 until that server restarts: Next lists `public/` once at startup. Pass test pictures as the `assets-dir` argument so they are in place before the server starts.
+Files dropped into a sandbox's `public/` after boot return 404 until that server restarts: Next lists `public/` once at startup. Pass test pictures with `--assets` so they are in place before the server starts.
 
 ### Step 4: Shoot
 
@@ -85,12 +85,12 @@ Then `open .claude/mockups/<name>/index.html`, and render the page once with Pla
 
 ### Step 7: Clean up
 
-`sandbox.sh stop 3131` and `3132`, remove the worktree, delete any scratch scripts. The gallery and the report stay.
+`hub.sh stop 3131` and `3132`, remove the worktree, delete any scratch scripts. The gallery and the report stay.
 
 ## Traps
 
 - **Dev server sandbox never hydrates the display.** Use production builds. Half an hour was lost to this once.
-- **`pkill -f "next start"` does not free the port.** The `next-server` child survives and keeps serving the old build, so a "restart" changes nothing. `sandbox.sh stop` kills by port for this reason.
+- **`pkill -f "next start"` does not free the port.** The `next-server` child survives and keeps serving the old build, so a "restart" changes nothing. `hub.sh stop` kills by port for this reason.
 - **`public/` is scanned at boot.** New test assets need a restart.
 - **Calendar modules empty out without a source id.** `googleCalendarIds: ['primary']` plus the stub; an empty `icalSources` alone renders "No calendars picked yet".
 - **Main's `.next` may be stale.** Check `.next/BUILD_ID` mtime against the commits that touch the code under test.
