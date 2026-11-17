@@ -454,33 +454,19 @@ export type PhotoSource =
       kind: 'nasa';
     }
   | {
-      /** Famous paintings from museum collections open to everyone; no key needed */
-      kind: 'art';
       /**
-       * Which museum collection the paintings come from
+       * Paintings from Home Screens' own collection of landscapes, seascapes, city views and still lifes; no key needed
        *
-       * `wikimedia` is Wikidata and Wikimedia Commons (many museums, public-domain and freely licensed images only),
-       * `aic` is the Art Institute of Chicago and `cleveland` is the Cleveland Museum of Art.
+       * The collection ships with Home Screens (`src/lib/photo-sources/art-collection.json`): public-domain paintings
+       * from museums around the world, each one looked at before it was added. The fields below narrow it down.
        */
-      provider: ArtProvider;
+      kind: 'art';
       /**
        * Only paintings by this artist (for example `Claude Monet`)
        *
-       * Free text, matched against the artist's name. Empty or unset means any artist.
+       * Free text, matched against the artist's name; part of a name is enough. Empty or unset means any artist.
        */
       artist?: string;
-      /**
-       * Only paintings in this style or movement (for example `Impressionism`)
-       *
-       * Free text. Wikimedia matches the movement or genre, the museums match their own style and classification fields.
-       */
-      style?: string;
-      /**
-       * Only paintings from these museums (Wikimedia only)
-       *
-       * Wikidata ids of the museums, such as `Q19675` for the Louvre. Any of them matches. Empty or unset means any museum. The other collections are one museum each and ignore this.
-       */
-      museums?: string[];
       /**
        * Only paintings made in or after this year
        *
@@ -496,7 +482,7 @@ export type PhotoSource =
       /**
        * Only paintings of this kind of subject
        *
-       * One of `landscape`, `portrait`, `still-life`, `seascape`, `religious`, `mythological`, `history`, `genre-scene`, `cityscape` or `nude`. Unset means any subject.
+       * One of `landscape`, `seascape`, `cityscape` or `still-life`. Unset means any of them.
        */
       genre?: ArtGenre;
       /**
@@ -505,12 +491,6 @@ export type PhotoSource =
        * `portrait` is taller than wide, `landscape` wider than tall, `any` (the default) takes both and leans on `fit` to suit the screen.
        */
       orientation?: ArtOrientation;
-      /**
-       * Skip paintings whose shorter side is smaller than this many pixels
-       *
-       * Keeps small scans off a big screen. Unset means 800.
-       */
-      minShortSide?: number;
       /**
        * How far a painting's shape may differ from the screen's before it is skipped
        *
@@ -525,12 +505,6 @@ export type PhotoSource =
        * Applies to a rotating background; a slideshow always shows the whole painting.
        */
       fit?: ArtFit;
-      /**
-       * Leave out paintings that look nude, for a home with children
-       *
-       * Best effort and not guaranteed: it goes by the museums' subject data and a few words in the title, so some paintings can still get through. Unset means off.
-       */
-      familyFriendly?: boolean;
     }
   | {
       /**
@@ -545,10 +519,8 @@ export type PhotoSource =
       ids: string[];
     };
 
-/** Where the `art` photo source gets its paintings */
-export type ArtProvider = 'wikimedia' | 'aic' | 'cleveland';
-/** The subjects the `art` source can be narrowed to */
-export type ArtGenre = 'landscape' | 'portrait' | 'still-life' | 'seascape' | 'religious' | 'mythological' | 'history' | 'genre-scene' | 'cityscape' | 'nude';
+/** The subjects the `art` source can be narrowed to: the ones its collection is made of */
+export type ArtGenre = 'landscape' | 'seascape' | 'cityscape' | 'still-life';
 /** Which paintings by shape the `art` source takes */
 export type ArtOrientation = 'portrait' | 'landscape' | 'any';
 /** How a painting sits on the screen */

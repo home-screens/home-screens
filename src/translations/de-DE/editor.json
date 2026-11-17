@@ -6049,25 +6049,14 @@
       "apodUnavailable": "Die NASA schickt gerade keine Bilder des Tages. Die Suche im Bildarchiv der NASA klappt weiterhin."
     },
     "art": {
-      "provider": "Sammlung",
-      "providers": {
-        "wikimedia": "Wikimedia (viele Museen)",
-        "aic": "Art Institute of Chicago",
-        "cleveland": "Cleveland Museum of Art"
-      },
       "artist": "Künstler",
       "artistPlaceholder": "Claude Monet",
-      "style": "Stil oder Epoche",
-      "stylePlaceholder": "Impressionismus",
       "orientation": "Format",
       "orientations": {
         "any": "Beliebig",
         "portrait": "Hochformat",
         "landscape": "Querformat"
       },
-      "minSize": "Kürzeste Seite (Pixel)",
-      "familyFriendly": "Familienfreundlich",
-      "familyFriendlyHint": "So gut es geht, ohne Garantie",
       "shape": "Zur Form des Bildschirms passend",
       "shapes": {
         "any": "Jede Form",
@@ -6086,12 +6075,6 @@
       "addFilter": "+ Filter hinzufügen",
       "filters": "Eingrenzen",
       "removeFilter": "Filter entfernen: {filter}",
-      "museum": "Museum",
-      "anyMuseum": "Jedes Museum",
-      "museumsChosen": {
-        "one": "{count} Museum ausgewählt",
-        "other": "{count} Museen ausgewählt"
-      },
       "period": "Zeitraum",
       "fromYear": "Ab Jahr",
       "toYear": "Bis Jahr",
@@ -6099,34 +6082,23 @@
       "choose": "Auswählen…",
       "genres": {
         "landscape": "Landschaften",
-        "portrait": "Porträts",
         "still-life": "Stillleben",
         "seascape": "Seestücke",
-        "religious": "Religiöses",
-        "mythological": "Mythologie",
-        "history": "Geschichte",
-        "genre-scene": "Alltagsszenen",
-        "cityscape": "Stadtansichten",
-        "nude": "Akte"
+        "cityscape": "Stadtansichten"
       },
       "matchCount": {
         "one": "{count} Gemälde passt",
         "other": "{count} Gemälde passen"
       },
-      "matchCountAbout": {
-        "one": "etwa {count} Gemälde passt",
-        "other": "etwa {count} Gemälde passen"
-      },
-      "manyMatch": "Sehr viele Gemälde passen (zu viele, um sie hier zu zählen)",
       "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionismus",
           "dutch": "Holländisches Goldenes Zeitalter",
           "landscapes": "Landschaften",
-          "portraits": "Porträts",
           "stillLife": "Stillleben",
           "seascapes": "Seestücke",
+          "cityscapes": "Stadtansichten",
           "louvre": "Louvre",
           "rijksmuseum": "Rijksmuseum",
           "vanGogh": "Van Gogh"
@@ -6142,7 +6114,7 @@
         "matchItem": "{label} ({type})",
         "copyHint": "Gemälde aus offenen Sammlungen. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
         "creditHint": "{credit}. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
-        "empty": "Keine Gemälde gefunden. Probiere andere Wörter oder eine andere Sammlung.",
+        "empty": "Keine Gemälde gefunden. Probiere andere Wörter.",
         "loadFailed": "Die Gemälde konnten nicht geladen werden.",
         "unavailable": "Die Sammlung liefert gerade keine Gemälde. Versuche es etwas später noch einmal.",
         "orSearch": "Oder such oben nach allem, was du willst"

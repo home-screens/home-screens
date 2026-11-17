@@ -230,7 +230,7 @@ describe('PicturePicker Unsplash tab', () => {
 });
 
 describe('PicturePicker Art tab', () => {
-  const painting = { ref: 'wikimedia:Q1', thumbUrl: '/t/q1.jpg', label: 'Christ before Pilate', secondary: '1881, Hungarian National Gallery', credit: { name: 'Mihály Munkácsy' } };
+  const painting = { ref: 'Q1', thumbUrl: '/t/q1.jpg', label: 'Dusty Road', secondary: '1874, Hungarian National Gallery', credit: { name: 'Mihály Munkácsy' } };
 
   async function openArt(onSelectImage = vi.fn()) {
     routes.push((url) => (url.startsWith('/api/photo-source/browse')
@@ -243,42 +243,41 @@ describe('PicturePicker Art tab', () => {
     return onSelectImage;
   }
 
-  it('searches an idea in English on Wikimedia first, says what the words matched, and searches typed words on another collection', async () => {
+  it('searches an idea in English, says what the words matched, and searches typed words', async () => {
     await openArt();
-    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Impressionism')).toBe(true);
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=search&page=1&query=Impressionism')).toBe(true);
     fireEvent.click(screen.getByTestId('art-idea-dutch'));
     await settle();
-    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Dutch+Golden+Age')).toBe(true);
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=search&page=1&query=Dutch+Golden+Age')).toBe(true);
     expect(screen.getByTestId('art-matched').textContent).toBe('Matched: Louvre Museum (museum), Mihály Munkácsy (artist)');
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'aic' } });
-    await settle();
     fireEvent.change(screen.getByTestId('picker-search'), { target: { value: 'water lilies' } });
     fireEvent.click(screen.getByText('Search'));
     await settle();
-    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=aic&page=1&query=water+lilies')).toBe(true);
+    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=search&page=1&query=water+lilies')).toBe(true);
   });
 
-  it('asks the museums to leave nudes out once the family friendly switch is on', async () => {
+  it('offers ideas from the subjects the search keeps to, with no collection or filter switch to set', async () => {
     await openArt();
-    fireEvent.click(screen.getByRole('switch'));
-    await settle();
-    expect(calls.some((c) => c.url === '/api/photo-source/browse?kind=art&collection=wikimedia&page=1&query=Impressionism&family=1')).toBe(true);
+    for (const idea of ['landscapes', 'stillLife', 'seascapes', 'cityscapes']) expect(screen.getByTestId(`art-idea-${idea}`)).toBeTruthy();
+    expect(screen.queryByTestId('art-idea-portraits')).toBeNull();
+    expect(screen.queryByRole('switch')).toBeNull();
+    expect(screen.queryByRole('combobox')).toBeNull();
   });
 
   it('shows the credit when a painting is chosen and copies it on Select Image', async () => {
-    routes.push((url) => (url === '/api/photo-source/import' ? { status: 201, body: { path: '/api/backgrounds/serve?file=art%2Fart-wikimedia_Q1.jpg' } } : undefined));
+    routes.push((url) => (url === '/api/photo-source/import' ? { status: 201, body: { path: '/api/backgrounds/serve?file=art%2Fart-Q1.jpg' } } : undefined));
     const onSelectImage = await openArt();
-    fireEvent.click(document.querySelector('[data-ref="wikimedia:Q1"]')!);
+    fireEvent.click(document.querySelector('[data-ref="Q1"]')!);
     expect(screen.getByTestId('picker-hint').textContent)
-      .toBe("Christ before Pilate, Mihály Munkácsy, 1881, Hungarian National Gallery. A copy goes into your library's art folder.");
+      .toBe("Dusty Road, Mihály Munkácsy, 1874, Hungarian National Gallery. A copy goes into your library's art folder.");
     await act(async () => { fireEvent.click(screen.getByTestId('picker-confirm')); });
     await settle();
     const copy = calls.find((c) => c.url === '/api/photo-source/import')!;
-    expect(JSON.parse(String(copy.init?.body))).toEqual({ kind: 'art', ref: 'wikimedia:Q1' });
-    expect(onSelectImage).toHaveBeenCalledWith('/api/backgrounds/serve?file=art%2Fart-wikimedia_Q1.jpg');
+    expect(JSON.parse(String(copy.init?.body))).toEqual({ kind: 'art', ref: 'Q1' });
+    expect(onSelectImage).toHaveBeenCalledWith('/api/backgrounds/serve?file=art%2Fart-Q1.jpg');
   });
 
-  it('says so when the museum is not sending paintings', async () => {
+  it('says so when the search is not sending paintings', async () => {
     routes.push((url) => (url.startsWith('/api/photo-source/browse') ? { status: 503, body: { error: 'art-unavailable' } } : undefined));
     render(wrap(<PicturePicker mode="pick-image" onClose={() => {}} />));
     await settle();

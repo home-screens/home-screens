@@ -14,27 +14,24 @@ import ArtSourceFields from '../ArtSourceFields';
 
 type Art = Extract<PhotoSource, { kind: 'art' }>;
 
-let answer: { count: number | null; approximate: boolean };
+let answer: { count: number };
 
 beforeEach(() => {
-  answer = { count: 4900, approximate: true };
+  answer = { count: 812 };
   editorFetch.mockReset();
   editorFetch.mockImplementation(async (url: string) => {
-    const body = url.includes('info=count') ? answer
-      : url.includes('info=museums') ? [{ id: 'Q19675', count: 4900 }]
-        : [{ url: 'https://example.org/a.jpg', type: 'image' }];
+    const body = url.includes('info=count') ? answer : [{ url: 'https://example.org/a.jpg', type: 'image' }];
     return { ok: true, status: 200, json: async () => body, headers: new Headers() };
   });
 });
 afterEach(cleanup);
 
 const wrap = (ui: React.ReactElement) => <I18nProvider locale="en-US" blob={{ editor: enUSEditor }}>{ui}</I18nProvider>;
-const settle = () => act(async () => { await new Promise((r) => setTimeout(r, 0)); });
 const afterDebounce = () => act(async () => { await new Promise((r) => setTimeout(r, 700)); });
 
 function renderArt(source: Partial<Art> = {}, use: 'stream' | 'background' = 'stream') {
   const onChange = vi.fn();
-  const full: Art = { kind: 'art', provider: 'wikimedia', ...source };
+  const full: Art = { kind: 'art', ...source };
   const view = render(wrap(<ArtSourceFields use={use} source={full} onChange={onChange} />));
   return { onChange, view };
 }
@@ -45,9 +42,9 @@ describe('ArtSourceFields', () => {
   it('filters nothing until a filter is added from the menu, and a cross takes it away again', () => {
     const { onChange, view } = renderArt({ artist: 'Claude Monet' });
     const menu = screen.getByDisplayValue('+ Add filter') as HTMLSelectElement;
-    expect(Array.from(menu.options).map((o) => o.text)).not.toContain('Artist');
+    expect(Array.from(menu.options).map((o) => o.text)).toEqual(['+ Add filter', 'Subject', 'Period', 'Shape', "Match the screen's shape"]);
     fireEvent.click(screen.getByLabelText('Remove filter: Artist'));
-    expect(onChange).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia' });
+    expect(onChange).toHaveBeenCalledWith({ kind: 'art' });
     view.unmount();
 
     renderArt();
@@ -56,50 +53,33 @@ describe('ArtSourceFields', () => {
     expect(screen.getByText('Subject', { selector: 'span' })).toBeTruthy();
   });
 
-  it('shows the family friendly switch without the filter menu and saves it only when on', () => {
-    const { onChange, view } = renderArt();
-    expect(screen.getByText('Best effort, not guaranteed')).toBeTruthy();
-    fireEvent.click(screen.getByRole('switch'));
-    expect(onChange).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia', familyFriendly: true });
-    view.unmount();
-
-    const again = renderArt({ familyFriendly: true });
-    fireEvent.click(screen.getByRole('switch'));
-    expect(again.onChange).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia' });
+  it('offers only the subjects the collection is made of', () => {
+    renderArt({ genre: 'landscape' });
+    const subject = screen.getByDisplayValue('Landscapes') as HTMLSelectElement;
+    expect(Array.from(subject.options).map((o) => o.text)).toEqual(['Choose…', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
   });
 
   it('saves the period as whole years and the genre as a choice', () => {
     const { onChange } = renderArt({ fromYear: 1600, genre: 'landscape' });
     fireEvent.change(screen.getByLabelText('To year'), { target: { value: '1800' } });
-    expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', provider: 'wikimedia', fromYear: 1600, genre: 'landscape', toYear: 1800 });
+    expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', fromYear: 1600, genre: 'landscape', toYear: 1800 });
     fireEvent.change(screen.getByLabelText('From year'), { target: { value: '' } });
-    expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', provider: 'wikimedia', genre: 'landscape' });
+    expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', genre: 'landscape' });
   });
 
-  it('lets Wikimedia museums be ticked with their counts, and leaves museums out for single-museum collections', async () => {
-    const { onChange, view } = renderArt({ museums: ['Q19675'] });
-    await settle();
-    expect(screen.getByText('Louvre Museum (4900)')).toBeTruthy();
-    fireEvent.click(screen.getByLabelText('Metropolitan Museum of Art'));
-    expect(onChange).toHaveBeenCalledWith({ kind: 'art', provider: 'wikimedia', museums: ['Q19675', 'Q160236'] });
-    view.unmount();
-
-    renderArt({ provider: 'aic' });
-    expect(Array.from((screen.getByDisplayValue('+ Add filter') as HTMLSelectElement).options).map((o) => o.text)).not.toContain('Museum');
-  });
-
-  it('asks how many match once the choices settle: about for Wikimedia, exact for the museums, a warning when few', async () => {
-    renderArt({ museums: ['Q19675'], fromYear: 1600 });
+  it('says exactly how many paintings match once the choices settle, with a warning when few', async () => {
+    renderArt({ genre: 'seascape', fromYear: 1600 });
     await afterDebounce();
-    expect(screen.getByTestId('art-count').textContent).toBe('about 4900 paintings match');
+    expect(screen.getByTestId('art-count').textContent).toBe('812 paintings match');
+    expect(screen.queryByTestId('art-few')).toBeNull();
     expect(screen.getByTestId('photo-source-preview').querySelectorAll('img')).toHaveLength(1);
     const asked = editorFetch.mock.calls.map((c) => String(c[0])).filter((u) => u.includes('info=count'));
-    expect(asked.at(-1)).toContain('museums=Q19675');
+    expect(asked.at(-1)).toContain('genre=seascape');
     expect(asked.at(-1)).toContain('from=1600');
     cleanup();
 
-    answer = { count: 3, approximate: false };
-    renderArt({ provider: 'cleveland' });
+    answer = { count: 3 };
+    renderArt({ artist: 'Canaletto' });
     await afterDebounce();
     expect(screen.getByTestId('art-count').textContent).toBe('3 paintings match');
     expect(screen.getByTestId('art-few')).toBeTruthy();

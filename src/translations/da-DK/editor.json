@@ -6049,25 +6049,14 @@
       "apodUnavailable": "NASA sender ikke dagens billede lige nu. Søgning i NASA's arkiv virker stadig."
     },
     "art": {
-      "provider": "Samling",
-      "providers": {
-        "wikimedia": "Wikimedia (mange museer)",
-        "aic": "Art Institute of Chicago",
-        "cleveland": "Cleveland Museum of Art"
-      },
       "artist": "Kunstner",
       "artistPlaceholder": "Claude Monet",
-      "style": "Stil eller retning",
-      "stylePlaceholder": "Impressionisme",
       "orientation": "Format",
       "orientations": {
         "any": "Alle",
         "portrait": "Højformat",
         "landscape": "Bredformat"
       },
-      "minSize": "Korteste side (pixel)",
-      "familyFriendly": "Børnevenlig",
-      "familyFriendlyHint": "Så godt som muligt, ingen garanti",
       "shape": "Passer til skærmens form",
       "shapes": {
         "any": "Alle former",
@@ -6086,12 +6075,6 @@
       "addFilter": "+ Tilføj filter",
       "filters": "Indsnævr",
       "removeFilter": "Fjern filter: {filter}",
-      "museum": "Museum",
-      "anyMuseum": "Alle museer",
-      "museumsChosen": {
-        "one": "{count} museum valgt",
-        "other": "{count} museer valgt"
-      },
       "period": "Periode",
       "fromYear": "Fra år",
       "toYear": "Til år",
@@ -6099,34 +6082,23 @@
       "choose": "Vælg…",
       "genres": {
         "landscape": "Landskaber",
-        "portrait": "Portrætter",
         "still-life": "Stilleben",
         "seascape": "Havbilleder",
-        "religious": "Religiøse",
-        "mythological": "Mytologi",
-        "history": "Historie",
-        "genre-scene": "Hverdagsscener",
-        "cityscape": "Bybilleder",
-        "nude": "Nøgenstudier"
+        "cityscape": "Bybilleder"
       },
       "matchCount": {
         "one": "{count} maleri passer",
         "other": "{count} malerier passer"
       },
-      "matchCountAbout": {
-        "one": "cirka {count} maleri passer",
-        "other": "cirka {count} malerier passer"
-      },
-      "manyMatch": "Rigtig mange malerier passer (for mange til at tælle her)",
       "fewMatches": "Kun få malerier passer, så de samme vender ofte tilbage. Prøv at løsne et filter.",
       "picker": {
         "ideas": {
           "impressionism": "Impressionisme",
           "dutch": "Hollands guldalder",
           "landscapes": "Landskaber",
-          "portraits": "Portrætter",
           "stillLife": "Stilleben",
           "seascapes": "Havbilleder",
+          "cityscapes": "Bybilleder",
           "louvre": "Louvre",
           "rijksmuseum": "Rijksmuseum",
           "vanGogh": "Van Gogh"
@@ -6142,7 +6114,7 @@
         "matchItem": "{label} ({type})",
         "copyHint": "Malerier fra åbne samlinger. En kopi gemmes i art-mappen i dit bibliotek.",
         "creditHint": "{credit}. En kopi gemmes i art-mappen i dit bibliotek.",
-        "empty": "Ingen malerier fundet. Prøv andre ord eller en anden samling.",
+        "empty": "Ingen malerier fundet. Prøv andre ord.",
         "loadFailed": "Kunne ikke indlæse malerier.",
         "unavailable": "Samlingen sender ikke malerier lige nu. Prøv igen lidt senere.",
         "orSearch": "Eller søg efter hvad som helst ovenfor"

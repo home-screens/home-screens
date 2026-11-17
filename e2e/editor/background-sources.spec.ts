@@ -127,23 +127,26 @@ test.describe('rotation sources', () => {
     await openSources(page, request);
 
     await autosaved(page, async () => page.getByRole('checkbox', { name: 'Paintings from museums' }).check());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia' }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art' }]);
     await expect(page.getByLabel('Artist', { exact: true })).toHaveCount(0);
-    await expect(page.getByTestId('art-count')).toHaveText('about 4900 paintings match');
+    await expect(page.getByTestId('art-count')).toHaveText('3200 paintings match');
     await expect(page.getByTestId('photo-source-preview')).toBeVisible();
 
-    await page.getByRole('combobox', { name: 'Narrow down' }).selectOption('museum');
-    await autosaved(page, async () => page.getByTestId('art-museums').getByRole('checkbox', { name: 'Louvre Museum (4900)' }).check());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia', museums: ['Q19675'] }]);
+    const narrow = page.getByRole('combobox', { name: 'Narrow down' });
+    await narrow.selectOption('genre');
+    // Only the subjects the collection is made of.
+    await expect(page.getByRole('combobox', { name: 'Subject' }).getByRole('option')).toHaveText(['Choose…', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
+    await autosaved(page, async () => { await page.getByRole('combobox', { name: 'Subject' }).selectOption('seascape'); });
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', genre: 'seascape' }]);
 
-    await page.getByRole('combobox', { name: 'Narrow down' }).selectOption('period');
+    await narrow.selectOption('period');
     await autosaved(page, async () => page.getByLabel('From year').fill('1600'));
     await autosaved(page, async () => page.getByLabel('To year').fill('1800'));
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia', museums: ['Q19675'], fromYear: 1600, toYear: 1800 }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', genre: 'seascape', fromYear: 1600, toYear: 1800 }]);
 
-    await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Museum' }).click());
+    await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Subject' }).click());
     await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Period' }).click());
-    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', provider: 'wikimedia' }]);
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art' }]);
 
     await putConfig(request, baseConfig());
   });

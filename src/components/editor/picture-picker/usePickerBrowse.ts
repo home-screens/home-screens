@@ -25,12 +25,11 @@ export interface PickerBrowse {
  * collection or search starts over at page 1; Show more appends the next
  * page. `enabled` false loads nothing (a source without its key).
  */
-export function usePickerBrowse({ kind, collection, query = '', orientation, familyFriendly, enabled = true }: {
+export function usePickerBrowse({ kind, collection, query = '', orientation, enabled = true }: {
   kind: PickImportKind;
   collection: string;
   query?: string;
   orientation?: 'portrait' | 'landscape';
-  familyFriendly?: boolean;
   enabled?: boolean;
 }): PickerBrowse {
   const [tiles, setTiles] = useState<BrowseTile[]>([]);
@@ -46,7 +45,6 @@ export function usePickerBrowse({ kind, collection, query = '', orientation, fam
     const params = new URLSearchParams({ kind, collection, page: String(page) });
     if (query) params.set('query', query);
     if (orientation) params.set('orientation', orientation);
-    if (familyFriendly) params.set('family', '1');
     try {
       const res = await editorFetch(`/api/photo-source/browse?${params}`, { signal });
       const body = await res.json().catch(() => null) as { items?: BrowseTile[]; nextPage?: number | null; matched?: BrowseMatch[] } | null;
@@ -62,7 +60,7 @@ export function usePickerBrowse({ kind, collection, query = '', orientation, fam
       if (signal?.aborted || isSessionExpired(err) || gen !== generation.current) return;
       setFailure({ status: 0, body: null });
     }
-  }, [kind, collection, query, orientation, familyFriendly]);
+  }, [kind, collection, query, orientation]);
 
   useEffect(() => {
     const gen = ++generation.current;

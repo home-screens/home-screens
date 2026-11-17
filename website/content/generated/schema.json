@@ -8577,22 +8577,8 @@
         },
         {
           "value": "art",
-          "description": "Famous paintings from museum collections open to everyone; no key needed",
+          "description": "Paintings from Home Screens' own collection of landscapes, seascapes, city views and still lifes; no key needed",
           "fields": [
-            {
-              "name": "provider",
-              "optional": false,
-              "type": {
-                "kind": "string",
-                "text": "ArtProvider",
-                "values": [
-                  "wikimedia",
-                  "aic",
-                  "cleveland"
-                ]
-              },
-              "description": "Which museum collection the paintings come from"
-            },
             {
               "name": "artist",
               "optional": true,
@@ -8601,24 +8587,6 @@
                 "text": "string"
               },
               "description": "Only paintings by this artist (for example `Claude Monet`)"
-            },
-            {
-              "name": "style",
-              "optional": true,
-              "type": {
-                "kind": "string",
-                "text": "string"
-              },
-              "description": "Only paintings in this style or movement (for example `Impressionism`)"
-            },
-            {
-              "name": "museums",
-              "optional": true,
-              "type": {
-                "kind": "array",
-                "text": "string[]"
-              },
-              "description": "Only paintings from these museums (Wikimedia only)"
             },
             {
               "name": "fromYear",
@@ -8646,15 +8614,9 @@
                 "text": "ArtGenre",
                 "values": [
                   "landscape",
-                  "portrait",
-                  "still-life",
                   "seascape",
-                  "religious",
-                  "mythological",
-                  "history",
-                  "genre-scene",
                   "cityscape",
-                  "nude"
+                  "still-life"
                 ]
               },
               "description": "Only paintings of this kind of subject"
@@ -8672,15 +8634,6 @@
                 ]
               },
               "description": "Only paintings shaped like this"
-            },
-            {
-              "name": "minShortSide",
-              "optional": true,
-              "type": {
-                "kind": "number",
-                "text": "number"
-              },
-              "description": "Skip paintings whose shorter side is smaller than this many pixels"
             },
             {
               "name": "aspectTolerance",
@@ -8704,15 +8657,6 @@
                 ]
               },
               "description": "How a painting sits on the screen"
-            },
-            {
-              "name": "familyFriendly",
-              "optional": true,
-              "type": {
-                "kind": "boolean",
-                "text": "boolean"
-              },
-              "description": "Leave out paintings that look nude, for a home with children"
             }
           ]
         },

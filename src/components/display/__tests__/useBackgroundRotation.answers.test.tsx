@@ -111,7 +111,7 @@ describe('useBackgroundRotation answers', () => {
   });
 
   it('keeps the caption an answer carries, and drops it when a later answer has none', async () => {
-    const caption = { name: 'Irises, Vincent van Gogh, 1889', source: 'Cleveland Museum of Art' };
+    const caption = { name: 'Irises, Vincent van Gogh, 1889', source: 'J. Paul Getty Museum' };
     renderHook(() => useBackgroundRotation([screen(true)]));
     const shown = renderHook(() => useBackgroundCaption('s'));
     await answer(new Response(JSON.stringify({ path: PHOTO, credit: caption })));

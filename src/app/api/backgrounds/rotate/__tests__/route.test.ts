@@ -223,7 +223,7 @@ describe('GET /api/backgrounds/rotate: picking from the sources', () => {
 
   it('passes a source\'s credit on to the wall and keeps it for the next ask', async () => {
     mockFindScreen.mockReturnValue(screen(rotating([NASA])));
-    const credit = { name: 'Irises, Vincent van Gogh, 1889', source: 'Cleveland Museum of Art' };
+    const credit = { name: 'Irises, Vincent van Gogh, 1889', source: 'J. Paul Getty Museum' };
     mockPick.mockResolvedValue({ kind: 'download', id: 'art-1', open: async () => imageResponse(), credit });
 
     expect(await (await GET(rotateReq())).json()).toEqual({ path: '/api/backgrounds/serve?file=rotation-nasa-art-1.jpg', fresh: true, credit });

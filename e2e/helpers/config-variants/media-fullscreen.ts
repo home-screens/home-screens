@@ -302,9 +302,9 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
   },
   {
     type: 'photo-slideshow', name: 'source-art', kind: 'networked', stubKey: 'art',
-    config: { photoSource: { kind: 'art', provider: 'cleveland', artist: 'van Gogh', orientation: 'portrait', minShortSide: 1200, fit: 'matte' } },
+    config: { photoSource: { kind: 'art', artist: 'van Gogh', genre: 'landscape', orientation: 'portrait', fit: 'matte' } },
     expect: async (mod) => {
-      await expect(mod.getByTestId('photo-credit')).toHaveText('Irises, Vincent van Gogh, 1889 / Cleveland Museum of Art');
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Irises, Vincent van Gogh, 1889 / J. Paul Getty Museum');
     },
   },
   {
@@ -350,9 +350,9 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
   },
   {
     type: 'fullscreen-photo', name: 'source-art', kind: 'networked', stubKey: 'art',
-    config: { photoSource: { kind: 'art', provider: 'cleveland', artist: 'van Gogh', orientation: 'portrait', minShortSide: 1200, fit: 'matte' } },
+    config: { photoSource: { kind: 'art', artist: 'van Gogh', genre: 'landscape', orientation: 'portrait', fit: 'matte' } },
     expect: async (mod) => {
-      await expect(mod.getByTestId('photo-credit')).toHaveText('Irises, Vincent van Gogh, 1889 / Cleveland Museum of Art');
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Irises, Vincent van Gogh, 1889 / J. Paul Getty Museum');
     },
   },
 

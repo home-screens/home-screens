@@ -139,7 +139,7 @@ describe('hasContent, candidateCount and canRotate', () => {
     ['Unsplash picks', { kind: 'unsplash', query: '', photoIds: ['p1'] }, true, 1],
     ['blank Unsplash words', { kind: 'unsplash', query: '  ' }, false, undefined],
     ['NASA', { kind: 'nasa' }, true, undefined],
-    ['art', { kind: 'art', provider: 'aic' }, true, undefined],
+    ['art', { kind: 'art' }, true, undefined],
   ])('%s', (_label, source, content, count) => {
     expect(hasContent(source)).toBe(content);
     expect(candidateCount(source)).toBe(count);
@@ -196,11 +196,12 @@ describe('normalizePhotoSource', () => {
       .toEqual({ kind: 'onedrive', folderId: 'ABC!123', folderName: 'Family' });
     expect(normalizePhotoSource({ kind: 'unsplash', query: ' lakes ' })).toEqual({ kind: 'unsplash', query: 'lakes' });
     expect(normalizePhotoSource({ kind: 'nasa', query: 'x' })).toEqual({ kind: 'nasa' });
-    expect(normalizePhotoSource({ kind: 'art', provider: 'aic', artist: ' Monet ', style: '', orientation: 'any', fit: 'sideways', minShortSide: 5, aspectTolerance: 3, extra: 1 }))
-      .toEqual({ kind: 'art', provider: 'aic', artist: 'Monet', minShortSide: 100, aspectTolerance: 1 });
-    expect(normalizePhotoSource({ kind: 'art', provider: 'louvre' })).toEqual({ kind: 'art', provider: 'wikimedia' });
-    expect(normalizePhotoSource({ kind: 'art', provider: 'wikimedia', museums: ['Q19675', 'Q19675', 'nope', 7], fromYear: -5, toYear: 9999.4, genre: 'abstract' }))
-      .toEqual({ kind: 'art', provider: 'wikimedia', museums: ['Q19675'], fromYear: 0, toYear: 2100 });
+    expect(normalizePhotoSource({ kind: 'art', artist: ' Monet ', orientation: 'any', fit: 'sideways', aspectTolerance: 3, extra: 1 }))
+      .toEqual({ kind: 'art', artist: 'Monet', aspectTolerance: 1 });
+    // Only the subjects the collection is made of are kept.
+    expect(normalizePhotoSource({ kind: 'art', fromYear: -5, toYear: 9999.4, genre: 'nude' })).toEqual({ kind: 'art', fromYear: 0, toYear: 2100 });
+    expect(normalizePhotoSource({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' }))
+      .toEqual({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' });
     expect(normalizePhotoSource({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'], extra: 1 })).toEqual({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'] });
   });
 
@@ -273,9 +274,10 @@ describe('sourceCacheKey', () => {
     ['walls', { kind: 'wall', group: 'color', ids: ['ocean'] }, { kind: 'wall', group: 'color', ids: ['dusk'] }],
     ['wall group', { kind: 'wall', group: 'color', ids: [] }, { kind: 'wall', group: 'pattern', ids: [] }],
     ['kind', { kind: 'library', folder: '' }, { kind: 'nasa' }],
-    ['art provider', { kind: 'art', provider: 'aic' }, { kind: 'art', provider: 'cleveland' }],
-    ['art museums', { kind: 'art', provider: 'wikimedia', museums: ['Q19675'] }, { kind: 'art', provider: 'wikimedia', museums: ['Q160236'] }],
-    ['art fit', { kind: 'art', provider: 'aic', fit: 'cover' }, { kind: 'art', provider: 'aic', fit: 'matte' }],
+    ['art subject', { kind: 'art', genre: 'landscape' }, { kind: 'art', genre: 'seascape' }],
+    ['art artist', { kind: 'art', artist: 'Monet' }, { kind: 'art', artist: 'Turner' }],
+    ['art period', { kind: 'art', fromYear: 1600 }, { kind: 'art', fromYear: 1700 }],
+    ['art fit', { kind: 'art', fit: 'cover' }, { kind: 'art', fit: 'matte' }],
   ])('changes with the %s', (_label, a, b) => {
     expect(key(a)).not.toBe(key(b));
   });
@@ -352,8 +354,8 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
     { kind: 'unsplash', query: '', collections: ['c1', 'c2'] },
     { kind: 'unsplash', query: '', photoIds: ['p1'] },
     { kind: 'nasa' },
-    { kind: 'art', provider: 'cleveland', artist: 'van Gogh', style: 'Post-Impressionism', orientation: 'portrait', minShortSide: 1200, aspectTolerance: 0.25, fit: 'contain' },
-    { kind: 'art', provider: 'wikimedia', museums: ['Q19675', 'Q160236'], fromYear: 1600, toYear: 1800, genre: 'landscape' },
+    { kind: 'art', artist: 'van Gogh', orientation: 'portrait', aspectTolerance: 0.25, fit: 'contain' },
+    { kind: 'art', fromYear: 1600, toYear: 1800, genre: 'landscape' },
     { kind: 'wall', group: 'pattern', ids: ['pattern-dots', 'pattern-grid'] },
     { kind: 'wall', group: 'color', ids: [] },
   ])('round-trips %j', (source) => {
@@ -403,9 +405,9 @@ describe('picking one picture', () => {
     ['nasa', 'image:as11-40-5874.v2', true],
     ['nasa', 'image:../x', false],
     ['nasa', 'PIA12345', false],
-    ['art', 'wikimedia:Q12418', true],
-    ['art', 'aic:16568', true],
-    ['art', 'louvre:1', false],
+    ['art', 'Q12418', true],
+    ['art', 'wikimedia:Q12418', false],
+    ['art', '16568', false],
   ])('%s ref %j is valid: %s', (kind, ref, valid) => {
     expect(isValidPickRef(kind, ref)).toBe(valid);
   });

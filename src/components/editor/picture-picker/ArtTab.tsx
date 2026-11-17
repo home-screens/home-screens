@@ -1,11 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import LabeledSelect from '@/components/ui/LabeledSelect';
-import Toggle from '@/components/ui/Toggle';
 import { useTranslate } from '@/i18n';
-import { ART_PROVIDERS } from '@/lib/photo-source';
-import type { ArtProvider } from '@/types/config';
 import { PickerEntry, PickerGroup, PickerSidebar } from './PickerSidebar';
 import RemoteGrid, { PickerBar } from './RemoteGrid';
 import SearchBox from './SearchBox';
@@ -14,14 +10,14 @@ import { usePickerBrowse } from './usePickerBrowse';
 import { importPicture } from './import-picture';
 import type { PickerTabProps } from './types';
 
-/** The museums search in English, so only the labels translate. */
+/** Wikidata is searched in English, so only the labels translate. The search keeps to landscapes, seascapes, city views and still lifes. */
 export const ART_IDEAS = [
   { key: 'impressionism', query: 'Impressionism' },
   { key: 'dutch', query: 'Dutch Golden Age' },
   { key: 'landscapes', query: 'landscape' },
-  { key: 'portraits', query: 'portrait' },
   { key: 'stillLife', query: 'still life' },
   { key: 'seascapes', query: 'seascape' },
+  { key: 'cityscapes', query: 'cityscape' },
   { key: 'louvre', query: 'Louvre' },
   { key: 'rijksmuseum', query: 'Rijksmuseum' },
   { key: 'vanGogh', query: 'Van Gogh' },
@@ -29,27 +25,14 @@ export const ART_IDEAS = [
 
 export default function ArtTab({ selection, onSelect, copying }: PickerTabProps) {
   const t = useTranslate('editor');
-  const [provider, setProvider] = useState<ArtProvider>('wikimedia');
   const [idea, setIdea] = useState<string | null>(ART_IDEAS[0].key);
   const [typed, setTyped] = useState('');
-  const [familyFriendly, setFamilyFriendly] = useState(false);
   const query = idea ? ART_IDEAS.find((i) => i.key === idea)!.query : typed;
-  const browse = usePickerBrowse({ kind: 'art', collection: provider, query, familyFriendly });
+  const browse = usePickerBrowse({ kind: 'art', collection: 'search', query });
 
   return (
     <div className="flex flex-1 min-h-0">
       <PickerSidebar footer={t('photoSources.art.picker.orSearch')}>
-        <div className="px-1 pt-1 pb-1">
-          <LabeledSelect
-            label={t('photoSources.art.provider')}
-            value={provider}
-            onChange={(next) => { setProvider(next); onSelect(null); }}
-            options={ART_PROVIDERS.map((value) => ({ value, label: t(`photoSources.art.providers.${value}`) }))}
-          />
-        </div>
-        <div className="px-1 pb-1" title={t('photoSources.art.familyFriendlyHint')}>
-          <Toggle label={t('photoSources.art.familyFriendly')} checked={familyFriendly} onChange={(next) => { setFamilyFriendly(next); onSelect(null); }} />
-        </div>
         <PickerGroup title={t('photoSources.picker.ideas')} />
         {ART_IDEAS.map((i) => (
           <PickerEntry

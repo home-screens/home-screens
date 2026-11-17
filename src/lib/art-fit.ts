@@ -2,7 +2,6 @@ import type { ArtFit, ArtOrientation } from '@/types/config';
 
 interface ArtFilters {
   orientation?: ArtOrientation;
-  minShortSide: number;
   /** Allowed aspect difference from the screen, as a fraction. */
   aspectTolerance?: number;
 }
@@ -17,7 +16,7 @@ const CONTAIN_BACKGROUND = '#0b0b0d';
 const aspectGap = (width: number, height: number, canvas: Canvas) => Math.abs(width / height - canvas.w / canvas.h) / (canvas.w / canvas.h);
 
 export function paintingFits({ width, height }: { width: number; height: number }, filters: ArtFilters, canvas: Canvas): boolean {
-  if (!(width > 0) || !(height > 0) || Math.min(width, height) < filters.minShortSide) return false;
+  if (!(width > 0) || !(height > 0)) return false;
   if (filters.orientation === 'portrait' && height <= width) return false;
   if (filters.orientation === 'landscape' && width <= height) return false;
   return filters.aspectTolerance === undefined || aspectGap(width, height, canvas) <= filters.aspectTolerance;

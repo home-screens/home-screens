@@ -6049,25 +6049,14 @@
       "apodUnavailable": "Ahora mismo la NASA no está enviando la imagen del día. Buscar en la biblioteca de la NASA sigue funcionando."
     },
     "art": {
-      "provider": "Colección",
-      "providers": {
-        "wikimedia": "Wikimedia (muchos museos)",
-        "aic": "Art Institute of Chicago",
-        "cleveland": "Cleveland Museum of Art"
-      },
       "artist": "Artista",
       "artistPlaceholder": "Claude Monet",
-      "style": "Estilo o movimiento",
-      "stylePlaceholder": "Impresionismo",
       "orientation": "Formato",
       "orientations": {
         "any": "Cualquiera",
         "portrait": "Vertical",
         "landscape": "Horizontal"
       },
-      "minSize": "Lado más corto (píxeles)",
-      "familyFriendly": "Apto para familias",
-      "familyFriendlyHint": "Mejor esfuerzo, sin garantía",
       "shape": "Parecido a la forma de la pantalla",
       "shapes": {
         "any": "Cualquier forma",
@@ -6086,12 +6075,6 @@
       "addFilter": "+ Añadir filtro",
       "filters": "Acotar",
       "removeFilter": "Quitar filtro: {filter}",
-      "museum": "Museo",
-      "anyMuseum": "Cualquier museo",
-      "museumsChosen": {
-        "one": "{count} museo elegido",
-        "other": "{count} museos elegidos"
-      },
       "period": "Época",
       "fromYear": "Desde el año",
       "toYear": "Hasta el año",
@@ -6099,34 +6082,23 @@
       "choose": "Elegir…",
       "genres": {
         "landscape": "Paisajes",
-        "portrait": "Retratos",
         "still-life": "Bodegones",
         "seascape": "Marinas",
-        "religious": "Religiosos",
-        "mythological": "Mitología",
-        "history": "Historia",
-        "genre-scene": "Escenas cotidianas",
-        "cityscape": "Vistas urbanas",
-        "nude": "Desnudos"
+        "cityscape": "Vistas urbanas"
       },
       "matchCount": {
         "one": "{count} pintura coincide",
         "other": "{count} pinturas coinciden"
       },
-      "matchCountAbout": {
-        "one": "unas {count} pintura coincide",
-        "other": "unas {count} pinturas coinciden"
-      },
-      "manyMatch": "Coinciden muchísimas pinturas (demasiadas para contarlas aquí)",
       "fewMatches": "Coinciden pocas pinturas, así que las mismas volverán a menudo. Prueba a relajar un filtro.",
       "picker": {
         "ideas": {
           "impressionism": "Impresionismo",
           "dutch": "Siglo de Oro neerlandés",
           "landscapes": "Paisajes",
-          "portraits": "Retratos",
           "stillLife": "Bodegones",
           "seascapes": "Marinas",
+          "cityscapes": "Vistas urbanas",
           "louvre": "Louvre",
           "rijksmuseum": "Rijksmuseum",
           "vanGogh": "Van Gogh"
@@ -6142,7 +6114,7 @@
         "matchItem": "{label} ({type})",
         "copyHint": "Pinturas de colecciones abiertas. Se guarda una copia en la carpeta art de tu biblioteca.",
         "creditHint": "{credit}. Se guarda una copia en la carpeta art de tu biblioteca.",
-        "empty": "No se han encontrado pinturas. Prueba con otras palabras u otra colección.",
+        "empty": "No se han encontrado pinturas. Prueba con otras palabras.",
         "loadFailed": "No se pudieron cargar las pinturas.",
         "unavailable": "La colección no envía pinturas ahora mismo. Inténtalo de nuevo un poco más tarde.",
         "orSearch": "O busca lo que quieras arriba"

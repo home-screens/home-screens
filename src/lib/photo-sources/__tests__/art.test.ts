@@ -9,16 +9,23 @@ vi.mock('@/lib/library-import', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/library-import')>();
   return { ...actual, importPictureToLibrary: vi.fn(async () => ({ path: 'art/x.jpg', reused: false })) };
 });
+vi.mock('../art-collection.json', () => ({
+  default: [
+    ['Q1', 'Wheat Field.jpg', 'Wheat Field', 'Vincent van Gogh', 1888, 'Van Gogh Museum', 4000, 3000, 'landscape'],
+    ['Q2', 'Harbour.jpg', 'Harbour at Dusk', 'Paul Cézanne', 1870, null, 2000, 3000, 'seascape'],
+    ['Q3', 'Apples.jpg', 'Apples', 'Paul Cézanne', null, 'Louvre Museum', 1500, 1200, 'still-life'],
+    ['Q4', 'Canal.jpg', 'Canal', 'Canaletto', 1730, 'National Gallery', 1600, 1000, 'cityscape'],
+  ],
+}));
 
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { importPictureToLibrary } from '@/lib/library-import';
 import { artCount, artPhotoSource, artPickableSource, isOpenLicense, __test } from '../art';
-import { PhotoSourceError } from '../types';
 import type { PhotoSource } from '@/types/config';
 
 const mockFetch = vi.mocked(fetchWithTimeout);
 type Art = Extract<PhotoSource, { kind: 'art' }>;
-const art = (over: Partial<Art> = {}): Art => ({ kind: 'art', provider: 'wikimedia', ...over });
+const art = (over: Partial<Art> = {}): Art => ({ kind: 'art', ...over });
 const CANVAS = { w: 1080, h: 1920 };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
 
@@ -47,10 +54,7 @@ const commons = (...files: Array<[string, string, number?, number?]>) => json({ 
   title: `File:${name}`, imageinfo: [{ width, height, extmetadata: { LicenseShortName: { value: license } } }],
 }])) } });
 const wikidata = (...rows: unknown[]) => json({ results: { bindings: rows } });
-const aicHit = (over: object = {}) => ({ id: 1, title: 'Water Lilies', artist_title: 'Claude Monet', date_display: '1906', image_id: '3c27b499-af56-f0d5-93b5-a7f2f1ad5813', thumbnail: { width: 800, height: 600 }, ...over });
-const clevelandHit = (id: number, over: object = {}) => ({
-  id, title: `Painting ${id}`, creation_date: '1880', creators: [], images: { web: { url: `https://openaccess-cdn.clevelandart.org/${id}.jpg`, width: '1200', height: '1600' } }, ...over,
-});
+const titles = async (source: Art) => (await artPhotoSource.list({ source, count: 10, media: 'photos' })).map((item) => item.credit?.name.split(',')[0]).sort();
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -66,217 +70,193 @@ describe('licences', () => {
   });
 });
 
-describe('wikimedia stream', () => {
-  const wire = (rows: unknown[], files: Array<[string, string, number?, number?]>) => upstream({
-    wbsearchentities: () => json({ search: [{ id: 'Q551652' }] }),
-    'query.wikidata.org': () => wikidata(...rows),
-    'commons.wikimedia.org/w/api.php': () => commons(...files),
-  });
+describe('the collection on a wall', () => {
+  it('lists paintings from the shipped collection with their credit, and asks nobody', async () => {
+    const items = await artPhotoSource.list({ source: art(), count: 10, media: 'photos' });
 
-  it('keeps only open licences and credits the ones that ask for it', async () => {
-    wire(
-      [row('Q1', 'Christ before Pilate', 'Pilate.jpg'), row('Q2', 'Locked', 'Locked.jpg'), row('Q3', 'Q3', 'NoLabel.jpg'), { ...row('Q4', 'Unattributed', 'Orphan.jpg'), creatorLabel: { value: 'http://www.wikidata.org/.well-known/genid/a' }, collectionLabel: { value: 'http://www.wikidata.org/.well-known/genid/b' } }],
-      [['Pilate.jpg', 'CC BY-SA 4.0'], ['Locked.jpg', 'CC BY-NC 4.0'], ['NoLabel.jpg', 'Public domain'], ['Orphan.jpg', 'Public domain']],
-    );
-    const items = await artPhotoSource.list({ source: art({ artist: 'Munkácsy' }), count: 10, media: 'photos' });
-
-    expect(items).toHaveLength(2);
+    expect(items).toHaveLength(4);
     expect(items).toEqual(expect.arrayContaining([{
-      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Pilate.jpg?width=1920',
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Wheat%20Field.jpg?width=1920',
       type: 'image',
-      credit: { name: 'Christ before Pilate, Mihály Munkácsy, 1869', source: 'Louvre Museum, CC BY-SA 4.0' },
+      credit: { name: 'Wheat Field, Vincent van Gogh, 1888', source: 'Van Gogh Museum' },
     }, {
-      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Orphan.jpg?width=1920',
+      // No museum on record, and narrower than the screen asks for: credited to Commons and asked for at its own width.
+      url: 'https://commons.wikimedia.org/wiki/Special:FilePath/Apples.jpg?width=1500',
       type: 'image',
-      credit: { name: 'Unattributed, 1869', source: 'Wikimedia Commons' },
+      credit: { name: 'Apples, Paul Cézanne', source: 'Louvre Museum' },
     }]));
-    expect(sparqls()[0]).toContain('wdt:P170 wd:Q551652');
-    expect(sparqls()[0]).not.toContain('wikibase:sitelinks');
+    expect(items.find((item) => item.url.includes('Harbour'))?.credit).toEqual({ name: 'Harbour at Dusk, Paul Cézanne, 1870', source: 'Wikimedia Commons' });
+    expect(await artPhotoSource.list({ source: art(), count: 2, media: 'photos' })).toHaveLength(2);
+    expect(await artPhotoSource.list({ source: art(), count: 10, media: 'videos' })).toEqual([]);
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it('builds the museum, period, genre and style clauses, and limits an unfiltered ask to well-known paintings', async () => {
-    wire([], []);
-    await artPhotoSource.list({ source: art({ museums: ['Q19675', 'Q160236'], fromYear: 1800, toYear: 1900, genre: 'portrait', style: 'Realism' }), count: 5, media: 'photos' });
-    await artPhotoSource.list({ source: art(), count: 5, media: 'photos' });
-    const [filtered, unfiltered] = sparqls();
-    expect(filtered).toContain('{ ?item wdt:P195/wdt:P361* wd:Q19675 } UNION { ?item wdt:P195/wdt:P361* wd:Q160236 }');
-    expect(filtered).toContain('YEAR(?date) >= 1800 && YEAR(?date) <= 1900');
-    expect(filtered).toContain('wdt:P136 wd:Q134307');
-    expect(filtered).toContain('wdt:P135 wd:Q551652 } UNION { ?item wdt:P136 wd:Q551652');
-    expect(unfiltered).toContain('wikibase:sitelinks');
+  it('narrows by subject, by part of an artist\'s name without accents, by period and by tall or wide', async () => {
+    expect(await titles(art({ genre: 'cityscape' }))).toEqual(['Canal']);
+    expect(await titles(art({ artist: ' cezanne ' }))).toEqual(['Apples', 'Harbour at Dusk']);
+    // A painting with no year on record is left out once a period is asked for.
+    expect(await titles(art({ fromYear: 1800 }))).toEqual(['Harbour at Dusk', 'Wheat Field']);
+    expect(await titles(art({ fromYear: 1700, toYear: 1880 }))).toEqual(['Canal', 'Harbour at Dusk']);
+    expect(await titles(art({ orientation: 'portrait' }))).toEqual(['Harbour at Dusk']);
+    expect(await titles(art({ artist: 'Rembrandt' }))).toEqual([]);
   });
 
-  it('applies size and shape from Commons pixel sizes, and never asks for more than the file has', async () => {
-    wire([row('Q1', 'Wide', 'Wide.jpg'), row('Q2', 'Tall', 'Tall.jpg'), row('Q3', 'Small', 'Small.jpg')], [['Wide.jpg', 'CC0', 3000, 2000], ['Tall.jpg', 'CC0', 1500, 2400], ['Small.jpg', 'CC0', 500, 700]]);
-    const items = await artPhotoSource.list({ source: art({ orientation: 'portrait' }), count: 10, media: 'photos' });
-    expect(items.map((i) => i.url)).toEqual(['https://commons.wikimedia.org/wiki/Special:FilePath/Tall.jpg?width=1500']);
-  });
-
-  it('answers nothing for an artist Wikidata does not know, and asks again from the start when a jumped-to page is empty', async () => {
-    upstream({ wbsearchentities: () => json({ search: [] }) });
-    expect(await artPhotoSource.list({ source: art({ artist: 'Nobody' }), count: 5, media: 'photos' })).toEqual([]);
-
-    vi.mocked(Math.random).mockReturnValue(0.5);
-    upstream({ 'OFFSET 0': () => wikidata(row('Q1', 'One', 'One.jpg')), 'OFFSET': () => wikidata(), 'commons.wikimedia.org/w/api.php': () => commons(['One.jpg', 'CC0']) });
-    expect(await artPhotoSource.list({ source: art({ genre: 'seascape' }), count: 5, media: 'photos' })).toHaveLength(1);
-  });
-
-  it('says so when Wikidata is away', async () => {
-    upstream({ 'query.wikidata.org': () => new Response('', { status: 503 }) });
-    await expect(artPhotoSource.list({ source: art(), count: 5, media: 'photos' })).rejects.toMatchObject({ status: 503, body: { error: 'art-unavailable' } });
-  });
-});
-
-describe('museum collections', () => {
-  it('posts the Art Institute filters as one query and skips hits without a usable image', async () => {
-    let body: { query: { bool: { must: unknown[] } } } | undefined;
-    upstream({ 'artworks/search': (_url, init) => {
-      body = JSON.parse(String(init?.body));
-      return json({ data: [aicHit(), aicHit({ id: 2, image_id: 'not-a-uuid' })] });
-    } });
-
-    const items = await artPhotoSource.list({ source: art({ provider: 'aic', artist: 'Monet', fromYear: 1870, toYear: 1900, genre: 'landscape' }), count: 5, media: 'photos' });
-
-    const text = JSON.stringify(body!.query.bool.must);
-    for (const part of ['"is_public_domain":true', '"artwork_type_title":"Painting"', '"artist_title":"Monet"', '"date_end":{"gte":1870}', '"date_start":{"lte":1900}', '"subject_titles":"landscape"']) expect(text).toContain(part);
-    expect(items).toEqual([{ url: 'https://www.artic.edu/iiif/2/3c27b499-af56-f0d5-93b5-a7f2f1ad5813/full/1686,/0/default.jpg', type: 'image', credit: { name: 'Water Lilies, Claude Monet, 1906', source: 'Art Institute of Chicago' } }]);
-  });
-
-  it('asks Cleveland for CC0 paintings with the filters as search words, preferring the print copy when the web copy is too small', async () => {
-    const small = clevelandHit(7, { images: { web: { url: 'https://openaccess-cdn.clevelandart.org/w.jpg', width: '400', height: '500' }, print: { url: 'https://openaccess-cdn.clevelandart.org/p.jpg', width: '3000', height: '4000' } } });
-    upstream({ 'openaccess-api': () => json({ data: [small, clevelandHit(8, { images: { web: { url: 'https://elsewhere.example/x.jpg', width: '900', height: '900' } } })] }) });
-
-    const items = await artPhotoSource.list({ source: art({ provider: 'cleveland', style: 'Impressionism', genre: 'still-life', fromYear: 1860 }), count: 5, media: 'photos' });
-
-    const params = new URL(lastUrl()).searchParams;
-    expect([params.get('cc0'), params.get('type'), params.get('q'), params.get('created_after')]).toEqual(['1', 'Painting', 'Impressionism still life', '1860']);
-    expect(items.map((i) => i.url)).toEqual(['https://openaccess-cdn.clevelandart.org/p.jpg']);
-  });
-});
-
-describe('family friendly', () => {
-  it('keeps nude-tagged Wikidata paintings, nude subjects out of the Art Institute, and nude titles out of every list', async () => {
-    upstream({
-      'query.wikidata.org': () => wikidata(row('Q1', 'Evening Bathers', 'B.jpg'), row('Q2', 'Haystacks', 'H.jpg'), { ...row('Q3', 'Quiet Pool', 'Q.jpg'), nude: { value: 'http://www.wikidata.org/entity/Q40446' } }),
-      'commons.wikimedia.org/w/api.php': () => commons(['B.jpg', 'Public domain'], ['H.jpg', 'Public domain'], ['Q.jpg', 'Public domain']),
-    });
-    const items = await artPhotoSource.list({ source: art({ familyFriendly: true }), count: 5, media: 'photos' });
-    expect(items.map((i) => i.credit?.name)).toEqual(['Haystacks, Mihály Munkácsy, 1869']);
-    expect(sparqls()[0]).toContain('?item wdt:P136|wdt:P180 ?nude . VALUES ?nude { wd:Q40446 wd:Q10791 wd:Q1168168 }');
-
-    let body = '';
-    upstream({ 'artworks/search': (_url, init) => { body = String(init?.body); return json({ data: [aicHit({ title: 'Nude Study' })] }); } });
-    expect(await artPhotoSource.list({ source: art({ provider: 'aic', familyFriendly: true }), count: 5, media: 'photos' })).toEqual([]);
-    expect(body).toContain('"must_not":[{"match_phrase":{"subject_titles":"nudes"}}');
+  it('counts the matches exactly', () => {
+    expect(artCount(art())).toEqual({ count: 4 });
+    expect(artCount(art({ artist: 'Cézanne', genre: 'still-life' }))).toEqual({ count: 1 });
+    expect(artCount(art({ genre: 'seascape', orientation: 'landscape' }))).toEqual({ count: 0 });
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });
 
 describe('background picks', () => {
-  const body = () => sharp({ create: { width: 160, height: 100, channels: 3, background: '#2060c0' } }).jpeg().toBuffer();
-  const wire = async () => {
-    const image = await body();
-    upstream({ 'openaccess-api': () => json({ data: [clevelandHit(5, { images: { web: { url: 'https://openaccess-cdn.clevelandart.org/w.jpg', width: '1600', height: '1000' } } })] }), 'openaccess-cdn': () => new Response(new Uint8Array(image), { headers: { 'content-type': 'image/jpeg' } }) });
-  };
   const open = async (fit?: Art['fit']) => {
-    const picked = await artPhotoSource.pickOne({ source: art({ provider: 'cleveland', minShortSide: 100, fit }), canvas: { w: 108, h: 192 } });
+    const image = await sharp({ create: { width: 160, height: 100, channels: 3, background: '#2060c0' } }).jpeg().toBuffer();
+    upstream({ 'Special:FilePath': () => new Response(new Uint8Array(image), { headers: { 'content-type': 'image/jpeg' } }) });
+    const picked = await artPhotoSource.pickOne({ source: art({ genre: 'cityscape', fit }), canvas: { w: 108, h: 192 } });
     const res = await (picked as { open: () => Promise<Response> }).open();
     const meta = await sharp(Buffer.from(await res.arrayBuffer())).metadata();
     return { id: (picked as { id: string }).id, size: [meta.width, meta.height] };
   };
 
   it('hands cover the painting itself and shapes matte and contain to the canvas', async () => {
-    await wire();
     expect((await open('cover')).size).toEqual([160, 100]);
     expect((await open('contain')).size).toEqual([108, 192]);
-    expect(await open()).toEqual({ id: 'cleveland-5-matte-108x192', size: [108, 192] });
+    expect(await open()).toEqual({ id: 'Q4-matte-108x192', size: [108, 192] });
   });
 
-  it('avoids the painting showing now, and answers null when nothing passes the filters', async () => {
-    upstream({ 'openaccess-api': () => json({ data: [clevelandHit(1), clevelandHit(2)] }) });
-    const picked = await artPhotoSource.pickOne({ source: art({ provider: 'cleveland' }), canvas: CANVAS, previous: 'rotation-art-cleveland-1-matte-1080x1920.jpg' });
-    expect(picked).toMatchObject({ id: expect.stringContaining('cleveland-2-') });
-
-    upstream({ 'openaccess-api': () => json({ data: [] }) });
-    __test.cache.clear();
-    expect(await artPhotoSource.pickOne({ source: art({ provider: 'cleveland' }), canvas: CANVAS })).toBeNull();
-  });
-});
-
-describe('counts', () => {
-  it('reads the museums\' own totals as exact', async () => {
-    upstream({ 'artworks/search': () => json({ data: [], pagination: { total: 123 } }), 'openaccess-api': () => json({ data: [], info: { total: 45 } }) });
-    expect(await artCount(art({ provider: 'aic' }))).toEqual({ count: 123, approximate: false });
-    expect(await artCount(art({ provider: 'cleveland' }))).toEqual({ count: 45, approximate: false });
+  it('asks Commons for the next ready width up from what the screen needs, never more than the painting has', async () => {
+    const image = await sharp({ create: { width: 160, height: 100, channels: 3, background: '#2060c0' } }).jpeg().toBuffer();
+    upstream({ 'Special:FilePath': () => new Response(new Uint8Array(image), { headers: { 'content-type': 'image/jpeg' } }) });
+    const ask = async (source: Art, canvas = CANVAS) => {
+      await ((await artPhotoSource.pickOne({ source, canvas })) as { open: () => Promise<Response> }).open();
+      return new URL(lastUrl()).searchParams.get('width');
+    };
+    // Whole painting inside 1080x1920: 1080 wide, so 1280 is the next width Commons keeps.
+    expect(await ask(art({ genre: 'landscape' }))).toBe('1280');
+    // Cover on a tall screen needs 1920 x (4000/3000) = 2560 across.
+    expect(await ask(art({ genre: 'landscape', fit: 'cover' }))).toBe('3840');
+    // The canal is only 1600 wide.
+    expect(await ask(art({ genre: 'cityscape', fit: 'cover' }))).toBe('1600');
   });
 
-  it('counts Wikidata approximately, and calls a timeout unknown without asking again at once', async () => {
-    upstream({ 'COUNT(DISTINCT': () => wikidata({ n: { value: '812' } }) });
-    expect(await artCount(art())).toEqual({ count: 812, approximate: true });
+  it('avoids the painting showing now, keeps to the screen\'s shape when asked, and answers null when nothing matches', async () => {
+    const picked = await artPhotoSource.pickOne({ source: art({ artist: 'Cézanne' }), canvas: CANVAS, previous: 'rotation-art-Q2-matte-1080x1920.jpg' });
+    expect(picked).toMatchObject({ id: 'Q3-matte-1080x1920', credit: { name: 'Apples, Paul Cézanne', source: 'Louvre Museum' } });
 
-    __test.cache.clear();
-    upstream({ 'COUNT(DISTINCT': () => { throw new Error('timeout'); } });
-    expect(await artCount(art({ genre: 'nude' }))).toEqual({ count: null, approximate: true });
-    await artCount(art({ genre: 'nude' }));
-    expect(sparqls()).toHaveLength(2);
+    // Only the harbour (2000x3000) is near a 1080x1920 screen's shape.
+    expect(await artPhotoSource.pickOne({ source: art({ aspectTolerance: 0.25 }), canvas: CANVAS })).toMatchObject({ id: 'Q2-matte-1080x1920' });
+    // On a wide screen only the canal (1600x1000) is close.
+    expect(await artPhotoSource.pickOne({ source: art({ aspectTolerance: 0.15 }), canvas: { w: 1920, h: 1080 } })).toMatchObject({ id: 'Q4-matte-1920x1080' });
+    expect(await artPhotoSource.pickOne({ source: art({ artist: 'Rembrandt' }), canvas: CANVAS })).toBeNull();
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 });
 
 describe('picker search', () => {
   const entities = (...pairs: Array<[string, string]>) => json({ results: { bindings: pairs.map(([id, role]) => ({ e: { value: `http://www.wikidata.org/entity/${id}` }, role: { value: role } })) } });
+  /** The answer to "which of these carry a tag that keeps them out". */
+  const flagged = (...ids: string[]) => wikidata(...ids.map((id) => ({ item: { value: `http://www.wikidata.org/entity/${id}` } })));
+  const SAFE = '?item wdt:P136 ?safe . VALUES ?safe { wd:Q191163 wd:Q158607 wd:Q1935974 wd:Q170571 }';
 
-  it('reads the keyword as the museum and artist it names, in one query, and drops licence-blocked paintings', async () => {
+  it('reads the keyword as the museum and artist it names, in one query held to the safe subjects', async () => {
     upstream({
       wbsearchentities: () => json({ search: [{ id: 'Q19675', label: 'Louvre Museum' }, { id: 'Q1461794', label: 'Louvre - Rivoli' }, { id: 'Q551652', label: 'Mihály Munkácsy' }] }),
       'SELECT ?e ?role': () => entities(['Q19675', 'museum'], ['Q551652', 'artist']),
-      'LIMIT 60': () => wikidata(row('Q1', 'Christ before Pilate', 'Pilate.jpg'), row('Q2', 'Locked', 'Locked.jpg')),
-      'commons.wikimedia.org/w/api.php': () => commons(['Pilate.jpg', 'CC BY-SA 4.0'], ['Locked.jpg', 'CC BY-NC 4.0']),
+      'VALUES ?flag': () => flagged(),
+      'LIMIT 60': () => wikidata(row('Q1', 'Dusty Road', 'Road.jpg'), row('Q2', 'Locked', 'Locked.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Road.jpg', 'CC BY-SA 4.0'], ['Locked.jpg', 'CC BY-NC 4.0']),
     });
 
-    const page = await artPickableSource.browse({ collection: 'wikimedia', page: 1, query: 'Louvre Munkácsy' });
+    const page = await artPickableSource.browse({ collection: 'search', page: 1, query: 'Louvre Munkácsy' });
 
     expect(page.matched).toEqual([{ type: 'museum', label: 'Louvre Museum' }, { type: 'artist', label: 'Mihály Munkácsy' }]);
-    expect(page.items).toMatchObject([{ ref: 'wikimedia:Q1', label: 'Christ before Pilate', credit: { name: 'Mihály Munkácsy' }, secondary: '1869, Louvre Museum, CC BY-SA 4.0' }]);
+    expect(page.items).toEqual([{
+      ref: 'Q1', label: 'Dusty Road', credit: { name: 'Mihály Munkácsy' }, secondary: '1869, Louvre Museum, CC BY-SA 4.0',
+      thumbUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Road.jpg?width=500',
+    }]);
     const paintings = sparqls().find((q) => q.includes('LIMIT 60'))!;
-    expect(paintings).toContain('{ ?item wdt:P195/wdt:P361* wd:Q19675 } UNION { ?item wdt:P170 wd:Q551652 }');
+    // The page is cut inside, before titles and artists are looked up.
+    expect(paintings).toContain(`{ SELECT DISTINCT ?item ?image WHERE { ?item wdt:P31 wd:Q3305213 ; wdt:P18 ?image . ${SAFE} { ?item wdt:P195/wdt:P361* wd:Q19675 } UNION { ?item wdt:P170 wd:Q551652 } } LIMIT 60 OFFSET 0 }`);
   });
 
-  it('pages by Wikidata rows: a full page has a next one and page 2 starts after the first', async () => {
+  it('drops a painting tagged as bare skin or an unsafe subject, and one named like it', async () => {
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q19675', label: 'Louvre Museum' }] }),
+      'SELECT ?e ?role': () => entities(['Q19675', 'museum']),
+      'VALUES ?flag': () => flagged('Q1'),
+      'LIMIT 60': () => wikidata(row('Q1', 'Quiet Pool', 'Pool.jpg'), row('Q2', 'Landscape with Bathers', 'Bathers.jpg'), row('Q3', 'Haystacks', 'Hay.jpg'), row('Q4', 'Q4', 'NoLabel.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Pool.jpg', 'Public domain'], ['Bathers.jpg', 'Public domain'], ['Hay.jpg', 'Public domain'], ['NoLabel.jpg', 'Public domain']),
+    });
+
+    const page = await artPickableSource.browse({ collection: 'search', page: 1, query: 'louvre' });
+
+    expect(page.items.map((item) => item.label)).toEqual(['Haystacks']);
+    const asked = sparqls().find((q) => q.includes('VALUES ?flag'))!;
+    expect(asked).toContain('VALUES ?item { wd:Q1 wd:Q2 wd:Q3 wd:Q4 }');
+    expect(asked).toContain('?item wdt:P136|wdt:P180 ?flag');
+    // Nude and nudity, and mythological, religious and history painting.
+    for (const tag of ['Q40446', 'Q10791', 'Q3374376', 'Q2864737', 'Q742333']) expect(asked).toContain(`wd:${tag}`);
+  });
+
+  it('pages by painting: a full page has a next one and page 2 starts after the first', async () => {
     const rows = Array.from({ length: 60 }, (_, i) => row(`Q${i + 1}`, `P${i + 1}`, `P${i + 1}.jpg`));
     upstream({
       wbsearchentities: () => json({ search: [{ id: 'Q19675', label: 'Louvre Museum' }] }),
       'SELECT ?e ?role': () => entities(['Q19675', 'museum']),
+      'VALUES ?flag': () => flagged(),
       'LIMIT 60': () => wikidata(...rows),
       'commons.wikimedia.org/w/api.php': () => commons(),
     });
-    expect((await artPickableSource.browse({ collection: 'wikimedia', page: 1, query: 'louvre' })).nextPage).toBe(2);
-    await artPickableSource.browse({ collection: 'wikimedia', page: 2, query: 'louvre' });
-    expect(sparqls().at(-1)).toContain('OFFSET 60');
+    expect((await artPickableSource.browse({ collection: 'search', page: 1, query: 'louvre' })).nextPage).toBe(2);
+    await artPickableSource.browse({ collection: 'search', page: 2, query: 'louvre' });
+    expect(sparqls().some((q) => q.includes('LIMIT 60 OFFSET 60'))).toBe(true);
   });
 
-  it('falls back to the paintings\' titles when the words name no museum, artist, movement or subject', async () => {
+  it('falls back to a text search of safe-subject paintings when the words name no museum, artist, movement or subject', async () => {
     upstream({
       wbsearchentities: () => json({ search: [{ id: 'Q5', label: 'Human' }] }),
       'SELECT ?e ?role': () => entities(),
+      'VALUES ?flag': () => flagged(),
       'mwapi:gsrsearch': () => wikidata(row('Q9', 'Sunset', 'Sunset.jpg')),
       'commons.wikimedia.org/w/api.php': () => commons(['Sunset.jpg', 'CC0']),
     });
-    const page = await artPickableSource.browse({ collection: 'wikimedia', page: 1, query: 'sunset "quoted"' });
-    expect(page).toMatchObject({ matched: [], nextPage: null, items: [{ ref: 'wikimedia:Q9' }] });
-    expect(sparqls().at(-1)).toContain('gsrsearch "sunset quoted haswbstatement:P31=Q3305213"');
+    const page = await artPickableSource.browse({ collection: 'search', page: 1, query: 'sunset "quoted"' });
+    expect(page).toMatchObject({ matched: [], nextPage: null, items: [{ ref: 'Q9', secondary: '1869, Louvre Museum' }] });
+    const search = sparqls().find((q) => q.includes('mwapi:gsrsearch'))!;
+    expect(search).toContain('gsrsearch "sunset quoted haswbstatement:P31=Q3305213 haswbstatement:P136=Q191163|P136=Q158607|P136=Q1935974|P136=Q170571"');
+    expect(search).toContain(SAFE);
   });
 
-  it('pages the Art Institute and Cleveland by their own totals', async () => {
-    upstream({ 'artworks/search': () => json({ data: [aicHit()], pagination: { total_pages: 2 } }), 'openaccess-api': () => json({ data: [clevelandHit(1)], info: { total: 45 } }) });
-    expect(await artPickableSource.browse({ collection: 'aic', page: 2, query: 'monet' })).toMatchObject({ nextPage: null, items: [{ ref: 'aic:1' }] });
-    expect(await artPickableSource.browse({ collection: 'cleveland', page: 1, query: 'monet' })).toMatchObject({ nextPage: 2, items: [{ ref: 'cleveland:1' }] });
-    expect(new URL(lastUrl()).searchParams.get('skip')).toBe('0');
+  it('searches a subject outside the safe four as text instead of following it', async () => {
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q134307', label: 'portrait' }, { id: 'Q191163', label: 'landscape painting' }] }),
+      'SELECT ?e ?role': () => entities(['Q134307', 'genre'], ['Q191163', 'genre']),
+      'VALUES ?flag': () => flagged(),
+      'LIMIT 60': () => wikidata(row('Q9', 'Valley', 'Valley.jpg')),
+      'mwapi:gsrsearch': () => wikidata(),
+      'commons.wikimedia.org/w/api.php': () => commons(['Valley.jpg', 'CC0']),
+    });
+    const page = await artPickableSource.browse({ collection: 'search', page: 1, query: 'portrait landscape' });
+    expect(page.matched).toEqual([{ type: 'genre', label: 'landscape painting' }]);
+    expect(sparqls().find((q) => q.includes('LIMIT 60'))).not.toContain('Q134307');
+
+    __test.cache.clear();
+    mockFetch.mockClear();
+    upstream({
+      wbsearchentities: () => json({ search: [{ id: 'Q134307', label: 'portrait' }] }),
+      'SELECT ?e ?role': () => entities(['Q134307', 'genre']),
+      'mwapi:gsrsearch': () => wikidata(),
+    });
+    expect(await artPickableSource.browse({ collection: 'search', page: 1, query: 'portrait' })).toEqual({ items: [], nextPage: null, matched: [] });
+    expect(sparqls().some((q) => q.includes('LIMIT 60'))).toBe(false);
   });
 
-  it('asks nobody for empty words, and explains a museum that does not answer', async () => {
-    expect(await artPickableSource.browse({ collection: 'aic', page: 1, query: ' ' })).toEqual({ items: [], nextPage: null });
+  it('asks nobody for empty words, and explains Wikidata not answering', async () => {
+    expect(await artPickableSource.browse({ collection: 'search', page: 1, query: ' ' })).toEqual({ items: [], nextPage: null });
     expect(mockFetch).not.toHaveBeenCalled();
     mockFetch.mockRejectedValue(new Error('timeout'));
-    await expect(artPickableSource.browse({ collection: 'cleveland', page: 1, query: 'monet' })).rejects.toMatchObject({ status: 503, body: { error: 'art-unavailable' } });
+    await expect(artPickableSource.browse({ collection: 'search', page: 1, query: 'monet' })).rejects.toMatchObject({ status: 503, body: { error: 'art-unavailable' } });
   });
 });
 
@@ -285,27 +265,30 @@ describe('import', () => {
 
   it('copies an open-licence painting named after its title and artist, at library size', async () => {
     upstream({
-      'query.wikidata.org': () => wikidata(row('Q1', 'Christ before Pilate', 'Pilate.jpg')),
-      'commons.wikimedia.org/w/api.php': () => commons(['Pilate.jpg', 'Public domain']),
+      'VALUES ?flag': () => wikidata(),
+      'query.wikidata.org': () => wikidata(row('Q1', 'Dusty Road', 'Road.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Road.jpg', 'Public domain', 6000, 4000]),
       'Special:FilePath': () => new Response('img'),
     });
-    await artPickableSource.importOne({ ref: 'wikimedia:Q1', folder: 'art' });
-    expect(vi.mocked(importPictureToLibrary).mock.calls[0][0]).toMatchObject({ kind: 'art', id: 'wikimedia:Q1', folder: 'art' });
-    expect(await open()).toMatchObject({ title: 'Christ before Pilate Mihály Munkácsy' });
-    expect(lastUrl()).toContain('Special:FilePath/Pilate.jpg?width=2560');
+    await artPickableSource.importOne({ ref: 'Q1', folder: 'art' });
+    expect(vi.mocked(importPictureToLibrary).mock.calls[0][0]).toMatchObject({ kind: 'art', id: 'Q1', folder: 'art' });
+    expect(await open()).toMatchObject({ title: 'Dusty Road Mihály Munkácsy' });
+    expect(lastUrl()).toContain('Special:FilePath/Road.jpg?width=3840');
+    expect(sparqls()[0]).toContain('VALUES ?item { wd:Q1 }');
   });
 
-  it('re-checks the licence and refuses what is not open on every provider', async () => {
-    upstream({ 'query.wikidata.org': () => wikidata(row('Q2', 'Locked', 'Locked.jpg')), 'commons.wikimedia.org/w/api.php': () => commons(['Locked.jpg', 'CC BY-NC 4.0']) });
-    await artPickableSource.importOne({ ref: 'wikimedia:Q2', folder: 'art' });
+  it('re-checks the licence and the tags, and refuses what does not pass', async () => {
+    upstream({ 'VALUES ?flag': () => wikidata(), 'query.wikidata.org': () => wikidata(row('Q2', 'Locked', 'Locked.jpg')), 'commons.wikimedia.org/w/api.php': () => commons(['Locked.jpg', 'CC BY-NC 4.0']) });
+    await artPickableSource.importOne({ ref: 'Q2', folder: 'art' });
     expect(await open().catch((e) => e)).toMatchObject({ status: 404 });
 
-    upstream({ 'artworks/1?': () => json({ data: { ...aicHit(), is_public_domain: false, artwork_type_title: 'Painting' } }) });
-    await artPickableSource.importOne({ ref: 'aic:1', folder: 'art' });
-    expect(await open().catch((e) => e)).toBeInstanceOf(PhotoSourceError);
-
-    upstream({ 'artworks/9?': () => json({ data: { ...clevelandHit(9), type: 'Painting', share_license_status: 'Copyrighted' } }) });
-    await artPickableSource.importOne({ ref: 'cleveland:9', folder: 'art' });
+    __test.cache.clear();
+    upstream({
+      'VALUES ?flag': () => wikidata({ item: { value: 'http://www.wikidata.org/entity/Q3' } }),
+      'query.wikidata.org': () => wikidata(row('Q3', 'Quiet Pool', 'Pool.jpg')),
+      'commons.wikimedia.org/w/api.php': () => commons(['Pool.jpg', 'Public domain']),
+    });
+    await artPickableSource.importOne({ ref: 'Q3', folder: 'art' });
     expect(await open().catch((e) => e)).toMatchObject({ status: 404 });
   });
 });
