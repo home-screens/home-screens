@@ -93,10 +93,10 @@ test.describe('the Image Library from a screen background', () => {
   test('every source is a tab, the built-in backgrounds first', async ({ page, request }) => {
     const handle = await stubModuleData(page, { blockExternal: true });
     const library = await openBackgroundPicker(page, request);
-    await expect(library.getByRole('tab')).toHaveText(['Built-in', 'Local', 'Immich', 'Unsplash', 'NASA']);
+    await expect(library.getByRole('tab')).toHaveText(['Built-in', 'Local', 'Immich', 'Unsplash', 'NASA', 'Art']);
     await expect(library.getByTestId('picker-tab-builtin')).toHaveAttribute('aria-selected', 'true');
     // Every key is seeded, so nothing is locked.
-    for (const id of ['immich', 'unsplash', 'nasa']) {
+    for (const id of ['immich', 'unsplash', 'nasa', 'art']) {
       await expect(library.getByTestId(`picker-tab-${id}`)).not.toHaveAttribute('title', /./);
     }
     expect(handle.externalHits).toEqual([]);
@@ -239,6 +239,40 @@ test.describe('the Image Library from a screen background', () => {
       await library.getByTestId('picker-confirm').click();
     });
     expect(imports).toEqual([{ kind: 'nasa', ref: 'image:PIA1' }]);
+    expect((await getConfig(request)).screens[0].backgroundImage).toBe(SAVED);
+    expect(handle.externalHits).toEqual([]);
+  });
+
+  test('Art: ideas and a search browse paintings, the match shows, and a pick persists', async ({ page, request }) => {
+    const handle = await stubModuleData(page, { blockExternal: true });
+    const SAVED = '/api/backgrounds/serve?file=art%2Fart-Q1.jpg';
+    const asked: string[] = [];
+    const imports = await stubPicker(page, SAVED, (url) => {
+      asked.push(`${url.searchParams.get('collection')}:${url.searchParams.get('query') ?? ''}`);
+      return {
+        items: [{ ref: 'Q1', thumbUrl: TINY_PNG, label: 'Dusty Road', secondary: '1874, Hungarian National Gallery', credit: { name: 'Mihály Munkácsy' } }],
+        nextPage: null,
+        matched: [{ type: 'artist', label: 'Mihály Munkácsy' }],
+      };
+    });
+
+    const library = await openBackgroundPicker(page, request);
+    await library.getByTestId('picker-tab-art').click();
+    await expect(library.locator('[data-ref="Q1"]')).toBeVisible();
+    expect(asked[0]).toBe('search:Impressionism');
+    await library.getByTestId('art-idea-cityscapes').click();
+    await expect.poll(() => asked.at(-1)).toBe('search:cityscape');
+    await library.getByTestId('picker-search').fill('Munkácsy');
+    await library.getByRole('button', { name: 'Search', exact: true }).click();
+    await expect.poll(() => asked.at(-1)).toBe('search:Munkácsy');
+    await expect(library.getByTestId('art-matched')).toHaveText('Matched: Mihály Munkácsy (artist)');
+
+    await library.locator('[data-ref="Q1"]').click();
+    await expect(library.getByTestId('picker-hint')).toHaveText("Dusty Road, Mihály Munkácsy, 1874, Hungarian National Gallery. A copy goes into your library's art folder.");
+    await autosaved(page, async () => {
+      await library.getByTestId('picker-confirm').click();
+    });
+    expect(imports).toEqual([{ kind: 'art', ref: 'Q1' }]);
     expect((await getConfig(request)).screens[0].backgroundImage).toBe(SAVED);
     expect(handle.externalHits).toEqual([]);
   });

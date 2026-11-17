@@ -1086,7 +1086,7 @@ test('image: the Image Library offers every source as a tab', async ({ page, req
   await page.getByRole('button', { name: 'Browse Library...' }).click();
   const library = page.getByRole('dialog', { name: 'Image Library' });
   // No built-in pictures for an Image module, so the library's own tab leads.
-  await expect(library.getByRole('tab')).toHaveText(['Local', 'Immich', 'Unsplash', 'NASA']);
+  await expect(library.getByRole('tab')).toHaveText(['Local', 'Immich', 'Unsplash', 'NASA', 'Art']);
   await expect(library.getByTestId('picker-tab-library')).toHaveAttribute('aria-selected', 'true');
   await expect(library.getByTestId('picker-confirm')).toBeDisabled();
 });
@@ -1150,6 +1150,7 @@ test('photo-slideshow: every source is listed, and one without its key says so',
     'OneDrive (needs setting up)',
     'Unsplash (needs a free key)',
     'NASA picture of the day',
+    'Paintings from museums',
   ]);
   // A library folder plays all of itself, so it has no per-refresh count.
   await expect(page.getByRole('slider', { name: 'Photos per Refresh' })).toHaveCount(0);

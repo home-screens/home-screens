@@ -1,4 +1,4 @@
-import type { BackgroundRotation, PhotoSource, SlideshowMediaTypes } from '@/types/config';
+import type { ArtFit, ArtFrame, ArtGenre, ArtLabel, ArtMat, ArtOrientation, ArtWall, BackgroundRotation, PhotoSource, SlideshowMediaTypes } from '@/types/config';
 import type { SecretKey } from '@/lib/secrets';
 import { isOneDriveItemId } from '@/lib/onedrive-shared';
 import { parseICloudAlbumToken, parseICloudSharedAlbumUrl } from '@/lib/icloud-parse';
@@ -22,7 +22,7 @@ export type PhotoSourceOf<K extends PhotoSourceKind> = Extract<PhotoSource, { ki
 export const PHOTO_SOURCE_MEDIA_PATH = '/api/photo-source/media';
 
 /** Every kind, in the order the editor lists them. */
-export const PHOTO_SOURCE_KINDS: readonly PhotoSourceKind[] = ['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa'];
+export const PHOTO_SOURCE_KINDS: readonly PhotoSourceKind[] = ['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa', 'art'];
 
 export function isPhotoSourceKind(value: unknown): value is PhotoSourceKind {
   return typeof value === 'string' && (PHOTO_SOURCE_KINDS as readonly string[]).includes(value);
@@ -53,6 +53,7 @@ const NEEDS: Record<PhotoSourceKind, PhotoSourceNeeds> = {
   onedrive: { secrets: ['microsoft_client_id'], signIn: true, pickWithoutSecrets: false },
   unsplash: { secrets: ['unsplash_access_key'], signIn: false, pickWithoutSecrets: false },
   nasa: { secrets: [], signIn: false, pickWithoutSecrets: true },
+  art: { secrets: [], signIn: false, pickWithoutSecrets: true },
 };
 
 /** What a kind needs before it can show anything. */
@@ -83,7 +84,7 @@ export function usesCount(kind: PhotoSourceKind): boolean {
  * the walls that come with Home Screens, which are no good as a slideshow.
  */
 export function offeredFor(use: PhotoSourceUse): readonly PhotoSourceKind[] {
-  if (use === 'pick') return ['library', 'immich', 'unsplash', 'nasa'];
+  if (use === 'pick') return ['library', 'immich', 'unsplash', 'nasa', 'art'];
   if (use === 'stream') return PHOTO_SOURCE_KINDS.filter((kind) => kind !== 'wall');
   return PHOTO_SOURCE_KINDS;
 }
@@ -109,6 +110,7 @@ export function defaultPhotoSource(kind: PhotoSourceKind): PhotoSource {
     case 'onedrive': return { kind, folderId: '' };
     case 'unsplash': return { kind, query: 'nature landscape' };
     case 'nasa': return { kind };
+    case 'art': return { kind };
   }
 }
 
@@ -129,6 +131,26 @@ const UNSPLASH_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const UNSPLASH_COLLECTION_ID = /^[A-Za-z0-9_-]{1,64}$/;
 const WALL_ID = /^[a-z0-9-]{1,64}$/;
 const UNSPLASH_QUERY_MAX = 100;
+const ART_TEXT_MAX = 100;
+const WIKIDATA_ID = /^Q\d{1,12}$/;
+export const ART_ORIENTATIONS: readonly ArtOrientation[] = ['any', 'portrait', 'landscape'];
+export const ART_FITS: readonly ArtFit[] = ['framed', 'mat', 'matte', 'cover', 'contain'];
+export const ART_WALLS: readonly ArtWall[] = ['charcoal', 'warm-white', 'sage', 'painting'];
+/** The mats each fit offers: a frame can sit straight on the painting, a mat that fills the screen can take its colour from it. */
+export const ART_MATS: Readonly<Record<'framed' | 'mat', readonly ArtMat[]>> = { framed: ['cream', 'white', 'charcoal', 'none'], mat: ['cream', 'white', 'charcoal', 'painting'] };
+export const ART_FRAMES: readonly ArtFrame[] = ['black', 'oak', 'gold', 'white'];
+export const ART_LABELS: readonly ArtLabel[] = ['brief', 'always', 'off'];
+export const ART_GENRES: readonly ArtGenre[] = ['landscape', 'seascape', 'cityscape', 'still-life'];
+export const ART_YEAR_MIN = 0;
+export const ART_YEAR_MAX = 2100;
+export const DEFAULT_ART_FIT: ArtFit = 'framed';
+export const DEFAULT_ART_WALL: ArtWall = 'charcoal';
+export const DEFAULT_ART_MAT: ArtMat = 'cream';
+export const DEFAULT_ART_FRAME: ArtFrame = 'black';
+export const DEFAULT_ART_LABEL: ArtLabel = 'brief';
+export function artNumber(value: unknown, min: number, max: number): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.min(Math.max(Math.round(value), min), max) : undefined;
+}
 /** The most hand-picked pictures one source carries; the editor stops offering more. */
 export const MAX_PICKED_PICTURES = 200;
 
@@ -208,6 +230,36 @@ export function normalizePhotoSource(value: unknown): PhotoSource | null {
     }
     case 'nasa':
       return { kind: 'nasa' };
+    case 'art': {
+      const artist = text('artist').trim().slice(0, ART_TEXT_MAX);
+      const orientation = ART_ORIENTATIONS.find((o) => o === v.orientation);
+      const fit = ART_FITS.find((f) => f === v.fit);
+      const genre = ART_GENRES.find((g) => g === v.genre);
+      const fromYear = artNumber(v.fromYear, ART_YEAR_MIN, ART_YEAR_MAX);
+      const toYear = artNumber(v.toYear, ART_YEAR_MIN, ART_YEAR_MAX);
+      const aspectTolerance = typeof v.aspectTolerance === 'number' && Number.isFinite(v.aspectTolerance) ? Math.min(Math.max(v.aspectTolerance, 0), 1) : undefined;
+      const wall = ART_WALLS.find((w) => w === v.wall);
+      // A mat is kept only where the fit offers it, so a frame is never left with a mat coloured "from the painting".
+      const mat = (fit === 'mat' ? ART_MATS.mat : ART_MATS.framed).find((m) => m === v.mat);
+      const frame = ART_FRAMES.find((f) => f === v.frame);
+      const label = ART_LABELS.find((l) => l === v.label);
+      return {
+        kind: 'art',
+        ...(artist ? { artist } : {}),
+        ...(fromYear !== undefined ? { fromYear } : {}),
+        ...(toYear !== undefined ? { toYear } : {}),
+        ...(genre ? { genre } : {}),
+        ...(orientation && orientation !== 'any' ? { orientation } : {}),
+        ...(aspectTolerance !== undefined ? { aspectTolerance } : {}),
+        ...(fit ? { fit } : {}),
+        ...(wall ? { wall } : {}),
+        ...(mat ? { mat } : {}),
+        ...(frame ? { frame } : {}),
+        ...(label ? { label } : {}),
+        ...(v.texture === false ? { texture: false } : {}),
+        ...(v.drift === true ? { drift: true } : {}),
+      };
+    }
     default:
       return null;
   }
@@ -240,6 +292,7 @@ export function hasContent(source: PhotoSource): boolean {
     case 'onedrive': return source.folderId !== '';
     case 'unsplash': return source.photoIds ? source.photoIds.length > 0 : source.collections ? source.collections.length > 0 : source.query.trim() !== '';
     case 'nasa': return true;
+    case 'art': return true;
   }
 }
 
@@ -317,6 +370,11 @@ export function sourceCacheKey(source: PhotoSource): string {
       source.photoIds ? [...source.photoIds].sort() : null,
     ]);
     case 'nasa': return JSON.stringify(['nasa']);
+    case 'art': return JSON.stringify([
+      'art', (source.artist ?? '').toLowerCase(), source.fromYear ?? null, source.toYear ?? null, source.genre ?? null,
+      source.orientation ?? 'any', source.aspectTolerance ?? null, source.fit ?? DEFAULT_ART_FIT,
+      source.wall ?? null, source.mat ?? null, source.frame ?? null, source.label ?? null, source.texture ?? null, source.drift ?? null,
+    ]);
   }
 }
 
@@ -339,9 +397,10 @@ export function rotationCacheKey(rotation: Pick<BackgroundRotation, 'sources' | 
  * - `checkLink`: the iCloud album link is wrong or its public website is off
  * - `checkFolder`: the OneDrive folder is empty or no longer there
  * - `checkSearch`: Unsplash found nothing for the search words or collection
+ * - `checkArt`: no painting matched the filters
  * - `tryLater`: NASA sent nothing; it comes back on its own
  */
-export type PhotoSourceEmptyReason = 'addPhotos' | 'pickPictures' | 'checkFilters' | 'checkLink' | 'checkFolder' | 'checkSearch' | 'tryLater';
+export type PhotoSourceEmptyReason = 'addPhotos' | 'pickPictures' | 'checkFilters' | 'checkLink' | 'checkFolder' | 'checkSearch' | 'checkArt' | 'tryLater';
 
 export function emptyStateFor(source: PhotoSource): PhotoSourceEmptyReason {
   switch (source.kind) {
@@ -352,6 +411,7 @@ export function emptyStateFor(source: PhotoSource): PhotoSourceEmptyReason {
     case 'onedrive': return 'checkFolder';
     case 'unsplash': return source.photoIds ? 'pickPictures' : 'checkSearch';
     case 'nasa': return 'tryLater';
+    case 'art': return 'checkArt';
   }
 }
 
@@ -417,6 +477,21 @@ export function photoSourceParams(source: PhotoSource): URLSearchParams {
       break;
     case 'nasa':
       break;
+    case 'art':
+      if (source.artist) params.set('artist', source.artist);
+      if (source.fromYear !== undefined) params.set('from', String(source.fromYear));
+      if (source.toYear !== undefined) params.set('to', String(source.toYear));
+      if (source.genre) params.set('genre', source.genre);
+      if (source.orientation) params.set('orientation', source.orientation);
+      if (source.aspectTolerance !== undefined) params.set('tolerance', String(source.aspectTolerance));
+      if (source.fit) params.set('fit', source.fit);
+      if (source.wall) params.set('wall', source.wall);
+      if (source.mat) params.set('mat', source.mat);
+      if (source.frame) params.set('frame', source.frame);
+      if (source.label) params.set('label', source.label);
+      if (source.texture === false) params.set('texture', '0');
+      if (source.drift) params.set('drift', '1');
+      break;
   }
   return params;
 }
@@ -437,6 +512,15 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
     case 'onedrive': return normalizePhotoSource({ kind, folderId: get('folderId') });
     case 'unsplash': return normalizePhotoSource({ kind, query: get('query'), collections: list('collections'), photoIds: list('photos') });
     case 'nasa': return { kind };
+    case 'art': return normalizePhotoSource({
+      kind, artist: get('artist'), orientation: get('orientation'), genre: get('genre'),
+      fromYear: params.has('from') ? Number(get('from')) : undefined,
+      toYear: params.has('to') ? Number(get('to')) : undefined,
+      aspectTolerance: params.has('tolerance') ? Number(get('tolerance')) : undefined,
+      fit: get('fit'), wall: get('wall'), mat: get('mat'), frame: get('frame'), label: get('label'),
+      texture: params.get('texture') === '0' ? false : undefined,
+      drift: params.get('drift') === '1',
+    });
     default: return null;
   }
 }
@@ -446,29 +530,31 @@ export function parsePhotoSourceParams(params: URLSearchParams): PhotoSource | n
  * its own folder (like `google-photos` and `icloud-imports`), so a household
  * can see where a copy came from and tidy one source at a time.
  */
-export const IMPORT_FOLDER: Readonly<Record<'immich' | 'unsplash' | 'nasa', string>> = {
+export const IMPORT_FOLDER: Readonly<Record<'immich' | 'unsplash' | 'nasa' | 'art', string>> = {
   immich: 'immich',
   unsplash: 'unsplash',
   nasa: 'nasa',
+  art: 'art',
 };
 
 /** Sources whose single pictures can be copied into the library. */
 export type PickImportKind = keyof typeof IMPORT_FOLDER;
 
 export function isPickImportKind(value: unknown): value is PickImportKind {
-  return value === 'immich' || value === 'unsplash' || value === 'nasa';
+  return value === 'immich' || value === 'unsplash' || value === 'nasa' || value === 'art';
 }
 
 /**
  * Whether `ref` can name one picture of `kind`: an Immich asset id, an
- * Unsplash photo id, or NASA's `apod:YYYY-MM-DD` / `image:<nasa id>`. The
- * ref becomes part of a file name and an upstream URL, so the alphabet is
- * closed.
+ * Unsplash photo id, NASA's `apod:YYYY-MM-DD` / `image:<nasa id>`, or a
+ * painting's Wikidata id. The ref becomes part of a file name and an upstream
+ * URL, so the alphabet is closed.
  */
 export function isValidPickRef(kind: PickImportKind, ref: string): boolean {
   switch (kind) {
     case 'immich': return IMMICH_ID.test(ref);
     case 'unsplash': return UNSPLASH_ID.test(ref);
     case 'nasa': return /^apod:\d{4}-\d{2}-\d{2}$/.test(ref) || /^image:[A-Za-z0-9._-]{1,120}$/.test(ref);
+    case 'art': return WIKIDATA_ID.test(ref);
   }
 }

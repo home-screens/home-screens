@@ -122,6 +122,35 @@ test.describe('rotation sources', () => {
     await request.delete('/api/backgrounds/directories', { data: { path: folder } }).catch(() => {});
   });
 
+  test('Paintings: filters are added one by one, counted, and taken away again', async ({ page, request }) => {
+    await stubModuleData(page, { blockExternal: true });
+    await openSources(page, request);
+
+    await autosaved(page, async () => page.getByRole('checkbox', { name: 'Paintings from museums' }).check());
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art' }]);
+    await expect(page.getByLabel('Artist', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('art-count')).toHaveText('3200 paintings match');
+    await expect(page.getByTestId('photo-source-preview')).toBeVisible();
+
+    const narrow = page.getByRole('combobox', { name: 'Narrow down' });
+    await narrow.selectOption('genre');
+    // Only the subjects the collection is made of.
+    await expect(page.getByRole('combobox', { name: 'Subject' }).getByRole('option')).toHaveText(['Choose…', 'Landscapes', 'Seascapes', 'Cityscapes', 'Still life']);
+    await autosaved(page, async () => { await page.getByRole('combobox', { name: 'Subject' }).selectOption('seascape'); });
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', genre: 'seascape' }]);
+
+    await narrow.selectOption('period');
+    await autosaved(page, async () => page.getByLabel('From year').fill('1600'));
+    await autosaved(page, async () => page.getByLabel('To year').fill('1800'));
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art', genre: 'seascape', fromYear: 1600, toYear: 1800 }]);
+
+    await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Subject' }).click());
+    await autosaved(page, async () => page.getByRole('button', { name: 'Remove filter: Period' }).click());
+    expect((await rotationOf(request)).sources).toEqual([{ kind: 'art' }]);
+
+    await putConfig(request, baseConfig());
+  });
+
   test('Immich: any-of filters, a person left out, then photos picked one by one', async ({ page, request }) => {
     const handle = await stubModuleData(page, { blockExternal: true });
     await seedSecrets(request);

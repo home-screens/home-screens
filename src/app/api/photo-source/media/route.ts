@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { withDisplayAuth } from '@/lib/api-utils';
 import { clampPhotoCount, isMediaTypes, parsePhotoSourceParams } from '@/lib/photo-source';
 import { listPhotoSource, photoSourceErrorResponse } from '@/lib/photo-sources';
+import { artCount } from '@/lib/photo-sources/art';
 import { LIBRARY_REVISION_HEADER, libraryRevision } from '@/lib/library-revision';
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,10 @@ export const dynamic = 'force-dynamic';
  * query `photoSourceParams` writes. Sources that can't play video answer
  * pictures only; a library folder plays all of itself and ignores `count`.
  *
+ * `info=count` (art) answers `{ count }`, how many paintings match, instead
+ * of pictures. With `w` and `h` (a screen's size) the count keeps to the
+ * source's screen-shape filter, as a rotating background does.
+ *
  * A library list carries the library revision it reflects, taken before the
  * folder is read, so a wall whose heartbeat names a newer one re-reads it.
  */
@@ -22,6 +27,14 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   const params = request.nextUrl.searchParams;
   const source = parsePhotoSourceParams(params);
   if (!source) return NextResponse.json({ error: 'Unknown photo source' }, { status: 400 });
+  const info = params.get('info');
+  if (info) {
+    if (source.kind !== 'art' || info !== 'count') return NextResponse.json({ error: 'Unknown info' }, { status: 400 });
+    const w = Number(params.get('w'));
+    const h = Number(params.get('h'));
+    const canvas = Number.isInteger(w) && Number.isInteger(h) && w >= 100 && h >= 100 && w <= 20_000 && h <= 20_000 ? { w, h } : undefined;
+    return NextResponse.json(await artCount(source, canvas));
+  }
   const media = params.get('media') ?? 'photos';
   if (!isMediaTypes(media)) return NextResponse.json({ error: 'Invalid media parameter' }, { status: 400 });
   const count = clampPhotoCount(params.get('count'), source.kind);

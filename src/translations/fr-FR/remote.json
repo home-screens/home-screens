@@ -1019,6 +1019,17 @@
         "other": "{count} n'ont pas pu être ajoutées."
       },
       "nothingFound": "Cet album ne contient rien à ajouter."
+    },
+    "art": {
+      "onWall": "Au mur en ce moment",
+      "onWallAt": "Au mur en ce moment · {wall}",
+      "next": "Tableau suivant",
+      "hide": "Ne plus afficher",
+      "about": "À propos de ce tableau",
+      "nextSent": "Un nouveau tableau arrive.",
+      "hidden": "Vous ne verrez plus {title}.",
+      "undo": "Annuler",
+      "failed": "Cela n’a pas fonctionné. Réessayez."
     }
   },
   "slideshowControls": {

@@ -29,6 +29,7 @@ import WallSourceGroup from './WallSourceGroup';
 import IntegrationSettingsLink, { type BackgroundIntegration } from './IntegrationSettingsLink';
 import BackgroundShadeFields from './BackgroundShadeFields';
 import BackgroundEffectsFields from './BackgroundEffectsFields';
+import EveningLightFields from './EveningLightFields';
 
 const FIELD_CLASS = 'mt-0.5 block w-full rounded bg-hs-card border border-hs-border-strong text-xs text-hs-text-body px-2 py-1 focus:outline-none focus:border-hs-accent';
 
@@ -367,6 +368,7 @@ export default function BackgroundPicker() {
     <AccordionSection title={t('backgroundPicker.effectsTitle')}>
       <BackgroundShadeFields screenId={screenId} shade={currentScreen.shade} />
       <BackgroundEffectsFields screenId={screenId} effects={currentScreen.effects} />
+      <EveningLightFields screenId={screenId} eveningLight={currentScreen.eveningLight} />
     </AccordionSection>
     </>
   );

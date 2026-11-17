@@ -12,7 +12,13 @@ vi.mock('@/lib/photo-sources', async (importOriginal) => {
   return { ...actual, listPhotoSource: vi.fn() };
 });
 
+vi.mock('@/lib/photo-sources/art', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/photo-sources/art')>();
+  return { ...actual, artCount: vi.fn() };
+});
+
 import { listPhotoSource, PhotoSourceError } from '@/lib/photo-sources';
+import { artCount } from '@/lib/photo-sources/art';
 import { SetupError } from '@/lib/api-utils';
 import { UnsupportedImageFormatError } from '@/lib/library-import';
 import { libraryRevision } from '@/lib/library-revision';
@@ -95,5 +101,26 @@ describe('GET /api/photo-source/media', () => {
     const failed = await GET(req('kind=nasa'));
     expect(failed.status).toBe(500);
     expect((await failed.json()).error).toBe('Failed to load photos');
+  });
+
+  it('answers how many paintings match instead of pictures for info=count', async () => {
+    vi.mocked(artCount).mockResolvedValueOnce({ count: 812 });
+    const res = await GET(req('kind=art&genre=landscape&from=1600&info=count'));
+    expect(await res.json()).toEqual({ count: 812 });
+    expect(artCount).toHaveBeenCalledWith({ kind: 'art', genre: 'landscape', fromYear: 1600 }, undefined);
+    expect(mockList).not.toHaveBeenCalled();
+  });
+
+  it('hands the count a screen size when one is given, and ignores a size that is not one', async () => {
+    vi.mocked(artCount).mockResolvedValue({ count: 7 });
+    await GET(req('kind=art&tolerance=0.1&info=count&w=1080&h=1920'));
+    expect(artCount).toHaveBeenLastCalledWith({ kind: 'art', aspectTolerance: 0.1 }, { w: 1080, h: 1920 });
+    await GET(req('kind=art&tolerance=0.1&info=count&w=0&h=abc'));
+    expect(artCount).toHaveBeenLastCalledWith({ kind: 'art', aspectTolerance: 0.1 }, undefined);
+  });
+
+  it('refuses info for other sources and any other kind of info', async () => {
+    expect((await GET(req('kind=immich&info=count'))).status).toBe(400);
+    expect((await GET(req('kind=art&info=museums'))).status).toBe(400);
   });
 });

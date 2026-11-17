@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Será salvo como {to} minutos, um dia inteiro.",
     "goBackAfterChangedRounded": "{from} trocado por {to}: minutos inteiros ou meios.",
     "goBackAfterChangedClamped": "{from} trocado por {to} minutos, um dia inteiro.",
-    "goBackAfterKept": "Isso não é um número de minutos, então fica em {to}."
+    "goBackAfterKept": "Isso não é um número de minutos, então fica em {to}.",
+    "artModeGroup": "Modo arte",
+    "artModeToggle": "Modo arte",
+    "artModeHint": "Oculta os módulos desta tela e mostra só a imagem e sua etiqueta.",
+    "artModeWhen": "Quando",
+    "artModeAlways": "Sempre",
+    "artModeBetween": "Entre dois horários",
+    "artModeFrom": "A partir de",
+    "artModeUntil": "Até"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2737,12 +2745,21 @@
       "onedrive": "Escolha uma pasta",
       "unsplash": "Digite palavras de busca, adicione uma coleção ou escolha algumas fotos",
       "nasa": "",
+      "art": "",
       "wall": "Escolha os fundos para mostrar"
     },
     "effectsReset": "Redefinir",
     "effectsResetLabel": "Redefinir {label}",
     "refreshSame": "Só há uma imagem para mostrar",
-    "nasaPace": "A NASA publica uma imagem nova por dia, então a mesma imagem aparece de novo até chegar a próxima."
+    "nasaPace": "A NASA publica uma imagem nova por dia, então a mesma imagem aparece de novo até chegar a próxima.",
+    "eveningGroup": "Luz da noite",
+    "eveningToggle": "Luz da noite",
+    "eveningHint": "Mais quente e mais escuro à noite, para que a imagem pareça papel e não uma tela acesa.",
+    "eveningFrom": "A partir de",
+    "eveningFromSunset": "Pôr do sol",
+    "eveningFromTime": "Um horário fixo",
+    "eveningUntil": "Até",
+    "eveningSunsetHint": "O pôr do sol precisa da sua cidade nos Ajustes. Sem ela, a noite começa às 20h."
   },
   "imageBrowserModal": {
     "title": "Biblioteca de imagens",
@@ -5971,7 +5988,8 @@
       "icloud": "Álbum compartilhado do iCloud",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "Imagem do dia da NASA"
+      "nasa": "Imagem do dia da NASA",
+      "art": "Pinturas de museus"
     },
     "library": {
       "folder": "Pasta",
@@ -6046,13 +6064,126 @@
       "backgroundInfo": "A NASA publica uma nova imagem de astronomia por dia. A tela mostra a mais recente.",
       "apodUnavailable": "A NASA não está enviando a Imagem do dia agora. A busca na biblioteca da NASA continua funcionando."
     },
+    "art": {
+      "artist": "Artista",
+      "artistPlaceholder": "Claude Monet",
+      "orientation": "Formato",
+      "orientations": {
+        "any": "Qualquer",
+        "portrait": "Retrato (em pé)",
+        "landscape": "Paisagem (deitado)"
+      },
+      "shape": "Parecido com o formato da tela",
+      "shapes": {
+        "any": "Qualquer formato",
+        "loose": "Mais ou menos",
+        "medium": "Bem parecido",
+        "strict": "Igual ao da tela"
+      },
+      "fit": "Na tela",
+      "fits": {
+        "framed": "Emoldurado na parede",
+        "mat": "Em um passe-partout",
+        "matte": "Pintura inteira sobre um fundo desfocado",
+        "cover": "Preencher a tela (corta as bordas)",
+        "contain": "Pintura inteira sobre uma parede escura"
+      },
+      "streamInfo": "Paisagens, marinhas, vistas urbanas e naturezas-mortas de acervos de museus. O título, o artista e o museu aparecem num canto.",
+      "backgroundInfo": "Uma pintura nova a cada troca de fundo. O título, o artista e o museu aparecem discretos num canto.",
+      "addFilter": "+ Adicionar filtro",
+      "filters": "Refinar",
+      "removeFilter": "Remover filtro: {filter}",
+      "period": "Período",
+      "fromYear": "A partir do ano",
+      "toYear": "Até o ano",
+      "genre": "Tema",
+      "choose": "Escolher…",
+      "genres": {
+        "landscape": "Paisagens",
+        "still-life": "Naturezas-mortas",
+        "seascape": "Marinhas",
+        "cityscape": "Vistas urbanas"
+      },
+      "matchCount": {
+        "one": "{count} pintura corresponde",
+        "other": "{count} pinturas correspondem"
+      },
+      "fewMatches": "Poucas pinturas correspondem, então as mesmas voltarão com frequência. Tente afrouxar um filtro.",
+      "noMatches": "Nenhuma pintura corresponde. Tente afrouxar um filtro.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionismo",
+          "dutch": "Século de Ouro holandês",
+          "landscapes": "Paisagens",
+          "stillLife": "Naturezas-mortas",
+          "seascapes": "Marinhas",
+          "cityscapes": "Vistas urbanas",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Buscar pinturas: um museu, artista ou estilo",
+        "matched": "Correspondências: {matches}",
+        "matchTypes": {
+          "museum": "museu",
+          "artist": "artista",
+          "movement": "estilo",
+          "genre": "tema"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Pinturas de coleções abertas. Uma cópia vai para a pasta art da sua biblioteca.",
+        "creditHint": "{credit}. Uma cópia vai para a pasta art da sua biblioteca.",
+        "empty": "Nenhuma pintura encontrada. Tente outras palavras.",
+        "loadFailed": "Não foi possível carregar as pinturas.",
+        "unavailable": "A coleção não está enviando pinturas agora. Tente de novo daqui a pouco.",
+        "orSearch": "Ou busque qualquer coisa acima"
+      },
+      "wall": "Cor da parede",
+      "walls": {
+        "charcoal": "Grafite",
+        "warm-white": "Branco quente",
+        "sage": "Sálvia",
+        "painting": "Da pintura"
+      },
+      "mat": "Passe-partout",
+      "mats": {
+        "cream": "Creme",
+        "white": "Branco",
+        "charcoal": "Grafite",
+        "none": "Nenhum",
+        "painting": "Da pintura"
+      },
+      "frame": "Moldura",
+      "frames": {
+        "black": "Preto",
+        "oak": "Carvalho",
+        "gold": "Dourado",
+        "white": "Branco"
+      },
+      "label": "Etiqueta de museu",
+      "labels": {
+        "brief": "Nos primeiros 15 segundos",
+        "always": "Sempre",
+        "off": "Desligado"
+      },
+      "labelHint": "Título, artista, ano e museu. No resto do tempo, a pequena legenda fica no canto.",
+      "texture": "Textura de tela",
+      "drift": "Movimento lento",
+      "driftHint": "A pintura cresce e desliza bem devagar no primeiro minuto e depois fica parada.",
+      "hiddenCount": {
+        "one": "{count} pintura está oculta pelo celular.",
+        "other": "{count} pinturas estão ocultas pelo celular."
+      },
+      "hiddenShow": "Mostrar de novo"
+    },
     "picker": {
       "tabs": {
         "builtin": "Incluídas",
         "library": "Local",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Arte"
       },
       "ideas": "Ideias",
       "search": "Buscar",

@@ -1,0 +1,126 @@
+'use client';
+
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslate } from '@/i18n';
+import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { useDisplayTarget } from '../display-target';
+import { showToast } from '../remote-toast';
+
+interface PaintingNow {
+  id: string;
+  title: string;
+  artist?: string;
+  year?: number;
+  museum?: string;
+  thumb: string;
+  about: string;
+}
+
+interface ArtNow { painting: PaintingNow | null; screenId?: string; display?: string | null }
+
+/** How often the card asks what is on the wall. A new painting also shows up at once after a button here. */
+const POLL_MS = 10_000;
+
+/**
+ * "On the wall now": the painting a wall is showing, with Next painting,
+ * Don't show again (with Undo) and a link to its page on Wikimedia Commons.
+ * Nothing is drawn while no wall is showing a painting from the art source.
+ */
+export default function ArtNowCard() {
+  const t = useTranslate('remote');
+  const { target, displays } = useDisplayTarget();
+  const [now, setNow] = useState<ArtNow | null>(null);
+  const [busy, setBusy] = useState(false);
+  const display = target && target !== 'all' ? target : undefined;
+
+  const load = useCallback(async () => {
+    try {
+      const res = await editorFetch(`/api/art/now${display ? `?display=${encodeURIComponent(display)}` : ''}`);
+      if (res.ok) setNow(await res.json() as ArtNow);
+    } catch (error) {
+      if (isSessionExpired(error)) return;
+      // The card keeps what it has: a missed poll is not worth a message.
+    }
+  }, [display]);
+
+  useEffect(() => {
+    void load();
+    const timer = setInterval(() => void load(), POLL_MS);
+    return () => clearInterval(timer);
+  }, [load]);
+
+  const painting = now?.painting ?? null;
+  const screenId = now?.screenId;
+  if (!painting || !screenId) return null;
+
+  const wallName = now?.display ? displays.find((d) => d.id === now.display)?.name : undefined;
+  const failed = () => showToast(t('photosTab.art.failed'), 'error');
+  /** A new picture for the screen now; the wall hears of it within a heartbeat. */
+  const rotate = async () => (await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screenId)}&force=true`)).ok;
+  const setHidden = async (hidden: boolean) => (await editorFetch('/api/art/hidden', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: painting.id, hidden }),
+  })).ok;
+  const act = async (run: () => Promise<void>) => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await run();
+    } catch (error) {
+      if (!isSessionExpired(error)) failed();
+    } finally {
+      setBusy(false);
+      // The hub has the new picture as soon as it answers; give the cache a moment and read it back.
+      setTimeout(() => void load(), 1200);
+    }
+  };
+
+  const next = () => act(async () => {
+    if (await rotate()) showToast(t('photosTab.art.nextSent'));
+    else failed();
+  });
+  const hide = () => act(async () => {
+    if (!(await setHidden(true))) { failed(); return; }
+    await rotate();
+    showToast(t('photosTab.art.hidden', { title: painting.title }), 'info', {
+      label: t('photosTab.art.undo'),
+      onPress: () => { void setHidden(false).then((ok) => { if (!ok) failed(); }).catch(failed); },
+    });
+  });
+
+  const button = (primary: boolean): React.CSSProperties => ({
+    flex: 1, minHeight: 44, padding: '12px 8px', borderRadius: 12, border: 'none', fontSize: 15, fontWeight: 600, cursor: busy ? 'default' : 'pointer',
+    background: primary ? 'var(--hs-accent)' : 'var(--hs-bg-card)', color: primary ? '#fff' : 'var(--hs-text-body)', opacity: busy ? 0.6 : 1,
+  });
+  const byline = [painting.artist, painting.year].filter(Boolean).join(', ');
+
+  return (
+    <section
+      data-testid="art-now-card"
+      style={{ margin: '0 0 16px', background: 'var(--hs-bg-panel)', border: '1px solid var(--hs-border)', borderRadius: 16, overflow: 'hidden' }}
+    >
+      {/* A painting served by Wikimedia Commons, not a file of ours. */}
+      <img src={painting.thumb} alt={painting.title} style={{ display: 'block', width: '100%', maxHeight: 280, objectFit: 'cover' }} />
+      <div style={{ padding: '14px 16px 16px' }}>
+        <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--hs-text-faint)' }}>
+          {wallName ? t('photosTab.art.onWallAt', { wall: wallName }) : t('photosTab.art.onWall')}
+        </div>
+        <div style={{ fontFamily: 'var(--font-lora), Georgia, serif', fontSize: 21, marginTop: 6, color: 'var(--hs-text-primary)' }} data-testid="art-now-title">{painting.title}</div>
+        {(byline || painting.museum) && (
+          <div style={{ color: 'var(--hs-text-muted)', marginTop: 4, fontSize: 15, lineHeight: 1.35 }}>
+            {byline}{byline && painting.museum ? <br /> : null}{painting.museum}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+          <button type="button" onClick={next} disabled={busy} style={button(true)} data-testid="art-now-next">{t('photosTab.art.next')}</button>
+          <button type="button" onClick={hide} disabled={busy} style={button(false)} data-testid="art-now-hide">{t('photosTab.art.hide')}</button>
+        </div>
+        <a
+          href={painting.about} target="_blank" rel="noopener noreferrer"
+          style={{ display: 'inline-block', marginTop: 12, fontSize: 14, color: 'var(--hs-accent-hover)', textDecoration: 'none' }}
+        >
+          {t('photosTab.art.about')}
+        </a>
+      </div>
+    </section>
+  );
+}

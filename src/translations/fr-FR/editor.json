@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Sera enregistré comme {to} minutes, une journée entière.",
     "goBackAfterChangedRounded": "{from} changé en {to} : minutes entières ou demi-minutes.",
     "goBackAfterChangedClamped": "{from} changé en {to} minutes, une journée entière.",
-    "goBackAfterKept": "Ce n’est pas un nombre de minutes, la valeur reste à {to}."
+    "goBackAfterKept": "Ce n’est pas un nombre de minutes, la valeur reste à {to}.",
+    "artModeGroup": "Mode tableau",
+    "artModeToggle": "Mode tableau",
+    "artModeHint": "Masque les modules de cet écran et n’affiche que l’image et son cartel.",
+    "artModeWhen": "Quand",
+    "artModeAlways": "Toujours",
+    "artModeBetween": "Entre deux heures",
+    "artModeFrom": "À partir de",
+    "artModeUntil": "Jusqu’à"
   },
   "scheduleEditor": {
     "statusTitle": "État",
@@ -2737,12 +2745,21 @@
       "onedrive": "Choisissez un dossier",
       "unsplash": "Tapez des mots de recherche, ajoutez une collection ou choisissez des photos",
       "nasa": "",
+      "art": "",
       "wall": "Choisissez les fonds à afficher"
     },
     "effectsReset": "Réinitialiser",
     "effectsResetLabel": "Réinitialiser {label}",
     "refreshSame": "Une seule image à afficher",
-    "nasaPace": "La NASA ne publie qu'une nouvelle image par jour : la même revient jusqu'à la suivante."
+    "nasaPace": "La NASA ne publie qu'une nouvelle image par jour : la même revient jusqu'à la suivante.",
+    "eveningGroup": "Lumière du soir",
+    "eveningToggle": "Lumière du soir",
+    "eveningHint": "Plus chaud et plus sombre le soir, pour qu’une image ressemble à du papier et non à un écran allumé.",
+    "eveningFrom": "À partir de",
+    "eveningFromSunset": "Coucher du soleil",
+    "eveningFromTime": "Une heure fixe",
+    "eveningUntil": "Jusqu’à",
+    "eveningSunsetHint": "Le coucher du soleil a besoin de votre ville dans les Réglages. Sans elle, le soir commence à 20 h."
   },
   "imageBrowserModal": {
     "title": "Bibliothèque d'images",
@@ -5971,7 +5988,8 @@
       "icloud": "Album partagé iCloud",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "Image du jour de la NASA"
+      "nasa": "Image du jour de la NASA",
+      "art": "Peintures de musées"
     },
     "library": {
       "folder": "Dossier",
@@ -6046,13 +6064,126 @@
       "backgroundInfo": "La NASA publie une nouvelle image astronomique chaque jour. L'écran affiche la plus récente.",
       "apodUnavailable": "La NASA n'envoie pas d'image du jour en ce moment. La recherche dans la bibliothèque de la NASA fonctionne toujours."
     },
+    "art": {
+      "artist": "Artiste",
+      "artistPlaceholder": "Claude Monet",
+      "orientation": "Format",
+      "orientations": {
+        "any": "Au choix",
+        "portrait": "Portrait (vertical)",
+        "landscape": "Paysage (horizontal)"
+      },
+      "shape": "Proche de la forme de l'écran",
+      "shapes": {
+        "any": "Toute forme",
+        "loose": "À peu près",
+        "medium": "De près",
+        "strict": "Comme l'écran"
+      },
+      "fit": "Sur l'écran",
+      "fits": {
+        "framed": "Encadré sur un mur",
+        "mat": "Dans un passe-partout",
+        "matte": "Tableau entier sur un fond flou",
+        "cover": "Remplir l'écran (bords rognés)",
+        "contain": "Tableau entier sur un mur sombre"
+      },
+      "streamInfo": "Des paysages, des marines, des vues de villes et des natures mortes issus de collections de musées. Le titre, l'artiste et le musée s'affichent dans un coin.",
+      "backgroundInfo": "Un nouveau tableau à chaque changement de fond. Le titre, l'artiste et le musée s'affichent discrètement dans un coin.",
+      "addFilter": "+ Ajouter un filtre",
+      "filters": "Affiner",
+      "removeFilter": "Retirer le filtre : {filter}",
+      "period": "Période",
+      "fromYear": "À partir de l’année",
+      "toYear": "Jusqu’à l’année",
+      "genre": "Sujet",
+      "choose": "Choisir…",
+      "genres": {
+        "landscape": "Paysages",
+        "still-life": "Natures mortes",
+        "seascape": "Marines",
+        "cityscape": "Vues de villes"
+      },
+      "matchCount": {
+        "one": "{count} tableau correspond",
+        "other": "{count} tableaux correspondent"
+      },
+      "fewMatches": "Peu de tableaux correspondent, les mêmes reviendront souvent. Essayez d’assouplir un filtre.",
+      "noMatches": "Aucun tableau ne correspond. Essayez d’assouplir un filtre.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionnisme",
+          "dutch": "Âge d'or néerlandais",
+          "landscapes": "Paysages",
+          "stillLife": "Natures mortes",
+          "seascapes": "Marines",
+          "cityscapes": "Vues de villes",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Rechercher des peintures : un musée, un artiste ou un style",
+        "matched": "Correspondances : {matches}",
+        "matchTypes": {
+          "museum": "musée",
+          "artist": "artiste",
+          "movement": "style",
+          "genre": "sujet"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Peintures de collections ouvertes. Une copie est enregistrée dans le dossier art de votre bibliothèque.",
+        "creditHint": "{credit}. Une copie est enregistrée dans le dossier art de votre bibliothèque.",
+        "empty": "Aucune peinture trouvée. Essayez d'autres mots.",
+        "loadFailed": "Impossible de charger les peintures.",
+        "unavailable": "La collection n'envoie pas de peintures pour le moment. Réessayez un peu plus tard.",
+        "orSearch": "Ou recherchez ce que vous voulez ci-dessus"
+      },
+      "wall": "Couleur du mur",
+      "walls": {
+        "charcoal": "Anthracite",
+        "warm-white": "Blanc chaud",
+        "sage": "Sauge",
+        "painting": "Tirée du tableau"
+      },
+      "mat": "Passe-partout",
+      "mats": {
+        "cream": "Crème",
+        "white": "Blanc",
+        "charcoal": "Anthracite",
+        "none": "Aucun",
+        "painting": "Tirée du tableau"
+      },
+      "frame": "Cadre",
+      "frames": {
+        "black": "Noir",
+        "oak": "Chêne",
+        "gold": "Doré",
+        "white": "Blanc"
+      },
+      "label": "Cartel de musée",
+      "labels": {
+        "brief": "Pendant les 15 premières secondes",
+        "always": "Toujours",
+        "off": "Désactivé"
+      },
+      "labelHint": "Titre, artiste, année et musée. Le reste du temps, la petite légende reste dans le coin.",
+      "texture": "Texture de toile",
+      "drift": "Lent glissement",
+      "driftHint": "Le tableau grandit et glisse très lentement pendant sa première minute, puis reste immobile.",
+      "hiddenCount": {
+        "one": "{count} tableau est masqué depuis le téléphone.",
+        "other": "{count} tableaux sont masqués depuis le téléphone."
+      },
+      "hiddenShow": "Les afficher à nouveau"
+    },
     "picker": {
       "tabs": {
         "builtin": "Intégrées",
         "library": "Bibliothèque",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Peintures"
       },
       "ideas": "Idées",
       "search": "Rechercher",

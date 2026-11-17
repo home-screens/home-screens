@@ -1019,6 +1019,17 @@
         "other": "{count} couldn't be added."
       },
       "nothingFound": "There's nothing in that album to add."
+    },
+    "art": {
+      "onWall": "On the wall now",
+      "onWallAt": "On the wall now · {wall}",
+      "next": "Next painting",
+      "hide": "Don't show again",
+      "about": "About this painting",
+      "nextSent": "A new painting is on its way.",
+      "hidden": "You won't see {title} again.",
+      "undo": "Undo",
+      "failed": "That didn't work. Try again."
     }
   },
   "slideshowControls": {

@@ -7,14 +7,14 @@ import { getPickableSource, photoSourceErrorResponse } from '@/lib/photo-sources
 export const dynamic = 'force-dynamic';
 
 /**
- * GET /api/photo-source/browse?kind=immich|unsplash|nasa&collection=<id>&page=N[&query=words][&orientation=portrait|landscape]
+ * GET /api/photo-source/browse?kind=immich|unsplash|nasa|art&collection=<id>&page=N[&query=words][&orientation=portrait|landscape]
  *
  * One page of the Image Library's grid for a source: `{ items, nextPage }`.
  * `collection` is the sidebar entry (`all`, `favorites`, `album:<id>`,
  * `person:<id>` for Immich; `apod` or `search` for NASA; `search` for
- * Unsplash, whose ideas are search words). Unsplash also answers `picked`
- * with `refs=<id>,<id>`: a tile for each photo already picked, so the editor
- * can show the picks whatever was searched for. Editor only: browsing is for
+ * Unsplash and for art, whose ideas are search words; an art answer also has
+ * `matched`). Unsplash also answers `picked` with `refs=<id>,<id>`:
+ * a tile for each photo already picked. Editor only: browsing is for
  * choosing a picture to copy, never for a wall.
  */
 export const GET = withAuth(async (request: NextRequest) => {

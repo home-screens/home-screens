@@ -39,7 +39,8 @@ describe('GET /api/photo-source/browse', () => {
     await GET(req('kind=immich'));
     await GET(req('kind=unsplash&query=lakes'));
     await GET(req('kind=nasa&query=moon'));
-    expect(browse.mock.calls.map(([args]) => args.collection)).toEqual(['all', 'search', 'search']);
+    await GET(req('kind=art&query=louvre'));
+    expect(browse.mock.calls.map(([args]) => args.collection)).toEqual(['all', 'search', 'search', 'search']);
   });
 
   it('holds the page to 1..1000 and the search words to 100 characters', async () => {

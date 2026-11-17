@@ -20,6 +20,7 @@
     "docs:shots": "tsx website/scripts/capture-docs-shots.mts",
     "docs:schema": "tsx scripts/extract-docs-schema.ts",
     "backgrounds:build": "tsx scripts/build-starter-backgrounds.ts",
+    "art:build": "tsx scripts/build-art-collection.mts",
     "config:check": "node scripts/check-config.mjs",
     "fa:copy": "node scripts/copy-font-awesome.mjs",
     "postinstall": "node scripts/copy-font-awesome.mjs"

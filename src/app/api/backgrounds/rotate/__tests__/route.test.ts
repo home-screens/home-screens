@@ -221,6 +221,17 @@ describe('GET /api/backgrounds/rotate: picking from the sources', () => {
     expect(String(fsMock.rename.mock.calls[0][1])).toMatch(/[\\/]rotation-immich-asset-1\.png$/);
   });
 
+  it('passes a source\'s credit on to the wall and keeps it for the next ask', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating([NASA])));
+    const credit = { name: 'Irises, Vincent van Gogh, 1889', source: 'J. Paul Getty Museum' };
+    mockPick.mockResolvedValue({ kind: 'download', id: 'art-1', open: async () => imageResponse(), credit });
+
+    expect(await (await GET(rotateReq())).json()).toEqual({ path: '/api/backgrounds/serve?file=rotation-nasa-art-1.jpg', fresh: true, credit });
+
+    const again = await (await GET(rotateReq())).json();
+    expect(again).toMatchObject({ fresh: false, credit });
+  });
+
   it('saves a download the server did not name as the picture its bytes say it is', async () => {
     // A newer iCloud album and some archives answer every file this way.
     mockFindScreen.mockReturnValue(screen(rotating([{ kind: 'icloud', albumUrl: 'https://photos.icloud.com/shared/album/0f0a3hdUxHZ0-C8uQ7Dq1JxLw' }])));

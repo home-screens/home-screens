@@ -301,6 +301,13 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    type: 'photo-slideshow', name: 'source-art', kind: 'networked', stubKey: 'art',
+    config: { photoSource: { kind: 'art', artist: 'van Gogh', genre: 'landscape', orientation: 'portrait', fit: 'matte' } },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Irises, Vincent van Gogh, 1889 / J. Paul Getty Museum');
+    },
+  },
+  {
     // An Immich source with filters lists through the immich stub.
     type: 'fullscreen-photo', name: 'source-immich', kind: 'networked', stubKey: 'immich',
     config: { photoSource: { kind: 'immich', albumId: 'a1b2c3', favoritesOnly: true } },
@@ -339,6 +346,13 @@ export const MEDIA_FULLSCREEN_VARIANTS: ConfigVariant[] = [
     config: { photoSource: { kind: 'nasa' } },
     expect: async (mod) => {
       await expect(mod.locator('img[src$="ADs="]').first()).toBeAttached();
+    },
+  },
+  {
+    type: 'fullscreen-photo', name: 'source-art', kind: 'networked', stubKey: 'art',
+    config: { photoSource: { kind: 'art', artist: 'van Gogh', genre: 'landscape', orientation: 'portrait', fit: 'matte' } },
+    expect: async (mod) => {
+      await expect(mod.getByTestId('photo-credit')).toHaveText('Irises, Vincent van Gogh, 1889 / J. Paul Getty Museum');
     },
   },
 

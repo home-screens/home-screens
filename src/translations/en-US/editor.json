@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Will be saved as {to} minutes, a whole day.",
     "goBackAfterChangedRounded": "Changed {from} to {to}: whole or half minutes.",
     "goBackAfterChangedClamped": "Changed {from} to {to} minutes, a whole day.",
-    "goBackAfterKept": "That is not a number of minutes, so it stays at {to}."
+    "goBackAfterKept": "That is not a number of minutes, so it stays at {to}.",
+    "artModeGroup": "Art mode",
+    "artModeToggle": "Art mode",
+    "artModeHint": "Hides this screen's modules and shows only the picture and its label.",
+    "artModeWhen": "When",
+    "artModeAlways": "Always",
+    "artModeBetween": "Between two times",
+    "artModeFrom": "From",
+    "artModeUntil": "Until"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2737,12 +2745,21 @@
       "onedrive": "Choose a folder",
       "unsplash": "Type search words, add a collection or pick some photos",
       "nasa": "",
+      "art": "",
       "wall": "Pick the walls to show"
     },
     "effectsReset": "Reset",
     "effectsResetLabel": "Reset {label}",
     "refreshSame": "Only one picture to show",
-    "nasaPace": "NASA has one new picture a day, so the same one comes round again until the next arrives."
+    "nasaPace": "NASA has one new picture a day, so the same one comes round again until the next arrives.",
+    "eveningGroup": "Evening light",
+    "eveningToggle": "Evening light",
+    "eveningHint": "Warmer and dimmer in the evening, so a picture looks like paper and not a lit screen.",
+    "eveningFrom": "From",
+    "eveningFromSunset": "Sunset",
+    "eveningFromTime": "A set time",
+    "eveningUntil": "Until",
+    "eveningSunsetHint": "Sunset needs your town in Settings. Without it, evening starts at 8 PM."
   },
   "imageBrowserModal": {
     "title": "Image Library",
@@ -5971,7 +5988,8 @@
       "icloud": "iCloud shared album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA picture of the day"
+      "nasa": "NASA picture of the day",
+      "art": "Paintings from museums"
     },
     "library": {
       "folder": "Folder",
@@ -6046,13 +6064,126 @@
       "backgroundInfo": "NASA publishes one new astronomy picture a day. The screen shows the newest one.",
       "apodUnavailable": "NASA's Picture of the Day isn't sending pictures right now. Searching NASA's library still works."
     },
+    "art": {
+      "artist": "Artist",
+      "artistPlaceholder": "Claude Monet",
+      "orientation": "Shape",
+      "orientations": {
+        "any": "Any",
+        "portrait": "Tall (portrait)",
+        "landscape": "Wide (landscape)"
+      },
+      "shape": "Match the screen's shape",
+      "shapes": {
+        "any": "Any shape",
+        "loose": "Roughly",
+        "medium": "Closely",
+        "strict": "Exactly like the screen"
+      },
+      "fit": "On the screen",
+      "fits": {
+        "framed": "Framed on a wall",
+        "mat": "In a mat",
+        "matte": "Whole painting on a soft blur",
+        "cover": "Fill the screen (crops edges)",
+        "contain": "Whole painting on a dark wall"
+      },
+      "streamInfo": "Landscapes, seascapes, city views and still lifes from museum collections. The title, artist and museum show in a corner.",
+      "backgroundInfo": "A new painting each time the background changes. The title, artist and museum show quietly in a corner.",
+      "addFilter": "+ Add filter",
+      "filters": "Narrow down",
+      "removeFilter": "Remove filter: {filter}",
+      "period": "Period",
+      "fromYear": "From year",
+      "toYear": "To year",
+      "genre": "Subject",
+      "choose": "Choose…",
+      "genres": {
+        "landscape": "Landscapes",
+        "still-life": "Still life",
+        "seascape": "Seascapes",
+        "cityscape": "Cityscapes"
+      },
+      "matchCount": {
+        "one": "{count} painting matches",
+        "other": "{count} paintings match"
+      },
+      "fewMatches": "Only a few paintings match, so the same ones will come back often. Try loosening a filter.",
+      "noMatches": "No paintings match. Try loosening a filter.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionism",
+          "dutch": "Dutch Golden Age",
+          "landscapes": "Landscapes",
+          "stillLife": "Still life",
+          "seascapes": "Seascapes",
+          "cityscapes": "Cityscapes",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Search paintings: a museum, artist or style",
+        "matched": "Matched: {matches}",
+        "matchTypes": {
+          "museum": "museum",
+          "artist": "artist",
+          "movement": "style",
+          "genre": "subject"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Paintings from open collections. A copy goes into your library's art folder.",
+        "creditHint": "{credit}. A copy goes into your library's art folder.",
+        "empty": "No paintings found. Try other words.",
+        "loadFailed": "Couldn't load paintings.",
+        "unavailable": "The collection isn't sending paintings right now. Try again a little later.",
+        "orSearch": "Or search for anything above"
+      },
+      "wall": "Wall color",
+      "walls": {
+        "charcoal": "Charcoal",
+        "warm-white": "Warm white",
+        "sage": "Sage",
+        "painting": "From the painting"
+      },
+      "mat": "Mat",
+      "mats": {
+        "cream": "Cream",
+        "white": "White",
+        "charcoal": "Charcoal",
+        "none": "None",
+        "painting": "From the painting"
+      },
+      "frame": "Frame",
+      "frames": {
+        "black": "Black",
+        "oak": "Oak",
+        "gold": "Gold",
+        "white": "White"
+      },
+      "label": "Museum label",
+      "labels": {
+        "brief": "For the first 15 seconds",
+        "always": "Always",
+        "off": "Off"
+      },
+      "labelHint": "Title, artist, year and museum. The small caption in the corner shows the rest of the time.",
+      "texture": "Canvas texture",
+      "drift": "Slow drift",
+      "driftHint": "The painting grows and slides very slowly for its first minute, then holds still.",
+      "hiddenCount": {
+        "one": "{count} painting is hidden from the phone.",
+        "other": "{count} paintings are hidden from the phone."
+      },
+      "hiddenShow": "Show them again"
+    },
     "picker": {
       "tabs": {
         "builtin": "Built-in",
         "library": "Local",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Art"
       },
       "ideas": "Ideas",
       "search": "Search",

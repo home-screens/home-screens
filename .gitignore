@@ -58,6 +58,9 @@ infrastructure/google-oauth-worker/.wrangler
 # emulate-install VM artifacts
 .emulate/
 
+# working folder of scripts/build-art-collection.mts
+.art-collection/
+
 # git worktrees
 .worktrees/
 

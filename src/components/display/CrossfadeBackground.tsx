@@ -23,6 +23,8 @@ export interface CrossfadeBackgroundProps {
   authenticate?: boolean;
   /** The CSS filter for the picture (background effects). It is applied as it is, with no transition. */
   filter?: string;
+  /** Each picture grows a little and slides for its first minute, then holds (`hs-art-drift` in globals.css). */
+  drift?: boolean;
 }
 
 /**
@@ -38,7 +40,7 @@ export interface CrossfadeBackgroundProps {
  * browser's broken-image glyph) and asked for once more after a short wait,
  * which also covers a hub that was not up yet when the wall booted.
  */
-export default function CrossfadeBackground({ src, alt = '', authenticate = false, filter }: CrossfadeBackgroundProps) {
+export default function CrossfadeBackground({ src, alt = '', authenticate = false, filter, drift = false }: CrossfadeBackgroundProps) {
   const [slots, setSlots] = useState<Slots>(() => [src ? { src, attempt: 0 } : null, null]);
   const [active, setActive] = useState<LayerIndex>(0);
   const slotsRef = useRef<Slots>(slots);
@@ -155,6 +157,7 @@ export default function CrossfadeBackground({ src, alt = '', authenticate = fals
           alt={alt}
           authenticate={authenticate}
           filter={filter}
+          drift={drift}
           onReady={onReady}
           onFailed={onFailed}
         />
@@ -163,7 +166,7 @@ export default function CrossfadeBackground({ src, alt = '', authenticate = fals
   );
 }
 
-function MediaLayer({ slot, layer, isActive, isPending, alt, authenticate, filter, onReady, onFailed }: {
+function MediaLayer({ slot, layer, isActive, isPending, alt, authenticate, filter, drift, onReady, onFailed }: {
   slot: LayerIndex;
   layer: Layer;
   isActive: boolean;
@@ -171,6 +174,7 @@ function MediaLayer({ slot, layer, isActive, isPending, alt, authenticate, filte
   alt: string;
   authenticate: boolean;
   filter?: string;
+  drift: boolean;
   onReady: (slot: LayerIndex) => void;
   onFailed: (slot: LayerIndex) => void;
 }) {
@@ -204,6 +208,7 @@ function MediaLayer({ slot, layer, isActive, isPending, alt, authenticate, filte
     transition: `opacity ${CROSSFADE_MS}ms ease-in-out`,
     zIndex: isPending ? 2 : isActive ? 1 : 0,
     filter,
+    ...(drift ? { animation: 'hs-art-drift 60s ease-in-out both' } : {}),
   };
   if (!src) return null;
   return (

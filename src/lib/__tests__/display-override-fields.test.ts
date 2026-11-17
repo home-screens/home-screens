@@ -46,6 +46,7 @@ function declaredFields(interfaceName: string): string[] {
  * mirror on `DisplayNodeSettings` is the drift this catches.
  */
 const GLOBAL_ONLY: Record<string, string> = {
+  artHidden: "the household's own list of paintings not to show, read by the hub when it picks one for any wall",
   latitude: 'server routes read location via readConfig, not filterConfigForDisplay (see the note on DisplayNodeSettings)',
   longitude: 'see latitude',
   locationName: 'see latitude',

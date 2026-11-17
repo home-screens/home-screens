@@ -1,6 +1,7 @@
 import type { MediaListItem, SlideshowMediaTypes } from '@/types/config';
 import type { PhotoSourceKind, PhotoSourceOf, PickImportKind } from '@/lib/photo-source';
 import type { PictureImportResult } from '@/lib/library-import';
+import type { PictureCredit } from '@/lib/art-presentation';
 
 /**
  * The one interface every photo source answers, built like the weather
@@ -31,7 +32,7 @@ export interface PickArgs<K extends PhotoSourceKind> {
  */
 export type PickedPicture =
   | { kind: 'library'; path: string }
-  | { kind: 'download'; id: string; open: () => Promise<Response> }
+  | { kind: 'download'; id: string; open: () => Promise<Response>; credit?: PictureCredit }
   /** A picture the wall already has at a public path (a bundled wall): shown as it is. */
   | { kind: 'static'; path: string };
 
@@ -64,8 +65,15 @@ export interface BrowseItem {
   credit?: { name: string; url?: string };
 }
 
+export interface BrowseMatch {
+  type: 'museum' | 'artist' | 'movement' | 'genre';
+  label: string;
+}
+
 export interface BrowsePage {
   items: BrowseItem[];
+  /** What the search words were taken to mean (art). */
+  matched?: BrowseMatch[];
   /** The page to ask for next, or null at the end. */
   nextPage: number | null;
 }

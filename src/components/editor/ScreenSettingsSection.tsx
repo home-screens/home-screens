@@ -14,6 +14,7 @@ import { PANEL_SECTION_SCREEN_SETTINGS } from './panel-section-reveal';
 import { screenHasOpener } from '@/lib/on-demand-screen';
 import AccordionSection from './AccordionSection';
 import PropertyGroup from './PropertyGroup';
+import ArtModeFields from './ArtModeFields';
 import { ScreenScheduleSection } from './ScreenScheduleSection';
 import { ScreenVisibilitySection } from './ScreenVisibilitySection';
 
@@ -259,6 +260,8 @@ export default function ScreenSettingsSection() {
           stacked here with no accordion between them, each first group is
           named after what it gates instead.
         */}
+        <ArtModeFields screenId={screen.id} artMode={screen.artMode} />
+
         <ScreenScheduleSection
           screenId={screen.id}
           schedule={screen.schedule}

@@ -48,6 +48,7 @@ describe('per-kind rules', () => {
     ['onedrive', ['microsoft_client_id'], true, false, true, 'checkFolder'],
     ['unsplash', ['unsplash_access_key'], false, false, true, 'checkSearch'],
     ['nasa', [], false, false, true, 'tryLater'],
+    ['art', [], false, false, true, 'checkArt'],
   ])('%s', (kind, secrets, signIn, video, counted, empty) => {
     expect(needs(kind).secrets).toEqual(secrets);
     expect(needs(kind).signIn).toBe(signIn);
@@ -61,7 +62,7 @@ describe('per-kind rules', () => {
   });
 
   it('lists the kinds in the editor order', () => {
-    expect(PHOTO_SOURCE_KINDS).toEqual(['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa']);
+    expect(PHOTO_SOURCE_KINDS).toEqual(['wall', 'library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa', 'art']);
     expect(isPhotoSourceKind('dropbox')).toBe(false);
     expect(isPhotoSourceKind(undefined)).toBe(false);
   });
@@ -83,11 +84,11 @@ describe('per-kind rules', () => {
 
 describe('offeredFor', () => {
   it('offers the browsable sources for picking one picture', () => {
-    expect(offeredFor('pick')).toEqual(['library', 'immich', 'unsplash', 'nasa']);
+    expect(offeredFor('pick')).toEqual(['library', 'immich', 'unsplash', 'nasa', 'art']);
   });
 
   it('offers every photo kind for a stream, and the walls too for a rotating background', () => {
-    expect(offeredFor('stream')).toEqual(['library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa']);
+    expect(offeredFor('stream')).toEqual(['library', 'immich', 'icloud', 'onedrive', 'unsplash', 'nasa', 'art']);
     expect(offeredFor('background')).toEqual(PHOTO_SOURCE_KINDS);
   });
 });
@@ -138,6 +139,7 @@ describe('hasContent, candidateCount and canRotate', () => {
     ['Unsplash picks', { kind: 'unsplash', query: '', photoIds: ['p1'] }, true, 1],
     ['blank Unsplash words', { kind: 'unsplash', query: '  ' }, false, undefined],
     ['NASA', { kind: 'nasa' }, true, undefined],
+    ['art', { kind: 'art' }, true, undefined],
   ])('%s', (_label, source, content, count) => {
     expect(hasContent(source)).toBe(content);
     expect(candidateCount(source)).toBe(count);
@@ -194,6 +196,19 @@ describe('normalizePhotoSource', () => {
       .toEqual({ kind: 'onedrive', folderId: 'ABC!123', folderName: 'Family' });
     expect(normalizePhotoSource({ kind: 'unsplash', query: ' lakes ' })).toEqual({ kind: 'unsplash', query: 'lakes' });
     expect(normalizePhotoSource({ kind: 'nasa', query: 'x' })).toEqual({ kind: 'nasa' });
+    expect(normalizePhotoSource({ kind: 'art', artist: ' Monet ', orientation: 'any', fit: 'sideways', aspectTolerance: 3, extra: 1 }))
+      .toEqual({ kind: 'art', artist: 'Monet', aspectTolerance: 1 });
+    // Only the subjects the collection is made of are kept.
+    expect(normalizePhotoSource({ kind: 'art', fromYear: -5, toYear: 9999.4, genre: 'nude' })).toEqual({ kind: 'art', fromYear: 0, toYear: 2100 });
+    expect(normalizePhotoSource({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' }))
+      .toEqual({ kind: 'art', genre: 'seascape', orientation: 'portrait', fit: 'cover' });
+    // How a painting is hung: only the choices there are, a mat only where its fit offers it, switches only off their usual.
+    expect(normalizePhotoSource({ kind: 'art', fit: 'framed', wall: 'sage', mat: 'none', frame: 'oak', label: 'always', texture: false, drift: true }))
+      .toEqual({ kind: 'art', fit: 'framed', wall: 'sage', mat: 'none', frame: 'oak', label: 'always', texture: false, drift: true });
+    expect(normalizePhotoSource({ kind: 'art', fit: 'framed', wall: 'pink', mat: 'painting', frame: 'steel', label: 'sometimes', texture: true, drift: false }))
+      .toEqual({ kind: 'art', fit: 'framed' });
+    expect(normalizePhotoSource({ kind: 'art', fit: 'mat', mat: 'painting' })).toEqual({ kind: 'art', fit: 'mat', mat: 'painting' });
+    expect(normalizePhotoSource({ kind: 'art', fit: 'mat', mat: 'none' })).toEqual({ kind: 'art', fit: 'mat' });
     expect(normalizePhotoSource({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'], extra: 1 })).toEqual({ kind: 'wall', group: 'pattern', ids: ['pattern-dots'] });
   });
 
@@ -266,6 +281,14 @@ describe('sourceCacheKey', () => {
     ['walls', { kind: 'wall', group: 'color', ids: ['ocean'] }, { kind: 'wall', group: 'color', ids: ['dusk'] }],
     ['wall group', { kind: 'wall', group: 'color', ids: [] }, { kind: 'wall', group: 'pattern', ids: [] }],
     ['kind', { kind: 'library', folder: '' }, { kind: 'nasa' }],
+    ['art subject', { kind: 'art', genre: 'landscape' }, { kind: 'art', genre: 'seascape' }],
+    ['art artist', { kind: 'art', artist: 'Monet' }, { kind: 'art', artist: 'Turner' }],
+    ['art period', { kind: 'art', fromYear: 1600 }, { kind: 'art', fromYear: 1700 }],
+    ['art fit', { kind: 'art', fit: 'cover' }, { kind: 'art', fit: 'matte' }],
+    ['art wall', { kind: 'art', wall: 'sage' }, { kind: 'art' }],
+    ['art frame', { kind: 'art', frame: 'oak' }, { kind: 'art', frame: 'gold' }],
+    ['art label', { kind: 'art', label: 'off' }, { kind: 'art' }],
+    ['art texture', { kind: 'art', texture: false }, { kind: 'art' }],
   ])('changes with the %s', (_label, a, b) => {
     expect(key(a)).not.toBe(key(b));
   });
@@ -342,6 +365,10 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
     { kind: 'unsplash', query: '', collections: ['c1', 'c2'] },
     { kind: 'unsplash', query: '', photoIds: ['p1'] },
     { kind: 'nasa' },
+    { kind: 'art', artist: 'van Gogh', orientation: 'portrait', aspectTolerance: 0.25, fit: 'contain' },
+    { kind: 'art', fromYear: 1600, toYear: 1800, genre: 'landscape' },
+    { kind: 'art', fit: 'framed', wall: 'painting', mat: 'none', frame: 'gold', label: 'off', texture: false },
+    { kind: 'art', fit: 'cover', drift: true },
     { kind: 'wall', group: 'pattern', ids: ['pattern-dots', 'pattern-grid'] },
     { kind: 'wall', group: 'color', ids: [] },
   ])('round-trips %j', (source) => {
@@ -373,11 +400,11 @@ describe('photoSourceParams and parsePhotoSourceParams', () => {
 
 describe('picking one picture', () => {
   it('knows which sources copy single pictures', () => {
-    for (const kind of ['immich', 'unsplash', 'nasa']) expect(isPickImportKind(kind)).toBe(true);
+    for (const kind of ['immich', 'unsplash', 'nasa', 'art']) expect(isPickImportKind(kind)).toBe(true);
     for (const kind of ['library', 'icloud', 'onedrive', 'wall', '', null]) expect(isPickImportKind(kind)).toBe(false);
   });
 
-  it.each<['immich' | 'unsplash' | 'nasa', string, boolean]>([
+  it.each<['immich' | 'unsplash' | 'nasa' | 'art', string, boolean]>([
     ['immich', '8d1d93ea-60f5-497d-96f4-5f3cb72e1474', true],
     ['immich', 'abc', true],
     ['immich', '../etc', false],
@@ -391,6 +418,9 @@ describe('picking one picture', () => {
     ['nasa', 'image:as11-40-5874.v2', true],
     ['nasa', 'image:../x', false],
     ['nasa', 'PIA12345', false],
+    ['art', 'Q12418', true],
+    ['art', 'wikimedia:Q12418', false],
+    ['art', '16568', false],
   ])('%s ref %j is valid: %s', (kind, ref, valid) => {
     expect(isValidPickRef(kind, ref)).toBe(valid);
   });

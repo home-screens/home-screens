@@ -53,6 +53,7 @@ describe('PhotoSourceFields', () => {
       'OneDrive (needs setting up)',
       'Unsplash (needs a free key)',
       'NASA picture of the day',
+      'Paintings from museums',
     ]);
   });
 

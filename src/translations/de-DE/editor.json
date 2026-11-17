@@ -300,7 +300,15 @@
     "goBackAfterWillBeClamped": "Wird als {to} Minuten gespeichert, ein ganzer Tag.",
     "goBackAfterChangedRounded": "{from} zu {to} geändert: ganze oder halbe Minuten.",
     "goBackAfterChangedClamped": "{from} zu {to} Minuten geändert, ein ganzer Tag.",
-    "goBackAfterKept": "Das ist keine Zahl an Minuten, also bleibt es bei {to}."
+    "goBackAfterKept": "Das ist keine Zahl an Minuten, also bleibt es bei {to}.",
+    "artModeGroup": "Kunstmodus",
+    "artModeToggle": "Kunstmodus",
+    "artModeHint": "Blendet die Module dieses Bildschirms aus und zeigt nur das Bild und sein Schild.",
+    "artModeWhen": "Wann",
+    "artModeAlways": "Immer",
+    "artModeBetween": "Zwischen zwei Uhrzeiten",
+    "artModeFrom": "Ab",
+    "artModeUntil": "Bis"
   },
   "scheduleEditor": {
     "statusTitle": "Status",
@@ -2737,12 +2745,21 @@
       "onedrive": "Wähle einen Ordner aus",
       "unsplash": "Gib Suchwörter ein, füge eine Sammlung hinzu oder wähle ein paar Fotos aus",
       "nasa": "",
+      "art": "",
       "wall": "Wähle die Hintergründe aus, die gezeigt werden sollen"
     },
     "effectsReset": "Zurücksetzen",
     "effectsResetLabel": "{label} zurücksetzen",
     "refreshSame": "Es gibt nur ein Bild",
-    "nasaPace": "Die NASA hat nur ein neues Bild pro Tag. Bis das nächste kommt, ist dasselbe wieder dran."
+    "nasaPace": "Die NASA hat nur ein neues Bild pro Tag. Bis das nächste kommt, ist dasselbe wieder dran.",
+    "eveningGroup": "Abendlicht",
+    "eveningToggle": "Abendlicht",
+    "eveningHint": "Abends wärmer und dunkler, damit ein Bild wie Papier wirkt und nicht wie ein leuchtender Bildschirm.",
+    "eveningFrom": "Ab",
+    "eveningFromSunset": "Sonnenuntergang",
+    "eveningFromTime": "Feste Uhrzeit",
+    "eveningUntil": "Bis",
+    "eveningSunsetHint": "Für den Sonnenuntergang muss dein Ort in den Einstellungen stehen. Ohne ihn beginnt der Abend um 20 Uhr."
   },
   "imageBrowserModal": {
     "title": "Bildersammlung",
@@ -5971,7 +5988,8 @@
       "icloud": "Geteiltes iCloud-Album",
       "onedrive": "OneDrive",
       "unsplash": "Unsplash",
-      "nasa": "NASA-Bild des Tages"
+      "nasa": "NASA-Bild des Tages",
+      "art": "Gemälde aus Museen"
     },
     "library": {
       "folder": "Ordner",
@@ -6046,13 +6064,126 @@
       "backgroundInfo": "Die NASA veröffentlicht jeden Tag ein neues Astronomiebild. Der Bildschirm zeigt immer das neueste.",
       "apodUnavailable": "Die NASA schickt gerade keine Bilder des Tages. Die Suche im Bildarchiv der NASA klappt weiterhin."
     },
+    "art": {
+      "artist": "Künstler",
+      "artistPlaceholder": "Claude Monet",
+      "orientation": "Format",
+      "orientations": {
+        "any": "Beliebig",
+        "portrait": "Hochformat",
+        "landscape": "Querformat"
+      },
+      "shape": "Zur Form des Bildschirms passend",
+      "shapes": {
+        "any": "Jede Form",
+        "loose": "Ungefähr",
+        "medium": "Ziemlich genau",
+        "strict": "Genau wie der Bildschirm"
+      },
+      "fit": "Auf dem Bildschirm",
+      "fits": {
+        "framed": "Gerahmt an der Wand",
+        "mat": "Im Passepartout",
+        "matte": "Ganzes Gemälde auf weichem Unschärfe-Hintergrund",
+        "cover": "Bildschirm füllen (Ränder werden abgeschnitten)",
+        "contain": "Ganzes Gemälde auf dunkler Wand"
+      },
+      "streamInfo": "Landschaften, Seestücke, Stadtansichten und Stillleben aus Museumssammlungen. Titel, Künstler und Museum erscheinen in einer Ecke.",
+      "backgroundInfo": "Bei jedem Hintergrundwechsel ein neues Gemälde. Titel, Künstler und Museum erscheinen dezent in einer Ecke.",
+      "addFilter": "+ Filter hinzufügen",
+      "filters": "Eingrenzen",
+      "removeFilter": "Filter entfernen: {filter}",
+      "period": "Zeitraum",
+      "fromYear": "Ab Jahr",
+      "toYear": "Bis Jahr",
+      "genre": "Motiv",
+      "choose": "Auswählen…",
+      "genres": {
+        "landscape": "Landschaften",
+        "still-life": "Stillleben",
+        "seascape": "Seestücke",
+        "cityscape": "Stadtansichten"
+      },
+      "matchCount": {
+        "one": "{count} Gemälde passt",
+        "other": "{count} Gemälde passen"
+      },
+      "fewMatches": "Nur wenige Gemälde passen, daher kehren dieselben oft wieder. Lockere einen Filter.",
+      "noMatches": "Keine Gemälde passen. Lockere einen Filter.",
+      "picker": {
+        "ideas": {
+          "impressionism": "Impressionismus",
+          "dutch": "Holländisches Goldenes Zeitalter",
+          "landscapes": "Landschaften",
+          "stillLife": "Stillleben",
+          "seascapes": "Seestücke",
+          "cityscapes": "Stadtansichten",
+          "louvre": "Louvre",
+          "rijksmuseum": "Rijksmuseum",
+          "vanGogh": "Van Gogh"
+        },
+        "searchPlaceholder": "Gemälde suchen: Museum, Künstler oder Stil",
+        "matched": "Gefunden: {matches}",
+        "matchTypes": {
+          "museum": "Museum",
+          "artist": "Künstler",
+          "movement": "Stil",
+          "genre": "Motiv"
+        },
+        "matchItem": "{label} ({type})",
+        "copyHint": "Gemälde aus offenen Sammlungen. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
+        "creditHint": "{credit}. Eine Kopie kommt in den art-Ordner deiner Bibliothek.",
+        "empty": "Keine Gemälde gefunden. Probiere andere Wörter.",
+        "loadFailed": "Die Gemälde konnten nicht geladen werden.",
+        "unavailable": "Die Sammlung liefert gerade keine Gemälde. Versuche es etwas später noch einmal.",
+        "orSearch": "Oder such oben nach allem, was du willst"
+      },
+      "wall": "Wandfarbe",
+      "walls": {
+        "charcoal": "Anthrazit",
+        "warm-white": "Warmweiß",
+        "sage": "Salbei",
+        "painting": "Aus dem Gemälde"
+      },
+      "mat": "Passepartout",
+      "mats": {
+        "cream": "Creme",
+        "white": "Weiß",
+        "charcoal": "Anthrazit",
+        "none": "Keins",
+        "painting": "Aus dem Gemälde"
+      },
+      "frame": "Rahmen",
+      "frames": {
+        "black": "Schwarz",
+        "oak": "Eiche",
+        "gold": "Gold",
+        "white": "Weiß"
+      },
+      "label": "Museumsschild",
+      "labels": {
+        "brief": "In den ersten 15 Sekunden",
+        "always": "Immer",
+        "off": "Aus"
+      },
+      "labelHint": "Titel, Künstler, Jahr und Museum. Die übrige Zeit steht die kleine Bildunterschrift in der Ecke.",
+      "texture": "Leinwandstruktur",
+      "drift": "Langsames Gleiten",
+      "driftHint": "Das Gemälde wächst und gleitet in der ersten Minute ganz langsam und steht dann still.",
+      "hiddenCount": {
+        "one": "{count} Gemälde ist vom Handy aus ausgeblendet.",
+        "other": "{count} Gemälde sind vom Handy aus ausgeblendet."
+      },
+      "hiddenShow": "Wieder zeigen"
+    },
     "picker": {
       "tabs": {
         "builtin": "Mitgeliefert",
         "library": "Lokal",
         "immich": "Immich",
         "unsplash": "Unsplash",
-        "nasa": "NASA"
+        "nasa": "NASA",
+        "art": "Kunst"
       },
       "ideas": "Ideen",
       "search": "Suchen",
