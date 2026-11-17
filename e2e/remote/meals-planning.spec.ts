@@ -234,7 +234,7 @@ test('editing a saved meal round-trips to meals.json', async ({ page, request })
   await page.getByRole('button', { name: 'Library' }).click();
 
   // Tapping a library card reopens the same MealFormOverlay in edit mode.
-  await page.getByRole('button', { name: /Taco Tuesday/ }).click();
+  await page.getByRole('button', { name: '🌮 Taco Tuesday', exact: true }).click();
   await expect(page.getByText('Edit Meal')).toBeVisible();
 
   await page.getByPlaceholder('e.g. Chicken Stir Fry').fill('Taco Wednesday');
@@ -257,7 +257,7 @@ test('deleting a saved meal removes it and clears its planned slots', async ({ p
   await openMeals(page);
   await page.getByRole('button', { name: 'Library' }).click();
 
-  await page.getByRole('button', { name: /Sloppy Joes/ }).click();
+  await page.getByRole('button', { name: '🍔 Sloppy Joes', exact: true }).click();
   await expect(page.getByText('Edit Meal')).toBeVisible();
 
   // The overlay footer's "Delete Meal" opens a confirm sheet whose confirm
@@ -428,7 +428,7 @@ test('a library edit leaves a meal planned elsewhere alone', async ({ page, requ
     plan: [{ slot: 'dinner', mealId: 'meal-edit', date: isoDate(0) }],
   });
 
-  await page.getByRole('button', { name: /Taco Tuesday/ }).click();
+  await page.getByRole('button', { name: '🌮 Taco Tuesday', exact: true }).click();
   await expect(page.getByText('Edit Meal')).toBeVisible();
   await page.getByPlaceholder('e.g. Chicken Stir Fry').fill('Taco Wednesday');
   await page.getByRole('button', { name: 'Save Changes' }).click();

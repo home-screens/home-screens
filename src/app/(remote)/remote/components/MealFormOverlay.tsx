@@ -5,6 +5,7 @@ import type { MealIngredient, GroceryCategory } from '@/types/config';
 import { COURSE_KINDS } from '@/lib/meal-courses';
 import type { MealFormState } from '../hooks/useMealForm';
 import { INPUT_STYLE, LABEL_STYLE } from './meals-shared';
+import MealRateButton from './MealRatingSheet';
 import { MEAL_TAGS, FOOD_EMOJIS, normalizeTag, DIFFICULTY_COLORS } from '@/lib/meal-constants';
 import { GROCERY_CATEGORY_ORDER, groceryAisle } from '@/lib/grocery-utils';
 import { emojiGridWithChosen } from '@/lib/icon-value';
@@ -68,15 +69,13 @@ export default function MealFormOverlay({
     setFormRecipeUrl,
     formNotes,
     setFormNotes,
-    formRating,
-    setFormRating,
     formFavorite,
     setFormFavorite,
     nameInputRef,
   } = form;
   const dirty = useFormDirty([
     formName, formEmoji, formPrepTime, formCookTime, formServings, formDifficulty, formCategory,
-    formTags, formIngredients, formRecipeUrl, formNotes, formRating, formFavorite,
+    formTags, formIngredients, formRecipeUrl, formNotes, formFavorite,
   ]);
 
   const saveLabel = saving
@@ -408,33 +407,9 @@ export default function MealFormOverlay({
         />
       </div>
 
-      <div style={{ marginBottom: 24 }}>
-        <div style={LABEL_STYLE}>{t('mealForm.ratingLabel')}</div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              onClick={() => setFormRating(formRating === star ? 0 : star)}
-              aria-label={t('mealForm.ratingStarAriaLabel', { n: star })}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 8,
-                border: 'none',
-                background: star <= formRating ? withAlpha(REMOTE_ACCENT, 0.2) : 'var(--hs-bg-panel)',
-                color: star <= formRating ? REMOTE_ACCENT : 'var(--hs-border-strong)',
-                fontSize: 22,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              &#9733;
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* The family's stars, one vote per person. A meal has to be saved
+          before anyone can vote on it, so a new one has no button yet. */}
+      {editingMeal && editingMeal !== 'new' && <MealRateButton meal={editingMeal} variant="wide" style={{ marginBottom: 24 }} />}
 
       <button
         onClick={() => setFormFavorite(!formFavorite)}

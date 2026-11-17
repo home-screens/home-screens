@@ -3,6 +3,7 @@
 import { useEffect, useRef, useMemo } from 'react';
 import type { FullscreenPhotoConfig, MediaListItem, ModuleStyle, TimeFormat } from '@/types/config';
 import { useFetchData } from '@/hooks/useFetchData';
+import { DISPLAY_FETCH_LONG_TIMEOUT_MS } from '@/lib/display-fetch';
 import { photoSlideshowUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { isSinglePhotoMode } from '@/lib/fullscreen-photo-mode';
 import { useMediaRotation } from '@/hooks/useRotatingIndex';
@@ -144,7 +145,7 @@ function SlideLayer({
       alt=""
       className="absolute inset-0 w-full h-full"
       style={{ ...transitionStyle, ...kenBurnsStyle }}
-      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady)}
+      onLoad={(e) => readyWhenDecoded(e.currentTarget, onReady, onFailed)}
       onError={onFailed}
     />
   );
@@ -314,7 +315,8 @@ export default function FullscreenPhotoModule({ config, timezone, fullscreenThem
 
   // The photo list (the same media route as photo-slideshow); none for a single photo.
   const listUrl = isSinglePhoto ? '' : photoSlideshowUrl(config);
-  const [data, error] = useFetchData<MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000);
+  // A cloud source the hub has not read yet can take most of a minute to list.
+  const [data, error] = useFetchData<MediaListItem[]>(listUrl, FETCH_KEY_REGISTRY['fullscreen-photo']?.ttlMs ?? 600_000, { timeoutMs: DISPLAY_FETCH_LONG_TIMEOUT_MS });
   const items = data ?? NO_ITEMS;
 
   const intervalMs = config.intervalMs ?? 30000;

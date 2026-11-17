@@ -8,6 +8,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { MealTapTarget, type RecipeTapMode } from '../shared/MealTapTarget';
 import MealPicture, { mealHasPicture } from '@/components/meals/MealPicture';
 import { MealCourseCount } from '../shared/MealCourseLines';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 interface CompactViewProps {
   config: MealPlannerConfig;
@@ -87,6 +88,7 @@ export function CompactView({ config, settings, timeFormat, plan, savedMeals, to
                           {name}
                         </span>
                       </MealTapTarget>
+                      <FamilyMealStars meal={meal} size="0.6em" compact />
                       <MealCourseCount count={courses.length} color={meta.color} fontSize="0.55em" />
                       {time && (
                         <span

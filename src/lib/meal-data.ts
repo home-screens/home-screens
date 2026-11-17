@@ -1,4 +1,6 @@
 import { promises as fs } from 'fs';
+import type { FamilyMealRating } from '@/types/meal-ratings';
+import { normalizeFamilyMealRatings, pruneFamilyMealRatings } from './meal-ratings';
 import type { SavedMeal, PlannedMeal, MealSettings, MealSlotType } from '@/types/config';
 import { createJsonStore } from './json-store';
 import { withDataTransaction } from './data-transaction';
@@ -15,6 +17,8 @@ const log = logger('meal-settings-migration');
 // ── Data shape ────────────────────────────────
 
 export interface MealData {
+  /** The family's votes: one per person and recipe (see `meal-ratings.ts`). */
+  familyRatings?: FamilyMealRating[];
   /** The meal library (see SavedMeal below) */
   savedMeals: SavedMeal[];
   /** Planned meals, one entry per day and slot (see PlannedMeal) */
@@ -253,6 +257,11 @@ async function parseAndMigrate(
     groceryChecked: normalizeGroceryChecked(raw.groceryChecked),
     settings: normalizeMealSettings(raw.settings),
   };
+  // A row that is not a vote is left out rather than refused: one bad row
+  // must not take the plan, the recipes and the grocery list down with it.
+  const familyRatings = normalizeFamilyMealRatings(raw.familyRatings);
+  const ratingsCleaned = raw.familyRatings !== undefined && familyRatings !== raw.familyRatings;
+  if (familyRatings.length > 0 || Array.isArray(raw.familyRatings)) data.familyRatings = familyRatings;
   const mealieExtras = normalizeMealieExtras(raw.mealieExtras);
   if (mealieExtras) data.mealieExtras = mealieExtras;
   if (typeof raw.mealieShoppingList === 'string' && raw.mealieShoppingList) data.mealieShoppingList = raw.mealieShoppingList;
@@ -316,7 +325,7 @@ async function parseAndMigrate(
   return {
     data,
     migrated: needsMigration || needsPreviousPlanRemoval || needsSettingsBackfill || backfilled
-      || raw.timeFormatLegacyStripped !== true,
+      || raw.timeFormatLegacyStripped !== true || ratingsCleaned,
   };
 }
 
@@ -385,11 +394,16 @@ export function updateMealData(
     if (result === data && !migrated) {
       return current;
     }
+    // A family recipe deleted by this write takes its votes along, whichever
+    // route deleted it.
+    const votes = result.familyRatings;
+    const keptVotes = votes && result.savedMeals !== data.savedMeals ? pruneFamilyMealRatings(votes, result.savedMeals) : votes;
+    const swept = keptVotes === votes ? result : { ...result, familyRatings: keptVotes };
     // Mutators that build a fresh object (e.g. the PUT route's field-level
     // literal) don't carry the strip marker — stamp it so a deliberate
     // '12h' pick made after the migration is never re-stripped on a later
     // read. Bare `writeMealData` callers bypass this and keep their bytes.
-    return { ...result, timeFormatLegacyStripped: true };
+    return { ...swept, timeFormatLegacyStripped: true };
   });
 }
 

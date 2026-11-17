@@ -10,7 +10,7 @@ import {
 } from './library-import';
 import { fetchICloudMediaForImport } from './icloud-media';
 import { listICloudLinkItems } from './icloud-link';
-import { detectICloudSource, parseICloudLinkToken } from './icloud-parse';
+import { detectICloudSource, isAppleContentUrl, parseICloudLinkToken } from './icloud-parse';
 
 /**
  * One-shot "download everything into the local library" jobs for the two
@@ -37,21 +37,6 @@ export function clearICloudImportJobs(): void {
 
 export function getICloudImport(jobId: string): ICloudImportJob | null {
   return getLibraryImport(jobId);
-}
-
-/**
- * Every download URL comes from an Apple RESPONSE body (webasseturls or
- * CloudKit rendition fields). Upstream requests are pinned to Apple hosts,
- * so this is defense-in-depth: never fetch a response-supplied URL outside
- * Apple's content domains.
- */
-function isAppleContentUrl(rawUrl: string): boolean {
-  try {
-    const { protocol, hostname } = new URL(rawUrl);
-    return protocol === 'https:' && /(^|\.)(icloud-content\.com|icloud\.com|cdn-apple\.com)$/i.test(hostname);
-  } catch {
-    return false;
-  }
 }
 
 async function buildPlans(url: string): Promise<LibraryImportPlan[] | 'invalid-link' | 'link-expired' | 'album-gone'> {

@@ -28,6 +28,7 @@ const NOT_IN_A_BACKUP: Record<string, string> = {
   'data/family-migration.json': 'evidence a restore writes, never restored',
   'data/background-cache.json': 'downloaded pictures, fetched again',
   'data/school-holidays.json': 'a cache, fetched again',
+  'data/icloud-albums.json': 'a cache of what each shared album holds, read from iCloud again',
   'data/weather-today.json': 'a cache, fetched again',
   'data/plugins/installed.json': 'installed plugins, whose bundles live beside it and are installed again',
 };

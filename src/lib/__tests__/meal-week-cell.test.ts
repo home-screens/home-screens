@@ -18,6 +18,42 @@ const NARROW: WeekCellRoom = {
   smallLinePx: 16,
 };
 
+describe('the family rating in a week cell', () => {
+  // "★ 4.5" at 11px is about 34px.
+  const RATED: WeekCellRoom = { ...NARROW, ratingPx: 34 };
+
+  it('never shows for a meal nobody has rated', () => {
+    expect(weekCellLayout(NARROW).showRating).toBe(false);
+    expect(weekCellLayout({ ...NARROW, ratingPx: 0, rowPx: 400 }).showRating).toBe(false);
+  });
+
+  it('goes after the time on the same line when the cell is wide enough', () => {
+    // 46 + 4 + 34 = 84px on one line.
+    expect(weekCellLayout({ ...RATED, cellPx: 140, picturePx: 0 })).toMatchObject({ showTime: true, showRating: true });
+  });
+
+  it('takes a line of its own when the row has one to spare', () => {
+    // 66.5px cannot hold the time and the rating side by side.
+    expect(weekCellLayout({ ...RATED, rowPx: 120 })).toMatchObject({ showTime: true, showRating: true });
+  });
+
+  it('is the first thing to go: the name and the time keep what they had', () => {
+    const without = weekCellLayout(NARROW);
+    const tight = weekCellLayout(RATED);
+    expect(tight.showRating).toBe(false);
+    expect(tight).toMatchObject({ pictureAbove: without.pictureAbove, nameLines: without.nameLines, showTime: without.showTime, countAt: without.countAt });
+  });
+
+  it('shows without a serving time when the row has a line for it', () => {
+    expect(weekCellLayout({ ...RATED, timePx: 0 }).showRating).toBe(true);
+    expect(weekCellLayout({ ...RATED, timePx: 0, rowPx: 44 }).showRating).toBe(false);
+  });
+
+  it('shows in the layout a cell is authored with, before it is measured', () => {
+    expect(weekCellLayout({ ...RATED, cellPx: 0 }).showRating).toBe(true);
+  });
+});
+
 describe('weekCellLayout', () => {
   it('gives the name the whole cell and puts the time under it', () => {
     // Beside the name, "7:30 AM" left it 16px and cut "Oatmeal" to "Oa / t...".
@@ -93,7 +129,7 @@ describe('weekCellLayout', () => {
   });
 
   it('keeps the authored layout until the view has been measured', () => {
-    expect(weekCellLayout({ ...NARROW, cellPx: 0, countPx: 20 })).toEqual({ pictureAbove: false, nameLines: 2, lineChars: Infinity, showTime: true, countAt: 'line' });
+    expect(weekCellLayout({ ...NARROW, cellPx: 0, countPx: 20 })).toEqual({ pictureAbove: false, nameLines: 2, lineChars: Infinity, showTime: true, countAt: 'line', showRating: false });
   });
 });
 

@@ -10,7 +10,8 @@
  * its own line under the name, the picture moves above a name it would
  * squeeze to under about seven letters, and the name breaks between words
  * only, ending in an ellipsis when it still does not fit. What the row has no
- * height for gives way in turn: the time first, then the name's second line.
+ * height for gives way in turn: the family's rating first, then the time,
+ * then the name's second line.
  */
 
 /** The fewest letters of a dish name the line beside its picture has to hold. */
@@ -51,7 +52,9 @@ export interface WeekCellRoom {
   timePx: number;
   /** The course count's width. Zero for a meal without courses. */
   countPx: number;
-  /** The height of the small line under the name that holds the time and the count. */
+  /** The family rating's width ("★ 4.5"). Zero, or left out, for a meal nobody has rated. */
+  ratingPx?: number;
+  /** The height of the small line under the name that holds the time, the count and the rating. */
   smallLinePx: number;
 }
 
@@ -73,6 +76,12 @@ export interface WeekCellLayout {
    * meal without courses.
    */
   countAt: 'picture' | 'line' | 'name' | null;
+  /**
+   * The family's rating shows, last on the line under the name. It is the
+   * first thing to go: it never costs the name a line, or the time or the
+   * count their place.
+   */
+  showRating: boolean;
 }
 
 /**
@@ -125,8 +134,9 @@ export function weekCellPieces(words: readonly string[], lineChars: number): { t
  */
 export function weekCellLayout(room: WeekCellRoom): WeekCellLayout {
   const hasCount = room.countPx > 0;
+  const ratingPx = room.ratingPx ?? 0;
   if (room.cellPx <= 0) {
-    return { pictureAbove: false, nameLines: NAME_MAX_LINES, lineChars: Infinity, showTime: room.timePx > 0, countAt: hasCount ? 'line' : null };
+    return { pictureAbove: false, nameLines: NAME_MAX_LINES, lineChars: Infinity, showTime: room.timePx > 0, countAt: hasCount ? 'line' : null, showRating: ratingPx > 0 };
   }
   const nameLine = NAME_LINE_HEIGHT * room.namePx;
 
@@ -162,13 +172,31 @@ export function weekCellLayout(room: WeekCellRoom): WeekCellLayout {
   const timeFits = room.timePx > 0 && room.timePx <= room.cellPx;
   let showTime = false;
   let countOnLine = false;
+  // The lines the time and the count take under the name, and how full the last one is.
+  let lines = 0;
+  let lastLinePx = 0;
   if (hasCount && !pictureAbove) {
     const sideBySide = room.timePx + WEEK_GAP_PX + room.countPx <= room.cellPx;
     showTime = timeFits && holds(sideBySide ? 1 : 2);
     countOnLine = showTime || holds(1);
+    if (showTime) {
+      lines = sideBySide ? 1 : 2;
+      lastLinePx = sideBySide ? room.timePx + WEEK_GAP_PX + room.countPx : room.countPx;
+    } else if (countOnLine) {
+      lines = 1;
+      lastLinePx = room.countPx;
+    }
   } else {
     showTime = timeFits && holds(1);
+    if (showTime) {
+      lines = 1;
+      lastLinePx = room.timePx;
+    }
   }
+  // The rating goes after them on that line when it fits there, else on a
+  // line of its own when the row still has one.
+  const showRating = ratingPx > 0 && ratingPx <= room.cellPx
+    && ((lines > 0 && lastLinePx + WEEK_GAP_PX + ratingPx <= room.cellPx) || holds(lines + 1));
 
   return {
     pictureAbove,
@@ -176,6 +204,7 @@ export function weekCellLayout(room: WeekCellRoom): WeekCellLayout {
     lineChars: nameWidth / (NAME_CHAR_EM * room.namePx),
     showTime,
     countAt: !hasCount ? null : pictureAbove ? 'picture' : countOnLine ? 'line' : 'name',
+    showRating,
   };
 }
 

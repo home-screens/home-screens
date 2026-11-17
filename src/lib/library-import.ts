@@ -2,8 +2,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { fetchWithTimeout } from './api-utils';
-import { safeLibraryPath, writeLibraryFile } from './library-files';
-import { MAX_VIDEO_BYTES, MAX_IMPORT_IMAGE_BYTES, extensionForContentType, mediaKindOf } from './media-formats';
+import { identifyDownload, safeLibraryPath, writeLibraryFile } from './library-files';
+import { MAX_VIDEO_BYTES, MAX_IMPORT_IMAGE_BYTES, mediaKindOf } from './media-formats';
 import { bumpLibraryRevision } from './library-revision';
 import { logger } from './logger';
 
@@ -162,15 +162,18 @@ async function downloadOne(
 
   // The extension is always drawn from a closed known-safe set, so no
   // upstream value can ever name a file something the library and serve
-  // route don't expect.
+  // route don't expect. A file nothing can be told about keeps the name its
+  // source's listing implies.
   let filename = plan.filename;
+  let body: ReadableStream<Uint8Array> | null = res.body;
   if (!filename) {
-    const ext = extensionForContentType(res.headers.get('content-type')) ?? (plan.type === 'video' ? '.mp4' : '.jpg');
-    filename = `${stem}${ext}`;
+    const named = await identifyDownload(res);
+    body = named.body;
+    filename = `${stem}${named.ext ?? (plan.type === 'video' ? '.mp4' : '.jpg')}`;
   }
 
   const maxBytes = plan.type === 'video' ? MAX_VIDEO_BYTES : MAX_IMPORT_IMAGE_BYTES;
-  await writeLibraryFile(path.join(dir, filename), res.body, maxBytes);
+  await writeLibraryFile(path.join(dir, filename), body, maxBytes);
   existingByStem.set(stem, filename);
   return { outcome: 'done', filename };
 }
@@ -315,8 +318,6 @@ export interface PictureImport {
    * person recognizes.
    */
   open: () => Promise<Response | { response: Response; title?: string }>;
-  /** The URL the bytes come from, used for the extension when the server's type says nothing useful. */
-  urlHint?: string;
 }
 
 export interface PictureImportResult {
@@ -354,22 +355,15 @@ export async function importPictureToLibrary(pick: PictureImport): Promise<Pictu
   const res = opened instanceof Response ? opened : opened.response;
   const title = opened instanceof Response ? '' : titleSlug(opened.title ?? '');
   if (!res.ok) throw new Error(`download failed with status ${res.status}`);
-  const contentType = res.headers.get('content-type');
-  let ext = extensionForContentType(contentType, 'image');
-  if (!ext && pick.urlHint && !/^image\/tiff/i.test(contentType ?? '')) {
-    // Some archives answer application/octet-stream; trust a web-picture
-    // extension on the URL itself, never a TIFF.
-    const fromUrl = /\.(jpe?g|png|webp|gif|avif)(?:[?#]|$)/i.exec(pick.urlHint)?.[1]?.toLowerCase();
-    if (fromUrl) ext = fromUrl === 'jpeg' ? '.jpg' : `.${fromUrl}`;
-  }
+  const { ext, body } = await identifyDownload(res, 'image');
   if (!ext) {
-    await res.body?.cancel().catch(() => { /* nothing to drain */ });
+    await body?.cancel().catch(() => { /* nothing to drain */ });
     throw new UnsupportedImageFormatError();
   }
   // The title leads and the source's id ends the name, so the folder sorts
   // by what the pictures are and a repeat pick still finds its copy.
   const name = `${title ? `${title}${TITLE_SEPARATOR}` : ''}${stem}${ext}`;
-  await writeLibraryFile(path.join(dir, name), res.body, MAX_IMPORT_IMAGE_BYTES);
+  await writeLibraryFile(path.join(dir, name), body, MAX_IMPORT_IMAGE_BYTES);
   bumpLibraryRevision();
   return { path: relative(name), reused: false };
 }

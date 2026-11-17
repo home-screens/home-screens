@@ -40,7 +40,15 @@ async function openConditions(page: Page, request: APIRequestContext, mod: Modul
   await page.locator(`[data-module-id="${mod.id}"]`).click();
   // The conditions UI is its own accordion (propertyPanel.sections.conditions),
   // collapsed by default and separate from the "Visibility" enabled/schedule one.
-  await page.getByRole('button', { name: 'Conditions' }).click();
+  const heading = page.getByRole('button', { name: 'Conditions' });
+  await heading.click();
+  // The section slides open over 200 ms, and until it is done the panel is
+  // still growing: a hover or a measurement made sooner lands wherever the
+  // scroll happens to be, which depends on how fast the machine is. Its body
+  // is the heading's next sibling, and its height reads `auto` once it rests.
+  await expect
+    .poll(() => heading.locator('xpath=following-sibling::div[1]').evaluate((body) => (body as HTMLElement).style.height))
+    .toBe('auto');
 }
 
 /** Persisted visibility block for the single module in the single screen. */
@@ -200,6 +208,43 @@ test('a time condition can be one stretch across several days', async ({ page, r
   for (const day of [5, 6, 0]) {
     await expect(strip.getByTestId(`schedule-track-${day}`).getByTestId('schedule-band')).toHaveCount(0);
   }
+});
+
+test('dragging one time condition\'s end over another\'s strip does not read the other strip\'s days', async ({ page, request }) => {
+  const stretch = { kind: 'time' as const, daysOfWeek: [1], startTime: '08:00', endTime: '20:00', endDayOffset: 1 };
+  const mod = textModule('GATED', { visibility: { conditions: [stretch, { ...stretch }] } });
+  await openConditions(page, request, mod);
+
+  const strips = page.getByTestId('schedule-week-strip');
+  await expect(strips).toHaveCount(2);
+
+  // The first stretch ends on Tuesday. Drag that end down, off the bottom of
+  // its own strip and onto the second strip's Monday row.
+  const grip = strips.nth(0).getByTestId('schedule-track-2').getByTestId('schedule-grip-end');
+  const otherMonday = strips.nth(1).getByTestId('schedule-track-1');
+  // Both ends of the drag have to be on screen at once: rest the second strip
+  // on the panel's bottom edge, which leaves the first strip in view above it.
+  await strips.nth(1).evaluate((strip) => strip.scrollIntoView({ block: 'end' }));
+  await grip.hover();
+  const box = (await otherMonday.boundingBox())!;
+  const target = { x: box.x + box.width * 0.5, y: box.y + box.height / 2 };
+  // The pointer really is over the other strip's row, the case under test.
+  expect(await otherMonday.evaluate(
+    (el, at) => el.contains(document.elementFromPoint(at.x, at.y)),
+    target,
+  )).toBe(true);
+
+  await autosaved(page, async () => {
+    await page.mouse.down();
+    await page.mouse.move(target.x, target.y, { steps: 8 });
+    await page.mouse.up();
+  });
+
+  // Below its last row the end stops on Saturday, five days after Monday.
+  // Reading the other strip's Monday would have cut it back to that morning.
+  const saved = (await savedVisibility(request))!.conditions;
+  expect(saved[0]).toMatchObject({ kind: 'time', daysOfWeek: [1], startTime: '08:00', endTime: '12:00', endDayOffset: 5 });
+  expect(saved[1]).toMatchObject(stretch);
 });
 
 test('switching to a group kind wraps the leaf and supports adding a nested child', async ({ page, request }) => {

@@ -3909,12 +3909,6 @@ export interface SavedMeal {
   recipeUrl?: string;
   /** Notes */
   notes?: string;
-  /**
-   * Rating, 1 to 5
-   *
-   * 1-5
-   */
-  rating?: number;
   /** Marked as a favorite */
   isFavorite?: boolean;
   /**
@@ -4087,6 +4081,8 @@ export interface MealPlannerConfig {
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;
+  /** Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access. */
+  showFamilyRatings?: boolean;
   /** Accent color for highlights */
   accentColor: string;
   /**
@@ -4807,6 +4803,8 @@ export interface FullscreenMealPlannerConfig {
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;
+  /** Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access. */
+  showFamilyRatings?: boolean;
   /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
   /** Show difficulty indicator */

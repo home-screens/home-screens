@@ -247,7 +247,7 @@ iCloud shared albums work without an Apple account or API key, all you need is t
 
 ### Using it
 
-- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo Source** and paste the link. The display loads photos straight from Apple's servers. A rotating background only uses still photos; any videos in the album are skipped.
+- **As a photo source**: in a Photo Slideshow, a Full-Screen Photo Viewer or a screen's rotating background, choose **iCloud shared album** as the **Photo Source** and paste the link. The hub fetches the photos from Apple and passes them to the display. The first time the hub reads an album Apple can take up to a minute to answer, so give a new link a moment; after that the hub keeps the album's list and looks for new photos in the background. A rotating background only uses still photos; any videos in the album are skipped.
 - **Importing into your library**: **Add from an iCloud link** downloads everything a link contains into a folder. It is on the Image Library's **Local** tab (into the selected folder) and on **Settings > Pictures & videos**. This also works with one-off "Copy iCloud Link" photo links, which expire after about 30 days; importing keeps the photos even after the link dies.
 
 ---
@@ -332,7 +332,7 @@ Every minute the wall asks the Pi whether it is time for a new background. When 
 - **NASA** fetches the newest Astronomy Picture of the Day. Since NASA publishes one new picture per day, the display checks at the chosen interval but the picture only changes once daily.
 - **Paintings from museums** fetches a random painting that matches the filters you chose (museum, period, subject, artist, style, size and shape), fitted to your screen as set under **On the screen**.
 - **Immich** fetches a random photo matching the filters (any of the albums ticked, any of the people ticked, none of the people left out, favorites only), or one of the photos you picked. Changing a filter fetches a fresh photo straight away.
-- **iCloud** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. Album contents are cached briefly, so new photos added to the album show up within a few minutes.
+- **iCloud** fetches a random photo from the shared album. Only still photos are used, so any videos in the album are skipped and an album that's mostly video will cycle through a much smaller pool than you'd expect. The hub keeps the album's list and looks for changes in the background, so new photos added to the album take a few minutes to show up.
 - **OneDrive** fetches a random photo from the folder and everything inside it.
 
 ### Housekeeping

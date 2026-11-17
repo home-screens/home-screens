@@ -254,7 +254,6 @@ export function mealieRecipeToMeal(recipe: MealieRecipeSummary, ctx: MealieConte
     if (total) meal.prepTime = total;
   }
   if (typeof recipe.recipeServings === 'number' && recipe.recipeServings > 0) meal.servings = Math.round(recipe.recipeServings);
-  if (typeof recipe.rating === 'number' && recipe.rating > 0) meal.rating = Math.min(5, Math.max(1, Math.round(recipe.rating)));
   const photoUrl = mealiePhotoUrl(recipe);
   if (photoUrl) meal.photoUrl = photoUrl;
   if (favorites) meal.isFavorite = favorites.has(recipe.id);

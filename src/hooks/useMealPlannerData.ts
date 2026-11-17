@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { isSessionExpired } from '@/lib/editor-fetch';
 import { DEFAULT_MEAL_SETTINGS } from '@/lib/meal-constants';
 import { MealClientError, type MealEdit, type MealSnapshot } from '@/lib/meal-client';
+import type { FamilyMealRating } from '@/types/meal-ratings';
 import type { MealieProblem, MealieWireBlock } from '@/lib/meal-sources';
 import { groceryTapDirection, setGroceryCheck, type GroceryChecked } from '@/lib/grocery-checks';
 import { displayCache } from '@/lib/display-cache';
@@ -20,6 +21,8 @@ export interface MealsPayload {
   savedMeals: SavedMeal[];
   plan: PlannedMeal[];
   groceryChecked: GroceryChecked;
+  /** The family's votes for recipes (see `meal-ratings.ts`). */
+  familyRatings: FamilyMealRating[];
   settings: MealSettings;
   /** Where `plan` and `savedMeals` came from; in Mealie mode they are Mealie's. */
   source: MealSnapshot['source'];
@@ -52,6 +55,7 @@ const EMPTY_PAYLOAD = (): MealsPayload => ({
   savedMeals: [],
   plan: [],
   groceryChecked: {},
+  familyRatings: [],
   settings: { ...DEFAULT_MEAL_SETTINGS },
   source: 'local',
   mealie: null,
@@ -78,6 +82,7 @@ function view(snapshot: MealSnapshot): MealsPayload {
     savedMeals: snapshot.savedMeals,
     plan: snapshot.plan,
     groceryChecked: snapshot.groceryChecked,
+    familyRatings: snapshot.familyRatings,
     settings: snapshot.settings,
     source: snapshot.source,
     mealie: snapshot.mealie,

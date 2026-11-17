@@ -5,6 +5,8 @@ import { BookOpen, CloudOff, ExternalLink, Heart, Search } from 'lucide-react';
 import { fetchMealieCategories, mealieClientProblem } from '@/lib/meal-client';
 import type { SavedMeal } from '@/types/config';
 import type { MealieCategory } from '@/lib/mealie';
+import { FamilyMealSummary } from '@/components/meals/meal-votes';
+import MealRateButton from './MealRatingSheet';
 import { mealShownMinutes } from '@/lib/meal-dish-rules';
 import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate } from '@/i18n';
@@ -122,6 +124,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
             <span style={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'var(--hs-text-body)', marginBottom: 2, lineHeight: '21px' }}>
               {meal.name}
             </span>
+            <FamilyMealSummary meal={meal} short style={{ display: 'block', fontSize: 12, color: 'var(--hs-text-muted)', marginBottom: 2 }} />
             {(shown || first) && (
               <span style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--hs-text-faint)' }}>
                 {shown && <span>{formatShownMinutes(shown, t)}</span>}
@@ -147,6 +150,7 @@ export default function MealsMealieLibraryView({ baseUrl, wallNotices, onSaveFai
             aria-label={t('mealie.library.openRecipeAriaLabel', { meal: meal.name })}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', padding: 0, margin: 0, border: 'none', borderRadius: 'inherit', background: 'transparent', cursor: 'pointer' }}
           />
+          <MealRateButton meal={meal} style={{ position: 'relative' }} />
           <RecipeWallButton meal={meal} notices={wallNotices} style={{ position: 'relative' }} />
           <LibraryHeart meal={meal} onFailed={heartFailed} />
         </div>

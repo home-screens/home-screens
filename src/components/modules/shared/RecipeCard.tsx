@@ -13,7 +13,10 @@ import { recipeServingAt, useMealOverlayTheme, useMealRecipeContext, type MealSe
 import { useWallOverlayScale } from './useWallOverlayScale';
 import { WallOverlay } from './WallOverlay';
 import { wallPressProps } from './wallPress';
+import { BookIcon } from './recipe-book/RecipeBookParts';
+import { recipeCardActionStyle } from './recipe-card-actions';
 import { WallRecipeHeart } from './WallRecipeHeart';
+import { WallRateMealButton } from './MealRatingWall';
 
 const HEADER_FONT = "var(--font-dm-serif), 'DM Serif Display', Georgia, serif";
 
@@ -74,6 +77,9 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
           </span>
         </div>
       </div>
+      {/* In the footer's own row, which every page already keeps room for, so it never covers the recipe.
+          The measuring copies draw it too (inert there) and take the same room. */}
+      <WallRateMealButton meal={meal} size={P(28)} style={{ marginLeft: 'auto' }} measuring={measuring} />
     </div>
   );
 
@@ -109,19 +115,16 @@ export function RecipeCard({ meal: tapped, at, onClose }: { meal: SavedMeal; at?
           held={cooking}
           onCook={startCooking}
         />
+        {/* An SVG avoids the text × glyph's baseline offset inside the round action button. */}
         <button
           type="button"
           {...wallPressProps}
           data-testid="recipe-card-close"
           aria-label={t('meal-planner.closeRecipe')}
           onClick={onClose}
-          style={{
-            position: 'absolute', top: P(28), right: P(28), width: P(92), height: P(92), borderRadius: '50%',
-            border: 0, background: 'var(--fmp-border-sub)', color: 'var(--fmp-text-2)', fontSize: P(54), lineHeight: 1,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-          }}
+          style={recipeCardActionStyle(P, 0)}
         >
-          &times;
+          <BookIcon name="x" size={P(46)} />
         </button>
         {!gone && <WallRecipeHeart meal={heartMeal} P={P} place="card" />}
       </div>

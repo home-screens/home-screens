@@ -19,7 +19,6 @@ export function useMealForm() {
   const [formIngredients, setFormIngredients] = useState<MealIngredient[]>([]);
   const [formRecipeUrl, setFormRecipeUrl] = useState('');
   const [formNotes, setFormNotes] = useState('');
-  const [formRating, setFormRating] = useState(0);
   const [formFavorite, setFormFavorite] = useState(false);
   // What kind of dish it is: "Add a side" lists the sides first.
   const [formCategory, setFormCategory] = useState<NonNullable<SavedMeal['category']>>('main');
@@ -36,7 +35,6 @@ export function useMealForm() {
     setFormIngredients([]);
     setFormRecipeUrl('');
     setFormNotes('');
-    setFormRating(0);
     setFormFavorite(false);
     setFormCategory('main');
     clearError();
@@ -55,7 +53,6 @@ export function useMealForm() {
     setFormIngredients(meal.ingredients ?? []);
     setFormRecipeUrl(meal.recipeUrl ?? '');
     setFormNotes(meal.notes ?? '');
-    setFormRating(meal.rating ?? 0);
     setFormFavorite(meal.isFavorite ?? false);
     setFormCategory(mealKind(meal));
     clearError();
@@ -76,7 +73,6 @@ export function useMealForm() {
     ingredients: ingredientsToSave(formIngredients),
     recipeUrl: formRecipeUrl.trim() || undefined,
     notes: formNotes.trim() || undefined,
-    rating: formRating > 0 ? formRating : undefined,
     isFavorite: formFavorite || undefined,
   });
 
@@ -105,8 +101,6 @@ export function useMealForm() {
     setFormRecipeUrl,
     formNotes,
     setFormNotes,
-    formRating,
-    setFormRating,
     formFavorite,
     setFormFavorite,
     nameInputRef,

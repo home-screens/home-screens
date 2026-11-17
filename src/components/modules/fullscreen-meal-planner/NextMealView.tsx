@@ -1,5 +1,8 @@
+import { FamilyMealStars, WallRateDinnerButton } from '@/components/modules/shared/MealRatingWall';
 import { getMealSlotLabelKey, formatMealTime, resolvePlannedMealTime, type NextPlannedMeal } from '@/lib/meal-constants';
 import { useTranslate, useFormattingLocale, formatDateSync } from '@/i18n';
+import type { CSSProperties, ReactNode } from 'react';
+import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import type { MealPlannerViewProps } from './meal-planner-utils';
 import { px } from './meal-planner-utils';
 import { MealTapTarget } from '../shared/MealTapTarget';
@@ -13,7 +16,7 @@ import { MealMetaPills } from '../shared/MealMetaPills';
  * authored canvas pixels at 1080 wide / `medium` (see `px`).
  */
 export default function NextMealView({
-  next, settings, timeFormat, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode, photoBackdrop,
+  next, settings, timeFormat, s, pad, showEmoji, showPrepTime, showTags, showDifficulty, headerFont, bodyFont, recipeTapMode, photoBackdrop, interactive,
 }: MealPlannerViewProps & {
   /** The next meal (`getNextPlannedMeal`), worked out once by the module for its fit and its photo too. */
   next: NextPlannedMeal | null;
@@ -22,16 +25,30 @@ export default function NextMealView({
   const locale = useFormattingLocale();
   const P = (n: number) => px(s, n);
 
-  if (!next) {
-    return (
-      <div style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', height: '100%', fontFamily: bodyFont,
-        gap: P(30), color: 'var(--fmp-text-3)', padding: pad, textAlign: 'center' as const,
+  // The meal is centred in the room above Rate Dinner, which sits at the
+  // view's bottom edge, apart from it: under the dish it read as a button for
+  // the lunch shown above it, and it opens the last dinner the family sat
+  // down to. The meal's box is stamped for the fit loop, since a meal too
+  // tall for it would run over the button without ever leaving the view.
+  const frame = (meal: ReactNode, look: CSSProperties) => (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: bodyFont, padding: pad }}>
+      <div {...{ [FIT_MEASURE_ATTR]: '' }} style={{
+        flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', textAlign: 'center' as const, ...look,
       }}>
+        {meal}
+      </div>
+      {interactive && <WallRateDinnerButton size={P(28)} style={{ alignSelf: 'center', marginTop: P(28) }} />}
+    </div>
+  );
+
+  if (!next) {
+    return frame(
+      <>
         <span style={{ fontSize: P(200), lineHeight: 1, opacity: 0.3 }}>&#127869;</span>
         <span style={{ fontSize: P(48), fontFamily: headerFont, lineHeight: 1.1 }}>{t('fullscreen-meal-planner.noUpcomingMeals')}</span>
-      </div>
+      </>,
+      { gap: P(30), color: 'var(--fmp-text-3)' },
     );
   }
 
@@ -62,12 +79,8 @@ export default function NextMealView({
     borderRadius: P(14),
   };
 
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', height: '100%', fontFamily: bodyFont,
-      padding: pad, gap: P(28), textAlign: 'center' as const, color: ink.text,
-    }}>
+  return frame(
+    <>
       {/* Context badge */}
       <span style={{
         fontSize: P(36), fontWeight: 700, textTransform: 'uppercase' as const,
@@ -144,6 +157,8 @@ export default function NextMealView({
         </span>
       ))}
 
+      <FamilyMealStars meal={meal} size={P(36)} style={{ color: ink.text2 }} />
+
       {/* Meta pills and tags share one row, like the today hero. */}
       <MealMetaPills
         meal={meal}
@@ -153,6 +168,7 @@ export default function NextMealView({
         pillStyle={pillStyle}
         gap={P(16)}
       />
-    </div>
+    </>,
+    { gap: P(28), color: ink.text },
   );
 }

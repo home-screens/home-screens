@@ -438,8 +438,6 @@
     "recipeUrlPlaceholder": "https://...",
     "notesLabel": "Notes",
     "notesPlaceholder": "Any notes about this meal...",
-    "ratingLabel": "Rating",
-    "ratingStarAriaLabel": "Rate {n} of 5 stars",
     "favoriteOn": "Favorited",
     "favoriteOff": "Add to Favorites"
   },

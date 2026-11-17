@@ -88,3 +88,37 @@ export function extensionForContentType(contentType: string | null | undefined, 
   if (kind && !mediaType.startsWith(`${kind}/`)) return null;
   return ext;
 }
+
+/** How much of a picture's start `sniffImageContentType` needs. */
+export const PICTURE_HEAD_BYTES = 12;
+
+/**
+ * What a raster picture is, read from its first bytes, as the media type a
+ * browser would be told; null when they are not one of the formats above.
+ * For a server that answers every file as `application/octet-stream` (the
+ * newer iCloud shared albums and some picture archives do), where the
+ * Content-Type says nothing.
+ */
+export function sniffImageContentType(head: Uint8Array): string | null {
+  const starts = (bytes: readonly number[], at = 0) => bytes.every((byte, i) => head[at + i] === byte);
+  const ascii = (text: string, at: number) => starts([...text].map((char) => char.charCodeAt(0)), at);
+  if (starts([0xff, 0xd8, 0xff])) return 'image/jpeg';
+  if (starts([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return 'image/png';
+  if (ascii('GIF87a', 0) || ascii('GIF89a', 0)) return 'image/gif';
+  if (ascii('RIFF', 0) && ascii('WEBP', 8)) return 'image/webp';
+  if (ascii('ftypavif', 4) || ascii('ftypavis', 4)) return 'image/avif';
+  return null;
+}
+
+/**
+ * The media type of a picture the display can show: the one its server
+ * declared when that names such a picture, otherwise what its first bytes
+ * say, otherwise null. The one rule for "what is this download" where the
+ * answer is a picture; `identifyDownload` (library-files.ts) applies it to a
+ * download that is saved, and the routes that hand bytes straight to a
+ * browser apply it to the bytes they hold.
+ */
+export function pictureContentType(declared: string | null | undefined, head: Uint8Array): string | null {
+  if (declared && extensionForContentType(declared, 'image')) return declared;
+  return sniffImageContentType(head);
+}

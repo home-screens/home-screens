@@ -281,7 +281,7 @@
     "saved": "Família salva.",
     "saving": "Salvando…",
     "removeTitle": "Remover {name}?",
-    "removeDescription": "Ao remover {name}, as atribuições de tarefas, horários, histórico, saldo de tickets e acesso às recompensas dessa pessoa são apagados. A escolha dos calendários dela também é esquecida. Tarefas que ficarem sem ninguém responsável são excluídas. Isso não pode ser desfeito.",
+    "removeDescription": "Ao remover {name}, as atribuições de tarefas, horários, histórico, saldo de tickets, avaliações de pratos e acesso às recompensas dessa pessoa são apagados. A escolha dos calendários dela também é esquecida. Tarefas que ficarem sem ninguém responsável são excluídas. Isso não pode ser desfeito.",
     "remove": "Remover pessoa",
     "editName": "Editar {name}",
     "moveUp": "Mover {name} para cima",
@@ -473,5 +473,30 @@
     "setMealTime": "Definir hora da refeição",
     "servingTime": "Hora de servir",
     "clearTime": "Limpar hora"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Votos da família: {count}",
+    "forMeal": "Avaliar {meal}",
+    "who": "Quem está avaliando?",
+    "choose": "Escolha um familiar",
+    "stars": "Escolha de 1 a 5 estrelas",
+    "star": "{count} estrelas",
+    "yourVote": "Sua avaliação: {rating} / 5",
+    "notRated": "Você ainda não avaliou esta receita.",
+    "clear": "Limpar minha avaliação",
+    "saveError": "Sua avaliação não foi salva. Verifique a conexão e toque em uma estrela para tentar novamente.",
+    "loadError": "Não foi possível atualizar as avaliações.",
+    "loading": "Carregando avaliações…",
+    "noMembers": "Adicione pessoas em Configurações > Família para começar a avaliar.",
+    "rate": "Avaliar prato",
+    "dinner": "Avaliar o jantar",
+    "close": "Concluído",
+    "hint": "Cada pessoa tem uma avaliação por receita. Avalie novamente para atualizar seu voto; a média familiar usa os votos atuais de todos.",
+    "noDinner": "Não há jantar planejado para este dia.",
+    "typed": {
+      "one": "{dishes} é um prato digitado, então não tem receita para avaliar.",
+      "other": "{dishes} são pratos digitados, então não têm receita para avaliar."
+    },
+    "unavailable": "A receita salva para o jantar não está disponível."
   }
 }

@@ -1,3 +1,4 @@
+import { validateFamilyMealRatings } from './meal-ratings';
 import { isRecord } from './member-references/contract';
 
 /**
@@ -40,5 +41,6 @@ export function validateMealPlan(plan: unknown): string | null {
  */
 export function validateMealData(raw: unknown): string | null {
   if (!isRecord(raw)) return 'Meals need saved meals and a plan.';
-  return validateSavedMeals(raw.savedMeals) ?? validateMealPlan(raw.plan);
+  // Ratings are optional in older backups, but malformed votes must not be restored.
+  return validateSavedMeals(raw.savedMeals) ?? validateMealPlan(raw.plan) ?? validateFamilyMealRatings(raw.familyRatings);
 }

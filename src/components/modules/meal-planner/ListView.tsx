@@ -16,6 +16,7 @@ import { mealTagLabel } from '@/lib/meal-dish-rules';
 import { WallScroller } from '../shared/WallScroller';
 import { smallWallScrollLook } from '../shared/wallScrollLook';
 import { withAlpha } from '@/lib/hex-color';
+import { FamilyMealStars } from '@/components/modules/shared/MealRatingWall';
 
 /** Marks each day heading, the lines the scroll can stop at. */
 const DAY_HEADING_ATTR = 'data-list-day';
@@ -176,6 +177,7 @@ export function ListView({ config, settings, timeFormat, plan, savedMeals, weekD
                           <span className="truncate font-medium" style={{ fontSize: NAME_SIZE }}>
                             {name}
                           </span>
+                          <FamilyMealStars meal={meal} size={SMALL_SIZE} />
                           <MealCourseNames
                             courses={courses}
                             style={{ fontSize: SMALL_SIZE, opacity: TEXT_OPACITY.secondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}

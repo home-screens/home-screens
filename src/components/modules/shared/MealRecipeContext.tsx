@@ -18,6 +18,8 @@ import type { RecipeServing } from './RecipeSheet';
 export interface MealRecipeContextValue {
   /** The display's full-screen theme (Settings > Screen), or the module's own. */
   theme: string | undefined;
+  /** The module's Show Family Ratings switch; off hides the stars and the rating buttons, never the votes. */
+  showFamilyRatings?: boolean;
   plan: PlannedMeal[];
   savedMeals: SavedMeal[];
   settings: MealSettings;

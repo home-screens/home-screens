@@ -115,3 +115,18 @@ export function detectICloudSource(url: string): 'album' | 'link' | null {
   if (!url.includes('/') && parseICloudLinkToken(url)) return 'link';
   return null;
 }
+
+/**
+ * Every download URL comes from an Apple RESPONSE body (webasseturls or
+ * CloudKit rendition fields). Upstream requests are pinned to Apple hosts,
+ * so this is defense-in-depth: never fetch a response-supplied URL outside
+ * Apple's content domains.
+ */
+export function isAppleContentUrl(rawUrl: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(rawUrl);
+    return protocol === 'https:' && /(^|\.)(icloud-content\.com|icloud\.com|cdn-apple\.com)$/i.test(hostname);
+  } catch {
+    return false;
+  }
+}

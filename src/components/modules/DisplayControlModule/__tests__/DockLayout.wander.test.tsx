@@ -16,8 +16,9 @@ import enUSModules from '@/translations/en-US/modules.json';
  * The dock pill answers the display's burn-in protection by drifting inside
  * the empty space around it, a pixel a minute on the minute boundary, and
  * holds still without it. Its room on each side is half the spare room in
- * its centring box plus the dock's margin, except on a side that sits
- * against the screen edge. jsdom lays nothing out, so the dock's box, the
+ * its centring box plus the dock's margin. A side that sits against the
+ * screen edge gets no margin, and only the spare room past the strip the
+ * wall shift hides. jsdom lays nothing out, so the dock's box, the
  * pill's centring box, the pill and where the box sits on a 1080 by 1920
  * screen are all stubbed.
  */
@@ -150,7 +151,8 @@ describe('Display Control dock wander', () => {
     const { container } = renderDock(true);
     act(() => { vi.advanceTimersByTime(0); });
     // Against the left, right and bottom edges: no margin there. Along, the
-    // spare room alone is past the cap; across, only the margin above.
+    // spare room past the hidden strip is still past the cap; across, only
+    // the margin above.
     expect(pill(container).style.transform).toBe(at(m0, [-30, 30], [-12, 0]));
     const ys = new Set<number>();
     for (let i = 0; i < 30; i++) {
@@ -159,6 +161,32 @@ describe('Display Control dock wander', () => {
     }
     expect(Math.max(...ys)).toBe(0);
     expect(Math.min(...ys)).toBe(-12);
+  });
+
+  it('does not count the pixel or two a pill falls short of its box as room toward the screen edge', () => {
+    // What a 180 px strip along the bottom of a portrait wall measures: the
+    // tiles stop a little short of the box, 1.5 px each side.
+    sizes = { box: { w: 1080, h: 180 }, room: { w: 1058, h: 158 }, pill: { w: 400, h: 155 } };
+    place = { left: 0, top: 1740 };
+    const { container } = renderDock(true);
+    act(() => { vi.advanceTimersByTime(0); });
+    expect(pill(container).style.transform).toBe(at(m0, [-30, 30], [-12, 0]));
+    const ys = new Set<number>();
+    for (let i = 0; i < 30; i++) {
+      ys.add(Number(pill(container).style.transform.match(/, (-?\d+)px\)$/)![1]));
+      act(() => { vi.advanceTimersByTime(60_000); });
+    }
+    expect(Math.max(...ys)).toBe(0);
+  });
+
+  it('toward the screen edge, moves only through spare room past the strip the wall shift hides', () => {
+    // A tall strip along the bottom with a pill 20 px short of its box each
+    // way across: 12 px of that stays between the pill and the edge.
+    sizes = { box: { w: 1080, h: 200 }, room: { w: 1056, h: 176 }, pill: { w: 838, h: 136 } };
+    place = { left: 0, top: 1720 };
+    const { container } = renderDock(true);
+    act(() => { vi.advanceTimersByTime(0); });
+    expect(pill(container).style.transform).toBe(at(m0, [-30, 30], [-12, 8]));
   });
 
   it('keeps clear of the picker row above it: the gap to the picker caps the drift upward', () => {

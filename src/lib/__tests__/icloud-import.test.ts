@@ -23,13 +23,13 @@ vi.mock('@/lib/icloud-link', async (importOriginal) => {
   return {
     ...actual,
     listICloudLinkItems: vi.fn(),
-    fetchCloudKitAlbum: vi.fn(),
+    fetchCloudKitAlbumForImport: vi.fn(),
   };
 });
 
 import { fetchWithTimeout } from '@/lib/api-utils';
 import { fetchSharedStreamsAlbumForImport } from '@/lib/icloud-album';
-import { listICloudLinkItems, fetchCloudKitAlbum } from '@/lib/icloud-link';
+import { listICloudLinkItems, fetchCloudKitAlbumForImport } from '@/lib/icloud-link';
 import { BACKGROUNDS_DIR } from '@/lib/constants';
 import {
   clearICloudImportJobs,
@@ -42,7 +42,7 @@ import { detectICloudSource } from '@/lib/icloud-parse';
 const mockFetch = vi.mocked(fetchWithTimeout);
 const mockAlbum = vi.mocked(fetchSharedStreamsAlbumForImport);
 const mockLink = vi.mocked(listICloudLinkItems);
-const mockCloudKit = vi.mocked(fetchCloudKitAlbum);
+const mockCloudKit = vi.mocked(fetchCloudKitAlbumForImport);
 
 const ALBUM_URL = 'https://www.icloud.com/sharedalbum/#B125ON9t3mbLNC';
 const NEW_ALBUM_URL = 'https://photos.icloud.com/shared/album/03c4SA2q7HwyPw7YOwfXTn0mg';
@@ -203,6 +203,30 @@ describe('startICloudImport — new-format shared albums (CloudKit)', () => {
     expect(mockAlbum).not.toHaveBeenCalled();
     const files = (await fs.readdir(path.join(BGS, 'family'))).sort();
     expect(files).toEqual(['icloud-ck-photo.jpg', 'icloud-ck-video.mp4']);
+  });
+
+  it('names each file for what it is when Apple answers them all as plain downloads, as it does for these albums', async () => {
+    mockCloudKit.mockResolvedValue([
+      { url: 'https://cvws.icloud-content.com/png', type: 'image', guid: 'ck-png' },
+      { url: 'https://cvws.icloud-content.com/jpeg', type: 'image', guid: 'ck-jpeg' },
+      { url: 'https://cvws.icloud-content.com/video', type: 'video', guid: 'ck-video' },
+    ]);
+    const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d]);
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01]);
+    const plain = (body: BodyInit) => new Response(body, { headers: { 'Content-Type': 'application/octet-stream' } });
+    mockFetch.mockImplementation(async (url) => {
+      if (String(url).endsWith('/png')) return plain(png);
+      if (String(url).endsWith('/jpeg')) return plain(jpeg);
+      return plain('video-bytes');
+    });
+
+    const started = await startICloudImport(NEW_ALBUM_URL, 'named');
+    if ('error' in started) throw new Error(started.error);
+    const job = await waitForFinished(started.jobId);
+
+    expect(job).toMatchObject({ state: 'done', done: 3, failed: 0 });
+    expect((await fs.readdir(path.join(BGS, 'named'))).sort()).toEqual(['icloud-ck-jpeg.jpg', 'icloud-ck-png.png', 'icloud-ck-video.mp4']);
+    expect([...await fs.readFile(path.join(BGS, 'named', 'icloud-ck-png.png'))]).toEqual([...png]);
   });
 
   it('says a new-format album that is private or gone is gone, rather than importing nothing', async () => {

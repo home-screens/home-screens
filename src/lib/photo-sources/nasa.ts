@@ -188,7 +188,6 @@ export const nasaPhotoSource: PhotoSourceAdapter<'nasa'> & PickableSource = {
       kind: 'nasa',
       id,
       folder,
-      urlHint: url,
       open: async () => ({ response: await fetchWithTimeout(url, { timeout: 60_000 }), title }),
     });
   },

@@ -281,7 +281,7 @@
     "saved": "Familie gespeichert.",
     "saving": "Wird gespeichert…",
     "removeTitle": "{name} entfernen?",
-    "removeDescription": "Wenn du {name} entfernst, werden Aufgabenverteilung, Zeitpläne, erledigte Aufgaben, Tickets und der Zugang zu Belohnungen für diese Person gelöscht. Auch die Auswahl ihrer Kalender wird vergessen. Aufgaben, für die niemand mehr zuständig ist, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "removeDescription": "Wenn du {name} entfernst, werden Aufgabenverteilung, Zeitpläne, erledigte Aufgaben, Tickets, der Zugang zu Belohnungen und die Essensbewertungen dieser Person gelöscht. Auch die Auswahl ihrer Kalender wird vergessen. Aufgaben, für die niemand mehr zuständig ist, werden gelöscht. Das kann nicht rückgängig gemacht werden.",
     "remove": "Person entfernen",
     "editName": "{name} bearbeiten",
     "moveUp": "{name} nach oben",
@@ -471,5 +471,30 @@
     "setMealTime": "Mahlzeit-Zeit festlegen",
     "servingTime": "Servierzeit",
     "clearTime": "Zeit löschen"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Familienstimmen: {count}",
+    "forMeal": "{meal} bewerten",
+    "who": "Wer bewertet?",
+    "choose": "Familienmitglied wählen",
+    "stars": "1 bis 5 Sterne wählen",
+    "star": "{count} Sterne",
+    "yourVote": "Deine Bewertung: {rating} / 5",
+    "notRated": "Du hast dieses Rezept noch nicht bewertet.",
+    "clear": "Meine Bewertung löschen",
+    "saveError": "Deine Bewertung wurde nicht gespeichert. Prüfe die Verbindung und tippe erneut auf einen Stern.",
+    "loadError": "Bewertungen konnten nicht aktualisiert werden.",
+    "loading": "Bewertungen werden geladen…",
+    "noMembers": "Füge unter Einstellungen > Familie Personen hinzu, um zu bewerten.",
+    "rate": "Gericht bewerten",
+    "dinner": "Abendessen bewerten",
+    "close": "Fertig",
+    "hint": "Jede Person hat eine Bewertung pro Rezept. Eine neue Bewertung ersetzt deine bisherige Stimme; der Familiendurchschnitt zählt alle aktuellen Stimmen.",
+    "noDinner": "Für diesen Tag ist kein Abendessen geplant.",
+    "typed": {
+      "one": "Für {dishes} gibt es kein Rezept zum Bewerten, denn das wurde nur eingetippt.",
+      "other": "Für {dishes} gibt es keine Rezepte zum Bewerten, denn sie wurden nur eingetippt."
+    },
+    "unavailable": "Das gespeicherte Rezept für das Abendessen ist nicht verfügbar."
   }
 }

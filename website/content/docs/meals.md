@@ -22,7 +22,7 @@ On a touchscreen, the week and the list have arrows at the top (or a sideways sw
 
 ## 2. Build a meal library
 
-Open the family remote (Settings > On your phone shows the address), tap **Meals**, then **Library**. Add the meals your family actually eats: a name and an emoji are enough. Prep and cook time, difficulty, servings, a recipe link, notes, a star rating, a favorite heart and tags (quick, healthy, vegetarian and more) are all optional, and ingredients are what feed the grocery list later. A meal shows its prep and cook time added together, so whoever cooks knows when to start.
+Open the family remote (Settings > On your phone shows the address), tap **Meals**, then **Library**. Add the meals your family actually eats: a name and an emoji are enough. Prep and cook time, difficulty, servings, a recipe link, notes, a favorite heart and tags (quick, healthy, vegetarian and more) are all optional, and ingredients are what feed the grocery list later. A meal shows its prep and cook time added together, so whoever cooks knows when to start.
 
 ## 3. Plan the week
 

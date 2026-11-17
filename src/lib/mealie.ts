@@ -40,7 +40,6 @@ export interface MealieRecipeSummary {
   description?: string | null;
   recipeCategory?: MealieOrganizer[] | null;
   tags?: MealieOrganizer[] | null;
-  rating?: number | null;
   recipeServings?: number | null;
   recipeYield?: string | null;
   totalTime?: string | null;

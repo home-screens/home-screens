@@ -103,22 +103,27 @@ describe('importPictureToLibrary', () => {
     expect(result.path).toBe('immich-a_b_c.jpg');
   });
 
-  it('falls back to a web-picture extension on the URL when the type says nothing useful', async () => {
-    const jpeg = await importPictureToLibrary({
-      kind: 'nasa', id: 'one', folder: '', urlHint: 'https://images-assets.nasa.gov/x~orig.JPEG?v=2', open: async () => picture('application/octet-stream'),
-    });
+  // Kept under the 16 byte cap this file sets.
+  const JPEG = [0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01];
+  const PNG = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d];
+  const TIFF = [0x4d, 0x4d, 0x00, 0x2a, 0x00, 0x00, 0x00, 0x08, 0x00, 0x0c, 0x01, 0x00];
+
+  it('reads what the picture is from its bytes when the server does not say, and saves all of them', async () => {
+    const jpeg = await importPictureToLibrary({ kind: 'nasa', id: 'one', folder: '', open: async () => picture('application/octet-stream', JPEG) });
     expect(jpeg.path).toBe('nasa-one.jpg');
-    const png = await importPictureToLibrary({
-      kind: 'nasa', id: 'two', folder: '', urlHint: 'https://apod.nasa.gov/a.png', open: async () => picture(null),
-    });
+    expect([...await fs.readFile(path.join(library, 'nasa-one.jpg'))]).toEqual(JPEG);
+
+    const png = await importPictureToLibrary({ kind: 'nasa', id: 'two', folder: '', open: async () => picture(null, PNG) });
     expect(png.path).toBe('nasa-two.png');
+    expect([...await fs.readFile(path.join(library, 'nasa-two.png'))]).toEqual(PNG);
   });
 
-  it('refuses a TIFF even when the URL claims a web picture, and writes nothing', async () => {
+  it('refuses a TIFF, named as one or not, and writes nothing', async () => {
     const before = libraryRevision();
-    await expect(importPictureToLibrary({
-      kind: 'nasa', id: 'tif', folder: 'nasa', urlHint: 'https://x/a.jpg', open: async () => picture('image/tiff'),
-    })).rejects.toBeInstanceOf(UnsupportedImageFormatError);
+    await expect(importPictureToLibrary({ kind: 'nasa', id: 'tif', folder: 'nasa', open: async () => picture('image/tiff', TIFF) }))
+      .rejects.toBeInstanceOf(UnsupportedImageFormatError);
+    await expect(importPictureToLibrary({ kind: 'nasa', id: 'tif2', folder: 'nasa', open: async () => picture('application/octet-stream', TIFF) }))
+      .rejects.toBeInstanceOf(UnsupportedImageFormatError);
     expect(await filesIn('nasa')).toEqual([]);
     expect(libraryRevision()).toBe(before);
   });

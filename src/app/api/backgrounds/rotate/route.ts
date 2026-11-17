@@ -4,8 +4,8 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { readConfig } from '@/lib/config';
 import { DEFAULT_DISPLAY_HEIGHT, DEFAULT_DISPLAY_WIDTH } from '@/lib/constants';
-import { libraryRoot, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
-import { MAX_IMPORT_IMAGE_BYTES, extensionForContentType, mediaKindOf } from '@/lib/media-formats';
+import { identifyDownload, libraryRoot, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
+import { MAX_IMPORT_IMAGE_BYTES, mediaKindOf } from '@/lib/media-formats';
 import { ROTATION_FILE_RE, serveUrlFor } from '@/lib/media-paths';
 import { removeThumbnails } from '@/lib/thumbnails';
 import { withDisplayAuth } from '@/lib/api-utils';
@@ -117,13 +117,13 @@ async function savePicked(kind: PhotoSource['kind'], picked: PickedPicture): Pro
 
   const res = await picked.open();
   if (!res.ok) return null;
-  const ext = extensionForContentType(res.headers.get('content-type'), 'image');
+  const { ext, body } = await identifyDownload(res, 'image');
   if (!ext) {
-    await res.body?.cancel().catch(() => { /* nothing to drain */ });
+    await body?.cancel().catch(() => { /* nothing to drain */ });
     return null;
   }
   const name = `${stem}${ext}`;
-  await writeLibraryFile(path.join(root, name), res.body, MAX_IMPORT_IMAGE_BYTES);
+  await writeLibraryFile(path.join(root, name), body, MAX_IMPORT_IMAGE_BYTES);
   return serveUrlFor(name);
 }
 

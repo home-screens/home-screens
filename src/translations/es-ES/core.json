@@ -281,7 +281,7 @@
     "saved": "Familia guardada.",
     "saving": "Guardando…",
     "removeTitle": "¿Eliminar a {name}?",
-    "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de vales y acceso a recompensas. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
+    "removeDescription": "Al eliminar a {name}, se borran sus tareas asignadas, horarios, historial, saldo de vales, valoraciones de platos y acceso a recompensas. También se olvida cuáles son sus calendarios. Se eliminan las tareas que se queden sin nadie asignado. Esto no se puede deshacer.",
     "remove": "Eliminar persona",
     "editName": "Editar a {name}",
     "moveUp": "Subir a {name}",
@@ -471,5 +471,30 @@
     "setMealTime": "Establecer hora de la comida",
     "servingTime": "Hora de servir",
     "clearTime": "Borrar hora"
+  },
+  "mealRatings": {
+    "average": "★ {average} / 5 · Votos familiares: {count}",
+    "forMeal": "Valorar {meal}",
+    "who": "¿Quién valora?",
+    "choose": "Elige un familiar",
+    "stars": "Elige de 1 a 5 estrellas",
+    "star": "{count} estrellas",
+    "yourVote": "Tu valoración: {rating} / 5",
+    "notRated": "Aún no has valorado esta receta.",
+    "clear": "Borrar mi valoración",
+    "saveError": "No se guardó tu valoración. Comprueba la conexión y toca una estrella para volver a intentarlo.",
+    "loadError": "No se pudieron actualizar las valoraciones.",
+    "loading": "Cargando valoraciones…",
+    "noMembers": "Añade personas en Ajustes > Familia para empezar a valorar.",
+    "rate": "Valorar plato",
+    "dinner": "Valorar la cena",
+    "close": "Listo",
+    "hint": "Cada persona tiene un voto por receta. Vuelve a valorar para actualizarlo; la media familiar usa los votos actuales de todos.",
+    "noDinner": "No hay cena planificada para este día.",
+    "typed": {
+      "one": "Para {dishes} solo se escribió el nombre, así que no hay receta que valorar.",
+      "other": "Para {dishes} solo se escribieron los nombres, así que no hay recetas que valorar."
+    },
+    "unavailable": "La receta guardada para la cena no está disponible."
   }
 }

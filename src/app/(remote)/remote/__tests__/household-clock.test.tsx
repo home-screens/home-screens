@@ -156,7 +156,14 @@ describe('the Meals tab', () => {
   });
 
   it('names the household weekday in the header', () => {
-    render(<MealsTabHeader todayISO={HOUSEHOLD_TODAY} onOpenSettings={() => {}} />, { wrapper });
-    expect(screen.getByText('Monday')).toBeTruthy();
+    // The header measures whether "Rate Dinner" fits in words; jsdom has nothing to measure with.
+    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+    try {
+      render(<MealsTabHeader todayISO={HOUSEHOLD_TODAY} onOpenSettings={() => {}} onRateDinner={() => {}} />, { wrapper });
+      expect(screen.getByText('Monday')).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Rate Dinner' })).toBeTruthy();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

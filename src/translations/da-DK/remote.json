@@ -438,8 +438,6 @@
     "recipeUrlPlaceholder": "https://...",
     "notesLabel": "Noter",
     "notesPlaceholder": "Noter om dette måltid …",
-    "ratingLabel": "Bedømmelse",
-    "ratingStarAriaLabel": "Giv {n} ud af 5 stjerner",
     "favoriteOn": "Favorit",
     "favoriteOff": "Føj til favoritter"
   },
