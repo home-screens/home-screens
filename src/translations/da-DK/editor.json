@@ -6169,7 +6169,7 @@
         "off": "Fra"
       },
       "labelHint": "Titel, kunstner, år og museum. Resten af tiden står den lille billedtekst i hjørnet.",
-      "labelNoMat": "Uden passepartout er der ikke plads til skiltet på en bred skærm, så kun den lille billedtekst i hjørnet vises.",
+      "labelNoMat": "Uden passepartout hænger skiltet på væggen under rammen, når der er plads. Ellers vises kun den lille billedtekst i hjørnet.",
       "texture": "Lærredsstruktur",
       "drift": "Langsom bevægelse",
       "driftHint": "Maleriet vokser og glider meget langsomt det første minut og står derefter stille.",

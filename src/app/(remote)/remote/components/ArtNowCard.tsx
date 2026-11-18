@@ -20,6 +20,8 @@ interface ArtNow { painting: PaintingNow | null; screenId?: string; display?: st
 
 /** How often the card asks what is on the wall. A new painting also shows up at once after a button here. */
 const POLL_MS = 10_000;
+/** The longest a tap waits for the hub's spacing between forced changes (5 s) before asking again. */
+const RETRY_CAP_MS = 6_000;
 
 /**
  * "On the wall now": the painting a wall is showing, with Next painting,
@@ -55,8 +57,22 @@ export default function ArtNowCard() {
 
   const wallName = now?.display ? displays.find((d) => d.id === now.display)?.name : undefined;
   const failed = () => showToast(t('photosTab.art.failed'), 'error');
-  /** A new picture for the screen now; the wall hears of it within a heartbeat. */
-  const rotate = async () => (await editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screenId)}&force=true`)).ok;
+  /**
+   * A new picture for the screen now; the wall hears of it within a heartbeat.
+   * The hub spaces forced changes a few seconds apart, so a tap that comes too
+   * soon waits out the rest of that time and asks once more.
+   */
+  const rotate = async () => {
+    const ask = () => editorFetch(`/api/backgrounds/rotate?screenId=${encodeURIComponent(screenId)}&force=true`);
+    const res = await ask();
+    if (!res.ok) return false;
+    const answer = await res.json() as { spaced?: boolean; retryAfterMs?: number };
+    if (!answer.spaced) return true;
+    await new Promise((resolve) => setTimeout(resolve, Math.min(Math.max(answer.retryAfterMs ?? 0, 0), RETRY_CAP_MS) + 100));
+    const again = await ask();
+    // Still spaced means another phone or the editor changed it meanwhile: say it did not work rather than claim a new one.
+    return again.ok && !(await again.json() as { spaced?: boolean }).spaced;
+  };
   const setHidden = async (hidden: boolean) => (await editorFetch('/api/art/hidden', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: painting.id, hidden }),
   })).ok;
@@ -116,7 +132,8 @@ export default function ArtNowCard() {
         </div>
         <a
           href={painting.about} target="_blank" rel="noopener noreferrer"
-          style={{ display: 'inline-block', marginTop: 12, fontSize: 14, color: 'var(--hs-accent-hover)', textDecoration: 'none' }}
+          // A finger-sized target like the buttons above it, with the text where it was.
+          style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, marginTop: 2, fontSize: 14, color: 'var(--hs-accent-hover)', textDecoration: 'none' }}
         >
           {t('photosTab.art.about')}
         </a>

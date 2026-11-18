@@ -80,8 +80,9 @@ export default function ArtSourceFields({ use, source, onChange }: {
   const screen = config ? getActiveDimensions(config, selectedDisplayId) : null;
   // A background's count keeps to the screen-shape filter, which needs the screen's size.
   const shaped = use === 'background' && screen ? `&w=${screen.width}&h=${screen.height}` : '';
-  // A frame with no mat has its label on a card under it, and a wide screen has no wall there for one (`artLayout`).
-  const noLabelPlace = !!screen && screen.width > screen.height && fit === 'framed' && source.mat === 'none';
+  // A frame with no mat has its label on a card under it only when the painting leaves wall there for one
+  // (`artLayout` decides per painting, on any screen), so the hint says both.
+  const noMat = fit === 'framed' && source.mat === 'none';
   const { data: counted } = useEditorData<{ count: number }>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}&info=count${shaped}`);
   const { data: previewData } = useEditorData<MediaListItem[]>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}`);
 
@@ -231,7 +232,7 @@ export default function ArtSourceFields({ use, source, onChange }: {
               options={ART_LABELS.map((value) => ({ value, label: t(`photoSources.art.labels.${value}`) }))}
             />
             <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint" data-testid="art-label-hint">
-              {t(noLabelPlace ? 'photoSources.art.labelNoMat' : 'photoSources.art.labelHint')}
+              {t(noMat ? 'photoSources.art.labelNoMat' : 'photoSources.art.labelHint')}
             </p>
           </div>
           {hung && (

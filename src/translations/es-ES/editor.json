@@ -6169,7 +6169,7 @@
         "off": "Desactivado"
       },
       "labelHint": "Título, artista, año y museo. El resto del tiempo se ve el pequeño pie de foto en la esquina.",
-      "labelNoMat": "Sin paspartú, en una pantalla ancha no hay sitio para la cartela, así que solo se ve el pequeño pie de foto en la esquina.",
+      "labelNoMat": "Sin paspartú, la cartela se cuelga en la pared bajo el marco si hay sitio. Si no, solo se ve el pequeño pie de foto en la esquina.",
       "texture": "Textura de lienzo",
       "drift": "Deriva lenta",
       "driftHint": "La pintura crece y se desliza muy despacio durante su primer minuto y luego se queda quieta.",

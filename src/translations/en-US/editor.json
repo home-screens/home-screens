@@ -6169,7 +6169,7 @@
         "off": "Off"
       },
       "labelHint": "Title, artist, year and museum. The small caption in the corner shows the rest of the time.",
-      "labelNoMat": "With no mat on a wide screen there is no room for the label, so only the small caption in the corner shows.",
+      "labelNoMat": "With no mat, the label hangs on the wall under the frame when there is room. Otherwise only the small caption in the corner shows.",
       "texture": "Canvas texture",
       "drift": "Slow drift",
       "driftHint": "The painting grows and slides very slowly for its first minute, then holds still.",

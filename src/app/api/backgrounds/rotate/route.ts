@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { normalizeArtHidden } from '@/lib/art-hidden';
 import { readConfig } from '@/lib/config';
 import { DEFAULT_DISPLAY_HEIGHT, DEFAULT_DISPLAY_WIDTH } from '@/lib/constants';
 import { identifyDownload, libraryRoot, safeLibraryPath, writeLibraryFile } from '@/lib/library-files';
@@ -172,8 +173,10 @@ function previousOf(entry: RotationCacheEntry | undefined): string | undefined {
  *
  * Response: { path: string, fresh: true } for a new picture (plus `credit`
  * for a caption, art only); otherwise
- * { path: string | null, fresh: false } with `spaced: true` when a forced
- * ask came too soon after the last, `same: true` when the sources were asked
+ * { path: string | null, fresh: false } with `spaced: true` and
+ * `retryAfterMs` when a forced ask came too soon after the last (a painting
+ * the household has hidden since is never kept this way), `same: true` when
+ * the sources were asked
  * and the picture already showing is the only one they have, or `declined`
  * naming each source that passed and why, so the editor can say which one
  * did not answer.
@@ -208,13 +211,21 @@ export const GET = withDisplayAuth(async (request: NextRequest) => {
   const now = Date.now();
 
   if (entry && entry.sourceKey === sourceKey) {
+    const sinceForced = now - (entry.forcedAt ?? 0);
     const spaced = force
-      ? now - (entry.forcedAt ?? 0) < FORCE_SPACING_MS
+      ? sinceForced < FORCE_SPACING_MS
       : now - entry.fetchedAt < intervalMinutes * 60_000 || (entry.failedAt !== undefined && now - entry.failedAt < FAILURE_BACKOFF_MS);
-    if (spaced && entry.path && await cachedPictureExists(entry.path)) {
+    // A painting the household said "don't show again" to is replaced on the
+    // next ask, however soon: the phone hides the one it just brought up.
+    const hidden = !!entry.credit?.art && normalizeArtHidden(config.settings?.artHidden).includes(entry.credit.art.id);
+    if (spaced && !hidden && entry.path && await cachedPictureExists(entry.path)) {
       // `spaced` on a forced ask tells the editor to say "wait a moment"
-      // rather than "nothing new", which reads as a source with no pictures.
-      return NextResponse.json({ path: entry.path, fresh: false, ...(entry.credit ? { credit: entry.credit } : {}), ...(force ? { spaced: true } : {}) });
+      // rather than "nothing new", which reads as a source with no pictures,
+      // and `retryAfterMs` tells the phone how long until it may ask again.
+      return NextResponse.json({
+        path: entry.path, fresh: false, ...(entry.credit ? { credit: entry.credit } : {}),
+        ...(force ? { spaced: true, retryAfterMs: FORCE_SPACING_MS - sinceForced } : {}),
+      });
     }
     if (entry.path && !(await cachedPictureExists(entry.path))) entry = { ...entry, path: '' };
   } else {

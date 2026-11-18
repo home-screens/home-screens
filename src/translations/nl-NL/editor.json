@@ -6169,7 +6169,7 @@
         "off": "Uit"
       },
       "labelHint": "Titel, kunstenaar, jaar en museum. De rest van de tijd staat het kleine bijschrift in de hoek.",
-      "labelNoMat": "Zonder passe-partout is er op een breed scherm geen plek voor het bordje, dus staat alleen het kleine bijschrift in de hoek.",
+      "labelNoMat": "Zonder passe-partout hangt het bordje aan de muur onder de lijst als er plek voor is. Anders staat alleen het kleine bijschrift in de hoek.",
       "texture": "Doekstructuur",
       "drift": "Langzaam bewegen",
       "driftHint": "Het schilderij groeit en schuift de eerste minuut heel langzaam en staat daarna stil.",

@@ -6169,7 +6169,7 @@
         "off": "Désactivé"
       },
       "labelHint": "Titre, artiste, année et musée. Le reste du temps, la petite légende reste dans le coin.",
-      "labelNoMat": "Sans passe-partout, un écran large n'a pas de place pour le cartel : seule la petite légende dans le coin s'affiche.",
+      "labelNoMat": "Sans passe-partout, le cartel est accroché au mur sous le cadre s'il reste de la place. Sinon, seule la petite légende s'affiche dans le coin.",
       "texture": "Texture de toile",
       "drift": "Lent glissement",
       "driftHint": "Le tableau grandit et glisse très lentement pendant sa première minute, puis reste immobile.",

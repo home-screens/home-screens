@@ -64,20 +64,31 @@ interface BottomTabBarProps {
 // family types.
 const TABS: Tab[] = [CONTROL_TAB, TIMERS_TAB, CHORES_TAB, LISTS_TAB, NOTES_TAB, MEALS_TAB, PHOTOS_TAB];
 
+/** Room each tab keeps beside its word, for its padding and the gap to the next word. */
+const TAB_ROOM_PX = 18;
+/** The average letter of the tab type (Inter semibold, tight tracking) is this wide, in ems; measured across the seven languages. */
+const LETTER_EM = 0.46;
+
 export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps) {
   const t = useTranslate('remote');
   const tabs = TABS;
+  const labels = tabs.map((tab) => t(tab.labelKey));
+  // 12px on most phones; smaller on a narrow one, and smaller again in a
+  // language whose seven words are long (German, Spanish, Dutch), so the
+  // words keep the room between them that English has.
+  const letters = Math.max(labels.join('').length, 1);
+  const fontSize = `clamp(10px, min(3.2vw, (100vw - ${tabs.length * TAB_ROOM_PX}px) / ${(letters * LETTER_EM).toFixed(2)}), 12px)`;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-hs-body/85 backdrop-blur-xl border-t border-hs-border-subtle pb-[env(safe-area-inset-bottom)]">
       <div className="flex justify-center">
-        {tabs.map((tab) => {
-          const label = t(tab.labelKey);
+        {tabs.map((tab, i) => {
+          const label = labels[i];
           return (
             <button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`flex-1 max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 px-0.5 transition-colors ${
+              className={`flex-auto min-w-[44px] max-w-[120px] min-h-[44px] flex flex-col items-center gap-1 pt-2.5 pb-2 px-0.5 transition-colors ${
                 activeTab === tab.id ? 'text-hs-accent' : 'text-hs-text-faint'
               }`}
               aria-label={label}
@@ -86,10 +97,13 @@ export default function BottomTabBar({ activeTab, onChange }: BottomTabBarProps)
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d={tab.svgPath} />
               </svg>
-              {/* Each tab is as wide as its word, so "Mahlzeiten" takes the
-                  room "Timer" leaves. On a narrow phone the type shrinks a
-                  little so seven words still fit with a gap between them. */}
-              <span className="whitespace-nowrap font-semibold tracking-tight" style={{ fontSize: 'clamp(10.5px, 3.2vw, 12px)' }}>{label}</span>
+              {/* Each tab is as wide as its word plus an equal share of the
+                  room left over (`flex-auto`, not `flex-1`, which would make
+                  seven equal tabs and squeeze "Mahlzeiten" or
+                  "Temporizadores" against their neighbours), so the gaps
+                  between words come out even. A short word still gets a
+                  finger-wide tab. */}
+              <span className="whitespace-nowrap font-semibold tracking-tight" style={{ fontSize }}>{label}</span>
             </button>
           );
         })}

@@ -6169,7 +6169,7 @@
         "off": "Aus"
       },
       "labelHint": "Titel, Künstler, Jahr und Museum. Die übrige Zeit steht die kleine Bildunterschrift in der Ecke.",
-      "labelNoMat": "Ohne Passepartout ist auf einem breiten Bildschirm kein Platz für das Schild, deshalb steht nur die kleine Bildunterschrift in der Ecke.",
+      "labelNoMat": "Ohne Passepartout hängt das Schild unter dem Rahmen an der Wand, wenn dort Platz ist. Sonst steht nur die kleine Bildunterschrift in der Ecke.",
       "texture": "Leinwandstruktur",
       "drift": "Langsames Gleiten",
       "driftHint": "Das Gemälde wächst und gleitet in der ersten Minute ganz langsam und steht dann still.",

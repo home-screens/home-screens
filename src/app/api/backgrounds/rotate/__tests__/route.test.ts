@@ -460,8 +460,50 @@ describe('GET /api/backgrounds/rotate?force=true', () => {
 
     const json = await (await GET(rotateReq('?screenId=s1&force=true'))).json();
 
-    // `spaced` tells the editor to say "wait a moment", not "nothing new".
-    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-now.jpg', fresh: false, spaced: true });
+    // `spaced` tells the editor to say "wait a moment", not "nothing new",
+    // and `retryAfterMs` tells the phone how long that moment is.
+    expect(json).toEqual({ path: '/api/backgrounds/serve?file=rotation-immich-now.jpg', fresh: false, spaced: true, retryAfterMs: expect.any(Number) });
+    expect(json.retryAfterMs).toBeGreaterThan(0);
+    expect(json.retryAfterMs).toBeLessThanOrEqual(1_000);
+    expect(mockPick).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/backgrounds/rotate: a painting the household hid', () => {
+  const ART: PhotoSource = { kind: 'art' };
+  const painting = (id: string) => ({
+    name: 'Solitary Tree, Caspar David Friedrich, 1822', source: 'Alte Nationalgalerie',
+    art: { id, file: 'Tree.jpg', title: 'Solitary Tree', label: 'brief', place: { style: 'printed', x: 0, y: 0, w: 1, tone: 'dark', unit: 1 } },
+  });
+  const hiding = (ids: string[]) => vi.mocked(readConfig).mockResolvedValue({ settings: { artHidden: ids } } as ScreenConfiguration);
+
+  it('replaces it on a forced ask moments after the last one', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating([ART])));
+    seedCache({ s1: entry('rotation-art-Q1.jpg', [ART], Date.now(), 60, { forcedAt: Date.now() - 1_000, credit: painting('Q1') }) });
+    hiding(['Q1']);
+    mockPick.mockResolvedValue(picked('Q2'));
+
+    const json = await (await GET(rotateReq('?screenId=s1&force=true'))).json();
+
+    expect(json).toMatchObject({ path: '/api/backgrounds/serve?file=rotation-art-Q2.jpg', fresh: true });
+    expect(mockPick).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces it on a wall\'s ordinary ask inside the interval', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating([ART])));
+    seedCache({ s1: entry('rotation-art-Q1.jpg', [ART], Date.now(), 60, { credit: painting('Q1') }) });
+    hiding(['Q1']);
+    mockPick.mockResolvedValue(picked('Q2'));
+
+    expect(await (await GET(rotateReq())).json()).toMatchObject({ path: '/api/backgrounds/serve?file=rotation-art-Q2.jpg', fresh: true });
+  });
+
+  it('keeps a painting nobody hid inside the spacing', async () => {
+    mockFindScreen.mockReturnValue(screen(rotating([ART])));
+    seedCache({ s1: entry('rotation-art-Q1.jpg', [ART], Date.now(), 60, { forcedAt: Date.now() - 1_000, credit: painting('Q1') }) });
+    hiding(['Q9']);
+
+    expect(await (await GET(rotateReq('?screenId=s1&force=true'))).json()).toMatchObject({ path: '/api/backgrounds/serve?file=rotation-art-Q1.jpg', fresh: false, spaced: true });
     expect(mockPick).not.toHaveBeenCalled();
   });
 });
