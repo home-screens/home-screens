@@ -31,7 +31,7 @@ A few endpoints are open at every level on purpose, and each one says so where i
 `GET /api/health` answers from any device on your network, with or without a password, and the [IP allowlist](/docs/networking#restrict-access-by-ip) never blocks it (the only other endpoint it always lets through is `GET /api/auth/status`, which the login page needs). It says which version is running and nothing else:
 
 ```json
-{"ok":true,"version":"1.13.0","build":"Xb2kQ7pL0sR4","schema":19,"uptime":864}
+{"ok":true,"version":"1.15.0","build":"Xb2kQ7pL0sR4","schema":19,"uptime":864}
 ```
 
 `uptime` is seconds since the hub started, and `schema` is the newest settings format this release can read. Home Screens uses this route itself: an update is only kept once the new version answers here, and a display-only Pi checks it before showing the connecting screen. It is also the first thing to try when a display is blank, see [Troubleshooting](/docs/troubleshooting#is-the-hub-running).
@@ -588,6 +588,9 @@ Returns saved meals, weekly plan, grocery checked state, and shared meal-planner
     { "date": "2026-04-04", "slot": "dinner", "mealId": "meal-1" }
   ],
   "groceryChecked": { "2026-03-30": ["tortillas"] },
+  "familyRatings": [
+    { "mealId": "meal-1", "memberId": "member-1", "rating": 4, "updatedAt": "2026-04-04T23:10:00.000Z" }
+  ],
   "settings": {
     "enabledSlots": ["breakfast", "lunch", "dinner"],
     "weekStartDay": "monday",
@@ -705,6 +708,23 @@ Puts the heart on a recipe or takes it off. Display access, a display token work
 A Mealie recipe (`mealie:<recipe id>`) is hearted in Mealie, among the favorites of the Mealie user whose token is saved, so it shows in Mealie's own pages too. Any other `mealId` is one of the family's own saved meals, marked in `meals.json`; one that is not there is `404`. `favorite` sets the heart rather than flipping it, so sending it twice is still one heart.
 
 **Response:** `{ "mealId": "mealie:0f1e2d3c-...", "favorite": true }`
+
+### POST /api/meals/ratings
+
+Saves one person's stars for one recipe, or takes them back. Display access, a display token works, so a touch wall can rate dinner.
+
+**Body:**
+```json
+{
+  "mealId": "meal-1",
+  "memberId": "member-1",
+  "rating": 4
+}
+```
+
+`rating` is a whole number from 1 to 5, or `null` to clear that person's rating. Each person has one rating per recipe, so sending another replaces the first. `mealId` is one of the family's saved meals or a Mealie recipe (`mealie:<recipe id>`); the stars for a Mealie recipe stay in `meals.json` and are not sent to Mealie. A person who is no longer in the family, or a saved meal that is not there, is `404`.
+
+The votes are read with the rest of the meals, as `familyRatings` in `GET /api/meals/data`.
 
 ## Mealie
 

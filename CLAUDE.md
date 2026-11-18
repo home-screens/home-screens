@@ -93,7 +93,7 @@ Settings is split into **Defaults** (shared values, pages listed in `DEFAULT_PAG
 | `secrets.json` | `src/lib/secrets.ts` | API keys. |
 | `family.json` | `src/lib/family-data.ts` | Shared roster for chores, calendars, rewards, timetables. |
 | `chores.json`, `chore-completions.json`, `rewards.json` | `src/lib/chore-data.ts`, `src/lib/chore-completion-data.ts`, `src/lib/reward-data.ts` | Chore definitions; completions, bonus-chore grabs and put-backs; rewards, balances and redemptions. |
-| `meals.json` | `src/lib/meal-data.ts` | Meal planner state and settings, shared by `/remote` and every module instance. |
+| `meals.json` | `src/lib/meal-data.ts` | Meal planner state and settings, shared by `/remote` and every module instance. Also holds the family's meal ratings, one vote per person and recipe (rules in `src/lib/meal-ratings.ts`, written through `POST /api/meals/ratings`). |
 | `todos.json` | `src/lib/todo-data.ts` | Shared to-do lists; a `todo` module points at a `listId` and never carries items. Only door is `/api/todo/lists*`. |
 | `day-notes.json` | `src/lib/day-notes-data.ts` | Calendar day notes, a list of `{ id, date, text }` (up to three per day), written from `/remote` Notes > Calendar and drawn by every calendar with `showDayNotes` on. Rules in `src/lib/day-notes.ts`; swept six weeks after the day on the next write. |
 | `notes.json` | `src/lib/notes-data.ts` | Family notes board; the wall reads `/api/notes?live=1`, the phone and the editor's Manage notes window (`NotesBoardModal`) read everything. Expired notes are kept a week for the phone's Gone group, then swept on the next write. |
@@ -101,6 +101,7 @@ Settings is split into **Defaults** (shared values, pages listed in `DEFAULT_PAG
 | `timetables.json` | `src/lib/timetable-data.ts` | School bell times and one week per family member, revision-checked (409 on stale save). |
 | `school-holidays.json` | `src/lib/school-holidays.ts` | Last-good OpenHolidays cache; only DE, FR, NL have data. |
 | `icloud-accounts.json` | `src/lib/icloud-accounts.ts` | CalDAV app passwords, never returned by the API. |
+| `icloud-albums.json` | `src/lib/icloud-album-keeper.ts` | The kept list of each iCloud shared album's items, so a restarted hub shows its albums at once. Never holds a link; Apple's links die within minutes. |
 | `google-tokens.json`, `google-picker-tokens.json` | `src/lib/google-token-stores.ts` | Google Calendar and Google Photos grants. A grant from Home Screens' own app carries `client_mode: 'hosted'`; `settings.googleApp` and `src/lib/google-app-choice.ts` decide which app signs in. |
 | `custom-icons/` | `src/lib/custom-icon-data.ts` | The family's own icons. `index.json` goes through the data transaction; the pictures are `<hash>.webp` beside it, written before the index names them and kept out of the journal. |
 | `plugins/`, `plugin-tokens/` | `src/lib/plugin-loader.ts`, `src/lib/plugin-auth.ts` | Bundles and OAuth tokens, kept apart so upgrades cannot wipe tokens. |

@@ -42,6 +42,18 @@ On the wall, views with room list every dish under the main one ("Side: Garlic b
 
 A meal saved as a side, dessert or drink (its **Kind of dish**) says so in the library, and the **Sides**, **Desserts** and **Drinks** filters there show only those.
 
+## Rate dinner as a family {% #family-ratings %}
+
+Everyone in the family can give a recipe one to five stars. Each person has one rating per recipe: rate it again to change your mind, or choose **Clear my rating** to take it back. Wherever the recipe shows, it carries the family's average and how many people voted.
+
+- **On the phone**, **Rate Dinner** at the top of the Meals tab opens the last dinner the family sat down to: tonight's from the time it is served, and last night's until then. Pick who is rating, then tap the stars for each dish. To rate any other recipe, use the star button on it in the **Library**, or open a planned meal.
+- **On a touch wall**, a meal planner with touch switched on shows **Rate Dinner** too, and a recipe's card has a **Rate meal** button.
+- **In the editor**, the meal planner window shows each recipe's rating and lets you set one.
+
+A dish that was only typed into the plan ("Eating out") has no recipe to rate. Ratings work for [Mealie](#mealie) recipes as well; the stars are kept in Home Screens and are not sent to Mealie.
+
+Ratings use the people under **Settings > Family**, so add your family there first. To keep the stars off one screen, switch off **Show Family Ratings** in that meal planner's settings. Nothing is deleted, and the phone can still rate.
+
 ## 4. The grocery list
 
 **Grocery** builds a shopping list from the ingredients of every meal in the week you are looking at, grouped by aisle. Tap an item to tick it off; ticks show up on every phone and stay with that week's list, so next week's list starts fresh. **Share** sends the unticked items to your phone's share sheet, or copies them if sharing is not available.

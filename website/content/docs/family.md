@@ -36,7 +36,7 @@ The Full-Screen Calendar's family grid and free time views show people who have 
 
 ## Remove someone
 
-Choose the bin beside their name. The confirmation names the person, shows how many chores they are assigned to, and explains what will be deleted: chore assignments and schedules, completion history, ticket balance, reward access and calendar assignments. Chores with no one left assigned are also deleted; chores still assigned to someone else, or to a group, stay. Confirm only when you intend to remove those records.
+Choose the bin beside their name. The confirmation names the person, shows how many chores they are assigned to, and explains what will be deleted: chore assignments and schedules, completion history, ticket balance, reward access, calendar assignments and their meal ratings. Chores with no one left assigned are also deleted; chores still assigned to someone else, or to a group, stay. Confirm only when you intend to remove those records.
 
 A [school timetable](/docs/school-timetable) belongs to one person, so theirs is deleted with them and the confirmation says so. The schools, bell times and subjects stay, because the rest of the family shares them.
 

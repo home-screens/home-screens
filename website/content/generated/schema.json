@@ -1011,7 +1011,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access.",
+          "description": "Show the family's star ratings on meals, and the buttons for rating them",
           "default": true
         },
         {
@@ -5305,7 +5305,7 @@
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access.",
+          "description": "Show the family's star ratings on meals, and the buttons for rating them",
           "default": true
         },
         {
@@ -8446,7 +8446,7 @@
     "PhotoSource": {
       "name": "PhotoSource",
       "kind": "variants",
-      "description": "Where a stream of pictures comes from: a library folder or a few chosen library pictures, an Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or picked photos, NASA's Astronomy Picture of the Day, or the walls that come with Home Screens. Photo Slideshow, Full-screen Photo and background rotation all use it",
+      "description": "Where a stream of pictures comes from: a library folder or a few chosen library pictures, an Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or picked photos, NASA's Astronomy Picture of the Day, paintings from open museum collections, or the walls that come with Home Screens. Photo Slideshow, Full-screen Photo and background rotation all use it",
       "discriminant": "kind",
       "variants": [
         {

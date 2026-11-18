@@ -21,7 +21,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/config.json` | Screens, modules, profiles, global settings, multi-display registry | `/api/config` |
 | `data/secrets.json` | API keys for external integrations (weather, calendar, photos, etc.) | `/api/secrets` |
 | `data/auth.json` | Password hash and session secret for editor authentication | (internal) |
-| `data/meals.json` | Meal library, weekly plan, checked-off grocery items, household meal settings | `/api/meals/data` |
+| `data/meals.json` | Meal library, weekly plan, checked-off grocery items, the family's meal ratings, household meal settings | `/api/meals/data` |
 | `data/family.json` | Shared family members, family groups, and legacy identity aliases | `/api/family` |
 | `data/chores.json` | Chore definitions | `/api/chores/data` |
 | `data/chore-completions.json` | Chore completion history (last 90 days) | `/api/chores` |
@@ -46,7 +46,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 
 Chore definitions and chore completions are **two separate files**. Copying only `data/chores.json` leaves every completion (and therefore every earned point) behind.
 
-Other files under `data/` are written and managed by the app and are not meant to be edited by hand: `backups/`, `thumbnails/`, `kiosk.conf`, `telemetry.json`, `background-cache.json`, `weather-today.json`, `audit.log`, the update records (`auto-update-setting.json`, `auto-update-state.json`, `update-notification-state.json`, `upgrade-failed.json`, `restart-needed.json`), the Pi program records (`system-packages.json`, `system-package-holds`), the change journal behind family and restore writes (`family-transaction.json`), and the records of the one-time move to a shared family list (`family-migration.json`, `family-migrations/`).
+Other files under `data/` are written and managed by the app and are not meant to be edited by hand: `backups/`, `thumbnails/`, `kiosk.conf`, `telemetry.json`, `background-cache.json`, `icloud-albums.json` (the list of pictures in each iCloud shared album, kept so a restarted hub can show them straight away), `weather-today.json`, `audit.log`, the update records (`auto-update-setting.json`, `auto-update-state.json`, `update-notification-state.json`, `upgrade-failed.json`, `restart-needed.json`), the Pi program records (`system-packages.json`, `system-package-holds`), the change journal behind family and restore writes (`family-transaction.json`), and the records of the one-time move to a shared family list (`family-migration.json`, `family-migrations/`).
 
 The main config is read via `GET /api/config` and written via `PUT /api/config`. If you have set an editor password, both endpoints require an `hs-session` cookie: `PUT` accepts nothing else, and `GET` also accepts a display bearer token. With no password set, authentication is off and both are open on your local network.
 

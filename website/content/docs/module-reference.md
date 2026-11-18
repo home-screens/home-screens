@@ -97,6 +97,8 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 
 **Tapping a meal:** `tapRecipeAction` works as on the [Meal Planner](#meal-planner), with the recipe card drawn in this module's theme.
 
+**Family ratings:** a rated recipe shows its family average as stars. With `interactive` on, **week**, **today**, **menu-board** and **next-meal** carry a **Rate Dinner** button, and **recipe** and the recipe card a **Rate meal** button; each opens a dialog where a person picks their name and taps one to five stars, and it closes after two minutes with nobody touching it. `showFamilyRatings: false` hides the stars and the buttons on this module only. See [Rate dinner as a family](/docs/meals#family-ratings).
+
 **Scrolling:** with `interactive` on, the grocery list scrolls with a finger instead of turning its pages, and a week or today too long to fit even at the smallest text scrolls too. Each slides back home a minute after the last touch.
 
 **Looking ahead:** with `interactive` on, the **week** view has arrows (or a sideways swipe) to step to next week's plan and back, eight weeks either way (three ahead and one back while the plan lives in Mealie), with **Back to this week**; a minute after the last touch it slides back by itself.
@@ -422,6 +424,8 @@ Enabled slots, week start day, default slot times, and 12/24h formatting are **h
 - **list**: Full week listed vertically with day headers, showing only days with meals.
 - **grocery**: The grocery list the family uses: the Mealie shopping list while the meal plan lives in [Mealie](/docs/meals#mealie), otherwise this week's list built from the planned meals. Only what is still to get is shown, grouped like the phone shows it, with pages that turn every 15 seconds when the list is long. With `interactive` on, tap an item to tick it off; the pages hold still for a minute after a tick.
 - **recipes**: The family's recipes, one per row with a photo and cooking time, under a search button and the first chips (Favorites, Recently made, All, cookbooks, categories). The same recipes as the Full-Screen Meal Planner's recipe book: Mealie's whenever [Mealie](/docs/meals#mealie) is connected, otherwise the meals saved with ingredients or notes. With `interactive` on, the rows scroll with a finger, tapping one opens its recipe card, and the search button (or the **+ N** chip) opens the whole recipe book over the screen with a keyboard to search.
+
+**Family ratings:** a rated recipe shows its family average as stars; **compact** and the small **week** grid, which are tight on space, show one star and the average. With `interactive` on, a **Rate Dinner** button sits at the bottom of the module and the recipe card has **Rate meal**. `showFamilyRatings: false` hides the stars and the buttons on this module only. See [Rate dinner as a family](/docs/meals#family-ratings).
 
 **Scrolling:** with `interactive` on, a **list** or **week** that runs past the module's box scrolls with a finger, shows **Back to today** while it is away, and slides back to today a minute after the last touch. The grocery list scrolls instead of turning its pages.
 

@@ -372,7 +372,8 @@ export interface ModuleInstance {
 /**
  * Where a stream of pictures comes from: a library folder or a few chosen library pictures, an
  * Immich library, an iCloud shared album, a OneDrive folder, an Unsplash search, collection or
- * picked photos, NASA's Astronomy Picture of the Day, or the walls that come with Home Screens.
+ * picked photos, NASA's Astronomy Picture of the Day, paintings from open museum collections, or
+ * the walls that come with Home Screens.
  * Photo Slideshow, Full-screen Photo and background rotation all use it
  *
  * One rules file (src/lib/photo-source.ts) says what each kind needs and
@@ -4137,7 +4138,11 @@ export interface MealPlannerConfig {
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;
-  /** Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access. */
+  /**
+   * Show the family's star ratings on meals, and the buttons for rating them
+   *
+   * Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access.
+   */
   showFamilyRatings?: boolean;
   /** Accent color for highlights */
   accentColor: string;
@@ -4859,7 +4864,11 @@ export interface FullscreenMealPlannerConfig {
   showPrepTime: boolean;
   /** Show meal tags */
   showTags: boolean;
-  /** Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access. */
+  /**
+   * Show the family's star ratings on meals, and the buttons for rating them
+   *
+   * Omitted = visible. Hiding a module's ratings does not delete votes or disable phone access.
+   */
   showFamilyRatings?: boolean;
   /** Show each meal's picture: its photo from Mealie, or its emoji */
   showEmoji: boolean;
