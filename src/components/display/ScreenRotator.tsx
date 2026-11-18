@@ -43,7 +43,7 @@ import { resolveScreenDuration } from '@/lib/resolve-screen-duration';
 import { resolveScreenTargetIndex } from '@/lib/resolve-screen-target';
 import { useWallClock } from '@/hooks/useTZClock';
 import { resolveProfile, isScreenInRotation, collectScreenConditionSourceKeys } from '@/lib/schedule';
-import { artModeActive } from '@/lib/screen-hours';
+import { artModeActive, artModeHidesDots } from '@/lib/screen-hours';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { DEFAULT_DISPLAY_WIDTH, DEFAULT_DISPLAY_HEIGHT } from '@/lib/constants';
 import { getLocation } from '@/lib/location';
@@ -1015,7 +1015,7 @@ export default function ScreenRotator({ screens: initialScreens, settings: initi
           onResume={preview ? undefined : clearPause}
           pausedUntil={pausedUntil}
           progress={preview ? null : rotationProgress}
-          hidden={canvasAsleep}
+          hidden={canvasAsleep || (!!renderedScreen && artModeHidesDots(renderedScreen, now.minuteOfDay))}
           showPausePill={!preview}
         />
       )}

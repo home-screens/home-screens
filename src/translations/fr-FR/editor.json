@@ -304,6 +304,8 @@
     "artModeGroup": "Mode tableau",
     "artModeToggle": "Mode tableau",
     "artModeHint": "Masque les modules de cet écran et n’affiche que l’image et son cartel.",
+    "artModeHideDots": "Masquer les points d'écran",
+    "artModeHideDotsHint": "Les points en bas de l'écran disparaissent aussi. Vous pouvez toujours balayer ou utiliser la télécommande pour changer d'écran.",
     "artModeWhen": "Quand",
     "artModeAlways": "Toujours",
     "artModeBetween": "Entre deux heures",

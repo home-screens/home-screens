@@ -7,7 +7,7 @@ import type { ArtMode, EveningLight, Screen } from '@/types/config';
  */
 
 export const EVENING_LIGHT_DEFAULT: EveningLight = { from: 'sunset', until: '07:00' };
-export const ART_MODE_HOURS_DEFAULT: Required<ArtMode> = { from: '21:00', until: '07:00' };
+export const ART_MODE_HOURS_DEFAULT: Required<Pick<ArtMode, 'from' | 'until'>> = { from: '21:00', until: '07:00' };
 /** Where evening starts when "sunset" is asked for and the household has no location. */
 const SUNSET_FALLBACK_MINUTE = 20 * 60;
 
@@ -51,4 +51,9 @@ export function artModeActive(screen: Pick<Screen, 'artMode'>, minuteOfDay: numb
   const until = minuteOf(mode.until);
   // Hours need both ends; with neither (or a half-written pair) art mode is simply on.
   return from === null || until === null ? true : inDailyHours(minuteOfDay, from, until);
+}
+
+/** Whether the screen dots step aside too: art mode is on now, and the screen asked for it. */
+export function artModeHidesDots(screen: Pick<Screen, 'artMode'>, minuteOfDay: number): boolean {
+  return screen.artMode?.hideDots === true && artModeActive(screen, minuteOfDay);
 }

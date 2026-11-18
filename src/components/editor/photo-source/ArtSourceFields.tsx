@@ -80,7 +80,7 @@ export default function ArtSourceFields({ use, source, onChange }: {
   const screen = config ? getActiveDimensions(config, selectedDisplayId) : null;
   // A background's count keeps to the screen-shape filter, which needs the screen's size.
   const shaped = use === 'background' && screen ? `&w=${screen.width}&h=${screen.height}` : '';
-  // A wide screen prints the label on the mat inside the frame, so a frame with no mat has nowhere to put one (`artLayout`).
+  // A frame with no mat has its label on a card under it, and a wide screen has no wall there for one (`artLayout`).
   const noLabelPlace = !!screen && screen.width > screen.height && fit === 'framed' && source.mat === 'none';
   const { data: counted } = useEditorData<{ count: number }>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}&info=count${shaped}`);
   const { data: previewData } = useEditorData<MediaListItem[]>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}`);

@@ -24,9 +24,9 @@ export function useArtLabelShown(art: ArtCaption | undefined, pictureKey: string
 }
 
 /**
- * The museum label for the painting behind a screen: a small card on the
- * wall under a framed painting, or lettering on the mat under the painting,
- * whether the mat fills the screen or sits inside a frame. The hub decided
+ * The museum label for the painting behind a screen: lettering on the mat
+ * under the painting, whether the mat sits inside a frame or fills the
+ * screen, or a small card on the wall under a frame that has no mat. The hub decided
  * where it goes when it painted the picture (`art.place`, in the screen's own
  * pixels), so label and picture agree.
  */

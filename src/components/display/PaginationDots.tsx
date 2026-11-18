@@ -34,7 +34,7 @@ interface PaginationDotsProps {
   pausedUntil?: number | null;
   /** Progress line under the active dot; null hides it (sticky screen, or off in settings). */
   progress?: RotationProgress | null;
-  /** True while the wall is asleep: keep the layout, stop drawing (see canvasAsleep in ScreenRotator). */
+  /** True while the wall is asleep, or the screen is in art mode and asked for no dots: keep the layout, stop drawing (see ScreenRotator). */
   hidden?: boolean;
   /**
    * False keeps the paused pill away: the editor's Preview is always held,

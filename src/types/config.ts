@@ -577,6 +577,8 @@ export interface ArtMode {
   from?: string;
   /** End of the hours, as `HH:MM` */
   until?: string;
+  /** Hide the screen dots too while art mode is on */
+  hideDots?: boolean;
 }
 
 /** How a painting sits on the screen */

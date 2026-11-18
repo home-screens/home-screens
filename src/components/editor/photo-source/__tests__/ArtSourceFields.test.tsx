@@ -97,7 +97,7 @@ describe('ArtSourceFields', () => {
     expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', fit: 'cover', label: 'off' });
   });
 
-  it('says a frame with no mat has nowhere to print the label on a wide screen, and nothing of the kind on a tall one', () => {
+  it('says a frame with no mat has no room for its label on a wide screen, and nothing of the kind on a tall one', () => {
     const before = useEditorStore.getState().config;
     const turned = (displayTransform: 'normal' | '90') => act(() => {
       useEditorStore.setState({ config: { settings: { displayWidth: 1920, displayHeight: 1080, displayTransform }, screens: [] } as unknown as ScreenConfiguration });
@@ -105,7 +105,7 @@ describe('ArtSourceFields', () => {
     try {
       turned('normal');
       const bare = renderArt({ mat: 'none' }, 'background');
-      expect(screen.getByTestId('art-label-hint').textContent).toContain('nowhere to print the label');
+      expect(screen.getByTestId('art-label-hint').textContent).toContain('no room for the label');
       bare.view.unmount();
       renderArt({}, 'background');
       expect(screen.getByTestId('art-label-hint').textContent).toContain('Title, artist, year and museum');

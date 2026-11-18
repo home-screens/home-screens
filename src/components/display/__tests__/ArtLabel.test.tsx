@@ -61,7 +61,7 @@ describe('ArtLabel', () => {
     expect(label.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('letters a framed painting on a wide screen in two short lines, in the strip of mat under it', () => {
+  it('letters a framed painting in two short lines, in the strip of mat under it', () => {
     render(<ArtLabel art={art({ place: { style: 'printed', x: 272, y: 922, w: 1377, tone: 'dark', unit: 1, band: 74 } })} shown />);
     const label = screen.getByTestId('art-label');
     // Artist, year and museum share the second line.

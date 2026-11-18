@@ -304,6 +304,8 @@
     "artModeGroup": "Art mode",
     "artModeToggle": "Art mode",
     "artModeHint": "Hides this screen's modules and shows only the picture and its label.",
+    "artModeHideDots": "Hide screen dots",
+    "artModeHideDotsHint": "The dots at the bottom of the screen go away too. You can still swipe or use the remote to change screens.",
     "artModeWhen": "When",
     "artModeAlways": "Always",
     "artModeBetween": "Between two times",
@@ -6167,7 +6169,7 @@
         "off": "Off"
       },
       "labelHint": "Title, artist, year and museum. The small caption in the corner shows the rest of the time.",
-      "labelNoMat": "With no mat on a wide screen there is nowhere to print the label, so only the small caption in the corner shows.",
+      "labelNoMat": "With no mat on a wide screen there is no room for the label, so only the small caption in the corner shows.",
       "texture": "Canvas texture",
       "drift": "Slow drift",
       "driftHint": "The painting grows and slides very slowly for its first minute, then holds still.",

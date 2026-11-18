@@ -304,6 +304,8 @@
     "artModeGroup": "Modo arte",
     "artModeToggle": "Modo arte",
     "artModeHint": "Oculta os módulos desta tela e mostra só a imagem e sua etiqueta.",
+    "artModeHideDots": "Ocultar os pontos de tela",
+    "artModeHideDotsHint": "Os pontos na parte de baixo da tela também somem. Você ainda pode deslizar ou usar o controle remoto para trocar de tela.",
     "artModeWhen": "Quando",
     "artModeAlways": "Sempre",
     "artModeBetween": "Entre dois horários",

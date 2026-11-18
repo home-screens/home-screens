@@ -304,6 +304,8 @@
     "artModeGroup": "Kunsttilstand",
     "artModeToggle": "Kunsttilstand",
     "artModeHint": "Skjuler skærmens moduler og viser kun billedet og dets skilt.",
+    "artModeHideDots": "Skjul skærmprikker",
+    "artModeHideDotsHint": "Prikkerne nederst på skærmen forsvinder også. Du kan stadig swipe eller bruge fjernbetjeningen til at skifte skærm.",
     "artModeWhen": "Hvornår",
     "artModeAlways": "Altid",
     "artModeBetween": "Mellem to tidspunkter",

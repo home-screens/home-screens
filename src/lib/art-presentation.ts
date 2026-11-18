@@ -65,7 +65,7 @@ export interface ArtLayout {
   moulding: number;
   mat: number;
   bevel: number;
-  /** Where the museum label goes, or `null` when the hanging has no place for one (a frame with no mat on a wide screen). */
+  /** Where the museum label goes, or `null` when the hanging has no place for one (a frame with no mat and no wall to spare under it). */
   label: ArtLabelPlace | null;
 }
 
@@ -99,14 +99,14 @@ export function cornerLabel(canvas: { w: number; h: number }): ArtLabelPlace {
  * choices (a new layout, a new shadow). It is part of the saved picture's
  * name, so a wall is never handed a copy painted the old way.
  */
-export const ART_HANGING_VERSION = 4;
+export const ART_HANGING_VERSION = 5;
 
-/** The gap between a frame and the card under it, and the least wall left at the sides of a wide screen. */
+/** A card on the wall under a frame: the room it takes with a title that wraps once, and the gap between it and the frame. */
+const PLACARD_H = 170;
 const PLACARD_GAP = 70;
+/** The least wall left beside a frame, and above and below it. */
 const EDGE = 64;
-/** A wide screen: the wall left above and below the frame. */
-const WALL_ABOVE = 48;
-const WALL_BELOW = 68;
+const WALL = 58;
 
 /** The largest `aspect` box inside `maxW` by `maxH`. */
 function fitted(aspect: number, maxW: number, maxH: number): { w: number; h: number } {
@@ -117,59 +117,51 @@ function fitted(aspect: number, maxW: number, maxH: number): { w: number; h: num
 /**
  * Where a painting of `aspect` (width over height) hangs on `canvas`.
  *
- * The painting is as large as its margins allow, in the middle of the screen
- * from side to side, and a little above the middle from top to bottom, as
- * pictures hang on a wall. A tall screen has wall to spare under the frame,
- * so the label is a card there. A wide one has none: a card beside the frame
- * would cost the painting half its size, so the frame is sized by the
- * screen's height and the label is two short lines printed on the mat under
- * the painting. The mat stays even all round: a strip cut deeper to hold a
- * bigger label is a blank band whenever the label is not up. With no mat
- * there is nowhere to print, and the layout has no label.
+ * A framed painting is as large as the screen allows and sits in the exact
+ * middle of it, whichever way the screen is turned. Its label is two short
+ * lines printed on the mat under the painting, and the mat is even all round:
+ * a strip cut deeper to hold a bigger label is a blank band whenever the
+ * label is not up. A frame with no mat has nowhere to print, so its label is
+ * a card on the wall under the frame's right edge when there is wall for one
+ * (a tall screen usually has it, a wide one does not), and otherwise the
+ * layout has no label.
+ *
+ * A mat that fills the screen keeps the painting a little above the middle,
+ * with larger lettering under it.
  */
 export function artLayout(fit: Extract<ArtFit, 'framed' | 'mat'>, aspect: number, canvas: { w: number; h: number }, mat: ArtMat, matTone: 'dark' | 'light' = 'dark'): ArtLayout {
   const unit = Math.min(canvas.w, canvas.h) / 1080;
-  const wide = canvas.w > canvas.h;
-  const framed = fit === 'framed';
-  const moulding = framed ? Math.round(16 * unit) : 0;
-  const matWidth = framed && mat !== 'none' ? Math.round(74 * unit) : 0;
-  const edge = moulding + matWidth;
-  const bevel = matWidth > 0 ? Math.round(6 * unit) : 0;
 
-  if (framed && wide) {
-    const above = WALL_ABOVE * unit;
-    const size = fitted(aspect, canvas.w - 2 * (EDGE * unit + edge), canvas.h - above - WALL_BELOW * unit - 2 * edge);
+  if (fit === 'framed') {
+    const moulding = Math.round(16 * unit);
+    const matWidth = mat !== 'none' ? Math.round(74 * unit) : 0;
+    const edge = moulding + matWidth;
+    const size = fitted(aspect, canvas.w - 2 * (EDGE * unit + edge), canvas.h - 2 * (WALL * unit + edge));
     const [w, h] = [Math.round(size.w), Math.round(size.h)];
-    // A frame shorter than the screen allows keeps the same share of the spare wall above it.
-    const top = Math.round(Math.max(above, (canvas.h - (h + 2 * edge)) * WALL_ABOVE / (WALL_ABOVE + WALL_BELOW)));
-    const opening = { x: Math.round((canvas.w - w) / 2), y: top + edge, w, h };
-    const frame = { x: opening.x - edge, y: top, w: w + 2 * edge, h: h + 2 * edge };
-    const inset = moulding + Math.round(20 * unit);
-    const label: ArtLabelPlace | null = matWidth > 0
-      ? { style: 'printed', x: frame.x + inset, y: opening.y + h, w: frame.w - 2 * inset, tone: matTone, unit, band: matWidth }
-      : null;
-    return { unit, opening, frame, moulding, mat: matWidth, bevel, label };
+    const opening = { x: Math.round((canvas.w - w) / 2), y: Math.round((canvas.h - h) / 2), w, h };
+    const frame = { x: opening.x - edge, y: opening.y - edge, w: w + 2 * edge, h: h + 2 * edge };
+    const base = { unit, opening, frame, moulding, mat: matWidth, bevel: matWidth > 0 ? Math.round(6 * unit) : 0 };
+    if (matWidth > 0) {
+      const inset = moulding + Math.round(20 * unit);
+      return { ...base, label: { style: 'printed', x: frame.x + inset, y: opening.y + h, w: frame.w - 2 * inset, tone: matTone, unit, band: matWidth } };
+    }
+    const placardW = Math.round(PLACARD_W * unit);
+    const below = frame.y + frame.h + Math.round(PLACARD_GAP * unit);
+    const room = below + (PLACARD_H + EDGE) * unit <= canvas.h;
+    return { ...base, label: room ? { style: 'placard', x: frame.x + frame.w - placardW, y: below, w: placardW, tone: 'dark', unit } : null };
   }
 
-  const side = (framed ? 190 : 92) * unit;
-  const topMin = (framed ? 230 : 150) * unit;
-  const centre = framed ? 0.43 : 0.45;
-  const reserve = (framed ? 420 : wide ? 250 : 330) * unit;
+  const wide = canvas.w > canvas.h;
+  const side = 92 * unit;
+  const topMin = 150 * unit;
+  const reserve = (wide ? 250 : 330) * unit;
   const { w, h } = fitted(aspect, canvas.w - 2 * side, canvas.h - topMin - reserve);
-  const y = Math.max(topMin, h < canvas.h * 0.6 ? Math.min(centre * canvas.h - h / 2, canvas.h - reserve - h) : (canvas.h - reserve - h) / 2);
+  const y = Math.max(topMin, h < canvas.h * 0.6 ? Math.min(0.45 * canvas.h - h / 2, canvas.h - reserve - h) : (canvas.h - reserve - h) / 2);
   const opening = { x: Math.round((canvas.w - w) / 2), y: Math.round(y), w: Math.round(w), h: Math.round(h) };
-
-  if (!framed) {
-    return {
-      unit, opening, moulding: 0, mat: 0, bevel: Math.round(7 * unit),
-      label: { style: 'printed', x: opening.x, y: opening.y + opening.h + Math.round(54 * unit), w: opening.w, tone: matTone, unit },
-    };
-  }
-  const frame = { x: opening.x - edge, y: opening.y - edge, w: opening.w + 2 * edge, h: opening.h + 2 * edge };
-  const placardW = Math.round(PLACARD_W * unit);
-  // The card's right edge sits under the frame's.
-  const label: ArtLabelPlace = { style: 'placard', x: frame.x + frame.w - placardW, y: frame.y + frame.h + Math.round(PLACARD_GAP * unit), w: placardW, tone: 'dark', unit };
-  return { unit, opening, frame, moulding, mat: matWidth, bevel, label };
+  return {
+    unit, opening, moulding: 0, mat: 0, bevel: Math.round(7 * unit),
+    label: { style: 'printed', x: opening.x, y: opening.y + opening.h + Math.round(54 * unit), w: opening.w, tone: matTone, unit },
+  };
 }
 
 /** What the wall needs to know about the painting behind a screen: who made it, and how to label it. */

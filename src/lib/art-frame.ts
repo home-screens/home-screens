@@ -8,7 +8,7 @@ import { ART_FRAME_COLORS, ART_MAT_COLORS, ART_WALL_COLORS, artLayout, lightness
  * Pi's browser never has to lay shadows and textures over each other.
  *
  * The look is the approved mockup's (`.claude/mockups/art-display-effects.html`,
- * and `art-wide-frame-strip.html` for a wide screen): a cut bevel where the
+ * with the frame placed as in `art-wide-frame-strip.html` and `art-tall-frame.html`): a cut bevel where the
  * mat meets the painting, a soft shadow in the opening, paper grain on the
  * mat, a faint canvas weave over the painting, and the frame's shadow falling
  * down the wall.

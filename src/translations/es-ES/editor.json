@@ -304,6 +304,8 @@
     "artModeGroup": "Modo arte",
     "artModeToggle": "Modo arte",
     "artModeHint": "Oculta los módulos de esta pantalla y muestra solo la imagen y su cartela.",
+    "artModeHideDots": "Ocultar los puntos de pantalla",
+    "artModeHideDotsHint": "Los puntos de la parte inferior de la pantalla también desaparecen. Puedes seguir deslizando o usando el mando para cambiar de pantalla.",
     "artModeWhen": "Cuándo",
     "artModeAlways": "Siempre",
     "artModeBetween": "Entre dos horas",

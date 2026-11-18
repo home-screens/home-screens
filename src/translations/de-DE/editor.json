@@ -304,6 +304,8 @@
     "artModeGroup": "Kunstmodus",
     "artModeToggle": "Kunstmodus",
     "artModeHint": "Blendet die Module dieses Bildschirms aus und zeigt nur das Bild und sein Schild.",
+    "artModeHideDots": "Bildschirmpunkte ausblenden",
+    "artModeHideDotsHint": "Auch die Punkte unten am Bildschirm verschwinden. Wischen oder die Fernbedienung wechseln weiterhin den Bildschirm.",
     "artModeWhen": "Wann",
     "artModeAlways": "Immer",
     "artModeBetween": "Zwischen zwei Uhrzeiten",

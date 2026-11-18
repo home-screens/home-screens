@@ -177,7 +177,7 @@ Under the filters the editor says how many paintings match and shows a few of th
 
 For a rotating background, **On the screen** says how a painting sits behind your modules:
 
-- **Framed on a wall** (the default) hangs the painting in a mat and a frame on a coloured wall, a little above the middle, the way a picture hangs in a room. Choose the **Wall color** (charcoal, warm white, sage, or a soft colour taken from the painting), the **Mat** (cream, white, charcoal, or none) and the **Frame** (black, oak, gold or white).
+- **Framed on a wall** (the default) hangs the painting in a mat and a frame on a coloured wall, as large as the screen allows and in the middle of it. Choose the **Wall color** (charcoal, warm white, sage, or a soft colour taken from the painting), the **Mat** (cream, white, charcoal, or none) and the **Frame** (black, oak, gold or white).
 - **In a mat** shows the painting in a mat that fills the screen. The mat can be cream, white, charcoal, or a soft colour taken from the painting.
 - **Whole painting on a soft blur** shows the whole painting over a darkened, blurred copy of itself when its shape differs from the screen's.
 - **Fill the screen** crops the painting's edges to fill the screen.
@@ -185,7 +185,7 @@ For a rotating background, **On the screen** says how a painting sits behind you
 
 A framed or matted painting has a cut edge where the mat meets it and a soft shadow in the opening. **Canvas texture** lays a faint weave over the painting; switch it off for a flat picture. **Slow drift**, for a painting that fills the screen, lets it grow and slide a little over its first minute, too slowly to catch, and then hold still. It is off unless you switch it on.
 
-**Museum label** shows the title, artist, year and museum the way a gallery does. On a tall screen it is a small card on the wall under a framed painting. On a wide screen the frame fills most of the screen's height, and the label is two short lines lettered on the mat under the painting. A painting in a mat that fills the screen has its label lettered on the mat too. It shows **for the first 15 seconds** of each painting (the default), **always**, or not at all. Whenever the label is not up, the same details show quietly in a corner of the screen. A frame with no mat on a wide screen has nowhere to print a label, so it shows the corner details only.
+**Museum label** shows the title, artist, year and museum the way a gallery does. A framed painting has it lettered in two short lines on the mat under the painting, and so does a painting in a mat that fills the screen, in larger lettering. A frame with no mat has nowhere to print, so its label is a small card on the wall under the frame when there is wall to spare: a tall screen usually has it, a wide one does not. The label shows **for the first 15 seconds** of each painting (the default), **always**, or not at all. Whenever the label is not up, or there is no place for it, the same details show quietly in a corner of the screen.
 
 The list of paintings is part of Home Screens, but the pictures themselves are fetched from Wikimedia Commons when they are shown, so the wall needs the internet for them.
 
@@ -194,7 +194,7 @@ The list of paintings is part of Home Screens, but the pictures themselves are f
 Two switches turn a screen into something closer to a picture on the wall. Neither is only for paintings; they work with any background.
 
 - **Evening light**, under **Background effects**, warms and dims the background in the evening, so a picture looks like paper under a lamp and not a lit screen. It starts at **Sunset** (which needs your town in Settings; without it, 8 PM) or at a time you choose, and ends at a time the next morning. The change eases in over a minute and a half. Your modules stay as bright as they were.
-- **Art mode**, under the screen's own settings, hides that screen's modules and shows only the picture and its label. It can be on **always**, or only **between two times**, for example from 9 PM to 7 AM.
+- **Art mode**, under the screen's own settings, hides that screen's modules and shows only the picture and its label. It can be on **always**, or only **between two times**, for example from 9 PM to 7 AM. **Hide screen dots** takes the dots at the bottom of the screen away as well while art mode is on; swiping and the remote still change screens.
 
 ### From your phone
 

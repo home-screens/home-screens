@@ -304,6 +304,8 @@
     "artModeGroup": "Kunstmodus",
     "artModeToggle": "Kunstmodus",
     "artModeHint": "Verbergt de modules van dit scherm en toont alleen de afbeelding en het bordje.",
+    "artModeHideDots": "Schermstippen verbergen",
+    "artModeHideDotsHint": "De stippen onder aan het scherm verdwijnen ook. Je kunt nog steeds vegen of de afstandsbediening gebruiken om van scherm te wisselen.",
     "artModeWhen": "Wanneer",
     "artModeAlways": "Altijd",
     "artModeBetween": "Tussen twee tijden",

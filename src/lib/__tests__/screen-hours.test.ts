@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { artModeActive, eveningLightActive, inDailyHours, minuteOf, normalizeEveningLight } from '../screen-hours';
+import { artModeActive, artModeHidesDots, eveningLightActive, inDailyHours, minuteOf, normalizeEveningLight } from '../screen-hours';
 
 const at = (time: string) => minuteOf(time)!;
 
@@ -53,5 +53,15 @@ describe('art mode', () => {
     expect(artModeActive(nightly, at('23:00'))).toBe(true);
     // Half a pair of times is not hours: art mode is simply on.
     expect(artModeActive({ artMode: { from: '21:00' } }, at('12:00'))).toBe(true);
+  });
+
+  it('hides the screen dots only when the screen asks for it and art mode is on now', () => {
+    expect(artModeHidesDots({}, at('12:00'))).toBe(false);
+    expect(artModeHidesDots({ artMode: {} }, at('12:00'))).toBe(false);
+    expect(artModeHidesDots({ artMode: { hideDots: true } }, at('12:00'))).toBe(true);
+    const nightly = { artMode: { from: '21:00', until: '07:00', hideDots: true } };
+    expect(artModeHidesDots(nightly, at('23:00'))).toBe(true);
+    // Outside its hours the screen has its modules back, and its dots.
+    expect(artModeHidesDots(nightly, at('12:00'))).toBe(false);
   });
 });
