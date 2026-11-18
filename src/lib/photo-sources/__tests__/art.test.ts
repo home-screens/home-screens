@@ -136,16 +136,16 @@ describe('background picks', () => {
     expect((await open('cover')).size).toEqual([160, 100]);
     expect(await open('contain')).toEqual({ id: 'Q4-contain-108x192', size: [108, 192] });
     expect(await open('matte')).toEqual({ id: 'Q4-matte-108x192', size: [108, 192] });
-    expect(await open('mat')).toEqual({ id: 'Q4-mat-charcoal.cream.black.w.2-108x192', size: [108, 192] });
+    expect(await open('mat')).toEqual({ id: 'Q4-mat-charcoal.cream.black.w.4-108x192', size: [108, 192] });
     // Framed on a wall is what a source gets when it says nothing; the colours are part of the id.
-    expect(await open()).toEqual({ id: 'Q4-framed-charcoal.cream.black.w.2-108x192', size: [108, 192] });
+    expect(await open()).toEqual({ id: 'Q4-framed-charcoal.cream.black.w.4-108x192', size: [108, 192] });
   });
 
   it('tells the wall how to label the painting, where the label goes, and when it may drift', async () => {
     const pick = async (source: Art) => (await artPhotoSource.pickOne({ source, canvas: CANVAS })) as unknown as { id: string; credit: { name: string; source: string; art: Record<string, unknown> } };
     const framed = await pick(art({ genre: 'landscape', wall: 'sage', mat: 'none', frame: 'oak', texture: false, label: 'always' }));
-    // The trailing 2 is the hanging's version: a wall is never handed a copy painted an older way.
-    expect(framed.id).toBe('Q1-framed-sage.none.oak.p.2-1080x1920');
+    // The trailing 4 is the hanging's version: a wall is never handed a copy painted an older way.
+    expect(framed.id).toBe('Q1-framed-sage.none.oak.p.4-1080x1920');
     expect(framed.credit).toMatchObject({ name: 'Wheat Field, Vincent van Gogh, 1888', source: 'Van Gogh Museum' });
     expect(framed.credit.art).toMatchObject({
       id: 'Q1', file: 'Wheat Field.jpg', title: 'Wheat Field', artist: 'Vincent van Gogh', year: 1888, museum: 'Van Gogh Museum', label: 'always',
@@ -156,6 +156,17 @@ describe('background picks', () => {
 
     const matted = await pick(art({ genre: 'landscape', fit: 'mat', mat: 'charcoal' }));
     expect(matted.credit.art).toMatchObject({ label: 'brief', place: { style: 'printed', tone: 'light', x: 92, w: 896 } });
+
+    // A wide screen prints the label on the mat inside the frame.
+    const wide = async (source: Art) => (await artPhotoSource.pickOne({ source, canvas: { w: 1920, h: 1080 } })) as unknown as { id: string; credit: { art: { label: string; place: Record<string, unknown> } } };
+    const lettered = await wide(art({ genre: 'landscape', label: 'always' }));
+    expect(lettered.id).toBe('Q1-framed-charcoal.cream.black.w.4-1920x1080');
+    expect(lettered.credit.art).toMatchObject({ label: 'always', place: { style: 'printed', tone: 'dark', band: 74 } });
+    // The label is not part of the painted picture, so switching it off keeps the same copy.
+    expect((await wide(art({ genre: 'landscape', label: 'off' }))).id).toBe(lettered.id);
+    // No mat, so nowhere to print: the label is off for this painting and the corner caption carries the details.
+    const bare = await wide(art({ genre: 'landscape', mat: 'none', label: 'always' }));
+    expect(bare.credit.art).toMatchObject({ label: 'off', place: { style: 'placard' } });
 
     const filled = await pick(art({ genre: 'landscape', fit: 'cover', drift: true }));
     expect(filled.credit.art).toMatchObject({ drift: true, place: { style: 'placard' } });

@@ -60,4 +60,32 @@ describe('ArtLabel', () => {
     expect(label.style.opacity).toBe('0');
     expect(label.getAttribute('aria-hidden')).toBe('true');
   });
+
+  it('letters a framed painting on a wide screen in two short lines, in the strip of mat under it', () => {
+    render(<ArtLabel art={art({ place: { style: 'printed', x: 272, y: 922, w: 1377, tone: 'dark', unit: 1, band: 74 } })} shown />);
+    const label = screen.getByTestId('art-label');
+    // Artist, year and museum share the second line.
+    expect(label.textContent).toBe("The MagpieClaude Monet, 1868 \u00a0\u00b7\u00a0 Musée d'Orsay");
+    expect(label.children).toHaveLength(2);
+    expect([label.style.left, label.style.top, label.style.width, label.style.height]).toEqual(['272px', '922px', '1377px', '74px']);
+    expect([label.style.textAlign, label.style.justifyContent, label.style.overflow, label.style.background]).toEqual(['center', 'center', 'hidden', '']);
+    // Neither line wraps: a long title is cut short and never pushes out of the strip.
+    const [title, second] = Array.from(label.children) as HTMLElement[];
+    expect([title.style.fontSize, title.style.whiteSpace, title.style.textOverflow]).toEqual(['22px', 'nowrap', 'ellipsis']);
+    expect([second.style.fontSize, second.style.whiteSpace]).toEqual(['14px', 'nowrap']);
+    cleanup();
+    // With no artist or year the museum stands alone, and with nothing but a title there is one line.
+    render(<ArtLabel art={art({ artist: undefined, year: undefined, place: { style: 'printed', x: 272, y: 922, w: 1377, tone: 'dark', unit: 1, band: 74 } })} shown />);
+    expect(screen.getByTestId('art-label').textContent).toBe("The MagpieMusée d'Orsay");
+    cleanup();
+    render(<ArtLabel art={art({ artist: undefined, year: undefined, museum: undefined, place: { style: 'printed', x: 272, y: 922, w: 1377, tone: 'dark', unit: 1, band: 74 } })} shown />);
+    expect(screen.getByTestId('art-label').children).toHaveLength(1);
+    cleanup();
+    // A mat that fills the screen has no strip to stay within, larger lettering, and the museum on its own line.
+    render(<ArtLabel art={art({ place: { style: 'printed', x: 92, y: 1222, w: 896, tone: 'dark', unit: 1 } })} shown />);
+    const open = screen.getByTestId('art-label');
+    expect(open.style.height).toBe('');
+    expect(open.children).toHaveLength(3);
+    expect((open.children[0] as HTMLElement).style.fontSize).toBe('36px');
+  });
 });

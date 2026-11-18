@@ -6167,6 +6167,7 @@
         "off": "Desligado"
       },
       "labelHint": "Título, artista, ano e museu. No resto do tempo, a pequena legenda fica no canto.",
+      "labelNoMat": "Sem passe-partout, uma tela larga não tem onde colocar a etiqueta, então só a pequena legenda no canto aparece.",
       "texture": "Textura de tela",
       "drift": "Movimento lento",
       "driftHint": "A pintura cresce e desliza bem devagar no primeiro minuto e depois fica parada.",

@@ -11,6 +11,8 @@ const editorFetch = vi.hoisted(() => vi.fn());
 vi.mock('@/lib/editor-fetch', () => ({ editorFetch, isSessionExpired: () => false, sessionExpired: () => new Error('expired') }));
 
 import ArtSourceFields from '../ArtSourceFields';
+import { useEditorStore } from '@/stores/editor-store';
+import type { ScreenConfiguration } from '@/types/config';
 
 type Art = Extract<PhotoSource, { kind: 'art' }>;
 
@@ -93,6 +95,27 @@ describe('ArtSourceFields', () => {
     expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', fit: 'cover', drift: true });
     fireEvent.change(screen.getByDisplayValue('For the first 15 seconds'), { target: { value: 'off' } });
     expect(onChange).toHaveBeenLastCalledWith({ kind: 'art', fit: 'cover', label: 'off' });
+  });
+
+  it('says a frame with no mat has nowhere to print the label on a wide screen, and nothing of the kind on a tall one', () => {
+    const before = useEditorStore.getState().config;
+    const turned = (displayTransform: 'normal' | '90') => act(() => {
+      useEditorStore.setState({ config: { settings: { displayWidth: 1920, displayHeight: 1080, displayTransform }, screens: [] } as unknown as ScreenConfiguration });
+    });
+    try {
+      turned('normal');
+      const bare = renderArt({ mat: 'none' }, 'background');
+      expect(screen.getByTestId('art-label-hint').textContent).toContain('nowhere to print the label');
+      bare.view.unmount();
+      renderArt({}, 'background');
+      expect(screen.getByTestId('art-label-hint').textContent).toContain('Title, artist, year and museum');
+      cleanup();
+      turned('90');
+      renderArt({ mat: 'none' }, 'background');
+      expect(screen.getByTestId('art-label-hint').textContent).toContain('Title, artist, year and museum');
+    } finally {
+      act(() => { useEditorStore.setState({ config: before }); });
+    }
   });
 
   it('offers only the subjects the collection is made of', () => {

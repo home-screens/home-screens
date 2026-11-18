@@ -32,37 +32,53 @@ describe('artLayout', () => {
 
   it('keeps a tall painting and its card on the screen, with room underneath', () => {
     const layout = artLayout('framed', 960 / 1239, TALL, 'cream');
-    const { frame, label } = layout;
+    const { frame } = layout;
+    const label = layout.label!;
     expect(frame!.y).toBeGreaterThan(0);
     expect(frame!.y + frame!.h).toBeLessThan(label.y);
     expect(label.y + 150).toBeLessThan(TALL.h);
   });
 
-  it('keeps the frame in the middle of a wide screen, whatever the painting\'s shape', () => {
+  it('sizes the frame by a wide screen\'s height, with an even mat and the label printed on it under the painting', () => {
+    // The approved mockup's painting (`.claude/mockups/art-wide-frame-strip.html`, variant A).
+    const layout = artLayout('framed', 4000 / 2472, WIDE, 'cream');
+    expect(layout.opening).toEqual({ x: 326, y: 138, w: 1269, h: 784 });
+    // 16 of moulding and 74 of mat on every side, 48 of wall above the frame and 68 below.
+    expect(layout.frame).toEqual({ x: 236, y: 48, w: 1449, h: 964 });
+    // Lettering sits in the strip of mat under the painting, clear of the moulding at the sides.
+    expect(layout.label).toEqual({ style: 'printed', x: 272, y: 922, w: 1377, tone: 'dark', unit: 1, band: 74 });
+    expect(artLayout('framed', 4000 / 2472, WIDE, 'charcoal', matLettering('charcoal')).label).toMatchObject({ tone: 'light' });
+  });
+
+  it('keeps the frame in the middle of a wide screen with wall around it, whatever the painting\'s shape', () => {
     for (const aspect of [0.6, 960 / 1239, 1, 1.2, MAGPIE, 1.7, 2.06, 2.6]) {
-      const { frame, label, opening } = artLayout('framed', aspect, WIDE, 'cream');
+      const { frame, opening } = artLayout('framed', aspect, WIDE, 'cream');
+      const label = artLayout('framed', aspect, WIDE, 'cream').label!;
       expect(Math.abs(frame!.x + frame!.w / 2 - WIDE.w / 2)).toBeLessThanOrEqual(1);
-      expect(frame!.y).toBeGreaterThanOrEqual(139);
+      expect(frame!.x).toBeGreaterThanOrEqual(64);
+      expect(frame!.y).toBeGreaterThanOrEqual(48);
+      expect(frame!.y + frame!.h).toBeLessThanOrEqual(WIDE.h - 68);
       expect(opening.w / opening.h).toBeCloseTo(aspect, 1);
-      // The card is on the screen with a margin, clear of the frame: beside it, or under its right edge.
-      expect(label.x + label.w).toBeLessThanOrEqual(WIDE.w - 60);
-      expect(label.y + 170).toBeLessThanOrEqual(WIDE.h - 60);
-      const beside = label.x >= frame!.x + frame!.w;
-      const under = label.y >= frame!.y + frame!.h;
-      expect(beside || under).toBe(true);
-      if (under) expect(label.x + label.w).toBe(frame!.x + frame!.w);
+      // The mat is the same on every side.
+      expect(opening.y - frame!.y).toBe(90);
+      expect(frame!.y + frame!.h - (opening.y + opening.h)).toBe(90);
+      // The lettering is on the mat: under the painting, above the moulding, between the frame's sides.
+      expect(label.y).toBe(opening.y + opening.h);
+      expect(label.y + label.band!).toBe(frame!.y + frame!.h - 16);
+      expect(label.x).toBeGreaterThan(frame!.x + 16);
+      expect(label.x + label.w).toBeLessThan(frame!.x + frame!.w - 16);
     }
   });
 
-  it('puts the card beside a squarer painting and under a wide, short one, taking whichever leaves the painting larger', () => {
-    const magpie = artLayout('framed', MAGPIE, WIDE, 'cream');
-    expect(magpie.opening).toEqual({ x: 554, y: 230, w: 812, h: 551 });
-    expect(magpie.label).toMatchObject({ x: 1526, y: 721 });
-    const panorama = artLayout('framed', 2.06, WIDE, 'cream');
-    expect(panorama.opening).toMatchObject({ w: 939, h: 456 });
-    expect(panorama.label.y).toBe(panorama.frame!.y + panorama.frame!.h + 70);
-    // A mat that fills the screen was always in the middle: its lettering sits under the painting.
+  it('has no label where there is no mat to print on, on a wide screen only', () => {
+    const bare = artLayout('framed', 4000 / 2472, WIDE, 'none');
+    expect(bare.label).toBeNull();
+    expect(bare).toMatchObject({ mat: 0, bevel: 0, opening: { w: 1508, h: 932 } });
+    // A tall screen keeps its card, and a mat that fills a wide screen keeps its lettering.
+    expect(artLayout('framed', MAGPIE, TALL, 'none').label).toMatchObject({ style: 'placard' });
     const matted = artLayout('mat', MAGPIE, WIDE, 'cream');
+    expect(matted.label).toMatchObject({ style: 'printed' });
+    expect(matted.label!.band).toBeUndefined();
     expect(Math.abs(matted.opening.x + matted.opening.w / 2 - WIDE.w / 2)).toBeLessThanOrEqual(1);
   });
 
@@ -70,7 +86,7 @@ describe('artLayout', () => {
     const big = artLayout('framed', MAGPIE, { w: 2160, h: 3840 }, 'cream');
     expect(big.unit).toBe(2);
     expect(big.opening).toEqual({ x: 380, y: 1177, w: 1400, h: 949 });
-    expect(big.label.w).toBe(660);
+    expect(big.label!.w).toBe(660);
   });
 });
 

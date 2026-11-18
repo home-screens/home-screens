@@ -7,10 +7,11 @@ import { ART_FRAME_COLORS, ART_MAT_COLORS, ART_WALL_COLORS, artLayout, lightness
  * per picture and the wall shows the result like any other background, so a
  * Pi's browser never has to lay shadows and textures over each other.
  *
- * The look is the approved mockup's (`.claude/mockups/art-display-effects.html`):
- * a cut bevel where the mat meets the painting, a soft shadow in the opening,
- * paper grain on the mat, a faint canvas weave over the painting, and the
- * frame's shadow falling down the wall.
+ * The look is the approved mockup's (`.claude/mockups/art-display-effects.html`,
+ * and `art-wide-frame-strip.html` for a wide screen): a cut bevel where the
+ * mat meets the painting, a soft shadow in the opening, paper grain on the
+ * mat, a faint canvas weave over the painting, and the frame's shadow falling
+ * down the wall.
  */
 
 export interface ArtHanging {

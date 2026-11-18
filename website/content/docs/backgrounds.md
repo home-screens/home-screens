@@ -185,7 +185,7 @@ For a rotating background, **On the screen** says how a painting sits behind you
 
 A framed or matted painting has a cut edge where the mat meets it and a soft shadow in the opening. **Canvas texture** lays a faint weave over the painting; switch it off for a flat picture. **Slow drift**, for a painting that fills the screen, lets it grow and slide a little over its first minute, too slowly to catch, and then hold still. It is off unless you switch it on.
 
-**Museum label** shows the title, artist, year and museum the way a gallery does: on a small card beside a framed painting, or lettered on the mat under a matted one. It shows **for the first 15 seconds** of each painting (the default), **always**, or not at all. Whenever the label is not up, the same details show quietly in a corner of the screen.
+**Museum label** shows the title, artist, year and museum the way a gallery does. On a tall screen it is a small card on the wall under a framed painting. On a wide screen the frame fills most of the screen's height, and the label is two short lines lettered on the mat under the painting. A painting in a mat that fills the screen has its label lettered on the mat too. It shows **for the first 15 seconds** of each painting (the default), **always**, or not at all. Whenever the label is not up, the same details show quietly in a corner of the screen. A frame with no mat on a wide screen has nowhere to print a label, so it shows the corner details only.
 
 The list of paintings is part of Home Screens, but the pictures themselves are fetched from Wikimedia Commons when they are shown, so the wall needs the internet for them.
 

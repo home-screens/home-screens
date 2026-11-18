@@ -80,6 +80,8 @@ export default function ArtSourceFields({ use, source, onChange }: {
   const screen = config ? getActiveDimensions(config, selectedDisplayId) : null;
   // A background's count keeps to the screen-shape filter, which needs the screen's size.
   const shaped = use === 'background' && screen ? `&w=${screen.width}&h=${screen.height}` : '';
+  // A wide screen prints the label on the mat inside the frame, so a frame with no mat has nowhere to put one (`artLayout`).
+  const noLabelPlace = !!screen && screen.width > screen.height && fit === 'framed' && source.mat === 'none';
   const { data: counted } = useEditorData<{ count: number }>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}&info=count${shaped}`);
   const { data: previewData } = useEditorData<MediaListItem[]>(`${PHOTO_SOURCE_MEDIA_PATH}?${settled}`);
 
@@ -228,7 +230,9 @@ export default function ArtSourceFields({ use, source, onChange }: {
               onChange={(label) => set({ label: label === DEFAULT_ART_LABEL ? undefined : label })}
               options={ART_LABELS.map((value) => ({ value, label: t(`photoSources.art.labels.${value}`) }))}
             />
-            <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint">{t('photoSources.art.labelHint')}</p>
+            <p className="mt-1 text-[10px] leading-relaxed text-hs-text-faint" data-testid="art-label-hint">
+              {t(noLabelPlace ? 'photoSources.art.labelNoMat' : 'photoSources.art.labelHint')}
+            </p>
           </div>
           {hung && (
             <Toggle label={t('photoSources.art.texture')} checked={source.texture !== false} onChange={(on) => set({ texture: on ? undefined : false })} />

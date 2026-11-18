@@ -25,9 +25,10 @@ export function useArtLabelShown(art: ArtCaption | undefined, pictureKey: string
 
 /**
  * The museum label for the painting behind a screen: a small card on the
- * wall beside a framed painting, or lettering on the mat under one that sits
- * in a mat. The hub decided where it goes when it painted the picture
- * (`art.place`, in the screen's own pixels), so label and picture agree.
+ * wall under a framed painting, or lettering on the mat under the painting,
+ * whether the mat fills the screen or sits inside a frame. The hub decided
+ * where it goes when it painted the picture (`art.place`, in the screen's own
+ * pixels), so label and picture agree.
  */
 export default function ArtLabel({ art, shown, evening = false }: {
   art: ArtCaption;
@@ -39,6 +40,10 @@ export default function ArtLabel({ art, shown, evening = false }: {
   const u = place.unit;
   const byline = [art.artist, art.year].filter(Boolean).join(', ');
   const placard = place.style === 'placard';
+  // Lettering on the mat inside a frame: two short lines in the middle of the strip of mat under the painting.
+  const banded = !placard && place.band !== undefined;
+  const size = placard ? { title: 27, byline: 18, museum: 15, gap: 8 } : banded ? { title: 22, byline: 14, museum: 14, gap: 5 } : { title: 36, byline: 23, museum: 19, gap: 10 };
+  const oneLine = banded ? { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } as const : {};
   const lettering = placard ? '#2c2924' : place.tone === 'light' ? '#ece6d8' : '#3a352c';
   return (
     <div
@@ -62,11 +67,22 @@ export default function ArtLabel({ art, shown, evening = false }: {
           borderRadius: 2 * u,
           boxShadow: `0 ${2 * u}px ${3 * u}px rgba(0,0,0,0.35), 0 ${10 * u}px ${24 * u}px rgba(0,0,0,0.28)`,
         } : {}),
+        ...(banded ? { height: place.band, display: 'flex', flexDirection: 'column', justifyContent: 'center', overflow: 'hidden' } : {}),
       }}
     >
-      <div style={{ fontFamily: 'var(--font-lora), Georgia, serif', fontWeight: 500, fontSize: (placard ? 27 : 36) * u, lineHeight: 1.2, letterSpacing: '0.005em' }}>{art.title}</div>
-      {byline && <div style={{ fontSize: (placard ? 18 : 23) * u, marginTop: (placard ? 8 : 10) * u, fontWeight: 450 }}>{byline}</div>}
-      {art.museum && <div style={{ fontSize: (placard ? 15 : 19) * u, marginTop: 6 * u, opacity: 0.62 }}>{art.museum}</div>}
+      <div style={{ fontFamily: 'var(--font-lora), Georgia, serif', fontWeight: 500, fontSize: size.title * u, lineHeight: 1.2, letterSpacing: '0.005em', ...oneLine }}>{art.title}</div>
+      {/* On the mat inside a frame, artist, year and museum share the second line: the strip has room for two. */}
+      {banded ? (byline || art.museum) && (
+        <div style={{ fontSize: size.byline * u, marginTop: size.gap * u, fontWeight: 450, ...oneLine }}>
+          {byline}
+          {art.museum && <span style={{ opacity: 0.62 }}>{byline ? ' \u00a0\u00b7\u00a0 ' : ''}{art.museum}</span>}
+        </div>
+      ) : (
+        <>
+          {byline && <div style={{ fontSize: size.byline * u, marginTop: size.gap * u, fontWeight: 450 }}>{byline}</div>}
+          {art.museum && <div style={{ fontSize: size.museum * u, marginTop: 6 * u, opacity: 0.62 }}>{art.museum}</div>}
+        </>
+      )}
     </div>
   );
 }

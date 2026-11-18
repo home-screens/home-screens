@@ -137,14 +137,16 @@ export const artPhotoSource: PhotoSourceAdapter<'art'> = {
     const hung = fit === 'framed' || fit === 'mat';
     const mat = source.mat ?? DEFAULT_ART_MAT;
     const hanging = { fit: hung ? fit : 'framed' as const, wall: source.wall ?? DEFAULT_ART_WALL, mat, frame: source.frame ?? DEFAULT_ART_FRAME, texture: source.texture !== false };
+    const label = source.label ?? DEFAULT_ART_LABEL;
     const layout: ArtLayout | null = hung ? artLayout(fit, aspect, canvas, mat, matLettering(mat)) : null;
     const wanted = layout ? layout.opening.w : fit === 'cover' ? Math.max(canvas.w, canvas.h * aspect) : Math.min(canvas.w, canvas.h * aspect);
     const url = pictureUrl(painting, wanted);
     const art: ArtCaption = {
       id: painting.id, file: painting.file, title: painting.title, artist: painting.artist,
       ...(painting.year !== undefined ? { year: painting.year } : {}), ...(painting.museum ? { museum: painting.museum } : {}),
-      label: source.label ?? DEFAULT_ART_LABEL,
-      place: layout ? layout.label : cornerLabel(canvas),
+      // A hanging with no place for a label leaves the details to the small corner caption.
+      label: layout && !layout.label ? 'off' : label,
+      place: layout?.label ?? cornerLabel(canvas),
       ...(fit === 'cover' && source.drift ? { drift: true } : {}),
     };
     // Everything that changes the painted picture is part of the id, so a new wall colour is not handed the old copy.
