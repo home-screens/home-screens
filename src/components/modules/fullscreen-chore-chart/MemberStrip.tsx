@@ -3,10 +3,9 @@ import type { FamilyMember } from '@/types/family';
 
 import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/types';
 import { balanceRows, fitPerRow } from '@/components/modules/chore-chart/layout';
-import { Flame, Star, Ticket } from 'lucide-react';
-import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import type { RewardDefinition } from '@/lib/reward-data';
 import GoalLine from './GoalLine';
+import { MemberAvatar, MemberStatLine, WeekStars } from './member-bits';
 import { useTranslate } from '@/i18n';
 
 /**
@@ -44,19 +43,7 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
   const statSize = 22 * c;
   const starSize = 22 * c;
   const stat = (
-    <span style={{ fontSize: statSize, color: 'var(--fcc-text-2)', fontWeight: 600, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.3 }}>
-      {showStreaks && stats && stats.streak > 0 && (
-        <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.1 }}>
-          <Flame size={statSize} />{stats.streak}
-        </span>
-      )}
-      <span>{stats?.completed ?? 0}/{stats?.total ?? 0}</span>
-      {showPoints && (stats?.rewardBalance ?? 0) > 0 && (
-        <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.15 }}>
-          <Ticket size={statSize} />{stats!.rewardBalance}
-        </span>
-      )}
-    </span>
+    <MemberStatLine stats={stats} size={statSize} gap={statSize * 0.3} showStreaks={showStreaks} showPoints={showPoints} streakFirst />
   );
 
   return (
@@ -73,21 +60,7 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
         minWidth: 0,
       }}
     >
-      <div
-        style={{
-          width: avatar,
-          height: avatar,
-          borderRadius: '50%',
-          background: member.color,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          color: 'white',
-        }}
-      >
-        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare fallback={null} />
-      </div>
+      <MemberAvatar member={member} size={avatar} />
       {compact ? (
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
           <div style={{ fontSize: nameSize, fontWeight: 700, letterSpacing: '-0.01em', color: 'var(--fcc-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -111,25 +84,7 @@ function MemberChip({ member, stats, weekData, detail, c, compact, showStreaks, 
           </div>
           <div style={{ marginTop: 2 * c, whiteSpace: 'nowrap', overflow: 'hidden' }}>{stat}</div>
           {detail === 'stars' ? (
-            <div data-testid="fcc-chip-stars" style={{ display: 'flex', gap: 7 * c, marginTop: 8 * c }}>
-              {weekData.map((day) => {
-                const earned = day.memberStars[member.id];
-                // Today's star, still unearned, is drawn as an accent outline so
-                // the kid can see which one is up for grabs.
-                const fill = earned ? member.color : day.isToday ? 'transparent' : 'var(--fcc-border)';
-                const stroke = earned ? member.color : day.isToday ? 'var(--fcc-accent)' : 'var(--fcc-border)';
-                return (
-                  <Star
-                    key={day.date}
-                    size={starSize}
-                    color={stroke}
-                    fill={fill}
-                    strokeWidth={earned || !day.isToday ? 0 : 2}
-                    style={{ flexShrink: 0 }}
-                  />
-                );
-              })}
-            </div>
+            <WeekStars member={member} weekData={weekData} size={starSize} gap={7 * c} style={{ marginTop: 8 * c }} />
           ) : (
             <div style={{ height: 6 * c, background: 'var(--fcc-border)', borderRadius: 3 * c, marginTop: 10 * c, width: '100%', overflow: 'hidden' }}>
               <div style={{ height: '100%', borderRadius: 3 * c, background: member.color, width: `${stats?.percentage ?? 0}%` }} />

@@ -32,6 +32,15 @@ describe('resolveChoreModuleConfig', () => {
     expect(resolveChoreModuleConfig(config)?.accentColor).toBe('#123456');
   });
 
+  // A full-screen chart nobody picked a colour on stores '' ("follow the
+  // theme"), and the phone painted buttons and rings with no colour at all.
+  it('gives the phone its own accent when a full-screen chart follows its theme', () => {
+    const config = makeConfig({
+      screens: [makeScreen('s1', [makeModule('fullscreen-chore-chart', { accentColor: '' })])],
+    });
+    expect(resolveChoreModuleConfig(config)?.accentColor).toBe('#f59e0b');
+  });
+
   it('finds a fullscreen-chore-chart too', () => {
     const config = makeConfig({
       screens: [makeScreen('s1', [makeModule('fullscreen-chore-chart', { showPoints: false })])],

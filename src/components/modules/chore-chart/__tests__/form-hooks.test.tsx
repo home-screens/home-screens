@@ -314,3 +314,28 @@ describe('useChoreForm Regular and Bonus', () => {
     expect(submitted(result.current).bonus).toEqual({ claim: 'first', comesBack: 'weekly', since: 'stamp' });
   });
 });
+
+describe('useChoreForm dirty', () => {
+  it('is clean as it opens and counts every field, steps included', () => {
+    const { result } = renderHook(() => useChoreForm(saved({ steps: 'Rinse' }), members, [kids], true, TODAY));
+    expect(result.current.dirty).toBe(false);
+    // The phone's own list left Steps out, so Back dropped typed steps without asking.
+    act(() => result.current.setSteps('Rinse\nStack'));
+    expect(result.current.dirty).toBe(true);
+    act(() => result.current.setSteps('Rinse'));
+    expect(result.current.dirty).toBe(false);
+  });
+
+  // A group deleted since the chore was saved drops out of what the form
+  // saves once the family list arrives. Nobody touched anything.
+  it('stays clean when the family list arrives and a deleted group drops out', () => {
+    const chore = saved({ assigneeGroupIds: ['kids', 'gone'] });
+    const { result, rerender } = renderHook(
+      ({ ready, groups }: { ready: boolean; groups: FamilyGroup[] }) => useChoreForm(chore, members, groups, ready, TODAY),
+      { initialProps: { ready: false, groups: [] as FamilyGroup[] } },
+    );
+    rerender({ ready: true, groups: [kids] });
+    expect(result.current.assigneeGroupIds).toEqual(['kids']);
+    expect(result.current.dirty).toBe(false);
+  });
+});

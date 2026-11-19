@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Sunrise, Sun, Sunset, Clock, Hand, ChevronRight } from 'lucide-react';
+import { Sunrise, Sun, Sunset, Clock, Hand, ChevronRight, Flame, Star } from 'lucide-react';
 import type { FamilyGroup, FamilyMember } from '@/types/family';
 import type { ChoreDefinition, ChoreTimeOfDay } from '@/types/config';
 import { completionKey } from '@/lib/chore-assignments';
@@ -28,6 +28,8 @@ const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 };
 
 const SECTIONS: readonly ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
+/** "Show time of day" off: every chore in one list, no headings. */
+const ONE_LIST: readonly null[] = [null];
 
 /** One of the person's chores on the day, as the row draws it. */
 export interface TodayAssignment extends ChoreRowAssignment {
@@ -41,13 +43,25 @@ export interface DayCelebration {
   done: number;
   total: number;
   tickets: number;
+  /** Days in a row counting this one; null when it is not a streak yet or streaks are off. */
+  streak: number | null;
   key: number;
+}
+
+/** The picked person's week: a star per day, and their run of finished days (0 when streaks are off). */
+export interface WeekLine {
+  days: { date: string; earned: boolean; isToday: boolean }[];
+  streak: number;
 }
 
 interface ChoresTodayViewProps {
   isAdmin: boolean;
   accentColor: string;
   showPoints: boolean;
+  /** Off, the day is one list with no Morning / Afternoon / Evening headings, as on the wall. */
+  showTimeOfDay: boolean;
+  /** Null for someone with no chores this week. */
+  weekLine: WeekLine | null;
   /** The ticket count beside the progress header; `balances` is null until the rewards have been read. */
   showBalances: boolean;
   balances: Record<string, number> | null;
@@ -102,7 +116,7 @@ interface ChoresTodayViewProps {
  * for a kid on /chores; what each may do comes in as props.
  */
 export default function ChoresTodayView({
-  isAdmin, accentColor, showPoints, showBalances, balances,
+  isAdmin, accentColor, showPoints, showTimeOfDay, weekLine, showBalances, balances,
   members, groups, chores, completionSet,
   viewingDate, realToday, onSelectDay, isViewingPast, canEdit, currentTimeOfDay,
   selectedMemberId, selectedMember, onSelectMember, memberTabStats,
@@ -125,6 +139,38 @@ export default function ChoresTodayView({
   // moved the rows under the finger.
   const [openSteps, setOpenSteps] = useState<ReadonlySet<string>>(() => new Set());
   useEffect(() => { setOpenSteps(new Set()); }, [selectedMemberId, viewingDate]);
+
+  const renderRow = (assignment: TodayAssignment) => {
+    const key = completionKey(assignment.choreId, selectedMemberId, viewingDate);
+    const menu = isAdmin && canEdit ? () => onOpenMenu(assignment.choreId) : undefined;
+    return (
+      <ChoreRow
+        key={assignment.choreId}
+        assignment={assignment}
+        isToggling={busy.has(key)}
+        readOnly={!canEdit}
+        holdToUncheck={!isAdmin}
+        checkedColor={checkedColor}
+        showPoints={showPoints}
+        onToggle={() => {
+          if (assignment.isSkipped) onUndoNotToday(assignment.choreId);
+          else onToggle(assignment.choreId);
+        }}
+        onLongPress={menu}
+        onMenu={menu}
+        view={`${selectedMemberId}:${viewingDate}`}
+        notice={noticeFor(assignment.choreId)}
+        steps={assignment.steps}
+        stepsOpen={openSteps.has(assignment.choreId)}
+        onToggleSteps={() => setOpenSteps((open) => {
+          const next = new Set(open);
+          if (next.has(assignment.choreId)) next.delete(assignment.choreId);
+          else next.add(assignment.choreId);
+          return next;
+        })}
+      />
+    );
+  };
 
   return (
     <>
@@ -272,6 +318,7 @@ export default function ChoresTodayView({
               done={celebration.done}
               total={celebration.total}
               tickets={celebration.tickets}
+              streak={celebration.streak}
               onClose={onCloseCelebration}
               modal={!isAdmin}
             />
@@ -325,6 +372,36 @@ export default function ChoresTodayView({
                 }}
               />
             </div>}
+            {/* This week's stars and the run of finished days, as the wall's
+                chip shows them. A fixed height, and only on today: the run
+                ends today, so beside an earlier day it would be about another one. */}
+            {weekLine && !isViewingPast && (
+              <div data-testid="today-week-line" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, height: 28, marginTop: 6 }}>
+                <span
+                  role="img"
+                  aria-label={`${tModules('chore-chart.thisWeek')}: ${weekLine.days.filter((day) => day.earned).length}/${weekLine.days.length}`}
+                  style={{ display: 'inline-flex', gap: 5 }}
+                >
+                  {weekLine.days.map((day) => (
+                    <Star
+                      key={day.date}
+                      size={17}
+                      aria-hidden
+                      // Today's star, still unearned, is an outline: the one up for grabs.
+                      color={day.earned ? checkedColor : day.isToday ? accentColor : 'var(--hs-border)'}
+                      fill={day.earned ? checkedColor : day.isToday ? 'transparent' : 'var(--hs-border)'}
+                      strokeWidth={day.earned || !day.isToday ? 0 : 2}
+                    />
+                  ))}
+                </span>
+                {weekLine.streak >= 2 && (
+                  <span data-testid="today-streak" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 13, fontWeight: 600, color: accentColor, whiteSpace: 'nowrap' }}>
+                    <Flame size={15} aria-hidden />
+                    {tModules('chore-chart.streakDays', { count: weekLine.streak })}
+                  </span>
+                )}
+              </div>
+            )}
             {/* What they are saving for, as one fixed-height line: icon, name,
                 bar, how far to go. A tap opens Rewards. Fixed so it never
                 nudges the list, and absent rather than empty without a goal. */}
@@ -368,9 +445,11 @@ export default function ChoresTodayView({
               </div>
             )}
 
-            {SECTIONS.map((section) => {
-              const items = assignments.filter((a) => a.timeOfDay === section);
+            {(showTimeOfDay ? SECTIONS : ONE_LIST).map((section) => {
+              // One list keeps the order it arrived in: morning first.
+              const items = section === null ? assignments : assignments.filter((a) => a.timeOfDay === section);
               if (!items.length) return null;
+              if (section === null) return <div key="all" data-testid="today-one-list" style={{ marginBottom: 16, paddingTop: 8 }}>{items.map(renderRow)}</div>;
 
               const TodIcon = TOD_ICONS[section];
               const isCurrent = !isViewingPast && section === currentTimeOfDay;
@@ -398,37 +477,7 @@ export default function ChoresTodayView({
                     )}
                   </div>
 
-                  {items.map((assignment) => {
-                    const key = completionKey(assignment.choreId, selectedMemberId, viewingDate);
-                    const menu = isAdmin && canEdit ? () => onOpenMenu(assignment.choreId) : undefined;
-                    return (
-                      <ChoreRow
-                        key={assignment.choreId}
-                        assignment={assignment}
-                        isToggling={busy.has(key)}
-                        readOnly={!canEdit}
-                        holdToUncheck={!isAdmin}
-                        checkedColor={checkedColor}
-                        showPoints={showPoints}
-                        onToggle={() => {
-                          if (assignment.isSkipped) onUndoNotToday(assignment.choreId);
-                          else onToggle(assignment.choreId);
-                        }}
-                        onLongPress={menu}
-                        onMenu={menu}
-                        view={`${selectedMemberId}:${viewingDate}`}
-                        notice={noticeFor(assignment.choreId)}
-                        steps={assignment.steps}
-                        stepsOpen={openSteps.has(assignment.choreId)}
-                        onToggleSteps={() => setOpenSteps((open) => {
-                          const next = new Set(open);
-                          if (next.has(assignment.choreId)) next.delete(assignment.choreId);
-                          else next.add(assignment.choreId);
-                          return next;
-                        })}
-                      />
-                    );
-                  })}
+                  {items.map(renderRow)}
                 </div>
               );
             })}

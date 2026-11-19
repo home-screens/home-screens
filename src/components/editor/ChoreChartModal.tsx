@@ -1,8 +1,8 @@
 'use client';
 
 import { Fragment, useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { asChoreSnapshot } from '@/lib/chore-client';
-import { editorFetch, throwIfNotOk } from '@/lib/editor-fetch';
+import { loadChoreSnapshot } from '@/lib/chore-client';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useChoreAutosave } from '@/components/chores/useChoreAutosave';
 import { displayCache } from '@/lib/display-cache';
 import FamilyManager from '@/components/family/FamilyManager';
@@ -1085,14 +1085,8 @@ export default function ChoreChartModal({
   const [choreSearch, setChoreSearch] = useState('');
 
   useEffect(() => {
-    editorFetch('/api/chores/data')
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((json) => {
-        const snapshot = asChoreSnapshot(json);
-        if (!snapshot) throw new Error('Malformed chore data');
+    loadChoreSnapshot(editorFetch)
+      .then((snapshot) => {
         adoptChores(snapshot);
         setLoaded(true);
       })
@@ -1166,11 +1160,7 @@ export default function ChoreChartModal({
       <div className="flex flex-1 min-h-0">
           <div className="w-[300px] shrink-0 overflow-y-auto border-r border-hs-border-strong p-3">
             <FamilyManager chores={chores} onEditingChange={setFamilyEditing} onChanged={() => {
-              void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((json) => {
-                const snapshot = asChoreSnapshot(json);
-                if (!snapshot) throw new Error('Malformed chore data');
-                adoptChores(snapshot);
-              }).catch(() => setLoadError(true));
+              void loadChoreSnapshot(editorFetch).then(adoptChores).catch(() => setLoadError(true));
             }} />
           </div>
           <ChoreColumn

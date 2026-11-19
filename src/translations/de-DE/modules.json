@@ -1067,6 +1067,15 @@
         "one": "{member} gibt 1 Ticket für {reward} aus.",
         "other": "{member} gibt {count} Tickets für {reward} aus."
       },
+      "confirmLeft": {
+        "one": "{member} hat dann noch {count}.",
+        "other": "{member} hat dann noch {count}."
+      },
+      "confirmGoalClears": "Darauf spart {name}. Nach dem Einlösen ist das Sparziel erledigt.",
+      "confirmGoalFurther": {
+        "one": "Danach fehlt für {goal} noch {count} Ticket.",
+        "other": "Danach fehlen für {goal} noch {count} Tickets."
+      },
       "confirmCancel": "Abbrechen",
       "confirmYes": "Ja!",
       "errorGeneric": "Etwas ist schiefgelaufen",

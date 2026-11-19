@@ -1070,6 +1070,15 @@
         "one": "{member} va dépenser {count} ticket pour {reward}.",
         "other": "{member} va dépenser {count} tickets pour {reward}."
       },
+      "confirmLeft": {
+        "one": "Il en restera {count} à {member}.",
+        "other": "Il en restera {count} à {member}."
+      },
+      "confirmGoalClears": "C'est l'objectif de {name}. Il est effacé une fois échangé.",
+      "confirmGoalFurther": {
+        "one": "Après ça, il manquera {count} ticket pour {goal}.",
+        "other": "Après ça, il manquera {count} tickets pour {goal}."
+      },
       "confirmCancel": "Annuler",
       "confirmYes": "Oui !",
       "errorGeneric": "Quelque chose a mal tourné",

@@ -4,12 +4,11 @@ import type { FamilyMember } from '@/types/family';
 
 
 import type { MemberStats, WeekDayData } from '@/components/modules/chore-chart/types';
-import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
-import { Flame, Star, Ticket } from 'lucide-react';
 import ChoreRowItem from './ChoreRowItem';
 import type { MemberChipDetail } from './MemberStrip';
 import type { RewardDefinition } from '@/lib/reward-data';
 import GoalLine from './GoalLine';
+import { MemberAvatar, MemberStatLine, WeekStars } from './member-bits';
 import type { ToggleParams } from './helpers';
 import type { ChoreRow } from '@/lib/chore-rows';
 
@@ -54,43 +53,11 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
   const avatar = Math.min(height * 0.7, fontSize * 2);
   const statSize = fontSize * 0.75;
   const starSize = fontSize * 0.75;
-  const done = stats?.completed ?? 0;
-  const total = stats?.total ?? 0;
-  const complete = total > 0 && done === total;
   const stars = detail === 'stars' && (
-    <div data-testid="fcc-chip-stars" style={{ display: 'flex', gap: starSize * 0.3, flexShrink: 0, marginTop: compact ? fontSize * 0.3 : 0 }}>
-      {weekData.map((day) => {
-        const earned = day.memberStars[member.id];
-        // Today's star, still unearned, is an accent outline: the one up for grabs.
-        const fill = earned ? member.color : day.isToday ? 'transparent' : 'var(--fcc-border)';
-        const stroke = earned ? member.color : day.isToday ? 'var(--fcc-accent)' : 'var(--fcc-border)';
-        return (
-          <Star
-            key={day.date}
-            size={starSize}
-            color={stroke}
-            fill={fill}
-            strokeWidth={earned || !day.isToday ? 0 : 2}
-            style={{ flexShrink: 0 }}
-          />
-        );
-      })}
-    </div>
+    <WeekStars member={member} weekData={weekData} size={starSize} gap={starSize * 0.3} style={{ flexShrink: 0, marginTop: compact ? fontSize * 0.3 : 0 }} />
   );
   const stat = (
-    <span style={{ fontSize: statSize, fontWeight: 600, color: complete ? member.color : 'var(--fcc-text-2)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.4, flexShrink: 0 }}>
-      <span>{done}/{total}</span>
-      {showStreaks && stats && stats.streak > 0 && (
-        <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.1 }}>
-          <Flame size={statSize} />{stats.streak}
-        </span>
-      )}
-      {showPoints && (stats?.rewardBalance ?? 0) > 0 && (
-        <span style={{ color: 'var(--fcc-accent)', display: 'inline-flex', alignItems: 'center', gap: statSize * 0.15 }}>
-          <Ticket size={statSize} />{stats!.rewardBalance}
-        </span>
-      )}
-    </span>
+    <MemberStatLine stats={stats} size={statSize} gap={statSize * 0.4} showStreaks={showStreaks} showPoints={showPoints} doneColor={member.color} style={{ flexShrink: 0 }} />
   );
   return (
     <div
@@ -104,21 +71,7 @@ export function MemberBandHeader({ member, stats, height, fontSize, showStreaks,
         ...style,
       }}
     >
-      <div
-        style={{
-          width: avatar,
-          height: avatar,
-          borderRadius: '50%',
-          background: member.color,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          color: 'white',
-        }}
-      >
-        <ChoreIcon value={member.emoji ?? ''} size={avatar * 0.55} color="white" bare fallback={null} />
-      </div>
+      <MemberAvatar member={member} size={avatar} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: fontSize * 0.5, minWidth: 0 }}>
           <span style={{ fontSize, fontWeight: 700, letterSpacing: '-0.01em', color: member.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: compact ? 1 : undefined }}>

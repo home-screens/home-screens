@@ -2,12 +2,17 @@
 
 import React from 'react';
 import type { RewardDefinition } from '@/lib/reward-data';
+import { redeemGoalEffect, ticketsAfterRedeeming } from '@/lib/reward-rules';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useTranslate } from '@/i18n';
 
 interface RedeemConfirmProps {
   reward: RewardDefinition;
   memberName: string;
+  /** The person's tickets before the spend. */
+  balance: number;
+  /** What they are saving for, when the chart shows it. */
+  goal?: RewardDefinition | null;
   error?: string | null;
   busy?: boolean;
   onConfirm: () => void;
@@ -23,8 +28,10 @@ interface RedeemConfirmProps {
  * k for tap targets) so it reads from where the kid is standing, not like a
  * phone dialog dropped on a wall.
  */
-export default function RedeemConfirm({ reward, memberName, error, busy, onConfirm, onCancel, k, t, d, onAccent }: RedeemConfirmProps) {
+export default function RedeemConfirm({ reward, memberName, balance, goal = null, error, busy, onConfirm, onCancel, k, t, d, onAccent }: RedeemConfirmProps) {
   const tr = useTranslate('modules');
+  const left = ticketsAfterRedeeming(balance, reward);
+  const goalEffect = redeemGoalEffect(balance, reward, goal);
   const buttonText = 26 * t;
   const buttonHeight = Math.max(60 * k, buttonText * 1.2 + 20 * k);
 
@@ -86,7 +93,18 @@ export default function RedeemConfirm({ reward, memberName, error, busy, onConfi
 
         <div style={{ fontSize: 26 * t, fontWeight: 500, color: 'var(--fcc-text-2)', lineHeight: 1.35 }}>
           {tr('fullscreen-chore-chart.rewardsStore.confirmBody', { member: memberName, reward: reward.name, count: reward.cost })}
+          {' '}
+          <span data-testid="fcc-redeem-left">{tr('fullscreen-chore-chart.rewardsStore.confirmLeft', { member: memberName, count: left })}</span>
         </div>
+
+        {/* What the spend does to the thing they are saving for; nothing when the goal stays in reach. */}
+        {goalEffect && goal && (
+          <div data-testid="fcc-redeem-goal" style={{ fontSize: 22 * t, fontWeight: 600, color: 'var(--fcc-accent)', lineHeight: 1.35 }}>
+            {goalEffect.kind === 'clears'
+              ? tr('fullscreen-chore-chart.rewardsStore.confirmGoalClears', { name: memberName })
+              : tr('fullscreen-chore-chart.rewardsStore.confirmGoalFurther', { goal: goal.name, count: goalEffect.stillNeeded })}
+          </div>
+        )}
 
         {error && (
           <div style={{ fontSize: 22 * t, color: '#ef4444', fontWeight: 600 }}>

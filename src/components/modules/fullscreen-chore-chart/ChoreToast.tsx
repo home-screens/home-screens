@@ -20,7 +20,8 @@ export interface ToastItem {
 interface ChoreToastProps {
   toasts: ToastItem[];
   onDismiss: (id: string) => void;
-  onUndo: (id: string) => void;
+  /** Absent on a look-only wall: its toasts only tell, with nothing to take back. */
+  onUndo?: (id: string) => void;
   /**
    * An un-tick that took someone's tickets below zero, already worded. It
    * rides in the strip rather than in a toast of its own: it arrives with the
@@ -53,7 +54,7 @@ function ToastEntry({
   toast: ToastItem;
   scale: number;
   onDismiss: (id: string) => void;
-  onUndo: (id: string) => void;
+  onUndo?: (id: string) => void;
 }) {
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const t = useTranslate('modules');
@@ -94,7 +95,7 @@ function ToastEntry({
       </div>
 
       {/* Undo: hidden for non-chore toasts (e.g. redemptions) */}
-      {toast.choreId && <button
+      {toast.choreId && onUndo && <button
         type="button"
         onClick={() => onUndo(toast.id)}
         {...wallPressProps}

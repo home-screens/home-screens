@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ChoreDefinition } from '@/types/config';
-import { ChoreSession, asChoreSnapshot, choreMarksOf, postChoreMarks, postChoreToggle } from '../chore-client';
+import { ChoreSession, asChoreSnapshot, choreMarksOf, loadChoreSnapshot, postChoreMarks, postChoreToggle } from '../chore-client';
 import { DEFAULT_CHORE_SETTINGS } from '../chore-bonus';
 
 const chore = (id: string) => ({ id, name: id, assigneeIds: [] }) as unknown as ChoreDefinition;
@@ -14,6 +14,20 @@ describe('asChoreSnapshot', () => {
     expect(asChoreSnapshot({})).toBeNull();
     expect(asChoreSnapshot({ chores: [] })).toBeNull();
     expect(asChoreSnapshot({ chores: 'no', revision: 'r1' })).toBeNull();
+  });
+});
+
+describe('loadChoreSnapshot', () => {
+  it('reads the list the hub holds', async () => {
+    const fetcher = vi.fn().mockResolvedValue(ok({ chores: [], revision: 'r7' }));
+    expect(await loadChoreSnapshot(fetcher)).toMatchObject({ chores: [], revision: 'r7' });
+    expect(fetcher).toHaveBeenCalledWith('/api/chores/data');
+  });
+
+  // Adopting either as "the saved list" would wipe the chores on the next save.
+  it('rejects a refusal and a body that is not a list', async () => {
+    await expect(loadChoreSnapshot(vi.fn().mockResolvedValue(status(500, { error: 'boom' })))).rejects.toThrow('HTTP 500');
+    await expect(loadChoreSnapshot(vi.fn().mockResolvedValue(ok({ chores: [] })))).rejects.toThrow('Malformed chore data');
   });
 });
 

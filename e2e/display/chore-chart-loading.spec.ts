@@ -98,3 +98,48 @@ for (const history of HISTORIES) test.describe(`${history.type} ${history.config
     await expect(mod).not.toContainText('No rewards redeemed yet');
   });
 });
+
+/**
+ * The full-screen store is drawn from the family and the rewards. Before
+ * either arrives it must not tell a set-up household that it has no people or
+ * no rewards.
+ */
+test.describe('fullscreen-chore-chart rewards-store before its data arrives', () => {
+  test.beforeEach(async ({ request, sandboxDir }) => {
+    await seedHouseholdChores(request, sandboxDir, CHORE_DATA);
+    seedRedemptions(sandboxDir);
+    const mod = buildModuleInstance('fullscreen-chore-chart', { view: 'rewards-store' });
+    mod.id = 'chart';
+    await putConfig(request, baseConfig({ screens: [makeScreen('s1', 'S1', [mod])], settings: matrixSettings() }));
+  });
+
+  for (const held of ['**/api/family', '**/api/rewards']) {
+    test(`says it is loading while ${held} is out, then draws the store`, async ({ page }) => {
+      let release = () => {};
+      const wait = new Promise<void>((resolve) => { release = resolve; });
+      await page.route(held, async (route) => {
+        await wait;
+        await route.continue();
+      });
+
+      await page.goto('/display');
+      const mod = page.locator('[data-module-id="chart"]');
+      await expect(mod).toContainText('Loading chores');
+      await expect(mod).not.toContainText('No family members yet');
+      await expect(mod).not.toContainText('No rewards yet');
+
+      release();
+      await expect(mod).toContainText('Candy');
+      await expect(mod).not.toContainText('Loading chores');
+    });
+  }
+
+  test('rewards that cannot be read are not an empty store', async ({ page }) => {
+    await page.route('**/api/rewards', (route) => route.fulfill({ status: 500, json: { error: 'boom' } }));
+
+    await page.goto('/display');
+    const mod = page.locator('[data-module-id="chart"]');
+    await expect(mod.getByTestId('module-not-updating')).toBeVisible();
+    await expect(mod).not.toContainText('No rewards yet');
+  });
+});

@@ -48,7 +48,7 @@ To write a chore yourself, still under **Manage**, add it with a name, an emoji,
 
 ## 4. Checking things off
 
-Kids check off chores in three places: on the wall if it is a touchscreen, on the kids' page, or on the family remote's **Today** tab. A finished chore gets a strike-through and its tickets are added to that person's balance. Finishing the last chore of the day gets a short celebration on the phone and on the Full-Screen Chore Chart. **Celebration** in the chart's settings picks how big: **Off**, **Simple** (a card over the chart) or **Big** (the whole screen), with an optional chime on the wall. On the Full-Screen Chore Chart a chore given to a group shows the group's name next to one ring per person, so everybody still ticks their own.
+Kids check off chores in three places: on the wall if it is a touchscreen, on the kids' page, or on the family remote's **Today** tab. A finished chore gets a strike-through and its tickets are added to that person's balance. On the phone, under the progress bar, each person sees a star for every finished day this week and, from two days in a row, how long their run is. Finishing the last chore of the day gets a short celebration on the phone and on the Full-Screen Chore Chart. **Celebration** in the chart's settings picks how big: **Off**, **Simple** (a card over the chart) or **Big** (the whole screen), with an optional chime on the wall. On the Full-Screen Chore Chart a chore given to a group shows the group's name next to one ring per person, so everybody still ticks their own.
 
 {% screenshot name="kid-view" phone=true caption="The kids' page. Pick your name, check things off. Yesterday can be looked at but not changed." /%}
 
@@ -83,7 +83,7 @@ Sometimes a chore cannot be done: a kid is home sick, or there is no school so n
 Under **Chores > Rewards** on the family remote:
 
 - **Edit list** is where you invent things to buy: a name, an emoji, a ticket price, and optionally who it is for. Movie night, pick the dinner, 30 minutes of screen time.
-- **Redeem** is what kids see on their page too: pick a reward and spend the tickets. It only works when the balance covers the price. **Pick something to save for** sets one reward as a goal; the Today list and the Full-Screen Chore Chart then show how many tickets are still to go, and both rewards stores on the wall mark the reward that person is saving for. Redeeming the reward clears the goal, and **Stop saving** drops it.
+- **Redeem** is what kids see on their page too: pick a reward and spend the tickets. It only works when the balance covers the price. **Pick something to save for** sets one reward as a goal; the Today list and the Full-Screen Chore Chart then show how many tickets are still to go, and both rewards stores on the wall mark the reward that person is saving for. Before any tickets are spent, the phone and the Full-Screen Chore Chart say how many will be left and what that does to the goal. Redeeming the reward clears the goal, and **Stop saving** drops it.
 - **Balances** shows everyone's tickets and lets a grown-up adjust them by hand. **Give or take tickets…** does it for several people at once and has room for a reason.
 - **History** lists every ticket earned, spent, and given or taken by a grown-up, day by day, with totals for the last 30 days. A reason typed with an adjustment shows here, which answers "why do I only have 12 tickets?". Grown-ups pick whose history to read; kids see their own.
 

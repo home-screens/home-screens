@@ -10,20 +10,20 @@ import type {
   ChoreSettings,
   FullscreenChoreCelebration,
 } from '@/types/config';
-import { asChoreSnapshot, type ChoreSnapshot } from '@/lib/chore-client';
+import { loadChoreSnapshot, type ChoreSnapshot } from '@/lib/chore-client';
 import { useChoreAutosave } from '@/components/chores/useChoreAutosave';
 import { buildCompletionSet, choresAssignedTo, choresOwedBy, isAssignedOn, isChoreComplete, isChoreSkipped } from '@/lib/chore-assignments';
-import { TIME_OF_DAY_META, getCurrentTimeOfDay } from '@/components/modules/chore-chart/types';
+import { TIME_OF_DAY_META, computeStreak, countWeekAssignments, getCurrentTimeOfDay, getWeekDatesFor, isDayFullyComplete } from '@/components/modules/chore-chart/types';
 import { atGrabLimit, readChoreSettings, resolveBonusFor, type BonusRefusal } from '@/lib/chore-bonus';
 import { choreDayMenu, choreDayMenuKey, type ChoreDayMenuAction } from '@/lib/chore-day-menu';
-import { editorFetch, throwIfNotOk } from '@/lib/editor-fetch';
+import { editorFetch } from '@/lib/editor-fetch';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import ChoreActionSheet, { type ChoreAction } from './ChoreActionSheet';
 import ChoreSettingsSheet from './ChoreSettingsSheet';
 import ConfirmSheet from './ConfirmSheet';
 import ChoresManageView from './ChoresManageView';
 import RewardsView from './RewardsView';
-import ChoresTodayView, { type DayCelebration, type TodayAssignment } from './ChoresTodayView';
+import ChoresTodayView, { type DayCelebration, type TodayAssignment, type WeekLine } from './ChoresTodayView';
 import { goalProgress, resolveSavingsGoal } from '@/lib/reward-rules';
 import { choreStepLines } from '@/components/modules/chore-chart/chore-form-presentation';
 import { forgetCelebrated, rememberCelebrated, wasCelebratedToday } from '@/lib/celebrated-today';
@@ -132,7 +132,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     words: { refused: t('choresTab.saveFailed'), unreachable: t('hubRequest.saveFailed') },
   });
   const [subView, setSubView] = useState<'today' | 'manage' | 'rewards'>('today');
-  const accentColor = config.accentColor ?? REMOTE_ACCENT;
+  const accentColor = config.accentColor || REMOTE_ACCENT;
 
   // The hub's day as the page was drawn is the first paint, so it matches on any clock.
   const householdNow = useHouseholdNow();
@@ -300,6 +300,19 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
   }, [members, groups, chores, viewingDate, completionSet]);
 
   const selectedMember = members.find((m) => m.id === selectedMemberId);
+  // The picked person's week, as the wall draws it on their chip: a star for
+  // each finished day and how many days in a row. One person at a time, so it
+  // is one line however big the family is. Nothing for someone with no chores
+  // this week.
+  const showStreaks = config.showStreaks !== false;
+  const weekLine = useMemo<WeekLine | null>(() => {
+    const dates = getWeekDatesFor(realToday, config.weekStartDay ?? 'monday');
+    if (countWeekAssignments(chores, selectedMemberId, dates, groups) === 0) return null;
+    return {
+      days: dates.map((date) => ({ date, earned: isDayFullyComplete(chores, selectedMemberId, date, completionSet, groups), isToday: date === realToday })),
+      streak: showStreaks ? computeStreak(chores, selectedMemberId, realToday, completionSet, groups) : 0,
+    };
+  }, [chores, groups, selectedMemberId, realToday, completionSet, config.weekStartDay, showStreaks]);
   // What they are saving for, drawn under the progress header while the balances are shown.
   const goal = showBalances && rewardsData ? resolveSavingsGoal(rewardsData, selectedMemberId) : null;
   const goalState = goal ? goalProgress(balances?.[selectedMemberId] ?? 0, goal) : null;
@@ -325,7 +338,9 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
     if (finishesEverything && selectedMember && celebrationStyle !== 'off' && !wasCelebratedToday(selectedMemberId, day)) {
       rememberCelebrated(selectedMemberId, day);
       const tickets = owed.reduce((sum, a) => sum + ((a.isCompleted || a.choreId === choreId) ? a.points : 0), 0);
-      setCelebration({ memberId: selectedMember.id, done: owed.length, total: owed.length, tickets, key: Date.now() });
+      // The run up to yesterday plus the day this tap finishes. Two days and up, as on the wall: one day is not a streak yet.
+      const run = showStreaks ? computeStreak(chores, selectedMemberId, day, completionSet, groups) + 1 : 0;
+      setCelebration({ memberId: selectedMember.id, done: owed.length, total: owed.length, tickets, streak: run >= 2 ? run : null, key: Date.now() });
     }
 
     const outcome = await toggleMark(rowFor(choreId));
@@ -562,11 +577,7 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           today={realToday}
           choreSettings={choreSettings}
           onFamilyChanged={() => {
-            void editorFetch('/api/chores/data').then(throwIfNotOk).then((res) => res.json()).then((json) => {
-              const snapshot = asChoreSnapshot(json);
-              if (!snapshot) throw new Error('Malformed chore data');
-              adoptChores(snapshot);
-            }).catch(() => setLastWarning(t('choresTab.saveFailed')));
+            void loadChoreSnapshot(editorFetch).then(adoptChores).catch(() => setLastWarning(t('choresTab.saveFailed')));
             void refreshMarks();
             void refreshRewards();
           }}
@@ -631,6 +642,8 @@ export default function ChoresTab({ config, choreData, isAdmin = false, family }
           isAdmin={isAdmin}
           accentColor={accentColor}
           showPoints={!!config.showPoints}
+          showTimeOfDay={config.showTimeOfDay !== false}
+          weekLine={weekLine}
           showBalances={showBalances}
           balances={balances}
           members={members}

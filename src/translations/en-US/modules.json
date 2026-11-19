@@ -1067,6 +1067,15 @@
         "one": "{member} will spend 1 ticket on {reward}.",
         "other": "{member} will spend {count} tickets on {reward}."
       },
+      "confirmLeft": {
+        "one": "{member} will have {count} left.",
+        "other": "{member} will have {count} left."
+      },
+      "confirmGoalClears": "This is what {name} is saving for. The goal is cleared once it's redeemed.",
+      "confirmGoalFurther": {
+        "one": "{goal} will be {count} ticket away after this.",
+        "other": "{goal} will be {count} tickets away after this."
+      },
       "confirmCancel": "Cancel",
       "confirmYes": "Yes!",
       "errorGeneric": "Something went wrong",

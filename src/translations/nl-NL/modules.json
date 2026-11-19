@@ -1067,6 +1067,15 @@
         "one": "{member} geeft 1 ticket uit aan {reward}.",
         "other": "{member} geeft {count} tickets uit aan {reward}."
       },
+      "confirmLeft": {
+        "one": "{member} houdt er {count} over.",
+        "other": "{member} houdt er {count} over."
+      },
+      "confirmGoalClears": "Hier spaart {name} voor. Na het inwisselen is het spaardoel weg.",
+      "confirmGoalFurther": {
+        "one": "Daarna is {goal} nog {count} ticket weg.",
+        "other": "Daarna is {goal} nog {count} tickets weg."
+      },
       "confirmCancel": "Annuleren",
       "confirmYes": "Ja!",
       "errorGeneric": "Er ging iets mis",

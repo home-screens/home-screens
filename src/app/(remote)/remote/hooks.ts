@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { editorFetch, isSessionExpired } from '@/lib/editor-fetch';
+import { withDisplayParam } from '@/lib/fetch-keys';
 import { usePolledFetch } from '@/hooks/usePolledFetch';
 import type { DisplayStatus } from '@/lib/display-commands';
 import type { DisplayApiEntry, DisplaysApiResponse } from '@/lib/displays-api-types';
@@ -78,10 +79,7 @@ export function useRemoteStatus(pollMs = 5000, displayId?: string) {
 
   const poll = useCallback(async (isMounted: () => boolean) => {
     try {
-      const url = displayId
-        ? `/api/display/status?display=${encodeURIComponent(displayId)}`
-        : '/api/display/status';
-      const res = await editorFetch(url);
+      const res = await editorFetch(withDisplayParam('/api/display/status', displayId));
       if (res.ok) {
         const data: DisplayStatus | null = await res.json();
         if (!isMounted()) return;

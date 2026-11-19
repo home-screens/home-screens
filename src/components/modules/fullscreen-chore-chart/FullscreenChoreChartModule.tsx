@@ -23,6 +23,7 @@ import MemberBand, { memberHeaderHeight } from './MemberBand';
 import BonusBand, { BonusMoreSheet, GrabbedSheet, GrabPickerSheet } from './BonusBand';
 import { atGrabLimit, type BonusItem } from '@/lib/chore-bonus';
 import { parseISO } from '@/lib/chore-assignments';
+import { CHORE_STORE_IDLE_MS } from '@/lib/chore-constants';
 import { useChoreWriteAlert } from '@/components/modules/chore-chart/useChoreWriteAlert';
 import type { MemberStats } from '@/components/modules/chore-chart/types';
 import FitList from './FitList';
@@ -238,6 +239,8 @@ export default function FullscreenChoreChartModule({
   // The store's own History pill: the totals view, opened in place.
   const [showStoreHistory, setShowStoreHistory] = useState(false);
   const closeStoreHistory = useCallback(() => setShowStoreHistory(false), []);
+  const openStoreHistory = useCallback(() => setShowStoreHistory(true), []);
+  const closeRewardsOverride = useCallback(() => setShowRewardsOverride(false), []);
   const historyVariant: RewardHistoryVariant | null = effectiveView === 'rewards-store'
     ? (showStoreHistory ? 'totals' : null)
     : HISTORY_VARIANTS[effectiveView] ?? null;
@@ -799,15 +802,20 @@ export default function FullscreenChoreChartModule({
   // "No chores today" is a day off. A household with no members or no chores
   // at all is a fresh install, and that needs to say where chores come from,
   // at a size that reads across the room.
-  const emptyState = isPending ? (
+  const pendingState = (failed: boolean) => (
     <div
-      data-testid={error ? 'module-not-updating' : 'fcc-loading'}
+      data-testid={failed ? 'module-not-updating' : 'fcc-loading'}
       aria-live="polite"
       style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fcc-text-2)', fontSize: 40 * tc, textAlign: 'center', padding: pad }}
     >
-      {t(error ? 'common.notUpdating' : 'chore-chart.loading')}
+      {t(failed ? 'common.notUpdating' : 'chore-chart.loading')}
     </div>
-  ) : isUnset ? (
+  );
+  // The store and the history are drawn from the rewards read too, so "not
+  // arrived" and "could not be read" must not read as "nothing here yet".
+  const rewardsPending = isPending || rewardsLoading || !!rewardsError;
+  const rewardsPendingState = pendingState(!!error || !!rewardsError);
+  const emptyState = isPending ? pendingState(!!error) : isUnset ? (
     <div style={{ flex: 1, display: 'flex', color: 'var(--fcc-text)' }}>
       <FamilyEmptyState
         icon={<>&#128203;</>}
@@ -861,17 +869,7 @@ export default function FullscreenChoreChartModule({
       `}</style>
 
       {historyVariant ? (
-        // The history is drawn from the rewards fetch alone, so "not arrived"
-        // and "could not be read" must not read as "nothing redeemed yet".
-        isPending || rewardsLoading || rewardsError ? (
-          <div
-            data-testid={error || rewardsError ? 'module-not-updating' : 'fcc-loading'}
-            aria-live="polite"
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fcc-text-2)', fontSize: 40 * tc, textAlign: 'center', padding: pad }}
-          >
-            {t(error || rewardsError ? 'common.notUpdating' : 'chore-chart.loading')}
-          </div>
-        ) : (
+        rewardsPending ? rewardsPendingState : (
           <RewardHistoryView
             variant={historyVariant}
             members={members}
@@ -882,16 +880,21 @@ export default function FullscreenChoreChartModule({
             isLandscape={isLandscape}
             onBack={showStoreHistory ? closeStoreHistory : undefined}
             backLabel={t('fullscreen-chore-chart.rewardsStore.title')}
-            idleTimeoutMs={showStoreHistory ? 60_000 : undefined}
+            idleTimeoutMs={showStoreHistory ? CHORE_STORE_IDLE_MS : undefined}
             timezone={timezone}
           />
         )
       ) : effectiveView === 'rewards-store' ? (
-        <RewardsStoreView
+        // The store is drawn from the family and the rewards: before either has
+        // arrived it would say "no family members yet" or "no rewards".
+        rewardsPending ? rewardsPendingState : <RewardsStoreView
           members={members}
           rewards={rewards}
           balances={rewardBalances}
-          goals={config.showPoints ? goals : EMPTY_GOALS}
+          // The store opened from the chart follows the chart's Show tickets
+          // switch. A wall set to the store has no such switch on screen, so
+          // its goal mark always shows, as it does on the card store.
+          goals={!showRewardsOverride || config.showPoints ? goals : EMPTY_GOALS}
           redemptions={allRedemptions}
           k={k}
           typoMul={typoMul}
@@ -900,10 +903,10 @@ export default function FullscreenChoreChartModule({
           allowTouch={allowTouch}
           accentColor={config.accentColor}
           theme={theme}
-          onBack={showRewardsOverride ? () => setShowRewardsOverride(false) : undefined}
+          onBack={showRewardsOverride ? closeRewardsOverride : undefined}
           onRedeemed={applyRedemption}
-          onShowHistory={() => setShowStoreHistory(true)}
-          idleTimeoutMs={showRewardsOverride ? 60_000 : undefined}
+          onShowHistory={openStoreHistory}
+          idleTimeoutMs={showRewardsOverride ? CHORE_STORE_IDLE_MS : undefined}
         />
       ) : isLandscape ? (
         <>
@@ -1021,9 +1024,10 @@ export default function FullscreenChoreChartModule({
         />
       )}
 
-      {/* Touch completion toasts — always rendered */}
+      {/* Always drawn: a look-only wall still says who redeemed what on a phone.
+          Only a tick made here has an Undo, and only a touch wall makes one. */}
       {/* With a sheet open the toasts go to the top, clear of its Cancel. */}
-      {allowTouch && <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={(id) => void handleUndo(id)} notice={overspentMessage} alert={bonusAlert} scale={tc} bottom={footer ? 96 * k : 20 * k} top={bonusSheet ? 20 * k : undefined} />}
+      <ChoreToast toasts={toasts} onDismiss={dismissToast} onUndo={allowTouch ? (id) => void handleUndo(id) : undefined} notice={overspentMessage} alert={bonusAlert} scale={tc} bottom={footer ? 96 * k : 20 * k} top={bonusSheet ? 20 * k : undefined} />
     </div>
   );
 }

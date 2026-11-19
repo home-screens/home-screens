@@ -1,7 +1,9 @@
 'use client';
 
 import { wallPressProps } from '@/components/modules/shared/wallPress';
-import { useEffect, useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
+import { useAutoClose } from '@/components/modules/shared/useAutoClose';
+import { CHORE_SHEET_IDLE_MS } from '@/lib/chore-constants';
 import { Check, Hand, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import { bonusDisplayOrder, bonusDoneDay, type BonusItem } from '@/lib/chore-bonus';
@@ -11,8 +13,6 @@ import AssigneeDot from './AssigneeDot';
 import type { ToggleParams } from './helpers';
 import { memberInitials } from '@/lib/family-avatar';
 
-/** An open sheet closes itself when nobody touches the wall for this long. */
-const SHEET_IDLE_MS = 30_000;
 /** Portrait shows up to two rows of three; landscape one row of four, so the band never crowds the chores that count. */
 const MAX_TILES_PORTRAIT = 6;
 const MAX_TILES_LANDSCAPE = 4;
@@ -243,18 +243,6 @@ export default function BonusBand({
   );
 }
 
-/** Closes a wall sheet after a spell with no touch, so it never sits over the chart all day. */
-function useIdleClose(onClose: () => void) {
-  // Every touch inside the sheet starts the wait again: it is idle time that
-  // closes it, not time since it opened.
-  const [touchedAt, setTouchedAt] = useState(0);
-  useEffect(() => {
-    const id = setTimeout(onClose, SHEET_IDLE_MS);
-    return () => clearTimeout(id);
-  }, [onClose, touchedAt]);
-  return () => setTouchedAt(Date.now());
-}
-
 function Sheet({ s, title, subtitle, points, onClose, children, testId, wide = false }: {
   s: number;
   /** Room for more tiles across (the "+N more" sheet on a landscape wall). */
@@ -267,7 +255,9 @@ function Sheet({ s, title, subtitle, points, onClose, children, testId, wide = f
   testId: string;
 }) {
   const t = useTranslate('modules');
-  const touched = useIdleClose(onClose);
+  // Closes after a spell with no touch, so a sheet never sits over the chart
+  // all day. Every touch inside it starts the wait again.
+  const touched = useAutoClose(onClose, CHORE_SHEET_IDLE_MS);
   return (
     <div
       onClick={onClose}

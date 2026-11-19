@@ -1,14 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Flame } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import ChoreIcon from '@/components/modules/chore-chart/ChoreIcon';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import { useTranslate } from '@/i18n';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
-
-/** How long the phone's celebration stays before it goes by itself. */
-export const DAY_COMPLETE_SHEET_MS = 5000;
+import { CELEBRATION_MS } from '@/lib/chore-celebration';
 
 const CONFETTI = [
   [18, 8, 10, 18, '#f472b6', 24], [34, 88, 9, 16, '#fbbf24', -32],
@@ -27,6 +26,7 @@ export default function DayCompleteSheet({
   done,
   total,
   tickets,
+  streak = null,
   onClose,
   modal = true,
 }: {
@@ -34,6 +34,8 @@ export default function DayCompleteSheet({
   done: number;
   total: number;
   tickets: number;
+  /** Days in a row, this one included; null when there is no streak to show. */
+  streak?: number | null;
   onClose: () => void;
   /**
    * The kid page takes the screen: a tap anywhere closes it. On the grown-up's
@@ -43,10 +45,11 @@ export default function DayCompleteSheet({
   modal?: boolean;
 }) {
   const t = useTranslate('remote');
+  const tModules = useTranslate('modules');
   const dialogRef = useFocusTrap<HTMLDivElement>({ focus: 'container' });
 
   useEffect(() => {
-    const id = setTimeout(onClose, DAY_COMPLETE_SHEET_MS);
+    const id = setTimeout(onClose, CELEBRATION_MS);
     return () => clearTimeout(id);
   }, [onClose]);
 
@@ -101,7 +104,16 @@ export default function DayCompleteSheet({
         <h3 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--hs-text-primary)' }}>
           {t('choresTab.dayComplete.title', { name: member.name })}
         </h3>
-        <p style={{ margin: '6px 0 18px', fontSize: 14, color: 'var(--hs-text-muted)' }}>{summary}</p>
+        <p style={{ margin: '6px 0 18px', fontSize: 14, color: 'var(--hs-text-muted)' }}>
+          {summary}
+          {streak !== null && (
+            <span data-testid="day-complete-streak" style={{ whiteSpace: 'nowrap' }}>
+              {' · '}
+              <Flame size={14} aria-hidden style={{ display: 'inline', verticalAlign: '-2px', color: member.color }} />
+              {' '}{tModules('chore-chart.streakDays', { count: streak })}
+            </span>
+          )}
+        </p>
         <button
           type="button"
           data-testid="day-complete-close"

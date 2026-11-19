@@ -75,3 +75,8 @@ export function formatTimeAgoLocalized(
   const weeks = Math.floor(days / 7);
   return t('relativeTime.weeksAgo', { n: weeks });
 }
+
+/** A wall sheet (the bonus picker, "did it / let it go") closes itself after this long with no touch. */
+export const CHORE_SHEET_IDLE_MS = 30_000;
+/** The store or the history, opened from a chart, goes back by itself after this long with no touch. */
+export const CHORE_STORE_IDLE_MS = 60_000;

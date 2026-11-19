@@ -23,6 +23,7 @@ import {
   normalizeChoreSteps,
 } from './chore-form-presentation';
 import { DEFAULT_CHORE_ICON } from '@/lib/chore-constants';
+import { useFormDirty } from '@/hooks/useFormDirty';
 
 /**
  * Shared form state for chore forms.
@@ -97,6 +98,8 @@ export interface ChoreFormState {
   unscheduledGroups: FamilyGroup[];
 
   canSave: boolean;
+  /** Whether anything on the form differs from how it opened. */
+  dirty: boolean;
   validationHintKind: ChoreValidationHintKind | null;
   submit: (onSubmit: (data: Omit<ChoreDefinition, 'id'>) => void) => void;
 }
@@ -139,6 +142,15 @@ export function useChoreForm(
   const [rotation, setRotation] = useState<ChoreRotation>(initial?.rotation ?? 'fixed');
   const [schedule, setSchedule] = useState<Record<string, number[]>>(initial?.schedule ?? {});
   const [pickedGroupSchedule, setPickedGroupSchedule] = useState<Record<string, number[]>>(initial?.groupSchedule ?? {});
+
+  // Counted from the state itself, every field of it, and from what was
+  // picked rather than what is left after a deleted group drops out: a family
+  // list arriving late must not turn an untouched form into a changed one.
+  // `daysPicked` is bookkeeping, not something saved, so it is not counted.
+  const dirty = useFormDirty([
+    kind, bonusClaim, comesBack, name, emoji, points, steps, frequency, daysOfWeek, specificDate, timeOfDay,
+    assigneeIds, pickedGroupIds, rotation, schedule, pickedGroupSchedule,
+  ]);
 
   // A group deleted since the chore was saved drops out here, so the form
   // never counts it and never saves it back. Only a loaded family list can
@@ -323,7 +335,7 @@ export function useChoreForm(
     toggleDay, toggleAssignee, toggleGroup, toggleScheduleDay, addMemberToSchedule, toggleGroupScheduleDay, addGroupToSchedule,
     removeMemberFromSchedule, removeGroupFromSchedule,
     scheduleMembers, scheduleGroups, scheduleDays, unscheduledMembers, unscheduledGroups,
-    canSave, validationHintKind, submit,
+    canSave, dirty, validationHintKind, submit,
   };
 }
 

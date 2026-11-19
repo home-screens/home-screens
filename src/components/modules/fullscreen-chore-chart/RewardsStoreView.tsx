@@ -2,7 +2,7 @@
 
 import type { FamilyMember } from '@/types/family';
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ArrowLeft, History, Ticket, Users } from 'lucide-react';
 
 import type { RewardDefinition, RewardRedemption } from '@/lib/reward-data';
@@ -18,8 +18,11 @@ import RedeemConfirm from './rewards/RedeemConfirm';
 import RedeemedBanner from './rewards/RedeemedBanner';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useRedeemReward } from '../shared/useRedeemReward';
+import { useAutoClose } from '../shared/useAutoClose';
 import { fitStore, feedMetrics, hiddenBelow } from './rewards/storeLayout';
 import { isRewardOfferedTo, resolveSavingsGoal, sortRedemptionsNewestFirst } from '@/lib/reward-rules';
+
+const NO_BACK = () => {};
 
 interface RewardsStoreViewProps {
   members: FamilyMember[];
@@ -79,7 +82,6 @@ export function RewardsStoreView({
   const t = useTranslate('modules');
   const tCore = useTranslate('core');
 
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [scrollerRef, scrollerSize] = useElementBox();
 
   // When the rewards store is the configured boot view, `members` is empty
@@ -91,30 +93,9 @@ export function RewardsStoreView({
     }
   }, [members, selectedMemberId]);
 
-  // Idle timeout: reset on pointer activity, call onBack when expired
-  const resetIdleTimer = useCallback(() => {
-    if (!idleTimeoutMs || !onBack) return;
-    if (idleTimerRef.current !== null) {
-      clearTimeout(idleTimerRef.current);
-    }
-    idleTimerRef.current = setTimeout(() => {
-      onBack();
-    }, idleTimeoutMs);
-  }, [idleTimeoutMs, onBack]);
-
-  useEffect(() => {
-    if (!idleTimeoutMs || !onBack) return;
-    resetIdleTimer();
-    return () => {
-      if (idleTimerRef.current !== null) {
-        clearTimeout(idleTimerRef.current);
-      }
-    };
-  }, [idleTimeoutMs, onBack, resetIdleTimer]);
-
-  const handlePointerDown = useCallback(() => {
-    resetIdleTimer();
-  }, [resetIdleTimer]);
+  // Opened from the chart: go back by itself once nobody is touching it. Every
+  // touch starts the wait again; the chart re-drawing behind it does not.
+  const handlePointerDown = useAutoClose(onBack ?? NO_BACK, idleTimeoutMs ?? 0, { paused: !onBack || !idleTimeoutMs });
 
   const visibleRewards = useMemo(
     () => rewards.filter((r) => isRewardOfferedTo(r, selectedMemberId)),
@@ -424,6 +405,8 @@ export function RewardsStoreView({
         <RedeemConfirm
           reward={redeem.pending.reward}
           memberName={redeem.pending.member.name}
+          balance={localBalances[redeem.pending.member.id] ?? 0}
+          goal={resolveSavingsGoal({ rewards, goals }, redeem.pending.member.id)}
           error={redeem.error}
           busy={redeem.busy}
           onConfirm={redeem.confirm}

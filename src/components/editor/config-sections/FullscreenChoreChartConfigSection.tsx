@@ -81,7 +81,8 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
   const { members } = useFamilyData();
   const counts = { members: members.length, chores: choreData?.chores?.length ?? 0 };
 
-  const isChoreBoard = (c.view ?? 'chores') === 'chores';
+  const view = c.view ?? 'chores';
+  const isChoreBoard = view === 'chores';
 
   // Re-fetch member/chore counts when the modal closes (or opens). The hook
   // already loads on mount, so skip this effect's initial run to keep mount
@@ -193,64 +194,70 @@ export function FullscreenChoreChartConfigSection({ mod, screenId }: { mod: Modu
             checked={c.showTimeOfDay ?? true}
             onChange={(v) => set({ showTimeOfDay: v })}
           />
-          <Toggle
-            label={t('configSections.fullscreen-chore-chart.tapToComplete')}
-            checked={c.allowDisplayComplete ?? true}
-            onChange={(v) => set({ allowDisplayComplete: v })}
-          />
-
-          {/* Celebration: what the chart does when someone finishes their day. */}
-          <div className="pt-1 border-t border-hs-border-strong space-y-2">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-hs-text-faint">
-              {t('configSections.fullscreen-chore-chart.celebration')}
-            </div>
-            <div className="space-y-1">
-              <LabeledField label={t('configSections.fullscreen-chore-chart.celebrationLabel')} as="div">
-                <SegmentedControl
-                  label={t('configSections.fullscreen-chore-chart.celebrationLabel')}
-                  value={celebration}
-                  onChange={(v) => set({ celebration: v })}
-                  options={CELEBRATION_OPTIONS}
-                />
-              </LabeledField>
-              <p className="text-[11px] leading-relaxed text-hs-text-faint">
-                {t('configSections.fullscreen-chore-chart.celebrationHelp')}
-              </p>
-            </div>
-            {celebration !== 'off' && (
-              <>
-                <Toggle
-                  label={t('configSections.fullscreen-chore-chart.celebrationSound')}
-                  checked={c.celebrationSound ?? false}
-                  onChange={(v) => set({ celebrationSound: v })}
-                />
-                <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
-                  {t('configSections.fullscreen-chore-chart.celebrationSoundHelp')}
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* Open Modal */}
-          <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
-            <div className="flex items-center gap-2 text-xs text-hs-text-faint">
-              <span>{t('configSections.fullscreen-chore-chart.membersCount', { count: counts.members })}</span>
-              <span>&middot;</span>
-              <span>{t('configSections.fullscreen-chore-chart.choresCount', { count: counts.chores })}</span>
-            </div>
-            <Button
-              variant="primary"
-              className="w-full text-xs"
-              onClick={() => setShowModal(true)}
-            >
-              {t('configSections.fullscreen-chore-chart.editChoreChart')}
-            </Button>
-          </div>
-
-          {/* Kids check off on /chores; parents add and edit on /remote. */}
-          <PhoneSurfaceLinks context="chores" />
         </>
       )}
+
+      {/* The store's Redeem follows the same switch as the chart's ticks. The
+          history views have nothing to tap. */}
+      {(isChoreBoard || view === 'rewards-store') && (
+        <Toggle
+          label={t(isChoreBoard ? 'configSections.fullscreen-chore-chart.tapToComplete' : 'configSections.chore-chart.tapToRedeem')}
+          checked={c.allowDisplayComplete ?? true}
+          onChange={(v) => set({ allowDisplayComplete: v })}
+        />
+      )}
+
+      {/* Celebration: what the chart does when someone finishes their day. It
+          is drawn over every view, and the phone follows it too. */}
+      <div className="pt-1 border-t border-hs-border-strong space-y-2">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-hs-text-faint">
+          {t('configSections.fullscreen-chore-chart.celebration')}
+        </div>
+        <div className="space-y-1">
+          <LabeledField label={t('configSections.fullscreen-chore-chart.celebrationLabel')} as="div">
+            <SegmentedControl
+              label={t('configSections.fullscreen-chore-chart.celebrationLabel')}
+              value={celebration}
+              onChange={(v) => set({ celebration: v })}
+              options={CELEBRATION_OPTIONS}
+            />
+          </LabeledField>
+          <p className="text-[11px] leading-relaxed text-hs-text-faint">
+            {t('configSections.fullscreen-chore-chart.celebrationHelp')}
+          </p>
+        </div>
+        {celebration !== 'off' && (
+          <>
+            <Toggle
+              label={t('configSections.fullscreen-chore-chart.celebrationSound')}
+              checked={c.celebrationSound ?? false}
+              onChange={(v) => set({ celebrationSound: v })}
+            />
+            <p className="text-[11px] text-hs-text-faint leading-relaxed -mt-1">
+              {t('configSections.fullscreen-chore-chart.celebrationSoundHelp')}
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* Open Modal */}
+      <div className="pt-1 border-t border-hs-border-strong space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-hs-text-faint">
+          <span>{t('configSections.fullscreen-chore-chart.membersCount', { count: counts.members })}</span>
+          <span>&middot;</span>
+          <span>{t('configSections.fullscreen-chore-chart.choresCount', { count: counts.chores })}</span>
+        </div>
+        <Button
+          variant="primary"
+          className="w-full text-xs"
+          onClick={() => setShowModal(true)}
+        >
+          {t('configSections.fullscreen-chore-chart.editChoreChart')}
+        </Button>
+      </div>
+
+      {/* Kids check off on /chores; parents add and edit on /remote. Rewards are added there too. */}
+      <PhoneSurfaceLinks context="chores" />
 
       {/* Modal */}
       {showModal && (

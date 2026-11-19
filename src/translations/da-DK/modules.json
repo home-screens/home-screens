@@ -1067,6 +1067,15 @@
         "one": "{member} bruger 1 billet på {reward}.",
         "other": "{member} bruger {count} billetter på {reward}."
       },
+      "confirmLeft": {
+        "one": "{member} har {count} tilbage.",
+        "other": "{member} har {count} tilbage."
+      },
+      "confirmGoalClears": "Det er det, {name} sparer op til. Sparemålet slettes, når det er indløst.",
+      "confirmGoalFurther": {
+        "one": "Bagefter mangler der {count} billet til {goal}.",
+        "other": "Bagefter mangler der {count} billetter til {goal}."
+      },
       "confirmCancel": "Annullér",
       "confirmYes": "Ja!",
       "errorGeneric": "Noget gik galt",

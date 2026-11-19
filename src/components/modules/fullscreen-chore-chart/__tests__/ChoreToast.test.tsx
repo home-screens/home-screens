@@ -59,3 +59,21 @@ describe('the strip carries an overspent balance', () => {
     expect(container.textContent).toBe('');
   });
 });
+
+describe('a look-only wall', () => {
+  // The strip is drawn there too, so a redemption made on a phone is said on
+  // the wall. Nothing on it can be taken back from a wall nobody may touch.
+  it('says a redemption with no undo', () => {
+    renderStrip({ onUndo: undefined, toasts: [{ ...toast, id: 'redeem-1', choreId: '', choreName: 'Movie night', verb: 'redeemed' }] });
+
+    expect(screen.getByText('Movie night')).not.toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('gives a chore toast no undo either', () => {
+    renderStrip({ onUndo: undefined, toasts: [toast] });
+
+    expect(screen.getByText('Load the dishwasher')).not.toBeNull();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+});

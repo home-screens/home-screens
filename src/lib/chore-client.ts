@@ -2,6 +2,7 @@ import type { ChoreCompletion, ChoreDefinition, ChoreGrab, ChoreSettings, ChoreT
 import { readChoreSettings, type BonusRefusal } from './chore-bonus';
 import { choreGrabUrl, choreToggleUrl } from './fetch-keys';
 import { readJson, refusalMessage } from './hub-request';
+import { choresDataUrl } from './fetch-keys';
 
 /**
  * What `GET /api/chores/data` (and the server-rendered phone pages) hand out:
@@ -33,6 +34,19 @@ export function asChoreSnapshot(json: unknown): ChoreSnapshot | null {
 
 /** `editorFetch` on the editor and phone, `displayFetch` on the wall. */
 export type ChoreFetch = (url: string, init?: RequestInit) => Promise<Response>;
+
+/**
+ * Reads the chore list as the hub holds it now. Rejects when the hub refuses
+ * or answers with something that is not a list, so a caller never adopts a
+ * broken reload as an empty, saved one.
+ */
+export async function loadChoreSnapshot(fetcher: ChoreFetch): Promise<ChoreSnapshot> {
+  const res = await fetcher(choresDataUrl());
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const snapshot = asChoreSnapshot(await readJson(res));
+  if (!snapshot) throw new Error('Malformed chore data');
+  return snapshot;
+}
 
 /** The lists every chore write answers with: ticks, who is holding which bonus chore, and when each was last put back. */
 export interface ChoreMarks {

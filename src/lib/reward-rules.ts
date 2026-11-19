@@ -46,6 +46,21 @@ export function ticketsAfterRedeeming(balance: number, reward: RewardDefinition)
   return Math.max(0, balance - reward.cost);
 }
 
+/**
+ * What redeeming `reward` does to the person's savings goal, for the line the
+ * confirm sheets add: it is the goal (so the goal is cleared), it leaves the
+ * goal out of reach by `stillNeeded`, or nothing worth saying (no goal, or
+ * the goal is still affordable afterwards). Each surface has its own words.
+ */
+export type RedeemGoalEffect = { kind: 'clears' } | { kind: 'further'; stillNeeded: number } | null;
+
+export function redeemGoalEffect(balance: number, reward: RewardDefinition, goal: RewardDefinition | null): RedeemGoalEffect {
+  if (!goal) return null;
+  if (goal.id === reward.id) return { kind: 'clears' };
+  const stillNeeded = ticketsStillNeeded(ticketsAfterRedeeming(balance, reward), goal);
+  return stillNeeded > 0 ? { kind: 'further', stillNeeded } : null;
+}
+
 // ── Savings goal ─────────────────────────────────────────────────────
 
 /** Each person's chosen reward to save toward, by member id. */

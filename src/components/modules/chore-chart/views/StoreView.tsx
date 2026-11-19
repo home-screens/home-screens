@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { ChevronRight, History, Ticket } from 'lucide-react';
 import type { FamilyMember } from '@/types/family';
 import type { ChoreChartConfig } from '@/types/config';
@@ -13,6 +13,8 @@ import FamilyEmptyState from '../../FamilyEmptyState';
 import ChoreIcon from '../ChoreIcon';
 import { CHORE_ROW_ATTR, FitRows } from '../FitRows';
 import { useRedeemReward } from '../../shared/useRedeemReward';
+import { useAutoClose } from '../../shared/useAutoClose';
+import { CHORE_STORE_IDLE_MS } from '@/lib/chore-constants';
 import type { MemberStats } from '../types';
 import {
   STORE_RAIL_EM,
@@ -45,8 +47,6 @@ interface StoreViewProps {
   fontSize: number;
 }
 
-/** How long the history stays up with nobody touching it. */
-const HISTORY_IDLE_MS = 60_000;
 /** Dots shown on a price-list row before it just says the number. */
 const MAX_DOTS = 4;
 
@@ -86,15 +86,8 @@ export function StoreView({ config, data, width, height, fontSize }: StoreViewPr
 
   // ── History, opened in place ──
   const [showHistory, setShowHistory] = useState(false);
-  const idleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const armIdle = useCallback(() => {
-    if (idleRef.current !== null) clearTimeout(idleRef.current);
-    idleRef.current = setTimeout(() => setShowHistory(false), HISTORY_IDLE_MS);
-  }, []);
-  useEffect(() => {
-    if (showHistory) armIdle();
-    return () => { if (idleRef.current !== null) clearTimeout(idleRef.current); };
-  }, [showHistory, armIdle]);
+  // The history goes back to the store once nobody is touching it.
+  const armIdle = useAutoClose(() => setShowHistory(false), CHORE_STORE_IDLE_MS, { paused: !showHistory });
 
   const rewards = useMemo(
     () => (layout === 'price-list'

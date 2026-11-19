@@ -410,6 +410,44 @@ test('finishing the last chore celebrates and the ticket balance shows on Today'
   await expect(balanceChip).toContainText(`${before + 2} tickets`);
 });
 
+test('the week line shows the stars, and a second finished day in a row is a streak', async ({ page, request, sandboxDir }) => {
+  await seedHouseholdChores(request, sandboxDir, {
+      members: [{ id: 'm-run', name: 'Juno', emoji: '', color: '#4ade80' }],
+      chores: [{
+        id: 'c-run', name: 'Water the plants', emoji: '', points: 1, frequency: 'daily',
+        daysOfWeek: [0, 1, 2, 3, 4, 5, 6], timeOfDay: 'anytime', assigneeIds: ['m-run'], rotation: 'fixed',
+      }],
+    });
+  const today = todayISO();
+  const [y, m, d] = today.split('-').map(Number);
+  const before = new Date(y, m - 1, d - 1);
+  const yesterday = `${before.getFullYear()}-${String(before.getMonth() + 1).padStart(2, '0')}-${String(before.getDate()).padStart(2, '0')}`;
+  if (await completionExists(request, 'c-run', 'm-run', today)) {
+    await request.post('/api/chores', { data: { choreId: 'c-run', memberId: 'm-run', date: today } });
+  }
+  if (!(await completionExists(request, 'c-run', 'm-run', yesterday))) {
+    await request.post('/api/chores', { data: { choreId: 'c-run', memberId: 'm-run', date: yesterday } });
+  }
+
+  await page.goto('/chores');
+  // One finished day is not a streak yet: seven stars, no run of days.
+  const line = page.getByTestId('today-week-line');
+  await expect(line.locator('svg')).toHaveCount(7);
+  await expect(page.getByTestId('today-streak')).toHaveCount(0);
+
+  const posted = page.waitForResponse((r) => r.url().includes('/api/chores') && r.request().method() === 'POST' && r.ok());
+  await page.getByRole('button', { name: 'Mark complete: Water the plants' }).click();
+  await posted;
+
+  await expect(page.getByTestId('day-complete-streak')).toContainText('2 days');
+  await expect(page.getByTestId('today-streak')).toContainText('2 days');
+
+  // The run ends today, so it is not shown beside yesterday.
+  await page.getByTestId('day-complete-close').click();
+  await page.getByRole('button', { name: 'Yesterday' }).click();
+  await expect(line).toHaveCount(0);
+});
+
 test('the celebration stays off when the full-screen chart says Off', async ({ page, request, sandboxDir }) => {
   await putConfig(request, baseConfig({
     screens: [makeScreen('s1', 'S1', [{ ...choreChartModule(), type: 'fullscreen-chore-chart', config: { ...choreChartModule().config, celebration: 'off' } }])],

@@ -1,4 +1,5 @@
 import { editorFetch } from '@/lib/editor-fetch';
+import { withDisplayParam } from '@/lib/fetch-keys';
 import { downloadBlob } from '@/lib/download';
 import { timestampInTZ } from '@/lib/timezone';
 import type { DisplayStatus } from '@/lib/display-commands';
@@ -28,10 +29,7 @@ export async function fetchStats(): Promise<
 export async function fetchDisplayStatus(
   selectedDisplayId: string | null,
 ): Promise<DisplayStatus | null> {
-  const url = selectedDisplayId
-    ? `/api/display/status?display=${encodeURIComponent(selectedDisplayId)}`
-    : '/api/display/status';
-  const res = await editorFetch(url);
+  const res = await editorFetch(withDisplayParam('/api/display/status', selectedDisplayId));
   if (res.ok) {
     return (await res.json()) as DisplayStatus | null;
   }

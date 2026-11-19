@@ -48,7 +48,9 @@ export function resolveChoreModuleConfig(config: ScreenConfiguration): PhoneChor
     showStreaks: (modConfig.showStreaks as boolean) ?? true,
     showTimeOfDay: (modConfig.showTimeOfDay as boolean) ?? true,
     allowDisplayComplete: true,
-    accentColor: (modConfig.accentColor as string) ?? '#f59e0b',
+    // A full-screen chart's accent is '' until someone picks one ("follow the
+    // theme"). The phone has no wall theme to follow, so it gets its own amber.
+    accentColor: (modConfig.accentColor as string) || '#f59e0b',
     view: 'board',
     celebration: celebration ?? 'simple',
   };

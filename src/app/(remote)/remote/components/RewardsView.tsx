@@ -16,7 +16,7 @@ import AdjustTicketsSheet from './AdjustTicketsSheet';
 import TicketsFeed from './TicketsFeed';
 import { useHouseholdTimezone } from '../household-clock';
 import { showToast } from '../remote-toast';
-import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
+import { isRewardOfferedTo, canAffordReward, ticketsAfterRedeeming, redeemGoalEffect, resolveSavingsGoal, requestRedemption, type RedeemOutcome, type SavingsGoals } from '@/lib/reward-rules';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 import { REMOTE_ACCENT } from './chore-form-styles';
 
@@ -426,12 +426,11 @@ export default function RewardsView({
         const memberName = selectedMember?.name ?? t('rewardsView.redeem.memberFallback');
         // What this does to the goal: clears it, or leaves it short. Nothing
         // is said when the goal stays affordable after the spend.
-        const goalLine = goal
-          ? goal.id === redeemTarget.reward.id
+        const effect = redeemGoalEffect(balance, redeemTarget.reward, goal);
+        const goalLine = effect && goal
+          ? effect.kind === 'clears'
             ? t('rewardsView.redeem.goalClears', { name: memberName })
-            : remaining < goal.cost
-              ? t('rewardsView.redeem.goalFurther', { goal: goal.name, n: goal.cost - remaining })
-              : null
+            : t('rewardsView.redeem.goalFurther', { goal: goal.name, n: effect.stillNeeded })
           : null;
         const base = cost === 1
           ? t('rewardsView.redeem.confirmDescriptionSingular', { cost, memberName, remaining: remainingTickets })

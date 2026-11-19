@@ -2,7 +2,7 @@
 
 import type { FamilyMember } from '@/types/family';
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import { ArrowLeft, Ticket } from 'lucide-react';
 
 import type { RewardRedemption } from '@/lib/reward-data';
@@ -15,11 +15,14 @@ import FamilyEmptyState from '@/components/modules/FamilyEmptyState';
 import { useElementBox } from '@/hooks/useElementBox';
 import { useRealClock } from '@/hooks/useTZClock';
 import FitList from './FitList';
+import { useAutoClose } from '../shared/useAutoClose';
 import { splitGroupsAt } from './rewards/historyLayout';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
 
 /** `days` groups the feed by how long ago, `totals` leads with sums, `spotlight` with the newest. */
 export type RewardHistoryVariant = 'days' | 'totals' | 'spotlight';
+
+const NO_BACK = () => {};
 
 interface RewardHistoryViewProps {
   variant: RewardHistoryVariant;
@@ -69,18 +72,7 @@ export function RewardHistoryView({
   const [bodyRef, bodyBox] = useElementBox();
 
   // Opened from the wall: go back on its own once nobody is touching it.
-  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resetIdleTimer = useCallback(() => {
-    if (!idleTimeoutMs || !onBack) return;
-    if (idleTimerRef.current !== null) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(onBack, idleTimeoutMs);
-  }, [idleTimeoutMs, onBack]);
-  useEffect(() => {
-    resetIdleTimer();
-    return () => {
-      if (idleTimerRef.current !== null) clearTimeout(idleTimerRef.current);
-    };
-  }, [resetIdleTimer]);
+  const resetIdleTimer = useAutoClose(onBack ?? NO_BACK, idleTimeoutMs ?? 0, { paused: !onBack || !idleTimeoutMs });
 
   const avatar = (redemption: RewardRedemption, size: number) => {
     const member = memberMap.get(redemption.memberId);

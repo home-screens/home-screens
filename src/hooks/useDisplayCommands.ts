@@ -1,5 +1,6 @@
 'use client';
 
+import { withDisplayParam } from '@/lib/fetch-keys';
 import { useEffect, useRef } from 'react';
 import type { DisplayCommand } from '@/lib/display-commands';
 import { displayCache } from '@/lib/display-cache';
@@ -164,15 +165,6 @@ export function __resetSharedStateReportingForTests(watching = false): void {
   lastReportedProviderHealthEmpty = true;
 }
 
-/**
- * Append `?display=<id>` (or `&display=<id>`) when running in multi-display
- * mode. Single-display mode (no displayId) uses the bare URL exactly as today.
- */
-function withDisplayParam(url: string, displayId: string | undefined): string {
-  if (!displayId) return url;
-  const sep = url.includes('?') ? '&' : '?';
-  return `${url}${sep}display=${encodeURIComponent(displayId)}`;
-}
 
 /**
  * The display's heartbeat: one request to the hub every 3s. It drains this

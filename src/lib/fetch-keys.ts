@@ -193,6 +193,16 @@ export function choreGrabUrl(): string {
   return '/api/chores/grab';
 }
 
+/**
+ * Append `?display=<id>` (or `&display=<id>`) when a display is named.
+ * Single-display mode (no id) uses the bare URL.
+ */
+export function withDisplayParam(url: string, displayId: string | null | undefined): string {
+  if (!displayId) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}display=${encodeURIComponent(displayId)}`;
+}
+
 export function choresDataUrl(): string {
   return '/api/chores/data';
 }

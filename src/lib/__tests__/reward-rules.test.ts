@@ -6,6 +6,7 @@ import {
   canAffordReward,
   ticketsStillNeeded,
   ticketsAfterRedeeming,
+  redeemGoalEffect,
   sortRedemptionsNewestFirst,
   resolveSavingsGoal,
   goalProgress,
@@ -67,6 +68,29 @@ describe('ticket counts', () => {
   it('says what would be left over, never a negative number', () => {
     expect(ticketsAfterRedeeming(12, reward({ cost: 10 }))).toBe(2);
     expect(ticketsAfterRedeeming(4, reward({ cost: 10 }))).toBe(0);
+  });
+});
+
+describe('redeemGoalEffect', () => {
+  const goal = reward({ id: 'goal', cost: 20 });
+
+  it('says nothing without a goal', () => {
+    expect(redeemGoalEffect(30, reward({ id: 'other', cost: 5 }), null)).toBeNull();
+  });
+
+  it('clears the goal when the goal itself is redeemed', () => {
+    expect(redeemGoalEffect(30, goal, goal)).toEqual({ kind: 'clears' });
+  });
+
+  it('says how far the goal is once the spend leaves it out of reach', () => {
+    expect(redeemGoalEffect(22, reward({ id: 'other', cost: 5 }), goal)).toEqual({ kind: 'further', stillNeeded: 3 });
+    // Already short of the goal: the spend makes it further still.
+    expect(redeemGoalEffect(8, reward({ id: 'other', cost: 5 }), goal)).toEqual({ kind: 'further', stillNeeded: 17 });
+  });
+
+  it('says nothing when the goal can still be afforded afterwards', () => {
+    expect(redeemGoalEffect(30, reward({ id: 'other', cost: 5 }), goal)).toBeNull();
+    expect(redeemGoalEffect(25, reward({ id: 'other', cost: 5 }), goal)).toBeNull();
   });
 });
 

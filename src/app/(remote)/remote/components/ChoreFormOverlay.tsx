@@ -24,7 +24,6 @@ import { CHORE_FREQUENCIES, CHORE_ROTATIONS } from '@/lib/chore-constants';
 import { useTranslate, useFormattingLocale } from '@/i18n';
 import FormOverlay from './FormOverlay';
 import SaveDeleteFooter from './SaveDeleteFooter';
-import { useFormDirty } from '@/hooks/useFormDirty';
 import ConfirmSheet from './ConfirmSheet';
 import { ChoiceList, Segmented } from './chore-choice-controls';
 import { memberInitials, memberInk } from '@/lib/family-avatar';
@@ -182,14 +181,11 @@ export default function ChoreFormOverlay({
     toggleDay, toggleAssignee, toggleGroup, toggleScheduleDay, addMemberToSchedule, toggleGroupScheduleDay, addGroupToSchedule,
     removeMemberFromSchedule, removeGroupFromSchedule,
     scheduleMembers, scheduleGroups, scheduleDays, unscheduledMembers, unscheduledGroups,
-    canSave, validationHintKind,
+    canSave, validationHintKind, dirty,
   } = f;
   const isBonus = kind === 'bonus';
   const onSchedule = !isBonus && rotation === 'schedule';
   const stepsCount = describeStepsCount(steps, tModules);
-  const dirty = useFormDirty([
-    kind, bonusClaim, comesBack, name, emoji, points, frequency, daysOfWeek, specificDate, timeOfDay, assigneeIds, assigneeGroupIds, rotation, schedule, groupSchedule,
-  ]);
   // "Enter a chore name" on a form nobody has touched yet reads as an error
   // before anything went wrong. Latch on the first edit and leave it on, so
   // clearing the name back to empty still shows the hint.
