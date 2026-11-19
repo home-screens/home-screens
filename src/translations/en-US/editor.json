@@ -749,6 +749,18 @@
       "description": "Connect your calendars, say who each one belongs to, and set how much every calendar module shows."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Save or restore a file"
+        },
+        "update": {
+          "title": "Undo an update"
+        },
+        "layouts": {
+          "title": "Layouts and templates",
+          "description": "Share your screens' look, or start from a template. Neither carries your family's data."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 days",
         "sevenDays": "7 days",
@@ -779,7 +791,6 @@
         "browseButton": "Browse Templates"
       },
       "fullBackup": {
-        "heading": "Save a copy",
         "description": "One file with everything: screens, settings, chores and the family's history. Use it to move to a new device.",
         "working": "Working…",
         "backupButton": "Save a backup",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Automatic backups",
+        "stateOn": "On",
+        "stateOff": "Off",
         "description": "Home Screens can save a backup by itself and keep the newest ones on this hub. You can also send each one somewhere else, so it is safe if this hub breaks.",
         "toggleLabel": "Back up by itself",
+        "scheduleHeading": "Schedule",
         "everyLabel": "How often",
         "every": {
           "day": "Every day",

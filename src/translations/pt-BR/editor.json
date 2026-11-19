@@ -749,6 +749,18 @@
       "description": "Conecte seus calendários, diga a quem cada um pertence e defina quanto cada módulo de calendário mostra."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Salvar ou restaurar um arquivo"
+        },
+        "update": {
+          "title": "Desfazer uma atualização"
+        },
+        "layouts": {
+          "title": "Layouts e modelos",
+          "description": "Compartilhe a aparência das suas telas ou comece com um modelo. Os dados da sua família nunca vão junto."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 dias",
         "sevenDays": "7 dias",
@@ -779,7 +791,6 @@
         "browseButton": "Explorar modelos"
       },
       "fullBackup": {
-        "heading": "Salvar uma cópia",
         "description": "Um arquivo com tudo: telas, ajustes, tarefas e o histórico da família. Use para mudar para outro aparelho.",
         "working": "Processando…",
         "backupButton": "Salvar um backup",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Backups automáticos",
+        "stateOn": "Ativados",
+        "stateOff": "Desativados",
         "description": "O Home Screens pode fazer backups sozinho e guardar os mais recentes neste hub. Você também pode enviar cada um para outro lugar, para que fiquem a salvo se este hub quebrar.",
         "toggleLabel": "Fazer backup sozinho",
+        "scheduleHeading": "Agendamento",
         "everyLabel": "Frequência",
         "every": {
           "day": "Todo dia",

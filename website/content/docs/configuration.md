@@ -394,7 +394,7 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 ## Backup & Restore
 
-- **Save a backup** (under **Save a copy** in **Settings > Backups & data**) in the editor, or **Backup All Data** in the remote's Settings sheet, downloads a backup as JSON. The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists and school timetables, plus your icons when **Include your icons** is on.
+- **Save a backup** (under **Save or restore a file** in **Settings > Backups & data**) in the editor, or **Backup All Data** in the remote's Settings sheet, downloads a backup as JSON. The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists and school timetables, plus your icons when **Include your icons** is on.
 - **Import** replaces everything the uploaded file carries (available in both the editor and the remote); a section the file leaves out, such as the icons, is kept as it is
 - **Automatic backups** save a backup on the hub by themselves on a schedule, keep the newest ones, and can send each one somewhere else ([details](#automatic-backups))
 - A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
@@ -490,7 +490,7 @@ The next backup of that container carries your Home Screens backups with it, to 
 
 By default a backup carries no keys at all. **This part needs an editor password** (Settings > Security): without one, anything on your network can ask the hub for your keys, and there is no way for it to tell you apart from anyone else. Until you set one, the checkbox below stays switched off.
 
-In the editor, **Settings > Backups & data > Save a copy** has two checkboxes:
+In the editor, under **Save or restore a file** in **Settings > Backups & data**, there are two checkboxes:
 
 - **Include my keys and connected accounts** adds your weather and map keys, your Google, iCloud, Immich and OneDrive sign-ins, your plugin logins, and your editor password to the file. Both boxes start unticked every time you open the page, so an accidental tick never becomes your standing default.
 - **Protect them with a password** locks that part of the file. You choose the password, and you need it again to put the keys back.

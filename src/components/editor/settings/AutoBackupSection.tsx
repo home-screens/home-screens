@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button';
 import Toggle from '@/components/ui/Toggle';
 import HomeTimeHint from '@/components/editor/HomeTimeHint';
 import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModal';
+import { SettingsPanel, SettingsPanelPart, SettingsPanelState } from '@/components/editor/settings/shared/SettingsPanel';
 import { useEditorStore } from '@/stores/editor-store';
 import { useConfirmStore } from '@/stores/confirm-store';
 import { useEditorHouseholdTimezone } from '@/components/editor/useEditorHouseholdClock';
@@ -146,143 +147,149 @@ export default function AutoBackupSection({ pictureSummary, restoreBusy, onResto
   };
 
   return (
-    <section data-field-id="data.autoBackup" data-testid="auto-backup">
-      <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">{t(`${K}.heading`)}</h3>
-      <p className="text-xs text-hs-text-faint mb-3">{t(`${K}.description`)}</p>
-      <div data-field-id="data.autoBackupEnabled">
-        <Toggle label={t(`${K}.toggleLabel`)} checked={settings.enabled} onChange={(enabled) => void save({ enabled })} />
-      </div>
+    <SettingsPanel
+      title={t(`${K}.heading`)}
+      badge={<SettingsPanelState on={settings.enabled} onLabel={t(`${K}.stateOn`)} offLabel={t(`${K}.stateOff`)} />}
+      description={t(`${K}.description`)}
+      data-field-id="data.autoBackup"
+      data-testid="auto-backup"
+    >
+      <SettingsPanelPart heading={settings.enabled ? t(`${K}.scheduleHeading`) : undefined}>
+        <div data-field-id="data.autoBackupEnabled">
+          <Toggle label={t(`${K}.toggleLabel`)} checked={settings.enabled} onChange={(enabled) => void save({ enabled })} />
+        </div>
 
-      {settings.enabled && (
-        <div className="mt-3 space-y-3">
-          <label className="flex items-center justify-between gap-3" data-field-id="data.autoBackupEvery">
-            <span className="text-xs text-hs-text-muted">{t(`${K}.everyLabel`)}</span>
-            <select
-              value={settings.every}
-              onChange={(e) => void save({ every: e.target.value as AutoBackupSettings['every'] })}
-              className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
-            >
-              {AUTO_BACKUP_FREQUENCIES.map((every) => (
-                <option key={every} value={every}>{t(`${K}.every.${every}`)}</option>
-              ))}
-            </select>
-          </label>
-
-          <div data-field-id="data.autoBackupTime">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <label htmlFor={timeInputId} className="block text-xs text-hs-text-muted">{t(`${K}.timeLabel`)}</label>
-                <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.timeHelp`)}</p>
-              </div>
-              <input
-                id={timeInputId}
-                type="time"
-                value={settings.time}
-                onChange={(e) => { if (TIME_RE.test(e.target.value)) void save({ time: e.target.value }); }}
-                className="w-32 shrink-0 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
-              />
-            </div>
-            <HomeTimeHint />
-          </div>
-
-          <div className="flex items-center justify-between gap-3" data-field-id="data.autoBackupKeep">
-            <div>
-              <span className="block text-xs text-hs-text-muted">{t(`${K}.keepLabel`)}</span>
-              <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.keepHelp`)}</p>
-            </div>
-            <label className="flex items-center gap-2 shrink-0">
+        {settings.enabled && (
+          <div className="mt-3 space-y-3">
+            <label className="flex items-center justify-between gap-3" data-field-id="data.autoBackupEvery">
+              <span className="text-xs text-hs-text-muted">{t(`${K}.everyLabel`)}</span>
               <select
-                aria-label={t(`${K}.keepLabel`)}
-                value={settings.keep}
-                onChange={(e) => void save({ keep: Number(e.target.value) })}
+                value={settings.every}
+                onChange={(e) => void save({ every: e.target.value as AutoBackupSettings['every'] })}
                 className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
               >
-                {[...new Set([...AUTO_BACKUP_KEEP_CHOICES, settings.keep])].sort((a, b) => a - b).map((n) => (
-                  <option key={n} value={n}>{n}</option>
+                {AUTO_BACKUP_FREQUENCIES.map((every) => (
+                  <option key={every} value={every}>{t(`${K}.every.${every}`)}</option>
                 ))}
               </select>
-              <span className="text-xs text-hs-text-muted">{t(`${K}.keepUnit`, { count: settings.keep })}</span>
             </label>
-          </div>
 
-          {/* Like Save a copy: no choice to make while the library is empty,
-              unless one was made before it emptied and has to be undone. */}
-          {pictureSummary && (pictureSummary.all.count > 0 || settings.pictures !== 'off') && (
-          <fieldset className="space-y-1.5" data-field-id="data.autoBackupPictures">
-            <legend className="text-xs text-hs-text-muted mb-1">{tCore('pictureBackup.heading')}</legend>
-            {(['off', 'used', 'all'] as const).map((choice) => {
-              const count = choice === 'off' || !pictureSummary ? null : pictureSummary[choice];
-              return (
-                <label key={choice} className="flex items-start gap-2.5 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="auto-backup-pictures"
-                    value={choice}
-                    checked={settings.pictures === choice}
-                    onChange={() => void save({ pictures: choice })}
-                    className="accent-hs-accent mt-0.5"
-                  />
-                  <span className="block text-xs text-hs-text-body">
-                    {tCore(`pictureBackup.${choice}`)}
-                    {count && (
-                      <span className="text-hs-text-faint">
-                        {' '}({tCore('pictureBackup.files', { count: count.count })}, {formatIconBytes(count.bytes, locale)})
-                      </span>
-                    )}
-                  </span>
-                </label>
-              );
-            })}
-            <p className="text-xs text-hs-text-faint pl-6">{t(`${K}.picturesHelp`)}</p>
-          </fieldset>
-          )}
+            <div data-field-id="data.autoBackupTime">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <label htmlFor={timeInputId} className="block text-xs text-hs-text-muted">{t(`${K}.timeLabel`)}</label>
+                  <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.timeHelp`)}</p>
+                </div>
+                <input
+                  id={timeInputId}
+                  type="time"
+                  value={settings.time}
+                  onChange={(e) => { if (TIME_RE.test(e.target.value)) void save({ time: e.target.value }); }}
+                  className="w-32 shrink-0 rounded-md bg-hs-card border border-hs-border-strong px-2.5 py-1.5 text-sm text-hs-text-body focus:border-hs-accent focus:outline-none"
+                />
+              </div>
+              <HomeTimeHint />
+            </div>
 
-          <KeysChoice
-            includeKeys={settings.includeKeys}
-            status={status}
-            onToggle={(includeKeys) => void save({ includeKeys })}
-            onChoosePassword={() => { setPasswordError(null); setChoosingPassword(true); }}
-          />
+            <div className="flex items-center justify-between gap-3" data-field-id="data.autoBackupKeep">
+              <div>
+                <span className="block text-xs text-hs-text-muted">{t(`${K}.keepLabel`)}</span>
+                <p className="text-xs text-hs-text-faint mt-0.5">{t(`${K}.keepHelp`)}</p>
+              </div>
+              <label className="flex items-center gap-2 shrink-0">
+                <select
+                  aria-label={t(`${K}.keepLabel`)}
+                  value={settings.keep}
+                  onChange={(e) => void save({ keep: Number(e.target.value) })}
+                  className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
+                >
+                  {[...new Set([...AUTO_BACKUP_KEEP_CHOICES, settings.keep])].sort((a, b) => a - b).map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+                <span className="text-xs text-hs-text-muted">{t(`${K}.keepUnit`, { count: settings.keep })}</span>
+              </label>
+            </div>
 
-          {status && <RunLines status={status} when={when} />}
+            {/* Like Save a copy: no choice to make while the library is empty,
+                unless one was made before it emptied and has to be undone. */}
+            {pictureSummary && (pictureSummary.all.count > 0 || settings.pictures !== 'off') && (
+            <fieldset className="space-y-1.5" data-field-id="data.autoBackupPictures">
+              <legend className="text-xs text-hs-text-muted mb-1">{tCore('pictureBackup.heading')}</legend>
+              {(['off', 'used', 'all'] as const).map((choice) => {
+                const count = choice === 'off' || !pictureSummary ? null : pictureSummary[choice];
+                return (
+                  <label key={choice} className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="auto-backup-pictures"
+                      value={choice}
+                      checked={settings.pictures === choice}
+                      onChange={() => void save({ pictures: choice })}
+                      className="accent-hs-accent mt-0.5"
+                    />
+                    <span className="block text-xs text-hs-text-body">
+                      {tCore(`pictureBackup.${choice}`)}
+                      {count && (
+                        <span className="text-hs-text-faint">
+                          {' '}({tCore('pictureBackup.files', { count: count.count })}, {formatIconBytes(count.bytes, locale)})
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                );
+              })}
+              <p className="text-xs text-hs-text-faint pl-6">{t(`${K}.picturesHelp`)}</p>
+            </fieldset>
+            )}
 
-          <div className="flex items-center gap-3">
-            <Button variant="secondary" onClick={backUpNow} disabled={backup.running || restoreBusy} data-field-id="data.autoBackupNow">
-              {backup.running ? t(`${K}.backingUp`) : t(`${K}.backUpNow`)}
-            </Button>
-            {runMessage && <p className="text-xs text-hs-warning" role="alert">{runMessage}</p>}
-          </div>
-
-          {status && <Offsite status={status} backup={backup} when={when} />}
-
-          {status && (
-            <CopiesList
+            <KeysChoice
+              includeKeys={settings.includeKeys}
               status={status}
-              when={when}
-              restoreBusy={restoreBusy || backup.running}
-              onRestore={onRestoreCopy}
-              backup={backup}
+              onToggle={(includeKeys) => void save({ includeKeys })}
+              onChoosePassword={() => { setPasswordError(null); setChoosingPassword(true); }}
             />
-          )}
-        </div>
-      )}
 
-      {backup.loadFailed && settings.enabled && (
-        <p className="text-xs text-hs-danger mt-2" role="alert">{t(`${K}.loadFailed`)}</p>
-      )}
-      {saveError && (
-        <p className="text-xs text-hs-danger mt-2" role="alert">{t('common.saveFailed')}</p>
-      )}
-      {choosingPassword && (
-        <BackupPasswordModal
-          mode="set"
-          purpose="save"
-          error={passwordError}
-          onSubmit={(password) => void savePassword(password)}
-          onClose={() => setChoosingPassword(false)}
+            {status && <RunLines status={status} when={when} />}
+
+            <div className="flex items-center gap-3">
+              <Button variant="secondary" onClick={backUpNow} disabled={backup.running || restoreBusy} data-field-id="data.autoBackupNow">
+                {backup.running ? t(`${K}.backingUp`) : t(`${K}.backUpNow`)}
+              </Button>
+              {runMessage && <p className="text-xs text-hs-warning" role="alert">{runMessage}</p>}
+            </div>
+          </div>
+        )}
+
+        {backup.loadFailed && settings.enabled && (
+          <p className="text-xs text-hs-danger mt-2" role="alert">{t(`${K}.loadFailed`)}</p>
+        )}
+        {saveError && (
+          <p className="text-xs text-hs-danger mt-2" role="alert">{t('common.saveFailed')}</p>
+        )}
+        {choosingPassword && (
+          <BackupPasswordModal
+            mode="set"
+            purpose="save"
+            error={passwordError}
+            onSubmit={(password) => void savePassword(password)}
+            onClose={() => setChoosingPassword(false)}
+          />
+        )}
+      </SettingsPanelPart>
+
+      {settings.enabled && status && <Offsite status={status} backup={backup} when={when} />}
+
+      {settings.enabled && status && (
+        <CopiesList
+          status={status}
+          when={when}
+          restoreBusy={restoreBusy || backup.running}
+          onRestore={onRestoreCopy}
+          backup={backup}
         />
       )}
-    </section>
+    </SettingsPanel>
   );
 }
 
@@ -406,12 +413,13 @@ type Backup = ReturnType<typeof useAutoBackup>;
 function Offsite({ status, backup, when }: { status: AutoBackupStatus; backup: Backup; when: When }) {
   const t = useTranslate('editor');
   return (
-    <div className="pt-3 space-y-2.5">
-      <h4 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">{t(`${K}.offsite.heading`)}</h4>
-      <p className="text-xs text-hs-text-faint">{t(`${K}.offsite.description`)}</p>
-      <FolderCard status={status} backup={backup} when={when} />
-      <LinkCard status={status} backup={backup} when={when} />
-    </div>
+    <SettingsPanelPart heading={t(`${K}.offsite.heading`)}>
+      <div className="space-y-2.5">
+        <p className="text-xs text-hs-text-faint">{t(`${K}.offsite.description`)}</p>
+        <FolderCard status={status} backup={backup} when={when} />
+        <LinkCard status={status} backup={backup} when={when} />
+      </div>
+    </SettingsPanelPart>
   );
 }
 
@@ -883,46 +891,47 @@ function CopiesList({ status, when, restoreBusy, onRestore, backup }: {
   };
 
   return (
-    <div className="pt-3 space-y-2" data-field-id="data.autoBackupCopies">
-      <h4 className="text-sm font-medium text-hs-text-secondary uppercase tracking-wider">{t(`${K}.copies.heading`)}</h4>
-      {status.copies.length === 0 ? (
-        <p className="rounded-lg bg-hs-card border border-hs-border px-3.5 py-3 text-xs text-hs-text-faint">
-          {status.nextRun ? t(`${K}.copies.emptyNext`, { when: when.next(status.nextRun) }) : t(`${K}.copies.empty`)}
-        </p>
-      ) : (
-        <>
-          {copies.map((copy) => (
-            <div key={copy.name} data-testid="auto-backup-copy" className="flex items-center gap-3 rounded-lg px-3.5 py-2.5 bg-hs-card border border-hs-border">
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-hs-text-primary">
-                  {when.title(copy.savedAt)}
-                  {copy.withKeys && <Badge>{t(`${K}.copies.keys`)}</Badge>}
-                  {copy.withPictures && <Badge>{t(`${K}.copies.pictures`)}</Badge>}
-                </p>
-                <p className="text-xs text-hs-text-muted">{formatIconBytes(copy.bytes, locale)}</p>
-                <p className="text-[11px] text-hs-text-faint font-mono truncate mt-0.5">{copy.name}</p>
+    <SettingsPanelPart heading={t(`${K}.copies.heading`)} data-field-id="data.autoBackupCopies">
+      <div className="space-y-2">
+        {status.copies.length === 0 ? (
+          <p className="rounded-lg bg-hs-card border border-hs-border px-3.5 py-3 text-xs text-hs-text-faint">
+            {status.nextRun ? t(`${K}.copies.emptyNext`, { when: when.next(status.nextRun) }) : t(`${K}.copies.empty`)}
+          </p>
+        ) : (
+          <>
+            {copies.map((copy) => (
+              <div key={copy.name} data-testid="auto-backup-copy" className="flex items-center gap-3 rounded-lg px-3.5 py-2.5 bg-hs-card border border-hs-border">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-hs-text-primary">
+                    {when.title(copy.savedAt)}
+                    {copy.withKeys && <Badge>{t(`${K}.copies.keys`)}</Badge>}
+                    {copy.withPictures && <Badge>{t(`${K}.copies.pictures`)}</Badge>}
+                  </p>
+                  <p className="text-xs text-hs-text-muted">{formatIconBytes(copy.bytes, locale)}</p>
+                  <p className="text-[11px] text-hs-text-faint font-mono truncate mt-0.5">{copy.name}</p>
+                </div>
+                <div className="flex items-center gap-3.5 shrink-0">
+                  <a href={`/api/backup/auto/files/${encodeURIComponent(copy.name)}`} download={copy.name} className={linkButton}>
+                    {t(`${K}.copies.download`)}
+                  </a>
+                  <button onClick={() => void restore(copy)} disabled={restoreBusy || working !== null} className={linkButton}>
+                    {t(`${K}.copies.restore`)}
+                  </button>
+                  <button onClick={() => void remove(copy)} disabled={restoreBusy || working !== null} className={linkButton}>
+                    {t(`${K}.copies.remove`)}
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3.5 shrink-0">
-                <a href={`/api/backup/auto/files/${encodeURIComponent(copy.name)}`} download={copy.name} className={linkButton}>
-                  {t(`${K}.copies.download`)}
-                </a>
-                <button onClick={() => void restore(copy)} disabled={restoreBusy || working !== null} className={linkButton}>
-                  {t(`${K}.copies.restore`)}
-                </button>
-                <button onClick={() => void remove(copy)} disabled={restoreBusy || working !== null} className={linkButton}>
-                  {t(`${K}.copies.remove`)}
-                </button>
-              </div>
-            </div>
-          ))}
-          {status.copies.length > COPIES_SHOWN && (
-            <button onClick={() => setShowAll(!showAll)} className={linkButton}>
-              {showAll ? t(`${K}.copies.showFewer`) : t(`${K}.copies.showAll`, { count: status.copies.length })}
-            </button>
-          )}
-        </>
-      )}
-    </div>
+            ))}
+            {status.copies.length > COPIES_SHOWN && (
+              <button onClick={() => setShowAll(!showAll)} className={linkButton}>
+                {showAll ? t(`${K}.copies.showFewer`) : t(`${K}.copies.showAll`, { count: status.copies.length })}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </SettingsPanelPart>
   );
 }
 

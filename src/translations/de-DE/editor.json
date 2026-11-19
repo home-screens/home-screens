@@ -749,6 +749,18 @@
       "description": "Verbinde deine Kalender, lege fest, wem sie gehören, und stelle ein, wie viel jedes Kalendermodul anzeigt."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Per Datei sichern oder wiederherstellen"
+        },
+        "update": {
+          "title": "Update rückgängig machen"
+        },
+        "layouts": {
+          "title": "Layouts und Vorlagen",
+          "description": "Teile das Aussehen deiner Bildschirme oder starte mit einer Vorlage. Die Daten deiner Familie sind dabei nie enthalten."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 Tage",
         "sevenDays": "7 Tage",
@@ -779,7 +791,6 @@
         "browseButton": "Vorlagen durchsuchen"
       },
       "fullBackup": {
-        "heading": "Kopie sichern",
         "description": "Eine Datei mit allem: Bildschirme, Einstellungen, Aufgaben und der Verlauf der Familie. Damit ziehst du auf ein neues Gerät um.",
         "working": "Arbeitet …",
         "backupButton": "Sicherung speichern",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Automatische Backups",
+        "stateOn": "An",
+        "stateOff": "Aus",
         "description": "Home Screens kann von selbst Backups erstellen und die neuesten auf diesem Hub aufbewahren. Du kannst jedes auch an einen anderen Ort schicken, damit es sicher ist, falls dieser Hub kaputtgeht.",
         "toggleLabel": "Automatisch sichern",
+        "scheduleHeading": "Zeitplan",
         "everyLabel": "Wie oft",
         "every": {
           "day": "Jeden Tag",

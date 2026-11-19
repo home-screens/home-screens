@@ -70,7 +70,7 @@ test.describe('Defaults › Backups & data › Automatic backups', () => {
     await block.getByRole('switch', { name: 'Back up by itself' }).click();
     await expect(block.getByText('How often')).toBeVisible();
     await expect(block.getByText('Keep the last')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Snapshots before updates' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Undo an update' })).toBeVisible();
     await expect.poll(async () => (await (await request.get('/api/config')).json()).settings.autoBackup?.enabled).toBe(true);
 
     await block.locator('[data-field-id="data.autoBackupEvery"] select').selectOption('week');

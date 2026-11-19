@@ -749,6 +749,18 @@
       "description": "Conecta tus calendarios, indica a quién pertenece cada uno y ajusta cuánto muestra cada módulo de calendario."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Guardar o restaurar un archivo"
+        },
+        "update": {
+          "title": "Deshacer una actualización"
+        },
+        "layouts": {
+          "title": "Diseños y plantillas",
+          "description": "Comparte el aspecto de tus pantallas o empieza desde una plantilla. Los datos de tu familia nunca van incluidos."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 días",
         "sevenDays": "7 días",
@@ -779,7 +791,6 @@
         "browseButton": "Explorar plantillas"
       },
       "fullBackup": {
-        "heading": "Guardar una copia",
         "description": "Un archivo con todo: pantallas, ajustes, tareas y el historial de la familia. Úsalo para pasar a un dispositivo nuevo.",
         "working": "Trabajando…",
         "backupButton": "Guardar una copia de seguridad",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Copias automáticas",
+        "stateOn": "Activadas",
+        "stateOff": "Desactivadas",
         "description": "Home Screens puede hacer copias por su cuenta y guardar las más recientes en este hub. También puedes enviar cada una a otro sitio, para que esté a salvo si este hub se estropea.",
         "toggleLabel": "Hacer copias automáticamente",
+        "scheduleHeading": "Horario",
         "everyLabel": "Frecuencia",
         "every": {
           "day": "Cada día",

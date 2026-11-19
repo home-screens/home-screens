@@ -749,6 +749,18 @@
       "description": "Koppel je agenda's, geef aan van wie ze zijn en stel in hoeveel elke agendamodule toont."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Bestand bewaren of terugzetten"
+        },
+        "update": {
+          "title": "Update ongedaan maken"
+        },
+        "layouts": {
+          "title": "Lay-outs en sjablonen",
+          "description": "Deel hoe je schermen eruitzien, of begin met een sjabloon. Geen van beide bevat de gegevens van je gezin."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 dagen",
         "sevenDays": "7 dagen",
@@ -779,7 +791,6 @@
         "browseButton": "Sjablonen bekijken"
       },
       "fullBackup": {
-        "heading": "Een kopie bewaren",
         "description": "Eén bestand met alles: schermen, instellingen, klusjes en de geschiedenis van het gezin. Handig om over te stappen op een nieuw apparaat.",
         "working": "Bezig…",
         "backupButton": "Back-up opslaan",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Automatische back-ups",
+        "stateOn": "Aan",
+        "stateOff": "Uit",
         "description": "Home Screens kan vanzelf een back-up maken en de nieuwste op deze hub bewaren. Je kunt elke back-up ook ergens anders heen sturen, zodat hij veilig is als deze hub kapotgaat.",
         "toggleLabel": "Vanzelf back-ups maken",
+        "scheduleHeading": "Planning",
         "everyLabel": "Hoe vaak",
         "every": {
           "day": "Elke dag",

@@ -749,6 +749,18 @@
       "description": "Forbind dine kalendere, angiv hvem de tilhører, og indstil hvor meget hvert kalendermodul viser."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Gem eller gendan en fil"
+        },
+        "update": {
+          "title": "Fortryd en opdatering"
+        },
+        "layouts": {
+          "title": "Layouts og skabeloner",
+          "description": "Del skærmenes udseende, eller start fra en skabelon. Familiens data kommer aldrig med."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 dage",
         "sevenDays": "7 dage",
@@ -779,7 +791,6 @@
         "browseButton": "Gennemse skabeloner"
       },
       "fullBackup": {
-        "heading": "Gem en kopi",
         "description": "Én fil med det hele: skærme, indstillinger, pligter og familiens historik. Brug den, når du skifter til en ny enhed.",
         "working": "Arbejder…",
         "backupButton": "Gem en sikkerhedskopi",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Automatiske sikkerhedskopier",
+        "stateOn": "Til",
+        "stateOff": "Fra",
         "description": "Home Screens kan selv tage en sikkerhedskopi og gemme de nyeste her på hubben. Du kan også sende hver kopi et andet sted hen, så den er i sikkerhed, hvis hubben går i stykker.",
         "toggleLabel": "Sikkerhedskopiér automatisk",
+        "scheduleHeading": "Tidsplan",
         "everyLabel": "Hvor ofte",
         "every": {
           "day": "Hver dag",

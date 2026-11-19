@@ -18,6 +18,7 @@ import LayoutImportModal from '@/components/editor/LayoutImportModal';
 import TemplateFlow from '@/components/editor/TemplateFlow';
 import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModal';
 import AutoBackupSection, { type AutoCopyRestore } from '@/components/editor/settings/AutoBackupSection';
+import { SettingsPanel, SettingsPanelPart } from '@/components/editor/settings/shared/SettingsPanel';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
 import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
@@ -635,158 +636,187 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
 
   return (
     <>
-      <div className="space-y-6">
-        {/* Full Backup */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.fullBackup.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.fullBackup.description')}
-          </p>
-
-          <div className="space-y-2 mb-3">
-            {iconSummary && iconSummary.count > 0 && (
-              <label className="flex items-start gap-2.5 cursor-pointer" data-field-id="data.fullBackupIncludeIcons">
+      <div className="space-y-4">
+        {/* Save or restore a file: the backup made by hand, and the reminder to make one */}
+        <SettingsPanel title={t('settings.dataPage.groups.file.title')} description={t('settings.dataPage.fullBackup.description')}>
+          <SettingsPanelPart>
+            <div className="space-y-2 mb-3">
+              {iconSummary && iconSummary.count > 0 && (
+                <label className="flex items-start gap-2.5 cursor-pointer" data-field-id="data.fullBackupIncludeIcons">
+                  <input
+                    type="checkbox"
+                    checked={includeIcons}
+                    onChange={(e) => {
+                      setIncludeIcons(e.target.checked);
+                      setIncludeCustomIcons(e.target.checked);
+                    }}
+                    className="accent-hs-accent mt-0.5"
+                  />
+                  <span>
+                    <span className="block text-xs text-hs-text-body">
+                      {tCore('customIcons.backup.includeWithSize', { size: formatIconBytes(iconSummary.bytes) })}
+                    </span>
+                    <span className="block text-xs text-hs-text-faint">{tCore('customIcons.backup.help')}</span>
+                  </span>
+                </label>
+              )}
+              {pictureSummary && pictureSummary.all.count > 0 && (
+                <fieldset className="space-y-1.5 pt-1" data-field-id="data.fullBackupPictures">
+                  <legend className="text-xs text-hs-text-body mb-1">{tCore('pictureBackup.heading')}</legend>
+                  {(['off', 'used', 'all'] as const).map((choice) => {
+                    const count = choice === 'off' ? null : pictureSummary[choice];
+                    return (
+                      <label key={choice} className="flex items-start gap-2.5 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="backup-pictures"
+                          value={choice}
+                          checked={pictureChoice === choice}
+                          onChange={() => choosePictures(choice)}
+                          className="accent-hs-accent mt-0.5"
+                        />
+                        <span className="block text-xs text-hs-text-body">
+                          {tCore(`pictureBackup.${choice}`)}
+                          {count && (
+                            <span className="text-hs-text-faint">
+                              {' '}({tCore('pictureBackup.files', { count: count.count })}, {formatIconBytes(count.bytes, formattingLocale)})
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })}
+                  <p className="text-xs text-hs-text-faint pl-6">{tCore('pictureBackup.help')}</p>
+                  {pictureSummary.missing > 0 && (
+                    <p className="text-xs text-hs-warning pl-6">
+                      {tCore('pictureBackup.missingNow', { count: pictureSummary.missing })}{' '}
+                      <a href={settingsHref({ kind: 'defaults', page: 'media' })} className="underline">{tCore('pictureBackup.openLibrary')}</a>
+                    </p>
+                  )}
+                </fieldset>
+              )}
+              <label
+                className={`flex items-start gap-2.5 ${
+                  authEnabled === false ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                }`}
+                data-field-id="data.fullBackupIncludeCredentials"
+              >
                 <input
                   type="checkbox"
-                  checked={includeIcons}
+                  checked={includeCredentials}
+                  disabled={authEnabled === false}
                   onChange={(e) => {
-                    setIncludeIcons(e.target.checked);
-                    setIncludeCustomIcons(e.target.checked);
+                    setIncludeCredentials(e.target.checked);
+                    if (!e.target.checked) setProtectCredentials(false);
                   }}
                   className="accent-hs-accent mt-0.5"
                 />
                 <span>
                   <span className="block text-xs text-hs-text-body">
-                    {tCore('customIcons.backup.includeWithSize', { size: formatIconBytes(iconSummary.bytes) })}
+                    {t('settings.dataPage.fullBackup.includeCredentialsLabel')}
                   </span>
-                  <span className="block text-xs text-hs-text-faint">{tCore('customIcons.backup.help')}</span>
+                  <span className="block text-xs text-hs-text-faint">
+                    {authEnabled === false
+                      ? t('settings.dataPage.fullBackup.needsEditorPassword')
+                      : t('settings.dataPage.fullBackup.includeCredentialsHelp')}
+                  </span>
                 </span>
               </label>
-            )}
-            {pictureSummary && pictureSummary.all.count > 0 && (
-              <fieldset className="space-y-1.5 pt-1" data-field-id="data.fullBackupPictures">
-                <legend className="text-xs text-hs-text-body mb-1">{tCore('pictureBackup.heading')}</legend>
-                {(['off', 'used', 'all'] as const).map((choice) => {
-                  const count = choice === 'off' ? null : pictureSummary[choice];
-                  return (
-                    <label key={choice} className="flex items-start gap-2.5 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="backup-pictures"
-                        value={choice}
-                        checked={pictureChoice === choice}
-                        onChange={() => choosePictures(choice)}
-                        className="accent-hs-accent mt-0.5"
-                      />
-                      <span className="block text-xs text-hs-text-body">
-                        {tCore(`pictureBackup.${choice}`)}
-                        {count && (
-                          <span className="text-hs-text-faint">
-                            {' '}({tCore('pictureBackup.files', { count: count.count })}, {formatIconBytes(count.bytes, formattingLocale)})
-                          </span>
-                        )}
-                      </span>
-                    </label>
-                  );
-                })}
-                <p className="text-xs text-hs-text-faint pl-6">{tCore('pictureBackup.help')}</p>
-                {pictureSummary.missing > 0 && (
-                  <p className="text-xs text-hs-warning pl-6">
-                    {tCore('pictureBackup.missingNow', { count: pictureSummary.missing })}{' '}
-                    <a href={settingsHref({ kind: 'defaults', page: 'media' })} className="underline">{tCore('pictureBackup.openLibrary')}</a>
-                  </p>
-                )}
-              </fieldset>
-            )}
-            <label
-              className={`flex items-start gap-2.5 ${
-                authEnabled === false ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-              }`}
-              data-field-id="data.fullBackupIncludeCredentials"
-            >
-              <input
-                type="checkbox"
-                checked={includeCredentials}
-                disabled={authEnabled === false}
-                onChange={(e) => {
-                  setIncludeCredentials(e.target.checked);
-                  if (!e.target.checked) setProtectCredentials(false);
-                }}
-                className="accent-hs-accent mt-0.5"
-              />
-              <span>
-                <span className="block text-xs text-hs-text-body">
-                  {t('settings.dataPage.fullBackup.includeCredentialsLabel')}
-                </span>
-                <span className="block text-xs text-hs-text-faint">
-                  {authEnabled === false
-                    ? t('settings.dataPage.fullBackup.needsEditorPassword')
-                    : t('settings.dataPage.fullBackup.includeCredentialsHelp')}
-                </span>
-              </span>
-            </label>
 
-            {includeCredentials && (
-              <div className="ml-6 space-y-2">
-                <label
-                  className="flex items-start gap-2.5 cursor-pointer"
-                  data-field-id="data.fullBackupProtectCredentials"
-                >
-                  <input
-                    type="checkbox"
-                    checked={protectCredentials}
-                    onChange={(e) => setProtectCredentials(e.target.checked)}
-                    className="accent-hs-accent mt-0.5"
-                  />
-                  <span className="text-xs text-hs-text-body">
-                    {t('settings.dataPage.fullBackup.protectLabel')}
-                  </span>
-                </label>
-                {!protectCredentials && (
-                  <p
-                    className="text-xs text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-md px-2.5 py-2"
-                    role="status"
+              {includeCredentials && (
+                <div className="ml-6 space-y-2">
+                  <label
+                    className="flex items-start gap-2.5 cursor-pointer"
+                    data-field-id="data.fullBackupProtectCredentials"
                   >
-                    {t('settings.dataPage.fullBackup.plaintextWarning')}
-                  </p>
-                )}
-              </div>
+                    <input
+                      type="checkbox"
+                      checked={protectCredentials}
+                      onChange={(e) => setProtectCredentials(e.target.checked)}
+                      className="accent-hs-accent mt-0.5"
+                    />
+                    <span className="text-xs text-hs-text-body">
+                      {t('settings.dataPage.fullBackup.protectLabel')}
+                    </span>
+                  </label>
+                  {!protectCredentials && (
+                    <p
+                      className="text-xs text-hs-warning border border-hs-warning/40 bg-hs-warning/10 rounded-md px-2.5 py-2"
+                      role="status"
+                    >
+                      {t('settings.dataPage.fullBackup.plaintextWarning')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="primary"
+                onClick={handleBackupExport}
+                disabled={backupBusy}
+                data-field-id="data.fullBackupExport"
+              >
+                {backupBusy ? t('settings.dataPage.fullBackup.working') : t('settings.dataPage.fullBackup.backupButton')}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleRestoreClick}
+                disabled={backupBusy}
+                data-field-id="data.fullBackupRestore"
+              >
+                {t('settings.dataPage.fullBackup.restoreButton')}
+              </Button>
+            </div>
+
+            {backupSaved && (
+              <p className="mt-2 text-xs text-hs-success" aria-live="polite">
+                {t('settings.dataPage.fullBackup.savedTo', { filename: backupSaved })}
+              </p>
             )}
-          </div>
+            {restoreFinished && (
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-hs-success" aria-live="polite" data-testid="restore-finished">
+                <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                {t('settings.dataPage.restore.finished')}
+              </p>
+            )}
+          </SettingsPanelPart>
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant="primary"
-              onClick={handleBackupExport}
-              disabled={backupBusy}
-              data-field-id="data.fullBackupExport"
-            >
-              {backupBusy ? t('settings.dataPage.fullBackup.working') : t('settings.dataPage.fullBackup.backupButton')}
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleRestoreClick}
-              disabled={backupBusy}
-              data-field-id="data.fullBackupRestore"
-            >
-              {t('settings.dataPage.fullBackup.restoreButton')}
-            </Button>
-          </div>
-
-          {backupSaved && (
-            <p className="mt-2 text-xs text-hs-success" aria-live="polite">
-              {t('settings.dataPage.fullBackup.savedTo', { filename: backupSaved })}
+          <SettingsPanelPart heading={t('settings.dataPage.backupReminder.heading')}>
+            <p className="text-xs text-hs-text-faint mb-3">
+              {t('settings.dataPage.backupReminder.description')}
             </p>
-          )}
-          {restoreFinished && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-hs-success" aria-live="polite" data-testid="restore-finished">
-              <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              {t('settings.dataPage.restore.finished')}
-            </p>
-          )}
-        </section>
+            <div className="space-y-3" data-field-id="data.backupReminderEnabled">
+              <Toggle
+                label={t('settings.dataPage.backupReminder.enableLabel')}
+                checked={reminder?.enabled ?? false}
+                onChange={(enabled) => handleReminderChange({ enabled })}
+              />
+              {reminder?.enabled && (
+                <label className="flex items-center justify-between gap-2" data-field-id="data.backupReminderInterval">
+                  <span className="text-xs text-hs-text-muted">{t('settings.dataPage.backupReminder.remindAfterLabel')}</span>
+                  <select
+                    value={reminder.intervalDays ?? 7}
+                    onChange={(e) => handleReminderChange({ intervalDays: Number(e.target.value) })}
+                    className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
+                  >
+                    {intervalOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <p className="text-xs text-hs-text-faint">
+                {lastBackupDate
+                  ? t('settings.dataPage.backupReminder.lastBackup', {
+                      date: formatDateInTZ(new Date(lastBackupDate), timezone, { dateStyle: 'medium' }, formattingLocale),
+                    })
+                  : t('settings.dataPage.backupReminder.noBackups')}
+              </p>
+            </div>
+          </SettingsPanelPart>
+        </SettingsPanel>
 
         <AutoBackupSection
           pictureSummary={pictureSummary}
@@ -794,166 +824,123 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           onRestoreCopy={handleRestoreAutoCopy}
         />
 
-        {/* Snapshots before updates, taken by the upgrade pipeline */}
-        <section data-field-id="data.configBackups">
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.configBackups.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.configBackups.description')}
-          </p>
-          {configBackups.length === 0 ? (
-            <p className="text-xs text-hs-text-faint">
-              {t('settings.dataPage.configBackups.empty')}
-            </p>
-          ) : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {configBackups.map((b) => {
-                const what = backupLabel(b.name);
-                const when = backupWrittenAt(b.modified);
-                const size = t('settings.dataPage.configBackups.sizeKb', {
-                  size: (b.size / 1024).toLocaleString(formattingLocale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
-                });
-                return (
-                  <div
-                    key={b.name}
-                    data-testid="config-backup-row"
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 bg-hs-card border border-hs-border"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-hs-text-primary">
-                        {what}
-                        {/* The copy pinned before the first early access or
-                            test build. The rotation never removes it, and it
-                            is the one a normal release is guaranteed to read. */}
-                        {b.name === LAST_STABLE_BACKUP && (
-                          <span className="ml-1.5 rounded-full border border-hs-border-strong px-1.5 text-[10.5px] text-hs-text-muted align-[1px]">
-                            {t('settings.dataPage.configBackups.keptBadge')}
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-hs-text-muted">
-                        {when ? `${when} \u00b7 ${size}` : size}
-                      </p>
-                      <p className="text-[11px] text-hs-text-faint font-mono truncate mt-0.5">{b.name}</p>
+        {/* Undo an update: the snapshots the upgrade pipeline takes before each update */}
+        <SettingsPanel
+          title={t('settings.dataPage.groups.update.title')}
+          description={t('settings.dataPage.configBackups.description')}
+          data-field-id="data.configBackups"
+        >
+          <div>
+            {configBackups.length === 0 ? (
+              <p className="text-xs text-hs-text-faint">
+                {t('settings.dataPage.configBackups.empty')}
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {configBackups.map((b) => {
+                  const what = backupLabel(b.name);
+                  const when = backupWrittenAt(b.modified);
+                  const size = t('settings.dataPage.configBackups.sizeKb', {
+                    size: (b.size / 1024).toLocaleString(formattingLocale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+                  });
+                  return (
+                    <div
+                      key={b.name}
+                      data-testid="config-backup-row"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 bg-hs-card border border-hs-border"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-hs-text-primary">
+                          {what}
+                          {/* The copy pinned before the first early access or
+                              test build. The rotation never removes it, and it
+                              is the one a normal release is guaranteed to read. */}
+                          {b.name === LAST_STABLE_BACKUP && (
+                            <span className="ml-1.5 rounded-full border border-hs-border-strong px-1.5 text-[10.5px] text-hs-text-muted align-[1px]">
+                              {t('settings.dataPage.configBackups.keptBadge')}
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-xs text-hs-text-muted">
+                          {when ? `${when} \u00b7 ${size}` : size}
+                        </p>
+                        <p className="text-[11px] text-hs-text-faint font-mono truncate mt-0.5">{b.name}</p>
+                      </div>
+                      <div className="flex items-center gap-3.5 shrink-0">
+                        <a
+                          href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
+                          download={b.name}
+                          className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                        >
+                          {t('settings.dataPage.configBackups.download')}
+                        </a>
+                        <button
+                          onClick={() => handleRestoreConfigBackup(b.name, what, when)}
+                          className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
+                        >
+                          {t('settings.dataPage.configBackups.restore')}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3.5 shrink-0">
-                      <a
-                        href={`/api/system/backups?download=${encodeURIComponent(b.name)}`}
-                        download={b.name}
-                        className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                      >
-                        {t('settings.dataPage.configBackups.download')}
-                      </a>
-                      <button
-                        onClick={() => handleRestoreConfigBackup(b.name, what, when)}
-                        className="text-xs text-hs-text-muted hover:text-hs-accent-hover transition-colors"
-                      >
-                        {t('settings.dataPage.configBackups.restore')}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {restoreStatus && (
-            <p
-              className={`text-xs mt-2 ${
-                restoreStatus.kind === 'error'
-                  ? 'text-hs-danger'
-                  : restoreStatus.kind === 'progress'
-                    ? 'text-hs-text-faint'
-                    : 'text-hs-success'
-              }`}
-              aria-live="polite"
-              role={restoreStatus.kind === 'error' ? 'alert' : undefined}
-            >
-              {restoreStatus.message}
-            </p>
-          )}
-        </section>
-
-        {/* Backup Reminder */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.backupReminder.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.backupReminder.description')}
-          </p>
-          <div className="space-y-3" data-field-id="data.backupReminderEnabled">
-            <Toggle
-              label={t('settings.dataPage.backupReminder.enableLabel')}
-              checked={reminder?.enabled ?? false}
-              onChange={(enabled) => handleReminderChange({ enabled })}
-            />
-            {reminder?.enabled && (
-              <label className="flex items-center justify-between gap-2" data-field-id="data.backupReminderInterval">
-                <span className="text-xs text-hs-text-muted">{t('settings.dataPage.backupReminder.remindAfterLabel')}</span>
-                <select
-                  value={reminder.intervalDays ?? 7}
-                  onChange={(e) => handleReminderChange({ intervalDays: Number(e.target.value) })}
-                  className="bg-hs-card border border-hs-border-strong rounded-md text-xs text-hs-text-body px-2 py-1"
-                >
-                  {intervalOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </label>
+                  );
+                })}
+              </div>
             )}
-            <p className="text-xs text-hs-text-faint">
-              {lastBackupDate
-                ? t('settings.dataPage.backupReminder.lastBackup', {
-                    date: formatDateInTZ(new Date(lastBackupDate), timezone, { dateStyle: 'medium' }, formattingLocale),
-                  })
-                : t('settings.dataPage.backupReminder.noBackups')}
+            {restoreStatus && (
+              <p
+                className={`text-xs mt-2 ${
+                  restoreStatus.kind === 'error'
+                    ? 'text-hs-danger'
+                    : restoreStatus.kind === 'progress'
+                      ? 'text-hs-text-faint'
+                      : 'text-hs-success'
+                }`}
+                aria-live="polite"
+                role={restoreStatus.kind === 'error' ? 'alert' : undefined}
+              >
+                {restoreStatus.message}
+              </p>
+            )}
+          </div>
+        </SettingsPanel>
+
+        {/* Layouts and templates: the screens' look, without the family's data */}
+        <SettingsPanel title={t('settings.dataPage.groups.layouts.title')} description={t('settings.dataPage.groups.layouts.description')}>
+          <SettingsPanelPart heading={t('settings.dataPage.shareLayout.heading')}>
+            <p className="text-xs text-hs-text-faint mb-3">
+              {t('settings.dataPage.shareLayout.description')}
             </p>
-          </div>
-        </section>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => setShowExportModal(true)}
+                data-field-id="data.shareLayoutExport"
+              >
+                {t('settings.dataPage.shareLayout.exportButton')}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={openFilePicker}
+                data-field-id="data.shareLayoutImport"
+              >
+                {t('settings.dataPage.shareLayout.importButton')}
+              </Button>
+            </div>
+          </SettingsPanelPart>
 
-        {/* Share Layout */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.shareLayout.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.shareLayout.description')}
-          </p>
-          <div className="flex items-center gap-3">
+          <SettingsPanelPart heading={t('settings.dataPage.templates.heading')}>
+            <p className="text-xs text-hs-text-faint mb-3">
+              {t('settings.dataPage.templates.description')}
+            </p>
             <Button
               variant="secondary"
-              onClick={() => setShowExportModal(true)}
-              data-field-id="data.shareLayoutExport"
+              onClick={() => setShowTemplatePicker(true)}
+              data-field-id="data.templatesBrowse"
             >
-              {t('settings.dataPage.shareLayout.exportButton')}
+              {t('settings.dataPage.templates.browseButton')}
             </Button>
-            <Button
-              variant="secondary"
-              onClick={openFilePicker}
-              data-field-id="data.shareLayoutImport"
-            >
-              {t('settings.dataPage.shareLayout.importButton')}
-            </Button>
-          </div>
-        </section>
-
-        {/* Templates */}
-        <section>
-          <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
-            {t('settings.dataPage.templates.heading')}
-          </h3>
-          <p className="text-xs text-hs-text-faint mb-3">
-            {t('settings.dataPage.templates.description')}
-          </p>
-          <Button
-            variant="secondary"
-            onClick={() => setShowTemplatePicker(true)}
-            data-field-id="data.templatesBrowse"
-          >
-            {t('settings.dataPage.templates.browseButton')}
-          </Button>
-        </section>
+          </SettingsPanelPart>
+        </SettingsPanel>
       </div>
 
       {/* Hidden file inputs — separate for layout import and full restore */}

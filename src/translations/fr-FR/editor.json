@@ -749,6 +749,18 @@
       "description": "Connectez vos calendriers, indiquez à qui ils appartiennent et réglez ce que chaque module calendrier affiche."
     },
     "dataPage": {
+      "groups": {
+        "file": {
+          "title": "Enregistrer ou restaurer un fichier"
+        },
+        "update": {
+          "title": "Annuler une mise à jour"
+        },
+        "layouts": {
+          "title": "Mises en page et modèles",
+          "description": "Partagez l'apparence de vos écrans ou partez d'un modèle. Les données de votre famille ne sont jamais incluses."
+        }
+      },
       "intervalOptions": {
         "threeDays": "3 jours",
         "sevenDays": "7 jours",
@@ -779,7 +791,6 @@
         "browseButton": "Parcourir les modèles"
       },
       "fullBackup": {
-        "heading": "Enregistrer une copie",
         "description": "Un seul fichier avec tout : écrans, réglages, tâches et l'historique de la famille. Utilisez-le pour passer à un nouvel appareil.",
         "working": "En cours…",
         "backupButton": "Enregistrer une sauvegarde",
@@ -870,8 +881,11 @@
       },
       "autoBackup": {
         "heading": "Sauvegardes automatiques",
+        "stateOn": "Activées",
+        "stateOff": "Désactivées",
         "description": "Home Screens peut faire ses sauvegardes tout seul et garder les plus récentes sur ce hub. Vous pouvez aussi envoyer chacune ailleurs, pour qu'elle reste à l'abri si ce hub tombe en panne.",
         "toggleLabel": "Sauvegarder automatiquement",
+        "scheduleHeading": "Programmation",
         "everyLabel": "Fréquence",
         "every": {
           "day": "Tous les jours",

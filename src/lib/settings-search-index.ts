@@ -258,7 +258,7 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
     ],
     keywords: ['WebDAV', 'Nextcloud', 'Synology', 'NAS', 'SMB', 'Samba', 'Windows share', 'UniFi', 'UNAS', 'TrueNAS', 'QNAP'],
   },
-  { pageId: 'data', fieldId: 'data.configBackups', labelKey: 'settings.dataPage.configBackups.heading' },
+  { pageId: 'data', fieldId: 'data.configBackups', labelKey: 'settings.dataPage.groups.update.title', keywordKeys: ['settings.dataPage.configBackups.heading'] },
   { pageId: 'data', fieldId: 'data.backupReminderEnabled', labelKey: 'settings.dataPage.backupReminder.enableLabel' },
   { pageId: 'data', fieldId: 'data.backupReminderInterval', labelKey: 'settings.dataPage.backupReminder.remindAfterLabel' },
 
