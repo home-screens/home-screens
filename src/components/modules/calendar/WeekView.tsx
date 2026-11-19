@@ -55,7 +55,7 @@ export function WeekView({ events, config, style, today, now, anchor, accentColo
           const isToday = isSameDay(date, today);
           const notes = dayNotesFor(dayNotes, date);
           // With taps on, the whole day heading (name, number, badges) opens the day.
-          const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
+          const dayTap = openDayProps(openDay, date, dayEvents, t, locale, notes.length > 0);
           return (
             <div key={date.toISOString()} {...dayTap} role={dayTap ? 'button' : undefined} className={`text-center py-1 min-w-0${dayTap ? ' cursor-pointer' : ''}`}>
               <p className="uppercase tracking-wider" style={{ fontSize: scaledEm(0.6, dayLabelScale), opacity: isToday ? TEXT_OPACITY.primary : TEXT_OPACITY.tertiary }}>

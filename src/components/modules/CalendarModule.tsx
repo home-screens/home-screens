@@ -28,7 +28,7 @@ import { WeekView } from './calendar/WeekView';
 import { GridView } from './calendar/grid';
 import { householdTimeFormat } from '@/lib/clock-time';
 import { useDayNotes } from '@/hooks/useDayNotes';
-import { hasDayNoteIn, type DayNotes } from '@/lib/day-notes';
+import { hasDayNoteInWindow, type DayNotes } from '@/lib/day-notes';
 import { wallScrollOn } from '@/lib/wall-scroll-views';
 import { calendarLookAhead, lookAheadReach } from '@/lib/look-ahead';
 import { formatDayRange } from '@/i18n/formatters';
@@ -180,9 +180,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   const notesInView = useMemo(() => {
     const from = listFrom ?? today;
     const { start, end } = viewWindow ?? { start: from, end: addDays(from, 7) };
-    const days: Date[] = [];
-    for (let day = start; day < end; day = addDays(day, 1)) days.push(day);
-    return hasDayNoteIn(dayNotes, days);
+    return hasDayNoteInWindow(dayNotes, start, end);
   }, [viewWindow, today, listFrom, dayNotes]);
   const ViewComponent = VIEW_COMPONENTS[viewMode];
   const accentColor = config.accentColor ?? DEFAULT_CALENDAR_ACCENT;
@@ -209,7 +207,7 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
   }, [resolvedTimeFormat, gridEventStyle, gridEventPillBackground, showEventBackground, timezone, failingSourceIds, tapDetails, owners]);
   const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(allEvents, tapDetails);
   // "+N more" and the grid day numbers open the whole day (the grid views only).
-  const daySheet = useDaySheet(allEvents, tapDetails);
+  const daySheet = useDaySheet(allEvents, tapDetails, dayNotes);
   const detailTheme = getThemeTokens('charcoal');
   // A grid that draws its own title (every Month, and every grid in the
   // modern looks) puts the arrows in it; the other views get a heading row.
@@ -331,6 +329,8 @@ export default function CalendarModule({ config, style, events, timezone, timeFo
         <DaySheetOverlay
           date={daySheet.day.date}
           events={daySheet.day.events}
+          notes={daySheet.day.notes}
+          owners={owners}
           variant={config.eventTapStyle ?? 'sheet'}
           theme={detailTheme}
           accentColor={accentColor}

@@ -201,6 +201,7 @@
     "untilTime": "Indtil {time}",
     "cantLoadEvents": "Begivenheder kan ikke indlæses lige nu",
     "weekOf": "Ugen fra {date}",
+    "weekNumber": "Uge {number}",
     "holiday": "Helligdag",
     "birthday": "Fødselsdag",
     "birthdayWithAge": "Fødselsdag · fylder {age}",

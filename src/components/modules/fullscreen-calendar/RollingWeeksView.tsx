@@ -1,20 +1,15 @@
 'use client';
 
 import { useMemo } from 'react';
-import { addDays, isSameDay, startOfDay } from 'date-fns';
+import { addDays, startOfDay } from 'date-fns';
 import { clampRollingWeeks, isEventOnDay, isWeekendDay } from '@/lib/calendar-utils';
-import { useTranslate, useFormattingLocale, formatDateSync, dayMonthPattern } from '@/i18n';
-import { dayCellFill, dayDecorFor, resolveTodayHighlight } from './view-support';
-import { eventBg } from '@/lib/calendar-event-surface';
-import { mergeCellDecor } from '@/lib/calendar-rules';
-import { DayArtLayer } from '../shared/DayArtLayer';
-import { GridCellBody, gridNotesHeight } from './grid-view-bits';
+import { useFormattingLocale } from '@/i18n';
+import { GridDayCell, GridWeekdayHeader, autoMaxEvents, gridNotesHeight } from './grid-view-bits';
 import { dayNotesFor } from '@/lib/day-notes';
 import { dayGridFontSize } from '@/lib/day-grid-type';
 import { rollingRangeTitle } from './view-traits';
 import { useContainerHeight } from './shared-time-grid';
 import type { CalendarViewProps } from './view-support';
-import { openDayCellProps, useDaySheetOpener } from '../shared/useDaySheet';
 
 /**
  * Rolling weeks: the next n weeks (1-8) as a 7-column grid whose top-left
@@ -25,10 +20,8 @@ import { openDayCellProps, useDaySheetOpener } from '../shared/useDaySheet';
  * the whole window a week; stepped back, the days before today dim as the
  * month grid's do.
  */
-export function RollingWeeksView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, owners, dayNotes }: CalendarViewProps) {
-  const t = useTranslate('modules');
+export function RollingWeeksView({ events, timezone, config, scale, today, anchor = today, stepped = false, now, timeFormat, owners, dayNotes }: CalendarViewProps) {
   const locale = useFormattingLocale();
-  const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const wrapTitles = config.wrapEventTitles === true;
   const weeks = clampRollingWeeks(config.rollingWeeksToShow);
   // The grid's type follows its cells, as the month grid's does.
@@ -39,7 +32,6 @@ export function RollingWeeksView({ events, timezone, config, scale, today, ancho
     settingFont: scale.bu * scale.typoMul * scale.densityMul,
   });
   const { scrollRef, containerH } = useContainerHeight();
-  const openDay = useDaySheetOpener();
 
   const cells = useMemo(
     () => Array.from({ length: weeks * 7 }, (_, i) => addDays(startOfDay(anchor), i)),
@@ -50,34 +42,9 @@ export function RollingWeeksView({ events, timezone, config, scale, today, ancho
   // grid re-anchors at midnight.
   const dowDates = useMemo(() => cells.slice(0, 7), [cells]);
 
-  // Auto pill budget from the measured height — same estimate/fallback
-  // shape as the month grid, whose rows are 5-6 where ours are 1-8.
-  const approxCellHeight = (containerH > 0 ? containerH : scale.height - scale.bu * 7) / weeks;
-  const pillHeight = fontSize * (wrapTitles ? 2.0 : 1.0);
-  const autoMax = (noteHeight: number) => Math.max(2, Math.floor((approxCellHeight - fontSize * 2 - noteHeight) / pillHeight));
-
   return (
     <div role="grid" aria-label={rollingRangeTitle(anchor, weeks, locale)} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div role="row" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(7, 1fr)',
-        borderBottom: '1px solid var(--cal-border)',
-        flexShrink: 0,
-      }}>
-        {dowDates.map((d, i) => (
-          <div key={i} role="columnheader" style={{
-            textAlign: 'center',
-            padding: `${scale.bu * 0.5}px 0`,
-            fontSize: fontSize * 0.7,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: isSameDay(d, today) ? 'var(--cal-accent)' : 'var(--cal-text-tertiary)',
-          }}>
-            {formatDateSync(d, 'EEE', { locale })}
-          </div>
-        ))}
-      </div>
+      <GridWeekdayHeader dates={dowDates} columns="repeat(7, 1fr)" fontSize={fontSize} scale={scale} today={today} />
 
       <div ref={scrollRef} style={{
         display: 'grid',
@@ -87,56 +54,29 @@ export function RollingWeeksView({ events, timezone, config, scale, today, ancho
         minHeight: 0,
       }}>
         {cells.map((day, i) => {
-          const dow = i % 7;
-          const isToday = isSameDay(day, today);
-          const isWeekend = isWeekendDay(day);
-          const dayEvents = events.filter(ev => isEventOnDay(ev, day, timezone));
-          const hasBirthday = dayEvents.some(ev => ev.kind === 'birthday');
-          const decor = dayDecorFor(config, day, dayEvents, { today, now, timezone, isDark: scale.isDark });
           const notes = dayNotesFor(dayNotes, day);
-          // With taps on, the whole cell opens the day, outside its events.
-          const cellTap = openDayCellProps(openDay, day, dayEvents);
-
           return (
-            <div
+            <GridDayCell
               key={day.toISOString()}
-              role="gridcell"
-              aria-label={t('fullscreen-calendar.ariaLabels.monthCell', { date: formatDateSync(day, dayMonthPattern(locale), { locale }), count: dayEvents.length })}
-              {...cellTap}
-              style={mergeCellDecor({
-                cursor: cellTap ? 'pointer' : undefined,
-                borderRight: dow < 6 ? '1px solid var(--cal-border-subtle)' : undefined,
-                borderBottom: '1px solid var(--cal-border-subtle)',
-                borderLeft: isToday && showTodayMarker ? '2px solid var(--cal-accent)' : undefined,
-                padding: scale.bu * 0.3,
-                position: 'relative',
-                overflow: 'hidden',
-                opacity: !stepped && day < today && config.dimPastEvents ? 'var(--cal-past-opacity)' : undefined,
-                background: dayCellFill(isToday, showTodayBg, isWeekend, config)
-                  ?? (hasBirthday
-                    // Cell-level "a birthday is here" signal, not any one
-                    // kid's color — a fixed tint avoids picking one
-                    // source's color arbitrarily when several birthdays
-                    // land on the same day.
-                    ? eventBg('#EC4899', scale.isDark ? 0.16 : 0.10, scale.isDark)
-                    : undefined),
-              }, decor)}
-            >
-              {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
-              <GridCellBody
-                day={day}
-                notes={notes}
-                dayEvents={dayEvents}
-                maxEvents={autoMax(gridNotesHeight(notes.length, fontSize, scale))}
-                showMonthName
-                fontSize={fontSize}
-                scale={scale}
-                config={config}
-                today={today}
-                decor={decor}
-                owners={owners}
-              />
-            </div>
+              day={day}
+              column={i % 7}
+              isWeekend={isWeekendDay(day)}
+              opacity={!stepped && day < today && config.dimPastEvents ? 'var(--cal-past-opacity)' : undefined}
+              notes={notes}
+              dayEvents={events.filter(ev => isEventOnDay(ev, day, timezone))}
+              // Always as many as the measured row fits: rows are 1-8 here
+              // where the month grid's are 5-6, so one fixed number cannot suit.
+              maxEvents={autoMaxEvents({ containerH, rows: weeks, fontSize, noteHeight: gridNotesHeight(notes.length, fontSize, scale), wrapTitles, scale })}
+              showMonthName
+              fontSize={fontSize}
+              scale={scale}
+              config={config}
+              today={today}
+              now={now}
+              timezone={timezone}
+              timeFormat={timeFormat}
+              owners={owners}
+            />
           );
         })}
       </div>

@@ -1,3 +1,4 @@
+import { addDays } from 'date-fns';
 import { DAY_NOTES_LIMITS, type DayNote, type DayNotesData } from '@/types/day-notes';
 import { localISODate } from './timezone';
 import { RefusalError, type RefusalParams } from './refusal';
@@ -86,10 +87,16 @@ export function dayNotesFor(notes: DayNotes | undefined, date: Date): readonly s
   return notes?.[localISODate(date)] ?? NONE;
 }
 
-/** True when any of `dates` has a note: a calendar with no events but a note in view still draws its view. */
-export function hasDayNoteIn(notes: DayNotes, dates: readonly Date[]): boolean {
+/**
+ * True when a day from `start` up to, not including, `end` has a note: a
+ * calendar with no events but a note on a day it draws still draws its view.
+ */
+export function hasDayNoteInWindow(notes: DayNotes, start: Date, end: Date): boolean {
   if (notes === NO_DAY_NOTES) return false;
-  return dates.some((date) => notes[localISODate(date)] !== undefined);
+  for (let day = start; day < end; day = addDays(day, 1)) {
+    if (notes[localISODate(day)] !== undefined) return true;
+  }
+  return false;
 }
 
 /** The notes written for one day, in order. */

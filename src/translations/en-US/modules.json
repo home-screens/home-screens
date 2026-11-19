@@ -201,6 +201,7 @@
     "untilTime": "Until {time}",
     "cantLoadEvents": "Can't load events right now",
     "weekOf": "Week of {date}",
+    "weekNumber": "Week {number}",
     "holiday": "Holiday",
     "birthday": "Birthday",
     "birthdayWithAge": "Birthday · turns {age}",

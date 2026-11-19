@@ -6,21 +6,13 @@ import LabeledInput from '@/components/ui/LabeledInput';
 import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { useEditorStore } from '@/stores/editor-store';
 import { clampRollingWeeks, clampWeeksToShow, isGridView, isThemedGridView, defaultGridMaxEventsPerCell } from '@/lib/calendar-utils';
 import { DEFAULT_CALENDAR_ACCENT } from '@/lib/calendar-color';
 import { useTranslate } from '@/i18n';
-import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import { CalendarPeopleFilter, LegendModeSelect, NameTagsToggle, useCalendarRoster } from './CalendarPeopleControls';
-import { CalendarTitleFilterControl } from './CalendarTitleFilter';
+import { useCalendarSources } from './CalendarSourceFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
-import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
+import { CalendarGroup, CalendarRulesGroup, CalendarTouchGroup, CalendarWhatShowsGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
 import type { CalendarEventRule, CalendarDayRule, AgendaSeparators, CalendarAllDayStyle, CalendarLegendPlacement, CalendarLegendMode, CalendarPeopleFilter as CalendarPeopleFilterValue, CalendarTitleFilter, EventTapStyle, ModuleInstance } from '@/types/config';
-import { CalendarDayNotesToggle } from './CalendarDayNotesToggle';
-
-// Stable selector fallback — a literal `?? []` inside a zustand selector
-// re-renders forever when the key is absent (React #185, tab crash).
-const EMPTY_IDS: string[] = [];
 
 export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; screenId: string }) {
   const t = useTranslate('editor');
@@ -64,8 +56,6 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     dayRules?: CalendarDayRule[];
   }>(mod, screenId);
   const viewMode = c.viewMode ?? 'daily';
-  const sourceFilter = c.sourceFilter ?? [];
-  const roster = useCalendarRoster();
   const gridTheme = c.gridTheme ?? 'banner';
   const isThemedGrid = isThemedGridView(viewMode);
   // The modern themes carry their own pill styling; gridEventStyle and the
@@ -99,14 +89,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
     { value: 'vivid', label: t('configSections.calendar.themeVivid') },
   ] as const;
 
-  const LEGEND_OPTIONS = [
-    { value: 'off', label: t('configSections.calendar.legendOff') },
-    { value: 'header', label: t('configSections.calendar.legendHeader') },
-    { value: 'footer', label: t('configSections.calendar.legendFooter') },
-  ] as const;
-
   const { availableSources, googleAuthError } = useCalendarSources('configSections.calendar');
-  const googleCalendarIds = useEditorStore((s) => s.config?.settings?.calendar?.googleCalendarIds ?? EMPTY_IDS);
   const groups = useCalendarGroupLabels();
 
   // The "this view" heading names the view itself, so the block that swaps
@@ -141,36 +124,13 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       )}
 
       {/* ── What shows: the data coming in, before any styling ── */}
-      <CalendarGroup label={groups.whatShows}>
-        {googleAuthError && googleCalendarIds.length > 0 && (
-          <div className="rounded-md bg-hs-warning/20 border border-hs-warning/30 px-3 py-2 text-xs text-hs-warning">
-            {t('configSections.calendar.googleAuthExpired')}
-          </div>
-        )}
-        <CalendarSourceFilter
-          keyPrefix="configSections.calendar"
-          availableSources={availableSources}
-          sourceFilter={sourceFilter}
-          onChange={(next) => set({ sourceFilter: next })}
-        />
-        <CalendarPeopleFilter value={c.peopleFilter} onChange={(next) => set({ peopleFilter: next })} members={roster.members} groups={roster.groups} owners={roster.owners} />
-        <CalendarTitleFilterControl
-          keyPrefix="configSections.calendar"
-          titleFilter={c.titleFilter}
-          onChange={(next) => set({ titleFilter: next })}
-        />
-        <LabeledSelect
-          label={t('configSections.calendar.showLegend')}
-          value={c.showLegend ?? 'off'}
-          onChange={(v) => set({ showLegend: v })}
-          options={LEGEND_OPTIONS}
-        />
-        {(c.showLegend ?? 'off') !== 'off' && (
-          <LegendModeSelect value={c.legendMode ?? 'calendars'} onChange={(next) => set({ legendMode: next })} owners={roster.owners} groups={roster.groups} />
-        )}
-        <NameTagsToggle checked={c.showNameTags === true} onChange={(next) => set({ showNameTags: next })} owners={roster.owners} />
-        <CalendarDayNotesToggle checked={c.showDayNotes !== false} onChange={(next) => set({ showDayNotes: next })} />
-      </CalendarGroup>
+      <CalendarWhatShowsGroup
+        keyPrefix="configSections.calendar"
+        config={c}
+        set={set}
+        availableSources={availableSources}
+        googleAuthError={googleAuthError}
+      />
 
       {/* ── This view: every view-gated field, pooled ── */}
       <CalendarGroup label={viewLabel} when={viewLabel !== ''}>
@@ -342,20 +302,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
       </CalendarRulesGroup>
 
       {/* ── Touch: interaction, not appearance ── */}
-      <CalendarGroup label={groups.touch}>
-        <Toggle label={t('configSections.calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
-        {c.eventTapDetails === true && (
-          <LabeledSelect
-            label={t('configSections.calendar.eventTapStyle')}
-            value={c.eventTapStyle ?? 'sheet'}
-            onChange={(v) => set({ eventTapStyle: v })}
-            options={[
-              { value: 'sheet', label: t('configSections.calendar.eventTapStyleSheet') },
-              { value: 'card', label: t('configSections.calendar.eventTapStyleCard') },
-            ]}
-          />
-        )}
-      </CalendarGroup>
+      <CalendarTouchGroup keyPrefix="configSections.calendar" config={c} set={set} />
     </>
   );
 }

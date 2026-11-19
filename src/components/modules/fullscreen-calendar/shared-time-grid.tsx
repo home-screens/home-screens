@@ -3,7 +3,14 @@
 import { useElementBox } from '@/hooks/useElementBox';
 import { formatDateSync } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { TimeFormat } from '@/types/config';
+import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
+import type { TimedEventLayout } from '@/lib/calendar-event-layout';
+import { eventOwner, type EventOwner } from '@/lib/calendar-people';
+import { eventGlyph } from '@/lib/calendar-rules';
+import { eventEndLabel, formatEventTime, parseEventWallTime } from '@/lib/calendar-utils';
+import type { CalendarEvent, TimeFormat } from '@/types/config';
+import { eventAriaLabel } from './list-view-bits';
+import type { openDayProps } from '../shared/useDaySheet';
 
 // ─── Utilities ───
 
@@ -32,6 +39,48 @@ export function hourLabelShift(index: number, lastIndex: number): string {
   if (index === 0) return 'translateY(0)';
   if (index === lastIndex) return 'translateY(-100%)';
   return 'translateY(-50%)';
+}
+
+/**
+ * Where a timed event's block sits in an hour grid, and what it says: the
+ * part the Schedule and the Day timeline work out the same way. Null for an
+ * event the grid does not draw: outside the visible hours, or hidden behind
+ * the "+N" of a side-by-side layout. Each view keeps its own block (insets,
+ * type sizes, what it lists under the title) and its own idea of "past".
+ */
+export function timedBlockModel(ev: CalendarEvent, grid: Pick<TimedEventLayout, 'hourSpans' | 'overlapLayout'> & {
+  hourStart: number;
+  hourHeight: number;
+  /** The least a block is drawn at, px, so a short event keeps its title. */
+  minHeight: number;
+  owners?: ReadonlyMap<string, EventOwner>;
+  timezone?: string;
+  timeFormat: TimeFormat;
+  locale: string;
+  t: TranslateFn;
+}) {
+  // Absent span = outside the visible hour window (dropped by
+  // computeTimedEventLayout's clamp-and-filter).
+  const span = grid.hourSpans.get(ev.id);
+  if (!span) return null;
+  const layout = grid.overlapLayout.get(ev.id);
+  if (!layout || layout.width === 0) return null; // behind the "+N"
+  const startAt = parseEventWallTime(ev.start, grid.timezone);
+  const startLabel = formatEventTime(startAt, grid.timeFormat, grid.locale);
+  const endLabel = eventEndLabel(startAt, parseEventWallTime(ev.end, grid.timezone), grid.timeFormat, grid.locale);
+  return {
+    layout,
+    top: (span.startHour - grid.hourStart) * grid.hourHeight,
+    height: Math.max((span.endHour - span.startHour) * grid.hourHeight, grid.minHeight),
+    /** The hour the event ends on this day, for the caller's "already over" test. */
+    endHour: span.endHour,
+    color: ev.calendarColor ?? DEFAULT_EVENT_COLOR,
+    glyph: eventGlyph(ev),
+    owner: eventOwner(ev, grid.owners),
+    startLabel,
+    endLabel,
+    ariaLabel: eventAriaLabel(grid.t, ev, { startLabel, endLabel }),
+  };
 }
 
 // ─── Hooks ───
@@ -99,6 +148,127 @@ export function RollingWindowStrip({ hourStart, hourEnd, hiddenEarlier, fontSize
         </span>
       )}
     </div>
+  );
+}
+
+/**
+ * The hour labels down the side of a time grid. The two grids set them a
+ * little differently (size, weight, how far from the grid), so those are the
+ * caller's; `highlightHour` marks the hour it is now, where a view does that.
+ */
+export function HourGutter({ hourStart, totalHours, hourHeight, fontSize, weight, inset, highlightHour, timeFormat, am, pm }: {
+  hourStart: number;
+  totalHours: number;
+  hourHeight: number;
+  /** The labels' own size, px. */
+  fontSize: number;
+  weight: number;
+  /** Space between the labels and the grid, px. */
+  inset: number;
+  highlightHour?: number | null;
+  timeFormat: TimeFormat;
+  am: string;
+  pm: string;
+}) {
+  return (
+    <>
+      {Array.from({ length: totalHours + 1 }, (_, i) => {
+        const h = hourStart + i;
+        const current = highlightHour === h;
+        return (
+          <div
+            key={h}
+            style={{
+              position: 'absolute',
+              top: i * hourHeight,
+              right: inset,
+              fontSize,
+              fontWeight: current ? 600 : weight,
+              color: current ? 'var(--cal-text-primary)' : 'var(--cal-text-tertiary)',
+              transform: hourLabelShift(i, totalHours),
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {formatHourLabel(h, timeFormat, am, pm)}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * "+2" over the hour where a side-by-side layout ran out of room: the events
+ * it stands for are not drawn at all. With "Tap an event to see details" on
+ * it opens the day (`tap`, from `openDayProps`), in the accent like the
+ * grids' "+N more", with room around it for a finger; otherwise it is the
+ * quiet count it always was.
+ */
+export function HiddenCountPill({ count, top, right, fontSize, padding, label, tap, scale }: {
+  count: number;
+  top: number;
+  right: number;
+  fontSize: number;
+  padding: string;
+  /** "+2 more", for a screen reader when the pill is only a count. */
+  label: string;
+  tap: ReturnType<typeof openDayProps>;
+  scale: { bu: number };
+}) {
+  const pill = {
+    fontSize,
+    fontWeight: 600,
+    borderRadius: 999,
+    padding,
+  } as const;
+  if (!tap) {
+    return (
+      <div
+        aria-label={label}
+        style={{
+          ...pill,
+          position: 'absolute',
+          top,
+          right,
+          zIndex: 3,
+          color: 'var(--cal-text-secondary)',
+          background: 'var(--cal-surface)',
+          border: '1px solid var(--cal-border)',
+          pointerEvents: 'none',
+        }}
+      >
+        +{count}
+      </div>
+    );
+  }
+  // The button is the pill plus a margin of nothing, so a finger does not
+  // have to land on a few millimetres of text.
+  const reach = scale.bu * 0.9;
+  return (
+    <button
+      type="button"
+      {...tap}
+      data-hidden-count=""
+      style={{
+        position: 'absolute',
+        top: top - reach,
+        right: right - reach,
+        zIndex: 3,
+        padding: reach,
+        border: 'none',
+        background: 'none',
+        fontFamily: 'inherit',
+        lineHeight: 'inherit',
+        cursor: 'pointer',
+      }}
+    >
+      {/* The tint over the surface the plain count had, so the blocks under it do not show through. */}
+      <span style={{ ...pill, display: 'block', color: 'var(--cal-accent)', background: 'linear-gradient(var(--cal-accent-bg), var(--cal-accent-bg)), var(--cal-surface)', border: '1px solid var(--cal-accent-surface)' }}>
+        +{count}
+      </span>
+    </button>
   );
 }
 

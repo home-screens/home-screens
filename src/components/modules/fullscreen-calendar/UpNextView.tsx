@@ -4,12 +4,13 @@ import { eventOwner } from '@/lib/calendar-people';
 import { EventMarker } from '../shared/EventMarker';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
-  parseEventWallTime, formatEventTime, eventEndLabel, formatCountdown, eventProgress, eventKindLabel,
+  parseEventWallTime, formatEventTime, eventEndLabel, formatCountdown, eventProgress, eventKindLabel, isEventOnDay,
 } from '@/lib/calendar-utils';
 import { buildUpNextModel, UP_NEXT_LATER_MAX, type UpNextTimedEvent } from '@/lib/calendar-up-next';
 import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import { MapPin } from 'lucide-react';
-import { wallScrollLook, type CalendarViewProps, type CalendarWeather, type RowCtx } from './view-support';
+import { dayDecorFor, wallScrollLook, type CalendarViewProps, type CalendarWeather, type RowCtx } from './view-support';
+import { DayBadges } from '../shared/DayBadges';
 import { eventSurface, eventBorder } from '@/lib/calendar-event-surface';
 import { DEFAULT_EVENT_COLOR } from '@/lib/calendar-color';
 import { eventGlyph, eventOpacity } from '@/lib/calendar-rules';
@@ -47,6 +48,11 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
   );
   const { hero, heroIsRunning, heroDay, heroToday, later, running: runningRows, earlier, allDayToday, tomorrowRows, remainingToday, tomorrow } = model;
   const todayNotes = dayNotesFor(dayNotes, today);
+  // Day rules: today's badges sit under the date and tomorrow's beside its
+  // heading. Badges only; a rule's colour or picture has no day cell here.
+  const badgesFor = (day: Date) => dayDecorFor(config, day, events.filter((ev) => isEventOnDay(ev, day, timezone)), { today, now, timezone, isDark: scale.isDark }).badges;
+  const todayBadges = badgesFor(today);
+  const tomorrowBadges = showTomorrow ? badgesFor(tomorrow) : [];
   const tomorrowNotes = showTomorrow ? dayNotesFor(dayNotes, tomorrow) : [];
   const pad = scale.bu * 3.5;
   const sectionGap = scale.bu * 3;
@@ -119,6 +125,8 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
           {formatEventTime(now, timeFormat, locale)}
           {' · '}
           {t('fullscreen-calendar.upNext.moreToday', { count: remainingToday })}
+          {/* On the same line, so a badge never moves the board under it. */}
+          <DayBadges badges={todayBadges} style={{ marginLeft: '0.6em', verticalAlign: 'middle', color: 'var(--cal-text-primary)' }} />
         </div>
         <DayNoteLines
           notes={todayNotes}
@@ -212,8 +220,12 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
       )}
 
       {/* Tomorrow: its note first, and the section shows for a note alone */}
-      {(tomorrowRows.length > 0 || tomorrowNotes.length > 0) && (
-        <Section title={t('fullscreen-calendar.upNext.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })} fontSize={fontSize}>
+      {(tomorrowRows.length > 0 || tomorrowNotes.length > 0 || tomorrowBadges.length > 0) && (
+        <Section
+          title={t('fullscreen-calendar.upNext.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })}
+          fontSize={fontSize}
+          badges={<DayBadges badges={tomorrowBadges} style={{ fontSize: fontSize * 1.5, color: 'var(--cal-text-primary)' }} />}
+        >
           <DayNoteLines
             notes={tomorrowNotes}
             tone="fullscreen"
@@ -237,11 +249,15 @@ export function UpNextView({ events, timezone, config, scale, today, now, timeFo
   );
 }
 
-function Section({ title, fontSize, children }: { title: string; fontSize: number; children: React.ReactNode }) {
+function Section({ title, fontSize, badges, children }: { title: string; fontSize: number; badges?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div style={{ flexShrink: 0, minHeight: 0 }}>
-      <div style={{ fontSize: fontSize * 1.05, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cal-text-tertiary)', marginBottom: fontSize * 0.9 }}>
-        {title}
+      <div style={{ display: 'flex', alignItems: 'center', gap: fontSize * 0.8, marginBottom: fontSize * 0.9 }}>
+        <span style={{ fontSize: fontSize * 1.05, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cal-text-tertiary)' }}>
+          {title}
+        </span>
+        {/* Day rule badges for the day the section is about, in their own case and colour. */}
+        {badges}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: fontSize * 0.7 }}>
         {children}
@@ -312,7 +328,7 @@ function HeroCard({ item, running, heroToday, heroDay, now, ctx, showDescription
       </div>
       <div style={{ marginTop: scale.bu * 2.2, fontSize: fontSize * 2.6, lineHeight: 1.35, color: 'var(--cal-text-secondary)' }}>
         <span style={{ color: 'var(--cal-text-primary)', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{endLabel === null ? startLabel : <>{startLabel} {'–'} {endLabel}</>}</span>
-        {ev.location && (
+        {ctx.config.showLocation !== false && ev.location && (
           <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 0.6 }}>
             <MapPin size={fontSize * 2} aria-hidden="true" style={{ flexShrink: 0 }} />
             <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ev.location}</span>
@@ -387,7 +403,7 @@ function ListRow({ item, allDay, ctx, showDescription, trailing, dim, progress }
         <span style={{ fontSize: fontSize * 2.5, fontWeight: 600, color: 'var(--cal-text-primary)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <GlyphPrefix value={glyph} />{ev.title}
         </span>
-        {ev.location && (
+        {ctx.config.showLocation !== false && ev.location && (
           <span style={{ fontSize: fontSize * 1.6, color: 'var(--cal-text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '28%' }}>
             {ev.location}
           </span>

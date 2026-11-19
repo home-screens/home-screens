@@ -767,8 +767,28 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     // The week-number column adds one empty header cell ahead of the 7 weekday
     // headers (7 → 8).
     type: 'fullscreen-calendar', name: 'month-week-numbers', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'month-grid', monthShowWeekNumbers: true },
+    config: { view: 'month-grid', showWeekNumbers: true },
     expect: count('[role="columnheader"]', 8),
+  },
+  {
+    // Start times are off unless chosen; on, each timed pill leads with one.
+    type: 'fullscreen-calendar', name: 'month-show-times', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: { view: 'month-grid', gridShowTimes: true },
+    expect: async (mod) => {
+      await expect(mod.locator('[data-event-id="mm1"] [data-pill-time]')).toHaveText('9a');
+      await expect(mod.locator('[data-event-id="mm3"] [data-pill-time]')).toHaveText('1p');
+    },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'month-show-times-off', kind: 'networked', stubKey: 'calendar', stubBody: MONTH_MANY,
+    config: { view: 'month-grid', gridShowTimes: false },
+    expect: count('[data-pill-time]', 0),
+  },
+  {
+    // In a view that draws one week the number goes in the title.
+    type: 'fullscreen-calendar', name: 'week-list-week-number', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'week-list', showWeekNumbers: true },
+    expect: async (mod) => { await expect(mod.locator('.fsc-header-title')).toHaveText(/^Week \d{1,2} · /); },
   },
   {
     // Cap of 1 with three same-day events forces a "+2 more" overflow row.
@@ -799,8 +819,19 @@ export const FULLSCREEN_CALENDAR_VARIANTS: ConfigVariant[] = [
     // The default event carries location "123 Main St"; hiding locations drops
     // it while the event title stays.
     type: 'fullscreen-calendar', name: 'day-show-location-off', kind: 'networked', stubKey: 'calendar',
-    config: { view: 'day-timeline', dayShowLocation: false },
+    config: { view: 'day-timeline', showLocation: false },
     expect: async (mod) => { await has('Dentist Appointment')(mod); await expect(mod).not.toContainText('123 Main St'); },
+  },
+  {
+    // The one switch reaches the list views too.
+    type: 'fullscreen-calendar', name: 'agenda-show-location-off', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', showLocation: false },
+    expect: async (mod) => { await has('Dentist Appointment')(mod); await expect(mod).not.toContainText('123 Main St'); },
+  },
+  {
+    type: 'fullscreen-calendar', name: 'agenda-show-location', kind: 'networked', stubKey: 'calendar',
+    config: { view: 'agenda', showLocation: true },
+    expect: has('123 Main St'),
   },
   {
     type: 'fullscreen-calendar', name: 'day-show-description', kind: 'networked', stubKey: 'calendar', stubBody: DAY_DESC,

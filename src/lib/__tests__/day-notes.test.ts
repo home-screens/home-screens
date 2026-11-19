@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DayNotesError, NO_DAY_NOTES, LAST_DAY_NOTES_PAGE, addDayNote, addIsoDays, clampDayNoteText, dayNoteLength, dayNotesFor,
-  hasDayNoteIn, indexDayNotes, isIsoDate, normalizeDayNoteText, notesOnDay, removeDayNote, sweepDayNotes, updateDayNote,
+  hasDayNoteInWindow, indexDayNotes, isIsoDate, normalizeDayNoteText, notesOnDay, removeDayNote, sweepDayNotes, updateDayNote,
   upcomingDays, validateDayNotesData,
 } from '../day-notes';
 import { DAY_NOTES_LIMITS, type DayNote, type DayNotesData } from '@/types/day-notes';
@@ -130,9 +130,11 @@ describe('the view index', () => {
     expect(dayNotesFor(undefined, new Date(2026, 10, 4))).toEqual([]);
   });
   it('says whether any day in view has a note', () => {
-    expect(hasDayNoteIn(index, [new Date(2026, 10, 3), new Date(2026, 10, 4)])).toBe(true);
-    expect(hasDayNoteIn(index, [new Date(2026, 10, 6)])).toBe(false);
-    expect(hasDayNoteIn(NO_DAY_NOTES, [new Date(2026, 10, 4)])).toBe(false);
+    expect(hasDayNoteInWindow(index, new Date(2026, 10, 3), new Date(2026, 10, 5))).toBe(true);
+    // The end day is not part of the window.
+    expect(hasDayNoteInWindow(index, new Date(2026, 10, 3), new Date(2026, 10, 4))).toBe(false);
+    expect(hasDayNoteInWindow(index, new Date(2026, 10, 6), new Date(2026, 10, 7))).toBe(false);
+    expect(hasDayNoteInWindow(NO_DAY_NOTES, new Date(2026, 10, 4), new Date(2026, 10, 5))).toBe(false);
     expect(indexDayNotes([])).toBe(NO_DAY_NOTES);
   });
 });

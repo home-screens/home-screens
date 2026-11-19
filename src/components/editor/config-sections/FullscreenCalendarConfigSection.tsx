@@ -8,22 +8,19 @@ import LabeledSelect from '@/components/ui/LabeledSelect';
 import Slider from '@/components/ui/Slider';
 import FullscreenThemeSelect from './FullscreenThemeSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
-import { effectiveWeatherPlacement, viewTraits } from '@/components/modules/fullscreen-calendar/view-traits';
+import { effectiveWeatherPlacement, titleShowsWeekNumber, viewTraits } from '@/components/modules/fullscreen-calendar/view-traits';
 import { resolveCalendarAccent } from '@/lib/calendar-event-surface';
 import { useFullscreenThemeTokens } from '@/hooks/useFullscreenThemeTokens';
 import { useTranslate } from '@/i18n';
-import { CalendarSourceFilter, useCalendarSources } from './CalendarSourceFilter';
-import { CalendarPeopleFilter, LegendModeSelect, NameTagsToggle, useCalendarRoster } from './CalendarPeopleControls';
-import { CalendarTitleFilterControl } from './CalendarTitleFilter';
+import { useCalendarSources } from './CalendarSourceFilter';
 import { CalendarRulesEditor } from './CalendarRulesEditor';
-import { CalendarGroup, CalendarRulesGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
-import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, EventTapStyle, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, CalendarLegendPlacement, HourWindowMode } from '@/types/config';
+import { CalendarGroup, CalendarRulesGroup, CalendarTouchGroup, CalendarWhatShowsGroup, useCalendarGroupLabels } from './CalendarSettingsGroups';
+import type { FullscreenTypographySize, FullscreenCalendarView, CalendarDensity, TodayHighlightStyle, EventOverlapMode, WeatherPlacement, AgendaSeparators, ScheduleStartAnchor, HourWindowMode } from '@/types/config';
 import { ROLLING_HOURS_DEFAULT, ROLLING_HOURS_MAX, ROLLING_HOURS_MIN } from '@/lib/calendar-hour-window';
 import { clampRollingWeeks } from '@/lib/calendar-utils';
 import { useFamilyData } from '@/hooks/useFamilyData';
 import { settingsPath } from '@/lib/settings-route';
 import type { ModuleInstance, FullscreenCalendarConfig } from '@/types/config';
-import { CalendarDayNotesToggle } from './CalendarDayNotesToggle';
 
 const SHOW_DESCRIPTION_KEY = {
   'schedule': 'scheduleShowDescription',
@@ -39,8 +36,6 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   const tCore = useTranslate('core');
   const { config: c, set } = useModuleConfig<Partial<FullscreenCalendarConfig>>(mod, screenId);
   const view = c.view ?? 'schedule';
-  const sourceFilter = c.sourceFilter ?? [];
-  const roster = useCalendarRoster();
   // What the picker shows while accentColor is empty: the accent the module
   // paints with, resolved through the same chain as the display (inherited
   // theme included) so the swatch and the kiosk can never disagree.
@@ -90,11 +85,6 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'stacked', label: t('configSections.fullscreen-calendar.overlapStacked') },
   ];
 
-  const TAP_STYLE_OPTIONS: { value: EventTapStyle; label: string }[] = [
-    { value: 'sheet', label: t('configSections.fullscreen-calendar.eventTapStyleSheet') },
-    { value: 'card', label: t('configSections.fullscreen-calendar.eventTapStyleCard') },
-  ];
-
   const START_DAY_OPTIONS = [
     { value: 'sunday', label: tCore('days.sunday') },
     { value: 'monday', label: tCore('days.monday') },
@@ -120,25 +110,21 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
     { value: 'next-weekend', label: t('configSections.fullscreen-calendar.anchorWeekend') },
   ];
 
-  const LEGEND_OPTIONS: { value: CalendarLegendPlacement; label: string }[] = [
-    { value: 'off', label: t('configSections.fullscreen-calendar.legendOff') },
-    { value: 'header', label: t('configSections.fullscreen-calendar.legendHeader') },
-    { value: 'footer', label: t('configSections.fullscreen-calendar.legendFooter') },
-  ];
-
   // View-shape flags come from the shared registry, so the editor's gating
   // can never disagree with what the view actually renders.
   const { isListView, isPersonView, isSingleDay: isSingleDayView, isTimeGrid, weather: viewWeather } = viewTraits(view);
   const { members } = useFamilyData();
   const peopleCount = members.length;
 
-  const { availableSources } = useCalendarSources('configSections.fullscreen-calendar');
+  const { availableSources, googleAuthError } = useCalendarSources('configSections.fullscreen-calendar');
   const groups = useCalendarGroupLabels();
 
   // The "this view" heading names the view itself, so the block that swaps
   // when the picker changes is labelled with what it belongs to.
   const viewLabel = VIEW_OPTIONS.find((v) => v.value === view)?.label ?? '';
   const dimsPast = view !== 'up-next' && view !== 'free-time';
+  // The views with room for where an event is.
+  const showsLocation = view === 'day-timeline' || view === 'week-list' || view === 'agenda' || view === 'up-next';
   const descriptionKey = view in SHOW_DESCRIPTION_KEY ? SHOW_DESCRIPTION_KEY[view as keyof typeof SHOW_DESCRIPTION_KEY] : null;
 
   return (
@@ -168,31 +154,15 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       />
 
       {/* ── What shows: the data coming in, before any styling ── */}
-      <CalendarGroup label={groups.whatShows}>
-        <CalendarSourceFilter
-          keyPrefix="configSections.fullscreen-calendar"
-          availableSources={availableSources}
-          sourceFilter={sourceFilter}
-          onChange={(next) => set({ sourceFilter: next })}
-        />
-        <CalendarPeopleFilter value={c.peopleFilter} onChange={(next) => set({ peopleFilter: next })} members={roster.members} groups={roster.groups} owners={roster.owners} />
-        <CalendarTitleFilterControl
-          keyPrefix="configSections.fullscreen-calendar"
-          titleFilter={c.titleFilter}
-          onChange={(next) => set({ titleFilter: next })}
-        />
-        <LabeledSelect
-          label={t('configSections.fullscreen-calendar.showLegend')}
-          value={c.showLegend ?? 'off'}
-          onChange={(v) => set({ showLegend: v })}
-          options={LEGEND_OPTIONS}
-        />
-        {(c.showLegend ?? 'off') !== 'off' && (
-          <LegendModeSelect value={c.legendMode ?? 'calendars'} onChange={(next) => set({ legendMode: next })} owners={roster.owners} groups={roster.groups} />
-        )}
-        <NameTagsToggle checked={c.showNameTags === true} onChange={(next) => set({ showNameTags: next })} owners={roster.owners} />
-        <CalendarDayNotesToggle checked={c.showDayNotes !== false} onChange={(next) => set({ showDayNotes: next })} />
-      </CalendarGroup>
+      {/* Name tags are left out of the views whose rows are people already. */}
+      <CalendarWhatShowsGroup
+        keyPrefix="configSections.fullscreen-calendar"
+        config={c}
+        set={set}
+        availableSources={availableSources}
+        googleAuthError={googleAuthError}
+        nameTags={!isPersonView}
+      />
 
       {/* ── This view: every view-gated field, pooled ── */}
       <CalendarGroup label={viewLabel} when={viewLabel !== ''}>
@@ -319,7 +289,6 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
         )}
         {view === 'month-grid' && (
           <>
-            <Toggle label={t('configSections.fullscreen-calendar.showWeekNumbers')} checked={!!c.monthShowWeekNumbers} onChange={(v) => set({ monthShowWeekNumbers: v })} />
             <LabeledInput
               label={t('configSections.fullscreen-calendar.maxEventsPerCellAuto')}
               type="number"
@@ -359,6 +328,10 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
               options={SEPARATOR_OPTIONS}
             />
           </>
+        )}
+        {/* Down the side of the Month grid; in the title of the views that draw one week. */}
+        {(view === 'month-grid' || titleShowsWeekNumber({ view, scheduleStartAnchor: c.scheduleStartAnchor })) && (
+          <Toggle label={t('configSections.fullscreen-calendar.showWeekNumbers')} checked={c.showWeekNumbers === true} onChange={(v) => set({ showWeekNumbers: v })} />
         )}
         {/* Agenda week separators label their week start with the same startDay
             the grids use, so the select follows the separators option there. */}
@@ -401,8 +374,11 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             onChange={(v) => set({ [descriptionKey]: v })}
           />
         )}
-        {view === 'day-timeline' && (
-          <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.dayShowLocation !== false} onChange={(v) => set({ dayShowLocation: v })} />
+        {showsLocation && (
+          <Toggle label={t('configSections.fullscreen-calendar.showLocation')} checked={c.showLocation !== false} onChange={(v) => set({ showLocation: v })} />
+        )}
+        {(view === 'month-grid' || view === 'rolling') && (
+          <Toggle label={t('configSections.timetable.showStartTimes')} checked={c.gridShowTimes === true} onChange={(v) => set({ gridShowTimes: v })} />
         )}
         {(view === 'schedule' || view === 'month-grid' || view === 'rolling') && (
           <Toggle
@@ -477,17 +453,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       </CalendarRulesGroup>
 
       {/* ── Touch: interaction, not appearance ── */}
-      <CalendarGroup label={groups.touch}>
-        <Toggle label={t('configSections.fullscreen-calendar.eventTapDetails')} checked={c.eventTapDetails === true} onChange={(v) => set({ eventTapDetails: v })} />
-        {c.eventTapDetails === true && (
-          <LabeledSelect
-            label={t('configSections.fullscreen-calendar.eventTapStyle')}
-            value={c.eventTapStyle ?? 'sheet'}
-            onChange={(v) => set({ eventTapStyle: v })}
-            options={TAP_STYLE_OPTIONS}
-          />
-        )}
-      </CalendarGroup>
+      <CalendarTouchGroup keyPrefix="configSections.fullscreen-calendar" config={c} set={set} />
     </>
   );
 }

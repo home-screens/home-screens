@@ -2105,9 +2105,29 @@ export interface FullscreenCalendarConfig {
    */
   freeTimeShowTomorrow?: boolean;
 
+  /**
+   * Show the week number: down the side of the Month grid, and in the title of the Week list,
+   * the Family grid and a Schedule that starts on the first day of the week ("Week 25 · June 14 – 20")
+   *
+   * Rolling weeks has none: its rows start on today, not on a week.
+   */
+  showWeekNumbers: boolean;
+  /**
+   * Show where an event is, in the views that have room for it (Day timeline, Week list, Agenda
+   * and Up next)
+   *
+   * default true; read as on unless it is exactly false
+   */
+  showLocation: boolean;
+
   // Month grid view
-  /** Show week numbers in month grid view */
-  monthShowWeekNumbers: boolean;
+  /**
+   * Month grid and Rolling weeks: show each event's start time in front of its title
+   *
+   * default false. A timed event over several days shows its start on the first day, nothing on
+   * the days between and "Until" with the end on the last (`gridPillTimeLabel`).
+   */
+  gridShowTimes?: boolean;
   /**
    * Max events per cell in month grid (0 = auto)
    *
@@ -2120,8 +2140,6 @@ export interface FullscreenCalendarConfig {
   dayHourStart: number;
   /** Day timeline view end hour */
   dayHourEnd: number;
-  /** Show event locations in day timeline view */
-  dayShowLocation: boolean;
   /** Show the event description under the title in day timeline view */
   dayShowDescription?: boolean;
 

@@ -3,6 +3,7 @@ import { CalendarClock, CalendarRange, Columns3, Grid3X3, Hourglass, List, Scrol
 import { formatDateSync, formatDayRange, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { clampAgendaDays, clampRollingWeeks, weekStartsOnFor } from '@/lib/calendar-utils';
+import { weekNumberFor } from '@/lib/week-number';
 import { viewDayWindow } from '@/lib/calendar-legend';
 import type { FullscreenCalendarConfig, FullscreenCalendarView, WeatherPlacement } from '@/types/config';
 import { scheduleColumnCount, scheduleFirstDay } from './view-support';
@@ -64,6 +65,23 @@ function weekRangeTitle(today: Date, weekStartsOn: 0 | 1, locale: string): strin
   return formatDayRange(startOfWeek(today, { weekStartsOn }), endOfWeek(today, { weekStartsOn }), locale);
 }
 
+/**
+ * A week-shaped view's title with its week number in front when the Week
+ * numbers switch is on: "Week 25 · June 14 – 20, 2026". `weekStart` is the
+ * first day drawn, which is a first day of the week in every caller, so the
+ * number is the one the Month grid prints beside that row.
+ */
+function withWeekNumber(title: string, weekStart: Date, { config, t }: Pick<ViewTitleCtx, 'config' | 't'>): string {
+  if (config.showWeekNumbers !== true) return title;
+  return `${t('fullscreen-calendar.weekNumber', { number: weekNumberFor(weekStart, config.startDay) })} · ${title}`;
+}
+
+/** The views whose title can carry a week number: the editor offers the switch for these and the Month grid. */
+export function titleShowsWeekNumber(config: Pick<FullscreenCalendarConfig, 'view' | 'scheduleStartAnchor'>): boolean {
+  return config.view === 'week-list' || config.view === 'family-grid'
+    || (config.view === 'schedule' && config.scheduleStartAnchor === 'start-of-week');
+}
+
 /** "September 11 – October 22, 2026" for the rolling window starting at
  *  `today` (`weeks` rows of 7), with the same rules as the week title. Exported so
  *  the view's aria label and the trait share one string. */
@@ -88,11 +106,16 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisWeek',
     isTimeGrid: true, isListView: false, isPersonView: false, isSingleDay: false,
     weather: { days: true, events: false },
-    headerTitle({ today, anchor = today, locale, config, scaleWidth }) {
+    headerTitle({ today, anchor = today, t, locale, config, scaleWidth }) {
       // The range starts at the anchor-resolved first column, which is only
       // `today` for the default anchor.
       const { start, count } = scheduleGeometry(today, anchor, config, scaleWidth);
-      return formatDayRange(start, addDays(start, count - 1), locale);
+      const title = formatDayRange(start, addDays(start, count - 1), locale);
+      // A board that starts on the week's first day is a week (or the first
+      // days of one); one that starts on today or the weekend is not. Stepped
+      // by fewer than seven columns it starts mid-week, and has no one number.
+      const startsWeek = titleShowsWeekNumber(config) && start.getDay() === weekStartsOnFor(config.startDay);
+      return startsWeek ? withWeekNumber(title, start, { config, t }) : title;
     },
     legendWindow({ today, anchor = today, weekStartsOn, config, scaleWidth }) {
       const { start, count } = scheduleGeometry(today, anchor, config, scaleWidth);
@@ -105,7 +128,10 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisWeek',
     isTimeGrid: false, isListView: true, isPersonView: false, isSingleDay: false,
     weather: { days: true, events: true },
-    headerTitle: ({ today, anchor = today, locale, config }) => weekRangeTitle(anchor, weekStartsOnFor(config.startDay), locale),
+    headerTitle: ({ today, anchor = today, t, locale, config }) => {
+      const weekStartsOn = weekStartsOnFor(config.startDay);
+      return withWeekNumber(weekRangeTitle(anchor, weekStartsOn, locale), startOfWeek(anchor, { weekStartsOn }), { config, t });
+    },
     legendWindow: ({ today, anchor = today, weekStartsOn }) => viewDayWindow({ kind: 'week', today: anchor, weekStartsOn }),
   },
   'month-grid': {
@@ -145,7 +171,10 @@ export const VIEW_TRAITS: Record<FullscreenCalendarView, ViewTraits> = {
     emptyKey: 'fullscreen-calendar.noEventsThisWeek',
     isTimeGrid: false, isListView: false, isPersonView: true, isSingleDay: false,
     weather: { days: true, events: false },
-    headerTitle: ({ today, anchor = today, locale, config }) => weekRangeTitle(anchor, weekStartsOnFor(config.startDay), locale),
+    headerTitle: ({ today, anchor = today, t, locale, config }) => {
+      const weekStartsOn = weekStartsOnFor(config.startDay);
+      return withWeekNumber(weekRangeTitle(anchor, weekStartsOn, locale), startOfWeek(anchor, { weekStartsOn }), { config, t });
+    },
     legendWindow: ({ today, anchor = today, weekStartsOn }) => viewDayWindow({ kind: 'week', today: anchor, weekStartsOn }),
   },
   'up-next': {

@@ -186,6 +186,31 @@ describe('view traits with an anchor', () => {
     expect(VIEW_TRAITS.rolling.headerTitle(ctx({ rollingWeeksToShow: 2 }, nextWeek))).toBe('August 31 – September 13, 2026');
   });
 
+  it('puts the week number in front of a week-shaped title when the switch is on', () => {
+    // The mock t returns the key, so the number itself is checked through weekNumberFor's callers below.
+    const on = { showWeekNumbers: true };
+    expect(VIEW_TRAITS['week-list'].headerTitle(ctx(on))).toBe('fullscreen-calendar.weekNumber · August 23 – 29, 2026');
+    expect(VIEW_TRAITS['family-grid'].headerTitle(ctx(on, addDays(today, 7)))).toBe('fullscreen-calendar.weekNumber · August 30 – September 5, 2026');
+    // The Month grid prints its numbers down the side, not in the title.
+    expect(VIEW_TRAITS['month-grid'].headerTitle(ctx(on))).toBe('August 2026');
+    // A Schedule is a week only when it starts on the week's first day.
+    expect(VIEW_TRAITS.schedule.headerTitle(ctx({ ...on, scheduleStartAnchor: 'start-of-week', scheduleDaysToShow: 7 }))).toBe('fullscreen-calendar.weekNumber · August 23 – 29, 2026');
+    expect(VIEW_TRAITS.schedule.headerTitle(ctx({ ...on, scheduleStartAnchor: 'today', scheduleDaysToShow: 7 }))).toBe('August 24 – 30, 2026');
+    // Stepped three columns on, it starts mid-week and belongs to no one week.
+    expect(VIEW_TRAITS.schedule.headerTitle(ctx({ ...on, scheduleStartAnchor: 'start-of-week', scheduleDaysToShow: 3 }, addDays(today, 3)))).toBe('August 26 – 28, 2026');
+  });
+
+  it('names the week the Month grid would: the number of the first day drawn', () => {
+    const number = (config: Partial<FullscreenCalendarConfig>) => {
+      const seen: unknown[] = [];
+      const spy = ((key: string, vars?: Record<string, unknown>) => { if (vars) seen.push(vars.number); return key; });
+      VIEW_TRAITS['week-list'].headerTitle({ ...ctx({ showWeekNumbers: true, ...config }), t: spy });
+      return seen[0];
+    };
+    expect(number({ startDay: 'sunday' })).toBe(35);
+    expect(number({ startDay: 'monday' })).toBe(35);
+  });
+
   it('keeps the agenda’s Upcoming at rest and names its days when stepped', () => {
     expect(VIEW_TRAITS.agenda.headerTitle(ctx({ agendaDaysAhead: 14 }))).toBe('fullscreen-calendar.headerUpcoming');
     expect(VIEW_TRAITS.agenda.headerTitle(ctx({ agendaDaysAhead: 14 }, today))).toBe('fullscreen-calendar.headerUpcoming');

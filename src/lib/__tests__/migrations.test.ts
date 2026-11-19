@@ -60,7 +60,7 @@ describe('migrations', () => {
   });
 
   it('getLatestSchemaVersion returns 19', () => {
-    expect(getLatestSchemaVersion()).toBe(19);
+    expect(getLatestSchemaVersion()).toBe(20);
   });
 });
 
@@ -295,9 +295,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
     const { config: result, migrationsRun } = migrateUp(config);
 
     expect(result.version).toBe(getLatestSchemaVersion());
-    expect(result.version).toBe(19);
-    // v2 through v18 run (v1 is the starting point, not re-applied).
-    expect(migrationsRun).toHaveLength(18);
+    expect(result.version).toBe(20);
+    // v2 through v20 run (v1 is the starting point, not re-applied).
+    expect(migrationsRun).toHaveLength(19);
     // Legacy single-display shape is preserved untouched: v2 leaves non-flag
     // modules alone, v3/v4/v5 are pure version bumps, v6 only touches
     // next-view countdowns (this fixture has no modules at all), v7 only
@@ -325,9 +325,9 @@ describe('migration edge cases: legacy + multi-display registry', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(19);
-    // Only v4 through v18 remain to run from a v3 config.
-    expect(migrationsRun).toHaveLength(16);
+    expect(result.version).toBe(20);
+    // Only v4 through v20 remain to run from a v3 config.
+    expect(migrationsRun).toHaveLength(17);
     // The registry is passed through verbatim. Seeding a sibling `main` is the
     // editor store's addDisplay job (see stores/__tests__/editor-store.test.ts),
     // never a migration's — so a registry without `main` must stay that way.
@@ -797,7 +797,7 @@ describe('migration v11: starter backgrounds moved to /starter-backgrounds/', ()
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(19);
+    expect(result.version).toBe(20);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v11: /));
     expect(result.screens[0].backgroundImage).toBe('/starter-backgrounds/plum.svg');
   });
@@ -838,9 +838,9 @@ describe('migration v12: retired dev update channel renamed to rc', () => {
 
     const { config: result, migrationsRun } = migrateUp(config);
 
-    expect(result.version).toBe(19);
+    expect(result.version).toBe(20);
     expect(migrationsRun).toContainEqual(expect.stringMatching(/^v12: /));
-    expect(migrationsRun.at(-1)).toMatch(/^v19: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v20: /);
     expect(result.settings.updateChannel).toBe('rc');
   });
 });
@@ -854,7 +854,7 @@ describe('migration v13: preserve family inputs for the coordinated fold', () =>
     config.settings.calendar = { ...config.settings.calendar, people, personSources };
     const before = structuredClone(config);
     const { config: migrated } = migrateUp(config);
-    expect(migrated.version).toBe(19);
+    expect(migrated.version).toBe(20);
     expect(migrated.settings.calendar.people).toEqual(people);
     expect(migrated.settings.calendar.personSources).toEqual(personSources);
     expect(config).toEqual(before);
@@ -1398,7 +1398,7 @@ describe('migration v18: photo modules and background rotation name their source
   it('is part of the full chain from v1', () => {
     const config = withModule(makeConfig(1), 'photo-slideshow', { source: 'local', directory: 'trips' });
     const { config: result, migrationsRun } = migrateUp(config);
-    expect(migrationsRun.at(-1)).toMatch(/^v19: /);
+    expect(migrationsRun.at(-1)).toMatch(/^v20: /);
     expect(result.screens[0].modules[0].config).toEqual({ photoSource: { kind: 'library', folder: 'trips' } });
   });
 });
@@ -1425,6 +1425,56 @@ describe('migration v19: open buttons and screens that show only when opened', (
     config.screens[0].modules[0].openButtonScreen = 'recipes';
     config.screens.push({ id: 'recipes', name: 'Recipe Book', backgroundImage: '', modules: [], rotation: 'opened', goBackAfterMs: 60_000 });
     const before = structuredClone(config);
-    expect(migrateUp(config).config).toEqual(before);
+    expect(migrateUp(config, 19).config).toEqual(before);
+  });
+});
+
+describe('migration v20: full-screen calendar week numbers and locations become view-neutral', () => {
+  function withCalendar(config: ScreenConfiguration, cfg: unknown, type = 'fullscreen-calendar'): ScreenConfiguration {
+    config.screens[0].modules = [{
+      id: 'cal-1', type, position: { x: 0, y: 0 }, size: { w: 1080, h: 1920 }, zIndex: 1, config: cfg, style: {},
+    } as unknown as ScreenConfiguration['screens'][number]['modules'][number]];
+    return config;
+  }
+  const migrated = (cfg: unknown) => migrateUp(withCalendar(makeConfig(19), cfg), 20).config.screens[0].modules[0].config;
+
+  it('carries each switch for the view that was reading it', () => {
+    expect(migrated({ view: 'month-grid', monthShowWeekNumbers: true, dayShowLocation: true }))
+      .toEqual({ view: 'month-grid', showWeekNumbers: true, showLocation: true });
+    expect(migrated({ view: 'day-timeline', monthShowWeekNumbers: false, dayShowLocation: false }))
+      .toEqual({ view: 'day-timeline', showWeekNumbers: false, showLocation: false });
+    expect(migrated({ view: 'day-timeline', monthShowWeekNumbers: false, dayShowLocation: true }))
+      .toEqual({ view: 'day-timeline', showWeekNumbers: false, showLocation: true });
+  });
+
+  it('leaves every other view drawing what it drew: no week number in its title, locations shown', () => {
+    // Week numbers left on from a Month grid must not appear in a Week list's title.
+    expect(migrated({ view: 'week-list', monthShowWeekNumbers: true, dayShowLocation: true }))
+      .toEqual({ view: 'week-list', showWeekNumbers: false, showLocation: true });
+    // A location hidden on a Day timeline must not vanish from an Agenda, which always drew it.
+    expect(migrated({ view: 'agenda', monthShowWeekNumbers: false, dayShowLocation: false }))
+      .toEqual({ view: 'agenda', showWeekNumbers: false, showLocation: true });
+    expect(migrated({ view: 'up-next', dayShowLocation: false })).toEqual({ view: 'up-next', showWeekNumbers: false, showLocation: true });
+  });
+
+  it('keeps what the wall drew for a Day timeline with no switch saved: no location', () => {
+    expect(migrated({ view: 'day-timeline' })).toEqual({ view: 'day-timeline', showWeekNumbers: false, showLocation: false });
+  });
+
+  it('keeps a calendar already in the new shape, and other modules, as they are', () => {
+    expect(migrated({ view: 'week-list', showWeekNumbers: true, showLocation: false }))
+      .toEqual({ view: 'week-list', showWeekNumbers: true, showLocation: false });
+    const other = withCalendar(makeConfig(19), { viewMode: 'month', showWeekNumbers: true, showLocation: false }, 'calendar');
+    const before = structuredClone(other);
+    expect(migrateUp(other, 20).config).toEqual({ ...before, version: 20 });
+    expect(other).toEqual(before);
+  });
+
+  it("reaches a display's own screens", () => {
+    const config = withCalendar(makeConfig(19), { view: 'month-grid', monthShowWeekNumbers: true, dayShowLocation: true });
+    config.displays = [{ id: 'main', name: 'Main', screens: structuredClone(config.screens) }] as unknown as NonNullable<ScreenConfiguration['displays']>;
+    const { config: result, migrationsRun } = migrateUp(config);
+    expect(migrationsRun).toEqual(['v20: Full-screen calendar week numbers and locations become one switch each for every view']);
+    expect(result.displays![0].screens[0].modules[0].config).toEqual({ view: 'month-grid', showWeekNumbers: true, showLocation: true });
   });
 });

@@ -12,7 +12,8 @@ import { memberInitials } from '@/lib/family-avatar';
 import { PersonAvatar, PeopleHint } from './person-view-bits';
 import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
-import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
+import { dayDecorFor, type CalendarEvent, type CalendarScale, type CalendarViewProps } from './view-support';
+import { DayBadges } from '../shared/DayBadges';
 import { eventSurface } from '@/lib/calendar-event-surface';
 import { formatHourLabel } from './shared-time-grid';
 import type { TimeFormat } from '@/types/config';
@@ -92,6 +93,11 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
   const { todayRows, tomorrowRows, everyoneToday, everyoneTomorrow } = model;
   // Today's note sits beside the module's title; tomorrow's opens the Tomorrow list.
   const tomorrowNotes = showTomorrow ? dayNotesFor(dayNotes, tomorrow) : [];
+  // Day rules: each day's badges beside its heading. Badges only; a rule's
+  // colour or picture has no day cell here.
+  const badgesFor = (day: Date) => dayDecorFor(config, day, events.filter((ev) => isEventOnDay(ev, day, timezone)), { today, now, timezone, isDark: scale.isDark }).badges;
+  const todayBadges = badgesFor(today);
+  const tomorrowBadges = showTomorrow ? badgesFor(tomorrow) : [];
   const span = hourEnd - hourStart;
   const x = (h: number) => `${(((h - hourStart) / span) * 100).toFixed(3)}%`;
   // Wide enough for a real calendar name ("Smith family") next to the
@@ -116,6 +122,7 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
         <span style={{ fontSize: fontSize * 1.3, color: 'var(--cal-text-secondary)' }}>
           {fullDateHeading(today, locale, 'short')} {'·'} {formatEventTime(now, timeFormat, locale)}
         </span>
+        <DayBadges badges={todayBadges} style={{ fontSize: fontSize * 1.5, alignSelf: 'center', color: 'var(--cal-text-primary)' }} />
       </div>
       <HourAxis hourStart={hourStart} hourEnd={hourEnd} nameColW={nameColW} sidePad={sidePad} fontSize={fontSize} am={am} pm={pm} timeFormat={timeFormat} />
 
@@ -169,8 +176,11 @@ export function FreeTimeView({ events, timezone, config, scale, today, now, time
       {/* Tomorrow, compact: its note first, and the section shows for a note alone */}
       {showTomorrow && (tomorrowRows.length > 0 || tomorrowNotes.length > 0) && (
         <div style={{ margin: `${scale.bu * 2}px ${sidePad}px ${scale.bu * 1.6}px`, flexShrink: 0 }}>
-          <div style={{ fontSize: fontSize * 1.05, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cal-text-tertiary)', marginBottom: scale.bu * 0.6 }}>
-            {t('fullscreen-calendar.freeTime.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: fontSize * 0.8, marginBottom: scale.bu * 0.6 }}>
+            <span style={{ fontSize: fontSize * 1.05, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--cal-text-tertiary)' }}>
+              {t('fullscreen-calendar.freeTime.tomorrow', { day: formatDateSync(tomorrow, 'EEEE', { locale }) })}
+            </span>
+            <DayBadges badges={tomorrowBadges} style={{ fontSize: fontSize * 1.3, color: 'var(--cal-text-primary)' }} />
           </div>
           <DayNoteLines
             notes={tomorrowNotes}

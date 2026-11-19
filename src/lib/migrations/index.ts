@@ -14,6 +14,7 @@ import { v15ToV16 } from './v15-to-v16';
 import { v16ToV17 } from './v16-to-v17';
 import { v17ToV18 } from './v17-to-v18';
 import { v18ToV19 } from './v18-to-v19';
+import { v19ToV20 } from './v19-to-v20';
 
 interface Migration {
   version: number;
@@ -114,6 +115,9 @@ const migrations: Migration[] = [
   v17ToV18,
   // Migration 019: open buttons on modules; screens that show only when opened.
   v18ToV19,
+  // Migration 020: the full-screen calendar's week numbers and location
+  // switches stop belonging to one view each.
+  v19ToV20,
 ];
 
 /** @internal Get all migrations sorted by version */

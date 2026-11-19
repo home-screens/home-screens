@@ -46,6 +46,7 @@ export function AgendaView({ events, timezone, config, scale, today, anchor = to
   const daysAhead = clampAgendaDays(config.agendaDaysAhead);
   const isLandscape = scale.orientation === 'landscape';
   const showDescription = config.agendaShowDescription === true;
+  const showLocation = config.showLocation !== false;
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const weekStartsOn = weekStartsOnFor(config.startDay);
   const emptyDayText = config.emptyDayText?.trim();
@@ -210,6 +211,20 @@ export function AgendaView({ events, timezone, config, scale, today, anchor = to
                   {glyph ? <span aria-hidden="true"><Glyph value={glyph} /></span> : owner && <EventMarker owner={owner} color={color} size={fontSize * 0.5} tagSize={fontSize * 1.2} />}
                   {ev.title}
                 </div>
+                {/* Where an all-day event is, as the Week list's all-day rows say it. */}
+                {showLocation && ev.location && (
+                  <div style={{
+                    fontSize: fontSize * 0.7,
+                    color: 'var(--cal-text-tertiary)',
+                    marginTop: scale.bu * 0.2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}>
+                    <MapPin size={fontSize * 0.6} aria-hidden="true" />
+                    {ev.location}
+                  </div>
+                )}
                 {description && (
                   <div style={{
                     fontSize: fontSize * 0.8,
@@ -268,7 +283,7 @@ export function AgendaView({ events, timezone, config, scale, today, anchor = to
                 {glyph ? <span aria-hidden="true" style={{ fontSize: '0.8em' }}><Glyph value={glyph} /></span> : owner && <EventMarker owner={owner} color={color} size={fontSize * 0.55} tagSize={fontSize * 1.35} />}
                 {ev.title}
               </div>
-              {ev.location && (
+              {showLocation && ev.location && (
                 <div style={{
                   fontSize: fontSize * 0.7,
                   color: 'var(--cal-text-tertiary)',

@@ -461,7 +461,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
         }}>
           {event.title}
         </div>
-        {event.location && (
+        {ctx.config.showLocation !== false && event.location && (
           <div style={{
             fontSize: fontSize * 0.75,
             color: 'var(--cal-text-tertiary)',

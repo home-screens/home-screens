@@ -3,13 +3,16 @@
 import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { formatDateSync, useFormattingLocale, useTranslate } from '@/i18n';
-import { formatEventTime, isZeroLengthEvent } from '@/lib/calendar-utils';
+import { eventKindLabel, formatEventTime, isZeroLengthEvent } from '@/lib/calendar-utils';
+import { eventOwner, type EventOwner } from '@/lib/calendar-people';
 import { daySheetHeading, daySheetRows, type DaySheetRow } from '@/lib/calendar-day-sheet';
 import { eventGlyph } from '@/lib/calendar-rules';
 import { GlyphPrefix } from '@/components/ui/Glyph';
 import type { FullscreenThemeTokens } from '@/lib/fullscreen-themes';
 import type { CalendarEvent, EventTapStyle, TimeFormat } from '@/types/config';
+import { DayNoteLines, dayNoteColors } from './DayNoteLine';
 import { EVENT_DETAIL_AUTO_DISMISS_MS } from './EventDetailOverlay';
+import { EventMarker } from './EventMarker';
 import { WallOverlay, WallSheetPanel } from './WallOverlay';
 import { wallPressProps } from './wallPress';
 
@@ -28,6 +31,10 @@ interface DaySheetOverlayProps {
   date: Date;
   /** The events the tapped cell had; the sheet orders them itself. */
   events: readonly CalendarEvent[];
+  /** The family's notes for the day, whole: a grid cell cuts each to one line. */
+  notes?: readonly string[];
+  /** Name tags (the module's `owners`): the owner's initials stand in for a row's calendar dot. */
+  owners?: ReadonlyMap<string, EventOwner>;
   variant: EventTapStyle;
   theme: FullscreenThemeTokens;
   /** The module's accent, for the stripe across the top. */
@@ -43,14 +50,14 @@ interface DaySheetOverlayProps {
 }
 
 /**
- * Every event on one day, opened from a calendar grid's "+N more" or day
- * number. It copies the event detail's look (grabber, accent stripe, small
+ * Everything on one day, opened from a calendar grid's "+N more" or day
+ * number: the family's notes for it, then every event. It copies the event detail's look (grabber, accent stripe, small
  * capitals over a serif heading, a full-width Close) and its behaviour
  * (`WallOverlay`): viewport-relative sizes, and the same 45 seconds, counted
  * from the last touch and not while an event's detail is open over it. A
  * row opens that event's detail on top; closing the detail comes back here.
  */
-export function DaySheetOverlay({ date, events, variant, theme, accentColor, colorFor, timeFormat, timezone, paused, onOpenEvent, onClose }: DaySheetOverlayProps) {
+export function DaySheetOverlay({ date, events, notes = [], owners, variant, theme, accentColor, colorFor, timeFormat, timezone, paused, onOpenEvent, onClose }: DaySheetOverlayProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
 
@@ -95,7 +102,10 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
       >
         <span style={{ width: len(150, 70), flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
           <span style={{ display: 'block', fontSize: len(27, 13), fontWeight: 600, lineHeight: 1.25, color: theme.text }}>
-            {allDay ? t('calendar.allDay') : time(start, startsEarlier)}
+            {allDay
+              // "Holiday" or "Birthday · turns 8", as the lists say it.
+              ? (event.allDay ? eventKindLabel(event, date.getFullYear(), t, 'calendar') : null) ?? t('calendar.allDay')
+              : time(start, startsEarlier)}
           </span>
           {!allDay && !isZeroLengthEvent(start, end) && (
             <span style={{ display: 'block', fontSize: len(21, 11), lineHeight: 1.3, marginTop: 2, color: muted }}>
@@ -110,7 +120,7 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
           </span>
           {event.sourceName && (
             <span style={{ display: 'flex', alignItems: 'center', gap: len(8, 5), fontSize: len(21, 11), marginTop: len(4, 2), color: muted }}>
-              <span aria-hidden="true" style={{ width: len(12, 7), height: len(12, 7), borderRadius: '50%', background: color, flexShrink: 0 }} />
+              <EventMarker owner={eventOwner(event, owners)} color={color} size={len(12, 7)} tagSize={len(30, 16)} />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.sourceName}</span>
             </span>
           )}
@@ -123,7 +133,7 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
   const body = (
     <div style={{ padding: `${len(36, 18)} ${len(56, 20)} ${len(44, 22)}`, borderTop: `12px solid ${accentColor}` }}>
       <div style={{ fontSize: len(22, 12), letterSpacing: '0.14em', textTransform: 'uppercase', color: muted, marginBottom: len(10, 6) }}>
-        {heading.weekday} · {t('calendar.daySheet.eventCount', { count: rows.length })}
+        {rows.length > 0 ? <>{heading.weekday} · {t('calendar.daySheet.eventCount', { count: rows.length })}</> : heading.weekday}
       </div>
       <div style={{
         fontFamily: "var(--font-dm-serif), 'DM Serif Display', Georgia, serif",
@@ -135,6 +145,26 @@ export function DaySheetOverlay({ date, events, variant, theme, accentColor, col
       }}>
         {heading.date}
       </div>
+      {notes.length > 0 && (
+        // The note colours are the full-screen calendar's, worked out here for
+        // the sheet's own theme: it is drawn outside the module, and the small
+        // calendar opens it in Charcoal.
+        <div
+          data-day-sheet-notes=""
+          style={{
+            display: 'flex', flexDirection: 'column', gap: len(8, 4), marginBottom: rows.length > 0 ? len(18, 10) : 0,
+            '--cal-text-primary': theme.text,
+            ...dayNoteColors(theme.isDark),
+          } as CSSProperties}
+        >
+          <DayNoteLines
+            notes={notes}
+            tone="fullscreen"
+            lines={3}
+            style={{ fontSize: len(28, 14), padding: `${len(12, 6)} ${len(18, 9)}`, borderRadius: len(12, 6), borderLeftWidth: 4 }}
+          />
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: len(12, 6) }}>
         {rows.map(row)}
       </div>

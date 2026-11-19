@@ -170,7 +170,7 @@ export function FamilyGridView({ events, timezone, config, scale, today, anchor 
           const isWeekend = isWeekendDay(day);
           const notes = dayNotesFor(dayNotes, day);
           // With taps on, a day's heading opens everything on it, every row's.
-          const dayTap = openDayProps(openDay, day, grid.flatMap(({ cells }) => cells[dayIdx].map(({ ev }) => ev)), t, locale);
+          const dayTap = openDayProps(openDay, day, grid.flatMap(({ cells }) => cells[dayIdx].map(({ ev }) => ev)), t, locale, notes.length > 0);
           return (
             <div
               key={day.toISOString()}

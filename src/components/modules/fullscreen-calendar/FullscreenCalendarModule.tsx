@@ -24,7 +24,7 @@ import { hasExtras } from '@/lib/calendar-extras';
 import { toISODate } from '@/lib/meal-constants';
 import { useCalendarExtras } from './useCalendarExtras';
 import { useDayNotes } from '@/hooks/useDayNotes';
-import { dayNotesFor, hasDayNoteIn } from '@/lib/day-notes';
+import { dayNotesFor, hasDayNoteInWindow } from '@/lib/day-notes';
 import { DayNoteLine, dayNoteColors } from '../shared/DayNoteLine';
 import type { ForecastDay, HourlyWeather } from '@/lib/weather/types';
 import { getThemeTokens, getTypoMultiplier, getDensityMultiplier, surfaceBackdrop, barBackdrop } from '@/lib/fullscreen-themes';
@@ -370,9 +370,7 @@ export default function FullscreenCalendarModule({
   const notesInView = useMemo(() => {
     const window = traits.legendWindow({ today, anchor, weekStartsOn, config, scaleWidth: scale.width });
     const end = config.view === 'up-next' ? addDays(today, 2) : window.end;
-    const days: Date[] = [];
-    for (let day = window.start; day < end; day = addDays(day, 1)) days.push(day);
-    return hasDayNoteIn(dayNotes, days);
+    return hasDayNoteInWindow(dayNotes, window.start, end);
   }, [dayNotes, traits, today, anchor, weekStartsOn, config, scale.width]);
 
   // The one-day views carry their day's notes beside the title, since the
@@ -389,7 +387,8 @@ export default function FullscreenCalendarModule({
   // family grid and free time still draw every configured person, a week
   // list can be all meals and chores, and day rules mark days that need no
   // event (a badge every other Tuesday, weekend art). Up next and Free time
-  // draw no day rules, so rules alone do not fill them.
+  // draw only a rule's badge beside a heading, which is not a board on its
+  // own, so rules alone do not fill them.
   const drawsDayRules = config.view !== 'up-next' && config.view !== 'free-time';
   const hasContent = hasEvents
     || notesInView
@@ -445,7 +444,7 @@ export default function FullscreenCalendarModule({
   const tapDetails = config.eventTapDetails === true;
   const { detailEvent, onRootClick, open: openDetail, close: closeDetail } = useEventTapDetail(events, tapDetails);
   // "+N more" and the grid day numbers open the whole day (see useDaySheet).
-  const daySheet = useDaySheet(events, tapDetails);
+  const daySheet = useDaySheet(events, tapDetails, dayNotes);
 
   return (
     <div
@@ -647,6 +646,8 @@ export default function FullscreenCalendarModule({
         <DaySheetOverlay
           date={daySheet.day.date}
           events={daySheet.day.events}
+          notes={daySheet.day.notes}
+          owners={owners}
           variant={config.eventTapStyle ?? 'sheet'}
           theme={theme}
           accentColor={drawnAccent}

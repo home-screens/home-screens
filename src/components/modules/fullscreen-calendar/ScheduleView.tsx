@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { isSameDay } from 'date-fns';
-import { parseEventWallTime, isEventOnDay, formatEventTime, eventEndLabel, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
+import { isEventOnDay, formatEventTime, birthdayAge, isWeekendDay } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
 import { useTranslate, useFormattingLocale, formatDateSync, fullDateHeading } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
@@ -17,7 +17,8 @@ import { computeTimedEventLayout, eventHoursOnDay } from '@/lib/calendar-event-l
 import { DayWeatherBadge } from './WeatherInline';
 import type { CalendarEvent, CalendarScale, CalendarViewProps } from './view-support';
 import type { FullscreenCalendarConfig } from '@/types/config';
-import { formatHourLabel, hourLabelShift, useContainerHeight, HourLines, NowLine, NowBadge, RollingWindowStrip } from './shared-time-grid';
+import { useContainerHeight, HiddenCountPill, HourGutter, HourLines, NowLine, NowBadge, RollingWindowStrip, timedBlockModel } from './shared-time-grid';
+import { openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import { resolveHourWindow } from '@/lib/calendar-hour-window';
 import { eventAriaLabel } from './list-view-bits';
 import Glyph from '@/components/ui/Glyph';
@@ -40,6 +41,7 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
   const am = t('fullscreen-calendar.am');
   const pm = t('fullscreen-calendar.pm');
   const { scrollRef, containerH } = useContainerHeight();
+  const openDay = useDaySheetOpener();
 
   const { showTodayBg, showTodayMarker } = resolveTodayHighlight(config);
   const overlapMode = config.eventOverlap ?? 'columns';
@@ -108,6 +110,13 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
   // must still see.
   const decorByDay = useDayDecors(days, events, config, { today, now, timezone, isDark: scale.isDark });
 
+  // Everything on each day, all-day rows included: what a tap on a day's
+  // heading or its "+N" opens. Only worked out where a tap can open a day.
+  const eventsByDay = useMemo(
+    () => (openDay ? days.map(day => events.filter(ev => isEventOnDay(ev, day, timezone))) : null),
+    [openDay, days, events, timezone],
+  );
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Column headers */}
@@ -118,14 +127,19 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
             const isToday = isSameDay(day, today);
             const isWeekend = isWeekendDay(day);
             const notes = dayNotesFor(dayNotes, day);
+            // With taps on, a day's heading opens everything on it: the way
+            // to the events a side-by-side layout had no room for.
+            const dayTap = openDayProps(openDay, day, eventsByDay?.[dayIdx] ?? [], t, locale, notes.length > 0);
             return (
               <div
                 key={day.toISOString()}
                 role="columnheader"
+                {...dayTap}
                 style={{
                   textAlign: 'center',
                   padding: `${scale.bu * 0.8}px ${scale.bu * 0.2}px ${scale.bu * 0.6}px`,
                   borderLeft: '1px solid var(--cal-border-subtle)',
+                  cursor: dayTap ? 'pointer' : undefined,
                 }}
               >
                 <div style={{
@@ -177,29 +191,12 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
         <div style={{ display: 'flex', height: gridHeight, position: 'relative' }}>
           {/* Time gutter */}
           <div style={{ width: gutterWidth, flexShrink: 0, position: 'relative' }}>
-            {Array.from({ length: totalHours + 1 }, (_, i) => {
-              const h = hourStart + i;
-              const isCurrentHour = nowInRange && Math.floor(nowHour) === h;
-              return (
-                <div
-                  key={h}
-                  style={{
-                    position: 'absolute',
-                    top: i * hourHeight,
-                    right: scale.bu * 0.5,
-                    fontSize: fontSize * 0.75,
-                    fontWeight: isCurrentHour ? 600 : 400,
-                    color: isCurrentHour ? 'var(--cal-text-primary)' : 'var(--cal-text-tertiary)',
-                    transform: hourLabelShift(i, totalHours),
-                    lineHeight: 1,
-                    whiteSpace: 'nowrap',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}
-                >
-                  {formatHourLabel(h, timeFormat, am, pm)}
-                </div>
-              );
-            })}
+            <HourGutter
+              hourStart={hourStart} totalHours={totalHours} hourHeight={hourHeight}
+              fontSize={fontSize * 0.75} weight={400} inset={scale.bu * 0.5}
+              highlightHour={nowInRange ? Math.floor(nowHour) : null}
+              timeFormat={timeFormat} am={am} pm={pm}
+            />
             {/* Now badge in gutter */}
             {config.showNowLine && nowInRange && (
               <NowBadge nowY={nowY} now={now} scale={scale} fontSize={fontSize} position="right" timeFormat={timeFormat} locale={locale} />
@@ -238,26 +235,10 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
 
                   {/* Events with overlap layout */}
                   {dayEvents.map((ev) => {
-                    // Absent span = outside the visible hour window (dropped
-                    // by computeTimedEventLayout's clamp-and-filter).
-                    const span = hourSpans.get(ev.id);
-                    if (!span) return null;
-                    const { startHour: evStart, endHour: evEnd } = span;
-
-                    const layout = overlapLayout.get(ev.id);
-                    if (!layout || layout.width === 0) return null; // overflow hidden
-
-                    const top = (evStart - hourStart) * hourHeight;
-                    const height = Math.max((evEnd - evStart) * hourHeight, fontSize * 1.5);
-                    const color = ev.calendarColor ?? DEFAULT_EVENT_COLOR;
-                    const glyph = eventGlyph(ev);
-                    const owner = eventOwner(ev, owners);
-                    const isPastEvent = isToday && evEnd <= nowHour;
-
-                    const evStartAt = parseEventWallTime(ev.start, timezone);
-                    const evStartLabel = formatEventTime(evStartAt, timeFormat, locale);
-                    const evEndLabel = eventEndLabel(evStartAt, parseEventWallTime(ev.end, timezone), timeFormat, locale);
-                    const evAriaLabel = eventAriaLabel(t, ev, { startLabel: evStartLabel, endLabel: evEndLabel });
+                    const block = timedBlockModel(ev, { hourSpans, overlapLayout, hourStart, hourHeight, minHeight: fontSize * 1.5, owners, timezone, timeFormat, locale, t });
+                    if (!block) return null;
+                    const { layout, top, height, color, glyph, owner, startLabel: evStartLabel, ariaLabel: evAriaLabel } = block;
+                    const isPastEvent = isToday && block.endHour <= nowHour;
 
                     return (
                       <div
@@ -330,26 +311,17 @@ export function ScheduleView({ events, timezone, config, scale, today, anchor = 
 
                   {/* Hidden-overflow indicators (columns mode) */}
                   {Array.from(hiddenStarts, ([evStartHour, count]) => (
-                    <div
+                    <HiddenCountPill
                       key={evStartHour}
-                      aria-label={t('fullscreen-calendar.moreCount', { count })}
-                      style={{
-                        position: 'absolute',
-                        top: (evStartHour - hourStart) * hourHeight + 2,
-                        right: 2,
-                        zIndex: 3,
-                        fontSize: fontSize * 0.6,
-                        fontWeight: 600,
-                        color: 'var(--cal-text-secondary)',
-                        background: 'var(--cal-surface)',
-                        border: '1px solid var(--cal-border)',
-                        borderRadius: 999,
-                        padding: `${scale.bu * 0.05}px ${scale.bu * 0.3}px`,
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      +{count}
-                    </div>
+                      count={count}
+                      label={t('fullscreen-calendar.moreCount', { count })}
+                      top={(evStartHour - hourStart) * hourHeight + 2}
+                      right={2}
+                      fontSize={fontSize * 0.6}
+                      padding={`${scale.bu * 0.05}px ${scale.bu * 0.3}px`}
+                      tap={openDayProps(openDay, day, eventsByDay?.[dayIdx] ?? [], t, locale)}
+                      scale={scale}
+                    />
                   ))}
                 </div>
               );

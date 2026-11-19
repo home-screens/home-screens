@@ -855,6 +855,7 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'modules|affirmations.categories.compliments',
     'modules|affirmations.categories.mindfulness',
     'modules|calendar.weekShort',
+    'modules|fullscreen-calendar.weekNumber', // "Week 25" is Dutch too
     'modules|chore-chart.iconLabels.backpack',
     'modules|chore-chart.iconLabels.badge-check',
     'modules|chore-chart.iconLabels.bed',

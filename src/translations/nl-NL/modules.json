@@ -201,6 +201,7 @@
     "untilTime": "Tot {time}",
     "cantLoadEvents": "Afspraken kunnen nu niet worden geladen",
     "weekOf": "Week van {date}",
+    "weekNumber": "Week {number}",
     "holiday": "Feestdag",
     "birthday": "Verjaardag",
     "birthdayWithAge": "Verjaardag · wordt {age}",

@@ -24,6 +24,8 @@ import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { EventCard } from './EventCard';
 import { GlyphPrefix } from '@/components/ui/Glyph';
+import { eventOwner } from '@/lib/calendar-people';
+import { EventMarker, TagPrefix } from '../shared/EventMarker';
 import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import { LookAheadTitle, useLookAheadContext } from '../shared/LookAhead';
 
@@ -425,8 +427,9 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
               const listed = listIn(dayEvents, notes.length);
               const hasBirthday = dayEvents.some((ev) => ev.kind === 'birthday');
               const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
-              const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
-              const cellTap = openDayCellProps(openDay, date, dayEvents);
+              // A day with only a note opens too: the cell cuts it to one line.
+              const dayTap = openDayProps(openDay, date, dayEvents, t, locale, notes.length > 0);
+              const cellTap = openDayCellProps(openDay, date, dayEvents, notes.length > 0);
               const cellFill = isToday
                 ? withAlpha(accentColor, 0.12)
                 : grid.kind === 'rolling' && isWeekendDay(date) ? ink(0.05) : ink(0.02);
@@ -509,6 +512,12 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
   // Banner look and the lists. Only the rule's own icon: these looks mark a
   // birthday once, beside the day number, and holidays carry no mark.
   const glyph = <GlyphPrefix value={event.icon} />;
+  // Name tags: the owner's initials lead the pill, unless an icon already does.
+  const owner = event.icon ? undefined : eventOwner(event, eventStyle.owners);
+  // Inside a block pill's title, sized to its line.
+  const inlineTag = <TagPrefix glyph={null} owner={owner} color={color} />;
+  // A flex item beside a timed pill's time and title, no taller than its line.
+  const tag = owner && <EventMarker owner={owner} color={color} size={6} tagSize="1.05em" style={{ alignSelf: 'center' }} />;
 
   if (isAllDayEvent(event)) {
     const segment = allDaySpanSegment(event, date);
@@ -519,7 +528,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
           className={`px-1 py-0.5 truncate ${segment === 'middle' ? 'rounded-none' : 'rounded-r'}`}
           style={{ boxShadow: `inset 0 0 0 1.5px ${color}`, color: textColor, opacity: TEXT_OPACITY.heading }}
         >
-          <span className="truncate font-medium" style={{ fontSize: '0.7em' }}>{glyph}{event.title}</span>
+          <span className="truncate font-medium" style={{ fontSize: '0.7em' }}>{glyph}{inlineTag}{event.title}</span>
         </div>
       );
     }
@@ -529,7 +538,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
         className={`px-1 py-0.5 truncate ${segment === 'first' ? 'rounded-l' : 'rounded'}`}
         style={{ backgroundColor: color, color: pickPillTextColor(color) }}
       >
-        <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{glyph}{event.title}</span>
+        <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{glyph}{inlineTag}{event.title}</span>
       </div>
     );
   }
@@ -540,9 +549,10 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
     return (
       <div
         data-event-id={event.id}
-        className="flex items-baseline rounded truncate"
+        className={`flex items-baseline rounded truncate${tag ? ' gap-1' : ''}`}
         style={{ padding: '2px 4px 2px 7px', backgroundColor: ink(0.09), boxShadow: `inset 3px 0 0 ${color}`, color: textColor }}
       >
+        {tag}
         {title}
       </div>
     );
@@ -562,6 +572,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
         className="flex items-baseline gap-1 px-1 py-0.5 rounded"
         style={{ backgroundColor: color, color: pickPillTextColor(color) }}
       >
+        {tag}
         {time && <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', opacity: 0.8 }}>{time}</span>}
         {title}
       </div>
@@ -575,6 +586,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
       className="flex items-baseline gap-1 px-1 py-0.5 rounded"
       style={{ backgroundColor: ink(0.10), color: textColor }}
     >
+      {tag}
       {time && <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', color: pickGridTimeColor(color, moduleBackground) }}>{time}</span>}
       {title}
     </div>
@@ -642,8 +654,9 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                 .filter(Boolean).join(', ');
 
               const decor = dayDecorFor(config, date, dayEvents, { today, now, timezone: eventStyle.timezone, isDark: true });
-              const dayTap = openDayProps(openDay, date, dayEvents, t, locale);
-              const cellTap = openDayCellProps(openDay, date, dayEvents);
+              // A day with only a note opens too: the cell cuts it to one line.
+              const dayTap = openDayProps(openDay, date, dayEvents, t, locale, notes.length > 0);
+              const cellTap = openDayCellProps(openDay, date, dayEvents, notes.length > 0);
 
               return (
                 <div

@@ -72,7 +72,9 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
       if (isAllDay) {
         return (
           <div data-event-id={event.id} className="flex items-center gap-1 rounded truncate px-1 py-0.5" style={{ backgroundColor: eventColor, color: pickPillTextColor(eventColor), opacity: event.opacity }}>
-            {glyph && <span aria-hidden="true" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>}
+            {glyph
+              ? <span aria-hidden="true" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>
+              : owner && <EventMarker owner={owner} color={eventColor} size={6} tagSize="1.05em" />}
             <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
           </div>
         );
@@ -89,7 +91,9 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
               {time}
             </span>
           )}
-          {glyph && <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>}
+          {glyph
+            ? <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>
+            : owner && <EventMarker owner={owner} color={eventColor} size={6} tagSize="1.05em" style={{ alignSelf: 'center' }} />}
           <span className="truncate" style={{ fontSize: '0.7em', color: eventColor }}>{event.title}</span>
         </div>
       );

@@ -201,6 +201,7 @@
     "untilTime": "Hasta las {time}",
     "cantLoadEvents": "No se pueden cargar los eventos ahora mismo",
     "weekOf": "Semana del {date}",
+    "weekNumber": "Semana {number}",
     "holiday": "Festivo",
     "birthday": "Cumpleaños",
     "birthdayWithAge": "Cumpleaños · cumple {age}",

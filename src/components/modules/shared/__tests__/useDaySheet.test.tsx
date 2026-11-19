@@ -54,6 +54,22 @@ describe('useDaySheet', () => {
     expect(result.current.day).toBeNull();
   });
 
+  it('opens a day that has only a note, and keeps the sheet while the note is there', () => {
+    const notes = { '2026-11-06': ['Picture day'] };
+    const { result, rerender } = renderHook(({ dayNotes }) => useDaySheet([], true, dayNotes), { initialProps: { dayNotes: notes as Record<string, string[]> } });
+    act(() => result.current.opener?.(FRIDAY, []));
+    expect(result.current.day).toEqual({ date: FRIDAY, events: [], notes: ['Picture day'] });
+    // The note was deleted on the phone: nothing left to show.
+    rerender({ dayNotes: {} });
+    expect(result.current.day).toBeNull();
+  });
+
+  it('hands the day’s notes over with its events', () => {
+    const { result } = renderHook(() => useDaySheet([DENTIST], true, { '2026-11-06': ['Picture day', 'Library books'], '2026-11-07': ['Other day'] }));
+    act(() => result.current.opener?.(FRIDAY, [DENTIST]));
+    expect(result.current.day?.notes).toEqual(['Picture day', 'Library books']);
+  });
+
   it('closes on close()', () => {
     const { result } = renderHook(() => useDaySheet([DENTIST], true));
     act(() => result.current.opener?.(FRIDAY, [DENTIST]));
@@ -68,6 +84,11 @@ describe('openDayProps', () => {
   it('is nothing without an opener or for an empty day', () => {
     expect(openDayProps(null, FRIDAY, [DENTIST], t, 'en-US')).toBeUndefined();
     expect(openDayProps(() => {}, FRIDAY, [], t, 'en-US')).toBeUndefined();
+  });
+
+  it('opens an empty day that has a note, when the caller says so', () => {
+    expect(openDayProps(() => {}, FRIDAY, [], t, 'en-US', true)?.['data-open-day']).toBe('2026-11-06');
+    expect(openDayProps(null, FRIDAY, [], t, 'en-US', true)).toBeUndefined();
   });
 
   it('opens the day with the cell’s events and names the day', () => {

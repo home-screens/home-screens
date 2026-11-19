@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 19,
+  "schemaVersion": 20,
   "categories": [
     "Full Screen",
     "Time & Date",
@@ -499,13 +499,33 @@
           "default": true
         },
         {
-          "name": "monthShowWeekNumbers",
+          "name": "showWeekNumbers",
           "optional": false,
           "type": {
             "kind": "boolean",
             "text": "boolean"
           },
-          "description": "Show week numbers in month grid view",
+          "description": "Show the week number: down the side of the Month grid, and in the title of the Week list, the Family grid and a Schedule that starts on the first day of the week (\"Week 25 · June 14 – 20\")",
+          "default": false
+        },
+        {
+          "name": "showLocation",
+          "optional": false,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Show where an event is, in the views that have room for it (Day timeline, Week list, Agenda and Up next)",
+          "default": true
+        },
+        {
+          "name": "gridShowTimes",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Month grid and Rolling weeks: show each event's start time in front of its title",
           "default": false
         },
         {
@@ -537,16 +557,6 @@
           },
           "description": "Day timeline view end hour",
           "default": 22
-        },
-        {
-          "name": "dayShowLocation",
-          "optional": false,
-          "type": {
-            "kind": "boolean",
-            "text": "boolean"
-          },
-          "description": "Show event locations in day timeline view",
-          "default": true
         },
         {
           "name": "dayShowDescription",
@@ -7302,7 +7312,7 @@
             "text": "number"
           },
           "description": "Config schema version. The app updates it when it upgrades an older file; never edit it by hand",
-          "default": 19
+          "default": 20
         },
         {
           "name": "settings",
