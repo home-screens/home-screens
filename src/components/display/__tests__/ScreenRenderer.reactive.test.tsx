@@ -11,6 +11,7 @@ import type { SharedDisplayData } from '@/lib/module-props';
 import { I18nProvider } from '@/i18n/provider';
 import { __resetLoaderForTests } from '@/i18n/loader';
 import enUSModules from '@/translations/en-US/modules.json';
+import { emptyWeatherPayloads } from '@/lib/weather-providers';
 
 /**
  * End-to-end check of the shared-state → visibility pipeline through the real
@@ -49,10 +50,8 @@ const settings = {
 } as unknown as DisplaySettings;
 
 const sharedData: SharedDisplayData = {
-  owmData: null, wapiData: null, pirateData: null, noaaData: null,
-  openMeteoData: null, yrData: null, smhiData: null, metofficeData: null,
-  envcanadaData: null,
-      weatherErrors: {}, calendarData: null,
+  weatherByProvider: emptyWeatherPayloads(),
+  weatherErrors: {}, calendarData: null,
   calendarStatus: { error: null, updatedAt: null },
 };
 

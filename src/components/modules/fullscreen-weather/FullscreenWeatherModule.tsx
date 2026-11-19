@@ -315,7 +315,11 @@ export default function FullscreenWeatherModule({
       }}>
         {!hasData ? (
           <div style={{ flex: 1, display: 'grid', placeItems: 'center', color: theme.textMuted, fontSize: s * 2.2 }} aria-live="polite">
-            {waiting && (weatherError || stalled) ? t('weather.notUpdating') : t('fullscreen-weather.loading')}
+            {/* Three states, as the standard module tells them apart: still
+                waiting, waiting too long, and an answer with nothing in it.
+                The last is not loading, and saying so for ever reads as a
+                hung screen. */}
+            {!waiting ? t('weather.noWeatherData') : weatherError || stalled ? t('weather.notUpdating') : t('fullscreen-weather.loading')}
           </div>
         ) : config.view === 'almanac' ? (
           <AlmanacView {...viewProps} />

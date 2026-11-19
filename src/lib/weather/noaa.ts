@@ -1,8 +1,7 @@
 import type { HourlyWeather, ForecastDay, WeatherAlert, WeatherProvider } from './types';
-import { fetchWeatherJSON } from './fetch';
+import { createProviderFetch, fetchWeatherJSON } from './fetch';
 import { inferIconFromText } from './icons';
-import { compassToDegrees } from './units';
-import { createTTLCache } from '../api-utils';
+import { celsiusToUnit, compassToDegrees } from './units';
 
 // ── NOAA/NWS API response types ──────────────────────────────────────
 
@@ -59,7 +58,7 @@ interface NOAAAlertFeature {
 
 /** Enrich an hourly entry with real station observations (pressure, visibility, dewpoint, feels-like). */
 function enrichWithObservation(result: HourlyWeather, obs: NOAAObservation, isMetric: boolean): void {
-  const toUnit = (c: number) => isMetric ? Math.round(c) : Math.round(c * 9 / 5 + 32);
+  const toUnit = (c: number) => Math.round(celsiusToUnit(c, isMetric));
 
   if (obs.barometricPressure?.value != null) {
     result.pressure = Math.round(obs.barometricPressure.value / 100); // Pa → hPa
@@ -86,7 +85,9 @@ function enrichWithObservation(result: HourlyWeather, obs: NOAAObservation, isMe
 export class NOAAProvider implements WeatherProvider {
   private static USER_AGENT = '(home-screens, github.com/home-screens/home-screens)';
   // Grid point resolution is stable for a location — resolve once, reuse for a day.
-  private static gridCache = createTTLCache<NOAAPointProperties>(24 * 60 * 60 * 1000);
+  // One refresh asks for hours and days together, and each needs the grid:
+  // a cold lookup is shared between them instead of asked twice.
+  private static gridCache = createProviderFetch<NOAAPointProperties>({ ttlMs: 24 * 60 * 60 * 1000 });
 
   // No API key needed — NOAA is free and public
   constructor() {}
@@ -95,17 +96,14 @@ export class NOAAProvider implements WeatherProvider {
 
   private async getGridPoint(lat: number, lon: number): Promise<NOAAPointProperties> {
     const key = `${lat.toFixed(4)},${lon.toFixed(4)}`;
-    const cached = NOAAProvider.gridCache.get(key);
-    if (cached) return cached;
-
-    const data = await fetchWeatherJSON<{ properties: NOAAPointProperties }>(
-      `https://api.weather.gov/points/${lat},${lon}`,
-      'NOAA',
-      NOAAProvider.fetchInit,
-    );
-    const grid = data.properties;
-    NOAAProvider.gridCache.set(key, grid);
-    return grid;
+    return NOAAProvider.gridCache(key, async () => {
+      const data = await fetchWeatherJSON<{ properties: NOAAPointProperties }>(
+        `https://api.weather.gov/points/${lat},${lon}`,
+        'NOAA',
+        NOAAProvider.fetchInit,
+      );
+      return data.properties;
+    });
   }
 
   private async getObservation(grid: NOAAPointProperties): Promise<NOAAObservation | null> {
@@ -147,7 +145,7 @@ export class NOAAProvider implements WeatherProvider {
       .map((p, i) => {
         const temp = this.convertTemp(p.temperature, p.temperatureUnit, isMetric);
         const dewC = p.dewpoint?.value;
-        const dewPoint = dewC != null ? (isMetric ? dewC : dewC * 9 / 5 + 32) : undefined;
+        const dewPoint = dewC != null ? celsiusToUnit(dewC, isMetric) : undefined;
 
         const result: HourlyWeather = {
           time: p.startTime,

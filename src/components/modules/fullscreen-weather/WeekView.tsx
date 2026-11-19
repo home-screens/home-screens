@@ -33,8 +33,9 @@ export default function WeekView(p: WeatherViewProps) {
   // list so the fit loop can see when the bands no longer fit.
   const bandMin = s * 9;
 
-  // The hourly fetch can succeed while the daily one fails; a "0-day outlook"
-  // over an empty card is not a forecast, so say the forecast is still coming.
+  // Hours and days arrive in one answer, so hours with no days means the
+  // source sent no days at all. A "0-day outlook" over an empty card is not a
+  // forecast, and nothing more is coming, so say there is none.
   if (days.length === 0) {
     return (
       <>
@@ -42,7 +43,7 @@ export default function WeekView(p: WeatherViewProps) {
         <MiniHero p={p} />
         <AlertBand p={p} />
         <Card u={u} testId="fsw-week" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--fsw-text-3)', fontSize: s * 2.2 }}>
-          {p.t('fullscreen-weather.loading')}
+          {p.t('weather.noForecastData')}
         </Card>
       </>
     );

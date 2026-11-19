@@ -911,6 +911,7 @@ const MODULE_DEFINITIONS: ModuleDefinition[] = [
       showTimeline: true,
       refreshIntervalMs: FETCH_KEY_REGISTRY['rain-map']?.ttlMs ?? 600_000,
       mapStyle: 'dark',
+      animate: true,
     },
     defaultSize: { w: 500, h: 500 },
     defaultStyle: MEDIA_CARD_BLUR,

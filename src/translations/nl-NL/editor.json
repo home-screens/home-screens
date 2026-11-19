@@ -5583,6 +5583,7 @@
       "skyStill": "Stil (een eenvoudige tint)",
       "skyOff": "Uit (gewoon thema)",
       "showAlerts": "Weerswaarschuwingen tonen",
+      "showAlertsHint": "Weerswaarschuwingen zijn alleen beschikbaar via NOAA / NWS en Pirate Weather. Bij elke andere weerbron worden er geen getoond.",
       "showRibbon": "Temperatuurcurve tonen",
       "showStatRail": "Onderste gegevensbalk tonen",
       "showNowcast": "Regen in het komende uur",

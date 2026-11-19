@@ -14,6 +14,7 @@ import type { DisplaySettings } from '../useLiveConfig';
 import { DEFAULT_MODULE_STYLE } from '@/types/config';
 import type { SharedDisplayData } from '@/lib/module-props';
 import BackgroundProviderLayer from '../BackgroundProviderLayer';
+import { emptyWeatherPayloads } from '@/lib/weather-providers';
 
 vi.mock('@/lib/module-components', () => ({
   getModuleComponent: (type: string) => {
@@ -33,10 +34,8 @@ const settings = {
 } as unknown as DisplaySettings;
 
 const sharedData: SharedDisplayData = {
-  owmData: null, wapiData: null, pirateData: null, noaaData: null,
-  openMeteoData: null, yrData: null, smhiData: null, metofficeData: null,
-  envcanadaData: null,
-      weatherErrors: {}, calendarData: null,
+  weatherByProvider: emptyWeatherPayloads(),
+  weatherErrors: {}, calendarData: null,
   calendarStatus: { error: null, updatedAt: null },
 };
 

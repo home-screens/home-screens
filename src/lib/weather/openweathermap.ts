@@ -3,7 +3,7 @@ import { fetchKeyedWeatherJSON } from './fetch';
 import { SetupError } from '@/lib/api-utils';
 import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
 import { average, forecastDate } from './daily';
-import { msToWindUnit } from './units';
+import { mmToPrecipUnit, msToWindUnit } from './units';
 
 /**
  * OpenWeatherMap writes its condition words in lower case ("broken clouds")
@@ -107,7 +107,7 @@ function aggregateDay(date: string, day: DayAccumulator, units: string, mapIcon:
     icon: mapIcon(day.icons[Math.floor(day.icons.length / 2)] ?? ''),
     description: day.descs[Math.floor(day.descs.length / 2)] ?? '',
     precipProbability: Math.round(Math.max(...day.pop)),
-    precipAmount: units === 'imperial' ? Math.round(day.rain / 25.4 * 100) / 100 : Math.round(day.rain * 10) / 10,
+    precipAmount: units === 'imperial' ? Math.round(mmToPrecipUnit(day.rain, false) * 100) / 100 : Math.round(day.rain * 10) / 10,
     humidity: Math.round(average(day.humidity) ?? 0),
     windSpeed: Math.round(windToUnit(average(day.wind) ?? 0, units)),
   };

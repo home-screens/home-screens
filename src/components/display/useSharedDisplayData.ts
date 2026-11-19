@@ -29,6 +29,7 @@ import type { CalendarEvent } from '@/types/config';
 import type { HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 import type { FetchError } from '@/lib/fetch-error';
 import { householdTimeFormat } from '@/lib/clock-time';
+import { WEATHER_PROVIDER_IDS, isWeatherProviderId, type WeatherProviderId } from '@/lib/weather-providers';
 
 /** Whether the hub asked walls to stop fetching calendars while asleep (see the calendar route). */
 function pausesWhileAsleep(calendarData: unknown): boolean {
@@ -95,6 +96,9 @@ export function useSharedDisplayData(
   const weatherUrl = (provider: string) =>
     neededProviders.has(provider) ? `/api/weather?${baseParams}&provider=${provider}${cacheBust}` : '';
 
+  // One call per source, spelled out so the hook order never depends on a
+  // loop. The two records below are typed by the provider table, so a source
+  // added there and not here does not compile.
   const [owmData, owmError] = useFetchData(weatherUrl('openweathermap'), WEATHER_REFRESH_MS);
   const [wapiData, wapiError] = useFetchData(weatherUrl('weatherapi'), WEATHER_REFRESH_MS);
   const [pirateData, pirateError] = useFetchData(weatherUrl('pirateweather'), WEATHER_REFRESH_MS);
@@ -105,36 +109,33 @@ export function useSharedDisplayData(
   const [metofficeData, metofficeError] = useFetchData(weatherUrl('metoffice'), WEATHER_REFRESH_MS);
   const [envcanadaData, envcanadaError] = useFetchData(weatherUrl('envcanada'), WEATHER_REFRESH_MS);
 
+  // Memoized so a render that fetched nothing new hands every consumer the
+  // same record (BackgroundProviderLayer is React.memo'd).
+  const weatherByProvider = useMemo<Record<WeatherProviderId, unknown>>(() => ({
+    openweathermap: owmData, weatherapi: wapiData, pirateweather: pirateData, noaa: noaaData,
+    'open-meteo': openMeteoData, yr: yrData, smhi: smhiData, metoffice: metofficeData, envcanada: envcanadaData,
+  }), [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData]);
+
   // Failing providers, so a weather module with no payload can say why
   // (setup card for a missing key, quiet "not updating" for an outage)
   // instead of "No weather data" forever. Only failing entries are kept, so
   // a healthy display builds the same object every render.
   const weatherErrors = useMemo(() => {
+    const latest: Record<WeatherProviderId, FetchError | null> = {
+      openweathermap: owmError, weatherapi: wapiError, pirateweather: pirateError, noaa: noaaError,
+      'open-meteo': openMeteoError, yr: yrError, smhi: smhiError, metoffice: metofficeError, envcanada: envcanadaError,
+    };
     const errors: Partial<Record<string, FetchError>> = {};
-    const entries: Array<[string, FetchError | null]> = [
-      ['openweathermap', owmError], ['weatherapi', wapiError], ['pirateweather', pirateError],
-      ['noaa', noaaError], ['open-meteo', openMeteoError], ['yr', yrError], ['smhi', smhiError],
-      ['metoffice', metofficeError], ['envcanada', envcanadaError],
-    ];
-    for (const [provider, error] of entries) if (error) errors[provider] = error;
+    for (const provider of WEATHER_PROVIDER_IDS) {
+      const error = latest[provider];
+      if (error) errors[provider] = error;
+    }
     return errors;
   }, [owmError, wapiError, pirateError, noaaError, openMeteoError, yrError, smhiError, metofficeError, envcanadaError]);
 
-  // Resolve which provider's data represents the global weather state for the event bus
-  const globalWeatherData = useMemo(() => {
-    switch (globalProvider) {
-      case 'openweathermap': return owmData;
-      case 'weatherapi': return wapiData;
-      case 'pirateweather': return pirateData;
-      case 'noaa': return noaaData;
-      case 'open-meteo': return openMeteoData;
-      case 'yr': return yrData;
-      case 'smhi': return smhiData;
-      case 'metoffice': return metofficeData;
-      case 'envcanada': return envcanadaData;
-      default: return null;
-    }
-  }, [globalProvider, owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData]);
+  // The household source's payload feeds the event bus and the shared state.
+  // A source this build does not know has no payload, which clears the keys.
+  const globalWeatherData = isWeatherProviderId(globalProvider) ? weatherByProvider[globalProvider] : null;
 
   // Publish derived weather events to the bus
   useEffect(() => {
@@ -271,7 +272,7 @@ export function useSharedDisplayData(
   // Memoized so consumers (BackgroundProviderLayer is React.memo'd) don't see
   // a new object identity on every ScreenRotator render tick.
   return useMemo(
-    () => ({ owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, weatherErrors, calendarData, calendarStatus, familyMembers, familyGroups, familyState }),
-    [owmData, wapiData, pirateData, noaaData, openMeteoData, yrData, smhiData, metofficeData, envcanadaData, weatherErrors, calendarData, calendarStatus, familyMembers, familyGroups, familyState],
+    () => ({ weatherByProvider, weatherErrors, calendarData, calendarStatus, familyMembers, familyGroups, familyState }),
+    [weatherByProvider, weatherErrors, calendarData, calendarStatus, familyMembers, familyGroups, familyState],
   );
 }

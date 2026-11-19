@@ -24,6 +24,7 @@
  * so there is no payload at all.
  */
 
+import { WEATHER_PROVIDER_CAPS, WEATHER_PROVIDER_IDS } from '@/lib/weather-providers';
 import type { ForecastDay, HourlyWeather, WeatherAlert } from '@/lib/weather/types';
 import { activeAlerts, mapDescriptionToCondition, mapSeverity, type AlertSeverity } from '@/lib/weather/derive';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
@@ -154,11 +155,13 @@ export function deriveWeatherState(
  * `getAlerts`). The warning keys are published on every provider, `false`
  * and blank elsewhere, but the editor only offers them when the household's
  * default provider is one of these, so nobody builds a rule that can never
- * fire. `weather-state.test.ts` checks this list against the provider
- * classes, so adding `getAlerts` to a provider fails the test until it is
- * named here.
+ * fire. Read off the `alerts` flag in the one provider table;
+ * `weather-state.test.ts` checks it against the provider classes, so adding
+ * `getAlerts` to a provider fails the test until its flag is set.
  */
-export const WEATHER_ALERT_PROVIDERS: readonly string[] = ['pirateweather', 'noaa'];
+export const WEATHER_ALERT_PROVIDERS: readonly string[] = WEATHER_PROVIDER_IDS.filter(
+  (id) => WEATHER_PROVIDER_CAPS[id].alerts,
+);
 
 export function providerSendsWeatherAlerts(provider: string | undefined): boolean {
   return provider !== undefined && WEATHER_ALERT_PROVIDERS.includes(provider);

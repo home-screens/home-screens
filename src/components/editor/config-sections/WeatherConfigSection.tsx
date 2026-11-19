@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect } from 'react';
 import Toggle from '@/components/ui/Toggle';
 import LabeledInput from '@/components/ui/LabeledInput';
@@ -9,54 +8,13 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import ViewSelect from '@/components/editor/ViewSelect';
 import { useModuleConfig } from '@/hooks/useModuleConfig';
 import { useEditorStore } from '@/stores/editor-store';
-import { getLocation } from '@/lib/location';
-import { formatCoords } from '@/components/modules/weather/location-label';
+import { automaticLocationLabel } from '@/components/modules/weather/location-label';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance, WeatherConfig, WeatherView, WeatherIconSet } from '@/types/config';
-import { settingsPath } from '@/lib/settings-route';
-import { KEYED_PROVIDER_IDS, WeatherSourceSelect, useConfiguredWeatherProviders } from './WeatherSourceSelect';
+import { WeatherApiKeyMissingRow, WeatherSourceSelect, useModuleWeatherSource } from './WeatherSourceSelect';
+import { weatherProviderCaps, type WeatherProviderCaps } from '@/lib/weather-providers';
 import { ForecastDaysHint } from './ForecastDaysHint';
 import { useForecastHoursSent } from '@/stores/preview-weather-store';
-
-/**
- * What a provider's payload can carry, so the editor offers a toggle or a
- * view only where the wall could show something. Each flag is read off the
- * provider file in `src/lib/weather/`: a flag set here for a field the
- * provider never emits is a control that does nothing.
- */
-export interface WeatherProviderCaps {
-  minutely?: boolean;
-  alerts?: boolean;
-  feelsLike?: boolean;
-  /** Daily precipitation total on the forecast days. */
-  precipAmount?: boolean;
-  windDirection?: boolean;
-  gust?: boolean;
-  pressure?: boolean;
-  visibility?: boolean;
-  dewPoint?: boolean;
-  uv?: boolean;
-}
-
-export const PROVIDER_CAPS: Record<string, WeatherProviderCaps> = {
-  openweathermap: { feelsLike: true, precipAmount: true, windDirection: true, gust: true, pressure: true },
-  weatherapi: { feelsLike: true, precipAmount: true, windDirection: true, gust: true, uv: true },
-  pirateweather: { minutely: true, alerts: true, feelsLike: true, precipAmount: true, windDirection: true, gust: true, uv: true, pressure: true, visibility: true, dewPoint: true },
-  // NOAA's hourly feed names the direction as compass text and gives no gust.
-  // Feels-like, pressure and visibility all come from the same station
-  // observation and only land on the current hour; feels-like further
-  // depends on the station reporting a wind chill or heat index.
-  noaa: { alerts: true, feelsLike: true, windDirection: true, pressure: true, visibility: true, dewPoint: true },
-  'open-meteo': { feelsLike: true, precipAmount: true, windDirection: true, gust: true, pressure: true, dewPoint: true, uv: true },
-  yr: { precipAmount: true, windDirection: true, gust: true, pressure: true },
-  smhi: { precipAmount: true, windDirection: true, gust: true, pressure: true },
-  // Met Office was missing entirely, so the editor reported it as having no
-  // optional fields even though the provider emits all of these.
-  metoffice: { feelsLike: true, precipAmount: true, windDirection: true, gust: true, pressure: true, visibility: true, dewPoint: true, uv: true },
-  // ECCC's hourly blocks carry a compass direction and a km/h gust, but no
-  // feels-like and no precipitation amount anywhere in the citypage feed.
-  envcanada: { windDirection: true, gust: true },
-};
 
 // Which provider capability a view requires (omit = available for all providers)
 const VIEW_REQUIRES: Partial<Record<WeatherView, 'minutely' | 'alerts'>> = {
@@ -130,29 +88,13 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   ];
   const { config: c, set } = useModuleConfig<Partial<WeatherConfig>>(mod, screenId);
 
-  const globalProvider = useEditorStore((s) => s.config?.settings?.weather?.provider);
-  const settings = useEditorStore((s) => s.config?.settings);
-
   // What the module renders when the custom label is left empty — shown as the
   // input's placeholder so the box previews its own fallback.
-  const location = getLocation(settings);
-  const automaticLabel = settings?.locationName?.trim()
-    || (location ? formatCoords(location.lat, location.lon) : '');
+  const automaticLabel = useEditorStore((s) => automaticLocationLabel(s.config?.settings));
 
-  const { providers: configuredProviders, known: providersKnown } = useConfiguredWeatherProviders();
-
-  const followsHousehold = !c.provider || c.provider === 'global';
-  const effectiveProvider = followsHousehold ? (globalProvider ?? 'open-meteo') : c.provider!;
-  const caps = PROVIDER_CAPS[effectiveProvider] ?? {};
+  const { followsHousehold, effectiveProvider, caps, configuredProviders, apiKeyMissing } = useModuleWeatherSource(c.provider);
   const hoursSent = useForecastHoursSent(effectiveProvider);
   const maxHours = hoursSent != null && hoursSent > 0 ? hoursSent : FALLBACK_MAX_HOURS;
-  // A keyed provider with no key renders nothing but "No weather data" on the
-  // wall, and nothing in the editor says why. Surface it here, next to the
-  // module, with a link to where the key goes. Only judged once a real
-  // secret status has landed, so a slow first fetch never flashes a warning.
-  const apiKeyMissing = providersKnown
-    && KEYED_PROVIDER_IDS.has(effectiveProvider)
-    && !configuredProviders.includes(effectiveProvider);
 
   const availableViews = ALL_WEATHER_VIEWS.filter((v) => {
     const req = VIEW_REQUIRES[v.value];
@@ -170,7 +112,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   const viewRequirement = VIEW_REQUIRES[view];
   const filteredProviders = viewRequirement
-    ? configuredProviders.filter((p) => PROVIDER_CAPS[p]?.[viewRequirement])
+    ? configuredProviders.filter((p) => weatherProviderCaps(p)[viewRequirement])
     : configuredProviders;
 
   const has = (field: Field) => VIEW_FIELDS[view].includes(field);
@@ -180,6 +122,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
   // least one toggle under it; the capability-gated ones count only when
   // the source sends that field.
   const CAP_GATED: Partial<Record<Field, keyof WeatherProviderCaps>> = {
+    feelsLike: 'feelsLike', precipAmount: 'precipAmount',
     pressure: 'pressure', visibility: 'visibility', dewPoint: 'dewPoint', uv: 'uv',
   };
   const SHOW_FIELDS: readonly Field[] = [
@@ -194,17 +137,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
 
   return (
     <>
-      {apiKeyMissing && (
-        <div className="rounded-md border border-hs-warning/30 bg-hs-warning/10 px-3 py-2 text-xs" data-testid="weather-api-key-row">
-          <p className="text-hs-text-body">{t('configSections.weather.apiKeyMissing')}</p>
-          <Link
-            href={settingsPath({ kind: 'defaults', page: 'weather' })}
-            className="mt-1 inline-block font-medium text-hs-accent hover:underline"
-          >
-            {t('configSections.weather.addApiKey')}
-          </Link>
-        </div>
-      )}
+      {apiKeyMissing && <WeatherApiKeyMissingRow />}
       <ViewSelect
         value={view}
         onChange={(v) => set({ view: v })}
@@ -290,7 +223,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       {has('relativeDays') && (
         <Toggle label={t('configSections.weather.showRelativeDayLabels')} checked={c.showRelativeDayLabels !== false} onChange={(v) => set({ showRelativeDayLabels: v })} />
       )}
-      {has('feelsLike') && (
+      {has('feelsLike') && caps.feelsLike && (
         <Toggle label={t('configSections.weather.feelsLike')} checked={c.showFeelsLike !== false} onChange={(v) => set({ showFeelsLike: v })} />
       )}
       {has('highLow') && (
@@ -299,7 +232,7 @@ export function WeatherConfigSection({ mod, screenId }: { mod: ModuleInstance; s
       {has('precipitation') && (
         <Toggle label={t('configSections.weather.precipitation')} checked={c.showPrecipitation !== false} onChange={(v) => set({ showPrecipitation: v })} />
       )}
-      {has('precipAmount') && (
+      {has('precipAmount') && caps.precipAmount && (
         <Toggle label={t('configSections.weather.precipitationAmount')} checked={!!c.showPrecipAmount} onChange={(v) => set({ showPrecipAmount: v })} />
       )}
       {has('humidity') && (

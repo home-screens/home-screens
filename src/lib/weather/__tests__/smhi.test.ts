@@ -151,3 +151,27 @@ describe('SMHIProvider forecast days', () => {
     ]);
   });
 });
+
+describe('SMHIProvider, one refresh', () => {
+  it('downloads the point forecast once when hours and days are asked together', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(NOW);
+    const spy = mockSmhi([
+      { time: '2026-04-18T12:00:00Z', data: { air_temperature: 14, symbol_code: 1, probability_of_precipitation: 33.4 } },
+    ]);
+    const provider = new SMHIProvider();
+    const [hourly, forecast] = await Promise.all([
+      provider.getHourly(59.33, 18.06, 'metric'),
+      provider.getForecast(59.33, 18.06, 'metric', 'Europe/Stockholm'),
+    ]);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(hourly).toHaveLength(1);
+    // The day's chance of rain is a whole percent, as on every other source.
+    expect(forecast[0].precipProbability).toBe(33);
+
+    // Nothing is kept once the answer lands: the next refresh asks again.
+    await provider.getHourly(59.33, 18.06, 'metric');
+    expect(spy).toHaveBeenCalledTimes(2);
+    spy.mockRestore();
+    nowSpy.mockRestore();
+  });
+});

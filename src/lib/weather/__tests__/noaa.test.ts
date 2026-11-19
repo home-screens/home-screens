@@ -218,3 +218,25 @@ describe('NOAAProvider', () => {
     expect(out[1].severity).toBe('Unknown');
   });
 });
+
+describe('NOAAProvider, one refresh', () => {
+  it('looks the grid point up once when hours and days are asked together', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(NOW);
+    clearGridCache();
+    const spy = mockNoaa({
+      hourly: { properties: { periods: [] } },
+      daily: { properties: { periods: [] } },
+      stations: { features: [] },
+    });
+    const provider = new NOAAProvider();
+    await Promise.all([
+      provider.getHourly(39.05, -95.68, 'imperial'),
+      provider.getForecast(39.05, -95.68, 'imperial'),
+    ]);
+    const pointCalls = spy.mock.calls.filter(([input]) => String(input).includes('/points/'));
+    expect(pointCalls).toHaveLength(1);
+    spy.mockRestore();
+    nowSpy.mockRestore();
+    clearGridCache();
+  });
+});

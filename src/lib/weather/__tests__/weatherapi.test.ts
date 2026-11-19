@@ -186,3 +186,31 @@ describe('WeatherAPIProvider', () => {
     expect(out[0].precipAmount).toBe(0.13); // inches
   });
 });
+
+describe('WeatherAPIProvider, one refresh', () => {
+  it('asks once for the week and reads the hours of the first two days from it', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(NOW);
+    const spy = mockWa({
+      current: { is_day: 1 },
+      forecast: {
+        forecastday: [
+          waDay({ date: '2026-04-18', hour: [waHour()] }),
+          waDay({ date: '2026-04-19', hour: [waHour({ time_epoch: NOW_EPOCH + 86_400 })] }),
+          waDay({ date: '2026-04-20', hour: [waHour({ time_epoch: NOW_EPOCH + 2 * 86_400 })] }),
+        ],
+      },
+    });
+    const provider = new WeatherAPIProvider('key');
+    const [hourly, forecast] = await Promise.all([
+      provider.getHourly(44.71, -93.42, 'metric'),
+      provider.getForecast(44.71, -93.42, 'metric'),
+    ]);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(String(spy.mock.calls[0][0])).toContain('days=7');
+    // The third day's hours are left out, as when hours had their own two-day request.
+    expect(hourly).toHaveLength(2);
+    expect(forecast.map((d) => d.date)).toEqual(['2026-04-18', '2026-04-19', '2026-04-20']);
+    spy.mockRestore();
+    nowSpy.mockRestore();
+  });
+});

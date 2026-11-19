@@ -3869,7 +3869,6 @@ export interface GarbageDayConfig {
 }
 
 // Rain map module config
-type RainMapStyle = 'dark' | 'standard';
 
 export interface RainMapConfig {
   /** Map center latitude (falls back to global setting) */
@@ -3896,8 +3895,15 @@ export interface RainMapConfig {
   showTimeline: boolean;
   /** How often to fetch new radar data (10 min) */
   refreshIntervalMs: number;
-  /** Base map style: `dark` or `standard` */
-  mapStyle: RainMapStyle;
+  /** Base map style: `dark`, `standard` or `light` (faded, so the radar is the only colour) */
+  mapStyle: FullscreenWeatherMapStyle;
+  /**
+   * Play the last two hours of radar as a loop
+   *
+   * Default true, and a map saved before this setting existed plays as it
+   * always did. Off holds the newest frame, with no loop and no timeline.
+   */
+  animate?: boolean;
 }
 
 // Standings module config

@@ -5583,6 +5583,7 @@
       "skyStill": "Quieto (un tinte sencillo)",
       "skyOff": "Apagado (tema sencillo)",
       "showAlerts": "Mostrar avisos meteorológicos",
+      "showAlertsHint": "Los avisos meteorológicos solo están disponibles en NOAA / NWS y Pirate Weather. Con cualquier otra fuente no se muestra ninguno.",
       "showRibbon": "Mostrar la curva de temperatura",
       "showStatRail": "Mostrar la fila de datos inferior",
       "showNowcast": "Lluvia de la próxima hora",

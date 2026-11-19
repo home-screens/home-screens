@@ -279,7 +279,7 @@ export function HourlyRows({ p, narrow = false }: { p: WeatherViewProps; narrow?
   if (N < 2) {
     return (
       <Card u={u} testId="fsw-hourly" style={{ flex: 1, display: 'grid', placeItems: 'center', color: 'var(--fsw-text-3)', fontSize: s * 2.2 }}>
-        {p.t('fullscreen-weather.loading')}
+        {p.t('weather.noWeatherData')}
       </Card>
     );
   }

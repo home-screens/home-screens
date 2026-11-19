@@ -1,20 +1,7 @@
-import type { SecretKey } from '../shared/SecretField';
+import type { WeatherProviderId, WeatherSecretKey } from '@/lib/weather-providers';
+import { WEATHER_PROVIDER_SECRET } from '@/lib/weather-providers';
 
-export type WeatherProviderId =
-  | 'open-meteo'
-  | 'weatherapi'
-  | 'openweathermap'
-  | 'pirateweather'
-  | 'noaa'
-  | 'yr'
-  | 'smhi'
-  | 'metoffice'
-  | 'envcanada';
-
-export type WeatherSecretKey = Extract<
-  SecretKey,
-  'weatherapi_key' | 'openweathermap_key' | 'pirateweather_key' | 'metoffice_key'
->;
+export type { WeatherProviderId, WeatherSecretKey };
 
 export type ProviderStatusType =
   | 'default-ready'
@@ -57,18 +44,17 @@ export interface WeatherProvider {
   testCoords?: { lat: number; lon: number };
 }
 
-export const WEATHER_PROVIDERS: WeatherProvider[] = [
+/** A card's own copy and colour; whether it needs a key comes from the shared table. */
+const PROVIDER_CARDS: Omit<WeatherProvider, 'secretKey'>[] = [
   {
     id: 'open-meteo',
     taglineKey: 'settings.weatherPage.providers.openMeteo.tagline',
     helperTextKey: 'settings.weatherPage.providers.openMeteo.helperText',
-    secretKey: null,
     iconBg: '#0ea5e9',
   },
   {
     id: 'weatherapi',
     taglineKey: 'settings.weatherPage.providers.weatherApi.tagline',
-    secretKey: 'weatherapi_key',
     keyHintKey: 'settings.weatherPage.providers.weatherApi.keyHint',
     placeholderKey: 'settings.weatherPage.providers.weatherApi.placeholder',
     iconBg: '#f59e0b',
@@ -76,7 +62,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   {
     id: 'openweathermap',
     taglineKey: 'settings.weatherPage.providers.openWeatherMap.tagline',
-    secretKey: 'openweathermap_key',
     keyHintKey: 'settings.weatherPage.providers.openWeatherMap.keyHint',
     placeholderKey: 'settings.weatherPage.providers.openWeatherMap.placeholder',
     iconBg: '#ea580c',
@@ -84,7 +69,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   {
     id: 'pirateweather',
     taglineKey: 'settings.weatherPage.providers.pirateWeather.tagline',
-    secretKey: 'pirateweather_key',
     keyHintKey: 'settings.weatherPage.providers.pirateWeather.keyHint',
     placeholderKey: 'settings.weatherPage.providers.pirateWeather.placeholder',
     iconBg: '#0d9488',
@@ -93,21 +77,18 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
     id: 'noaa',
     taglineKey: 'settings.weatherPage.providers.noaa.tagline',
     helperTextKey: 'settings.weatherPage.providers.noaa.helperText',
-    secretKey: null,
     iconBg: '#1d4ed8',
   },
   {
     id: 'yr',
     taglineKey: 'settings.weatherPage.providers.yr.tagline',
     helperTextKey: 'settings.weatherPage.providers.yr.helperText',
-    secretKey: null,
     iconBg: '#0369a1',
   },
   {
     id: 'smhi',
     taglineKey: 'settings.weatherPage.providers.smhi.tagline',
     helperTextKey: 'settings.weatherPage.providers.smhi.helperText',
-    secretKey: null,
     iconBg: '#005293',
     // Stockholm — dead-center in SMHI's Nordic bbox. Used by the Test
     // button so users outside the coverage area can still verify the
@@ -117,7 +98,6 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
   {
     id: 'metoffice',
     taglineKey: 'settings.weatherPage.providers.metOffice.tagline',
-    secretKey: 'metoffice_key',
     keyHintKey: 'settings.weatherPage.providers.metOffice.keyHint',
     placeholderKey: 'settings.weatherPage.providers.metOffice.placeholder',
     iconBg: '#262626',
@@ -126,10 +106,15 @@ export const WEATHER_PROVIDERS: WeatherProvider[] = [
     id: 'envcanada',
     taglineKey: 'settings.weatherPage.providers.envCanada.tagline',
     helperTextKey: 'settings.weatherPage.providers.envCanada.helperText',
-    secretKey: null,
     iconBg: '#d62718',
   },
 ];
+
+/** The Weather page's cards, in the order the page lists them. */
+export const WEATHER_PROVIDERS: WeatherProvider[] = PROVIDER_CARDS.map((card) => ({
+  ...card,
+  secretKey: WEATHER_PROVIDER_SECRET[card.id],
+}));
 
 export function getProviderStatus(
   isDefault: boolean,

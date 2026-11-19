@@ -193,3 +193,22 @@ describe('YrProvider forecast days', () => {
     expect(out.map((d) => [d.date, d.high, d.low])).toEqual([['2026-09-23', 19, 11]]);
   });
 });
+
+describe('YrProvider, one refresh', () => {
+  it('sends one request when hours and days are asked together on a cold cache', async () => {
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(NOW);
+    clearCache();
+    const spy = mockYr([
+      { time: '2026-04-18T12:00:00Z', data: { instant: { details: { air_temperature: 9 } } } },
+    ]);
+    const provider = new YrProvider();
+    await Promise.all([
+      provider.getHourly(59.9, 10.7, 'metric'),
+      provider.getForecast(59.9, 10.7, 'metric', 'Europe/Oslo'),
+    ]);
+    expect(spy).toHaveBeenCalledTimes(1);
+    spy.mockRestore();
+    nowSpy.mockRestore();
+    clearCache();
+  });
+});

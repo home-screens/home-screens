@@ -5,7 +5,7 @@ import { MapPin } from 'lucide-react';
 import { useEditorStore } from '@/stores/editor-store';
 import { getLocation } from '@/lib/location';
 import { settingsPath } from '@/lib/settings-route';
-import { formatCoords } from '@/components/modules/weather/location-label';
+import { automaticLocationLabel } from '@/components/modules/weather/location-label';
 import { useTranslate } from '@/i18n';
 import type { ModuleInstance } from '@/types/config';
 
@@ -30,7 +30,7 @@ export function LocationStatusRow({ mod }: { mod: ModuleInstance }) {
   if (typeof ownLat === 'number' && typeof ownLon === 'number' && ownLat !== 0 && ownLon !== 0) return null;
 
   if (location) {
-    const name = settings?.locationName?.trim() || formatCoords(location.lat, location.lon);
+    const name = automaticLocationLabel(settings);
     return (
       <p className="flex items-center gap-1.5 text-xs text-hs-text-faint" data-testid="location-status-row">
         <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />

@@ -83,11 +83,12 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
     config: { view: 'current', showFeelsLike: false },
     expect: lacks('Clear', 'Feels'),
   },
-  // showPrecipAmount renders a per-day precip total (inches) in the table view.
+  // showPrecipAmount renders a per-day precip total in the table view, in the
+  // household's unit (the matrix is imperial, so inches, written "in").
   {
     type: 'weather', name: 'precip-amount', kind: 'networked', stubKey: 'weather', stubBody: WEATHER_PRECIP_AMOUNT,
     config: { view: 'table', showPrecipAmount: true, daysToShow: 2 },
-    expect: has('0.5"'),
+    expect: has('0.5 in'),
   },
   // showPressure / showVisibility / showDewPoint each add a station stat to the
   // current view (unit is imperial in the matrix → " mi", " inHg" and "°").
@@ -234,6 +235,26 @@ export const WEATHER_ENVIRONMENT_VARIANTS: ConfigVariant[] = [
     type: 'rain-map', name: 'hide-timeline', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
     config: { showTimeline: false },
     expect: async (mod) => { await child('img[src*="tile.openstreetmap.org"]')(mod); await count('[data-testid="rain-map-timeline"]', 0)(mod); },
+  },
+  // The light base map is the same tile under a desaturating filter.
+  {
+    type: 'rain-map', name: 'map-style-light', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
+    config: { mapStyle: 'light' },
+    expect: async (mod) => {
+      const img = mod.locator('img[src*="tile.openstreetmap.org"]').first();
+      await expect(img).toBeAttached();
+      await expect(img).toHaveAttribute('style', /saturate/);
+    },
+  },
+  // animate off holds the newest frame: the timestamp stays, the timeline goes.
+  {
+    type: 'rain-map', name: 'still', kind: 'networked', stubKey: 'rain-map', allowsExternal: true,
+    config: { animate: false },
+    expect: async (mod) => {
+      await child('img[src*="tile.openstreetmap.org"]')(mod);
+      await count('[data-testid="rain-map-timestamp"]', 1)(mod);
+      await count('[data-testid="rain-map-timeline"]', 0)(mod);
+    },
   },
   // latitude/longitude recenter the tile grid; assert the base tile x/y for London.
   {

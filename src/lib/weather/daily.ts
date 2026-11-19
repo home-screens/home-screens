@@ -4,15 +4,18 @@
  * high/low, the dominant condition symbol, summed precipitation, max
  * precipitation probability, and averaged humidity/wind.
  *
- * All sample values are provider-raw metric (°C, m/s, mm) — unit conversion
- * and rounding policy stay with the caller, since providers deliberately
- * differ there (e.g. Yr rounds precip probability, SMHI reports it raw).
+ * All sample values are provider-raw metric (°C, m/s, mm). `toForecastDay`
+ * turns one aggregate into the day the wall reads, in the household's units
+ * and with one rounding policy for both providers; only the condition icon
+ * and wording stay with the caller.
  *
  * `forecastDate` is shared more widely: every provider that dates forecast
  * days from real instants keys them with it.
  */
 
 import { isoDateInTZ } from '../timezone';
+import type { ForecastDay } from './types';
+import { celsiusToUnit, mmToPrecipUnit, msToWindUnit } from './units';
 
 /**
  * The calendar day a forecast instant belongs to at the forecast's place, as
@@ -143,4 +146,27 @@ export function aggregateDaily<S>(
       windSpeedMs: average(day.windSpeedsMs),
     };
   });
+}
+
+/**
+ * One aggregated day as a forecast day in the household's units: whole
+ * degrees, a whole percent, precipitation to two decimals and whole wind
+ * speed. The provider supplies the icon and wording for its own symbol.
+ */
+export function toForecastDay<S>(
+  day: DailyAggregate<S>,
+  isMetric: boolean,
+  look: { icon: string; description: string },
+): ForecastDay {
+  return {
+    date: day.date,
+    high: Math.round(celsiusToUnit(day.highC, isMetric)),
+    low: Math.round(celsiusToUnit(day.lowC, isMetric)),
+    icon: look.icon,
+    description: look.description,
+    precipProbability: Math.round(day.precipProb),
+    precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
+    humidity: day.humidity,
+    windSpeed: day.windSpeedMs != null ? Math.round(msToWindUnit(day.windSpeedMs, isMetric)) : undefined,
+  };
 }

@@ -1,3 +1,5 @@
+import { isWeatherProviderId, type WeatherProviderId } from './weather-providers';
+
 /**
  * The one name each weather provider goes by, everywhere it is named: the
  * provider cards on the Weather page, the weather row on the API keys page,
@@ -7,7 +9,7 @@
  * so nothing else keeps its own table. Deliberately untranslated: these are
  * brand names. Import-safe from server routes and client components alike.
  */
-export const WEATHER_PROVIDER_NAMES: Record<string, string> = {
+export const WEATHER_PROVIDER_NAMES: Record<WeatherProviderId, string> = {
   openweathermap: 'OpenWeatherMap',
   weatherapi: 'WeatherAPI.com',
   pirateweather: 'Pirate Weather',
@@ -20,5 +22,5 @@ export const WEATHER_PROVIDER_NAMES: Record<string, string> = {
 };
 
 export function weatherProviderName(id: string): string {
-  return WEATHER_PROVIDER_NAMES[id] ?? id;
+  return isWeatherProviderId(id) ? WEATHER_PROVIDER_NAMES[id] : id;
 }

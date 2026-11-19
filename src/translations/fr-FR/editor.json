@@ -5583,6 +5583,7 @@
       "skyStill": "Calme (une simple teinte)",
       "skyOff": "Désactivé (thème simple)",
       "showAlerts": "Afficher les alertes météo",
+      "showAlertsHint": "Les alertes météo ne sont disponibles qu'avec NOAA / NWS et Pirate Weather. Avec toute autre source, aucune ne s'affiche.",
       "showRibbon": "Afficher la courbe de température",
       "showStatRail": "Afficher la barre de mesures",
       "showNowcast": "Pluie dans l'heure qui vient",

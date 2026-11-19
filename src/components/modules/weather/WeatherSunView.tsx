@@ -25,7 +25,7 @@ import type { WeatherViewProps } from './types';
 const ARC_W = 460;
 const ARC_H = 230;
 
-export default function WeatherSunView({ config, timezone, timeFormat, scaledFontSize, latitude, longitude }: WeatherViewProps) {
+export default function WeatherSunView({ timezone, timeFormat, scaledFontSize, latitude, longitude }: WeatherViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const now = useRealClock(60_000);
@@ -49,7 +49,7 @@ export default function WeatherSunView({ config, timezone, timeFormat, scaledFon
   // any square box, with nothing overflowing the wrapper for the loop to see.
   const sunCardMinHeight = landscape ? undefined : dropHeadline ? '4em' : '7em';
 
-  const { boxRef, contentRef, fontSize } = useFitFontSize(scaledFontSize, [landscape, dropMoon, dropHeadline, fullMoonCaption, config.showTitle !== false].join('|'));
+  const { boxRef, contentRef, fontSize } = useFitFontSize(scaledFontSize, [landscape, dropMoon, dropHeadline, fullMoonCaption].join('|'));
 
   if (latitude == null || longitude == null) {
     return (

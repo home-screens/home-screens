@@ -5583,6 +5583,7 @@
       "skyStill": "Still (a plain tint)",
       "skyOff": "Off (plain theme)",
       "showAlerts": "Show weather warnings",
+      "showAlertsHint": "Weather warnings only come from NOAA / NWS and Pirate Weather. With any other weather source none will show.",
       "showRibbon": "Show the temperature curve",
       "showStatRail": "Show the bottom stats row",
       "showNowcast": "Show the next-hour rain strip",

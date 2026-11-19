@@ -6,6 +6,7 @@ import { hasCalendarOwners, livePersonSources } from '@/lib/calendar-source-refs
 import { settingsPath } from './settings-route';
 import type { FetchError } from './fetch-error';
 import type { DisplayDescriptor } from './display-filter';
+import { DEFAULT_WEATHER_PROVIDER, isWeatherProviderId, type WeatherProviderId } from './weather-providers';
 
 /**
  * Raw per-provider weather payloads plus the calendar payload, fetched once by
@@ -14,15 +15,8 @@ import type { DisplayDescriptor } from './display-filter';
  * lib layer importing a React component.
  */
 export interface SharedDisplayData {
-  owmData: unknown;
-  wapiData: unknown;
-  pirateData: unknown;
-  noaaData: unknown;
-  openMeteoData: unknown;
-  yrData: unknown;
-  smhiData: unknown;
-  metofficeData: unknown;
-  envcanadaData: unknown;
+  /** The latest payload from each weather source; null or undefined until one lands. */
+  weatherByProvider: Record<WeatherProviderId, unknown>;
   /** Providers whose latest fetch failed, keyed by provider id. */
   weatherErrors: Partial<Record<string, FetchError>>;
   calendarData: unknown;
@@ -31,18 +25,6 @@ export interface SharedDisplayData {
   familyGroups?: FamilyGroup[];
   familyState?: 'loading' | 'failed';
 }
-
-const PROVIDER_KEY: Record<string, keyof SharedDisplayData> = {
-  openweathermap: 'owmData',
-  weatherapi: 'wapiData',
-  pirateweather: 'pirateData',
-  noaa: 'noaaData',
-  'open-meteo': 'openMeteoData',
-  yr: 'yrData',
-  smhi: 'smhiData',
-  metoffice: 'metofficeData',
-  envcanada: 'envcanadaData',
-};
 
 /** One provider's weather response, as far as the prop builder cares. */
 export interface WeatherPayload {
@@ -356,8 +338,9 @@ export function toDisplaySource(
     weather: {
       globalProvider: settings.weather.provider,
       units: settings.weather.units,
-      payloadFor: (provider) =>
-        (sharedData[PROVIDER_KEY[provider]] as WeatherPayload | null | undefined) ?? null,
+      payloadFor: (provider) => (isWeatherProviderId(provider)
+        ? (sharedData.weatherByProvider[provider] as WeatherPayload | null | undefined) ?? null
+        : null),
       errorFor: (provider) => sharedData.weatherErrors[provider] ?? null,
     },
     calendarEvents: extractCalendarEvents(calendarData),
@@ -385,7 +368,7 @@ export function toEditorSource(
   previewData: PreviewData,
   displays: DisplayDescriptor[] = [],
 ): ModuleDataSource {
-  const globalProvider = settings?.globalProvider ?? 'open-meteo';
+  const globalProvider = settings?.globalProvider ?? DEFAULT_WEATHER_PROVIDER;
   return {
     surface: 'editor',
     timezone: settings?.timezone,

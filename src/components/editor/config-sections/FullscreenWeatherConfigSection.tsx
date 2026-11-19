@@ -14,7 +14,8 @@ import type { ModuleInstance, FullscreenWeatherConfig } from '@/types/config';
 import { clampDaysToShow } from '@/components/modules/fullscreen-weather/weather-view-utils';
 import { resolveWeatherCards } from '@/lib/fullscreen-weather-cards';
 import { WeatherCardsList } from './WeatherCardsList';
-import { WeatherSourceSelect, useConfiguredWeatherProviders } from './WeatherSourceSelect';
+import { WeatherApiKeyMissingRow, WeatherSourceSelect, useModuleWeatherSource } from './WeatherSourceSelect';
+import { automaticLocationLabel } from '@/components/modules/weather/location-label';
 import { ForecastDaysHint } from './ForecastDaysHint';
 
 type Config = Partial<FullscreenWeatherConfig>;
@@ -28,10 +29,10 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
   // The same source picker as the Weather module. Absent or `global`
   // follows the household source, which is what every module did before
   // the picker existed.
-  const globalProvider = useEditorStore((s) => s.config?.settings?.weather?.provider);
-  const { providers: configuredProviders } = useConfiguredWeatherProviders();
-  const followsHousehold = !c.provider || c.provider === 'global';
-  const effectiveProvider = followsHousehold ? (globalProvider ?? 'open-meteo') : c.provider!;
+  const { followsHousehold, effectiveProvider, caps, configuredProviders, apiKeyMissing } = useModuleWeatherSource(c.provider);
+  // What the wall prints when the label is left empty, shown as the box's
+  // placeholder so it previews its own fallback.
+  const automaticLabel = useEditorStore((s) => automaticLocationLabel(s.config?.settings));
   const daysToShow = clampDaysToShow(c.daysToShow);
 
   const VIEWS = [
@@ -69,6 +70,7 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
   // view's own parts.
   return (
     <>
+      {apiKeyMissing && <WeatherApiKeyMissingRow />}
       <LabeledSelect
         label={t('configSections.fullscreen-weather.view')}
         value={view}
@@ -86,6 +88,7 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
         label={t('configSections.fullscreen-weather.locationLabel')}
         value={c.locationLabel ?? ''}
         onChange={(v) => set({ locationLabel: v })}
+        placeholder={automaticLabel}
       />
       {/* The days field lives with the source, so the "only sends 3 days"
           warning sits under the picker that fixes it. */}
@@ -157,6 +160,14 @@ export function FullscreenWeatherConfigSection({ mod, screenId }: { mod: ModuleI
         checked={c.showAlerts !== false}
         onChange={(v) => set({ showAlerts: v })}
       />
+      {/* Only two sources send warnings. On any other the switch is on and
+          the wall never shows one, so say so here instead of letting a
+          household believe the wall will warn them. */}
+      {!caps.alerts && (
+        <p className="text-[11px] text-hs-text-faint leading-relaxed" data-testid="fsw-alerts-hint">
+          {t('configSections.fullscreen-weather.showAlertsHint')}
+        </p>
+      )}
 
       {/* Wide strip is Panorama's parts side by side and reads the same three flags. */}
       {(view === 'panorama' || view === 'strip') && (

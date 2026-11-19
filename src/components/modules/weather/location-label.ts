@@ -1,4 +1,5 @@
-import type { WeatherConfig } from '@/types/config';
+import type { GlobalSettings, WeatherConfig } from '@/types/config';
+import { getLocation } from '@/lib/location';
 
 /** ~110m precision — enough to identify a place, short enough for a header. */
 export function formatCoords(lat: number, lon: number): string {
@@ -26,4 +27,16 @@ export function resolveWeatherLocationLabel(
   const name = locationName?.trim();
   if (name) return name;
   return coords ? formatCoords(coords.lat, coords.lon) : null;
+}
+
+/**
+ * The name a weather module prints when it has no label of its own: the
+ * household's place name, else its coordinates, else nothing. The editor
+ * shows it as the label box's placeholder and in the location row.
+ */
+export function automaticLocationLabel(settings: GlobalSettings | null | undefined): string {
+  const named = settings?.locationName?.trim();
+  if (named) return named;
+  const location = getLocation(settings);
+  return location ? formatCoords(location.lat, location.lon) : '';
 }

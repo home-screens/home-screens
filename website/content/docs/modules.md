@@ -89,7 +89,7 @@ All of these use the location under **Settings > Location & language**; see [Wea
 - **Moon Phase** ([reference](/docs/module-reference#moon-phase)): tonight's moon, its name and how much of it is lit.
 - **Sunrise / Sunset** ([reference](/docs/module-reference#sunrise-sunset)): today's sunrise and sunset. Views: **Default** (the times as text), **Sun Arc** and **24h Circle**.
 - **Air Quality** ([reference](/docs/module-reference#air-quality)): the air quality index and its parts. Needs an OpenWeatherMap key on the Weather page, whichever weather provider you use.
-- **Rain Map** ([reference](/docs/module-reference#rain-map)): an animated rain radar centred on your home. Works with no key. **Only show when rain is likely** at the top of its settings hides it on dry days; see [Weather](/docs/weather#show-the-rain-map-only-when-rain-is-likely).
+- **Rain Map** ([reference](/docs/module-reference#rain-map)): an animated rain radar centred on your home, on a dark, standard or light map. Works with no key. Turn off **Play the last two hours of radar** to hold the newest picture still. **Only show when rain is likely** at the top of its settings hides it on dry days; see [Weather](/docs/weather#show-the-rain-map-only-when-rain-is-likely).
 
 ### News & Finance
 

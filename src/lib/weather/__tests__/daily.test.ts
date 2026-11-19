@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { aggregateDaily, pickDominant, average, forecastDate, forecastFromToday } from '../daily';
+import { aggregateDaily, pickDominant, average, forecastDate, forecastFromToday, toForecastDay } from '../daily';
 
 describe('pickDominant', () => {
   it('returns the most frequent key', () => {
@@ -141,5 +141,25 @@ describe('forecastFromToday', () => {
 
   it('returns the same array when it already starts today', () => {
     expect(forecastFromToday(days, '2026-09-24')).toBe(days);
+  });
+});
+
+describe('toForecastDay', () => {
+  const day = { date: '2026-04-18', highC: 10.4, lowC: -0.6, symbol: 'x', precipMm: 2.54, precipProb: 33.4, humidity: 61, windSpeedMs: 5 };
+  const look = { icon: 'cloud-rain', description: 'Rain' };
+
+  it('keeps metric values, rounding degrees, percent and wind to whole numbers', () => {
+    expect(toForecastDay(day, true, look)).toEqual({
+      date: '2026-04-18', high: 10, low: -1, icon: 'cloud-rain', description: 'Rain',
+      precipProbability: 33, precipAmount: 2.54, humidity: 61, windSpeed: 18,
+    });
+  });
+
+  it('converts to Fahrenheit, inches and mph', () => {
+    expect(toForecastDay(day, false, look)).toMatchObject({ high: 51, low: 31, precipAmount: 0.1, windSpeed: 11 });
+  });
+
+  it('leaves wind out when the day had no wind samples', () => {
+    expect(toForecastDay({ ...day, windSpeedMs: undefined }, true, look).windSpeed).toBeUndefined();
   });
 });

@@ -11,6 +11,7 @@ import {
 } from '../module-props';
 import { buildPersonRows, eventsForRow } from '../calendar-people';
 import type { CalendarEvent, CalendarSettings, ModuleType } from '@/types/config';
+import { emptyWeatherPayloads } from '@/lib/weather-providers';
 
 /**
  * The display and the editor canvas render the same module components from
@@ -31,15 +32,7 @@ const WEATHER_PAYLOAD = {
 const EVENTS = [{ id: 'e1', summary: 'Dentist' }];
 
 const emptyShared = (): SharedDisplayData => ({
-  owmData: null,
-  wapiData: null,
-  pirateData: null,
-  noaaData: null,
-  openMeteoData: null,
-  yrData: null,
-  smhiData: null,
-  metofficeData: null,
-  envcanadaData: null,
+  weatherByProvider: emptyWeatherPayloads(),
   weatherErrors: {},
   calendarData: null,
   calendarStatus: { error: null, updatedAt: null },
@@ -78,7 +71,7 @@ const previewData: PreviewData = {
 const displaySource = () => toDisplaySource(
   displaySettings,
   LOCATION,
-  { ...emptyShared(), wapiData: WEATHER_PAYLOAD, calendarData: { events: EVENTS } },
+  { ...emptyShared(), weatherByProvider: { ...emptyWeatherPayloads(), weatherapi: WEATHER_PAYLOAD }, calendarData: { events: EVENTS } },
 );
 
 const editorSource = () => toEditorSource(previewSettings, previewData);
@@ -99,7 +92,7 @@ describe('adapter equivalence', () => {
 
   it('resolves a per-module provider override the same way on both surfaces', () => {
     const mod = instance('weather', { provider: 'noaa' });
-    const shared = { ...emptyShared(), noaaData: WEATHER_PAYLOAD };
+    const shared = { ...emptyShared(), weatherByProvider: { ...emptyWeatherPayloads(), noaa: WEATHER_PAYLOAD } };
     const fromDisplay = buildModuleProps(mod, toDisplaySource(displaySettings, LOCATION, shared));
     const fromEditor = buildModuleProps(mod, toEditorSource(previewSettings, {
       weatherErrors: {}, weatherByProvider: { noaa: WEATHER_PAYLOAD },

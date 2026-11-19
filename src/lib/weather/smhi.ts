@@ -1,9 +1,9 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
-import { fetchWeatherJSON } from './fetch';
+import { createProviderFetch, fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
-import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
-import { aggregateDaily, forecastDate } from './daily';
+import { celsiusToUnit, msToWindUnit } from './units';
+import { aggregateDaily, forecastDate, toForecastDay } from './daily';
 
 // ── SMHI (Swedish Meteorological and Hydrological Institute) ─────────
 // https://opendata.smhi.se/metfcst/snow1gv1
@@ -114,6 +114,11 @@ export function wsymb2ToIcon(code: number, isDay: boolean): WeatherIconName {
 
 /** @internal */
 export class SMHIProvider implements WeatherProvider {
+  // One refresh asks for hours and days together, and both come out of the
+  // same point forecast: share the request instead of downloading it twice.
+  // Nothing is kept past the answer; the route's own cache paces refreshes.
+  private static fetchOnce = createProviderFetch<SMHIResponse>();
+
   // No API key needed
   constructor() {}
 
@@ -121,10 +126,10 @@ export class SMHIProvider implements WeatherProvider {
     // SMHI accepts up to 6 decimals; lon comes before lat in the path
     const latStr = lat.toFixed(6);
     const lonStr = lon.toFixed(6);
-    return fetchWeatherJSON<SMHIResponse>(
+    return SMHIProvider.fetchOnce(`${latStr},${lonStr}`, () => fetchWeatherJSON<SMHIResponse>(
       `https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/${lonStr}/lat/${latStr}/data.json`,
       'SMHI',
-    );
+    ));
   }
 
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {
@@ -182,18 +187,11 @@ export class SMHIProvider implements WeatherProvider {
       forecastDate(new Date(Date.now()), timezone),
     );
 
-    return days.map((day) => ({
-      date: day.date,
-      high: Math.round(celsiusToUnit(day.highC, isMetric)),
-      low: Math.round(celsiusToUnit(day.lowC, isMetric)),
+    return days.map((day) => toForecastDay(day, isMetric, {
       icon: day.symbol != null ? wsymb2ToIcon(day.symbol, true) : FALLBACK_ICON,
       description: day.symbol != null
         ? (WSYMB2_DESCRIPTIONS[day.symbol] ?? 'Unknown')
         : 'Unknown',
-      precipProbability: day.precipProb,
-      precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
-      humidity: day.humidity,
-      windSpeed: day.windSpeedMs != null ? Math.round(msToWindUnit(day.windSpeedMs, isMetric)) : undefined,
     }));
   }
 }

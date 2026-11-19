@@ -3477,14 +3477,25 @@
           "optional": false,
           "type": {
             "kind": "string",
-            "text": "RainMapStyle",
+            "text": "FullscreenWeatherMapStyle",
             "values": [
+              "standard",
               "dark",
-              "standard"
+              "light"
             ]
           },
-          "description": "Base map style: `dark` or `standard`",
+          "description": "Base map style: `dark`, `standard` or `light` (faded, so the radar is the only colour)",
           "default": "dark"
+        },
+        {
+          "name": "animate",
+          "optional": true,
+          "type": {
+            "kind": "boolean",
+            "text": "boolean"
+          },
+          "description": "Play the last two hours of radar as a loop",
+          "default": true
         }
       ]
     },

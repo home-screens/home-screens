@@ -7,15 +7,9 @@ import type { HourlyWeather, ForecastDay } from '@/lib/weather';
 import { readConfig } from '@/lib/config';
 import { cachedProxyRoute, getLocationFromConfig, requireSecret } from '@/lib/api-utils';
 import { weatherProviderName } from '@/lib/weather-provider-names';
+import { weatherProviderSecret } from '@/lib/weather-providers';
 
 export const dynamic = 'force-dynamic';
-
-const secretKeyMap: Record<string, 'openweathermap_key' | 'weatherapi_key' | 'pirateweather_key' | 'metoffice_key'> = {
-  openweathermap: 'openweathermap_key',
-  weatherapi: 'weatherapi_key',
-  pirateweather: 'pirateweather_key',
-  metoffice: 'metoffice_key',
-};
 
 interface WeatherParams {
   type: string;
@@ -86,7 +80,7 @@ const { GET, cache } = cachedProxyRoute<unknown, WeatherParams>({
 
     // Keyless providers (NOAA, Open-Meteo, Yr.no, SMHI) skip the secret lookup;
     // keyed providers (OWM, WeatherAPI, Pirate Weather, Met Office) require one.
-    const secretKey = secretKeyMap[provider];
+    const secretKey = weatherProviderSecret(provider);
     let apiKey: string | undefined;
     if (secretKey) {
       const result = await requireSecret(secretKey, weatherProviderName(provider), 'weather');

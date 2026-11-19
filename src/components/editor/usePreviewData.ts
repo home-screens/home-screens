@@ -18,6 +18,7 @@ import { logger } from '@/lib/logger';
 import { readFetchError, setupError, type FetchError } from '@/lib/fetch-error';
 import { weatherProviderName } from '@/lib/weather-provider-names';
 import { previewWeatherProviders } from '@/lib/weather-preview-providers';
+import { DEFAULT_WEATHER_PROVIDER, WEATHER_PROVIDER_IDS, configuredWeatherProviders } from '@/lib/weather-providers';
 
 const log = logger('preview-data');
 
@@ -28,14 +29,6 @@ type ProviderWeatherData = PreviewData['weatherByProvider'][string];
  *  that the editor preview feels responsive. */
 const REFETCH_DEBOUNCE_MS = 500;
 
-const ALL_PROVIDERS = ['openweathermap', 'weatherapi', 'pirateweather', 'noaa', 'open-meteo', 'yr', 'smhi', 'metoffice', 'envcanada'];
-const NO_KEY_NEEDED = new Set(['noaa', 'open-meteo', 'yr', 'smhi', 'envcanada']);
-const PROVIDER_KEY_MAP: Record<string, string> = {
-  openweathermap: 'openweathermap_key',
-  weatherapi: 'weatherapi_key',
-  pirateweather: 'pirateweather_key',
-  metoffice: 'metoffice_key',
-};
 
 export function usePreviewData(): PreviewData {
   const [previewData, setPreviewData] = useState<PreviewData>({
@@ -68,17 +61,18 @@ export function usePreviewData(): PreviewData {
   const statusUnknown = secretsError && !hasStatus;
   const providers = useMemo<string[] | null>(() => {
     if (secretsLoading || requestedProviders.size === 0) return null;
-    return ALL_PROVIDERS.filter((p) =>
-      requestedProviders.has(p)
-      && (statusUnknown || NO_KEY_NEEDED.has(p) || secrets[PROVIDER_KEY_MAP[p]]),
-    );
+    // With the key status unknown the preview asks anyway (the route answers
+    // for a missing key); the per-module picker, by contrast, offers nothing.
+    const runnable: readonly string[] = statusUnknown ? WEATHER_PROVIDER_IDS : configuredWeatherProviders(secrets);
+    return WEATHER_PROVIDER_IDS.filter((p) => requestedProviders.has(p) && runnable.includes(p));
   }, [requestedProviders, secrets, secretsLoading, statusUnknown]);
   // Keyed providers with no key saved, judged from the key status alone. Not
   // "keyed and not fetched": a provider with a key that no module uses yet is
   // also not fetched, and must not read as missing its key when one switches to it.
   const missingKeyProviders = useMemo<string[]>(() => {
     if (secretsLoading || statusUnknown) return [];
-    return ALL_PROVIDERS.filter((p) => !NO_KEY_NEEDED.has(p) && !secrets[PROVIDER_KEY_MAP[p]]);
+    const runnable: readonly string[] = configuredWeatherProviders(secrets);
+    return WEATHER_PROVIDER_IDS.filter((p) => !runnable.includes(p));
   }, [secrets, secretsLoading, statusUnknown]);
 
   useEffect(() => {
@@ -189,7 +183,7 @@ export function usePreviewData(): PreviewData {
 
   // Publish weather events to the event bus so editor modules using
   // useEventBus('weather.conditions') see the same data as the display.
-  const globalProvider = provider ?? 'open-meteo';
+  const globalProvider = provider ?? DEFAULT_WEATHER_PROVIDER;
   const globalWeather = previewData.weatherByProvider[globalProvider];
   useEffect(() => {
     if (!globalWeather) return;

@@ -1,10 +1,9 @@
 import type { HourlyWeather, ForecastDay, WeatherProvider } from './types';
-import { fetchWeatherJSON } from './fetch';
+import { createProviderFetch, fetchWeatherJSON } from './fetch';
 import type { WeatherIconName } from './icons';
 import { FALLBACK_ICON } from './icons';
-import { celsiusToUnit, msToWindUnit, mmToPrecipUnit } from './units';
-import { aggregateDaily, forecastDate } from './daily';
-import { createTTLCache } from '../api-utils';
+import { celsiusToUnit, msToWindUnit } from './units';
+import { aggregateDaily, forecastDate, toForecastDay } from './daily';
 import pkg from '../../../package.json';
 
 // ── Yr.no / MET Norway API response types ────────────────────────────
@@ -141,7 +140,8 @@ export class YrProvider implements WeatherProvider {
   // MET Norway asks clients to throttle to ≥10 minutes per location. The
   // route-level cache covers most cases, but this guards against accidental
   // hammering when the route cache is bypassed (cache busts, manual refresh).
-  private static cache = createTTLCache<YrResponse>(10 * 60 * 1000);
+  // One refresh asks for hours and days together; they share the one request.
+  private static cache = createProviderFetch<YrResponse>({ ttlMs: 10 * 60 * 1000 });
 
   // No API key needed
   constructor() {}
@@ -152,20 +152,14 @@ export class YrProvider implements WeatherProvider {
     const lonStr = lon.toFixed(4);
     const key = `${latStr},${lonStr}`;
 
-    const cached = YrProvider.cache.get(key);
-    if (cached) return cached;
-
     // `complete` rather than `compact`: the compact feed stops at wind speed
     // and direction, and only the complete one carries wind_speed_of_gust.
     // Same structure, same terms, roughly twice the bytes per call.
-    const data = await fetchWeatherJSON<YrResponse>(
+    return YrProvider.cache(key, () => fetchWeatherJSON<YrResponse>(
       `https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${latStr}&lon=${lonStr}`,
       'Yr.no',
       { headers: { 'User-Agent': YrProvider.USER_AGENT } },
-    );
-
-    YrProvider.cache.set(key, data);
-    return data;
+    ));
   }
 
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {
@@ -230,16 +224,9 @@ export class YrProvider implements WeatherProvider {
       forecastDate(new Date(Date.now()), timezone),
     );
 
-    return days.map((day) => ({
-      date: day.date,
-      high: Math.round(celsiusToUnit(day.highC, isMetric)),
-      low: Math.round(celsiusToUnit(day.lowC, isMetric)),
+    return days.map((day) => toForecastDay(day, isMetric, {
       icon: symbolToIcon(day.symbol),
       description: symbolDescription(day.symbol),
-      precipProbability: Math.round(day.precipProb),
-      precipAmount: Math.round(mmToPrecipUnit(day.precipMm, isMetric) * 100) / 100,
-      humidity: day.humidity,
-      windSpeed: day.windSpeedMs != null ? Math.round(msToWindUnit(day.windSpeedMs, isMetric)) : undefined,
     }));
   }
 }

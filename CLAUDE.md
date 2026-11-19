@@ -117,7 +117,7 @@ Locale lives in `GlobalSettings.locale` (BCP-47, default `en-US`), with optional
 ### Other key files
 - `src/types/config.ts`: every config type (ModuleType, ModuleInstance, ScreenConfiguration, GlobalSettings, DisplayNode); `src/types/plugins.ts` for plugin manifests
 - `src/stores/editor-slices/`: editor actions by area (config, selection, modules, screens, settings, profiles, rules, displays, layout); history bookkeeping in `src/stores/editor-save.ts`
-- `src/lib/weather/`: one file per provider behind a shared interface and factory
+- `src/lib/weather/`: one file per provider behind a shared interface and factory; `src/lib/weather-providers.ts` is the one table of sources (ids, which need a key, what each sends) that the wall, editor, settings search and weather route all read
 - `src/lib/google-calendar.ts`, `src/lib/caldav-calendar.ts`: calendar integrations
 - `src/lib/google-hosted.ts` (Home Screens' own Google apps, on unless `HS_GOOGLE_HOSTED=0`), `src/lib/google-app-choice.ts` (which app each integration signs in with, from the one `settings.googleApp` switch), `src/lib/google-token-store.ts` / `google-token-stores.ts` (the grant store and its two instances)
 - `src/lib/display-filter.ts`: `filterConfigForDisplay`, `validateDisplays`, `getDisplayScreens`

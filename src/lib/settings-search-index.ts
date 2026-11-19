@@ -4,6 +4,8 @@ import type {
   SettingsRoute,
   TabbedPageId,
 } from '@/lib/settings-route';
+import { WEATHER_PROVIDER_IDS } from '@/lib/weather-providers';
+import { weatherProviderName } from '@/lib/weather-provider-names';
 
 /**
  * One searchable field on a `Defaults → X` page. `fieldId` matches the
@@ -194,15 +196,10 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
 
   { pageId: 'weather', fieldId: 'weather.units', labelKey: 'settings.weatherPage.unitsLabel', keywordKeys: ['settings.weatherPage.imperialOption', 'settings.weatherPage.metricOption'], keywords: ['celsius', 'fahrenheit'] },
   { pageId: 'weather', fieldId: 'weather.radarServer', labelKey: 'settings.weatherPage.radar.heading' },
-  { pageId: 'weather', fieldId: 'weather.provider.open-meteo', label: 'Open-Meteo' },
-  { pageId: 'weather', fieldId: 'weather.provider.weatherapi', label: 'WeatherAPI.com' },
-  { pageId: 'weather', fieldId: 'weather.provider.openweathermap', label: 'OpenWeatherMap' },
-  { pageId: 'weather', fieldId: 'weather.provider.pirateweather', label: 'Pirate Weather' },
-  { pageId: 'weather', fieldId: 'weather.provider.noaa', label: 'NOAA / NWS' },
-  { pageId: 'weather', fieldId: 'weather.provider.yr', label: 'Yr.no / MET Norway' },
-  { pageId: 'weather', fieldId: 'weather.provider.smhi', label: 'SMHI' },
-  { pageId: 'weather', fieldId: 'weather.provider.metoffice', label: 'UK Met Office' },
-  { pageId: 'weather', fieldId: 'weather.provider.envcanada', label: 'Environment Canada' },
+  // One row per weather source, named as its card names it.
+  ...WEATHER_PROVIDER_IDS.map((id): SettingsFieldEntry => (
+    { pageId: 'weather', fieldId: `weather.provider.${id}`, label: weatherProviderName(id) }
+  )),
 
   { pageId: 'calendar', fieldId: 'calendar.holidayCountry', labelKey: 'settings.calendarPage.holidays.heading' },
   { pageId: 'calendar', fieldId: 'calendar.daysAhead', labelKey: 'settings.calendarPage.shared.daysAheadLabel' },

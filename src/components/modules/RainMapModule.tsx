@@ -37,6 +37,8 @@ export default function RainMapModule({
   const householdCoords = latitude != null && longitude != null ? { lat: latitude, lon: longitude } : null;
   const center = ownCoords ?? householdCoords;
   const refreshMs = config.refreshIntervalMs ?? DEFAULT_REFRESH_MS;
+  // Off holds the newest frame: a still radar for an older Pi or a calmer wall.
+  const animate = config.animate !== false;
 
   // The canvas reads the same index; useFetchData shares the request.
   const { data, error, frames } = useRadarFrames(center, refreshMs);
@@ -64,7 +66,8 @@ export default function RainMapModule({
         animationSpeedMs={Math.max(500, config.animationSpeedMs ?? 500)}
         extraDelayLastFrameMs={config.extraDelayLastFrameMs ?? 2000}
         showTimestamp={config.showTimestamp !== false}
-        showTimeline={config.showTimeline !== false}
+        showTimeline={animate && config.showTimeline !== false}
+        latestOnly={!animate}
         refreshIntervalMs={refreshMs}
       />
     </ModuleWrapper>

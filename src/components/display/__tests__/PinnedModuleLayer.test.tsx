@@ -17,6 +17,7 @@ import enUSModules from '@/translations/en-US/modules.json';
 import { usePluginStore } from '@/stores/plugin-store';
 import PinnedModuleLayer from '../PinnedModuleLayer';
 import { collectPinnedModules } from '@/lib/pinned-modules';
+import { emptyWeatherPayloads } from '@/lib/weather-providers';
 
 let mounts = 0;
 let lateLoaded = false;
@@ -43,9 +44,7 @@ const settings = {
 } as unknown as DisplaySettings;
 
 const sharedData: SharedDisplayData = {
-  owmData: null, wapiData: null, pirateData: null, noaaData: null,
-  openMeteoData: null, yrData: null, smhiData: null, metofficeData: null,
-  envcanadaData: null,
+  weatherByProvider: emptyWeatherPayloads(),
   weatherErrors: {}, calendarData: null,
   calendarStatus: { error: null, updatedAt: null },
 };

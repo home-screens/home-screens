@@ -77,11 +77,16 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
     showTimeline?: boolean;
     refreshIntervalMs?: number;
     mapStyle?: string;
+    animate?: boolean;
   }>(mod, screenId);
+  const animate = c.animate !== false;
 
   const MAP_STYLE_OPTIONS = [
     { value: 'dark', label: t('configSections.rain-map.styleDark') },
     { value: 'standard', label: t('configSections.rain-map.styleStandard') },
+    // The same faded map, and the same words for it, as the Full-Screen
+    // Weather map card.
+    { value: 'light', label: t('configSections.fullscreen-weather.mapStyleLight') },
   ] as const;
 
   return (
@@ -102,13 +107,21 @@ export function RainMapConfigSection({ mod, screenId }: { mod: ModuleInstance; s
         onChange={(v) => set({ longitude: Number(v) })}
       />
       <Slider label={t('configSections.rain-map.zoom')} value={c.zoom ?? 6} min={1} max={12} step={1} onChange={(v) => set({ zoom: v })} />
-      <Slider label={t('configSections.rain-map.animationSpeed')} value={c.animationSpeedMs ?? 500} min={200} max={2000} step={100} onChange={(v) => set({ animationSpeedMs: v })} />
-      <Slider label={t('configSections.rain-map.endPause')} value={c.extraDelayLastFrameMs ?? 2000} min={0} max={5000} step={500} onChange={(v) => set({ extraDelayLastFrameMs: v })} />
+      <Toggle label={t('configSections.fullscreen-weather.mapAnimate')} checked={animate} onChange={(v) => set({ animate: v })} />
+      {/* A still map has no loop to time and no timeline to draw. */}
+      {animate && (
+        <>
+          <Slider label={t('configSections.rain-map.animationSpeed')} value={c.animationSpeedMs ?? 500} min={200} max={2000} step={100} onChange={(v) => set({ animationSpeedMs: v })} />
+          <Slider label={t('configSections.rain-map.endPause')} value={c.extraDelayLastFrameMs ?? 2000} min={0} max={5000} step={500} onChange={(v) => set({ extraDelayLastFrameMs: v })} />
+        </>
+      )}
       <Slider label={t('configSections.rain-map.radarOpacity')} value={Math.round((c.opacity ?? 0.7) * 100)} min={10} max={100} step={5} onChange={(v) => set({ opacity: v / 100 })} />
       <Toggle label={t('configSections.rain-map.smoothRadar')} checked={c.smooth !== false} onChange={(v) => set({ smooth: v })} />
       <Toggle label={t('configSections.rain-map.showSnow')} checked={c.showSnow !== false} onChange={(v) => set({ showSnow: v })} />
       <Toggle label={t('configSections.rain-map.showTimestamp')} checked={c.showTimestamp !== false} onChange={(v) => set({ showTimestamp: v })} />
-      <Toggle label={t('configSections.rain-map.showTimeline')} checked={c.showTimeline !== false} onChange={(v) => set({ showTimeline: v })} />
+      {animate && (
+        <Toggle label={t('configSections.rain-map.showTimeline')} checked={c.showTimeline !== false} onChange={(v) => set({ showTimeline: v })} />
+      )}
       <LabeledSelect
         label={t('configSections.rain-map.mapStyle')}
         value={c.mapStyle ?? 'dark'}

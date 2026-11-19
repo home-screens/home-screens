@@ -211,7 +211,7 @@ function deriveTitleMode(mod: ModuleInstance, hasOwnTitle: boolean): TitleMode {
 // views, so the picker must too, or "The module's own title" becomes an
 // option that silently does nothing.
 const VIEWS_WITHOUT_OWN_TITLE: Partial<Record<BuiltinModuleType, string[]>> = {
-  weather: ['current', 'combined', 'compact', 'precipitation', 'alerts'],
+  weather: ['current', 'combined', 'compact', 'precipitation', 'alerts', 'sun'],
   news: ['ticker', 'compact'],
   'meal-planner': ['week', 'next-meal', 'compact', 'list'],
 };

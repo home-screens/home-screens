@@ -5583,6 +5583,7 @@
       "skyStill": "Stille (en enkel tone)",
       "skyOff": "Fra (almindeligt tema)",
       "showAlerts": "Vis vejrvarsler",
+      "showAlertsHint": "Vejrvarsler findes kun hos NOAA / NWS og Pirate Weather. Med enhver anden vejrkilde vises der ingen.",
       "showRibbon": "Vis temperaturkurven",
       "showStatRail": "Vis nederste datarække",
       "showNowcast": "Regn den næste time",

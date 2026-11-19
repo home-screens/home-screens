@@ -67,12 +67,29 @@ export class WeatherAPIProvider implements WeatherProvider {
     this.apiKey = apiKey;
   }
 
+  // One refresh asks for hours and days together. The week's answer holds
+  // every hour the two-day one did, so both read one request: half the calls
+  // against a key with a monthly allowance. Kept per instance, and the route
+  // makes a new instance per refresh.
+  private fetches = new Map<string, Promise<WAForecastResponse>>();
+
+  private fetchData(lat: number, lon: number): Promise<WAForecastResponse> {
+    const key = `${lat},${lon}`;
+    let pending = this.fetches.get(key);
+    if (!pending) {
+      const url = `https://api.weatherapi.com/v1/forecast.json?key=${this.apiKey}&q=${lat},${lon}&days=7&aqi=no`;
+      pending = fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI.com');
+      this.fetches.set(key, pending);
+    }
+    return pending;
+  }
+
   async getHourly(lat: number, lon: number, units: string): Promise<HourlyWeather[]> {
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=${this.apiKey}&q=${lat},${lon}&days=2&aqi=no`;
-    const data = await fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI.com');
+    const data = await this.fetchData(lat, lon);
     const isCelsius = units === 'metric';
 
-    const allHours = data.forecast.forecastday.flatMap((d) => d.hour);
+    // Today's and tomorrow's hours, as the two-day request used to send.
+    const allHours = data.forecast.forecastday.slice(0, 2).flatMap((d) => d.hour);
     const nowEpoch = Math.floor(Date.now() / 1000);
     const hours = allHours.filter((h) => h.time_epoch >= nowEpoch - 3600);
     return hours.map((h) => ({
@@ -96,8 +113,7 @@ export class WeatherAPIProvider implements WeatherProvider {
   }
 
   async getForecast(lat: number, lon: number, units: string): Promise<ForecastDay[]> {
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=${this.apiKey}&q=${lat},${lon}&days=7&aqi=no`;
-    const data = await fetchKeyedWeatherJSON<WAForecastResponse>(url, 'WeatherAPI.com');
+    const data = await this.fetchData(lat, lon);
     const isCelsius = units === 'metric';
 
     return data.forecast.forecastday.map((d) => ({
