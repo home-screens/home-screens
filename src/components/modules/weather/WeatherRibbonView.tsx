@@ -5,13 +5,10 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useTranslate } from '@/i18n';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { isNightHour } from '@/lib/weather/sun-times';
-import { hourLabel, smoothPath, spanHours, tzHour } from '../fullscreen-weather/weather-view-utils';
+import { HOURLY_RAIN_SHOWN_PCT, hourLabel, smoothPath, spanHours, tzHour } from '../fullscreen-weather/weather-view-utils';
 import { RAIN_COLOR, RainLegend, useSunTimes, useViewBox } from './chart-parts';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
-
-/** Rain chance below this draws no bar under the curve. */
-const RAIN_SHOWN_PCT = 5;
 
 /**
  * The most text the view draws per unit of width: the module's starting
@@ -215,7 +212,7 @@ function Ribbon({ hrs, width: W, height: H, fontSize: fs, units, timezone, timeF
 
       {hrs.map((h, i) => {
         const pop = (h.precipProbability ?? 0) / 100;
-        if (pop * 100 < RAIN_SHOWN_PCT) return null;
+        if (pop * 100 < HOURLY_RAIN_SHOWN_PCT) return null;
         const bw = step * 0.62;
         return <rect key={`p${i}`} x={x(i) - bw / 2} y={baseline + 3} width={bw} height={Math.max(2, pop * (PB - 6))} rx={2} fill={RAIN_COLOR} opacity={0.35 + pop * 0.6} />;
       })}

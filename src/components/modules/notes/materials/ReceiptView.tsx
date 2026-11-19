@@ -39,7 +39,7 @@ function tearBand(up: boolean): string {
 function stampOf(ctx: NotesContext): string {
   try {
     const date = new Intl.DateTimeFormat(ctx.locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: ctx.timezone }).format(ctx.now);
-    const time = new Intl.DateTimeFormat(ctx.locale, { hour: 'numeric', minute: '2-digit', timeZone: ctx.timezone }).format(ctx.now);
+    const time = new Intl.DateTimeFormat(ctx.locale, { hour: 'numeric', minute: '2-digit', hour12: ctx.hour12, timeZone: ctx.timezone }).format(ctx.now);
     return `${date} · ${time}`;
   } catch {
     return '';

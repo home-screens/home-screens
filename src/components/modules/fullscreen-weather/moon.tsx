@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import { moonLitFraction, moonShadowPath } from '@/lib/weather/moon-shape';
 
 /**
  * The moon as a photograph at its real phase: the Galileo spacecraft's full
@@ -18,21 +19,9 @@ export function MoonImage({ phase, size, glow = false, style }: {
 }) {
   const uid = useId();
   const S = 120;
-  const r = S / 2;
-  const waxing = phase < 0.5;
-  // The phase is an angle around the cycle; the lit fraction is its cosine
-  // (a quarter moon at .25 is half lit, a .125 crescent about 15%).
-  const lit = (1 - Math.cos(2 * Math.PI * phase)) / 2;
-  const tx = Math.abs(lit * 2 - 1) * r;
-  // The shadow: the dark limb's half disc plus (crescent) or minus (gibbous)
-  // the terminator ellipse. Waxing moons are lit on the right.
-  const shadow = waxing
-    ? lit <= 0.5
-      ? `M ${r} 0 A ${r} ${r} 0 0 0 ${r} ${S} A ${tx} ${r} 0 0 0 ${r} 0`
-      : `M ${r} 0 A ${r} ${r} 0 0 0 ${r} ${S} A ${tx} ${r} 0 0 1 ${r} 0`
-    : lit <= 0.5
-      ? `M ${r} 0 A ${r} ${r} 0 0 1 ${r} ${S} A ${tx} ${r} 0 0 1 ${r} 0`
-      : `M ${r} 0 A ${r} ${r} 0 0 1 ${r} ${S} A ${tx} ${r} 0 0 0 ${r} 0`;
+  // The shape comes from the shared rule every moon drawing uses.
+  const lit = moonLitFraction(phase);
+  const shadow = moonShadowPath(phase, S);
   const blurId = `${uid}-blur`;
   return (
     <div style={{

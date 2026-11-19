@@ -520,7 +520,8 @@ describe('OpenWeatherMapProvider — data normalization', () => {
     expect(hourly[0].feelsLike).toBe(70);
     expect(hourly[0].humidity).toBe(55);
     expect(hourly[0].icon).toBe('sun');
-    expect(hourly[0].description).toBe('clear sky');
+    // The source's lower-case words, with the first letter raised.
+    expect(hourly[0].description).toBe('Clear sky');
     expect(hourly[0].windSpeed).toBe(8);
     expect(hourly[0].precipProbability).toBe(0);
   });

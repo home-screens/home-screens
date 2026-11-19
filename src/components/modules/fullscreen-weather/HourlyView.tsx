@@ -10,6 +10,7 @@ import {
   hourLabel, smoothPath, isNightHour, timelineHours, timelineMarks, temperatureAxis,
   labelStride, spanHours, cachedFormat, meteogramColumnPx, valueLabelled, hourLabelled,
   HOURLY_RAIN_SHOWN_PCT,
+  RAIN_COLOR,
 } from './weather-view-utils';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { Card, Label, TopBar, AlertBand, MiniHero, PrecipLegendHeader } from './weather-parts';
@@ -166,7 +167,7 @@ export default function HourlyView(p: WeatherViewProps) {
         );
       case 'icon': {
         const Ico = getWeatherIcon(e.h.icon, 'outline');
-        return <Ico style={{ width: s * 2.6, height: s * 2.6, color: e.rain >= 50 ? '#38bdf8' : 'var(--fsw-text-2)' }} strokeWidth={1.6} />;
+        return <Ico style={{ width: s * 2.6, height: s * 2.6, color: e.rain >= 50 ? RAIN_COLOR : 'var(--fsw-text-2)' }} strokeWidth={1.6} />;
       }
       case 'curve':
         return (
@@ -187,10 +188,10 @@ export default function HourlyView(p: WeatherViewProps) {
             {labelled(e.i) && (
               <div style={{
                 position: 'absolute', left: 0, right: 0, bottom: `calc(${e.rain}% + ${u * .4}px)`,
-                textAlign: 'center', fontSize: s * 1.25, fontWeight: 600, color: '#38bdf8',
+                textAlign: 'center', fontSize: s * 1.25, fontWeight: 600, color: RAIN_COLOR,
               }}>{e.rain}%</div>
             )}
-            <div style={{ width: '100%', height: `${e.rain}%`, minHeight: 2, background: '#38bdf8', borderRadius: '4px 4px 2px 2px' }} />
+            <div style={{ width: '100%', height: `${e.rain}%`, minHeight: 2, background: RAIN_COLOR, borderRadius: '4px 4px 2px 2px' }} />
           </>
         ) : null;
       case 'wind':
@@ -338,7 +339,7 @@ export function HourlyRows({ p, narrow = false }: { p: WeatherViewProps; narrow?
         case 'icon': {
           const Ico = getWeatherIcon(e.h.icon, 'outline');
           return (
-            <div style={{ display: 'grid', placeItems: 'center', color: e.rain >= 50 ? '#38bdf8' : 'var(--fsw-text-2)' }}>
+            <div style={{ display: 'grid', placeItems: 'center', color: e.rain >= 50 ? RAIN_COLOR : 'var(--fsw-text-2)' }}>
               <Ico style={{ width: s * 2.4, height: s * 2.4 }} strokeWidth={1.6} />
             </div>
           );
@@ -358,10 +359,10 @@ export function HourlyRows({ p, narrow = false }: { p: WeatherViewProps; narrow?
             <div style={{ display: 'flex', alignItems: 'center', gap: s * .5, visibility: e.rain >= HOURLY_RAIN_SHOWN_PCT ? 'visible' : 'hidden' }}>
               {!narrow && (
                 <div style={{ flex: 1, height: rainBar, borderRadius: 999, background: 'var(--fsw-surface-alt)', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${e.rain}%`, background: '#38bdf8', borderRadius: 999 }} />
+                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${e.rain}%`, background: RAIN_COLOR, borderRadius: 999 }} />
                 </div>
               )}
-              <div style={{ width: narrow ? '100%' : s * 3.2, textAlign: 'right', fontSize: s * 1.4, fontWeight: 600, color: '#38bdf8' }}>{e.rain}%</div>
+              <div style={{ width: narrow ? '100%' : s * 3.2, textAlign: 'right', fontSize: s * 1.4, fontWeight: 600, color: RAIN_COLOR }}>{e.rain}%</div>
             </div>
           );
         case 'wind':

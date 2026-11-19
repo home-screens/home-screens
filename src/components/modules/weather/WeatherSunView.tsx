@@ -8,7 +8,7 @@ import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useRealClock } from '@/hooks/useTZClock';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { formatTimeInTZ } from '@/lib/timezone';
-import { decompose, formatDuration } from '@/lib/duration-format';
+import { dayLengthText, shortUnitParts, sunArcModel, sunArcPoints } from '@/lib/weather/sun-arc';
 import { hoursInTZ } from '@/lib/sun-astro';
 import { daysToFullMoon, moonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { smoothPath } from '../fullscreen-weather/weather-view-utils';
@@ -60,17 +60,18 @@ export default function WeatherSunView({ config, timezone, timeFormat, scaledFon
   }
 
   const clock = { timezone, locale, hour12: timeFormat !== '24h' };
-  const { days, hours, minutes } = decompose(sun.dayLengthMs);
-  const dayLength = formatDuration([{ unit: 'hours', value: days * 24 + hours }, { unit: 'minutes', value: minutes }], 'units', locale);
+  // What the card says about today, from the rule the full-screen Almanac's
+  // sun card shares: after sunset the sun is gone, not parked on the horizon.
+  const model = sunArcModel(sun, hoursInTZ(now, timezone));
+  const { hours, minutes } = model.dayLength;
+  const { hasArc, progress: prog } = model;
+  const hourParts = shortUnitParts(hours, 'hour', locale);
+  const minuteParts = shortUnitParts(minutes, 'minute', locale);
+  const dayLength = dayLengthText(model.dayLength, locale);
 
-  // Where the sun sits on the arc, 0 at sunrise and 1 at sunset, clamped so
-  // the night parks it at the horizon it last crossed.
-  const dayLen = sun.sunsetHour - sun.sunriseHour;
-  const prog = dayLen <= 0 ? 0 : Math.max(0, Math.min(1, (hoursInTZ(now, timezone) - sun.sunriseHour) / dayLen));
   const ax = (k: number) => 34 + k * (ARC_W - 68);
   const ay = (k: number) => ARC_H - 24 - Math.sin(k * Math.PI) * (ARC_H - 60);
-  const arc = smoothPath(Array.from({ length: 41 }, (_, i) => [ax(i / 40), ay(i / 40)] as [number, number]));
-  const hasArc = sun.sunrise != null && sun.sunset != null;
+  const arc = smoothPath(sunArcPoints(ax, ay));
 
   const illum = SunCalc.getMoonIllumination(now);
   const phaseKey = moonPhaseKey(illum.phase);
@@ -87,9 +88,9 @@ export default function WeatherSunView({ config, timezone, timeFormat, scaledFon
               <>
                 <div className="font-light tabular-nums leading-none" style={{ fontSize: '1.8em' }}>
                   {hasArc ? (
-                    <>{days * 24 + hours}<small style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.dim }}>h</small> {minutes}<small style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.dim }}>m</small></>
+                    <>{hourParts.value}<small style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.dim }}>{hourParts.unit}</small> {minuteParts.value}<small style={{ fontSize: '0.5em', opacity: TEXT_OPACITY.dim }}>{minuteParts.unit}</small></>
                   ) : (
-                    <span style={{ fontSize: '0.7em' }}>{sun.isNight ? t('sunrise-sunset.polarNight') : t('sunrise-sunset.midnightSun')}</span>
+                    <span style={{ fontSize: '0.7em' }}>{model.polar === 'night' ? t('sunrise-sunset.polarNight') : t('sunrise-sunset.midnightSun')}</span>
                   )}
                 </div>
                 <div style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.dim, marginTop: '0.25em' }} aria-label={dayLength}>{t('fullscreen-weather.cards.daylight')}</div>
@@ -111,7 +112,7 @@ export default function WeatherSunView({ config, timezone, timeFormat, scaledFon
                 <path d={arc} fill="none" stroke={`url(#${uid}-sun)`} strokeWidth={4} strokeLinecap="round" />
                 {/* After sunset the sun is gone, not parked on the horizon;
                     the times below and the moon beside say it is night. */}
-                {hasArc && !sun.isNight && (
+                {model.showSun && (
                   <>
                     <circle cx={ax(prog)} cy={ay(prog)} r={22} fill="#fbbf24" opacity=".2" />
                     <circle cx={ax(prog)} cy={ay(prog)} r={11} fill="#fbbf24" />

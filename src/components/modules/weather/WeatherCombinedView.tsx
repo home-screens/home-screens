@@ -51,7 +51,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
           Hourly, Current and Compact views, so a chip added there lands here. */}
       {current && (
         <div style={{ flex: '0 0 25%' }}>
-          <CurrentConditionsHeader config={config} current={current} today={forecast[0]} layout="inline">
+          <CurrentConditionsHeader config={config} current={current} today={forecast[0]} layout="inline" showHighLow={config.showHighLow !== false}>
             <div className="flex items-center gap-2 flex-wrap">
               <CurrentWeatherStats config={config} current={current} units={units} fontSize="0.75em" latitude={latitude} longitude={longitude} timezone={timezone} timeFormat={timeFormat} />
             </div>
@@ -80,7 +80,7 @@ export default function WeatherCombinedView({ config, hourly, forecast, units, t
               const Icon = getWeatherIcon(day.icon, config.iconSet);
               return (
                 <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                  <span className="w-[3.5em] text-right" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, todayISO, locale, dayLabels)}</span>
+                  <span className="w-[3.5em] text-right" style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, todayISO, locale, dayLabels, config.showRelativeDayLabels !== false)}</span>
                   <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                   <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                   {config.showHighLow !== false && (

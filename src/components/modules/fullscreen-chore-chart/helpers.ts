@@ -23,13 +23,6 @@ export const TOD_ICONS: Record<ChoreTimeOfDay, typeof Sunrise> = {
 
 export const TOD_ORDER: ChoreTimeOfDay[] = ['morning', 'afternoon', 'evening', 'anytime'];
 
-export function getCurrentTimeOfDay(hour: number): ChoreTimeOfDay | null {
-  if (hour < 12) return 'morning';
-  if (hour < 17) return 'afternoon';
-  if (hour < 24) return 'evening';
-  return null;
-}
-
 /**
  * The by-person layout: one section per member with a single-dot row per
  * chore. Shared chores are not deduplicated here ("Marshall: dishes" is the

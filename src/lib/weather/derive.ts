@@ -130,6 +130,32 @@ export function alertExpiresMs(expires: number | undefined): number | undefined 
   return expires < 1e12 ? expires * 1000 : expires;
 }
 
+const SEVERITY_RANK: Record<AlertSeverity, number> = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
+
+/**
+ * The warnings still in force, most serious first. One rule for the alert
+ * banner, the Alerts view, the "hide when there are none" check and the
+ * shared state keys, so they never disagree about whether a warning is up
+ * or which one leads.
+ *
+ * An alert with no usable expiry counts as active: a provider that sends one
+ * without a time means it, and dropping it would silence the one case the
+ * household most wants to know about. Alerts of equal severity keep the
+ * provider's order.
+ */
+export function activeAlerts(alerts: WeatherAlert[] | undefined, nowMs: number): WeatherAlert[] {
+  if (!Array.isArray(alerts)) return [];
+  return alerts
+    .filter((alert) => {
+      if (!alert || typeof alert !== 'object') return false;
+      const expires = alertExpiresMs(alert.expires);
+      return expires === undefined || expires > nowMs;
+    })
+    .map((alert, i) => ({ alert, i }))
+    .sort((a, b) => SEVERITY_RANK[mapSeverity(b.alert.severity)] - SEVERITY_RANK[mapSeverity(a.alert.severity)] || a.i - b.i)
+    .map(({ alert }) => alert);
+}
+
 /** Derive a WeatherAlertsEvent from raw provider alerts. */
 export function deriveWeatherAlerts(
   alerts: WeatherAlert[] | undefined,

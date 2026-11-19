@@ -1533,7 +1533,14 @@
     },
     "alerts": {
       "severe": "Severe",
-      "advisory": "Advisory"
+      "advisory": "Advisory",
+      "more": "+{count} more"
+    },
+    "compass": {
+      "n": "N",
+      "e": "E",
+      "s": "S",
+      "w": "W"
     },
     "stats": {
       "wind": "Wind",

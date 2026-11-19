@@ -2,7 +2,6 @@
  * Unit conversions used by providers whose APIs only return SI/metric.
  * `units === 'metric'` keeps the SI value; `imperial` converts to °F / mph / inches.
  */
-
 export function celsiusToUnit(c: number, isMetric: boolean): number {
   return isMetric ? c : c * 9 / 5 + 32;
 }
@@ -40,6 +39,16 @@ export function compassLabel(deg: number): string {
   return COMPASS_POINTS[i];
 }
 
+/**
+ * A compass point in the household's language ("NW", or "NO" in German).
+ * Each letter of the 16-point label is translated on its own, which gives
+ * the right abbreviation in every shipped language: "WSW" is "OSO" in French
+ * and "VSV" in Danish. `t` takes a full `modules` key.
+ */
+export function localizedCompassLabel(deg: number, t: (key: string) => string): string {
+  return compassLabel(deg).split('').map((letter) => t(`fullscreen-weather.compass.${letter.toLowerCase()}`)).join('');
+}
+
 /** mm → mm (metric) or inches (imperial). */
 export function mmToPrecipUnit(mm: number, isMetric: boolean): number {
   return isMetric ? mm : mm * 0.0393701;
@@ -59,8 +68,8 @@ export function windUnitLabel(units: 'metric' | 'imperial'): string {
  * imperial households read a barometer in inches of mercury, which only
  * means something to two decimals (29.92), so it is not rounded to a whole.
  */
-export function pressureForUnits(hPa: number, units: 'metric' | 'imperial'): { value: string; unit: string } {
+export function pressureForUnits(hPa: number, units: 'metric' | 'imperial', locale = 'en-US'): { value: string; unit: string } {
   return units === 'metric'
     ? { value: String(Math.round(hPa)), unit: 'hPa' }
-    : { value: (hPa * 0.02953).toFixed(2), unit: 'inHg' };
+    : { value: new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(hPa * 0.02953), unit: 'inHg' };
 }

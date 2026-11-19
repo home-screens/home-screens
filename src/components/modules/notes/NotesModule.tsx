@@ -37,12 +37,16 @@ import { ReceiptView } from './materials/ReceiptView';
 import { NeonView } from './materials/NeonView';
 import { HeadlineView } from './materials/HeadlineView';
 import { MATERIAL_SURFACE } from './materials/surface';
+import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import type { TimeFormat } from '@/types/config';
 
 interface NotesModuleProps {
   config: NotesConfig;
   style: ModuleStyle;
   /** The display's IANA timezone (Settings), applied to every module by buildModuleProps. */
   timezone?: string;
+  /** The household's saved 12/24-hour choice, applied to every module the same way. */
+  timeFormat?: TimeFormat;
 }
 
 type NotesPayload = { notes: Note[] };
@@ -104,7 +108,8 @@ function resolveFilter(filter: unknown): NotesFilter {
   return filter === 'pinned' || filter === 'important' ? filter : 'all';
 }
 
-export default function NotesModule({ config, style, timezone }: NotesModuleProps) {
+export default function NotesModule({ config, style, timezone, timeFormat: savedTimeFormat }: NotesModuleProps) {
+  const timeFormat = useHouseholdTimeFormat(savedTimeFormat);
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
   const view: NotesView = Object.hasOwn(FIT, config.view) ? config.view : 'board';
@@ -168,6 +173,7 @@ export default function NotesModule({ config, style, timezone }: NotesModuleProp
     now,
     locale,
     timezone,
+    hour12: timeFormat !== '24h',
     t,
     fontPx: scaledFontSize,
   };

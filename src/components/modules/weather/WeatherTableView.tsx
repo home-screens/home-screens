@@ -11,6 +11,7 @@ import { useTZClock } from '@/hooks/useTZClock';
 import { localISODate } from '@/lib/timezone';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
+import { formatPrecipAmount } from '@/lib/weather/condition-sentences';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherTableView({ config, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
@@ -49,7 +50,7 @@ export default function WeatherTableView({ config, forecast, units, timezone, sc
             const Icon = getWeatherIcon(day.icon, config.iconSet);
             return (
               <div key={i} className="flex items-center gap-3" style={{ fontSize: '0.85em' }}>
-                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, todayISO, formattingLocale, dayLabels)}</span>
+                <span className="w-[3.5em]" style={{ fontSize: '0.9em', opacity: TEXT_OPACITY.secondary }}>{dayLabel(day.date, todayISO, formattingLocale, dayLabels, config.showRelativeDayLabels !== false)}</span>
                 <Icon size="1.4em" strokeWidth={1.5} className="shrink-0" aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                 {showHighLow && (
                   <div className="flex gap-1 w-[5em] justify-center">
@@ -59,7 +60,7 @@ export default function WeatherTableView({ config, forecast, units, timezone, sc
                 )}
                 <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                 {config.showPrecipAmount && day.precipAmount != null && day.precipAmount > 0 && (
-                  <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }}>{day.precipAmount.toFixed(1)}&quot;</span>
+                  <span className="whitespace-nowrap" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.tertiary }} data-testid="weather-precip-amount">{formatPrecipAmount(day.precipAmount, units, formattingLocale)}</span>
                 )}
                 <WeatherStat icon={Droplets} value={day.humidity} unit="%" visible={config.showHumidity} />
                 <WeatherStat icon={Wind} value={day.windSpeed} unit={` ${windUnit}`} visible={config.showWind} />

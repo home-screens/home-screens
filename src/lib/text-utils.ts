@@ -5,6 +5,15 @@
 
 import { DEFAULT_LOCALE } from '@/i18n/manifest';
 import { UI_MONO_STACK } from '@/lib/font-registry';
+import { dayPartFor, type DayPart } from '@/lib/day-part';
+
+/** The `{{greeting}}` token's word for each part of the day. */
+const GREETING_WORDS: Record<DayPart, string> = {
+  morning: 'Good morning',
+  afternoon: 'Good afternoon',
+  evening: 'Good evening',
+  night: 'Good night',
+};
 
 // ---------------------------------------------------------------------------
 // HTML escaping (XSS prevention)
@@ -61,14 +70,7 @@ export function resolveTemplateVariables(
   const parts = new Intl.DateTimeFormat('en-US', { ...opts, hour: 'numeric', hour12: false }).formatToParts(now);
   const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? 0);
 
-  const greeting =
-    hour >= 5 && hour < 12
-      ? 'Good morning'
-      : hour >= 12 && hour < 17
-        ? 'Good afternoon'
-        : hour >= 17 && hour < 21
-          ? 'Good evening'
-          : 'Good night';
+  const greeting = GREETING_WORDS[dayPartFor(hour)];
 
   return text
     .replace(/\{\{time\}\}/g, new Intl.DateTimeFormat(locale, { ...opts, hour: '2-digit', minute: '2-digit', hour12: false }).format(now))

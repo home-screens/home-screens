@@ -25,7 +25,7 @@
  */
 
 import type { ForecastDay, HourlyWeather, WeatherAlert } from '@/lib/weather/types';
-import { alertExpiresMs, mapDescriptionToCondition, mapSeverity, type AlertSeverity } from '@/lib/weather/derive';
+import { activeAlerts, mapDescriptionToCondition, mapSeverity, type AlertSeverity } from '@/lib/weather/derive';
 import type { ProvidedStateKey } from '@/lib/shared-state-types';
 import type { TranslateFn } from '@/i18n';
 import { isoDateInTZ } from '@/lib/timezone';
@@ -70,28 +70,15 @@ export interface WeatherStatePayload {
   alerts?: WeatherAlert[];
 }
 
-const SEVERITY_RANK: Record<AlertSeverity, number> = { minor: 1, moderate: 2, severe: 3, extreme: 4 };
-
 /**
- * The most serious warning still in force. An alert with no usable expiry
- * counts as active: a provider that sends one without a time means it, and
- * dropping it would silence the one case the household most wants to know
- * about. `alert_active` is `false` rather than blank when a provider sends
- * no warnings at all, so "no warning" conditions hold on every provider.
+ * The most serious warning still in force (see `activeAlerts` for the rule).
+ * `alert_active` is `false` rather than blank when a provider sends no
+ * warnings at all, so "no warning" conditions hold on every provider.
  */
 function activeAlert(alerts: WeatherAlert[] | undefined, nowMs: number): { severity: AlertSeverity; title: string } | null {
-  if (!Array.isArray(alerts)) return null;
-  let best: { severity: AlertSeverity; title: string } | null = null;
-  for (const alert of alerts) {
-    if (!alert || typeof alert !== 'object') continue;
-    const expires = alertExpiresMs(alert.expires);
-    if (expires !== undefined && expires <= nowMs) continue;
-    const severity = mapSeverity(alert.severity);
-    if (!best || SEVERITY_RANK[severity] > SEVERITY_RANK[best.severity]) {
-      best = { severity, title: typeof alert.title === 'string' ? alert.title : '' };
-    }
-  }
-  return best;
+  const first = activeAlerts(alerts, nowMs)[0];
+  if (!first) return null;
+  return { severity: mapSeverity(first.severity), title: typeof first.title === 'string' ? first.title : '' };
 }
 
 export interface WeatherStateOptions {

@@ -9,20 +9,12 @@ import { useEventBus } from '@/hooks/useEventBus';
 import type { WeatherCondition } from '@/lib/event-bus';
 import { useTranslate } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
+import { dayPartFor, type DayPart } from '@/lib/day-part';
 
 interface GreetingModuleProps {
   config: GreetingConfig;
   style: ModuleStyle;
   timezone?: string;
-}
-
-type DayPart = 'morning' | 'afternoon' | 'evening' | 'night';
-
-function getDayPart(hour: number): DayPart {
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 17) return 'afternoon';
-  if (hour >= 17 && hour < 21) return 'evening';
-  return 'night';
 }
 
 const TIME_ACCENTS: Record<DayPart, string> = {
@@ -59,7 +51,7 @@ export default function GreetingModule({ config, style, timezone }: GreetingModu
   const { containerRef, scaledFontSize } = useScaledFontSize(style, 0.12);
 
   const name = config.name ?? t('greeting.defaultName');
-  const part = getDayPart(now.getHours());
+  const part = dayPartFor(now.getHours());
   const greeting = t(`greeting.${part}`);
   const accent = hasAccentColor(config.accentColor) ? config.accentColor : TIME_ACCENTS[part];
   const weatherAware = config.weatherAware ?? true;

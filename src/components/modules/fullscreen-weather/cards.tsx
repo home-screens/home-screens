@@ -8,9 +8,10 @@ import {
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { moonTimesForDay } from '@/lib/moon-times';
 import { moonPhaseKey } from '@/lib/weather/moon-phase-name';
-import { pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { formatNumber } from '@/i18n/formatters';
 import {
-  compassLabel, feelsLikeSentence, humiditySentence, visibilitySentence, formatPrecipAmount, precipitationReading,
+  windFootline, feelsLikeSentence, humiditySentence, visibilitySentence, formatPrecipAmount, precipitationReading,
   airQualityLevel, airQualityPosition, uvLevel, uvRestOfDay, pressureTrend, pressurePosition, type Sentence as SentenceKey,
 } from '@/lib/weather/condition-sentences';
 import type { FullscreenWeatherCard } from '@/types/config';
@@ -21,6 +22,7 @@ import { RangeBar, dayName, weekdayShort } from './weather-parts';
 import {
   Card, CardLabel, BigValue, Unit, Sentence, Compass, SunArc, Gauge, ScaleBar,
   UV_GRADIENT, AQ_GRADIENT, clockTime,
+  compassLetters,
 } from './parts';
 import { MoonImage } from './moon';
 import MapCard from './MapCard';
@@ -224,7 +226,7 @@ export function Hero({ p, compact, land }: { p: WeatherViewProps; compact?: bool
           <div style={{ fontSize: land ? s * 3 : s * 4.2, fontWeight: 500, lineHeight: 1.2 }}>{now?.description ?? ''}</div>
           {today && (
             <div style={{ fontSize: land ? s * 2.8 : s * 3.7, fontWeight: 500, marginTop: land ? 0 : u * .4, letterSpacing: '.01em' }}>
-              {`H:${Math.round(today.high)}°`}<span style={{ margin: `0 ${s}px` }} />{`L:${Math.round(today.low)}°`}
+              {p.t('weather.highLow', { high: `${Math.round(today.high)}°`, low: `${Math.round(today.low)}°` })}
             </div>
           )}
         </>
@@ -310,10 +312,10 @@ function WindCard({ p, ctx, style }: CardProps) {
   const { s, u } = p.scale;
   const now = p.hourly[0]!;
   const unit = windUnitLabel(p.units);
-  const dir = now.windDirection != null ? compassLabel(now.windDirection) : null;
-  const foot = now.windGust != null
-    ? t(p, 'gusts', { speed: Math.round(now.windGust), unit, dir: dir ?? '' }).trim()
-    : dir ? t(p, 'windFrom', { dir }) : null;
+  const line = windFootline(now, p.units);
+  const foot = line
+    ? t(p, line.key, { speed: line.speed ?? '', unit: line.unit, dir: line.direction != null ? localizedCompassLabel(line.direction, p.t) : '' }).trim()
+    : null;
   return (
     <Card u={u} testId="fsw-card-wind" style={style}>
       <CardLabel icon={Wind} s={s}>{t(p, 'wind')}</CardLabel>
@@ -324,7 +326,7 @@ function WindCard({ p, ctx, style }: CardProps) {
         </>
       ) : (
         <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: u }}>
-          <Compass speed={now.windSpeed!} fromDeg={now.windDirection} unit={unit} size={instrumentSize(ctx, s, ctx.land ? s * 16 : s * 15)} s={s} />
+          <Compass speed={now.windSpeed!} fromDeg={now.windDirection} unit={unit} letters={compassLetters(p.t)} size={instrumentSize(ctx, s, ctx.land ? s * 16 : s * 15)} s={s} />
           {foot && <div style={{ fontSize: s * 2.4, textAlign: 'center', flex: 'none' }}>{foot}</div>}
         </div>
       )}
@@ -443,7 +445,7 @@ function HumidityCard({ p, style }: CardProps) {
 
 function PrecipitationCard({ p, ctx, style }: CardProps) {
   const { s, u } = p.scale;
-  const reading = precipitationReading(p.forecast, p.units)!;
+  const reading = precipitationReading(p.forecast, p.units, p.locale)!;
   const next = reading.next.vars?.date
     ? t(p, reading.next.key, { ...reading.next.vars, day: weekdayShort(String(reading.next.vars.date), p.locale) })
     : sentence(p, reading.next);
@@ -451,7 +453,7 @@ function PrecipitationCard({ p, ctx, style }: CardProps) {
     <Card u={u} testId="fsw-card-precipitation" style={style}>
       <CardLabel icon={CloudRain} s={s}>{t(p, 'precipitation')}</CardLabel>
       {/* Three lines, as the phone writes it: the amount, "Today" in bold, then what comes next. */}
-      <BigValue s={s} style={{ fontSize: s * 5.6 }}>{formatPrecipAmount(reading.today, p.units)}</BigValue>
+      <BigValue s={s} style={{ fontSize: s * 5.6 }}>{formatPrecipAmount(reading.today, p.units, p.locale)}</BigValue>
       <div style={{ fontSize: s * 2.75, fontWeight: 700, lineHeight: 1.25, marginTop: u * .5 }}>{p.t('fullscreen-weather.today')}</div>
       {/* The third line needs a card of about 24 type units (label, amount, "Today", two lines, padding); a shorter cell keeps the amount and the day. */}
       {(ctx.height == null || ctx.height >= s * 24) && <Sentence s={s} style={{ opacity: .85, marginTop: 0, paddingTop: u * .2 }}>{next}</Sentence>}
@@ -466,7 +468,7 @@ function VisibilityCard({ p, style }: CardProps) {
   return (
     <Card u={u} testId="fsw-card-visibility" style={style}>
       <CardLabel icon={Eye} s={s}>{t(p, 'visibility')}</CardLabel>
-      <BigValue s={s}>{Math.round(vis * 10) / 10}<Unit size=".75em">{unit}</Unit></BigValue>
+      <BigValue s={s}>{formatNumber(vis, { locale: p.locale, maximumFractionDigits: 1 })}<Unit size=".75em">{unit}</Unit></BigValue>
       <Sentence s={s} style={{ opacity: .85 }}>{sentence(p, visibilitySentence(vis, p.units))}</Sentence>
     </Card>
   );
@@ -475,7 +477,7 @@ function VisibilityCard({ p, style }: CardProps) {
 function PressureCard({ p, ctx, style }: CardProps) {
   const { s, u } = p.scale;
   const hPa = p.hourly[0]!.pressure!;
-  const reading = pressureForUnits(hPa, p.units);
+  const reading = pressureForUnits(hPa, p.units, p.locale);
   const trend = pressureTrend(p.hourly);
   return (
     <Card u={u} testId="fsw-card-pressure" style={style}>

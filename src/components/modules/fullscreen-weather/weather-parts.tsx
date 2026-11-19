@@ -9,6 +9,7 @@ import { FIT_MEASURE_ATTR } from '@/hooks/useFitScale';
 import {
   alertTone, cachedFormat, weekRange,
   CARD_PAD_X_U, CARD_PAD_Y_U, DAILY_RAIN_SHOWN_PCT, MIN_BAR_PCT,
+  RAIN_COLOR,
 } from './weather-view-utils';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { isoDateInTZ } from '@/lib/timezone';
@@ -108,7 +109,7 @@ export function MiniHero({ p }: { p: WeatherViewProps }) {
       </div>
       {today && (
         <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-          <div style={{ fontSize: s * 1.85, fontWeight: 600 }}>{`H ${Math.round(today.high)}°  L ${Math.round(today.low)}°`}</div>
+          <div style={{ fontSize: s * 1.85, fontWeight: 600 }}>{p.t('weather.highLow', { high: `${Math.round(today.high)}°`, low: `${Math.round(today.low)}°` })}</div>
         </div>
       )}
     </div>
@@ -140,8 +141,15 @@ export function AlertBand({ p }: { p: WeatherViewProps }) {
           }}>{alert.description}</div>
         )}
       </div>
+      {/* `p.alerts` is the active list, most serious first; say when the
+          banner is not the only warning in force. */}
+      {p.alerts.length > 1 && (
+        <div data-testid="fsw-alert-more" style={{ marginLeft: 'auto', flex: 'none', fontSize: s * 1.5, fontWeight: 600, opacity: .85, whiteSpace: 'nowrap' }}>
+          {p.t('fullscreen-weather.alerts.more', { count: p.alerts.length - 1 })}
+        </div>
+      )}
       <div style={{
-        marginLeft: 'auto', flex: 'none', fontSize: s * 1.1, fontWeight: 700,
+        marginLeft: p.alerts.length > 1 ? 0 : 'auto', flex: 'none', fontSize: s * 1.1, fontWeight: 700,
         letterSpacing: '.12em', textTransform: 'uppercase',
         padding: `${u * .55}px ${u * 1.15}px`, borderRadius: 999, border: '1px solid currentColor',
       }}>{isSevere ? p.t('fullscreen-weather.alerts.severe') : p.t('fullscreen-weather.alerts.advisory')}</div>
@@ -159,7 +167,7 @@ export function PrecipLegendHeader({ p, hours, style }: { p: WeatherViewProps; h
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...style }}>
       <Label s={s}>{p.t('fullscreen-weather.sections.nextHours', { hours })}</Label>
       <div style={{ display: 'flex', alignItems: 'center', gap: u * .6, fontSize: s * 1.15, fontWeight: 600, letterSpacing: '.13em', textTransform: 'uppercase', color: 'var(--fsw-text-3)' }}>
-        <span style={{ width: s, height: s, borderRadius: 3, background: '#38bdf8', display: 'inline-block' }} />
+        <span style={{ width: s, height: s, borderRadius: 3, background: RAIN_COLOR, display: 'inline-block' }} />
         {p.t('fullscreen-weather.sections.chanceOfPrecip')}
       </div>
     </div>
@@ -245,7 +253,7 @@ export function DayRangeBars({ p }: { p: WeatherViewProps }) {
               </div>
               <div style={{
                 width: s * 7, flex: 'none', display: 'flex', alignItems: 'center', gap: s * .45,
-                fontSize: s * 1.5, fontWeight: 600, color: '#38bdf8',
+                fontSize: s * 1.5, fontWeight: 600, color: RAIN_COLOR,
                 visibility: (d.precipProbability ?? 0) >= DAILY_RAIN_SHOWN_PCT ? 'visible' : 'hidden',
               }}>
                 <Droplet style={{ width: s * 1.5, height: s * 1.5 }} strokeWidth={2} />
@@ -316,7 +324,7 @@ export function DayDetails({ p, day, size = 1.5, align = 'left' }: {
   const items: React.ReactNode[] = [];
   if (rain >= DAILY_RAIN_SHOWN_PCT) {
     items.push(
-      <span key="rain" style={{ display: 'inline-flex', alignItems: 'center', gap: s * .4, color: '#38bdf8', whiteSpace: 'nowrap' }}>
+      <span key="rain" style={{ display: 'inline-flex', alignItems: 'center', gap: s * .4, color: RAIN_COLOR, whiteSpace: 'nowrap' }}>
         <Droplet style={{ width: s * size, height: s * size }} strokeWidth={2} />{rain}%
       </span>,
     );

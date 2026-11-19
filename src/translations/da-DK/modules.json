@@ -1533,7 +1533,14 @@
     },
     "alerts": {
       "severe": "Alvorligt",
-      "advisory": "Varsel"
+      "advisory": "Varsel",
+      "more": "+{count} mere"
+    },
+    "compass": {
+      "n": "N",
+      "e": "Ø",
+      "s": "S",
+      "w": "V"
     },
     "stats": {
       "wind": "Vind",

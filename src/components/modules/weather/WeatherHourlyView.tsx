@@ -7,6 +7,7 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { WeatherStat } from '../WeatherStat';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { CurrentConditionsHeader } from './CurrentConditionsHeader';
+import { windChipUnit } from './CurrentWeatherStats';
 import { HourColumn } from './HourColumn';
 import type { WeatherViewProps } from './types';
 
@@ -26,7 +27,7 @@ export function hoursThatFit(rowWidthPx: number, fontSizePx: number): number {
   return Math.max(1, Math.floor((rowWidthPx + gap) / (column + gap)));
 }
 
-export default function WeatherHourlyView({ config, hourly, forecast, timezone, timeFormat, scaledFontSize }: WeatherViewProps) {
+export default function WeatherHourlyView({ config, hourly, forecast, units, timezone, timeFormat, scaledFontSize }: WeatherViewProps) {
   const hours = hourly.slice(0, config.hoursToShow);
   // Only the hours that fit whole are drawn: the row used to be sliced by the
   // card's edge, with half an hour showing and the rest hidden. The row is
@@ -48,7 +49,7 @@ export default function WeatherHourlyView({ config, hourly, forecast, timezone, 
               chance has a chip in every column already. */}
           <CurrentConditionsHeader config={config} current={hours[0]} today={forecast[0]} layout="stacked">
             <WeatherStat icon={Droplets} value={hours[0].humidity} unit="%" visible={config.showHumidity} fontSize="0.85em" />
-            <WeatherStat icon={Wind} value={hours[0].windSpeed} visible={config.showWind} fontSize="0.85em" />
+            <WeatherStat icon={Wind} value={hours[0].windSpeed} unit={windChipUnit(hours[0], units, t)} visible={config.showWind} fontSize="0.85em" testId="weather-stat-wind" />
           </CurrentConditionsHeader>
 
           {/* Divider */}

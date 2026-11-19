@@ -9,7 +9,7 @@ import { tempColor } from '@/lib/weather/temp-ramp';
 import { sunTimesFor, type SunTimes } from '@/lib/weather/sun-times';
 import type { ForecastDay } from '@/lib/weather';
 import type { WeekRange } from '../fullscreen-weather/weather-view-utils';
-import { MIN_BAR_PCT } from '../fullscreen-weather/weather-view-utils';
+import { DAILY_RAIN_SHOWN_PCT, MIN_BAR_PCT, RAIN_COLOR } from '../fullscreen-weather/weather-view-utils';
 
 /**
  * The pieces the regular weather module's chart views share: the full-screen
@@ -17,11 +17,8 @@ import { MIN_BAR_PCT } from '../fullscreen-weather/weather-view-utils';
  * the module's fitted text size rather than the full-screen scale.
  */
 
-/** Rain chance below this is not drawn: a dry week is not a column of "0%". */
-export const RAIN_SHOWN_PCT = 8;
-
-/** The accent the full-screen module uses for rain chance, everywhere. */
-export const RAIN_COLOR = '#38bdf8';
+// The full-screen module's own numbers and colour, not copies of them.
+export { DAILY_RAIN_SHOWN_PCT as RAIN_SHOWN_PCT, RAIN_COLOR };
 
 /** Today's daylight window at the module's coordinates, ticking by the minute. */
 export function useSunTimes(latitude?: number, longitude?: number, timezone?: string): SunTimes {

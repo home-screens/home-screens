@@ -14,6 +14,7 @@ import { useTranslate, useLocale } from '@/i18n';
 import type { TranslateFn } from '@/i18n';
 import { withAlpha } from '@/lib/hex-color';
 import { shuffleArray } from '@/lib/shuffle';
+import { dayPartFor } from '@/lib/day-part';
 
 interface AffirmationsModuleProps {
   config: AffirmationsConfig;
@@ -32,13 +33,6 @@ const CATEGORY_LABEL_KEYS: Record<AffirmationsCategory, string> = {
   gratitude: 'affirmations.categories.gratitude',
   mindfulness: 'affirmations.categories.mindfulness',
 };
-
-function getTimeOfDay(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 17) return 'afternoon';
-  if (hour >= 17 && hour < 21) return 'evening';
-  return 'night';
-}
 
 function getSeason(month: number, latitude: number): 'spring' | 'summer' | 'fall' | 'winter' {
   // Flip seasons for southern hemisphere
@@ -61,7 +55,7 @@ function useAffirmationRotation(
   const [order, setOrder] = useState<number[]>([]);
 
   // Build a scored & shuffled order whenever entries or time context changes
-  const timeOfDay = getTimeOfDay(now.getHours());
+  const timeOfDay = dayPartFor(now.getHours());
   const dayOfWeek = now.getDay();
   const season = getSeason(now.getMonth(), latitude);
 

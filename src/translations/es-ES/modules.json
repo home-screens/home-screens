@@ -1541,7 +1541,14 @@
     },
     "alerts": {
       "severe": "Grave",
-      "advisory": "Aviso"
+      "advisory": "Aviso",
+      "more": "+{count} más"
+    },
+    "compass": {
+      "n": "N",
+      "e": "E",
+      "s": "S",
+      "w": "O"
     },
     "stats": {
       "wind": "Viento",

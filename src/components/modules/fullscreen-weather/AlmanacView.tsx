@@ -4,12 +4,17 @@ import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { WeatherViewProps } from './weather-view-utils';
-import { pressureForUnits, windUnitLabel } from '@/lib/weather/units';
-import { hourLabel, smoothPath, tzHour, hoursWithin, HOURLY_RAIN_SHOWN_PCT } from './weather-view-utils';
+import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { PRESSURE_NOTE_KEY, UV_LEVEL_COLOR, pressureSeries, pressureTrend, uvLevel, windFootline } from '@/lib/weather/condition-sentences';
+import { shortUnitParts, sunArcModel, sunArcPoints } from '@/lib/weather/sun-arc';
+import { moonTimesForDay } from '@/lib/moon-times';
+import { formatNumber } from '@/i18n/formatters';
+import { hourLabel, smoothPath, tzHour, hoursWithin, HOURLY_RAIN_SHOWN_PCT, RAIN_COLOR } from './weather-view-utils';
 import { tempColor } from '@/lib/weather/temp-ramp';
-import { moonPhaseKey } from '@/lib/weather/moon-phase-name';
+import { daysToFullMoon, moonPhaseKey } from '@/lib/weather/moon-phase-name';
 import { MoonImage } from './moon';
 import { Card, Label, TopBar, AlertBand, MiniHero } from './weather-parts';
+import { clockTime } from './parts';
 
 /** Every bento card takes its placement from the caller, not from itself. */
 interface CardProps {
@@ -160,26 +165,29 @@ function Readout({ p, children }: { p: WeatherViewProps; children: React.ReactNo
 function SunCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const gradId = `${useId()}-sun`;
-  // No sunrise today means polar day or night: the arc has nothing to mark.
-  const hasArc = p.sun.sunrise != null && p.sun.sunset != null;
   const W = 460;
   const H = 250;
-  const { sunriseHour, sunsetHour } = p.sun;
-  const dayLen = sunsetHour - sunriseHour;
-  const nowHour = tzHour(p.now, p.timezone);
-  const prog = dayLen <= 0 ? 0 : Math.max(0, Math.min(1, (nowHour - sunriseHour) / dayLen));
+  // What the card says about today, from the rule the regular weather
+  // module's Sun and moon view shares.
+  const model = sunArcModel(p.sun, tzHour(p.now, p.timezone));
   const ax = (t: number) => 34 + t * (W - 68);
   const ay = (t: number) => H - 34 - Math.sin(t * Math.PI) * (H - 78);
-  const arc = smoothPath(Array.from({ length: 41 }, (_, i) => [ax(i / 40), ay(i / 40)] as [number, number]));
-  const fmt = (d: Date | null) => d ? new Intl.DateTimeFormat(p.locale, { hour: 'numeric', minute: '2-digit', timeZone: p.timezone }).format(d) : '--';
-  const hours = Math.floor(p.sun.dayLengthMs / 3600000);
-  const mins = Math.round((p.sun.dayLengthMs % 3600000) / 60000);
+  const arc = smoothPath(sunArcPoints(ax, ay));
+  const hours = shortUnitParts(model.dayLength.hours, 'hour', p.locale);
+  const mins = shortUnitParts(model.dayLength.minutes, 'minute', p.locale);
 
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.sun')}</Label>
       <div style={{ marginTop: u * 1.3 }}>
-        <Big s={s}>{hours}<Unit s={s}>h</Unit> {mins}<Unit s={s}>m</Unit></Big>
+        {model.polar ? (
+          // No sunrise or sunset today: name it, as the Sun and moon view does.
+          <div style={{ fontSize: s * 3.5, fontWeight: 250, letterSpacing: '-.03em', lineHeight: 1.1 }}>
+            {p.t(model.polar === 'night' ? 'sunrise-sunset.polarNight' : 'sunrise-sunset.midnightSun')}
+          </div>
+        ) : (
+          <Big s={s}>{hours.value}<Unit s={s}>{hours.unit}</Unit> {mins.value}<Unit s={s}>{mins.unit}</Unit></Big>
+        )}
         <Note s={s} u={u}>{p.t('fullscreen-weather.cards.daylight')}</Note>
       </div>
       <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
@@ -191,16 +199,17 @@ function SunCard({ p, place }: CardProps) {
             <stop offset="100%" stopColor="#f59e0b" stopOpacity=".22" />
           </linearGradient>
         </defs>
-        <line x1={18} y1={H - 34} x2={W - 34} y2={H - 34} stroke="var(--fsw-border)" strokeWidth={1.5} strokeDasharray="4 6" />
+        <line x1={18} y1={H - 34} x2={W - 18} y2={H - 34} stroke="var(--fsw-border)" strokeWidth={1.5} strokeDasharray="4 6" />
         <path d={arc} fill="none" stroke={`url(#${gradId})`} strokeWidth={4} strokeLinecap="round" />
-        {hasArc && (
+        {/* After sunset the sun is gone, not parked on the horizon. */}
+        {model.showSun && (
           <>
-            <circle cx={ax(prog)} cy={ay(prog)} r={22} fill="#fbbf24" opacity=".20" />
-            <circle cx={ax(prog)} cy={ay(prog)} r={11} fill="#fbbf24" />
+            <circle cx={ax(model.progress)} cy={ay(model.progress)} r={22} fill="#fbbf24" opacity=".20" />
+            <circle cx={ax(model.progress)} cy={ay(model.progress)} r={11} fill="#fbbf24" />
           </>
         )}
-        <text x={18} y={H - 6} fontSize={15} fontWeight={600} fill="var(--fsw-text-3)">{fmt(p.sun.sunrise)}</text>
-        <text x={W - 18} y={H - 6} fontSize={15} fontWeight={600} fill="var(--fsw-text-3)" textAnchor="end">{fmt(p.sun.sunset)}</text>
+        <text x={18} y={H - 6} fontSize={15} fontWeight={600} fill="var(--fsw-text-3)">{clockTime(p, p.sun.sunrise)}</text>
+        <text x={W - 18} y={H - 6} fontSize={15} fontWeight={600} fill="var(--fsw-text-3)" textAnchor="end">{clockTime(p, p.sun.sunset)}</text>
       </svg>
       </div>
     </Card>
@@ -212,6 +221,20 @@ function MoonCard({ p, place }: CardProps) {
   const illum = SunCalc.getMoonIllumination(p.now);
   const pct = Math.round(illum.fraction * 100);
   const phaseKey = moonPhaseKey(illum.phase);
+  // One more line, as the Conditions moon card and the Sun and moon view
+  // give: the next moonrise or moonset where there is a place to work it
+  // out for, else how long until the full moon.
+  const nowMs = p.now.getTime();
+  const times = p.latitude != null && p.longitude != null ? moonTimesForDay(p.now, p.latitude, p.longitude, p.timezone) : null;
+  const upcoming = times
+    ? ([['moonrise', times.rise], ['moonset', times.set]] as const)
+        .filter(([, d]) => d && d.getTime() >= nowMs)
+        .sort((a, b) => a[1]!.getTime() - b[1]!.getTime())[0]
+    : undefined;
+  const fullIn = daysToFullMoon(illum.phase);
+  const extra = upcoming
+    ? p.t(`fullscreen-weather.cards.${upcoming[0]}`, { time: clockTime(p, upcoming[1]) })
+    : phaseKey !== 'full' && fullIn > 0 ? p.t('fullscreen-weather.moon.fullMoonIn', { count: fullIn }) : null;
 
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -221,6 +244,7 @@ function MoonCard({ p, place }: CardProps) {
           {p.t(`fullscreen-weather.moon.${phaseKey}`)}
         </div>
         <Note s={s} u={u}>{p.t('fullscreen-weather.moon.illuminated', { percent: pct })}</Note>
+        {extra && <Note s={s} u={u}><span data-testid="fsw-moon-extra">{extra}</span></Note>}
       </div>
       <div style={{ flex: 1, minHeight: 0, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
         <MoonImage phase={illum.phase} size={u * 23} style={{ maxWidth: '100%', maxHeight: '100%' }} />
@@ -234,12 +258,19 @@ function WindCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const now = p.hourly[0];
   const unit = windUnitLabel(p.units);
+  // The gust or the direction, as the Conditions wind card says it; the
+  // plain caption stays for a source that sends neither.
+  const foot = windFootline(now!, p.units);
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.wind')}</Label>
       <Readout p={p}>
         <Big s={s}>{Math.round(now!.windSpeed!)}<Unit s={s}>{unit}</Unit></Big>
-        <Note s={s} u={u}>{p.t('fullscreen-weather.cards.windNote')}</Note>
+        <Note s={s} u={u}>
+          {foot
+            ? p.t(`fullscreen-weather.cards.${foot.key}`, { speed: foot.speed ?? '', unit: foot.unit, dir: foot.direction != null ? localizedCompassLabel(foot.direction, p.t) : '' }).trim()
+            : p.t('fullscreen-weather.cards.windNote')}
+        </Note>
       </Readout>
     </Card>
   );
@@ -271,20 +302,19 @@ function HumidityCard({ p, place }: CardProps) {
 
 function PressureCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
-  const series = hoursWithin(p.hourly, 12).map((h) => h.pressure).filter((v): v is number => v != null);
+  const series = pressureSeries(p.hourly);
   const now = p.hourly[0]!;
   const mn = Math.min(...series);
   const mx = Math.max(...series);
   const pts = series.map((v, i) => [i * (300 / Math.max(1, series.length - 1)), 70 - ((v - mn) / (mx - mn || 1)) * 56] as [number, number]);
-  const trend = series.length > 1 ? series[series.length - 1] - series[0] : 0;
-  const reading = pressureForUnits(now.pressure!, p.units);
+  const reading = pressureForUnits(now.pressure!, p.units, p.locale);
 
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.pressure')}</Label>
       <Readout p={p}>
         <Big s={s}>{reading.value}<Unit s={s}>{reading.unit}</Unit></Big>
-        <Note s={s} u={u}>{p.t(trend < -1 ? 'fullscreen-weather.cards.pressureFalling' : trend > 1 ? 'fullscreen-weather.cards.pressureRising' : 'fullscreen-weather.cards.pressureSteady')}</Note>
+        <Note s={s} u={u}>{p.t(PRESSURE_NOTE_KEY[pressureTrend(p.hourly)])}</Note>
       </Readout>
       {pts.length > 1 && (() => {
         /*
@@ -334,8 +364,8 @@ function PressureCard({ p, place }: CardProps) {
 function UVCard({ p, place }: CardProps) {
   const { s, u } = p.scale;
   const uv = p.hourly[0]!.uvIndex!;
-  const color = uv >= 8 ? '#dc2626' : uv >= 6 ? '#f97316' : uv >= 3 ? '#eab308' : '#22c55e';
-  const key = uv >= 8 ? 'veryHigh' : uv >= 6 ? 'high' : uv >= 3 ? 'moderate' : 'low';
+  const key = uvLevel(uv);
+  const color = UV_LEVEL_COLOR[key];
   return (
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.uv')}</Label>
@@ -364,7 +394,7 @@ function VisibilityCard({ p, place }: CardProps) {
     <Card u={u} testId="fsw-card" style={{ ...place, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <Label s={s}>{p.t('fullscreen-weather.cards.visibility')}</Label>
       <Readout p={p}>
-        <Big s={s}>{p.hourly[0]!.visibility}<Unit s={s}>{unit}</Unit></Big>
+        <Big s={s}>{formatNumber(p.hourly[0]!.visibility!, { locale: p.locale, maximumFractionDigits: 1 })}<Unit s={s}>{unit}</Unit></Big>
       </Readout>
     </Card>
   );
@@ -390,9 +420,9 @@ function Next12Card({ p, place }: CardProps) {
               <div style={{ fontSize: s * 1.35, fontWeight: 600, color: 'var(--fsw-text-3)' }}>
                 {hourLabel(Math.floor(tzHour(new Date(h.time), p.timezone)), p.timeFormat)}
               </div>
-              <Ico style={{ width: s * 2.3, height: s * 2.3, color: pop > 50 ? '#38bdf8' : 'var(--fsw-text-2)' }} strokeWidth={1.6} />
+              <Ico style={{ width: s * 2.3, height: s * 2.3, color: pop > 50 ? RAIN_COLOR : 'var(--fsw-text-2)' }} strokeWidth={1.6} />
               <div style={{ fontSize: s * 2.3, fontWeight: 600, letterSpacing: '-.02em', color: tempColor(h.temp, p.units) }}>{Math.round(h.temp)}°</div>
-              <div style={{ fontSize: s * 1.25, fontWeight: 600, color: '#38bdf8', minHeight: u * 1.6 }}>{pop >= HOURLY_RAIN_SHOWN_PCT ? `${Math.round(pop)}%` : ''}</div>
+              <div style={{ fontSize: s * 1.25, fontWeight: 600, color: RAIN_COLOR, minHeight: u * 1.6 }}>{pop >= HOURLY_RAIN_SHOWN_PCT ? `${Math.round(pop)}%` : ''}</div>
             </div>
           );
         })}

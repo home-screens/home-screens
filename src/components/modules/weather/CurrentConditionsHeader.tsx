@@ -19,6 +19,8 @@ interface CurrentConditionsHeaderProps {
    * temperature and the details across one row (the Combined view's top band).
    */
   layout: 'stacked' | 'inline';
+  /** Off hides today's high and low, for a view that offers the High/Low switch. Shown when absent. */
+  showHighLow?: boolean;
   /** The stat chips under the high/low and feels-like lines. */
   children?: ReactNode;
 }
@@ -28,14 +30,14 @@ interface CurrentConditionsHeaderProps {
  * sky and the temperature, then today's high and low, how it feels, and the
  * chips the caller passes. Drawn once so the two views cannot drift apart.
  */
-export function CurrentConditionsHeader({ config, current, today, layout, children }: CurrentConditionsHeaderProps) {
+export function CurrentConditionsHeader({ config, current, today, layout, showHighLow = true, children }: CurrentConditionsHeaderProps) {
   const t = useTranslate('modules');
   const tWeather = useTranslate('weather');
   const Icon = getWeatherIcon(current.icon, config.iconSet);
   const stacked = layout === 'stacked';
   const details = (
     <div className={stacked ? 'flex flex-col items-center gap-0.5' : 'flex flex-col gap-0.5'}>
-      {today && (
+      {today && showHighLow && (
         <span style={{ fontSize: '0.85em', opacity: TEXT_OPACITY.secondary }}>
           {t('weather.highLow', { high: `${Math.round(today.high)}°`, low: `${Math.round(today.low)}°` })}
         </span>

@@ -55,7 +55,7 @@ describe('OpenWeatherMapProvider', () => {
       feelsLike: 10,
       humidity: 60,
       icon: 'sun', // 01d
-      description: 'clear sky',
+      description: 'Clear sky',
       windSpeed: 12.6, // 3.5 m/s -> km/h under metric
       windDirection: 180,
       windGust: 36, // 10 m/s -> km/h, same conversion as windSpeed
@@ -114,7 +114,7 @@ describe('OpenWeatherMapProvider', () => {
       high: 16,
       low: 8,
       icon: 'cloud-drizzle', // icons[1] = '10d'
-      description: 'light rain',
+      description: 'Light rain',
       precipProbability: 60, // max(10, 60)
       humidity: 60, // avg(70, 50)
       windSpeed: 13, // round(avg(3.5, 3.5) m/s * 3.6)

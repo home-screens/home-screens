@@ -5,9 +5,9 @@ import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
 import { formatTimeInTZ } from '@/lib/timezone';
-import { decompose, formatDuration } from '@/lib/duration-format';
-import { pressureForUnits, windUnitLabel } from '@/lib/weather/units';
-import { hoursWithin } from '../fullscreen-weather/weather-view-utils';
+import { dayLengthText, sunArcModel } from '@/lib/weather/sun-arc';
+import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { PRESSURE_NOTE_KEY, pressureSeries, pressureTrend, uvLevel, windFootline } from '@/lib/weather/condition-sentences';
 import { ViewTitle, useSunTimes, useViewBox } from './chart-parts';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
@@ -34,11 +34,6 @@ interface Cell {
   meter?: number;
 }
 
-/** UV advice bands, as the full-screen UV card draws them. */
-function uvKey(uv: number): 'low' | 'moderate' | 'high' | 'veryHigh' {
-  return uv >= 8 ? 'veryHigh' : uv >= 6 ? 'high' : uv >= 3 ? 'moderate' : 'low';
-}
-
 export default function WeatherStatsView({ config, hourly, units, timezone, timeFormat, scaledFontSize, latitude, longitude }: WeatherViewProps) {
   const t = useTranslate('modules');
   const locale = useFormattingLocale();
@@ -49,7 +44,12 @@ export default function WeatherStatsView({ config, hourly, units, timezone, time
   const clock = { timezone, locale, hour12: timeFormat !== '24h' };
   const cells: Cell[] = [];
   if (now?.windSpeed != null) {
-    cells.push({ key: 'wind', icon: Wind, label: t('fullscreen-weather.stats.wind'), value: String(Math.round(now.windSpeed)), unit: windUnitLabel(units) });
+    // The gust or the direction under the number, as the Conditions wind card says it.
+    const foot = windFootline(now, units);
+    cells.push({
+      key: 'wind', icon: Wind, label: t('fullscreen-weather.stats.wind'), value: String(Math.round(now.windSpeed)), unit: windUnitLabel(units),
+      note: foot ? t(`fullscreen-weather.cards.${foot.key}`, { speed: foot.speed ?? '', unit: foot.unit, dir: foot.direction != null ? localizedCompassLabel(foot.direction, t) : '' }).trim() : undefined,
+    });
   }
   if (now?.humidity != null) {
     cells.push({
@@ -60,21 +60,20 @@ export default function WeatherStatsView({ config, hourly, units, timezone, time
   if (now?.uvIndex != null) {
     cells.push({
       key: 'uv', icon: Sun, label: t('fullscreen-weather.stats.uv'), value: String(now.uvIndex),
-      note: t(`fullscreen-weather.uv.${uvKey(now.uvIndex)}`), meter: Math.min(1, now.uvIndex / 11),
+      note: t(`fullscreen-weather.uv.${uvLevel(now.uvIndex)}`), meter: Math.min(1, now.uvIndex / 11),
     });
   }
   if (now?.pressure != null) {
-    const reading = pressureForUnits(now.pressure, units);
-    const series = hoursWithin(hourly, 12).map((h) => h.pressure).filter((v): v is number => v != null);
-    const trend = series.length > 1 ? series[series.length - 1] - series[0] : 0;
+    const reading = pressureForUnits(now.pressure, units, locale);
+    const hasTrend = pressureSeries(hourly).length > 1;
     cells.push({
       key: 'pressure', icon: Gauge, label: t('fullscreen-weather.stats.pressure'), value: reading.value, unit: reading.unit,
-      note: series.length > 1 ? t(trend < -1 ? 'fullscreen-weather.cards.pressureFalling' : trend > 1 ? 'fullscreen-weather.cards.pressureRising' : 'fullscreen-weather.cards.pressureSteady') : undefined,
+      note: hasTrend ? t(PRESSURE_NOTE_KEY[pressureTrend(hourly)]) : undefined,
     });
   }
   if (sun.sunrise) {
-    const { days, hours, minutes } = decompose(sun.dayLengthMs);
-    const length = formatDuration([{ unit: 'hours', value: days * 24 + hours }, { unit: 'minutes', value: minutes }], 'units', locale);
+    // The same figure, written the same way, as the Sun and moon view's headline.
+    const length = dayLengthText(sunArcModel(sun, 0).dayLength, locale);
     cells.push({ key: 'sunrise', icon: Sunrise, label: t('weather.sunrise'), value: formatTimeInTZ(sun.sunrise, clock), note: `${length} ${t('fullscreen-weather.cards.daylight')}` });
   }
   if (sun.sunset) {

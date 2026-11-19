@@ -37,6 +37,8 @@ export interface NotesContext {
   locale: string;
   /** The household's zone, for weekday ages and day headings. */
   timezone?: string;
+  /** The household's clock: true for 12-hour, false for 24-hour. */
+  hour12: boolean;
   t: TranslateFn;
   /** The fitted base font size in px, for the fit measurements. */
   fontPx: number;

@@ -1533,7 +1533,14 @@
     },
     "alerts": {
       "severe": "Unwetter",
-      "advisory": "Hinweis"
+      "advisory": "Hinweis",
+      "more": "+{count} weitere"
+    },
+    "compass": {
+      "n": "N",
+      "e": "O",
+      "s": "S",
+      "w": "W"
     },
     "stats": {
       "wind": "Wind",

@@ -5,10 +5,12 @@ import { useElementBox } from '@/hooks/useElementBox';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import { Wind, Droplets, Sun, Gauge, Sunset } from 'lucide-react';
 import type { WeatherViewProps } from './weather-view-utils';
-import { pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { localizedCompassLabel, pressureForUnits, windUnitLabel } from '@/lib/weather/units';
+import { clockTime } from './parts';
 import {
   hourLabel, smoothPath, nowcastVerdict, tzHour, isNightHour, spanHours,
   LANDSCAPE_LEFT_FRACTION, STRIP_COLUMNS, CANVAS_PAD_X_U, CARD_PAD_X_U, HOURLY_RAIN_SHOWN_PCT,
+  RAIN_COLOR,
 } from './weather-view-utils';
 import { tempColor } from '@/lib/weather/temp-ramp';
 import { Card, Label, TopBar, AlertBand, DayRangeBars, DayTallBands, PrecipLegendHeader } from './weather-parts';
@@ -229,7 +231,7 @@ function Hero({ p, wide, stacked }: { p: WeatherViewProps; wide?: boolean; stack
       <div style={{ fontSize: s * 2.1, color: 'var(--fsw-text-2)', marginTop: u, display: 'flex', gap: stacked ? u * .5 : u * 1.4, flexDirection: stacked ? 'column' : 'row' }}>
         {now?.feelsLike != null && <span>{p.t('fullscreen-weather.feelsLike', { temp: Math.round(now.feelsLike) })}</span>}
         {today && !stacked && <span style={{ opacity: .4 }}>·</span>}
-        {today && <span>{`H ${Math.round(today.high)}°  L ${Math.round(today.low)}°`}</span>}
+        {today && <span>{p.t('weather.highLow', { high: `${Math.round(today.high)}°`, low: `${Math.round(today.low)}°` })}</span>}
       </div>
     </div>
   );
@@ -481,7 +483,7 @@ function TempRibbon({ p, strip = false }: { p: WeatherViewProps; strip?: boolean
           const pop = (h.precipProbability ?? 0) / 100;
           if (pop * 100 < HOURLY_RAIN_SHOWN_PCT) return null;
           const bw = step * 0.62;
-          return <rect key={`p${i}`} x={x(i) - bw / 2} y={baseline + 4} width={bw} height={Math.max(2, pop * (PB - 8))} rx={2.5} fill="#38bdf8" opacity={0.35 + pop * 0.6} />;
+          return <rect key={`p${i}`} x={x(i) - bw / 2} y={baseline + 4} width={bw} height={Math.max(2, pop * (PB - 8))} rx={2.5} fill={RAIN_COLOR} opacity={0.35 + pop * 0.6} />;
         })}
 
         {meta.map((m, i) => {
@@ -524,18 +526,22 @@ function statCells(p: WeatherViewProps): StatCell[] {
 
   const windUnit = windUnitLabel(p.units);
   const cells: StatCell[] = [];
-  if (now.windSpeed != null) cells.push({ icon: Wind, key: p.t('fullscreen-weather.stats.wind'), value: `${Math.round(now.windSpeed)} ${windUnit}` });
+  if (now.windSpeed != null) {
+    // The compass point the wind is from, where the source sends it.
+    const from = now.windDirection != null ? ` ${localizedCompassLabel(now.windDirection, p.t)}` : '';
+    cells.push({ icon: Wind, key: p.t('fullscreen-weather.stats.wind'), value: `${Math.round(now.windSpeed)} ${windUnit}${from}` });
+  }
   if (now.humidity != null) cells.push({ icon: Droplets, key: p.t('fullscreen-weather.stats.humidity'), value: `${Math.round(now.humidity)}%` });
   if (now.uvIndex != null) cells.push({ icon: Sun, key: p.t('fullscreen-weather.stats.uv'), value: String(now.uvIndex) });
   if (now.pressure != null) {
-    const reading = pressureForUnits(now.pressure, p.units);
+    const reading = pressureForUnits(now.pressure, p.units, p.locale);
     cells.push({ icon: Gauge, key: p.t('fullscreen-weather.stats.pressure'), value: `${reading.value} ${reading.unit}` });
   }
   if (p.sun.sunset) {
     cells.push({
       icon: Sunset,
       key: p.t('fullscreen-weather.stats.sunset'),
-      value: new Intl.DateTimeFormat(p.locale, { hour: 'numeric', minute: '2-digit', timeZone: p.timezone }).format(p.sun.sunset),
+      value: clockTime(p, p.sun.sunset),
     });
   }
   return cells;

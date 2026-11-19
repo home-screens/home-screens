@@ -3,6 +3,7 @@
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { TEXT_OPACITY } from '@/lib/constants';
 import { useFormattingLocale, useTranslate } from '@/i18n';
+import { activeAlerts, alertExpiresMs } from '@/lib/weather/derive';
 import type { WeatherViewProps } from './types';
 
 const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string }> = {
@@ -16,8 +17,7 @@ const SEVERITY_STYLES: Record<string, { bg: string; border: string; icon: string
 export default function WeatherAlertsView({ alerts, scaledFontSize, timezone, timeFormat }: WeatherViewProps) {
   const locale = useFormattingLocale();
   const t = useTranslate('modules');
-  const now = Math.floor(Date.now() / 1000);
-  const active = (alerts ?? []).filter((a) => a.expires > now);
+  const active = activeAlerts(alerts, Date.now());
 
   return (
     <div className="w-full h-full flex flex-col" style={{ fontSize: `${scaledFontSize}px` }}>
@@ -41,8 +41,10 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, timezone, ti
         <div className="flex-1 flex flex-col gap-2 overflow-y-auto min-h-0">
           {active.map((alert, i) => {
             const style = SEVERITY_STYLES[alert.severity] ?? SEVERITY_STYLES.Unknown;
-            const expiresDate = new Date(alert.expires * 1000);
-            const expiresStr = expiresDate.toLocaleString(locale, {
+            // An alert with no end time is still in force (see activeAlerts);
+            // it shows its severity alone rather than a made-up date.
+            const expiresMs = alertExpiresMs(alert.expires);
+            const expiresStr = expiresMs === undefined ? null : new Date(expiresMs).toLocaleString(locale, {
               month: 'short',
               day: 'numeric',
               hour: 'numeric',
@@ -68,7 +70,7 @@ export default function WeatherAlertsView({ alerts, scaledFontSize, timezone, ti
                   </span>
                 </div>
                 <div className="mb-1" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.secondary }}>
-                  {t('weather.alertSeverityExpires', { severity: severityLabel, expires: expiresStr })}
+                  {expiresStr === null ? severityLabel : t('weather.alertSeverityExpires', { severity: severityLabel, expires: expiresStr })}
                 </div>
                 <p className="line-clamp-3" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.heading }}>
                   {alert.description}

@@ -12,6 +12,7 @@ import { localISODate } from '@/lib/timezone';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import { getLocalizedConditionLabel } from './condition-label';
 import { useFitFontSize } from '@/hooks/useFitFontSize';
+import { formatPrecipAmount } from '@/lib/weather/condition-sentences';
 import type { WeatherViewProps } from './types';
 
 export default function WeatherDailyView({ config, forecast, units, timezone, scaledFontSize }: WeatherViewProps) {
@@ -98,7 +99,7 @@ export default function WeatherDailyView({ config, forecast, units, timezone, sc
                     <Icon size="1.8em" strokeWidth={1.5} aria-label={getLocalizedConditionLabel(day.icon, tWeather)} role="img" />
                     <WeatherStat icon={CloudRain} value={day.precipProbability} unit="%" visible={config.showPrecipitation !== false} />
                     {config.showPrecipAmount && day.precipAmount != null && day.precipAmount > 0 && (
-                      <span style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }}>{day.precipAmount.toFixed(1)}&quot;</span>
+                      <span className="whitespace-nowrap" style={{ fontSize: '0.7em', opacity: TEXT_OPACITY.dim }} data-testid="weather-precip-amount">{formatPrecipAmount(day.precipAmount, units, formattingLocale)}</span>
                     )}
                     {showHighLow && (
                       <div className="flex gap-1" style={{ fontSize: '0.875em' }}>

@@ -11,15 +11,12 @@ import { isNightHour, nightBandRadius } from '@/lib/weather/sun-times';
 import { getWeatherIcon } from '@/lib/weather-icons';
 import type { HourlyWeather } from '@/lib/weather';
 import {
-  cachedFormat, hourLabel, hourLabelled, labelStride, smoothPath, spanHours, temperatureAxis, timelineMarks, valueLabelled,
+  HOURLY_RAIN_SHOWN_PCT, cachedFormat, hourLabel, hourLabelled, labelStride, smoothPath, spanHours, temperatureAxis, timelineMarks, valueLabelled,
 } from '../fullscreen-weather/weather-view-utils';
 import { RAIN_COLOR, RainLegend, ViewTitle, useSunTimes, useViewBox } from './chart-parts';
 import { getLocalizedConditionLabel } from './condition-label';
 import { WeatherEmptyState } from './WeatherEmptyState';
 import type { WeatherViewProps } from './types';
-
-/** Rain chance below this draws no bar and no percentage. */
-const RAIN_SHOWN_PCT = 5;
 
 /**
  * The full-screen Hour by hour view as a module view.
@@ -199,7 +196,7 @@ function Meteogram({ entries, units, boxWidth, fontSize, iconSet, tWeather, grad
                 </div>
               </div>
               <div className="relative flex items-end justify-center" style={{ ...bandStyle.rain, padding: '0 18%' }}>
-                {e.rain >= RAIN_SHOWN_PCT && (
+                {e.rain >= HOURLY_RAIN_SHOWN_PCT && (
                   <>
                     {labelled && (
                       <span className="absolute left-0 right-0 text-center font-semibold" style={{ bottom: `calc(${e.rain}% + 0.3em)`, fontSize: '0.58em', color: RAIN_COLOR }}>{e.rain}%</span>
@@ -276,7 +273,7 @@ function Rows({ entries, units, axis, iconSet, tWeather, gradient, gradId, narro
                   <span className="absolute font-medium whitespace-nowrap tabular-nums" style={{ top: '50%', left: `${e.k * 100}%`, transform: 'translate(0.45em, -50%)', fontSize: '0.82em' }}>{Math.round(e.h.temp)}&deg;</span>
                 </div>
               </span>
-              <span className="flex items-center gap-[0.3em]" style={{ ...col.rain, visibility: e.rain >= RAIN_SHOWN_PCT ? 'visible' : 'hidden' }}>
+              <span className="flex items-center gap-[0.3em]" style={{ ...col.rain, visibility: e.rain >= HOURLY_RAIN_SHOWN_PCT ? 'visible' : 'hidden' }}>
                 <span className="flex-1 relative overflow-hidden rounded-full" style={{ height: '0.35em', background: 'color-mix(in srgb, currentColor 12%, transparent)' }}>
                   <span className="absolute left-0 top-0 bottom-0 rounded-full" style={{ width: `${e.rain}%`, background: RAIN_COLOR }} />
                 </span>

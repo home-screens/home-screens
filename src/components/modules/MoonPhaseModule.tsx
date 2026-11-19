@@ -1,9 +1,11 @@
 'use client';
 
+import { useId } from 'react';
 import SunCalc from 'suncalc';
 import { formatTimeInTZ, type ClockFormat } from '@/lib/timezone';
 import { moonTimesForDay } from '@/lib/moon-times';
 import { moonPhaseKey, type MoonPhaseKey } from '@/lib/weather/moon-phase-name';
+import { moonShadowPath } from '@/lib/weather/moon-shape';
 import { useRealClock } from '@/hooks/useTZClock';
 import type { MoonPhaseConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import ModuleWrapper from './ModuleWrapper';
@@ -52,25 +54,10 @@ function getPhaseName(phase: number, t: TranslateFn): string {
 function MoonVisual({ phase }: { phase: number }) {
   const size = 140;
   const r = size / 2;
-  const isWaxing = phase < 0.5;
-  const illumination = phase <= 0.5 ? phase * 2 : (1 - phase) * 2;
-  const terminatorX = Math.abs(illumination * 2 - 1) * r;
-
-  let shadowPath: string;
-
-  if (isWaxing) {
-    if (illumination <= 0.5) {
-      shadowPath = `M ${r} 0 A ${r} ${r} 0 0 0 ${r} ${size} A ${terminatorX} ${r} 0 0 0 ${r} 0`;
-    } else {
-      shadowPath = `M ${r} 0 A ${r} ${r} 0 0 0 ${r} ${size} A ${terminatorX} ${r} 0 0 1 ${r} 0`;
-    }
-  } else {
-    if (illumination <= 0.5) {
-      shadowPath = `M ${r} 0 A ${r} ${r} 0 0 1 ${r} ${size} A ${terminatorX} ${r} 0 0 1 ${r} 0`;
-    } else {
-      shadowPath = `M ${r} 0 A ${r} ${r} 0 0 1 ${r} ${size} A ${terminatorX} ${r} 0 0 0 ${r} 0`;
-    }
-  }
+  const gradientId = `${useId()}-moon-lit`;
+  // The shared shape: the crescent this draws is the one the weather views
+  // draw, and it matches the lit percentage printed under it.
+  const shadowPath = moonShadowPath(phase, size);
 
   return (
     <svg
@@ -83,13 +70,13 @@ function MoonVisual({ phase }: { phase: number }) {
       }}
     >
       <defs>
-        <radialGradient id="moonLit" cx="40%" cy="35%" r="60%">
+        <radialGradient id={gradientId} cx="40%" cy="35%" r="60%">
           <stop offset="0%" stopColor="#f5f5f0" />
           <stop offset="60%" stopColor="#e5e7eb" />
           <stop offset="100%" stopColor="#c0c4cc" />
         </radialGradient>
       </defs>
-      <circle cx={r} cy={r} r={r} fill="url(#moonLit)" />
+      <circle cx={r} cy={r} r={r} fill={`url(#${gradientId})`} />
       <path d={shadowPath} fill="rgba(0,0,0,0.85)" />
     </svg>
   );

@@ -40,11 +40,11 @@ import type { RewardDefinition } from '@/lib/reward-data';
 import { RewardHistoryView, type RewardHistoryVariant } from './RewardHistoryView';
 import { type ChoreRow, buildChoreRows, getUniqueInitials } from '@/lib/chore-rows';
 import { getOrientation } from '@/lib/orientation';
+import { getCurrentTimeOfDay } from '@/components/modules/chore-chart/types';
 import {
   type ToggleParams,
   TOD_ORDER,
   ROW_HEIGHT_FLOOR,
-  getCurrentTimeOfDay,
   buildMemberRows,
   fitRowHeight,
   fitDotSize,

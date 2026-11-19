@@ -69,6 +69,17 @@ function headingGap(a: number, b: number): number {
   return Math.abs((((a - b) % 360) + 540) % 360 - 180);
 }
 
+export interface CompassLetters { n: string; e: string; s: string; w: string }
+const COMPASS_LETTERS: CompassLetters = { n: 'N', e: 'E', s: 'S', w: 'W' };
+
+/** The dial's four letters from the dictionary: N, O, S, W in German. `t` takes a full `modules` key. */
+export function compassLetters(t: (key: string) => string): CompassLetters {
+  return {
+    n: t('fullscreen-weather.compass.n'), e: t('fullscreen-weather.compass.e'),
+    s: t('fullscreen-weather.compass.s'), w: t('fullscreen-weather.compass.w'),
+  };
+}
+
 /**
  * Wind compass: ticks every 6°, cardinal letters, and an arrow pointing the
  * way the wind blows (from the west means the arrow points east), with the
@@ -77,7 +88,11 @@ function headingGap(a: number, b: number): number {
  * the ring with the arrow stopping short of them, so a west wind's arrow
  * never runs through the W and the E.
  */
-export function Compass({ speed, fromDeg, unit, size, s }: { speed: number; fromDeg: number | undefined; unit: string; size: number; s: number }) {
+export function Compass({ speed, fromDeg, unit, size, s, letters = COMPASS_LETTERS }: {
+  speed: number; fromDeg: number | undefined; unit: string; size: number; s: number;
+  /** The four cardinal letters in the household's language (see `compassLetters`). */
+  letters?: CompassLetters;
+}) {
   const S = 250;
   const c = S / 2;
   const r = 108;
@@ -104,7 +119,8 @@ export function Compass({ speed, fromDeg, unit, size, s }: { speed: number; from
         stroke="currentColor" opacity={base + (1 - base) * glow * .9} strokeWidth={2} />,
     );
   }
-  const cardinals = ([['N', 0], ['E', 90], ['S', 180], ['W', 270]] as const).map(([l, a]) => {
+  const cardinals = ([['n', 0], ['e', 90], ['s', 180], ['w', 270]] as const).map(([point, a]) => {
+    const l = letters[point];
     const rad = (a * Math.PI) / 180;
     return (
       <text key={l} x={c + Math.sin(rad) * letterR} y={c - Math.cos(rad) * letterR} fill="currentColor" fontSize={22} fontWeight={600}

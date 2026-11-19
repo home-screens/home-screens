@@ -51,6 +51,9 @@ function countWeatherProviderFiles(): number {
     'condition-sentences.ts',
     'temp-ramp.ts',
     'moon-phase-name.ts',
+    'moon-shape.ts',
+    'sun-arc.ts',
+    'hourly-window.ts',
   ]);
   return fs
     .readdirSync(weatherDir)

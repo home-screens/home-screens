@@ -113,6 +113,8 @@ export const CARD_PAD_Y_U = 2.1;
 export const DAILY_RAIN_SHOWN_PCT = 8;
 /** Rain chance below which an hourly entry draws no bar. */
 export const HOURLY_RAIN_SHOWN_PCT = 5;
+/** The blue of rain bars and rain percentages on the charts. */
+export const RAIN_COLOR = '#38bdf8';
 
 /** `daysToShow` is 3..7; anything else (unset, NaN, out of range) is 7. */
 export function clampDaysToShow(value: number | undefined): number {
@@ -227,26 +229,9 @@ export function tzDayKey(date: Date, timezone?: string): string {
   return cachedFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date);
 }
 
-/**
- * The entries that fall inside the next `hours` hours, by timestamp.
- *
- * Providers disagree on step size (OpenWeatherMap is 3-hourly), so slicing a
- * fixed count would put 36 hours under a "Next 12 hours" heading. The window
- * is half-open from the first entry, so a 3-hour source yields 0h..9h (four
- * entries) and an hourly source yields 0h..11h (twelve).
- */
-export function hoursWithin(hourly: HourlyWeather[], hours: number): HourlyWeather[] {
-  if (hourly.length === 0) return [];
-  const start = new Date(hourly[0].time).getTime();
-  const end = start + hours * 3600_000;
-  const out: HourlyWeather[] = [];
-  for (const h of hourly) {
-    const at = new Date(h.time).getTime();
-    if (Number.isNaN(at) || at >= end) break;
-    out.push(h);
-  }
-  return out;
-}
+import { hoursWithin } from '@/lib/weather/hourly-window';
+
+export { hoursWithin };
 
 /**
  * The entries the Hour-by-hour view draws.

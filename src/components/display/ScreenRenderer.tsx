@@ -10,6 +10,7 @@ import OpenedScreenBackChip, { CHIP_CLEAR_PX } from './OpenedScreenBackChip';
 import { buildModuleProps, toDisplaySource, type SharedDisplayData } from '@/lib/module-props';
 import { passesModuleGates, collectConditionSourceKeys, type ScheduleClock } from '@/lib/schedule';
 import { DISPLAY_BACKGROUND } from '@/lib/constants';
+import { dayPartFor } from '@/lib/day-part';
 import type { SharedStateEntry } from '@/lib/shared-state-types';
 import { useSharedStateKeys } from '@/hooks/useSharedStateKeys';
 import { useWallClock } from '@/hooks/useTZClock';
@@ -73,13 +74,6 @@ interface ScreenRendererProps {
   openedBack?: { name: string | null; onBack: () => void; hidden: boolean; goesBackAt: number | null };
 }
 
-function getTimePeriod(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
-  if (hour >= 5 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 17) return 'afternoon';
-  if (hour >= 17 && hour < 21) return 'evening';
-  return 'night';
-}
-
 export default function ScreenRenderer(props: ScreenRendererProps) {
   return (
     <PageBackgroundProvider>
@@ -102,7 +96,7 @@ function ScreenRendererInner({ screen, settings, rotatingBackground, sharedData,
 
   // Publish time period transitions to the event bus (fires at most 4x/day)
   const hour = Math.floor(now.minuteOfDay / 60);
-  const timePeriod = getTimePeriod(hour);
+  const timePeriod = dayPartFor(hour);
   useEffect(() => {
     eventBus.publish('time.period', {
       period: timePeriod,

@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
-  compassLabel, feelsLikeSentence, humiditySentence, visibilitySentence, formatPrecipAmount,
+  feelsLikeSentence, humiditySentence, visibilitySentence, formatPrecipAmount,
   precipitationReading, airQualityLevel, airQualityPosition, uvLevel, uvRestOfDay, pressureTrend, pressurePosition,
+  pressureSeries, windFootline,
 } from '../condition-sentences';
+import { compassLabel, localizedCompassLabel, pressureForUnits } from '../units';
 import type { ForecastDay, HourlyWeather } from '../types';
 
 const hour = (i: number, extra: Partial<HourlyWeather> = {}): HourlyWeather => ({
@@ -126,5 +128,56 @@ describe('pressure', () => {
     expect(pressurePosition(980)).toBe(0);
     expect(pressurePosition(1015)).toBeCloseTo(0.5);
     expect(pressurePosition(1100)).toBe(1);
+  });
+});
+
+describe('the shared pressure window', () => {
+  it('reads twelve hours by the clock, not a count of entries', () => {
+    // Three-hourly entries: six of them span 15 hours, but only the first
+    // four (0h, 3h, 6h, 9h) sit inside the 12-hour window.
+    const threeHourly = [0, 3, 6, 9, 12, 15].map((h, i) => hour(h, { pressure: 1010 + i }));
+    expect(pressureSeries(threeHourly)).toEqual([1010, 1011, 1012, 1013]);
+    expect(pressureTrend(threeHourly)).toBe('rising');
+  });
+
+  it('sees a change that only shows after the sixth hour', () => {
+    const slow = Array.from({ length: 12 }, (_, i) => hour(i, { pressure: i < 6 ? 1010 : 1010 + (i - 5) }));
+    expect(pressureTrend(slow)).toBe('rising');
+  });
+});
+
+describe('windFootline', () => {
+  it('leads with the gust and carries the direction', () => {
+    expect(windFootline({ windGust: 24.6, windDirection: 315 }, 'imperial')).toEqual({ key: 'gusts', speed: 25, unit: 'mph', direction: 315 });
+  });
+  it('falls back to the direction, then to nothing', () => {
+    expect(windFootline({ windDirection: 90 }, 'metric')).toEqual({ key: 'windFrom', unit: 'km/h', direction: 90 });
+    expect(windFootline({}, 'metric')).toBeNull();
+  });
+});
+
+describe('localizedCompassLabel', () => {
+  const german = (key: string) => ({ n: 'N', e: 'O', s: 'S', w: 'W' })[key.split('.').pop()!]!;
+  const danish = (key: string) => ({ n: 'N', e: 'Ø', s: 'S', w: 'V' })[key.split('.').pop()!]!;
+  it('translates each letter of the point', () => {
+    expect(localizedCompassLabel(90, german)).toBe('O');
+    expect(localizedCompassLabel(22.5, german)).toBe('NNO');
+    expect(localizedCompassLabel(247.5, danish)).toBe('VSV');
+  });
+});
+
+describe('numbers in the formatting language', () => {
+  it('writes the decimal mark the language uses', () => {
+    expect(formatPrecipAmount(0.5, 'metric', 'de-DE')).toBe('0,5 mm');
+    expect(formatPrecipAmount(0.04, 'imperial', 'de-DE')).toBe('0,04 in');
+    expect(pressureForUnits(1013, 'imperial', 'de-DE').value).toBe('29,91');
+  });
+  it('reads as before in English', () => {
+    expect(formatPrecipAmount(0.5, 'metric')).toBe('0.5 mm');
+    expect(formatPrecipAmount(12.3, 'metric')).toBe('12 mm');
+    expect(formatPrecipAmount(0.1, 'imperial')).toBe('0.1 in');
+    expect(formatPrecipAmount(0.04, 'imperial')).toBe('0.04 in');
+    expect(formatPrecipAmount(1.26, 'imperial')).toBe('1.3 in');
+    expect(pressureForUnits(1013, 'imperial').value).toBe('29.91');
   });
 });

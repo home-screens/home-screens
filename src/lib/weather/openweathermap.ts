@@ -5,6 +5,16 @@ import { OWM_ICON_MAP, FALLBACK_ICON } from './icons';
 import { average, forecastDate } from './daily';
 import { msToWindUnit } from './units';
 
+/**
+ * OpenWeatherMap writes its condition words in lower case ("broken clouds")
+ * where every other source sends a sentence ("Partly cloudy"), so a view
+ * that prints the words as received showed a lower-case headline for this
+ * source alone. Only the first letter moves; the rest is as sent.
+ */
+function sentenceCase(text: string): string {
+  return text ? text.charAt(0).toUpperCase() + text.slice(1) : text;
+}
+
 // ── OpenWeatherMap API response types ────────────────────────────────
 
 interface OWMWeatherEntry {
@@ -80,7 +90,7 @@ function groupByDate(entries: OWMForecastEntry[], zone: number | string | undefi
     day.rain += entry.rain?.['3h'] ?? 0;
     const weather = entry.weather?.[0];
     day.icons.push(weather?.icon ?? '');
-    day.descs.push(weather?.description ?? '');
+    day.descs.push(sentenceCase(weather?.description ?? ''));
   }
   return dayMap;
 }
@@ -162,7 +172,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
       feelsLike: currentData.main.feels_like,
       humidity: currentData.main.humidity,
       icon: this.mapIcon(currentData.weather[0]?.icon ?? ''),
-      description: currentData.weather[0]?.description ?? '',
+      description: sentenceCase(currentData.weather[0]?.description ?? ''),
       windSpeed: wind(currentData.wind.speed),
       windDirection: currentData.wind?.deg,
       windGust: gust(currentData.wind),
@@ -176,7 +186,7 @@ export class OpenWeatherMapProvider implements WeatherProvider {
       feelsLike: h.main.feels_like,
       humidity: h.main.humidity,
       icon: this.mapIcon(h.weather[0]?.icon ?? ''),
-      description: h.weather[0]?.description ?? '',
+      description: sentenceCase(h.weather[0]?.description ?? ''),
       windSpeed: wind(h.wind.speed),
       windDirection: h.wind?.deg,
       windGust: gust(h.wind),

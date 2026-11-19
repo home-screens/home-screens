@@ -8,7 +8,8 @@ import { LocationRequired } from './LocationRequired';
 import { useFetchData } from '@/hooks/useFetchData';
 import { airQualityUrl, FETCH_KEY_REGISTRY } from '@/lib/fetch-keys';
 import { TEXT_OPACITY, ink } from '@/lib/constants';
-import { useTranslate } from '@/i18n';
+import { useFormattingLocale, useTranslate } from '@/i18n';
+import { formatNumber } from '@/i18n/formatters';
 import { ContentCard } from './shared/ContentCard';
 import { withAlpha } from '@/lib/hex-color';
 
@@ -60,6 +61,7 @@ function PollutantBar({ label, value, unit, threshold, color }: {
   threshold: number;
   color: string;
 }) {
+  const locale = useFormattingLocale();
   const pct = Math.min(100, (value / threshold) * 100);
   return (
     <ContentCard>
@@ -69,7 +71,7 @@ function PollutantBar({ label, value, unit, threshold, color }: {
           <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.8, transition: 'width 0.5s ease' }} />
         </div>
         <span className="tabular-nums shrink-0" style={{ opacity: TEXT_OPACITY.tertiary, minWidth: '5em', textAlign: 'right' }}>
-          {value.toFixed(1)} {unit}
+          {formatNumber(value, { locale, minimumFractionDigits: 1, maximumFractionDigits: 1 })} {unit}
         </span>
       </div>
     </ContentCard>

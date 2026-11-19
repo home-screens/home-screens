@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  getCurrentTimeOfDay,
   groupPillMetrics,
   groupPillMinRow,
   groupPillPadY,
@@ -37,30 +36,6 @@ function makeAssignment(
 ): ResolvedAssignment {
   return { chore, memberId, isCompleted, isSkipped: false, groupIds: chore.assigneeGroupIds ?? [] };
 }
-
-describe('getCurrentTimeOfDay', () => {
-  it('returns morning for hours 0-11', () => {
-    expect(getCurrentTimeOfDay(0)).toBe('morning');
-    expect(getCurrentTimeOfDay(6)).toBe('morning');
-    expect(getCurrentTimeOfDay(11)).toBe('morning');
-  });
-
-  it('returns afternoon for hours 12-16', () => {
-    expect(getCurrentTimeOfDay(12)).toBe('afternoon');
-    expect(getCurrentTimeOfDay(14)).toBe('afternoon');
-    expect(getCurrentTimeOfDay(16)).toBe('afternoon');
-  });
-
-  it('returns evening for hours 17-23', () => {
-    expect(getCurrentTimeOfDay(17)).toBe('evening');
-    expect(getCurrentTimeOfDay(20)).toBe('evening');
-    expect(getCurrentTimeOfDay(23)).toBe('evening');
-  });
-
-  it('returns null for hour >= 24', () => {
-    expect(getCurrentTimeOfDay(24)).toBeNull();
-  });
-});
 
 describe('TOD_ORDER', () => {
   it('defines the correct ordering', () => {

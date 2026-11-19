@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { alertExpiresMs, deriveWeatherConditions, deriveWeatherAlerts, rebuildTodayRow, reconcileTodayRange } from '../derive';
+import { activeAlerts, alertExpiresMs, deriveWeatherConditions, deriveWeatherAlerts, rebuildTodayRow, reconcileTodayRange } from '../derive';
 import type { HourlyWeather, WeatherAlert } from '../types';
 
 describe('deriveWeatherConditions', () => {
@@ -222,5 +222,30 @@ describe('alertExpiresMs', () => {
   it('dates the event-bus expiry from seconds, not 1970', () => {
     const event = deriveWeatherAlerts([{ title: 'Wind Advisory', severity: 'Moderate', description: '', expires: 1_792_371_600 }]);
     expect(event?.alerts[0].expires).toBe('2026-10-19T01:00:00.000Z');
+  });
+});
+
+describe('activeAlerts', () => {
+  const NOW = Date.UTC(2026, 9, 16, 12);
+  const alert = (title: string, severity: string, expires: number) => ({ title, severity, expires, description: '' }) as WeatherAlert;
+  const inAnHour = Math.floor(NOW / 1000) + 3600;
+  const anHourAgo = Math.floor(NOW / 1000) - 3600;
+
+  it('drops what has expired and leads with the most serious', () => {
+    const list = [alert('Advisory', 'Minor', inAnHour), alert('Gone', 'Extreme', anHourAgo), alert('Warning', 'Extreme', inAnHour)];
+    expect(activeAlerts(list, NOW).map((a) => a.title)).toEqual(['Warning', 'Advisory']);
+  });
+
+  it('keeps the source order between alerts of one severity', () => {
+    const list = [alert('First', 'Severe', inAnHour), alert('Second', 'Severe', inAnHour)];
+    expect(activeAlerts(list, NOW).map((a) => a.title)).toEqual(['First', 'Second']);
+  });
+
+  it('counts an alert with no usable end time as still in force', () => {
+    expect(activeAlerts([alert('Open', 'Moderate', 0), alert('Open too', 'Moderate', Number.NaN)], NOW)).toHaveLength(2);
+  });
+
+  it('answers an empty list for no alerts', () => {
+    expect(activeAlerts(undefined, NOW)).toEqual([]);
   });
 });

@@ -1533,7 +1533,14 @@
     },
     "alerts": {
       "severe": "Ernstig",
-      "advisory": "Waarschuwing"
+      "advisory": "Waarschuwing",
+      "more": "+{count} meer"
+    },
+    "compass": {
+      "n": "N",
+      "e": "O",
+      "s": "Z",
+      "w": "W"
     },
     "stats": {
       "wind": "Wind",

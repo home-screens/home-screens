@@ -28,6 +28,7 @@ import WeatherStatsView from './WeatherStatsView';
 import WeatherSunView from './WeatherSunView';
 import WeatherNarrativeView from './WeatherNarrativeView';
 import { useHouseholdTimeFormat } from '@/hooks/useHouseholdTimeFormat';
+import { activeAlerts } from '@/lib/weather/derive';
 
 interface WeatherModuleProps {
   config: WeatherConfig;
@@ -168,9 +169,7 @@ export default function WeatherModule({ config, style, hourly, forecast, minutel
   }
 
   if (view === 'alerts' && config.hideWhenNoAlerts && alerts !== undefined) {
-    const now = Math.floor(Date.now() / 1000);
-    const activeAlerts = alerts.filter((a) => a.expires > now);
-    if (activeAlerts.length === 0) return null;
+    if (activeAlerts(alerts, Date.now()).length === 0) return null;
   }
 
   const ViewComponent = VIEW_COMPONENTS[view] ?? WeatherHourlyView;

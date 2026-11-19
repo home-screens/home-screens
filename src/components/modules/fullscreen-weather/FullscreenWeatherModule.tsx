@@ -12,6 +12,7 @@ import { getThemeTokens, getTypoMultiplier, getDensityMultiplier } from '@/lib/f
 import type { FullscreenWeatherConfig, ModuleStyle, TimeFormat } from '@/types/config';
 import type { HourlyWeather, ForecastDay, MinutelyPrecip, WeatherAlert } from '@/lib/weather';
 import { forecastFromToday } from '@/lib/weather/daily';
+import { activeAlerts } from '@/lib/weather/derive';
 import { isoDateInTZ } from '@/lib/timezone';
 import { LocationRequired } from '../LocationRequired';
 import { ModuleSetupState } from '../ModuleStates';
@@ -130,7 +131,11 @@ export default function FullscreenWeatherModule({
   const todayISO = isoDateInTZ(now, timezone);
   const forecast = useMemo(() => forecastFromToday(rawForecast ?? [], todayISO), [rawForecast, todayISO]);
   const minutely = useMemo(() => rawMinutely ?? [], [rawMinutely]);
-  const alerts = useMemo(() => rawAlerts ?? [], [rawAlerts]);
+  // Only the warnings still in force, most serious first, so the banner
+  // clears on time and leads with the one that matters. `now` ticks once a
+  // minute, which is as often as an expiry can pass.
+  const nowMinute = Math.floor(now.getTime() / 60_000);
+  const alerts = useMemo(() => activeAlerts(rawAlerts, nowMinute * 60_000), [rawAlerts, nowMinute]);
 
   const skyMode = config.skyLayer ?? 'living';
   const baseTheme = getThemeTokens(config.theme ?? fullscreenTheme);

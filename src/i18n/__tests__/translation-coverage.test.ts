@@ -315,6 +315,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
  */
 const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
   'da-DK': new Set([
+    // Compass letters that are the same in this language (north is N everywhere).
+    'modules|fullscreen-weather.compass.n',
+    'modules|fullscreen-weather.compass.s',
     // Art labels that read the same in this language.
     'editor|photoSources.art.picker.matchTypes.museum',
     // "Dessert" is the Danish word too (a meal's course, a kind of dish).
@@ -363,6 +366,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'de-DE': new Set([
+    // Compass letters that are the same in this language (north is N everywhere).
+    'modules|fullscreen-weather.compass.n',
+    'modules|fullscreen-weather.compass.s',
+    'modules|fullscreen-weather.compass.w',
     // Art labels that read the same in this language: "Gold" is the German word too (a picture frame).
     'editor|photoSources.art.frames.gold',
     // "Bonus" is the same word in this language (the ticket history's bonus line).
@@ -466,6 +473,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'es-ES': new Set([
+    // Compass letters that are the same in this language (north is N everywhere).
+    'modules|fullscreen-weather.compass.n',
+    'modules|fullscreen-weather.compass.e',
+    'modules|fullscreen-weather.compass.s',
     // Triple is the Spanish word too (a triple batch).
     'modules|meal-planner.recipe.batchTriple',
     // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
@@ -543,6 +554,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.picker.ideas',
   ]),
   'fr-FR': new Set([
+    // Compass letters that are the same in this language (north is N everywhere).
+    'modules|fullscreen-weather.compass.n',
+    'modules|fullscreen-weather.compass.e',
+    'modules|fullscreen-weather.compass.s',
     // "Photos" is the French word too (the name of a photo screen made from the Open button section).
     'editor|propertyPanel.openButton.twinScreenName.fullscreen-photo',
     // Art labels that read the same in this language.
@@ -733,6 +748,9 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'nl-NL': new Set([
+    // Compass letters that are the same in this language (north is N everywhere).
+    'modules|fullscreen-weather.compass.n',
+    'modules|fullscreen-weather.compass.w',
     // Art labels that read the same in this language.
     'editor|photoSources.art.picker.matchTypes.museum',
     // Filters is the Dutch word too (the Immich mode).
@@ -907,6 +925,10 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'pt-BR': new Set([
+    // Compass letters that are the same in this language (north is N everywhere).
+    'modules|fullscreen-weather.compass.n',
+    'modules|fullscreen-weather.compass.e',
+    'modules|fullscreen-weather.compass.s',
     // "backup" is the everyday Brazilian noun, used across the whole Backups page.
     'editor|settings.dataPage.autoBackup.keepUnit',
     // "tickets" is the loanword this locale uses (the adjust sheet's unit label).

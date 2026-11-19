@@ -1541,7 +1541,14 @@
     },
     "alerts": {
       "severe": "Sévère",
-      "advisory": "Avis"
+      "advisory": "Avis",
+      "more": "+{count} de plus"
+    },
+    "compass": {
+      "n": "N",
+      "e": "E",
+      "s": "S",
+      "w": "O"
     },
     "stats": {
       "wind": "Vent",
