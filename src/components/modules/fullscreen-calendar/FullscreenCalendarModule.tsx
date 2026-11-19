@@ -386,10 +386,14 @@ export default function FullscreenCalendarModule({
   );
   const hasEvents = events.length > 0;
   // Views with something to say on an empty feed: a day note in view, the
-  // family grid and free time still draw every configured person, and a week
-  // list can be all meals and chores.
+  // family grid and free time still draw every configured person, a week
+  // list can be all meals and chores, and day rules mark days that need no
+  // event (a badge every other Tuesday, weekend art). Up next and Free time
+  // draw no day rules, so rules alone do not fill them.
+  const drawsDayRules = config.view !== 'up-next' && config.view !== 'free-time';
   const hasContent = hasEvents
     || notesInView
+    || (drawsDayRules && (config.dayRules?.length ?? 0) > 0)
     || ((config.view === 'family-grid' || config.view === 'free-time') && (visiblePeople?.length ?? 0) > 0)
     || (wantsExtras && hasExtras(extras, weekDates));
   const personView = config.view === 'family-grid' || config.view === 'free-time';

@@ -5,7 +5,7 @@ import { isSameDay } from 'date-fns';
 import {
   parseEventWallTime, weekStartsOnFor, formatEventTime, eventEndLabel,
   bucketEventsForDay, eventStatusSlot, eventKindLabel, isWeekendDay,
-  eventRowTimeLabel, withSavedSuffix,
+  eventRowTimeLabel, isPastInAgendaGroup, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -149,7 +149,10 @@ export function WeekListView({ events, timezone, config, scale, today, anchor = 
 
           {/* Timed events */}
           {timedEvs.map(({ ev, segment }) => (
-            <EventRow key={ev.id} event={ev} segment={segment} rowDate={day} now={now} ctx={rowCtx} weather={weather} showDescription={showDescription} failingSourceIds={failingSourceIds} />
+            <EventRow
+              key={ev.id} event={ev} segment={segment} rowDate={day} now={now} ctx={rowCtx} weather={weather} showDescription={showDescription} failingSourceIds={failingSourceIds}
+              fadeFinished={isToday && !stepped && config.dimPastEvents}
+            />
           ))}
 
           {/* Household rows: planned meals, then the day's chore progress */}
@@ -364,7 +367,7 @@ function MealSlotLabel({ slot, time, labels, timeFormat, fontSize, t }: {
   );
 }
 
-function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDescription, failingSourceIds }: {
+function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDescription, failingSourceIds, fadeFinished = false }: {
   event: CalendarEvent;
   segment: EventDaySegment;
   rowDate: Date;
@@ -374,6 +377,8 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
   isAllDay?: boolean;
   showDescription?: boolean;
   failingSourceIds?: ReadonlySet<string>;
+  /** Today's rows with "Dim past events" on: one that has ended fades, as in the Agenda. */
+  fadeFinished?: boolean;
 }) {
   const { t, locale, timeFormat, timezone, scale, fontSize, config } = ctx;
   const color = event.calendarColor ?? DEFAULT_EVENT_COLOR;
@@ -394,6 +399,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
     eventRowTimeLabel({ segment, startLabel, endLabel, t, ns: 'fullscreen-calendar' }),
     event, failingSourceIds, t,
   );
+  const finished = fadeFinished && isPastInAgendaGroup(end, rowDate, now, true, isAllDay === true);
   const glyph = eventGlyph(event);
   const owner = eventOwner(event, ctx.owners);
   const kindLabel = eventKindLabel(event, start.getFullYear(), t, 'fullscreen-calendar');
@@ -418,7 +424,7 @@ function EventRow({ event, segment, rowDate, now, ctx, weather, isAllDay, showDe
         padding: filled ? `${scale.bu * 0.7}px ${scale.bu * 0.8}px` : `${scale.bu * 0.7}px 0`,
         marginBottom: filled ? scale.bu * 0.35 : undefined,
         ...eventSurface(color, scale, 'row', { radius: 8 }),
-        opacity: eventOpacity(event, 1),
+        opacity: eventOpacity(event, finished ? 0.4 : 1),
       }}
     >
       {glyph ? (

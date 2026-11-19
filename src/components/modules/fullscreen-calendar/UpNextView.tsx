@@ -382,7 +382,7 @@ function ListRow({ item, allDay, ctx, showDescription, trailing, dim, progress }
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: scale.bu * 2, minWidth: 0 }}>
         <span style={{ ...EVENT_TIME_TEXT, fontSize: fontSize * 2, width: fontSize * 9, flexShrink: 0, whiteSpace: 'nowrap' }}>
-          {allDay ? t('fullscreen-calendar.allDay') : startLabel}
+          {allDay ? eventKindLabel(ev, start.getFullYear(), t, 'fullscreen-calendar') ?? t('fullscreen-calendar.allDay') : startLabel}
         </span>
         <span style={{ fontSize: fontSize * 2.5, fontWeight: 600, color: 'var(--cal-text-primary)', flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           <GlyphPrefix value={glyph} />{ev.title}

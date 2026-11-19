@@ -36,6 +36,7 @@ import {
   isZeroLengthEvent,
   eventEndLabel,
   eventRowTimeLabel,
+  gridPillTimeLabel,
 } from '@/lib/calendar-utils';
 import { legendSources, eventsInWindow } from '@/lib/calendar-legend';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -1158,5 +1159,32 @@ describe('formatEventDuration', () => {
     // French keeps each number and its unit together with no-break spaces.
     expect(formatEventDuration(at(9), at(10, 30), 'fr-FR').replace(/[\u00a0\u202f]/g, ' ')).toBe('1 h 30 min');
     expect(formatEventDuration(at(9), at(10, 30), 'nl-NL')).toBe('1 uur 30 min');
+  });
+});
+
+describe('gridPillTimeLabel', () => {
+  const t = ((key: string, vars?: Record<string, string>) => `${key}:${vars?.time ?? ''}`) as TranslateFn;
+  const compact = (at: Date) => formatEventTimeCompact(at, '12h', 'en-US');
+  // A camping trip, Friday 6 PM to Sunday 4 PM.
+  const start = new Date(2026, 8, 4, 18, 0);
+  const end = new Date(2026, 8, 6, 16, 0);
+  const day = (d: number) => new Date(2026, 8, d);
+
+  it('shows the start only on the day the event starts', () => {
+    expect(gridPillTimeLabel(start, end, day(4), compact, t)).toBe('6p');
+  });
+
+  it('shows no time on the days in between', () => {
+    expect(gridPillTimeLabel(start, end, day(5), compact, t)).toBeNull();
+  });
+
+  it('shows when it ends on the last day', () => {
+    expect(gridPillTimeLabel(start, end, day(6), compact, t)).toBe('calendar.untilTime:4p');
+  });
+
+  it('leaves a one-day event as its start', () => {
+    expect(gridPillTimeLabel(new Date(2026, 8, 4, 9, 30), new Date(2026, 8, 4, 10, 0), day(4), compact, t)).toBe('9:30a');
+    // Ends exactly at midnight: it never reaches the next day.
+    expect(gridPillTimeLabel(new Date(2026, 8, 4, 20, 0), new Date(2026, 8, 5, 0, 0), day(4), compact, t)).toBe('8p');
   });
 });

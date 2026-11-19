@@ -73,7 +73,7 @@ function agendaWindow(config: { agendaShowFinishedToday?: boolean }, now: Date):
 
 /** The event window a single module's current view renders, or null if the
  *  server's upcoming-only default already covers it. */
-function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
+function getModuleWindow(mod: ModuleInstance, now: Date, daysAhead: number): ModuleWindow | null {
   if (mod.type === 'calendar') {
     const view = (mod.config as Partial<CalendarConfig>).viewMode;
     // Every grid honors startDay (the rolling view is the exception: it
@@ -101,6 +101,12 @@ function getModuleWindow(mod: ModuleInstance, now: Date): ModuleWindow | null {
     // the agenda's `agendaShowFinishedToday`, and the same gate the module
     // itself uses to keep them (`keepFinishedToday` in CalendarModule).
     const daily = mod.config as Partial<CalendarConfig>;
+    // The server default reaches today plus `daysAhead` more days. A Daily
+    // drawing more columns than that fetches through its last one, or the
+    // columns past the default read "No events" whatever is on them. Shorter
+    // ones keep the param-less URL, so their cache key does not change.
+    const columns = Math.max(1, Math.floor(daily.daysToShow ?? 3));
+    if (columns > daysAhead + 1) return gridWindow('days', now, weekStartsOn, columns);
     if (daily.dimPastEvents === true || daily.showNowRule === true) return fromStartOfToday(now);
     return null; // daily: upcoming only
   }
@@ -170,7 +176,7 @@ export function getCalendarFetchWindow(
   for (const screen of screens) {
     for (const mod of screen.modules) {
       if (!isModuleEnabled(mod)) continue;
-      const win = getModuleWindow(mod, now);
+      const win = getModuleWindow(mod, now, daysAhead);
       if (!win) continue;
       if (!earliest || win.start < earliest) earliest = win.start;
       if (win.end && (!latest || win.end > latest)) latest = win.end;

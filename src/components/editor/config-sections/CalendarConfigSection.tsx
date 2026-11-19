@@ -251,7 +251,7 @@ export function CalendarConfigSection({ mod, screenId }: { mod: ModuleInstance; 
             options={START_DAY_OPTIONS}
           />
         )}
-        {viewMode === 'daily' && (
+        {(viewMode === 'daily' || viewMode === 'agenda') && (
           <LabeledInput
             label={t('configSections.calendar.emptyDayText')}
             type="text"

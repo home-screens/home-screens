@@ -138,6 +138,7 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
   // The "this view" heading names the view itself, so the block that swaps
   // when the picker changes is labelled with what it belongs to.
   const viewLabel = VIEW_OPTIONS.find((v) => v.value === view)?.label ?? '';
+  const dimsPast = view !== 'up-next' && view !== 'free-time';
   const descriptionKey = view in SHOW_DESCRIPTION_KEY ? SHOW_DESCRIPTION_KEY[view as keyof typeof SHOW_DESCRIPTION_KEY] : null;
 
   return (
@@ -389,11 +390,10 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
       </CalendarGroup>
 
       {/* ── Event rows: how one event reads ── */}
-      {/* No `when` guard because Dim Past Events below is unconditional, which
-          is the only thing keeping this group non-empty for month-grid (its
-          other row is wrapEventTitles). View-gate that toggle and this needs a
-          guard like the compact module's. */}
-      <CalendarGroup label={groups.eventRows}>
+      {/* Up next always fades its Earlier rows and Free time draws no past
+          events, so the fade switch does nothing in either and is left out.
+          Free time then has no row here at all, hence the guard. */}
+      <CalendarGroup label={groups.eventRows} when={dimsPast || descriptionKey != null || isListView}>
         {descriptionKey && (
           <Toggle
             label={t('common.showDescription')}
@@ -420,7 +420,9 @@ export function FullscreenCalendarConfigSection({ mod, screenId }: { mod: Module
             <Toggle label={t('configSections.fullscreen-calendar.showProgressBar')} checked={c.showProgressBar === true} onChange={(v) => set({ showProgressBar: v })} />
           </>
         )}
-        <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
+        {dimsPast && (
+          <Toggle label={t('configSections.fullscreen-calendar.dimPastEvents')} checked={c.dimPastEvents !== false} onChange={(v) => set({ dimPastEvents: v })} />
+        )}
       </CalendarGroup>
 
       {/* ── Look: whole-module styling ── */}

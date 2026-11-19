@@ -2357,8 +2357,9 @@ export interface CalendarConfig {
    * default false
    */
   showProgressBar?: boolean;
-  // Daily view: custom wording for empty day cells; '' = default.
-  /** Daily view: custom wording for days with no events (for example "Free day!") */
+  // Custom wording for an empty day; '' = default. The agenda only draws an
+  // empty day in a week someone stepped to with the look-ahead arrows.
+  /** Daily and agenda views: custom wording for days with no events (for example "Free day!") */
   emptyDayText?: string;
   // Agenda view: week/month boundary separators (month beats week).
   /**

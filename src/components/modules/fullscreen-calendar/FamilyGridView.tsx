@@ -332,7 +332,7 @@ function PersonRowCells({ row, cells, count, days, today, thisWeek, now, ctx, ce
           >
             {decor.backgroundImage != null && <DayArtLayer decor={decor} />}
             {visible.map(({ ev, segment }) => (
-              <EventChip key={ev.id} event={ev} segment={segment} now={now} fadeFinished={thisWeek} ctx={ctx} wrapTitles={wrapTitles} failingSourceIds={failingSourceIds} />
+              <EventChip key={ev.id} event={ev} segment={segment} now={now} fadeFinished={thisWeek && config.dimPastEvents && !isPast} ctx={ctx} wrapTitles={wrapTitles} failingSourceIds={failingSourceIds} />
             ))}
             {hidden > 0 && (cornerBadge ? (
               // Already a pill; with taps on it is a button in the accent.
@@ -369,7 +369,11 @@ function EventChip({ event, segment, now, fadeFinished, ctx, wrapTitles, failing
   event: CalendarEvent;
   segment: EventDaySegment;
   now: Date;
-  /** This week's finished events fade; another week's are read whole. */
+  /**
+   * Today's finished events fade when "Dim past events" is on. Past days fade
+   * as a whole cell, so their chips are not faded a second time, and another
+   * week's are read whole.
+   */
   fadeFinished: boolean;
   ctx: RowCtx;
   wrapTitles: boolean;

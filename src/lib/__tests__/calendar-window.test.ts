@@ -103,6 +103,23 @@ describe('getCalendarFetchWindow', () => {
     expect(getCalendarFetchWindow(screens, NOW, DAYS_AHEAD)).toBeNull();
   });
 
+  it('fetches through the last column of a daily view that outruns the default', () => {
+    // 14 columns against a 7-day default left columns 9 to 14 reading
+    // "No events" unless a grid elsewhere on the display widened the fetch.
+    const today = startOfDay(NOW);
+    const long = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'daily', daysToShow: 14 })])], NOW, DAYS_AHEAD);
+    expect(long!.timeMin).toBe(addDays(today, -1).toISOString());
+    expect(long!.timeMax).toBe(addDays(today, 14 + 1).toISOString());
+    // Today plus daysAhead more days is what the default already covers.
+    const covered = [makeScreen([makeModule('calendar', { viewMode: 'daily', daysToShow: DAYS_AHEAD + 1 })])];
+    expect(getCalendarFetchWindow(covered, NOW, DAYS_AHEAD)).toBeNull();
+    const oneOver = [makeScreen([makeModule('calendar', { viewMode: 'daily', daysToShow: DAYS_AHEAD + 2 })])];
+    expect(getCalendarFetchWindow(oneOver, NOW, DAYS_AHEAD)!.timeMax).toBe(addDays(today, DAYS_AHEAD + 2 + 1).toISOString());
+    // A short default makes even the three-column default outrun it.
+    const short = getCalendarFetchWindow([makeScreen([makeModule('calendar', { viewMode: 'daily' })])], NOW, 1);
+    expect(short!.timeMax).toBe(addDays(today, 3 + 1).toISOString());
+  });
+
   it('widens to padded start-of-today for a fullscreen agenda with agendaShowFinishedToday', () => {
     const screens = [makeScreen([
       makeModule('fullscreen-calendar', { view: 'agenda', agendaShowFinishedToday: true }),

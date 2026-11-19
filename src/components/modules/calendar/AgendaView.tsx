@@ -177,7 +177,7 @@ export function AgendaView({ events, config, style, today, now, anchor, stepped 
           </div>
           <DayNoteLines notes={notes} tone="module" lines={3} style={{ fontSize: '0.82em', padding: '0.35em 0.55em', marginBottom: '0.4em', borderRadius: 5 }} />
           {stepped && dayEvents.length === 0 && notes.length === 0 && (
-            <p data-testid="calendar-agenda-no-events" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary, fontStyle: 'italic' }}>{t('calendar.noEvents')}</p>
+            <p data-testid="calendar-agenda-no-events" style={{ fontSize: '0.75em', opacity: TEXT_OPACITY.tertiary, fontStyle: 'italic' }}>{config.emptyDayText?.trim() || t('calendar.noEvents')}</p>
           )}
           <div className="flex flex-col gap-1.5">
             {dayEvents.map((ev) => {

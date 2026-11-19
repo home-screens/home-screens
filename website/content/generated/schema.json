@@ -2335,7 +2335,7 @@
             "kind": "string",
             "text": "string"
           },
-          "description": "Daily view: custom wording for days with no events (for example \"Free day!\")",
+          "description": "Daily and agenda views: custom wording for days with no events (for example \"Free day!\")",
           "default": ""
         },
         {

@@ -1010,6 +1010,33 @@ export const TIME_DATE_VARIANTS: ConfigVariant[] = [
     },
   },
   {
+    // An event look's icon leads the title in the modern pills too, as it
+    // does in the Banner look and the lists.
+    type: 'calendar', name: 'grid-pill-rule-icon', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'cgi-1', title: 'CAL ICON PILL', start: localIso(1, 8), end: localIso(1, 9), allDay: false }],
+    config: { viewMode: 'multi-week', gridTheme: 'clean', eventRules: [{ id: 'r1', match: { text: 'icon pill' }, icon: '🚮' }] },
+    size: ROOMY_GRID_SIZE,
+    expect: async (mod) => {
+      await expect(mod.locator('[data-event-id="cgi-1"]')).toContainText('🚮');
+    },
+  },
+  {
+    // A timed event over three days: its start on the first, no time on the
+    // middle day, and when it ends on the last. Never the start on all three.
+    type: 'calendar', name: 'grid-pill-multi-day-time', kind: 'networked', stubKey: 'calendar',
+    stubBody: [{ id: 'cgm-1', title: 'CAL CAMPING', start: localIso(0, 23, 5), end: localIso(2, 16), allDay: false }],
+    config: { viewMode: 'multi-week', gridTheme: 'clean' },
+    size: ROOMY_GRID_SIZE,
+    expect: async (mod) => {
+      const pills = mod.locator('[data-event-id="cgm-1"]');
+      await expect(pills).toHaveCount(3);
+      await expect(pills.nth(0)).toContainText('11:05p');
+      await expect(pills.nth(1)).toHaveText('CAL CAMPING');
+      await expect(pills.nth(2)).toContainText('Until 4p');
+      await expect(pills.nth(2)).not.toContainText('11:05p');
+    },
+  },
+  {
     // Vivid paints timed pills solid in the calendar color with the same
     // auto-contrast text rule the all-day pills use (yellow -> near-black).
     type: 'calendar', name: 'multi-week-theme-vivid', kind: 'networked', stubKey: 'calendar',

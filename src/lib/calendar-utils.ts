@@ -413,6 +413,27 @@ export function classifyTimedSpan(evStart: Date, evEnd: Date, date: Date): Event
 }
 
 /**
+ * The time a grid pill shows for a timed event on the day cell it sits in.
+ * An event that runs over midnight sits in every day it covers, and printing
+ * its start in each one makes the day people come home read as an evening
+ * start. So: the start on the day it starts, nothing on the days in between
+ * (null), and "Until 4p" on the day it ends, the same three cases the list
+ * views label. `format` is the pill's own time style (compact or padded).
+ */
+export function gridPillTimeLabel(
+  start: Date,
+  end: Date,
+  date: Date,
+  format: (time: Date) => string,
+  t: TranslateFn,
+): string | null {
+  const segment = classifyTimedSpan(start, end, date);
+  if (segment === 'middle') return null;
+  if (segment === 'last') return t('calendar.untilTime', { time: format(end) });
+  return format(start);
+}
+
+/**
  * One day's events in list-view display order: rows that render as all-day
  * (true all-day events plus middle days of split multi-day events, which
  * promote to all-day rendering) first, then timed rows by start. The

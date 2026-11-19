@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import {
-  parseEventWallTime, formatEventTime, formatEventTimeCompact, eventEndLabel, isAllDayEvent, eventKindLabel, eventRowTimeLabel, withSavedSuffix,
+  parseEventWallTime, formatEventTime, formatEventTimeCompact, gridPillTimeLabel, eventEndLabel, isAllDayEvent, eventKindLabel, eventRowTimeLabel, withSavedSuffix,
   type EventDaySegment,
 } from '@/lib/calendar-utils';
 import { sanitizeEventDescription } from '@/lib/event-description';
@@ -22,13 +22,19 @@ import { withAlpha } from '@/lib/hex-color';
 // Memoized: grid views mount hundreds of these and the module re-renders
 // every minute on the timezone clock tick with the same event object refs,
 // so the shallow compare skips re-parsing/re-formatting every pill per tick.
-export const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, titleOnly, accentColor, eventStyle, t, locale, segment, countdown, progress, dimmed, live }: {
+export const EventCard = memo(function EventCard({ event, textColor: _textColor, showTime, showLocation, showDescription, compact, dayMs, titleOnly, accentColor, eventStyle, t, locale, segment, countdown, progress, dimmed, live }: {
   event: CalendarEvent;
   textColor: string;
   showTime: boolean;
   showLocation: boolean;
   showDescription?: boolean;
   compact?: boolean;
+  /**
+   * Grid pills: the start of the day cell the pill sits in, so an event that
+   * runs over midnight shows the right time for that day. A number, not a
+   * Date, so the memo holds.
+   */
+  dayMs?: number;
   /** List views: draw this all-day row as one line, title only (`allDayStyle`). */
   titleOnly?: boolean;
   accentColor: string;
@@ -55,6 +61,13 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
   if (compact) {
     const eventColor = event.calendarColor ?? accentColor;
     const glyph = eventGlyph(event);
+    // The pill's time for its own day cell (see `gridPillTimeLabel`). Called
+    // only by the branches that draw a time, so the rest never parse a date.
+    const pillTime = (format: (at: Date) => string): string | null => {
+      const start = parseEventWallTime(event.start, timezone);
+      if (dayMs == null) return format(start);
+      return gridPillTimeLabel(start, parseEventWallTime(event.end, timezone), new Date(dayMs), format, t);
+    };
     if (gridStyle === 'colored') {
       if (isAllDay) {
         return (
@@ -64,20 +77,24 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
           </div>
         );
       }
-      const start = parseEventWallTime(event.start, timezone);
+      const time = pillTime((at) => formatEventTime(at, timeFormat, locale, true));
       return (
         <div
           data-event-id={event.id}
           className="flex items-baseline gap-1 px-1 py-0.5 rounded"
           style={{ backgroundColor: pillBackground ? ink(0.10) : undefined, opacity: event.opacity }}
         >
-          <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.7em', color: eventColor }}>
-            {formatEventTime(start, timeFormat, locale, true)}
-          </span>
+          {time && (
+            <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.7em', color: eventColor }}>
+              {time}
+            </span>
+          )}
+          {glyph && <span aria-hidden="true" className="shrink-0" style={{ fontSize: '0.7em' }}><Glyph value={glyph} /></span>}
           <span className="truncate" style={{ fontSize: '0.7em', color: eventColor }}>{event.title}</span>
         </div>
       );
     }
+    const time = showTime && !isAllDay ? pillTime((at) => formatEventTimeCompact(at, timeFormat, locale)) : null;
     return (
       <div data-event-id={event.id} className="flex items-center gap-1 px-1 py-0.5 rounded truncate" style={{ backgroundColor: ink(0.10), opacity: event.opacity }}>
         {glyph ? (
@@ -85,9 +102,9 @@ export const EventCard = memo(function EventCard({ event, textColor: _textColor,
         ) : (
           <EventMarker owner={owner} color={eventColor} size={6} tagSize="1.05em" />
         )}
-        {showTime && !isAllDay && (
+        {time && (
           <span className="shrink-0 font-semibold tabular-nums" style={{ fontSize: '0.65em', opacity: TEXT_OPACITY.heading }}>
-            {formatEventTimeCompact(parseEventWallTime(event.start, timezone), timeFormat, locale)}
+            {time}
           </span>
         )}
         <span className="truncate" style={{ fontSize: '0.7em' }}>{event.title}</span>

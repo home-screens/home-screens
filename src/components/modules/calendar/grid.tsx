@@ -5,7 +5,7 @@ import { isSameDay, isSameMonth, addDays, differenceInCalendarDays } from 'date-
 import {
   parseEventWallTime, eventsForDay, weekStartsOnFor, clampWeeksToShow, clampRollingWeeks, clampGridMaxEventsPerCell,
   clampGridDayLabelScale, gridCellEvents,
-  formatEventTimeCompact, allDaySpanSegment, formatMonthRangeLabel, isAllDayEvent, isWeekendDay,
+  formatEventTimeCompact, gridPillTimeLabel, allDaySpanSegment, formatMonthRangeLabel, isAllDayEvent, isWeekendDay,
 } from '@/lib/calendar-utils';
 import { weekNumberFor } from '@/lib/week-number';
 import { viewDayWindow } from '@/lib/calendar-legend';
@@ -23,6 +23,7 @@ import { withAlpha } from '@/lib/hex-color';
 import { DayNoteLines } from '../shared/DayNoteLine';
 import { dayNotesFor, type DayNotes } from '@/lib/day-notes';
 import { EventCard } from './EventCard';
+import { GlyphPrefix } from '@/components/ui/Glyph';
 import { openDayCellProps, openDayProps, useDaySheetOpener } from '../shared/useDaySheet';
 import { LookAheadTitle, useLookAheadContext } from '../shared/LookAhead';
 
@@ -243,7 +244,7 @@ export function DayCellEvents({ date, events, maxPerCell, textColor, moduleBackg
   return (
     <div className={`flex flex-col ${gapClass} overflow-hidden`}>
       {events.slice(0, maxPerCell).map((ev) => (
-        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={showTime} showLocation={false} compact accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
+        <EventCard key={ev.id} event={ev} textColor={textColor} showTime={showTime} showLocation={false} compact dayMs={date.getTime()} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />
       ))}
       {events.length > maxPerCell && (
         <MoreCount
@@ -489,7 +490,7 @@ function GridBannerView({ events, config, style, today, now, accentColor, t, loc
  * calendar-color pill with auto-contrast text. Multi-day all-day pills
  * stitch across their span: solid rounded-left first day, hollow squared
  * continuations — the 2px grid gutters read as one interrupted bar. */
-const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleBackground, accentColor, eventStyle, locale }: {
+const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleBackground, accentColor, eventStyle, t, locale }: {
   event: CalendarEvent;
   date: Date;
   theme: Exclude<CalendarGridTheme, 'banner'>;
@@ -500,9 +501,14 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
   moduleBackground: string | undefined;
   accentColor: string;
   eventStyle: EventDisplayStyle;
+  t: TranslateFn;
   locale: string;
 }) {
   const color = event.calendarColor ?? accentColor;
+  // An event look's icon leads the title in every pill, as it does in the
+  // Banner look and the lists. Only the rule's own icon: these looks mark a
+  // birthday once, beside the day number, and holidays carry no mark.
+  const glyph = <GlyphPrefix value={event.icon} />;
 
   if (isAllDayEvent(event)) {
     const segment = allDaySpanSegment(event, date);
@@ -513,7 +519,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
           className={`px-1 py-0.5 truncate ${segment === 'middle' ? 'rounded-none' : 'rounded-r'}`}
           style={{ boxShadow: `inset 0 0 0 1.5px ${color}`, color: textColor, opacity: TEXT_OPACITY.heading }}
         >
-          <span className="truncate font-medium" style={{ fontSize: '0.7em' }}>{event.title}</span>
+          <span className="truncate font-medium" style={{ fontSize: '0.7em' }}>{glyph}{event.title}</span>
         </div>
       );
     }
@@ -523,12 +529,12 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
         className={`px-1 py-0.5 truncate ${segment === 'first' ? 'rounded-l' : 'rounded'}`}
         style={{ backgroundColor: color, color: pickPillTextColor(color) }}
       >
-        <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>
+        <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{glyph}{event.title}</span>
       </div>
     );
   }
 
-  const title = <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{event.title}</span>;
+  const title = <span className="truncate font-semibold" style={{ fontSize: '0.7em' }}>{glyph}{event.title}</span>;
 
   if (theme === 'minimal') {
     return (
@@ -542,8 +548,12 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
     );
   }
 
-  const start = parseEventWallTime(event.start, eventStyle.timezone);
-  const time = formatEventTimeCompact(start, eventStyle.timeFormat, locale);
+  // The start on the day it starts, nothing on the days between, "Until" on
+  // the day it ends.
+  const time = gridPillTimeLabel(
+    parseEventWallTime(event.start, eventStyle.timezone), parseEventWallTime(event.end, eventStyle.timezone), date,
+    (at) => formatEventTimeCompact(at, eventStyle.timeFormat, locale), t,
+  );
 
   if (theme === 'vivid') {
     return (
@@ -552,7 +562,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
         className="flex items-baseline gap-1 px-1 py-0.5 rounded"
         style={{ backgroundColor: color, color: pickPillTextColor(color) }}
       >
-        <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', opacity: 0.8 }}>{time}</span>
+        {time && <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', opacity: 0.8 }}>{time}</span>}
         {title}
       </div>
     );
@@ -565,7 +575,7 @@ const GridPill = memo(function GridPill({ event, date, theme, textColor, moduleB
       className="flex items-baseline gap-1 px-1 py-0.5 rounded"
       style={{ backgroundColor: ink(0.10), color: textColor }}
     >
-      <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', color: pickGridTimeColor(color, moduleBackground) }}>{time}</span>
+      {time && <span className="shrink-0 tabular-nums" style={{ fontSize: '0.65em', color: pickGridTimeColor(color, moduleBackground) }}>{time}</span>}
       {title}
     </div>
   );
@@ -680,7 +690,7 @@ function GridModernView({ events, config, style, today, now, accentColor, t, loc
                   <DayNoteLines notes={notes} tone="module" style={isMuted ? { ...GRID_NOTE_STYLE, opacity: TEXT_OPACITY.dim } : GRID_NOTE_STYLE} />
                   <div className="flex flex-col gap-px overflow-hidden" style={isMuted ? { opacity: TEXT_OPACITY.dim } : undefined}>
                     {shown.map((ev) => {
-                      const pill = <GridPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} locale={locale} />;
+                      const pill = <GridPill key={ev.id} event={ev} date={date} theme={theme} textColor={textColor} moduleBackground={moduleBackground} accentColor={accentColor} eventStyle={eventStyle} t={t} locale={locale} />;
                       return ev.opacity == null ? pill : <div key={ev.id} style={{ opacity: ev.opacity }}>{pill}</div>;
                     })}
                     {overflow > 0 && (
