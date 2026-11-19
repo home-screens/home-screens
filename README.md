@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/9VyEasG5w"><img src="https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white" alt="Join us on Discord"></a>
+  <a href="https://discord.gg/wu7gGB66U5"><img src="https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white" alt="Join us on Discord"></a>
 </p>
 
 # Home Screens
