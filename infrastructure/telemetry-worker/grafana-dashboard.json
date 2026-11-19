@@ -817,7 +817,7 @@
             "method": "POST",
             "body_type": "raw",
             "body_content_type": "application/json",
-            "data": "{\"sql\":\"SELECT 'Sleep schedule' AS feature, COALESCE(SUM(sleep_enabled),0) AS installs FROM beacons UNION ALL SELECT 'Weather alerts', COALESCE(SUM(alerts_enabled),0) FROM beacons UNION ALL SELECT 'Authentication', COALESCE(SUM(auth_enabled),0) FROM beacons UNION ALL SELECT 'Google Calendar', COALESCE(SUM(has_google_calendar),0) FROM beacons UNION ALL SELECT 'iCal sources', COALESCE(SUM(has_ical_sources),0) FROM beacons UNION ALL SELECT 'Plugins', COALESCE(SUM(CASE WHEN plugin_count > 0 THEN 1 ELSE 0 END),0) FROM beacons UNION ALL SELECT 'Multi-display', COALESCE(SUM(CASE WHEN display_count > 0 THEN 1 ELSE 0 END),0) FROM beacons ORDER BY installs DESC\"}"
+            "data": "{\"sql\":\"SELECT je.key AS feature, je.value AS installs FROM (SELECT json_object('Sleep schedule', COALESCE(SUM(sleep_enabled),0), 'Weather alerts', COALESCE(SUM(alerts_enabled),0), 'Authentication', COALESCE(SUM(auth_enabled),0), 'Google Calendar', COALESCE(SUM(has_google_calendar),0), 'iCal sources', COALESCE(SUM(has_ical_sources),0), 'Plugins', COALESCE(SUM(CASE WHEN plugin_count > 0 THEN 1 ELSE 0 END),0), 'Multi-display', COALESCE(SUM(CASE WHEN display_count > 0 THEN 1 ELSE 0 END),0)) AS j FROM beacons) AS t, json_each(t.j) AS je ORDER BY installs DESC\"}"
           },
           "root_selector": "result[0].results",
           "columns": [
