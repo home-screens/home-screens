@@ -48,7 +48,9 @@
     "daysAgoPlural": "You haven't backed up in {n} days.",
     "backupButton": "Backup",
     "savingButton": "Saving…",
-    "dismissAriaLabel": "Dismiss"
+    "dismissAriaLabel": "Dismiss",
+    "autoFailed": "The automatic backup did not work. Open Settings on a computer to see why.",
+    "autoNotSent": "Your backup was saved but could not be sent to your storage folder. Open Settings on a computer to see why."
   },
   "updateAvailable": {
     "message": "Update available: v{version}",

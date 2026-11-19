@@ -999,6 +999,8 @@ A restore body is capped at 100 MB, room for a full icon library. The config ins
 
 **POST response:** `{ "restored": { "config": true, "chores": true, "choreCompletions": true, "meals": false, "rewards": false } }`, one flag per section, including `family` and `customIcons`, `true` for the ones the bundle actually contained. `missingIcons` counts the icons the restored data points at that this hub does not have, which happens only when the bundle was made without its icons. A modern bundle replaces the roster when `family` is present. Older bundles without it retain the current roster and fold legacy chore and calendar identities into it by ID first. When the bundle carried credentials, a `credentials: { applied: [...], skipped: [...] }` object is included too, `applied` naming the sections written, `skipped` naming anything deliberately held back (for example `auth.ipRestrictAccess`, when restoring it would lock the requesting device out). A body that is neither a backup bundle nor a bare configuration returns `400 { "error": "Unrecognized backup format" }`.
 
+To restore a backup the hub saved by itself, post `{ "_auto": "<name>" }` instead of a bundle, with a name from `GET /api/backup/auto`. A JSON copy and a zip copy (pictures included) restore exactly as an uploaded one does, and the copy is never removed afterwards. Add `"_useSavedPassword": true` to unlock its keys with the backup password saved on the hub, which never leaves it; `"_passphrase"` and `"_withoutKeys": true` work as they do for a bundle. A name that is not an automatic backup's returns `400` and touches nothing.
+
 ### POST /api/backup/credentials
 
 Builds the optional credential section of a backup bundle: `data/secrets.json`, iCloud app passwords, the Google Calendar / Google Photos / OneDrive grants, per-plugin secrets and OAuth tokens, and `data/auth.json`. The response is `Cache-Control: no-store`.
@@ -1011,11 +1013,18 @@ Builds the optional credential section of a backup bundle: `data/secrets.json`, 
 
 ### GET /api/backup/reminder
 
-Returns when you last took a backup and when you last dismissed the reminder about it, which is how the editor decides whether to nudge you. Display access.
+Returns when you last took a backup and when you last dismissed the reminder about it, which is how the editor decides whether to nudge you, plus how automatic backups are doing. Display access.
 
-**Response:** `{ "lastBackupDate": "2026-03-08T12:00:00.000Z", "lastDismissedDate": null }`
+**Response:**
+```json
+{
+  "lastBackupDate": "2026-03-08T12:00:00.000Z",
+  "lastDismissedDate": null,
+  "auto": { "enabled": true, "failed": null, "failedAt": null, "offsiteAt": "2026-03-08T09:00:04.000Z" }
+}
+```
 
-Both fields are `null` until the corresponding thing has happened.
+The two dates are `null` until the corresponding thing has happened. `auto.failed` is `"backup"` when the last automatic backup did not work, `"offsite"` when it was saved but could not be sent to the storage folder, and `null` otherwise; `failedAt` is when. `offsiteAt` is the last time a copy left the hub, sent to the storage folder or fetched through the download link. A copy that never leaves the hub does not count as a backup for the reminder.
 
 ### POST /api/backup/reminder
 
@@ -1024,6 +1033,44 @@ Updates that state. Display access.
 **Body:** `{ "action": "dismiss" }` to put the reminder off, or `{ "action": "backed-up" }` to record that a backup was taken (which also clears the dismissal). Any other `action` returns `400 { "error": "Invalid action" }`.
 
 **Response:** the updated state, the same shape the `GET` returns.
+
+### GET/POST /api/backup/auto
+
+Automatic backups (the `settings.autoBackup` setting decides when they run). Session required.
+
+GET answers the status: `lastOkAt`, `lastAttemptAt` and `lastError` (`"no-room"` or `"failed"`), `keysLeftOut` (`"no-backup-password"` or `"no-editor-password"`), `picturesLeftOut` (`{ "neededBytes": …, "freeBytes": … }`), `offsite` (`lastOkAt`, `lastAttemptAt`, `lastError`, `pending`), `lastPulledAt`, `nextRun` (`{ "date": "2026-11-17", "time": "03:00" }` on the household's clock, `null` when off), `copies` (newest first: `name`, `bytes`, `savedAt`, `withKeys`, `withPictures`), and what is set up: `hasBackupPassword`, `destination` (`{ "kind": "webdav", "url": …, "username": … }` or `{ "kind": "smb", "host": …, "port"?: …, "share": …, "folder": …, "username": …, "domain"?: … }`), `hasLink`, `editorPasswordSet`. No password or link secret is ever in it.
+
+POST saves one now and answers the same status once it has finished. A run already in flight, or an update being installed, returns `409` with `code` `"busy"` or `"updating"`. A run that fails is still a `200`; the status says why.
+
+Copies are named `home-screens-auto-backup-<date>-<time>.json` (`.zip` with pictures, `with-keys-` before the date when they carry keys) and kept in `data/auto-backups/`. Keys in a copy are always locked with the saved backup password.
+
+### PUT /api/backup/auto/secrets
+
+Sets what automatic backups keep secret. Session required; the values are never sent back.
+
+**Body:** any of `{ "backupPassword": "…" }` (at least 8 characters, and only once an editor password is set, otherwise `403 { "code": "editor_password_required" }`), `{ "backupPassword": null }` to forget it, `{ "destination": { "kind": "webdav", "url": "https://…/Backups/", "username": "…", "password": "…" } }` or `{ "destination": { "kind": "smb", "address": "\\\\nas.local\\Backups\\home-screens", "username": "…", "password": "…" } }` for the storage folder, or `{ "destination": null }` to stop sending. An empty `password` keeps the saved one, but only for the same kind on the same server (the same origin for WebDAV, the same host and port for a share). A WebDAV address must be `http` or `https`; a share address may be `\\server\share\folder` or `smb://server[:port]/share/folder`. Neither may carry a name or password. A share's `username` may be `DOMAIN\name` (a JSON string writes it `"DOMAIN\\name"`). A refused body answers `400` with a `code`: `url_invalid`, `url_scheme`, `url_credentials`, `address_invalid`, `address_no_share`, `address_credentials`, `address_bad_character`, `kind_invalid`, `username_required`, `password_required` or `password_too_long`.
+
+**Response:** `{ "hasBackupPassword": true, "destination": { "url": "…", "username": "…" } }`
+
+### POST /api/backup/auto/test
+
+"Check it works": saves `home-screens-test.txt` in the storage folder and removes it again. Session required. With a body in the same shape as `destination` above (the form before it is saved) it checks those values; with `{}` it checks the saved folder. Answers `{ "ok": true }` or `{ "ok": false, "code": "…" }`, where `code` is `sign-in`, `not-found`, `no-room`, `too-big`, `unreachable`, `timeout`, `redirect`, `certificate` or `refused`, and for a network share also `share-not-found` (with `shares`, the names the storage offers, when it would list them), `no-write` or `too-old`. The same codes describe a failed upload in the status.
+
+### GET/POST/DELETE /api/backup/auto/link
+
+The private download link. Session required. GET answers `{ "token": "…" }` (`404` when there is no link), POST makes a new one (the old one stops working) and answers its token, DELETE removes it.
+
+### GET/DELETE /api/backup/auto/files/[name]
+
+One copy kept on the hub. Session required. GET downloads it; `?summary=1` answers what it holds instead (`hasCredentials`, `credentialsEncrypted`, `hasCustomIcons`, `usesCustomIcons`, `pictures: { count, bytes, skipped }`). DELETE removes it from the hub. Any name that is not an automatic backup's is a `404`.
+
+### GET /api/backup/latest
+
+The newest automatic backup, for a NAS task or home server. **No session**: the link's secret is the proof, sent as `Authorization: Bearer <token>` or `?token=<token>`. No link, a wrong secret and no backup yet all return `404`; ten wrong tries from one address within 15 minutes return `429` for the rest of that time. It only serves a copy that already exists and never makes one. The IP allowlist still applies.
+
+```bash
+curl -fsS -H "Authorization: Bearer YOUR-LINK-SECRET" -OJ http://home-screens.local:3000/api/backup/latest
+```
 
 ### GET /api/system/backups
 

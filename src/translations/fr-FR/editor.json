@@ -803,7 +803,7 @@
         "noBackups": "Aucune sauvegarde enregistrée pour l'instant"
       },
       "configBackups": {
-        "heading": "Instantanés automatiques",
+        "heading": "Instantanés avant mise à jour",
         "description": "Home Screens enregistre un instantané de vos réglages avant chaque mise à jour, pour pouvoir annuler une mise à jour ratée. Rien à configurer.",
         "empty": "Aucune sauvegarde pour l'instant. Les sauvegardes sont créées automatiquement avant chaque mise à niveau.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "Ce mot de passe ne peut pas être récupéré. Sans lui, les clés de ce fichier sont illisibles.",
         "skipButton": "Restaurer sans mes clés",
         "continueButton": "Sauvegarder",
-        "unlockButton": "Déverrouiller"
+        "unlockButton": "Déverrouiller",
+        "saveDescription": "Ce mot de passe verrouille les clés et les comptes de chaque sauvegarde automatique. Il vous faudra le saisir pour les remettre en place.",
+        "saveButton": "Enregistrer",
+        "enterSavedDescription": "Les clés et les comptes qu'elle contient sont verrouillés par un mot de passe de sauvegarde.",
+        "useSaved": "Utiliser le mot de passe de sauvegarde enregistré",
+        "orTypeOne": "Ou saisissez-en un autre"
       },
       "restore": {
         "completeTitle": "Restauration terminée",
@@ -854,13 +859,201 @@
         "wrongPassword": "Ce mot de passe n'a pas fonctionné. Réessayez, ou restaurez sans vos clés.",
         "damagedKeys": "Les clés de ce fichier sont endommagées et illisibles. Vous pouvez tout de même restaurer le reste.",
         "reloadFailed": "Votre sauvegarde a été restaurée, mais l'éditeur n'a pas pu se recharger. Actualisez la page pour la voir.",
-        "finished": "Restauration terminée. Tout ce que contenait cette sauvegarde est de retour."
+        "finished": "Restauration terminée. Tout ce que contenait cette sauvegarde est de retour.",
+        "savedPasswordWrong": "Le mot de passe de sauvegarde enregistré n'ouvre pas cette sauvegarde. Saisissez celui avec lequel elle a été créée."
       },
       "description": "Sauvegardez tout, restaurez une sauvegarde ou repartez d'un modèle.",
       "restoreConfirm": {
         "title": "Restaurer depuis un fichier ?",
         "message": "Cela remplace tous vos réglages, écrans, tâches et menus par ce que contient le fichier. Tout ce que vous avez modifié depuis la création de ce fichier sera perdu. L'opération est irréversible : enregistrez d'abord une sauvegarde si vous voulez pouvoir revenir à la configuration d'aujourd'hui.",
         "confirm": "Choisir un fichier…"
+      },
+      "autoBackup": {
+        "heading": "Sauvegardes automatiques",
+        "description": "Home Screens peut faire ses sauvegardes tout seul et garder les plus récentes sur ce hub. Vous pouvez aussi envoyer chacune ailleurs, pour qu'elle reste à l'abri si ce hub tombe en panne.",
+        "toggleLabel": "Sauvegarder automatiquement",
+        "everyLabel": "Fréquence",
+        "every": {
+          "day": "Tous les jours",
+          "week": "Toutes les semaines",
+          "month": "Tous les mois"
+        },
+        "timeLabel": "Heure",
+        "timeHelp": "Choisissez une heure où personne ne se sert de Home Screens.",
+        "keepLabel": "Garder jusqu'à",
+        "keepUnit": {
+          "one": "sauvegarde",
+          "other": "sauvegardes"
+        },
+        "keepHelp": "Les plus anciennes sont supprimées pour faire de la place.",
+        "picturesHelp": "Les photos alourdissent beaucoup chaque sauvegarde. Une fois par semaine suffit pour la plupart des foyers.",
+        "keys": {
+          "label": "Inclure mes clés et mes comptes connectés",
+          "help": "Ils sont toujours verrouillés par un mot de passe de sauvegarde, car ces sauvegardes peuvent quitter la maison.",
+          "needsEditorPassword": "Nécessite d'abord un mot de passe, pour que le fichier ne soit pas lisible par n'importe qui.",
+          "setEditorPassword": "Choisir un mot de passe pour l'éditeur dans Sécurité",
+          "passwordSaved": "Mot de passe de sauvegarde enregistré",
+          "change": "Modifier",
+          "passwordNote": "Ce mot de passe est nécessaire pour remettre vos clés en place. Notez-le dans un endroit sûr.",
+          "passwordMissing": "Choisissez un mot de passe de sauvegarde pour inclure vos clés. En attendant, les sauvegardes se font sans elles.",
+          "choosePassword": "Choisir un mot de passe"
+        },
+        "when": {
+          "today": "aujourd'hui à {time}",
+          "yesterday": "hier à {time}",
+          "tomorrow": "demain à {time}",
+          "day": "{day} à {time}"
+        },
+        "lastLabel": "Dernière sauvegarde :",
+        "lastGoodLabel": "Dernière sauvegarde réussie :",
+        "nextLabel": "Prochaine sauvegarde :",
+        "nextTryLabel": "Prochain essai :",
+        "last": {
+          "sent": "{when}, envoyée dans votre dossier de stockage",
+          "failed": "{when}, sans succès. {reason}",
+          "noPictures": "{when}, sans vos photos. Il leur faut {needed}, mais il ne reste que {free} sur ce hub.",
+          "noKeys": "{when}, sans vos clés."
+        },
+        "errors": {
+          "no-room": "Il n'y a pas assez de place sur ce hub.",
+          "failed": "Un problème est survenu pendant l'enregistrement."
+        },
+        "onlyHere": "Ces sauvegardes ne sont que sur ce hub. Envoyez-en une copie ailleurs pour les mettre à l'abri.",
+        "backUpNow": "Sauvegarder maintenant",
+        "backingUp": "Sauvegarde en cours…",
+        "runRefused": {
+          "busy": "Une sauvegarde est déjà en cours. Réessayez dans un instant.",
+          "updating": "Une mise à jour est en cours d'installation. Réessayez quand elle sera terminée.",
+          "failed": "Impossible de joindre le hub pour lancer une sauvegarde."
+        },
+        "loadFailed": "Impossible de charger vos sauvegardes automatiques. Rechargez la page pour réessayer.",
+        "saveFailed": "Impossible d'enregistrer. Réessayez.",
+        "offsite": {
+          "heading": "Envoyer une copie ailleurs",
+          "description": "Une sauvegarde qui reste sur ce hub est perdue si sa carte mémoire tombe en panne. Envoyez aussi chaque sauvegarde ailleurs."
+        },
+        "folder": {
+          "name": "Dossier de stockage",
+          "description": "Home Screens envoie chaque sauvegarde dans un dossier de votre propre espace de stockage : un dossier partagé sur un NAS ou un ordinateur, ou bien Nextcloud ou un autre espace de stockage WebDAV.",
+          "setUp": "Configurer",
+          "change": "Modifier",
+          "check": "Tester",
+          "checking": "Test en cours…",
+          "sendingTo": "Envoi vers {host} en tant que {user}",
+          "sendingToShare": "Envoi vers le partage « {share} » sur {host} en tant que {user}",
+          "lastSent": "dernier envoi : {when}",
+          "notSentYet": "aucun envoi pour l'instant",
+          "failing": "La dernière sauvegarde n'a pas pu être envoyée.",
+          "lastSentRetry": "Dernier envoi : {when}. Home Screens réessaie toutes les heures.",
+          "retry": "Home Screens réessaie toutes les heures.",
+          "kindLegend": "Comment votre espace de stockage partage-t-il ses fichiers ?",
+          "kindShare": "Partage réseau",
+          "kindShareHelp": "Un dossier partagé sur un NAS, un PC Windows ou un Mac. On parle aussi de SMB.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud, ou un NAS Synology ou QNAP sur lequel WebDAV est activé.",
+          "address": "Adresse du dossier",
+          "addressHelp": "C'est l'adresse WebDAV indiquée par votre espace de stockage. Le dossier doit déjà exister.",
+          "shareAddress": "Adresse du partage",
+          "shareAddressHelp": "Saisissez-la comme votre ordinateur l'affiche, par exemple \\\\nas.local\\Backups ou smb://nas.local/Backups. Vous pouvez ajouter un dossier après le partage : Home Screens le crée s'il n'existe pas.",
+          "username": "Identifiant",
+          "password": "Mot de passe",
+          "passwordKeep": "Laissez vide pour ne pas le changer",
+          "passwordNewServer": "Saisissez le mot de passe de {host}. Un mot de passe enregistré n'est envoyé qu'au serveur pour lequel il a été saisi.",
+          "save": "Enregistrer",
+          "cancel": "Annuler",
+          "remove": "Ne plus envoyer ici",
+          "works": "Ça marche. Un fichier de test a été enregistré dans le dossier, puis supprimé.",
+          "worksShare": "Ça marche. Un fichier de test a été enregistré dans le partage, puis supprimé.",
+          "sharesOffered": "Il n'y a pas de partage nommé « {share} » sur {host}. Voici les partages disponibles :",
+          "httpWarning": "Cette adresse commence par http : votre mot de passe pourrait être lu en chemin. Utilisez une adresse en https si votre espace de stockage le permet.",
+          "outsideHomeWarning": "Ce serveur n'est pas chez vous. Les partages réseau ne sont pas prévus pour passer par Internet, et la plupart des fournisseurs d'accès les bloquent. Utilisez plutôt WebDAV avec une adresse en https.",
+          "formErrors": {
+            "url_invalid": "Cette adresse de dossier n'est pas une adresse web.",
+            "url_scheme": "L'adresse du dossier doit commencer par http:// ou https://.",
+            "url_credentials": "Saisissez l'identifiant et le mot de passe dans leurs propres cases, pas dans l'adresse.",
+            "address_invalid": "Ce n'est pas une adresse de partage. Saisissez-la sous la forme \\\\nas.local\\Backups.",
+            "address_no_share": "Ajoutez le nom du partage après le serveur, par exemple \\\\nas.local\\Backups.",
+            "address_credentials": "Saisissez l'identifiant et le mot de passe dans leurs propres cases, pas dans l'adresse.",
+            "address_bad_character": "L'adresse contient un caractère qui n'est pas accepté dans le nom d'un dossier partagé.",
+            "kind_invalid": "Choisissez « Partage réseau » ou « WebDAV ».",
+            "username_required": "Saisissez l'identifiant avec lequel vous vous connectez à votre espace de stockage.",
+            "password_required": "Saisissez le mot de passe avec lequel vous vous connectez à votre espace de stockage.",
+            "password_too_long": "Ce mot de passe est trop long.",
+            "not_set_up": "Configurez d'abord un dossier de stockage.",
+            "failed": "Impossible d'enregistrer. Réessayez."
+          },
+          "removeConfirm": {
+            "title": "Ne plus envoyer les sauvegardes ici ?",
+            "message": "Les sauvegardes déjà dans le dossier y restent. Home Screens n'en enverra plus de nouvelles.",
+            "confirm": "Ne plus envoyer"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "L'identifiant ou le mot de passe a été refusé.",
+          "not-found": "Ce dossier est introuvable.",
+          "no-room": "L'espace de stockage est plein.",
+          "too-big": "L'espace de stockage n'accepte pas un fichier aussi gros.",
+          "unreachable": "Home Screens n'a pas pu joindre l'espace de stockage.",
+          "timeout": "L'espace de stockage a mis trop de temps à répondre.",
+          "redirect": "L'espace de stockage a renvoyé Home Screens vers une autre adresse. Indiquez directement l'adresse finale.",
+          "certificate": "Le certificat de sécurité de l'espace de stockage n'a pas pu être vérifié. Chez vous, utilisez plutôt son adresse http, ou installez-lui un certificat valide.",
+          "refused": "L'espace de stockage n'a pas accepté la sauvegarde.",
+          "share-not-found": "Il n'y a pas de partage nommé « {share} » sur {host}.",
+          "no-write": "Le compte {user} ne peut pas enregistrer de fichiers dans le partage « {share} ». Dans les réglages de votre espace de stockage, permettez à {user} d'y modifier des fichiers.",
+          "too-old": "Cet espace de stockage ne propose qu'un ancien type de partage. Activez SMB 2 ou une version plus récente dans ses réglages."
+        },
+        "link": {
+          "name": "Lien de téléchargement privé",
+          "description": "Une adresse web secrète qu'un autre ordinateur peut utiliser pour récupérer la sauvegarde la plus récente. Pratique si un appareil de la maison vient chercher vos sauvegardes à ses propres heures.",
+          "make": "Créer un lien",
+          "show": "Afficher le lien",
+          "hide": "Masquer le lien",
+          "lastFetched": "Dernière récupération : {when}",
+          "notFetched": "Aucune récupération pour l'instant",
+          "copy": "Copier",
+          "copied": "Copié",
+          "warning": "Toute personne qui a ce lien peut télécharger votre dernière sauvegarde : gardez-le pour vous. Il ne fonctionne que depuis chez vous, sauf si vous avez rendu votre hub accessible depuis l'extérieur.",
+          "makeNew": "Créer un nouveau lien",
+          "remove": "Supprimer le lien",
+          "newConfirm": {
+            "title": "Créer un nouveau lien ?",
+            "message": "L'ancien lien cesse de fonctionner tout de suite. Tout ce qui récupère vos sauvegardes aura besoin du nouveau.",
+            "confirm": "Créer un nouveau lien"
+          },
+          "removeConfirm": {
+            "title": "Supprimer le lien ?",
+            "message": "Tout ce qui s'en sert pour récupérer vos sauvegardes ne fonctionnera plus.",
+            "confirm": "Supprimer le lien"
+          }
+        },
+        "copies": {
+          "heading": "Sauvegardes sur ce hub",
+          "empty": "Aucune sauvegarde pour l'instant.",
+          "emptyNext": "Aucune sauvegarde pour l'instant. La première sera enregistrée {when}.",
+          "keys": "Clés",
+          "pictures": "Photos",
+          "download": "Télécharger",
+          "restore": "Restaurer",
+          "remove": "Supprimer",
+          "showAll": "Afficher les {count}",
+          "showFewer": "Afficher moins",
+          "gone": "Cette sauvegarde n'est plus sur le hub.",
+          "restoreConfirm": {
+            "title": "Restaurer cette sauvegarde ?",
+            "saved": "Enregistrée le {when}.",
+            "message": "Cela remplace tous vos réglages, écrans, tâches et menus par ce que contient la sauvegarde. Tout ce que vous avez modifié depuis sera perdu.",
+            "pictures": {
+              "one": "Remet en place {count} photo ({size}).",
+              "other": "Remet en place {count} photos et vidéos ({size})."
+            },
+            "confirm": "Restaurer"
+          },
+          "removeConfirm": {
+            "title": "Supprimer cette sauvegarde ?",
+            "message": "Enregistrée le {when}. Elle sera effacée de ce hub. Les copies déjà envoyées ailleurs restent où elles sont.",
+            "confirm": "Supprimer"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Téléchargement…",
     "backupNow": "Sauvegarder maintenant",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "autoFailed": "La sauvegarde automatique n'a pas fonctionné.",
+    "autoNotSent": "Votre sauvegarde a été enregistrée, mais n'a pas pu être envoyée dans votre dossier de stockage.",
+    "autoOnlyHere": "Vos sauvegardes ne sont que sur ce hub. Envoyez-en une copie ailleurs.",
+    "seeWhy": "Voir pourquoi",
+    "setItUp": "Configurer"
   },
   "updateAvailable": {
     "message": "Mise à jour disponible : v{version}",

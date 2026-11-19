@@ -22,6 +22,8 @@ const NOT_IN_A_BACKUP: Record<string, string> = {
   'data/backup-state.json': 'when this device last made a backup',
   'data/auto-update-state.json': 'this device\'s update bookkeeping',
   'data/auto-update-setting.json': 'this device\'s update bookkeeping',
+  'data/auto-backup-state.json': 'this device\'s automatic backup bookkeeping',
+  'data/auto-backup-secrets.json': 'the credentials section (its backup password and storage folder; the download link stays with the hub)',
   'data/update-notification-state.json': 'this device\'s update bookkeeping',
   'data/telemetry.json': 'this device\'s anonymous id',
   'data/family-transaction.json': 'the write journal',

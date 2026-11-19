@@ -45,6 +45,7 @@ export async function launchServer(
     NODE_ENV: 'production',
     HS_TRUSTED_PROXIES: '127.0.0.1',
     HS_DISABLE_AUTO_UPDATE: '1',
+    HS_DISABLE_AUTO_BACKUP: '1',
     HS_DISABLE_TELEMETRY: '1',
     ...env,
   };

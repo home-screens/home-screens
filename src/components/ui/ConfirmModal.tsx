@@ -92,7 +92,8 @@ function ConfirmDialog() {
           </div>
         )}
         <div className="px-5 py-4">
-          <p className="text-sm text-hs-text-secondary leading-relaxed">{options.message}</p>
+          {/* Callers separate paragraphs with blank lines (a restore's notices, a refusal and its reason). */}
+          <p className="text-sm text-hs-text-secondary leading-relaxed whitespace-pre-line">{options.message}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2 px-5 pb-4">
           {choices ? (

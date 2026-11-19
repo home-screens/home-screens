@@ -48,7 +48,9 @@
     "daysAgoPlural": "Du har ikke foretaget i {n} dage.",
     "backupButton": "Sikkerhedskopi",
     "savingButton": "Gemmer…",
-    "dismissAriaLabel": "Afvis"
+    "dismissAriaLabel": "Afvis",
+    "autoFailed": "Den automatiske sikkerhedskopi mislykkedes. Åbn Indstillinger på en computer for at se hvorfor.",
+    "autoNotSent": "Din sikkerhedskopi blev gemt, men kunne ikke sendes til din netværksmappe. Åbn Indstillinger på en computer for at se hvorfor."
   },
   "updateAvailable": {
     "message": "Opdatering tilgængelig: v{version}",

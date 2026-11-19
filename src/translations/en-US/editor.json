@@ -803,7 +803,7 @@
         "noBackups": "No backups recorded yet"
       },
       "configBackups": {
-        "heading": "Automatic snapshots",
+        "heading": "Snapshots before updates",
         "description": "Home Screens saves a snapshot of your settings before every update, so a bad update can be undone. Nothing to set up.",
         "empty": "No backups yet. Backups are created automatically before each upgrade.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "There is no way to recover this password. Without it, the keys in this file cannot be read.",
         "skipButton": "Restore without my keys",
         "continueButton": "Back up",
-        "unlockButton": "Unlock"
+        "unlockButton": "Unlock",
+        "saveDescription": "This password locks the keys and accounts inside every automatic backup. You will need it to put them back.",
+        "saveButton": "Save",
+        "enterSavedDescription": "Your keys and accounts inside it are locked with a backup password.",
+        "useSaved": "Use the saved backup password",
+        "orTypeOne": "Or type a different one"
       },
       "restore": {
         "completeTitle": "Restore finished",
@@ -854,13 +859,201 @@
         "wrongPassword": "That password did not work. Try again, or restore without your keys.",
         "damagedKeys": "The keys in this file are damaged and cannot be read. You can still restore everything else.",
         "reloadFailed": "Your backup was restored, but the editor could not reload. Refresh the page to see it.",
-        "finished": "Restore finished. Everything from that backup is back."
+        "finished": "Restore finished. Everything from that backup is back.",
+        "savedPasswordWrong": "The saved backup password does not open this backup. Type the password it was made with."
       },
       "description": "Save a copy of everything, put it back, or start from a template.",
       "restoreConfirm": {
         "title": "Restore from a file?",
         "message": "This replaces all of your settings, screens, chores and meal plans with what is in the file. Anything you have changed since that file was made is gone. This cannot be undone, so save a backup first if you might want today's setup back.",
         "confirm": "Choose a file…"
+      },
+      "autoBackup": {
+        "heading": "Automatic backups",
+        "description": "Home Screens can save a backup by itself and keep the newest ones on this hub. You can also send each one somewhere else, so it is safe if this hub breaks.",
+        "toggleLabel": "Back up by itself",
+        "everyLabel": "How often",
+        "every": {
+          "day": "Every day",
+          "week": "Every week",
+          "month": "Every month"
+        },
+        "timeLabel": "Time",
+        "timeHelp": "Pick a time when nobody is using the screens.",
+        "keepLabel": "Keep the last",
+        "keepUnit": {
+          "one": "backup",
+          "other": "backups"
+        },
+        "keepHelp": "Older backups are removed to make room.",
+        "picturesHelp": "Pictures make every backup much bigger. Once a week is plenty for most homes.",
+        "keys": {
+          "label": "Include my keys and connected accounts",
+          "help": "Always locked with a backup password, because these backups can leave your home.",
+          "needsEditorPassword": "Needs a password first, so the file isn't readable by anyone who finds it.",
+          "setEditorPassword": "Set an editor password in Security",
+          "passwordSaved": "Backup password saved",
+          "change": "Change",
+          "passwordNote": "You need this password to put your keys back. Write it down somewhere safe.",
+          "passwordMissing": "Choose a backup password to include your keys. Until you do, backups are saved without them.",
+          "choosePassword": "Choose a password"
+        },
+        "when": {
+          "today": "today at {time}",
+          "yesterday": "yesterday at {time}",
+          "tomorrow": "tomorrow at {time}",
+          "day": "{day} at {time}"
+        },
+        "lastLabel": "Last backup:",
+        "lastGoodLabel": "Last good backup:",
+        "nextLabel": "Next backup:",
+        "nextTryLabel": "Next try:",
+        "last": {
+          "sent": "{when}, sent to your storage folder",
+          "failed": "did not work {when}. {reason}",
+          "noPictures": "{when}, without your pictures. They need {needed} and this hub has {free} free.",
+          "noKeys": "{when}, without your keys."
+        },
+        "errors": {
+          "no-room": "There is not enough room on this hub.",
+          "failed": "Something went wrong while saving it."
+        },
+        "onlyHere": "These backups are only on this hub. Send a copy somewhere else to keep them safe.",
+        "backUpNow": "Back up now",
+        "backingUp": "Backing up…",
+        "runRefused": {
+          "busy": "A backup is being saved right now. Try again in a moment.",
+          "updating": "An update is being installed. Try again when it has finished.",
+          "failed": "Could not reach the hub to start a backup."
+        },
+        "loadFailed": "Could not load your automatic backups. Reload the page to try again.",
+        "saveFailed": "Could not save. Try again.",
+        "offsite": {
+          "heading": "Send a copy somewhere else",
+          "description": "A backup kept on this hub is lost if the hub's memory card fails. Send each one somewhere else as well."
+        },
+        "folder": {
+          "name": "Storage folder",
+          "description": "Home Screens sends each backup to a folder on your own storage: a shared folder on a NAS or a computer, or Nextcloud and other WebDAV storage.",
+          "setUp": "Set up",
+          "change": "Change",
+          "check": "Check it works",
+          "checking": "Checking…",
+          "sendingTo": "Sending to {host} as {user}",
+          "sendingToShare": "Sending to the {share} share on {host} as {user}",
+          "lastSent": "last sent {when}",
+          "notSentYet": "nothing sent yet",
+          "failing": "The last backup could not be sent.",
+          "lastSentRetry": "Last sent {when}. Home Screens tries again every hour.",
+          "retry": "Home Screens tries again every hour.",
+          "kindLegend": "How does your storage share files?",
+          "kindShare": "Network share",
+          "kindShareHelp": "A shared folder on a NAS, a Windows PC or a Mac. Also called SMB.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud, or a Synology or QNAP with WebDAV turned on.",
+          "address": "Folder address",
+          "addressHelp": "Your storage shows this as its WebDAV address. The folder must already be there.",
+          "shareAddress": "Share address",
+          "shareAddressHelp": "Type it the way your computer shows it, such as \\\\nas.local\\Backups or smb://nas.local/Backups. You can put a folder at the end, and Home Screens makes it if it is not there.",
+          "username": "Name",
+          "password": "Password",
+          "passwordKeep": "Leave empty to keep the saved one",
+          "passwordNewServer": "Type the password for {host}. A saved password is only ever sent to the server it was typed for.",
+          "save": "Save",
+          "cancel": "Cancel",
+          "remove": "Stop sending here",
+          "works": "It works. A test file was saved to the folder and removed again.",
+          "worksShare": "It works. A test file was saved in the share and removed again.",
+          "sharesOffered": "There is no share called {share} on {host}. Its shares are:",
+          "httpWarning": "This address starts with http, so your password could be read on the way. Use one that starts with https if your storage has it.",
+          "outsideHomeWarning": "This server is outside your home. Network shares are not made to be reached over the internet, and most internet providers block them. Use WebDAV with an https address instead.",
+          "formErrors": {
+            "url_invalid": "That folder address is not a web address.",
+            "url_scheme": "The folder address must start with http:// or https://.",
+            "url_credentials": "Put the name and password in their own boxes, not in the address.",
+            "address_invalid": "That is not a share address. It should look like \\\\nas.local\\Backups.",
+            "address_no_share": "Add the share's name after the server, such as \\\\nas.local\\Backups.",
+            "address_credentials": "Put the name and password in their own boxes, not in the address.",
+            "address_bad_character": "The address has a character that is not allowed in the name of a shared folder.",
+            "kind_invalid": "Choose a network share or WebDAV.",
+            "username_required": "Type the name you sign in to your storage with.",
+            "password_required": "Type the password you sign in to your storage with.",
+            "password_too_long": "That password is too long.",
+            "not_set_up": "Set up a storage folder first.",
+            "failed": "Could not save. Try again."
+          },
+          "removeConfirm": {
+            "title": "Stop sending backups here?",
+            "message": "Backups already in the folder stay there. Home Screens stops sending new ones.",
+            "confirm": "Stop sending"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "The name or password was not accepted.",
+          "not-found": "That folder was not found.",
+          "no-room": "The storage is out of room.",
+          "too-big": "The storage would not take a file this big.",
+          "unreachable": "Home Screens could not reach the storage.",
+          "timeout": "The storage took too long to answer.",
+          "redirect": "The storage sent Home Screens to a different address. Use the final address.",
+          "certificate": "The storage's security certificate could not be checked. Use its http address inside your home, or give it a proper certificate.",
+          "refused": "The storage did not take the backup.",
+          "share-not-found": "There is no share called {share} on {host}.",
+          "no-write": "Home Screens cannot save files in the {share} share as {user}. On your storage, let {user} change files in it.",
+          "too-old": "This storage only offers an old kind of sharing. Turn on SMB 2 or newer in its settings."
+        },
+        "link": {
+          "name": "Private download link",
+          "description": "A secret web address another computer can use to fetch the newest backup. Good for a home server that runs its own schedule.",
+          "make": "Make a link",
+          "show": "Show link",
+          "hide": "Hide link",
+          "lastFetched": "Last fetched {when}",
+          "notFetched": "Not fetched yet",
+          "copy": "Copy",
+          "copied": "Copied",
+          "warning": "Anyone with this link can download your newest backup, so keep it private. It only works from inside your home unless you have opened your hub to the outside.",
+          "makeNew": "Make a new link",
+          "remove": "Remove link",
+          "newConfirm": {
+            "title": "Make a new link?",
+            "message": "The old link stops working straight away. Anything that fetches your backups needs the new one.",
+            "confirm": "Make a new link"
+          },
+          "removeConfirm": {
+            "title": "Remove the link?",
+            "message": "Anything that fetches your backups with it stops working.",
+            "confirm": "Remove link"
+          }
+        },
+        "copies": {
+          "heading": "Backups on this hub",
+          "empty": "No backups yet.",
+          "emptyNext": "No backups yet. The first one is saved {when}.",
+          "keys": "Keys",
+          "pictures": "Pictures",
+          "download": "Download",
+          "restore": "Restore",
+          "remove": "Remove",
+          "showAll": "Show all {count}",
+          "showFewer": "Show fewer",
+          "gone": "That backup is no longer on the hub.",
+          "restoreConfirm": {
+            "title": "Restore this backup?",
+            "saved": "Saved {when}.",
+            "message": "This replaces all of your settings, screens, chores and meal plans with what is in the backup. Anything you have changed since then is gone.",
+            "pictures": {
+              "one": "Puts back {count} picture ({size}).",
+              "other": "Puts back {count} pictures and videos ({size})."
+            },
+            "confirm": "Restore"
+          },
+          "removeConfirm": {
+            "title": "Remove this backup?",
+            "message": "Saved {when}. It is deleted from this hub. Copies already sent somewhere else stay where they are.",
+            "confirm": "Remove"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Downloading…",
     "backupNow": "Backup Now",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "autoFailed": "The automatic backup did not work.",
+    "autoNotSent": "Your backup was saved but could not be sent to your storage folder.",
+    "autoOnlyHere": "Your backups are only on this hub. Send a copy somewhere else.",
+    "seeWhy": "See why",
+    "setItUp": "Set it up"
   },
   "updateAvailable": {
     "message": "Update available: v{version}",

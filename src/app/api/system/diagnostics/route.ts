@@ -31,6 +31,8 @@ import { getLocalHardwareStats } from '@/lib/hardware-stats-server';
 import { getPackageVersion } from '@/lib/version';
 import { readBuildInfo } from '@/lib/build-info';
 import { readAutoUpdateState } from '@/lib/auto-update-state';
+import { readAutoBackupState } from '@/lib/auto-backup-state';
+import { readAutoBackupSecrets } from '@/lib/auto-backup-secrets';
 import { readFailedUpdate } from '@/lib/upgrade-failed-state';
 import { classifyVersion, parseUpdateChannel } from '@/lib/semver';
 import {
@@ -217,6 +219,8 @@ export const GET = withAuth(async (request) => {
     buildInfo,
     autoUpdate,
     failedUpdate,
+    autoBackup,
+    autoBackupDestination,
   ] = await Promise.all([
     Promise.resolve(getAllDisplayStatuses()),
     solicitConsoleLogs(displayIds),
@@ -238,6 +242,9 @@ export const GET = withAuth(async (request) => {
     readBuildInfo(),
     readAutoUpdateState().catch(() => null),
     readFailedUpdate(),
+    readAutoBackupState().catch(() => null),
+    // Only the kind of storage folder: its address and sign-in stay on the hub.
+    readAutoBackupSecrets().then((secrets) => secrets.destination?.kind ?? null).catch(() => null),
   ]);
 
   const knownSecretValues = Object.values(secretsResolved).filter(
@@ -297,7 +304,8 @@ export const GET = withAuth(async (request) => {
     plugins,
     telemetryRecent,
     // "Why did my wall not update overnight" is answered here.
-    updates: { autoUpdate, failedUpdate },
+    // "Why did my backup not run" too. The record holds no password.
+    updates: { autoUpdate, failedUpdate, autoBackup, autoBackupDestination },
     errorsSummary: grepErrors(journalText),
   });
 

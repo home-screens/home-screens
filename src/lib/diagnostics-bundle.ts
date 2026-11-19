@@ -5,6 +5,7 @@
  * for gathering the input (reading config, journalctl, plugins, etc.).
  */
 
+import type { StorageKind } from './storage-destination';
 import { ZipArchive } from 'archiver';
 import { Readable } from 'stream';
 import type { ScreenConfiguration } from '@/types/config';
@@ -13,6 +14,7 @@ import type { HardwareStats, BrowserStats, ConsoleLogEntry } from '@/lib/hardwar
 import type { UpdateChannel } from '@/lib/semver';
 import type { BuildInfo } from '@/lib/build-info';
 import type { AutoUpdateState } from '@/lib/auto-update-policy';
+import type { AutoBackupState } from './auto-backup-state';
 import type { FailedUpdate } from '@/lib/upgrade-failed-state';
 
 export interface BundleMeta {
@@ -59,8 +61,13 @@ export interface BundleInput {
   journalctlText: string;
   plugins: BundlePlugin[];
   telemetryRecent: unknown;
-  /** The last automatic update run and the last update that was undone. */
-  updates: { autoUpdate: AutoUpdateState | null; failedUpdate: FailedUpdate | null };
+  /** The last automatic update run, the last update that was undone, the automatic backup record, and the kind of storage folder backups go to. */
+  updates: {
+    autoUpdate: AutoUpdateState | null;
+    failedUpdate: FailedUpdate | null;
+    autoBackup?: AutoBackupState | null;
+    autoBackupDestination?: StorageKind | null;
+  };
   errorsSummary: string;
 }
 
@@ -83,7 +90,7 @@ Platform:  ${input.meta.platform} (node ${input.meta.node})
 - \`logs/journalctl-home-screens.log\` — last 500 systemd journal lines
 - \`plugins.json\` — installed plugin manifests
 - \`telemetry-recent.json\` — recent anonymous telemetry
-- \`updates.json\` — last automatic update run, and the last update that was undone
+- \`updates.json\` — last automatic update run, the last update that was undone, the automatic backup record, and the kind of storage folder it sends to (never its address or sign-in)
 - \`errors-summary.txt\` — ERROR/WARN grep of journalctl
 
 Displays included:

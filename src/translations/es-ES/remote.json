@@ -48,7 +48,9 @@
     "daysAgoPlural": "No has hecho copia de seguridad desde hace {n} días.",
     "backupButton": "Copia de seguridad",
     "savingButton": "Guardando…",
-    "dismissAriaLabel": "Descartar"
+    "dismissAriaLabel": "Descartar",
+    "autoFailed": "La copia automática no ha funcionado. Abre Ajustes en un ordenador para ver por qué.",
+    "autoNotSent": "Tu copia se ha guardado, pero no se ha podido enviar a tu carpeta en red. Abre Ajustes en un ordenador para ver por qué."
   },
   "updateAvailable": {
     "message": "Actualización disponible: v{version}",

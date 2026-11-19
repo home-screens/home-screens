@@ -12,6 +12,17 @@ vi.mock('@/lib/auth', () => ({
 import { GET, POST } from '@/app/api/backup/reminder/route';
 import { readBackupState, writeBackupState } from '@/lib/backup-state';
 import { requireDisplayAuth, requireSession } from '@/lib/auth';
+import { writeConfig, readConfig } from '@/lib/config';
+import { invalidateConfigReadCache } from '@/lib/config-cache';
+import { updateAutoBackupState, EMPTY_AUTO_BACKUP_STATE } from '@/lib/auto-backup-state';
+
+const AUTO_OFF = { enabled: false, failed: null, failedAt: null, offsiteAt: null };
+
+async function setAutoBackup(enabled: boolean): Promise<void> {
+  const config = await readConfig();
+  await writeConfig({ ...config, settings: { ...config.settings, autoBackup: { enabled } } });
+  invalidateConfigReadCache();
+}
 
 function getReq(): NextRequest {
   return new NextRequest('http://localhost/api/backup/reminder');
@@ -32,6 +43,8 @@ function isIso(value: unknown): boolean {
 beforeEach(async () => {
   vi.clearAllMocks();
   await writeBackupState({ lastBackupDate: null, lastDismissedDate: null });
+  await updateAutoBackupState(() => structuredClone(EMPTY_AUTO_BACKUP_STATE));
+  await setAutoBackup(false);
 });
 
 describe('GET /api/backup/reminder', () => {
@@ -46,12 +59,44 @@ describe('GET /api/backup/reminder', () => {
     expect(await res.json()).toEqual({
       lastBackupDate: '2026-01-01T00:00:00.000Z',
       lastDismissedDate: null,
+      auto: AUTO_OFF,
     });
   });
 
   it('returns the default state on a fresh install', async () => {
     const res = await GET(getReq());
-    expect(await res.json()).toEqual({ lastBackupDate: null, lastDismissedDate: null });
+    expect(await res.json()).toEqual({ lastBackupDate: null, lastDismissedDate: null, auto: AUTO_OFF });
+  });
+
+  it('says when an automatic backup failed, and when a copy last left the hub', async () => {
+    await setAutoBackup(true);
+    await updateAutoBackupState((current) => ({
+      ...current,
+      lastAttemptAt: '2026-03-02T09:00:00.000Z',
+      lastOkAt: '2026-03-01T09:00:00.000Z',
+      lastError: { code: 'no-room' },
+      lastPulledAt: '2026-03-01T10:00:00.000Z',
+      offsite: { ...current.offsite, lastOkAt: '2026-03-01T09:00:05.000Z' },
+    }));
+    const body = await (await GET(getReq())).json();
+    expect(body.auto).toEqual({
+      enabled: true,
+      failed: 'backup',
+      failedAt: '2026-03-02T09:00:00.000Z',
+      offsiteAt: '2026-03-01T10:00:00.000Z',
+    });
+  });
+
+  it('says when a backup was saved but could not be sent on', async () => {
+    await setAutoBackup(true);
+    await updateAutoBackupState((current) => ({
+      ...current,
+      lastAttemptAt: '2026-03-02T09:00:00.000Z',
+      lastOkAt: '2026-03-02T09:00:00.000Z',
+      offsite: { ...current.offsite, lastAttemptAt: '2026-03-02T09:00:01.000Z', lastError: { code: 'sign-in' }, pendingFile: 'home-screens-auto-backup-2026-03-02-0900.json' },
+    }));
+    const body = await (await GET(getReq())).json();
+    expect(body.auto).toMatchObject({ enabled: true, failed: 'offsite', failedAt: '2026-03-02T09:00:01.000Z' });
   });
 });
 

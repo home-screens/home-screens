@@ -1,6 +1,7 @@
 import type { ScreenConfiguration } from '@/types/config';
 import { getLatestSchemaVersion } from '@/lib/migrations';
 import { validateDisplays, validateAllSchedules, isValidDisplayTransform, isValidTouchMatrix, DISPLAY_TRANSFORMS, TOUCH_MATRIX_ERROR } from '@/lib/display-filter';
+import { autoBackupSettingsProblem } from '@/lib/auto-backup-policy';
 
 /**
  * The one gate every path that persists a whole config goes through: the
@@ -27,6 +28,8 @@ export function validateConfigForWrite(value: unknown): string | null {
     return `Screen rotation must be one of: ${DISPLAY_TRANSFORMS.join(', ')}`;
   }
   if (!isValidTouchMatrix(config.settings.touchMatrix)) return TOUCH_MATRIX_ERROR;
+  const autoBackupProblem = autoBackupSettingsProblem(config.settings.autoBackup);
+  if (autoBackupProblem) return autoBackupProblem;
   // The display and schedule validators walk nested records and assume the
   // shape above; a hand-edited document can still break that assumption.
   try {

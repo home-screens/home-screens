@@ -38,6 +38,8 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 | `data/google-picker-tokens.json` | Google Photos Picker tokens, kept separate from the Calendar tokens above | (internal) |
 | `data/onedrive-tokens.json` | OneDrive photo sign-in tokens | (internal) |
 | `data/backup-state.json` | Last-backup and last-dismissed timestamps behind the backup reminder | `/api/backup` |
+| `data/auto-backups/` | The automatic backups kept on the hub, newest first, one file each (a zip when it carries pictures) | `/api/backup/auto` |
+| `data/auto-backup-secrets.json` | The automatic backups' saved backup password, storage folder sign-in and download link. Never sent to a browser | `/api/backup/auto/secrets` |
 | `data/port.conf` | Custom server port (preserved across upgrades) | (internal) |
 | `data/plugins/` | Installed plugin bundles and manifests | `/api/plugins/*` |
 | `data/plugin-tokens/` | Per-plugin account tokens from server-side auth adapters | `/api/plugins/auth/*` |
@@ -46,7 +48,7 @@ Home Screens stores all configuration as JSON files on disk. The main config fil
 
 Chore definitions and chore completions are **two separate files**. Copying only `data/chores.json` leaves every completion (and therefore every earned point) behind.
 
-Other files under `data/` are written and managed by the app and are not meant to be edited by hand: `backups/`, `thumbnails/`, `kiosk.conf`, `telemetry.json`, `background-cache.json`, `icloud-albums.json` (the list of pictures in each iCloud shared album, kept so a restarted hub can show them straight away), `weather-today.json`, `audit.log`, the update records (`auto-update-setting.json`, `auto-update-state.json`, `update-notification-state.json`, `upgrade-failed.json`, `restart-needed.json`), the Pi program records (`system-packages.json`, `system-package-holds`), the change journal behind family and restore writes (`family-transaction.json`), and the records of the one-time move to a shared family list (`family-migration.json`, `family-migrations/`).
+Other files under `data/` are written and managed by the app and are not meant to be edited by hand: `backups/`, `thumbnails/`, `kiosk.conf`, `telemetry.json`, `background-cache.json`, `icloud-albums.json` (the list of pictures in each iCloud shared album, kept so a restarted hub can show them straight away), `weather-today.json`, `audit.log`, the update records (`auto-update-setting.json`, `auto-update-state.json`, `update-notification-state.json`, `upgrade-failed.json`, `restart-needed.json`), the automatic backup record (`auto-backup-state.json`), the Pi program records (`system-packages.json`, `system-package-holds`), the change journal behind family and restore writes (`family-transaction.json`), and the records of the one-time move to a shared family list (`family-migration.json`, `family-migrations/`).
 
 The main config is read via `GET /api/config` and written via `PUT /api/config`. If you have set an editor password, both endpoints require an `hs-session` cookie: `PUT` accepts nothing else, and `GET` also accepts a display bearer token. With no password set, authentication is off and both are open on your local network.
 
@@ -394,7 +396,95 @@ A clean config exits with status `0` and a "Config is valid" summary. Any errors
 
 - **Save a backup** (under **Save a copy** in **Settings > Backups & data**) in the editor, or **Backup All Data** in the remote's Settings sheet, downloads a backup as JSON. The bundle contains your config, family, chores, chore completions, rewards, meals, routines, to-do lists and school timetables, plus your icons when **Include your icons** is on.
 - **Import** replaces everything the uploaded file carries (available in both the editor and the remote); a section the file leaves out, such as the icons, is kept as it is
+- **Automatic backups** save a backup on the hub by themselves on a schedule, keep the newest ones, and can send each one somewhere else ([details](#automatic-backups))
 - A configurable **backup reminder** shows a toast in the editor and a banner on the remote when you haven't backed up recently (Settings > Backups & data)
+
+### Automatic backups
+
+Switch on **Back up by itself** under **Settings > Backups & data > Automatic backups** and Home Screens saves a backup on its own. Nothing to remember, and no browser needs to be open.
+
+- **How often**: every day, every week or every month, counted from the last backup that worked. A weekly backup lands on whichever day the first one was made.
+- **Time**: pick a time when nobody is using the screens (3:00 AM to start with). A hub that was switched off at that time backs up as soon as it is on again.
+- **Keep the last**: how many backups stay on the hub. Older ones are removed to make room.
+- **Pictures**: leave them out (the default), only the ones your screens use, or everything in your picture library. Pictures make every backup much bigger, and a card writes a little slower every time it is filled, so a weekly backup is plenty for pictures in most homes. If a backup with pictures would not fit, it is saved without them and the page says how much room they needed.
+- **Include my keys and connected accounts**: your keys, always locked with a backup password, because these backups can leave your home. It needs an editor password (Settings > Security) and a backup password, which you choose once and Home Screens keeps on the hub. Until both are set, backups are saved without your keys and the page says so. Write the backup password down somewhere safe: you need it to put the keys back on another hub.
+
+**Back up now** saves one straight away. Under **Backups on this hub** each backup has **Download**, **Restore** and **Remove**. Restore works like **Restore from a file**, and the backup stays in the list afterwards. A backup with keys offers **Use the saved backup password**, so you do not have to type it.
+
+If a backup does not work, the page says why and when it tries again: an hour later, up to three times a day. The editor shows a notice, and the family remote shows one too, saying to open Settings on a computer.
+
+{% callout type="warning" %}
+**A backup kept on the hub is lost if the hub's memory card fails.** Send each one somewhere else as well, with a storage folder or the private download link below. Until a copy has left the hub, the backup reminder keeps reminding you.
+{% /callout %}
+
+The backup password is kept on the hub, next to the keys it locks. That is on purpose: it protects the copy that leaves your home, not the hub itself.
+
+#### Send a copy somewhere else: storage folder
+
+A **storage folder** is a folder on your own storage that Home Screens sends each backup to. It can be either kind:
+
+- **Network share**: a shared folder on a NAS, a Windows PC or a Mac. This is also called SMB, and almost every storage box offers it without extra setup.
+- **WebDAV**: Nextcloud, ownCloud, or a Synology or QNAP with WebDAV turned on.
+
+Click **Set up**, pick one, then fill in the address, **Name** and **Password**. Pasting an address of the other kind switches the choice for you. It is worth making a user on your storage just for Home Screens, one that can change files in that one place and nowhere else.
+
+**Check it works** saves a small test file to the folder and removes it again. The folder keeps the same number of backups as the hub: Home Screens removes the ones it sent before once there are more than **Keep the last**. A saved password is only ever sent to the server it was typed for, so moving the folder to another server asks for the password again.
+
+##### Network share
+
+- **Share address**: type it the way your computer shows it, such as `\\nas.local\Backups` (Windows) or `smb://nas.local/Backups` (a Mac). Anything after the share is a folder inside it, such as `\\nas.local\Backups\home-screens`, and Home Screens makes that folder if it is not there. The share itself has to exist. If the name is wrong, **Check it works** lists the shares the storage does have, and clicking one puts it in the address.
+- **Name**: on a work-style network, type it as `DOMAIN\name`.
+
+Each backup is written under a temporary name and only takes its real name once all of it has arrived, so a send that was cut off never looks like a whole backup. Home Screens locks the connection when the storage offers it (SMB 3), and works with SMB 2 and newer.
+
+| Storage | What to set up there | Share address |
+|---|---|---|
+| UniFi Drive (UNAS) | A shared drive, and a user (under **Admins & Users**) who can change files in it | `\\192.168.1.20\Backups`: the UNAS address, then the shared drive's name |
+| Synology | **Control Panel > Shared Folder**, with **Read/Write** for the user | `\\nas.local\Backups` |
+| TrueNAS | **Shares > Windows (SMB) Shares > Add**, on a dataset owned by the user (TrueNAS does not let `root` sign in over SMB) | `\\truenas.local\Backups` |
+| Windows PC | Right-click the folder, **Properties > Sharing > Share**, and give the user **Read/Write** | `\\FAMILY-PC\Backups` |
+| Mac | **System Settings > General > Sharing > File Sharing**, add the folder, and give the user **Read & Write** | `smb://Family-iMac.local/Backups` |
+
+A network share is for inside your home. Never open it to the internet: most internet providers block it, and it was not made for that. For storage outside your home, use WebDAV with an address that starts with `https`. If your router keeps the storage on a separate part of the network from the hub (a separate VLAN or guest network), let the hub reach it, or Home Screens says it could not reach the storage.
+
+##### WebDAV
+
+- **Folder address**: the folder's WebDAV address. The folder must already be there.
+- **Name** and **Password**: what you sign in to your storage with. Many storage boxes let you make an app password just for this.
+
+Folder addresses for common storage:
+
+| Storage | Folder address |
+|---|---|
+| Nextcloud | `https://cloud.example.com/remote.php/dav/files/taylor/Backups/` (Nextcloud shows yours in the Files app under **Files settings**) |
+| Synology (WebDAV Server package) | `https://nas.local:5006/backups/home-screens/` (`http://nas.local:5005/...` inside your home) |
+| ownCloud | `https://cloud.example.com/remote.php/webdav/Backups/` |
+
+An address that starts with `http` sends your password without locking it on the way. That is fine inside your home; for storage outside it, use an address that starts with `https`. If your storage uses its own certificate (a Synology does until you give it one), Home Screens cannot check it and says so: use the storage's `http` address inside your home, or give it a proper certificate.
+
+#### Send a copy somewhere else: private download link
+
+**Make a link** creates a secret web address another computer can use to fetch the newest backup. It suits a home server or storage box that runs its own schedule. Anyone with the link can download your newest backup, so keep it private. **Make a new link** stops the old one at once; **Remove link** stops it for good.
+
+The link only ever hands out a backup that already exists, and any keys inside are locked with your backup password. It works from inside your home unless you have opened your hub to the outside, and your [network address rules](/docs/networking#restrict-access-by-ip) still apply to it.
+
+Fetch it from a scheduled task on a NAS or any always-on computer at home. Send the secret part as a header, so it stays out of logs:
+
+```bash
+curl -fsS -H "Authorization: Bearer YOUR-LINK-SECRET" -OJ \
+  --output-dir /srv/backups/home-screens \
+  http://home-screens.local:3000/api/backup/latest
+```
+
+`-OJ` saves the file under the backup's own dated name, so each run adds a file rather than replacing the last one; tidy old ones with your storage's own rules. Tools that cannot send a header can use the address **Show link** gives, which carries the secret as `?token=`.
+
+**Proxmox Backup Server.** It only backs up machines and containers, so give it something to back up: run the command above on a schedule inside a container or machine at home whose disk Proxmox Backup Server already backs up, for example from cron at 4:00 AM, an hour after the hub's own backup:
+
+```bash
+0 4 * * * curl -fsS -H "Authorization: Bearer YOUR-LINK-SECRET" -OJ --output-dir /srv/backups/home-screens http://home-screens.local:3000/api/backup/latest
+```
+
+The next backup of that container carries your Home Screens backups with it, to wherever your Proxmox Backup Server keeps them.
 
 ### Backing up your keys
 

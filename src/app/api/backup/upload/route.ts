@@ -12,8 +12,7 @@ import {
 } from '@/lib/backup-archive';
 import { MAX_RESTORE_BYTES } from '@/lib/backup-limits';
 import { RESTORE_FREE_SPACE_MARGIN } from '@/lib/backup-pictures';
-import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
-import { collectCustomIconIds } from '@/lib/custom-icons';
+import { summarizeBundle } from '@/lib/backup-contents-summary';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,18 +55,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     await fs.rm(file, { force: true }).catch(() => {});
     return NextResponse.json({ error: 'That file is not a Home Screens backup.' }, { status: 400 });
   }
-  return NextResponse.json({
-    id,
-    hasCredentials: bundle.credentials !== undefined,
-    credentialsEncrypted: bundle.credentials !== undefined && isEncryptedEnvelope(bundle.credentials),
-    hasCustomIcons: bundle.customIcons !== undefined,
-    usesCustomIcons: collectCustomIconIds(bundle).size > 0,
-    pictures: {
-      count: inspected.pictures.length,
-      bytes: inspected.pictures.reduce((sum, picture) => sum + picture.bytes, 0),
-      skipped: inspected.skipped,
-    },
-  });
+  return NextResponse.json({ id, ...summarizeBundle(bundle, inspected) });
 }, 'Failed to read the backup');
 
 function tooLarge(): NextResponse {

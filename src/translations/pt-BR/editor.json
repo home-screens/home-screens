@@ -803,7 +803,7 @@
         "noBackups": "Nenhum backup registrado ainda"
       },
       "configBackups": {
-        "heading": "Instantâneos automáticos",
+        "heading": "Instantâneos antes de atualizar",
         "description": "O Home Screens guarda um instantâneo dos seus ajustes antes de cada atualização, para desfazer uma atualização ruim. Nada para configurar.",
         "empty": "Nenhum backup ainda. Backups são criados automaticamente antes de cada atualização.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "Não há como recuperar esta senha. Sem ela, as chaves deste arquivo não podem ser lidas.",
         "skipButton": "Restaurar sem minhas chaves",
         "continueButton": "Fazer backup",
-        "unlockButton": "Destrancar"
+        "unlockButton": "Destrancar",
+        "saveDescription": "Esta senha tranca as chaves e contas dentro de cada backup automático. Você vai precisar dela para colocá-las de volta.",
+        "saveButton": "Salvar",
+        "enterSavedDescription": "Suas chaves e contas dentro dele estão trancadas com uma senha de backup.",
+        "useSaved": "Usar a senha de backup salva",
+        "orTypeOne": "Ou digite outra senha"
       },
       "restore": {
         "completeTitle": "Restauração concluída",
@@ -854,13 +859,201 @@
         "wrongPassword": "Essa senha não funcionou. Tente de novo ou restaure sem suas chaves.",
         "damagedKeys": "As chaves deste arquivo estão danificadas e não podem ser lidas. Você ainda pode restaurar todo o resto.",
         "reloadFailed": "Seu backup foi restaurado, mas o editor não conseguiu recarregar. Atualize a página para ver.",
-        "finished": "Restauração concluída. Tudo o que estava nesse backup está de volta."
+        "finished": "Restauração concluída. Tudo o que estava nesse backup está de volta.",
+        "savedPasswordWrong": "A senha de backup salva não abre este backup. Digite a senha usada para criá-lo."
       },
       "description": "Salve uma cópia de tudo, restaure ou comece a partir de um modelo.",
       "restoreConfirm": {
         "title": "Restaurar de um arquivo?",
         "message": "Isto substitui todos os seus ajustes, telas, tarefas e cardápios pelo que está no arquivo. Tudo que você mudou desde que esse arquivo foi criado será perdido. Não dá para desfazer, então salve um backup antes se quiser a configuração de hoje de volta.",
         "confirm": "Escolher um arquivo…"
+      },
+      "autoBackup": {
+        "heading": "Backups automáticos",
+        "description": "O Home Screens pode fazer backups sozinho e guardar os mais recentes neste hub. Você também pode enviar cada um para outro lugar, para que fiquem a salvo se este hub quebrar.",
+        "toggleLabel": "Fazer backup sozinho",
+        "everyLabel": "Frequência",
+        "every": {
+          "day": "Todo dia",
+          "week": "Toda semana",
+          "month": "Todo mês"
+        },
+        "timeLabel": "Horário",
+        "timeHelp": "Escolha um horário em que ninguém esteja usando as telas.",
+        "keepLabel": "Guardar até",
+        "keepUnit": {
+          "one": "backup",
+          "other": "backups"
+        },
+        "keepHelp": "Os backups mais antigos são apagados para abrir espaço.",
+        "picturesHelp": "As fotos deixam cada backup bem maior. Uma vez por semana basta para a maioria das casas.",
+        "keys": {
+          "label": "Incluir minhas chaves e contas conectadas",
+          "help": "Sempre trancadas com uma senha de backup, porque esses backups podem sair da sua casa.",
+          "needsEditorPassword": "Precisa de uma senha antes, para que o arquivo não possa ser lido por quem o encontrar.",
+          "setEditorPassword": "Definir uma senha do editor em Segurança",
+          "passwordSaved": "Senha de backup salva",
+          "change": "Alterar",
+          "passwordNote": "Você precisa desta senha para colocar suas chaves de volta. Anote em um lugar seguro.",
+          "passwordMissing": "Escolha uma senha de backup para incluir suas chaves. Até lá, os backups são salvos sem elas.",
+          "choosePassword": "Escolher uma senha"
+        },
+        "when": {
+          "today": "hoje às {time}",
+          "yesterday": "ontem às {time}",
+          "tomorrow": "amanhã às {time}",
+          "day": "{day} às {time}"
+        },
+        "lastLabel": "Último backup:",
+        "lastGoodLabel": "Último backup que deu certo:",
+        "nextLabel": "Próximo backup:",
+        "nextTryLabel": "Próxima tentativa:",
+        "last": {
+          "sent": "{when}, enviado para sua pasta na rede",
+          "failed": "não funcionou {when}. {reason}",
+          "noPictures": "{when}, sem suas fotos. Elas precisam de {needed} e este hub tem {free} livres.",
+          "noKeys": "{when}, sem suas chaves."
+        },
+        "errors": {
+          "no-room": "Não há espaço suficiente neste hub.",
+          "failed": "Algo deu errado ao salvar."
+        },
+        "onlyHere": "Estes backups estão só neste hub. Envie uma cópia para outro lugar para que fiquem a salvo.",
+        "backUpNow": "Fazer backup agora",
+        "backingUp": "Fazendo backup…",
+        "runRefused": {
+          "busy": "Um backup está sendo salvo agora. Tente de novo daqui a pouco.",
+          "updating": "Uma atualização está sendo instalada. Tente de novo quando ela terminar.",
+          "failed": "Não foi possível conectar ao hub para começar o backup."
+        },
+        "loadFailed": "Não foi possível carregar seus backups automáticos. Recarregue a página para tentar de novo.",
+        "saveFailed": "Não foi possível salvar. Tente de novo.",
+        "offsite": {
+          "heading": "Enviar uma cópia para outro lugar",
+          "description": "Um backup guardado neste hub se perde se o cartão de memória do hub der defeito. Envie cada um também para outro lugar."
+        },
+        "folder": {
+          "name": "Pasta na rede",
+          "description": "O Home Screens envia cada backup para uma pasta no seu próprio armazenamento: uma pasta compartilhada em um NAS ou computador, ou um Nextcloud e outros armazenamentos com WebDAV.",
+          "setUp": "Configurar",
+          "change": "Alterar",
+          "check": "Testar",
+          "checking": "Testando…",
+          "sendingTo": "Enviando para {host} como {user}",
+          "sendingToShare": "Enviando para a pasta compartilhada {share} em {host} como {user}",
+          "lastSent": "último envio {when}",
+          "notSentYet": "nada enviado ainda",
+          "failing": "Não foi possível enviar o último backup.",
+          "lastSentRetry": "Último envio {when}. O Home Screens tenta de novo a cada hora.",
+          "retry": "O Home Screens tenta de novo a cada hora.",
+          "kindLegend": "Como o seu armazenamento compartilha arquivos?",
+          "kindShare": "Pasta compartilhada",
+          "kindShareHelp": "Em um NAS, um PC com Windows ou um Mac. Também chamada de SMB.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud ou um Synology ou QNAP com o WebDAV ativado.",
+          "address": "Endereço da pasta",
+          "addressHelp": "É o endereço WebDAV que aparece no seu armazenamento. A pasta já precisa existir.",
+          "shareAddress": "Endereço da pasta compartilhada",
+          "shareAddressHelp": "Digite do jeito que o seu computador mostra, por exemplo \\\\nas.local\\Backups ou smb://nas.local/Backups. Se quiser, acrescente uma subpasta no final do endereço. O Home Screens cria a subpasta se ela não existir.",
+          "username": "Usuário",
+          "password": "Senha",
+          "passwordKeep": "Deixe em branco para manter a senha salva",
+          "passwordNewServer": "Digite a senha de {host}. Uma senha salva só é enviada ao servidor para o qual foi digitada.",
+          "save": "Salvar",
+          "cancel": "Cancelar",
+          "remove": "Parar de enviar para cá",
+          "works": "Tudo certo. Um arquivo de teste foi salvo na pasta e depois apagado.",
+          "worksShare": "Tudo certo. Um arquivo de teste foi salvo na pasta compartilhada e depois apagado.",
+          "sharesOffered": "Não existe pasta compartilhada chamada {share} em {host}. Estas são as que existem:",
+          "httpWarning": "Este endereço começa com http, então sua senha pode ser lida no caminho. Use um que comece com https, se o seu armazenamento tiver.",
+          "outsideHomeWarning": "Este servidor não está na sua casa. Pastas compartilhadas não foram feitas para serem usadas pela internet, e a maioria dos provedores de internet bloqueia esse tipo de acesso. Em vez disso, use WebDAV com um endereço https.",
+          "formErrors": {
+            "url_invalid": "O endereço da pasta não é um endereço da web válido.",
+            "url_scheme": "O endereço da pasta precisa começar com http:// ou https://.",
+            "url_credentials": "Coloque o usuário e a senha nos campos próprios, não no endereço.",
+            "address_invalid": "Esse não é o endereço de uma pasta compartilhada. Digite assim: \\\\nas.local\\Backups.",
+            "address_no_share": "Coloque o nome da pasta compartilhada depois do servidor, por exemplo \\\\nas.local\\Backups.",
+            "address_credentials": "Coloque o usuário e a senha nos campos próprios, não no endereço.",
+            "address_bad_character": "O endereço tem um caractere que uma pasta compartilhada não pode usar.",
+            "kind_invalid": "Escolha Pasta compartilhada ou WebDAV.",
+            "username_required": "Digite o usuário que você usa para entrar no seu armazenamento.",
+            "password_required": "Digite a senha que você usa para entrar no seu armazenamento.",
+            "password_too_long": "Essa senha é longa demais.",
+            "not_set_up": "Configure uma pasta na rede primeiro.",
+            "failed": "Não foi possível salvar. Tente de novo."
+          },
+          "removeConfirm": {
+            "title": "Parar de enviar backups para cá?",
+            "message": "Os backups que já estão na pasta continuam lá. O Home Screens para de enviar novos.",
+            "confirm": "Parar de enviar"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "O usuário ou a senha não foram aceitos.",
+          "not-found": "Essa pasta não foi encontrada.",
+          "no-room": "O armazenamento está sem espaço.",
+          "too-big": "O armazenamento não aceitou um arquivo tão grande.",
+          "unreachable": "O Home Screens não conseguiu acessar o armazenamento.",
+          "timeout": "O armazenamento demorou demais para responder.",
+          "redirect": "O armazenamento mandou o Home Screens para outro endereço. Use o endereço final.",
+          "certificate": "Não foi possível verificar o certificado de segurança do armazenamento. Use o endereço http dele dentro de casa, ou instale nele um certificado válido.",
+          "refused": "O armazenamento não aceitou o backup.",
+          "share-not-found": "Não existe pasta compartilhada chamada {share} em {host}.",
+          "no-write": "O usuário {user} não consegue salvar arquivos na pasta compartilhada {share}. No seu armazenamento, deixe {user} alterar arquivos nela.",
+          "too-old": "Este armazenamento só oferece um jeito antigo de compartilhar. Ative o SMB 2 ou uma versão mais nova nas configurações dele."
+        },
+        "link": {
+          "name": "Link de download privado",
+          "description": "Um endereço secreto que outro computador pode usar para baixar o backup mais recente. Útil para um computador de casa que segue os próprios horários.",
+          "make": "Criar um link",
+          "show": "Mostrar link",
+          "hide": "Ocultar link",
+          "lastFetched": "Baixado pela última vez {when}",
+          "notFetched": "Ainda não foi baixado",
+          "copy": "Copiar",
+          "copied": "Copiado",
+          "warning": "Qualquer pessoa com este link pode baixar seu backup mais recente, então mantenha-o em segredo. Ele só funciona dentro da sua casa, a menos que você tenha liberado o acesso ao hub de fora de casa.",
+          "makeNew": "Criar um novo link",
+          "remove": "Remover link",
+          "newConfirm": {
+            "title": "Criar um novo link?",
+            "message": "O link antigo para de funcionar na hora. Tudo o que baixa seus backups vai precisar do novo.",
+            "confirm": "Criar um novo link"
+          },
+          "removeConfirm": {
+            "title": "Remover o link?",
+            "message": "Tudo o que baixa seus backups por ele vai parar de funcionar.",
+            "confirm": "Remover link"
+          }
+        },
+        "copies": {
+          "heading": "Backups neste hub",
+          "empty": "Nenhum backup ainda.",
+          "emptyNext": "Nenhum backup ainda. O primeiro será salvo {when}.",
+          "keys": "Chaves",
+          "pictures": "Fotos",
+          "download": "Baixar",
+          "restore": "Restaurar",
+          "remove": "Remover",
+          "showAll": "Ver todos os {count}",
+          "showFewer": "Ver menos",
+          "gone": "Esse backup não está mais no hub.",
+          "restoreConfirm": {
+            "title": "Restaurar este backup?",
+            "saved": "Salvo {when}.",
+            "message": "Isto substitui todos os seus ajustes, telas, tarefas e cardápios pelo que está no backup. Tudo que você mudou desde então será perdido.",
+            "pictures": {
+              "one": "Traz de volta {count} foto ou vídeo ({size}).",
+              "other": "Traz de volta {count} fotos e vídeos ({size})."
+            },
+            "confirm": "Restaurar"
+          },
+          "removeConfirm": {
+            "title": "Remover este backup?",
+            "message": "Salvo {when}. Ele será apagado deste hub. As cópias já enviadas para outro lugar continuam onde estão.",
+            "confirm": "Remover"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Baixando…",
     "backupNow": "Fazer backup agora",
-    "dismiss": "Dispensar"
+    "dismiss": "Dispensar",
+    "autoFailed": "O backup automático não funcionou.",
+    "autoNotSent": "Seu backup foi salvo, mas não pôde ser enviado para sua pasta na rede.",
+    "autoOnlyHere": "Seus backups estão só neste hub. Envie uma cópia para outro lugar.",
+    "seeWhy": "Ver por quê",
+    "setItUp": "Configurar"
   },
   "updateAvailable": {
     "message": "Atualização disponível: v{version}",

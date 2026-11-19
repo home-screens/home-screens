@@ -1001,6 +1001,54 @@ export interface AutoUpdateSettings {
   time?: string;
 }
 
+/** How often an automatic backup is saved: one day, seven days or thirty days after the last good one. */
+export type AutoBackupFrequency = 'day' | 'week' | 'month';
+
+export interface AutoBackupSettings {
+  /**
+   * Save a backup on the hub by itself on a schedule, keeping the newest ones
+   *
+   * @default false
+   */
+  enabled: boolean;
+  /**
+   * How often to back up: every day, every week or every month, counted from the last backup that worked
+   *
+   * @default "day"
+   */
+  every?: AutoBackupFrequency;
+  /**
+   * Time of day to back up, as `HH:MM` in the display timezone. A hub that was off at that time backs up
+   * as soon as it is on again
+   *
+   * @default "03:00"
+   */
+  time?: string;
+  /**
+   * How many backups to keep on the hub, and in the storage folder when one is set up. Older ones are
+   * removed
+   *
+   * Whole number from 1 to 30.
+   *
+   * @default 7
+   */
+  keep?: number;
+  /**
+   * Which pictures each backup carries: none, only the ones the screens use, or the whole picture library.
+   * A backup with pictures is a zip file
+   *
+   * @default "off"
+   */
+  pictures?: 'off' | 'used' | 'all';
+  /**
+   * Include keys and connected accounts, always locked with the backup password saved on the hub. Needs
+   * an editor password
+   *
+   * @default false
+   */
+  includeKeys?: boolean;
+}
+
 /** Which Google app signs the household in once it has saved its own: its own, or Home Screens'. */
 export type GoogleAppPreference = 'own' | 'hosted';
 
@@ -1172,6 +1220,8 @@ export interface GlobalSettings {
   updateNotification?: UpdateNotificationSettings;
   /** Install updates by itself at a set time (see AutoUpdateSettings). Hub only */
   autoUpdate?: AutoUpdateSettings;
+  /** Save backups on the hub by itself on a schedule (see AutoBackupSettings). Hub only */
+  autoBackup?: AutoBackupSettings;
   /**
    * Language for every display, as a BCP-47 tag (e.g. `en-US`, `de-DE`). Also sets date and number
    * formatting unless `formattingLocale` overrides it

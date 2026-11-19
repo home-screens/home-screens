@@ -699,7 +699,7 @@ test.describe('Defaults › System', () => {
 
     await page.goto('/editor/settings?section=defaults&page=data');
 
-    await expect(page.getByRole('heading', { name: 'Automatic snapshots' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Snapshots before updates' })).toBeVisible();
     // Each row leads with what the snapshot is and when it was taken at home;
     // the UTC-stamped file name only rides along underneath.
     const rows = page.getByTestId('config-backup-row');

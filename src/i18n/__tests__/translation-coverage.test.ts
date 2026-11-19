@@ -154,6 +154,9 @@ const SHARED_UNTRANSLATABLE: ReadonlySet<string> = new Set([
   'editor|settings.calendarPage.google.googleCloudConsoleLink',
   'editor|settings.calendarPage.google.heading',
   'editor|settings.dataPage.configBackups.download',
+  'editor|settings.dataPage.autoBackup.copies.download',
+  // The radio label is the name storage boxes print in their own settings ("WebDAV"), the same in every language.
+  'editor|settings.dataPage.autoBackup.folder.kindWebdav',
   'editor|settings.dataPage.configBackups.sizeKb',
   'editor|settings.defaultDisplayPage.fields.cursorHideValue',
   'editor|settings.defaultDisplayPage.fields.pauseTimeoutSeconds',
@@ -904,6 +907,8 @@ const LOCALE_UNTRANSLATABLE: Readonly<Record<string, ReadonlySet<string>>> = {
     'editor|photoSources.nasa.ideas.jupiter',
   ]),
   'pt-BR': new Set([
+    // "backup" is the everyday Brazilian noun, used across the whole Backups page.
+    'editor|settings.dataPage.autoBackup.keepUnit',
     // "tickets" is the loanword this locale uses (the adjust sheet's unit label).
     'remote|rewardsView.adjust.ticketsLabel',
     'remote|lists.itemSheet.textLabel',

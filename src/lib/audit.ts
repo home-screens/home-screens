@@ -63,7 +63,15 @@ type AuditEvent =
   | { action: 'ip_allowlist_change'; ip: string; entryCount: number }
   | { action: 'credential_backup_export'; encrypted: boolean; sections: number }
   | { action: 'credential_backup_denied'; ip: string }
-  | { action: 'credential_backup_restore'; sections: number; skipped: string[] };
+  | { action: 'credential_backup_restore'; sections: number; skipped: string[] }
+  | { action: 'auto_backup'; result: 'ok' | 'failed'; reason: 'schedule' | 'manual'; file?: string; keys?: boolean; pictures?: number; code?: string }
+  | { action: 'auto_backup_offsite'; result: 'ok' | 'failed'; code?: string }
+  | { action: 'auto_backup_pulled'; ip: string; file: string }
+  | { action: 'auto_backup_pull_denied'; ip: string }
+  | { action: 'auto_backup_link'; change: 'created' | 'removed' }
+  | { action: 'auto_backup_destination'; change: 'set' | 'removed' }
+  | { action: 'auto_backup_password'; change: 'set' | 'removed' }
+  | { action: 'auto_backup_removed'; file: string };
 
 type AuditEntry = AuditEvent & { ts: string }; // ISO 8601
 

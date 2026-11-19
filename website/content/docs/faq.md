@@ -90,6 +90,12 @@ Your API keys and connected accounts are left out unless you ask for them. Tick 
 
 **Backup Reminder** on the same page nags you when you have not backed up in a while; pick how many days under **Remind after**.
 
+### Can Home Screens back up by itself?
+
+Yes. Under **Settings > Backups & data > Automatic backups**, switch on **Back up by itself** and pick how often and at what time. The hub keeps the newest few backups (**Keep the last**) and lists them with **Download**, **Restore** and **Remove**.
+
+A backup that stays on the hub is lost if the hub's memory card fails, so send each one somewhere else too: a **Storage folder**, which is a network share on a NAS, Windows PC or Mac (SMB) or a folder on Nextcloud or other WebDAV storage, or a **Private download link** that a home server or NAS fetches on its own schedule. Until a copy has left the hub, the backup reminder keeps reminding you. NFS and SFTP are not built in: NFS needs the hub to mount the share with administrator rights, so point a NAS task at the download link instead. [All the details](/docs/configuration#automatic-backups).
+
 **Share Layout** exports just the screens and modules, with no personal data such as keys or location, which is safe to share with others.
 
 ### How do I restore a backup?
@@ -97,6 +103,8 @@ Your API keys and connected accounts are left out unless you ask for them. Tick 
 Go to **Settings > Backups & data** and, under **Save a copy**, click **Restore from a file**. Pick a backup you saved earlier, a zip or a plain file. (Do not confuse this with **Import Layout** under **Share Layout**, which only brings in screens and modules.) Your configuration is replaced with the backup's contents, and any pictures in the backup are put back into your library. If a backup made without pictures points at ones this hub does not have, the Pictures & videos page lists them under Missing. The family remote's gear has **Restore Backup** too.
 
 If the backup has a password on its keys, you are asked for it. If you cannot remember it, choose **Restore without my keys** and everything else still comes back.
+
+A backup the hub saved by itself is restored from its list under **Automatic backups**: click **Restore** beside it. It stays in the list afterwards, and **Use the saved backup password** unlocks its keys.
 
 ### How do I reset to factory defaults?
 

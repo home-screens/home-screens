@@ -18,5 +18,9 @@ export async function register(): Promise<void> {
     // Does nothing outside a production server or with HS_DISABLE_AUTO_UPDATE=1.
     const { startAutoUpdateScheduler } = await import('./lib/auto-update-scheduler');
     startAutoUpdateScheduler();
+    // Saves backups by themselves when that is switched on. Does nothing
+    // outside a production server or with HS_DISABLE_AUTO_BACKUP=1.
+    const { startAutoBackupScheduler } = await import('./lib/auto-backup-scheduler');
+    startAutoBackupScheduler();
   }
 }

@@ -402,6 +402,24 @@ test('the backup reminder banner shows, downloads a backup, and dismisses', asyn
   await expect(page.getByText(/backed up in 40 days/)).toBeHidden();
 });
 
+test('the banner says when the automatic backup stopped working, with no button to a place the phone cannot go', async ({ page, request }) => {
+  // Automatic backups speak up even with the reminder switched off.
+  await putConfig(request, baseConfig({ settings: { autoBackup: { enabled: true }, backupReminder: { enabled: false, intervalDays: 7 } } }));
+  await page.route('**/api/backup/reminder', (route) => route.fulfill({
+    json: {
+      lastBackupDate: new Date().toISOString(),
+      lastDismissedDate: null,
+      auto: { enabled: true, failed: 'backup', failedAt: new Date().toISOString(), offsiteAt: null },
+    },
+  }));
+  await page.goto('/remote');
+  await expect(page.getByTestId('backup-reminder-banner'))
+    .toHaveText('The automatic backup did not work. Open Settings on a computer to see why.');
+  await expect(page.getByRole('button', { name: 'Backup', exact: true })).toHaveCount(0);
+  await page.getByTestId('backup-reminder-banner').locator('xpath=../..').getByRole('button', { name: 'Dismiss' }).click();
+  await expect(page.getByTestId('backup-reminder-banner')).toHaveCount(0);
+});
+
 test('aborting the status poll surfaces the disconnected banner', async ({ page, request }) => {
   await putConfig(request, baseConfig());
   // Fail every status poll; the remote flips to disconnected after 3 failures

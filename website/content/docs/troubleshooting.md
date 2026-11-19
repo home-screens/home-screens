@@ -26,6 +26,7 @@ Every answer here starts with what to check in the editor or on the phone, then 
 - [The mouse cursor is showing on a touchscreen](#cursor-visible-on-touchscreen)
 - [Taps land in the wrong place on a touchscreen](#taps-land-in-the-wrong-place)
 - [An update failed](#upgrade-failed)
+- [The automatic backup did not work](#the-automatic-backup-did-not-work)
 - [I want to add a second display](#i-want-to-add-a-second-display)
 - [How do I update or roll back?](#how-do-i-update-or-roll-back)
 - [Getting a diagnostics bundle](#getting-a-diagnostics-bundle)
@@ -270,6 +271,28 @@ This setting covers the screen plugged into the device that runs Home Screens. A
    The same thing is available without a shell under **Settings > Backups & data**. Before a settings or family migration, including one triggered at startup, Home Screens saves the original settings with `migration` in the filename. These originals are kept permanently alongside the rotating upgrade snapshots, and the same offline command can restore them.
 
 ---
+
+## The automatic backup did not work
+
+**Settings > Backups & data > Automatic backups** says what went wrong next to **Last backup**, and when it tries again (an hour later, up to three times a day). **Back up now** tries straight away once you have fixed it.
+
+- **There is not enough room on this hub.** The memory card is nearly full. Lower **Keep the last**, set **Pictures** to **Leave them out**, or remove old backups from the list. A backup that only lacked room for its pictures is still saved, without them, and says how much room they needed.
+- **Something went wrong while saving it.** Try **Back up now**. If it keeps happening, attach a [diagnostics bundle](#getting-a-diagnostics-bundle) to an issue: it holds the backup record, never the passwords.
+- **Saved, but without your keys.** Choose a backup password under **Include my keys and connected accounts**, and set an editor password in **Settings > Security** if the page asks for one.
+
+When the backup was saved but **could not be sent** to your storage folder, the backup is safe on the hub and Home Screens sends it again every hour. The reason is on the storage folder card:
+
+- **The name or password was not accepted.** Click **Change** and type them again. If your storage uses two-step sign-in, make an app password there and use that.
+- **That folder was not found.** Make the folder on your storage first, then check the address ends with it. A network share makes its own folder, so for a share this means the folder could not be made there.
+- **There is no share called … on ….** The share name in the address is not one the storage has. **Check it works** lists the ones it does have; click one to use it.
+- **Home Screens cannot save files in the … share.** The user can see the share but may not change files in it (or is not let into it at all). On your storage, let that user change files in the share. On a UniFi Drive or a Synology this is the user's setting on the shared drive or shared folder.
+- **The storage is out of room** or **would not take a file this big.** Free up space there, or leave pictures out of the backups. Some Nextcloud setups limit the size of one upload.
+- **Home Screens could not reach the storage** or **took too long to answer.** Check the storage is switched on and that the address works from a computer at home. If your router keeps the storage on a separate network (a VLAN or guest network) from the hub, let the hub reach it.
+- **This storage only offers an old kind of sharing.** It only speaks SMB 1, which Home Screens does not use. Turn on SMB 2 or newer in the storage's settings (often called the minimum or maximum SMB protocol).
+- **The storage sent Home Screens to a different address.** Open the address in a browser, see where it ends up, and use that address instead.
+- **The security certificate could not be checked.** The storage uses its own certificate. Use its `http` address inside your home, or give it a proper certificate.
+
+**Check it works** on the storage folder card tries the folder without waiting for the next backup.
 
 ## I want to add a second display
 

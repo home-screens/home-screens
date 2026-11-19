@@ -6,6 +6,7 @@
  * else server-side into the client bundle.
  */
 
+import type { StorageDestination } from './storage-destination';
 import type { ICloudAccountsFile } from './icloud-accounts';
 import type { StoredOAuthTokens } from './oauth-token-store';
 import type { PluginTokens } from './plugin-auth-types';
@@ -40,6 +41,16 @@ export interface CredentialPayload {
   pluginTokens?: Record<string, PluginTokens>;
   /** data/auth.json — login password hash, cookie secret, IP rules. */
   auth?: AuthState;
+  /**
+   * data/auto-backup-secrets.json: the backup password and the storage
+   * folder (a WebDAV folder or a network share), so a hub restored from a
+   * backup keeps sending without being set up again. The private download
+   * link's token is never carried: a new hub gets a new link.
+   */
+  autoBackup?: {
+    backupPassword?: string;
+    destination?: StorageDestination;
+  };
 }
 
 /** The keys of CredentialPayload, in a stable order for counting/reporting. */
@@ -50,6 +61,7 @@ export const CREDENTIAL_SECTIONS = [
   'pluginSecrets',
   'pluginTokens',
   'auth',
+  'autoBackup',
 ] as const satisfies readonly (keyof CredentialPayload)[];
 
 export type CredentialSection = (typeof CREDENTIAL_SECTIONS)[number];

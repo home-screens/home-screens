@@ -241,6 +241,23 @@ export const SETTINGS_FIELD_INDEX: SettingsFieldEntry[] = [
   { pageId: 'data', fieldId: 'data.fullBackupRestore', labelKey: 'settings.dataPage.fullBackup.restoreButton' },
   { pageId: 'data', fieldId: 'data.fullBackupIncludeCredentials', labelKey: 'settings.dataPage.fullBackup.includeCredentialsLabel', keywordKeys: ['settings.dataPage.fullBackup.includeCredentialsHelp'] },
   { pageId: 'data', fieldId: 'data.fullBackupProtectCredentials', labelKey: 'settings.dataPage.fullBackup.protectLabel' },
+  // Everything else in the block shows only once it is switched on, right
+  // below the switch, so the switch carries their words.
+  {
+    pageId: 'data',
+    fieldId: 'data.autoBackupEnabled',
+    labelKey: 'settings.dataPage.autoBackup.toggleLabel',
+    keywordKeys: [
+      'settings.dataPage.autoBackup.heading',
+      'settings.dataPage.autoBackup.keepLabel',
+      'settings.dataPage.autoBackup.offsite.heading',
+      'settings.dataPage.autoBackup.folder.name',
+      'settings.dataPage.autoBackup.folder.kindShare',
+      'settings.dataPage.autoBackup.link.name',
+      'settings.dataPage.autoBackup.copies.heading',
+    ],
+    keywords: ['WebDAV', 'Nextcloud', 'Synology', 'NAS', 'SMB', 'Samba', 'Windows share', 'UniFi', 'UNAS', 'TrueNAS', 'QNAP'],
+  },
   { pageId: 'data', fieldId: 'data.configBackups', labelKey: 'settings.dataPage.configBackups.heading' },
   { pageId: 'data', fieldId: 'data.backupReminderEnabled', labelKey: 'settings.dataPage.backupReminder.enableLabel' },
   { pageId: 'data', fieldId: 'data.backupReminderInterval', labelKey: 'settings.dataPage.backupReminder.remindAfterLabel' },

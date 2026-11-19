@@ -14,6 +14,16 @@ export interface BackupPasswordModalProps {
    * blocks the rest of the restore).
    */
   mode: 'set' | 'enter';
+  /**
+   * For `set`: `export` locks one downloaded file; `save` is the password
+   * automatic backups keep on the hub and lock every copy with.
+   */
+  purpose?: 'export' | 'save';
+  /**
+   * For `enter` on an automatic backup: unlock it with the password saved on
+   * the hub, which never comes to the browser. Offered first.
+   */
+  onUseSaved?: () => void;
   /** Shown above the fields after a failed attempt. */
   error?: string | null;
   busy?: boolean;
@@ -24,6 +34,8 @@ export interface BackupPasswordModalProps {
 
 export default function BackupPasswordModal({
   mode,
+  purpose = 'export',
+  onUseSaved,
   error,
   busy = false,
   onSubmit,
@@ -67,9 +79,19 @@ export default function BackupPasswordModal({
         </h2>
         <p className="text-xs text-hs-text-faint mb-4">
           {mode === 'set'
-            ? t('settings.dataPage.backupPassword.setDescription')
-            : t('settings.dataPage.backupPassword.enterDescription')}
+            ? purpose === 'save'
+              ? t('settings.dataPage.backupPassword.saveDescription')
+              : t('settings.dataPage.backupPassword.setDescription')
+            : onUseSaved
+              ? t('settings.dataPage.backupPassword.enterSavedDescription')
+              : t('settings.dataPage.backupPassword.enterDescription')}
         </p>
+
+        {mode === 'enter' && onUseSaved && (
+          <Button variant="primary" onClick={onUseSaved} disabled={busy} className="mb-4">
+            {t('settings.dataPage.backupPassword.useSaved')}
+          </Button>
+        )}
 
         {error && (
           <p className="text-xs text-hs-danger mb-3" role="alert">
@@ -78,12 +100,14 @@ export default function BackupPasswordModal({
         )}
 
         <label className="block text-sm text-hs-text-muted mb-1" htmlFor="backup-password">
-          {t('settings.dataPage.backupPassword.passwordLabel')}
+          {mode === 'enter' && onUseSaved
+            ? t('settings.dataPage.backupPassword.orTypeOne')
+            : t('settings.dataPage.backupPassword.passwordLabel')}
         </label>
         <input
           id="backup-password"
           type="password"
-          autoFocus
+          autoFocus={!onUseSaved}
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -133,11 +157,13 @@ export default function BackupPasswordModal({
           <Button variant="secondary" onClick={onClose} disabled={busy}>
             {tCore('actions.cancel')}
           </Button>
-          <Button variant="primary" onClick={submit} disabled={!canSubmit}>
+          <Button variant={onUseSaved ? 'secondary' : 'primary'} onClick={submit} disabled={!canSubmit}>
             {busy
               ? t('settings.dataPage.fullBackup.working')
               : mode === 'set'
-                ? t('settings.dataPage.backupPassword.continueButton')
+                ? purpose === 'save'
+                  ? t('settings.dataPage.backupPassword.saveButton')
+                  : t('settings.dataPage.backupPassword.continueButton')
                 : t('settings.dataPage.backupPassword.unlockButton')}
           </Button>
         </div>

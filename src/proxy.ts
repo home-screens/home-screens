@@ -156,6 +156,10 @@ const PROTECTED_GET_ROUTES = [
   '/api/calendars',
   '/api/backgrounds/directories',
   '/api/backup/pictures',
+  // Automatic backups: their status, copies and download link token. The
+  // copy a link fetches is /api/backup/latest, which proves itself with the
+  // token instead.
+  '/api/backup/auto',
   // Browsing Immich, Unsplash or NASA one picture at a time is for choosing
   // a picture in the editor; a wall reads /api/photo-source/media instead.
   '/api/photo-source/browse',

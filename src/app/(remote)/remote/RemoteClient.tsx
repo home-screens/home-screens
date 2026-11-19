@@ -68,7 +68,7 @@ interface RemoteInitialData {
   photoDirectory: string;
   /** Screen ids with a photo slideshow, and the module types to address there. */
   slideshowScreens: Record<string, string[]>;
-  backupReminder: { enabled: boolean; intervalDays: number };
+  backupReminder: { enabled: boolean; intervalDays: number; autoBackup: boolean };
   updateNotification: { enabled: boolean };
   updateChannel: UpdateChannel;
   /** Multi-display registry. Empty in single-display installs. */
@@ -128,6 +128,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
   const backup = useBackupReminder({
     enabled: initialData.backupReminder.enabled,
     intervalDays: initialData.backupReminder.intervalDays,
+    autoBackupEnabled: initialData.backupReminder.autoBackup,
     timezone: useHouseholdTimezone(),
   });
   const updateNotif = useUpdateNotification({
@@ -401,6 +402,7 @@ export default function RemoteClient({ initialData }: { initialData: RemoteIniti
                 busy={backup.busy}
                 iconsLeftOut={backup.iconsLeftOut}
                 picturesLeftOut={backup.picturesLeftOut}
+                autoFailed={backup.autoFailed}
                 onBackup={backup.handleBackup}
                 onDismiss={backup.handleDismiss}
               />

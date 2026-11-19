@@ -17,6 +17,7 @@ import { useLayoutFileImport } from '@/hooks/useLayoutFileImport';
 import LayoutImportModal from '@/components/editor/LayoutImportModal';
 import TemplateFlow from '@/components/editor/TemplateFlow';
 import BackupPasswordModal from '@/components/editor/settings/BackupPasswordModal';
+import AutoBackupSection, { type AutoCopyRestore } from '@/components/editor/settings/AutoBackupSection';
 import { useFormattingLocale, useTranslate } from '@/i18n';
 import { isEncryptedEnvelope } from '@/lib/backup-credentials-types';
 import type { CredentialApplyResult } from '@/lib/backup-credentials-types';
@@ -172,6 +173,8 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   // holds the parsed bundle between the file read and a successful unlock.
   const [pendingRestore, setPendingRestore] = useState<Record<string, unknown> | null>(null);
   const [restorePasswordError, setRestorePasswordError] = useState<string | null>(null);
+  /** The pending restore is an automatic backup and the hub holds the password it was locked with. */
+  const [pendingHasSavedPassword, setPendingHasSavedPassword] = useState(false);
 
   // The credential export refuses to run without an editor password: a
   // password-less install has no way to tell the owner from anyone else on the
@@ -519,6 +522,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     if (hasCredentials) {
       if (credentialsEncrypted) {
         setRestorePasswordError(null);
+        setPendingHasSavedPassword(false);
         setPendingRestore(bundle);
         return;
       }
@@ -539,6 +543,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       // message and nothing changed.
       if (code === 'passphrase_required') {
         setRestorePasswordError(null);
+        setPendingHasSavedPassword(false);
         setPendingRestore(bundle);
         return;
       }
@@ -551,12 +556,17 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
     }
   }, [formattingLocale, postBackupAndReload, t, tCore]);
 
-  const handleRestorePassword = useCallback(async (password: string) => {
+  const handleRestorePassword = useCallback(async (password: string | { saved: true }) => {
     if (!pendingRestore) return;
+    const useSaved = typeof password !== 'string';
     try {
-      const code = await postBackupAndReload(pendingRestore, password);
+      const code = useSaved
+        ? await postBackupAndReload({ ...pendingRestore, _useSavedPassword: true })
+        : await postBackupAndReload(pendingRestore, password);
       if (code === 'bad_passphrase' || code === 'passphrase_required') {
-        setRestorePasswordError(t('settings.dataPage.restore.wrongPassword'));
+        setRestorePasswordError(useSaved
+          ? t('settings.dataPage.restore.savedPasswordWrong')
+          : t('settings.dataPage.restore.wrongPassword'));
         return;
       }
       if (code === 'invalid_credentials') {
@@ -575,9 +585,9 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
   // restore: drop the credential section and restore everything else.
   const handleRestoreWithoutKeys = useCallback(async () => {
     if (!pendingRestore) return;
-    // A staged zip's bundle is on the hub, which drops the section itself.
+    // A staged zip's or a kept copy's bundle is on the hub, which drops the section itself.
     const { credentials: _dropped, ...withoutCredentials } = pendingRestore;
-    if (pendingRestore._archive !== undefined) withoutCredentials._withoutKeys = true;
+    if (pendingRestore._archive !== undefined || pendingRestore._auto !== undefined) withoutCredentials._withoutKeys = true;
     setPendingRestore(null);
     try {
       await postBackupAndReload(withoutCredentials);
@@ -586,6 +596,42 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
       useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
     }
   }, [pendingRestore, postBackupAndReload, t]);
+
+  /**
+   * Restore an automatic backup kept on the hub. It is already confirmed
+   * (with its date and pictures) where it was picked; from here it runs the
+   * same prompts and the same post as a file from the computer, with the
+   * copy's name in place of the file.
+   */
+  const handleRestoreAutoCopy = useCallback(async ({ copy, summary, hasSavedPassword }: AutoCopyRestore) => {
+    const bundle: Record<string, unknown> = { _auto: copy.name };
+    if (summary.usesCustomIcons && !summary.hasCustomIcons) {
+      const ok = await useConfirmStore.getState().confirm({
+        message: tCore('customIcons.backup.restoreNoIcons'),
+        confirmLabel: t('settings.dataPage.restoreConfirm.confirm'),
+      });
+      if (!ok) return;
+    }
+    if (summary.hasCredentials && summary.credentialsEncrypted) {
+      setRestorePasswordError(null);
+      setPendingHasSavedPassword(hasSavedPassword);
+      setPendingRestore(bundle);
+      return;
+    }
+    try {
+      const code = await postBackupAndReload(bundle);
+      if (code === 'passphrase_required') {
+        setRestorePasswordError(null);
+        setPendingHasSavedPassword(hasSavedPassword);
+        setPendingRestore(bundle);
+        return;
+      }
+      if (code) useConfirmStore.getState().alert(t('settings.dataPage.restore.damagedKeys'));
+    } catch (err) {
+      if (isSessionExpired(err)) return;
+      useConfirmStore.getState().alert(restoreFailureText(err, t('settings.dataPage.alerts.restoreBackupFailed')));
+    }
+  }, [postBackupAndReload, t, tCore]);
 
   return (
     <>
@@ -742,7 +788,13 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           )}
         </section>
 
-        {/* Config Backups — automatic snapshots from the upgrade pipeline */}
+        <AutoBackupSection
+          pictureSummary={pictureSummary}
+          restoreBusy={backupBusy}
+          onRestoreCopy={handleRestoreAutoCopy}
+        />
+
+        {/* Snapshots before updates, taken by the upgrade pipeline */}
         <section data-field-id="data.configBackups">
           <h3 className="text-sm font-medium text-hs-text-secondary mb-3 uppercase tracking-wider">
             {t('settings.dataPage.configBackups.heading')}
@@ -952,6 +1004,7 @@ export default function DataSection({ onSettingsImported }: DataSectionProps) {
           mode="enter"
           busy={backupBusy}
           error={restorePasswordError}
+          onUseSaved={pendingRestore._auto !== undefined && pendingHasSavedPassword ? () => void handleRestorePassword({ saved: true }) : undefined}
           onSubmit={handleRestorePassword}
           onSkip={handleRestoreWithoutKeys}
           onClose={() => setPendingRestore(null)}

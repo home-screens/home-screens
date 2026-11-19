@@ -803,7 +803,7 @@
         "noBackups": "Der er ikke registreret sikkerhedskopier endnu"
       },
       "configBackups": {
-        "heading": "Automatiske øjebliksbilleder",
+        "heading": "Øjebliksbilleder før opdateringer",
         "description": "Home Screens gemmer et øjebliksbillede af dine indstillinger før hver opdatering, så en dårlig opdatering kan fortrydes. Der er intet at sætte op.",
         "empty": "Ingen sikkerhedskopier endnu. De oprettes automatisk før hver opdatering.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "Adgangskoden kan ikke gendannes. Uden den kan nøglerne i filen ikke læses.",
         "skipButton": "Gendan uden mine nøgler",
         "continueButton": "Sikkerhedskopiér",
-        "unlockButton": "Lås op"
+        "unlockButton": "Lås op",
+        "saveDescription": "Adgangskoden låser nøglerne og kontiene inde i hver automatisk sikkerhedskopi. Du skal bruge den for at lægge dem tilbage.",
+        "saveButton": "Gem",
+        "enterSavedDescription": "Dine nøgler og konti i den er låst med en adgangskode til sikkerhedskopier.",
+        "useSaved": "Brug den gemte adgangskode",
+        "orTypeOne": "Eller indtast en anden"
       },
       "restore": {
         "completeTitle": "Gendannelse færdig",
@@ -854,13 +859,201 @@
         "wrongPassword": "Den adgangskode virkede ikke. Prøv igen, eller gendan uden dine nøgler.",
         "damagedKeys": "Nøglerne i filen er beskadigede og kan ikke læses. Du kan stadig gendanne alt det andet.",
         "reloadFailed": "Din sikkerhedskopi blev gendannet, men editoren kunne ikke genindlæse. Genindlæs siden for at se det.",
-        "finished": "Gendannelse færdig. Alt fra den sikkerhedskopi er tilbage."
+        "finished": "Gendannelse færdig. Alt fra den sikkerhedskopi er tilbage.",
+        "savedPasswordWrong": "Den gemte adgangskode kan ikke åbne denne sikkerhedskopi. Indtast den adgangskode, den blev lavet med."
       },
       "description": "Gem en kopi af det hele, læg den tilbage, eller start fra en skabelon.",
       "restoreConfirm": {
         "title": "Gendan fra en fil?",
         "message": "Det erstatter alle dine indstillinger, skærme, pligter og madplaner med det, der står i filen. Alt, du har ændret, siden filen blev lavet, er væk. Det kan ikke fortrydes, så gem en sikkerhedskopi først, hvis du måske vil have dagens opsætning tilbage.",
         "confirm": "Vælg en fil…"
+      },
+      "autoBackup": {
+        "heading": "Automatiske sikkerhedskopier",
+        "description": "Home Screens kan selv tage en sikkerhedskopi og gemme de nyeste her på hubben. Du kan også sende hver kopi et andet sted hen, så den er i sikkerhed, hvis hubben går i stykker.",
+        "toggleLabel": "Sikkerhedskopiér automatisk",
+        "everyLabel": "Hvor ofte",
+        "every": {
+          "day": "Hver dag",
+          "week": "Hver uge",
+          "month": "Hver måned"
+        },
+        "timeLabel": "Tidspunkt",
+        "timeHelp": "Vælg et tidspunkt, hvor ingen bruger skærmene.",
+        "keepLabel": "Behold de seneste",
+        "keepUnit": {
+          "one": "sikkerhedskopi",
+          "other": "sikkerhedskopier"
+        },
+        "keepHelp": "Ældre sikkerhedskopier bliver slettet for at gøre plads.",
+        "picturesHelp": "Billeder gør hver sikkerhedskopi meget større. Én gang om ugen er rigeligt i de fleste hjem.",
+        "keys": {
+          "label": "Tag mine nøgler og tilknyttede konti med",
+          "help": "De bliver altid låst med en adgangskode, fordi disse sikkerhedskopier kan havne uden for dit hjem.",
+          "needsEditorPassword": "Kræver først en adgangskode, så filen ikke kan læses af enhver, der finder den.",
+          "setEditorPassword": "Vælg en editor-adgangskode under Sikkerhed",
+          "passwordSaved": "Adgangskoden til sikkerhedskopier er gemt",
+          "change": "Skift",
+          "passwordNote": "Du skal bruge adgangskoden for at lægge dine nøgler tilbage. Skriv den ned et sikkert sted.",
+          "passwordMissing": "Vælg en adgangskode til sikkerhedskopier for at tage dine nøgler med. Indtil da gemmes sikkerhedskopierne uden dem.",
+          "choosePassword": "Vælg en adgangskode"
+        },
+        "when": {
+          "today": "i dag kl. {time}",
+          "yesterday": "i går kl. {time}",
+          "tomorrow": "i morgen kl. {time}",
+          "day": "{day} kl. {time}"
+        },
+        "lastLabel": "Seneste sikkerhedskopi:",
+        "lastGoodLabel": "Seneste vellykkede sikkerhedskopi:",
+        "nextLabel": "Næste sikkerhedskopi:",
+        "nextTryLabel": "Næste forsøg:",
+        "last": {
+          "sent": "{when}, sendt til din netværksmappe",
+          "failed": "mislykkedes {when}. {reason}",
+          "noPictures": "{when}, uden dine billeder. De fylder {needed}, men der er kun {free} ledig plads på hubben.",
+          "noKeys": "{when}, uden dine nøgler."
+        },
+        "errors": {
+          "no-room": "Der er ikke plads nok på hubben.",
+          "failed": "Noget gik galt, da den skulle gemmes."
+        },
+        "onlyHere": "Disse sikkerhedskopier ligger kun på hubben. Send en kopi et andet sted hen, så de er i sikkerhed.",
+        "backUpNow": "Sikkerhedskopiér nu",
+        "backingUp": "Sikkerhedskopierer…",
+        "runRefused": {
+          "busy": "Der bliver gemt en sikkerhedskopi lige nu. Prøv igen om et øjeblik.",
+          "updating": "Der bliver installeret en opdatering. Prøv igen, når den er færdig.",
+          "failed": "Kunne ikke nå hubben for at starte en sikkerhedskopi."
+        },
+        "loadFailed": "Dine automatiske sikkerhedskopier kunne ikke hentes. Genindlæs siden for at prøve igen.",
+        "saveFailed": "Kunne ikke gemme. Prøv igen.",
+        "offsite": {
+          "heading": "Send en kopi et andet sted hen",
+          "description": "En sikkerhedskopi, der kun ligger på hubben, går tabt, hvis hubbens hukommelseskort går i stykker. Send derfor også hver kopi et andet sted hen."
+        },
+        "folder": {
+          "name": "Netværksmappe",
+          "description": "Home Screens sender hver sikkerhedskopi til en mappe på dit eget netværksdrev: en delt mappe på en NAS eller en computer, eller Nextcloud og andre tjenester med WebDAV.",
+          "setUp": "Sæt op",
+          "change": "Ret",
+          "check": "Afprøv",
+          "checking": "Afprøver…",
+          "sendingTo": "Sender til {host} som {user}",
+          "sendingToShare": "Sender til den delte mappe {share} på {host} som {user}",
+          "lastSent": "sidst sendt {when}",
+          "notSentYet": "intet sendt endnu",
+          "failing": "Den seneste sikkerhedskopi kunne ikke sendes.",
+          "lastSentRetry": "Sidst sendt {when}. Home Screens prøver igen hver time.",
+          "retry": "Home Screens prøver igen hver time.",
+          "kindLegend": "Hvordan deler dit netværksdrev filer?",
+          "kindShare": "Delt mappe",
+          "kindShareHelp": "En delt mappe på en NAS, en Windows-pc eller en Mac. Kaldes også SMB.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud eller en Synology eller QNAP med WebDAV slået til.",
+          "address": "Mappens adresse",
+          "addressHelp": "Dit netværksdrev viser den som WebDAV-adresse. Mappen skal allerede være oprettet.",
+          "shareAddress": "Den delte mappes adresse",
+          "shareAddressHelp": "Skriv den, som din computer viser den, for eksempel \\\\nas.local\\Backups eller smb://nas.local/Backups. Du kan også tilføje en mappe til sidst i adressen. Findes mappen ikke, opretter Home Screens den.",
+          "username": "Brugernavn",
+          "password": "Adgangskode",
+          "passwordKeep": "Lad feltet stå tomt for at beholde den gemte",
+          "passwordNewServer": "Skriv adgangskoden til {host}. En gemt adgangskode sendes kun til den server, den hører til.",
+          "save": "Gem",
+          "cancel": "Annuller",
+          "remove": "Stop med at sende hertil",
+          "works": "Det virker. En testfil blev gemt i mappen og slettet igen.",
+          "worksShare": "Det virker. En testfil blev gemt i den delte mappe og slettet igen.",
+          "sharesOffered": "Der er ingen delt mappe med navnet {share} på {host}. Disse findes:",
+          "httpWarning": "Adressen starter med http, så din adgangskode kan blive læst undervejs. Brug en adresse, der starter med https, hvis dit netværksdrev har en.",
+          "outsideHomeWarning": "Serveren står ikke hjemme hos dig. Delte mapper (SMB) er ikke lavet til at blive brugt over internettet, og de fleste internetudbydere blokerer dem. Brug i stedet WebDAV med en https-adresse.",
+          "formErrors": {
+            "url_invalid": "Mappens adresse er ikke en gyldig webadresse.",
+            "url_scheme": "Mappens adresse skal starte med http:// eller https://.",
+            "url_credentials": "Skriv brugernavn og adgangskode i deres egne felter, ikke i adressen.",
+            "address_invalid": "Det er ikke adressen på en delt mappe. Skriv den for eksempel som \\\\nas.local\\Backups.",
+            "address_no_share": "Skriv navnet på den delte mappe efter serveren, for eksempel \\\\nas.local\\Backups.",
+            "address_credentials": "Skriv brugernavn og adgangskode i deres egne felter, ikke i adressen.",
+            "address_bad_character": "Adressen indeholder et tegn, som en delt mappe ikke kan bruge.",
+            "kind_invalid": "Vælg »Delt mappe« eller »WebDAV«.",
+            "username_required": "Skriv det brugernavn, du logger ind på dit netværksdrev med.",
+            "password_required": "Skriv den adgangskode, du logger ind på dit netværksdrev med.",
+            "password_too_long": "Adgangskoden er for lang.",
+            "not_set_up": "Sæt en netværksmappe op først.",
+            "failed": "Kunne ikke gemme. Prøv igen."
+          },
+          "removeConfirm": {
+            "title": "Stop med at sende sikkerhedskopier hertil?",
+            "message": "Sikkerhedskopier, der allerede ligger i mappen, bliver liggende. Home Screens holder bare op med at sende nye.",
+            "confirm": "Stop med at sende"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "Brugernavnet eller adgangskoden blev ikke godkendt.",
+          "not-found": "Mappen blev ikke fundet.",
+          "no-room": "Der er ikke mere plads på netværksdrevet.",
+          "too-big": "Netværksdrevet ville ikke tage imod så stor en fil.",
+          "unreachable": "Home Screens kunne ikke få forbindelse til netværksdrevet.",
+          "timeout": "Netværksdrevet var for længe om at svare.",
+          "redirect": "Netværksdrevet sendte Home Screens videre til en anden adresse. Brug den endelige adresse.",
+          "certificate": "Netværksdrevets sikkerhedscertifikat kunne ikke kontrolleres. Brug dets http-adresse på hjemmenetværket, eller giv det et ordentligt certifikat.",
+          "refused": "Netværksdrevet tog ikke imod sikkerhedskopien.",
+          "share-not-found": "Der er ingen delt mappe med navnet {share} på {host}.",
+          "no-write": "Brugeren {user} kan ikke gemme filer i den delte mappe {share}. Giv {user} lov til at ændre filer i mappen på dit netværksdrev.",
+          "too-old": "Netværksdrevet deler kun filer på en gammel måde. Slå SMB 2 eller nyere til i dets indstillinger."
+        },
+        "link": {
+          "name": "Privat downloadlink",
+          "description": "En hemmelig webadresse, som en anden computer kan bruge til at hente den nyeste sikkerhedskopi. Praktisk til en hjemmeserver, der kører efter sin egen tidsplan.",
+          "make": "Lav et link",
+          "show": "Vis link",
+          "hide": "Skjul link",
+          "lastFetched": "Sidst hentet {when}",
+          "notFetched": "Ikke hentet endnu",
+          "copy": "Kopiér",
+          "copied": "Kopieret",
+          "warning": "Alle med dette link kan hente din nyeste sikkerhedskopi, så hold det for dig selv. Det virker kun på dit hjemmenetværk, medmindre du har gjort hubben tilgængelig udefra.",
+          "makeNew": "Lav et nyt link",
+          "remove": "Fjern link",
+          "newConfirm": {
+            "title": "Lav et nyt link?",
+            "message": "Det gamle link holder op med at virke med det samme. Alt, der henter dine sikkerhedskopier, skal have det nye.",
+            "confirm": "Lav et nyt link"
+          },
+          "removeConfirm": {
+            "title": "Fjern linket?",
+            "message": "Alt, der henter dine sikkerhedskopier med det, holder op med at virke.",
+            "confirm": "Fjern link"
+          }
+        },
+        "copies": {
+          "heading": "Sikkerhedskopier på denne hub",
+          "empty": "Ingen sikkerhedskopier endnu.",
+          "emptyNext": "Ingen sikkerhedskopier endnu. Den første bliver gemt {when}.",
+          "keys": "Nøgler",
+          "pictures": "Billeder",
+          "download": "Download",
+          "restore": "Gendan",
+          "remove": "Slet",
+          "showAll": "Vis alle {count}",
+          "showFewer": "Vis færre",
+          "gone": "Den sikkerhedskopi ligger ikke længere på hubben.",
+          "restoreConfirm": {
+            "title": "Gendan denne sikkerhedskopi?",
+            "saved": "Gemt {when}.",
+            "message": "Det erstatter alle dine indstillinger, skærme, pligter og madplaner med det, der står i sikkerhedskopien. Alt, du har ændret siden da, er væk.",
+            "pictures": {
+              "one": "Lægger {count} billede tilbage ({size}).",
+              "other": "Lægger {count} billeder og videoer tilbage ({size})."
+            },
+            "confirm": "Gendan"
+          },
+          "removeConfirm": {
+            "title": "Slet denne sikkerhedskopi?",
+            "message": "Gemt {when}. Den bliver slettet fra hubben. Kopier, der allerede er sendt et andet sted hen, bliver, hvor de er.",
+            "confirm": "Slet"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Henter…",
     "backupNow": "Tag en sikkerhedskopi nu",
-    "dismiss": "Afvis"
+    "dismiss": "Afvis",
+    "autoFailed": "Den automatiske sikkerhedskopi mislykkedes.",
+    "autoNotSent": "Din sikkerhedskopi blev gemt, men kunne ikke sendes til din netværksmappe.",
+    "autoOnlyHere": "Dine sikkerhedskopier ligger kun på hubben. Send en kopi et andet sted hen.",
+    "seeWhy": "Se hvorfor",
+    "setItUp": "Sæt det op"
   },
   "updateAvailable": {
     "message": "Opdatering tilgængelig: v{version}",

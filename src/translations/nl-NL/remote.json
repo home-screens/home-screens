@@ -48,7 +48,9 @@
     "daysAgoPlural": "Je hebt al {n} dagen geen back-up gemaakt.",
     "backupButton": "Back-up",
     "savingButton": "Opslaan…",
-    "dismissAriaLabel": "Sluiten"
+    "dismissAriaLabel": "Sluiten",
+    "autoFailed": "De automatische back-up is niet gelukt. Open Instellingen op een computer om te zien waarom.",
+    "autoNotSent": "Je back-up is opgeslagen, maar kon niet naar je opslagmap worden gestuurd. Open Instellingen op een computer om te zien waarom."
   },
   "updateAvailable": {
     "message": "Update beschikbaar: v{version}",

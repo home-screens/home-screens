@@ -1190,6 +1190,7 @@ const PUBLIC_ROUTES: Record<string, string> = {
   '/api/auth/login': 'the door: it is how a session is obtained.',
   '/api/auth/logout': 'clearing your own cookie needs no proof of who you are.',
   '/api/auth/status': 'answers only whether auth is switched on, which the login page needs before anyone can log in.',
+  '/api/backup/latest': 'the private download link a NAS task or home backup server fetches with no session. The 256-bit token from Settings is the proof, compared in constant time with wrong tries limited per address; it serves only a copy that already exists (keys inside always locked) and never builds one. The IP allowlist still applies.',
   '/api/chores': 'the /chores kid view and the wall read the chore list and tick chores with no session; KID_VIEW_POST_ROUTES in src/proxy.ts is what lets the tick through, and the handlers check the member and the date themselves.',
   '/api/chores/grab': 'the /chores kid view and the wall grab bonus chores with no session, exactly as they tick chores through /api/chores. It moves no tickets.',
   '/api/health': 'the liveness probe: the upgrade pipeline and the display-only launcher ask it whether the hub booted, and a support thread asks for it first. Version, build, schema and uptime only, nothing about the household.',

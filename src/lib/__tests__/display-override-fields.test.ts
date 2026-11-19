@@ -60,6 +60,7 @@ const GLOBAL_ONLY: Record<string, string> = {
   backupReminder: 'hub maintenance, surfaced in the editor',
   updateNotification: 'hub maintenance, surfaced in the editor',
   autoUpdate: 'the hub installs its own updates; display-only Pis already follow the hub by themselves',
+  autoBackup: 'the hub backs up its own data; display-only Pis keep none of their own',
   locale: 'global-only by design, like timeFormat (see LanguageFields)',
   formattingLocale: 'see locale',
   timeFormat: 'household preference, global-only by design (see TimeFormatFields)',

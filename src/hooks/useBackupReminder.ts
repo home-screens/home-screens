@@ -5,6 +5,7 @@ import { usePolledFetch } from '@/hooks/usePolledFetch';
 import { attachCustomIcons } from '@/lib/custom-icon-backup';
 import { saveBackupFile } from '@/lib/picture-backup';
 import type { BackupState } from '@/lib/backup-state';
+import type { AutoBackupReminder } from '@/lib/backup-reminder-auto';
 
 type FetchFn = (url: string, options?: RequestInit) => Promise<Response>;
 
@@ -17,6 +18,18 @@ interface UseBackupReminderOptions {
   pollIntervalMs?: number;
   /** The household's zone, which dates the downloaded file. */
   timezone?: string;
+  /**
+   * Automatic backups are switched on. Their failures show whether or not
+   * the reminder is on, and only a copy that has left the hub counts as a
+   * backup for the reminder.
+   */
+  autoBackupEnabled?: boolean;
+}
+
+type ReminderState = BackupState & { auto?: AutoBackupReminder };
+
+function latestDate(...dates: (string | null | undefined)[]): string | null {
+  return dates.filter((d): d is string => !!d).sort().pop() ?? null;
 }
 
 export function useBackupReminder({
@@ -25,9 +38,12 @@ export function useBackupReminder({
   fetchFn = fetch,
   pollIntervalMs,
   timezone,
+  autoBackupEnabled = false,
 }: UseBackupReminderOptions) {
-  const [backupState, setBackupState] = useState<BackupState | null>(null);
+  const [backupState, setBackupState] = useState<ReminderState | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  /** When this tab dismissed, so a later failure shows again. */
+  const [dismissedAt, setDismissedAt] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   /** The last download went without the family's icons because they could
    *  not be read, although the switch asked for them. */
@@ -49,7 +65,7 @@ export function useBackupReminder({
       }
     },
     [fetchFn],
-    { enabled, intervalMs: pollIntervalMs },
+    { enabled: enabled || autoBackupEnabled, intervalMs: pollIntervalMs },
   );
 
   // Seed lastBackupDate on first encounter when null (avoids nagging new users)
@@ -71,8 +87,21 @@ export function useBackupReminder({
     return () => { mounted = false; };
   }, [enabled, backupState?.lastBackupDate, fetchFn]); // eslint-disable-line react-hooks/exhaustive-deps -- only re-run when lastBackupDate changes, not the full object
 
+  const auto = autoBackupEnabled && backupState?.auto?.enabled ? backupState.auto : null;
+  /** The automatic backup, or sending it on, stopped working, and nobody has dismissed that since. */
+  const autoFailed = useMemo((): 'backup' | 'offsite' | null => {
+    if (!auto?.failed || !auto.failedAt) return null;
+    const seen = latestDate(dismissedAt, backupState?.lastDismissedDate);
+    if (seen && seen >= auto.failedAt) return null;
+    return auto.failed;
+  }, [auto, dismissedAt, backupState?.lastDismissedDate]);
+  /** The last time a copy left the hub: a download, or a copy sent or fetched by itself. */
+  const lastCopyAway = latestDate(backupState?.lastBackupDate, auto?.offsiteAt);
+
   const shouldShow = useMemo(() => {
-    if (!enabled || !backupState) return false;
+    if (!backupState) return false;
+    if (autoFailed) return true;
+    if (!enabled) return false;
     // A backup that could not carry the icons is not the backup the reminder
     // asked for: stay up and say so, so the family can try again.
     if (iconsLeftOut || picturesLeftOut) return true;
@@ -80,9 +109,7 @@ export function useBackupReminder({
     const intervalMs = intervalDays * 86_400_000;
     const now = Date.now();
 
-    const lastBackup = backupState.lastBackupDate
-      ? new Date(backupState.lastBackupDate).getTime()
-      : 0;
+    const lastBackup = lastCopyAway ? new Date(lastCopyAway).getTime() : 0;
     if (lastBackup && now - lastBackup <= intervalMs) return false;
 
     // First-run: no backup date yet — seed it instead of nagging
@@ -94,13 +121,20 @@ export function useBackupReminder({
     if (lastDismissed && now - lastDismissed <= intervalMs) return false;
 
     return true;
-  }, [enabled, intervalDays, backupState, dismissed, iconsLeftOut, picturesLeftOut]);
+  }, [enabled, intervalDays, backupState, dismissed, iconsLeftOut, picturesLeftOut, autoFailed, lastCopyAway]);
+
+  /**
+   * Automatic backups are on but none of their copies has left the hub in
+   * time: the reminder says to send one somewhere else rather than to
+   * download one.
+   */
+  const autoLocalOnly = shouldShow && !autoFailed && !iconsLeftOut && !picturesLeftOut && !!auto;
 
   const daysSinceBackup = useMemo(() => {
-    if (!backupState?.lastBackupDate) return null;
-    const ms = Date.now() - new Date(backupState.lastBackupDate).getTime();
+    if (!lastCopyAway) return null;
+    const ms = Date.now() - new Date(lastCopyAway).getTime();
     return Math.floor(ms / 86_400_000);
-  }, [backupState?.lastBackupDate]);
+  }, [lastCopyAway]);
 
   /** Download a full backup. Returns true when a file was saved (then
    *  `iconsLeftOut` and `picturesLeftOut` say what it lacks), false on failure. */
@@ -130,6 +164,7 @@ export function useBackupReminder({
 
   const handleDismiss = useCallback(() => {
     setDismissed(true);
+    setDismissedAt(new Date().toISOString());
     setIconsLeftOut(false);
     setPicturesLeftOut(false);
     fetchFn('/api/backup/reminder', {
@@ -139,5 +174,5 @@ export function useBackupReminder({
     }).catch(() => {});
   }, [fetchFn]);
 
-  return { shouldShow, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, handleBackup, handleDismiss };
+  return { shouldShow, daysSinceBackup, busy, iconsLeftOut, picturesLeftOut, autoFailed, autoLocalOnly, handleBackup, handleDismiss };
 }

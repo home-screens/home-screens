@@ -90,6 +90,9 @@ export default async function RemotePage() {
   const backupReminder = {
     enabled: config.settings.backupReminder?.enabled ?? false,
     intervalDays: config.settings.backupReminder?.intervalDays ?? 7,
+    // Automatic backups tell the phone when they stop working, whether or
+    // not the reminder itself is on.
+    autoBackup: config.settings.autoBackup?.enabled === true,
   };
   const updateNotification = {
     enabled: config.settings.updateNotification?.enabled ?? false,

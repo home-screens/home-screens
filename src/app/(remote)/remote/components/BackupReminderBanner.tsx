@@ -10,6 +10,12 @@ interface BackupReminderBannerProps {
   iconsLeftOut?: boolean;
   /** The last backup went without the library pictures; ask for another. */
   picturesLeftOut?: boolean;
+  /**
+   * Automatic backups stopped working. The phone cannot fix that (they are
+   * set up in the editor), so the banner says where to look and offers no
+   * button to a place it cannot go.
+   */
+  autoFailed?: 'backup' | 'offsite' | null;
   onBackup: () => void;
   onDismiss: () => void;
 }
@@ -20,6 +26,7 @@ export default function BackupReminderBanner({
   busy,
   iconsLeftOut = false,
   picturesLeftOut = false,
+  autoFailed = null,
   onBackup,
   onDismiss,
 }: BackupReminderBannerProps) {
@@ -33,7 +40,11 @@ export default function BackupReminderBanner({
   // the parent only renders when it has a real count, so default to 0
   // for the rare null case.
   const days = daysSinceBackup ?? 0;
-  const message = iconsLeftOut
+  const message = autoFailed === 'backup'
+    ? t('backupReminder.autoFailed')
+    : autoFailed === 'offsite'
+    ? t('backupReminder.autoNotSent')
+    : iconsLeftOut
     ? tCore('customIcons.backup.leftOut')
     : picturesLeftOut
     ? tCore('pictureBackup.leftOut')
@@ -44,15 +55,17 @@ export default function BackupReminderBanner({
   return (
     <div className="mx-4 mt-2 rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3">
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] text-hs-warning">{message}</div>
+        <div className="text-[13px] text-hs-warning" data-testid="backup-reminder-banner">{message}</div>
       </div>
-      <button
-        onClick={onBackup}
-        disabled={busy}
-        className="shrink-0 rounded-lg bg-amber-600 active:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
-      >
-        {busy ? t('backupReminder.savingButton') : t('backupReminder.backupButton')}
-      </button>
+      {!autoFailed && (
+        <button
+          onClick={onBackup}
+          disabled={busy}
+          className="shrink-0 rounded-lg bg-amber-600 active:bg-amber-500 text-white text-xs font-medium px-3 py-1.5 transition-colors disabled:opacity-50"
+        >
+          {busy ? t('backupReminder.savingButton') : t('backupReminder.backupButton')}
+        </button>
+      )}
       <button
         onClick={onDismiss}
         className="shrink-0 text-hs-text-faint active:text-hs-text-secondary transition-colors p-1"

@@ -48,7 +48,9 @@
     "daysAgoPlural": "Tu n'as pas fait de sauvegarde depuis {n} jours.",
     "backupButton": "Sauvegarder",
     "savingButton": "Enregistrement…",
-    "dismissAriaLabel": "Fermer"
+    "dismissAriaLabel": "Fermer",
+    "autoFailed": "La sauvegarde automatique n'a pas fonctionné. Ouvre les Réglages sur un ordinateur pour voir pourquoi.",
+    "autoNotSent": "Ta sauvegarde a été enregistrée, mais n'a pas pu être envoyée dans ton dossier de stockage. Ouvre les Réglages sur un ordinateur pour voir pourquoi."
   },
   "updateAvailable": {
     "message": "Mise à jour disponible : v{version}",

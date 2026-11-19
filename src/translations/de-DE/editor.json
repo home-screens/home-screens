@@ -803,7 +803,7 @@
         "noBackups": "Noch keine Backups erfasst"
       },
       "configBackups": {
-        "heading": "Automatische Schnappschüsse",
+        "heading": "Schnappschüsse vor Updates",
         "description": "Home Screens sichert vor jedem Update einen Schnappschuss deiner Einstellungen, damit ein misslungenes Update rückgängig gemacht werden kann. Nichts einzurichten.",
         "empty": "Noch keine Backups. Backups werden automatisch vor jeder Aktualisierung erstellt.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "Dieses Passwort lässt sich nicht wiederherstellen. Ohne es sind die Schlüssel in dieser Datei nicht lesbar.",
         "skipButton": "Ohne meine Schlüssel wiederherstellen",
         "continueButton": "Sichern",
-        "unlockButton": "Entsperren"
+        "unlockButton": "Entsperren",
+        "saveDescription": "Dieses Passwort sperrt die Schlüssel und Konten in jedem automatischen Backup. Du brauchst es, um sie wieder einzuspielen.",
+        "saveButton": "Speichern",
+        "enterSavedDescription": "Deine Schlüssel und Konten darin sind mit einem Backup-Passwort gesperrt.",
+        "useSaved": "Gespeichertes Backup-Passwort verwenden",
+        "orTypeOne": "Oder ein anderes eingeben"
       },
       "restore": {
         "completeTitle": "Wiederherstellung abgeschlossen",
@@ -854,13 +859,201 @@
         "wrongPassword": "Dieses Passwort hat nicht funktioniert. Versuch es erneut oder stelle ohne deine Schlüssel wieder her.",
         "damagedKeys": "Die Schlüssel in dieser Datei sind beschädigt und nicht lesbar. Alles andere kannst du trotzdem wiederherstellen.",
         "reloadFailed": "Dein Backup wurde wiederhergestellt, aber der Editor konnte nicht neu laden. Lade die Seite neu, um es zu sehen.",
-        "finished": "Wiederherstellung abgeschlossen. Alles aus dieser Sicherung ist wieder da."
+        "finished": "Wiederherstellung abgeschlossen. Alles aus dieser Sicherung ist wieder da.",
+        "savedPasswordWrong": "Das gespeicherte Backup-Passwort öffnet dieses Backup nicht. Gib das Passwort ein, mit dem es erstellt wurde."
       },
       "description": "Alles sichern, wiederherstellen oder mit einer Vorlage neu anfangen.",
       "restoreConfirm": {
         "title": "Aus einer Datei wiederherstellen?",
         "message": "Das ersetzt alle deine Einstellungen, Bildschirme, Aufgaben und Essenspläne durch den Inhalt der Datei. Alles, was du seit dieser Datei geändert hast, ist weg. Das lässt sich nicht rückgängig machen, sichere also vorher ein Backup, falls du die heutige Einrichtung zurückhaben möchtest.",
         "confirm": "Datei auswählen…"
+      },
+      "autoBackup": {
+        "heading": "Automatische Backups",
+        "description": "Home Screens kann von selbst Backups erstellen und die neuesten auf diesem Hub aufbewahren. Du kannst jedes auch an einen anderen Ort schicken, damit es sicher ist, falls dieser Hub kaputtgeht.",
+        "toggleLabel": "Automatisch sichern",
+        "everyLabel": "Wie oft",
+        "every": {
+          "day": "Jeden Tag",
+          "week": "Jede Woche",
+          "month": "Jeden Monat"
+        },
+        "timeLabel": "Uhrzeit",
+        "timeHelp": "Wähle eine Uhrzeit, zu der niemand die Bildschirme nutzt.",
+        "keepLabel": "Wie viele behalten",
+        "keepUnit": {
+          "one": "Backup",
+          "other": "Backups"
+        },
+        "keepHelp": "Ältere Backups werden gelöscht, um Platz zu schaffen.",
+        "picturesHelp": "Bilder machen jedes Backup viel größer. Für die meisten Haushalte reicht einmal pro Woche völlig.",
+        "keys": {
+          "label": "Meine Schlüssel und verbundenen Konten mitsichern",
+          "help": "Immer mit einem Backup-Passwort gesperrt, weil diese Backups auch außer Haus landen können.",
+          "needsEditorPassword": "Braucht zuerst ein Passwort, damit die Datei nicht von jedem gelesen werden kann, der sie findet.",
+          "setEditorPassword": "Editor-Passwort unter „Sicherheit“ festlegen",
+          "passwordSaved": "Backup-Passwort gespeichert",
+          "change": "Ändern",
+          "passwordNote": "Du brauchst dieses Passwort, um deine Schlüssel wieder einzuspielen. Notiere es an einem sicheren Ort.",
+          "passwordMissing": "Wähle ein Backup-Passwort, damit deine Schlüssel mitgesichert werden. Bis dahin werden Backups ohne sie gespeichert.",
+          "choosePassword": "Passwort wählen"
+        },
+        "when": {
+          "today": "heute um {time}",
+          "yesterday": "gestern um {time}",
+          "tomorrow": "morgen um {time}",
+          "day": "{day} um {time}"
+        },
+        "lastLabel": "Letztes Backup:",
+        "lastGoodLabel": "Letztes gelungenes Backup:",
+        "nextLabel": "Nächstes Backup:",
+        "nextTryLabel": "Nächster Versuch:",
+        "last": {
+          "sent": "{when}, an deinen Netzwerkordner geschickt",
+          "failed": "{when} fehlgeschlagen. {reason}",
+          "noPictures": "{when}, ohne deine Bilder. Sie brauchen {needed}, auf diesem Hub sind aber nur {free} frei.",
+          "noKeys": "{when}, ohne deine Schlüssel."
+        },
+        "errors": {
+          "no-room": "Auf diesem Hub ist nicht genug Platz.",
+          "failed": "Beim Speichern ist etwas schiefgelaufen."
+        },
+        "onlyHere": "Diese Backups liegen nur auf diesem Hub. Schick eine Kopie an einen anderen Ort, damit sie sicher sind.",
+        "backUpNow": "Jetzt sichern",
+        "backingUp": "Wird gesichert …",
+        "runRefused": {
+          "busy": "Gerade wird schon ein Backup gespeichert. Versuch es gleich noch einmal.",
+          "updating": "Gerade wird ein Update installiert. Versuch es noch einmal, wenn es fertig ist.",
+          "failed": "Der Hub war nicht erreichbar, deshalb konnte das Backup nicht starten."
+        },
+        "loadFailed": "Deine automatischen Backups konnten nicht geladen werden. Lade die Seite neu, um es noch einmal zu versuchen.",
+        "saveFailed": "Speichern hat nicht geklappt. Versuch es noch einmal.",
+        "offsite": {
+          "heading": "Eine Kopie an einen anderen Ort schicken",
+          "description": "Ein Backup auf diesem Hub ist verloren, wenn die Speicherkarte des Hubs kaputtgeht. Schick deshalb jedes Backup zusätzlich an einen anderen Ort."
+        },
+        "folder": {
+          "name": "Netzwerkordner",
+          "description": "Home Screens schickt jedes Backup in einen Ordner auf deinem eigenen Speicher. Das kann ein freigegebener Ordner auf einem NAS oder Computer sein, aber auch deine Nextcloud oder ein anderer Speicher mit WebDAV.",
+          "setUp": "Einrichten",
+          "change": "Ändern",
+          "check": "Testen",
+          "checking": "Wird getestet …",
+          "sendingTo": "Geht an {host}, angemeldet als {user}",
+          "sendingToShare": "Geht an die Freigabe {share} auf {host}, angemeldet als {user}",
+          "lastSent": "zuletzt geschickt: {when}",
+          "notSentYet": "noch nichts geschickt",
+          "failing": "Das letzte Backup konnte nicht geschickt werden.",
+          "lastSentRetry": "Zuletzt geschickt: {when}. Home Screens versucht es jede Stunde erneut.",
+          "retry": "Home Screens versucht es jede Stunde erneut.",
+          "kindLegend": "Wie teilt dein Speicher Dateien?",
+          "kindShare": "Netzwerkfreigabe",
+          "kindShareHelp": "Ein freigegebener Ordner auf einem NAS, einem Windows-PC oder einem Mac. Auch SMB genannt.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud oder ein Synology- oder QNAP-NAS mit eingeschaltetem WebDAV.",
+          "address": "Ordneradresse",
+          "addressHelp": "Dein Netzwerkspeicher zeigt sie als WebDAV-Adresse an. Den Ordner muss es schon geben.",
+          "shareAddress": "Adresse der Freigabe",
+          "shareAddressHelp": "Gib sie so ein, wie dein Computer sie anzeigt, zum Beispiel \\\\nas.local\\Backups oder smb://nas.local/Backups. Hinter der Freigabe kannst du noch einen Ordner angeben. Gibt es ihn nicht, legt Home Screens ihn an.",
+          "username": "Benutzername",
+          "password": "Passwort",
+          "passwordKeep": "Leer lassen, um das gespeicherte zu behalten",
+          "passwordNewServer": "Gib das Passwort für {host} ein. Ein gespeichertes Passwort geht nur an den Server, für den es eingegeben wurde.",
+          "save": "Speichern",
+          "cancel": "Abbrechen",
+          "remove": "Nicht mehr hierhin schicken",
+          "works": "Es funktioniert. Eine Testdatei wurde im Ordner gespeichert und wieder gelöscht.",
+          "worksShare": "Es funktioniert. Eine Testdatei wurde in der Freigabe gespeichert und wieder gelöscht.",
+          "sharesOffered": "Auf {host} gibt es keine Freigabe namens {share}. Diese Freigaben gibt es:",
+          "httpWarning": "Diese Adresse beginnt mit http, daher könnte dein Passwort unterwegs mitgelesen werden. Nimm eine Adresse mit https, wenn dein Netzwerkspeicher das anbietet.",
+          "outsideHomeWarning": "Dieser Server steht nicht bei dir zu Hause. Netzwerkfreigaben sind nicht dafür gemacht, über das Internet erreicht zu werden, und die meisten Internetanbieter sperren sie. Nimm stattdessen WebDAV mit einer https-Adresse.",
+          "formErrors": {
+            "url_invalid": "Diese Ordneradresse ist keine gültige Webadresse.",
+            "url_scheme": "Die Ordneradresse muss mit http:// oder https:// beginnen.",
+            "url_credentials": "Trag Benutzername und Passwort in ihre eigenen Felder ein, nicht in die Adresse.",
+            "address_invalid": "Das ist keine gültige Adresse für eine Freigabe. Gib sie zum Beispiel so ein: \\\\nas.local\\Backups.",
+            "address_no_share": "Gib hinter dem Server noch den Namen der Freigabe an, zum Beispiel \\\\nas.local\\Backups.",
+            "address_credentials": "Trag Benutzername und Passwort in ihre eigenen Felder ein, nicht in die Adresse.",
+            "address_bad_character": "In der Adresse steht ein Zeichen, das bei freigegebenen Ordnern nicht erlaubt ist.",
+            "kind_invalid": "Wähle „Netzwerkfreigabe“ oder „WebDAV“.",
+            "username_required": "Gib den Benutzernamen ein, mit dem du dich bei deinem Netzwerkspeicher anmeldest.",
+            "password_required": "Gib das Passwort ein, mit dem du dich bei deinem Netzwerkspeicher anmeldest.",
+            "password_too_long": "Dieses Passwort ist zu lang.",
+            "not_set_up": "Richte zuerst einen Netzwerkordner ein.",
+            "failed": "Speichern hat nicht geklappt. Versuch es noch einmal."
+          },
+          "removeConfirm": {
+            "title": "Keine Backups mehr hierhin schicken?",
+            "message": "Backups, die schon im Ordner liegen, bleiben dort. Home Screens schickt nur keine neuen mehr.",
+            "confirm": "Nicht mehr schicken"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "Benutzername oder Passwort stimmt nicht.",
+          "not-found": "Dieser Ordner wurde nicht gefunden.",
+          "no-room": "Auf dem Netzwerkspeicher ist kein Platz mehr.",
+          "too-big": "Der Netzwerkspeicher nimmt so große Dateien nicht an.",
+          "unreachable": "Home Screens konnte den Netzwerkspeicher nicht erreichen.",
+          "timeout": "Der Netzwerkspeicher hat zu lange nicht geantwortet.",
+          "redirect": "Der Netzwerkspeicher hat Home Screens an eine andere Adresse weitergeleitet. Trag direkt die Adresse ein, auf die er weiterleitet.",
+          "certificate": "Das Sicherheitszertifikat des Netzwerkspeichers ließ sich nicht prüfen. Nimm zu Hause seine http-Adresse oder richte ein gültiges Zertifikat ein.",
+          "refused": "Der Netzwerkspeicher hat das Backup nicht angenommen.",
+          "share-not-found": "Auf {host} gibt es keine Freigabe namens {share}.",
+          "no-write": "Angemeldet als {user} kann Home Screens in der Freigabe {share} keine Dateien speichern. Stell auf deinem Netzwerkspeicher ein, dass das Konto {user} dort Dateien ändern darf.",
+          "too-old": "Dein Netzwerkspeicher bietet nur eine alte Art der Freigabe an. Schalte in seinen Einstellungen SMB 2 oder neuer ein."
+        },
+        "link": {
+          "name": "Privater Download-Link",
+          "description": "Eine geheime Webadresse, über die ein anderer Computer das neueste Backup abholen kann. Praktisch für einen Heimserver, der nach eigenem Zeitplan sichert.",
+          "make": "Link erstellen",
+          "show": "Link anzeigen",
+          "hide": "Link ausblenden",
+          "lastFetched": "Zuletzt abgeholt: {when}",
+          "notFetched": "Noch nicht abgeholt",
+          "copy": "Kopieren",
+          "copied": "Kopiert",
+          "warning": "Jeder mit diesem Link kann dein neuestes Backup herunterladen, also behalte ihn für dich. Er funktioniert nur bei dir zu Hause, außer du hast deinen Hub von außen erreichbar gemacht.",
+          "makeNew": "Neuen Link erstellen",
+          "remove": "Link entfernen",
+          "newConfirm": {
+            "title": "Neuen Link erstellen?",
+            "message": "Der alte Link funktioniert sofort nicht mehr. Alles, was deine Backups abholt, braucht dann den neuen.",
+            "confirm": "Neuen Link erstellen"
+          },
+          "removeConfirm": {
+            "title": "Link entfernen?",
+            "message": "Alles, was deine Backups über diesen Link abholt, funktioniert dann nicht mehr.",
+            "confirm": "Link entfernen"
+          }
+        },
+        "copies": {
+          "heading": "Backups auf diesem Hub",
+          "empty": "Noch keine Backups.",
+          "emptyNext": "Noch keine Backups. Das erste ist für {when} geplant.",
+          "keys": "Schlüssel",
+          "pictures": "Bilder",
+          "download": "Herunterladen",
+          "restore": "Wiederherstellen",
+          "remove": "Löschen",
+          "showAll": "Alle {count} anzeigen",
+          "showFewer": "Weniger anzeigen",
+          "gone": "Dieses Backup ist nicht mehr auf dem Hub.",
+          "restoreConfirm": {
+            "title": "Dieses Backup wiederherstellen?",
+            "saved": "Gespeichert am {when}.",
+            "message": "Das ersetzt alle deine Einstellungen, Bildschirme, Aufgaben und Essenspläne durch den Inhalt des Backups. Alles, was du seitdem geändert hast, ist weg.",
+            "pictures": {
+              "one": "Außerdem kommt {count} Bild zurück ({size}).",
+              "other": "Außerdem kommen {count} Bilder und Videos zurück ({size})."
+            },
+            "confirm": "Wiederherstellen"
+          },
+          "removeConfirm": {
+            "title": "Dieses Backup löschen?",
+            "message": "Gespeichert am {when}. Es wird von diesem Hub gelöscht. Kopien, die schon an einen anderen Ort geschickt wurden, bleiben dort.",
+            "confirm": "Löschen"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Wird heruntergeladen…",
     "backupNow": "Jetzt sichern",
-    "dismiss": "Schließen"
+    "dismiss": "Schließen",
+    "autoFailed": "Das automatische Backup hat nicht geklappt.",
+    "autoNotSent": "Dein Backup wurde gespeichert, konnte aber nicht an deinen Netzwerkordner geschickt werden.",
+    "autoOnlyHere": "Deine Backups liegen nur auf diesem Hub. Schick eine Kopie an einen anderen Ort.",
+    "seeWhy": "Grund ansehen",
+    "setItUp": "Einrichten"
   },
   "updateAvailable": {
     "message": "Update verfügbar: v{version}",

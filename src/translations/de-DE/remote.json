@@ -48,7 +48,9 @@
     "daysAgoPlural": "Du hast seit {n} Tagen kein Backup gemacht.",
     "backupButton": "Backup",
     "savingButton": "Speichert …",
-    "dismissAriaLabel": "Schließen"
+    "dismissAriaLabel": "Schließen",
+    "autoFailed": "Das automatische Backup hat nicht geklappt. Öffne die Einstellungen am Computer, um den Grund zu sehen.",
+    "autoNotSent": "Dein Backup wurde gespeichert, konnte aber nicht an deinen Netzwerkordner geschickt werden. Öffne die Einstellungen am Computer, um den Grund zu sehen."
   },
   "updateAvailable": {
     "message": "Update verfügbar: v{version}",

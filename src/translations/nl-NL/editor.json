@@ -803,7 +803,7 @@
         "noBackups": "Nog geen back-ups vastgelegd"
       },
       "configBackups": {
-        "heading": "Automatische momentopnamen",
+        "heading": "Momentopnamen vóór updates",
         "description": "Home Screens bewaart voor elke update een momentopname van je instellingen, zodat een mislukte update ongedaan kan worden gemaakt. Niets in te stellen.",
         "empty": "Nog geen back-ups. Back-ups worden automatisch gemaakt voor elke upgrade.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "Dit wachtwoord kan niet worden hersteld. Zonder dit wachtwoord zijn de sleutels in dit bestand onleesbaar.",
         "skipButton": "Terugzetten zonder mijn sleutels",
         "continueButton": "Back-uppen",
-        "unlockButton": "Ontgrendelen"
+        "unlockButton": "Ontgrendelen",
+        "saveDescription": "Dit wachtwoord vergrendelt de sleutels en accounts in elke automatische back-up. Je hebt het nodig om ze terug te zetten.",
+        "saveButton": "Opslaan",
+        "enterSavedDescription": "Je sleutels en accounts hierin zijn vergrendeld met een back-upwachtwoord.",
+        "useSaved": "Opgeslagen back-upwachtwoord gebruiken",
+        "orTypeOne": "Of typ een ander wachtwoord"
       },
       "restore": {
         "completeTitle": "Terugzetten voltooid",
@@ -854,13 +859,201 @@
         "wrongPassword": "Dat wachtwoord werkte niet. Probeer het opnieuw of zet terug zonder je sleutels.",
         "damagedKeys": "De sleutels in dit bestand zijn beschadigd en onleesbaar. Al het andere kun je nog wel terugzetten.",
         "reloadFailed": "Je back-up is teruggezet, maar de editor kon niet herladen. Ververs de pagina om het te zien.",
-        "finished": "Terugzetten voltooid. Alles uit die back-up is weer terug."
+        "finished": "Terugzetten voltooid. Alles uit die back-up is weer terug.",
+        "savedPasswordWrong": "Het opgeslagen back-upwachtwoord opent deze back-up niet. Typ het wachtwoord waarmee deze back-up is gemaakt."
       },
       "description": "Bewaar een kopie van alles, zet die terug of begin met een sjabloon.",
       "restoreConfirm": {
         "title": "Terugzetten uit een bestand?",
         "message": "Dit vervangt al je instellingen, schermen, klusjes en maaltijdplannen door wat er in het bestand staat. Alles wat je sinds dat bestand hebt gewijzigd, is weg. Dit kan niet ongedaan worden gemaakt, dus maak eerst een back-up als je de opzet van vandaag misschien terug wilt.",
         "confirm": "Bestand kiezen…"
+      },
+      "autoBackup": {
+        "heading": "Automatische back-ups",
+        "description": "Home Screens kan vanzelf een back-up maken en de nieuwste op deze hub bewaren. Je kunt elke back-up ook ergens anders heen sturen, zodat hij veilig is als deze hub kapotgaat.",
+        "toggleLabel": "Vanzelf back-ups maken",
+        "everyLabel": "Hoe vaak",
+        "every": {
+          "day": "Elke dag",
+          "week": "Elke week",
+          "month": "Elke maand"
+        },
+        "timeLabel": "Tijdstip",
+        "timeHelp": "Kies een tijdstip waarop niemand de displays gebruikt.",
+        "keepLabel": "Bewaar de laatste",
+        "keepUnit": {
+          "one": "back-up",
+          "other": "back-ups"
+        },
+        "keepHelp": "Oudere back-ups worden verwijderd om ruimte te maken.",
+        "picturesHelp": "Afbeeldingen maken elke back-up veel groter. Voor de meeste gezinnen is één keer per week ruim genoeg.",
+        "keys": {
+          "label": "Mijn sleutels en gekoppelde accounts meenemen",
+          "help": "Altijd vergrendeld met een back-upwachtwoord, omdat deze back-ups buiten je huis terecht kunnen komen.",
+          "needsEditorPassword": "Hiervoor is eerst een wachtwoord nodig, zodat het bestand niet leesbaar is voor wie het vindt.",
+          "setEditorPassword": "Stel een editorwachtwoord in bij Beveiliging",
+          "passwordSaved": "Back-upwachtwoord opgeslagen",
+          "change": "Wijzigen",
+          "passwordNote": "Je hebt dit wachtwoord nodig om je sleutels terug te zetten. Schrijf het op en bewaar het op een veilige plek.",
+          "passwordMissing": "Kies een back-upwachtwoord om je sleutels mee te nemen. Tot die tijd worden back-ups zonder je sleutels gemaakt.",
+          "choosePassword": "Kies een wachtwoord"
+        },
+        "when": {
+          "today": "vandaag om {time}",
+          "yesterday": "gisteren om {time}",
+          "tomorrow": "morgen om {time}",
+          "day": "{day} om {time}"
+        },
+        "lastLabel": "Laatste back-up:",
+        "lastGoodLabel": "Laatste gelukte back-up:",
+        "nextLabel": "Volgende back-up:",
+        "nextTryLabel": "Volgende poging:",
+        "last": {
+          "sent": "{when}, verstuurd naar je opslagmap",
+          "failed": "{when} niet gelukt. {reason}",
+          "noPictures": "{when}, zonder je afbeeldingen. Die hebben {needed} nodig en deze hub heeft nog {free} vrij.",
+          "noKeys": "{when}, zonder je sleutels."
+        },
+        "errors": {
+          "no-room": "Er is niet genoeg ruimte op deze hub.",
+          "failed": "Er ging iets mis bij het opslaan."
+        },
+        "onlyHere": "Deze back-ups staan alleen op deze hub. Stuur een kopie ergens anders heen, dan zijn ze veilig.",
+        "backUpNow": "Nu back-uppen",
+        "backingUp": "Back-uppen…",
+        "runRefused": {
+          "busy": "Er wordt nu al een back-up gemaakt. Probeer het zo opnieuw.",
+          "updating": "Er wordt een update geïnstalleerd. Probeer het opnieuw als die klaar is.",
+          "failed": "De hub was niet bereikbaar om een back-up te starten."
+        },
+        "loadFailed": "Je automatische back-ups konden niet worden geladen. Herlaad de pagina om het opnieuw te proberen.",
+        "saveFailed": "Opslaan is niet gelukt. Probeer het opnieuw.",
+        "offsite": {
+          "heading": "Een kopie ergens anders bewaren",
+          "description": "Een back-up op deze hub gaat verloren als de geheugenkaart van de hub kapotgaat. Stuur elke back-up daarom ook ergens anders heen."
+        },
+        "folder": {
+          "name": "Opslagmap",
+          "description": "Home Screens stuurt elke back-up naar een map op je eigen opslag: een gedeelde map op een NAS of computer, of Nextcloud en andere opslag met WebDAV.",
+          "setUp": "Instellen",
+          "change": "Wijzigen",
+          "check": "Testen",
+          "checking": "Testen…",
+          "sendingTo": "Stuurt naar {host}, ingelogd als {user}",
+          "sendingToShare": "Stuurt naar de gedeelde map {share} op {host}, ingelogd als {user}",
+          "lastSent": "laatst verstuurd {when}",
+          "notSentYet": "nog niets verstuurd",
+          "failing": "De laatste back-up kon niet worden verstuurd.",
+          "lastSentRetry": "Laatst verstuurd {when}. Home Screens probeert het elk uur opnieuw.",
+          "retry": "Home Screens probeert het elk uur opnieuw.",
+          "kindLegend": "Hoe deelt je opslag bestanden?",
+          "kindShare": "Gedeelde netwerkmap",
+          "kindShareHelp": "Een gedeelde map op een NAS, een Windows-pc of een Mac. Ook wel SMB genoemd.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud, of een Synology of QNAP waarop WebDAV aanstaat.",
+          "address": "Adres van de map",
+          "addressHelp": "Bij je opslag heet dit het WebDAV-adres. De map moet al bestaan.",
+          "shareAddress": "Adres van de gedeelde map",
+          "shareAddressHelp": "Typ het zoals je computer het laat zien, bijvoorbeeld \\\\nas.local\\Backups of smb://nas.local/Backups. Je kunt er nog een map achter zetten. Bestaat die niet, dan maakt Home Screens hem aan.",
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord",
+          "passwordKeep": "Laat leeg om het opgeslagen wachtwoord te houden",
+          "passwordNewServer": "Typ het wachtwoord voor {host}. Een opgeslagen wachtwoord gaat alleen naar de server waarvoor het is ingevuld.",
+          "save": "Opslaan",
+          "cancel": "Annuleren",
+          "remove": "Niet meer hierheen sturen",
+          "works": "Het werkt. Er is een testbestand in de map gezet en weer verwijderd.",
+          "worksShare": "Het werkt. Er is een testbestand in de gedeelde map gezet en weer verwijderd.",
+          "sharesOffered": "Er is geen gedeelde map met de naam {share} op {host}. Deze zijn er wel:",
+          "httpWarning": "Dit adres begint met http, dus je wachtwoord kan onderweg worden meegelezen. Gebruik een adres dat met https begint als je opslag dat heeft.",
+          "outsideHomeWarning": "Deze server staat niet bij je thuis. Gedeelde netwerkmappen zijn niet bedoeld voor gebruik via internet, en de meeste internetproviders blokkeren ze. Gebruik liever WebDAV met een https-adres.",
+          "formErrors": {
+            "url_invalid": "Dat is geen geldig webadres.",
+            "url_scheme": "Het adres van de map moet beginnen met http:// of https://.",
+            "url_credentials": "Zet de gebruikersnaam en het wachtwoord in hun eigen vakjes, niet in het adres.",
+            "address_invalid": "Dat is geen adres van een gedeelde map. Typ het bijvoorbeeld zo: \\\\nas.local\\Backups.",
+            "address_no_share": "Zet de naam van de gedeelde map achter de servernaam, bijvoorbeeld \\\\nas.local\\Backups.",
+            "address_credentials": "Zet de gebruikersnaam en het wachtwoord in hun eigen vakjes, niet in het adres.",
+            "address_bad_character": "Het adres bevat een teken dat niet mag in een gedeelde map.",
+            "kind_invalid": "Kies een gedeelde netwerkmap of WebDAV.",
+            "username_required": "Typ de gebruikersnaam waarmee je inlogt op je opslag.",
+            "password_required": "Typ het wachtwoord waarmee je inlogt op je opslag.",
+            "password_too_long": "Dat wachtwoord is te lang.",
+            "not_set_up": "Stel eerst een opslagmap in.",
+            "failed": "Opslaan is niet gelukt. Probeer het opnieuw."
+          },
+          "removeConfirm": {
+            "title": "Geen back-ups meer hierheen sturen?",
+            "message": "Back-ups die al in de map staan, blijven daar. Home Screens stuurt er geen nieuwe meer heen.",
+            "confirm": "Niet meer sturen"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "De gebruikersnaam of het wachtwoord klopt niet.",
+          "not-found": "Die map is niet gevonden.",
+          "no-room": "De opslag is vol.",
+          "too-big": "De opslag neemt geen bestand van deze grootte aan.",
+          "unreachable": "Home Screens kon de opslag niet bereiken.",
+          "timeout": "De opslag reageerde te traag.",
+          "redirect": "De opslag stuurde Home Screens door naar een ander adres. Gebruik het adres waar je uiteindelijk uitkomt.",
+          "certificate": "Het beveiligingscertificaat van de opslag kon niet worden gecontroleerd. Gebruik thuis het http-adres, of geef de opslag een geldig certificaat.",
+          "refused": "De opslag heeft de back-up niet aangenomen.",
+          "share-not-found": "Er is geen gedeelde map met de naam {share} op {host}.",
+          "no-write": "Ingelogd als {user} kan Home Screens geen bestanden opslaan in de gedeelde map {share}. Zorg er op je opslag voor dat {user} daar bestanden mag wijzigen.",
+          "too-old": "Deze opslag kan alleen op een oude manier delen. Zet in de instellingen van je opslag SMB 2 of nieuwer aan."
+        },
+        "link": {
+          "name": "Geheime downloadlink",
+          "description": "Een geheim webadres waarmee een andere computer de nieuwste back-up kan ophalen. Handig voor een thuisserver die zijn eigen schema volgt.",
+          "make": "Link maken",
+          "show": "Link tonen",
+          "hide": "Link verbergen",
+          "lastFetched": "Laatst opgehaald {when}",
+          "notFetched": "Nog niet opgehaald",
+          "copy": "Kopiëren",
+          "copied": "Gekopieerd",
+          "warning": "Iedereen met deze link kan je nieuwste back-up downloaden, dus houd hem geheim. Hij werkt alleen binnen je thuisnetwerk, tenzij je je hub van buitenaf bereikbaar hebt gemaakt.",
+          "makeNew": "Nieuwe link maken",
+          "remove": "Link verwijderen",
+          "newConfirm": {
+            "title": "Nieuwe link maken?",
+            "message": "De oude link werkt meteen niet meer. Alles wat je back-ups ophaalt, heeft de nieuwe nodig.",
+            "confirm": "Nieuwe link maken"
+          },
+          "removeConfirm": {
+            "title": "Link verwijderen?",
+            "message": "Alles wat je back-ups via deze link ophaalt, werkt dan niet meer.",
+            "confirm": "Link verwijderen"
+          }
+        },
+        "copies": {
+          "heading": "Back-ups op deze hub",
+          "empty": "Nog geen back-ups.",
+          "emptyNext": "Nog geen back-ups. De eerste wordt {when} gemaakt.",
+          "keys": "Sleutels",
+          "pictures": "Afbeeldingen",
+          "download": "Downloaden",
+          "restore": "Terugzetten",
+          "remove": "Verwijderen",
+          "showAll": "Alle {count} tonen",
+          "showFewer": "Minder tonen",
+          "gone": "Die back-up staat niet meer op de hub.",
+          "restoreConfirm": {
+            "title": "Deze back-up terugzetten?",
+            "saved": "Opgeslagen op {when}.",
+            "message": "Dit vervangt al je instellingen, schermen, klusjes en maaltijdplannen door wat er in de back-up staat. Alles wat je sindsdien hebt gewijzigd, is weg.",
+            "pictures": {
+              "one": "Zet {count} afbeelding terug ({size}).",
+              "other": "Zet {count} afbeeldingen en video's terug ({size})."
+            },
+            "confirm": "Terugzetten"
+          },
+          "removeConfirm": {
+            "title": "Deze back-up verwijderen?",
+            "message": "Opgeslagen op {when}. De back-up wordt van deze hub verwijderd. Kopieën die al ergens anders heen zijn gestuurd, blijven waar ze zijn.",
+            "confirm": "Verwijderen"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Downloaden…",
     "backupNow": "Nu back-uppen",
-    "dismiss": "Sluiten"
+    "dismiss": "Sluiten",
+    "autoFailed": "De automatische back-up is niet gelukt.",
+    "autoNotSent": "Je back-up is opgeslagen, maar kon niet naar je opslagmap worden gestuurd.",
+    "autoOnlyHere": "Je back-ups staan alleen op deze hub. Stuur een kopie ergens anders heen.",
+    "seeWhy": "Bekijk waarom",
+    "setItUp": "Instellen"
   },
   "updateAvailable": {
     "message": "Update beschikbaar: v{version}",

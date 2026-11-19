@@ -21,6 +21,7 @@ import { readPluginTokensRaw, TOKENS_DIR } from './plugin-auth';
 import { readAuthState, type AuthState } from './auth';
 import { isIpAllowed } from './ip-allowlist';
 import { sanitizePluginId } from './plugin-utils';
+import { AUTO_BACKUP_SECRETS_FILE, readAutoBackupSecrets, sanitizeAutoBackupSecrets } from './auto-backup-secrets';
 import { logger } from './logger';
 import type { StoredOAuthTokens, OAuthTokenStore } from './oauth-token-store';
 import type { PluginTokens } from './plugin-auth-types';
@@ -123,6 +124,11 @@ export async function collectCredentials(): Promise<CredentialPayload> {
   const authIsInteresting =
     !!auth.passwordHash || !!auth.displayToken || (auth.ipAllowlist?.length ?? 0) > 0;
   if (authIsInteresting) payload.auth = auth;
+
+  const { backupPassword, destination } = await readAutoBackupSecrets();
+  if (backupPassword || destination) {
+    payload.autoBackup = { ...(backupPassword ? { backupPassword } : {}), ...(destination ? { destination } : {}) };
+  }
 
   return payload;
 }
@@ -310,6 +316,22 @@ export async function planCredentialRestore(
       await plan('data/auth.json', next);
       applied.push('auth');
     }
+  }
+
+  if (payload.autoBackup !== undefined) {
+    const carried = sanitizeAutoBackupSecrets(payload.autoBackup);
+    // This hub's own download link stays: whatever fetches from it keeps
+    // working, and a backup never carries one to begin with.
+    let current: ReturnType<typeof sanitizeAutoBackupSecrets> = {};
+    try {
+      current = sanitizeAutoBackupSecrets(JSON.parse((await readTransactionFile(AUTO_BACKUP_SECRETS_FILE)) ?? '{}'));
+    } catch { /* unreadable: nothing of this hub's to keep */ }
+    await plan(AUTO_BACKUP_SECRETS_FILE, {
+      ...(carried.backupPassword ? { backupPassword: carried.backupPassword } : {}),
+      ...(carried.destination ? { destination: carried.destination } : {}),
+      ...(current.linkToken ? { linkToken: current.linkToken } : {}),
+    });
+    applied.push('autoBackup');
   }
 
   return { changes, result: { applied, skipped } };

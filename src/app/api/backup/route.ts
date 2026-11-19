@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { promises as fs } from 'fs';
-import { settleTodoMigration } from '@/lib/todo-data';
 import { readConfig } from '@/lib/config';
 import { writeBackupState } from '@/lib/backup-state';
 import { withAuth, parseJsonBody, getClientIP } from '@/lib/api-utils';
 import { newerSchemaProblem, validateConfigForWrite } from '@/lib/config-validation';
 import { planCredentialRestore } from '@/lib/backup-credentials';
-import { withFamilyData } from '@/lib/family-api';
 import { planFamilyRestore } from '@/lib/family-import';
 import { BACKUP_SECTIONS, type BackupContent } from '@/lib/backup-sections';
 import { commitDataTransaction, withDataTransaction } from '@/lib/data-transaction';
@@ -27,6 +25,9 @@ import { audit } from '@/lib/audit';
 import { planCustomIconRestore, readCustomIcons, sweepCustomIconFiles, verifyCustomIconBackup } from '@/lib/custom-icon-data';
 import { missingCustomIconIds } from '@/lib/custom-icon-usage';
 import { inspectRestoreArchive, openArchiveEntry, readArchiveEntryText, stagedArchivePath, type ArchivePictureEntry } from '@/lib/backup-archive';
+import { autoBackupPath } from '@/lib/auto-backup-files';
+import { readAutoBackupSecrets } from '@/lib/auto-backup-secrets';
+import { buildBackupBundle } from '@/lib/backup-compose';
 import { MAX_RESTORE_BYTES } from '@/lib/backup-limits';
 import {
   RESTORE_FREE_SPACE_MARGIN,
@@ -48,33 +49,18 @@ import type { ScreenConfiguration } from '@/types/config';
 export const dynamic = 'force-dynamic';
 
 // GET: export a full backup bundle, one field per section in BACKUP_SECTIONS.
-export const GET = withAuth(async () => withFamilyData(async () => {
-  // The fold rewrites config.json, so let it finish before the reads below:
-  // in parallel the very first export after an upgrade could pair a
-  // pre-fold config with post-fold lists and back up neither faithfully.
-  await settleTodoMigration();
-  const sections = await Promise.all(BACKUP_SECTIONS.map(async (section) => [section.key, await section.read()] as const));
+export const GET = withAuth(async () => {
+  const bundle = await buildBackupBundle();
 
-  const bundle = {
-    _type: 'home-screens-backup',
-    // v2 adds the optional `credentials` section. A v2 bundle without that
-    // section is byte-identical in effect to v1, and v1 bundles still restore.
-    _version: 2,
-    _createdAt: new Date().toISOString(),
-    // A section whose store has nothing saved reads as null and is left out,
-    // so a restore does not create its file.
-    ...Object.fromEntries(sections.filter(([, value]) => value !== null)),
-  };
-
-  // Record backup timestamp before releasing the snapshot lock; write both fields directly
-  // to avoid a read-modify-write race with concurrent dismiss POSTs
+  // Write both fields directly to avoid a read-modify-write race with
+  // concurrent dismiss POSTs.
   await writeBackupState({
     lastBackupDate: new Date().toISOString(),
     lastDismissedDate: null,
   }).catch(() => {});
 
   return NextResponse.json(bundle);
-}), 'Failed to create backup');
+}, 'Failed to create backup');
 
 // Fields a restore bundle may carry beyond its content sections.
 // screens/settings let the legacy config-only format be recognized before it
@@ -96,6 +82,13 @@ interface RestoreBundle extends BackupContent {
   _archive?: unknown;
   /** Transient: drop the archive's `credentials` section (the client cannot strip it itself). */
   _withoutKeys?: unknown;
+  /**
+   * Transient: the name of an automatic backup kept on the hub, restored the
+   * way a staged archive is but never removed afterwards.
+   */
+  _auto?: unknown;
+  /** Transient: unlock an automatic backup's keys with the saved backup password. */
+  _useSavedPassword?: unknown;
   credentials?: unknown;
   /**
    * Optional: the family's own icons, when the export left them in. Not a
@@ -276,35 +269,86 @@ export const POST = withAuth(async (request: NextRequest) => {
   });
   if (posted instanceof NextResponse) return posted;
 
-  // A staged zip: the bundle comes out of the archive, the pictures with it.
-  let archive: string | null = null;
-  let pictureEntries: ArchivePictureEntry[] = [];
-  let skippedEntries = 0;
-  let body = posted;
+  // A zip, staged from a computer or kept on the hub: the bundle comes out of
+  // the archive, the pictures with it. A staged zip is removed once the
+  // restore is over, whatever the outcome; a kept copy never is.
+  let source: { file: string; removeAfter: boolean } | null = null;
   if (posted._archive !== undefined) {
-    archive = stagedArchivePath(posted._archive);
-    const inspected = archive ? await inspectRestoreArchive(archive, MAX_RESTORE_BYTES) : null;
-    if (!archive || !inspected) {
-      return NextResponse.json({ error: 'That backup is no longer on the hub. Pick the file again.' }, { status: 400 });
-    }
-    try {
-      body = JSON.parse(inspected.bundleText) as RestoreBundle;
-    } catch {
-      return NextResponse.json({ error: 'Unrecognized backup format' }, { status: 400 });
-    }
-    if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Unrecognized backup format' }, { status: 400 });
-    if (posted._passphrase !== undefined) body._passphrase = posted._passphrase;
-    if (posted._withoutKeys === true) delete body.credentials;
-    pictureEntries = inspected.pictures;
-    skippedEntries = inspected.skipped;
+    const staged = stagedArchivePath(posted._archive);
+    if (!staged) return NextResponse.json({ error: 'That backup is no longer on the hub. Pick the file again.' }, { status: 400 });
+    source = { file: staged, removeAfter: true };
+  } else if (posted._auto !== undefined) {
+    const kept = autoBackupPath(posted._auto);
+    if (!kept) return NextResponse.json({ error: 'That backup is no longer on the hub.' }, { status: 400 });
+    source = { file: kept, removeAfter: false };
   }
 
   try {
+    let body = posted;
+    let pictureEntries: ArchivePictureEntry[] = [];
+    let skippedEntries = 0;
+    let archive: string | null = null;
+    if (source) {
+      const read = await readRestoreSource(source.file, source.removeAfter
+        ? 'That backup is no longer on the hub. Pick the file again.'
+        : 'That backup is no longer on the hub.');
+      if (read instanceof NextResponse) return read;
+      body = read.bundle;
+      archive = read.archive;
+      pictureEntries = read.pictures;
+      skippedEntries = read.skipped;
+      if (posted._passphrase !== undefined) body._passphrase = posted._passphrase;
+      // The password saved for automatic backups unlocks their keys without
+      // ever leaving the hub.
+      if (posted._auto !== undefined && posted._useSavedPassword === true) {
+        const { backupPassword } = await readAutoBackupSecrets();
+        if (backupPassword) body._passphrase = backupPassword;
+      }
+      if (posted._withoutKeys === true) delete body.credentials;
+    }
     return await restore(request, body, archive, pictureEntries, skippedEntries);
   } finally {
-    if (archive) await fs.rm(archive, { force: true }).catch(() => {});
+    if (source?.removeAfter) await fs.rm(source.file, { force: true }).catch(() => {});
   }
 }, 'Failed to restore backup');
+
+/**
+ * The bundle of a backup file on the hub, and the pictures beside it when it
+ * is a zip. A JSON copy is read whole under the same cap a posted one has.
+ */
+async function readRestoreSource(file: string, goneMessage: string): Promise<
+  { bundle: RestoreBundle; archive: string | null; pictures: ArchivePictureEntry[]; skipped: number } | NextResponse
+> {
+  const gone = () => NextResponse.json({ error: goneMessage }, { status: 400 });
+  const unrecognized = () => NextResponse.json({ error: 'Unrecognized backup format' }, { status: 400 });
+  let text: string;
+  let archive: string | null = null;
+  let pictures: ArchivePictureEntry[] = [];
+  let skipped = 0;
+  if (file.endsWith('.zip')) {
+    const inspected = await inspectRestoreArchive(file, MAX_RESTORE_BYTES);
+    if (!inspected) return gone();
+    text = inspected.bundleText;
+    archive = file;
+    pictures = inspected.pictures;
+    skipped = inspected.skipped;
+  } else {
+    try {
+      if ((await fs.stat(file)).size > MAX_RESTORE_BYTES) return unrecognized();
+      text = await fs.readFile(file, 'utf8');
+    } catch {
+      return gone();
+    }
+  }
+  let bundle: RestoreBundle;
+  try {
+    bundle = JSON.parse(text) as RestoreBundle;
+  } catch {
+    return unrecognized();
+  }
+  if (!bundle || typeof bundle !== 'object') return unrecognized();
+  return { bundle, archive, pictures, skipped };
+}
 
 async function restore(
   request: NextRequest,
@@ -321,6 +365,8 @@ async function restore(
     delete body._passphrase;
     delete body._archive;
     delete body._withoutKeys;
+    delete body._auto;
+    delete body._useSavedPassword;
 
     // Every section is written whole, and a malformed one would break every
     // read after the restore, so each is held to the rule its own save

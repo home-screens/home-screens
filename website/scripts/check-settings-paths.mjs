@@ -31,7 +31,7 @@ const TABS = {
   calendar: ['ical / ics feeds', 'ical feeds', 'sign in with google', 'icloud calendar', 'people', 'public holidays', 'source status'],
   security: ['display key', 'allowed networks', 'set a password'],
   'system & updates': ['check for updates', 'if an update caused trouble', 'if something seems stuck', 'restart the whole device', 'show advanced options', 'advanced'],
-  'backups & data': ['save a copy', 'automatic snapshots', 'share layout', 'templates', 'backup reminder'],
+  'backups & data': ['save a copy', 'automatic backups', 'snapshots before updates', 'share layout', 'templates', 'backup reminder'],
   status: ['diagnostics bundle', 'anonymous telemetry', 'last seen'],
   'on your phone': [],
   'api keys': [],

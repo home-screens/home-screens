@@ -122,3 +122,77 @@ describe('useBackupReminder file name', () => {
     expect(hook.result.current.shouldShow).toBe(true);
   });
 });
+
+describe('useBackupReminder with automatic backups', () => {
+  const recent = () => new Date(Date.now() - 86_400_000).toISOString();
+  /** A hub answering the reminder with an `auto` block. */
+  function hubWith(state: Record<string, unknown>) {
+    return vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/api/backup/reminder' && !init?.method) return Promise.resolve(new Response(JSON.stringify(state)));
+      return Promise.resolve(new Response(JSON.stringify(state)));
+    });
+  }
+
+  it('says the automatic backup failed even with the reminder switched off', async () => {
+    const fetchFn = hubWith({
+      lastBackupDate: recent(),
+      lastDismissedDate: null,
+      auto: { enabled: true, failed: 'backup', failedAt: new Date().toISOString(), offsiteAt: null },
+    });
+    const { result } = renderHook(() => useBackupReminder({ enabled: false, intervalDays: 7, fetchFn, autoBackupEnabled: true }));
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+    expect(result.current.autoFailed).toBe('backup');
+  });
+
+  it('stays quiet about a failure that was dismissed after it happened', async () => {
+    const failedAt = new Date(Date.now() - 3_600_000).toISOString();
+    const fetchFn = hubWith({
+      lastBackupDate: recent(),
+      lastDismissedDate: new Date().toISOString(),
+      auto: { enabled: true, failed: 'offsite', failedAt, offsiteAt: null },
+    });
+    const { result } = renderHook(() => useBackupReminder({ enabled: false, intervalDays: 7, fetchFn, autoBackupEnabled: true }));
+    await waitFor(() => expect(fetchFn).toHaveBeenCalled());
+    await act(async () => {});
+    expect(result.current.autoFailed).toBeNull();
+    expect(result.current.shouldShow).toBe(false);
+  });
+
+  it('counts a copy that left the hub by itself as a backup', async () => {
+    const fetchFn = hubWith({
+      lastBackupDate: staleBackupDate(),
+      lastDismissedDate: null,
+      auto: { enabled: true, failed: null, failedAt: null, offsiteAt: recent() },
+    });
+    const { result } = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn, autoBackupEnabled: true }));
+    await waitFor(() => expect(fetchFn).toHaveBeenCalled());
+    await act(async () => {});
+    expect(result.current.shouldShow).toBe(false);
+    expect(result.current.daysSinceBackup).toBe(1);
+  });
+
+  it('asks for a copy somewhere else when the automatic ones never leave the hub', async () => {
+    const fetchFn = hubWith({
+      lastBackupDate: staleBackupDate(),
+      lastDismissedDate: null,
+      auto: { enabled: true, failed: null, failedAt: null, offsiteAt: null },
+    });
+    const { result } = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn, autoBackupEnabled: true }));
+    await waitFor(() => expect(result.current.shouldShow).toBe(true));
+    expect(result.current.autoLocalOnly).toBe(true);
+    expect(result.current.autoFailed).toBeNull();
+  });
+
+  it('ignores the automatic block when the switch is off on this surface', async () => {
+    const fetchFn = hubWith({
+      lastBackupDate: recent(),
+      lastDismissedDate: null,
+      auto: { enabled: true, failed: 'backup', failedAt: new Date().toISOString(), offsiteAt: null },
+    });
+    const { result } = renderHook(() => useBackupReminder({ enabled: true, intervalDays: 7, fetchFn }));
+    await waitFor(() => expect(fetchFn).toHaveBeenCalled());
+    await act(async () => {});
+    expect(result.current.autoFailed).toBeNull();
+    expect(result.current.shouldShow).toBe(false);
+  });
+});

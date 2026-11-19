@@ -803,7 +803,7 @@
         "noBackups": "Aún no hay copias registradas"
       },
       "configBackups": {
-        "heading": "Instantáneas automáticas",
+        "heading": "Instantáneas antes de actualizar",
         "description": "Home Screens guarda una instantánea de tus ajustes antes de cada actualización, para poder deshacer una actualización fallida. No hay que configurar nada.",
         "empty": "Aún no hay copias. Las copias se crean automáticamente antes de cada actualización.",
         "sizeKb": "{size} KB",
@@ -841,7 +841,12 @@
         "noRecoveryNote": "Esta contraseña no se puede recuperar. Sin ella, las claves de este archivo no se pueden leer.",
         "skipButton": "Restaurar sin mis claves",
         "continueButton": "Hacer copia",
-        "unlockButton": "Desbloquear"
+        "unlockButton": "Desbloquear",
+        "saveDescription": "Esta contraseña bloquea las claves y las cuentas dentro de cada copia automática. La necesitarás para volver a ponerlas.",
+        "saveButton": "Guardar",
+        "enterSavedDescription": "Tus claves y cuentas de esta copia están bloqueadas con la contraseña de las copias.",
+        "useSaved": "Usar la contraseña guardada",
+        "orTypeOne": "O escribe otra"
       },
       "restore": {
         "completeTitle": "Restauración terminada",
@@ -854,13 +859,201 @@
         "wrongPassword": "Esa contraseña no ha funcionado. Inténtalo de nuevo o restaura sin tus claves.",
         "damagedKeys": "Las claves de este archivo están dañadas y no se pueden leer. Aun así puedes restaurar todo lo demás.",
         "reloadFailed": "Tu copia se restauró, pero el editor no pudo recargarse. Actualiza la página para verlo.",
-        "finished": "Restauración terminada. Todo lo que había en esa copia está de vuelta."
+        "finished": "Restauración terminada. Todo lo que había en esa copia está de vuelta.",
+        "savedPasswordWrong": "La contraseña guardada no abre esta copia. Escribe la contraseña con la que se hizo."
       },
       "description": "Guarda una copia de todo, restáurala o empieza desde una plantilla.",
       "restoreConfirm": {
         "title": "¿Restaurar desde un archivo?",
         "message": "Esto sustituye todos tus ajustes, pantallas, tareas y menús por lo que haya en el archivo. Todo lo que hayas cambiado desde que se creó ese archivo se perderá. Esto no se puede deshacer, así que guarda antes una copia de seguridad si quieres poder recuperar la configuración de hoy.",
         "confirm": "Elegir un archivo…"
+      },
+      "autoBackup": {
+        "heading": "Copias automáticas",
+        "description": "Home Screens puede hacer copias por su cuenta y guardar las más recientes en este hub. También puedes enviar cada una a otro sitio, para que esté a salvo si este hub se estropea.",
+        "toggleLabel": "Hacer copias automáticamente",
+        "everyLabel": "Frecuencia",
+        "every": {
+          "day": "Cada día",
+          "week": "Cada semana",
+          "month": "Cada mes"
+        },
+        "timeLabel": "Hora",
+        "timeHelp": "Elige una hora en la que nadie esté usando Home Screens.",
+        "keepLabel": "Conservar",
+        "keepUnit": {
+          "one": "copia",
+          "other": "copias"
+        },
+        "keepHelp": "Las copias más antiguas se borran para hacer sitio.",
+        "picturesHelp": "Las imágenes hacen que cada copia ocupe mucho más. En la mayoría de las casas basta con una vez a la semana.",
+        "keys": {
+          "label": "Incluir mis claves y cuentas conectadas",
+          "help": "Siempre van bloqueadas con la contraseña de las copias, porque estas pueden salir de tu casa.",
+          "needsEditorPassword": "Primero hace falta una contraseña, para que el archivo no lo pueda leer cualquiera que lo encuentre.",
+          "setEditorPassword": "Poner una contraseña del editor en Seguridad",
+          "passwordSaved": "Contraseña de las copias guardada",
+          "change": "Cambiar",
+          "passwordNote": "Necesitas esta contraseña para volver a poner tus claves. Apúntala en un sitio seguro.",
+          "passwordMissing": "Elige una contraseña de las copias para incluir tus claves. Hasta que lo hagas, las copias se guardan sin ellas.",
+          "choosePassword": "Elegir una contraseña"
+        },
+        "when": {
+          "today": "hoy, {time}",
+          "yesterday": "ayer, {time}",
+          "tomorrow": "mañana, {time}",
+          "day": "{day}, {time}"
+        },
+        "lastLabel": "Última copia:",
+        "lastGoodLabel": "Última copia correcta:",
+        "nextLabel": "Próxima copia:",
+        "nextTryLabel": "Próximo intento:",
+        "last": {
+          "sent": "{when}. Se envió a tu carpeta en red.",
+          "failed": "{when}. No se pudo hacer. {reason}",
+          "noPictures": "{when}. Se hizo sin tus imágenes: ocupan {needed} y en este hub solo quedan {free} libres.",
+          "noKeys": "{when}. Se hizo sin tus claves."
+        },
+        "errors": {
+          "no-room": "No hay suficiente espacio en este hub.",
+          "failed": "Algo salió mal al guardarla."
+        },
+        "onlyHere": "Estas copias solo están en este hub. Envía también una copia a otro sitio para tenerlas a salvo.",
+        "backUpNow": "Hacer copia ahora",
+        "backingUp": "Haciendo copia…",
+        "runRefused": {
+          "busy": "Ahora mismo se está guardando una copia. Vuelve a intentarlo en un momento.",
+          "updating": "Se está instalando una actualización. Vuelve a intentarlo cuando termine.",
+          "failed": "No se pudo conectar con el hub para empezar la copia."
+        },
+        "loadFailed": "No se pudieron cargar tus copias automáticas. Recarga la página para volver a intentarlo.",
+        "saveFailed": "No se pudo guardar. Vuelve a intentarlo.",
+        "offsite": {
+          "heading": "Enviar una copia a otro sitio",
+          "description": "Si la tarjeta de memoria del hub se estropea, las copias que hay en él se pierden. Envía cada una también a otro sitio."
+        },
+        "folder": {
+          "name": "Carpeta en red",
+          "description": "Home Screens envía cada copia a una carpeta de tu propio almacenamiento: una carpeta compartida en un NAS o un ordenador, o Nextcloud y otros almacenamientos con WebDAV.",
+          "setUp": "Configurar",
+          "change": "Cambiar",
+          "check": "Comprobar que funciona",
+          "checking": "Comprobando…",
+          "sendingTo": "Enviando a {host} con el usuario {user}",
+          "sendingToShare": "Enviando a la carpeta compartida {share} de {host} con el usuario {user}",
+          "lastSent": "último envío: {when}",
+          "notSentYet": "aún no se ha enviado nada",
+          "failing": "No se pudo enviar la última copia.",
+          "lastSentRetry": "Último envío: {when}. Home Screens lo vuelve a intentar cada hora.",
+          "retry": "Home Screens lo vuelve a intentar cada hora.",
+          "kindLegend": "¿Cómo comparte archivos tu almacenamiento?",
+          "kindShare": "Carpeta compartida (SMB)",
+          "kindShareHelp": "Una carpeta que compartes desde un NAS, un PC con Windows o un Mac.",
+          "kindWebdav": "WebDAV",
+          "kindWebdavHelp": "Nextcloud, ownCloud o un NAS Synology o QNAP con WebDAV activado.",
+          "address": "Dirección de la carpeta",
+          "addressHelp": "Es la dirección WebDAV que muestra tu almacenamiento. La carpeta ya tiene que existir.",
+          "shareAddress": "Dirección de la carpeta compartida",
+          "shareAddressHelp": "Escríbela tal como la muestra tu ordenador, por ejemplo \\\\nas.local\\Backups o smb://nas.local/Backups. Si quieres, añade una subcarpeta al final. Home Screens la crea si no existe.",
+          "username": "Usuario",
+          "password": "Contraseña",
+          "passwordKeep": "Déjala en blanco para mantener la guardada",
+          "passwordNewServer": "Escribe la contraseña de {host}. Una contraseña guardada solo se envía al servidor para el que se escribió.",
+          "save": "Guardar",
+          "cancel": "Cancelar",
+          "remove": "Dejar de enviar aquí",
+          "works": "Funciona. Se ha guardado un archivo de prueba en la carpeta y se ha vuelto a borrar.",
+          "worksShare": "Funciona. Se ha guardado un archivo de prueba en la carpeta compartida y se ha vuelto a borrar.",
+          "sharesOffered": "No hay ninguna carpeta compartida llamada {share} en {host}. Estas son las que tiene:",
+          "httpWarning": "Esta dirección empieza por http, así que tu contraseña podría leerse por el camino. Usa una que empiece por https si tu almacenamiento la tiene.",
+          "outsideHomeWarning": "Este servidor no está en tu casa. Las carpetas compartidas no están pensadas para usarse desde fuera de casa, y la mayoría de las compañías de internet las bloquean. Usa WebDAV con una dirección https.",
+          "formErrors": {
+            "url_invalid": "La dirección de la carpeta no es una dirección web.",
+            "url_scheme": "La dirección de la carpeta tiene que empezar por http:// o https://.",
+            "url_credentials": "Pon el usuario y la contraseña en sus propias casillas, no en la dirección.",
+            "address_invalid": "Esa no es la dirección de una carpeta compartida. Escríbela así: \\\\nas.local\\Backups.",
+            "address_no_share": "Añade el nombre de la carpeta compartida después del servidor, por ejemplo \\\\nas.local\\Backups.",
+            "address_credentials": "Pon el usuario y la contraseña en sus propias casillas, no en la dirección.",
+            "address_bad_character": "La dirección tiene un carácter que una carpeta compartida no puede usar.",
+            "kind_invalid": "Elige «Carpeta compartida (SMB)» o «WebDAV».",
+            "username_required": "Escribe el usuario con el que entras en tu almacenamiento.",
+            "password_required": "Escribe la contraseña con la que entras en tu almacenamiento.",
+            "password_too_long": "Esa contraseña es demasiado larga.",
+            "not_set_up": "Primero configura una carpeta en red.",
+            "failed": "No se pudo guardar. Vuelve a intentarlo."
+          },
+          "removeConfirm": {
+            "title": "¿Dejar de enviar copias aquí?",
+            "message": "Las copias que ya están en la carpeta se quedan ahí. Home Screens deja de enviar copias nuevas.",
+            "confirm": "Dejar de enviar"
+          }
+        },
+        "offsiteErrors": {
+          "sign-in": "No se aceptó el usuario o la contraseña.",
+          "not-found": "No se encontró esa carpeta.",
+          "no-room": "Tu almacenamiento está lleno.",
+          "too-big": "Tu almacenamiento no admite un archivo tan grande.",
+          "unreachable": "Home Screens no pudo conectar con tu almacenamiento.",
+          "timeout": "Tu almacenamiento tardó demasiado en responder.",
+          "redirect": "Tu almacenamiento redirigió a Home Screens a otra dirección. Usa la dirección final.",
+          "certificate": "No se pudo comprobar el certificado de seguridad de tu almacenamiento. Usa su dirección http dentro de casa o ponle un certificado válido.",
+          "refused": "Tu almacenamiento no aceptó la copia.",
+          "share-not-found": "No hay ninguna carpeta compartida llamada {share} en {host}.",
+          "no-write": "{user} no puede guardar archivos en la carpeta compartida {share}. En tu almacenamiento, deja que {user} cambie archivos en ella.",
+          "too-old": "Este almacenamiento solo ofrece una forma antigua de compartir archivos. Activa SMB 2 o posterior en sus ajustes."
+        },
+        "link": {
+          "name": "Enlace privado de descarga",
+          "description": "Una dirección web secreta que otro ordenador puede usar para descargar la copia más reciente. Útil si ese ordenador tiene su propio horario de copias.",
+          "make": "Crear un enlace",
+          "show": "Mostrar enlace",
+          "hide": "Ocultar enlace",
+          "lastFetched": "Última descarga: {when}",
+          "notFetched": "Aún no se ha descargado",
+          "copy": "Copiar",
+          "copied": "Copiado",
+          "warning": "Cualquiera que tenga este enlace puede descargar tu copia más reciente, así que no lo compartas. Solo funciona dentro de tu casa, salvo que hayas abierto el hub para usarlo desde fuera.",
+          "makeNew": "Crear un enlace nuevo",
+          "remove": "Quitar enlace",
+          "newConfirm": {
+            "title": "¿Crear un enlace nuevo?",
+            "message": "El enlace anterior deja de funcionar al momento. Lo que descargue tus copias con él necesitará el nuevo.",
+            "confirm": "Crear un enlace nuevo"
+          },
+          "removeConfirm": {
+            "title": "¿Quitar el enlace?",
+            "message": "Lo que descargue tus copias con este enlace dejará de funcionar.",
+            "confirm": "Quitar enlace"
+          }
+        },
+        "copies": {
+          "heading": "Copias en este hub",
+          "empty": "Aún no hay copias.",
+          "emptyNext": "Aún no hay copias. Primera copia: {when}.",
+          "keys": "Claves",
+          "pictures": "Imágenes",
+          "download": "Descargar",
+          "restore": "Restaurar",
+          "remove": "Eliminar",
+          "showAll": "Mostrar las {count}",
+          "showFewer": "Mostrar menos",
+          "gone": "Esa copia ya no está en el hub.",
+          "restoreConfirm": {
+            "title": "¿Restaurar esta copia?",
+            "saved": "Guardada el {when}.",
+            "message": "Esto sustituye todos tus ajustes, pantallas, tareas y menús por lo que haya en la copia. Todo lo que hayas cambiado desde entonces se perderá.",
+            "pictures": {
+              "one": "Recupera {count} imagen ({size}).",
+              "other": "Recupera {count} imágenes y vídeos ({size})."
+            },
+            "confirm": "Restaurar"
+          },
+          "removeConfirm": {
+            "title": "¿Eliminar esta copia?",
+            "message": "Guardada el {when}. Se eliminará de este hub. Las copias que ya se enviaron a otro sitio se quedan donde están.",
+            "confirm": "Eliminar"
+          }
+        }
       }
     },
     "weatherPage": {
@@ -5657,7 +5850,12 @@
     },
     "downloading": "Descargando…",
     "backupNow": "Hacer copia ahora",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "autoFailed": "La copia automática no ha funcionado.",
+    "autoNotSent": "Tu copia se ha guardado, pero no se ha podido enviar a tu carpeta en red.",
+    "autoOnlyHere": "Tus copias solo están en este hub. Envía una copia a otro sitio.",
+    "seeWhy": "Ver por qué",
+    "setItUp": "Configurar"
   },
   "updateAvailable": {
     "message": "Actualización disponible: v{version}",

@@ -357,7 +357,8 @@ Two things to know: addresses with colons (IPv6) never match, so add the IPv4 ra
 - **Save a copy**: **Save a backup** downloads everything, chores and meals included. Tick **Include my keys and connected accounts** to add them, and **Protect them with a password** to lock them inside the file ([details](/docs/configuration#backing-up-your-keys)). **Include your icons** adds the pictures your family added as icons; each computer and phone remembers the choice. **Restore from a file** puts a backup back; a locked backup asks for its password and offers **Restore without my keys**.
 - **Share Layout**: **Export Layout** writes only screens and modules, with no personal data, and is the safe one to hand to someone else. **Import Layout** brings one in as new screens.
 - **Templates**: **Browse Templates** starts a screen from a ready-made layout while keeping your settings.
-- **Automatic snapshots** are taken before every update, each with **Download** and **Restore**.
+- **Automatic backups**: **Back up by itself** saves a backup on the hub every day, week or month at the **Time** you pick, keeps the last few (**Keep the last**), and can carry **Pictures** and your keys (locked with a backup password the hub keeps). **Back up now** saves one straight away. **Send a copy somewhere else** sends each one to a **Storage folder** (a network share on a NAS, Windows PC or Mac, or Nextcloud and other WebDAV storage) or offers a **Private download link** for a home server to fetch. **Backups on this hub** lists them with **Download**, **Restore** and **Remove** ([details](/docs/configuration#automatic-backups)).
+- **Snapshots before updates** are taken before every update, each with **Download** and **Restore**.
 - **Backup Reminder**: **Remind me if I haven't backed up**, with **Remind after** a number of days.
 
 ### Status

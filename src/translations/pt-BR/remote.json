@@ -48,7 +48,9 @@
     "daysAgoPlural": "Você não faz backup há {n} dias.",
     "backupButton": "Backup",
     "savingButton": "Salvando…",
-    "dismissAriaLabel": "Dispensar"
+    "dismissAriaLabel": "Dispensar",
+    "autoFailed": "O backup automático não funcionou. Abra as Configurações em um computador para ver por quê.",
+    "autoNotSent": "Seu backup foi salvo, mas não pôde ser enviado para sua pasta na rede. Abra as Configurações em um computador para ver por quê."
   },
   "updateAvailable": {
     "message": "Atualização disponível: v{version}",
